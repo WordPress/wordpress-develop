@@ -5,6 +5,11 @@
  */
 class Tests_Admin_includesPost extends WP_UnitTestCase {
 
+	function tearDown() {
+		wp_set_current_user( 0 );
+		parent::tearDown();
+	}
+
 	function test__wp_translate_postdata_cap_checks_contributor() {
 		$contributor_id = $this->factory->user->create( array( 'role' => 'contributor' ) );
 		$editor_id = $this->factory->user->create( array( 'role' => 'editor' ) );
@@ -56,8 +61,6 @@ class Tests_Admin_includesPost extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Error', $_results );
 		$this->assertEquals( 'edit_others_posts', $_results->get_error_code() );
 		$this->assertEquals( 'You are not allowed to edit posts as this user.', $_results->get_error_message() );
-
-		wp_set_current_user( 0 );
 	}
 
 	function test__wp_translate_postdata_cap_checks_editor() {
@@ -111,7 +114,24 @@ class Tests_Admin_includesPost extends WP_UnitTestCase {
 		$this->assertNotInstanceOf( 'WP_Error', $_results );
 		$this->assertEquals( $_post_data['post_author'], $_results['post_author'] );
 		$this->assertEquals( 'draft', $_results['post_status'] );
+	}
 
-		wp_set_current_user( 0 );
+	/**
+	 * @ticket 27734
+	 */
+	function test_edit_post_promotes_auto_draft_to_draft() {
+		$admin = $this->factory->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin );
+
+		$post = get_default_post_to_edit( 'post', true );
+		$post_data = array(
+			'post_ID' => $post->ID,
+			'post_type' => 'post',
+			'post_content' => 'Some content',
+		);
+		$this->assertEquals( 'auto-draft', $post->post_status );
+		edit_post( $post_data );
+		$updated = get_post( $post->ID );
+		$this->assertEquals( 'draft', $updated->post_status );
 	}
 }
