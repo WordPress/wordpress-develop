@@ -134,4 +134,47 @@ class Tests_Admin_includesPost extends WP_UnitTestCase {
 		$updated = get_post( $post->ID );
 		$this->assertEquals( 'draft', $updated->post_status );
 	}
+
+	/**
+	 * @ticket 27792
+	 */
+	function test_bulk_edit_posts_stomping() {
+		$admin = $this->factory->user->create( array( 'role' => 'administrator' ) );
+		$users = $this->factory->user->create_many( 2, array( 'role' => 'author' ) );
+		wp_set_current_user( $admin );
+
+		$post1 = $this->factory->post->create( array(
+			'post_author'    => $users[0],
+			'comment_status' => 'open',
+			'ping_status'    => 'open',
+			'post_status'    => 'publish',
+		) );
+
+		$post2 = $this->factory->post->create( array(
+			'post_author'    => $users[1],
+			'comment_status' => 'closed',
+			'ping_status'    => 'closed',
+			'post_status'    => 'draft',
+		) );
+
+		$request = array(
+			'post_type'        => 'post',
+			'post_author'      => -1,
+			'ping_status'      => -1,
+			'comment_status'   => -1,
+			'_status'          => -1,
+			'post'             => array( $post1, $post2 ),
+		);
+
+		$done = bulk_edit_posts( $request );
+
+		$post = get_post( $post2 );
+
+		// Check that the first post's values don't stomp the second post.
+		$this->assertEquals( 'draft', $post->post_status );
+		$this->assertEquals( $users[1], $post->post_author );
+		$this->assertEquals( 'closed', $post->comment_status );
+		$this->assertEquals( 'closed', $post->ping_status );
+	}
+
 }
