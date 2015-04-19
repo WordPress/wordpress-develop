@@ -30,8 +30,8 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	}
 
 	function tearDown() {
-		parent::tearDown();
 		$GLOBALS['wp_rewrite']->init();
+		parent::tearDown();
 	}
 
 	function test_home() {
