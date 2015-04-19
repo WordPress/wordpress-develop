@@ -20,8 +20,8 @@ class Tests_Canonical_PageOnFront extends Tests_Canonical {
 
 	function tearDown() {
 		global $wp_rewrite;
-		parent::tearDown();
 		$wp_rewrite->init();
+		parent::tearDown();
 	}
 
 	function data() {
