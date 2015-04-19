@@ -19,8 +19,8 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	}
 
 	function tearDown() {
-		parent::tearDown();
 		$GLOBALS['wp_rewrite']->init();
+		parent::tearDown();
 	}
 
 	function test_url_to_postid() {
