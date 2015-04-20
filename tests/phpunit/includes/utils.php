@@ -363,3 +363,20 @@ function _unregister_post_type( $cpt_name ) {
 function _unregister_taxonomy( $taxonomy_name ) {
 	unset( $GLOBALS['wp_taxonomies'][$taxonomy_name] );
 }
+
+/**
+ * Special class for exposing protected wpdb methods we need to access
+ */
+class wpdb_exposed_methods_for_testing extends wpdb {
+	public function __construct() {
+		global $wpdb;
+		$this->dbh = $wpdb->dbh;
+		$this->ready = true;
+		$this->field_types = $wpdb->field_types;
+		$this->charset = $wpdb->charset;
+	}
+
+	public function __call( $name, $arguments ) {
+		return call_user_func_array( array( $this, $name ), $arguments );
+	}
+}
