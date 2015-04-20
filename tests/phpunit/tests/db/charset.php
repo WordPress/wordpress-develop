@@ -517,7 +517,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 		self::$_wpdb->query( $create );
 
-		$return = self::$_wpdb->check_collation( $query );
+		$return = self::$_wpdb->check_safe_collation( $query );
 		$this->assertEquals( $expected, $return );
 
 		self::$_wpdb->query( $drop );
