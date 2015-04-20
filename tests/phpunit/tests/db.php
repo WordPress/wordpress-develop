@@ -14,6 +14,16 @@ class Tests_DB extends WP_UnitTestCase {
 	protected $_queries = array();
 
 	/**
+	 * Our special WPDB
+	 * @var resource
+	 */
+	protected static $_wpdb;
+
+	public static function setUpBeforeClass() {
+		self::$_wpdb = new wpdb_exposed_methods_for_testing();
+	}
+
+	/**
 	 * Set up the test fixture
 	 */
 	public function setUp() {
@@ -26,8 +36,8 @@ class Tests_DB extends WP_UnitTestCase {
 	 * Tear down the test fixture
 	 */
 	public function tearDown() {
-		parent::tearDown();
 		remove_filter( 'query', array( $this, 'query_filter' ) );
+		parent::tearDown();
 	}
 
 	/**
@@ -224,6 +234,21 @@ class Tests_DB extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 21212
+	 */
+	function test_wpdb_actually_protected_properties() {
+		global $wpdb;
+
+		$new_meta = "HAHA I HOPE THIS DOESN'T WORK";
+
+		$col_meta = $wpdb->col_meta;
+		$wpdb->col_meta = $new_meta;
+
+		$this->assertNotEquals( $col_meta, $new_meta );
+		$this->assertEquals( $col_meta, $wpdb->col_meta );
+	}
+
+	/**
 	 * @ticket 18510
 	 */
 	function test_wpdb_nonexistent_properties() {
@@ -257,9 +282,11 @@ class Tests_DB extends WP_UnitTestCase {
 		$current_modes = $wpdb->get_var( 'SELECT @@SESSION.sql_mode;' );
 
 		$new_modes = array( 'IGNORE_SPACE', 'NO_AUTO_CREATE_USER' );
+
 		$wpdb->set_sql_mode( $new_modes );
+
 		$check_new_modes = $wpdb->get_var( 'SELECT @@SESSION.sql_mode;' );
-		$this->assertEquals( implode( ',', $new_modes ), $check_new_modes );
+		$this->assertEqualSets( $new_modes, explode( ',', $check_new_modes ) );
 
 		$wpdb->set_sql_mode( explode( ',', $current_modes ) );
 	}
@@ -276,7 +303,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$new_modes = array( 'IGNORE_SPACE', 'NO_ZERO_DATE', 'NO_AUTO_CREATE_USER' );
 		$wpdb->set_sql_mode( $new_modes );
 		$check_new_modes = $wpdb->get_var( 'SELECT @@SESSION.sql_mode;' );
-		$this->assertFalse( in_array( 'NO_ZERO_DATE', explode( ',', $check_new_modes ) ) );
+		$this->assertNotContains( 'NO_ZERO_DATE', explode( ',', $check_new_modes ) );
 
 		$wpdb->set_sql_mode( explode( ',', $current_modes ) );
 	}
@@ -290,20 +317,20 @@ class Tests_DB extends WP_UnitTestCase {
 
 		$current_modes = $wpdb->get_var( 'SELECT @@SESSION.sql_mode;' );
 
-		$new_modes = array( 'IGNORE_SPACE', 'NO_ZERO_DATE', 'NO_AUTO_CREATE_USER' );
+		$new_modes = array( 'IGNORE_SPACE', 'ONLY_FULL_GROUP_BY', 'NO_AUTO_CREATE_USER' );
 
 		add_filter( 'incompatible_sql_modes', array( $this, 'filter_allowed_incompatible_sql_mode' ), 1, 1 );
 		$wpdb->set_sql_mode( $new_modes );
 		remove_filter( 'incompatible_sql_modes', array( $this, 'filter_allowed_incompatible_sql_mode' ), 1 );
 
 		$check_new_modes = $wpdb->get_var( 'SELECT @@SESSION.sql_mode;' );
-		$this->assertTrue( in_array( 'NO_ZERO_DATE', explode( ',', $check_new_modes ) ) );
+		$this->assertContains( 'ONLY_FULL_GROUP_BY', explode( ',', $check_new_modes ) );
 
 		$wpdb->set_sql_mode( explode( ',', $current_modes ) );
 	}
 
 	public function filter_allowed_incompatible_sql_mode( $modes ) {
-		$pos = array_search( 'NO_ZERO_DATE', $modes );
+		$pos = array_search( 'ONLY_FULL_GROUP_BY', $modes );
 		$this->assertGreaterThanOrEqual( 0, $pos );
 
 		if ( FALSE === $pos ) {
@@ -458,4 +485,276 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertEquals( $expected2, $wpdb->last_query );
 		$wpdb->suppress_errors( $suppress );
 	}
+
+	/**
+	 * @ticket 21212
+	 */
+	function data_get_table_from_query() {
+		$table = 'a_test_table_name';
+
+		$queries = array(
+			// Basic
+			"SELECT * FROM $table",
+			"SELECT * FROM `$table`",
+
+			"INSERT $table",
+			"INSERT IGNORE $table",
+			"INSERT IGNORE INTO $table",
+			"INSERT INTO $table",
+			"INSERT LOW_PRIORITY $table",
+			"INSERT DELAYED $table",
+			"INSERT HIGH_PRIORITY $table",
+			"INSERT LOW_PRIORITY IGNORE $table",
+			"INSERT LOW_PRIORITY INTO $table",
+			"INSERT LOW_PRIORITY IGNORE INTO $table",
+
+			"REPLACE $table",
+			"REPLACE INTO $table",
+			"REPLACE LOW_PRIORITY $table",
+			"REPLACE DELAYED $table",
+			"REPLACE LOW_PRIORITY INTO $table",
+
+			"UPDATE LOW_PRIORITY $table",
+			"UPDATE LOW_PRIORITY IGNORE $table",
+
+			"DELETE $table",
+			"DELETE IGNORE $table",
+			"DELETE IGNORE FROM $table",
+			"DELETE FROM $table",
+			"DELETE LOW_PRIORITY $table",
+			"DELETE QUICK $table",
+			"DELETE IGNORE $table",
+			"DELETE LOW_PRIORITY FROM $table",
+
+			// STATUS
+			"SHOW TABLE STATUS LIKE '$table'",
+			"SHOW TABLE STATUS WHERE NAME='$table'",
+
+			"SHOW TABLES LIKE '$table'",
+			"SHOW FULL TABLES LIKE '$table'",
+			"SHOW TABLES WHERE NAME='$table'",
+
+			// Extended
+			"EXPLAIN SELECT * FROM $table",
+			"EXPLAIN EXTENDED SELECT * FROM $table",
+			"EXPLAIN EXTENDED SELECT * FROM `$table`",
+
+			"DESCRIBE $table",
+			"DESC $table",
+			"EXPLAIN $table",
+			"HANDLER $table",
+
+			"LOCK TABLE $table",
+			"LOCK TABLES $table",
+			"UNLOCK TABLE $table",
+
+			"RENAME TABLE $table",
+			"OPTIMIZE TABLE $table",
+			"BACKUP TABLE $table",
+			"RESTORE TABLE $table",
+			"CHECK TABLE $table",
+			"CHECKSUM TABLE $table",
+			"ANALYZE TABLE $table",
+			"REPAIR TABLE $table",
+
+			"TRUNCATE $table",
+			"TRUNCATE TABLE $table",
+
+			"CREATE TABLE $table",
+			"CREATE TEMPORARY TABLE $table",
+			"CREATE TABLE IF NOT EXISTS $table",
+
+			"ALTER TABLE $table",
+			"ALTER IGNORE TABLE $table",
+
+			"DROP TABLE $table",
+			"DROP TABLE IF EXISTS $table",
+
+			"CREATE INDEX foo(bar(20)) ON $table",
+			"CREATE UNIQUE INDEX foo(bar(20)) ON $table",
+			"CREATE FULLTEXT INDEX foo(bar(20)) ON $table",
+			"CREATE SPATIAL INDEX foo(bar(20)) ON $table",
+
+			"DROP INDEX foo ON $table",
+
+			"LOAD DATA INFILE 'wp.txt' INTO TABLE $table",
+			"LOAD DATA LOW_PRIORITY INFILE 'wp.txt' INTO TABLE $table",
+			"LOAD DATA CONCURRENT INFILE 'wp.txt' INTO TABLE $table",
+			"LOAD DATA LOW_PRIORITY LOCAL INFILE 'wp.txt' INTO TABLE $table",
+			"LOAD DATA INFILE 'wp.txt' REPLACE INTO TABLE $table",
+			"LOAD DATA INFILE 'wp.txt' IGNORE INTO TABLE $table",
+
+			"GRANT ALL ON TABLE $table",
+			"REVOKE ALL ON TABLE $table",
+
+			"SHOW COLUMNS FROM $table",
+			"SHOW FULL COLUMNS FROM $table",
+			"SHOW CREATE TABLE $table",
+			"SHOW INDEX FROM $table",
+		);
+
+		foreach ( $queries as &$query ) {
+			$query = array( $query, $table );
+		}
+		return $queries;
+	}
+
+	/**
+	 * @dataProvider data_get_table_from_query
+	 * @ticket 21212
+	 */
+	function test_get_table_from_query( $query, $table ) {
+		$this->assertEquals( $table, self::$_wpdb->get_table_from_query( $query ) );
+	}
+
+	function data_get_table_from_query_false() {
+		$table = 'a_test_table_name';
+		return array(
+			array( "LOL THIS ISN'T EVEN A QUERY $table" ),
+		);
+	}
+
+	/**
+	 * @dataProvider data_get_table_from_query_false
+	 * @ticket 21212
+	 */
+	function test_get_table_from_query_false( $query ) {
+		$this->assertFalse( self::$_wpdb->get_table_from_query( $query ) );
+	}
+
+	/**
+	 * @ticket 21212
+	 */
+	function data_process_field_formats() {
+		$core_db_fields_no_format_specified = array(
+			array( 'post_content' => 'foo', 'post_parent' => 0 ),
+			null,
+			array(
+				'post_content' => array( 'value' => 'foo', 'format' => '%s' ),
+				'post_parent' => array( 'value' => 0, 'format' => '%d' ),
+			)
+		);
+
+		$core_db_fields_formats_specified = array(
+			array( 'post_content' => 'foo', 'post_parent' => 0 ),
+			array( '%d', '%s' ), // These override core field_types
+			array(
+				'post_content' => array( 'value' => 'foo', 'format' => '%d' ),
+				'post_parent' => array( 'value' => 0, 'format' => '%s' ),
+			)
+		);
+
+		$misc_fields_no_format_specified = array(
+			array( 'this_is_not_a_core_field' => 'foo', 'this_is_not_either' => 0 ),
+			null,
+			array(
+				'this_is_not_a_core_field' => array( 'value' => 'foo', 'format' => '%s' ),
+				'this_is_not_either' => array( 'value' => 0, 'format' => '%s' ),
+			)
+		);
+
+		$misc_fields_formats_specified = array(
+			array( 'this_is_not_a_core_field' => 0, 'this_is_not_either' => 1.2 ),
+			array( '%d', '%f' ),
+			array(
+				'this_is_not_a_core_field' => array( 'value' => 0, 'format' => '%d' ),
+				'this_is_not_either' => array( 'value' => 1.2, 'format' => '%f' ),
+			)
+		);
+
+		$misc_fields_insufficient_formats_specified = array(
+			array( 'this_is_not_a_core_field' => 0, 'this_is_not_either' => 's', 'nor_this' => 1 ),
+			array( '%d', '%s' ), // The first format is used for the third
+			array(
+				'this_is_not_a_core_field' => array( 'value' => 0, 'format' => '%d' ),
+				'this_is_not_either' => array( 'value' => 's', 'format' => '%s' ),
+				'nor_this' => array( 'value' => 1, 'format' => '%d' ),
+			)
+		);
+
+		$vars = get_defined_vars();
+		// Push the variable name onto the end for assertSame $message
+		foreach ( $vars as $var_name => $var ) {
+			$vars[ $var_name ][] = $var_name;
+		}
+		return array_values( $vars );
+	}
+
+	/**
+	 * @dataProvider data_process_field_formats
+	 * @ticket 21212
+	 */
+	function test_process_field_formats( $data, $format, $expected, $message ) {
+		$actual = self::$_wpdb->process_field_formats( $data, $format );
+		$this->assertSame( $expected, $actual, $message );
+	}
+
+	/**
+	 * @ticket 21212
+	 */
+	function test_process_fields() {
+		global $wpdb;
+
+		if ( $wpdb->charset ) {
+			$expected_charset = $wpdb->charset;
+		} else {
+			$expected_charset = $wpdb->get_col_charset( $wpdb->posts, 'post_content' );
+		}
+
+		if ( ! in_array( $expected_charset, array( 'utf8', 'utf8mb4', 'latin1' ) ) ) {
+			$this->markTestSkipped( "This test only works with utf8, utf8mb4 or latin1 character sets" );
+		}
+
+		$data = array( 'post_content' => '¡foo foo foo!' );
+		$expected = array(
+			'post_content' => array(
+				'value' => '¡foo foo foo!',
+				'format' => '%s',
+				'charset' => $expected_charset,
+				'ascii' => false,
+			)
+		);
+
+		$this->assertSame( $expected, self::$_wpdb->process_fields( $wpdb->posts, $data, null ) );
+	}
+
+	/**
+	 * @ticket 21212
+	 * @depends test_process_fields
+	 */
+	function test_process_fields_on_nonexistent_table( $data ) {
+		self::$_wpdb->suppress_errors( true );
+		$data = array( 'post_content' => '¡foo foo foo!' );
+		$this->assertFalse( self::$_wpdb->process_fields( 'nonexistent_table', $data, null ) );
+		self::$_wpdb->suppress_errors( false );
+	}
+
+	/**
+	 * @ticket 21212
+	 */
+	function test_pre_get_table_charset_filter() {
+		add_filter( 'pre_get_table_charset', array( $this, 'filter_pre_get_table_charset' ), 10, 2 );
+		$charset = self::$_wpdb->get_table_charset( 'some_table' );
+		remove_filter( 'pre_get_table_charset', array( $this, 'filter_pre_get_table_charset' ), 10 );
+
+		$this->assertEquals( $charset, 'fake_charset' );
+	}
+	function filter_pre_get_table_charset( $charset, $table ) {
+		return 'fake_charset';
+	}
+
+	/**
+	 * @ticket 21212
+	 */
+	function test_pre_get_col_charset_filter() {
+		add_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset' ), 10, 3 );
+		$charset = self::$_wpdb->get_col_charset( 'some_table', 'some_col' );
+		remove_filter( 'pre_get_col_charset', array( $this, 'filter_pre_get_col_charset' ), 10 );
+
+		$this->assertEquals( $charset, 'fake_col_charset' );
+	}
+	function filter_pre_get_col_charset( $charset, $table, $column ) {
+		return 'fake_col_charset';
+	}
 }
+
