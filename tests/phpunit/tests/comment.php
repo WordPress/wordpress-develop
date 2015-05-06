@@ -23,7 +23,8 @@ class Tests_Comment extends WP_UnitTestCase {
 			$_SERVER['REMOTE_ADDR'] = '';
 		}
 
-		$post_id = $this->factory->post->create();
+		$u = $this->factory->user->create();
+		$post_id = $this->factory->post->create( array( 'post_author' => $u ) );
 
 		$data = array(
 			'comment_post_ID' => $post_id,
