@@ -23,7 +23,8 @@ class Tests_Comment extends WP_UnitTestCase {
 			$_SERVER['REMOTE_ADDR'] = '';
 		}
 
-		$post_id = $this->factory->post->create();
+		$u = $this->factory->user->create();
+		$post_id = $this->factory->post->create( array( 'post_author' => $u ) );
 
 		$data = array(
 			'comment_post_ID' => $post_id,
@@ -36,9 +37,11 @@ class Tests_Comment extends WP_UnitTestCase {
 			'comment_date_gmt' => '2011-01-01 10:00:00',
 		);
 
+		add_filter( 'pre_option_moderation_notify', '__return_zero' );
 		$id = wp_new_comment( $data );
+		remove_filter( 'pre_option_moderation_notify', '__return_zero' );
 
-		$this->assertFalse( $id );
+		$this->assertEmpty( $id );
 
 		// Cleanup.
 		if ( isset( $remote_addr ) ) {
