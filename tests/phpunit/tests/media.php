@@ -559,4 +559,115 @@ VIDEO;
 		$this->assertEquals( 'This is a comment. / Это комментарий. / Βλέπετε ένα σχόλιο.', $post->post_excerpt );
 	}
 
+	/**
+	 * @ticket 33016
+	 */
+	function test_multiline_cdata() {
+		global $wp_embed;
+
+		$content = <<<EOF
+<script>// <![CDATA[
+_my_function('data');
+// ]]>
+</script>
+EOF;
+
+		$result = $wp_embed->autoembed( $content );
+		$this->assertEquals( $content, $result );
+	}
+
+	/**
+	 * @ticket 33016
+	 */
+	function test_multiline_comment() {
+		global $wp_embed;
+
+		$content = <<<EOF
+<script><!--
+my_function();
+// --> </script>
+EOF;
+
+		$result = $wp_embed->autoembed( $content );
+		$this->assertEquals( $content, $result );
+	}
+
+
+	/**
+	 * @ticket 33016
+	 */
+	function test_multiline_comment_with_embeds() {
+		$content = <<<EOF
+Start.
+[embed]http://www.youtube.com/embed/TEST01YRHA0[/embed]
+<script><!--
+my_function();
+// --> </script>
+http://www.youtube.com/embed/TEST02YRHA0
+[embed]http://www.example.com/embed/TEST03YRHA0[/embed]
+http://www.example.com/embed/TEST04YRHA0
+Stop.
+EOF;
+
+		$expected = <<<EOF
+<p>Start.<br />
+https://youtube.com/watch?v=TEST01YRHA0<br />
+<script><!--
+my_function();
+// --> </script><br />
+https://youtube.com/watch?v=TEST02YRHA0<br />
+<a href="http://www.example.com/embed/TEST03YRHA0">http://www.example.com/embed/TEST03YRHA0</a><br />
+http://www.example.com/embed/TEST04YRHA0<br />
+Stop.</p>
+
+EOF;
+
+		$result = apply_filters( 'the_content', $content );
+		$this->assertEquals( $expected, $result );
+	}
+
+	/**
+	 * @ticket 33016
+	 */
+	function filter_wp_embed_shortcode_custom( $content, $url ) {
+		if ( 'https://www.example.com/?video=1' == $url ) {
+			$content = '@embed URL was replaced@';
+		}
+		return $content;
+	}
+
+	/**
+	 * @ticket 33016
+	 */
+	function test_oembed_explicit_media_link() {
+		global $wp_embed;
+		add_filter( 'embed_maybe_make_link', array( $this, 'filter_wp_embed_shortcode_custom' ), 10, 2 );
+
+		$content = <<<EOF
+https://www.example.com/?video=1
+EOF;
+
+		$expected = <<<EOF
+@embed URL was replaced@
+EOF;
+
+		$result = $wp_embed->autoembed( $content );
+		$this->assertEquals( $expected, $result );
+
+		$content = <<<EOF
+<a href="https://www.example.com/?video=1">https://www.example.com/?video=1</a>
+<script>// <![CDATA[
+_my_function('data');
+myvar = 'Hello world
+https://www.example.com/?video=1
+do not break this';
+// ]]>
+</script>
+EOF;
+
+		$result = $wp_embed->autoembed( $content );
+		$this->assertEquals( $content, $result );
+
+		remove_filter( 'embed_maybe_make_link', array( $this, 'filter_wp_embed_shortcode_custom' ), 10 );
+	}
 }
