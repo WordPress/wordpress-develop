@@ -273,4 +273,50 @@ Paragraph two.';
 		$str = 'Country: <select id="state" name="state"><option value="1">Alabama</option><option value="2">Alaska</option><option value="3">Arizona</option><option value="4">Arkansas</option><option value="5">California</option></select>';
 		$this->assertEquals( "<p>$str</p>", trim( wpautop( $str ) ) );
 	}
+
+	/**
+	 * Do not allow newlines within HTML elements to become mangled.
+	 *
+	 * @ticket 33106
+	 * @dataProvider data_element_sanity
+	 */
+	function test_element_sanity( $input, $output ) {
+		return $this->assertEquals( $output, wpautop( $input ) );
+	}
+
+	function data_element_sanity() {
+		return array(
+			array(
+				"Hello <a\nhref='world'>",
+				"<p>Hello <a\nhref='world'></p>\n",
+			),
+			array(
+				"Hello <!-- a\nhref='world' -->",
+				"<p>Hello <!-- a\nhref='world' --></p>\n",
+			),
+/* Block elements inside comments will fail this test in all versions, it's not a regression.
+			array(
+				"Hello <!-- <hr> a\nhref='world' -->",
+				"<p>Hello <!-- <hr> a\nhref='world' --></p>\n",
+			),
+			array(
+				"Hello <![CDATA[ <hr> a\nhttps://youtu.be/jgz0uSaOZbE\n ]]>",
+				"<p>Hello <![CDATA[ <hr> a\nhttps://youtu.be/jgz0uSaOZbE\n ]]></p>\n",
+			),
+*/
+			array(
+				"Hello <![CDATA[ a\nhttps://youtu.be/jgz0uSaOZbE\n ]]>",
+				"<p>Hello <![CDATA[ a\nhttps://youtu.be/jgz0uSaOZbE\n ]]></p>\n",
+			),
+			array(
+				"Hello <![CDATA[ <!-- a\nhttps://youtu.be/jgz0uSaOZbE\n a\n9 ]]> -->",
+				"<p>Hello <![CDATA[ <!-- a\nhttps://youtu.be/jgz0uSaOZbE\n a\n9 ]]> --></p>\n",
+			),
+			array(
+				"Hello <![CDATA[ <!-- a\nhttps://youtu.be/jgz0uSaOZbE\n a\n9 --> a\n9 ]]>",
+				"<p>Hello <![CDATA[ <!-- a\nhttps://youtu.be/jgz0uSaOZbE\n a\n9 --> a\n9 ]]></p>\n",
+			),
+		);
+	}
+
 }
