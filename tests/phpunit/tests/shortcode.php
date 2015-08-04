@@ -405,6 +405,14 @@ EOF;
 				'<div [gallery]>',
 			),
 			array(
+				'<[[gallery]]>',
+				'<[gallery]>',
+			),
+			array(
+				'<div style="background:url([[gallery]])">',
+				'<div style="background:url([[gallery]])">',
+			),
+			array(
 				'[gallery]<div>Hello</div>[/gallery]',
 				'',
 			),
@@ -441,6 +449,10 @@ EOF;
 			array(
 				'<div [[gallery]]>', // Shortcodes will never be stripped inside elements.
 				'<div [[gallery]]>',
+			),
+			array(
+				'<[[gallery]]>',
+				'<[[gallery]]>',
 			),
 			array(
 				'[gallery]<div>Hello</div>[/gallery]',
