@@ -128,7 +128,7 @@ class Tests_Comment_GetCommentLink extends WP_UnitTestCase {
 		$this->set_permalink_structure( '/%postname%/' );
 		update_option( 'page_comments', 0 );
 
-		$found = get_comment_link( self::$comments[1] );
+		$found = get_comment_link( $this->comments[1] );
 
 		$this->assertNotContains( 'comment-page-1', $found );
 	}
