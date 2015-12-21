@@ -54,6 +54,7 @@ class Tests_Query_Vars extends WP_UnitTestCase {
 			'pagename',
 			'page_id',
 			'error',
+			'comments_popup',
 			'attachment',
 			'attachment_id',
 			'subpost',
