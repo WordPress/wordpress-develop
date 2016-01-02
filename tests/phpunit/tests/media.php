@@ -892,6 +892,51 @@ EOF;
 	}
 
 	/**
+	 * @ticket 35108
+	 * @ticket 33641
+	 */
+	function test_wp_calculate_image_srcset_include_src() {
+		// Mock data for this test.
+		$size_array = array( 2000, 1000 );
+		$image_src = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test.png';
+		$image_meta = array(
+			'width' => 2000,
+			'height' => 1000,
+			'file' => '2015/12/test.png',
+			'sizes' => array(
+				'thumbnail' => array(
+					'file' => 'test-150x150.png',
+					'width' => 150,
+					'height' => 150,
+					'mime-type' => 'image/png',
+				),
+				'medium' => array(
+					'file' => 'test-300x150.png',
+					'width' => 300,
+					'height' => 150,
+					'mime-type' => 'image/png',
+				),
+				'medium_large' => array(
+					'file' => 'test-768x384.png',
+					'width' => 768,
+					'height' => 384,
+					'mime-type' => 'image/png',
+				),
+				'large' => array(
+					'file' => 'test-1024x512.png',
+					'width' => 1024,
+					'height' => 512,
+					'mime-type' => 'image/png',
+				),
+			),
+		);
+
+		$expected_srcset = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test-300x150.png 300w, http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test-768x384.png 768w, http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test-1024x512.png 1024w, http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test.png 2000w';
+
+		$this->assertSame( $expected_srcset, wp_calculate_image_srcset( $size_array, $image_src, $image_meta ) );
+	}
+
+	/**
 	 * @ticket 33641
 	 */
 	function test_wp_get_attachment_image_srcset() {
