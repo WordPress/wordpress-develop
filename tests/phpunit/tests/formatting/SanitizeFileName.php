@@ -49,4 +49,15 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 		$this->assertEquals("a-t", sanitize_file_name("a          t"));
 		$this->assertEquals("a-t", sanitize_file_name("a    \n\n\nt"));
 	}
+
+	function test_replaces_unnammed_file_extensions() {
+		// Test filenames with both supported and unsupported extensions.
+		$this->assertEquals( 'unnamed-file.exe', sanitize_file_name( '_.exe' ) );
+		$this->assertEquals( 'unnamed-file.jpg', sanitize_file_name( '_.jpg' ) );
+	}
+
+	function test_replaces_unnammed_file_extensionless() {
+		// Test a filenames that becomes extensionless.
+		$this->assertEquals( 'no-extension', sanitize_file_name( '_.no-extension' ) );
+	}
 }
