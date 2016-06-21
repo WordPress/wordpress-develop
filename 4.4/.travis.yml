@@ -1,0 +1,59 @@
+sudo: false
+language: php
+matrix:
+  include:
+  - php: 5.5
+    env: WP_TRAVISCI=travis:js
+  - php: 5.2
+    env: WP_TRAVISCI=travis:phpunit
+  - php: 5.3
+    env: WP_TRAVISCI=travis:phpunit
+  - php: 5.4
+    env: WP_TRAVISCI=travis:phpunit
+  - php: 5.5
+    env: WP_TRAVISCI=travis:phpunit
+  - php: 5.6
+    env: WP_TRAVISCI=travis:phpunit
+  - php: 5.6
+    env: WP_TRAVISCI=travis:phpunit WP_TRAVIS_OBJECT_CACHE=true
+    services: memcached
+  - php: hhvm
+    env: WP_TRAVISCI=travis:phpunit
+  - php: 7.0
+    env: WP_TRAVISCI=travis:phpunit
+  - php: nightly
+    env: WP_TRAVISCI=travis:phpunit
+  allow_failures:
+  - php: hhvm
+  - php: nightly
+before_install:
+- WP_CORE_DIR=/tmp/wordpress/
+- git clone https://github.com/WordPress/twentysixteen.git src/wp-content/themes/twentysixteen
+- |
+  if [[ "$WP_TRAVISCI" == "travis:phpunit" ]]; then
+      mysql -e "CREATE DATABASE wordpress_tests;" -uroot
+      cp wp-tests-config-sample.php wp-tests-config.php
+      sed -i "s/youremptytestdbnamehere/wordpress_tests/" wp-tests-config.php
+      sed -i "s/yourusernamehere/travis/" wp-tests-config.php
+      sed -i "s/yourpasswordhere//" wp-tests-config.php
+      svn checkout https://plugins.svn.wordpress.org/wordpress-importer/trunk tests/phpunit/data/plugins/wordpress-importer
+  fi
+- |
+  if [[ "$WP_TRAVIS_OBJECT_CACHE" == "true" ]]; then
+    curl https://raw.githubusercontent.com/tollmanz/wordpress-pecl-memcached-object-cache/584392b56dc4adbe52bd2c7b86f875e23a3e5f75/object-cache.php > src/wp-content/object-cache.php
+    echo "extension = memcached.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+  fi
+before_script:
+- npm install -g npm
+- npm install -g grunt-cli
+- npm install
+- npm --version
+- node --version
+script: grunt $WP_TRAVISCI
+notifications:
+  slack:
+    rooms:
+      secure: WuMCpfgrm0GIdPbYzsGOsakZ5x7QIbEBwD+CPHVXGKbL3ZbqQ+BVcDRnMiwzxjgf1vzg2de0taXCSMGKBxsWce23NZkOnmwPdIB8XOnwDV7T7zylgYD5S7p3gI6gV0l8Y3/gROdXFZap6viC1qRr4E79ow53RKk7E3WyOo7TWqo=
+    on_start: never
+    on_failure: always
+    on_success: change
