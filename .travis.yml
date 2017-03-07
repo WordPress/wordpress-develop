@@ -34,9 +34,15 @@ before_install:
       svn checkout https://plugins.svn.wordpress.org/wordpress-importer/trunk tests/phpunit/data/plugins/wordpress-importer
   fi
 before_script:
+- |
+  stable='^[0-9\.]+$';
+  if [[ "$TRAVIS_PHP_VERSION" =~ $stable ]]; then
+      phpenv config-rm xdebug.ini
+  fi
 - npm install -g npm
 - npm install -g grunt-cli
 - npm install
+- php --version
 script: grunt $WP_TRAVISCI
 notifications:
   slack:
