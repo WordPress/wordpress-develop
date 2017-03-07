@@ -40,8 +40,14 @@ before_install:
 
 # Before script, failures in this section will result in build status 'failed'
 before_script:
+  - |
+    stable='^[0-9\.]+$';
+    if [[ "$TRAVIS_PHP_VERSION" =~ $stable ]]; then
+        phpenv config-rm xdebug.ini
+    fi
   - npm install -g grunt-cli
   - npm install
+  - php --version
 
 # Script, failures in this section will result in build status 'failed'
 script: grunt $WP_TRAVISCI
