@@ -1,5 +1,8 @@
 sudo: false
 language: php
+cache:
+  directories:
+    - node_modules
 matrix:
   include:
   - php: 5.5
@@ -73,6 +76,7 @@ before_script:
 - nvm install 4.7.2
 - npm install -g grunt-cli
 - npm install
+- npm prune
 - php --version
 - |
   # Debug PHP extensions, but not on HHVM because the command hangs indefinitely:
