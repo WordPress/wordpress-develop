@@ -12,19 +12,8 @@ matrix:
       env: WP_TRAVISCI=travis:js
     - php: 5.2
       env: WP_TRAVISCI=travis:phpunit
-    - php: 5.3
-      env: WP_TRAVISCI=travis:phpunit
-    - php: 5.4
-      env: WP_TRAVISCI=travis:phpunit
     - php: 5.5
       env: WP_TRAVISCI=travis:phpunit
-    - php: 5.6
-      env: WP_TRAVISCI=travis:phpunit
-    - php: hhvm
-      env: WP_TRAVISCI=travis:phpunit
-  allow_failures:
-    - php: 5.6
-    - php: hhvm
   fast_finish: true
 
 # Before install, failures in this section will result in build status 'errored'
