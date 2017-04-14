@@ -2439,7 +2439,10 @@ mockedApiResponse.Schema = {
                         "slug": {
                             "required": false,
                             "description": "Limit result set to users with a specific slug.",
-                            "type": "string"
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
                         },
                         "roles": {
                             "required": false,
