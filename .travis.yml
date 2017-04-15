@@ -10,9 +10,9 @@ matrix:
   include:
     - php: 5.5
       env: WP_TRAVISCI=travis:js
-    - php: 5.2
-      env: WP_TRAVISCI=travis:phpunit
     - php: 5.5
+      env: WP_TRAVISCI=travis:phpunit
+    - php: 5.2
       env: WP_TRAVISCI=travis:phpunit
   fast_finish: true
 
