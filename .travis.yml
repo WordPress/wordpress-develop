@@ -4,6 +4,8 @@ language: php
 cache:
   directories:
     - node_modules
+    - vendor
+    - $HOME/.composer/cache
 
 # Build matrix options
 matrix:
