@@ -3,6 +3,8 @@ language: php
 cache:
   directories:
     - node_modules
+    - vendor
+    - $HOME/.composer/cache
 matrix:
   include:
   - php: 5.5
