@@ -26,7 +26,7 @@ Attachment = View.extend({
 	},
 
 	events: {
-		'click':                          'toggleSelectionHandler',
+		'click .js--select-attachment':   'toggleSelectionHandler',
 		'change [data-setting]':          'updateSetting',
 		'change [data-setting] input':    'updateSetting',
 		'change [data-setting] select':   'updateSetting',
