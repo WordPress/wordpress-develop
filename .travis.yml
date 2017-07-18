@@ -1,5 +1,6 @@
 # Travis CI Configuration File
 sudo: false
+dist: trusty
 language: php
 cache:
   directories:
@@ -16,6 +17,7 @@ matrix:
       env: WP_TRAVISCI=travis:phpunit
     - php: 5.2
       env: WP_TRAVISCI=travis:phpunit
+      dist: precise
   fast_finish: true
 
 # Before install, failures in this section will result in build status 'errored'
