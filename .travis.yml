@@ -1,4 +1,5 @@
 sudo: false
+dist: trusty
 language: php
 cache:
   apt: true
@@ -19,6 +20,7 @@ matrix:
     env: WP_TRAVIS_OBJECT_CACHE=true
     services: memcached
   - php: 5.2
+    dist: precise
 before_install:
 - |
   if [[ "$WP_TRAVISCI" == "travis:phpunit" ]]; then
