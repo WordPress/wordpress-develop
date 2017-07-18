@@ -1,9 +1,11 @@
 dist: trusty
 language: php
 
-php:
-    - "5.5"
-    - "5.2"
+# Build matrix options
+matrix:
+  include:
+    - php: 5.5
+    - php: 5.2
       dist: precise
 
 before_script:
