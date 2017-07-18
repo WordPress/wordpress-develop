@@ -1,4 +1,5 @@
 sudo: false
+dist: trusty
 language: php
 cache:
   directories:
@@ -13,6 +14,7 @@ matrix:
     env: WP_TRAVISCI=travis:phpunit
   - php: 5.2
     env: WP_TRAVISCI=travis:phpunit
+    dist: precise
   fast_finish: true
 before_install:
 - WP_CORE_DIR=/tmp/wordpress/
