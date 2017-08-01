@@ -2,7 +2,6 @@
 
 /**
  * @group formatting
- * @group emoji
  */
 class Tests_Formatting_Smilies extends WP_UnitTestCase {
 
