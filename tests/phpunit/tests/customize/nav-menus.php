@@ -871,10 +871,16 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		$original_args = array(
 			'echo'        => true,
 			'menu'        => wp_create_nav_menu( 'Foo' ),
-			'fallback_cb' => '\wp_page_menu', // Global namespace used to check #41488.
+			'fallback_cb' => 'wp_page_menu',
 			'walker'      => '',
 			'items_wrap'  => '<ul id="%1$s" class="%2$s">%3$s</ul>',
 		);
+
+		// Add global namespace prefix to check #41488.
+		if ( version_compare( PHP_VERSION, '5.3', '>=' ) ) {
+			$original_args['fallback_cb'] = '\\' . $original_args['fallback_cb'];
+		}
+
 		$args = $menus->filter_wp_nav_menu_args( $original_args );
 
 		ob_start();
