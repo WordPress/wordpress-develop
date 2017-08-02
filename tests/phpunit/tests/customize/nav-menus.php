@@ -893,7 +893,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		$this->assertContains( ' data-customize-partial-type="nav_menu_instance"', $result );
 		$this->assertTrue( (bool) preg_match( '/data-customize-partial-placement-context="(.+?)"/', $result, $matches ) );
 		$context = json_decode( html_entity_decode( $matches[1] ), true );
-		$this->assertArraySubset( $original_args, $context );
+		$this->assertEquals( $original_args, wp_array_slice_assoc( $context, array_keys( $original_args ) ) ); // Because assertArraySubset is not available in PHP 5.2.
 		$this->assertTrue( $context['can_partial_refresh'] );
 	}
 
