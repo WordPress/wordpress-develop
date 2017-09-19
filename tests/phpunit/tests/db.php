@@ -807,5 +807,15 @@ class Tests_DB extends WP_UnitTestCase {
 	function filter_pre_get_col_charset( $charset, $table, $column ) {
 		return 'fake_col_charset';
 	}
+
+	/**
+	 *
+	 */
+	function test_prepare_with_unescaped_percents() {
+		global $wpdb;
+
+		$sql = $wpdb->prepare( '%d %1$d %%% %', 1 );
+		$this->assertEquals( '1 %1$d %% %', $sql );
+	}
 }
 
