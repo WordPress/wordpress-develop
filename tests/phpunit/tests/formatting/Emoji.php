@@ -136,12 +136,6 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 			),
 		);
 
-		// Older versions of PHP don't html_entity_decode() emoji, so we need to make sure they're testing in the expected form.
-		foreach ( $data as $key => $datum ) {
-			$emoji = html_entity_decode( wp_encode_emoji( $datum[0] ) );
-			$data[ $key ][1] = str_replace( 'alt=""', 'alt="' . $emoji . '"', $datum[1] );
-		}
-
 		return $data;
 	}
 
