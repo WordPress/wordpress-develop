@@ -122,17 +122,17 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 			array(
 				// Simple emoji
 				'🙂',
-				'<img src="' . $this->png_cdn . '1f642.png" alt="" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
+				'<img src="' . $this->png_cdn . '1f642.png" alt="🙂" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
 			),
 			array(
 				// Skin tone, gender, ZWJ, emoji selector
 				'👮🏼‍♀️',
-				'<img src="' . $this->png_cdn . '1f46e-1f3fc-200d-2640-fe0f.png" alt="" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
+				'<img src="' . $this->png_cdn . '1f46e-1f3fc-200d-2640-fe0f.png" alt="👮🏼‍♀️" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
 			),
 			array(
 				// Unicode 10
 				'🧚',
-				'<img src="' . $this->png_cdn . '1f9da.png" alt="" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
+				'<img src="' . $this->png_cdn . '1f9da.png" alt="🧚" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
 			),
 		);
 
