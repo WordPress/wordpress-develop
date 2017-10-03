@@ -5113,7 +5113,11 @@ function wp_encode_emoji( $content ) {
 	$emoji = _wp_emoji_list( 'partials' );
 
 	foreach ( $emoji as $emojum ) {
-		$emoji_char = html_entity_decode( $emojum );
+		if ( version_compare( phpversion(), '5.4', '<' ) ) {
+			$emoji_char = html_entity_decode( $emojum, ENT_COMPAT, 'UTF-8' );
+		} else {
+			$emoji_char = html_entity_decode( $emojum );
+		}
 		if ( false !== strpos( $content, $emoji_char ) ) {
 			$content = preg_replace( "/$emoji_char/", $emojum, $content );
 		}
