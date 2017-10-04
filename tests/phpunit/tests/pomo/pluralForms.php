@@ -223,7 +223,7 @@ class PluralFormsTest extends WP_UnitTestCase {
 		$mock->expects($this->once())
 			->method('execute')
 			->with($this->identicalTo(2))
-			->willReturn(1);
+			->will($this->returnValue(1));
 
 		$first = $mock->get( 2 );
 		$second = $mock->get( 2 );
