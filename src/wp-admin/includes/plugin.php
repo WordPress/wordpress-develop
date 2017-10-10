@@ -221,7 +221,7 @@ function get_plugin_files( $plugin ) {
 		$list_files = list_files( $dir, 100, $exclusions );
 		$list_files = array_map( 'plugin_basename', $list_files );
 
-		$plugin_files += $list_files;
+		$plugin_files = array_merge( $plugin_files, $list_files );
 		$plugin_files = array_unique( $plugin_files );
 	}
 
