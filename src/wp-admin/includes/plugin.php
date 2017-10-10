@@ -222,7 +222,7 @@ function get_plugin_files( $plugin ) {
 		$list_files = array_map( 'plugin_basename', $list_files );
 
 		$plugin_files = array_merge( $plugin_files, $list_files );
-		$plugin_files = array_unique( $plugin_files );
+		$plugin_files = array_keys( array_unique( $plugin_files ) );
 	}
 
 	set_transient( $transient_key, $plugin_files, HOUR_IN_SECONDS );
