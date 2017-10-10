@@ -134,13 +134,15 @@ function list_files( $folder = '', $levels = 100, $exclusions = array() ) {
 
 	$folder = trailingslashit( $folder );
 
+	echo var_dump( $folder );
+
 	if ( ! $levels ) {
 		return false;
 	}
 
 	$files = array();
 
-	$dir = @opendir( $folder );
+	$dir = opendir( $folder );
 	if ( $dir ) {
 		while ( ( $file = readdir( $dir ) ) !== false ) {
 			// Skip current and parent folder links.
