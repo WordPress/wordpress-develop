@@ -144,16 +144,20 @@ function list_files( $folder = '', $levels = 100, $exclusions = array() ) {
 	if ( $dir ) {
 		while ( ( $file = readdir( $dir ) ) !== false ) {
 			// Skip current and parent folder links.
+			echo "\n" . $folder . $file , ': ';
 			if ( in_array( $file, array( '.', '..' ), true ) ) {
 				continue;
 			}
+			echo 1;
 
 			// Skip hidden and excluded files.
 			if ( '.' === $file[0] || in_array( $file, $exclusions, true ) ) {
 				continue;
 			}
+			echo 2;
 
 			if ( is_dir( $folder . $file ) ) {
+				echo 3;
 				$files2 = list_files( $folder . $file, $levels - 1 );
 				if ( $files2 ) {
 					$files = array_merge($files, $files2 );
@@ -161,11 +165,14 @@ function list_files( $folder = '', $levels = 100, $exclusions = array() ) {
 					$files[] = $folder . $file . '/';
 				}
 			} else {
+				echo 4;
 				$files[] = $folder . $file;
 			}
 		}
 	}
 	@closedir( $dir );
+	echo "\n";
+	var_dump( $files );
 
 	return $files;
 }
