@@ -135,7 +135,7 @@ function get_network_by_path( $domain, $path, $segments = null ) {
 
 /**
  * Retrieves the closest matching site object by its domain and path.
- * 
+ *
  * This will not necessarily return an exact match for a domain and path. Instead, it
  * breaks the domain and path into pieces that are then used to match the closest
  * possibility from a query.
@@ -268,7 +268,6 @@ function get_site_by_path( $domain, $path, $segments = null ) {
  * @since 4.6.0
  * @access private
  *
- * @global wpdb       $wpdb         WordPress database abstraction object.
  * @global WP_Network $current_site The current network.
  * @global WP_Site    $current_blog The current site.
  *
@@ -281,7 +280,7 @@ function get_site_by_path( $domain, $path, $segments = null ) {
  *                     Redirect URL if parts exist, but the request as a whole can not be fulfilled.
  */
 function ms_load_current_site_and_network( $domain, $path, $subdomain = false ) {
-	global $wpdb, $current_site, $current_blog;
+	global $current_site, $current_blog;
 
 	// If the network is defined in wp-config.php, we can simply use that.
 	if ( defined( 'DOMAIN_CURRENT_SITE' ) && defined( 'PATH_CURRENT_SITE' ) ) {
@@ -308,17 +307,17 @@ function ms_load_current_site_and_network( $domain, $path, $subdomain = false ) 
 
 	} elseif ( ! $subdomain ) {
 		/*
-		 * A "subdomain" install can be re-interpreted to mean "can support any domain".
-		 * If we're not dealing with one of these installs, then the important part is determining
+		 * A "subdomain" installation can be re-interpreted to mean "can support any domain".
+		 * If we're not dealing with one of these installations, then the important part is determining
 		 * the network first, because we need the network's path to identify any sites.
 		 */
 		if ( ! $current_site = wp_cache_get( 'current_network', 'site-options' ) ) {
 			// Are there even two networks installed?
-			$one_network = $wpdb->get_row( "SELECT * FROM $wpdb->site LIMIT 2" ); // [sic]
-			if ( 1 === $wpdb->num_rows ) {
-				$current_site = new WP_Network( $one_network );
+			$networks = get_networks( array( 'number' => 2 ) );
+			if ( count( $networks ) === 1 ) {
+				$current_site = array_shift( $networks );
 				wp_cache_add( 'current_network', $current_site, 'site-options' );
-			} elseif ( 0 === $wpdb->num_rows ) {
+			} elseif ( empty( $networks ) ) {
 				// A network not found hook should fire here.
 				return false;
 			}
@@ -401,10 +400,10 @@ function ms_load_current_site_and_network( $domain, $path, $subdomain = false ) 
 		do_action( 'ms_site_not_found', $current_site, $domain, $path );
 
 		if ( $subdomain && ! defined( 'NOBLOGREDIRECT' ) ) {
-			// For a "subdomain" install, redirect to the signup form specifically.
+			// For a "subdomain" installation, redirect to the signup form specifically.
 			$destination .= 'wp-signup.php?new=' . str_replace( '.' . $current_site->domain, '', $domain );
 		} elseif ( $subdomain ) {
-			// For a "subdomain" install, the NOBLOGREDIRECT constant
+			// For a "subdomain" installation, the NOBLOGREDIRECT constant
 			// can be used to avoid a redirect to the signup form.
 			// Using the ms_site_not_found action is preferred to the constant.
 			if ( '%siteurl%' !== NOBLOGREDIRECT ) {
@@ -424,13 +423,7 @@ function ms_load_current_site_and_network( $domain, $path, $subdomain = false ) 
 
 	// Figure out the current network's main site.
 	if ( empty( $current_site->blog_id ) ) {
-		if ( $current_blog->domain === $current_site->domain && $current_blog->path === $current_site->path ) {
-			$current_site->blog_id = $current_blog->blog_id;
-		} elseif ( ! $current_site->blog_id = wp_cache_get( 'network:' . $current_site->id . ':main_site', 'site-options' ) ) {
-			$current_site->blog_id = $wpdb->get_var( $wpdb->prepare( "SELECT blog_id FROM $wpdb->blogs WHERE domain = %s AND path = %s",
-				$current_site->domain, $current_site->path ) );
-			wp_cache_add( 'network:' . $current_site->id . ':main_site', $current_site->blog_id, 'site-options' );
-		}
+		$current_site->blog_id = get_main_site_id( $current_site->id );
 	}
 
 	return true;

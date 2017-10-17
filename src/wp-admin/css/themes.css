@@ -7,6 +7,10 @@
   16.1 - Manage Themes
 ------------------------------------------------------------------------------*/
 
+body.js .theme-browser.search-loading {
+	display: none;
+}
+
 .theme-browser .themes {
 	clear: both;
 }
@@ -56,10 +60,7 @@
 	position: relative;
 	width: 30.6%;
 	border: 1px solid #ddd;
-	-webkit-box-shadow: 0 1px 1px -1px rgba(0,0,0,0.1);
 	box-shadow: 0 1px 1px -1px rgba(0,0,0,0.1);
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
 	box-sizing: border-box;
 }
 
@@ -83,7 +84,6 @@
 	height: 18px;
 	margin: 0;
 	padding: 15px;
-	-webkit-box-shadow: inset 0 1px 0 rgba(0,0,0,0.1);
 	box-shadow: inset 0 1px 0 rgba(0,0,0,0.1);
 	overflow: hidden;
 	white-space: nowrap;
@@ -96,7 +96,6 @@
 .theme-browser .theme .theme-actions {
 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
 	opacity: 0;
-	-webkit-transition: opacity 0.1s ease-in-out;
 	transition: opacity 0.1s ease-in-out;
 	position: absolute;
 	bottom: 0;
@@ -134,7 +133,6 @@
 	overflow: hidden;
 	position: relative;
 	-webkit-backface-visibility: hidden; /* Prevents flicker of the screenshot on hover. */
-	-webkit-transition: opacity 0.2s ease-in-out;
 	transition: opacity 0.2s ease-in-out;
 }
 
@@ -150,7 +148,6 @@
 	left: 0;
 	top: 0;
 	width: 100%;
-	-webkit-transition: opacity 0.2s ease-in-out;
 	transition: opacity 0.2s ease-in-out;
 }
 
@@ -180,15 +177,12 @@
 	font-weight: 600;
 	padding: 15px 12px;
 	text-align: center;
-	-webkit-border-radius: 3px;
 	border-radius: 3px;
-	-webkit-transition: opacity 0.1s ease-in-out;
 	transition: opacity 0.1s ease-in-out;
 }
 
 .theme-browser .theme:focus {
 	border-color: #5b9dd9;
-	-webkit-box-shadow: 0 0 2px rgba( 30, 140, 190, 0.8 );
 	box-shadow: 0 0 2px rgba( 30, 140, 190, 0.8 );
 }
 
@@ -215,7 +209,6 @@
 	color: #fff;
 	padding-right: 110px;
 	font-weight: 300;
-	-webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,0.5);
 	box-shadow: inset 0 1px 1px rgba(0,0,0,0.5);
 }
 
@@ -262,7 +255,6 @@
  */
 .theme-browser .theme.add-new-theme {
 	border: none;
-	-webkit-box-shadow: none;
 	box-shadow: none;
 }
 
@@ -287,15 +279,12 @@
 	text-shadow: none;
 	border: 5px dashed #d5d2ca;
 	border: 5px dashed rgba(0, 0, 0, 0.1);
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
 	box-sizing: border-box;
 }
 
 .theme-browser .theme.add-new-theme span:after {
 	background: #e5e5e5;
 	background: rgba(153, 153, 153, 0.1);
-	-webkit-border-radius: 50%;
 	border-radius: 50%;
 	display: inline-block;
 	content: "\f132";
@@ -342,7 +331,6 @@
 .theme-browser .theme.add-new-theme .theme-name {
 	background: none;
 	text-align: center;
-	-webkit-box-shadow: none;
 	box-shadow: none;
 	font-weight: 400;
 	position: relative;
@@ -395,7 +383,6 @@
 	border: 0;
 	border-left: 1px solid #ddd;
 	background-color: transparent;
-	-webkit-transition: color .1s ease-in-out, background .1s ease-in-out;
 	transition: color .1s ease-in-out, background .1s ease-in-out;
 }
 
@@ -419,7 +406,6 @@
 	text-align: center;
 	border: 0;
 	border-right: 1px solid #ddd;
-	-webkit-transition: color .1s ease-in-out, background .1s ease-in-out;
 	transition: color .1s ease-in-out, background .1s ease-in-out;
 }
 
@@ -442,7 +428,6 @@
 .theme-overlay .theme-header .close:focus,
 .theme-overlay .theme-header .right:focus,
 .theme-overlay .theme-header .left:focus {
-    -webkit-box-shadow: none;
     box-shadow: none;
     outline: none;
 }
@@ -479,11 +464,8 @@
 	right: 30px;
 	bottom: 3%;
 	background: #fff;
-	-webkit-box-shadow: 0 1px 20px 5px rgba(0, 0, 0, 0.1);
 	box-shadow: 0 1px 20px 5px rgba(0, 0, 0, 0.1);
 	z-index: 10000; /* Over WP Pointers. */
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
 	box-sizing: border-box;
 	-webkit-overflow-scrolling: touch;
 }
@@ -511,8 +493,6 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 	padding: 10px 25px 5px;
 	background: #f3f3f3;
 	z-index: 30;
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
 	box-sizing: border-box;
 	border-top: 1px solid #eee;
 }
@@ -537,7 +517,6 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 	color: #a00;
 	text-decoration: none;
 	border-color: transparent;
-	-webkit-box-shadow: none;
 	box-shadow: none;
 	background: transparent;
 }
@@ -574,19 +553,16 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 	float: left;
 	margin: 0 30px 0 0;
 	width: 55%;
-	max-width: 880px;
+	max-width: 1200px; /* Recommended theme screenshot width, set here to avoid stretching */
 	text-align: center;
 }
 
 /* First screenshot, shown big */
 .theme-overlay .screenshot {
 	border: 1px solid #fff;
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
 	box-sizing: border-box;
 	overflow: hidden;
 	position: relative;
-	-webkit-box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
 	box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
 }
 
@@ -670,7 +646,6 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 	font-size: 11px;
 	display: inline-block;
 	padding: 2px 8px;
-	-webkit-border-radius: 2px;
 	border-radius: 2px;
 	margin: 0 0 -10px;
 	-webkit-user-select: none;
@@ -1039,8 +1014,6 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 
 .upload-theme,
 .upload-plugin {
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
 	box-sizing: border-box;
 	display: none;
 	margin: 0;
@@ -1080,7 +1053,8 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 	text-align: center;
 }
 
-p.no-themes {
+p.no-themes,
+p.no-themes-local {
 	clear: both;
 	color: #666;
 	font-size: 18px;
@@ -1182,14 +1156,12 @@ div#custom-background-image img {
 .background-position-control input[type="radio"]:checked ~ .button {
 	background: #eee;
 	border-color: #999;
-	-webkit-box-shadow: inset 0 2px 5px -3px rgba( 0, 0, 0, .5 );
 	box-shadow: inset 0 2px 5px -3px rgba( 0, 0, 0, .5 );
 	z-index: 1;
 }
 
 .background-position-control input[type="radio"]:focus ~ .button {
 	border-color: #5b9dd9;
-	-webkit-box-shadow: inset 0 2px 5px -3px rgba( 0, 0, 0, .5 ), 0 0 3px rgba( 0, 115, 170, .8 );
 	box-shadow: inset 0 2px 5px -3px rgba( 0, 0, 0, .5 ), 0 0 3px rgba( 0, 115, 170, .8 );
 	color: #23282d;
 }
@@ -1199,7 +1171,6 @@ div#custom-background-image img {
 	display: inline-block;
 	line-height: 1;
 	text-align: center;
-	-webkit-transition: background-color .1s ease-in 0;
 	transition: background-color .1s ease-in 0;
 }
 
@@ -1212,7 +1183,6 @@ div#custom-background-image img {
 
 .background-position-control .background-position-center-icon:before {
 	background-color: #555;
-	-webkit-border-radius: 50%;
 	border-radius: 50%;
 	content: "";
 	height: 12px;
@@ -1229,9 +1199,7 @@ div#custom-background-image img {
 }
 
 .background-position-control .button-group .button {
-	-webkit-border-radius: 0;
 	border-radius: 0;
-	-webkit-box-shadow: none;
 	box-shadow: none;
 	/* Following properties are overridden by buttons responsive styles (see: wp-includes/css/buttons.css). */
 	height: 40px !important;
@@ -1248,7 +1216,6 @@ div#custom-background-image img {
 }
 
 .background-position-control .button-group:last-child .button {
-	-webkit-box-shadow: 0 1px 0 #ccc;
 	box-shadow: 0 1px 0 #ccc;
 }
 
@@ -1257,46 +1224,38 @@ div#custom-background-image img {
 }
 
 .background-position-control .button-group:first-child > label:first-child .button {
-	-webkit-border-radius: 3px 0 0;
 	border-radius: 3px 0 0;
 }
 
 .background-position-control .button-group:first-child > label:first-child .dashicons {
 	-webkit-transform: rotate( 45deg );
-	-ms-transform: rotate( 45deg );
 	transform: rotate( 45deg );
 }
 
 .background-position-control .button-group:first-child > label:last-child .button {
-	-webkit-border-radius: 0 3px 0 0;
 	border-radius: 0 3px 0 0;
 }
 
 .background-position-control .button-group:first-child > label:last-child .dashicons {
 	-webkit-transform: rotate( -45deg );
-	-ms-transform: rotate( -45deg );
 	transform: rotate( -45deg );
 }
 
 .background-position-control .button-group:last-child > label:first-child .button {
-	-webkit-border-radius: 0 0 0 3px;
 	border-radius: 0 0 0 3px;
 }
 
 .background-position-control .button-group:last-child > label:first-child .dashicons {
 	-webkit-transform: rotate( -45deg );
-	-ms-transform: rotate( -45deg );
 	transform: rotate( -45deg );
 }
 
 .background-position-control .button-group:last-child > label:last-child .button {
-	-webkit-border-radius: 0 0 3px 0;
 	border-radius: 0 0 3px 0;
 }
 
 .background-position-control .button-group:last-child > label:last-child .dashicons {
 	-webkit-transform: rotate( 45deg );
-	-ms-transform: rotate( 45deg );
 	transform: rotate( 45deg );
 }
 
@@ -1332,8 +1291,6 @@ body.full-overlay-active {
 }
 
 .wp-full-overlay-sidebar {
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
 	box-sizing: border-box;
 	position: fixed;
 	min-width: 300px;
@@ -1417,7 +1374,6 @@ body.full-overlay-active {
 	z-index: 10;
 	margin: 0;
 	border-top: none;
-	-webkit-box-shadow: none;
 	box-shadow: none;
 }
 
@@ -1429,7 +1385,6 @@ body.full-overlay-active {
 	bottom: 0;
 	border-bottom: none;
 	border-top: none;
-	-webkit-box-shadow: none;
 	box-shadow: none;
 }
 
@@ -1461,7 +1416,6 @@ body.full-overlay-active {
 	color: #444;
 	cursor: pointer;
 	text-decoration: none;
-	-webkit-transition: color .1s ease-in-out, background .1s ease-in-out;
 	transition: color .1s ease-in-out, background .1s ease-in-out;
 }
 
@@ -1475,7 +1429,6 @@ body.full-overlay-active {
 	border-color: #ccc;
 	color: #000;
 	outline: none;
-	-webkit-box-shadow: none;
 	box-shadow: none;
 }
 
@@ -1542,9 +1495,7 @@ body.full-overlay-active {
 	line-height: 1;
 	background-color: transparent !important;
 	border: none !important;
-	-webkit-box-shadow: none !important;
 	box-shadow: none !important;
-	-webkit-border-radius: 0 !important;
 	border-radius: 0 !important;
 }
 
@@ -1564,16 +1515,12 @@ body.full-overlay-active {
 	width: 20px;
 	height: 20px;
 	margin: 0 2px; /* avoid the focus box-shadow to be cut-off */
-	-webkit-border-radius: 50%;
 	border-radius: 50%;
 	overflow: hidden;
 }
 
 .wp-full-overlay .collapse-sidebar:hover .collapse-sidebar-arrow,
 .wp-full-overlay .collapse-sidebar:focus .collapse-sidebar-arrow {
-    -webkit-box-shadow:
-    	0 0 0 1px #5b9dd9,
-		0 0 2px 1px rgba(30, 140, 190, .8);
     box-shadow:
     	0 0 0 1px #5b9dd9,
 		0 0 2px 1px rgba(30, 140, 190, .8);
@@ -1606,13 +1553,11 @@ body.full-overlay-active {
 .wp-full-overlay.collapsed .collapse-sidebar-arrow:before,
 .rtl .wp-full-overlay .collapse-sidebar-arrow:before {
 	-webkit-transform: rotate(180.001deg);
-	-ms-transform: rotate(180.001deg);
 	transform: rotate(180.001deg); /* Firefox: promoting to its own layer to trigger anti-aliasing  */
 }
 
 .rtl .wp-full-overlay.collapsed .collapse-sidebar-arrow:before {
 	-webkit-transform: none;
-	-ms-transform: none;
 	transform: none;
 }
 
@@ -1621,9 +1566,7 @@ body.full-overlay-active {
 .wp-full-overlay-sidebar,
 .wp-full-overlay .collapse-sidebar,
 .wp-full-overlay-main {
-	-webkit-transition-property: left, right, top, bottom, width, margin;
 	transition-property: left, right, top, bottom, width, margin;
-	-webkit-transition-duration: 0.2s;
 	transition-duration: 0.2s;
 }
 
@@ -1644,7 +1587,6 @@ body.full-overlay-active {
 	min-width: 299px;
 	max-width: 599px;
 	width: 18%;
-	width: -webkit-calc( 18% - 1px );
 	width: calc( 18% - 1px );
 	height: 45px;
 	border-top: 1px solid #ddd;
@@ -1658,7 +1600,6 @@ body.full-overlay-active {
 .wp-full-overlay-footer .devices {
 	position: relative;
 	background: #eee;
-	-webkit-box-shadow: -20px 0 10px -5px #eee;
 	box-shadow: -20px 0 10px -5px #eee;
 }
 
@@ -1669,20 +1610,15 @@ body.full-overlay-active {
 	height: 45px;
 	padding: 0 3px;
 	margin: 0 0 0 -4px;
-	-webkit-box-shadow: none;
 	box-shadow: none;
 	border-top: 1px solid transparent;
 	border-bottom: 4px solid transparent;
-	-webkit-transition: .15s color ease-in-out,
-	            .15s background-color ease-in-out,
-	            .15s border-color ease-in-out;
 	transition: .15s color ease-in-out,
 	            .15s background-color ease-in-out,
 	            .15s border-color ease-in-out;
 }
 
 .wp-full-overlay-footer .devices button:focus {
-	-webkit-box-shadow: none;
 	box-shadow: none;
 	outline: none;
 }
@@ -1774,9 +1710,9 @@ body.full-overlay-active {
 	display: none;
 }
 
-#customize-container {
-	display: none;
-	background: #fff;
+#customize-container,
+#customize-controls .notice.notification-overlay {
+	background: #eee;
 	z-index: 500000;
 	position: fixed;
 	overflow: visible;
@@ -1785,6 +1721,9 @@ body.full-overlay-active {
 	left: 0;
 	right: 0;
 	height: 100%;
+}
+#customize-container {
+	display: none;
 }
 
 /* Make the Customizer and Theme installer overlays the only available content. */
@@ -1802,7 +1741,6 @@ body.full-overlay-active {
 	height: 100%;
 	width: 100%;
 	z-index: 20;
-	-webkit-transition: opacity 0.3s;
 	transition: opacity 0.3s;
 }
 
@@ -1894,6 +1832,7 @@ body.full-overlay-active {
 
 #customize-preview.wp-full-overlay-main:before,
 .customize-loading #customize-container:before,
+#customize-controls .notice.notification-overlay.notification-loading:before,
 .theme-install-overlay .wp-full-overlay-main:before {
 	content: "";
 	display: block;
@@ -1907,7 +1846,6 @@ body.full-overlay-active {
 	-webkit-transform: translateZ(0);
 	transform: translateZ(0);
 	background: transparent url(../images/spinner.gif) no-repeat center center;
-	-webkit-background-size: 20px 20px;
 	background-size: 20px 20px;
 }
 
@@ -1927,12 +1865,12 @@ body.full-overlay-active {
   (min-resolution: 120dpi) {
 	.wp-full-overlay .collapse-sidebar-arrow {
 		background-image: url(../images/arrows-2x.png);
-		-webkit-background-size: 15px 123px;
 		background-size: 15px 123px;
 	}
 
 	#customize-preview.wp-full-overlay-main:before,
 	.customize-loading #customize-container:before,
+	#customize-controls .notice.notification-overlay.notification-loading:before,
 	.theme-install-overlay .wp-full-overlay-main:before {
 		background-image: url(../images/spinner-2x.gif);
 	}

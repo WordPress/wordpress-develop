@@ -10,6 +10,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	 */
 	protected $server;
 	protected static $editor;
+	protected static $administrator;
 	protected static $subscriber;
 	const YOUTUBE_VIDEO_ID = 'OQSNhk5ICTI';
 	const INVALID_OEMBED_URL = 'https://www.notreallyanoembedprovider.com/watch?v=awesome-cat-video';
@@ -21,6 +22,10 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		self::$editor = $factory->user->create( array(
 			'role'       => 'editor',
 			'user_email' => 'editor@example.com',
+		) );
+		self::$administrator = $factory->user->create( array(
+			'role'       => 'administrator',
+			'user_email' => 'administrator@example.com',
 		) );
 	}
 
@@ -44,7 +49,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	public function tearDown() {
 		parent::tearDown();
 
-		remove_filter( 'pre_http_request', array( $this, 'mock_embed_request' ), 10, 3 );
+		remove_filter( 'pre_http_request', array( $this, 'mock_embed_request' ), 10 );
 	}
 
 	/**
@@ -65,10 +70,12 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	public function mock_embed_request( $preempt, $r, $url ) {
 		unset( $preempt, $r );
 
+		$parsed_url = wp_parse_url( $url );
+		parse_str( $parsed_url['query'], $query_params );
 		$this->request_count += 1;
 
 		// Mock request to YouTube Embed.
-		if ( false !== strpos( $url, self::YOUTUBE_VIDEO_ID ) ) {
+		if ( ! empty( $query_params['url'] ) && false !== strpos( $query_params['url'], self::YOUTUBE_VIDEO_ID ) ) {
 			return array(
 				'response' => array(
 					'code' => 200,
@@ -79,14 +86,14 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 						'type'             => 'video',
 						'provider_name'    => 'YouTube',
 						'provider_url'     => 'https://www.youtube.com',
-						'thumbnail_width'  => 480,
-						'width'            => 500,
-						'thumbnail_height' => 360,
-						'html'             => '<iframe width="500" height="375" src="https://www.youtube.com/embed/' . self::YOUTUBE_VIDEO_ID . '?feature=oembed" frameborder="0" allowfullscreen></iframe>',
+						'thumbnail_width'  => $query_params['maxwidth'],
+						'width'            => $query_params['maxwidth'],
+						'thumbnail_height' => $query_params['maxheight'],
+						'height'           => $query_params['maxheight'],
+						'html'             => '<iframe width="' . $query_params['maxwidth'] . '" height="' . $query_params['maxheight'] . '" src="https://www.youtube.com/embed/' . self::YOUTUBE_VIDEO_ID . '?feature=oembed" frameborder="0" allowfullscreen></iframe>',
 						'author_name'      => 'Yosemitebear62',
 						'thumbnail_url'    => 'https://i.ytimg.com/vi/' . self::YOUTUBE_VIDEO_ID . '/hqdefault.jpg',
 						'title'            => 'Yosemitebear Mountain Double Rainbow 1-8-10',
-						'height'           => 375,
 					)
 				),
 			);
@@ -409,16 +416,16 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	}
 
 	function test_get_oembed_endpoint_url() {
-		$this->assertEquals( home_url() . '/?rest_route=/oembed/1.0/embed', get_oembed_endpoint_url() );
-		$this->assertEquals( home_url() . '/?rest_route=/oembed/1.0/embed', get_oembed_endpoint_url( '', 'json' ) );
-		$this->assertEquals( home_url() . '/?rest_route=/oembed/1.0/embed', get_oembed_endpoint_url( '', 'xml' ) );
+		$this->assertEquals( home_url() . '/index.php?rest_route=/oembed/1.0/embed', get_oembed_endpoint_url() );
+		$this->assertEquals( home_url() . '/index.php?rest_route=/oembed/1.0/embed', get_oembed_endpoint_url( '', 'json' ) );
+		$this->assertEquals( home_url() . '/index.php?rest_route=/oembed/1.0/embed', get_oembed_endpoint_url( '', 'xml' ) );
 
 		$post_id     = $this->factory()->post->create();
 		$url         = get_permalink( $post_id );
 		$url_encoded = urlencode( $url );
 
-		$this->assertEquals( home_url() . '/?rest_route=%2Foembed%2F1.0%2Fembed&url=' . $url_encoded, get_oembed_endpoint_url( $url ) );
-		$this->assertEquals( home_url() . '/?rest_route=%2Foembed%2F1.0%2Fembed&url=' . $url_encoded . '&format=xml', get_oembed_endpoint_url( $url, 'xml' ) );
+		$this->assertEquals( home_url() . '/index.php?rest_route=%2Foembed%2F1.0%2Fembed&url=' . $url_encoded, get_oembed_endpoint_url( $url ) );
+		$this->assertEquals( home_url() . '/index.php?rest_route=%2Foembed%2F1.0%2Fembed&url=' . $url_encoded . '&format=xml', get_oembed_endpoint_url( $url, 'xml' ) );
 	}
 
 	function test_get_oembed_endpoint_url_pretty_permalinks() {
@@ -472,19 +479,30 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$response = $this->server->dispatch( $request );
 
 		$this->assertEquals( 400, $response->get_status() );
-		$data = $response->get_data();
 	}
 
 	public function test_proxy_with_valid_oembed_provider() {
 		wp_set_current_user( self::$editor );
-
 		$request = new WP_REST_Request( 'GET', '/oembed/1.0/proxy' );
 		$request->set_param( 'url', 'https://www.youtube.com/watch?v=' . self::YOUTUBE_VIDEO_ID );
+		$request->set_param( 'maxwidth', 456 );
+		$request->set_param( 'maxheight', 789 );
+		$request->set_param( '_wpnonce', wp_create_nonce( 'wp_rest' ) );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertEquals( 1, $this->request_count );
 
 		// Subsequent request is cached and so it should not cause a request.
+		$this->server->dispatch( $request );
+		$this->assertEquals( 1, $this->request_count );
+
+		// Rest with another user should also be cached.
+		wp_set_current_user( self::$administrator );
+		$request = new WP_REST_Request( 'GET', '/oembed/1.0/proxy' );
+		$request->set_param( 'url', 'https://www.youtube.com/watch?v=' . self::YOUTUBE_VIDEO_ID );
+		$request->set_param( '_wpnonce', wp_create_nonce( 'wp_rest' ) );
+		$request->set_param( 'maxwidth', 456 );
+		$request->set_param( 'maxheight', 789 );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 1, $this->request_count );
 
@@ -495,6 +513,8 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertTrue( is_object( $data ) );
 		$this->assertEquals( 'YouTube', $data->provider_name );
 		$this->assertEquals( 'https://i.ytimg.com/vi/' . self::YOUTUBE_VIDEO_ID . '/hqdefault.jpg', $data->thumbnail_url );
+		$this->assertEquals( $data->width, $request['maxwidth'] );
+		$this->assertEquals( $data->height, $request['maxheight'] );
 	}
 
 	public function test_proxy_with_invalid_oembed_provider_no_discovery() {

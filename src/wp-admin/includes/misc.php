@@ -270,6 +270,178 @@ function update_recently_edited( $file ) {
 }
 
 /**
+ * Makes a tree structure for the Theme Editor's file list.
+ *
+ * @since 4.9.0
+ * @access private
+ *
+ * @param array $allowed_files List of theme file paths.
+ * @return array Tree structure for listing theme files.
+ */
+function wp_make_theme_file_tree( $allowed_files ) {
+	$tree_list = array();
+	foreach ( $allowed_files as $file_name => $absolute_filename ) {
+		$list = explode( '/', $file_name );
+		$last_dir = &$tree_list;
+		foreach ( $list as $dir ) {
+			$last_dir =& $last_dir[ $dir ];
+		}
+		$last_dir = $file_name;
+	}
+	return $tree_list;
+}
+
+/**
+ * Outputs the formatted file list for the Theme Editor.
+ *
+ * @since 4.9.0
+ * @access private
+ *
+ * @param array|string $tree  List of file/folder paths, or filename.
+ * @param int          $level The aria-level for the current iteration.
+ * @param int          $size  The aria-setsize for the current iteration.
+ * @param int          $index The aria-posinset for the current iteration.
+ */
+function wp_print_theme_file_tree( $tree, $level = 2, $size = 1, $index = 1 ) {
+	global $relative_file, $stylesheet;
+
+	if ( is_array( $tree ) ) {
+		$index = 0;
+		$size = count( $tree );
+		foreach ( $tree as $label => $theme_file ) :
+			$index++;
+			if ( ! is_array( $theme_file ) ) {
+				wp_print_theme_file_tree( $theme_file, $level, $index, $size );
+				continue;
+			}
+			?>
+			<li role="treeitem" aria-expanded="true" tabindex="-1"
+				aria-level="<?php echo esc_attr( $level ); ?>"
+				aria-setsize="<?php echo esc_attr( $size ); ?>"
+				aria-posinset="<?php echo esc_attr( $index ); ?>">
+				<span class="folder-label"><?php echo esc_html( $label ); ?> <span class="screen-reader-text"><?php _e( 'folder' ); ?></span><span aria-hidden="true" class="icon"></span></span>
+				<ul role="group" class="tree-folder"><?php wp_print_theme_file_tree( $theme_file, $level + 1, $index, $size ); ?></ul>
+			</li>
+			<?php
+		endforeach;
+	} else {
+		$filename = $tree;
+		$url = add_query_arg(
+			array(
+				'file' => rawurlencode( $tree ),
+				'theme' => rawurlencode( $stylesheet ),
+			),
+			admin_url( 'theme-editor.php' )
+		);
+		?>
+		<li role="none" class="<?php echo esc_attr( $relative_file === $filename ? 'current-file' : '' ); ?>">
+			<a role="treeitem" tabindex="<?php echo esc_attr( $relative_file === $filename ? '0' : '-1' ); ?>"
+				href="<?php echo esc_url( $url ); ?>"
+				aria-level="<?php echo esc_attr( $level ); ?>"
+				aria-setsize="<?php echo esc_attr( $size ); ?>"
+				aria-posinset="<?php echo esc_attr( $index ); ?>">
+				<?php
+				$file_description = esc_html( get_file_description( $filename ) );
+				if ( $file_description !== $filename && basename( $filename ) !== $file_description ) {
+					$file_description .= '<br /><span class="nonessential">(' . esc_html( $filename ) . ')</span>';
+				}
+
+				if ( $relative_file === $filename ) {
+					echo '<span class="notice notice-info">' . $file_description . '</span>';
+				} else {
+					echo $file_description;
+				}
+				?>
+			</a>
+		</li>
+		<?php
+	}
+}
+
+/**
+ * Makes a tree structure for the Plugin Editor's file list.
+ *
+ * @since 4.9.0
+ * @access private
+ *
+ * @param string $plugin_editable_files List of plugin file paths.
+ * @return array Tree structure for listing plugin files.
+ */
+function wp_make_plugin_file_tree( $plugin_editable_files ) {
+	$tree_list = array();
+	foreach ( $plugin_editable_files as $plugin_file ) {
+		$list = explode( '/', preg_replace( '#^.+?/#', '', $plugin_file ) );
+		$last_dir = &$tree_list;
+		foreach ( $list as $dir ) {
+			$last_dir =& $last_dir[ $dir ];
+		}
+		$last_dir = $plugin_file;
+	}
+	return $tree_list;
+}
+
+/**
+ * Outputs the formatted file list for the Plugin Editor.
+ *
+ * @since 4.9.0
+ * @access private
+ *
+ * @param array|string $tree  List of file/folder paths, or filename.
+ * @param string       $label Name of file or folder to print.
+ * @param int          $level The aria-level for the current iteration.
+ * @param int          $size  The aria-setsize for the current iteration.
+ * @param int          $index The aria-posinset for the current iteration.
+ */
+function wp_print_plugin_file_tree( $tree, $label = '', $level = 2, $size = 1, $index = 1 ) {
+	global $file, $plugin;
+	if ( is_array( $tree ) ) {
+		$index = 0;
+		$size = count( $tree );
+		foreach ( $tree as $label => $plugin_file ) :
+			$index++;
+			if ( ! is_array( $plugin_file ) ) {
+				wp_print_plugin_file_tree( $plugin_file, $label, $level, $index, $size );
+				continue;
+			}
+			?>
+			<li role="treeitem" aria-expanded="true" tabindex="-1"
+				aria-level="<?php echo esc_attr( $level ); ?>"
+				aria-setsize="<?php echo esc_attr( $size ); ?>"
+				aria-posinset="<?php echo esc_attr( $index ); ?>">
+				<span class="folder-label"><?php echo esc_html( $label ); ?> <span class="screen-reader-text"><?php _e( 'folder' ); ?></span><span aria-hidden="true" class="icon"></span></span>
+				<ul role="group" class="tree-folder"><?php wp_print_plugin_file_tree( $plugin_file, '', $level + 1, $index, $size ); ?></ul>
+			</li>
+			<?php
+		endforeach;
+	} else {
+		$url = add_query_arg(
+			array(
+				'file' => rawurlencode( $tree ),
+				'plugin' => rawurlencode( $plugin ),
+			),
+			admin_url( 'plugin-editor.php' )
+		);
+		?>
+		<li role="none" class="<?php echo esc_attr( $file === $tree ? 'current-file' : '' ); ?>">
+			<a role="treeitem" tabindex="<?php echo esc_attr( $file === $tree ? '0' : '-1' ); ?>"
+				href="<?php echo esc_url( $url ); ?>"
+				aria-level="<?php echo esc_attr( $level ); ?>"
+				aria-setsize="<?php echo esc_attr( $size ); ?>"
+				aria-posinset="<?php echo esc_attr( $index ); ?>">
+				<?php
+				if ( $file === $tree ) {
+					echo '<span class="notice notice-info">' . esc_html( $label ) . '</span>';
+				} else {
+					echo esc_html( $label );
+				}
+				?>
+			</a>
+		</li>
+		<?php
+	}
+}
+
+/**
  * Flushes rewrite rules if siteurl, home or page_on_front changed.
  *
  * @since 2.1.0
@@ -920,6 +1092,27 @@ function wp_admin_canonical_url() {
 }
 
 /**
+ * Send a referrer policy header so referrers are not sent externally from administration screens.
+ *
+ * @since 4.9.0
+ */
+function wp_admin_headers() {
+	$policy = 'same-origin';
+
+	/**
+	 * Filters the admin referrer policy header value. Default 'same-origin'.
+	 *
+	 * @since 4.9.0
+	 * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
+	 *
+	 * @param string $policy The referrer policy header value.
+	 */
+	$policy = apply_filters( 'admin_referrer_policy', $policy );
+
+	header( sprintf( 'Referrer-Policy: %s', $policy ) );
+}
+
+/**
  * Outputs JS that reloads the page if the user navigated to it with the Back or Forward button.
  *
  * Used on the Edit Post and Add New Post screens. Needed to ensure the page is not loaded from browser cache,
@@ -935,4 +1128,84 @@ function wp_page_reload_on_back_button_js() {
 		}
 	</script>
 	<?php
+}
+
+/**
+ * Send a confirmation request email when a change of site admin email address is attempted.
+ *
+ * The new site admin address will not become active until confirmed.
+ *
+ * @since 3.0.0
+ * @since 4.9.0 This function was moved from wp-admin/includes/ms.php so it's no longer Multisite specific.
+ *
+ * @param string $old_value The old site admin email address.
+ * @param string $value     The proposed new site admin email address.
+ */
+function update_option_new_admin_email( $old_value, $value ) {
+	if ( $value == get_option( 'admin_email' ) || ! is_email( $value ) ) {
+		return;
+	}
+
+	$hash = md5( $value . time() . mt_rand() );
+	$new_admin_email = array(
+		'hash'     => $hash,
+		'newemail' => $value,
+	);
+	update_option( 'adminhash', $new_admin_email );
+
+	$switched_locale = switch_to_locale( get_user_locale() );
+
+	/* translators: Do not translate USERNAME, ADMIN_URL, EMAIL, SITENAME, SITEURL: those are placeholders. */
+	$email_text = __( 'Howdy ###USERNAME###,
+
+You recently requested to have the administration email address on
+your site changed.
+
+If this is correct, please click on the following link to change it:
+###ADMIN_URL###
+
+You can safely ignore and delete this email if you do not want to
+take this action.
+
+This email has been sent to ###EMAIL###
+
+Regards,
+All at ###SITENAME###
+###SITEURL###' );
+
+	/**
+	 * Filters the text of the email sent when a change of site admin email address is attempted.
+	 *
+	 * The following strings have a special meaning and will get replaced dynamically:
+	 * ###USERNAME###  The current user's username.
+	 * ###ADMIN_URL### The link to click on to confirm the email change.
+	 * ###EMAIL###     The proposed new site admin email address.
+	 * ###SITENAME###  The name of the site.
+	 * ###SITEURL###   The URL to the site.
+	 *
+	 * @since MU (3.0.0)
+	 * @since 4.9.0 This filter is no longer Multisite specific.
+	 *
+	 * @param string $email_text      Text in the email.
+	 * @param array  $new_admin_email {
+	 *     Data relating to the new site admin email address.
+	 *
+	 *     @type string $hash     The secure hash used in the confirmation link URL.
+	 *     @type string $newemail The proposed new site admin email address.
+	 * }
+	 */
+	$content = apply_filters( 'new_admin_email_content', $email_text, $new_admin_email );
+
+	$current_user = wp_get_current_user();
+	$content = str_replace( '###USERNAME###', $current_user->user_login, $content );
+	$content = str_replace( '###ADMIN_URL###', esc_url( self_admin_url( 'options.php?adminhash=' . $hash ) ), $content );
+	$content = str_replace( '###EMAIL###', $value, $content );
+	$content = str_replace( '###SITENAME###', wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ), $content );
+	$content = str_replace( '###SITEURL###', home_url(), $content );
+
+	wp_mail( $value, sprintf( __( '[%s] New Admin Email Address' ), wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ) ), $content );
+
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
 }

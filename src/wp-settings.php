@@ -22,7 +22,7 @@ require_once( ABSPATH . WPINC . '/plugin.php' );
 
 /*
  * These can't be directly globalized in version.php. When updating,
- * we're including version.php from another install and don't want
+ * we're including version.php from another installation and don't want
  * these values to be overridden if already set.
  */
 global $wp_version, $wp_db_version, $tinymce_version, $required_php_version, $required_mysql_version, $wp_local_package;
@@ -293,6 +293,8 @@ require( ABSPATH . WPINC . '/vars.php' );
 // @plugin authors: warning: these get registered again on the init hook.
 create_initial_taxonomies();
 create_initial_post_types();
+
+wp_start_scraping_edited_file_errors();
 
 // Register the default theme directory root
 register_theme_directory( get_theme_root() );

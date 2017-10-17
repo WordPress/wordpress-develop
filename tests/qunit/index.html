@@ -19,7 +19,8 @@
 		</script>
 		<script>
 			var wpApiSettings = {
-				'root': 'http://localhost/wp-json/'
+				root: 'http://localhost/wp-json/',
+				nonce: 'not_a_real_nonce'
 			};
 		</script>
 		<script src="../../src/wp-includes/js/wp-util.js"></script>
@@ -77,6 +78,7 @@
 		<script src="../../src/wp-includes/js/customize-models.js"></script>
 		<script src="../../src/wp-includes/js/shortcode.js"></script>
 		<script src="../../src/wp-admin/js/customize-controls.js"></script>
+		<script src="../../src/wp-includes/js/api-request.js"></script>
 		<script src="../../src/wp-includes/js/wp-api.js"></script>
 
 		<script type='text/javascript' src='../../src/wp-includes/js/jquery/ui/core.js'></script>
@@ -116,12 +118,20 @@
 			wp.mediaWidgets.controlConstructors[ "media_audio" ].prototype.mime_type = "audio";
 			_.extend( wp.mediaWidgets.controlConstructors[ "media_audio" ].prototype.l10n, {"no_media_selected":"No audio selected","select_media":"Select File","change_media":"Change Audio","edit_media":"Edit Audio","add_to_widget":"Add to Widget","missing_attachment":"We can&#8217;t find that audio file. Check your <a href=\"http:\/\/src.wordpress-develop.dev\/wp-admin\/upload.php\">media library<\/a> and make sure it wasn&#8217;t deleted.","media_library_state_multi":{"0":"Audio Widget (%d)","1":"Audio Widget (%d)","singular":"Audio Widget (%d)","plural":"Audio Widget (%d)","context":null,"domain":null},"media_library_state_single":"Audio Widget"} );
 		</script>
+		<script type='text/javascript' src='../../src/wp-admin/js/widgets/media-gallery-widget.js'></script>
+		<script type='text/javascript'>
+			wp.mediaWidgets.modelConstructors[ "media_gallery" ].prototype.schema = {"title":{"type":"string","default":"","should_preview_update":false},"ids":{"type":"string","default":""},"columns":{"type":"integer","default":3},"size":{"type":"string","default":"thumbnail","enum":["thumbnail","medium","medium_large","large","post-thumbnail","full","custom"]},"link_type":{"type":"string","default":"none","enum":["none","file","post"],"media_prop":"link","should_preview_update":false},"orderby_random":{"type":"boolean","default":false,"media_prop":"_orderbyRandom","should_preview_update":false},"attachments":{"type":"string","default":""}};
+			wp.mediaWidgets.controlConstructors[ "media_gallery" ].prototype.mime_type = "image";
+
+			_.extend( wp.mediaWidgets.controlConstructors[ "media_gallery" ].prototype.l10n, {"no_media_selected":"No images selected","add_media":"Add Media","replace_media":"Replace Media","edit_media":"Edit Gallery","add_to_widget":"Add to Widget","missing_attachment":"We can&#8217;t find that gallery. Check your <a href=\"http:\/\/src.wordpress-develop.dev\/wp-admin\/upload.php\">media library<\/a> and make sure it wasn&#8217;t deleted.","media_library_state_multi":"","media_library_state_single":"","unsupported_file_type":"Looks like this isn&#8217;t the correct kind of file. Please link to an appropriate file instead.","select_media":"Select Images","change_media":"Add Image"} );
+		</script>
 
 		<!-- Unit tests -->
 		<script src="wp-admin/js/password-strength-meter.js"></script>
 		<script src="wp-admin/js/customize-base.js"></script>
 		<script src="wp-admin/js/customize-header.js"></script>
 		<script src="wp-includes/js/shortcode.js"></script>
+		<script src="wp-includes/js/api-request.js"></script>
 		<script src="wp-includes/js/wp-api.js"></script>
 		<script src="wp-admin/js/customize-controls.js"></script>
 		<script src="wp-admin/js/customize-controls-utils.js"></script>
@@ -131,6 +141,7 @@
 		<script src="wp-admin/js/nav-menu.js"></script>
 		<script src="wp-admin/js/widgets/test-media-widgets.js"></script>
 		<script src="wp-admin/js/widgets/test-media-image-widget.js"></script>
+		<script src="wp-admin/js/widgets/test-media-gallery-widget.js"></script>
 		<script src="wp-admin/js/widgets/test-media-video-widget.js"></script>
 
 		<!-- Customizer templates for sections -->
@@ -206,6 +217,14 @@
 					<li data-code="{{ notification.code }}" data-type="{{ notification.type }}">{{ notification.message || notification.code }}</li>
 				<# } ); #>
 			</ul>
+		</script>
+		<script type="text/html" id="tmpl-customize-notification">
+			<li class="notice notice-{{ data.type || 'info' }} {{ data.altNotice ? 'notice-alt' : '' }} {{ data.dismissible ? 'is-dismissible' : '' }}" data-code="{{ data.code }}" data-type="{{ data.type }}">
+				{{{ data.message || data.code }}}
+				<# if ( data.dismissible ) { #>
+					<button type="button" class="notice-dismiss"><span class="screen-reader-text"><?php _e( 'Dismiss' ); ?></span></button>
+				<# } #>
+			</li>
 		</script>
 
 		<!-- Templates for Customizer Menus -->
@@ -352,6 +371,19 @@
 				<button type="button" class="menus-move-up">Move up</button><button type="button" class="menus-move-down">Move down</button><button type="button" class="menus-move-left">Move one level up</button><button type="button" class="menus-move-right">Move one level down</button>			</div>
 		</script>
 
+		<script type="text/html" id="tmpl-nav-menu-locations-header">
+			<span class="customize-control-title customize-section-title-menu_locations-heading"><?php _e( 'Menu Locations' ); ?></span>
+			<p class="customize-control-description customize-section-title-menu_locations-description">Something</p>
+		</script>
+
+		<script type="text/html" id="tmpl-nav-menu-create-menu-section-title">
+			<h3>
+				<button type="button" class="button customize-add-menu-button">
+					<?php _e( 'Create New Menu' ); ?>
+				</button>
+			</h3>
+		</script>
+
 		<script type="text/html" id="tmpl-customize-section-sidebar">
 			<li id="accordion-section-{{ data.id }}" class="accordion-section control-section control-section-{{ data.type }}">
 			<h3 class="accordion-section-title" tabindex="0">
@@ -383,6 +415,7 @@
 
 		<div hidden>
 			<div id="customize-preview"></div>
+			<div id="customize-notifications-test"><ul></ul></div>
 		</div>
 
 		<div hidden>
@@ -555,7 +588,7 @@
 					</div><!-- #available-widgets-list -->
 				</div><!-- #available-widgets -->
 			</div><!-- #widgets-left -->
-			
+
 			<script type="text/html" id="tmpl-widget-media-media_image-control">
 			<# var elementIdPrefix = 'el' + String( Math.random() ) + '_' #>
 			<p>
@@ -797,6 +830,132 @@
 		<div class="media-frame-uploader"></div>
 	</script>
 
+	<script type="text/html" id="tmpl-widget-media-media_gallery-control">
+		<# var elementIdPrefix = 'el' + String( Math.random() ) + '_' #>
+		<p>
+			<label for="{{ elementIdPrefix }}title">Title:</label>
+			<input id="{{ elementIdPrefix }}title" type="text" class="widefat title">
+		</p>
+		<div class="media-widget-preview">
+			<div class="attachment-media-view">
+				<div class="placeholder">No images selected</div>
+			</div>
+			</div>
+			<p class="media-widget-buttons">
+				<button type="button" class="button edit-media selected">
+					Edit Gallery				</button>
+				<button type="button" class="button change-media select-media selected">
+					Replace Media				</button>
+				<button type="button" class="button select-media not-selected">
+					Add Media				</button>
+			</p>
+		<div class="media-widget-fields">
+		</div>
+	</script>
+				<script type="text/html" id="tmpl-wp-media-widget-gallery-preview">
+			<# var describedById = 'describedBy-' + String( Math.random() ); #>
+			<# data.attachments = data.attachments ? JSON.parse(data.attachments) : ''; #>
+			<# if ( Array.isArray( data.attachments ) && data.attachments.length ) { #>
+				<div class="gallery gallery-columns-{{ data.columns }}">
+					<# _.each( data.attachments, function( attachment, index ) { #>
+						<dl class="gallery-item">
+							<dt class="gallery-icon">
+							<# if ( attachment.sizes.thumbnail ) { #>
+								<img src="{{ attachment.sizes.thumbnail.url }}" width="{{ attachment.sizes.thumbnail.width }}" height="{{ attachment.sizes.thumbnail.height }}" alt="" />
+							<# } else { #>
+								<img src="{{ attachment.url }}" alt="" />
+							<# } #>
+							</dt>
+							<# if ( attachment.caption ) { #>
+								<dd class="wp-caption-text gallery-caption">
+									{{{ data.verifyHTML( attachment.caption ) }}}
+								</dd>
+							<# } #>
+						</dl>
+						<# if ( index % data.columns === data.columns - 1 ) { #>
+							<br style="clear: both;">
+						<# } #>
+					<# } ); #>
+				</div>
+			<# } else { #>
+				<div class="attachment-media-view">
+					<p class="placeholder">No images selected</p>
+				</div>
+			<# } #>
+		</script>
+		<script type="text/html" id="tmpl-customize-control-date_time-content">
+
+		<# _.defaults( data, {"settings":[],"type":"date_time","priority":10,"active":true,"section":"","content":"<li id=\"customize-control-temp\" class=\"customize-control customize-control-date_time\">\n\t\t\t\t\t<\/li>","label":"","description":"","instanceNumber":73,"maxYear":9999,"minYear":1000,"allowPastDate":true,"twelveHourFormat":true,"includeTime":true,"defaultValue":null,"month_choices":{"1":{"text":"1-Jan","value":1},"2":{"text":"2-Feb","value":2},"3":{"text":"3-Mar","value":3},"4":{"text":"4-Apr","value":4},"5":{"text":"5-May","value":5},"6":{"text":"6-Jun","value":6},"7":{"text":"7-Jul","value":7},"8":{"text":"8-Aug","value":8},"9":{"text":"9-Sep","value":9},"10":{"text":"10-Oct","value":10},"11":{"text":"11-Nov","value":11},"12":{"text":"12-Dec","value":12}}} ); #>
+		<# var idPrefix = _.uniqueId( 'el' ) + '-'; #>
+
+		<span class="customize-control-title">
+			{{ data.label }}
+		</span>
+		<div class="customize-control-notifications-container"></div>
+		<span class="description customize-control-description">{{ data.description }}</span>
+		<div class="date-time-fields">
+			<fieldset class="day-row">
+				<legend class="title-day">Date</legend>
+				<div class="day-fields clear">
+					<label for="{{ idPrefix }}date-time-month" class="screen-reader-text">Month</label>
+					<select id="{{ idPrefix }}date-time-month" class="date-input month" data-component="month">
+						<# _.each( data.month_choices, function( choice ) {
+								if ( _.isObject( choice ) && ! _.isUndefined( choice.text ) && ! _.isUndefined( choice.value ) ) {
+								text = choice.text;
+								value = choice.value;
+								}
+								#>
+							<option value="{{ value }}" >
+								{{ text }}
+							</option>
+						<# } ); #>
+					</select>
+					<label for="{{ idPrefix }}date-time-day" class="screen-reader-text">Day</label>
+					<input id="{{ idPrefix }}date-time-day" type="number" size="2" autocomplete="off" class="date-input day" data-component="day" min="1" max="31" />
+					<span class="time-special-char date-time-separator">,</span>
+					<label for="{{ idPrefix }}date-time-year" class="screen-reader-text">Year</label>
+					<input id="{{ idPrefix }}date-time-year" type="number" size="4" autocomplete="off" class="date-input year" data-component="year" min="{{ data.minYear }}" max="{{ data.maxYear }}">
+				</div>
+			</fieldset>
+			<# if ( data.includeTime ) { #>
+				<fieldset class="time-row clear">
+					<legend class="title-time">Time</legend>
+					<div class="time-fields clear">
+						<label for="{{ idPrefix }}date-time-hour" class="screen-reader-text">Hour</label>
+						<# var maxHour = data.twelveHourFormat ? 12 : 24; #>
+						<input id="{{ idPrefix }}date-time-hour" type="number" size="2" autocomplete="off" class="date-input hour" data-component="hour" min="1" max="{{ maxHour }}">
+						<span class="time-special-char date-time-separator">:</span>
+						<label for="{{ idPrefix }}date-time-minute" class="screen-reader-text">Minute</label>
+						<input id="{{ idPrefix }}date-time-minute" type="number" size="2" autocomplete="off" class="date-input minute" data-component="minute" min="0" max="59">
+						<# if ( data.twelveHourFormat ) { #>
+							<label for="{{ idPrefix }}date-time-meridian" class="screen-reader-text">Meridian</label>
+							<select id="{{ idPrefix }}date-time-meridian" class="date-input meridian" data-component="meridian">
+								<option value="am">AM</option>
+								<option value="pm">PM</option>
+							</select>
+						<# } #>
+						<abbr class="date-timezone" aria-label="Timezone" title="Timezone is America/Los Angeles (PDT), currently UTC-7.">PDT</abbr>
+					</div>
+				</fieldset>
+			<# } #>
+		</div>
+	</script>
+	<script type="text/html" id="tmpl-customize-preview-link-control" >
+		<# var elementPrefix = _.uniqueId( 'el' ) + '-' #>
+		<p class="customize-control-title">
+			Share Preview Link			</p>
+		<p class="description customize-control-description">See how changes would look live on your website, and share the preview with people who can&#039;t access the Customizer.</p>
+		<div class="customize-control-notifications-container"></div>
+		<div class="preview-link-wrapper">
+			<label for="{{ elementPrefix }}customize-preview-link-input" class="screen-reader-text">Preview Link</label>
+			<a href="" target="">
+				<span class="preview-control-element" data-component="url"></span>
+				<span class="screen-reader-text">(opens in a new window)</span>
+			</a>
+			<input id="{{ elementPrefix }}customize-preview-link-input" readonly class="preview-control-element" data-component="input">
+			<button class="customize-copy-preview-link preview-control-element button button-secondary" data-component="button" data-copy-text="Copy" data-copied-text="Copied" >Copy</button>
+		</div>
+	</script>
 	<script type="text/html" id="tmpl-media-modal">
 		<div class="media-modal wp-core-ui">
 			<button type="button" class="media-modal-close"><span class="media-modal-icon"><span class="screen-reader-text">Close media panel</span></span></button>
@@ -2050,6 +2209,25 @@
 		<script src="editor/js/utils.js"></script>
 		<script src="wp-includes/js/tinymce/plugins/wptextpattern/plugin.js"></script>
 		<script src="wp-includes/js/tinymce/tinymce-obsolete.js"></script>
+
+		<!-- Changeset locked notice template -->
+		<script type="text/html" id="tmpl-customize-changeset-locked-notice">
+			<div id="customize-changeset-lock-dialog" class="notification-dialog-wrap hidden">
+				<div class="notification-dialog-background"></div>
+				<div class="notification-dialog">
+					<div class="customize-changeset-locked-message">
+						<div class="customize-changeset-locked-avatar"></div>
+						<p class="currently-editing wp-tab-first" tabindex="0">
+							<span class="customize-notice-user-name"></span> <span class="customize-take-over-message">is already customizing this site. Do you want to take over?</span></p>
+						<p>
+							<a class="button customize-notice-go-back-button" href="/wp-admin/post.php?post=505&#038;action=edit">Go back</a>
+							<a class="button customize-notice-preview-button" href="http://example.org/?customize_changeset_uuid=7a796f7a-255c-49f5-9d25-cef0c315a4ba">Preview</a>
+							<a class="button button-primary wp-tab-last customize-notice-take-over-button" href="http://example.org/wp-admin/customize.php?changeset_uuid=7a796f7a-255c-49f5-9d25-cef0c315a4ba&action=customize_take_over_changeset&nonce=e3a1df16d2&return=/wp-admin/post.php?post=505&action=edit">Take over</a>
+						</p>
+					</div>
+				</div>
+			</div>
+		</script>
 
 		<!-- Updates templates and HTML fixtures -->
 		<script id="tmpl-wp-updates-admin-notice" type="text/html">

@@ -17,7 +17,7 @@
  * Get the "dashboard blog", the blog where users without a blog edit their profile data.
  * Dashboard blog functionality was removed in WordPress 3.1, replaced by the user admin.
  *
- * @since MU
+ * @since MU (3.0.0)
  * @deprecated 3.1.0 Use get_site()
  * @see get_site()
  *
@@ -35,7 +35,7 @@ function get_dashboard_blog() {
 /**
  * Generates a random password.
  *
- * @since MU
+ * @since MU (3.0.0)
  * @deprecated 3.0.0 Use wp_generate_password()
  * @see wp_generate_password()
  *
@@ -55,7 +55,7 @@ function generate_random_password( $len = 8 ) {
  * This function must reside in a file included only if is_multisite() due to
  * legacy function_exists() checks to determine if multisite is enabled.
  *
- * @since MU
+ * @since MU (3.0.0)
  * @deprecated 3.0.0 Use is_super_admin()
  * @see is_super_admin()
  *
@@ -82,7 +82,7 @@ if ( !function_exists( 'graceful_fail' ) ) :
 /**
  * Deprecated functionality to gracefully fail.
  *
- * @since MU
+ * @since MU (3.0.0)
  * @deprecated 3.0.0 Use wp_die()
  * @see wp_die()
  */
@@ -120,7 +120,7 @@ endif;
 /**
  * Deprecated functionality to retrieve user information.
  *
- * @since MU
+ * @since MU (3.0.0)
  * @deprecated 3.0.0 Use get_user_by()
  * @see get_user_by()
  *
@@ -134,7 +134,7 @@ function get_user_details( $username ) {
 /**
  * Deprecated functionality to clear the global post cache.
  *
- * @since MU
+ * @since MU (3.0.0)
  * @deprecated 3.0.0 Use clean_post_cache()
  * @see clean_post_cache()
  *
@@ -147,7 +147,7 @@ function clear_global_post_cache( $post_id ) {
 /**
  * Deprecated functionality to determin if the current site is the main site.
  *
- * @since MU
+ * @since MU (3.0.0)
  * @deprecated 3.0.0 Use is_main_site()
  * @see is_main_site()
  */
@@ -159,7 +159,7 @@ function is_main_blog() {
 /**
  * Deprecated functionality to validate an email address.
  *
- * @since MU
+ * @since MU (3.0.0)
  * @deprecated 3.0.0 Use is_email()
  * @see is_email()
  *
@@ -175,7 +175,7 @@ function validate_email( $email, $check_domain = true) {
 /**
  * Deprecated functionality to retrieve a list of all sites.
  *
- * @since MU
+ * @since MU (3.0.0)
  * @deprecated 3.0.0 Use wp_get_sites()
  * @see wp_get_sites()
  *
@@ -187,7 +187,7 @@ function get_blog_list( $start = 0, $num = 10, $deprecated = '' ) {
 	_deprecated_function( __FUNCTION__, '3.0.0', 'wp_get_sites()' );
 
 	global $wpdb;
-	$blogs = $wpdb->get_results( $wpdb->prepare("SELECT blog_id, domain, path FROM $wpdb->blogs WHERE site_id = %d AND public = '1' AND archived = '0' AND mature = '0' AND spam = '0' AND deleted = '0' ORDER BY registered DESC", $wpdb->siteid), ARRAY_A );
+	$blogs = $wpdb->get_results( $wpdb->prepare( "SELECT blog_id, domain, path FROM $wpdb->blogs WHERE site_id = %d AND public = '1' AND archived = '0' AND mature = '0' AND spam = '0' AND deleted = '0' ORDER BY registered DESC", get_current_network_id() ), ARRAY_A );
 
 	$blog_list = array();
 	foreach ( (array) $blogs as $details ) {
@@ -209,7 +209,7 @@ function get_blog_list( $start = 0, $num = 10, $deprecated = '' ) {
 /**
  * Deprecated functionality to retrieve a list of the most active sites.
  *
- * @since MU
+ * @since MU (3.0.0)
  * @deprecated 3.0.0
  *
  * @param int  $num     Optional. Number of activate blogs to retrieve. Default 10.
@@ -261,7 +261,7 @@ function get_most_active_blogs( $num = 10, $display = true ) {
  * 5) $_POST['redirect']
  * 6) $url
  *
- * @since MU
+ * @since MU (3.0.0)
  * @deprecated 3.3.0 Use wp_redirect()
  * @see wp_redirect()
  *
@@ -300,7 +300,7 @@ function wpmu_admin_do_redirect( $url = '' ) {
 /**
  * Adds an 'updated=true' argument to a URL.
  *
- * @since MU
+ * @since MU (3.0.0)
  * @deprecated 3.3.0 Use add_query_arg()
  * @see add_query_arg()
  *
@@ -325,7 +325,7 @@ function wpmu_admin_redirect_add_updated_param( $url = '' ) {
  * A numeric string is considered to be an existing user ID
  * and is simply returned as such.
  *
- * @since MU
+ * @since MU (3.0.0)
  * @deprecated 3.6.0 Use get_user_by()
  * @see get_user_by()
  *
@@ -350,7 +350,7 @@ function get_user_id_from_string( $string ) {
 /**
  * Get a full blog URL, given a domain and a path.
  *
- * @since MU
+ * @since MU (3.0.0)
  * @deprecated 3.7.0
  *
  * @param string $domain
@@ -379,7 +379,7 @@ function get_blogaddress_by_domain( $domain, $path ) {
 /**
  * Create an empty blog.
  *
- * @since MU 1.0
+ * @since MU (3.0.0)
  * @deprecated 4.4.0
  *
  * @param string $domain       The new blog's domain.
@@ -415,27 +415,34 @@ function create_empty_blog( $domain, $path, $weblog_title, $site_id = 1 ) {
 /**
  * Get the admin for a domain/path combination.
  *
- * @since MU 1.0
+ * @since MU (3.0.0)
  * @deprecated 4.4.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string $sitedomain Optional. Site domain.
- * @param string $path       Optional. Site path.
- * @return array|false The network admins
+ * @param string $domain Optional. Network domain.
+ * @param string $path   Optional. Network path.
+ * @return array|false The network admins.
  */
-function get_admin_users_for_domain( $sitedomain = '', $path = '' ) {
+function get_admin_users_for_domain( $domain = '', $path = '' ) {
 	_deprecated_function( __FUNCTION__, '4.4.0' );
 
 	global $wpdb;
 
-	if ( ! $sitedomain )
-		$site_id = $wpdb->siteid;
-	else
-		$site_id = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $wpdb->site WHERE domain = %s AND path = %s", $sitedomain, $path ) );
+	if ( ! $domain ) {
+		$network_id = get_current_network_id();
+	} else {
+		$_networks  = get_networks( array(
+			'fields' => 'ids',
+			'number' => 1,
+			'domain' => $domain,
+			'path'   => $path,
+		) );
+		$network_id = ! empty( $_networks ) ? array_shift( $_networks ) : 0;
+	}
 
-	if ( $site_id )
-		return $wpdb->get_results( $wpdb->prepare( "SELECT u.ID, u.user_login, u.user_pass FROM $wpdb->users AS u, $wpdb->sitemeta AS sm WHERE sm.meta_key = 'admin_user_id' AND u.ID = sm.meta_value AND sm.site_id = %d", $site_id ), ARRAY_A );
+	if ( $network_id )
+		return $wpdb->get_results( $wpdb->prepare( "SELECT u.ID, u.user_login, u.user_pass FROM $wpdb->users AS u, $wpdb->sitemeta AS sm WHERE sm.meta_key = 'admin_user_id' AND u.ID = sm.meta_value AND sm.site_id = %d", $network_id ), ARRAY_A );
 
 	return false;
 }
@@ -446,8 +453,6 @@ function get_admin_users_for_domain( $sitedomain = '', $path = '' ) {
  * @since 3.7.0
  * @deprecated 4.6.0 Use get_sites()
  * @see get_sites()
- *
- * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param array $args {
  *     Array of default arguments. Optional.
@@ -462,21 +467,19 @@ function get_admin_users_for_domain( $sitedomain = '', $path = '' ) {
  *     @type int       $limit      Number of sites to limit the query to. Default 100.
  *     @type int       $offset     Exclude the first x sites. Used in combination with the $limit parameter. Default 0.
  * }
- * @return array An empty array if the install is considered "large" via wp_is_large_network(). Otherwise,
+ * @return array An empty array if the installation is considered "large" via wp_is_large_network(). Otherwise,
  *               an associative array of site data arrays, each containing the site (network) ID, blog ID,
  *               site domain and path, dates registered and modified, and the language ID. Also, boolean
  *               values for whether the site is public, archived, mature, spam, and/or deleted.
  */
 function wp_get_sites( $args = array() ) {
-	global $wpdb;
-
 	_deprecated_function( __FUNCTION__, '4.6.0', 'get_sites()' );
 
 	if ( wp_is_large_network() )
 		return array();
 
 	$defaults = array(
-		'network_id' => $wpdb->siteid,
+		'network_id' => get_current_network_id(),
 		'public'     => null,
 		'archived'   => null,
 		'mature'     => null,
@@ -515,4 +518,31 @@ function wp_get_sites( $args = array() ) {
 	}
 
 	return $results;
+}
+
+/**
+ * Check whether a usermeta key has to do with the current blog.
+ *
+ * @since MU (3.0.0)
+ * @deprecated 4.9.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param string $key
+ * @param int    $user_id Optional. Defaults to current user.
+ * @param int    $blog_id Optional. Defaults to current blog.
+ * @return bool
+ */
+function is_user_option_local( $key, $user_id = 0, $blog_id = 0 ) {
+	global $wpdb;
+
+	_deprecated_function( __FUNCTION__, '4.9.0' );
+
+	$current_user = wp_get_current_user();
+	if ( $blog_id == 0 ) {
+		$blog_id = get_current_blog_id();
+	}
+	$local_key = $wpdb->get_blog_prefix( $blog_id ) . $key;
+
+	return isset( $current_user->$local_key );
 }

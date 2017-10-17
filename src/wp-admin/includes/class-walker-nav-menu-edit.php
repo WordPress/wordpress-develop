@@ -10,9 +10,9 @@
 /**
  * Create HTML list of nav menu input items.
  *
- * @package WordPress
  * @since 3.0.0
- * @uses Walker_Nav_Menu
+ *
+ * @see Walker_Nav_Menu
  */
 class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 	/**
@@ -49,7 +49,7 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 	 *
 	 * @global int $_wp_nav_menu_max_depth
 	 *
-	 * @param string $output Passed by reference. Used to append additional content.
+	 * @param string $output Used to append additional content (passed by reference).
 	 * @param object $item   Menu item data object.
 	 * @param int    $depth  Depth of menu item. Used for padding.
 	 * @param array  $args   Not used.
@@ -145,7 +145,7 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 						</span>
 						<a class="item-edit" id="edit-<?php echo $item_id; ?>" href="<?php
 							echo ( isset( $_GET['edit-menu-item'] ) && $item_id == $_GET['edit-menu-item'] ) ? admin_url( 'nav-menus.php' ) : add_query_arg( 'edit-menu-item', $item_id, remove_query_arg( $removed_args, admin_url( 'nav-menus.php#menu-item-settings-' . $item_id ) ) );
-						?>" aria-label="<?php esc_attr_e( 'Edit menu item' ); ?>"><?php _e( 'Edit' ); ?></a>
+						?>" aria-label="<?php esc_attr_e( 'Edit menu item' ); ?>"><span class="screen-reader-text"><?php _e( 'Edit' ); ?></span></a>
 					</span>
 				</div>
 			</div>

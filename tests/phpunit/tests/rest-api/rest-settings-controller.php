@@ -32,7 +32,12 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertArrayHasKey( '/wp/v2/settings', $routes );
 	}
 
-	public function test_get_items() {
+	public function test_get_item() {
+		/** Individual settings can't be gotten **/
+		wp_set_current_user( self::$administrator );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/settings/title' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 404, $response->get_status() );
 	}
 
 	public function test_context_param() {
@@ -44,7 +49,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 403, $response->get_status() );
 	}
 
-	public function test_get_item() {
+	public function test_get_items() {
 		wp_set_current_user( self::$administrator );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/settings' );
 		$response = $this->server->dispatch( $request );
@@ -118,6 +123,93 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( 'validvalue2', $data['mycustomsettinginrest'] );
+
+		unregister_setting( 'somegroup', 'mycustomsetting' );
+	}
+
+	public function test_get_item_with_custom_array_setting() {
+		wp_set_current_user( self::$administrator );
+
+		register_setting( 'somegroup', 'mycustomsetting', array(
+			'show_in_rest' => array(
+				'schema' => array(
+					'type'    => 'array',
+					'items'   => array(
+						'type' => 'integer',
+					),
+				),
+			),
+			'type'         => 'array',
+		) );
+
+		// Array is cast to correct types.
+		update_option( 'mycustomsetting', array( '1', '2' ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/settings' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( array( 1, 2 ), $data['mycustomsetting'] );
+
+		// Empty array works as expected.
+		update_option( 'mycustomsetting', array() );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/settings' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( array(), $data['mycustomsetting'] );
+
+		// Invalid value
+		update_option( 'mycustomsetting', array( array( 1 ) ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/settings' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( null, $data['mycustomsetting'] );
+
+		// No option value
+		delete_option( 'mycustomsetting' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/settings' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( null, $data['mycustomsetting'] );
+
+		unregister_setting( 'somegroup', 'mycustomsetting' );
+	}
+
+	public function test_get_item_with_custom_object_setting() {
+		wp_set_current_user( self::$administrator );
+
+		register_setting( 'somegroup', 'mycustomsetting', array(
+			'show_in_rest' => array(
+				'schema' => array(
+					'type'    => 'object',
+					'properties' => array(
+						'a' => array(
+							'type' => 'integer',
+						),
+					),
+				),
+			),
+			'type'         => 'object',
+		) );
+
+		// Object is cast to correct types.
+		update_option( 'mycustomsetting', array( 'a' => '1' ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/settings' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( array( 'a' => 1 ), $data['mycustomsetting'] );
+
+		// Empty array works as expected.
+		update_option( 'mycustomsetting', array() );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/settings' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( array(), $data['mycustomsetting'] );
+
+		// Invalid value
+		update_option( 'mycustomsetting', array( 'a' => 1, 'b' => 2 ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/settings' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( array( 'a' => 1 ), $data['mycustomsetting'] );
 
 		unregister_setting( 'somegroup', 'mycustomsetting' );
 	}
@@ -210,6 +302,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( null, $data['mycustomsettinginrest'] );
+		unregister_setting( 'somegroup', 'mycustomsetting' );
 	}
 
 
@@ -235,6 +328,91 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		}
 
 		return false;
+	}
+
+	public function test_update_item_with_array() {
+		register_setting( 'somegroup', 'mycustomsetting', array(
+			'show_in_rest' => array(
+				'schema' => array(
+					'type'  => 'array',
+					'items' => array(
+						'type' => 'integer',
+					),
+				),
+			),
+			'type'         => 'array',
+		) );
+
+		// We have to re-register the route, as the args changes based off registered settings.
+		$this->server->override_by_default = true;
+		$this->endpoint->register_routes();
+		wp_set_current_user( self::$administrator );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'mycustomsetting', array( '1', '2' ) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( array( 1, 2 ), $data['mycustomsetting'] );
+		$this->assertEquals( array( 1, 2 ), get_option( 'mycustomsetting' ) );
+
+		// Setting an empty array.
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'mycustomsetting', array() );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( array(), $data['mycustomsetting'] );
+		$this->assertEquals( array(), get_option( 'mycustomsetting' ) );
+
+		// Setting an invalid array.
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'mycustomsetting', array( 'invalid' ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		unregister_setting( 'somegroup', 'mycustomsetting' );
+	}
+
+	public function test_update_item_with_object() {
+		register_setting( 'somegroup', 'mycustomsetting', array(
+			'show_in_rest' => array(
+				'schema' => array(
+					'type'       => 'object',
+					'properties' => array(
+						'a' => array(
+							'type' => 'integer',
+						),
+					),
+				),
+			),
+			'type'         => 'object',
+		) );
+
+		// We have to re-register the route, as the args changes based off registered settings.
+		$this->server->override_by_default = true;
+		$this->endpoint->register_routes();
+		wp_set_current_user( self::$administrator );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'mycustomsetting', array( 'a' => 1 ) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( array( 'a' => 1 ), $data['mycustomsetting'] );
+		$this->assertEquals( array( 'a' => 1 ), get_option( 'mycustomsetting' ) );
+
+		// Setting an empty object.
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'mycustomsetting', array() );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( array(), $data['mycustomsetting'] );
+		$this->assertEquals( array(), get_option( 'mycustomsetting' ) );
+
+		// Setting an invalid object.
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'mycustomsetting', array( 'a' => 'invalid' ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		unregister_setting( 'somegroup', 'mycustomsetting' );
 	}
 
 	public function test_update_item_with_filter() {
@@ -336,6 +514,10 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_delete_item() {
+		/** Settings can't be deleted **/
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/settings/title' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 404, $response->get_status() );
 	}
 
 	public function test_prepare_item() {

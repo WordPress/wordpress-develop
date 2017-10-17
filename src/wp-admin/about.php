@@ -11,9 +11,12 @@ require_once( dirname( __FILE__ ) . '/admin.php' );
 
 if ( ! wp_is_mobile() ) {
 	wp_enqueue_style( 'wp-mediaelement' );
+	wp_enqueue_script( 'mediaelement-vimeo' );
 	wp_enqueue_script( 'wp-mediaelement' );
 	wp_localize_script( 'mediaelement', '_wpmejsSettings', array(
 		'pluginPath'        => includes_url( 'js/mediaelement/', 'relative' ),
+		'classPrefix'       => 'mejs-',
+		'stretching'        => 'responsive',
 		'pauseOtherPlayers' => '',
 	) );
 }
@@ -41,6 +44,7 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 			<a href="about.php" class="nav-tab nav-tab-active"><?php _e( 'What&#8217;s New' ); ?></a>
 			<a href="credits.php" class="nav-tab"><?php _e( 'Credits' ); ?></a>
 			<a href="freedoms.php" class="nav-tab"><?php _e( 'Freedoms' ); ?></a>
+			<a href="privacy.php" class="nav-tab"><?php _e( 'Privacy' ); ?></a>
 		</h2>
 
 		<div class="feature-section one-col">

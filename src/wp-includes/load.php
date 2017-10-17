@@ -470,6 +470,8 @@ function wp_using_ext_object_cache( $using = null ) {
  *
  * @since 3.0.0
  * @access private
+ *
+ * @global array $wp_filter Stores all of the filters.
  */
 function wp_start_object_cache() {
 	global $wp_filter;
@@ -1109,4 +1111,47 @@ function wp_is_file_mod_allowed( $context ) {
 	 * @param string $context          The usage context.
 	 */
 	return apply_filters( 'file_mod_allowed', ! defined( 'DISALLOW_FILE_MODS' ) || ! DISALLOW_FILE_MODS, $context );
+}
+
+/**
+ * Start scraping edited file errors.
+ *
+ * @since 4.9.0
+ */
+function wp_start_scraping_edited_file_errors() {
+	if ( ! isset( $_REQUEST['wp_scrape_key'] ) || ! isset( $_REQUEST['wp_scrape_nonce'] ) ) {
+		return;
+	}
+	$key = substr( sanitize_key( wp_unslash( $_REQUEST['wp_scrape_key'] ) ), 0, 32 );
+	$nonce = wp_unslash( $_REQUEST['wp_scrape_nonce'] );
+
+	if ( get_transient( 'scrape_key_' . $key ) !== $nonce ) {
+		echo "###### wp_scraping_result_start:$key ######";
+		echo wp_json_encode( array(
+			'code' => 'scrape_nonce_failure',
+			'message' => __( 'Scrape nonce check failed. Please try again.' ),
+		) );
+		echo "###### wp_scraping_result_end:$key ######";
+		die();
+	}
+	register_shutdown_function( 'wp_finalize_scraping_edited_file_errors', $key );
+}
+
+/**
+ * Finalize scraping for edited file errors.
+ *
+ * @since 4.9.0
+ *
+ * @param string $scrape_key Scrape key.
+ */
+function wp_finalize_scraping_edited_file_errors( $scrape_key ) {
+	$error = error_get_last();
+	echo "\n###### wp_scraping_result_start:$scrape_key ######\n";
+	if ( ! empty( $error ) && in_array( $error['type'], array( E_CORE_ERROR, E_COMPILE_ERROR, E_ERROR, E_PARSE, E_USER_ERROR, E_RECOVERABLE_ERROR ), true ) ) {
+		$error = str_replace( ABSPATH, '', $error );
+		echo wp_json_encode( $error );
+	} else {
+		echo wp_json_encode( true );
+	}
+	echo "\n###### wp_scraping_result_end:$scrape_key ######\n";
 }

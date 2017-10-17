@@ -15,7 +15,6 @@
  * core WordPress functions pass this class in the event of an error and
  * if not handled properly will result in code errors.
  *
- * @package WordPress
  * @since 2.1.0
  */
 class WP_Error {
@@ -66,7 +65,6 @@ class WP_Error {
 	 * Retrieve all error codes.
 	 *
 	 * @since 2.1.0
-	 * @access public
 	 *
 	 * @return array List of error codes, if available.
 	 */
@@ -81,7 +79,6 @@ class WP_Error {
 	 * Retrieve first error code available.
 	 *
 	 * @since 2.1.0
-	 * @access public
 	 *
 	 * @return string|int Empty string, if no error codes.
 	 */
@@ -158,7 +155,6 @@ class WP_Error {
 	 * Add an error or append additional message to an existing error.
 	 *
 	 * @since 2.1.0
-	 * @access public
 	 *
 	 * @param string|int $code Error code.
 	 * @param string $message Error message.

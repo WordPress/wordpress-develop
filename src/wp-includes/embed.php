@@ -753,24 +753,30 @@ function wp_filter_oembed_result( $result, $data, $url ) {
 	}
 	$html = $content[1] . $content[2];
 
+	preg_match( '/ src=([\'"])(.*?)\1/', $html, $results );
+
+	if ( ! empty( $results ) ) {
+		$secret = wp_generate_password( 10, false );
+
+		$url = esc_url( "{$results[2]}#?secret=$secret" );
+		$q = $results[1];
+
+		$html = str_replace( $results[0], ' src=' . $q . $url . $q . ' data-secret=' . $q . $secret . $q, $html );
+		$html = str_replace( '<blockquote', "<blockquote data-secret=\"$secret\"", $html );
+	}
+
+	$allowed_html['blockquote']['data-secret'] = true;
+	$allowed_html['iframe']['data-secret'] = true;
+
+	$html = wp_kses( $html, $allowed_html );
+
 	if ( ! empty( $content[1] ) ) {
 		// We have a blockquote to fall back on. Hide the iframe by default.
 		$html = str_replace( '<iframe', '<iframe style="position: absolute; clip: rect(1px, 1px, 1px, 1px);"', $html );
 		$html = str_replace( '<blockquote', '<blockquote class="wp-embedded-content"', $html );
 	}
 
-	$html = str_replace( '<iframe', '<iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted"', $html );
-
-	preg_match( '/ src=[\'"]([^\'"]*)[\'"]/', $html, $results );
-
-	if ( ! empty( $results ) ) {
-		$secret = wp_generate_password( 10, false );
-
-		$url = esc_url( "{$results[1]}#?secret=$secret" );
-
-		$html = str_replace( $results[0], " src=\"$url\" data-secret=\"$secret\"", $html );
-		$html = str_replace( '<blockquote', "<blockquote data-secret=\"$secret\"", $html );
-	}
+	$html = str_ireplace( '<iframe', '<iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted"', $html );
 
 	return $html;
 }
@@ -1065,12 +1071,45 @@ function the_embed_site_title() {
  *                     Null if the URL does not belong to the current site.
  */
 function wp_filter_pre_oembed_result( $result, $url, $args ) {
+	$switched_blog = false;
+
+	if ( is_multisite() ) {
+		$url_parts = wp_parse_args( wp_parse_url( $url ), array(
+			'host'   => '',
+			'path'   => '/',
+		) );
+
+		$qv = array( 'domain' => $url_parts['host'], 'path' => '/' );
+
+		// In case of subdirectory configs, set the path.
+		if ( ! is_subdomain_install() ) {
+			$path = explode( '/', ltrim( $url_parts['path'], '/' ) );
+			$path = reset( $path );
+
+			if ( $path ) {
+				$qv['path'] = get_network()->path . $path . '/';
+			}
+		}
+
+		$sites = get_sites( $qv );
+		$site  = reset( $sites );
+
+		if ( $site && (int) $site->blog_id !== get_current_blog_id() ) {
+			switch_to_blog( $site->blog_id );
+			$switched_blog = true;
+		}
+	}
+
 	$post_id = url_to_postid( $url );
 
 	/** This filter is documented in wp-includes/class-wp-oembed-controller.php */
 	$post_id = apply_filters( 'oembed_request_post_id', $post_id, $url );
 
 	if ( ! $post_id ) {
+		if ( $switched_blog ) {
+			restore_current_blog();
+		}
+
 		return $result;
 	}
 
@@ -1078,6 +1117,10 @@ function wp_filter_pre_oembed_result( $result, $url, $args ) {
 
 	$data = get_oembed_response_data( $post_id, $width );
 	$data = _wp_oembed_get_object()->data2html( (object) $data, $url );
+
+	if ( $switched_blog ) {
+		restore_current_blog();
+	}
 
 	if ( ! $data ) {
 		return $result;

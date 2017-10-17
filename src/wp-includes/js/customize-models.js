@@ -1,6 +1,7 @@
 /* global _wpCustomizeHeader */
 (function( $, wp ) {
 	var api = wp.customize;
+	/** @namespace wp.customize.HeaderTool */
 	api.HeaderTool = {};
 
 
@@ -13,10 +14,13 @@
 	 * These calls are made regardless of whether the user actually saves new
 	 * Customizer settings.
 	 *
+	 * @memberOf wp.customize.HeaderTool
+	 * @alias wp.customize.HeaderTool.ImageModel
+	 *
 	 * @constructor
 	 * @augments Backbone.Model
 	 */
-	api.HeaderTool.ImageModel = Backbone.Model.extend({
+	api.HeaderTool.ImageModel = Backbone.Model.extend(/** @lends wp.customize.HeaderTool.ImageModel.prototype */{
 		defaults: function() {
 			return {
 				header: {
@@ -125,6 +129,9 @@
 	/**
 	 * wp.customize.HeaderTool.ChoiceList
 	 *
+	 * @memberOf wp.customize.HeaderTool
+	 * @alias wp.customize.HeaderTool.ChoiceList
+	 *
 	 * @constructor
 	 * @augments Backbone.Collection
 	 */
@@ -157,6 +164,7 @@
 
 			this.on('control:setImage', this.setImage, this);
 			this.on('control:removeImage', this.removeImage, this);
+			this.on('add', this.maybeRemoveOldCrop, this);
 			this.on('add', this.maybeAddRandomChoice, this);
 
 			_.each(this.data, function(elt, index) {
@@ -177,6 +185,25 @@
 
 			if (this.size() > 0) {
 				this.addRandomChoice(current);
+			}
+		},
+
+		maybeRemoveOldCrop: function( model ) {
+			var newID = model.get( 'header' ).attachment_id || false,
+			 	oldCrop;
+
+			// Bail early if we don't have a new attachment ID.
+			if ( ! newID ) {
+				return;
+			}
+
+			oldCrop = this.find( function( item ) {
+				return ( item.cid !== model.cid && item.get( 'header' ).attachment_id === newID );
+			} );
+
+			// If we found an old crop, remove it from the collection.
+			if ( oldCrop ) {
+				this.remove( oldCrop );
 			}
 		},
 
@@ -231,6 +258,9 @@
 
 	/**
 	 * wp.customize.HeaderTool.DefaultsList
+	 *
+	 * @memberOf wp.customize.HeaderTool
+	 * @alias wp.customize.HeaderTool.DefaultsList
 	 *
 	 * @constructor
 	 * @augments wp.customize.HeaderTool.ChoiceList

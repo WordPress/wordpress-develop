@@ -409,6 +409,24 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( $low_id, $data[0]['id'] );
 	}
 
+	public function test_get_items_orderby_slugs() {
+		wp_set_current_user( self::$user );
+
+		$this->factory->user->create( array( 'user_nicename' => 'burrito' ) );
+		$this->factory->user->create( array( 'user_nicename' => 'taco' ) );
+		$this->factory->user->create( array( 'user_nicename' => 'chalupa' ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'orderby', 'include_slugs' );
+		$request->set_param( 'slug', array( 'taco', 'burrito', 'chalupa' ) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+
+		$this->assertEquals( 'taco', $data[0]['slug'] );
+		$this->assertEquals( 'burrito', $data[1]['slug'] );
+		$this->assertEquals( 'chalupa', $data[2]['slug'] );
+	}
+
 	public function test_get_items_orderby_email() {
 		wp_set_current_user( self::$user );
 
@@ -546,7 +564,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 0, count( $response->get_data() ) );
 		$yolo_id = $this->factory->user->create( array( 'display_name' => 'yololololo' ) );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
-		$request->set_param( 'search', (string) $yolo_id );
+		$request->set_param( 'search', 'yololololo' );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 1, count( $response->get_data() ) );
 		// default to wildcard search
@@ -1018,6 +1036,30 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		wpmu_delete_user( $user_id );
 
 		$this->assertFalse( $user_is_member );
+	}
+
+	/**
+	 * @ticket 41101
+	 * @group ms-required
+	 */
+	public function test_create_new_network_user_with_add_user_to_blog_failure() {
+		$this->allow_user_to_manage_multisite();
+
+		$params = array(
+			'username' => 'testuser123',
+			'password' => 'testpassword',
+			'email'    => 'test@example.com',
+			'name'     => 'Test User 123',
+			'roles'    => array( 'editor' ),
+		);
+
+		add_filter( 'can_add_user_to_blog', '__return_false' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'user_cannot_be_added', $response );
 	}
 
 	/**
@@ -1567,6 +1609,68 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_user_invalid_id', $response, 404 );
+	}
+
+	/**
+	 * @ticket 40263
+	 */
+	public function test_update_item_only_roles_as_editor() {
+		$user_id = $this->factory->user->create( array(
+			'role' => 'author',
+		) );
+
+		wp_set_current_user( self::$editor );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request->set_param( 'roles', array( 'editor' ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_edit_roles', $response, 403 );
+	}
+
+	/**
+	 * @ticket 40263
+	 */
+	public function test_update_item_only_roles_as_site_administrator() {
+		$user_id = $this->factory->user->create( array(
+			'role' => 'author',
+		) );
+
+		wp_set_current_user( self::$user );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request->set_param( 'roles', array( 'editor' ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$new_data = $response->get_data();
+		$this->assertEquals( 'editor', $new_data['roles'][0] );
+	}
+
+	/**
+	 * @ticket 40263
+	 */
+	public function test_update_item_including_roles_and_other_params() {
+		$user_id = $this->factory->user->create( array(
+			'role' => 'author',
+		) );
+
+		wp_set_current_user( self::$user );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request->set_param( 'roles', array( 'editor' ) );
+		$request->set_param( 'name', 'Short-Lived User' );
+		$response = $this->server->dispatch( $request );
+
+		if ( is_multisite() ) {
+			// Site administrators can promote users, as verified by the
+			// previous test, but they cannot perform other user-editing
+			// operations.  This also tests the branch of logic that verifies
+			// that no parameters other than 'id' and 'roles' are specified for
+			// a roles update.
+			$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+		} else {
+			$this->assertEquals( 200, $response->get_status() );
+
+			$new_data = $response->get_data();
+			$this->assertEquals( 'editor', $new_data['roles'][0] );
+		}
 	}
 
 	public function test_update_item_invalid_password() {

@@ -38,6 +38,8 @@ add_filter( 'media_upload_library', 'media_upload_library' );
 add_filter( 'media_upload_tabs', 'update_gallery_tab' );
 
 // Misc hooks.
+add_action( 'admin_init', 'wp_admin_headers'         );
+add_action( 'login_init', 'wp_admin_headers'         );
 add_action( 'admin_head', 'wp_admin_canonical_url'   );
 add_action( 'admin_head', 'wp_color_scheme_settings' );
 add_action( 'admin_head', 'wp_site_icon'             );
@@ -54,6 +56,10 @@ add_action( 'admin_print_scripts-post-new.php', 'wp_page_reload_on_back_button_j
 add_action( 'update_option_home',          'update_home_siteurl', 10, 2 );
 add_action( 'update_option_siteurl',       'update_home_siteurl', 10, 2 );
 add_action( 'update_option_page_on_front', 'update_home_siteurl', 10, 2 );
+add_action( 'update_option_admin_email',   'wp_site_admin_email_change_notification', 10, 3 );
+
+add_action( 'add_option_new_admin_email',    'update_option_new_admin_email', 10, 2 );
+add_action( 'update_option_new_admin_email', 'update_option_new_admin_email', 10, 2 );
 
 add_filter( 'heartbeat_received', 'wp_check_locked_posts',  10,  3 );
 add_filter( 'heartbeat_received', 'wp_refresh_post_lock',   10,  3 );
@@ -99,8 +105,11 @@ add_action( 'install_themes_pre_theme-information', 'install_theme_information' 
 add_action( 'admin_init', 'default_password_nag_handler' );
 
 add_action( 'admin_notices', 'default_password_nag' );
+add_action( 'admin_notices', 'new_user_email_admin_notice' );
 
 add_action( 'profile_update', 'default_password_nag_edit_user', 10, 2 );
+
+add_action( 'personal_options_update', 'send_confirmation_on_profile_email' );
 
 // Update hooks.
 add_action( 'load-plugins.php', 'wp_plugin_update_rows', 20 ); // After wp_update_plugins() is called.

@@ -1,4 +1,5 @@
 sudo: false
+dist: trusty
 language: php
 cache:
   apt: true
@@ -13,6 +14,7 @@ matrix:
   include:
   - php: 7.1
     env: WP_TRAVISCI=travis:js
+  - php: 7.2
   - php: 7.1
   - php: 7.0
   - php: 5.6
@@ -22,7 +24,9 @@ matrix:
   - php: 5.5
   - php: 5.4
   - php: 5.3
+    dist: precise
   - php: 5.2
+    dist: precise
   - php: nightly
   allow_failures:
   - php: nightly
@@ -43,10 +47,11 @@ before_install:
   fi
 before_script:
 - |
-  # Remove Xdebug for a huge performance increase, but not from nightly:
-  stable='^[0-9\.]+$'
-  if [[ "$TRAVIS_PHP_VERSION" =~ $stable ]]; then
+  # Remove Xdebug for a huge performance increase:
+  if [ -f ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/xdebug.ini ]; then
     phpenv config-rm xdebug.ini
+  else
+    echo "xdebug.ini does not exist"
   fi
 - |
   # Export Composer's global bin dir to PATH, but not on PHP 5.2:
@@ -58,13 +63,13 @@ before_script:
   # Install the specified version of PHPUnit depending on the PHP version:
   if [[ "$WP_TRAVISCI" == "travis:phpunit" ]]; then
     case "$TRAVIS_PHP_VERSION" in
-      7.1|7.0|nightly)
-        echo "Using PHPUnit 6.1"
-        composer global require "phpunit/phpunit=6.1.*"
+      7.2|7.1|7.0|nightly)
+        echo "Using PHPUnit 6.x"
+        composer global require "phpunit/phpunit:^6"
         ;;
       5.6|5.5|5.4|5.3)
-        echo "Using PHPUnit 4.8"
-        composer global require "phpunit/phpunit=4.8.*"
+        echo "Using PHPUnit 4.x"
+        composer global require "phpunit/phpunit:^4"
         ;;
       5.2)
         # Do nothing, use default PHPUnit 3.6.x

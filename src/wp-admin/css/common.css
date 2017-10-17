@@ -121,14 +121,16 @@
 .screen-reader-text,
 .screen-reader-text span,
 .ui-helper-hidden-accessible {
-	position: absolute;
-	margin: -1px;
-	padding: 0;
-	height: 1px;
-	width: 1px;
-	overflow: hidden;
-	clip: rect(0 0 0 0);
 	border: 0;
+	clip: rect(1px, 1px, 1px, 1px);
+	-webkit-clip-path: inset(50%);
+	clip-path: inset(50%);
+	height: 1px;
+	margin: -1px;
+	overflow: hidden;
+	padding: 0;
+	position: absolute;
+	width: 1px;
 	word-wrap: normal !important; /* many screen reader and browser combinations announce broken words as they would appear visually */
 }
 
@@ -150,7 +152,6 @@
 	color: #0073aa;
 	z-index: 100000;
 	line-height: normal;
-	-webkit-box-shadow: 0 0 2px 2px rgba(0,0,0,.6);
 	box-shadow: 0 0 2px 2px rgba(0,0,0,.6);
 	text-decoration: none;
 	outline: none;
@@ -184,7 +185,6 @@ p.popular-tags,
 .imgedit-group,
 .comment-ays {
 	border: 1px solid #e5e5e5;
-	-webkit-box-shadow: 0 1px 1px rgba(0,0,0,0.04);
 	box-shadow: 0 1px 1px rgba(0,0,0,0.04);
 }
 
@@ -247,11 +247,8 @@ td {
 /* Any change to the default link style must be applied to button-link too. */
 a {
 	color: #0073aa;
-	-webkit-transition-property: border, background, color;
 	transition-property: border, background, color;
-	-webkit-transition-duration: .05s;
 	transition-duration: .05s;
-	-webkit-transition-timing-function: ease-in-out;
 	transition-timing-function: ease-in-out;
 }
 
@@ -269,9 +266,6 @@ a:focus,
 a:focus .media-icon img,
 .wp-person a:focus .gravatar {
 	color: #124964;
-	-webkit-box-shadow:
-		0 0 0 1px #5b9dd9,
-		0 0 2px 1px rgba(30, 140, 190, .8);
 	box-shadow:
 		0 0 0 1px #5b9dd9,
 		0 0 2px 1px rgba(30, 140, 190, .8);
@@ -283,7 +277,6 @@ a:focus .media-icon img,
 
 #adminmenu a:focus,
 .screen-reader-text:focus {
-	-webkit-box-shadow: none;
 	box-shadow: none;
 	outline: none;
 }
@@ -608,7 +601,6 @@ code {
 	text-decoration: none;
 	border: none;
 	border: 1px solid #ccc;
-	-webkit-border-radius: 2px;
 	border-radius: 2px;
 	background: #f7f7f7;
 	text-shadow: none;
@@ -638,7 +630,6 @@ code {
 
 .wrap .page-title-action:focus {
 	border-color: #5b9dd9;
-	-webkit-box-shadow: 0 0 2px rgba( 30, 140, 190, 0.8 );
 	box-shadow: 0 0 2px rgba( 30, 140, 190, 0.8 );
 }
 
@@ -656,7 +647,6 @@ code {
 div#widgets-right .widget-top:hover,
 #widgets-left .widget-top:hover {
 	border-color: #999;
-	-webkit-box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 	box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
@@ -725,7 +715,6 @@ img.emoji {
 	vertical-align: -0.1em !important;
 	background: none !important;
 	padding: 0 !important;
-	-webkit-box-shadow: none !important;
 	box-shadow: none !important;
 }
 
@@ -801,7 +790,6 @@ img.emoji {
 
 .tagchecklist .ntdelbutton .remove-tag-icon:before {
 	margin-left: 2px;
-	-webkit-border-radius: 50%;
 	border-radius: 50%;
 	color: #0073aa;
 	/* vertically center the icon cross browsers */
@@ -822,9 +810,6 @@ img.emoji {
 }
 
 .tagchecklist .ntdelbutton:focus .remove-tag-icon:before {
-	-webkit-box-shadow:
-		0 0 0 1px #5b9dd9,
-		0 0 2px 1px rgba(30, 140, 190, .8);
 	box-shadow:
 		0 0 0 1px #5b9dd9,
 		0 0 2px 1px rgba(30, 140, 190, .8);
@@ -983,13 +968,10 @@ th.action-links {
 .wp-filter {
 	display: inline-block;
 	position: relative;
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
 	box-sizing: border-box;
 	margin: 12px 0 25px;
 	padding: 0 10px;
 	width: 100%;
-	-webkit-box-shadow: 0 1px 1px rgba(0,0,0,0.04);
 	box-shadow: 0 1px 1px rgba(0,0,0,0.04);
 	border: 1px solid #e5e5e5;
 	background: #fff;
@@ -1013,7 +995,6 @@ th.action-links {
 	position: relative;
 	top: -1px;
 	padding: 4px 10px;
-	-webkit-border-radius: 30px;
 	border-radius: 30px;
 	background: #72777c;
 	color: #fff;
@@ -1053,7 +1034,6 @@ th.action-links {
 }
 
 .filter-links .current {
-	-webkit-box-shadow: none;
 	box-shadow: none;
 	border-bottom: 4px solid #666;
 	color: #23282d;
@@ -1098,7 +1078,6 @@ th.action-links {
 	background-color: transparent;
 	color: #666;
 	vertical-align: baseline;
-	-webkit-box-shadow: none;
 	box-shadow: none;
 }
 
@@ -1131,10 +1110,8 @@ th.action-links {
 
 .wp-filter .button.drawer-toggle:active {
 	background: transparent;
-	-webkit-box-shadow: none;
 	box-shadow: none;
 	-webkit-transform: none;
-	-ms-transform: none;
 	transform: none;
 }
 
@@ -1162,7 +1139,6 @@ th.action-links {
 }
 
 .show-filters .wp-filter .button.drawer-toggle {
-	-webkit-border-radius: 2px;
 	border-radius: 2px;
 	background: #72777c;
 	color: #fff;
@@ -1178,8 +1154,6 @@ th.action-links {
 }
 
 .filter-group {
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
 	box-sizing: border-box;
 	position: relative;
 	float: left;
@@ -1188,7 +1162,6 @@ th.action-links {
 	width: 24%;
 	background: #fff;
 	border: 1px solid #e5e5e5;
-	-webkit-box-shadow: 0 1px 1px rgba(0,0,0,0.04);
 	box-shadow: 0 1px 1px rgba(0,0,0,0.04);
 }
 
@@ -1263,7 +1236,6 @@ th.action-links {
 	margin: 0 5px;
 	padding: 4px 8px;
 	border: 1px solid #e5e5e5;
-	-webkit-box-shadow: 0 1px 1px rgba(0,0,0,0.04);
 	box-shadow: 0 1px 1px rgba(0,0,0,0.04);
 	background: #fff;
 	font-size: 11px;
@@ -1362,7 +1334,6 @@ div.updated,
 div.error {
 	background: #fff;
 	border-left: 4px solid #fff;
-	-webkit-box-shadow: 0 1px 1px 0 rgba( 0, 0, 0, 0.1 );
 	box-shadow: 0 1px 1px 0 rgba( 0, 0, 0, 0.1 );
 	margin: 5px 15px 2px;
 	padding: 1px 12px;
@@ -1390,7 +1361,6 @@ div.error p,
 }
 
 .notice-alt {
-	-webkit-box-shadow: none;
 	box-shadow: none;
 }
 
@@ -1429,7 +1399,6 @@ div.error p,
 
 .notice-dismiss:focus {
 	outline: none;
-	-webkit-box-shadow: 0 0 0 1px #5b9dd9, 0 0 2px 1px rgba(30, 140, 190, .8);
 	box-shadow: 0 0 0 1px #5b9dd9, 0 0 2px 1px rgba(30, 140, 190, .8);
 }
 
@@ -1494,6 +1463,22 @@ div.error {
 	margin: 5px 0 15px;
 }
 
+.wrap #templateside .notice {
+	display: block;
+	margin: 0;
+	padding: 5px 8px;
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.wrap #templateside span.notice {
+	margin-left: -12px;
+}
+
+#templateside li.notice a {
+	padding: 0;
+}
+
 /* Update icon. */
 .update-message p:before,
 .updating-message p:before,
@@ -1543,7 +1528,6 @@ div.error {
 	margin: 25px 20px 0 2px;
 	background-color: #fff;
 	border-left: 4px solid #ffba00;
-	-webkit-box-shadow: 0 1px 1px 0 rgba(0,0,0,0.1);
 	box-shadow: 0 1px 1px 0 rgba(0,0,0,0.1);
 }
 
@@ -1594,11 +1578,8 @@ form.upgrade .hint {
 }
 
 .button.updated-message {
-	-webkit-transition-property: border, background, color;
 	transition-property: border, background, color;
-	-webkit-transition-duration: .05s;
 	transition-duration: .05s;
-	-webkit-transition-timing-function: ease-in-out;
 	transition-timing-function: ease-in-out;
 }
 
@@ -1638,10 +1619,6 @@ form.upgrade .hint {
 	margin-left: 0 !important;
 }
 
-#screen-meta .screen-reader-text {
-	visibility: hidden;
-}
-
 #screen-meta-links {
 	margin: 0 20px 0 0;
 }
@@ -1654,7 +1631,6 @@ form.upgrade .hint {
 	background-color: #fff;
 	border: 1px solid #ddd;
 	border-top: none;
-	-webkit-box-shadow: 0 1px 0 rgba(0,0,0,.025);
 	box-shadow: 0 1px 0 rgba(0,0,0,.025);
 }
 
@@ -1666,7 +1642,6 @@ form.upgrade .hint {
 	border: 1px solid #ddd;
 	border-top: none;
 	background: #fff;
-	-webkit-box-shadow: 0 1px 1px -1px rgba(0,0,0,0.1);
 	box-shadow: 0 1px 1px -1px rgba(0,0,0,0.1);
 }
 
@@ -1678,7 +1653,6 @@ form.upgrade .hint {
 #screen-meta-links .show-settings {
 	border: 0;
 	background: none;
-	-webkit-border-radius: 0;
 	border-radius: 0;
 	color: #72777c;
 	line-height: 1.7;
@@ -1692,10 +1666,8 @@ form.upgrade .hint {
 }
 
 #screen-meta-links .show-settings:active {
-	-webkit-box-shadow: none;
 	box-shadow: none;
 	-webkit-transform: none;
-	-ms-transform: none;
 	transform: none;
 }
 
@@ -1829,7 +1801,6 @@ form.upgrade .hint {
 #contextual-help-wrap.no-sidebar #contextual-help-back {
 	right: 0;
 	border-right-width: 0;
-	-webkit-border-bottom-right-radius: 2px;
 	border-bottom-right-radius: 2px;
 }
 
@@ -1870,7 +1841,6 @@ form.upgrade .hint {
 	margin: 0 -1px 0 0;
 	border-left: 2px solid #00a0d2;
 	background: #f6fbfd;
-	-webkit-box-shadow: 0 2px 0 rgba(0,0,0,0.02), 0 1px 0 rgba(0,0,0,0.02);
 	box-shadow: 0 2px 0 rgba(0,0,0,0.02), 0 1px 0 rgba(0,0,0,0.02);
 }
 
@@ -1912,8 +1882,6 @@ form.upgrade .hint {
 
 html.wp-toolbar {
 	padding-top: 32px;
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
 	box-sizing: border-box;
 }
 
@@ -1960,8 +1928,6 @@ html.wp-toolbar {
 }
 
 .postbox-container .meta-box-sortables {
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
 	box-sizing: border-box;
 }
 
@@ -2091,7 +2057,6 @@ html.wp-toolbar {
 
 .postbox.closed h3 {
 	border: none;
-	-webkit-box-shadow: none;
 	box-shadow: none;
 }
 
@@ -2100,7 +2065,6 @@ html.wp-toolbar {
 }
 
 .postbox table.widefat {
-	-webkit-box-shadow: none;
 	box-shadow: none;
 }
 
@@ -2186,7 +2150,6 @@ h3 .nav-tab, /* Back-compat for pre-4.4 */
 
 .nav-tab-active,
 .nav-tab:focus:active {
-	-webkit-box-shadow: none;
 	box-shadow: none;
 }
 
@@ -2234,7 +2197,6 @@ h1.nav-tab-wrapper, /* Back-compat for pre-4.4 */
 
 .spinner {
 	background: url(../images/spinner.gif) no-repeat;
-	-webkit-background-size: 20px 20px;
 	background-size: 20px 20px;
 	display: inline-block;
 	visibility: hidden;
@@ -2252,8 +2214,18 @@ h1.nav-tab-wrapper, /* Back-compat for pre-4.4 */
 	visibility: visible;
 }
 
-#template div {
-	margin-right: 190px;
+#template > div {
+	margin-right: 16em;
+}
+#template .notice {
+	margin-top: 1em;
+	margin-right: 3%;
+}
+#template .notice p {
+	width: auto;
+}
+#template .submit .spinner {
+	float: none;
 }
 
 .metabox-holder .stuffbox > h3, /* Back-compat for pre-4.4 */
@@ -2289,7 +2261,7 @@ table .column-rating {
 
 .attention,
 .error-message {
-	color: red;
+	color: #dc3232;
 	font-weight: 600;
 }
 
@@ -2470,7 +2442,6 @@ div.star-holder .star-rating {
 	font-weight: 400;
 	font-style: normal;
 	vertical-align: top;
-	-webkit-transition: color .1s ease-in 0;
 	transition: color .1s ease-in 0;
 	text-align: center;
 	color: #ffb900;
@@ -2486,7 +2457,6 @@ div.star-holder .star-rating {
 
 .rtl .star-rating .star-half {
 	-webkit-transform: rotateY(180deg);
-	-ms-transform: rotateY(180deg);
 	transform: rotateY(180deg);
 }
 
@@ -2530,7 +2500,6 @@ div.action-links {
 #plugin-information-title.with-banner {
 	margin-right: 0;
 	height: 250px;
-	-webkit-background-size: cover;
 	background-size: cover;
 }
 
@@ -2550,8 +2519,6 @@ div.action-links {
 	display: inline-block;
 	font-size: 30px;
 	line-height: 50px;
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
 	box-sizing: border-box;
 	max-width: 100%;
 	padding: 0 15px;
@@ -2559,9 +2526,7 @@ div.action-links {
 	color: #fff;
 	background: rgba( 30, 30, 30, 0.9 );
 	text-shadow: 0 1px 3px rgba( 0, 0, 0, 0.4 );
-	-webkit-box-shadow: 0 0 30px rgba( 255, 255, 255, 0.1 );
 	box-shadow: 0 0 30px rgba( 255, 255, 255, 0.1 );
-	-webkit-border-radius: 8px;
 	border-radius: 8px;
 }
 
@@ -2577,7 +2542,6 @@ div.action-links {
 	height: 250px;
 	width: 100%;
 	background: transparent;
-	-webkit-box-shadow: inset 0 0 50px 4px rgba( 0, 0, 0, 0.2 ), inset 0 -1px 0 rgba( 0, 0, 0, 0.1 );
 	box-shadow: inset 0 0 50px 4px rgba( 0, 0, 0, 0.2 ), inset 0 -1px 0 rgba( 0, 0, 0, 0.1 );
 }
 
@@ -2602,7 +2566,6 @@ div.action-links {
 	line-height: 18px;
 	font-size: 14px;
 	text-decoration: none;
-	-webkit-transition: none;
 	transition: none;
 }
 
@@ -2634,13 +2597,11 @@ div.action-links {
 	left: 0;
 	min-height: 100%;
 	/* Height of title + tabs + install now */
-	min-height: -webkit-calc( 100% - 152px );
 	min-height: calc( 100% - 152px );
 }
 
 #plugin-information-content.with-banner {
 	/* Height of banner + tabs + install now */
-	min-height: -webkit-calc( 100% - 346px );
 	min-height: calc( 100% - 346px );
 }
 
@@ -2794,7 +2755,6 @@ div.action-links {
 	max-width: 100%;
 	width: auto;
 	height: auto;
-	-webkit-box-shadow: 0 1px 2px rgba( 0, 0, 0, 0.3 );
 	box-shadow: 0 1px 2px rgba( 0, 0, 0, 0.3 );
 }
 
@@ -2928,33 +2888,12 @@ div.action-links {
 	}
 }
 
-/* Thickbox for Plugin Install screen */
-body.about-php #TB_window,
-body.plugin-install-php #TB_window,
-body.import-php #TB_window,
-body.plugins-php #TB_window,
-body.update-core-php #TB_window,
-body.index-php #TB_window {
+/* Thickbox for the Plugin details modal. */
+#TB_window.plugin-details-modal {
 	background: #fcfcfc;
 }
 
-/* IE 8 needs a change in the pseudo element content */
-.ie8 body.about-php #TB_window:before,
-.ie8 body.plugin-install-php #TB_window:before,
-.ie8 body.import-php #TB_window:before,
-.ie8 body.plugins-php #TB_window:before,
-.ie8 body.update-core-php #TB_window:before,
-.ie8 body.index-php #TB_window:before {
-	content: " ";
-	background: none;
-}
-
-body.about-php #TB_window.thickbox-loading:before,
-body.plugin-install-php #TB_window.thickbox-loading:before,
-body.import-php #TB_window.thickbox-loading:before,
-body.plugins-php #TB_window.thickbox-loading:before,
-body.update-core-php #TB_window.thickbox-loading:before,
-body.index-php #TB_window.thickbox-loading:before {
+#TB_window.plugin-details-modal.thickbox-loading:before {
 	content: "";
 	display: block;
 	width: 20px;
@@ -2965,7 +2904,6 @@ body.index-php #TB_window.thickbox-loading:before {
 	z-index: -1;
 	margin: -10px 0 0 -10px;
 	background: #fcfcfc url(../images/spinner.gif) no-repeat center;
-	-webkit-background-size: 20px 20px;
 	background-size: 20px 20px;
 	-webkit-transform: translateZ(0);
 	transform: translateZ(0);
@@ -2975,81 +2913,38 @@ body.index-php #TB_window.thickbox-loading:before {
 	(-webkit-min-device-pixel-ratio: 1.25),
 	(min-resolution: 120dpi) {
 
-	body.about-php #TB_window.thickbox-loading:before,
-	body.plugin-install-php #TB_window.thickbox-loading:before,
-	body.import-php #TB_window.thickbox-loading:before,
-	body.plugins-php #TB_window.thickbox-loading:before,
-	body.update-core-php #TB_window.thickbox-loading:before,
-	body.index-php #TB_window.thickbox-loading:before {
+	#TB_window.plugin-details-modal.thickbox-loading:before {
 		background-image: url(../images/spinner-2x.gif);
 	}
 }
 
-body.about-php #TB_title,
-body.plugin-install-php #TB_title,
-body.import-php #TB_title,
-body.plugins-php #TB_title,
-body.update-core-php #TB_title,
-body.index-php #TB_title {
+.plugin-details-modal #TB_title {
 	float: left;
 	height: 1px;
 }
 
-body.about-php #TB_ajaxWindowTitle,
-body.plugin-install-php #TB_ajaxWindowTitle,
-body.import-php #TB_ajaxWindowTitle,
-body.plugins-php #TB_ajaxWindowTitle,
-body.update-core-php #TB_ajaxWindowTitle,
-body.index-php #TB_ajaxWindowTitle {
+.plugin-details-modal #TB_ajaxWindowTitle {
 	display: none;
 }
 
-/* only on these screens */
-.about-php #TB_closeWindowButton,
-.plugin-install-php #TB_closeWindowButton,
-.import-php #TB_closeWindowButton,
-.plugins-php #TB_closeWindowButton,
-.update-core-php #TB_closeWindowButton,
-.index-php #TB_closeWindowButton {
+.plugin-details-modal #TB_closeWindowButton {
 	left: auto;
 	right: -30px;
 	color: #eee;
 }
 
-
-body.about-php #TB_closeWindowButton:hover,
-body.about-php #TB_closeWindowButton:focus,
-body.plugin-install-php #TB_closeWindowButton:hover,
-body.plugin-install-php #TB_closeWindowButton:focus,
-body.import-php #TB_closeWindowButton:hover,
-body.import-php #TB_closeWindowButton:focus,
-body.plugins-php #TB_closeWindowButton:hover,
-body.plugins-php #TB_closeWindowButton:focus,
-body.update-core-php #TB_closeWindowButton:hover,
-body.update-core-php #TB_closeWindowButton:focus,
-body.index-php #TB_closeWindowButton:hover,
-body.index-php #TB_closeWindowButton:focus {
+.plugin-details-modal #TB_closeWindowButton:hover,
+.plugin-details-modal #TB_closeWindowButton:focus {
 	color: #00a0d2;
 	outline: none;
-	-webkit-box-shadow: none;
 	box-shadow: none;
 }
 
-body.about-php .tb-close-icon,
-body.plugin-install-php .tb-close-icon,
-body.import-php .tb-close-icon,
-body.plugins-php .tb-close-icon,
-body.update-core-php .tb-close-icon,
-body.index-php .tb-close-icon {
+.plugin-details-modal .tb-close-icon {
 	display: none;
 }
 
-body.about-php #TB_closeWindowButton:after,
-body.plugin-install-php #TB_closeWindowButton:after,
-body.import-php #TB_closeWindowButton:after,
-body.plugins-php #TB_closeWindowButton:after,
-body.update-core-php #TB_closeWindowButton:after,
-body.index-php #TB_closeWindowButton:after {
+.plugin-details-modal #TB_closeWindowButton:after {
 	content: "\f335";
 	font: normal 32px/29px 'dashicons';
 	speak: none;
@@ -3059,12 +2954,7 @@ body.index-php #TB_closeWindowButton:after {
 
 /* move plugin install close icon to top on narrow screens */
 @media screen and ( max-width: 830px ) {
-	body.about-php #TB_closeWindowButton,
-	body.plugin-install-php #TB_closeWindowButton,
-	body.import-php #TB_closeWindowButton,
-	body.plugins-php #TB_closeWindowButton,
-	body.update-core-php #TB_closeWindowButton,
-	body.index-php #TB_closeWindowButton {
+	.plugin-details-modal #TB_closeWindowButton {
 		right: 0;
 		top: -30px;
 	}
@@ -3076,7 +2966,7 @@ img {
 }
 
 /* Metabox collapse arrow indicators */
-.js .sidebar-name .sidebar-name-arrow:before,
+.sidebar-name .toggle-indicator:before,
 .js .meta-box-sortables .postbox .toggle-indicator:before,
 .bulk-action-notice .toggle-indicator:before {
 	content: "\f142";
@@ -3088,30 +2978,15 @@ img {
 	text-decoration: none !important;
 }
 
-.js .widgets-holder-wrap.closed .sidebar-name-arrow:before,
+.js .widgets-holder-wrap.closed .toggle-indicator:before,
 .js .meta-box-sortables .postbox.closed .handlediv .toggle-indicator:before,
 .bulk-action-notice .bulk-action-errors-collapsed .toggle-indicator:before {
 	content: "\f140";
 }
 
-.js .sidebar-name .sidebar-name-arrow:before {
-	padding: 10px;
-	left: 0;
-}
-
-.js #widgets-left .sidebar-name .sidebar-name-arrow {
-	display: none;
-}
-
-.js #widgets-left .widgets-holder-wrap.closed .sidebar-name .sidebar-name-arrow,
-.js #widgets-left .sidebar-name:hover .sidebar-name-arrow {
-	display: block;
-}
-
 .js .postbox .handlediv .toggle-indicator:before {
 	margin-top: 4px;
 	width: 20px;
-	-webkit-border-radius: 50%;
 	border-radius: 50%;
 	text-indent: -1px; /* account for the dashicon alignment */
 }
@@ -3127,15 +3002,11 @@ img {
 }
 
 .js .postbox .handlediv:focus {
-	-webkit-box-shadow: none;
 	box-shadow: none;
 	outline: none;
 }
 
 .js .postbox .handlediv:focus .toggle-indicator:before {
-	-webkit-box-shadow:
-		0 0 0 1px #5b9dd9,
-		0 0 2px 1px rgba(30, 140, 190, .8);
 	box-shadow:
 		0 0 0 1px #5b9dd9,
 		0 0 2px 1px rgba(30, 140, 190, .8);
@@ -3154,11 +3025,159 @@ img {
 #template textarea {
 	font-family: Consolas, Monaco, monospace;
 	font-size: 13px;
-	width: 97%;
 	background: #f9f9f9;
 	-moz-tab-size: 4;
 	-o-tab-size: 4;
 	tab-size: 4;
+}
+
+#template textarea,
+#template .CodeMirror {
+	width: 100%;
+	min-height: 60vh;
+	height: calc( 100vh - 295px );
+	border: 1px solid #ddd;
+}
+
+#templateside > h2 {
+	padding-top: 6px;
+	padding-bottom: 7px;
+	margin: 0;
+}
+
+#templateside ol,
+#templateside ul {
+	margin: 0;
+	padding: 0;
+}
+#templateside > ul {
+	box-sizing: border-box;
+	margin-top: 0;
+	overflow: auto;
+	padding: 0;
+	min-height: calc(60vh + 2px);
+	height: calc(100vh - 293px);
+	background-color: #f7f7f7;
+	border: 1px solid #ddd;
+	border-left: none;
+}
+#templateside ul ul {
+	padding-left: 12px;
+}
+#templateside > ul > li > ul[role=group] {
+	padding-left: 0;
+}
+
+/*
+ * Styles for Theme and Plugin editors.
+ */
+
+/* Hide collapsed items. */
+[role="treeitem"][aria-expanded="false"] > ul {
+	display: none;
+}
+
+/* Use arrow dashicons for folder states, but hide from screen readers. */
+[role="treeitem"] span[aria-hidden] {
+	display: inline;
+	font-family: dashicons;
+	font-size: 20px;
+	position: absolute;
+	pointer-events: none;
+}
+[role="treeitem"][aria-expanded="false"] > .folder-label .icon:after {
+	content: "\f139";
+}
+[role="treeitem"][aria-expanded="true"] > .folder-label .icon:after {
+	content: "\f140";
+}
+[role="treeitem"] .folder-label {
+	display: block;
+	padding: 3px 3px 3px 12px;
+	cursor: pointer;
+}
+
+/* Remove outline, and create our own focus and hover styles */
+[role="treeitem"] {
+	outline: 0;
+}
+[role="treeitem"] .folder-label.focus {
+	color: #124964;
+	box-shadow: 0 0 0 1px #5b9dd9, 0 0 2px 1px rgba(30, 140, 190, .8);
+}
+[role="treeitem"].hover,
+[role="treeitem"] .folder-label.hover {
+	background-color: #eaeaea;
+}
+
+.tree-folder {
+	margin: 0;
+	position: relative;
+}
+[role="treeitem"] li {
+	position: relative;
+}
+
+/* Styles for folder indicators/depth */
+.tree-folder .tree-folder::after {
+	content: ' ';
+	display: block;
+	position: absolute;
+	left: 2px;
+	border-left: 1px solid #ccc;
+	top: -13px;
+	bottom: 10px;
+}
+.tree-folder > li::before {
+	content: ' ';
+	position: absolute;
+	display: block;
+	border-left: 1px solid #ccc;
+	left: 2px;
+	top: -5px;
+	height: 18px;
+	width: 7px;
+	border-bottom: 1px solid #ccc;
+}
+.tree-folder > li::after {
+	content: ' ';
+	position: absolute;
+	display: block;
+	border-left: 1px solid #ccc;
+	left: 2px;
+	bottom: -7px;
+	top: 0;
+}
+
+/* current-file needs to adjustment for .notice styles */
+#templateside .current-file {
+	margin: -4px 0 -2px;
+}
+.tree-folder > .current-file::before {
+	left: 4px;
+	height: 15px;
+	width: 0px;
+	border-left: none;
+	top: 3px;
+}
+.tree-folder > .current-file::after {
+	bottom: -4px;
+	height: 7px;
+	left: 2px;
+	top: auto;
+}
+
+/* Lines shouldn't continue on last item */
+.tree-folder > li:last-child::after,
+.tree-folder li:last-child > .tree-folder::after {
+	display: none;
+}
+
+
+#theme-plugin-editor-label {
+	display: inline-block;
+	margin-bottom: 1em;
+	font-weight: 600;
 }
 
 /* rtl:ignore */
@@ -3167,29 +3186,49 @@ img {
 	direction: ltr;
 }
 
+.fileedit-sub #theme,
+.fileedit-sub #plugin {
+	max-width: 40%;
+}
+.fileedit-sub .alignright {
+	text-align: right;
+}
+
 #template p {
 	width: 97%;
 }
 
+#file-editor-linting-error {
+	margin-top: 1em;
+	margin-bottom: 1em;
+}
+#file-editor-linting-error > .notice {
+	margin: 0;
+	display: inline-block;
+}
+#file-editor-linting-error > .notice > p {
+	width: auto;
+}
+#template .submit {
+	margin-top: 1em;
+	padding: 0;
+}
+
+#template .submit input[type=submit][disabled] {
+	cursor: not-allowed;
+}
 #templateside {
 	float: right;
-	width: 190px;
+	width: 16em;
 	word-wrap: break-word;
 }
 
-#templateside h2,
 #postcustomstuff p.submit {
 	margin: 0;
 }
 
 #templateside h4 {
 	margin: 1em 0 0;
-}
-
-#templateside ol,
-#templateside ul {
-	margin: .5em 0;
-	padding: 0;
 }
 
 #templateside li {
@@ -3199,8 +3238,12 @@ img {
 #templateside li a,
 .theme-editor-php .highlight {
 	display: block;
-	padding: 3px 3px 3px 12px;
+	padding: 3px 0 3px 12px;
 	text-decoration: none;
+}
+
+#templateside li > a:first-of-type {
+	padding-top: 0;
 }
 
 .theme-editor-php .highlight {
@@ -3234,6 +3277,10 @@ img {
 	line-height: 180%;
 }
 
+#file-editor-warning .file-editor-warning-content {
+	margin: 25px;
+}
+
 /* @todo: can we use a common class for these? */
 .nav-menus-php .item-edit:before,
 .widget-top .widget-action .toggle-indicator:before,
@@ -3250,14 +3297,13 @@ img {
 
 .widget-top .widget-action .toggle-indicator:before {
 	padding: 1px 2px 1px 0px;
-	-webkit-border-radius: 50%;
 	border-radius: 50%;
 }
 
 .handlediv,
 .postbox .handlediv.button-link,
 .item-edit,
-.sidebar-name-arrow,
+.toggle-indicator,
 .accordion-section-title:after {
 	color: #72777c;
 }
@@ -3274,15 +3320,12 @@ img {
 .postbox .handlediv.button-link:focus,
 .item-edit:hover,
 .item-edit:focus,
-.sidebar-name:hover .sidebar-name-arrow,
+.sidebar-name:hover .toggle-indicator,
 .accordion-section-title:hover:after {
 	color: #23282d;
 }
 
 .widget-top .widget-action:focus .toggle-indicator:before {
-	-webkit-box-shadow:
-		0 0 0 1px #5b9dd9,
-		0 0 2px 1px rgba(30,140,190,.8);
 	box-shadow:
 		0 0 0 1px #5b9dd9,
 		0 0 2px 1px rgba(30,140,190,.8);
@@ -3312,7 +3355,6 @@ img {
  */
 .ui-draggable-handle,
 .ui-sortable-handle {
-	-ms-touch-action: none;
 	touch-action: none;
 }
 
@@ -3389,7 +3431,7 @@ img {
 
 .control-section .accordion-section-title:after,
 .customize-pane-child .accordion-section-title:after {
-	top: 11px;
+	top: calc(50% - 10px); /* Arrow height is 20px, so use half of that to vertically center */
 }
 
 .js .control-section:hover .accordion-section-title,
@@ -3566,7 +3608,6 @@ img {
 	div.star-holder,
 	div.star-holder .star-rating {
 		background: url(../images/stars-2x.png?ver=20121108) repeat-x bottom left;
-		-webkit-background-size: 21px 37px;
 		background-size: 21px 37px;
 	}
 
@@ -3579,8 +3620,8 @@ img {
 	#screen-meta-links a.show-settings,
 	.widget-top .widget-action,
 	.widget-top .widget-action:hover,
-	.sidebar-name-arrow,
-	.sidebar-name:hover .sidebar-name-arrow,
+	.sidebar-name .toggle-indicator,
+	.sidebar-name:hover .toggle-indicator,
 	.meta-box-sortables .postbox:hover .handlediv,
 	#bulk-titles div a,
 	#bulk-titles div a:hover {
@@ -3655,17 +3696,6 @@ img {
 		white-space: nowrap;
 	}
 
-	.wp-color-result {
-		height: auto;
-		padding-left: 45px;
-	}
-
-	.wp-color-result:after {
-		font-size: 14px;
-		height: auto;
-		padding: 6px 14px;
-	}
-
 	/* Feedback Messages */
 	.notice,
 	.wrap div.updated,
@@ -3690,7 +3720,7 @@ img {
 	}
 
 	.wp-responsive-open #wpbody {
-		right: -190px;
+		right: -16em;
 	}
 
 	code {
@@ -3741,14 +3771,45 @@ img {
 		margin-top: -5px;
 	}
 
-	#template div {
+	#template > div,
+	#template .notice {
 		float: none;
-		margin: 0;
+		margin: 1em 0;
 		width: auto;
 	}
 
+	#template .CodeMirror,
 	#template textarea {
 		width: 100%;
+	}
+
+	#templateside ul ul {
+		padding-left: 1.5em;
+	}
+	[role="treeitem"] .folder-label {
+		display: block;
+		padding: 5px;
+	}
+	.tree-folder > li::before,
+	.tree-folder > li::after,
+	.tree-folder .tree-folder::after {
+		left: -8px;
+	}
+	.tree-folder > li::before {
+		top: 0px;
+		height: 13px;
+	}
+	.tree-folder > .current-file::before {
+		left: -5px;
+		top: 7px;
+		width: 4px;
+	}
+	.tree-folder > .current-file::after {
+		height: 9px;
+		left: -8px;
+	}
+	.wrap #templateside span.notice {
+		margin-left: -14px;
 	}
 
 	.fileedit-sub .alignright {
@@ -3811,6 +3872,23 @@ img {
 	h3 .nav-tab {
 		margin: 10px 10px 0 0;
 		border-bottom: 1px solid #ccc;
+	}
+}
+
+.options-media-php br {
+	display: none;
+}
+
+@media screen and (max-width: 375px) {
+	.options-media-php input[type="number"][name*="_size_"] {
+		margin: 5px 0;
+	}
+	.options-media-php label[for*="_size_h"]:before {
+		content: '';
+		display: block;
+	}
+	.options-media-php br {
+		display: block;
 	}
 }
 

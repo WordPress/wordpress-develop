@@ -26,8 +26,8 @@ class Tests_Image_Header extends WP_UnitTestCase {
 			'width' => 1600,
 			'height' => 1200,
 		) );
-		$this->assertEquals( $dimensions['dst_width'], 1200);
-		$this->assertEquals( $dimensions['dst_height'], 230);
+		$this->assertEquals( 1200, $dimensions['dst_width'] );
+		$this->assertEquals( 230, $dimensions['dst_height'] );
 
 	}
 
@@ -44,8 +44,8 @@ class Tests_Image_Header extends WP_UnitTestCase {
 			'width' => 1600,
 			'height' => 1200,
 		) );
-		$this->assertEquals( $dimensions['dst_width'], 1200);
-		$this->assertEquals( $dimensions['dst_height'], 230);
+		$this->assertEquals( 1200, $dimensions['dst_width'] );
+		$this->assertEquals( 230, $dimensions['dst_height'] );
 
 	}
 
@@ -62,8 +62,8 @@ class Tests_Image_Header extends WP_UnitTestCase {
 			'width' => 1600,
 			'height' => 1200,
 		) );
-		$this->assertEquals( $dimensions['dst_width'], 1200);
-		$this->assertEquals( $dimensions['dst_height'], 900);
+		$this->assertEquals( 1200, $dimensions['dst_width'] );
+		$this->assertEquals( 900, $dimensions['dst_height'] );
 
 	}
 
@@ -80,8 +80,8 @@ class Tests_Image_Header extends WP_UnitTestCase {
 			'width' => 1600,
 			'height' => 1200,
 		) );
-		$this->assertEquals( $dimensions['dst_width'], 1500); // max width
-		$this->assertEquals( $dimensions['dst_height'], 230);
+		$this->assertEquals( 1500, $dimensions['dst_width'] ); // max width
+		$this->assertEquals( 230, $dimensions['dst_height'] );
 
 	}
 
@@ -98,8 +98,8 @@ class Tests_Image_Header extends WP_UnitTestCase {
 			'width' => 1600,
 			'height' => 1200,
 		) );
-		$this->assertEquals( $dimensions['dst_width'], 1600);
-		$this->assertEquals( $dimensions['dst_height'], 1200);
+		$this->assertEquals( 1600, $dimensions['dst_width'] );
+		$this->assertEquals( 1200, $dimensions['dst_height'] );
 
 	}
 
@@ -111,13 +111,13 @@ class Tests_Image_Header extends WP_UnitTestCase {
 			'guid' => 'http://localhost/foo.png'
 		) );
 
-		$cropped = 'http://localhost/foo-cropped.png';
+		$cropped = 'foo-cropped.png';
 
 		$object = $this->custom_image_header->create_attachment_object( $cropped, $id );
-		$this->assertEquals( $object['post_title'], 'foo-cropped.png' );
-		$this->assertEquals( $object['guid'], $cropped );
-		$this->assertEquals( $object['context'], 'custom-header' );
-		$this->assertEquals( $object['post_mime_type'], 'image/jpeg' );
+		$this->assertEquals( 'foo-cropped.png', $object['post_title'] );
+		$this->assertEquals( 'http://localhost/' . $cropped, $object['guid'] );
+		$this->assertEquals( 'custom-header', $object['context'] );
+		$this->assertEquals( 'image/jpeg', $object['post_mime_type'] );
 	}
 
 	function test_insert_cropped_attachment() {
@@ -128,7 +128,7 @@ class Tests_Image_Header extends WP_UnitTestCase {
 			'guid' => 'http://localhost/foo.png'
 		) );
 
-		$cropped = 'http://localhost/foo-cropped.png';
+		$cropped = 'foo-cropped.png';
 		$object = $this->custom_image_header->create_attachment_object( $cropped, $id );
 
 		$cropped_id = $this->custom_image_header->insert_attachment( $object, $cropped );
@@ -137,4 +137,37 @@ class Tests_Image_Header extends WP_UnitTestCase {
 		$this->assertGreaterThan( 0, $cropped_id );
 	}
 
+	/**
+	 * @ticket 21819
+	 */
+	function test_check_get_previous_crop() {
+		$id = wp_insert_attachment( array(
+			'post_status' => 'publish',
+			'post_title' => 'foo.png',
+			'post_type' => 'post',
+			'guid' => 'http://localhost/foo.png'
+		) );
+
+		// Create inital crop object.
+		$cropped_1 = 'foo-cropped-1.png';
+		$object = $this->custom_image_header->create_attachment_object( $cropped_1, $id );
+
+		// Ensure no previous crop exists.
+		$previous = $this->custom_image_header->get_previous_crop( $object );
+		$this->assertFalse( $previous );
+
+		// Create the inital crop attachment and set it as the header.
+		$cropped_1_id = $this->custom_image_header->insert_attachment( $object, $cropped_1 );
+		$key = '_wp_attachment_custom_header_last_used_' . get_stylesheet();
+		update_post_meta( $cropped_1_id, $key, time() );
+		update_post_meta( $cropped_1_id, '_wp_attachment_is_custom_header', get_stylesheet() );
+
+		// Create second crop.
+		$cropped_2 = 'foo-cropped-2.png';
+		$object = $this->custom_image_header->create_attachment_object( $cropped_2, $id );
+
+		// Test that a previous crop is found.
+		$previous = $this->custom_image_header->get_previous_crop( $object );
+		$this->assertSame( $previous, $cropped_1_id );
+	}
 }

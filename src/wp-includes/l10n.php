@@ -32,7 +32,7 @@ function get_locale() {
 
 	if ( isset( $locale ) ) {
 		/**
-		 * Filters WordPress install's locale ID.
+		 * Filters the locale ID of the WordPress installation.
 		 *
 		 * @since 1.5.0
 		 *
@@ -979,9 +979,9 @@ function is_textdomain_loaded( $domain ) {
  * are dummy gettext calls to get them into the POT file and this function
  * properly translates them back.
  *
- * The before_last_bar() call is needed, because older installs keep the roles
+ * The before_last_bar() call is needed, because older installations keep the roles
  * using the old context format: 'Role name|User role' and just skipping the
- * content after the last bar is easier than fixing them in the DB. New installs
+ * content after the last bar is easier than fixing them in the DB. New installations
  * won't suffer from that problem.
  *
  * @since 2.8.0
@@ -1117,8 +1117,8 @@ function wp_get_pomo_file_data( $po_file ) {
  * @param string|array $args {
  *     Optional. Array or string of arguments for outputting the language selector.
  *
- *     @type string   $id                           ID attribute of the select element. Default empty.
- *     @type string   $name                         Name attribute of the select element. Default empty.
+ *     @type string   $id                           ID attribute of the select element. Default 'locale'.
+ *     @type string   $name                         Name attribute of the select element. Default 'locale'.
  *     @type array    $languages                    List of installed languages, contain only the locales.
  *                                                  Default empty array.
  *     @type array    $translations                 List of available translations. Default result of
@@ -1133,9 +1133,9 @@ function wp_get_pomo_file_data( $po_file ) {
  */
 function wp_dropdown_languages( $args = array() ) {
 
-	$args = wp_parse_args( $args, array(
-		'id'           => '',
-		'name'         => '',
+	$parsed_args = wp_parse_args( $args, array(
+		'id'           => 'locale',
+		'name'         => 'locale',
 		'languages'    => array(),
 		'translations' => array(),
 		'selected'     => '',
@@ -1144,23 +1144,28 @@ function wp_dropdown_languages( $args = array() ) {
 		'show_option_site_default'    => false,
 	) );
 
-	// English (United States) uses an empty string for the value attribute.
-	if ( 'en_US' === $args['selected'] ) {
-		$args['selected'] = '';
+	// Bail if no ID or no name.
+	if ( ! $parsed_args['id'] || ! $parsed_args['name'] ) {
+		return;
 	}
 
-	$translations = $args['translations'];
+	// English (United States) uses an empty string for the value attribute.
+	if ( 'en_US' === $parsed_args['selected'] ) {
+		$parsed_args['selected'] = '';
+	}
+
+	$translations = $parsed_args['translations'];
 	if ( empty( $translations ) ) {
 		require_once( ABSPATH . 'wp-admin/includes/translation-install.php' );
 		$translations = wp_get_available_translations();
 	}
 
 	/*
-	 * $args['languages'] should only contain the locales. Find the locale in
+	 * $parsed_args['languages'] should only contain the locales. Find the locale in
 	 * $translations to get the native name. Fall back to locale.
 	 */
 	$languages = array();
-	foreach ( $args['languages'] as $locale ) {
+	foreach ( $parsed_args['languages'] as $locale ) {
 		if ( isset( $translations[ $locale ] ) ) {
 			$translation = $translations[ $locale ];
 			$languages[] = array(
@@ -1180,9 +1185,7 @@ function wp_dropdown_languages( $args = array() ) {
 		}
 	}
 
-	$translations_available = ( ! empty( $translations ) && $args['show_available_translations'] );
-
-	$output = sprintf( '<select name="%s" id="%s">', esc_attr( $args['name'] ), esc_attr( $args['id'] ) );
+	$translations_available = ( ! empty( $translations ) && $parsed_args['show_available_translations'] );
 
 	// Holds the HTML markup.
 	$structure = array();
@@ -1192,25 +1195,28 @@ function wp_dropdown_languages( $args = array() ) {
 		$structure[] = '<optgroup label="' . esc_attr_x( 'Installed', 'translations' ) . '">';
 	}
 
-	if ( $args['show_option_site_default'] ) {
+	// Site default.
+	if ( $parsed_args['show_option_site_default'] ) {
 		$structure[] = sprintf(
 			'<option value="site-default" data-installed="1"%s>%s</option>',
-			selected( 'site-default', $args['selected'], false ),
+			selected( 'site-default', $parsed_args['selected'], false ),
 			_x( 'Site Default', 'default site language' )
 		);
 	}
 
+	// Always show English.
 	$structure[] = sprintf(
 		'<option value="" lang="en" data-installed="1"%s>English (United States)</option>',
-		selected( '', $args['selected'], false )
+		selected( '', $parsed_args['selected'], false )
 	);
 
+	// List installed languages. 
 	foreach ( $languages as $language ) {
 		$structure[] = sprintf(
 			'<option value="%s" lang="%s"%s data-installed="1">%s</option>',
 			esc_attr( $language['language'] ),
 			esc_attr( $language['lang'] ),
-			selected( $language['language'], $args['selected'], false ),
+			selected( $language['language'], $parsed_args['selected'], false ),
 			esc_html( $language['native_name'] )
 		);
 	}
@@ -1226,18 +1232,19 @@ function wp_dropdown_languages( $args = array() ) {
 				'<option value="%s" lang="%s"%s>%s</option>',
 				esc_attr( $translation['language'] ),
 				esc_attr( current( $translation['iso'] ) ),
-				selected( $translation['language'], $args['selected'], false ),
+				selected( $translation['language'], $parsed_args['selected'], false ),
 				esc_html( $translation['native_name'] )
 			);
 		}
 		$structure[] = '</optgroup>';
 	}
 
+	// Combine the output string.
+	$output  = sprintf( '<select name="%s" id="%s">', esc_attr( $parsed_args['name'] ), esc_attr( $parsed_args['id'] ) );
 	$output .= join( "\n", $structure );
-
 	$output .= '</select>';
 
-	if ( $args['echo'] ) {
+	if ( $parsed_args['echo'] ) {
 		echo $output;
 	}
 

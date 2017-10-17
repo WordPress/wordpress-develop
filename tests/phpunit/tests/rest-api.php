@@ -16,7 +16,12 @@ class Tests_REST_API extends WP_UnitTestCase {
 	public function setUp() {
 		// Override the normal server with our spying server.
 		$GLOBALS['wp_rest_server'] = new Spy_REST_Server();
-		parent::setup();
+		parent::setUp();
+	}
+
+	public function tearDown() {
+		remove_filter( 'wp_rest_server_class', array( $this, 'filter_wp_rest_server_class' ) );
+		parent::tearDown();
 	}
 
 	/**
@@ -300,6 +305,131 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that result fields are not whitelisted if no request['_fields'] is present.
+	 */
+	public function test_rest_filter_response_fields_no_request_filter() {
+		$response = new WP_REST_Response();
+		$response->set_data( array( 'a' => true ) );
+		$request = array();
+
+		$response = rest_filter_response_fields( $response, null, $request );
+		$this->assertEquals( array( 'a' => true ), $response->get_data() );
+	}
+
+	/**
+	 * Ensure that result fields are whitelisted if request['_fields'] is present.
+	 */
+	public function test_rest_filter_response_fields_single_field_filter() {
+		$response = new WP_REST_Response();
+		$response->set_data( array(
+			'a' => 0,
+			'b' => 1,
+			'c' => 2,
+		) );
+		$request = array(
+			'_fields' => 'b'
+		);
+
+		$response = rest_filter_response_fields( $response, null, $request );
+		$this->assertEquals( array( 'b' => 1 ), $response->get_data() );
+	}
+
+	/**
+	 * Ensure that multiple comma-separated fields may be whitelisted with request['_fields'].
+	 */
+	public function test_rest_filter_response_fields_multi_field_filter() {
+		$response = new WP_REST_Response();
+		$response->set_data( array(
+			'a' => 0,
+			'b' => 1,
+			'c' => 2,
+			'd' => 3,
+			'e' => 4,
+			'f' => 5,
+		) );
+		$request = array(
+			'_fields' => 'b,c,e'
+		);
+
+		$response = rest_filter_response_fields( $response, null, $request );
+		$this->assertEquals( array(
+			'b' => 1,
+			'c' => 2,
+			'e' => 4,
+		), $response->get_data() );
+	}
+
+	/**
+	 * Ensure that multiple comma-separated fields may be whitelisted
+	 * with request['_fields'] using query parameter array syntax.
+	 */
+	public function test_rest_filter_response_fields_multi_field_filter_array() {
+		$response = new WP_REST_Response();
+
+		$response->set_data( array(
+			'a' => 0,
+			'b' => 1,
+			'c' => 2,
+			'd' => 3,
+			'e' => 4,
+			'f' => 5,
+		) );
+		$request = array(
+			'_fields' => array( 'b', 'c', 'e' )
+		);
+
+		$response = rest_filter_response_fields( $response, null, $request );
+		$this->assertEquals( array(
+			'b' => 1,
+			'c' => 2,
+			'e' => 4,
+		), $response->get_data() );
+	}
+
+	/**
+	 * Ensure that request['_fields'] whitelists apply to items in response collections.
+	 */
+	public function test_rest_filter_response_fields_numeric_array() {
+		$response = new WP_REST_Response();
+		$response->set_data( array(
+			array(
+				'a' => 0,
+				'b' => 1,
+				'c' => 2,
+			),
+			array(
+				'a' => 3,
+				'b' => 4,
+				'c' => 5,
+			),
+			array(
+				'a' => 6,
+				'b' => 7,
+				'c' => 8,
+			),
+		) );
+		$request = array(
+			'_fields' => 'b,c'
+		);
+
+		$response = rest_filter_response_fields( $response, null, $request );
+		$this->assertEquals( array(
+			array(
+				'b' => 1,
+				'c' => 2,
+			),
+			array(
+				'b' => 4,
+				'c' => 5,
+			),
+			array(
+				'b' => 7,
+				'c' => 8,
+			),
+		), $response->get_data() );
+	}
+
+	/**
 	 * The get_rest_url function should return a URL consistently terminated with a "/",
 	 * whether the blog is configured with pretty permalink support or not.
 	 */
@@ -314,9 +444,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 		// In non-pretty case, we get a query string to invoke the rest router.
 		$this->set_permalink_structure( '' );
-		$this->assertEquals( 'http://' . WP_TESTS_DOMAIN . '/?rest_route=/', get_rest_url() );
-
+		$this->assertEquals( 'http://' . WP_TESTS_DOMAIN . '/index.php?rest_route=/', get_rest_url() );
 	}
+
 	/**
 	 * @ticket 34299
 	 */
@@ -445,5 +575,22 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 */
 	public function test_rest_parse_date_force_utc( $string, $value ) {
 		$this->assertEquals( $value, rest_parse_date( $string, true ) );
+	}
+
+	public function filter_wp_rest_server_class( $class_name ) {
+		return 'Spy_REST_Server';
+	}
+
+	public function test_register_rest_route_without_server() {
+		$GLOBALS['wp_rest_server'] = null;
+		add_filter( 'wp_rest_server_class', array( $this, 'filter_wp_rest_server_class' ) );
+
+		register_rest_route( 'test-ns', '/test', array(
+			'methods'  => array( 'GET' ),
+			'callback' => '__return_null',
+		) );
+
+		$routes = $GLOBALS['wp_rest_server']->get_routes();
+		$this->assertEquals( $routes['/test-ns/test'][0]['methods'], array( 'GET' => true ) );
 	}
 }

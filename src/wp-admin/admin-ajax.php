@@ -26,7 +26,7 @@ send_origin_headers();
 
 // Require an action parameter
 if ( empty( $_REQUEST['action'] ) )
-	die( '0' );
+	wp_die( '0', 400 );
 
 /** Load WordPress Administration APIs */
 require_once( ABSPATH . 'wp-admin/includes/admin.php' );
@@ -61,14 +61,15 @@ $core_actions_post = array(
 	'query-attachments', 'save-attachment', 'save-attachment-compat', 'send-link-to-editor',
 	'send-attachment-to-editor', 'save-attachment-order', 'heartbeat', 'get-revision-diffs',
 	'save-user-color-scheme', 'update-widget', 'query-themes', 'parse-embed', 'set-attachment-thumbnail',
-	'parse-media-shortcode', 'destroy-sessions', 'install-plugin', 'update-plugin', 'press-this-save-post',
-	'press-this-add-category', 'crop-image', 'generate-password', 'save-wporg-username', 'delete-plugin',
-	'search-plugins', 'search-install-plugins', 'activate-plugin', 'update-theme', 'delete-theme',
-	'install-theme', 'get-post-thumbnail-html', 'get-community-events',
+	'parse-media-shortcode', 'destroy-sessions', 'install-plugin', 'update-plugin', 'crop-image',
+	'generate-password', 'save-wporg-username', 'delete-plugin', 'search-plugins',
+	'search-install-plugins', 'activate-plugin', 'update-theme', 'delete-theme', 'install-theme',
+	'get-post-thumbnail-html', 'get-community-events', 'edit-theme-plugin-file',
 );
 
 // Deprecated
-$core_actions_post[] = 'wp-fullscreen-save-post';
+$core_actions_post_deprecated = array( 'wp-fullscreen-save-post', 'press-this-save-post', 'press-this-add-category' );
+$core_actions_post = array_merge( $core_actions_post, $core_actions_post_deprecated );
 
 // Register core Ajax calls.
 if ( ! empty( $_GET['action'] ) && in_array( $_GET['action'], $core_actions_get ) )
@@ -101,4 +102,4 @@ if ( is_user_logged_in() ) {
 	do_action( 'wp_ajax_nopriv_' . $_REQUEST['action'] );
 }
 // Default status
-die( '0' );
+wp_die( '0', 400 );

@@ -1,5 +1,10 @@
+var $ = jQuery,
+	EmbedLink;
+
 /**
  * wp.media.view.EmbedLink
+ *
+ * @memberOf wp.media.view
  *
  * @class
  * @augments wp.media.view.Settings
@@ -7,10 +12,7 @@
  * @augments wp.Backbone.View
  * @augments Backbone.View
  */
-var $ = jQuery,
-	EmbedLink;
-
-EmbedLink = wp.media.view.Settings.extend({
+EmbedLink = wp.media.view.Settings.extend(/** @lends wp.media.view.EmbedLink.prototype */{
 	className: 'embed-link-settings',
 	template:  wp.template('embed-link-settings'),
 
@@ -35,9 +37,10 @@ EmbedLink = wp.media.view.Settings.extend({
 	}, wp.media.controller.Embed.sensitivity ),
 
 	fetch: function() {
+		var url = this.model.get( 'url' ), re, youTubeEmbedMatch;
 
 		// check if they haven't typed in 500 ms
-		if ( $('#embed-url-field').val() !== this.model.get('url') ) {
+		if ( $('#embed-url-field').val() !== url ) {
 			return;
 		}
 
@@ -45,13 +48,19 @@ EmbedLink = wp.media.view.Settings.extend({
 			this.dfd.abort();
 		}
 
-		this.dfd = $.ajax({
+		// Support YouTube embed urls, since they work once in the editor.
+		re = /https?:\/\/www\.youtube\.com\/embed\/([^/]+)/;
+		youTubeEmbedMatch = re.exec( url );
+		if ( youTubeEmbedMatch ) {
+			url = 'https://www.youtube.com/watch?v=' + youTubeEmbedMatch[ 1 ];
+		}
+
+		this.dfd = wp.apiRequest({
 			url: wp.media.view.settings.oEmbedProxyUrl,
 			data: {
-				url: this.model.get( 'url' ),
+				url: url,
 				maxwidth: this.model.get( 'width' ),
-				maxheight: this.model.get( 'height' ),
-				_wpnonce: wp.media.view.settings.nonce.wpRestApi
+				maxheight: this.model.get( 'height' )
 			},
 			type: 'GET',
 			dataType: 'json',

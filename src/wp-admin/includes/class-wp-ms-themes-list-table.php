@@ -26,7 +26,6 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 * Constructor.
 	 *
 	 * @since 3.1.0
-	 * @access public
 	 *
 	 * @see WP_List_Table::__construct() for more information on default arguments.
 	 *
@@ -227,7 +226,6 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @access public
 	 */
 	public function no_items() {
 		if ( $this->has_items ) {
@@ -263,7 +261,6 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 * Gets the name of the primary column.
 	 *
 	 * @since 4.3.0
-	 * @access protected
 	 *
 	 * @return string Unalterable name of the primary column name, in this case, 'name'.
 	 */
@@ -309,9 +306,9 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 				$url = 'themes.php';
 
 			if ( 'search' != $type ) {
-				$status_links[$type] = sprintf( "<a href='%s' %s>%s</a>",
+				$status_links[$type] = sprintf( "<a href='%s'%s>%s</a>",
 					esc_url( add_query_arg('theme_status', $type, $url) ),
-					( $type === $status ) ? ' class="current"' : '',
+					( $type === $status ) ? ' class="current" aria-current="page"' : '',
 					sprintf( $text, number_format_i18n( $count ) )
 				);
 			}
@@ -343,7 +340,6 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @access public
 	 */
 	public function display_rows() {
 		foreach ( $this->items as $theme )
@@ -354,7 +350,6 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 * Handles the checkbox column output.
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 *
 	 * @param WP_Theme $theme The current WP_Theme object.
 	 */
@@ -370,7 +365,6 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 * Handles the name column output.
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 *
 	 * @global string $status
 	 * @global int    $page
@@ -395,7 +389,6 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		$actions = array(
 			'enable' => '',
 			'disable' => '',
-			'edit' => '',
 			'delete' => ''
 		);
 
@@ -448,21 +441,6 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 			);
 		}
 
-		if ( current_user_can('edit_themes') ) {
-			$url = add_query_arg( array(
-				'theme' => $theme_key,
-			), 'theme-editor.php' );
-
-			/* translators: %s: theme name */
-			$aria_label = sprintf( __( 'Open %s in the Theme Editor' ), $theme->display( 'Name' ) );
-
-			$actions['edit'] = sprintf( '<a href="%s" class="edit" aria-label="%s">%s</a>',
-				esc_url( $url ),
-				esc_attr( $aria_label ),
-				__( 'Edit' )
-			);
-		}
-
 		if ( ! $allowed && current_user_can( 'delete_themes' ) && ! $this->is_site_themes && $stylesheet != get_option( 'stylesheet' ) && $stylesheet != get_option( 'template' ) ) {
 			$url = add_query_arg( array(
 				'action'       => 'delete-selected',
@@ -492,16 +470,16 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		 * non-network enabled themes when editing a site in the Network admin.
 		 *
 		 * The default action links for the Network themes list table include
-		 * 'Network Enable', 'Network Disable', 'Edit', and 'Delete'.
+		 * 'Network Enable', 'Network Disable', and 'Delete'.
 		 *
 		 * The default action links for the Site themes list table include
-		 * 'Enable', 'Disable', and 'Edit'.
+		 * 'Enable', and 'Disable'.
 		 *
 		 * @since 2.8.0
 		 *
 		 * @param array    $actions An array of action links.
 		 * @param WP_Theme $theme   The current WP_Theme object.
-		 * @param string   $context Status of the theme.
+		 * @param string   $context Status of the theme, one of 'all', 'enabled', or 'disabled'.
 		 */
 		$actions = apply_filters( 'theme_action_links', array_filter( $actions ), $theme, $context );
 
@@ -517,7 +495,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		 *
 		 * @param array    $actions An array of action links.
 		 * @param WP_Theme $theme   The current WP_Theme object.
-		 * @param string   $context Status of the theme.
+		 * @param string   $context Status of the theme, one of 'all', 'enabled', or 'disabled'.
 		 */
 		$actions = apply_filters( "theme_action_links_{$stylesheet}", $actions, $theme, $context );
 
@@ -528,7 +506,6 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 * Handles the description column output.
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 *
 	 * @global string $status
 	 * @global array  $totals
@@ -596,7 +573,6 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 * Handles default column output.
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 *
 	 * @param WP_Theme $theme       The current WP_Theme object.
 	 * @param string   $column_name The current column name.
@@ -620,7 +596,6 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 * Handles the output for a single table row.
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 *
 	 * @param WP_Theme $item The current WP_Theme object.
 	 */
@@ -643,7 +618,26 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 					break;
 
 				case 'name':
-					echo "<td class='theme-title column-primary{$extra_classes}'><strong>" . $item->display('Name') . "</strong>";
+
+					$active_theme_label = '';
+
+					/* The presence of the site_id property means that this is a subsite view and a label for the active theme needs to be added */
+					if ( ! empty( $this->site_id ) ) {
+						$stylesheet = get_blog_option( $this->site_id, 'stylesheet' );
+						$template   = get_blog_option( $this->site_id, 'template' );
+
+						/* Add a label for the active template */
+						if ( $item->get_template() === $template ) {
+							$active_theme_label = ' &mdash; ' . __( 'Active Theme' );
+						}
+
+						/* In case this is a child theme, label it properly */
+						if ( $stylesheet !== $template && $item->get_stylesheet() === $stylesheet) {
+							$active_theme_label = ' &mdash; ' . __( 'Active Child Theme' );
+						}
+					}
+
+					echo "<td class='theme-title column-primary{$extra_classes}'><strong>" . $item->display( 'Name' ) . $active_theme_label . '</strong>';
 
 					$this->column_name( $item );
 

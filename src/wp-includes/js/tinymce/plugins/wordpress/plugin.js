@@ -1,7 +1,9 @@
 /* global getUserSetting, setUserSetting */
 ( function( tinymce ) {
 // Set the minimum value for the modals z-index higher than #wpadminbar (100000)
-tinymce.ui.FloatPanel.zIndex = 100100;
+if ( tinymce.ui.FloatPanel.zIndex < 100100 ) {
+	tinymce.ui.FloatPanel.zIndex = 100100;
+}
 
 tinymce.PluginManager.add( 'wordpress', function( editor ) {
 	var wpAdvButton, style,
@@ -185,7 +187,8 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 		var parent, html, title,
 			classname = 'wp-more-tag',
 			dom = editor.dom,
-			node = editor.selection.getNode();
+			node = editor.selection.getNode(),
+			rootNode = editor.getBody();
 
 		tag = tag || 'more';
 		classname += ' mce-wp-' + tag;
@@ -195,14 +198,14 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 			'data-wp-more="' + tag + '" data-mce-resize="false" data-mce-placeholder="1" />';
 
 		// Most common case
-		if ( node.nodeName === 'BODY' || ( node.nodeName === 'P' && node.parentNode.nodeName === 'BODY' ) ) {
+		if ( node === rootNode || ( node.nodeName === 'P' && node.parentNode === rootNode ) ) {
 			editor.insertContent( html );
 			return;
 		}
 
 		// Get the top level parent node
 		parent = dom.getParent( node, function( found ) {
-			if ( found.parentNode && found.parentNode.nodeName === 'BODY' ) {
+			if ( found.parentNode && found.parentNode === rootNode ) {
 				return true;
 			}
 
@@ -682,7 +685,8 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 			mceIframe = document.getElementById( editor.id + '_ifr' ),
 			mceToolbar,
 			mceStatusbar,
-			wpStatusbar;
+			wpStatusbar,
+			isChromeRtl = ( editor.rtl && /Chrome/.test( navigator.userAgent ) );
 
 			if ( container ) {
 				mceToolbar = tinymce.$( '.mce-toolbar-grp', container )[0];
@@ -926,6 +930,16 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 
 			toolbar.on( 'show', function() {
 				this.reposition();
+
+				if ( isChromeRtl ) {
+					tinymce.$( '.mce-widget.mce-tooltip' ).addClass( 'wp-hide-mce-tooltip' );
+				}
+			} );
+
+			toolbar.on( 'hide', function() {
+				if ( isChromeRtl ) {
+					tinymce.$( '.mce-widget.mce-tooltip' ).removeClass( 'wp-hide-mce-tooltip' );
+				}
 			} );
 
 			toolbar.on( 'keydown', function( event ) {

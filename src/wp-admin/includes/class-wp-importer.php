@@ -29,7 +29,7 @@ class WP_Importer {
 		// Grab all posts in chunks
 		do {
 			$meta_key = $importer_name . '_' . $bid . '_permalink';
-			$sql = $wpdb->prepare( "SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '%s' LIMIT %d,%d", $meta_key, $offset, $limit );
+			$sql = $wpdb->prepare( "SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = %s LIMIT %d,%d", $meta_key, $offset, $limit );
 			$results = $wpdb->get_results( $sql );
 
 			// Increment offset
@@ -248,9 +248,11 @@ class WP_Importer {
 	}
 
 	/**
-	 * Reset global variables that grow out of control during imports
+	 * Resets global variables that grow out of control during imports.
 	 *
-	 * @global wpdb  $wpdb
+	 * @since 3.0.0
+	 *
+	 * @global wpdb  $wpdb       WordPress database abstraction object.
 	 * @global array $wp_actions
 	 */
 	public function stop_the_insanity() {

@@ -1,4 +1,4 @@
-/* global wp */
+/* global wp, JSON */
 ( function( QUnit ) {
 	module( 'wpapi' );
 
@@ -115,7 +115,9 @@
 		'Page',
 		'Post',
 		'Tag',
-		'User'
+		'User',
+		'UsersMe',
+		'Settings'
 	];
 
 	_.each( modelsWithIdsClassNames, function( className ) {
@@ -130,12 +132,12 @@
 				assert.ok( theModel, 'We can instantiate wp.api.models.' + className );
 				theModel.fetch().done( function(  ) {
 					var theModel2 = new wp.api.models[ className ]();
-					theModel2.set( 'id', theModel.attributes[0].id );
+					theModel2.set( 'id', theModel.attributes.id );
 					theModel2.fetch().done( function() {
 
 						// We were able to retrieve the model.
 						assert.equal(
-							theModel.attributes[0].id,
+							theModel.attributes.id,
 							theModel2.get( 'id' ) ,
 							'We should be able to get a ' + className
 						);
@@ -189,6 +191,86 @@
 
 			} );
 
+		} );
+	} );
+
+	// Find models by route.
+	var modelsToFetchByRoute = [
+		'Category',
+		'Comment',
+		'Media',
+		'Page',
+		'PageRevision',
+		'Post',
+		'PostRevision',
+		'Status',
+		'Tag',
+		'Taxonomy',
+		'Type',
+		'User'
+	];
+
+	_.each( modelsToFetchByRoute, function( model ) {
+		QUnit.test( 'Test fetching ' + model + ' by route.', function( assert ) {
+
+			var done = assert.async();
+
+			assert.expect( 1 );
+
+			wp.api.loadPromise.done( function() {
+
+				var theModel = wp.api.models[ model ];
+				var route = theModel.prototype.route.index;
+
+				assert.equal(
+					wp.api.getModelByRoute( route ),
+					theModel,
+					'wp.api.models.' + model + ' found at route ' + route
+				);
+
+				// Trigger Qunit async completion.
+				done();
+			} );
+		} );
+	} );
+
+	// Find collections by route.
+	var collectionsToFetchByRoute = [
+		'Categories',
+		'Comments',
+		'Media',
+		'PageRevisions',
+		'Pages',
+		'PostRevisions',
+		'Posts',
+		'Statuses',
+		'Tags',
+		'Taxonomies',
+		'Types',
+		'Users'
+	];
+
+	_.each( collectionsToFetchByRoute, function( collection ) {
+		QUnit.test( 'Test fetching ' + collection + ' by route.', function( assert ) {
+
+			var done = assert.async();
+
+			assert.expect( 1 );
+
+			wp.api.loadPromise.done( function() {
+
+				var theCollection = wp.api.collections[ collection ];
+				var route = theCollection.prototype.route.index;
+
+				assert.equal(
+					wp.api.getCollectionByRoute( route ),
+					theCollection,
+					'wp.api.collections.' + collection + ' found at ' + route
+				);
+
+				// Trigger Qunit async completion.
+				done();
+			} );
 		} );
 	} );
 
@@ -260,5 +342,83 @@
 			} );
 		} );
 	});
+
+	// Test that models have the correct requireForceForDelete setting.
+	var modelsThatNeedrequireForceForDelete = [
+		{ name: 'Category', expect: true },
+		{ name: 'Comment', expect: undefined },
+		{ name: 'Media', expect: undefined },
+		{ name: 'Page', expect: undefined },
+		{ name: 'PageRevision', expect: true },
+		{ name: 'Post', expect: undefined },
+		{ name: 'PostRevision', expect: true },
+		{ name: 'Status', expect: undefined },
+		{ name: 'Tag', expect: true },
+		{ name: 'Taxonomy', expect: undefined },
+		{ name: 'Type', expect: undefined },
+		{ name: 'User', expect: true }
+	];
+
+	_.each( modelsThatNeedrequireForceForDelete, function( model ) {
+		QUnit.test( 'Test requireForceForDelete is correct for ' + model.name, function( assert ) {
+			var done = assert.async();
+			assert.expect( 1 );
+			wp.api.loadPromise.done( function() {
+
+				// Instantiate the model.
+				var theModel = new wp.api.models[ model.name ]();
+
+				// Verify the model's requireForceForDelete is set as expected.
+				assert.equal(
+					theModel.requireForceForDelete,
+					model.expect,
+					'wp.api.models.' + model.name + '.requireForceForDelete should be ' + model.expect + '.'
+				);
+
+				// Trigger Qunit async completion.
+				done();
+			} );
+		} );
+	} );
+
+
+	var theModelTypesWithMeta = [
+		'Posts',
+		'Comments',
+		'Tags',
+		'Users'
+	];
+
+	_.each( theModelTypesWithMeta, function( modelType ) {
+
+		// Test post meta.
+		wp.api.loadPromise.done( function() {
+			QUnit.test( 'Check meta support for ' + modelType + '.', function( assert ) {
+				var theModels = new wp.api.collections[ modelType ]();
+
+				theModels.fetch().done( function() {
+
+					// Get the main endpoint.
+					var endpoint = theModels.at(0);
+
+					// Verify the meta object returned correctly from `getMetas()`.
+					assert.equal( JSON.stringify( endpoint.getMetas() ), '{"meta_key":"meta_value"}', 'Full meta key/values object should be readable.' );
+
+					// Verify single meta returned correctly from `getMeta()`
+					assert.equal( endpoint.getMeta( 'meta_key' ), 'meta_value', 'Single meta should be readable by key.' );
+
+					// Verify setting meta values with `setMetas()`.
+					endpoint.setMetas( { 'test_key':'test_value' } );
+					assert.equal( endpoint.getMeta( 'test_key' ), 'test_value', 'Multiple meta should be writable via setMetas.' );
+
+					// Verify setting a single meta value with `setMeta()`.
+					endpoint.setMeta( 'test_key2', 'test_value2' );
+					assert.equal( endpoint.getMeta( 'test_key2' ), 'test_value2', 'Single meta should be writable via setMeta.' );
+
+				} );
+			} );
+		} );
+	} );
+
 
 } )( window.QUnit );

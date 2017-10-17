@@ -575,6 +575,15 @@ function remove_all_actions($tag, $priority = false) {
  * apply_filters_deprecated(), which triggers a deprecation notice and then fires
  * the original filter hook.
  *
+ * Note: the value and extra arguments passed to the original apply_filters() call
+ * must be passed here to `$args` as an array. For example:
+ *
+ *     // Old filter.
+ *     return apply_filters( 'wpdocs_filter', $value, $extra_arg );
+ *
+ *     // Deprecated.
+ *     return apply_filters_deprecated( 'wpdocs_filter', array( $value, $extra_arg ), '4.9', 'wpdocs_new_filter' );
+ *
  * @since 4.6.0
  *
  * @see _deprecated_hook()
@@ -780,12 +789,12 @@ function register_deactivation_hook($file, $function) {
  * The plugin should not run arbitrary code outside of functions, when
  * registering the uninstall hook. In order to run using the hook, the plugin
  * will have to be included, which means that any code laying outside of a
- * function will be run during the uninstall process. The plugin should not
- * hinder the uninstall process.
+ * function will be run during the uninstallation process. The plugin should not
+ * hinder the uninstallation process.
  *
  * If the plugin can not be written without running code within the plugin, then
  * the plugin should create a file named 'uninstall.php' in the base plugin
- * folder. This file will be called, if it exists, during the uninstall process
+ * folder. This file will be called, if it exists, during the uninstallation process
  * bypassing the uninstall hook. The plugin, when using the 'uninstall.php'
  * should always check for the 'WP_UNINSTALL_PLUGIN' constant, before
  * executing.

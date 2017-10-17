@@ -23,7 +23,6 @@ class WP_Upgrader_Skin {
 	 * Holds the result of an upgrade.
 	 *
 	 * @since 2.8.0
-	 * @access public
 	 * @var string|bool|WP_Error
 	 */
 	public $result = false;
@@ -39,6 +38,7 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
+	 *
 	 * @param WP_Upgrader $upgrader
 	 */
 	public function set_upgrader(&$upgrader) {
@@ -48,7 +48,6 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
-	 * @access public
 	 */
 	public function add_strings() {
 	}
@@ -57,7 +56,6 @@ class WP_Upgrader_Skin {
 	 * Sets the result of an upgrade.
 	 *
 	 * @since 2.8.0
-	 * @access public
 	 *
 	 * @param string|bool|WP_Error $result The result of an upgrade.
 	 */
@@ -96,7 +94,6 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
-	 * @access public
 	 */
 	public function header() {
 		if ( $this->done_header ) {
@@ -108,7 +105,6 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
-	 * @access public
 	 */
 	public function footer() {
 		if ( $this->done_footer ) {
@@ -160,12 +156,10 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
-	 * @access public
 	 */
 	public function before() {}
 
 	/**
-	 * @access public
 	 */
 	public function after() {}
 
@@ -200,12 +194,10 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
-	 * @access public
 	 */
 	public function bulk_header() {}
 
 	/**
-	 * @access public
 	 */
 	public function bulk_footer() {}
 }

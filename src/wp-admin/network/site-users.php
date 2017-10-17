@@ -16,22 +16,8 @@ if ( ! current_user_can('manage_sites') )
 $wp_list_table = _get_list_table('WP_Users_List_Table');
 $wp_list_table->prepare_items();
 
-get_current_screen()->add_help_tab( array(
-	'id'      => 'overview',
-	'title'   => __('Overview'),
-	'content' =>
-		'<p>' . __('The menu is for editing information specific to individual sites, particularly if the admin area of a site is unavailable.') . '</p>' .
-		'<p>' . __('<strong>Info</strong> &mdash; The site URL is rarely edited as this can cause the site to not work properly. The Registered date and Last Updated date are displayed. Network admins can mark a site as archived, spam, deleted and mature, to remove from public listings or disable.') . '</p>' .
-		'<p>' . __('<strong>Users</strong> &mdash; This displays the users associated with this site. You can also change their role, reset their password, or remove them from the site. Removing the user from the site does not remove the user from the network.') . '</p>' .
-		'<p>' . sprintf( __('<strong>Themes</strong> &mdash; This area shows themes that are not already enabled across the network. Enabling a theme in this menu makes it accessible to this site. It does not activate the theme, but allows it to show in the site&#8217;s Appearance menu. To enable a theme for the entire network, see the <a href="%s">Network Themes</a> screen.' ), network_admin_url( 'themes.php' ) ) . '</p>' .
-		'<p>' . __('<strong>Settings</strong> &mdash; This page shows a list of all settings associated with this site. Some are created by WordPress and others are created by plugins you activate. Note that some fields are grayed out and say Serialized Data. You cannot modify these values due to the way the setting is stored in the database.') . '</p>'
-) );
-
-get_current_screen()->set_help_sidebar(
-	'<p><strong>' . __('For more information:') . '</strong></p>' .
-	'<p>' . __('<a href="https://codex.wordpress.org/Network_Admin_Sites_Screen">Documentation on Site Management</a>') . '</p>' .
-	'<p>' . __('<a href="https://wordpress.org/support/forum/multisite/">Support Forums</a>') . '</p>'
-);
+get_current_screen()->add_help_tab( get_site_screen_help_tab_args() );
+get_current_screen()->set_help_sidebar( get_site_screen_help_sidebar_content() );
 
 get_current_screen()->set_screen_reader_content( array(
 	'heading_views'      => __( 'Filter site users list' ),
@@ -80,16 +66,21 @@ if ( $action ) {
 				if ( false === $user_id ) {
 		 			$update = 'err_new_dup';
 				} else {
-					add_user_to_blog( $id, $user_id, $_POST['new_role'] );
-					$update = 'newuser';
-					/**
-					  * Fires after a user has been created via the network site-users.php page.
-					  *
-					  * @since 4.4.0
-					  *
-					  * @param int $user_id ID of the newly created user.
-					  */
-					do_action( 'network_site_users_created_user', $user_id );
+					$result = add_user_to_blog( $id, $user_id, $_POST['new_role'] );
+
+					if ( is_wp_error( $result ) ) {
+						$update = 'err_add_fail';
+					} else {
+						$update = 'newuser';
+						/**
+						  * Fires after a user has been created via the network site-users.php page.
+						  *
+						  * @since 4.4.0
+						  *
+						  * @param int $user_id ID of the newly created user.
+						  */
+						do_action( 'network_site_users_created_user', $user_id );
+					}
 				}
 			}
 			break;
@@ -101,10 +92,15 @@ if ( $action ) {
 				$newuser = $_POST['newuser'];
 				$user = get_user_by( 'login', $newuser );
 				if ( $user && $user->exists() ) {
-					if ( ! is_user_member_of_blog( $user->ID, $id ) )
-						add_user_to_blog( $id, $user->ID, $_POST['new_role'] );
-					else
+					if ( ! is_user_member_of_blog( $user->ID, $id ) ) {
+						$result = add_user_to_blog( $id, $user->ID, $_POST['new_role'] );
+
+						if ( is_wp_error( $result ) ) {
+							$update = 'err_add_fail';
+						}
+					} else {
 						$update = 'err_add_member';
+					}
 				} else {
 					$update = 'err_add_notfound';
 				}
@@ -237,6 +233,9 @@ if ( isset($_GET['update']) ) :
 	case 'err_add_member':
 		echo '<div id="message" class="error notice is-dismissible"><p>' . __( 'User is already a member of this site.' ) . '</p></div>';
 		break;
+	case 'err_add_fail':
+		echo '<div id="message" class="error notice is-dismissible"><p>' . __( 'User could not be added to this site.' ) . '</p></div>';
+		break;
 	case 'err_add_notfound':
 		echo '<div id="message" class="error notice is-dismissible"><p>' . __( 'Enter the username of an existing user.' ) . '</p></div>';
 		break;
@@ -299,7 +298,11 @@ if ( current_user_can( 'promote_users' ) && apply_filters( 'show_network_site_us
 		<tr>
 			<th scope="row"><label for="new_role_adduser"><?php _e( 'Role' ); ?></label></th>
 			<td><select name="new_role" id="new_role_adduser">
-			<?php wp_dropdown_roles( get_option( 'default_role' ) ); ?>
+			<?php
+			switch_to_blog( $id );
+			wp_dropdown_roles( get_option( 'default_role' ) );
+			restore_current_blog();
+			?>
 			</select></td>
 		</tr>
 	</table>
@@ -332,7 +335,11 @@ if ( current_user_can( 'create_users' ) && apply_filters( 'show_network_site_use
 		<tr>
 			<th scope="row"><label for="new_role_newuser"><?php _e( 'Role' ); ?></label></th>
 			<td><select name="new_role" id="new_role_newuser">
-			<?php wp_dropdown_roles( get_option( 'default_role' ) ); ?>
+			<?php
+			switch_to_blog( $id );
+			wp_dropdown_roles( get_option( 'default_role' ) );
+			restore_current_blog();
+			?>
 			</select></td>
 		</tr>
 		<tr class="form-field">

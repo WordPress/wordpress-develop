@@ -72,7 +72,7 @@ function wpmu_delete_blog( $blog_id, $drop = false ) {
 	/**
 	 * Fires before a site is deleted.
 	 *
-	 * @since MU
+	 * @since MU (3.0.0)
 	 *
 	 * @param int  $blog_id The site ID.
 	 * @param bool $drop    True if site's table should be dropped. Default is false.
@@ -116,7 +116,7 @@ function wpmu_delete_blog( $blog_id, $drop = false ) {
 		/**
 		 * Filters the tables to drop when the site is deleted.
 		 *
-		 * @since MU
+		 * @since MU (3.0.0)
 		 *
 		 * @param array $tables  The site tables to be dropped.
 		 * @param int   $blog_id The ID of the site to drop tables for.
@@ -132,7 +132,7 @@ function wpmu_delete_blog( $blog_id, $drop = false ) {
 		/**
 		 * Filters the upload base directory to delete when the site is deleted.
 		 *
-		 * @since MU
+		 * @since MU (3.0.0)
 		 *
 		 * @param string $uploads['basedir'] Uploads path without subdirectory. @see wp_upload_dir()
 		 * @param int    $blog_id            The site ID.
@@ -221,7 +221,7 @@ function wpmu_delete_user( $id ) {
 	/**
 	 * Fires before a user is deleted from the network.
 	 *
-	 * @since MU
+	 * @since MU (3.0.0)
 	 *
 	 * @param int $id ID of the user about to be deleted from the network.
 	 */
@@ -260,188 +260,15 @@ function wpmu_delete_user( $id ) {
 	clean_user_cache( $user );
 
 	/** This action is documented in wp-admin/includes/user.php */
-	do_action( 'deleted_user', $id );
+	do_action( 'deleted_user', $id, null );
 
 	return true;
 }
 
 /**
- * Sends an email when a site administrator email address is changed.
- *
- * @since 3.0.0
- *
- * @param string $old_value The old email address. Not currently used.
- * @param string $value     The new email address.
- */
-function update_option_new_admin_email( $old_value, $value ) {
-	if ( $value == get_option( 'admin_email' ) || !is_email( $value ) )
-		return;
-
-	$hash = md5( $value. time() .mt_rand() );
-	$new_admin_email = array(
-		'hash' => $hash,
-		'newemail' => $value
-	);
-	update_option( 'adminhash', $new_admin_email );
-
-	$switched_locale = switch_to_locale( get_user_locale() );
-
-	/* translators: Do not translate USERNAME, ADMIN_URL, EMAIL, SITENAME, SITEURL: those are placeholders. */
-	$email_text = __( 'Howdy ###USERNAME###,
-
-You recently requested to have the administration email address on
-your site changed.
-
-If this is correct, please click on the following link to change it:
-###ADMIN_URL###
-
-You can safely ignore and delete this email if you do not want to
-take this action.
-
-This email has been sent to ###EMAIL###
-
-Regards,
-All at ###SITENAME###
-###SITEURL###' );
-
-	/**
-	 * Filters the email text sent when the site admin email is changed.
-	 *
-	 * The following strings have a special meaning and will get replaced dynamically:
-	 * ###USERNAME###  The current user's username.
-	 * ###ADMIN_URL### The link to click on to confirm the email change.
-	 * ###EMAIL###     The new email.
-	 * ###SITENAME###  The name of the site.
-	 * ###SITEURL###   The URL to the site.
-	 *
-	 * @since MU
-	 *
-	 * @param string $email_text      Text in the email.
-	 * @param string $new_admin_email New admin email that the current administration email was changed to.
-	 */
-	$content = apply_filters( 'new_admin_email_content', $email_text, $new_admin_email );
-
-	$current_user = wp_get_current_user();
-	$content = str_replace( '###USERNAME###', $current_user->user_login, $content );
-	$content = str_replace( '###ADMIN_URL###', esc_url( self_admin_url( 'options.php?adminhash='.$hash ) ), $content );
-	$content = str_replace( '###EMAIL###', $value, $content );
-	$content = str_replace( '###SITENAME###', wp_specialchars_decode( get_site_option( 'site_name' ), ENT_QUOTES ), $content );
-	$content = str_replace( '###SITEURL###', network_home_url(), $content );
-
-	wp_mail( $value, sprintf( __( '[%s] New Admin Email Address' ), wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ) ), $content );
-
-	if ( $switched_locale ) {
-		restore_previous_locale();
-	}
-}
-
-/**
- * Sends an email when an email address change is requested.
- *
- * @since 3.0.0
- *
- * @global WP_Error $errors WP_Error object.
- * @global wpdb     $wpdb   WordPress database object.
- */
-function send_confirmation_on_profile_email() {
-	global $errors, $wpdb;
-	$current_user = wp_get_current_user();
-	if ( ! is_object($errors) )
-		$errors = new WP_Error();
-
-	if ( $current_user->ID != $_POST['user_id'] )
-		return false;
-
-	if ( $current_user->user_email != $_POST['email'] ) {
-		if ( !is_email( $_POST['email'] ) ) {
-			$errors->add( 'user_email', __( "<strong>ERROR</strong>: The email address isn&#8217;t correct." ), array( 'form-field' => 'email' ) );
-			return;
-		}
-
-		if ( $wpdb->get_var( $wpdb->prepare( "SELECT user_email FROM {$wpdb->users} WHERE user_email=%s", $_POST['email'] ) ) ) {
-			$errors->add( 'user_email', __( "<strong>ERROR</strong>: The email address is already used." ), array( 'form-field' => 'email' ) );
-			delete_user_meta( $current_user->ID, '_new_email' );
-			return;
-		}
-
-		$hash = md5( $_POST['email'] . time() . mt_rand() );
-		$new_user_email = array(
-			'hash' => $hash,
-			'newemail' => $_POST['email']
-		);
-		update_user_meta( $current_user->ID, '_new_email', $new_user_email );
-
-		$switched_locale = switch_to_locale( get_user_locale() );
-
-		/* translators: Do not translate USERNAME, ADMIN_URL, EMAIL, SITENAME, SITEURL: those are placeholders. */
-		$email_text = __( 'Howdy ###USERNAME###,
-
-You recently requested to have the email address on your account changed.
-
-If this is correct, please click on the following link to change it:
-###ADMIN_URL###
-
-You can safely ignore and delete this email if you do not want to
-take this action.
-
-This email has been sent to ###EMAIL###
-
-Regards,
-All at ###SITENAME###
-###SITEURL###' );
-
-		/**
-		 * Filters the email text sent when a user changes emails.
-		 *
-		 * The following strings have a special meaning and will get replaced dynamically:
-		 * ###USERNAME###  The current user's username.
-		 * ###ADMIN_URL### The link to click on to confirm the email change.
-		 * ###EMAIL###     The new email.
-		 * ###SITENAME###  The name of the site.
-		 * ###SITEURL###   The URL to the site.
-		 *
-		 * @since MU
-		 *
-		 * @param string $email_text     Text in the email.
-		 * @param string $new_user_email New user email that the current user has changed to.
-		 */
-		$content = apply_filters( 'new_user_email_content', $email_text, $new_user_email );
-
-		$content = str_replace( '###USERNAME###', $current_user->user_login, $content );
-		$content = str_replace( '###ADMIN_URL###', esc_url( self_admin_url( 'profile.php?newuseremail=' . $hash ) ), $content );
-		$content = str_replace( '###EMAIL###', $_POST['email'], $content);
-		$content = str_replace( '###SITENAME###', wp_specialchars_decode( get_site_option( 'site_name' ), ENT_QUOTES ), $content );
-		$content = str_replace( '###SITEURL###', network_home_url(), $content );
-
-		wp_mail( $_POST['email'], sprintf( __( '[%s] New Email Address' ), wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ) ), $content );
-		$_POST['email'] = $current_user->user_email;
-
-		if ( $switched_locale ) {
-			restore_previous_locale();
-		}
-	}
-}
-
-/**
- * Adds an admin notice alerting the user to check for confirmation email
- * after email address change.
- *
- * @since 3.0.0
- *
- * @global string $pagenow
- */
-function new_user_email_admin_notice() {
-	global $pagenow;
-	if ( 'profile.php' === $pagenow && isset( $_GET['updated'] ) && $email = get_user_meta( get_current_user_id(), '_new_email', true ) ) {
-		/* translators: %s: New email address */
-		echo '<div class="notice notice-info"><p>' . sprintf( __( 'Your email address has not been updated yet. Please check your inbox at %s for a confirmation email.' ), '<code>' . esc_html( $email['newemail'] ) . '</code>' ) . '</p></div>';
-	}
-}
-
-/**
  * Check whether a site has used its allotted upload space.
  *
- * @since MU
+ * @since MU (3.0.0)
  *
  * @param bool $echo Optional. If $echo is set and the quota is exceeded, a warning message is echoed. Default is true.
  * @return bool True if user is over upload space quota, otherwise false.
@@ -468,7 +295,7 @@ function upload_is_user_over_quota( $echo = true ) {
 /**
  * Displays the amount of disk space used by the current site. Not used in core.
  *
- * @since MU
+ * @since MU (3.0.0)
  */
 function display_space_usage() {
 	$space_allowed = get_space_allowed();
@@ -496,7 +323,7 @@ function display_space_usage() {
 /**
  * Get the remaining upload space for this site.
  *
- * @since MU
+ * @since MU (3.0.0)
  *
  * @param int $size Current max size in bytes
  * @return int Max size in bytes
@@ -633,7 +460,7 @@ function format_code_lang( $code = '' ) {
 	/**
 	 * Filters the language codes.
 	 *
-	 * @since MU
+	 * @since MU (3.0.0)
 	 *
 	 * @param array  $lang_codes Key/value pair of language codes where key is the short version.
 	 * @param string $code       A two-letter designation of the language.
@@ -761,7 +588,7 @@ function mu_dropdown_languages( $lang_files = array(), $current = '' ) {
 	/**
 	 * Filters the languages available in the dropdown.
 	 *
-	 * @since MU
+	 * @since MU (3.0.0)
 	 *
 	 * @param array $output     HTML output of the dropdown.
 	 * @param array $lang_files Available language files.
@@ -801,7 +628,7 @@ function site_admin_notice() {
 /**
  * Avoids a collision between a site slug and a permalink slug.
  *
- * In a subdirectory install this will make sure that a site and a post do not use the
+ * In a subdirectory installation this will make sure that a site and a post do not use the
  * same subdirectory by checking for a site with the same name as a new post.
  *
  * @since 3.0.0
@@ -883,20 +710,16 @@ function choose_primary_blog() {
 /**
  * Whether or not we can edit this network from this page.
  *
- * By default editing of network is restricted to the Network Admin for that `$site_id`
- * this allows for this to be overridden.
+ * By default editing of network is restricted to the Network Admin for that `$network_id`.
+ * This function allows for this to be overridden.
  *
  * @since 3.1.0
  *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
- * @param int $site_id The network/site ID to check.
+ * @param int $network_id The network ID to check.
  * @return bool True if network can be edited, otherwise false.
  */
-function can_edit_network( $site_id ) {
-	global $wpdb;
-
-	if ( $site_id == $wpdb->siteid )
+function can_edit_network( $network_id ) {
+	if ( $network_id == get_current_network_id() )
 		$result = true;
 	else
 		$result = false;
@@ -906,10 +729,10 @@ function can_edit_network( $site_id ) {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @param bool $result  Whether the network can be edited from this page.
-	 * @param int  $site_id The network/site ID to check.
+	 * @param bool $result     Whether the network can be edited from this page.
+	 * @param int  $network_id The network ID to check.
 	 */
-	return apply_filters( 'can_edit_network', $result, $site_id );
+	return apply_filters( 'can_edit_network', $result, $network_id );
 }
 
 /**
@@ -1139,4 +962,37 @@ function network_edit_site_nav( $args = array() ) {
 	echo '<h2 class="nav-tab-wrapper wp-clearfix">';
 	echo implode( '', $screen_links );
 	echo '</h2>';
+}
+
+/**
+ * Returns the arguments for the help tab on the Edit Site screens.
+ *
+ * @since 4.9.0
+ *
+ * @return array Help tab arguments.
+ */
+function get_site_screen_help_tab_args() {
+	return array(
+		'id'      => 'overview',
+		'title'   => __('Overview'),
+		'content' =>
+			'<p>' . __('The menu is for editing information specific to individual sites, particularly if the admin area of a site is unavailable.') . '</p>' .
+			'<p>' . __('<strong>Info</strong> &mdash; The site URL is rarely edited as this can cause the site to not work properly. The Registered date and Last Updated date are displayed. Network admins can mark a site as archived, spam, deleted and mature, to remove from public listings or disable.') . '</p>' .
+			'<p>' . __('<strong>Users</strong> &mdash; This displays the users associated with this site. You can also change their role, reset their password, or remove them from the site. Removing the user from the site does not remove the user from the network.') . '</p>' .
+			'<p>' . sprintf( __('<strong>Themes</strong> &mdash; This area shows themes that are not already enabled across the network. Enabling a theme in this menu makes it accessible to this site. It does not activate the theme, but allows it to show in the site&#8217;s Appearance menu. To enable a theme for the entire network, see the <a href="%s">Network Themes</a> screen.' ), network_admin_url( 'themes.php' ) ) . '</p>' .
+			'<p>' . __('<strong>Settings</strong> &mdash; This page shows a list of all settings associated with this site. Some are created by WordPress and others are created by plugins you activate. Note that some fields are grayed out and say Serialized Data. You cannot modify these values due to the way the setting is stored in the database.') . '</p>'
+	);
+}
+
+/**
+ * Returns the content for the help sidebar on the Edit Site screens.
+ *
+ * @since 4.9.0
+ *
+ * @return string Help sidebar content.
+ */
+function get_site_screen_help_sidebar_content() {
+	return '<p><strong>' . __('For more information:') . '</strong></p>' .
+		'<p>' . __('<a href="https://codex.wordpress.org/Network_Admin_Sites_Screen">Documentation on Site Management</a>') . '</p>' .
+		'<p>' . __('<a href="https://wordpress.org/support/forum/multisite/">Support Forums</a>') . '</p>';
 }

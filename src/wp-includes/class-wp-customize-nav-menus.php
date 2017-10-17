@@ -22,31 +22,28 @@ final class WP_Customize_Nav_Menus {
 	 * WP_Customize_Manager instance.
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 * @var WP_Customize_Manager
 	 */
 	public $manager;
 
 	/**
-	 * Previewed Menus.
+	 * Original nav menu locations before the theme was switched.
 	 *
-	 * @since 4.3.0
-	 * @access public
+	 * @since 4.9.0
 	 * @var array
 	 */
-	public $previewed_menus;
+	protected $original_nav_menu_locations;
 
 	/**
 	 * Constructor.
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 *
 	 * @param object $manager An instance of the WP_Customize_Manager class.
 	 */
 	public function __construct( $manager ) {
-		$this->previewed_menus = array();
-		$this->manager         = $manager;
+		$this->manager = $manager;
+		$this->original_nav_menu_locations = get_nav_menu_locations();
 
 		// See https://github.com/xwp/wp-customize-snapshots/blob/962586659688a5b1fd9ae93618b7ce2d4e7a421c/php/class-customize-snapshot-manager.php#L469-L499
 		add_action( 'customize_register', array( $this, 'customize_register' ), 11 );
@@ -77,7 +74,6 @@ final class WP_Customize_Nav_Menus {
 	 * Adds a nonce for customizing menus.
 	 *
 	 * @since 4.5.0
-	 * @access public
 	 *
 	 * @param array $nonces Array of nonces.
 	 * @return array $nonces Modified array of nonces.
@@ -91,7 +87,6 @@ final class WP_Customize_Nav_Menus {
 	 * Ajax handler for loading available menu items.
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 */
 	public function ajax_load_available_items() {
 		check_ajax_referer( 'customize-menus', 'customize-menus-nonce' );
@@ -135,7 +130,6 @@ final class WP_Customize_Nav_Menus {
 	 * Performs the post_type and taxonomy queries for loading available menu items.
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 *
 	 * @param string $type   Optional. Accepts any custom object type and has built-in support for
 	 *                         'post_type' and 'taxonomy'. Default is 'post_type'.
@@ -258,7 +252,6 @@ final class WP_Customize_Nav_Menus {
 	 * Ajax handler for searching available menu items.
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 */
 	public function ajax_search_available_items() {
 		check_ajax_referer( 'customize-menus', 'customize-menus-nonce' );
@@ -292,7 +285,6 @@ final class WP_Customize_Nav_Menus {
 	 * Based on WP_Editor::wp_link_query().
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 *
 	 * @param array $args Optional. Accepts 'pagenum' and 's' (search) arguments.
 	 * @return array Menu items.
@@ -395,7 +387,6 @@ final class WP_Customize_Nav_Menus {
 	 * Enqueue scripts and styles for Customizer pane.
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 */
 	public function enqueue_scripts() {
 		wp_enqueue_style( 'customize-nav-menus' );
@@ -404,39 +395,50 @@ final class WP_Customize_Nav_Menus {
 		$temp_nav_menu_setting      = new WP_Customize_Nav_Menu_Setting( $this->manager, 'nav_menu[-1]' );
 		$temp_nav_menu_item_setting = new WP_Customize_Nav_Menu_Item_Setting( $this->manager, 'nav_menu_item[-1]' );
 
+		$num_locations = count( get_registered_nav_menus() );
+		if ( 1 === $num_locations ) {
+			$locations_description = __( 'Your theme can display menus in one location.' );
+		} else {
+			/* translators: %s: number of menu locations */
+			$locations_description = sprintf( _n( 'Your theme can display menus in %s location.', 'Your theme can display menus in %s locations.', $num_locations ), number_format_i18n( $num_locations ) );
+		}
+
 		// Pass data to JS.
 		$settings = array(
 			'allMenus'             => wp_get_nav_menus(),
 			'itemTypes'            => $this->available_item_types(),
 			'l10n'                 => array(
-				'untitled'          => _x( '(no label)', 'missing menu item navigation label' ),
-				'unnamed'           => _x( '(unnamed)', 'Missing menu name.' ),
-				'custom_label'      => __( 'Custom Link' ),
-				'page_label'        => get_post_type_object( 'page' )->labels->singular_name,
-				/* translators: %s: menu location */
-				'menuLocation'      => _x( '(Currently set to: %s)', 'menu' ),
-				'menuNameLabel'     => __( 'Menu Name' ),
-				'itemAdded'         => __( 'Menu item added' ),
-				'itemDeleted'       => __( 'Menu item deleted' ),
-				'menuAdded'         => __( 'Menu created' ),
-				'menuDeleted'       => __( 'Menu deleted' ),
-				'movedUp'           => __( 'Menu item moved up' ),
-				'movedDown'         => __( 'Menu item moved down' ),
-				'movedLeft'         => __( 'Menu item moved out of submenu' ),
-				'movedRight'        => __( 'Menu item is now a sub-item' ),
+				'untitled'               => _x( '(no label)', 'missing menu item navigation label' ),
+				'unnamed'                => _x( '(unnamed)', 'Missing menu name.' ),
+				'custom_label'           => __( 'Custom Link' ),
+				'page_label'             => get_post_type_object( 'page' )->labels->singular_name,
+				/* translators: %s:      menu location */
+				'menuLocation'           => _x( '(Currently set to: %s)', 'menu' ),
+				'locationsTitle'         => 1 === $num_locations ? __( 'Menu Location' ) : __( 'Menu Locations' ),
+				'locationsDescription'   => $locations_description,
+				'menuNameLabel'          => __( 'Menu Name' ),
+				'newMenuNameDescription' => __( 'If your theme has multiple menus, giving them clear names will help you manage them.' ),
+				'itemAdded'              => __( 'Menu item added' ),
+				'itemDeleted'            => __( 'Menu item deleted' ),
+				'menuAdded'              => __( 'Menu created' ),
+				'menuDeleted'            => __( 'Menu deleted' ),
+				'movedUp'                => __( 'Menu item moved up' ),
+				'movedDown'              => __( 'Menu item moved down' ),
+				'movedLeft'              => __( 'Menu item moved out of submenu' ),
+				'movedRight'             => __( 'Menu item is now a sub-item' ),
 				/* translators: &#9656; is the unicode right-pointing triangle, and %s is the section title in the Customizer */
-				'customizingMenus'  => sprintf( __( 'Customizing &#9656; %s' ), esc_html( $this->manager->get_panel( 'nav_menus' )->title ) ),
+				'customizingMenus'       => sprintf( __( 'Customizing &#9656; %s' ), esc_html( $this->manager->get_panel( 'nav_menus' )->title ) ),
 				/* translators: %s: title of menu item which is invalid */
-				'invalidTitleTpl'   => __( '%s (Invalid)' ),
+				'invalidTitleTpl'        => __( '%s (Invalid)' ),
 				/* translators: %s: title of menu item in draft status */
-				'pendingTitleTpl'   => __( '%s (Pending)' ),
-				'itemsFound'        => __( 'Number of items found: %d' ),
-				'itemsFoundMore'    => __( 'Additional items found: %d' ),
-				'itemsLoadingMore'  => __( 'Loading more results... please wait.' ),
-				'reorderModeOn'     => __( 'Reorder mode enabled' ),
-				'reorderModeOff'    => __( 'Reorder mode closed' ),
-				'reorderLabelOn'    => esc_attr__( 'Reorder menu items' ),
-				'reorderLabelOff'   => esc_attr__( 'Close reorder mode' ),
+				'pendingTitleTpl'        => __( '%s (Pending)' ),
+				'itemsFound'             => __( 'Number of items found: %d' ),
+				'itemsFoundMore'         => __( 'Additional items found: %d' ),
+				'itemsLoadingMore'       => __( 'Loading more results... please wait.' ),
+				'reorderModeOn'          => __( 'Reorder mode enabled' ),
+				'reorderModeOff'         => __( 'Reorder mode closed' ),
+				'reorderLabelOn'         => esc_attr__( 'Reorder menu items' ),
+				'reorderLabelOff'        => esc_attr__( 'Close reorder mode' ),
 			),
 			'settingTransport'     => 'postMessage',
 			'phpIntMax'            => PHP_INT_MAX,
@@ -480,7 +482,6 @@ final class WP_Customize_Nav_Menus {
 	 * the WP_Customize_Setting constructor.
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 *
 	 * @param false|array $setting_args The arguments to the WP_Customize_Setting constructor.
 	 * @param string      $setting_id   ID for dynamic setting, usually coming from `$_POST['customized']`.
@@ -505,7 +506,6 @@ final class WP_Customize_Nav_Menus {
 	 * Allow non-statically created settings to be constructed with custom WP_Customize_Setting subclass.
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 *
 	 * @param string $setting_class WP_Customize_Setting or a subclass.
 	 * @param string $setting_id    ID for dynamic setting, usually coming from `$_POST['customized']`.
@@ -527,7 +527,6 @@ final class WP_Customize_Nav_Menus {
 	 * Add the customizer settings and controls.
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 */
 	public function customize_register() {
 
@@ -538,13 +537,10 @@ final class WP_Customize_Nav_Menus {
 				$nav_menus_setting_ids[] = $setting_id;
 			}
 		}
-		$this->manager->add_dynamic_settings( $nav_menus_setting_ids );
-		if ( ! $this->manager->doing_ajax( 'customize_save' ) ) {
-			foreach ( $nav_menus_setting_ids as $setting_id ) {
-				$setting = $this->manager->get_setting( $setting_id );
-				if ( $setting ) {
-					$setting->preview();
-				}
+		$settings = $this->manager->add_dynamic_settings( $nav_menus_setting_ids );
+		if ( $this->manager->settings_previewed() ) {
+			foreach ( $settings as $setting ) {
+				$setting->preview();
 			}
 		}
 
@@ -552,6 +548,7 @@ final class WP_Customize_Nav_Menus {
 		$this->manager->register_panel_type( 'WP_Customize_Nav_Menus_Panel' );
 		$this->manager->register_control_type( 'WP_Customize_Nav_Menu_Control' );
 		$this->manager->register_control_type( 'WP_Customize_Nav_Menu_Name_Control' );
+		$this->manager->register_control_type( 'WP_Customize_Nav_Menu_Locations_Control' );
 		$this->manager->register_control_type( 'WP_Customize_Nav_Menu_Auto_Add_Control' );
 		$this->manager->register_control_type( 'WP_Customize_Nav_Menu_Item_Control' );
 
@@ -559,7 +556,7 @@ final class WP_Customize_Nav_Menus {
 		$description = '<p>' . __( 'This panel is used for managing navigation menus for content you have already published on your site. You can create menus and add items for existing content such as pages, posts, categories, tags, formats, or custom links.' ) . '</p>';
 		if ( current_theme_supports( 'widgets' ) ) {
 			/* translators: URL to the widgets panel of the customizer */
-			$description .= '<p>' . sprintf( __( 'Menus can be displayed in locations defined by your theme or in <a href="%s">widget areas</a> by adding a &#8220;Custom Menu&#8221; widget.' ), "javascript:wp.customize.panel( 'widgets' ).focus();" ) . '</p>';
+			$description .= '<p>' . sprintf( __( 'Menus can be displayed in locations defined by your theme or in <a href="%s">widget areas</a> by adding a &#8220;Navigation Menu&#8221; widget.' ), "javascript:wp.customize.panel( 'widgets' ).focus();" ) . '</p>';
 		} else {
 			$description .= '<p>' . __( 'Menus can be displayed in locations defined by your theme.' ) . '</p>';
 		}
@@ -573,28 +570,42 @@ final class WP_Customize_Nav_Menus {
 
 		// Menu locations.
 		$locations     = get_registered_nav_menus();
-		$num_locations = count( array_keys( $locations ) );
+		$num_locations = count( $locations );
 		if ( 1 == $num_locations ) {
-			$description = '<p>' . __( 'Your theme supports one menu. Select which menu you would like to use.' ) . '</p>';
+			$description = '<p>' . __( 'Your theme can display menus in one location. Select which menu you would like to use.' ) . '</p>';
 		} else {
 			/* translators: %s: number of menu locations */
-			$description = '<p>' . sprintf( _n( 'Your theme supports %s menu. Select which menu appears in each location.', 'Your theme supports %s menus. Select which menu appears in each location.', $num_locations ), number_format_i18n( $num_locations ) ) . '</p>';
+			$description = '<p>' . sprintf( _n( 'Your theme can display menus in %s location. Select which menu you would like to use.', 'Your theme can display menus in %s locations. Select which menu appears in each location.', $num_locations ), number_format_i18n( $num_locations ) ) . '</p>';
 		}
+
 		if ( current_theme_supports( 'widgets' ) ) {
 			/* translators: URL to the widgets panel of the customizer */
-			$description .= '<p>' . sprintf( __( 'You can also place menus in <a href="%s">widget areas</a> with the &#8220;Custom Menu&#8221; widget.' ), "javascript:wp.customize.panel( 'widgets' ).focus();" ) . '</p>';
+			$description .= '<p>' . sprintf( __( 'If your theme has widget areas, you can also add menus there. Visit the <a href="%s">Widgets panel</a> and add a &#8220;Navigation Menu widget&#8221; to display a menu in a sidebar or footer.' ), "javascript:wp.customize.panel( 'widgets' ).focus();" ) . '</p>';
 		}
 
 		$this->manager->add_section( 'menu_locations', array(
-			'title'       => __( 'Menu Locations' ),
+			'title'       => 1 === $num_locations ? _x( 'View Location', 'menu locations' ) : _x( 'View All Locations', 'menu locations' ),
 			'panel'       => 'nav_menus',
-			'priority'    => 5,
+			'priority'    => 30,
 			'description' => $description,
 		) );
 
 		$choices = array( '0' => __( '&mdash; Select &mdash;' ) );
 		foreach ( $menus as $menu ) {
 			$choices[ $menu->term_id ] = wp_html_excerpt( $menu->name, 40, '&hellip;' );
+		}
+
+		// Attempt to re-map the nav menu location assignments when previewing a theme switch.
+		$mapped_nav_menu_locations = array();
+		if ( ! $this->manager->is_theme_active() ) {
+			$theme_mods = get_option( 'theme_mods_' . $this->manager->get_stylesheet(), array() );
+
+			// If there is no data from a previous activation, start fresh.
+			if ( empty( $theme_mods['nav_menu_locations'] ) ) {
+				$theme_mods['nav_menu_locations'] = array();
+			}
+
+			$mapped_nav_menu_locations = wp_map_nav_menu_locations( $theme_mods['nav_menu_locations'], $this->original_nav_menu_locations );
 		}
 
 		foreach ( $locations as $location => $description ) {
@@ -613,6 +624,11 @@ final class WP_Customize_Nav_Menus {
 					'transport'         => 'postMessage',
 					'default'           => 0,
 				) );
+			}
+
+			// Override the assigned nav menu location if mapped during previewed theme switch.
+			if ( isset( $mapped_nav_menu_locations[ $location ] ) ) {
+				$this->manager->set_post_value( $setting_id, $mapped_nav_menu_locations[ $location ] );
 			}
 
 			$this->manager->add_control( new WP_Customize_Nav_Menu_Location_Control( $this->manager, $setting_id, array(
@@ -671,27 +687,12 @@ final class WP_Customize_Nav_Menus {
 		}
 
 		// Add the add-new-menu section and controls.
-		$this->manager->add_section( new WP_Customize_New_Menu_Section( $this->manager, 'add_menu', array(
-			'title'    => __( 'Add a Menu' ),
+		$this->manager->add_section( 'add_menu', array(
+			'type'     => 'new_menu',
+			'title'    => __( 'New Menu' ),
 			'panel'    => 'nav_menus',
-			'priority' => 999,
-		) ) );
-
-		$this->manager->add_control( 'new_menu_name', array(
-			'label'       => '',
-			'section'     => 'add_menu',
-			'type'        => 'text',
-			'settings'    => array(),
-			'input_attrs' => array(
-				'class'       => 'menu-name-field',
-				'placeholder' => __( 'New menu name' ),
-			),
+			'priority' => 20,
 		) );
-
-		$this->manager->add_control( new WP_Customize_New_Menu_Control( $this->manager, 'create_new_menu', array(
-			'section'  => 'add_menu',
-			'settings' => array(),
-		) ) );
 
 		$this->manager->add_setting( new WP_Customize_Filter_Setting( $this->manager, 'nav_menus_created_posts', array(
 			'transport' => 'postMessage',
@@ -708,7 +709,6 @@ final class WP_Customize_Nav_Menus {
 	 * intval because the second argument is not what intval() expects.
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 *
 	 * @param mixed $value Number to convert.
 	 * @return int Integer.
@@ -721,8 +721,7 @@ final class WP_Customize_Nav_Menus {
 	 * Return an array of all the available item types.
 	 *
 	 * @since 4.3.0
-	 * @since 4.7.0  Each array item now includes a `$type_label` in in addition to `$title`, `$type`, and `$object`.
-	 * @access public
+	 * @since 4.7.0  Each array item now includes a `$type_label` in addition to `$title`, `$type`, and `$object`.
 	 *
 	 * @return array The available menu item types.
 	 */
@@ -760,9 +759,9 @@ final class WP_Customize_Nav_Menus {
 		 * Filters the available menu item types.
 		 *
 		 * @since 4.3.0
-		 * @since 4.7.0  Each array item now includes a `$type_label` in in addition to `$title`, `$type`, and `$object`.
+		 * @since 4.7.0  Each array item now includes a `$type_label` in addition to `$title`, `$type`, and `$object`.
 		 *
-		 * @param array $item_types Custom menu item types.
+		 * @param array $item_types Navigation menu item types.
 		 */
 		$item_types = apply_filters( 'customize_nav_menu_available_item_types', $item_types );
 
@@ -772,7 +771,6 @@ final class WP_Customize_Nav_Menus {
 	/**
 	 * Add a new `auto-draft` post.
 	 *
-	 * @access public
 	 * @since 4.7.0
 	 *
 	 * @param array $postarr {
@@ -822,7 +820,6 @@ final class WP_Customize_Nav_Menus {
 	/**
 	 * Ajax handler for adding a new auto-draft post.
 	 *
-	 * @access public
 	 * @since 4.7.0
 	 */
 	public function ajax_insert_auto_draft_post() {
@@ -899,7 +896,6 @@ final class WP_Customize_Nav_Menus {
 	 * Templates are imported into the JS use wp.template.
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 */
 	public function print_templates() {
 		?>
@@ -935,6 +931,38 @@ final class WP_Customize_Nav_Menus {
 				?>
 			</div>
 		</script>
+
+		<script type="text/html" id="tmpl-nav-menu-delete-button">
+			<div class="menu-delete-item">
+				<button type="button" class="button-link button-link-delete">
+					<?php _e( 'Delete Menu' ); ?>
+				</button>
+			</div>
+		</script>
+
+		<script type="text/html" id="tmpl-nav-menu-submit-new-button">
+			<p id="customize-new-menu-submit-description"><?php _e( 'Click "next" to start adding links to your new menu.' ); ?></p>
+			<button id="customize-new-menu-submit" type="button" class="button" aria-describedby="customize-new-menu-submit-description"><?php _e( 'Next' ); ?></button>
+		</script>
+
+		<script type="text/html" id="tmpl-nav-menu-locations-header">
+			<span class="customize-control-title customize-section-title-menu_locations-heading">{{ data.l10n.locationsTitle }}</span>
+			<p class="customize-control-description customize-section-title-menu_locations-description">{{ data.l10n.locationsDescription }}</p>
+		</script>
+
+		<script type="text/html" id="tmpl-nav-menu-create-menu-section-title">
+			<p class="add-new-menu-notice">
+				<?php _e( 'It doesn&#8217;t look like your site has any menus yet. Want to build one? Click the button to start.' ); ?>
+			</p>
+			<p class="add-new-menu-notice">
+				<?php _e( 'You&#8217;ll create a menu, assign it a location, and add menu items like links to pages and categories. If your theme has multiple menu areas, you might need to create more than one.' ); ?>
+			</p>
+			<h3>
+				<button type="button" class="button customize-add-menu-button">
+					<?php _e( 'Create New Menu' ); ?>
+				</button>
+			</h3>
+		</script>
 	<?php
 	}
 
@@ -942,7 +970,6 @@ final class WP_Customize_Nav_Menus {
 	 * Print the html template used to render the add-menu-item frame.
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 */
 	public function available_items_template() {
 		?>
@@ -1003,7 +1030,6 @@ final class WP_Customize_Nav_Menus {
 	 * To be used in the template #available-menu-items.
 	 *
 	 * @since 4.7.0
-	 * @access private
 	 *
 	 * @param array $available_item_type Menu item data to output, including title, type, and label.
 	 * @return void
@@ -1028,7 +1054,8 @@ final class WP_Customize_Nav_Menus {
 					<?php $post_type_obj = get_post_type_object( $available_item_type['object'] ); ?>
 					<?php if ( current_user_can( $post_type_obj->cap->create_posts ) && current_user_can( $post_type_obj->cap->publish_posts ) ) : ?>
 						<div class="new-content-item">
-							<input type="text" class="create-item-input" placeholder="<?php echo esc_attr( $post_type_obj->labels->add_new_item ); ?>">
+							<label for="<?php echo esc_attr( 'create-item-input-' . $available_item_type['object'] ); ?>" class="screen-reader-text"><?php echo esc_html( $post_type_obj->labels->add_new_item ); ?></label>
+							<input type="text" id="<?php echo esc_attr( 'create-item-input-' . $available_item_type['object'] ); ?>" class="create-item-input" placeholder="<?php echo esc_attr( $post_type_obj->labels->add_new_item ); ?>">
 							<button type="button" class="button add-content"><?php _e( 'Add' ); ?></button>
 						</div>
 					<?php endif; ?>
@@ -1043,7 +1070,6 @@ final class WP_Customize_Nav_Menus {
 	 * Print the markup for available menu item custom links.
 	 *
 	 * @since 4.7.0
-	 * @access private
 	 *
 	 * @return void
 	 */
@@ -1086,7 +1112,6 @@ final class WP_Customize_Nav_Menus {
 	 * Nav menu args used for each instance, keyed by the args HMAC.
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 * @var array
 	 */
 	public $preview_nav_menu_instance_args = array();
@@ -1095,7 +1120,6 @@ final class WP_Customize_Nav_Menus {
 	 * Filters arguments for dynamic nav_menu selective refresh partials.
 	 *
 	 * @since 4.5.0
-	 * @access public
 	 *
 	 * @param array|false $partial_args Partial args.
 	 * @param string      $partial_id   Partial ID.
@@ -1126,7 +1150,6 @@ final class WP_Customize_Nav_Menus {
 	 * Add hooks for the Customizer preview.
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 */
 	public function customize_preview_init() {
 		add_action( 'wp_enqueue_scripts', array( $this, 'customize_preview_enqueue_deps' ) );
@@ -1140,7 +1163,8 @@ final class WP_Customize_Nav_Menus {
 	 * Make the auto-draft status protected so that it can be queried.
 	 *
 	 * @since 4.7.0
-	 * @access public
+	 *
+	 * @global array $wp_post_statuses List of post statuses.
 	 */
 	public function make_auto_draft_status_previewable() {
 		global $wp_post_statuses;
@@ -1151,7 +1175,6 @@ final class WP_Customize_Nav_Menus {
 	 * Sanitize post IDs for auto-draft posts created for nav menu items to be published.
 	 *
 	 * @since 4.7.0
-	 * @access public
 	 *
 	 * @param array $value Post IDs.
 	 * @returns array Post IDs.
@@ -1187,7 +1210,6 @@ final class WP_Customize_Nav_Menus {
 	 * post is not an auto-draft.
 	 *
 	 * @since 4.7.0
-	 * @access public
 	 *
 	 * @param WP_Customize_Setting $setting Customizer setting object.
 	 */
@@ -1217,7 +1239,6 @@ final class WP_Customize_Nav_Menus {
 	 * Keep track of the arguments that are being passed to wp_nav_menu().
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 * @see wp_nav_menu()
 	 * @see WP_Customize_Widgets_Partial_Refresh::filter_dynamic_sidebar_params()
 	 *
@@ -1285,20 +1306,19 @@ final class WP_Customize_Nav_Menus {
 	 * Injects attributes into container element.
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 *
 	 * @see wp_nav_menu()
 	 *
 	 * @param string $nav_menu_content The HTML content for the navigation menu.
 	 * @param object $args             An object containing wp_nav_menu() arguments.
-	 * @return null
+	 * @return string Nav menu HTML with selective refresh attributes added if partial can be refreshed.
 	 */
 	public function filter_wp_nav_menu( $nav_menu_content, $args ) {
 		if ( isset( $args->customize_preview_nav_menus_args['can_partial_refresh'] ) && $args->customize_preview_nav_menus_args['can_partial_refresh'] ) {
 			$attributes = sprintf( ' data-customize-partial-id="%s"', esc_attr( 'nav_menu_instance[' . $args->customize_preview_nav_menus_args['args_hmac'] . ']' ) );
 			$attributes .= ' data-customize-partial-type="nav_menu_instance"';
 			$attributes .= sprintf( ' data-customize-partial-placement-context="%s"', esc_attr( wp_json_encode( $args->customize_preview_nav_menus_args ) ) );
-			$nav_menu_content = preg_replace( '#^(<\w+)#', '$1 ' . $attributes, $nav_menu_content, 1 );
+			$nav_menu_content = preg_replace( '#^(<\w+)#', '$1 ' . str_replace( '\\', '\\\\', $attributes ), $nav_menu_content, 1 );
 		}
 		return $nav_menu_content;
 	}
@@ -1310,7 +1330,6 @@ final class WP_Customize_Nav_Menus {
 	 * Note that the array is expected to be pre-sorted.
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 *
 	 * @param array $args The arguments to hash.
 	 * @return string Hashed nav menu arguments.
@@ -1323,7 +1342,6 @@ final class WP_Customize_Nav_Menus {
 	 * Enqueue scripts for the Customizer preview.
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 */
 	public function customize_preview_enqueue_deps() {
 		wp_enqueue_script( 'customize-preview-nav-menus' ); // Note that we have overridden this.
@@ -1333,7 +1351,6 @@ final class WP_Customize_Nav_Menus {
 	 * Exports data from PHP to JS.
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 */
 	public function export_preview_data() {
 
@@ -1348,7 +1365,6 @@ final class WP_Customize_Nav_Menus {
 	 * Export any wp_nav_menu() calls during the rendering of any partials.
 	 *
 	 * @since 4.5.0
-	 * @access public
 	 *
 	 * @param array $response Response.
 	 * @return array Response.
@@ -1362,7 +1378,6 @@ final class WP_Customize_Nav_Menus {
 	 * Render a specific menu via wp_nav_menu() using the supplied arguments.
 	 *
 	 * @since 4.3.0
-	 * @access public
 	 *
 	 * @see wp_nav_menu()
 	 *

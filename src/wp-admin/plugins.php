@@ -17,7 +17,7 @@ $pagenum = $wp_list_table->get_pagenum();
 
 $action = $wp_list_table->current_action();
 
-$plugin = isset($_REQUEST['plugin']) ? $_REQUEST['plugin'] : '';
+$plugin = isset($_REQUEST['plugin']) ? wp_unslash( $_REQUEST['plugin'] ) : '';
 $s = isset($_REQUEST['s']) ? urlencode( wp_unslash( $_REQUEST['s'] ) ) : '';
 
 // Clean up request URI from temporary args for screen options/paging uri's to work as expected.
@@ -29,8 +29,9 @@ if ( $action ) {
 
 	switch ( $action ) {
 		case 'activate':
-			if ( ! current_user_can('activate_plugins') )
-				wp_die(__('Sorry, you are not allowed to activate plugins for this site.'));
+			if ( ! current_user_can( 'activate_plugin', $plugin ) ) {
+				wp_die( __( 'Sorry, you are not allowed to activate this plugin.' ) );
+			}
 
 			if ( is_multisite() && ! is_network_admin() && is_network_only_plugin( $plugin ) ) {
 				wp_redirect( self_admin_url("plugins.php?plugin_status=$status&paged=$page&s=$s") );
@@ -39,10 +40,10 @@ if ( $action ) {
 
 			check_admin_referer('activate-plugin_' . $plugin);
 
-			$result = activate_plugin($plugin, self_admin_url('plugins.php?error=true&plugin=' . $plugin), is_network_admin() );
+			$result = activate_plugin($plugin, self_admin_url('plugins.php?error=true&plugin=' . urlencode( $plugin ) ), is_network_admin() );
 			if ( is_wp_error( $result ) ) {
 				if ( 'unexpected_output' == $result->get_error_code() ) {
-					$redirect = self_admin_url('plugins.php?error=true&charsout=' . strlen($result->get_error_data()) . '&plugin=' . $plugin . "&plugin_status=$status&paged=$page&s=$s");
+					$redirect = self_admin_url('plugins.php?error=true&charsout=' . strlen($result->get_error_data()) . '&plugin=' . urlencode( $plugin ) . "&plugin_status=$status&paged=$page&s=$s");
 					wp_redirect(add_query_arg('_error_nonce', wp_create_nonce('plugin-activation-error_' . $plugin), $redirect));
 					exit;
 				} else {
@@ -62,6 +63,8 @@ if ( $action ) {
 
 			if ( isset($_GET['from']) && 'import' == $_GET['from'] ) {
 				wp_redirect( self_admin_url("import.php?import=" . str_replace('-importer', '', dirname($plugin))) ); // overrides the ?error=true one above and redirects to the Imports page, stripping the -importer suffix
+			} else if ( isset($_GET['from']) && 'press-this' == $_GET['from'] ) {
+				wp_redirect( self_admin_url( "press-this.php") );
 			} else {
 				wp_redirect( self_admin_url("plugins.php?activate=true&plugin_status=$status&paged=$page&s=$s") ); // overrides the ?error=true one above
 			}
@@ -73,7 +76,7 @@ if ( $action ) {
 
 			check_admin_referer('bulk-plugins');
 
-			$plugins = isset( $_POST['checked'] ) ? (array) $_POST['checked'] : array();
+			$plugins = isset( $_POST['checked'] ) ? (array) wp_unslash( $_POST['checked'] ) : array();
 
 			if ( is_network_admin() ) {
 				foreach ( $plugins as $i => $plugin ) {
@@ -86,6 +89,10 @@ if ( $action ) {
 				foreach ( $plugins as $i => $plugin ) {
 					// Only activate plugins which are not already active and are not network-only when on Multisite.
 					if ( is_plugin_active( $plugin ) || ( is_multisite() && is_network_only_plugin( $plugin ) ) ) {
+						unset( $plugins[ $i ] );
+					}
+					// Only activate plugins which the user can activate.
+					if ( ! current_user_can( 'activate_plugin', $plugin ) ) {
 						unset( $plugins[ $i ] );
 					}
 				}
@@ -122,9 +129,9 @@ if ( $action ) {
 			check_admin_referer( 'bulk-plugins' );
 
 			if ( isset( $_GET['plugins'] ) )
-				$plugins = explode( ',', $_GET['plugins'] );
+				$plugins = explode( ',', wp_unslash( $_GET['plugins'] ) );
 			elseif ( isset( $_POST['checked'] ) )
-				$plugins = (array) $_POST['checked'];
+				$plugins = (array) wp_unslash( $_POST['checked'] );
 			else
 				$plugins = array();
 
@@ -146,8 +153,9 @@ if ( $action ) {
 			exit;
 
 		case 'error_scrape':
-			if ( ! current_user_can('activate_plugins') )
-				wp_die(__('Sorry, you are not allowed to activate plugins for this site.'));
+			if ( ! current_user_can( 'activate_plugin', $plugin ) ) {
+				wp_die( __( 'Sorry, you are not allowed to activate this plugin.' ) );
+			}
 
 			check_admin_referer('plugin-activation-error_' . $plugin);
 
@@ -167,8 +175,9 @@ if ( $action ) {
 			exit;
 
 		case 'deactivate':
-			if ( ! current_user_can('activate_plugins') )
-				wp_die(__('Sorry, you are not allowed to deactivate plugins for this site.'));
+			if ( ! current_user_can( 'deactivate_plugin', $plugin ) ) {
+				wp_die( __( 'Sorry, you are not allowed to deactivate this plugin.' ) );
+			}
 
 			check_admin_referer('deactivate-plugin_' . $plugin);
 
@@ -192,18 +201,27 @@ if ( $action ) {
 			exit;
 
 		case 'deactivate-selected':
-			if ( ! current_user_can('activate_plugins') )
+			if ( ! current_user_can( 'deactivate_plugins' ) ) {
 				wp_die(__('Sorry, you are not allowed to deactivate plugins for this site.'));
+			}
 
 			check_admin_referer('bulk-plugins');
 
-			$plugins = isset( $_POST['checked'] ) ? (array) $_POST['checked'] : array();
+			$plugins = isset( $_POST['checked'] ) ? (array) wp_unslash( $_POST['checked'] ) : array();
 			// Do not deactivate plugins which are already deactivated.
 			if ( is_network_admin() ) {
 				$plugins = array_filter( $plugins, 'is_plugin_active_for_network' );
 			} else {
 				$plugins = array_filter( $plugins, 'is_plugin_active' );
 				$plugins = array_diff( $plugins, array_filter( $plugins, 'is_plugin_active_for_network' ) );
+
+				foreach ( $plugins as $i => $plugin ) {
+					// Only deactivate plugins which the user can deactivate.
+					if ( ! current_user_can( 'deactivate_plugin', $plugin ) ) {
+						unset( $plugins[ $i ] );
+					}
+				}
+
 			}
 			if ( empty($plugins) ) {
 				wp_redirect( self_admin_url("plugins.php?plugin_status=$status&paged=$page&s=$s") );
@@ -234,7 +252,7 @@ if ( $action ) {
 			check_admin_referer('bulk-plugins');
 
 			//$_POST = from the plugin form; $_GET = from the FTP details screen.
-			$plugins = isset( $_REQUEST['checked'] ) ? (array) $_REQUEST['checked'] : array();
+			$plugins = isset( $_REQUEST['checked'] ) ? (array) wp_unslash( $_REQUEST['checked'] ) : array();
 			if ( empty( $plugins ) ) {
 				wp_redirect( self_admin_url("plugins.php?plugin_status=$status&paged=$page&s=$s") );
 				exit;
@@ -368,7 +386,7 @@ if ( $action ) {
 		default:
 			if ( isset( $_POST['checked'] ) ) {
 				check_admin_referer('bulk-plugins');
-				$plugins = isset( $_POST['checked'] ) ? (array) $_POST['checked'] : array();
+				$plugins = isset( $_POST['checked'] ) ? (array) wp_unslash( $_POST['checked'] ) : array();
 				$sendback = wp_get_referer();
 
 				/** This action is documented in wp-admin/edit-comments.php */

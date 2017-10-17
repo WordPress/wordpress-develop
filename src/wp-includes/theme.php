@@ -35,7 +35,7 @@ function wp_get_themes( $args = array() ) {
 
 	$theme_directories = search_theme_directories();
 
-	if ( count( $wp_theme_directories ) > 1 ) {
+	if ( is_array( $wp_theme_directories ) && count( $wp_theme_directories ) > 1 ) {
 		// Make sure the current theme wins out, in case search_theme_directories() picks the wrong
 		// one in the case of a conflict. (Normally, last registered theme root wins.)
 		$current_theme = get_stylesheet();
@@ -627,8 +627,9 @@ function get_theme_root_uri( $stylesheet_or_template = false, $theme_root = fals
 function get_raw_theme_root( $stylesheet_or_template, $skip_cache = false ) {
 	global $wp_theme_directories;
 
-	if ( count($wp_theme_directories) <= 1 )
+	if ( ! is_array( $wp_theme_directories ) || count( $wp_theme_directories ) <= 1 ) {
 		return '/themes';
+	}
 
 	$theme_root = false;
 
@@ -680,7 +681,10 @@ function switch_theme( $stylesheet ) {
 
 	$_sidebars_widgets = null;
 	if ( 'wp_ajax_customize_save' === current_action() ) {
-		$_sidebars_widgets = $wp_customize->post_value( $wp_customize->get_setting( 'old_sidebars_widgets_data' ) );
+		$old_sidebars_widgets_data_setting = $wp_customize->get_setting( 'old_sidebars_widgets_data' );
+		if ( $old_sidebars_widgets_data_setting ) {
+			$_sidebars_widgets = $wp_customize->post_value( $old_sidebars_widgets_data_setting );
+		}
 	} elseif ( is_array( $sidebars_widgets ) ) {
 		$_sidebars_widgets = $sidebars_widgets;
 	}
@@ -690,6 +694,7 @@ function switch_theme( $stylesheet ) {
 	}
 
 	$nav_menu_locations = get_theme_mod( 'nav_menu_locations' );
+	add_option( 'theme_switch_menu_locations', $nav_menu_locations );
 
 	if ( func_num_args() > 1 ) {
 		$stylesheet = func_get_arg( 1 );
@@ -729,13 +734,6 @@ function switch_theme( $stylesheet ) {
 		 */
 		if ( 'wp_ajax_customize_save' === current_action() ) {
 			remove_theme_mod( 'sidebars_widgets' );
-		}
-
-		if ( ! empty( $nav_menu_locations ) ) {
-			$nav_mods = get_theme_mod( 'nav_menu_locations' );
-			if ( empty( $nav_mods ) ) {
-				set_theme_mod( 'nav_menu_locations', $nav_menu_locations );
-			}
 		}
 	}
 
@@ -1216,6 +1214,7 @@ function get_uploaded_header_images() {
 		$header_images[$header_index]['url'] =  $url;
 		$header_images[$header_index]['thumbnail_url'] = $url;
 		$header_images[$header_index]['alt_text'] = get_post_meta( $header->ID, '_wp_attachment_image_alt', true );
+		$header_images[$header_index]['attachment_parent'] = (int) get_post_meta( $header->ID, '_wp_attachment_parent', true );
 
 		if ( isset( $header_data['width'] ) )
 			$header_images[$header_index]['width'] = $header_data['width'];
@@ -1540,7 +1539,6 @@ function background_color() {
  * Default custom background callback.
  *
  * @since 3.0.0
- * @access protected
  */
 function _custom_background_cb() {
 	// $background is the saved custom image, or the default image.
@@ -1620,7 +1618,6 @@ body.custom-background { <?php echo trim( $style ); ?> }
  * Render the Custom CSS style element.
  *
  * @since 4.7.0
- * @access public
  */
 function wp_custom_css_cb() {
 	$styles = wp_get_custom_css();
@@ -1635,7 +1632,6 @@ function wp_custom_css_cb() {
  * Fetch the `custom_css` post for a given theme.
  *
  * @since 4.7.0
- * @access public
  *
  * @param string $stylesheet Optional. A theme object stylesheet name. Defaults to the current theme.
  * @return WP_Post|null The custom_css post or null if none exists.
@@ -1687,7 +1683,6 @@ function wp_get_custom_css_post( $stylesheet = '' ) {
  * Fetch the saved Custom CSS content for rendering.
  *
  * @since 4.7.0
- * @access public
  *
  * @param string $stylesheet Optional. A theme object stylesheet name. Defaults to the current theme.
  * @return string The Custom CSS Post content.
@@ -1723,7 +1718,6 @@ function wp_get_custom_css( $stylesheet = '' ) {
  * Inserts a `custom_css` post when one doesn't yet exist.
  *
  * @since 4.7.0
- * @access public
  *
  * @param string $css CSS, stored in `post_content`.
  * @param array  $args {
@@ -1948,15 +1942,19 @@ function get_theme_starter_content() {
 			'text_business_info' => array( 'text', array(
 				'title' => _x( 'Find Us', 'Theme starter content' ),
 				'text' => join( '', array(
-					'<p><strong>' . _x( 'Address', 'Theme starter content' ) . '</strong><br />',
-					_x( '123 Main Street', 'Theme starter content' ) . '<br />' . _x( 'New York, NY 10001', 'Theme starter content' ) . '</p>',
-					'<p><strong>' . _x( 'Hours', 'Theme starter content' ) . '</strong><br />',
-					_x( 'Monday&mdash;Friday: 9:00AM&ndash;5:00PM', 'Theme starter content' ) . '<br />' . _x( 'Saturday &amp; Sunday: 11:00AM&ndash;3:00PM', 'Theme starter content' ) . '</p>'
+					'<strong>' . _x( 'Address', 'Theme starter content' ) . "</strong>\n",
+					_x( '123 Main Street', 'Theme starter content' ) . "\n" . _x( 'New York, NY 10001', 'Theme starter content' ) . "\n\n",
+					'<strong>' . _x( 'Hours', 'Theme starter content' ) . "</strong>\n",
+					_x( 'Monday&mdash;Friday: 9:00AM&ndash;5:00PM', 'Theme starter content' ) . "\n" . _x( 'Saturday &amp; Sunday: 11:00AM&ndash;3:00PM', 'Theme starter content' )
 				) ),
+				'filter' => true,
+				'visual' => true,
 			) ),
 			'text_about' => array( 'text', array(
 				'title' => _x( 'About This Site', 'Theme starter content' ),
 				'text' => _x( 'This may be a good place to introduce yourself and your site or include some credits.', 'Theme starter content' ),
+				'filter' => true,
+				'visual' => true,
 			) ),
 			'archives' => array( 'archives', array(
 				'title' => _x( 'Archives', 'Theme starter content' ),
@@ -2749,7 +2747,7 @@ function check_theme_switched() {
 			do_action( 'after_switch_theme', $old_theme->get( 'Name' ), $old_theme );
 		} else {
 			/** This action is documented in wp-includes/theme.php */
-			do_action( 'after_switch_theme', $stylesheet );
+			do_action( 'after_switch_theme', $stylesheet, $old_theme );
 		}
 		flush_rewrite_rules();
 
@@ -2790,15 +2788,17 @@ function _wp_customize_include() {
 	 * called before wp_magic_quotes() gets called. Besides this fact, none of
 	 * the values should contain any characters needing slashes anyway.
 	 */
-	$keys = array( 'changeset_uuid', 'customize_changeset_uuid', 'customize_theme', 'theme', 'customize_messenger_channel' );
+	$keys = array( 'changeset_uuid', 'customize_changeset_uuid', 'customize_theme', 'theme', 'customize_messenger_channel', 'customize_autosaved' );
 	$input_vars = array_merge(
 		wp_array_slice_assoc( $_GET, $keys ),
 		wp_array_slice_assoc( $_POST, $keys )
 	);
 
 	$theme = null;
-	$changeset_uuid = null;
+	$changeset_uuid = false; // Value false indicates UUID should be determined after_setup_theme to either re-use existing saved changeset or else generate a new UUID if none exists.
 	$messenger_channel = null;
+	$autosaved = null;
+	$branching = false; // Set initially fo false since defaults to true for back-compat; can be overridden via the customize_changeset_branching filter.
 
 	if ( $is_customize_admin_page && isset( $input_vars['changeset_uuid'] ) ) {
 		$changeset_uuid = sanitize_key( $input_vars['changeset_uuid'] );
@@ -2812,16 +2812,43 @@ function _wp_customize_include() {
 	} elseif ( isset( $input_vars['customize_theme'] ) ) {
 		$theme = $input_vars['customize_theme'];
 	}
+
+	if ( ! empty( $input_vars['customize_autosaved'] ) ) {
+		$autosaved = true;
+	}
+
 	if ( isset( $input_vars['customize_messenger_channel'] ) ) {
 		$messenger_channel = sanitize_key( $input_vars['customize_messenger_channel'] );
 	}
 
+	/*
+	 * Note that settings must be previewed even outside the customizer preview
+	 * and also in the customizer pane itself. This is to enable loading an existing
+	 * changeset into the customizer. Previewing the settings only has to be prevented
+	 * here in the case of a customize_save action because this will cause WP to think
+	 * there is nothing changed that needs to be saved.
+	 */
+	$is_customize_save_action = (
+		wp_doing_ajax()
+		&&
+		isset( $_REQUEST['action'] )
+		&&
+		'customize_save' === wp_unslash( $_REQUEST['action'] )
+	);
+	$settings_previewed = ! $is_customize_save_action;
+
 	require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
-	$GLOBALS['wp_customize'] = new WP_Customize_Manager( compact( 'changeset_uuid', 'theme', 'messenger_channel' ) );
+	$GLOBALS['wp_customize'] = new WP_Customize_Manager( compact( 'changeset_uuid', 'theme', 'messenger_channel', 'settings_previewed', 'autosaved', 'branching' ) );
 }
 
 /**
- * Publish a snapshot's changes.
+ * Publishes a snapshot's changes.
+ *
+ * @since 4.7.0
+ * @access private
+ *
+ * @global wpdb                 $wpdb         WordPress database abstraction object.
+ * @global WP_Customize_Manager $wp_customize Customizer instance.
  *
  * @param string  $new_status     New post status.
  * @param string  $old_status     Old post status.
@@ -2843,7 +2870,10 @@ function _wp_customize_publish_changeset( $new_status, $old_status, $changeset_p
 
 	if ( empty( $wp_customize ) ) {
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
-		$wp_customize = new WP_Customize_Manager( array( 'changeset_uuid' => $changeset_post->post_name ) );
+		$wp_customize = new WP_Customize_Manager( array(
+			'changeset_uuid' => $changeset_post->post_name,
+			'settings_previewed' => false,
+		) );
 	}
 
 	if ( ! did_action( 'customize_register' ) ) {
@@ -2879,47 +2909,7 @@ function _wp_customize_publish_changeset( $new_status, $old_status, $changeset_p
 	 * and thus garbage collected.
 	 */
 	if ( ! wp_revisions_enabled( $changeset_post ) ) {
-		$post = $changeset_post;
-		$post_id = $changeset_post->ID;
-
-		/*
-		 * The following re-formulates the logic from wp_trash_post() as done in
-		 * wp_publish_post(). The reason for bypassing wp_trash_post() is that it
-		 * will mutate the the post_content and the post_name when they should be
-		 * untouched.
-		 */
-		if ( ! EMPTY_TRASH_DAYS ) {
-			wp_delete_post( $post_id, true );
-		} else {
-			/** This action is documented in wp-includes/post.php */
-			do_action( 'wp_trash_post', $post_id );
-
-			add_post_meta( $post_id, '_wp_trash_meta_status', $post->post_status );
-			add_post_meta( $post_id, '_wp_trash_meta_time', time() );
-
-			$old_status = $post->post_status;
-			$new_status = 'trash';
-			$wpdb->update( $wpdb->posts, array( 'post_status' => $new_status ), array( 'ID' => $post->ID ) );
-			clean_post_cache( $post->ID );
-
-			$post->post_status = $new_status;
-			wp_transition_post_status( $new_status, $old_status, $post );
-
-			/** This action is documented in wp-includes/post.php */
-			do_action( 'edit_post', $post->ID, $post );
-
-			/** This action is documented in wp-includes/post.php */
-			do_action( "save_post_{$post->post_type}", $post->ID, $post, true );
-
-			/** This action is documented in wp-includes/post.php */
-			do_action( 'save_post', $post->ID, $post, true );
-
-			/** This action is documented in wp-includes/post.php */
-			do_action( 'wp_insert_post', $post->ID, $post, true );
-
-			/** This action is documented in wp-includes/post.php */
-			do_action( 'trashed_post', $post_id );
-		}
+		$wp_customize->trash_changeset_post( $changeset_post->ID );
 	}
 }
 
@@ -3115,7 +3105,7 @@ function _wp_keep_alive_customize_changeset_dependent_auto_drafts( $new_status, 
 		}
 		$wpdb->update(
 			$wpdb->posts,
-			array( 'post_date' => $new_post_date ), // Note wp_delete_auto_drafts() only looks at this this date.
+			array( 'post_date' => $new_post_date ), // Note wp_delete_auto_drafts() only looks at this date.
 			array( 'ID' => $post_id )
 		);
 		clean_post_cache( $post_id );

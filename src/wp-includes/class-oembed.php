@@ -22,7 +22,6 @@ class WP_oEmbed {
 	 * A list of oEmbed providers.
 	 *
 	 * @since 2.9.0
-	 * @access public
 	 * @var array
 	 */
 	public $providers = array();
@@ -31,7 +30,6 @@ class WP_oEmbed {
 	 * A list of an early oEmbed providers.
 	 *
 	 * @since 4.0.0
-	 * @access public
 	 * @static
 	 * @var array
 	 */
@@ -41,7 +39,6 @@ class WP_oEmbed {
 	 * A list of private/protected methods, used for backward compatibility.
 	 *
 	 * @since 4.2.0
-	 * @access private
 	 * @var array
 	 */
 	private $compat_methods = array( '_fetch_with_format', '_parse_json', '_parse_xml', '_parse_xml_body' );
@@ -50,65 +47,76 @@ class WP_oEmbed {
 	 * Constructor.
 	 *
 	 * @since 2.9.0
-	 * @access public
 	 */
 	public function __construct() {
 		$host = urlencode( home_url() );
 		$providers = array(
-			'#https?://((m|www)\.)?youtube\.com/watch.*#i'             => array( 'https://www.youtube.com/oembed',                            true  ),
-			'#https?://((m|www)\.)?youtube\.com/playlist.*#i'          => array( 'https://www.youtube.com/oembed',                            true  ),
-			'#https?://youtu\.be/.*#i'                                 => array( 'https://www.youtube.com/oembed',                            true  ),
-			'#https?://(.+\.)?vimeo\.com/.*#i'                         => array( 'https://vimeo.com/api/oembed.{format}',                     true  ),
-			'#https?://(www\.)?dailymotion\.com/.*#i'                  => array( 'https://www.dailymotion.com/services/oembed',               true  ),
-			'#https?://dai\.ly/.*#i'                                   => array( 'https://www.dailymotion.com/services/oembed',               true  ),
-			'#https?://(www\.)?flickr\.com/.*#i'                       => array( 'https://www.flickr.com/services/oembed/',                   true  ),
-			'#https?://flic\.kr/.*#i'                                  => array( 'https://www.flickr.com/services/oembed/',                   true  ),
-			'#https?://(.+\.)?smugmug\.com/.*#i'                       => array( 'https://api.smugmug.com/services/oembed/',                  true  ),
-			'#https?://(www\.)?hulu\.com/watch/.*#i'                   => array( 'http://www.hulu.com/api/oembed.{format}',                   true  ),
-			'http://i*.photobucket.com/albums/*'                       => array( 'http://api.photobucket.com/oembed',                         false ),
-			'http://gi*.photobucket.com/groups/*'                      => array( 'http://api.photobucket.com/oembed',                         false ),
-			'#https?://(www\.)?scribd\.com/doc/.*#i'                   => array( 'https://www.scribd.com/services/oembed',                    true  ),
-			'#https?://wordpress\.tv/.*#i'                             => array( 'https://wordpress.tv/oembed/',                              true  ),
-			'#https?://(.+\.)?polldaddy\.com/.*#i'                     => array( 'https://polldaddy.com/oembed/',                             true  ),
-			'#https?://poll\.fm/.*#i'                                  => array( 'https://polldaddy.com/oembed/',                             true  ),
-			'#https?://(www\.)?funnyordie\.com/videos/.*#i'            => array( 'http://www.funnyordie.com/oembed',                          true  ),
-			'#https?://(www\.)?twitter\.com/\w{1,15}/status(es)?/.*#i' => array( 'https://publish.twitter.com/oembed',                        true  ),
-			'#https?://(www\.)?twitter\.com/\w{1,15}$#i'               => array( 'https://publish.twitter.com/oembed',                        true  ),
-			'#https?://(www\.)?twitter\.com/\w{1,15}/likes$#i'         => array( 'https://publish.twitter.com/oembed',                        true  ),
-			'#https?://(www\.)?twitter\.com/\w{1,15}/lists/.*#i'       => array( 'https://publish.twitter.com/oembed',                        true  ),
-			'#https?://(www\.)?twitter\.com/\w{1,15}/timelines/.*#i'   => array( 'https://publish.twitter.com/oembed',                        true  ),
-			'#https?://(www\.)?twitter\.com/i/moments/.*#i'            => array( 'https://publish.twitter.com/oembed',                        true  ),
-			'#https?://vine\.co/v/.*#i'                                => array( 'https://vine.co/oembed.{format}',                           true  ),
-			'#https?://(www\.)?soundcloud\.com/.*#i'                   => array( 'https://soundcloud.com/oembed',                             true  ),
-			'#https?://(.+?\.)?slideshare\.net/.*#i'                   => array( 'https://www.slideshare.net/api/oembed/2',                   true  ),
-			'#https?://(www\.)?instagr(\.am|am\.com)/p/.*#i'           => array( 'https://api.instagram.com/oembed',                          true  ),
-			'#https?://(open|play)\.spotify\.com/.*#i'                 => array( 'https://embed.spotify.com/oembed/',                         true  ),
-			'#https?://(.+\.)?imgur\.com/.*#i'                         => array( 'http://api.imgur.com/oembed',                               true  ),
-			'#https?://(www\.)?meetu(\.ps|p\.com)/.*#i'                => array( 'https://api.meetup.com/oembed',                             true  ),
-			'#https?://(www\.)?issuu\.com/.+/docs/.+#i'                => array( 'https://issuu.com/oembed_wp',                               true  ),
-			'#https?://(www\.)?collegehumor\.com/video/.*#i'           => array( 'http://www.collegehumor.com/oembed.{format}',               true  ),
-			'#https?://(www\.)?mixcloud\.com/.*#i'                     => array( 'https://www.mixcloud.com/oembed',                           true  ),
-			'#https?://(www\.|embed\.)?ted\.com/talks/.*#i'            => array( 'https://www.ted.com/services/v1/oembed.{format}',           true  ),
-			'#https?://(www\.)?(animoto|video214)\.com/play/.*#i'      => array( 'https://animoto.com/oembeds/create',                        true  ),
-			'#https?://(.+)\.tumblr\.com/post/.*#i'                    => array( 'https://www.tumblr.com/oembed/1.0',                         true  ),
-			'#https?://(www\.)?kickstarter\.com/projects/.*#i'         => array( 'https://www.kickstarter.com/services/oembed',               true  ),
-			'#https?://kck\.st/.*#i'                                   => array( 'https://www.kickstarter.com/services/oembed',               true  ),
-			'#https?://cloudup\.com/.*#i'                              => array( 'https://cloudup.com/oembed',                                true  ),
-			'#https?://(www\.)?reverbnation\.com/.*#i'                 => array( 'https://www.reverbnation.com/oembed',                       true  ),
-			'#https?://videopress\.com/v/.*#'                          => array( 'https://public-api.wordpress.com/oembed/?for=' . $host,     true  ),
-			'#https?://(www\.)?reddit\.com/r/[^/]+/comments/.*#i'      => array( 'https://www.reddit.com/oembed',                             true  ),
-			'#https?://(www\.)?speakerdeck\.com/.*#i'                  => array( 'https://speakerdeck.com/oembed.{format}',                   true  ),
-			'#https?://www\.facebook\.com/.*/posts/.*#i'               => array( 'https://www.facebook.com/plugins/post/oembed.json/',        true  ),
-			'#https?://www\.facebook\.com/.*/activity/.*#i'            => array( 'https://www.facebook.com/plugins/post/oembed.json/',        true  ),
-			'#https?://www\.facebook\.com/.*/photos/.*#i'              => array( 'https://www.facebook.com/plugins/post/oembed.json/',        true  ),
-			'#https?://www\.facebook\.com/photo(s/|\.php).*#i'         => array( 'https://www.facebook.com/plugins/post/oembed.json/',        true  ),
-			'#https?://www\.facebook\.com/permalink\.php.*#i'          => array( 'https://www.facebook.com/plugins/post/oembed.json/',        true  ),
-			'#https?://www\.facebook\.com/media/.*#i'                  => array( 'https://www.facebook.com/plugins/post/oembed.json/',        true  ),
-			'#https?://www\.facebook\.com/questions/.*#i'              => array( 'https://www.facebook.com/plugins/post/oembed.json/',        true  ),
-			'#https?://www\.facebook\.com/notes/.*#i'                  => array( 'https://www.facebook.com/plugins/post/oembed.json/',        true  ),
-			'#https?://www\.facebook\.com/.*/videos/.*#i'              => array( 'https://www.facebook.com/plugins/video/oembed.json/',       true  ),
-			'#https?://www\.facebook\.com/video\.php.*#i'              => array( 'https://www.facebook.com/plugins/video/oembed.json/',       true  ),
-			'#https?://(www\.)?screencast\.com/.*#i'                   => array( 'https://api.screencast.com/external/oembed',                true  ),
+			'#https?://((m|www)\.)?youtube\.com/watch.*#i'                        => array( 'https://www.youtube.com/oembed',                        true  ),
+			'#https?://((m|www)\.)?youtube\.com/playlist.*#i'                     => array( 'https://www.youtube.com/oembed',                        true  ),
+			'#https?://youtu\.be/.*#i'                                            => array( 'https://www.youtube.com/oembed',                        true  ),
+			'#https?://(.+\.)?vimeo\.com/.*#i'                                    => array( 'https://vimeo.com/api/oembed.{format}',                 true  ),
+			'#https?://(www\.)?dailymotion\.com/.*#i'                             => array( 'https://www.dailymotion.com/services/oembed',           true  ),
+			'#https?://dai\.ly/.*#i'                                              => array( 'https://www.dailymotion.com/services/oembed',           true  ),
+			'#https?://(www\.)?flickr\.com/.*#i'                                  => array( 'https://www.flickr.com/services/oembed/',               true  ),
+			'#https?://flic\.kr/.*#i'                                             => array( 'https://www.flickr.com/services/oembed/',               true  ),
+			'#https?://(.+\.)?smugmug\.com/.*#i'                                  => array( 'https://api.smugmug.com/services/oembed/',              true  ),
+			'#https?://(www\.)?hulu\.com/watch/.*#i'                              => array( 'http://www.hulu.com/api/oembed.{format}',               true  ),
+			'http://i*.photobucket.com/albums/*'                                  => array( 'http://api.photobucket.com/oembed',                     false ),
+			'http://gi*.photobucket.com/groups/*'                                 => array( 'http://api.photobucket.com/oembed',                     false ),
+			'#https?://(www\.)?scribd\.com/doc/.*#i'                              => array( 'https://www.scribd.com/services/oembed',                true  ),
+			'#https?://wordpress\.tv/.*#i'                                        => array( 'https://wordpress.tv/oembed/',                          true  ),
+			'#https?://(.+\.)?polldaddy\.com/.*#i'                                => array( 'https://polldaddy.com/oembed/',                         true  ),
+			'#https?://poll\.fm/.*#i'                                             => array( 'https://polldaddy.com/oembed/',                         true  ),
+			'#https?://(www\.)?funnyordie\.com/videos/.*#i'                       => array( 'http://www.funnyordie.com/oembed',                      true  ),
+			'#https?://(www\.)?twitter\.com/\w{1,15}/status(es)?/.*#i'            => array( 'https://publish.twitter.com/oembed',                    true  ),
+			'#https?://(www\.)?twitter\.com/\w{1,15}$#i'                          => array( 'https://publish.twitter.com/oembed',                    true  ),
+			'#https?://(www\.)?twitter\.com/\w{1,15}/likes$#i'                    => array( 'https://publish.twitter.com/oembed',                    true  ),
+			'#https?://(www\.)?twitter\.com/\w{1,15}/lists/.*#i'                  => array( 'https://publish.twitter.com/oembed',                    true  ),
+			'#https?://(www\.)?twitter\.com/\w{1,15}/timelines/.*#i'              => array( 'https://publish.twitter.com/oembed',                    true  ),
+			'#https?://(www\.)?twitter\.com/i/moments/.*#i'                       => array( 'https://publish.twitter.com/oembed',                    true  ),
+			'#https?://(www\.)?soundcloud\.com/.*#i'                              => array( 'https://soundcloud.com/oembed',                         true  ),
+			'#https?://(.+?\.)?slideshare\.net/.*#i'                              => array( 'https://www.slideshare.net/api/oembed/2',               true  ),
+			'#https?://(www\.)?instagr(\.am|am\.com)/p/.*#i'                      => array( 'https://api.instagram.com/oembed',                      true  ),
+			'#https?://(open|play)\.spotify\.com/.*#i'                            => array( 'https://embed.spotify.com/oembed/',                     true  ),
+			'#https?://(.+\.)?imgur\.com/.*#i'                                    => array( 'https://api.imgur.com/oembed',                          true  ),
+			'#https?://(www\.)?meetu(\.ps|p\.com)/.*#i'                           => array( 'https://api.meetup.com/oembed',                         true  ),
+			'#https?://(www\.)?issuu\.com/.+/docs/.+#i'                           => array( 'https://issuu.com/oembed_wp',                           true  ),
+			'#https?://(www\.)?collegehumor\.com/video/.*#i'                      => array( 'https://www.collegehumor.com/oembed.{format}',          true  ),
+			'#https?://(www\.)?mixcloud\.com/.*#i'                                => array( 'https://www.mixcloud.com/oembed',                       true  ),
+			'#https?://(www\.|embed\.)?ted\.com/talks/.*#i'                       => array( 'https://www.ted.com/services/v1/oembed.{format}',       true  ),
+			'#https?://(www\.)?(animoto|video214)\.com/play/.*#i'                 => array( 'https://animoto.com/oembeds/create',                    true  ),
+			'#https?://(.+)\.tumblr\.com/post/.*#i'                               => array( 'https://www.tumblr.com/oembed/1.0',                     true  ),
+			'#https?://(www\.)?kickstarter\.com/projects/.*#i'                    => array( 'https://www.kickstarter.com/services/oembed',           true  ),
+			'#https?://kck\.st/.*#i'                                              => array( 'https://www.kickstarter.com/services/oembed',           true  ),
+			'#https?://cloudup\.com/.*#i'                                         => array( 'https://cloudup.com/oembed',                            true  ),
+			'#https?://(www\.)?reverbnation\.com/.*#i'                            => array( 'https://www.reverbnation.com/oembed',                   true  ),
+			'#https?://videopress\.com/v/.*#'                                     => array( 'https://public-api.wordpress.com/oembed/?for=' . $host, true  ),
+			'#https?://(www\.)?reddit\.com/r/[^/]+/comments/.*#i'                 => array( 'https://www.reddit.com/oembed',                         true  ),
+			'#https?://(www\.)?speakerdeck\.com/.*#i'                             => array( 'https://speakerdeck.com/oembed.{format}',               true  ),
+			'#https?://www\.facebook\.com/.*/posts/.*#i'                          => array( 'https://www.facebook.com/plugins/post/oembed.json/',    true  ),
+			'#https?://www\.facebook\.com/.*/activity/.*#i'                       => array( 'https://www.facebook.com/plugins/post/oembed.json/',    true  ),
+			'#https?://www\.facebook\.com/.*/photos/.*#i'                         => array( 'https://www.facebook.com/plugins/post/oembed.json/',    true  ),
+			'#https?://www\.facebook\.com/photo(s/|\.php).*#i'                    => array( 'https://www.facebook.com/plugins/post/oembed.json/',    true  ),
+			'#https?://www\.facebook\.com/permalink\.php.*#i'                     => array( 'https://www.facebook.com/plugins/post/oembed.json/',    true  ),
+			'#https?://www\.facebook\.com/media/.*#i'                             => array( 'https://www.facebook.com/plugins/post/oembed.json/',    true  ),
+			'#https?://www\.facebook\.com/questions/.*#i'                         => array( 'https://www.facebook.com/plugins/post/oembed.json/',    true  ),
+			'#https?://www\.facebook\.com/notes/.*#i'                             => array( 'https://www.facebook.com/plugins/post/oembed.json/',    true  ),
+			'#https?://www\.facebook\.com/.*/videos/.*#i'                         => array( 'https://www.facebook.com/plugins/video/oembed.json/',   true  ),
+			'#https?://www\.facebook\.com/video\.php.*#i'                         => array( 'https://www.facebook.com/plugins/video/oembed.json/',   true  ),
+			'#https?://(www\.)?screencast\.com/.*#i'                              => array( 'https://api.screencast.com/external/oembed',            true  ),
+			'#https?://([a-z0-9-]+\.)?amazon\.(com|com\.mx|com\.br|ca)/.*#i'      => array( 'https://read.amazon.com/kp/api/oembed',                 true  ),
+			'#https?://([a-z0-9-]+\.)?amazon\.(co\.uk|de|fr|it|es|in|nl|ru)/.*#i' => array( 'https://read.amazon.co.uk/kp/api/oembed',               true  ),
+			'#https?://([a-z0-9-]+\.)?amazon\.(co\.jp|com\.au)/.*#i'              => array( 'https://read.amazon.com.au/kp/api/oembed',              true  ),
+			'#https?://([a-z0-9-]+\.)?amazon\.cn/.*#i'                            => array( 'https://read.amazon.cn/kp/api/oembed',                  true  ),
+			'#https?://(www\.)?a\.co/.*#i'                                        => array( 'https://read.amazon.com/kp/api/oembed',                 true  ),
+			'#https?://(www\.)?amzn\.to/.*#i'                                     => array( 'https://read.amazon.com/kp/api/oembed',                 true  ),
+			'#https?://(www\.)?amzn\.eu/.*#i'                                     => array( 'https://read.amazon.co.uk/kp/api/oembed',               true  ),
+			'#https?://(www\.)?amzn\.in/.*#i'                                     => array( 'https://read.amazon.in/kp/api/oembed',                  true  ),
+			'#https?://(www\.)?amzn\.asia/.*#i'                                   => array( 'https://read.amazon.com.au/kp/api/oembed',              true  ),
+			'#https?://(www\.)?z\.cn/.*#i'                                        => array( 'https://read.amazon.cn/kp/api/oembed',                  true  ),
+			'#https?://www\.someecards\.com/.+-cards/.+#i'                        => array( 'https://www.someecards.com/v2/oembed/',                 true  ),
+			'#https?://www\.someecards\.com/usercards/viewcard/.+#i'              => array( 'https://www.someecards.com/v2/oembed/',                 true  ),
+			'#https?://some\.ly\/.+#i'                                            => array( 'https://www.someecards.com/v2/oembed/',                 true  ),
 		);
 
 		if ( ! empty( self::$early_providers['add'] ) ) {
@@ -134,55 +142,63 @@ class WP_oEmbed {
 		 *
 		 * Supported providers:
 		 *
-		 * |   Provider   |        Flavor         | Supports HTTPS |   Since   |
-		 * | ------------ | --------------------- | :------------: | --------- |
-		 * | Dailymotion  | dailymotion.com       |      Yes       | 2.9.0     |
-		 * | Flickr       | flickr.com            |      Yes       | 2.9.0     |
-		 * | Hulu         | hulu.com              |      Yes       | 2.9.0     |
-		 * | Photobucket  | photobucket.com       |      No        | 2.9.0     |
-		 * | Scribd       | scribd.com            |      Yes       | 2.9.0     |
-		 * | Vimeo        | vimeo.com             |      Yes       | 2.9.0     |
-		 * | WordPress.tv | wordpress.tv          |      Yes       | 2.9.0     |
-		 * | YouTube      | youtube.com/watch     |      Yes       | 2.9.0     |
-		 * | Funny or Die | funnyordie.com        |      Yes       | 3.0.0     |
-		 * | Polldaddy    | polldaddy.com         |      Yes       | 3.0.0     |
-		 * | SmugMug      | smugmug.com           |      Yes       | 3.0.0     |
-		 * | YouTube      | youtu.be              |      Yes       | 3.0.0     |
-		 * | Twitter      | twitter.com           |      Yes       | 3.4.0     |
-		 * | Instagram    | instagram.com         |      Yes       | 3.5.0     |
-		 * | Instagram    | instagr.am            |      Yes       | 3.5.0     |
-		 * | Slideshare   | slideshare.net        |      Yes       | 3.5.0     |
-		 * | SoundCloud   | soundcloud.com        |      Yes       | 3.5.0     |
-		 * | Dailymotion  | dai.ly                |      Yes       | 3.6.0     |
-		 * | Flickr       | flic.kr               |      Yes       | 3.6.0     |
-		 * | Spotify      | spotify.com           |      Yes       | 3.6.0     |
-		 * | Imgur        | imgur.com             |      Yes       | 3.9.0     |
-		 * | Meetup.com   | meetup.com            |      Yes       | 3.9.0     |
-		 * | Meetup.com   | meetu.ps              |      Yes       | 3.9.0     |
-		 * | Animoto      | animoto.com           |      Yes       | 4.0.0     |
-		 * | Animoto      | video214.com          |      Yes       | 4.0.0     |
-		 * | CollegeHumor | collegehumor.com      |      Yes       | 4.0.0     |
-		 * | Issuu        | issuu.com             |      Yes       | 4.0.0     |
-		 * | Mixcloud     | mixcloud.com          |      Yes       | 4.0.0     |
-		 * | Polldaddy    | poll.fm               |      Yes       | 4.0.0     |
-		 * | TED          | ted.com               |      Yes       | 4.0.0     |
-		 * | YouTube      | youtube.com/playlist  |      Yes       | 4.0.0     |
-		 * | Vine         | vine.co               |      Yes       | 4.1.0     |
-		 * | Tumblr       | tumblr.com            |      Yes       | 4.2.0     |
-		 * | Kickstarter  | kickstarter.com       |      Yes       | 4.2.0     |
-		 * | Kickstarter  | kck.st                |      Yes       | 4.2.0     |
-		 * | Cloudup      | cloudup.com           |      Yes       | 4.3.0     |
-		 * | ReverbNation | reverbnation.com      |      Yes       | 4.4.0     |
-		 * | VideoPress   | videopress.com        |      Yes       | 4.4.0     |
-		 * | Reddit       | reddit.com            |      Yes       | 4.4.0     |
-		 * | Speaker Deck | speakerdeck.com       |      Yes       | 4.4.0     |
-		 * | Twitter      | twitter.com/timelines |      Yes       | 4.5.0     |
-		 * | Twitter      | twitter.com/moments   |      Yes       | 4.5.0     |
-		 * | Facebook     | facebook.com          |      Yes       | 4.7.0     |
-		 * | Twitter      | twitter.com/user      |      Yes       | 4.7.0     |
-		 * | Twitter      | twitter.com/likes     |      Yes       | 4.7.0     |
-		 * | Twitter      | twitter.com/lists     |      Yes       | 4.7.0     |
-		 * | Screencast   | screencast.com        |      Yes       | 4.8.0     |
+		 * |   Provider   |              Flavor               | Supports HTTPS |  Since  |
+		 * | ------------ | --------------------------------- | :------------: | ------- |
+		 * | Dailymotion  | dailymotion.com                   |      Yes       | 2.9.0   |
+		 * | Flickr       | flickr.com                        |      Yes       | 2.9.0   |
+		 * | Hulu         | hulu.com                          |      Yes       | 2.9.0   |
+		 * | Photobucket  | photobucket.com                   |      No        | 2.9.0   |
+		 * | Scribd       | scribd.com                        |      Yes       | 2.9.0   |
+		 * | Vimeo        | vimeo.com                         |      Yes       | 2.9.0   |
+		 * | WordPress.tv | wordpress.tv                      |      Yes       | 2.9.0   |
+		 * | YouTube      | youtube.com/watch                 |      Yes       | 2.9.0   |
+		 * | Funny or Die | funnyordie.com                    |      Yes       | 3.0.0   |
+		 * | Polldaddy    | polldaddy.com                     |      Yes       | 3.0.0   |
+		 * | SmugMug      | smugmug.com                       |      Yes       | 3.0.0   |
+		 * | YouTube      | youtu.be                          |      Yes       | 3.0.0   |
+		 * | Twitter      | twitter.com                       |      Yes       | 3.4.0   |
+		 * | Instagram    | instagram.com                     |      Yes       | 3.5.0   |
+		 * | Instagram    | instagr.am                        |      Yes       | 3.5.0   |
+		 * | Slideshare   | slideshare.net                    |      Yes       | 3.5.0   |
+		 * | SoundCloud   | soundcloud.com                    |      Yes       | 3.5.0   |
+		 * | Dailymotion  | dai.ly                            |      Yes       | 3.6.0   |
+		 * | Flickr       | flic.kr                           |      Yes       | 3.6.0   |
+		 * | Spotify      | spotify.com                       |      Yes       | 3.6.0   |
+		 * | Imgur        | imgur.com                         |      Yes       | 3.9.0   |
+		 * | Meetup.com   | meetup.com                        |      Yes       | 3.9.0   |
+		 * | Meetup.com   | meetu.ps                          |      Yes       | 3.9.0   |
+		 * | Animoto      | animoto.com                       |      Yes       | 4.0.0   |
+		 * | Animoto      | video214.com                      |      Yes       | 4.0.0   |
+		 * | CollegeHumor | collegehumor.com                  |      Yes       | 4.0.0   |
+		 * | Issuu        | issuu.com                         |      Yes       | 4.0.0   |
+		 * | Mixcloud     | mixcloud.com                      |      Yes       | 4.0.0   |
+		 * | Polldaddy    | poll.fm                           |      Yes       | 4.0.0   |
+		 * | TED          | ted.com                           |      Yes       | 4.0.0   |
+		 * | YouTube      | youtube.com/playlist              |      Yes       | 4.0.0   |
+		 * | Tumblr       | tumblr.com                        |      Yes       | 4.2.0   |
+		 * | Kickstarter  | kickstarter.com                   |      Yes       | 4.2.0   |
+		 * | Kickstarter  | kck.st                            |      Yes       | 4.2.0   |
+		 * | Cloudup      | cloudup.com                       |      Yes       | 4.3.0   |
+		 * | ReverbNation | reverbnation.com                  |      Yes       | 4.4.0   |
+		 * | VideoPress   | videopress.com                    |      Yes       | 4.4.0   |
+		 * | Reddit       | reddit.com                        |      Yes       | 4.4.0   |
+		 * | Speaker Deck | speakerdeck.com                   |      Yes       | 4.4.0   |
+		 * | Twitter      | twitter.com/timelines             |      Yes       | 4.5.0   |
+		 * | Twitter      | twitter.com/moments               |      Yes       | 4.5.0   |
+		 * | Facebook     | facebook.com                      |      Yes       | 4.7.0   |
+		 * | Twitter      | twitter.com/user                  |      Yes       | 4.7.0   |
+		 * | Twitter      | twitter.com/likes                 |      Yes       | 4.7.0   |
+		 * | Twitter      | twitter.com/lists                 |      Yes       | 4.7.0   |
+		 * | Screencast   | screencast.com                    |      Yes       | 4.8.0   |
+		 * | Amazon       | amazon.com|com.mx|com.br|ca       |      Yes       | 4.9.0   |
+		 * | Amazon       | amazon.de|fr|it|es|in|nl|ru|co.uk |      Yes       | 4.9.0   |
+		 * | Amazon       | amazon.co.jp|com.au               |      Yes       | 4.9.0   |
+		 * | Amazon       | amazon.cn                         |      Yes       | 4.9.0   |
+		 * | Amazon       | a.co                              |      Yes       | 4.9.0   |
+		 * | Amazon       | amzn.to|eu|in|asia                |      Yes       | 4.9.0   |
+		 * | Amazon       | z.cn                              |      Yes       | 4.9.0   |
+		 * | Someecards   | someecards.com                    |      Yes       | 4.9.0   |
+		 * | Someecards   | some.ly                           |      Yes       | 4.9.0   |
 		 *
 		 * No longer supported providers:
 		 *
@@ -194,6 +210,7 @@ class WP_oEmbed {
 		 * | Blip         | blip.tv              |      No        | 2.9.0     | 4.4.0     |
 		 * | Rdio         | rdio.com             |      Yes       | 3.6.0     | 4.4.1     |
 		 * | Rdio         | rd.io                |      Yes       | 3.6.0     | 4.4.1     |
+		 * | Vine         | vine.co              |      Yes       | 4.1.0     | 4.9.0     |
 		 *
 		 * @see wp_oembed_add_provider()
 		 *
@@ -211,7 +228,6 @@ class WP_oEmbed {
 	 * Exposes private/protected methods for backward compatibility.
 	 *
 	 * @since 4.0.0
-	 * @access public
 	 *
 	 * @param callable $name      Method to call.
 	 * @param array    $arguments Arguments to pass when calling.
@@ -228,7 +244,6 @@ class WP_oEmbed {
 	 * Takes a URL and returns the corresponding oEmbed provider's URL, if there is one.
 	 *
 	 * @since 4.0.0
-	 * @access public
 	 *
 	 * @see WP_oEmbed::discover()
 	 *
@@ -275,7 +290,6 @@ class WP_oEmbed {
 	 *
 	 * @static
 	 * @since 4.0.0
-	 * @access public
 	 *
 	 * @see wp_oembed_add_provider()
 	 *
@@ -302,7 +316,6 @@ class WP_oEmbed {
 	 * The just-in-time removal is for the benefit of the {@see 'oembed_providers'} filter.
 	 *
 	 * @since 4.0.0
-	 * @access public
 	 * @static
 	 *
 	 * @see wp_oembed_remove_provider()
@@ -324,7 +337,6 @@ class WP_oEmbed {
 	 * @see WP_oEmbed::fetch()
 	 *
 	 * @since 4.8.0
-	 * @access public
 	 *
 	 * @param string       $url  The URL to the content that should be attempted to be embedded.
 	 * @param array|string $args Optional. Arguments, usually passed from a shortcode. Default empty.
@@ -355,7 +367,6 @@ class WP_oEmbed {
 	 * @see WP_oEmbed::data2html()
 	 *
 	 * @since 2.9.0
-	 * @access public
 	 *
 	 * @param string       $url  The URL to the content that should be attempted to be embedded.
 	 * @param array|string $args Optional. Arguments, usually passed from a shortcode. Default empty.
@@ -405,7 +416,6 @@ class WP_oEmbed {
 	 * Attempts to discover link tags at the given URL for an oEmbed provider.
 	 *
 	 * @since 2.9.0
-	 * @access public
 	 *
 	 * @param string $url The URL that should be inspected for discovery `<link>` tags.
 	 * @return false|string False on failure, otherwise the oEmbed provider URL.
@@ -489,7 +499,6 @@ class WP_oEmbed {
 	 * Connects to a oEmbed provider and returns the result.
 	 *
 	 * @since 2.9.0
-	 * @access public
 	 *
 	 * @param string       $provider The URL to the oEmbed provider.
 	 * @param string       $url      The URL to the content that is desired to be embedded.
@@ -502,11 +511,13 @@ class WP_oEmbed {
 		$provider = add_query_arg( 'maxwidth', (int) $args['width'], $provider );
 		$provider = add_query_arg( 'maxheight', (int) $args['height'], $provider );
 		$provider = add_query_arg( 'url', urlencode($url), $provider );
+		$provider = add_query_arg( 'dnt', 1, $provider );
 
 		/**
 		 * Filters the oEmbed URL to be fetched.
 		 *
 		 * @since 2.9.0
+		 * @since 4.9.0 The `dnt` (Do Not Track) query parameter was added to all oEmbed provider URLs.
 		 *
 		 * @param string $provider URL of the oEmbed provider.
 		 * @param string $url      URL of the content to be embedded.
@@ -527,7 +538,6 @@ class WP_oEmbed {
 	 * Fetches result from an oEmbed provider for a specific format and complete provider URL
 	 *
 	 * @since 3.0.0
-	 * @access private
 	 *
 	 * @param string $provider_url_with_args URL to the provider with full arguments list (url, maxheight, etc.)
 	 * @param string $format Format to use
@@ -552,7 +562,6 @@ class WP_oEmbed {
 	 * Parses a json response body.
 	 *
 	 * @since 3.0.0
-	 * @access private
 	 *
 	 * @param string $response_body
 	 * @return object|false
@@ -566,7 +575,6 @@ class WP_oEmbed {
 	 * Parses an XML response body.
 	 *
 	 * @since 3.0.0
-	 * @access private
 	 *
 	 * @param string $response_body
 	 * @return object|false
@@ -590,7 +598,6 @@ class WP_oEmbed {
 	 * Serves as a helper function for parsing an XML response body.
 	 *
 	 * @since 3.6.0
-	 * @access private
 	 *
 	 * @param string $response_body
 	 * @return stdClass|false
@@ -628,7 +635,6 @@ class WP_oEmbed {
 	 * Converts a data object from WP_oEmbed::fetch() and returns the HTML.
 	 *
 	 * @since 2.9.0
-	 * @access public
 	 *
 	 * @param object $data A data object result from an oEmbed provider.
 	 * @param string $url The URL to the content that is desired to be embedded.
@@ -685,7 +691,6 @@ class WP_oEmbed {
 	 *
 	 * @since 2.9.0 as strip_scribd_newlines()
 	 * @since 3.0.0
-	 * @access public
 	 *
 	 * @param string $html Existing HTML.
 	 * @param object $data Data object from WP_oEmbed::data2html()

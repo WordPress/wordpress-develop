@@ -58,6 +58,7 @@ wp_localize_script( 'theme', '_wpThemeSettings', array(
 			__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
 			__( 'https://wordpress.org/support/' )
 		),
+		'tryAgain'            => __( 'Try Again' ),
 		'themesFound'         => __( 'Number of Themes found: %d' ),
 		'noThemesFound'       => __( 'No themes found. Try a different search.' ),
 		'collapseSidebar'     => __( 'Collapse Sidebar' ),
@@ -76,7 +77,7 @@ if ( $tab ) {
 	 * Fires before each of the tabs are rendered on the Install Themes page.
 	 *
 	 * The dynamic portion of the hook name, `$tab`, refers to the current
-	 * theme install tab. Possible values are 'dashboard', 'search', 'upload',
+	 * theme installation tab. Possible values are 'dashboard', 'search', 'upload',
 	 * 'featured', 'new', or 'updated'.
 	 *
 	 * @since 2.8.0
@@ -236,7 +237,7 @@ if ( $tab ) {
 	 * Fires at the top of each of the tabs on the Install Themes page.
 	 *
 	 * The dynamic portion of the hook name, `$tab`, refers to the current
-	 * theme install tab. Possible values are 'dashboard', 'search', 'upload',
+	 * theme installation tab. Possible values are 'dashboard', 'search', 'upload',
 	 * 'featured', 'new', or 'updated'.
 	 *
 	 * @since 2.8.0

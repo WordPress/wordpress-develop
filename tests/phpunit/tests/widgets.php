@@ -678,4 +678,459 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * Tests that no 'Undefined index' exception is thrown when trying to
+	 * display an unregistered widget.
+	 *
+	 * @see \the_widget()
+	 */
+	function test_the_widget_with_unregistered_widget() {
+		$this->setExpectedIncorrectUsage( 'the_widget' );
+		the_widget( 'Widget_Class' );
+	}
+
+	/**
+	 * Register nav menu sidebars.
+	 *
+	 * @param array $sidebars Sidebar slugs.
+	 */
+	function register_sidebars( $sidebars ) {
+		foreach ( $sidebars as $sidebar ) {
+			register_sidebar( array( 'id' => $sidebar ) );
+		}
+	}
+
+	/**
+	 * Tests for when 'sidebars_widgets' theme mod is populated.
+	 *
+	 * @covers retrieve_widgets()
+	 */
+	function test_retrieve_widgets_with_theme_mod() {
+		global $sidebars_widgets, $_wp_sidebars_widgets;
+
+		wp_widgets_init();
+		$this->register_sidebars( array( 'sidebar-1', 'sidebar-2', 'sidebar-3', 'wp_inactive_widgets' ) );
+
+		// Test restoring sidebars widgets when previously activated.
+		set_theme_mod( 'sidebars_widgets', array(
+			'time' => time(),
+			'data' => array(
+				'sidebar-1' => array( 'tag_cloud-1' ),
+				'sidebar-2' => array(),
+				'sidebar-3' => array( 'unregistered_widget-1', 'text-1', 'media_image-1' ),
+				'orphaned_widgets_1' => array( 'media_video-2' ),
+			),
+		) );
+
+		$sidebars_widgets = array(
+			'sidebar-1' => array( 'tag_cloud-1' ),
+			'sidebar-2' => array( 'text-1' ),
+			'fantasy'   => array( 'archives-2' ),
+			'wp_inactive_widgets' => array(),
+		);
+
+		$result = retrieve_widgets( true );
+
+		$this->assertInternalType( 'array', $result );
+		$this->assertEquals( $result, $sidebars_widgets );
+
+		foreach ( $sidebars_widgets as $widgets ) {
+			$this->assertInternalType( 'array', $widgets );
+		}
+
+		$this->assertContains( 'tag_cloud-1', $sidebars_widgets['sidebar-1'] );
+		$this->assertContains( 'text-1', $sidebars_widgets['sidebar-2'] );
+		$this->assertContains( 'media_image-1', $sidebars_widgets['sidebar-3'] );
+		$this->assertArrayNotHasKey( 'orphaned_widgets_1', $sidebars_widgets );
+
+		// Unregistered widget should be filtered out.
+		$this->assertNotContains( 'unregistered_widget-1', $sidebars_widgets['sidebar-3'] );
+
+		// 6 default widgets - 1 active text widget + 1 orphaned widget = 6.
+		$this->assertCount( 6, $sidebars_widgets['wp_inactive_widgets'] );
+
+		$this->assertContains( 'meta-2',            $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'search-2',          $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'archives-2',        $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'categories-2',      $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'recent-posts-2',    $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'recent-comments-2', $sidebars_widgets['wp_inactive_widgets'] );
+
+		// Sidebar_widgets option was updated.
+		$this->assertEquals( $sidebars_widgets, wp_get_sidebars_widgets() );
+	}
+
+	/**
+	 * Tests for when sidebars widgets matches registered sidebars.
+	 *
+	 * @covers retrieve_widgets()
+	 */
+	function test_retrieve_widgets_with_sidebars_widgets_matching_registered_sidebars() {
+		global $sidebars_widgets;
+
+		wp_widgets_init();
+		$this->register_sidebars( array( 'sidebar-1', 'sidebar-2','sidebar-3', 'wp_inactive_widgets' ) );
+
+		$sidebars_widgets = array(
+			'sidebar-1' => array( 'tag_cloud-1' ),
+			'sidebar-2' => array( 'text-1' ),
+			'sidebar-3' => array( 'custom_widget-1' ),
+			'wp_inactive_widgets' => array(),
+		);
+
+		$result = retrieve_widgets( true );
+
+		// $sidebars_widgets matches registered sidebars.
+		$this->assertInternalType( 'array', $result );
+		$this->assertEquals( $result, $sidebars_widgets );
+
+		foreach ( $sidebars_widgets as $widgets ) {
+			$this->assertInternalType( 'array', $widgets );
+		}
+
+		$this->assertContains( 'tag_cloud-1', $sidebars_widgets['sidebar-1'] );
+		$this->assertContains( 'text-1', $sidebars_widgets['sidebar-2'] );
+
+		// Invalid widget removed, even when $sidebars_widgets matches registered sidebars.
+		$this->assertEmpty( $sidebars_widgets['sidebar-3'] );
+
+		// No lost widgets when $sidebars_widgets matches registered sidebars.
+		$this->assertEmpty( $sidebars_widgets['wp_inactive_widgets'] );
+	}
+
+	/**
+	 * Tests for when sidebars widgets doesn't match registered sidebars.
+	 *
+	 * @covers retrieve_widgets()
+	 */
+	function test_retrieve_widgets_with_sidebars_widgets_not_matching_registered_sidebars() {
+		global $sidebars_widgets, $_wp_sidebars_widgets;
+
+		wp_widgets_init();
+		$this->register_sidebars( array( 'sidebar-1', 'sidebar-2','sidebar-3', 'wp_inactive_widgets' ) );
+
+		$sidebars_widgets = array(
+			'sidebar-1' => array( 'tag_cloud-1' ),
+			'sidebar-2' => array( 'text-1' ),
+			'fantasy'   => array( 'unregistered_widget-1' ),
+			'wp_inactive_widgets' => array(),
+		);
+
+		// Theme changed.
+		$result = retrieve_widgets( true );
+
+		$_wp_sidebars_widgets = array();
+		$this->assertInternalType( 'array', $result );
+		$this->assertEquals( $result, $sidebars_widgets );
+
+		foreach ( $sidebars_widgets as $widgets ) {
+			$this->assertInternalType( 'array', $widgets );
+		}
+
+		// Current theme doesn't have a fantasy-sidebar.
+		$this->assertArrayNotHasKey( 'fantasy', $sidebars_widgets );
+		$this->assertArrayHasKey( 'sidebar-3', $sidebars_widgets );
+
+		$this->assertContains( 'tag_cloud-1', $sidebars_widgets['sidebar-1'] );
+		$this->assertContains( 'text-1', $sidebars_widgets['sidebar-2'] );
+		$this->assertEmpty( $sidebars_widgets['sidebar-3'] );
+
+		// We should not have orphaned widgets, because widget was not registered.
+		$this->assertArrayNotHasKey( 'orphaned_widgets_1', $sidebars_widgets );
+
+		// 6 default widgets.
+		$this->assertCount( 6, $sidebars_widgets['wp_inactive_widgets'] );
+
+		$this->assertContains( 'archives-2',        $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'meta-2',            $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'search-2',          $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'categories-2',      $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'recent-posts-2',    $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'recent-comments-2', $sidebars_widgets['wp_inactive_widgets'] );
+
+		// Sidebar_widgets option was updated.
+		$this->assertEquals( $sidebars_widgets, wp_get_sidebars_widgets() );
+
+		// Reset.
+		$sidebars_widgets = array(
+			'sidebar-1' => array( 'tag_cloud-1' ),
+			'sidebar-2' => array( 'text-1' ),
+			'fantasy'   => array( 'archives-2' ),
+			'wp_inactive_widgets' => array(),
+		);
+
+		// Theme did not change.
+		$result = retrieve_widgets();
+
+		$_wp_sidebars_widgets = array();
+		$this->assertInternalType( 'array', $result );
+		$this->assertEquals( $result, $sidebars_widgets );
+
+		foreach ( $sidebars_widgets as $widgets ) {
+			$this->assertInternalType( 'array', $widgets );
+		}
+
+		// This sidebar is not registered anymore.
+		$this->assertArrayNotHasKey( 'fantasy', $sidebars_widgets );
+		$this->assertArrayHasKey( 'sidebar-3', $sidebars_widgets );
+
+		$this->assertContains( 'tag_cloud-1', $sidebars_widgets['sidebar-1'] );
+		$this->assertContains( 'text-1', $sidebars_widgets['sidebar-2'] );
+
+		// 6 default widgets - 1 active text widget = 5.
+		$this->assertCount( 6, $sidebars_widgets['wp_inactive_widgets'] );
+
+		$this->assertContains( 'meta-2',            $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'search-2',          $sidebars_widgets['wp_inactive_widgets'] );
+		// archives-2 ends up as inactive because fantasy sidebar doesn't exist.
+		$this->assertContains( 'archives-2',        $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'categories-2',      $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'recent-posts-2',    $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'recent-comments-2', $sidebars_widgets['wp_inactive_widgets'] );
+
+		// Sidebar_widgets option was updated.
+		$this->assertEquals( $sidebars_widgets, wp_get_sidebars_widgets() );
+	}
+
+	/**
+	 * Tests for Customizer mode.
+	 *
+	 * @covers retrieve_widgets()
+	 */
+	function test_retrieve_widgets_for_customizer() {
+		global $sidebars_widgets, $_wp_sidebars_widgets;
+
+		wp_widgets_init();
+		$this->register_sidebars( array( 'sidebar-1', 'sidebar-2','sidebar-3', 'wp_inactive_widgets' ) );
+
+		$old_sidebars_widgets = array(
+			'sidebar-1' => array( 'tag_cloud-1' ),
+			'sidebar-2' => array( 'text-1' ),
+			'sidebar-3' => array( 'unregistered_widget-1' ),
+			'fantasy'   => array( 'archives-2' ),
+			'wp_inactive_widgets' => array(),
+		);
+		set_theme_mod( 'sidebars_widgets', $old_sidebars_widgets );
+
+		$result = retrieve_widgets( 'customize' );
+
+		$_wp_sidebars_widgets = array();
+		$this->assertInternalType( 'array', $result );
+		$this->assertEquals( $result, $sidebars_widgets );
+
+		foreach ( $sidebars_widgets as $widgets ) {
+			$this->assertInternalType( 'array', $widgets );
+		}
+
+		$this->assertContains( 'tag_cloud-1', $sidebars_widgets['sidebar-1'] );
+		$this->assertContains( 'text-1', $sidebars_widgets['sidebar-2'] );
+		$this->assertArrayHasKey( 'sidebar-3', $sidebars_widgets );
+		$this->assertEmpty( $sidebars_widgets['sidebar-3'] );
+		$this->assertCount( 6, $sidebars_widgets['wp_inactive_widgets'] );
+
+		$this->assertContains( 'meta-2',            $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'search-2',          $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'archives-2',        $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'categories-2',      $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'recent-posts-2',    $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'recent-comments-2', $sidebars_widgets['wp_inactive_widgets'] );
+
+		// Theme mod with previous widgets was not removed.
+		$this->assertEqualSets( $old_sidebars_widgets, get_theme_mod( 'sidebars_widgets' ) );
+
+		// Sidebar_widgets option was not updated.
+		$this->assertNotEquals( $sidebars_widgets, wp_get_sidebars_widgets() );
+	}
+
+	function test_retreive_widgets_with_single_widget() {
+		global $sidebars_widgets;
+
+		wp_widgets_init();
+
+		// Register single-dimension widget.
+		wp_register_sidebar_widget( 'single', 'Single', '__return_false', array(), array() );
+		wp_register_widget_control( 'single', 'Single', '__return_false', array(), array() );
+
+		$this->register_sidebars( array( 'sidebar-1', 'sidebar-2', 'wp_inactive_widgets' ) );
+
+		$sidebars_widgets = array(
+			'sidebar-1' => array( 'tag_cloud-1' ),
+			'wp_inactive_widgets' => array(),
+		);
+
+		// Theme changed.
+		$result = retrieve_widgets( true );
+
+		$this->assertContains( 'single', $result['wp_inactive_widgets'] );
+	}
+
+	/**
+	 * Tests for orphaned widgets being moved into inactive widgets.
+	 *
+	 * @covers retrieve_widgets()
+	 */
+	function test_retrieve_widgets_move_orphaned_widgets_to_inactive() {
+		global $sidebars_widgets;
+
+		wp_widgets_init();
+		$this->register_sidebars( array( 'sidebar-1', 'sidebar-2', 'sidebar-3', 'wp_inactive_widgets' ) );
+
+		$sidebars_widgets = array(
+			'sidebar-1' => array( 'tag_cloud-1' ),
+			'sidebar-2' => array( 'text-1' ),
+			'wp_inactive_widgets' => array( 'search-2', 'archives-2' ),
+			'orphaned_widgets_1'  => array( 'calendar-1' ),
+		);
+
+		retrieve_widgets();
+
+		$this->assertInternalType( 'array', $sidebars_widgets );
+
+		foreach ( $sidebars_widgets as $widgets ) {
+			$this->assertInternalType( 'array', $widgets );
+		}
+
+		// 6 default widgets + 1 orphaned calendar widget = 7.
+		$this->assertCount( 7, $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'calendar-1', $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertArrayNotHasKey( 'orphaned_widgets_1', $sidebars_widgets );
+
+		// Sidebar_widgets option was updated.
+		$this->assertEquals( $sidebars_widgets, wp_get_sidebars_widgets() );
+	}
+
+	/**
+	 * Test _wp_remove_unregistered_widgets.
+	 *
+	 * @covers _wp_remove_unregistered_widgets()
+	 */
+	public function test__wp_remove_unregistered_widgets() {
+		$widgets = array(
+			'sidebar-1' => array( 'tag_cloud-1' ),
+			'sidebar-2' => array( 'text-1' ),
+			'fantasy'   => array( 'archives-2' ),
+			'wp_inactive_widgets' => array(),
+			'array_version' => 3,
+		);
+
+		$whitelist = array( 'tag_cloud-1', 'text-1' );
+
+		$filtered_widgets = _wp_remove_unregistered_widgets( $widgets, $whitelist );
+
+		$this->assertInternalType( 'array', $filtered_widgets );
+		$this->assertArrayHasKey( 'fantasy', $filtered_widgets );
+		$this->assertEmpty( $filtered_widgets['fantasy'] );
+		$this->assertArrayHasKey( 'array_version', $filtered_widgets );
+		$this->assertEquals( 3, $filtered_widgets['array_version'] );
+		$this->assertInternalType( 'integer', $filtered_widgets['array_version'] );
+	}
+
+	/**
+	 * wp_map_sidebars_widgets Tests.
+	 */
+
+	/**
+	 * Two themes with one sidebar each should just map, switching to a theme not previously-active.
+	 *
+	 * @covers wp_map_sidebars_widgets()
+	 */
+	public function test_one_sidebar_each() {
+		$this->register_sidebars( array( 'primary' ) );
+		$prev_theme_sidebars = array(
+			'unique-slug' => 1,
+		);
+
+		$new_next_theme_sidebars = wp_map_sidebars_widgets( $prev_theme_sidebars );
+
+		$expected_sidebars = array(
+			'primary' => 1,
+			'wp_inactive_widgets' => array(),
+		);
+		$this->assertEquals( $expected_sidebars, $new_next_theme_sidebars );
+	}
+
+	/**
+	 * Sidebars with the same name should map, switching to a theme not previously-active.
+	 *
+	 * @covers wp_map_sidebars_widgets()
+	 */
+	public function test_sidebars_with_same_slug() {
+		$this->register_sidebars( array( 'primary', 'secondary' ) );
+		$prev_theme_sidebars = array(
+			'primary' => 1,
+			'secondary' => 2,
+			'wp_inactive_widgets' => array(),
+		);
+
+		$new_next_theme_sidebars = wp_map_sidebars_widgets( $prev_theme_sidebars );
+
+		$this->assertEquals( $prev_theme_sidebars, $new_next_theme_sidebars );
+	}
+
+	/**
+	 * Make educated guesses on theme sidebars.
+	 *
+	 * @covers wp_map_sidebars_widgets()
+	 */
+	public function test_sidebar_guessing() {
+		$this->register_sidebars( array( 'primary', 'secondary' ) );
+
+		$prev_theme_sidebars = array(
+			'header' => array(),
+			'footer' => array(),
+		);
+
+		$new_next_theme_sidebars = wp_map_sidebars_widgets( $prev_theme_sidebars );
+
+		$expected_sidebars = array(
+			'primary' => array(),
+			'secondary' => array(),
+			'wp_inactive_widgets' => array(),
+		);
+		$this->assertEquals( $expected_sidebars, $new_next_theme_sidebars );
+	}
+
+	/**
+	 * Make sure two sidebars that fall in the same group don't get the same menu assigned.
+	 *
+	 * @covers wp_map_sidebars_widgets()
+	 */
+	public function test_sidebar_guessing_one_menu_per_group() {
+		$this->register_sidebars( array( 'primary' ) );
+		$prev_theme_sidebars = array(
+			'top-menu' => array(),
+			'secondary' => array(),
+		);
+
+		$new_next_theme_sidebars = wp_map_sidebars_widgets( $prev_theme_sidebars );
+
+		$expected_sidebars = array(
+			'main' => array(),
+			'wp_inactive_widgets' => array(),
+		);
+		$this->assertEqualSets( $expected_sidebars, $new_next_theme_sidebars );
+	}
+
+	/**
+	 * Make sure two sidebars that fall in the same group get menus assigned from the same group.
+	 *
+	 * @covers wp_map_sidebars_widgets()
+	 */
+	public function test_sidebar_guessing_one_menu_per_sidebar() {
+		$this->register_sidebars( array( 'primary', 'main' ) );
+
+		$prev_theme_sidebars = array(
+			'navigation-menu' => array(),
+			'top-menu' => array(),
+		);
+
+		$new_next_theme_sidebars = wp_map_sidebars_widgets( $prev_theme_sidebars );
+
+		$expected_sidebars = array(
+			'main' => array(),
+			'primary' => array(),
+			'wp_inactive_widgets' => array(),
+		);
+		$this->assertEquals( $expected_sidebars, $new_next_theme_sidebars );
+	}
 }

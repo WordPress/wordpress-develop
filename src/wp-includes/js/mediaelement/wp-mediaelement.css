@@ -1,5 +1,6 @@
 .mejs-container {
 	clear: both;
+	max-width: 100%;
 }
 
 .mejs-container * {
@@ -11,6 +12,11 @@
 .mejs-embed body,
 .mejs-container .mejs-controls {
 	background: #222;
+}
+
+.mejs-time {
+	font-weight: normal;
+	word-wrap: normal;
 }
 
 .mejs-controls a.mejs-horizontal-volume-slider {
@@ -85,7 +91,6 @@
 	color: #a00;
 	font-size: 10px;
 	text-transform: uppercase;
-	text-decoration: none;
 }
 
 .media-embed-details .setting .remove-setting {
@@ -93,7 +98,7 @@
 }
 
 .media-embed-details .setting a:hover {
-	color: #f00;
+	color: #dc3232;
 }
 
 .media-embed-details .embed-media-settings .checkbox-setting {
@@ -147,7 +152,7 @@ video.wp-video-shortcode,
 
 .wp-playlist .mejs-container {
 	margin: 0;
-	width: 100%;
+	max-width: 100%;
 }
 
 .wp-playlist .mejs-controls .mejs-button button {

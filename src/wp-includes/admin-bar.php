@@ -520,19 +520,28 @@ function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
 
 		$menu_id  = 'blog-' . $blog->userblog_id;
 
-		$wp_admin_bar->add_menu( array(
-			'parent'    => 'my-sites-list',
-			'id'        => $menu_id,
-			'title'     => $blavatar . $blogname,
-			'href'      => admin_url(),
-		) );
+		if ( current_user_can( 'read' ) ) {
+			$wp_admin_bar->add_menu( array(
+				'parent'    => 'my-sites-list',
+				'id'        => $menu_id,
+				'title'     => $blavatar . $blogname,
+				'href'      => admin_url(),
+			) );
 
-		$wp_admin_bar->add_menu( array(
-			'parent' => $menu_id,
-			'id'     => $menu_id . '-d',
-			'title'  => __( 'Dashboard' ),
-			'href'   => admin_url(),
-		) );
+			$wp_admin_bar->add_menu( array(
+				'parent' => $menu_id,
+				'id'     => $menu_id . '-d',
+				'title'  => __( 'Dashboard' ),
+				'href'   => admin_url(),
+			) );
+		} else {
+			$wp_admin_bar->add_menu( array(
+				'parent'    => 'my-sites-list',
+				'id'        => $menu_id,
+				'title'     => $blavatar . $blogname,
+				'href'      => home_url(),
+			) );
+		}
 
 		if ( current_user_can( get_post_type_object( 'post' )->cap->create_posts ) ) {
 			$wp_admin_bar->add_menu( array(
@@ -598,7 +607,7 @@ function wp_admin_bar_shortlink_menu( $wp_admin_bar ) {
  * @param WP_Admin_Bar $wp_admin_bar
  */
 function wp_admin_bar_edit_menu( $wp_admin_bar ) {
-	global $tag, $wp_the_query;
+	global $tag, $wp_the_query, $user_id;
 
 	if ( is_admin() ) {
 		$current_screen = get_current_screen();
@@ -648,6 +657,17 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 				'title' => $tax->labels->view_item,
 				'href' => get_term_link( $tag )
 			) );
+		} elseif ( 'user-edit' == $current_screen->base
+			&& isset( $user_id )
+			&& ( $user_object = get_userdata( $user_id ) )
+			&& $user_object->exists()
+			&& $view_link = get_author_posts_url( $user_object->ID ) )
+		{
+			$wp_admin_bar->add_menu( array(
+				'id'    => 'view',
+				'title' => __( 'View User' ),
+				'href'  => $view_link,
+			) );
 		}
 	} else {
 		$current_object = $wp_the_query->get_queried_object();
@@ -675,6 +695,15 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 				'id' => 'edit',
 				'title' => $tax->labels->edit_item,
 				'href' => $edit_term_link
+			) );
+		} elseif ( is_a( $current_object, 'WP_User' )
+			&& current_user_can( 'edit_user', $current_object->ID )
+			&& $edit_user_link = get_edit_user_link( $current_object->ID ) )
+		{
+			$wp_admin_bar->add_menu( array(
+				'id'    => 'edit',
+				'title' => __( 'Edit User' ),
+				'href'  => $edit_user_link,
 			) );
 		}
 	}

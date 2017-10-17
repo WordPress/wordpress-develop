@@ -20,7 +20,6 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 	 * Sets up a new Tag Cloud widget instance.
 	 *
 	 * @since 2.8.0
-	 * @access public
 	 */
 	public function __construct() {
 		$widget_ops = array(
@@ -34,21 +33,21 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 	 * Outputs the content for the current Tag Cloud widget instance.
 	 *
 	 * @since 2.8.0
-	 * @access public
 	 *
 	 * @param array $args     Display arguments including 'before_title', 'after_title',
 	 *                        'before_widget', and 'after_widget'.
 	 * @param array $instance Settings for the current Tag Cloud widget instance.
 	 */
 	public function widget( $args, $instance ) {
-		$current_taxonomy = $this->_get_current_taxonomy($instance);
-		if ( !empty($instance['title']) ) {
+		$current_taxonomy = $this->_get_current_taxonomy( $instance );
+
+		if ( ! empty( $instance['title'] ) ) {
 			$title = $instance['title'];
 		} else {
-			if ( 'post_tag' == $current_taxonomy ) {
-				$title = __('Tags');
+			if ( 'post_tag' === $current_taxonomy ) {
+				$title = __( 'Tags' );
 			} else {
-				$tax = get_taxonomy($current_taxonomy);
+				$tax = get_taxonomy( $current_taxonomy );
 				$title = $tax->labels->name;
 			}
 		}
@@ -60,16 +59,18 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 		 *
 		 * @since 2.8.0
 		 * @since 3.0.0 Added taxonomy drop-down.
+		 * @since 4.9.0 Added the `$instance` parameter.
 		 *
 		 * @see wp_tag_cloud()
 		 *
-		 * @param array $args Args used for the tag cloud widget.
+		 * @param array $args     Args used for the tag cloud widget.
+		 * @param array $instance Array of settings for the current widget.
 		 */
 		$tag_cloud = wp_tag_cloud( apply_filters( 'widget_tag_cloud_args', array(
 			'taxonomy'   => $current_taxonomy,
 			'echo'       => false,
 			'show_count' => $show_count,
-		) ) );
+		), $instance ) );
 
 		if ( empty( $tag_cloud ) ) {
 			return;
@@ -95,7 +96,6 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 	 * Handles updating settings for the current Tag Cloud widget instance.
 	 *
 	 * @since 2.8.0
-	 * @access public
 	 *
 	 * @param array $new_instance New settings for this instance as input by the user via
 	 *                            WP_Widget::form().
@@ -114,7 +114,6 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 	 * Outputs the Tag Cloud widget settings form.
 	 *
 	 * @since 2.8.0
-	 * @access public
 	 *
 	 * @param array $instance Current settings.
 	 */
@@ -184,7 +183,6 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 	 * Retrieves the taxonomy for the current Tag cloud widget instance.
 	 *
 	 * @since 4.4.0
-	 * @access public
 	 *
 	 * @param array $instance Current settings.
 	 * @return string Name of the current taxonomy if set, otherwise 'post_tag'.

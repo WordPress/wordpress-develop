@@ -145,7 +145,7 @@ wp.mediaWidgets = ( function( $ ) {
 					 * @returns {void}
 					 */
 					fetch: function() {
-						var embedLinkView = this, fetchSuccess, matches, fileExt, urlParser; // eslint-disable-line consistent-this
+						var embedLinkView = this, fetchSuccess, matches, fileExt, urlParser, url, re, youTubeEmbedMatch; // eslint-disable-line consistent-this
 
 						if ( embedLinkView.dfd && 'pending' === embedLinkView.dfd.state() ) {
 							embedLinkView.dfd.abort();
@@ -184,19 +184,22 @@ wp.mediaWidgets = ( function( $ ) {
 							return;
 						}
 
-						// If video, test for Vimeo and YouTube, otherwise, renderFail(). This should be removed once #34115 is resolved.
-						if ( 'video' === this.controller.options.mimeType && ! /vimeo|youtu\.?be/.test( urlParser.host ) ) {
-							embedLinkView.renderFail();
-							return;
+						// Support YouTube embed links.
+						url = embedLinkView.model.get( 'url' );
+						re = /https?:\/\/www\.youtube\.com\/embed\/([^/]+)/;
+						youTubeEmbedMatch = re.exec( url );
+						if ( youTubeEmbedMatch ) {
+							url = 'https://www.youtube.com/watch?v=' + youTubeEmbedMatch[ 1 ];
+							// silently change url to proper oembed-able version.
+							embedLinkView.model.attributes.url = url;
 						}
 
-						embedLinkView.dfd = $.ajax({
+						embedLinkView.dfd = wp.apiRequest({
 							url: wp.media.view.settings.oEmbedProxyUrl,
 							data: {
-								url: embedLinkView.model.get( 'url' ),
+								url: url,
 								maxwidth: embedLinkView.model.get( 'width' ),
 								maxheight: embedLinkView.model.get( 'height' ),
-								_wpnonce: wp.media.view.settings.nonce.wpRestApi,
 								discover: false
 							},
 							type: 'GET',
@@ -420,6 +423,7 @@ wp.mediaWidgets = ( function( $ ) {
 		events: {
 			'click .notice-missing-attachment a': 'handleMediaLibraryLinkClick',
 			'click .select-media': 'selectMedia',
+			'click .placeholder': 'selectMedia',
 			'click .edit-media': 'editMedia'
 		},
 
@@ -503,6 +507,26 @@ wp.mediaWidgets = ( function( $ ) {
 				});
 			});
 
+			// Update link_url attribute.
+			control.$el.on( 'input change', '.link', function updateLinkUrl() {
+				var linkUrl = $.trim( $( this ).val() ), linkType = 'custom';
+				if ( control.selectedAttachment.get( 'linkUrl' ) === linkUrl || control.selectedAttachment.get( 'link' ) === linkUrl ) {
+					linkType = 'post';
+				} else if ( control.selectedAttachment.get( 'url' ) === linkUrl ) {
+					linkType = 'file';
+				}
+				control.model.set( {
+					link_url: linkUrl,
+					link_type: linkType
+				});
+
+				// Update display settings for the next time the user opens to select from the media library.
+				control.displaySettings.set( {
+					link: linkType,
+					linkUrl: linkUrl
+				});
+			});
+
 			/*
 			 * Copy current display settings from the widget model to serve as basis
 			 * of customized display settings for the current media frame session.
@@ -562,17 +586,25 @@ wp.mediaWidgets = ( function( $ ) {
 		syncModelToInputs: function syncModelToInputs() {
 			var control = this;
 			control.syncContainer.find( '.media-widget-instance-property' ).each( function() {
-				var input = $( this ), value;
-				value = control.model.get( input.data( 'property' ) );
+				var input = $( this ), value, propertyName;
+				propertyName = input.data( 'property' );
+				value = control.model.get( propertyName );
 				if ( _.isUndefined( value ) ) {
 					return;
 				}
-				value = String( value );
-				if ( input.val() === value ) {
-					return;
+
+				if ( 'array' === control.model.schema[ propertyName ].type && _.isArray( value ) ) {
+					value = value.join( ',' );
+				} else if ( 'boolean' === control.model.schema[ propertyName ].type ) {
+					value = value ? '1' : ''; // Because in PHP, strval( true ) === '1' && strval( false ) === ''.
+				} else {
+					value = String( value );
 				}
-				input.val( value );
-				input.trigger( 'change' );
+
+				if ( input.val() !== value ) {
+					input.val( value );
+					input.trigger( 'change' );
+				}
 			});
 		},
 
@@ -699,10 +731,14 @@ wp.mediaWidgets = ( function( $ ) {
 				control.model.set( control.getModelPropsFromMediaFrame( mediaFrame ) );
 			});
 
-			// Disable syncing of attachment changes back to server. See <https://core.trac.wordpress.org/ticket/40403>.
+			// Disable syncing of attachment changes back to server (except for deletions). See <https://core.trac.wordpress.org/ticket/40403>.
 			defaultSync = wp.media.model.Attachment.prototype.sync;
-			wp.media.model.Attachment.prototype.sync = function rejectedSync() {
-				return $.Deferred().rejectWith( this ).promise();
+			wp.media.model.Attachment.prototype.sync = function( method ) {
+				if ( 'delete' === method ) {
+					return defaultSync.apply( this, arguments );
+				} else {
+					return $.Deferred().rejectWith( this ).promise();
+				}
 			};
 			mediaFrame.on( 'close', function onClose() {
 				wp.media.model.Attachment.prototype.sync = defaultSync;
@@ -809,7 +845,7 @@ wp.mediaWidgets = ( function( $ ) {
 			}
 
 			if ( 'post' === mediaFrameProps.link ) {
-				modelProps.link_url = mediaFrameProps.postUrl;
+				modelProps.link_url = mediaFrameProps.postUrl || mediaFrameProps.linkUrl;
 			} else if ( 'file' === mediaFrameProps.link ) {
 				modelProps.link_url = mediaFrameProps.url;
 			}
@@ -969,7 +1005,22 @@ wp.mediaWidgets = ( function( $ ) {
 					return;
 				}
 				type = model.schema[ name ].type;
-				if ( 'integer' === type ) {
+				if ( 'array' === type ) {
+					castedAttrs[ name ] = value;
+					if ( ! _.isArray( castedAttrs[ name ] ) ) {
+						castedAttrs[ name ] = castedAttrs[ name ].split( /,/ ); // Good enough for parsing an ID list.
+					}
+					if ( model.schema[ name ].items && 'integer' === model.schema[ name ].items.type ) {
+						castedAttrs[ name ] = _.filter(
+							_.map( castedAttrs[ name ], function( id ) {
+								return parseInt( id, 10 );
+							},
+							function( id ) {
+								return 'number' === typeof id;
+							}
+						) );
+					}
+				} else if ( 'integer' === type ) {
 					castedAttrs[ name ] = parseInt( value, 10 );
 				} else if ( 'boolean' === type ) {
 					castedAttrs[ name ] = ! ( ! value || '0' === value || 'false' === value );
@@ -1017,7 +1068,7 @@ wp.mediaWidgets = ( function( $ ) {
 	 * @returns {void}
 	 */
 	component.handleWidgetAdded = function handleWidgetAdded( event, widgetContainer ) {
-		var fieldContainer, syncContainer, widgetForm, idBase, ControlConstructor, ModelConstructor, modelAttributes, widgetControl, widgetModel, widgetId, widgetInside, animatedCheckDelay = 50, renderWhenAnimationDone;
+		var fieldContainer, syncContainer, widgetForm, idBase, ControlConstructor, ModelConstructor, modelAttributes, widgetControl, widgetModel, widgetId, animatedCheckDelay = 50, renderWhenAnimationDone;
 		widgetForm = widgetContainer.find( '> .widget-inside > .form, > .widget-inside > form' ); // Note: '.form' appears in the customizer, whereas 'form' on the widgets admin screen.
 		idBase = widgetForm.find( '> .id_base' ).val();
 		widgetId = widgetForm.find( '> .widget-id' ).val();
@@ -1036,7 +1087,7 @@ wp.mediaWidgets = ( function( $ ) {
 
 		/*
 		 * Create a container element for the widget control (Backbone.View).
-		 * This is inserted into the DOM immediately before the the .widget-content
+		 * This is inserted into the DOM immediately before the .widget-content
 		 * element because the contents of this element are essentially "managed"
 		 * by PHP, where each widget update cause the entire element to be emptied
 		 * and replaced with the rendered output of WP_Widget::form() which is
@@ -1075,9 +1126,8 @@ wp.mediaWidgets = ( function( $ ) {
 		 * This ensures that the container's dimensions are fixed so that ME.js
 		 * can initialize with the proper dimensions.
 		 */
-		widgetInside = widgetContainer.parent();
 		renderWhenAnimationDone = function() {
-			if ( widgetInside.is( ':animated' ) ) {
+			if ( ! widgetContainer.hasClass( 'open' ) ) {
 				setTimeout( renderWhenAnimationDone, animatedCheckDelay );
 			} else {
 				widgetControl.render();

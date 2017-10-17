@@ -11,6 +11,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 			$this->markTestSkipped( 'The gd PHP extension is not loaded.' );
 		if ( ! extension_loaded( 'exif' ) )
 			$this->markTestSkipped( 'The exif PHP extension is not loaded.' );
+
 		parent::setUp();
 	}
 

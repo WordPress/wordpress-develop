@@ -21,7 +21,6 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * Site ID to generate the Users list table for.
 	 *
 	 * @since 3.1.0
-	 * @access public
 	 * @var int
 	 */
 	public $site_id;
@@ -30,7 +29,6 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * Whether or not the current Users list table is for Multisite.
 	 *
 	 * @since 3.1.0
-	 * @access public
 	 * @var bool
 	 */
 	public $is_site_users;
@@ -39,7 +37,6 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * Constructor.
 	 *
 	 * @since 3.1.0
-	 * @access public
 	 *
 	 * @see WP_List_Table::__construct() for more information on default arguments.
 	 *
@@ -62,7 +59,6 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * Check the current user's permissions.
 	 *
  	 * @since 3.1.0
-	 * @access public
 	 *
 	 * @return bool
 	 */
@@ -77,7 +73,6 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * Prepare the users list for display.
 	 *
 	 * @since 3.1.0
-	 * @access public
 	 *
 	 * @global string $role
 	 * @global string $usersearch
@@ -98,7 +93,7 @@ class WP_Users_List_Table extends WP_List_Table {
 			$args = array(
 				'number' => $users_per_page,
 				'offset' => ( $paged-1 ) * $users_per_page,
-				'include' => wp_get_users_with_no_role(),
+				'include' => wp_get_users_with_no_role( $this->site_id ),
 				'search' => $usersearch,
 				'fields' => 'all_with_meta'
 			);
@@ -149,7 +144,6 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * Output 'no users' message.
 	 *
 	 * @since 3.1.0
-	 * @access public
 	 */
 	public function no_items() {
 		_e( 'No users found.' );
@@ -163,7 +157,6 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * Filtersing of the user table.
 	 *
 	 * @since  3.1.0
-	 * @access protected
 	 *
 	 * @global string $role
 	 *
@@ -177,7 +170,7 @@ class WP_Users_List_Table extends WP_List_Table {
 		if ( $this->is_site_users ) {
 			$url = 'site-users.php?id=' . $this->site_id;
 			switch_to_blog( $this->site_id );
-			$users_of_blog = count_users();
+			$users_of_blog = count_users( 'time', $this->site_id );
 			restore_current_blog();
 		} else {
 			$url = 'users.php';
@@ -188,37 +181,38 @@ class WP_Users_List_Table extends WP_List_Table {
 		$avail_roles =& $users_of_blog['avail_roles'];
 		unset($users_of_blog);
 
-		$class = empty($role) ? ' class="current"' : '';
+		$current_link_attributes = empty( $role ) ? ' class="current" aria-current="page"' : '';
+
 		$role_links = array();
-		$role_links['all'] = "<a href='$url'$class>" . sprintf( _nx( 'All <span class="count">(%s)</span>', 'All <span class="count">(%s)</span>', $total_users, 'users' ), number_format_i18n( $total_users ) ) . '</a>';
+		$role_links['all'] = "<a href='$url'$current_link_attributes>" . sprintf( _nx( 'All <span class="count">(%s)</span>', 'All <span class="count">(%s)</span>', $total_users, 'users' ), number_format_i18n( $total_users ) ) . '</a>';
 		foreach ( $wp_roles->get_names() as $this_role => $name ) {
 			if ( !isset($avail_roles[$this_role]) )
 				continue;
 
-			$class = '';
+			$current_link_attributes = '';
 
 			if ( $this_role === $role ) {
-				$class = ' class="current"';
+				$current_link_attributes = ' class="current" aria-current="page"';
 			}
 
 			$name = translate_user_role( $name );
 			/* translators: User role name with count */
 			$name = sprintf( __('%1$s <span class="count">(%2$s)</span>'), $name, number_format_i18n( $avail_roles[$this_role] ) );
-			$role_links[$this_role] = "<a href='" . esc_url( add_query_arg( 'role', $this_role, $url ) ) . "'$class>$name</a>";
+			$role_links[$this_role] = "<a href='" . esc_url( add_query_arg( 'role', $this_role, $url ) ) . "'$current_link_attributes>$name</a>";
 		}
 
 		if ( ! empty( $avail_roles['none' ] ) ) {
 
-			$class = '';
+			$current_link_attributes = '';
 
 			if ( 'none' === $role ) {
-				$class = ' class="current"';
+				$current_link_attributes = ' class="current" aria-current="page"';
 			}
 
 			$name = __( 'No role' );
 			/* translators: User role name with count */
 			$name = sprintf( __('%1$s <span class="count">(%2$s)</span>'), $name, number_format_i18n( $avail_roles['none' ] ) );
-			$role_links['none'] = "<a href='" . esc_url( add_query_arg( 'role', 'none', $url ) ) . "'$class>$name</a>";
+			$role_links['none'] = "<a href='" . esc_url( add_query_arg( 'role', 'none', $url ) ) . "'$current_link_attributes>$name</a>";
 
 		}
 
@@ -229,7 +223,6 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * Retrieve an associative array of bulk actions available on this table.
 	 *
 	 * @since  3.1.0
-	 * @access protected
 	 *
 	 * @return array Array of bulk actions.
 	 */
@@ -251,7 +244,6 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * Output the controls to allow user roles to be changed in bulk.
 	 *
 	 * @since 3.1.0
-	 * @access protected
 	 *
 	 * @param string $which Whether this is being invoked above ("top")
 	 *                      or below the table ("bottom").
@@ -281,7 +273,18 @@ class WP_Users_List_Table extends WP_List_Table {
 		 * @param string $which The location of the extra table nav markup: 'top' or 'bottom'.
 		 */
 		do_action( 'restrict_manage_users', $which );
-		echo '</div>';
+	?>
+		</div>
+	<?php
+		/**
+		 * Fires immediately following the closing "actions" div in the tablenav for the users
+		 * list table.
+		 *
+		 * @since 4.9.0
+		 *
+		 * @param string $which The location of the extra table nav markup: 'top' or 'bottom'.
+		 */
+		do_action( 'manage_users_extra_tablenav', $which );
 	}
 
 	/**
@@ -291,7 +294,6 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * the role change drop-down.
 	 *
 	 * @since  3.1.0
-	 * @access public
 	 *
 	 * @return string The bulk action required.
 	 */
@@ -308,7 +310,6 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * Get a list of columns for the list table.
 	 *
 	 * @since  3.1.0
-	 * @access public
 	 *
 	 * @return array Array in which the key is the ID of the column,
 	 *               and the value is the description.
@@ -333,7 +334,6 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * Get a list of sortable columns for the list table.
 	 *
 	 * @since 3.1.0
-	 * @access protected
 	 *
 	 * @return array Array of sortable columns.
 	 */
@@ -350,7 +350,6 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * Generate the list table rows.
 	 *
 	 * @since 3.1.0
-	 * @access public
 	 */
 	public function display_rows() {
 		// Query the post counts for this page
@@ -358,9 +357,6 @@ class WP_Users_List_Table extends WP_List_Table {
 			$post_counts = count_many_users_posts( array_keys( $this->items ) );
 
 		foreach ( $this->items as $userid => $user_object ) {
-			if ( is_multisite() && empty( $user_object->allcaps ) )
-				continue;
-
 			echo "\n\t" . $this->single_row( $user_object, '', '', isset( $post_counts ) ? $post_counts[ $userid ] : 0 );
 		}
 	}
@@ -371,7 +367,6 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * @since 3.1.0
 	 * @since 4.2.0 The `$style` parameter was deprecated.
 	 * @since 4.4.0 The `$role` parameter was deprecated.
-	 * @access public
 	 *
 	 * @param WP_User $user_object The current user object.
 	 * @param string  $style       Deprecated. Not used.
@@ -397,22 +392,42 @@ class WP_Users_List_Table extends WP_List_Table {
 		// Set up the hover actions for this user
 		$actions = array();
 		$checkbox = '';
+		$super_admin = '';
+
+		if ( is_multisite() && current_user_can( 'manage_network_users' ) ) {
+			if ( in_array( $user_object->user_login, get_super_admins(), true ) ) {
+				$super_admin = ' &mdash; ' . __( 'Super Admin' );
+			}
+		}
+
 		// Check if the user for this row is editable
 		if ( current_user_can( 'list_users' ) ) {
 			// Set up the user editing link
 			$edit_link = esc_url( add_query_arg( 'wp_http_referer', urlencode( wp_unslash( $_SERVER['REQUEST_URI'] ) ), get_edit_user_link( $user_object->ID ) ) );
 
 			if ( current_user_can( 'edit_user',  $user_object->ID ) ) {
-				$edit = "<strong><a href=\"$edit_link\">$user_object->user_login</a></strong><br />";
+				$edit = "<strong><a href=\"{$edit_link}\">{$user_object->user_login}</a>{$super_admin}</strong><br />";
 				$actions['edit'] = '<a href="' . $edit_link . '">' . __( 'Edit' ) . '</a>';
 			} else {
-				$edit = "<strong>$user_object->user_login</strong><br />";
+				$edit = "<strong>{$user_object->user_login}{$super_admin}</strong><br />";
 			}
 
 			if ( !is_multisite() && get_current_user_id() != $user_object->ID && current_user_can( 'delete_user', $user_object->ID ) )
 				$actions['delete'] = "<a class='submitdelete' href='" . wp_nonce_url( "users.php?action=delete&amp;user=$user_object->ID", 'bulk-users' ) . "'>" . __( 'Delete' ) . "</a>";
 			if ( is_multisite() && get_current_user_id() != $user_object->ID && current_user_can( 'remove_user', $user_object->ID ) )
 				$actions['remove'] = "<a class='submitdelete' href='" . wp_nonce_url( $url."action=remove&amp;user=$user_object->ID", 'bulk-users' ) . "'>" . __( 'Remove' ) . "</a>";
+
+			// Add a link to the user's author archive, if not empty.
+			$author_posts_url = get_author_posts_url( $user_object->ID );
+			if ( $author_posts_url ) {
+				$actions['view'] = sprintf(
+					'<a href="%s" aria-label="%s">%s</a>',
+					esc_url( $author_posts_url ),
+					/* translators: %s: author's display name */
+					esc_attr( sprintf( __( 'View posts by %s' ), $user_object->display_name ) ),
+					__( 'View' )
+				);
+			}
 
 			/**
 			 * Filters the action links displayed under each user in the Users list table.
@@ -434,7 +449,7 @@ class WP_Users_List_Table extends WP_List_Table {
 						. "<input type='checkbox' name='users[]' id='user_{$user_object->ID}' class='{$role_classes}' value='{$user_object->ID}' />";
 
 		} else {
-			$edit = '<strong>' . $user_object->user_login . '</strong>';
+			$edit = "<strong>{$user_object->user_login}{$super_admin}</strong>";
 		}
 		$avatar = get_avatar( $user_object->ID, 32 );
 
@@ -521,7 +536,6 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * Gets the name of the default primary column.
 	 *
 	 * @since 4.3.0
-	 * @access protected
 	 *
 	 * @return string Name of the default primary column, in this case, 'username'.
 	 */
@@ -533,7 +547,6 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * Returns an array of user roles for a given user object.
 	 *
 	 * @since 4.4.0
-	 * @access protected
 	 *
 	 * @param WP_User $user_object The WP_User object.
 	 * @return array An array of user roles.

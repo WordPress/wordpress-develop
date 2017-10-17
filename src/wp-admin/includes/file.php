@@ -35,7 +35,7 @@ $wp_file_descriptions = array(
 	'singular.php'          => __( 'Singular Template' ),
 	'single.php'            => __( 'Single Post' ),
 	'page.php'              => __( 'Single Page' ),
-	'front-page.php'        => __( 'Static Front Page' ),
+	'front-page.php'        => __( 'Homepage' ),
 	// Attachments
 	'attachment.php'        => __( 'Attachment Template' ),
 	'image.php'             => __( 'Image Attachment Template' ),
@@ -69,7 +69,8 @@ $wp_file_descriptions = array(
  *
  * @since 1.5.0
  *
- * @global array $wp_file_descriptions
+ * @global array $wp_file_descriptions Theme file descriptions.
+ * @global array $allowed_files        List of allowed files.
  * @param string $file Filesystem path or filename
  * @return string Description of file from $wp_file_descriptions or basename of $file if description doesn't exist.
  *                Appends 'Page Template' to basename of $file if the file is a page template
@@ -119,37 +120,490 @@ function get_home_path() {
  * The depth of the recursiveness can be controlled by the $levels param.
  *
  * @since 2.6.0
+ * @since 4.9.0 Added the `$exclusions` parameter.
  *
  * @param string $folder Optional. Full path to folder. Default empty.
  * @param int    $levels Optional. Levels of folders to follow, Default 100 (PHP Loop limit).
+ * @param array  $exclusions Optional. List of folders and files to skip.
  * @return bool|array False on failure, Else array of files
  */
-function list_files( $folder = '', $levels = 100 ) {
-	if ( empty($folder) )
+function list_files( $folder = '', $levels = 100, $exclusions = array() ) {
+	if ( empty( $folder ) ) {
 		return false;
+	}
 
-	if ( ! $levels )
+	$folder = trailingslashit( $folder );
+
+	if ( ! $levels ) {
 		return false;
+	}
 
 	$files = array();
-	if ( $dir = @opendir( $folder ) ) {
-		while (($file = readdir( $dir ) ) !== false ) {
-			if ( in_array($file, array('.', '..') ) )
+
+	$dir = @opendir( $folder );
+	if ( $dir ) {
+		while ( ( $file = readdir( $dir ) ) !== false ) {
+			// Skip current and parent folder links.
+			if ( in_array( $file, array( '.', '..' ), true ) ) {
 				continue;
-			if ( is_dir( $folder . '/' . $file ) ) {
-				$files2 = list_files( $folder . '/' . $file, $levels - 1);
-				if ( $files2 )
+			}
+
+			// Skip hidden and excluded files.
+			if ( '.' === $file[0] || in_array( $file, $exclusions, true ) ) {
+				continue;
+			}
+
+			if ( is_dir( $folder . $file ) ) {
+				$files2 = list_files( $folder . $file, $levels - 1 );
+				if ( $files2 ) {
 					$files = array_merge($files, $files2 );
-				else
-					$files[] = $folder . '/' . $file . '/';
+				} else {
+					$files[] = $folder . $file . '/';
+				}
 			} else {
-				$files[] = $folder . '/' . $file;
+				$files[] = $folder . $file;
 			}
 		}
 	}
 	@closedir( $dir );
+
 	return $files;
 }
+
+/**
+ * Get list of file extensions that are editable in plugins.
+ *
+ * @since 4.9.0
+ *
+ * @param string $plugin Plugin.
+ * @return array File extensions.
+ */
+function wp_get_plugin_file_editable_extensions( $plugin ) {
+
+	$editable_extensions = array(
+		'bash',
+		'conf',
+		'css',
+		'diff',
+		'htm',
+		'html',
+		'http',
+		'inc',
+		'include',
+		'js',
+		'json',
+		'jsx',
+		'less',
+		'md',
+		'patch',
+		'php',
+		'php3',
+		'php4',
+		'php5',
+		'php7',
+		'phps',
+		'phtml',
+		'sass',
+		'scss',
+		'sh',
+		'sql',
+		'svg',
+		'text',
+		'txt',
+		'xml',
+		'yaml',
+		'yml',
+	);
+
+	/**
+	 * Filters file type extensions editable in the plugin editor.
+	 *
+	 * @since 2.8.0
+	 * @since 4.9.0 Adds $plugin param.
+	 *
+	 * @param string $plugin Plugin file.
+	 * @param array $editable_extensions An array of editable plugin file extensions.
+	 */
+	$editable_extensions = (array) apply_filters( 'editable_extensions', $editable_extensions, $plugin );
+
+	return $editable_extensions;
+}
+
+/**
+ * Get list of file extensions that are editable for a given theme.
+ *
+ * @param WP_Theme $theme Theme.
+ * @return array File extensions.
+ */
+function wp_get_theme_file_editable_extensions( $theme ) {
+
+	$default_types = array(
+		'bash',
+		'conf',
+		'css',
+		'diff',
+		'htm',
+		'html',
+		'http',
+		'inc',
+		'include',
+		'js',
+		'json',
+		'jsx',
+		'less',
+		'md',
+		'patch',
+		'php',
+		'php3',
+		'php4',
+		'php5',
+		'php7',
+		'phps',
+		'phtml',
+		'sass',
+		'scss',
+		'sh',
+		'sql',
+		'svg',
+		'text',
+		'txt',
+		'xml',
+		'yaml',
+		'yml',
+	);
+
+	/**
+	 * Filters the list of file types allowed for editing in the Theme editor.
+	 *
+	 * @since 4.4.0
+	 *
+	 * @param array    $default_types List of file types. Default types include 'php' and 'css'.
+	 * @param WP_Theme $theme         The current Theme object.
+	 */
+	$file_types = apply_filters( 'wp_theme_editor_filetypes', $default_types, $theme );
+
+	// Ensure that default types are still there.
+	return array_unique( array_merge( $file_types, $default_types ) );
+}
+
+/**
+ * Print file editor templates (for plugins and themes).
+ *
+ * @since 4.9.0
+ */
+function wp_print_file_editor_templates() {
+	?>
+	<script type="text/html" id="tmpl-wp-file-editor-notice">
+		<div class="notice inline notice-{{ data.type || 'info' }} {{ data.alt ? 'notice-alt' : '' }} {{ data.dismissible ? 'is-dismissible' : '' }} {{ data.classes || '' }}">
+			<# if ( 'php_error' === data.code ) { #>
+				<p>
+					<?php
+					printf(
+						/* translators: %$1s is line number and %1$s is file path. */
+						__( 'Your PHP code changes were rolled back due to an error on line %1$s of file %2$s. Please fix and try saving again.' ),
+						'{{ data.line }}',
+						'{{ data.file }}'
+					);
+					?>
+				</p>
+				<pre>{{ data.message }}</pre>
+			<# } else if ( 'file_not_writable' === data.code ) { #>
+				<p><?php _e( 'You need to make this file writable before you can save your changes. See <a href="https://codex.wordpress.org/Changing_File_Permissions">the Codex</a> for more information.' ); ?></p>
+			<# } else { #>
+				<p>{{ data.message || data.code }}</p>
+
+				<# if ( 'lint_errors' === data.code ) { #>
+					<p>
+						<# var elementId = 'el-' + String( Math.random() ); #>
+						<input id="{{ elementId }}"  type="checkbox">
+						<label for="{{ elementId }}"><?php _e( 'Update anyway, even though it might break your site?' ); ?></label>
+					</p>
+				<# } #>
+			<# } #>
+			<# if ( data.dismissible ) { #>
+				<button type="button" class="notice-dismiss"><span class="screen-reader-text"><?php _e( 'Dismiss' ); ?></span></button>
+			<# } #>
+		</div>
+	</script>
+	<?php
+}
+
+/**
+ * Attempt to edit a file for a theme or plugin.
+ *
+ * When editing a PHP file, loopback requests will be made to the admin and the homepage
+ * to attempt to see if there is a fatal error introduced. If so, the PHP change will be
+ * reverted.
+ *
+ * @since 4.9.0
+ *
+ * @param array $args {
+ *     Args. Note that all of the arg values are already unslashed. They are, however,
+ *     coming straight from $_POST and are not validated or sanitized in any way.
+ *
+ *     @type string $file       Relative path to file.
+ *     @type string $plugin     Plugin being edited.
+ *     @type string $theme      Theme being edited.
+ *     @type string $newcontent New content for the file.
+ *     @type string $nonce      Nonce.
+ * }
+ * @return true|WP_Error True on success or `WP_Error` on failure.
+ */
+function wp_edit_theme_plugin_file( $args ) {
+	if ( empty( $args['file'] ) ) {
+		return new WP_Error( 'missing_file' );
+	}
+	$file = $args['file'];
+	if ( 0 !== validate_file( $file ) ) {
+		return new WP_Error( 'bad_file' );
+	}
+
+	if ( ! isset( $args['newcontent'] ) ) {
+		return new WP_Error( 'missing_content' );
+	}
+	$content = $args['newcontent'];
+
+	if ( ! isset( $args['nonce'] ) ) {
+		return new WP_Error( 'missing_nonce' );
+	}
+
+	$plugin = null;
+	$theme = null;
+	$real_file = null;
+	if ( ! empty( $args['plugin'] ) ) {
+		$plugin = $args['plugin'];
+
+		if ( ! current_user_can( 'edit_plugins' ) ) {
+			return new WP_Error( 'unauthorized', __( 'Sorry, you are not allowed to edit plugins for this site.' ) );
+		}
+
+		if ( ! wp_verify_nonce( $args['nonce'], 'edit-plugin_' . $file ) ) {
+			return new WP_Error( 'nonce_failure' );
+		}
+
+		if ( ! array_key_exists( $plugin, get_plugins() ) ) {
+			return new WP_Error( 'invalid_plugin' );
+		}
+
+		if ( 0 !== validate_file( $file, get_plugin_files( $plugin ) ) ) {
+			return new WP_Error( 'bad_plugin_file_path', __( 'Sorry, that file cannot be edited.' ) );
+		}
+
+		$editable_extensions = wp_get_plugin_file_editable_extensions( $plugin );
+
+		$real_file = WP_PLUGIN_DIR . '/' . $file;
+
+		$is_active = in_array(
+			$plugin,
+			(array) get_option( 'active_plugins', array() ),
+			true
+		);
+
+	} elseif ( ! empty( $args['theme'] ) ) {
+		$stylesheet = $args['theme'];
+		if ( 0 !== validate_file( $stylesheet ) ) {
+			return new WP_Error( 'bad_theme_path' );
+		}
+
+		if ( ! current_user_can( 'edit_themes' ) ) {
+			return new WP_Error( 'unauthorized', __( 'Sorry, you are not allowed to edit templates for this site.' ) );
+		}
+
+		$theme = wp_get_theme( $stylesheet );
+		if ( ! $theme->exists() ) {
+			return new WP_Error( 'non_existent_theme', __( 'The requested theme does not exist.' ) );
+		}
+
+		$real_file = $theme->get_stylesheet_directory() . '/' . $file;
+		if ( ! wp_verify_nonce( $args['nonce'], 'edit-theme_' . $real_file . $stylesheet ) ) {
+			return new WP_Error( 'nonce_failure' );
+		}
+
+		if ( $theme->errors() && 'theme_no_stylesheet' === $theme->errors()->get_error_code() ) {
+			return new WP_Error(
+				'theme_no_stylesheet',
+				__( 'The requested theme does not exist.' ) . ' ' . $theme->errors()->get_error_message()
+			);
+		}
+
+		$editable_extensions = wp_get_theme_file_editable_extensions( $theme );
+
+		$allowed_files = array();
+		foreach ( $editable_extensions as $type ) {
+			switch ( $type ) {
+				case 'php':
+					$allowed_files = array_merge( $allowed_files, $theme->get_files( 'php', 1 ) );
+					break;
+				case 'css':
+					$style_files = $theme->get_files( 'css' );
+					$allowed_files['style.css'] = $style_files['style.css'];
+					$allowed_files = array_merge( $allowed_files, $style_files );
+					break;
+				default:
+					$allowed_files = array_merge( $allowed_files, $theme->get_files( $type ) );
+					break;
+			}
+		}
+
+		if ( 0 !== validate_file( $real_file, $allowed_files ) ) {
+			return new WP_Error( 'disallowed_theme_file', __( 'Sorry, that file cannot be edited.' ) );
+		}
+
+		$is_active = ( get_stylesheet() === $stylesheet || get_template() === $stylesheet );
+	} else {
+		return new WP_Error( 'missing_theme_or_plugin' );
+	}
+
+	// Ensure file is real.
+	if ( ! is_file( $real_file ) ) {
+		return new WP_Error( 'file_does_not_exist', __( 'No such file exists! Double check the name and try again.' ) );
+	}
+
+	// Ensure file extension is allowed.
+	$extension = null;
+	if ( preg_match( '/\.([^.]+)$/', $real_file, $matches ) ) {
+		$extension = strtolower( $matches[1] );
+		if ( ! in_array( $extension, $editable_extensions, true ) ) {
+			return new WP_Error( 'illegal_file_type', __( 'Files of this type are not editable.' ) );
+		}
+	}
+
+	$previous_content = file_get_contents( $real_file );
+
+	if ( ! is_writeable( $real_file ) ) {
+		return new WP_Error( 'file_not_writable' );
+	}
+
+	$f = fopen( $real_file, 'w+' );
+	if ( false === $f ) {
+		return new WP_Error( 'file_not_writable' );
+	}
+
+	$written = fwrite( $f, $content );
+	fclose( $f );
+	if ( false === $written ) {
+		return new WP_Error( 'unable_to_write', __( 'Unable to write to file.' ) );
+	}
+	if ( 'php' === $extension && function_exists( 'opcache_invalidate' ) ) {
+		opcache_invalidate( $real_file, true );
+	}
+
+	if ( $is_active && 'php' === $extension ) {
+
+		$scrape_key = md5( rand() );
+		$transient = 'scrape_key_' . $scrape_key;
+		$scrape_nonce = strval( rand() );
+		set_transient( $transient, $scrape_nonce, 60 ); // It shouldn't take more than 60 seconds to make the two loopback requests.
+
+		$cookies = wp_unslash( $_COOKIE );
+		$scrape_params = array(
+			'wp_scrape_key' => $scrape_key,
+			'wp_scrape_nonce' => $scrape_nonce,
+		);
+		$headers = array(
+			'Cache-Control' => 'no-cache',
+		);
+
+		// Include Basic auth in loopback requests.
+		if ( isset( $_SERVER['PHP_AUTH_USER'] ) && isset( $_SERVER['PHP_AUTH_PW'] ) ) {
+			$headers['Authorization'] = 'Basic ' . base64_encode( wp_unslash( $_SERVER['PHP_AUTH_USER'] ) . ':' . wp_unslash( $_SERVER['PHP_AUTH_PW'] ) );
+		}
+
+		// Make sure PHP process doesn't die before loopback requests complete.
+		@set_time_limit( 300 );
+
+		// Time to wait for loopback requests to finish.
+		$timeout = 100;
+
+		$needle_start = "###### wp_scraping_result_start:$scrape_key ######";
+		$needle_end = "###### wp_scraping_result_end:$scrape_key ######";
+
+		// Attempt loopback request to editor to see if user just whitescreened themselves.
+		if ( $plugin ) {
+			$url = add_query_arg( compact( 'plugin', 'file' ), admin_url( 'plugin-editor.php' ) );
+		} elseif ( isset( $stylesheet ) ) {
+			$url = add_query_arg(
+				array(
+					'theme' => $stylesheet,
+					'file' => $file,
+				),
+				admin_url( 'theme-editor.php' )
+			);
+		} else {
+			$url = admin_url();
+		}
+		$url = add_query_arg( $scrape_params, $url );
+		$r = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout' ) );
+		$body = wp_remote_retrieve_body( $r );
+		$scrape_result_position = strpos( $body, $needle_start );
+
+		$loopback_request_failure = array(
+			'code' => 'loopback_request_failed',
+			'message' => __( 'Unable to communicate back with site to check for fatal errors, so the PHP change was reverted. You will need to upload your PHP file change by some other means, such as by using SFTP.' ),
+		);
+		$json_parse_failure = array(
+			'code' => 'json_parse_error',
+		);
+
+		$result = null;
+		if ( false === $scrape_result_position ) {
+			$result = $loopback_request_failure;
+		} else {
+			$error_output = substr( $body, $scrape_result_position + strlen( $needle_start ) );
+			$error_output = substr( $error_output, 0, strpos( $error_output, $needle_end ) );
+			$result = json_decode( trim( $error_output ), true );
+			if ( empty( $result ) ) {
+				$result = $json_parse_failure;
+			}
+		}
+
+		// Try making request to homepage as well to see if visitors have been whitescreened.
+		if ( true === $result ) {
+			$url = home_url( '/' );
+			$url = add_query_arg( $scrape_params, $url );
+			$r = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout' ) );
+			$body = wp_remote_retrieve_body( $r );
+			$scrape_result_position = strpos( $body, $needle_start );
+
+			if ( false === $scrape_result_position ) {
+				$result = $loopback_request_failure;
+			} else {
+				$error_output = substr( $body, $scrape_result_position + strlen( $needle_start ) );
+				$error_output = substr( $error_output, 0, strpos( $error_output, $needle_end ) );
+				$result = json_decode( trim( $error_output ), true );
+				if ( empty( $result ) ) {
+					$result = $json_parse_failure;
+				}
+			}
+		}
+
+		delete_transient( $transient );
+
+		if ( true !== $result ) {
+
+			// Roll-back file change.
+			file_put_contents( $real_file, $previous_content );
+			if ( function_exists( 'opcache_invalidate' ) ) {
+				opcache_invalidate( $real_file, true );
+			}
+
+			if ( ! isset( $result['message'] ) ) {
+				$message = __( 'An unidentified error has occurred.' );
+			} else {
+				$message = $result['message'];
+				unset( $result['message'] );
+			}
+			return new WP_Error( 'php_error', $message, $result );
+		}
+	}
+
+	if ( $theme instanceof WP_Theme ) {
+		$theme->cache_delete();
+	}
+
+	return true;
+}
+
 
 /**
  * Returns a filename of a Temporary unique file.
@@ -370,21 +824,39 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 
 	// Move the file to the uploads dir.
 	$new_file = $uploads['path'] . "/$filename";
-	if ( 'wp_handle_upload' === $action ) {
-		$move_new_file = @ move_uploaded_file( $file['tmp_name'], $new_file );
-	} else {
-		// use copy and unlink because rename breaks streams.
-		$move_new_file = @ copy( $file['tmp_name'], $new_file );
-		unlink( $file['tmp_name'] );
-	}
 
-	if ( false === $move_new_file ) {
-		if ( 0 === strpos( $uploads['basedir'], ABSPATH ) ) {
-			$error_path = str_replace( ABSPATH, '', $uploads['basedir'] ) . $uploads['subdir'];
+ 	/**
+	 * Filters whether to short-circuit moving the uploaded file after passing all checks.
+	 *
+	 * If a non-null value is passed to the filter, moving the file and any related error
+	 * reporting will be completely skipped.
+	 *
+	 * @since 4.9.0
+	 *
+	 * @param string $move_new_file If null (default) move the file after the upload.
+	 * @param string $file          An array of data for a single file.
+	 * @param string $new_file      Filename of the newly-uploaded file.
+	 * @param string $type          File type.
+	 */
+	$move_new_file = apply_filters( 'pre_move_uploaded_file', null, $file, $new_file, $type );
+
+	if ( null === $move_new_file ) {
+		if ( 'wp_handle_upload' === $action ) {
+			$move_new_file = @ move_uploaded_file( $file['tmp_name'], $new_file );
 		} else {
-			$error_path = basename( $uploads['basedir'] ) . $uploads['subdir'];
+			// use copy and unlink because rename breaks streams.
+			$move_new_file = @ copy( $file['tmp_name'], $new_file );
+			unlink( $file['tmp_name'] );
 		}
-		return $upload_error_handler( $file, sprintf( __('The uploaded file could not be moved to %s.' ), $error_path ) );
+
+		if ( false === $move_new_file ) {
+			if ( 0 === strpos( $uploads['basedir'], ABSPATH ) ) {
+				$error_path = str_replace( ABSPATH, '', $uploads['basedir'] ) . $uploads['subdir'];
+			} else {
+				$error_path = basename( $uploads['basedir'] ) . $uploads['subdir'];
+			}
+			return $upload_error_handler( $file, sprintf( __('The uploaded file could not be moved to %s.' ), $error_path ) );
+		}
 	}
 
 	// Set correct file permissions.
@@ -647,6 +1119,10 @@ function _unzip_file_ziparchive($file, $to, $needed_dirs = array() ) {
 		if ( '__MACOSX/' === substr($info['name'], 0, 9) ) // Skip the OS X-created __MACOSX directory
 			continue;
 
+		if ( 0 !== validate_file( $info['name'] ) ) {
+			return new WP_Error( 'invalid_file_ziparchive', __( 'Could not extract file from archive.' ), $info['name'] );
+		}
+
 		$uncompressed_size += $info['size'];
 
 		if ( '/' === substr( $info['name'], -1 ) ) {
@@ -806,6 +1282,10 @@ function _unzip_file_pclzip($file, $to, $needed_dirs = array()) {
 
 		if ( '__MACOSX/' === substr($file['filename'], 0, 9) ) // Don't extract the OS X-created __MACOSX directory files
 			continue;
+
+		if ( 0 !== validate_file( $file['filename'] ) ) {
+			return new WP_Error( 'invalid_file_pclzip', __( 'Could not extract file from archive.' ), $file['filename'] );
+		}
 
 		if ( ! $wp_filesystem->put_contents( $to . $file['filename'], $file['content'], FS_CHMOD_FILE) )
 			return new WP_Error( 'copy_failed_pclzip', __( 'Could not copy file.' ), $file['filename'] );

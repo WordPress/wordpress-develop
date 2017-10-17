@@ -306,7 +306,7 @@ function get_comment_author_url( $comment_ID = 0 ) {
 	if ( ! empty( $comment ) ) {
 		$author_url = ( 'http://' == $comment->comment_author_url ) ? '' : $comment->comment_author_url;
 		$url = esc_url( $author_url, array( 'http', 'https' ) );
-		$id = $comment->ID;
+		$id = $comment->comment_ID;
 	}
 
 	/**
@@ -830,12 +830,13 @@ function comments_link( $deprecated = '', $deprecated_2 = '' ) {
 }
 
 /**
- * Retrieve the amount of comments a post has.
+ * Retrieves the amount of comments a post has.
  *
  * @since 1.5.0
  *
- * @param int|WP_Post $post_id Optional. Post ID or WP_Post object. Default is global $post.
- * @return int The number of comments a post has.
+ * @param int|WP_Post $post_id Optional. Post ID or WP_Post object. Default is the global `$post`.
+ * @return string|int If the post exists, a numeric string representing the number of comments
+ *                    the post has, otherwise 0.
  */
 function get_comments_number( $post_id = 0 ) {
 	$post = get_post( $post_id );
@@ -852,8 +853,8 @@ function get_comments_number( $post_id = 0 ) {
 	 *
 	 * @since 1.5.0
 	 *
-	 * @param int $count   Number of comments a post has.
-	 * @param int $post_id Post ID.
+	 * @param string|int $count   A string representing the number of comments a post has, otherwise 0.
+	 * @param int        $post_id Post ID.
 	 */
 	return apply_filters( 'get_comments_number', $count, $post_id );
 }
@@ -2220,7 +2221,7 @@ function comment_form( $args = array(), $post_id = null ) {
 		'must_log_in'          => '<p class="must-log-in">' . sprintf(
 		                              /* translators: %s: login URL */
 		                              __( 'You must be <a href="%s">logged in</a> to post a comment.' ),
-		                              wp_login_url( apply_filters( 'the_permalink', get_permalink( $post_id ) ) )
+		                              wp_login_url( apply_filters( 'the_permalink', get_permalink( $post_id ), $post_id ) )
 		                          ) . '</p>',
 		/** This filter is documented in wp-includes/link-template.php */
 		'logged_in_as'         => '<p class="logged-in-as">' . sprintf(
@@ -2230,7 +2231,7 @@ function comment_form( $args = array(), $post_id = null ) {
 		                              /* translators: %s: user name */
 		                              esc_attr( sprintf( __( 'Logged in as %s. Edit your profile.' ), $user_identity ) ),
 		                              $user_identity,
-		                              wp_logout_url( apply_filters( 'the_permalink', get_permalink( $post_id ) ) )
+		                              wp_logout_url( apply_filters( 'the_permalink', get_permalink( $post_id ), $post_id ) )
 		                          ) . '</p>',
 		'comment_notes_before' => '<p class="comment-notes"><span id="email-notes">' . __( 'Your email address will not be published.' ) . '</span>'. ( $req ? $required_text : '' ) . '</p>',
 		'comment_notes_after'  => '',

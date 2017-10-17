@@ -32,6 +32,9 @@ add_action( 'network_site_users_created_user', 'wp_send_new_user_notifications' 
 add_action( 'network_user_new_created_user',   'wp_send_new_user_notifications' );
 add_filter( 'sanitize_user', 'strtolower' );
 
+// Roles
+add_action( 'switch_blog', 'wp_switch_roles_and_user', 1, 2 );
+
 // Blogs
 add_filter( 'wpmu_validate_blog_signup', 'signup_nonce_check' );
 add_action( 'wpmu_new_blog', 'wpmu_log_new_registrations', 10, 2 );
@@ -51,7 +54,7 @@ add_filter( 'term_id_filter', 'global_terms', 10, 2 );
 add_action( 'delete_post', '_update_posts_count_on_delete' );
 add_action( 'delete_post', '_update_blog_date_on_post_delete' );
 add_action( 'transition_post_status', '_update_blog_date_on_post_publish', 10, 3 );
-add_action( 'transition_post_status', '_update_posts_count_on_transition_post_status', 10, 2 );
+add_action( 'transition_post_status', '_update_posts_count_on_transition_post_status', 10, 3 );
 
 // Counts
 add_action( 'admin_init', 'wp_schedule_update_network_counts');

@@ -472,7 +472,7 @@ function wp_mail( $to, $subject, $message, $headers = '', $attachments = array()
 	 *
 	 * @since 2.2.0
 	 *
-	 * @param PHPMailer &$phpmailer The PHPMailer instance, passed by reference.
+	 * @param PHPMailer $phpmailer The PHPMailer instance (passed by reference).
 	 */
 	do_action_ref_array( 'phpmailer_init', array( &$phpmailer ) );
 
@@ -694,6 +694,7 @@ if ( !function_exists('wp_generate_auth_cookie') ) :
  * Generate authentication cookie contents.
  *
  * @since 2.5.0
+ * @since 4.0.0 The `$token` parameter was added.
  *
  * @param int    $user_id    User ID
  * @param int    $expiration The time the cookie expires as a UNIX timestamp.
@@ -726,6 +727,7 @@ function wp_generate_auth_cookie( $user_id, $expiration, $scheme = 'auth', $toke
 	 * Filters the authentication cookie.
 	 *
 	 * @since 2.5.0
+	 * @since 4.0.0 The `$token` parameter was added.
 	 *
 	 * @param string $cookie     Authentication cookie.
 	 * @param int    $user_id    User ID.
@@ -874,6 +876,7 @@ function wp_set_auth_cookie( $user_id, $remember = false, $secure = '', $token =
 	 * Fires immediately before the authentication cookie is set.
 	 *
 	 * @since 2.5.0
+	 * @since 4.9.0 The `$token` parameter was added.
 	 *
 	 * @param string $auth_cookie Authentication cookie.
 	 * @param int    $expire      The time the login grace period expires as a UNIX timestamp.
@@ -882,13 +885,15 @@ function wp_set_auth_cookie( $user_id, $remember = false, $secure = '', $token =
 	 *                            Default is 14 days from now.
 	 * @param int    $user_id     User ID.
 	 * @param string $scheme      Authentication scheme. Values include 'auth', 'secure_auth', or 'logged_in'.
+	 * @param string $token       User's session token to use for this cookie.
 	 */
-	do_action( 'set_auth_cookie', $auth_cookie, $expire, $expiration, $user_id, $scheme );
+	do_action( 'set_auth_cookie', $auth_cookie, $expire, $expiration, $user_id, $scheme, $token );
 
 	/**
 	 * Fires immediately before the logged-in authentication cookie is set.
 	 *
 	 * @since 2.6.0
+	 * @since 4.9.0 The `$token` parameter was added.
 	 *
 	 * @param string $logged_in_cookie The logged-in cookie.
 	 * @param int    $expire           The time the login grace period expires as a UNIX timestamp.
@@ -897,8 +902,9 @@ function wp_set_auth_cookie( $user_id, $remember = false, $secure = '', $token =
 	 *                                 Default is 14 days from now.
 	 * @param int    $user_id          User ID.
 	 * @param string $scheme           Authentication scheme. Default 'logged_in'.
+	 * @param string $token            User's session token to use for this cookie.
 	 */
-	do_action( 'set_logged_in_cookie', $logged_in_cookie, $expire, $expiration, $user_id, 'logged_in' );
+	do_action( 'set_logged_in_cookie', $logged_in_cookie, $expire, $expiration, $user_id, 'logged_in', $token );
 
 	/**
 	 * Allows preventing auth cookies from actually being sent to the client.
@@ -1463,8 +1469,8 @@ function wp_notify_postauthor( $comment_id, $deprecated = null ) {
 		case 'trackback':
 			/* translators: 1: Post title */
 			$notify_message  = sprintf( __( 'New trackback on your post "%s"' ), $post->post_title ) . "\r\n";
-			/* translators: 1: Trackback/pingback website name, 2: website IP, 3: website hostname */
-			$notify_message .= sprintf( __('Website: %1$s (IP: %2$s, %3$s)'), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+			/* translators: 1: Trackback/pingback website name, 2: website IP address, 3: website hostname */
+			$notify_message .= sprintf( __('Website: %1$s (IP address: %2$s, %3$s)'), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 			$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
 			$notify_message .= sprintf( __( 'Comment: %s' ), "\r\n" . $comment_content ) . "\r\n\r\n";
 			$notify_message .= __( 'You can see all trackbacks on this post here:' ) . "\r\n";
@@ -1474,8 +1480,8 @@ function wp_notify_postauthor( $comment_id, $deprecated = null ) {
 		case 'pingback':
 			/* translators: 1: Post title */
 			$notify_message  = sprintf( __( 'New pingback on your post "%s"' ), $post->post_title ) . "\r\n";
-			/* translators: 1: Trackback/pingback website name, 2: website IP, 3: website hostname */
-			$notify_message .= sprintf( __('Website: %1$s (IP: %2$s, %3$s)'), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+			/* translators: 1: Trackback/pingback website name, 2: website IP address, 3: website hostname */
+			$notify_message .= sprintf( __('Website: %1$s (IP address: %2$s, %3$s)'), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 			$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
 			$notify_message .= sprintf( __( 'Comment: %s' ), "\r\n" . $comment_content ) . "\r\n\r\n";
 			$notify_message .= __( 'You can see all pingbacks on this post here:' ) . "\r\n";
@@ -1484,8 +1490,8 @@ function wp_notify_postauthor( $comment_id, $deprecated = null ) {
 			break;
 		default: // Comments
 			$notify_message  = sprintf( __( 'New comment on your post "%s"' ), $post->post_title ) . "\r\n";
-			/* translators: 1: comment author, 2: author IP, 3: author domain */
-			$notify_message .= sprintf( __( 'Author: %1$s (IP: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+			/* translators: 1: comment author, 2: comment author's IP address, 3: comment author's hostname */
+			$notify_message .= sprintf( __( 'Author: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 			$notify_message .= sprintf( __( 'Email: %s' ), $comment->comment_author_email ) . "\r\n";
 			$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
 			$notify_message .= sprintf( __('Comment: %s' ), "\r\n" . $comment_content ) . "\r\n\r\n";
@@ -1624,8 +1630,8 @@ function wp_notify_moderator($comment_id) {
 			/* translators: 1: Post title */
 			$notify_message  = sprintf( __('A new trackback on the post "%s" is waiting for your approval'), $post->post_title ) . "\r\n";
 			$notify_message .= get_permalink($comment->comment_post_ID) . "\r\n\r\n";
-			/* translators: 1: Trackback/pingback website name, 2: website IP, 3: website hostname */
-			$notify_message .= sprintf( __( 'Website: %1$s (IP: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+			/* translators: 1: Trackback/pingback website name, 2: website IP address, 3: website hostname */
+			$notify_message .= sprintf( __( 'Website: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 			/* translators: 1: Trackback/pingback/comment author URL */
 			$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
 			$notify_message .= __('Trackback excerpt: ') . "\r\n" . $comment_content . "\r\n\r\n";
@@ -1634,8 +1640,8 @@ function wp_notify_moderator($comment_id) {
 			/* translators: 1: Post title */
 			$notify_message  = sprintf( __('A new pingback on the post "%s" is waiting for your approval'), $post->post_title ) . "\r\n";
 			$notify_message .= get_permalink($comment->comment_post_ID) . "\r\n\r\n";
-			/* translators: 1: Trackback/pingback website name, 2: website IP, 3: website hostname */
-			$notify_message .= sprintf( __( 'Website: %1$s (IP: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+			/* translators: 1: Trackback/pingback website name, 2: website IP address, 3: website hostname */
+			$notify_message .= sprintf( __( 'Website: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 			/* translators: 1: Trackback/pingback/comment author URL */
 			$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
 			$notify_message .= __('Pingback excerpt: ') . "\r\n" . $comment_content . "\r\n\r\n";
@@ -1644,8 +1650,8 @@ function wp_notify_moderator($comment_id) {
 			/* translators: 1: Post title */
 			$notify_message  = sprintf( __('A new comment on the post "%s" is waiting for your approval'), $post->post_title ) . "\r\n";
 			$notify_message .= get_permalink($comment->comment_post_ID) . "\r\n\r\n";
-			/* translators: 1: Comment author name, 2: comment author's IP, 3: comment author IP's hostname */
-			$notify_message .= sprintf( __( 'Author: %1$s (IP: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+			/* translators: 1: Comment author name, 2: comment author's IP address, 3: comment author's hostname */
+			$notify_message .= sprintf( __( 'Author: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 			/* translators: 1: Comment author URL */
 			$notify_message .= sprintf( __( 'Email: %s' ), $comment->comment_author_email ) . "\r\n";
 			/* translators: 1: Trackback/pingback/comment author URL */
@@ -1747,8 +1753,39 @@ function wp_password_change_notification( $user ) {
 		// The blogname option is escaped with esc_html on the way into the database in sanitize_option
 		// we want to reverse this for the plain text arena of emails.
 		$blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
-		/* translators: %s: site title */
-		wp_mail( get_option( 'admin_email' ), sprintf( __( '[%s] Password Changed' ), $blogname ), $message );
+
+		$wp_password_change_notification_email = array(
+			'to'      => get_option( 'admin_email' ),
+			/* translators: Password change notification email subject. %s: Site title */
+			'subject' => __( '[%s] Password Changed' ),
+			'message' => $message,
+			'headers' => '',
+		);
+
+		/**
+		 * Filters the contents of the password change notification email sent to the site admin.
+		 *
+		 * @since 4.9.0
+		 *
+		 * @param array   $wp_password_change_notification_email {
+		 *     Used to build wp_mail().
+		 *
+		 *     @type string $to      The intended recipient - site admin email address.
+		 *     @type string $subject The subject of the email.
+		 *     @type string $message The body of the email.
+		 *     @type string $headers The headers of the email.
+		 * }
+		 * @param WP_User $user     User object for user whose password was changed.
+		 * @param string  $blogname The site title.
+		 */
+		$wp_password_change_notification_email = apply_filters( 'wp_password_change_notification_email', $wp_password_change_notification_email, $user, $blogname );
+
+		wp_mail(
+			$wp_password_change_notification_email['to'],
+			wp_specialchars_decode( sprintf( $wp_password_change_notification_email['subject'], $blogname ) ),
+			$wp_password_change_notification_email['message'],
+			$wp_password_change_notification_email['headers']
+		);
 	}
 }
 endif;
@@ -1786,11 +1823,46 @@ function wp_new_user_notification( $user_id, $deprecated = null, $notify = '' ) 
 
 	if ( 'user' !== $notify ) {
 		$switched_locale = switch_to_locale( get_locale() );
+
+		/* translators: %s: site title */
 		$message  = sprintf( __( 'New user registration on your site %s:' ), $blogname ) . "\r\n\r\n";
+		/* translators: %s: user login */
 		$message .= sprintf( __( 'Username: %s' ), $user->user_login ) . "\r\n\r\n";
+		/* translators: %s: user email address */
 		$message .= sprintf( __( 'Email: %s' ), $user->user_email ) . "\r\n";
 
-		@wp_mail( get_option( 'admin_email' ), sprintf( __( '[%s] New User Registration' ), $blogname ), $message );
+		$wp_new_user_notification_email_admin = array(
+			'to'      => get_option( 'admin_email' ),
+			/* translators: Password change notification email subject. %s: Site title */
+			'subject' => __( '[%s] New User Registration' ),
+			'message' => $message,
+			'headers' => '',
+		);
+
+		/**
+		 * Filters the contents of the new user notification email sent to the site admin.
+		 *
+		 * @since 4.9.0
+		 *
+		 * @param array   $wp_new_user_notification_email {
+		 *     Used to build wp_mail().
+		 *
+		 *     @type string $to      The intended recipient - site admin email address.
+		 *     @type string $subject The subject of the email.
+		 *     @type string $message The body of the email.
+		 *     @type string $headers The headers of the email.
+		 * }
+		 * @param WP_User $user     User object for new user.
+		 * @param string  $blogname The site title.
+		 */
+		$wp_new_user_notification_email_admin = apply_filters( 'wp_new_user_notification_email_admin', $wp_new_user_notification_email_admin, $user, $blogname );
+
+		@wp_mail(
+			$wp_new_user_notification_email_admin['to'],
+			wp_specialchars_decode( sprintf( $wp_new_user_notification_email_admin['subject'], $blogname ) ),
+			$wp_new_user_notification_email_admin['message'],
+			$wp_new_user_notification_email_admin['headers']
+		);
 
 		if ( $switched_locale ) {
 			restore_previous_locale();
@@ -1818,13 +1890,45 @@ function wp_new_user_notification( $user_id, $deprecated = null, $notify = '' ) 
 
 	$switched_locale = switch_to_locale( get_user_locale( $user ) );
 
+	/* translators: %s: user login */
 	$message = sprintf(__('Username: %s'), $user->user_login) . "\r\n\r\n";
 	$message .= __('To set your password, visit the following address:') . "\r\n\r\n";
 	$message .= '<' . network_site_url("wp-login.php?action=rp&key=$key&login=" . rawurlencode($user->user_login), 'login') . ">\r\n\r\n";
 
 	$message .= wp_login_url() . "\r\n";
 
-	wp_mail($user->user_email, sprintf(__('[%s] Your username and password info'), $blogname), $message);
+	$wp_new_user_notification_email = array(
+		'to'      => $user->user_email,
+		/* translators: Password change notification email subject. %s: Site title */
+		'subject' => __( '[%s] Your username and password info' ),
+		'message' => $message,
+		'headers' => '',
+	);
+
+	/**
+	 * Filters the contents of the new user notification email sent to the new user.
+	 *
+	 * @since 4.9.0
+	 *
+	 * @param array   $wp_new_user_notification_email {
+	 *     Used to build wp_mail().
+	 *
+	 *     @type string $to      The intended recipient - New user email address.
+	 *     @type string $subject The subject of the email.
+	 *     @type string $message The body of the email.
+	 *     @type string $headers The headers of the email.
+	 * }
+	 * @param WP_User $user     User object for new user.
+	 * @param string  $blogname The site title.
+	 */
+	$wp_new_user_notification_email = apply_filters( 'wp_new_user_notification_email', $wp_new_user_notification_email, $user, $blogname );
+
+	wp_mail(
+		$wp_new_user_notification_email['to'],
+		wp_specialchars_decode( sprintf( $wp_new_user_notification_email['subject'], $blogname ) ),
+		$wp_new_user_notification_email['message'],
+		$wp_new_user_notification_email['headers']
+	);
 
 	if ( $switched_locale ) {
 		restore_previous_locale();
@@ -2429,7 +2533,7 @@ function get_avatar( $id_or_email, $size = 96, $default = '', $alt = '', $args =
 		"<img alt='%s' src='%s' srcset='%s' class='%s' height='%d' width='%d' %s/>",
 		esc_attr( $args['alt'] ),
 		esc_url( $url ),
-		esc_attr( "$url2x 2x" ),
+		esc_url( $url2x ) . ' 2x',
 		esc_attr( join( ' ', $class ) ),
 		(int) $args['height'],
 		(int) $args['width'],

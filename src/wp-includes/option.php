@@ -44,12 +44,19 @@ function get_option( $option, $default = false ) {
 	 *
 	 * @since 1.5.0
 	 * @since 4.4.0 The `$option` parameter was added.
+	 * @since 4.9.0 The `$default` parameter was added.
 	 *
-	 * @param bool|mixed $pre_option Value to return instead of the option value.
-	 *                               Default false to skip it.
+	 *
+	 * @param bool|mixed $pre_option The value to return instead of the option value. This differs from
+	 *                               `$default`, which is used as the fallback value in the event the option
+	 *                               doesn't exist elsewhere in get_option(). Default false (to skip past the
+	 *                               short-circuit).
 	 * @param string     $option     Option name.
+	 * @param mixed      $default    The fallback value to return if the option does not exist.
+	 *                               Default is false.
 	 */
-	$pre = apply_filters( "pre_option_{$option}", false, $option );
+	$pre = apply_filters( "pre_option_{$option}", false, $option, $default );
+
 	if ( false !== $pre )
 		return $pre;
 
@@ -179,25 +186,45 @@ function form_option( $option ) {
 function wp_load_alloptions() {
 	global $wpdb;
 
-	if ( ! wp_installing() || ! is_multisite() )
+	if ( ! wp_installing() || ! is_multisite() ) {
 		$alloptions = wp_cache_get( 'alloptions', 'options' );
-	else
+	} else {
 		$alloptions = false;
+	}
 
-	if ( !$alloptions ) {
+	if ( ! $alloptions ) {
 		$suppress = $wpdb->suppress_errors();
-		if ( !$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE autoload = 'yes'" ) )
+		if ( ! $alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE autoload = 'yes'" ) ) {
 			$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options" );
-		$wpdb->suppress_errors($suppress);
+		}
+		$wpdb->suppress_errors( $suppress );
+
 		$alloptions = array();
 		foreach ( (array) $alloptions_db as $o ) {
 			$alloptions[$o->option_name] = $o->option_value;
 		}
-		if ( ! wp_installing() || ! is_multisite() )
+
+		if ( ! wp_installing() || ! is_multisite() ) {
+			/**
+			 * Filters all options before caching them.
+			 *
+			 * @since 4.9.0
+			 *
+			 * @param array $alloptions Array with all options.
+			 */
+			$alloptions = apply_filters( 'pre_cache_alloptions', $alloptions );
 			wp_cache_add( 'alloptions', $alloptions, 'options' );
+		}
 	}
 
-	return $alloptions;
+	/**
+	 * Filters all options after retrieving them.
+	 *
+	 * @since 4.9.0
+	 *
+	 * @param array $alloptions Array with all options.
+	 */
+	return apply_filters( 'alloptions', $alloptions );
 }
 
 /**
@@ -207,25 +234,25 @@ function wp_load_alloptions() {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int $site_id Optional site ID for which to query the options. Defaults to the current site.
+ * @param int $network_id Optional site ID for which to query the options. Defaults to the current site.
  */
-function wp_load_core_site_options( $site_id = null ) {
+function wp_load_core_site_options( $network_id = null ) {
 	global $wpdb;
 
 	if ( ! is_multisite() || wp_using_ext_object_cache() || wp_installing() )
 		return;
 
-	if ( empty($site_id) )
-		$site_id = $wpdb->siteid;
+	if ( empty($network_id) )
+		$network_id = get_current_network_id();
 
 	$core_options = array('site_name', 'siteurl', 'active_sitewide_plugins', '_site_transient_timeout_theme_roots', '_site_transient_theme_roots', 'site_admins', 'can_compress_scripts', 'global_terms_enabled', 'ms_files_rewriting' );
 
 	$core_options_in = "'" . implode("', '", $core_options) . "'";
-	$options = $wpdb->get_results( $wpdb->prepare("SELECT meta_key, meta_value FROM $wpdb->sitemeta WHERE meta_key IN ($core_options_in) AND site_id = %d", $site_id) );
+	$options = $wpdb->get_results( $wpdb->prepare( "SELECT meta_key, meta_value FROM $wpdb->sitemeta WHERE meta_key IN ($core_options_in) AND site_id = %d", $network_id ) );
 
 	foreach ( $options as $option ) {
 		$key = $option->meta_key;
-		$cache_key = "{$site_id}:$key";
+		$cache_key = "{$network_id}:$key";
 		$option->meta_value = maybe_unserialize( $option->meta_value );
 
 		wp_cache_set( $cache_key, $option->meta_value, 'site-options' );
@@ -1116,12 +1143,18 @@ function get_network_option( $network_id, $option, $default = false ) {
 	 * @since 3.0.0
 	 * @since 4.4.0 The `$option` parameter was added.
 	 * @since 4.7.0 The `$network_id` parameter was added.
+	 * @since 4.9.0 The `$default` parameter was added.
 	 *
-	 * @param mixed  $pre_option The default value to return if the option does not exist.
+	 * @param mixed  $pre_option The value to return instead of the option value. This differs from
+	 *                           `$default`, which is used as the fallback value in the event the
+	 *                           option doesn't exist elsewhere in get_network_option(). Default
+	 *                           is false (to skip past the short-circuit).
 	 * @param string $option     Option name.
 	 * @param int    $network_id ID of the network.
+	 * @param mixed  $default    The fallback value to return if the option does not exist.
+	 *                           Default is false.
 	 */
-	$pre = apply_filters( "pre_site_option_{$option}", false, $option, $network_id );
+	$pre = apply_filters( "pre_site_option_{$option}", false, $option, $network_id, $default );
 
 	if ( false !== $pre ) {
 		return $pre;

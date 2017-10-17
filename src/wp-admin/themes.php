@@ -146,14 +146,13 @@ wp_localize_script( 'theme', '_wpThemeSettings', array(
 add_thickbox();
 wp_enqueue_script( 'theme' );
 wp_enqueue_script( 'updates' );
-wp_enqueue_script( 'customize-loader' );
 
 require_once( ABSPATH . 'wp-admin/admin-header.php' );
 ?>
 
 <div class="wrap">
 	<h1 class="wp-heading-inline"><?php esc_html_e( 'Themes' ); ?>
-		<span class="title-count theme-count"><?php echo count( $themes ); ?></span>
+		<span class="title-count theme-count"><?php echo ! empty( $_GET['search'] ) ? __( '&hellip;' ) : count( $themes ); ?></span>
 	</h1>
 
 	<?php if ( ! is_multisite() && current_user_can( 'install_themes' ) ) : ?>
@@ -234,7 +233,13 @@ if ( ! $ct->errors() || ( 1 == count( $ct->errors()->get_error_codes() )
 
 ?>
 
-<div class="theme-browser">
+<?php
+$class_name = 'theme-browser';
+if ( ! empty( $_GET['search'] ) ) {
+	$class_name .= ' search-loading';
+}
+?>
+<div class="<?php echo esc_attr( $class_name ); ?>">
 	<div class="themes wp-clearfix">
 
 <?php
@@ -301,7 +306,7 @@ foreach ( $themes as $theme ) :
 <?php endforeach; ?>
 	</div>
 </div>
-<div class="theme-overlay"></div>
+<div class="theme-overlay" tabindex="0" role="dialog" aria-label="<?php esc_attr_e( 'Theme Details' ); ?>"></div>
 
 <p class="no-themes"><?php _e( 'No themes found. Try a different search.' ); ?></p>
 
@@ -431,7 +436,7 @@ $can_install = current_user_can( 'install_themes' );
 
 <script id="tmpl-theme-single" type="text/template">
 	<div class="theme-backdrop"></div>
-	<div class="theme-wrap wp-clearfix">
+	<div class="theme-wrap wp-clearfix" role="document">
 		<div class="theme-header">
 			<button class="left dashicons dashicons-no"><span class="screen-reader-text"><?php _e( 'Show previous theme' ); ?></span></button>
 			<button class="right dashicons dashicons-no"><span class="screen-reader-text"><?php _e( 'Show next theme' ); ?></span></button>
