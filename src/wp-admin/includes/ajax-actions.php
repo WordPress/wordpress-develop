@@ -3005,11 +3005,7 @@ function wp_ajax_query_themes() {
 function wp_ajax_parse_embed() {
 	global $post, $wp_embed;
 
-	if ( ! $post = get_post( (int) $_POST['post_ID'] ) ) {
-		wp_send_json_error();
-	}
-
-	if ( empty( $_POST['shortcode'] ) || ! current_user_can( 'edit_post', $post->ID ) ) {
+	if ( empty( $_POST['shortcode'] ) || ! current_user_can( 'edit_posts' ) ) {
 		wp_send_json_error();
 	}
 
@@ -3026,7 +3022,10 @@ function wp_ajax_parse_embed() {
 	}
 
 	$parsed = false;
-	setup_postdata( $post );
+
+	if ( (int) $_POST['post_ID'] && $post = get_post( (int) $_POST['post_ID'] ) ) {
+		setup_postdata( $post );
+	}
 
 	$wp_embed->return_false_on_fail = true;
 
