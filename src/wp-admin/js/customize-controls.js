@@ -751,6 +751,57 @@
 	};
 
 	/**
+	 * Highlight the existence of a button.
+	 *
+	 * This function reminds the user of a button represented by the specified
+	 * UI element, after an optional delay. If the user focuses the element
+	 * before the delay passes, the reminder is canceled.
+	 *
+	 * @since 4.9.0
+	 *
+	 * @param {jQuery} button - The element to highlight.
+	 * @param {object} [options] - Options.
+	 * @param {number} [options.delay=0] - Delay in milliseconds.
+	 * @param {jQuery} [options.focusTarget] - A target for user focus that defaults to the highlighted element.
+	 *                                         If the user focuses the target before the delay passes, the reminder
+	 *                                         is canceled. This option exists to accommodate compound buttons
+	 *                                         containing auxiliary UI, such as the Publish button augmented with a
+	 *                                         Settings button.
+	 * @returns {Function} An idempotent function that cancels the reminder.
+	 */
+	api.utils.highlightButton = function highlightButton( button, options ) {
+		var animationClass = 'button-see-me',
+			canceled = false,
+			params;
+
+		params = _.extend(
+			{
+				delay: 0,
+				focusTarget: button
+			},
+			options
+		);
+
+		function cancelReminder() {
+			canceled = true;
+		}
+
+		// Remove animation class in case it was already applied.
+		button.removeClass( animationClass );
+
+		params.focusTarget.on( 'focusin', cancelReminder );
+		setTimeout( function() {
+			params.focusTarget.off( 'focusin', cancelReminder );
+
+			if ( ! canceled ) {
+				button.addClass( animationClass );
+			}
+		}, params.delay );
+
+		return cancelReminder;
+	};
+
+	/**
 	 * Get current timestamp adjusted for server clock time.
 	 *
 	 * Same functionality as the `current_time( 'mysql', false )` function in PHP.
@@ -1799,21 +1850,29 @@
 
 			// Toggle feature filters.
 			section.contentContainer.on( 'click', '.feature-filter-toggle', function( e ) {
-				$( e.currentTarget )
+				var $themeContainer = $( '.customize-themes-full-container' ),
+					$filterToggle = $( e.currentTarget );
+				section.filtersHeight = $filterToggle.parent().next( '.filter-drawer' ).height();
+
+				if ( 0 < $themeContainer.scrollTop() ) {
+					$themeContainer.animate( { scrollTop: 0 }, 400 );
+
+					if ( $filterToggle.hasClass( 'open' ) ) {
+						return;
+					}
+				}
+
+				$filterToggle
 					.toggleClass( 'open' )
 					.attr( 'aria-expanded', function( i, attr ) {
 						return 'true' === attr ? 'false' : 'true';
 					})
-					.next( '.filter-drawer' ).slideToggle( 180, 'linear', function() {
-						if ( 0 === section.filtersHeight ) {
-							section.filtersHeight = $( this ).height();
+					.parent().next( '.filter-drawer' ).slideToggle( 180, 'linear' );
 
-							// First time, so it's opened.
-							section.contentContainer.find( '.themes' ).css( 'margin-top', section.filtersHeight + 76 );
-						}
-					});
-				if ( $( e.currentTarget ).hasClass( 'open' ) ) {
-					section.contentContainer.find( '.themes' ).css( 'margin-top', section.filtersHeight + 76 );
+				if ( $filterToggle.hasClass( 'open' ) ) {
+					var marginOffset = 1018 < window.innerWidth ? 50 : 76;
+
+					section.contentContainer.find( '.themes' ).css( 'margin-top', section.filtersHeight + marginOffset );
 				} else {
 					section.contentContainer.find( '.themes' ).css( 'margin-top', 0 );
 				}
@@ -3303,7 +3362,7 @@
 		},
 
 		initialize: function( id, options ) {
-			var control = this, deferredSettingIds = [], settings, gatherSettings, standardTypes;
+			var control = this, deferredSettingIds = [], settings, gatherSettings;
 
 			control.params = _.extend( {}, control.defaults );
 
@@ -3342,30 +3401,8 @@
 				control.container = $( control.selector ); // Likely dead, per above. See #28709.
 			}
 
-			standardTypes = [
-				'button',
-				'checkbox',
-				'date',
-				'datetime-local',
-				'email',
-				'month',
-				'number',
-				'password',
-				'radio',
-				'range',
-				'search',
-				'select',
-				'tel',
-				'time',
-				'text',
-				'textarea',
-				'week',
-				'url'
-			];
 			if ( control.params.templateId ) {
 				control.templateSelector = control.params.templateId;
-			} else if ( _.contains( standardTypes, control.params.type ) && control.container.is( ':empty' ) ) {
-				control.templateSelector = 'customize-control-default-content';
 			} else {
 				control.templateSelector = 'customize-control-' + control.params.type + '-content';
 			}
@@ -3827,12 +3864,39 @@
 		 * @since 4.1.0
 		 */
 		renderContent: function () {
-			var template,
-				control = this;
+			var control = this, template, standardTypes, templateId;
+
+			standardTypes = [
+				'button',
+				'checkbox',
+				'date',
+				'datetime-local',
+				'email',
+				'month',
+				'number',
+				'password',
+				'radio',
+				'range',
+				'search',
+				'select',
+				'tel',
+				'time',
+				'text',
+				'textarea',
+				'week',
+				'url'
+			];
+
+			templateId = control.templateSelector;
+
+			// Use default content template when a standard HTML type is used and there isn't a more specific template existing.
+			if ( templateId === 'customize-control-' + control.params.type + '-content' && _.contains( standardTypes, control.params.type ) && ! document.getElementById( 'tmpl-' + templateId ) ) {
+				templateId = 'customize-control-default-content';
+			}
 
 			// Replace the container element's content with the control.
-			if ( 0 !== $( '#tmpl-' + control.templateSelector ).length ) {
-				template = wp.template( control.templateSelector );
+			if ( document.getElementById( 'tmpl-' + templateId ) ) {
+				template = wp.template( templateId );
 				if ( template && control.container ) {
 					control.container.html( template( control.params ) );
 				}
@@ -6830,13 +6894,13 @@
 
 		// Set up publish settings section and its controls.
 		api.section( 'publish_settings', function( section ) {
-			var updateButtonsState, trashControl, updateSectionActive, isSectionActive, statusControl, dateControl, toggleDateControl, publishWhenTime, pollInterval, updateTimeArrivedPoller, timeArrivedPollingInterval = 1000;
+			var updateButtonsState, trashControl, updateSectionActive, isSectionActive, statusControl, dateControl, toggleDateControl, publishWhenTime, pollInterval, updateTimeArrivedPoller, cancelScheduleButtonReminder, timeArrivedPollingInterval = 1000;
 
 			trashControl = new api.Control( 'trash_changeset', {
 				type: 'button',
 				section: section.id,
 				priority: 30,
-				inputAttrs: {
+				input_attrs: {
 					'class': 'button-link button-link-delete',
 					value: api.l10n.discardChanges
 				}
@@ -6892,6 +6956,26 @@
 			updateButtonsState();
 			section.active.bind( updateButtonsState );
 
+			function highlightScheduleButton() {
+				if ( ! cancelScheduleButtonReminder ) {
+					cancelScheduleButtonReminder = api.utils.highlightButton( btnWrapper, {
+						delay: 1000,
+
+						// Only abort the reminder when the save button is focused.
+						// If the user clicks the settings button to toggle the
+						// settings closed, we'll still remind them.
+						focusTarget: saveBtn
+					} );
+				}
+			}
+			function cancelHighlightScheduleButton() {
+				if ( cancelScheduleButtonReminder ) {
+					cancelScheduleButtonReminder();
+					cancelScheduleButtonReminder = null;
+				}
+			}
+			api.state( 'selectedChangesetStatus' ).bind( cancelHighlightScheduleButton );
+
 			section.contentContainer.find( '.customize-action' ).text( api.l10n.updating );
 			section.contentContainer.find( '.customize-section-back' ).removeAttr( 'tabindex' );
 			publishSettingsBtn.prop( 'disabled', false );
@@ -6904,6 +6988,14 @@
 			section.expanded.bind( function( isExpanded ) {
 				publishSettingsBtn.attr( 'aria-expanded', String( isExpanded ) );
 				publishSettingsBtn.toggleClass( 'active', isExpanded );
+
+				if ( isExpanded ) {
+					cancelHighlightScheduleButton();
+				} else if ( api.state( 'selectedChangesetStatus' ).get() !== api.state( 'changesetStatus' ).get() ) {
+					highlightScheduleButton();
+				} else if ( 'future' === api.state( 'selectedChangesetStatus' ).get() && api.state( 'selectedChangesetDate' ).get() !== api.state( 'changesetDate' ).get() ) {
+					highlightScheduleButton();
+				}
 			} );
 
 			statusControl = new api.Control( 'changeset_status', {
@@ -7561,8 +7653,6 @@
 			state.bind( 'change', function() {
 				var canSave;
 
-				btnWrapper.removeClass( 'button-see-me' );
-
 				if ( ! activated() ) {
 					saveBtn.val( api.l10n.activate );
 					closeBtn.find( '.screen-reader-text' ).text( api.l10n.cancel );
@@ -7586,12 +7676,10 @@
 						if ( saved() && selectedChangesetStatus() === changesetStatus() ) {
 							if ( changesetDate.get() !== selectedChangesetDate.get() ) {
 								saveBtn.val( api.l10n.schedule );
-								btnWrapper.addClass( 'button-see-me' );
 							} else {
 								saveBtn.val( api.l10n.scheduled );
 							}
 						} else {
-							btnWrapper.addClass( 'button-see-me' );
 							saveBtn.val( api.l10n.schedule );
 						}
 					} else if ( ! api.settings.changeset.currentUserCanPublish ) {

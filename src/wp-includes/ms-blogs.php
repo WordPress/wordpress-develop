@@ -636,7 +636,8 @@ function update_site_cache( $sites ) {
  *                                           Default empty array.
  *     @type bool         $update_site_cache Whether to prime the cache for found sites. Default true.
  * }
- * @return array|int List of sites, or number of sites when 'count' is passed as a query var.
+ * @return array|int List of WP_Site objects, a list of site ids when 'fields' is set to 'ids',
+ *                   or the number of sites when 'count' is passed as a query var.
  */
 function get_sites( $args = array() ) {
 	$query = new WP_Site_Query();
@@ -1115,7 +1116,8 @@ function get_last_updated( $deprecated = '', $start = 0, $quantity = 40 ) {
  *
  * @param string|array $args Optional. Array or string of arguments. See WP_Network_Query::parse_query()
  *                           for information on accepted arguments. Default empty array.
- * @return int|array List of networks or number of found networks if `$count` argument is true.
+ * @return array|int List of WP_Network objects, a list of network ids when 'fields' is set to 'ids',
+ *                   or the number of networks when 'count' is passed as a query var.
  */
 function get_networks( $args = array() ) {
 	$query = new WP_Network_Query();
