@@ -97,6 +97,30 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		'initial_db_version' => get_site_option( 'initial_db_version' ),
 	);
 
+	/**
+	 * Filter the query arguments sent as part of the core version check.
+	 *
+	 * WARNING: Changing this data may result in your site not receiving security updates.
+	 * Please exercise extreme caution.
+	 *
+	 * @since 4.9.0
+	 *
+	 * @param array $query {
+	 *     Version check query arguments. 
+	 *
+	 *     @type string $version            WordPress version number.
+	 *     @type string $php                PHP version number.
+	 *     @type string $locale             The locale to retrieve updates for.
+	 *     @type string $mysql              MySQL version number.
+	 *     @type string $local_package      The value of the $wp_local_package global, when set.
+	 *     @type int    $blogs              Number of sites on this WordPress installation.
+	 *     @type int    $users              Number of users on this WordPress installation.
+	 *     @type int    $multisite_enabled  Whether this WordPress installation uses Multisite.
+	 *     @type int    $initial_db_version Database version of WordPress at time of installation.
+	 * }
+	 */
+	$query = apply_filters( 'core_version_check_query_args', $query );
+
 	$post_body = array(
 		'translations' => wp_json_encode( $translations ),
 	);

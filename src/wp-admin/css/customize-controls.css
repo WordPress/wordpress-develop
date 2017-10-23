@@ -1675,6 +1675,12 @@ p.customize-section-description {
 	margin-right: 12px;
 }
 
+.theme-browser .theme.active .theme-actions,
+.wp-customizer .theme-browser .theme .theme-actions {
+	padding: 10px 15px;
+	box-shadow: inset 0 1px 0 rgba(0,0,0,0.1);
+}
+
 @media screen and ( max-width: 640px ) {
 	.customize-section-description-container + #customize-control-custom_css:last-child {
 		margin-right: 0;
@@ -2098,21 +2104,6 @@ p.customize-section-description {
 	font-size: 15px;
 }
 
-.theme-id-container {
-	position: relative;
-}
-
-.theme-browser .theme.active .theme-actions,
-.wp-customizer .theme-browser .theme .theme-actions {
-	position: absolute;
-	top: 50%;
-	-webkit-transform: translateY(-50%);
-	transform: translateY(-50%);
-	right: 0;
-	padding: 10px 15px;
-	box-shadow: inset 0 1px 0 rgba(0,0,0,0.1);
-}
-
 #customize-controls .theme-overlay .theme-name {
 	font-size: 32px;
 }
@@ -2315,6 +2306,10 @@ p.customize-section-description {
 .wp-customizer.modal-open .control-panel-themes .filter-themes-count,
 .wp-customizer.modal-open .control-panel-themes .customize-themes-section-title.selected:after {
 	z-index: -1;
+}
+
+.wp-full-overlay.in-themes-panel.themes-panel-expanded #customize-controls .wp-full-overlay-sidebar-content {
+	overflow: visible;
 }
 
 .wp-customizer .theme-overlay .theme-backdrop {
@@ -3036,5 +3031,13 @@ body.adding-widget .add-new-widget:before,
 	.wp-customizer .theme-browser .theme .theme-actions {
 		padding: 9px 15px;
 		box-shadow: inset 0 1px 0 rgba(0,0,0,0.1);
+	}
+}
+
+@media screen and ( max-width: 600px ) {
+	.theme-browser .theme.active .theme-actions,
+	.wp-customizer .theme-browser .theme .theme-actions {
+		padding: 8px 15px;
+		box-shadow: none;
 	}
 }

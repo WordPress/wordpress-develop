@@ -786,15 +786,19 @@
 			canceled = true;
 		}
 
-		// Remove animation class in case it was already applied.
-		button.removeClass( animationClass );
-
 		params.focusTarget.on( 'focusin', cancelReminder );
 		setTimeout( function() {
 			params.focusTarget.off( 'focusin', cancelReminder );
 
 			if ( ! canceled ) {
 				button.addClass( animationClass );
+				button.one( 'animationend', function() {
+					/*
+					 * Remove animation class to avoid situations in Customizer where
+					 * DOM nodes are moved (re-inserted) and the animation repeats.
+					 */
+					button.removeClass( animationClass );
+				} );
 			}
 		}, params.delay );
 
@@ -3065,13 +3069,17 @@
 					.addClass( 'in-themes-panel' )
 					.delay( 200 ).find( '.customize-themes-full-container' ).addClass( 'animate' );
 
+				_.delay( function() {
+					overlay.addClass( 'themes-panel-expanded' );
+				}, 200 );
+
 				// Automatically open the installed themes section (except on small screens).
 				if ( 600 < window.innerWidth ) {
 					api.section( 'installed_themes' ).expand();
 				}
 			} else {
 				overlay
-					.removeClass( 'in-themes-panel' )
+					.removeClass( 'in-themes-panel themes-panel-expanded' )
 					.find( '.customize-themes-full-container' ).removeClass( 'animate' );
 			}
 		},
@@ -3333,23 +3341,6 @@
 	 *
 	 * @class
 	 * @augments wp.customize.Class
-	 *
-	 * @param {string} id                       - Unique identifier for the control instance.
-	 * @param {object} options                  - Options hash for the control instance.
-	 * @param {object} options.type             - Type of control (e.g. text, radio, dropdown-pages, etc.)
-	 * @param {string} [options.content]        - The HTML content for the control or at least its container. This should normally be left blank and instead supplying a templateId.
-	 * @param {string} [options.templateId]     - Template ID for control's content.
-	 * @param {string} [options.priority=10]    - Order of priority to show the control within the section.
-	 * @param {string} [options.active=true]    - Whether the control is active.
-	 * @param {string} options.section          - The ID of the section the control belongs to.
-	 * @param {mixed}  [options.setting]        - The ID of the main setting or an instance of this setting.
-	 * @param {mixed}  options.settings         - An object with keys (e.g. default) that maps to setting IDs or Setting/Value objects, or an array of setting IDs or Setting/Value objects.
-	 * @param {mixed}  options.settings.default - The ID of the setting the control relates to.
-	 * @param {string} options.settings.data    - @todo Is this used?
-	 * @param {string} options.label            - Label.
-	 * @param {string} options.description      - Description.
-	 * @param {number} [options.instanceNumber] - Order in which this instance was created in relation to other instances.
-	 * @param {object} [options.params]         - Deprecated wrapper for the above properties.
 	 */
 	api.Control = api.Class.extend({
 		defaultActiveArguments: { duration: 'fast', completeCallback: $.noop },
@@ -3361,6 +3352,27 @@
 			priority: 10
 		},
 
+		/**
+		 * Initialize.
+		 *
+		 * @param {string} id                       - Unique identifier for the control instance.
+		 * @param {object} options                  - Options hash for the control instance.
+		 * @param {object} options.type             - Type of control (e.g. text, radio, dropdown-pages, etc.)
+		 * @param {string} [options.content]        - The HTML content for the control or at least its container. This should normally be left blank and instead supplying a templateId.
+		 * @param {string} [options.templateId]     - Template ID for control's content.
+		 * @param {string} [options.priority=10]    - Order of priority to show the control within the section.
+		 * @param {string} [options.active=true]    - Whether the control is active.
+		 * @param {string} options.section          - The ID of the section the control belongs to.
+		 * @param {mixed}  [options.setting]        - The ID of the main setting or an instance of this setting.
+		 * @param {mixed}  options.settings         - An object with keys (e.g. default) that maps to setting IDs or Setting/Value objects, or an array of setting IDs or Setting/Value objects.
+		 * @param {mixed}  options.settings.default - The ID of the setting the control relates to.
+		 * @param {string} options.settings.data    - @todo Is this used?
+		 * @param {string} options.label            - Label.
+		 * @param {string} options.description      - Description.
+		 * @param {number} [options.instanceNumber] - Order in which this instance was created in relation to other instances.
+		 * @param {object} [options.params]         - Deprecated wrapper for the above properties.
+		 * @returns {void}
+		 */
 		initialize: function( id, options ) {
 			var control = this, deferredSettingIds = [], settings, gatherSettings;
 
@@ -3407,9 +3419,9 @@
 				control.templateSelector = 'customize-control-' + control.params.type + '-content';
 			}
 
-			control.deferred = {
+			control.deferred = _.extend( control.deferred || {}, {
 				embedded: new $.Deferred()
-			};
+			} );
 			control.section = new api.Value();
 			control.priority = new api.Value();
 			control.active = new api.Value();
@@ -3889,8 +3901,12 @@
 
 			templateId = control.templateSelector;
 
-			// Use default content template when a standard HTML type is used and there isn't a more specific template existing.
-			if ( templateId === 'customize-control-' + control.params.type + '-content' && _.contains( standardTypes, control.params.type ) && ! document.getElementById( 'tmpl-' + templateId ) ) {
+			// Use default content template when a standard HTML type is used, there isn't a more specific template existing, and the control container is empty.
+			if ( templateId === 'customize-control-' + control.params.type + '-content' &&
+				_.contains( standardTypes, control.params.type ) &&
+				! document.getElementById( 'tmpl-' + templateId ) &&
+				0 === control.container.children().length )
+			{
 				templateId = 'customize-control-default-content';
 			}
 
@@ -5102,6 +5118,22 @@
 	api.CodeEditorControl = api.Control.extend({
 
 		/**
+		 * Initialize.
+		 *
+		 * @since 4.9.0
+		 * @param {string} id      - Unique identifier for the control instance.
+		 * @param {object} options - Options hash for the control instance.
+		 * @returns {void}
+		 */
+		initialize: function( id, options ) {
+			var control = this;
+			control.deferred = _.extend( control.deferred || {}, {
+				codemirror: $.Deferred()
+			} );
+			api.Control.prototype.initialize.call( control, id, options );
+		},
+
+		/**
 		 * Initialize the editor when the containing section is ready and expanded.
 		 *
 		 * @since 4.9.0
@@ -5140,15 +5172,43 @@
 		 * @returns {void}
 		 */
 		initEditor: function() {
-			var control = this, element;
+			var control = this, element, editorSettings = false;
+
+			// Obtain editorSettings for instantiation.
+			if ( wp.codeEditor && ( _.isUndefined( control.params.editor_settings ) || false !== control.params.editor_settings ) ) {
+
+				// Obtain default editor settings.
+				editorSettings = wp.codeEditor.defaultSettings ? _.clone( wp.codeEditor.defaultSettings ) : {};
+				editorSettings.codemirror = _.extend(
+					{},
+					editorSettings.codemirror,
+					{
+						indentUnit: 2,
+						tabSize: 2
+					}
+				);
+
+				// Merge editor_settings param on top of defaults.
+				if ( _.isObject( control.params.editor_settings ) ) {
+					_.each( control.params.editor_settings, function( value, key ) {
+						if ( _.isObject( value ) ) {
+							editorSettings[ key ] = _.extend(
+								{},
+								editorSettings[ key ],
+								value
+							);
+						}
+					} );
+				}
+			}
 
 			element = new api.Element( control.container.find( 'textarea' ) );
 			control.elements.push( element );
 			element.sync( control.setting );
 			element.set( control.setting() );
 
-			if ( control.params.editor_settings ) {
-				control.initSyntaxHighlightingEditor( control.params.editor_settings );
+			if ( editorSettings ) {
+				control.initSyntaxHighlightingEditor( editorSettings );
 			} else {
 				control.initPlainTextareaEditor();
 			}
@@ -5232,6 +5292,8 @@
 					event.stopPropagation();
 				}
 			});
+
+			control.deferred.codemirror.resolveWith( control, [ control.editor.codemirror ] );
 		},
 
 		/**
@@ -5340,6 +5402,8 @@
 				event.stopPropagation();
 				event.preventDefault();
 			});
+
+			control.deferred.codemirror.rejectWith( control );
 		}
 	});
 
@@ -5733,6 +5797,8 @@
 			api.bind( 'ready', control.updatePreviewLink );
 			api.state( 'saved' ).bind( control.updatePreviewLink );
 			api.state( 'changesetStatus' ).bind( control.updatePreviewLink );
+			api.state( 'activated' ).bind( control.updatePreviewLink );
+			api.previewer.previewUrl.bind( control.updatePreviewLink );
 
 			button.element.on( 'click', function( event ) {
 				event.preventDefault();
@@ -6986,12 +7052,21 @@
 			} );
 
 			section.expanded.bind( function( isExpanded ) {
+				var defaultChangesetStatus;
 				publishSettingsBtn.attr( 'aria-expanded', String( isExpanded ) );
 				publishSettingsBtn.toggleClass( 'active', isExpanded );
 
 				if ( isExpanded ) {
 					cancelHighlightScheduleButton();
-				} else if ( api.state( 'selectedChangesetStatus' ).get() !== api.state( 'changesetStatus' ).get() ) {
+					return;
+				}
+
+				defaultChangesetStatus = api.state( 'changesetStatus' ).get();
+				if ( '' === defaultChangesetStatus || 'auto-draft' === defaultChangesetStatus ) {
+					defaultChangesetStatus = 'publish';
+				}
+
+				if ( api.state( 'selectedChangesetStatus' ).get() !== defaultChangesetStatus ) {
 					highlightScheduleButton();
 				} else if ( 'future' === api.state( 'selectedChangesetStatus' ).get() && api.state( 'selectedChangesetDate' ).get() !== api.state( 'changesetDate' ).get() ) {
 					highlightScheduleButton();
@@ -7513,18 +7588,23 @@
 			 * @return {string} Preview url.
 			 */
 			getFrontendPreviewUrl: function() {
-				var previewer = this,
-					a = document.createElement( 'a' ),
-					params = {};
+				var previewer = this, params, urlParser;
+				urlParser = document.createElement( 'a' );
+				urlParser.href = previewer.previewUrl.get();
+				params = api.utils.parseQueryString( urlParser.search.substr( 1 ) );
 
 				if ( api.state( 'changesetStatus' ).get() && 'publish' !== api.state( 'changesetStatus' ).get() ) {
 					params.customize_changeset_uuid = api.settings.changeset.uuid;
 				}
+				if ( ! api.state( 'activated' ).get() ) {
+					params.customize_theme = api.settings.theme.stylesheet;
+				}
+				if ( api.settings.changeset.autosaved || ! api.state( 'saved' ).get() ) {
+					params.customize_autosaved = 'on';
+				}
 
-				a.href = previewer.previewUrl();
-				a.search = $.param( params );
-
-				return a.href;
+				urlParser.search = $.param( params );
+				return urlParser.href;
 			}
 		});
 
@@ -7562,20 +7642,23 @@
 
 		// Create Panels
 		$.each( api.settings.panels, function ( id, data ) {
-			var Constructor = api.panelConstructor[ data.type ] || api.Panel;
-			api.panel.add( new Constructor( id, data ) );
+			var Constructor = api.panelConstructor[ data.type ] || api.Panel, options;
+			options = _.extend( { params: data }, data ); // Inclusion of params alias is for back-compat for custom panels that expect to augment this property.
+			api.panel.add( new Constructor( id, options ) );
 		});
 
 		// Create Sections
 		$.each( api.settings.sections, function ( id, data ) {
-			var Constructor = api.sectionConstructor[ data.type ] || api.Section;
-			api.section.add( new Constructor( id, data ) );
+			var Constructor = api.sectionConstructor[ data.type ] || api.Section, options;
+			options = _.extend( { params: data }, data ); // Inclusion of params alias is for back-compat for custom sections that expect to augment this property.
+			api.section.add( new Constructor( id, options ) );
 		});
 
 		// Create Controls
 		$.each( api.settings.controls, function( id, data ) {
-			var Constructor = api.controlConstructor[ data.type ] || api.Control;
-			api.control.add( new Constructor( id, data ) );
+			var Constructor = api.controlConstructor[ data.type ] || api.Control, options;
+			options = _.extend( { params: data }, data ); // Inclusion of params alias is for back-compat for custom controls that expect to augment this property.
+			api.control.add( new Constructor( id, options ) );
 		});
 
 		// Focus the autofocused element
@@ -8479,6 +8562,7 @@
 			var isInsideIframe = false;
 
 			function isCleanState() {
+				var defaultChangesetStatus;
 
 				/*
 				 * Handle special case of previewing theme switch since some settings (for nav menus and widgets)
@@ -8486,6 +8570,20 @@
 				 */
 				if ( ! api.state( 'activated' ).get() ) {
 					return 0 === api._latestRevision;
+				}
+
+				// Dirty if the changeset status has been changed but not saved yet.
+				defaultChangesetStatus = api.state( 'changesetStatus' ).get();
+				if ( '' === defaultChangesetStatus || 'auto-draft' === defaultChangesetStatus ) {
+					defaultChangesetStatus = 'publish';
+				}
+				if ( api.state( 'selectedChangesetStatus' ).get() !== defaultChangesetStatus ) {
+					return false;
+				}
+
+				// Dirty if scheduled but the changeset date hasn't been saved yet.
+				if ( 'future' === api.state( 'selectedChangesetStatus' ).get() && api.state( 'selectedChangesetDate' ).get() !== api.state( 'changesetDate' ).get() ) {
+					return false;
 				}
 
 				return api.state( 'saved' ).get() && 'auto-draft' !== api.state( 'changesetStatus' ).get();
@@ -8501,6 +8599,8 @@
 
 			function startPromptingBeforeUnload() {
 				api.unbind( 'change', startPromptingBeforeUnload );
+				api.state( 'selectedChangesetStatus' ).unbind( startPromptingBeforeUnload );
+				api.state( 'selectedChangesetDate' ).unbind( startPromptingBeforeUnload );
 
 				// Prompt user with AYS dialog if leaving the Customizer with unsaved changes
 				$( window ).on( 'beforeunload.customize-confirm', function() {
@@ -8513,6 +8613,8 @@
 				});
 			}
 			api.bind( 'change', startPromptingBeforeUnload );
+			api.state( 'selectedChangesetStatus' ).bind( startPromptingBeforeUnload );
+			api.state( 'selectedChangesetDate' ).bind( startPromptingBeforeUnload );
 
 			function requestClose() {
 				var clearedToClose = $.Deferred(), dismissAutoSave = false, dismissLock = false;
@@ -8798,6 +8900,9 @@
 			// Set up the section description behaviors.
 			sectionReady.done( function setupSectionDescription( section ) {
 				var control = api.control( 'custom_css' );
+
+				// Hide redundant label for visual users.
+				control.container.find( '.customize-control-title:first' ).addClass( 'screen-reader-text' );
 
 				// Close the section description when clicking the close button.
 				section.container.find( '.section-description-buttons .section-description-close' ).on( 'click', function() {
