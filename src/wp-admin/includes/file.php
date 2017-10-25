@@ -653,17 +653,17 @@ function wp_tempnam( $filename = '', $dir = '' ) {
 }
 
 /**
- * Make sure that the file that was requested to edit, is allowed to be edited
+ * Makes sure that the file that was requested to be edited is allowed to be edited.
  *
- * Function will die if you are not allowed to edit the file
+ * Function will die if you are not allowed to edit the file.
  *
  * @since 1.5.0
  *
- * @param string $file file the users is attempting to edit
- * @param array $allowed_files Array of allowed files to edit, $file must match an entry exactly
+ * @param string $file          File the user is attempting to edit.
+ * @param array  $allowed_files Optional. Array of allowed files to edit, $file must match an entry exactly.
  * @return string|null
  */
-function validate_file_to_edit( $file, $allowed_files = '' ) {
+function validate_file_to_edit( $file, $allowed_files = array() ) {
 	$code = validate_file( $file, $allowed_files );
 
 	if (!$code )
@@ -1119,8 +1119,9 @@ function _unzip_file_ziparchive($file, $to, $needed_dirs = array() ) {
 		if ( '__MACOSX/' === substr($info['name'], 0, 9) ) // Skip the OS X-created __MACOSX directory
 			continue;
 
+		// Don't extract invalid files:
 		if ( 0 !== validate_file( $info['name'] ) ) {
-			return new WP_Error( 'invalid_file_ziparchive', __( 'Could not extract file from archive.' ), $info['name'] );
+			continue;
 		}
 
 		$uncompressed_size += $info['size'];
@@ -1179,6 +1180,11 @@ function _unzip_file_ziparchive($file, $to, $needed_dirs = array() ) {
 
 		if ( '__MACOSX/' === substr($info['name'], 0, 9) ) // Don't extract the OS X-created __MACOSX directory files
 			continue;
+
+		// Don't extract invalid files:
+		if ( 0 !== validate_file( $info['name'] ) ) {
+			continue;
+		}
 
 		$contents = $z->getFromIndex($i);
 		if ( false === $contents )
@@ -1283,8 +1289,9 @@ function _unzip_file_pclzip($file, $to, $needed_dirs = array()) {
 		if ( '__MACOSX/' === substr($file['filename'], 0, 9) ) // Don't extract the OS X-created __MACOSX directory files
 			continue;
 
+		// Don't extract invalid files:
 		if ( 0 !== validate_file( $file['filename'] ) ) {
-			return new WP_Error( 'invalid_file_pclzip', __( 'Could not extract file from archive.' ), $file['filename'] );
+			continue;
 		}
 
 		if ( ! $wp_filesystem->put_contents( $to . $file['filename'], $file['content'], FS_CHMOD_FILE) )

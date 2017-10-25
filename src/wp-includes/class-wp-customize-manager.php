@@ -4609,14 +4609,23 @@ final class WP_Customize_Manager {
 			'previewableDevices' => $this->get_previewable_devices(),
 			'l10n' => array(
 				'confirmDeleteTheme' => __( 'Are you sure you want to delete this theme?' ),
-				/* translators: %d is the number of theme search results, which cannot currently consider singular vs. plural forms */
+				/* translators: %d: number of theme search results, which cannot currently consider singular vs. plural forms */
 				'themeSearchResults' => __( '%d themes found' ),
-				/* translators: %d is the number of themes being displayed, which cannot currently consider singular vs. plural forms */
+				/* translators: %d: number of themes being displayed, which cannot currently consider singular vs. plural forms */
 				'announceThemeCount' => __( 'Displaying %d themes' ),
-				/* translators: %s is the theme name */
+				/* translators: %s: theme name */
 				'announceThemeDetails' => __( 'Showing details for theme: %s' ),
 			),
 		);
+
+		// Temporarily disable installation in Customizer. See #42184.
+		$filesystem_method = get_filesystem_method();
+		ob_start();
+		$filesystem_credentials_are_stored = request_filesystem_credentials( self_admin_url() );
+		ob_end_clean();
+		if ( 'direct' !== $filesystem_method && ! $filesystem_credentials_are_stored ) {
+			$settings['theme']['_filesystemCredentialsNeeded'] = true;
+		}
 
 		// Prepare Customize Section objects to pass to JavaScript.
 		foreach ( $this->sections() as $id => $section ) {
