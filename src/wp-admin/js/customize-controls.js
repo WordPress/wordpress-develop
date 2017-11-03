@@ -2549,11 +2549,24 @@
 		 * @returns {void}
 		 */
 		showDetails: function ( theme, callback ) {
-			var section = this;
+			var section = this, panel = api.panel( 'themes' );
 			section.currentTheme = theme.id;
 			section.overlay.html( section.template( theme ) )
 				.fadeIn( 'fast' )
 				.focus();
+
+			function disableSwitchButtons() {
+				return ! panel.canSwitchTheme( theme.id );
+			}
+
+			// Temporary special function since supplying SFTP credentials does not work yet. See #42184.
+			function disableInstallButtons() {
+				return disableSwitchButtons() || true === api.settings.theme._filesystemCredentialsNeeded;
+			}
+
+			section.overlay.find( 'button.preview, button.preview-theme' ).toggleClass( 'disabled', disableSwitchButtons() );
+			section.overlay.find( 'button.theme-install' ).toggleClass( 'disabled', disableInstallButtons() );
+
 			section.$body.addClass( 'modal-open' );
 			section.containFocus( section.overlay );
 			section.updateLimits();
@@ -3031,6 +3044,21 @@
 		},
 
 		/**
+		 * Determine whether a given theme can be switched to, or in general.
+		 *
+		 * @since 4.9.0
+		 *
+		 * @param {string} [slug] - Theme slug.
+		 * @returns {boolean} Whether the theme can be switched to.
+		 */
+		canSwitchTheme: function canSwitchTheme( slug ) {
+			if ( slug && slug === api.settings.theme.stylesheet ) {
+				return true;
+			}
+			return 'publish' === api.state( 'selectedChangesetStatus' ).get() && ( '' === api.state( 'changesetStatus' ).get() || 'auto-draft' === api.state( 'changesetStatus' ).get() );
+		},
+
+		/**
 		 * Attach events.
 		 *
 		 * @since 4.9.0
@@ -3052,7 +3080,7 @@
 			}
 
 			function toggleDisabledNotifications() {
-				if ( 'publish' === api.state( 'selectedChangesetStatus' ).get() ) {
+				if ( panel.canSwitchTheme() ) {
 					panel.notifications.remove( 'theme_switch_unavailable' );
 				} else {
 					panel.notifications.add( new api.Notification( 'theme_switch_unavailable', {
@@ -3063,6 +3091,7 @@
 			}
 			toggleDisabledNotifications();
 			api.state( 'selectedChangesetStatus' ).bind( toggleDisabledNotifications );
+			api.state( 'changesetStatus' ).bind( toggleDisabledNotifications );
 
 			// Collapse panel to customize the current theme.
 			panel.contentContainer.on( 'click', '.customize-theme', function() {
@@ -3173,7 +3202,7 @@
 			}
 
 			// Prevent loading a non-active theme preview when there is a drafted/scheduled changeset.
-			if ( 'publish' !== api.state( 'selectedChangesetStatus' ).get() && slug !== api.settings.theme.stylesheet ) {
+			if ( panel.canSwitchTheme( slug ) ) {
 				deferred.reject({
 					errorCode: 'theme_switch_unavailable'
 				});
@@ -3266,10 +3295,10 @@
 		 * @returns {jQuery.promise} Promise.
 		 */
 		loadThemePreview: function( themeId ) {
-			var deferred = $.Deferred(), onceProcessingComplete, urlParser, queryParams;
+			var panel = this, deferred = $.Deferred(), onceProcessingComplete, urlParser, queryParams;
 
 			// Prevent loading a non-active theme preview when there is a drafted/scheduled changeset.
-			if ( 'publish' !== api.state( 'selectedChangesetStatus' ).get() && themeId !== api.settings.theme.stylesheet ) {
+			if ( ! panel.canSwitchTheme( themeId ) ) {
 				return deferred.reject().promise();
 			}
 
@@ -5089,25 +5118,23 @@
 		 * @since 4.2.0
 		 */
 		ready: function() {
-			var control = this;
+			var control = this, panel = api.panel( 'themes' );
 
 			function disableSwitchButtons() {
-				return 'publish' !== api.state( 'selectedChangesetStatus' ).get() && control.params.theme.id !== api.settings.theme.stylesheet;
+				return ! panel.canSwitchTheme( control.params.theme.id );
 			}
 
 			// Temporary special function since supplying SFTP credentials does not work yet. See #42184.
 			function disableInstallButtons() {
 				return disableSwitchButtons() || true === api.settings.theme._filesystemCredentialsNeeded;
 			}
-			function updateButtons( container ) {
-				var _container = container || control.container;
-				_container.find( 'button.preview, button.preview-theme' ).toggleClass( 'disabled', disableSwitchButtons() );
-				_container.find( 'button.theme-install' ).toggleClass( 'disabled', disableInstallButtons() );
+			function updateButtons() {
+				control.container.find( 'button.preview, button.preview-theme' ).toggleClass( 'disabled', disableSwitchButtons() );
+				control.container.find( 'button.theme-install' ).toggleClass( 'disabled', disableInstallButtons() );
 			}
 
-			api.state( 'selectedChangesetStatus' ).bind( function() {
-				updateButtons();
-			});
+			api.state( 'selectedChangesetStatus' ).bind( updateButtons );
+			api.state( 'changesetStatus' ).bind( updateButtons );
 			updateButtons();
 
 			control.container.on( 'touchmove', '.theme', function() {
@@ -5134,7 +5161,6 @@
 				event.preventDefault(); // Keep this AFTER the key filter above
 				section = api.section( control.section() );
 				section.showDetails( control.params.theme, function() {
-					updateButtons( section.overlay.find( '.theme-actions' ) );
 
 					// Temporary special function since supplying SFTP credentials does not work yet. See #42184.
 					if ( api.settings.theme._filesystemCredentialsNeeded ) {
@@ -5577,6 +5603,13 @@
 						control.notifications.remove( 'invalid_date' );
 					}
 				} ) );
+
+				// Add zero-padding when blurring field.
+				input.on( 'blur', _.debounce( function() {
+					if ( ! control.invalidDate ) {
+						control.populateDateInputs();
+					}
+				} ) );
 			} );
 
 			control.inputElements.month.bind( control.updateDaysForMonth );
@@ -5822,8 +5855,27 @@
 			}
 
 			_.each( control.inputElements, function( element, component ) {
-				if ( 'meridian' === component || parseInt( parsed[ component ], 10 ) !== parseInt( element(), 10 ) ) {
-					element.set( parsed[ component ] );
+				var value = parsed[ component ]; // This will be zero-padded string.
+
+				// Set month and meridian regardless of focused state since they are dropdowns.
+				if ( 'month' === component || 'meridian' === component ) {
+
+					// Options in dropdowns are not zero-padded.
+					value = value.replace( /^0/, '' );
+
+					element.set( value );
+				} else {
+
+					value = parseInt( value, 10 );
+					if ( ! element.element.is( document.activeElement ) ) {
+
+						// Populate element with zero-padded value if not focused.
+						element.set( parsed[ component ] );
+					} else if ( value !== parseInt( element(), 10 ) ) {
+
+						// Forcibly update the value if its underlying value changed, regardless of zero-padding.
+						element.set( String( value ) );
+					}
 				}
 			} );
 
