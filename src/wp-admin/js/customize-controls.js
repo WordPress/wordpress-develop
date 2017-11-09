@@ -3202,7 +3202,7 @@
 			}
 
 			// Prevent loading a non-active theme preview when there is a drafted/scheduled changeset.
-			if ( panel.canSwitchTheme( slug ) ) {
+			if ( ! panel.canSwitchTheme( slug ) ) {
 				deferred.reject({
 					errorCode: 'theme_switch_unavailable'
 				});
@@ -3299,7 +3299,10 @@
 
 			// Prevent loading a non-active theme preview when there is a drafted/scheduled changeset.
 			if ( ! panel.canSwitchTheme( themeId ) ) {
-				return deferred.reject().promise();
+				deferred.reject({
+					errorCode: 'theme_switch_unavailable'
+				});
+				return deferred.promise();
 			}
 
 			urlParser = document.createElement( 'a' );
@@ -7775,9 +7778,6 @@
 				if ( ! api.state( 'activated' ).get() ) {
 					params.customize_theme = api.settings.theme.stylesheet;
 				}
-				if ( api.settings.changeset.autosaved || ! api.state( 'saved' ).get() ) {
-					params.customize_autosaved = 'on';
-				}
 
 				urlParser.search = $.param( params );
 				return urlParser.href;
@@ -9191,12 +9191,14 @@
 
 			api.unbind( 'change', startAutosaving ); // Ensure startAutosaving only fires once.
 
-			api.state( 'saved' ).bind( function( isSaved ) {
+			function onChangeSaved( isSaved ) {
 				if ( ! isSaved && ! api.settings.changeset.autosaved ) {
 					api.settings.changeset.autosaved = true; // Once a change is made then autosaving kicks in.
 					api.previewer.send( 'autosaving' );
 				}
-			} );
+			}
+			api.state( 'saved' ).bind( onChangeSaved );
+			onChangeSaved( api.state( 'saved' ).get() );
 
 			/**
 			 * Request changeset update and then re-schedule the next changeset update time.
