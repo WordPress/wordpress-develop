@@ -471,4 +471,71 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		$this->assertSame( $expected, $found2 );
 		$this->assertSame( $expected, $found3 );
 	}
+
+	/**
+	 * The query method should return zero for field as count and parent set.
+	 *
+	 * @ticket 42327
+	 */
+	public function test_query_should_return_zero_for_field_count_and_parent_set() {
+		$post_id = self::factory()->post->create();
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$term_id = self::factory()->term->create( array(
+			'taxonomy' => 'wptests_tax',
+		) );
+		wp_set_object_terms( $post_id, array( $term_id ), 'wptests_tax' );
+
+		$q = new WP_Term_Query();
+		$args = array(
+			'taxonomy' => 'wptests_tax',
+			'parent'   => $term_id,
+			'fields'   => 'count',
+		);
+		$this->assertSame( 0, $q->query( $args ) );
+	}
+
+	/**
+	 * The query method should return zero for field as count and child_of set.
+	 *
+	 * @ticket 42327
+	 */
+	public function test_query_should_return_zero_for_field_as_count_and_child_of_set() {
+		$post_id = self::factory()->post->create();
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$term_id = self::factory()->term->create( array(
+			'taxonomy' => 'wptests_tax',
+		) );
+		wp_set_object_terms( $post_id, array( $term_id ), 'wptests_tax' );
+
+		$q = new WP_Term_Query();
+		$args = array(
+			'taxonomy' => 'wptests_tax',
+			'child_of' => $term_id,
+			'fields'   => 'count',
+		);
+		$this->assertSame( 0, $q->query( $args ) );
+	}
+
+	/**
+	 * The terms property should be an empty array for fields not as count and parent set.
+	 *
+	 * @ticket 42327
+	 */
+	public function test_terms_property_should_be_empty_array_for_field_not_as_count_and_parent_set() {
+		$post_id = self::factory()->post->create();
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$term_id = self::factory()->term->create( array(
+			'taxonomy' => 'wptests_tax',
+		) );
+		wp_set_object_terms( $post_id, array( $term_id ), 'wptests_tax' );
+
+		$q = new WP_Term_Query( array(
+			'taxonomy' => 'wptests_tax',
+			'parent'   => $term_id,
+		) );
+		$this->assertSame( array(), $q->terms );
+	}
 }
