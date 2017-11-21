@@ -791,4 +791,42 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 		$this->assertSame( 'foo', $taxonomy->name );
 	}
+
+	/**
+	 * @ticket 36514
+	 */
+	public function test_edit_post_hierarchical_taxonomy() {
+
+		$taxonomy_name = 'foo';
+		$term_name     = 'bar';
+
+		register_taxonomy( $taxonomy_name, array( 'post' ), array(
+			'hierarchical' => false,
+			'meta_box_cb'  => 'post_categories_meta_box',
+		) );
+		$post = self::factory()->post->create_and_get( array(
+			'post_type' => 'post',
+		) );
+
+		$term_id  = self::factory()->term->create_object( array(
+			'name'     => $term_name,
+			'taxonomy' => $taxonomy_name,
+		) );
+
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		$updated_post_id = edit_post( array(
+			'post_ID'   => $post->ID,
+			'post_type' => 'post',
+			'tax_input' => array(
+				$taxonomy_name => array(
+					(string) $term_id // Cast term_id as string to match whats sent in WP Admin.
+				),
+			),
+		) );
+
+		$terms_obj = get_the_terms( $updated_post_id, $taxonomy_name );
+		$problematic_term = current( wp_list_pluck( $terms_obj, 'name' ) );
+
+		$this->assertEquals( $problematic_term, $term_name );
+	}
 }
