@@ -397,12 +397,12 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 	public function test_json_error_with_status() {
 		$stub = $this->getMockBuilder( 'Spy_REST_Server' )
-		             ->setMethods( array( 'set_status' ) )
-		             ->getMock();
+					->setMethods( array( 'set_status' ) )
+					->getMock();
 
 		$stub->expects( $this->once() )
-		     ->method( 'set_status' )
-		     ->with( $this->equalTo( 400 ) );
+			->method( 'set_status' )
+			->with( $this->equalTo( 400 ) );
 
 		$data = array(
 			'code'    => 'wp-api-test-error',

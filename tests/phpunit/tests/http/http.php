@@ -127,10 +127,10 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			array( 123, array( 'path' => '123' ) ),
 		);
 		/*
-		Untestable edge cases in various PHP:
-		  - ///example.com - Fails in PHP >= 5.4.7, assumed path in <5.4.7
-		  - ://example.com - assumed path in PHP >= 5.4.7, fails in <5.4.7
-		*/
+		 * Untestable edge cases in various PHP:
+		 * - ///example.com - Fails in PHP >= 5.4.7, assumed path in <5.4.7
+		 * - ://example.com - assumed path in PHP >= 5.4.7, fails in <5.4.7
+		 */
 	}
 
 	/**

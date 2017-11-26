@@ -171,7 +171,7 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 			return $editor;
 
 		$resized = $editor->resize( $width, $height, $crop );
-		 if ( is_wp_error( $resized ) )
+		if ( is_wp_error( $resized ) )
 			return $resized;
 
 		$dest_file = $editor->generate_filename();

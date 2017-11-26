@@ -415,7 +415,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 
 		// Expect post ids in the same order as post__in array when order=asc is passed in
 		$this->assertSame( $expected_returned_array, $q->posts );
-	 }
+	}
 
 	/**
 	 * @ticket 39055

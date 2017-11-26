@@ -6,9 +6,9 @@
  * @subpackage REST API
  */
 
- /**
-  * @group restapi
-  */
+/**
+ * @group restapi
+ */
 class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcase {
 
 	public function test_register_routes() {

@@ -129,8 +129,8 @@ require dirname( __FILE__ ) . '/spy-rest-server.php';
  */
 class WP_PHPUnit_Util_Getopt extends PHPUnit_Util_Getopt {
 	protected $longOptions = array(
-	  'exclude-group=',
-	  'group=',
+		'exclude-group=',
+		'group=',
 	);
 	function __construct( $argv ) {
 		array_shift( $argv );

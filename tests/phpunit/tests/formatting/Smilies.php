@@ -104,10 +104,10 @@ class Tests_Formatting_Smilies extends WP_UnitTestCase {
 		$trans_orig = $wpsmiliestrans; // save original translations array
 
 		$wpsmiliestrans = array(
-		  ':PP' => 'icon_tongue.gif',
-		  ':arrow:' => 'icon_arrow.gif',
-		  ':monkey:' => 'icon_shock_the_monkey.gif',
-		  ':nervou:' => 'icon_nervou.gif'
+			':PP' => 'icon_tongue.gif',
+			':arrow:' => 'icon_arrow.gif',
+			':monkey:' => 'icon_shock_the_monkey.gif',
+			':nervou:' => 'icon_nervou.gif'
 		);
 
 		smilies_init();
@@ -258,7 +258,7 @@ class Tests_Formatting_Smilies extends WP_UnitTestCase {
 		$orig_trans = $wpsmiliestrans; // save original tranlations array
 
 		$wpsmiliestrans = array (
-		  ':)' => 'simple-smile.png'
+			':)' => 'simple-smile.png'
 		);
 
 		smilies_init();
@@ -346,13 +346,13 @@ class Tests_Formatting_Smilies extends WP_UnitTestCase {
 	}
 
 
-	 public function _filter_remove_smilies( $wpsmiliestrans ) {
+	public function _filter_remove_smilies( $wpsmiliestrans ) {
 		unset( $wpsmiliestrans[':oops:'] );
 		return $wpsmiliestrans;
-	 }
+	}
 
-	 public function _filter_add_smilies( $wpsmiliestrans ) {
+	public function _filter_add_smilies( $wpsmiliestrans ) {
 		$wpsmiliestrans['<3'] = '\xe2\x9d\xa4';
 		return $wpsmiliestrans;
-	 }
+	}
 }

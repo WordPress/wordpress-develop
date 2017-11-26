@@ -616,10 +616,10 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		// Check to see if a notification email was sent to the post author `test@test.com`.
 		if ( isset( $GLOBALS['phpmailer']->mock_sent ) &&
-		     ! empty( $GLOBALS['phpmailer']->mock_sent ) &&
-		     'test@test.com' == $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] ) {
-			$email_sent_when_comment_added = true;
-			reset_phpmailer_instance();
+			! empty( $GLOBALS['phpmailer']->mock_sent ) &&
+			'test@test.com' == $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] ) {
+				$email_sent_when_comment_added = true;
+				reset_phpmailer_instance();
 		} else {
 			$email_sent_when_comment_added = false;
 		}

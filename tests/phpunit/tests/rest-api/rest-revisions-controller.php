@@ -6,9 +6,9 @@
  * @subpackage REST API
  */
 
- /**
-  * @group restapi
-  */
+/**
+ * @group restapi
+ */
 class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase {
 	protected static $post_id;
 	protected static $page_id;

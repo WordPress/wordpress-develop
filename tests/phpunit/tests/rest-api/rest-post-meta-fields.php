@@ -6,9 +6,9 @@
  * @subpackage REST API
  */
 
- /**
-  * @group restapi
-  */
+/**
+ * @group restapi
+ */
 class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	protected static $wp_meta_keys_saved;
 	protected static $post_id;

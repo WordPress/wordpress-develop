@@ -98,38 +98,38 @@ class Tests_Compat extends WP_UnitTestCase {
 		$heredoc = <<<EOT
 hello world
 EOT;
-		$inputs = array( 
-		/*1*/  0,
-			   1,
-			   12345,
-			   -2345,
-			   // float data
-		/*5*/  10.5,
-			   -10.5,
-			   12.3456789000e10,
-			   12.3456789000E-10,
-			   .5,
-			   // null data
-		/*10*/ NULL,
-			   null,
-			   // boolean data
-		/*12*/ true,
-			   false,
-			   TRUE,
-			   FALSE,
-			   // empty data
-		/*16*/ "",
-			   '',
-			   // string data
-		/*18*/ "string",
-			   'string',
-			   $heredoc,
-			   // object data
-		/*21*/ new classA(),
-			   // undefined data
-		/*22*/ @$undefined_var,
-			   // unset data
-		/*23*/ @$unset_var,
+		$inputs = array(
+			0,
+			1,
+			12345,
+			-2345,
+			// float data
+			10.5,
+			-10.5,
+			12.3456789000e10,
+			12.3456789000E-10,
+			.5,
+			// null data
+			NULL,
+			null,
+			// boolean data
+			true,
+			false,
+			TRUE,
+			FALSE,
+			// empty data
+			"",
+			'',
+			// string data
+			"string",
+			'string',
+			$heredoc,
+			// object data
+			new classA(),
+			// undefined data
+			@$undefined_var,
+			// unset data
+			@$unset_var,
 		);
 		$outputs = array(
 			"0",

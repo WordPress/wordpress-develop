@@ -165,12 +165,12 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$revisions = wp_get_post_revisions( $post_id );
 		$this->assertCount( 1, $revisions );
 		foreach ( $revisions as $revision ) {
-			 $this->assertTrue( user_can( self::$editor_user_id, 'edit_post', $revision->post_parent ) );
+			$this->assertTrue( user_can( self::$editor_user_id, 'edit_post', $revision->post_parent ) );
 		}
 
 		// Author shouldn't be able to restore the revisions
 		foreach ( $revisions as $revision ) {
-			 $this->assertFalse( user_can( self::$author_user_id, 'edit_post', $revision->post_parent ) );
+			$this->assertFalse( user_can( self::$author_user_id, 'edit_post', $revision->post_parent ) );
 		}
 	}
 
@@ -215,12 +215,12 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$this->assertTrue( user_can( self::$editor_user_id, 'read_post', $post_id ) );
 
 		foreach ( $revisions as $revision ) {
-			 $this->assertTrue( user_can( self::$editor_user_id, 'read_post', $revision->ID ) );
+			$this->assertTrue( user_can( self::$editor_user_id, 'read_post', $revision->ID ) );
 		}
 
 		// Author should be able to view the revisions fine
 		foreach ( $revisions as $revision ) {
-			 $this->assertTrue( user_can( self::$author_user_id, 'read_post', $revision->ID ) );
+			$this->assertTrue( user_can( self::$author_user_id, 'read_post', $revision->ID ) );
 		}
 	}
 

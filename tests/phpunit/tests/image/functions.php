@@ -292,7 +292,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->fail( 'jpeg support unavailable' );
 
 		$file = wp_crop_image( DIR_TESTDATA . '/images/canola.jpg',
-							  0, 0, 100, 100, 100, 100 );
+			0, 0, 100, 100, 100, 100 );
 		$this->assertNotInstanceOf( 'WP_Error', $file );
 		$this->assertFileExists( $file );
 		$image = wp_get_image_editor( $file );
@@ -312,8 +312,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		}
 
 		$file = wp_crop_image( 'https://asdftestblog1.files.wordpress.com/2008/04/canola.jpg',
-							  0, 0, 100, 100, 100, 100, false,
-							  DIR_TESTDATA . '/images/' . __FUNCTION__ . '.jpg' );
+			0, 0, 100, 100, 100, 100, false,
+			DIR_TESTDATA . '/images/' . __FUNCTION__ . '.jpg' );
 		$this->assertNotInstanceOf( 'WP_Error', $file );
 		$this->assertFileExists( $file );
 		$image = wp_get_image_editor( $file );
@@ -326,7 +326,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	public function test_wp_crop_image_file_not_exist() {
 		$file = wp_crop_image( DIR_TESTDATA . '/images/canoladoesnotexist.jpg',
-							  0, 0, 100, 100, 100, 100 );
+			0, 0, 100, 100, 100, 100 );
 		$this->assertInstanceOf( 'WP_Error', $file );
 	}
 
@@ -336,7 +336,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		}
 
 		$file = wp_crop_image( 'https://asdftestblog1.files.wordpress.com/2008/04/canoladoesnotexist.jpg',
-							  0, 0, 100, 100, 100, 100 );
+			0, 0, 100, 100, 100, 100 );
 		$this->assertInstanceOf( 'WP_Error', $file );
 	}
 
@@ -352,7 +352,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		add_filter( 'wp_image_editors', array( $this, 'mock_image_editor' ) );
 
 		$file = wp_crop_image( DIR_TESTDATA . '/images/canola.jpg',
-							  0, 0, 100, 100, 100, 100 );
+			0, 0, 100, 100, 100, 100 );
 		$this->assertInstanceOf( 'WP_Error', $file );
 
 		remove_filter( 'wp_image_editors', array( $this, 'mock_image_editor' ) );

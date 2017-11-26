@@ -89,7 +89,7 @@ class Tests_Comment_Last_Modified extends WP_UnitTestCase {
 
 		$this->assertFalse( wp_cache_get( 'lastcommentmodified:server', 'timeinfo' ) );
 		$this->assertSame( strtotime( '2000-01-02 10:00:00' ), strtotime( get_lastcommentmodified() ) );
-		 $this->assertSame( strtotime( '2000-01-02 10:00:00' ), strtotime( wp_cache_get( 'lastcommentmodified:server', 'timeinfo' ) ) );
+		$this->assertSame( strtotime( '2000-01-02 10:00:00' ), strtotime( wp_cache_get( 'lastcommentmodified:server', 'timeinfo' ) ) );
 	}
 
 	public function test_cache_is_cleared_when_comment_is_trashed() {

@@ -7,9 +7,9 @@
  * @subpackage REST API
  */
 
- /**
-  * @group restapi
-  */
+/**
+ * @group restapi
+ */
 class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Testcase {
 	protected static $editor_id;
 

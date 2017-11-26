@@ -131,7 +131,7 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 	/**
 	 * Validate max_num_comment_pages logic of get_comment_pages_count
 	 */
-	 function test_max_num_comment_pages() {
+	function test_max_num_comment_pages() {
 		global $wp_query;
 		$wp_query = new WP_Query();
 
@@ -144,5 +144,5 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 		$this->assertEquals( 0, get_comment_pages_count( array(), null, null ) );
 
 		$wp_query->max_num_comment_pages = $org_max_num_comment_pages;
-	 }
+	}
 }
