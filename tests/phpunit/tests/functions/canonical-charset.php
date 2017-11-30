@@ -55,32 +55,32 @@ class Tests_Functions_canonical_charset extends WP_UnitTestCase {
 		$orig_blog_charset = get_option( 'blog_charset' );
 
 		update_option( 'blog_charset', 'utf8' );
-		$this->assertEquals( 'UTF-8', get_option( 'blog_charset') );
+		$this->assertEquals( 'UTF-8', get_option( 'blog_charset' ) );
 
 		update_option( 'blog_charset', 'utf-8' );
-		$this->assertEquals( 'UTF-8', get_option( 'blog_charset') );
+		$this->assertEquals( 'UTF-8', get_option( 'blog_charset' ) );
 
 		update_option( 'blog_charset', 'UTF8' );
-		$this->assertEquals( 'UTF-8', get_option( 'blog_charset') );
+		$this->assertEquals( 'UTF-8', get_option( 'blog_charset' ) );
 
 		update_option( 'blog_charset', 'UTF-8' );
-		$this->assertEquals( 'UTF-8', get_option( 'blog_charset') );
+		$this->assertEquals( 'UTF-8', get_option( 'blog_charset' ) );
 
 		update_option( 'blog_charset', 'ISO-8859-1' );
-		$this->assertEquals( 'ISO-8859-1', get_option( 'blog_charset') );
+		$this->assertEquals( 'ISO-8859-1', get_option( 'blog_charset' ) );
 
 		update_option( 'blog_charset', 'ISO8859-1' );
-		$this->assertEquals( 'ISO-8859-1', get_option( 'blog_charset') );
+		$this->assertEquals( 'ISO-8859-1', get_option( 'blog_charset' ) );
 
 		update_option( 'blog_charset', 'iso8859-1' );
-		$this->assertEquals( 'ISO-8859-1', get_option( 'blog_charset') );
+		$this->assertEquals( 'ISO-8859-1', get_option( 'blog_charset' ) );
 
 		update_option( 'blog_charset', 'iso-8859-1' );
-		$this->assertEquals( 'ISO-8859-1', get_option( 'blog_charset') );
+		$this->assertEquals( 'ISO-8859-1', get_option( 'blog_charset' ) );
 
 		// Arbitrary strings are passed through.
 		update_option( 'blog_charset', 'foobarbaz' );
-		$this->assertEquals( 'foobarbaz', get_option( 'blog_charset') );
+		$this->assertEquals( 'foobarbaz', get_option( 'blog_charset' ) );
 
 		update_option( 'blog_charset', $orig_blog_charset );
 	}

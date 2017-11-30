@@ -34,7 +34,7 @@ class Tests_Functions_Size_Format extends WP_UnitTestCase {
 			array( TB_IN_BYTES, 0, '1 TB' ),
 			array( 2.5 * TB_IN_BYTES, 0, '3 TB' ),
 			array( 2.5 * TB_IN_BYTES, 2, '2.50 TB' ),
-			array( TB_IN_BYTES + (TB_IN_BYTES/2) + MB_IN_BYTES, 1, '1.5 TB' ),
+			array( TB_IN_BYTES + ( TB_IN_BYTES / 2 ) + MB_IN_BYTES, 1, '1.5 TB' ),
 			array( TB_IN_BYTES - MB_IN_BYTES - KB_IN_BYTES, 3, '1,023.999 GB' ),
 		);
 	}

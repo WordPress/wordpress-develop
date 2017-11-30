@@ -27,9 +27,11 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	}
 
 	public function test_register_with_array() {
-		register_setting( 'test_group', 'test_option', array(
-			'sanitize_callback' => array( $this, 'filter_registered_setting' ),
-		));
+		register_setting(
+			'test_group', 'test_option', array(
+				'sanitize_callback' => array( $this, 'filter_registered_setting' ),
+			)
+		);
 
 		$filtered = apply_filters( 'sanitize_option_test_option', 'smart', 'test_option', 'smart' );
 		$this->assertEquals( 'S-M-R-T', $filtered );
@@ -43,9 +45,11 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	 * @ticket 38176
 	 */
 	public function test_register_with_default() {
-		register_setting( 'test_group', 'test_default', array(
-			'default' => 'Fuck Cancer'
-		));
+		register_setting(
+			'test_group', 'test_default', array(
+				'default' => 'Fuck Cancer',
+			)
+		);
 
 		$this->assertEquals( 'Fuck Cancer', get_option( 'test_default' ) );
 	}
@@ -54,9 +58,11 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	 * @ticket 38176
 	 */
 	public function test_register_with_default_override() {
-		register_setting( 'test_group', 'test_default', array(
-			'default' => 'Fuck Cancer'
-		));
+		register_setting(
+			'test_group', 'test_default', array(
+				'default' => 'Fuck Cancer',
+			)
+		);
 
 		$this->assertEquals( 'Fuck Leukemia', get_option( 'test_default', 'Fuck Leukemia' ) );
 	}
@@ -65,9 +71,11 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	 * @ticket 38930
 	 */
 	public function test_add_option_with_no_options_cache() {
-		register_setting( 'test_group', 'test_default', array(
-			'default' => 'My Default :)',
-		));
+		register_setting(
+			'test_group', 'test_default', array(
+				'default' => 'My Default :)',
+			)
+		);
 		wp_cache_delete( 'notoptions', 'options' );
 		$this->assertTrue( add_option( 'test_default', 'hello' ) );
 		$this->assertEquals( 'hello', get_option( 'test_default' ) );

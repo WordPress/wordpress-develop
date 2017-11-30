@@ -8,39 +8,51 @@ class Tests_Comment_GetCommentLink extends WP_UnitTestCase {
 	protected static $comments = array();
 
 	public static function wpSetUpBeforeClass( $factory ) {
-		$now = time();
+		$now     = time();
 		self::$p = self::factory()->post->create();
 
-		self::$comments[] = self::factory()->comment->create( array(
-			'comment_post_ID' => self::$p,
-			'comment_content' => '1',
-			'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - 100 ),
-		) );
-		self::$comments[] = self::factory()->comment->create( array(
-			'comment_post_ID' => self::$p,
-			'comment_content' => '2',
-			'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - 200 ),
-		) );
-		self::$comments[] = self::factory()->comment->create( array(
-			'comment_post_ID' => self::$p,
-			'comment_content' => '3',
-			'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - 300 ),
-		) );
-		self::$comments[] = self::factory()->comment->create( array(
-			'comment_post_ID' => self::$p,
-			'comment_content' => '4',
-			'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - 400 ),
-		) );
-		self::$comments[] = self::factory()->comment->create( array(
-			'comment_post_ID' => self::$p,
-			'comment_content' => '4',
-			'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - 500 ),
-		) );
-		self::$comments[] = self::factory()->comment->create( array(
-			'comment_post_ID' => self::$p,
-			'comment_content' => '4',
-			'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - 600 ),
-		) );
+		self::$comments[] = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$p,
+				'comment_content'  => '1',
+				'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - 100 ),
+			)
+		);
+		self::$comments[] = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$p,
+				'comment_content'  => '2',
+				'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - 200 ),
+			)
+		);
+		self::$comments[] = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$p,
+				'comment_content'  => '3',
+				'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - 300 ),
+			)
+		);
+		self::$comments[] = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$p,
+				'comment_content'  => '4',
+				'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - 400 ),
+			)
+		);
+		self::$comments[] = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$p,
+				'comment_content'  => '4',
+				'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - 500 ),
+			)
+		);
+		self::$comments[] = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$p,
+				'comment_content'  => '4',
+				'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - 600 ),
+			)
+		);
 
 	}
 

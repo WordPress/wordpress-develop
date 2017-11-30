@@ -12,13 +12,13 @@ class Tests_XMLRPC_wp_getPostType extends WP_XMLRPC_UnitTestCase {
 
 		$this->cpt_name = 'post_type_test';
 		$this->cpt_args = array(
-			'public' => false,
-			'show_ui' => true,
-			'show_in_menu' => true,
+			'public'        => false,
+			'show_ui'       => true,
+			'show_in_menu'  => true,
 			'menu_position' => 7,
-			'menu_icon' => 'cpt_icon.png',
-			'taxonomies' => array( 'category', 'post_tag' ),
-			'hierarchical' => true
+			'menu_icon'     => 'cpt_icon.png',
+			'taxonomies'    => array( 'category', 'post_tag' ),
+			'hierarchical'  => true,
 		);
 		register_post_type( $this->cpt_name, $this->cpt_args );
 	}
@@ -126,7 +126,7 @@ class Tests_XMLRPC_wp_getPostType extends WP_XMLRPC_UnitTestCase {
 		// Check expected values
 		$this->assertEquals( $this->cpt_name, $result['name'] );
 		foreach ( $this->cpt_args as $key => $value ) {
-			$this->assertEquals( $value, $result[$key] );
+			$this->assertEquals( $value, $result[ $key ] );
 		}
 	}
 }

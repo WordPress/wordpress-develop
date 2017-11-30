@@ -70,11 +70,13 @@ class Tests_Post_Embed_URL extends WP_UnitTestCase {
 		$parent_page = self::factory()->post->create( array( 'post_type' => 'page' ) );
 
 		add_filter( 'wp_unique_post_slug', array( $this, 'filter_unique_post_slug' ) );
-		$child_page = self::factory()->post->create( array(
-			'post_type'   => 'page',
-			'post_parent' => $parent_page,
-			'post_name'   => 'embed',
-		) );
+		$child_page = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_parent' => $parent_page,
+				'post_name'   => 'embed',
+			)
+		);
 		remove_filter( 'wp_unique_post_slug', array( $this, 'filter_unique_post_slug' ) );
 
 		$this->assertSame( get_permalink( $parent_page ) . '?embed=true', get_post_embed_url( $parent_page ) );

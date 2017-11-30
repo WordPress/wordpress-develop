@@ -22,8 +22,8 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 		parent::setUp();
 		require_once( ABSPATH . WPINC . '/class-wp-customize-manager.php' );
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
-		$this->manager = $GLOBALS['wp_customize'];
-		$this->undefined = new stdClass();
+		$this->manager           = $GLOBALS['wp_customize'];
+		$this->undefined         = new stdClass();
 	}
 
 	function tearDown() {
@@ -55,14 +55,14 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 	 */
 	function test_construct_custom_args() {
 		$args = array(
-			'priority' => 200,
-			'capability' => 'edit_posts',
-			'theme_supports' => 'html5',
-			'title' => 'Hello World',
-			'description' => 'Lorem Ipsum',
-			'type' => 'horizontal',
+			'priority'        => 200,
+			'capability'      => 'edit_posts',
+			'theme_supports'  => 'html5',
+			'title'           => 'Hello World',
+			'description'     => 'Lorem Ipsum',
+			'type'            => 'horizontal',
 			'active_callback' => '__return_true',
-			'panel' => 'bar',
+			'panel'           => 'bar',
 		);
 
 		$this->manager->add_panel( 'bar' );
@@ -89,9 +89,11 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 		$section = new WP_Customize_Section( $this->manager, 'foo' );
 		$this->assertTrue( $section->active() );
 
-		$section = new WP_Customize_Section( $this->manager, 'foo', array(
-			'active_callback' => '__return_false',
-		) );
+		$section = new WP_Customize_Section(
+			$this->manager, 'foo', array(
+				'active_callback' => '__return_false',
+			)
+		);
 		$this->assertFalse( $section->active() );
 		add_filter( 'customize_section_active', array( $this, 'filter_active_test' ), 10, 2 );
 		$this->assertTrue( $section->active() );
@@ -114,20 +116,20 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 	 */
 	function test_json() {
 		$args = array(
-			'priority' => 200,
-			'capability' => 'edit_posts',
-			'theme_supports' => 'html5',
-			'title' => 'Hello World',
-			'description' => 'Lorem Ipsum',
-			'type' => 'horizontal',
-			'panel' => 'bar',
+			'priority'        => 200,
+			'capability'      => 'edit_posts',
+			'theme_supports'  => 'html5',
+			'title'           => 'Hello World',
+			'description'     => 'Lorem Ipsum',
+			'type'            => 'horizontal',
+			'panel'           => 'bar',
 			'active_callback' => '__return_true',
 		);
 
 		$this->manager->add_panel( 'bar' );
 
 		$section = new WP_Customize_Section( $this->manager, 'foo', $args );
-		$data = $section->json();
+		$data    = $section->json();
 		$this->assertEquals( 'foo', $data['id'] );
 		foreach ( array( 'title', 'description', 'priority', 'panel', 'type' ) as $key ) {
 			$this->assertEquals( $args[ $key ], $data[ $key ] );
@@ -145,7 +147,7 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 
 		$section = new WP_Customize_Section( $this->manager, 'foo' );
 		$this->assertTrue( $section->check_capabilities() );
-		$old_cap = $section->capability;
+		$old_cap             = $section->capability;
 		$section->capability = 'do_not_allow';
 		$this->assertFalse( $section->check_capabilities() );
 		$section->capability = $old_cap;
@@ -167,7 +169,7 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 	 */
 	function test_maybe_render() {
 		wp_set_current_user( self::$admin_id );
-		$section = new WP_Customize_Section( $this->manager, 'bar' );
+		$section                        = new WP_Customize_Section( $this->manager, 'bar' );
 		$customize_render_section_count = did_action( 'customize_render_section' );
 		add_action( 'customize_render_section', array( $this, 'action_customize_render_section_test' ) );
 		ob_start();

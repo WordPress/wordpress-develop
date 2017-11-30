@@ -59,9 +59,24 @@ class Tests_Post_GetBodyClass extends WP_UnitTestCase {
 	 */
 	public function test_with_utf8_term_slugs() {
 		register_taxonomy( 'wptests_tax', 'post' );
-		$term_id1 = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax', 'name' => 'Первая метка' ) );
-		$term_id2 = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax', 'name' => 'Вторая метка' ) );
-		$term_id3 = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax', 'name' => '25кадр' ) );
+		$term_id1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Первая метка',
+			)
+		);
+		$term_id2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Вторая метка',
+			)
+		);
+		$term_id3 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => '25кадр',
+			)
+		);
 		wp_set_post_terms( $this->post_id, array( $term_id1, $term_id2, $term_id3 ), 'wptests_tax' );
 
 		$term1 = get_term( $term_id1, 'wptests_tax' );
@@ -87,15 +102,17 @@ class Tests_Post_GetBodyClass extends WP_UnitTestCase {
 		$this->go_to( get_permalink( $post_id ) );
 
 		$class = get_body_class();
-		$this->assertContains( "single-post", $class );
+		$this->assertContains( 'single-post', $class );
 		$this->assertContains( "postid-{$post_id}", $class );
-		$this->assertContains( "single-format-standard", $class );
+		$this->assertContains( 'single-format-standard', $class );
 	}
 
 	public function test_page_template_body_classes_no_template() {
-		$post_id = self::factory()->post->create( array(
-			'post_type' => 'page',
-		) );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+			)
+		);
 		$this->go_to( get_permalink( $post_id ) );
 
 		$class = get_body_class();
@@ -105,9 +122,11 @@ class Tests_Post_GetBodyClass extends WP_UnitTestCase {
 	}
 
 	public function test_page_template_body_classes() {
-		$post_id = self::factory()->post->create( array(
-			'post_type' => 'page',
-		) );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+			)
+		);
 
 		add_post_meta( $post_id, '_wp_page_template', 'templates/cpt.php' );
 
@@ -125,9 +144,11 @@ class Tests_Post_GetBodyClass extends WP_UnitTestCase {
 	 * @ticket 18375
 	 */
 	public function test_page_template_body_classes_attachment() {
-		$post_id = self::factory()->post->create( array(
-			'post_type' => 'attachment',
-		) );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type' => 'attachment',
+			)
+		);
 
 		add_post_meta( $post_id, '_wp_page_template', 'templates/cpt.php' );
 
@@ -165,9 +186,11 @@ class Tests_Post_GetBodyClass extends WP_UnitTestCase {
 	public function test_attachment_body_classes() {
 		$post_id = self::factory()->post->create();
 
-		$attachment_id = self::factory()->attachment->create_object( 'image.jpg', $post_id, array(
-			'post_mime_type' => 'image/jpeg',
-		) );
+		$attachment_id = self::factory()->attachment->create_object(
+			'image.jpg', $post_id, array(
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
 
 		$this->go_to( get_permalink( $attachment_id ) );
 

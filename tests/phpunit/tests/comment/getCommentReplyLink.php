@@ -9,7 +9,7 @@ class Tests_Comment_GetCommentReplyLink extends WP_UnitTestCase {
 	 */
 	public function test_should_return_null_when_max_depth_is_less_than_depth() {
 		$args = array(
-			'depth' => 5,
+			'depth'     => 5,
 			'max_depth' => 4,
 		);
 

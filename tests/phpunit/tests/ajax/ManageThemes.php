@@ -22,9 +22,9 @@ class Tests_Ajax_Manage_Themes extends WP_Ajax_UnitTestCase {
 		// /themes is necessary as theme.php functions assume /themes is the root if there is only one root.
 		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', $this->theme_root );
 
-		add_filter( 'theme_root',      array( $this, 'filter_theme_root' ) );
+		add_filter( 'theme_root', array( $this, 'filter_theme_root' ) );
 		add_filter( 'stylesheet_root', array( $this, 'filter_theme_root' ) );
-		add_filter( 'template_root',   array( $this, 'filter_theme_root' ) );
+		add_filter( 'template_root', array( $this, 'filter_theme_root' ) );
 
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
@@ -32,9 +32,9 @@ class Tests_Ajax_Manage_Themes extends WP_Ajax_UnitTestCase {
 
 	function tearDown() {
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
-		remove_filter( 'theme_root',      array( $this, 'filter_theme_root' ) );
+		remove_filter( 'theme_root', array( $this, 'filter_theme_root' ) );
 		remove_filter( 'stylesheet_root', array( $this, 'filter_theme_root' ) );
-		remove_filter( 'template_root',   array( $this, 'filter_theme_root' ) );
+		remove_filter( 'template_root', array( $this, 'filter_theme_root' ) );
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
 
@@ -122,7 +122,7 @@ class Tests_Ajax_Manage_Themes extends WP_Ajax_UnitTestCase {
 		// Get the response.
 		$response = json_decode( $this->_last_response, true );
 
-		$theme = wp_get_theme( 'twentyten' );
+		$theme    = wp_get_theme( 'twentyten' );
 		$expected = array(
 			'success' => false,
 			'data'    => array(

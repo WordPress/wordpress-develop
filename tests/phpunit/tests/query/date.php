@@ -52,20 +52,24 @@ class Tests_Query_Date extends WP_UnitTestCase {
 	}
 
 	public function _get_query_result( $args = array() ) {
-		$args = wp_parse_args( $args, array(
-			'post_status'    => 'any', // For the future post
-			'posts_per_page' => '-1',  // To make sure results are accurate
-			'orderby'        => 'ID',  // Same order they were created
-			'order'          => 'ASC',
-		) );
+		$args = wp_parse_args(
+			$args, array(
+				'post_status'    => 'any', // For the future post
+				'posts_per_page' => '-1',  // To make sure results are accurate
+				'orderby'        => 'ID',  // Same order they were created
+				'order'          => 'ASC',
+			)
+		);
 
 		return $this->q->query( $args );
 	}
 
 	public function test_simple_year_expecting_results() {
-		$posts = $this->_get_query_result( array(
-			'year' => 2008,
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'year' => 2008,
+			)
+		);
 
 		$expected_dates = array(
 			'2008-03-29 09:04:25',
@@ -77,17 +81,21 @@ class Tests_Query_Date extends WP_UnitTestCase {
 	}
 
 	public function test_simple_year_expecting_noresults() {
-		$posts = $this->_get_query_result( array(
-			'year' => 2000,
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'year' => 2000,
+			)
+		);
 
 		$this->assertCount( 0, $posts );
 	}
 
 	public function test_simple_m_with_year_expecting_results() {
-		$posts = $this->_get_query_result( array(
-			'm' => '2007',
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'm' => '2007',
+			)
+		);
 
 		$expected_dates = array(
 			'2007-01-22 03:49:21',
@@ -99,17 +107,21 @@ class Tests_Query_Date extends WP_UnitTestCase {
 	}
 
 	public function test_simple_m_with_year_expecting_noresults() {
-		$posts = $this->_get_query_result( array(
-			'm' => '1999',
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'm' => '1999',
+			)
+		);
 
 		$this->assertCount( 0, $posts );
 	}
 
 	public function test_simple_m_with_yearmonth_expecting_results() {
-		$posts = $this->_get_query_result( array(
-			'm' => '202504',
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'm' => '202504',
+			)
+		);
 
 		$expected_dates = array(
 			'2025-04-20 10:13:00',
@@ -120,17 +132,21 @@ class Tests_Query_Date extends WP_UnitTestCase {
 	}
 
 	public function test_simple_m_with_yearmonth_expecting_noresults() {
-		$posts = $this->_get_query_result( array(
-			'm' => '202502',
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'm' => '202502',
+			)
+		);
 
 		$this->assertCount( 0, $posts );
 	}
 
 	public function test_simple_m_with_yearmonthday_expecting_results() {
-		$posts = $this->_get_query_result( array(
-			'm' => '20250420',
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'm' => '20250420',
+			)
+		);
 
 		$expected_dates = array(
 			'2025-04-20 10:13:00',
@@ -141,17 +157,21 @@ class Tests_Query_Date extends WP_UnitTestCase {
 	}
 
 	public function test_simple_m_with_yearmonthday_expecting_noresults() {
-		$posts = $this->_get_query_result( array(
-			'm' => '20250419',
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'm' => '20250419',
+			)
+		);
 
 		$this->assertCount( 0, $posts );
 	}
 
 	public function test_simple_m_with_yearmonthdayhour_expecting_results() {
-		$posts = $this->_get_query_result( array(
-			'm' => '2025042010',
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'm' => '2025042010',
+			)
+		);
 
 		$expected_dates = array(
 			'2025-04-20 10:13:00',
@@ -162,9 +182,11 @@ class Tests_Query_Date extends WP_UnitTestCase {
 	}
 
 	public function test_simple_m_with_yearmonthdayhour_expecting_noresults() {
-		$posts = $this->_get_query_result( array(
-			'm' => '2025042009',
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'm' => '2025042009',
+			)
+		);
 
 		$this->assertCount( 0, $posts );
 	}
@@ -173,9 +195,11 @@ class Tests_Query_Date extends WP_UnitTestCase {
 	 * @ticket 24884
 	 */
 	public function test_simple_m_with_yearmonthdayhourminute_expecting_results() {
-		$posts = $this->_get_query_result( array(
-			'm' => '202504201013',
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'm' => '202504201013',
+			)
+		);
 
 		$expected_dates = array(
 			'2025-04-20 10:13:00',
@@ -189,9 +213,11 @@ class Tests_Query_Date extends WP_UnitTestCase {
 	 * @ticket 24884
 	 */
 	public function test_simple_m_with_yearmonthdayhourminute_expecting_noresults() {
-		$posts = $this->_get_query_result( array(
-			'm' => '202504201012',
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'm' => '202504201012',
+			)
+		);
 
 		$this->assertCount( 0, $posts );
 	}
@@ -200,9 +226,11 @@ class Tests_Query_Date extends WP_UnitTestCase {
 	 * @ticket 24884
 	 */
 	public function test_simple_m_with_yearmonthdayhourminutesecond_expecting_results() {
-		$posts = $this->_get_query_result( array(
-			'm' => '20250420101301',
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'm' => '20250420101301',
+			)
+		);
 
 		$expected_dates = array(
 			'2025-04-20 10:13:01',
@@ -215,9 +243,11 @@ class Tests_Query_Date extends WP_UnitTestCase {
 	 * @ticket 24884
 	 */
 	public function test_simple_m_with_yearmonthdayhourminutesecond_expecting_noresults() {
-		$posts = $this->_get_query_result( array(
-			'm' => '20250420101302',
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'm' => '20250420101302',
+			)
+		);
 
 		$this->assertCount( 0, $posts );
 	}
@@ -226,9 +256,11 @@ class Tests_Query_Date extends WP_UnitTestCase {
 	 * @ticket 24884
 	 */
 	public function test_simple_m_with_yearmonthdayhourminutesecond_and_dashes_expecting_results() {
-		$posts = $this->_get_query_result( array(
-			'm' => '2025-04-20 10:13:00',
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'm' => '2025-04-20 10:13:00',
+			)
+		);
 
 		$expected_dates = array(
 			'2025-04-20 10:13:00',
@@ -241,9 +273,11 @@ class Tests_Query_Date extends WP_UnitTestCase {
 	 * @ticket 24884
 	 */
 	public function test_simple_m_with_yearmonthdayhourminutesecond_and_dashesletters_expecting_results() {
-		$posts = $this->_get_query_result( array(
-			'm' => 'alpha2025-04-20 10:13:00',
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'm' => 'alpha2025-04-20 10:13:00',
+			)
+		);
 
 		$expected_dates = array(
 			'2025-04-20 10:13:00',
@@ -256,18 +290,22 @@ class Tests_Query_Date extends WP_UnitTestCase {
 	 * @ticket 36718
 	 */
 	public function test_non_scalar_m_should_be_discarded() {
-		$expected = $this->_get_query_result( );
-		$posts    = $this->_get_query_result( array(
-			'm' => array( '1234' ), // ignored
-		) );
+		$expected = $this->_get_query_result();
+		$posts    = $this->_get_query_result(
+			array(
+				'm' => array( '1234' ), // ignored
+			)
+		);
 
 		$this->assertEquals( $expected, $posts );
 	}
 
 	public function test_simple_monthnum_expecting_results() {
-		$posts = $this->_get_query_result( array(
-			'monthnum' => 5,
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'monthnum' => 5,
+			)
+		);
 
 		$expected_dates = array(
 			'1972-05-24 14:53:45',
@@ -281,17 +319,21 @@ class Tests_Query_Date extends WP_UnitTestCase {
 	}
 
 	public function test_simple_monthnum_expecting_noresults() {
-		$posts = $this->_get_query_result( array(
-			'monthnum' => 8,
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'monthnum' => 8,
+			)
+		);
 
 		$this->assertCount( 0, $posts );
 	}
 
 	public function test_simple_w_as_in_week_expecting_results() {
-		$posts = $this->_get_query_result( array(
-			'w' => 24,
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'w' => 24,
+			)
+		);
 
 		$expected_dates = array(
 			'2009-06-11 21:30:28',
@@ -303,17 +345,21 @@ class Tests_Query_Date extends WP_UnitTestCase {
 	}
 
 	public function test_simple_w_as_in_week_expecting_noresults() {
-		$posts = $this->_get_query_result( array(
-			'w' => 2,
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'w' => 2,
+			)
+		);
 
 		$this->assertCount( 0, $posts );
 	}
 
 	public function test_simple_day_expecting_results() {
-		$posts = $this->_get_query_result( array(
-			'day' => 22,
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'day' => 22,
+			)
+		);
 
 		$expected_dates = array(
 			'2004-05-22 12:34:12',
@@ -324,17 +370,21 @@ class Tests_Query_Date extends WP_UnitTestCase {
 	}
 
 	public function test_simple_day_expecting_noresults() {
-		$posts = $this->_get_query_result( array(
-			'day' => 30,
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'day' => 30,
+			)
+		);
 
 		$this->assertCount( 0, $posts );
 	}
 
 	public function test_simple_hour_expecting_results() {
-		$posts = $this->_get_query_result( array(
-			'hour' => 21,
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'hour' => 21,
+			)
+		);
 
 		$expected_dates = array(
 			'2009-06-11 21:30:28',
@@ -344,17 +394,21 @@ class Tests_Query_Date extends WP_UnitTestCase {
 	}
 
 	public function test_simple_hour_expecting_noresults() {
-		$posts = $this->_get_query_result( array(
-			'hour' => 2,
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'hour' => 2,
+			)
+		);
 
 		$this->assertCount( 0, $posts );
 	}
 
 	public function test_simple_minute_expecting_results() {
-		$posts = $this->_get_query_result( array(
-			'minute' => 32,
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'minute' => 32,
+			)
+		);
 
 		$expected_dates = array(
 			'2007-05-16 17:32:22',
@@ -365,17 +419,21 @@ class Tests_Query_Date extends WP_UnitTestCase {
 	}
 
 	public function test_simple_minute_expecting_noresults() {
-		$posts = $this->_get_query_result( array(
-			'minute' => 1,
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'minute' => 1,
+			)
+		);
 
 		$this->assertCount( 0, $posts );
 	}
 
 	public function test_simple_second_expecting_results() {
-		$posts = $this->_get_query_result( array(
-			'second' => 30,
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'second' => 30,
+			)
+		);
 
 		$expected_dates = array(
 			'2010-06-17 17:09:30',
@@ -385,9 +443,11 @@ class Tests_Query_Date extends WP_UnitTestCase {
 	}
 
 	public function test_simple_second_expecting_noresults() {
-		$posts = $this->_get_query_result( array(
-			'second' => 50,
-		) );
+		$posts = $this->_get_query_result(
+			array(
+				'second' => 50,
+			)
+		);
 
 		$this->assertCount( 0, $posts );
 	}

@@ -8,8 +8,8 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 		$p = self::factory()->post->create();
 
 		$args = array(
-			'name_submit' => 'foo-name',
-			'id_submit' => 'foo-id',
+			'name_submit'  => 'foo-name',
+			'id_submit'    => 'foo-id',
 			'class_submit' => 'foo-class',
 			'label_submit' => 'foo-label',
 		);
@@ -24,11 +24,11 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 		$p = self::factory()->post->create();
 
 		$args = array(
-			'name_submit' => 'foo-name',
-			'id_submit' => 'foo-id',
-			'class_submit' => 'foo-class',
-			'label_submit' => 'foo-label',
-			'submit_button' => '<input name="custom-%1$s" type="submit" id="custom-%2$s" class="custom-%3$s" value="custom-%4$s" />'
+			'name_submit'   => 'foo-name',
+			'id_submit'     => 'foo-id',
+			'class_submit'  => 'foo-class',
+			'label_submit'  => 'foo-label',
+			'submit_button' => '<input name="custom-%1$s" type="submit" id="custom-%2$s" class="custom-%3$s" value="custom-%4$s" />',
 		);
 		$form = get_echo( 'comment_form', array( $args, $p ) );
 
@@ -40,11 +40,11 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 		$p = self::factory()->post->create();
 
 		$args = array(
-			'name_submit' => 'foo-name',
-			'id_submit' => 'foo-id',
+			'name_submit'  => 'foo-name',
+			'id_submit'    => 'foo-id',
 			'class_submit' => 'foo-class',
 			'label_submit' => 'foo-label',
-			'submit_field' => '<p class="my-custom-submit-field">%1$s %2$s</p>'
+			'submit_field' => '<p class="my-custom-submit-field">%1$s %2$s</p>',
 		);
 		$form = get_echo( 'comment_form', array( $args, $p ) );
 
@@ -60,8 +60,8 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 		$p = self::factory()->post->create();
 
 		$args = array(
-			'name_submit' => 'foo-name',
-			'id_submit' => 'foo-id',
+			'name_submit'  => 'foo-name',
+			'id_submit'    => 'foo-id',
 			'class_submit' => 'foo-class',
 			'label_submit' => 'foo-label',
 		);

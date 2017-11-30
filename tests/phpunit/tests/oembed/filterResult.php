@@ -5,7 +5,7 @@
  */
 class Tests_Filter_oEmbed_Result extends WP_UnitTestCase {
 	function test_filter_oembed_result_trusted_malicious_iframe() {
-		$html   = '<p></p><iframe onload="alert(1)"></iframe>';
+		$html = '<p></p><iframe onload="alert(1)"></iframe>';
 
 		$actual = wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' );
 

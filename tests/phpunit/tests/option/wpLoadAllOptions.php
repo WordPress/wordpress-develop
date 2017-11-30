@@ -73,7 +73,7 @@ class Tests_Option_WP_Load_Alloptions extends WP_UnitTestCase {
 		$all_options = wp_load_alloptions();
 
 		// Value could leak to other tests if not reset.
-		wp_installing( $temp  );
+		wp_installing( $temp );
 
 		// Filter was called.
 		$this->assertEquals( $this->alloptions, $all_options );

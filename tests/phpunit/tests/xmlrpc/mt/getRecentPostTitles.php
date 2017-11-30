@@ -37,8 +37,8 @@ class Tests_XMLRPC_mt_getRecentPostTitles extends WP_XMLRPC_UnitTestCase {
 		$results = $this->myxmlrpcserver->mt_getRecentPostTitles( array( 1, 'author', 'author' ) );
 		$this->assertNotIXRError( $results );
 
-		foreach( $results as $result ) {
-			$post = get_post( $result['postid'] );
+		foreach ( $results as $result ) {
+			$post     = get_post( $result['postid'] );
 			$date_gmt = strtotime( get_gmt_from_date( mysql2date( 'Y-m-d H:i:s', $post->post_date, false ), 'Ymd\TH:i:s' ) );
 
 			$this->assertInstanceOf( 'IXR_Date', $result['dateCreated'] );

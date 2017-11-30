@@ -4,10 +4,10 @@
  * @group admin
  */
 class Tests_Admin_includesListTable extends WP_UnitTestCase {
-	protected static $top = array();
-	protected static $children = array();
+	protected static $top           = array();
+	protected static $children      = array();
 	protected static $grandchildren = array();
-	protected static $post_ids = array();
+	protected static $post_ids      = array();
 
 	/**
 	 * @var WP_Posts_List_Table
@@ -25,12 +25,14 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		// create top level pages
 		$num_posts = 5;
 		foreach ( range( 1, $num_posts ) as $i ) {
-			$p = $factory->post->create_and_get( array(
-				'post_type'  => 'page',
-				'post_title' => sprintf( 'Top Level Page %d', $i ),
-			) );
+			$p = $factory->post->create_and_get(
+				array(
+					'post_type'  => 'page',
+					'post_title' => sprintf( 'Top Level Page %d', $i ),
+				)
+			);
 
-			self::$top[ $i ] = $p;
+			self::$top[ $i ]  = $p;
 			self::$post_ids[] = $p->ID;
 		}
 
@@ -38,14 +40,16 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$num_children = 3;
 		foreach ( self::$top as $top => $top_page ) {
 			foreach ( range( 1, $num_children ) as $i ) {
-				$p = $factory->post->create_and_get( array(
-					'post_type'   => 'page',
-					'post_parent' => $top_page->ID,
-					'post_title'  => sprintf( 'Child %d', $i ),
-				) );
+				$p = $factory->post->create_and_get(
+					array(
+						'post_type'   => 'page',
+						'post_parent' => $top_page->ID,
+						'post_title'  => sprintf( 'Child %d', $i ),
+					)
+				);
 
 				self::$children[ $top ][ $i ] = $p;
-				self::$post_ids[] = $p->ID;
+				self::$post_ids[]             = $p->ID;
 			}
 		}
 
@@ -54,14 +58,16 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		foreach ( range( 3, 4 ) as $top ) {
 			foreach ( self::$children[ $top ] as $child => $child_page ) {
 				foreach ( range( 1, $num_grandchildren ) as $i ) {
-					$p = $factory->post->create_and_get( array(
-						'post_type'   => 'page',
-						'post_parent' => $child_page->ID,
-						'post_title'  => sprintf( 'Grandchild %d', $i ),
-					) );
+					$p = $factory->post->create_and_get(
+						array(
+							'post_type'   => 'page',
+							'post_parent' => $child_page->ID,
+							'post_title'  => sprintf( 'Grandchild %d', $i ),
+						)
+					);
 
 					self::$grandchildren[ $top ][ $child ][ $i ] = $p;
-					self::$post_ids[] = $p->ID;
+					self::$post_ids[]                            = $p->ID;
 				}
 			}
 		}
@@ -71,55 +77,63 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 	 * @ticket 15459
 	 */
 	function test_list_hierarchical_pages_first_page() {
-		$this->_test_list_hierarchical_page( array(
-			'paged'          => 1,
-			'posts_per_page' => 2,
-		), array(
-			self::$top[1]->ID,
-			self::$children[1][1]->ID,
-		) );
+		$this->_test_list_hierarchical_page(
+			array(
+				'paged'          => 1,
+				'posts_per_page' => 2,
+			), array(
+				self::$top[1]->ID,
+				self::$children[1][1]->ID,
+			)
+		);
 	}
 
 	/**
 	 * @ticket 15459
 	 */
 	function test_list_hierarchical_pages_second_page() {
-		$this->_test_list_hierarchical_page( array(
-			'paged'          => 2,
-			'posts_per_page' => 2,
-		), array(
-			self::$top[1]->ID,
-			self::$children[1][2]->ID,
-			self::$children[1][3]->ID,
-		) );
+		$this->_test_list_hierarchical_page(
+			array(
+				'paged'          => 2,
+				'posts_per_page' => 2,
+			), array(
+				self::$top[1]->ID,
+				self::$children[1][2]->ID,
+				self::$children[1][3]->ID,
+			)
+		);
 	}
 
 	/**
 	 * @ticket 15459
 	 */
 	function test_search_hierarchical_pages_first_page() {
-		$this->_test_list_hierarchical_page( array(
-			'paged'          => 1,
-			'posts_per_page' => 2,
-			's'              => 'Child',
-		), array(
-			self::$children[1][1]->ID,
-			self::$children[1][2]->ID,
-		) );
+		$this->_test_list_hierarchical_page(
+			array(
+				'paged'          => 1,
+				'posts_per_page' => 2,
+				's'              => 'Child',
+			), array(
+				self::$children[1][1]->ID,
+				self::$children[1][2]->ID,
+			)
+		);
 	}
 
 	/**
 	 * @ticket 15459
 	 */
 	function test_search_hierarchical_pages_second_page() {
-		$this->_test_list_hierarchical_page( array(
-			'paged'          => 2,
-			'posts_per_page' => 2,
-			's'              => 'Top',
-		), array(
-			self::$top[3]->ID,
-			self::$top[4]->ID,
-		) );
+		$this->_test_list_hierarchical_page(
+			array(
+				'paged'          => 2,
+				'posts_per_page' => 2,
+				's'              => 'Top',
+			), array(
+				self::$top[3]->ID,
+				self::$top[4]->ID,
+			)
+		);
 	}
 
 	/**
@@ -127,15 +141,17 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 	 */
 	function test_grandchildren_hierarchical_pages_first_page() {
 		// page 6 is the first page with grandchildren
-		$this->_test_list_hierarchical_page( array(
-			'paged'          => 6,
-			'posts_per_page' => 2,
-		), array(
-			self::$top[3]->ID,
-			self::$children[3][1]->ID,
-			self::$grandchildren[3][1][1]->ID,
-			self::$grandchildren[3][1][2]->ID,
-		) );
+		$this->_test_list_hierarchical_page(
+			array(
+				'paged'          => 6,
+				'posts_per_page' => 2,
+			), array(
+				self::$top[3]->ID,
+				self::$children[3][1]->ID,
+				self::$grandchildren[3][1][1]->ID,
+				self::$grandchildren[3][1][2]->ID,
+			)
+		);
 	}
 
 	/**
@@ -143,15 +159,17 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 	 */
 	function test_grandchildren_hierarchical_pages_second_page() {
 		// page 7 is the second page with grandchildren
-		$this->_test_list_hierarchical_page( array(
-			'paged'          => 7,
-			'posts_per_page' => 2,
-		), array(
-			self::$top[3]->ID,
-			self::$children[3][1]->ID,
-			self::$grandchildren[3][1][3]->ID,
-			self::$children[3][2]->ID,
-		) );
+		$this->_test_list_hierarchical_page(
+			array(
+				'paged'          => 7,
+				'posts_per_page' => 2,
+			), array(
+				self::$top[3]->ID,
+				self::$children[3][1]->ID,
+				self::$grandchildren[3][1][3]->ID,
+				self::$children[3][2]->ID,
+			)
+		);
 	}
 
 	/**
@@ -166,9 +184,11 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$_REQUEST['paged']   = $args['paged'];
 		$GLOBALS['per_page'] = $args['posts_per_page'];
 
-		$args = array_merge( array(
-			'post_type' => 'page',
-		), $args );
+		$args = array_merge(
+			array(
+				'post_type' => 'page',
+			), $args
+		);
 
 		// Mimic the behaviour of `wp_edit_posts_query()`:
 		if ( ! isset( $args['orderby'] ) ) {

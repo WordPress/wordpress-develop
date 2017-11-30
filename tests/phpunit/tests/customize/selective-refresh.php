@@ -142,15 +142,21 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 		$user = new WP_User( $user_id );
 		do_action( 'customize_register', $this->wp_customize );
 		$user->remove_cap( 'top_secret_clearance' );
-		$this->wp_customize->add_setting( 'top_secret_message', array(
-			'capability' => 'top_secret_clearance', // The administrator role lacks this.
-		) );
-		$this->selective_refresh->add_partial( 'blogname', array(
-			'selector' => '#site-title',
-		) );
-		$this->selective_refresh->add_partial( 'top_secret_message', array(
-			'settings' => array( 'top_secret_message' ),
-		) );
+		$this->wp_customize->add_setting(
+			'top_secret_message', array(
+				'capability' => 'top_secret_clearance', // The administrator role lacks this.
+			)
+		);
+		$this->selective_refresh->add_partial(
+			'blogname', array(
+				'selector' => '#site-title',
+			)
+		);
+		$this->selective_refresh->add_partial(
+			'top_secret_message', array(
+				'settings' => array( 'top_secret_message' ),
+			)
+		);
 		ob_start();
 		$this->selective_refresh->export_preview_data();
 		$html = ob_get_clean();

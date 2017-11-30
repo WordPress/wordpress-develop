@@ -4,7 +4,7 @@
  * @group taxonomy
  */
 class Tests_Term_GetTheTerms extends WP_UnitTestCase {
-	protected $taxonomy = 'category';
+	protected $taxonomy        = 'category';
 	protected static $post_ids = array();
 
 	public static function wpSetUpBeforeClass( $factory ) {
@@ -17,27 +17,32 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 	function test_object_term_cache() {
 		$post_id = self::$post_ids[0];
 
-		$terms_1 = array('foo', 'bar', 'baz');
-		$terms_2 = array('bar', 'bing');
+		$terms_1 = array( 'foo', 'bar', 'baz' );
+		$terms_2 = array( 'bar', 'bing' );
 
 		// Cache should be empty after a set.
 		$tt_1 = wp_set_object_terms( $post_id, $terms_1, $this->taxonomy );
-		$this->assertEquals( 3, count($tt_1) );
-		$this->assertFalse( wp_cache_get( $post_id, $this->taxonomy . '_relationships') );
+		$this->assertEquals( 3, count( $tt_1 ) );
+		$this->assertFalse( wp_cache_get( $post_id, $this->taxonomy . '_relationships' ) );
 
 		// wp_get_object_terms() does not prime the cache.
-		wp_get_object_terms( $post_id, $this->taxonomy, array('fields' => 'names', 'orderby' => 't.term_id') );
-		$this->assertFalse( wp_cache_get( $post_id, $this->taxonomy . '_relationships') );
+		wp_get_object_terms(
+			$post_id, $this->taxonomy, array(
+				'fields'  => 'names',
+				'orderby' => 't.term_id',
+			)
+		);
+		$this->assertFalse( wp_cache_get( $post_id, $this->taxonomy . '_relationships' ) );
 
 		// get_the_terms() does prime the cache.
 		$terms = get_the_terms( $post_id, $this->taxonomy );
-		$cache = wp_cache_get( $post_id, $this->taxonomy . '_relationships');
+		$cache = wp_cache_get( $post_id, $this->taxonomy . '_relationships' );
 		$this->assertInternalType( 'array', $cache );
 
 		// Cache should be empty after a set.
 		$tt_2 = wp_set_object_terms( $post_id, $terms_2, $this->taxonomy );
-		$this->assertEquals( 2, count($tt_2) );
-		$this->assertFalse( wp_cache_get( $post_id, $this->taxonomy . '_relationships') );
+		$this->assertEquals( 2, count( $tt_2 ) );
+		$this->assertFalse( wp_cache_get( $post_id, $this->taxonomy . '_relationships' ) );
 	}
 
 	/**
@@ -45,10 +50,12 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 	 */
 	function test_object_term_cache_when_term_changes() {
 		$post_id = self::$post_ids[0];
-		$tag_id = self::factory()->tag->create( array(
-			'name' => 'Amaze Tag',
-			'description' => 'My Amazing Tag'
-		) );
+		$tag_id  = self::factory()->tag->create(
+			array(
+				'name'        => 'Amaze Tag',
+				'description' => 'My Amazing Tag',
+			)
+		);
 
 		$tt_1 = wp_set_object_terms( $post_id, $tag_id, 'post_tag' );
 
@@ -56,9 +63,11 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 		$this->assertEquals( $tag_id, $terms[0]->term_id );
 		$this->assertEquals( 'My Amazing Tag', $terms[0]->description );
 
-		$_updated = wp_update_term( $tag_id, 'post_tag', array(
-			'description' => 'This description is even more amazing!'
-		) );
+		$_updated = wp_update_term(
+			$tag_id, 'post_tag', array(
+				'description' => 'This description is even more amazing!',
+			)
+		);
 
 		$_new_term = get_term( $tag_id, 'post_tag' );
 		$this->assertEquals( $tag_id, $_new_term->term_id );
@@ -125,9 +134,24 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'post' );
 		$p = self::$post_ids[0];
 
-		$t1 = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax', 'name' => 'fff' ) );
-		$t2 = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax', 'name' => 'aaa' ) );
-		$t3 = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax', 'name' => 'zzz' ) );
+		$t1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'fff',
+			)
+		);
+		$t2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'aaa',
+			)
+		);
+		$t3 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'zzz',
+			)
+		);
 
 		wp_set_object_terms( $p, array( $t1, $t2, $t3 ), 'wptests_tax' );
 		update_object_term_cache( $p, 'post' );
@@ -141,7 +165,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 	 * @ticket 34723
 	 */
 	function test_get_the_terms_should_return_wp_error_when_taxonomy_is_unregistered() {
-		$p = self::$post_ids[0];
+		$p     = self::$post_ids[0];
 		$terms = get_the_terms( $p, 'this-taxonomy-does-not-exist' );
 		$this->assertWPError( $terms );
 	}
@@ -183,7 +207,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 		clean_term_cache( array( $terms[0], $terms[1] ), 'wptests_tax', false );
 
 		$num_queries = $wpdb->num_queries;
-		$found = get_the_terms( self::$post_ids[0], 'wptests_tax' );
+		$found       = get_the_terms( self::$post_ids[0], 'wptests_tax' );
 
 		$this->assertEqualSets( $terms, wp_list_pluck( $found, 'term_id' ) );
 
@@ -202,9 +226,11 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 		wp_defer_term_counting( true );
 
 		// Create Test Category.
-		$term_id = self::factory()->term->create( array(
-			'taxonomy' => 'wptests_tax',
-		) );
+		$term_id = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
 
 		$post_id = self::factory()->post->create();
 
@@ -229,9 +255,11 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'post' );
 
 		// Create Test Category.
-		$term_ids = self::factory()->term->create_many( 2, array(
-			'taxonomy' => 'wptests_tax',
-		) );
+		$term_ids = self::factory()->term->create_many(
+			2, array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
 
 		$post_id = self::factory()->post->create();
 

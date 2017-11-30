@@ -16,8 +16,8 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 		parent::setUp();
 		require_once( ABSPATH . WPINC . '/class-wp-customize-manager.php' );
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
-		$this->manager = $GLOBALS['wp_customize'];
-		$this->undefined = new stdClass();
+		$this->manager           = $GLOBALS['wp_customize'];
+		$this->undefined         = new stdClass();
 	}
 
 	function tearDown() {
@@ -49,12 +49,12 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	 */
 	function test_construct_custom_args() {
 		$args = array(
-			'priority' => 200,
-			'capability' => 'edit_posts',
-			'theme_supports' => 'html5',
-			'title' => 'Hello World',
-			'description' => 'Lorem Ipsum',
-			'type' => 'horizontal',
+			'priority'        => 200,
+			'capability'      => 'edit_posts',
+			'theme_supports'  => 'html5',
+			'title'           => 'Hello World',
+			'description'     => 'Lorem Ipsum',
+			'type'            => 'horizontal',
 			'active_callback' => '__return_true',
 		);
 
@@ -80,9 +80,11 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 		$panel = new WP_Customize_Panel( $this->manager, 'foo' );
 		$this->assertTrue( $panel->active() );
 
-		$panel = new WP_Customize_Panel( $this->manager, 'foo', array(
-			'active_callback' => '__return_false',
-		) );
+		$panel = new WP_Customize_Panel(
+			$this->manager, 'foo', array(
+				'active_callback' => '__return_false',
+			)
+		);
 		$this->assertFalse( $panel->active() );
 		add_filter( 'customize_panel_active', array( $this, 'filter_active_test' ), 10, 2 );
 		$this->assertTrue( $panel->active() );
@@ -104,17 +106,17 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	 * @see WP_Customize_Panel::json()
 	 */
 	function test_json() {
-		$args = array(
-			'priority' => 200,
-			'capability' => 'edit_posts',
-			'theme_supports' => 'html5',
-			'title' => 'Hello World',
-			'description' => 'Lorem Ipsum',
-			'type' => 'horizontal',
+		$args  = array(
+			'priority'        => 200,
+			'capability'      => 'edit_posts',
+			'theme_supports'  => 'html5',
+			'title'           => 'Hello World',
+			'description'     => 'Lorem Ipsum',
+			'type'            => 'horizontal',
 			'active_callback' => '__return_true',
 		);
 		$panel = new WP_Customize_Panel( $this->manager, 'foo', $args );
-		$data = $panel->json();
+		$data  = $panel->json();
 		$this->assertEquals( 'foo', $data['id'] );
 		foreach ( array( 'title', 'description', 'priority', 'type' ) as $key ) {
 			$this->assertEquals( $args[ $key ], $data[ $key ] );
@@ -133,7 +135,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 
 		$panel = new WP_Customize_Panel( $this->manager, 'foo' );
 		$this->assertTrue( $panel->check_capabilities() );
-		$old_cap = $panel->capability;
+		$old_cap           = $panel->capability;
 		$panel->capability = 'do_not_allow';
 		$this->assertFalse( $panel->check_capabilities() );
 		$panel->capability = $old_cap;
@@ -155,7 +157,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	 */
 	function test_maybe_render() {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-		$panel = new WP_Customize_Panel( $this->manager, 'bar' );
+		$panel                        = new WP_Customize_Panel( $this->manager, 'bar' );
 		$customize_render_panel_count = did_action( 'customize_render_panel' );
 		add_action( 'customize_render_panel', array( $this, 'action_customize_render_panel_test' ) );
 		ob_start();

@@ -75,29 +75,71 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	function parse_url_testcases() {
 		// 0: The URL, 1: The expected resulting structure
 		return array(
-			array( self::FULL_TEST_URL, array(
-				'scheme'   => 'http',
-				'host'     => 'host.name',
-				'port'     => 9090,
-				'user'     => 'username',
-				'pass'     => 'password',
-				'path'     => '/path',
-				'query'    => 'arg1=value1&arg2=value2',
-				'fragment' => 'anchor',
-			) ),
-			array( 'http://example.com/', array( 'scheme' => 'http', 'host' => 'example.com', 'path' => '/' ) ),
+			array(
+				self::FULL_TEST_URL,
+				array(
+					'scheme'   => 'http',
+					'host'     => 'host.name',
+					'port'     => 9090,
+					'user'     => 'username',
+					'pass'     => 'password',
+					'path'     => '/path',
+					'query'    => 'arg1=value1&arg2=value2',
+					'fragment' => 'anchor',
+				),
+			),
+			array(
+				'http://example.com/',
+				array(
+					'scheme' => 'http',
+					'host'   => 'example.com',
+					'path'   => '/',
+				),
+			),
 
 			// < PHP 5.4.7: Schemeless URL
-			array( '//example.com/path/', array( 'host' => 'example.com', 'path' => '/path/' ) ),
-			array( '//example.com/', array( 'host' => 'example.com', 'path' => '/' ) ),
-			array( 'http://example.com//path/', array( 'scheme' => 'http', 'host' => 'example.com', 'path' => '//path/' ) ),
+			array(
+				'//example.com/path/',
+				array(
+					'host' => 'example.com',
+					'path' => '/path/',
+				),
+			),
+			array(
+				'//example.com/',
+				array(
+					'host' => 'example.com',
+					'path' => '/',
+				),
+			),
+			array(
+				'http://example.com//path/',
+				array(
+					'scheme' => 'http',
+					'host'   => 'example.com',
+					'path'   => '//path/',
+				),
+			),
 
 			// < PHP 5.4.7: Scheme separator in the URL.
-			array( 'http://example.com/http://example.net/', array( 'scheme' => 'http', 'host' => 'example.com', 'path' => '/http://example.net/' ) ),
+			array(
+				'http://example.com/http://example.net/',
+				array(
+					'scheme' => 'http',
+					'host'   => 'example.com',
+					'path'   => '/http://example.net/',
+				),
+			),
 			array( '/path/http://example.net/', array( 'path' => '/path/http://example.net/' ) ),
 
 			// < PHP 5.4.7: IPv6 literals in schemeless URLs are handled incorrectly.
-			array( '//[::FFFF::127.0.0.1]/', array( 'host' => '[::FFFF::127.0.0.1]', 'path' => '/' ) ),
+			array(
+				'//[::FFFF::127.0.0.1]/',
+				array(
+					'host' => '[::FFFF::127.0.0.1]',
+					'path' => '/',
+				),
+			),
 
 			// PHP's parse_url() calls this an invalid url, we handle it as a path
 			array( '/://example.com/', array( 'path' => '/://example.com/' ) ),
@@ -138,16 +180,18 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	 */
 	function test_wp_parse_url_with_default_component() {
 		$actual = wp_parse_url( self::FULL_TEST_URL, -1 );
-		$this->assertEquals( array(
-			'scheme'   => 'http',
-			'host'     => 'host.name',
-			'port'     => 9090,
-			'user'     => 'username',
-			'pass'     => 'password',
-			'path'     => '/path',
-			'query'    => 'arg1=value1&arg2=value2',
-			'fragment' => 'anchor',
-		), $actual );
+		$this->assertEquals(
+			array(
+				'scheme'   => 'http',
+				'host'     => 'host.name',
+				'port'     => 9090,
+				'user'     => 'username',
+				'pass'     => 'password',
+				'path'     => '/path',
+				'query'    => 'arg1=value1&arg2=value2',
+				'fragment' => 'anchor',
+			), $actual
+		);
 	}
 
 	/**
@@ -217,7 +261,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	public function test_http_response_code_constants() {
 		global $wp_header_to_desc;
 
-		$ref = new ReflectionClass( 'WP_Http' );
+		$ref       = new ReflectionClass( 'WP_Http' );
 		$constants = $ref->getConstants();
 
 		// This primes the `$wp_header_to_desc` global:
@@ -240,16 +284,18 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			'foo' => array( 'bar' ),
 		);
 
-		$cookie_jar = $http->normalize_cookies( array(
-			'x'   => 'foo',
-			'y'   => 2,
-			'z'   => 0.45,
-			'foo' => array( 'bar' ),
-		) );
+		$cookie_jar = $http->normalize_cookies(
+			array(
+				'x'   => 'foo',
+				'y'   => 2,
+				'z'   => 0.45,
+				'foo' => array( 'bar' ),
+			)
+		);
 
 		$this->assertInstanceOf( 'Requests_Cookie_Jar', $cookie_jar );
 
-		foreach( array_keys( $cookies ) as $cookie ) {
+		foreach ( array_keys( $cookies ) as $cookie ) {
 			if ( 'foo' === $cookie ) {
 				$this->assertFalse( isset( $cookie_jar[ $cookie ] ) );
 			} else {
@@ -272,8 +318,24 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	function get_component_from_parsed_url_array_testcases() {
 		// 0: A URL, 1: PHP URL constant, 2: The expected result.
 		return array(
-			array( 'http://example.com/', -1, array( 'scheme' => 'http', 'host' => 'example.com', 'path' => '/' ) ),
-			array( 'http://example.com/', -1, array( 'scheme' => 'http', 'host' => 'example.com', 'path' => '/' ) ),
+			array(
+				'http://example.com/',
+				-1,
+				array(
+					'scheme' => 'http',
+					'host'   => 'example.com',
+					'path'   => '/',
+				),
+			),
+			array(
+				'http://example.com/',
+				-1,
+				array(
+					'scheme' => 'http',
+					'host'   => 'example.com',
+					'path'   => '/',
+				),
+			),
 			array( 'http://example.com/', PHP_URL_HOST, 'example.com' ),
 			array( 'http://example.com/', PHP_URL_USER, null ),
 			array( 'http:///example.com', -1, false ), // Malformed.

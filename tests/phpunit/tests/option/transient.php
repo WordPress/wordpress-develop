@@ -14,8 +14,8 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	}
 
 	function test_the_basics() {
-		$key = 'key1';
-		$value = 'value1';
+		$key    = 'key1';
+		$value  = 'value1';
 		$value2 = 'value2';
 
 		$this->assertFalse( get_transient( 'doesnotexist' ) );
@@ -30,8 +30,11 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	}
 
 	function test_serialized_data() {
-		$key = rand_str();
-		$value = array( 'foo' => true, 'bar' => true );
+		$key   = rand_str();
+		$value = array(
+			'foo' => true,
+			'bar' => true,
+		);
 
 		$this->assertTrue( set_transient( $key, $value ) );
 		$this->assertEquals( $value, get_transient( $key ) );
@@ -46,7 +49,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	 * @ticket 22807
 	 */
 	function test_transient_data_with_timeout() {
-		$key = rand_str();
+		$key   = rand_str();
 		$value = rand_str();
 
 		$this->assertFalse( get_option( '_transient_timeout_' . $key ) );
@@ -67,8 +70,8 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	 * @ticket 22807
 	 */
 	function test_transient_add_timeout() {
-		$key = rand_str();
-		$value = rand_str();
+		$key    = rand_str();
+		$value  = rand_str();
 		$value2 = rand_str();
 		$this->assertTrue( set_transient( $key, $value ) );
 		$this->assertEquals( $value, get_transient( $key ) );
@@ -124,7 +127,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 		$this->assertEquals( 'test', get_transient( $key ) );
 
 		// Make sure the timeout option returns false
-		$timeout = '_transient_timeout_' . $key;
+		$timeout          = '_transient_timeout_' . $key;
 		$transient_option = '_transient_' . $key;
 		add_filter( 'option_' . $timeout, '__return_zero' );
 

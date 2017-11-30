@@ -40,8 +40,18 @@ class Tests_IsObjectInTerm extends WP_UnitTestCase {
 	public function test_terms_are_strings_and_match_term_name() {
 		register_taxonomy( 'wptests_tax', 'post' );
 
-		$t1 = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax', 'name' => 'Foo' ) );
-		$t2 = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax', 'name' => 'Bar') );
+		$t1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Foo',
+			)
+		);
+		$t2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Bar',
+			)
+		);
 
 		$posts = self::factory()->post->create_many( 2 );
 		wp_set_object_terms( $posts[0], array( $t1 ), 'wptests_tax' );
@@ -55,8 +65,18 @@ class Tests_IsObjectInTerm extends WP_UnitTestCase {
 	public function test_terms_are_strings_and_match_term_slug() {
 		register_taxonomy( 'wptests_tax', 'post' );
 
-		$t1 = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax', 'slug' => 'foo' ) );
-		$t2 = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax', 'slug' => 'bar') );
+		$t1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'slug'     => 'foo',
+			)
+		);
+		$t2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'slug'     => 'bar',
+			)
+		);
 
 		$posts = self::factory()->post->create_many( 2 );
 		wp_set_object_terms( $posts[0], array( $t1 ), 'wptests_tax' );
@@ -70,8 +90,18 @@ class Tests_IsObjectInTerm extends WP_UnitTestCase {
 	public function test_terms_contain_strings_and_ints_and_match_term_id_as_int() {
 		register_taxonomy( 'wptests_tax', 'post' );
 
-		$t1 = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax', 'slug' => 'foo' ) );
-		$t2 = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax', 'slug' => 'bar') );
+		$t1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'slug'     => 'foo',
+			)
+		);
+		$t2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'slug'     => 'bar',
+			)
+		);
 
 		$posts = self::factory()->post->create_many( 2 );
 		wp_set_object_terms( $posts[0], array( $t1 ), 'wptests_tax' );
@@ -89,7 +119,7 @@ class Tests_IsObjectInTerm extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'post' );
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 
-		$post_ID  = self::factory()->post->create();
+		$post_ID = self::factory()->post->create();
 		wp_set_object_terms( $post_ID, $t, 'wptests_tax' );
 
 		$int_tax_name = $t . '_term_name';

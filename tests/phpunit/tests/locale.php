@@ -20,13 +20,13 @@ class Tests_Locale extends WP_UnitTestCase {
 	}
 
 	public function test_get_weekday() {
-		$this->assertEquals( __( 'Sunday' ),    $this->locale->get_weekday( 0 ) );
-		$this->assertEquals( __( 'Monday' ),    $this->locale->get_weekday( 1 ) );
-		$this->assertEquals( __( 'Tuesday' ),   $this->locale->get_weekday( 2 ) );
+		$this->assertEquals( __( 'Sunday' ), $this->locale->get_weekday( 0 ) );
+		$this->assertEquals( __( 'Monday' ), $this->locale->get_weekday( 1 ) );
+		$this->assertEquals( __( 'Tuesday' ), $this->locale->get_weekday( 2 ) );
 		$this->assertEquals( __( 'Wednesday' ), $this->locale->get_weekday( 3 ) );
-		$this->assertEquals( __( 'Thursday' ),  $this->locale->get_weekday( 4 ) );
-		$this->assertEquals( __( 'Friday' ),    $this->locale->get_weekday( 5 ) );
-		$this->assertEquals( __( 'Saturday' ),  $this->locale->get_weekday( 6 ) );
+		$this->assertEquals( __( 'Thursday' ), $this->locale->get_weekday( 4 ) );
+		$this->assertEquals( __( 'Friday' ), $this->locale->get_weekday( 5 ) );
+		$this->assertEquals( __( 'Saturday' ), $this->locale->get_weekday( 6 ) );
 	}
 
 	/**
@@ -57,29 +57,29 @@ class Tests_Locale extends WP_UnitTestCase {
 	}
 
 	public function test_get_month() {
-		$this->assertEquals( __( 'January' ),   $this->locale->get_month( 1 ) );
-		$this->assertEquals( __( 'February' ),  $this->locale->get_month( 2 ) );
-		$this->assertEquals( __( 'March' ),     $this->locale->get_month( 3 ) );
-		$this->assertEquals( __( 'April' ),     $this->locale->get_month( 4 ) );
-		$this->assertEquals( __( 'May' ),       $this->locale->get_month( 5 ) );
-		$this->assertEquals( __( 'June' ),      $this->locale->get_month( 6 ) );
-		$this->assertEquals( __( 'July' ),      $this->locale->get_month( 7 ) );
-		$this->assertEquals( __( 'August' ),    $this->locale->get_month( 8 ) );
+		$this->assertEquals( __( 'January' ), $this->locale->get_month( 1 ) );
+		$this->assertEquals( __( 'February' ), $this->locale->get_month( 2 ) );
+		$this->assertEquals( __( 'March' ), $this->locale->get_month( 3 ) );
+		$this->assertEquals( __( 'April' ), $this->locale->get_month( 4 ) );
+		$this->assertEquals( __( 'May' ), $this->locale->get_month( 5 ) );
+		$this->assertEquals( __( 'June' ), $this->locale->get_month( 6 ) );
+		$this->assertEquals( __( 'July' ), $this->locale->get_month( 7 ) );
+		$this->assertEquals( __( 'August' ), $this->locale->get_month( 8 ) );
 		$this->assertEquals( __( 'September' ), $this->locale->get_month( 9 ) );
-		$this->assertEquals( __( 'October' ),   $this->locale->get_month( 10 ) );
-		$this->assertEquals( __( 'November' ),  $this->locale->get_month( 11 ) );
-		$this->assertEquals( __( 'December' ),  $this->locale->get_month( 12 ) );
+		$this->assertEquals( __( 'October' ), $this->locale->get_month( 10 ) );
+		$this->assertEquals( __( 'November' ), $this->locale->get_month( 11 ) );
+		$this->assertEquals( __( 'December' ), $this->locale->get_month( 12 ) );
 	}
 
 	public function test_get_month_leading_zero() {
-		$this->assertEquals( __( 'January' ),   $this->locale->get_month( '01' ) );
-		$this->assertEquals( __( 'February' ),  $this->locale->get_month( '02' ) );
-		$this->assertEquals( __( 'March' ),     $this->locale->get_month( '03' ) );
-		$this->assertEquals( __( 'April' ),     $this->locale->get_month( '04' ) );
-		$this->assertEquals( __( 'May' ),       $this->locale->get_month( '05' ) );
-		$this->assertEquals( __( 'June' ),      $this->locale->get_month( '06' ) );
-		$this->assertEquals( __( 'July' ),      $this->locale->get_month( '07' ) );
-		$this->assertEquals( __( 'August' ),    $this->locale->get_month( '08' ) );
+		$this->assertEquals( __( 'January' ), $this->locale->get_month( '01' ) );
+		$this->assertEquals( __( 'February' ), $this->locale->get_month( '02' ) );
+		$this->assertEquals( __( 'March' ), $this->locale->get_month( '03' ) );
+		$this->assertEquals( __( 'April' ), $this->locale->get_month( '04' ) );
+		$this->assertEquals( __( 'May' ), $this->locale->get_month( '05' ) );
+		$this->assertEquals( __( 'June' ), $this->locale->get_month( '06' ) );
+		$this->assertEquals( __( 'July' ), $this->locale->get_month( '07' ) );
+		$this->assertEquals( __( 'August' ), $this->locale->get_month( '08' ) );
 		$this->assertEquals( __( 'September' ), $this->locale->get_month( '09' ) );
 	}
 

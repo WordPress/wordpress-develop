@@ -23,7 +23,7 @@ class Test_WP_Widget_Media_Audio extends WP_UnitTestCase {
 		global $wp_scripts, $wp_styles;
 		parent::clean_up_global_scope();
 		$wp_scripts = null;
-		$wp_styles = null;
+		$wp_styles  = null;
 	}
 
 	/**
@@ -33,7 +33,7 @@ class Test_WP_Widget_Media_Audio extends WP_UnitTestCase {
 	 */
 	function test_get_instance_schema() {
 		$wp_widget_audio = new WP_Widget_Media_Audio();
-		$schema = $wp_widget_audio->get_instance_schema();
+		$schema          = $wp_widget_audio->get_instance_schema();
 
 		$this->assertEqualSets(
 			array_merge(
@@ -63,17 +63,19 @@ class Test_WP_Widget_Media_Audio extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'description', $widget->widget_options );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
 		$this->assertEquals( 'audio', $widget->widget_options['mime_type'] );
-		$this->assertEqualSets( array(
-			'add_to_widget',
-			'replace_media',
-			'edit_media',
-			'media_library_state_multi',
-			'media_library_state_single',
-			'missing_attachment',
-			'no_media_selected',
-			'add_media',
-			'unsupported_file_type',
-		), array_keys( $widget->l10n ) );
+		$this->assertEqualSets(
+			array(
+				'add_to_widget',
+				'replace_media',
+				'edit_media',
+				'media_library_state_multi',
+				'media_library_state_single',
+				'missing_attachment',
+				'no_media_selected',
+				'add_media',
+				'unsupported_file_type',
+			), array_keys( $widget->l10n )
+		);
 	}
 
 	/**
@@ -82,33 +84,37 @@ class Test_WP_Widget_Media_Audio extends WP_UnitTestCase {
 	 * @covers WP_Widget_Media_Audio::update
 	 */
 	function test_update() {
-		$widget = new WP_Widget_Media_Audio();
+		$widget   = new WP_Widget_Media_Audio();
 		$instance = array();
 
 		// Should return valid attachment ID.
 		$expected = array(
 			'attachment_id' => 1,
 		);
-		$result = $widget->update( $expected, $instance );
+		$result   = $widget->update( $expected, $instance );
 		$this->assertSame( $result, $expected );
 
 		// Should filter invalid attachment ID.
-		$result = $widget->update( array(
-			'attachment_id' => 'media',
-		), $instance );
+		$result = $widget->update(
+			array(
+				'attachment_id' => 'media',
+			), $instance
+		);
 		$this->assertSame( $result, $instance );
 
 		// Should return valid attachment url.
 		$expected = array(
 			'url' => 'https://chickenandribs.org',
 		);
-		$result = $widget->update( $expected, $instance );
+		$result   = $widget->update( $expected, $instance );
 		$this->assertSame( $result, $expected );
 
 		// Should filter invalid attachment url.
-		$result = $widget->update( array(
-			'url' => 'not_a_url',
-		), $instance );
+		$result = $widget->update(
+			array(
+				'url' => 'not_a_url',
+			), $instance
+		);
 		$this->assertNotSame( $result, $instance );
 		$this->assertStringStartsWith( 'http://', $result['url'] );
 
@@ -116,45 +122,53 @@ class Test_WP_Widget_Media_Audio extends WP_UnitTestCase {
 		$expected = array(
 			'loop' => true,
 		);
-		$result = $widget->update( $expected, $instance );
+		$result   = $widget->update( $expected, $instance );
 		$this->assertSame( $result, $expected );
 
 		// Should filter invalid loop setting.
-		$result = $widget->update( array(
-			'loop' => 'not-boolean',
-		), $instance );
+		$result = $widget->update(
+			array(
+				'loop' => 'not-boolean',
+			), $instance
+		);
 		$this->assertSame( $result, $instance );
 
 		// Should return valid attachment title.
 		$expected = array(
 			'title' => 'An audio sample of parrots',
 		);
-		$result = $widget->update( $expected, $instance );
+		$result   = $widget->update( $expected, $instance );
 		$this->assertSame( $result, $expected );
 
 		// Should filter invalid attachment title.
-		$result = $widget->update( array(
-			'title' => '<h1>Cute Baby Goats</h1>',
-		), $instance );
+		$result = $widget->update(
+			array(
+				'title' => '<h1>Cute Baby Goats</h1>',
+			), $instance
+		);
 		$this->assertNotSame( $result, $instance );
 
 		// Should return valid preload setting.
 		$expected = array(
 			'preload' => 'none',
 		);
-		$result = $widget->update( $expected, $instance );
+		$result   = $widget->update( $expected, $instance );
 		$this->assertSame( $result, $expected );
 
 		// Should filter invalid preload setting.
-		$result = $widget->update( array(
-			'preload' => 'nope',
-		), $instance );
+		$result = $widget->update(
+			array(
+				'preload' => 'nope',
+			), $instance
+		);
 		$this->assertSame( $result, $instance );
 
 		// Should filter invalid key.
-		$result = $widget->update( array(
-			'h4x' => 'value',
-		), $instance );
+		$result = $widget->update(
+			array(
+				'h4x' => 'value',
+			), $instance
+		);
 		$this->assertSame( $result, $instance );
 	}
 
@@ -165,13 +179,15 @@ class Test_WP_Widget_Media_Audio extends WP_UnitTestCase {
 	 */
 	function test_render_media() {
 		$test_audio_file = __FILE__ . '../../data/uploads/small-audio.mp3';
-		$widget = new WP_Widget_Media_Audio();
-		$attachment_id = self::factory()->attachment->create_object( array(
-			'file' => $test_audio_file,
-			'post_parent' => 0,
-			'post_mime_type' => 'audio/mp3',
-			'post_title' => 'Test Audio',
-		) );
+		$widget          = new WP_Widget_Media_Audio();
+		$attachment_id   = self::factory()->attachment->create_object(
+			array(
+				'file'           => $test_audio_file,
+				'post_parent'    => 0,
+				'post_mime_type' => 'audio/mp3',
+				'post_title'     => 'Test Audio',
+			)
+		);
 		wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $test_audio_file ) );
 
 		// Should be empty when there is no attachment_id.
@@ -182,17 +198,21 @@ class Test_WP_Widget_Media_Audio extends WP_UnitTestCase {
 
 		// Should be empty when there is an invalid attachment_id.
 		ob_start();
-		$widget->render_media( array(
-			'attachment_id' => 777,
-		) );
+		$widget->render_media(
+			array(
+				'attachment_id' => 777,
+			)
+		);
 		$output = ob_get_clean();
 		$this->assertEmpty( $output );
 
 		// Tests with audio from library.
 		ob_start();
-		$widget->render_media( array(
-			'attachment_id' => $attachment_id,
-		) );
+		$widget->render_media(
+			array(
+				'attachment_id' => $attachment_id,
+			)
+		);
 		$output = ob_get_clean();
 
 		// Check default outputs.
@@ -201,12 +221,14 @@ class Test_WP_Widget_Media_Audio extends WP_UnitTestCase {
 		$this->assertContains( 'small-audio.mp3', $output );
 
 		ob_start();
-		$widget->render_media( array(
-			'attachment_id' => $attachment_id,
-			'title' => 'Funny',
-			'preload' => 'auto',
-			'loop' => true,
-		) );
+		$widget->render_media(
+			array(
+				'attachment_id' => $attachment_id,
+				'title'         => 'Funny',
+				'preload'       => 'auto',
+				'loop'          => true,
+			)
+		);
 		$output = ob_get_clean();
 
 		// Custom attributes.
@@ -224,8 +246,8 @@ class Test_WP_Widget_Media_Audio extends WP_UnitTestCase {
 	function test_enqueue_preview_scripts() {
 		global $wp_scripts, $wp_styles;
 		$wp_scripts = null;
-		$wp_styles = null;
-		$widget = new WP_Widget_Media_Audio();
+		$wp_styles  = null;
+		$widget     = new WP_Widget_Media_Audio();
 
 		$this->assertFalse( wp_script_is( 'wp-mediaelement' ) );
 		$this->assertFalse( wp_style_is( 'wp-mediaelement' ) );

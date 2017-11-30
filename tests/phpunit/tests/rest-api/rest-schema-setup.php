@@ -45,7 +45,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 				'response' => array(
 					'code' => 200,
 				),
-				'body' => wp_json_encode(
+				'body'     => wp_json_encode(
 					array(
 						'version'          => '1.0',
 						'type'             => 'video',
@@ -130,73 +130,89 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		// fixture file will be different between runs of PHPUnit tests, which
 		// is not desirable.
 
-		$administrator_id = $this->factory->user->create( array(
-			'role'          => 'administrator',
-			'display_name'  => 'REST API Client Fixture: User',
-			'user_nicename' => 'restapiclientfixtureuser',
-			'user_email'    => 'administrator@example.org',
-		) );
+		$administrator_id = $this->factory->user->create(
+			array(
+				'role'          => 'administrator',
+				'display_name'  => 'REST API Client Fixture: User',
+				'user_nicename' => 'restapiclientfixtureuser',
+				'user_email'    => 'administrator@example.org',
+			)
+		);
 		wp_set_current_user( $administrator_id );
 
-		$post_id = $this->factory->post->create( array(
-			'post_name'      => 'restapi-client-fixture-post',
-			'post_title'     => 'REST API Client Fixture: Post',
-			'post_content'   => 'REST API Client Fixture: Post',
-			'post_excerpt'   => 'REST API Client Fixture: Post',
-			'post_author'    => 0,
-		) );
+		$post_id = $this->factory->post->create(
+			array(
+				'post_name'    => 'restapi-client-fixture-post',
+				'post_title'   => 'REST API Client Fixture: Post',
+				'post_content' => 'REST API Client Fixture: Post',
+				'post_excerpt' => 'REST API Client Fixture: Post',
+				'post_author'  => 0,
+			)
+		);
 
-		wp_update_post( array(
-			'ID'           => $post_id,
-			'post_content' => 'Updated post content.',
-		) );
-		$post_revisions = array_values( wp_get_post_revisions( $post_id ) );
+		wp_update_post(
+			array(
+				'ID'           => $post_id,
+				'post_content' => 'Updated post content.',
+			)
+		);
+		$post_revisions   = array_values( wp_get_post_revisions( $post_id ) );
 		$post_revision_id = $post_revisions[ count( $post_revisions ) - 1 ]->ID;
 
-		$page_id = $this->factory->post->create( array(
-			'post_type'      => 'page',
-			'post_name'      => 'restapi-client-fixture-page',
-			'post_title'     => 'REST API Client Fixture: Page',
-			'post_content'   => 'REST API Client Fixture: Page',
-			'post_excerpt'   => 'REST API Client Fixture: Page',
-			'post_date'      => '2017-02-14 00:00:00',
-			'post_date_gmt'  => '2017-02-14 00:00:00',
-			'post_author'    => 0,
-		) );
-		wp_update_post( array(
-			'ID'           => $page_id,
-			'post_content' => 'Updated page content.',
-		) );
-		$page_revisions = array_values( wp_get_post_revisions( $page_id ) );
+		$page_id = $this->factory->post->create(
+			array(
+				'post_type'     => 'page',
+				'post_name'     => 'restapi-client-fixture-page',
+				'post_title'    => 'REST API Client Fixture: Page',
+				'post_content'  => 'REST API Client Fixture: Page',
+				'post_excerpt'  => 'REST API Client Fixture: Page',
+				'post_date'     => '2017-02-14 00:00:00',
+				'post_date_gmt' => '2017-02-14 00:00:00',
+				'post_author'   => 0,
+			)
+		);
+		wp_update_post(
+			array(
+				'ID'           => $page_id,
+				'post_content' => 'Updated page content.',
+			)
+		);
+		$page_revisions   = array_values( wp_get_post_revisions( $page_id ) );
 		$page_revision_id = $page_revisions[ count( $page_revisions ) - 1 ]->ID;
 
-		$tag_id = $this->factory->tag->create( array(
-			'name'        => 'REST API Client Fixture: Tag',
-			'slug'        => 'restapi-client-fixture-tag',
-			'description' => 'REST API Client Fixture: Tag',
-		) );
+		$tag_id = $this->factory->tag->create(
+			array(
+				'name'        => 'REST API Client Fixture: Tag',
+				'slug'        => 'restapi-client-fixture-tag',
+				'description' => 'REST API Client Fixture: Tag',
+			)
+		);
 
-		$media_id = $this->factory->attachment->create_object( '/tmp/canola.jpg', 0, array(
-			'post_mime_type' => 'image/jpeg',
-			'post_excerpt'   => 'A sample caption',
-			'post_name'      => 'restapi-client-fixture-attachment',
-			'post_title'     => 'REST API Client Fixture: Attachment',
-			'post_date'      => '2017-02-14 00:00:00',
-			'post_date_gmt'  => '2017-02-14 00:00:00',
-			'post_author'    => 0,
-		) );
+		$media_id = $this->factory->attachment->create_object(
+			'/tmp/canola.jpg', 0, array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption',
+				'post_name'      => 'restapi-client-fixture-attachment',
+				'post_title'     => 'REST API Client Fixture: Attachment',
+				'post_date'      => '2017-02-14 00:00:00',
+				'post_date_gmt'  => '2017-02-14 00:00:00',
+				'post_author'    => 0,
+			)
+		);
 
-		$comment_id = $this->factory->comment->create( array(
-			'comment_approved'     => 1,
-			'comment_post_ID'      => $post_id,
-			'user_id'              => 0,
-			'comment_date'         => '2017-02-14 00:00:00',
-			'comment_date_gmt'     => '2017-02-14 00:00:00',
-			'comment_author'       => 'Internet of something or other',
-			'comment_author_email' => 'lights@example.org',
-			'comment_author_url'   => 'http://lights.example.org/',
-		) );
-		$meta_args = array(
+		$comment_id = $this->factory->comment->create(
+			array(
+				'comment_approved'     => 1,
+				'comment_post_ID'      => $post_id,
+				'user_id'              => 0,
+				'comment_date'         => '2017-02-14 00:00:00',
+				'comment_date_gmt'     => '2017-02-14 00:00:00',
+				'comment_author'       => 'Internet of something or other',
+				'comment_author_email' => 'lights@example.org',
+				'comment_author_url'   => 'http://lights.example.org/',
+			)
+		);
+		$meta_args  = array(
 			'sanitize_callback' => 'sanitize_my_meta_key',
 			'auth_callback'     => '__return_true',
 			'type'              => 'string',
@@ -264,11 +280,11 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 				'name'  => 'PageModel',
 			),
 			array(
-				'route' => '/wp/v2/pages/'. $page_id . '/revisions',
+				'route' => '/wp/v2/pages/' . $page_id . '/revisions',
 				'name'  => 'pageRevisions',
 			),
 			array(
-				'route' => '/wp/v2/pages/'. $page_id . '/revisions/' . $page_revision_id,
+				'route' => '/wp/v2/pages/' . $page_id . '/revisions/' . $page_revision_id,
 				'name'  => 'pageRevision',
 			),
 			array(
@@ -345,7 +361,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			),
 		);
 
-		$mocked_responses = "/**\n";
+		$mocked_responses  = "/**\n";
 		$mocked_responses .= " * DO NOT EDIT\n";
 		$mocked_responses .= " * Auto-generated by test_build_wp_api_client_fixtures\n";
 		$mocked_responses .= " */\n";
@@ -358,8 +374,8 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 				$request->set_query_params( $route['args'] );
 			}
 			$response = $this->server->dispatch( $request );
-			$status = $response->get_status();
-			$data = $response->get_data();
+			$status   = $response->get_status();
+			$data     = $response->get_data();
 
 			$this->assertEquals(
 				200,
@@ -369,7 +385,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			$this->assertTrue( ! empty( $data ), $route['name'] . ' route should return data.' );
 
 			if ( version_compare( PHP_VERSION, '5.4', '>=' ) ) {
-				$fixture = $this->normalize_fixture( $data, $route['name'] );
+				$fixture           = $this->normalize_fixture( $data, $route['name'] );
 				$mocked_responses .= "\nmockedApiResponse." . $route['name'] . ' = '
 					. json_encode( $fixture, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES )
 					. ";\n";
@@ -397,152 +413,152 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 	 * how they were generated, see #41123.
 	 */
 	private static $fixture_replacements = array(
-		'Schema.name' => 'Test Blog',
-		'Schema.url' => 'http://example.org',
-		'Schema.home' => 'http://example.org',
-		'Schema.routes./._links.self' => 'http://example.org/index.php?rest_route=/',
-		'Schema.routes./oembed/1.0._links.self' => 'http://example.org/index.php?rest_route=/oembed/1.0',
-		'Schema.routes./oembed/1.0/embed._links.self' => 'http://example.org/index.php?rest_route=/oembed/1.0/embed',
-		'Schema.routes./oembed/1.0/proxy._links.self' => 'http://example.org/index.php?rest_route=/oembed/1.0/proxy',
-		'Schema.routes./wp/v2._links.self' => 'http://example.org/index.php?rest_route=/wp/v2',
-		'Schema.routes./wp/v2/posts._links.self' => 'http://example.org/index.php?rest_route=/wp/v2/posts',
-		'Schema.routes./wp/v2/pages._links.self' => 'http://example.org/index.php?rest_route=/wp/v2/pages',
-		'Schema.routes./wp/v2/media._links.self' => 'http://example.org/index.php?rest_route=/wp/v2/media',
-		'Schema.routes./wp/v2/types._links.self' => 'http://example.org/index.php?rest_route=/wp/v2/types',
-		'Schema.routes./wp/v2/statuses._links.self' => 'http://example.org/index.php?rest_route=/wp/v2/statuses',
-		'Schema.routes./wp/v2/taxonomies._links.self' => 'http://example.org/index.php?rest_route=/wp/v2/taxonomies',
-		'Schema.routes./wp/v2/categories._links.self' => 'http://example.org/index.php?rest_route=/wp/v2/categories',
-		'Schema.routes./wp/v2/tags._links.self' => 'http://example.org/index.php?rest_route=/wp/v2/tags',
-		'Schema.routes./wp/v2/users._links.self' => 'http://example.org/index.php?rest_route=/wp/v2/users',
-		'Schema.routes./wp/v2/users/me._links.self' => 'http://example.org/index.php?rest_route=/wp/v2/users/me',
-		'Schema.routes./wp/v2/comments._links.self' => 'http://example.org/index.php?rest_route=/wp/v2/comments',
-		'Schema.routes./wp/v2/settings._links.self' => 'http://example.org/index.php?rest_route=/wp/v2/settings',
-		'oembed.routes./oembed/1.0._links.self' => 'http://example.org/index.php?rest_route=/oembed/1.0',
-		'oembed.routes./oembed/1.0/embed._links.self' => 'http://example.org/index.php?rest_route=/oembed/1.0/embed',
-		'oembed.routes./oembed/1.0/proxy._links.self' => 'http://example.org/index.php?rest_route=/oembed/1.0/proxy',
-		'oembeds.provider_name' => 'Test Blog',
-		'oembeds.provider_url' => 'http://example.org',
-		'oembeds.author_name' => 'Test Blog',
-		'oembeds.author_url' => 'http://example.org',
-		'oembeds.html' => '<blockquote class="wp-embedded-content">...</blockquote>...',
-		'PostsCollection.0.id' => 3,
-		'PostsCollection.0.guid.rendered' => 'http://example.org/?p=3',
-		'PostsCollection.0.link' => 'http://example.org/?p=3',
-		'PostsCollection.0._links.self.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/posts/3',
-		'PostsCollection.0._links.collection.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/posts',
-		'PostsCollection.0._links.about.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/types/post',
-		'PostsCollection.0._links.replies.0.href' => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fcomments&post=3',
-		'PostsCollection.0._links.version-history.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/posts/3/revisions',
-		'PostsCollection.0._links.wp:attachment.0.href' => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fmedia&parent=3',
-		'PostsCollection.0._links.wp:term.0.href' => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fcategories&post=3',
-		'PostsCollection.0._links.wp:term.1.href' => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Ftags&post=3',
-		'PostModel.id' => 3,
-		'PostModel.guid.rendered' => 'http://example.org/?p=3',
-		'PostModel.link' => 'http://example.org/?p=3',
-		'postRevisions.0.author' => 2,
-		'postRevisions.0.id' => 4,
-		'postRevisions.0.parent' => 3,
-		'postRevisions.0.slug' => '3-revision-v1',
-		'postRevisions.0.guid.rendered' => 'http://example.org/?p=4',
-		'postRevisions.0._links.parent.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/posts/3',
-		'revision.author' => 2,
-		'revision.id' => 4,
-		'revision.parent' => 3,
-		'revision.slug' => '3-revision-v1',
-		'revision.guid.rendered' => 'http://example.org/?p=4',
-		'PagesCollection.0.id' => 5,
-		'PagesCollection.0.guid.rendered' => 'http://example.org/?page_id=5',
-		'PagesCollection.0.link' => 'http://example.org/?page_id=5',
-		'PagesCollection.0._links.self.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/pages/5',
-		'PagesCollection.0._links.collection.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/pages',
-		'PagesCollection.0._links.about.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/types/page',
-		'PagesCollection.0._links.replies.0.href' => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fcomments&post=5',
-		'PagesCollection.0._links.version-history.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/pages/5/revisions',
-		'PagesCollection.0._links.wp:attachment.0.href' => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fmedia&parent=5',
-		'PageModel.id' => 5,
-		'PageModel.guid.rendered' => 'http://example.org/?page_id=5',
-		'PageModel.link' => 'http://example.org/?page_id=5',
-		'pageRevisions.0.author' => 2,
-		'pageRevisions.0.id' => 6,
-		'pageRevisions.0.parent' => 5,
-		'pageRevisions.0.slug' => '5-revision-v1',
-		'pageRevisions.0.guid.rendered' => 'http://example.org/?p=6',
-		'pageRevisions.0._links.parent.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/pages/5',
-		'pageRevision.author' => 2,
-		'pageRevision.id' => 6,
-		'pageRevision.parent' => 5,
-		'pageRevision.slug' => '5-revision-v1',
-		'pageRevision.guid.rendered' => 'http://example.org/?p=6',
-		'MediaCollection.0.id' => 7,
-		'MediaCollection.0.guid.rendered' => 'http://example.org/?attachment_id=7',
-		'MediaCollection.0.link' => 'http://example.org/?attachment_id=7',
-		'MediaCollection.0.description.rendered' => '<p class="attachment"><!-- <a...><img.../></a> --></p>',
-		'MediaCollection.0.source_url' => 'http://example.org/wp-content/uploads//tmp/canola.jpg',
-		'MediaCollection.0._links.self.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/media/7',
-		'MediaCollection.0._links.collection.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/media',
-		'MediaCollection.0._links.about.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/types/attachment',
-		'MediaCollection.0._links.replies.0.href' => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fcomments&post=7',
-		'MediaModel.id' => 7,
-		'MediaModel.guid.rendered' => 'http://example.org/?attachment_id=7',
-		'MediaModel.link' => 'http://example.org/?attachment_id=7',
-		'MediaModel.description.rendered' => '<p class="attachment"><!-- <a...><img.../></a> --></p>',
-		'MediaModel.source_url' => 'http://example.org/wp-content/uploads//tmp/canola.jpg',
-		'TypesCollection.post._links.collection.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/types',
-		'TypesCollection.post._links.wp:items.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/posts',
-		'TypesCollection.page._links.collection.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/types',
-		'TypesCollection.page._links.wp:items.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/pages',
+		'Schema.name'                                      => 'Test Blog',
+		'Schema.url'                                       => 'http://example.org',
+		'Schema.home'                                      => 'http://example.org',
+		'Schema.routes./._links.self'                      => 'http://example.org/index.php?rest_route=/',
+		'Schema.routes./oembed/1.0._links.self'            => 'http://example.org/index.php?rest_route=/oembed/1.0',
+		'Schema.routes./oembed/1.0/embed._links.self'      => 'http://example.org/index.php?rest_route=/oembed/1.0/embed',
+		'Schema.routes./oembed/1.0/proxy._links.self'      => 'http://example.org/index.php?rest_route=/oembed/1.0/proxy',
+		'Schema.routes./wp/v2._links.self'                 => 'http://example.org/index.php?rest_route=/wp/v2',
+		'Schema.routes./wp/v2/posts._links.self'           => 'http://example.org/index.php?rest_route=/wp/v2/posts',
+		'Schema.routes./wp/v2/pages._links.self'           => 'http://example.org/index.php?rest_route=/wp/v2/pages',
+		'Schema.routes./wp/v2/media._links.self'           => 'http://example.org/index.php?rest_route=/wp/v2/media',
+		'Schema.routes./wp/v2/types._links.self'           => 'http://example.org/index.php?rest_route=/wp/v2/types',
+		'Schema.routes./wp/v2/statuses._links.self'        => 'http://example.org/index.php?rest_route=/wp/v2/statuses',
+		'Schema.routes./wp/v2/taxonomies._links.self'      => 'http://example.org/index.php?rest_route=/wp/v2/taxonomies',
+		'Schema.routes./wp/v2/categories._links.self'      => 'http://example.org/index.php?rest_route=/wp/v2/categories',
+		'Schema.routes./wp/v2/tags._links.self'            => 'http://example.org/index.php?rest_route=/wp/v2/tags',
+		'Schema.routes./wp/v2/users._links.self'           => 'http://example.org/index.php?rest_route=/wp/v2/users',
+		'Schema.routes./wp/v2/users/me._links.self'        => 'http://example.org/index.php?rest_route=/wp/v2/users/me',
+		'Schema.routes./wp/v2/comments._links.self'        => 'http://example.org/index.php?rest_route=/wp/v2/comments',
+		'Schema.routes./wp/v2/settings._links.self'        => 'http://example.org/index.php?rest_route=/wp/v2/settings',
+		'oembed.routes./oembed/1.0._links.self'            => 'http://example.org/index.php?rest_route=/oembed/1.0',
+		'oembed.routes./oembed/1.0/embed._links.self'      => 'http://example.org/index.php?rest_route=/oembed/1.0/embed',
+		'oembed.routes./oembed/1.0/proxy._links.self'      => 'http://example.org/index.php?rest_route=/oembed/1.0/proxy',
+		'oembeds.provider_name'                            => 'Test Blog',
+		'oembeds.provider_url'                             => 'http://example.org',
+		'oembeds.author_name'                              => 'Test Blog',
+		'oembeds.author_url'                               => 'http://example.org',
+		'oembeds.html'                                     => '<blockquote class="wp-embedded-content">...</blockquote>...',
+		'PostsCollection.0.id'                             => 3,
+		'PostsCollection.0.guid.rendered'                  => 'http://example.org/?p=3',
+		'PostsCollection.0.link'                           => 'http://example.org/?p=3',
+		'PostsCollection.0._links.self.0.href'             => 'http://example.org/index.php?rest_route=/wp/v2/posts/3',
+		'PostsCollection.0._links.collection.0.href'       => 'http://example.org/index.php?rest_route=/wp/v2/posts',
+		'PostsCollection.0._links.about.0.href'            => 'http://example.org/index.php?rest_route=/wp/v2/types/post',
+		'PostsCollection.0._links.replies.0.href'          => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fcomments&post=3',
+		'PostsCollection.0._links.version-history.0.href'  => 'http://example.org/index.php?rest_route=/wp/v2/posts/3/revisions',
+		'PostsCollection.0._links.wp:attachment.0.href'    => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fmedia&parent=3',
+		'PostsCollection.0._links.wp:term.0.href'          => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fcategories&post=3',
+		'PostsCollection.0._links.wp:term.1.href'          => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Ftags&post=3',
+		'PostModel.id'                                     => 3,
+		'PostModel.guid.rendered'                          => 'http://example.org/?p=3',
+		'PostModel.link'                                   => 'http://example.org/?p=3',
+		'postRevisions.0.author'                           => 2,
+		'postRevisions.0.id'                               => 4,
+		'postRevisions.0.parent'                           => 3,
+		'postRevisions.0.slug'                             => '3-revision-v1',
+		'postRevisions.0.guid.rendered'                    => 'http://example.org/?p=4',
+		'postRevisions.0._links.parent.0.href'             => 'http://example.org/index.php?rest_route=/wp/v2/posts/3',
+		'revision.author'                                  => 2,
+		'revision.id'                                      => 4,
+		'revision.parent'                                  => 3,
+		'revision.slug'                                    => '3-revision-v1',
+		'revision.guid.rendered'                           => 'http://example.org/?p=4',
+		'PagesCollection.0.id'                             => 5,
+		'PagesCollection.0.guid.rendered'                  => 'http://example.org/?page_id=5',
+		'PagesCollection.0.link'                           => 'http://example.org/?page_id=5',
+		'PagesCollection.0._links.self.0.href'             => 'http://example.org/index.php?rest_route=/wp/v2/pages/5',
+		'PagesCollection.0._links.collection.0.href'       => 'http://example.org/index.php?rest_route=/wp/v2/pages',
+		'PagesCollection.0._links.about.0.href'            => 'http://example.org/index.php?rest_route=/wp/v2/types/page',
+		'PagesCollection.0._links.replies.0.href'          => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fcomments&post=5',
+		'PagesCollection.0._links.version-history.0.href'  => 'http://example.org/index.php?rest_route=/wp/v2/pages/5/revisions',
+		'PagesCollection.0._links.wp:attachment.0.href'    => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fmedia&parent=5',
+		'PageModel.id'                                     => 5,
+		'PageModel.guid.rendered'                          => 'http://example.org/?page_id=5',
+		'PageModel.link'                                   => 'http://example.org/?page_id=5',
+		'pageRevisions.0.author'                           => 2,
+		'pageRevisions.0.id'                               => 6,
+		'pageRevisions.0.parent'                           => 5,
+		'pageRevisions.0.slug'                             => '5-revision-v1',
+		'pageRevisions.0.guid.rendered'                    => 'http://example.org/?p=6',
+		'pageRevisions.0._links.parent.0.href'             => 'http://example.org/index.php?rest_route=/wp/v2/pages/5',
+		'pageRevision.author'                              => 2,
+		'pageRevision.id'                                  => 6,
+		'pageRevision.parent'                              => 5,
+		'pageRevision.slug'                                => '5-revision-v1',
+		'pageRevision.guid.rendered'                       => 'http://example.org/?p=6',
+		'MediaCollection.0.id'                             => 7,
+		'MediaCollection.0.guid.rendered'                  => 'http://example.org/?attachment_id=7',
+		'MediaCollection.0.link'                           => 'http://example.org/?attachment_id=7',
+		'MediaCollection.0.description.rendered'           => '<p class="attachment"><!-- <a...><img.../></a> --></p>',
+		'MediaCollection.0.source_url'                     => 'http://example.org/wp-content/uploads//tmp/canola.jpg',
+		'MediaCollection.0._links.self.0.href'             => 'http://example.org/index.php?rest_route=/wp/v2/media/7',
+		'MediaCollection.0._links.collection.0.href'       => 'http://example.org/index.php?rest_route=/wp/v2/media',
+		'MediaCollection.0._links.about.0.href'            => 'http://example.org/index.php?rest_route=/wp/v2/types/attachment',
+		'MediaCollection.0._links.replies.0.href'          => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fcomments&post=7',
+		'MediaModel.id'                                    => 7,
+		'MediaModel.guid.rendered'                         => 'http://example.org/?attachment_id=7',
+		'MediaModel.link'                                  => 'http://example.org/?attachment_id=7',
+		'MediaModel.description.rendered'                  => '<p class="attachment"><!-- <a...><img.../></a> --></p>',
+		'MediaModel.source_url'                            => 'http://example.org/wp-content/uploads//tmp/canola.jpg',
+		'TypesCollection.post._links.collection.0.href'    => 'http://example.org/index.php?rest_route=/wp/v2/types',
+		'TypesCollection.post._links.wp:items.0.href'      => 'http://example.org/index.php?rest_route=/wp/v2/posts',
+		'TypesCollection.page._links.collection.0.href'    => 'http://example.org/index.php?rest_route=/wp/v2/types',
+		'TypesCollection.page._links.wp:items.0.href'      => 'http://example.org/index.php?rest_route=/wp/v2/pages',
 		'TypesCollection.attachment._links.collection.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/types',
 		'TypesCollection.attachment._links.wp:items.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/media',
 		'StatusesCollection.publish._links.archives.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/posts',
 		'StatusesCollection.future._links.archives.0.href' => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fposts&status=future',
-		'StatusesCollection.draft._links.archives.0.href' => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fposts&status=draft',
+		'StatusesCollection.draft._links.archives.0.href'  => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fposts&status=draft',
 		'StatusesCollection.pending._links.archives.0.href' => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fposts&status=pending',
 		'StatusesCollection.private._links.archives.0.href' => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fposts&status=private',
-		'StatusesCollection.trash._links.archives.0.href' => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fposts&status=trash',
+		'StatusesCollection.trash._links.archives.0.href'  => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fposts&status=trash',
 		'TaxonomiesCollection.category._links.collection.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/taxonomies',
 		'TaxonomiesCollection.category._links.wp:items.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/categories',
 		'TaxonomiesCollection.post_tag._links.collection.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/taxonomies',
 		'TaxonomiesCollection.post_tag._links.wp:items.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/tags',
-		'CategoriesCollection.0.link' => 'http://example.org/?cat=1',
-		'CategoriesCollection.0._links.self.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/categories/1',
-		'CategoriesCollection.0._links.collection.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/categories',
-		'CategoriesCollection.0._links.about.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/taxonomies/category',
+		'CategoriesCollection.0.link'                      => 'http://example.org/?cat=1',
+		'CategoriesCollection.0._links.self.0.href'        => 'http://example.org/index.php?rest_route=/wp/v2/categories/1',
+		'CategoriesCollection.0._links.collection.0.href'  => 'http://example.org/index.php?rest_route=/wp/v2/categories',
+		'CategoriesCollection.0._links.about.0.href'       => 'http://example.org/index.php?rest_route=/wp/v2/taxonomies/category',
 		'CategoriesCollection.0._links.wp:post_type.0.href' => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fposts&categories=1',
-		'CategoryModel.link' => 'http://example.org/?cat=1',
-		'TagsCollection.0.id' => 2,
-		'TagsCollection.0.link' => 'http://example.org/?tag=restapi-client-fixture-tag',
-		'TagsCollection.0._links.self.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/tags/2',
-		'TagsCollection.0._links.collection.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/tags',
-		'TagsCollection.0._links.about.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/taxonomies/post_tag',
-		'TagsCollection.0._links.wp:post_type.0.href' => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fposts&tags=2',
-		'TagModel.id' => 2,
-		'TagModel.link' => 'http://example.org/?tag=restapi-client-fixture-tag',
-		'UsersCollection.0.link' => 'http://example.org/?author=1',
-		'UsersCollection.0.avatar_urls.24' => 'http://0.gravatar.com/avatar/96614ec98aa0c0d2ee75796dced6df54?s=24&d=mm&r=g',
-		'UsersCollection.0.avatar_urls.48' => 'http://0.gravatar.com/avatar/96614ec98aa0c0d2ee75796dced6df54?s=48&d=mm&r=g',
-		'UsersCollection.0.avatar_urls.96' => 'http://0.gravatar.com/avatar/96614ec98aa0c0d2ee75796dced6df54?s=96&d=mm&r=g',
-		'UsersCollection.0._links.self.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/users/1',
-		'UsersCollection.0._links.collection.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/users',
-		'UsersCollection.1.id' => 2,
-		'UsersCollection.1.link' => 'http://example.org/?author=2',
-		'UsersCollection.1._links.self.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/users/2',
-		'UsersCollection.1._links.collection.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/users',
-		'UserModel.id' => 2,
-		'UserModel.link' => 'http://example.org/?author=2',
-		'me.id' => 2,
-		'me.link' => 'http://example.org/?author=2',
-		'CommentsCollection.0.id' => 2,
-		'CommentsCollection.0.post' => 3,
-		'CommentsCollection.0.link' => 'http://example.org/?p=3#comment-2',
-		'CommentsCollection.0._links.self.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/comments/2',
-		'CommentsCollection.0._links.collection.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/comments',
-		'CommentsCollection.0._links.up.0.href' => 'http://example.org/index.php?rest_route=/wp/v2/posts/3',
-		'CommentModel.id' => 2,
-		'CommentModel.post' => 3,
-		'CommentModel.link' => 'http://example.org/?p=3#comment-2',
-		'settings.title' => 'Test Blog',
-		'settings.url' => 'http://example.org',
-		'settings.email' => 'admin@example.org',
+		'CategoryModel.link'                               => 'http://example.org/?cat=1',
+		'TagsCollection.0.id'                              => 2,
+		'TagsCollection.0.link'                            => 'http://example.org/?tag=restapi-client-fixture-tag',
+		'TagsCollection.0._links.self.0.href'              => 'http://example.org/index.php?rest_route=/wp/v2/tags/2',
+		'TagsCollection.0._links.collection.0.href'        => 'http://example.org/index.php?rest_route=/wp/v2/tags',
+		'TagsCollection.0._links.about.0.href'             => 'http://example.org/index.php?rest_route=/wp/v2/taxonomies/post_tag',
+		'TagsCollection.0._links.wp:post_type.0.href'      => 'http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fposts&tags=2',
+		'TagModel.id'                                      => 2,
+		'TagModel.link'                                    => 'http://example.org/?tag=restapi-client-fixture-tag',
+		'UsersCollection.0.link'                           => 'http://example.org/?author=1',
+		'UsersCollection.0.avatar_urls.24'                 => 'http://0.gravatar.com/avatar/96614ec98aa0c0d2ee75796dced6df54?s=24&d=mm&r=g',
+		'UsersCollection.0.avatar_urls.48'                 => 'http://0.gravatar.com/avatar/96614ec98aa0c0d2ee75796dced6df54?s=48&d=mm&r=g',
+		'UsersCollection.0.avatar_urls.96'                 => 'http://0.gravatar.com/avatar/96614ec98aa0c0d2ee75796dced6df54?s=96&d=mm&r=g',
+		'UsersCollection.0._links.self.0.href'             => 'http://example.org/index.php?rest_route=/wp/v2/users/1',
+		'UsersCollection.0._links.collection.0.href'       => 'http://example.org/index.php?rest_route=/wp/v2/users',
+		'UsersCollection.1.id'                             => 2,
+		'UsersCollection.1.link'                           => 'http://example.org/?author=2',
+		'UsersCollection.1._links.self.0.href'             => 'http://example.org/index.php?rest_route=/wp/v2/users/2',
+		'UsersCollection.1._links.collection.0.href'       => 'http://example.org/index.php?rest_route=/wp/v2/users',
+		'UserModel.id'                                     => 2,
+		'UserModel.link'                                   => 'http://example.org/?author=2',
+		'me.id'                                            => 2,
+		'me.link'                                          => 'http://example.org/?author=2',
+		'CommentsCollection.0.id'                          => 2,
+		'CommentsCollection.0.post'                        => 3,
+		'CommentsCollection.0.link'                        => 'http://example.org/?p=3#comment-2',
+		'CommentsCollection.0._links.self.0.href'          => 'http://example.org/index.php?rest_route=/wp/v2/comments/2',
+		'CommentsCollection.0._links.collection.0.href'    => 'http://example.org/index.php?rest_route=/wp/v2/comments',
+		'CommentsCollection.0._links.up.0.href'            => 'http://example.org/index.php?rest_route=/wp/v2/posts/3',
+		'CommentModel.id'                                  => 2,
+		'CommentModel.post'                                => 3,
+		'CommentModel.link'                                => 'http://example.org/?p=3#comment-2',
+		'settings.title'                                   => 'Test Blog',
+		'settings.url'                                     => 'http://example.org',
+		'settings.email'                                   => 'admin@example.org',
 	);
 
 	private function normalize_fixture( $data, $path ) {

@@ -9,11 +9,13 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 	protected static $header_video_id;
 
 	public static function wpSetUpBeforeClass( $factory ) {
-		self::$post = self::factory()->post->create( array(
-			'post_status' => 'publish',
-		) );
+		self::$post = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+			)
+		);
 
-		$file = DIR_TESTDATA . '/uploads/small-video.mp4';
+		$file                  = DIR_TESTDATA . '/uploads/small-video.mp4';
 		self::$header_video_id = $factory->attachment->create_upload_object( $file );
 	}
 
@@ -65,7 +67,7 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 
 	function test_get_header_image_from_theme_mod() {
 		$default = 'http://localhost/default-header.jpg';
-		$custom = 'http://localhost/custom-header.jpg';
+		$custom  = 'http://localhost/custom-header.jpg';
 		$this->_add_theme_support( array( 'default-image' => $default ) );
 
 		set_theme_mod( 'header_image', $custom );
@@ -108,7 +110,7 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 
 	function test_get_header_image_tag_with_registered_default_image_and_custom_theme_mod() {
 		$default = 'http://localhost/default-header.jpg';
-		$custom = 'http://localhost/custom-header.jpg';
+		$custom  = 'http://localhost/custom-header.jpg';
 		$this->_add_theme_support( array( 'default-image' => $default ) );
 
 		set_theme_mod( 'header_image', $custom );
@@ -173,7 +175,12 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 
 	function test_get_custom_header_markup_with_video_and_without_an_image() {
 		$custom = 'http://localhost/custom-video.mp4';
-		$this->_add_theme_support( array( 'video' => true, 'video-active-callback' => '__return_true' ) );
+		$this->_add_theme_support(
+			array(
+				'video'                 => true,
+				'video-active-callback' => '__return_true',
+			)
+		);
 
 		set_theme_mod( 'external_header_video', $custom );
 		$html = get_custom_header_markup();
@@ -183,7 +190,12 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 	}
 
 	function test_header_script_is_not_enqueued_by_the_custom_header_markup_without_video() {
-		$this->_add_theme_support( array( 'video' => true, 'video-active-callback' => '__return_true' ) );
+		$this->_add_theme_support(
+			array(
+				'video'                 => true,
+				'video-active-callback' => '__return_true',
+			)
+		);
 
 		ob_start();
 		the_custom_header_markup();
@@ -199,7 +211,12 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 	}
 
 	function test_header_script_is_not_enqueued_by_the_custom_header_markup_when_active_callback_is_false() {
-		$this->_add_theme_support( array( 'video' => true, 'video-active-callback' => '__return_false' ) );
+		$this->_add_theme_support(
+			array(
+				'video'                 => true,
+				'video-active-callback' => '__return_false',
+			)
+		);
 		set_theme_mod( 'external_header_video', 'http://localhost/custom-video.mp4' );
 
 		ob_start();
@@ -214,7 +231,12 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 			return;
 		}
 
-		$this->_add_theme_support( array( 'video' => true, 'video-active-callback' => '__return_true' ) );
+		$this->_add_theme_support(
+			array(
+				'video'                 => true,
+				'video-active-callback' => '__return_true',
+			)
+		);
 		$this->_set_customize_previewing( true );
 
 		ob_start();
@@ -224,7 +246,12 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 	}
 
 	function test_header_script_is_enqueued_by_the_custom_header_markup_with_video() {
-		$this->_add_theme_support( array( 'video' => true, 'video-active-callback' => '__return_true' ) );
+		$this->_add_theme_support(
+			array(
+				'video'                 => true,
+				'video-active-callback' => '__return_true',
+			)
+		);
 		set_theme_mod( 'external_header_video', 'http://localhost/custom-video.mp4' );
 
 		ob_start();
@@ -237,9 +264,11 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 	 * @ticket 38738
 	 */
 	function test_video_header_callback_front_page_from_front_page() {
-		$this->_add_theme_support( array(
-			'video' => true,
-		) );
+		$this->_add_theme_support(
+			array(
+				'video' => true,
+			)
+		);
 
 		$this->go_to( home_url() );
 
@@ -252,9 +281,11 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 	 * @ticket 38738
 	 */
 	function test_video_header_callback_front_page_from_elsewhere() {
-		$this->_add_theme_support( array(
-			'video' => true,
-		) );
+		$this->_add_theme_support(
+			array(
+				'video' => true,
+			)
+		);
 
 		$this->go_to( get_permalink( self::$post ) );
 
@@ -267,10 +298,12 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 	 * @ticket 38738
 	 */
 	function test_video_header_callback_globally_from_front_page() {
-		$this->_add_theme_support( array(
-			'video' => true,
-			'video-active-callback' => '__return_true',
-		) );
+		$this->_add_theme_support(
+			array(
+				'video'                 => true,
+				'video-active-callback' => '__return_true',
+			)
+		);
 
 		$this->go_to( home_url() );
 
@@ -283,10 +316,12 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 	 * @ticket 38738
 	 */
 	function test_video_header_callback_globally_from_elsewhere() {
-		$this->_add_theme_support( array(
-			'video' => true,
-			'video-active-callback' => '__return_true',
-		) );
+		$this->_add_theme_support(
+			array(
+				'video'                 => true,
+				'video-active-callback' => '__return_true',
+			)
+		);
 
 		$this->go_to( get_permalink( self::$post ) );
 
@@ -299,10 +334,12 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 	 * @ticket 38738
 	 */
 	function test_video_header_callback_globally_with_negative_filter() {
-		$this->_add_theme_support( array(
-			'video' => true,
-			'video-active-callback' => '__return_true',
-		) );
+		$this->_add_theme_support(
+			array(
+				'video'                 => true,
+				'video-active-callback' => '__return_true',
+			)
+		);
 
 		$this->go_to( get_permalink( self::$post ) );
 
@@ -321,26 +358,28 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 	function _add_theme_support( $args = array() ) {
 		global $_wp_theme_features;
 
-		$_wp_theme_features['custom-header'][0] = wp_parse_args( $args, array(
-			'default-image' => '',
-			'random-default' => false,
-			'width' => 0,
-			'height' => 0,
-			'flex-height' => false,
-			'flex-width' => false,
-			'default-text-color' => '',
-			'header-text' => true,
-			'uploads' => true,
-			'wp-head-callback' => '',
-			'admin-head-callback' => '',
-			'admin-preview-callback' => '',
-			'video' => false,
-			'video-active-callback' => 'is_front_page',
-		) );
+		$_wp_theme_features['custom-header'][0] = wp_parse_args(
+			$args, array(
+				'default-image'          => '',
+				'random-default'         => false,
+				'width'                  => 0,
+				'height'                 => 0,
+				'flex-height'            => false,
+				'flex-width'             => false,
+				'default-text-color'     => '',
+				'header-text'            => true,
+				'uploads'                => true,
+				'wp-head-callback'       => '',
+				'admin-head-callback'    => '',
+				'admin-preview-callback' => '',
+				'video'                  => false,
+				'video-active-callback'  => 'is_front_page',
+			)
+		);
 	}
 
 	function _set_customize_previewing( $value ) {
-		$class = new ReflectionClass( 'WP_Customize_Manager' );
+		$class    = new ReflectionClass( 'WP_Customize_Manager' );
 		$property = $class->getProperty( 'previewing' );
 		$property->setAccessible( true );
 		$property->setValue( $this->customize_manager, $value );

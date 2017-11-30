@@ -18,7 +18,7 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 	}
 
 	function test_get_comments_number_without_arg() {
-		$post_id = self::factory()->post->create();
+		$post_id   = self::factory()->post->create();
 		$permalink = get_permalink( $post_id );
 		$this->go_to( $permalink );
 
@@ -34,7 +34,7 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 	 * @ticket 13651
 	 */
 	function test_get_comments_number_text_declension_with_default_args() {
-		$post_id = $this->factory->post->create();
+		$post_id   = $this->factory->post->create();
 		$permalink = get_permalink( $post_id );
 		$this->go_to( $permalink );
 
@@ -57,7 +57,7 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 	 * @dataProvider data_get_comments_number_text_declension
 	 */
 	function test_get_comments_number_text_declension_with_custom_args( $number, $input, $output ) {
-		$post_id = $this->factory->post->create();
+		$post_id   = $this->factory->post->create();
 		$permalink = get_permalink( $post_id );
 
 		$this->factory->comment->create_post_comments( $post_id, $number );
@@ -109,7 +109,7 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 			array(
 				2,
 				'2 Comments<span class="screen-reader-text"> on Hello % world!</span>',
-				'2 Comments<span class="screen-reader-text"> on Hello 2 world!</span>' // See #WP37103
+				'2 Comments<span class="screen-reader-text"> on Hello 2 world!</span>', // See #WP37103
 			),
 			array(
 				2,
