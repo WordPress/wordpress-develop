@@ -30,11 +30,11 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertNull( $this->request->get_header( 'missing' ) );
 		$this->assertNull( $this->request->get_header_as_array( 'missing' ) );
 	}
-	
+
 	public function test_remove_header() {
 		$this->request->add_header( 'Test-Header', 'value' );
 		$this->assertEquals( 'value', $this->request->get_header( 'Test-Header' ) );
-		
+
 		$this->request->remove_header( 'Test-Header' );
 		$this->assertNull( $this->request->get_header( 'Test-Header' ) );
 	}
@@ -96,36 +96,46 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->request->set_header( 'Content-Type', $header );
 		$parsed = $this->request->get_content_type();
 
-		$this->assertEquals( $value,      $parsed['value'] );
-		$this->assertEquals( $type,       $parsed['type'] );
-		$this->assertEquals( $subtype,    $parsed['subtype'] );
+		$this->assertEquals( $value, $parsed['value'] );
+		$this->assertEquals( $type, $parsed['type'] );
+		$this->assertEquals( $subtype, $parsed['subtype'] );
 		$this->assertEquals( $parameters, $parsed['parameters'] );
 	}
 
 	protected function request_with_parameters() {
-		$this->request->set_url_params( array(
-			'source'         => 'url',
-			'has_url_params' => true,
-		) );
-		$this->request->set_query_params( array(
-			'source'           => 'query',
-			'has_query_params' => true,
-		) );
-		$this->request->set_body_params( array(
-			'source'          => 'body',
-			'has_body_params' => true,
-		) );
+		$this->request->set_url_params(
+			array(
+				'source'         => 'url',
+				'has_url_params' => true,
+			)
+		);
+		$this->request->set_query_params(
+			array(
+				'source'           => 'query',
+				'has_query_params' => true,
+			)
+		);
+		$this->request->set_body_params(
+			array(
+				'source'          => 'body',
+				'has_body_params' => true,
+			)
+		);
 
-		$json_data = wp_json_encode( array(
-			'source'          => 'json',
-			'has_json_params' => true,
-		) );
+		$json_data = wp_json_encode(
+			array(
+				'source'          => 'json',
+				'has_json_params' => true,
+			)
+		);
 		$this->request->set_body( $json_data );
 
-		$this->request->set_default_params( array(
-			'source'             => 'defaults',
-			'has_default_params' => true,
-		) );
+		$this->request->set_default_params(
+			array(
+				'source'             => 'defaults',
+				'has_default_params' => true,
+			)
+		);
 	}
 
 	public function test_parameter_order() {
@@ -228,7 +238,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	 */
 	public function test_non_post_body_parameters( $request_method ) {
 		$data = array(
-			'foo' => 'bar',
+			'foo'  => 'bar',
 			'alot' => array(
 				'of' => 'parameters',
 			),
@@ -248,7 +258,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 	public function test_parameters_for_json_put() {
 		$data = array(
-			'foo' => 'bar',
+			'foo'  => 'bar',
 			'alot' => array(
 				'of' => 'parameters',
 			),
@@ -270,7 +280,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 	public function test_parameters_for_json_post() {
 		$data = array(
-			'foo' => 'bar',
+			'foo'  => 'bar',
 			'alot' => array(
 				'of' => 'parameters',
 			),
@@ -306,33 +316,39 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	}
 
 	public function test_parameter_merging_with_numeric_keys() {
-		$this->request->set_query_params( array(
-			'1'           => 'hello',
-			'2'           => 'goodbye',
-		) );
+		$this->request->set_query_params(
+			array(
+				'1' => 'hello',
+				'2' => 'goodbye',
+			)
+		);
 		$expected = array(
-			'1'           => 'hello',
-			'2'           => 'goodbye',
+			'1' => 'hello',
+			'2' => 'goodbye',
 		);
 		$this->assertEquals( $expected, $this->request->get_params() );
 	}
 
 	public function test_sanitize_params() {
-		$this->request->set_url_params( array(
-			'someinteger' => '123',
-			'somestring'  => 'hello',
-		));
+		$this->request->set_url_params(
+			array(
+				'someinteger' => '123',
+				'somestring'  => 'hello',
+			)
+		);
 
-		$this->request->set_attributes( array(
-			'args' => array(
-				'someinteger' => array(
-					'sanitize_callback' => 'absint',
+		$this->request->set_attributes(
+			array(
+				'args' => array(
+					'someinteger' => array(
+						'sanitize_callback' => 'absint',
+					),
+					'somestring'  => array(
+						'sanitize_callback' => 'absint',
+					),
 				),
-				'somestring'  => array(
-					'sanitize_callback' => 'absint',
-				),
-			),
-		) );
+			)
+		);
 
 		$this->request->sanitize_params();
 
@@ -341,20 +357,24 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	}
 
 	public function test_sanitize_params_error() {
-		$this->request->set_url_params( array(
-			'successparam' => '123',
-			'failparam'    => '123',
-		));
-		$this->request->set_attributes( array(
-			'args' => array(
-				'successparam' => array(
-					'sanitize_callback' => 'absint',
+		$this->request->set_url_params(
+			array(
+				'successparam' => '123',
+				'failparam'    => '123',
+			)
+		);
+		$this->request->set_attributes(
+			array(
+				'args' => array(
+					'successparam' => array(
+						'sanitize_callback' => 'absint',
+					),
+					'failparam'    => array(
+						'sanitize_callback' => array( $this, '_return_wp_error_on_validate_callback' ),
+					),
 				),
-				'failparam' => array(
-					'sanitize_callback' => array( $this, '_return_wp_error_on_validate_callback' ),
-				),
-			),
-		));
+			)
+		);
 
 		$valid = $this->request->sanitize_params();
 		$this->assertWPError( $valid );
@@ -362,49 +382,59 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	}
 
 	public function test_sanitize_params_with_null_callback() {
-		$this->request->set_url_params( array(
-			'some_email' => '',
-		) );
+		$this->request->set_url_params(
+			array(
+				'some_email' => '',
+			)
+		);
 
-		$this->request->set_attributes( array(
-			'args' => array(
-				'some_email' => array(
-					'type'              => 'string',
-					'format'            => 'email',
-					'sanitize_callback' => null,
+		$this->request->set_attributes(
+			array(
+				'args' => array(
+					'some_email' => array(
+						'type'              => 'string',
+						'format'            => 'email',
+						'sanitize_callback' => null,
+					),
 				),
-			),
-		) );
+			)
+		);
 
 		$this->assertTrue( $this->request->sanitize_params() );
 	}
 
 	public function test_sanitize_params_with_false_callback() {
-		$this->request->set_url_params( array(
-			'some_uri'   => 1.23422,
-		) );
+		$this->request->set_url_params(
+			array(
+				'some_uri' => 1.23422,
+			)
+		);
 
-		$this->request->set_attributes( array(
-			'args' => array(
-				'some_uri' => array(
-					'type'              => 'string',
-					'format'            => 'uri',
-					'sanitize_callback' => false,
+		$this->request->set_attributes(
+			array(
+				'args' => array(
+					'some_uri' => array(
+						'type'              => 'string',
+						'format'            => 'uri',
+						'sanitize_callback' => false,
+					),
 				),
-			),
-		) );
+			)
+		);
 
 		$this->assertTrue( $this->request->sanitize_params() );
 	}
 
 	public function test_has_valid_params_required_flag() {
-		$this->request->set_attributes( array(
-			'args' => array(
-				'someinteger' => array(
-					'required' => true,
+		$this->request->set_attributes(
+			array(
+				'args' => array(
+					'someinteger' => array(
+						'required' => true,
+					),
 				),
-			),
-		) );
+			)
+		);
 
 		$valid = $this->request->has_valid_params();
 
@@ -413,16 +443,18 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	}
 
 	public function test_has_valid_params_required_flag_multiple() {
-		$this->request->set_attributes( array(
-			'args' => array(
-				'someinteger' => array(
-					'required' => true,
+		$this->request->set_attributes(
+			array(
+				'args' => array(
+					'someinteger'      => array(
+						'required' => true,
+					),
+					'someotherinteger' => array(
+						'required' => true,
+					),
 				),
-				'someotherinteger' => array(
-					'required' => true,
-				),
-			),
-		));
+			)
+		);
 
 		$valid = $this->request->has_valid_params();
 
@@ -436,17 +468,21 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	}
 
 	public function test_has_valid_params_validate_callback() {
-		$this->request->set_url_params( array(
-			'someinteger' => '123',
-		));
+		$this->request->set_url_params(
+			array(
+				'someinteger' => '123',
+			)
+		);
 
-		$this->request->set_attributes( array(
-			'args' => array(
-				'someinteger' => array(
-					'validate_callback' => '__return_false',
+		$this->request->set_attributes(
+			array(
+				'args' => array(
+					'someinteger' => array(
+						'validate_callback' => '__return_false',
+					),
 				),
-			),
-		));
+			)
+		);
 
 		$valid = $this->request->has_valid_params();
 
@@ -483,21 +519,25 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	}
 
 	public function test_has_multiple_invalid_params_validate_callback() {
-		$this->request->set_url_params( array(
-			'someinteger' => '123',
-			'someotherinteger' => '123',
-		));
+		$this->request->set_url_params(
+			array(
+				'someinteger'      => '123',
+				'someotherinteger' => '123',
+			)
+		);
 
-		$this->request->set_attributes( array(
-			'args' => array(
-				'someinteger' => array(
-					'validate_callback' => '__return_false',
+		$this->request->set_attributes(
+			array(
+				'args' => array(
+					'someinteger'      => array(
+						'validate_callback' => '__return_false',
+					),
+					'someotherinteger' => array(
+						'validate_callback' => '__return_false',
+					),
 				),
-				'someotherinteger' => array(
-					'validate_callback' => '__return_false',
-				),
-			),
-		));
+			)
+		);
 
 		$valid = $this->request->has_valid_params();
 
@@ -511,21 +551,25 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	}
 
 	public function test_invalid_params_error_response_format() {
-		$this->request->set_url_params( array(
-			'someinteger' => '123',
-			'someotherparams' => '123',
-		));
+		$this->request->set_url_params(
+			array(
+				'someinteger'     => '123',
+				'someotherparams' => '123',
+			)
+		);
 
-		$this->request->set_attributes( array(
-			'args' => array(
-				'someinteger' => array(
-					'validate_callback' => '__return_false',
+		$this->request->set_attributes(
+			array(
+				'args' => array(
+					'someinteger'     => array(
+						'validate_callback' => '__return_false',
+					),
+					'someotherparams' => array(
+						'validate_callback' => array( $this, '_return_wp_error_on_validate_callback' ),
+					),
 				),
-				'someotherparams' => array(
-					'validate_callback' => array( $this, '_return_wp_error_on_validate_callback' ),
-				),
-			),
-		));
+			)
+		);
 
 		$valid = $this->request->has_valid_params();
 		$this->assertWPError( $valid );
@@ -562,9 +606,11 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$request = WP_REST_Request::from_url( $url );
 		$this->assertInstanceOf( 'WP_REST_Request', $request );
 		$this->assertEquals( '/wp/v2/posts/1', $request->get_route() );
-		$this->assertEqualSets( array(
-			'foo' => 'bar',
-		), $request->get_query_params() );
+		$this->assertEqualSets(
+			array(
+				'foo' => 'bar',
+			), $request->get_query_params()
+		);
 	}
 
 	/**
@@ -573,11 +619,11 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	public function test_from_url_invalid( $permalink_structure ) {
 		update_option( 'permalink_structure', $permalink_structure );
 		$using_site = site_url( '/wp/v2/posts/1' );
-		$request = WP_REST_Request::from_url( $using_site );
+		$request    = WP_REST_Request::from_url( $using_site );
 		$this->assertFalse( $request );
 
-		$using_home = home_url( '/wp/v2/posts/1' ) ;
-		$request = WP_REST_Request::from_url( $using_home );
+		$using_home = home_url( '/wp/v2/posts/1' );
+		$request    = WP_REST_Request::from_url( $using_home );
 		$this->assertFalse( $request );
 	}
 
@@ -591,9 +637,13 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$request = new WP_REST_Request();
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_method( 'POST' );
-		$request->set_body( wp_json_encode( array(
-			'param' => 'value'
-		) ) );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'param' => 'value',
+				)
+			)
+		);
 		$this->assertEquals( 'value', $request->get_param( 'param' ) );
 		$this->assertEquals(
 			array( 'param' => 'value' ),

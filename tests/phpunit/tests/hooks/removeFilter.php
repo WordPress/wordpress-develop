@@ -8,10 +8,10 @@
 class Tests_WP_Hook_Remove_Filter extends WP_UnitTestCase {
 
 	public function test_remove_filter_with_function() {
-		$callback = '__return_null';
-		$hook = new WP_Hook();
-		$tag = __FUNCTION__;
-		$priority = rand( 1, 100 );
+		$callback      = '__return_null';
+		$hook          = new WP_Hook();
+		$tag           = __FUNCTION__;
+		$priority      = rand( 1, 100 );
 		$accepted_args = rand( 1, 100 );
 
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
@@ -21,11 +21,11 @@ class Tests_WP_Hook_Remove_Filter extends WP_UnitTestCase {
 	}
 
 	public function test_remove_filter_with_object() {
-		$a = new MockAction();
-		$callback = array( $a, 'action' );
-		$hook = new WP_Hook();
-		$tag = __FUNCTION__;
-		$priority = rand( 1, 100 );
+		$a             = new MockAction();
+		$callback      = array( $a, 'action' );
+		$hook          = new WP_Hook();
+		$tag           = __FUNCTION__;
+		$priority      = rand( 1, 100 );
 		$accepted_args = rand( 1, 100 );
 
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
@@ -35,10 +35,10 @@ class Tests_WP_Hook_Remove_Filter extends WP_UnitTestCase {
 	}
 
 	public function test_remove_filter_with_static_method() {
-		$callback = array( 'MockAction', 'action' );
-		$hook = new WP_Hook();
-		$tag = __FUNCTION__;
-		$priority = rand( 1, 100 );
+		$callback      = array( 'MockAction', 'action' );
+		$hook          = new WP_Hook();
+		$tag           = __FUNCTION__;
+		$priority      = rand( 1, 100 );
 		$accepted_args = rand( 1, 100 );
 
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
@@ -48,11 +48,11 @@ class Tests_WP_Hook_Remove_Filter extends WP_UnitTestCase {
 	}
 
 	public function test_remove_filters_with_another_at_same_priority() {
-		$callback_one = '__return_null';
-		$callback_two = '__return_false';
-		$hook = new WP_Hook();
-		$tag = __FUNCTION__;
-		$priority = rand( 1, 100 );
+		$callback_one  = '__return_null';
+		$callback_two  = '__return_false';
+		$hook          = new WP_Hook();
+		$tag           = __FUNCTION__;
+		$priority      = rand( 1, 100 );
 		$accepted_args = rand( 1, 100 );
 
 		$hook->add_filter( $tag, $callback_one, $priority, $accepted_args );
@@ -64,11 +64,11 @@ class Tests_WP_Hook_Remove_Filter extends WP_UnitTestCase {
 	}
 
 	public function test_remove_filter_with_another_at_different_priority() {
-		$callback_one = '__return_null';
-		$callback_two = '__return_false';
-		$hook = new WP_Hook();
-		$tag = __FUNCTION__;
-		$priority = rand( 1, 100 );
+		$callback_one  = '__return_null';
+		$callback_two  = '__return_false';
+		$hook          = new WP_Hook();
+		$tag           = __FUNCTION__;
+		$priority      = rand( 1, 100 );
 		$accepted_args = rand( 1, 100 );
 
 		$hook->add_filter( $tag, $callback_one, $priority, $accepted_args );

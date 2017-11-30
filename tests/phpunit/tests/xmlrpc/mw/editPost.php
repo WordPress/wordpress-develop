@@ -6,7 +6,7 @@
 class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 
 	function test_invalid_username_password() {
-		$post = array();
+		$post   = array();
 		$result = $this->myxmlrpcserver->mw_editPost( array( 1, 'username', 'password', $post ) );
 		$this->assertIXRError( $result );
 		$this->assertEquals( 403, $result->code );
@@ -14,14 +14,17 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 
 	function test_edit_own_post() {
 		$contributor_id = $this->make_user_by_role( 'contributor' );
-		$post = array( 'post_title' => 'Post test', 'post_author' => $contributor_id );
-		$post_id = wp_insert_post( $post );
+		$post           = array(
+			'post_title'  => 'Post test',
+			'post_author' => $contributor_id,
+		);
+		$post_id        = wp_insert_post( $post );
 
 		$new_title = 'Post test (updated)';
-		$post2 = array( 'title' => $new_title );
-		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'contributor', 'contributor', $post2 ) );
+		$post2     = array( 'title' => $new_title );
+		$result    = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'contributor', 'contributor', $post2 ) );
 		$this->assertNotIXRError( $result );
-		$this->assertTrue($result);
+		$this->assertTrue( $result );
 
 		$out = get_post( $post_id );
 		$this->assertEquals( $new_title, $out->post_title );
@@ -31,14 +34,17 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 		$this->make_user_by_role( 'editor' );
 		$contributor_id = $this->make_user_by_role( 'contributor' );
 
-		$post = array( 'post_title' => 'Post test', 'post_author' => $contributor_id );
+		$post    = array(
+			'post_title'  => 'Post test',
+			'post_author' => $contributor_id,
+		);
 		$post_id = wp_insert_post( $post );
 
 		$new_title = 'Post test (updated)';
-		$post2 = array( 'title' => $new_title );
-		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'editor', 'editor', $post2 ) );
+		$post2     = array( 'title' => $new_title );
+		$result    = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'editor', 'editor', $post2 ) );
 		$this->assertNotIXRError( $result );
-		$this->assertTrue($result);
+		$this->assertTrue( $result );
 
 		$out = get_post( $post_id );
 		$this->assertEquals( $new_title, $out->post_title );
@@ -49,12 +55,15 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 		$author_id = $this->make_user_by_role( 'author' );
 
 		$original_title = 'Post test';
-		$post = array( 'post_title' => $original_title, 'post_author' => $author_id );
-		$post_id = wp_insert_post( $post );
+		$post           = array(
+			'post_title'  => $original_title,
+			'post_author' => $author_id,
+		);
+		$post_id        = wp_insert_post( $post );
 
 		$new_title = 'Post test (updated)';
-		$post2 = array( 'title' => $new_title );
-		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'contributor', 'contributor', $post2 ) );
+		$post2     = array( 'title' => $new_title );
+		$result    = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'contributor', 'contributor', $post2 ) );
 		$this->assertIXRError( $result );
 		$this->assertEquals( 401, $result->code );
 
@@ -64,16 +73,19 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 
 	function test_capable_reassign_author() {
 		$contributor_id = $this->make_user_by_role( 'contributor' );
-		$author_id = $this->make_user_by_role( 'author' );
+		$author_id      = $this->make_user_by_role( 'author' );
 		$this->make_user_by_role( 'editor' );
 
-		$post = array( 'post_title' => 'Post test', 'post_author' => $contributor_id );
+		$post    = array(
+			'post_title'  => 'Post test',
+			'post_author' => $contributor_id,
+		);
 		$post_id = wp_insert_post( $post );
 
-		$post2 = array( 'wp_author_id' => $author_id );
+		$post2  = array( 'wp_author_id' => $author_id );
 		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'editor', 'editor', $post2 ) );
 		$this->assertNotIXRError( $result );
-		$this->assertTrue($result);
+		$this->assertTrue( $result );
 
 		$out = get_post( $post_id );
 		$this->assertEquals( $author_id, $out->post_author );
@@ -81,12 +93,15 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 
 	function test_incapable_reassign_author() {
 		$contributor_id = $this->make_user_by_role( 'contributor' );
-		$author_id = $this->make_user_by_role( 'author' );
+		$author_id      = $this->make_user_by_role( 'author' );
 
-		$post = array( 'post_title' => 'Post test', 'post_author' => $contributor_id );
+		$post    = array(
+			'post_title'  => 'Post test',
+			'post_author' => $contributor_id,
+		);
 		$post_id = wp_insert_post( $post );
 
-		$post2 = array( 'wp_author_id' => $author_id );
+		$post2  = array( 'wp_author_id' => $author_id );
 		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'contributor', 'contributor', $post2 ) );
 		$this->assertIXRError( $result );
 		$this->assertEquals( 401, $result->code );
@@ -100,15 +115,18 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 	 */
 	function test_capable_reassign_author_to_self() {
 		$contributor_id = $this->make_user_by_role( 'contributor' );
-		$editor_id = $this->make_user_by_role( 'editor' );
+		$editor_id      = $this->make_user_by_role( 'editor' );
 
-		$post = array( 'post_title' => 'Post test', 'post_author' => $contributor_id );
+		$post    = array(
+			'post_title'  => 'Post test',
+			'post_author' => $contributor_id,
+		);
 		$post_id = wp_insert_post( $post );
 
-		$post2 = array( 'wp_author_id' => $editor_id );
+		$post2  = array( 'wp_author_id' => $editor_id );
 		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'editor', 'editor', $post2 ) );
 		$this->assertNotIXRError( $result );
-		$this->assertTrue($result);
+		$this->assertTrue( $result );
 
 		$out = get_post( $post_id );
 		$this->assertEquals( $editor_id, $out->post_author );
@@ -119,23 +137,26 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 
 		$author_id = $this->make_user_by_role( 'author' );
 
-		$post = array( 'post_title' => 'Post Thumbnail Test', 'post_author' => $author_id );
+		$post    = array(
+			'post_title'  => 'Post Thumbnail Test',
+			'post_author' => $author_id,
+		);
 		$post_id = wp_insert_post( $post );
 
 		$this->assertEquals( '', get_post_meta( $post_id, '_thumbnail_id', true ) );
 
 		// create attachment
-		$filename = ( DIR_TESTDATA.'/images/a2-small.jpg' );
+		$filename      = ( DIR_TESTDATA . '/images/a2-small.jpg' );
 		$attachment_id = self::factory()->attachment->create_upload_object( $filename, $post_id );
 
 		// add post thumbnail to post that does not have one
-		$post2 = array( 'wp_post_thumbnail' => $attachment_id );
+		$post2  = array( 'wp_post_thumbnail' => $attachment_id );
 		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'author', 'author', $post2 ) );
 		$this->assertNotIXRError( $result );
 		$this->assertEquals( $attachment_id, get_post_meta( $post_id, '_thumbnail_id', true ) );
 
 		// edit the post without supplying a post_thumbnail and check that it didn't change
-		$post3 = array( 'post_content' => 'Updated post' );
+		$post3  = array( 'post_content' => 'Updated post' );
 		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'author', 'author', $post3 ) );
 		$this->assertNotIXRError( $result );
 		$this->assertEquals( $attachment_id, get_post_meta( $post_id, '_thumbnail_id', true ) );
@@ -144,14 +165,14 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 		$attachment2_id = self::factory()->attachment->create_upload_object( $filename, $post_id );
 
 		// change the post's post_thumbnail
-		$post4 = array( 'wp_post_thumbnail' => $attachment2_id );
+		$post4  = array( 'wp_post_thumbnail' => $attachment2_id );
 		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'author', 'author', $post4 ) );
 		$this->assertNotIXRError( $result );
 		$this->assertEquals( $attachment2_id, get_post_meta( $post_id, '_thumbnail_id', true ) );
 
 		// unset the post's post_thumbnail
-		$post5 = array( 'wp_post_thumbnail' => '' );
-		$result = $this->myxmlrpcserver->mw_editPost( array($post_id, 'author', 'author', $post5 ) );
+		$post5  = array( 'wp_post_thumbnail' => '' );
+		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'author', 'author', $post5 ) );
 		$this->assertNotIXRError( $result );
 		$this->assertEquals( '', get_post_meta( $post_id, '_thumbnail_id', true ) );
 
@@ -161,30 +182,44 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 	function test_edit_basic_post_info() {
 		$contributor_id = $this->make_user_by_role( 'contributor' );
 
-		$post = array( 'post_title' => 'Title', 'post_content' => 'Content', 'post_excerpt' => 'Excerpt', 'post_author' => $contributor_id );
+		$post    = array(
+			'post_title'   => 'Title',
+			'post_content' => 'Content',
+			'post_excerpt' => 'Excerpt',
+			'post_author'  => $contributor_id,
+		);
 		$post_id = wp_insert_post( $post );
 
-		$post2 = array( 'title' => 'New Title', 'post_author' => $contributor_id );
+		$post2  = array(
+			'title'       => 'New Title',
+			'post_author' => $contributor_id,
+		);
 		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'contributor', 'contributor', $post2 ) );
 		$this->assertNotIXRError( $result );
-		$this->assertTrue($result);
+		$this->assertTrue( $result );
 
 		$out = get_post( $post_id );
 		$this->assertEquals( $post2['title'], $out->post_title );
 
-		$post3 = array( 'description' => 'New Content', 'post_author' => $contributor_id );
+		$post3  = array(
+			'description' => 'New Content',
+			'post_author' => $contributor_id,
+		);
 		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'contributor', 'contributor', $post3 ) );
 		$this->assertNotIXRError( $result );
-		$this->assertTrue($result);
+		$this->assertTrue( $result );
 
 		$out = get_post( $post_id );
 		$this->assertEquals( $post2['title'], $out->post_title );
 		$this->assertEquals( $post3['description'], $out->post_content );
 
-		$post4 = array( 'mt_excerpt' => 'New Excerpt', 'post_author' => $contributor_id );
+		$post4  = array(
+			'mt_excerpt'  => 'New Excerpt',
+			'post_author' => $contributor_id,
+		);
 		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'contributor', 'contributor', $post4 ) );
 		$this->assertNotIXRError( $result );
-		$this->assertTrue($result);
+		$this->assertTrue( $result );
 
 		$out = get_post( $post_id );
 		$this->assertEquals( $post2['title'], $out->post_title );
@@ -198,7 +233,12 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 	function test_make_post_sticky() {
 		$author_id = $this->make_user_by_role( 'editor' );
 
-		$post = array( 'post_title' => 'Title', 'post_content' => 'Content', 'post_author' => $author_id, 'post_status' => 'publish' );
+		$post    = array(
+			'post_title'   => 'Title',
+			'post_content' => 'Content',
+			'post_author'  => $author_id,
+			'post_status'  => 'publish',
+		);
 		$post_id = wp_insert_post( $post );
 
 		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'editor', 'editor', array( 'sticky' => '1' ) ) );
@@ -210,10 +250,13 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 	function test_change_post_type() {
 		$contributor_id = $this->make_user_by_role( 'contributor' );
 
-		$post = array( 'post_title' => 'Title', 'post_author' => $contributor_id );
+		$post    = array(
+			'post_title'  => 'Title',
+			'post_author' => $contributor_id,
+		);
 		$post_id = wp_insert_post( $post );
 
-		$post2 = array( 'post_type' => 'page' );
+		$post2  = array( 'post_type' => 'page' );
 		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'contributor', 'contributor', $post2 ) );
 		$this->assertIXRError( $result );
 		$this->assertEquals( $result->code, 401 );
@@ -225,18 +268,27 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 	function test_empty_not_null() {
 		$editor_id = $this->make_user_by_role( 'editor' );
 
-		$post_id = self::factory()->post->create( array(
-			'post_title' => 'Title',
-			'post_author' => $editor_id,
-			'tags_input' => 'taco'
-		) );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'  => 'Title',
+				'post_author' => $editor_id,
+				'tags_input'  => 'taco',
+			)
+		);
 
 		$tags1 = get_the_tags( $post_id );
 		$this->assertNotEmpty( $tags1 );
 
-		$this->myxmlrpcserver->mw_editPost( array( $post_id, 'editor', 'editor', array(
-			'mt_keywords' => ''
-		) ) );
+		$this->myxmlrpcserver->mw_editPost(
+			array(
+				$post_id,
+				'editor',
+				'editor',
+				array(
+					'mt_keywords' => '',
+				),
+			)
+		);
 
 		$tags2 = get_the_tags( $post_id );
 		$this->assertEmpty( $tags2 );
@@ -262,15 +314,17 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 		// Change the post's status to publish and date to future.
 		$future_time = strtotime( '+1 day' );
 		$future_date = new IXR_Date( $future_time );
-		$this->myxmlrpcserver->mw_editPost( array(
-			$post_id,
-			'editor',
-			'editor',
+		$this->myxmlrpcserver->mw_editPost(
 			array(
-				'dateCreated' => $future_date,
-				'post_status' => 'publish',
-			),
-		) );
+				$post_id,
+				'editor',
+				'editor',
+				array(
+					'dateCreated' => $future_date,
+					'post_status' => 'publish',
+				),
+			)
+		);
 
 		$after = get_post( $post_id );
 		$this->assertEquals( 'future', $after->post_status );

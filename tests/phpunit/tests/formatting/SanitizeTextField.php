@@ -21,21 +21,21 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 			array(
 				"one is <\n two",
 				array(
-					'oneline' => 'one is &lt; two',
+					'oneline'   => 'one is &lt; two',
 					'multiline' => "one is &lt;\n two",
 				),
 			),
 			array(
 				"foo <div\n> bar",
 				array(
-					'oneline' => 'foo bar',
-					'multiline' => "foo  bar",
+					'oneline'   => 'foo bar',
+					'multiline' => 'foo  bar',
 				),
 			),
 			array(
 				"foo <\ndiv\n> bar",
 				array(
-					'oneline' => 'foo &lt; div > bar',
+					'oneline'   => 'foo &lt; div > bar',
 					'multiline' => "foo &lt;\ndiv\n> bar",
 				),
 			),
@@ -50,21 +50,21 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 			array(
 				'we  trim  extra  internal  whitespace  only  in  single  line  texts',
 				array(
-					'oneline' => 'we trim extra internal whitespace only in single line texts',
+					'oneline'   => 'we trim extra internal whitespace only in single line texts',
 					'multiline' => 'we  trim  extra  internal  whitespace  only  in  single  line  texts',
 				),
 			),
 			array(
 				"tabs \tget removed in single line texts",
 				array(
-					'oneline' => 'tabs get removed in single line texts',
+					'oneline'   => 'tabs get removed in single line texts',
 					'multiline' => "tabs \tget removed in single line texts",
 				),
 			),
 			array(
 				"newlines are allowed only\n in multiline texts",
 				array(
-					'oneline' => 'newlines are allowed only in multiline texts',
+					'oneline'   => 'newlines are allowed only in multiline texts',
 					'multiline' => "newlines are allowed only\n in multiline texts",
 				),
 			),
@@ -76,8 +76,8 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 				'We don\'t need to wory about %A
 				B removing %a
 				b octets even when %a	B they are obscured by whitespace',
-				array (
-					'oneline' => 'We don\'t need to wory about %A B removing %a b octets even when %a B they are obscured by whitespace',
+				array(
+					'oneline'   => 'We don\'t need to wory about %A B removing %a b octets even when %a B they are obscured by whitespace',
 					'multiline' => "We don't need to wory about %A\n				B removing %a\n				b octets even when %a	B they are obscured by whitespace",
 				),
 			),
@@ -102,7 +102,7 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 	 */
 	function test_sanitize_text_field( $string, $expected ) {
 		if ( is_array( $expected ) ) {
-			$expected_oneline = $expected['oneline'];
+			$expected_oneline   = $expected['oneline'];
 			$expected_multiline = $expected['multiline'];
 		} else {
 			$expected_oneline = $expected_multiline = $expected;

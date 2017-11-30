@@ -12,7 +12,7 @@ class Tests_Formatting_Utf8UriEncode extends WP_UnitTestCase {
 	 * @dataProvider data
 	 */
 	function test_percent_encodes_non_reserved_characters( $utf8, $urlencoded ) {
-		$this->assertEquals($urlencoded, utf8_uri_encode( $utf8 ) );
+		$this->assertEquals( $urlencoded, utf8_uri_encode( $utf8 ) );
 	}
 
 	/**
@@ -24,9 +24,9 @@ class Tests_Formatting_Utf8UriEncode extends WP_UnitTestCase {
 	}
 
 	function data() {
-		$utf8_urls  = file( DIR_TESTDATA . '/formatting/utf-8/utf-8.txt' );
-		$urlencoded = file( DIR_TESTDATA . '/formatting/utf-8/urlencoded.txt' );
-        $data_provided = array();
+		$utf8_urls     = file( DIR_TESTDATA . '/formatting/utf-8/utf-8.txt' );
+		$urlencoded    = file( DIR_TESTDATA . '/formatting/utf-8/urlencoded.txt' );
+		$data_provided = array();
 		foreach ( $utf8_urls as $key => $value ) {
 			$data_provided[] = array( trim( $value ), trim( $urlencoded[ $key ] ) );
 		}

@@ -22,15 +22,20 @@ class Tests_Post_Output extends WP_UnitTestCase {
 
 	function _shortcode_dumptag( $atts ) {
 		$out = '';
-		foreach ($atts as $k=>$v)
+		foreach ( $atts as $k => $v ) {
 			$out .= "$k = $v\n";
+		}
 		return $out;
 	}
 
 	function _shortcode_paragraph( $atts, $content ) {
-		extract(shortcode_atts(array(
-			'class' => 'graf',
-		), $atts));
+		extract(
+			shortcode_atts(
+				array(
+					'class' => 'graf',
+				), $atts
+			)
+		);
 		return "<p class='$class'>$content</p>\n";
 	}
 
@@ -67,7 +72,7 @@ EOF;
 
 EOF;
 
-		$expected =<<<EOF
+		$expected = <<<EOF
 foo = bar
 baz = 123
 foo = 123

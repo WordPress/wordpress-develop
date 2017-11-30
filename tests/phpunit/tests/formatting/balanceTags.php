@@ -7,16 +7,33 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 
 	function nestable_tags() {
 		return array(
-			array( 'blockquote' ), array( 'div' ), array( 'object' ), array( 'q' ), array( 'span' ),
+			array( 'blockquote' ),
+			array( 'div' ),
+			array( 'object' ),
+			array( 'q' ),
+			array( 'span' ),
 		);
 	}
 
 	// This is a complete(?) listing of valid single/self-closing tags.
 	function single_tags() {
 		return array(
-			array( 'area' ), array( 'base' ), array( 'basefont' ), array( 'br' ), array( 'col' ), array( 'command' ),
-			array( 'embed' ), array( 'frame' ), array( 'hr' ), array( 'img' ), array( 'input' ), array( 'isindex' ),
-			array( 'link' ), array( 'meta' ), array( 'param' ), array( 'source' ),
+			array( 'area' ),
+			array( 'base' ),
+			array( 'basefont' ),
+			array( 'br' ),
+			array( 'col' ),
+			array( 'command' ),
+			array( 'embed' ),
+			array( 'frame' ),
+			array( 'hr' ),
+			array( 'img' ),
+			array( 'input' ),
+			array( 'isindex' ),
+			array( 'link' ),
+			array( 'meta' ),
+			array( 'param' ),
+			array( 'source' ),
 		);
 	}
 
@@ -46,7 +63,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	 */
 	function test_closes_unknown_single_tags_with_closing_tag() {
 
-		$inputs = array(
+		$inputs   = array(
 			'<strong/>',
 			'<em />',
 			'<p class="main1"/>',
@@ -60,22 +77,22 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		);
 
 		foreach ( $inputs as $key => $input ) {
-			$this->assertEquals( $expected[$key], balanceTags( $inputs[$key], true ) );
+			$this->assertEquals( $expected[ $key ], balanceTags( $inputs[ $key ], true ) );
 		}
 	}
 
 	function test_closes_unclosed_single_tags_having_attributes() {
-		$inputs = array(
+		$inputs   = array(
 			'<img src="/images/example.png">',
-			'<input type="text" name="example">'
+			'<input type="text" name="example">',
 		);
 		$expected = array(
 			'<img src="/images/example.png"/>',
-			'<input type="text" name="example"/>'
+			'<input type="text" name="example"/>',
 		);
 
 		foreach ( $inputs as $key => $input ) {
-			$this->assertEquals( $expected[$key], balanceTags( $inputs[$key], true ) );
+			$this->assertEquals( $expected[ $key ], balanceTags( $inputs[ $key ], true ) );
 		}
 	}
 
@@ -84,11 +101,11 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 			'<br />',
 			'<hr />',
 			'<img src="/images/example.png" />',
-			'<input type="text" name="example" />'
+			'<input type="text" name="example" />',
 		);
 
 		foreach ( $inputs as $key => $input ) {
-			$this->assertEquals( $inputs[$key], balanceTags( $inputs[$key], true ) );
+			$this->assertEquals( $inputs[ $key ], balanceTags( $inputs[ $key ], true ) );
 		}
 	}
 
@@ -96,7 +113,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	 * @dataProvider nestable_tags
 	 */
 	function test_balances_nestable_tags( $tag ) {
-		$inputs = array(
+		$inputs   = array(
 			"<$tag>Test<$tag>Test</$tag>",
 			"<$tag><$tag>Test",
 			"<$tag>Test</$tag></$tag>",
@@ -108,7 +125,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		);
 
 		foreach ( $inputs as $key => $input ) {
-			$this->assertEquals( $expected[$key], balanceTags( $inputs[$key], true ) );
+			$this->assertEquals( $expected[ $key ], balanceTags( $inputs[ $key ], true ) );
 		}
 	}
 
@@ -122,7 +139,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		);
 
 		foreach ( $inputs as $key => $input ) {
-			$this->assertEquals( $inputs[$key], balanceTags( $inputs[$key], true ) );
+			$this->assertEquals( $inputs[ $key ], balanceTags( $inputs[ $key ], true ) );
 		}
 	}
 
@@ -135,7 +152,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	}
 
 	function test_balances_nested_non_nestable_tags() {
-		$inputs = array(
+		$inputs   = array(
 			'<b><b>This is bold</b></b>',
 			'<b>Some text here <b>This is bold</b></b>',
 		);
@@ -145,12 +162,12 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		);
 
 		foreach ( $inputs as $key => $input ) {
-			$this->assertEquals( $expected[$key], balanceTags( $inputs[$key], true ) );
+			$this->assertEquals( $expected[ $key ], balanceTags( $inputs[ $key ], true ) );
 		}
 	}
 
 	function test_fixes_improper_closing_tag_sequence() {
-		$inputs = array(
+		$inputs   = array(
 			'<p>Here is a <strong class="part">bold <em>and emphasis</p></em></strong>',
 			'<ul><li>Aaa</li><li>Bbb</ul></li>',
 		);
@@ -159,13 +176,13 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 			'<ul><li>Aaa</li><li>Bbb</li></ul>',
 		);
 
-		foreach ($inputs as $key => $input) {
-			$this->assertEquals( $expected[$key], balanceTags( $inputs[$key], true ) );
+		foreach ( $inputs as $key => $input ) {
+			$this->assertEquals( $expected[ $key ], balanceTags( $inputs[ $key ], true ) );
 		}
 	}
 
 	function test_adds_missing_closing_tags() {
-		$inputs = array(
+		$inputs   = array(
 			'<b><i>Test</b>',
 			'<p>Test',
 			'<p>Test test</em> test</p>',
@@ -181,12 +198,12 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		);
 
 		foreach ( $inputs as $key => $input ) {
-			$this->assertEquals( $expected[$key], balanceTags( $inputs[$key], true ) );
+			$this->assertEquals( $expected[ $key ], balanceTags( $inputs[ $key ], true ) );
 		}
 	}
 
 	function test_removes_extraneous_closing_tags() {
-		$inputs = array(
+		$inputs   = array(
 			'<b>Test</b></b>',
 			'<div>Test</div></div><div>Test',
 			'<p>Test test</em> test</p>',
@@ -200,7 +217,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		);
 
 		foreach ( $inputs as $key => $input ) {
-			$this->assertEquals( $expected[$key], balanceTags( $inputs[$key], true ) );
+			$this->assertEquals( $expected[ $key ], balanceTags( $inputs[ $key ], true ) );
 		}
 	}
 

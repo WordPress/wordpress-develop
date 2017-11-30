@@ -10,10 +10,12 @@ class Tests_Get_User_Locale extends WP_UnitTestCase {
 	public function setUp() {
 		parent::setUp();
 
-		$this->user_id = $this->factory()->user->create( array(
-			'role'   => 'administrator',
-			'locale' => 'de_DE',
-		) );
+		$this->user_id = $this->factory()->user->create(
+			array(
+				'role'   => 'administrator',
+				'locale' => 'de_DE',
+			)
+		);
 
 		wp_set_current_user( $this->user_id );
 	}
@@ -85,9 +87,11 @@ class Tests_Get_User_Locale extends WP_UnitTestCase {
 	}
 
 	public function test_user_id_argument_with_id() {
-		$user_id = $this->factory()->user->create( array(
-			'locale' => 'es_ES',
-		) );
+		$user_id = $this->factory()->user->create(
+			array(
+				'locale' => 'es_ES',
+			)
+		);
 
 		$user_locale1 = get_user_locale( $user_id );
 
@@ -100,9 +104,11 @@ class Tests_Get_User_Locale extends WP_UnitTestCase {
 	}
 
 	public function test_user_id_argument_with_wp_user_object() {
-		$user_id = $this->factory()->user->create( array(
-			'locale' => 'es_ES',
-		) );
+		$user_id = $this->factory()->user->create(
+			array(
+				'locale' => 'es_ES',
+			)
+		);
 
 		$user = get_user_by( 'id', $user_id );
 

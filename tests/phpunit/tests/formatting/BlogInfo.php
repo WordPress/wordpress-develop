@@ -23,11 +23,11 @@ class Tests_Formatting_BlogInfo extends WP_UnitTestCase {
 	function locales() {
 		return array(
 			//     Locale          Language code
-			array( 'en_US',        'en-US' ),
-			array( 'ar',           'ar' ),
-			array( 'de_DE',        'de-DE' ),
+			array( 'en_US', 'en-US' ),
+			array( 'ar', 'ar' ),
+			array( 'de_DE', 'de-DE' ),
 			array( 'de_DE_formal', 'de-DE-formal' ),
-			array( 'oci',          'oci' ),
+			array( 'oci', 'oci' ),
 			array( 'pt_PT_ao1990', 'pt-PT-ao1990' ),
 		);
 	}

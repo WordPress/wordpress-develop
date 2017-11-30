@@ -23,7 +23,7 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 		global $wp_scripts, $wp_styles;
 		parent::clean_up_global_scope();
 		$wp_scripts = null;
-		$wp_styles = null;
+		$wp_styles  = null;
 	}
 
 	/**
@@ -35,23 +35,25 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 		$widget = new WP_Widget_Media_Image();
 		$schema = $widget->get_instance_schema();
 
-		$this->assertEqualSets( array(
-			'alt',
-			'attachment_id',
-			'caption',
-			'height',
-			'image_classes',
-			'image_title',
-			'link_classes',
-			'link_rel',
-			'link_target_blank',
-			'link_type',
-			'link_url',
-			'size',
-			'title',
-			'url',
-			'width',
-		), array_keys( $schema ) );
+		$this->assertEqualSets(
+			array(
+				'alt',
+				'attachment_id',
+				'caption',
+				'height',
+				'image_classes',
+				'image_title',
+				'link_classes',
+				'link_rel',
+				'link_target_blank',
+				'link_type',
+				'link_url',
+				'size',
+				'title',
+				'url',
+				'width',
+			), array_keys( $schema )
+		);
 	}
 
 	/**
@@ -67,17 +69,19 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'description', $widget->widget_options );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
 		$this->assertEquals( 'image', $widget->widget_options['mime_type'] );
-		$this->assertEqualSets( array(
-			'add_to_widget',
-			'replace_media',
-			'edit_media',
-			'media_library_state_multi',
-			'media_library_state_single',
-			'missing_attachment',
-			'no_media_selected',
-			'add_media',
-			'unsupported_file_type',
-		), array_keys( $widget->l10n ) );
+		$this->assertEqualSets(
+			array(
+				'add_to_widget',
+				'replace_media',
+				'edit_media',
+				'media_library_state_multi',
+				'media_library_state_single',
+				'missing_attachment',
+				'no_media_selected',
+				'add_media',
+				'unsupported_file_type',
+			), array_keys( $widget->l10n )
+		);
 	}
 
 	/**
@@ -86,33 +90,37 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 	 * @covers WP_Widget_Media_Image::update
 	 */
 	function test_update() {
-		$widget = new WP_Widget_Media_Image();
+		$widget   = new WP_Widget_Media_Image();
 		$instance = array();
 
 		// Should return valid attachment ID.
 		$expected = array(
 			'attachment_id' => 1,
 		);
-		$result = $widget->update( $expected, $instance );
+		$result   = $widget->update( $expected, $instance );
 		$this->assertSame( $result, $expected );
 
 		// Should filter invalid attachment ID.
-		$result = $widget->update( array(
-			'attachment_id' => 'media',
-		), $instance );
+		$result = $widget->update(
+			array(
+				'attachment_id' => 'media',
+			), $instance
+		);
 		$this->assertSame( $result, $instance );
 
 		// Should return valid attachment url.
 		$expected = array(
 			'url' => 'https://example.org',
 		);
-		$result = $widget->update( $expected, $instance );
+		$result   = $widget->update( $expected, $instance );
 		$this->assertSame( $result, $expected );
 
 		// Should filter invalid attachment url.
-		$result = $widget->update( array(
-			'url' => 'not_a_url',
-		), $instance );
+		$result = $widget->update(
+			array(
+				'url' => 'not_a_url',
+			), $instance
+		);
 		$this->assertNotSame( $result, $instance );
 		$this->assertStringStartsWith( 'http://', $result['url'] );
 
@@ -120,108 +128,128 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 		$expected = array(
 			'title' => 'What a title',
 		);
-		$result = $widget->update( $expected, $instance );
+		$result   = $widget->update( $expected, $instance );
 		$this->assertSame( $result, $expected );
 
 		// Should filter invalid attachment title.
-		$result = $widget->update( array(
-			'title' => '<h1>W00t!</h1>',
-		), $instance );
+		$result = $widget->update(
+			array(
+				'title' => '<h1>W00t!</h1>',
+			), $instance
+		);
 		$this->assertNotSame( $result, $instance );
 
 		// Should return valid image size.
 		$expected = array(
 			'size' => 'thumbnail',
 		);
-		$result = $widget->update( $expected, $instance );
+		$result   = $widget->update( $expected, $instance );
 		$this->assertSame( $result, $expected );
 
 		// Should filter invalid image size.
-		$result = $widget->update( array(
-			'size' => 'big league',
-		), $instance );
+		$result = $widget->update(
+			array(
+				'size' => 'big league',
+			), $instance
+		);
 		$this->assertSame( $result, $instance );
 
 		// Should return valid image width.
 		$expected = array(
 			'width' => 300,
 		);
-		$result = $widget->update( $expected, $instance );
+		$result   = $widget->update( $expected, $instance );
 		$this->assertSame( $result, $expected );
 
 		// Should filter invalid image width.
-		$result = $widget->update( array(
-			'width' => 'wide',
-		), $instance );
+		$result = $widget->update(
+			array(
+				'width' => 'wide',
+			), $instance
+		);
 		$this->assertSame( $result, $instance );
 
 		// Should return valid image height.
 		$expected = array(
 			'height' => 200,
 		);
-		$result = $widget->update( $expected, $instance );
+		$result   = $widget->update( $expected, $instance );
 		$this->assertSame( $result, $expected );
 
 		// Should filter invalid image height.
-		$result = $widget->update( array(
-			'height' => 'high',
-		), $instance );
+		$result = $widget->update(
+			array(
+				'height' => 'high',
+			), $instance
+		);
 		$this->assertSame( $result, $instance );
 
 		// Should return valid image caption.
 		$expected = array(
 			'caption' => 'A caption with <a href="#">link</a>',
 		);
-		$result = $widget->update( $expected, $instance );
+		$result   = $widget->update( $expected, $instance );
 		$this->assertSame( $result, $expected );
 
 		// Should filter invalid image caption.
-		$result = $widget->update( array(
-			'caption' => '"><i onload="alert(\'hello\')" />',
-		), $instance );
-		$this->assertSame( $result, array(
-			'caption' => '"&gt;<i />',
-		) );
+		$result = $widget->update(
+			array(
+				'caption' => '"><i onload="alert(\'hello\')" />',
+			), $instance
+		);
+		$this->assertSame(
+			$result, array(
+				'caption' => '"&gt;<i />',
+			)
+		);
 
 		// Should return valid alt text.
 		$expected = array(
 			'alt' => 'A water tower',
 		);
-		$result = $widget->update( $expected, $instance );
+		$result   = $widget->update( $expected, $instance );
 		$this->assertSame( $result, $expected );
 
 		// Should filter invalid alt text.
-		$result = $widget->update( array(
-			'alt' => '"><i onload="alert(\'hello\')" />',
-		), $instance );
-		$this->assertSame( $result, array(
-			'alt' => '">',
-		) );
+		$result = $widget->update(
+			array(
+				'alt' => '"><i onload="alert(\'hello\')" />',
+			), $instance
+		);
+		$this->assertSame(
+			$result, array(
+				'alt' => '">',
+			)
+		);
 
 		// Should return valid link type.
 		$expected = array(
 			'link_type' => 'file',
 		);
-		$result = $widget->update( $expected, $instance );
+		$result   = $widget->update( $expected, $instance );
 		$this->assertSame( $result, $expected );
 
 		// Should filter invalid link type.
-		$result = $widget->update( array(
-			'link_type' => 'interesting',
-		), $instance );
+		$result = $widget->update(
+			array(
+				'link_type' => 'interesting',
+			), $instance
+		);
 		$this->assertSame( $result, $instance );
 
 		// Should return valid link url.
 		$expected = array(
 			'link_url' => 'https://example.org',
 		);
-		$result = $widget->update( $expected, $instance );
+		$result   = $widget->update( $expected, $instance );
 		$this->assertSame( $result, $expected );
 
 		// Should filter invalid link url.
-		$result = $widget->update( array(
-			'link_url' => 'not_a_url',
-		), $instance );
+		$result = $widget->update(
+			array(
+				'link_url' => 'not_a_url',
+			), $instance
+		);
 		$this->assertNotSame( $result, $instance );
 		$this->assertStringStartsWith( 'http://', $result['link_url'] );
 
@@ -229,77 +257,95 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 		$expected = array(
 			'image_classes' => 'A water tower',
 		);
-		$result = $widget->update( $expected, $instance );
+		$result   = $widget->update( $expected, $instance );
 		$this->assertSame( $result, $expected );
 
 		// Should filter invalid image classes.
-		$result = $widget->update( array(
-			'image_classes' => '"><i onload="alert(\'hello\')" />',
-		), $instance );
-		$this->assertSame( $result, array(
-			'image_classes' => 'i onloadalerthello',
-		) );
+		$result = $widget->update(
+			array(
+				'image_classes' => '"><i onload="alert(\'hello\')" />',
+			), $instance
+		);
+		$this->assertSame(
+			$result, array(
+				'image_classes' => 'i onloadalerthello',
+			)
+		);
 
 		// Should return valid link classes.
 		$expected = array(
 			'link_classes' => 'A water tower',
 		);
-		$result = $widget->update( $expected, $instance );
+		$result   = $widget->update( $expected, $instance );
 		$this->assertSame( $result, $expected );
 
 		// Should filter invalid link classes.
-		$result = $widget->update( array(
-			'link_classes' => '"><i onload="alert(\'hello\')" />',
-		), $instance );
-		$this->assertSame( $result, array(
-			'link_classes' => 'i onloadalerthello',
-		) );
+		$result = $widget->update(
+			array(
+				'link_classes' => '"><i onload="alert(\'hello\')" />',
+			), $instance
+		);
+		$this->assertSame(
+			$result, array(
+				'link_classes' => 'i onloadalerthello',
+			)
+		);
 
 		// Should return valid rel text.
 		$expected = array(
 			'link_rel' => 'previous',
 		);
-		$result = $widget->update( $expected, $instance );
+		$result   = $widget->update( $expected, $instance );
 		$this->assertSame( $result, $expected );
 
 		// Should filter invalid rel text.
-		$result = $widget->update( array(
-			'link_rel' => '"><i onload="alert(\'hello\')" />',
-		), $instance );
-		$this->assertSame( $result, array(
-			'link_rel' => 'i onloadalerthello',
-		) );
+		$result = $widget->update(
+			array(
+				'link_rel' => '"><i onload="alert(\'hello\')" />',
+			), $instance
+		);
+		$this->assertSame(
+			$result, array(
+				'link_rel' => 'i onloadalerthello',
+			)
+		);
 
 		// Should return valid link target.
 		$expected = array(
 			'link_target_blank' => false,
 		);
-		$result = $widget->update( $expected, $instance );
+		$result   = $widget->update( $expected, $instance );
 		$this->assertSame( $result, $expected );
 
 		// Should filter invalid  link target.
-		$result = $widget->update( array(
-			'link_target_blank' => 'top',
-		), $instance );
+		$result = $widget->update(
+			array(
+				'link_target_blank' => 'top',
+			), $instance
+		);
 		$this->assertSame( $result, $instance );
 
 		// Should return valid image title.
 		$expected = array(
 			'image_title' => 'What a title',
 		);
-		$result = $widget->update( $expected, $instance );
+		$result   = $widget->update( $expected, $instance );
 		$this->assertSame( $result, $expected );
 
 		// Should filter invalid image title.
-		$result = $widget->update( array(
-			'image_title' => '<h1>W00t!</h1>',
-		), $instance );
+		$result = $widget->update(
+			array(
+				'image_title' => '<h1>W00t!</h1>',
+			), $instance
+		);
 		$this->assertNotSame( $result, $instance );
 
 		// Should filter invalid key.
-		$result = $widget->update( array(
-			'imaginary_key' => 'value',
-		), $instance );
+		$result = $widget->update(
+			array(
+				'imaginary_key' => 'value',
+			), $instance
+		);
 		$this->assertSame( $result, $instance );
 	}
 
@@ -313,12 +359,14 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 
 		$test_image = '/tmp/canola.jpg';
 		copy( DIR_TESTDATA . '/images/canola.jpg', $test_image );
-		$attachment_id = self::factory()->attachment->create_object( array(
-			'file' => $test_image,
-			'post_parent' => 0,
-			'post_mime_type' => 'image/jpeg',
-			'post_title' => 'Canola',
-		) );
+		$attachment_id = self::factory()->attachment->create_object(
+			array(
+				'file'           => $test_image,
+				'post_parent'    => 0,
+				'post_mime_type' => 'image/jpeg',
+				'post_title'     => 'Canola',
+			)
+		);
 		wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $test_image ) );
 
 		// Should be empty when there is no attachment_id.
@@ -329,16 +377,20 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 
 		// Should be empty when there is an invalid attachment_id.
 		ob_start();
-		$widget->render_media( array(
-			'attachment_id' => 666,
-		) );
+		$widget->render_media(
+			array(
+				'attachment_id' => 666,
+			)
+		);
 		$output = ob_get_clean();
 		$this->assertEmpty( $output );
 
 		ob_start();
-		$widget->render_media( array(
-			'attachment_id' => $attachment_id,
-		) );
+		$widget->render_media(
+			array(
+				'attachment_id' => $attachment_id,
+			)
+		);
 		$output = ob_get_clean();
 
 		// No default title.
@@ -349,15 +401,17 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 		$this->assertContains( 'alt=""', $output );
 
 		ob_start();
-		$widget->render_media( array(
-			'attachment_id' => $attachment_id,
-			'image_title' => 'Custom Title',
-			'image_classes' => 'custom-class',
-			'alt' => 'A flower',
-			'size' => 'custom',
-			'width' => 100,
-			'height' => 100,
-		) );
+		$widget->render_media(
+			array(
+				'attachment_id' => $attachment_id,
+				'image_title'   => 'Custom Title',
+				'image_classes' => 'custom-class',
+				'alt'           => 'A flower',
+				'size'          => 'custom',
+				'width'         => 100,
+				'height'        => 100,
+			)
+		);
 		$output = ob_get_clean();
 
 		// Custom image title.
@@ -370,14 +424,16 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 
 		// Embeded images.
 		ob_start();
-		$widget->render_media( array(
-			'attachment_id' => null,
-			'caption' => 'With caption',
-			'height' => 100,
-			'link_type' => 'file',
-			'url' => 'http://example.org/url/to/image.jpg',
-			'width' => 100,
-		) );
+		$widget->render_media(
+			array(
+				'attachment_id' => null,
+				'caption'       => 'With caption',
+				'height'        => 100,
+				'link_type'     => 'file',
+				'url'           => 'http://example.org/url/to/image.jpg',
+				'width'         => 100,
+			)
+		);
 		$output = ob_get_clean();
 
 		// Custom image class.
@@ -385,10 +441,12 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 
 		// Link settings.
 		ob_start();
-		$widget->render_media( array(
-			'attachment_id' => $attachment_id,
-			'link_type' => 'file',
-		) );
+		$widget->render_media(
+			array(
+				'attachment_id' => $attachment_id,
+				'link_type'     => 'file',
+			)
+		);
 		$output = ob_get_clean();
 
 		$link = '<a href="' . wp_get_attachment_url( $attachment_id ) . '"';
@@ -399,13 +457,15 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 		$this->assertNotContains( ' target="', $matches[0] );
 
 		ob_start();
-		$widget->render_media( array(
-			'attachment_id' => $attachment_id,
-			'link_type' => 'post',
-			'link_classes' => 'custom-link-class',
-			'link_rel' => 'attachment',
-			'link_target_blank' => false,
-		) );
+		$widget->render_media(
+			array(
+				'attachment_id'     => $attachment_id,
+				'link_type'         => 'post',
+				'link_classes'      => 'custom-link-class',
+				'link_rel'          => 'attachment',
+				'link_target_blank' => false,
+			)
+		);
 		$output = ob_get_clean();
 
 		$this->assertContains( '<a href="' . get_attachment_link( $attachment_id ) . '"', $output );
@@ -414,48 +474,58 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 		$this->assertNotContains( 'target=""', $output );
 
 		ob_start();
-		$widget->render_media( array(
-			'attachment_id' => $attachment_id,
-			'link_type' => 'custom',
-			'link_url' => 'https://example.org',
-			'link_target_blank' => true,
-		) );
+		$widget->render_media(
+			array(
+				'attachment_id'     => $attachment_id,
+				'link_type'         => 'custom',
+				'link_url'          => 'https://example.org',
+				'link_target_blank' => true,
+			)
+		);
 		$output = ob_get_clean();
 
 		$this->assertContains( '<a href="https://example.org"', $output );
 		$this->assertContains( 'target="_blank"', $output );
 
 		// Populate caption in attachment.
-		wp_update_post( array(
-			'ID' => $attachment_id,
-			'post_excerpt' => 'Default caption',
-		) );
+		wp_update_post(
+			array(
+				'ID'           => $attachment_id,
+				'post_excerpt' => 'Default caption',
+			)
+		);
 
 		// If no caption is supplied, then the default is '', and so the caption will not be displayed.
 		ob_start();
-		$widget->render_media( array(
-			'attachment_id' => $attachment_id,
-		) );
+		$widget->render_media(
+			array(
+				'attachment_id' => $attachment_id,
+			)
+		);
 		$output = ob_get_clean();
 		$this->assertNotContains( 'wp-caption', $output );
 		$this->assertNotContains( '<p class="wp-caption-text">', $output );
 
 		// If the caption is explicitly null, then the caption of the underlying attachment will be displayed.
 		ob_start();
-		$widget->render_media( array(
-			'attachment_id' => $attachment_id,
-			'caption' => null,
-		) );
+		$widget->render_media(
+			array(
+				'attachment_id' => $attachment_id,
+				'caption'       => null,
+			)
+		);
 		$output = ob_get_clean();
 		$this->assertContains( 'class="wp-caption alignnone"', $output );
 		$this->assertContains( '<p class="wp-caption-text">Default caption</p>', $output );
 
 		// If caption is provided, then it will be displayed.
 		ob_start();
-		$widget->render_media( array(
-			'attachment_id' => $attachment_id,
-			'caption' => 'Custom caption',
-		) );
+		$widget->render_media(
+			array(
+				'attachment_id' => $attachment_id,
+				'caption'       => 'Custom caption',
+			)
+		);
 		$output = ob_get_clean();
 		$this->assertContains( 'class="wp-caption alignnone"', $output );
 		$this->assertContains( '<p class="wp-caption-text">Custom caption</p>', $output );

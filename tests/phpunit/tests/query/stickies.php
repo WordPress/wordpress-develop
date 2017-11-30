@@ -12,10 +12,12 @@ class Tests_Query_Stickies extends WP_UnitTestCase {
 		// Set post times to get a reliable order.
 		$now = time();
 		for ( $i = 0; $i <= 22; $i++ ) {
-			$post_date = date( 'Y-m-d H:i:s', $now - ( 10 * $i ) );
-			self::$posts[ $i ] = $factory->post->create( array(
-				'post_date' => $post_date,
-			) );
+			$post_date         = date( 'Y-m-d H:i:s', $now - ( 10 * $i ) );
+			self::$posts[ $i ] = $factory->post->create(
+				array(
+					'post_date' => $post_date,
+				)
+			);
 		}
 
 		stick_post( self::$posts[2] );
@@ -24,11 +26,13 @@ class Tests_Query_Stickies extends WP_UnitTestCase {
 	}
 
 	public function test_stickies_should_be_ignored_when_is_home_is_false() {
-		$q = new WP_Query( array(
-			'year' => date( 'Y' ),
-			'fields' => 'ids',
-			'posts_per_page' => 3,
-		) );
+		$q = new WP_Query(
+			array(
+				'year'           => date( 'Y' ),
+				'fields'         => 'ids',
+				'posts_per_page' => 3,
+			)
+		);
 
 		$expected = array(
 			self::$posts[0],

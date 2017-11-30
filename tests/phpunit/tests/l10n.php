@@ -82,7 +82,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	 * @ticket 35294
 	 */
 	function test_wp_dropdown_languages() {
-		$args = array(
+		$args   = array(
 			'id'           => 'foo',
 			'name'         => 'bar',
 			'languages'    => array( 'de_DE' ),
@@ -103,7 +103,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	 * @ticket 38632
 	 */
 	function test_wp_dropdown_languages_site_default() {
-		$args = array(
+		$args   = array(
 			'id'                       => 'foo',
 			'name'                     => 'bar',
 			'languages'                => array( 'de_DE' ),
@@ -126,7 +126,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	 * @ticket 38632
 	 */
 	function test_wp_dropdown_languages_en_US_selected() {
-		$args = array(
+		$args   = array(
 			'id'           => 'foo',
 			'name'         => 'bar',
 			'languages'    => array( 'de_DE' ),

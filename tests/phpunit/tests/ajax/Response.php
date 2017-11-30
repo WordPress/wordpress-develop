@@ -11,6 +11,7 @@ class Tests_Ajax_Response extends WP_UnitTestCase {
 
 	/**
 	 * Saved error reporting level
+	 *
 	 * @var int
 	 */
 	protected $_error_level = 0;
@@ -42,6 +43,7 @@ class Tests_Ajax_Response extends WP_UnitTestCase {
 
 	/**
 	 * Return our callback handler
+	 *
 	 * @return callback
 	 */
 	public function getDieHandler() {
@@ -51,6 +53,7 @@ class Tests_Ajax_Response extends WP_UnitTestCase {
 	/**
 	 * Handler for wp_die()
 	 * Don't die, just continue on.
+	 *
 	 * @param string $message
 	 */
 	public function dieHandler( $message ) {
@@ -62,13 +65,14 @@ class Tests_Ajax_Response extends WP_UnitTestCase {
 	 * xdebug_get_headers if it's available
 	 * Needs a separate process to get around the headers/output from the
 	 * bootstrapper
+	 *
 	 * @ticket 19448
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
 	public function test_response_charset_in_header() {
 
-		if ( !function_exists( 'xdebug_get_headers' ) ) {
+		if ( ! function_exists( 'xdebug_get_headers' ) ) {
 			$this->markTestSkipped( 'xdebug is required for this test' );
 		}
 
@@ -86,6 +90,7 @@ class Tests_Ajax_Response extends WP_UnitTestCase {
 
 	/**
 	 * Test that charset in the xml tag matches blog_charset
+	 *
 	 * @ticket 19448
 	 */
 	public function test_response_charset_in_xml() {

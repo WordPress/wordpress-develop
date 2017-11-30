@@ -10,9 +10,9 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	}
 
 	function test_the_basics() {
-		$key = 'key1';
-		$key2 = 'key2';
-		$value = 'value1';
+		$key    = 'key1';
+		$key2   = 'key2';
+		$value  = 'value1';
 		$value2 = 'value2';
 
 		$this->assertFalse( get_option( 'doesnotexist' ) );
@@ -72,8 +72,11 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	}
 
 	function test_serialized_data() {
-		$key = __FUNCTION__;
-		$value = array( 'foo' => true, 'bar' => true );
+		$key   = __FUNCTION__;
+		$value = array(
+			'foo' => true,
+			'bar' => true,
+		);
 
 		$this->assertTrue( add_option( $key, $value ) );
 		$this->assertEquals( $value, get_option( $key ) );
@@ -114,13 +117,13 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 	function data_option_autoloading() {
 		return array(
-			array( 'autoload_yes',    'yes',   'yes' ),
-			array( 'autoload_true',   true,    'yes' ),
-			array( 'autoload_string', 'foo',   'yes' ),
-			array( 'autoload_int',    123456,  'yes' ),
-			array( 'autoload_array',  array(), 'yes' ),
-			array( 'autoload_no',     'no',    'no'  ),
-			array( 'autoload_false',  false,   'no'  ),
+			array( 'autoload_yes', 'yes', 'yes' ),
+			array( 'autoload_true', true, 'yes' ),
+			array( 'autoload_string', 'foo', 'yes' ),
+			array( 'autoload_int', 123456, 'yes' ),
+			array( 'autoload_array', array(), 'yes' ),
+			array( 'autoload_no', 'no', 'no' ),
+			array( 'autoload_false', false, 'no' ),
 		);
 	}
 	/**

@@ -9,34 +9,34 @@ class Tests_Formatting_NormalizeWhitespace extends WP_UnitTestCase {
 	 * array( input_txt, converted_output_txt)
 	 */
 	public function get_input_output() {
-		return array (
-			array (
-				"		",
-				""
+		return array(
+			array(
+				'		',
+				'',
 			),
-			array (
+			array(
 				"\rTEST\r",
-				"TEST"
+				'TEST',
 			),
-			array (
+			array(
 				"\r\nMY TEST CONTENT\r\n",
-				"MY TEST CONTENT"
+				'MY TEST CONTENT',
 			),
-			array (
+			array(
 				"MY\r\nTEST\r\nCONTENT ",
-				"MY\nTEST\nCONTENT"
+				"MY\nTEST\nCONTENT",
 			),
-			array (
+			array(
 				"\tMY\rTEST\rCONTENT ",
-				"MY\nTEST\nCONTENT"
+				"MY\nTEST\nCONTENT",
 			),
-			array (
+			array(
 				"\tMY\t\t\tTEST\r\t\t\rCONTENT ",
-				"MY TEST\n \nCONTENT"
+				"MY TEST\n \nCONTENT",
 			),
-			array (
+			array(
 				"\tMY TEST \t\t\t CONTENT ",
-				"MY TEST CONTENT"
+				'MY TEST CONTENT',
 			),
 		);
 	}
@@ -47,6 +47,6 @@ class Tests_Formatting_NormalizeWhitespace extends WP_UnitTestCase {
 	 * @dataProvider get_input_output
 	 */
 	function test_normalize_whitespace( $in_str, $exp_str ) {
-		$this->assertEquals($exp_str, normalize_whitespace( $in_str ) );
+		$this->assertEquals( $exp_str, normalize_whitespace( $in_str ) );
 	}
 }

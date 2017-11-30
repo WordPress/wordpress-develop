@@ -93,10 +93,12 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 	public function test_get_term_field_name() {
 		$name = rand_str( 15 );
 
-		$term = self::factory()->term->create_and_get( array(
-			'name'     => $name,
-			'taxonomy' => $this->taxonomy
-		) );
+		$term = self::factory()->term->create_and_get(
+			array(
+				'name'     => $name,
+				'taxonomy' => $this->taxonomy,
+			)
+		);
 
 		$this->assertSame( $name, get_term_field( 'name', $term ) );
 		$this->assertSame( $name, get_term_field( 'name', $term->data ) );
@@ -106,10 +108,12 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 	public function test_get_term_field_slug_when_slug_is_set() {
 		$slug = rand_str( 15 );
 
-		$term = self::factory()->term->create_and_get( array(
-			'taxonomy' => $this->taxonomy,
-			'slug'     => $slug
-		) );
+		$term = self::factory()->term->create_and_get(
+			array(
+				'taxonomy' => $this->taxonomy,
+				'slug'     => $slug,
+			)
+		);
 
 		$this->assertSame( $slug, get_term_field( 'slug', $term ) );
 		$this->assertSame( $slug, get_term_field( 'slug', $term->data ) );
@@ -119,10 +123,12 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 	public function test_get_term_field_slug_when_slug_falls_back_from_name() {
 		$name = rand_str( 15 );
 
-		$term = self::factory()->term->create_and_get( array(
-			'taxonomy' => $this->taxonomy,
-			'name'     => $name
-		) );
+		$term = self::factory()->term->create_and_get(
+			array(
+				'taxonomy' => $this->taxonomy,
+				'name'     => $name,
+			)
+		);
 
 		$this->assertSame( $name, get_term_field( 'slug', $term ) );
 		$this->assertSame( $name, get_term_field( 'slug', $term->data ) );
@@ -130,9 +136,11 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 	}
 
 	public function test_get_term_field_slug_when_slug_and_name_are_not_set() {
-		$term = self::factory()->term->create_and_get( array(
-			'taxonomy' => $this->taxonomy
-		) );
+		$term = self::factory()->term->create_and_get(
+			array(
+				'taxonomy' => $this->taxonomy,
+			)
+		);
 
 		$this->assertSame( $term->slug, get_term_field( 'slug', $term ) );
 		$this->assertSame( $term->slug, get_term_field( 'slug', $term->data ) );
@@ -150,10 +158,12 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 	public function test_get_term_field_description() {
 		$desc = wpautop( rand_str() );
 
-		$term = self::factory()->term->create_and_get( array(
-			'taxonomy'    => $this->taxonomy,
-			'description' => $desc
-		) );
+		$term = self::factory()->term->create_and_get(
+			array(
+				'taxonomy'    => $this->taxonomy,
+				'description' => $desc,
+			)
+		);
 
 		$this->assertSame( $desc, get_term_field( 'description', $term ) );
 		$this->assertSame( $desc, get_term_field( 'description', $term->data ) );
@@ -162,10 +172,12 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 
 	public function test_get_term_field_parent() {
 		$parent = self::factory()->term->create_and_get( array( 'taxonomy' => $this->taxonomy ) );
-		$term   = self::factory()->term->create_and_get( array(
-			'taxonomy' => $this->taxonomy,
-			'parent'   => $parent->term_id
-		) );
+		$term   = self::factory()->term->create_and_get(
+			array(
+				'taxonomy' => $this->taxonomy,
+				'parent'   => $parent->term_id,
+			)
+		);
 
 		$this->assertSame( $parent->term_id, get_term_field( 'parent', $term ) );
 		$this->assertSame( $parent->term_id, get_term_field( 'parent', $term->data ) );

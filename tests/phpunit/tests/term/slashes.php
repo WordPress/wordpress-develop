@@ -23,23 +23,22 @@ class Tests_Term_Slashes extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Tests the model function that expects slashed data
-	 *
 	 */
 	function test_wp_insert_term() {
 		$taxonomies = array(
 			'category',
-			'post_tag'
+			'post_tag',
 		);
 		foreach ( $taxonomies as $taxonomy ) {
 			$insert = wp_insert_term(
 				$this->slash_1,
 				$taxonomy,
 				array(
-					'slug' => 'slash_test_1_'.$taxonomy,
-					'description' => $this->slash_3
+					'slug'        => 'slash_test_1_' . $taxonomy,
+					'description' => $this->slash_3,
 				)
 			);
-			$term = get_term( $insert['term_id'], $taxonomy );
+			$term   = get_term( $insert['term_id'], $taxonomy );
 			$this->assertEquals( wp_unslash( $this->slash_1 ), $term->name );
 			$this->assertEquals( wp_unslash( $this->slash_3 ), $term->description );
 
@@ -47,11 +46,11 @@ class Tests_Term_Slashes extends WP_Ajax_UnitTestCase {
 				$this->slash_3,
 				$taxonomy,
 				array(
-					'slug' => 'slash_test_2_'.$taxonomy,
-					'description' => $this->slash_5
+					'slug'        => 'slash_test_2_' . $taxonomy,
+					'description' => $this->slash_5,
 				)
 			);
-			$term = get_term( $insert['term_id'], $taxonomy );
+			$term   = get_term( $insert['term_id'], $taxonomy );
 			$this->assertEquals( wp_unslash( $this->slash_3 ), $term->name );
 			$this->assertEquals( wp_unslash( $this->slash_5 ), $term->description );
 
@@ -59,11 +58,11 @@ class Tests_Term_Slashes extends WP_Ajax_UnitTestCase {
 				$this->slash_2,
 				$taxonomy,
 				array(
-					'slug' => 'slash_test_3_'.$taxonomy,
-					'description' => $this->slash_4
+					'slug'        => 'slash_test_3_' . $taxonomy,
+					'description' => $this->slash_4,
 				)
 			);
-			$term = get_term( $insert['term_id'], $taxonomy );
+			$term   = get_term( $insert['term_id'], $taxonomy );
 			$this->assertEquals( wp_unslash( $this->slash_2 ), $term->name );
 			$this->assertEquals( wp_unslash( $this->slash_4 ), $term->description );
 		}
@@ -71,24 +70,25 @@ class Tests_Term_Slashes extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Tests the model function that expects slashed data
-	 *
 	 */
 	function test_wp_update_term() {
 		$taxonomies = array(
 			'category',
-			'post_tag'
+			'post_tag',
 		);
 		foreach ( $taxonomies as $taxonomy ) {
-			$id = self::factory()->term->create(array(
-				'taxonomy' => $taxonomy
-			));
+			$id = self::factory()->term->create(
+				array(
+					'taxonomy' => $taxonomy,
+				)
+			);
 
 			$update = wp_update_term(
 				$id,
 				$taxonomy,
 				array(
-					'name' => $this->slash_1,
-					'description' => $this->slash_3
+					'name'        => $this->slash_1,
+					'description' => $this->slash_3,
 				)
 			);
 
@@ -100,11 +100,11 @@ class Tests_Term_Slashes extends WP_Ajax_UnitTestCase {
 				$id,
 				$taxonomy,
 				array(
-					'name' => $this->slash_3,
-					'description' => $this->slash_5
+					'name'        => $this->slash_3,
+					'description' => $this->slash_5,
 				)
 			);
-			$term = get_term( $id, $taxonomy );
+			$term   = get_term( $id, $taxonomy );
 			$this->assertEquals( wp_unslash( $this->slash_3 ), $term->name );
 			$this->assertEquals( wp_unslash( $this->slash_5 ), $term->description );
 
@@ -112,11 +112,11 @@ class Tests_Term_Slashes extends WP_Ajax_UnitTestCase {
 				$id,
 				$taxonomy,
 				array(
-					'name' => $this->slash_2,
-					'description' => $this->slash_4
+					'name'        => $this->slash_2,
+					'description' => $this->slash_4,
 				)
 			);
-			$term = get_term( $id, $taxonomy );
+			$term   = get_term( $id, $taxonomy );
 			$this->assertEquals( wp_unslash( $this->slash_2 ), $term->name );
 			$this->assertEquals( wp_unslash( $this->slash_4 ), $term->description );
 		}

@@ -17,12 +17,14 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * A post with at least one comment
+	 *
 	 * @var mixed
 	 */
 	protected static $comment_post = null;
 
 	/**
 	 * Draft post
+	 *
 	 * @var mixed
 	 */
 	protected static $draft_post = null;
@@ -31,8 +33,8 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 
 	public static function wpSetUpBeforeClass( $factory ) {
 		self::$comment_post = $factory->post->create_and_get();
-		self::$comment_ids = $factory->comment->create_post_comments( self::$comment_post->ID, 5 );
-		self::$draft_post = $factory->post->create_and_get( array( 'post_status' => 'draft' ) );
+		self::$comment_ids  = $factory->comment->create_post_comments( self::$comment_post->ID, 5 );
+		self::$draft_post   = $factory->post->create_and_get( array( 'post_status' => 'draft' ) );
 	}
 
 	public function tearDown() {
@@ -43,6 +45,7 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * Reply as a privilged user (administrator)
 	 * Expects test to pass
+	 *
 	 * @return void
 	 */
 	public function test_as_admin() {
@@ -51,10 +54,12 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		$this->_setRole( 'administrator' );
 
 		// Get a comment
-		$comments = get_comments( array(
-		    'post_id' => self::$comment_post->ID
-		) );
-		$comment = array_pop( $comments );
+		$comments = get_comments(
+			array(
+				'post_id' => self::$comment_post->ID,
+			)
+		);
+		$comment  = array_pop( $comments );
 
 		// Set up a default request
 		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
@@ -87,6 +92,7 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * Reply as a non-privileged user (subscriber)
 	 * Expects test to fail
+	 *
 	 * @return void
 	 */
 	public function test_as_subscriber() {
@@ -95,10 +101,12 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		$this->_setRole( 'subscriber' );
 
 		// Get a comment
-		$comments = get_comments( array(
-		'post_id' => self::$comment_post->ID
-		) );
-		$comment = array_pop( $comments );
+		$comments = get_comments(
+			array(
+				'post_id' => self::$comment_post->ID,
+			)
+		);
+		$comment  = array_pop( $comments );
 
 		// Set up a default request
 		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
@@ -114,6 +122,7 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * Reply using a bad nonce
 	 * Expects test to fail
+	 *
 	 * @return void
 	 */
 	public function test_bad_nonce() {
@@ -122,10 +131,12 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		$this->_setRole( 'administrator' );
 
 		// Get a comment
-		$comments = get_comments( array(
-		    'post_id' => self::$comment_post->ID
-		) );
-		$comment = array_pop( $comments );
+		$comments = get_comments(
+			array(
+				'post_id' => self::$comment_post->ID,
+			)
+		);
+		$comment  = array_pop( $comments );
 
 		// Set up a default request
 		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( uniqid() );
@@ -141,6 +152,7 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * Reply to an invalid post
 	 * Expects test to fail
+	 *
 	 * @return void
 	 */
 	public function test_invalid_post() {
@@ -161,6 +173,7 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * Reply to a draft post
 	 * Expects test to fail
+	 *
 	 * @return void
 	 */
 	public function test_with_draft_post() {
@@ -181,6 +194,7 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * Reply to a post with a simulated database failure
 	 * Expects test to fail
+	 *
 	 * @global $wpdb
 	 * @return void
 	 */
@@ -204,7 +218,7 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 			$this->_handleAjax( 'replyto-comment' );
 			$wpdb->suppress_errors( false );
 			$this->fail();
-		} catch ( WPAjaxDieStopException $e )  {
+		} catch ( WPAjaxDieStopException $e ) {
 			$wpdb->suppress_errors( false );
 			$this->assertContains( '1', $e->getMessage() );
 		}
@@ -212,12 +226,13 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Block comments from being saved
+	 *
 	 * @param string $sql
 	 * @return string
 	 */
 	public function _block_comments( $sql ) {
 		global $wpdb;
-		if ( false !== strpos( $sql, $wpdb->comments ) && 0 === stripos( trim ( $sql ), 'INSERT INTO') ) {
+		if ( false !== strpos( $sql, $wpdb->comments ) && 0 === stripos( trim( $sql ), 'INSERT INTO' ) ) {
 			return '';
 		}
 		return $sql;
@@ -225,6 +240,7 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Raises WP_Error after Posted a new pre comment
+	 *
 	 * @ticket 39730
 	 * @return void
 	 */

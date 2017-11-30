@@ -10,7 +10,7 @@
 class Tests_Post_Filtering extends WP_UnitTestCase {
 	function setUp() {
 		parent::setUp();
-		update_option('use_balanceTags', 1);
+		update_option( 'use_balanceTags', 1 );
 		kses_init_filters();
 
 	}
@@ -31,8 +31,8 @@ EOF;
 no such tag
 EOF;
 
-		$id = self::factory()->post->create( array( 'post_content' => $content ) );
-		$post = get_post($id);
+		$id   = self::factory()->post->create( array( 'post_content' => $content ) );
+		$post = get_post( $id );
 
 		$this->assertEquals( $expected, $post->post_content );
 	}
@@ -48,8 +48,8 @@ EOF;
 <i>italics</i>
 EOF;
 
-		$id = self::factory()->post->create( array( 'post_content' => $content ) );
-		$post = get_post($id);
+		$id   = self::factory()->post->create( array( 'post_content' => $content ) );
+		$post = get_post( $id );
 
 		$this->assertEquals( $expected, $post->post_content );
 	}
@@ -65,14 +65,15 @@ EOF;
 <img src='foo' width='500' />
 EOF;
 
-		$id = self::factory()->post->create( array( 'post_content' => $content ) );
-		$post = get_post($id);
+		$id   = self::factory()->post->create( array( 'post_content' => $content ) );
+		$post = get_post( $id );
 
 		$this->assertEquals( $expected, $post->post_content );
 	}
 
 	/**
 	 * test kses bug. xhtml does not require space before closing empty element
+	 *
 	 * @ticket 12394
 	 */
 	function test_post_content_xhtml_empty_elem() {
@@ -84,8 +85,8 @@ EOF;
 <img src='foo' width='500' height='300' />
 EOF;
 
-		$id = self::factory()->post->create( array( 'post_content' => $content ) );
-		$post = get_post($id);
+		$id   = self::factory()->post->create( array( 'post_content' => $content ) );
+		$post = get_post( $id );
 
 		$this->assertEquals( $expected, $post->post_content );
 	}
@@ -93,7 +94,7 @@ EOF;
 	// make sure unbalanced tags are untouched when the balance option is off
 	function test_post_content_nobalance_nextpage_more() {
 
-		update_option('use_balanceTags', 0);
+		update_option( 'use_balanceTags', 0 );
 
 		$content = <<<EOF
 <em>some text<!--nextpage-->
@@ -104,8 +105,8 @@ that's continued after the jump</em>
 breaks the graf</p>
 EOF;
 
-		$id = self::factory()->post->create( array( 'post_content' => $content ) );
-		$post = get_post($id);
+		$id   = self::factory()->post->create( array( 'post_content' => $content ) );
+		$post = get_post( $id );
 
 		$this->assertEquals( $content, $post->post_content );
 	}

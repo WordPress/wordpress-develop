@@ -1,6 +1,6 @@
 <?php
 
-if (class_exists( 'WP_Image_Editor' ) ) :
+if ( class_exists( 'WP_Image_Editor' ) ) :
 
 	class WP_Image_Editor_Mock extends WP_Image_Editor {
 

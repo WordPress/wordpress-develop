@@ -142,8 +142,9 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	}
 
 	function supports_foobar( $yesno, $args, $feature ) {
-		if ( $args[0] == $feature[0] )
+		if ( $args[0] == $feature[0] ) {
 			return true;
+		}
 		return false;
 	}
 
@@ -152,7 +153,7 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 		add_theme_support( 'foobar' );
 		$this->assertTrue( current_theme_supports( 'foobar' ) );
 
-		add_filter( 'current_theme_supports-foobar', array( $this, 'supports_foobar'), 10, 3 );
+		add_filter( 'current_theme_supports-foobar', array( $this, 'supports_foobar' ), 10, 3 );
 
 		add_theme_support( 'foobar', 'bar' );
 		$this->assertFalse( current_theme_supports( 'foobar', 'foo' ) );

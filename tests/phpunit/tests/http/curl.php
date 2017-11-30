@@ -14,7 +14,12 @@ class Tests_HTTP_curl extends WP_HTTP_UnitTestCase {
 	 */
 	public function test_http_api_curl_stream_parameter_is_a_reference() {
 		add_action( 'http_api_curl', array( $this, '_action_test_http_api_curl_stream_parameter_is_a_reference' ), 10, 3 );
-		wp_remote_request( $this->fileStreamUrl, array( 'stream' => true, 'timeout' => 30 ) );
+		wp_remote_request(
+			$this->fileStreamUrl, array(
+				'stream'  => true,
+				'timeout' => 30,
+			)
+		);
 		remove_action( 'http_api_curl', array( $this, '_action_test_http_api_curl_stream_parameter_is_a_reference' ), 10 );
 	}
 

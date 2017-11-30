@@ -70,7 +70,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	}
 
 	/**
- 	 * @group site_icon
+	 * @group site_icon
 	 * @group multisite
 	 * @group ms-required
 	 */
@@ -231,9 +231,8 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$filename = DIR_TESTDATA . '/images/test-image.jpg';
 		$contents = file_get_contents( $filename );
 
-		$upload = wp_upload_bits( basename( $filename ), null, $contents );
+		$upload              = wp_upload_bits( basename( $filename ), null, $contents );
 		$this->site_icon_url = $upload['url'];
-
 
 		// Save the data
 		$this->site_icon_id = $this->_make_attachment( $upload );
@@ -323,7 +322,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$image    = wp_get_attachment_image( $this->custom_logo_id, 'full', false, $custom_logo_attr );
 		restore_current_blog();
 
-		$expected_custom_logo =  '<a href="' . $home_url . '" class="custom-logo-link" rel="home" itemprop="url">' . $image . '</a>';
+		$expected_custom_logo = '<a href="' . $home_url . '" class="custom-logo-link" rel="home" itemprop="url">' . $image . '</a>';
 		$this->assertEquals( $expected_custom_logo, get_custom_logo( $blog_id ) );
 	}
 
@@ -366,10 +365,12 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 		update_post_meta( $this->custom_logo_id, '_wp_attachment_image_alt', $image_alt );
 
-		$image = wp_get_attachment_image( $this->custom_logo_id, 'full', false, array(
-			'class'    => 'custom-logo',
-			'itemprop' => 'logo',
-		) );
+		$image = wp_get_attachment_image(
+			$this->custom_logo_id, 'full', false, array(
+				'class'    => 'custom-logo',
+				'itemprop' => 'logo',
+			)
+		);
 
 		$this->expectOutputString( '<a href="http://' . WP_TESTS_DOMAIN . '/" class="custom-logo-link" rel="home" itemprop="url">' . $image . '</a>' );
 		the_custom_logo();
@@ -422,17 +423,17 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 */
 	function test_get_the_modified_time_default() {
 		$details = array(
-				'post_date' => '2016-01-21 15:34:36',
-				'post_date_gmt' => '2016-01-21 15:34:36',
+			'post_date'     => '2016-01-21 15:34:36',
+			'post_date_gmt' => '2016-01-21 15:34:36',
 		);
 		$post_id = $this->factory->post->create( $details );
-		$post = get_post( $post_id );
+		$post    = get_post( $post_id );
 
 		$GLOBALS['post'] = $post;
 
 		$expected = '1453390476';
-		$d = 'G';
-		$actual = get_the_modified_time( $d );
+		$d        = 'G';
+		$actual   = get_the_modified_time( $d );
 		$this->assertEquals( $expected, $actual );
 	}
 
@@ -473,14 +474,14 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @since 4.6.0
 	 */
 	function test_get_the_modified_date_with_post_id() {
-		$details = array(
-				'post_date' => '2016-01-21 15:34:36',
-				'post_date_gmt' => '2016-01-21 15:34:36',
+		$details  = array(
+			'post_date'     => '2016-01-21 15:34:36',
+			'post_date_gmt' => '2016-01-21 15:34:36',
 		);
-		$post_id = $this->factory->post->create( $details );
-		$d = 'Y-m-d';
+		$post_id  = $this->factory->post->create( $details );
+		$d        = 'Y-m-d';
 		$expected = '2016-01-21';
-		$actual = get_the_modified_date( $d, $post_id );
+		$actual   = get_the_modified_date( $d, $post_id );
 		$this->assertEquals( $expected, $actual );
 	}
 
@@ -493,17 +494,17 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 */
 	function test_get_the_modified_date_default() {
 		$details = array(
-				'post_date' => '2016-01-21 15:34:36',
-				'post_date_gmt' => '2016-01-21 15:34:36',
+			'post_date'     => '2016-01-21 15:34:36',
+			'post_date_gmt' => '2016-01-21 15:34:36',
 		);
 		$post_id = $this->factory->post->create( $details );
-		$post = get_post( $post_id );
+		$post    = get_post( $post_id );
 
 		$GLOBALS['post'] = $post;
 
 		$expected = '2016-01-21';
-		$d = 'Y-m-d';
-		$actual = get_the_modified_date( $d );
+		$d        = 'Y-m-d';
+		$actual   = get_the_modified_date( $d );
 		$this->assertEquals( $expected, $actual );
 	}
 
@@ -544,14 +545,14 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @since 4.6.0
 	 */
 	function test_get_the_modified_time_with_post_id() {
-		$details = array(
-				'post_date' => '2016-01-21 15:34:36',
-				'post_date_gmt' => '2016-01-21 15:34:36',
+		$details  = array(
+			'post_date'     => '2016-01-21 15:34:36',
+			'post_date_gmt' => '2016-01-21 15:34:36',
 		);
-		$post_id = $this->factory->post->create( $details );
-		$d = 'G';
+		$post_id  = $this->factory->post->create( $details );
+		$d        = 'G';
 		$expected = '1453390476';
-		$actual = get_the_modified_time( $d, $post_id );
+		$actual   = get_the_modified_time( $d, $post_id );
 		$this->assertEquals( $expected, $actual );
 	}
 

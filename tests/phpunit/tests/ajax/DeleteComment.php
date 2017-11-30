@@ -17,12 +17,14 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * List of comments
+	 *
 	 * @var array
 	 */
 	protected static $comments = array();
 
 	/**
 	 * ID of a post.
+	 *
 	 * @var int
 	 */
 	protected static $post_id;
@@ -30,7 +32,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 	public static function wpSetUpBeforeClass( $factory ) {
 		self::$post_id = $factory->post->create();
 
-		$comment_ids = $factory->comment->create_post_comments( self::$post_id, 8 );
+		$comment_ids    = $factory->comment->create_post_comments( self::$post_id, 8 );
 		self::$comments = array_map( 'get_comment', $comment_ids );
 	}
 
@@ -38,11 +40,11 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 	 * Clear the POST actions in between requests
 	 */
 	protected function _clear_post_action() {
-		unset($_POST['trash']);
-		unset($_POST['untrash']);
-		unset($_POST['spam']);
-		unset($_POST['unspam']);
-		unset($_POST['delete']);
+		unset( $_POST['trash'] );
+		unset( $_POST['untrash'] );
+		unset( $_POST['spam'] );
+		unset( $_POST['unspam'] );
+		unset( $_POST['delete'] );
 		$this->_last_response = '';
 	}
 
@@ -53,6 +55,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test as a privilged user (administrator)
 	 * Expects test to pass
+	 *
 	 * @param mixed $comment Comment object
 	 * @param string action trash, untrash, etc.
 	 * @return void
@@ -68,7 +71,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 		// Set up a default request
 		$_POST['id']          = $comment->comment_ID;
 		$_POST['_ajax_nonce'] = wp_create_nonce( 'delete-comment_' . $comment->comment_ID );
-		$_POST[$action]       = 1;
+		$_POST[ $action ]     = 1;
 		$_POST['_total']      = count( self::$comments );
 		$_POST['_per_page']   = 100;
 		$_POST['_page']       = 1;
@@ -94,23 +97,24 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 		if ( in_array( $action, array( 'trash', 'spam', 'delete' ) ) ) {
 			$total = $_POST['_total'] - 1;
 
-		// unspam, untrash should make the total go up
+			// unspam, untrash should make the total go up
 		} elseif ( in_array( $action, array( 'untrash', 'unspam' ) ) ) {
 			$total = $_POST['_total'] + 1;
 		}
 
 		// The total is calculated based on a page break -OR- a random number.  Let's look for both possible outcomes
 		$comment_count = wp_count_comments( 0 );
-		$recalc_total = $comment_count->total_comments;
+		$recalc_total  = $comment_count->total_comments;
 
 		// Check for either possible total
-		$message = sprintf( 'returned value: %1$d $total: %2$d  $recalc_total: %3$d', (int)  $xml->response[0]->comment[0]->supplemental[0]->total[0], $total, $recalc_total );
-		$this->assertTrue( in_array( (int) $xml->response[0]->comment[0]->supplemental[0]->total[0] , array( $total, $recalc_total ) ), $message );
+		$message = sprintf( 'returned value: %1$d $total: %2$d  $recalc_total: %3$d', (int) $xml->response[0]->comment[0]->supplemental[0]->total[0], $total, $recalc_total );
+		$this->assertTrue( in_array( (int) $xml->response[0]->comment[0]->supplemental[0]->total[0], array( $total, $recalc_total ) ), $message );
 	}
 
 	/**
 	 * Test as a non-privileged user (subscriber)
 	 * Expects test to fail
+	 *
 	 * @param mixed $comment Comment object
 	 * @param string action trash, untrash, etc.
 	 * @return void
@@ -126,7 +130,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 		// Set up the $_POST request
 		$_POST['id']          = $comment->comment_ID;
 		$_POST['_ajax_nonce'] = wp_create_nonce( 'delete-comment_' . $comment->comment_ID );
-		$_POST[$action]       = 1;
+		$_POST[ $action ]     = 1;
 		$_POST['_total']      = count( self::$comments );
 		$_POST['_per_page']   = 100;
 		$_POST['_page']       = 1;
@@ -141,6 +145,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test with a bad nonce
 	 * Expects test to fail
+	 *
 	 * @param mixed $comment Comment object
 	 * @param string action trash, untrash, etc.
 	 * @return void
@@ -156,7 +161,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 		// Set up the $_POST request
 		$_POST['id']          = $comment->comment_ID;
 		$_POST['_ajax_nonce'] = wp_create_nonce( uniqid() );
-		$_POST[$action]       = 1;
+		$_POST[ $action ]     = 1;
 		$_POST['_total']      = count( self::$comments );
 		$_POST['_per_page']   = 100;
 		$_POST['_page']       = 1;
@@ -170,6 +175,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test with a bad id
 	 * Expects test to fail
+	 *
 	 * @param mixed $comment Comment object
 	 * @param string action trash, untrash, etc.
 	 * @return void
@@ -185,7 +191,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 		// Set up the $_POST request
 		$_POST['id']          = 12346789;
 		$_POST['_ajax_nonce'] = wp_create_nonce( 'delete-comment_12346789' );
-		$_POST[$action]       = 1;
+		$_POST[ $action ]     = 1;
 		$_POST['_total']      = count( self::$comments );
 		$_POST['_per_page']   = 100;
 		$_POST['_page']       = 1;
@@ -206,6 +212,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test doubling the action (e.g. trash a trashed comment)
 	 * Expects test to fail
+	 *
 	 * @param mixed $comment Comment object
 	 * @param string action trash, untrash, etc.
 	 * @return void
@@ -221,7 +228,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 		// Set up the $_POST request
 		$_POST['id']          = $comment->comment_ID;
 		$_POST['_ajax_nonce'] = wp_create_nonce( 'delete-comment_' . $comment->comment_ID );
-		$_POST[$action]       = 1;
+		$_POST[ $action ]     = 1;
 		$_POST['_total']      = count( self::$comments );
 		$_POST['_per_page']   = 100;
 		$_POST['_page']       = 1;
@@ -254,6 +261,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Delete a comment as an administrator (expects success)
+	 *
 	 * @return void
 	 */
 	public function test_ajax_comment_trash_actions_as_administrator() {
@@ -271,6 +279,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Delete a comment as a subscriber (expects permission denied)
+	 *
 	 * @return void
 	 */
 	public function test_ajax_comment_trash_actions_as_subscriber() {
@@ -288,6 +297,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Delete a comment with no id
+	 *
 	 * @return void
 	 */
 	public function test_ajax_trash_comment_no_id() {
@@ -305,6 +315,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Delete a comment with a bad nonce
+	 *
 	 * @return void
 	 */
 	public function test_ajax_trash_comment_bad_nonce() {
@@ -322,6 +333,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Test trashing an already trashed comment, etc.
+	 *
 	 * @return void
 	 */
 	public function test_ajax_trash_double_action() {

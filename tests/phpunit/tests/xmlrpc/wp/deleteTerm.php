@@ -7,9 +7,11 @@ class Tests_XMLRPC_wp_deleteTerm extends WP_XMLRPC_UnitTestCase {
 	protected static $term_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$term_id = $factory->term->create( array(
-			'taxonomy' => 'category',
-		) );
+		self::$term_id = $factory->term->create(
+			array(
+				'taxonomy' => 'category',
+			)
+		);
 	}
 
 	function test_invalid_username_password() {
@@ -51,7 +53,7 @@ class Tests_XMLRPC_wp_deleteTerm extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_deleteTerm( array( 1, 'editor', 'editor', 'category', '' ) );
 		$this->assertIXRError( $result );
 		$this->assertEquals( 500, $result->code );
-		$this->assertEquals( __('Empty Term.'), $result->message );
+		$this->assertEquals( __( 'Empty Term.' ), $result->message );
 	}
 
 	function test_invalid_term() {

@@ -44,13 +44,18 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 
 	public function test_register_meta_back_compat_with_auth_and_sanitize_callback_has_old_style_filters() {
 		register_meta( 'post', 'flight_number', array( $this, '_old_sanitize_meta_cb' ), array( $this, '_old_auth_meta_cb' ) );
-		$has_filters = array();
-		$has_filters['auth'] = has_filter( 'auth_post_meta_flight_number', array( $this, '_old_auth_meta_cb' ) );
+		$has_filters             = array();
+		$has_filters['auth']     = has_filter( 'auth_post_meta_flight_number', array( $this, '_old_auth_meta_cb' ) );
 		$has_filters['sanitize'] = has_filter( 'sanitize_post_meta_flight_number', array( $this, '_old_sanitize_meta_cb' ) );
 		remove_filter( 'auth_post_meta_flight_number', array( $this, '_old_auth_meta_cb' ) );
 		remove_filter( 'sanitize_post_meta_flight_number', array( $this, '_old_sanitize_meta_cb' ) );
 
-		$this->assertEquals( array( 'auth' => 10, 'sanitize' => 10 ), $has_filters );
+		$this->assertEquals(
+			array(
+				'auth'     => 10,
+				'sanitize' => 10,
+			), $has_filters
+		);
 	}
 
 	public function test_register_meta_with_post_object_type_returns_true() {
@@ -70,12 +75,12 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		$expected = array(
 			'post' => array(
 				'flight_number' => array(
-					'type' => 'string',
-					'description' => '',
-					'single' => false,
+					'type'              => 'string',
+					'description'       => '',
+					'single'            => false,
 					'sanitize_callback' => null,
-					'auth_callback' => '__return_true',
-					'show_in_rest' => false,
+					'auth_callback'     => '__return_true',
+					'show_in_rest'      => false,
 				),
 			),
 		);
@@ -92,12 +97,12 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		$expected = array(
 			'term' => array(
 				'category_icon' => array(
-					'type' => 'string',
-					'description' => '',
-					'single' => false,
+					'type'              => 'string',
+					'description'       => '',
+					'single'            => false,
 					'sanitize_callback' => null,
-					'auth_callback' => '__return_true',
-					'show_in_rest' => false,
+					'auth_callback'     => '__return_true',
+					'show_in_rest'      => false,
 				),
 			),
 		);
@@ -110,8 +115,8 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 
 		register_meta( 'post', 'flight_number', array( $this, '_old_sanitize_meta_cb' ) );
 		$actual = $wp_meta_keys;
-		remove_filter( 'sanitize_post_meta_flight_number', array( $this, '_old_sanitize_meta_cb') );
-		remove_filter( 'auth_post_meta_flight_number', '__return_true');
+		remove_filter( 'sanitize_post_meta_flight_number', array( $this, '_old_sanitize_meta_cb' ) );
+		remove_filter( 'auth_post_meta_flight_number', '__return_true' );
 
 		$this->assertEquals( array(), $actual );
 	}
@@ -119,8 +124,8 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 	public function test_register_meta_with_deprecated_sanitize_callback_param_returns_false() {
 		$actual = register_meta( 'post', 'flight_number', array( $this, '_old_sanitize_meta_cb' ) );
 
-		remove_filter( 'sanitize_post_meta_flight_number', array( $this, '_old_sanitize_meta_cb') );
-		remove_filter( 'auth_post_meta_flight_number', '__return_true');
+		remove_filter( 'sanitize_post_meta_flight_number', array( $this, '_old_sanitize_meta_cb' ) );
+		remove_filter( 'auth_post_meta_flight_number', '__return_true' );
 
 		$this->assertFalse( $actual );
 	}
@@ -129,8 +134,8 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		register_meta( 'post', 'old_sanitized_key', array( $this, '_old_sanitize_meta_cb' ) );
 		$meta = sanitize_meta( 'old_sanitized_key', 'unsanitized', 'post', 'post' );
 
-		remove_filter( 'sanitize_post_meta_flight_number', array( $this, '_old_sanitize_meta_cb') );
-		remove_filter( 'auth_post_meta_flight_number', '__return_true');
+		remove_filter( 'sanitize_post_meta_flight_number', array( $this, '_old_sanitize_meta_cb' ) );
+		remove_filter( 'auth_post_meta_flight_number', '__return_true' );
 
 		$this->assertEquals( 'old_sanitized_key old sanitized', $meta );
 	}
@@ -144,12 +149,12 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		$expected = array(
 			'post' => array(
 				'flight_number' => array(
-					'type' => 'string',
-					'description' => '',
-					'single' => false,
+					'type'              => 'string',
+					'description'       => '',
+					'single'            => false,
 					'sanitize_callback' => array( $this, '_new_sanitize_meta_cb' ),
-					'auth_callback' => '__return_true',
-					'show_in_rest' => false,
+					'auth_callback'     => '__return_true',
+					'show_in_rest'      => false,
 				),
 			),
 		);

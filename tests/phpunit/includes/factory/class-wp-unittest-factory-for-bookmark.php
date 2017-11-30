@@ -18,7 +18,7 @@ class WP_UnitTest_Factory_For_Bookmark extends WP_UnitTest_Factory_For_Thing {
 		parent::__construct( $factory );
 		$this->default_generation_definitions = array(
 			'link_name' => new WP_UnitTest_Generator_Sequence( 'Bookmark name %s' ),
-			'link_url' => new WP_UnitTest_Generator_Sequence( 'Bookmark URL %s' ),
+			'link_url'  => new WP_UnitTest_Generator_Sequence( 'Bookmark URL %s' ),
 		);
 	}
 

@@ -7,15 +7,19 @@ class Tests_XMLRPC_wp_getPage extends WP_XMLRPC_UnitTestCase {
 	protected static $post_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$post_id = $factory->post->create( array(
-			'post_type'   => 'page',
-			'post_author' => $factory->user->create( array(
-				'user_login' => 'author',
-				'user_pass'  => 'author',
-				'role'       => 'author'
-			) ),
-			'post_date'   => strftime( "%Y-%m-%d %H:%M:%S", strtotime( '+1 day' ) ),
-		) );
+		self::$post_id = $factory->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_author' => $factory->user->create(
+					array(
+						'user_login' => 'author',
+						'user_pass'  => 'author',
+						'role'       => 'author',
+					)
+				),
+				'post_date'   => strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 day' ) ),
+			)
+		);
 	}
 
 	function test_invalid_username_password() {
@@ -43,26 +47,26 @@ class Tests_XMLRPC_wp_getPage extends WP_XMLRPC_UnitTestCase {
 
 		// Check data types
 		$this->assertInternalType( 'string', $result['userid'] );
-		$this->assertInternalType( 'int',    $result['page_id'] );
+		$this->assertInternalType( 'int', $result['page_id'] );
 		$this->assertInternalType( 'string', $result['page_status'] );
 		$this->assertInternalType( 'string', $result['description'] );
 		$this->assertInternalType( 'string', $result['title'] );
 		$this->assertInternalType( 'string', $result['link'] );
 		$this->assertInternalType( 'string', $result['permaLink'] );
-		$this->assertInternalType( 'array',  $result['categories'] );
+		$this->assertInternalType( 'array', $result['categories'] );
 		$this->assertInternalType( 'string', $result['excerpt'] );
 		$this->assertInternalType( 'string', $result['text_more'] );
-		$this->assertInternalType( 'int',    $result['mt_allow_comments'] );
-		$this->assertInternalType( 'int',    $result['mt_allow_pings'] );
+		$this->assertInternalType( 'int', $result['mt_allow_comments'] );
+		$this->assertInternalType( 'int', $result['mt_allow_pings'] );
 		$this->assertInternalType( 'string', $result['wp_slug'] );
 		$this->assertInternalType( 'string', $result['wp_password'] );
 		$this->assertInternalType( 'string', $result['wp_author'] );
-		$this->assertInternalType( 'int',    $result['wp_page_parent_id'] );
+		$this->assertInternalType( 'int', $result['wp_page_parent_id'] );
 		$this->assertInternalType( 'string', $result['wp_page_parent_title'] );
-		$this->assertInternalType( 'int',    $result['wp_page_order'] );
+		$this->assertInternalType( 'int', $result['wp_page_order'] );
 		$this->assertInternalType( 'string', $result['wp_author_id'] );
 		$this->assertInternalType( 'string', $result['wp_author_display_name'] );
-		$this->assertInternalType( 'array',  $result['custom_fields'] );
+		$this->assertInternalType( 'array', $result['custom_fields'] );
 		$this->assertInternalType( 'string', $result['wp_page_template'] );
 
 		$post_data = get_post( self::$post_id );

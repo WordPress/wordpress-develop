@@ -32,7 +32,7 @@ class Tests_Formatting_SanitizeMimeType extends WP_UnitTestCase {
 		);
 
 		foreach ( $inputs as $input ) {
-			$this->assertEquals($input, sanitize_mime_type($input));
+			$this->assertEquals( $input, sanitize_mime_type( $input ) );
 		}
 	}
 }

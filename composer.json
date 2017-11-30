@@ -1,0 +1,13 @@
+{
+	"repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/"
+        }
+	],
+		"require-dev": {
+		"dealerdirect/phpcodesniffer-composer-installer": "*",
+		"wp-coding-standards/wpcs": "dev-feature/new-multi-line-comment-formatting-sniffs",
+		"squizlabs/php_codesniffer": "dev-master"
+	}
+}

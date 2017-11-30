@@ -15,12 +15,12 @@ class TracTickets {
 	 */
 	public static function isTracTicketClosed( $trac_url, $ticket_id ) {
 		if ( ! extension_loaded( 'openssl' ) ) {
-			$trac_url = preg_replace( "/^https:/", "http:", $trac_url );
+			$trac_url = preg_replace( '/^https:/', 'http:', $trac_url );
 		}
 
 		if ( ! isset( self::$trac_ticket_cache[ $trac_url ] ) ) {
 			// In case you're running the tests offline, keep track of open tickets.
-			$file = DIR_TESTDATA . '/.trac-ticket-cache.' . str_replace( array( 'http://', 'https://', '/' ), array( '', '', '-' ), rtrim( $trac_url, '/' ) );
+			$file    = DIR_TESTDATA . '/.trac-ticket-cache.' . str_replace( array( 'http://', 'https://', '/' ), array( '', '', '-' ), rtrim( $trac_url, '/' ) );
 			$tickets = @file_get_contents( $trac_url . '/query?status=%21closed&format=csv&col=id' );
 			// Check if our HTTP request failed.
 			if ( false === $tickets ) {
@@ -37,7 +37,7 @@ class TracTickets {
 				$tickets = trim( $tickets );
 				file_put_contents( $file, $tickets );
 			}
-			$tickets = explode( "\r\n", $tickets );
+			$tickets                              = explode( "\r\n", $tickets );
 			self::$trac_ticket_cache[ $trac_url ] = $tickets;
 		}
 

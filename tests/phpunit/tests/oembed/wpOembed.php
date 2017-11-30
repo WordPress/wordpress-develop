@@ -95,9 +95,11 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 	public function test_wp_filter_pre_oembed_result_multisite_sub_samesub() {
 		$user_id = self::factory()->user->create();
 
-		$blog_id = self::factory()->blog->create( array(
-			'user_id' => $user_id,
-		) );
+		$blog_id = self::factory()->blog->create(
+			array(
+				'user_id' => $user_id,
+			)
+		);
 
 		switch_to_blog( $blog_id );
 
@@ -122,18 +124,22 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 	public function test_wp_filter_pre_oembed_result_multisite_sub_othersub() {
 		$user_id = self::factory()->user->create();
 
-		$blog_id = self::factory()->blog->create( array(
-			'user_id' => $user_id,
-		) );
+		$blog_id = self::factory()->blog->create(
+			array(
+				'user_id' => $user_id,
+			)
+		);
 
 		switch_to_blog( $blog_id );
 
 		$post_id   = self::factory()->post->create();
 		$permalink = get_permalink( $post_id );
 
-		$blog_id = self::factory()->blog->create( array(
-			'user_id' => $user_id,
-		) );
+		$blog_id = self::factory()->blog->create(
+			array(
+				'user_id' => $user_id,
+			)
+		);
 
 		switch_to_blog( $blog_id );
 
@@ -156,9 +162,11 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 		$post_id   = self::factory()->post->create();
 		$permalink = get_permalink( $post_id );
 		$user_id   = self::factory()->user->create();
-		$blog_id   = self::factory()->blog->create( array(
-			'user_id' => $user_id,
-		) );
+		$blog_id   = self::factory()->blog->create(
+			array(
+				'user_id' => $user_id,
+			)
+		);
 
 		switch_to_blog( $blog_id );
 
@@ -210,9 +218,11 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 		$current_blog_id = get_current_blog_id();
 
 		$user_id = self::factory()->user->create();
-		$blog_id = self::factory()->blog->create( array(
-			'user_id' => $user_id,
-		) );
+		$blog_id = self::factory()->blog->create(
+			array(
+				'user_id' => $user_id,
+			)
+		);
 
 		$permalink = get_home_url( $blog_id, '/foo/' );
 

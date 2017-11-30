@@ -22,27 +22,32 @@ abstract class WP_Import_UnitTestCase extends WP_UnitTestCase {
 	 */
 	protected function _import_wp( $filename, $users = array(), $fetch_files = true ) {
 		$importer = new WP_Import();
-		$file = realpath( $filename );
+		$file     = realpath( $filename );
 
 		$this->assertTrue( ! empty( $file ), 'Path to import file is empty.' );
 		$this->assertTrue( is_file( $file ), 'Import file is not a file.' );
 
 		$authors = $mapping = $new = array();
-		$i = 0;
+		$i       = 0;
 
 		// each user is either mapped to a given ID, mapped to a new user
 		// with given login or imported using details in WXR file
 		foreach ( $users as $user => $map ) {
-			$authors[$i] = $user;
-			if ( is_int( $map ) )
-				$mapping[$i] = $map;
-			else if ( is_string( $map ) )
-				$new[$i] = $map;
+			$authors[ $i ] = $user;
+			if ( is_int( $map ) ) {
+				$mapping[ $i ] = $map;
+			} elseif ( is_string( $map ) ) {
+				$new[ $i ] = $map;
+			}
 
 			$i++;
 		}
 
-		$_POST = array( 'imported_authors' => $authors, 'user_map' => $mapping, 'user_new' => $new );
+		$_POST = array(
+			'imported_authors' => $authors,
+			'user_map'         => $mapping,
+			'user_new'         => $new,
+		);
 
 		ob_start();
 		$importer->fetch_attachments = $fetch_files;

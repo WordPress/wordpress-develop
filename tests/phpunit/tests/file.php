@@ -8,7 +8,7 @@ class Tests_File extends WP_UnitTestCase {
 	function setUp() {
 		parent::setUp();
 
-		$file = tempnam( '/tmp', 'foo') ;
+		$file      = tempnam( '/tmp', 'foo' );
 		$this->dir = dirname( $file );
 		unlink( $file );
 
@@ -21,27 +21,28 @@ class Tests_File extends WP_UnitTestCase {
 	 */
 	function test_get_file_data() {
 		$theme_headers = array(
-			'Name' => 'Theme Name',
-			'ThemeURI' => 'Theme URI',
+			'Name'        => 'Theme Name',
+			'ThemeURI'    => 'Theme URI',
 			'Description' => 'Description',
-			'Version' => 'Version',
-			'Author' => 'Author',
-			'AuthorURI' => 'Author URI',
+			'Version'     => 'Version',
+			'Author'      => 'Author',
+			'AuthorURI'   => 'Author URI',
 		);
 
 		$actual = get_file_data( DIR_TESTDATA . '/themedir1/default/style.css', $theme_headers );
 
 		$expected = array(
-			'Name' => 'WordPress Default',
-			'ThemeURI' => 'http://wordpress.org/',
+			'Name'        => 'WordPress Default',
+			'ThemeURI'    => 'http://wordpress.org/',
 			'Description' => 'The default WordPress theme based on the famous <a href="http://binarybonsai.com/kubrick/">Kubrick</a>.',
-			'Version' => '1.6',
-			'Author' => 'Michael Heilemann',
-			'AuthorURI' => 'http://binarybonsai.com/',
+			'Version'     => '1.6',
+			'Author'      => 'Michael Heilemann',
+			'AuthorURI'   => 'http://binarybonsai.com/',
 		);
 
-		foreach ( $actual as $header => $value )
+		foreach ( $actual as $header => $value ) {
 			$this->assertEquals( $expected[ $header ], $value, $header );
+		}
 	}
 
 	/**
@@ -49,35 +50,42 @@ class Tests_File extends WP_UnitTestCase {
 	 * @group themes
 	 */
 	function test_get_file_data_cr_line_endings() {
-		$headers = array( 'SomeHeader' => 'Some Header', 'Description' => 'Description', 'Author' => 'Author' );
-		$actual = get_file_data( DIR_TESTDATA . '/formatting/cr-line-endings-file-header.php', $headers );
+		$headers  = array(
+			'SomeHeader'  => 'Some Header',
+			'Description' => 'Description',
+			'Author'      => 'Author',
+		);
+		$actual   = get_file_data( DIR_TESTDATA . '/formatting/cr-line-endings-file-header.php', $headers );
 		$expected = array(
-			'SomeHeader' => 'Some header value!',
+			'SomeHeader'  => 'Some header value!',
 			'Description' => 'This file is using CR line endings for a testcase.',
-			'Author' => 'A Very Old Mac',
+			'Author'      => 'A Very Old Mac',
 		);
 
-		foreach ( $actual as $header => $value )
+		foreach ( $actual as $header => $value ) {
 			$this->assertEquals( $expected[ $header ], $value, $header );
+		}
 	}
 
-	function is_unique_writable_file($path, $filename) {
+	function is_unique_writable_file( $path, $filename ) {
 		$fullpath = $path . DIRECTORY_SEPARATOR . $filename;
 
 		$fp = fopen( $fullpath, 'x' );
 		// file already exists?
-		if (!$fp)
+		if ( ! $fp ) {
 			return false;
+		}
 
 		// write some random contents
 		$c = rand_str();
-		fwrite($fp, $c);
-		fclose($fp);
+		fwrite( $fp, $c );
+		fclose( $fp );
 
-		if ( file_get_contents($fullpath) === $c )
+		if ( file_get_contents( $fullpath ) === $c ) {
 			$result = true;
-		else
+		} else {
 			$result = false;
+		}
 
 		return $result;
 	}
@@ -86,9 +94,9 @@ class Tests_File extends WP_UnitTestCase {
 		// make sure it produces a valid, writable, unique filename
 		$filename = wp_unique_filename( $this->dir, __FUNCTION__ . '.txt' );
 
-		$this->assertTrue( $this->is_unique_writable_file($this->dir, $filename) );
+		$this->assertTrue( $this->is_unique_writable_file( $this->dir, $filename ) );
 
-		unlink($this->dir . DIRECTORY_SEPARATOR . $filename);
+		unlink( $this->dir . DIRECTORY_SEPARATOR . $filename );
 	}
 
 	function test_unique_filename_is_unique() {
@@ -96,63 +104,63 @@ class Tests_File extends WP_UnitTestCase {
 		$name = __FUNCTION__;
 
 		$filename1 = wp_unique_filename( $this->dir, $name . '.txt' );
-		$this->assertTrue( $this->is_unique_writable_file($this->dir, $filename1) );
+		$this->assertTrue( $this->is_unique_writable_file( $this->dir, $filename1 ) );
 		$filename2 = wp_unique_filename( $this->dir, $name . '.txt' );
-		$this->assertTrue( $this->is_unique_writable_file($this->dir, $filename2) );
+		$this->assertTrue( $this->is_unique_writable_file( $this->dir, $filename2 ) );
 
 		// the two should be different
 		$this->assertNotEquals( $filename1, $filename2 );
 
-		unlink($this->dir . DIRECTORY_SEPARATOR . $filename1);
-		unlink($this->dir . DIRECTORY_SEPARATOR . $filename2);
+		unlink( $this->dir . DIRECTORY_SEPARATOR . $filename1 );
+		unlink( $this->dir . DIRECTORY_SEPARATOR . $filename2 );
 	}
 
 	function test_unique_filename_is_sanitized() {
-		$name = __FUNCTION__;
-		$filename = wp_unique_filename( $this->dir, $name . $this->badchars .  '.txt' );
+		$name     = __FUNCTION__;
+		$filename = wp_unique_filename( $this->dir, $name . $this->badchars . '.txt' );
 
 		// make sure the bad characters were all stripped out
 		$this->assertEquals( $name . '.txt', $filename );
 
-		$this->assertTrue( $this->is_unique_writable_file($this->dir, $filename) );
+		$this->assertTrue( $this->is_unique_writable_file( $this->dir, $filename ) );
 
-		unlink($this->dir . DIRECTORY_SEPARATOR . $filename);
+		unlink( $this->dir . DIRECTORY_SEPARATOR . $filename );
 	}
 
 	function test_unique_filename_with_slashes() {
 		$name = __FUNCTION__;
 		// "foo/foo.txt"
-		$filename = wp_unique_filename( $this->dir, $name . '/' . $name .  '.txt' );
+		$filename = wp_unique_filename( $this->dir, $name . '/' . $name . '.txt' );
 
 		// the slash should be removed, i.e. "foofoo.txt"
 		$this->assertEquals( $name . $name . '.txt', $filename );
 
-		$this->assertTrue( $this->is_unique_writable_file($this->dir, $filename) );
+		$this->assertTrue( $this->is_unique_writable_file( $this->dir, $filename ) );
 
-		unlink($this->dir . DIRECTORY_SEPARATOR . $filename);
+		unlink( $this->dir . DIRECTORY_SEPARATOR . $filename );
 	}
 
 	function test_unique_filename_multiple_ext() {
-		$name = __FUNCTION__;
+		$name     = __FUNCTION__;
 		$filename = wp_unique_filename( $this->dir, $name . '.php.txt' );
 
 		// "foo.php.txt" becomes "foo.php_.txt"
 		$this->assertEquals( $name . '.php_.txt', $filename );
 
-		$this->assertTrue( $this->is_unique_writable_file($this->dir, $filename) );
+		$this->assertTrue( $this->is_unique_writable_file( $this->dir, $filename ) );
 
-		unlink($this->dir . DIRECTORY_SEPARATOR . $filename);
+		unlink( $this->dir . DIRECTORY_SEPARATOR . $filename );
 	}
 
 	function test_unique_filename_no_ext() {
-		$name = __FUNCTION__;
+		$name     = __FUNCTION__;
 		$filename = wp_unique_filename( $this->dir, $name );
 
 		$this->assertEquals( $name, $filename );
 
-		$this->assertTrue( $this->is_unique_writable_file($this->dir, $filename) );
+		$this->assertTrue( $this->is_unique_writable_file( $this->dir, $filename ) );
 
-		unlink($this->dir . DIRECTORY_SEPARATOR . $filename);
+		unlink( $this->dir . DIRECTORY_SEPARATOR . $filename );
 	}
 
 	/**

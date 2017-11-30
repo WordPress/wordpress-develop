@@ -10,9 +10,9 @@ class Tests_Admin_includesFile extends WP_UnitTestCase {
 	 * @ticket 20449
 	 */
 	function test_get_home_path() {
-		$home = get_option( 'home' );
+		$home    = get_option( 'home' );
 		$siteurl = get_option( 'siteurl' );
-		$sfn = $_SERVER['SCRIPT_FILENAME'];
+		$sfn     = $_SERVER['SCRIPT_FILENAME'];
 		$this->assertEquals( str_replace( '\\', '/', ABSPATH ), get_home_path() );
 
 		update_option( 'home', 'http://localhost' );

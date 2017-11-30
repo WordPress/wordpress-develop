@@ -7,7 +7,7 @@
 error_reporting( E_ALL & ~E_DEPRECATED & ~E_STRICT );
 
 $config_file_path = $argv[1];
-$multisite = ! empty( $argv[2] );
+$multisite        = ! empty( $argv[2] );
 
 define( 'WP_INSTALLING', true );
 require_once $config_file_path;
@@ -47,9 +47,9 @@ if ( version_compare( $wpdb->db_version(), '5.5.3', '>=' ) ) {
 }
 $wpdb->select( DB_NAME, $wpdb->dbh );
 
-echo "Installing..." . PHP_EOL;
+echo 'Installing...' . PHP_EOL;
 
-$wpdb->query( "SET foreign_key_checks = 0" );
+$wpdb->query( 'SET foreign_key_checks = 0' );
 foreach ( $wpdb->tables() as $table => $prefixed_table ) {
 	$wpdb->query( "DROP TABLE IF EXISTS $prefixed_table" );
 }
@@ -58,10 +58,11 @@ foreach ( $wpdb->tables( 'ms_global' ) as $table => $prefixed_table ) {
 	$wpdb->query( "DROP TABLE IF EXISTS $prefixed_table" );
 
 	// We need to create references to ms global tables.
-	if ( $multisite )
+	if ( $multisite ) {
 		$wpdb->$table = $prefixed_table;
+	}
 }
-$wpdb->query( "SET foreign_key_checks = 1" );
+$wpdb->query( 'SET foreign_key_checks = 1' );
 
 // Prefill a permalink structure so that WP doesn't try to determine one itself.
 add_action( 'populate_options', '_set_default_permalink_structure_for_tests' );
@@ -75,11 +76,11 @@ if ( ! is_multisite() ) {
 remove_action( 'populate_options', '_set_default_permalink_structure_for_tests' );
 
 if ( $multisite ) {
-	echo "Installing network..." . PHP_EOL;
+	echo 'Installing network...' . PHP_EOL;
 
 	define( 'WP_INSTALLING_NETWORK', true );
 
-	$title = WP_TESTS_TITLE . ' Network';
+	$title             = WP_TESTS_TITLE . ' Network';
 	$subdomain_install = false;
 
 	install_network();

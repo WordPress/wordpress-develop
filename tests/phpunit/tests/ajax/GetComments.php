@@ -17,12 +17,14 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * A post with at least one comment
+	 *
 	 * @var mixed
 	 */
 	protected static $comment_post = null;
 
 	/**
 	 * A post with no comments
+	 *
 	 * @var mixed
 	 */
 	protected static $no_comment_post = null;
@@ -30,14 +32,15 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 	protected static $comment_ids = array();
 
 	public static function wpSetUpBeforeClass( $factory ) {
-		self::$comment_post = $factory->post->create_and_get();
-		self::$comment_ids = $factory->comment->create_post_comments( self::$comment_post->ID, 5 );
+		self::$comment_post    = $factory->post->create_and_get();
+		self::$comment_ids     = $factory->comment->create_post_comments( self::$comment_post->ID, 5 );
 		self::$no_comment_post = $factory->post->create_and_get();
 	}
 
 	/**
 	 * Get comments as a privilged user (administrator)
 	 * Expects test to pass
+	 *
 	 * @return void
 	 */
 	public function test_as_admin() {
@@ -75,6 +78,7 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 	/**
 	 * Get comments as a non-privileged user (subscriber)
 	 * Expects test to fail
+	 *
 	 * @return void
 	 */
 	public function test_as_subscriber() {
@@ -95,6 +99,7 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 	/**
 	 * Get comments with a bad nonce
 	 * Expects test to fail
+	 *
 	 * @return void
 	 */
 	public function test_bad_nonce() {
@@ -115,6 +120,7 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 	/**
 	 * Get comments for an invalid post
 	 * Bad post IDs are set to 0, this should return valid XML
+	 *
 	 * @return void
 	 */
 	public function test_invalid_post() {
@@ -135,6 +141,7 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 	/**
 	 * Get comments for an invalid post
 	 * Bad post IDs are set to 0, this should return valid XML
+	 *
 	 * @return void
 	 */
 	public function test_post_with_no_comments() {
