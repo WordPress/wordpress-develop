@@ -40,9 +40,9 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 		$this->_last_response = '';
 	}
 
-	/***********************************************************/
-	/** Test prototype
-	/***********************************************************/
+	/*
+	 * Test prototype
+	 */
 
 	/**
 	 * Test as a privilged user (administrator)
