@@ -2,741 +2,882 @@
 
 if ( is_multisite() ) :
 
-/**
- * Test site query functionality in multisite.
- *
- * @group ms-site
- * @group multisite
- */
-class Tests_Multisite_Site_Query extends WP_UnitTestCase {
-	protected static $network_ids;
-	protected static $site_ids;
+	/**
+	 * Test site query functionality in multisite.
+	 *
+	 * @group ms-site
+	 * @group multisite
+	 */
+	class Tests_Multisite_Site_Query extends WP_UnitTestCase {
+		protected static $network_ids;
+		protected static $site_ids;
 
-	protected $suppress = false;
+		protected $suppress = false;
 
-	function setUp() {
-		global $wpdb;
-		parent::setUp();
-		$this->suppress = $wpdb->suppress_errors();
-	}
-
-	function tearDown() {
-		global $wpdb;
-		$wpdb->suppress_errors( $this->suppress );
-		parent::tearDown();
-	}
-
-	public static function wpSetUpBeforeClass( $factory ) {
-		self::$network_ids = array(
-			'wordpress.org/'         => array( 'domain' => 'wordpress.org', 'path' => '/' ),
-			'make.wordpress.org/'    => array( 'domain' => 'make.wordpress.org', 'path' => '/' ),
-			'www.wordpress.net/'     => array( 'domain' => 'www.wordpress.net', 'path' => '/' ),
-		);
-
-		foreach ( self::$network_ids as &$id ) {
-			$id = $factory->network->create( $id );
-		}
-		unset( $id );
-
-		self::$site_ids = array(
-			'wordpress.org/'              => array( 'domain' => 'wordpress.org',      'path' => '/',         'site_id' => self::$network_ids['wordpress.org/'] ),
-			'wordpress.org/foo/'          => array( 'domain' => 'wordpress.org',      'path' => '/foo/',     'site_id' => self::$network_ids['wordpress.org/'] ),
-			'wordpress.org/foo/bar/'      => array( 'domain' => 'wordpress.org',      'path' => '/foo/bar/', 'site_id' => self::$network_ids['wordpress.org/'] ),
-			'make.wordpress.org/'         => array( 'domain' => 'make.wordpress.org', 'path' => '/',         'site_id' => self::$network_ids['make.wordpress.org/'] ),
-			'make.wordpress.org/foo/'     => array( 'domain' => 'make.wordpress.org', 'path' => '/foo/',     'site_id' => self::$network_ids['make.wordpress.org/'] ),
-			'www.w.org/'                  => array( 'domain' => 'www.w.org',          'path' => '/' ),
-			'www.w.org/foo/'              => array( 'domain' => 'www.w.org',          'path' => '/foo/' ),
-			'www.w.org/foo/bar/'          => array( 'domain' => 'www.w.org',          'path' => '/foo/bar/' ),
-			'www.w.org/make/'             => array( 'domain' => 'www.w.org',          'path' => '/make/', 'meta' => array( 'public' => 1, 'lang_id' => 1 ) ),
-		);
-
-		foreach ( self::$site_ids as &$id ) {
-			$id = $factory->blog->create( $id );
-		}
-		unset( $id );
-	}
-
-	public static function wpTearDownAfterClass() {
-		global $wpdb;
-
-		foreach( self::$site_ids as $id ) {
-			wpmu_delete_blog( $id, true );
+		function setUp() {
+			global $wpdb;
+			parent::setUp();
+			$this->suppress = $wpdb->suppress_errors();
 		}
 
-		foreach( self::$network_ids as $id ) {
-			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->sitemeta} WHERE site_id = %d", $id ) );
-			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->site} WHERE id= %d", $id ) );
+		function tearDown() {
+			global $wpdb;
+			$wpdb->suppress_errors( $this->suppress );
+			parent::tearDown();
 		}
 
-		wp_update_network_site_counts();
-	}
+		public static function wpSetUpBeforeClass( $factory ) {
+			self::$network_ids = array(
+				'wordpress.org/'      => array(
+					'domain' => 'wordpress.org',
+					'path'   => '/',
+				),
+				'make.wordpress.org/' => array(
+					'domain' => 'make.wordpress.org',
+					'path'   => '/',
+				),
+				'www.wordpress.net/'  => array(
+					'domain' => 'www.wordpress.net',
+					'path'   => '/',
+				),
+			);
 
-	public function test_wp_site_query_by_ID() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields' => 'ids',
-			'ID'     => self::$site_ids['www.w.org/'],
-		) );
+			foreach ( self::$network_ids as &$id ) {
+				$id = $factory->network->create( $id );
+			}
+			unset( $id );
 
-		$this->assertEqualSets( array( self::$site_ids['www.w.org/'] ), $found );
-	}
+			self::$site_ids = array(
+				'wordpress.org/'          => array(
+					'domain'  => 'wordpress.org',
+					'path'    => '/',
+					'site_id' => self::$network_ids['wordpress.org/'],
+				),
+				'wordpress.org/foo/'      => array(
+					'domain'  => 'wordpress.org',
+					'path'    => '/foo/',
+					'site_id' => self::$network_ids['wordpress.org/'],
+				),
+				'wordpress.org/foo/bar/'  => array(
+					'domain'  => 'wordpress.org',
+					'path'    => '/foo/bar/',
+					'site_id' => self::$network_ids['wordpress.org/'],
+				),
+				'make.wordpress.org/'     => array(
+					'domain'  => 'make.wordpress.org',
+					'path'    => '/',
+					'site_id' => self::$network_ids['make.wordpress.org/'],
+				),
+				'make.wordpress.org/foo/' => array(
+					'domain'  => 'make.wordpress.org',
+					'path'    => '/foo/',
+					'site_id' => self::$network_ids['make.wordpress.org/'],
+				),
+				'www.w.org/'              => array(
+					'domain' => 'www.w.org',
+					'path'   => '/',
+				),
+				'www.w.org/foo/'          => array(
+					'domain' => 'www.w.org',
+					'path'   => '/foo/',
+				),
+				'www.w.org/foo/bar/'      => array(
+					'domain' => 'www.w.org',
+					'path'   => '/foo/bar/',
+				),
+				'www.w.org/make/'         => array(
+					'domain' => 'www.w.org',
+					'path'   => '/make/',
+					'meta'   => array(
+						'public'  => 1,
+						'lang_id' => 1,
+					),
+				),
+			);
 
-	public function test_wp_site_query_by_number() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'   => 'ids',
-			'number' => 3,
-		) );
+			foreach ( self::$site_ids as &$id ) {
+				$id = $factory->blog->create( $id );
+			}
+			unset( $id );
+		}
 
-		$this->assertEquals( 3, count( $found ) );
-	}
+		public static function wpTearDownAfterClass() {
+			global $wpdb;
 
-	public function test_wp_site_query_by_site__in_with_single_id() {
-		$expected = array( self::$site_ids['wordpress.org/foo/'] );
+			foreach ( self::$site_ids as $id ) {
+				wpmu_delete_blog( $id, true );
+			}
 
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'   => 'ids',
-			'site__in' => $expected,
-		) );
+			foreach ( self::$network_ids as $id ) {
+				$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->sitemeta} WHERE site_id = %d", $id ) );
+				$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->site} WHERE id= %d", $id ) );
+			}
 
-		$this->assertEqualSets( $expected, $found );
-	}
+			wp_update_network_site_counts();
+		}
 
-	public function test_wp_site_query_by_site__in_with_multiple_ids() {
-		$expected = array( self::$site_ids['wordpress.org/'], self::$site_ids['wordpress.org/foo/'] );
+		public function test_wp_site_query_by_ID() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields' => 'ids',
+					'ID'     => self::$site_ids['www.w.org/'],
+				)
+			);
 
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'   => 'ids',
-			'site__in' => $expected,
-		) );
+			$this->assertEqualSets( array( self::$site_ids['www.w.org/'] ), $found );
+		}
 
-		$this->assertEqualSets( $expected, $found );
-	}
+		public function test_wp_site_query_by_number() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields' => 'ids',
+					'number' => 3,
+				)
+			);
 
-	/**
-	 * Test the `count` query var
-	 */
-	public function test_wp_site_query_by_site__in_and_count_with_multiple_ids() {
-		$expected = array( self::$site_ids['wordpress.org/'], self::$site_ids['wordpress.org/foo/'] );
+			$this->assertEquals( 3, count( $found ) );
+		}
 
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'   => 'ids',
-			'count' => true,
-			'site__in' => $expected,
-		) );
+		public function test_wp_site_query_by_site__in_with_single_id() {
+			$expected = array( self::$site_ids['wordpress.org/foo/'] );
 
-		$this->assertEquals( 2, $found );
-	}
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'   => 'ids',
+					'site__in' => $expected,
+				)
+			);
 
-	public function test_wp_site_query_by_site__not_in_with_single_id() {
-		$excluded = array( self::$site_ids['wordpress.org/foo/'] );
-		$expected = array_diff( self::$site_ids, $excluded );
+			$this->assertEqualSets( $expected, $found );
+		}
 
-		// Exclude main site since we don't have control over it here.
-		$excluded[] = 1;
+		public function test_wp_site_query_by_site__in_with_multiple_ids() {
+			$expected = array( self::$site_ids['wordpress.org/'], self::$site_ids['wordpress.org/foo/'] );
 
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'       => 'ids',
-			'site__not_in' => $excluded,
-		) );
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'   => 'ids',
+					'site__in' => $expected,
+				)
+			);
 
-		$this->assertEqualSets( $expected, $found );
-	}
+			$this->assertEqualSets( $expected, $found );
+		}
 
-	public function test_wp_site_query_by_site__not_in_with_multiple_ids() {
-		$excluded = array( self::$site_ids['wordpress.org/'], self::$site_ids['wordpress.org/foo/'] );
-		$expected = array_diff( self::$site_ids, $excluded );
+		/**
+		 * Test the `count` query var
+		 */
+		public function test_wp_site_query_by_site__in_and_count_with_multiple_ids() {
+			$expected = array( self::$site_ids['wordpress.org/'], self::$site_ids['wordpress.org/foo/'] );
 
-		// Exclude main site since we don't have control over it here.
-		$excluded[] = 1;
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'   => 'ids',
+					'count'    => true,
+					'site__in' => $expected,
+				)
+			);
 
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'       => 'ids',
-			'site__not_in' => $excluded,
-		) );
+			$this->assertEquals( 2, $found );
+		}
 
-		$this->assertEqualSets( $expected, $found );
-	}
+		public function test_wp_site_query_by_site__not_in_with_single_id() {
+			$excluded = array( self::$site_ids['wordpress.org/foo/'] );
+			$expected = array_diff( self::$site_ids, $excluded );
 
-	public function test_wp_site_query_by_network_id_with_order() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'     => 'ids',
-			'network_id' => self::$network_ids['wordpress.org/'],
-			'number'     => 3,
-			'order'      => 'ASC',
-		) );
-
-		$expected = array(
-			self::$site_ids['wordpress.org/'],
-			self::$site_ids['wordpress.org/foo/'],
-			self::$site_ids['wordpress.org/foo/bar/'],
-		);
-
-		$this->assertEquals( $expected, $found );
-
-		$found = $q->query( array(
-			'fields'     => 'ids',
-			'network_id' => self::$network_ids['wordpress.org/'],
-			'number'     => 3,
-			'order'      => 'DESC',
-		) );
-
-		$this->assertEquals( array_reverse( $expected ), $found );
-	}
-
-	public function test_wp_site_query_by_network_id_with_existing_sites() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'       => 'ids',
-			'network_id'   => self::$network_ids['make.wordpress.org/'],
-		) );
-
-		$expected = array(
-			self::$site_ids['make.wordpress.org/'],
-			self::$site_ids['make.wordpress.org/foo/'],
-		);
-
-		$this->assertEqualSets( $expected, $found );
-	}
-
-	public function test_wp_site_query_by_network_id_with_no_existing_sites() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'       => 'ids',
-			'network_id'   => self::$network_ids['www.wordpress.net/'],
-		) );
-
-		$this->assertEmpty( $found );
-	}
-
-	public function test_wp_site_query_by_domain() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'       => 'ids',
-			'domain'       => 'www.w.org',
-		) );
-
-		$expected = array(
-			self::$site_ids['www.w.org/'],
-			self::$site_ids['www.w.org/foo/'],
-			self::$site_ids['www.w.org/foo/bar/'],
-			self::$site_ids['www.w.org/make/'],
-		);
-
-		$this->assertEqualSets( $expected, $found );
-	}
-
-	public function test_wp_site_query_by_domain_and_offset() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'       => 'ids',
-			'domain'       => 'www.w.org',
-			'offset'       => 1,
-		) );
-
-		$expected = array(
-			self::$site_ids['www.w.org/foo/'],
-			self::$site_ids['www.w.org/foo/bar/'],
-			self::$site_ids['www.w.org/make/'],
-		);
-
-		$this->assertEqualSets( $expected, $found );
-	}
-
-	public function test_wp_site_query_by_domain_and_number_and_offset() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'       => 'ids',
-			'domain'       => 'www.w.org',
-			'number'       => 2,
-			'offset'       => 1,
-		) );
-
-		$expected = array(
-			self::$site_ids['www.w.org/foo/'],
-			self::$site_ids['www.w.org/foo/bar/'],
-		);
-
-		$this->assertEqualSets( $expected, $found );
-	}
-
-	public function test_wp_site_query_by_domain__in_with_single_domain() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields' => 'ids',
-			'domain__in' => array( 'make.wordpress.org' ),
-		));
-
-		$expected = array(
-			self::$site_ids['make.wordpress.org/'],
-			self::$site_ids['make.wordpress.org/foo/'],
-		);
-
-		$this->assertEqualSets( $expected, $found );
-	}
-
-	public function test_wp_site_query_by_domain__in_with_multiple_domains() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields' => 'ids',
-			'domain__in' => array( 'wordpress.org', 'make.wordpress.org' ),
-		));
-
-		$expected = array(
-			self::$site_ids['wordpress.org/'],
-			self::$site_ids['wordpress.org/foo/'],
-			self::$site_ids['wordpress.org/foo/bar/'],
-			self::$site_ids['make.wordpress.org/'],
-			self::$site_ids['make.wordpress.org/foo/'],
-		);
-
-		$this->assertEqualSets( $expected, $found );
-	}
-
-	public function test_wp_site_query_by_domain__not_in_with_single_domain() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields' => 'ids',
-			'domain__not_in' => array( 'www.w.org' ),
-		));
-
-		$expected = array(
-			get_current_blog_id(), // Account for the initial site added by the test suite.
-			self::$site_ids['wordpress.org/'],
-			self::$site_ids['wordpress.org/foo/'],
-			self::$site_ids['wordpress.org/foo/bar/'],
-			self::$site_ids['make.wordpress.org/'],
-			self::$site_ids['make.wordpress.org/foo/'],
-		);
-
-		$this->assertEqualSets( $expected, $found );
-	}
-
-	public function test_wp_site_query_by_domain__not_in_with_multiple_domains() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields' => 'ids',
-			'domain__not_in' => array( 'wordpress.org', 'www.w.org' ),
-		));
-
-		$expected = array(
-			get_current_blog_id(), // Account for the initial site added by the test suite.
-			self::$site_ids['make.wordpress.org/'],
-			self::$site_ids['make.wordpress.org/foo/'],
-		);
-
-		$this->assertEqualSets( $expected, $found );
-	}
-
-	public function test_wp_site_query_by_path_with_expected_results() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'       => 'ids',
-			'path'         => '/foo/bar/',
-		) );
-
-		$expected = array(
-			self::$site_ids['wordpress.org/foo/bar/'],
-			self::$site_ids['www.w.org/foo/bar/'],
-		);
-
-		$this->assertEqualSets( $expected, $found );
-	}
-
-	public function test_wp_site_query_by_path_with_no_expected_results() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'       => 'ids',
-			'path'         => '/foo/bar/foo/',
-		) );
-
-		$this->assertEmpty( $found );
-	}
-
-	// archived, mature, spam, deleted, public
-
-	public function test_wp_site_query_by_archived() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'       => 'ids',
 			// Exclude main site since we don't have control over it here.
-			'site__not_in' => array( 1 ),
-			'archived'     => '0',
-		) );
+			$excluded[] = 1;
 
-		$this->assertEqualSets( array_values( self::$site_ids ), $found );
-	}
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'       => 'ids',
+					'site__not_in' => $excluded,
+				)
+			);
 
-	public function test_wp_site_query_by_mature() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'       => 'ids',
+			$this->assertEqualSets( $expected, $found );
+		}
+
+		public function test_wp_site_query_by_site__not_in_with_multiple_ids() {
+			$excluded = array( self::$site_ids['wordpress.org/'], self::$site_ids['wordpress.org/foo/'] );
+			$expected = array_diff( self::$site_ids, $excluded );
+
 			// Exclude main site since we don't have control over it here.
-			'site__not_in' => array( 1 ),
-			'mature'     => '0',
-		) );
+			$excluded[] = 1;
 
-		$this->assertEqualSets( array_values( self::$site_ids ), $found );
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'       => 'ids',
+					'site__not_in' => $excluded,
+				)
+			);
+
+			$this->assertEqualSets( $expected, $found );
+		}
+
+		public function test_wp_site_query_by_network_id_with_order() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'     => 'ids',
+					'network_id' => self::$network_ids['wordpress.org/'],
+					'number'     => 3,
+					'order'      => 'ASC',
+				)
+			);
+
+			$expected = array(
+				self::$site_ids['wordpress.org/'],
+				self::$site_ids['wordpress.org/foo/'],
+				self::$site_ids['wordpress.org/foo/bar/'],
+			);
+
+			$this->assertEquals( $expected, $found );
+
+			$found = $q->query(
+				array(
+					'fields'     => 'ids',
+					'network_id' => self::$network_ids['wordpress.org/'],
+					'number'     => 3,
+					'order'      => 'DESC',
+				)
+			);
+
+			$this->assertEquals( array_reverse( $expected ), $found );
+		}
+
+		public function test_wp_site_query_by_network_id_with_existing_sites() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'     => 'ids',
+					'network_id' => self::$network_ids['make.wordpress.org/'],
+				)
+			);
+
+			$expected = array(
+				self::$site_ids['make.wordpress.org/'],
+				self::$site_ids['make.wordpress.org/foo/'],
+			);
+
+			$this->assertEqualSets( $expected, $found );
+		}
+
+		public function test_wp_site_query_by_network_id_with_no_existing_sites() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'     => 'ids',
+					'network_id' => self::$network_ids['www.wordpress.net/'],
+				)
+			);
+
+			$this->assertEmpty( $found );
+		}
+
+		public function test_wp_site_query_by_domain() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields' => 'ids',
+					'domain' => 'www.w.org',
+				)
+			);
+
+			$expected = array(
+				self::$site_ids['www.w.org/'],
+				self::$site_ids['www.w.org/foo/'],
+				self::$site_ids['www.w.org/foo/bar/'],
+				self::$site_ids['www.w.org/make/'],
+			);
+
+			$this->assertEqualSets( $expected, $found );
+		}
+
+		public function test_wp_site_query_by_domain_and_offset() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields' => 'ids',
+					'domain' => 'www.w.org',
+					'offset' => 1,
+				)
+			);
+
+			$expected = array(
+				self::$site_ids['www.w.org/foo/'],
+				self::$site_ids['www.w.org/foo/bar/'],
+				self::$site_ids['www.w.org/make/'],
+			);
+
+			$this->assertEqualSets( $expected, $found );
+		}
+
+		public function test_wp_site_query_by_domain_and_number_and_offset() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields' => 'ids',
+					'domain' => 'www.w.org',
+					'number' => 2,
+					'offset' => 1,
+				)
+			);
+
+			$expected = array(
+				self::$site_ids['www.w.org/foo/'],
+				self::$site_ids['www.w.org/foo/bar/'],
+			);
+
+			$this->assertEqualSets( $expected, $found );
+		}
+
+		public function test_wp_site_query_by_domain__in_with_single_domain() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'     => 'ids',
+					'domain__in' => array( 'make.wordpress.org' ),
+				)
+			);
+
+			$expected = array(
+				self::$site_ids['make.wordpress.org/'],
+				self::$site_ids['make.wordpress.org/foo/'],
+			);
+
+			$this->assertEqualSets( $expected, $found );
+		}
+
+		public function test_wp_site_query_by_domain__in_with_multiple_domains() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'     => 'ids',
+					'domain__in' => array( 'wordpress.org', 'make.wordpress.org' ),
+				)
+			);
+
+			$expected = array(
+				self::$site_ids['wordpress.org/'],
+				self::$site_ids['wordpress.org/foo/'],
+				self::$site_ids['wordpress.org/foo/bar/'],
+				self::$site_ids['make.wordpress.org/'],
+				self::$site_ids['make.wordpress.org/foo/'],
+			);
+
+			$this->assertEqualSets( $expected, $found );
+		}
+
+		public function test_wp_site_query_by_domain__not_in_with_single_domain() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'         => 'ids',
+					'domain__not_in' => array( 'www.w.org' ),
+				)
+			);
+
+			$expected = array(
+				get_current_blog_id(), // Account for the initial site added by the test suite.
+				self::$site_ids['wordpress.org/'],
+				self::$site_ids['wordpress.org/foo/'],
+				self::$site_ids['wordpress.org/foo/bar/'],
+				self::$site_ids['make.wordpress.org/'],
+				self::$site_ids['make.wordpress.org/foo/'],
+			);
+
+			$this->assertEqualSets( $expected, $found );
+		}
+
+		public function test_wp_site_query_by_domain__not_in_with_multiple_domains() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'         => 'ids',
+					'domain__not_in' => array( 'wordpress.org', 'www.w.org' ),
+				)
+			);
+
+			$expected = array(
+				get_current_blog_id(), // Account for the initial site added by the test suite.
+				self::$site_ids['make.wordpress.org/'],
+				self::$site_ids['make.wordpress.org/foo/'],
+			);
+
+			$this->assertEqualSets( $expected, $found );
+		}
+
+		public function test_wp_site_query_by_path_with_expected_results() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields' => 'ids',
+					'path'   => '/foo/bar/',
+				)
+			);
+
+			$expected = array(
+				self::$site_ids['wordpress.org/foo/bar/'],
+				self::$site_ids['www.w.org/foo/bar/'],
+			);
+
+			$this->assertEqualSets( $expected, $found );
+		}
+
+		public function test_wp_site_query_by_path_with_no_expected_results() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields' => 'ids',
+					'path'   => '/foo/bar/foo/',
+				)
+			);
+
+			$this->assertEmpty( $found );
+		}
+
+		// archived, mature, spam, deleted, public
+
+		public function test_wp_site_query_by_archived() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'       => 'ids',
+					// Exclude main site since we don't have control over it here.
+					'site__not_in' => array( 1 ),
+					'archived'     => '0',
+				)
+			);
+
+			$this->assertEqualSets( array_values( self::$site_ids ), $found );
+		}
+
+		public function test_wp_site_query_by_mature() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'       => 'ids',
+					// Exclude main site since we don't have control over it here.
+					'site__not_in' => array( 1 ),
+					'mature'       => '0',
+				)
+			);
+
+			$this->assertEqualSets( array_values( self::$site_ids ), $found );
+		}
+
+		public function test_wp_site_query_by_spam() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'       => 'ids',
+					// Exclude main site since we don't have control over it here.
+					'site__not_in' => array( 1 ),
+					'spam'         => '0',
+				)
+			);
+
+			$this->assertEqualSets( array_values( self::$site_ids ), $found );
+		}
+
+		public function test_wp_site_query_by_deleted() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'       => 'ids',
+					// Exclude main site since we don't have control over it here.
+					'site__not_in' => array( 1 ),
+					'deleted'      => '0',
+				)
+			);
+
+			$this->assertEqualSets( array_values( self::$site_ids ), $found );
+		}
+
+		public function test_wp_site_query_by_deleted_with_no_results() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'  => 'ids',
+					'deleted' => '1',
+				)
+			);
+
+			$this->assertEmpty( $found );
+		}
+
+		public function test_wp_site_query_by_public() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'       => 'ids',
+					// Exclude main site since we don't have control over it here.
+					'site__not_in' => array( 1 ),
+					'public'       => '1',
+				)
+			);
+
+			$this->assertEqualSets( array_values( self::$site_ids ), $found );
+		}
+
+		public function test_wp_site_query_by_lang_id_with_zero() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'       => 'ids',
+					// Exclude main site since we don't have control over it here.
+					'site__not_in' => array( 1 ),
+					'lang_id'      => 0,
+				)
+			);
+
+			$this->assertEqualSets( array_diff( array_values( self::$site_ids ), array( self::$site_ids['www.w.org/make/'] ) ), $found );
+		}
+
+		public function test_wp_site_query_by_lang_id() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'  => 'ids',
+					'lang_id' => 1,
+				)
+			);
+
+			$expected = array(
+				self::$site_ids['www.w.org/make/'],
+			);
+
+			$this->assertEqualSets( $expected, $found );
+		}
+
+		public function test_wp_site_query_by_lang_id_with_no_results() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'  => 'ids',
+					'lang_id' => 2,
+				)
+			);
+
+			$this->assertEmpty( $found );
+		}
+
+		public function test_wp_site_query_by_lang__in() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'   => 'ids',
+					'lang__in' => array( 1 ),
+				)
+			);
+
+			$expected = array(
+				self::$site_ids['www.w.org/make/'],
+			);
+
+			$this->assertEqualSets( $expected, $found );
+		}
+
+		public function test_wp_site_query_by_lang__in_with_multiple_ids() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'       => 'ids',
+					// Exclude main site since we don't have control over it here.
+					'site__not_in' => array( 1 ),
+					'lang__in'     => array( 0, 1 ),
+				)
+			);
+
+			$this->assertEqualSets( array_values( self::$site_ids ), $found );
+		}
+
+		public function test_wp_site_query_by_lang__not_in() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'       => 'ids',
+					'lang__not_in' => array( 0 ),
+				)
+			);
+
+			$expected = array(
+				self::$site_ids['www.w.org/make/'],
+			);
+
+			$this->assertEqualSets( $expected, $found );
+		}
+
+		public function test_wp_site_query_by_lang__not_in_with_multiple_ids() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'       => 'ids',
+					'lang__not_in' => array( 0, 1 ),
+				)
+			);
+
+			$this->assertEmpty( $found );
+		}
+
+		public function test_wp_site_query_by_search_with_text_in_domain() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields' => 'ids',
+					'search' => 'ke.wordp',
+				)
+			);
+
+			$expected = array(
+				self::$site_ids['make.wordpress.org/'],
+				self::$site_ids['make.wordpress.org/foo/'],
+			);
+
+			$this->assertEqualSets( $expected, $found );
+		}
+
+		public function test_wp_site_query_by_search_with_text_in_path() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields' => 'ids',
+					'search' => 'foo',
+				)
+			);
+
+			$expected = array(
+				self::$site_ids['wordpress.org/foo/'],
+				self::$site_ids['wordpress.org/foo/bar/'],
+				self::$site_ids['make.wordpress.org/foo/'],
+				self::$site_ids['www.w.org/foo/'],
+				self::$site_ids['www.w.org/foo/bar/'],
+			);
+
+			$this->assertEqualSets( $expected, $found );
+		}
+
+		public function test_wp_site_query_by_search_with_text_in_path_and_domain() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields' => 'ids',
+					'search' => 'make',
+				)
+			);
+
+			$expected = array(
+				self::$site_ids['make.wordpress.org/'],
+				self::$site_ids['make.wordpress.org/foo/'],
+				self::$site_ids['www.w.org/make/'],
+			);
+
+			$this->assertEqualSets( $expected, $found );
+		}
+
+		public function test_wp_site_query_by_search_with_text_in_path_and_domain_order_by_domain_desc() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'  => 'ids',
+					'search'  => 'make',
+					'order'   => 'DESC',
+					'orderby' => 'domain',
+				)
+			);
+
+			$expected = array(
+				self::$site_ids['www.w.org/make/'],
+				self::$site_ids['make.wordpress.org/'],
+				self::$site_ids['make.wordpress.org/foo/'],
+			);
+
+			$this->assertEquals( $expected, $found );
+		}
+
+		public function test_wp_site_query_by_search_with_text_in_path_exclude_domain_from_search() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'         => 'ids',
+					'search'         => 'make',
+					'search_columns' => array( 'path' ),
+				)
+			);
+
+			$expected = array(
+				self::$site_ids['www.w.org/make/'],
+			);
+
+			$this->assertEquals( $expected, $found );
+		}
+
+		public function test_wp_site_query_by_search_with_text_in_domain_exclude_path_from_search() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'         => 'ids',
+					'search'         => 'make',
+					'search_columns' => array( 'domain' ),
+				)
+			);
+
+			$expected = array(
+				self::$site_ids['make.wordpress.org/'],
+				self::$site_ids['make.wordpress.org/foo/'],
+			);
+
+			$this->assertEquals( $expected, $found );
+		}
+
+		public function test_wp_site_query_by_search_with_wildcard_in_text() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields' => 'ids',
+					'search' => 'm*ke',
+				)
+			);
+
+			$expected = array(
+				self::$site_ids['www.w.org/make/'],
+				self::$site_ids['make.wordpress.org/'],
+				self::$site_ids['make.wordpress.org/foo/'],
+			);
+
+			$this->assertEqualSets( $expected, $found );
+		}
+
+		public function test_wp_site_query_by_search_with_wildcard_in_text_exclude_path_from_search() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'         => 'ids',
+					'search'         => 'm*ke',
+					'search_columns' => array( 'domain' ),
+				)
+			);
+
+			$expected = array(
+				self::$site_ids['make.wordpress.org/'],
+				self::$site_ids['make.wordpress.org/foo/'],
+			);
+
+			$this->assertEqualSets( $expected, $found );
+		}
+
+		public function test_wp_site_query_by_search_with_wildcard_in_text_exclude_domain_from_search() {
+			$q     = new WP_Site_Query();
+			$found = $q->query(
+				array(
+					'fields'         => 'ids',
+					'search'         => 'm*ke',
+					'search_columns' => array( 'path' ),
+				)
+			);
+
+			$expected = array(
+				self::$site_ids['www.w.org/make/'],
+			);
+
+			$this->assertEqualSets( $expected, $found );
+		}
+
+		/**
+		 * @ticket 41197
+		 */
+		public function test_wp_site_query_cache_with_different_fields_no_count() {
+			global $wpdb;
+			$q                 = new WP_Site_Query();
+			$query_1           = $q->query(
+				array(
+					'fields'     => 'all',
+					'network_id' => self::$network_ids['wordpress.org/'],
+					'number'     => 3,
+					'order'      => 'ASC',
+				)
+			);
+			$number_of_queries = $wpdb->num_queries;
+
+			$query_2 = $q->query(
+				array(
+					'fields'     => 'ids',
+					'network_id' => self::$network_ids['wordpress.org/'],
+					'number'     => 3,
+					'order'      => 'ASC',
+				)
+			);
+
+			$this->assertEquals( $number_of_queries, $wpdb->num_queries );
+		}
+
+		/**
+		 * @ticket 41197
+		 */
+		public function test_wp_site_query_cache_with_different_fields_active_count() {
+			global $wpdb;
+			$q = new WP_Site_Query();
+
+			$query_1           = $q->query(
+				array(
+					'fields'     => 'all',
+					'network_id' => self::$network_ids['wordpress.org/'],
+					'number'     => 3,
+					'order'      => 'ASC',
+					'count'      => true,
+				)
+			);
+			$number_of_queries = $wpdb->num_queries;
+
+			$query_2 = $q->query(
+				array(
+					'fields'     => 'ids',
+					'network_id' => self::$network_ids['wordpress.org/'],
+					'number'     => 3,
+					'order'      => 'ASC',
+					'count'      => true,
+				)
+			);
+			$this->assertEquals( $number_of_queries, $wpdb->num_queries );
+		}
+
+		/**
+		 * @ticket 41197
+		 */
+		public function test_wp_site_query_cache_with_same_fields_different_count() {
+			global $wpdb;
+			$q = new WP_Site_Query();
+
+			$query_1 = $q->query(
+				array(
+					'fields'     => 'ids',
+					'network_id' => self::$network_ids['wordpress.org/'],
+					'number'     => 3,
+					'order'      => 'ASC',
+				)
+			);
+
+			$number_of_queries = $wpdb->num_queries;
+
+			$query_2 = $q->query(
+				array(
+					'fields'     => 'ids',
+					'network_id' => self::$network_ids['wordpress.org/'],
+					'number'     => 3,
+					'order'      => 'ASC',
+					'count'      => true,
+				)
+			);
+			$this->assertEquals( $number_of_queries + 1, $wpdb->num_queries );
+		}
 	}
-
-	public function test_wp_site_query_by_spam() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'       => 'ids',
-			// Exclude main site since we don't have control over it here.
-			'site__not_in' => array( 1 ),
-			'spam'     => '0',
-		) );
-
-		$this->assertEqualSets( array_values( self::$site_ids ), $found );
-	}
-
-	public function test_wp_site_query_by_deleted() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'       => 'ids',
-			// Exclude main site since we don't have control over it here.
-			'site__not_in' => array( 1 ),
-			'deleted'     => '0',
-		) );
-
-		$this->assertEqualSets( array_values( self::$site_ids ), $found );
-	}
-
-	public function test_wp_site_query_by_deleted_with_no_results() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'       => 'ids',
-			'deleted'      => '1',
-		) );
-
-		$this->assertEmpty( $found );
-	}
-
-	public function test_wp_site_query_by_public() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'       => 'ids',
-			// Exclude main site since we don't have control over it here.
-			'site__not_in' => array( 1 ),
-			'public'     => '1',
-		) );
-
-		$this->assertEqualSets( array_values( self::$site_ids ), $found );
-	}
-
-	public function test_wp_site_query_by_lang_id_with_zero() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'       => 'ids',
-			// Exclude main site since we don't have control over it here.
-			'site__not_in' => array( 1 ),
-			'lang_id'      => 0,
-		) );
-
-		$this->assertEqualSets( array_diff( array_values( self::$site_ids ), array( self::$site_ids['www.w.org/make/'] ) ), $found );
-	}
-
-	public function test_wp_site_query_by_lang_id() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'       => 'ids',
-			'lang_id'      => 1,
-		) );
-
-		$expected = array(
-			self::$site_ids['www.w.org/make/'],
-		);
-
-		$this->assertEqualSets( $expected, $found );
-	}
-
-	public function test_wp_site_query_by_lang_id_with_no_results() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'       => 'ids',
-			'lang_id'      => 2,
-		) );
-
-		$this->assertEmpty( $found );
-	}
-
-	public function test_wp_site_query_by_lang__in() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields' => 'ids',
-			'lang__in' => array( 1 ),
-		) );
-
-		$expected = array(
-			self::$site_ids['www.w.org/make/'],
-		);
-
-		$this->assertEqualSets( $expected, $found );
-	}
-
-	public function test_wp_site_query_by_lang__in_with_multiple_ids() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields' => 'ids',
-			// Exclude main site since we don't have control over it here.
-			'site__not_in' => array( 1 ),
-			'lang__in' => array( 0, 1 ),
-		) );
-
-		$this->assertEqualSets( array_values( self::$site_ids ), $found );
-	}
-
-	public function test_wp_site_query_by_lang__not_in() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields' => 'ids',
-			'lang__not_in' => array( 0 ),
-		) );
-
-		$expected = array(
-			self::$site_ids['www.w.org/make/'],
-		);
-
-		$this->assertEqualSets( $expected, $found );
-	}
-
-	public function test_wp_site_query_by_lang__not_in_with_multiple_ids() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields' => 'ids',
-			'lang__not_in' => array( 0, 1 ),
-		) );
-
-		$this->assertEmpty( $found );
-	}
-
-	public function test_wp_site_query_by_search_with_text_in_domain() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'       => 'ids',
-			'search'       => 'ke.wordp',
-		) );
-
-		$expected = array(
-			self::$site_ids['make.wordpress.org/'],
-			self::$site_ids['make.wordpress.org/foo/'],
-		);
-
-		$this->assertEqualSets( $expected, $found );
-	}
-
-	public function test_wp_site_query_by_search_with_text_in_path() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'       => 'ids',
-			'search'       => 'foo',
-		) );
-
-		$expected = array(
-			self::$site_ids['wordpress.org/foo/'],
-			self::$site_ids['wordpress.org/foo/bar/'],
-			self::$site_ids['make.wordpress.org/foo/'],
-			self::$site_ids['www.w.org/foo/'],
-			self::$site_ids['www.w.org/foo/bar/'],
-		);
-
-		$this->assertEqualSets( $expected, $found );
-	}
-
-	public function test_wp_site_query_by_search_with_text_in_path_and_domain() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'       => 'ids',
-			'search'       => 'make',
-		) );
-
-		$expected = array(
-			self::$site_ids['make.wordpress.org/'],
-			self::$site_ids['make.wordpress.org/foo/'],
-			self::$site_ids['www.w.org/make/'],
-		);
-
-		$this->assertEqualSets( $expected, $found );
-	}
-
-	public function test_wp_site_query_by_search_with_text_in_path_and_domain_order_by_domain_desc() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'       => 'ids',
-			'search'       => 'make',
-			'order'        => 'DESC',
-			'orderby'      => 'domain',
-		) );
-
-		$expected = array(
-			self::$site_ids['www.w.org/make/'],
-			self::$site_ids['make.wordpress.org/'],
-			self::$site_ids['make.wordpress.org/foo/'],
-		);
-
-		$this->assertEquals( $expected, $found );
-	}
-
-	public function test_wp_site_query_by_search_with_text_in_path_exclude_domain_from_search() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields' => 'ids',
-			'search' => 'make',
-			'search_columns' => array( 'path' ),
-		) );
-
-		$expected = array(
-			self::$site_ids['www.w.org/make/'],
-		);
-
-		$this->assertEquals( $expected, $found );
-	}
-
-	public function test_wp_site_query_by_search_with_text_in_domain_exclude_path_from_search() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields' => 'ids',
-			'search' => 'make',
-			'search_columns' => array( 'domain' ),
-		) );
-
-		$expected = array(
-			self::$site_ids['make.wordpress.org/'],
-			self::$site_ids['make.wordpress.org/foo/'],
-		);
-
-		$this->assertEquals( $expected, $found );
-	}
-
-	public function test_wp_site_query_by_search_with_wildcard_in_text() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields'       => 'ids',
-			'search'       => 'm*ke',
-		) );
-
-		$expected = array(
-			self::$site_ids['www.w.org/make/'],
-			self::$site_ids['make.wordpress.org/'],
-			self::$site_ids['make.wordpress.org/foo/'],
-		);
-
-		$this->assertEqualSets( $expected, $found );
-	}
-
-	public function test_wp_site_query_by_search_with_wildcard_in_text_exclude_path_from_search() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields' => 'ids',
-			'search' => 'm*ke',
-			'search_columns' => array( 'domain' ),
-		) );
-
-		$expected = array(
-			self::$site_ids['make.wordpress.org/'],
-			self::$site_ids['make.wordpress.org/foo/'],
-		);
-
-		$this->assertEqualSets( $expected, $found );
-	}
-
-	public function test_wp_site_query_by_search_with_wildcard_in_text_exclude_domain_from_search() {
-		$q = new WP_Site_Query();
-		$found = $q->query( array(
-			'fields' => 'ids',
-			'search' => 'm*ke',
-			'search_columns' => array( 'path' ),
-		) );
-
-		$expected = array(
-			self::$site_ids['www.w.org/make/'],
-		);
-
-		$this->assertEqualSets( $expected, $found );
-	}
-
-	/**
-	 * @ticket 41197
-	 */
-	public function test_wp_site_query_cache_with_different_fields_no_count() {
-		global $wpdb;
-		$q                 = new WP_Site_Query();
-		$query_1           = $q->query( array(
-			'fields'     => 'all',
-			'network_id' => self::$network_ids['wordpress.org/'],
-			'number'     => 3,
-			'order'      => 'ASC',
-		) );
-		$number_of_queries = $wpdb->num_queries;
-
-		$query_2 = $q->query( array(
-			'fields'     => 'ids',
-			'network_id' => self::$network_ids['wordpress.org/'],
-			'number'     => 3,
-			'order'      => 'ASC',
-		) );
-
-		$this->assertEquals( $number_of_queries, $wpdb->num_queries );
-	}
-
-	/**
-	 * @ticket 41197
-	 */
-	public function test_wp_site_query_cache_with_different_fields_active_count() {
-		global $wpdb;
-		$q                 = new WP_Site_Query();
-
-		$query_1 = $q->query( array(
-			'fields'     => 'all',
-			'network_id' => self::$network_ids['wordpress.org/'],
-			'number'     => 3,
-			'order'      => 'ASC',
-			'count'      => true,
-		) );
-		$number_of_queries = $wpdb->num_queries;
-
-		$query_2 = $q->query( array(
-			'fields'     => 'ids',
-			'network_id' => self::$network_ids['wordpress.org/'],
-			'number'     => 3,
-			'order'      => 'ASC',
-			'count'      => true,
-		) );
-		$this->assertEquals( $number_of_queries, $wpdb->num_queries );
-	}
-
-	/**
-	 * @ticket 41197
-	 */
-	public function test_wp_site_query_cache_with_same_fields_different_count() {
-		global $wpdb;
-		$q = new WP_Site_Query();
-
-		$query_1 = $q->query( array(
-			'fields'     => 'ids',
-			'network_id' => self::$network_ids['wordpress.org/'],
-			'number'     => 3,
-			'order'      => 'ASC',
-		) );
-
-		$number_of_queries = $wpdb->num_queries;
-
-		$query_2 = $q->query( array(
-			'fields'     => 'ids',
-			'network_id' => self::$network_ids['wordpress.org/'],
-			'number'     => 3,
-			'order'      => 'ASC',
-			'count'      => true,
-		) );
-		$this->assertEquals( $number_of_queries + 1, $wpdb->num_queries );
-	}
-}
 
 endif;

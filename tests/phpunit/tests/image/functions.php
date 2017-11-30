@@ -29,13 +29,14 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * Get the MIME type of a file
+	 *
 	 * @param string $filename
 	 * @return string
 	 */
 	protected function get_mime_type( $filename ) {
 		$mime_type = '';
 		if ( extension_loaded( 'fileinfo' ) ) {
-			$finfo = new finfo();
+			$finfo     = new finfo();
 			$mime_type = $finfo->file( $filename, FILEINFO_MIME );
 		}
 		if ( false !== strpos( $mime_type, ';' ) ) {
@@ -58,10 +59,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image.psd',
 			'test-image-zip.tiff',
 			'test-image.jpg',
-			);
+		);
 
-		foreach ($files as $file) {
-			$this->assertTrue( file_is_valid_image( DIR_TESTDATA.'/images/'.$file ), "file_is_valid_image($file) should return true" );
+		foreach ( $files as $file ) {
+			$this->assertTrue( file_is_valid_image( DIR_TESTDATA . '/images/' . $file ), "file_is_valid_image($file) should return true" );
 		}
 	}
 
@@ -71,10 +72,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image.pct',
 			'test-image.tga',
 			'test-image.sgi',
-			);
+		);
 
-		foreach ($files as $file) {
-			$this->assertFalse( file_is_valid_image( DIR_TESTDATA.'/images/'.$file ), "file_is_valid_image($file) should return false" );
+		foreach ( $files as $file ) {
+			$this->assertFalse( file_is_valid_image( DIR_TESTDATA . '/images/' . $file ), "file_is_valid_image($file) should return false" );
 		}
 	}
 
@@ -84,10 +85,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image.gif',
 			'test-image.png',
 			'test-image.jpg',
-			);
+		);
 
-		foreach ($files as $file) {
-			$this->assertTrue( file_is_displayable_image( DIR_TESTDATA.'/images/'.$file ), "file_is_valid_image($file) should return true" );
+		foreach ( $files as $file ) {
+			$this->assertTrue( file_is_displayable_image( DIR_TESTDATA . '/images/' . $file ), "file_is_valid_image($file) should return true" );
 		}
 	}
 
@@ -105,15 +106,16 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image.jp2',
 			'test-image.psd',
 			'test-image-zip.tiff',
-			);
+		);
 
-		foreach ($files as $file) {
-			$this->assertFalse( file_is_displayable_image( DIR_TESTDATA.'/images/'.$file ), "file_is_valid_image($file) should return false" );
+		foreach ( $files as $file ) {
+			$this->assertFalse( file_is_displayable_image( DIR_TESTDATA . '/images/' . $file ), "file_is_valid_image($file) should return false" );
 		}
 	}
 
 	/**
 	 * Test save image file and mime_types
+	 *
 	 * @ticket 6821
 	 */
 	public function test_wp_save_image_file() {
@@ -127,11 +129,11 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$mime_types = array(
 			'image/jpeg',
 			'image/gif',
-			'image/png'
+			'image/png',
 		);
 
 		// Test each image editor engine
-		$classes = array('WP_Image_Editor_GD', 'WP_Image_Editor_Imagick');
+		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 		foreach ( $classes as $class ) {
 
 			// If the image editor isn't available, skip it
@@ -139,7 +141,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				continue;
 			}
 
-			$img = new $class( DIR_TESTDATA . '/images/canola.jpg' );
+			$img    = new $class( DIR_TESTDATA . '/images/canola.jpg' );
 			$loaded = $img->load();
 
 			// Save a file as each mime type, assert it works
@@ -149,7 +151,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				}
 
 				$file = wp_tempnam();
-				$ret = wp_save_image_file( $file, $img, $mime_type, 1 );
+				$ret  = wp_save_image_file( $file, $img, $mime_type, 1 );
 				$this->assertNotEmpty( $ret );
 				$this->assertNotInstanceOf( 'WP_Error', $ret );
 				$this->assertEquals( $mime_type, $this->get_mime_type( $ret['path'] ) );
@@ -166,6 +168,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * Test that a passed mime type overrides the extension in the filename
+	 *
 	 * @ticket 6821
 	 */
 	public function test_mime_overrides_filename() {
@@ -174,7 +177,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		}
 
 		// Test each image editor engine
-		$classes = array('WP_Image_Editor_GD', 'WP_Image_Editor_Imagick');
+		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 		foreach ( $classes as $class ) {
 
 			// If the image editor isn't available, skip it
@@ -182,13 +185,13 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				continue;
 			}
 
-			$img = new $class( DIR_TESTDATA . '/images/canola.jpg' );
+			$img    = new $class( DIR_TESTDATA . '/images/canola.jpg' );
 			$loaded = $img->load();
 
 			// Save the file
 			$mime_type = 'image/gif';
-			$file = wp_tempnam( 'tmp.jpg' );
-			$ret = $img->save( $file, $mime_type );
+			$file      = wp_tempnam( 'tmp.jpg' );
+			$ret       = $img->save( $file, $mime_type );
 
 			// Make assertions
 			$this->assertNotEmpty( $ret );
@@ -204,6 +207,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * Test that mime types are correctly inferred from file extensions
+	 *
 	 * @ticket 6821
 	 */
 	public function test_inferred_mime_types() {
@@ -218,11 +222,11 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'jpe'  => 'image/jpeg',
 			'gif'  => 'image/gif',
 			'png'  => 'image/png',
-			'unk'  => 'image/jpeg' // Default, unknown
+			'unk'  => 'image/jpeg', // Default, unknown
 		);
 
 		// Test each image editor engine
-		$classes = array('WP_Image_Editor_GD', 'WP_Image_Editor_Imagick');
+		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 		foreach ( $classes as $class ) {
 
 			// If the image editor isn't available, skip it
@@ -230,7 +234,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				continue;
 			}
 
-			$img = new $class( DIR_TESTDATA . '/images/canola.jpg' );
+			$img    = new $class( DIR_TESTDATA . '/images/canola.jpg' );
 			$loaded = $img->load();
 
 			// Save the image as each file extension, check the mime type
@@ -244,7 +248,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				}
 
 				$file = wp_unique_filename( $temp, uniqid() . ".$ext" );
-				$ret = $img->save( trailingslashit( $temp ) . $file );
+				$ret  = $img->save( trailingslashit( $temp ) . $file );
 				$this->assertNotEmpty( $ret );
 				$this->assertNotInstanceOf( 'WP_Error', $ret );
 				$this->assertEquals( $mime_type, $this->get_mime_type( $ret['path'] ) );
@@ -272,7 +276,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$this->assertNotInternalType( 'resource', $editor2 );
 
 		// Then, test with editors.
-		$classes = array('WP_Image_Editor_GD', 'WP_Image_Editor_Imagick');
+		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 		foreach ( $classes as $class ) {
 			// If the image editor isn't available, skip it
 			if ( ! call_user_func( array( $class, 'test' ) ) ) {
@@ -288,15 +292,18 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	public function test_wp_crop_image_file() {
-		if ( !function_exists( 'imagejpeg' ) )
+		if ( ! function_exists( 'imagejpeg' ) ) {
 			$this->fail( 'jpeg support unavailable' );
+		}
 
-		$file = wp_crop_image( DIR_TESTDATA . '/images/canola.jpg',
-			0, 0, 100, 100, 100, 100 );
+		$file = wp_crop_image(
+			DIR_TESTDATA . '/images/canola.jpg',
+			0, 0, 100, 100, 100, 100
+		);
 		$this->assertNotInstanceOf( 'WP_Error', $file );
 		$this->assertFileExists( $file );
 		$image = wp_get_image_editor( $file );
-		$size = $image->get_size();
+		$size  = $image->get_size();
 		$this->assertEquals( 100, $size['height'] );
 		$this->assertEquals( 100, $size['width'] );
 
@@ -304,20 +311,23 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	public function test_wp_crop_image_url() {
-		if ( !function_exists( 'imagejpeg' ) )
+		if ( ! function_exists( 'imagejpeg' ) ) {
 			$this->fail( 'jpeg support unavailable' );
+		}
 
 		if ( ! extension_loaded( 'openssl' ) ) {
 			$this->markTestSkipped( 'Tests_Image_Functions::test_wp_crop_image_url() requires openssl.' );
 		}
 
-		$file = wp_crop_image( 'https://asdftestblog1.files.wordpress.com/2008/04/canola.jpg',
+		$file = wp_crop_image(
+			'https://asdftestblog1.files.wordpress.com/2008/04/canola.jpg',
 			0, 0, 100, 100, 100, 100, false,
-			DIR_TESTDATA . '/images/' . __FUNCTION__ . '.jpg' );
+			DIR_TESTDATA . '/images/' . __FUNCTION__ . '.jpg'
+		);
 		$this->assertNotInstanceOf( 'WP_Error', $file );
 		$this->assertFileExists( $file );
 		$image = wp_get_image_editor( $file );
-		$size = $image->get_size();
+		$size  = $image->get_size();
 		$this->assertEquals( 100, $size['height'] );
 		$this->assertEquals( 100, $size['width'] );
 
@@ -325,8 +335,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	public function test_wp_crop_image_file_not_exist() {
-		$file = wp_crop_image( DIR_TESTDATA . '/images/canoladoesnotexist.jpg',
-			0, 0, 100, 100, 100, 100 );
+		$file = wp_crop_image(
+			DIR_TESTDATA . '/images/canoladoesnotexist.jpg',
+			0, 0, 100, 100, 100, 100
+		);
 		$this->assertInstanceOf( 'WP_Error', $file );
 	}
 
@@ -335,8 +347,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( 'Tests_Image_Functions::test_wp_crop_image_url_not_exist() requires openssl.' );
 		}
 
-		$file = wp_crop_image( 'https://asdftestblog1.files.wordpress.com/2008/04/canoladoesnotexist.jpg',
-			0, 0, 100, 100, 100, 100 );
+		$file = wp_crop_image(
+			'https://asdftestblog1.files.wordpress.com/2008/04/canoladoesnotexist.jpg',
+			0, 0, 100, 100, 100, 100
+		);
 		$this->assertInstanceOf( 'WP_Error', $file );
 	}
 
@@ -351,8 +365,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		WP_Image_Editor_Mock::$save_return = new WP_Error();
 		add_filter( 'wp_image_editors', array( $this, 'mock_image_editor' ) );
 
-		$file = wp_crop_image( DIR_TESTDATA . '/images/canola.jpg',
-			0, 0, 100, 100, 100, 100 );
+		$file = wp_crop_image(
+			DIR_TESTDATA . '/images/canola.jpg',
+			0, 0, 100, 100, 100, 100
+		);
 		$this->assertInstanceOf( 'WP_Error', $file );
 
 		remove_filter( 'wp_image_editors', array( $this, 'mock_image_editor' ) );
@@ -371,37 +387,39 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$test_file = '/tmp/wordpress-gsoc-flyer.pdf';
 		copy( $orig_file, $test_file );
 
-		$attachment_id = $this->factory->attachment->create_object( $test_file, 0, array(
-			'post_mime_type' => 'application/pdf',
-		) );
+		$attachment_id = $this->factory->attachment->create_object(
+			$test_file, 0, array(
+				'post_mime_type' => 'application/pdf',
+			)
+		);
 
 		$this->assertNotEmpty( $attachment_id );
 
 		$expected = array(
 			'sizes' => array(
 				'thumbnail' => array(
-					'file'      => "wordpress-gsoc-flyer-pdf-116x150.jpg",
+					'file'      => 'wordpress-gsoc-flyer-pdf-116x150.jpg',
 					'width'     => 116,
 					'height'    => 150,
-					'mime-type' => "image/jpeg",
+					'mime-type' => 'image/jpeg',
 				),
 				'medium'    => array(
-					'file'      => "wordpress-gsoc-flyer-pdf-232x300.jpg",
+					'file'      => 'wordpress-gsoc-flyer-pdf-232x300.jpg',
 					'width'     => 232,
 					'height'    => 300,
-					'mime-type' => "image/jpeg",
+					'mime-type' => 'image/jpeg',
 				),
 				'large'     => array(
-					'file'      => "wordpress-gsoc-flyer-pdf-791x1024.jpg",
+					'file'      => 'wordpress-gsoc-flyer-pdf-791x1024.jpg',
 					'width'     => 791,
 					'height'    => 1024,
-					'mime-type' => "image/jpeg",
+					'mime-type' => 'image/jpeg',
 				),
 				'full'      => array(
-					'file'      => "wordpress-gsoc-flyer-pdf.jpg",
+					'file'      => 'wordpress-gsoc-flyer-pdf.jpg',
 					'width'     => 1088,
 					'height'    => 1408,
-					'mime-type' => "image/jpeg",
+					'mime-type' => 'image/jpeg',
 				),
 			),
 		);
@@ -411,7 +429,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		unlink( $test_file );
 		foreach ( $metadata['sizes'] as $size ) {
-			unlink ( '/tmp/' . $size['file'] );
+			unlink( '/tmp/' . $size['file'] );
 		}
 	}
 
@@ -427,9 +445,11 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$test_file = '/tmp/wordpress-gsoc-flyer.pdf';
 		copy( $orig_file, $test_file );
 
-		$attachment_id = $this->factory->attachment->create_object( $test_file, 0, array(
-			'post_mime_type' => 'application/pdf',
-		) );
+		$attachment_id = $this->factory->attachment->create_object(
+			$test_file, 0, array(
+				'post_mime_type' => 'application/pdf',
+			)
+		);
 
 		$this->assertNotEmpty( $attachment_id );
 
@@ -452,7 +472,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		unlink( $test_file );
 		foreach ( $metadata['sizes'] as $size ) {
-			unlink ( '/tmp/' . $size['file'] );
+			unlink( '/tmp/' . $size['file'] );
 		}
 	}
 
@@ -465,6 +485,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * Test PDF preview doesn't overwrite existing JPEG.
+	 *
 	 * @ticket 39875
 	 */
 	public function test_pdf_preview_doesnt_overwrite_existing_jpeg() {
@@ -482,11 +503,13 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$pdf_path = '/tmp/test.pdf';
 		copy( DIR_TESTDATA . '/images/wordpress-gsoc-flyer.pdf', $pdf_path );
 
-		$attachment_id = $this->factory->attachment->create_object( $pdf_path, 0, array(
-			'post_mime_type' => 'application/pdf',
-		) );
+		$attachment_id = $this->factory->attachment->create_object(
+			$pdf_path, 0, array(
+				'post_mime_type' => 'application/pdf',
+			)
+		);
 
-		$metadata = wp_generate_attachment_metadata( $attachment_id, $pdf_path );
+		$metadata     = wp_generate_attachment_metadata( $attachment_id, $pdf_path );
 		$preview_path = '/tmp/' . $metadata['sizes']['full']['file'];
 
 		// PDF preview didn't overwrite PDF.

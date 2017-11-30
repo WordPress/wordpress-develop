@@ -25,7 +25,7 @@ class Tests_Functions_RemoveQueryArg extends WP_UnitTestCase {
 	}
 
 	public function test_should_fall_back_on_current_url() {
-		$old_request_uri = $_SERVER['REQUEST_URI'];
+		$old_request_uri        = $_SERVER['REQUEST_URI'];
 		$_SERVER['REQUEST_URI'] = 'edit.php?foo=bar&baz=quz';
 
 		$actual = remove_query_arg( 'foo' );

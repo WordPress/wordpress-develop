@@ -8,22 +8,22 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		$data = get_plugin_data( DIR_TESTDATA . '/plugins/hello.php' );
 
 		$default_headers = array(
-			'Name' => 'Hello Dolly',
-			'Title' => '<a href="http://wordpress.org/#">Hello Dolly</a>',
-			'PluginURI' => 'http://wordpress.org/#',
+			'Name'        => 'Hello Dolly',
+			'Title'       => '<a href="http://wordpress.org/#">Hello Dolly</a>',
+			'PluginURI'   => 'http://wordpress.org/#',
 			'Description' => 'This is not just a plugin, it symbolizes the hope and enthusiasm of an entire generation summed up in two words sung most famously by Louis Armstrong: Hello, Dolly. When activated you will randomly see a lyric from Hello, Dolly in the upper right of your admin screen on every page. <cite>By <a href="http://ma.tt/">Matt Mullenweg</a>.</cite>',
-			'Author' => '<a href="http://ma.tt/">Matt Mullenweg</a>',
-			'AuthorURI' => 'http://ma.tt/',
-			'Version' => '1.5.1',
-			'TextDomain' => 'hello-dolly',
-			'DomainPath' => ''
+			'Author'      => '<a href="http://ma.tt/">Matt Mullenweg</a>',
+			'AuthorURI'   => 'http://ma.tt/',
+			'Version'     => '1.5.1',
+			'TextDomain'  => 'hello-dolly',
+			'DomainPath'  => '',
 		);
 
-		$this->assertTrue( is_array($data) );
+		$this->assertTrue( is_array( $data ) );
 
-		foreach ($default_headers as $name => $value) {
-			$this->assertTrue(isset($data[$name]));
-			$this->assertEquals($value, $data[$name]);
+		foreach ( $default_headers as $name => $value ) {
+			$this->assertTrue( isset( $data[ $name ] ) );
+			$this->assertEquals( $value, $data[ $name ] );
 		}
 	}
 
@@ -41,16 +41,16 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		add_theme_page( 'With Spaces', 'With Spaces', 'manage_options', 'With Spaces', 'mt_tools_page' );
 		add_pages_page( 'Appending Query Arg', 'Test Pages', 'edit_pages', 'testpages', 'mt_pages_page' );
 
-		$expected['testsettings'] = 'http://example.com/wp-admin/options-general.php?page=testsettings';
-		$expected['testtools'] = 'http://example.com/wp-admin/tools.php?page=testtools';
+		$expected['testsettings']        = 'http://example.com/wp-admin/options-general.php?page=testsettings';
+		$expected['testtools']           = 'http://example.com/wp-admin/tools.php?page=testtools';
 		$expected['mt-top-level-handle'] = 'http://example.com/wp-admin/admin.php?page=mt-top-level-handle';
-		$expected['sub-page'] = 'http://example.com/wp-admin/admin.php?page=sub-page';
-		$expected['sub-page2'] = 'http://example.com/wp-admin/admin.php?page=sub-page2';
-		$expected['not_registered'] = '';
-		$expected['With Spaces'] = 'http://example.com/wp-admin/themes.php?page=With%20Spaces';
-		$expected['testpages'] = 'http://example.com/wp-admin/edit.php?post_type=page&#038;page=testpages';
+		$expected['sub-page']            = 'http://example.com/wp-admin/admin.php?page=sub-page';
+		$expected['sub-page2']           = 'http://example.com/wp-admin/admin.php?page=sub-page2';
+		$expected['not_registered']      = '';
+		$expected['With Spaces']         = 'http://example.com/wp-admin/themes.php?page=With%20Spaces';
+		$expected['testpages']           = 'http://example.com/wp-admin/edit.php?post_type=page&#038;page=testpages';
 
-		foreach ($expected as $name => $value) {
+		foreach ( $expected as $name => $value ) {
 			$this->assertEquals( $value, menu_page_url( $name, false ) );
 		}
 
@@ -99,14 +99,14 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	public function test_get_plugin_files_folder() {
 		$plugin_dir = WP_PLUGIN_DIR . '/list_files_test_plugin';
 		@mkdir( $plugin_dir );
-		$plugin = $this->_create_plugin(null, 'list_files_test_plugin.php', $plugin_dir );
+		$plugin = $this->_create_plugin( null, 'list_files_test_plugin.php', $plugin_dir );
 
 		$sub_dir = trailingslashit( dirname( $plugin[1] ) ) . 'subdir';
 		@mkdir( $sub_dir );
 		@file_put_contents( $sub_dir . '/subfile.php', '<?php // Silence.' );
 
 		$plugin_files = get_plugin_files( plugin_basename( $plugin[1] ) );
-		$expected = array(
+		$expected     = array(
 			'list_files_test_plugin/list_files_test_plugin.php',
 			'list_files_test_plugin/subdir/subfile.php',
 		);
@@ -320,11 +320,11 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	public function test_validate_active_plugins_remove_invalid() {
 		$plugin = $this->_create_plugin();
 
-		activate_plugin( $plugin[ 0 ] );
-		unlink( $plugin[ 1 ] );
+		activate_plugin( $plugin[0] );
+		unlink( $plugin[1] );
 
 		$result = validate_active_plugins();
-		$this->assertTrue( isset( $result[ $plugin[ 0 ] ] ) );
+		$this->assertTrue( isset( $result[ $plugin[0] ] ) );
 	}
 
 	/**
@@ -347,7 +347,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	public function test_is_uninstallable_plugin_true() {
 		$plugin = $this->_create_plugin();
 
-		$uninstallable_plugins = (array) get_option( 'uninstall_plugins' );
+		$uninstallable_plugins               = (array) get_option( 'uninstall_plugins' );
 		$uninstallable_plugins[ $plugin[0] ] = true;
 		update_option( 'uninstall_plugins', $uninstallable_plugins );
 
@@ -430,7 +430,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 * @access private
 	 */
 	private function _restore_mu_plugins() {
-		$mu_bu_dir = WP_CONTENT_DIR . '/mu-plugin-backup';
+		$mu_bu_dir     = WP_CONTENT_DIR . '/mu-plugin-backup';
 		$files_to_move = array();
 		if ( is_dir( $mu_bu_dir ) && $mu_plugins = opendir( $mu_bu_dir ) ) {
 			while ( false !== $plugin = readdir( $mu_plugins ) ) {
@@ -464,7 +464,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 			mkdir( $di_bu_dir );
 		}
 
-		foreach( _get_dropins() as $file_to_move => $v ) {
+		foreach ( _get_dropins() as $file_to_move => $v ) {
 			if ( file_exists( WP_CONTENT_DIR . '/' . $file_to_move ) ) {
 				rename( WP_CONTENT_DIR . '/' . $file_to_move, $di_bu_dir . '/' . $file_to_move );
 			}
@@ -481,7 +481,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	private function _restore_drop_ins() {
 		$di_bu_dir = WP_CONTENT_DIR . '/drop-ins-backup';
 
-		foreach( _get_dropins() as $file_to_move => $v ) {
+		foreach ( _get_dropins() as $file_to_move => $v ) {
 			if ( file_exists( $di_bu_dir . '/' . $file_to_move ) ) {
 				rename( $di_bu_dir . '/' . $file_to_move, WP_CONTENT_DIR . '/' . $file_to_move );
 			}

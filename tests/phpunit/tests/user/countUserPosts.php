@@ -9,29 +9,43 @@ class Tests_User_CountUserPosts extends WP_UnitTestCase {
 	static $post_ids = array();
 
 	public static function wpSetUpBeforeClass( $factory ) {
-		self::$user_id = $factory->user->create( array(
-			'role' => 'author',
-			'user_login' => 'count_user_posts_user',
-			'user_email' => 'count_user_posts_user@example.com',
-		) );
+		self::$user_id = $factory->user->create(
+			array(
+				'role'       => 'author',
+				'user_login' => 'count_user_posts_user',
+				'user_email' => 'count_user_posts_user@example.com',
+			)
+		);
 
-		self::$post_ids = $factory->post->create_many( 4, array(
-			'post_author' => self::$user_id,
-			'post_type'   => 'post',
-		) );
-		self::$post_ids = array_merge( self::$post_ids, $factory->post->create_many( 3, array(
-			'post_author' => self::$user_id,
-			'post_type'   => 'wptests_pt',
-		) ) );
-		self::$post_ids = array_merge( self::$post_ids, $factory->post->create_many( 2, array(
-			'post_author' => 12345,
-			'post_type'   => 'wptests_pt',
-		) ) );
+		self::$post_ids = $factory->post->create_many(
+			4, array(
+				'post_author' => self::$user_id,
+				'post_type'   => 'post',
+			)
+		);
+		self::$post_ids = array_merge(
+			self::$post_ids, $factory->post->create_many(
+				3, array(
+					'post_author' => self::$user_id,
+					'post_type'   => 'wptests_pt',
+				)
+			)
+		);
+		self::$post_ids = array_merge(
+			self::$post_ids, $factory->post->create_many(
+				2, array(
+					'post_author' => 12345,
+					'post_type'   => 'wptests_pt',
+				)
+			)
+		);
 
-		self::$post_ids[] = $factory->post->create( array(
-			'post_author' => 12345,
-			'post_type'   => 'wptests_pt',
-		) );
+		self::$post_ids[] = $factory->post->create(
+			array(
+				'post_author' => 12345,
+				'post_type'   => 'wptests_pt',
+			)
+		);
 	}
 
 	public function setUp() {

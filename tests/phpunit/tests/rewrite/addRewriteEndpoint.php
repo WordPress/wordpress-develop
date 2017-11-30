@@ -9,9 +9,11 @@ class Tests_Rewrite_AddRewriteEndpoint extends WP_UnitTestCase {
 	protected static $test_post_id;
 
 	public static function wpSetUpBeforeClass( $factory ) {
-		self::$test_page_id = $factory->post->create( array(
-			'post_type' => 'page',
-		) );
+		self::$test_page_id = $factory->post->create(
+			array(
+				'post_type' => 'page',
+			)
+		);
 		self::$test_post_id = $factory->post->create();
 	}
 

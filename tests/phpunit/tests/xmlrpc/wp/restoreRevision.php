@@ -12,12 +12,17 @@ class Tests_XMLRPC_wp_restoreRevision extends WP_XMLRPC_UnitTestCase {
 
 		$this->post_id = self::factory()->post->create( array( 'post_content' => 'edit1' ) ); // Not saved as a revision
 		// First saved revision on update, see https://core.trac.wordpress.org/changeset/24650
-		wp_insert_post( array( 'ID' => $this->post_id, 'post_content' => 'edit2' ) );
+		wp_insert_post(
+			array(
+				'ID'           => $this->post_id,
+				'post_content' => 'edit2',
+			)
+		);
 
 		$revisions = wp_get_post_revisions( $this->post_id );
 		//$revision = array_shift( $revisions ); // First revision is empty - https://core.trac.wordpress.org/changeset/23842
 		// First revision is NOT empty, see https://core.trac.wordpress.org/changeset/24650
-		$revision = array_shift( $revisions );
+		$revision          = array_shift( $revisions );
 		$this->revision_id = $revision->ID;
 	}
 

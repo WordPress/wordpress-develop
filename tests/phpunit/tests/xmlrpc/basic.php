@@ -38,9 +38,11 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 	 */
 	function test_multicall_invalidates_all_calls_after_invalid_call() {
 		$editor_id = $this->make_user_by_role( 'editor' );
-		$post_id = self::factory()->post->create( array(
-			'post_author' => $editor_id,
-		) );
+		$post_id   = self::factory()->post->create(
+			array(
+				'post_author' => $editor_id,
+			)
+		);
 
 		$method_calls = array(
 			// Valid login
@@ -98,11 +100,11 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 	 * @ticket 36586
 	 */
 	function test_isStruct_on_non_numerically_indexed_array() {
-		$value  = new IXR_Value( array( '0.0' => 100 ) );
+		$value = new IXR_Value( array( '0.0' => 100 ) );
 
 		$return  = "<struct>\n";
 		$return .= "  <member><name>0.0</name><value><int>100</int></value></member>\n";
-		$return .= "</struct>";
+		$return .= '</struct>';
 
 		$this->assertXmlStringEqualsXmlString( $return, $value->getXML() );
 	}

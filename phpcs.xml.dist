@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<ruleset name="WordPress Coding Standards">
+	<description>Apply WordPress Coding Standards to all Core files</description>
+
+	<rule ref="WordPress-Core"/>
+	<rule ref="WordPress.CodeAnalysis.EmptyStatement"/>
+	<rule ref="WordPress.Commenting.DocblockFormat"/>
+
+	<arg name="extensions" value="php"/>
+
+	<!-- Show sniff codes in all reports -->
+	<arg value="ps"/>
+
+	<file>.</file>
+
+	<!-- Directories and third party library exclusions -->
+	<exclude-pattern>/build/*</exclude-pattern>
+	<exclude-pattern>/node_modules/*</exclude-pattern>
+	<exclude-pattern>/vendor/*</exclude-pattern>
+
+	<exclude-pattern>/src/wp-admin/includes/class-ftp*</exclude-pattern>
+	<exclude-pattern>/src/wp-admin/includes/class-pclzip\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-admin/includes/deprecated\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-admin/includes/ms-deprecated\.php</exclude-pattern>
+
+	<exclude-pattern>/src/wp-includes/atomlib\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/class-IXR\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/class-json\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/class-phpass\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/class-phpmailer\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/class-pop3\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/class-requests\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/class-simplepie\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/class-smtp\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/class-snoopy\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/deprecated\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/ms-deprecated\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/pluggable-deprecated\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/rss\.php</exclude-pattern>
+
+	<exclude-pattern>/src/wp-includes/ID3/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/IXR/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/random_compat/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/Requests/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/SimplePie/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/Text/*</exclude-pattern>
+
+	<!-- Test data and fixtures -->
+	<exclude-pattern>/tests/phpunit/build*</exclude-pattern>
+	<exclude-pattern>/tests/phpunit/data/*</exclude-pattern>
+
+	<exclude-pattern>/tools/*</exclude-pattern>
+
+	<!-- Whitelist the WP DB Class and related tests for usage of direct database access functions. -->
+	<rule ref="WordPress.DB.RestrictedFunctions">
+		<exclude-pattern>/src/wp-includes/wp-db\.php</exclude-pattern>
+		<exclude-pattern>/tests/phpunit/tests/db/charset\.php</exclude-pattern>
+	</rule>
+
+	<!-- Whitelist the WP DB related tests for issues with prepared SQL placeholders
+		 (as the handling of those are being tested). -->
+	<rule ref="WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare">
+		<exclude-pattern>/tests/phpunit/tests/db\.php</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.DB.PreparedSQLPlaceholders.UnsupportedPlaceholder">
+		<exclude-pattern>/tests/phpunit/tests/db\.php</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.DB.PreparedSQLPlaceholders.UnescapedLiteral">
+		<exclude-pattern>/tests/phpunit/tests/db\.php</exclude-pattern>
+	</rule>
+
+	<rule ref="Generic.Functions.FunctionCallArgumentSpacing">
+		<exclude-pattern>/wp-config\.php</exclude-pattern>
+		<exclude-pattern>/wp-config-sample\.php</exclude-pattern>
+		<exclude-pattern>/wp-tests-config\.php</exclude-pattern>
+		<exclude-pattern>/wp-tests-config-sample\.php</exclude-pattern>
+	</rule>
+
+	<!-- Whitelist test classes for select sniffs. -->
+	<rule ref="WordPress.Files.FileName">
+		<properties>
+			<property name="custom_test_class_whitelist" type="array" value="WP_UnitTestCase,WP_Ajax_UnitTestCase,WP_Canonical_UnitTestCase,WP_Test_REST_TestCase,WP_Test_REST_Controller_Testcase,WP_Test_REST_Post_Type_Controller_Testcase,WP_XMLRPC_UnitTestCase"/>
+		</properties>
+	</rule>
+	<rule ref="WordPress.Variables.GlobalVariables">
+		<properties>
+			<property name="custom_test_class_whitelist" type="array" value="WP_UnitTestCase,WP_Ajax_UnitTestCase,WP_Canonical_UnitTestCase,WP_Test_REST_TestCase,WP_Test_REST_Controller_Testcase,WP_Test_REST_Post_Type_Controller_Testcase,WP_XMLRPC_UnitTestCase"/>
+		</properties>
+	</rule>
+
+	<!-- Exclude the unit tests from select sniffs. -->
+	<rule ref="WordPress.Files.FileName.NotHyphenatedLowercase">
+		<exclude-pattern>/tests/phpunit/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="PEAR.NamingConventions.ValidClassName.Invalid">
+		<exclude-pattern>/tests/phpunit/tests/*</exclude-pattern>
+	</rule>
+
+</ruleset>

@@ -12,37 +12,37 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 			array(
 				array( 1, 2, 3 ), // test expected
 				array( 1, 2, 3 ), // test actual
-				false             // exception expected
+				false,             // exception expected
 			),
 			array(
 				array( 1, 2, 3 ),
 				array( 2, 3, 1 ),
-				false
+				false,
 			),
 			array(
 				array( 1, 2, 3 ),
 				array( 1, 2, 3, 4 ),
-				true
+				true,
 			),
 			array(
 				array( 1, 2, 3, 4 ),
 				array( 1, 2, 3 ),
-				true
+				true,
 			),
 			array(
 				array( 1, 2, 3 ),
 				array( 3, 4, 2, 1 ),
-				true
+				true,
 			),
 			array(
 				array( 1, 2, 3 ),
 				array( 1, 2, 3, 3 ),
-				true
+				true,
 			),
 			array(
 				array( 1, 2, 3 ),
 				array( 2, 3, 1, 3 ),
-				true
+				true,
 			),
 		);
 	}
@@ -73,72 +73,133 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 			array(
 				array( 1, 2, 3 ), // test expected
 				array( 1, 2, 3 ), // test actual
-				false             // exception expected
+				false,             // exception expected
 			),
 			array(
-				array( 'a' => 1, 'b' => 2, 'c' => 3 ),
-				array( 'a' => 1, 'b' => 2, 'c' => 3 ),
-				false
+				array(
+					'a' => 1,
+					'b' => 2,
+					'c' => 3,
+				),
+				array(
+					'a' => 1,
+					'b' => 2,
+					'c' => 3,
+				),
+				false,
 			),
 			array(
 				array( 1, 2, 3 ),
 				array( 2, 3, 1 ),
-				true
+				true,
 			),
 			array(
-				array( 'a' => 1, 'b' => 2, 'c' => 3 ),
-				array( 'b' => 2, 'c' => 3, 'a' => 1 ),
-				false
+				array(
+					'a' => 1,
+					'b' => 2,
+					'c' => 3,
+				),
+				array(
+					'b' => 2,
+					'c' => 3,
+					'a' => 1,
+				),
+				false,
 			),
 			array(
 				array( 1, 2, 3 ),
 				array( 1, 2, 3, 4 ),
-				true
+				true,
 			),
 			array(
 				array( 1, 2, 3, 4 ),
 				array( 1, 2, 3 ),
-				true
+				true,
 			),
 			array(
-				array( 'a' => 1, 'b' => 2, 'c' => 3 ),
-				array( 'a' => 1, 'b' => 2, 'c' => 3, 'd' => 4 ),
-				true
+				array(
+					'a' => 1,
+					'b' => 2,
+					'c' => 3,
+				),
+				array(
+					'a' => 1,
+					'b' => 2,
+					'c' => 3,
+					'd' => 4,
+				),
+				true,
 			),
 			array(
-				array( 'a' => 1, 'b' => 2, 'c' => 3, 'd' => 4 ),
-				array( 'a' => 1, 'b' => 2, 'c' => 3 ),
-				true
+				array(
+					'a' => 1,
+					'b' => 2,
+					'c' => 3,
+					'd' => 4,
+				),
+				array(
+					'a' => 1,
+					'b' => 2,
+					'c' => 3,
+				),
+				true,
 			),
 			array(
 				array( 1, 2, 3 ),
 				array( 3, 4, 2, 1 ),
-				true
+				true,
 			),
 			array(
-				array( 'a' => 1, 'b' => 2, 'c' => 3 ),
-				array( 'c' => 3, 'b' => 2, 'd' => 4, 'a' => 1 ),
-				true
+				array(
+					'a' => 1,
+					'b' => 2,
+					'c' => 3,
+				),
+				array(
+					'c' => 3,
+					'b' => 2,
+					'd' => 4,
+					'a' => 1,
+				),
+				true,
 			),
 			array(
 				array( 1, 2, 3 ),
 				array( 1, 2, 3, 3 ),
-				true
+				true,
 			),
 			array(
-				array( 'a' => 1, 'b' => 2, 'c' => 3 ),
-				array( 'a' => 1, 'b' => 2, 'c' => 3, 'd' => 3 ),
-				true
+				array(
+					'a' => 1,
+					'b' => 2,
+					'c' => 3,
+				),
+				array(
+					'a' => 1,
+					'b' => 2,
+					'c' => 3,
+					'd' => 3,
+				),
+				true,
 			),
 			array(
 				array( 1, 2, 3 ),
 				array( 2, 3, 1, 3 ),
-				true
+				true,
 			),
 			array(
-				array( 'a' => 1, 'b' => 2, 'c' => 3 ),
-				array( 'c' => 3, 'b' => 2, 'd' => 3, 'a' => 1 ),
-				true
+				array(
+					'a' => 1,
+					'b' => 2,
+					'c' => 3,
+				),
+				array(
+					'c' => 3,
+					'b' => 2,
+					'd' => 3,
+					'a' => 1,
+				),
+				true,
 			),
 		);
 	}
@@ -219,7 +280,7 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	 * @ticket 38196
 	 */
 	public function test_setup_postdata_globals_should_be_reset_on_teardown__setup() {
-		$post = self::factory()->post->create_and_get();
+		$post                = self::factory()->post->create_and_get();
 		$GLOBALS['wp_query'] = new WP_Query();
 		$GLOBALS['wp_query']->setup_postdata( $post );
 		$this->assertNotEmpty( $post );

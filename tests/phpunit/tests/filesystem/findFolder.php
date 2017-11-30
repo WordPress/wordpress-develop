@@ -11,11 +11,13 @@ class WP_Filesystem_find_folder_UnitTestCases extends WP_Filesystem_UnitTestCase
 	function test_ftp_has_root_access() {
 		global $wp_filesystem;
 		$fs = $wp_filesystem;
-		$fs->init('
+		$fs->init(
+			'
 			/var/www/wordpress/
 			/var/www/wordpress/wp-includes/
 			/var/www/wordpress/index.php
-		');
+		'
+		);
 
 		$path = $fs->find_folder( '/var/www/wordpress/' );
 		$this->assertEquals( '/var/www/wordpress/', $path );
@@ -28,7 +30,8 @@ class WP_Filesystem_find_folder_UnitTestCases extends WP_Filesystem_UnitTestCase
 	function test_sibling_wordpress_in_subdir() {
 		global $wp_filesystem;
 		$fs = $wp_filesystem;
-		$fs->init('
+		$fs->init(
+			'
 			/www/example.com/wordpress/
 			/www/example.com/wordpress/wp-includes/
 			/www/example.com/wordpress/index.php
@@ -37,11 +40,12 @@ class WP_Filesystem_find_folder_UnitTestCases extends WP_Filesystem_UnitTestCase
 			/www/wp.example.com/wordpress/wp-content/
 			/www/wp.example.com/wordpress/index.php
 			/www/index.php
-		');
+		'
+		);
 
 		$path = $fs->find_folder( '/var/www/example.com/wordpress/' );
 		$this->assertEquals( '/www/example.com/wordpress/', $path );
-		
+
 		$path = $fs->find_folder( '/var/www/wp.example.com/wordpress/wp-content/' );
 		$this->assertEquals( '/www/wp.example.com/wordpress/wp-content/', $path );
 
@@ -56,18 +60,20 @@ class WP_Filesystem_find_folder_UnitTestCases extends WP_Filesystem_UnitTestCase
 	function test_subdir_of_another() {
 		global $wp_filesystem;
 		$fs = $wp_filesystem;
-		$fs->init('
+		$fs->init(
+			'
 			/wp.example.com/index.php
 			/wp.example.com/wordpress/
 			/wp.example.com/wordpress/wp-includes/
 			/wp.example.com/wordpress/index.php
 			/wp-includes/
 			/index.php
-		');
+		'
+		);
 
 		$path = $fs->abspath( '/var/www/example.com/wp.example.com/wordpress/' );
 		$this->assertEquals( '/wp.example.com/wordpress/', $path );
-		
+
 		$path = $fs->abspath( '/var/www/example.com/' );
 		$this->assertEquals( '/', $path );
 
@@ -81,7 +87,8 @@ class WP_Filesystem_find_folder_UnitTestCases extends WP_Filesystem_UnitTestCase
 	function test_multiple_tokens_in_path1() {
 		global $wp_filesystem;
 		$fs = $wp_filesystem;
-		$fs->init('
+		$fs->init(
+			'
 			# www.example.com
 			/example.com/www/index.php
 			/example.com/www/wp-includes/
@@ -91,7 +98,8 @@ class WP_Filesystem_find_folder_UnitTestCases extends WP_Filesystem_UnitTestCase
 			/example.com/sub/index.php
 			/example.com/sub/wp-includes/
 			/example.com/sub/wp-content/plugins/
-		');
+		'
+		);
 
 		// www.example.com
 		$path = $fs->abspath( '/var/www/example.com/www/' );

@@ -41,39 +41,53 @@ class Test_WP_Customize_Control extends WP_UnitTestCase {
 	 */
 	function test_check_capabilities() {
 		do_action( 'customize_register', $this->wp_customize );
-		$control = new WP_Customize_Control( $this->wp_customize, 'blogname', array(
-			'settings' => array( 'blogname' ),
-		) );
+		$control = new WP_Customize_Control(
+			$this->wp_customize, 'blogname', array(
+				'settings' => array( 'blogname' ),
+			)
+		);
 		$this->assertTrue( $control->check_capabilities() );
 
-		$control = new WP_Customize_Control( $this->wp_customize, 'blogname', array(
-			'settings' => array( 'blogname', 'non_existing' ),
-		) );
+		$control = new WP_Customize_Control(
+			$this->wp_customize, 'blogname', array(
+				'settings' => array( 'blogname', 'non_existing' ),
+			)
+		);
 		$this->assertFalse( $control->check_capabilities() );
 
-		$this->wp_customize->add_setting( 'top_secret_message', array(
-			'capability' => 'top_secret_clearance',
-		) );
-		$control = new WP_Customize_Control( $this->wp_customize, 'blogname', array(
-			'settings' => array( 'blogname', 'top_secret_clearance' ),
-		) );
+		$this->wp_customize->add_setting(
+			'top_secret_message', array(
+				'capability' => 'top_secret_clearance',
+			)
+		);
+		$control = new WP_Customize_Control(
+			$this->wp_customize, 'blogname', array(
+				'settings' => array( 'blogname', 'top_secret_clearance' ),
+			)
+		);
 		$this->assertFalse( $control->check_capabilities() );
 
-		$control = new WP_Customize_Control( $this->wp_customize, 'no_setting', array(
-			'settings' => array(),
-		) );
+		$control = new WP_Customize_Control(
+			$this->wp_customize, 'no_setting', array(
+				'settings' => array(),
+			)
+		);
 		$this->assertTrue( $control->check_capabilities() );
 
-		$control = new WP_Customize_Control( $this->wp_customize, 'no_setting', array(
-			'settings' => array(),
-			'capability' => 'top_secret_clearance',
-		) );
+		$control = new WP_Customize_Control(
+			$this->wp_customize, 'no_setting', array(
+				'settings'   => array(),
+				'capability' => 'top_secret_clearance',
+			)
+		);
 		$this->assertFalse( $control->check_capabilities() );
 
-		$control = new WP_Customize_Control( $this->wp_customize, 'no_setting', array(
-			'settings' => array(),
-			'capability' => 'edit_theme_options',
-		) );
+		$control = new WP_Customize_Control(
+			$this->wp_customize, 'no_setting', array(
+				'settings'   => array(),
+				'capability' => 'edit_theme_options',
+			)
+		);
 		$this->assertTrue( $control->check_capabilities() );
 	}
 
@@ -113,21 +127,27 @@ class Test_WP_Customize_Control extends WP_UnitTestCase {
 		$this->assertContains( '<option value="0">', $content, 'Dropdown-pages renders select even without any pages published.' );
 
 		// Ensure that auto-draft pages are included if they are among the nav_menus_created_posts.
-		$auto_draft_page_id = $this->factory()->post->create( array(
-			'post_type' => 'page',
-			'post_status' => 'auto-draft',
-			'post_title' => 'Auto Draft Page',
-		) );
-		$this->factory()->post->create( array(
-			'post_type' => 'page',
-			'post_status' => 'auto-draft',
-			'post_title' => 'Orphan Auto Draft Page',
-		) );
-		$auto_draft_post_id = $this->factory()->post->create( array(
-			'post_type' => 'post',
-			'post_status' => 'auto-draft',
-			'post_title' => 'Auto Draft Post',
-		) );
+		$auto_draft_page_id = $this->factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'auto-draft',
+				'post_title'  => 'Auto Draft Page',
+			)
+		);
+		$this->factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'auto-draft',
+				'post_title'  => 'Orphan Auto Draft Page',
+			)
+		);
+		$auto_draft_post_id = $this->factory()->post->create(
+			array(
+				'post_type'   => 'post',
+				'post_status' => 'auto-draft',
+				'post_title'  => 'Auto Draft Post',
+			)
+		);
 		$this->wp_customize->set_post_value( $nav_menus_created_posts_setting->id, array( $auto_draft_page_id, $auto_draft_post_id ) );
 		$nav_menus_created_posts_setting->preview();
 		ob_start();

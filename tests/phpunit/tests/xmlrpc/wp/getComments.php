@@ -29,7 +29,7 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 		$results = $this->myxmlrpcserver->wp_getComments( array( 1, 'editor', 'editor', array() ) );
 		$this->assertNotIXRError( $results );
 
-		foreach( $results as $result ) {
+		foreach ( $results as $result ) {
 			$comment = get_comment( $result['comment_id'], ARRAY_A );
 			$this->assertEquals( $comment['comment_post_ID'], $result['post_id'] );
 		}
@@ -41,12 +41,19 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 
 		$this->make_user_by_role( 'editor' );
 
-		$results = $this->myxmlrpcserver->wp_getComments( array( 1, 'editor', 'editor', array(
-			'post_id' => $this->post_id
-		) ) );
+		$results = $this->myxmlrpcserver->wp_getComments(
+			array(
+				1,
+				'editor',
+				'editor',
+				array(
+					'post_id' => $this->post_id,
+				),
+			)
+		);
 		$this->assertNotIXRError( $results );
 
-		foreach( $results as $result ) {
+		foreach ( $results as $result ) {
 			$this->assertEquals( $this->post_id, $result['post_id'] );
 		}
 	}
@@ -57,51 +64,73 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 
 		$this->make_user_by_role( 'editor' );
 
-		$results = $this->myxmlrpcserver->wp_getComments( array( 1, 'editor', 'editor', array(
-			'post_id' => $this->post_id,
-		) ) );
+		$results = $this->myxmlrpcserver->wp_getComments(
+			array(
+				1,
+				'editor',
+				'editor',
+				array(
+					'post_id' => $this->post_id,
+				),
+			)
+		);
 		$this->assertNotIXRError( $results );
 
 		// if no 'number' filter is specified, default should be 10
 		$this->assertCount( 10, $results );
 
-		$results2 = $this->myxmlrpcserver->wp_getComments( array( 1, 'editor', 'editor', array(
-			'post_id' => $this->post_id,
-			'number' => 5
-		) ) );
+		$results2 = $this->myxmlrpcserver->wp_getComments(
+			array(
+				1,
+				'editor',
+				'editor',
+				array(
+					'post_id' => $this->post_id,
+					'number'  => 5,
+				),
+			)
+		);
 		$this->assertNotIXRError( $results2 );
 		$this->assertCount( 5, $results2 );
 	}
 
 	function test_contributor_capabilities() {
 		$this->make_user_by_role( 'contributor' );
-		$author_id = $this->make_user_by_role( 'author' );
-		$author_post_id = self::factory()->post->create( array(
-			'post_title' => 'Author',
-			'post_author' => $author_id,
-			'post_status' => 'publish'
-		) );
+		$author_id      = $this->make_user_by_role( 'author' );
+		$author_post_id = self::factory()->post->create(
+			array(
+				'post_title'  => 'Author',
+				'post_author' => $author_id,
+				'post_status' => 'publish',
+			)
+		);
 
-		self::factory()->comment->create( array(
-			'comment_post_ID' => $author_post_id,
-			'comment_author' => "Commenter 1",
-			'comment_author_url' => "http://example.com/1/",
-			'comment_approved' => 0,
-		) );
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'    => $author_post_id,
+				'comment_author'     => 'Commenter 1',
+				'comment_author_url' => 'http://example.com/1/',
+				'comment_approved'   => 0,
+			)
+		);
 
-		$editor_id = $this->make_user_by_role( 'editor' );
-		$editor_post_id = self::factory()->post->create( array(
-			'post_title' => 'Editor',
-			'post_author' => $editor_id,
-			'post_status' => 'publish'
-		) );
+		$editor_id      = $this->make_user_by_role( 'editor' );
+		$editor_post_id = self::factory()->post->create(
+			array(
+				'post_title'  => 'Editor',
+				'post_author' => $editor_id,
+				'post_status' => 'publish',
+			)
+		);
 
-		self::factory()->comment->create( array(
-			'comment_post_ID' => $editor_post_id,
-			'comment_author' => 'Commenter 2',
-			'comment_author_url' => 'http://example.com/2/',
-			'comment_approved' => 0,
-		) );
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'    => $editor_post_id,
+				'comment_author'     => 'Commenter 2',
+				'comment_author_url' => 'http://example.com/2/',
+				'comment_approved'   => 0,
+			)
+		);
 
 		$result = $this->myxmlrpcserver->wp_getComments( array( 1, 'contributor', 'contributor' ) );
 		$this->assertIXRError( $result );
@@ -109,100 +138,158 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 	}
 
 	function test_author_capabilities() {
-		$author_id = $this->make_user_by_role( 'author' );
-		$author_post_id = self::factory()->post->create( array(
-			'post_title' => 'Author',
-			'post_author' => $author_id,
-			'post_status' => 'publish'
-		) );
+		$author_id      = $this->make_user_by_role( 'author' );
+		$author_post_id = self::factory()->post->create(
+			array(
+				'post_title'  => 'Author',
+				'post_author' => $author_id,
+				'post_status' => 'publish',
+			)
+		);
 
-		self::factory()->comment->create( array(
-			'comment_post_ID' => $author_post_id,
-			'comment_author' => 'Commenter 1',
-			'comment_author_url' => 'http://example.com/1/',
-			'comment_approved' => 1,
-		) );
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'    => $author_post_id,
+				'comment_author'     => 'Commenter 1',
+				'comment_author_url' => 'http://example.com/1/',
+				'comment_approved'   => 1,
+			)
+		);
 
-		$editor_id = $this->make_user_by_role( 'editor' );
-		$editor_post_id = self::factory()->post->create( array(
-			'post_title' => 'Editor',
-			'post_author' => $editor_id,
-			'post_status' => 'publish'
-		) );
+		$editor_id      = $this->make_user_by_role( 'editor' );
+		$editor_post_id = self::factory()->post->create(
+			array(
+				'post_title'  => 'Editor',
+				'post_author' => $editor_id,
+				'post_status' => 'publish',
+			)
+		);
 
-		self::factory()->comment->create( array(
-			'comment_post_ID' => $editor_post_id,
-			'comment_author' => 'Commenter 2',
-			'comment_author_url' => 'http://example.com/2/',
-			'comment_approved' => 0,
-		) );
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'    => $editor_post_id,
+				'comment_author'     => 'Commenter 2',
+				'comment_author_url' => 'http://example.com/2/',
+				'comment_approved'   => 0,
+			)
+		);
 
-		$result1 = $this->myxmlrpcserver->wp_getComments( array( 1, 'author', 'author', array(
-			'post_id' => $author_post_id
-		) ) );
+		$result1 = $this->myxmlrpcserver->wp_getComments(
+			array(
+				1,
+				'author',
+				'author',
+				array(
+					'post_id' => $author_post_id,
+				),
+			)
+		);
 		$this->assertIXRError( $result1 );
 
-		$result2 = $this->myxmlrpcserver->wp_getComments( array( 1, 'author', 'author', array(
-			'status' => 'approve',
-			'post_id' => $author_post_id
-		) ) );
+		$result2 = $this->myxmlrpcserver->wp_getComments(
+			array(
+				1,
+				'author',
+				'author',
+				array(
+					'status'  => 'approve',
+					'post_id' => $author_post_id,
+				),
+			)
+		);
 
 		$this->assertInternalType( 'array', $result2 );
 		$this->assertCount( 1, $result2 );
 
-		$result3 = $this->myxmlrpcserver->wp_getComments( array( 1, 'author', 'author', array(
-			'post_id' => $editor_post_id
-		) ) );
+		$result3 = $this->myxmlrpcserver->wp_getComments(
+			array(
+				1,
+				'author',
+				'author',
+				array(
+					'post_id' => $editor_post_id,
+				),
+			)
+		);
 		$this->assertIXRError( $result3 );
 
-		$result4 = $this->myxmlrpcserver->wp_getComments( array( 1, 'author', 'author', array(
-			'status' => 'approve',
-			'post_id' => $author_post_id
-		) ) );
+		$result4 = $this->myxmlrpcserver->wp_getComments(
+			array(
+				1,
+				'author',
+				'author',
+				array(
+					'status'  => 'approve',
+					'post_id' => $author_post_id,
+				),
+			)
+		);
 
 		$this->assertInternalType( 'array', $result4 );
 		$this->assertCount( 1, $result4 );
 	}
 
 	function test_editor_capabilities() {
-		$author_id = $this->make_user_by_role( 'author' );
-		$author_post_id = self::factory()->post->create( array(
-			'post_title' => 'Author',
-			'post_author' => $author_id,
-			'post_status' => 'publish'
-		) );
+		$author_id      = $this->make_user_by_role( 'author' );
+		$author_post_id = self::factory()->post->create(
+			array(
+				'post_title'  => 'Author',
+				'post_author' => $author_id,
+				'post_status' => 'publish',
+			)
+		);
 
-		self::factory()->comment->create( array(
-			'comment_post_ID' => $author_post_id,
-			'comment_author' => 'Commenter 1',
-			'comment_author_url' => 'http://example.com/1/',
-			'comment_approved' => 1,
-		));
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'    => $author_post_id,
+				'comment_author'     => 'Commenter 1',
+				'comment_author_url' => 'http://example.com/1/',
+				'comment_approved'   => 1,
+			)
+		);
 
-		$editor_id = $this->make_user_by_role( 'editor' );
-		$editor_post_id = self::factory()->post->create( array(
-			'post_title' => 'Editor',
-			'post_author' => $editor_id,
-			'post_status' => 'publish'
-		) );
+		$editor_id      = $this->make_user_by_role( 'editor' );
+		$editor_post_id = self::factory()->post->create(
+			array(
+				'post_title'  => 'Editor',
+				'post_author' => $editor_id,
+				'post_status' => 'publish',
+			)
+		);
 
-		self::factory()->comment->create(array(
-			'comment_post_ID' => $editor_post_id,
-			'comment_author' => 'Commenter 2',
-			'comment_author_url' => 'http://example.com/2/',
-			'comment_approved' => 0,
-		));
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'    => $editor_post_id,
+				'comment_author'     => 'Commenter 2',
+				'comment_author_url' => 'http://example.com/2/',
+				'comment_approved'   => 0,
+			)
+		);
 
-		$result = $this->myxmlrpcserver->wp_getComments( array( 1, 'editor', 'editor', array(
-			'post_id' => $author_post_id
-		) ) );
+		$result = $this->myxmlrpcserver->wp_getComments(
+			array(
+				1,
+				'editor',
+				'editor',
+				array(
+					'post_id' => $author_post_id,
+				),
+			)
+		);
 		$this->assertInternalType( 'array', $result );
 		$this->assertCount( 1, $result );
 
-		$result2 = $this->myxmlrpcserver->wp_getComments( array( 1, 'editor', 'editor', array(
-			'status' => 'approve',
-			'post_id' => $author_post_id
-		) ) );
+		$result2 = $this->myxmlrpcserver->wp_getComments(
+			array(
+				1,
+				'editor',
+				'editor',
+				array(
+					'status'  => 'approve',
+					'post_id' => $author_post_id,
+				),
+			)
+		);
 
 		$this->assertInternalType( 'array', $result2 );
 		$this->assertCount( 1, $result2 );

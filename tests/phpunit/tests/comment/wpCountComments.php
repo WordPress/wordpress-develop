@@ -15,9 +15,11 @@ class Tests_WP_Count_Comments extends WP_UnitTestCase {
 	}
 
 	public function test_wp_count_comments_approved() {
-		self::factory()->comment->create( array(
-			'comment_approved' => 1
-		) );
+		self::factory()->comment->create(
+			array(
+				'comment_approved' => 1,
+			)
+		);
 
 		$count = wp_count_comments();
 
@@ -31,9 +33,11 @@ class Tests_WP_Count_Comments extends WP_UnitTestCase {
 	}
 
 	public function test_wp_count_comments_awaiting() {
-		self::factory()->comment->create( array(
-			'comment_approved' => 0
-		) );
+		self::factory()->comment->create(
+			array(
+				'comment_approved' => 0,
+			)
+		);
 
 		$count = wp_count_comments();
 
@@ -47,9 +51,11 @@ class Tests_WP_Count_Comments extends WP_UnitTestCase {
 	}
 
 	public function test_wp_count_comments_spam() {
-		self::factory()->comment->create( array(
-			'comment_approved' => 'spam'
-		) );
+		self::factory()->comment->create(
+			array(
+				'comment_approved' => 'spam',
+			)
+		);
 
 		$count = wp_count_comments();
 
@@ -63,9 +69,11 @@ class Tests_WP_Count_Comments extends WP_UnitTestCase {
 	}
 
 	public function test_wp_count_comments_trash() {
-		self::factory()->comment->create( array(
-			'comment_approved' => 'trash'
-		) );
+		self::factory()->comment->create(
+			array(
+				'comment_approved' => 'trash',
+			)
+		);
 
 		$count = wp_count_comments();
 
@@ -79,9 +87,11 @@ class Tests_WP_Count_Comments extends WP_UnitTestCase {
 	}
 
 	public function test_wp_count_comments_post_trashed() {
-		self::factory()->comment->create( array(
-			'comment_approved' => 'post-trashed'
-		) );
+		self::factory()->comment->create(
+			array(
+				'comment_approved' => 'post-trashed',
+			)
+		);
 
 		$count = wp_count_comments();
 
@@ -95,13 +105,17 @@ class Tests_WP_Count_Comments extends WP_UnitTestCase {
 	}
 
 	public function test_wp_count_comments_cache() {
-		$post_id = self::factory()->post->create( array(
-			'post_status' => 'publish'
-		) );
-		$comment_id = self::factory()->comment->create( array(
-			'comment_approved' => '1',
-			'comment_post_ID' => $post_id
-		) );
+		$post_id    = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+			)
+		);
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_approved' => '1',
+				'comment_post_ID'  => $post_id,
+			)
+		);
 
 		$count1 = wp_count_comments( $post_id );
 

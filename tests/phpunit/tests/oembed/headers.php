@@ -12,9 +12,11 @@ class Tests_oEmbed_HTTP_Headers extends WP_UnitTestCase {
 			$this->markTestSkipped( 'xdebug is required for this test' );
 		}
 
-		$post = $this->factory()->post->create_and_get( array(
-			'post_title'  => 'Hello World',
-		) );
+		$post = $this->factory()->post->create_and_get(
+			array(
+				'post_title' => 'Hello World',
+			)
+		);
 
 		$request = new WP_REST_Request( 'GET', '/oembed/1.0/embed' );
 		$request->set_param( 'url', get_permalink( $post->ID ) );

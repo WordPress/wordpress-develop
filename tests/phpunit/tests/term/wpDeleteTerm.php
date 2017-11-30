@@ -14,9 +14,11 @@ class Tests_Term_WpDeleteTerm extends WP_UnitTestCase {
 	public function test_count_property_passed_to_filters_should_reflect_pre_deleted_term() {
 		register_taxonomy( 'wptests_tax', 'post' );
 
-		$terms = self::factory()->term->create_many( 2, array(
-			'taxonomy' => 'wptests_tax',
-		) );
+		$terms = self::factory()->term->create_many(
+			2, array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
 
 		$post_id = self::factory()->post->create();
 
@@ -35,6 +37,6 @@ class Tests_Term_WpDeleteTerm extends WP_UnitTestCase {
 
 	public function catch_deleted_term( $term_id, $tt_id, $taxonomy, $deleted_term, $object_ids ) {
 		$this->deleted_term = $deleted_term;
-		$this->object_ids = $object_ids;
+		$this->object_ids   = $object_ids;
 	}
 }

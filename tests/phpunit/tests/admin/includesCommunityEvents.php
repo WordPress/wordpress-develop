@@ -201,53 +201,55 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	public function _http_request_valid_response() {
 		return array(
 			'headers'  => '',
-			'body'     => wp_json_encode( array(
-				'location' => $this->get_user_location(),
-				'events'   => array(
-					array(
-						'type'           => 'meetup',
-						'title'          => 'Flexbox + CSS Grid: Magic for Responsive Layouts',
-						'url'            => 'https://www.meetup.com/Eastbay-WordPress-Meetup/events/236031233/',
-						'meetup'         => 'The East Bay WordPress Meetup Group',
-						'meetup_url'     => 'https://www.meetup.com/Eastbay-WordPress-Meetup/',
-						'date'           => date( 'Y-m-d H:i:s', strtotime( 'next Sunday 1pm' ) ),
-						'location'       => array(
-							'location'  => 'Oakland, CA, USA',
-							'country'   => 'us',
-							'latitude'  => 37.808453,
-							'longitude' => -122.26593,
+			'body'     => wp_json_encode(
+				array(
+					'location' => $this->get_user_location(),
+					'events'   => array(
+						array(
+							'type'       => 'meetup',
+							'title'      => 'Flexbox + CSS Grid: Magic for Responsive Layouts',
+							'url'        => 'https://www.meetup.com/Eastbay-WordPress-Meetup/events/236031233/',
+							'meetup'     => 'The East Bay WordPress Meetup Group',
+							'meetup_url' => 'https://www.meetup.com/Eastbay-WordPress-Meetup/',
+							'date'       => date( 'Y-m-d H:i:s', strtotime( 'next Sunday 1pm' ) ),
+							'location'   => array(
+								'location'  => 'Oakland, CA, USA',
+								'country'   => 'us',
+								'latitude'  => 37.808453,
+								'longitude' => -122.26593,
+							),
+						),
+						array(
+							'type'       => 'meetup',
+							'title'      => 'Part 3- Site Maintenance - Tools to Make It Easy',
+							'url'        => 'https://www.meetup.com/Wordpress-Bay-Area-CA-Foothills/events/237706839/',
+							'meetup'     => 'WordPress Bay Area Foothills Group',
+							'meetup_url' => 'https://www.meetup.com/Wordpress-Bay-Area-CA-Foothills/',
+							'date'       => date( 'Y-m-d H:i:s', strtotime( 'next Wednesday 1:30pm' ) ),
+							'location'   => array(
+								'location'  => 'Milpitas, CA, USA',
+								'country'   => 'us',
+								'latitude'  => 37.432813,
+								'longitude' => -121.907095,
+							),
+						),
+						array(
+							'type'       => 'wordcamp',
+							'title'      => 'WordCamp Kansas City',
+							'url'        => 'https://2017.kansascity.wordcamp.org',
+							'meetup'     => null,
+							'meetup_url' => null,
+							'date'       => date( 'Y-m-d H:i:s', strtotime( 'next Saturday' ) ),
+							'location'   => array(
+								'location'  => 'Kansas City, MO',
+								'country'   => 'US',
+								'latitude'  => 39.0392325,
+								'longitude' => -94.577076,
+							),
 						),
 					),
-					array(
-						'type'           => 'meetup',
-						'title'          => 'Part 3- Site Maintenance - Tools to Make It Easy',
-						'url'            => 'https://www.meetup.com/Wordpress-Bay-Area-CA-Foothills/events/237706839/',
-						'meetup'         => 'WordPress Bay Area Foothills Group',
-						'meetup_url'     => 'https://www.meetup.com/Wordpress-Bay-Area-CA-Foothills/',
-						'date'           => date( 'Y-m-d H:i:s', strtotime( 'next Wednesday 1:30pm' ) ),
-						'location'       => array(
-							'location'  => 'Milpitas, CA, USA',
-							'country'   => 'us',
-							'latitude'  => 37.432813,
-							'longitude' => -121.907095,
-						),
-					),
-					array(
-						'type'           => 'wordcamp',
-						'title'          => 'WordCamp Kansas City',
-						'url'            => 'https://2017.kansascity.wordcamp.org',
-						'meetup'         => null,
-						'meetup_url'     => null,
-						'date'           => date( 'Y-m-d H:i:s', strtotime( 'next Saturday' ) ),
-						'location'       => array(
-							'location'  => 'Kansas City, MO',
-							'country'   => 'US',
-							'latitude'  => 39.0392325,
-							'longitude' => -94.577076,
-						),
-					),
-				),
-			) ),
+				)
+			),
 			'response' => array(
 				'code' => 200,
 			),

@@ -30,7 +30,7 @@ abstract class WP_Filesystem_UnitTestCase extends WP_UnitTestCase {
 		global $wp_filesystem;
 		$this->assertTrue( is_a( $wp_filesystem, 'WP_Filesystem_MockFS' ) );
 
-		$wp_filesystem->init('/');
+		$wp_filesystem->init( '/' );
 
 		// Test creation/exists checks
 		$this->assertFalse( $wp_filesystem->is_dir( '/test/' ) );

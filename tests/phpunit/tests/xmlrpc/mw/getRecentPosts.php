@@ -7,15 +7,19 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 	protected static $post_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$post_id = $factory->post->create( array(
-			'post_type'   => 'page',
-			'post_author' => $factory->user->create( array(
-				'user_login' => 'author',
-				'user_pass'  => 'author',
-				'role'       => 'author'
-			) ),
-			'post_date'   => strftime( "%Y-%m-%d %H:%M:%S", strtotime( '+1 day' ) ),
-		) );
+		self::$post_id = $factory->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_author' => $factory->user->create(
+					array(
+						'user_login' => 'author',
+						'user_pass'  => 'author',
+						'role'       => 'author',
+					)
+				),
+				'post_date'   => strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 day' ) ),
+			)
+		);
 	}
 
 	function test_invalid_username_password() {
@@ -46,11 +50,11 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 	function test_valid_post() {
 		add_theme_support( 'post-thumbnails' );
 
-		$fields = array( 'post' );
+		$fields  = array( 'post' );
 		$results = $this->myxmlrpcserver->mw_getRecentPosts( array( 1, 'author', 'author' ) );
 		$this->assertNotIXRError( $results );
 
-		foreach( $results as $result ) {
+		foreach ( $results as $result ) {
 			$post = get_post( $result['postid'] );
 
 			// Check data types
@@ -60,7 +64,7 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 			$this->assertInternalType( 'string', $result['title'] );
 			$this->assertInternalType( 'string', $result['link'] );
 			$this->assertInternalType( 'string', $result['permaLink'] );
-			$this->assertInternalType( 'array',  $result['categories'] );
+			$this->assertInternalType( 'array', $result['categories'] );
 			$this->assertInternalType( 'string', $result['mt_excerpt'] );
 			$this->assertInternalType( 'string', $result['mt_text_more'] );
 			$this->assertInternalType( 'string', $result['wp_more_text'] );
@@ -94,18 +98,18 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 		add_theme_support( 'post-thumbnails' );
 
 		// create attachment
-		$filename = ( DIR_TESTDATA.'/images/a2-small.jpg' );
+		$filename      = ( DIR_TESTDATA . '/images/a2-small.jpg' );
 		$attachment_id = self::factory()->attachment->create_upload_object( $filename, self::$post_id );
 		set_post_thumbnail( self::$post_id, $attachment_id );
 
 		$results = $this->myxmlrpcserver->mw_getRecentPosts( array( self::$post_id, 'author', 'author' ) );
 		$this->assertNotIXRError( $results );
 
-		foreach( $results as $result ) {
+		foreach ( $results as $result ) {
 			$this->assertInternalType( 'string', $result['wp_post_thumbnail'] );
 			$this->assertStringMatchesFormat( '%d', $result['wp_post_thumbnail'] );
 
-			if( ! empty( $result['wp_post_thumbnail'] ) || $result['postid'] == self::$post_id ) {
+			if ( ! empty( $result['wp_post_thumbnail'] ) || $result['postid'] == self::$post_id ) {
 				$attachment_id = get_post_meta( $result['postid'], '_thumbnail_id', true );
 
 				$this->assertEquals( $attachment_id, $result['wp_post_thumbnail'] );
@@ -121,9 +125,9 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 		$results = $this->myxmlrpcserver->mw_getRecentPosts( array( 1, 'editor', 'editor' ) );
 		$this->assertNotIXRError( $results );
 
-		foreach( $results as $result ) {
-			$post = get_post( $result['postid'] );
-			$date_gmt = strtotime( get_gmt_from_date( mysql2date( 'Y-m-d H:i:s', $post->post_date, false ), 'Ymd\TH:i:s' ) );
+		foreach ( $results as $result ) {
+			$post              = get_post( $result['postid'] );
+			$date_gmt          = strtotime( get_gmt_from_date( mysql2date( 'Y-m-d H:i:s', $post->post_date, false ), 'Ymd\TH:i:s' ) );
 			$date_modified_gmt = strtotime( get_gmt_from_date( mysql2date( 'Y-m-d H:i:s', $post->post_modified, false ), 'Ymd\TH:i:s' ) );
 
 			$this->assertInstanceOf( 'IXR_Date', $result['dateCreated'] );

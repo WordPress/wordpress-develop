@@ -8,8 +8,16 @@ class Tests_WP_List_Util extends WP_UnitTestCase {
 		return array(
 			'arrays'                         => array(
 				array(
-					array( 'foo' => 'bar', 'bar' => 'baz', 'abc' => 'xyz' ),
-					array( 'foo' => 'foo', '123' => '456', 'lorem' => 'ipsum' ),
+					array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'abc' => 'xyz',
+					),
+					array(
+						'foo'   => 'foo',
+						'123'   => '456',
+						'lorem' => 'ipsum',
+					),
 					array( 'foo' => 'baz' ),
 				),
 				'foo',
@@ -18,28 +26,69 @@ class Tests_WP_List_Util extends WP_UnitTestCase {
 			),
 			'arrays with index key'          => array(
 				array(
-					array( 'foo' => 'bar', 'bar' => 'baz', 'abc' => 'xyz', 'key' => 'foo' ),
-					array( 'foo' => 'foo', '123' => '456', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					array( 'foo' => 'baz', 'key' => 'value' ),
+					array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'abc' => 'xyz',
+						'key' => 'foo',
+					),
+					array(
+						'foo'   => 'foo',
+						'123'   => '456',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					array(
+						'foo' => 'baz',
+						'key' => 'value',
+					),
 				),
 				'foo',
 				'key',
-				array( 'foo' => 'bar', 'bar' => 'foo', 'value' => 'baz' ),
+				array(
+					'foo'   => 'bar',
+					'bar'   => 'foo',
+					'value' => 'baz',
+				),
 			),
 			'arrays with index key missing'  => array(
 				array(
-					array( 'foo' => 'bar', 'bar' => 'baz', 'abc' => 'xyz' ),
-					array( 'foo' => 'foo', '123' => '456', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					array( 'foo' => 'baz', 'key' => 'value' ),
+					array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'abc' => 'xyz',
+					),
+					array(
+						'foo'   => 'foo',
+						'123'   => '456',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					array(
+						'foo' => 'baz',
+						'key' => 'value',
+					),
 				),
 				'foo',
 				'key',
-				array( 'bar' => 'foo', 'value' => 'baz', 'bar' ),
+				array(
+					'bar'   => 'foo',
+					'value' => 'baz',
+					'bar',
+				),
 			),
 			'objects'                        => array(
 				array(
-					(object) array( 'foo' => 'bar', 'bar' => 'baz', 'abc' => 'xyz' ),
-					(object) array( 'foo' => 'foo', '123' => '456', 'lorem' => 'ipsum' ),
+					(object) array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'abc' => 'xyz',
+					),
+					(object) array(
+						'foo'   => 'foo',
+						'123'   => '456',
+						'lorem' => 'ipsum',
+					),
 					(object) array( 'foo' => 'baz' ),
 				),
 				'foo',
@@ -48,23 +97,56 @@ class Tests_WP_List_Util extends WP_UnitTestCase {
 			),
 			'objects with index key'         => array(
 				array(
-					(object) array( 'foo' => 'bar', 'bar' => 'baz', 'abc' => 'xyz', 'key' => 'foo' ),
-					(object) array( 'foo' => 'foo', '123' => '456', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					(object) array( 'foo' => 'baz', 'key' => 'value' ),
+					(object) array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'abc' => 'xyz',
+						'key' => 'foo',
+					),
+					(object) array(
+						'foo'   => 'foo',
+						'123'   => '456',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					(object) array(
+						'foo' => 'baz',
+						'key' => 'value',
+					),
 				),
 				'foo',
 				'key',
-				array( 'foo' => 'bar', 'bar' => 'foo', 'value' => 'baz' ),
+				array(
+					'foo'   => 'bar',
+					'bar'   => 'foo',
+					'value' => 'baz',
+				),
 			),
 			'objects with index key missing' => array(
 				array(
-					(object) array( 'foo' => 'bar', 'bar' => 'baz', 'abc' => 'xyz' ),
-					(object) array( 'foo' => 'foo', '123' => '456', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					(object) array( 'foo' => 'baz', 'key' => 'value' ),
+					(object) array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'abc' => 'xyz',
+					),
+					(object) array(
+						'foo'   => 'foo',
+						'123'   => '456',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					(object) array(
+						'foo' => 'baz',
+						'key' => 'value',
+					),
 				),
 				'foo',
 				'key',
-				array( 'bar' => 'foo', 'value' => 'baz', 'bar' ),
+				array(
+					'bar'   => 'foo',
+					'value' => 'baz',
+					'bar',
+				),
 			),
 		);
 	}
@@ -112,57 +194,162 @@ class Tests_WP_List_Util extends WP_UnitTestCase {
 			),
 			'single argument to match' => array(
 				array(
-					(object) array( 'foo' => 'bar', 'bar' => 'baz', 'abc' => 'xyz', 'key' => 'foo' ),
-					(object) array( 'foo' => 'foo', '123' => '456', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					(object) array( 'foo' => 'baz', 'key' => 'value' ),
-					(object) array( 'foo' => 'bar', 'key' => 'value' ),
+					(object) array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'abc' => 'xyz',
+						'key' => 'foo',
+					),
+					(object) array(
+						'foo'   => 'foo',
+						'123'   => '456',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					(object) array(
+						'foo' => 'baz',
+						'key' => 'value',
+					),
+					(object) array(
+						'foo' => 'bar',
+						'key' => 'value',
+					),
 				),
 				array( 'foo' => 'bar' ),
 				'AND',
 				array(
-					0 => (object) array( 'foo' => 'bar', 'bar' => 'baz', 'abc' => 'xyz', 'key' => 'foo' ),
-					3 => (object) array( 'foo' => 'bar', 'key' => 'value' ),
+					0 => (object) array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'abc' => 'xyz',
+						'key' => 'foo',
+					),
+					3 => (object) array(
+						'foo' => 'bar',
+						'key' => 'value',
+					),
 				),
 			),
 			'all must match'           => array(
 				array(
-					(object) array( 'foo' => 'bar', 'bar' => 'baz', 'abc' => 'xyz', 'key' => 'foo' ),
-					(object) array( 'foo' => 'foo', '123' => '456', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					(object) array( 'foo' => 'baz', 'key' => 'value', 'bar' => 'baz' ),
-					(object) array( 'foo' => 'bar', 'key' => 'value' ),
+					(object) array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'abc' => 'xyz',
+						'key' => 'foo',
+					),
+					(object) array(
+						'foo'   => 'foo',
+						'123'   => '456',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					(object) array(
+						'foo' => 'baz',
+						'key' => 'value',
+						'bar' => 'baz',
+					),
+					(object) array(
+						'foo' => 'bar',
+						'key' => 'value',
+					),
 				),
-				array( 'foo' => 'bar', 'bar' => 'baz' ),
+				array(
+					'foo' => 'bar',
+					'bar' => 'baz',
+				),
 				'AND',
 				array(
-					0 => (object) array( 'foo' => 'bar', 'bar' => 'baz', 'abc' => 'xyz', 'key' => 'foo' ),
+					0 => (object) array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'abc' => 'xyz',
+						'key' => 'foo',
+					),
 				),
 			),
 			'any must match'           => array(
 				array(
-					(object) array( 'foo' => 'bar', 'bar' => 'baz', 'abc' => 'xyz', 'key' => 'foo' ),
-					(object) array( 'foo' => 'foo', '123' => '456', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					(object) array( 'foo' => 'baz', 'key' => 'value', 'bar' => 'baz' ),
-					(object) array( 'foo' => 'bar', 'key' => 'value' ),
+					(object) array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'abc' => 'xyz',
+						'key' => 'foo',
+					),
+					(object) array(
+						'foo'   => 'foo',
+						'123'   => '456',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					(object) array(
+						'foo' => 'baz',
+						'key' => 'value',
+						'bar' => 'baz',
+					),
+					(object) array(
+						'foo' => 'bar',
+						'key' => 'value',
+					),
 				),
-				array( 'key' => 'value', 'bar' => 'baz' ),
+				array(
+					'key' => 'value',
+					'bar' => 'baz',
+				),
 				'OR',
 				array(
-					0 => (object) array( 'foo' => 'bar', 'bar' => 'baz', 'abc' => 'xyz', 'key' => 'foo' ),
-					2 => (object) array( 'foo' => 'baz', 'key' => 'value', 'bar' => 'baz' ),
-					3 => (object) array( 'foo' => 'bar', 'key' => 'value' ),
+					0 => (object) array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'abc' => 'xyz',
+						'key' => 'foo',
+					),
+					2 => (object) array(
+						'foo' => 'baz',
+						'key' => 'value',
+						'bar' => 'baz',
+					),
+					3 => (object) array(
+						'foo' => 'bar',
+						'key' => 'value',
+					),
 				),
 			),
 			'none must match'          => array(
 				array(
-					(object) array( 'foo' => 'bar', 'bar' => 'baz', 'abc' => 'xyz', 'key' => 'foo' ),
-					(object) array( 'foo' => 'foo', '123' => '456', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					(object) array( 'foo' => 'baz', 'key' => 'value' ),
-					(object) array( 'foo' => 'bar', 'key' => 'value' ),
+					(object) array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'abc' => 'xyz',
+						'key' => 'foo',
+					),
+					(object) array(
+						'foo'   => 'foo',
+						'123'   => '456',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					(object) array(
+						'foo' => 'baz',
+						'key' => 'value',
+					),
+					(object) array(
+						'foo' => 'bar',
+						'key' => 'value',
+					),
 				),
-				array( 'key' => 'value', 'bar' => 'baz' ),
+				array(
+					'key' => 'value',
+					'bar' => 'baz',
+				),
 				'NOT',
 				array(
-					1 => (object) array( 'foo' => 'foo', '123' => '456', 'lorem' => 'ipsum', 'key' => 'bar' ),
+					1 => (object) array(
+						'foo'   => 'foo',
+						'123'   => '456',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
 				),
 			),
 		);
@@ -185,112 +372,311 @@ class Tests_WP_List_Util extends WP_UnitTestCase {
 		return array(
 			'single orderby ascending'        => array(
 				array(
-					array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
-					array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					array( 'foo' => 'baz', 'key' => 'value' ),
+					array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
+					array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					array(
+						'foo' => 'baz',
+						'key' => 'value',
+					),
 				),
 				'foo',
 				'ASC',
 				array(
-					array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
-					array( 'foo' => 'baz', 'key' => 'value' ),
-					array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
+					array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
+					array(
+						'foo' => 'baz',
+						'key' => 'value',
+					),
+					array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
 				),
 			),
 			'single orderby descending'       => array(
 				array(
-					array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
-					array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					array( 'foo' => 'baz', 'key' => 'value' ),
+					array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
+					array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					array(
+						'foo' => 'baz',
+						'key' => 'value',
+					),
 				),
 				'foo',
 				'DESC',
 				array(
-					array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					array( 'foo' => 'baz', 'key' => 'value' ),
-					array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
+					array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					array(
+						'foo' => 'baz',
+						'key' => 'value',
+					),
+					array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
 				),
 			),
 			'single orderby array ascending'  => array(
 				array(
-					array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
-					array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					array( 'foo' => 'baz', 'key' => 'value' ),
+					array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
+					array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					array(
+						'foo' => 'baz',
+						'key' => 'value',
+					),
 				),
 				array( 'foo' => 'ASC' ),
 				'IGNORED',
 				array(
-					array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
-					array( 'foo' => 'baz', 'key' => 'value' ),
-					array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
+					array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
+					array(
+						'foo' => 'baz',
+						'key' => 'value',
+					),
+					array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
 				),
 			),
 			'single orderby array descending' => array(
 				array(
-					array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
-					array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					array( 'foo' => 'baz', 'key' => 'value' ),
+					array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
+					array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					array(
+						'foo' => 'baz',
+						'key' => 'value',
+					),
 				),
 				array( 'foo' => 'DESC' ),
 				'IGNORED',
 				array(
-					array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					array( 'foo' => 'baz', 'key' => 'value' ),
-					array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
+					array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					array(
+						'foo' => 'baz',
+						'key' => 'value',
+					),
+					array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
 				),
 			),
 			'multiple orderby ascending'      => array(
 				array(
-					array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
-					array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					array( 'foo' => 'foo', 'key' => 'key' ),
-					array( 'foo' => 'baz', 'key' => 'key' ),
-					array( 'foo' => 'bar', 'key' => 'value' ),
+					array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
+					array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					array(
+						'foo' => 'foo',
+						'key' => 'key',
+					),
+					array(
+						'foo' => 'baz',
+						'key' => 'key',
+					),
+					array(
+						'foo' => 'bar',
+						'key' => 'value',
+					),
 				),
-				array( 'key' => 'ASC', 'foo' => 'ASC' ),
+				array(
+					'key' => 'ASC',
+					'foo' => 'ASC',
+				),
 				'IGNORED',
 				array(
-					array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
-					array( 'foo' => 'baz', 'key' => 'key' ),
-					array( 'foo' => 'foo', 'key' => 'key' ),
-					array( 'foo' => 'bar', 'key' => 'value' ),
+					array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
+					array(
+						'foo' => 'baz',
+						'key' => 'key',
+					),
+					array(
+						'foo' => 'foo',
+						'key' => 'key',
+					),
+					array(
+						'foo' => 'bar',
+						'key' => 'value',
+					),
 				),
 			),
 			'multiple orderby descending'     => array(
 				array(
-					array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
-					array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					array( 'foo' => 'foo', 'key' => 'key' ),
-					array( 'foo' => 'baz', 'key' => 'key' ),
-					array( 'foo' => 'bar', 'key' => 'value' ),
+					array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
+					array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					array(
+						'foo' => 'foo',
+						'key' => 'key',
+					),
+					array(
+						'foo' => 'baz',
+						'key' => 'key',
+					),
+					array(
+						'foo' => 'bar',
+						'key' => 'value',
+					),
 				),
-				array( 'key' => 'DESC', 'foo' => 'DESC' ),
+				array(
+					'key' => 'DESC',
+					'foo' => 'DESC',
+				),
 				'IGNORED',
 				array(
-					array( 'foo' => 'bar', 'key' => 'value' ),
-					array( 'foo' => 'foo', 'key' => 'key' ),
-					array( 'foo' => 'baz', 'key' => 'key' ),
-					array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
-					array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
+					array(
+						'foo' => 'bar',
+						'key' => 'value',
+					),
+					array(
+						'foo' => 'foo',
+						'key' => 'key',
+					),
+					array(
+						'foo' => 'baz',
+						'key' => 'key',
+					),
+					array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
+					array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
 				),
 			),
 			'multiple orderby mixed'          => array(
 				array(
-					array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
-					array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					array( 'foo' => 'foo', 'key' => 'key' ),
-					array( 'foo' => 'baz', 'key' => 'key' ),
-					array( 'foo' => 'bar', 'key' => 'value' ),
+					array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
+					array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					array(
+						'foo' => 'foo',
+						'key' => 'key',
+					),
+					array(
+						'foo' => 'baz',
+						'key' => 'key',
+					),
+					array(
+						'foo' => 'bar',
+						'key' => 'value',
+					),
 				),
-				array( 'key' => 'DESC', 'foo' => 'ASC' ),
+				array(
+					'key' => 'DESC',
+					'foo' => 'ASC',
+				),
 				'IGNORED',
 				array(
-					array( 'foo' => 'bar', 'key' => 'value' ),
-					array( 'foo' => 'baz', 'key' => 'key' ),
-					array( 'foo' => 'foo', 'key' => 'key' ),
-					array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
-					array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
+					array(
+						'foo' => 'bar',
+						'key' => 'value',
+					),
+					array(
+						'foo' => 'baz',
+						'key' => 'key',
+					),
+					array(
+						'foo' => 'foo',
+						'key' => 'key',
+					),
+					array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
+					array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
 				),
 			),
 		);
@@ -311,112 +697,311 @@ class Tests_WP_List_Util extends WP_UnitTestCase {
 		return array(
 			'single orderby ascending'        => array(
 				array(
-					'foobar' => array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
-					'foofoo' => array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					'foobaz' => array( 'foo' => 'baz', 'key' => 'value' ),
+					'foobar' => array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
+					'foofoo' => array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					'foobaz' => array(
+						'foo' => 'baz',
+						'key' => 'value',
+					),
 				),
 				'foo',
 				'ASC',
 				array(
-					'foobar' => array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
-					'foobaz' => array( 'foo' => 'baz', 'key' => 'value' ),
-					'foofoo' => array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
+					'foobar' => array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
+					'foobaz' => array(
+						'foo' => 'baz',
+						'key' => 'value',
+					),
+					'foofoo' => array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
 				),
 			),
 			'single orderby descending'       => array(
 				array(
-					'foobar' => array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
-					'foofoo' => array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					'foobaz' => array( 'foo' => 'baz', 'key' => 'value' ),
+					'foobar' => array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
+					'foofoo' => array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					'foobaz' => array(
+						'foo' => 'baz',
+						'key' => 'value',
+					),
 				),
 				'foo',
 				'DESC',
 				array(
-					'foofoo' => array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					'foobaz' => array( 'foo' => 'baz', 'key' => 'value' ),
-					'foobar' => array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
+					'foofoo' => array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					'foobaz' => array(
+						'foo' => 'baz',
+						'key' => 'value',
+					),
+					'foobar' => array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
 				),
 			),
 			'single orderby array ascending'  => array(
 				array(
-					'foobar' => array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
-					'foofoo' => array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					'foobaz' => array( 'foo' => 'baz', 'key' => 'value' ),
+					'foobar' => array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
+					'foofoo' => array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					'foobaz' => array(
+						'foo' => 'baz',
+						'key' => 'value',
+					),
 				),
 				array( 'foo' => 'ASC' ),
 				'IGNORED',
 				array(
-					'foobar' => array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
-					'foobaz' => array( 'foo' => 'baz', 'key' => 'value' ),
-					'foofoo' => array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
+					'foobar' => array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
+					'foobaz' => array(
+						'foo' => 'baz',
+						'key' => 'value',
+					),
+					'foofoo' => array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
 				),
 			),
 			'single orderby array descending' => array(
 				array(
-					'foobar' => array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
-					'foofoo' => array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					'foobaz' => array( 'foo' => 'baz', 'key' => 'value' ),
+					'foobar' => array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
+					'foofoo' => array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					'foobaz' => array(
+						'foo' => 'baz',
+						'key' => 'value',
+					),
 				),
 				array( 'foo' => 'DESC' ),
 				'IGNORED',
 				array(
-					'foofoo' => array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					'foobaz' => array( 'foo' => 'baz', 'key' => 'value' ),
-					'foobar' => array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
+					'foofoo' => array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					'foobaz' => array(
+						'foo' => 'baz',
+						'key' => 'value',
+					),
+					'foobar' => array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
 				),
 			),
 			'multiple orderby ascending'      => array(
 				array(
-					'foobarfoo'   => array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
-					'foofoobar'   => array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					'foofookey'   => array( 'foo' => 'foo', 'key' => 'key' ),
-					'foobazkey'   => array( 'foo' => 'baz', 'key' => 'key' ),
-					'foobarvalue' => array( 'foo' => 'bar', 'key' => 'value' ),
+					'foobarfoo'   => array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
+					'foofoobar'   => array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					'foofookey'   => array(
+						'foo' => 'foo',
+						'key' => 'key',
+					),
+					'foobazkey'   => array(
+						'foo' => 'baz',
+						'key' => 'key',
+					),
+					'foobarvalue' => array(
+						'foo' => 'bar',
+						'key' => 'value',
+					),
 				),
-				array( 'key' => 'ASC', 'foo' => 'ASC' ),
+				array(
+					'key' => 'ASC',
+					'foo' => 'ASC',
+				),
 				'IGNORED',
 				array(
-					'foofoobar'   => array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					'foobarfoo'   => array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
-					'foobazkey'   => array( 'foo' => 'baz', 'key' => 'key' ),
-					'foofookey'   => array( 'foo' => 'foo', 'key' => 'key' ),
-					'foobarvalue' => array( 'foo' => 'bar', 'key' => 'value' ),
+					'foofoobar'   => array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					'foobarfoo'   => array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
+					'foobazkey'   => array(
+						'foo' => 'baz',
+						'key' => 'key',
+					),
+					'foofookey'   => array(
+						'foo' => 'foo',
+						'key' => 'key',
+					),
+					'foobarvalue' => array(
+						'foo' => 'bar',
+						'key' => 'value',
+					),
 				),
 			),
 			'multiple orderby descending'     => array(
 				array(
-					'foobarfoo'   => array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
-					'foofoobar'   => array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					'foofookey'   => array( 'foo' => 'foo', 'key' => 'key' ),
-					'foobazkey'   => array( 'foo' => 'baz', 'key' => 'key' ),
-					'foobarvalue' => array( 'foo' => 'bar', 'key' => 'value' ),
+					'foobarfoo'   => array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
+					'foofoobar'   => array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					'foofookey'   => array(
+						'foo' => 'foo',
+						'key' => 'key',
+					),
+					'foobazkey'   => array(
+						'foo' => 'baz',
+						'key' => 'key',
+					),
+					'foobarvalue' => array(
+						'foo' => 'bar',
+						'key' => 'value',
+					),
 				),
-				array( 'key' => 'DESC', 'foo' => 'DESC' ),
+				array(
+					'key' => 'DESC',
+					'foo' => 'DESC',
+				),
 				'IGNORED',
 				array(
-					'foobarvalue' => array( 'foo' => 'bar', 'key' => 'value' ),
-					'foofookey'   => array( 'foo' => 'foo', 'key' => 'key' ),
-					'foobazkey'   => array( 'foo' => 'baz', 'key' => 'key' ),
-					'foobarfoo'   => array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
-					'foofoobar'   => array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
+					'foobarvalue' => array(
+						'foo' => 'bar',
+						'key' => 'value',
+					),
+					'foofookey'   => array(
+						'foo' => 'foo',
+						'key' => 'key',
+					),
+					'foobazkey'   => array(
+						'foo' => 'baz',
+						'key' => 'key',
+					),
+					'foobarfoo'   => array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
+					'foofoobar'   => array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
 				),
 			),
 			'multiple orderby mixed'          => array(
 				array(
-					'foobarfoo'   => array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
-					'foofoobar'   => array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
-					'foofookey'   => array( 'foo' => 'foo', 'key' => 'key' ),
-					'foobazkey'   => array( 'foo' => 'baz', 'key' => 'key' ),
-					'foobarvalue' => array( 'foo' => 'bar', 'key' => 'value' ),
+					'foobarfoo'   => array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
+					'foofoobar'   => array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
+					'foofookey'   => array(
+						'foo' => 'foo',
+						'key' => 'key',
+					),
+					'foobazkey'   => array(
+						'foo' => 'baz',
+						'key' => 'key',
+					),
+					'foobarvalue' => array(
+						'foo' => 'bar',
+						'key' => 'value',
+					),
 				),
-				array( 'key' => 'DESC', 'foo' => 'ASC' ),
+				array(
+					'key' => 'DESC',
+					'foo' => 'ASC',
+				),
 				'IGNORED',
 				array(
-					'foobarvalue' => array( 'foo' => 'bar', 'key' => 'value' ),
-					'foobazkey'   => array( 'foo' => 'baz', 'key' => 'key' ),
-					'foofookey'   => array( 'foo' => 'foo', 'key' => 'key' ),
-					'foobarfoo'   => array( 'foo' => 'bar', 'bar' => 'baz', 'key' => 'foo' ),
-					'foofoobar'   => array( 'foo' => 'foo', 'lorem' => 'ipsum', 'key' => 'bar' ),
+					'foobarvalue' => array(
+						'foo' => 'bar',
+						'key' => 'value',
+					),
+					'foobazkey'   => array(
+						'foo' => 'baz',
+						'key' => 'key',
+					),
+					'foofookey'   => array(
+						'foo' => 'foo',
+						'key' => 'key',
+					),
+					'foobarfoo'   => array(
+						'foo' => 'bar',
+						'bar' => 'baz',
+						'key' => 'foo',
+					),
+					'foofoobar'   => array(
+						'foo'   => 'foo',
+						'lorem' => 'ipsum',
+						'key'   => 'bar',
+					),
 				),
 			),
 		);
@@ -448,9 +1033,22 @@ class Tests_WP_List_Util extends WP_UnitTestCase {
 	}
 
 	public function test_wp_list_util_get_output() {
-		$expected = array( (object) array( 'foo' => 'bar', 'bar' => 'baz' ) );
+		$expected = array(
+			(object) array(
+				'foo' => 'bar',
+				'bar' => 'baz',
+			),
+		);
 
-		$util   = new WP_List_Util( array( (object) array( 'foo' => 'bar', 'bar' => 'baz' ), (object) array( 'bar' => 'baz' ) ) );
+		$util   = new WP_List_Util(
+			array(
+				(object) array(
+					'foo' => 'bar',
+					'bar' => 'baz',
+				),
+				(object) array( 'bar' => 'baz' ),
+			)
+		);
 		$actual = $util->filter( array( 'foo' => 'bar' ) );
 
 		$this->assertEqualSets( $expected, $actual );

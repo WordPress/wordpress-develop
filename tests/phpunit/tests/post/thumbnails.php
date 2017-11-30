@@ -9,17 +9,19 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	protected static $different_post;
 	protected static $attachment_id;
 
-	protected $current_size_filter_data = null;
+	protected $current_size_filter_data   = null;
 	protected $current_size_filter_result = null;
 
 	public static function wpSetUpBeforeClass( $factory ) {
 		self::$post           = $factory->post->create_and_get();
 		self::$different_post = $factory->post->create_and_get();
 
-		$file = DIR_TESTDATA . '/images/canola.jpg';
-		self::$attachment_id = $factory->attachment->create_upload_object( $file, self::$post->ID, array(
-			'post_mime_type' => 'image/jpeg',
-		) );
+		$file                = DIR_TESTDATA . '/images/canola.jpg';
+		self::$attachment_id = $factory->attachment->create_upload_object(
+			$file, self::$post->ID, array(
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
 	}
 
 	public static function tearDownAfterClass() {
@@ -67,11 +69,13 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	function test_update_post_thumbnail_cache() {
 		set_post_thumbnail( self::$post, self::$attachment_id );
 
-		$WP_Query = new WP_Query( array(
-			'post_type' => 'any',
-			'post__in'  => array( self::$post->ID ),
-			'orderby'   => 'post__in',
-		) );
+		$WP_Query = new WP_Query(
+			array(
+				'post_type' => 'any',
+				'post__in'  => array( self::$post->ID ),
+				'orderby'   => 'post__in',
+			)
+		);
 
 		$this->assertFalse( $WP_Query->thumbnails_cached );
 
@@ -88,12 +92,14 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 
 		$caption = 'This is a caption.';
 
-		$post_id = self::factory()->post->create();
-		$attachment_id = self::factory()->attachment->create_object( 'image.jpg', $post_id, array(
-			'post_mime_type' => 'image/jpeg',
-			'post_type'      => 'attachment',
-			'post_excerpt'   => $caption,
-		) );
+		$post_id       = self::factory()->post->create();
+		$attachment_id = self::factory()->attachment->create_object(
+			'image.jpg', $post_id, array(
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+				'post_excerpt'   => $caption,
+			)
+		);
 
 		set_post_thumbnail( $post_id, $attachment_id );
 
@@ -104,12 +110,14 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	 * @ticket 12235
 	 */
 	function test_get_the_post_thumbnail_caption_empty() {
-		$post_id = self::factory()->post->create();
-		$attachment_id = self::factory()->attachment->create_object( 'image.jpg', $post_id, array(
-			'post_mime_type' => 'image/jpeg',
-			'post_type'      => 'attachment',
-			'post_excerpt'   => '',
-		) );
+		$post_id       = self::factory()->post->create();
+		$attachment_id = self::factory()->attachment->create_object(
+			'image.jpg', $post_id, array(
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+				'post_excerpt'   => '',
+			)
+		);
 
 		set_post_thumbnail( $post_id, $attachment_id );
 
@@ -122,12 +130,14 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	function test_the_post_thumbnail_caption() {
 		$caption = 'This is a caption.';
 
-		$post_id = self::factory()->post->create();
-		$attachment_id = self::factory()->attachment->create_object( 'image.jpg', $post_id, array(
-			'post_mime_type' => 'image/jpeg',
-			'post_type'      => 'attachment',
-			'post_excerpt'   => $caption,
-		) );
+		$post_id       = self::factory()->post->create();
+		$attachment_id = self::factory()->attachment->create_object(
+			'image.jpg', $post_id, array(
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+				'post_excerpt'   => $caption,
+			)
+		);
 
 		set_post_thumbnail( $post_id, $attachment_id );
 
@@ -142,9 +152,11 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 		$this->assertEquals( '', get_the_post_thumbnail( self::$post ) );
 		set_post_thumbnail( self::$post, self::$attachment_id );
 
-		$expected = wp_get_attachment_image( self::$attachment_id, 'post-thumbnail', false, array(
-			'class' => 'attachment-post-thumbnail size-post-thumbnail wp-post-image'
-		) );
+		$expected = wp_get_attachment_image(
+			self::$attachment_id, 'post-thumbnail', false, array(
+				'class' => 'attachment-post-thumbnail size-post-thumbnail wp-post-image',
+			)
+		);
 
 		$this->assertEquals( $expected, get_the_post_thumbnail( self::$post ) );
 
@@ -170,9 +182,11 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 
 		set_post_thumbnail( self::$post, self::$attachment_id );
 
-		$expected = wp_get_attachment_image( self::$attachment_id, 'post-thumbnail', false, array(
-			'class' => 'attachment-post-thumbnail size-post-thumbnail wp-post-image'
-		) );
+		$expected = wp_get_attachment_image(
+			self::$attachment_id, 'post-thumbnail', false, array(
+				'class' => 'attachment-post-thumbnail size-post-thumbnail wp-post-image',
+			)
+		);
 
 		ob_start();
 		the_post_thumbnail();
@@ -246,9 +260,9 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	function test__wp_preview_post_thumbnail_filter() {
 		$old_post = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
 
-		$GLOBALS['post'] = self::$post;
+		$GLOBALS['post']           = self::$post;
 		$_REQUEST['_thumbnail_id'] = self::$attachment_id;
-		$_REQUEST['preview_id'] = self::$post->ID;
+		$_REQUEST['preview_id']    = self::$post->ID;
 
 		$result = _wp_preview_post_thumbnail_filter( '', self::$post->ID, '_thumbnail_id' );
 
@@ -266,14 +280,15 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	function test__wp_preview_post_thumbnail_filter_secondary_post() {
 		$old_post = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
 
-		$secondary_post = self::factory()->post->create( array(
+		$secondary_post = self::factory()->post->create(
+			array(
 				'post_stauts' => 'publish',
 			)
 		);
 
-		$GLOBALS['post'] = self::$post;
+		$GLOBALS['post']           = self::$post;
 		$_REQUEST['_thumbnail_id'] = self::$attachment_id;
-		$_REQUEST['preview_id'] = $secondary_post;
+		$_REQUEST['preview_id']    = $secondary_post;
 
 		$result = _wp_preview_post_thumbnail_filter( '', self::$post->ID, '_thumbnail_id' );
 
@@ -289,24 +304,28 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	 * @ticket 12922
 	 */
 	function test_insert_post_with_post_thumbnail() {
-		$post_id = wp_insert_post( array(
-			'ID'            => self::$post->ID,
-			'post_status'   => 'publish',
-			'post_content'  => 'Post content',
-			'post_title'    => 'Post Title',
-			'_thumbnail_id' => self::$attachment_id,
-		) );
+		$post_id = wp_insert_post(
+			array(
+				'ID'            => self::$post->ID,
+				'post_status'   => 'publish',
+				'post_content'  => 'Post content',
+				'post_title'    => 'Post Title',
+				'_thumbnail_id' => self::$attachment_id,
+			)
+		);
 
 		$thumbnail_id = get_post_thumbnail_id( $post_id );
 		$this->assertEquals( self::$attachment_id, $thumbnail_id );
 
-		$post_id = wp_insert_post( array(
-			'ID'            => $post_id,
-			'post_status'   => 'publish',
-			'post_content'  => 'Post content',
-			'post_title'    => 'Post Title',
-			'_thumbnail_id' => - 1, // -1 removes post thumbnail.
-		) );
+		$post_id = wp_insert_post(
+			array(
+				'ID'            => $post_id,
+				'post_status'   => 'publish',
+				'post_content'  => 'Post content',
+				'post_title'    => 'Post Title',
+				'_thumbnail_id' => - 1, // -1 removes post thumbnail.
+			)
+		);
 
 		$thumbnail_id = get_post_thumbnail_id( $post_id );
 		$this->assertEmpty( $thumbnail_id );
@@ -317,31 +336,35 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	 */
 	function test_insert_attachment_with_post_thumbnail() {
 		// Audio files support featured images.
-		$post_id = wp_insert_post( array(
-			'post_type'      => 'attachment',
-			'post_status'    => 'inherit',
-			'post_content'   => 'Post content',
-			'post_title'     => 'Post Title',
-			'post_mime_type' => 'audio/mpeg',
-			'post_parent'    => 0,
-			'file'           => DIR_TESTDATA . '/audio/test-noise.mp3', // File does not exist, but does not matter here.
-			'_thumbnail_id'  => self::$attachment_id,
-		) );
+		$post_id = wp_insert_post(
+			array(
+				'post_type'      => 'attachment',
+				'post_status'    => 'inherit',
+				'post_content'   => 'Post content',
+				'post_title'     => 'Post Title',
+				'post_mime_type' => 'audio/mpeg',
+				'post_parent'    => 0,
+				'file'           => DIR_TESTDATA . '/audio/test-noise.mp3', // File does not exist, but does not matter here.
+				'_thumbnail_id'  => self::$attachment_id,
+			)
+		);
 
 		$thumbnail_id = get_post_thumbnail_id( $post_id );
 		$this->assertEquals( self::$attachment_id, $thumbnail_id );
 
 		// Images do not support featured images.
-		$post_id = wp_insert_post( array(
-			'post_type'      => 'attachment',
-			'post_status'    => 'inherit',
-			'post_content'   => 'Post content',
-			'post_title'     => 'Post Title',
-			'post_mime_type' => 'image/jpeg',
-			'post_parent'    => 0,
-			'file'           => DIR_TESTDATA . '/images/canola.jpg',
-			'_thumbnail_id'  => self::$attachment_id,
-		) );
+		$post_id = wp_insert_post(
+			array(
+				'post_type'      => 'attachment',
+				'post_status'    => 'inherit',
+				'post_content'   => 'Post content',
+				'post_title'     => 'Post Title',
+				'post_mime_type' => 'image/jpeg',
+				'post_parent'    => 0,
+				'file'           => DIR_TESTDATA . '/images/canola.jpg',
+				'_thumbnail_id'  => self::$attachment_id,
+			)
+		);
 
 		$thumbnail_id = get_post_thumbnail_id( $post_id );
 		$this->assertEmpty( $thumbnail_id );

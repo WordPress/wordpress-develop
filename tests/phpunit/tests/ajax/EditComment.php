@@ -17,6 +17,7 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * A post with at least one comment
+	 *
 	 * @var mixed
 	 */
 	protected $_comment_post = null;
@@ -34,6 +35,7 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * Get comments as a privilged user (administrator)
 	 * Expects test to pass
+	 *
 	 * @return void
 	 */
 	public function test_as_admin() {
@@ -42,10 +44,12 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 		$this->_setRole( 'administrator' );
 
 		// Get a comment
-		$comments = get_comments( array(
-			'post_id' => $this->_comment_post->ID
-		) );
-		$comment = array_pop( $comments );
+		$comments = get_comments(
+			array(
+				'post_id' => $this->_comment_post->ID,
+			)
+		);
+		$comment  = array_pop( $comments );
 
 		// Set up a default request
 		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
@@ -84,10 +88,12 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 		$this->_setRole( 'editor' );
 
 		// Get a comment
-		$comments = get_comments( array(
-			'post_id' => $this->_comment_post->ID
-		) );
-		$comment = array_pop( $comments );
+		$comments = get_comments(
+			array(
+				'post_id' => $this->_comment_post->ID,
+			)
+		);
+		$comment  = array_pop( $comments );
 
 		// Manually update the comment_post_ID, because wp_update_comment() will prevent it.
 		$wpdb->query( "UPDATE {$wpdb->comments} SET comment_post_ID=0 WHERE comment_ID={$comment->comment_ID}" );
@@ -123,6 +129,7 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * Get comments as a non-privileged user (subscriber)
 	 * Expects test to fail
+	 *
 	 * @return void
 	 */
 	public function test_as_subscriber() {
@@ -131,10 +138,12 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 		$this->_setRole( 'subscriber' );
 
 		// Get a comment
-		$comments = get_comments( array(
-			'post_id' => $this->_comment_post->ID
-		) );
-		$comment = array_pop( $comments );
+		$comments = get_comments(
+			array(
+				'post_id' => $this->_comment_post->ID,
+			)
+		);
+		$comment  = array_pop( $comments );
 
 		// Set up a default request
 		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
@@ -149,6 +158,7 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * Get comments with a bad nonce
 	 * Expects test to fail
+	 *
 	 * @return void
 	 */
 	public function test_bad_nonce() {
@@ -157,10 +167,12 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 		$this->_setRole( 'administrator' );
 
 		// Get a comment
-		$comments = get_comments( array(
-			'post_id' => $this->_comment_post->ID
-		) );
-		$comment = array_pop( $comments );
+		$comments = get_comments(
+			array(
+				'post_id' => $this->_comment_post->ID,
+			)
+		);
+		$comment  = array_pop( $comments );
 
 		// Set up a default request
 		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( uniqid() );
@@ -175,6 +187,7 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * Get comments for an invalid post
 	 * This should return valid XML
+	 *
 	 * @return void
 	 */
 	public function test_invalid_comment() {

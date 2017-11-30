@@ -17,6 +17,7 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * List of comments
+	 *
 	 * @var array
 	 */
 	protected $_comments = array();
@@ -26,7 +27,7 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 	 */
 	public function setUp() {
 		parent::setUp();
-		$post_id = self::factory()->post->create();
+		$post_id         = self::factory()->post->create();
 		$this->_comments = self::factory()->comment->create_post_comments( $post_id, 15 );
 		$this->_comments = array_map( 'get_comment', $this->_comments );
 	}
@@ -35,8 +36,8 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 	 * Clear the POST actions in between requests
 	 */
 	protected function _clear_post_action() {
-		unset($_POST['id']);
-		unset($_POST['new']);
+		unset( $_POST['id'] );
+		unset( $_POST['new'] );
 		$this->_last_response = '';
 	}
 
@@ -47,6 +48,7 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test as a privilged user (administrator)
 	 * Expects test to pass
+	 *
 	 * @param mixed $comment Comment object
 	 * @return void
 	 */
@@ -67,7 +69,7 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 		$_POST['_url']        = admin_url( 'edit-comments.php' );
 
 		// Save the comment status
-		$prev_status          = wp_get_comment_status( $comment->comment_ID );
+		$prev_status = wp_get_comment_status( $comment->comment_ID );
 
 		// Make the request
 		try {
@@ -87,7 +89,7 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 
 		// Check the status
 		$current = wp_get_comment_status( $comment->comment_ID );
-		if (in_array( $prev_status, array( 'unapproved', 'spam') ) ) {
+		if ( in_array( $prev_status, array( 'unapproved', 'spam' ) ) ) {
 			$this->assertEquals( 'approved', $current );
 		} else {
 			$this->assertEquals( 'unapproved', $current );
@@ -95,18 +97,19 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 
 		// The total is calculated based on a page break -OR- a random number.  Let's look for both possible outcomes
 		$comment_count = wp_count_comments( 0 );
-		$recalc_total = $comment_count->total_comments;
+		$recalc_total  = $comment_count->total_comments;
 
 		// Delta is not specified, it will always be 1 lower than the request
 		$total = $_POST['_total'] - 1;
 
 		// Check for either possible total
-		$this->assertTrue( in_array( (int) $xml->response[0]->comment[0]->supplemental[0]->total[0] , array( $total, $recalc_total ) ) );
+		$this->assertTrue( in_array( (int) $xml->response[0]->comment[0]->supplemental[0]->total[0], array( $total, $recalc_total ) ) );
 	}
 
 	/**
 	 * Test as a non-privileged user (subscriber)
 	 * Expects test to fail
+	 *
 	 * @param mixed $comment Comment object
 	 * @return void
 	 */
@@ -134,6 +137,7 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test with a bad nonce
 	 * Expects test to fail
+	 *
 	 * @param mixed $comment Comment object
 	 * @return void
 	 */
@@ -161,6 +165,7 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test with a bad id
 	 * Expects test to fail
+	 *
 	 * @return void
 	 */
 	public function test_with_bad_id() {
@@ -200,6 +205,7 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Dim a comment as an administrator (expects success)
+	 *
 	 * @return void
 	 */
 	public function test_ajax_comment_dim_actions_as_administrator() {
@@ -210,6 +216,7 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Dim a comment as a subscriber (expects permission denied)
+	 *
 	 * @return void
 	 */
 	public function test_ajax_comment_dim_actions_as_subscriber() {
@@ -219,6 +226,7 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Dim a comment with no id
+	 *
 	 * @return void
 	 */
 	public function test_ajax_dim_comment_no_id() {
@@ -228,6 +236,7 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Dim a comment with a bad nonce
+	 *
 	 * @return void
 	 */
 	public function test_ajax_dim_comment_bad_nonce() {

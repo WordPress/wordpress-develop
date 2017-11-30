@@ -50,7 +50,7 @@ class Tests_Post_GetPostClass extends WP_UnitTestCase {
 	public function test_with_custom_classes_and_no_post() {
 		$this->assertEquals( array(), get_post_class( '', null ) );
 		$this->assertEquals( array( 'foo' ), get_post_class( 'foo', null ) );
-		$this->assertEquals( array( 'foo', 'bar' ),  get_post_class( array( 'foo', 'bar' ), null ) );
+		$this->assertEquals( array( 'foo', 'bar' ), get_post_class( array( 'foo', 'bar' ), null ) );
 	}
 
 	/**
@@ -90,9 +90,24 @@ class Tests_Post_GetPostClass extends WP_UnitTestCase {
 	 */
 	public function test_with_utf8_term_slugs() {
 		register_taxonomy( 'wptests_tax', 'post' );
-		$term_id1 = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax', 'name' => 'Первая метка' ) );
-		$term_id2 = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax', 'name' => 'Вторая метка' ) );
-		$term_id3 = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax', 'name' => '25кадр' ) );
+		$term_id1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Первая метка',
+			)
+		);
+		$term_id2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'Вторая метка',
+			)
+		);
+		$term_id3 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => '25кадр',
+			)
+		);
 		wp_set_post_terms( $this->post_id, array( $term_id1, $term_id2, $term_id3 ), 'wptests_tax' );
 
 		$found = get_post_class( '', $this->post_id );
