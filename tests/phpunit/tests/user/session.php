@@ -10,7 +10,7 @@ class Tests_User_Session extends WP_UnitTestCase {
 	function setUp() {
 		parent::setUp();
 		remove_all_filters( 'session_token_manager' );
-		$user_id = self::factory()->user->create();
+		$user_id       = self::factory()->user->create();
 		$this->manager = WP_Session_Tokens::get_instance( $user_id );
 		$this->assertInstanceOf( 'WP_Session_Tokens', $this->manager );
 		$this->assertInstanceOf( 'WP_User_Meta_Session_Tokens', $this->manager );
@@ -18,7 +18,7 @@ class Tests_User_Session extends WP_UnitTestCase {
 
 	function test_verify_and_destroy_token() {
 		$expiration = time() + DAY_IN_SECONDS;
-		$token = $this->manager->create( $expiration );
+		$token      = $this->manager->create( $expiration );
 		$this->assertFalse( $this->manager->verify( 'foo' ) );
 		$this->assertTrue( $this->manager->verify( $token ) );
 		$this->manager->destroy( $token );
@@ -27,9 +27,9 @@ class Tests_User_Session extends WP_UnitTestCase {
 
 	function test_destroy_other_tokens() {
 		$expiration = time() + DAY_IN_SECONDS;
-		$token_1 = $this->manager->create( $expiration );
-		$token_2 = $this->manager->create( $expiration );
-		$token_3 = $this->manager->create( $expiration );
+		$token_1    = $this->manager->create( $expiration );
+		$token_2    = $this->manager->create( $expiration );
+		$token_3    = $this->manager->create( $expiration );
 		$this->assertTrue( $this->manager->verify( $token_1 ) );
 		$this->assertTrue( $this->manager->verify( $token_2 ) );
 		$this->assertTrue( $this->manager->verify( $token_3 ) );
@@ -41,8 +41,8 @@ class Tests_User_Session extends WP_UnitTestCase {
 
 	function test_destroy_all_tokens() {
 		$expiration = time() + DAY_IN_SECONDS;
-		$token_1 = $this->manager->create( $expiration );
-		$token_2 = $this->manager->create( $expiration );
+		$token_1    = $this->manager->create( $expiration );
+		$token_2    = $this->manager->create( $expiration );
 		$this->assertTrue( $this->manager->verify( $token_1 ) );
 		$this->assertTrue( $this->manager->verify( $token_2 ) );
 		$this->manager->destroy_all();

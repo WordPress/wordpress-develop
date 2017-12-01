@@ -37,10 +37,12 @@ class Tests_Rewrite_AddRewriteRule extends WP_UnitTestCase {
 		$pattern  = 'path/to/rewrite/([^/]+)/?$';
 		$redirect = 'index.php?test_var1=$matches[1]&test_var2=1';
 
-		add_rewrite_rule( $pattern, array(
-			'test_var1' => '$matches[1]',
-			'test_var2' => '1'
-		) );
+		add_rewrite_rule(
+			$pattern, array(
+				'test_var1' => '$matches[1]',
+				'test_var2' => '1',
+			)
+		);
 
 		flush_rewrite_rules();
 

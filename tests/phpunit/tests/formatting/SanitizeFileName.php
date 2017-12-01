@@ -11,10 +11,11 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 	}
 
 	function test_removes_special_chars() {
-		$special_chars = array("?", "[", "]", "/", "\\", "=", "<", ">", ":", ";", ",", "'", "\"", "&", "$", "#", "*", "(", ")", "|", "~", "`", "!", "{", "}", "%", "+", chr(0));
-		$string = 'test';
-		foreach ( $special_chars as $char )
+		$special_chars = array( '?', '[', ']', '/', '\\', '=', '<', '>', ':', ';', ',', "'", '"', '&', '$', '#', '*', '(', ')', '|', '~', '`', '!', '{', '}', '%', '+', chr( 0 ) );
+		$string        = 'test';
+		foreach ( $special_chars as $char ) {
 			$string .= $char;
+		}
 		$string .= 'test';
 		$this->assertEquals( 'testtest', sanitize_file_name( $string ) );
 	}
@@ -26,28 +27,28 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 	 */
 	function test_replace_spaces() {
 		$urls = array(
-			'unencoded space.png' => 'unencoded-space.png',
-			'encoded-space.jpg' => 'encoded-space.jpg',
-			'plus+space.jpg' => 'plusspace.jpg',
+			'unencoded space.png'  => 'unencoded-space.png',
+			'encoded-space.jpg'    => 'encoded-space.jpg',
+			'plus+space.jpg'       => 'plusspace.jpg',
 			'multi %20 +space.png' => 'multi-20-space.png',
 		);
 
-		foreach( $urls as $test => $expected ) {
+		foreach ( $urls as $test => $expected ) {
 			$this->assertEquals( $expected, sanitize_file_name( $test ) );
 		}
 	}
 
 	function test_replaces_any_number_of_hyphens_with_one_hyphen() {
-		$this->assertEquals("a-t-t", sanitize_file_name("a----t----t"));
+		$this->assertEquals( 'a-t-t', sanitize_file_name( 'a----t----t' ) );
 	}
 
 	function test_trims_trailing_hyphens() {
-		$this->assertEquals("a-t-t", sanitize_file_name("a----t----t----"));
+		$this->assertEquals( 'a-t-t', sanitize_file_name( 'a----t----t----' ) );
 	}
 
 	function test_replaces_any_amount_of_whitespace_with_one_hyphen() {
-		$this->assertEquals("a-t", sanitize_file_name("a          t"));
-		$this->assertEquals("a-t", sanitize_file_name("a    \n\n\nt"));
+		$this->assertEquals( 'a-t', sanitize_file_name( 'a          t' ) );
+		$this->assertEquals( 'a-t', sanitize_file_name( "a    \n\n\nt" ) );
 	}
 
 	/**

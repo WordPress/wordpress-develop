@@ -12,7 +12,7 @@ abstract class WP_Image_UnitTestCase extends WP_UnitTestCase {
 		parent::setUp();
 
 		if ( ! call_user_func( array( $this->editor_engine, 'test' ) ) ) {
-			$this->markTestSkipped( sprintf('The image editor engine %s is not supported on this system', $this->editor_engine) );
+			$this->markTestSkipped( sprintf( 'The image editor engine %s is not supported on this system', $this->editor_engine ) );
 		}
 
 		add_filter( 'wp_image_editors', array( $this, 'setEngine' ), 10, 2 );
@@ -28,6 +28,7 @@ abstract class WP_Image_UnitTestCase extends WP_UnitTestCase {
 
 	/**
 	 * Override the image editor engine
+	 *
 	 * @return string
 	 */
 	public function setEngine( $editors ) {
@@ -42,7 +43,7 @@ abstract class WP_Image_UnitTestCase extends WP_UnitTestCase {
 	 * @param  int $alpha
 	 */
 	protected function assertImageAlphaAtPointGD( $image_path, $point, $alpha ) {
-		$im = imagecreatefrompng( $image_path );
+		$im  = imagecreatefrompng( $image_path );
 		$rgb = imagecolorat( $im, $point[0], $point[1] );
 
 		$colors = imagecolorsforindex( $im, $rgb );
@@ -58,7 +59,7 @@ abstract class WP_Image_UnitTestCase extends WP_UnitTestCase {
 	 * @param int $expected
 	 */
 	protected function assertImageAlphaAtPointImagick( $image_path, $point, $expected ) {
-		$im = new Imagick( $image_path );
+		$im    = new Imagick( $image_path );
 		$pixel = $im->getImagePixelColor( $point[0], $point[1] );
 		$color = $pixel->getColorValue( imagick::COLOR_ALPHA );
 		$this->assertEquals( $expected, $color );
@@ -72,9 +73,9 @@ abstract class WP_Image_UnitTestCase extends WP_UnitTestCase {
 	 * @param int    $height   Height to verify.
 	 */
 	protected function assertImageDimensions( $filename, $width, $height ) {
-		$detected_width = 0;
+		$detected_width  = 0;
 		$detected_height = 0;
-		$image_size = @getimagesize( $filename );
+		$image_size      = @getimagesize( $filename );
 
 		if ( isset( $image_size[0] ) ) {
 			$detected_width = $image_size[0];

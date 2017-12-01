@@ -46,7 +46,7 @@ class Tests_Link_GetDashboardUrl extends WP_UnitTestCase {
 		add_filter( 'get_blogs_of_user', '__return_empty_array' );
 
 		$expected = admin_url();
-		$result = get_dashboard_url( self::$user_id );
+		$result   = get_dashboard_url( self::$user_id );
 
 		revoke_super_admin( self::$user_id );
 
@@ -63,10 +63,10 @@ class Tests_Link_GetDashboardUrl extends WP_UnitTestCase {
 		remove_user_from_blog( self::$user_id, get_current_blog_id() );
 
 		$expected = get_admin_url( $site_id );
-		$result = get_dashboard_url( self::$user_id );
+		$result   = get_dashboard_url( self::$user_id );
 
 		remove_user_from_blog( self::$user_id, $site_id );
-		add_user_to_blog( get_current_blog_id(), self::$user_id, 'administrator');
+		add_user_to_blog( get_current_blog_id(), self::$user_id, 'administrator' );
 
 		wpmu_delete_blog( $site_id, true );
 

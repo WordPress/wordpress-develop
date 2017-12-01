@@ -23,9 +23,11 @@ class Tests_Comment_GetCommentAuthorEmailLink extends WP_UnitTestCase {
 	}
 
 	public static function wpSetUpBeforeClass( $factory ) {
-		self::$comment = $factory->comment->create_and_get( array(
-			'comment_author_email' => 'foo@example.org'
-		) );
+		self::$comment = $factory->comment->create_and_get(
+			array(
+				'comment_author_email' => 'foo@example.org',
+			)
+		);
 	}
 
 	public function test_global_comment_with_default_parameters() {
@@ -43,9 +45,11 @@ class Tests_Comment_GetCommentAuthorEmailLink extends WP_UnitTestCase {
 		$linktext = 'linktext';
 		$before   = 'before';
 		$after    = 'after';
-		$comment  = self::factory()->comment->create_and_get( array(
-			'comment_author_email' => $email = 'baz@example.org'
-		) );
+		$comment  = self::factory()->comment->create_and_get(
+			array(
+				'comment_author_email' => $email = 'baz@example.org',
+			)
+		);
 
 		$expected = sprintf( '%1$s<a href="mailto:%2$s">%3$s</a>%4$s', $before, $email, $linktext, $after );
 
@@ -84,9 +88,11 @@ class Tests_Comment_GetCommentAuthorEmailLink extends WP_UnitTestCase {
 	 * @ticket 36571
 	 */
 	public function test_comment_param_should_override_global() {
-		$comment = self::factory()->comment->create_and_get( array(
-			'comment_author_email' => $email = 'bar@example.org'
-		) );
+		$comment = self::factory()->comment->create_and_get(
+			array(
+				'comment_author_email' => $email = 'bar@example.org',
+			)
+		);
 
 		$expected = sprintf( '<a href="mailto:%1$s">%2$s</a>', $email, $email );
 

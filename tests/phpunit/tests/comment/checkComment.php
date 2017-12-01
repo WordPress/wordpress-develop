@@ -34,8 +34,8 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 	}
 
 	public function test_should_return_true_when_comment_whitelist_is_enabled_and_author_has_approved_comment() {
-		$post_id = self::factory()->post->create();
-		$prev_args = array(
+		$post_id         = self::factory()->post->create();
+		$prev_args       = array(
 			'comment_post_ID'      => $post_id,
 			'comment_content'      => 'Can we build it?',
 			'comment_approved'     => 0,
@@ -58,10 +58,12 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 		$this->assertFalse( $results );
 
 		// Approve the previous comment.
-		wp_update_comment( array(
-			'comment_ID'       => $prev_comment_id,
-			'comment_approved' => 1,
-		) );
+		wp_update_comment(
+			array(
+				'comment_ID'       => $prev_comment_id,
+				'comment_approved' => 1,
+			)
+		);
 		$results = check_comment( $author, $author_email, $author_url, $comment, $author_ip, $user_agent, $comment_type );
 		$this->assertTrue( $results );
 	}
@@ -77,7 +79,7 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 		$user_agent   = '';
 		$comment_type = '';
 
-		update_option( 'moderation_keys',"foo\nbar\nscoop" );
+		update_option( 'moderation_keys', "foo\nbar\nscoop" );
 		$results = check_comment( $author, $author_email, $author_url, $comment, $author_ip, $user_agent, $comment_type );
 		$this->assertFalse( $results );
 	}
@@ -93,7 +95,7 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 		$user_agent   = '';
 		$comment_type = '';
 
-		update_option( 'moderation_keys',"foo\nbar" );
+		update_option( 'moderation_keys', "foo\nbar" );
 		$results = check_comment( $author, $author_email, $author_url, $comment, $author_ip, $user_agent, $comment_type );
 		$this->assertTrue( $results );
 	}
@@ -134,15 +136,24 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 	 * @ticket 28603
 	 */
 	public function test_should_return_true_when_comment_whitelist_is_enabled_and_user_has_previously_approved_comments_with_different_email() {
-		$subscriber_id = $this->factory()->user->create( array(
-			'role' => 'subscriber',
-			'email' => 'sub@example.com',
-		) );
+		$subscriber_id = $this->factory()->user->create(
+			array(
+				'role'  => 'subscriber',
+				'email' => 'sub@example.com',
+			)
+		);
 
 		// Make sure comment author has an approved comment.
-		$this->factory->comment->create( array( 'user_id' => $subscriber_id, 'comment_approved' => '1', 'comment_author' => 'foo', 'comment_author_email' => 'sub@example.com' ) );
+		$this->factory->comment->create(
+			array(
+				'user_id'              => $subscriber_id,
+				'comment_approved'     => '1',
+				'comment_author'       => 'foo',
+				'comment_author_email' => 'sub@example.com',
+			)
+		);
 
-		$subscriber_user = new WP_User( $subscriber_id );
+		$subscriber_user             = new WP_User( $subscriber_id );
 		$subscriber_user->user_email = 'newsub@example.com';
 
 		wp_update_user( $subscriber_user );
@@ -157,12 +168,14 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 	 * @ticket 28603
 	 */
 	public function test_should_return_false_when_comment_whitelist_is_enabled_and_user_does_not_have_a_previously_approved_comment_with_any_email() {
-		$subscriber_id = $this->factory()->user->create( array(
-			'role' => 'subscriber',
-			'email' => 'zig@example.com',
-		) );
+		$subscriber_id = $this->factory()->user->create(
+			array(
+				'role'  => 'subscriber',
+				'email' => 'zig@example.com',
+			)
+		);
 
-		$subscriber_user = new WP_User( $subscriber_id );
+		$subscriber_user             = new WP_User( $subscriber_id );
 		$subscriber_user->user_email = 'zag@example.com';
 
 		wp_update_user( $subscriber_user );

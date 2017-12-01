@@ -12,9 +12,11 @@ class Tests_Term_WpComment extends WP_UnitTestCase {
 		// Ensure that there is a comment with ID 1.
 		$comment_1 = WP_Comment::get_instance( 1 );
 		if ( ! $comment_1 ) {
-			$wpdb->insert( $wpdb->comments, array(
-				'comment_ID' => 1,
-			) );
+			$wpdb->insert(
+				$wpdb->comments, array(
+					'comment_ID' => 1,
+				)
+			);
 
 			clean_comment_cache( 1 );
 		}

@@ -14,24 +14,30 @@ class Tests_General_DocumentTitle extends WP_UnitTestCase {
 	public static $post_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$category_id = $factory->category->create( array(
-			'name' => 'test_category',
-		) );
+		self::$category_id = $factory->category->create(
+			array(
+				'name' => 'test_category',
+			)
+		);
 
-		self::$author_id = $factory->user->create( array(
-			'role'        => 'author',
-			'user_login'  => 'test_author',
-			'description' => 'test_author',
-		) );
+		self::$author_id = $factory->user->create(
+			array(
+				'role'        => 'author',
+				'user_login'  => 'test_author',
+				'description' => 'test_author',
+			)
+		);
 
-		self::$post_id = $factory->post->create( array(
-			'post_author'  => self::$author_id,
-			'post_status'  => 'publish',
-			'post_title'   => 'test_title',
-			'post_type'    => 'post',
-			'post_date'    => '2015-09-22 18:52:17',
-			'category'     => self::$category_id,
-		) );
+		self::$post_id = $factory->post->create(
+			array(
+				'post_author' => self::$author_id,
+				'post_status' => 'publish',
+				'post_title'  => 'test_title',
+				'post_type'   => 'post',
+				'post_date'   => '2015-09-22 18:52:17',
+				'category'    => self::$category_id,
+			)
+		);
 	}
 
 	function setUp() {
@@ -83,7 +89,14 @@ class Tests_General_DocumentTitle extends WP_UnitTestCase {
 
 	function test_front_page_title() {
 		update_option( 'show_on_front', 'page' );
-		update_option( 'page_on_front', $this->factory->post->create( array( 'post_title' => 'front-page', 'post_type' => 'page' ) ) );
+		update_option(
+			'page_on_front', $this->factory->post->create(
+				array(
+					'post_title' => 'front-page',
+					'post_type'  => 'page',
+				)
+			)
+		);
 		add_filter( 'document_title_parts', array( $this, '_front_page_title_parts' ) );
 
 		$this->go_to( '/' );
@@ -104,7 +117,12 @@ class Tests_General_DocumentTitle extends WP_UnitTestCase {
 	}
 
 	function test_home_title() {
-		$blog_page_id = $this->factory->post->create( array( 'post_title' => 'blog-page', 'post_type' => 'page' ) );
+		$blog_page_id = $this->factory->post->create(
+			array(
+				'post_title' => 'blog-page',
+				'post_type'  => 'page',
+			)
+		);
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_for_posts', $blog_page_id );
 
@@ -165,17 +183,21 @@ class Tests_General_DocumentTitle extends WP_UnitTestCase {
 	}
 
 	function test_post_type_archive_title() {
-		register_post_type( 'cpt', array(
-			'public'      => true,
-			'has_archive' => true,
-			'labels'      => array(
-				'name' => 'test_cpt',
-			),
-		) );
+		register_post_type(
+			'cpt', array(
+				'public'      => true,
+				'has_archive' => true,
+				'labels'      => array(
+					'name' => 'test_cpt',
+				),
+			)
+		);
 
-		$this->factory->post->create( array(
-			'post_type' => 'cpt',
-		) );
+		$this->factory->post->create(
+			array(
+				'post_type' => 'cpt',
+			)
+		);
 
 		$this->go_to( '?post_type=cpt' );
 

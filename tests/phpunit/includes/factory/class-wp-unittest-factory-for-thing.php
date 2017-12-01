@@ -17,7 +17,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * {@link WP_UnitTest_Generator_Locale_Name}, {@link WP_UnitTest_Factory_Callback_After_Create}.
 	 */
 	function __construct( $factory, $default_generation_definitions = array() ) {
-		$this->factory = $factory;
+		$this->factory                        = $factory;
 		$this->default_generation_definitions = $default_generation_definitions;
 	}
 
@@ -25,19 +25,22 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	abstract function update_object( $object, $fields );
 
 	function create( $args = array(), $generation_definitions = null ) {
-		if ( is_null( $generation_definitions ) )
+		if ( is_null( $generation_definitions ) ) {
 			$generation_definitions = $this->default_generation_definitions;
+		}
 
 		$generated_args = $this->generate_args( $args, $generation_definitions, $callbacks );
-		$created = $this->create_object( $generated_args );
-		if ( !$created || is_wp_error( $created ) )
+		$created        = $this->create_object( $generated_args );
+		if ( ! $created || is_wp_error( $created ) ) {
 			return $created;
+		}
 
 		if ( $callbacks ) {
 			$updated_fields = $this->apply_callbacks( $callbacks, $created );
-			$save_result = $this->update_object( $created, $updated_fields );
-			if ( !$save_result || is_wp_error( $save_result ) )
+			$save_result    = $this->update_object( $created, $updated_fields );
+			if ( ! $save_result || is_wp_error( $save_result ) ) {
 				return $save_result;
+			}
 		}
 		return $created;
 	}
@@ -59,20 +62,21 @@ abstract class WP_UnitTest_Factory_For_Thing {
 
 	function generate_args( $args = array(), $generation_definitions = null, &$callbacks = null ) {
 		$callbacks = array();
-		if ( is_null( $generation_definitions ) )
+		if ( is_null( $generation_definitions ) ) {
 			$generation_definitions = $this->default_generation_definitions;
+		}
 
 		// Use the same incrementor for all fields belonging to this object.
 		$gen  = new WP_UnitTest_Generator_Sequence();
 		$incr = $gen->get_incr();
 
-		foreach( array_keys( $generation_definitions ) as $field_name ) {
-			if ( !isset( $args[$field_name] ) ) {
-				$generator = $generation_definitions[$field_name];
+		foreach ( array_keys( $generation_definitions ) as $field_name ) {
+			if ( ! isset( $args[ $field_name ] ) ) {
+				$generator = $generation_definitions[ $field_name ];
 				if ( is_scalar( $generator ) ) {
-					$args[$field_name] = $generator;
+					$args[ $field_name ] = $generator;
 				} elseif ( is_object( $generator ) && method_exists( $generator, 'call' ) ) {
-					$callbacks[$field_name] = $generator;
+					$callbacks[ $field_name ] = $generator;
 				} elseif ( is_object( $generator ) ) {
 					$args[ $field_name ] = sprintf( $generator->get_template_string(), $incr );
 				} else {
@@ -86,8 +90,8 @@ abstract class WP_UnitTest_Factory_For_Thing {
 
 	function apply_callbacks( $callbacks, $created ) {
 		$updated_fields = array();
-		foreach( $callbacks as $field_name => $generator ) {
-			$updated_fields[$field_name] = $generator->call( $created );
+		foreach ( $callbacks as $field_name => $generator ) {
+			$updated_fields[ $field_name ] = $generator->call( $created );
 		}
 		return $updated_fields;
 	}
@@ -96,12 +100,12 @@ abstract class WP_UnitTest_Factory_For_Thing {
 		return new WP_UnitTest_Factory_Callback_After_Create( $function );
 	}
 
-	function addslashes_deep($value) {
+	function addslashes_deep( $value ) {
 		if ( is_array( $value ) ) {
 			$value = array_map( array( $this, 'addslashes_deep' ), $value );
 		} elseif ( is_object( $value ) ) {
 			$vars = get_object_vars( $value );
-			foreach ($vars as $key=>$data) {
+			foreach ( $vars as $key => $data ) {
 				$value->{$key} = $this->addslashes_deep( $data );
 			}
 		} elseif ( is_string( $value ) ) {

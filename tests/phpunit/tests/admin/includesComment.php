@@ -27,18 +27,22 @@ class Tests_Admin_IncludesComment extends WP_UnitTestCase {
 	public static function wpSetUpBeforeClass( $factory ) {
 		self::$post_id = $factory->post->create();
 
-		self::$comment_ids[] = $factory->comment->create( array(
-			'comment_author'   => 1,
-			'comment_date'     => '2014-05-06 12:00:00',
-			'comment_date_gmt' => '2014-05-06 07:00:00',
-			'comment_post_ID'  => self::$post_id,
-		) );
+		self::$comment_ids[] = $factory->comment->create(
+			array(
+				'comment_author'   => 1,
+				'comment_date'     => '2014-05-06 12:00:00',
+				'comment_date_gmt' => '2014-05-06 07:00:00',
+				'comment_post_ID'  => self::$post_id,
+			)
+		);
 
-		self::$comment_ids[] = $factory->comment->create( array(
-			'comment_author'  => 2,
-			'comment_date'    => '2004-01-02 12:00:00',
-			'comment_post_ID' => self::$post_id,
-		) );
+		self::$comment_ids[] = $factory->comment->create(
+			array(
+				'comment_author'  => 2,
+				'comment_date'    => '2004-01-02 12:00:00',
+				'comment_post_ID' => self::$post_id,
+			)
+		);
 	}
 
 	/**

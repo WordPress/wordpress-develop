@@ -297,10 +297,12 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	public function test_unregister_post_type_removes_query_vars() {
 		global $wp;
 
-		register_post_type( 'foo', array(
-			'public'    => true,
-			'query_var' => 'bar',
-		) );
+		register_post_type(
+			'foo', array(
+				'public'    => true,
+				'query_var' => 'bar',
+			)
+		);
 
 		$this->assertInternalType( 'int', array_search( 'bar', $wp->public_query_vars ) );
 		$this->assertTrue( unregister_post_type( 'foo' ) );
@@ -315,10 +317,12 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 		global $wp_rewrite;
 
-		register_post_type( 'foo', array(
-			'public'    => true,
-			'query_var' => 'bar',
-		) );
+		register_post_type(
+			'foo', array(
+				'public'    => true,
+				'query_var' => 'bar',
+			)
+		);
 
 		$count_before = count( $wp_rewrite->rewritereplace );
 
@@ -338,10 +342,12 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 		global $wp_rewrite;
 
-		register_post_type( 'foo', array(
-			'public'      => true,
-			'has_archive' => true,
-		) );
+		register_post_type(
+			'foo', array(
+				'public'      => true,
+				'has_archive' => true,
+			)
+		);
 
 		$this->assertContains( 'index.php?post_type=foo', $wp_rewrite->extra_rules_top );
 		$this->assertTrue( unregister_post_type( 'foo' ) );
@@ -354,11 +360,13 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	public function test_unregister_post_type_removes_custom_meta_capabilities() {
 		global $post_type_meta_caps;
 
-		register_post_type( 'foo', array(
-			'public'          => true,
-			'capability_type' => 'bar',
-			'map_meta_cap' => true,
-		) );
+		register_post_type(
+			'foo', array(
+				'public'          => true,
+				'capability_type' => 'bar',
+				'map_meta_cap'    => true,
+			)
+		);
 
 		$this->assertSame( 'read_post', $post_type_meta_caps['read_bar'] );
 		$this->assertSame( 'delete_post', $post_type_meta_caps['delete_bar'] );
@@ -377,10 +385,12 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	public function test_unregister_post_type_removes_post_type_supports() {
 		global $_wp_post_type_features;
 
-		register_post_type( 'foo', array(
-			'public'   => true,
-			'supports' => array( 'editor', 'author', 'title' ),
-		) );
+		register_post_type(
+			'foo', array(
+				'public'   => true,
+				'supports' => array( 'editor', 'author', 'title' ),
+			)
+		);
 
 		$this->assertEqualSetsWithIndex(
 			array(
@@ -400,10 +410,12 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	public function test_unregister_post_type_removes_post_type_from_taxonomies() {
 		global $wp_taxonomies;
 
-		register_post_type( 'foo', array(
-			'public'     => true,
-			'taxonomies' => array( 'category', 'post_tag' ),
-		) );
+		register_post_type(
+			'foo', array(
+				'public'     => true,
+				'taxonomies' => array( 'category', 'post_tag' ),
+			)
+		);
 
 		$this->assertInternalType( 'int', array_search( 'foo', $wp_taxonomies['category']->object_type, true ) );
 		$this->assertInternalType( 'int', array_search( 'foo', $wp_taxonomies['post_tag']->object_type, true ) );
@@ -419,9 +431,11 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	public function test_unregister_post_type_removes_the_future_post_hooks() {
 		global $wp_filter;
 
-		register_post_type( 'foo', array(
-			'public' => true,
-		) );
+		register_post_type(
+			'foo', array(
+				'public' => true,
+			)
+		);
 
 		$this->assertArrayHasKey( 'future_foo', $wp_filter );
 		$this->assertSame( 1, count( $wp_filter['future_foo']->callbacks ) );
@@ -435,10 +449,12 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	public function test_unregister_post_type_removes_meta_box_callback() {
 		global $wp_filter;
 
-		register_post_type( 'foo', array(
-			'public'               => true,
-			'register_meta_box_cb' => '__return_empty_string',
-		) );
+		register_post_type(
+			'foo', array(
+				'public'               => true,
+				'register_meta_box_cb' => '__return_empty_string',
+			)
+		);
 
 		$this->assertArrayHasKey( 'add_meta_boxes_foo', $wp_filter );
 		$this->assertSame( 1, count( $wp_filter['add_meta_boxes_foo']->callbacks ) );
@@ -452,9 +468,11 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	public function test_unregister_post_type_removes_post_type_from_global() {
 		global $wp_post_types;
 
-		register_post_type( 'foo', array(
-			'public' => true,
-		) );
+		register_post_type(
+			'foo', array(
+				'public' => true,
+			)
+		);
 
 		$this->assertInternalType( 'object', $wp_post_types['foo'] );
 		$this->assertInternalType( 'object', get_post_type_object( 'foo' ) );
@@ -469,9 +487,11 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 * @ticket 14761
 	 */
 	public function test_post_type_does_not_exist_after_unregister_post_type() {
-		register_post_type( 'foo', array(
-			'public' => true,
-		) );
+		register_post_type(
+			'foo', array(
+				'public' => true,
+			)
+		);
 
 		$this->assertTrue( unregister_post_type( 'foo' ) );
 

@@ -53,10 +53,10 @@ class MockPHPMailer extends PHPMailer {
 	 */
 	public function get_recipient( $address_type, $mock_sent_index = 0, $recipient_index = 0 ) {
 		$retval = false;
-		$mock = $this->get_sent( $mock_sent_index );
+		$mock   = $this->get_sent( $mock_sent_index );
 		if ( $mock ) {
 			if ( isset( $mock->{$address_type}[ $recipient_index ] ) ) {
-				$address_index = $mock->{$address_type}[ $recipient_index ];
+				$address_index  = $mock->{$address_type}[ $recipient_index ];
 				$recipient_data = array(
 					'address' => ( isset( $address_index[0] ) && ! empty( $address_index[0] ) ) ? $address_index[0] : 'No address set',
 					'name'    => ( isset( $address_index[1] ) && ! empty( $address_index[1] ) ) ? $address_index[1] : 'No name set',

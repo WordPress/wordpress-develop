@@ -23,7 +23,8 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 		$t2 = wp_insert_term( 'Foo', 'wptests_tax_2' );
 
 		// Manually modify because shared terms shouldn't naturally occur.
-		$wpdb->update( $wpdb->term_taxonomy,
+		$wpdb->update(
+			$wpdb->term_taxonomy,
 			array( 'term_id' => $t1['term_id'] ),
 			array( 'term_taxonomy_id' => $t2['term_taxonomy_id'] ),
 			array( '%d' ),
@@ -32,13 +33,13 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 
 		return array(
 			array(
-				'term_id' => $t1['term_id'],
-				'old_term_id' => $t1['term_id'],
+				'term_id'          => $t1['term_id'],
+				'old_term_id'      => $t1['term_id'],
 				'term_taxonomy_id' => $t1['term_taxonomy_id'],
 			),
 			array(
-				'term_id' => $t1['term_id'],
-				'old_term_id' => $t2['term_id'],
+				'term_id'          => $t1['term_id'],
+				'old_term_id'      => $t2['term_id'],
 				'term_taxonomy_id' => $t2['term_taxonomy_id'],
 			),
 		);
@@ -85,7 +86,7 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 		clean_term_cache( $t, 'wptests_tax' );
 
 		// Prime cache.
-		$term_a = get_term( $t, 'wptests_tax' );
+		$term_a      = get_term( $t, 'wptests_tax' );
 		$num_queries = $wpdb->num_queries;
 
 		// Second call shouldn't require a database query.
@@ -100,14 +101,14 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 	}
 
 	public function test_output_array_a() {
-		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
+		$t    = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 		$term = get_term( $t, 'wptests_tax', ARRAY_A );
 		$this->assertInternalType( 'array', $term );
 		$this->assertTrue( isset( $term['term_id'] ) );
 	}
 
 	public function test_output_array_n() {
-		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
+		$t    = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 		$term = get_term( $t, 'wptests_tax', ARRAY_N );
 		$this->assertInternalType( 'array', $term );
 		$this->assertFalse( isset( $term['term_id'] ) );
@@ -145,7 +146,7 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 	/**
 	 * @ticket 34332
 	 */
-	 public function test_should_return_null_when_provided_taxonomy_does_not_match_actual_term_taxonomy() {
+	public function test_should_return_null_when_provided_taxonomy_does_not_match_actual_term_taxonomy() {
 		$term_id = self::factory()->term->create( array( 'taxonomy' => 'post_tag' ) );
 		$this->assertNull( get_term( $term_id, 'category' ) );
 	}

@@ -9,10 +9,12 @@ class Tests_L10n_loadTextdomain extends WP_UnitTestCase {
 	protected static $user_id;
 
 	public static function wpSetUpBeforeClass( $factory ) {
-		self::$user_id = $factory->user->create( array(
-			'role'   => 'administrator',
-			'locale' => 'de_DE',
-		) );
+		self::$user_id = $factory->user->create(
+			array(
+				'role'   => 'administrator',
+				'locale' => 'de_DE',
+			)
+		);
 	}
 
 	public function setUp() {
@@ -37,11 +39,11 @@ class Tests_L10n_loadTextdomain extends WP_UnitTestCase {
 		return $locale;
 	}
 
-	public function test_is_textdomain_loaded(  ) {
+	public function test_is_textdomain_loaded() {
 		$this->assertFalse( is_textdomain_loaded( 'wp-tests-domain' ) );
 	}
 
-	public function test_unload_textdomain(  ) {
+	public function test_unload_textdomain() {
 		$this->assertFalse( unload_textdomain( 'wp-tests-domain' ) );
 	}
 
@@ -53,7 +55,7 @@ class Tests_L10n_loadTextdomain extends WP_UnitTestCase {
 		$this->assertTrue( $loaded );
 	}
 
-	public function test_is_textdomain_loaded_after_loading(  ) {
+	public function test_is_textdomain_loaded_after_loading() {
 		load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/pomo/simple.mo' );
 
 		$loaded = is_textdomain_loaded( 'wp-tests-domain' );
@@ -63,13 +65,13 @@ class Tests_L10n_loadTextdomain extends WP_UnitTestCase {
 		$this->assertTrue( $loaded );
 	}
 
-	public function test_unload_textdomain_after_loading(  ) {
+	public function test_unload_textdomain_after_loading() {
 		load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/pomo/simple.mo' );
 
 		$this->assertTrue( unload_textdomain( 'wp-tests-domain' ) );
 	}
 
-	public function test_is_textdomain_loaded_after_unloading(  ) {
+	public function test_is_textdomain_loaded_after_unloading() {
 		load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/pomo/simple.mo' );
 
 		unload_textdomain( 'wp-tests-domain' );
@@ -87,7 +89,7 @@ class Tests_L10n_loadTextdomain extends WP_UnitTestCase {
 	/**
 	 * @ticket 21319
 	 */
-	public function test_is_textdomain_loaded_non_existent_file(  ) {
+	public function test_is_textdomain_loaded_non_existent_file() {
 		load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/non-existent-file' );
 
 		$this->assertFalse( is_textdomain_loaded( 'wp-tests-domain' ) );
@@ -96,7 +98,7 @@ class Tests_L10n_loadTextdomain extends WP_UnitTestCase {
 	/**
 	 * @ticket 21319
 	 */
-	public function test_get_translations_for_domain_non_existent_file(  ) {
+	public function test_get_translations_for_domain_non_existent_file() {
 		load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/non-existent-file' );
 
 		$this->assertInstanceOf( 'NOOP_Translations', get_translations_for_domain( 'wp-tests-domain' ) );

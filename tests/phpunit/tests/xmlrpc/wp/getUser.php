@@ -12,8 +12,9 @@ class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 
 		// create a super-admin
 		$this->administrator_id = $this->make_user_by_role( 'administrator' );
-		if ( is_multisite() )
+		if ( is_multisite() ) {
 			grant_super_admin( $this->administrator_id );
+		}
 	}
 
 	function tearDown() {
@@ -54,22 +55,22 @@ class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 
 	function test_valid_user() {
 		$registered_date = strtotime( '-1 day' );
-		$user_data = array(
-			'user_login' => 'getusertestuser',
-			'user_pass' => 'password',
-			'first_name' => 'First',
-			'last_name' => 'Last',
-			'description' => 'I love WordPress',
-			'user_email' => 'getUserTestUser@example.com',
-			'nickname' => 'nickname',
-			'user_nicename' => 'nicename',
-			'display_name' => 'First Last',
-			'user_url' => 'http://www.example.com/testuser',
-			'role' => 'author',
-			'aim' => 'wordpress',
-			'user_registered' => strftime( "%Y-%m-%d %H:%M:%S", $registered_date )
+		$user_data       = array(
+			'user_login'      => 'getusertestuser',
+			'user_pass'       => 'password',
+			'first_name'      => 'First',
+			'last_name'       => 'Last',
+			'description'     => 'I love WordPress',
+			'user_email'      => 'getUserTestUser@example.com',
+			'nickname'        => 'nickname',
+			'user_nicename'   => 'nicename',
+			'display_name'    => 'First Last',
+			'user_url'        => 'http://www.example.com/testuser',
+			'role'            => 'author',
+			'aim'             => 'wordpress',
+			'user_registered' => strftime( '%Y-%m-%d %H:%M:%S', $registered_date ),
 		);
-		$user_id = wp_insert_user( $user_data );
+		$user_id         = wp_insert_user( $user_data );
 
 		$result = $this->myxmlrpcserver->wp_getUser( array( 1, 'administrator', 'administrator', $user_id ) );
 		$this->assertNotIXRError( $result );
@@ -126,7 +127,7 @@ class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 		$this->assertEquals( $editor_id, $result['user_id'] );
 
 		$expected_fields = array( 'user_id', 'username', 'email', 'registered', 'display_name', 'nicename' );
-		$keys = array_keys( $result );
+		$keys            = array_keys( $result );
 		sort( $expected_fields );
 		sort( $keys );
 		$this->assertEqualSets( $expected_fields, $keys );
@@ -142,7 +143,7 @@ class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 		$this->assertEquals( $editor_id, $result['user_id'] );
 
 		$expected_fields = array( 'user_id', 'email', 'bio' );
-		$keys = array_keys( $result );
+		$keys            = array_keys( $result );
 		sort( $expected_fields );
 		sort( $keys );
 		$this->assertEqualSets( $expected_fields, $keys );

@@ -18,92 +18,108 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 	}
 
 	public function test_construct_with_relation_or_lowercase() {
-		$tq = new WP_Tax_Query( array(
-			'relation' => 'or',
-		) );
+		$tq = new WP_Tax_Query(
+			array(
+				'relation' => 'or',
+			)
+		);
 		$this->assertSame( 'OR', $tq->relation );
 	}
 
 	public function test_construct_with_relation_or_uppercase() {
-		$tq = new WP_Tax_Query( array(
-			'relation' => 'OR',
-		) );
+		$tq = new WP_Tax_Query(
+			array(
+				'relation' => 'OR',
+			)
+		);
 		$this->assertSame( 'OR', $tq->relation );
 	}
 
 	public function test_construct_with_relation_other() {
-		$tq = new WP_Tax_Query( array(
-			'relation' => 'foo',
-		) );
+		$tq = new WP_Tax_Query(
+			array(
+				'relation' => 'foo',
+			)
+		);
 		$this->assertSame( 'AND', $tq->relation );
 	}
 
 	public function test_construct_fill_missing_query_params() {
-		$tq = new WP_Tax_Query( array(
-			array(),
-		) );
+		$tq = new WP_Tax_Query(
+			array(
+				array(),
+			)
+		);
 
 		$expected = array(
-			'taxonomy' => '',
-			'terms' => array(),
+			'taxonomy'         => '',
+			'terms'            => array(),
 			'include_children' => true,
-			'field' => 'term_id',
-			'operator' => 'IN',
+			'field'            => 'term_id',
+			'operator'         => 'IN',
 		);
 
 		$this->assertEquals( $expected, $tq->queries[0] );
 	}
 
 	public function test_construct_fill_missing_query_params_merge_with_passed_values() {
-		$tq = new WP_Tax_Query( array(
+		$tq = new WP_Tax_Query(
 			array(
-				'taxonomy' => 'foo',
-				'include_children' => false,
-				'foo' => 'bar',
-			),
-		) );
+				array(
+					'taxonomy'         => 'foo',
+					'include_children' => false,
+					'foo'              => 'bar',
+				),
+			)
+		);
 
 		$expected = array(
-			'taxonomy' => 'foo',
-			'terms' => array(),
+			'taxonomy'         => 'foo',
+			'terms'            => array(),
 			'include_children' => false,
-			'field' => 'term_id',
-			'operator' => 'IN',
-			'foo' => 'bar',
+			'field'            => 'term_id',
+			'operator'         => 'IN',
+			'foo'              => 'bar',
 		);
 
 		$this->assertEquals( $expected, $tq->queries[0] );
 	}
 
 	public function test_construct_cast_terms_to_array() {
-		$tq = new WP_Tax_Query( array(
+		$tq = new WP_Tax_Query(
 			array(
-				'terms' => 'foo',
-			),
-		) );
+				array(
+					'terms' => 'foo',
+				),
+			)
+		);
 
-		$this->assertEquals( array( 'foo', ), $tq->queries[0]['terms'] );
+		$this->assertEquals( array( 'foo' ), $tq->queries[0]['terms'] );
 	}
 
 	/**
 	 * @ticket 30117
 	 */
 	public function test_construct_empty_strings_array_members_should_be_discarded() {
-		$q = new WP_Tax_Query( array(
-			'',
+		$q = new WP_Tax_Query(
 			array(
-				'taxonomy' => 'post_tag',
-				'terms' => 'foo',
-			),
-		) );
+				'',
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => 'foo',
+				),
+			)
+		);
 
 		$this->assertSame( 1, count( $q->queries ) );
 	}
 
 	public function test_transform_query_terms_empty() {
-		$tq = new WP_Tax_Query( array(
-			array(),
-		) );
+		$tq    = new WP_Tax_Query(
+			array(
+				array(),
+			)
+		);
 		$query = $tq->queries[0];
 
 		$tq->transform_query( $tq->queries[0], 'term_id' );
@@ -112,11 +128,13 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 	}
 
 	public function test_transform_query_field_same_as_resulting_field() {
-		$tq = new WP_Tax_Query( array(
+		$tq    = new WP_Tax_Query(
 			array(
-				'field' => 'term_id',
-			),
-		) );
+				array(
+					'field' => 'term_id',
+				),
+			)
+		);
 		$query = $tq->queries[0];
 
 		$tq->transform_query( $tq->queries[0], 'term_id' );
@@ -125,42 +143,48 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 	}
 
 	public function test_transform_query_resulting_field_sanitized() {
-		$t1 = self::factory()->category->create( array( 'slug' => 'foo', ) );
-		$t2 = self::factory()->category->create( array( 'slug' => 'bar', ) );
-		$p = self::factory()->post->create();
+		$t1 = self::factory()->category->create( array( 'slug' => 'foo' ) );
+		$t2 = self::factory()->category->create( array( 'slug' => 'bar' ) );
+		$p  = self::factory()->post->create();
 		wp_set_post_categories( $p, $t1 );
 
-		$tq1 = new WP_Tax_Query( array(
+		$tq1 = new WP_Tax_Query(
 			array(
-				'terms' => array( 'foo' ),
-				'field' => 'slug',
-			),
-		) );
+				array(
+					'terms' => array( 'foo' ),
+					'field' => 'slug',
+				),
+			)
+		);
 		$tq1->transform_query( $tq1->queries[0], 'term_taxonomy_id' );
 
-		$tq2 = new WP_Tax_Query( array(
+		$tq2 = new WP_Tax_Query(
 			array(
-				'terms' => array( 'foo' ),
-				'field' => 'slug',
-			),
-		) );
+				array(
+					'terms' => array( 'foo' ),
+					'field' => 'slug',
+				),
+			)
+		);
 		$tq2->transform_query( $tq2->queries[0], 'TERM_ ta%xonomy_id' );
 
 		$this->assertSame( $tq1->queries[0], $tq2->queries[0] );
 	}
 
 	public function test_transform_query_field_slug() {
-		$t1 = self::factory()->category->create( array( 'slug' => 'foo', ) );
-		$p = self::factory()->post->create();
+		$t1     = self::factory()->category->create( array( 'slug' => 'foo' ) );
+		$p      = self::factory()->post->create();
 		$tt_ids = wp_set_post_categories( $p, $t1 );
 
-		$tq = new WP_Tax_Query( array(
+		$tq = new WP_Tax_Query(
 			array(
-				'taxonomy' => 'category',
-				'terms' => array( 'foo' ),
-				'field' => 'slug',
-			),
-		) );
+				array(
+					'taxonomy' => 'category',
+					'terms'    => array( 'foo' ),
+					'field'    => 'slug',
+				),
+			)
+		);
 		$tq->transform_query( $tq->queries[0], 'term_taxonomy_id' );
 
 		$this->assertEqualSets( $tt_ids, $tq->queries[0]['terms'] );
@@ -168,17 +192,24 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 	}
 
 	public function test_transform_query_field_name() {
-		$t1 = self::factory()->category->create( array( 'slug' => 'foo', 'name' => 'Foo', ) );
-		$p = self::factory()->post->create();
+		$t1     = self::factory()->category->create(
+			array(
+				'slug' => 'foo',
+				'name' => 'Foo',
+			)
+		);
+		$p      = self::factory()->post->create();
 		$tt_ids = wp_set_post_categories( $p, $t1 );
 
-		$tq = new WP_Tax_Query( array(
+		$tq = new WP_Tax_Query(
 			array(
-				'taxonomy' => 'category',
-				'terms' => array( 'Foo' ),
-				'field' => 'name',
-			),
-		) );
+				array(
+					'taxonomy' => 'category',
+					'terms'    => array( 'Foo' ),
+					'field'    => 'name',
+				),
+			)
+		);
 		$tq->transform_query( $tq->queries[0], 'term_taxonomy_id' );
 
 		$this->assertEqualSets( $tt_ids, $tq->queries[0]['terms'] );
@@ -186,17 +217,24 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 	}
 
 	public function test_transform_query_field_term_taxonomy_id() {
-		$t1 = self::factory()->category->create( array( 'slug' => 'foo', 'name' => 'Foo', ) );
-		$p = self::factory()->post->create();
+		$t1     = self::factory()->category->create(
+			array(
+				'slug' => 'foo',
+				'name' => 'Foo',
+			)
+		);
+		$p      = self::factory()->post->create();
 		$tt_ids = wp_set_post_categories( $p, $t1 );
 
-		$tq = new WP_Tax_Query( array(
+		$tq = new WP_Tax_Query(
 			array(
-				'taxonomy' => 'category',
-				'terms' => $tt_ids,
-				'field' => 'term_taxonomy_id',
-			),
-		) );
+				array(
+					'taxonomy' => 'category',
+					'terms'    => $tt_ids,
+					'field'    => 'term_taxonomy_id',
+				),
+			)
+		);
 		$tq->transform_query( $tq->queries[0], 'term_id' );
 
 		$this->assertEquals( array( $t1 ), $tq->queries[0]['terms'] );
@@ -204,17 +242,24 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 	}
 
 	public function test_transform_query_field_term_taxonomy_default() {
-		$t1 = self::factory()->category->create( array( 'slug' => 'foo', 'name' => 'Foo', ) );
-		$p = self::factory()->post->create();
+		$t1     = self::factory()->category->create(
+			array(
+				'slug' => 'foo',
+				'name' => 'Foo',
+			)
+		);
+		$p      = self::factory()->post->create();
 		$tt_ids = wp_set_post_categories( $p, $t1 );
 
-		$tq = new WP_Tax_Query( array(
+		$tq = new WP_Tax_Query(
 			array(
-				'taxonomy' => 'category',
-				'terms' => array( $t1 ),
-				'field' => 'foo', // Anything defaults to term_id
-			),
-		) );
+				array(
+					'taxonomy' => 'category',
+					'terms'    => array( $t1 ),
+					'field'    => 'foo', // Anything defaults to term_id
+				),
+			)
+		);
 		$tq->transform_query( $tq->queries[0], 'term_taxonomy_id' );
 
 		$this->assertEquals( $tt_ids, $tq->queries[0]['terms'] );
@@ -222,13 +267,15 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 	}
 
 	public function test_transform_query_nonexistent_terms() {
-		$tq = new WP_Tax_Query( array(
+		$tq = new WP_Tax_Query(
 			array(
-				'terms' => array( 'foo' ),
-				'field' => 'slug',
-				'operator' => 'AND',
-			),
-		) );
+				array(
+					'terms'    => array( 'foo' ),
+					'field'    => 'slug',
+					'operator' => 'AND',
+				),
+			)
+		);
 		$tq->transform_query( $tq->queries[0], 'term_taxonomy_id' );
 
 		$this->assertWPError( $tq->queries[0] );
@@ -240,34 +287,42 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 	public function test_get_sql_relation_or_operator_in() {
 		register_taxonomy( 'wptests_tax', 'post' );
 
-		$t1 = self::factory()->term->create( array(
-			'taxonomy' => 'wptests_tax',
-		) );
-		$t2 = self::factory()->term->create( array(
-			'taxonomy' => 'wptests_tax',
-		) );
-		$t3 = self::factory()->term->create( array(
-			'taxonomy' => 'wptests_tax',
-		) );
+		$t1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+		$t2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+		$t3 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
 
-		$tq = new WP_Tax_Query( array(
-			'relation' => 'OR',
+		$tq = new WP_Tax_Query(
 			array(
-				'taxonomy' => 'wptests_tax',
-				'field' => 'term_id',
-				'terms' => $t1,
-			),
-			array(
-				'taxonomy' => 'wptests_tax',
-				'field' => 'term_id',
-				'terms' => $t2,
-			),
-			array(
-				'taxonomy' => 'wptests_tax',
-				'field' => 'term_id',
-				'terms' => $t3,
-			),
-		) );
+				'relation' => 'OR',
+				array(
+					'taxonomy' => 'wptests_tax',
+					'field'    => 'term_id',
+					'terms'    => $t1,
+				),
+				array(
+					'taxonomy' => 'wptests_tax',
+					'field'    => 'term_id',
+					'terms'    => $t2,
+				),
+				array(
+					'taxonomy' => 'wptests_tax',
+					'field'    => 'term_id',
+					'terms'    => $t3,
+				),
+			)
+		);
 
 		global $wpdb;
 		$sql = $tq->get_sql( $wpdb->posts, 'ID' );
@@ -284,34 +339,42 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 	public function test_get_sql_relation_and_operator_in() {
 		register_taxonomy( 'wptests_tax', 'post' );
 
-		$t1 = self::factory()->term->create( array(
-			'taxonomy' => 'wptests_tax',
-		) );
-		$t2 = self::factory()->term->create( array(
-			'taxonomy' => 'wptests_tax',
-		) );
-		$t3 = self::factory()->term->create( array(
-			'taxonomy' => 'wptests_tax',
-		) );
+		$t1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+		$t2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+		$t3 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
 
-		$tq = new WP_Tax_Query( array(
-			'relation' => 'AND',
+		$tq = new WP_Tax_Query(
 			array(
-				'taxonomy' => 'wptests_tax',
-				'field' => 'term_id',
-				'terms' => $t1,
-			),
-			array(
-				'taxonomy' => 'wptests_tax',
-				'field' => 'term_id',
-				'terms' => $t2,
-			),
-			array(
-				'taxonomy' => 'wptests_tax',
-				'field' => 'term_id',
-				'terms' => $t3,
-			),
-		) );
+				'relation' => 'AND',
+				array(
+					'taxonomy' => 'wptests_tax',
+					'field'    => 'term_id',
+					'terms'    => $t1,
+				),
+				array(
+					'taxonomy' => 'wptests_tax',
+					'field'    => 'term_id',
+					'terms'    => $t2,
+				),
+				array(
+					'taxonomy' => 'wptests_tax',
+					'field'    => 'term_id',
+					'terms'    => $t3,
+				),
+			)
+		);
 
 		global $wpdb;
 		$sql = $tq->get_sql( $wpdb->posts, 'ID' );
@@ -327,37 +390,45 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 	public function test_get_sql_nested_relation_or_operator_in() {
 		register_taxonomy( 'wptests_tax', 'post' );
 
-		$t1 = self::factory()->term->create( array(
-			'taxonomy' => 'wptests_tax',
-		) );
-		$t2 = self::factory()->term->create( array(
-			'taxonomy' => 'wptests_tax',
-		) );
-		$t3 = self::factory()->term->create( array(
-			'taxonomy' => 'wptests_tax',
-		) );
-
-		$tq = new WP_Tax_Query( array(
-			'relation' => 'OR',
+		$t1 = self::factory()->term->create(
 			array(
 				'taxonomy' => 'wptests_tax',
-				'field' => 'term_id',
-				'terms' => $t1,
-			),
+			)
+		);
+		$t2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+		$t3 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$tq = new WP_Tax_Query(
 			array(
 				'relation' => 'OR',
 				array(
 					'taxonomy' => 'wptests_tax',
-					'field' => 'term_id',
-					'terms' => $t2,
+					'field'    => 'term_id',
+					'terms'    => $t1,
 				),
 				array(
-					'taxonomy' => 'wptests_tax',
-					'field' => 'term_id',
-					'terms' => $t3,
+					'relation' => 'OR',
+					array(
+						'taxonomy' => 'wptests_tax',
+						'field'    => 'term_id',
+						'terms'    => $t2,
+					),
+					array(
+						'taxonomy' => 'wptests_tax',
+						'field'    => 'term_id',
+						'terms'    => $t3,
+					),
 				),
-			),
-		) );
+			)
+		);
 
 		global $wpdb;
 		$sql = $tq->get_sql( $wpdb->posts, 'ID' );
@@ -373,19 +444,21 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 	public function test_get_sql_operator_not_in_empty_terms() {
 		register_taxonomy( 'wptests_tax', 'post' );
 
-		$tq = new WP_Tax_Query( array(
-			'relation' => 'OR',
+		$tq = new WP_Tax_Query(
 			array(
-				'taxonomy' => 'wptests_tax',
-				'field' => 'term_id',
-				'operator' => 'NOT IN',
-				'terms' => array(),
-			),
-		) );
+				'relation' => 'OR',
+				array(
+					'taxonomy' => 'wptests_tax',
+					'field'    => 'term_id',
+					'operator' => 'NOT IN',
+					'terms'    => array(),
+				),
+			)
+		);
 
 		global $wpdb;
 		$expected = array(
-			'join' => '',
+			'join'  => '',
 			'where' => '',
 		);
 
@@ -400,19 +473,21 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 	public function test_get_sql_operator_and_empty_terms() {
 		register_taxonomy( 'wptests_tax', 'post' );
 
-		$tq = new WP_Tax_Query( array(
-			'relation' => 'OR',
+		$tq = new WP_Tax_Query(
 			array(
-				'taxonomy' => 'wptests_tax',
-				'field' => 'term_id',
-				'operator' => 'AND',
-				'terms' => array(),
-			),
-		) );
+				'relation' => 'OR',
+				array(
+					'taxonomy' => 'wptests_tax',
+					'field'    => 'term_id',
+					'operator' => 'AND',
+					'terms'    => array(),
+				),
+			)
+		);
 
 		global $wpdb;
 		$expected = array(
-			'join' => '',
+			'join'  => '',
 			'where' => '',
 		);
 

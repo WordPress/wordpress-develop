@@ -22,7 +22,7 @@ class Tests_Formatting_WPTrimWords extends WP_UnitTestCase {
 	}
 
 	function test_strips_tags_before_trimming() {
-		$text = 'This text contains a <a href="http://wordpress.org"> link </a> to WordPress.org!';
+		$text    = 'This text contains a <a href="http://wordpress.org"> link </a> to WordPress.org!';
 		$trimmed = 'This text contains a link&hellip;';
 		$this->assertEquals( $trimmed, wp_trim_words( $text, 5 ) );
 	}

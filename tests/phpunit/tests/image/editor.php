@@ -4,6 +4,7 @@ require_once dirname( __FILE__ ) . '/base.php';
 
 /**
  * Test the WP_Image_Editor base class
+ *
  * @group image
  * @group media
  */
@@ -23,6 +24,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 
 	/**
 	 * Test wp_get_image_editor() where load returns true
+	 *
 	 * @ticket 6821
 	 */
 	public function test_get_editor_load_returns_true() {
@@ -33,6 +35,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 
 	/**
 	 * Test wp_get_image_editor() where load returns false
+	 *
 	 * @ticket 6821
 	 */
 	public function test_get_editor_load_returns_false() {
@@ -61,13 +64,14 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 
 	/**
 	 * Test test_quality
+	 *
 	 * @ticket 6821
 	 */
 	public function test_set_quality() {
 
 		// Get an editor
 		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
-		$editor->set_mime_type( "image/jpeg" ); // Ensure mime-specific filters act properly.
+		$editor->set_mime_type( 'image/jpeg' ); // Ensure mime-specific filters act properly.
 
 		// Check default value
 		$this->assertEquals( 82, $editor->get_quality() );
@@ -88,7 +92,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		// Get a new editor to clear default quality state
 		unset( $editor );
 		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
-		$editor->set_mime_type( "image/jpeg" ); // Ensure mime-specific filters act properly.
+		$editor->set_mime_type( 'image/jpeg' ); // Ensure mime-specific filters act properly.
 
 		// Ensure jpeg_quality filter applies if it exists before editor instantiation.
 		$this->assertEquals( 95, $editor->get_quality() );
@@ -107,6 +111,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 
 	/**
 	 * Test generate_filename
+	 *
 	 * @ticket 6821
 	 */
 	public function test_generate_filename() {
@@ -116,10 +121,12 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 
 		$property = new ReflectionProperty( $editor, 'size' );
 		$property->setAccessible( true );
-		$property->setValue( $editor, array(
-			'height' => 50,
-			'width'  => 100
-		));
+		$property->setValue(
+			$editor, array(
+				'height' => 50,
+				'width'  => 100,
+			)
+		);
 
 		// Test with no parameters
 		$this->assertEquals( 'canola-100x50.jpg', basename( $editor->generate_filename() ) );
@@ -128,7 +135,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		$this->assertEquals( 'canola-new.jpg', basename( $editor->generate_filename( 'new' ) ) );
 
 		// Test with a destination dir only
-		$this->assertEquals(trailingslashit( realpath( get_temp_dir() ) ), trailingslashit( realpath( dirname( $editor->generate_filename( null, get_temp_dir() ) ) ) ) );
+		$this->assertEquals( trailingslashit( realpath( get_temp_dir() ) ), trailingslashit( realpath( dirname( $editor->generate_filename( null, get_temp_dir() ) ) ) ) );
 
 		// Test with a suffix only
 		$this->assertEquals( 'canola-100x50.png', basename( $editor->generate_filename( null, null, 'png' ) ) );
@@ -139,6 +146,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 
 	/**
 	 * Test get_size
+	 *
 	 * @ticket 6821
 	 */
 	public function test_get_size() {
@@ -149,9 +157,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		$this->assertNull( $editor->get_size() );
 
 		// Set a size
-		$size = array(
+		$size     = array(
 			'height' => 50,
-			'width'  => 100
+			'width'  => 100,
 		);
 		$property = new ReflectionProperty( $editor, 'size' );
 		$property->setAccessible( true );
@@ -162,6 +170,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 
 	/**
 	 * Test get_suffix
+	 *
 	 * @ticket 6821
 	 */
 	public function test_get_suffix() {
@@ -171,9 +180,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		$this->assertFalse( $editor->get_suffix() );
 
 		// Set a size
-		$size = array(
+		$size     = array(
 			'height' => 50,
-			'width'  => 100
+			'width'  => 100,
 		);
 		$property = new ReflectionProperty( $editor, 'size' );
 		$property->setAccessible( true );

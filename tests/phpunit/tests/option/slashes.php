@@ -21,7 +21,6 @@ class Tests_Option_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the model function that expects un-slashed data
-	 *
 	 */
 	function test_add_option() {
 		add_option( 'slash_test_1', $this->slash_1 );
@@ -37,7 +36,6 @@ class Tests_Option_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the model function that expects un-slashed data
-	 *
 	 */
 	function test_update_option() {
 		add_option( 'slash_test_5', 'foo' );

@@ -11,7 +11,7 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 
 		$locale = 'foo';
 
-		$found = get_locale();
+		$found  = get_locale();
 		$locale = $old_locale;
 
 		$this->assertSame( 'foo', $found );
@@ -23,12 +23,12 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	public function test_local_option_should_take_precedence_on_multisite() {
 		global $locale;
 		$old_locale = $locale;
-		$locale = null;
+		$locale     = null;
 
 		update_option( 'WPLANG', 'en_GB' );
 		update_site_option( 'WPLANG', 'es_ES' );
 
-		$found = get_locale();
+		$found  = get_locale();
 		$locale = $old_locale;
 
 		$this->assertSame( 'en_GB', $found );
@@ -44,11 +44,11 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 
 		global $locale;
 		$old_locale = $locale;
-		$locale = null;
+		$locale     = null;
 
 		update_site_option( 'WPLANG', 'es_ES' );
 
-		$found = get_locale();
+		$found  = get_locale();
 		$locale = $old_locale;
 
 		$this->assertSame( 'es_ES', $found );
@@ -64,11 +64,11 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 
 		global $locale;
 		$old_locale = $locale;
-		$locale = null;
+		$locale     = null;
 
 		update_option( 'WPLANG', 'es_ES' );
 
-		$found = get_locale();
+		$found  = get_locale();
 		$locale = $old_locale;
 
 		$this->assertSame( 'es_ES', $found );
@@ -78,9 +78,9 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	public function test_should_fall_back_on_en_US() {
 		global $locale;
 		$old_locale = $locale;
-		$locale = null;
+		$locale     = null;
 
-		$found = get_locale();
+		$found  = get_locale();
 		$locale = $old_locale;
 
 		$this->assertSame( 'en_US', $found );

@@ -34,41 +34,47 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 	}
 
 	public function test_construct_relation_or_lowercase() {
-		$q = new WP_Date_Query( array(
-			'relation' => 'or',
-		) );
+		$q = new WP_Date_Query(
+			array(
+				'relation' => 'or',
+			)
+		);
 
 		$this->assertSame( 'OR', $q->relation );
 	}
 
 	public function test_construct_relation_invalid() {
-		$q = new WP_Date_Query( array(
-			'relation' => 'foo',
-		) );
+		$q = new WP_Date_Query(
+			array(
+				'relation' => 'foo',
+			)
+		);
 
 		$this->assertSame( 'AND', $q->relation );
 	}
 
 	public function test_construct_query_not_an_array_of_arrays() {
-		$q = new WP_Date_Query( array(
-			'before' => array(
-				'year' => 2008,
-				'month' => 6,
-			),
-		) );
-
-		$expected = array(
-			0 => array(
+		$q = new WP_Date_Query(
+			array(
 				'before' => array(
-					'year' => 2008,
+					'year'  => 2008,
 					'month' => 6,
 				),
-				'column' => 'post_date',
-				'compare' => '=',
+			)
+		);
+
+		$expected = array(
+			0          => array(
+				'before'   => array(
+					'year'  => 2008,
+					'month' => 6,
+				),
+				'column'   => 'post_date',
+				'compare'  => '=',
 				'relation' => 'AND',
 			),
-			'column' => 'post_date',
-			'compare' => '=',
+			'column'   => 'post_date',
+			'compare'  => '=',
 			'relation' => 'AND',
 		);
 
@@ -76,29 +82,31 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 	}
 
 	public function test_construct_query_contains_non_arrays() {
-		$q = new WP_Date_Query( array(
-			'foo',
-			'bar',
+		$q = new WP_Date_Query(
 			array(
-				'before' => array(
-					'year' => 2008,
-					'month' => 6,
+				'foo',
+				'bar',
+				array(
+					'before' => array(
+						'year'  => 2008,
+						'month' => 6,
+					),
 				),
-			),
-		) );
+			)
+		);
 
 		$expected = array(
 			array(
-				'before' => array(
-					'year' => 2008,
+				'before'   => array(
+					'year'  => 2008,
 					'month' => 6,
 				),
-				'column' => 'post_date',
-				'compare' => '=',
+				'column'   => 'post_date',
+				'compare'  => '=',
 				'relation' => 'AND',
 			),
-			'column' => 'post_date',
-			'compare' => '=',
+			'column'   => 'post_date',
+			'compare'  => '=',
 			'relation' => 'AND',
 		);
 
@@ -113,90 +121,110 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 	public function test_get_compare_equals() {
 		$q = new WP_Date_Query( array() );
 
-		$found = $q->get_compare( array(
-			'compare' => '=',
-		) );
+		$found = $q->get_compare(
+			array(
+				'compare' => '=',
+			)
+		);
 		$this->assertSame( '=', $found );
 	}
 
 	public function test_get_compare_not_equals() {
 		$q = new WP_Date_Query( array() );
 
-		$found = $q->get_compare( array(
-			'compare' => '!=',
-		) );
+		$found = $q->get_compare(
+			array(
+				'compare' => '!=',
+			)
+		);
 		$this->assertSame( '!=', $found );
 	}
 
 	public function test_get_compare_greater_than() {
 		$q = new WP_Date_Query( array() );
 
-		$found = $q->get_compare( array(
-			'compare' => '>',
-		) );
+		$found = $q->get_compare(
+			array(
+				'compare' => '>',
+			)
+		);
 		$this->assertSame( '>', $found );
 	}
 
 	public function test_get_compare_greater_than_or_equal_to() {
 		$q = new WP_Date_Query( array() );
 
-		$found = $q->get_compare( array(
-			'compare' => '>=',
-		) );
+		$found = $q->get_compare(
+			array(
+				'compare' => '>=',
+			)
+		);
 		$this->assertSame( '>=', $found );
 	}
 
 	public function test_get_compare_less_than() {
 		$q = new WP_Date_Query( array() );
 
-		$found = $q->get_compare( array(
-			'compare' => '<',
-		) );
+		$found = $q->get_compare(
+			array(
+				'compare' => '<',
+			)
+		);
 		$this->assertSame( '<', $found );
 	}
 
 	public function test_get_compare_less_than_or_equal_to() {
 		$q = new WP_Date_Query( array() );
 
-		$found = $q->get_compare( array(
-			'compare' => '<=',
-		) );
+		$found = $q->get_compare(
+			array(
+				'compare' => '<=',
+			)
+		);
 		$this->assertSame( '<=', $found );
 	}
 
 	public function test_get_compare_in() {
 		$q = new WP_Date_Query( array() );
 
-		$found = $q->get_compare( array(
-			'compare' => 'IN',
-		) );
+		$found = $q->get_compare(
+			array(
+				'compare' => 'IN',
+			)
+		);
 		$this->assertSame( 'IN', $found );
 	}
 
 	public function test_get_compare_not_in() {
 		$q = new WP_Date_Query( array() );
 
-		$found = $q->get_compare( array(
-			'compare' => 'NOT IN',
-		) );
+		$found = $q->get_compare(
+			array(
+				'compare' => 'NOT IN',
+			)
+		);
 		$this->assertSame( 'NOT IN', $found );
 	}
 
 	public function test_get_compare_between() {
 		$q = new WP_Date_Query( array() );
 
-		$found = $q->get_compare( array(
-			'compare' => 'BETWEEN',
-		) );
+		$found = $q->get_compare(
+			array(
+				'compare' => 'BETWEEN',
+			)
+		);
 		$this->assertSame( 'BETWEEN', $found );
 	}
 
 	public function test_get_compare_not_between() {
 		$q = new WP_Date_Query( array() );
 
-		$found = $q->get_compare( array(
-			'compare' => 'BETWEEN',
-		) );
+		$found = $q->get_compare(
+			array(
+				'compare' => 'BETWEEN',
+			)
+		);
 		$this->assertSame( 'BETWEEN', $found );
 	}
 
@@ -366,10 +394,12 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 	public function test_build_value_compare_between_incorrect_array_key() {
 		$q = new WP_Date_Query( array() );
 
-		$found = $q->build_value( 'BETWEEN', array(
-			2 => 4,
-			3 => 5,
-		) );
+		$found = $q->build_value(
+			'BETWEEN', array(
+				2 => 4,
+				3 => 5,
+			)
+		);
 
 		$this->assertSame( '4 AND 5', $found );
 	}
@@ -424,10 +454,12 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 	public function test_build_value_compare_not_between_incorrect_array_key() {
 		$q = new WP_Date_Query( array() );
 
-		$found = $q->build_value( 'NOT BETWEEN', array(
-			2 => 4,
-			3 => 5,
-		) );
+		$found = $q->build_value(
+			'NOT BETWEEN', array(
+				2 => 4,
+				3 => 5,
+			)
+		);
 
 		$this->assertSame( '4 AND 5', $found );
 	}
@@ -470,7 +502,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		$q = new WP_Date_Query( array() );
 
 		// This might be a fragile test if it takes longer than 1 second to run
-		$found = $q->build_mysql_datetime( 'foo' );
+		$found    = $q->build_mysql_datetime( 'foo' );
 		$expected = gmdate( 'Y-m-d H:i:s', false );
 		$this->assertSame( $expected, $found );
 	}
@@ -478,27 +510,33 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 	public function test_build_mysql_datetime_default_to_max_true() {
 		$q = new WP_Date_Query( array() );
 
-		$found = $q->build_mysql_datetime( array(
-			'year' => 2011,
-		), true );
+		$found = $q->build_mysql_datetime(
+			array(
+				'year' => 2011,
+			), true
+		);
 		$this->assertSame( '2011-12-31 23:59:59', $found );
 	}
 
 	public function test_build_mysql_datetime_default_to_max_false() {
 		$q = new WP_Date_Query( array() );
 
-		$found = $q->build_mysql_datetime( array(
-			'year' => 2011,
-		), false );
+		$found = $q->build_mysql_datetime(
+			array(
+				'year' => 2011,
+			), false
+		);
 		$this->assertSame( '2011-01-01 00:00:00', $found );
 	}
 
 	public function test_build_mysql_datetime_default_to_max_default_to_false() {
 		$q = new WP_Date_Query( array() );
 
-		$found = $q->build_mysql_datetime( array(
-			'year' => 2011,
-		), false );
+		$found = $q->build_mysql_datetime(
+			array(
+				'year' => 2011,
+			), false
+		);
 		$this->assertSame( '2011-01-01 00:00:00', $found );
 	}
 
@@ -649,7 +687,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 	 * @ticket 25834
 	 * @expectedIncorrectUsage WP_Date_Query
 	 */
-	public function test_validate_date_query_before_after(){
+	public function test_validate_date_query_before_after() {
 		// Valid values.
 		$valid_args = array(
 			array(
@@ -696,14 +734,14 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 	 * @ticket 25834
 	 * @expectedIncorrectUsage WP_Date_Query
 	 */
-	public function test_validate_date_query_before_after_with_month(){
+	public function test_validate_date_query_before_after_with_month() {
 		// Both are valid.
 		$args = array(
 			'before' => array(
 				'month' => 2,
 				'year'  => 2014,
 			),
-			'month' => 10,
+			'month'  => 10,
 		);
 		$this->assertTrue( $this->q->validate_date_values( $args ) );
 
@@ -713,7 +751,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 				'month' => 13,
 				'year'  => 2014,
 			),
-			'month' => 10,
+			'month'  => 10,
 		);
 		$this->assertFalse( $this->q->validate_date_values( $args ) );
 
@@ -723,7 +761,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 				'month' => 10,
 				'year'  => 2014,
 			),
-			'month' => 14,
+			'month'  => 14,
 		);
 		$this->assertFalse( $this->q->validate_date_values( $args ) );
 
@@ -733,7 +771,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 				'month' => 14,
 				'year'  => 2014,
 			),
-			'month' => 14,
+			'month'  => 14,
 		);
 		$this->assertFalse( $this->q->validate_date_values( $args ) );
 	}
@@ -783,7 +821,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 			array(
 				'week' => 54,
 				'year' => 2009,
-			)
+			),
 		);
 
 		foreach ( $weeks as $week_args ) {
@@ -982,15 +1020,17 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		$p1 = self::factory()->post->create( array( 'post_date' => '2015-01-12 00:00:00' ) );
 		$p2 = self::factory()->post->create( array( 'post_date' => '2013-01-12 00:00:00' ) );
 
-		$q = new WP_Query( array(
-			'date_query' => array(
-				array(
-					'compare' => 'BETWEEN',
-					'year' => array( 2012, 2014 ),
+		$q = new WP_Query(
+			array(
+				'date_query' => array(
+					array(
+						'compare' => 'BETWEEN',
+						'year'    => array( 2012, 2014 ),
+					),
 				),
-			),
-			'fields' => 'ids',
-		) );
+				'fields'     => 'ids',
+			)
+		);
 
 		$this->assertEquals( array( $p2 ), $q->posts );
 	}
@@ -1002,15 +1042,17 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		$p1 = self::factory()->post->create( array( 'post_date' => '2015-01-12 00:00:00' ) );
 		$p2 = self::factory()->post->create( array( 'post_date' => '2015-01-10 00:00:00' ) );
 
-		$q = new WP_Query( array(
-			'date_query' => array(
-				array(
-					'compare' => 'BETWEEN',
-					'day' => array( 9, 11 ),
+		$q = new WP_Query(
+			array(
+				'date_query' => array(
+					array(
+						'compare' => 'BETWEEN',
+						'day'     => array( 9, 11 ),
+					),
 				),
-			),
-			'fields' => 'ids',
-		) );
+				'fields'     => 'ids',
+			)
+		);
 
 		$this->assertEquals( array( $p2 ), $q->posts );
 	}
@@ -1023,21 +1065,23 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		$p1 = self::factory()->post->create( array( 'post_date' => '2015-01-12 00:00:00' ) );
 		$p2 = self::factory()->post->create( array( 'post_date' => '2015-01-10 00:00:00' ) );
 
-		$q = new WP_Query( array(
-			'date_query' => array(
-				array(
-					'compare' => 'BETWEEN',
-					'day' => array( 9, 32 ),
+		$q = new WP_Query(
+			array(
+				'date_query' => array(
+					array(
+						'compare' => 'BETWEEN',
+						'day'     => array( 9, 32 ),
+					),
 				),
-			),
-			'fields' => 'ids',
-		) );
+				'fields'     => 'ids',
+			)
+		);
 
 		// MySQL ignores the invalid clause.
 		$this->assertEquals( array( $p1, $p2 ), $q->posts );
 	}
 
-	/** Helpers **********************************************************/
+	/** Helpers */
 
 	public function date_query_valid_columns_callback( $columns ) {
 		$columns[] = 'my_custom_column';

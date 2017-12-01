@@ -38,8 +38,18 @@ class Tests_Menu_WpAjaxMenuQuickSeach extends WP_UnitTestCase {
 	public function test_search_returns_results_for_pages() {
 		include_once ABSPATH . 'wp-admin/includes/nav-menu.php';
 
-		self::factory()->post->create_many( 3, array( 'post_type' => 'page', 'post_content' => 'foo' ) );
-		self::factory()->post->create( array( 'post_type' => 'page', 'post_content' => 'bar' ) );
+		self::factory()->post->create_many(
+			3, array(
+				'post_type'    => 'page',
+				'post_content' => 'foo',
+			)
+		);
+		self::factory()->post->create(
+			array(
+				'post_type'    => 'page',
+				'post_content' => 'bar',
+			)
+		);
 
 		$request = array(
 			'type'            => 'quick-search-posttype-page',
@@ -65,16 +75,45 @@ class Tests_Menu_WpAjaxMenuQuickSeach extends WP_UnitTestCase {
 		// This will make sure that WP_Query sets is_admin to true.
 		set_current_screen( 'nav-menu.php' );
 
-		self::factory()->post->create( array( 'post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'Publish', 'post_content' => 'FOO' ) );
-		self::factory()->post->create( array( 'post_type' => 'post', 'post_status' => 'draft', 'post_title' => 'Draft', 'post_content' => 'FOO' ) );
-		self::factory()->post->create( array( 'post_type' => 'post', 'post_status' => 'pending', 'post_title' => 'Pending', 'post_content' => 'FOO' ) );
-		self::factory()->post->create( array( 'post_type' => 'post', 'post_status' => 'future', 'post_title' => 'Future', 'post_content' => 'FOO', 'post_date' => gmdate( 'Y-m-d H:i:s', strtotime( '+1 month' ) ) ) );
+		self::factory()->post->create(
+			array(
+				'post_type'    => 'post',
+				'post_status'  => 'publish',
+				'post_title'   => 'Publish',
+				'post_content' => 'FOO',
+			)
+		);
+		self::factory()->post->create(
+			array(
+				'post_type'    => 'post',
+				'post_status'  => 'draft',
+				'post_title'   => 'Draft',
+				'post_content' => 'FOO',
+			)
+		);
+		self::factory()->post->create(
+			array(
+				'post_type'    => 'post',
+				'post_status'  => 'pending',
+				'post_title'   => 'Pending',
+				'post_content' => 'FOO',
+			)
+		);
+		self::factory()->post->create(
+			array(
+				'post_type'    => 'post',
+				'post_status'  => 'future',
+				'post_title'   => 'Future',
+				'post_content' => 'FOO',
+				'post_date'    => gmdate( 'Y-m-d H:i:s', strtotime( '+1 month' ) ),
+			)
+		);
 
 		$request = array(
 			'type' => 'quick-search-posttype-post',
-			'q' => 'FOO',
+			'q'    => 'FOO',
 		);
-		$output = get_echo( '_wp_ajax_menu_quick_search', array( $request ) );
+		$output  = get_echo( '_wp_ajax_menu_quick_search', array( $request ) );
 
 		$this->assertNotEmpty( $output );
 		$results = explode( "\n", trim( $output ) );

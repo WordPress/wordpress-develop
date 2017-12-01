@@ -11,15 +11,15 @@ class Tests_Formatting_CleanPre extends WP_UnitTestCase {
 
 	function test_removes_self_closing_br_with_space() {
 		$source = 'a b c\n<br />sldfj<br />';
-		$res = 'a b c\nsldfj';
+		$res    = 'a b c\nsldfj';
 
-		$this->assertEquals($res, clean_pre($source));
+		$this->assertEquals( $res, clean_pre( $source ) );
 	}
 
 	function test_removes_self_closing_br_without_space() {
 		$source = 'a b c\n<br/>sldfj<br/>';
-		$res = 'a b c\nsldfj';
-		$this->assertEquals($res, clean_pre($source));
+		$res    = 'a b c\nsldfj';
+		$this->assertEquals( $res, clean_pre( $source ) );
 	}
 
 	// I don't think this can ever happen in production;
@@ -28,13 +28,13 @@ class Tests_Formatting_CleanPre extends WP_UnitTestCase {
 	// HTML 4 output?).
 	function test_removes_html_br() {
 		$source = 'a b c\n<br>sldfj<br>';
-		$res = 'a b c\nsldfj';
-		$this->assertEquals($res, clean_pre($source));
+		$res    = 'a b c\nsldfj';
+		$this->assertEquals( $res, clean_pre( $source ) );
 	}
 
 	function test_removes_p() {
 		$source = "<p>isn't this exciting!</p><p>oh indeed!</p>";
-		$res = "\nisn't this exciting!\noh indeed!";
-		$this->assertEquals($res, clean_pre($source));
+		$res    = "\nisn't this exciting!\noh indeed!";
+		$this->assertEquals( $res, clean_pre( $source ) );
 	}
 }

@@ -31,18 +31,18 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		// Excercise the output argument
 		$post = get_post( $id, ARRAY_A );
 		$this->assertInternalType( 'array', $post );
-		$this->assertEquals( 'post', $post[ 'post_type' ] );
+		$this->assertEquals( 'post', $post['post_type'] );
 
 		$post = get_post( $id, ARRAY_N );
 		$this->assertInternalType( 'array', $post );
-		$this->assertFalse( isset( $post[ 'post_type' ] ) );
+		$this->assertFalse( isset( $post['post_type'] ) );
 		$this->assertTrue( in_array( 'post', $post ) );
 
 		$post = get_post( $id );
 		$post = get_post( $post, ARRAY_A );
 		$this->assertInternalType( 'array', $post );
-		$this->assertEquals( 'post', $post[ 'post_type' ] );
-		$this->assertEquals( $id, $post[ 'ID' ] );
+		$this->assertEquals( 'post', $post['post_type'] );
+		$this->assertEquals( $id, $post['ID'] );
 
 		// Should default to OBJECT when given invalid output argument
 		$post = get_post( $id, 'invalid-output-value' );
@@ -52,9 +52,9 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		// Make sure stdClass in $GLOBALS['post'] is handled
 		$post_std = $post->to_array();
 		$this->assertInternalType( 'array', $post_std );
-		$post_std = (object) $post_std;
+		$post_std        = (object) $post_std;
 		$GLOBALS['post'] = $post_std;
-		$post = get_post( null );
+		$post            = get_post( null );
 		$this->assertInstanceOf( 'WP_Post', $post );
 		$this->assertEquals( $id, $post->ID );
 		unset( $GLOBALS['post'] );
@@ -67,12 +67,22 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 	}
 
 	function test_get_post_ancestors() {
-		$parent_id = self::factory()->post->create();
-		$child_id = self::factory()->post->create();
+		$parent_id     = self::factory()->post->create();
+		$child_id      = self::factory()->post->create();
 		$grandchild_id = self::factory()->post->create();
-		$updated = wp_update_post( array( 'ID' => $child_id, 'post_parent' => $parent_id ) );
+		$updated       = wp_update_post(
+			array(
+				'ID'          => $child_id,
+				'post_parent' => $parent_id,
+			)
+		);
 		$this->assertEquals( $updated, $child_id );
-		$updated = wp_update_post( array( 'ID' => $grandchild_id, 'post_parent' => $child_id ) );
+		$updated = wp_update_post(
+			array(
+				'ID'          => $grandchild_id,
+				'post_parent' => $child_id,
+			)
+		);
 		$this->assertEquals( $updated, $grandchild_id );
 
 		$this->assertEquals( array( $parent_id ), get_post( $child_id )->ancestors );
@@ -100,7 +110,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 
 	function test_get_post_category_property() {
 		$post_id = self::factory()->post->create();
-		$post = get_post( $post_id );
+		$post    = get_post( $post_id );
 
 		$this->assertInternalType( 'array', $post->post_category );
 		$this->assertEquals( 1, count( $post->post_category ) );
@@ -110,16 +120,16 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$term3 = wp_insert_term( 'Baz', 'category' );
 		wp_set_post_categories( $post_id, array( $term1['term_id'], $term2['term_id'], $term3['term_id'] ) );
 		$this->assertEquals( 3, count( $post->post_category ) );
-		$this->assertEquals( array( $term2['term_id'], $term3['term_id'], $term1['term_id'] ) , $post->post_category );
+		$this->assertEquals( array( $term2['term_id'], $term3['term_id'], $term1['term_id'] ), $post->post_category );
 
 		$post = get_post( $post_id, ARRAY_A );
 		$this->assertEquals( 3, count( $post['post_category'] ) );
-		$this->assertEquals( array( $term2['term_id'], $term3['term_id'], $term1['term_id'] ) , $post['post_category'] );
+		$this->assertEquals( array( $term2['term_id'], $term3['term_id'], $term1['term_id'] ), $post['post_category'] );
 	}
 
 	function test_get_tags_input_property() {
 		$post_id = self::factory()->post->create();
-		$post = get_post( $post_id );
+		$post    = get_post( $post_id );
 
 		$this->assertInternalType( 'array', $post->tags_input );
 		$this->assertEmpty( $post->tags_input );
@@ -136,7 +146,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 
 	function test_get_page_template_property() {
 		$post_id = self::factory()->post->create();
-		$post = get_post( $post_id );
+		$post    = get_post( $post_id );
 
 		$this->assertInternalType( 'string', $post->page_template );
 		$this->assertEmpty( $post->tags_input );
@@ -149,9 +159,13 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 	}
 
 	function test_get_post_filter() {
-		$post = get_post( self::factory()->post->create( array(
-			'post_title' => "Mary's home"
-		) ) );
+		$post = get_post(
+			self::factory()->post->create(
+				array(
+					'post_title' => "Mary's home",
+				)
+			)
+		);
 
 		$this->assertEquals( 'raw', $post->filter );
 		$this->assertInternalType( 'int', $post->post_parent );

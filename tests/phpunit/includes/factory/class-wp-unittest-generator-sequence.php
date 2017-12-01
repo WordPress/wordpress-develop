@@ -16,7 +16,7 @@ class WP_UnitTest_Generator_Sequence {
 	}
 
 	function next() {
-		$generated = sprintf( $this->template_string , $this->next );
+		$generated = sprintf( $this->template_string, $this->next );
 		$this->next++;
 		return $generated;
 	}

@@ -17,7 +17,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 	public function _make_attachment( $file, $parent_post_id = 0 ) {
 		$contents = file_get_contents( $file );
-		$upload = wp_upload_bits( basename( $file ), null, $contents );
+		$upload   = wp_upload_bits( basename( $file ), null, $contents );
 
 		return parent::_make_attachment( $upload, $parent_post_id );
 	}
@@ -29,8 +29,9 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	}
 
 	function test_make_intermediate_size_width() {
-		if ( !function_exists( 'imagejpeg' ) )
+		if ( ! function_exists( 'imagejpeg' ) ) {
 			$this->fail( 'jpeg support unavailable' );
+		}
 
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 100, 0, false );
 
@@ -38,8 +39,9 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	}
 
 	function test_make_intermediate_size_height() {
-		if ( !function_exists( 'imagejpeg' ) )
+		if ( ! function_exists( 'imagejpeg' ) ) {
 			$this->fail( 'jpeg support unavailable' );
+		}
 
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 0, 75, false );
 
@@ -47,8 +49,9 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	}
 
 	function test_make_intermediate_size_successful() {
-		if ( !function_exists( 'imagejpeg' ) )
+		if ( ! function_exists( 'imagejpeg' ) ) {
 			$this->fail( 'jpeg support unavailable' );
+		}
 
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 100, 75, true );
 
@@ -63,13 +66,13 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	}
 
 	/**
-	* @ticket 17626
-	*/
+	 * @ticket 17626
+	 */
 	function test_get_intermediate_sizes_by_name() {
 		add_image_size( 'test-size', 330, 220, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id = $this->_make_attachment( $file, 0 );
+		$id   = $this->_make_attachment( $file, 0 );
 
 		// look for a size by name
 		$image = image_get_intermediate_size( $id, 'test-size' );
@@ -83,8 +86,8 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	}
 
 	/**
-	* @ticket 17626
-	*/
+	 * @ticket 17626
+	 */
 	function test_get_intermediate_sizes_by_array_exact() {
 		// Only one dimention match shouldn't return false positive (see: 17626)
 		add_image_size( 'test-size', 330, 220, true );
@@ -92,7 +95,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		add_image_size( 'false-width', 600, 220, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id = $this->_make_attachment( $file, 0 );
+		$id   = $this->_make_attachment( $file, 0 );
 
 		// look for a size by array that exists
 		// note: staying larger than 300px to miss default medium crop
@@ -104,8 +107,8 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	}
 
 	/**
-	* @ticket 17626
-	*/
+	 * @ticket 17626
+	 */
 	function test_get_intermediate_sizes_by_array_nearest() {
 		// If an exact size is not found, it should be returned
 		// If not, find nearest size that is larger (see: 17626)
@@ -114,7 +117,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		add_image_size( 'false-width', 150, 220, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id = $this->_make_attachment( $file, 0 );
+		$id   = $this->_make_attachment( $file, 0 );
 
 		// look for a size by array that doesn't exist
 		// note: staying larger than 300px to miss default medium crop
@@ -126,8 +129,8 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	}
 
 	/**
-	* @ticket 17626
-	*/
+	 * @ticket 17626
+	 */
 	function test_get_intermediate_sizes_by_array_nearest_false() {
 		// If an exact size is not found, it should be returned
 		// If not, find nearest size that is larger, otherwise return false (see: 17626)
@@ -135,7 +138,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		add_image_size( 'false-width', 150, 220, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id = $this->_make_attachment( $file, 0 );
+		$id   = $this->_make_attachment( $file, 0 );
 
 		// look for a size by array that doesn't exist
 		// note: staying larger than 300px to miss default medium crop
@@ -147,8 +150,8 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	}
 
 	/**
-	* @ticket 17626
-	*/
+	 * @ticket 17626
+	 */
 	function test_get_intermediate_sizes_by_array_zero_height() {
 		// Generate random width
 		$random_w = rand( 300, 400 );
@@ -158,11 +161,11 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		add_image_size( 'false-height', $random_w, 100, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id = $this->_make_attachment( $file, 0 );
+		$id   = $this->_make_attachment( $file, 0 );
 
 		$original = wp_get_attachment_metadata( $id );
-		$image_w = $random_w;
-		$image_h = round( ( $image_w / $original['width'] ) * $original['height'] );
+		$image_w  = $random_w;
+		$image_h  = round( ( $image_w / $original['width'] ) * $original['height'] );
 
 		// look for a size by array that exists
 		// note: staying larger than 300px to miss default medium crop
@@ -186,11 +189,11 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		add_image_size( 'false-height', 300, $height, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id = $this->_make_attachment( $file, 0 );
+		$id   = $this->_make_attachment( $file, 0 );
 
 		$original = wp_get_attachment_metadata( $id );
-		$image_h = $height;
-		$image_w = round( ( $image_h / $original['height'] ) * $original['width'] );
+		$image_h  = $height;
+		$image_w  = round( ( $image_h / $original['height'] ) * $original['width'] );
 
 		// look for a size by array that exists
 		// note: staying larger than 300px to miss default medium crop
@@ -212,11 +215,11 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		add_image_size( 'off-by-one', $width, $height, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id = $this->_make_attachment( $file, 0 );
+		$id   = $this->_make_attachment( $file, 0 );
 
 		$original = wp_get_attachment_metadata( $id );
-		$image_h = $height;
-		$image_w = round( ( $image_h / $original['height'] ) * $original['width'] );
+		$image_h  = $height;
+		$image_w  = round( ( $image_h / $original['height'] ) * $original['width'] );
 
 		// look for a size by array that exists
 		// note: staying larger than 300px to miss default medium crop
@@ -233,7 +236,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		add_image_size( 'test-size', 200, 100, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id = $this->_make_attachment( $file, 0 );
+		$id   = $this->_make_attachment( $file, 0 );
 
 		// Request a size by array that doesn't exist and is smaller than the 'thumbnail'
 		$image = image_get_intermediate_size( $id, array( 50, 25 ) );
@@ -247,9 +250,9 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	 */
 	public function test_get_intermediate_size_with_small_size_array_fallback() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
-		$id = $this->_make_attachment( $file, 0 );
+		$id   = $this->_make_attachment( $file, 0 );
 
-		$original = wp_get_attachment_metadata( $id );
+		$original       = wp_get_attachment_metadata( $id );
 		$thumbnail_file = $original['sizes']['thumbnail']['file'];
 
 		// Request a size by array that doesn't exist and is smaller than the 'thumbnail'

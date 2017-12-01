@@ -5,16 +5,20 @@
  */
 class Tests_Embed_Template extends WP_UnitTestCase {
 	function test_oembed_output_post() {
-		$user = self::factory()->user->create_and_get( array(
-			'display_name' => 'John Doe',
-		) );
+		$user = self::factory()->user->create_and_get(
+			array(
+				'display_name' => 'John Doe',
+			)
+		);
 
-		$post_id = self::factory()->post->create( array(
-			'post_author'  => $user->ID,
-			'post_title'   => 'Hello World',
-			'post_content' => 'Foo Bar',
-			'post_excerpt' => 'Bar Baz',
-		) );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author'  => $user->ID,
+				'post_title'   => 'Hello World',
+				'post_content' => 'Foo Bar',
+				'post_excerpt' => 'Bar Baz',
+			)
+		);
 		$this->go_to( get_post_embed_url( $post_id ) );
 
 		$this->assertQueryTrue( 'is_single', 'is_singular', 'is_embed' );
@@ -30,15 +34,19 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	}
 
 	function test_oembed_output_post_with_thumbnail() {
-		$post_id       = self::factory()->post->create( array(
-			'post_title'   => 'Hello World',
-			'post_content' => 'Foo Bar',
-			'post_excerpt' => 'Bar Baz',
-		) );
+		$post_id       = self::factory()->post->create(
+			array(
+				'post_title'   => 'Hello World',
+				'post_content' => 'Foo Bar',
+				'post_excerpt' => 'Bar Baz',
+			)
+		);
 		$file          = DIR_TESTDATA . '/images/canola.jpg';
-		$attachment_id = self::factory()->attachment->create_object( $file, $post_id, array(
-			'post_mime_type' => 'image/jpeg',
-		) );
+		$attachment_id = self::factory()->attachment->create_object(
+			$file, $post_id, array(
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
 		set_post_thumbnail( $post_id, $attachment_id );
 
 		$this->go_to( get_post_embed_url( $post_id ) );
@@ -74,12 +82,14 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	function test_oembed_output_attachment() {
 		$post          = self::factory()->post->create_and_get();
 		$file          = DIR_TESTDATA . '/images/canola.jpg';
-		$attachment_id = self::factory()->attachment->create_object( $file, $post->ID, array(
-			'post_mime_type' => 'image/jpeg',
-			'post_title'     => 'Hello World',
-			'post_content'   => 'Foo Bar',
-			'post_excerpt'   => 'Bar Baz',
-		) );
+		$attachment_id = self::factory()->attachment->create_object(
+			$file, $post->ID, array(
+				'post_mime_type' => 'image/jpeg',
+				'post_title'     => 'Hello World',
+				'post_content'   => 'Foo Bar',
+				'post_excerpt'   => 'Bar Baz',
+			)
+		);
 
 		$this->go_to( get_post_embed_url( $attachment_id ) );
 
@@ -97,12 +107,14 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	}
 
 	function test_oembed_output_draft_post() {
-		$post_id = self::factory()->post->create( array(
-			'post_title'   => 'Hello World',
-			'post_content' => 'Foo Bar',
-			'post_excerpt' => 'Bar Baz',
-			'post_status'  => 'draft',
-		) );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'Hello World',
+				'post_content' => 'Foo Bar',
+				'post_excerpt' => 'Bar Baz',
+				'post_status'  => 'draft',
+			)
+		);
 
 		$this->go_to( get_post_embed_url( $post_id ) );
 
@@ -118,13 +130,15 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	}
 
 	function test_oembed_output_scheduled_post() {
-		$post_id = self::factory()->post->create( array(
-			'post_title'   => 'Hello World',
-			'post_content' => 'Foo Bar',
-			'post_excerpt' => 'Bar Baz',
-			'post_status'  => 'future',
-			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 day' ) ),
-		) );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'Hello World',
+				'post_content' => 'Foo Bar',
+				'post_excerpt' => 'Bar Baz',
+				'post_status'  => 'future',
+				'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 day' ) ),
+			)
+		);
 
 		$this->go_to( get_post_embed_url( $post_id ) );
 
@@ -140,12 +154,14 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	}
 
 	function test_oembed_output_private_post() {
-		$post_id = self::factory()->post->create( array(
-			'post_title'   => 'Hello World',
-			'post_content' => 'Foo Bar',
-			'post_excerpt' => 'Bar Baz',
-			'post_status'  => 'private',
-		) );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'Hello World',
+				'post_content' => 'Foo Bar',
+				'post_excerpt' => 'Bar Baz',
+				'post_status'  => 'private',
+			)
+		);
 
 		$this->go_to( get_post_embed_url( $post_id ) );
 
@@ -164,13 +180,15 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$user_id = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( $user_id );
 
-		$post_id = self::factory()->post->create( array(
-			'post_title'   => 'Hello World',
-			'post_content' => 'Foo Bar',
-			'post_excerpt' => 'Bar Baz',
-			'post_status'  => 'private',
-			'post_author'  => $user_id,
-		) );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'Hello World',
+				'post_content' => 'Foo Bar',
+				'post_excerpt' => 'Bar Baz',
+				'post_status'  => 'private',
+				'post_author'  => $user_id,
+			)
+		);
 
 		$this->go_to( get_post_embed_url( $post_id ) );
 
@@ -193,10 +211,12 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	}
 
 	function test_wp_embed_excerpt_more() {
-		$post_id = self::factory()->post->create( array(
-			'post_title'   => 'Foo Bar',
-			'post_content' => 'Bar Baz',
-		) );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'Foo Bar',
+				'post_content' => 'Bar Baz',
+			)
+		);
 
 		$this->assertEquals( '', wp_embed_excerpt_more( '' ) );
 
@@ -223,9 +243,11 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	function test_is_embed_attachment() {
 		$post_id       = self::factory()->post->create();
 		$file          = DIR_TESTDATA . '/images/canola.jpg';
-		$attachment_id = self::factory()->attachment->create_object( $file, $post_id, array(
-			'post_mime_type' => 'image/jpeg',
-		) );
+		$attachment_id = self::factory()->attachment->create_object(
+			$file, $post_id, array(
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
 		$this->go_to( get_post_embed_url( $attachment_id ) );
 		$this->assertTrue( is_embed() );
 	}
@@ -242,7 +264,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 	function test_get_post_embed_html() {
 		$post_id = self::factory()->post->create();
-		$title = esc_attr(
+		$title   = esc_attr(
 			sprintf(
 				__( '&#8220;%1$s&#8221; &#8212; %2$s' ),
 				get_the_title( $post_id ),

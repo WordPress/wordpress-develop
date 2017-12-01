@@ -59,7 +59,7 @@ function twentyseventeen_body_classes( $classes ) {
 	}
 
 	// Get the colorscheme or the default if there isn't one.
-	$colors = twentyseventeen_sanitize_colorscheme( get_theme_mod( 'colorscheme', 'light' ) );
+	$colors    = twentyseventeen_sanitize_colorscheme( get_theme_mod( 'colorscheme', 'light' ) );
 	$classes[] = 'colors-' . $colors;
 
 	return $classes;
@@ -95,7 +95,7 @@ function twentyseventeen_panel_count() {
 }
 
 /**
- * Checks to see if we're on the homepage or not.
+ * Checks to see if we're on the front page or not.
  */
 function twentyseventeen_is_frontpage() {
 	return ( is_front_page() && ! is_home() );

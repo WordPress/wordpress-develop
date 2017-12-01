@@ -32,11 +32,13 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 		global $wp;
 
 		$taxonomy        = rand_str();
-		$taxonomy_object = new WP_Taxonomy( $taxonomy, 'post', array(
-			'public'    => true,
-			'rewrite'   => false,
-			'query_var' => 'foobar',
-		) );
+		$taxonomy_object = new WP_Taxonomy(
+			$taxonomy, 'post', array(
+				'public'    => true,
+				'rewrite'   => false,
+				'query_var' => 'foobar',
+			)
+		);
 
 		$taxonomy_object->add_rewrite_rules();
 		$in_array = in_array( 'foobar', $wp->public_query_vars );
@@ -55,10 +57,12 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 		global $wp_rewrite;
 
 		$taxonomy        = rand_str();
-		$taxonomy_object = new WP_Taxonomy( $taxonomy, 'post', array(
-			'public'  => true,
-			'rewrite' => true,
-		) );
+		$taxonomy_object = new WP_Taxonomy(
+			$taxonomy, 'post', array(
+				'public'  => true,
+				'rewrite' => true,
+			)
+		);
 
 		$taxonomy_object->add_rewrite_rules();
 		$rewrite_tags = $wp_rewrite->rewritecode;
@@ -72,10 +76,12 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 
 	public function test_adds_ajax_callback() {
 		$taxonomy        = rand_str();
-		$taxonomy_object = new WP_Taxonomy( $taxonomy, 'post', array(
-			'public'  => true,
-			'rewrite' => true,
-		) );
+		$taxonomy_object = new WP_Taxonomy(
+			$taxonomy, 'post', array(
+				'public'  => true,
+				'rewrite' => true,
+			)
+		);
 
 		$taxonomy_object->add_hooks();
 		$has_action = has_action( "wp_ajax_add-$taxonomy", '_wp_ajax_add_hierarchical_term' );

@@ -11,10 +11,10 @@ class Tests_WP_Hook_Add_Filter extends WP_UnitTestCase {
 	public $hook;
 
 	public function test_add_filter_with_function() {
-		$callback = '__return_null';
-		$hook = new WP_Hook();
-		$tag = __FUNCTION__;
-		$priority = rand( 1, 100 );
+		$callback      = '__return_null';
+		$hook          = new WP_Hook();
+		$tag           = __FUNCTION__;
+		$priority      = rand( 1, 100 );
 		$accepted_args = rand( 1, 100 );
 
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
@@ -25,11 +25,11 @@ class Tests_WP_Hook_Add_Filter extends WP_UnitTestCase {
 	}
 
 	public function test_add_filter_with_object() {
-		$a = new MockAction();
-		$callback = array( $a, 'action' );
-		$hook = new WP_Hook();
-		$tag = __FUNCTION__;
-		$priority = rand( 1, 100 );
+		$a             = new MockAction();
+		$callback      = array( $a, 'action' );
+		$hook          = new WP_Hook();
+		$tag           = __FUNCTION__;
+		$priority      = rand( 1, 100 );
 		$accepted_args = rand( 1, 100 );
 
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
@@ -40,10 +40,10 @@ class Tests_WP_Hook_Add_Filter extends WP_UnitTestCase {
 	}
 
 	public function test_add_filter_with_static_method() {
-		$callback = array( 'MockAction', 'action' );
-		$hook = new WP_Hook();
-		$tag = __FUNCTION__;
-		$priority = rand( 1, 100 );
+		$callback      = array( 'MockAction', 'action' );
+		$hook          = new WP_Hook();
+		$tag           = __FUNCTION__;
+		$priority      = rand( 1, 100 );
 		$accepted_args = rand( 1, 100 );
 
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
@@ -54,11 +54,11 @@ class Tests_WP_Hook_Add_Filter extends WP_UnitTestCase {
 	}
 
 	public function test_add_two_filters_with_same_priority() {
-		$callback_one = '__return_null';
-		$callback_two = '__return_false';
-		$hook = new WP_Hook();
-		$tag = __FUNCTION__;
-		$priority = rand( 1, 100 );
+		$callback_one  = '__return_null';
+		$callback_two  = '__return_false';
+		$hook          = new WP_Hook();
+		$tag           = __FUNCTION__;
+		$priority      = rand( 1, 100 );
 		$accepted_args = rand( 1, 100 );
 
 		$hook->add_filter( $tag, $callback_one, $priority, $accepted_args );
@@ -69,11 +69,11 @@ class Tests_WP_Hook_Add_Filter extends WP_UnitTestCase {
 	}
 
 	public function test_add_two_filters_with_different_priority() {
-		$callback_one = '__return_null';
-		$callback_two = '__return_false';
-		$hook = new WP_Hook();
-		$tag = __FUNCTION__;
-		$priority = rand( 1, 100 );
+		$callback_one  = '__return_null';
+		$callback_two  = '__return_false';
+		$hook          = new WP_Hook();
+		$tag           = __FUNCTION__;
+		$priority      = rand( 1, 100 );
 		$accepted_args = rand( 1, 100 );
 
 		$hook->add_filter( $tag, $callback_one, $priority, $accepted_args );
@@ -85,10 +85,10 @@ class Tests_WP_Hook_Add_Filter extends WP_UnitTestCase {
 	}
 
 	public function test_readd_filter() {
-		$callback = '__return_null';
-		$hook = new WP_Hook();
-		$tag = __FUNCTION__;
-		$priority = rand( 1, 100 );
+		$callback      = '__return_null';
+		$hook          = new WP_Hook();
+		$tag           = __FUNCTION__;
+		$priority      = rand( 1, 100 );
 		$accepted_args = rand( 1, 100 );
 
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
@@ -99,10 +99,10 @@ class Tests_WP_Hook_Add_Filter extends WP_UnitTestCase {
 	}
 
 	public function test_readd_filter_with_different_priority() {
-		$callback = '__return_null';
-		$hook = new WP_Hook();
-		$tag = __FUNCTION__;
-		$priority = rand( 1, 100 );
+		$callback      = '__return_null';
+		$hook          = new WP_Hook();
+		$tag           = __FUNCTION__;
+		$priority      = rand( 1, 100 );
 		$accepted_args = rand( 1, 100 );
 
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
@@ -114,11 +114,11 @@ class Tests_WP_Hook_Add_Filter extends WP_UnitTestCase {
 	}
 
 	public function test_sort_after_add_filter() {
-		$a = new MockAction();
-		$b = new MockAction();
-		$c = new MockAction();
+		$a    = new MockAction();
+		$b    = new MockAction();
+		$c    = new MockAction();
 		$hook = new WP_Hook();
-		$tag = __FUNCTION__;
+		$tag  = __FUNCTION__;
 
 		$hook->add_filter( $tag, array( $a, 'action' ), 10, 1 );
 		$hook->add_filter( $tag, array( $b, 'action' ), 5, 1 );
@@ -201,7 +201,7 @@ class Tests_WP_Hook_Add_Filter extends WP_UnitTestCase {
 	}
 
 	public function test_remove_and_add_action() {
-		$this->hook = new Wp_Hook();
+		$this->hook          = new Wp_Hook();
 		$this->action_output = '';
 
 		$this->hook->add_filter( 'remove_and_add_action', '__return_empty_string', 10, 0 );
@@ -216,7 +216,7 @@ class Tests_WP_Hook_Add_Filter extends WP_UnitTestCase {
 	}
 
 	public function test_remove_and_add_last_action() {
-		$this->hook = new Wp_Hook();
+		$this->hook          = new Wp_Hook();
 		$this->action_output = '';
 
 		$this->hook->add_filter( 'remove_and_add_action', '__return_empty_string', 10, 0 );
@@ -231,7 +231,7 @@ class Tests_WP_Hook_Add_Filter extends WP_UnitTestCase {
 	}
 
 	public function test_remove_and_recurse_and_add_action() {
-		$this->hook = new Wp_Hook();
+		$this->hook          = new Wp_Hook();
 		$this->action_output = '';
 
 		$this->hook->add_filter( 'remove_and_add_action', '__return_empty_string', 10, 0 );

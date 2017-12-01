@@ -25,23 +25,22 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the controller function that expects slashed data
-	 *
 	 */
 	function test_add_user() {
-		$_POST = $_GET = $_REQUEST = array();
-		$_POST['user_login'] = 'slash_example_user_1';
-		$_POST['pass1'] = 'password';
-		$_POST['pass2'] = 'password';
-		$_POST['role'] = 'subscriber';
-		$_POST['email'] = 'user1@example.com';
-		$_POST['first_name'] = $this->slash_1;
-		$_POST['last_name'] = $this->slash_3;
-		$_POST['nickname'] = $this->slash_5;
+		$_POST                 = $_GET = $_REQUEST = array();
+		$_POST['user_login']   = 'slash_example_user_1';
+		$_POST['pass1']        = 'password';
+		$_POST['pass2']        = 'password';
+		$_POST['role']         = 'subscriber';
+		$_POST['email']        = 'user1@example.com';
+		$_POST['first_name']   = $this->slash_1;
+		$_POST['last_name']    = $this->slash_3;
+		$_POST['nickname']     = $this->slash_5;
 		$_POST['display_name'] = $this->slash_7;
-		$_POST['description'] = $this->slash_3;
-		$_POST = add_magic_quotes( $_POST ); // the edit_post() function will strip slashes
+		$_POST['description']  = $this->slash_3;
+		$_POST                 = add_magic_quotes( $_POST ); // the edit_post() function will strip slashes
 
-		$id = add_user();
+		$id   = add_user();
 		$user = get_user_to_edit( $id );
 
 		$this->assertEquals( $this->slash_1, $user->first_name );
@@ -50,20 +49,20 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 		$this->assertEquals( $this->slash_7, $user->display_name );
 		$this->assertEquals( $this->slash_3, $user->description );
 
-		$_POST = $_GET = $_REQUEST = array();
-		$_POST['user_login'] = 'slash_example_user_2';
-		$_POST['pass1'] = 'password';
-		$_POST['pass2'] = 'password';
-		$_POST['role'] = 'subscriber';
-		$_POST['email'] = 'user2@example.com';
-		$_POST['first_name'] = $this->slash_2;
-		$_POST['last_name'] = $this->slash_4;
-		$_POST['nickname'] = $this->slash_6;
+		$_POST                 = $_GET = $_REQUEST = array();
+		$_POST['user_login']   = 'slash_example_user_2';
+		$_POST['pass1']        = 'password';
+		$_POST['pass2']        = 'password';
+		$_POST['role']         = 'subscriber';
+		$_POST['email']        = 'user2@example.com';
+		$_POST['first_name']   = $this->slash_2;
+		$_POST['last_name']    = $this->slash_4;
+		$_POST['nickname']     = $this->slash_6;
 		$_POST['display_name'] = $this->slash_2;
-		$_POST['description'] = $this->slash_4;
-		$_POST = add_magic_quotes( $_POST ); // the edit_post() function will strip slashes
+		$_POST['description']  = $this->slash_4;
+		$_POST                 = add_magic_quotes( $_POST ); // the edit_post() function will strip slashes
 
-		$id = add_user();
+		$id   = add_user();
 		$user = get_user_to_edit( $id );
 
 		$this->assertEquals( $this->slash_2, $user->first_name );
@@ -75,22 +74,21 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the controller function that expects slashed data
-	 *
 	 */
 	function test_edit_user() {
 		$id = self::factory()->user->create();
 
-		$_POST = $_GET = $_REQUEST = array();
-		$_POST['role'] = 'subscriber';
-		$_POST['email'] = 'user1@example.com';
-		$_POST['first_name'] = $this->slash_1;
-		$_POST['last_name'] = $this->slash_3;
-		$_POST['nickname'] = $this->slash_5;
+		$_POST                 = $_GET = $_REQUEST = array();
+		$_POST['role']         = 'subscriber';
+		$_POST['email']        = 'user1@example.com';
+		$_POST['first_name']   = $this->slash_1;
+		$_POST['last_name']    = $this->slash_3;
+		$_POST['nickname']     = $this->slash_5;
 		$_POST['display_name'] = $this->slash_7;
-		$_POST['description'] = $this->slash_3;
-		$_POST = add_magic_quotes( $_POST ); // the edit_post() function will strip slashes
+		$_POST['description']  = $this->slash_3;
+		$_POST                 = add_magic_quotes( $_POST ); // the edit_post() function will strip slashes
 
-		$id = edit_user( $id );
+		$id   = edit_user( $id );
 		$user = get_user_to_edit( $id );
 
 		$this->assertEquals( $this->slash_1, $user->first_name );
@@ -99,17 +97,17 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 		$this->assertEquals( $this->slash_7, $user->display_name );
 		$this->assertEquals( $this->slash_3, $user->description );
 
-		$_POST = $_GET = $_REQUEST = array();
-		$_POST['role'] = 'subscriber';
-		$_POST['email'] = 'user2@example.com';
-		$_POST['first_name'] = $this->slash_2;
-		$_POST['last_name'] = $this->slash_4;
-		$_POST['nickname'] = $this->slash_6;
+		$_POST                 = $_GET = $_REQUEST = array();
+		$_POST['role']         = 'subscriber';
+		$_POST['email']        = 'user2@example.com';
+		$_POST['first_name']   = $this->slash_2;
+		$_POST['last_name']    = $this->slash_4;
+		$_POST['nickname']     = $this->slash_6;
 		$_POST['display_name'] = $this->slash_2;
-		$_POST['description'] = $this->slash_4;
-		$_POST = add_magic_quotes( $_POST ); // the edit_post() function will strip slashes
+		$_POST['description']  = $this->slash_4;
+		$_POST                 = add_magic_quotes( $_POST ); // the edit_post() function will strip slashes
 
-		$id = edit_user( $id );
+		$id   = edit_user( $id );
 		$user = get_user_to_edit( $id );
 
 		$this->assertEquals( $this->slash_2, $user->first_name );
@@ -121,20 +119,21 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the model function that expects slashed data
-	 *
 	 */
 	function test_wp_insert_user() {
-		$id = wp_insert_user( array(
-			'user_login' => 'slash_example_user_3',
-			'role' => 'subscriber',
-			'email' => 'user3@example.com',
-			'first_name' => $this->slash_1,
-			'last_name' => $this->slash_3,
-			'nickname' => $this->slash_5,
-			'display_name' => $this->slash_7,
-			'description' => $this->slash_3,
-			'user_pass' => ''
-		) );
+		$id   = wp_insert_user(
+			array(
+				'user_login'   => 'slash_example_user_3',
+				'role'         => 'subscriber',
+				'email'        => 'user3@example.com',
+				'first_name'   => $this->slash_1,
+				'last_name'    => $this->slash_3,
+				'nickname'     => $this->slash_5,
+				'display_name' => $this->slash_7,
+				'description'  => $this->slash_3,
+				'user_pass'    => '',
+			)
+		);
 		$user = get_user_to_edit( $id );
 
 		$this->assertEquals( wp_unslash( $this->slash_1 ), $user->first_name );
@@ -143,17 +142,19 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 		$this->assertEquals( wp_unslash( $this->slash_7 ), $user->display_name );
 		$this->assertEquals( wp_unslash( $this->slash_3 ), $user->description );
 
-		$id = wp_insert_user( array(
-			'user_login' => 'slash_example_user_4',
-			'role' => 'subscriber',
-			'email' => 'user3@example.com',
-			'first_name' => $this->slash_2,
-			'last_name' => $this->slash_4,
-			'nickname' => $this->slash_6,
-			'display_name' => $this->slash_2,
-			'description' => $this->slash_4,
-			'user_pass' => ''
-		) );
+		$id   = wp_insert_user(
+			array(
+				'user_login'   => 'slash_example_user_4',
+				'role'         => 'subscriber',
+				'email'        => 'user3@example.com',
+				'first_name'   => $this->slash_2,
+				'last_name'    => $this->slash_4,
+				'nickname'     => $this->slash_6,
+				'display_name' => $this->slash_2,
+				'description'  => $this->slash_4,
+				'user_pass'    => '',
+			)
+		);
 		$user = get_user_to_edit( $id );
 
 		$this->assertEquals( wp_unslash( $this->slash_2 ), $user->first_name );
@@ -165,19 +166,20 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the model function that expects slashed data
-	 *
 	 */
 	function test_wp_update_user() {
-		$id = self::factory()->user->create();
-		$id = wp_update_user(array(
-			'ID' => $id,
-			'role' => 'subscriber',
-			'first_name' => $this->slash_1,
-			'last_name' => $this->slash_3,
-			'nickname' => $this->slash_5,
-			'display_name' => $this->slash_7,
-			'description' => $this->slash_3,
-		));
+		$id   = self::factory()->user->create();
+		$id   = wp_update_user(
+			array(
+				'ID'           => $id,
+				'role'         => 'subscriber',
+				'first_name'   => $this->slash_1,
+				'last_name'    => $this->slash_3,
+				'nickname'     => $this->slash_5,
+				'display_name' => $this->slash_7,
+				'description'  => $this->slash_3,
+			)
+		);
 		$user = get_user_to_edit( $id );
 
 		$this->assertEquals( wp_unslash( $this->slash_1 ), $user->first_name );
@@ -186,15 +188,17 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 		$this->assertEquals( wp_unslash( $this->slash_7 ), $user->display_name );
 		$this->assertEquals( wp_unslash( $this->slash_3 ), $user->description );
 
-		$id = wp_update_user(array(
-			'ID' => $id,
-			'role' => 'subscriber',
-			'first_name' => $this->slash_2,
-			'last_name' => $this->slash_4,
-			'nickname' => $this->slash_6,
-			'display_name' => $this->slash_2,
-			'description' => $this->slash_4,
-		));
+		$id   = wp_update_user(
+			array(
+				'ID'           => $id,
+				'role'         => 'subscriber',
+				'first_name'   => $this->slash_2,
+				'last_name'    => $this->slash_4,
+				'nickname'     => $this->slash_6,
+				'display_name' => $this->slash_2,
+				'description'  => $this->slash_4,
+			)
+		);
 		$user = get_user_to_edit( $id );
 
 		$this->assertEquals( wp_unslash( $this->slash_2 ), $user->first_name );

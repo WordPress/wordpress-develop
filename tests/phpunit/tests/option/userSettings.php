@@ -5,9 +5,11 @@ class Tests_User_Settings extends WP_UnitTestCase {
 	function setUp() {
 		parent::setUp();
 
-		$this->user_id = self::factory()->user->create( array(
-			'role' => 'administrator'
-		) );
+		$this->user_id = self::factory()->user->create(
+			array(
+				'role' => 'administrator',
+			)
+		);
 
 		wp_set_current_user( $this->user_id );
 	}
@@ -50,7 +52,7 @@ class Tests_User_Settings extends WP_UnitTestCase {
 
 	// set_user_setting bails if `headers_sent()` is true
 	function set_user_setting( $name, $value ) {
-		$all_user_settings = get_all_user_settings();
+		$all_user_settings          = get_all_user_settings();
 		$all_user_settings[ $name ] = $value;
 
 		return wp_set_all_user_settings( $all_user_settings );
