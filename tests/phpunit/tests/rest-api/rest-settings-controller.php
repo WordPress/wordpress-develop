@@ -72,6 +72,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 			'posts_per_page',
 			'default_ping_status',
 			'default_comment_status',
+			'permalink_structure',
 		);
 
 		if ( ! is_multisite() ) {
