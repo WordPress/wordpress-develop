@@ -54,6 +54,11 @@ before_script:
     echo "xdebug.ini does not exist"
   fi
 - |
+  # Force the MySQL extension for PHP 5.2
+  if [[ ${TRAVIS_PHP_VERSION:0:3} == "5.2" ]]; then
+    echo "define( 'WP_USE_EXT_MYSQL', true );" >> wp-tests-config.php
+  fi 
+- |
   # Export Composer's global bin dir to PATH, but not on PHP 5.2:
   if [[ ${TRAVIS_PHP_VERSION:0:3} != "5.2" ]]; then
     composer config --list --global
