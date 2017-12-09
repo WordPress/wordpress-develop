@@ -1,8 +1,5 @@
 <?php
 
-require_once dirname( __FILE__ ) . '/class-basic-object.php';
-require_once dirname( __FILE__ ) . '/class-basic-subclass.php';
-
 /**
  * Resets various `$_SERVER` variables that can get altered during tests.
  */
