@@ -127,11 +127,9 @@ EOF;
 	}
 
 	function test_wp_get_archives_echo() {
-		$expected['echo'] = "<li><a href='" . $this->month_url . "'>" . date( 'F Y' ) . '</a></li>';
-		ob_start();
+		$expected['echo'] = "\t<li><a href='" . $this->month_url . "'>" . date( 'F Y' ) . '</a></li>' . "\n";
+		$this->expectOutputString( $expected['echo'] );
 		wp_get_archives( array( 'echo' => true ) );
-		$actual = ob_get_clean();
-		$this->assertEquals( $expected['echo'], trim( $actual ) );
 	}
 
 	function test_wp_get_archives_order() {

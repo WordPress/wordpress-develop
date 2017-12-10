@@ -238,10 +238,8 @@ class Tests_List_Pages extends WP_UnitTestCase {
 <li class="page_item page-item-2 page_item_has_children"><a href="' . get_permalink( 2 ) . '">Parent 2</a></li>
 <li class="page_item page-item-3 page_item_has_children"><a href="' . get_permalink( 3 ) . '">Parent 3</a></li>
 </ul></li>';
-		ob_start();
+		$this->expectOutputString( $expected['echo'] );
 		wp_list_pages( $args );
-		$actual = ob_get_clean();
-		$this->AssertEquals( $expected['echo'], $actual );
 	}
 
 	function test_wp_list_pages_authors() {

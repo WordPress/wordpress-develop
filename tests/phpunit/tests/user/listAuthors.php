@@ -161,10 +161,8 @@ class Tests_User_ListAuthors extends WP_UnitTestCase {
 
 	function test_wp_list_authors_echo() {
 		$expected['echo'] = '<li><a href="' . self::$user_urls[1] . '" title="Posts by bob">bob</a></li><li><a href="' . self::$user_urls[2] . '" title="Posts by paul">paul</a></li><li><a href="' . self::$user_urls[0] . '" title="Posts by zack">zack</a></li>';
-		ob_start();
+		$this->expectOutputString( $expected['echo'] );
 		wp_list_authors( array( 'echo' => true ) );
-		$actual = ob_get_clean();
-		$this->AssertEquals( $expected['echo'], $actual );
 	}
 
 	function test_wp_list_authors_feed() {

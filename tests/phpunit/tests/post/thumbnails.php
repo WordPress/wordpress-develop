@@ -141,10 +141,8 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 
 		set_post_thumbnail( $post_id, $attachment_id );
 
-		ob_start();
+		$this->expectOutputString( $caption );
 		the_post_thumbnail_caption( $post_id );
-
-		$this->assertEquals( $caption, ob_get_clean() );
 	}
 
 	function test_get_the_post_thumbnail() {
@@ -166,19 +164,14 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	}
 
 	function test_the_post_thumbnail() {
-		ob_start();
-		the_post_thumbnail();
-		$actual = ob_get_clean();
 
-		$this->assertEquals( '', $actual );
+		$this->expectOutputString( '' );
+		the_post_thumbnail();
 
 		$GLOBALS['post'] = self::$post;
 
-		ob_start();
+		$this->expectOutputString( '' );
 		the_post_thumbnail();
-		$actual = ob_get_clean();
-
-		$this->assertEquals( '', $actual );
 
 		set_post_thumbnail( self::$post, self::$attachment_id );
 
@@ -188,11 +181,8 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 			)
 		);
 
-		ob_start();
+		$this->expectOutputString( $expected );
 		the_post_thumbnail();
-		$actual = ob_get_clean();
-
-		$this->assertEquals( $expected, $actual );
 	}
 
 	/**
@@ -233,25 +223,13 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	function test_the_post_thumbnail_url() {
 		$GLOBALS['post'] = self::$post;
 
-		ob_start();
+		$this->expectOutputString( '' );
 		the_post_thumbnail_url();
-		$actual = ob_get_clean();
-
-		$this->assertEmpty( $actual );
-
-		ob_start();
-		the_post_thumbnail_url();
-		$actual = ob_get_clean();
-
-		$this->assertEmpty( $actual );
 
 		set_post_thumbnail( self::$post, self::$attachment_id );
 
-		ob_start();
+		$this->expectOutputString( wp_get_attachment_url( self::$attachment_id ) );
 		the_post_thumbnail_url();
-		$actual = ob_get_clean();
-
-		$this->assertEquals( wp_get_attachment_url( self::$attachment_id ), $actual );
 	}
 
 	/**
