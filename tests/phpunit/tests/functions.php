@@ -150,6 +150,11 @@ class Tests_Functions extends WP_UnitTestCase {
 			array( '/www/path/', '/www/path/' ),
 			array( '/www/path/////', '/www/path/' ),
 			array( '/www/path', '/www/path' ),
+
+			// PHP Stream wrappers
+			array( 'php://input', 'php://input' ),
+			array( 'http://example.com//path.ext', 'http://example.com/path.ext' ),
+			array( 'file://c:\\www\\path\\', 'file://C:/www/path/' ),
 		);
 	}
 
