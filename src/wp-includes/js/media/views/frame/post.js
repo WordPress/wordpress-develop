@@ -445,7 +445,8 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 			requires: { selection: true },
 
 			/**
-			 * @callback
+			 * @ignore
+			 *
 			 * @fires wp.media.controller.State#insert
 			 */
 			click: function() {
