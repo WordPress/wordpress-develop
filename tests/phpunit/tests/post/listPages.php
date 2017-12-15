@@ -1,63 +1,85 @@
 <?php
 
+/**
+ * @group post
+ */
 class Tests_List_Pages extends WP_UnitTestCase {
-	var $pages;
+	/**
+	 * Author user id.
+	 *
+	 * @var int
+	 */
+	public static $author;
 
-	protected $time = null;
+	/**
+	 * Parent page id.
+	 *
+	 * @var int
+	 */
+	public static $parent_1;
 
-	/*
-	$defaults = array(
-		'depth' => 0,
-		'show_date' => '',
-		'date_format' => get_option('date_format'),
-		'child_of' => 0,
-		'exclude' => '',
-		'title_li' => __('Pages'),
-		'echo' => 1,
-		'authors' => '',
-		'sort_column' => 'menu_order, post_title',
-		'link_before' => '',
-		'link_after' => '',
-		'walker' => '',
-		'item_spacing' => 'preserve',
-		'include'      => '',
-		'post_type'    => 'page',
-		'post_status'  => 'publish',
-	);
-	*/
-	function setUp() {
-		parent::setUp();
-		global $wpdb;
-		$wpdb->query( 'TRUNCATE ' . $wpdb->prefix . 'posts' );
-		$this->time = time();
-		$post_date  = date( 'Y-m-d H:i:s', $this->time );
-		$pages      = array();
-		self::factory()->user->create();
-		$pages[] = self::factory()->post->create(
+	/**
+	 * Parent page id.
+	 *
+	 * @var int
+	 */
+	public static $parent_2;
+
+	/**
+	 * Parent page id.
+	 *
+	 * @var int
+	 */
+	public static $parent_3;
+
+	/**
+	 * Child page ids.
+	 *
+	 * @var array
+	 */
+	public static $children = array();
+
+	/**
+	 * Current timestamp cache, so that it is consistent across posts.
+	 *
+	 * @var int
+	 */
+	public static $time;
+
+	public static function wpSetupBeforeClass() {
+		self::$time = time();
+
+		$post_date = date( 'Y-m-d H:i:s', self::$time );
+
+		self::$parent_1 = self::factory()->post->create(
 			array(
 				'post_type'  => 'page',
 				'post_title' => 'Parent 1',
 				'post_date'  => $post_date,
 			)
 		);
-		$pages[] = self::factory()->post->create(
+
+		self::$author = self::factory()->user->create( array( 'role' => 'author' ) );
+
+		self::$parent_2 = self::factory()->post->create(
 			array(
 				'post_type'  => 'page',
 				'post_title' => 'Parent 2',
 				'post_date'  => $post_date,
 			)
 		);
-		$pages[] = self::factory()->post->create(
+
+		self::$parent_3 = self::factory()->post->create(
 			array(
+				'post_author' => self::$author,
 				'post_type'   => 'page',
 				'post_title'  => 'Parent 3',
-				'post_author' => '2',
 				'post_date'   => $post_date,
 			)
 		);
 
-		foreach ( $pages as $page ) {
-			$this->pages[ $page ] = self::factory()->post->create(
+		foreach ( array( self::$parent_1, self::$parent_2, self::$parent_3 ) as $page ) {
+			self::$children[ $page ][] = self::factory()->post->create(
 				array(
 					'post_parent' => $page,
 					'post_type'   => 'page',
@@ -65,7 +87,7 @@ class Tests_List_Pages extends WP_UnitTestCase {
 					'post_date'   => $post_date,
 				)
 			);
-			$this->pages[ $page ] = self::factory()->post->create(
+			self::$children[ $page ][] = self::factory()->post->create(
 				array(
 					'post_parent' => $page,
 					'post_type'   => 'page',
@@ -73,7 +95,7 @@ class Tests_List_Pages extends WP_UnitTestCase {
 					'post_date'   => $post_date,
 				)
 			);
-			$this->pages[ $page ] = self::factory()->post->create(
+			self::$children[ $page ][] = self::factory()->post->create(
 				array(
 					'post_parent' => $page,
 					'post_type'   => 'page',
@@ -85,316 +107,332 @@ class Tests_List_Pages extends WP_UnitTestCase {
 	}
 
 	function test_wp_list_pages_default() {
-		$args                = array(
+		$args = array(
 			'echo' => false,
 		);
-		$expected['default'] = '<li class="pagenav">Pages<ul><li class="page_item page-item-1 page_item_has_children"><a href="' . get_permalink( 1 ) . '">Parent 1</a>
+
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_1 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1</a>
 <ul class=\'children\'>
-	<li class="page_item page-item-4"><a href="' . get_permalink( 4 ) . '">Child 1</a></li>
-	<li class="page_item page-item-5"><a href="' . get_permalink( 5 ) . '">Child 2</a></li>
-	<li class="page_item page-item-6"><a href="' . get_permalink( 6 ) . '">Child 3</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][0] ) . '">Child 1</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][1] ) . '">Child 2</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][2] ) . '">Child 3</a></li>
 </ul>
 </li>
-<li class="page_item page-item-2 page_item_has_children"><a href="' . get_permalink( 2 ) . '">Parent 2</a>
+<li class="page_item page-item-' . self::$parent_2 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_2 ) . '">Parent 2</a>
 <ul class=\'children\'>
-	<li class="page_item page-item-7"><a href="' . get_permalink( 7 ) . '">Child 1</a></li>
-	<li class="page_item page-item-8"><a href="' . get_permalink( 8 ) . '">Child 2</a></li>
-	<li class="page_item page-item-9"><a href="' . get_permalink( 9 ) . '">Child 3</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_2 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][0] ) . '">Child 1</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_2 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][1] ) . '">Child 2</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_2 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][2] ) . '">Child 3</a></li>
 </ul>
 </li>
-<li class="page_item page-item-3 page_item_has_children"><a href="' . get_permalink( 3 ) . '">Parent 3</a>
+<li class="page_item page-item-' . self::$parent_3 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3</a>
 <ul class=\'children\'>
-	<li class="page_item page-item-10"><a href="' . get_permalink( 10 ) . '">Child 1</a></li>
-	<li class="page_item page-item-11"><a href="' . get_permalink( 11 ) . '">Child 2</a></li>
-	<li class="page_item page-item-12"><a href="' . get_permalink( 12 ) . '">Child 3</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][0] ) . '">Child 1</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][1] ) . '">Child 2</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][2] ) . '">Child 3</a></li>
 </ul>
 </li>
 </ul></li>';
-		$actual              = wp_list_pages( $args );
-		$this->AssertEquals( $expected['default'], $actual );
+
+		$this->AssertEquals( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_depth() {
-		$args              = array(
+		$args = array(
 			'echo'  => false,
 			'depth' => 1,
 		);
-		$expected['depth'] = '<li class="pagenav">Pages<ul><li class="page_item page-item-1 page_item_has_children"><a href="' . get_permalink( 1 ) . '">Parent 1</a></li>
-<li class="page_item page-item-2 page_item_has_children"><a href="' . get_permalink( 2 ) . '">Parent 2</a></li>
-<li class="page_item page-item-3 page_item_has_children"><a href="' . get_permalink( 3 ) . '">Parent 3</a></li>
+
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_1 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1</a></li>
+<li class="page_item page-item-' . self::$parent_2 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_2 ) . '">Parent 2</a></li>
+<li class="page_item page-item-' . self::$parent_3 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3</a></li>
 </ul></li>';
-		$actual            = wp_list_pages( $args );
-		$this->AssertEquals( $expected['depth'], $actual );
+
+		$this->AssertEquals( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_show_date() {
-		$args                  = array(
+		$args = array(
 			'echo'      => false,
 			'depth'     => 1,
 			'show_date' => true,
 		);
-		$date                  = date( get_option( 'date_format' ), $this->time );
-		$expected['show_date'] = '<li class="pagenav">Pages<ul><li class="page_item page-item-1 page_item_has_children"><a href="' . get_permalink( 1 ) . '">Parent 1</a> ' . $date . '</li>
-<li class="page_item page-item-2 page_item_has_children"><a href="' . get_permalink( 2 ) . '">Parent 2</a> ' . $date . '</li>
-<li class="page_item page-item-3 page_item_has_children"><a href="' . get_permalink( 3 ) . '">Parent 3</a> ' . $date . '</li>
+		$date = date( get_option( 'date_format' ), self::$time );
+
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_1 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1</a> ' . $date . '</li>
+<li class="page_item page-item-' . self::$parent_2 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_2 ) . '">Parent 2</a> ' . $date . '</li>
+<li class="page_item page-item-' . self::$parent_3 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3</a> ' . $date . '</li>
 </ul></li>';
-		$actual                = wp_list_pages( $args );
-		$this->AssertEquals( $expected['show_date'], $actual );
+
+		$this->AssertEquals( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_date_format() {
-		$args                    = array(
+		$args = array(
 			'echo'        => false,
 			'show_date'   => true,
 			'date_format' => 'l, F j, Y',
 		);
-		$date                    = date( $args['date_format'], $this->time );
-		$expected['date_format'] = '<li class="pagenav">Pages<ul><li class="page_item page-item-1 page_item_has_children"><a href="' . get_permalink( 1 ) . '">Parent 1</a> ' . $date . '
+		$date = date( $args['date_format'], self::$time );
+
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_1 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1</a> ' . $date . '
 <ul class=\'children\'>
-	<li class="page_item page-item-4"><a href="' . get_permalink( 4 ) . '">Child 1</a> ' . $date . '</li>
-	<li class="page_item page-item-5"><a href="' . get_permalink( 5 ) . '">Child 2</a> ' . $date . '</li>
-	<li class="page_item page-item-6"><a href="' . get_permalink( 6 ) . '">Child 3</a> ' . $date . '</li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][0] ) . '">Child 1</a> ' . $date . '</li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][1] ) . '">Child 2</a> ' . $date . '</li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][2] ) . '">Child 3</a> ' . $date . '</li>
 </ul>
 </li>
-<li class="page_item page-item-2 page_item_has_children"><a href="' . get_permalink( 2 ) . '">Parent 2</a> ' . $date . '
+<li class="page_item page-item-' . self::$parent_2 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_2 ) . '">Parent 2</a> ' . $date . '
 <ul class=\'children\'>
-	<li class="page_item page-item-7"><a href="' . get_permalink( 7 ) . '">Child 1</a> ' . $date . '</li>
-	<li class="page_item page-item-8"><a href="' . get_permalink( 8 ) . '">Child 2</a> ' . $date . '</li>
-	<li class="page_item page-item-9"><a href="' . get_permalink( 9 ) . '">Child 3</a> ' . $date . '</li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_2 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][0] ) . '">Child 1</a> ' . $date . '</li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_2 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][1] ) . '">Child 2</a> ' . $date . '</li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_2 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][2] ) . '">Child 3</a> ' . $date . '</li>
 </ul>
 </li>
-<li class="page_item page-item-3 page_item_has_children"><a href="' . get_permalink( 3 ) . '">Parent 3</a> ' . $date . '
+<li class="page_item page-item-' . self::$parent_3 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3</a> ' . $date . '
 <ul class=\'children\'>
-	<li class="page_item page-item-10"><a href="' . get_permalink( 10 ) . '">Child 1</a> ' . $date . '</li>
-	<li class="page_item page-item-11"><a href="' . get_permalink( 11 ) . '">Child 2</a> ' . $date . '</li>
-	<li class="page_item page-item-12"><a href="' . get_permalink( 12 ) . '">Child 3</a> ' . $date . '</li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][0] ) . '">Child 1</a> ' . $date . '</li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][1] ) . '">Child 2</a> ' . $date . '</li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][2] ) . '">Child 3</a> ' . $date . '</li>
 </ul>
 </li>
 </ul></li>';
-		$actual                  = wp_list_pages( $args );
-		$this->AssertEquals( $expected['date_format'], $actual );
+
+		$this->AssertEquals( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_child_of() {
-		$args                 = array(
+		$args = array(
 			'echo'     => false,
-			'child_of' => 2,
+			'child_of' => self::$parent_2,
 		);
-		$expected['child_of'] = '<li class="pagenav">Pages<ul><li class="page_item page-item-7"><a href="' . get_permalink( 7 ) . '">Child 1</a></li>
-<li class="page_item page-item-8"><a href="' . get_permalink( 8 ) . '">Child 2</a></li>
-<li class="page_item page-item-9"><a href="' . get_permalink( 9 ) . '">Child 3</a></li>
+
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$children[ self::$parent_2 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][0] ) . '">Child 1</a></li>
+<li class="page_item page-item-' . self::$children[ self::$parent_2 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][1] ) . '">Child 2</a></li>
+<li class="page_item page-item-' . self::$children[ self::$parent_2 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][2] ) . '">Child 3</a></li>
 </ul></li>';
-		$actual               = wp_list_pages( $args );
-		$this->AssertEquals( $expected['child_of'], $actual );
+
+		$this->AssertEquals( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_exclude() {
-		$args                = array(
+		$args = array(
 			'echo'    => false,
-			'exclude' => '2, 2',
+			'exclude' => self::$parent_2,
 		);
-		$expected['exclude'] = '<li class="pagenav">Pages<ul><li class="page_item page-item-1 page_item_has_children"><a href="' . get_permalink( 1 ) . '">Parent 1</a>
+
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_1 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1</a>
 <ul class=\'children\'>
-	<li class="page_item page-item-4"><a href="' . get_permalink( 4 ) . '">Child 1</a></li>
-	<li class="page_item page-item-5"><a href="' . get_permalink( 5 ) . '">Child 2</a></li>
-	<li class="page_item page-item-6"><a href="' . get_permalink( 6 ) . '">Child 3</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][0] ) . '">Child 1</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][1] ) . '">Child 2</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][2] ) . '">Child 3</a></li>
 </ul>
 </li>
-<li class="page_item page-item-3 page_item_has_children"><a href="' . get_permalink( 3 ) . '">Parent 3</a>
+<li class="page_item page-item-' . self::$parent_3 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3</a>
 <ul class=\'children\'>
-	<li class="page_item page-item-10"><a href="' . get_permalink( 10 ) . '">Child 1</a></li>
-	<li class="page_item page-item-11"><a href="' . get_permalink( 11 ) . '">Child 2</a></li>
-	<li class="page_item page-item-12"><a href="' . get_permalink( 12 ) . '">Child 3</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][0] ) . '">Child 1</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][1] ) . '">Child 2</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][2] ) . '">Child 3</a></li>
 </ul>
 </li>
-<li class="page_item page-item-7"><a href="' . get_permalink( 7 ) . '">Child 1</a></li>
-<li class="page_item page-item-8"><a href="' . get_permalink( 8 ) . '">Child 2</a></li>
-<li class="page_item page-item-9"><a href="' . get_permalink( 9 ) . '">Child 3</a></li>
+<li class="page_item page-item-' . self::$children[ self::$parent_2 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][0] ) . '">Child 1</a></li>
+<li class="page_item page-item-' . self::$children[ self::$parent_2 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][1] ) . '">Child 2</a></li>
+<li class="page_item page-item-' . self::$children[ self::$parent_2 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][2] ) . '">Child 3</a></li>
 </ul></li>';
-		$actual              = wp_list_pages( $args );
-		$this->AssertEquals( $expected['exclude'], $actual );
+
+		$this->AssertEquals( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_title_li() {
-		$args                 = array(
+		$args = array(
 			'echo'     => false,
 			'depth'    => 1,
 			'title_li' => 'PageTitle',
 		);
-		$expected['title_li'] = '<li class="pagenav">PageTitle<ul><li class="page_item page-item-1 page_item_has_children"><a href="' . get_permalink( 1 ) . '">Parent 1</a></li>
-<li class="page_item page-item-2 page_item_has_children"><a href="' . get_permalink( 2 ) . '">Parent 2</a></li>
-<li class="page_item page-item-3 page_item_has_children"><a href="' . get_permalink( 3 ) . '">Parent 3</a></li>
+
+		$expected = '<li class="pagenav">PageTitle<ul><li class="page_item page-item-' . self::$parent_1 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1</a></li>
+<li class="page_item page-item-' . self::$parent_2 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_2 ) . '">Parent 2</a></li>
+<li class="page_item page-item-' . self::$parent_3 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3</a></li>
 </ul></li>';
-		$actual               = wp_list_pages( $args );
-		$this->AssertEquals( $expected['title_li'], $actual );
+
+		$this->AssertEquals( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_echo() {
-		$args             = array(
+		$args = array(
 			'echo'  => true,
 			'depth' => 1,
 		);
-		$expected['echo'] = '<li class="pagenav">Pages<ul><li class="page_item page-item-1 page_item_has_children"><a href="' . get_permalink( 1 ) . '">Parent 1</a></li>
-<li class="page_item page-item-2 page_item_has_children"><a href="' . get_permalink( 2 ) . '">Parent 2</a></li>
-<li class="page_item page-item-3 page_item_has_children"><a href="' . get_permalink( 3 ) . '">Parent 3</a></li>
+
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_1 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1</a></li>
+<li class="page_item page-item-' . self::$parent_2 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_2 ) . '">Parent 2</a></li>
+<li class="page_item page-item-' . self::$parent_3 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3</a></li>
 </ul></li>';
-		$this->expectOutputString( $expected['echo'] );
+		$this->expectOutputString( $expected );
 		wp_list_pages( $args );
 	}
 
 	function test_wp_list_pages_authors() {
-		$args                = array(
+		$args = array(
 			'echo'    => false,
-			'authors' => '2',
+			'authors' => self::$author,
 		);
-		$expected['authors'] = '<li class="pagenav">Pages<ul><li class="page_item page-item-3"><a href="' . get_permalink( 3 ) . '">Parent 3</a></li>
+
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_3 . '"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3</a></li>
 </ul></li>';
-		$actual              = wp_list_pages( $args );
-		$this->AssertEquals( $expected['authors'], $actual );
+
+		$this->AssertEquals( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_number() {
-		$args               = array(
+		$args = array(
 			'echo'   => false,
 			'number' => 1,
 		);
-		$expected['number'] = '<li class="pagenav">Pages<ul><li class="page_item page-item-4"><a href="' . get_permalink( 4 ) . '">Child 1</a></li>
+
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$children[ self::$parent_1 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][0] ) . '">Child 1</a></li>
 </ul></li>';
-		$actual             = wp_list_pages( $args );
-		$this->AssertEquals( $expected['number'], $actual );
+
+		$this->AssertEquals( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_sort_column() {
-		$args                    = array(
+		$args = array(
 			'echo'        => false,
 			'sort_column' => 'post_author',
 			'sort_order'  => 'DESC',
 		);
-		$expected['sort_column'] = '<li class="pagenav">Pages<ul><li class="page_item page-item-3 page_item_has_children"><a href="' . get_permalink( 3 ) . '">Parent 3</a>
+
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_3 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3</a>
 <ul class=\'children\'>
-	<li class="page_item page-item-10"><a href="' . get_permalink( 10 ) . '">Child 1</a></li>
-	<li class="page_item page-item-11"><a href="' . get_permalink( 11 ) . '">Child 2</a></li>
-	<li class="page_item page-item-12"><a href="' . get_permalink( 12 ) . '">Child 3</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][0] ) . '">Child 1</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][1] ) . '">Child 2</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][2] ) . '">Child 3</a></li>
 </ul>
 </li>
-<li class="page_item page-item-1 page_item_has_children"><a href="' . get_permalink( 1 ) . '">Parent 1</a>
+<li class="page_item page-item-' . self::$parent_1 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1</a>
 <ul class=\'children\'>
-	<li class="page_item page-item-4"><a href="' . get_permalink( 4 ) . '">Child 1</a></li>
-	<li class="page_item page-item-5"><a href="' . get_permalink( 5 ) . '">Child 2</a></li>
-	<li class="page_item page-item-6"><a href="' . get_permalink( 6 ) . '">Child 3</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][0] ) . '">Child 1</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][1] ) . '">Child 2</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][2] ) . '">Child 3</a></li>
 </ul>
 </li>
-<li class="page_item page-item-2 page_item_has_children"><a href="' . get_permalink( 2 ) . '">Parent 2</a>
+<li class="page_item page-item-' . self::$parent_2 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_2 ) . '">Parent 2</a>
 <ul class=\'children\'>
-	<li class="page_item page-item-7"><a href="' . get_permalink( 7 ) . '">Child 1</a></li>
-	<li class="page_item page-item-8"><a href="' . get_permalink( 8 ) . '">Child 2</a></li>
-	<li class="page_item page-item-9"><a href="' . get_permalink( 9 ) . '">Child 3</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_2 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][0] ) . '">Child 1</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_2 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][1] ) . '">Child 2</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_2 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][2] ) . '">Child 3</a></li>
 </ul>
 </li>
 </ul></li>';
-		$actual                  = wp_list_pages( $args );
-		$this->AssertEquals( $expected['sort_column'], $actual );
+
+		$this->AssertEquals( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_link_before() {
-		$args                    = array(
+		$args = array(
 			'echo'        => false,
 			'link_before' => 'BEFORE',
 		);
-		$expected['link_before'] = '<li class="pagenav">Pages<ul><li class="page_item page-item-1 page_item_has_children"><a href="' . get_permalink( 1 ) . '">BEFOREParent 1</a>
+
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_1 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_1 ) . '">BEFOREParent 1</a>
 <ul class=\'children\'>
-	<li class="page_item page-item-4"><a href="' . get_permalink( 4 ) . '">BEFOREChild 1</a></li>
-	<li class="page_item page-item-5"><a href="' . get_permalink( 5 ) . '">BEFOREChild 2</a></li>
-	<li class="page_item page-item-6"><a href="' . get_permalink( 6 ) . '">BEFOREChild 3</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][0] ) . '">BEFOREChild 1</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][1] ) . '">BEFOREChild 2</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][2] ) . '">BEFOREChild 3</a></li>
 </ul>
 </li>
-<li class="page_item page-item-2 page_item_has_children"><a href="' . get_permalink( 2 ) . '">BEFOREParent 2</a>
+<li class="page_item page-item-' . self::$parent_2 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_2 ) . '">BEFOREParent 2</a>
 <ul class=\'children\'>
-	<li class="page_item page-item-7"><a href="' . get_permalink( 7 ) . '">BEFOREChild 1</a></li>
-	<li class="page_item page-item-8"><a href="' . get_permalink( 8 ) . '">BEFOREChild 2</a></li>
-	<li class="page_item page-item-9"><a href="' . get_permalink( 9 ) . '">BEFOREChild 3</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_2 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][0] ) . '">BEFOREChild 1</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_2 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][1] ) . '">BEFOREChild 2</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_2 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][2] ) . '">BEFOREChild 3</a></li>
 </ul>
 </li>
-<li class="page_item page-item-3 page_item_has_children"><a href="' . get_permalink( 3 ) . '">BEFOREParent 3</a>
+<li class="page_item page-item-' . self::$parent_3 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_3 ) . '">BEFOREParent 3</a>
 <ul class=\'children\'>
-	<li class="page_item page-item-10"><a href="' . get_permalink( 10 ) . '">BEFOREChild 1</a></li>
-	<li class="page_item page-item-11"><a href="' . get_permalink( 11 ) . '">BEFOREChild 2</a></li>
-	<li class="page_item page-item-12"><a href="' . get_permalink( 12 ) . '">BEFOREChild 3</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][0] ) . '">BEFOREChild 1</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][1] ) . '">BEFOREChild 2</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][2] ) . '">BEFOREChild 3</a></li>
 </ul>
 </li>
 </ul></li>';
-		$actual                  = wp_list_pages( $args );
-		$this->AssertEquals( $expected['link_before'], $actual );
+
+		$this->AssertEquals( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_link_after() {
-		$args                   = array(
+		$args = array(
 			'echo'       => false,
 			'link_after' => 'AFTER',
 		);
-		$expected['link_after'] = '<li class="pagenav">Pages<ul><li class="page_item page-item-1 page_item_has_children"><a href="' . get_permalink( 1 ) . '">Parent 1AFTER</a>
+
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_1 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1AFTER</a>
 <ul class=\'children\'>
-	<li class="page_item page-item-4"><a href="' . get_permalink( 4 ) . '">Child 1AFTER</a></li>
-	<li class="page_item page-item-5"><a href="' . get_permalink( 5 ) . '">Child 2AFTER</a></li>
-	<li class="page_item page-item-6"><a href="' . get_permalink( 6 ) . '">Child 3AFTER</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][0] ) . '">Child 1AFTER</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][1] ) . '">Child 2AFTER</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][2] ) . '">Child 3AFTER</a></li>
 </ul>
 </li>
-<li class="page_item page-item-2 page_item_has_children"><a href="' . get_permalink( 2 ) . '">Parent 2AFTER</a>
+<li class="page_item page-item-' . self::$parent_2 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_2 ) . '">Parent 2AFTER</a>
 <ul class=\'children\'>
-	<li class="page_item page-item-7"><a href="' . get_permalink( 7 ) . '">Child 1AFTER</a></li>
-	<li class="page_item page-item-8"><a href="' . get_permalink( 8 ) . '">Child 2AFTER</a></li>
-	<li class="page_item page-item-9"><a href="' . get_permalink( 9 ) . '">Child 3AFTER</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_2 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][0] ) . '">Child 1AFTER</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_2 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][1] ) . '">Child 2AFTER</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_2 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][2] ) . '">Child 3AFTER</a></li>
 </ul>
 </li>
-<li class="page_item page-item-3 page_item_has_children"><a href="' . get_permalink( 3 ) . '">Parent 3AFTER</a>
+<li class="page_item page-item-' . self::$parent_3 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3AFTER</a>
 <ul class=\'children\'>
-	<li class="page_item page-item-10"><a href="' . get_permalink( 10 ) . '">Child 1AFTER</a></li>
-	<li class="page_item page-item-11"><a href="' . get_permalink( 11 ) . '">Child 2AFTER</a></li>
-	<li class="page_item page-item-12"><a href="' . get_permalink( 12 ) . '">Child 3AFTER</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][0] ) . '">Child 1AFTER</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][1] ) . '">Child 2AFTER</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][2] ) . '">Child 3AFTER</a></li>
 </ul>
 </li>
 </ul></li>';
-		$actual                 = wp_list_pages( $args );
-		$this->AssertEquals( $expected['link_after'], $actual );
+
+		$this->AssertEquals( $expected, wp_list_pages( $args ) );
 	}
 
 
 	function test_wp_list_pages_include() {
-		$args                = array(
+		$args = array(
 			'echo'    => false,
-			'include' => '1,3',
+			'include' => self::$parent_1 . ',' . self::$parent_3,
 		);
-		$expected['include'] = '<li class="pagenav">Pages<ul><li class="page_item page-item-1"><a href="' . get_permalink( 1 ) . '">Parent 1</a></li>
-<li class="page_item page-item-3"><a href="' . get_permalink( 3 ) . '">Parent 3</a></li>
+
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_1 . '"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1</a></li>
+<li class="page_item page-item-' . self::$parent_3 . '"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3</a></li>
 </ul></li>';
-		$actual              = wp_list_pages( $args );
-		$this->AssertEquals( $expected['include'], $actual );
+
+		$this->AssertEquals( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_exclude_tree() {
-		$args                = array(
+		$args = array(
 			'echo'         => false,
-			'exclude_tree' => '2, 3',
+			'exclude_tree' => self::$parent_2 . ',' . self::$parent_3,
 		);
-		$expected['exclude'] = '<li class="pagenav">Pages<ul><li class="page_item page-item-1 page_item_has_children"><a href="' . get_permalink( 1 ) . '">Parent 1</a>
+
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_1 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1</a>
 <ul class=\'children\'>
-	<li class="page_item page-item-4"><a href="' . get_permalink( 4 ) . '">Child 1</a></li>
-	<li class="page_item page-item-5"><a href="' . get_permalink( 5 ) . '">Child 2</a></li>
-	<li class="page_item page-item-6"><a href="' . get_permalink( 6 ) . '">Child 3</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][0] ) . '">Child 1</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][1] ) . '">Child 2</a></li>
+	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][2] ) . '">Child 3</a></li>
 </ul>
 </li>
 </ul></li>';
-		$actual              = wp_list_pages( $args );
-		$this->AssertEquals( $expected['exclude'], $actual );
+
+		$this->AssertEquals( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_discarded_whitespace() {
-		$args                = array(
+		$args = array(
 			'echo'         => false,
 			'item_spacing' => 'discard',
 		);
-		$expected['default'] = '<li class="pagenav">Pages<ul><li class="page_item page-item-1 page_item_has_children"><a href="' . get_permalink( 1 ) . '">Parent 1</a><ul class=\'children\'><li class="page_item page-item-4"><a href="' . get_permalink( 4 ) . '">Child 1</a></li><li class="page_item page-item-5"><a href="' . get_permalink( 5 ) . '">Child 2</a></li><li class="page_item page-item-6"><a href="' . get_permalink( 6 ) . '">Child 3</a></li></ul></li><li class="page_item page-item-2 page_item_has_children"><a href="' . get_permalink( 2 ) . '">Parent 2</a><ul class=\'children\'><li class="page_item page-item-7"><a href="' . get_permalink( 7 ) . '">Child 1</a></li><li class="page_item page-item-8"><a href="' . get_permalink( 8 ) . '">Child 2</a></li><li class="page_item page-item-9"><a href="' . get_permalink( 9 ) . '">Child 3</a></li></ul></li><li class="page_item page-item-3 page_item_has_children"><a href="' . get_permalink( 3 ) . '">Parent 3</a><ul class=\'children\'><li class="page_item page-item-10"><a href="' . get_permalink( 10 ) . '">Child 1</a></li><li class="page_item page-item-11"><a href="' . get_permalink( 11 ) . '">Child 2</a></li><li class="page_item page-item-12"><a href="' . get_permalink( 12 ) . '">Child 3</a></li></ul></li></ul></li>';
-		$actual              = wp_list_pages( $args );
-		$this->AssertEquals( $expected['default'], $actual );
+
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_1 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1</a><ul class=\'children\'><li class="page_item page-item-' . self::$children[ self::$parent_1 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][0] ) . '">Child 1</a></li><li class="page_item page-item-' . self::$children[ self::$parent_1 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][1] ) . '">Child 2</a></li><li class="page_item page-item-' . self::$children[ self::$parent_1 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][2] ) . '">Child 3</a></li></ul></li><li class="page_item page-item-' . self::$parent_2 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_2 ) . '">Parent 2</a><ul class=\'children\'><li class="page_item page-item-' . self::$children[ self::$parent_2 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][0] ) . '">Child 1</a></li><li class="page_item page-item-' . self::$children[ self::$parent_2 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][1] ) . '">Child 2</a></li><li class="page_item page-item-' . self::$children[ self::$parent_2 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][2] ) . '">Child 3</a></li></ul></li><li class="page_item page-item-' . self::$parent_3 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3</a><ul class=\'children\'><li class="page_item page-item-' . self::$children[ self::$parent_3 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][0] ) . '">Child 1</a></li><li class="page_item page-item-' . self::$children[ self::$parent_3 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][1] ) . '">Child 2</a></li><li class="page_item page-item-' . self::$children[ self::$parent_3 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][2] ) . '">Child 3</a></li></ul></li></ul></li>';
+
+		$this->AssertEquals( $expected, wp_list_pages( $args ) );
 	}
 }
