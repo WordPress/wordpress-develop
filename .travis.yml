@@ -17,6 +17,7 @@ matrix:
   - php: 7.2
   - php: 7.1
   - php: 7.0
+    env: WP_TEST_REPORTER=true
   - php: 5.6
   - php: 5.6
     env: WP_TRAVIS_OBJECT_CACHE=true
@@ -101,6 +102,14 @@ before_script:
 - svn --version
 - locale -a
 script: grunt $WP_TRAVISCI
+after_script:
+- |
+  if [[ "$WP_TEST_REPORTER" == "true" ]]; then
+    git clone https://github.com/WordPress/phpunit-test-runner.git test-runner
+    export WPT_PREPARE_DIR=$(pwd)
+    export WPT_TEST_DIR=$(pwd)
+    php test-runner/report.php
+  fi
 notifications:
   slack:
     rooms:
