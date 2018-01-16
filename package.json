@@ -7,7 +7,7 @@
 		"url": "https://develop.svn.wordpress.org/trunk"
 	},
 	"engines": {
-		"node": "6.9.1"
+		"node": "8.9.3"
 	},
 	"author": "The WordPress Contributors",
 	"license": "GPL-2.0+",
