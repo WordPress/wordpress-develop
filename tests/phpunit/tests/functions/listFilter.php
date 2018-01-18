@@ -210,6 +210,56 @@ class Tests_Functions_ListFilter extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 16895
+	 */
+	function test_wp_list_pluck_containing_references() {
+		$ref_list = array(
+			& $this->object_list['foo'],
+			& $this->object_list['bar'],
+		);
+
+		$this->assertInstanceOf( 'stdClass', $ref_list[0] );
+		$this->assertInstanceOf( 'stdClass', $ref_list[1] );
+
+		$list = wp_list_pluck( $ref_list, 'name' );
+		$this->assertEquals(
+			array(
+				'foo',
+				'bar',
+			),
+			$list
+		);
+
+		$this->assertInstanceOf( 'stdClass', $ref_list[0] );
+		$this->assertInstanceOf( 'stdClass', $ref_list[1] );
+	}
+
+	/**
+	 * @ticket 16895
+	 */
+	function test_wp_list_pluck_containing_references_keys() {
+		$ref_list = array(
+			& $this->object_list['foo'],
+			& $this->object_list['bar'],
+		);
+
+		$this->assertInstanceOf( 'stdClass', $ref_list[0] );
+		$this->assertInstanceOf( 'stdClass', $ref_list[1] );
+
+		$list = wp_list_pluck( $ref_list, 'name', 'id' );
+		$this->assertEquals(
+			array(
+				'f' => 'foo',
+				'b' => 'bar',
+			),
+			$list
+		);
+
+		$this->assertInstanceOf( 'stdClass', $ref_list[0] );
+		$this->assertInstanceOf( 'stdClass', $ref_list[1] );
+	}
+
 	function test_filter_object_list_nested_array_and() {
 		$list = wp_filter_object_list( $this->object_list, array( 'field4' => array( 'blue' ) ), 'AND' );
 		$this->assertEquals( 1, count( $list ) );
