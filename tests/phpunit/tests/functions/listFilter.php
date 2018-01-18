@@ -83,7 +83,6 @@ class Tests_Functions_ListFilter extends WP_UnitTestCase {
 				'field2' => true,
 			), 'AND', 'name'
 		);
-		$this->assertEquals( 2, count( $list ) );
 		$this->assertEquals(
 			array(
 				'foo' => 'foo',
@@ -99,7 +98,6 @@ class Tests_Functions_ListFilter extends WP_UnitTestCase {
 				'field3' => true,
 			), 'OR', 'name'
 		);
-		$this->assertEquals( 2, count( $list ) );
 		$this->assertEquals(
 			array(
 				'foo' => 'foo',
@@ -115,7 +113,6 @@ class Tests_Functions_ListFilter extends WP_UnitTestCase {
 				'field3' => true,
 			), 'NOT', 'name'
 		);
-		$this->assertEquals( 1, count( $list ) );
 		$this->assertEquals( array( 'baz' => 'baz' ), $list );
 	}
 
@@ -247,13 +244,11 @@ class Tests_Functions_ListFilter extends WP_UnitTestCase {
 
 	function test_filter_object_list_nested_array_and_field() {
 		$list = wp_filter_object_list( $this->object_list, array( 'field4' => array( 'blue' ) ), 'AND', 'name' );
-		$this->assertEquals( 1, count( $list ) );
 		$this->assertEquals( array( 'baz' => 'baz' ), $list );
 	}
 
 	function test_filter_object_list_nested_array_not_field() {
 		$list = wp_filter_object_list( $this->object_list, array( 'field4' => array( 'green' ) ), 'NOT', 'name' );
-		$this->assertEquals( 2, count( $list ) );
 		$this->assertEquals(
 			array(
 				'foo' => 'foo',
@@ -269,7 +264,6 @@ class Tests_Functions_ListFilter extends WP_UnitTestCase {
 				'field4' => array( 'blue' ),
 			), 'OR', 'name'
 		);
-		$this->assertEquals( 2, count( $list ) );
 		$this->assertEquals(
 			array(
 				'foo' => 'foo',
