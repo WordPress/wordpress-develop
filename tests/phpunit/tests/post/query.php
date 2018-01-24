@@ -647,6 +647,11 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 42860
 	 */
 	public function test_set_found_posts_fields_posts_is_string() {
+		if ( version_compare( PHP_VERSION, '5.3', '<' ) ) {
+			$this->markTestSkipped( 'ReflectionMethod::setAccessible is only available in PHP 5.3+' );
+			return;
+		}
+
 		$q = new WP_Query(
 			array(
 				'post_type'      => 'wptests_pt',
@@ -667,6 +672,11 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 42860
 	 */
 	public function test_set_found_posts_fields_posts_is_null() {
+		if ( version_compare( PHP_VERSION, '5.3', '<' ) ) {
+			$this->markTestSkipped( 'ReflectionMethod::setAccessible is only available in PHP 5.3+' );
+			return;
+		}
+
 		$q = new WP_Query(
 			array(
 				'post_type'      => 'wptests_pt',
