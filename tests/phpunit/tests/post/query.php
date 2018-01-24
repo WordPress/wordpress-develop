@@ -642,4 +642,45 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertEquals( 2, $q->found_posts );
 		$this->assertEquals( 2, $q->max_num_pages );
 	}
+
+	/**
+	 * @ticket 42860
+	 */
+	public function test_set_found_posts_fields_posts_is_string() {
+		$q = new WP_Query(
+			array(
+				'post_type'      => 'wptests_pt',
+				'posts_per_page' => 1,
+			)
+		);
+
+		$q->posts = "To life, to life, l'chaim";
+
+		$methd = new \ReflectionMethod( 'WP_Query', 'set_found_posts' );
+		$methd->setAccessible( true );
+		$methd->invoke( $q, array( 'no_found_rows' => false ), array() );
+
+		$this->assertEquals( 1, $q->found_posts );
+	}
+
+	/**
+	 * @ticket 42860
+	 */
+	public function test_set_found_posts_fields_posts_is_null() {
+		$q = new WP_Query(
+			array(
+				'post_type'      => 'wptests_pt',
+				'posts_per_page' => 1,
+			)
+		);
+
+		$q->posts = null;
+
+		$methd = new \ReflectionMethod( 'WP_Query', 'set_found_posts' );
+		$methd->setAccessible( true );
+		$methd->invoke( $q, array( 'no_found_rows' => false ), array() );
+
+		$this->assertEquals( 0, $q->found_posts );
+	}
+
 }
