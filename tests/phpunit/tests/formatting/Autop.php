@@ -539,7 +539,7 @@ line 2<br/>
 	 * wpautop() should not add extra </p> before <figcaption>
 	 *
 	 * @covers ::wpautop
-	 * @uses trim
+	 * @uses ::trim
 	 *
 	 * @ticket 39307
 	 */

@@ -168,14 +168,14 @@ class Tests_WP_Error extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers WP_Error:get_error_code()
+	 * @covers WP_Error::get_error_code()
 	 */
 	public function test_get_error_code_with_no_errors_should_return_an_empty_string() {
 		$this->assertSame( '', $this->WP_Error->get_error_code() );
 	}
 
 	/**
-	 * @covers WP_Error:get_error_code()
+	 * @covers WP_Error::get_error_code()
 	 */
 	public function test_get_error_code_with_one_error_should_return_that_error_code() {
 		$this->WP_Error->add( 'code', 'message' );
@@ -184,7 +184,7 @@ class Tests_WP_Error extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers WP_Error:get_error_code()
+	 * @covers WP_Error::get_error_code()
 	 */
 	public function test_get_error_code_with_multiple_errors_should_return_only_the_first_error_code() {
 		$this->WP_Error->add( 'code', 'message' );

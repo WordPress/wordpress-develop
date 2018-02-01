@@ -1752,7 +1752,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * publishing
 	 *
 	 * @ticket 39221
-	 * @covers _wp_customize_publish_changeset()
+	 * @covers ::_wp_customize_publish_changeset()
 	 * @see WP_Customize_Widgets::schedule_customize_register()
 	 * @see WP_Customize_Widgets::customize_register()
 	 */

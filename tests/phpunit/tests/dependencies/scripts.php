@@ -735,7 +735,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 * Testing `wp_enqueue_code_editor` with file path.
 	 *
 	 * @ticket 41871
-	 * @covers wp_enqueue_code_editor()
+	 * @covers ::wp_enqueue_code_editor()
 	 */
 	public function test_wp_enqueue_code_editor_when_php_file_will_be_passed() {
 		$real_file              = WP_PLUGIN_DIR . '/hello.php';
@@ -822,7 +822,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 * Testing `wp_enqueue_code_editor` with `compact`.
 	 *
 	 * @ticket 41871
-	 * @covers wp_enqueue_code_editor()
+	 * @covers ::wp_enqueue_code_editor()
 	 */
 	public function test_wp_enqueue_code_editor_when_generated_array_by_compact_will_be_passed() {
 		$wp_enqueue_code_editor = wp_enqueue_code_editor( compact( 'file' ) );
@@ -904,7 +904,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 * Testing `wp_enqueue_code_editor` with `array_merge`.
 	 *
 	 * @ticket 41871
-	 * @covers wp_enqueue_code_editor()
+	 * @covers ::wp_enqueue_code_editor()
 	 */
 	public function test_wp_enqueue_code_editor_when_generated_array_by_array_merge_will_be_passed() {
 		$wp_enqueue_code_editor = wp_enqueue_code_editor(
@@ -1001,7 +1001,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 * Testing `wp_enqueue_code_editor` with `array`.
 	 *
 	 * @ticket 41871
-	 * @covers wp_enqueue_code_editor()
+	 * @covers ::wp_enqueue_code_editor()
 	 */
 	public function test_wp_enqueue_code_editor_when_simple_array_will_be_passed() {
 		$wp_enqueue_code_editor = wp_enqueue_code_editor(
