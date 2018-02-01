@@ -10,7 +10,7 @@
 		"node": "8.9.3"
 	},
 	"author": "The WordPress Contributors",
-	"license": "GPL-2.0+",
+	"license": "GPL-2.0-or-later",
 	"devDependencies": {
 		"autoprefixer": "^6.5.1",
 		"grunt": "~0.4.5",
