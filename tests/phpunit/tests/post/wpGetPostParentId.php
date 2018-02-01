@@ -4,39 +4,47 @@
  * @group post
  */
 class Tests_Post_WpGetPostParentId extends WP_UnitTestCase {
+	/**
+	 * Parent post ID.
+	 *
+	 * @var int
+	 */
+	public static $parent_post_id;
+
+	/**
+	 * Post ID.
+	 *
+	 * @var int
+	 */
+	public static $post_id;
+
+	public static function wpSetUpBeforeClass() {
+		self::$parent_post_id = self::factory()->post->create();
+		self::$post_id        = self::factory()->post->create( array( 'post_parent' => self::$parent_post_id ) );
+	}
 
 	public function test_wp_get_post_parent_id_with_post_object() {
-		$p1 = self::factory()->post->create();
-		$p2 = self::factory()->post->create( array( 'post_parent' => $p1 ) );
-		$post = get_post( $p2 );
-		$this->assertTrue( $post instanceof WP_Post );
-		$this->assertEquals( $p1, wp_get_post_parent_id( $post ) );
+		$post = get_post( self::$post_id );
+		$this->assertInstanceOf( 'WP_Post', $post );
+		$this->assertSame( self::$parent_post_id, wp_get_post_parent_id( $post ) );
 	}
 
 	public function test_wp_get_post_parent_id_with_post_id() {
-		$p1 = self::factory()->post->create();
-		$p2 = self::factory()->post->create( array( 'post_parent' => $p1 ) );
-		$this->assertEquals( $p1, wp_get_post_parent_id( $p2 ) );
+		$this->assertSame( self::$parent_post_id, wp_get_post_parent_id( self::$post_id ) );
 	}
 
 	public function test_wp_get_post_parent_id_with_non_existing_id_default_to_global_post_id() {
-		$p1 = self::factory()->post->create();
-		$GLOBALS['post'] = self::factory()->post->create( array( 'post_parent' => $p1 ) );
-		$this->assertEquals( $p1, wp_get_post_parent_id( 0 ) );
-		unset( $GLOBALS['post'] );
+		$GLOBALS['post'] = get_post( self::$post_id );
+		$this->assertSame( self::$parent_post_id, wp_get_post_parent_id( 0 ) );
 	}
 
 	public function test_wp_get_post_parent_id_with_boolean_default_to_global_post_id() {
-		$p1 = self::factory()->post->create();
-		$GLOBALS['post'] = self::factory()->post->create( array( 'post_parent' => $p1 ) );
-		$this->assertEquals( $p1, wp_get_post_parent_id( false ) );
-		unset( $GLOBALS['post'] );
+		$GLOBALS['post'] = get_post( self::$post_id );
+		$this->assertSame( self::$parent_post_id, wp_get_post_parent_id( false ) );
 	}
 
 	public function test_wp_get_post_parent_id_with_string_default_to_false() {
-		$p1 = self::factory()->post->create();
-		$GLOBALS['post'] = self::factory()->post->create( array( 'post_parent' => $p1 ) );
+		$GLOBALS['post'] = get_post( self::$post_id );
 		$this->assertFalse( wp_get_post_parent_id( 'string' ) );
-		unset( $GLOBALS['post'] );
 	}
 }
