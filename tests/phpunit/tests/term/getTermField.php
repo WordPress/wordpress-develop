@@ -47,12 +47,12 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 	/**
 	 * @ticket 34245
 	 */
-	public function test_get_term_field_should_accept_a_WP_Term_object_term_id_or_object() {
+	public function test_get_term_field_should_accept_a_WP_Term_id_or_object() {
 		$term = self::factory()->term->create_and_get( array( 'taxonomy' => $this->taxonomy ) );
 
 		$this->assertInstanceOf( 'WP_Term', $term );
 		$this->assertSame( $term->term_id, get_term_field( 'term_id', $term ) );
-		$this->assertSame( $term->term_id, get_term_Field( 'term_id', $term->data ) );
+		$this->assertSame( $term->term_id, get_term_field( 'term_id', $term->data ) );
 		$this->assertSame( $term->term_id, get_term_field( 'term_id', $term->term_id ) );
 	}
 
