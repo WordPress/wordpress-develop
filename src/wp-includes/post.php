@@ -651,7 +651,7 @@ function get_post_ancestors( $post ) {
  * @see sanitize_post_field()
  *
  * @param string      $field   Post field name.
- * @param int|WP_Post $post    Optional. Post ID or post object. Defaults to current post.
+ * @param int|WP_Post $post    Optional. Post ID or post object. Defaults to global $post.
  * @param string      $context Optional. How to filter the field. Accepts 'raw', 'edit', 'db',
  *                             or 'display'. Default 'display'.
  * @return string The value of the post field on success, empty string on failure.
@@ -678,11 +678,11 @@ function get_post_field( $field, $post = null, $context = 'display' ) {
  *
  * @since 2.0.0
  *
- * @param int|WP_Post $ID Optional. Post ID or post object. Default empty.
+ * @param int|WP_Post $post Optional. Post ID or post object. Defaults to global $post.
  * @return string|false The mime type on success, false on failure.
  */
-function get_post_mime_type( $ID = '' ) {
-	$post = get_post( $ID );
+function get_post_mime_type( $post = null ) {
+	$post = get_post( $post );
 
 	if ( is_object( $post ) ) {
 		return $post->post_mime_type;
@@ -692,18 +692,18 @@ function get_post_mime_type( $ID = '' ) {
 }
 
 /**
- * Retrieve the post status based on the Post ID.
+ * Retrieve the post status based on the post ID.
  *
  * If the post ID is of an attachment, then the parent post status will be given
  * instead.
  *
  * @since 2.0.0
  *
- * @param int|WP_Post $ID Optional. Post ID or post object. Default empty.
+ * @param int|WP_Post $post Optional. Post ID or post object. Defaults to global $post..
  * @return string|false Post status on success, false on failure.
  */
-function get_post_status( $ID = '' ) {
-	$post = get_post( $ID );
+function get_post_status( $post = null ) {
+	$post = get_post( $post );
 
 	if ( ! is_object( $post ) ) {
 		return false;
@@ -3304,8 +3304,16 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 		}
 	}
 
-	// Don't allow contributors to set the post slug for pending review posts.
-	if ( 'pending' == $post_status && ! current_user_can( 'publish_posts' ) ) {
+	/*
+	 * Don't allow contributors to set the post slug for pending review posts.
+	 *
+	 * For new posts check the primitive capability, for updates check the meta capability.
+	 */
+	$post_type_object = get_post_type_object( $post_type );
+
+	if ( ! $update && 'pending' === $post_status && ! current_user_can( $post_type_object->cap->publish_posts ) ) {
+		$post_name = '';
+	} elseif ( $update && 'pending' === $post_status && ! current_user_can( 'publish_post', $post_ID ) ) {
 		$post_name = '';
 	}
 
@@ -3798,7 +3806,7 @@ function wp_update_post( $postarr = array(), $wp_error = false ) {
 	}
 
 	if ( $postarr['post_type'] == 'attachment' ) {
-		return wp_insert_attachment( $postarr );
+		return wp_insert_attachment( $postarr, false, 0, $wp_error );
 	}
 
 	return wp_insert_post( $postarr, $wp_error );
@@ -5700,6 +5708,47 @@ function wp_check_for_changed_slugs( $post_id, $post, $post_before ) {
 }
 
 /**
+ * Check for changed dates for published post objects and save the old date.
+ *
+ * The function is used when a post object of any type is updated,
+ * by comparing the current and previous post objects.
+ *
+ * If the date was changed and not already part of the old dates then it will be
+ * added to the post meta field ('_wp_old_date') for storing old dates for that
+ * post.
+ *
+ * The most logically usage of this function is redirecting changed post objects, so
+ * that those that linked to an changed post will be redirected to the new post.
+ *
+ * @since 4.9.3
+ *
+ * @param int     $post_id     Post ID.
+ * @param WP_Post $post        The Post Object
+ * @param WP_Post $post_before The Previous Post Object
+ */
+function wp_check_for_changed_dates( $post_id, $post, $post_before ) {
+	$previous_date = date( 'Y-m-d', strtotime( $post_before->post_date ) );
+	$new_date = date( 'Y-m-d', strtotime( $post->post_date ) );
+	// Don't bother if it hasn't changed.
+	if ( $new_date == $previous_date ) {
+		return;
+	}
+	// We're only concerned with published, non-hierarchical objects.
+	if ( ! ( 'publish' === $post->post_status || ( 'attachment' === get_post_type( $post ) && 'inherit' === $post->post_status ) ) || is_post_type_hierarchical( $post->post_type ) ) {
+		return;
+	}
+	$old_dates = (array) get_post_meta( $post_id, '_wp_old_date' );
+	// If we haven't added this old date before, add it now.
+	if ( ! empty( $previous_date ) && ! in_array( $previous_date, $old_dates ) ) {
+		add_post_meta( $post_id, '_wp_old_date', $previous_date );
+	}
+	// If the new slug was used previously, delete it from the list.
+	if ( in_array( $new_date, $old_dates ) ) {
+		delete_post_meta( $post_id, '_wp_old_date', $new_date );
+	}
+}
+
+/**
  * Retrieve the private post SQL based on capability.
  *
  * This function provides a standardized way to appropriately select on the
@@ -6243,16 +6292,15 @@ function _publish_post_hook( $post_id ) {
 }
 
 /**
- * Return the post's parent's post_ID
+ * Return the post's parent post ID.
  *
  * @since 3.1.0
  *
- * @param int $post_ID
- *
+ * @param int|WP_Post $post Post ID or post object. Defaults to global $post.
  * @return int|false Post parent ID, otherwise false.
  */
-function wp_get_post_parent_id( $post_ID ) {
-	$post = get_post( $post_ID );
+function wp_get_post_parent_id( $post ) {
+	$post = get_post( $post );
 	if ( ! $post || is_wp_error( $post ) ) {
 		return false;
 	}

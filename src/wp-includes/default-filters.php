@@ -124,7 +124,7 @@ foreach ( array( 'single_post_title', 'single_cat_title', 'single_tag_title', 's
 }
 
 // Format text area for display.
-foreach ( array( 'term_description', 'get_the_author_description', 'get_the_post_type_description' ) as $filter ) {
+foreach ( array( 'term_description', 'get_the_post_type_description' ) as $filter ) {
 	add_filter( $filter, 'wptexturize' );
 	add_filter( $filter, 'convert_chars' );
 	add_filter( $filter, 'wpautop' );
@@ -353,6 +353,10 @@ add_action( 'end_fetch_post_thumbnail_html', '_wp_post_thumbnail_class_filter_re
 add_action( 'template_redirect', 'wp_old_slug_redirect' );
 add_action( 'post_updated', 'wp_check_for_changed_slugs', 12, 3 );
 add_action( 'attachment_updated', 'wp_check_for_changed_slugs', 12, 3 );
+
+// Redirect Old Dates
+add_action( 'post_updated',       'wp_check_for_changed_dates', 12, 3 );
+add_action( 'attachment_updated', 'wp_check_for_changed_dates', 12, 3 );
 
 // Nonce check for Post Previews
 add_action( 'init', '_show_post_preview' );

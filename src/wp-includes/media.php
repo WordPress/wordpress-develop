@@ -1205,7 +1205,7 @@ function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attac
 	$sources = apply_filters( 'wp_calculate_image_srcset', $sources, $size_array, $image_src, $image_meta, $attachment_id );
 
 	// Only return a 'srcset' value if there is more than one source.
-	if ( ! $src_matched || count( $sources ) < 2 ) {
+	if ( ! $src_matched || ! is_array( $sources ) || count( $sources ) < 2 ) {
 		return false;
 	}
 
@@ -2209,9 +2209,9 @@ function wp_get_audio_extensions() {
 	 * @since 3.6.0
 	 *
 	 * @param array $extensions An array of support audio formats. Defaults are
-	 *                          'mp3', 'ogg', 'm4a', 'wav'.
+	 *                          'mp3', 'ogg', 'flac', 'm4a', 'wav'.
 	 */
-	return apply_filters( 'wp_audio_extensions', array( 'mp3', 'ogg', 'm4a', 'wav' ) );
+	return apply_filters( 'wp_audio_extensions', array( 'mp3', 'ogg', 'flac', 'm4a', 'wav' ) );
 }
 
 /**

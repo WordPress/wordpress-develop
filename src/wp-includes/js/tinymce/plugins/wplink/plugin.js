@@ -468,8 +468,11 @@
 							}
 						}
 					} ).autocomplete( 'instance' )._renderItem = function( ul, item ) {
+						var fallbackTitle = ( typeof window.wpLinkL10n !== 'undefined' ) ? window.wpLinkL10n.noTitle : '',
+							title = item.title ? item.title : fallbackTitle;
+
 						return $( '<li role="option" id="mce-wp-autocomplete-' + item.ID + '">' )
-						.append( '<span>' + item.title + '</span>&nbsp;<span class="wp-editor-float-right">' + item.info + '</span>' )
+						.append( '<span>' + title + '</span>&nbsp;<span class="wp-editor-float-right">' + item.info + '</span>' )
 						.appendTo( ul );
 					};
 
@@ -561,7 +564,7 @@
 		} );
 
 		editor.addButton( 'wp_link_edit', {
-			tooltip: 'Edit ', // trailing space is needed, used for context
+			tooltip: 'Edit|button', // '|button' is not displayed, only used for context
 			icon: 'dashicon dashicons-edit',
 			cmd: 'WP_Link'
 		} );

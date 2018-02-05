@@ -150,6 +150,11 @@ class Tests_Functions extends WP_UnitTestCase {
 			array( '/www/path/', '/www/path/' ),
 			array( '/www/path/////', '/www/path/' ),
 			array( '/www/path', '/www/path' ),
+
+			// PHP Stream wrappers
+			array( 'php://input', 'php://input' ),
+			array( 'http://example.com//path.ext', 'http://example.com/path.ext' ),
+			array( 'file://c:\\www\\path\\', 'file://C:/www/path/' ),
 		);
 	}
 
@@ -1283,6 +1288,16 @@ class Tests_Functions extends WP_UnitTestCase {
 						array(
 							'ext'             => 'docx',
 							'type'            => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+							'proper_filename' => false,
+						),
+					),
+					// FLAC file.
+					array(
+						DIR_TESTDATA . '/uploads/small-audio.flac',
+						'small-audio.flac',
+						array(
+							'ext'             => 'flac',
+							'type'            => 'audio/flac',
 							'proper_filename' => false,
 						),
 					),

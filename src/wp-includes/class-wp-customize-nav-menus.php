@@ -385,6 +385,22 @@ final class WP_Customize_Nav_Menus {
 			}
 		}
 
+		// Add "Home" link if search term matches. Treat as a page, but switch to custom on add.
+		if ( isset( $args['s'] ) ) {
+			$title = _x( 'Home', 'nav menu home label' );
+			$matches = function_exists( 'mb_stripos' ) ? false !== mb_stripos( $title, $args['s'] ) : false !== stripos( $title, $args['s'] );
+			if ( $matches ) {
+				$items[] = array(
+					'id'         => 'home',
+					'title'      => $title,
+					'type'       => 'custom',
+					'type_label' => __( 'Custom Link' ),
+					'object'     => '',
+					'url'        => home_url(),
+				);
+			}
+		}
+
 		/**
 		 * Filters the available menu items during a search request.
 		 *
@@ -1307,7 +1323,7 @@ final class WP_Customize_Nav_Menus {
 	 *
 	 * @since 4.3.0
 	 * @see wp_nav_menu()
-	 * @see WP_Customize_Widgets_Partial_Refresh::filter_dynamic_sidebar_params()
+	 * @see WP_Customize_Widgets::filter_dynamic_sidebar_params()
 	 *
 	 * @param array $args An array containing wp_nav_menu() arguments.
 	 * @return array Arguments.

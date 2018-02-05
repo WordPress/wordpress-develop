@@ -73,7 +73,7 @@ final class _WP_Editors {
 		 *
 		 * @since 4.0.0
 		 *
-		 * @see _WP_Editors()::parse_settings()
+		 * @see _WP_Editors::parse_settings()
 		 *
 		 * @param array  $settings  Array of editor arguments.
 		 * @param string $editor_id ID for the current editor instance.
@@ -151,7 +151,7 @@ final class _WP_Editors {
 	 * @static
 	 * @param string $content The initial content of the editor.
 	 * @param string $editor_id ID for the textarea and TinyMCE and Quicktags instances (can contain only ASCII letters and numbers).
-	 * @param array $settings See _WP_Editors()::parse_settings() for description.
+	 * @param array $settings See _WP_Editors::parse_settings() for description.
 	 */
 	public static function editor( $content, $editor_id, $settings = array() ) {
 		$set            = self::parse_settings( $editor_id, $settings );
@@ -1275,7 +1275,7 @@ final class _WP_Editors {
 				'Distraction-free writing mode'        => array( __( 'Distraction-free writing mode' ), 'accessW' ),
 				'No alignment'                         => __( 'No alignment' ), // Tooltip for the 'alignnone' button in the image toolbar
 				'Remove'                               => __( 'Remove' ), // Tooltip for the 'remove' button in the image toolbar
-				'Edit '                                => __( 'Edit' ), // Tooltip for the 'edit' button in the image toolbar
+				'Edit|button'                          => __( 'Edit' ), // Tooltip for the 'edit' button in the image toolbar
 				'Paste URL or type to search'          => __( 'Paste URL or type to search' ), // Placeholder for the inline link dialog
 				'Apply'                                => __( 'Apply' ), // Tooltip for the 'apply' button in the inline link dialog
 				'Link options'                         => __( 'Link options' ), // Tooltip for the 'link options' button in the inline link dialog

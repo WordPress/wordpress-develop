@@ -4,7 +4,7 @@ window.wp = window.wp || {};
 	wp.editor = wp.editor || {};
 
 	/**
-	 * @summary Utility functions for the editor.
+	 * Utility functions for the editor.
 	 *
 	 * @since 2.5.0
 	 */
@@ -18,7 +18,7 @@ window.wp = window.wp || {};
 				$$ = tinymce.$;
 
 				/**
-				 * @summary Handles onclick events for the Visual/Text tabs.
+				 * Handles onclick events for the Visual/Text tabs.
 				 *
 				 * @since 4.3.0
 				 *
@@ -38,7 +38,7 @@ window.wp = window.wp || {};
 		}
 
 		/**
-		 * @summary Returns the height of the editor toolbar(s) in px.
+		 * Returns the height of the editor toolbar(s) in px.
 		 *
 		 * @since 3.9.0
 		 *
@@ -58,7 +58,7 @@ window.wp = window.wp || {};
 		}
 
 		/**
-		 * @summary Switches the editor between Visual and Text mode.
+		 * Switches the editor between Visual and Text mode.
 		 *
 		 * @since 2.5.0
 		 *
@@ -184,7 +184,7 @@ window.wp = window.wp || {};
 		}
 
 		/**
-		 * @summary Checks if a cursor is inside an HTML tag.
+		 * Checks if a cursor is inside an HTML tag.
 		 *
 		 * In order to prevent breaking HTML tags when selecting text, the cursor
 		 * must be moved to either the start or end of the tag.
@@ -227,7 +227,7 @@ window.wp = window.wp || {};
 		}
 
 		/**
-		 * @summary Check if the cursor is inside a shortcode
+		 * Checks if the cursor is inside a shortcode
 		 *
 		 * If the cursor is inside a shortcode wrapping tag, e.g. `[caption]` it's better to
 		 * move the selection marker to before or after the shortcode.
@@ -281,31 +281,7 @@ window.wp = window.wp || {};
 		}
 
 		/**
-		 * @summary Check if a shortcode has Live Preview enabled for it.
-		 *
-		 * Previewable shortcodes here refers to shortcodes that have Live Preview enabled.
-		 *
-		 * These shortcodes get rewritten when the editor is in Visual mode, which means that
-		 * we don't want to change anything inside them, i.e. inserting a selection marker
-		 * inside the shortcode will break it :(
-		 *
-		 * @link wp-includes/js/mce-view.js
-		 *
-		 * @param {string} shortcode The shortcode to check.
-		 * @return {boolean} If a shortcode has Live Preview or not
-		 */
-		function isShortcodePreviewable( shortcode ) {
-			var defaultPreviewableShortcodes = [ 'caption' ];
-
-			return (
-				defaultPreviewableShortcodes.indexOf( shortcode ) !== -1 ||
-				wp.mce.views.get( shortcode ) !== undefined
-			);
-
-		}
-
-		/**
-		 * @summary Get all shortcodes and their positions in the content
+		 * Gets all shortcodes and their positions in the content
 		 *
 		 * This function returns all the shortcodes that could be found in the textarea content
 		 * along with their character positions and boundaries.
@@ -340,23 +316,12 @@ window.wp = window.wp || {};
 				 */
 				var showAsPlainText = shortcodeMatch[1] === '[';
 
-				/**
-				 * For more context check the docs for:
-				 *
-				 * @link isShortcodePreviewable
-				 *
-				 * In addition, if the shortcode will get rendered as plain text ( see above ),
-				 * we can treat it as text and use the selection markers in it.
-				 */
-				var isPreviewable = ! showAsPlainText && isShortcodePreviewable( shortcodeMatch[2] );
-
 				shortcodeInfo = {
 					shortcodeName: shortcodeMatch[2],
 					showAsPlainText: showAsPlainText,
 					startIndex: shortcodeMatch.index,
 					endIndex: shortcodeMatch.index + shortcodeMatch[0].length,
-					length: shortcodeMatch[0].length,
-					isPreviewable: isPreviewable
+					length: shortcodeMatch[0].length
 				};
 
 				shortcodesDetails.push( shortcodeInfo );
@@ -382,7 +347,6 @@ window.wp = window.wp || {};
 					startIndex: shortcodeMatch.index,
 					endIndex: shortcodeMatch.index + shortcodeMatch[ 0 ].length,
 					length: shortcodeMatch[ 0 ].length,
-					isPreviewable: true,
 					urlAtStartOfContent: shortcodeMatch[ 1 ] === '',
 					urlAtEndOfContent: shortcodeMatch[ 3 ] === ''
 				};
@@ -414,7 +378,7 @@ window.wp = window.wp || {};
 		}
 
 		/**
-		 * @summary Get adjusted selection cursor positions according to HTML tags/shortcodes
+		 * Gets adjusted selection cursor positions according to HTML tags/shortcodes
 		 *
 		 * Shortcodes and HTML codes are a bit of a special case when selecting, since they may render
 		 * content in Visual mode. If we insert selection markers somewhere inside them, it's really possible
@@ -465,7 +429,7 @@ window.wp = window.wp || {};
 			}
 
 			var isCursorStartInShortcode = getShortcodeWrapperInfo( content, cursorStart );
-			if ( isCursorStartInShortcode && isCursorStartInShortcode.isPreviewable ) {
+			if ( isCursorStartInShortcode && ! isCursorStartInShortcode.showAsPlainText ) {
 				/**
 				 * If a URL is at the start or the end of the content,
 				 * the selection doesn't work, because it inserts a marker in the text,
@@ -482,7 +446,7 @@ window.wp = window.wp || {};
 			}
 
 			var isCursorEndInShortcode = getShortcodeWrapperInfo( content, cursorEnd );
-			if ( isCursorEndInShortcode && isCursorEndInShortcode.isPreviewable ) {
+			if ( isCursorEndInShortcode && ! isCursorEndInShortcode.showAsPlainText ) {
 				if ( isCursorEndInShortcode.urlAtEndOfContent ) {
 					cursorEnd = isCursorEndInShortcode.startIndex;
 				} else {
@@ -497,7 +461,7 @@ window.wp = window.wp || {};
 		}
 
 		/**
-		 * @summary Adds text selection markers in the editor textarea.
+		 * Adds text selection markers in the editor textarea.
 		 *
 		 * Adds selection markers in the content of the editor `textarea`.
 		 * The method directly manipulates the `textarea` content, to allow TinyMCE plugins
@@ -547,7 +511,7 @@ window.wp = window.wp || {};
 		}
 
 		/**
-		 * @summary Focus the selection markers in Visual mode.
+		 * Focuses the selection markers in Visual mode.
 		 *
 		 * The method checks for existing selection markers inside the editor DOM (Visual mode)
 		 * and create a selection between the two nodes using the DOM `createRange` selection API
@@ -586,7 +550,7 @@ window.wp = window.wp || {};
 		}
 
 		/**
-		 * @summary Remove selection marker and the parent node if it is an empty paragraph.
+		 * Removes selection marker and the parent node if it is an empty paragraph.
 		 *
 		 * By default TinyMCE wraps loose inline tags in a `<p>`.
 		 * When removing selection markers an empty `<p>` may be left behind, remove it.
@@ -605,7 +569,7 @@ window.wp = window.wp || {};
 		}
 
 		/**
-		 * @summary Scrolls the content to place the selected element in the center of the screen.
+		 * Scrolls the content to place the selected element in the center of the screen.
 		 *
 		 * Takes an element, that is usually the selection start element, selected in
 		 * `focusHTMLBookmarkInVisualEditor()` and scrolls the screen so the element appears roughly
@@ -680,7 +644,7 @@ window.wp = window.wp || {};
 		}
 
 		/**
-		 * @summary Finds the current selection position in the Visual editor.
+		 * Finds the current selection position in the Visual editor.
 		 *
 		 * Find the current selection in the Visual editor by inserting marker elements at the start
 		 * and end of the selection.
@@ -695,10 +659,10 @@ window.wp = window.wp || {};
 		 */
 		function findBookmarkedPosition( editor ) {
 			// Get the TinyMCE `window` reference, since we need to access the raw selection.
-			var TinyMCEWIndow = editor.getWin(),
-				selection = TinyMCEWIndow.getSelection();
+			var TinyMCEWindow = editor.getWin(),
+				selection = TinyMCEWindow.getSelection();
 
-			if ( selection.rangeCount <= 0 ) {
+			if ( ! selection || selection.rangeCount < 1 ) {
 				// no selection, no need to continue.
 				return;
 			}
@@ -847,7 +811,7 @@ window.wp = window.wp || {};
 		}
 
 		/**
-		 * @summary Selects text in the TinyMCE `textarea`.
+		 * Selects text in the TinyMCE `textarea`.
 		 *
 		 * Selects the text in TinyMCE's textarea that's between `selection.start` and `selection.end`.
 		 *
@@ -888,7 +852,7 @@ window.wp = window.wp || {};
 		} );
 
 		/**
-		 * @summary Replaces <p> tags with two line breaks. "Opposite" of wpautop().
+		 * Replaces <p> tags with two line breaks. "Opposite" of wpautop().
 		 *
 		 * Replaces <p> tags with two line breaks except where the <p> has attributes.
 		 * Unifies whitespace.
@@ -1027,7 +991,7 @@ window.wp = window.wp || {};
 		}
 
 		/**
-		 * @summary Replaces two line breaks with a paragraph tag and one line break with a <br>.
+		 * Replaces two line breaks with a paragraph tag and one line break with a <br>.
 		 *
 		 * Similar to `wpautop()` in formatting.php.
 		 *
@@ -1156,7 +1120,7 @@ window.wp = window.wp || {};
 		}
 
 		/**
-		 * @summary Fires custom jQuery events `beforePreWpautop` and `afterPreWpautop` when jQuery is available.
+		 * Fires custom jQuery events `beforePreWpautop` and `afterPreWpautop` when jQuery is available.
 		 *
 		 * @since 2.9.0
 		 *
@@ -1182,7 +1146,7 @@ window.wp = window.wp || {};
 		}
 
 		/**
-		 * @summary Fires custom jQuery events `beforeWpautop` and `afterWpautop` when jQuery is available.
+		 * Fires custom jQuery events `beforeWpautop` and `afterWpautop` when jQuery is available.
 		 *
 		 * @since 2.9.0
 		 *
@@ -1236,8 +1200,9 @@ window.wp = window.wp || {};
 	}
 
 	/**
-	 * @namespace {SwitchEditors} switchEditors
 	 * Expose the switch editors to be used globally.
+	 *
+	 * @namespace switchEditors
 	 */
 	window.switchEditors = new SwitchEditors();
 

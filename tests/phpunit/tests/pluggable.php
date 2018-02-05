@@ -176,13 +176,15 @@ class Tests_Pluggable extends WP_UnitTestCase {
 			),
 			'wp_redirect'                     => array(
 				'location',
-				'status' => 302,
+				'status'        => 302,
+				'x_redirect_by' => 'WordPress',
 			),
 			'wp_sanitize_redirect'            => array( 'location' ),
 			'_wp_sanitize_utf8_in_redirect'   => array( 'matches' ),
 			'wp_safe_redirect'                => array(
 				'location',
-				'status' => 302,
+				'status'        => 302,
+				'x_redirect_by' => 'WordPress',
 			),
 			'wp_validate_redirect'            => array(
 				'location',

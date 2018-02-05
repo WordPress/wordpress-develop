@@ -1,4 +1,4 @@
-/* global _wpmejsSettings */
+/* global _wpmejsSettings, mejsL10n */
 (function( window, $ ) {
 
 	window.wp = window.wp || {};
@@ -11,6 +11,8 @@
 		 *
 		 * Ensures media elements that have already been initialized won't be
 		 * processed again.
+		 *
+		 * @memberOf wp.mediaelement
 		 *
 		 * @since 4.4.0
 		 *
@@ -42,6 +44,25 @@
 				}
 			};
 
+			/**
+			 * Custom error handler.
+			 *
+			 * Sets up a custom error handler in case a video render fails, and provides a download
+			 * link as the fallback.
+			 *
+			 * @since 4.9.3
+			 *
+			 * @param {object} media The wrapper that mimics all the native events/properties/methods for all renderers.
+			 * @param {object} node  The original HTML video, audio, or iframe tag where the media was loaded.
+			 * @returns {string}
+			 */
+			settings.customError = function ( media, node ) {
+				// Make sure we only fall back to a download link for flash files.
+				if ( -1 !== media.rendererName.indexOf( 'flash' ) || -1 !== media.rendererName.indexOf( 'flv' ) ) {
+					return '<a href="' + node.src + '">' + mejsL10n.strings['mejs.download-video'] + '</a>';
+				}
+			};
+
 			// Only initialize new media elements.
 			$( '.wp-audio-shortcode, .wp-video-shortcode' )
 				.not( '.mejs-container' )
@@ -56,6 +77,10 @@
 		};
 	}
 
+	/**
+	 * @namespace wp.mediaelement
+	 * @memberOf wp
+	 */
 	window.wp.mediaelement = new wpMediaElement();
 
 	$( window.wp.mediaelement.initialize );

@@ -2045,21 +2045,37 @@ EditImage = wp.media.controller.State.extend(/** @lends wp.media.controller.Edit
 	},
 
 	/**
+	 * Activates a frame for editing a featured image.
+	 *
 	 * @since 3.9.0
+	 *
+	 * @returns {void}
 	 */
 	activate: function() {
 		this.frame.on( 'toolbar:render:edit-image', _.bind( this.toolbar, this ) );
 	},
 
 	/**
+	 * Deactivates a frame for editing a featured image.
+	 *
 	 * @since 3.9.0
+	 *
+	 * @returns {void}
 	 */
 	deactivate: function() {
 		this.frame.off( 'toolbar:render:edit-image' );
 	},
 
 	/**
+	 * Adds a toolbar with a back button.
+	 *
+	 * When the back button is pressed it checks whether there is a previous state.
+	 * In case there is a previous state it sets that previous state otherwise it
+	 * closes the frame.
+	 *
 	 * @since 3.9.0
+	 *
+	 * @returns {void}
 	 */
 	toolbar: function() {
 		var frame = this.frame,
@@ -2320,8 +2336,6 @@ Cropper = wp.media.controller.State.extend(/** @lends wp.media.controller.Croppe
 	},
 
 	/**
-	 * @summary Opens the crop image window.
-	 *
 	 * Shows the crop image window when called from the Add new image button.
 	 *
 	 * @since 4.2.0
@@ -2335,7 +2349,7 @@ Cropper = wp.media.controller.State.extend(/** @lends wp.media.controller.Croppe
 	},
 
 	/**
-	 * @summary Changes the state of the toolbar window to browse mode.
+	 * Changes the state of the toolbar window to browse mode.
 	 *
 	 * @since 4.2.0
 	 *
@@ -2346,7 +2360,7 @@ Cropper = wp.media.controller.State.extend(/** @lends wp.media.controller.Croppe
 	},
 
 	/**
-	 * @summary Creates the crop image window.
+	 * Creates the crop image window.
 	 *
 	 * Initialized when clicking on the Select and Crop button.
 	 *
@@ -2367,7 +2381,7 @@ Cropper = wp.media.controller.State.extend(/** @lends wp.media.controller.Croppe
 	},
 
 	/**
-	 * @summary Removes the image selection and closes the cropping window.
+	 * Removes the image selection and closes the cropping window.
 	 *
 	 * @since 4.2.0
 	 *
@@ -2381,7 +2395,7 @@ Cropper = wp.media.controller.State.extend(/** @lends wp.media.controller.Croppe
 	},
 
 	/**
-	 * @summary Checks if cropping can be skipped and creates crop toolbar accordingly.
+	 * Checks if cropping can be skipped and creates crop toolbar accordingly.
 	 *
 	 * @since 4.2.0
 	 *
@@ -2443,7 +2457,7 @@ Cropper = wp.media.controller.State.extend(/** @lends wp.media.controller.Croppe
 	},
 
 	/**
-	 * @summary Creates an object with the image attachment and crop properties.
+	 * Creates an object with the image attachment and crop properties.
 	 *
 	 * @since 4.2.0
 	 *
@@ -2473,18 +2487,28 @@ var Controller = wp.media.controller,
 	CustomizeImageCropper;
 
 /**
- * wp.media.controller.CustomizeImageCropper
+ * A state for cropping an image in the customizer.
  *
+ * @since 4.3.0
+ *
+ * @constructs wp.media.controller.CustomizeImageCropper
  * @memberOf wp.media.controller
- *
- * A state for cropping an image.
- *
- * @class
- * @augments wp.media.controller.Cropper
- * @augments wp.media.controller.State
- * @augments Backbone.Model
+ * @augments wp.media.controller.CustomizeImageCropper.Cropper
+ * @inheritDoc
  */
 CustomizeImageCropper = Controller.Cropper.extend(/** @lends wp.media.controller.CustomizeImageCropper.prototype */{
+	/**
+	 * Posts the crop details to the admin.
+	 *
+	 * Uses crop measurements when flexible in both directions.
+	 * Constrains flexible side based on image ratio and size of the fixed side.
+	 *
+	 * @since 4.3.0
+	 *
+	 * @param {Object} attachment The attachment to crop.
+	 *
+	 * @returns {$.promise} A jQuery promise that represents the crop image request.
+	 */
 	doCrop: function( attachment ) {
 		var cropDetails = attachment.get( 'cropDetails' ),
 			control = this.get( 'control' ),
@@ -3725,7 +3749,8 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 			requires: { selection: true },
 
 			/**
-			 * @callback
+			 * @ignore
+			 *
 			 * @fires wp.media.controller.State#insert
 			 */
 			click: function() {
@@ -4223,10 +4248,6 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	tagName:  'div',
 	template: wp.template('media-modal'),
 
-	attributes: {
-		tabindex: 0
-	},
-
 	events: {
 		'click .media-modal-backdrop, .media-modal-close': 'escapeHandler',
 		'keydown': 'keydown'
@@ -4238,8 +4259,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 		_.defaults( this.options, {
 			container: document.body,
 			title:     '',
-			propagate: true,
-			freeze:    true
+			propagate: true
 		});
 
 		this.focusManager = new wp.media.view.FocusManager({
@@ -4294,7 +4314,6 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	 */
 	open: function() {
 		var $el = this.$el,
-			options = this.options,
 			mceEditor;
 
 		if ( $el.is(':visible') ) {
@@ -4307,13 +4326,6 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 			this.attach();
 		}
 
-		// If the `freeze` option is set, record the window's scroll position.
-		if ( options.freeze ) {
-			this._freeze = {
-				scrollTop: $( window ).scrollTop()
-			};
-		}
-
 		// Disable page scrolling.
 		$( 'body' ).addClass( 'modal-open' );
 
@@ -4321,7 +4333,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 
 		// Try to close the onscreen keyboard
 		if ( 'ontouchend' in document ) {
-			if ( ( mceEditor = window.tinymce && window.tinymce.activeEditor )  && ! mceEditor.isHidden() && mceEditor.iframeElement ) {
+			if ( ( mceEditor = window.tinymce && window.tinymce.activeEditor ) && ! mceEditor.isHidden() && mceEditor.iframeElement ) {
 				mceEditor.iframeElement.focus();
 				mceEditor.iframeElement.blur();
 
@@ -4331,7 +4343,8 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 			}
 		}
 
-		this.$el.focus();
+		// Set initial focus on the content instead of this view element, to avoid page scrolling.
+		this.$( '.media-modal' ).focus();
 
 		return this.propagate('open');
 	},
@@ -4341,8 +4354,6 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	 * @returns {wp.media.view.Modal} Returns itself to allow chaining
 	 */
 	close: function( options ) {
-		var freeze = this._freeze;
-
 		if ( ! this.views.attached || ! this.$el.is(':visible') ) {
 			return this;
 		}
@@ -4361,11 +4372,6 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 		}
 
 		this.propagate('close');
-
-		// If the `freeze` option is set, restore the container's scroll position.
-		if ( freeze ) {
-			$( window ).scrollTop( freeze.scrollTop );
-		}
 
 		if ( options && options.escape ) {
 			this.propagate('escape');
@@ -6605,16 +6611,6 @@ var View = wp.media.View,
 	$ = jQuery,
 	Attachments;
 
-/**
- * wp.media.view.Attachments
- *
- * @memberOf wp.media.view
- *
- * @class
- * @augments wp.media.View
- * @augments wp.Backbone.View
- * @augments Backbone.View
- */
 Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 	tagName:   'ul',
 	className: 'attachments',
@@ -6623,9 +6619,44 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 		tabIndex: -1
 	},
 
+	/**
+	 * Represents the overview of attachments in the Media Library.
+	 *
+	 * The constructor binds events to the collection this view represents when
+	 * adding or removing attachments or resetting the entire collection.
+	 *
+	 * @since 3.5.0
+	 *
+	 * @constructs
+	 * @memberof wp.media.view
+	 *
+	 * @augments wp.media.View
+	 *
+	 * @listens collection:add
+	 * @listens collection:remove
+	 * @listens collection:reset
+	 * @listens controller:library:selection:add
+	 * @listens scrollElement:scroll
+	 * @listens this:ready
+	 * @listens controller:open
+	 */
 	initialize: function() {
 		this.el.id = _.uniqueId('__attachments-view-');
 
+		/**
+		 * @param refreshSensitivity The time in milliseconds to throttle the scroll
+		 *                           handler.
+		 * @param refreshThreshold   The amount of pixels that should be scrolled before
+		 *                           loading more attachments from the server.
+		 * @param AttachmentView     The view class to be used for models in the
+		 *                           collection.
+		 * @param sortable           A jQuery sortable options object
+		 *                           ( http://api.jqueryui.com/sortable/ ).
+		 * @param resize             A boolean indicating whether or not to listen to
+		 *                           resize events.
+		 * @param idealColumnWidth   The width in pixels which a column should have when
+		 *                           calculating the total number of columns.
+		 */
 		_.defaults( this.options, {
 			refreshSensitivity: wp.media.isTouchDevice ? 300 : 200,
 			refreshThreshold:   3,
@@ -6645,6 +6676,10 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 			});
 		}, this );
 
+		/*
+		 * Find the view to be removed, delete it and call the remove function to clear
+		 * any set event handlers.
+		 */
 		this.collection.on( 'remove', function( attachment ) {
 			var view = this._viewsByCid[ attachment.cid ];
 			delete this._viewsByCid[ attachment.cid ];
@@ -6672,24 +6707,63 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 			this.on( 'ready', this.bindEvents );
 			this.controller.on( 'open', this.setColumns );
 
-			// Call this.setColumns() after this view has been rendered in the DOM so
-			// attachments get proper width applied.
+			/*
+			 * Call this.setColumns() after this view has been rendered in the
+			 * DOM so attachments get proper width applied.
+			 */
 			_.defer( this.setColumns, this );
 		}
 	},
 
+	/**
+	 * Listens to the resizeEvent on the window.
+	 *
+	 * Adjusts the amount of columns accordingly. First removes any existing event
+	 * handlers to prevent duplicate listeners.
+	 *
+	 * @since 4.0.0
+	 *
+	 * @listens window:resize
+	 *
+	 * @returns {void}
+	 */
 	bindEvents: function() {
 		this.$window.off( this.resizeEvent ).on( this.resizeEvent, _.debounce( this.setColumns, 50 ) );
 	},
 
+	/**
+	 * Focuses the first item in the collection.
+	 *
+	 * @since 4.0.0
+	 *
+	 * @returns {void}
+	 */
 	attachmentFocus: function() {
 		this.$( 'li:first' ).focus();
 	},
 
+	/**
+	 * Restores focus to the selected item in the collection.
+	 *
+	 * @since 4.0.0
+	 *
+	 * @returns {void}
+	 */
 	restoreFocus: function() {
 		this.$( 'li.selected:first' ).focus();
 	},
 
+	/**
+	 * Handles events for arrow key presses.
+	 *
+	 * Focuses the attachment in the direction of the used arrow key if it exists.
+	 *
+	 * @since 4.0.0
+	 *
+	 * @param {KeyboardEvent} event The keyboard event that triggered this function.
+	 *
+	 * @returns {void}
+	 */
 	arrowEvent: function( event ) {
 		var attachments = this.$el.children( 'li' ),
 			perRow = this.columns,
@@ -6700,7 +6774,7 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 			return;
 		}
 
-		// Left arrow
+		// Left arrow = 37.
 		if ( 37 === event.keyCode ) {
 			if ( 0 === index ) {
 				return;
@@ -6708,7 +6782,7 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 			attachments.eq( index - 1 ).focus();
 		}
 
-		// Up arrow
+		// Up arrow = 38.
 		if ( 38 === event.keyCode ) {
 			if ( 1 === row ) {
 				return;
@@ -6716,7 +6790,7 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 			attachments.eq( index - perRow ).focus();
 		}
 
-		// Right arrow
+		// Right arrow = 39.
 		if ( 39 === event.keyCode ) {
 			if ( attachments.length === index ) {
 				return;
@@ -6724,7 +6798,7 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 			attachments.eq( index + 1 ).focus();
 		}
 
-		// Down arrow
+		// Down arrow = 40.
 		if ( 40 === event.keyCode ) {
 			if ( Math.ceil( attachments.length / perRow ) === row ) {
 				return;
@@ -6733,18 +6807,33 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 		}
 	},
 
+	/**
+	 * Clears any set event handlers.
+	 *
+	 * @since 3.5.0
+	 *
+	 * @returns {void}
+	 */
 	dispose: function() {
 		this.collection.props.off( null, null, this );
 		if ( this.options.resize ) {
 			this.$window.off( this.resizeEvent );
 		}
 
-		/**
-		 * call 'dispose' directly on the parent class
-		 */
+		// Call 'dispose' directly on the parent class.
 		View.prototype.dispose.apply( this, arguments );
 	},
 
+	/**
+	 * Calculates the amount of columns.
+	 *
+	 * Calculates the amount of columns and sets it on the data-columns attribute
+	 * of .media-frame-content.
+	 *
+	 * @since 4.0.0
+	 *
+	 * @returns {void}
+	 */
 	setColumns: function() {
 		var prev = this.columns,
 			width = this.$el.width();
@@ -6758,6 +6847,18 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 		}
 	},
 
+	/**
+	 * Initializes jQuery sortable on the attachment list.
+	 *
+	 * Fails gracefully if jQuery sortable doesn't exist or isn't passed in the
+	 * options.
+	 *
+	 * @since 3.5.0
+	 *
+	 * @fires collection:reset
+	 *
+	 * @returns {void}
+	 */
 	initSortable: function() {
 		var collection = this.collection;
 
@@ -6769,8 +6870,10 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 			// If the `collection` has a `comparator`, disable sorting.
 			disabled: !! collection.comparator,
 
-			// Change the position of the attachment as soon as the
-			// mouse pointer overlaps a thumbnail.
+			/*
+			 * Change the position of the attachment as soon as the mouse pointer overlaps a
+			 * thumbnail.
+			 */
 			tolerance: 'pointer',
 
 			// Record the initial `index` of the dragged model.
@@ -6778,8 +6881,10 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 				ui.item.data('sortableIndexStart', ui.item.index());
 			},
 
-			// Update the model's index in the collection.
-			// Do so silently, as the view is already accurate.
+			/*
+			 * Update the model's index in the collection. Do so silently, as the view
+			 * is already accurate.
+			 */
 			update: function( event, ui ) {
 				var model = collection.at( ui.item.data('sortableIndexStart') ),
 					comparator = collection.comparator;
@@ -6803,14 +6908,15 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 				// Fire the `reset` event to ensure other collections sync.
 				collection.trigger( 'reset', collection );
 
-				// If the collection is sorted by menu order,
-				// update the menu order.
+				// If the collection is sorted by menu order, update the menu order.
 				collection.saveMenuOrder();
 			}
 		}, this.options.sortable ) );
 
-		// If the `orderby` property is changed on the `collection`,
-		// check to see if we have a `comparator`. If so, disable sorting.
+		/*
+		 * If the `orderby` property is changed on the `collection`, check to see if we
+		 * have a `comparator`. If so, disable sorting.
+		 */
 		collection.props.on( 'change:orderby', function() {
 			this.$el.sortable( 'option', 'disabled', !! collection.comparator );
 		}, this );
@@ -6819,12 +6925,19 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 		this.refreshSortable();
 	},
 
+	/**
+	 * Disables jQuery sortable if collection has a comparator or collection.orderby
+	 * equals menuOrder.
+	 *
+	 * @since 3.5.0
+	 *
+	 * @returns {void}
+	 */
 	refreshSortable: function() {
 		if ( ! this.options.sortable || ! $.fn.sortable ) {
 			return;
 		}
 
-		// If the `collection` has a `comparator`, disable sorting.
 		var collection = this.collection,
 			orderby = collection.props.get('orderby'),
 			enabled = 'menuOrder' === orderby || ! collection.comparator;
@@ -6833,8 +6946,13 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 	},
 
 	/**
+	 * Creates a new view for an attachment and adds it to _viewsByCid.
+	 *
+	 * @since 3.5.0
+	 *
 	 * @param {wp.media.model.Attachment} attachment
-	 * @returns {wp.media.View}
+	 *
+	 * @returns {wp.media.View} The created view.
 	 */
 	createAttachmentView: function( attachment ) {
 		var view = new this.options.AttachmentView({
@@ -6847,33 +6965,57 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 		return this._viewsByCid[ attachment.cid ] = view;
 	},
 
+	/**
+	 * Prepares view for display.
+	 *
+	 * Creates views for every attachment in collection if the collection is not
+	 * empty, otherwise clears all views and loads more attachments.
+	 *
+	 * @since 3.5.0
+	 *
+	 * @returns {void}
+	 */
 	prepare: function() {
-		// Create all of the Attachment views, and replace
-		// the list in a single DOM operation.
 		if ( this.collection.length ) {
 			this.views.set( this.collection.map( this.createAttachmentView, this ) );
-
-		// If there are no elements, clear the views and load some.
 		} else {
 			this.views.unset();
 			this.collection.more().done( this.scroll );
 		}
 	},
 
+	/**
+	 * Triggers the scroll function to check if we should query for additional
+	 * attachments right away.
+	 *
+	 * @since 3.5.0
+	 *
+	 * @returns {void}
+	 */
 	ready: function() {
-		// Trigger the scroll event to check if we're within the
-		// threshold to query for additional attachments.
 		this.scroll();
 	},
 
+	/**
+	 * Handles scroll events.
+	 *
+	 * Shows the spinner if we're close to the bottom. Loads more attachments from
+	 * server if we're {refreshThreshold} times away from the bottom.
+	 *
+	 * @since 3.5.0
+	 *
+	 * @returns {void}
+	 */
 	scroll: function() {
 		var view = this,
 			el = this.options.scrollElement,
 			scrollTop = el.scrollTop,
 			toolbar;
 
-		// The scroll event occurs on the document, but the element
-		// that should be checked is the document body.
+		/*
+		 * The scroll event occurs on the document, but the element that should be
+		 * checked is the document body.
+		 */
 		if ( el === document ) {
 			el = document.body;
 			scrollTop = $(document).scrollTop();
@@ -9007,17 +9149,27 @@ Cropper = View.extend(/** @lends wp.media.view.Cropper.prototype */{
 		imgOptions = _.extend(imgOptions, {
 			parent: this.$el,
 			onInit: function() {
-				this.parent.children().on( 'mousedown touchstart', function( e ){
 
-					if ( e.shiftKey ) {
+				// Store the set ratio.
+				var setRatio = imgSelect.getOptions().aspectRatio;
+
+				// On mousedown, if no ratio is set and the Shift key is down, use a 1:1 ratio.
+				this.parent.children().on( 'mousedown touchstart', function( e ) {
+
+					// If no ratio is set and the shift key is down, use a 1:1 ratio.
+					if ( ! setRatio && e.shiftKey ) {
 						imgSelect.setOptions( {
 							aspectRatio: '1:1'
 						} );
-					} else {
-						imgSelect.setOptions( {
-							aspectRatio: false
-						} );
 					}
+				} );
+
+				this.parent.children().on( 'mouseup touchend', function() {
+
+					// Restore the set ratio.
+					imgSelect.setOptions( {
+						aspectRatio: setRatio ? setRatio : false
+					} );
 				} );
 			}
 		} );

@@ -66,13 +66,11 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	function test_the_taxonomies() {
 		$post_id = self::factory()->post->create();
 
-		ob_start();
+		$this->expectOutputString( sprintf(
+			'Categories: <a href="%s">Uncategorized</a>.',
+			get_category_link( 1 )
+		) );
 		the_taxonomies( array( 'post' => $post_id ) );
-		$output = ob_get_clean();
-
-		$link     = get_category_link( 1 );
-		$expected = 'Categories: <a href="' . $link . '">Uncategorized</a>.';
-		$this->assertEquals( $expected, $output );
 	}
 
 	/**

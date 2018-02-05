@@ -630,7 +630,7 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 	/**
 	 * Test _wp_delete_customize_changeset_dependent_auto_drafts.
 	 *
-	 * @covers _wp_delete_customize_changeset_dependent_auto_drafts()
+	 * @covers ::_wp_delete_customize_changeset_dependent_auto_drafts()
 	 */
 	function test_wp_delete_customize_changeset_dependent_auto_drafts() {
 		$auto_draft_post_id = $this->factory()->post->create(

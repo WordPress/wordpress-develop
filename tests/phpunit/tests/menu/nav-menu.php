@@ -31,7 +31,7 @@ class Tests_Nav_Menu_Theme_Change extends WP_UnitTestCase {
 	/**
 	 * Two themes with one location each should just map, switching to a theme not previously-active.
 	 *
-	 * @covers wp_map_nav_menu_locations()
+	 * @covers ::wp_map_nav_menu_locations()
 	 */
 	function test_one_location_each() {
 		$this->register_nav_menu_locations( array( 'primary' ) );
@@ -50,7 +50,7 @@ class Tests_Nav_Menu_Theme_Change extends WP_UnitTestCase {
 	/**
 	 * Only registered locations should be mapped and returned.
 	 *
-	 * @covers wp_map_nav_menu_locations()
+	 * @covers ::wp_map_nav_menu_locations()
 	 */
 	function test_filter_registered_locations() {
 		$this->register_nav_menu_locations( array( 'primary', 'secondary' ) );
@@ -71,7 +71,7 @@ class Tests_Nav_Menu_Theme_Change extends WP_UnitTestCase {
 	/**
 	 * Locations with the same name should map, switching to a theme not previously-active.
 	 *
-	 * @covers wp_map_nav_menu_locations()
+	 * @covers ::wp_map_nav_menu_locations()
 	 */
 	function test_locations_with_same_slug() {
 		$this->register_nav_menu_locations( array( 'primary', 'secondary' ) );
@@ -90,7 +90,7 @@ class Tests_Nav_Menu_Theme_Change extends WP_UnitTestCase {
 	/**
 	 * If the new theme was previously active, we should honor any changes to nav menu mapping done when the other theme was active.
 	 *
-	 * @covers wp_map_nav_menu_locations()
+	 * @covers ::wp_map_nav_menu_locations()
 	 */
 	function test_new_theme_previously_active() {
 		$this->register_nav_menu_locations( array( 'primary' ) );
@@ -114,7 +114,7 @@ class Tests_Nav_Menu_Theme_Change extends WP_UnitTestCase {
 	/**
 	 * Make educated guesses on theme locations.
 	 *
-	 * @covers wp_map_nav_menu_locations()
+	 * @covers ::wp_map_nav_menu_locations()
 	 */
 	function test_location_guessing() {
 		$this->register_nav_menu_locations( array( 'primary', 'secondary' ) );
@@ -137,7 +137,7 @@ class Tests_Nav_Menu_Theme_Change extends WP_UnitTestCase {
 	/**
 	 * Make sure two locations that fall in the same group don't get the same menu assigned.
 	 *
-	 * @covers wp_map_nav_menu_locations()
+	 * @covers ::wp_map_nav_menu_locations()
 	 */
 	function test_location_guessing_one_menu_per_group() {
 		$this->register_nav_menu_locations( array( 'primary' ) );
@@ -158,7 +158,7 @@ class Tests_Nav_Menu_Theme_Change extends WP_UnitTestCase {
 	/**
 	 * Make sure two locations that fall in the same group get menus assigned from the same group.
 	 *
-	 * @covers wp_map_nav_menu_locations()
+	 * @covers ::wp_map_nav_menu_locations()
 	 */
 	function test_location_guessing_one_menu_per_location() {
 		$this->register_nav_menu_locations( array( 'primary', 'main' ) );
@@ -181,7 +181,7 @@ class Tests_Nav_Menu_Theme_Change extends WP_UnitTestCase {
 	/**
 	 * Technically possible to register menu locations numerically.
 	 *
-	 * @covers wp_map_nav_menu_locations()
+	 * @covers ::wp_map_nav_menu_locations()
 	 */
 	function test_numerical_locations() {
 		$this->register_nav_menu_locations( array( 'primary', 1 ) );

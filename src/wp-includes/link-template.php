@@ -191,8 +191,8 @@ function get_permalink( $post = 0, $leavename = false ) {
 
 				$category_object = get_term( $category_object, 'category' );
 				$category        = $category_object->slug;
-				if ( $parent = $category_object->parent ) {
-					$category = get_category_parents( $parent, false, '/', true ) . $category;
+				if ( $category_object->parent ) {
+					$category = get_category_parents( $category_object->parent, false, '/', true ) . $category;
 				}
 			}
 			// show default category in permalinks, without
@@ -3742,7 +3742,7 @@ function rel_canonical() {
  * via the {@see 'pre_get_shortlink'} filter or filter the output via the {@see 'get_shortlink'}
  * filter.
  *
- * @since 3.0.0.
+ * @since 3.0.0
  *
  * @param int    $id          Optional. A post or site id. Default is 0, which means the current post or site.
  * @param string $context     Optional. Whether the id is a 'site' id, 'post' id, or 'media' id. If 'post',

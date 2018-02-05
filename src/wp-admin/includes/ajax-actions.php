@@ -100,69 +100,6 @@ function wp_ajax_fetch_list() {
 }
 
 /**
- * Ajax handler for tag search.
- *
- * @since 3.1.0
- */
-function wp_ajax_ajax_tag_search() {
-	if ( ! isset( $_GET['tax'] ) ) {
-		wp_die( 0 );
-	}
-
-	$taxonomy = sanitize_key( $_GET['tax'] );
-	$tax      = get_taxonomy( $taxonomy );
-	if ( ! $tax ) {
-		wp_die( 0 );
-	}
-
-	if ( ! current_user_can( $tax->cap->assign_terms ) ) {
-		wp_die( -1 );
-	}
-
-	$s = wp_unslash( $_GET['q'] );
-
-	$comma = _x( ',', 'tag delimiter' );
-	if ( ',' !== $comma ) {
-		$s = str_replace( $comma, ',', $s );
-	}
-	if ( false !== strpos( $s, ',' ) ) {
-		$s = explode( ',', $s );
-		$s = $s[ count( $s ) - 1 ];
-	}
-	$s = trim( $s );
-
-	/**
-	 * Filters the minimum number of characters required to fire a tag search via Ajax.
-	 *
-	 * @since 4.0.0
-	 *
-	 * @param int         $characters The minimum number of characters required. Default 2.
-	 * @param WP_Taxonomy $tax        The taxonomy object.
-	 * @param string      $s          The search term.
-	 */
-	$term_search_min_chars = (int) apply_filters( 'term_search_min_chars', 2, $tax, $s );
-
-	/*
-	 * Require $term_search_min_chars chars for matching (default: 2)
-	 * ensure it's a non-negative, non-zero integer.
-	 */
-	if ( ( $term_search_min_chars == 0 ) || ( strlen( $s ) < $term_search_min_chars ) ) {
-		wp_die();
-	}
-
-	$results = get_terms(
-		$taxonomy, array(
-			'name__like' => $s,
-			'fields'     => 'names',
-			'hide_empty' => false,
-		)
-	);
-
-	echo join( $results, "\n" );
-	wp_die();
-}
-
-/**
  * Ajax handler for compression testing.
  *
  * @since 3.1.0
@@ -357,10 +294,10 @@ function wp_ajax_get_community_events() {
 		 * The location should only be updated when it changes. The API doesn't always return
 		 * a full location; sometimes it's missing the description or country. The location
 		 * that was saved during the initial request is known to be good and complete, though.
-		 * It should be left in tact until the user explicitly changes it (either by manually
+		 * It should be left intact until the user explicitly changes it (either by manually
 		 * searching for a new location, or by changing their IP address).
 		 *
-		 * If the location were updated with an incomplete response from the API, then it could
+		 * If the location was updated with an incomplete response from the API, then it could
 		 * break assumptions that the UI makes (e.g., that there will always be a description
 		 * that corresponds to a latitude/longitude location).
 		 *
@@ -3281,7 +3218,7 @@ function wp_ajax_query_themes() {
 		}
 
 		$theme->name        = wp_kses( $theme->name, $themes_allowedtags );
-		$theme->author      = wp_kses( $theme->author, $themes_allowedtags );
+		$theme->author      = wp_kses( $theme->author['display_name'], $themes_allowedtags );
 		$theme->version     = wp_kses( $theme->version, $themes_allowedtags );
 		$theme->description = wp_kses( $theme->description, $themes_allowedtags );
 		$theme->stars       = wp_star_rating(

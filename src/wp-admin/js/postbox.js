@@ -2,8 +2,6 @@
  * Contains the postboxes logic, opening and closing postboxes, reordering and saving
  * the state and ordering to the database.
  *
- * @summary Contains postboxes logic
- *
  * @since 2.5.0
  * @requires jQuery
  */
@@ -28,7 +26,7 @@ var postboxes;
 	postboxes = {
 
 		/**
-		 * @summary Handles a click on either the postbox heading or the postbox open/close icon.
+		 * Handles a click on either the postbox heading or the postbox open/close icon.
 		 *
 		 * Opens or closes the postbox. Expects `this` to equal the clicked element.
 		 * Calls postboxes.pbshow if the postbox has been opened, calls postboxes.pbhide
@@ -76,11 +74,13 @@ var postboxes;
 			}
 
 			/**
-			 * @summary Fires when a postbox has been opened or closed.
+			 * Fires when a postbox has been opened or closed.
 			 *
 			 * Contains a jQuery object with the relevant postbox element.
 			 *
 			 * @since 4.0.0
+			 * @ignore
+			 *
 			 * @event postboxes#postbox-toggled
 			 * @type {Object}
 			 */
@@ -115,7 +115,7 @@ var postboxes;
 			});
 
 			/**
-			 * @summary Hides a postbox.
+			 * Hides a postbox.
 			 *
 			 * Event handler for the postbox dismiss button. After clicking the button
 			 * the postbox will be hidden.
@@ -131,12 +131,14 @@ var postboxes;
 			});
 
 			/**
-			 * @summary Hides the postbox element
+			 * Hides the postbox element
 			 *
 			 * Event handler for the screen options checkboxes. When a checkbox is
 			 * clicked this function will hide or show the relevant postboxes.
 			 *
 			 * @since 2.7.0
+			 * @ignore
+			 *
 			 * @fires postboxes#postbox-toggled
 			 *
 			 * @returns {void}
@@ -169,7 +171,7 @@ var postboxes;
 			});
 
 			/**
-			 * @summary Changes the amount of columns based on the layout preferences.
+			 * Changes the amount of columns based on the layout preferences.
 			 *
 			 * @since 2.8.0
 			 *
@@ -186,7 +188,7 @@ var postboxes;
 		},
 
 		/**
-		 * @summary Initializes all the postboxes, mainly their sortable behaviour.
+		 * Initializes all the postboxes, mainly their sortable behaviour.
 		 *
 		 * @since 2.7.0
 		 * @memberof postboxes
@@ -265,10 +267,10 @@ var postboxes;
 		},
 
 		/**
-		 * @summary Saves the state of the postboxes to the server.
+		 * Saves the state of the postboxes to the server.
 		 *
-		 * Saves the state of the postboxes to the server. It sends two lists, one with
-		 * all the closed postboxes, one with all the hidden postboxes.
+		 * It sends two lists, one with all the closed postboxes, one with all the
+		 * hidden postboxes.
 		 *
 		 * @since 2.7.0
 		 * @memberof postboxes
@@ -297,10 +299,9 @@ var postboxes;
 		},
 
 		/**
-		 * @summary Saves the order of the postboxes to the server.
+		 * Saves the order of the postboxes to the server.
 		 *
-		 * Saves the order of the postboxes to the server. Sends a list of all postboxes
-		 * inside a sortable area to the server.
+		 * Sends a list of all postboxes inside a sortable area to the server.
 		 *
 		 * @since 2.8.0
 		 * @memberof postboxes
@@ -326,7 +327,7 @@ var postboxes;
 		},
 
 		/**
-		 * @summary Marks empty postbox areas.
+		 * Marks empty postbox areas.
 		 *
 		 * Adds a message to empty sortable areas on the dashboard page. Also adds a
 		 * border around the side area on the post edit screen if there are no postboxes
@@ -362,7 +363,7 @@ var postboxes;
 		},
 
 		/**
-		 * @summary Changes the amount of columns on the post edit page.
+		 * Changes the amount of columns on the post edit page.
 		 *
 		 * @since 3.3.0
 		 * @memberof postboxes
@@ -383,14 +384,16 @@ var postboxes;
 			 * Fires when the amount of columns on the post edit page has been changed.
 			 *
 			 * @since 4.0.0
+			 * @ignore
+			 *
 			 * @event postboxes#postboxes-columnchange
 			 */
 			$( document ).trigger( 'postboxes-columnchange' );
 		},
 
 		/**
-		 * @summary Changes the amount of columns the postboxes are in based on the
-		 *          current orientation of the browser.
+		 * Changes the amount of columns the postboxes are in based on the current
+		 * orientation of the browser.
 		 *
 		 * @since 3.3.0
 		 * @memberof postboxes

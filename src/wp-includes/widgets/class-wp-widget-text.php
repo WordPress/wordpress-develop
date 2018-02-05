@@ -57,6 +57,10 @@ class WP_Widget_Text extends WP_Widget {
 
 		wp_add_inline_script( 'text-widgets', sprintf( 'wp.textWidgets.idBases.push( %s );', wp_json_encode( $this->id_base ) ) );
 
+		if ( $this->is_preview() ) {
+			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_preview_scripts' ) );
+		}
+
 		// Note that the widgets component in the customizer will also do the 'admin_print_scripts-widgets.php' action in WP_Customize_Widgets::print_scripts().
 		add_action( 'admin_print_scripts-widgets.php', array( $this, 'enqueue_admin_scripts' ) );
 
@@ -394,12 +398,29 @@ class WP_Widget_Text extends WP_Widget {
 	}
 
 	/**
+	 * Enqueue preview scripts.
+	 *
+	 * These scripts normally are enqueued just-in-time when a playlist shortcode is used.
+	 * However, in the customizer, a playlist shortcode may be used in a text widget and
+	 * dynamically added via selective refresh, so it is important to unconditionally enqueue them.
+	 *
+	 * @since 4.9.3
+	 */
+	public function enqueue_preview_scripts() {
+		require_once dirname( dirname( __FILE__ ) ) . '/media.php';
+
+		wp_playlist_scripts( 'audio' );
+		wp_playlist_scripts( 'video' );
+	}
+
+	/**
 	 * Loads the required scripts and styles for the widget control.
 	 *
 	 * @since 4.8.0
 	 */
 	public function enqueue_admin_scripts() {
 		wp_enqueue_editor();
+		wp_enqueue_media();
 		wp_enqueue_script( 'text-widgets' );
 		wp_add_inline_script( 'text-widgets', 'wp.textWidgets.init();', 'after' );
 	}
@@ -410,7 +431,7 @@ class WP_Widget_Text extends WP_Widget {
 	 * @since 2.8.0
 	 * @since 4.8.0 Form only contains hidden inputs which are synced with JS template.
 	 * @since 4.8.1 Restored original form to be displayed when in legacy mode.
-	 * @see WP_Widget_Visual_Text::render_control_template_scripts()
+	 * @see WP_Widget_Text::render_control_template_scripts()
 	 * @see _WP_Editors::editor()
 	 *
 	 * @param array $instance Current settings.

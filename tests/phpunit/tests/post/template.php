@@ -14,16 +14,16 @@ class Tests_Post_Template extends WP_UnitTestCase {
 
 		setup_postdata( get_post( $post_id ) );
 
-		$permalink = sprintf( '<a href="%s">', get_permalink() );
+		$permalink = sprintf( '<a href="%s" class="post-page-numbers">', get_permalink() );
 		$page2     = _wp_link_page( 2 );
 		$page3     = _wp_link_page( 3 );
 
-		$expected = "<p>Pages: 1 {$page2}2</a> {$page3}3</a></p>";
+		$expected = '<p class="post-nav-links">Pages: <span class="post-page-numbers current" aria-current="page">1</span> ' . $page2 . '2</a> ' . $page3 . '3</a></p>';
 		$output   = wp_link_pages( array( 'echo' => 0 ) );
 
 		$this->assertEquals( $expected, $output );
 
-		$before_after = " 1 {$page2}2</a> {$page3}3</a>";
+		$before_after = " <span class=\"post-page-numbers current\" aria-current=\"page\">1</span> {$page2}2</a> {$page3}3</a>";
 		$output       = wp_link_pages(
 			array(
 				'echo'   => 0,
@@ -34,7 +34,7 @@ class Tests_Post_Template extends WP_UnitTestCase {
 
 		$this->assertEquals( $before_after, $output );
 
-		$separator = " 1{$page2}2</a>{$page3}3</a>";
+		$separator = " <span class=\"post-page-numbers current\" aria-current=\"page\">1</span>{$page2}2</a>{$page3}3</a>";
 		$output    = wp_link_pages(
 			array(
 				'echo'      => 0,
@@ -46,7 +46,7 @@ class Tests_Post_Template extends WP_UnitTestCase {
 
 		$this->assertEquals( $separator, $output );
 
-		$link   = " <em>1</em>{$page2}<em>2</em></a>{$page3}<em>3</em></a>";
+		$link   = " <span class=\"post-page-numbers current\" aria-current=\"page\"><em>1</em></span>{$page2}<em>2</em></a>{$page3}<em>3</em></a>";
 		$output = wp_link_pages(
 			array(
 				'echo'        => 0,
@@ -107,7 +107,7 @@ class Tests_Post_Template extends WP_UnitTestCase {
 		$this->assertEquals( $next_prev_link, $output );
 
 		$GLOBALS['page'] = 1;
-		$separator       = "<p>Pages: 1 | {$page2}2</a> | {$page3}3</a></p>";
+		$separator       = "<p class=\"post-nav-links\">Pages: <span class=\"post-page-numbers current\" aria-current=\"page\">1</span> | {$page2}2</a> | {$page3}3</a></p>";
 		$output          = wp_link_pages(
 			array(
 				'echo'      => 0,
@@ -117,7 +117,7 @@ class Tests_Post_Template extends WP_UnitTestCase {
 
 		$this->assertEquals( $separator, $output );
 
-		$pagelink = " Page 1 | {$page2}Page 2</a> | {$page3}Page 3</a>";
+		$pagelink = " <span class=\"post-page-numbers current\" aria-current=\"page\">Page 1</span> | {$page2}Page 2</a> | {$page3}Page 3</a>";
 		$output   = wp_link_pages(
 			array(
 				'echo'      => 0,

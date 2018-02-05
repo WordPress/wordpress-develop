@@ -3367,6 +3367,11 @@ mockedApiResponse.Schema = {
                             ],
                             "description": "Allow people to post comments on new articles.",
                             "type": "string"
+                        },
+                        "permalink_structure": {
+                            "required": false,
+                            "description": "Custom URL structure for permalinks and archives.",
+                            "type": "string"
                         }
                     }
                 }
@@ -4528,5 +4533,6 @@ mockedApiResponse.settings = {
     "default_post_format": "0",
     "posts_per_page": 10,
     "default_ping_status": "open",
-    "default_comment_status": "open"
+    "default_comment_status": "open",
+    "permalink_structure": null
 };

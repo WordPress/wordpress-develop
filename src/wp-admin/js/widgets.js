@@ -245,6 +245,8 @@ wpWidgets = {
 			/**
 			 * Open Sidebar when a Widget gets dragged over it.
 			 *
+			 * @ignore
+			 *
 			 * @param {object} event jQuery event object.
 			 */
 			over: function( event ) {
@@ -267,6 +269,8 @@ wpWidgets = {
 
 			/**
 			 * Close Sidebar when the Widget gets dragged out of it.
+			 *
+			 * @ignore
 			 *
 			 * @param {object} event jQuery event object.
 			 */
@@ -513,9 +517,10 @@ wpWidgets = {
 	save : function( widget, del, animate, order ) {
 		var self = this, data, a,
 			sidebarId = widget.closest( 'div.widgets-sortables' ).attr( 'id' ),
-			form = widget.find( 'form' );
+			form = widget.find( 'form' ),
+			isAdd = widget.find( 'input.add_new' ).val();
 
-		if ( ! del && form.prop( 'checkValidity' ) && ! form[0].checkValidity() ) {
+		if ( ! del && ! isAdd && form.prop( 'checkValidity' ) && ! form[0].checkValidity() ) {
 			return;
 		}
 

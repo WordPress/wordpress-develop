@@ -320,7 +320,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	/**
 	 * Test _wp_keep_alive_customize_changeset_dependent_auto_drafts.
 	 *
-	 * @covers _wp_keep_alive_customize_changeset_dependent_auto_drafts()
+	 * @covers ::_wp_keep_alive_customize_changeset_dependent_auto_drafts()
 	 */
 	function test_wp_keep_alive_customize_changeset_dependent_auto_drafts() {
 		$nav_created_post_ids = $this->factory()->post->create_many(

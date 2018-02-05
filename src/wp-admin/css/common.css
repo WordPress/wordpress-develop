@@ -1188,9 +1188,17 @@ th.action-links {
 
 .filter-drawer .filter-group-feature input,
 .filter-drawer .filter-group-feature label {
-	display: inline-block;
-	margin: 7px 4px 7px 0;
 	line-height: 16px;
+}
+
+.filter-drawer .filter-group-feature input {
+	position: absolute;
+	margin: 0;
+}
+
+.filter-group .filter-group-feature label {
+	display: block;
+	margin: 14px 0px 14px 23px;
 }
 
 .filter-drawer .buttons {
@@ -1508,7 +1516,7 @@ div.error {
 .installed p:before,
 .button.updated-message:before {
 	color: #79ba49;
-	content: '\f147';
+	content: "\f147";
 }
 
 /* Error icon. */
@@ -3126,7 +3134,7 @@ img {
 
 /* Styles for folder indicators/depth */
 .tree-folder .tree-folder::after {
-	content: ' ';
+	content: "";
 	display: block;
 	position: absolute;
 	left: 2px;
@@ -3135,7 +3143,7 @@ img {
 	bottom: 10px;
 }
 .tree-folder > li::before {
-	content: ' ';
+	content: "";
 	position: absolute;
 	display: block;
 	border-left: 1px solid #ccc;
@@ -3146,7 +3154,7 @@ img {
 	border-bottom: 1px solid #ccc;
 }
 .tree-folder > li::after {
-	content: ' ';
+	content: "";
 	position: absolute;
 	display: block;
 	border-left: 1px solid #ccc;
@@ -3686,8 +3694,7 @@ img {
 	}
 
 	/* Hidden Elements */
-	#screen-meta,
-	#screen-meta-links,
+	#contextual-help-link-wrap,
 	#collapse-menu,
 	.post-format-select {
 		display: none !important;
@@ -3889,6 +3896,10 @@ img {
 		line-height: 25px;
 	}
 
+	.filter-drawer .filter-group-feature label {
+		margin-left: 32px;
+	}
+
 	.wp-filter .button.drawer-toggle {
 		font-size: 13px;
 		line-height: 26px;
@@ -3940,7 +3951,7 @@ img {
 		margin: 5px 0;
 	}
 	.options-media-php label[for*="_size_h"]:before {
-		content: '';
+		content: "";
 		display: block;
 	}
 	.options-media-php br {

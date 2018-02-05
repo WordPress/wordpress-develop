@@ -2,9 +2,7 @@
 /* global theList:true, theExtraList:true, getUserSetting, setUserSetting, commentReply */
 
 /**
- * Contains all dynamic functionality needed on post and term pages.
- *
- * @summary Control page and term functionality.
+ * @file Contains all dynamic functionality needed on post and term pages.
  */
 
 var commentsBox, WPSetThumbnailHTML, WPSetThumbnailID, WPRemoveThumbnail, wptitlehint, makeSlugeditClickable, editPermalink;
@@ -31,11 +29,11 @@ window.wp = window.wp || {};
 		/**
 		 * Fetch comments using AJAX and display them in the box.
 		 *
+		 * @memberof commentsBox
+		 *
 		 * @param {int} total Total number of comments for this post.
 		 * @param {int} num   Optional. Number of comments to fetch, defaults to 20.
 		 * @returns {boolean} Always returns false.
-		 *
-		 * @memberof commentsBox
 		 */
 		get : function(total, num) {
 			var st = this.st, data;
@@ -662,6 +660,8 @@ jQuery(document).ready( function($) {
 			/**
 			 * Add current post_ID to request to fetch custom fields
 			 *
+			 * @ignore
+			 *
 			 * @param {Object} s Request object.
 			 *
 			 * @returns {Object} Data modified with post_ID attached.
@@ -672,6 +672,8 @@ jQuery(document).ready( function($) {
 			},
 			/**
 			 * Show the listing of custom fields after fetching.
+			 *
+			 * @ignore
 			 */
 			addAfter: function() {
 				$('table#list-table').show();
@@ -688,6 +690,8 @@ jQuery(document).ready( function($) {
 
 		/**
 		 * When the visibility of a post changes sub-options should be shown or hidden.
+		 *
+		 * @ignore
 		 *
 		 * @returns void
 		 */
@@ -710,6 +714,8 @@ jQuery(document).ready( function($) {
 
 		/**
 		 * Make sure all labels represent the current settings.
+		 *
+		 * @ignore
 		 *
 		 * @returns {boolean} False when an invalid timestamp has been selected, otherwise True.
 		 */
@@ -926,9 +932,8 @@ jQuery(document).ready( function($) {
 	}
 
 	/**
-	 * Handle the editing of the post_name. Create the required HTML elements and update the changes via AJAX.
-	 *
-	 * @summary Permalink aka slug aka post_name editing
+	 * Handle the editing of the post_name. Create the required HTML elements and
+	 * update the changes via AJAX.
 	 *
 	 * @global
 	 *
@@ -1033,9 +1038,7 @@ jQuery(document).ready( function($) {
 	});
 
 	/**
-	 * Add screen reader text to the title prompt when needed.
-	 *
-	 * @summary Title screen reader text handler.
+	 * Adds screen reader text to the title prompt when needed.
 	 *
 	 * @param {string} id Optional. HTML ID to add the screen reader helper text to.
 	 *

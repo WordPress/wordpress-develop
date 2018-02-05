@@ -83,7 +83,6 @@ class Tests_Functions_ListFilter extends WP_UnitTestCase {
 				'field2' => true,
 			), 'AND', 'name'
 		);
-		$this->assertEquals( 2, count( $list ) );
 		$this->assertEquals(
 			array(
 				'foo' => 'foo',
@@ -99,7 +98,6 @@ class Tests_Functions_ListFilter extends WP_UnitTestCase {
 				'field3' => true,
 			), 'OR', 'name'
 		);
-		$this->assertEquals( 2, count( $list ) );
 		$this->assertEquals(
 			array(
 				'foo' => 'foo',
@@ -115,7 +113,6 @@ class Tests_Functions_ListFilter extends WP_UnitTestCase {
 				'field3' => true,
 			), 'NOT', 'name'
 		);
-		$this->assertEquals( 1, count( $list ) );
 		$this->assertEquals( array( 'baz' => 'baz' ), $list );
 	}
 
@@ -213,6 +210,56 @@ class Tests_Functions_ListFilter extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 16895
+	 */
+	function test_wp_list_pluck_containing_references() {
+		$ref_list = array(
+			& $this->object_list['foo'],
+			& $this->object_list['bar'],
+		);
+
+		$this->assertInstanceOf( 'stdClass', $ref_list[0] );
+		$this->assertInstanceOf( 'stdClass', $ref_list[1] );
+
+		$list = wp_list_pluck( $ref_list, 'name' );
+		$this->assertEquals(
+			array(
+				'foo',
+				'bar',
+			),
+			$list
+		);
+
+		$this->assertInstanceOf( 'stdClass', $ref_list[0] );
+		$this->assertInstanceOf( 'stdClass', $ref_list[1] );
+	}
+
+	/**
+	 * @ticket 16895
+	 */
+	function test_wp_list_pluck_containing_references_keys() {
+		$ref_list = array(
+			& $this->object_list['foo'],
+			& $this->object_list['bar'],
+		);
+
+		$this->assertInstanceOf( 'stdClass', $ref_list[0] );
+		$this->assertInstanceOf( 'stdClass', $ref_list[1] );
+
+		$list = wp_list_pluck( $ref_list, 'name', 'id' );
+		$this->assertEquals(
+			array(
+				'f' => 'foo',
+				'b' => 'bar',
+			),
+			$list
+		);
+
+		$this->assertInstanceOf( 'stdClass', $ref_list[0] );
+		$this->assertInstanceOf( 'stdClass', $ref_list[1] );
+	}
+
 	function test_filter_object_list_nested_array_and() {
 		$list = wp_filter_object_list( $this->object_list, array( 'field4' => array( 'blue' ) ), 'AND' );
 		$this->assertEquals( 1, count( $list ) );
@@ -247,13 +294,11 @@ class Tests_Functions_ListFilter extends WP_UnitTestCase {
 
 	function test_filter_object_list_nested_array_and_field() {
 		$list = wp_filter_object_list( $this->object_list, array( 'field4' => array( 'blue' ) ), 'AND', 'name' );
-		$this->assertEquals( 1, count( $list ) );
 		$this->assertEquals( array( 'baz' => 'baz' ), $list );
 	}
 
 	function test_filter_object_list_nested_array_not_field() {
 		$list = wp_filter_object_list( $this->object_list, array( 'field4' => array( 'green' ) ), 'NOT', 'name' );
-		$this->assertEquals( 2, count( $list ) );
 		$this->assertEquals(
 			array(
 				'foo' => 'foo',
@@ -269,7 +314,6 @@ class Tests_Functions_ListFilter extends WP_UnitTestCase {
 				'field4' => array( 'blue' ),
 			), 'OR', 'name'
 		);
-		$this->assertEquals( 2, count( $list ) );
 		$this->assertEquals(
 			array(
 				'foo' => 'foo',

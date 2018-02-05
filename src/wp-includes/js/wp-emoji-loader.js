@@ -88,15 +88,15 @@
 				return ! isIdentical;
 			case 'emoji':
 				/*
-				 * Emoji 5 has fairies of all genders.
+				 * Emoji allows people of all gender levitate and so does WordPress.
 				 *
-				 * To test for support, try to render a new emoji (fairy, male), then compares
-				 * it to how it would look if the browser doesn't render it correctly
-				 * (fairy + male sign).
+				 * To test for support, try to render a new emoji (woman in business suit levitating),
+				 * then compare it to how it would look if the browser doesn't render it correctly
+				 * (person in business suit levitating + female sign).
 				 */
 				isIdentical = emojiSetsRenderIdentically(
-					[ 55358, 56794, 8205, 9794, 65039 ],
-					[ 55358, 56794, 8203, 9794, 65039 ]
+					[55357, 56692, 8205, 9792, 65039],
+					[55357, 56692, 8203, 9792, 65039]
 				);
 				return ! isIdentical;
 		}

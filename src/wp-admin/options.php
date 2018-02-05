@@ -46,7 +46,7 @@ if ( empty( $option_page ) ) {
 
 if ( ! current_user_can( $capability ) ) {
 	wp_die(
-		'<h1>' . __( 'Cheatin&#8217; uh?' ) . '</h1>' .
+		'<h1>' . __( 'You don&#8217;t have permission to do this.' ) . '</h1>' .
 		'<p>' . __( 'Sorry, you are not allowed to manage these options.' ) . '</p>',
 		403
 	);
@@ -74,7 +74,7 @@ if ( ! empty( $_GET['adminhash'] ) ) {
 
 if ( is_multisite() && ! current_user_can( 'manage_network_options' ) && 'update' != $action ) {
 	wp_die(
-		'<h1>' . __( 'Cheatin&#8217; uh?' ) . '</h1>' .
+		'<h1>' . __( 'You don&#8217;t have permission to do this.' ) . '</h1>' .
 		'<p>' . __( 'Sorry, you are not allowed to delete these items.' ) . '</p>',
 		403
 	);
@@ -187,9 +187,11 @@ if ( 'update' == $action ) {
 		if ( ! empty( $_POST['WPLANG'] ) && current_user_can( 'install_languages' ) ) {
 			require_once( ABSPATH . 'wp-admin/includes/translation-install.php' );
 
-			$language = wp_download_language_pack( $_POST['WPLANG'] );
-			if ( $language ) {
-				$_POST['WPLANG'] = $language;
+			if ( wp_can_install_language_pack() ) {
+				$language = wp_download_language_pack( $_POST['WPLANG'] );
+				if ( $language ) {
+					$_POST['WPLANG'] = $language;
+				}
 			}
 		}
 	}
