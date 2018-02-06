@@ -94,4 +94,19 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	public function test_register_deprecated_group_privacy() {
 		register_setting( 'privacy', 'test_option' );
 	}
+
+	/**
+	 * @ticket 43207
+	 */
+	public function test_unregister_setting_removes_default() {
+		register_setting(
+			'test_group', 'test_default', array(
+				'default' => 'Fuck Cancer',
+			)
+		);
+
+		unregister_setting( 'test_group', 'test_default' );
+
+		$this->assertFalse( has_filter( 'default_option_test_default', 'filter_default_option' ) );
+	}
 }
