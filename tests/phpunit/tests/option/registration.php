@@ -47,11 +47,11 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	public function test_register_with_default() {
 		register_setting(
 			'test_group', 'test_default', array(
-				'default' => 'Fuck Cancer',
+				'default' => 'Eat your greens',
 			)
 		);
 
-		$this->assertEquals( 'Fuck Cancer', get_option( 'test_default' ) );
+		$this->assertEquals( 'Eat your greens', get_option( 'test_default' ) );
 	}
 
 	/**
@@ -60,11 +60,11 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	public function test_register_with_default_override() {
 		register_setting(
 			'test_group', 'test_default', array(
-				'default' => 'Fuck Cancer',
+				'default' => 'Eat your greens',
 			)
 		);
 
-		$this->assertEquals( 'Fuck Leukemia', get_option( 'test_default', 'Fuck Leukemia' ) );
+		$this->assertEquals( 'Ice cream is better', get_option( 'test_default', 'Ice cream is better' ) );
 	}
 
 	/**
@@ -101,7 +101,7 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	public function test_unregister_setting_removes_default() {
 		register_setting(
 			'test_group', 'test_default', array(
-				'default' => 'Fuck Cancer',
+				'default' => 'Eat your greens',
 			)
 		);
 
