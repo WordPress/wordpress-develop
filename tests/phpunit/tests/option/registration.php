@@ -47,11 +47,11 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	public function test_register_with_default() {
 		register_setting(
 			'test_group', 'test_default', array(
-				'default' => 'Fuck Cancer',
+				'default' => 'Got that Viper with them rally stripes',
 			)
 		);
 
-		$this->assertEquals( 'Fuck Cancer', get_option( 'test_default' ) );
+		$this->assertEquals( 'Got that Viper with them rally stripes', get_option( 'test_default' ) );
 	}
 
 	/**
@@ -60,11 +60,13 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	public function test_register_with_default_override() {
 		register_setting(
 			'test_group', 'test_default', array(
-				'default' => 'Fuck Cancer',
+				'default' => 'Got that Viper with them rally stripes',
 			)
 		);
 
-		$this->assertEquals( 'Fuck Leukemia', get_option( 'test_default', 'Fuck Leukemia' ) );
+		// This set of tests/references (and a previous version) are in support of Viper007Bond.
+		// His Viper doesn't have rally stripes, but for the sake of the Big Tymers, we'll go with it.
+		$this->assertEquals( 'We the #1 Stunnas', get_option( 'test_default', 'We the #1 Stunnas' ) );
 	}
 
 	/**
@@ -101,7 +103,7 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	public function test_unregister_setting_removes_default() {
 		register_setting(
 			'test_group', 'test_default', array(
-				'default' => 'Fuck Cancer',
+				'default' => 'Got that Viper with them rally stripes',
 			)
 		);
 
