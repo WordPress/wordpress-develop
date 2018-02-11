@@ -214,6 +214,21 @@ CAP;
 		$this->assertEquals( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result, $_r ) );
 	}
 
+	/**
+	 * @ticket 34595
+	 */
+	function test_img_caption_shortcode_has_aria_describedby() {
+		$result = img_caption_shortcode(
+			array(
+				'width' => 20,
+				'id'    => 'myId',
+			),
+			$this->img_content . $this->html_content
+		);
+
+		$this->assertEquals( 1, preg_match_all( '/aria-describedby="caption-myId"/', $result, $_r ) );
+	}
+
 	function test_add_remove_oembed_provider() {
 		wp_oembed_add_provider( 'http://foo.bar/*', 'http://foo.bar/oembed' );
 		$this->assertTrue( wp_oembed_remove_provider( 'http://foo.bar/*' ) );
