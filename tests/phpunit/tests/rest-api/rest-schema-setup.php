@@ -20,8 +20,8 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
-		$this->server = $wp_rest_server = new Spy_REST_Server;
-		do_action( 'rest_api_init' );
+		$wp_rest_server = new Spy_REST_Server;
+		do_action( 'rest_api_init', $wp_rest_server );
 
 		add_filter( 'pre_http_request', array( $this, 'mock_embed_request' ), 10, 3 );
 	}
@@ -72,7 +72,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 	}
 
 	public function test_expected_routes_in_schema() {
-		$routes = $this->server->get_routes();
+		$routes = rest_get_server()->get_routes();
 
 		$this->assertTrue( is_array( $routes ), '`get_routes` should return an array.' );
 		$this->assertTrue( ! empty( $routes ), 'Routes should not be empty.' );
@@ -373,7 +373,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			if ( isset( $route['args'] ) ) {
 				$request->set_query_params( $route['args'] );
 			}
-			$response = $this->server->dispatch( $request );
+			$response = rest_get_server()->dispatch( $request );
 			$status   = $response->get_status();
 			$data     = $response->get_data();
 
