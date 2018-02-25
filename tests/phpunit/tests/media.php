@@ -2437,13 +2437,13 @@ EOF;
 
 		$uploads_dir = wp_upload_dir( current_time( 'mysql' ) );
 
-		$expected = $uploads_dir['url'] . 'test-image-iptc.jpg';
+		$expected = $uploads_dir['url'] . '/test-image-iptc.jpg';
 
 		// Clean up.
 		wp_delete_attachment( $post_id );
 		wp_delete_post( $parent_id );
 
-		$this->assertNotEquals( $expected, $url );
+		$this->assertSame( $expected, $url );
 	}
 }
 
