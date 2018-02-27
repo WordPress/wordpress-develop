@@ -376,6 +376,21 @@ class Tests_WP_Error extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::has_errors()
+	 */
+	public function test_has_errors_with_no_errors_returns_false() {
+		$this->assertFalse( $this->WP_Error->has_errors() );
+	}
+
+	/**
+	 * @covers ::has_errors()
+	 */
+	public function test_has_errors_with_errors_returns_true() {
+		$this->WP_Error->add( 'code', 'message', 'data' );
+		$this->assertTrue( $this->WP_Error->has_errors() );
+	}
+
+	/**
 	 * @covers ::add()
 	 */
 	public function test_add_with_empty_code_empty_message_empty_data_should_add_empty_key_to_errors_array() {
