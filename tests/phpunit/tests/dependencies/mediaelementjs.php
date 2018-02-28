@@ -18,7 +18,7 @@ class Tests_Dependencies_MediaElementjs extends WP_UnitTestCase {
 	 * @ticket 42720
 	 */
 	function test_exclusion_of_flash() {
-		$mejs_folder = dirname( ABSPATH ) . '/build/' . WPINC . '/js/mediaelement';
+		$mejs_folder = ABSPATH . WPINC . '/js/mediaelement';
 		$js_files    = glob( $mejs_folder . '/*.js' );
 
 		/*
