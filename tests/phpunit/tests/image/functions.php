@@ -61,6 +61,11 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image.jpg',
 		);
 
+		// IMAGETYPE_ICO is only defined in PHP 5.3+.
+		if ( defined( 'IMAGETYPE_ICO' ) ) {
+			$files[] = 'test-image.ico';
+		}
+
 		foreach ( $files as $file ) {
 			$this->assertTrue( file_is_valid_image( DIR_TESTDATA . '/images/' . $file ), "file_is_valid_image($file) should return true" );
 		}
@@ -86,6 +91,11 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image.png',
 			'test-image.jpg',
 		);
+
+		// IMAGETYPE_ICO is only defined in PHP 5.3+.
+		if ( defined( 'IMAGETYPE_ICO' ) ) {
+			$files[] = 'test-image.ico';
+		}
 
 		foreach ( $files as $file ) {
 			$this->assertTrue( file_is_displayable_image( DIR_TESTDATA . '/images/' . $file ), "file_is_valid_image($file) should return true" );
