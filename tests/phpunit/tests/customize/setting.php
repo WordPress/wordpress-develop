@@ -106,7 +106,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 		}
 		$this->assertEquals( 10, has_filter( "customize_validate_{$setting->id}", $args['validate_callback'] ) );
 		$this->assertEquals( 10, has_filter( "customize_sanitize_{$setting->id}", $args['sanitize_callback'] ) );
-		$this->assertEquals( 10, has_filter( "customize_sanitize_js_{$setting->id}" ), $args['sanitize_js_callback'] );
+		$this->assertEquals( 10, has_filter( "customize_sanitize_js_{$setting->id}", $args['sanitize_js_callback'] ) );
 	}
 
 	public $post_data_overrides = array(
