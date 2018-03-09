@@ -293,24 +293,4 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 		rmdir( WP_CONTENT_DIR . '/themes/foo' );
 		rmdir( WP_CONTENT_DIR . '/themes/foo-themes' );
 	}
-
-	/**
-	 * @ticket 43228
-	 */
-	function test_theme_dir_caches() {
-		@mkdir( WP_CONTENT_DIR . '/themes/foo' );
-		@mkdir( WP_CONTENT_DIR . '/themes/foo/bar' );
-
-		$old_roots = get_theme_roots();
-
-		register_theme_directory( WP_CONTENT_DIR . '/themes/foo' );
-
-		$new_roots = get_theme_roots();
-
-		rmdir( WP_CONTENT_DIR . '/themes/foo/bar' );
-		rmdir( WP_CONTENT_DIR . '/themes/foo' );
-
-		$this->assertNotEquals( $new_roots, $old_roots );
-		$this->assertArrayHasKey( 'foo', $new_roots );
-	}
 }
