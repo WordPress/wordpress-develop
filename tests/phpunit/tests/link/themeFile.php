@@ -5,6 +5,9 @@
 class Test_Theme_File extends WP_UnitTestCase {
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		if ( ! function_exists( 'symlink' ) ) {
+			self::markTestSkipped( 'symlink() is not available.' );
+		}
 		if ( ! @symlink( DIR_TESTDATA . '/theme-file-parent', WP_CONTENT_DIR . '/themes/theme-file-parent' ) ) {
 			self::markTestSkipped( 'Could not create parent symlink.' );
 		}
