@@ -646,7 +646,7 @@ class ftp_base {
 		return $ret;
 	}
 
-	function mput($local=".", $remote=NULL, $continious=false) {
+	function mput($local=".", $remote=NULL, $continuous=false) {
 		$local=realpath($local);
 		if(!@file_exists($local)) {
 			$this->PushError("mput","can't open local folder", "Cannot stat folder \"".$local."\"");
@@ -672,14 +672,14 @@ class ftp_base {
 			else $t=$this->put($local."/".$el, $remote."/".$el);
 			if(!$t) {
 				$ret=FALSE;
-				if(!$continious) break;
+				if(!$continuous) break;
 			}
 		}
 		return $ret;
 
 	}
 
-	function mget($remote, $local=".", $continious=false) {
+	function mget($remote, $local=".", $continuous=false) {
 		$list=$this->rawlist($remote, "-lA");
 		if($list===false) {
 			$this->PushError("mget","can't read remote folder list", "Can't read remote folder \"".$remote."\" contents");
@@ -699,16 +699,16 @@ class ftp_base {
 		$ret=true;
 		foreach($list as $el) {
 			if($el["type"]=="d") {
-				if(!$this->mget($remote."/".$el["name"], $local."/".$el["name"], $continious)) {
+				if(!$this->mget($remote."/".$el["name"], $local."/".$el["name"], $continuous)) {
 					$this->PushError("mget", "can't copy folder", "Can't copy remote folder \"".$remote."/".$el["name"]."\" to local \"".$local."/".$el["name"]."\"");
 					$ret=false;
-					if(!$continious) break;
+					if(!$continuous) break;
 				}
 			} else {
 				if(!$this->get($remote."/".$el["name"], $local."/".$el["name"])) {
 					$this->PushError("mget", "can't copy file", "Can't copy remote file \"".$remote."/".$el["name"]."\" to local \"".$local."/".$el["name"]."\"");
 					$ret=false;
-					if(!$continious) break;
+					if(!$continuous) break;
 				}
 			}
 			@chmod($local."/".$el["name"], $el["perms"]);
@@ -718,7 +718,7 @@ class ftp_base {
 		return $ret;
 	}
 
-	function mdel($remote, $continious=false) {
+	function mdel($remote, $continuous=false) {
 		$list=$this->rawlist($remote, "-la");
 		if($list===false) {
 			$this->PushError("mdel","can't read remote folder list", "Can't read remote folder \"".$remote."\" contents");
@@ -736,15 +736,15 @@ class ftp_base {
 				continue;
 
 			if($el["type"]=="d") {
-				if(!$this->mdel($remote."/".$el["name"], $continious)) {
+				if(!$this->mdel($remote."/".$el["name"], $continuous)) {
 					$ret=false;
-					if(!$continious) break;
+					if(!$continuous) break;
 				}
 			} else {
 				if (!$this->delete($remote."/".$el["name"])) {
 					$this->PushError("mdel", "can't delete file", "Can't delete remote file \"".$remote."/".$el["name"]."\"");
 					$ret=false;
-					if(!$continious) break;
+					if(!$continuous) break;
 				}
 			}
 		}
