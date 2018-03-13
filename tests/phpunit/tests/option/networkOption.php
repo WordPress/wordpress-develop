@@ -124,6 +124,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 43506
+	 * @group ms-required
 	 */
 	public function test_get_network_option_sets_notoptions_if_option_found() {
 		$network_id     = get_current_network_id();
@@ -147,6 +148,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 43506
+	 * @group ms-required
 	 */
 	public function test_get_network_option_sets_notoptions_if_option_not_found() {
 		$network_id     = get_current_network_id();
