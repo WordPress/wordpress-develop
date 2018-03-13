@@ -121,4 +121,50 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 			array( 'string', false ),
 		);
 	}
+
+	/**
+	 * @ticket 43506
+	 */
+	public function test_get_network_option_sets_notoptions_if_option_found() {
+		$network_id     = get_current_network_id();
+		$notoptions_key = "$network_id:notoptions";
+
+		$original_cache = wp_cache_get( $notoptions_key, 'site-options' );
+		if ( false !== $original_cache ) {
+			wp_cache_delete( $notoptions_key, 'site-options' );
+		}
+
+		// Retrieve any existing option.
+		get_network_option( $network_id, 'site_name' );
+
+		$cache = wp_cache_get( $notoptions_key, 'site-options' );
+		if ( false !== $original_cache ) {
+			wp_cache_set( $notoptions_key, $original_cache, 'site-options' );
+		}
+
+		$this->assertSame( array(), $cache );
+	}
+
+	/**
+	 * @ticket 43506
+	 */
+	public function test_get_network_option_sets_notoptions_if_option_not_found() {
+		$network_id     = get_current_network_id();
+		$notoptions_key = "$network_id:notoptions";
+
+		$original_cache = wp_cache_get( $notoptions_key, 'site-options' );
+		if ( false !== $original_cache ) {
+			wp_cache_delete( $notoptions_key, 'site-options' );
+		}
+
+		// Retrieve any non-existing option.
+		get_network_option( $network_id, 'this_does_not_exist' );
+
+		$cache = wp_cache_get( $notoptions_key, 'site-options' );
+		if ( false !== $original_cache ) {
+			wp_cache_set( $notoptions_key, $original_cache, 'site-options' );
+		}
+
+		$this->assertSame( array( 'this_does_not_exist' => true ), $cache );
+	}
 }
