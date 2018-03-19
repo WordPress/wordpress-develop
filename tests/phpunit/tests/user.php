@@ -1541,4 +1541,43 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertContains( '\'Test\' blog\'s "name" has <html entities> &', $email->subject, 'Email subject does not contain the decoded HTML entities' );
 		$this->assertNotContains( '&#039;Test&#039; blog&#039;s &quot;name&quot; has &lt;html entities&gt; &amp;', $email->subject, 'Email subject does contains HTML entities' );
 	}
+
+	/**
+	 * @ticket 42564
+	 */
+	function test_edit_user_role_update() {
+		$_POST = $_GET = $_REQUEST = array();
+
+		$administrator = self::factory()->user->create(
+			array(
+				'role' => 'administrator',
+			)
+		);
+
+		wp_set_current_user( $administrator );
+
+		// Don't let anyone with 'promote_users' (administrator) edit their own role to something without it (subscriber).
+		$_POST['role']     = 'subscriber';
+		$_POST['email']    = 'subscriber@subscriber.test';
+		$_POST['nickname'] = 'subscriber';
+		$this->assertSame(  $administrator, edit_user( $administrator ) );
+
+		// Should still have the old role.
+		$this->assertSame( array( 'administrator' ), get_userdata( $administrator )->roles );
+
+		// Promote an editor to an administrator.
+		$editor = self::factory()->user->create(
+			array(
+				'role' => 'editor',
+			)
+		);
+
+		$_POST['role']     = 'administrator';
+		$_POST['email']    = 'administrator@administrator.test';
+		$_POST['nickname'] = 'administrator';
+		$this->assertSame(  $editor, edit_user( $editor ) );
+
+		// Should have the new role.
+		$this->assertSame( array( 'administrator' ), get_userdata( $editor )->roles );
+	}
 }
