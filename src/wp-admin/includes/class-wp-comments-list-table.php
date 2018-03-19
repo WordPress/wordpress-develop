@@ -78,7 +78,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 		global $post_id, $comment_status, $search, $comment_type;
 
 		$comment_status = isset( $_REQUEST['comment_status'] ) ? $_REQUEST['comment_status'] : 'all';
-		if ( ! in_array( $comment_status, array( 'all', 'moderated', 'approved', 'spam', 'trash' ) ) ) {
+		if ( ! in_array( $comment_status, array( 'all', 'mine', 'moderated', 'approved', 'spam', 'trash' ) ) ) {
 			$comment_status = 'all';
 		}
 
@@ -116,6 +116,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 		}
 
 		$status_map = array(
+			'mine'      => '',
 			'moderated' => 'hold',
 			'approved'  => 'approve',
 			'all'       => '',
@@ -222,6 +223,13 @@ class WP_Comments_List_Table extends WP_List_Table {
 				'comments'
 			), // singular not used
 
+			/* translators: %s: current user's comments count */
+			'mine' => _nx_noop(
+				'Mine <span class="count">(%s)</span>',
+				'Mine <span class="count">(%s)</span>',
+				'comments'
+			),
+
 			/* translators: %s: pending comments count */
 			'moderated' => _nx_noop(
 				'Pending <span class="count">(%s)</span>',
@@ -267,6 +275,17 @@ class WP_Comments_List_Table extends WP_List_Table {
 				$current_link_attributes = ' class="current" aria-current="page"';
 			}
 
+			if ( 'mine' === $status ) {
+				$current_user_id    = get_current_user_id();
+				$num_comments->mine = get_comments( array(
+					'user_id' => $current_user_id,
+					'count'   => true,
+				) );
+				$link = add_query_arg( 'user_id', $current_user_id, $link );
+			} else {
+				$link = remove_query_arg( 'user_id', $link );
+			}
+
 			if ( ! isset( $num_comments->$status ) ) {
 				$num_comments->$status = 10;
 			}
@@ -293,9 +312,10 @@ class WP_Comments_List_Table extends WP_List_Table {
 		 * Filters the comment status links.
 		 *
 		 * @since 2.5.0
+		 * @since 5.0.0 The 'Mine' link was added.
 		 *
-		 * @param array $status_links An array of fully-formed status links. Default 'All'.
-		 *                            Accepts 'All', 'Pending', 'Approved', 'Spam', and 'Trash'.
+		 * @param string[] $status_links An associative array of fully-formed comment status links. Includes 'All', 'Mine',
+		 *                              'Pending', 'Approved', 'Spam', and 'Trash'.
 		 */
 		return apply_filters( 'comment_status_links', $status_links );
 	}
@@ -615,7 +635,7 @@ if ( ( 'spam' === $comment_status || 'trash' === $comment_status ) && current_us
 		if ( 'spam' !== $the_comment_status && 'trash' !== $the_comment_status ) {
 			$actions['edit'] = "<a href='comment.php?action=editcomment&amp;c={$comment->comment_ID}' aria-label='" . esc_attr__( 'Edit this comment' ) . "'>" . __( 'Edit' ) . '</a>';
 
-			$format = '<a data-comment-id="%d" data-post-id="%d" data-action="%s" class="%s" aria-label="%s" href="#">%s</a>';
+			$format = '<button type="button" data-comment-id="%d" data-post-id="%d" data-action="%s" class="%s button-link" aria-expanded="false" aria-label="%s">%s</button>';
 
 			$actions['quickedit'] = sprintf( $format, $comment->comment_ID, $comment->comment_post_ID, 'edit', 'vim-q comment-inline', esc_attr__( 'Quick edit this comment inline' ), __( 'Quick&nbsp;Edit' ) );
 
@@ -685,19 +705,17 @@ if ( ( 'spam' === $comment_status || 'trash' === $comment_status ) && current_us
 		}
 
 		comment_text( $comment );
+
 		if ( $this->user_can ) {
+			/** This filter is documented in wp-admin/includes/comment.php */
+			$comment_content = apply_filters( 'comment_edit_pre', $comment->comment_content );
 		?>
 		<div id="inline-<?php echo $comment->comment_ID; ?>" class="hidden">
-		<textarea class="comment" rows="1" cols="1">
-		<?php
-			/** This filter is documented in wp-admin/includes/comment.php */
-			echo esc_textarea( apply_filters( 'comment_edit_pre', $comment->comment_content ) );
-		?>
-		</textarea>
-		<div class="author-email"><?php echo esc_attr( $comment->comment_author_email ); ?></div>
-		<div class="author"><?php echo esc_attr( $comment->comment_author ); ?></div>
-		<div class="author-url"><?php echo esc_attr( $comment->comment_author_url ); ?></div>
-		<div class="comment_status"><?php echo $comment->comment_approved; ?></div>
+			<textarea class="comment" rows="1" cols="1"><?php echo esc_textarea( $comment_content ); ?></textarea>
+			<div class="author-email"><?php echo esc_attr( $comment->comment_author_email ); ?></div>
+			<div class="author"><?php echo esc_attr( $comment->comment_author ); ?></div>
+			<div class="author-url"><?php echo esc_attr( $comment->comment_author_url ); ?></div>
+			<div class="comment_status"><?php echo $comment->comment_approved; ?></div>
 		</div>
 		<?php
 		}

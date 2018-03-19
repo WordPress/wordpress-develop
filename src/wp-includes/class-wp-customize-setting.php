@@ -135,7 +135,6 @@ class WP_Customize_Setting {
 	 * Cache of multidimensional values to improve performance.
 	 *
 	 * @since 4.4.0
-	 * @static
 	 * @var array
 	 */
 	protected static $aggregated_multidimensionals = array();
@@ -595,7 +594,7 @@ class WP_Customize_Setting {
 		 */
 		$validity = apply_filters( "customize_validate_{$this->id}", $validity, $value, $this );
 
-		if ( is_wp_error( $validity ) && empty( $validity->errors ) ) {
+		if ( is_wp_error( $validity ) && ! $validity->has_errors() ) {
 			$validity = true;
 		}
 		return $validity;

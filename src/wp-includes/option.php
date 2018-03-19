@@ -1247,7 +1247,7 @@ function get_network_option( $network_id, $option, $default = false ) {
 	$notoptions_key = "$network_id:notoptions";
 	$notoptions     = wp_cache_get( $notoptions_key, 'site-options' );
 
-	if ( isset( $notoptions[ $option ] ) ) {
+	if ( is_array( $notoptions ) && isset( $notoptions[ $option ] ) ) {
 
 		/**
 		 * Filters a specific default network option.
@@ -1293,6 +1293,11 @@ function get_network_option( $network_id, $option, $default = false ) {
 				$value = apply_filters( 'default_site_option_' . $option, $default, $option, $network_id );
 			}
 		}
+	}
+
+	if ( ! is_array( $notoptions ) ) {
+		$notoptions = array();
+		wp_cache_set( $notoptions_key, $notoptions, 'site-options' );
 	}
 
 	/**
@@ -2180,6 +2185,11 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
 		// Remove the sanitize callback if one was set during registration.
 		if ( ! empty( $wp_registered_settings[ $option_name ]['sanitize_callback'] ) ) {
 			remove_filter( "sanitize_option_{$option_name}", $wp_registered_settings[ $option_name ]['sanitize_callback'] );
+		}
+
+		// Remove the default filter if a default was provided during registration.
+		if ( array_key_exists( 'default', $wp_registered_settings[ $option_name ] ) ) {
+			remove_filter( "default_option_{$option_name}", 'filter_default_option', 10 );
 		}
 
 		unset( $wp_registered_settings[ $option_name ] );

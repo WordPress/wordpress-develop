@@ -122,10 +122,10 @@ function get_home_path() {
  * @since 2.6.0
  * @since 4.9.0 Added the `$exclusions` parameter.
  *
- * @param string $folder Optional. Full path to folder. Default empty.
- * @param int    $levels Optional. Levels of folders to follow, Default 100 (PHP Loop limit).
- * @param array  $exclusions Optional. List of folders and files to skip.
- * @return bool|array False on failure, Else array of files
+ * @param string   $folder     Optional. Full path to folder. Default empty.
+ * @param int      $levels     Optional. Levels of folders to follow, Default 100 (PHP Loop limit).
+ * @param string[] $exclusions Optional. List of folders and files to skip.
+ * @return bool|string[] False on failure, else array of files.
  */
 function list_files( $folder = '', $levels = 100, $exclusions = array() ) {
 	if ( empty( $folder ) ) {
@@ -175,8 +175,8 @@ function list_files( $folder = '', $levels = 100, $exclusions = array() ) {
  *
  * @since 4.9.0
  *
- * @param string $plugin Plugin.
- * @return array File extensions.
+ * @param string $plugin Path to the plugin file relative to the plugins directory.
+ * @return string[] Array of editable file extensions.
  */
 function wp_get_plugin_file_editable_extensions( $plugin ) {
 
@@ -219,10 +219,10 @@ function wp_get_plugin_file_editable_extensions( $plugin ) {
 	 * Filters file type extensions editable in the plugin editor.
 	 *
 	 * @since 2.8.0
-	 * @since 4.9.0 Adds $plugin param.
+	 * @since 4.9.0 Added the `$plugin` parameter.
 	 *
-	 * @param string $plugin Plugin file.
-	 * @param array $editable_extensions An array of editable plugin file extensions.
+	 * @param string[] $editable_extensions An array of editable plugin file extensions.
+	 * @param string   $plugin              Path to the plugin file relative to the plugins directory.
 	 */
 	$editable_extensions = (array) apply_filters( 'editable_extensions', $editable_extensions, $plugin );
 
@@ -232,8 +232,8 @@ function wp_get_plugin_file_editable_extensions( $plugin ) {
 /**
  * Get list of file extensions that are editable for a given theme.
  *
- * @param WP_Theme $theme Theme.
- * @return array File extensions.
+ * @param WP_Theme $theme Theme object.
+ * @return string[] Array of editable file extensions.
  */
 function wp_get_theme_file_editable_extensions( $theme ) {
 
@@ -277,7 +277,7 @@ function wp_get_theme_file_editable_extensions( $theme ) {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param array    $default_types List of file types. Default types include 'php' and 'css'.
+	 * @param string[] $default_types List of allowed file types.
 	 * @param WP_Theme $theme         The current Theme object.
 	 */
 	$file_types = apply_filters( 'wp_theme_editor_filetypes', $default_types, $theme );
@@ -337,12 +337,12 @@ function wp_print_file_editor_templates() {
  *
  * @since 4.9.0
  *
- * @param array $args {
+ * @param string[] $args {
  *     Args. Note that all of the arg values are already unslashed. They are, however,
- *     coming straight from $_POST and are not validated or sanitized in any way.
+ *     coming straight from `$_POST` and are not validated or sanitized in any way.
  *
  *     @type string $file       Relative path to file.
- *     @type string $plugin     Plugin being edited.
+ *     @type string $plugin     Path to the plugin file relative to the plugins directory.
  *     @type string $theme      Theme being edited.
  *     @type string $newcontent New content for the file.
  *     @type string $nonce      Nonce.
@@ -591,7 +591,7 @@ function wp_edit_theme_plugin_file( $args ) {
 			}
 
 			if ( ! isset( $result['message'] ) ) {
-				$message = __( 'An error has occurred.' );
+				$message = __( 'Something went wrong.' );
 			} else {
 				$message = $result['message'];
 				unset( $result['message'] );
@@ -662,9 +662,9 @@ function wp_tempnam( $filename = '', $dir = '' ) {
  *
  * @since 1.5.0
  *
- * @param string $file          File the user is attempting to edit.
- * @param array  $allowed_files Optional. Array of allowed files to edit, $file must match an entry exactly.
- * @return string|null
+ * @param string   $file          File the user is attempting to edit.
+ * @param string[] $allowed_files Optional. Array of allowed files to edit. `$file` must match an entry exactly.
+ * @return string|void Returns the file name on success, dies on failure.
  */
 function validate_file_to_edit( $file, $allowed_files = array() ) {
 	$code = validate_file( $file, $allowed_files );
@@ -694,12 +694,12 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
  *
  * @see wp_handle_upload_error
  *
- * @param array       $file      Reference to a single element of $_FILES. Call the function once for each uploaded file.
- * @param array|false $overrides An associative array of names => values to override default variables. Default false.
- * @param string      $time      Time formatted in 'yyyy/mm'.
- * @param string      $action    Expected value for $_POST['action'].
- * @return array On success, returns an associative array of file attributes. On failure, returns
- *               $overrides['upload_error_handler'](&$file, $message ) or array( 'error'=>$message ).
+ * @param string[]       $file      Reference to a single element of `$_FILES`. Call the function once for each uploaded file.
+ * @param string[]|false $overrides An associative array of names => values to override default variables. Default false.
+ * @param string         $time      Time formatted in 'yyyy/mm'.
+ * @param string         $action    Expected value for `$_POST['action']`.
+ * @return string[] On success, returns an associative array of file attributes. On failure, returns
+ *               `$overrides['upload_error_handler'](&$file, $message )` or `array( 'error'=>$message )`.
  */
 function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 	// The default error handler.
@@ -717,7 +717,7 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 	 * @since 2.9.0 as 'wp_handle_upload_prefilter'.
 	 * @since 4.0.0 Converted to a dynamic hook with `$action`.
 	 *
-	 * @param array $file An array of data for a single file.
+	 * @param string[] $file An array of data for a single file.
 	 */
 	$file = apply_filters( "{$action}_prefilter", $file );
 
@@ -958,14 +958,15 @@ function wp_handle_sideload( &$file, $overrides = false, $time = null ) {
 
 
 /**
- * Downloads a URL to a local temporary file using the WordPress HTTP Class.
- * Please note, That the calling function must unlink() the file.
+ * Downloads a URL to a local temporary file using the WordPress HTTP API.
+ *
+ * Please note that the calling function must unlink() the file.
  *
  * @since 2.5.0
  *
- * @param string $url the URL of the file to download
- * @param int $timeout The timeout for the request to download the file default 300 seconds
- * @return mixed WP_Error on failure, string Filename on success.
+ * @param string $url  The URL of the file to download.
+ * @param int $timeout The timeout for the request to download the file. Default 300 seconds.
+ * @return string|WP_Error Filename on success, WP_Error on failure.
  */
 function download_url( $url, $timeout = 300 ) {
 	//WARNING: The file is not automatically deleted, The script must unlink() the file.
@@ -993,9 +994,32 @@ function download_url( $url, $timeout = 300 ) {
 		return $response;
 	}
 
-	if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
+	$response_code = wp_remote_retrieve_response_code( $response );
+
+	if ( 200 != $response_code ) {
+		$data = array(
+			'code' => $response_code,
+		);
+
+		// Retrieve a sample of the response body for debugging purposes.
+		$tmpf = fopen( $tmpfname, 'rb' );
+		if ( $tmpf ) {
+			/**
+			 * Filters the maximum error response body size in `download_url()`.
+			 *
+			 * @since 5.0.0
+			 *
+			 * @see download_url()
+			 *
+			 * @param int $size The maximum error response body size. Default 1 KB.
+			 */
+			$response_size = apply_filters( 'download_url_error_max_body_size', KB_IN_BYTES );
+			$data['body']  = fread( $tmpf, $response_size );
+			fclose( $tmpf );
+		}
+
 		unlink( $tmpfname );
-		return new WP_Error( 'http_404', trim( wp_remote_retrieve_response_message( $response ) ) );
+		return new WP_Error( 'http_404', trim( wp_remote_retrieve_response_message( $response ) ), $data );
 	}
 
 	$content_md5 = wp_remote_retrieve_header( $response, 'content-md5' );
@@ -1015,9 +1039,11 @@ function download_url( $url, $timeout = 300 ) {
  *
  * @since 3.7.0
  *
- * @param string $filename The filename to check the MD5 of.
- * @param string $expected_md5 The expected MD5 of the file, either a base64 encoded raw md5, or a hex-encoded md5
- * @return bool|object WP_Error on failure, true on success, false when the MD5 format is unknown/unexpected
+ * @param string $filename     The filename to check the MD5 of.
+ * @param string $expected_md5 The expected MD5 of the file, either a base64-encoded raw md5,
+ *                             or a hex-encoded md5.
+ * @return bool|WP_Error True on success, false when the MD5 format is unknown/unexpected,
+ *                       WP_Error on failure.
  */
 function verify_file_md5( $filename, $expected_md5 ) {
 	if ( 32 == strlen( $expected_md5 ) ) {
@@ -1038,19 +1064,22 @@ function verify_file_md5( $filename, $expected_md5 ) {
 }
 
 /**
- * Unzips a specified ZIP file to a location on the Filesystem via the WordPress Filesystem Abstraction.
- * Assumes that WP_Filesystem() has already been called and set up. Does not extract a root-level __MACOSX directory, if present.
+ * Unzips a specified ZIP file to a location on the filesystem via the WordPress
+ * Filesystem Abstraction.
  *
- * Attempts to increase the PHP Memory limit to 256M before uncompressing,
- * However, The most memory required shouldn't be much larger than the Archive itself.
+ * Assumes that WP_Filesystem() has already been called and set up. Does not extract
+ * a root-level __MACOSX directory, if present.
+ *
+ * Attempts to increase the PHP memory limit to 256M before uncompressing. However,
+ * the most memory required shouldn't be much larger than the archive itself.
  *
  * @since 2.5.0
  *
- * @global WP_Filesystem_Base $wp_filesystem Subclass
+ * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
- * @param string $file Full path and filename of zip archive
- * @param string $to Full path on the filesystem to extract archive to
- * @return mixed WP_Error on failure, True on success
+ * @param string $file Full path and filename of ZIP archive.
+ * @param string $to   Full path on the filesystem to extract archive to.
+ * @return true|WP_Error True on success, WP_Error on failure.
  */
 function unzip_file( $file, $to ) {
 	global $wp_filesystem;
@@ -1108,19 +1137,22 @@ function unzip_file( $file, $to ) {
 }
 
 /**
- * This function should not be called directly, use unzip_file instead. Attempts to unzip an archive using the ZipArchive class.
+ * Attempts to unzip an archive using the ZipArchive class.
+ *
+ * This function should not be called directly, use `unzip_file()` instead.
+ *
  * Assumes that WP_Filesystem() has already been called and set up.
  *
  * @since 3.0.0
- * @see unzip_file
+ * @see unzip_file()
  * @access private
  *
- * @global WP_Filesystem_Base $wp_filesystem Subclass
+ * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
- * @param string $file Full path and filename of zip archive
- * @param string $to Full path on the filesystem to extract archive to
+ * @param string $file       Full path and filename of ZIP archive.
+ * @param string $to         Full path on the filesystem to extract archive to.
  * @param array $needed_dirs A partial list of required folders needed to be created.
- * @return mixed WP_Error on failure, True on success
+ * @return true|WP_Error True on success, WP_Error on failure.
  */
 function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 	global $wp_filesystem;
@@ -1232,19 +1264,22 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 }
 
 /**
- * This function should not be called directly, use unzip_file instead. Attempts to unzip an archive using the PclZip library.
+ * Attempts to unzip an archive using the PclZip library.
+ *
+ * This function should not be called directly, use `unzip_file()` instead.
+ *
  * Assumes that WP_Filesystem() has already been called and set up.
  *
  * @since 3.0.0
- * @see unzip_file
+ * @see unzip_file()
  * @access private
  *
- * @global WP_Filesystem_Base $wp_filesystem Subclass
+ * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
- * @param string $file Full path and filename of zip archive
- * @param string $to Full path on the filesystem to extract archive to
+ * @param string $file       Full path and filename of ZIP archive.
+ * @param string $to         Full path on the filesystem to extract archive to.
  * @param array $needed_dirs A partial list of required folders needed to be created.
- * @return mixed WP_Error on failure, True on success
+ * @return true|WP_Error True on success, WP_Error on failure.
  */
 function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 	global $wp_filesystem;
@@ -1343,17 +1378,19 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 }
 
 /**
- * Copies a directory from one location to another via the WordPress Filesystem Abstraction.
+ * Copies a directory from one location to another via the WordPress Filesystem
+ * Abstraction.
+ *
  * Assumes that WP_Filesystem() has already been called and setup.
  *
  * @since 2.5.0
  *
- * @global WP_Filesystem_Base $wp_filesystem Subclass
+ * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
- * @param string $from source directory
- * @param string $to destination directory
- * @param array $skip_list a list of files/folders to skip copying
- * @return mixed WP_Error on failure, True on success.
+ * @param string $from     Source directory.
+ * @param string $to       Destination directory.
+ * @param array $skip_list A list of files/folders to skip copying.
+ * @return true|WP_Error True on success, WP_Error on failure.
  */
 function copy_dir( $from, $to, $skip_list = array() ) {
 	global $wp_filesystem;
@@ -1402,6 +1439,7 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 
 /**
  * Initialises and connects the WordPress Filesystem Abstraction classes.
+ *
  * This function will include the chosen transport and attempt connecting.
  *
  * Plugins may add extra transports, And force WordPress to use them by returning
@@ -1409,13 +1447,13 @@ function copy_dir( $from, $to, $skip_list = array() ) {
  *
  * @since 2.5.0
  *
- * @global WP_Filesystem_Base $wp_filesystem Subclass
+ * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
  * @param array|false  $args                         Optional. Connection args, These are passed directly to
  *                                                   the `WP_Filesystem_*()` classes. Default false.
  * @param string|false $context                      Optional. Context for get_filesystem_method(). Default false.
  * @param bool         $allow_relaxed_file_ownership Optional. Whether to allow Group/World writable. Default false.
- * @return null|bool false on failure, true on success.
+ * @return bool|null True on success, false on failure, null if the filesystem method class file does not exist.
  */
 function WP_Filesystem( $args = false, $context = false, $allow_relaxed_file_ownership = false ) {
 	global $wp_filesystem;
@@ -1460,7 +1498,7 @@ function WP_Filesystem( $args = false, $context = false, $allow_relaxed_file_own
 		define( 'FS_TIMEOUT', 30 );
 	}
 
-	if ( is_wp_error( $wp_filesystem->errors ) && $wp_filesystem->errors->get_error_code() ) {
+	if ( is_wp_error( $wp_filesystem->errors ) && $wp_filesystem->errors->has_errors() ) {
 		return false;
 	}
 
@@ -1598,7 +1636,7 @@ function get_filesystem_method( $args = array(), $context = '', $allow_relaxed_f
  *                                             the post. Default null.
  * @param bool   $allow_relaxed_file_ownership Optional. Whether to allow Group/World writable. Default false.
  *
- * @return bool False on failure, true on success.
+ * @return bool True on success, false on failure.
  */
 function request_filesystem_credentials( $form_post, $type = '', $error = false, $context = '', $extra_fields = null, $allow_relaxed_file_ownership = false ) {
 	global $pagenow;

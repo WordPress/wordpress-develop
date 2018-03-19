@@ -277,7 +277,7 @@ function update_recently_edited( $file ) {
 }
 
 /**
- * Makes a tree structure for the Theme Editor's file list.
+ * Makes a tree structure for the theme editor's file list.
  *
  * @since 4.9.0
  * @access private
@@ -299,7 +299,7 @@ function wp_make_theme_file_tree( $allowed_files ) {
 }
 
 /**
- * Outputs the formatted file list for the Theme Editor.
+ * Outputs the formatted file list for the theme editor.
  *
  * @since 4.9.0
  * @access private
@@ -366,7 +366,7 @@ function wp_print_theme_file_tree( $tree, $level = 2, $size = 1, $index = 1 ) {
 }
 
 /**
- * Makes a tree structure for the Plugin Editor's file list.
+ * Makes a tree structure for the plugin editor's file list.
  *
  * @since 4.9.0
  * @access private
@@ -388,7 +388,7 @@ function wp_make_plugin_file_tree( $plugin_editable_files ) {
 }
 
 /**
- * Outputs the formatted file list for the Plugin Editor.
+ * Outputs the formatted file list for the plugin editor.
  *
  * @since 4.9.0
  * @access private
@@ -1146,15 +1146,17 @@ function wp_admin_canonical_url() {
  * @since 4.9.0
  */
 function wp_admin_headers() {
-	$policy = 'same-origin';
+	$policy = 'strict-origin-when-cross-origin';
 
 	/**
-	 * Filters the admin referrer policy header value. Default 'same-origin'.
+	 * Filters the admin referrer policy header value.
 	 *
 	 * @since 4.9.0
+	 * @since 4.9.5 The default value was changed to 'strict-origin-when-cross-origin'.
+	 *
 	 * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
 	 *
-	 * @param string $policy The referrer policy header value.
+	 * @param string $policy The admin referrer policy header value. Default 'strict-origin-when-cross-origin'.
 	 */
 	$policy = apply_filters( 'admin_referrer_policy', $policy );
 

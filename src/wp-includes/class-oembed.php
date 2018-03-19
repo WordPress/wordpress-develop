@@ -30,7 +30,6 @@ class WP_oEmbed {
 	 * A list of an early oEmbed providers.
 	 *
 	 * @since 4.0.0
-	 * @static
 	 * @var array
 	 */
 	public static $early_providers = array();
@@ -290,7 +289,6 @@ class WP_oEmbed {
 	 *
 	 * The just-in-time addition is for the benefit of the {@see 'oembed_providers'} filter.
 	 *
-	 * @static
 	 * @since 4.0.0
 	 *
 	 * @see wp_oembed_add_provider()
@@ -318,7 +316,6 @@ class WP_oEmbed {
 	 * The just-in-time removal is for the benefit of the {@see 'oembed_providers'} filter.
 	 *
 	 * @since 4.0.0
-	 * @static
 	 *
 	 * @see wp_oembed_remove_provider()
 	 *

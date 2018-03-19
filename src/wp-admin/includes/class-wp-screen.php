@@ -141,8 +141,6 @@ final class WP_Screen {
 	/**
 	 * Stores old string-based help.
 	 *
-	 * @static
-	 *
 	 * @var array
 	 */
 	private static $_old_compat_help = array();
@@ -159,8 +157,6 @@ final class WP_Screen {
 	 * The screen object registry.
 	 *
 	 * @since 3.3.0
-	 *
-	 * @static
 	 *
 	 * @var array
 	 */
@@ -186,8 +182,6 @@ final class WP_Screen {
 	 * Fetches a screen object.
 	 *
 	 * @since 3.3.0
-	 *
-	 * @static
 	 *
 	 * @global string $hook_suffix
 	 *
@@ -420,8 +414,6 @@ final class WP_Screen {
 	 * Sets the old string-based contextual help for the screen for backward compatibility.
 	 *
 	 * @since 3.3.0
-	 *
-	 * @static
 	 *
 	 * @param WP_Screen $screen A screen object.
 	 * @param string $help Help text.
@@ -926,20 +918,13 @@ if ( $this->show_screen_options() ) :
 
 		$show_screen = ! empty( $wp_meta_boxes[ $this->id ] ) || $columns || $this->get_option( 'per_page' );
 
-		switch ( $this->base ) {
-			case 'widgets':
-				$nonce                  = wp_create_nonce( 'widgets-access' );
-				$this->_screen_settings = '<p><a id="access-on" href="widgets.php?widgets-access=on&_wpnonce=' . urlencode( $nonce ) . '">' . __( 'Enable accessibility mode' ) . '</a><a id="access-off" href="widgets.php?widgets-access=off&_wpnonce=' . urlencode( $nonce ) . '">' . __( 'Disable accessibility mode' ) . "</a></p>\n";
-				break;
-			case 'post':
-				$expand                 = '<fieldset class="editor-expand hidden"><legend>' . __( 'Additional settings' ) . '</legend><label for="editor-expand-toggle">';
-				$expand                .= '<input type="checkbox" id="editor-expand-toggle"' . checked( get_user_setting( 'editor_expand', 'on' ), 'on', false ) . ' />';
-				$expand                .= __( 'Enable full-height editor and distraction-free functionality.' ) . '</label></fieldset>';
-				$this->_screen_settings = $expand;
-				break;
-			default:
-				$this->_screen_settings = '';
-				break;
+		$this->_screen_settings = '';
+
+		if ( 'post' === $this->base ) {
+			$expand                 = '<fieldset class="editor-expand hidden"><legend>' . __( 'Additional settings' ) . '</legend><label for="editor-expand-toggle">';
+			$expand                .= '<input type="checkbox" id="editor-expand-toggle"' . checked( get_user_setting( 'editor_expand', 'on' ), 'on', false ) . ' />';
+			$expand                .= __( 'Enable full-height editor and distraction-free functionality.' ) . '</label></fieldset>';
+			$this->_screen_settings = $expand;
 		}
 
 		/**

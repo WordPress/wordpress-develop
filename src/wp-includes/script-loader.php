@@ -137,7 +137,7 @@ function wp_default_scripts( &$scripts ) {
 	did_action( 'init' ) && $scripts->localize(
 		'wp-ajax-response', 'wpAjax', array(
 			'noPerm' => __( 'Sorry, you are not allowed to do that.' ),
-			'broken' => __( 'An error has occurred.' ),
+			'broken' => __( 'Something went wrong.' ),
 		)
 	);
 
@@ -605,8 +605,8 @@ function wp_default_scripts( &$scripts ) {
 			'close'                   => __( 'Close' ),
 			'action'                  => __( 'Action' ),
 			'discardChanges'          => __( 'Discard changes' ),
-			'cheatin'                 => __( 'An error has occurred.' ),
-			'notAllowedHeading'       => __( 'You don&#8217;t have permission to do this.' ),
+			'cheatin'                 => __( 'Something went wrong.' ),
+			'notAllowedHeading'       => __( 'You need a higher level of permission.' ),
 			'notAllowed'              => __( 'Sorry, you are not allowed to customize this site.' ),
 			'previewIframeTitle'      => __( 'Site Preview' ),
 			'loginIframeTitle'        => __( 'Session expired' ),
@@ -689,7 +689,7 @@ function wp_default_scripts( &$scripts ) {
 		did_action( 'init' ) && $scripts->localize(
 			'admin-tags', 'tagsl10n', array(
 				'noPerm' => __( 'Sorry, you are not allowed to do that.' ),
-				'broken' => __( 'An error has occurred.' ),
+				'broken' => __( 'Something went wrong.' ),
 			)
 		);
 
@@ -786,14 +786,15 @@ function wp_default_scripts( &$scripts ) {
 
 		$scripts->add( 'admin-gallery', "/wp-admin/js/gallery$suffix.js", array( 'jquery-ui-sortable' ) );
 
-		$scripts->add( 'admin-widgets', "/wp-admin/js/widgets$suffix.js", array( 'jquery-ui-sortable', 'jquery-ui-draggable', 'jquery-ui-droppable' ), false, 1 );
+		$scripts->add( 'admin-widgets', "/wp-admin/js/widgets$suffix.js", array( 'jquery-ui-sortable', 'jquery-ui-draggable', 'jquery-ui-droppable', 'wp-a11y' ), false, 1 );
 		did_action( 'init' ) && $scripts->add_inline_script(
 			'admin-widgets', sprintf(
 				'wpWidgets.l10n = %s;', wp_json_encode(
 					array(
-						'save'      => __( 'Save' ),
-						'saved'     => __( 'Saved' ),
-						'saveAlert' => __( 'The changes you made will be lost if you navigate away from this page.' ),
+						'save'        => __( 'Save' ),
+						'saved'       => __( 'Saved' ),
+						'saveAlert'   => __( 'The changes you made will be lost if you navigate away from this page.' ),
+						'widgetAdded' => __( 'Widget has been added to the selected sidebar' ),
 					)
 				)
 			)
@@ -918,7 +919,7 @@ function wp_default_scripts( &$scripts ) {
 					'activateImporter'         => __( 'Run Importer' ),
 					/* translators: %s: Importer name */
 					'activateImporterLabel'    => __( 'Run %s' ),
-					'unknownError'             => __( 'An error has occurred.' ),
+					'unknownError'             => __( 'Something went wrong.' ),
 					'connectionError'          => __( 'Connection lost or the server is busy. Please try again later.' ),
 					'nonceError'               => __( 'An error has occurred. Please reload the page and try again.' ),
 					'pluginsFound'             => __( 'Number of plugins found: %d' ),

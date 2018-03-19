@@ -1682,6 +1682,18 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	$where    = '';
 	$adjacent = $previous ? 'previous' : 'next';
 
+	/**
+	 * Filters the IDs of terms excluded from adjacent post queries.
+	 *
+	 * The dynamic portion of the hook name, `$adjacent`, refers to the type
+	 * of adjacency, 'next' or 'previous'.
+	 *
+	 * @since 4.4.0
+	 *
+	 * @param string $excluded_terms Array of excluded term IDs.
+	 */
+	$excluded_terms = apply_filters( "get_{$adjacent}_post_excluded_terms", $excluded_terms );
+
 	if ( $in_same_term || ! empty( $excluded_terms ) ) {
 		if ( ! empty( $excluded_terms ) && ! is_array( $excluded_terms ) ) {
 			// back-compat, $excluded_terms used to be $excluded_terms with IDs separated by " and "
@@ -1714,18 +1726,6 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 
 			$where .= ' AND tt.term_id IN (' . implode( ',', $term_array ) . ')';
 		}
-
-		/**
-		 * Filters the IDs of terms excluded from adjacent post queries.
-		 *
-		 * The dynamic portion of the hook name, `$adjacent`, refers to the type
-		 * of adjacency, 'next' or 'previous'.
-		 *
-		 * @since 4.4.0
-		 *
-		 * @param string $excluded_terms Array of excluded term IDs.
-		 */
-		$excluded_terms = apply_filters( "get_{$adjacent}_post_excluded_terms", $excluded_terms );
 
 		if ( ! empty( $excluded_terms ) ) {
 			$where .= " AND p.ID NOT IN ( SELECT tr.object_id FROM $wpdb->term_relationships tr LEFT JOIN $wpdb->term_taxonomy tt ON (tr.term_taxonomy_id = tt.term_taxonomy_id) WHERE tt.term_id IN (" . implode( ',', array_map( 'intval', $excluded_terms ) ) . ') )';
@@ -2896,7 +2896,7 @@ function previous_comments_link( $label = '' ) {
  * @global WP_Rewrite $wp_rewrite
  *
  * @param string|array $args Optional args. See paginate_links(). Default empty array.
- * @return string|void Markup for pagination links.
+ * @return string|array|void Markup for comment page links or array of comment page links.
  */
 function paginate_comments_links( $args = array() ) {
 	global $wp_rewrite;
@@ -2916,6 +2916,7 @@ function paginate_comments_links( $args = array() ) {
 		'total'        => $max_page,
 		'current'      => $page,
 		'echo'         => true,
+		'type'         => 'plain',
 		'add_fragment' => '#comments',
 	);
 	if ( $wp_rewrite->using_permalinks() ) {
@@ -2925,7 +2926,7 @@ function paginate_comments_links( $args = array() ) {
 	$args       = wp_parse_args( $args, $defaults );
 	$page_links = paginate_links( $args );
 
-	if ( $args['echo'] ) {
+	if ( $args['echo'] && 'array' !== $args['type'] ) {
 		echo $page_links;
 	} else {
 		return $page_links;
@@ -3713,7 +3714,7 @@ function wp_get_canonical_url( $post = null ) {
  * Outputs rel=canonical for singular queries.
  *
  * @since 2.9.0
- * @since 4.6.0 Adjusted to use wp_get_canonical_url().
+ * @since 4.6.0 Adjusted to use `wp_get_canonical_url()`.
  */
 function rel_canonical() {
 	if ( ! is_singular() ) {

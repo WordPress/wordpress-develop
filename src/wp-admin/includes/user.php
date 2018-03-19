@@ -207,7 +207,7 @@ function edit_user( $user_id = 0 ) {
 	 */
 	do_action_ref_array( 'user_profile_update_errors', array( &$errors, $update, &$user ) );
 
-	if ( $errors->get_error_codes() ) {
+	if ( $errors->has_errors() ) {
 		return $errors;
 	}
 
@@ -556,7 +556,7 @@ function use_ssl_preference( $user ) {
 function admin_created_user_email( $text ) {
 	$roles = get_editable_roles();
 	$role  = $roles[ $_REQUEST['role'] ];
-	/* translators: 1: Site name, 2: site URL, 3: role */
+	/* translators: 1: site name, 2: site URL, 3: role */
 	return sprintf(
 		__(
 			'Hi,

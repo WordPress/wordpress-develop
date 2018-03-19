@@ -5,8 +5,15 @@
 class Test_Theme_File extends WP_UnitTestCase {
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		symlink( DIR_TESTDATA . '/theme-file-parent', WP_CONTENT_DIR . '/themes/theme-file-parent' );
-		symlink( DIR_TESTDATA . '/theme-file-child', WP_CONTENT_DIR . '/themes/theme-file-child' );
+		if ( ! function_exists( 'symlink' ) ) {
+			self::markTestSkipped( 'symlink() is not available.' );
+		}
+		if ( ! @symlink( DIR_TESTDATA . '/theme-file-parent', WP_CONTENT_DIR . '/themes/theme-file-parent' ) ) {
+			self::markTestSkipped( 'Could not create parent symlink.' );
+		}
+		if ( ! @symlink( DIR_TESTDATA . '/theme-file-child', WP_CONTENT_DIR . '/themes/theme-file-child' ) ) {
+			self::markTestSkipped( 'Could not create child symlink.' );
+		}
 	}
 
 	public static function wpTearDownAfterClass() {

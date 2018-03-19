@@ -953,9 +953,6 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 			}) );
 		}
 
-		this._filterContext();
-		this.get('library').on( 'add', this._filterContext, this );
-
 		this.resetDisplays();
 	},
 
@@ -1155,20 +1152,8 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 		if ( view && view.get( mode ) ) {
 			setUserSetting( 'libraryContent', mode );
 		}
-	},
-
-	/**
-	 * Filter out contextually created attachments (e.g. headers, logos, etc.)
-	 *
-	 * @since 4.9.0
-	 */
-	_filterContext: function() {
-		var library = this.get('library');
-
-		library.set( library.filter( function( item ) {
-			return item.get('context') === '';
-		} ) );
 	}
+
 });
 
 // Make selectionSync available on any Media Library state.
@@ -9369,6 +9354,10 @@ module.exports = EditImage;
 /**
  * wp.media.view.Spinner
  *
+ * Represents a spinner in the Media Library.
+ *
+ * @since 3.9.0
+ *
  * @memberOf wp.media.view
  *
  * @class
@@ -9382,6 +9371,13 @@ var Spinner = wp.media.View.extend(/** @lends wp.media.view.Spinner.prototype */
 	spinnerTimeout: false,
 	delay: 400,
 
+	/**
+	 * Shows the spinner. Delays the visibility by the configured amount.
+	 *
+	 * @since 3.9.0
+	 *
+	 * @return {wp.media.view.Spinner} The spinner.
+	 */
 	show: function() {
 		if ( ! this.spinnerTimeout ) {
 			this.spinnerTimeout = _.delay(function( $el ) {
@@ -9392,6 +9388,13 @@ var Spinner = wp.media.View.extend(/** @lends wp.media.view.Spinner.prototype */
 		return this;
 	},
 
+	/**
+	 * Hides the spinner.
+	 *
+	 * @since 3.9.0
+	 *
+	 * @return {wp.media.view.Spinner} The spinner.
+	 */
 	hide: function() {
 		this.$el.removeClass( 'is-active' );
 		this.spinnerTimeout = clearTimeout( this.spinnerTimeout );

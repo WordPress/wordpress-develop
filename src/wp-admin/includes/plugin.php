@@ -47,7 +47,7 @@
  *
  * @since 1.5.0
  *
- * @param string $plugin_file Path to the main plugin file.
+ * @param string $plugin_file Absolute path to the main plugin file.
  * @param bool   $markup      Optional. If the returned data should have HTML markup applied.
  *                            Default true.
  * @param bool   $translate   Optional. If the returned data should be translated. Default true.
@@ -194,7 +194,7 @@ function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup 
  *
  * @since 2.8.0
  *
- * @param string $plugin Path to the main plugin file from plugins directory.
+ * @param string $plugin Path to the plugin file relative to the plugins directory.
  * @return array List of files relative to the plugin root.
  */
 function get_plugin_files( $plugin ) {
@@ -457,16 +457,20 @@ function _get_dropins() {
 }
 
 /**
- * Check whether a plugin is active.
+ * Determines whether a plugin is active.
  *
  * Only plugins installed in the plugins/ folder can be active.
  *
  * Plugins in the mu-plugins/ folder can't be "activated," so this function will
  * return false for those plugins.
  *
+ * For more information on this and similar theme functions, check out
+ * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
+ * Conditional Tags} article in the Theme Developer Handbook.
+ *
  * @since 2.5.0
  *
- * @param string $plugin Path to the main plugin file from plugins directory.
+ * @param string $plugin Path to the plugin file relative to the plugins directory.
  * @return bool True, if in the active plugins list. False, not in the list.
  */
 function is_plugin_active( $plugin ) {
@@ -474,14 +478,18 @@ function is_plugin_active( $plugin ) {
 }
 
 /**
- * Check whether the plugin is inactive.
+ * Determines whether the plugin is inactive.
  *
  * Reverse of is_plugin_active(). Used as a callback.
+ *
+ * For more information on this and similar theme functions, check out
+ * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
+ * Conditional Tags} article in the Theme Developer Handbook.
  *
  * @since 3.1.0
  * @see is_plugin_active()
  *
- * @param string $plugin Path to the main plugin file from plugins directory.
+ * @param string $plugin Path to the plugin file relative to the plugins directory.
  * @return bool True if inactive. False if active.
  */
 function is_plugin_inactive( $plugin ) {
@@ -489,17 +497,21 @@ function is_plugin_inactive( $plugin ) {
 }
 
 /**
- * Check whether the plugin is active for the entire network.
+ * Determines whether the plugin is active for the entire network.
  *
  * Only plugins installed in the plugins/ folder can be active.
  *
  * Plugins in the mu-plugins/ folder can't be "activated," so this function will
  * return false for those plugins.
  *
+ * For more information on this and similar theme functions, check out
+ * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
+ * Conditional Tags} article in the Theme Developer Handbook.
+ *
  * @since 3.0.0
  *
- * @param string $plugin Path to the main plugin file from plugins directory.
- * @return bool True, if active for the network, otherwise false.
+ * @param string $plugin Path to the plugin file relative to the plugins directory.
+ * @return bool True if active for the network, otherwise false.
  */
 function is_plugin_active_for_network( $plugin ) {
 	if ( ! is_multisite() ) {
@@ -523,7 +535,7 @@ function is_plugin_active_for_network( $plugin ) {
  *
  * @since 3.0.0
  *
- * @param string $plugin Path to the main plugin file from plugins directory.
+ * @param string $plugin Path to the plugin file relative to the plugins directory.
  * @return bool True if plugin is network only, false otherwise.
  */
 function is_network_only_plugin( $plugin ) {
@@ -554,7 +566,7 @@ function is_network_only_plugin( $plugin ) {
  *
  * @since 2.5.0
  *
- * @param string $plugin       Path to the main plugin file from plugins directory.
+ * @param string $plugin       Path to the plugin file relative to the plugins directory.
  * @param string $redirect     Optional. URL to redirect to.
  * @param bool   $network_wide Optional. Whether to enable the plugin for all sites in the network
  *                             or just the current site. Multisite only. Default false.
@@ -596,7 +608,7 @@ function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silen
 			 *
 			 * @since 2.9.0
 			 *
-			 * @param string $plugin       Path to the main plugin file from plugins directory.
+			 * @param string $plugin       Path to the plugin file relative to the plugins directory.
 			 * @param bool   $network_wide Whether to enable the plugin for all sites in the network
 			 *                             or just the current site. Multisite only. Default is false.
 			 */
@@ -638,7 +650,7 @@ function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silen
 			 *
 			 * @since 2.9.0
 			 *
-			 * @param string $plugin       Path to the main plugin file from plugins directory.
+			 * @param string $plugin       Path to the plugin file relative to the plugins directory.
 			 * @param bool   $network_wide Whether to enable the plugin for all sites in the network
 			 *                             or just the current site. Multisite only. Default is false.
 			 */
@@ -692,7 +704,7 @@ function deactivate_plugins( $plugins, $silent = false, $network_wide = null ) {
 			 *
 			 * @since 2.9.0
 			 *
-			 * @param string $plugin               Path to the main plugin file from plugins directory.
+			 * @param string $plugin               Path to the plugin file relative to the plugins directory.
 			 * @param bool   $network_deactivating Whether the plugin is deactivated for all sites in the network
 			 *                                     or just the current site. Multisite only. Default is false.
 			 */
@@ -740,7 +752,7 @@ function deactivate_plugins( $plugins, $silent = false, $network_wide = null ) {
 			 *
 			 * @since 2.9.0
 			 *
-			 * @param string $plugin               Path to the main plugin file from plugins directory.
+			 * @param string $plugin               Path to the plugin file relative to the plugins directory.
 			 * @param bool   $network_deactivating Whether the plugin is deactivated for all sites in the network.
 			 *                                     or just the current site. Multisite only. Default false.
 			 */
@@ -800,12 +812,12 @@ function activate_plugins( $plugins, $redirect = '', $network_wide = false, $sil
  *
  * @since 2.6.0
  *
- * @global WP_Filesystem_Base $wp_filesystem
+ * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
- * @param array  $plugins    List of plugins to delete.
- * @param string $deprecated Deprecated.
- * @return bool|null|WP_Error True on success, false is $plugins is empty, WP_Error on failure.
- *                            Null if filesystem credentials are required to proceed.
+ * @param string[] $plugins    List of plugin paths to delete, relative to the plugins directory.
+ * @param string   $deprecated Not used.
+ * @return bool|null|WP_Error True on success, false if `$plugins` is empty, `WP_Error` on failure.
+ *                            `null` if filesystem credentials are required to proceed.
  */
 function delete_plugins( $plugins, $deprecated = '' ) {
 	global $wp_filesystem;
@@ -853,7 +865,7 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 		return new WP_Error( 'fs_unavailable', __( 'Could not access filesystem.' ) );
 	}
 
-	if ( is_wp_error( $wp_filesystem->errors ) && $wp_filesystem->errors->get_error_code() ) {
+	if ( is_wp_error( $wp_filesystem->errors ) && $wp_filesystem->errors->has_errors() ) {
 		return new WP_Error( 'fs_error', __( 'Filesystem error.' ), $wp_filesystem->errors );
 	}
 
@@ -880,7 +892,7 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 		 *
 		 * @since 4.4.0
 		 *
-		 * @param string $plugin_file Plugin file name.
+		 * @param string $plugin_file Path to the plugin file relative to the plugins directory.
 		 */
 		do_action( 'delete_plugin', $plugin_file );
 
@@ -898,7 +910,7 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 		 *
 		 * @since 4.4.0
 		 *
-		 * @param string $plugin_file Plugin file name.
+		 * @param string $plugin_file Path to the plugin file relative to the plugins directory.
 		 * @param bool   $deleted     Whether the plugin deletion was successful.
 		 */
 		do_action( 'deleted_plugin', $plugin_file, $deleted );
@@ -993,7 +1005,7 @@ function validate_active_plugins() {
  *
  * @since 2.5.0
  *
- * @param string $plugin Path to the main plugin file from plugins directory.
+ * @param string $plugin Path to the plugin file relative to the plugins directory.
  * @return WP_Error|int 0 on success, WP_Error on failure.
  */
 function validate_plugin( $plugin ) {
@@ -1016,7 +1028,7 @@ function validate_plugin( $plugin ) {
  *
  * @since 2.7.0
  *
- * @param string $plugin Path to the main plugin file from plugins directory.
+ * @param string $plugin Path to the plugin file relative to the plugins directory.
  * @return bool Whether plugin can be uninstalled.
  */
 function is_uninstallable_plugin( $plugin ) {
@@ -1037,7 +1049,7 @@ function is_uninstallable_plugin( $plugin ) {
  *
  * @since 2.7.0
  *
- * @param string $plugin Path to the main plugin file from plugins directory.
+ * @param string $plugin Path to the plugin file relative to the plugins directory.
  * @return true True if a plugin's uninstall.php file has been found and included.
  */
 function uninstall_plugin( $plugin ) {
@@ -1050,7 +1062,7 @@ function uninstall_plugin( $plugin ) {
 	 *
 	 * @since 4.5.0
 	 *
-	 * @param string $plugin                Path to the main plugin file from plugins directory.
+	 * @param string $plugin                Path to the plugin file relative to the plugins directory.
 	 * @param array  $uninstallable_plugins Uninstallable plugins.
 	 */
 	do_action( 'pre_uninstall_plugin', $plugin, $uninstallable_plugins );
@@ -1996,7 +2008,7 @@ function wp_clean_plugins_cache( $clear_update_cache = true ) {
  * @since 3.0.0
  * @since 4.4.0 Function was moved into the `wp-admin/includes/plugin.php` file.
  *
- * @param string $plugin Plugin file to load.
+ * @param string $plugin Path to the plugin file relative to the plugins directory.
  */
 function plugin_sandbox_scrape( $plugin ) {
 	wp_register_plugin_realpath( WP_PLUGIN_DIR . '/' . $plugin );

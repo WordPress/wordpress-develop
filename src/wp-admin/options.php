@@ -46,7 +46,7 @@ if ( empty( $option_page ) ) {
 
 if ( ! current_user_can( $capability ) ) {
 	wp_die(
-		'<h1>' . __( 'You don&#8217;t have permission to do this.' ) . '</h1>' .
+		'<h1>' . __( 'You need a higher level of permission.' ) . '</h1>' .
 		'<p>' . __( 'Sorry, you are not allowed to manage these options.' ) . '</p>',
 		403
 	);
@@ -74,7 +74,7 @@ if ( ! empty( $_GET['adminhash'] ) ) {
 
 if ( is_multisite() && ! current_user_can( 'manage_network_options' ) && 'update' != $action ) {
 	wp_die(
-		'<h1>' . __( 'You don&#8217;t have permission to do this.' ) . '</h1>' .
+		'<h1>' . __( 'You need a higher level of permission.' ) . '</h1>' .
 		'<p>' . __( 'Sorry, you are not allowed to delete these items.' ) . '</p>',
 		403
 	);
@@ -290,12 +290,8 @@ foreach ( (array) $options as $option ) :
 <tr>
 	<th scope="row"><label for="<?php echo $name; ?>"><?php echo esc_html( $option->option_name ); ?></label></th>
 <td>
-<?php if ( strpos( $value, "\n" ) !== false ) : ?>
-	<textarea class="<?php echo $class; ?>" name="<?php echo $name; ?>" id="<?php echo $name; ?>" cols="30" rows="5">
-								<?php
-								echo esc_textarea( $value );
-	?>
-	</textarea>
+	<?php if ( strpos( $value, "\n" ) !== false ) : ?>
+		<textarea class="<?php echo $class; ?>" name="<?php echo $name; ?>" id="<?php echo $name; ?>" cols="30" rows="5"><?php echo esc_textarea( $value ); ?></textarea>
 	<?php else : ?>
 		<input class="regular-text <?php echo $class; ?>" type="text" name="<?php echo $name; ?>" id="<?php echo $name; ?>" value="<?php echo esc_attr( $value ); ?>"<?php disabled( $disabled, true ); ?> />
 	<?php endif ?></td>

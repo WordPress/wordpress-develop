@@ -34,7 +34,6 @@ abstract class WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @static
 	 * @abstract
 	 *
 	 * @param array $args
@@ -50,7 +49,6 @@ abstract class WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @static
 	 * @abstract
 	 *
 	 * @param string $mime_type
@@ -409,6 +407,7 @@ abstract class WP_Image_Editor {
 			$fp = fopen( $filename, 'w' );
 
 			if ( ! $fp ) {
+				ob_end_clean();
 				return false;
 			}
 
@@ -428,8 +427,6 @@ abstract class WP_Image_Editor {
 	 * as mapped from wp_get_mime_types()
 	 *
 	 * @since 3.5.0
-	 *
-	 * @static
 	 *
 	 * @param string $extension
 	 * @return string|false
@@ -456,8 +453,6 @@ abstract class WP_Image_Editor {
 	 * as mapped from wp_get_mime_types()
 	 *
 	 * @since 3.5.0
-	 *
-	 * @static
 	 *
 	 * @param string $mime_type
 	 * @return string|false

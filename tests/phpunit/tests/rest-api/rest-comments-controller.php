@@ -122,7 +122,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_register_routes() {
-		$routes = $this->server->get_routes();
+		$routes = rest_get_server()->get_routes();
 
 		$this->assertArrayHasKey( '/wp/v2/comments', $routes );
 		$this->assertCount( 2, $routes['/wp/v2/comments'] );
@@ -133,13 +133,13 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	public function test_context_param() {
 		// Collection
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/comments' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 		// Single
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/comments/' . self::$approved_id );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
@@ -147,7 +147,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	public function test_registered_query_params() {
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/comments' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$keys     = array_keys( $data['endpoints'][0]['args'] );
 		sort( $keys );
@@ -182,7 +182,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$comments = $response->get_data();
@@ -206,7 +206,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'password', 'toomanysecrets' );
 		$request->set_param( 'post', self::$password_id );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
@@ -227,7 +227,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'password', 'toomanysecrets' );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
@@ -249,7 +249,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'password', 'toomanysecrets' );
 		$request->set_param( 'post', array( self::$password_id, self::$post_id ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_read_post', $response, 401 );
 	}
 
@@ -264,7 +264,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
@@ -282,7 +282,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
@@ -300,7 +300,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
@@ -318,7 +318,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
@@ -337,7 +337,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
@@ -358,7 +358,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
@@ -371,7 +371,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_set_current_user( 0 );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'context', 'edit' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
 	}
 
@@ -380,7 +380,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_set_current_user( self::$admin_id );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'post', 0 );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$comments = $response->get_data();
 		$this->assertCount( 2, $comments );
@@ -390,7 +390,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_set_current_user( 0 );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'post', 0 );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_read', $response, 401 );
 	}
 
@@ -398,7 +398,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_set_current_user( self::$admin_id );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'context', 'edit' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 	}
 
@@ -413,7 +413,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			)
 		);
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$comments = $response->get_data();
@@ -433,24 +433,24 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		// Order=>asc
 		$request->set_param( 'order', 'asc' );
 		$request->set_param( 'include', array( $id3, $id1 ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 2, count( $data ) );
 		$this->assertEquals( $id1, $data[0]['id'] );
 		// Orderby=>include
 		$request->set_param( 'orderby', 'include' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 2, count( $data ) );
 		$this->assertEquals( $id3, $data[0]['id'] );
 		// Orderby=>invalid should fail.
 		$request->set_param( 'orderby', 'invalid' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 		// fails on invalid id.
 		$request->set_param( 'orderby', array( 'include' ) );
 		$request->set_param( 'include', array( 'invalid' ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
@@ -463,19 +463,19 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$id1      = $this->factory->comment->create( $args );
 		$id2      = $this->factory->comment->create( $args );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/comments' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertTrue( in_array( $id1, wp_list_pluck( $data, 'id' ), true ) );
 		$this->assertTrue( in_array( $id2, wp_list_pluck( $data, 'id' ), true ) );
 		$request->set_param( 'exclude', array( $id2 ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertTrue( in_array( $id1, wp_list_pluck( $data, 'id' ), true ) );
 		$this->assertFalse( in_array( $id2, wp_list_pluck( $data, 'id' ), true ) );
 
 		// fails on invalid id.
 		$request->set_param( 'exclude', array( 'invalid' ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
@@ -490,19 +490,19 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->factory->comment->create( $args );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'offset', 1 );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( 3, $response->get_data() );
 		// 'offset' works with 'per_page'
 		$request->set_param( 'per_page', 2 );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( 2, $response->get_data() );
 		// 'offset' takes priority over 'page'
 		$request->set_param( 'page', 3 );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( 2, $response->get_data() );
 		// 'offset' with invalid value errors.
 		$request->set_param( 'offset', 'moreplease' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
@@ -517,17 +517,17 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$id3     = $this->factory->comment->create( $args );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		// order defaults to 'desc'
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( $id3, $data[0]['id'] );
 		// order=>asc
 		$request->set_param( 'order', 'asc' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( self::$approved_id, $data[0]['id'] );
 		// order=>asc,id should fail
 		$request->set_param( 'order', 'asc,id' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
@@ -536,7 +536,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$post_id = $this->factory->post->create( array( 'post_status' => 'private' ) );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'post', $post_id );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_read_post', $response, 401 );
 	}
 
@@ -557,24 +557,24 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		// 'author' limits result to 1 of 3
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'author', self::$author_id );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$comments = $response->get_data();
 		$this->assertCount( 1, $comments );
 		// Multiple authors are supported
 		$request->set_param( 'author', array( self::$author_id, self::$subscriber_id ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$comments = $response->get_data();
 		$this->assertCount( 2, $comments );
 		// Invalid author param errors
 		$request->set_param( 'author', 'skippy' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 		// Unavailable to unauthenticated; defaults to error
 		wp_set_current_user( 0 );
 		$request->set_param( 'author', array( self::$author_id, self::$subscriber_id ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_forbidden_param', $response, 401 );
 	}
 
@@ -593,33 +593,33 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->factory->comment->create( $args );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/comments' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$comments = $response->get_data();
 		$this->assertCount( 4, $comments );
 
 		// 'author_exclude' limits result to 3 of 4
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'author_exclude', self::$author_id );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$comments = $response->get_data();
 		$this->assertCount( 3, $comments );
 		// 'author_exclude' for both comment authors (2 of 4)
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'author_exclude', array( self::$author_id, self::$subscriber_id ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$comments = $response->get_data();
 		$this->assertCount( 2, $comments );
 		// 'author_exclude' for both invalid author
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'author_exclude', 'skippy' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 		// Unavailable to unauthenticated; defaults to error
 		wp_set_current_user( 0 );
 		$request->set_param( 'author_exclude', array( self::$author_id, self::$subscriber_id ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_forbidden_param', $response, 401 );
 	}
 
@@ -636,19 +636,19 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->factory->comment->create( $args );
 		// All comments in the database
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/comments' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( 5, $response->get_data() );
 		// Limit to the parent
 		$request->set_param( 'parent', $parent_id );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( 1, $response->get_data() );
 		// Limit to two parents
 		$request->set_param( 'parent', array( $parent_id, $parent_id2 ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( 2, $response->get_data() );
 		// Invalid parent should error
 		$request->set_param( 'parent', 'invalid' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
@@ -665,19 +665,19 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->factory->comment->create( $args );
 		// All comments in the database
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/comments' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( 5, $response->get_data() );
 		// Exclude this particular parent
 		$request->set_param( 'parent_exclude', $parent_id );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( 4, $response->get_data() );
 		// Exclude both comment parents
 		$request->set_param( 'parent_exclude', array( $parent_id, $parent_id2 ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( 3, $response->get_data() );
 		// Invalid parent id should error
 		$request->set_param( 'parent_exclude', 'invalid' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
@@ -696,11 +696,11 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->factory->comment->create( $args );
 		// 3 comments, plus 1 created in construct
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/comments' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( 4, $response->get_data() );
 		// One matching comments
 		$request->set_param( 'search', 'foo' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertCount( 1, $data );
 		$this->assertEquals( $id1, $data[0]['id'] );
@@ -718,7 +718,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			);
 		}
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/comments' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
 		$this->assertEquals( 50, $headers['X-WP-Total'] );
 		$this->assertEquals( 5, $headers['X-WP-TotalPages'] );
@@ -738,7 +738,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'page', 3 );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
 		$this->assertEquals( 51, $headers['X-WP-Total'] );
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
@@ -757,7 +757,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		// Last page
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'page', 6 );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
 		$this->assertEquals( 51, $headers['X-WP-Total'] );
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
@@ -771,7 +771,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		// Out of bounds
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'page', 8 );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
 		$this->assertEquals( 51, $headers['X-WP-Total'] );
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
@@ -788,7 +788,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'after', rand_str() );
 		$request->set_param( 'before', rand_str() );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
@@ -815,7 +815,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'after', '2016-01-15T00:00:00Z' );
 		$request->set_param( 'before', '2016-01-17T00:00:00Z' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertCount( 1, $data );
 		$this->assertEquals( $comment2, $data[0]['id'] );
@@ -824,7 +824,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	public function test_get_item() {
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', self::$approved_id ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
@@ -840,7 +840,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			)
 		);
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
@@ -850,7 +850,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	public function test_get_comment_author_avatar_urls() {
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', self::$approved_id ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$data = $response->get_data();
 		$this->assertArrayHasKey( 24, $data['author_avatar_urls'] );
@@ -868,7 +868,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	public function test_get_comment_invalid_id() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_comment_invalid_id', $response, 404 );
 	}
 
@@ -876,7 +876,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_set_current_user( 0 );
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', self::$approved_id ) );
 		$request->set_param( 'context', 'edit' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
 	}
 
@@ -890,7 +890,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 		$request    = new WP_REST_Request( 'GET', '/wp/v2/comments/' . $comment_id );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
 	}
 
@@ -904,7 +904,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 		$request    = new WP_REST_Request( 'GET', '/wp/v2/comments/' . $comment_id );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
 	}
 
@@ -913,7 +913,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', self::$hold_id ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_read', $response, 401 );
 	}
 
@@ -922,7 +922,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', self::$hold_id ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 	}
 
@@ -945,7 +945,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', $comment_id_1 ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertArrayHasKey( 'children', $response->get_links() );
 	}
@@ -960,7 +960,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', $comment_id_1 ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertArrayNotHasKey( 'children', $response->get_links() );
 	}
@@ -973,7 +973,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 		$password_comment = $this->factory->comment->create( $args );
 		$request          = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', $password_comment ) );
-		$response         = $this->server->dispatch( $request );
+		$response         = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
 	}
 
@@ -992,7 +992,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', $password_comment ) );
 		$request->set_param( 'password', 'toomanysecrets' );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 	}
 
@@ -1012,7 +1012,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 201, $response->get_status() );
 
 		$data = $response->get_data();
@@ -1083,7 +1083,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		if ( isset( $params['date_gmt'] ) ) {
 			$request->set_param( 'date_gmt', $params['date_gmt'] );
 		}
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		update_option( 'timezone_string', '' );
 
@@ -1117,7 +1117,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 201, $response->get_status() );
 
 		$data        = $response->get_data();
@@ -1142,7 +1142,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'test_rest_premade_error', $response, 418 );
 	}
@@ -1165,7 +1165,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_comment_author_data_required', $response, 400 );
 	}
@@ -1185,7 +1185,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_comment_author_data_required', $response, 400 );
 	}
@@ -1204,7 +1204,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_comment_author_data_required', $response, 400 );
 	}
 
@@ -1223,7 +1223,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_comment_author_data_required', $response, 400 );
 	}
 
@@ -1240,7 +1240,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 
@@ -1262,12 +1262,12 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_comment_content_invalid', $response, 400 );
 
 		$params['content'] = '';
 		$request->set_body( wp_json_encode( $params ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_comment_content_invalid', $response, 400 );
 	}
 
@@ -1287,7 +1287,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
@@ -1313,7 +1313,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 201, $response->get_status() );
 
 		$data = $response->get_data();
@@ -1339,7 +1339,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 201, $response->get_status() );
 
 		$data = $response->get_data();
@@ -1350,7 +1350,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		// Make sure the new comment is present in the collection.
 		$collection = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$collection->set_param( 'post', $post_id );
-		$collection_response = $this->server->dispatch( $collection );
+		$collection_response = rest_get_server()->dispatch( $collection );
 		$collection_data     = $collection_response->get_data();
 		$this->assertEquals( $comment_id, $collection_data[0]['id'] );
 	}
@@ -1377,7 +1377,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_comment_type', $response, 400 );
 	}
 
@@ -1399,7 +1399,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
@@ -1425,7 +1425,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertEquals( 201, $response->get_status() );
 		$data = $response->get_data();
@@ -1454,7 +1454,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertEquals( 201, $response->get_status() );
 		$data = $response->get_data();
@@ -1479,7 +1479,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_comment_invalid_author', $response, 403 );
 	}
@@ -1499,7 +1499,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
@@ -1520,7 +1520,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_comment_invalid_status', $response, 403 );
 	}
@@ -1544,7 +1544,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 201, $response->get_status() );
 
 		$data = $response->get_data();
@@ -1569,7 +1569,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'user_agent', 'Mozilla/4.0 (compatible; MSIE 5.5; AOL 4.0; Windows 95)' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 201, $response->get_status() );
 
 		$data = $response->get_data();
@@ -1593,7 +1593,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
-		$response    = $this->server->dispatch( $request );
+		$response    = rest_get_server()->dispatch( $request );
 		$data        = $response->get_data();
 		$new_comment = get_comment( $data['id'] );
 		$this->assertEquals( '127.0.0.3', $new_comment->comment_author_IP );
@@ -1615,7 +1615,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
@@ -1632,7 +1632,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_comment_invalid_author_ip', $response, 403 );
 	}
 
@@ -1649,7 +1649,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request                = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
-		$response    = $this->server->dispatch( $request );
+		$response    = rest_get_server()->dispatch( $request );
 		$data        = $response->get_data();
 		$new_comment = get_comment( $data['id'] );
 		$this->assertEquals( '127.0.0.2', $new_comment->comment_author_IP );
@@ -1669,7 +1669,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_comment_invalid_post_id', $response, 403 );
 	}
@@ -1688,7 +1688,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_comment_invalid_post_id', $response, 403 );
 	}
 
@@ -1708,7 +1708,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_comment_invalid_post_id', $response, 403 );
 	}
 
@@ -1727,7 +1727,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_comment_draft_post', $response, 403 );
 	}
@@ -1747,7 +1747,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_comment_trash_post', $response, 403 );
 	}
@@ -1767,7 +1767,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_cannot_read_post', $response, 403 );
 	}
@@ -1787,7 +1787,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_read_post', $response, 403 );
 	}
 
@@ -1812,7 +1812,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertEquals( 409, $response->get_status() );
 	}
@@ -1832,7 +1832,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertEquals( 403, $response->get_status() );
 	}
@@ -1843,7 +1843,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		add_filter( 'rest_allow_anonymous_comments', '__return_true' );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$request->set_param( 'post', self::$post_id );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 401, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( 'rest_comment_login_required', $data['code'] );
@@ -1862,7 +1862,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_comment_author_invalid', $response, 400 );
 	}
 
@@ -1880,7 +1880,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$result = $response->get_data();
 		$this->assertSame( self::$author_id, $result['author'] );
@@ -1904,7 +1904,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 201, $response->get_status() );
 
 		$params = array(
@@ -1919,7 +1919,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 400, $response->get_status() );
 	}
 
@@ -1943,7 +1943,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		remove_filter( 'rest_allow_anonymous_comments', array( $this, 'anonymous_comments_callback_null' ), 10, 2 );
 
@@ -1968,7 +1968,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'comment_author_column_length', $response, 400 );
 	}
@@ -1991,7 +1991,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'comment_author_email_column_length', $response, 400 );
 	}
@@ -2014,7 +2014,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'comment_author_url_column_length', $response, 400 );
 	}
@@ -2037,7 +2037,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'comment_content_column_length', $response, 400 );
 	}
@@ -2056,7 +2056,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_cannot_read_post', $response, 403 );
 	}
@@ -2076,7 +2076,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 201, $response->get_status() );
 	}
 
@@ -2099,7 +2099,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$comment = $response->get_data();
@@ -2132,7 +2132,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		if ( isset( $params['date_gmt'] ) ) {
 			$request->set_param( 'date_gmt', $params['date_gmt'] );
 		}
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		update_option( 'timezone_string', '' );
 
@@ -2158,13 +2158,13 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'author_email', 'another@email.com' );
 
 		// Sending a request without content is fine.
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
 		// Sending a request with empty comment is not fine.
 		$request->set_param( 'author_email', 'yetanother@email.com' );
 		$request->set_param( 'content', '' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_comment_content_invalid', $response, 400 );
 	}
 
@@ -2177,10 +2177,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		// Run twice to make sure that the update still succeeds even if no DB
 		// rows are updated.
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 	}
 
@@ -2201,7 +2201,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$comment = $response->get_data();
@@ -2228,7 +2228,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$comment = $response->get_data();
@@ -2249,7 +2249,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$comment = $response->get_data();
@@ -2272,7 +2272,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 	}
 
@@ -2291,7 +2291,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 	}
 
@@ -2309,7 +2309,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 	}
 
@@ -2328,7 +2328,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 	}
 
@@ -2345,7 +2345,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', self::$approved_id ) );
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 		$data = $response->get_data();
@@ -2362,7 +2362,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_comment_invalid_type', $response, 404 );
 	}
 
@@ -2378,7 +2378,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertEquals( 200, $response->get_status() );
 
@@ -2399,7 +2399,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
@@ -2415,7 +2415,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
@@ -2429,7 +2429,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_comment_invalid_id', $response, 404 );
 	}
 
@@ -2439,7 +2439,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', self::$approved_id ) );
 		$request->set_param( 'post', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_comment_invalid_post_id', $response, 403 );
 	}
 
@@ -2453,7 +2453,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 401 );
 	}
 
@@ -2475,7 +2475,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
@@ -2499,7 +2499,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		// Check if comment 1 does not have the child link.
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', $comment_id_1 ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertArrayNotHasKey( 'children', $response->get_links() );
 
@@ -2507,12 +2507,12 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%s', $child_comment ) );
 		$request->set_param( 'parent', $comment_id_1 );
 		$request->set_param( 'content', rand_str() );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
 		// Check if comment 1 now has the child link.
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', $comment_id_1 ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertArrayHasKey( 'children', $response->get_links() );
 	}
@@ -2531,7 +2531,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'comment_author_column_length', $response, 400 );
 	}
@@ -2550,7 +2550,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'comment_author_email_column_length', $response, 400 );
 	}
@@ -2569,7 +2569,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'comment_author_url_column_length', $response, 400 );
 	}
@@ -2587,7 +2587,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'comment_content_column_length', $response, 400 );
 	}
@@ -2600,7 +2600,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		foreach ( $input as $name => $value ) {
 			$request->set_param( $name, $value );
 		}
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 201, $response->get_status() );
 		$actual_output = $response->get_data();
 
@@ -2626,7 +2626,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		// FIXME at least one value must change, or update fails
 		// See https://core.trac.wordpress.org/ticket/38700
 		$request->set_param( 'author_ip', '127.0.0.2' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$actual_output = $response->get_data();
 
@@ -2750,7 +2750,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/comments/%d', $comment_id ) );
 		$request->set_param( 'force', 'false' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
@@ -2770,7 +2770,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request          = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/comments/%d', $comment_id ) );
 		$request['force'] = true;
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertTrue( $data['deleted'] );
@@ -2788,10 +2788,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			)
 		);
 		$request    = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/comments/%d', $comment_id ) );
-		$response   = $this->server->dispatch( $request );
+		$response   = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$data     = $response->get_data();
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_already_trashed', $response, 410 );
 	}
 
@@ -2800,7 +2800,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/comments/%d', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_comment_invalid_id', $response, 404 );
 	}
 
@@ -2809,7 +2809,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/comments/%d', self::$approved_id ) );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_delete', $response, 403 );
 	}
 
@@ -2833,19 +2833,19 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 
 		$request  = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/comments/%s', $child_comment ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
 		// Verify children link is gone.
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', $comment_id_1 ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertArrayNotHasKey( 'children', $response->get_links() );
 	}
 
 	public function test_get_item_schema() {
 		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/comments' );
-		$response   = $this->server->dispatch( $request );
+		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
 		$this->assertEquals( 17, count( $properties ) );
@@ -2877,7 +2877,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	public function test_get_item_schema_show_avatar() {
 		update_option( 'show_avatars', false );
 		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/users' );
-		$response   = $this->server->dispatch( $request );
+		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
 
@@ -2903,7 +2903,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/comments' );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
 		$this->assertArrayHasKey( 'my_custom_int', $data['schema']['properties'] );
@@ -2911,7 +2911,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments/' . self::$approved_id );
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertArrayHasKey( 'my_custom_int', $response->data );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments/' . self::$approved_id );
@@ -2923,7 +2923,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 
 		wp_set_current_user( 1 );
-		$this->server->dispatch( $request );
+		rest_get_server()->dispatch( $request );
 		$this->assertEquals( 123, get_comment_meta( self::$approved_id, 'my_custom_int', true ) );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
@@ -2936,7 +2936,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			)
 		);
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertEquals( 123, $response->data['my_custom_int'] );
 
@@ -2971,7 +2971,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			)
 		);
 
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 

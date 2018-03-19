@@ -61,6 +61,11 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image.jpg',
 		);
 
+		// IMAGETYPE_ICO is only defined in PHP 5.3+.
+		if ( defined( 'IMAGETYPE_ICO' ) ) {
+			$files[] = 'test-image.ico';
+		}
+
 		foreach ( $files as $file ) {
 			$this->assertTrue( file_is_valid_image( DIR_TESTDATA . '/images/' . $file ), "file_is_valid_image($file) should return true" );
 		}
@@ -86,6 +91,11 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image.png',
 			'test-image.jpg',
 		);
+
+		// IMAGETYPE_ICO is only defined in PHP 5.3+.
+		if ( defined( 'IMAGETYPE_ICO' ) ) {
+			$files[] = 'test-image.ico';
+		}
 
 		foreach ( $files as $file ) {
 			$this->assertTrue( file_is_displayable_image( DIR_TESTDATA . '/images/' . $file ), "file_is_valid_image($file) should return true" );
@@ -430,6 +440,69 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		unlink( $test_file );
 		foreach ( $metadata['sizes'] as $size ) {
 			unlink( '/tmp/' . $size['file'] );
+		}
+	}
+
+	/**
+	 * Crop setting for PDF.
+	 *
+	 * @ticket 43226
+	 */
+	public function test_crop_setting_for_pdf() {
+
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'application/pdf' ) ) ) {
+			$this->markTestSkipped( 'Rendering PDFs is not supported on this system.' );
+		}
+
+		update_option( 'medium_crop', 1 );
+
+		$orig_file = DIR_TESTDATA . '/images/wordpress-gsoc-flyer.pdf';
+		$test_file = get_temp_dir() . 'wordpress-gsoc-flyer.pdf';
+		copy( $orig_file, $test_file );
+
+		$attachment_id = $this->factory->attachment->create_object(
+			$test_file, 0, array(
+				'post_mime_type' => 'application/pdf',
+			)
+		);
+
+		$this->assertNotEmpty( $attachment_id );
+
+		$expected = array(
+			'sizes' => array(
+				'thumbnail' => array(
+					'file'      => 'wordpress-gsoc-flyer-pdf-116x150.jpg',
+					'width'     => 116,
+					'height'    => 150,
+					'mime-type' => 'image/jpeg',
+				),
+				'medium'    => array(
+					'file'      => 'wordpress-gsoc-flyer-pdf-300x300.jpg',
+					'width'     => 300,
+					'height'    => 300,
+					'mime-type' => 'image/jpeg',
+				),
+				'large'     => array(
+					'file'      => 'wordpress-gsoc-flyer-pdf-791x1024.jpg',
+					'width'     => 791,
+					'height'    => 1024,
+					'mime-type' => 'image/jpeg',
+				),
+				'full'      => array(
+					'file'      => 'wordpress-gsoc-flyer-pdf.jpg',
+					'width'     => 1088,
+					'height'    => 1408,
+					'mime-type' => 'image/jpeg',
+				),
+			),
+		);
+
+		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
+		$this->assertSame( $expected, $metadata );
+
+		unlink( $test_file );
+		foreach ( $metadata['sizes'] as $size ) {
+			unlink( get_temp_dir() . $size['file'] );
 		}
 	}
 

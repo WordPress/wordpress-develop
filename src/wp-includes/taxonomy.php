@@ -152,7 +152,7 @@ function create_initial_taxonomies() {
 			'public'            => true,
 			'hierarchical'      => false,
 			'labels'            => array(
-				'name'          => _x( 'Format', 'post format' ),
+				'name'          => _x( 'Formats', 'post format' ),
 				'singular_name' => _x( 'Format', 'post format' ),
 			),
 			'query_var'         => true,
@@ -259,9 +259,13 @@ function get_taxonomy( $taxonomy ) {
 }
 
 /**
- * Checks that the taxonomy name exists.
+ * Determines whether the taxonomy name exists.
  *
  * Formerly is_taxonomy(), introduced in 2.3.0.
+ *
+ * For more information on this and similar theme functions, check out
+ * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
+ * Conditional Tags} article in the Theme Developer Handbook.
  *
  * @since 3.0.0
  *
@@ -277,12 +281,16 @@ function taxonomy_exists( $taxonomy ) {
 }
 
 /**
- * Whether the taxonomy object is hierarchical.
+ * Determines whether the taxonomy object is hierarchical.
  *
  * Checks to make sure that the taxonomy is an object first. Then Gets the
  * object, and finally returns the hierarchical value in the object.
  *
  * A false return value might also mean that the taxonomy does not exist.
+ *
+ * For more information on this and similar theme functions, check out
+ * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
+ * Conditional Tags} article in the Theme Developer Handbook.
  *
  * @since 2.3.0
  *
@@ -1315,9 +1323,13 @@ function has_term_meta( $term_id ) {
 }
 
 /**
- * Check if Term exists.
+ * Determines whether a term exists.
  *
  * Formerly is_term(), introduced in 2.3.0.
+ *
+ * For more information on this and similar theme functions, check out
+ * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
+ * Conditional Tags} article in the Theme Developer Handbook.
  *
  * @since 3.0.0
  *
@@ -1328,7 +1340,7 @@ function has_term_meta( $term_id ) {
  * @param int        $parent   Optional. ID of parent term under which to confine the exists search.
  * @return mixed Returns null if the term does not exist. Returns the term ID
  *               if no taxonomy is specified and the term ID exists. Returns
- *               an array of the term ID and the term taxonomy ID the taxonomy
+ *               an array of the term ID and the term taxonomy ID if the taxonomy
  *               is specified and the pairing exists.
  */
 function term_exists( $term, $taxonomy = '', $parent = null ) {
@@ -2837,7 +2849,7 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 		if ( $empty_slug || ( $parent != $term['parent'] ) ) {
 			$slug = wp_unique_term_slug( $slug, (object) $args );
 		} else {
-			/* translators: 1: Taxonomy term slug */
+			/* translators: %s: taxonomy term slug */
 			return new WP_Error( 'duplicate_term_slug', sprintf( __( 'The slug &#8220;%s&#8221; is already in use by another term.' ), $slug ) );
 		}
 	}
@@ -3230,7 +3242,7 @@ function clean_taxonomy_cache( $taxonomy ) {
  * function only fetches relationship data that is already in the cache.
  *
  * @since 2.3.0
- * @since 4.7.0 Returns a WP_Error object if get_term() returns an error for
+ * @since 4.7.0 Returns a `WP_Error` object if `get_term()` returns an error for
  *              any of the matched terms.
  *
  * @param int    $id       Term object ID.

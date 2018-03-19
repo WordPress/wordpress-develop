@@ -10,7 +10,7 @@
 require_once( dirname( __FILE__ ) . '/admin.php' );
 if ( ! current_user_can( 'edit_posts' ) ) {
 	wp_die(
-		'<h1>' . __( 'You don&#8217;t have permission to do this.' ) . '</h1>' .
+		'<h1>' . __( 'You need a higher level of permission.' ) . '</h1>' .
 		'<p>' . __( 'Sorry, you are not allowed to edit comments.' ) . '</p>',
 		403
 	);
@@ -146,7 +146,7 @@ if ( $post_id ) {
 	$comments_count      = wp_count_comments( $post_id );
 	$draft_or_post_title = wp_html_excerpt( _draft_or_post_title( $post_id ), 50, '&hellip;' );
 	if ( $comments_count->moderated > 0 ) {
-		/* translators: 1: comments count 2: post title */
+		/* translators: 1: comments count, 2: post title */
 		$title = sprintf(
 			__( 'Comments (%1$s) on &#8220;%2$s&#8221;' ),
 			number_format_i18n( $comments_count->moderated ),

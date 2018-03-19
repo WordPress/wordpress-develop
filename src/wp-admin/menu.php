@@ -203,7 +203,7 @@ if ( ! is_multisite() ) {
  */
 function _add_themes_utility_last() {
 	// Must use API on the admin_menu hook, direct modification is only possible on/before the _admin_menu hook
-	add_submenu_page( 'themes.php', _x( 'Editor', 'theme editor' ), _x( 'Editor', 'theme editor' ), 'edit_themes', 'theme-editor.php' );
+	add_submenu_page( 'themes.php', __( 'Theme Editor' ), __( 'Theme Editor' ), 'edit_themes', 'theme-editor.php' );
 }
 
 $count = '';
@@ -221,7 +221,7 @@ $submenu['plugins.php'][5] = array( __( 'Installed Plugins' ), 'activate_plugins
 if ( ! is_multisite() ) {
 	/* translators: add new plugin */
 	$submenu['plugins.php'][10] = array( _x( 'Add New', 'plugin' ), 'install_plugins', 'plugin-install.php' );
-	$submenu['plugins.php'][15] = array( _x( 'Editor', 'plugin editor' ), 'edit_plugins', 'plugin-editor.php' );
+	$submenu['plugins.php'][15] = array( __( 'Plugin Editor' ), 'edit_plugins', 'plugin-editor.php' );
 }
 
 unset( $update_data );
@@ -256,6 +256,7 @@ $menu[75]                     = array( __( 'Tools' ), 'edit_posts', 'tools.php',
 	$submenu['tools.php'][5]  = array( __( 'Available Tools' ), 'edit_posts', 'tools.php' );
 	$submenu['tools.php'][10] = array( __( 'Import' ), 'import', 'import.php' );
 	$submenu['tools.php'][15] = array( __( 'Export' ), 'export', 'export.php' );
+	$submenu['tools.php'][20] = array( __( 'Privacy' ), 'manage_options', 'privacy.php' );
 if ( is_multisite() && ! is_main_site() ) {
 	$submenu['tools.php'][25] = array( __( 'Delete Site' ), 'delete_site', 'ms-delete-site.php' );
 }

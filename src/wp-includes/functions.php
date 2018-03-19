@@ -231,7 +231,7 @@ function number_format_i18n( $number, $decimals = 0 ) {
 	 * Filters the number formatted based on the locale.
 	 *
 	 * @since 2.8.0
-	 * @since 4.9.0 The `$number` and `$decimals` arguments were added.
+	 * @since 4.9.0 The `$number` and `$decimals` parameters were added.
 	 *
 	 * @param string $formatted Converted number in string format.
 	 * @param float  $number    The number to convert based on locale.
@@ -671,8 +671,12 @@ function wp_get_http_headers( $url, $deprecated = false ) {
 }
 
 /**
- * Whether the publish date of the current post in the loop is different from the
- * publish date of the previous post in the loop.
+ * Determines whether the publish date of the current post in the loop is different
+ * from the publish date of the previous post in the loop.
+ *
+ * For more information on this and similar theme functions, check out
+ * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
+ * Conditional Tags} article in the Theme Developer Handbook.
  *
  * @since 0.71
  *
@@ -1382,13 +1386,17 @@ function do_robots() {
 }
 
 /**
- * Test whether WordPress is already installed.
+ * Determines whether WordPress is already installed.
  *
  * The cache will be checked first. If you have a cache plugin, which saves
  * the cache values, then this will work. If you use the default WordPress
  * cache, and the database goes away, then you might have problems.
  *
  * Checks for the 'siteurl' option for whether WordPress is installed.
+ *
+ * For more information on this and similar theme functions, check out
+ * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
+ * Conditional Tags} article in the Theme Developer Handbook.
  *
  * @since 2.1.0
  *
@@ -1671,7 +1679,7 @@ function wp_mkdir_p( $target ) {
 
 	// We need to find the permissions of the parent folder that exists and inherit that.
 	$target_parent = dirname( $target );
-	while ( '.' != $target_parent && ! is_dir( $target_parent ) ) {
+	while ( '.' != $target_parent && ! is_dir( $target_parent ) && dirname( $target_parent ) !== $target_parent ) {
 		$target_parent = dirname( $target_parent );
 	}
 
@@ -2556,6 +2564,7 @@ function wp_get_mime_types() {
 			'dfxp'                         => 'application/ttaf+xml',
 			// Audio formats.
 			'mp3|m4a|m4b'                  => 'audio/mpeg',
+			'aac'                          => 'audio/aac',
 			'ra|ram'                       => 'audio/x-realaudio',
 			'wav'                          => 'audio/wav',
 			'ogg|oga'                      => 'audio/ogg',
@@ -2718,7 +2727,7 @@ function wp_nonce_ays( $action ) {
 			wp_logout_url( $redirect_to )
 		);
 	} else {
-		$html = __( 'The link you followed no longer exists.' );
+		$html = __( 'The link you followed has expired.' );
 		if ( wp_get_referer() ) {
 			$html .= '</p><p>';
 			$html .= sprintf(
@@ -2729,7 +2738,7 @@ function wp_nonce_ays( $action ) {
 		}
 	}
 
-	wp_die( $html, __( 'An error has occurred.' ), 403 );
+	wp_die( $html, __( 'Something went wrong.' ), 403 );
 }
 
 /**
@@ -3712,7 +3721,7 @@ function wp_is_numeric_array( $data ) {
  * Filters a list of objects, based on a set of key => value arguments.
  *
  * @since 3.0.0
- * @since 4.7.0 Uses WP_List_Util class.
+ * @since 4.7.0 Uses `WP_List_Util` class.
  *
  * @param array       $list     An array of objects to filter
  * @param array       $args     Optional. An array of key => value arguments to match
@@ -3745,7 +3754,7 @@ function wp_filter_object_list( $list, $args = array(), $operator = 'and', $fiel
  * Filters a list of objects, based on a set of key => value arguments.
  *
  * @since 3.1.0
- * @since 4.7.0 Uses WP_List_Util class.
+ * @since 4.7.0 Uses `WP_List_Util` class.
  *
  * @param array  $list     An array of objects to filter.
  * @param array  $args     Optional. An array of key => value arguments to match
@@ -3773,7 +3782,7 @@ function wp_list_filter( $list, $args = array(), $operator = 'AND' ) {
  *
  * @since 3.1.0
  * @since 4.0.0 $index_key parameter added.
- * @since 4.7.0 Uses WP_List_Util class.
+ * @since 4.7.0 Uses `WP_List_Util` class.
  *
  * @param array      $list      List of objects or arrays
  * @param int|string $field     Field from the object to place instead of the entire object
@@ -4575,7 +4584,7 @@ function wp_suspend_cache_invalidation( $suspend = true ) {
  * Determine whether a site is the main site of the current network.
  *
  * @since 3.0.0
- * @since 4.9.0 The $network_id parameter has been added.
+ * @since 4.9.0 The `$network_id` parameter was added.
  *
  * @param int $site_id    Optional. Site ID to test. Defaults to current site.
  * @param int $network_id Optional. Network ID of the network to check for.
@@ -4715,6 +4724,38 @@ function global_terms_enabled() {
 		}
 	}
 	return $global_terms;
+}
+
+/**
+ * Determines whether site meta is enabled.
+ *
+ * This function checks whether the 'blogmeta' database table exists. The result is saved as
+ * a setting for the main network, making it essentially a global setting. Subsequent requests
+ * will refer to this setting instead of running the query.
+ *
+ * @since 5.0.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @return bool True if site meta is supported, false otherwise.
+ */
+function is_site_meta_supported() {
+	global $wpdb;
+
+	if ( ! is_multisite() ) {
+		return false;
+	}
+
+	$network_id = get_main_network_id();
+
+	$supported = get_network_option( $network_id, 'site_meta_supported', false );
+	if ( false === $supported ) {
+		$supported = $wpdb->get_var( "SHOW TABLES LIKE '{$wpdb->blogmeta}'" ) ? 1 : 0;
+
+		update_network_option( $network_id, 'site_meta_supported', $supported );
+	}
+
+	return (bool) $supported;
 }
 
 /**
@@ -5061,8 +5102,8 @@ function wp_scheduled_delete() {
  *
  * @since 2.9.0
  *
- * @param string $file            Path to the file.
- * @param array  $default_headers List of headers, in the format array('HeaderKey' => 'Header Name').
+ * @param string $file            Absolute path to the file.
+ * @param array  $default_headers List of headers, in the format `array('HeaderKey' => 'Header Name')`.
  * @param string $context         Optional. If specified adds filter hook {@see 'extra_$context_headers'}.
  *                                Default empty.
  * @return array Array of file headers in `HeaderKey => Header Value` format.
@@ -5357,6 +5398,8 @@ function wp_allowed_protocols() {
  *
  * @see https://core.trac.wordpress.org/ticket/19589
  *
+ * @staticvar array $truncate_paths Array of paths to truncate.
+ *
  * @param string $ignore_class Optional. A class to ignore all function calls within - useful
  *                             when you want to just give info about the callee. Default null.
  * @param int    $skip_frames  Optional. A number of stack frames to skip - useful for unwinding
@@ -5367,6 +5410,8 @@ function wp_allowed_protocols() {
  *                      of individual calls.
  */
 function wp_debug_backtrace_summary( $ignore_class = null, $skip_frames = 0, $pretty = true ) {
+	static $truncate_paths;
+
 	if ( version_compare( PHP_VERSION, '5.2.5', '>=' ) ) {
 		$trace = debug_backtrace( false );
 	} else {
@@ -5376,6 +5421,13 @@ function wp_debug_backtrace_summary( $ignore_class = null, $skip_frames = 0, $pr
 	$caller      = array();
 	$check_class = ! is_null( $ignore_class );
 	$skip_frames++; // skip this function
+
+	if ( ! isset( $truncate_paths ) ) {
+		$truncate_paths = array(
+			wp_normalize_path( WP_CONTENT_DIR ),
+			wp_normalize_path( ABSPATH )
+		);
+	}
 
 	foreach ( $trace as $call ) {
 		if ( $skip_frames > 0 ) {
@@ -5387,10 +5439,11 @@ function wp_debug_backtrace_summary( $ignore_class = null, $skip_frames = 0, $pr
 
 			$caller[] = "{$call['class']}{$call['type']}{$call['function']}";
 		} else {
-			if ( in_array( $call['function'], array( 'do_action', 'apply_filters' ) ) ) {
+			if ( in_array( $call['function'], array( 'do_action', 'apply_filters', 'do_action_ref_array', 'apply_filters_ref_array' ) ) ) {
 				$caller[] = "{$call['function']}('{$call['args'][0]}')";
 			} elseif ( in_array( $call['function'], array( 'include', 'include_once', 'require', 'require_once' ) ) ) {
-				$caller[] = $call['function'] . "('" . str_replace( array( WP_CONTENT_DIR, ABSPATH ), '', $call['args'][0] ) . "')";
+				$filename = isset( $call['args'][0] ) ? $call['args'][0] : '';
+				$caller[] = $call['function'] . "('" . str_replace( $truncate_paths, '', wp_normalize_path( $filename ) ) . "')";
 			} else {
 				$caller[] = $call['function'];
 			}

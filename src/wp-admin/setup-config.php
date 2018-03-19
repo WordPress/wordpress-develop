@@ -59,7 +59,7 @@ if ( file_exists( ABSPATH . 'wp-config-sample.php' ) ) {
 if ( file_exists( ABSPATH . 'wp-config.php' ) ) {
 	wp_die(
 		'<p>' . sprintf(
-			/* translators: 1: wp-config.php 2: install.php */
+			/* translators: 1: wp-config.php, 2: install.php */
 			__( 'The file %1$s already exists. If you need to reset any of the configuration items in this file, please delete it first. You may try <a href="%2$s">installing now</a>.' ),
 			'<code>wp-config.php</code>',
 			'install.php'
@@ -71,7 +71,7 @@ if ( file_exists( ABSPATH . 'wp-config.php' ) ) {
 if ( @file_exists( ABSPATH . '../wp-config.php' ) && ! @file_exists( ABSPATH . '../wp-settings.php' ) ) {
 	wp_die(
 		'<p>' . sprintf(
-			/* translators: 1: wp-config.php 2: install.php */
+			/* translators: 1: wp-config.php, 2: install.php */
 			__( 'The file %1$s already exists one level above your WordPress installation. If you need to reset any of the configuration items in this file, please delete it first. You may try <a href="%2$s">installing now</a>.' ),
 			'<code>wp-config.php</code>',
 			'install.php'
@@ -398,15 +398,15 @@ switch ( $step ) {
 <?php
 	/* translators: %s: wp-config.php */
 	printf( __( 'You can create the %s file manually and paste the following text into it.' ), '<code>wp-config.php</code>' );
+
+	$config_text = '';
+
+	foreach ( $config_file as $line ) {
+		$config_text .= htmlentities( $line, ENT_COMPAT, 'UTF-8' );
+	}
 ?>
 </p>
-<textarea id="wp-config" cols="98" rows="15" class="code" readonly="readonly">
-<?php
-foreach ( $config_file as $line ) {
-	echo htmlentities( $line, ENT_COMPAT, 'UTF-8' );
-}
-?>
-</textarea>
+<textarea id="wp-config" cols="98" rows="15" class="code" readonly="readonly"><?php echo $config_text; ?></textarea>
 <p><?php _e( 'After you&#8217;ve done that, click &#8220;Run the installation.&#8221;' ); ?></p>
 <p class="step"><a href="<?php echo $install; ?>" class="button button-large"><?php _e( 'Run the installation' ); ?></a></p>
 <script>

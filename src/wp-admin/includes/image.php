@@ -253,7 +253,7 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 				$sizes[ $s ]['crop'] = $_wp_additional_image_sizes[ $s ]['crop'];
 			} else {
 				// Force thumbnails to be soft crops.
-				if ( ! 'thumbnail' === $s ) {
+				if ( 'thumbnail' !== $s ) {
 					$sizes[ $s ]['crop'] = get_option( "{$s}_crop" );
 				}
 			}
@@ -555,6 +555,11 @@ function file_is_valid_image( $path ) {
  */
 function file_is_displayable_image( $path ) {
 	$displayable_image_types = array( IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_BMP );
+
+	// IMAGETYPE_ICO is only defined in PHP 5.3+.
+	if ( defined( 'IMAGETYPE_ICO' ) ) {
+		$displayable_image_types[] = IMAGETYPE_ICO;
+	}
 
 	$info = @getimagesize( $path );
 	if ( empty( $info ) ) {

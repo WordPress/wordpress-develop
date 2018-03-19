@@ -14,7 +14,7 @@ require_once( ABSPATH . 'wp-admin/includes/widgets.php' );
 
 if ( ! current_user_can( 'edit_theme_options' ) ) {
 	wp_die(
-		'<h1>' . __( 'You don&#8217;t have permission to do this.' ) . '</h1>' .
+		'<h1>' . __( 'You need a higher level of permission.' ) . '</h1>' .
 		'<p>' . __( 'Sorry, you are not allowed to edit theme options on this site.' ) . '</p>',
 		403
 	);
@@ -399,7 +399,12 @@ if ( current_user_can( 'customize' ) ) {
 		__( 'Manage with Live Preview' )
 	);
 }
+
+$nonce = wp_create_nonce( 'widgets-access' );
 ?>
+<div class="widget-access-link">
+	<a id="access-on" href="widgets.php?widgets-access=on&_wpnonce=<?php echo urlencode( $nonce ); ?>"><?php _e( 'Enable accessibility mode' ); ?></a><a id="access-off" href="widgets.php?widgets-access=off&_wpnonce=<?php echo urlencode( $nonce ); ?>"><?php _e( 'Disable accessibility mode' ); ?></a>
+</div>
 
 <hr class="wp-header-end">
 

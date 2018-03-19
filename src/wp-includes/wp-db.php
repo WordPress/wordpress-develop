@@ -174,10 +174,24 @@ class wpdb {
 	protected $col_info;
 
 	/**
-	 * Saved queries that were executed
+	 * Log of queries that were executed, for debugging purposes.
 	 *
 	 * @since 1.5.0
-	 * @var array
+	 * @since 2.5.0 The third element in each query log was added to record the calling functions.
+	 * @since 5.0.0 The fourth element in each query log was added to record the start time.
+	 *
+	 * @var array[] {
+	 *     Array of queries that were executed.
+	 *
+	 *     @type array ...$0 {
+	 *         Data for each query.
+	 *
+	 *         @type string $0 The query's SQL.
+	 *         @type float  $1 Total time spent on the query, in seconds.
+	 *         @type string $2 Comma separated list of the calling functions.
+	 *         @type float  $3 Unix timestamp of the time at the start of the query.
+	 *     }
+	 * }
 	 */
 	var $queries;
 
@@ -283,6 +297,7 @@ class wpdb {
 	 */
 	var $ms_global_tables = array(
 		'blogs',
+		'blogmeta',
 		'signups',
 		'site',
 		'sitemeta',
@@ -398,6 +413,14 @@ class wpdb {
 	 * @var string
 	 */
 	public $blogs;
+
+	/**
+	 * Multisite Blog Metadata table
+	 *
+	 * @since 5.0.0
+	 * @var string
+	 */
+	public $blogmeta;
 
 	/**
 	 * Multisite Blog Versions table
@@ -1634,7 +1657,7 @@ class wpdb {
 			$message = '<h1>' . __( 'Error establishing a database connection' ) . "</h1>\n";
 
 			$message .= '<p>' . sprintf(
-				/* translators: 1: wp-config.php. 2: database host */
+				/* translators: 1: wp-config.php, 2: database host */
 				__( 'This either means that the username and password information in your %1$s file is incorrect or we can&#8217;t contact the database server at %2$s. This could mean your host&#8217;s database server is down.' ),
 				'<code>wp-config.php</code>',
 				'<code>' . htmlspecialchars( $this->dbhost, ENT_QUOTES ) . '</code>'
@@ -1986,7 +2009,12 @@ class wpdb {
 		$this->num_queries++;
 
 		if ( defined( 'SAVEQUERIES' ) && SAVEQUERIES ) {
-			$this->queries[] = array( $query, $this->timer_stop(), $this->get_caller() );
+			$this->queries[] = array(
+				$query,
+				$this->timer_stop(),
+				$this->get_caller(),
+				$this->time_start,
+			);
 		}
 	}
 
@@ -3316,15 +3344,37 @@ class wpdb {
 	 * @return false|void
 	 */
 	public function bail( $message, $error_code = '500' ) {
-		if ( ! $this->show_errors ) {
+		if ( $this->show_errors ) {
+			$error = '';
+
+			if ( $this->use_mysqli ) {
+				if ( $this->dbh instanceof mysqli ) {
+					$error = mysqli_error( $this->dbh );
+				} elseif ( mysqli_connect_errno() ) {
+					$error = mysqli_connect_error();
+				}
+			} else {
+				if ( is_resource( $this->dbh ) ) {
+					$error = mysql_error( $this->dbh );
+				} else {
+					$error = mysql_error();
+				}
+			}
+
+			if ( $error ) {
+				$message = '<p><code>' . $error . "</code></p>\n" . $message;
+			}
+
+			wp_die( $message );
+		} else {
 			if ( class_exists( 'WP_Error', false ) ) {
 				$this->error = new WP_Error( $error_code, $message );
 			} else {
 				$this->error = $message;
 			}
+
 			return false;
 		}
-		wp_die( $message );
 	}
 
 
@@ -3471,7 +3521,7 @@ class wpdb {
 	 *
 	 * @since 2.5.0
 	 *
-	 * @return string|array The name of the calling function
+	 * @return string Comma separated list of the calling functions.
 	 */
 	public function get_caller() {
 		return wp_debug_backtrace_summary( __CLASS__ );

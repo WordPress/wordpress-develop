@@ -173,8 +173,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		return;
 	}
 
-	$offers          = $body['offers'];
-	$has_auto_update = false;
+	$offers = $body['offers'];
 
 	foreach ( $offers as &$offer ) {
 		foreach ( $offer as $offer_key => $value ) {
@@ -208,10 +207,6 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 				), ''
 			)
 		);
-
-		if ( 'autoupdate' == $offer->response ) {
-			$has_auto_update = true;
-		}
 	}
 
 	$updates                  = new stdClass();
@@ -234,13 +229,8 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	}
 
 	// Trigger background updates if running non-interactively, and we weren't called from the update handler.
-	if ( $doing_cron && $has_auto_update && ! doing_action( 'wp_maybe_auto_update' ) ) {
-		include_once( ABSPATH . '/wp-admin/includes/update.php' );
-
-		// Only trigger background updates if an acceptable autoupdate is on offer, avoids needless extra API calls.
-		if ( find_core_auto_update() ) {
-			do_action( 'wp_maybe_auto_update' );
-		}
+	if ( $doing_cron && ! doing_action( 'wp_maybe_auto_update' ) ) {
+		do_action( 'wp_maybe_auto_update' );
 	}
 }
 
@@ -675,15 +665,15 @@ function wp_get_update_data() {
 	$counts['total'] = $counts['plugins'] + $counts['themes'] + $counts['wordpress'] + $counts['translations'];
 	$titles          = array();
 	if ( $counts['wordpress'] ) {
-		/* translators: 1: Number of updates available to WordPress */
+		/* translators: %d: number of updates available to WordPress */
 		$titles['wordpress'] = sprintf( __( '%d WordPress Update' ), $counts['wordpress'] );
 	}
 	if ( $counts['plugins'] ) {
-		/* translators: 1: Number of updates available to plugins */
+		/* translators: %d: number of updates available to plugins */
 		$titles['plugins'] = sprintf( _n( '%d Plugin Update', '%d Plugin Updates', $counts['plugins'] ), $counts['plugins'] );
 	}
 	if ( $counts['themes'] ) {
-		/* translators: 1: Number of updates available to themes */
+		/* translators: %d: number of updates available to themes */
 		$titles['themes'] = sprintf( _n( '%d Theme Update', '%d Theme Updates', $counts['themes'] ), $counts['themes'] );
 	}
 	if ( $counts['translations'] ) {

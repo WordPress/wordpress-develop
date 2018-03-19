@@ -180,6 +180,13 @@ function _upload_dir_https( $uploads ) {
 	return $uploads;
 }
 
+/**
+ * Use the Spy_REST_Server class for the REST server.
+ */
+function _wp_rest_server_class_filter() {
+	return 'Spy_REST_Server';
+}
+
 // Skip `setcookie` calls in auth_cookie functions due to warning:
 // Cannot modify header information - headers already sent by ...
 tests_add_filter( 'send_auth_cookies', '__return_false' );

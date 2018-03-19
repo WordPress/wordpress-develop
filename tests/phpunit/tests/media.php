@@ -132,9 +132,9 @@ CAP;
 		$this->assertEquals( 1, preg_match_all( "/{$this->caption}/", $result, $_r ) );
 
 		if ( current_theme_supports( 'html5', 'caption' ) ) {
-			$this->assertEquals( 1, preg_match_all( '/max-width: 20/', $result, $_r ) );
+			$this->assertEquals( 1, preg_match_all( '/width: 20/', $result, $_r ) );
 		} else {
-			$this->assertEquals( 1, preg_match_all( '/max-width: 30/', $result, $_r ) );
+			$this->assertEquals( 1, preg_match_all( '/width: 30/', $result, $_r ) );
 		}
 	}
 
@@ -212,6 +212,21 @@ CAP;
 
 		$this->assertEquals( 1, preg_match_all( "~{$img_preg}.*wp-caption-text~", $result, $_r ) );
 		$this->assertEquals( 1, preg_match_all( "~wp-caption-text.*{$content_preg}~", $result, $_r ) );
+	}
+
+	/**
+	 * @ticket 34595
+	 */
+	function test_img_caption_shortcode_has_aria_describedby() {
+		$result = img_caption_shortcode(
+			array(
+				'width' => 20,
+				'id'    => 'myId',
+			),
+			$this->img_content . $this->html_content
+		);
+
+		$this->assertEquals( 1, preg_match_all( '/aria-describedby="caption-myId"/', $result, $_r ) );
 	}
 
 	function test_add_remove_oembed_provider() {
@@ -2371,11 +2386,15 @@ EOF;
 
 		$url = wp_get_attachment_url( $post_id );
 
+		$uploads_dir = wp_upload_dir( '2010/01' );
+
+		$expected = $uploads_dir['url'] . '/test-image-iptc.jpg';
+
 		// Clean up.
 		wp_delete_attachment( $post_id );
 		wp_delete_post( $parent_id );
 
-		$this->assertSame( 'http://example.org/wp-content/uploads/2010/01/test-image-iptc.jpg', $url );
+		$this->assertSame( $expected, $url );
 	}
 
 	/**
@@ -2418,13 +2437,13 @@ EOF;
 
 		$uploads_dir = wp_upload_dir( current_time( 'mysql' ) );
 
-		$expected = $uploads_dir['url'] . 'test-image-iptc.jpg';
+		$expected = $uploads_dir['url'] . '/test-image-iptc.jpg';
 
 		// Clean up.
 		wp_delete_attachment( $post_id );
 		wp_delete_post( $parent_id );
 
-		$this->assertNotEquals( $expected, $url );
+		$this->assertSame( $expected, $url );
 	}
 }
 

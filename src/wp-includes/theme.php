@@ -1467,6 +1467,13 @@ function get_header_video_settings() {
 		$settings['mimeType'] = $video_type['type'];
 	}
 
+	/**
+	 * Filters header video settings.
+	 *
+	 * @since 4.7.0
+	 *
+	 * @param array $settings An array of header video settings.
+	 */
 	return apply_filters( 'header_video_settings', $settings );
 }
 
@@ -2530,7 +2537,7 @@ function add_theme_support( $feature ) {
 		case 'title-tag':
 			// Can be called in functions.php but must happen before wp_loaded, i.e. not in header.php.
 			if ( did_action( 'wp_loaded' ) ) {
-				/* translators: 1: Theme support 2: hook name */
+				/* translators: 1: title-tag, 2: wp_loaded */
 				_doing_it_wrong(
 					"add_theme_support( 'title-tag' )", sprintf(
 						__( 'Theme support for %1$s should be registered before the %2$s hook.' ),

@@ -618,7 +618,7 @@ function bloginfo( $show = '' ) {
  *   child theme will NOT take precedence over this value
  * - 'pingback_url' - The pingback XML-RPC file URL (xmlrpc.php)
  * - 'atom_url' - The Atom feed URL (/feed/atom)
- * - 'rdf_url' - The RDF/RSS 1.0 feed URL (/feed/rfd)
+ * - 'rdf_url' - The RDF/RSS 1.0 feed URL (/feed/rdf)
  * - 'rss_url' - The RSS 0.92 feed URL (/feed/rss)
  * - 'rss2_url' - The RSS 2.0 feed URL (/feed)
  * - 'comments_atom_url' - The comments Atom feed URL (/comments/feed)
@@ -1490,22 +1490,22 @@ function the_archive_title( $before = '', $after = '' ) {
  */
 function get_the_archive_title() {
 	if ( is_category() ) {
-		/* translators: Category archive title. 1: Category name */
+		/* translators: Category archive title. %s: Category name */
 		$title = sprintf( __( 'Category: %s' ), single_cat_title( '', false ) );
 	} elseif ( is_tag() ) {
-		/* translators: Tag archive title. 1: Tag name */
+		/* translators: Tag archive title. %s: Tag name */
 		$title = sprintf( __( 'Tag: %s' ), single_tag_title( '', false ) );
 	} elseif ( is_author() ) {
-		/* translators: Author archive title. 1: Author name */
+		/* translators: Author archive title. %s: Author name */
 		$title = sprintf( __( 'Author: %s' ), '<span class="vcard">' . get_the_author() . '</span>' );
 	} elseif ( is_year() ) {
-		/* translators: Yearly archive title. 1: Year */
+		/* translators: Yearly archive title. %s: Year */
 		$title = sprintf( __( 'Year: %s' ), get_the_date( _x( 'Y', 'yearly archives date format' ) ) );
 	} elseif ( is_month() ) {
-		/* translators: Monthly archive title. 1: Month name and year */
+		/* translators: Monthly archive title. %s: Month name and year */
 		$title = sprintf( __( 'Month: %s' ), get_the_date( _x( 'F Y', 'monthly archives date format' ) ) );
 	} elseif ( is_day() ) {
-		/* translators: Daily archive title. 1: Date */
+		/* translators: Daily archive title. %s: Date */
 		$title = sprintf( __( 'Day: %s' ), get_the_date( _x( 'F j, Y', 'daily archives date format' ) ) );
 	} elseif ( is_tax( 'post_format' ) ) {
 		if ( is_tax( 'post_format', 'post-format-aside' ) ) {
@@ -1528,7 +1528,7 @@ function get_the_archive_title() {
 			$title = _x( 'Chats', 'post format archive title' );
 		}
 	} elseif ( is_post_type_archive() ) {
-		/* translators: Post type archive title. 1: Post type name */
+		/* translators: Post type archive title. %s: Post type name */
 		$title = sprintf( __( 'Archives: %s' ), post_type_archive_title( '', false ) );
 	} elseif ( is_tax() ) {
 		$tax = get_taxonomy( get_queried_object()->taxonomy );
@@ -2140,7 +2140,7 @@ function get_calendar( $initial = true, $echo = true ) {
 		if ( in_array( $day, $daywithpost ) ) {
 			// any posts today?
 			$date_format = date( _x( 'F j, Y', 'daily archives date format' ), strtotime( "{$thisyear}-{$thismonth}-{$day}" ) );
-			/* translators: Post calendar label. 1: Date */
+			/* translators: Post calendar label. %s: Date */
 			$label            = sprintf( __( 'Posts published on %s' ), $date_format );
 			$calendar_output .= sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
@@ -3768,7 +3768,7 @@ function language_attributes( $doctype = 'html' ) {
  *     @type string $before_page_number A string to appear before the page number. Default empty.
  *     @type string $after_page_number  A string to append after the page number. Default empty.
  * }
- * @return array|string|void String of page links or array of page links.
+ * @return string|array|void String of page links or array of page links.
  */
 function paginate_links( $args = '' ) {
 	global $wp_query, $wp_rewrite;
@@ -3918,9 +3918,9 @@ function paginate_links( $args = '' ) {
 }
 
 /**
- * Registers an admin colour scheme css file.
+ * Registers an admin color scheme css file.
  *
- * Allows a plugin to register a new admin colour scheme. For example:
+ * Allows a plugin to register a new admin color scheme. For example:
  *
  *     wp_admin_css_color( 'classic', __( 'Classic' ), admin_url( "css/colors-classic.css" ), array(
  *         '#07273E', '#14568A', '#D54E21', '#2683AE'
@@ -3959,7 +3959,12 @@ function wp_admin_css_color( $key, $name, $url, $colors = array(), $icons = arra
 }
 
 /**
- * Registers the default Admin color schemes
+ * Registers the default admin color schemes.
+ *
+ * Registers the initial set of eight color schemes in the Profile section
+ * of the dashboard which allows for styling the admin menu and toolbar.
+ *
+ * @see wp_admin_css_color()
  *
  * @since 3.0.0
  */

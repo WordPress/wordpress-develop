@@ -21,7 +21,6 @@ final class WP_Theme implements ArrayAccess {
 	/**
 	 * Headers for style.css files.
 	 *
-	 * @static
 	 * @var array
 	 */
 	private static $file_headers = array(
@@ -41,7 +40,6 @@ final class WP_Theme implements ArrayAccess {
 	/**
 	 * Default themes.
 	 *
-	 * @static
 	 * @var array
 	 */
 	private static $default_themes = array(
@@ -60,7 +58,6 @@ final class WP_Theme implements ArrayAccess {
 	/**
 	 * Renamed theme tags.
 	 *
-	 * @static
 	 * @var array
 	 */
 	private static $tag_map = array(
@@ -158,7 +155,6 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * Default is false. Can be set with the {@see 'wp_cache_themes_persistently'} filter.
 	 *
-	 * @static
 	 * @var bool
 	 */
 	private static $persistently_cache;
@@ -168,7 +164,6 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * By default the bucket is not cached, so this value is useless.
 	 *
-	 * @static
 	 * @var bool
 	 */
 	private static $cache_expiration = 1800;
@@ -1210,8 +1205,6 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @static
-	 *
 	 * @param string            $path          Absolute path to search.
 	 * @param array|string|null $extensions    Optional. Array of extensions to find, string of a single extension,
 	 *                                         or null for all extensions. Default null.
@@ -1362,8 +1355,6 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @static
-	 *
 	 * @param int $blog_id Optional. ID of the site. Defaults to the current site.
 	 * @return array Array of stylesheet names.
 	 */
@@ -1387,8 +1378,6 @@ final class WP_Theme implements ArrayAccess {
 	 * Returns array of stylesheet names of themes allowed on the network.
 	 *
 	 * @since 3.4.0
-	 *
-	 * @static
 	 *
 	 * @staticvar array $allowed_themes
 	 *
@@ -1416,8 +1405,6 @@ final class WP_Theme implements ArrayAccess {
 	 * Returns array of stylesheet names of themes allowed on the site.
 	 *
 	 * @since 3.4.0
-	 *
-	 * @static
 	 *
 	 * @staticvar array $allowed_themes
 	 *
@@ -1498,7 +1485,6 @@ final class WP_Theme implements ArrayAccess {
 	 * Enables a theme for all sites on the current network.
 	 *
 	 * @since 4.6.0
-	 * @static
 	 *
 	 * @param string|array $stylesheets Stylesheet name or array of stylesheet names.
 	 */
@@ -1523,7 +1509,6 @@ final class WP_Theme implements ArrayAccess {
 	 * Disables a theme for all sites on the current network.
 	 *
 	 * @since 4.6.0
-	 * @static
 	 *
 	 * @param string|array $stylesheets Stylesheet name or array of stylesheet names.
 	 */
@@ -1551,14 +1536,15 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @static
-	 *
 	 * @param array $themes Array of themes to sort (passed by reference).
 	 */
 	public static function sort_by_name( &$themes ) {
 		if ( 0 === strpos( get_user_locale(), 'en_' ) ) {
 			uasort( $themes, array( 'WP_Theme', '_name_sort' ) );
 		} else {
+			foreach ( $themes as $key => $theme ) {
+				$theme->translate_header( 'Name', $theme->headers['Name'] );
+			}
 			uasort( $themes, array( 'WP_Theme', '_name_sort_i18n' ) );
 		}
 	}
@@ -1571,8 +1557,6 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @static
-	 *
 	 * @param string $a First name.
 	 * @param string $b Second name.
 	 * @return int Negative if `$a` falls lower in the natural order than `$b`. Zero if they fall equally.
@@ -1583,11 +1567,9 @@ final class WP_Theme implements ArrayAccess {
 	}
 
 	/**
-	 * Name sort (with translation).
+	 * Callback function for usort() to naturally sort themes by translated name.
 	 *
 	 * @since 3.4.0
-	 *
-	 * @static
 	 *
 	 * @param string $a First name.
 	 * @param string $b Second name.
@@ -1595,7 +1577,6 @@ final class WP_Theme implements ArrayAccess {
 	 *             Greater than 0 if `$a` falls higher in the natural order than `$b`. Used with usort().
 	 */
 	private static function _name_sort_i18n( $a, $b ) {
-		// Don't mark up; Do translate.
-		return strnatcasecmp( $a->display( 'Name', false, true ), $b->display( 'Name', false, true ) );
+		return strnatcasecmp( $a->name_translated, $b->name_translated );
 	}
 }

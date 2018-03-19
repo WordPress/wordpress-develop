@@ -762,4 +762,45 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		$this->assertNotContains( 'current-menu-ancestor', $post_archive_menu_item->classes );
 	}
 
+	/**
+	 * Provides IRI matching data for _wp_menu_item_classes_by_context() test.
+	 */
+	function get_iri_current_menu_items() {
+		return array(
+			array( site_url( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82/' ) ),
+			array( site_url( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82' ) ),
+			array( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82/' ),
+			array( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82' ),
+			array( '/привет/' ),
+			array( '/привет' ),
+		);
+	}
+
+	/**
+	 * @ticket 43401
+	 * @dataProvider get_iri_current_menu_items
+	 */
+	function test_iri_current_menu_item( $custom_link, $current = true ) {
+		wp_update_nav_menu_item(
+			$this->menu_id, 0, array(
+				'menu-item-status' => 'publish',
+				'menu-item-type'   => 'custom',
+				'menu-item-url'    => $custom_link,
+			)
+		);
+
+		$this->go_to( site_url( '/%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82/' ) );
+
+		$menu_items = wp_get_nav_menu_items( $this->menu_id );
+		_wp_menu_item_classes_by_context( $menu_items );
+
+		$classes = $menu_items[0]->classes;
+
+		if ( $current ) {
+			$this->assertContains( 'current-menu-item', $classes );
+		} else {
+			$this->assertNotContains( 'current-menu-item', $classes );
+		}
+	}
+
 }

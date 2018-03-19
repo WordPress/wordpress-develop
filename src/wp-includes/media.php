@@ -1493,20 +1493,23 @@ add_shortcode( 'caption', 'img_caption_shortcode' );
  * filter is {@see 'img_caption_shortcode'} and passes an empty string, the attr
  * parameter and the content parameter values.
  *
- * The supported attributes for the shortcode are 'id', 'align', 'width', and
- * 'caption'.
+ * The supported attributes for the shortcode are 'id', 'caption_id', 'align',
+ * 'width', 'caption', and 'class'.
  *
  * @since 2.6.0
+ * @since 3.9.0 The `class` attribute was added.
+ * @since 5.0.0 The `caption_id` attribute was added.
  *
  * @param array  $attr {
  *     Attributes of the caption shortcode.
  *
- *     @type string $id      ID of the div element for the caption.
- *     @type string $align   Class name that aligns the caption. Default 'alignnone'. Accepts 'alignleft',
- *                           'aligncenter', alignright', 'alignnone'.
- *     @type int    $width   The width of the caption, in pixels.
- *     @type string $caption The caption text.
- *     @type string $class   Additional class name(s) added to the caption container.
+ *     @type string $id         ID of the image and caption container element, i.e. `<figure>` or `<div>`.
+ *     @type string $caption_id ID of the caption element, i.e. `<figcaption>` or `<p>`.
+ *     @type string $align      Class name that aligns the caption. Default 'alignnone'. Accepts 'alignleft',
+ *                              'aligncenter', alignright', 'alignnone'.
+ *     @type int    $width      The width of the caption, in pixels.
+ *     @type string $caption    The caption text.
+ *     @type string $class      Additional class name(s) added to the caption container.
  * }
  * @param string $content Shortcode content.
  * @return string HTML content to display the caption.
@@ -1543,11 +1546,12 @@ function img_caption_shortcode( $attr, $content = null ) {
 
 	$atts = shortcode_atts(
 		array(
-			'id'      => '',
-			'align'   => 'alignnone',
-			'width'   => '',
-			'caption' => '',
-			'class'   => '',
+			'id'         => '',
+			'caption_id' => '',
+			'align'      => 'alignnone',
+			'width'      => '',
+			'caption'    => '',
+			'class'      => '',
 		), $attr, 'caption'
 	);
 
@@ -1556,8 +1560,22 @@ function img_caption_shortcode( $attr, $content = null ) {
 		return $content;
 	}
 
-	if ( ! empty( $atts['id'] ) ) {
-		$atts['id'] = 'id="' . esc_attr( sanitize_html_class( $atts['id'] ) ) . '" ';
+	$id = $caption_id = $describedby = '';
+
+	if ( $atts['id'] ) {
+		$atts['id'] = sanitize_html_class( $atts['id'] );
+		$id         = 'id="' . esc_attr( $atts['id'] ) . '" ';
+	}
+
+	if ( $atts['caption_id'] ) {
+		$atts['caption_id'] = sanitize_html_class( $atts['caption_id'] );
+	} elseif ( $atts['id'] ) {
+		$atts['caption_id'] = 'caption-' . str_replace( '_', '-', $atts['id'] );
+	}
+
+	if ( $atts['caption_id'] ) {
+		$caption_id  = 'id="' . esc_attr( $atts['caption_id'] ) . '" ';
+		$describedby = 'aria-describedby="' . esc_attr( $atts['caption_id'] ) . '" ';
 	}
 
 	$class = trim( 'wp-caption ' . $atts['align'] . ' ' . $atts['class'] );
@@ -1585,15 +1603,36 @@ function img_caption_shortcode( $attr, $content = null ) {
 
 	$style = '';
 	if ( $caption_width ) {
-		$style = 'style="max-width: ' . (int) $caption_width . 'px" ';
+		$style = 'style="width: ' . (int) $caption_width . 'px" ';
 	}
 
 	if ( $html5 ) {
-		$html = '<figure ' . $atts['id'] . $style . 'class="' . esc_attr( $class ) . '">'
-		. do_shortcode( $content ) . '<figcaption class="wp-caption-text">' . $atts['caption'] . '</figcaption></figure>';
+		$html = sprintf(
+			'<figure %s%s%sclass="%s">%s%s</figure>',
+			$id,
+			$describedby,
+			$style,
+			esc_attr( $class ),
+			do_shortcode( $content ),
+			sprintf(
+				'<figcaption %sclass="wp-caption-text">%s</figcaption>',
+				$caption_id,
+				$atts['caption']
+			)
+		);
 	} else {
-		$html = '<div ' . $atts['id'] . $style . 'class="' . esc_attr( $class ) . '">'
-		. do_shortcode( $content ) . '<p class="wp-caption-text">' . $atts['caption'] . '</p></div>';
+		$html = sprintf(
+			'<div %s%sclass="%s">%s%s</div>',
+			$id,
+			$style,
+			esc_attr( $class ),
+			str_replace( '<img ', '<img ' . $describedby, do_shortcode( $content ) ),
+			sprintf(
+				'<p %sclass="wp-caption-text">%s</p>',
+				$caption_id,
+				$atts['caption']
+			)
+		);
 	}
 
 	return $html;
@@ -2208,10 +2247,10 @@ function wp_get_audio_extensions() {
 	 *
 	 * @since 3.6.0
 	 *
-	 * @param array $extensions An array of support audio formats. Defaults are
-	 *                          'mp3', 'ogg', 'flac', 'm4a', 'wav'.
+	 * @param array $extensions An array of supported audio formats. Defaults are
+	 *                          'mp3', 'aac', 'ogg', 'flac', 'm4a', 'wav'.
 	 */
-	return apply_filters( 'wp_audio_extensions', array( 'mp3', 'ogg', 'flac', 'm4a', 'wav' ) );
+	return apply_filters( 'wp_audio_extensions', array( 'mp3', 'aac', 'ogg', 'flac', 'm4a', 'wav' ) );
 }
 
 /**
@@ -2443,7 +2482,7 @@ function wp_get_video_extensions() {
 	 *
 	 * @since 3.6.0
 	 *
-	 * @param array $extensions An array of support video formats. Defaults are
+	 * @param array $extensions An array of supported video formats. Defaults are
 	 *                          'mp4', 'm4v', 'webm', 'ogv', 'flv'.
 	 */
 	return apply_filters( 'wp_video_extensions', array( 'mp4', 'm4v', 'webm', 'ogv', 'flv' ) );

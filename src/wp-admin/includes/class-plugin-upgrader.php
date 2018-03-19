@@ -135,7 +135,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 * @since 2.8.0
 	 * @since 3.7.0 The `$args` parameter was added, making clearing the plugin update cache optional.
 	 *
-	 * @param string $plugin The basename path to the main plugin file.
+	 * @param string $plugin Path to the plugin file relative to the plugins directory.
 	 * @param array  $args {
 	 *     Optional. Other arguments for upgrading a plugin package. Default empty array.
 	 *
@@ -209,12 +209,11 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 * @since 2.8.0
 	 * @since 3.7.0 The `$args` parameter was added, making clearing the plugin update cache optional.
 	 *
-	 * @param array $plugins Array of the basename paths of the plugins' main files.
-	 * @param array $args {
-	 *     Optional. Other arguments for upgrading several plugins at once. Default empty array.
+	 * @param string[] $plugins Array of paths to plugin files relative to the plugins directory.
+	 * @param array    $args {
+	 *     Optional. Other arguments for upgrading several plugins at once.
 	 *
-	 *     @type bool $clear_update_cache Whether to clear the plugin updates cache if successful.
-	 *                                    Default true.
+	 *     @type bool $clear_update_cache Whether to clear the plugin updates cache if successful. Default true.
 	 * }
 	 * @return array|false An array of results indexed by plugin file, or false if unable to connect to the filesystem.
 	 */
@@ -307,14 +306,12 @@ class Plugin_Upgrader extends WP_Upgrader {
 		wp_clean_plugins_cache( $parsed_args['clear_update_cache'] );
 
 		/** This action is documented in wp-admin/includes/class-wp-upgrader.php */
-		do_action(
-			'upgrader_process_complete', $this, array(
-				'action'  => 'update',
-				'type'    => 'plugin',
-				'bulk'    => true,
-				'plugins' => $plugins,
-			)
-		);
+		do_action( 'upgrader_process_complete', $this, array(
+			'action'  => 'update',
+			'type'    => 'plugin',
+			'bulk'    => true,
+			'plugins' => $plugins,
+		) );
 
 		$this->skin->bulk_footer();
 
@@ -334,7 +331,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 *
 	 * @since 3.3.0
 	 *
-	 * @global WP_Filesystem_Base $wp_filesystem Subclass
+	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
 	 * @param string $source The path to the downloaded package source.
 	 * @return string|WP_Error The source as passed, or a WP_Error object
@@ -443,7 +440,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @global WP_Filesystem_Base $wp_filesystem Subclass
+	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
 	 * @param bool|WP_Error $removed
 	 * @param string        $local_destination

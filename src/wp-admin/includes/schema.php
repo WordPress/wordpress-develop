@@ -267,6 +267,15 @@ CREATE TABLE $wpdb->blog_versions (
   PRIMARY KEY  (blog_id),
   KEY db_version (db_version)
 ) $charset_collate;
+CREATE TABLE $wpdb->blogmeta (
+  meta_id bigint(20) unsigned NOT NULL auto_increment,
+  blog_id bigint(20) NOT NULL default '0',
+  meta_key varchar(255) default NULL,
+  meta_value longtext,
+  PRIMARY KEY  (meta_id),
+  KEY meta_key (meta_key($max_index_length)),
+  KEY blog_id (blog_id)
+) $charset_collate;
 CREATE TABLE $wpdb->registration_log (
   ID bigint(20) NOT NULL auto_increment,
   email varchar(255) NOT NULL default '',
@@ -980,7 +989,7 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 		$errors->add( 'invalid_email', __( 'You must provide a valid email address.' ) );
 	}
 
-	if ( $errors->get_error_code() ) {
+	if ( $errors->has_errors() ) {
 		return $errors;
 	}
 

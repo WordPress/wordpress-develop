@@ -240,7 +240,7 @@ final class WP_Customize_Manager {
 	 * Constructor.
 	 *
 	 * @since 3.4.0
-	 * @since 4.7.0 Added $args param.
+	 * @since 4.7.0 Added `$args` parameter.
 	 *
 	 * @param array $args {
 	 *     Args.
@@ -447,7 +447,7 @@ final class WP_Customize_Manager {
 		}
 
 		if ( ! $message ) {
-			$message = __( 'An error has occurred.' );
+			$message = __( 'Something went wrong.' );
 		}
 
 		if ( $this->messenger_channel ) {
@@ -512,7 +512,7 @@ final class WP_Customize_Manager {
 				auth_redirect();
 			} else {
 				wp_die(
-					'<h1>' . __( 'You don&#8217;t have permission to do this.' ) . '</h1>' .
+					'<h1>' . __( 'You need a higher level of permission.' ) . '</h1>' .
 					'<p>' . __( 'Sorry, you are not allowed to customize this site.' ) . '</p>',
 					403
 				);
@@ -1683,7 +1683,7 @@ final class WP_Customize_Manager {
 	 * incoming post data.
 	 *
 	 * @since 4.1.1
-	 * @since 4.7.0 Added $args param and merging with changeset values and stashed theme mods.
+	 * @since 4.7.0 Added `$args` parameter and merging with changeset values and stashed theme mods.
 	 *
 	 * @param array $args {
 	 *     Args.
@@ -2302,7 +2302,7 @@ final class WP_Customize_Manager {
 			if ( ! is_wp_error( $validity ) ) {
 				/** This filter is documented in wp-includes/class-wp-customize-setting.php */
 				$late_validity = apply_filters( "customize_validate_{$setting->id}", new WP_Error(), $unsanitized_value, $setting );
-				if ( ! empty( $late_validity->errors ) ) {
+				if ( $late_validity->has_errors() ) {
 					$validity = $late_validity;
 				}
 			}
@@ -3623,7 +3623,6 @@ final class WP_Customize_Manager {
 	 *  Optional. Array of properties for the new WP_Customize_Setting. Default empty array.
 	 *
 	 *  @type string       $type                  Type of the setting. Default 'theme_mod'.
-	 *                                            Default 160.
 	 *  @type string       $capability            Capability required for the setting. Default 'edit_theme_options'
 	 *  @type string|array $theme_supports        Theme features required to support the panel. Default is none.
 	 *  @type string       $default               Default value for the setting. Default is empty string.

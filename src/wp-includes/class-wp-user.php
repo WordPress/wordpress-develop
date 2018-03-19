@@ -101,7 +101,6 @@ class WP_User {
 	private $site_id = 0;
 
 	/**
-	 * @static
 	 * @since 3.3.0
 	 * @var array
 	 */
@@ -179,8 +178,6 @@ class WP_User {
 	 *
 	 * @since 3.3.0
 	 * @since 4.4.0 Added 'ID' as an alias of 'id' for the `$field` parameter.
-	 *
-	 * @static
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -481,9 +478,9 @@ class WP_User {
 	 * Retrieve all of the role capabilities and merge with individual capabilities.
 	 *
 	 * All of the capabilities of the roles the user belongs to are merged with
-	 * the users individual roles. This also means that the user can be denied
-	 * specific roles that their role might have, but the specific user isn't
-	 * granted permission to.
+	 * user's individual capabilities. This also means that the user can be denied
+	 * specific capabilities that their role might have, but the user isn't granted
+	 * permission to.
 	 *
 	 * @since 2.0.0
 	 *
@@ -499,12 +496,12 @@ class WP_User {
 
 		$wp_roles = wp_roles();
 
-		//Filter out caps that are not role names and assign to $this->roles
+		// Filter out caps that are not role names and assign to $this->roles.
 		if ( is_array( $this->caps ) ) {
 			$this->roles = array_filter( array_keys( $this->caps ), array( $wp_roles, 'is_role' ) );
 		}
 
-		//Build $allcaps from role caps, overlay user's $caps
+		// Build $allcaps from role caps, overlay user's $caps.
 		$this->allcaps = array();
 		foreach ( (array) $this->roles as $role ) {
 			$the_role      = $wp_roles->get_role( $role );

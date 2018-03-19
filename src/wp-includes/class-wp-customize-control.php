@@ -20,8 +20,6 @@ class WP_Customize_Control {
 	 * Used when sorting two instances whose priorities are equal.
 	 *
 	 * @since 4.1.0
-	 *
-	 * @static
 	 * @var int
 	 */
 	protected static $instance_count = 0;
@@ -568,9 +566,8 @@ class WP_Customize_Control {
 					rows="5"
 					<?php echo $describedby_attr; ?>
 					<?php $this->input_attrs(); ?>
-					<?php $this->link(); ?>>
-					<?php echo esc_textarea( $this->value() ); ?>
-				</textarea>
+					<?php $this->link(); ?>
+				><?php echo esc_textarea( $this->value() ); ?></textarea>
 				<?php
 				break;
 			case 'dropdown-pages':
