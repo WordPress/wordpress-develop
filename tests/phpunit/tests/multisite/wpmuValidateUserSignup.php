@@ -62,6 +62,14 @@ if ( is_multisite() ) :
 			$this->assertContains( 'user_email', $v['errors']->get_error_codes() );
 		}
 
+		public function test_should_not_fail_for_emails_from_whitelisted_domains_with_mixed_case() {
+			$domains = array( 'foo.com', 'bar.org' );
+			update_site_option( 'limited_email_domains', $domains );
+
+			$v = wpmu_validate_user_signup( 'foo123', 'foo@BAR.org' );
+			$this->assertNotContains( 'user_email', $v['errors']->get_error_codes() );
+		}
+
 		public function test_should_fail_for_existing_user_name() {
 			$u = self::factory()->user->create( array( 'user_login' => 'foo123' ) );
 			$v = wpmu_validate_user_signup( 'foo123', 'foo@example.com' );
