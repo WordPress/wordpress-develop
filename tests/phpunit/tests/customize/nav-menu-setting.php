@@ -253,7 +253,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 
 		$term = (array) wp_get_nav_menu_object( $menu_id );
 		$this->assertNotEmpty( $term );
-		$this->assertNotInstanceOf( 'WP_Error', $term );
+		$this->assertNotWPError( $term );
 		$this->assertEqualSets( $post_value, wp_array_slice_assoc( $term, array_keys( $value ) ) );
 		$this->assertEquals( $menu_id, $term['term_id'] );
 		$this->assertEquals( $menu_id, $term['term_taxonomy_id'] );

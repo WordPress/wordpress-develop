@@ -476,7 +476,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$editor = wp_get_image_editor( $file );
 
-		$this->assertNotInstanceOf( 'WP_Error', $editor );
+		$this->assertNotWPError( $editor );
 
 		$editor->load();
 		$editor->resize( 5, 5 );
@@ -503,7 +503,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$editor = wp_get_image_editor( $file );
 
-		$this->assertNotInstanceOf( 'WP_Error', $editor );
+		$this->assertNotWPError( $editor );
 
 		$editor->load();
 
@@ -531,7 +531,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$expected = imagecolorsforindex( $image, $rgb );
 
 		$editor = new WP_Image_Editor_GD( $file );
-				$this->assertNotInstanceOf( 'WP_Error', $editor );
+				$this->assertNotWPError( $editor );
 				$editor->load();
 				$editor->rotate( 180 );
 				$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';

@@ -163,7 +163,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				$file = wp_tempnam();
 				$ret  = wp_save_image_file( $file, $img, $mime_type, 1 );
 				$this->assertNotEmpty( $ret );
-				$this->assertNotInstanceOf( 'WP_Error', $ret );
+				$this->assertNotWPError( $ret );
 				$this->assertEquals( $mime_type, $this->get_mime_type( $ret['path'] ) );
 
 				// Clean up
@@ -205,7 +205,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 			// Make assertions
 			$this->assertNotEmpty( $ret );
-			$this->assertNotInstanceOf( 'WP_Error', $ret );
+			$this->assertNotWPError( $ret );
 			$this->assertEquals( $mime_type, $this->get_mime_type( $ret['path'] ) );
 
 			// Clean up
@@ -249,7 +249,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 			// Save the image as each file extension, check the mime type
 			$img = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
-			$this->assertNotInstanceOf( 'WP_Error', $img );
+			$this->assertNotWPError( $img );
 
 			$temp = get_temp_dir();
 			foreach ( $mime_types as $ext => $mime_type ) {
@@ -260,7 +260,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				$file = wp_unique_filename( $temp, uniqid() . ".$ext" );
 				$ret  = $img->save( trailingslashit( $temp ) . $file );
 				$this->assertNotEmpty( $ret );
-				$this->assertNotInstanceOf( 'WP_Error', $ret );
+				$this->assertNotWPError( $ret );
 				$this->assertEquals( $mime_type, $this->get_mime_type( $ret['path'] ) );
 				unlink( $ret['path'] );
 			}
@@ -310,7 +310,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			DIR_TESTDATA . '/images/canola.jpg',
 			0, 0, 100, 100, 100, 100
 		);
-		$this->assertNotInstanceOf( 'WP_Error', $file );
+		$this->assertNotWPError( $file );
 		$this->assertFileExists( $file );
 		$image = wp_get_image_editor( $file );
 		$size  = $image->get_size();
@@ -334,7 +334,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			0, 0, 100, 100, 100, 100, false,
 			DIR_TESTDATA . '/images/' . __FUNCTION__ . '.jpg'
 		);
-		$this->assertNotInstanceOf( 'WP_Error', $file );
+		$this->assertNotWPError( $file );
 		$this->assertFileExists( $file );
 		$image = wp_get_image_editor( $file );
 		$size  = $image->get_size();

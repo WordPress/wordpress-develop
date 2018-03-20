@@ -645,7 +645,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 		$this->assertEquals( 'changeset_lock_dismissed', $this->_last_response_parsed['data'] );
 
 		$_POST['dismiss_autosave'] = $_GET['dismiss_autosave'] = $_REQUEST['dismiss_autosave'] = true;
-		$this->assertNotInstanceOf( 'WP_Error', $r );
+		$this->assertNotWPError( $r );
 		$this->assertFalse( wp_get_post_autosave( $wp_customize->changeset_post_id() ) );
 		$this->assertContains( 'Foo', get_post( $wp_customize->changeset_post_id() )->post_content );
 
@@ -665,7 +665,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 				'autosave' => true,
 			)
 		);
-		$this->assertNotInstanceOf( 'WP_Error', $r );
+		$this->assertNotWPError( $r );
 		$autosave_revision = wp_get_post_autosave( $wp_customize->changeset_post_id() );
 		$this->assertInstanceOf( 'WP_Post', $autosave_revision );
 		$this->assertContains( 'Foo', get_post( $wp_customize->changeset_post_id() )->post_content );
