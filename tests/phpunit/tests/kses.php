@@ -732,4 +732,97 @@ EOF;
 
 		$this->assertEquals( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => false ), array() ) );
 	}
+
+	/**
+	 * Testing the safecss_filter_attr() function.
+	 *
+	 * @ticket 42729
+	 * @dataProvider data_test_safecss_filter_attr
+	 *
+	 * @param string $css      A string of CSS rules.
+	 * @param string $expected Expected string of CSS rules.
+	 */
+	public function test_safecss_filter_attr( $css, $expected ) {
+		$this->assertSame( $expected, safecss_filter_attr( $css ) );
+	}
+
+	/**
+	 * Data Provider for test_safecss_filter_attr().
+	 *
+	 * @return array {
+	 *     @type array {
+	 *         @string string $css      A string of CSS rules.
+	 *         @string string $expected Expected string of CSS rules.
+	 *     }
+	 * }
+	 */
+	public function data_test_safecss_filter_attr() {
+		return array(
+			// Empty input, empty output.
+			array(
+				'css'      => '',
+				'expected' => '',
+			),
+			// An arbitrary attribute name isn't allowed.
+			array(
+				'css'      => 'foo:bar',
+				'expected' => '',
+			),
+			// A single attribute name, with a single value.
+			array(
+				'css'      => 'margin-top: 2px',
+				'expected' => 'margin-top: 2px',
+			),
+			// Backslash \ isn't supported.
+			array(
+				'css'      => 'margin-top: \2px',
+				'expected' => '',
+			),
+			// Curly bracket } isn't supported.
+			array(
+				'css'      => 'margin-bottom: 2px}',
+				'expected' => '',
+			),
+			// A single attribute name, with a single text value.
+			array(
+				'css'      => 'text-transform: uppercase',
+				'expected' => 'text-transform: uppercase',
+			),
+			// Only lowercase attribute names are supported.
+			array(
+				'css'      => 'Text-transform: capitalize',
+				'expected' => '',
+			),
+			// Uppercase attribute values goes through.
+			array(
+				'css'      => 'text-transform: None',
+				'expected' => 'text-transform: None',
+			),
+			// A single attribute, with multiple values.
+			array(
+				'css'      => 'font: bold 15px arial, sans-serif',
+				'expected' => 'font: bold 15px arial, sans-serif',
+			),
+			// Multiple attributes, with single values.
+			array(
+				'css'      => 'font-weight: bold;font-size: 15px',
+				'expected' => 'font-weight: bold;font-size: 15px',
+			),
+			// Multiple attributes, separated by a space.
+			array(
+				'css'      => 'font-weight: bold; font-size: 15px',
+				'expected' => 'font-weight: bold;font-size: 15px',
+			),
+			// Multiple attributes, with multiple values.
+			array(
+				'css'      => 'margin: 10px 20px;padding: 5px 10px',
+				'expected' => 'margin: 10px 20px;padding: 5px 10px',
+			),
+			// Parenthesis ( isn't supported.
+			array(
+				'css'      => 'background: green url("foo.jpg") no-repeat fixed center',
+				'expected' => '',
+			),
+		);
+	}
 }
