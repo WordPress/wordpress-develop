@@ -502,6 +502,41 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 				'unknown',
 				false,
 			),
+			// Invalid IP. Sometimes proxies add things like this, or other arbitrary strings.
+			array(
+				'or=\"[1000:0000:0000:0000:0000:0000:0000:0001',
+				false,
+			),
+			// Invalid IP. Sometimes proxies add things like this, or other arbitrary strings.
+			array(
+				'or=\"1000:0000:0000:0000:0000:0000:0000:0001',
+				false,
+			),
+			// Invalid IP. Sometimes proxies add things like this, or other arbitrary strings.
+			array(
+				'1000:0000:0000:0000:0000:0000:0000:0001or=\"',
+				false,
+			),
+			// Malformed string with valid IP substring. Sometimes proxies add things like this, or other arbitrary strings.
+			array(
+				'or=\"[1000:0000:0000:0000:0000:0000:0000:0001]:400',
+				'1000::',
+			),
+			// Malformed string with valid IP substring. Sometimes proxies add things like this, or other arbitrary strings.
+			array(
+				'or=\"[1000:0000:0000:0000:0000:0000:0000:0001]',
+				'1000::',
+			),
+			// Malformed string with valid IP substring. Sometimes proxies add things like this, or other arbitrary strings.
+			array(
+				'or=\"[1000:0000:0000:0000:0000:0000:0000:0001]400',
+				'1000::',
+			),
+			// Malformed string with valid IP substring. Sometimes proxies add things like this, or other arbitrary strings.
+			array(
+				'[1000:0000:0000:0000:0000:0000:0000:0001]:235\"or=',
+				'1000::',
+			),
 			// IPv4, no port
 			array(
 				'10.20.30.45',
@@ -569,7 +604,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 			),
 			// IPv6, port, compatibility mode
 			array(
-				'[::ffff:10.15.20.25]:30000',
+				'[::FFFF:10.15.20.25]:30000',
 				'::ffff:10.15.20.0',
 			),
 			// IPv6, no port, compatibility mode shorthand
@@ -581,6 +616,16 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 			array(
 				'[::127.0.0.1]:30000',
 				'::ffff:127.0.0.0',
+			),
+			// IPv6 with reachability scope
+			array(
+				'fe80::b059:65f4:e877:c40%16',
+				'fe80::',
+			),
+			// IPv6 with reachability scope
+			array(
+				'FE80::B059:65F4:E877:C40%eth0',
+				'fe80::',
 			),
 		);
 	}
