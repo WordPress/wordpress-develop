@@ -479,153 +479,47 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	/**
 	 * Test that get_unsafe_client_ip() properly anonymizes all possible address formats
 	 *
-	 * @dataProvider data_get_unsafe_client_ip_anonymization
+	 * @dataProvider data_get_unsafe_client_ip
 	 *
 	 * @ticket 41083
 	 */
-	public function test_get_unsafe_client_ip_anonymization( $raw_ip, $expected_result ) {
-		$_SERVER['REMOTE_ADDR'] = $raw_ip;
-		$actual_result          = WP_Community_Events::get_unsafe_client_ip();
+	public function test_get_unsafe_client_ip( $raw_ip, $expected_result ) {
+		$_SERVER['REMOTE_ADDR']    = 'this should not be used';
+		$_SERVER['HTTP_CLIENT_IP'] = $raw_ip;
+		$actual_result             = WP_Community_Events::get_unsafe_client_ip();
 
 		$this->assertEquals( $expected_result, $actual_result );
 	}
 
-	public function data_get_unsafe_client_ip_anonymization() {
+	/**
+	 * Provide test cases for `test_get_unsafe_client_ip()`.
+	 *
+	 * @return array
+	 */
+	public function data_get_unsafe_client_ip() {
 		return array(
-			// Invalid IP.
-			array(
-				'',    // Raw IP address
-				false, // Expected result
-			),
-			// Invalid IP. Sometimes proxies add things like this, or other arbitrary strings.
-			array(
-				'unknown',
-				false,
-			),
-			// Invalid IP. Sometimes proxies add things like this, or other arbitrary strings.
+			// Handle '::' returned from `wp_privacy_anonymize_ip()`.
 			array(
 				'or=\"[1000:0000:0000:0000:0000:0000:0000:0001',
 				false,
 			),
-			// Invalid IP. Sometimes proxies add things like this, or other arbitrary strings.
+
+			// Handle '0.0.0.0' returned from `wp_privacy_anonymize_ip()`.
 			array(
-				'or=\"1000:0000:0000:0000:0000:0000:0000:0001',
+				'unknown',
 				false,
 			),
-			// Invalid IP. Sometimes proxies add things like this, or other arbitrary strings.
+
+			// Valid IPv4.
 			array(
-				'1000:0000:0000:0000:0000:0000:0000:0001or=\"',
-				false,
+				'198.143.164.252',
+				'198.143.164.0',
 			),
-			// Malformed string with valid IP substring. Sometimes proxies add things like this, or other arbitrary strings.
-			array(
-				'or=\"[1000:0000:0000:0000:0000:0000:0000:0001]:400',
-				'1000::',
-			),
-			// Malformed string with valid IP substring. Sometimes proxies add things like this, or other arbitrary strings.
-			array(
-				'or=\"[1000:0000:0000:0000:0000:0000:0000:0001]',
-				'1000::',
-			),
-			// Malformed string with valid IP substring. Sometimes proxies add things like this, or other arbitrary strings.
-			array(
-				'or=\"[1000:0000:0000:0000:0000:0000:0000:0001]400',
-				'1000::',
-			),
-			// Malformed string with valid IP substring. Sometimes proxies add things like this, or other arbitrary strings.
-			array(
-				'[1000:0000:0000:0000:0000:0000:0000:0001]:235\"or=',
-				'1000::',
-			),
-			// IPv4, no port
-			array(
-				'10.20.30.45',
-				'10.20.30.0',
-			),
-			// IPv4, port
-			array(
-				'10.20.30.45:20000',
-				'10.20.30.0',
-			),
-			// IPv6, no port
+
+			// Valid IPv6.
 			array(
 				'2a03:2880:2110:df07:face:b00c::1',
 				'2a03:2880:2110:df07::',
-			),
-			// IPv6, port
-			array(
-				'[2a03:2880:2110:df07:face:b00c::1]:20000',
-				'2a03:2880:2110:df07::',
-			),
-			// IPv6, no port, reducible representation
-			array(
-				'0000:0000:0000:0000:0000:0000:0000:0001',
-				'::',
-			),
-			// IPv6, no port, partially reducible representation
-			array(
-				'1000:0000:0000:0000:0000:0000:0000:0001',
-				'1000::',
-			),
-			// IPv6, port, reducible representation
-			array(
-				'[0000:0000:0000:0000:0000:0000:0000:0001]:1234',
-				'::',
-			),
-			// IPv6, port, partially reducible representation
-			array(
-				'[1000:0000:0000:0000:0000:0000:0000:0001]:5678',
-				'1000::',
-			),
-			// IPv6, no port, reduced representation
-			array(
-				'::',
-				'::',
-			),
-			// IPv6, no port, reduced representation
-			array(
-				'::1',
-				'::',
-			),
-			// IPv6, port, reduced representation
-			array(
-				'[::]:20000',
-				'::',
-			),
-			// IPv6, address brackets without port delimiter and number, reduced representation
-			array(
-				'[::1]',
-				'::',
-			),
-			// IPv6, no port, compatibility mode
-			array(
-				'::ffff:10.15.20.25',
-				'::ffff:10.15.20.0',
-			),
-			// IPv6, port, compatibility mode
-			array(
-				'[::FFFF:10.15.20.25]:30000',
-				'::ffff:10.15.20.0',
-			),
-			// IPv6, no port, compatibility mode shorthand
-			array(
-				'::127.0.0.1',
-				'::ffff:127.0.0.0',
-			),
-			// IPv6, port, compatibility mode shorthand
-			array(
-				'[::127.0.0.1]:30000',
-				'::ffff:127.0.0.0',
-			),
-			// IPv6 with reachability scope
-			array(
-				'fe80::b059:65f4:e877:c40%16',
-				'fe80::',
-			),
-			// IPv6 with reachability scope
-			array(
-				'FE80::B059:65F4:E877:C40%eth0',
-				'fe80::',
 			),
 		);
 	}
