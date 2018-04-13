@@ -314,6 +314,10 @@ mockedApiResponse.Schema = {
                                     "trash",
                                     "auto-draft",
                                     "inherit",
+                                    "request-pending",
+                                    "request-confirmed",
+                                    "request-failed",
+                                    "request-completed",
                                     "any"
                                 ],
                                 "type": "string"
@@ -949,6 +953,10 @@ mockedApiResponse.Schema = {
                                     "trash",
                                     "auto-draft",
                                     "inherit",
+                                    "request-pending",
+                                    "request-confirmed",
+                                    "request-failed",
+                                    "request-completed",
                                     "any"
                                 ],
                                 "type": "string"
