@@ -2512,6 +2512,14 @@ mockedApiResponse.Schema = {
                             "items": {
                                 "type": "string"
                             }
+                        },
+                        "who": {
+                            "required": false,
+                            "enum": [
+                                "authors"
+                            ],
+                            "description": "Limit result set to users who are considered authors.",
+                            "type": "string"
                         }
                     }
                 },

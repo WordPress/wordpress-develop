@@ -14,6 +14,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	protected static $user;
 	protected static $editor;
 	protected static $draft_editor;
+	protected static $subscriber;
 	protected static $authors = array();
 	protected static $posts   = array();
 	protected static $site;
@@ -40,6 +41,13 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			array(
 				'role'       => 'editor',
 				'user_email' => 'draft-editor@example.com',
+			)
+		);
+		self::$subscriber    = $factory->user->create(
+			array(
+				'role'         => 'subscriber',
+				'display_name' => 'subscriber',
+				'user_email'   => 'subscriber@example.com',
 			)
 		);
 
@@ -166,6 +174,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 				'roles',
 				'search',
 				'slug',
+				'who',
 			), $keys
 		);
 	}
@@ -280,7 +289,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/users' );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
-		$this->assertEquals( 53, $headers['X-WP-Total'] );
+		$this->assertEquals( 54, $headers['X-WP-Total'] );
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
 		$next_link = add_query_arg(
 			array(
@@ -299,7 +308,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'page', 3 );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
-		$this->assertEquals( 54, $headers['X-WP-Total'] );
+		$this->assertEquals( 55, $headers['X-WP-Total'] );
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg(
 			array(
@@ -318,7 +327,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'page', 6 );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
-		$this->assertEquals( 54, $headers['X-WP-Total'] );
+		$this->assertEquals( 55, $headers['X-WP-Total'] );
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg(
 			array(
@@ -332,7 +341,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'page', 8 );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
-		$this->assertEquals( 54, $headers['X-WP-Total'] );
+		$this->assertEquals( 55, $headers['X-WP-Total'] );
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg(
 			array(
@@ -525,12 +534,12 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 	public function test_get_items_offset() {
 		wp_set_current_user( self::$user );
-		// 7 users created in wpSetUpBeforeClass(), plus default user.
+		// 9 users created in wpSetUpBeforeClass(), plus default user.
 		$this->factory->user->create();
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
 		$request->set_param( 'offset', 1 );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertCount( 9, $response->get_data() );
+		$this->assertCount( 10, $response->get_data() );
 		// 'offset' works with 'per_page'
 		$request->set_param( 'per_page', 2 );
 		$response = rest_get_server()->dispatch( $request );
@@ -744,9 +753,9 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'roles', 'author,subscriber' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 2, count( $data ) );
-		$this->assertEquals( $tango, $data[0]['id'] );
-		$this->assertEquals( $yolo, $data[1]['id'] );
+		$this->assertEquals( 3, count( $data ) );
+		$this->assertEquals( $tango, $data[1]['id'] );
+		$this->assertEquals( $yolo, $data[2]['id'] );
 		$request->set_param( 'roles', 'author' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
@@ -782,6 +791,43 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$data     = $response->get_data();
 		$this->assertEquals( 0, count( $data ) );
 		$this->assertEquals( array(), $data );
+	}
+
+	public function test_get_items_who_author_query() {
+		wp_set_current_user( self::$superadmin );
+		// First request should include subscriber in the set.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'search', 'subscriber' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertCount( 1, $response->get_data() );
+		// Second request should exclude subscriber.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'who', 'authors' );
+		$request->set_param( 'search', 'subscriber' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertCount( 0, $response->get_data() );
+	}
+
+	public function test_get_items_who_invalid_query() {
+		wp_set_current_user( self::$user );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'who', 'editor' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Any user with 'edit_posts' on a show_in_rest post type
+	 * can view authors. Others (e.g. subscribers) cannot.
+	 */
+	public function test_get_items_who_unauthorized_query() {
+		wp_set_current_user( self::$subscriber );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'who', 'authors' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_forbidden_who', $response, 403 );
 	}
 
 	public function test_get_item() {
