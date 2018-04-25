@@ -9,6 +9,10 @@
 	"engines": {
 		"node": "8.9.3"
 	},
+	"scripts":{
+		"build": "grunt build",
+		"qunit:reports": "grunt qunit:reports --force"
+	},
 	"author": "The WordPress Contributors",
 	"license": "GPL-2.0-or-later",
 	"devDependencies": {
