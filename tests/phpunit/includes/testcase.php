@@ -654,11 +654,20 @@ class WP_UnitTestCase extends PHPUnit_Framework_TestCase {
 
 		$annotations = $this->getAnnotations();
 
-		if ( ! empty( $annotations['group'] ) ) {
-			if ( in_array( 'ms-required', $annotations['group'], true ) ) {
+		$groups = array();
+		if ( ! empty( $annotations['class']['group'] ) ) {
+			$groups = array_merge( $groups, $annotations['class']['group'] );
+		}
+		if ( ! empty( $annotations['method']['group'] ) ) {
+			$groups = array_merge( $groups, $annotations['method']['group'] );
+		}
+
+		if ( ! empty( $groups ) ) {
+			if ( in_array( 'ms-required', $groups, true ) ) {
 				$this->skipWithoutMultisite();
 			}
-			if ( in_array( 'ms-excluded', $annotations['group'], true ) ) {
+
+			if ( in_array( 'ms-excluded', $groups, true ) ) {
 				$this->skipWithMultisite();
 			}
 		}
