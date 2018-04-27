@@ -256,6 +256,122 @@ class Tests_Multisite_Site_Meta extends WP_UnitTestCase {
 		get_site_meta( self::$site_id, 'foo', true );
 		$this->assertSame( $num_queries + 1, $wpdb->num_queries);
 	}
+
+	/**
+	 * @ticket 40229
+	 */
+	public function test_add_site_meta_should_bust_get_sites_cache() {
+		if ( ! is_site_meta_supported() ) {
+			$this->markTestSkipped( 'Tests only runs with the blogmeta database table installed' );
+		}
+
+		add_site_meta( self::$site_id, 'foo', 'bar' );
+
+		// Prime cache.
+		$found = get_sites( array(
+			'fields' => 'ids',
+			'meta_query' => array(
+				array(
+					'key' => 'foo',
+					'value' => 'bar',
+				),
+			),
+		) );
+
+		$this->assertEqualSets( array( self::$site_id ), $found );
+
+		add_site_meta( self::$site_id2, 'foo', 'bar' );
+
+		$found = get_sites( array(
+			'fields' => 'ids',
+			'meta_query' => array(
+				array(
+					'key' => 'foo',
+					'value' => 'bar',
+				),
+			),
+		) );
+
+		$this->assertEqualSets( array( self::$site_id, self::$site_id2 ), $found );
+	}
+
+	/**
+	 * @ticket 40229
+	 */
+	public function test_update_site_meta_should_bust_get_sites_cache() {
+		if ( ! is_site_meta_supported() ) {
+			$this->markTestSkipped( 'Tests only runs with the blogmeta database table installed' );
+		}
+
+		add_site_meta( self::$site_id, 'foo', 'bar' );
+		add_site_meta( self::$site_id2, 'foo', 'baz' );
+
+		// Prime cache.
+		$found = get_sites( array(
+			'fields' => 'ids',
+			'meta_query' => array(
+				array(
+					'key' => 'foo',
+					'value' => 'bar',
+				),
+			),
+		) );
+
+		$this->assertEqualSets( array( self::$site_id ), $found );
+
+		update_site_meta( self::$site_id2, 'foo', 'bar' );
+
+		$found = get_sites( array(
+			'fields' => 'ids',
+			'meta_query' => array(
+				array(
+					'key' => 'foo',
+					'value' => 'bar',
+				),
+			),
+		) );
+
+		$this->assertEqualSets( array( self::$site_id, self::$site_id2 ), $found );
+	}
+
+	/**
+	 * @ticket 40229
+	 */
+	public function test_delete_site_meta_should_bust_get_sites_cache() {
+		if ( ! is_site_meta_supported() ) {
+			$this->markTestSkipped( 'Tests only runs with the blogmeta database table installed' );
+		}
+
+		add_site_meta( self::$site_id, 'foo', 'bar' );
+		add_site_meta( self::$site_id2, 'foo', 'bar' );
+
+		// Prime cache.
+		$found = get_sites( array(
+			'fields' => 'ids',
+			'meta_query' => array(
+				array(
+					'key' => 'foo',
+					'value' => 'bar',
+				),
+			),
+		) );
+
+		$this->assertEqualSets( array( self::$site_id, self::$site_id2 ), $found );
+
+		delete_site_meta( self::$site_id2, 'foo', 'bar' );
+
+		$found = get_sites( array(
+			'fields' => 'ids',
+			'meta_query' => array(
+				array(
+					'key' => 'foo',
+					'value' => 'bar',
+				),
+			),
+		) );
+
+		$this->assertEqualSets( array( self::$site_id ), $found );
+	}
 }
 
 endif;
