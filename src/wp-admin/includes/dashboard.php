@@ -35,11 +35,11 @@ function wp_dashboard_setup() {
 		}
 	}
 
-	// PHP Version
+	// PHP Version.
 	$response = wp_check_php_version();
-	if ( $response && ! $response['is_acceptable'] && current_user_can( 'upgrade_php' ) ) {
-		$title = $response['is_secure'] ? __( 'Your site could be much faster!' ) : __( 'Your site could be much faster and more secure!' );
-		wp_add_dashboard_widget( 'dashboard_php_nag', $title, 'wp_dashboard_php_nag' );
+	if ( $response && isset( $response['is_acceptable'] ) && ! $response['is_acceptable'] && current_user_can( 'upgrade_php' ) ) {
+		add_filter( 'postbox_classes_dashboard_dashboard_php_nag', 'dashboard_php_nag_class' );
+		wp_add_dashboard_widget( 'dashboard_php_nag', __( 'PHP Update Required' ), 'wp_dashboard_php_nag' );
 	}
 
 	// Right Now
@@ -79,7 +79,7 @@ function wp_dashboard_setup() {
 		 *
 		 * @since 3.1.0
 		 *
-		 * @param array $dashboard_widgets An array of dashboard widgets.
+		 * @param string[] $dashboard_widgets An array of dashboard widget IDs.
 		 */
 		$dashboard_widgets = apply_filters( 'wp_network_dashboard_widgets', array() );
 	} elseif ( is_user_admin() ) {
@@ -96,7 +96,7 @@ function wp_dashboard_setup() {
 		 *
 		 * @since 3.1.0
 		 *
-		 * @param array $dashboard_widgets An array of dashboard widgets.
+		 * @param string[] $dashboard_widgets An array of dashboard widget IDs.
 		 */
 		$dashboard_widgets = apply_filters( 'wp_user_dashboard_widgets', array() );
 	} else {
@@ -113,7 +113,7 @@ function wp_dashboard_setup() {
 		 *
 		 * @since 2.5.0
 		 *
-		 * @param array $dashboard_widgets An array of dashboard widgets.
+		 * @param string[] $dashboard_widgets An array of dashboard widget IDs.
 		 */
 		$dashboard_widgets = apply_filters( 'wp_dashboard_widgets', array() );
 	}
@@ -314,7 +314,7 @@ function wp_dashboard_right_now() {
 	 *
 	 * @since 3.8.0
 	 *
-	 * @param array $items Array of extra 'At a Glance' widget items.
+	 * @param string[] $items Array of extra 'At a Glance' widget items.
 	 */
 	$elements = apply_filters( 'dashboard_glance_items', array() );
 
@@ -439,10 +439,8 @@ function wp_network_dashboard_right_now() {
 		 * just before the user and site search form fields.
 		 *
 		 * @since MU (3.0.0)
-		 *
-		 * @param null $unused
 		 */
-		do_action( 'wpmuadminresult', '' );
+		do_action( 'wpmuadminresult' );
 	?>
 
 	<form action="<?php echo network_admin_url( 'users.php' ); ?>" method="get">
@@ -555,7 +553,7 @@ function wp_dashboard_quick_press( $error_msg = false ) {
  *
  * @since 2.7.0
  *
- * @param array $drafts
+ * @param WP_Post[] $drafts Optional. Array of posts to display. Default false.
  */
 function wp_dashboard_recent_drafts( $drafts = false ) {
 	if ( ! $drafts ) {
@@ -671,7 +669,7 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 		 *
 		 * @since 2.6.0
 		 *
-		 * @param array      $actions An array of comment actions. Default actions include:
+		 * @param string[]   $actions An array of comment actions. Default actions include:
 		 *                            'Approve', 'Unapprove', 'Edit', 'Reply', 'Spam',
 		 *                            'Delete', and 'Trash'.
 		 * @param WP_Comment $comment The comment object.
@@ -1529,7 +1527,7 @@ function wp_dashboard_browser_nag() {
 	 * @since 3.2.0
 	 *
 	 * @param string $notice   The notice content.
-	 * @param array  $response An array containing web browser information.
+	 * @param array  $response An array containing web browser information. See `wp_check_browser_version()`.
 	 */
 	echo apply_filters( 'browse-happy-notice', $notice, $response );
 }
@@ -1620,32 +1618,48 @@ function wp_dashboard_php_nag() {
 		return;
 	}
 
-	$information_url = _x( 'https://wordpress.org/support/upgrade-php/', 'localized PHP upgrade information page' );
-
-	$msg = __( 'Hi, it&#8217;s your friends at WordPress here.' );
-	if ( ! $response['is_secure'] ) {
-		$msg .= ' ' . __( 'We noticed that your site is running on an insecure version of PHP, which is why we&#8217;re showing you this notice.' );
+	if ( isset( $response['is_secure'] ) && ! $response['is_secure'] ) {
+		$msg = __( 'WordPress has detected that your site is running on an insecure version of PHP.' );
 	} else {
-		$msg .= ' ' . __( 'We noticed that your site is running on an outdated version of PHP, which is why we&#8217;re showing you this notice.' );
+		$msg = __( 'WordPress has detected that your site is running on an outdated version of PHP.' );
 	}
 
 	?>
 	<p><?php echo $msg; ?></p>
 
-	<h3><?php _e( 'What is PHP and why should I care?' ); ?></h3>
-	<p><?php _e( 'PHP is the programming language that WordPress is built on. Newer versions of PHP are both faster and more secure, so upgrading is better for your site, and better for the people who are building WordPress.' ); ?></p>
-	<p><?php _e( 'If you want to know exactly how PHP works and why it is important, continue reading.' ); ?></p>
+	<h3><?php _e( 'What is PHP and how does it affect my site?' ); ?></h3>
+	<p><?php _e( 'PHP is the programming language we use to build and maintain WordPress. Newer versions of PHP are both faster and more secure, so updating will have a positive effect on your site’s performance.' ); ?></p>
 
-	<h3><?php _e( 'Okay, how do I update?' ); ?></h3>
-	<p><?php _e( 'The button below will take you to a page with more details on what PHP is, how to upgrade your PHP version, and what to do if it turns out you can&#8217;t.' ); ?></p>
-	<p>
-		<a class="button button-primary button-hero" href="<?php echo esc_url( $information_url ); ?>"><?php _e( 'Show me how to upgrade my PHP' ); ?></a>
+	<p class="button-container">
+		<?php
+			printf(
+				'<a class="button button-primary" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+				esc_url( _x( 'https://wordpress.org/support/upgrade-php/', 'localized PHP upgrade information page' ) ),
+				__( 'Learn more about updating PHP' ),
+				/* translators: accessibility text */
+				__( '(opens in a new tab)' )
+			);
+		?>
 	</p>
-
-	<h3><?php _e( 'Thank you for taking the time to read this!' ); ?></h3>
-	<p><?php _e( 'If you carefully follow the instructions we&#8217;ve provided, upgrading shouldn&#8217;t take more than a few minutes, and it is generally very safe to do.' ); ?></p>
-	<p><?php _e( 'Good luck and happy blogging!' ); ?></p>
 	<?php
+}
+
+/**
+ * Adds an additional class to the PHP nag if the current version is insecure.
+ *
+ * @since 5.0.0
+ *
+ * @param array $classes Metabox classes.
+ * @return array Modified metabox classes.
+ */
+function dashboard_php_nag_class( $classes ) {
+	$response = wp_check_php_version();
+
+	if ( $response && isset( $response['is_secure'] ) && ! $response['is_secure'] ) {
+		$classes[] = 'php-insecure';
+	}
+
+	return $classes;
 }
 
 /**
@@ -1653,7 +1667,7 @@ function wp_dashboard_php_nag() {
  *
  * @since 5.0.0
  *
- * @return array Array of PHP version data.
+ * @return array|false $response Array of PHP version data. False on failure.
  */
 function wp_check_php_version() {
 	$version = phpversion();
@@ -1670,16 +1684,16 @@ function wp_check_php_version() {
 
 		$response = wp_remote_get( $url );
 
-		if ( is_wp_error( $response ) || 200 != wp_remote_retrieve_response_code( $response ) ) {
+		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
 			return false;
 		}
 
 		/**
 		 * Response should be an array with:
-		 *  'recommended_version' - string - The PHP version recommended by WordPress
-		 *  'is_supported' - boolean - Whether the PHP version is actively supported
-		 *  'is_secure' - boolean - Whether the PHP version receives security updates
-		 *  'is_acceptable' - boolean - Whether the PHP version is still acceptable for WordPress
+		 *  'recommended_version' - string - The PHP version recommended by WordPress.
+		 *  'is_supported' - boolean - Whether the PHP version is actively supported.
+		 *  'is_secure' - boolean - Whether the PHP version receives security updates.
+		 *  'is_acceptable' - boolean - Whether the PHP version is still acceptable for WordPress.
 		 */
 		$response = json_decode( wp_remote_retrieve_body( $response ), true );
 

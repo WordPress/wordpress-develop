@@ -29,8 +29,8 @@ require_once( ABSPATH . 'wp-admin/includes/class-wp-internal-pointers.php' );
  *                                     $selected_cats must not be an array. Default 0.
  * @param int    $descendants_and_self Optional. ID of the category to output along with its descendants.
  *                                     Default 0.
- * @param array  $selected_cats        Optional. List of categories to mark as checked. Default false.
- * @param array  $popular_cats         Optional. List of categories to receive the "popular-category" class.
+ * @param int[]  $selected_cats        Optional. Array of category IDs to mark as checked. Default false.
+ * @param int[]  $popular_cats         Optional. Array of category IDs to receive the "popular-category" class.
  *                                     Default false.
  * @param object $walker               Optional. Walker object to use to build the output.
  *                                     Default is a Walker_Category_Checklist instance.
@@ -64,8 +64,8 @@ function wp_category_checklist( $post_id = 0, $descendants_and_self = 0, $select
  *
  *     @type int    $descendants_and_self ID of the category to output along with its descendants.
  *                                        Default 0.
- *     @type array  $selected_cats        List of categories to mark as checked. Default false.
- *     @type array  $popular_cats         List of categories to receive the "popular-category" class.
+ *     @type int[]  $selected_cats        Array of category IDs to mark as checked. Default false.
+ *     @type int[]  $popular_cats         Array of category IDs to receive the "popular-category" class.
  *                                        Default false.
  *     @type object $walker               Walker object to use to build the output.
  *                                        Default is a Walker_Category_Checklist instance.
@@ -1140,7 +1140,13 @@ function do_meta_boxes( $screen, $context, $object ) {
 						echo '<span class="toggle-indicator" aria-hidden="true"></span>';
 						echo '</button>';
 					}
-					echo "<h2 class='hndle'><span>{$box['title']}</span></h2>\n";
+					echo '<h2 class="hndle">';
+					if ( 'dashboard_php_nag' === $box['id'] ) {
+						echo '<span aria-hidden="true" class="dashicons dashicons-warning"></span>';
+						echo '<span class="screen-reader-text">' . __( 'Warning:' ) . ' </span>';
+					}
+					echo "<span>{$box['title']}</span>";
+					echo "</h2>\n";
 					echo '<div class="inside">' . "\n";
 					call_user_func( $box['callback'], $object, $box );
 					echo "</div>\n";
@@ -1788,6 +1794,7 @@ if ( is_rtl() ) {
 <?php
 /** This filter is documented in wp-admin/admin-header.php */
 $admin_body_classes = apply_filters( 'admin_body_class', '' );
+$admin_body_classes = ltrim( $admin_body_classes . ' ' . $admin_body_class );
 ?>
 <body
 <?php
@@ -1798,7 +1805,7 @@ if ( isset( $GLOBALS['body_id'] ) ) {
 	echo ' id="' . $GLOBALS['body_id'] . '"';
 }
 ?>
- class="wp-admin wp-core-ui no-js iframe <?php echo $admin_body_classes . ' ' . $admin_body_class; ?>">
+ class="wp-admin wp-core-ui no-js iframe <?php echo $admin_body_classes; ?>">
 <script type="text/javascript">
 (function(){
 var c = document.body.className;
@@ -1897,8 +1904,8 @@ function _post_states( $post ) {
 	 * @since 2.8.0
 	 * @since 3.6.0 Added the `$post` parameter.
 	 *
-	 * @param array   $post_states An array of post display states.
-	 * @param WP_Post $post        The current post object.
+	 * @param string[] $post_states An array of post display states.
+	 * @param WP_Post  $post        The current post object.
 	 */
 	$post_states = apply_filters( 'display_post_states', $post_states, $post );
 
@@ -1973,9 +1980,9 @@ function _media_states( $post ) {
 	 * @since 3.2.0
 	 * @since 4.8.0 Added the `$post` parameter.
 	 *
-	 * @param array   $media_states An array of media states. Default 'Header Image',
-	 *                              'Background Image', 'Site Icon', 'Logo'.
-	 * @param WP_Post $post         The current attachment object.
+	 * @param string[] $media_states An array of media states. Default 'Header Image',
+	 *                               'Background Image', 'Site Icon', 'Logo'.
+	 * @param WP_Post  $post         The current attachment object.
 	 */
 	$media_states = apply_filters( 'display_media_states', $media_states, $post );
 
@@ -2165,7 +2172,7 @@ function _wp_admin_html_begin() {
 ?>
 <!DOCTYPE html>
 <!--[if IE 8]>
-<html xmlns="http://www.w3.org/1999/xhtml" class="ie8 <?php echo $admin_html_class; ?>" 
+<html xmlns="http://www.w3.org/1999/xhtml" class="ie8 <?php echo $admin_html_class; ?>"
 																	<?php
 																	/**
 																	 * Fires inside the HTML tag in the admin header.
@@ -2177,7 +2184,7 @@ function _wp_admin_html_begin() {
 	<?php language_attributes(); ?>>
 <![endif]-->
 <!--[if !(IE 8) ]><!-->
-<html xmlns="http://www.w3.org/1999/xhtml" class="<?php echo $admin_html_class; ?>" 
+<html xmlns="http://www.w3.org/1999/xhtml" class="<?php echo $admin_html_class; ?>"
 																<?php
 																/** This action is documented in wp-admin/includes/template.php */
 																do_action( 'admin_xml_ns' );

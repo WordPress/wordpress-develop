@@ -200,7 +200,7 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 	}
 
 	protected function check_get_posts_response( $response, $context = 'view' ) {
-		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$this->assertNotWPError( $response );
 		$response = rest_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
 
@@ -232,7 +232,7 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 	}
 
 	protected function check_get_post_response( $response, $context = 'view' ) {
-		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$this->assertNotWPError( $response );
 		$response = rest_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
 
@@ -243,7 +243,7 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 	}
 
 	protected function check_create_post_response( $response ) {
-		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$this->assertNotWPError( $response );
 		$response = rest_ensure_response( $response );
 
 		$this->assertEquals( 201, $response->get_status() );
@@ -256,7 +256,7 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 	}
 
 	protected function check_update_post_response( $response ) {
-		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$this->assertNotWPError( $response );
 		$response = rest_ensure_response( $response );
 
 		$this->assertEquals( 200, $response->get_status() );

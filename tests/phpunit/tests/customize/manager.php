@@ -495,7 +495,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 				'autosave' => true,
 			)
 		);
-		$this->assertNotInstanceOf( 'WP_Error', $r );
+		$this->assertNotWPError( $r );
 
 		// No change to data if not requesting autosave.
 		$wp_customize = new WP_Customize_Manager(

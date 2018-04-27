@@ -465,7 +465,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		$editor = new WP_Image_Editor_Imagick( $file );
 
-		$this->assertNotInstanceOf( 'WP_Error', $editor );
+		$this->assertNotWPError( $editor );
 
 		$editor->load();
 		$editor->resize( 5, 5 );
@@ -492,7 +492,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		$editor = new WP_Image_Editor_Imagick( $file );
 
-		$this->assertNotInstanceOf( 'WP_Error', $editor );
+		$this->assertNotWPError( $editor );
 
 		$editor->load();
 
@@ -524,7 +524,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		$image_editor = new WP_Image_Editor_Imagick( $save_to_file );
 		$image_editor->load();
-		$this->assertNotInstanceOf( 'WP_Error', $image_editor );
+		$this->assertNotWPError( $image_editor );
 		$image_editor->rotate( 180 );
 		$image_editor->save( $save_to_file );
 

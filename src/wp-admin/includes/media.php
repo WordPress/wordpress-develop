@@ -2609,7 +2609,7 @@ foreach ( $post_mime_types as $mime_type => $label ) {
  *
  * @since 3.1.0
  *
- * @param array $type_links An array of list items containing mime type link HTML.
+ * @param string[] $type_links An array of list items containing mime type link HTML.
  */
 echo implode( ' | </li>', apply_filters( 'media_upload_mime_type_links', $type_links ) ) . '</li>';
 unset( $type_links );
@@ -2872,7 +2872,7 @@ function media_upload_max_image_resize() {
 <p class="hide-if-no-js"><label>
 <input name="image_resize" type="checkbox" id="image_resize" value="true"<?php echo $checked; ?> />
 <?php
-	/* translators: %1$s is link start tag, %2$s is link end tag, %3$d is width, %4$d is height*/
+	/* translators: 1: link start tag, 2: link end tag, 3: width, 4: height */
 	printf( __( 'Scale images to match the large size selected in %1$simage options%2$s (%3$d &times; %4$d).' ), $a, $end, (int) get_option( 'large_size_w', '1024' ), (int) get_option( 'large_size_h', '1024' ) );
 ?>
 </label></p>

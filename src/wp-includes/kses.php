@@ -1047,7 +1047,8 @@ function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols ) {
 	}
 
 	// Are any attributes allowed at all for this element?
-	if ( ! isset( $allowed_html[ strtolower( $element ) ] ) || true === $allowed_html[ strtolower( $element ) ] || count( $allowed_html[ strtolower( $element ) ] ) == 0 ) {
+	$element_low = strtolower( $element );
+	if ( empty( $allowed_html[ $element_low ] ) || true === $allowed_html[ $element_low ] ) {
 		return "<$element$xhtml_slash>";
 	}
 
@@ -1963,6 +1964,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 	 * @since 2.8.1
 	 * @since 4.4.0 Added support for `min-height`, `max-height`, `min-width`, and `max-width`.
 	 * @since 4.6.0 Added support for `list-style-type`.
+	 * @since 5.0.0 Added support for `text-transform`.
 	 *
 	 * @param array $attr List of allowed CSS attributes.
 	 */
@@ -2005,9 +2007,10 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'font-weight',
 			'letter-spacing',
 			'line-height',
+			'text-align',
 			'text-decoration',
 			'text-indent',
-			'text-align',
+			'text-transform',
 
 			'height',
 			'min-height',

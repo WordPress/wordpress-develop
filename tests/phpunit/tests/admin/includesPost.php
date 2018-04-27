@@ -32,7 +32,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$_post_data['saveasdraft'] = true;
 
 		$_results = _wp_translate_postdata( false, $_post_data );
-		$this->assertNotInstanceOf( 'WP_Error', $_results );
+		$this->assertNotWPError( $_results );
 		$this->assertEquals( $_post_data['post_author'], $_results['post_author'] );
 		$this->assertEquals( 'draft', $_results['post_status'] );
 
@@ -43,7 +43,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$_post_data['publish']     = true;
 
 		$_results = _wp_translate_postdata( false, $_post_data );
-		$this->assertNotInstanceOf( 'WP_Error', $_results );
+		$this->assertNotWPError( $_results );
 		$this->assertEquals( $_post_data['post_author'], $_results['post_author'] );
 		$this->assertEquals( 'pending', $_results['post_status'] );
 
@@ -82,7 +82,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$_post_data['saveasdraft'] = true;
 
 		$_results = _wp_translate_postdata( false, $_post_data );
-		$this->assertNotInstanceOf( 'WP_Error', $_results );
+		$this->assertNotWPError( $_results );
 		$this->assertEquals( $_post_data['post_author'], $_results['post_author'] );
 		$this->assertEquals( 'draft', $_results['post_status'] );
 
@@ -93,7 +93,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$_post_data['publish']     = true;
 
 		$_results = _wp_translate_postdata( false, $_post_data );
-		$this->assertNotInstanceOf( 'WP_Error', $_results );
+		$this->assertNotWPError( $_results );
 		$this->assertEquals( $_post_data['post_author'], $_results['post_author'] );
 		$this->assertEquals( 'publish', $_results['post_status'] );
 
@@ -104,7 +104,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$_post_data['saveasdraft'] = true;
 
 		$_results = _wp_translate_postdata( false, $_post_data );
-		$this->assertNotInstanceOf( 'WP_Error', $_results );
+		$this->assertNotWPError( $_results );
 		$this->assertEquals( $_post_data['post_author'], $_results['post_author'] );
 		$this->assertEquals( 'draft', $_results['post_status'] );
 
@@ -117,7 +117,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$_post_data['saveasdraft'] = true;
 
 		$_results = _wp_translate_postdata( true, $_post_data );
-		$this->assertNotInstanceOf( 'WP_Error', $_results );
+		$this->assertNotWPError( $_results );
 		$this->assertEquals( $_post_data['post_author'], $_results['post_author'] );
 		$this->assertEquals( 'draft', $_results['post_status'] );
 	}

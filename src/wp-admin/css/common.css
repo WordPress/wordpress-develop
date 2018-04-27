@@ -2990,7 +2990,8 @@ img {
 /* Metabox collapse arrow indicators */
 .sidebar-name .toggle-indicator:before,
 .js .meta-box-sortables .postbox .toggle-indicator:before,
-.bulk-action-notice .toggle-indicator:before {
+.bulk-action-notice .toggle-indicator:before,
+.privacy-text-box .toggle-indicator:before {
 	content: "\f142";
 	display: inline-block;
 	font: normal 20px/1 dashicons;
@@ -3002,7 +3003,8 @@ img {
 
 .js .widgets-holder-wrap.closed .toggle-indicator:before,
 .js .meta-box-sortables .postbox.closed .handlediv .toggle-indicator:before,
-.bulk-action-notice .bulk-action-errors-collapsed .toggle-indicator:before {
+.bulk-action-notice .bulk-action-errors-collapsed .toggle-indicator:before,
+.privacy-text-box.closed .toggle-indicator:before {
 	content: "\f140";
 }
 
@@ -3949,23 +3951,6 @@ img {
 	h3 .nav-tab {
 		margin: 10px 10px 0 0;
 		border-bottom: 1px solid #ccc;
-	}
-}
-
-.options-media-php br {
-	display: none;
-}
-
-@media screen and (max-width: 375px) {
-	.options-media-php input[type="number"][name*="_size_"] {
-		margin: 5px 0;
-	}
-	.options-media-php label[for*="_size_h"]:before {
-		content: "";
-		display: block;
-	}
-	.options-media-php br {
-		display: block;
 	}
 }
 

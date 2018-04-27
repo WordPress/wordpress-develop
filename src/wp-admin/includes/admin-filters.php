@@ -45,6 +45,9 @@ add_action( 'admin_head', 'wp_color_scheme_settings' );
 add_action( 'admin_head', 'wp_site_icon' );
 add_action( 'admin_head', '_ipad_meta' );
 
+// Privacy tools
+add_action( 'admin_menu', '_wp_privacy_hook_requests_page' );
+
 // Prerendering.
 if ( ! is_customize_preview() ) {
 	add_filter( 'admin_print_styles', 'wp_resource_hints', 1 );
@@ -128,3 +131,16 @@ add_action( 'upgrader_process_complete', array( 'Language_Pack_Upgrader', 'async
 add_action( 'upgrader_process_complete', 'wp_version_check', 10, 0 );
 add_action( 'upgrader_process_complete', 'wp_update_plugins', 10, 0 );
 add_action( 'upgrader_process_complete', 'wp_update_themes', 10, 0 );
+
+// Privacy policy text changes check.
+add_action( 'admin_init', array( 'WP_Privacy_Policy_Content', 'text_change_check' ), 20 );
+
+// Show a "postbox" with the text suggestions for a privacy policy.
+add_action( 'edit_form_after_title', array( 'WP_Privacy_Policy_Content', 'privacy_policy_postbox' ) );
+
+// Add the suggested policy text from WordPress.
+add_action( 'admin_init', array( 'WP_Privacy_Policy_Content', 'add_suggested_content' ), 15 );
+
+// Stop checking for text changes after the policy page is updated.
+add_action( 'post_updated', array( 'WP_Privacy_Policy_Content', '_policy_page_updated' ) );
+

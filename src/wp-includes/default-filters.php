@@ -347,6 +347,12 @@ add_action( 'comment_form', 'wp_comment_form_unfiltered_html_nonce' );
 add_action( 'admin_init', 'send_frame_options_header', 10, 0 );
 add_action( 'welcome_panel', 'wp_welcome_panel' );
 
+// Privacy
+add_action( 'user_request_action_confirmed', '_wp_privacy_account_request_confirmed' );
+add_filter( 'user_request_action_confirmed_message', '_wp_privacy_account_request_confirmed_message', 10, 2 );
+add_filter( 'wp_privacy_personal_data_exporters', 'wp_register_comment_personal_data_exporter' );
+add_filter( 'wp_privacy_personal_data_erasers', 'wp_register_comment_personal_data_eraser' );
+
 // Cron tasks
 add_action( 'wp_scheduled_delete', 'wp_scheduled_delete' );
 add_action( 'wp_scheduled_auto_draft_delete', 'wp_delete_auto_drafts' );
@@ -550,5 +556,9 @@ add_filter( 'pre_oembed_result', 'wp_filter_pre_oembed_result', 10, 3 );
 
 // Capabilities
 add_filter( 'user_has_cap', 'wp_maybe_grant_install_languages_cap', 1 );
+
+// Trigger the check for policy text changes after active plugins change.
+add_action( 'update_site_option_active_sitewide_plugins', '_wp_privacy_active_plugins_change' );
+add_action( 'update_option_active_plugins', '_wp_privacy_active_plugins_change' );
 
 unset( $filter, $action );

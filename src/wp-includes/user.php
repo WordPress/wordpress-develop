@@ -2811,65 +2811,211 @@ function new_user_email_admin_notice() {
 }
 
 /**
- * Send a confirmation request email to confirm an action.
+ * Get all user privacy request types.
  *
- * @since 5.0.0
+ * @since 4.9.6
+ * @access private
  *
- * @param string $action_name        Name of the action that is being confirmed.
- * @param string $action_description User facing description of the action they will be confirming.
- * @param string $email              User email address. This can be the address of a registered or non-registered user. Defaults to logged in user email address.
- *
- * @return WP_ERROR|bool Will return true/false based on the success of sending the email, or a WP_Error object.
+ * @return array
  */
-function send_confirm_account_action_email( $action_name, $action_description = '', $email = '' ) {
-	$action_name        = sanitize_key( $action_name );
-	$action_description = wp_kses_post( $action_description );
+function _wp_privacy_action_request_types() {
+	return array(
+		'export_personal_data',
+		'remove_personal_data',
+	);
+}
 
-	if ( empty( $action_name ) ) {
-		return new WP_Error( 'invalid_action', __( 'Invalid action' ) );
+/**
+ * Update log when privacy request is confirmed.
+ *
+ * @since 4.9.6
+ * @access private
+ *
+ * @param int $request_id ID of the request.
+ */
+function _wp_privacy_account_request_confirmed( $request_id ) {
+	$request_data = wp_get_user_request_data( $request_id );
+
+	if ( ! $request_data ) {
+		return;
 	}
 
-	if ( empty( $email ) ) {
-		$user  = wp_get_current_user();
-		$email = $user->ID ? $user->user_email : '';
-	} else {
-		$user = false;
+	if ( ! in_array( $request_data['status'], array( 'request-pending', 'request-failed' ), true ) ) {
+		return;
 	}
 
-	$email = sanitize_email( $email );
+	update_post_meta( $request_id, '_wp_user_request_confirmed_timestamp', time() );
+	wp_update_post( array(
+		'ID'          => $request_data['request_id'],
+		'post_status' => 'request-confirmed',
+	) );
+}
 
-	if ( ! is_email( $email ) ) {
+/**
+ * Return request confirmation message HTML.
+ *
+ * @since 4.9.6
+ * @access private
+ *
+ * @return string $message The confirmation message.
+ */
+function _wp_privacy_account_request_confirmed_message( $message, $request_id ) {
+	$request = wp_get_user_request_data( $request_id );
+
+	if ( $request && in_array( $request['action'], _wp_privacy_action_request_types(), true ) ) {
+		$message = '<p class="message">' . __( 'Action has been confirmed.' ) . '</p>';
+		$message .= __( 'The site administrator has been notified and will fulfill your request as soon as possible.' );
+	}
+
+	return $message;
+}
+
+/**
+ * Create and log a user request to perform a specific action.
+ *
+ * Requests are stored inside a post type named `user_request` since they can apply to both
+ * users on the site, or guests without a user account.
+ *
+ * @since 4.9.6
+ *
+ * @param string $email_address User email address. This can be the address of a registered or non-registered user.
+ * @param string $action_name   Name of the action that is being confirmed. Required.
+ * @param array  $request_data  Misc data you want to send with the verification request and pass to the actions once the request is confirmed.
+ * @return int|WP_Error Returns the request ID if successful, or a WP_Error object on failure.
+ */
+function wp_create_user_request( $email_address = '', $action_name = '', $request_data = array() ) {
+	$email_address = sanitize_email( $email_address );
+	$action_name   = sanitize_key( $action_name );
+
+	if ( ! is_email( $email_address ) ) {
 		return new WP_Error( 'invalid_email', __( 'Invalid email address' ) );
 	}
 
-	if ( ! $user ) {
-		$user = get_user_by( 'email', $email );
+	if ( ! $action_name ) {
+		return new WP_Error( 'invalid_action', __( 'Invalid action name' ) );
 	}
 
-	// We could be dealing with a registered user account, or a visitor.
-	$is_registered_user = $user && ! is_wp_error( $user );
-	$uid                = $is_registered_user ? $user->ID : hash( 'sha256', $email );
-	$confirm_key        = get_confirm_account_action_key( $action_name, $email );
+	$user    = get_user_by( 'email', $email_address );
+	$user_id = $user && ! is_wp_error( $user ) ? $user->ID: 0;
 
-	if ( is_wp_error( $confirm_key ) ) {
-		return $confirm_key;
+	// Check for duplicates.
+	$requests_query = new WP_Query( array(
+		'post_type'   => 'user_request',
+		'title'       => $action_name,
+		'post_status' => 'any',
+		'fields'      => 'ids',
+		'meta_query'  => array(
+			array(
+				'key'     => '_wp_user_request_user_email',
+				'value'   => $email_address,
+			),
+		),
+	) );
+
+	if ( $requests_query->found_posts ) {
+		return new WP_Error( 'duplicate_request', __( 'A request for this email address already exists.' ) );
 	}
 
-	// Prepare the email content.
-	if ( ! $action_description ) {
-		$action_description = $action_name;
+	$request_id = wp_insert_post( array(
+		'post_author'   => $user_id,
+		'post_title'    => $action_name,
+		'post_content'  => wp_json_encode( $request_data ),
+		'post_status'   => 'request-pending',
+		'post_type'     => 'user_request',
+		'post_date'     => current_time( 'mysql', false ),
+		'post_date_gmt' => current_time( 'mysql', true ),
+	), true );
+
+	if ( is_wp_error( $request_id ) ) {
+		return $request_id;
 	}
+
+	update_post_meta( $request_id, '_wp_user_request_user_email', $email_address );
+	update_post_meta( $request_id, '_wp_user_request_confirmed_timestamp', false );
+
+	return $request_id;
+}
+
+/**
+ * Get action description from the name and return a string.
+ *
+ * @since 4.9.6
+ *
+ * @param string $action_name Action name of the request.
+ * @return string
+ */
+function wp_user_request_action_description( $action_name ) {
+	switch ( $action_name ) {
+		case 'export_personal_data':
+			$description = __( 'Export Personal Data' );
+			break;
+		case 'remove_personal_data':
+			$description = __( 'Remove Personal Data' );
+			break;
+		default:
+			/* translators: %s: action name */
+			$description = sprintf( __( 'Confirm the "%s" action' ), $action_name );
+			break;
+	}
+
+	/**
+	 * Filters the user action description.
+	 *
+	 * @param string $description The default description.
+	 * @param string $action_name The name of the request.
+	 */	 	 	 	
+	return apply_filters( 'user_request_action_description', $description, $action_name );
+}
+
+/**
+ * Send a confirmation request email to confirm an action.
+ *
+ * If the request is not already pending, it will be updated.
+ *
+ * @since 4.9.6
+ *
+ * @param string $request_id ID of the request created via wp_create_user_request().
+ * @return WP_Error|bool Will return true/false based on the success of sending the email, or a WP_Error object.
+ */
+function wp_send_user_request( $request_id ) {
+	$request_id = absint( $request_id );
+	$request    = get_post( $request_id );
+
+	if ( ! $request || 'user_request' !== $request->post_type ) {
+		return new WP_Error( 'user_request_error', __( 'Invalid request.' ) );
+	}
+
+	if ( 'request-pending' !== $request->post_status ) {
+		wp_update_post( array(
+			'ID'            => $request_id,
+			'post_status'   => 'request-pending',
+			'post_date'     => current_time( 'mysql', false ),
+			'post_date_gmt' => current_time( 'mysql', true ),
+		) );
+	}
+
+	$email_data = array(
+		'action_name' => $request->post_title,
+		'email'       => get_post_meta( $request->ID, '_wp_user_request_user_email', true ),
+		'description' => wp_user_request_action_description( $request->post_title ),
+		'confirm_url' => add_query_arg( array(
+			'action'      => 'confirmaction',
+			'request_id'  => $request_id,
+			'confirm_key' => wp_generate_user_request_key( $request_id ),
+		), site_url( 'wp-login.php' ) ),
+		'sitename'    => is_multisite() ? get_site_option( 'site_name' ) : get_option( 'blogname' ),
+		'siteurl'     => network_home_url(),
+	);
 
 	/* translators: Do not translate DESCRIPTION, CONFIRM_URL, EMAIL, SITENAME, SITEURL: those are placeholders. */
 	$email_text = __(
 		'Howdy,
 
-An account linked to your email address has requested to perform
-the following action:
+A request has been made to perform the following action on your account:
 
      ###DESCRIPTION###
 
-To confirm this action, please click on the following link:
+To confirm this, please click on the following link:
 ###CONFIRM_URL###
 
 You can safely ignore and delete this email if you do not want to
@@ -2880,20 +3026,6 @@ This email has been sent to ###EMAIL###.
 Regards,
 All at ###SITENAME###
 ###SITEURL###'
-	);
-
-	$email_data = array(
-		'action_name' => $action_name,
-		'email'       => $email,
-		'description' => $action_description,
-		'confirm_url' => add_query_arg( array(
-			'action'         => 'emailconfirm',
-			'confirm_action' => $action_name,
-			'uid'            => $uid,
-			'confirm_key'    => $confirm_key,
-		), site_url( 'wp-login.php' ) ),
-		'sitename'    => is_multisite() ? get_site_option( 'site_name' ) : get_option( 'blogname' ),
-		'siteurl'     => network_home_url(),
 	);
 
 	/**
@@ -2907,6 +3039,8 @@ All at ###SITENAME###
 	 * ###SITENAME###           The name of the site.
 	 * ###SITEURL###            The URL to the site.
 	 *
+	 * @since 4.9.6
+	 *
 	 * @param string $email_text     Text in the email.
 	 * @param array  $email_data {
 	 *     Data relating to the account action email.
@@ -2919,7 +3053,7 @@ All at ###SITENAME###
 	 *     @type string $siteurl     The site URL sending the mail.
 	 * }
 	 */
-	$content = apply_filters( 'confirm_account_action_email_content', $email_text, $email_data );
+	$content = apply_filters( 'user_request_action_email_content', $email_text, $email_data );
 
 	$content = str_replace( '###DESCRIPTION###', $email_data['description'], $content );
 	$content = str_replace( '###CONFIRM_URL###', esc_url_raw( $email_data['confirm_url'] ), $content );
@@ -2928,139 +3062,126 @@ All at ###SITENAME###
 	$content = str_replace( '###SITEURL###', esc_url_raw( $email_data['siteurl'] ), $content );
 
 	/* translators: %s Site name. */
-	return wp_mail( $email_data['email'], sprintf( __( '[%s] Confirm Account Action' ), wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ) ), $content );
+	return wp_mail( $email_data['email'], sprintf( __( '[%s] Confirm Action' ), wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ) ), $content );
 }
 
 /**
- * Creates, stores, then returns a confirmation key for an account action.
+ * Returns a confirmation key for a user action and stores the hashed version.
  *
- * @since 5.0.0
+ * @since 4.9.6
  *
- * @param string $action_name Name of the action this key is being generated for.
- * @param string $email       User email address. This can be the address of a registered or non-registered user.
- *
- * @return string|WP_Error Confirmation key on success. WP_Error on error.
+ * @param int $request_id Request ID.
+ * @return string Confirmation key.
  */
-function get_confirm_account_action_key( $action_name, $email ) {
+function wp_generate_user_request_key( $request_id ) {
 	global $wp_hasher;
-
-	if ( ! is_email( $email ) ) {
-		return new WP_Error( 'invalid_email', __( 'Invalid email address' ) );
-	}
-
-	if ( empty( $action_name ) ) {
-		return new WP_Error( 'invalid_action', __( 'Invalid action' ) );
-	}
-
-	$user = get_user_by( 'email', $email );
-
-	// We could be dealing with a registered user account, or a visitor.
-	$is_registered_user = $user && ! is_wp_error( $user );
 
 	// Generate something random for a confirmation key.
 	$key = wp_generate_password( 20, false );
 
-	// Now insert the key, hashed, into the DB.
+	// Return the key, hashed.
 	if ( empty( $wp_hasher ) ) {
 		require_once ABSPATH . WPINC . '/class-phpass.php';
 		$wp_hasher = new PasswordHash( 8, true );
 	}
 
-	$hashed_key = $wp_hasher->HashPassword( $key );
-
-	if ( $is_registered_user ) {
-		$key_saved = (bool) update_user_meta( $user->ID, '_account_action_' . $action_name, implode( ':', array( time(), $hashed_key ) ) );
-	} else {
-		$key_saved = (bool) update_site_option( '_account_action_' . hash( 'sha256', $email ) . '_' . $action_name, implode( ':', array( time(), $hashed_key, $email ) ) );
-	}
-
-	if ( false === $key_saved ) {
-		return new WP_Error( 'no_confirm_account_action_key_update', __( 'Could not save confirm account action key to database.' ) );
-	}
+	update_post_meta( $request_id, '_wp_user_request_confirm_key', $wp_hasher->HashPassword( $key ) );
+	update_post_meta( $request_id, '_wp_user_request_confirm_key_timestamp', time() );
 
 	return $key;
 }
 
 /**
- * Checks if a key is valid and handles the action based on this.
+ * Valdate a user request by comparing the key with the request's key.
  *
- * @since 5.0.0
+ * @since 4.9.6
  *
- * @param string $action_name Name of the action this key is being generated for.
- * @param string $key         Key to confirm.
- * @param string $uid         Email hash or user ID.
- *
- * @return array|WP_Error WP_Error on failure, action name and user email address on success.
+ * @param string $request_id ID of the request being confirmed.
+ * @param string $key        Provided key to validate.
+ * @return bool|WP_Error WP_Error on failure, true on success.
  */
-function check_confirm_account_action_key( $action_name, $key, $uid ) {
+function wp_validate_user_request_key( $request_id, $key ) {
 	global $wp_hasher;
 
-	if ( ! empty( $action_name ) && ! empty( $key ) && ! empty( $uid ) ) {
-		$user = false;
+	$request_id = absint( $request_id );
+	$request    = wp_get_user_request_data( $request_id );
 
-		if ( is_numeric( $uid ) ) {
-			$user = get_user_by( 'id', absint( $uid ) );
-		}
-
-		// We could be dealing with a registered user account, or a visitor.
-		$is_registered_user = $user && ! is_wp_error( $user );
-		$key_request_time = '';
-		$saved_key        = '';
-		$email            = '';
-
-		if ( empty( $wp_hasher ) ) {
-			require_once ABSPATH . WPINC . '/class-phpass.php';
-			$wp_hasher = new PasswordHash( 8, true );
-		}
-
-		// Get the saved key from the database.
-		if ( $is_registered_user ) {
-			$confirm_action_data = get_user_meta( $user->ID, '_account_action_' . $action_name, true );
-			$email               = $user->user_email;
-
-			if ( false !== strpos( $confirm_action_data, ':' ) ) {
-				list( $key_request_time, $saved_key ) = explode( ':', $confirm_action_data, 2 );
-			}
-		} else {
-			$confirm_action_data = get_site_option( '_account_action_' . $uid . '_' . $action_name, '' );
-
-			if ( false !== strpos( $confirm_action_data, ':' ) ) {
-				list( $key_request_time, $saved_key, $email ) = explode( ':', $confirm_action_data, 3 );
-			}
-		}
-
-		if ( ! $saved_key ) {
-			return new WP_Error( 'invalid_key', __( 'Invalid key' ) );
-		}
-
-		/**
-		 * Filters the expiration time of confirm keys.
-		 *
-		 * @param int $expiration The expiration time in seconds.
-		 */
-		$expiration_duration = apply_filters( 'account_action_expiration', DAY_IN_SECONDS );
-		$expiration_time     = $key_request_time + $expiration_duration;
-
-		if ( $wp_hasher->CheckPassword( $key, $saved_key ) ) {
-			if ( $expiration_time && time() < $expiration_time ) {
-				$return = array(
-					'action' => $action_name,
-					'email'  => $email,
-				);
-			} else {
-				$return = new WP_Error( 'expired_key', __( 'The confirmation email has expired.' ) );
-			}
-
-			// Clean up stored keys.
-			if ( $is_registered_user ) {
-				delete_user_meta( $user->ID, '_account_action_' . $action_name );
-			} else {
-				delete_site_option( '_account_action_' . $uid . '_' . $action_name );
-			}
-
-			return $return;
-		}
+	if ( ! $request ) {
+		return new WP_Error( 'user_request_error', __( 'Invalid request.' ) );
 	}
 
-	return new WP_Error( 'invalid_key', __( 'Invalid key' ) );
+	if ( ! in_array( $request['status'], array( 'request-pending', 'request-failed' ), true ) ) {
+		return __( 'This link has expired.' );
+	}
+
+	if ( empty( $key ) ) {
+		return new WP_Error( 'invalid_key', __( 'Invalid key' ) );
+	}
+
+	if ( empty( $wp_hasher ) ) {
+		require_once ABSPATH . WPINC . '/class-phpass.php';
+		$wp_hasher = new PasswordHash( 8, true );
+	}
+
+	$key_request_time = $request['confirm_key_timestamp'];
+	$saved_key        = $request['confirm_key'];
+
+	if ( ! $saved_key ) {
+		return new WP_Error( 'invalid_key', __( 'Invalid key' ) );
+	}
+
+	if ( ! $key_request_time ) {
+		return new WP_Error( 'invalid_key', __( 'Invalid action' ) );
+	}
+
+	/**
+	 * Filters the expiration time of confirm keys.
+	 *
+	 * @since 4.9.6
+	 *
+	 * @param int $expiration The expiration time in seconds.
+	 */
+	$expiration_duration = (int) apply_filters( 'user_request_key_expiration', DAY_IN_SECONDS );
+	$expiration_time     = $key_request_time + $expiration_duration;
+
+	if ( ! $wp_hasher->CheckPassword( $key, $saved_key ) ) {
+		return new WP_Error( 'invalid_key', __( 'Invalid key' ) );
+	}
+
+	if ( ! $expiration_time || time() > $expiration_time ) {
+		$return = new WP_Error( 'expired_key', __( 'The confirmation email has expired.' ) );
+	}
+
+	return true;
+}
+
+/**
+ * Return data about a user request.
+ *
+ * @since 4.9.6
+ *
+ * @param int $request_id Request ID to get data about.
+ * @return array|false
+ */
+function wp_get_user_request_data( $request_id ) {
+	$request_id = absint( $request_id );
+	$request    = get_post( $request_id );
+
+	if ( ! $request || 'user_request' !== $request->post_type ) {
+		return false;
+	}
+
+	return array(
+		'request_id'            => $request->ID,
+		'user_id'               => $request->post_author,
+		'email'                 => get_post_meta( $request->ID, '_wp_user_request_user_email', true ),
+		'action'                => $request->post_title,
+		'requested_timestamp'   => strtotime( $request->post_date_gmt ),
+		'confirmed_timestamp'   => get_post_meta( $request->ID, '_wp_user_request_confirmed_timestamp', true ),
+		'completed_timestamp'   => get_post_meta( $request->ID, '_wp_user_request_completed_timestamp', true ),
+		'request_data'          => json_decode( $request->post_content, true ),
+		'status'                => $request->post_status,
+		'confirm_key'           => get_post_meta( $request_id, '_wp_user_request_confirm_key', true ),
+		'confirm_key_timestamp' => get_post_meta( $request_id, '_wp_user_request_confirm_key_timestamp', true ),
+	);
 }

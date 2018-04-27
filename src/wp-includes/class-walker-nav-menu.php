@@ -68,7 +68,7 @@ class Walker_Nav_Menu extends Walker {
 		 *
 		 * @since 4.8.0
 		 *
-		 * @param array    $classes The CSS classes that are applied to the menu `<ul>` element.
+		 * @param string[] $classes Array of the CSS classes that are applied to the menu `<ul>` element.
 		 * @param stdClass $args    An object of `wp_nav_menu()` arguments.
 		 * @param int      $depth   Depth of menu item. Used for padding.
 		 */
@@ -140,12 +140,12 @@ class Walker_Nav_Menu extends Walker {
 		$args = apply_filters( 'nav_menu_item_args', $args, $item, $depth );
 
 		/**
-		 * Filters the CSS class(es) applied to a menu item's list item element.
+		 * Filters the CSS classes applied to a menu item's list item element.
 		 *
 		 * @since 3.0.0
 		 * @since 4.1.0 The `$depth` parameter was added.
 		 *
-		 * @param array    $classes The CSS classes that are applied to the menu item's `<li>` element.
+		 * @param string[] $classes Array of the CSS classes that are applied to the menu item's `<li>` element.
 		 * @param WP_Post  $item    The current menu item.
 		 * @param stdClass $args    An object of wp_nav_menu() arguments.
 		 * @param int      $depth   Depth of menu item. Used for padding.
