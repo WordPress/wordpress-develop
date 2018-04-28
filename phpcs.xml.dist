@@ -82,11 +82,6 @@
 			<property name="custom_test_class_whitelist" type="array" value="WP_UnitTestCase,WP_Ajax_UnitTestCase,WP_Canonical_UnitTestCase,WP_Test_REST_TestCase,WP_Test_REST_Controller_Testcase,WP_Test_REST_Post_Type_Controller_Testcase,WP_XMLRPC_UnitTestCase"/>
 		</properties>
 	</rule>
-	<rule ref="WordPress.Variables.GlobalVariables">
-		<properties>
-			<property name="custom_test_class_whitelist" type="array" value="WP_UnitTestCase,WP_Ajax_UnitTestCase,WP_Canonical_UnitTestCase,WP_Test_REST_TestCase,WP_Test_REST_Controller_Testcase,WP_Test_REST_Post_Type_Controller_Testcase,WP_XMLRPC_UnitTestCase"/>
-		</properties>
-	</rule>
 
 	<!-- Exclude the unit tests from select sniffs. -->
 	<rule ref="WordPress.Files.FileName.NotHyphenatedLowercase">
