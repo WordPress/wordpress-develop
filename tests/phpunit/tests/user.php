@@ -29,6 +29,8 @@ class Tests_User extends WP_UnitTestCase {
 				'user_email'    => 'blackburn@battlefield3.com',
 				'user_url'      => 'http://tacos.com',
 				'role'          => 'contributor',
+				'nickname'      => 'Johnny',
+				'description'   => 'I am a WordPress user that cares about privacy.',
 			)
 		);
 
@@ -1579,5 +1581,41 @@ class Tests_User extends WP_UnitTestCase {
 
 		// Should have the new role.
 		$this->assertSame( array( 'administrator' ), get_userdata( $editor )->roles );
+	}
+
+	/**
+	 * Testing the `wp_user_personal_data_exporter_no_user` function when no user exists.
+	 *
+	 * @ticket 43547
+	 */
+	function test_wp_user_personal_data_exporter_no_user() {
+		$actual = wp_user_personal_data_exporter( 'not-a-user-email@test.com' );
+
+		$expected = array(
+			'data' => array(),
+			'done' => true,
+		);
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Testing the `wp_user_personal_data_exporter_no_user` function when the requested
+	 * user exists.
+	 *
+	 * @ticket 43547
+	 */
+	function test_wp_user_personal_data_exporter() {
+		$test_user = new WP_User( self::$contrib_id );
+
+		$actual = wp_user_personal_data_exporter( $test_user->user_email );
+
+		$this->assertTrue( $actual['done'] );
+
+		// Number of exported users.
+		$this->assertSame( 1, count( $actual['data'] ) );
+
+		// Number of exported user properties.
+		$this->assertSame( 12, count( $actual['data'][0]['data'] ) );
 	}
 }
