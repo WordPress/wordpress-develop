@@ -1616,6 +1616,6 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( 1, count( $actual['data'] ) );
 
 		// Number of exported user properties.
-		$this->assertSame( 12, count( $actual['data'][0]['data'] ) );
+		$this->assertSame( 11, count( $actual['data'][0]['data'] ) );
 	}
 }
