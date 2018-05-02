@@ -1,0 +1,643 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+	<testsuite name="wp-api-request" errors="0" failures="0" tests="9" time="0.09">
+		<testcase classname="wp-api-request" name="does not mutate original object" assertions="5" time="0.01">
+		</testcase>
+		<testcase classname="wp-api-request" name="does not add nonce header if already present" assertions="9" time="0.01">
+		</testcase>
+		<testcase classname="wp-api-request" name="does not add nonce header if ?_wpnonce=... present" assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="wp-api-request" name="accepts namespace and endpoint" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wp-api-request" name="accepts namespace and endpoint with slashes" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wp-api-request" name="accepts namespace and empty endpoint" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wp-api-request" name="accepts empty namespace and empty endpoint" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wp-api-request" name="accepts namespace and endpoint with slashes (plain permalinks)" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wp-api-request" name="accepts empty namespace and empty endpoint (plain permalinks)" assertions="1" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="wpapi" errors="0" failures="0" tests="76" time="1.16">
+		<testcase classname="wpapi" name="API Loaded correctly" assertions="2" time="0.03">
+		</testcase>
+		<testcase classname="wpapi" name="Testing Categories collection." assertions="2" time="0.03">
+		</testcase>
+		<testcase classname="wpapi" name="Testing Comments collection." assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Testing Media collection." assertions="2" time="0.02">
+		</testcase>
+		<testcase classname="wpapi" name="Testing Pages collection." assertions="7" time="0.02">
+		</testcase>
+		<testcase classname="wpapi" name="Testing Posts collection." assertions="9" time="0.02">
+		</testcase>
+		<testcase classname="wpapi" name="Testing Statuses collection." assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Testing Tags collection." assertions="2" time="0.02">
+		</testcase>
+		<testcase classname="wpapi" name="Testing Taxonomies collection." assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Testing Types collection." assertions="2" time="0.02">
+		</testcase>
+		<testcase classname="wpapi" name="Testing Users collection." assertions="2" time="0.02">
+		</testcase>
+		<testcase classname="wpapi" name="Checking Category model." assertions="2" time="0.02">
+		</testcase>
+		<testcase classname="wpapi" name="Checking Media model." assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Checking Page model." assertions="2" time="0.02">
+		</testcase>
+		<testcase classname="wpapi" name="Checking Post model." assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Checking Tag model." assertions="2" time="0.02">
+		</testcase>
+		<testcase classname="wpapi" name="Checking User model." assertions="2" time="0.02">
+		</testcase>
+		<testcase classname="wpapi" name="Checking UsersMe model." assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Checking Settings model." assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Testing Taxonomy model." assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Testing Status model." assertions="2" time="0.02">
+		</testcase>
+		<testcase classname="wpapi" name="Testing Type model." assertions="2" time="0.02">
+		</testcase>
+		<testcase classname="wpapi" name="Test fetching Category by route." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test fetching Comment by route." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test fetching Media by route." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test fetching Page by route." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test fetching PageRevision by route." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test fetching Post by route." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test fetching PostRevision by route." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test fetching Status by route." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test fetching Tag by route." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test fetching Taxonomy by route." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test fetching Type by route." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test fetching User by route." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test fetching Categories by route." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test fetching Comments by route." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test fetching Media by route. " assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test fetching PageRevisions by route." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test fetching Pages by route." assertions="1" time="0.02">
+		</testcase>
+		<testcase classname="wpapi" name="Test fetching PostRevisions by route." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test fetching Posts by route." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test fetching Statuses by route." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test fetching Tags by route." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test fetching Taxonomies by route." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test fetching Types by route." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test fetching Users by route." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Checking WidgetsArchives class name." assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Checking WidgetsCalendar class name." assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Checking WidgetsCategories class name." assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Checking WidgetsMeta class name." assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Checking WidgetsNav_menu class name." assertions="2" time="0.02">
+		</testcase>
+		<testcase classname="wpapi" name="Checking WidgetsPages class name." assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Checking WidgetsPostCollection class name." assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Checking WidgetsRecentComments class name." assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Checking WidgetsRecentPosts class name." assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Checking WidgetsRss class name." assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Checking WidgetsSearch class name." assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Checking WidgetsTag_cloud class name." assertions="2" time="0.02">
+		</testcase>
+		<testcase classname="wpapi" name="Checking WidgetsText class name." assertions="2" time="0.02">
+		</testcase>
+		<testcase classname="wpapi" name="Checking connecting to a remote url." assertions="2" time="0.02">
+		</testcase>
+		<testcase classname="wpapi" name="Test requireForceForDelete is correct for Category" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test requireForceForDelete is correct for Comment" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test requireForceForDelete is correct for Media" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test requireForceForDelete is correct for Page" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test requireForceForDelete is correct for PageRevision" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test requireForceForDelete is correct for Post" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test requireForceForDelete is correct for PostRevision" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test requireForceForDelete is correct for Status" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test requireForceForDelete is correct for Tag" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test requireForceForDelete is correct for Taxonomy" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test requireForceForDelete is correct for Type" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Test requireForceForDelete is correct for User" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Check meta support for Posts." assertions="4" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Check meta support for Comments." assertions="4" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Check meta support for Tags." assertions="4" time="0.01">
+		</testcase>
+		<testcase classname="wpapi" name="Check meta support for Users." assertions="4" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="word-count" errors="0" failures="0" tests="1" time="0.01">
+		<testcase classname="word-count" name="All." assertions="30" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="nav-menu" errors="0" failures="0" tests="1" time="0.02">
+		<testcase classname="nav-menu" name="Testing wpNavMenu event triggers." assertions="3" time="0.02">
+		</testcase>
+	</testsuite>
+	<testsuite name="Media_Widgets" errors="0" failures="0" tests="3" time="0.03">
+		<testcase classname="Media_Widgets" name="namespace" assertions="7" time="0.01">
+		</testcase>
+		<testcase classname="Media_Widgets" name="media widget control" assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="Media_Widgets" name="media widget model" assertions="8" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Image_Media_Widget" errors="0" failures="0" tests="3" time="0.04">
+		<testcase classname="Image_Media_Widget" name="image widget control" assertions="24" time="0.02">
+		</testcase>
+		<testcase classname="Image_Media_Widget" name="image widget control renderPreview" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Image_Media_Widget" name="image media model" assertions="17" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Gallery_Media_Widget" errors="0" failures="0" tests="2" time="0.02">
+		<testcase classname="Gallery_Media_Widget" name="gallery widget control" assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="Gallery_Media_Widget" name="gallery media model" assertions="9" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Video_Media_Widget" errors="0" failures="0" tests="3" time="0.03">
+		<testcase classname="Video_Media_Widget" name="video widget control" assertions="8" time="0.01">
+		</testcase>
+		<testcase classname="Video_Media_Widget" name="video widget control renderPreview" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Video_Media_Widget" name="video media model" assertions="14" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="tinymce.obsolete" errors="0" failures="0" tests="3" time="0.17">
+		<testcase classname="tinymce.obsolete" name="HTML elements non-conforming to HTML 5.0" assertions="6" time="0.10">
+		</testcase>
+		<testcase classname="tinymce.obsolete" name="Obsolete (but still conforming) HTML attributes" assertions="3" time="0.01">
+		</testcase>
+		<testcase classname="tinymce.obsolete" name="Obsolete attributes in HTML 5.0" assertions="22" time="0.06">
+		</testcase>
+	</testsuite>
+	<testsuite name="password-strength-meter" errors="0" failures="0" tests="7" time="1.04">
+		<testcase classname="password-strength-meter" name="mismatched passwords should return 5" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="password-strength-meter" name="passwords shorter than 4 characters should return 0" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="password-strength-meter" name="long complicated passwords should return 4" assertions="1" time="0.89">
+		</testcase>
+		<testcase classname="password-strength-meter" name="short uncomplicated passwords should return 0" assertions="4" time="0.01">
+		</testcase>
+		<testcase classname="password-strength-meter" name="zxcvbn password tests should return the score we expect" assertions="35" time="0.10">
+		</testcase>
+		<testcase classname="password-strength-meter" name="blacklisted words in password should be penalized" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="password-strength-meter" name="user input blacklist array should contain expected words" assertions="3" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customize_Base:_Class" errors="0" failures="0" tests="9" time="0.09">
+		<testcase classname="Customize_Base:_Class" name="FooSuperClass is a function " assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Base:_Class" name="FooSuperClass prototype has protoProp" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Base:_Class" name="FooSuperClass does not have protoProp" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Base:_Class" name="FooSuperClass has staticProp" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Base:_Class" name="FooSuperClass prototype does not have staticProp" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Base:_Class" name="FooSuperClass instance foo extended Class" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Base:_Class" name="foo instance has protoProp" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Base:_Class" name="foo instance does not have staticProp" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Base:_Class" name="FooSuperClass instance foo ran initialize() and has supplied instanceProp" assertions="1" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customize_Base:_Subclass" errors="0" failures="0" tests="4" time="0.04">
+		<testcase classname="Customize_Base:_Subclass" name="BarSubClass prototype has subProtoProp" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Base:_Subclass" name="BarSubClass prototype has parent FooSuperClass protoProp" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Base:_Subclass" name="BarSubClass instance bar its initialize() and parent initialize() run" assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Base:_Subclass" name="BarSubClass instance bar extended FooSuperClass" assertions="1" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customize_Base:_Constructor_Manipulation" errors="0" failures="0" tests="5" time="0.05">
+		<testcase classname="Customize_Base:_Constructor_Manipulation" name="New constructor added to class" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Base:_Constructor_Manipulation" name="Class with new constructor has protoPropValue" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Base:_Constructor_Manipulation" name="ConstructorTestClass instance constructorTest has the new constructor" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Base:_Constructor_Manipulation" name="ConstructorTestClass instance constructorTest extended Class" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Base:_Constructor_Manipulation" name="ConstructorTestClass instance constructorTest has the added instance property" assertions="1" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customize_Base:_wp.customizer.ensure" errors="0" failures="0" tests="2" time="0.02">
+		<testcase classname="Customize_Base:_wp.customizer.ensure" name="Handles jQuery argument" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Base:_wp.customizer.ensure" name="Handles string argument" assertions="1" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customize_Base:_Value_Class" errors="0" failures="0" tests="3" time="0.03">
+		<testcase classname="Customize_Base:_Value_Class" name="Initialized with the right value" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Base:_Value_Class" name=".set() works" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Base:_Value_Class" name=".bind() adds new callback that fires on set()" assertions="1" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customize_Base:_Values_Class" errors="0" failures="0" tests="1" time="0.01">
+		<testcase classname="Customize_Base:_Values_Class" name="Correct events are triggered when adding to or removing from Values collection" assertions="7" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customize_Base:_Notification" errors="0" failures="0" tests="1" time="0.01">
+		<testcase classname="Customize_Base:_Notification" name="Notification object exists and has expected properties" assertions="10" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customize_Base:_utils.parseQueryString" errors="0" failures="0" tests="1" time="0.01">
+		<testcase classname="Customize_Base:_utils.parseQueryString" name="wp.customize.utils.parseQueryString works" assertions="5" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Custom_Header:_ChoiceList" errors="0" failures="0" tests="2" time="0.02">
+		<testcase classname="Custom_Header:_ChoiceList" name="should parse _wpCustomizeHeader.uploads into itself" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Custom_Header:_ChoiceList" name="should sort by newest first" assertions="2" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Custom_Header:_DefaultsList" errors="0" failures="0" tests="2" time="0.02">
+		<testcase classname="Custom_Header:_DefaultsList" name="it should parse _wpCustomizeHeader.defaults into itself" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Custom_Header:_DefaultsList" name="it parses the default image names" assertions="2" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Custom_Header:_HeaderImage_shouldBeCropped()" errors="0" failures="0" tests="7" time="0.07">
+		<testcase classname="Custom_Header:_HeaderImage_shouldBeCropped()" name="should not be cropped when the theme does not support flex width or height and the image has the same dimensions of the theme image" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Custom_Header:_HeaderImage_shouldBeCropped()" name="should be cropped when the image has the same dimensions of the theme image" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Custom_Header:_HeaderImage_shouldBeCropped()" name="should not be cropped when the theme only supports flex width and the image has the same height as the theme image" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Custom_Header:_HeaderImage_shouldBeCropped()" name="should not be cropped when the theme only supports flex height and the image has the same width as the theme image" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Custom_Header:_HeaderImage_shouldBeCropped()" name="should not be cropped when the theme supports flex height AND width" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Custom_Header:_HeaderImage_shouldBeCropped()" name="should not be cropped when the image width is smaller than or equal to theme width" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Custom_Header:_HeaderImage_shouldBeCropped()" name="should not be cropped when the image width is smaller than or equal to theme width, theme supports flex height and width" assertions="1" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="shortcode" errors="0" failures="0" tests="20" time="0.20">
+		<testcase classname="shortcode" name="next() should find the shortcode" assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="shortcode" name="next() should not find shortcodes that are not there" assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="shortcode" name="next() should find the shortcode when told to start looking beyond the start of the string" assertions="3" time="0.01">
+		</testcase>
+		<testcase classname="shortcode" name="next() should find the second instances of the shortcode when the starting indice is after the start of the first one" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="shortcode" name="next() should not find escaped shortcodes" assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="shortcode" name="next() should find shortcodes that are incorrectly escaped by newlines" assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="shortcode" name="next() should still work when there are not equal ammounts of square brackets" assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="shortcode" name="next() should find the second instances of the shortcode when the first one is escaped" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="shortcode" name="next() should not find shortcodes that are not full matches" assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="shortcode" name="replace() should replace the shortcode" assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="shortcode" name="replace() should not replace the shortcode when it does not match" assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="shortcode" name="replace() should replace the shortcode in all instances of its use" assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="shortcode" name="replace() should not replace the escaped shortcodes" assertions="3" time="0.01">
+		</testcase>
+		<testcase classname="shortcode" name="replace() should replace improperly escaped shortcodes that include newlines" assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="shortcode" name="replace() should not replace the shortcode when it is an incomplete match" assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="shortcode" name="attrs() should return named attributes created with single, double, and no quotes" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="shortcode" name="attrs() should return numeric attributes in the order they are used" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="shortcode" name="attrs() should return numeric attributes in the order they are used when they have named attributes in between" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="shortcode" name="attrs() should return numeric attributes created with single, double, and no quotes" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="shortcode" name="attrs() should return mixed attributes created with single, double, and no quotes" assertions="1" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customizer_Model_Utility_functions" errors="0" failures="0" tests="10" time="0.10">
+		<testcase classname="Customizer_Model_Utility_functions" name="isKeydownButNotEnterEvent returns true" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Model_Utility_functions" name="isKeydownButNotEnterEvent returns false" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Model_Utility_functions" name="areElementListsEqual returns true" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Model_Utility_functions" name="areElementListsEqual returns false" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Model_Utility_functions" name="areElementListsEqual: lists have same values, but in reverse order" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Model_Utility_functions" name="areElementListsEqual: lists have same values, but one is longer" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Model_Utility_functions" name="bubbleChildValueChanges notifies parent of change" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Model_Utility_functions" name="bubbleChildValueChanges passes a reference to its instance" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Model_Utility_functions" name="bubbleChildValueChanges notifies parent of change when two values are bound" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Model_Utility_functions" name="bubbleChildValueChanges passes a reference to its instance when two values are bound" assertions="1" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customizer_notifications_collection" errors="0" failures="0" tests="2" time="0.03">
+		<testcase classname="Customizer_notifications_collection" name="Notifications collection exists" assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_notifications_collection" name="Notification objects are rendered as part of notifications collection" assertions="10" time="0.02">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customizer_Previewed_Device" errors="0" failures="0" tests="1" time="0.01">
+		<testcase classname="Customizer_Previewed_Device" name="Previewed device defaults to desktop." assertions="1" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customizer_Setting_in_Fixture" errors="0" failures="0" tests="5" time="0.05">
+		<testcase classname="Customizer_Setting_in_Fixture" name="Setting has fixture value" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Setting_in_Fixture" name="Setting has notifications" assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Setting_in_Fixture" name="Setting has findControls method" assertions="3" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Setting_in_Fixture" name="Setting constructor object exists" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Setting_in_Fixture" name="Custom setting constructor is used" assertions="2" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customizer_Control_in_Fixture" errors="0" failures="0" tests="4" time="0.07">
+		<testcase classname="Customizer_Control_in_Fixture" name="Control exists" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Control_in_Fixture" name="Control has the fixture setting" assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Control_in_Fixture" name="Control has the section fixture section ID" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Control_in_Fixture" name="Control has notifications" assertions="17" time="0.04">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customizer_control_without_associated_settings" errors="0" failures="0" tests="1" time="0.01">
+		<testcase classname="Customizer_control_without_associated_settings" name="Control can be created without settings" assertions="3" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customizer_Section_in_Fixture" errors="0" failures="0" tests="3" time="0.03">
+		<testcase classname="Customizer_Section_in_Fixture" name="Fixture section exists" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Section_in_Fixture" name="Fixture section has control among controls()" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Section_in_Fixture" name="Fixture section has has expected panel" assertions="1" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customizer_Default_Section_with_Template_in_Fixture" errors="0" failures="0" tests="2" time="0.02">
+		<testcase classname="Customizer_Default_Section_with_Template_in_Fixture" name="Fixture section exists" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Default_Section_with_Template_in_Fixture" name="Fixture section has expected content" assertions="10" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customizer_Custom_Type_(titleless)_Section_with_Template_in_Fixture" errors="0" failures="0" tests="2" time="0.02">
+		<testcase classname="Customizer_Custom_Type_(titleless)_Section_with_Template_in_Fixture" name="Fixture section exists" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Custom_Type_(titleless)_Section_with_Template_in_Fixture" name="Fixture section has expected content" assertions="10" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customizer_Custom_Type_Section_Lacking_Specific_Template" errors="0" failures="0" tests="1" time="0.01">
+		<testcase classname="Customizer_Custom_Type_Section_Lacking_Specific_Template" name="Fixture section has expected content" assertions="10" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customizer_Section_lacking_any_params" errors="0" failures="0" tests="1" time="0.01">
+		<testcase classname="Customizer_Section_lacking_any_params" name="Fixture section has default params supplied" assertions="17" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customizer_Panel_in_Fixture" errors="0" failures="0" tests="6" time="0.06">
+		<testcase classname="Customizer_Panel_in_Fixture" name="Fixture panel exists" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Panel_in_Fixture" name="Fixture panel has content" assertions="6" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Panel_in_Fixture" name="Fixture panel has section among its sections()" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Panel_in_Fixture" name="Panel is not expanded by default" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Panel_in_Fixture" name="Panel is not expanded by default " assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Panel_in_Fixture" name="Focusing on a control will expand the panel and section" assertions="4" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customizer_Default_Panel_with_Template_in_Fixture" errors="0" failures="0" tests="2" time="0.02">
+		<testcase classname="Customizer_Default_Panel_with_Template_in_Fixture" name="Fixture section exists" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Default_Panel_with_Template_in_Fixture" name="Fixture panel has expected content" assertions="10" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customizer_Custom_Type_Panel_(titleless)_with_Template_in_Fixture" errors="0" failures="0" tests="2" time="0.02">
+		<testcase classname="Customizer_Custom_Type_Panel_(titleless)_with_Template_in_Fixture" name="Fixture panel exists" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customizer_Custom_Type_Panel_(titleless)_with_Template_in_Fixture" name="Fixture panel has expected content" assertions="10" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customizer_Custom_Type_Panel_Lacking_Specific_Template" errors="0" failures="0" tests="1" time="0.01">
+		<testcase classname="Customizer_Custom_Type_Panel_Lacking_Specific_Template" name="Fixture panel has expected content" assertions="10" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customizer_Panel_lacking_any_params" errors="0" failures="0" tests="1" time="0.01">
+		<testcase classname="Customizer_Panel_lacking_any_params" name="Fixture panel has default params supplied" assertions="13" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Dynamically-created_Customizer_Setting_Model" errors="0" failures="0" tests="1" time="0.01">
+		<testcase classname="Dynamically-created_Customizer_Setting_Model" name="Create a new setting" assertions="2" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Dynamically-created_Customizer_Section_Model" errors="0" failures="0" tests="12" time="0.12">
+		<testcase classname="Dynamically-created_Customizer_Section_Model" name="Model extends proper type" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Section_Model" name="Section instance has the right id" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Section_Model" name="Section instance has the right content." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Section_Model" name="Section instance has the right priority." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Section_Model" name="Section instance has the right active state." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Section_Model" name="Section can be deactivated" assertions="3" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Section_Model" name="Section instance is collapsed after calling .collapse()" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Section_Model" name="Section instance is expanded after calling .expand()" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Section_Model" name="Section has been embedded" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Section_Model" name="Section instance added to the wp.customize.section object" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Section_Model" name="Section instance has right content when accessed from wp.customize.section()" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Section_Model" name="Section instance has no children yet" assertions="1" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Dynamically-created_Customizer_Control_Model" errors="0" failures="0" tests="14" time="0.14">
+		<testcase classname="Dynamically-created_Customizer_Control_Model" name="Model extends proper type" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Control_Model" name="Control instance has the right id" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Control_Model" name="Control instance has the right description." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Control_Model" name="Control instance has the right content." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Control_Model" name="Control instance has the right priority." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Control_Model" name="Control can be deactivated" assertions="3" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Control_Model" name="Control instance does not yet belong to a section." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Control_Model" name="Control has not been embedded yet" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Control_Model" name="Control instance has the right selector." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Control_Model" name="Control instance was added to the control class." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Control_Model" name="Control instance has the right id when accessed from api.control()." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Control_Model" name="Control section can be set as expected" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Control_Model" name="Associating a control with a section allows it to be embedded" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Control_Model" name="Control is now available on section.controls()" assertions="2" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Dynamically-created_Customizer_Panel_Model" errors="0" failures="0" tests="11" time="0.11">
+		<testcase classname="Dynamically-created_Customizer_Panel_Model" name="Model extends proper type" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Panel_Model" name="Panel instance has the right id" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Panel_Model" name="Panel instance has the right title." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Panel_Model" name="Panel instance has the right description." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Panel_Model" name="Panel instance has the right content." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Panel_Model" name="Panel instance has the right priority." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Panel_Model" name="Panel instance has the right active state." assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Panel_Model" name="Panel can be deactivated" assertions="3" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Panel_Model" name="Panel instance is collapsed after calling .collapse()" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Panel_Model" name="Panel instance is expanded after calling .expand()" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Dynamically-created_Customizer_Panel_Model" name="Panel instance is not contextuallyActive" assertions="1" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Test_wp.customize.findControlsForSettings" errors="0" failures="0" tests="1" time="0.01">
+		<testcase classname="Test_wp.customize.findControlsForSettings" name="findControlsForSettings(blogname)" assertions="6" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customize_Controls_wp.customize.dirtyValues" errors="0" failures="0" tests="1" time="0.01">
+		<testcase classname="Customize_Controls_wp.customize.dirtyValues" name="dirtyValues() returns expected values" assertions="9" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customize_Controls:_wp.customize.requestChangesetUpdate()" errors="0" failures="0" tests="1" time="0.01">
+		<testcase classname="Customize_Controls:_wp.customize.requestChangesetUpdate()" name="requestChangesetUpdate makes request and returns promise" assertions="13" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customize_Utils:_wp.customize.utils.getRemainingTime()" errors="0" failures="0" tests="1" time="0.01">
+		<testcase classname="Customize_Utils:_wp.customize.utils.getRemainingTime()" name="utils.getRemainingTime calculates time correctly" assertions="5" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customize_Utils:_wp.customize.utils.getCurrentTimestamp()" errors="0" failures="0" tests="1" time="0.01">
+		<testcase classname="Customize_Utils:_wp.customize.utils.getCurrentTimestamp()" name="utils.getCurrentTimestamp returns timestamp" assertions="1" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customize_Controls:_wp.customize.DateTimeControl" errors="0" failures="0" tests="1" time="0.04">
+		<testcase classname="Customize_Controls:_wp.customize.DateTimeControl" name="Test DateTimeControl creation and its methods" assertions="38" time="0.04">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customize_Sections:_wp.customize.OuterSection" errors="0" failures="0" tests="1" time="0.02">
+		<testcase classname="Customize_Sections:_wp.customize.OuterSection" name="Test OuterSection" assertions="8" time="0.02">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customize_Controls:_PreviewLinkControl" errors="0" failures="0" tests="1" time="0.01">
+		<testcase classname="Customize_Controls:_PreviewLinkControl" name="Test PreviewLinkControl creation and its methods" assertions="9" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customize_Nav_Menus" errors="0" failures="0" tests="10" time="0.10">
+		<testcase classname="Customize_Nav_Menus" name="generatePlaceholderAutoIncrementId generates unique IDs" assertions="20" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Nav_Menus" name="it should parse _wpCustomizeMenusSettings.defaults into itself" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Nav_Menus" name="empty menus should have no Menu Item Controls" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Nav_Menus" name="populated menus should have no Menu Item Controls" assertions="1" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Nav_Menus" name="there is a properly configured MenusPanel" assertions="5" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Nav_Menus" name="there an expected MenuSection for the primary menu" assertions="9" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Nav_Menus" name="changing a MenuNameControl change the corresponding menu value" assertions="5" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Nav_Menus" name="manipulating a MenuItemControl works" assertions="6" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Nav_Menus" name="api.Menus.getMenuControl() should return the expected control" assertions="2" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Nav_Menus" name="api.Menus.getMenuItemControl() should return the expected control" assertions="2" time="0.01">
+		</testcase>
+	</testsuite>
+	<testsuite name="Customize_Widgets" errors="0" failures="0" tests="3" time="0.05">
+		<testcase classname="Customize_Widgets" name="fixtures should be present" assertions="11" time="0.01">
+		</testcase>
+		<testcase classname="Customize_Widgets" name="widget contents should embed (with widget-added event) when section and control expand" assertions="9" time="0.03">
+		</testcase>
+		<testcase classname="Customize_Widgets" name="widgets panel should have notice" assertions="4" time="0.01">
+		</testcase>
+	</testsuite>
+</testsuites>
