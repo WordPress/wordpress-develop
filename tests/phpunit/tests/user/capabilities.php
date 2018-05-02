@@ -237,6 +237,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'update_languages'       => array( 'administrator' ),
 			'deactivate_plugins'     => array( 'administrator' ),
 			'upgrade_php'            => array( 'administrator' ),
+			'export_others_personal_data' => array( 'administrator' ),
+			'erase_others_personal_data'  => array( 'administrator' ),
 
 			'edit_categories'        => array( 'administrator', 'editor' ),
 			'delete_categories'      => array( 'administrator', 'editor' ),
@@ -269,6 +271,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'update_languages'       => array(),
 			'deactivate_plugins'     => array(),
 			'upgrade_php'            => array(),
+			'export_others_personal_data' => array( '' ),
+			'erase_others_personal_data'  => array( '' ),
 
 			'customize'              => array( 'administrator' ),
 			'delete_site'            => array( 'administrator' ),
