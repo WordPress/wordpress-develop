@@ -986,7 +986,8 @@ module.exports = function(grunt) {
 
 	// Default task.
 	grunt.registerTask('default', ['build']);
-
+	grunt.registerTask('qunit:reports', 'Runs QUnit tests',['build', 'qunit_junit', 'copy:qunit', 'qunit']);
+	
 	/*
 	 * Automatically updates the `:dynamic` configurations
 	 * so that only the changed files are updated.

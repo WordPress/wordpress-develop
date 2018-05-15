@@ -58,3 +58,4 @@ wp-tests-config.php
 *.patch
 *.diff
 .svn
+_build
