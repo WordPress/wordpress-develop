@@ -32,6 +32,12 @@ if ( ! is_readable( $config_file_path ) ) {
 require_once $config_file_path;
 require_once dirname( __FILE__ ) . '/functions.php';
 
+if ( file_exists( ABSPATH . '_index.php' ) ) {
+	// Perhaps add more documentation about having to run `grunt` before running tests after changing code.
+	echo "ERROR: ABSPATH must point to the `build` directory, not the `src` directory. Please update your wp-tests-config.php file.\n";
+	exit( 1 );
+}
+
 tests_reset__SERVER();
 
 define( 'WP_TESTS_TABLE_PREFIX', $table_prefix );
