@@ -55,8 +55,5 @@
 		"masonry-layout": "3.3.2",
 		"twemoji": "2.5.1",
 		"underscore": "1.8.3"
-	},
-	"scripts": {
-		"preinstall": "check-node-version  --node '>= 8.9.3' --npm '>= 6.1.0'"
 	}
 }
