@@ -1355,13 +1355,16 @@ module.exports = function(grunt) {
 	 * Automatically updates the `:dynamic` configurations
 	 * so that only the changed files are updated.
 	 */
-	grunt.event.on('watch', function( action, filepath, target ) {
+	grunt.event.on( 'watch', function( action, filepath, target ) {
 		var src;
 
 		// Only configure the dynamic tasks based on known targets.
 		if ( [ 'all', 'rtl', 'webpack', 'js-enqueues', 'js-webpack' ].indexOf( target ) === -1 ) {
 			return;
 		}
+
+		// Normalize filepath for Windows.
+		filepath = filepath.replace( /\\/g, '/' );
 
 		// If the target is a file in the restructured js src.
 		if ( target === 'js-enqueues' ) {
@@ -1392,9 +1395,10 @@ module.exports = function(grunt) {
 					grunt.config( [ 'copy', 'admin-js', 'files' ] ),
 					grunt.config( [ 'copy', 'includes-js', 'files' ] )
 				);
+
 				for ( dest in configs ) {
 					// If a file in the mapping matches then set the variables for our dynamic tasks.
-					if ( configs.hasOwnProperty( dest ) && configs[ dest ][0] === './' + filepath ) {
+					if ( dest && configs.hasOwnProperty( dest ) && configs[ dest ][0] === './' + filepath ) {
 						files[ dest ] = configs[ dest ];
 						src = [ path.relative( BUILD_DIR, dest ) ];
 						break;
@@ -1417,6 +1421,11 @@ module.exports = function(grunt) {
 		// Else simply use the path relative to the source directory.
 		} else {
 			src = [ path.relative( SOURCE_DIR, filepath ) ];
+		}
+
+		if ( ! src ) {
+			grunt.warn( 'Failed to determine the destination file.' );
+			return;
 		}
 
 		if ( action === 'deleted' ) {
