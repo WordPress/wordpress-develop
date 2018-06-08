@@ -1111,10 +1111,6 @@ module.exports = function(grunt) {
 					'!tests/qunit/editor/**'
 				],
 				tasks: ['qunit']
-			},
-			phpunit: {
-				files: [ '**/*.php' ],
-				tasks: [ 'phpunit:default' ]
 			}
 		}
 	});
@@ -1158,6 +1154,13 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'watch', function() {
 		if ( ! this.args.length || this.args.indexOf( 'webpack' ) > -1 ) {
 			grunt.task.run( 'build' );
+		}
+
+		if ( 'watch:phpunit' === grunt.cli.tasks[ 0 ] || 'undefined' !== typeof grunt.option( 'phpunit' ) ) {
+			grunt.config.data._watch.phpunit = {
+				files: [ '**/*.php' ],
+				tasks: [ 'phpunit:default' ]
+			};
 		}
 
 		grunt.task.run( '_' + this.nameArgs );
