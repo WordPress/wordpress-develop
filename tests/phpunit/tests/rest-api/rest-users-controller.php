@@ -884,7 +884,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 	public function test_get_user_invalid_id() {
 		wp_set_current_user( self::$user );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/users/100' );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/users/7777' );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_user_invalid_id', $response, 404 );
@@ -2248,7 +2248,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( self::$user );
 
-		$request          = new WP_REST_Request( 'DELETE', '/wp/v2/users/100' );
+		$request          = new WP_REST_Request( 'DELETE', '/wp/v2/users/7777' );
 		$request['force'] = true;
 		$request->set_param( 'reassign', false );
 		$response = rest_get_server()->dispatch( $request );
@@ -2300,7 +2300,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$request          = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d', $user_id ) );
 		$request['force'] = true;
-		$request->set_param( 'reassign', 100 );
+		$request->set_param( 'reassign', 7777 );
 		$response = rest_get_server()->dispatch( $request );
 
 		// Not implemented in multisite.
