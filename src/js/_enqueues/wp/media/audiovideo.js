@@ -1,3 +1,7 @@
+/**
+ * @output wp-includes/js/media-audiovideo.js
+ */
+
 var media = wp.media,
 	baseSettings = window._wpmejsSettings || {},
 	l10n = window._wpMediaViewsL10n || {};

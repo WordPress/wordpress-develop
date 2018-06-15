@@ -1,3 +1,7 @@
+/**
+ * @output wp-includes/js/media-views.js
+ */
+
 var media = wp.media,
 	$ = jQuery,
 	l10n;
