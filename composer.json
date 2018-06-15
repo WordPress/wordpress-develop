@@ -11,8 +11,7 @@
 	},
 	"require-dev": {
 		"dealerdirect/phpcodesniffer-composer-installer": "^0.4.4",
-		"squizlabs/php_codesniffer": "^3.2.3",
-		"wp-coding-standards/wpcs": "dev-feature/new-multi-line-comment-formatting-sniffs"
+		"wp-coding-standards/wpcs": "dev-master"
 	},
 	"scripts": {
 		"format": "phpcbf --standard=phpcs.xml.dist --report-summary --report-source",

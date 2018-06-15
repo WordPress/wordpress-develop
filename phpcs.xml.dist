@@ -4,9 +4,14 @@
 
 	<rule ref="WordPress-Core"/>
 	<rule ref="WordPress.CodeAnalysis.EmptyStatement"/>
-	<rule ref="WordPress.Commenting.DocblockFormat"/>
 
 	<arg name="extensions" value="php"/>
+
+	<!-- Strip the filepaths down to the relevant bit. -->
+	<arg name="basepath" value="./"/>
+
+	<!-- Check up to 20 files simultanously. -->
+	<arg name="parallel" value="20"/>
 
 	<!-- Show sniff codes in all reports -->
 	<arg value="ps"/>
@@ -67,6 +72,12 @@
 	</rule>
 	<rule ref="WordPress.DB.PreparedSQLPlaceholders.UnescapedLiteral">
 		<exclude-pattern>/tests/phpunit/tests/db\.php</exclude-pattern>
+	</rule>
+
+	<!-- Whitelist the I18n functions file from issues identified by the I18n sniff
+		(such as calling the low-level translate() function). -->
+	<rule ref="WordPress.WP.I18n">
+		<exclude-pattern>/src/wp-includes/l10n\.php</exclude-pattern>
 	</rule>
 
 	<rule ref="Generic.Functions.FunctionCallArgumentSpacing">
