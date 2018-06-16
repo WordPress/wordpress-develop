@@ -261,7 +261,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	/**
 	 * Test: get_events() should return the events with the WordCamp pinned in the prepared list.
 	 *
-	 * @since 5.0.0
+	 * @since 4.9.7
 	 */
 	public function test_get_events_pin_wordcamp() {
 		add_filter( 'pre_http_request', array( $this, '_http_request_valid_response_unpinned_wordcamp' ) );
@@ -283,7 +283,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	/**
 	 * Simulates a valid HTTP response where a WordCamp needs to be pinned higher than it's default position.
 	 *
-	 * @since 5.0.0
+	 * @since 4.9.7
 	 *
 	 * @return array A mock HTTP response.
 	 */
@@ -363,7 +363,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	 * Test: get_events() shouldn't stick an extra WordCamp when there's already one that naturally
 	 * falls into the list.
 	 *
-	 * @since 5.0.0
+	 * @since 4.9.7
 	 */
 	public function test_get_events_dont_pin_multiple_wordcamps() {
 		add_filter( 'pre_http_request', array( $this, '_http_request_valid_response_multiple_wordcamps' ) );
@@ -386,7 +386,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	 * Simulates a valid HTTP response where a WordCamp needs to be pinned higher than it's default position.
 	 * no need to pin extra camp b/c one already exists in response
 	 *
-	 * @since 5.0.0
+	 * @since 4.9.7
 	 *
 	 * @return array A mock HTTP response.
 	 */
