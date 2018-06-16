@@ -10,14 +10,18 @@ if ( class_exists( 'PHPUnit\Runner\Version' ) ) {
 	require_once dirname( __FILE__ ) . '/phpunit6-compat.php';
 }
 
-$config_file_path = dirname( dirname( __FILE__ ) );
-if ( ! file_exists( $config_file_path . '/wp-tests-config.php' ) ) {
-	// Support the config file from the root of the develop repository.
-	if ( basename( $config_file_path ) === 'phpunit' && basename( dirname( $config_file_path ) ) === 'tests' ) {
-		$config_file_path = dirname( dirname( $config_file_path ) );
+if ( defined( 'WP_TESTS_CONFIG_FILE_PATH' ) ) {
+	$config_file_path = WP_TESTS_CONFIG_FILE_PATH;
+} else {
+	$config_file_path = dirname( dirname( __FILE__ ) );
+	if ( ! file_exists( $config_file_path . '/wp-tests-config.php' ) ) {
+		// Support the config file from the root of the develop repository.
+		if ( basename( $config_file_path ) === 'phpunit' && basename( dirname( $config_file_path ) ) === 'tests' ) {
+			$config_file_path = dirname( dirname( $config_file_path ) );
+		}
 	}
+	$config_file_path .= '/wp-tests-config.php';
 }
-$config_file_path .= '/wp-tests-config.php';
 
 /*
  * Globalize some WordPress variables, because PHPUnit loads this file inside a function
