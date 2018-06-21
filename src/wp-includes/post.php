@@ -3516,6 +3516,9 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 		$post_parent = 0;
 	}
 
+	// Don't unslash.
+	$post_mime_type = isset( $postarr['post_mime_type'] ) ? $postarr['post_mime_type'] : '';
+
 	/**
 	 * Filters the post parent -- used to check for and prevent hierarchy loops.
 	 *
@@ -3551,9 +3554,6 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	}
 
 	$post_name = wp_unique_post_slug( $post_name, $post_ID, $post_status, $post_type, $post_parent );
-
-	// Don't unslash.
-	$post_mime_type = isset( $postarr['post_mime_type'] ) ? $postarr['post_mime_type'] : '';
 
 	// Expected_slashed (everything!).
 	$data = compact( 'post_author', 'post_date', 'post_date_gmt', 'post_content', 'post_content_filtered', 'post_title', 'post_excerpt', 'post_status', 'post_type', 'comment_status', 'ping_status', 'post_password', 'post_name', 'to_ping', 'pinged', 'post_modified', 'post_modified_gmt', 'post_parent', 'menu_order', 'post_mime_type', 'guid' );
