@@ -3493,6 +3493,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	$import_id             = isset( $postarr['import_id'] ) ? $postarr['import_id'] : 0;
 	$context               = isset( $postarr['context'] ) ? $postarr['context'] : '';
 	$filter                = isset( $postarr['filter'] ) ? $postarr['filter'] : '';
+	$ID                    = $post_ID;
 
 	/*
 	 * The 'wp_insert_post_parent' filter expects all variables to be present.
