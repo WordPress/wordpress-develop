@@ -3494,6 +3494,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	$context               = isset( $postarr['context'] ) ? $postarr['context'] : '';
 	$filter                = isset( $postarr['filter'] ) ? $postarr['filter'] : '';
 	$ID                    = $post_ID;
+	$file                  = isset( $postarr['file'] ) ? $postarr['file'] : '';
 
 	/*
 	 * The 'wp_insert_post_parent' filter expects all variables to be present.
