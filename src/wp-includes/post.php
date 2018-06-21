@@ -3491,6 +3491,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	$to_ping               = isset( $postarr['to_ping'] ) ? sanitize_trackback_urls( $postarr['to_ping'] ) : '';
 	$pinged                = isset( $postarr['pinged'] ) ? $postarr['pinged'] : '';
 	$import_id             = isset( $postarr['import_id'] ) ? $postarr['import_id'] : 0;
+	$context               = isset( $postarr['context'] ) ? $postarr['context'] : '';
 
 	/*
 	 * The 'wp_insert_post_parent' filter expects all variables to be present.
