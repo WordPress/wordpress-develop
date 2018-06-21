@@ -3491,10 +3491,6 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	$to_ping               = isset( $postarr['to_ping'] ) ? sanitize_trackback_urls( $postarr['to_ping'] ) : '';
 	$pinged                = isset( $postarr['pinged'] ) ? $postarr['pinged'] : '';
 	$import_id             = isset( $postarr['import_id'] ) ? $postarr['import_id'] : 0;
-	$context               = isset( $postarr['context'] ) ? $postarr['context'] : '';
-	$filter                = isset( $postarr['filter'] ) ? $postarr['filter'] : '';
-	$ID                    = $post_ID;
-	$file                  = isset( $postarr['file'] ) ? $postarr['file'] : '';
 
 	/*
 	 * The 'wp_insert_post_parent' filter expects all variables to be present.
@@ -3530,7 +3526,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	 * @param array $new_postarr Array of parsed post data.
 	 * @param array $postarr     Array of sanitized, but otherwise unmodified post data.
 	 */
-	$post_parent = apply_filters( 'wp_insert_post_parent', $post_parent, $post_ID, compact( array_keys( $postarr ) ), $postarr );
+	$post_parent = apply_filters( 'wp_insert_post_parent', $post_parent, $post_ID, compact( 'post_author', 'post_date', 'post_date_gmt', 'post_content', 'post_content_filtered', 'post_title', 'post_excerpt', 'post_status', 'post_type', 'comment_status', 'ping_status', 'post_password', 'post_name', 'to_ping', 'pinged', 'post_modified', 'post_modified_gmt', 'post_parent', 'menu_order', 'post_mime_type', 'guid' ), $postarr );
 
 	/*
 	 * If the post is being untrashed and it has a desired slug stored in post meta,
