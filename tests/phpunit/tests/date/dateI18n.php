@@ -67,4 +67,20 @@ class Tests_Date_I18n extends WP_UnitTestCase {
 
 		$this->assertEquals( '2012-12-01 00:00:00 CST -06:00 America/Regina', date_i18n( 'Y-m-d H:i:s T P e', strtotime( '2012-12-01 00:00:00' ) ) );
 	}
+
+	/**
+	 * @ticket 34835
+	 */
+	public function test_gmt_offset_should_output_correct_timezone() {
+		$timezone_formats = 'P I O T Z e';
+		$timezone_string  = 'America/Regina';
+		$datetimezone     = new DateTimeZone( $timezone_string );
+		update_option( 'timezone_string', '' );
+		$offset = $datetimezone->getOffset( new DateTime() ) / 3600;
+		update_option( 'gmt_offset', $offset );
+		$datetime = new DateTime( 'now', $datetimezone );
+		$datetime = new DateTime( $datetime->format( 'P' ) );
+
+		$this->assertEquals( $datetime->format( $timezone_formats ), date_i18n( $timezone_formats ) );
+	}
 }
