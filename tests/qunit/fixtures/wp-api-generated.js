@@ -3603,7 +3603,14 @@ mockedApiResponse.PostsCollection = [
             ],
             "version-history": [
                 {
+                    "count": 1,
                     "href": "http://example.org/index.php?rest_route=/wp/v2/posts/3/revisions"
+                }
+            ],
+            "predecessor-version": [
+                {
+                    "id": 3123,
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/posts/3122/revisions/3123"
                 }
             ],
             "wp:attachment": [
@@ -3788,7 +3795,14 @@ mockedApiResponse.PagesCollection = [
             ],
             "version-history": [
                 {
+                    "count": 1,
                     "href": "http://example.org/index.php?rest_route=/wp/v2/pages/5/revisions"
+                }
+            ],
+            "predecessor-version": [
+                {
+                    "id": 3125,
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/pages/3124/revisions/3125"
                 }
             ],
             "wp:attachment": [
@@ -3937,22 +3951,27 @@ mockedApiResponse.MediaCollection = [
         "_links": {
             "self": [
                 {
+                    "attributes": [],
                     "href": "http://example.org/index.php?rest_route=/wp/v2/media/7"
                 }
             ],
             "collection": [
                 {
+                    "attributes": [],
                     "href": "http://example.org/index.php?rest_route=/wp/v2/media"
                 }
             ],
             "about": [
                 {
+                    "attributes": [],
                     "href": "http://example.org/index.php?rest_route=/wp/v2/types/attachment"
                 }
             ],
             "replies": [
                 {
-                    "embeddable": true,
+                    "attributes": {
+                        "embeddable": true
+                    },
                     "href": "http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fcomments&post=7"
                 }
             ]
