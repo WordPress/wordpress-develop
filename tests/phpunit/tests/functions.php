@@ -1461,6 +1461,10 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * @param bool   $expected Expected result.
 	 */
 	public function test_wp_is_stream( $path, $expected ) {
+		if ( ! extension_loaded( 'openssl' ) && false !== strpos( $path, 'https://' ) ) {
+			$this->markTestSkipped( 'The openssl PHP extension is not loaded.' );
+		}
+
 		$this->assertSame( $expected, wp_is_stream( $path ) );
 	}
 
@@ -1477,6 +1481,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	public function data_test_wp_is_stream() {
 		return array(
 			// Legitimate stream examples.
+			array( 'http://example.com', true ),
 			array( 'https://example.com', true ),
 			array( 'ftp://example.com', true ),
 			array( 'file:///path/to/some/file', true ),
