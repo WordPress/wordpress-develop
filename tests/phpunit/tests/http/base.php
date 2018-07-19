@@ -18,7 +18,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	protected $http_request_args;
 
 	/**
-	 * Mark test as skipped if the HTTP request times out
+	 * Mark test as skipped if the HTTP request times out.
 	 */
 	function skipTestOnTimeout( $response ) {
 		if ( ! is_wp_error( $response ) ) {

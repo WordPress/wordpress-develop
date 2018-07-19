@@ -5,6 +5,28 @@
  * @group external-http
  */
 class Tests_HTTP_Functions extends WP_UnitTestCase {
+
+	/**
+	 * Mark test as skipped if the HTTP request times out.
+	 */
+	function skipTestOnTimeout( $response ) {
+		if ( ! is_wp_error( $response ) ) {
+			return;
+		}
+		if ( 'connect() timed out!' === $response->get_error_message() ) {
+			$this->markTestSkipped( 'HTTP timeout' );
+		}
+
+		if ( false !== strpos( $response->get_error_message(), 'timed out after' ) ) {
+			$this->markTestSkipped( 'HTTP timeout' );
+		}
+
+		if ( 0 === strpos( $response->get_error_message(), 'stream_socket_client(): unable to connect to tcp://s.w.org:80' ) ) {
+			$this->markTestSkipped( 'HTTP timeout' );
+		}
+
+	}
+
 	public function setUp() {
 		if ( ! extension_loaded( 'openssl' ) ) {
 			$this->markTestSkipped( 'Tests_HTTP_Functions requires openssl.' );
@@ -17,7 +39,10 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		// this url give a direct 200 response
 		$url      = 'https://asdftestblog1.files.wordpress.com/2007/09/2007-06-30-dsc_4700-1.jpg';
 		$response = wp_remote_head( $url );
-		$headers  = wp_remote_retrieve_headers( $response );
+
+		$this->skipTestOnTimeout( $response );
+
+		$headers = wp_remote_retrieve_headers( $response );
 
 		$this->assertInternalType( 'array', $response );
 
@@ -30,21 +55,27 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		// this url will 301 redirect
 		$url      = 'https://asdftestblog1.wordpress.com/files/2007/09/2007-06-30-dsc_4700-1.jpg';
 		$response = wp_remote_head( $url );
+
+		$this->skipTestOnTimeout( $response );
 		$this->assertEquals( '301', wp_remote_retrieve_response_code( $response ) );
 	}
 
 	function test_head_404() {
-		$url     = 'https://asdftestblog1.files.wordpress.com/2007/09/awefasdfawef.jpg';
-		$headers = wp_remote_head( $url );
+		$url      = 'https://asdftestblog1.files.wordpress.com/2007/09/awefasdfawef.jpg';
+		$response = wp_remote_head( $url );
 
-		$this->assertEquals( '404', wp_remote_retrieve_response_code( $headers ) );
+		$this->skipTestOnTimeout( $response );
+		$this->assertEquals( '404', wp_remote_retrieve_response_code( $response ) );
 	}
 
 	function test_get_request() {
 		$url = 'https://asdftestblog1.files.wordpress.com/2007/09/2007-06-30-dsc_4700-1.jpg';
 
 		$response = wp_remote_get( $url );
-		$headers  = wp_remote_retrieve_headers( $response );
+
+		$this->skipTestOnTimeout( $response );
+
+		$headers = wp_remote_retrieve_headers( $response );
 
 		$this->assertInternalType( 'array', $response );
 
@@ -59,7 +90,10 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$url = 'https://asdftestblog1.wordpress.com/files/2007/09/2007-06-30-dsc_4700-1.jpg';
 
 		$response = wp_remote_get( $url );
-		$headers  = wp_remote_retrieve_headers( $response );
+
+		$this->skipTestOnTimeout( $response );
+
+		$headers = wp_remote_retrieve_headers( $response );
 
 		// should return the same headers as a head request
 		$this->assertEquals( 'image/jpeg', $headers['content-type'] );
@@ -73,6 +107,8 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 
 		// pretend we've already redirected 5 times
 		$response = wp_remote_get( $url, array( 'redirection' => -1 ) );
+
+		$this->skipTestOnTimeout( $response );
 		$this->assertWPError( $response );
 	}
 
@@ -83,7 +119,10 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$url = 'https://login.wordpress.org/wp-login.php';
 
 		$response = wp_remote_head( $url );
-		$cookies  = wp_remote_retrieve_cookies( $response );
+
+		$this->skipTestOnTimeout( $response );
+
+		$cookies = wp_remote_retrieve_cookies( $response );
 
 		$this->assertNotEmpty( $cookies );
 
@@ -120,7 +159,10 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 				),
 			)
 		);
-		$cookies  = wp_remote_retrieve_cookies( $response );
+
+		$this->skipTestOnTimeout( $response );
+
+		$cookies = wp_remote_retrieve_cookies( $response );
 
 		$this->assertNotEmpty( $cookies );
 
@@ -143,7 +185,10 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 				),
 			)
 		);
-		$cookies  = wp_remote_retrieve_cookies( $response );
+
+		$this->skipTestOnTimeout( $response );
+
+		$cookies = wp_remote_retrieve_cookies( $response );
 
 		$this->assertNotEmpty( $cookies );
 
