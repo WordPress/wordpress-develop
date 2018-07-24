@@ -619,6 +619,8 @@ function set_screen_options() {
 			case 'upload_per_page':
 			case 'edit_tags_per_page':
 			case 'plugins_per_page':
+			case 'export_personal_data_requests_per_page':
+			case 'remove_personal_data_requests_per_page':
 				// Network admin
 			case 'sites_network_per_page':
 			case 'users_network_per_page':
@@ -1275,7 +1277,7 @@ All at ###SITENAME###
  * Appends '(Draft)' to draft page titles in the privacy page dropdown
  * so that unpublished content is obvious.
  *
- * @since 4.9.7
+ * @since 4.9.8
  * @access private
  *
  * @param string  $title Page title.

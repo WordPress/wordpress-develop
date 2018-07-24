@@ -83,4 +83,26 @@ class Tests_Date_I18n extends WP_UnitTestCase {
 
 		$this->assertEquals( $datetime->format( $timezone_formats ), date_i18n( $timezone_formats ) );
 	}
+
+	/**
+	 * @dataProvider data_formats
+	 * @ticket 20973
+	 */
+	public function test_date_i18n_handles_shorthand_formats( $short, $full ) {
+		$this->assertEquals( date_i18n( $full ), date_i18n( $short ) );
+		$this->assertEquals( $short, date_i18n( '\\' . $short ) );
+	}
+
+	public function data_formats() {
+		return array(
+			array(
+				'c',
+				'Y-m-d\TH:i:sP',
+			),
+			array(
+				'r',
+				'D, d M Y H:i:s O',
+			),
+		);
+	}
 }

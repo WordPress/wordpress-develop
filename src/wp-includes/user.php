@@ -3061,7 +3061,7 @@ All at ###SITENAME###
 	/**
 	 * Filters the subject of the user request confirmation email.
 	 *
-	 * @since 4.9.7
+	 * @since 4.9.8
 	 *
 	 * @param string $subject    The email subject.
 	 * @param string $sitename   The name of the site.
@@ -3131,6 +3131,27 @@ function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 		__( '[%s] Erasure Request Fulfilled' ),
 		$email_data['sitename']
 	);
+
+	/**
+	 * Filters the subject of the email sent when an erasure request is completed.
+	 *
+	 * @since 4.9.8
+	 *
+	 * @param string $subject    The email subject.
+	 * @param string $sitename   The name of the site.
+	 * @param array  $email_data {
+	 *     Data relating to the account action email.
+	 *
+	 *     @type WP_User_Request $request            User request object.
+	 *     @type string          $message_recipient  The address that the email will be sent to. Defaults
+	 *                                               to the value of `$request->email`, but can be changed
+	 *                                               by the `user_erasure_fulfillment_email_to` filter.
+	 *     @type string          $privacy_policy_url Privacy policy URL.
+	 *     @type string          $sitename           The site name sending the mail.
+	 *     @type string          $siteurl            The site URL sending the mail.
+	 * }
+	 */
+	$subject = apply_filters( 'user_erasure_complete_email_subject', $subject, $email_data['sitename'], $email_data );
 
 	if ( empty( $email_data['privacy_policy_url'] ) ) {
 		/* translators: Do not translate SITENAME, SITEURL; those are placeholders. */
@@ -3347,6 +3368,7 @@ function wp_send_user_request( $request_id ) {
 	}
 
 	$email_data = array(
+		'request'     => $request,
 		'email'       => $request->email,
 		'description' => wp_user_request_action_description( $request->action_name ),
 		'confirm_url' => add_query_arg( array(

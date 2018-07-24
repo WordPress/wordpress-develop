@@ -107,6 +107,9 @@ function date_i18n( $dateformatstring, $timestamp_with_offset = false, $gmt = fa
 	 */
 	$req_format = $dateformatstring;
 
+	$dateformatstring = preg_replace( "/(?<!\\\\)c/", DATE_W3C, $dateformatstring );
+	$dateformatstring = preg_replace( "/(?<!\\\\)r/", DATE_RFC2822, $dateformatstring );
+
 	if ( ( ! empty( $wp_locale->month ) ) && ( ! empty( $wp_locale->weekday ) ) ) {
 		$datemonth            = $wp_locale->get_month( date( 'm', $i ) );
 		$datemonth_abbrev     = $wp_locale->get_month_abbrev( $datemonth );
@@ -5550,6 +5553,11 @@ function _device_can_upload() {
  * @return bool True if the path is a stream URL.
  */
 function wp_is_stream( $path ) {
+	if ( false === strpos( $path, '://' ) ) {
+		// $path isn't a stream
+		return false;
+	}
+
 	$wrappers    = stream_get_wrappers();
 	$wrappers    = array_map( 'preg_quote', $wrappers );
 	$wrappers_re = '(' . join( '|', $wrappers ) . ')';

@@ -12,12 +12,18 @@
  */
 class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcase {
 	protected static $administrator;
+	protected static $contributor;
 	protected static $subscriber;
 
 	public static function wpSetUpBeforeClass( $factory ) {
 		self::$administrator = $factory->user->create(
 			array(
 				'role' => 'administrator',
+			)
+		);
+		self::$contributor   = $factory->user->create(
+			array(
+				'role' => 'subscriber',
 			)
 		);
 		self::$subscriber    = $factory->user->create(
@@ -720,6 +726,14 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 
 	public function test_create_item_incorrect_permissions() {
 		wp_set_current_user( self::$subscriber );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/categories' );
+		$request->set_param( 'name', 'Incorrect permissions' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_create', $response, 403 );
+	}
+
+	public function test_create_item_incorrect_permissions_contributor() {
+		wp_set_current_user( self::$contributor );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/categories' );
 		$request->set_param( 'name', 'Incorrect permissions' );
 		$response = rest_get_server()->dispatch( $request );
