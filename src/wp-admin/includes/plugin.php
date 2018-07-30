@@ -444,6 +444,8 @@ function _get_dropins() {
 		'install.php'        => array( __( 'Custom installation script.' ), true ), // auto on installation
 		'maintenance.php'    => array( __( 'Custom maintenance message.' ), true ), // auto on maintenance
 		'object-cache.php'   => array( __( 'External object cache.' ), true ), // auto on load
+		'php-error.php'      => array( __( 'Custom PHP error message.' ), true ), // auto on error
+		'shutdown-handler'   => array( __( 'Custom PHP shutdown handler.' ), true ), // auto on error
 	);
 
 	if ( is_multisite() ) {
@@ -494,6 +496,57 @@ function is_plugin_active( $plugin ) {
  */
 function is_plugin_inactive( $plugin ) {
 	return ! is_plugin_active( $plugin );
+}
+
+/**
+ * Determines whether a plugin is technically active but was paused while
+ * loading.
+ *
+ * For more information on this and similar theme functions, check out
+ * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
+ * Conditional Tags} article in the Theme Developer Handbook.
+ *
+ * @since 5.0.0
+ *
+ * @param string $plugin Path to the plugin file relative to the plugins directory.
+ * @return bool True, if in the active plugins list. False, not in the list.
+ */
+function is_plugin_paused( $plugin ) {
+	if ( ! isset( $GLOBALS['_paused_plugins'] ) ) {
+		return false;
+	}
+
+	if ( ! is_plugin_active( $plugin ) || is_plugin_active_for_network( $plugin ) ) {
+		return false;
+	}
+
+	list( $plugin ) = explode( '/', $plugin );
+
+	return array_key_exists( $plugin, $GLOBALS['_paused_plugins'] );
+}
+
+/**
+ * Gets the error that was recorded for a paused plugin.
+ *
+ * @since 5.0.0
+ *
+ * @param string $plugin Path to the plugin file relative to the plugins
+ *                       directory.
+ * @return array|false Array of error information as it was returned by
+ *                     `error_get_last()`, or false if none was recorded.
+ */
+function wp_get_plugin_error( $plugin ) {
+	if ( ! isset( $GLOBALS['_paused_plugins'] ) ) {
+		return false;
+	}
+
+	list( $plugin ) = explode( '/', $plugin );
+
+	if ( ! array_key_exists( $plugin, $GLOBALS['_paused_plugins'] ) ) {
+		return false;
+	}
+
+	return $GLOBALS['_paused_plugins'][ $plugin ];
 }
 
 /**
@@ -693,6 +746,11 @@ function deactivate_plugins( $plugins, $silent = false, $network_wide = null ) {
 			continue;
 		}
 
+		// Clean up the database before deactivating the plugin.
+		if ( is_plugin_paused( $plugin ) ) {
+			resume_plugin( $plugin );
+		}
+
 		$network_deactivating = false !== $network_wide && is_plugin_active_for_network( $plugin );
 
 		if ( ! $silent ) {
@@ -887,6 +945,11 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 			uninstall_plugin( $plugin_file );
 		}
 
+		// Clean up the database before removing the plugin.
+		if ( is_plugin_paused( $plugin_file ) ) {
+			resume_plugin( $plugin_file );
+		}
+
 		/**
 		 * Fires immediately before a plugin deletion attempt.
 		 *
@@ -954,6 +1017,28 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 		}
 
 		return new WP_Error( 'could_not_remove_plugin', sprintf( $message, implode( ', ', $errors ) ) );
+	}
+
+	return true;
+}
+
+/**
+ * Resumes a single plugin.
+ *
+ * Resuming the plugin basically means removing its entry from the
+ * `pause_on_admin` database option.
+ *
+ * @since 5.0.0
+ *
+ * @param string $plugin Single plugin to resume.
+ *
+ * @return bool|WP_Error True on success, false if `$plugin` was not paused, `WP_Error` on failure.
+ */
+function resume_plugin( $plugin ) {
+	$result = wp_forget_extension_error( 'plugins', $plugin );
+
+	if ( ! $result ) {
+		return new WP_Error( 'could_not_resume_plugin', __( 'Could not resume execution of the plugin.' ) );
 	}
 
 	return true;
@@ -2065,4 +2150,36 @@ function wp_add_privacy_policy_content( $plugin_name, $policy_text ) {
 	}
 
 	WP_Privacy_Policy_Content::add( $plugin_name, $policy_text );
+}
+
+/**
+ * Renders an admin notice in case some plugins have been paused due to errors.
+ *
+ * @since 5.0.0
+ *
+ * @return void
+ */
+function paused_plugins_notice() {
+	if ( 'plugins.php' === $GLOBALS['pagenow'] ) {
+		return;
+	}
+
+	if ( ! current_user_can( 'deactivate_plugins' ) ) {
+		return;
+	}
+
+	if ( ! isset( $GLOBALS['_paused_plugins'] ) || empty( $GLOBALS['_paused_plugins'] ) ) {
+		return;
+	}
+
+	echo sprintf(
+		'<div class="notice notice-error"><p><strong>%s</strong><br>%s</p><p>%s</p></div>',
+		__( 'One or more plugins failed to load properly.' ),
+		__( 'You can find more details and make changes on the Plugins screen.' ),
+		sprintf(
+			'<a href="%s">%s</a>',
+			admin_url( 'plugins.php?plugin_status=paused' ),
+			'Go to the Plugins screen'
+		)
+	);
 }

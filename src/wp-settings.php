@@ -20,6 +20,9 @@ require( ABSPATH . WPINC . '/load.php' );
 require( ABSPATH . WPINC . '/default-constants.php' );
 require_once( ABSPATH . WPINC . '/plugin.php' );
 
+// Make sure we register the premature shutdown handler as soon as possible.
+wp_register_premature_shutdown_handler();
+
 /*
  * These can't be directly globalized in version.php. When updating,
  * we're including version.php from another installation and don't want
@@ -39,6 +42,16 @@ global $blog_id;
 
 // Set initial default constants including WP_MEMORY_LIMIT, WP_MAX_MEMORY_LIMIT, WP_DEBUG, SCRIPT_DEBUG, WP_CONTENT_DIR and WP_CACHE.
 wp_initial_constants();
+
+/*
+ * Allow an optional shutdown handler to be included through a pluggable file.
+ * This file should register a function `wp_handle_shutdown( $context )` that
+ * returns a boolean value. If the return value evaluates to false, the default
+ * shutdown handler will not be executed.
+ */
+if ( is_readable( WP_CONTENT_DIR . '/shutdown-handler.php' ) ) {
+	include WP_CONTENT_DIR . '/shutdown-handler.php';
+}
 
 // Check for the required PHP version and for the MySQL extension or a database drop-in.
 wp_check_php_mysql_versions();
@@ -482,3 +495,12 @@ if ( is_multisite() ) {
  * @since 3.0.0
  */
 do_action( 'wp_loaded' );
+
+/*
+ * Store the fact that we could successfully execute the entire WordPress
+ * lifecycle. This is used to skip the premature shutdown handler, as it cannot
+ * be unregistered.
+ */
+if ( ! defined( 'WP_EXECUTION_SUCCEEDED' ) ) {
+	define( 'WP_EXECUTION_SUCCEEDED', true );
+}

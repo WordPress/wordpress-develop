@@ -687,6 +687,36 @@ function wp_get_active_and_valid_plugins() {
 			$plugins[] = WP_PLUGIN_DIR . '/' . $plugin;
 		}
 	}
+
+	/*
+	 * Remove plugins from the list of active plugins when we're on an admin or
+	 * login screen and the plugin appears in the `pause_on_admin` list.
+	 */
+	if ( 'wp-login.php' === $GLOBALS['pagenow']
+	     || ( is_admin() && ! wp_doing_ajax() ) ) {
+		$pause_on_admin  = (array) get_option( 'pause_on_admin', array() );
+
+		if ( ! array_key_exists( 'plugins', $pause_on_admin ) ) {
+			return $plugins;
+		}
+
+		foreach ( $plugins as $index => $plugin ) {
+			$parts = explode(
+				'/',
+				str_replace( wp_normalize_path( WP_CONTENT_DIR . '/' ), '', wp_normalize_path( $plugin ) )
+			);
+
+			$type   = array_shift( $parts );
+			$plugin = array_shift( $parts );
+
+			if ( array_key_exists( $plugin, $pause_on_admin[ $type ] ) ) {
+				unset( $plugins[ $index ] );
+				// Store list of paused plugins for displaying an admin notice.
+				$GLOBALS['_paused_plugins'][ $plugin ] = $pause_on_admin[ $type ][ $plugin ];
+			}
+		}
+	}
+
 	return $plugins;
 }
 
@@ -1249,4 +1279,250 @@ function wp_finalize_scraping_edited_file_errors( $scrape_key ) {
 		echo wp_json_encode( true );
 	}
 	echo "\n###### wp_scraping_result_end:$scrape_key ######\n";
+}
+
+/**
+ * Prunes the array of recorded extension errors.
+ *
+ * @since 5.0.0
+ *
+ * @param array $errors Array of errors to prune.
+ * @return array Pruned array of errors.
+ */
+function wp_prune_extension_errors( $errors ) {
+	foreach( array( 'plugins', 'mu-plugins', 'themes' ) as $type ) {
+		if ( ! array_key_exists( $type, $errors ) ) {
+			continue;
+		}
+
+		switch( $type ) {
+			case 'plugins':
+				$active_plugins = array_merge(
+					(array) get_option( 'active_plugins', array() ),
+					(array) get_option( 'active_sitewide_plugins', array() )
+				);
+
+				foreach( $errors[ $type ] as $plugin => $error ) {
+					$found = false;
+
+					foreach ( $active_plugins as $active_plugin ) {
+						list( $active_plugin ) = explode( '/', $active_plugin );
+
+						if ( $active_plugin === $plugin ) {
+							$found = true;
+							break;
+						}
+					}
+
+					if ( ! $found ) {
+						unset( $errors[ $type ][ $plugin ] );
+					}
+				}
+
+				break;
+			case 'mu-plugins':
+				// TODO: Implement MU-plugin-specific behavior.
+				break;
+			case 'themes':
+				// TODO: Implement theme-specific behavior.
+				break;
+		}
+
+		if ( 0 === count( $errors[ $type ] ) ) {
+			unset( $errors[ $type ] );
+		}
+	}
+
+	return $errors;
+}
+
+/**
+ * Records the extension error as a database option.
+ *
+ * @since 5.0.0
+ *
+ * @global array $wp_theme_directories
+ *
+ * @param array $error Error that was triggered.
+ * @return bool Whether the error was correctly recorded.
+ */
+function wp_record_extension_error( $error ) {
+	global $wp_theme_directories;
+
+	$path = '';
+
+	$error_file      = wp_normalize_path( $error['file'] );
+	$wp_plugin_dir   = wp_normalize_path( WP_PLUGIN_DIR );
+	$wpmu_plugin_dir = wp_normalize_path( WPMU_PLUGIN_DIR );
+
+	if ( 0 === strpos( $error_file, $wp_plugin_dir ) ) {
+		$type = 'plugins';
+		$path = str_replace( $wp_plugin_dir . '/', '', $error_file );
+	} elseif ( 0 === strpos( $error_file, $wpmu_plugin_dir ) ) {
+		$type = 'mu-plugins';
+		$path = str_replace( $wpmu_plugin_dir . '/', '', $error_file );
+	} else {
+		foreach ( $wp_theme_directories as $theme_directory ) {
+			$theme_directory = wp_normalize_path( $theme_directory );
+			if ( 0 === strpos( $error_file, $theme_directory ) ) {
+				$type = 'themes';
+				$path = str_replace( $theme_directory . '/', '', $error_file );
+			}
+		}
+	}
+
+	if ( empty( $type ) || empty( $path ) ) {
+		return false;
+	}
+
+	$parts     = explode( '/', $path );
+	$extension = array_shift( $parts );
+
+	$errors = (array) get_option( 'pause_on_admin', array() );
+
+	$modified_errors = $errors;
+
+	if ( ! array_key_exists( $type, $modified_errors ) ) {
+		$modified_errors[ $type ] = array();
+	}
+
+	$modified_errors[ $type ][ $extension ] = $error;
+
+	$modified_errors = wp_prune_extension_errors( $modified_errors );
+
+	if ( $modified_errors === $errors ) {
+		return true;
+	}
+
+	return update_option( 'pause_on_admin', $modified_errors );
+}
+
+/**
+ * Forgets a previously recorded extension error again.
+ *
+ * @since 5.0.0
+ *
+ * @param string $type Type of the extension.
+ * @param string $extension Relative path of the extension.
+ * @return bool Whether the extension error was successfully forgotten.
+ */
+function wp_forget_extension_error( $type, $extension ) {
+	$errors = (array) get_option( 'pause_on_admin', array() );
+
+	if ( ! array_key_exists( $type, $errors ) ) {
+		return false;
+	}
+
+	$modified_errors = $errors;
+
+	switch ( $type ) {
+		case 'plugins':
+			list( $extension ) = explode( '/', $extension );
+	}
+
+	if ( array_key_exists( $extension, $modified_errors[ $type ] ) ) {
+		unset( $modified_errors[ $type ][ $extension ] );
+	}
+
+	$modified_errors = wp_prune_extension_errors( $modified_errors );
+
+	if ( $modified_errors === $errors ) {
+		return true;
+	}
+
+	return update_option( 'pause_on_admin', $modified_errors );
+}
+
+/**
+ * Wraps the shutdown handler function so it can be made pluggable at a later
+ * stage.
+ *
+ * @since 5.0.0
+ *
+ * @return void
+ */
+function wp_shutdown_handler_wrapper() {
+	if ( defined( 'WP_EXECUTION_SUCCEEDED' ) && WP_EXECUTION_SUCCEEDED ) {
+		return;
+	}
+
+	// Load the pluggable shutdown handler in case we found one.
+	if ( function_exists( 'wp_handle_shutdown' ) ) {
+		$stop_propagation = (bool) wp_handle_shutdown();
+
+		if ( $stop_propagation ) {
+			return;
+		}
+	}
+
+	$error = error_get_last();
+
+	// No error, just skip the error handling code.
+	if ( null === $error ) {
+		return;
+	}
+
+	/*
+	 * If the option API has not been loaded yet, we cannot persist our
+	 * discovery, so there's no point in moving forward.
+	 */
+	if ( ! function_exists( 'get_option' ) ) {
+		return;
+	}
+
+	// For now, we only trigger our safe mode on parse errors.
+	if ( ! isset( $error['type'] ) || E_PARSE !== $error['type'] ) {
+		return;
+	}
+
+	try {
+		wp_record_extension_error( $error );
+
+		// Load custom PHP error template, if present.
+		if ( is_readable( WP_CONTENT_DIR . '/php-error.php' ) ) {
+			include WP_CONTENT_DIR . '/php-error.php';
+			die();
+		}
+
+		$message = sprintf(
+			'<p>%s</p>',
+			__( 'The site is experiencing technical difficulties.' )
+		);
+
+		if ( function_exists( 'get_admin_url' ) ) {
+			$url = get_admin_url();
+			$message .= sprintf(
+				'<hr><p><em>%s <a href="%s">%s</a></em></p>',
+				__( 'Are you the site owner?' ),
+				$url,
+				__( 'Log into the admin backend to fix this.' )
+			);
+		}
+
+		if ( function_exists( 'apply_filters' ) ) {
+			/**
+			 * Filters the message that the default PHP error page displays.
+			 *
+			 * @since 5.0.0
+			 *
+			 * @param string $message HTML error message to display.
+			 */
+			$message = apply_filters( 'wp_technical_issues_display', $message );
+		}
+
+		wp_die( $message );
+	} catch ( Exception $exception ) {
+		// Catch exceptions and remain silent.
+	}
+}
+
+/**
+ * Registers the WordPress premature shutdown handler.
+ *
+ * @since 5.0.0
+ *
+ * @return void
+ */
+function wp_register_premature_shutdown_handler() {
+	register_shutdown_function( 'wp_shutdown_handler_wrapper' );
 }
