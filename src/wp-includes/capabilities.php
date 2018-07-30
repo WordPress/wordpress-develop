@@ -455,6 +455,7 @@ function map_meta_cap( $cap, $user_id ) {
 		case 'deactivate_plugins':
 		case 'activate_plugin':
 		case 'deactivate_plugin':
+		case 'resume_plugin':
 			$caps[] = 'activate_plugins';
 			if ( is_multisite() ) {
 				// update_, install_, and delete_ are handled above with is_super_admin().
