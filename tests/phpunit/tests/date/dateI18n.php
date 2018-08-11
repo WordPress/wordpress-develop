@@ -89,7 +89,7 @@ class Tests_Date_I18n extends WP_UnitTestCase {
 	 * @ticket 20973
 	 */
 	public function test_date_i18n_handles_shorthand_formats( $short, $full ) {
-		$this->assertEquals( date_i18n( $full ), date_i18n( $short ) );
+		$this->assertEquals( strtotime( date_i18n( $full ) ), strtotime( date_i18n( $short ) ), 'The dates should be equal', 2 );
 		$this->assertEquals( $short, date_i18n( '\\' . $short ) );
 	}
 
