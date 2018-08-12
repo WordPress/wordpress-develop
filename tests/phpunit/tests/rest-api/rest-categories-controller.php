@@ -38,6 +38,36 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		self::delete_user( self::$subscriber );
 	}
 
+	public function setUp() {
+		parent::setUp();
+
+		register_meta( 'term', 'test_single', array(
+			'show_in_rest' => true,
+			'single' => true,
+			'type' => 'string',
+		));
+		register_meta( 'term', 'test_multi', array(
+			'show_in_rest' => true,
+			'single' => false,
+			'type' => 'string',
+		));
+		register_term_meta( 'category', 'test_cat_single', array(
+			'show_in_rest' => true,
+			'single' => true,
+			'type' => 'string',
+		));
+		register_term_meta( 'category', 'test_cat_multi', array(
+			'show_in_rest' => true,
+			'single' => false,
+			'type' => 'string',
+		));
+		register_term_meta( 'post_tag', 'test_tag_meta', array(
+			'show_in_rest' => true,
+			'single' => true,
+			'type' => 'string',
+		));
+	}
+
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey( '/wp/v2/categories', $routes );
@@ -634,6 +664,34 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->check_get_taxonomy_term_response( $response );
 	}
 
+	public function test_get_item_meta() {
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/categories/1' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertArrayHasKey( 'meta', $data );
+
+		$meta = (array) $data['meta'];
+		$this->assertArrayHasKey( 'test_single', $meta );
+		$this->assertEquals( $meta['test_single'], '' );
+		$this->assertArrayHasKey( 'test_multi', $meta );
+		$this->assertEquals( $meta['test_multi'], array() );
+		$this->assertArrayHasKey( 'test_cat_single', $meta );
+		$this->assertEquals( $meta['test_cat_single'], '' );
+		$this->assertArrayHasKey( 'test_cat_multi', $meta );
+		$this->assertEquals( $meta['test_cat_multi'], array() );
+	}
+
+	public function test_get_item_meta_registered_for_different_taxonomy() {
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/categories/1' );
+		$response = rest_get_server()->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'meta', $data );
+		$this->assertArrayHasKey( 'meta', $data );
+
+		$meta = (array) $data['meta'];
+		$this->assertEquals( false, isset( $meta['test_tag_meta'] ) );
+	}
+
 	public function test_get_term_invalid_taxonomy() {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/invalid-taxonomy/1' );
 		$response = rest_get_server()->dispatch( $request );
@@ -782,12 +840,20 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_param( 'name', 'New Name' );
 		$request->set_param( 'description', 'New Description' );
 		$request->set_param( 'slug', 'new-slug' );
+		$request->set_param( 'meta', array(
+			'test_single' => 'just meta',
+			'test_cat_single' => 'category-specific meta',
+			'test_tag_meta' => 'tag-specific meta',
+		) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( 'New Name', $data['name'] );
 		$this->assertEquals( 'New Description', $data['description'] );
 		$this->assertEquals( 'new-slug', $data['slug'] );
+		$this->assertEquals( 'just meta', $data['meta']['test_single'] );
+		$this->assertEquals( 'category-specific meta', $data['meta']['test_cat_single'] );
+		$this->assertFalse( isset( $data['meta']['test_tag_meta'] ) );
 	}
 
 	public function test_update_item_invalid_taxonomy() {

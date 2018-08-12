@@ -55,6 +55,36 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		self::delete_user( self::$subscriber );
 	}
 
+	public function setUp() {
+		parent::setUp();
+
+		register_meta( 'term', 'test_single', array(
+			'show_in_rest' => true,
+			'single' => true,
+			'type' => 'string',
+		));
+		register_meta( 'term', 'test_multi', array(
+			'show_in_rest' => true,
+			'single' => false,
+			'type' => 'string',
+		));
+		register_term_meta( 'post_tag', 'test_tag_single', array(
+			'show_in_rest' => true,
+			'single' => true,
+			'type' => 'string',
+		));
+		register_term_meta( 'post_tag', 'test_tag_multi', array(
+			'show_in_rest' => true,
+			'single' => false,
+			'type' => 'string',
+		));
+		register_term_meta( 'category', 'test_cat_meta', array(
+			'show_in_rest' => true,
+			'single' => true,
+			'type' => 'string',
+		));
+	}
+
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey( '/wp/v2/tags', $routes );
@@ -572,6 +602,35 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->check_get_taxonomy_term_response( $response, $id );
 	}
 
+	public function test_get_item_meta() {
+		$id       = $this->factory->tag->create();
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/tags/' . $id );
+		$response = rest_get_server()->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'meta', $data );
+
+		$meta = (array) $data['meta'];
+		$this->assertArrayHasKey( 'test_single', $meta );
+		$this->assertEquals( $meta['test_single'], '' );
+		$this->assertArrayHasKey( 'test_multi', $meta );
+		$this->assertEquals( $meta['test_multi'], array() );
+		$this->assertArrayHasKey( 'test_tag_single', $meta );
+		$this->assertEquals( $meta['test_tag_single'], '' );
+		$this->assertArrayHasKey( 'test_tag_multi', $meta );
+		$this->assertEquals( $meta['test_tag_multi'], array() );
+	}
+
+	public function test_get_item_meta_registered_for_different_taxonomy() {
+		$id       = $this->factory->tag->create();
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/tags/' . $id );
+		$response = rest_get_server()->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'meta', $data );
+
+		$meta = (array) $data['meta'];
+		$this->assertEquals( false, isset( $meta['test_cat_meta'] ) );
+	}
+
 	public function test_get_term_invalid_term() {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/tags/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 		$response = rest_get_server()->dispatch( $request );
@@ -683,12 +742,20 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'name', 'New Name' );
 		$request->set_param( 'description', 'New Description' );
 		$request->set_param( 'slug', 'new-slug' );
+		$request->set_param( 'meta', array(
+			'test_single' => 'just meta',
+			'test_tag_single' => 'tag-specific meta',
+			'test_cat_meta' => 'category-specific meta',
+		) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( 'New Name', $data['name'] );
 		$this->assertEquals( 'New Description', $data['description'] );
 		$this->assertEquals( 'new-slug', $data['slug'] );
+		$this->assertEquals( 'just meta', $data['meta']['test_single'] );
+		$this->assertEquals( 'tag-specific meta', $data['meta']['test_tag_single'] );
+		$this->assertFalse( isset( $data['meta']['test_cat_meta'] ) );
 	}
 
 	public function test_update_item_no_change() {
