@@ -12,6 +12,8 @@ env:
     - WP_TRAVISCI=travis:phpunit
 matrix:
   include:
+  - php: 7.2
+    env: WP_TRAVISCI=travis:format
   - php: 7.1
     env: WP_TRAVISCI=travis:js
   - php: 7.2
