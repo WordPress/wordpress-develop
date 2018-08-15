@@ -27,7 +27,7 @@ module.exports = function(grunt) {
 		],
 		cleanFiles = [],
 		changedFiles = {
-			php: [],
+			php: []
 		};
 
 	buildFiles.forEach( function( buildFile ) {
@@ -1277,7 +1277,7 @@ module.exports = function(grunt) {
 
 						if ( testExtension( 'php' ) ) {
 							grunt.log.writeln( 'PHP files modified. Code formatting will be run.' );
-							var PHPfiles = result.stdout.split( "\n" );
+							var PHPfiles = result.stdout.split( '\n' );
 
 							// Find .php files that have been modified or added.
 							PHPfiles = PHPfiles.filter( function( file ) {
@@ -1289,7 +1289,7 @@ module.exports = function(grunt) {
 							} );
 
 							changedFiles = {
-								php: PHPfiles,
+								php: PHPfiles
 							};
 
 							taskList.push( 'format:php' );
@@ -1388,9 +1388,11 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'format:php', 'Runs the code formatter on changed files.', function() {
 		var done = this.async();
 		var flags = this.flags;
+		var args = changedFiles.php;
+		args.unshift( 'format' );
 		grunt.util.spawn( {
 			cmd: 'composer',
-			args: [ 'format', ...changedFiles.php ],
+			args: args,
 			opts: { stdio: 'inherit' }
 		}, function( error ) {
 			if ( flags.error && error ) {
