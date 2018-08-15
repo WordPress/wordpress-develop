@@ -90,6 +90,8 @@ before_script:
 - npm install -g grunt-cli
 - npm install
 - npm prune
+- composer --version
+- composer install
 - mysql --version
 - phpenv versions
 - php --version
