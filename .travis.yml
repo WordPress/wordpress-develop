@@ -91,7 +91,7 @@ before_script:
 - npm install
 - npm prune
 - composer --version
-- composer install
+- composer upgrade
 - mysql --version
 - phpenv versions
 - php --version
