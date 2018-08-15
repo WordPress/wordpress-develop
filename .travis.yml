@@ -91,7 +91,7 @@ before_script:
 - npm install
 - npm prune
 - composer --version
-- composer upgrade
+- composer install
 - mysql --version
 - phpenv versions
 - php --version
@@ -105,7 +105,9 @@ before_script:
 - git --version
 - svn --version
 - locale -a
-script: grunt $WP_TRAVISCI
+script:
+- grunt $WP_TRAVISCI
+- ls -lah
 after_script:
 - |
   if [[ "$WP_TEST_REPORTER" == "true" ]]; then
