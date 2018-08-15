@@ -137,7 +137,8 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	function test_redirect_on_head() {
 		// Redirections on HEAD request when Requested
 		$res = wp_remote_request(
-			$this->redirection_script . '?rt=' . 5, array(
+			$this->redirection_script . '?rt=' . 5,
+			array(
 				'redirection' => 5,
 				'method'      => 'HEAD',
 			)
@@ -208,7 +209,8 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		// Test 301 - POST to POST
 		$res = wp_remote_request(
-			$url, array(
+			$url,
+			array(
 				'method'  => 'PUT',
 				'timeout' => 30,
 			)
@@ -255,7 +257,8 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$url  = $this->fileStreamUrl;
 		$size = 153204;
 		$res  = wp_remote_request(
-			$url, array(
+			$url,
+			array(
 				'stream'  => true,
 				'timeout' => 30,
 			)
@@ -282,7 +285,8 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$url  = $this->fileStreamUrl;
 		$size = 10000;
 		$res  = wp_remote_request(
-			$url, array(
+			$url,
+			array(
 				'stream'              => true,
 				'timeout'             => 30,
 				'limit_response_size' => $size,
@@ -311,7 +315,8 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$size = 10000;
 
 		$res = wp_remote_request(
-			$url, array(
+			$url,
+			array(
 				'timeout'             => 30,
 				'limit_response_size' => $size,
 			)

@@ -73,7 +73,8 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 				'no_media_selected',
 				'add_media',
 				'unsupported_file_type',
-			), array_keys( $widget->l10n )
+			),
+			array_keys( $widget->l10n )
 		);
 		$this->assertEquals( count( $widget->l10n ), count( array_filter( $widget->l10n ) ), 'Expected all translation strings to be defined.' );
 		$this->assertEquals( 10, has_action( 'admin_print_scripts-widgets.php', array( $widget, 'enqueue_admin_scripts' ) ) );
@@ -211,7 +212,8 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 				'attachment_id',
 				'title',
 				'url',
-			), array_keys( $schema )
+			),
+			array_keys( $schema )
 		);
 
 		// Check filter usage.
@@ -496,7 +498,8 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 		$has_content->setAccessible( true );
 
 		$result = $has_content->invokeArgs(
-			$this->get_mocked_class_instance(), array(
+			$this->get_mocked_class_instance(),
+			array(
 				array(
 					'attachment_id' => 0,
 					'url'           => '',
@@ -506,7 +509,8 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 		$this->assertFalse( $result );
 
 		$result = $has_content->invokeArgs(
-			$this->get_mocked_class_instance(), array(
+			$this->get_mocked_class_instance(),
+			array(
 				array(
 					'attachment_id' => $attachment_id,
 					'url'           => '',
@@ -516,7 +520,8 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 		$this->assertTrue( $result );
 
 		$result = $has_content->invokeArgs(
-			$this->get_mocked_class_instance(), array(
+			$this->get_mocked_class_instance(),
+			array(
 				array(
 					'attachment_id' => 0,
 					'url'           => 'http://example.com/image.jpg',

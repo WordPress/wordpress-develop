@@ -271,7 +271,9 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 
 		// make sure they're correct
 		$terms = wp_get_object_terms(
-			$post_id, $this->taxonomy, array(
+			$post_id,
+			$this->taxonomy,
+			array(
 				'fields'  => 'ids',
 				'orderby' => 'term_id',
 			)
@@ -284,7 +286,9 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 
 		// make sure they're correct
 		$terms = wp_get_object_terms(
-			$post_id, $this->taxonomy, array(
+			$post_id,
+			$this->taxonomy,
+			array(
 				'fields'  => 'ids',
 				'orderby' => 'term_id',
 			)
@@ -310,7 +314,9 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 
 		// make sure they're correct
 		$terms = wp_get_object_terms(
-			$post_id, $this->taxonomy, array(
+			$post_id,
+			$this->taxonomy,
+			array(
 				'fields'  => 'names',
 				'orderby' => 'term_id',
 			)
@@ -323,7 +329,9 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 
 		// make sure they're correct
 		$terms = wp_get_object_terms(
-			$post_id, $this->taxonomy, array(
+			$post_id,
+			$this->taxonomy,
+			array(
 				'fields'  => 'names',
 				'orderby' => 'term_id',
 			)

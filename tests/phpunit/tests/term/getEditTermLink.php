@@ -74,7 +74,9 @@ class Tests_Term_GetEditTermLink extends WP_UnitTestCase {
 	 */
 	public function test_cap_check_should_use_correct_taxonomy_when_taxonomy_is_not_specified() {
 		register_taxonomy(
-			'wptests_tax_subscriber', 'post', array(
+			'wptests_tax_subscriber',
+			'post',
+			array(
 				'capabilities' => array(
 					'edit_terms' => 'read',
 				),

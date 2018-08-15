@@ -48,7 +48,9 @@ class Tests_Shortcode extends WP_UnitTestCase {
 				array(
 					'foo' => 'no foo',
 					'baz' => 'default baz',
-				), $atts, 'bartag'
+				),
+				$atts,
+				'bartag'
 			)
 		);
 
@@ -164,7 +166,8 @@ class Tests_Shortcode extends WP_UnitTestCase {
 			array(
 				'foo' => 'asdf',
 				'bar' => 'bing',
-			), $this->atts
+			),
+			$this->atts
 		);
 		$this->assertEquals( 'test-shortcode-tag', $this->tagname );
 	}
@@ -189,7 +192,8 @@ class Tests_Shortcode extends WP_UnitTestCase {
 			array(
 				'foo' => 'bar',
 				'baz' => 'bing',
-			), $this->atts
+			),
+			$this->atts
 		);
 		$this->assertEquals( 'content', $this->content );
 		$this->assertEquals( 'test-shortcode-tag', $this->tagname );
@@ -223,7 +227,8 @@ class Tests_Shortcode extends WP_UnitTestCase {
 			array(
 				0 => 'something in quotes',
 				1 => 'something else',
-			), $this->atts
+			),
+			$this->atts
 		);
 		$this->assertEquals( 'test-shortcode-tag', $this->tagname );
 	}
@@ -238,7 +243,8 @@ class Tests_Shortcode extends WP_UnitTestCase {
 				2 => '0',
 				3 => 'foo',
 				4 => 'bar',
-			), $this->atts
+			),
+			$this->atts
 		);
 		$this->assertEquals( 'test-shortcode-tag', $this->tagname );
 	}
@@ -252,7 +258,8 @@ class Tests_Shortcode extends WP_UnitTestCase {
 				'url' => 'https://wordpress.org/',
 				1     => 'foo',
 				'bar' => 'baz',
-			), $this->atts
+			),
+			$this->atts
 		);
 		$this->assertEquals( 'test-shortcode-tag', $this->tagname );
 	}
@@ -357,7 +364,8 @@ EOF;
 			array(
 				'foo' => 'bar',
 				'baz' => '123',
-			), $this->atts
+			),
+			$this->atts
 		);
 		$this->assertEquals( '', $this->content );
 	}
@@ -372,7 +380,8 @@ EOF;
 			array(
 				'foo' => 'bar',
 				'abc' => 'def',
-			), $this->atts
+			),
+			$this->atts
 		);
 		$this->assertEquals( '', $this->content );
 	}
@@ -458,13 +467,15 @@ EOF;
 			array(
 				'foo' => 'foo1',
 				'baz' => 'default baz',
-			), $this->filter_atts_out
+			),
+			$this->filter_atts_out
 		);
 		$this->assertEquals(
 			array(
 				'foo' => 'no foo',
 				'baz' => 'default baz',
-			), $this->filter_atts_pairs
+			),
+			$this->filter_atts_pairs
 		);
 		$this->assertEquals( array( 'foo' => 'foo1' ), $this->filter_atts_atts );
 
@@ -922,7 +933,8 @@ EOF;
 				0   => 'foo',
 				1   => 'bar',
 				2   => 'baz',
-			), $this->atts
+			),
+			$this->atts
 		);
 	}
 
@@ -936,7 +948,8 @@ EOF;
 			array(
 				0 => 'something in quotes',
 				1 => 'something else',
-			), $this->atts
+			),
+			$this->atts
 		);
 		$this->assertEquals( 'test-shortcode-tag', $this->tagname );
 	}
@@ -955,7 +968,8 @@ EOF;
 				3         => 'foo',
 				'bar'     => 'baz',
 				'example' => 'test',
-			), $this->atts
+			),
+			$this->atts
 		);
 		$this->assertEquals( 'test-shortcode-tag', $this->tagname );
 	}

@@ -5,76 +5,94 @@
  */
 class Tests_Get_Post_Type_Labels extends WP_UnitTestCase {
 	public function test_returns_an_object() {
-		$this->assertInternalType( 'object', get_post_type_labels( (object) array(
-			'name'         => 'foo',
-			'labels'       => array(),
-			'hierarchical' => false,
-		) ) );
+		$this->assertInternalType(
+			'object',
+			get_post_type_labels(
+				(object) array(
+					'name'         => 'foo',
+					'labels'       => array(),
+					'hierarchical' => false,
+				)
+			)
+		);
 	}
 
 	public function test_returns_hierachical_labels() {
-		$labels = get_post_type_labels( (object) array(
-			'name'         => 'foo',
-			'labels'       => array(),
-			'hierarchical' => true,
-		) );
+		$labels = get_post_type_labels(
+			(object) array(
+				'name'         => 'foo',
+				'labels'       => array(),
+				'hierarchical' => true,
+			)
+		);
 
 		$this->assertSame( 'Pages', $labels->name );
 	}
 
 	public function test_existing_labels_are_not_overridden() {
-		$labels = get_post_type_labels( (object) array(
-			'name'         => 'foo',
-			'labels'       => array(
-				'singular_name' => 'Foo',
-			),
-			'hierarchical' => false,
-		) );
+		$labels = get_post_type_labels(
+			(object) array(
+				'name'         => 'foo',
+				'labels'       => array(
+					'singular_name' => 'Foo',
+				),
+				'hierarchical' => false,
+			)
+		);
 
 		$this->assertSame( 'Foo', $labels->singular_name );
 	}
 
 	public function test_name_admin_bar_label_should_fall_back_to_singular_name() {
-		$labels = get_post_type_labels( (object) array(
-			'name'         => 'foo',
-			'labels'       => array(
-				'singular_name' => 'Foo',
-			),
-			'hierarchical' => false,
-		) );
+		$labels = get_post_type_labels(
+			(object) array(
+				'name'         => 'foo',
+				'labels'       => array(
+					'singular_name' => 'Foo',
+				),
+				'hierarchical' => false,
+			)
+		);
 
 		$this->assertSame( 'Foo', $labels->name_admin_bar );
 	}
 
 
 	public function test_name_admin_bar_label_should_fall_back_to_post_type_name() {
-		$labels = get_post_type_labels( (object) array(
-			'name'         => 'bar',
-			'labels'       => array(),
-			'hierarchical' => false,
-		) );
+		$labels = get_post_type_labels(
+			(object) array(
+				'name'         => 'bar',
+				'labels'       => array(),
+				'hierarchical' => false,
+			)
+		);
 
 		$this->assertSame( 'bar', $labels->name_admin_bar );
 	}
 
 	public function test_menu_name_should_fall_back_to_name() {
-		$labels = get_post_type_labels( (object) array(
-			'name'         => 'foo',
-			'labels'       => array(
-				'name' => 'Bar',
-			),
-			'hierarchical' => false,
-		) );
+		$labels = get_post_type_labels(
+			(object) array(
+				'name'         => 'foo',
+				'labels'       => array(
+					'name' => 'Bar',
+				),
+				'hierarchical' => false,
+			)
+		);
 
 		$this->assertSame( 'Bar', $labels->menu_name );
 	}
 
 	public function test_labels_should_be_added_when_registering_a_post_type() {
-		$post_type_object = register_post_type( 'foo', array(
-			'labels' => array(
-				'singular_name' => 'bar',
-			),
-		) );
+		$post_type_object = register_post_type(
+			'foo',
+			array(
+				'labels' => array(
+					'singular_name' => 'bar',
+				),
+			)
+		);
 
 		unregister_post_type( 'foo' );
 
@@ -84,11 +102,14 @@ class Tests_Get_Post_Type_Labels extends WP_UnitTestCase {
 	}
 
 	public function test_label_should_be_derived_from_labels_when_registering_a_post_type() {
-		$post_type_object = register_post_type( 'foo', array(
-			'labels' => array(
-				'name' => 'bar',
-			),
-		) );
+		$post_type_object = register_post_type(
+			'foo',
+			array(
+				'labels' => array(
+					'name' => 'bar',
+				),
+			)
+		);
 
 		$this->assertSame( 'bar', $post_type_object->label );
 

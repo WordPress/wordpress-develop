@@ -5,6 +5,14 @@
 	<rule ref="WordPress-Core"/>
 	<rule ref="WordPress.CodeAnalysis.EmptyStatement"/>
 
+	<rule ref="PEAR.Functions.FunctionCallSignature">
+		<properties>
+			<property name="allowMultipleArguments" value="false"/>
+			<property name="requiredSpacesAfterOpen" value="1"/>
+			<property name="requiredSpacesBeforeClose" value="1"/>
+		</properties>
+	</rule>
+
 	<arg name="extensions" value="php"/>
 
 	<!-- Strip the filepaths down to the relevant bit. -->
@@ -85,6 +93,11 @@
 		<exclude-pattern>/wp-config-sample\.php</exclude-pattern>
 		<exclude-pattern>/wp-tests-config\.php</exclude-pattern>
 		<exclude-pattern>/wp-tests-config-sample\.php</exclude-pattern>
+	</rule>
+
+	<rule ref="Generic.Files.LineEndings">
+		<exclude-pattern>/wp-config\.php</exclude-pattern>
+		<exclude-pattern>/wp-config-sample\.php</exclude-pattern>
 	</rule>
 
 	<!-- Whitelist test classes for select sniffs. -->

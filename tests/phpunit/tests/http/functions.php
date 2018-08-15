@@ -148,7 +148,8 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$url = 'http://example.org';
 
 		$response = wp_remote_get(
-			$url, array(
+			$url,
+			array(
 				'cookies' => array(
 					new WP_Http_Cookie(
 						array(
@@ -179,7 +180,8 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$url = 'http://example.org';
 
 		$response = wp_remote_get(
-			$url, array(
+			$url,
+			array(
 				'cookies' => array(
 					'test' => 'foo',
 				),

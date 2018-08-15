@@ -33,7 +33,9 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 
 		$taxonomy        = rand_str();
 		$taxonomy_object = new WP_Taxonomy(
-			$taxonomy, 'post', array(
+			$taxonomy,
+			'post',
+			array(
 				'public'    => true,
 				'rewrite'   => false,
 				'query_var' => 'foobar',
@@ -58,7 +60,9 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 
 		$taxonomy        = rand_str();
 		$taxonomy_object = new WP_Taxonomy(
-			$taxonomy, 'post', array(
+			$taxonomy,
+			'post',
+			array(
 				'public'  => true,
 				'rewrite' => true,
 			)
@@ -77,7 +81,9 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 	public function test_adds_ajax_callback() {
 		$taxonomy        = rand_str();
 		$taxonomy_object = new WP_Taxonomy(
-			$taxonomy, 'post', array(
+			$taxonomy,
+			'post',
+			array(
 				'public'  => true,
 				'rewrite' => true,
 			)

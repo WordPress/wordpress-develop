@@ -1867,7 +1867,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 						'key'         => 'aa_foo',
 					),
 				),
-				'fields' => 'ids',
+				'fields'     => 'ids',
 			)
 		);
 
@@ -1915,7 +1915,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 						'compare'     => 'NOT EXISTS',
 					),
 				),
-				'fields' => 'ids',
+				'fields'     => 'ids',
 			)
 		);
 

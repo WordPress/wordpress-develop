@@ -21,7 +21,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		// make sure the schedule is clear
 		_set_cron_array( array() );
 		$this->preflight_cron_array = array();
-		$this->plus_thirty_minutes = strtotime( '+30 minutes' );
+		$this->plus_thirty_minutes  = strtotime( '+30 minutes' );
 	}
 
 	function tearDown() {
@@ -460,7 +460,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		add_filter( 'pre_get_scheduled_event', array( $this, 'filter_pre_scheduled_event_hooks' ) );
 		add_filter( 'pre_next_scheduled', array( $this, 'filter_pre_scheduled_event_hooks' ) );
 
-		$actual = wp_get_scheduled_event( 'preflight_event', array(), $this->plus_thirty_minutes );
+		$actual  = wp_get_scheduled_event( 'preflight_event', array(), $this->plus_thirty_minutes );
 		$actual2 = wp_next_scheduled( 'preflight_event', array() );
 
 		$expected = (object) array(

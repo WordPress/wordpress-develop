@@ -389,7 +389,9 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		wp_set_current_user( self::$admin_id );
 
 		$p = self::factory()->attachment->create_object(
-			'صورة.jpg', 0, array(
+			'صورة.jpg',
+			0,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_type'      => 'attachment',
 				'post_title'     => 'صورة',

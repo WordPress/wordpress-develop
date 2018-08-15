@@ -27,7 +27,8 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 			array(
 				'file'        => '',
 				'post_parent' => 0,
-			), $args
+			),
+			$args
 		);
 
 		return wp_insert_attachment( $r, $r['file'], $r['post_parent'] );

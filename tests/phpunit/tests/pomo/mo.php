@@ -12,7 +12,8 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 			array(
 				'Project-Id-Version'   => 'WordPress 2.6-bleeding',
 				'Report-Msgid-Bugs-To' => 'wp-polyglots@lists.automattic.com',
-			), $mo->headers
+			),
+			$mo->headers
 		);
 		$this->assertEquals( 2, count( $mo->entries ) );
 		$this->assertEquals( array( 'dyado' ), $mo->entries['baba']->translations );
