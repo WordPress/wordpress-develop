@@ -92,10 +92,10 @@ before_script:
   fi
 - npm --version
 - node --version
-# - nvm install 8.9.3
-# - npm install -g grunt-cli
-# - npm install
-# - npm prune
+- nvm install 8.9.3
+- npm install -g grunt-cli
+- npm install
+- npm prune
 - mysql --version
 - phpenv versions
 - php --version
