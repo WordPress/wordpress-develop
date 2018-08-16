@@ -139,7 +139,8 @@ class Tests_Link extends WP_UnitTestCase {
 			array(
 				'post_type' => 'wptests_pt',
 				'p'         => $p,
-			), trailingslashit( home_url() )
+			),
+			trailingslashit( home_url() )
 		);
 
 		$this->assertEquals( $non_pretty_permalink, get_permalink( $p ) );
@@ -152,7 +153,9 @@ class Tests_Link extends WP_UnitTestCase {
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
 		$attachment_id = self::factory()->attachment->create_object(
-			'image.jpg', 0, array(
+			'image.jpg',
+			0,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_type'      => 'attachment',
 				'post_title'     => 'An Attachment!',
@@ -180,7 +183,9 @@ class Tests_Link extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'not_a_post_type' ) );
 
 		$attachment_id = self::factory()->attachment->create_object(
-			'image.jpg', $post_id, array(
+			'image.jpg',
+			$post_id,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_type'      => 'attachment',
 				'post_title'     => 'An Attachment!',

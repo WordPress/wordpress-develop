@@ -359,7 +359,8 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 		global $_wp_theme_features;
 
 		$_wp_theme_features['custom-header'][0] = wp_parse_args(
-			$args, array(
+			$args,
+			array(
 				'default-image'          => '',
 				'random-default'         => false,
 				'width'                  => 0,

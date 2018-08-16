@@ -5,6 +5,12 @@
 	<rule ref="WordPress-Core"/>
 	<rule ref="WordPress.CodeAnalysis.EmptyStatement"/>
 
+	<rule ref="PEAR.Functions.FunctionCallSignature">
+		<properties>
+			<property name="allowMultipleArguments" value="false"/>
+		</properties>
+	</rule>
+
 	<arg name="extensions" value="php"/>
 
 	<!-- Strip the filepaths down to the relevant bit. -->
@@ -18,8 +24,10 @@
 
 	<file>.</file>
 
+	<!-- Exclude the build folder in the current directory, as Travis puts the checkout in a build directory. -->
+	<exclude-pattern type="relative">^build/*</exclude-pattern>
+
 	<!-- Directories and third party library exclusions -->
-	<exclude-pattern>/build/*</exclude-pattern>
 	<exclude-pattern>/node_modules/*</exclude-pattern>
 	<exclude-pattern>/vendor/*</exclude-pattern>
 
@@ -85,6 +93,11 @@
 		<exclude-pattern>/wp-config-sample\.php</exclude-pattern>
 		<exclude-pattern>/wp-tests-config\.php</exclude-pattern>
 		<exclude-pattern>/wp-tests-config-sample\.php</exclude-pattern>
+	</rule>
+
+	<rule ref="Generic.Files.LineEndings">
+		<exclude-pattern>/wp-config\.php</exclude-pattern>
+		<exclude-pattern>/wp-config-sample\.php</exclude-pattern>
 	</rule>
 
 	<!-- Whitelist test classes for select sniffs. -->

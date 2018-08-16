@@ -197,7 +197,8 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 	public function test_protected_should_be_included_when_in_the_admin() {
 		set_current_screen( 'dashboard' );
 		register_post_status(
-			'foo', array(
+			'foo',
+			array(
 				'protected'              => true,
 				'show_in_admin_all_list' => true,
 			)
@@ -264,7 +265,8 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 	public function test_single_post_with_nonpublic_and_protected_status_should_not_be_shown_for_user_who_cannot_edit_others_posts() {
 		register_post_type( 'foo_pt' );
 		register_post_status(
-			'foo_ps', array(
+			'foo_ps',
+			array(
 				'public'    => false,
 				'protected' => true,
 			)
@@ -290,7 +292,8 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 	public function test_single_post_with_nonpublic_and_protected_status_should_be_shown_for_user_who_can_edit_others_posts() {
 		register_post_type( 'foo_pt' );
 		register_post_status(
-			'foo_ps', array(
+			'foo_ps',
+			array(
 				'public'    => false,
 				'protected' => true,
 			)
@@ -316,7 +319,8 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 	public function test_single_post_with_nonpublic_and_private_status_should_not_be_shown_for_user_who_cannot_edit_others_posts() {
 		register_post_type( 'foo_pt' );
 		register_post_status(
-			'foo_ps', array(
+			'foo_ps',
+			array(
 				'public'  => false,
 				'private' => true,
 			)
@@ -342,7 +346,8 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 	public function test_single_post_with_nonpublic_and_private_status_should_be_shown_for_user_who_can_edit_others_posts() {
 		register_post_type( 'foo_pt' );
 		register_post_status(
-			'foo_ps', array(
+			'foo_ps',
+			array(
 				'public'  => false,
 				'private' => true,
 			)

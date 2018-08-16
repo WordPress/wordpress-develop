@@ -25,7 +25,7 @@ wp_check_php_mysql_versions();
 wp_load_translations_early();
 
 // Die with an error message
-$die  = sprintf(
+$die = sprintf(
 	/* translators: %1$s: WordPress, %2$s: src, %3$s: build */
 	__( 'You seem to be running %1$s from the %2$s directory. %1$s needs to be built and run from the %3$s directory before we can get started.' ),
 	'WordPress',

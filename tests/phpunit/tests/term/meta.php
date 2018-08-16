@@ -225,7 +225,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 		// Prime cache.
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'ids',
 				'meta_query' => array(
@@ -242,7 +243,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		add_term_meta( $terms[1], 'foo', 'bar' );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'ids',
 				'meta_query' => array(
@@ -265,7 +267,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 		// Prime cache.
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'ids',
 				'meta_query' => array(
@@ -282,7 +285,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		update_term_meta( $terms[1], 'foo', 'bar' );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'ids',
 				'meta_query' => array(
@@ -305,7 +309,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 		// Prime cache.
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'ids',
 				'meta_query' => array(
@@ -322,7 +327,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		delete_term_meta( $terms[1], 'foo', 'bar' );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'ids',
 				'meta_query' => array(

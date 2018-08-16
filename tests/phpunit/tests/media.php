@@ -403,7 +403,8 @@ https://w.org</a>',
 
 		// Add attachment metadata without sizes.
 		wp_update_attachment_metadata(
-			$id, array(
+			$id,
+			array(
 				'width'  => 50,
 				'height' => 50,
 				'file'   => 'test-image.jpg',
@@ -460,7 +461,9 @@ https://w.org</a>',
 	function test_get_attached_images() {
 		$post_id       = self::factory()->post->create();
 		$attachment_id = self::factory()->attachment->create_object(
-			$this->img_name, $post_id, array(
+			$this->img_name,
+			$post_id,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_type'      => 'attachment',
 			)
@@ -478,7 +481,9 @@ https://w.org</a>',
 		$ids1_srcs = array();
 		foreach ( range( 1, 3 ) as $i ) {
 			$attachment_id = self::factory()->attachment->create_object(
-				"image$i.jpg", 0, array(
+				"image$i.jpg",
+				0,
+				array(
 					'post_mime_type' => 'image/jpeg',
 					'post_type'      => 'attachment',
 				)
@@ -493,7 +498,9 @@ https://w.org</a>',
 		$ids2_srcs = array();
 		foreach ( range( 4, 6 ) as $i ) {
 			$attachment_id = self::factory()->attachment->create_object(
-				"image$i.jpg", 0, array(
+				"image$i.jpg",
+				0,
+				array(
 					'post_mime_type' => 'image/jpeg',
 					'post_type'      => 'attachment',
 				)
@@ -624,7 +631,9 @@ BLOB;
 		$ids1_srcs = array();
 		foreach ( range( 1, 3 ) as $i ) {
 			$attachment_id = self::factory()->attachment->create_object(
-				"image$i.jpg", 0, array(
+				"image$i.jpg",
+				0,
+				array(
 					'post_mime_type' => 'image/jpeg',
 					'post_type'      => 'attachment',
 				)
@@ -639,7 +648,9 @@ BLOB;
 		$ids2_srcs = array();
 		foreach ( range( 4, 6 ) as $i ) {
 			$attachment_id = self::factory()->attachment->create_object(
-				"image$i.jpg", 0, array(
+				"image$i.jpg",
+				0,
+				array(
 					'post_mime_type' => 'image/jpeg',
 					'post_type'      => 'attachment',
 				)
@@ -1035,7 +1046,9 @@ VIDEO;
 	function test_attachment_url_to_postid() {
 		$image_path    = '2014/11/' . $this->img_name;
 		$attachment_id = self::factory()->attachment->create_object(
-			$image_path, 0, array(
+			$image_path,
+			0,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_type'      => 'attachment',
 			)
@@ -1048,7 +1061,9 @@ VIDEO;
 	function test_attachment_url_to_postid_schemes() {
 		$image_path    = '2014/11/' . $this->img_name;
 		$attachment_id = self::factory()->attachment->create_object(
-			$image_path, 0, array(
+			$image_path,
+			0,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_type'      => 'attachment',
 			)
@@ -1064,7 +1079,9 @@ VIDEO;
 	function test_attachment_url_to_postid_filtered() {
 		$image_path    = '2014/11/' . $this->img_name;
 		$attachment_id = self::factory()->attachment->create_object(
-			$image_path, 0, array(
+			$image_path,
+			0,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_type'      => 'attachment',
 			)
@@ -1110,7 +1127,10 @@ VIDEO;
 		);
 
 		$post_id = media_handle_upload(
-			'upload', 0, array(), array(
+			'upload',
+			0,
+			array(),
+			array(
 				'action'    => 'test_iptc_upload',
 				'test_form' => false,
 			)
@@ -1146,7 +1166,10 @@ VIDEO;
 		);
 
 		$post_id = media_handle_upload(
-			'upload', 0, array(), array(
+			'upload',
+			0,
+			array(),
+			array(
 				'action'    => 'test_upload_titles',
 				'test_form' => false,
 			)
@@ -1312,7 +1335,9 @@ EOF;
 
 		$post_id       = self::factory()->post->create();
 		$attachment_id = self::factory()->attachment->create_object(
-			$this->img_name, $post_id, array(
+			$this->img_name,
+			$post_id,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_type'      => 'attachment',
 			)
@@ -1333,7 +1358,9 @@ EOF;
 
 		$post_id       = self::factory()->post->create();
 		$attachment_id = self::factory()->attachment->create_object(
-			$this->img_name, $post_id, array(
+			$this->img_name,
+			$post_id,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_type'      => 'attachment',
 				'post_excerpt'   => $caption,
@@ -1351,7 +1378,9 @@ EOF;
 	function test_wp_get_attachment_caption_empty() {
 		$post_id       = self::factory()->post->create();
 		$attachment_id = self::factory()->attachment->create_object(
-			$this->img_name, $post_id, array(
+			$this->img_name,
+			$post_id,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_type'      => 'attachment',
 				'post_excerpt'   => '',
@@ -2376,7 +2405,10 @@ EOF;
 		$parent_id = self::factory()->post->create( array( 'post_date' => '2010-01-01' ) );
 
 		$post_id = media_handle_upload(
-			'upload', $parent_id, array(), array(
+			'upload',
+			$parent_id,
+			array(),
+			array(
 				'action'    => 'test_iptc_upload',
 				'test_form' => false,
 			)
@@ -2425,7 +2457,10 @@ EOF;
 		$parent    = get_post( $parent_id );
 
 		$post_id = media_handle_upload(
-			'upload', $parent_id, array(), array(
+			'upload',
+			$parent_id,
+			array(),
+			array(
 				'action'    => 'test_iptc_upload',
 				'test_form' => false,
 			)

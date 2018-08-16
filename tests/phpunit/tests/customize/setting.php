@@ -444,7 +444,8 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 		// Custom type that does not handle supplying the post value from the customize_value_{$id_base} filter.
 		$setting_id = 'custom_without_previewing_value_filter';
 		$setting    = $this->manager->add_setting(
-			$setting_id, array(
+			$setting_id,
+			array(
 				'type'              => 'custom_preview_test',
 				'default'           => 123,
 				'sanitize_callback' => array( $this->manager->nav_menus, 'intval_base10' ),
@@ -599,7 +600,9 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 
 		$name    = 'autoloaded1';
 		$setting = new WP_Customize_Setting(
-			$this->manager, $name, array(
+			$this->manager,
+			$name,
+			array(
 				'type' => 'option',
 			)
 		);
@@ -612,7 +615,9 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 
 		$name    = 'autoloaded2';
 		$setting = new WP_Customize_Setting(
-			$this->manager, $name, array(
+			$this->manager,
+			$name,
+			array(
 				'type'     => 'option',
 				'autoload' => true,
 			)
@@ -626,7 +631,9 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 
 		$name    = 'not-autoloaded1';
 		$setting = new WP_Customize_Setting(
-			$this->manager, $name, array(
+			$this->manager,
+			$name,
+			array(
 				'type'     => 'option',
 				'autoload' => false,
 			)
@@ -640,12 +647,16 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 
 		$id_base  = 'multi-not-autoloaded';
 		$setting1 = new WP_Customize_Setting(
-			$this->manager, $id_base . '[foo]', array(
+			$this->manager,
+			$id_base . '[foo]',
+			array(
 				'type' => 'option',
 			)
 		);
 		$setting2 = new WP_Customize_Setting(
-			$this->manager, $id_base . '[bar]', array(
+			$this->manager,
+			$id_base . '[bar]',
+			array(
 				'type'     => 'option',
 				'autoload' => false,
 			)
@@ -695,7 +706,9 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 */
 	public function test_validate() {
 		$setting  = new WP_Customize_Setting(
-			$this->manager, 'name', array(
+			$this->manager,
+			'name',
+			array(
 				'type'              => 'key',
 				'validate_callback' => array( $this, 'filter_validate_for_test_validate' ),
 			)
@@ -735,7 +748,8 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 
 		$initial_value = 456;
 		set_theme_mod(
-			'nav_menu_locations', array(
+			'nav_menu_locations',
+			array(
 				'primary' => $initial_value,
 			)
 		);

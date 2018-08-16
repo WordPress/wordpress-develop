@@ -16,7 +16,9 @@ class Tests_Term extends WP_UnitTestCase {
 	 */
 	public function test_wp_delete_term_should_invalidate_cache_for_child_terms() {
 		register_taxonomy(
-			'wptests_tax', 'post', array(
+			'wptests_tax',
+			'post',
+			array(
 				'hierarchical' => true,
 			)
 		);
@@ -194,7 +196,9 @@ class Tests_Term extends WP_UnitTestCase {
 
 	private function assertPostHasTerms( $post_id, $expected_term_ids, $taxonomy ) {
 		$assigned_term_ids = wp_get_object_terms(
-			$post_id, $taxonomy, array(
+			$post_id,
+			$taxonomy,
+			array(
 				'fields' => 'ids',
 			)
 		);

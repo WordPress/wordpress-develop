@@ -28,7 +28,8 @@ if ( is_multisite() ) :
 			$blog_id = self::factory()->blog->create();
 
 			$result = update_blog_details(
-				$blog_id, array(
+				$blog_id,
+				array(
 					'domain' => 'example.com',
 					'path'   => 'my_path/',
 				)

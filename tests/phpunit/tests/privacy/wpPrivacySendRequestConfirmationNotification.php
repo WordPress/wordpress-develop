@@ -53,9 +53,11 @@ class Tests_User_WpPrivacySendRequestConfirmationNotification extends WP_UnitTes
 	 * @ticket 43967
 	 */
 	public function test_function_should_not_send_email_when_not_a_wp_user_request() {
-		$post_id = $this->factory->post->create( array(
-			'post_type' => 'post',
-		) );
+		$post_id = $this->factory->post->create(
+			array(
+				'post_type' => 'post',
+			)
+		);
 
 		_wp_privacy_send_request_confirmation_notification( $post_id );
 		$mailer = tests_retrieve_phpmailer_instance();

@@ -75,7 +75,8 @@ class Tests_AdminBar extends WP_UnitTestCase {
 			array(
 				'class'     => 'test-class',
 				'some-meta' => 'value',
-			), $node2->meta
+			),
+			$node2->meta
 		);
 	}
 
@@ -491,7 +492,8 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 */
 	public function test_admin_bar_has_no_archives_link_for_non_public_cpt() {
 		register_post_type(
-			'foo-non-public', array(
+			'foo-non-public',
+			array(
 				'public'            => false,
 				'has_archive'       => true,
 				'show_in_admin_bar' => true,
@@ -514,7 +516,8 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 */
 	public function test_admin_bar_has_no_archives_link_for_cpt_without_archive() {
 		register_post_type(
-			'foo-non-public', array(
+			'foo-non-public',
+			array(
 				'public'            => true,
 				'has_archive'       => false,
 				'show_in_admin_bar' => true,
@@ -537,7 +540,8 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 */
 	public function test_admin_bar_has_no_archives_link_for_cpt_not_shown_in_admin_bar() {
 		register_post_type(
-			'foo-non-public', array(
+			'foo-non-public',
+			array(
 				'public'            => true,
 				'has_archive'       => true,
 				'show_in_admin_bar' => false,

@@ -6,7 +6,8 @@
 class Tests_Post_IsPostTypeViewable extends WP_UnitTestCase {
 	public function test_should_return_false_for_non_publicly_queryable_types() {
 		register_post_type(
-			'wptests_pt', array(
+			'wptests_pt',
+			array(
 				'publicly_queryable' => false,
 				'_builtin'           => false,
 				'public'             => true,
@@ -20,7 +21,8 @@ class Tests_Post_IsPostTypeViewable extends WP_UnitTestCase {
 
 	public function test_should_return_true_for_publicly_queryable_types() {
 		register_post_type(
-			'wptests_pt', array(
+			'wptests_pt',
+			array(
 				'publicly_queryable' => true,
 				'_builtin'           => false,
 				'public'             => false,
@@ -34,7 +36,8 @@ class Tests_Post_IsPostTypeViewable extends WP_UnitTestCase {
 
 	public function test_should_return_false_for_builtin_nonpublic_types() {
 		register_post_type(
-			'wptests_pt', array(
+			'wptests_pt',
+			array(
 				'publicly_queryable' => false,
 				'_builtin'           => true,
 				'public'             => false,
@@ -48,7 +51,8 @@ class Tests_Post_IsPostTypeViewable extends WP_UnitTestCase {
 
 	public function test_should_return_false_for_nonbuiltin_public_types() {
 		register_post_type(
-			'wptests_pt', array(
+			'wptests_pt',
+			array(
 				'publicly_queryable' => false,
 				'_builtin'           => false,
 				'public'             => true,
@@ -62,7 +66,8 @@ class Tests_Post_IsPostTypeViewable extends WP_UnitTestCase {
 
 	public function test_should_return_true_for_builtin_public_types() {
 		register_post_type(
-			'wptests_pt', array(
+			'wptests_pt',
+			array(
 				'publicly_queryable' => false,
 				'_builtin'           => true,
 				'public'             => true,
@@ -87,7 +92,8 @@ class Tests_Post_IsPostTypeViewable extends WP_UnitTestCase {
 	 */
 	public function test_should_accept_post_type_name() {
 		register_post_type(
-			'wptests_pt', array(
+			'wptests_pt',
+			array(
 				'publicly_queryable' => true,
 				'_builtin'           => false,
 				'public'             => false,

@@ -26,7 +26,8 @@ class Tests_WP_Post_Type extends WP_UnitTestCase {
 			array(
 				'title'  => true,
 				'editor' => true,
-			), $post_type_supports
+			),
+			$post_type_supports
 		);
 		$this->assertEqualSets( array(), $post_type_supports_after );
 	}
@@ -34,7 +35,8 @@ class Tests_WP_Post_Type extends WP_UnitTestCase {
 	public function test_add_supports_custom() {
 		$post_type        = 'cpt';
 		$post_type_object = new WP_Post_Type(
-			$post_type, array(
+			$post_type,
+			array(
 				'supports' => array(
 					'editor',
 					'comments',
@@ -54,7 +56,8 @@ class Tests_WP_Post_Type extends WP_UnitTestCase {
 				'editor'    => true,
 				'comments'  => true,
 				'revisions' => true,
-			), $post_type_supports
+			),
+			$post_type_supports
 		);
 		$this->assertEqualSets( array(), $post_type_supports_after );
 	}
@@ -67,7 +70,8 @@ class Tests_WP_Post_Type extends WP_UnitTestCase {
 
 		$post_type        = 'cpt';
 		$post_type_object = new WP_Post_Type(
-			$post_type, array(
+			$post_type,
+			array(
 				'rewrite'   => false,
 				'query_var' => 'foobar',
 			)
@@ -85,7 +89,8 @@ class Tests_WP_Post_Type extends WP_UnitTestCase {
 
 		$post_type        = 'cpt';
 		$post_type_object = new WP_Post_Type(
-			$post_type, array(
+			$post_type,
+			array(
 				'public'    => true,
 				'rewrite'   => false,
 				'query_var' => 'foobar',
@@ -110,7 +115,8 @@ class Tests_WP_Post_Type extends WP_UnitTestCase {
 
 		$post_type        = 'cpt';
 		$post_type_object = new WP_Post_Type(
-			$post_type, array(
+			$post_type,
+			array(
 				'public'  => true,
 				'rewrite' => true,
 			)

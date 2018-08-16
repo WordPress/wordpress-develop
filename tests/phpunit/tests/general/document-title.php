@@ -90,7 +90,8 @@ class Tests_General_DocumentTitle extends WP_UnitTestCase {
 	function test_front_page_title() {
 		update_option( 'show_on_front', 'page' );
 		update_option(
-			'page_on_front', $this->factory->post->create(
+			'page_on_front',
+			$this->factory->post->create(
 				array(
 					'post_title' => 'front-page',
 					'post_type'  => 'page',
@@ -184,7 +185,8 @@ class Tests_General_DocumentTitle extends WP_UnitTestCase {
 
 	function test_post_type_archive_title() {
 		register_post_type(
-			'cpt', array(
+			'cpt',
+			array(
 				'public'      => true,
 				'has_archive' => true,
 				'labels'      => array(

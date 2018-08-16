@@ -395,7 +395,8 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		$q = new WP_Date_Query( array() );
 
 		$found = $q->build_value(
-			'BETWEEN', array(
+			'BETWEEN',
+			array(
 				2 => 4,
 				3 => 5,
 			)
@@ -455,7 +456,8 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		$q = new WP_Date_Query( array() );
 
 		$found = $q->build_value(
-			'NOT BETWEEN', array(
+			'NOT BETWEEN',
+			array(
 				2 => 4,
 				3 => 5,
 			)
@@ -513,7 +515,8 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		$found = $q->build_mysql_datetime(
 			array(
 				'year' => 2011,
-			), true
+			),
+			true
 		);
 		$this->assertSame( '2011-12-31 23:59:59', $found );
 	}
@@ -524,7 +527,8 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		$found = $q->build_mysql_datetime(
 			array(
 				'year' => 2011,
-			), false
+			),
+			false
 		);
 		$this->assertSame( '2011-01-01 00:00:00', $found );
 	}
@@ -535,7 +539,8 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		$found = $q->build_mysql_datetime(
 			array(
 				'year' => 2011,
-			), false
+			),
+			false
 		);
 		$this->assertSame( '2011-01-01 00:00:00', $found );
 	}

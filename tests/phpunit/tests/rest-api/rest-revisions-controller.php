@@ -245,10 +245,13 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$request->set_param( '_fields', 'id,slug' );
 		$revision = get_post( $this->revision_id1 );
 		$response = $endpoint->prepare_item_for_response( $revision, $request );
-		$this->assertEquals( array(
-			'id',
-			'slug',
-		), array_keys( $response->get_data() ) );
+		$this->assertEquals(
+			array(
+				'id',
+				'slug',
+			),
+			array_keys( $response->get_data() )
+		);
 	}
 
 	public function test_get_item_schema() {
@@ -293,7 +296,9 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		);
 
 		register_rest_field(
-			'post-revision', 'my_custom_int', array(
+			'post-revision',
+			'my_custom_int',
+			array(
 				'schema'          => $schema,
 				'get_callback'    => array( $this, 'additional_field_get_callback' ),
 				'update_callback' => array( $this, 'additional_field_update_callback' ),

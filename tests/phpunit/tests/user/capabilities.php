@@ -880,7 +880,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		global $wp_roles;
 		$role_name = 'janitor';
 		add_role(
-			$role_name, 'Janitor', array(
+			$role_name,
+			'Janitor',
+			array(
 				'level_1'          => true,
 				'sweep_floor'      => true,
 				'polish_doorknobs' => true,
@@ -1100,7 +1102,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertEquals( 'draw_somethings', $something->cap->create_posts );
 
 		register_post_type(
-			'something', array(
+			'something',
+			array(
 				'capabilities' =>
 				array(
 					'edit_posts'   => 'draw_somethings',
@@ -1306,7 +1309,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			$this->assertEquals(
 				array(
 					$primitive_cap,
-				), $caps, "Meta cap: {$meta_cap}"
+				),
+				$caps,
+				"Meta cap: {$meta_cap}"
 			);
 		}
 	}
@@ -1398,7 +1403,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		);
 		$taxonomy = 'custom_cap_taxo';
 		register_taxonomy(
-			$taxonomy, 'post', array(
+			$taxonomy,
+			'post',
+			array(
 				'capabilities' => $expected,
 			)
 		);
@@ -1411,7 +1418,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			$this->assertEquals(
 				array(
 					$primitive_cap,
-				), $caps, "Meta cap: {$meta_cap}"
+				),
+				$caps,
+				"Meta cap: {$meta_cap}"
 			);
 		}
 	}
@@ -1714,7 +1723,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	function test_cpt_with_page_capability_type() {
 
 		register_post_type(
-			'page_capability', array(
+			'page_capability',
+			array(
 				'capability_type' => 'page',
 			)
 		);
@@ -1925,7 +1935,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$role_name = 'uploader';
 		add_role(
-			$role_name, 'Uploader', array(
+			$role_name,
+			'Uploader',
+			array(
 				'read'         => true,
 				'upload_files' => true,
 			)
@@ -1953,7 +1965,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$role_name = 'uploader';
 		add_role(
-			$role_name, 'Uploader', array(
+			$role_name,
+			'Uploader',
+			array(
 				'read'         => true,
 				'upload_files' => true,
 			)
@@ -2020,7 +2034,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$role_name = 'uploader';
 		add_role(
-			$role_name, 'Uploader', array(
+			$role_name,
+			'Uploader',
+			array(
 				'read'         => true,
 				'upload_files' => true,
 			)

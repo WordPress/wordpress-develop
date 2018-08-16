@@ -19,12 +19,15 @@ class Tests_Link_GetPreviewPostLink extends WP_UnitTestCase {
 				'foo'     => 'bar',
 				'bar'     => 'baz',
 				'preview' => 'true',
-			), get_permalink( $post )
+			),
+			get_permalink( $post )
 		);
 
 		$this->assertEquals(
-			$expected, get_preview_post_link(
-				$post, array(
+			$expected,
+			get_preview_post_link(
+				$post,
+				array(
 					'foo' => 'bar',
 					'bar' => 'baz',
 				)
@@ -38,11 +41,14 @@ class Tests_Link_GetPreviewPostLink extends WP_UnitTestCase {
 		$expected = 'https://google.com/?foo=bar&bar=baz&preview=true';
 
 		$this->assertEquals(
-			$expected, get_preview_post_link(
-				$post, array(
+			$expected,
+			get_preview_post_link(
+				$post,
+				array(
 					'foo' => 'bar',
 					'bar' => 'baz',
-				), 'https://google.com/'
+				),
+				'https://google.com/'
 			)
 		);
 	}
@@ -63,7 +69,8 @@ class Tests_Link_GetPreviewPostLink extends WP_UnitTestCase {
 
 	public function test_get_preview_post_link_should_return_empty_string_for_non_viewable_post_type() {
 		$post_type = register_post_type(
-			'non_viewable_cpt', array(
+			'non_viewable_cpt',
+			array(
 				'public' => false,
 			)
 		);

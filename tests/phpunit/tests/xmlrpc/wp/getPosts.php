@@ -47,7 +47,8 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 
 		$cpt_name = 'test_wp_getposts_cpt';
 		register_post_type(
-			$cpt_name, array(
+			$cpt_name,
+			array(
 				'taxonomies' => array( 'post_tag', 'category' ),
 				'public'     => true,
 			)

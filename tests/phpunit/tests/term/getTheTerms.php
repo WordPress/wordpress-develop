@@ -27,7 +27,9 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 
 		// wp_get_object_terms() does not prime the cache.
 		wp_get_object_terms(
-			$post_id, $this->taxonomy, array(
+			$post_id,
+			$this->taxonomy,
+			array(
 				'fields'  => 'names',
 				'orderby' => 't.term_id',
 			)
@@ -64,7 +66,9 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 		$this->assertEquals( 'My Amazing Tag', $terms[0]->description );
 
 		$_updated = wp_update_term(
-			$tag_id, 'post_tag', array(
+			$tag_id,
+			'post_tag',
+			array(
 				'description' => 'This description is even more amazing!',
 			)
 		);
@@ -256,7 +260,8 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 
 		// Create Test Category.
 		$term_ids = self::factory()->term->create_many(
-			2, array(
+			2,
+			array(
 				'taxonomy' => 'wptests_tax',
 			)
 		);

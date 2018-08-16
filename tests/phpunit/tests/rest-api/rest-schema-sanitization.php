@@ -144,11 +144,13 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 			),
 		);
 		$this->assertEquals(
-			array( '1', '2' ), rest_sanitize_value_from_schema(
+			array( '1', '2' ),
+			rest_sanitize_value_from_schema(
 				array(
 					'first'  => '1',
 					'second' => '2',
-				), $schema
+				),
+				$schema
 			)
 		);
 	}
@@ -168,11 +170,13 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 			array(
 				'a' => 1,
 				'b' => 1,
-			), rest_sanitize_value_from_schema(
+			),
+			rest_sanitize_value_from_schema(
 				array(
 					'a' => '1',
 					'b' => 1,
-				), $schema
+				),
+				$schema
 			)
 		);
 	}
@@ -190,11 +194,13 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 		$this->assertEquals( array( 'a' => 1 ), rest_sanitize_value_from_schema( array( 'a' => 1 ), $schema ) );
 		$this->assertEquals( array( 'a' => 1 ), rest_sanitize_value_from_schema( array( 'a' => '1' ), $schema ) );
 		$this->assertEquals(
-			array( 'a' => 1 ), rest_sanitize_value_from_schema(
+			array( 'a' => 1 ),
+			rest_sanitize_value_from_schema(
 				array(
 					'a' => '1',
 					'b' => 1,
-				), $schema
+				),
+				$schema
 			)
 		);
 	}

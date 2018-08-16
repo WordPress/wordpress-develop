@@ -93,7 +93,8 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 		register_post_type( 'wptests_pt' );
 
 		$cpt_ids         = self::factory()->post->create_many(
-			2, array(
+			2,
+			array(
 				'post_author' => self::$author_id,
 				'post_type'   => 'wptests_pt',
 			)

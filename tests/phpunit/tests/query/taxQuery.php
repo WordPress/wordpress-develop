@@ -1214,7 +1214,9 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 		$image_id = self::factory()->attachment->create_object(
-			'image.jpg', 0, array(
+			'image.jpg',
+			0,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_type'      => 'attachment',
 			)

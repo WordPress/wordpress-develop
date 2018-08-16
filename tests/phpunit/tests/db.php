@@ -578,7 +578,8 @@ class Tests_DB extends WP_UnitTestCase {
 		$last = $wpdb->insert_id;
 
 		$rows2 = $wpdb->replace(
-			$wpdb->users, array(
+			$wpdb->users,
+			array(
 				'ID'           => $last,
 				'display_name' => 'Walter Replace Sobchak',
 			)

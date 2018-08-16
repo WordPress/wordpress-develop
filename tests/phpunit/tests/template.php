@@ -50,12 +50,15 @@ class Tests_Template extends WP_UnitTestCase {
 	public function setUp() {
 		parent::setUp();
 		register_post_type(
-			'cpt', array(
+			'cpt',
+			array(
 				'public' => true,
 			)
 		);
 		register_taxonomy(
-			'taxo', 'post', array(
+			'taxo',
+			'post',
+			array(
 				'public'       => true,
 				'hierarchical' => true,
 			)
@@ -75,11 +78,13 @@ class Tests_Template extends WP_UnitTestCase {
 		$url = add_query_arg(
 			array(
 				'p' => '-1',
-			), home_url()
+			),
+			home_url()
 		);
 
 		$this->assertTemplateHierarchy(
-			$url, array(
+			$url,
+			array(
 				'404.php',
 			)
 		);
@@ -93,7 +98,8 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 
 		$this->assertTemplateHierarchy(
-			get_author_posts_url( $author->ID ), array(
+			get_author_posts_url( $author->ID ),
+			array(
 				'author-foo.php',
 				"author-{$author->ID}.php",
 				'author.php',
@@ -111,7 +117,8 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 
 		$this->assertTemplateHierarchy(
-			get_term_link( $term ), array(
+			get_term_link( $term ),
+			array(
 				'category-foo-😀.php',
 				'category-foo-%f0%9f%98%80.php',
 				"category-{$term->term_id}.php",
@@ -130,7 +137,8 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 
 		$this->assertTemplateHierarchy(
-			get_term_link( $term ), array(
+			get_term_link( $term ),
+			array(
 				'tag-foo-😀.php',
 				'tag-foo-%f0%9f%98%80.php',
 				"tag-{$term->term_id}.php",
@@ -149,7 +157,8 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 
 		$this->assertTemplateHierarchy(
-			get_term_link( $term ), array(
+			get_term_link( $term ),
+			array(
 				'taxonomy-taxo-foo-😀.php',
 				'taxonomy-taxo-foo-%f0%9f%98%80.php',
 				'taxonomy-taxo.php',
@@ -161,7 +170,8 @@ class Tests_Template extends WP_UnitTestCase {
 
 	public function test_date_template_hierarchy_for_year() {
 		$this->assertTemplateHierarchy(
-			get_year_link( 1984 ), array(
+			get_year_link( 1984 ),
+			array(
 				'date.php',
 				'archive.php',
 			)
@@ -170,7 +180,8 @@ class Tests_Template extends WP_UnitTestCase {
 
 	public function test_date_template_hierarchy_for_month() {
 		$this->assertTemplateHierarchy(
-			get_month_link( 1984, 2 ), array(
+			get_month_link( 1984, 2 ),
+			array(
 				'date.php',
 				'archive.php',
 			)
@@ -179,7 +190,8 @@ class Tests_Template extends WP_UnitTestCase {
 
 	public function test_date_template_hierarchy_for_day() {
 		$this->assertTemplateHierarchy(
-			get_day_link( 1984, 2, 25 ), array(
+			get_day_link( 1984, 2, 25 ),
+			array(
 				'date.php',
 				'archive.php',
 			)
@@ -190,11 +202,13 @@ class Tests_Template extends WP_UnitTestCase {
 		$url = add_query_arg(
 			array(
 				's' => 'foo',
-			), home_url()
+			),
+			home_url()
 		);
 
 		$this->assertTemplateHierarchy(
-			$url, array(
+			$url,
+			array(
 				'search.php',
 			)
 		);
@@ -203,7 +217,8 @@ class Tests_Template extends WP_UnitTestCase {
 	public function test_front_page_template_hierarchy_with_posts_on_front() {
 		$this->assertEquals( 'posts', get_option( 'show_on_front' ) );
 		$this->assertTemplateHierarchy(
-			home_url(), array(
+			home_url(),
+			array(
 				'front-page.php',
 				'home.php',
 				'index.php',
@@ -217,7 +232,8 @@ class Tests_Template extends WP_UnitTestCase {
 		update_option( 'page_for_posts', self::$page_for_posts->ID );
 
 		$this->assertTemplateHierarchy(
-			home_url(), array(
+			home_url(),
+			array(
 				'front-page.php',
 				'page-page-on-front-😀.php',
 				'page-page-on-front-%f0%9f%98%80.php',
@@ -234,7 +250,8 @@ class Tests_Template extends WP_UnitTestCase {
 		update_option( 'page_for_posts', self::$page_for_posts->ID );
 
 		$this->assertTemplateHierarchy(
-			get_permalink( self::$page_for_posts ), array(
+			get_permalink( self::$page_for_posts ),
+			array(
 				'home.php',
 				'index.php',
 			)
@@ -243,7 +260,8 @@ class Tests_Template extends WP_UnitTestCase {
 
 	public function test_page_template_hierarchy() {
 		$this->assertTemplateHierarchy(
-			get_permalink( self::$page ), array(
+			get_permalink( self::$page ),
+			array(
 				'templates/page.php',
 				'page-page-name-😀.php',
 				'page-page-name-%f0%9f%98%80.php',
@@ -259,7 +277,8 @@ class Tests_Template extends WP_UnitTestCase {
 	 */
 	public function test_single_template_hierarchy_for_post() {
 		$this->assertTemplateHierarchy(
-			get_permalink( self::$post ), array(
+			get_permalink( self::$post ),
+			array(
 				'templates/post.php',
 				'single-post-post-name-😀.php',
 				'single-post-post-name-%f0%9f%98%80.php',
@@ -279,7 +298,8 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 
 		$this->assertTemplateHierarchy(
-			get_permalink( $cpt ), array(
+			get_permalink( $cpt ),
+			array(
 				'single-cpt-cpt-name-😀.php',
 				'single-cpt-cpt-name-%f0%9f%98%80.php',
 				'single-cpt.php',
@@ -302,7 +322,8 @@ class Tests_Template extends WP_UnitTestCase {
 		add_post_meta( $cpt->ID, '_wp_page_template', 'templates/cpt.php' );
 
 		$this->assertTemplateHierarchy(
-			get_permalink( $cpt ), array(
+			get_permalink( $cpt ),
+			array(
 				'templates/cpt.php',
 				'single-cpt-cpt-name-😀.php',
 				'single-cpt-cpt-name-%f0%9f%98%80.php',
@@ -322,7 +343,8 @@ class Tests_Template extends WP_UnitTestCase {
 			)
 		);
 		$this->assertTemplateHierarchy(
-			get_permalink( $attachment ), array(
+			get_permalink( $attachment ),
+			array(
 				'image-jpeg.php',
 				'jpeg.php',
 				'image.php',
@@ -351,7 +373,8 @@ class Tests_Template extends WP_UnitTestCase {
 		add_post_meta( $attachment, '_wp_page_template', 'templates/cpt.php' );
 
 		$this->assertTemplateHierarchy(
-			get_permalink( $attachment ), array(
+			get_permalink( $attachment ),
+			array(
 				'image-jpeg.php',
 				'jpeg.php',
 				'image.php',
@@ -367,7 +390,8 @@ class Tests_Template extends WP_UnitTestCase {
 
 	public function test_embed_template_hierarchy_for_post() {
 		$this->assertTemplateHierarchy(
-			get_post_embed_url( self::$post ), array(
+			get_post_embed_url( self::$post ),
+			array(
 				'embed-post-quote.php',
 				'embed-post.php',
 				'embed.php',
@@ -383,7 +407,8 @@ class Tests_Template extends WP_UnitTestCase {
 
 	public function test_embed_template_hierarchy_for_page() {
 		$this->assertTemplateHierarchy(
-			get_post_embed_url( self::$page ), array(
+			get_post_embed_url( self::$page ),
+			array(
 				'embed-page.php',
 				'embed.php',
 				'templates/page.php',

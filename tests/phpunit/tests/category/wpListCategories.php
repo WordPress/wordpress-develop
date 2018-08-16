@@ -146,7 +146,8 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', array( 'foo', 'wptests_pt', 'wptests_pt2' ) );
 
 		$terms = self::factory()->term->create_many(
-			2, array(
+			2,
+			array(
 				'taxonomy' => 'wptests_tax',
 			)
 		);
@@ -174,7 +175,8 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', array( 'foo', 'wptests_pt', 'wptests_pt2' ) );
 
 		$terms = self::factory()->term->create_many(
-			2, array(
+			2,
+			array(
 				'taxonomy' => 'wptests_tax',
 			)
 		);
@@ -199,7 +201,8 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', array( 'foo', 'wptests_pt', 'post', 'wptests_pt2' ) );
 
 		$terms = self::factory()->term->create_many(
-			2, array(
+			2,
+			array(
 				'taxonomy' => 'wptests_tax',
 			)
 		);
@@ -224,7 +227,8 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', array( 'foo', 'wptests_pt', 'wptests_pt2' ) );
 
 		$terms = self::factory()->term->create_many(
-			2, array(
+			2,
+			array(
 				'taxonomy' => 'wptests_tax',
 			)
 		);
