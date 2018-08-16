@@ -112,10 +112,10 @@ before_script:
 script:
 - pwd
 - ls -lah
-- ./vendor/bin/phpcs --config-show
-- ./vendor/bin/phpcs -vvv src/index.php
-- ./vendor/bin/phpcs -vvv wp-config-sample.php
-- composer format
+- travis_retry ./vendor/bin/phpcs --config-show
+- travis_retry ./vendor/bin/phpcs -vvv src/index.php
+- travis_retry ./vendor/bin/phpcs -vvv wp-config-sample.php
+- travis_retry composer format
 after_script:
 - |
   if [[ "$WP_TEST_REPORTER" == "true" ]]; then
