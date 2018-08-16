@@ -16,7 +16,7 @@
 	<arg name="extensions" value="php"/>
 
 	<!-- Strip the filepaths down to the relevant bit. -->
-	<arg name="basepath" value="./"/>
+	<arg name="basepath" value="."/>
 
 	<!-- Check up to 20 files simultanously. -->
 	<arg name="parallel" value="20"/>
