@@ -5,6 +5,8 @@ cache:
   apt: true
   directories:
     - node_modules
+    - vendor
+    - $HOME/.composer/cache
 env:
   global:
     - WP_TRAVISCI=travis:phpunit
@@ -109,6 +111,7 @@ before_script:
 - locale -a
 script:
 - composer format
+- composer lint
 - ls -lah
 after_script:
 - |
