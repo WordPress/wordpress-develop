@@ -109,24 +109,8 @@ before_script:
 - git --version
 - svn --version
 - locale -a
-- |
-  # For PHPCS to function correctly, the checkout can't live in a directory with "build" in it, so move it.
-  if [[ "$WP_TRAVISCI" == "travis:format" ]]; then
-    cd $HOME
-    mv build ci
-    export TRAVIS_BUILD_DIR="$HOME/ci/$TRAVIS_REPO_SLUG"
-    cd $TRAVIS_BUILD_DIR
-  fi
 script: grunt $WP_TRAVISCI
 after_script:
-- |
-  # Move the checkout folder back once we're done, so any followup scripts will find it in the correct place.
-  if [[ "$WP_TRAVISCI" == "travis:format" ]]; then
-    cd $HOME
-    mv ci build
-    export TRAVIS_BUILD_DIR="$HOME/build/$TRAVIS_REPO_SLUG"
-    cd $TRAVIS_BUILD_DIR
-  fi
 - |
   if [[ "$WP_TEST_REPORTER" == "true" ]]; then
     git clone https://github.com/WordPress/phpunit-test-runner.git test-runner
