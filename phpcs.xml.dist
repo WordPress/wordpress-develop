@@ -24,7 +24,7 @@
 	<!-- Show sniff codes in all reports -->
 	<arg value="ps"/>
 
-	<file>.</file>
+	<file>./</file>
 
 	<!-- Directories and third party library exclusions -->
 	<exclude-pattern>/build/*</exclude-pattern>
