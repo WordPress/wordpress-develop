@@ -1389,7 +1389,7 @@ module.exports = function(grunt) {
 		var done = this.async();
 		var flags = this.flags;
 		var args = changedFiles.php;
-		args.unshift( 'format' );
+		args.unshift( 'format', '-vvv' );
 		grunt.util.spawn( {
 			cmd: 'composer',
 			args: args,

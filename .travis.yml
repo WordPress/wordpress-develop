@@ -48,10 +48,6 @@ before_install:
     cp tests/phpunit/includes/object-cache.php src/wp-content/object-cache.php
     echo "extension = memcached.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
   fi
-- cd $HOME
-- mv build ci
-- export TRAVIS_BUILD_DIR=/home/travis/ci/WordPress/wordpress-develop
-- cd $TRAVIS_BUILD_DIR
 before_script:
 - |
   # Remove Xdebug for a huge performance increase:
@@ -113,9 +109,24 @@ before_script:
 - git --version
 - svn --version
 - locale -a
+- |
+  # For PHPCS to function correctly, the checkout can't live in a directory with "build" in it, so move it.
+  if [[ "$WP_TRAVISCI" == "travis:format" ]]; then
+    cd $HOME
+    mv build ci
+    export TRAVIS_BUILD_DIR=/home/travis/ci/WordPress/wordpress-develop
+    cd $TRAVIS_BUILD_DIR
+  fi
 script:
-- composer format
+- grunt $WP_TRAVISCI
 after_script:
+  # Move it back once we're done.
+  if [[ "$WP_TRAVISCI" == "travis:format" ]]; then
+    cd $HOME
+    mv ci build
+    export TRAVIS_BUILD_DIR=/home/travis/build/WordPress/wordpress-develop
+    cd $TRAVIS_BUILD_DIR
+  fi
 - |
   if [[ "$WP_TEST_REPORTER" == "true" ]]; then
     git clone https://github.com/WordPress/phpunit-test-runner.git test-runner
