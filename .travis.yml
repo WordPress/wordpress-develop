@@ -110,9 +110,12 @@ before_script:
 - svn --version
 - locale -a
 script:
-- composer format
-- composer lint
+- pwd
 - ls -lah
+- ./vendor/bin/phpcs -i
+- ./vendor/bin/phpcs src/index.php
+- ./vendor/bin/phpcs wp-config.php
+- composer format
 after_script:
 - |
   if [[ "$WP_TEST_REPORTER" == "true" ]]; then
