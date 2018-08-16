@@ -112,9 +112,9 @@ before_script:
 script:
 - pwd
 - ls -lah
-- ./vendor/bin/phpcs -i
-- ./vendor/bin/phpcs src/index.php
-- ./vendor/bin/phpcs wp-config.php
+- ./vendor/bin/phpcs --config-show
+- ./vendor/bin/phpcs -vvv src/index.php
+- ./vendor/bin/phpcs -vvv wp-config-sample.php
 - composer format
 after_script:
 - |
