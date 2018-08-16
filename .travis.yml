@@ -48,6 +48,10 @@ before_install:
     cp tests/phpunit/includes/object-cache.php src/wp-content/object-cache.php
     echo "extension = memcached.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
   fi
+- cd $HOME
+- mv build ci
+- export TRAVIS_BUILD_DIR=/home/travis/ci/WordPress/wordpress-develop
+- cd $TRAVIS_BUILD_DIR
 before_script:
 - |
   # Remove Xdebug for a huge performance increase:
@@ -110,10 +114,6 @@ before_script:
 - svn --version
 - locale -a
 script:
-- pwd
-- ls -lah
-- ./vendor/bin/phpcs -vvv src/index.php
-- ./vendor/bin/phpcs -vvv wp-config-sample.php
 - composer format
 after_script:
 - |
