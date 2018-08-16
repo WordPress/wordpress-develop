@@ -14,7 +14,7 @@
 		"wp-coding-standards/wpcs": "1.0.0"
 	},
 	"scripts": {
-		"format": "phpcbf --standard=phpcs.xml.dist --report-summary --report-source -v",
+		"format": "phpcbf --standard=phpcs.xml.dist --report-summary --report-source",
 		"lint": "phpcs --standard=phpcs.xml.dist --report-summary --report-source"
 	}
 }
