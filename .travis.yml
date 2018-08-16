@@ -84,14 +84,18 @@ before_script:
         ;;
     esac
   fi
+- |
+  # We only need to run composer install on the code formatting job.
+  if [[ "$WP_TRAVISCI" == "travis:format" ]]; then
+    composer --version
+    composer install
+  fi
 - npm --version
 - node --version
 - nvm install 8.9.3
 - npm install -g grunt-cli
 - npm install
 - npm prune
-- composer --version
-- composer install
 - mysql --version
 - phpenv versions
 - php --version
