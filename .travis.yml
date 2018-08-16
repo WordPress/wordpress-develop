@@ -114,18 +114,17 @@ before_script:
   if [[ "$WP_TRAVISCI" == "travis:format" ]]; then
     cd $HOME
     mv build ci
-    export TRAVIS_BUILD_DIR=/home/travis/ci/WordPress/wordpress-develop
+    export TRAVIS_BUILD_DIR="$HOME/ci/$TRAVIS_REPO_SLUG"
     cd $TRAVIS_BUILD_DIR
   fi
-script:
-- grunt $WP_TRAVISCI
+script: grunt $WP_TRAVISCI
 after_script:
 - |
-  # Move it back once we're done.
+  # Move the checkout folder back once we're done, so any followup scripts will find it in the correct place.
   if [[ "$WP_TRAVISCI" == "travis:format" ]]; then
     cd $HOME
     mv ci build
-    export TRAVIS_BUILD_DIR=/home/travis/build/WordPress/wordpress-develop
+    export TRAVIS_BUILD_DIR="$HOME/build/$TRAVIS_REPO_SLUG"
     cd $TRAVIS_BUILD_DIR
   fi
 - |
