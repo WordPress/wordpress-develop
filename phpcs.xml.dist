@@ -25,7 +25,7 @@
 	<file>.</file>
 
 	<!-- Directories and third party library exclusions -->
-	<exclude-pattern>(?<!/travis)/build/*</exclude-pattern>
+	<exclude-pattern>(?&lt;!/travis)/build/*</exclude-pattern>
 	<exclude-pattern>/node_modules/*</exclude-pattern>
 	<exclude-pattern>/vendor/*</exclude-pattern>
 
