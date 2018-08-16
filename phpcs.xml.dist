@@ -24,8 +24,10 @@
 
 	<file>.</file>
 
+	<!-- Exclude the build folder in the current directory, as Travis puts the checkout in a build directory. -->
+	<exclude-pattern type="relative">^build/*</exclude-pattern>
+
 	<!-- Directories and third party library exclusions -->
-	<exclude-pattern>(?&lt;!/travis)/build/*</exclude-pattern>
 	<exclude-pattern>/node_modules/*</exclude-pattern>
 	<exclude-pattern>/vendor/*</exclude-pattern>
 
