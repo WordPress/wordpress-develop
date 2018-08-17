@@ -4286,11 +4286,7 @@ mockedApiResponse.CategoriesCollection = [
         "taxonomy": "category",
         "parent": 0,
         "meta": {
-            "test_single": "",
-            "test_multi": [],
-            "meta_key": "",
-            "test_cat_single": "",
-            "test_cat_multi": []
+            "meta_key": ""
         },
         "_links": {
             "self": [
@@ -4334,11 +4330,7 @@ mockedApiResponse.CategoryModel = {
     "taxonomy": "category",
     "parent": 0,
     "meta": {
-        "test_single": "",
-        "test_multi": [],
-        "meta_key": "",
-        "test_cat_single": "",
-        "test_cat_multi": []
+        "meta_key": ""
     }
 };
 
@@ -4352,10 +4344,7 @@ mockedApiResponse.TagsCollection = [
         "slug": "restapi-client-fixture-tag",
         "taxonomy": "post_tag",
         "meta": {
-            "test_single": "",
-            "test_multi": [],
-            "meta_key": "meta_value",
-            "test_tag_meta": ""
+            "meta_key": "meta_value"
         },
         "_links": {
             "self": [
@@ -4398,10 +4387,7 @@ mockedApiResponse.TagModel = {
     "slug": "restapi-client-fixture-tag",
     "taxonomy": "post_tag",
     "meta": {
-        "test_single": "",
-        "test_multi": [],
-        "meta_key": "meta_value",
-        "test_tag_meta": ""
+        "meta_key": "meta_value"
     }
 };
 
