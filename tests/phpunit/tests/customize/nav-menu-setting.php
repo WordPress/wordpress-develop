@@ -135,7 +135,8 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		$parent_menu_id = wp_create_nav_menu( wp_slash( "Parent $menu_name" ) );
 		$description    = 'Hello my world \\o/.';
 		$menu_id        = wp_update_nav_menu_object(
-			0, wp_slash(
+			0,
+			wp_slash(
 				array(
 					'menu-name'   => $menu_name,
 					'parent'      => $parent_menu_id,
@@ -171,7 +172,8 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		do_action( 'customize_register', $this->wp_customize );
 
 		$menu_id    = wp_update_nav_menu_object(
-			0, wp_slash(
+			0,
+			wp_slash(
 				array(
 					'menu-name'   => 'Name 1 \\o/',
 					'description' => 'Description 1 \\o/',
@@ -282,7 +284,8 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		do_action( 'customize_register', $this->wp_customize );
 
 		$menu_id                        = wp_update_nav_menu_object(
-			0, wp_slash(
+			0,
+			wp_slash(
 				array(
 					'menu-name'   => 'Name 1 \\o/',
 					'description' => 'Description 1 \\o/',
@@ -351,7 +354,8 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		do_action( 'customize_register', $this->wp_customize );
 
 		$menu_id                        = wp_update_nav_menu_object(
-			0, wp_slash(
+			0,
+			wp_slash(
 				array(
 					'menu-name'   => 'Name 1 \\o/',
 					'description' => 'Description 1 \\o/',

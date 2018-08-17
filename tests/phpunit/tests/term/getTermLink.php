@@ -65,7 +65,9 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 
 	public function test_taxonomy_with_query_var_should_use_that_query_var_with_term_slug() {
 		register_taxonomy(
-			'wptests_tax2', 'post', array(
+			'wptests_tax2',
+			'post',
+			array(
 				'query_var' => 'foo',
 			)
 		);
@@ -83,7 +85,9 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 
 	public function test_taxonomy_without_query_var_should_use_taxonomy_query_var_and_term_query_var_with_term_slug() {
 		register_taxonomy(
-			'wptests_tax2', 'post', array(
+			'wptests_tax2',
+			'post',
+			array(
 				'query_var' => false,
 			)
 		);
@@ -104,7 +108,9 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
 		register_taxonomy(
-			'wptests_tax2', 'post', array(
+			'wptests_tax2',
+			'post',
+			array(
 				'hierarchical' => true,
 				'rewrite'      => array(
 					'slug'         => 'foo',
@@ -139,7 +145,9 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
 		register_taxonomy(
-			'wptests_tax2', 'post', array(
+			'wptests_tax2',
+			'post',
+			array(
 				'hierarchical' => true,
 				'rewrite'      => array(
 					'slug'         => 'foo',

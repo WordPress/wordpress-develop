@@ -107,7 +107,8 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 	 */
 	public function test_cache_should_be_invalidated_by_add_post_meta() {
 		$posts = self::factory()->post->create_many(
-			2, array(
+			2,
+			array(
 				'post_type' => 'page',
 			)
 		);
@@ -142,7 +143,8 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 	 */
 	public function test_cache_should_be_invalidated_by_update_post_meta() {
 		$posts = self::factory()->post->create_many(
-			2, array(
+			2,
+			array(
 				'post_type' => 'page',
 			)
 		);
@@ -178,7 +180,8 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 	 */
 	public function test_cache_should_be_invalidated_by_delete_post_meta() {
 		$posts = self::factory()->post->create_many(
-			2, array(
+			2,
+			array(
 				'post_type' => 'page',
 			)
 		);
@@ -214,7 +217,8 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 	 */
 	public function test_cache_should_be_invalidated_by_delete_post_meta_by_key() {
 		$posts = self::factory()->post->create_many(
-			2, array(
+			2,
+			array(
 				'post_type' => 'page',
 			)
 		);
@@ -255,7 +259,8 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		add_post_meta( $posts[2], 'some-meta-key', '1' );
 
 		$this->assertEquals(
-			1, count(
+			1,
+			count(
 				get_pages(
 					array(
 						'meta_key'   => 'some-meta-key',
@@ -265,7 +270,8 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 			)
 		);
 		$this->assertEquals(
-			1, count(
+			1,
+			count(
 				get_pages(
 					array(
 						'meta_key'   => 'some-meta-key',
@@ -618,7 +624,8 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 	function test_wp_list_pages_classes() {
 		$type = 'taco';
 		register_post_type(
-			$type, array(
+			$type,
+			array(
 				'hierarchical' => true,
 				'public'       => true,
 			)

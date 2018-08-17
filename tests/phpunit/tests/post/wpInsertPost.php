@@ -12,12 +12,16 @@ class Tests_WPInsertPost extends WP_UnitTestCase {
 
 	static function wpSetUpBeforeClass( $factory ) {
 		self::$user_ids = array(
-			'administrator' => $factory->user->create( array(
-				'role' => 'administrator',
-			) ),
-			'contributor'   => $factory->user->create( array(
-				'role' => 'contributor',
-			) ),
+			'administrator' => $factory->user->create(
+				array(
+					'role' => 'administrator',
+				)
+			),
+			'contributor'   => $factory->user->create(
+				array(
+					'role' => 'contributor',
+				)
+			),
 		);
 
 		$role = get_role( 'administrator' );
@@ -36,20 +40,29 @@ class Tests_WPInsertPost extends WP_UnitTestCase {
 	function setUp() {
 		parent::setUp();
 
-		register_post_type( 'mapped_meta_caps', array(
-			'capability_type' => array( 'mapped_meta_cap', 'mapped_meta_caps' ),
-			'map_meta_cap'    => true,
-		) );
+		register_post_type(
+			'mapped_meta_caps',
+			array(
+				'capability_type' => array( 'mapped_meta_cap', 'mapped_meta_caps' ),
+				'map_meta_cap'    => true,
+			)
+		);
 
-		register_post_type( 'unmapped_meta_caps', array(
-			'capability_type' => array( 'unmapped_meta_cap', 'unmapped_meta_caps' ),
-			'map_meta_cap'    => false,
-		) );
+		register_post_type(
+			'unmapped_meta_caps',
+			array(
+				'capability_type' => array( 'unmapped_meta_cap', 'unmapped_meta_caps' ),
+				'map_meta_cap'    => false,
+			)
+		);
 
-		register_post_type( 'no_admin_caps', array(
-			'capability_type' => array( 'no_admin_cap', 'no_admin_caps' ),
-			'map_meta_cap'    => false,
-		) );
+		register_post_type(
+			'no_admin_caps',
+			array(
+				'capability_type' => array( 'no_admin_cap', 'no_admin_caps' ),
+				'map_meta_cap'    => false,
+			)
+		);
 	}
 
 	/**
@@ -179,28 +192,32 @@ class Tests_WPInsertPost extends WP_UnitTestCase {
 	function test_contributor_cannot_set_post_slug( $post_type ) {
 		wp_set_current_user( self::$user_ids['contributor'] );
 
-		$post_id = $this->factory()->post->create( array(
-			'post_title'   => 'Jefferson claim: nice to have Washington on your side.',
-			'post_content' => "I’m in the cabinet. I am complicit in watching him grabbin’ at power and kiss it.\n\nIf Washington isn’t gon’ listen to disciplined dissidents, this is the difference: this kid is out!",
-			'post_type'    => $post_type,
-			'post_name'    => 'new-washington',
-			'post_status'  => 'pending',
-		) );
+		$post_id = $this->factory()->post->create(
+			array(
+				'post_title'   => 'Jefferson claim: nice to have Washington on your side.',
+				'post_content' => "I’m in the cabinet. I am complicit in watching him grabbin’ at power and kiss it.\n\nIf Washington isn’t gon’ listen to disciplined dissidents, this is the difference: this kid is out!",
+				'post_type'    => $post_type,
+				'post_name'    => 'new-washington',
+				'post_status'  => 'pending',
+			)
+		);
 
 		$expected = '';
-		$actual = get_post_field( 'post_name', $post_id );
+		$actual   = get_post_field( 'post_name', $post_id );
 
 		$this->assertSame( $expected, $actual );
 
 		// Now update the post.
-		wp_update_post( array(
-			'ID' => $post_id,
-			'post_title' => 'Hamilton has Washington on side: Jefferson',
-			'post_name'  => 'edited-washington',
-		) );
+		wp_update_post(
+			array(
+				'ID'         => $post_id,
+				'post_title' => 'Hamilton has Washington on side: Jefferson',
+				'post_name'  => 'edited-washington',
+			)
+		);
 
 		$expected = '';
-		$actual = get_post_field( 'post_name', $post_id );
+		$actual   = get_post_field( 'post_name', $post_id );
 
 		$this->assertSame( $expected, $actual );
 	}
@@ -214,28 +231,32 @@ class Tests_WPInsertPost extends WP_UnitTestCase {
 	function test_administrator_can_set_post_slug( $post_type ) {
 		wp_set_current_user( self::$user_ids['administrator'] );
 
-		$post_id = $this->factory()->post->create( array(
-			'post_title'   => 'What is the Conner Project?',
-			'post_content' => "Evan Hansen’s last link to his friend Conner is a signature on his broken arm.",
-			'post_type'    => $post_type,
-			'post_name'    => 'dear-evan-hansen-explainer',
-			'post_status'  => 'pending',
-		) );
+		$post_id = $this->factory()->post->create(
+			array(
+				'post_title'   => 'What is the Conner Project?',
+				'post_content' => 'Evan Hansen’s last link to his friend Conner is a signature on his broken arm.',
+				'post_type'    => $post_type,
+				'post_name'    => 'dear-evan-hansen-explainer',
+				'post_status'  => 'pending',
+			)
+		);
 
 		$expected = 'dear-evan-hansen-explainer';
-		$actual = get_post_field( 'post_name', $post_id );
+		$actual   = get_post_field( 'post_name', $post_id );
 
 		$this->assertSame( $expected, $actual );
 
 		// Now update the post.
-		wp_update_post( array(
-			'ID' => $post_id,
-			'post_title' => 'Conner Project to close',
-			'post_name'  => 'dear-evan-hansen-spoiler',
-		) );
+		wp_update_post(
+			array(
+				'ID'         => $post_id,
+				'post_title' => 'Conner Project to close',
+				'post_name'  => 'dear-evan-hansen-spoiler',
+			)
+		);
 
 		$expected = 'dear-evan-hansen-spoiler';
-		$actual = get_post_field( 'post_name', $post_id );
+		$actual   = get_post_field( 'post_name', $post_id );
 
 		$this->assertSame( $expected, $actual );
 	}
@@ -251,28 +272,32 @@ class Tests_WPInsertPost extends WP_UnitTestCase {
 	function test_administrator_cannot_set_post_slug_on_post_type_they_cannot_publish() {
 		wp_set_current_user( self::$user_ids['administrator'] );
 
-		$post_id = $this->factory()->post->create( array(
-			'post_title'   => 'Everything is legal in New Jersey',
-			'post_content' => 'Shortly before his death, Philip Hamilton was heard to claim everything was legal in the garden state.',
-			'post_type'    => 'no_admin_caps',
-			'post_name'    => 'yet-another-duel',
-			'post_status'  => 'pending',
-		) );
+		$post_id = $this->factory()->post->create(
+			array(
+				'post_title'   => 'Everything is legal in New Jersey',
+				'post_content' => 'Shortly before his death, Philip Hamilton was heard to claim everything was legal in the garden state.',
+				'post_type'    => 'no_admin_caps',
+				'post_name'    => 'yet-another-duel',
+				'post_status'  => 'pending',
+			)
+		);
 
 		$expected = '';
-		$actual = get_post_field( 'post_name', $post_id );
+		$actual   = get_post_field( 'post_name', $post_id );
 
 		$this->assertSame( $expected, $actual );
 
 		// Now update the post.
-		wp_update_post( array(
-			'ID' => $post_id,
-			'post_title' => 'Ten things illegal in New Jersey',
-			'post_name'  => 'foreshadowing-in-nj',
-		) );
+		wp_update_post(
+			array(
+				'ID'         => $post_id,
+				'post_title' => 'Ten things illegal in New Jersey',
+				'post_name'  => 'foreshadowing-in-nj',
+			)
+		);
 
 		$expected = '';
-		$actual = get_post_field( 'post_name', $post_id );
+		$actual   = get_post_field( 'post_name', $post_id );
 
 		$this->assertSame( $expected, $actual );
 	}

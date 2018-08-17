@@ -173,7 +173,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'search',
 				'status',
 				'type',
-			), $keys
+			),
+			$keys
 		);
 	}
 
@@ -725,7 +726,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$next_link = add_query_arg(
 			array(
 				'page' => 2,
-			), rest_url( '/wp/v2/comments' )
+			),
+			rest_url( '/wp/v2/comments' )
 		);
 		$this->assertFalse( stripos( $headers['Link'], 'rel="prev"' ) );
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
@@ -745,13 +747,15 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$prev_link = add_query_arg(
 			array(
 				'page' => 2,
-			), rest_url( '/wp/v2/comments' )
+			),
+			rest_url( '/wp/v2/comments' )
 		);
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$next_link = add_query_arg(
 			array(
 				'page' => 4,
-			), rest_url( '/wp/v2/comments' )
+			),
+			rest_url( '/wp/v2/comments' )
 		);
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 		// Last page
@@ -764,7 +768,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$prev_link = add_query_arg(
 			array(
 				'page' => 5,
-			), rest_url( '/wp/v2/comments' )
+			),
+			rest_url( '/wp/v2/comments' )
 		);
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
@@ -778,7 +783,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$prev_link = add_query_arg(
 			array(
 				'page' => 6,
-			), rest_url( '/wp/v2/comments' )
+			),
+			rest_url( '/wp/v2/comments' )
 		);
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
@@ -855,10 +861,13 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( '_fields', 'id,status' );
 		$obj      = get_comment( self::$approved_id );
 		$response = $endpoint->prepare_item_for_response( $obj, $request );
-		$this->assertEquals( array(
-			'id',
-			'status',
-		), array_keys( $response->get_data() ) );
+		$this->assertEquals(
+			array(
+				'id',
+				'status',
+			),
+			array_keys( $response->get_data() )
+		);
 	}
 
 	public function test_get_comment_author_avatar_urls() {
@@ -2665,7 +2674,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'content'           => '\o/ ¯\_(ツ)_/¯',
 				'author_name'       => '\o/ ¯\_(ツ)_/¯',
 				'author_user_agent' => '\o/ ¯\_(ツ)_/¯',
-			), array(
+			),
+			array(
 				'content'           => array(
 					'raw'      => '\o/ ¯\_(ツ)_/¯',
 					'rendered' => '<p>\o/ ¯\_(ツ)_/¯</p>',
@@ -2685,7 +2695,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 					'content'           => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 					'author_name'       => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 					'author_user_agent' => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
-				), array(
+				),
+				array(
 					'content'           => array(
 						'raw'      => 'div <strong>strong</strong> oh noes',
 						'rendered' => '<p>div <strong>strong</strong> oh noes</p>',
@@ -2701,7 +2712,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 					'content'           => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 					'author_name'       => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 					'author_user_agent' => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
-				), array(
+				),
+				array(
 					'content'           => array(
 						'raw'      => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> <script>oh noes</script></p>",
@@ -2721,7 +2733,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'content'           => '\\\&\\\ &amp; &invalid; < &lt; &amp;lt;',
 				'author_name'       => '\\\&\\\ &amp; &invalid; < &lt; &amp;lt;',
 				'author_user_agent' => '\\\&\\\ &amp; &invalid; < &lt; &amp;lt;',
-			), array(
+			),
+			array(
 				'content'           => array(
 					'raw'      => '\\\&\\\ &amp; &invalid; < &lt; &amp;lt;',
 					'rendered' => '<p>\\\&#038;\\\ &amp; &invalid; < &lt; &amp;lt;' . "\n</p>",
@@ -2740,7 +2753,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'content'           => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 				'author_name'       => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 				'author_user_agent' => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
-			), array(
+			),
+			array(
 				'content'           => array(
 					'raw'      => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 					'rendered' => "<div>div</div>\n<p> <strong>strong</strong> <script>oh noes</script></p>",
@@ -2908,7 +2922,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 
 		register_rest_field(
-			'comment', 'my_custom_int', array(
+			'comment',
+			'my_custom_int',
+			array(
 				'schema'          => $schema,
 				'get_callback'    => array( $this, 'additional_field_get_callback' ),
 				'update_callback' => array( $this, 'additional_field_update_callback' ),
@@ -2967,7 +2983,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 
 		register_rest_field(
-			'comment', 'my_custom_int', array(
+			'comment',
+			'my_custom_int',
+			array(
 				'schema'          => $schema,
 				'get_callback'    => array( $this, 'additional_field_get_callback' ),
 				'update_callback' => array( $this, 'additional_field_update_callback' ),
@@ -3023,7 +3041,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'self',
 				'collection',
 				'up',
-			), array_keys( $links )
+			),
+			array_keys( $links )
 		);
 
 		if ( 'edit' === $context ) {

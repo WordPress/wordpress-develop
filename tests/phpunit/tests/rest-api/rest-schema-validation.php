@@ -183,7 +183,8 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 				array(
 					'first'  => '1',
 					'second' => '2',
-				), $schema
+				),
+				$schema
 			)
 		);
 	}
@@ -203,7 +204,8 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 				array(
 					'a' => 1,
 					'b' => 2,
-				), $schema
+				),
+				$schema
 			)
 		);
 		$this->assertWPError( rest_validate_value_from_schema( array( 'a' => 'invalid' ), $schema ) );
@@ -225,7 +227,8 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 				array(
 					'a' => 1,
 					'b' => 2,
-				), $schema
+				),
+				$schema
 			)
 		);
 	}
@@ -261,7 +264,8 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 						'b' => 1,
 						'c' => 'invalid',
 					),
-				), $schema
+				),
+				$schema
 			)
 		);
 		$this->assertWPError( rest_validate_value_from_schema( array( 'a' => 1 ), $schema ) );

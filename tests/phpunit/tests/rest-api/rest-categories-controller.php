@@ -41,31 +41,51 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 	public function setUp() {
 		parent::setUp();
 
-		register_meta( 'term', 'test_single', array(
-			'show_in_rest' => true,
-			'single' => true,
-			'type' => 'string',
-		));
-		register_meta( 'term', 'test_multi', array(
-			'show_in_rest' => true,
-			'single' => false,
-			'type' => 'string',
-		));
-		register_term_meta( 'category', 'test_cat_single', array(
-			'show_in_rest' => true,
-			'single' => true,
-			'type' => 'string',
-		));
-		register_term_meta( 'category', 'test_cat_multi', array(
-			'show_in_rest' => true,
-			'single' => false,
-			'type' => 'string',
-		));
-		register_term_meta( 'post_tag', 'test_tag_meta', array(
-			'show_in_rest' => true,
-			'single' => true,
-			'type' => 'string',
-		));
+		register_meta(
+			'term',
+			'test_single',
+			array(
+				'show_in_rest' => true,
+				'single'       => true,
+				'type'         => 'string',
+			)
+		);
+		register_meta(
+			'term',
+			'test_multi',
+			array(
+				'show_in_rest' => true,
+				'single'       => false,
+				'type'         => 'string',
+			)
+		);
+		register_term_meta(
+			'category',
+			'test_cat_single',
+			array(
+				'show_in_rest' => true,
+				'single'       => true,
+				'type'         => 'string',
+			)
+		);
+		register_term_meta(
+			'category',
+			'test_cat_multi',
+			array(
+				'show_in_rest' => true,
+				'single'       => false,
+				'type'         => 'string',
+			)
+		);
+		register_term_meta(
+			'post_tag',
+			'test_tag_meta',
+			array(
+				'show_in_rest' => true,
+				'single'       => true,
+				'type'         => 'string',
+			)
+		);
 	}
 
 	public function test_register_routes() {
@@ -110,7 +130,8 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 				'post',
 				'search',
 				'slug',
-			), $keys
+			),
+			$keys
 		);
 	}
 
@@ -570,7 +591,8 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$next_link = add_query_arg(
 			array(
 				'page' => 2,
-			), rest_url( 'wp/v2/categories' )
+			),
+			rest_url( 'wp/v2/categories' )
 		);
 		$this->assertFalse( stripos( $headers['Link'], 'rel="prev"' ) );
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
@@ -590,13 +612,15 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$prev_link = add_query_arg(
 			array(
 				'page' => 2,
-			), rest_url( 'wp/v2/categories' )
+			),
+			rest_url( 'wp/v2/categories' )
 		);
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$next_link = add_query_arg(
 			array(
 				'page' => 4,
-			), rest_url( 'wp/v2/categories' )
+			),
+			rest_url( 'wp/v2/categories' )
 		);
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 		// Last page
@@ -610,7 +634,8 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$prev_link = add_query_arg(
 			array(
 				'page' => 5,
-			), rest_url( 'wp/v2/categories' )
+			),
+			rest_url( 'wp/v2/categories' )
 		);
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
@@ -625,7 +650,8 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$prev_link = add_query_arg(
 			array(
 				'page' => 6,
-			), rest_url( 'wp/v2/categories' )
+			),
+			rest_url( 'wp/v2/categories' )
 		);
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
@@ -684,7 +710,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 	public function test_get_item_meta_registered_for_different_taxonomy() {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/categories/1' );
 		$response = rest_get_server()->dispatch( $request );
-		$data = $response->get_data();
+		$data     = $response->get_data();
 		$this->assertArrayHasKey( 'meta', $data );
 		$this->assertArrayHasKey( 'meta', $data );
 
@@ -840,11 +866,14 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_param( 'name', 'New Name' );
 		$request->set_param( 'description', 'New Description' );
 		$request->set_param( 'slug', 'new-slug' );
-		$request->set_param( 'meta', array(
-			'test_single' => 'just meta',
-			'test_cat_single' => 'category-specific meta',
-			'test_tag_meta' => 'tag-specific meta',
-		) );
+		$request->set_param(
+			'meta',
+			array(
+				'test_single'     => 'just meta',
+				'test_cat_single' => 'category-specific meta',
+				'test_tag_meta'   => 'tag-specific meta',
+			)
+		);
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
@@ -968,10 +997,13 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_param( '_fields', 'id,name' );
 		$term     = get_term( 1, 'category' );
 		$response = $endpoint->prepare_item_for_response( $term, $request );
-		$this->assertEquals( array(
-			'id',
-			'name',
-		), array_keys( $response->get_data() ) );
+		$this->assertEquals(
+			array(
+				'id',
+				'name',
+			),
+			array_keys( $response->get_data() )
+		);
 	}
 
 	public function test_prepare_taxonomy_term_child() {
@@ -1022,7 +1054,9 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		);
 
 		register_rest_field(
-			'category', 'my_custom_int', array(
+			'category',
+			'my_custom_int',
+			array(
 				'schema'       => $schema,
 				'get_callback' => array( $this, 'additional_field_get_callback' ),
 			)

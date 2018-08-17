@@ -179,31 +179,41 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$att_ids    = array();
 		$file       = DIR_TESTDATA . '/images/canola.jpg';
 		$att_ids[1] = self::factory()->attachment->create_object(
-			$file, $post_id, array(
+			$file,
+			$post_id,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'menu_order'     => rand( 1, 100 ),
 			)
 		);
 		$att_ids[2] = self::factory()->attachment->create_object(
-			$file, $post_id, array(
+			$file,
+			$post_id,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'menu_order'     => rand( 1, 100 ),
 			)
 		);
 		$att_ids[3] = self::factory()->attachment->create_object(
-			$file, $post_id, array(
+			$file,
+			$post_id,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'menu_order'     => rand( 1, 100 ),
 			)
 		);
 		$att_ids[4] = self::factory()->attachment->create_object(
-			$file, $post_id, array(
+			$file,
+			$post_id,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'menu_order'     => rand( 1, 100 ),
 			)
 		);
 		$att_ids[5] = self::factory()->attachment->create_object(
-			$file, $post_id, array(
+			$file,
+			$post_id,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'menu_order'     => rand( 1, 100 ),
 			)

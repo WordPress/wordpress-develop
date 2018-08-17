@@ -51,7 +51,8 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 	function test_capability_type_post_with_no_extra_caps() {
 
 		register_post_type(
-			self::$post_type, array(
+			self::$post_type,
+			array(
 				'capability_type' => 'post',
 			)
 		);
@@ -89,7 +90,8 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 
 	function test_custom_capability_type_with_map_meta_cap() {
 		register_post_type(
-			self::$post_type, array(
+			self::$post_type,
+			array(
 				'capability_type' => 'book',
 				'map_meta_cap'    => true,
 			)
@@ -127,7 +129,8 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 
 	function test_capability_type_post_with_one_renamed_cap() {
 		register_post_type(
-			self::$post_type, array(
+			self::$post_type,
+			array(
 				'capability_type' => 'post',
 				'capabilities'    => array( 'edit_posts' => 'edit_books' ),
 			)
@@ -167,7 +170,8 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 
 	function test_capability_type_post_map_meta_cap_true_with_renamed_cap() {
 		register_post_type(
-			self::$post_type, array(
+			self::$post_type,
+			array(
 				'capability_type' => 'post',
 				'map_meta_cap'    => true,
 				'capabilities'    => array(
@@ -211,7 +215,8 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 
 	function test_capability_type_post_with_all_meta_caps_renamed() {
 		register_post_type(
-			self::$post_type, array(
+			self::$post_type,
+			array(
 				'capability_type' => 'post',
 				'capabilities'    => array(
 					'edit_post'   => 'edit_book',
@@ -255,7 +260,8 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 
 	function test_capability_type_post_with_all_meta_caps_renamed_mapped() {
 		register_post_type(
-			self::$post_type, array(
+			self::$post_type,
+			array(
 				'capability_type' => 'post',
 				'map_meta_cap'    => true,
 				'capabilities'    => array(

@@ -50,7 +50,8 @@ class Tests_Comment_DateQuery extends WP_UnitTestCase {
 
 	public function _get_query_result( $args = array() ) {
 		$args = wp_parse_args(
-			$args, array(
+			$args,
+			array(
 				'post_id' => $this->posts[1],
 				'orderby' => 'comment_ID',  // Same order they were created
 				'order'   => 'ASC',

@@ -609,7 +609,8 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertEqualSets(
 			array(
 				'foo' => 'bar',
-			), $request->get_query_params()
+			),
+			$request->get_query_params()
 		);
 	}
 

@@ -130,10 +130,13 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_param( 'context', 'edit' );
 		$request->set_param( '_fields', 'id,name' );
 		$response = $endpoint->prepare_item_for_response( $obj, $request );
-		$this->assertEquals( array(
-			// 'id' doesn't exist in this context.
-			'name',
-		), array_keys( $response->get_data() ) );
+		$this->assertEquals(
+			array(
+				// 'id' doesn't exist in this context.
+				'name',
+			),
+			array_keys( $response->get_data() )
+		);
 	}
 
 	public function test_get_item_schema() {
@@ -164,7 +167,9 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		);
 
 		register_rest_field(
-			'type', 'my_custom_int', array(
+			'type',
+			'my_custom_int',
+			array(
 				'schema'          => $schema,
 				'get_callback'    => array( $this, 'additional_field_get_callback' ),
 				'update_callback' => array( $this, 'additional_field_update_callback' ),

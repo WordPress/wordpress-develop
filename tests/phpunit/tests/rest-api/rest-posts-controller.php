@@ -75,7 +75,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function setUp() {
 		parent::setUp();
 		register_post_type(
-			'youseeme', array(
+			'youseeme',
+			array(
 				'supports'     => array(),
 				'show_in_rest' => true,
 			)
@@ -161,7 +162,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'sticky',
 				'tags',
 				'tags_exclude',
-			), $keys
+			),
+			$keys
 		);
 	}
 
@@ -1108,7 +1110,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$next_link = add_query_arg(
 			array(
 				'page' => 2,
-			), rest_url( '/wp/v2/posts' )
+			),
+			rest_url( '/wp/v2/posts' )
 		);
 		$this->assertFalse( stripos( $headers['Link'], 'rel="prev"' ) );
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
@@ -1127,13 +1130,15 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$prev_link = add_query_arg(
 			array(
 				'page' => 2,
-			), rest_url( '/wp/v2/posts' )
+			),
+			rest_url( '/wp/v2/posts' )
 		);
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$next_link = add_query_arg(
 			array(
 				'page' => 4,
-			), rest_url( '/wp/v2/posts' )
+			),
+			rest_url( '/wp/v2/posts' )
 		);
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 		// Last page
@@ -1146,7 +1151,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$prev_link = add_query_arg(
 			array(
 				'page' => 5,
-			), rest_url( '/wp/v2/posts' )
+			),
+			rest_url( '/wp/v2/posts' )
 		);
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
@@ -1174,14 +1180,16 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			array(
 				'per_page' => 5,
 				'page'     => 1,
-			), rest_url( '/wp/v2/posts' )
+			),
+			rest_url( '/wp/v2/posts' )
 		);
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$next_link = add_query_arg(
 			array(
 				'per_page' => 5,
 				'page'     => 3,
-			), rest_url( '/wp/v2/posts' )
+			),
+			rest_url( '/wp/v2/posts' )
 		);
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 	}
@@ -1531,10 +1539,13 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( '_fields', 'id,slug' );
 		$obj      = get_post( self::$post_id );
 		$response = $endpoint->prepare_item_for_response( $obj, $request );
-		$this->assertEquals( array(
-			'id',
-			'slug',
-		), array_keys( $response->get_data() ) );
+		$this->assertEquals(
+			array(
+				'id',
+				'slug',
+			),
+			array_keys( $response->get_data() )
+		);
 	}
 
 	public function test_create_item() {
@@ -2018,7 +2029,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$file                = DIR_TESTDATA . '/images/canola.jpg';
 		$this->attachment_id = $this->factory->attachment->create_object(
-			$file, 0, array(
+			$file,
+			0,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'menu_order'     => rand( 1, 100 ),
 			)
@@ -3253,7 +3266,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 					'title'   => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 					'content' => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 					'excerpt' => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
-				), array(
+				),
+				array(
 					'title'   => array(
 						'raw'      => 'div <strong>strong</strong> oh noes',
 						'rendered' => 'div <strong>strong</strong> oh noes',
@@ -3275,7 +3289,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 					'title'   => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 					'content' => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 					'excerpt' => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
-				), array(
+				),
+				array(
 					'title'   => array(
 						'raw'      => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 						'rendered' => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
@@ -3301,7 +3316,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'title'   => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 				'content' => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 				'excerpt' => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
-			), array(
+			),
+			array(
 				'title'   => array(
 					'raw'      => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 					'rendered' => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
@@ -3387,7 +3403,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_register_post_type_invalid_controller() {
 
 		register_post_type(
-			'invalid-controller', array(
+			'invalid-controller',
+			array(
 				'show_in_rest'          => true,
 				'rest_controller_class' => 'Fake_Class_Baba',
 			)
@@ -3556,7 +3573,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 					'request-completed',
 					'any',
 				),
-			), $status_arg['items']
+			),
+			$status_arg['items']
 		);
 	}
 
@@ -3570,7 +3588,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		);
 
 		register_rest_field(
-			'post', 'my_custom_int', array(
+			'post',
+			'my_custom_int',
+			array(
 				'schema'          => $schema,
 				'get_callback'    => array( $this, 'additional_field_get_callback' ),
 				'update_callback' => array( $this, 'additional_field_update_callback' ),
@@ -3629,7 +3649,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		);
 
 		register_rest_field(
-			'post', 'my_custom_int', array(
+			'post',
+			'my_custom_int',
+			array(
 				'schema'          => $schema,
 				'get_callback'    => array( $this, 'additional_field_get_callback' ),
 				'update_callback' => array( $this, 'additional_field_update_callback' ),

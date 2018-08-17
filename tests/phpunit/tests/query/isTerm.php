@@ -186,7 +186,8 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 
 	function pre_get_posts_tax_category_tax_query( &$query ) {
 		$query->set(
-			'tax_query', array(
+			'tax_query',
+			array(
 				array(
 					'taxonomy' => 'testtax',
 					'field'    => 'term_id',

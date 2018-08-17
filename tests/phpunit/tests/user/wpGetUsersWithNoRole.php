@@ -39,7 +39,8 @@ class Tests_User_GetUsersWithNoRole extends WP_UnitTestCase {
 			array(
 				$nobody,
 				$nobody_else,
-			), $users
+			),
+			$users
 		);
 
 	}
@@ -83,7 +84,8 @@ class Tests_User_GetUsersWithNoRole extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				"{$nobody}",
-			), $users
+			),
+			$users
 		);
 
 		// Test users counts on blog 1
@@ -98,7 +100,8 @@ class Tests_User_GetUsersWithNoRole extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				"{$admin}",
-			), $users
+			),
+			$users
 		);
 	}
 

@@ -221,7 +221,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		$terms_id_parent = get_terms(
-			'post_tag', array(
+			'post_tag',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'id=>parent',
 			)
@@ -230,11 +231,13 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			array(
 				$term_id1 => 0,
 				$term_id2 => $term_id1,
-			), $terms_id_parent
+			),
+			$terms_id_parent
 		);
 
 		$terms_ids = get_terms(
-			'post_tag', array(
+			'post_tag',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'ids',
 			)
@@ -242,7 +245,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertEqualSets( array( $term_id1, $term_id2 ), $terms_ids );
 
 		$terms_name = get_terms(
-			'post_tag', array(
+			'post_tag',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'names',
 			)
@@ -250,7 +254,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertEqualSets( array( 'WOO!', 'HOO!' ), $terms_name );
 
 		$terms_id_name = get_terms(
-			'post_tag', array(
+			'post_tag',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'id=>name',
 			)
@@ -259,11 +264,13 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			array(
 				$term_id1 => 'WOO!',
 				$term_id2 => 'HOO!',
-			), $terms_id_name
+			),
+			$terms_id_name
 		);
 
 		$terms_id_slug = get_terms(
-			'post_tag', array(
+			'post_tag',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'id=>slug',
 			)
@@ -272,7 +279,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			array(
 				$term_id1 => 'woo',
 				$term_id2 => 'hoo',
-			), $terms_id_slug
+			),
+			$terms_id_slug
 		);
 	}
 
@@ -285,7 +293,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$term_id1  = self::factory()->tag->create();
 		$term_id2  = self::factory()->tag->create();
 		$inc_terms = get_terms(
-			'post_tag', array(
+			'post_tag',
+			array(
 				'include'    => array( $term_id1, $term_id2 ),
 				'hide_empty' => false,
 			)
@@ -293,7 +302,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertEquals( array( $term_id1, $term_id2 ), wp_list_pluck( $inc_terms, 'term_id' ) );
 
 		$exc_terms = get_terms(
-			'post_tag', array(
+			'post_tag',
+			array(
 				'exclude'    => array( $term_id1, $term_id2 ),
 				'hide_empty' => false,
 			)
@@ -302,7 +312,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// These should not generate query errors.
 		get_terms(
-			'post_tag', array(
+			'post_tag',
+			array(
 				'exclude'    => array( 0 ),
 				'hide_empty' => false,
 			)
@@ -310,7 +321,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertEmpty( $wpdb->last_error );
 
 		get_terms(
-			'post_tag', array(
+			'post_tag',
+			array(
 				'exclude'    => array( 'unexpected-string' ),
 				'hide_empty' => false,
 			)
@@ -318,7 +330,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertEmpty( $wpdb->last_error );
 
 		get_terms(
-			'post_tag', array(
+			'post_tag',
+			array(
 				'include'    => array( 'unexpected-string' ),
 				'hide_empty' => false,
 			)
@@ -333,13 +346,15 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'post' );
 
 		$terms = self::factory()->term->create_many(
-			2, array(
+			2,
+			array(
 				'taxonomy' => 'wptests_tax',
 			)
 		);
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'taxonomy'     => 'wptests_tax',
 				'hide_empty'   => false,
 				'exclude_tree' => array( $terms[0] ),
@@ -365,7 +380,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$term_id22 = self::factory()->category->create( array( 'parent' => $term_id2 ) );
 
 		$terms = get_terms(
-			'category', array(
+			'category',
+			array(
 				'exclude'    => $term_id_uncategorized,
 				'fields'     => 'ids',
 				'hide_empty' => false,
@@ -374,7 +390,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertEquals( array( $term_id1, $term_id11, $term_id2, $term_id22 ), $terms );
 
 		$terms = get_terms(
-			'category', array(
+			'category',
+			array(
 				'fields'       => 'ids',
 				'exclude_tree' => "$term_id1,$term_id_uncategorized",
 				'hide_empty'   => false,
@@ -394,7 +411,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$term_id3 = self::factory()->tag->create( array( 'name' => 'Foo' ) );
 
 		$terms = get_terms(
-			'post_tag', array(
+			'post_tag',
+			array(
 				'hide_empty' => false,
 				'search'     => 'bur',
 				'fields'     => 'ids',
@@ -421,7 +439,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		$terms = get_terms(
-			'post_tag', array(
+			'post_tag',
+			array(
 				'hide_empty' => false,
 				'name__like' => 'bur',
 				'fields'     => 'ids',
@@ -430,7 +449,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertEqualSets( array( $term_id1 ), $terms );
 
 		$terms2 = get_terms(
-			'post_tag', array(
+			'post_tag',
+			array(
 				'hide_empty'        => false,
 				'description__like' => 'bur',
 				'fields'            => 'ids',
@@ -439,7 +459,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertEqualSets( array( $term_id1, $term_id2 ), $terms2 );
 
 		$terms3 = get_terms(
-			'post_tag', array(
+			'post_tag',
+			array(
 				'hide_empty' => false,
 				'name__like' => 'Bur',
 				'fields'     => 'ids',
@@ -448,7 +469,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertEqualSets( array( $term_id1 ), $terms3 );
 
 		$terms4 = get_terms(
-			'post_tag', array(
+			'post_tag',
+			array(
 				'hide_empty'        => false,
 				'description__like' => 'Bur',
 				'fields'            => 'ids',
@@ -457,7 +479,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertEqualSets( array( $term_id1, $term_id2 ), $terms4 );
 
 		$terms5 = get_terms(
-			'post_tag', array(
+			'post_tag',
+			array(
 				'hide_empty' => false,
 				'name__like' => 'ENCHILADA',
 				'fields'     => 'ids',
@@ -466,7 +489,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertEmpty( $terms5 );
 
 		$terms6 = get_terms(
-			'post_tag', array(
+			'post_tag',
+			array(
 				'hide_empty'        => false,
 				'description__like' => 'ENCHILADA',
 				'fields'            => 'ids',
@@ -475,7 +499,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertEmpty( $terms6 );
 
 		$terms7 = get_terms(
-			'post_tag', array(
+			'post_tag',
+			array(
 				'hide_empty' => false,
 				'name__like' => 'o',
 				'fields'     => 'ids',
@@ -484,7 +509,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertEqualSets( array( $term_id1, $term_id2 ), $terms7 );
 
 		$terms8 = get_terms(
-			'post_tag', array(
+			'post_tag',
+			array(
 				'hide_empty'        => false,
 				'description__like' => '.',
 				'fields'            => 'ids',
@@ -584,7 +610,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		$terms = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'parent'       => 0,
 				'cache_domain' => $tax,
 			)
@@ -626,7 +653,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertEquals( 1, $term->count );
 
 		$terms = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'parent'       => 0,
 				'cache_domain' => $tax,
 			)
@@ -661,7 +689,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertEquals( 1, $term->count );
 
 		$terms = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'parent'       => 0,
 				'cache_domain' => $tax,
 			)
@@ -680,7 +709,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$child  = self::factory()->category->create( array( 'parent' => $parent ) );
 
 		$terms = get_terms(
-			'category', array(
+			'category',
+			array(
 				'child_of'   => $parent,
 				'hide_empty' => false,
 			)
@@ -701,7 +731,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$num_queries = $wpdb->num_queries;
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'child_of'   => $terms[0],
 			)
@@ -728,7 +759,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		$found = get_terms(
-			array( 'wptests_tax1', 'wptests_tax2' ), array(
+			array( 'wptests_tax1', 'wptests_tax2' ),
+			array(
 				'fields'     => 'ids',
 				'hide_empty' => false,
 				'child_of'   => $t2,
@@ -799,7 +831,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$t2 = self::factory()->tag->create( array( 'slug' => 'bar' ) );
 
 		$found = get_terms(
-			'post_tag', array(
+			'post_tag',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'ids',
 				'slug'       => 'foo',
@@ -818,7 +851,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$t3 = self::factory()->tag->create( array( 'slug' => 'barry' ) );
 
 		$found = get_terms(
-			'post_tag', array(
+			'post_tag',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'ids',
 				'slug'       => array( 'foo', 'barry' ),
@@ -836,7 +870,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$t2 = self::factory()->tag->create( array( 'name' => 'Bar' ) );
 
 		$found = get_terms(
-			'post_tag', array(
+			'post_tag',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'ids',
 				'name'       => 'Foo',
@@ -855,7 +890,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$t3 = self::factory()->tag->create( array( 'name' => 'Barry' ) );
 
 		$found = get_terms(
-			'post_tag', array(
+			'post_tag',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'ids',
 				'name'       => array( 'Foo', 'Barry' ),
@@ -880,7 +916,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'ids',
 				'name'       => 'Foo & Bar',
@@ -890,7 +927,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// array format.
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'ids',
 				'name'       => array( 'Foo & Bar' ),
@@ -919,7 +957,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertSame( $name, $term->name );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'ids',
 				'name'       => $name,
@@ -956,7 +995,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		$terms = get_terms(
-			$flat_tax, array(
+			$flat_tax,
+			array(
 				'childless'  => true,
 				'hide_empty' => false,
 				'fields'     => 'ids',
@@ -1048,7 +1088,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		$terms = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'childless'  => true,
 				'hide_empty' => false,
 				'fields'     => 'ids',
@@ -1115,7 +1156,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		$terms = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'childless'  => true,
 				'child_of'   => $quebec,
 				'hide_empty' => false,
@@ -1149,7 +1191,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		$found = get_terms(
-			array( 'wptests_tax1', 'wptests_tax2' ), array(
+			array( 'wptests_tax1', 'wptests_tax2' ),
+			array(
 				'fields'     => 'ids',
 				'hide_empty' => false,
 				'childless'  => true,
@@ -1167,7 +1210,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = $this->create_hierarchical_terms_and_posts();
 
 		$found = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'hide_empty' => false,
 				'fields'     => 'ids',
 			)
@@ -1194,7 +1238,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = $this->create_hierarchical_terms_and_posts();
 
 		$found = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'hide_empty' => true,
 				'fields'     => 'ids',
 			)
@@ -1219,7 +1264,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = $this->create_hierarchical_terms_and_posts();
 
 		$found = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'hide_empty'   => true,
 				'fields'       => 'ids',
 				'hierarchical' => false,
@@ -1244,7 +1290,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = $this->create_hierarchical_terms_and_posts();
 
 		$found = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'hide_empty' => false,
 				'fields'     => 'names',
 			)
@@ -1271,7 +1318,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = $this->create_hierarchical_terms_and_posts();
 
 		$found = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'hide_empty' => true,
 				'fields'     => 'names',
 			)
@@ -1296,7 +1344,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = $this->create_hierarchical_terms_and_posts();
 
 		$found = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'hide_empty'   => true,
 				'fields'       => 'names',
 				'hierarchical' => false,
@@ -1321,7 +1370,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = $this->create_hierarchical_terms_and_posts();
 
 		$found = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'hide_empty' => false,
 				'fields'     => 'count',
 			)
@@ -1340,7 +1390,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = $this->create_hierarchical_terms_and_posts();
 
 		$found = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'hide_empty' => true,
 				'fields'     => 'count',
 			)
@@ -1360,7 +1411,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = $this->create_hierarchical_terms_and_posts();
 
 		$found = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'hide_empty'   => true,
 				'fields'       => 'count',
 				'hierarchical' => false,
@@ -1380,7 +1432,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = $this->create_hierarchical_terms_and_posts();
 
 		$found = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'hide_empty' => false,
 				'fields'     => 'id=>parent',
 			)
@@ -1407,7 +1460,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = $this->create_hierarchical_terms_and_posts();
 
 		$found = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'hide_empty' => true,
 				'fields'     => 'id=>parent',
 			)
@@ -1432,7 +1486,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = $this->create_hierarchical_terms_and_posts();
 
 		$found = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'hide_empty'   => true,
 				'fields'       => 'id=>parent',
 				'hierarchical' => false,
@@ -1457,7 +1512,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = $this->create_hierarchical_terms_and_posts();
 
 		$found = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'hide_empty' => false,
 				'fields'     => 'id=>slug',
 			)
@@ -1487,7 +1543,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = $this->create_hierarchical_terms_and_posts();
 
 		$found = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'hide_empty' => true,
 				'fields'     => 'id=>slug',
 			)
@@ -1512,7 +1569,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = $this->create_hierarchical_terms_and_posts();
 
 		$found = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'hide_empty'   => true,
 				'fields'       => 'id=>slug',
 				'hierarchical' => false,
@@ -1537,7 +1595,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = $this->create_hierarchical_terms_and_posts();
 
 		$found = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'hide_empty' => false,
 				'fields'     => 'id=>name',
 			)
@@ -1567,7 +1626,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = $this->create_hierarchical_terms_and_posts();
 
 		$found = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'hide_empty' => true,
 				'fields'     => 'id=>name',
 			)
@@ -1592,7 +1652,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = $this->create_hierarchical_terms_and_posts();
 
 		$found = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'hide_empty'   => true,
 				'fields'       => 'id=>name',
 				'hierarchical' => false,
@@ -1650,7 +1711,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		wp_set_object_terms( $p, $t6, 'wptests_tax2' );
 
 		$found = get_terms(
-			array( 'wptests_tax1', 'wptests_tax2' ), array(
+			array( 'wptests_tax1', 'wptests_tax2' ),
+			array(
 				'hierarchical' => true,
 				'hide_empty'   => true,
 				'fields'       => 'ids',
@@ -1686,7 +1748,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$t4 = self::factory()->term->create( array( 'taxonomy' => $tax ) );
 
 		$found = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'fields'     => 'ids',
 				'include'    => array( $t4, $t1, $t2 ),
 				'orderby'    => 'include',
@@ -1732,7 +1795,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		$found = get_terms(
-			$tax, array(
+			$tax,
+			array(
 				'fields'     => 'ids',
 				'orderby'    => 'description',
 				'hide_empty' => false,
@@ -1769,7 +1833,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'orderby'    => 'term_id',
 				'hide_empty' => false,
 				'fields'     => 'ids',
@@ -1794,7 +1859,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// Matches the first meta query clause.
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'meta_query' => array(
 					'relation' => 'AND',
@@ -1831,7 +1897,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// Matches the first meta query clause.
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'meta_query' => array(
 					'relation' => 'AND',
@@ -1870,7 +1937,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		add_term_meta( $terms[2], 'faa', 'zzz' );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'meta_key'   => 'fee',
 				'orderby'    => 'meta_value',
@@ -1882,7 +1950,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertEqualSets( array( $terms[1], $terms[2], $terms[0] ), $found );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'meta_query' => array(
 					array(
@@ -1901,7 +1970,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// Matches the first meta query clause.
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'meta_query' => array(
 					'relation' => 'AND',
@@ -1925,7 +1995,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// Matches the meta query clause corresponding to the 'meta_key' param.
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'meta_query' => array(
 					'relation' => 'AND',
@@ -1965,7 +2036,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		add_term_meta( $terms[2], 'faa', '999' );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'meta_key'   => 'fee',
 				'orderby'    => 'meta_value',
@@ -1977,7 +2049,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertEqualSets( array( $terms[1], $terms[2], $terms[0] ), $found );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'meta_query' => array(
 					array(
@@ -1995,7 +2068,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertEqualSets( array( $terms[1], $terms[2], $terms[0] ), $found );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'meta_query' => array(
 					'relation' => 'AND',
@@ -2018,7 +2092,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertEqualSets( array( $terms[1], $terms[2], $terms[0] ), $found );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'meta_query' => array(
 					'relation' => 'AND',
@@ -2055,7 +2130,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		add_term_meta( $terms[2], 'fee', 'zzz' );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'meta_query' => array(
 					'relation' => 'AND',
@@ -2077,7 +2153,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertEqualSets( array( $terms[1], $terms[2], $terms[0] ), $found );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'meta_query' => array(
 					'relation' => 'AND',
@@ -2099,7 +2176,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertEqualSets( array( $terms[1], $terms[0], $terms[2] ), $found );
 
 		$expected = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'meta_query' => array(
 					'relation' => 'AND',
@@ -2117,7 +2195,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'meta_query' => array(
 					'relation' => 'AND',
@@ -2143,7 +2222,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// Case where hierarchical is false
 		$terms = get_terms(
-			'category', array(
+			'category',
+			array(
 				'hierarchical' => false,
 				'parent'       => $initial_terms['one_term']['term_id'],
 			)
@@ -2161,7 +2241,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// Case where hierarchical is true
 		$terms = get_terms(
-			'category', array(
+			'category',
+			array(
 				'hierarchical' => true,
 				'parent'       => $initial_terms['one_term']['term_id'],
 			)
@@ -2187,7 +2268,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// Case where hierarchical is false
 		$terms = get_terms(
-			'category', array(
+			'category',
+			array(
 				'hierarchical' => false,
 				'child_of'     => $initial_terms['one_term']['term_id'],
 			)
@@ -2206,7 +2288,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// Case where hierarchical is false
 		$terms = get_terms(
-			'category', array(
+			'category',
+			array(
 				'hierarchical' => false,
 				'child_of'     => $initial_terms['one_term']['term_id'],
 			)
@@ -2221,7 +2304,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// Case where hierarchical is true
 		$terms = get_terms(
-			'category', array(
+			'category',
+			array(
 				'hierarchical' => true,
 				'child_of'     => $initial_terms['one_term']['term_id'],
 			)
@@ -2241,7 +2325,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$initial_terms = $this->create_hierarchical_terms();
 
 		$terms = get_terms(
-			'category', array(
+			'category',
+			array(
 				'hide_empty' => false,
 				'child_of'   => $initial_terms['one_term']['term_id'],
 				'parent'     => $initial_terms['one_term']['term_id'],
@@ -2271,7 +2356,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$num_queries = $wpdb->num_queries;
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'parent'     => $terms[0],
 			)
@@ -2298,7 +2384,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		$found = get_terms(
-			array( 'wptests_tax1', 'wptests_tax2' ), array(
+			array( 'wptests_tax1', 'wptests_tax2' ),
+			array(
 				'fields'     => 'ids',
 				'hide_empty' => false,
 				'parent'     => $t2,
@@ -2313,7 +2400,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// Case where hierarchical is false
 		$terms = get_terms(
-			'category', array(
+			'category',
+			array(
 				'hierarchical' => false,
 				'child_of'     => $initial_terms['one_term']['term_id'],
 				'parent'       => $initial_terms['one_term']['term_id'],
@@ -2332,7 +2420,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// Case where hierarchical is true
 		$terms = get_terms(
-			'category', array(
+			'category',
+			array(
 				'hierarchical' => true,
 				'child_of'     => $initial_terms['one_term']['term_id'],
 				'parent'       => $initial_terms['one_term']['term_id'],
@@ -2376,7 +2465,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		wp_set_object_terms( $posts[2], array( $t3 ), 'wptests_tax_1' );
 
 		$found = get_terms(
-			'wptests_tax_1', array(
+			'wptests_tax_1',
+			array(
 				'pad_counts' => true,
 			)
 		);
@@ -2413,7 +2503,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		wp_set_post_terms( $posts[2], $c3, 'category' );
 
 		$terms = get_terms(
-			'category', array(
+			'category',
+			array(
 				'pad_counts' => true,
 			)
 		);
@@ -2447,7 +2538,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		wp_set_object_terms( $posts[2], $t3, 'wptests_tax2' );
 
 		$found = get_terms(
-			array( 'wptests_tax1', 'wptests_tax2' ), array(
+			array( 'wptests_tax1', 'wptests_tax2' ),
+			array(
 				'pad_counts' => true,
 			)
 		);
@@ -2478,7 +2570,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		add_term_meta( $terms[2], 'foo', 'bar' );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'include'    => $terms,
 			)
@@ -2506,7 +2599,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		add_term_meta( $terms[2], 'foo', 'bar' );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty'             => false,
 				'include'                => $terms,
 				'update_term_meta_cache' => false,
@@ -2534,7 +2628,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		add_term_meta( $terms[3], 'foob', 'ar' );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'meta_query' => array(
 					array(
@@ -2559,7 +2654,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		add_term_meta( $terms[0], 'foo', 'ber' );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'meta_query' => array(
 					array(
@@ -2583,7 +2679,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = self::factory()->term->create_many( 2, array( 'taxonomy' => 'wptests_tax' ) );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'all',
 			)
@@ -2608,7 +2705,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// Prime the cache.
 		get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'all',
 			)
@@ -2617,7 +2715,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$num_queries = $wpdb->num_queries;
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'all',
 			)
@@ -2642,7 +2741,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = self::factory()->term->create_many( 2, array( 'taxonomy' => 'wptests_tax' ) );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'all',
 			)
@@ -2662,7 +2762,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = self::factory()->term->create_many( 3, array( 'taxonomy' => 'wptests_tax' ) );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty'   => false,
 				'fields'       => 'id=>parent',
 				'number'       => 2,
@@ -2684,7 +2785,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = self::factory()->term->create_many( 2, array( 'taxonomy' => 'wptests_tax' ) );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'number'     => 3,
 				'offset'     => 0,
 				'hide_empty' => false,
@@ -2703,7 +2805,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = self::factory()->term->create_many( 3, array( 'taxonomy' => 'wptests_tax' ) );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'number'     => 1,
 				'offset'     => 1,
 				'hide_empty' => false,
@@ -2724,7 +2827,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = self::factory()->term->create_many( 2, array( 'taxonomy' => 'wptests_tax' ) );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'number'     => 2,
 				'offset'     => 1,
 				'hide_empty' => false,
@@ -2745,7 +2849,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$terms = self::factory()->term->create_many( 2, array( 'taxonomy' => 'wptests_tax' ) );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'number'     => 100,
 				'offset'     => 3,
 				'hide_empty' => false,

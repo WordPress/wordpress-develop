@@ -9,7 +9,7 @@ if ( is_multisite() ) :
 	 * @group multisite
 	 */
 	class Tests_Multisite_Site extends WP_UnitTestCase {
-		protected $suppress = false;
+		protected $suppress          = false;
 		protected $site_status_hooks = array();
 		protected static $network_ids;
 		protected static $site_ids;
@@ -1459,13 +1459,13 @@ if ( is_multisite() ) :
 		 */
 		public function test_wp_update_site_cleans_cache() {
 			$site_id = self::factory()->blog->create();
-			$site1 = get_site( $site_id );
+			$site1   = get_site( $site_id );
 
 			$result = wp_update_site( $site_id, array( 'public' => 0 ) );
-			$site2 = get_site( $site_id );
+			$site2  = get_site( $site_id );
 
 			$result = wp_update_site( $site_id, array( 'public' => 1 ) );
-			$site3 = get_site( $site_id );
+			$site3  = get_site( $site_id );
 
 			$this->assertEquals( 1, $site1->public );
 			$this->assertEquals( 0, $site2->public );
@@ -1709,11 +1709,13 @@ if ( is_multisite() ) :
 		 */
 		public function test_site_dates_are_gmt() {
 			$first_date = current_time( 'mysql', true );
-			$site_id    = wp_insert_site( array(
-				'domain'     => 'valid-domain.com',
-				'path'       => '/valid-path/',
-				'network_id' => 1,
-			) );
+			$site_id    = wp_insert_site(
+				array(
+					'domain'     => 'valid-domain.com',
+					'path'       => '/valid-path/',
+					'network_id' => 1,
+				)
+			);
 			$this->assertInternalType( 'integer', $site_id );
 
 			$site = get_site( $site_id );
@@ -1749,26 +1751,35 @@ if ( is_multisite() ) :
 			$old_domain = 'old.wordpress.org';
 			$new_domain = 'new.wordpress.org';
 
-			$site = self::factory()->blog->create_and_get( array(
-				'domain' => $old_domain,
-				'path'   => '/',
-			) );
+			$site = self::factory()->blog->create_and_get(
+				array(
+					'domain' => $old_domain,
+					'path'   => '/',
+				)
+			);
 
 			// Populate the caches.
-			get_blog_details( array(
-				'domain' => $old_domain,
-				'path'   => '/',
-			) );
+			get_blog_details(
+				array(
+					'domain' => $old_domain,
+					'path'   => '/',
+				)
+			);
 			get_blog_id_from_url( $old_domain, '/' );
-			get_blog_details( array(
-				'domain' => $new_domain,
-				'path'   => '/',
-			) );
+			get_blog_details(
+				array(
+					'domain' => $new_domain,
+					'path'   => '/',
+				)
+			);
 			get_blog_id_from_url( $new_domain, '/' );
 
-			wp_update_site( $site->id, array(
-				'domain' => $new_domain,
-			) );
+			wp_update_site(
+				$site->id,
+				array(
+					'domain' => $new_domain,
+				)
+			);
 
 			$domain_path_key_old = md5( $old_domain . '/' );
 			$domain_path_key_new = md5( $new_domain . '/' );
@@ -1795,26 +1806,35 @@ if ( is_multisite() ) :
 			$old_path = '/foo/';
 			$new_path = '/bar/';
 
-			$site = self::factory()->blog->create_and_get( array(
-				'domain' => 'test.wordpress.org',
-				'path'   => $old_path,
-			) );
+			$site = self::factory()->blog->create_and_get(
+				array(
+					'domain' => 'test.wordpress.org',
+					'path'   => $old_path,
+				)
+			);
 
 			// Populate the caches.
-			get_blog_details( array(
-				'domain' => 'test.wordpress.org',
-				'path'   => $old_path,
-			) );
+			get_blog_details(
+				array(
+					'domain' => 'test.wordpress.org',
+					'path'   => $old_path,
+				)
+			);
 			get_blog_id_from_url( 'test.wordpress.org', $old_path );
-			get_blog_details( array(
-				'domain' => 'test.wordpress.org',
-				'path'   => $new_path,
-			) );
+			get_blog_details(
+				array(
+					'domain' => 'test.wordpress.org',
+					'path'   => $new_path,
+				)
+			);
 			get_blog_id_from_url( 'test.wordpress.org', $new_path );
 
-			wp_update_site( $site->id, array(
-				'path' => $new_path,
-			) );
+			wp_update_site(
+				$site->id,
+				array(
+					'path' => $new_path,
+				)
+			);
 
 			$domain_path_key_old = md5( 'test.wordpress.org' . $old_path );
 			$domain_path_key_new = md5( 'test.wordpress.org' . $new_path );
@@ -1840,10 +1860,13 @@ if ( is_multisite() ) :
 			// First: Insert a site.
 			$this->listen_to_site_status_hooks();
 
-			$site_data = array_merge( array(
-				'domain' => 'example-site.com',
-				'path'   => '/',
-			), $insert_site_data );
+			$site_data = array_merge(
+				array(
+					'domain' => 'example-site.com',
+					'path'   => '/',
+				),
+				$insert_site_data
+			);
 
 			$site_id = wp_insert_site( $site_data );
 

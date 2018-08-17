@@ -78,7 +78,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 
 	public function test_wp_insert_term_parent_does_not_exist() {
 		$found = wp_insert_term(
-			'foo', 'post_tag', array(
+			'foo',
+			'post_tag',
+			array(
 				'parent' => 999999,
 			)
 		);
@@ -100,7 +102,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	public function test_wp_insert_term_unslash_description() {
 		register_taxonomy( 'wptests_tax', 'post' );
 		$found = wp_insert_term(
-			'Quality', 'wptests_tax', array(
+			'Quality',
+			'wptests_tax',
+			array(
 				'description' => 'Let\\\'s all say \\"Hooray\\" for WordPress taxonomy',
 			)
 		);
@@ -114,7 +118,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	public function test_wp_insert_term_parent_string() {
 		register_taxonomy( 'wptests_tax', 'post' );
 		$found = wp_insert_term(
-			'Quality', 'wptests_tax', array(
+			'Quality',
+			'wptests_tax',
+			array(
 				'parent' => 'foo1',
 			)
 		);
@@ -129,7 +135,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	public function test_wp_insert_term_slug_empty_string() {
 		register_taxonomy( 'wptests_tax', 'post' );
 		$found = wp_insert_term(
-			'Quality', 'wptests_tax', array(
+			'Quality',
+			'wptests_tax',
+			array(
 				'slug' => '',
 			)
 		);
@@ -144,7 +152,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	public function test_wp_insert_term_slug_whitespace_string() {
 		register_taxonomy( 'wptests_tax', 'post' );
 		$found = wp_insert_term(
-			'Quality', 'wptests_tax', array(
+			'Quality',
+			'wptests_tax',
+			array(
 				'slug' => '  ',
 			)
 		);
@@ -158,7 +168,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	public function test_wp_insert_term_slug_0() {
 		register_taxonomy( 'wptests_tax', 'post' );
 		$found = wp_insert_term(
-			'Quality', 'wptests_tax', array(
+			'Quality',
+			'wptests_tax',
+			array(
 				'slug' => 0,
 			)
 		);
@@ -259,7 +271,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		);
 
 		$t2 = wp_insert_term(
-			'Foo', 'wptests_tax', array(
+			'Foo',
+			'wptests_tax',
+			array(
 				'slug' => 'foo',
 			)
 		);
@@ -290,7 +304,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		);
 
 		$t3 = wp_insert_term(
-			'Foo', 'wptests_tax', array(
+			'Foo',
+			'wptests_tax',
+			array(
 				'slug' => 'bar',
 			)
 		);
@@ -313,7 +329,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		);
 
 		$t2 = wp_insert_term(
-			'Foo', 'wptests_tax', array(
+			'Foo',
+			'wptests_tax',
+			array(
 				'slug' => 'foo-unique',
 			)
 		);
@@ -358,7 +376,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		);
 
 		$t2 = wp_insert_term(
-			'Foo', 'wptests_tax', array(
+			'Foo',
+			'wptests_tax',
+			array(
 				'slug' => 'foo',
 			)
 		);
@@ -389,7 +409,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		);
 
 		$t3 = wp_insert_term(
-			'Foo', 'wptests_tax', array(
+			'Foo',
+			'wptests_tax',
+			array(
 				'slug' => 'bar',
 			)
 		);
@@ -423,7 +445,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		);
 
 		$t4 = wp_insert_term(
-			'Foo', 'wptests_tax', array(
+			'Foo',
+			'wptests_tax',
+			array(
 				'slug' => 'bar',
 			)
 		);
@@ -478,19 +502,25 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		);
 
 		$t1_child = wp_insert_term(
-			'Child', 'wptests_tax', array(
+			'Child',
+			'wptests_tax',
+			array(
 				'parent' => $t1,
 			)
 		);
 
 		$t2_child = wp_insert_term(
-			'Child', 'wptests_tax', array(
+			'Child',
+			'wptests_tax',
+			array(
 				'parent' => $t2,
 			)
 		);
 
 		$error = wp_insert_term(
-			'Child', 'wptests_tax', array(
+			'Child',
+			'wptests_tax',
+			array(
 				'parent' => $t2,
 			)
 		);
@@ -514,7 +544,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		);
 
 		$t2 = wp_insert_term(
-			'Foo', 'wptests_tax', array(
+			'Foo',
+			'wptests_tax',
+			array(
 				'slug' => 'foo-unique',
 			)
 		);
@@ -560,7 +592,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$term = get_term( $t, 'wptests_tax' );
 
 		$created = wp_insert_term(
-			'Foo 2', 'wptests_tax', array(
+			'Foo 2',
+			'wptests_tax',
+			array(
 				'slug' => 'foo',
 			)
 		);
@@ -588,7 +622,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$term = get_term( $t, 'wptests_tax' );
 
 		$created = wp_insert_term(
-			'Foo 2', 'wptests_tax_2', array(
+			'Foo 2',
+			'wptests_tax_2',
+			array(
 				'slug' => 'foo',
 			)
 		);
@@ -622,7 +658,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$term = get_term( $t, 'wptests_tax' );
 
 		$created = wp_insert_term(
-			'Foo 2', 'wptests_tax_2', array(
+			'Foo 2',
+			'wptests_tax_2',
+			array(
 				'slug' => 'foo',
 			)
 		);
@@ -651,7 +689,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$term_1 = get_term( $t1, 'wptests_tax' );
 
 		$created_term_ids = wp_insert_term(
-			'Foo', 'wptests_tax', array(
+			'Foo',
+			'wptests_tax',
+			array(
 				'alias_of' => $term_1->slug,
 			)
 		);
@@ -685,7 +725,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$term_2 = get_term( $t2, 'wptests_tax' );
 
 		$created_term_ids = wp_insert_term(
-			'Foo', 'wptests_tax', array(
+			'Foo',
+			'wptests_tax',
+			array(
 				'alias_of' => $term_2->slug,
 			)
 		);
@@ -699,7 +741,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	public function test_wp_insert_term_alias_of_nonexistent_term() {
 		register_taxonomy( 'wptests_tax', 'post' );
 		$created_term_ids = wp_insert_term(
-			'Foo', 'wptests_tax', array(
+			'Foo',
+			'wptests_tax',
+			array(
 				'alias_of' => 'foo',
 			)
 		);
@@ -742,7 +786,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 
 	public function test_wp_insert_term_should_clean_term_cache() {
 		register_taxonomy(
-			'wptests_tax', 'post', array(
+			'wptests_tax',
+			'post',
+			array(
 				'hierarchical' => true,
 			)
 		);
@@ -763,7 +809,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		wp_cache_set( 'get', array( 1, 2, 3 ), 'wptests_tax' );
 
 		$found = wp_insert_term(
-			'foo', 'wptests_tax', array(
+			'foo',
+			'wptests_tax',
+			array(
 				'parent' => $t,
 			)
 		);
@@ -836,7 +884,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'post' );
 
 		$term = wp_insert_term(
-			'foo', 'wptests_tax', array(
+			'foo',
+			'wptests_tax',
+			array(
 				'description' => null,
 			)
 		);

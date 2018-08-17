@@ -91,7 +91,8 @@ http://wordpress.org/
 			'msgid "baba"
 msgid_plural "babas"
 msgstr[0] ""
-msgstr[1] ""', $po->export_entry( $entry )
+msgstr[1] ""',
+			$po->export_entry( $entry )
 		);
 		$entry = new Translation_Entry(
 			array(
@@ -103,7 +104,8 @@ msgstr[1] ""', $po->export_entry( $entry )
 			'#  baba
 #  dyado
 msgid "baba"
-msgstr ""', $po->export_entry( $entry )
+msgstr ""',
+			$po->export_entry( $entry )
 		);
 		$entry = new Translation_Entry(
 			array(
@@ -114,7 +116,8 @@ msgstr ""', $po->export_entry( $entry )
 		$this->assertEquals(
 			'#. baba
 msgid "baba"
-msgstr ""', $po->export_entry( $entry )
+msgstr ""',
+			$po->export_entry( $entry )
 		);
 		$entry = new Translation_Entry(
 			array(
@@ -128,7 +131,8 @@ msgstr ""', $po->export_entry( $entry )
 #: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
 #: 29
 msgid "baba"
-msgstr ""', $po->export_entry( $entry )
+msgstr ""',
+			$po->export_entry( $entry )
 		);
 		$entry = new Translation_Entry(
 			array(
@@ -156,7 +160,8 @@ msgstr ""', $po->export_entry( $entry )
 		$this->assertEquals(
 			'msgid "baba"
 msgid_plural "babas"
-msgstr[0] "кукубуку"', $po->export_entry( $entry )
+msgstr[0] "кукубуку"',
+			$po->export_entry( $entry )
 		);
 
 		$entry = new Translation_Entry(
@@ -171,7 +176,8 @@ msgstr[0] "кукубуку"', $po->export_entry( $entry )
 msgid_plural "babas"
 msgstr[0] "кукубуку"
 msgstr[1] "кукуруку"
-msgstr[2] "бабаяга"', $po->export_entry( $entry )
+msgstr[2] "бабаяга"',
+			$po->export_entry( $entry )
 		);
 		// context
 		$entry = new Translation_Entry(
@@ -190,7 +196,8 @@ msgid "baba"
 msgid_plural "babas"
 msgstr[0] "кукубуку"
 msgstr[1] "кукуруку"
-msgstr[2] "бабаяга"', $po->export_entry( $entry )
+msgstr[2] "бабаяга"',
+			$po->export_entry( $entry )
 		);
 	}
 
@@ -250,7 +257,8 @@ msgstr[2] "бабаяга"', $po->export_entry( $entry )
 			array(
 				'Project-Id-Version' => 'WordPress 2.6-bleeding',
 				'Plural-Forms'       => 'nplurals=2; plural=n != 1;',
-			), $po->headers
+			),
+			$po->headers
 		);
 
 		$simple_entry = new Translation_Entry( array( 'singular' => 'moon' ) );
