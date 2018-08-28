@@ -409,10 +409,12 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$page        = 1;  // First page.
 
 		$request = new WP_REST_Request( 'GET', $rest_route );
-		$request->set_query_params( array(
-			'per_page' => $per_page,
-			'page'     => $page,
-		));
+		$request->set_query_params(
+			array(
+				'per_page' => $per_page,
+				'page'     => $page,
+			)
+		);
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
 		$this->assertSame( $this->total_revisions, $headers['X-WP-Total'] );
@@ -442,10 +444,12 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$page        = 2;  // Last page.
 
 		$request = new WP_REST_Request( 'GET', $rest_route );
-		$request->set_query_params( array(
-			'per_page' => $per_page,
-			'page'     => $page,
-		));
+		$request->set_query_params(
+			array(
+				'per_page' => $per_page,
+				'page'     => $page,
+			)
+		);
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
 		$this->assertSame( $this->total_revisions, $headers['X-WP-Total'] );
@@ -454,7 +458,8 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 			array(
 				'per_page' => $per_page,
 				'page'     => $page - 1,
-			), rest_url( $rest_route )
+			),
+			rest_url( $rest_route )
 		);
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 	}
@@ -492,10 +497,12 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$expected_status = 400;
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
-		$request->set_query_params( array(
-			'per_page' => $per_page,
-			'page'     => $page,
-		));
+		$request->set_query_params(
+			array(
+				'per_page' => $per_page,
+				'page'     => $page,
+			)
+		);
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( $expected_error, $response, $expected_status );
 	}
@@ -514,10 +521,12 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$expected_status = 400;
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
-		$request->set_query_params( array(
-			'per_page' => $per_page,
-			'page'     => $page,
-		));
+		$request->set_query_params(
+			array(
+				'per_page' => $per_page,
+				'page'     => $page,
+			)
+		);
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( $expected_error, $response, $expected_status );
 	}
@@ -587,10 +596,12 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$expected_count = 2;
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
-		$request->set_query_params( array(
-			'offset'   => $offset,
-			'per_page' => $per_page,
-		));
+		$request->set_query_params(
+			array(
+				'offset'   => $offset,
+				'per_page' => $per_page,
+			)
+		);
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( $expected_count, $response->get_data() );
 	}
@@ -609,11 +620,13 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$expected_count = 2;
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
-		$request->set_query_params( array(
-			'offset'   => $offset,
-			'per_page' => $per_page,
-			'page'     => $page,
-		));
+		$request->set_query_params(
+			array(
+				'offset'   => $offset,
+				'per_page' => $per_page,
+				'page'     => $page,
+			)
+		);
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( $expected_count, $response->get_data() );
 	}
@@ -632,10 +645,12 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$expected_status = 400;
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
-		$request->set_query_params( array(
-			'offset'   => $offset,
-			'per_page' => $per_page,
-		));
+		$request->set_query_params(
+			array(
+				'offset'   => $offset,
+				'per_page' => $per_page,
+			)
+		);
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( $expected_error, $response, $expected_status );
 	}
@@ -654,10 +669,12 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$expected_status = 400;
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
-		$request->set_query_params( array(
-			'offset'   => $offset,
-			'per_page' => $per_page,
-		));
+		$request->set_query_params(
+			array(
+				'offset'   => $offset,
+				'per_page' => $per_page,
+			)
+		);
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( $expected_error, $response, $expected_status );
 	}
@@ -676,10 +693,12 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$expected_status = 400;
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
-		$request->set_query_params( array(
-			'offset'   => $offset,
-			'per_page' => $per_page,
-		));
+		$request->set_query_params(
+			array(
+				'offset'   => $offset,
+				'per_page' => $per_page,
+			)
+		);
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( $expected_error, $response, $expected_status );
 	}
@@ -698,10 +717,12 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$expected_status = 400;
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
-		$request->set_query_params( array(
-			'offset'   => $offset,
-			'per_page' => $per_page,
-		));
+		$request->set_query_params(
+			array(
+				'offset'   => $offset,
+				'per_page' => $per_page,
+			)
+		);
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( $expected_error, $response, $expected_status );
 	}
@@ -721,11 +742,13 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$expected_count = 2;
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
-		$request->set_query_params( array(
-			'offset'   => 1,
-			'per_page' => $per_page,
-			'page'     => $page,
-		));
+		$request->set_query_params(
+			array(
+				'offset'   => 1,
+				'per_page' => $per_page,
+				'page'     => $page,
+			)
+		);
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( $expected_count, $response->get_data() );
 	}
