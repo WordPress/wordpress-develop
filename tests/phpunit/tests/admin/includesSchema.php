@@ -7,6 +7,7 @@
 class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 
 	private static $options;
+	private static $blogmeta;
 	private static $sitemeta;
 
 	/**
@@ -16,9 +17,11 @@ class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 		global $wpdb;
 
 		self::$options  = 'testprefix_options';
+		self::$blogmeta = 'testprefix_blogmeta';
 		self::$sitemeta = 'testprefix_sitemeta';
 
 		$options  = self::$options;
+		$blogmeta = self::$blogmeta;
 		$sitemeta = self::$sitemeta;
 
 		require_once( ABSPATH . 'wp-admin/includes/schema.php' );
@@ -35,6 +38,19 @@ class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 				autoload varchar(20) NOT NULL default 'yes',
 				PRIMARY KEY  (option_id),
 				UNIQUE KEY option_name (option_name)
+			) {$charset_collate}
+			"
+		);
+		$wpdb->query(
+			"
+			CREATE TABLE {$blogmeta} (
+				meta_id bigint(20) unsigned NOT NULL auto_increment,
+				blog_id bigint(20) unsigned NOT NULL default '0',
+				meta_key varchar(255) default NULL,
+				meta_value longtext,
+				PRIMARY KEY  (meta_id),
+				KEY meta_key (meta_key({$max_index_length})),
+				KEY blog_id (blog_id)
 			) {$charset_collate}
 			"
 		);
@@ -60,9 +76,11 @@ class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 		global $wpdb;
 
 		$options  = self::$options;
+		$blogmeta = self::$blogmeta;
 		$sitemeta = self::$sitemeta;
 
 		$wpdb->query( "DROP TABLE IF EXISTS {$options}" );
+		$wpdb->query( "DROP TABLE IF EXISTS {$blogmeta}" );
 		$wpdb->query( "DROP TABLE IF EXISTS {$sitemeta}" );
 	}
 
@@ -157,7 +175,53 @@ class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 44896
+	 * @group multisite
+	 * @group ms-required
+	 * @dataProvider data_populate_site_meta
+	 */
+	function test_populate_site_meta( $meta, $expected ) {
+		global $wpdb;
+
+		$orig_blogmeta  = $wpdb->blogmeta;
+		$wpdb->blogmeta = self::$blogmeta;
+
+		populate_site_meta( 42, $meta );
+
+		$results = array();
+		foreach ( $expected as $meta_key => $value ) {
+			$results[ $meta_key ] = get_site_meta( 42, $meta_key, true );
+		}
+
+		$wpdb->query( "TRUNCATE TABLE {$wpdb->blogmeta}" );
+
+		$wpdb->blogmeta = $orig_blogmeta;
+
+		$this->assertEquals( $expected, $results );
+	}
+
+	public function data_populate_site_meta() {
+		return array(
+			array(
+				array(),
+				array(
+					'unknown_value' => '',
+				),
+			),
+			array(
+				array(
+					'custom_meta' => '1',
+				),
+				array(
+					'custom_meta' => '1',
+				),
+			),
+		);
+	}
+
+	/**
 	 * @ticket 44895
+	 * @group multisite
 	 * @dataProvider data_populate_network_meta
 	 */
 	function test_populate_network_meta( $meta, $expected ) {
