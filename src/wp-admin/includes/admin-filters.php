@@ -47,6 +47,8 @@ add_action( 'admin_head', '_ipad_meta' );
 
 // Privacy tools
 add_action( 'admin_menu', '_wp_privacy_hook_requests_page' );
+add_action( 'load-tools_page_export_personal_data', '_wp_privacy_requests_screen_options' );
+add_action( 'load-tools_page_remove_personal_data', '_wp_privacy_requests_screen_options' );
 
 // Prerendering.
 if ( ! is_customize_preview() ) {
@@ -132,15 +134,23 @@ add_action( 'upgrader_process_complete', 'wp_version_check', 10, 0 );
 add_action( 'upgrader_process_complete', 'wp_update_plugins', 10, 0 );
 add_action( 'upgrader_process_complete', 'wp_update_themes', 10, 0 );
 
+// Privacy hooks
+add_filter( 'wp_privacy_personal_data_erasure_page', 'wp_privacy_process_personal_data_erasure_page', 10, 5 );
+add_filter( 'wp_privacy_personal_data_export_page', 'wp_privacy_process_personal_data_export_page', 10, 7 );
+add_action( 'wp_privacy_personal_data_export_file', 'wp_privacy_generate_personal_data_export_file', 10 );
+add_action( 'wp_privacy_personal_data_erased', '_wp_privacy_send_erasure_fulfillment_notification', 10 );
+
 // Privacy policy text changes check.
-add_action( 'admin_init', array( 'WP_Privacy_Policy_Content', 'text_change_check' ), 20 );
+add_action( 'admin_init', array( 'WP_Privacy_Policy_Content', 'text_change_check' ), 100 );
 
 // Show a "postbox" with the text suggestions for a privacy policy.
-add_action( 'edit_form_after_title', array( 'WP_Privacy_Policy_Content', 'privacy_policy_postbox' ) );
+add_action( 'edit_form_after_title', array( 'WP_Privacy_Policy_Content', 'notice' ) );
 
 // Add the suggested policy text from WordPress.
-add_action( 'admin_init', array( 'WP_Privacy_Policy_Content', 'add_suggested_content' ), 15 );
+add_action( 'admin_init', array( 'WP_Privacy_Policy_Content', 'add_suggested_content' ), 1 );
 
-// Stop checking for text changes after the policy page is updated.
+// Update the cached policy info when the policy page is updated.
 add_action( 'post_updated', array( 'WP_Privacy_Policy_Content', '_policy_page_updated' ) );
 
+// Append '(Draft)' to draft page titles in the privacy page dropdown.
+add_filter( 'list_pages', '_wp_privacy_settings_filter_draft_page_titles', 10, 2 );

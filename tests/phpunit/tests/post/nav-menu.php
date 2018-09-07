@@ -22,7 +22,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		$tag_id = self::factory()->tag->create();
 
 		wp_update_nav_menu_item(
-			$this->menu_id, 0, array(
+			$this->menu_id,
+			0,
+			array(
 				'menu-item-type'      => 'taxonomy',
 				'menu-item-object'    => 'post_tag',
 				'menu-item-object-id' => $tag_id,
@@ -49,7 +51,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		$page_id   = self::factory()->post->create( array( 'post_type' => 'page' ) );
 
 		$tag_insert = wp_update_nav_menu_item(
-			$this->menu_id, 0, array(
+			$this->menu_id,
+			0,
+			array(
 				'menu-item-type'      => 'taxonomy',
 				'menu-item-object'    => 'post_tag',
 				'menu-item-object-id' => $tag_id,
@@ -58,7 +62,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		);
 
 		$cat_insert = wp_update_nav_menu_item(
-			$this->menu_id, 0, array(
+			$this->menu_id,
+			0,
+			array(
 				'menu-item-type'      => 'taxonomy',
 				'menu-item-object'    => 'category',
 				'menu-item-object-id' => $cat_id,
@@ -67,7 +73,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		);
 
 		$post_insert = wp_update_nav_menu_item(
-			$this->menu_id, 0, array(
+			$this->menu_id,
+			0,
+			array(
 				'menu-item-type'      => 'post_type',
 				'menu-item-object'    => 'post',
 				'menu-item-object-id' => $post_id,
@@ -77,7 +85,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 
 		// Item without menu-item-object arg
 		$post_2_insert = wp_update_nav_menu_item(
-			$this->menu_id, 0, array(
+			$this->menu_id,
+			0,
+			array(
 				'menu-item-type'      => 'post_type',
 				'menu-item-object-id' => $post_2_id,
 				'menu-item-status'    => 'publish',
@@ -85,7 +95,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		);
 
 		$page_insert = wp_update_nav_menu_item(
-			$this->menu_id, 0, array(
+			$this->menu_id,
+			0,
+			array(
 				'menu-item-type'      => 'post_type',
 				'menu-item-object'    => 'page',
 				'menu-item-object-id' => $page_id,
@@ -132,7 +144,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 
 		// Create an orphan nav menu item
 		$custom_item_id = wp_update_nav_menu_item(
-			0, 0, array(
+			0,
+			0,
+			array(
 				'menu-item-type'   => 'custom',
 				'menu-item-title'  => 'Wordpress.org',
 				'menu-item-link'   => 'http://wordpress.org',
@@ -146,7 +160,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 
 		// Update the orphan with an associated nav menu
 		wp_update_nav_menu_item(
-			$this->menu_id, $custom_item_id, array(
+			$this->menu_id,
+			$custom_item_id,
+			array(
 				'menu-item-title' => 'WordPress.org',
 			)
 		);
@@ -161,14 +177,17 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
 		$t           = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 		$child_terms = self::factory()->term->create_many(
-			2, array(
+			2,
+			array(
 				'taxonomy' => 'wptests_tax',
 				'parent'   => $t,
 			)
 		);
 
 		$term_menu_item = wp_update_nav_menu_item(
-			$this->menu_id, 0, array(
+			$this->menu_id,
+			0,
+			array(
 				'menu-item-type'      => 'taxonomy',
 				'menu-item-object'    => 'wptests_tax',
 				'menu-item-object-id' => $t,
@@ -216,7 +235,8 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		// This is the expected array of menu names
 		$expected_nav_menus_names = wp_list_pluck(
 			get_terms(
-				'nav_menu', array(
+				'nav_menu',
+				array(
 					'hide_empty' => false,
 					'orderby'    => 'name',
 				)
@@ -238,7 +258,8 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		$post_type_slug        = rand_str( 12 );
 		$post_type_description = rand_str();
 		register_post_type(
-			$post_type_slug, array(
+			$post_type_slug,
+			array(
 				'public'      => true,
 				'has_archive' => true,
 				'description' => $post_type_description,
@@ -247,7 +268,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		);
 
 		$post_type_archive_item_id = wp_update_nav_menu_item(
-			$this->menu_id, 0, array(
+			$this->menu_id,
+			0,
+			array(
 				'menu-item-type'        => 'post_type_archive',
 				'menu-item-object'      => $post_type_slug,
 				'menu-item-description' => $post_type_description,
@@ -268,7 +291,8 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		$post_type_slug        = rand_str( 12 );
 		$post_type_description = '';
 		register_post_type(
-			$post_type_slug, array(
+			$post_type_slug,
+			array(
 				'public'      => true,
 				'has_archive' => true,
 				'label'       => $post_type_slug,
@@ -276,7 +300,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		);
 
 		$post_type_archive_item_id = wp_update_nav_menu_item(
-			$this->menu_id, 0, array(
+			$this->menu_id,
+			0,
+			array(
 				'menu-item-type'   => 'post_type_archive',
 				'menu-item-object' => $post_type_slug,
 				'menu-item-status' => 'publish',
@@ -296,7 +322,8 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		$post_type_slug        = rand_str( 12 );
 		$post_type_description = rand_str();
 		register_post_type(
-			$post_type_slug, array(
+			$post_type_slug,
+			array(
 				'public'      => true,
 				'has_archive' => true,
 				'description' => $post_type_description,
@@ -307,7 +334,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		$menu_item_description = rand_str();
 
 		$post_type_archive_item_id = wp_update_nav_menu_item(
-			$this->menu_id, 0, array(
+			$this->menu_id,
+			0,
+			array(
 				'menu-item-type'        => 'post_type_archive',
 				'menu-item-object'      => $post_type_slug,
 				'menu-item-description' => $menu_item_description,
@@ -328,7 +357,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		$post_type_slug = rand_str( 12 );
 
 		$post_type_archive_item_id = wp_update_nav_menu_item(
-			$this->menu_id, 0, array(
+			$this->menu_id,
+			0,
+			array(
 				'menu-item-type'   => 'post_type_archive',
 				'menu-item-object' => $post_type_slug,
 				'menu-item-status' => 'publish',
@@ -350,7 +381,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		);
 
 		$menu_item_id = wp_update_nav_menu_item(
-			$this->menu_id, 0, array(
+			$this->menu_id,
+			0,
+			array(
 				'menu-item-type'      => 'post_type',
 				'menu-item-object'    => 'post',
 				'menu-item-object-id' => $post_id,
@@ -373,7 +406,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		$post_id4 = self::factory()->post->create();
 
 		$post_insert = wp_update_nav_menu_item(
-			$this->menu_id, 0, array(
+			$this->menu_id,
+			0,
+			array(
 				'menu-item-type'      => 'post_type',
 				'menu-item-object'    => 'post',
 				'menu-item-object-id' => $post_id1,
@@ -382,7 +417,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		);
 
 		$post_inser2 = wp_update_nav_menu_item(
-			$this->menu_id, 0, array(
+			$this->menu_id,
+			0,
+			array(
 				'menu-item-type'      => 'post_type',
 				'menu-item-object'    => 'post',
 				'menu-item-object-id' => $post_id2,
@@ -391,7 +428,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		);
 
 		$post_insert3 = wp_update_nav_menu_item(
-			$this->menu_id, 0, array(
+			$this->menu_id,
+			0,
+			array(
 				'menu-item-type'      => 'post_type',
 				'menu-item-object'    => 'post',
 				'menu-item-parent-id' => $post_insert,
@@ -401,7 +440,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		);
 
 		$post_insert4 = wp_update_nav_menu_item(
-			$this->menu_id, 0, array(
+			$this->menu_id,
+			0,
+			array(
 				'menu-item-type'      => 'post_type',
 				'menu-item-object'    => 'post',
 				'menu-item-parent-id' => $post_insert,
@@ -449,7 +490,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		$tag_id = self::factory()->tag->create();
 
 		$tag_insert = wp_update_nav_menu_item(
-			$this->menu_id, 0, array(
+			$this->menu_id,
+			0,
+			array(
 				'menu-item-type'      => 'taxonomy',
 				'menu-item-object'    => 'post_tag',
 				'menu-item-object-id' => $tag_id,
@@ -540,7 +583,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		);
 
 		wp_update_nav_menu_item(
-			$this->menu_id, 0, array(
+			$this->menu_id,
+			0,
+			array(
 				'menu-item-type'      => 'post_type',
 				'menu-item-object'    => 'page',
 				'menu-item-object-id' => $page_id,
@@ -570,7 +615,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		update_option( 'page_on_front', $page_id );
 
 		wp_update_nav_menu_item(
-			$this->menu_id, 0, array(
+			$this->menu_id,
+			0,
+			array(
 				'menu-item-type'      => 'post_type',
 				'menu-item-object'    => 'page',
 				'menu-item-object-id' => $page_id,
@@ -611,7 +658,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		update_option( 'page_on_front', $new_id );
 
 		wp_update_nav_menu_item(
-			$this->menu_id, 0, array(
+			$this->menu_id,
+			0,
+			array(
 				'menu-item-type'      => 'taxonomy',
 				'menu-item-object'    => 'post_tag',
 				'menu-item-object-id' => $new_id,
@@ -689,7 +738,8 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 	function test_parent_ancestor_for_post_archive() {
 
 		register_post_type(
-			'books', array(
+			'books',
+			array(
 				'label'       => 'Books',
 				'public'      => true,
 				'has_archive' => true,
@@ -710,7 +760,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		);
 
 		$first_menu_id = wp_update_nav_menu_item(
-			$this->menu_id, 0, array(
+			$this->menu_id,
+			0,
+			array(
 				'menu-item-type'      => 'post_type',
 				'menu-item-object'    => 'page',
 				'menu-item-object-id' => $first_page_id,
@@ -719,7 +771,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		);
 
 		$second_menu_id = wp_update_nav_menu_item(
-			$this->menu_id, 0, array(
+			$this->menu_id,
+			0,
+			array(
 				'menu-item-type'      => 'post_type',
 				'menu-item-object'    => 'page',
 				'menu-item-object-id' => $second_page_id,
@@ -729,7 +783,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		);
 
 		wp_update_nav_menu_item(
-			$this->menu_id, 0, array(
+			$this->menu_id,
+			0,
+			array(
 				'menu-item-type'      => 'post_type_archive',
 				'menu-item-object'    => 'books',
 				'menu-item-status'    => 'publish',
@@ -782,7 +838,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 	 */
 	function test_iri_current_menu_item( $custom_link, $current = true ) {
 		wp_update_nav_menu_item(
-			$this->menu_id, 0, array(
+			$this->menu_id,
+			0,
+			array(
 				'menu-item-status' => 'publish',
 				'menu-item-type'   => 'custom',
 				'menu-item-url'    => $custom_link,

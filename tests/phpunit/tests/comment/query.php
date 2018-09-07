@@ -2812,7 +2812,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	public function test_orderby_date_modified_gmt_should_order_by_comment_ID_in_case_of_tie_ASC() {
 		$now      = current_time( 'mysql', 1 );
 		$comments = self::factory()->comment->create_many(
-			5, array(
+			5,
+			array(
 				'comment_post_ID'  => self::$post_id,
 				'comment_date_gmt' => $now,
 			)
@@ -2836,7 +2837,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	public function test_orderby_date_modified_gmt_should_order_by_comment_ID_in_case_of_tie_DESC() {
 		$now      = current_time( 'mysql', 1 );
 		$comments = self::factory()->comment->create_many(
-			5, array(
+			5,
+			array(
 				'comment_post_ID'  => self::$post_id,
 				'comment_date_gmt' => $now,
 			)
@@ -3422,7 +3424,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 */
 	public function test_it_should_be_possible_to_modify_meta_query_using_pre_get_comments_action() {
 		$comments = self::factory()->comment->create_many(
-			2, array(
+			2,
+			array(
 				'comment_post_ID' => self::$post_id,
 			)
 		);
@@ -3459,7 +3462,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 */
 	public function test_it_should_be_possible_to_modify_meta_params_using_pre_get_comments_action() {
 		$comments = self::factory()->comment->create_many(
-			2, array(
+			2,
+			array(
 				'comment_post_ID' => self::$post_id,
 			)
 		);
@@ -3772,7 +3776,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 
 		$top_level_comments = self::factory()->comment->create_many(
-			3, array(
+			3,
+			array(
 				'comment_post_ID'  => self::$post_id,
 				'comment_approved' => '1',
 			)
@@ -3813,7 +3818,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 
 		$top_level_comments = self::factory()->comment->create_many(
-			3, array(
+			3,
+			array(
 				'comment_post_ID'  => self::$post_id,
 				'comment_approved' => '1',
 			)
@@ -3889,7 +3895,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 
 		$query_args = array_merge(
-			$args, array(
+			$args,
+			array(
 				'post_id' => self::$post_id,
 			)
 		);
@@ -3967,7 +3974,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 
 		$query_args = array_merge(
-			$args, array(
+			$args,
+			array(
 				'post_id' => self::$post_id,
 			)
 		);
@@ -4012,7 +4020,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 
 		$top_level_comments = self::factory()->comment->create_many(
-			3, array(
+			3,
+			array(
 				'comment_post_ID'  => self::$post_id,
 				'comment_approved' => '1',
 			)
@@ -4068,7 +4077,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 
 		$top_level_comments = self::factory()->comment->create_many(
-			3, array(
+			3,
+			array(
 				'comment_post_ID'  => self::$post_id,
 				'comment_approved' => '1',
 			)

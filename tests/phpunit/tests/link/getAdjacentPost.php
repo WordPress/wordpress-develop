@@ -93,7 +93,8 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		// Bump term_taxonomy to mimic shared term offsets.
 		global $wpdb;
 		$wpdb->insert(
-			$wpdb->term_taxonomy, array(
+			$wpdb->term_taxonomy,
+			array(
 				'taxonomy'    => 'foo',
 				'term_id'     => 12345,
 				'description' => '',
@@ -250,7 +251,8 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'post' );
 
 		$terms = self::factory()->term->create_many(
-			2, array(
+			2,
+			array(
 				'taxonomy' => 'wptests_tax',
 			)
 		);
@@ -283,7 +285,8 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'post' );
 
 		$terms = self::factory()->term->create_many(
-			2, array(
+			2,
+			array(
 				'taxonomy' => 'wptests_tax',
 			)
 		);

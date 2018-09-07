@@ -28,7 +28,9 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 
 	public function test_register_with_array() {
 		register_setting(
-			'test_group', 'test_option', array(
+			'test_group',
+			'test_option',
+			array(
 				'sanitize_callback' => array( $this, 'filter_registered_setting' ),
 			)
 		);
@@ -46,7 +48,9 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	 */
 	public function test_register_with_default() {
 		register_setting(
-			'test_group', 'test_default', array(
+			'test_group',
+			'test_default',
+			array(
 				'default' => 'Got that Viper with them rally stripes',
 			)
 		);
@@ -59,7 +63,9 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	 */
 	public function test_register_with_default_override() {
 		register_setting(
-			'test_group', 'test_default', array(
+			'test_group',
+			'test_default',
+			array(
 				'default' => 'Got that Viper with them rally stripes',
 			)
 		);
@@ -74,7 +80,9 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	 */
 	public function test_add_option_with_no_options_cache() {
 		register_setting(
-			'test_group', 'test_default', array(
+			'test_group',
+			'test_default',
+			array(
 				'default' => 'My Default :)',
 			)
 		);
@@ -102,7 +110,9 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	 */
 	public function test_unregister_setting_removes_default() {
 		register_setting(
-			'test_group', 'test_default', array(
+			'test_group',
+			'test_default',
+			array(
 				'default' => 'Got that Viper with them rally stripes',
 			)
 		);

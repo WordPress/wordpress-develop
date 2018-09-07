@@ -91,7 +91,9 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 	public function test_term_exists_taxonomy_nonempty_parent_nonempty_match_slug() {
 		register_taxonomy(
-			'foo', 'post', array(
+			'foo',
+			'post',
+			array(
 				'hierarchical' => true,
 			)
 		);
@@ -123,7 +125,9 @@ class Tests_TermExists extends WP_UnitTestCase {
 	 */
 	public function test_term_exists_taxonomy_nonempty_parent_0_should_return_false_for_child_term() {
 		register_taxonomy(
-			'foo', 'post', array(
+			'foo',
+			'post',
+			array(
 				'hierarchical' => true,
 			)
 		);
@@ -151,7 +155,9 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 	public function test_term_exists_taxonomy_nonempty_parent_nonempty_match_name() {
 		register_taxonomy(
-			'foo', 'post', array(
+			'foo',
+			'post',
+			array(
 				'hierarchical' => true,
 			)
 		);

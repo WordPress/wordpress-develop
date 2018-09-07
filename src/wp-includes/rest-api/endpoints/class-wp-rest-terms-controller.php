@@ -74,7 +74,9 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	public function register_routes() {
 
 		register_rest_route(
-			$this->namespace, '/' . $this->rest_base, array(
+			$this->namespace,
+			'/' . $this->rest_base,
+			array(
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_items' ),
@@ -92,7 +94,9 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		);
 
 		register_rest_route(
-			$this->namespace, '/' . $this->rest_base . '/(?P<id>[\d]+)', array(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<id>[\d]+)',
+			array(
 				'args'   => array(
 					'id' => array(
 						'description' => __( 'Unique identifier for the term.' ),
@@ -380,7 +384,10 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		}
 
 		$taxonomy_obj = get_taxonomy( $this->taxonomy );
-		if ( ! current_user_can( $taxonomy_obj->cap->edit_terms ) ) {
+		if ( ( is_taxonomy_hierarchical( $this->taxonomy )
+				&& ! current_user_can( $taxonomy_obj->cap->edit_terms ) )
+			|| ( ! is_taxonomy_hierarchical( $this->taxonomy )
+				&& ! current_user_can( $taxonomy_obj->cap->assign_terms ) ) ) {
 			return new WP_Error( 'rest_cannot_create', __( 'Sorry, you are not allowed to create new terms.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
@@ -419,7 +426,12 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			if ( $term_id = $term->get_error_data( 'term_exists' ) ) {
 				$existing_term = get_term( $term_id, $this->taxonomy );
 				$term->add_data( $existing_term->term_id, 'term_exists' );
-				$term->add_data( array( 'status' => 400, 'term_id' => $term_id ) );
+				$term->add_data(
+					array(
+						'status'  => 400,
+						'term_id' => $term_id,
+					)
+				);
 			}
 
 			return $term;
@@ -691,42 +703,42 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 
-		$schema = $this->get_item_schema();
+		$fields = $this->get_fields_for_response( $request );
 		$data   = array();
 
-		if ( ! empty( $schema['properties']['id'] ) ) {
+		if ( in_array( 'id', $fields, true ) ) {
 			$data['id'] = (int) $item->term_id;
 		}
 
-		if ( ! empty( $schema['properties']['count'] ) ) {
+		if ( in_array( 'count', $fields, true ) ) {
 			$data['count'] = (int) $item->count;
 		}
 
-		if ( ! empty( $schema['properties']['description'] ) ) {
+		if ( in_array( 'description', $fields, true ) ) {
 			$data['description'] = $item->description;
 		}
 
-		if ( ! empty( $schema['properties']['link'] ) ) {
+		if ( in_array( 'link', $fields, true ) ) {
 			$data['link'] = get_term_link( $item );
 		}
 
-		if ( ! empty( $schema['properties']['name'] ) ) {
+		if ( in_array( 'name', $fields, true ) ) {
 			$data['name'] = $item->name;
 		}
 
-		if ( ! empty( $schema['properties']['slug'] ) ) {
+		if ( in_array( 'slug', $fields, true ) ) {
 			$data['slug'] = $item->slug;
 		}
 
-		if ( ! empty( $schema['properties']['taxonomy'] ) ) {
+		if ( in_array( 'taxonomy', $fields, true ) ) {
 			$data['taxonomy'] = $item->taxonomy;
 		}
 
-		if ( ! empty( $schema['properties']['parent'] ) ) {
+		if ( in_array( 'parent', $fields, true ) ) {
 			$data['parent'] = (int) $item->parent;
 		}
 
-		if ( ! empty( $schema['properties']['meta'] ) ) {
+		if ( in_array( 'meta', $fields, true ) ) {
 			$data['meta'] = $this->meta->get_value( $item->term_id, $request );
 		}
 

@@ -4,12 +4,12 @@
 		<title>WordPress QUnit Test Suite</title>
 
 		<!-- Dependencies -->
-		<script src="../../src/wp-includes/js/jquery/jquery.js"></script>
-		<script src="../../src/wp-includes/js/jquery/ui/core.js"></script>
-		<script src="../../src/wp-includes/js/underscore.min.js"></script>
-		<script src="../../src/wp-includes/js/backbone.min.js"></script>
-		<script src="../../src/wp-includes/js/wp-backbone.js"></script>
-		<script src="../../src/wp-includes/js/zxcvbn.min.js"></script>
+		<script src="../../build/wp-includes/js/jquery/jquery.js"></script>
+		<script src="../../build/wp-includes/js/jquery/ui/core.min.js"></script>
+		<script src="../../build/wp-includes/js/underscore.min.js"></script>
+		<script src="../../build/wp-includes/js/backbone.min.js"></script>
+		<script src="../../build/wp-includes/js/wp-backbone.js"></script>
+		<script src="../../build/wp-includes/js/zxcvbn.min.js"></script>
 		<script>
 			window._wpUtilSettings = {
 				'ajax': {
@@ -23,34 +23,34 @@
 				nonce: 'not_a_real_nonce'
 			};
 		</script>
-		<script src="../../src/wp-includes/js/wp-util.js"></script>
-		<script src="../../src/wp-includes/js/wp-a11y.js"></script>
+		<script src="../../build/wp-includes/js/wp-util.js"></script>
+		<script src="../../build/wp-includes/js/wp-a11y.js"></script>
 		<script>
 			window._wpMediaModelsL10n = {"settings":{"ajaxurl":"\/wp-admin\/admin-ajax.php","post":{"id":0}}};
 		</script>
-		<script src="../../src/wp-includes/js/media-models.js"></script>
+		<script src="../../build/wp-includes/js/media-models.js"></script>
 		<script>
 			window.userSettings = {"url":"\/","uid":"0","time":"1493325477","secure":""};
 		</script>
-		<script src="../../src/wp-includes/js/utils.js"></script>
+		<script src="../../build/wp-includes/js/utils.js"></script>
 		<script>
 			window.pluploadL10n = {"queue_limit_exceeded":"You have attempted to queue too many files.","file_exceeds_size_limit":"%s exceeds the maximum upload size for this site.","zero_byte_file":"This file is empty. Please try another.","invalid_filetype":"Sorry, this file type is not permitted for security reasons.","not_an_image":"This file is not an image. Please try another.","image_memory_exceeded":"Memory exceeded. Please try another smaller file.","image_dimensions_exceeded":"This is larger than the maximum size. Please try another.","default_error":"An error occurred in the upload. Please try again later.","missing_upload_url":"There was a configuration error. Please contact the server administrator.","upload_limit_exceeded":"You may only upload 1 file.","http_error":"HTTP error.","upload_failed":"Upload failed.","big_upload_failed":"Please try uploading this file with the %1$sbrowser uploader%2$s.","big_upload_queued":"%s exceeds the maximum upload size for the multi-file uploader when used in your browser.","io_error":"IO error.","security_error":"Security error.","file_cancelled":"File canceled.","upload_stopped":"Upload stopped.","dismiss":"Dismiss","crunching":"Crunching\u2026","deleted":"moved to the trash.","error_uploading":"\u201c%s\u201d has failed to upload."};
 			window._wpPluploadSettings = {"defaults":{"runtimes":"html5,flash,silverlight,html4","file_data_name":"async-upload","url":"\/wp-admin\/async-upload.php","flash_swf_url":"http:\/\/src.wordpress-develop.dev\/wp-includes\/js\/plupload\/plupload.flash.swf","silverlight_xap_url":"http:\/\/src.wordpress-develop.dev\/wp-includes\/js\/plupload\/plupload.silverlight.xap","filters":{"max_file_size":"2097152b","mime_types":[{"extensions":"jpg,jpeg,jpe,gif,png,bmp,tiff,tif,ico,asf,asx,wmv,wmx,wm,avi,divx,flv,mov,qt,mpeg,mpg,mpe,mp4,m4v,ogv,webm,mkv,3gp,3gpp,3g2,3gp2,txt,asc,c,cc,h,srt,csv,tsv,ics,rtx,css,vtt,dfxp,mp3,m4a,m4b,ra,ram,wav,ogg,oga,mid,midi,wma,wax,mka,rtf,js,pdf,class,tar,zip,gz,gzip,rar,7z,psd,xcf,doc,pot,pps,ppt,wri,xla,xls,xlt,xlw,mdb,mpp,docx,docm,dotx,dotm,xlsx,xlsm,xlsb,xltx,xltm,xlam,pptx,pptm,ppsx,ppsm,potx,potm,ppam,sldx,sldm,onetoc,onetoc2,onetmp,onepkg,oxps,xps,odt,odp,ods,odg,odc,odb,odf,wp,wpd,key,numbers,pages"}]},"multipart_params":{"action":"upload-attachment","_wpnonce":"87fa5740b8"}},"browser":{"mobile":false,"supported":true},"limitExceeded":false};
 		</script>
-		<script src="../../src/wp-includes/js/plupload/wp-plupload.js"></script>
+		<script src="../../build/wp-includes/js/plupload/wp-plupload.js"></script>
 		<script>
 			window.mejsL10n = {"language":"en-US","strings":{"Close":"Close","Fullscreen":"Fullscreen","Turn off Fullscreen":"Turn off Fullscreen","Go Fullscreen":"Go Fullscreen","Download File":"Download File","Download Video":"Download Video","Play":"Play","Pause":"Pause","Captions\/Subtitles":"Captions\/Subtitles","None":"None","Time Slider":"Time Slider","Skip back %1 seconds":"Skip back %1 seconds","Video Player":"Video Player","Audio Player":"Audio Player","Volume Slider":"Volume Slider","Mute Toggle":"Mute Toggle","Unmute":"Unmute","Mute":"Mute","Use Up\/Down Arrow keys to increase or decrease volume.":"Use Up\/Down Arrow keys to increase or decrease volume.","Use Left\/Right Arrow keys to advance one second, Up\/Down arrows to advance ten seconds.":"Use Left\/Right Arrow keys to advance one second, Up\/Down arrows to advance ten seconds."}};
 			window._wpmejsSettings = {"pluginPath":"\/wp-includes\/js\/mediaelement\/"};
 		</script>
-		<script src="../../src/wp-includes/js/mediaelement/mediaelement-and-player.min.js"></script>
-		<script src="../../src/wp-includes/js/mediaelement/wp-mediaelement.js"></script>
+		<script src="../../build/wp-includes/js/mediaelement/mediaelement-and-player.min.js"></script>
+		<script src="../../build/wp-includes/js/mediaelement/wp-mediaelement.js"></script>
 		<script>
 			window._wpMediaViewsL10n = {"url":"URL","addMedia":"Add Media","search":"Search","select":"Select","cancel":"Cancel","update":"Update","replace":"Replace","remove":"Remove","back":"Back","selected":"%d selected","dragInfo":"Drag and drop to reorder media files.","uploadFilesTitle":"Upload Files","uploadImagesTitle":"Upload Images","mediaLibraryTitle":"Media Library","insertMediaTitle":"Insert Media","createNewGallery":"Create a new gallery","createNewPlaylist":"Create a new playlist","createNewVideoPlaylist":"Create a new video playlist","returnToLibrary":"\u2190 Return to library","allMediaItems":"All media items","allDates":"All dates","noItemsFound":"No items found.","insertIntoPost":"Insert into post","unattached":"Unattached","trash":"Trash","uploadedToThisPost":"Uploaded to this post","warnDelete":"You are about to permanently delete this item.\nThis will remove it from your site.\n 'Cancel' to stop, 'OK' to delete.","warnBulkDelete":"You are about to permanently delete these items.\nThis will remove them from your site.\n 'Cancel' to stop, 'OK' to delete.","warnBulkTrash":"You are about to trash these items.\n  'Cancel' to stop, 'OK' to delete.","bulkSelect":"Bulk Select","cancelSelection":"Cancel Selection","trashSelected":"Trash Selected","untrashSelected":"Untrash Selected","deleteSelected":"Delete Selected","deletePermanently":"Delete Permanently","apply":"Apply","filterByDate":"Filter by date","filterByType":"Filter by type","searchMediaLabel":"Search Media","searchMediaPlaceholder":"Search media items...","noMedia":"No media files found.","attachmentDetails":"Attachment Details","insertFromUrlTitle":"Insert from URL","setFeaturedImageTitle":"Featured Image","setFeaturedImage":"Set featured image","createGalleryTitle":"Create Gallery","editGalleryTitle":"Edit Gallery","cancelGalleryTitle":"\u2190 Cancel Gallery","insertGallery":"Insert gallery","updateGallery":"Update gallery","addToGallery":"Add to gallery","addToGalleryTitle":"Add to Gallery","reverseOrder":"Reverse order","imageDetailsTitle":"Image Details","imageReplaceTitle":"Replace Image","imageDetailsCancel":"Cancel Edit","editImage":"Edit Image","chooseImage":"Choose Image","selectAndCrop":"Select and Crop","skipCropping":"Skip Cropping","cropImage":"Crop Image","cropYourImage":"Crop your image","cropping":"Cropping\u2026","suggestedDimensions":"Suggested image dimensions:","cropError":"There has been an error cropping your image.","audioDetailsTitle":"Audio Details","audioReplaceTitle":"Replace Audio","audioAddSourceTitle":"Add Audio Source","audioDetailsCancel":"Cancel Edit","videoDetailsTitle":"Video Details","videoReplaceTitle":"Replace Video","videoAddSourceTitle":"Add Video Source","videoDetailsCancel":"Cancel Edit","videoSelectPosterImageTitle":"Select Poster Image","videoAddTrackTitle":"Add Subtitles","playlistDragInfo":"Drag and drop to reorder tracks.","createPlaylistTitle":"Create Audio Playlist","editPlaylistTitle":"Edit Audio Playlist","cancelPlaylistTitle":"\u2190 Cancel Audio Playlist","insertPlaylist":"Insert audio playlist","updatePlaylist":"Update audio playlist","addToPlaylist":"Add to audio playlist","addToPlaylistTitle":"Add to Audio Playlist","videoPlaylistDragInfo":"Drag and drop to reorder videos.","createVideoPlaylistTitle":"Create Video Playlist","editVideoPlaylistTitle":"Edit Video Playlist","cancelVideoPlaylistTitle":"\u2190 Cancel Video Playlist","insertVideoPlaylist":"Insert video playlist","updateVideoPlaylist":"Update video playlist","addToVideoPlaylist":"Add to video playlist","addToVideoPlaylistTitle":"Add to Video Playlist","settings":{"tabs":[],"tabUrl":"http:\/\/src.wordpress-develop.dev\/wp-admin\/media-upload.php?chromeless=1","mimeTypes":{"image":"Images","audio":"Audio","video":"Video"},"captions":true,"nonce":{"sendToEditor":"9585d11de6"},"post":{"id":0},"defaultProps":{"link":"none","align":"","size":""},"attachmentCounts":{"audio":1,"video":1},"embedExts":["mp3","ogg","wma","m4a","wav","mp4","m4v","webm","ogv","wmv","flv"],"embedMimes":{"mp3":"audio\/mpeg","ogg":"audio\/ogg","wma":"audio\/x-ms-wma","m4a":"audio\/mpeg","wav":"audio\/wav","mp4":"video\/mp4","m4v":"video\/mp4","webm":"video\/webm","ogv":"video\/ogg","wmv":"video\/x-ms-wmv","flv":"video\/x-flv"},"contentWidth":525,"months":[{"year":"2017","month":"4","text":"April 2017"}],"mediaTrash":0}};
 		</script>
-		<script src="../../src/wp-includes/js/media-views.js"></script>
-		<script src="../../src/wp-includes/js/media-editor.js"></script>
-		<script src="../../src/wp-includes/js/media-audiovideo.js"></script>
-		<script src="../../src/wp-includes/js/mce-view.js"></script>
+		<script src="../../build/wp-includes/js/media-views.js"></script>
+		<script src="../../build/wp-includes/js/media-editor.js"></script>
+		<script src="../../build/wp-includes/js/media-audiovideo.js"></script>
+		<script src="../../build/wp-includes/js/mce-view.js"></script>
 
 		<!-- QUnit -->
 		<link rel="stylesheet" href="vendor/qunit.css" type="text/css" media="screen" />
@@ -72,52 +72,52 @@
 		</div>
 
 		<!-- Tested files -->
-		<script src="../../src/wp-admin/js/password-strength-meter.js"></script>
-		<script src="../../src/wp-includes/js/customize-base.js"></script>
-		<script src="../../src/wp-includes/js/customize-models.js"></script>
-		<script src="../../src/wp-includes/js/shortcode.js"></script>
-		<script src="../../src/wp-admin/js/customize-controls.js"></script>
-		<script src="../../src/wp-includes/js/api-request.js"></script>
-		<script src="../../src/wp-includes/js/wp-api.js"></script>
+		<script src="../../build/wp-admin/js/password-strength-meter.js"></script>
+		<script src="../../build/wp-includes/js/customize-base.js"></script>
+		<script src="../../build/wp-includes/js/customize-models.js"></script>
+		<script src="../../build/wp-includes/js/shortcode.js"></script>
+		<script src="../../build/wp-admin/js/customize-controls.js"></script>
+		<script src="../../build/wp-includes/js/api-request.js"></script>
+		<script src="../../build/wp-includes/js/wp-api.js"></script>
 
-		<script type='text/javascript' src='../../src/wp-includes/js/jquery/ui/core.js'></script>
-		<script type='text/javascript' src='../../src/wp-includes/js/jquery/ui/widget.js'></script>
-		<script type='text/javascript' src='../../src/wp-includes/js/jquery/ui/mouse.js'></script>
-		<script type='text/javascript' src='../../src/wp-includes/js/jquery/ui/sortable.js'></script>
-		<script type='text/javascript' src='../../src/wp-includes/js/jquery/ui/draggable.js'></script>
-		<script type='text/javascript' src='../../src/wp-includes/js/jquery/ui/droppable.js'></script>
+		<script type='text/javascript' src='../../build/wp-includes/js/jquery/ui/core.min.js'></script>
+		<script type='text/javascript' src='../../build/wp-includes/js/jquery/ui/widget.min.js'></script>
+		<script type='text/javascript' src='../../build/wp-includes/js/jquery/ui/mouse.min.js'></script>
+		<script type='text/javascript' src='../../build/wp-includes/js/jquery/ui/sortable.min.js'></script>
+		<script type='text/javascript' src='../../build/wp-includes/js/jquery/ui/draggable.min.js'></script>
+		<script type='text/javascript' src='../../build/wp-includes/js/jquery/ui/droppable.min.js'></script>
 
-		<script src="../../src/wp-admin/js/nav-menu.js"></script>
-		<script src="../../src/wp-admin/js/customize-nav-menus.js"></script>
-		<script src="../../src/wp-admin/js/customize-widgets.js"></script>
-		<script src="../../src/wp-admin/js/word-count.js"></script>
+		<script src="../../build/wp-admin/js/nav-menu.js"></script>
+		<script src="../../build/wp-admin/js/customize-nav-menus.js"></script>
+		<script src="../../build/wp-admin/js/customize-widgets.js"></script>
+		<script src="../../build/wp-admin/js/word-count.js"></script>
 
-		<script src="../../src/wp-admin/js/widgets/media-widgets.js"></script>
+		<script src="../../build/wp-admin/js/widgets/media-widgets.js"></script>
 		<script>
 			wp.mediaWidgets.init();
 		</script>
-		<script src="../../src/wp-admin/js/widgets/media-image-widget.js"></script>
+		<script src="../../build/wp-admin/js/widgets/media-image-widget.js"></script>
 		<script>
 			wp.mediaWidgets.modelConstructors[ "media_image" ].prototype.schema = {"attachment_id":{"type":"integer","default":0,"minimum":0,"media_prop":"id"},"url":{"type":"string","default":"","format":"uri"},"title":{"type":"string","default":"","should_preview_update":false},"size":{"type":"string","default":"medium","enum":["thumbnail","medium","medium_large","large","twentyseventeen-featured-image","twentyseventeen-thumbnail-avatar","full","custom"]},"width":{"type":"integer","default":0,"minimum":0},"height":{"type":"integer","default":0,"minimum":0},"caption":{"type":"string","default":"","should_preview_update":false},"alt":{"type":"string","default":""},"link_type":{"type":"string","default":"none","enum":["none","file","post","custom"],"media_prop":"link","should_preview_update":false},"link_url":{"type":"string","default":"","format":"uri","media_prop":"linkUrl","should_preview_update":false},"image_classes":{"type":"string","default":"","media_prop":"extraClasses","should_preview_update":false},"link_classes":{"type":"string","default":"","media_prop":"linkClassName","should_preview_update":false},"link_rel":{"type":"string","default":"","media_prop":"linkRel","should_preview_update":false},"link_target_blank":{"type":"boolean","default":false,"media_prop":"linkTargetBlank","should_preview_update":false},"image_title":{"type":"string","default":"","media_prop":"title","should_preview_update":false}};
 
 			wp.mediaWidgets.controlConstructors[ "media_image" ].prototype.mime_type = "image";
 			_.extend( wp.mediaWidgets.controlConstructors[ "media_image" ].prototype.l10n, {"no_media_selected":"No image selected","select_media":"Select Image","change_media":"Change Image","edit_media":"Edit Image","add_to_widget":"Add to Widget","missing_attachment":"We can&#8217;t find that image. Check your <a href=\"http:\/\/src.wordpress-develop.dev\/wp-admin\/upload.php\">media library<\/a> and make sure it wasn&#8217;t deleted.","media_library_state_multi":{"0":"Image Widget (%d)","1":"Image Widget (%d)","singular":"Image Widget (%d)","plural":"Image Widget (%d)","context":null,"domain":null},"media_library_state_single":"Image Widget"} );
 		</script>
-		<script src="../../src/wp-admin/js/widgets/media-video-widget.js"></script>
+		<script src="../../build/wp-admin/js/widgets/media-video-widget.js"></script>
 		<script>
 			wp.mediaWidgets.modelConstructors[ "media_video" ].prototype.schema = {"attachment_id":{"type":"integer","default":0,"minimum":0,"media_prop":"id"},"url":{"type":"string","default":"","format":"uri"},"title":{"type":"string","default":""},"preload":{"type":"string","default":"metadata","enum":["none","auto","metadata"]},"loop":{"type":"boolean","default":false},"content":{"type":"string","default":""},"mp4":{"type":"string","default":"","format":"uri"},"m4v":{"type":"string","default":"","format":"uri"},"webm":{"type":"string","default":"","format":"uri"},"ogv":{"type":"string","default":"","format":"uri"},"wmv":{"type":"string","default":"","format":"uri"},"flv":{"type":"string","default":"","format":"uri"}};
 
 			wp.mediaWidgets.controlConstructors[ "media_video" ].prototype.mime_type = "video";
 			_.extend( wp.mediaWidgets.controlConstructors[ "media_video" ].prototype.l10n, {"no_media_selected":"No video selected","select_media":"Select Video","change_media":"Change Video","edit_media":"Edit Video","add_to_widget":"Add to Widget","missing_attachment":"We can&#8217;t find that video. Check your <a href=\"http:\/\/src.wordpress-develop.dev\/wp-admin\/upload.php\">media library<\/a> and make sure it wasn&#8217;t deleted.","media_library_state_multi":{"0":"Video Widget (%d)","1":"Video Widget (%d)","singular":"Video Widget (%d)","plural":"Video Widget (%d)","context":null,"domain":null},"media_library_state_single":"Video Widget"} );
 		</script>
-		<script src="../../src/wp-admin/js/widgets/media-audio-widget.js"></script>
+		<script src="../../build/wp-admin/js/widgets/media-audio-widget.js"></script>
 		<script>
 			wp.mediaWidgets.modelConstructors[ "media_audio" ].prototype.schema = {"attachment_id":{"type":"integer","default":0,"minimum":0,"media_prop":"id"},"url":{"type":"string","default":"","format":"uri"},"title":{"type":"string","default":""},"preload":{"type":"string","default":"none","enum":["none","auto","metadata"]},"loop":{"type":"boolean","default":false},"mp3":{"type":"string","default":"","format":"uri"},"ogg":{"type":"string","default":"","format":"uri"},"wma":{"type":"string","default":"","format":"uri"},"m4a":{"type":"string","default":"","format":"uri"},"wav":{"type":"string","default":"","format":"uri"}};
 
 			wp.mediaWidgets.controlConstructors[ "media_audio" ].prototype.mime_type = "audio";
 			_.extend( wp.mediaWidgets.controlConstructors[ "media_audio" ].prototype.l10n, {"no_media_selected":"No audio selected","select_media":"Select File","change_media":"Change Audio","edit_media":"Edit Audio","add_to_widget":"Add to Widget","missing_attachment":"We can&#8217;t find that audio file. Check your <a href=\"http:\/\/src.wordpress-develop.dev\/wp-admin\/upload.php\">media library<\/a> and make sure it wasn&#8217;t deleted.","media_library_state_multi":{"0":"Audio Widget (%d)","1":"Audio Widget (%d)","singular":"Audio Widget (%d)","plural":"Audio Widget (%d)","context":null,"domain":null},"media_library_state_single":"Audio Widget"} );
 		</script>
-		<script type='text/javascript' src='../../src/wp-admin/js/widgets/media-gallery-widget.js'></script>
+		<script type='text/javascript' src='../../build/wp-admin/js/widgets/media-gallery-widget.js'></script>
 		<script type='text/javascript'>
 			wp.mediaWidgets.modelConstructors[ "media_gallery" ].prototype.schema = {"title":{"type":"string","default":"","should_preview_update":false},"ids":{"type":"string","default":""},"columns":{"type":"integer","default":3},"size":{"type":"string","default":"thumbnail","enum":["thumbnail","medium","medium_large","large","post-thumbnail","full","custom"]},"link_type":{"type":"string","default":"none","enum":["none","file","post"],"media_prop":"link","should_preview_update":false},"orderby_random":{"type":"boolean","default":false,"media_prop":"_orderbyRandom","should_preview_update":false},"attachments":{"type":"string","default":""}};
 			wp.mediaWidgets.controlConstructors[ "media_gallery" ].prototype.mime_type = "image";
@@ -2203,8 +2203,8 @@
 		</div>
 	</script>
 		</div><!-- end widget templates -->
-		<script src="../../src/wp-includes/js/tinymce/tinymce.js"></script>
-		<script src="../../src/wp-includes/js/tinymce/plugins/wptextpattern/plugin.js"></script>
+		<script src="../../build/wp-includes/js/tinymce/tinymce.min.js"></script>
+		<script src="../../build/wp-includes/js/tinymce/plugins/wptextpattern/plugin.js"></script>
 		<script src="wp-includes/js/tinymce/plugins/wptextpattern/plugin.js"></script>
 		<script src="wp-includes/js/tinymce/tinymce-obsolete.js"></script>
 

@@ -39,7 +39,8 @@ class Tests_Menu_WpAjaxMenuQuickSeach extends WP_UnitTestCase {
 		include_once ABSPATH . 'wp-admin/includes/nav-menu.php';
 
 		self::factory()->post->create_many(
-			3, array(
+			3,
+			array(
 				'post_type'    => 'page',
 				'post_content' => 'foo',
 			)

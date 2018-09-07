@@ -58,7 +58,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	public function register_routes() {
 
 		register_rest_route(
-			$this->namespace, '/' . $this->rest_base, array(
+			$this->namespace,
+			'/' . $this->rest_base,
+			array(
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_items' ),
@@ -86,7 +88,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 		register_rest_route(
-			$this->namespace, '/' . $this->rest_base . '/(?P<id>[\d]+)', array(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<id>[\d]+)',
+			array(
 				'args'   => array(
 					'id' => array(
 						'description' => __( 'Unique identifier for the object.' ),
@@ -872,7 +876,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			 *
 			 * @param string $value The query_var value.
 			 */
-			$query_args[ $key ] = apply_filters( "rest_query_var-{$key}", $value );
+			$query_args[ $key ] = apply_filters( "rest_query_var-{$key}", $value ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 		}
 
 		if ( 'post' !== $this->post_type || ! isset( $query_args['ignore_sticky_posts'] ) ) {
@@ -1408,20 +1412,20 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		setup_postdata( $post );
 
-		$schema = $this->get_item_schema();
+		$fields = $this->get_fields_for_response( $request );
 
 		// Base fields for every post.
 		$data = array();
 
-		if ( ! empty( $schema['properties']['id'] ) ) {
+		if ( in_array( 'id', $fields, true ) ) {
 			$data['id'] = $post->ID;
 		}
 
-		if ( ! empty( $schema['properties']['date'] ) ) {
+		if ( in_array( 'date', $fields, true ) ) {
 			$data['date'] = $this->prepare_date_response( $post->post_date_gmt, $post->post_date );
 		}
 
-		if ( ! empty( $schema['properties']['date_gmt'] ) ) {
+		if ( in_array( 'date_gmt', $fields, true ) ) {
 			// For drafts, `post_date_gmt` may not be set, indicating that the
 			// date of the draft should be updated each time it is saved (see
 			// #38883).  In this case, shim the value based on the `post_date`
@@ -1434,7 +1438,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$data['date_gmt'] = $this->prepare_date_response( $post_date_gmt );
 		}
 
-		if ( ! empty( $schema['properties']['guid'] ) ) {
+		if ( in_array( 'guid', $fields, true ) ) {
 			$data['guid'] = array(
 				/** This filter is documented in wp-includes/post-template.php */
 				'rendered' => apply_filters( 'get_the_guid', $post->guid, $post->ID ),
@@ -1442,11 +1446,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( ! empty( $schema['properties']['modified'] ) ) {
+		if ( in_array( 'modified', $fields, true ) ) {
 			$data['modified'] = $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified );
 		}
 
-		if ( ! empty( $schema['properties']['modified_gmt'] ) ) {
+		if ( in_array( 'modified_gmt', $fields, true ) ) {
 			// For drafts, `post_modified_gmt` may not be set (see
 			// `post_date_gmt` comments above).  In this case, shim the value
 			// based on the `post_modified` field with the site's timezone
@@ -1459,27 +1463,27 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$data['modified_gmt'] = $this->prepare_date_response( $post_modified_gmt );
 		}
 
-		if ( ! empty( $schema['properties']['password'] ) ) {
+		if ( in_array( 'password', $fields, true ) ) {
 			$data['password'] = $post->post_password;
 		}
 
-		if ( ! empty( $schema['properties']['slug'] ) ) {
+		if ( in_array( 'slug', $fields, true ) ) {
 			$data['slug'] = $post->post_name;
 		}
 
-		if ( ! empty( $schema['properties']['status'] ) ) {
+		if ( in_array( 'status', $fields, true ) ) {
 			$data['status'] = $post->post_status;
 		}
 
-		if ( ! empty( $schema['properties']['type'] ) ) {
+		if ( in_array( 'type', $fields, true ) ) {
 			$data['type'] = $post->post_type;
 		}
 
-		if ( ! empty( $schema['properties']['link'] ) ) {
+		if ( in_array( 'link', $fields, true ) ) {
 			$data['link'] = get_permalink( $post->ID );
 		}
 
-		if ( ! empty( $schema['properties']['title'] ) ) {
+		if ( in_array( 'title', $fields, true ) ) {
 			add_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
 
 			$data['title'] = array(
@@ -1499,7 +1503,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$has_password_filter = true;
 		}
 
-		if ( ! empty( $schema['properties']['content'] ) ) {
+		if ( in_array( 'content', $fields, true ) ) {
 			$data['content'] = array(
 				'raw'       => $post->post_content,
 				/** This filter is documented in wp-includes/post-template.php */
@@ -1508,7 +1512,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( ! empty( $schema['properties']['excerpt'] ) ) {
+		if ( in_array( 'excerpt', $fields, true ) ) {
 			/** This filter is documented in wp-includes/post-template.php */
 			$excerpt         = apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $post->post_excerpt, $post ) );
 			$data['excerpt'] = array(
@@ -1523,35 +1527,35 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			remove_filter( 'post_password_required', '__return_false' );
 		}
 
-		if ( ! empty( $schema['properties']['author'] ) ) {
+		if ( in_array( 'author', $fields, true ) ) {
 			$data['author'] = (int) $post->post_author;
 		}
 
-		if ( ! empty( $schema['properties']['featured_media'] ) ) {
+		if ( in_array( 'featured_media', $fields, true ) ) {
 			$data['featured_media'] = (int) get_post_thumbnail_id( $post->ID );
 		}
 
-		if ( ! empty( $schema['properties']['parent'] ) ) {
+		if ( in_array( 'parent', $fields, true ) ) {
 			$data['parent'] = (int) $post->post_parent;
 		}
 
-		if ( ! empty( $schema['properties']['menu_order'] ) ) {
+		if ( in_array( 'menu_order', $fields, true ) ) {
 			$data['menu_order'] = (int) $post->menu_order;
 		}
 
-		if ( ! empty( $schema['properties']['comment_status'] ) ) {
+		if ( in_array( 'comment_status', $fields, true ) ) {
 			$data['comment_status'] = $post->comment_status;
 		}
 
-		if ( ! empty( $schema['properties']['ping_status'] ) ) {
+		if ( in_array( 'ping_status', $fields, true ) ) {
 			$data['ping_status'] = $post->ping_status;
 		}
 
-		if ( ! empty( $schema['properties']['sticky'] ) ) {
+		if ( in_array( 'sticky', $fields, true ) ) {
 			$data['sticky'] = is_sticky( $post->ID );
 		}
 
-		if ( ! empty( $schema['properties']['template'] ) ) {
+		if ( in_array( 'template', $fields, true ) ) {
 			if ( $template = get_page_template_slug( $post->ID ) ) {
 				$data['template'] = $template;
 			} else {
@@ -1559,7 +1563,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( ! empty( $schema['properties']['format'] ) ) {
+		if ( in_array( 'format', $fields, true ) ) {
 			$data['format'] = get_post_format( $post->ID );
 
 			// Fill in blank post format.
@@ -1568,7 +1572,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( ! empty( $schema['properties']['meta'] ) ) {
+		if ( in_array( 'meta', $fields, true ) ) {
 			$data['meta'] = $this->meta->get_value( $post->ID, $request );
 		}
 
@@ -1577,7 +1581,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		foreach ( $taxonomies as $taxonomy ) {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
 
-			if ( ! empty( $schema['properties'][ $base ] ) ) {
+			if ( in_array( $base, $fields, true ) ) {
 				$terms         = get_the_terms( $post, $taxonomy->name );
 				$data[ $base ] = $terms ? array_values( wp_list_pluck( $terms, 'term_id' ) ) : array();
 			}
@@ -1590,7 +1594,18 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
 
-		$response->add_links( $this->prepare_links( $post ) );
+		$links = $this->prepare_links( $post );
+		$response->add_links( $links );
+
+		if ( ! empty( $links['self']['href'] ) ) {
+			$actions = $this->get_available_actions( $post, $request );
+
+			$self = $links['self']['href'];
+
+			foreach ( $actions as $rel ) {
+				$response->add_link( $rel, $self );
+			}
+		}
 
 		/**
 		 * Filters the post data for a response.
@@ -1664,9 +1679,22 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( in_array( $post->post_type, array( 'post', 'page' ), true ) || post_type_supports( $post->post_type, 'revisions' ) ) {
+			$revisions       = wp_get_post_revisions( $post->ID, array( 'fields' => 'ids' ) );
+			$revisions_count = count( $revisions );
+
 			$links['version-history'] = array(
-				'href' => rest_url( trailingslashit( $base ) . $post->ID . '/revisions' ),
+				'href'  => rest_url( trailingslashit( $base ) . $post->ID . '/revisions' ),
+				'count' => $revisions_count,
 			);
+
+			if ( $revisions_count > 0 ) {
+				$last_revision = array_shift( $revisions );
+
+				$links['predecessor-version'] = array(
+					'href' => rest_url( trailingslashit( $base ) . $post->ID . '/revisions/' . $last_revision ),
+					'id'   => $last_revision,
+				);
+			}
 		}
 
 		$post_type_obj = get_post_type_object( $post->post_type );
@@ -1727,6 +1755,60 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		return $links;
+	}
+
+	/**
+	 * Get the link relations available for the post and current user.
+	 *
+	 * @since 4.9.8
+	 *
+	 * @param WP_Post $post Post object.
+	 * @param WP_REST_Request Request object.
+	 *
+	 * @return array List of link relations.
+	 */
+	protected function get_available_actions( $post, $request ) {
+
+		if ( 'edit' !== $request['context'] ) {
+			return array();
+		}
+
+		$rels = array();
+
+		$post_type = get_post_type_object( $post->post_type );
+
+		if ( 'attachment' !== $this->post_type && current_user_can( $post_type->cap->publish_posts ) ) {
+			$rels[] = 'https://api.w.org/action-publish';
+		}
+
+		if ( 'post' === $post_type->name ) {
+			if ( current_user_can( $post_type->cap->edit_others_posts ) && current_user_can( $post_type->cap->publish_posts ) ) {
+				$rels[] = 'https://api.w.org/action-sticky';
+			}
+		}
+
+		if ( post_type_supports( $post_type->name, 'author' ) ) {
+			if ( current_user_can( $post_type->cap->edit_others_posts ) ) {
+				$rels[] = 'https://api.w.org/action-assign-author';
+			}
+		}
+
+		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+
+		foreach ( $taxonomies as $tax ) {
+			$tax_base   = ! empty( $tax->rest_base ) ? $tax->rest_base : $tax->name;
+			$create_cap = is_taxonomy_hierarchical( $tax->name ) ? $tax->cap->edit_terms : $tax->cap->assign_terms;
+
+			if ( current_user_can( $create_cap ) ) {
+				$rels[] = 'https://api.w.org/action-create-' . $tax_base;
+			}
+
+			if ( current_user_can( $tax->cap->assign_terms ) ) {
+				$rels[] = 'https://api.w.org/action-assign-' . $tax_base;
+			}
+		}
+
+		return $rels;
 	}
 
 	/**
@@ -2069,7 +2151,123 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
+		$schema_links = $this->get_schema_links();
+
+		if ( $schema_links ) {
+			$schema['links'] = $schema_links;
+		}
+
 		return $this->add_additional_fields_schema( $schema );
+	}
+
+	/**
+	 * Retrieve Link Description Objects that should be added to the Schema for the posts collection.
+	 *
+	 * @since 4.9.8
+	 *
+	 * @return array
+	 */
+	protected function get_schema_links() {
+
+		$href = rest_url( "{$this->namespace}/{$this->rest_base}/{id}" );
+
+		$links = array();
+
+		if ( 'attachment' !== $this->post_type ) {
+			$links[] = array(
+				'rel'          => 'https://api.w.org/action-publish',
+				'title'        => __( 'The current user can publish this post.' ),
+				'href'         => $href,
+				'targetSchema' => array(
+					'type'       => 'object',
+					'properties' => array(
+						'status' => array(
+							'type' => 'string',
+							'enum' => array( 'publish', 'future' ),
+						),
+					),
+				),
+			);
+		}
+
+		if ( 'post' === $this->post_type ) {
+			$links[] = array(
+				'rel'          => 'https://api.w.org/action-sticky',
+				'title'        => __( 'The current user can sticky this post.' ),
+				'href'         => $href,
+				'targetSchema' => array(
+					'type'       => 'object',
+					'properties' => array(
+						'sticky' => array(
+							'type' => 'boolean',
+						),
+					),
+				),
+			);
+		}
+
+		if ( post_type_supports( $this->post_type, 'author' ) ) {
+			$links[] = array(
+				'rel'          => 'https://api.w.org/action-assign-author',
+				'title'        => __( 'The current user can change the author on this post.' ),
+				'href'         => $href,
+				'targetSchema' => array(
+					'type'       => 'object',
+					'properties' => array(
+						'author' => array(
+							'type' => 'integer',
+						),
+					),
+				),
+			);
+		}
+
+		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+
+		foreach ( $taxonomies as $tax ) {
+			$tax_base = ! empty( $tax->rest_base ) ? $tax->rest_base : $tax->name;
+
+			/* translators: %s: taxonomy name */
+			$assign_title = sprintf( __( 'The current user can assign terms in the %s taxonomy.' ), $tax->name );
+			/* translators: %s: taxonomy name */
+			$create_title = sprintf( __( 'The current user can create terms in the %s taxonomy.' ), $tax->name );
+
+			$links[] = array(
+				'rel'          => 'https://api.w.org/action-assign-' . $tax_base,
+				'title'        => $assign_title,
+				'href'         => $href,
+				'targetSchema' => array(
+					'type'       => 'object',
+					'properties' => array(
+						$tax_base => array(
+							'type'  => 'array',
+							'items' => array(
+								'type' => 'integer',
+							),
+						),
+					),
+				),
+			);
+
+			$links[] = array(
+				'rel'          => 'https://api.w.org/action-create-' . $tax_base,
+				'title'        => $create_title,
+				'href'         => $href,
+				'targetSchema' => array(
+					'type'       => 'object',
+					'properties' => array(
+						$tax_base => array(
+							'type'  => 'array',
+							'items' => array(
+								'type' => 'integer',
+							),
+						),
+					),
+				),
+			);
+		}
+
+		return $links;
 	}
 
 	/**

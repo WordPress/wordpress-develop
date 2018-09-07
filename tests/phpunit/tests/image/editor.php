@@ -122,7 +122,8 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		$property = new ReflectionProperty( $editor, 'size' );
 		$property->setAccessible( true );
 		$property->setValue(
-			$editor, array(
+			$editor,
+			array(
 				'height' => 50,
 				'width'  => 100,
 			)

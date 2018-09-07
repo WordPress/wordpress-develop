@@ -80,7 +80,8 @@ class WP_User {
 	 * All capabilities the user has, including individual and role based.
 	 *
 	 * @since 2.0.0
-	 * @var array
+	 * @var bool[] Array of key/value pairs where keys represent a capability name and boolean values
+	 *             represent whether the user has that capability.
 	 */
 	public $allcaps = array();
 
@@ -112,8 +113,6 @@ class WP_User {
 	 * Retrieves the userdata and passes it to WP_User::init().
 	 *
 	 * @since 2.0.0
-	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param int|string|stdClass|WP_User $id User's ID, a WP_User object, or a user object from the DB.
 	 * @param string $name Optional. User's username
@@ -241,7 +240,8 @@ class WP_User {
 
 		if ( ! $user = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT * FROM $wpdb->users WHERE $db_field = %s", $value
+				"SELECT * FROM $wpdb->users WHERE $db_field = %s",
+				$value
 			)
 		) ) {
 			return false;
@@ -263,7 +263,8 @@ class WP_User {
 	public function __isset( $key ) {
 		if ( 'id' == $key ) {
 			_deprecated_argument(
-				'WP_User->id', '2.1.0',
+				'WP_User->id',
+				'2.1.0',
 				sprintf(
 					/* translators: %s: WP_User->ID */
 					__( 'Use %s instead.' ),
@@ -295,7 +296,8 @@ class WP_User {
 	public function __get( $key ) {
 		if ( 'id' == $key ) {
 			_deprecated_argument(
-				'WP_User->id', '2.1.0',
+				'WP_User->id',
+				'2.1.0',
 				sprintf(
 					/* translators: %s: WP_User->ID */
 					__( 'Use %s instead.' ),
@@ -335,7 +337,8 @@ class WP_User {
 	public function __set( $key, $value ) {
 		if ( 'id' == $key ) {
 			_deprecated_argument(
-				'WP_User->id', '2.1.0',
+				'WP_User->id',
+				'2.1.0',
 				sprintf(
 					/* translators: %s: WP_User->ID */
 					__( 'Use %s instead.' ),
@@ -359,7 +362,8 @@ class WP_User {
 	public function __unset( $key ) {
 		if ( 'id' == $key ) {
 			_deprecated_argument(
-				'WP_User->id', '2.1.0',
+				'WP_User->id',
+				'2.1.0',
 				sprintf(
 					/* translators: %s: WP_User->ID */
 					__( 'Use %s instead.' ),
@@ -475,16 +479,15 @@ class WP_User {
 	}
 
 	/**
-	 * Retrieve all of the role capabilities and merge with individual capabilities.
+	 * Retrieves all of the capabilities of the roles of the user, and merges them with individual user capabilities.
 	 *
-	 * All of the capabilities of the roles the user belongs to are merged with
-	 * user's individual capabilities. This also means that the user can be denied
-	 * specific capabilities that their role might have, but the user isn't granted
-	 * permission to.
+	 * All of the capabilities of the roles of the user are merged with the user's individual capabilities. This means
+	 * that the user can be denied specific capabilities that their role might have, but the user is specifically denied.
 	 *
 	 * @since 2.0.0
 	 *
-	 * @return array List of all capabilities for the user.
+	 * @return bool[] Array of key/value pairs where keys represent a capability name and boolean values
+	 *                represent whether the user has that capability.
 	 */
 	public function get_role_caps() {
 		$switch_site = false;
@@ -748,11 +751,18 @@ class WP_User {
 		 * Dynamically filter a user's capabilities.
 		 *
 		 * @since 2.0.0
-		 * @since 3.7.0 Added the user object.
+		 * @since 3.7.0 Added the `$user` parameter.
 		 *
-		 * @param bool[]   $allcaps An array of all the user's capabilities.
-		 * @param string[] $caps    Actual capabilities for meta capability.
-		 * @param array    $args    Optional parameters passed to has_cap(), typically object ID.
+		 * @param bool[]   $allcaps Array of key/value pairs where keys represent a capability name and boolean values
+		 *                          represent whether the user has that capability.
+		 * @param string[] $caps    Required primitive capabilities for the requested capability.
+		 * @param array    $args {
+		 *     Arguments that accompany the requested capability check.
+		 *
+		 *     @type string    $0 Requested capability.
+		 *     @type int       $1 Concerned user ID.
+		 *     @type mixed  ...$2 Optional second and further parameters, typically object ID.
+		 * }
 		 * @param WP_User  $user    The user object.
 		 */
 		$capabilities = apply_filters( 'user_has_cap', $this->allcaps, $caps, $args, $this );
@@ -792,8 +802,6 @@ class WP_User {
 	 *
 	 * @since 3.0.0
 	 * @deprecated 4.9.0 Use WP_User::for_site()
-	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param int $blog_id Optional. Site ID, defaults to current site.
 	 */

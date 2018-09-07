@@ -36,7 +36,9 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	public function register_routes() {
 
 		register_rest_route(
-			$this->namespace, '/' . $this->rest_base, array(
+			$this->namespace,
+			'/' . $this->rest_base,
+			array(
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_items' ),
@@ -48,7 +50,9 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 		);
 
 		register_rest_route(
-			$this->namespace, '/' . $this->rest_base . '/(?P<type>[\w-]+)', array(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<type>[\w-]+)',
+			array(
 				'args'   => array(
 					'type' => array(
 						'description' => __( 'An alphanumeric identifier for the post type.' ),
@@ -145,7 +149,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param stdClass        $post_type Post type data.
+	 * @param WP_Post_Type    $post_type Post type object.
 	 * @param WP_REST_Request $request   Full details about the request.
 	 * @return WP_REST_Response Response object.
 	 */
@@ -155,18 +159,49 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 		$base       = ! empty( $post_type->rest_base ) ? $post_type->rest_base : $post_type->name;
 		$supports   = get_all_post_type_supports( $post_type->name );
 
-		$data    = array(
-			'capabilities' => $post_type->cap,
-			'description'  => $post_type->description,
-			'hierarchical' => $post_type->hierarchical,
-			'viewable'     => is_post_type_viewable( $post_type ),
-			'labels'       => $post_type->labels,
-			'name'         => $post_type->label,
-			'slug'         => $post_type->name,
-			'supports'     => $supports,
-			'taxonomies'   => array_values( $taxonomies ),
-			'rest_base'    => $base,
-		);
+		$fields = $this->get_fields_for_response( $request );
+		$data   = array();
+
+		if ( in_array( 'capabilities', $fields, true ) ) {
+			$data['capabilities'] = $post_type->cap;
+		}
+
+		if ( in_array( 'description', $fields, true ) ) {
+			$data['description'] = $post_type->description;
+		}
+
+		if ( in_array( 'hierarchical', $fields, true ) ) {
+			$data['hierarchical'] = $post_type->hierarchical;
+		}
+
+		if ( in_array( 'viewable', $fields, true ) ) {
+			$data['viewable'] = is_post_type_viewable( $post_type );
+		}
+
+		if ( in_array( 'labels', $fields, true ) ) {
+			$data['labels'] = $post_type->labels;
+		}
+
+		if ( in_array( 'name', $fields, true ) ) {
+			$data['name'] = $post_type->label;
+		}
+
+		if ( in_array( 'slug', $fields, true ) ) {
+			$data['slug'] = $post_type->name;
+		}
+
+		if ( in_array( 'supports', $fields, true ) ) {
+			$data['supports'] = $supports;
+		}
+
+		if ( in_array( 'taxonomies', $fields, true ) ) {
+			$data['taxonomies'] = array_values( $taxonomies );
+		}
+
+		if ( in_array( 'rest_base', $fields, true ) ) {
+			$data['rest_base'] = $base;
+		}
+
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data    = $this->add_additional_fields_to_object( $data, $request );
 		$data    = $this->filter_response_by_context( $data, $context );

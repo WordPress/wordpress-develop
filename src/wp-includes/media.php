@@ -1552,7 +1552,9 @@ function img_caption_shortcode( $attr, $content = null ) {
 			'width'      => '',
 			'caption'    => '',
 			'class'      => '',
-		), $attr, 'caption'
+		),
+		$attr,
+		'caption'
 	);
 
 	$atts['width'] = (int) $atts['width'];
@@ -1722,7 +1724,9 @@ function gallery_shortcode( $attr ) {
 			'include'    => '',
 			'exclude'    => '',
 			'link'       => '',
-		), $attr, 'gallery'
+		),
+		$attr,
+		'gallery'
 	);
 
 	$id = intval( $atts['id'] );
@@ -1897,7 +1901,7 @@ function gallery_shortcode( $attr ) {
  * @since 3.9.0
  */
 function wp_underscore_playlist_templates() {
-?>
+	?>
 <script type="text/html" id="tmpl-wp-playlist-current-item">
 	<# if ( data.image ) { #>
 	<img src="{{ data.thumb.src }}" alt="" />
@@ -1936,7 +1940,7 @@ function wp_underscore_playlist_templates() {
 		<# } #>
 	</div>
 </script>
-<?php
+	<?php
 }
 
 /**
@@ -1949,9 +1953,9 @@ function wp_underscore_playlist_templates() {
 function wp_playlist_scripts( $type ) {
 	wp_enqueue_style( 'wp-mediaelement' );
 	wp_enqueue_script( 'wp-playlist' );
-?>
+	?>
 <!--[if lt IE 9]><script>document.createElement('<?php echo esc_js( $type ); ?>');</script><![endif]-->
-<?php
+	<?php
 	add_action( 'wp_footer', 'wp_underscore_playlist_templates', 0 );
 	add_action( 'admin_footer', 'wp_underscore_playlist_templates', 0 );
 }
@@ -2039,7 +2043,9 @@ function wp_playlist_shortcode( $attr ) {
 			'tracknumbers' => true,
 			'images'       => true,
 			'artists'      => true,
-		), $attr, 'playlist'
+		),
+		$attr,
+		'playlist'
 	);
 
 	$id = intval( $atts['id'] );
@@ -2188,7 +2194,7 @@ function wp_playlist_shortcode( $attr ) {
 	<<?php echo $safe_type; ?> controls="controls" preload="none" width="
 				<?php
 				echo (int) $theme_width;
-	?>
+				?>
 	"
 	<?php
 	if ( 'video' === $safe_type ) :
@@ -2248,9 +2254,9 @@ function wp_get_audio_extensions() {
 	 * @since 3.6.0
 	 *
 	 * @param array $extensions An array of supported audio formats. Defaults are
-	 *                          'mp3', 'aac', 'ogg', 'flac', 'm4a', 'wav'.
+	 *                          'mp3', 'ogg', 'flac', 'm4a', 'wav'.
 	 */
-	return apply_filters( 'wp_audio_extensions', array( 'mp3', 'aac', 'ogg', 'flac', 'm4a', 'wav' ) );
+	return apply_filters( 'wp_audio_extensions', array( 'mp3', 'ogg', 'flac', 'm4a', 'wav' ) );
 }
 
 /**
@@ -3294,7 +3300,8 @@ function wp_prepare_attachment_for_js( $attachment ) {
 
 		/** This filter is documented in wp-admin/includes/media.php */
 		$possible_sizes = apply_filters(
-			'image_size_names_choose', array(
+			'image_size_names_choose',
+			array(
 				'thumbnail' => __( 'Thumbnail' ),
 				'medium'    => __( 'Medium' ),
 				'large'     => __( 'Large' ),
@@ -3407,9 +3414,9 @@ function wp_prepare_attachment_for_js( $attachment ) {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param array   $response   Array of prepared attachment data.
-	 * @param WP_Post $attachment Attachment object.
-	 * @param array   $meta       Array of attachment meta data.
+	 * @param array       $response   Array of prepared attachment data.
+	 * @param WP_Post     $attachment Attachment object.
+	 * @param array|false $meta       Array of attachment meta data, or false if there is none.
 	 */
 	return apply_filters( 'wp_prepare_attachment_for_js', $response, $attachment, $meta );
 }
@@ -3560,7 +3567,8 @@ function wp_enqueue_media( $args = array() ) {
 			FROM $wpdb->posts
 			WHERE post_type = %s
 			ORDER BY post_date DESC
-		", 'attachment'
+		",
+				'attachment'
 			)
 		);
 	}
@@ -3657,6 +3665,7 @@ function wp_enqueue_media( $args = array() ) {
 		'noItemsFound'                => __( 'No items found.' ),
 		'insertIntoPost'              => $post_type_object->labels->insert_into_item,
 		'unattached'                  => __( 'Unattached' ),
+		'mine'                        => _x( 'Mine', 'media items' ),
 		'trash'                       => _x( 'Trash', 'noun' ),
 		'uploadedToThisPost'          => $post_type_object->labels->uploaded_to_this_item,
 		'warnDelete'                  => __( "You are about to permanently delete this item from your site.\nThis action cannot be undone.\n 'Cancel' to stop, 'OK' to delete." ),
@@ -4092,4 +4101,83 @@ function wpview_media_sandbox_styles() {
 	$wpmediaelement = includes_url( "js/mediaelement/wp-mediaelement.css?$version" );
 
 	return array( $mediaelement, $wpmediaelement );
+}
+
+/**
+ * Registers the personal data exporter for media
+ *
+ * @param array   $exporters   An array of personal data exporters.
+ * @return array  An array of personal data exporters.
+ */
+function wp_register_media_personal_data_exporter( $exporters ) {
+	$exporters['wordpress-media'] = array(
+		'exporter_friendly_name' => __( 'WordPress Media' ),
+		'callback'               => 'wp_media_personal_data_exporter',
+	);
+
+	return $exporters;
+}
+
+/**
+ * Finds and exports attachments associated with an email address.
+ *
+ * @since 4.9.6
+ *
+ * @param  string $email_address The attachment owner email address.
+ * @param  int    $page          Attachment page.
+ * @return array  $return        An array of personal data.
+ */
+function wp_media_personal_data_exporter( $email_address, $page = 1 ) {
+	// Limit us to 50 attachments at a time to avoid timing out.
+	$number = 50;
+	$page   = (int) $page;
+
+	$data_to_export = array();
+
+	$user = get_user_by( 'email', $email_address );
+	if ( false === $user ) {
+		return array(
+			'data' => $data_to_export,
+			'done' => true,
+		);
+	}
+
+	$post_query = new WP_Query(
+		array(
+			'author'         => $user->ID,
+			'posts_per_page' => $number,
+			'paged'          => $page,
+			'post_type'      => 'attachment',
+			'post_status'    => 'any',
+			'orderby'        => 'ID',
+			'order'          => 'ASC',
+		)
+	);
+
+	foreach ( (array) $post_query->posts as $post ) {
+		$attachment_url = wp_get_attachment_url( $post->ID );
+
+		if ( $attachment_url ) {
+			$post_data_to_export = array(
+				array(
+					'name'  => __( 'URL' ),
+					'value' => $attachment_url,
+				),
+			);
+
+			$data_to_export[] = array(
+				'group_id'    => 'media',
+				'group_label' => __( 'Media' ),
+				'item_id'     => "post-{$post->ID}",
+				'data'        => $post_data_to_export,
+			);
+		}
+	}
+
+	$done = $post_query->max_num_pages <= $page;
+
+	return array(
+		'data' => $data_to_export,
+		'done' => $done,
+	);
 }

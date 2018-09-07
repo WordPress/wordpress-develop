@@ -75,7 +75,8 @@ class Test_WP_Widget_Media_Video extends WP_UnitTestCase {
 				'missing_attachment',
 				'no_media_selected',
 				'add_media',
-			), array_keys( $widget->l10n )
+			),
+			array_keys( $widget->l10n )
 		);
 	}
 
@@ -99,7 +100,8 @@ class Test_WP_Widget_Media_Video extends WP_UnitTestCase {
 		$result = $widget->update(
 			array(
 				'attachment_id' => 'media',
-			), $instance
+			),
+			$instance
 		);
 		$this->assertSame( $result, $instance );
 
@@ -114,7 +116,8 @@ class Test_WP_Widget_Media_Video extends WP_UnitTestCase {
 		$result = $widget->update(
 			array(
 				'url' => 'not_a_url',
-			), $instance
+			),
+			$instance
 		);
 		$this->assertNotSame( $result, $instance );
 		$this->assertStringStartsWith( 'http://', $result['url'] );
@@ -130,7 +133,8 @@ class Test_WP_Widget_Media_Video extends WP_UnitTestCase {
 		$result = $widget->update(
 			array(
 				'loop' => 'not-boolean',
-			), $instance
+			),
+			$instance
 		);
 		$this->assertSame( $result, $instance );
 
@@ -145,7 +149,8 @@ class Test_WP_Widget_Media_Video extends WP_UnitTestCase {
 		$result = $widget->update(
 			array(
 				'title' => '<h1>Cute Baby Goats</h1>',
-			), $instance
+			),
+			$instance
 		);
 		$this->assertNotSame( $result, $instance );
 
@@ -160,7 +165,8 @@ class Test_WP_Widget_Media_Video extends WP_UnitTestCase {
 		$result = $widget->update(
 			array(
 				'preload' => 'nope',
-			), $instance
+			),
+			$instance
 		);
 		$this->assertSame( $result, $instance );
 
@@ -168,7 +174,8 @@ class Test_WP_Widget_Media_Video extends WP_UnitTestCase {
 		$result = $widget->update(
 			array(
 				'h4x' => 'value',
-			), $instance
+			),
+			$instance
 		);
 		$this->assertSame( $result, $instance );
 	}

@@ -9,7 +9,8 @@ if ( is_multisite() ) :
 	 * @group multisite
 	 */
 	class Tests_Multisite_Site extends WP_UnitTestCase {
-		protected $suppress = false;
+		protected $suppress          = false;
+		protected $site_status_hooks = array();
 		protected static $network_ids;
 		protected static $site_ids;
 
@@ -446,12 +447,12 @@ if ( is_multisite() ) :
 			$this->assertEquals( '0', $blog->spam );
 			$this->assertEquals( 1, $test_action_counter );
 
-			// The action should fire if the status of 'spam' stays the same.
+			// The action should not fire if the status of 'spam' stays the same.
 			update_blog_status( $blog_id, 'spam', 0 );
 			$blog = get_site( $blog_id );
 
 			$this->assertEquals( '0', $blog->spam );
-			$this->assertEquals( 2, $test_action_counter );
+			$this->assertEquals( 1, $test_action_counter );
 
 			remove_action( 'make_ham_blog', array( $this, '_action_counter_cb' ), 10 );
 		}
@@ -469,12 +470,12 @@ if ( is_multisite() ) :
 			$this->assertEquals( '1', $blog->spam );
 			$this->assertEquals( 1, $test_action_counter );
 
-			// The action should fire if the status of 'spam' stays the same.
+			// The action should not fire if the status of 'spam' stays the same.
 			update_blog_status( $blog_id, 'spam', 1 );
 			$blog = get_site( $blog_id );
 
 			$this->assertEquals( '1', $blog->spam );
-			$this->assertEquals( 2, $test_action_counter );
+			$this->assertEquals( 1, $test_action_counter );
 
 			remove_action( 'make_spam_blog', array( $this, '_action_counter_cb' ), 10 );
 		}
@@ -492,12 +493,12 @@ if ( is_multisite() ) :
 			$this->assertEquals( '1', $blog->archived );
 			$this->assertEquals( 1, $test_action_counter );
 
-			// The action should fire if the status of 'archived' stays the same.
+			// The action should not fire if the status of 'archived' stays the same.
 			update_blog_status( $blog_id, 'archived', 1 );
 			$blog = get_site( $blog_id );
 
 			$this->assertEquals( '1', $blog->archived );
-			$this->assertEquals( 2, $test_action_counter );
+			$this->assertEquals( 1, $test_action_counter );
 
 			remove_action( 'archive_blog', array( $this, '_action_counter_cb' ), 10 );
 		}
@@ -516,11 +517,11 @@ if ( is_multisite() ) :
 			$this->assertEquals( '0', $blog->archived );
 			$this->assertEquals( 1, $test_action_counter );
 
-			// The action should fire if the status of 'archived' stays the same.
+			// The action should not fire if the status of 'archived' stays the same.
 			update_blog_status( $blog_id, 'archived', 0 );
 			$blog = get_site( $blog_id );
 			$this->assertEquals( '0', $blog->archived );
-			$this->assertEquals( 2, $test_action_counter );
+			$this->assertEquals( 1, $test_action_counter );
 
 			remove_action( 'unarchive_blog', array( $this, '_action_counter_cb' ), 10 );
 		}
@@ -538,12 +539,12 @@ if ( is_multisite() ) :
 			$this->assertEquals( '1', $blog->deleted );
 			$this->assertEquals( 1, $test_action_counter );
 
-			// The action should fire if the status of 'deleted' stays the same.
+			// The action should not fire if the status of 'deleted' stays the same.
 			update_blog_status( $blog_id, 'deleted', 1 );
 			$blog = get_site( $blog_id );
 
 			$this->assertEquals( '1', $blog->deleted );
-			$this->assertEquals( 2, $test_action_counter );
+			$this->assertEquals( 1, $test_action_counter );
 
 			remove_action( 'make_delete_blog', array( $this, '_action_counter_cb' ), 10 );
 		}
@@ -562,12 +563,12 @@ if ( is_multisite() ) :
 			$this->assertEquals( '0', $blog->deleted );
 			$this->assertEquals( 1, $test_action_counter );
 
-			// The action should fire if the status of 'deleted' stays the same.
+			// The action should not fire if the status of 'deleted' stays the same.
 			update_blog_status( $blog_id, 'deleted', 0 );
 			$blog = get_site( $blog_id );
 
 			$this->assertEquals( '0', $blog->deleted );
-			$this->assertEquals( 2, $test_action_counter );
+			$this->assertEquals( 1, $test_action_counter );
 
 			remove_action( 'make_undelete_blog', array( $this, '_action_counter_cb' ), 10 );
 		}
@@ -585,12 +586,12 @@ if ( is_multisite() ) :
 			$this->assertEquals( '1', $blog->mature );
 			$this->assertEquals( 1, $test_action_counter );
 
-			// The action should fire if the status of 'mature' stays the same.
+			// The action should not fire if the status of 'mature' stays the same.
 			update_blog_status( $blog_id, 'mature', 1 );
 			$blog = get_site( $blog_id );
 
 			$this->assertEquals( '1', $blog->mature );
-			$this->assertEquals( 2, $test_action_counter );
+			$this->assertEquals( 1, $test_action_counter );
 
 			remove_action( 'mature_blog', array( $this, '_action_counter_cb' ), 10 );
 		}
@@ -609,12 +610,12 @@ if ( is_multisite() ) :
 			$this->assertEquals( '0', $blog->mature );
 			$this->assertEquals( 1, $test_action_counter );
 
-			// The action should fire if the status of 'mature' stays the same.
+			// The action should not fire if the status of 'mature' stays the same.
 			update_blog_status( $blog_id, 'mature', 0 );
 			$blog = get_site( $blog_id );
 
 			$this->assertEquals( '0', $blog->mature );
-			$this->assertEquals( 2, $test_action_counter );
+			$this->assertEquals( 1, $test_action_counter );
 
 			remove_action( 'unmature_blog', array( $this, '_action_counter_cb' ), 10 );
 		}
@@ -632,12 +633,12 @@ if ( is_multisite() ) :
 			$this->assertEquals( '0', $blog->public );
 			$this->assertEquals( 1, $test_action_counter );
 
-			// The action should fire if the status of 'mature' stays the same.
+			// The action should not fire if the status of 'mature' stays the same.
 			update_blog_status( $blog_id, 'public', 0 );
 			$blog = get_site( $blog_id );
 
 			$this->assertEquals( '0', $blog->public );
-			$this->assertEquals( 2, $test_action_counter );
+			$this->assertEquals( 1, $test_action_counter );
 
 			remove_action( 'update_blog_public', array( $this, '_action_counter_cb' ), 10 );
 		}
@@ -1258,6 +1259,761 @@ if ( is_multisite() ) :
 				array( 'current_blog_%domain%', 'site-options' ),
 				array( 'current_blog_%domain%%path%', 'site-options' ),
 			);
+		}
+
+		/**
+		 * @ticket 40364
+		 * @dataProvider data_wp_insert_site
+		 */
+		public function test_wp_insert_site( $site_data, $expected_data ) {
+			$site_id = wp_insert_site( $site_data );
+
+			$this->assertInternalType( 'integer', $site_id );
+
+			$site = get_site( $site_id );
+			foreach ( $expected_data as $key => $value ) {
+				$this->assertEquals( $value, $site->$key );
+			}
+		}
+
+		public function data_wp_insert_site() {
+			return array(
+				array(
+					array(
+						'domain' => 'example.com',
+					),
+					array(
+						'domain'     => 'example.com',
+						'path'       => '/',
+						'network_id' => 1,
+						'public'     => 1,
+						'archived'   => 0,
+						'mature'     => 0,
+						'spam'       => 0,
+						'deleted'    => 0,
+						'lang_id'    => 0,
+					),
+				),
+				array(
+					array(
+						'domain'     => 'example.com',
+						'path'       => '/foo',
+						'network_id' => 2,
+					),
+					array(
+						'domain'     => 'example.com',
+						'path'       => '/foo/',
+						'network_id' => 2,
+					),
+				),
+				array(
+					array(
+						'domain'  => 'example.com',
+						'path'    => '/bar/',
+						'site_id' => 2,
+					),
+					array(
+						'domain'     => 'example.com',
+						'path'       => '/bar/',
+						'network_id' => 2,
+					),
+				),
+				array(
+					array(
+						'domain'     => 'example.com',
+						'path'       => '/bar/',
+						'site_id'    => 2,
+						'network_id' => 3,
+					),
+					array(
+						'domain'     => 'example.com',
+						'path'       => '/bar/',
+						'network_id' => 3,
+					),
+				),
+				array(
+					array(
+						'domain'   => 'example.com',
+						'path'     => 'foobar',
+						'public'   => 0,
+						'archived' => 1,
+						'mature'   => 1,
+						'spam'     => 1,
+						'deleted'  => 1,
+						'lang_id'  => 1,
+					),
+					array(
+						'domain'   => 'example.com',
+						'path'     => '/foobar/',
+						'public'   => 0,
+						'archived' => 1,
+						'mature'   => 1,
+						'spam'     => 1,
+						'deleted'  => 1,
+						'lang_id'  => 1,
+					),
+				),
+			);
+		}
+
+		/**
+		 * @ticket 40364
+		 */
+		public function test_wp_insert_site_empty_domain() {
+			$site_id = wp_insert_site( array( 'public' => 0 ) );
+
+			$this->assertWPError( $site_id );
+			$this->assertSame( 'site_empty_domain', $site_id->get_error_code() );
+		}
+
+		/**
+		 * @ticket 40364
+		 * @dataProvider data_wp_update_site
+		 */
+		public function test_wp_update_site( $site_data, $expected_data ) {
+			$site_id = self::factory()->blog->create();
+
+			$old_site = get_site( $site_id );
+
+			$result = wp_update_site( $site_id, $site_data );
+
+			$this->assertSame( $site_id, $result );
+
+			$new_site = get_site( $site_id );
+			foreach ( $new_site->to_array() as $key => $value ) {
+				if ( isset( $expected_data[ $key ] ) ) {
+					$this->assertEquals( $expected_data[ $key ], $value );
+				} elseif ( 'last_updated' === $key ) {
+					$this->assertTrue( $old_site->last_updated <= $value );
+				} else {
+					$this->assertEquals( $old_site->$key, $value );
+				}
+			}
+		}
+
+		public function data_wp_update_site() {
+			return array(
+				array(
+					array(
+						'domain'     => 'example.com',
+						'network_id' => 2,
+					),
+					array(
+						'domain'  => 'example.com',
+						'site_id' => 2,
+					),
+				),
+				array(
+					array(
+						'path' => 'foo',
+					),
+					array(
+						'path' => '/foo/',
+					),
+				),
+				array(
+					array(
+						'public'   => 0,
+						'archived' => 1,
+						'mature'   => 1,
+						'spam'     => 1,
+						'deleted'  => 1,
+						'lang_id'  => 1,
+					),
+					array(
+						'public'   => 0,
+						'archived' => 1,
+						'mature'   => 1,
+						'spam'     => 1,
+						'deleted'  => 1,
+						'lang_id'  => 1,
+					),
+				),
+			);
+		}
+
+		/**
+		 * @ticket 40364
+		 */
+		public function test_wp_update_site_empty_domain() {
+			$site_id = self::factory()->blog->create();
+
+			$result = wp_update_site( $site_id, array( 'domain' => '' ) );
+
+			$this->assertWPError( $result );
+			$this->assertSame( 'site_empty_domain', $result->get_error_code() );
+		}
+
+		/**
+		 * @ticket 40364
+		 */
+		public function test_wp_update_site_invalid_id() {
+			$result = wp_update_site( 444444, array( 'domain' => 'example.com' ) );
+
+			$this->assertWPError( $result );
+			$this->assertSame( 'site_not_exist', $result->get_error_code() );
+		}
+
+		/**
+		 * @ticket 40364
+		 */
+		public function test_wp_update_site_cleans_cache() {
+			$site_id = self::factory()->blog->create();
+			$site1   = get_site( $site_id );
+
+			$result = wp_update_site( $site_id, array( 'public' => 0 ) );
+			$site2  = get_site( $site_id );
+
+			$result = wp_update_site( $site_id, array( 'public' => 1 ) );
+			$site3  = get_site( $site_id );
+
+			$this->assertEquals( 1, $site1->public );
+			$this->assertEquals( 0, $site2->public );
+			$this->assertEquals( 1, $site3->public );
+		}
+
+		/**
+		 * @ticket 40364
+		 */
+		public function test_wp_delete_site() {
+			$site_id = self::factory()->blog->create();
+
+			$site = get_site( $site_id );
+
+			$result = wp_delete_site( $site_id );
+
+			$this->assertInstanceOf( 'WP_Site', $result );
+			$this->assertEquals( $result->to_array(), $site->to_array() );
+		}
+
+		/**
+		 * @ticket 40364
+		 */
+		public function test_wp_delete_site_invalid_id() {
+			$result = wp_delete_site( 444444 );
+
+			$this->assertWPError( $result );
+			$this->assertSame( 'site_not_exist', $result->get_error_code() );
+		}
+
+		/**
+		 * @ticket 40364
+		 * @dataProvider data_wp_normalize_site_data
+		 */
+		public function test_wp_normalize_site_data( $data, $expected ) {
+			$result = wp_normalize_site_data( $data );
+
+			$this->assertEqualSetsWithIndex( $expected, $result );
+		}
+
+		public function data_wp_normalize_site_data() {
+			return array(
+				array(
+					array(
+						'network_id' => '4',
+					),
+					array(
+						'network_id' => 4,
+					),
+				),
+				array(
+					array(
+						'domain' => 'invalid domain .com',
+						'path'   => 'foo',
+					),
+					array(
+						'domain' => 'invaliddomain.com',
+						'path'   => '/foo/',
+					),
+				),
+				array(
+					array(
+						'domain' => '<yet>/another-invalid-domain.com',
+					),
+					array(
+						'domain' => 'another-invalid-domain.com',
+					),
+				),
+				array(
+					array(
+						'path' => '',
+					),
+					array(
+						'path' => '/',
+					),
+				),
+				array(
+					array(
+						'public'   => '0',
+						'archived' => '1',
+						'mature'   => '1',
+						'spam'     => true,
+						'deleted'  => true,
+					),
+					array(
+						'public'   => 0,
+						'archived' => 1,
+						'mature'   => 1,
+						'spam'     => 1,
+						'deleted'  => 1,
+					),
+				),
+				array(
+					array(
+						'registered'   => '',
+						'last_updated' => '',
+					),
+					array(),
+				),
+				array(
+					array(
+						'registered'   => '0000-00-00 00:00:00',
+						'last_updated' => '0000-00-00 00:00:00',
+					),
+					array(),
+				),
+			);
+		}
+
+		/**
+		 * @ticket 40364
+		 * @dataProvider data_wp_validate_site_data
+		 */
+		public function test_wp_validate_site_data( $data, $expected_errors ) {
+			$result = new WP_Error();
+			wp_validate_site_data( $result, $data );
+
+			if ( empty( $expected_errors ) ) {
+				$this->assertEmpty( $result->errors );
+			} else {
+				$this->assertEqualSets( $expected_errors, array_keys( $result->errors ) );
+			}
+		}
+
+		public function data_wp_validate_site_data() {
+			$date = current_time( 'mysql', true );
+
+			return array(
+				array(
+					array(
+						'domain'       => 'example-site.com',
+						'path'         => '/',
+						'network_id'   => 1,
+						'registered'   => $date,
+						'last_updated' => $date,
+					),
+					array(),
+				),
+				array(
+					array(
+						'path'         => '/',
+						'network_id'   => 1,
+						'registered'   => $date,
+						'last_updated' => $date,
+					),
+					array( 'site_empty_domain' ),
+				),
+				array(
+					array(
+						'domain'       => 'example-site.com',
+						'network_id'   => 1,
+						'registered'   => $date,
+						'last_updated' => $date,
+					),
+					array( 'site_empty_path' ),
+				),
+				array(
+					array(
+						'domain'       => 'example-site.com',
+						'path'         => '/',
+						'registered'   => $date,
+						'last_updated' => $date,
+					),
+					array( 'site_empty_network_id' ),
+				),
+				array(
+					array(
+						'domain'       => get_site()->domain,
+						'path'         => get_site()->path,
+						'network_id'   => get_site()->network_id,
+						'registered'   => $date,
+						'last_updated' => $date,
+					),
+					array( 'site_taken' ),
+				),
+				array(
+					array(
+						'domain'       => 'valid-domain.com',
+						'path'         => '/valid-path/',
+						'network_id'   => 1,
+						'registered'   => '',
+						'last_updated' => $date,
+					),
+					array( 'site_empty_registered' ),
+				),
+				array(
+					array(
+						'domain'       => 'valid-domain.com',
+						'path'         => '/valid-path/',
+						'network_id'   => 1,
+						'registered'   => $date,
+						'last_updated' => '',
+					),
+					array( 'site_empty_last_updated' ),
+				),
+				array(
+					array(
+						'domain'       => 'valid-domain.com',
+						'path'         => '/valid-path/',
+						'network_id'   => 1,
+						'registered'   => '2000-13-32 25:25:61',
+						'last_updated' => $date,
+					),
+					array( 'site_invalid_registered' ),
+				),
+				array(
+					array(
+						'domain'       => 'valid-domain.com',
+						'path'         => '/valid-path/',
+						'network_id'   => 1,
+						'registered'   => $date,
+						'last_updated' => '2000-13-32 25:25:61',
+					),
+					array( 'site_invalid_last_updated' ),
+				),
+				array(
+					array(
+						'domain'       => 'valid-domain.com',
+						'path'         => '/valid-path/',
+						'network_id'   => 1,
+						'registered'   => '0000-00-00 00:00:00',
+						'last_updated' => $date,
+					),
+					array(),
+				),
+				array(
+					array(
+						'domain'       => 'valid-domain.com',
+						'path'         => '/valid-path/',
+						'network_id'   => 1,
+						'registered'   => $date,
+						'last_updated' => '0000-00-00 00:00:00',
+					),
+					array(),
+				),
+			);
+		}
+
+		/**
+		 * @ticket 40364
+		 */
+		public function test_site_dates_are_gmt() {
+			$first_date = current_time( 'mysql', true );
+			$site_id    = wp_insert_site(
+				array(
+					'domain'     => 'valid-domain.com',
+					'path'       => '/valid-path/',
+					'network_id' => 1,
+				)
+			);
+			$this->assertInternalType( 'integer', $site_id );
+
+			$site = get_site( $site_id );
+			$this->assertSame( $first_date, $site->registered );
+			$this->assertSame( $first_date, $site->last_updated );
+
+			$second_date = current_time( 'mysql', true );
+			$site_id     = wp_update_site( $site_id, array() );
+			$this->assertInternalType( 'integer', $site_id );
+
+			$site = get_site( $site_id );
+			$this->assertSame( $first_date, $site->registered );
+			$this->assertSame( $second_date, $site->last_updated );
+		}
+
+		/**
+		 * @ticket 40364
+		 */
+		public function test_wp_delete_site_cleans_cache() {
+			$site_id = self::factory()->blog->create();
+
+			get_site( $site_id );
+
+			wp_delete_site( $site_id );
+
+			$this->assertNull( get_site( $site_id ) );
+		}
+
+		/**
+		 * @ticket 40364
+		 */
+		public function test_wp_update_site_cleans_old_cache_on_domain_change() {
+			$old_domain = 'old.wordpress.org';
+			$new_domain = 'new.wordpress.org';
+
+			$site = self::factory()->blog->create_and_get(
+				array(
+					'domain' => $old_domain,
+					'path'   => '/',
+				)
+			);
+
+			// Populate the caches.
+			get_blog_details(
+				array(
+					'domain' => $old_domain,
+					'path'   => '/',
+				)
+			);
+			get_blog_id_from_url( $old_domain, '/' );
+			get_blog_details(
+				array(
+					'domain' => $new_domain,
+					'path'   => '/',
+				)
+			);
+			get_blog_id_from_url( $new_domain, '/' );
+
+			wp_update_site(
+				$site->id,
+				array(
+					'domain' => $new_domain,
+				)
+			);
+
+			$domain_path_key_old = md5( $old_domain . '/' );
+			$domain_path_key_new = md5( $new_domain . '/' );
+
+			// Ensure all respective cache values are empty.
+			$result = array(
+				wp_cache_get( $domain_path_key_old, 'blog-lookup' ),
+				wp_cache_get( $domain_path_key_old, 'blog-id-cache' ),
+				wp_cache_get( 'current_blog_' . $old_domain, 'site-options' ),
+				wp_cache_get( 'current_blog_' . $old_domain . '/', 'site-options' ),
+				wp_cache_get( $domain_path_key_new, 'blog-lookup' ),
+				wp_cache_get( $domain_path_key_new, 'blog-id-cache' ),
+				wp_cache_get( 'current_blog_' . $new_domain, 'site-options' ),
+				wp_cache_get( 'current_blog_' . $new_domain . '/', 'site-options' ),
+			);
+
+			$this->assertEmpty( array_filter( $result ) );
+		}
+
+		/**
+		 * @ticket 40364
+		 */
+		public function test_wp_update_site_cleans_old_cache_on_path_change() {
+			$old_path = '/foo/';
+			$new_path = '/bar/';
+
+			$site = self::factory()->blog->create_and_get(
+				array(
+					'domain' => 'test.wordpress.org',
+					'path'   => $old_path,
+				)
+			);
+
+			// Populate the caches.
+			get_blog_details(
+				array(
+					'domain' => 'test.wordpress.org',
+					'path'   => $old_path,
+				)
+			);
+			get_blog_id_from_url( 'test.wordpress.org', $old_path );
+			get_blog_details(
+				array(
+					'domain' => 'test.wordpress.org',
+					'path'   => $new_path,
+				)
+			);
+			get_blog_id_from_url( 'test.wordpress.org', $new_path );
+
+			wp_update_site(
+				$site->id,
+				array(
+					'path' => $new_path,
+				)
+			);
+
+			$domain_path_key_old = md5( 'test.wordpress.org' . $old_path );
+			$domain_path_key_new = md5( 'test.wordpress.org' . $new_path );
+
+			// Ensure all respective cache values are empty.
+			$result = array(
+				wp_cache_get( $domain_path_key_old, 'blog-lookup' ),
+				wp_cache_get( $domain_path_key_old, 'blog-id-cache' ),
+				wp_cache_get( 'current_blog_test.wordpress.org' . $old_path, 'site-options' ),
+				wp_cache_get( $domain_path_key_new, 'blog-lookup' ),
+				wp_cache_get( $domain_path_key_new, 'blog-id-cache' ),
+				wp_cache_get( 'current_blog_test.wordpress.org' . $new_path, 'site-options' ),
+			);
+
+			$this->assertEmpty( array_filter( $result ) );
+		}
+
+		/**
+		 * @ticket 40364
+		 * @dataProvider data_site_status_hook_triggers
+		 */
+		public function test_site_status_hook_triggers( $insert_site_data, $expected_insert_hooks, $update_site_data, $expected_update_hooks ) {
+			// First: Insert a site.
+			$this->listen_to_site_status_hooks();
+
+			$site_data = array_merge(
+				array(
+					'domain' => 'example-site.com',
+					'path'   => '/',
+				),
+				$insert_site_data
+			);
+
+			$site_id = wp_insert_site( $site_data );
+
+			$insert_expected = array_fill_keys( $expected_insert_hooks, $site_id );
+			$insert_result   = $this->get_listen_to_site_status_hooks_result();
+
+			// Second: Update that site.
+			$this->listen_to_site_status_hooks();
+
+			wp_update_site( $site_id, $update_site_data );
+
+			$update_expected = array_fill_keys( $expected_update_hooks, $site_id );
+			$update_result   = $this->get_listen_to_site_status_hooks_result();
+
+			// Check both insert and update results.
+			$this->assertEqualSetsWithIndex( $insert_expected, $insert_result );
+			$this->assertEqualSetsWithIndex( $update_expected, $update_result );
+		}
+
+		public function data_site_status_hook_triggers() {
+			return array(
+				array(
+					array(
+						'public'   => 1,
+						'archived' => 1,
+						'mature'   => 1,
+						'spam'     => 1,
+						'deleted'  => 1,
+					),
+					array(
+						'archive_blog',
+						'mature_blog',
+						'make_spam_blog',
+						'make_delete_blog',
+					),
+					array(
+						'public'   => 0,
+						'archived' => 0,
+						'mature'   => 0,
+						'spam'     => 0,
+						'deleted'  => 0,
+					),
+					array(
+						'update_blog_public',
+						'unarchive_blog',
+						'unmature_blog',
+						'make_ham_blog',
+						'make_undelete_blog',
+					),
+				),
+				array(
+					array(
+						'public'   => 0,
+						'archived' => 0,
+						'mature'   => 0,
+						'spam'     => 0,
+						'deleted'  => 0,
+					),
+					array(
+						'update_blog_public',
+					),
+					array(
+						'public'   => 1,
+						'archived' => 1,
+						'mature'   => 1,
+						'spam'     => 1,
+						'deleted'  => 1,
+					),
+					array(
+						'update_blog_public',
+						'archive_blog',
+						'mature_blog',
+						'make_spam_blog',
+						'make_delete_blog',
+					),
+				),
+				array(
+					array(
+						'public'   => 0,
+						'archived' => 0,
+						'mature'   => 1,
+						'spam'     => 1,
+						'deleted'  => 1,
+					),
+					array(
+						'update_blog_public',
+						'mature_blog',
+						'make_spam_blog',
+						'make_delete_blog',
+					),
+					array(
+						'public'   => 0,
+						'archived' => 1,
+						'mature'   => 1,
+						'spam'     => 1,
+						'deleted'  => 0,
+					),
+					array(
+						'archive_blog',
+						'make_undelete_blog',
+					),
+				),
+			);
+		}
+
+		private function listen_to_site_status_hooks() {
+			$this->site_status_hooks = array();
+
+			$hooknames = array(
+				'make_spam_blog',
+				'make_ham_blog',
+				'mature_blog',
+				'unmature_blog',
+				'archive_blog',
+				'unarchive_blog',
+				'make_delete_blog',
+				'make_undelete_blog',
+				'update_blog_public',
+			);
+
+			foreach ( $hooknames as $hookname ) {
+				add_action( $hookname, array( $this, 'action_site_status_hook' ), 10, 1 );
+			}
+		}
+
+		private function get_listen_to_site_status_hooks_result() {
+			$hooknames = array(
+				'make_spam_blog',
+				'make_ham_blog',
+				'mature_blog',
+				'unmature_blog',
+				'archive_blog',
+				'unarchive_blog',
+				'make_delete_blog',
+				'make_undelete_blog',
+				'update_blog_public',
+			);
+
+			foreach ( $hooknames as $hookname ) {
+				remove_action( $hookname, array( $this, 'action_site_status_hook' ), 10 );
+			}
+
+			return $this->site_status_hooks;
+		}
+
+		public function action_site_status_hook( $site_id ) {
+			$this->site_status_hooks[ current_action() ] = $site_id;
 		}
 	}
 

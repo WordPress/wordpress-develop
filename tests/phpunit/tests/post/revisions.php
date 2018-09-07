@@ -322,7 +322,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 */
 	function test_revision_view_caps_cpt() {
 		register_post_type(
-			$this->post_type, array(
+			$this->post_type,
+			array(
 				'capability_type' => 'event',
 				'map_meta_cap'    => true,
 				'supports'        => array( 'revisions' ),
@@ -363,7 +364,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 */
 	function test_revision_restore_caps_cpt() {
 		register_post_type(
-			$this->post_type, array(
+			$this->post_type,
+			array(
 				'capability_type' => 'event',
 				'map_meta_cap'    => true,
 				'supports'        => array( 'revisions' ),
@@ -408,7 +410,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 */
 	function test_revision_restore_caps_before_publish() {
 		register_post_type(
-			$this->post_type, array(
+			$this->post_type,
+			array(
 				'capability_type' => 'post',
 				'capabilities'    => array(
 					// No one can edit this post type once published.
@@ -467,7 +470,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 */
 	function test_revision_diff_caps_cpt() {
 		register_post_type(
-			$this->post_type, array(
+			$this->post_type,
+			array(
 				'capability_type' => 'event',
 				'map_meta_cap'    => true,
 				'supports'        => array( 'revisions' ),

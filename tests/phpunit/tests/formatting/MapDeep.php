@@ -15,11 +15,13 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 			array(
 				'ababa',
 				'xbaba',
-			), map_deep(
+			),
+			map_deep(
 				array(
 					'a',
 					'x',
-				), array( $this, 'append_baba' )
+				),
+				array( $this, 'append_baba' )
 			)
 		);
 	}
@@ -31,13 +33,15 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 				array(
 					'xbaba',
 				),
-			), map_deep(
+			),
+			map_deep(
 				array(
 					'a',
 					array(
 						'x',
 					),
-				), array( $this, 'append_baba' )
+				),
+				array( $this, 'append_baba' )
 			)
 		);
 	}
@@ -49,13 +53,15 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 				'var1' => (object) array(
 					'var0' => 'xbaba',
 				),
-			), map_deep(
+			),
+			map_deep(
 				array(
 					'var0' => 'a',
 					'var1' => (object) array(
 						'var0' => 'x',
 					),
-				), array( $this, 'append_baba' )
+				),
+				array( $this, 'append_baba' )
 			)
 		);
 	}
@@ -73,11 +79,13 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 			(object) array(
 				'var0' => 'ababa',
 				'var1' => 'xbaba',
-			), map_deep(
+			),
+			map_deep(
 				(object) array(
 					'var0' => 'a',
 					'var1' => 'x',
-				), array( $this, 'append_baba' )
+				),
+				array( $this, 'append_baba' )
 			)
 		);
 	}
@@ -89,13 +97,15 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 				'var1' => array(
 					'xbaba',
 				),
-			), map_deep(
+			),
+			map_deep(
 				(object) array(
 					'var0' => 'a',
 					'var1' => array(
 						'x',
 					),
-				), array( $this, 'append_baba' )
+				),
+				array( $this, 'append_baba' )
 			)
 		);
 	}
@@ -107,13 +117,15 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 				'var1' => (object) array(
 					'var0' => 'xbaba',
 				),
-			), map_deep(
+			),
+			map_deep(
 				(object) array(
 					'var0' => 'a',
 					'var1' => (object) array(
 						'var0' => 'x',
 					),
-				), array( $this, 'append_baba' )
+				),
+				array( $this, 'append_baba' )
 			)
 		);
 	}
@@ -131,7 +143,8 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 			(object) array(
 				'var0' => 'ababa',
 				'var1' => 'xbaba',
-			), map_deep( $object_b, array( $this, 'append_baba' ) )
+			),
+			map_deep( $object_b, array( $this, 'append_baba' ) )
 		);
 	}
 
@@ -148,7 +161,8 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 			array(
 				'var0' => 'ababa',
 				'var1' => 'xbaba',
-			), map_deep( $array_b, array( $this, 'append_baba' ) )
+			),
+			map_deep( $array_b, array( $this, 'append_baba' ) )
 		);
 	}
 

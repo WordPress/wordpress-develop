@@ -53,7 +53,8 @@ class Tests_Admin_includesTheme extends WP_UnitTestCase {
 				'Top Level'                           => 'template-top-level.php',
 				'Sub Dir'                             => 'subdir/template-sub-dir.php',
 				'This Template Header Is On One Line' => 'template-header.php',
-			), get_page_templates()
+			),
+			get_page_templates()
 		);
 
 		$theme = wp_get_theme( 'page-templates' );
@@ -66,7 +67,8 @@ class Tests_Admin_includesTheme extends WP_UnitTestCase {
 				'Top Level'                           => 'template-top-level.php',
 				'Sub Dir'                             => 'subdir/template-sub-dir.php',
 				'This Template Header Is On One Line' => 'template-header.php',
-			), get_page_templates()
+			),
+			get_page_templates()
 		);
 	}
 
@@ -83,13 +85,15 @@ class Tests_Admin_includesTheme extends WP_UnitTestCase {
 			array(
 				'Top Level' => 'template-top-level-post-types.php',
 				'Sub Dir'   => 'subdir/template-sub-dir-post-types.php',
-			), get_page_templates( null, 'foo' )
+			),
+			get_page_templates( null, 'foo' )
 		);
 		$this->assertEqualSetsWithIndex(
 			array(
 				'Top Level' => 'template-top-level-post-types.php',
 				'Sub Dir'   => 'subdir/template-sub-dir-post-types.php',
-			), get_page_templates( null, 'post' )
+			),
+			get_page_templates( null, 'post' )
 		);
 		$this->assertEquals( array(), get_page_templates( null, 'bar' ) );
 	}
@@ -111,7 +115,8 @@ class Tests_Admin_includesTheme extends WP_UnitTestCase {
 				'Trailing Period, White Space.' => '38766/trailing-period-whitespace-post-types.php',
 				'Trailing White Space, Period.' => '38766/trailing-whitespace-period-post-types.php',
 				'Tilde in Post Type.'           => '38766/tilde-post-types.php',
-			), get_page_templates( null, 'period' )
+			),
+			get_page_templates( null, 'period' )
 		);
 		$this->assertEqualSetsWithIndex(
 			array(
@@ -120,7 +125,8 @@ class Tests_Admin_includesTheme extends WP_UnitTestCase {
 				'Trailing Comma,'               => '38766/trailing-comma-post-types.php',
 				'Trailing Period, White Space.' => '38766/trailing-period-whitespace-post-types.php',
 				'Trailing White Space, Period.' => '38766/trailing-whitespace-period-post-types.php',
-			), get_page_templates( null, 'full-stop' )
+			),
+			get_page_templates( null, 'full-stop' )
 		);
 	}
 
@@ -139,14 +145,16 @@ class Tests_Admin_includesTheme extends WP_UnitTestCase {
 				'Sub Dir'                    => 'subdir/template-sub-dir-post-types.php',
 				'Top Level In A Child Theme' => 'template-top-level-post-types-child.php',
 				'Sub Dir In A Child Theme'   => 'subdir/template-sub-dir-post-types-child.php',
-			), get_page_templates( null, 'foo' )
+			),
+			get_page_templates( null, 'foo' )
 		);
 
 		$this->assertEqualSetsWithIndex(
 			array(
 				'Top Level' => 'template-top-level-post-types.php',
 				'Sub Dir'   => 'subdir/template-sub-dir-post-types.php',
-			), get_page_templates( null, 'post' )
+			),
+			get_page_templates( null, 'post' )
 		);
 
 		$this->assertEqualSetsWithIndex(
@@ -154,7 +162,8 @@ class Tests_Admin_includesTheme extends WP_UnitTestCase {
 				'Top Level'                           => 'template-top-level.php',
 				'Sub Dir'                             => 'subdir/template-sub-dir.php',
 				'This Template Header Is On One Line' => 'template-header.php',
-			), get_page_templates()
+			),
+			get_page_templates()
 		);
 
 		$this->assertEquals( array(), get_page_templates( null, 'bar' ) );
@@ -177,14 +186,16 @@ class Tests_Admin_includesTheme extends WP_UnitTestCase {
 				'subdir/template-sub-dir-post-types.php'  => 'Sub Dir',
 				'template-top-level-post-types-child.php' => 'Top Level In A Child Theme',
 				'subdir/template-sub-dir-post-types-child.php' => 'Sub Dir In A Child Theme',
-			), $post_templates['foo']
+			),
+			$post_templates['foo']
 		);
 
 		$this->assertEqualSetsWithIndex(
 			array(
 				'template-top-level-post-types.php'      => 'Top Level',
 				'subdir/template-sub-dir-post-types.php' => 'Sub Dir',
-			), $post_templates['post']
+			),
+			$post_templates['post']
 		);
 
 		$this->assertEqualSetsWithIndex(
@@ -192,7 +203,8 @@ class Tests_Admin_includesTheme extends WP_UnitTestCase {
 				'template-top-level.php'      => 'Top Level',
 				'subdir/template-sub-dir.php' => 'Sub Dir',
 				'template-header.php'         => 'This Template Header Is On One Line',
-			), $post_templates['page']
+			),
+			$post_templates['page']
 		);
 	}
 

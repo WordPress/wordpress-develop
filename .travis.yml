@@ -12,6 +12,8 @@ env:
     - WP_TRAVISCI=travis:phpunit
 matrix:
   include:
+  - php: 7.2
+    env: WP_TRAVISCI=travis:format
   - php: 7.1
     env: WP_TRAVISCI=travis:js
   - php: 7.2
@@ -81,6 +83,12 @@ before_script:
         exit 1
         ;;
     esac
+  fi
+- |
+  # We only need to run composer install on the code formatting job.
+  if [[ "$WP_TRAVISCI" == "travis:format" ]]; then
+    composer --version
+    composer install
   fi
 - npm --version
 - node --version

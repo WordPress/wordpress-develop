@@ -122,6 +122,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$type = $file['type'];
 		$file = $file['file'];
 
+		// Include image functions to get access to wp_read_image_metadata().
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+
 		// use image exif/iptc data for title and caption defaults if possible
 		$image_meta = wp_read_image_metadata( $file );
 
@@ -136,7 +139,6 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		$attachment                 = $this->prepare_item_for_database( $request );
-		$attachment->file           = $file;
 		$attachment->post_mime_type = $type;
 		$attachment->guid           = $url;
 
@@ -144,7 +146,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$attachment->post_title = preg_replace( '/\.[^.]+$/', '', basename( $file ) );
 		}
 
-		$id = wp_insert_post( wp_slash( (array) $attachment ), true );
+		// $post_parent is inherited from $attachment['post_parent'].
+		$id = wp_insert_attachment( wp_slash( (array) $attachment ), $file, 0, true );
 
 		if ( is_wp_error( $id ) ) {
 			if ( 'db_update_error' === $id->get_error_code() ) {
@@ -169,8 +172,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 */
 		do_action( 'rest_insert_attachment', $attachment, $request, true );
 
-		// Include admin functions to get access to wp_generate_attachment_metadata().
-		require_once ABSPATH . 'wp-admin/includes/admin.php';
+		// Include admin function to get access to wp_generate_attachment_metadata().
+		require_once ABSPATH . 'wp-admin/includes/image.php';
 
 		wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $file ) );
 
@@ -284,72 +287,95 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 */
 	public function prepare_item_for_response( $post, $request ) {
 		$response = parent::prepare_item_for_response( $post, $request );
+		$fields   = $this->get_fields_for_response( $request );
 		$data     = $response->get_data();
 
-		$data['description'] = array(
-			'raw'      => $post->post_content,
+		if ( in_array( 'description', $fields, true ) ) {
+			$data['description'] = array(
+				'raw'      => $post->post_content,
+				/** This filter is documented in wp-includes/post-template.php */
+				'rendered' => apply_filters( 'the_content', $post->post_content ),
+			);
+		}
+
+		if ( in_array( 'caption', $fields, true ) ) {
 			/** This filter is documented in wp-includes/post-template.php */
-			'rendered' => apply_filters( 'the_content', $post->post_content ),
-		);
+			$caption         = apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $post->post_excerpt, $post ) );
+			$data['caption'] = array(
+				'raw'      => $post->post_excerpt,
+				'rendered' => $caption,
+			);
+		}
 
-		/** This filter is documented in wp-includes/post-template.php */
-		$caption         = apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $post->post_excerpt, $post ) );
-		$data['caption'] = array(
-			'raw'      => $post->post_excerpt,
-			'rendered' => $caption,
-		);
+		if ( in_array( 'alt_text', $fields, true ) ) {
+			$data['alt_text'] = get_post_meta( $post->ID, '_wp_attachment_image_alt', true );
+		}
 
-		$data['alt_text']      = get_post_meta( $post->ID, '_wp_attachment_image_alt', true );
-		$data['media_type']    = wp_attachment_is_image( $post->ID ) ? 'image' : 'file';
-		$data['mime_type']     = $post->post_mime_type;
-		$data['media_details'] = wp_get_attachment_metadata( $post->ID );
-		$data['post']          = ! empty( $post->post_parent ) ? (int) $post->post_parent : null;
-		$data['source_url']    = wp_get_attachment_url( $post->ID );
+		if ( in_array( 'media_type', $fields, true ) ) {
+			$data['media_type'] = wp_attachment_is_image( $post->ID ) ? 'image' : 'file';
+		}
 
-		// Ensure empty details is an empty object.
-		if ( empty( $data['media_details'] ) ) {
-			$data['media_details'] = new stdClass;
-		} elseif ( ! empty( $data['media_details']['sizes'] ) ) {
+		if ( in_array( 'mime_type', $fields, true ) ) {
+			$data['mime_type'] = $post->post_mime_type;
+		}
 
-			foreach ( $data['media_details']['sizes'] as $size => &$size_data ) {
+		if ( in_array( 'media_details', $fields, true ) ) {
+			$data['media_details'] = wp_get_attachment_metadata( $post->ID );
 
-				if ( isset( $size_data['mime-type'] ) ) {
-					$size_data['mime_type'] = $size_data['mime-type'];
-					unset( $size_data['mime-type'] );
+			// Ensure empty details is an empty object.
+			if ( empty( $data['media_details'] ) ) {
+				$data['media_details'] = new stdClass;
+			} elseif ( ! empty( $data['media_details']['sizes'] ) ) {
+
+				foreach ( $data['media_details']['sizes'] as $size => &$size_data ) {
+
+					if ( isset( $size_data['mime-type'] ) ) {
+						$size_data['mime_type'] = $size_data['mime-type'];
+						unset( $size_data['mime-type'] );
+					}
+
+					// Use the same method image_downsize() does.
+					$image_src = wp_get_attachment_image_src( $post->ID, $size );
+					if ( ! $image_src ) {
+						continue;
+					}
+
+					$size_data['source_url'] = $image_src[0];
 				}
 
-				// Use the same method image_downsize() does.
-				$image_src = wp_get_attachment_image_src( $post->ID, $size );
-				if ( ! $image_src ) {
-					continue;
+				$full_src = wp_get_attachment_image_src( $post->ID, 'full' );
+
+				if ( ! empty( $full_src ) ) {
+					$data['media_details']['sizes']['full'] = array(
+						'file'       => wp_basename( $full_src[0] ),
+						'width'      => $full_src[1],
+						'height'     => $full_src[2],
+						'mime_type'  => $post->post_mime_type,
+						'source_url' => $full_src[0],
+					);
 				}
-
-				$size_data['source_url'] = $image_src[0];
+			} else {
+				$data['media_details']['sizes'] = new stdClass;
 			}
+		}
 
-			$full_src = wp_get_attachment_image_src( $post->ID, 'full' );
+		if ( in_array( 'post', $fields, true ) ) {
+			$data['post'] = ! empty( $post->post_parent ) ? (int) $post->post_parent : null;
+		}
 
-			if ( ! empty( $full_src ) ) {
-				$data['media_details']['sizes']['full'] = array(
-					'file'       => wp_basename( $full_src[0] ),
-					'width'      => $full_src[1],
-					'height'     => $full_src[2],
-					'mime_type'  => $post->post_mime_type,
-					'source_url' => $full_src[0],
-				);
-			}
-		} else {
-			$data['media_details']['sizes'] = new stdClass;
+		if ( in_array( 'source_url', $fields, true ) ) {
+			$data['source_url'] = wp_get_attachment_url( $post->ID );
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 
 		$data = $this->filter_response_by_context( $data, $context );
 
+		$links = $response->get_links();
+
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
-
-		$response->add_links( $this->prepare_links( $post ) );
+		$response->add_links( $links );
 
 		/**
 		 * Filters an attachment returned from the REST API.
@@ -513,8 +539,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		// Get the content-type.
 		$type = array_shift( $headers['content_type'] );
 
-		/** Include admin functions to get access to wp_tempnam() and wp_handle_sideload() */
-		require_once ABSPATH . 'wp-admin/includes/admin.php';
+		/** Include admin functions to get access to wp_tempnam() and wp_handle_sideload(). */
+		require_once ABSPATH . 'wp-admin/includes/file.php';
 
 		// Save the file.
 		$tmpfname = wp_tempnam( $filename );
@@ -535,6 +561,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'name'     => $filename,
 			'type'     => $type,
 		);
+
+		$size_check = self::check_upload_size( $file_data );
+		if ( is_wp_error( $size_check ) ) {
+			return $size_check;
+		}
 
 		$overrides = array(
 			'test_form' => false,
@@ -703,8 +734,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$overrides['action'] = 'wp_handle_mock_upload';
 		}
 
-		/** Include admin functions to get access to wp_handle_upload() */
-		require_once ABSPATH . 'wp-admin/includes/admin.php';
+		$size_check = self::check_upload_size( $files['file'] );
+		if ( is_wp_error( $size_check ) ) {
+			return $size_check;
+		}
+
+		/** Include admin function to get access to wp_handle_upload(). */
+		require_once ABSPATH . 'wp-admin/includes/file.php';
 
 		$file = wp_handle_upload( $files['file'], $overrides );
 
@@ -738,6 +774,47 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		return $media_types;
+	}
+
+	/**
+	 * Determine if uploaded file exceeds space quota on multisite.
+	 *
+	 * Replicates check_upload_size().
+	 *
+	 * @since 4.9.8
+	 *
+	 * @param array $file $_FILES array for a given file.
+	 * @return true|WP_Error True if can upload, error for errors.
+	 */
+	protected function check_upload_size( $file ) {
+		if ( ! is_multisite() ) {
+			return true;
+		}
+
+		if ( get_site_option( 'upload_space_check_disabled' ) ) {
+			return true;
+		}
+
+		$space_left = get_upload_space_available();
+
+		$file_size = filesize( $file['tmp_name'] );
+		if ( $space_left < $file_size ) {
+			/* translators: %s: required disk space in kilobytes */
+			return new WP_Error( 'rest_upload_limited_space', sprintf( __( 'Not enough space to upload. %s KB needed.' ), number_format( ( $file_size - $space_left ) / KB_IN_BYTES ) ), array( 'status' => 400 ) );
+		}
+
+		if ( $file_size > ( KB_IN_BYTES * get_site_option( 'fileupload_maxk', 1500 ) ) ) {
+			/* translators: %s: maximum allowed file size in kilobytes */
+			return new WP_Error( 'rest_upload_file_too_big', sprintf( __( 'This file is too big. Files must be less than %s KB in size.' ), get_site_option( 'fileupload_maxk', 1500 ) ), array( 'status' => 400 ) );
+		}
+
+		// Include admin function to get access to upload_is_user_over_quota().
+		require_once ABSPATH . 'wp-admin/includes/ms.php';
+
+		if ( upload_is_user_over_quota( false ) ) {
+			return new WP_Error( 'rest_upload_user_quota_exceeded', __( 'You have used your space quota. Please delete files before uploading.' ), array( 'status' => 400 ) );
+		}
+		return true;
 	}
 
 }

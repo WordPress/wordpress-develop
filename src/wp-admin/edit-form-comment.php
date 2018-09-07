@@ -26,11 +26,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 <?php
 if ( 'approved' === wp_get_comment_status( $comment ) && $comment->comment_post_ID > 0 ) :
 	$comment_link = get_comment_link( $comment );
-?>
+	?>
 <div class="inside">
 	<div id="comment-link-box">
 		<strong><?php _ex( 'Permalink:', 'comment' ); ?></strong>
-		<span id="sample-permalink"><a href="<?php echo $comment_link; ?>"><?php echo $comment_link; ?></a></span>
+		<span id="sample-permalink">
+			<a href="<?php echo esc_url( $comment_link ); ?>">
+				<?php echo esc_html( $comment_link ); ?>
+			</a>
+		</span>
 	</div>
 </div>
 <?php endif; ?>
@@ -68,7 +72,9 @@ if ( 'approved' === wp_get_comment_status( $comment ) && $comment->comment_post_
 	echo '<label for="content" class="screen-reader-text">' . __( 'Comment' ) . '</label>';
 	$quicktags_settings = array( 'buttons' => 'strong,em,link,block,del,ins,img,ul,ol,li,code,close' );
 	wp_editor(
-		$comment->comment_content, 'content', array(
+		$comment->comment_content,
+		'content',
+		array(
 			'media_buttons' => false,
 			'tinymce'       => false,
 			'quicktags'     => $quicktags_settings,
@@ -142,7 +148,7 @@ if ( $comment->comment_parent ) :
 	if ( $parent ) :
 		$parent_link = esc_url( get_comment_link( $parent ) );
 		$name        = get_comment_author( $parent );
-	?>
+		?>
 	<div class="misc-pub-section misc-pub-reply-to">
 		<?php
 		printf(
@@ -152,7 +158,7 @@ if ( $comment->comment_parent ) :
 		);
 		?>
 	</div>
-<?php
+		<?php
 endif;
 endif;
 ?>
@@ -222,5 +228,5 @@ $referer = wp_get_referer();
 <script type="text/javascript">
 try{document.post.name.focus();}catch(e){}
 </script>
-<?php
+	<?php
 endif;

@@ -83,7 +83,8 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 		);
 
 		$found = wp_generate_tag_cloud(
-			$tags, array(
+			$tags,
+			array(
 				'hide_empty' => false,
 			)
 		);
@@ -104,7 +105,8 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 		);
 
 		$found = wp_generate_tag_cloud(
-			$tags, array(
+			$tags,
+			array(
 				'hide_empty' => false,
 				'format'     => 'array',
 			)
@@ -126,7 +128,8 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 		);
 
 		$found = wp_generate_tag_cloud(
-			$tags, array(
+			$tags,
+			array(
 				'hide_empty' => false,
 				'format'     => 'list',
 			)
@@ -153,7 +156,8 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 		);
 
 		$found = wp_generate_tag_cloud(
-			$tags, array(
+			$tags,
+			array(
 				'hide_empty' => false,
 			)
 		);
@@ -179,7 +183,8 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 		);
 
 		$found = wp_generate_tag_cloud(
-			$tags, array(
+			$tags,
+			array(
 				'hide_empty' => false,
 				'format'     => 'list',
 			)
@@ -208,11 +213,13 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 		$term_objects = $this->retrieve_terms(
 			array(
 				'include' => $term_ids,
-			), 'wptests_tax'
+			),
+			'wptests_tax'
 		);
 
 		$actual = wp_generate_tag_cloud(
-			$term_objects, array(
+			$term_objects,
+			array(
 				'format'           => 'array',
 				'topic_count_text' => array(
 					'singular' => 'Term has %s post',
@@ -242,11 +249,13 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 		$term_objects = $this->retrieve_terms(
 			array(
 				'include' => $term_ids,
-			), 'wptests_tax'
+			),
+			'wptests_tax'
 		);
 
 		$actual = wp_generate_tag_cloud(
-			$term_objects, array(
+			$term_objects,
+			array(
 				'format'                    => 'array',
 				'topic_count_text_callback' => array( $this, 'topic_count_text_callback' ),
 			)
@@ -267,7 +276,8 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 		wp_set_post_terms( $p, $term_ids, 'wptests_tax' );
 
 		$term_objects = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'include' => $term_ids,
 			)
 		);

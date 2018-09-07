@@ -52,7 +52,8 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 				'path'     => '/path;p=1',
 				'query'    => 'query=2&r[]=3',
 				'fragment' => 'fragment',
-			), parse_url( $url )
+			),
+			parse_url( $url )
 		);
 		$this->assertEquals( 'https://user:pass@host.example.com:1234/path;p=1?query=2&r%5B%5D=3#fragment', esc_url_raw( $url ) );
 		$this->assertEquals( 'https://user:pass@host.example.com:1234/path;p=1?query=2&#038;r%5B%5D=3#fragment', esc_url( $url ) );
@@ -83,22 +84,28 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 		$this->assertEquals( 'http://example.com', esc_url( 'http://example.com' ) );
 		$this->assertEquals( '', esc_url( 'nasty://example.com/' ) );
 		$this->assertEquals(
-			'', esc_url(
-				'example.com', array(
+			'',
+			esc_url(
+				'example.com',
+				array(
 					'https',
 				)
 			)
 		);
 		$this->assertEquals(
-			'', esc_url(
-				'http://example.com', array(
+			'',
+			esc_url(
+				'http://example.com',
+				array(
 					'https',
 				)
 			)
 		);
 		$this->assertEquals(
-			'https://example.com', esc_url(
-				'https://example.com', array(
+			'https://example.com',
+			esc_url(
+				'https://example.com',
+				array(
 					'http',
 					'https',
 				)
@@ -108,11 +115,14 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 		foreach ( wp_allowed_protocols() as $scheme ) {
 			$this->assertEquals( "{$scheme}://example.com", esc_url( "{$scheme}://example.com" ), $scheme );
 			$this->assertEquals(
-				"{$scheme}://example.com", esc_url(
-					"{$scheme}://example.com", array(
+				"{$scheme}://example.com",
+				esc_url(
+					"{$scheme}://example.com",
+					array(
 						$scheme,
 					)
-				), $scheme
+				),
+				$scheme
 			);
 		}
 
@@ -121,8 +131,10 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 
 		$this->assertTrue( ! in_array( 'foo', wp_allowed_protocols(), true ) );
 		$this->assertEquals(
-			'foo://example.com', esc_url(
-				'foo://example.com', array(
+			'foo://example.com',
+			esc_url(
+				'foo://example.com',
+				array(
 					'foo',
 				)
 			)

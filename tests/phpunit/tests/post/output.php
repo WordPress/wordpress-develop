@@ -33,7 +33,8 @@ class Tests_Post_Output extends WP_UnitTestCase {
 			shortcode_atts(
 				array(
 					'class' => 'graf',
-				), $atts
+				),
+				$atts
 			)
 		);
 		return "<p class='$class'>$content</p>\n";

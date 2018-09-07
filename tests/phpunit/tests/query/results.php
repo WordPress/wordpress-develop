@@ -527,7 +527,8 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			array(
 				'child-one',
 				'child-two',
-			), wp_list_pluck( $posts, 'post_title' )
+			),
+			wp_list_pluck( $posts, 'post_title' )
 		);
 
 		// Second parent's children
@@ -543,7 +544,8 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			array(
 				'child-three',
 				'child-four',
-			), wp_list_pluck( $posts, 'post_title' )
+			),
+			wp_list_pluck( $posts, 'post_title' )
 		);
 
 		// Both first and second parent's children
@@ -561,7 +563,8 @@ class Tests_Query_Results extends WP_UnitTestCase {
 				'child-two',
 				'child-three',
 				'child-four',
-			), wp_list_pluck( $posts, 'post_title' )
+			),
+			wp_list_pluck( $posts, 'post_title' )
 		);
 
 		// Third parent's children
@@ -592,7 +595,8 @@ class Tests_Query_Results extends WP_UnitTestCase {
 				'child-four',
 				'child-one',
 				'child-two',
-			), wp_list_pluck( $posts, 'post_title' )
+			),
+			wp_list_pluck( $posts, 'post_title' )
 		);
 	}
 
@@ -1063,7 +1067,8 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		// If both arguments are passed, only post_password is considered.
 		$result4 = $this->q->query(
 			array_merge(
-				$args, array(
+				$args,
+				array(
 					'has_password'  => true,
 					'post_password' => '',
 				)
@@ -1072,7 +1077,8 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$this->assertEquals( array( $one ), $result4 );
 		$result5 = $this->q->query(
 			array_merge(
-				$args, array(
+				$args,
+				array(
 					'has_password'  => false,
 					'post_password' => '',
 				)
@@ -1081,7 +1087,8 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$this->assertEquals( array( $one ), $result5 );
 		$result6 = $this->q->query(
 			array_merge(
-				$args, array(
+				$args,
+				array(
 					'has_password'  => null,
 					'post_password' => '',
 				)
@@ -1091,7 +1098,8 @@ class Tests_Query_Results extends WP_UnitTestCase {
 
 		$result7 = $this->q->query(
 			array_merge(
-				$args, array(
+				$args,
+				array(
 					'has_password'  => true,
 					'post_password' => 'burrito',
 				)
@@ -1100,7 +1108,8 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$this->assertEqualSets( array( $two, $three ), $result7 );
 		$result8 = $this->q->query(
 			array_merge(
-				$args, array(
+				$args,
+				array(
 					'has_password'  => false,
 					'post_password' => 'burrito',
 				)
@@ -1109,7 +1118,8 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$this->assertEqualSets( array( $two, $three ), $result8 );
 		$result9 = $this->q->query(
 			array_merge(
-				$args, array(
+				$args,
+				array(
 					'has_password'  => null,
 					'post_password' => 'burrito',
 				)

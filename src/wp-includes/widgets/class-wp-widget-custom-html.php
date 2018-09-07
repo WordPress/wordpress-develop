@@ -131,7 +131,8 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 
 		// Prepare instance data that looks like a normal Text widget.
 		$simulated_text_widget_instance = array_merge(
-			$instance, array(
+			$instance,
+			array(
 				'text'   => isset( $instance['content'] ) ? $instance['content'] : '',
 				'filter' => false, // Because wpautop is not applied.
 				'visual' => false, // Because it wasn't created in TinyMCE.
@@ -306,7 +307,7 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 				sprintf(
 					'<span class="screen-reader-text"> %s</span>',
 					/* translators: accessibility text */
-					__( '(opens in a new window)' )
+					__( '(opens in a new tab)' )
 				)
 			);
 			$content .= '</p>';

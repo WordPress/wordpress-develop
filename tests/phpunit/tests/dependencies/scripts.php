@@ -406,6 +406,47 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 44551
+	 */
+	function test_wp_add_inline_script_before_for_handle_without_source() {
+		wp_register_script( 'test-example', '' );
+		wp_enqueue_script( 'test-example' );
+		wp_add_inline_script( 'test-example', 'console.log("before");', 'before' );
+
+		$expected = "<script type='text/javascript'>\nconsole.log(\"before\");\n</script>\n";
+
+		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * @ticket 44551
+	 */
+	function test_wp_add_inline_script_after_for_handle_without_source() {
+		wp_register_script( 'test-example', '' );
+		wp_enqueue_script( 'test-example' );
+		wp_add_inline_script( 'test-example', 'console.log("after");' );
+
+		$expected = "<script type='text/javascript'>\nconsole.log(\"after\");\n</script>\n";
+
+		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * @ticket 44551
+	 */
+	function test_wp_add_inline_script_before_and_after_for_handle_without_source() {
+		wp_register_script( 'test-example', '' );
+		wp_enqueue_script( 'test-example' );
+		wp_add_inline_script( 'test-example', 'console.log("before");', 'before' );
+		wp_add_inline_script( 'test-example', 'console.log("after");' );
+
+		$expected  = "<script type='text/javascript'>\nconsole.log(\"before\");\n</script>\n";
+		$expected .= "<script type='text/javascript'>\nconsole.log(\"after\");\n</script>\n";
+
+		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
 	 * @ticket 14853
 	 */
 	function test_wp_add_inline_script_multiple() {

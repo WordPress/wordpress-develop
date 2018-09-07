@@ -231,7 +231,8 @@ final class WP_Theme implements ArrayAccess {
 			}
 			$this->template = $this->stylesheet;
 			$this->cache_add(
-				'theme', array(
+				'theme',
+				array(
 					'headers'    => $this->headers,
 					'errors'     => $this->errors,
 					'stylesheet' => $this->stylesheet,
@@ -247,7 +248,8 @@ final class WP_Theme implements ArrayAccess {
 			$this->errors          = new WP_Error( 'theme_stylesheet_not_readable', __( 'Stylesheet is not readable.' ) );
 			$this->template        = $this->stylesheet;
 			$this->cache_add(
-				'theme', array(
+				'theme',
+				array(
 					'headers'    => $this->headers,
 					'errors'     => $this->errors,
 					'stylesheet' => $this->stylesheet,
@@ -270,7 +272,8 @@ final class WP_Theme implements ArrayAccess {
 			/* translators: %s: Template */
 			$this->errors = new WP_Error( 'theme_child_invalid', sprintf( __( 'The theme defines itself as its parent theme. Please check the %s header.' ), '<code>Template</code>' ) );
 			$this->cache_add(
-				'theme', array(
+				'theme',
+				array(
 					'headers'    => $this->headers,
 					'errors'     => $this->errors,
 					'stylesheet' => $this->stylesheet,
@@ -293,7 +296,8 @@ final class WP_Theme implements ArrayAccess {
 				);
 				$this->errors = new WP_Error( 'theme_no_index', $error_message );
 				$this->cache_add(
-					'theme', array(
+					'theme',
+					array(
 						'headers'    => $this->headers,
 						'errors'     => $this->errors,
 						'stylesheet' => $this->stylesheet,
@@ -319,7 +323,8 @@ final class WP_Theme implements ArrayAccess {
 				// Parent theme is missing.
 				$this->errors = new WP_Error( 'theme_no_parent', sprintf( __( 'The parent theme is missing. Please install the "%s" parent theme.' ), esc_html( $this->template ) ) );
 				$this->cache_add(
-					'theme', array(
+					'theme',
+					array(
 						'headers'    => $this->headers,
 						'errors'     => $this->errors,
 						'stylesheet' => $this->stylesheet,
@@ -338,7 +343,8 @@ final class WP_Theme implements ArrayAccess {
 				$_child->parent = null;
 				$_child->errors = new WP_Error( 'theme_parent_invalid', sprintf( __( 'The "%s" theme is not a valid parent theme.' ), esc_html( $_child->template ) ) );
 				$_child->cache_add(
-					'theme', array(
+					'theme',
+					array(
 						'headers'    => $_child->headers,
 						'errors'     => $_child->errors,
 						'stylesheet' => $_child->stylesheet,
@@ -349,7 +355,8 @@ final class WP_Theme implements ArrayAccess {
 				if ( $_child->stylesheet == $this->template ) {
 					$this->errors = new WP_Error( 'theme_parent_invalid', sprintf( __( 'The "%s" theme is not a valid parent theme.' ), esc_html( $this->template ) ) );
 					$this->cache_add(
-						'theme', array(
+						'theme',
+						array(
 							'headers'    => $this->headers,
 							'errors'     => $this->errors,
 							'stylesheet' => $this->stylesheet,
@@ -1185,6 +1192,19 @@ final class WP_Theme implements ArrayAccess {
 		/**
 		 * Filters list of page templates for a theme.
 		 *
+		 * @since 4.9.6
+		 *
+		 * @param string[]     $post_templates Array of page templates. Keys are filenames,
+		 *                                     values are translated names.
+		 * @param WP_Theme     $this           The theme object.
+		 * @param WP_Post|null $post           The post being edited, provided for context, or null.
+		 * @param string       $post_type      Post type to get the templates for.
+		 */
+		$post_templates = (array) apply_filters( 'theme_templates', $post_templates, $this, $post, $post_type );
+
+		/**
+		 * Filters list of page templates for a theme.
+		 *
 		 * The dynamic portion of the hook name, `$post_type`, refers to the post type.
 		 *
 		 * @since 3.9.0
@@ -1197,7 +1217,9 @@ final class WP_Theme implements ArrayAccess {
 		 * @param WP_Post|null $post           The post being edited, provided for context, or null.
 		 * @param string       $post_type      Post type to get the templates for.
 		 */
-		return (array) apply_filters( "theme_{$post_type}_templates", $post_templates, $this, $post, $post_type );
+		$post_templates = (array) apply_filters( "theme_{$post_type}_templates", $post_templates, $this, $post, $post_type );
+
+		return $post_templates;
 	}
 
 	/**

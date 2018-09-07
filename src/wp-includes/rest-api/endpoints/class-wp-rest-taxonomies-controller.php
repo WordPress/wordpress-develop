@@ -36,7 +36,9 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	public function register_routes() {
 
 		register_rest_route(
-			$this->namespace, '/' . $this->rest_base, array(
+			$this->namespace,
+			'/' . $this->rest_base,
+			array(
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_items' ),
@@ -48,7 +50,9 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		);
 
 		register_rest_route(
-			$this->namespace, '/' . $this->rest_base . '/(?P<taxonomy>[\w-]+)', array(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<taxonomy>[\w-]+)',
+			array(
 				'args'   => array(
 					'taxonomy' => array(
 						'description' => __( 'An alphanumeric identifier for the taxonomy.' ),
@@ -84,7 +88,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 				$taxonomies = get_taxonomies( '', 'objects' );
 			}
 			foreach ( $taxonomies as $taxonomy ) {
-				if ( ! empty( $taxonomy->show_in_rest ) && current_user_can( $taxonomy->cap->manage_terms ) ) {
+				if ( ! empty( $taxonomy->show_in_rest ) && current_user_can( $taxonomy->cap->assign_terms ) ) {
 					return true;
 				}
 			}
@@ -113,7 +117,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		}
 		$data = array();
 		foreach ( $taxonomies as $tax_type => $value ) {
-			if ( empty( $value->show_in_rest ) || ( 'edit' === $request['context'] && ! current_user_can( $value->cap->manage_terms ) ) ) {
+			if ( empty( $value->show_in_rest ) || ( 'edit' === $request['context'] && ! current_user_can( $value->cap->assign_terms ) ) ) {
 				continue;
 			}
 			$tax               = $this->prepare_item_for_response( $value, $request );
@@ -145,7 +149,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 			if ( empty( $tax_obj->show_in_rest ) ) {
 				return false;
 			}
-			if ( 'edit' === $request['context'] && ! current_user_can( $tax_obj->cap->manage_terms ) ) {
+			if ( 'edit' === $request['context'] && ! current_user_can( $tax_obj->cap->assign_terms ) ) {
 				return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to manage terms in this taxonomy.' ), array( 'status' => rest_authorization_required_code() ) );
 			}
 		}
@@ -181,25 +185,56 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $taxonomy, $request ) {
 		$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
-		$data = array(
-			'name'         => $taxonomy->label,
-			'slug'         => $taxonomy->name,
-			'capabilities' => $taxonomy->cap,
-			'description'  => $taxonomy->description,
-			'labels'       => $taxonomy->labels,
-			'types'        => $taxonomy->object_type,
-			'show_cloud'   => $taxonomy->show_tagcloud,
-			'hierarchical' => $taxonomy->hierarchical,
-			'rest_base'    => $base,
-			'visibility'   => array(
+
+		$fields = $this->get_fields_for_response( $request );
+		$data   = array();
+
+		if ( in_array( 'name', $fields, true ) ) {
+			$data['name'] = $taxonomy->label;
+		}
+
+		if ( in_array( 'slug', $fields, true ) ) {
+			$data['slug'] = $taxonomy->name;
+		}
+
+		if ( in_array( 'capabilities', $fields, true ) ) {
+			$data['capabilities'] = $taxonomy->cap;
+		}
+
+		if ( in_array( 'description', $fields, true ) ) {
+			$data['description'] = $taxonomy->description;
+		}
+
+		if ( in_array( 'labels', $fields, true ) ) {
+			$data['labels'] = $taxonomy->labels;
+		}
+
+		if ( in_array( 'types', $fields, true ) ) {
+			$data['types'] = $taxonomy->object_type;
+		}
+
+		if ( in_array( 'show_cloud', $fields, true ) ) {
+			$data['show_cloud'] = $taxonomy->show_tagcloud;
+		}
+
+		if ( in_array( 'hierarchical', $fields, true ) ) {
+			$data['hierarchical'] = $taxonomy->hierarchical;
+		}
+
+		if ( in_array( 'rest_base', $fields, true ) ) {
+			$data['rest_base'] = $base;
+		}
+
+		if ( in_array( 'visibility', $fields, true ) ) {
+			$data['visibility'] = array(
 				'public'             => (bool) $taxonomy->public,
 				'publicly_queryable' => (bool) $taxonomy->publicly_queryable,
 				'show_admin_column'  => (bool) $taxonomy->show_admin_column,
 				'show_in_nav_menus'  => (bool) $taxonomy->show_in_nav_menus,
 				'show_in_quick_edit' => (bool) $taxonomy->show_in_quick_edit,
 				'show_ui'            => (bool) $taxonomy->show_ui,
-			),
-		);
+			);
+		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data    = $this->add_additional_fields_to_object( $data, $request );

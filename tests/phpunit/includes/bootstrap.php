@@ -10,14 +10,18 @@ if ( class_exists( 'PHPUnit\Runner\Version' ) ) {
 	require_once dirname( __FILE__ ) . '/phpunit6-compat.php';
 }
 
-$config_file_path = dirname( dirname( __FILE__ ) );
-if ( ! file_exists( $config_file_path . '/wp-tests-config.php' ) ) {
-	// Support the config file from the root of the develop repository.
-	if ( basename( $config_file_path ) === 'phpunit' && basename( dirname( $config_file_path ) ) === 'tests' ) {
-		$config_file_path = dirname( dirname( $config_file_path ) );
+if ( defined( 'WP_TESTS_CONFIG_FILE_PATH' ) ) {
+	$config_file_path = WP_TESTS_CONFIG_FILE_PATH;
+} else {
+	$config_file_path = dirname( dirname( __FILE__ ) );
+	if ( ! file_exists( $config_file_path . '/wp-tests-config.php' ) ) {
+		// Support the config file from the root of the develop repository.
+		if ( basename( $config_file_path ) === 'phpunit' && basename( dirname( $config_file_path ) ) === 'tests' ) {
+			$config_file_path = dirname( dirname( $config_file_path ) );
+		}
 	}
+	$config_file_path .= '/wp-tests-config.php';
 }
-$config_file_path .= '/wp-tests-config.php';
 
 /*
  * Globalize some WordPress variables, because PHPUnit loads this file inside a function
@@ -31,6 +35,12 @@ if ( ! is_readable( $config_file_path ) ) {
 }
 require_once $config_file_path;
 require_once dirname( __FILE__ ) . '/functions.php';
+
+if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && file_exists( ABSPATH . '_index.php' ) ) {
+	// Perhaps add more documentation about having to run `grunt` before running tests after changing code.
+	echo "ERROR: ABSPATH must point to the `build` directory, not the `src` directory. Please update your wp-tests-config.php file.\n";
+	exit( 1 );
+}
 
 tests_reset__SERVER();
 
@@ -66,7 +76,11 @@ $phpmailer = new MockPHPMailer( true );
 if ( ! defined( 'WP_DEFAULT_THEME' ) ) {
 	define( 'WP_DEFAULT_THEME', 'default' );
 }
-$wp_theme_directories = array( DIR_TESTDATA . '/themedir1' );
+$wp_theme_directories = array();
+
+if ( file_exists( DIR_TESTDATA . '/themedir1' ) ) {
+	$wp_theme_directories[] = DIR_TESTDATA . '/themedir1';
+}
 
 system( WP_PHP_BINARY . ' ' . escapeshellarg( dirname( __FILE__ ) . '/install.php' ) . ' ' . escapeshellarg( $config_file_path ) . ' ' . $multisite, $retval );
 if ( 0 !== $retval ) {

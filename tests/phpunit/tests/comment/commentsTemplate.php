@@ -200,7 +200,8 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 			array(
 				'cpage'             => 2,
 				'comments_per_page' => 2,
-			), get_permalink( $p )
+			),
+			get_permalink( $p )
 		);
 
 		$this->go_to( $link );
@@ -270,7 +271,8 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 			array(
 				'cpage'             => 2,
 				'comments_per_page' => 2,
-			), get_permalink( $p )
+			),
+			get_permalink( $p )
 		);
 
 		$this->go_to( $link );
@@ -326,7 +328,8 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 			array(
 				'cpage'             => 2,
 				'comments_per_page' => 2,
-			), get_permalink( $p )
+			),
+			get_permalink( $p )
 		);
 
 		$this->go_to( $link );
@@ -382,7 +385,8 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 			array(
 				'cpage'             => 2,
 				'comments_per_page' => 2,
-			), get_permalink( $p )
+			),
+			get_permalink( $p )
 		);
 
 		$this->go_to( $link );
@@ -433,7 +437,8 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 			array(
 				'cpage'             => 1,
 				'comments_per_page' => 2,
-			), get_permalink( $p )
+			),
+			get_permalink( $p )
 		);
 
 		$this->go_to( $link );
@@ -484,7 +489,8 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 			array(
 				'cpage'             => 2,
 				'comments_per_page' => 2,
-			), get_permalink( $p )
+			),
+			get_permalink( $p )
 		);
 
 		$this->go_to( $link );
@@ -539,7 +545,8 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 		$link_p1 = add_query_arg(
 			array(
 				'comments_per_page' => 2,
-			), get_permalink( $p )
+			),
+			get_permalink( $p )
 		);
 
 		$this->go_to( $link_p1 );
@@ -558,7 +565,8 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 			array(
 				'cpage'             => 2,
 				'comments_per_page' => 2,
-			), get_permalink( $p )
+			),
+			get_permalink( $p )
 		);
 
 		$this->go_to( $link_p2 );
@@ -630,7 +638,8 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 		$link_p0 = add_query_arg(
 			array(
 				'comments_per_page' => 2,
-			), get_permalink( $p )
+			),
+			get_permalink( $p )
 		);
 
 		$this->go_to( $link_p0 );
@@ -648,7 +657,8 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 			array(
 				'cpage'             => 2,
 				'comments_per_page' => 2,
-			), get_permalink( $p )
+			),
+			get_permalink( $p )
 		);
 
 		$this->go_to( $link_p2 );
@@ -668,7 +678,8 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 			array(
 				'cpage'             => 1,
 				'comments_per_page' => 2,
-			), get_permalink( $p )
+			),
+			get_permalink( $p )
 		);
 
 		$this->go_to( $link_p1 );

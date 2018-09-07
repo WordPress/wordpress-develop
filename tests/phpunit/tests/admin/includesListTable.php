@@ -81,7 +81,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 			array(
 				'paged'          => 1,
 				'posts_per_page' => 2,
-			), array(
+			),
+			array(
 				self::$top[1]->ID,
 				self::$children[1][1]->ID,
 			)
@@ -96,7 +97,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 			array(
 				'paged'          => 2,
 				'posts_per_page' => 2,
-			), array(
+			),
+			array(
 				self::$top[1]->ID,
 				self::$children[1][2]->ID,
 				self::$children[1][3]->ID,
@@ -113,7 +115,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 				'paged'          => 1,
 				'posts_per_page' => 2,
 				's'              => 'Child',
-			), array(
+			),
+			array(
 				self::$children[1][1]->ID,
 				self::$children[1][2]->ID,
 			)
@@ -129,7 +132,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 				'paged'          => 2,
 				'posts_per_page' => 2,
 				's'              => 'Top',
-			), array(
+			),
+			array(
 				self::$top[3]->ID,
 				self::$top[4]->ID,
 			)
@@ -145,7 +149,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 			array(
 				'paged'          => 6,
 				'posts_per_page' => 2,
-			), array(
+			),
+			array(
 				self::$top[3]->ID,
 				self::$children[3][1]->ID,
 				self::$grandchildren[3][1][1]->ID,
@@ -163,7 +168,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 			array(
 				'paged'          => 7,
 				'posts_per_page' => 2,
-			), array(
+			),
+			array(
 				self::$top[3]->ID,
 				self::$children[3][1]->ID,
 				self::$grandchildren[3][1][3]->ID,
@@ -187,7 +193,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$args = array_merge(
 			array(
 				'post_type' => 'page',
-			), $args
+			),
+			$args
 		);
 
 		// Mimic the behaviour of `wp_edit_posts_query()`:

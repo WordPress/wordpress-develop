@@ -29,6 +29,8 @@ class Tests_User extends WP_UnitTestCase {
 				'user_email'    => 'blackburn@battlefield3.com',
 				'user_url'      => 'http://tacos.com',
 				'role'          => 'contributor',
+				'nickname'      => 'Johnny',
+				'description'   => 'I am a WordPress user that cares about privacy.',
 			)
 		);
 
@@ -904,7 +906,8 @@ class Tests_User extends WP_UnitTestCase {
 	 */
 	public function test_wp_insert_user_should_not_truncate_to_a_duplicate_user_nicename_when_suffix_has_more_than_one_character() {
 		$user_ids = self::factory()->user->create_many(
-			4, array(
+			4,
+			array(
 				'user_nicename' => str_repeat( 'a', 50 ),
 			)
 		);
@@ -1514,8 +1517,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		reset_phpmailer_instance();
 
-		// Give the site and blog a name containing HTML entities
-		update_site_option( 'site_name', '&#039;Test&#039; site&#039;s &quot;name&quot; has &lt;html entities&gt; &amp;' );
+		// Give the site a name containing HTML entities
 		update_option( 'blogname', '&#039;Test&#039; blog&#039;s &quot;name&quot; has &lt;html entities&gt; &amp;' );
 
 		// Set $_POST['email'] with new e-mail and $_POST['user_id'] with user's ID.
@@ -1533,11 +1535,6 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( 'new-email@test.dev', $recipient->address, 'User email change confirmation recipient not as expected' );
 
 		// Assert that HTML entites have been decoded in body and subject
-		if ( is_multisite() ) {
-			$this->assertContains( '\'Test\' site\'s "name" has <html entities> &', $email->body, 'Email body does not contain the decoded HTML entities' );
-			$this->assertNotContains( '&#039;Test&#039; site&#039;s &quot;name&quot; has &lt;html entities&gt; &amp;', $email->body, 'Email body does contains HTML entities' );
-		}
-
 		$this->assertContains( '\'Test\' blog\'s "name" has <html entities> &', $email->subject, 'Email subject does not contain the decoded HTML entities' );
 		$this->assertNotContains( '&#039;Test&#039; blog&#039;s &quot;name&quot; has &lt;html entities&gt; &amp;', $email->subject, 'Email subject does contains HTML entities' );
 	}
@@ -1560,7 +1557,7 @@ class Tests_User extends WP_UnitTestCase {
 		$_POST['role']     = 'subscriber';
 		$_POST['email']    = 'subscriber@subscriber.test';
 		$_POST['nickname'] = 'subscriber';
-		$this->assertSame(  $administrator, edit_user( $administrator ) );
+		$this->assertSame( $administrator, edit_user( $administrator ) );
 
 		// Should still have the old role.
 		$this->assertSame( array( 'administrator' ), get_userdata( $administrator )->roles );
@@ -1575,9 +1572,45 @@ class Tests_User extends WP_UnitTestCase {
 		$_POST['role']     = 'administrator';
 		$_POST['email']    = 'administrator@administrator.test';
 		$_POST['nickname'] = 'administrator';
-		$this->assertSame(  $editor, edit_user( $editor ) );
+		$this->assertSame( $editor, edit_user( $editor ) );
 
 		// Should have the new role.
 		$this->assertSame( array( 'administrator' ), get_userdata( $editor )->roles );
+	}
+
+	/**
+	 * Testing the `wp_user_personal_data_exporter_no_user` function when no user exists.
+	 *
+	 * @ticket 43547
+	 */
+	function test_wp_user_personal_data_exporter_no_user() {
+		$actual = wp_user_personal_data_exporter( 'not-a-user-email@test.com' );
+
+		$expected = array(
+			'data' => array(),
+			'done' => true,
+		);
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Testing the `wp_user_personal_data_exporter_no_user` function when the requested
+	 * user exists.
+	 *
+	 * @ticket 43547
+	 */
+	function test_wp_user_personal_data_exporter() {
+		$test_user = new WP_User( self::$contrib_id );
+
+		$actual = wp_user_personal_data_exporter( $test_user->user_email );
+
+		$this->assertTrue( $actual['done'] );
+
+		// Number of exported users.
+		$this->assertSame( 1, count( $actual['data'] ) );
+
+		// Number of exported user properties.
+		$this->assertSame( 11, count( $actual['data'][0]['data'] ) );
 	}
 }

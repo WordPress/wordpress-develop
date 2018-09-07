@@ -49,6 +49,7 @@ p {
 }
 
 .login .message,
+.login .success,
 .login #login_error {
 	border-left: 4px solid #00a0d2;
 	padding: 12px;
@@ -56,6 +57,10 @@ p {
 	margin-bottom: 20px;
 	background-color: #fff;
 	box-shadow: 0 1px 1px 0 rgba(0,0,0,0.1);
+}
+
+.login .success {
+	border-left-color: #46b450;
 }
 
 .login #login_error {
@@ -192,6 +197,12 @@ p {
 .login #backtoblog a:focus,
 .login h1 a:focus {
 	color: #124964;
+}
+
+.login .privacy-policy-page-link {
+	text-align: center;
+	width: 100%;
+	margin: 5em 0 2em;
 }
 
 .login form .input,

@@ -834,13 +834,11 @@ table.form-table td .updated p {
 	right: 10px;
 	bottom: 9px;
 	background: transparent;
-	-webkit-transform: skew(20deg) rotate(6deg);
 	transform: skew(20deg) rotate(6deg);
 	box-shadow: 0 10px 8px rgba(0, 0, 0, 0.6);
 }
 
 .pressthis-bookmarklet:hover:after {
-	-webkit-transform: skew(20deg) rotate(9deg);
 	transform: skew(20deg) rotate(9deg);
 	box-shadow: 0 10px 8px rgba(0, 0, 0, 0.7);
 }
@@ -1089,7 +1087,7 @@ table.form-table td .updated p {
 }
 
 .tools-privacy-edit {
-	margin: 2.3em 0;
+	margin: 1.5em 0;
 }
 
 .tools-privacy-policy-page span {
@@ -1115,9 +1113,29 @@ table.form-table td .updated p {
 	box-shadow: inset 0 -1px 0 rgba(0,0,0,0.1);
 }
 
+.privacy_requests tbody .has-request-results th {
+	box-shadow: none;
+}
+
+.privacy_requests tbody .request-results th .notice {
+	margin: 0 0 5px;
+}
+
 .privacy_requests tbody td {
 	background: #fff;
 	box-shadow: inset 0 -1px 0 rgba(0,0,0,0.1);
+}
+
+.privacy_requests tbody .has-request-results td {
+	box-shadow: none;
+}
+
+.privacy_requests .next_steps .button {
+	height: auto;
+	line-height: 1.5;
+	padding: 4px 10px;
+	word-break: break-all;
+	white-space: unset;
 }
 
 .privacy_requests .status-request-confirmed th,
@@ -1132,19 +1150,23 @@ table.form-table td .updated p {
 	border-left-color: #d64d21;
 }
 
+.privacy_requests .export_personal_data_failed a {
+	vertical-align: baseline;
+}
+
 .status-label {
-	font-weight: bold;
+	font-weight: 600;
 }
 
 .status-label.status-request-pending {
-	font-weight: normal;
+	font-weight: 400;
 	font-style: italic;
 	color: #6c7781;
 }
 
 .status-label.status-request-failed {
 	color: #aa0000;
-	font-weight: bold;
+	font-weight: 600;
 }
 
 .wp-privacy-request-form {
@@ -1156,7 +1178,7 @@ table.form-table td .updated p {
 }
 
 .wp-privacy-request-form label {
-	font-weight: bold;
+	font-weight: 600;
 	line-height: 1.5;
 	padding-bottom: .5em;
 	display: block;
@@ -1180,7 +1202,6 @@ table.form-table td .updated p {
 .email-personal-data--sending::before {
 	color: #f56e28;
 	content: "\f463";
-	-webkit-animation: rotation 2s infinite linear;
 	animation: rotation 2s infinite linear;
 }
 
@@ -1466,6 +1487,34 @@ table.form-table td .updated p {
 		max-width: 6.25em;
 		margin: 0;
 	}
+
+	/* Privacy Policy settings screen */
+	.tools-privacy-policy-page form.wp-create-privacy-page {
+	    margin-bottom: 1em;
+	}
+
+ 	.tools-privacy-policy-page input#set-page,
+	.tools-privacy-policy-page select {
+		margin: 10px 0 0;
+	}
+
+	.tools-privacy-policy-page .wp-create-privacy-page span {
+	    display: block;
+	    margin-bottom: 1em;
+	}
+
+	.tools-privacy-policy-page .wp-create-privacy-page .button {
+	    margin-left: 0;
+	}
+
+	.wp-list-table.privacy_requests tr:not(.inline-edit-row):not(.no-items) td.column-primary:not(.check-column) {
+		display: table-cell;
+	}
+
+	.wp-list-table.privacy_requests.widefat th input,
+	.wp-list-table.privacy_requests.widefat thead td input {
+		margin-left: 5px;
+	}
 }
 
 @media only screen and (max-width: 768px) {
@@ -1517,24 +1566,11 @@ table.form-table td .updated p {
 	}
 }
 
-@-webkit-keyframes rotation {
-	0% {
-		-webkit-transform: rotate(0deg);
-		transform: rotate(0deg);
-	}
-	100% {
-		-webkit-transform: rotate(359deg);
-		transform: rotate(359deg);
-	}
-}
-
 @keyframes rotation {
 	0% {
-		-webkit-transform: rotate(0deg);
 		transform: rotate(0deg);
 	}
 	100% {
-		-webkit-transform: rotate(359deg);
 		transform: rotate(359deg);
 	}
 }

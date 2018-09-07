@@ -366,7 +366,10 @@ class Tests_General_Template extends WP_UnitTestCase {
 		update_post_meta( $this->custom_logo_id, '_wp_attachment_image_alt', $image_alt );
 
 		$image = wp_get_attachment_image(
-			$this->custom_logo_id, 'full', false, array(
+			$this->custom_logo_id,
+			'full',
+			false,
+			array(
 				'class'    => 'custom-logo',
 				'itemprop' => 'logo',
 			)

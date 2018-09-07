@@ -12,7 +12,8 @@ class Tests_Post_WpPost extends WP_UnitTestCase {
 		// Ensure that there is a post with ID 1.
 		if ( ! get_post( 1 ) ) {
 			$wpdb->insert(
-				$wpdb->posts, array(
+				$wpdb->posts,
+				array(
 					'ID'         => 1,
 					'post_title' => 'Post 1',
 				)

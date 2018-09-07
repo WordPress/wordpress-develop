@@ -381,7 +381,8 @@ function get_comment_count( $post_id = 0 ) {
 		FROM {$wpdb->comments}
 		{$where}
 		GROUP BY comment_approved
-	", ARRAY_A
+	",
+		ARRAY_A
 	);
 
 	$comment_count = array(
@@ -540,11 +541,12 @@ function wp_queue_comments_for_comment_meta_lazyload( $comments ) {
  * Sets the cookies used to store an unauthenticated commentator's identity. Typically used
  * to recall previous comments by this commentator that are still held in moderation.
  *
- * @param WP_Comment $comment Comment object.
- * @param object     $user    Comment author's object.
- * @param boolean    $cookies_consent Optional. Comment author's consent to store cookies. Default true.
- *
  * @since 3.4.0
+ * @since 4.9.6 The `$cookies_consent` parameter was added.
+ *
+ * @param WP_Comment $comment         Comment object.
+ * @param WP_User    $user            Comment author's user object. The user may not exist.
+ * @param boolean    $cookies_consent Optional. Comment author's consent to store cookies. Default true.
  */
 function wp_set_comment_cookies( $comment, $user, $cookies_consent = true ) {
 	// If the user already exists, or the user opted out of cookies, don't set cookies.
@@ -2470,6 +2472,10 @@ function wp_update_comment_count_now( $post_id ) {
 	 * @param int $old     The old comment count.
 	 */
 	do_action( 'wp_update_comment_count', $post_id, $new, $old );
+
+	/** This action is documented in wp-includes/post.php */
+	do_action( "edit_post_{$post->post_type}", $post_id, $post );
+
 	/** This action is documented in wp-includes/post.php */
 	do_action( 'edit_post', $post_id, $post );
 
@@ -2515,7 +2521,8 @@ function discover_pingback_server_uri( $url, $deprecated = '' ) {
 	}
 
 	$response = wp_safe_remote_head(
-		$url, array(
+		$url,
+		array(
 			'timeout'     => 2,
 			'httpversion' => '1.0',
 		)
@@ -2536,7 +2543,8 @@ function discover_pingback_server_uri( $url, $deprecated = '' ) {
 
 	// Now do a GET since we're going to look in the html headers (and we're sure it's not a binary file)
 	$response = wp_safe_remote_get(
-		$url, array(
+		$url,
+		array(
 			'timeout'     => 2,
 			'httpversion' => '1.0',
 		)
@@ -2651,7 +2659,9 @@ function do_trackbacks( $post_id ) {
 				$wpdb->query(
 					$wpdb->prepare(
 						"UPDATE $wpdb->posts SET to_ping = TRIM(REPLACE(to_ping, %s,
-					'')) WHERE ID = %d", $tb_ping, $post->ID
+					'')) WHERE ID = %d",
+						$tb_ping,
+						$post->ID
 					)
 				);
 			}
@@ -3280,11 +3290,11 @@ function wp_handle_comment_submission( $comment_data ) {
  *
  * @since 4.9.6
  *
- * @param  array $exporters An array of personal data exporters.
+ * @param array $exporters An array of personal data exporters.
  * @return array $exporters An array of personal data exporters.
  */
 function wp_register_comment_personal_data_exporter( $exporters ) {
-	$exporters[] = array(
+	$exporters['wordpress-comments'] = array(
 		'exporter_friendly_name' => __( 'WordPress Comments' ),
 		'callback'               => 'wp_comments_personal_data_exporter',
 	);
@@ -3297,12 +3307,11 @@ function wp_register_comment_personal_data_exporter( $exporters ) {
  *
  * @since 4.9.6
  *
- * @param  string $email_address The comment author email address.
- * @param  int    $page          Comment page.
- * @return array  $return        An array of personal data.
+ * @param string $email_address The comment author email address.
+ * @param int    $page          Comment page.
+ * @return array $return An array of personal data.
  */
 function wp_comments_personal_data_exporter( $email_address, $page = 1 ) {
-
 	// Limit us to 500 comments at a time to avoid timing out.
 	$number = 500;
 	$page   = (int) $page;
@@ -3311,11 +3320,12 @@ function wp_comments_personal_data_exporter( $email_address, $page = 1 ) {
 
 	$comments = get_comments(
 		array(
-			'author_email' => $email_address,
-			'number'       => $number,
-			'paged'        => $page,
-			'order_by'     => 'comment_ID',
-			'order'        => 'ASC',
+			'author_email'              => $email_address,
+			'number'                    => $number,
+			'paged'                     => $page,
+			'order_by'                  => 'comment_ID',
+			'order'                     => 'ASC',
+			'update_comment_meta_cache' => false,
 		)
 	);
 
@@ -3324,7 +3334,7 @@ function wp_comments_personal_data_exporter( $email_address, $page = 1 ) {
 		'comment_author_email' => __( 'Comment Author Email' ),
 		'comment_author_url'   => __( 'Comment Author URL' ),
 		'comment_author_IP'    => __( 'Comment Author IP' ),
-		'comment_agent'        => __( 'Comment Agent' ),
+		'comment_agent'        => __( 'Comment Author User Agent' ),
 		'comment_date'         => __( 'Comment Date' ),
 		'comment_content'      => __( 'Comment Content' ),
 		'comment_link'         => __( 'Comment URL' ),
@@ -3343,7 +3353,7 @@ function wp_comments_personal_data_exporter( $email_address, $page = 1 ) {
 				case 'comment_author_IP':
 				case 'comment_agent':
 				case 'comment_date':
-					$value = $comment->$key;
+					$value = $comment->{$key};
 					break;
 
 				case 'comment_content':
@@ -3352,6 +3362,11 @@ function wp_comments_personal_data_exporter( $email_address, $page = 1 ) {
 
 				case 'comment_link':
 					$value = get_comment_link( $comment->comment_ID );
+					$value = sprintf(
+						'<a href="%s" target="_blank" rel="noreferrer noopener">%s</a>',
+						esc_url( $value ),
+						esc_html( $value )
+					);
 					break;
 			}
 
@@ -3388,7 +3403,7 @@ function wp_comments_personal_data_exporter( $email_address, $page = 1 ) {
  * @return array $erasers An array of personal data erasers.
  */
 function wp_register_comment_personal_data_eraser( $erasers ) {
-	$erasers[] = array(
+	$erasers['wordpress-comments'] = array(
 		'eraser_friendly_name' => __( 'WordPress Comments' ),
 		'callback'             => 'wp_comments_personal_data_eraser',
 	);
@@ -3410,17 +3425,18 @@ function wp_comments_personal_data_eraser( $email_address, $page = 1 ) {
 
 	if ( empty( $email_address ) ) {
 		return array(
-			'num_items_removed'  => 0,
-			'num_items_retained' => 0,
-			'messages'           => array(),
-			'done'               => true,
+			'items_removed'  => false,
+			'items_retained' => false,
+			'messages'       => array(),
+			'done'           => true,
 		);
 	}
 
 	// Limit us to 500 comments at a time to avoid timing out.
-	$number            = 500;
-	$page              = (int) $page;
-	$num_items_removed = 0;
+	$number         = 500;
+	$page           = (int) $page;
+	$items_removed  = false;
+	$items_retained = false;
 
 	$comments = get_comments(
 		array(
@@ -3433,6 +3449,7 @@ function wp_comments_personal_data_eraser( $email_address, $page = 1 ) {
 		)
 	);
 
+	/* translators: Name of a comment's author after being anonymized. */
 	$anon_author = __( 'Anonymous' );
 	$messages    = array();
 
@@ -3440,9 +3457,9 @@ function wp_comments_personal_data_eraser( $email_address, $page = 1 ) {
 		$anonymized_comment                         = array();
 		$anonymized_comment['comment_agent']        = '';
 		$anonymized_comment['comment_author']       = $anon_author;
-		$anonymized_comment['comment_author_email'] = wp_privacy_anonymize_data( 'email', $comment->comment_author_email );
+		$anonymized_comment['comment_author_email'] = '';
 		$anonymized_comment['comment_author_IP']    = wp_privacy_anonymize_data( 'ip', $comment->comment_author_IP );
-		$anonymized_comment['comment_author_url']   = wp_privacy_anonymize_data( 'url', $comment->comment_author_url );
+		$anonymized_comment['comment_author_url']   = '';
 		$anonymized_comment['user_id']              = 0;
 
 		$comment_id = (int) $comment->comment_ID;
@@ -3467,6 +3484,8 @@ function wp_comments_personal_data_eraser( $email_address, $page = 1 ) {
 				$messages[] = sprintf( __( 'Comment %d contains personal data but could not be anonymized.' ), $comment_id );
 			}
 
+			$items_retained = true;
+
 			continue;
 		}
 
@@ -3477,17 +3496,19 @@ function wp_comments_personal_data_eraser( $email_address, $page = 1 ) {
 		$updated = $wpdb->update( $wpdb->comments, $anonymized_comment, $args );
 
 		if ( $updated ) {
-			$num_items_removed++;
+			$items_removed = true;
 			clean_comment_cache( $comment_id );
+		} else {
+			$items_retained = true;
 		}
 	}
 
 	$done = count( $comments ) < $number;
 
 	return array(
-		'num_items_removed'  => $num_items_removed,
-		'num_items_retained' => count( $comments ) - $num_items_removed,
-		'messages'           => $messages,
-		'done'               => $done,
+		'items_removed'  => $items_removed,
+		'items_retained' => $items_retained,
+		'messages'       => $messages,
+		'done'           => $done,
 	);
 }

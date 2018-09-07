@@ -4,7 +4,7 @@ Theme URI: https://wordpress.org/themes/twentyfifteen/
 Author: the WordPress team
 Author URI: https://wordpress.org/
 Description: Our 2015 default theme is clean, blog-focused, and designed for clarity. Twenty Fifteen's simple, straightforward typography is readable on a wide variety of screen sizes, and suitable for multiple languages. We designed it using a mobile-first approach, meaning your content takes center-stage, regardless of whether your visitors arrive by smartphone, tablet, laptop, or desktop computer.
-Version: 1.9
+Version: 2.0
 License: GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, two-columns, left-sidebar, accessibility-ready, custom-background, custom-colors, custom-header, custom-logo, custom-menu, editor-style, featured-images, microformats, post-formats, rtl-language-support, sticky-post, threaded-comments, translation-ready
@@ -2406,6 +2406,18 @@ a.post-thumbnail:focus {
 	top: -3px;
 }
 
+.comment-form #wp-comment-cookies-consent {
+	margin: 0 10px 0 0;
+}
+
+.comment-form .comment-form-cookies-consent label {
+	display: inline;
+	font-size: 12px;
+	font-size: 1.2rem;
+	font-weight: normal;
+	letter-spacing: 0;
+	text-transform: none;
+}
 
 /**
  * 13.0 Footer
@@ -2434,6 +2446,13 @@ a.post-thumbnail:focus {
 	color: #333;
 }
 
+.site-info span[role=separator] {
+	padding: 0 0.25em 0 0.5em;
+}
+
+.site-info span[role=separator]::before {
+	content: '\002f';
+}
 
 /**
  * 14.0 Media
@@ -3033,6 +3052,7 @@ p > video {
 	.comment-awaiting-moderation,
 	.logged-in-as,
 	.comment-form label,
+	.comment-form .comment-form-cookies-consent label,
 	.form-allowed-tags,
 	.site-info,
 	.wp-caption-text,
@@ -3662,6 +3682,7 @@ p > video {
 	.comment-awaiting-moderation,
 	.logged-in-as,
 	.comment-form label,
+	.comment-form .comment-form-cookies-consent label,
 	.form-allowed-tags,
 	.site-info,
 	.wp-caption-text,
@@ -4281,6 +4302,7 @@ p > video {
 	.comment-awaiting-moderation,
 	.logged-in-as,
 	.comment-form label,
+	.comment-form .comment-form-cookies-consent label,
 	.form-allowed-tags,
 	.site-info,
 	.wp-caption-text,
@@ -4938,6 +4960,7 @@ p > video {
 	.comment-awaiting-moderation,
 	.logged-in-as,
 	.comment-form label,
+	.comment-form .comment-form-cookies-consent label,
 	.form-allowed-tags,
 	.site-info,
 	.wp-caption-text,
@@ -5479,6 +5502,7 @@ p > video {
 	.comment-awaiting-moderation,
 	.logged-in-as,
 	.comment-form label,
+	.comment-form .comment-form-cookies-consent label,
 	.form-allowed-tags,
 	.site-info,
 	.wp-caption-text,

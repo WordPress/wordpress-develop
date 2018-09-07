@@ -30,7 +30,8 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 			array(
 				$term_id1 => array( $term_id1_child ),
 				$term_id2 => array( $term_id2_child ),
-			), $hierarchy
+			),
+			$hierarchy
 		);
 	}
 
@@ -194,13 +195,15 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'post' );
 
 		$terms = self::factory()->term->create_many(
-			5, array(
+			5,
+			array(
 				'taxonomy' => 'wptests_tax',
 			)
 		);
 
 		$term_objects = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 			)
 		);

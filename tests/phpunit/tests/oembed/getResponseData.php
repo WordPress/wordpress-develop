@@ -29,7 +29,8 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 				'width'         => 400,
 				'height'        => 225,
 				'html'          => get_post_embed_html( 400, 225, $post ),
-			), $data
+			),
+			$data
 		);
 	}
 
@@ -64,7 +65,8 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 				'width'         => 400,
 				'height'        => 225,
 				'html'          => get_post_embed_html( 400, 225, $post ),
-			), $data
+			),
+			$data
 		);
 	}
 
@@ -88,7 +90,8 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 				'author_url'    => get_home_url( '/' ),
 				'title'         => 'Some Post',
 				'type'          => 'link',
-			), $data
+			),
+			$data
 		);
 
 		add_filter( 'oembed_response_data', 'get_oembed_response_data_rich', 10, 4 );
@@ -161,7 +164,9 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		$post          = self::factory()->post->create_and_get();
 		$file          = DIR_TESTDATA . '/images/canola.jpg';
 		$attachment_id = self::factory()->attachment->create_object(
-			$file, $post->ID, array(
+			$file,
+			$post->ID,
+			array(
 				'post_mime_type' => 'image/jpeg',
 			)
 		);
@@ -179,7 +184,9 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		$parent = self::factory()->post->create();
 		$file   = DIR_TESTDATA . '/images/canola.jpg';
 		$post   = self::factory()->attachment->create_object(
-			$file, $parent, array(
+			$file,
+			$parent,
+			array(
 				'post_mime_type' => 'image/jpeg',
 			)
 		);

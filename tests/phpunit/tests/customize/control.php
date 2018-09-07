@@ -42,40 +42,51 @@ class Test_WP_Customize_Control extends WP_UnitTestCase {
 	function test_check_capabilities() {
 		do_action( 'customize_register', $this->wp_customize );
 		$control = new WP_Customize_Control(
-			$this->wp_customize, 'blogname', array(
+			$this->wp_customize,
+			'blogname',
+			array(
 				'settings' => array( 'blogname' ),
 			)
 		);
 		$this->assertTrue( $control->check_capabilities() );
 
 		$control = new WP_Customize_Control(
-			$this->wp_customize, 'blogname', array(
+			$this->wp_customize,
+			'blogname',
+			array(
 				'settings' => array( 'blogname', 'non_existing' ),
 			)
 		);
 		$this->assertFalse( $control->check_capabilities() );
 
 		$this->wp_customize->add_setting(
-			'top_secret_message', array(
+			'top_secret_message',
+			array(
 				'capability' => 'top_secret_clearance',
 			)
 		);
 		$control = new WP_Customize_Control(
-			$this->wp_customize, 'blogname', array(
+			$this->wp_customize,
+			'blogname',
+			array(
 				'settings' => array( 'blogname', 'top_secret_clearance' ),
 			)
 		);
 		$this->assertFalse( $control->check_capabilities() );
 
 		$control = new WP_Customize_Control(
-			$this->wp_customize, 'no_setting', array(
+			$this->wp_customize,
+			'no_setting',
+			array(
 				'settings' => array(),
 			)
 		);
 		$this->assertTrue( $control->check_capabilities() );
 
 		$control = new WP_Customize_Control(
-			$this->wp_customize, 'no_setting', array(
+			$this->wp_customize,
+			'no_setting',
+			array(
 				'settings'   => array(),
 				'capability' => 'top_secret_clearance',
 			)
@@ -83,7 +94,9 @@ class Test_WP_Customize_Control extends WP_UnitTestCase {
 		$this->assertFalse( $control->check_capabilities() );
 
 		$control = new WP_Customize_Control(
-			$this->wp_customize, 'no_setting', array(
+			$this->wp_customize,
+			'no_setting',
+			array(
 				'settings'   => array(),
 				'capability' => 'edit_theme_options',
 			)

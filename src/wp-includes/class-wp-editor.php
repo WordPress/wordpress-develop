@@ -80,7 +80,8 @@ final class _WP_Editors {
 		$settings = apply_filters( 'wp_editor_settings', $settings, $editor_id );
 
 		$set = wp_parse_args(
-			$settings, array(
+			$settings,
+			array(
 				'wpautop'             => true,
 				'media_buttons'       => true,
 				'default_editor'      => '',
@@ -257,7 +258,8 @@ final class _WP_Editors {
 		 * @param string $output Editor's HTML markup.
 		 */
 		$the_editor = apply_filters(
-			'the_editor', '<div id="wp-' . $editor_id_attr . '-editor-container" class="wp-editor-container">' .
+			'the_editor',
+			'<div id="wp-' . $editor_id_attr . '-editor-container" class="wp-editor-container">' .
 			$quicktags_toolbar .
 			'<textarea' . $editor_class . $height . $tabindex . $autocomplete . ' cols="40" name="' . esc_attr( $set['textarea_name'] ) . '" ' .
 			'id="' . $editor_id_attr . '">%s</textarea></div>'
@@ -286,12 +288,11 @@ final class _WP_Editors {
 
 		// Back-compat for the `htmledit_pre` and `richedit_pre` filters
 		if ( 'html' === $default_editor && has_filter( 'htmledit_pre' ) ) {
-			// TODO: needs _deprecated_filter(), use _deprecated_function() as substitute for now
-			_deprecated_function( 'add_filter( htmledit_pre )', '4.3.0', 'add_filter( format_for_editor )' );
-			$content = apply_filters( 'htmledit_pre', $content );
+			/** This filter is documented in wp-includes/deprecated.php */
+			$content = apply_filters_deprecated( 'htmledit_pre', array( $content ), '4.3.0', 'format_for_editor' );
 		} elseif ( 'tinymce' === $default_editor && has_filter( 'richedit_pre' ) ) {
-			_deprecated_function( 'add_filter( richedit_pre )', '4.3.0', 'add_filter( format_for_editor )' );
-			$content = apply_filters( 'richedit_pre', $content );
+			/** This filter is documented in wp-includes/deprecated.php */
+			$content = apply_filters_deprecated( 'richedit_pre', array( $content ), '4.3.0', 'format_for_editor' );
 		}
 
 		if ( false !== stripos( $content, 'textarea' ) ) {
@@ -515,7 +516,6 @@ final class _WP_Editors {
 							}
 
 							$ext_plugins .= 'tinyMCEPreInit.load_ext("' . $plugurl . '", "' . $mce_locale . '");' . "\n";
-							$ext_plugins .= 'tinymce.PluginManager.load("' . $name . '", "' . $url . '");' . "\n";
 						}
 					}
 				}
@@ -793,7 +793,8 @@ final class _WP_Editors {
 		 *                       and Quicktags are being loaded.
 		 */
 		do_action(
-			'wp_enqueue_editor', array(
+			'wp_enqueue_editor',
+			array(
 				'tinymce'   => ( $default_scripts || self::$has_tinymce ),
 				'quicktags' => ( $default_scripts || self::$has_quicktags ),
 			)
@@ -849,7 +850,8 @@ final class _WP_Editors {
 			// The 'wpview', 'wpdialogs', and 'media' TinyMCE plugins are not initialized by default.
 			// Can be added from js by using the 'wp-before-tinymce-init' event.
 			$settings['plugins'] = implode(
-				',', array(
+				',',
+				array(
 					'charmap',
 					'colorpicker',
 					'hr',
@@ -1411,8 +1413,16 @@ final class _WP_Editors {
 		$version = 'ver=' . $tinymce_version;
 		$baseurl = self::get_baseurl();
 
+		$has_custom_theme = false;
+		foreach ( self::$mce_settings as $init ) {
+			if ( ! empty( $init['theme_url'] ) ) {
+				$has_custom_theme = true;
+				break;
+			}
+		}
+
 		$compressed = $compress_scripts && $concatenate_scripts && isset( $_SERVER['HTTP_ACCEPT_ENCODING'] )
-			&& false !== stripos( $_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip' );
+			&& false !== stripos( $_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip' ) && ! $has_custom_theme;
 
 		// Load tinymce.js when running from /src, else load wp-tinymce.js.gz (production) or tinymce.min.js (SCRIPT_DEBUG)
 		$mce_suffix = false !== strpos( get_bloginfo( 'version' ), '-src' ) ? '' : '.min';

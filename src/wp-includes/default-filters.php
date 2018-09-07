@@ -349,9 +349,13 @@ add_action( 'welcome_panel', 'wp_welcome_panel' );
 
 // Privacy
 add_action( 'user_request_action_confirmed', '_wp_privacy_account_request_confirmed' );
-add_filter( 'user_request_action_confirmed_message', '_wp_privacy_account_request_confirmed_message', 10, 2 );
+add_action( 'user_request_action_confirmed', '_wp_privacy_send_request_confirmation_notification', 12 ); // After request marked as completed.
 add_filter( 'wp_privacy_personal_data_exporters', 'wp_register_comment_personal_data_exporter' );
+add_filter( 'wp_privacy_personal_data_exporters', 'wp_register_media_personal_data_exporter' );
+add_filter( 'wp_privacy_personal_data_exporters', 'wp_register_user_personal_data_exporter', 1 );
 add_filter( 'wp_privacy_personal_data_erasers', 'wp_register_comment_personal_data_eraser' );
+add_action( 'init', 'wp_schedule_delete_old_privacy_export_files' );
+add_action( 'wp_privacy_delete_old_export_files', 'wp_privacy_delete_old_export_files' );
 
 // Cron tasks
 add_action( 'wp_scheduled_delete', 'wp_scheduled_delete' );
@@ -376,7 +380,7 @@ add_action( 'post_updated', 'wp_check_for_changed_slugs', 12, 3 );
 add_action( 'attachment_updated', 'wp_check_for_changed_slugs', 12, 3 );
 
 // Redirect Old Dates
-add_action( 'post_updated',       'wp_check_for_changed_dates', 12, 3 );
+add_action( 'post_updated', 'wp_check_for_changed_dates', 12, 3 );
 add_action( 'attachment_updated', 'wp_check_for_changed_dates', 12, 3 );
 
 // Nonce check for Post Previews
@@ -556,9 +560,5 @@ add_filter( 'pre_oembed_result', 'wp_filter_pre_oembed_result', 10, 3 );
 
 // Capabilities
 add_filter( 'user_has_cap', 'wp_maybe_grant_install_languages_cap', 1 );
-
-// Trigger the check for policy text changes after active plugins change.
-add_action( 'update_site_option_active_sitewide_plugins', '_wp_privacy_active_plugins_change' );
-add_action( 'update_option_active_plugins', '_wp_privacy_active_plugins_change' );
 
 unset( $filter, $action );

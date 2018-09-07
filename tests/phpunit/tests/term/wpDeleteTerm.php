@@ -15,7 +15,8 @@ class Tests_Term_WpDeleteTerm extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'post' );
 
 		$terms = self::factory()->term->create_many(
-			2, array(
+			2,
+			array(
 				'taxonomy' => 'wptests_tax',
 			)
 		);

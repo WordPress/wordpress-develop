@@ -28,7 +28,7 @@
  *
  *     @type int|bool $show_updated     Whether to show the time the bookmark was last updated.
  *                                      Accepts 1|true or 0|false. Default 0|false.
- *     @type int|bool $show_description Whether to show the bookmakr description. Accepts 1|true,
+ *     @type int|bool $show_description Whether to show the bookmark description. Accepts 1|true,
  *                                      Accepts 1|true or 0|false. Default 0|false.
  *     @type int|bool $show_images      Whether to show the link image if available. Accepts 1|true
  *                                      or 0|false. Default 1|true.
@@ -237,7 +237,8 @@ function wp_list_bookmarks( $args = '' ) {
 
 	if ( $r['categorize'] ) {
 		$cats = get_terms(
-			'link_category', array(
+			'link_category',
+			array(
 				'name__like'   => $r['category_name'],
 				'include'      => $r['category'],
 				'exclude'      => $r['exclude_category'],

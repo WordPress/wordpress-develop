@@ -121,6 +121,15 @@ function map_meta_cap( $cap, $user_id ) {
 					$caps[] = $post_type->cap->delete_private_posts;
 				}
 			}
+
+			/*
+			 * Setting the privacy policy page requires `manage_privacy_options`,
+			 * so deleting it should require that too.
+			 */
+			if ( (int) get_option( 'wp_page_for_privacy_policy' ) === $post->ID ) {
+				$caps = array_merge( $caps, map_meta_cap( 'manage_privacy_options', $user_id ) );
+			}
+
 			break;
 		// edit_post breaks down to edit_posts, edit_published_posts, or
 		// edit_others_posts
@@ -183,6 +192,15 @@ function map_meta_cap( $cap, $user_id ) {
 					$caps[] = $post_type->cap->edit_private_posts;
 				}
 			}
+
+			/*
+			 * Setting the privacy policy page requires `manage_privacy_options`,
+			 * so editing it should require that too.
+			 */
+			if ( (int) get_option( 'wp_page_for_privacy_policy' ) === $post->ID ) {
+				$caps = array_merge( $caps, map_meta_cap( 'manage_privacy_options', $user_id ) );
+			}
+
 			break;
 		case 'read_post':
 		case 'read_page':
@@ -263,45 +281,9 @@ function map_meta_cap( $cap, $user_id ) {
 			list( $_, $object_type, $_ ) = explode( '_', $cap );
 			$object_id                   = (int) $args[0];
 
-			switch ( $object_type ) {
-				case 'post':
-					$post = get_post( $object_id );
-					if ( ! $post ) {
-						break;
-					}
+			$object_subtype = get_object_subtype( $object_type, $object_id );
 
-					$sub_type = get_post_type( $post );
-					break;
-
-				case 'comment':
-					$comment = get_comment( $object_id );
-					if ( ! $comment ) {
-						break;
-					}
-
-					$sub_type = empty( $comment->comment_type ) ? 'comment' : $comment->comment_type;
-					break;
-
-				case 'term':
-					$term = get_term( $object_id );
-					if ( ! $term instanceof WP_Term ) {
-						break;
-					}
-
-					$sub_type = $term->taxonomy;
-					break;
-
-				case 'user':
-					$user = get_user_by( 'id', $object_id );
-					if ( ! $user ) {
-						break;
-					}
-
-					$sub_type = 'user';
-					break;
-			}
-
-			if ( empty( $sub_type ) ) {
+			if ( empty( $object_subtype ) ) {
 				$caps[] = 'do_not_allow';
 				break;
 			}
@@ -310,55 +292,79 @@ function map_meta_cap( $cap, $user_id ) {
 
 			$meta_key = isset( $args[1] ) ? $args[1] : false;
 
-			$has_filter = has_filter( "auth_{$object_type}_meta_{$meta_key}" ) || has_filter( "auth_{$object_type}_{$sub_type}_meta_{$meta_key}" );
-			if ( $meta_key && $has_filter ) {
+			if ( $meta_key ) {
+				$allowed = ! is_protected_meta( $meta_key, $object_type );
 
-				/**
-				 * Filters whether the user is allowed to edit meta for specific object types.
-				 *
-				 * Return true to have the mapped meta caps from `edit_{$object_type}` apply.
-				 *
-				 * The dynamic portion of the hook name, `$object_type` refers to the object type being filtered.
-				 * The dynamic portion of the hook name, `$meta_key`, refers to the meta key passed to map_meta_cap().
-				 *
-				 * @since 3.3.0 As `auth_post_meta_{$meta_key}`.
-				 * @since 4.6.0
-				 *
-				 * @param bool     $allowed   Whether the user can add the object meta. Default false.
-				 * @param string   $meta_key  The meta key.
-				 * @param int      $object_id Object ID.
-				 * @param int      $user_id   User ID.
-				 * @param string   $cap       Capability name.
-				 * @param string[] $caps      Array of the user's capabilities.
-				 */
-				$allowed = apply_filters( "auth_{$object_type}_meta_{$meta_key}", false, $meta_key, $object_id, $user_id, $cap, $caps );
+				if ( ! empty( $object_subtype ) && has_filter( "auth_{$object_type}_meta_{$meta_key}_for_{$object_subtype}" ) ) {
 
-				/**
-				 * Filters whether the user is allowed to edit meta for specific object types/subtypes.
-				 *
-				 * Return true to have the mapped meta caps from `edit_{$object_type}` apply.
-				 *
-				 * The dynamic portion of the hook name, `$object_type` refers to the object type being filtered.
-				 * The dynamic portion of the hook name, `$sub_type` refers to the object subtype being filtered.
-				 * The dynamic portion of the hook name, `$meta_key`, refers to the meta key passed to map_meta_cap().
-				 *
-				 * @since 4.6.0 As `auth_post_{$post_type}_meta_{$meta_key}`.
-				 * @since 4.7.0
-				 *
-				 * @param bool     $allowed   Whether the user can add the object meta. Default false.
-				 * @param string   $meta_key  The meta key.
-				 * @param int      $object_id Object ID.
-				 * @param int      $user_id   User ID.
-				 * @param string   $cap       Capability name.
-				 * @param string[] $caps      Array of the user's capabilities.
-				 */
-				$allowed = apply_filters( "auth_{$object_type}_{$sub_type}_meta_{$meta_key}", $allowed, $meta_key, $object_id, $user_id, $cap, $caps );
+					/**
+					 * Filters whether the user is allowed to edit a specific meta key of a specific object type and subtype.
+					 *
+					 * The dynamic portions of the hook name, `$object_type`, `$meta_key`,
+					 * and `$object_subtype`, refer to the metadata object type (comment, post, term or user),
+					 * the meta key value, and the object subtype respectively.
+					 *
+					 * @since 4.9.8
+					 *
+					 * @param bool     $allowed   Whether the user can add the object meta. Default false.
+					 * @param string   $meta_key  The meta key.
+					 * @param int      $object_id Object ID.
+					 * @param int      $user_id   User ID.
+					 * @param string   $cap       Capability name.
+					 * @param string[] $caps      Array of the user's capabilities.
+					 */
+					$allowed = apply_filters( "auth_{$object_type}_meta_{$meta_key}_for_{$object_subtype}", $allowed, $meta_key, $object_id, $user_id, $cap, $caps );
+				} else {
+
+					/**
+					 * Filters whether the user is allowed to edit a specific meta key of a specific object type.
+					 *
+					 * Return true to have the mapped meta caps from `edit_{$object_type}` apply.
+					 *
+					 * The dynamic portion of the hook name, `$object_type` refers to the object type being filtered.
+					 * The dynamic portion of the hook name, `$meta_key`, refers to the meta key passed to map_meta_cap().
+					 *
+					 * @since 3.3.0 As `auth_post_meta_{$meta_key}`.
+					 * @since 4.6.0
+					 *
+					 * @param bool     $allowed   Whether the user can add the object meta. Default false.
+					 * @param string   $meta_key  The meta key.
+					 * @param int      $object_id Object ID.
+					 * @param int      $user_id   User ID.
+					 * @param string   $cap       Capability name.
+					 * @param string[] $caps      Array of the user's capabilities.
+					 */
+					$allowed = apply_filters( "auth_{$object_type}_meta_{$meta_key}", $allowed, $meta_key, $object_id, $user_id, $cap, $caps );
+				}
+
+				if ( ! empty( $object_subtype ) ) {
+
+					/**
+					 * Filters whether the user is allowed to edit meta for specific object types/subtypes.
+					 *
+					 * Return true to have the mapped meta caps from `edit_{$object_type}` apply.
+					 *
+					 * The dynamic portion of the hook name, `$object_type` refers to the object type being filtered.
+					 * The dynamic portion of the hook name, `$object_subtype` refers to the object subtype being filtered.
+					 * The dynamic portion of the hook name, `$meta_key`, refers to the meta key passed to map_meta_cap().
+					 *
+					 * @since 4.6.0 As `auth_post_{$post_type}_meta_{$meta_key}`.
+					 * @since 4.7.0
+					 * @deprecated 4.9.8 Use `auth_{$object_type}_meta_{$meta_key}_for_{$object_subtype}`
+					 *
+					 * @param bool     $allowed   Whether the user can add the object meta. Default false.
+					 * @param string   $meta_key  The meta key.
+					 * @param int      $object_id Object ID.
+					 * @param int      $user_id   User ID.
+					 * @param string   $cap       Capability name.
+					 * @param string[] $caps      Array of the user's capabilities.
+					 */
+					$allowed = apply_filters_deprecated( "auth_{$object_type}_{$object_subtype}_meta_{$meta_key}", array( $allowed, $meta_key, $object_id, $user_id, $cap, $caps ), '4.9.8', "auth_{$object_type}_meta_{$meta_key}_for_{$object_subtype}" );
+				}
 
 				if ( ! $allowed ) {
 					$caps[] = $cap;
 				}
-			} elseif ( $meta_key && is_protected_meta( $meta_key, $object_type ) ) {
-				$caps[] = $cap;
 			}
 			break;
 		case 'edit_comment':
@@ -548,12 +554,17 @@ function map_meta_cap( $cap, $user_id ) {
 				$caps[] = 'manage_options';
 			}
 			break;
-		case 'upgrade_php':
+		case 'update_php':
 			if ( is_multisite() && ! is_super_admin( $user_id ) ) {
 				$caps[] = 'do_not_allow';
 			} else {
 				$caps[] = 'update_core';
 			}
+			break;
+		case 'export_others_personal_data':
+		case 'erase_others_personal_data':
+		case 'manage_privacy_options':
+			$caps[] = is_multisite() ? 'manage_network' : 'manage_options';
 			break;
 		default:
 			// Handle meta capabilities for custom post types.

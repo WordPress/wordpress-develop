@@ -319,6 +319,41 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 44221
+	 */
+	public function test_all_with_object_id_should_return_term_objects() {
+		register_taxonomy( 'wptests_tax_1', 'post' );
+		$posts = self::factory()->post->create_many( 2 );
+		$t     = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax_1' ) );
+
+		foreach ( $posts as $p ) {
+			wp_set_object_terms( $p, array( $t ), 'wptests_tax_1' );
+		}
+
+		$query = new WP_Term_Query();
+		$args  = array(
+			'taxonomy'   => 'wptests_tax_1',
+			'object_ids' => $posts,
+			'fields'     => 'all_with_object_id',
+		);
+
+		$terms = $query->query( $args );
+		$this->assertNotEmpty( $terms );
+		foreach ( $terms as $term ) {
+			$this->assertInstanceOf( 'WP_Term', $term );
+			$this->assertObjectHasAttribute( 'object_id', $term );
+		}
+
+		// Run again to check the cached response.
+		$terms = $query->query( $args );
+		$this->assertNotEmpty( $terms );
+		foreach ( $terms as $term ) {
+			$this->assertInstanceOf( 'WP_Term', $term );
+			$this->assertObjectHasAttribute( 'object_id', $term );
+		}
+	}
+
+	/**
 	 * @ticket 37198
 	 * @group cache
 	 */
@@ -427,7 +462,9 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	 */
 	public function test_get_the_terms_should_respect_taxonomy_orderby() {
 		register_taxonomy(
-			'wptests_tax', 'post', array(
+			'wptests_tax',
+			'post',
+			array(
 				'sort' => true,
 				'args' => array(
 					'orderby' => 'term_order',
@@ -435,7 +472,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 		$term_ids = self::factory()->term->create_many(
-			2, array(
+			2,
+			array(
 				'taxonomy' => 'wptests_tax',
 			)
 		);
@@ -454,7 +492,9 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	 */
 	public function test_wp_get_object_terms_should_respect_taxonomy_orderby() {
 		register_taxonomy(
-			'wptests_tax', 'post', array(
+			'wptests_tax',
+			'post',
+			array(
 				'sort' => true,
 				'args' => array(
 					'orderby' => 'term_order',
@@ -462,7 +502,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 		$term_ids = self::factory()->term->create_many(
-			2, array(
+			2,
+			array(
 				'taxonomy' => 'wptests_tax',
 			)
 		);
@@ -506,14 +547,18 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		wp_set_object_terms( $p, array( $t1, $t2 ), 'wptests_tax' );
 
 		$expected = wp_get_post_terms(
-			$p, 'wptests_tax', array(
+			$p,
+			'wptests_tax',
+			array(
 				'fields' => 'ids',
 			)
 		);
 
 		$found1 = array_keys(
 			wp_get_object_terms(
-				$p, 'wptests_tax', array(
+				$p,
+				'wptests_tax',
+				array(
 					'fields' => 'id=>parent',
 				)
 			)
@@ -521,7 +566,9 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 		$found2 = array_keys(
 			wp_get_object_terms(
-				$p, 'wptests_tax', array(
+				$p,
+				'wptests_tax',
+				array(
 					'fields' => 'id=>slug',
 				)
 			)
@@ -529,7 +576,9 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 		$found3 = array_keys(
 			wp_get_object_terms(
-				$p, 'wptests_tax', array(
+				$p,
+				'wptests_tax',
+				array(
 					'fields' => 'id=>name',
 				)
 			)
@@ -613,5 +662,79 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 		$this->assertSame( array(), $q->terms );
+	}
+
+	/**
+	 * @ticket 42691
+	 */
+	public function test_null_term_object_should_be_discarded() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$terms = self::factory()->term->create_many(
+			3,
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$this->term_id = $terms[1];
+
+		add_filter( 'get_term', array( $this, 'filter_term_to_null' ) );
+		$found = get_terms(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'hide_empty' => false,
+			)
+		);
+		remove_filter( 'get_term', array( $this, 'filter_term_to_null' ) );
+
+		$expected = array( $terms[0], $terms[2] );
+
+		$this->assertEqualSets( $expected, wp_list_pluck( $found, 'term_id' ) );
+	}
+
+	public function filter_term_to_null( $term ) {
+		if ( $this->term_id === $term->term_id ) {
+			return null;
+		}
+
+		return $term;
+	}
+
+	/**
+	 * @ticket 42691
+	 */
+	public function test_error_term_object_should_be_discarded() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$terms = self::factory()->term->create_many(
+			3,
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$this->term_id = $terms[1];
+
+		add_filter( 'get_term', array( $this, 'filter_term_to_wp_error' ) );
+		$found = get_terms(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'hide_empty' => false,
+			)
+		);
+		remove_filter( 'get_term', array( $this, 'filter_term_to_wp_error' ) );
+
+		$expected = array( $terms[0], $terms[2] );
+
+		$this->assertEqualSets( $expected, wp_list_pluck( $found, 'term_id' ) );
+	}
+
+	public function filter_term_to_wp_error( $term ) {
+		if ( $this->term_id === $term->term_id ) {
+			return new WP_Error( 'foo' );
+		}
+
+		return $term;
 	}
 }

@@ -4,17 +4,30 @@
 
 	<rule ref="WordPress-Core"/>
 	<rule ref="WordPress.CodeAnalysis.EmptyStatement"/>
-	<rule ref="WordPress.Commenting.DocblockFormat"/>
+
+	<rule ref="PEAR.Functions.FunctionCallSignature">
+		<properties>
+			<property name="allowMultipleArguments" value="false"/>
+		</properties>
+	</rule>
 
 	<arg name="extensions" value="php"/>
+
+	<!-- Strip the filepaths down to the relevant bit. -->
+	<arg name="basepath" value="./"/>
+
+	<!-- Check up to 20 files simultanously. -->
+	<arg name="parallel" value="20"/>
 
 	<!-- Show sniff codes in all reports -->
 	<arg value="ps"/>
 
 	<file>.</file>
 
+	<!-- Exclude the build folder in the current directory, as Travis puts the checkout in a build directory. -->
+	<exclude-pattern type="relative">^build/*</exclude-pattern>
+
 	<!-- Directories and third party library exclusions -->
-	<exclude-pattern>/build/*</exclude-pattern>
 	<exclude-pattern>/node_modules/*</exclude-pattern>
 	<exclude-pattern>/vendor/*</exclude-pattern>
 
@@ -69,6 +82,12 @@
 		<exclude-pattern>/tests/phpunit/tests/db\.php</exclude-pattern>
 	</rule>
 
+	<!-- Whitelist the I18n functions file from issues identified by the I18n sniff
+		(such as calling the low-level translate() function). -->
+	<rule ref="WordPress.WP.I18n">
+		<exclude-pattern>/src/wp-includes/l10n\.php</exclude-pattern>
+	</rule>
+
 	<rule ref="Generic.Functions.FunctionCallArgumentSpacing">
 		<exclude-pattern>/wp-config\.php</exclude-pattern>
 		<exclude-pattern>/wp-config-sample\.php</exclude-pattern>
@@ -76,13 +95,13 @@
 		<exclude-pattern>/wp-tests-config-sample\.php</exclude-pattern>
 	</rule>
 
+	<rule ref="Generic.Files.LineEndings">
+		<exclude-pattern>/wp-config\.php</exclude-pattern>
+		<exclude-pattern>/wp-config-sample\.php</exclude-pattern>
+	</rule>
+
 	<!-- Whitelist test classes for select sniffs. -->
 	<rule ref="WordPress.Files.FileName">
-		<properties>
-			<property name="custom_test_class_whitelist" type="array" value="WP_UnitTestCase,WP_Ajax_UnitTestCase,WP_Canonical_UnitTestCase,WP_Test_REST_TestCase,WP_Test_REST_Controller_Testcase,WP_Test_REST_Post_Type_Controller_Testcase,WP_XMLRPC_UnitTestCase"/>
-		</properties>
-	</rule>
-	<rule ref="WordPress.Variables.GlobalVariables">
 		<properties>
 			<property name="custom_test_class_whitelist" type="array" value="WP_UnitTestCase,WP_Ajax_UnitTestCase,WP_Canonical_UnitTestCase,WP_Test_REST_TestCase,WP_Test_REST_Controller_Testcase,WP_Test_REST_Post_Type_Controller_Testcase,WP_XMLRPC_UnitTestCase"/>
 		</properties>

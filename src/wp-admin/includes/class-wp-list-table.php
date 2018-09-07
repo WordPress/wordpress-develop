@@ -137,7 +137,8 @@ class WP_List_Table {
 	 */
 	public function __construct( $args = array() ) {
 		$args = wp_parse_args(
-			$args, array(
+			$args,
+			array(
 				'plural'   => '',
 				'singular' => '',
 				'ajax'     => false,
@@ -274,7 +275,8 @@ class WP_List_Table {
 	 */
 	protected function set_pagination_args( $args ) {
 		$args = wp_parse_args(
-			$args, array(
+			$args,
+			array(
 				'total_items' => 0,
 				'total_pages' => 0,
 				'per_page'    => 0,
@@ -360,13 +362,13 @@ class WP_List_Table {
 		if ( ! empty( $_REQUEST['detached'] ) ) {
 			echo '<input type="hidden" name="detached" value="' . esc_attr( $_REQUEST['detached'] ) . '" />';
 		}
-?>
+		?>
 <p class="search-box">
 	<label class="screen-reader-text" for="<?php echo esc_attr( $input_id ); ?>"><?php echo $text; ?>:</label>
 	<input type="search" id="<?php echo esc_attr( $input_id ); ?>" name="s" value="<?php _admin_search_query(); ?>" />
-	<?php submit_button( $text, '', '', false, array( 'id' => 'search-submit' ) ); ?>
+		<?php submit_button( $text, '', '', false, array( 'id' => 'search-submit' ) ); ?>
 </p>
-<?php
+		<?php
 	}
 
 	/**
@@ -568,7 +570,8 @@ class WP_List_Table {
 			WHERE post_type = %s
 			$extra_checks
 			ORDER BY post_date DESC
-		", $post_type
+		",
+				$post_type
 			)
 		);
 
@@ -589,30 +592,30 @@ class WP_List_Table {
 		}
 
 		$m = isset( $_GET['m'] ) ? (int) $_GET['m'] : 0;
-?>
+		?>
 		<label for="filter-by-date" class="screen-reader-text"><?php _e( 'Filter by date' ); ?></label>
 		<select name="m" id="filter-by-date">
 			<option<?php selected( $m, 0 ); ?> value="0"><?php _e( 'All dates' ); ?></option>
-<?php
-foreach ( $months as $arc_row ) {
-	if ( 0 == $arc_row->year ) {
-		continue;
-	}
+		<?php
+		foreach ( $months as $arc_row ) {
+			if ( 0 == $arc_row->year ) {
+				continue;
+			}
 
-	$month = zeroise( $arc_row->month, 2 );
-	$year  = $arc_row->year;
+			$month = zeroise( $arc_row->month, 2 );
+			$year  = $arc_row->year;
 
-	printf(
-		"<option %s value='%s'>%s</option>\n",
-		selected( $m, $year . $month, false ),
-		esc_attr( $arc_row->year . $month ),
-		/* translators: 1: month name, 2: 4-digit year */
-		sprintf( __( '%1$s %2$d' ), $wp_locale->get_month( $month ), $year )
-	);
-}
-?>
+			printf(
+				"<option %s value='%s'>%s</option>\n",
+				selected( $m, $year . $month, false ),
+				esc_attr( $arc_row->year . $month ),
+				/* translators: 1: month name, 2: 4-digit year */
+				sprintf( __( '%1$s %2$d' ), $wp_locale->get_month( $month ), $year )
+			);
+		}
+		?>
 		</select>
-<?php
+		<?php
 	}
 
 	/**
@@ -623,25 +626,25 @@ foreach ( $months as $arc_row ) {
 	 * @param string $current_mode
 	 */
 	protected function view_switcher( $current_mode ) {
-?>
+		?>
 		<input type="hidden" name="mode" value="<?php echo esc_attr( $current_mode ); ?>" />
 		<div class="view-switch">
-<?php
-foreach ( $this->modes as $mode => $title ) {
-	$classes = array( 'view-' . $mode );
-	if ( $current_mode === $mode ) {
-		$classes[] = 'current';
-	}
-	printf(
-		"<a href='%s' class='%s' id='view-switch-$mode'><span class='screen-reader-text'>%s</span></a>\n",
-		esc_url( add_query_arg( 'mode', $mode ) ),
-		implode( ' ', $classes ),
-		$title
-	);
-}
+		<?php
+		foreach ( $this->modes as $mode => $title ) {
+			$classes = array( 'view-' . $mode );
+			if ( $current_mode === $mode ) {
+				$classes[] = 'current';
+			}
+			printf(
+				"<a href='%s' class='%s' id='view-switch-$mode'><span class='screen-reader-text'>%s</span></a>\n",
+				esc_url( add_query_arg( 'mode', $mode ) ),
+				implode( ' ', $classes ),
+				$title
+			);
+		}
 		?>
 		</div>
-<?php
+		<?php
 	}
 
 	/**
@@ -677,7 +680,8 @@ foreach ( $this->modes as $mode => $title ) {
 						array(
 							'p'              => $post_id,
 							'comment_status' => 'approved',
-						), admin_url( 'edit-comments.php' )
+						),
+						admin_url( 'edit-comments.php' )
 					)
 				),
 				$approved_comments_number,
@@ -699,7 +703,8 @@ foreach ( $this->modes as $mode => $title ) {
 						array(
 							'p'              => $post_id,
 							'comment_status' => 'moderated',
-						), admin_url( 'edit-comments.php' )
+						),
+						admin_url( 'edit-comments.php' )
 					)
 				),
 				$pending_comments_number,
@@ -817,10 +822,10 @@ foreach ( $this->modes as $mode => $title ) {
 		}
 
 		if ( $disable_first ) {
-			$page_links[] = '<span class="tablenav-pages-navspan" aria-hidden="true">&laquo;</span>';
+			$page_links[] = '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&laquo;</span>';
 		} else {
 			$page_links[] = sprintf(
-				"<a class='first-page' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
+				"<a class='first-page button' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
 				esc_url( remove_query_arg( 'paged', $current_url ) ),
 				__( 'First page' ),
 				'&laquo;'
@@ -828,10 +833,10 @@ foreach ( $this->modes as $mode => $title ) {
 		}
 
 		if ( $disable_prev ) {
-			$page_links[] = '<span class="tablenav-pages-navspan" aria-hidden="true">&lsaquo;</span>';
+			$page_links[] = '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&lsaquo;</span>';
 		} else {
 			$page_links[] = sprintf(
-				"<a class='prev-page' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
+				"<a class='prev-page button' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
 				esc_url( add_query_arg( 'paged', max( 1, $current - 1 ), $current_url ) ),
 				__( 'Previous page' ),
 				'&lsaquo;'
@@ -853,10 +858,10 @@ foreach ( $this->modes as $mode => $title ) {
 		$page_links[]     = $total_pages_before . sprintf( _x( '%1$s of %2$s', 'paging' ), $html_current_page, $html_total_pages ) . $total_pages_after;
 
 		if ( $disable_next ) {
-			$page_links[] = '<span class="tablenav-pages-navspan" aria-hidden="true">&rsaquo;</span>';
+			$page_links[] = '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&rsaquo;</span>';
 		} else {
 			$page_links[] = sprintf(
-				"<a class='next-page' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
+				"<a class='next-page button' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
 				esc_url( add_query_arg( 'paged', min( $total_pages, $current + 1 ), $current_url ) ),
 				__( 'Next page' ),
 				'&rsaquo;'
@@ -864,10 +869,10 @@ foreach ( $this->modes as $mode => $title ) {
 		}
 
 		if ( $disable_last ) {
-			$page_links[] = '<span class="tablenav-pages-navspan" aria-hidden="true">&raquo;</span>';
+			$page_links[] = '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&raquo;</span>';
 		} else {
 			$page_links[] = sprintf(
-				"<a class='last-page' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
+				"<a class='last-page button' href='%s'><span class='screen-reader-text'>%s</span><span aria-hidden='true'>%s</span></a>",
 				esc_url( add_query_arg( 'paged', $total_pages, $current_url ) ),
 				__( 'Last page' ),
 				'&raquo;'
@@ -1152,7 +1157,7 @@ foreach ( $this->modes as $mode => $title ) {
 		$this->display_tablenav( 'top' );
 
 		$this->screen->render_screen_reader_content( 'heading_list' );
-?>
+		?>
 <table class="wp-list-table <?php echo implode( ' ', $this->get_table_classes() ); ?>">
 	<thead>
 	<tr>
@@ -1161,10 +1166,10 @@ foreach ( $this->modes as $mode => $title ) {
 	</thead>
 
 	<tbody id="the-list"
-	<?php
-	if ( $singular ) {
-		echo " data-wp-lists='list:$singular'";
-	}
+		<?php
+		if ( $singular ) {
+			echo " data-wp-lists='list:$singular'";
+		}
 		?>
 		>
 		<?php $this->display_rows_or_placeholder(); ?>
@@ -1177,7 +1182,7 @@ foreach ( $this->modes as $mode => $title ) {
 	</tfoot>
 
 </table>
-<?php
+		<?php
 		$this->display_tablenav( 'bottom' );
 	}
 
@@ -1209,7 +1214,7 @@ foreach ( $this->modes as $mode => $title ) {
 		<div class="alignleft actions bulkactions">
 			<?php $this->bulk_actions( $which ); ?>
 		</div>
-		<?php
+			<?php
 		endif;
 		$this->extra_tablenav( $which );
 		$this->pagination( $which );
@@ -1217,7 +1222,7 @@ foreach ( $this->modes as $mode => $title ) {
 
 		<br class="clear" />
 	</div>
-<?php
+		<?php
 	}
 
 	/**

@@ -147,7 +147,7 @@ final class WP_Taxonomy {
 	 * Capabilities for this taxonomy.
 	 *
 	 * @since 4.7.0
-	 * @var array
+	 * @var object
 	 */
 	public $cap;
 
@@ -296,7 +296,8 @@ final class WP_Taxonomy {
 
 		if ( false !== $args['rewrite'] && ( is_admin() || '' != get_option( 'permalink_structure' ) ) ) {
 			$args['rewrite'] = wp_parse_args(
-				$args['rewrite'], array(
+				$args['rewrite'],
+				array(
 					'with_front'   => true,
 					'hierarchical' => false,
 					'ep_mask'      => EP_NONE,

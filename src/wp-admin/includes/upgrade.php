@@ -147,7 +147,8 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 			$cat_id = $wpdb->get_var( $wpdb->prepare( "SELECT cat_ID FROM {$wpdb->sitecategories} WHERE category_nicename = %s", $cat_slug ) );
 			if ( $cat_id == null ) {
 				$wpdb->insert(
-					$wpdb->sitecategories, array(
+					$wpdb->sitecategories,
+					array(
 						'cat_ID'            => 0,
 						'cat_name'          => $cat_name,
 						'category_nicename' => $cat_slug,
@@ -162,7 +163,8 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 		}
 
 		$wpdb->insert(
-			$wpdb->terms, array(
+			$wpdb->terms,
+			array(
 				'term_id'    => $cat_id,
 				'name'       => $cat_name,
 				'slug'       => $cat_slug,
@@ -170,7 +172,8 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 			)
 		);
 		$wpdb->insert(
-			$wpdb->term_taxonomy, array(
+			$wpdb->term_taxonomy,
+			array(
 				'term_id'     => $cat_id,
 				'taxonomy'    => 'category',
 				'description' => '',
@@ -206,7 +209,8 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 		}
 
 		$wpdb->insert(
-			$wpdb->posts, array(
+			$wpdb->posts,
+			array(
 				'post_author'           => $user_id,
 				'post_date'             => $now,
 				'post_date_gmt'         => $now_gmt,
@@ -225,7 +229,8 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 			)
 		);
 		$wpdb->insert(
-			$wpdb->term_relationships, array(
+			$wpdb->term_relationships,
+			array(
 				'term_taxonomy_id' => $cat_tt_id,
 				'object_id'        => 1,
 			)
@@ -248,7 +253,8 @@ To get started with moderating, editing, and deleting comments, please visit the
 Commenter avatars come from <a href="https://gravatar.com">Gravatar</a>.'
 		);
 		$wpdb->insert(
-			$wpdb->comments, array(
+			$wpdb->comments,
+			array(
 				'comment_post_ID'      => 1,
 				'comment_author'       => $first_comment_author,
 				'comment_author_email' => $first_comment_email,
@@ -275,12 +281,14 @@ Commenter avatars come from <a href="https://gravatar.com">Gravatar</a>.'
 <blockquote>The XYZ Doohickey Company was founded in 1971, and has been providing quality doohickeys to the public ever since. Located in Gotham City, XYZ employs over 2,000 people and does all kinds of awesome things for the Gotham community.</blockquote>
 
 As a new WordPress user, you should go to <a href=\"%s\">your dashboard</a> to delete this page and create new pages for your content. Have fun!"
-			), admin_url()
+			),
+			admin_url()
 		);
 
 		$first_post_guid = get_option( 'home' ) . '/?page_id=2';
 		$wpdb->insert(
-			$wpdb->posts, array(
+			$wpdb->posts,
+			array(
 				'post_author'           => $user_id,
 				'post_date'             => $now,
 				'post_date_gmt'         => $now_gmt,
@@ -300,7 +308,8 @@ As a new WordPress user, you should go to <a href=\"%s\">your dashboard</a> to d
 			)
 		);
 		$wpdb->insert(
-			$wpdb->postmeta, array(
+			$wpdb->postmeta,
+			array(
 				'post_id'    => 2,
 				'meta_key'   => '_wp_page_template',
 				'meta_value' => 'default',
@@ -308,52 +317,64 @@ As a new WordPress user, you should go to <a href=\"%s\">your dashboard</a> to d
 		);
 
 		// Privacy Policy page
-		if ( ! class_exists( 'WP_Privacy_Policy_Content' ) ) {
-			include_once( ABSPATH . 'wp-admin/includes/misc.php' );
+		if ( is_multisite() ) {
+			// Disable by default unless the suggested content is provided.
+			$privacy_policy_content = get_site_option( 'default_privacy_policy_content' );
+		} else {
+			if ( ! class_exists( 'WP_Privacy_Policy_Content' ) ) {
+				include_once( ABSPATH . 'wp-admin/includes/misc.php' );
+			}
+
+			$privacy_policy_content = WP_Privacy_Policy_Content::get_default_content();
 		}
 
-		$privacy_policy_content = WP_Privacy_Policy_Content::get_default_content();
-		$privacy_policy_guid = get_option( 'home' ) . '/?page_id=3';
+		if ( ! empty( $privacy_policy_content ) ) {
+			$privacy_policy_guid = get_option( 'home' ) . '/?page_id=3';
 
-		$wpdb->insert(
-			$wpdb->posts, array(
-				'post_author'           => $user_id,
-				'post_date'             => $now,
-				'post_date_gmt'         => $now_gmt,
-				'post_content'          => $privacy_policy_content,
-				'post_excerpt'          => '',
-				'comment_status'        => 'closed',
-				'post_title'            => __( 'Privacy Policy' ),
-				/* translators: Privacy Policy page slug */
-				'post_name'             => __( 'privacy-policy' ),
-				'post_modified'         => $now,
-				'post_modified_gmt'     => $now_gmt,
-				'guid'                  => $privacy_policy_guid,
-				'post_type'             => 'page',
-				'post_status'           => 'draft',
-				'to_ping'               => '',
-				'pinged'                => '',
-				'post_content_filtered' => '',
-			)
-		);
-		$wpdb->insert(
-			$wpdb->postmeta, array(
-				'post_id'    => 3,
-				'meta_key'   => '_wp_page_template',
-				'meta_value' => 'default',
-			)
-		);
-		update_option( 'wp_page_for_privacy_policy', 3 );
+			$wpdb->insert(
+				$wpdb->posts,
+				array(
+					'post_author'           => $user_id,
+					'post_date'             => $now,
+					'post_date_gmt'         => $now_gmt,
+					'post_content'          => $privacy_policy_content,
+					'post_excerpt'          => '',
+					'comment_status'        => 'closed',
+					'post_title'            => __( 'Privacy Policy' ),
+					/* translators: Privacy Policy page slug */
+					'post_name'             => __( 'privacy-policy' ),
+					'post_modified'         => $now,
+					'post_modified_gmt'     => $now_gmt,
+					'guid'                  => $privacy_policy_guid,
+					'post_type'             => 'page',
+					'post_status'           => 'draft',
+					'to_ping'               => '',
+					'pinged'                => '',
+					'post_content_filtered' => '',
+				)
+			);
+			$wpdb->insert(
+				$wpdb->postmeta,
+				array(
+					'post_id'    => 3,
+					'meta_key'   => '_wp_page_template',
+					'meta_value' => 'default',
+				)
+			);
+			update_option( 'wp_page_for_privacy_policy', 3 );
+		}
 
 		// Set up default widgets for default theme.
 		update_option(
-			'widget_search', array(
+			'widget_search',
+			array(
 				2              => array( 'title' => '' ),
 				'_multiwidget' => 1,
 			)
 		);
 		update_option(
-			'widget_recent-posts', array(
+			'widget_recent-posts',
+			array(
 				2              => array(
 					'title'  => '',
 					'number' => 5,
@@ -362,7 +383,8 @@ As a new WordPress user, you should go to <a href=\"%s\">your dashboard</a> to d
 			)
 		);
 		update_option(
-			'widget_recent-comments', array(
+			'widget_recent-comments',
+			array(
 				2              => array(
 					'title'  => '',
 					'number' => 5,
@@ -371,7 +393,8 @@ As a new WordPress user, you should go to <a href=\"%s\">your dashboard</a> to d
 			)
 		);
 		update_option(
-			'widget_archives', array(
+			'widget_archives',
+			array(
 				2              => array(
 					'title'    => '',
 					'count'    => 0,
@@ -381,7 +404,8 @@ As a new WordPress user, you should go to <a href=\"%s\">your dashboard</a> to d
 			)
 		);
 		update_option(
-			'widget_categories', array(
+			'widget_categories',
+			array(
 				2              => array(
 					'title'        => '',
 					'count'        => 0,
@@ -392,13 +416,15 @@ As a new WordPress user, you should go to <a href=\"%s\">your dashboard</a> to d
 			)
 		);
 		update_option(
-			'widget_meta', array(
+			'widget_meta',
+			array(
 				2              => array( 'title' => '' ),
 				'_multiwidget' => 1,
 			)
 		);
 		update_option(
-			'sidebars_widgets', array(
+			'sidebars_widgets',
+			array(
 				'wp_inactive_widgets' => array(),
 				'sidebar-1'           => array(
 					0 => 'search-2',
@@ -434,7 +460,8 @@ As a new WordPress user, you should go to <a href=\"%s\">your dashboard</a> to d
 			// Delete any caps that snuck into the previously active blog. (Hardcoded to blog 1 for now.) TODO: Get previous_blog_id.
 			if ( ! is_super_admin( $user_id ) && $user_id != 1 ) {
 				$wpdb->delete(
-					$wpdb->usermeta, array(
+					$wpdb->usermeta,
+					array(
 						'user_id'  => $user_id,
 						'meta_key' => $wpdb->base_prefix . '1_capabilities',
 					)
@@ -556,7 +583,11 @@ We hope you enjoy your new site. Thanks!
 --The WordPress Team
 https://wordpress.org/
 '
-			), $blog_url, $name, $password, $login_url
+			),
+			$blog_url,
+			$name,
+			$password,
+			$login_url
 		);
 
 		@wp_mail( $email, __( 'New WordPress Site' ), $message );
@@ -824,7 +855,8 @@ function upgrade_100() {
 			$cat = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->post2cat WHERE post_id = %d AND category_id = %d", $post->ID, $post->post_category ) );
 			if ( ! $cat && 0 != $post->post_category ) { // If there's no result
 				$wpdb->insert(
-					$wpdb->post2cat, array(
+					$wpdb->post2cat,
+					array(
 						'post_id'     => $post->ID,
 						'category_id' => $post->post_category,
 					)
@@ -1108,7 +1140,8 @@ function upgrade_160() {
 		$objects = $wpdb->get_results( "SELECT ID, post_type FROM $wpdb->posts WHERE post_status = 'object'" );
 		foreach ( $objects as $object ) {
 			$wpdb->update(
-				$wpdb->posts, array(
+				$wpdb->posts,
+				array(
 					'post_status'    => 'attachment',
 					'post_mime_type' => $object->post_type,
 					'post_type'      => '',
@@ -1226,7 +1259,11 @@ function upgrade_230() {
 		$wpdb->query(
 			$wpdb->prepare(
 				"INSERT INTO $wpdb->terms (term_id, name, slug, term_group) VALUES
-		(%d, %s, %s, %d)", $term_id, $name, $slug, $term_group
+		(%d, %s, %s, %d)",
+				$term_id,
+				$name,
+				$slug,
+				$term_group
 			)
 		);
 
@@ -1280,7 +1317,8 @@ function upgrade_230() {
 		}
 
 		$wpdb->insert(
-			$wpdb->term_relationships, array(
+			$wpdb->term_relationships,
+			array(
 				'object_id'        => $post_id,
 				'term_taxonomy_id' => $tt_id,
 			)
@@ -1319,7 +1357,8 @@ function upgrade_230() {
 			$default_link_cat           = $term_id;
 
 			$wpdb->insert(
-				$wpdb->term_taxonomy, array(
+				$wpdb->term_taxonomy,
+				array(
 					'term_id'     => $term_id,
 					'taxonomy'    => 'link_category',
 					'description' => '',
@@ -1347,7 +1386,8 @@ function upgrade_230() {
 				}
 
 				$wpdb->insert(
-					$wpdb->term_relationships, array(
+					$wpdb->term_relationships,
+					array(
 						'object_id'        => $link->link_id,
 						'term_taxonomy_id' => $tt_id,
 					)
@@ -1368,7 +1408,8 @@ function upgrade_230() {
 				continue;
 			}
 			$wpdb->insert(
-				$wpdb->term_relationships, array(
+				$wpdb->term_relationships,
+				array(
 					'object_id'        => $link_id,
 					'term_taxonomy_id' => $tt_id,
 				)
