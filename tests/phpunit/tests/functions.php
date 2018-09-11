@@ -1518,4 +1518,43 @@ class Tests_Functions extends WP_UnitTestCase {
 			array( '/leading/relative/path', false ),
 		);
 	}
+
+	/**
+	 * Test the human_readable_duration function.
+	 *
+	 * @ticket 39667
+	 * @dataProvider _datahuman_readable_duration()
+	 *
+	 * @param $input
+	 * @param $expected
+	 */
+	public function test_duration_format( $input, $expected ) {
+		$this->assertSame( $expected, human_readable_duration( $input ) );
+	}
+
+	public function _datahuman_readable_duration() {
+		return array(
+			array( array(), false ),
+			array( '30:00', '30 minutes, 0 seconds' ),
+			array( 'Batman Begins !', false ),
+			array( '', false ),
+			array( '-1', false ),
+			array( -1, false ),
+			array( 0, false ),
+			array( 1, false ),
+			array( '00', false ),
+			array( '00:00', '0 minutes, 0 seconds' ),
+			array( '00:00:00', '0 hours, 0 minutes, 0 seconds' ),
+			array( '10:30:34', '10 hours, 30 minutes, 34 seconds' ),
+			array( '00:30:34', '0 hours, 30 minutes, 34 seconds' ),
+			array( 'MM:30:00', false ),
+			array( '30:MM', false ),
+			array( 'MM:00', false ),
+			array( 'MM:MM', false ),
+			array( '01:01', '1 minute, 1 second' ),
+			array( '01:01:01', '1 hour, 1 minute, 1 second' ),
+			array( '0:05', '5 seconds' ),
+			array( '1:02:00', '1 hour, 2 minutes, 0 seconds' ),
+		);
+	}
 }
