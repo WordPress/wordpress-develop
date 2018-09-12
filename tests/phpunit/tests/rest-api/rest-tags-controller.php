@@ -757,6 +757,37 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_taxonomy_not_hierarchical', $response, 400 );
 	}
 
+	public function test_create_item_with_meta() {
+		wp_set_current_user( self::$administrator );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/tags' );
+		$request->set_param( 'name', 'My Awesome Term' );
+		$request->set_param( 'meta', array( 'test_tag_single' => 'hello' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 201, $response->get_status() );
+		$headers = $response->get_headers();
+		$data    = $response->get_data();
+		$this->assertContains( '/wp/v2/tags/' . $data['id'], $headers['Location'] );
+		$this->assertEquals( 'My Awesome Term', $data['name'] );
+		$this->assertEquals( 'hello', get_term_meta( $data['id'], 'test_tag_single', true ) );
+	}
+
+	public function test_create_item_with_meta_wrong_id() {
+		wp_set_current_user( self::$administrator );
+		$existing_tag_id = $this->factory->tag->create( array( 'name' => 'My Not So Awesome Term' ) );
+		$request         = new WP_REST_Request( 'POST', '/wp/v2/tags' );
+		$request->set_param( 'name', 'My Awesome Term' );
+		$request->set_param( 'meta', array( 'test_tag_single' => 'hello' ) );
+		$request->set_param( 'id', $existing_tag_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 201, $response->get_status() );
+		$headers = $response->get_headers();
+		$data    = $response->get_data();
+		$this->assertContains( '/wp/v2/tags/' . $data['id'], $headers['Location'] );
+		$this->assertEquals( 'My Awesome Term', $data['name'] );
+		$this->assertEquals( '', get_term_meta( $existing_tag_id, 'test_tag_single', true ) );
+		$this->assertEquals( 'hello', get_term_meta( $data['id'], 'test_tag_single', true ) );
+	}
+
 	public function test_update_item() {
 		wp_set_current_user( self::$administrator );
 		$orig_args = array(
