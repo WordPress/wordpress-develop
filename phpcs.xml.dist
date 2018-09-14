@@ -81,6 +81,9 @@
 	<rule ref="WordPress.DB.PreparedSQLPlaceholders.UnescapedLiteral">
 		<exclude-pattern>/tests/phpunit/tests/db\.php</exclude-pattern>
 	</rule>
+	<rule ref="WordPress.DB.PreparedSQL.NotPrepared">
+		<exclude-pattern>/tests/phpunit/tests/admin/includesSchema\.php</exclude-pattern>
+	</rule>
 
 	<!-- Whitelist the I18n functions file from issues identified by the I18n sniff
 		(such as calling the low-level translate() function). -->
