@@ -41,7 +41,7 @@ before_install:
       sed -i "s/youremptytestdbnamehere/wordpress_tests/" wp-tests-config.php
       sed -i "s/yourusernamehere/root/" wp-tests-config.php
       sed -i "s/yourpasswordhere//" wp-tests-config.php
-      svn checkout https://plugins.svn.wordpress.org/wordpress-importer/tags/0.6.3/ tests/phpunit/data/plugins/wordpress-importer
+      travis_retry svn checkout https://plugins.svn.wordpress.org/wordpress-importer/tags/0.6.3/ tests/phpunit/data/plugins/wordpress-importer
   fi
 - |
   if [[ "$WP_TRAVIS_OBJECT_CACHE" == "true" ]]; then
@@ -68,11 +68,11 @@ before_script:
     case "$TRAVIS_PHP_VERSION" in
       7.2|7.1|7.0|nightly)
         echo "Using PHPUnit 6.x"
-        composer global require "phpunit/phpunit:^6"
+        travis_retry composer global require "phpunit/phpunit:^6"
         ;;
       5.6|5.5|5.4|5.3)
         echo "Using PHPUnit 4.x"
-        composer global require "phpunit/phpunit:^4"
+        travis_retry composer global require "phpunit/phpunit:^4"
         ;;
       5.2)
         # Do nothing, use default PHPUnit 3.6.x
@@ -88,7 +88,7 @@ before_script:
   # We only need to run composer install on the code formatting job.
   if [[ "$WP_TRAVISCI" == "travis:format" ]]; then
     composer --version
-    composer install
+    travis_retry composer install
   fi
 - npm --version
 - node --version
