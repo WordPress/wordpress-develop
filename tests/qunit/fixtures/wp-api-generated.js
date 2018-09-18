@@ -721,6 +721,70 @@ mockedApiResponse.Schema = {
                             ],
                             "description": "Scope under which the request is made; determines fields present in response.",
                             "type": "string"
+                        },
+                        "page": {
+                            "required": false,
+                            "default": 1,
+                            "description": "Current page of the collection.",
+                            "type": "integer"
+                        },
+                        "per_page": {
+                            "required": false,
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer"
+                        },
+                        "search": {
+                            "required": false,
+                            "description": "Limit results to those matching a string.",
+                            "type": "string"
+                        },
+                        "exclude": {
+                            "required": false,
+                            "default": [],
+                            "description": "Ensure result set excludes specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        },
+                        "include": {
+                            "required": false,
+                            "default": [],
+                            "description": "Limit result set to specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        },
+                        "offset": {
+                            "required": false,
+                            "description": "Offset the result set by a specific number of items.",
+                            "type": "integer"
+                        },
+                        "order": {
+                            "required": false,
+                            "default": "desc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string"
+                        },
+                        "orderby": {
+                            "required": false,
+                            "default": "date",
+                            "enum": [
+                                "date",
+                                "id",
+                                "include",
+                                "relevance",
+                                "slug",
+                                "include_slugs",
+                                "title"
+                            ],
+                            "description": "Sort collection by object attribute.",
+                            "type": "string"
                         }
                     }
                 }
@@ -1262,6 +1326,70 @@ mockedApiResponse.Schema = {
                                 "edit"
                             ],
                             "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
+                        },
+                        "page": {
+                            "required": false,
+                            "default": 1,
+                            "description": "Current page of the collection.",
+                            "type": "integer"
+                        },
+                        "per_page": {
+                            "required": false,
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer"
+                        },
+                        "search": {
+                            "required": false,
+                            "description": "Limit results to those matching a string.",
+                            "type": "string"
+                        },
+                        "exclude": {
+                            "required": false,
+                            "default": [],
+                            "description": "Ensure result set excludes specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        },
+                        "include": {
+                            "required": false,
+                            "default": [],
+                            "description": "Limit result set to specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        },
+                        "offset": {
+                            "required": false,
+                            "description": "Offset the result set by a specific number of items.",
+                            "type": "integer"
+                        },
+                        "order": {
+                            "required": false,
+                            "default": "desc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string"
+                        },
+                        "orderby": {
+                            "required": false,
+                            "default": "date",
+                            "enum": [
+                                "date",
+                                "id",
+                                "include",
+                                "relevance",
+                                "slug",
+                                "include_slugs",
+                                "title"
+                            ],
+                            "description": "Sort collection by object attribute.",
                             "type": "string"
                         }
                     }
