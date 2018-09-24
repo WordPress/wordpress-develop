@@ -9,10 +9,12 @@ if ( is_multisite() ) :
 	 * @group multisite
 	 */
 	class Tests_Multisite_Site extends WP_UnitTestCase {
-		protected $suppress          = false;
-		protected $site_status_hooks = array();
+		protected $suppress                = false;
+		protected $site_status_hooks       = array();
+		protected $wp_initialize_site_args = array();
 		protected static $network_ids;
 		protected static $site_ids;
+		protected static $uninitialized_site_id;
 
 		function setUp() {
 			global $wpdb;
@@ -56,10 +58,22 @@ if ( is_multisite() ) :
 				$id = $factory->blog->create( $id );
 			}
 			unset( $id );
+
+			remove_action( 'wp_initialize_site', 'wp_initialize_site', 10 );
+			self::$uninitialized_site_id = wp_insert_site( array(
+				'domain'  => 'uninitialized.org',
+				'path'    => '/',
+				'site_id' => self::$network_ids['make.wordpress.org/'],
+			) );
+			add_action( 'wp_initialize_site', 'wp_initialize_site', 10, 2 );
 		}
 
 		public static function wpTearDownAfterClass() {
 			global $wpdb;
+
+			remove_action( 'wp_uninitialize_site', 'wp_uninitialize_site', 10 );
+			wp_delete_site( self::$uninitialized_site_id );
+			add_action( 'wp_uninitialize_site', 'wp_uninitialize_site', 10, 1 );
 
 			foreach ( self::$site_ids as $id ) {
 				wpmu_delete_blog( $id, true );
@@ -1266,6 +1280,7 @@ if ( is_multisite() ) :
 		 * @dataProvider data_wp_insert_site
 		 */
 		public function test_wp_insert_site( $site_data, $expected_data ) {
+			remove_action( 'wp_initialize_site', 'wp_initialize_site', 10 );
 			$site_id = wp_insert_site( $site_data );
 
 			$this->assertInternalType( 'integer', $site_id );
@@ -1360,6 +1375,7 @@ if ( is_multisite() ) :
 		 * @ticket 40364
 		 */
 		public function test_wp_insert_site_empty_domain() {
+			remove_action( 'wp_initialize_site', 'wp_initialize_site', 10 );
 			$site_id = wp_insert_site( array( 'public' => 0 ) );
 
 			$this->assertWPError( $site_id );
@@ -1494,6 +1510,20 @@ if ( is_multisite() ) :
 
 			$this->assertWPError( $result );
 			$this->assertSame( 'site_not_exist', $result->get_error_code() );
+		}
+
+		/**
+		 * @ticket 41333
+		 */
+		public function test_wp_delete_site_validate_site_deletion_action() {
+			add_action( 'wp_validate_site_deletion', array( $this, 'action_wp_validate_site_deletion_prevent_deletion' ) );
+			$result = wp_delete_site( self::$site_ids['make.wordpress.org/'] );
+			$this->assertWPError( $result );
+			$this->assertSame( 'action_does_not_like_deletion', $result->get_error_code() );
+		}
+
+		public function action_wp_validate_site_deletion_prevent_deletion( $errors ) {
+			$errors->add( 'action_does_not_like_deletion', 'You cannot delete this site because the action does not like it.' );
 		}
 
 		/**
@@ -1709,7 +1739,9 @@ if ( is_multisite() ) :
 		 */
 		public function test_site_dates_are_gmt() {
 			$first_date = current_time( 'mysql', true );
-			$site_id    = wp_insert_site(
+
+			remove_action( 'wp_initialize_site', 'wp_initialize_site', 10 );
+			$site_id = wp_insert_site(
 				array(
 					'domain'     => 'valid-domain.com',
 					'path'       => '/valid-path/',
@@ -2014,6 +2046,277 @@ if ( is_multisite() ) :
 
 		public function action_site_status_hook( $site_id ) {
 			$this->site_status_hooks[ current_action() ] = $site_id;
+		}
+
+		/**
+		 * @ticket 41333
+		 * @dataProvider data_wp_initialize_site
+		 */
+		public function test_wp_initialize_site( $args, $expected_options, $expected_meta ) {
+			$result = wp_initialize_site( self::$uninitialized_site_id, $args );
+
+			switch_to_blog( self::$uninitialized_site_id );
+
+			$options = array();
+			foreach ( $expected_options as $option => $value ) {
+				$options[ $option ] = get_option( $option );
+			}
+
+			$meta = array();
+			foreach ( $expected_meta as $meta_key => $value ) {
+				$meta[ $meta_key ] = get_site_meta( self::$uninitialized_site_id, $meta_key, true );
+			}
+
+			restore_current_blog();
+
+			$initialized = wp_is_site_initialized( self::$uninitialized_site_id );
+
+			wp_uninitialize_site( self::$uninitialized_site_id );
+
+			$this->assertTrue( $result );
+			$this->assertTrue( $initialized );
+			$this->assertEquals( $expected_options, $options );
+			$this->assertEquals( $expected_meta, $meta );
+		}
+
+		public function data_wp_initialize_site() {
+			return array(
+				array(
+					array(),
+					array(
+						'home'        => 'http://uninitialized.org',
+						'siteurl'     => 'http://uninitialized.org',
+						'admin_email' => '',
+						'blog_public' => '1',
+					),
+					array(),
+				),
+				array(
+					array(
+						'options' => array(
+							'home'    => 'https://uninitialized.org',
+							'siteurl' => 'https://uninitialized.org',
+							'key'     => 'value',
+						),
+						'meta'    => array(
+							'key1' => 'value1',
+							'key2' => 'value2',
+						),
+					),
+					array(
+						'home'    => 'https://uninitialized.org',
+						'siteurl' => 'https://uninitialized.org',
+						'key'     => 'value',
+					),
+					array(
+						'key1' => 'value1',
+						'key2' => 'value2',
+						'key3' => '',
+					),
+				),
+				array(
+					array(
+						'title'   => 'My New Site',
+						'options' => array(
+							'blogdescription' => 'Just My New Site',
+						),
+					),
+					array(
+						'blogname'        => 'My New Site',
+						'blogdescription' => 'Just My New Site',
+					),
+					array(),
+				),
+			);
+		}
+
+		/**
+		 * @ticket 41333
+		 */
+		public function test_wp_initialize_site_user_roles() {
+			global $wpdb;
+
+			$result = wp_initialize_site( self::$uninitialized_site_id, array() );
+
+			switch_to_blog( self::$uninitialized_site_id );
+			$table_prefix = $wpdb->get_blog_prefix( self::$uninitialized_site_id );
+			$roles        = get_option( $table_prefix . 'user_roles' );
+			restore_current_blog();
+
+			wp_uninitialize_site( self::$uninitialized_site_id );
+
+			$this->assertTrue( $result );
+			$this->assertEqualSets(
+				array(
+					'administrator',
+					'editor',
+					'author',
+					'contributor',
+					'subscriber',
+				),
+				array_keys( $roles )
+			);
+		}
+
+		/**
+		 * @ticket 41333
+		 */
+		public function test_wp_initialize_site_user_is_admin() {
+			$result = wp_initialize_site( self::$uninitialized_site_id, array( 'user_id' => 1 ) );
+
+			switch_to_blog( self::$uninitialized_site_id );
+			$user_is_admin = user_can( 1, 'manage_options' );
+			$admin_email   = get_option( 'admin_email' );
+			restore_current_blog();
+
+			wp_uninitialize_site( self::$uninitialized_site_id );
+
+			$this->assertTrue( $result );
+			$this->assertTrue( $user_is_admin );
+			$this->assertEquals( get_userdata( 1 )->user_email, $admin_email );
+		}
+
+		/**
+		 * @ticket 41333
+		 */
+		public function test_wp_initialize_site_args_filter() {
+			add_filter( 'wp_initialize_site_args', array( $this, 'filter_wp_initialize_site_args' ), 10, 3 );
+			$result = wp_initialize_site( self::$uninitialized_site_id, array( 'title' => 'My Site' ) );
+
+			switch_to_blog( self::$uninitialized_site_id );
+			$site_title = get_option( 'blogname' );
+			restore_current_blog();
+
+			wp_uninitialize_site( self::$uninitialized_site_id );
+
+			$this->assertSame(
+				sprintf( 'My Site %1$d in Network %2$d', self::$uninitialized_site_id, get_site( self::$uninitialized_site_id )->network_id ),
+				$site_title
+			);
+		}
+
+		public function filter_wp_initialize_site_args( $args, $site, $network ) {
+			$args['title'] = sprintf( 'My Site %1$d in Network %2$d', $site->id, $network->id );
+
+			return $args;
+		}
+
+		/**
+		 * @ticket 41333
+		 */
+		public function test_wp_initialize_site_empty_id() {
+			$result = wp_initialize_site( 0 );
+			$this->assertWPError( $result );
+			$this->assertSame( 'site_empty_id', $result->get_error_code() );
+		}
+
+		/**
+		 * @ticket 41333
+		 */
+		public function test_wp_initialize_site_invalid_id() {
+			$result = wp_initialize_site( 123 );
+			$this->assertWPError( $result );
+			$this->assertSame( 'site_invalid_id', $result->get_error_code() );
+		}
+
+		/**
+		 * @ticket 41333
+		 */
+		public function test_wp_initialize_site_already_initialized() {
+			$result = wp_initialize_site( get_current_blog_id() );
+			$this->assertWPError( $result );
+			$this->assertSame( 'site_already_initialized', $result->get_error_code() );
+		}
+
+		/**
+		 * @ticket 41333
+		 */
+		public function test_wp_uninitialize_site() {
+			$site_id = self::factory()->blog->create();
+
+			$result = wp_uninitialize_site( $site_id );
+			$this->assertTrue( $result );
+			$this->assertFalse( wp_is_site_initialized( $site_id ) );
+		}
+
+		/**
+		 * @ticket 41333
+		 */
+		public function test_wp_uninitialize_site_empty_id() {
+			$result = wp_uninitialize_site( 0 );
+			$this->assertWPError( $result );
+			$this->assertSame( 'site_empty_id', $result->get_error_code() );
+		}
+
+		/**
+		 * @ticket 41333
+		 */
+		public function test_wp_uninitialize_site_invalid_id() {
+			$result = wp_uninitialize_site( 123 );
+			$this->assertWPError( $result );
+			$this->assertSame( 'site_invalid_id', $result->get_error_code() );
+		}
+
+		/**
+		 * @ticket 41333
+		 */
+		public function test_wp_uninitialize_site_already_uninitialized() {
+			$result = wp_uninitialize_site( self::$uninitialized_site_id );
+			$this->assertWPError( $result );
+			$this->assertSame( 'site_already_uninitialized', $result->get_error_code() );
+		}
+
+		/**
+		 * @ticket 41333
+		 */
+		public function test_wp_is_site_initialized() {
+			$this->assertTrue( wp_is_site_initialized( get_current_blog_id() ) );
+			$this->assertFalse( wp_is_site_initialized( self::$uninitialized_site_id ) );
+		}
+
+		/**
+		 * @ticket 41333
+		 */
+		public function test_wp_is_site_initialized_prefilter() {
+			add_filter( 'pre_wp_is_site_initialized', '__return_false' );
+			$this->assertFalse( wp_is_site_initialized( get_current_blog_id() ) );
+
+			add_filter( 'pre_wp_is_site_initialized', '__return_true' );
+			$this->assertTrue( wp_is_site_initialized( self::$uninitialized_site_id ) );
+		}
+
+		/**
+		 * @ticket 41333
+		 */
+		public function test_wp_insert_site_forwards_args_to_wp_initialize_site() {
+			$args = array(
+				'user_id' => 1,
+				'title'   => 'My Site',
+				'options' => array( 'option1' => 'value1' ),
+				'meta'    => array( 'meta1' => 'value1' ),
+			);
+
+			add_filter( 'wp_initialize_site_args', array( $this, 'filter_wp_initialize_site_args_catch_args' ) );
+			$site_id = wp_insert_site(
+				array_merge(
+					array(
+						'domain' => 'testsite.org',
+						'path'   => '/',
+					),
+					$args
+				)
+			);
+			$passed_args = $this->wp_initialize_site_args;
+
+			$this->wp_initialize_site_args = null;
+
+			$this->assertEqualSetsWithIndex( $args, $passed_args );
+		}
+
+		public function filter_wp_initialize_site_args_catch_args( $args ) {
+			$this->wp_initialize_site_args = $args;
+
+			return $args;
 		}
 	}
 
