@@ -440,7 +440,7 @@ function benchmark_pcre_backtracking( $pattern, $subject, $strategy ) {
 		case PREG_NO_ERROR:
 			return $i;
 		case PREG_BACKTRACK_LIMIT_ERROR:
-			continue;
+			break;
 		case PREG_RECURSION_LIMIT_ERROR:
 			trigger_error('PCRE recursion limit encountered before backtrack limit.');
 			return;
