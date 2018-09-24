@@ -60,11 +60,13 @@ if ( is_multisite() ) :
 			unset( $id );
 
 			remove_action( 'wp_initialize_site', 'wp_initialize_site', 10 );
-			self::$uninitialized_site_id = wp_insert_site( array(
-				'domain'  => 'uninitialized.org',
-				'path'    => '/',
-				'site_id' => self::$network_ids['make.wordpress.org/'],
-			) );
+			self::$uninitialized_site_id = wp_insert_site(
+				array(
+					'domain'  => 'uninitialized.org',
+					'path'    => '/',
+					'site_id' => self::$network_ids['make.wordpress.org/'],
+				)
+			);
 			add_action( 'wp_initialize_site', 'wp_initialize_site', 10, 2 );
 		}
 
@@ -2306,8 +2308,8 @@ if ( is_multisite() ) :
 					$args
 				)
 			);
-			$passed_args = $this->wp_initialize_site_args;
 
+			$passed_args                   = $this->wp_initialize_site_args;
 			$this->wp_initialize_site_args = null;
 
 			$this->assertEqualSetsWithIndex( $args, $passed_args );
