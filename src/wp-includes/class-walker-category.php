@@ -104,7 +104,7 @@ class Walker_Category extends Walker {
 		);
 
 		// Don't generate an element if the category name is empty.
-		if ( ! $cat_name ) {
+		if ( '' === $cat_name ) {
 			return;
 		}
 
@@ -168,7 +168,8 @@ class Walker_Category extends Walker {
 			if ( ! empty( $args['current_category'] ) ) {
 				// 'current_category' can be an array, so we use `get_terms()`.
 				$_current_terms = get_terms(
-					$category->taxonomy, array(
+					$category->taxonomy,
+					array(
 						'include'    => $args['current_category'],
 						'hide_empty' => false,
 					)

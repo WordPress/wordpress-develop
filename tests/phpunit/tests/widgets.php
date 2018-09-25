@@ -56,19 +56,22 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertEmpty( $wp_registered_widgets );
 
 		update_option(
-			'widget_search', array(
+			'widget_search',
+			array(
 				2              => array( 'title' => '' ),
 				'_multiwidget' => 1,
 			)
 		);
 		update_option(
-			'widget_better_search', array(
+			'widget_better_search',
+			array(
 				3              => array( 'title' => '' ),
 				'_multiwidget' => 1,
 			)
 		);
 		update_option(
-			'widget_best_search', array(
+			'widget_best_search',
+			array(
 				4              => array( 'title' => '' ),
 				'_multiwidget' => 1,
 			)
@@ -733,7 +736,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 		// Test restoring sidebars widgets when previously activated.
 		set_theme_mod(
-			'sidebars_widgets', array(
+			'sidebars_widgets',
+			array(
 				'time' => time(),
 				'data' => array(
 					'sidebar-1'          => array( 'tag_cloud-1' ),

@@ -54,13 +54,13 @@ function wp_get_db_schema( $scope = 'all', $blog_id = null ) {
 
 	// Blog specific tables.
 	$blog_tables = "CREATE TABLE $wpdb->termmeta (
-  meta_id bigint(20) unsigned NOT NULL auto_increment,
-  term_id bigint(20) unsigned NOT NULL default '0',
-  meta_key varchar(255) default NULL,
-  meta_value longtext,
-  PRIMARY KEY  (meta_id),
-  KEY term_id (term_id),
-  KEY meta_key (meta_key($max_index_length))
+	meta_id bigint(20) unsigned NOT NULL auto_increment,
+	term_id bigint(20) unsigned NOT NULL default '0',
+	meta_key varchar(255) default NULL,
+	meta_value longtext,
+	PRIMARY KEY  (meta_id),
+	KEY term_id (term_id),
+	KEY meta_key (meta_key($max_index_length))
 ) $charset_collate;
 CREATE TABLE $wpdb->terms (
  term_id bigint(20) unsigned NOT NULL auto_increment,
@@ -90,149 +90,149 @@ CREATE TABLE $wpdb->term_relationships (
  KEY term_taxonomy_id (term_taxonomy_id)
 ) $charset_collate;
 CREATE TABLE $wpdb->commentmeta (
-  meta_id bigint(20) unsigned NOT NULL auto_increment,
-  comment_id bigint(20) unsigned NOT NULL default '0',
-  meta_key varchar(255) default NULL,
-  meta_value longtext,
-  PRIMARY KEY  (meta_id),
-  KEY comment_id (comment_id),
-  KEY meta_key (meta_key($max_index_length))
+	meta_id bigint(20) unsigned NOT NULL auto_increment,
+	comment_id bigint(20) unsigned NOT NULL default '0',
+	meta_key varchar(255) default NULL,
+	meta_value longtext,
+	PRIMARY KEY  (meta_id),
+	KEY comment_id (comment_id),
+	KEY meta_key (meta_key($max_index_length))
 ) $charset_collate;
 CREATE TABLE $wpdb->comments (
-  comment_ID bigint(20) unsigned NOT NULL auto_increment,
-  comment_post_ID bigint(20) unsigned NOT NULL default '0',
-  comment_author tinytext NOT NULL,
-  comment_author_email varchar(100) NOT NULL default '',
-  comment_author_url varchar(200) NOT NULL default '',
-  comment_author_IP varchar(100) NOT NULL default '',
-  comment_date datetime NOT NULL default '0000-00-00 00:00:00',
-  comment_date_gmt datetime NOT NULL default '0000-00-00 00:00:00',
-  comment_content text NOT NULL,
-  comment_karma int(11) NOT NULL default '0',
-  comment_approved varchar(20) NOT NULL default '1',
-  comment_agent varchar(255) NOT NULL default '',
-  comment_type varchar(20) NOT NULL default '',
-  comment_parent bigint(20) unsigned NOT NULL default '0',
-  user_id bigint(20) unsigned NOT NULL default '0',
-  PRIMARY KEY  (comment_ID),
-  KEY comment_post_ID (comment_post_ID),
-  KEY comment_approved_date_gmt (comment_approved,comment_date_gmt),
-  KEY comment_date_gmt (comment_date_gmt),
-  KEY comment_parent (comment_parent),
-  KEY comment_author_email (comment_author_email(10))
+	comment_ID bigint(20) unsigned NOT NULL auto_increment,
+	comment_post_ID bigint(20) unsigned NOT NULL default '0',
+	comment_author tinytext NOT NULL,
+	comment_author_email varchar(100) NOT NULL default '',
+	comment_author_url varchar(200) NOT NULL default '',
+	comment_author_IP varchar(100) NOT NULL default '',
+	comment_date datetime NOT NULL default '0000-00-00 00:00:00',
+	comment_date_gmt datetime NOT NULL default '0000-00-00 00:00:00',
+	comment_content text NOT NULL,
+	comment_karma int(11) NOT NULL default '0',
+	comment_approved varchar(20) NOT NULL default '1',
+	comment_agent varchar(255) NOT NULL default '',
+	comment_type varchar(20) NOT NULL default '',
+	comment_parent bigint(20) unsigned NOT NULL default '0',
+	user_id bigint(20) unsigned NOT NULL default '0',
+	PRIMARY KEY  (comment_ID),
+	KEY comment_post_ID (comment_post_ID),
+	KEY comment_approved_date_gmt (comment_approved,comment_date_gmt),
+	KEY comment_date_gmt (comment_date_gmt),
+	KEY comment_parent (comment_parent),
+	KEY comment_author_email (comment_author_email(10))
 ) $charset_collate;
 CREATE TABLE $wpdb->links (
-  link_id bigint(20) unsigned NOT NULL auto_increment,
-  link_url varchar(255) NOT NULL default '',
-  link_name varchar(255) NOT NULL default '',
-  link_image varchar(255) NOT NULL default '',
-  link_target varchar(25) NOT NULL default '',
-  link_description varchar(255) NOT NULL default '',
-  link_visible varchar(20) NOT NULL default 'Y',
-  link_owner bigint(20) unsigned NOT NULL default '1',
-  link_rating int(11) NOT NULL default '0',
-  link_updated datetime NOT NULL default '0000-00-00 00:00:00',
-  link_rel varchar(255) NOT NULL default '',
-  link_notes mediumtext NOT NULL,
-  link_rss varchar(255) NOT NULL default '',
-  PRIMARY KEY  (link_id),
-  KEY link_visible (link_visible)
+	link_id bigint(20) unsigned NOT NULL auto_increment,
+	link_url varchar(255) NOT NULL default '',
+	link_name varchar(255) NOT NULL default '',
+	link_image varchar(255) NOT NULL default '',
+	link_target varchar(25) NOT NULL default '',
+	link_description varchar(255) NOT NULL default '',
+	link_visible varchar(20) NOT NULL default 'Y',
+	link_owner bigint(20) unsigned NOT NULL default '1',
+	link_rating int(11) NOT NULL default '0',
+	link_updated datetime NOT NULL default '0000-00-00 00:00:00',
+	link_rel varchar(255) NOT NULL default '',
+	link_notes mediumtext NOT NULL,
+	link_rss varchar(255) NOT NULL default '',
+	PRIMARY KEY  (link_id),
+	KEY link_visible (link_visible)
 ) $charset_collate;
 CREATE TABLE $wpdb->options (
-  option_id bigint(20) unsigned NOT NULL auto_increment,
-  option_name varchar(191) NOT NULL default '',
-  option_value longtext NOT NULL,
-  autoload varchar(20) NOT NULL default 'yes',
-  PRIMARY KEY  (option_id),
-  UNIQUE KEY option_name (option_name)
+	option_id bigint(20) unsigned NOT NULL auto_increment,
+	option_name varchar(191) NOT NULL default '',
+	option_value longtext NOT NULL,
+	autoload varchar(20) NOT NULL default 'yes',
+	PRIMARY KEY  (option_id),
+	UNIQUE KEY option_name (option_name)
 ) $charset_collate;
 CREATE TABLE $wpdb->postmeta (
-  meta_id bigint(20) unsigned NOT NULL auto_increment,
-  post_id bigint(20) unsigned NOT NULL default '0',
-  meta_key varchar(255) default NULL,
-  meta_value longtext,
-  PRIMARY KEY  (meta_id),
-  KEY post_id (post_id),
-  KEY meta_key (meta_key($max_index_length))
+	meta_id bigint(20) unsigned NOT NULL auto_increment,
+	post_id bigint(20) unsigned NOT NULL default '0',
+	meta_key varchar(255) default NULL,
+	meta_value longtext,
+	PRIMARY KEY  (meta_id),
+	KEY post_id (post_id),
+	KEY meta_key (meta_key($max_index_length))
 ) $charset_collate;
 CREATE TABLE $wpdb->posts (
-  ID bigint(20) unsigned NOT NULL auto_increment,
-  post_author bigint(20) unsigned NOT NULL default '0',
-  post_date datetime NOT NULL default '0000-00-00 00:00:00',
-  post_date_gmt datetime NOT NULL default '0000-00-00 00:00:00',
-  post_content longtext NOT NULL,
-  post_title text NOT NULL,
-  post_excerpt text NOT NULL,
-  post_status varchar(20) NOT NULL default 'publish',
-  comment_status varchar(20) NOT NULL default 'open',
-  ping_status varchar(20) NOT NULL default 'open',
-  post_password varchar(255) NOT NULL default '',
-  post_name varchar(200) NOT NULL default '',
-  to_ping text NOT NULL,
-  pinged text NOT NULL,
-  post_modified datetime NOT NULL default '0000-00-00 00:00:00',
-  post_modified_gmt datetime NOT NULL default '0000-00-00 00:00:00',
-  post_content_filtered longtext NOT NULL,
-  post_parent bigint(20) unsigned NOT NULL default '0',
-  guid varchar(255) NOT NULL default '',
-  menu_order int(11) NOT NULL default '0',
-  post_type varchar(20) NOT NULL default 'post',
-  post_mime_type varchar(100) NOT NULL default '',
-  comment_count bigint(20) NOT NULL default '0',
-  PRIMARY KEY  (ID),
-  KEY post_name (post_name($max_index_length)),
-  KEY type_status_date (post_type,post_status,post_date,ID),
-  KEY post_parent (post_parent),
-  KEY post_author (post_author)
+	ID bigint(20) unsigned NOT NULL auto_increment,
+	post_author bigint(20) unsigned NOT NULL default '0',
+	post_date datetime NOT NULL default '0000-00-00 00:00:00',
+	post_date_gmt datetime NOT NULL default '0000-00-00 00:00:00',
+	post_content longtext NOT NULL,
+	post_title text NOT NULL,
+	post_excerpt text NOT NULL,
+	post_status varchar(20) NOT NULL default 'publish',
+	comment_status varchar(20) NOT NULL default 'open',
+	ping_status varchar(20) NOT NULL default 'open',
+	post_password varchar(255) NOT NULL default '',
+	post_name varchar(200) NOT NULL default '',
+	to_ping text NOT NULL,
+	pinged text NOT NULL,
+	post_modified datetime NOT NULL default '0000-00-00 00:00:00',
+	post_modified_gmt datetime NOT NULL default '0000-00-00 00:00:00',
+	post_content_filtered longtext NOT NULL,
+	post_parent bigint(20) unsigned NOT NULL default '0',
+	guid varchar(255) NOT NULL default '',
+	menu_order int(11) NOT NULL default '0',
+	post_type varchar(20) NOT NULL default 'post',
+	post_mime_type varchar(100) NOT NULL default '',
+	comment_count bigint(20) NOT NULL default '0',
+	PRIMARY KEY  (ID),
+	KEY post_name (post_name($max_index_length)),
+	KEY type_status_date (post_type,post_status,post_date,ID),
+	KEY post_parent (post_parent),
+	KEY post_author (post_author)
 ) $charset_collate;\n";
 
 	// Single site users table. The multisite flavor of the users table is handled below.
 	$users_single_table = "CREATE TABLE $wpdb->users (
-  ID bigint(20) unsigned NOT NULL auto_increment,
-  user_login varchar(60) NOT NULL default '',
-  user_pass varchar(255) NOT NULL default '',
-  user_nicename varchar(50) NOT NULL default '',
-  user_email varchar(100) NOT NULL default '',
-  user_url varchar(100) NOT NULL default '',
-  user_registered datetime NOT NULL default '0000-00-00 00:00:00',
-  user_activation_key varchar(255) NOT NULL default '',
-  user_status int(11) NOT NULL default '0',
-  display_name varchar(250) NOT NULL default '',
-  PRIMARY KEY  (ID),
-  KEY user_login_key (user_login),
-  KEY user_nicename (user_nicename),
-  KEY user_email (user_email)
+	ID bigint(20) unsigned NOT NULL auto_increment,
+	user_login varchar(60) NOT NULL default '',
+	user_pass varchar(255) NOT NULL default '',
+	user_nicename varchar(50) NOT NULL default '',
+	user_email varchar(100) NOT NULL default '',
+	user_url varchar(100) NOT NULL default '',
+	user_registered datetime NOT NULL default '0000-00-00 00:00:00',
+	user_activation_key varchar(255) NOT NULL default '',
+	user_status int(11) NOT NULL default '0',
+	display_name varchar(250) NOT NULL default '',
+	PRIMARY KEY  (ID),
+	KEY user_login_key (user_login),
+	KEY user_nicename (user_nicename),
+	KEY user_email (user_email)
 ) $charset_collate;\n";
 
 	// Multisite users table
 	$users_multi_table = "CREATE TABLE $wpdb->users (
-  ID bigint(20) unsigned NOT NULL auto_increment,
-  user_login varchar(60) NOT NULL default '',
-  user_pass varchar(255) NOT NULL default '',
-  user_nicename varchar(50) NOT NULL default '',
-  user_email varchar(100) NOT NULL default '',
-  user_url varchar(100) NOT NULL default '',
-  user_registered datetime NOT NULL default '0000-00-00 00:00:00',
-  user_activation_key varchar(255) NOT NULL default '',
-  user_status int(11) NOT NULL default '0',
-  display_name varchar(250) NOT NULL default '',
-  spam tinyint(2) NOT NULL default '0',
-  deleted tinyint(2) NOT NULL default '0',
-  PRIMARY KEY  (ID),
-  KEY user_login_key (user_login),
-  KEY user_nicename (user_nicename),
-  KEY user_email (user_email)
+	ID bigint(20) unsigned NOT NULL auto_increment,
+	user_login varchar(60) NOT NULL default '',
+	user_pass varchar(255) NOT NULL default '',
+	user_nicename varchar(50) NOT NULL default '',
+	user_email varchar(100) NOT NULL default '',
+	user_url varchar(100) NOT NULL default '',
+	user_registered datetime NOT NULL default '0000-00-00 00:00:00',
+	user_activation_key varchar(255) NOT NULL default '',
+	user_status int(11) NOT NULL default '0',
+	display_name varchar(250) NOT NULL default '',
+	spam tinyint(2) NOT NULL default '0',
+	deleted tinyint(2) NOT NULL default '0',
+	PRIMARY KEY  (ID),
+	KEY user_login_key (user_login),
+	KEY user_nicename (user_nicename),
+	KEY user_email (user_email)
 ) $charset_collate;\n";
 
 	// Usermeta.
 	$usermeta_table = "CREATE TABLE $wpdb->usermeta (
-  umeta_id bigint(20) unsigned NOT NULL auto_increment,
-  user_id bigint(20) unsigned NOT NULL default '0',
-  meta_key varchar(255) default NULL,
-  meta_value longtext,
-  PRIMARY KEY  (umeta_id),
-  KEY user_id (user_id),
-  KEY meta_key (meta_key($max_index_length))
+	umeta_id bigint(20) unsigned NOT NULL auto_increment,
+	user_id bigint(20) unsigned NOT NULL default '0',
+	meta_key varchar(255) default NULL,
+	meta_value longtext,
+	PRIMARY KEY  (umeta_id),
+	KEY user_id (user_id),
+	KEY meta_key (meta_key($max_index_length))
 ) $charset_collate;\n";
 
 	// Global tables
@@ -244,80 +244,80 @@ CREATE TABLE $wpdb->posts (
 
 	// Multisite global tables.
 	$ms_global_tables = "CREATE TABLE $wpdb->blogs (
-  blog_id bigint(20) NOT NULL auto_increment,
-  site_id bigint(20) NOT NULL default '0',
-  domain varchar(200) NOT NULL default '',
-  path varchar(100) NOT NULL default '',
-  registered datetime NOT NULL default '0000-00-00 00:00:00',
-  last_updated datetime NOT NULL default '0000-00-00 00:00:00',
-  public tinyint(2) NOT NULL default '1',
-  archived tinyint(2) NOT NULL default '0',
-  mature tinyint(2) NOT NULL default '0',
-  spam tinyint(2) NOT NULL default '0',
-  deleted tinyint(2) NOT NULL default '0',
-  lang_id int(11) NOT NULL default '0',
-  PRIMARY KEY  (blog_id),
-  KEY domain (domain(50),path(5)),
-  KEY lang_id (lang_id)
+	blog_id bigint(20) NOT NULL auto_increment,
+	site_id bigint(20) NOT NULL default '0',
+	domain varchar(200) NOT NULL default '',
+	path varchar(100) NOT NULL default '',
+	registered datetime NOT NULL default '0000-00-00 00:00:00',
+	last_updated datetime NOT NULL default '0000-00-00 00:00:00',
+	public tinyint(2) NOT NULL default '1',
+	archived tinyint(2) NOT NULL default '0',
+	mature tinyint(2) NOT NULL default '0',
+	spam tinyint(2) NOT NULL default '0',
+	deleted tinyint(2) NOT NULL default '0',
+	lang_id int(11) NOT NULL default '0',
+	PRIMARY KEY  (blog_id),
+	KEY domain (domain(50),path(5)),
+	KEY lang_id (lang_id)
 ) $charset_collate;
 CREATE TABLE $wpdb->blog_versions (
-  blog_id bigint(20) NOT NULL default '0',
-  db_version varchar(20) NOT NULL default '',
-  last_updated datetime NOT NULL default '0000-00-00 00:00:00',
-  PRIMARY KEY  (blog_id),
-  KEY db_version (db_version)
+	blog_id bigint(20) NOT NULL default '0',
+	db_version varchar(20) NOT NULL default '',
+	last_updated datetime NOT NULL default '0000-00-00 00:00:00',
+	PRIMARY KEY  (blog_id),
+	KEY db_version (db_version)
 ) $charset_collate;
 CREATE TABLE $wpdb->blogmeta (
-  meta_id bigint(20) unsigned NOT NULL auto_increment,
-  blog_id bigint(20) NOT NULL default '0',
-  meta_key varchar(255) default NULL,
-  meta_value longtext,
-  PRIMARY KEY  (meta_id),
-  KEY meta_key (meta_key($max_index_length)),
-  KEY blog_id (blog_id)
+	meta_id bigint(20) unsigned NOT NULL auto_increment,
+	blog_id bigint(20) NOT NULL default '0',
+	meta_key varchar(255) default NULL,
+	meta_value longtext,
+	PRIMARY KEY  (meta_id),
+	KEY meta_key (meta_key($max_index_length)),
+	KEY blog_id (blog_id)
 ) $charset_collate;
 CREATE TABLE $wpdb->registration_log (
-  ID bigint(20) NOT NULL auto_increment,
-  email varchar(255) NOT NULL default '',
-  IP varchar(30) NOT NULL default '',
-  blog_id bigint(20) NOT NULL default '0',
-  date_registered datetime NOT NULL default '0000-00-00 00:00:00',
-  PRIMARY KEY  (ID),
-  KEY IP (IP)
+	ID bigint(20) NOT NULL auto_increment,
+	email varchar(255) NOT NULL default '',
+	IP varchar(30) NOT NULL default '',
+	blog_id bigint(20) NOT NULL default '0',
+	date_registered datetime NOT NULL default '0000-00-00 00:00:00',
+	PRIMARY KEY  (ID),
+	KEY IP (IP)
 ) $charset_collate;
 CREATE TABLE $wpdb->site (
-  id bigint(20) NOT NULL auto_increment,
-  domain varchar(200) NOT NULL default '',
-  path varchar(100) NOT NULL default '',
-  PRIMARY KEY  (id),
-  KEY domain (domain(140),path(51))
+	id bigint(20) NOT NULL auto_increment,
+	domain varchar(200) NOT NULL default '',
+	path varchar(100) NOT NULL default '',
+	PRIMARY KEY  (id),
+	KEY domain (domain(140),path(51))
 ) $charset_collate;
 CREATE TABLE $wpdb->sitemeta (
-  meta_id bigint(20) NOT NULL auto_increment,
-  site_id bigint(20) NOT NULL default '0',
-  meta_key varchar(255) default NULL,
-  meta_value longtext,
-  PRIMARY KEY  (meta_id),
-  KEY meta_key (meta_key($max_index_length)),
-  KEY site_id (site_id)
+	meta_id bigint(20) NOT NULL auto_increment,
+	site_id bigint(20) NOT NULL default '0',
+	meta_key varchar(255) default NULL,
+	meta_value longtext,
+	PRIMARY KEY  (meta_id),
+	KEY meta_key (meta_key($max_index_length)),
+	KEY site_id (site_id)
 ) $charset_collate;
 CREATE TABLE $wpdb->signups (
-  signup_id bigint(20) NOT NULL auto_increment,
-  domain varchar(200) NOT NULL default '',
-  path varchar(100) NOT NULL default '',
-  title longtext NOT NULL,
-  user_login varchar(60) NOT NULL default '',
-  user_email varchar(100) NOT NULL default '',
-  registered datetime NOT NULL default '0000-00-00 00:00:00',
-  activated datetime NOT NULL default '0000-00-00 00:00:00',
-  active tinyint(1) NOT NULL default '0',
-  activation_key varchar(50) NOT NULL default '',
-  meta longtext,
-  PRIMARY KEY  (signup_id),
-  KEY activation_key (activation_key),
-  KEY user_email (user_email),
-  KEY user_login_email (user_login,user_email),
-  KEY domain_path (domain(140),path(51))
+	signup_id bigint(20) NOT NULL auto_increment,
+	domain varchar(200) NOT NULL default '',
+	path varchar(100) NOT NULL default '',
+	title longtext NOT NULL,
+	user_login varchar(60) NOT NULL default '',
+	user_email varchar(100) NOT NULL default '',
+	registered datetime NOT NULL default '0000-00-00 00:00:00',
+	activated datetime NOT NULL default '0000-00-00 00:00:00',
+	active tinyint(1) NOT NULL default '0',
+	activation_key varchar(50) NOT NULL default '',
+	meta longtext,
+	PRIMARY KEY  (signup_id),
+	KEY activation_key (activation_key),
+	KEY user_email (user_email),
+	KEY user_login_email (user_login,user_email),
+	KEY domain_path (domain(140),path(51))
 ) $charset_collate;";
 
 	switch ( $scope ) {
@@ -356,12 +356,15 @@ $wp_queries = wp_get_db_schema( 'all' );
  * Create WordPress options and set the default values.
  *
  * @since 1.5.0
+ * @since 5.0.0 The $options parameter has been added.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  * @global int  $wp_db_version
  * @global int  $wp_current_db_version
+ *
+ * @param array $options Optional. Custom option $key => $value pairs to use. Default empty array.
  */
-function populate_options() {
+function populate_options( array $options = array() ) {
 	global $wpdb, $wp_db_version, $wp_current_db_version;
 
 	$guessurl = wp_guess_url();
@@ -380,7 +383,8 @@ function populate_options() {
 	}
 
 	// If WP_DEFAULT_THEME doesn't exist, fall back to the latest core default theme.
-	$stylesheet = $template = WP_DEFAULT_THEME;
+	$stylesheet = WP_DEFAULT_THEME;
+	$template   = WP_DEFAULT_THEME;
 	$theme      = wp_get_theme( WP_DEFAULT_THEME );
 	if ( ! $theme->exists() ) {
 		$theme = WP_Theme::get_core_default_theme();
@@ -399,14 +403,14 @@ function populate_options() {
 	 * or a valid timezone string (America/New_York). See https://secure.php.net/manual/en/timezones.php
 	 * for all timezone strings supported by PHP.
 	 */
-	$offset_or_tz = _x( '0', 'default GMT offset or timezone string' );
+	$offset_or_tz = _x( '0', 'default GMT offset or timezone string' ); // phpcs:ignore WordPress.WP.I18n.NoEmptyStrings
 	if ( is_numeric( $offset_or_tz ) ) {
 		$gmt_offset = $offset_or_tz;
 	} elseif ( $offset_or_tz && in_array( $offset_or_tz, timezone_identifiers_list() ) ) {
 			$timezone_string = $offset_or_tz;
 	}
 
-	$options = array(
+	$defaults = array(
 		'siteurl'                         => $guessurl,
 		'home'                            => $guessurl,
 		'blogname'                        => __( 'My Site' ),
@@ -542,22 +546,24 @@ function populate_options() {
 
 	// 3.3
 	if ( ! is_multisite() ) {
-		$options['initial_db_version'] = ! empty( $wp_current_db_version ) && $wp_current_db_version < $wp_db_version
+		$defaults['initial_db_version'] = ! empty( $wp_current_db_version ) && $wp_current_db_version < $wp_db_version
 			? $wp_current_db_version : $wp_db_version;
 	}
 
 	// 3.0 multisite
 	if ( is_multisite() ) {
 		/* translators: site tagline */
-		$options['blogdescription']     = sprintf( __( 'Just another %s site' ), get_network()->site_name );
-		$options['permalink_structure'] = '/%year%/%monthnum%/%day%/%postname%/';
+		$defaults['blogdescription']     = sprintf( __( 'Just another %s site' ), get_network()->site_name );
+		$defaults['permalink_structure'] = '/%year%/%monthnum%/%day%/%postname%/';
 	}
+
+	$options = wp_parse_args( $options, $defaults );
 
 	// Set autoload to no for these options
 	$fat_options = array( 'moderation_keys', 'recently_edited', 'blacklist_keys', 'uninstall_plugins' );
 
 	$keys             = "'" . implode( "', '", array_keys( $options ) ) . "'";
-	$existing_options = $wpdb->get_col( "SELECT option_name FROM $wpdb->options WHERE option_name in ( $keys )" );
+	$existing_options = $wpdb->get_col( "SELECT option_name FROM $wpdb->options WHERE option_name in ( $keys )" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 	$insert = '';
 	foreach ( $options as $option => $value ) {
@@ -580,7 +586,7 @@ function populate_options() {
 	}
 
 	if ( ! empty( $insert ) ) {
-		$wpdb->query( "INSERT INTO $wpdb->options (option_name, option_value, autoload) VALUES " . $insert );
+		$wpdb->query( "INSERT INTO $wpdb->options (option_name, option_value, autoload) VALUES " . $insert ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	}
 
 	// In case it is set, but blank, update "home".
@@ -955,7 +961,6 @@ endif;
  *
  * @global wpdb       $wpdb
  * @global object     $current_site
- * @global int        $wp_db_version
  * @global WP_Rewrite $wp_rewrite
  *
  * @param int    $network_id        ID of network to populate.
@@ -969,7 +974,7 @@ endif;
  *                       so the error code must be checked) or failure.
  */
 function populate_network( $network_id = 1, $domain = '', $email = '', $site_name = '', $path = '/', $subdomain_install = false ) {
-	global $wpdb, $current_site, $wp_db_version, $wp_rewrite;
+	global $wpdb, $current_site, $wp_rewrite;
 
 	$errors = new WP_Error();
 	if ( '' == $domain ) {
@@ -999,13 +1004,149 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 		return $errors;
 	}
 
+	if ( 1 == $network_id ) {
+		$wpdb->insert(
+			$wpdb->site,
+			array(
+				'domain' => $domain,
+				'path'   => $path,
+			)
+		);
+		$network_id = $wpdb->insert_id;
+	} else {
+		$wpdb->insert(
+			$wpdb->site,
+			array(
+				'domain' => $domain,
+				'path'   => $path,
+				'id'     => $network_id,
+			)
+		);
+	}
+
+	populate_network_meta(
+		$network_id,
+		array(
+			'admin_email'       => $email,
+			'site_name'         => $site_name,
+			'subdomain_install' => $subdomain_install,
+		)
+	);
+
+	$site_user = get_userdata( (int) $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM $wpdb->sitemeta WHERE meta_key = %s AND site_id = %d", 'admin_user_id', $network_id ) ) );
+
+	/*
+	 * When upgrading from single to multisite, assume the current site will
+	 * become the main site of the network. When using populate_network()
+	 * to create another network in an existing multisite environment, skip
+	 * these steps since the main site of the new network has not yet been
+	 * created.
+	 */
+	if ( ! is_multisite() ) {
+		$current_site            = new stdClass;
+		$current_site->domain    = $domain;
+		$current_site->path      = $path;
+		$current_site->site_name = ucfirst( $domain );
+		$wpdb->insert(
+			$wpdb->blogs,
+			array(
+				'site_id'    => $network_id,
+				'blog_id'    => 1,
+				'domain'     => $domain,
+				'path'       => $path,
+				'registered' => current_time( 'mysql' ),
+			)
+		);
+		$current_site->blog_id = $wpdb->insert_id;
+		update_user_meta( $site_user->ID, 'source_domain', $domain );
+		update_user_meta( $site_user->ID, 'primary_blog', $current_site->blog_id );
+
+		if ( $subdomain_install ) {
+			$wp_rewrite->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
+		} else {
+			$wp_rewrite->set_permalink_structure( '/blog/%year%/%monthnum%/%day%/%postname%/' );
+		}
+
+		flush_rewrite_rules();
+
+		if ( ! $subdomain_install ) {
+			return true;
+		}
+
+		$vhost_ok = false;
+		$errstr   = '';
+		$hostname = substr( md5( time() ), 0, 6 ) . '.' . $domain; // Very random hostname!
+		$page     = wp_remote_get(
+			'http://' . $hostname,
+			array(
+				'timeout'     => 5,
+				'httpversion' => '1.1',
+			)
+		);
+		if ( is_wp_error( $page ) ) {
+			$errstr = $page->get_error_message();
+		} elseif ( 200 == wp_remote_retrieve_response_code( $page ) ) {
+				$vhost_ok = true;
+		}
+
+		if ( ! $vhost_ok ) {
+			$msg = '<p><strong>' . __( 'Warning! Wildcard DNS may not be configured correctly!' ) . '</strong></p>';
+
+			$msg .= '<p>' . sprintf(
+				/* translators: %s: host name */
+				__( 'The installer attempted to contact a random hostname (%s) on your domain.' ),
+				'<code>' . $hostname . '</code>'
+			);
+			if ( ! empty( $errstr ) ) {
+				/* translators: %s: error message */
+				$msg .= ' ' . sprintf( __( 'This resulted in an error message: %s' ), '<code>' . $errstr . '</code>' );
+			}
+			$msg .= '</p>';
+
+			$msg .= '<p>' . sprintf(
+				/* translators: %s: asterisk symbol (*) */
+				__( 'To use a subdomain configuration, you must have a wildcard entry in your DNS. This usually means adding a %s hostname record pointing at your web server in your DNS configuration tool.' ),
+				'<code>*</code>'
+			) . '</p>';
+
+			$msg .= '<p>' . __( 'You can still use your site but any subdomain you create may not be accessible. If you know your DNS is correct, ignore this message.' ) . '</p>';
+
+			return new WP_Error( 'no_wildcard_dns', $msg );
+		}
+	}
+
+	return true;
+}
+
+/**
+ * Creates WordPress network meta and sets the default values.
+ *
+ * @since 5.0.0
+ *
+ * @global wpdb $wpdb          WordPress database abstraction object.
+ * @global int  $wp_db_version WordPress database version.
+ *
+ * @param int   $network_id Network ID to populate meta for.
+ * @param array $meta       Optional. Custom meta $key => $value pairs to use. Default empty array.
+ */
+function populate_network_meta( $network_id, array $meta = array() ) {
+	global $wpdb, $wp_db_version;
+
+	$network_id = (int) $network_id;
+
+	$email             = ! empty( $meta['admin_email'] ) ? $meta['admin_email'] : '';
+	$subdomain_install = isset( $meta['subdomain_install'] ) ? (int) $meta['subdomain_install'] : 0;
+
 	// If a user with the provided email does not exist, default to the current user as the new network admin.
-	$site_user = get_user_by( 'email', $email );
+	$site_user = ! empty( $email ) ? get_user_by( 'email', $email ) : false;
 	if ( false === $site_user ) {
 		$site_user = wp_get_current_user();
 	}
 
-	// Set up site tables.
+	if ( empty( $email ) ) {
+		$email = $site_user->user_email;
+	}
+
 	$template       = get_option( 'template' );
 	$stylesheet     = get_option( 'stylesheet' );
 	$allowed_themes = array( $stylesheet => true );
@@ -1020,27 +1161,10 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 
 	// If WP_DEFAULT_THEME doesn't exist, also whitelist the latest core default theme.
 	if ( ! wp_get_theme( WP_DEFAULT_THEME )->exists() ) {
-		if ( $core_default = WP_Theme::get_core_default_theme() ) {
+		$core_default = WP_Theme::get_core_default_theme();
+		if ( $core_default ) {
 			$allowed_themes[ $core_default->get_stylesheet() ] = true;
 		}
-	}
-
-	if ( 1 == $network_id ) {
-		$wpdb->insert(
-			$wpdb->site, array(
-				'domain' => $domain,
-				'path'   => $path,
-			)
-		);
-		$network_id = $wpdb->insert_id;
-	} else {
-		$wpdb->insert(
-			$wpdb->site, array(
-				'domain' => $domain,
-				'path'   => $path,
-				'id'     => $network_id,
-			)
-		);
 	}
 
 	wp_cache_delete( 'networks_have_paths', 'site-options' );
@@ -1082,7 +1206,7 @@ We hope you enjoy your new site. Thanks!
 --The Team @ SITE_NAME'
 	);
 
-	$misc_exts = array(
+	$misc_exts        = array(
 		// Images.
 		'jpg',
 		'jpeg',
@@ -1115,7 +1239,7 @@ We hope you enjoy your new site. Thanks!
 	$upload_filetypes = array_unique( array_merge( $misc_exts, $audio_exts, $video_exts ) );
 
 	$sitemeta = array(
-		'site_name'                   => $site_name,
+		'site_name'                   => __( 'My Network' ),
 		'admin_email'                 => $email,
 		'admin_user_id'               => $site_user->ID,
 		'registration'                => 'none',
@@ -1133,7 +1257,7 @@ We hope you enjoy your new site. Thanks!
 		'siteurl'                     => get_option( 'siteurl' ) . '/',
 		'add_new_users'               => '0',
 		'upload_space_check_disabled' => is_multisite() ? get_site_option( 'upload_space_check_disabled' ) : '1',
-		'subdomain_install'           => intval( $subdomain_install ),
+		'subdomain_install'           => $subdomain_install,
 		'global_terms_enabled'        => global_terms_enabled() ? '1' : '0',
 		'ms_files_rewriting'          => is_multisite() ? get_site_option( 'ms_files_rewriting' ) : '0',
 		'initial_db_version'          => get_option( 'initial_db_version' ),
@@ -1143,6 +1267,8 @@ We hope you enjoy your new site. Thanks!
 	if ( ! $subdomain_install ) {
 		$sitemeta['illegal_names'][] = 'blog';
 	}
+
+	$sitemeta = wp_parse_args( $meta, $sitemeta );
 
 	/**
 	 * Filters meta for a network on creation.
@@ -1164,85 +1290,44 @@ We hope you enjoy your new site. Thanks!
 		}
 		$insert .= $wpdb->prepare( '( %d, %s, %s)', $network_id, $meta_key, $meta_value );
 	}
-	$wpdb->query( "INSERT INTO $wpdb->sitemeta ( site_id, meta_key, meta_value ) VALUES " . $insert );
+	$wpdb->query( "INSERT INTO $wpdb->sitemeta ( site_id, meta_key, meta_value ) VALUES " . $insert ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+}
 
-	/*
-	 * When upgrading from single to multisite, assume the current site will
-	 * become the main site of the network. When using populate_network()
-	 * to create another network in an existing multisite environment, skip
-	 * these steps since the main site of the new network has not yet been
-	 * created.
-	 */
-	if ( ! is_multisite() ) {
-		$current_site            = new stdClass;
-		$current_site->domain    = $domain;
-		$current_site->path      = $path;
-		$current_site->site_name = ucfirst( $domain );
-		$wpdb->insert(
-			$wpdb->blogs, array(
-				'site_id'    => $network_id,
-				'blog_id'    => 1,
-				'domain'     => $domain,
-				'path'       => $path,
-				'registered' => current_time( 'mysql' ),
-			)
-		);
-		$current_site->blog_id = $blog_id = $wpdb->insert_id;
-		update_user_meta( $site_user->ID, 'source_domain', $domain );
-		update_user_meta( $site_user->ID, 'primary_blog', $blog_id );
+/**
+ * Creates WordPress site meta and sets the default values.
+ *
+ * @since 5.0.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param int   $site_id Site ID to populate meta for.
+ * @param array $meta    Optional. Custom meta $key => $value pairs to use. Default empty array.
+ */
+function populate_site_meta( $site_id, array $meta = array() ) {
+	global $wpdb;
 
-		if ( $subdomain_install ) {
-			$wp_rewrite->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
-		} else {
-			$wp_rewrite->set_permalink_structure( '/blog/%year%/%monthnum%/%day%/%postname%/' );
-		}
+	$site_id = (int) $site_id;
 
-		flush_rewrite_rules();
-
-		if ( ! $subdomain_install ) {
-			return true;
-		}
-
-		$vhost_ok = false;
-		$errstr   = '';
-		$hostname = substr( md5( time() ), 0, 6 ) . '.' . $domain; // Very random hostname!
-		$page     = wp_remote_get(
-			'http://' . $hostname, array(
-				'timeout'     => 5,
-				'httpversion' => '1.1',
-			)
-		);
-		if ( is_wp_error( $page ) ) {
-			$errstr = $page->get_error_message();
-		} elseif ( 200 == wp_remote_retrieve_response_code( $page ) ) {
-				$vhost_ok = true;
-		}
-
-		if ( ! $vhost_ok ) {
-			$msg = '<p><strong>' . __( 'Warning! Wildcard DNS may not be configured correctly!' ) . '</strong></p>';
-
-			$msg .= '<p>' . sprintf(
-				/* translators: %s: host name */
-				__( 'The installer attempted to contact a random hostname (%s) on your domain.' ),
-				'<code>' . $hostname . '</code>'
-			);
-			if ( ! empty( $errstr ) ) {
-				/* translators: %s: error message */
-				$msg .= ' ' . sprintf( __( 'This resulted in an error message: %s' ), '<code>' . $errstr . '</code>' );
-			}
-			$msg .= '</p>';
-
-			$msg .= '<p>' . sprintf(
-				/* translators: %s: asterisk symbol (*) */
-				__( 'To use a subdomain configuration, you must have a wildcard entry in your DNS. This usually means adding a %s hostname record pointing at your web server in your DNS configuration tool.' ),
-				'<code>*</code>'
-			) . '</p>';
-
-			$msg .= '<p>' . __( 'You can still use your site but any subdomain you create may not be accessible. If you know your DNS is correct, ignore this message.' ) . '</p>';
-
-			return new WP_Error( 'no_wildcard_dns', $msg );
-		}
+	if ( ! is_site_meta_supported() ) {
+		return;
 	}
 
-	return true;
+	if ( empty( $meta ) ) {
+		return;
+	}
+
+	$insert = '';
+	foreach ( $meta as $meta_key => $meta_value ) {
+		if ( is_array( $meta_value ) ) {
+			$meta_value = serialize( $meta_value );
+		}
+		if ( ! empty( $insert ) ) {
+			$insert .= ', ';
+		}
+		$insert .= $wpdb->prepare( '( %d, %s, %s)', $site_id, $meta_key, $meta_value );
+	}
+
+	$wpdb->query( "INSERT INTO $wpdb->blogmeta ( blog_id, meta_key, meta_value ) VALUES " . $insert ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+	wp_cache_set( 'last_changed', microtime(), 'sites' );
 }

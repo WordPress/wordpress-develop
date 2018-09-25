@@ -38,7 +38,8 @@ class Tests_Feeds_Atom extends WP_UnitTestCase {
 
 		// Create a few posts
 		self::$posts = $factory->post->create_many(
-			$count, array(
+			$count,
+			array(
 				'post_author'  => self::$user_id,
 				'post_content' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec velit massa, ultrices eu est suscipit, mattis posuere est. Donec vitae purus lacus. Cras vitae odio odio.',
 				'post_excerpt' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',

@@ -133,7 +133,8 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 			array(
 				'action'                => 'load-available-menu-items-customizer',
 				'customize-menus-nonce' => wp_create_nonce( 'customize-menus' ),
-			), $post_args
+			),
+			$post_args
 		);
 
 		// Make the request.
@@ -242,7 +243,8 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 			array(
 				'action'                => 'load-available-menu-items-customizer',
 				'customize-menus-nonce' => wp_create_nonce( 'customize-menus' ),
-			), $post_args
+			),
+			$post_args
 		);
 
 		// Make the request.
@@ -354,7 +356,8 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 			array(
 				'action'                => 'load-available-menu-items-customizer',
 				'customize-menus-nonce' => wp_create_nonce( 'customize-menus' ),
-			), $post_args
+			),
+			$post_args
 		);
 
 		// Make the request.
@@ -537,7 +540,8 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 			array(
 				'action'                => 'search-available-menu-items-customizer',
 				'customize-menus-nonce' => wp_create_nonce( 'customize-menus' ),
-			), $post_args
+			),
+			$post_args
 		);
 
 		$this->make_ajax_call( 'search-available-menu-items-customizer' );

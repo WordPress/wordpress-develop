@@ -158,7 +158,8 @@ class Tests_Comment_WpListComments extends WP_UnitTestCase {
 				'echo'     => false,
 				'per_page' => 1,
 				'page'     => 2,
-			), $_comments
+			),
+			$_comments
 		);
 
 		preg_match_all( '|id="comment\-([0-9]+)"|', $found, $matches );

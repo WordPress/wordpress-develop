@@ -308,7 +308,12 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$file = wp_crop_image(
 			DIR_TESTDATA . '/images/canola.jpg',
-			0, 0, 100, 100, 100, 100
+			0,
+			0,
+			100,
+			100,
+			100,
+			100
 		);
 		$this->assertNotWPError( $file );
 		$this->assertFileExists( $file );
@@ -331,7 +336,13 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$file = wp_crop_image(
 			'https://asdftestblog1.files.wordpress.com/2008/04/canola.jpg',
-			0, 0, 100, 100, 100, 100, false,
+			0,
+			0,
+			100,
+			100,
+			100,
+			100,
+			false,
 			DIR_TESTDATA . '/images/' . __FUNCTION__ . '.jpg'
 		);
 		$this->assertNotWPError( $file );
@@ -347,7 +358,12 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	public function test_wp_crop_image_file_not_exist() {
 		$file = wp_crop_image(
 			DIR_TESTDATA . '/images/canoladoesnotexist.jpg',
-			0, 0, 100, 100, 100, 100
+			0,
+			0,
+			100,
+			100,
+			100,
+			100
 		);
 		$this->assertInstanceOf( 'WP_Error', $file );
 	}
@@ -359,7 +375,12 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$file = wp_crop_image(
 			'https://asdftestblog1.files.wordpress.com/2008/04/canoladoesnotexist.jpg',
-			0, 0, 100, 100, 100, 100
+			0,
+			0,
+			100,
+			100,
+			100,
+			100
 		);
 		$this->assertInstanceOf( 'WP_Error', $file );
 	}
@@ -377,7 +398,12 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$file = wp_crop_image(
 			DIR_TESTDATA . '/images/canola.jpg',
-			0, 0, 100, 100, 100, 100
+			0,
+			0,
+			100,
+			100,
+			100,
+			100
 		);
 		$this->assertInstanceOf( 'WP_Error', $file );
 
@@ -398,7 +424,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		copy( $orig_file, $test_file );
 
 		$attachment_id = $this->factory->attachment->create_object(
-			$test_file, 0, array(
+			$test_file,
+			0,
+			array(
 				'post_mime_type' => 'application/pdf',
 			)
 		);
@@ -461,7 +489,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		copy( $orig_file, $test_file );
 
 		$attachment_id = $this->factory->attachment->create_object(
-			$test_file, 0, array(
+			$test_file,
+			0,
+			array(
 				'post_mime_type' => 'application/pdf',
 			)
 		);
@@ -519,7 +549,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		copy( $orig_file, $test_file );
 
 		$attachment_id = $this->factory->attachment->create_object(
-			$test_file, 0, array(
+			$test_file,
+			0,
+			array(
 				'post_mime_type' => 'application/pdf',
 			)
 		);
@@ -577,7 +609,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		copy( DIR_TESTDATA . '/images/wordpress-gsoc-flyer.pdf', $pdf_path );
 
 		$attachment_id = $this->factory->attachment->create_object(
-			$pdf_path, 0, array(
+			$pdf_path,
+			0,
+			array(
 				'post_mime_type' => 'application/pdf',
 			)
 		);

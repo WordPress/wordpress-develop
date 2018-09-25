@@ -169,7 +169,8 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 
 		// Make sure that wp_update_custom_css_post() works as expected for updates.
 		$r = wp_update_custom_css_post(
-			'body { color:red; }', array(
+			'body { color:red; }',
+			array(
 				'stylesheet'   => $this->setting->stylesheet,
 				'preprocessed' => "body\n\tcolor:red;",
 			)
@@ -185,7 +186,8 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 
 		// Make sure that wp_update_custom_css_post() works as expected for insertion.
 		$r = wp_update_custom_css_post(
-			'body { background:black; }', array(
+			'body { background:black; }',
+			array(
 				'stylesheet' => 'other',
 			)
 		);
@@ -214,7 +216,8 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 		$updated_css  = 'body { background: red; }';
 
 		$post = wp_update_custom_css_post(
-			$inserted_css, array(
+			$inserted_css,
+			array(
 				'stylesheet' => 'testtheme',
 			)
 		);
@@ -225,7 +228,8 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 		$this->assertSame( $inserted_css, $revisions[0]->post_content );
 
 		wp_update_custom_css_post(
-			$updated_css, array(
+			$updated_css,
+			array(
 				'stylesheet' => 'testtheme',
 			)
 		);

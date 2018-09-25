@@ -19,7 +19,8 @@
  */
 function create_initial_post_types() {
 	register_post_type(
-		'post', array(
+		'post',
+		array(
 			'labels'                => array(
 				'name_admin_bar' => _x( 'Post', 'add new from admin bar' ),
 			),
@@ -41,7 +42,8 @@ function create_initial_post_types() {
 	);
 
 	register_post_type(
-		'page', array(
+		'page',
+		array(
 			'labels'                => array(
 				'name_admin_bar' => _x( 'Page', 'add new from admin bar' ),
 			),
@@ -64,7 +66,8 @@ function create_initial_post_types() {
 	);
 
 	register_post_type(
-		'attachment', array(
+		'attachment',
+		array(
 			'labels'                => array(
 				'name'           => _x( 'Media', 'post type general name' ),
 				'name_admin_bar' => _x( 'Media', 'add new from admin bar' ),
@@ -97,7 +100,8 @@ function create_initial_post_types() {
 	add_post_type_support( 'attachment:video', 'thumbnail' );
 
 	register_post_type(
-		'revision', array(
+		'revision',
+		array(
 			'labels'           => array(
 				'name'          => __( 'Revisions' ),
 				'singular_name' => __( 'Revision' ),
@@ -117,7 +121,8 @@ function create_initial_post_types() {
 	);
 
 	register_post_type(
-		'nav_menu_item', array(
+		'nav_menu_item',
+		array(
 			'labels'           => array(
 				'name'          => __( 'Navigation Menu Items' ),
 				'singular_name' => __( 'Navigation Menu Item' ),
@@ -132,7 +137,8 @@ function create_initial_post_types() {
 	);
 
 	register_post_type(
-		'custom_css', array(
+		'custom_css',
+		array(
 			'labels'           => array(
 				'name'          => __( 'Custom CSS' ),
 				'singular_name' => __( 'Custom CSS' ),
@@ -163,7 +169,8 @@ function create_initial_post_types() {
 	);
 
 	register_post_type(
-		'customize_changeset', array(
+		'customize_changeset',
+		array(
 			'labels'           => array(
 				'name'               => _x( 'Changesets', 'post type general name' ),
 				'singular_name'      => _x( 'Changeset', 'post type singular name' ),
@@ -210,7 +217,8 @@ function create_initial_post_types() {
 	);
 
 	register_post_type(
-		'oembed_cache', array(
+		'oembed_cache',
+		array(
 			'labels'           => array(
 				'name'          => __( 'oEmbed Responses' ),
 				'singular_name' => __( 'oEmbed Response' ),
@@ -227,7 +235,8 @@ function create_initial_post_types() {
 	);
 
 	register_post_type(
-		'user_request', array(
+		'user_request',
+		array(
 			'labels'           => array(
 				'name'          => __( 'User Requests' ),
 				'singular_name' => __( 'User Request' ),
@@ -244,7 +253,8 @@ function create_initial_post_types() {
 	);
 
 	register_post_status(
-		'publish', array(
+		'publish',
+		array(
 			'label'       => _x( 'Published', 'post status' ),
 			'public'      => true,
 			'_builtin'    => true, /* internal use only. */
@@ -253,7 +263,8 @@ function create_initial_post_types() {
 	);
 
 	register_post_status(
-		'future', array(
+		'future',
+		array(
 			'label'       => _x( 'Scheduled', 'post status' ),
 			'protected'   => true,
 			'_builtin'    => true, /* internal use only. */
@@ -262,7 +273,8 @@ function create_initial_post_types() {
 	);
 
 	register_post_status(
-		'draft', array(
+		'draft',
+		array(
 			'label'       => _x( 'Draft', 'post status' ),
 			'protected'   => true,
 			'_builtin'    => true, /* internal use only. */
@@ -271,7 +283,8 @@ function create_initial_post_types() {
 	);
 
 	register_post_status(
-		'pending', array(
+		'pending',
+		array(
 			'label'       => _x( 'Pending', 'post status' ),
 			'protected'   => true,
 			'_builtin'    => true, /* internal use only. */
@@ -280,7 +293,8 @@ function create_initial_post_types() {
 	);
 
 	register_post_status(
-		'private', array(
+		'private',
+		array(
 			'label'       => _x( 'Private', 'post status' ),
 			'private'     => true,
 			'_builtin'    => true, /* internal use only. */
@@ -289,7 +303,8 @@ function create_initial_post_types() {
 	);
 
 	register_post_status(
-		'trash', array(
+		'trash',
+		array(
 			'label'                     => _x( 'Trash', 'post status' ),
 			'internal'                  => true,
 			'_builtin'                  => true, /* internal use only. */
@@ -299,7 +314,8 @@ function create_initial_post_types() {
 	);
 
 	register_post_status(
-		'auto-draft', array(
+		'auto-draft',
+		array(
 			'label'    => 'auto-draft',
 			'internal' => true,
 			'_builtin' => true, /* internal use only. */
@@ -307,7 +323,8 @@ function create_initial_post_types() {
 	);
 
 	register_post_status(
-		'inherit', array(
+		'inherit',
+		array(
 			'label'               => 'inherit',
 			'internal'            => true,
 			'_builtin'            => true, /* internal use only. */
@@ -316,7 +333,8 @@ function create_initial_post_types() {
 	);
 
 	register_post_status(
-		'request-pending', array(
+		'request-pending',
+		array(
 			'label'               => _x( 'Pending', 'request status' ),
 			'internal'            => true,
 			'_builtin'            => true, /* internal use only. */
@@ -325,7 +343,8 @@ function create_initial_post_types() {
 	);
 
 	register_post_status(
-		'request-confirmed', array(
+		'request-confirmed',
+		array(
 			'label'               => _x( 'Confirmed', 'request status' ),
 			'internal'            => true,
 			'_builtin'            => true, /* internal use only. */
@@ -334,7 +353,8 @@ function create_initial_post_types() {
 	);
 
 	register_post_status(
-		'request-failed', array(
+		'request-failed',
+		array(
 			'label'               => _x( 'Failed', 'request status' ),
 			'internal'            => true,
 			'_builtin'            => true, /* internal use only. */
@@ -343,7 +363,8 @@ function create_initial_post_types() {
 	);
 
 	register_post_status(
-		'request-completed', array(
+		'request-completed',
+		array(
 			'label'               => _x( 'Completed', 'request status' ),
 			'internal'            => true,
 			'_builtin'            => true, /* internal use only. */
@@ -838,7 +859,7 @@ function get_page_statuses() {
 /**
  * Return statuses for privacy requests.
  *
- * @since 5.0.0
+ * @since 4.9.6
  *
  * @return array
  */
@@ -1802,7 +1823,7 @@ function is_post_type_viewable( $post_type ) {
 }
 
 /**
- * Retrieve list of latest posts or posts matching criteria.
+ * Retrieves an array of the latest posts, or posts matching the given criteria.
  *
  * The defaults are as follows:
  *
@@ -1823,7 +1844,7 @@ function is_post_type_viewable( $post_type ) {
  *     @type array      $exclude          An array of post IDs not to retrieve. Default empty array.
  *     @type bool       $suppress_filters Whether to suppress filters. Default true.
  * }
- * @return array List of posts.
+ * @return WP_Post[]|int[] Array of post objects or post IDs.
  */
 function get_posts( $args = null ) {
 	$defaults = array(
@@ -1870,7 +1891,7 @@ function get_posts( $args = null ) {
 //
 
 /**
- * Add meta data field to a post.
+ * Adds a meta field to the given post.
  *
  * Post meta data is called "Custom Fields" on the Administration Screen.
  *
@@ -1897,11 +1918,11 @@ function add_post_meta( $post_id, $meta_key, $meta_value, $unique = false ) {
 }
 
 /**
- * Remove metadata matching criteria from a post.
+ * Deletes a post meta field for the given post ID.
  *
  * You can match based on the key, or key and value. Removing based on key and
  * value, will keep from removing duplicate metadata with the same key. It also
- * allows removing all metadata matching key, if needed.
+ * allows removing all metadata matching the key, if needed.
  *
  * @since 1.5.0
  *
@@ -1925,17 +1946,16 @@ function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
 }
 
 /**
- * Retrieve post meta field for a post.
+ * Retrieves a post meta field for the given post ID.
  *
  * @since 1.5.0
  *
  * @param int    $post_id Post ID.
  * @param string $key     Optional. The meta key to retrieve. By default, returns
  *                        data for all keys. Default empty.
- * @param bool   $single  Optional, default is false.
- *                        If true, return only the first value of the specified meta_key.
- *                        This parameter has no effect if meta_key is not specified.
- * @return mixed Will be an array if $single is false. Will be value of meta data
+ * @param bool   $single  Optional. If true, returns only the first value for the specified meta key.
+ *                        This parameter has no effect if $key is not specified. Default false.
+ * @return mixed Will be an array if $single is false. Will be value of the meta
  *               field if $single is true.
  */
 function get_post_meta( $post_id, $key = '', $single = false ) {
@@ -1943,22 +1963,21 @@ function get_post_meta( $post_id, $key = '', $single = false ) {
 }
 
 /**
- * Update post meta field based on post ID.
+ * Updates a post meta field based on the given post ID.
  *
  * Use the $prev_value parameter to differentiate between meta fields with the
  * same key and post ID.
  *
- * If the meta field for the post does not exist, it will be added.
+ * If the meta field for the post does not exist, it will be added and its ID returned.
  *
  * @since 1.5.0
  *
  * @param int    $post_id    Post ID.
  * @param string $meta_key   Metadata key.
  * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
- * @param mixed  $prev_value Optional. Previous value to check before removing.
- *                           Default empty.
- * @return int|bool Meta ID if the key didn't exist, true on successful update,
- *                  false on failure.
+ * @param mixed  $prev_value Optional. Previous value to check before updating.
+ * @return int|bool The new meta field ID if a field with the given key didn't exist and was
+ *                  therefore added, true on successful update, false on failure.
  */
 function update_post_meta( $post_id, $meta_key, $meta_value, $prev_value = '' ) {
 	// Make sure meta is added to the post, not a revision.
@@ -1974,7 +1993,7 @@ function update_post_meta( $post_id, $meta_key, $meta_value, $prev_value = '' ) 
 }
 
 /**
- * Delete everything from post meta matching meta key.
+ * Deletes everything from post meta matching the given meta key.
  *
  * @since 2.3.0
  *
@@ -3829,7 +3848,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 		 * The dynamic portion of the hook name, `$post->post_type`, refers to
 		 * the post type slug.
 		 *
-		 * @since 5.0.0
+		 * @since 4.9.9
 		 *
 		 * @param int     $post_ID Post ID.
 		 * @param WP_Post $post    Post object.
@@ -4728,7 +4747,8 @@ function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' )
 			FROM $wpdb->posts
 			WHERE post_title = %s
 			AND post_type IN ($post_type_in_string)
-		", $page_title
+		",
+			$page_title
 		);
 	} else {
 		$sql = $wpdb->prepare(
@@ -4737,7 +4757,9 @@ function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' )
 			FROM $wpdb->posts
 			WHERE post_title = %s
 			AND post_type = %s
-		", $page_title, $post_type
+		",
+			$page_title,
+			$post_type
 		);
 	}
 
@@ -5929,7 +5951,7 @@ function wp_check_for_changed_slugs( $post_id, $post, $post_before ) {
  */
 function wp_check_for_changed_dates( $post_id, $post, $post_before ) {
 	$previous_date = date( 'Y-m-d', strtotime( $post_before->post_date ) );
-	$new_date = date( 'Y-m-d', strtotime( $post->post_date ) );
+	$new_date      = date( 'Y-m-d', strtotime( $post->post_date ) );
 	// Don't bother if it hasn't changed.
 	if ( $new_date == $previous_date ) {
 		return;
@@ -6493,12 +6515,12 @@ function _publish_post_hook( $post_id ) {
 }
 
 /**
- * Return the post's parent post ID.
+ * Returns the ID of the post's parent.
  *
  * @since 3.1.0
  *
  * @param int|WP_Post $post Post ID or post object. Defaults to global $post.
- * @return int|false Post parent ID, otherwise false.
+ * @return int|false Post parent ID (which can be 0 if there is no parent), or false if the post does not exist.
  */
 function wp_get_post_parent_id( $post ) {
 	$post = get_post( $post );
@@ -6562,7 +6584,7 @@ function wp_check_post_hierarchy_for_loops( $post_parent, $post_ID ) {
 }
 
 /**
- * Set a post thumbnail.
+ * Sets the post thumbnail (featured image) for the given post.
  *
  * @since 3.1.0
  *
@@ -6584,11 +6606,11 @@ function set_post_thumbnail( $post, $thumbnail_id ) {
 }
 
 /**
- * Remove a post thumbnail.
+ * Removes the thumbnail (featured image) from the given post.
  *
  * @since 3.3.0
  *
- * @param int|WP_Post $post Post ID or post object where thumbnail should be removed from.
+ * @param int|WP_Post $post Post ID or post object from which the thumbnail should be removed.
  * @return bool True on success, false on failure.
  */
 function delete_post_thumbnail( $post ) {

@@ -390,10 +390,12 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 					'time'                 => $time,
 					'in_moderation'        => $counts->moderated,
 					'i18n_comments_text'   => sprintf(
+						/* translators: %s: number of comments approved */
 						_n( '%s Comment', '%s Comments', $counts->approved ),
 						number_format_i18n( $counts->approved )
 					),
 					'i18n_moderation_text' => sprintf(
+						/* translators: %s: number of comments in moderation */
 						_nx( '%s in moderation', '%s in moderation', $counts->moderated, 'comments' ),
 						number_format_i18n( $counts->moderated )
 					),
@@ -452,6 +454,7 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 			'supplemental' => array(
 				'status'           => $comment ? $comment->comment_approved : '',
 				'postId'           => $comment ? $comment->comment_post_ID : '',
+				/* translators: %s: number of comments */
 				'total_items_i18n' => sprintf( _n( '%s item', '%s items', $total ), number_format_i18n( $total ) ),
 				'total_pages'      => ceil( $total / $per_page ),
 				'total_pages_i18n' => number_format_i18n( ceil( $total / $per_page ) ),
@@ -514,7 +517,8 @@ function _wp_ajax_add_hierarchical_term() {
 		ob_start();
 
 		wp_terms_checklist(
-			0, array(
+			0,
+			array(
 				'taxonomy'             => $taxonomy->name,
 				'descendants_and_self' => $cat_id,
 				'selected_cats'        => $checked_categories,
@@ -547,7 +551,8 @@ function _wp_ajax_add_hierarchical_term() {
 		ob_start();
 
 		wp_terms_checklist(
-			0, array(
+			0,
+			array(
 				'taxonomy'             => $taxonomy->name,
 				'descendants_and_self' => $term_id,
 				'selected_cats'        => $checked_categories,
@@ -833,6 +838,7 @@ function wp_ajax_dim_comment() {
 		$x = new WP_Ajax_Response(
 			array(
 				'what' => 'comment',
+				/* translators: %d: comment ID */
 				'id'   => new WP_Error( 'invalid_comment', sprintf( __( 'Comment %d does not exist' ), $id ) ),
 			)
 		);
@@ -998,7 +1004,8 @@ function wp_ajax_get_tagcloud() {
 	}
 
 	$tags = get_terms(
-		$taxonomy, array(
+		$taxonomy,
+		array(
 			'number'  => 45,
 			'orderby' => 'count',
 			'order'   => 'DESC',
@@ -1020,7 +1027,8 @@ function wp_ajax_get_tagcloud() {
 
 	// We need raw tag names here, so don't filter the output
 	$return = wp_generate_tag_cloud(
-		$tags, array(
+		$tags,
+		array(
 			'filter' => 0,
 			'format' => 'list',
 		)
@@ -1210,10 +1218,12 @@ function wp_ajax_replyto_comment( $action ) {
 	$response['supplemental'] = array(
 		'in_moderation'        => $counts->moderated,
 		'i18n_comments_text'   => sprintf(
+			/* translators: %s: number of comments approved */
 			_n( '%s Comment', '%s Comments', $counts->approved ),
 			number_format_i18n( $counts->approved )
 		),
 		'i18n_moderation_text' => sprintf(
+			/* translators: %s: number of comments moderated */
 			_nx( '%s in moderation', '%s in moderation', $counts->moderated, 'comments' ),
 			number_format_i18n( $counts->moderated )
 		),
@@ -1460,7 +1470,8 @@ function wp_ajax_add_meta() {
 						'meta_key'   => $key,
 						'meta_value' => $value,
 						'meta_id'    => $mid,
-					), $c
+					),
+					$c
 				),
 				'position'     => 0,
 				'supplemental' => array( 'postid' => $meta->post_id ),
@@ -1625,7 +1636,8 @@ function wp_ajax_menu_get_metabox() {
 		$item = apply_filters( 'nav_menu_meta_box_object', $menus_meta_box_object );
 		ob_start();
 		call_user_func_array(
-			$callback, array(
+			$callback,
+			array(
 				null,
 				array(
 					'id'       => 'add-' . $item->name,
@@ -1807,7 +1819,15 @@ function wp_ajax_inline_save() {
 	if ( $last = wp_check_post_lock( $post_ID ) ) {
 		$last_user      = get_userdata( $last );
 		$last_user_name = $last_user ? $last_user->display_name : __( 'Someone' );
-		printf( $_POST['post_type'] == 'page' ? __( 'Saving is disabled: %s is currently editing this page.' ) : __( 'Saving is disabled: %s is currently editing this post.' ), esc_html( $last_user_name ) );
+
+		/* translators: %s: user who is currently editing the post */
+		$msg_template = __( 'Saving is disabled: %s is currently editing this post.' );
+		if ( $_POST['post_type'] == 'page' ) {
+			/* translators: %s: user who is currently editing the page */
+			$msg_template = __( 'Saving is disabled: %s is currently editing this page.' );
+		}
+
+		printf( $msg_template, esc_html( $last_user_name ) );
 		wp_die();
 	}
 
@@ -2502,9 +2522,11 @@ function wp_ajax_wp_fullscreen_save_post() {
 	}
 
 	if ( $last_id = get_post_meta( $post_id, '_edit_last', true ) ) {
-		$last_user   = get_userdata( $last_id );
+		$last_user = get_userdata( $last_id );
+		/* translators: 1: display_name of last user, 2: date of last edit, 3: time of last edit. */
 		$last_edited = sprintf( __( 'Last edited by %1$s on %2$s at %3$s' ), esc_html( $last_user->display_name ), $last_date, $last_time );
 	} else {
+		/* translators: 1: date of last edit, 2: time of last edit. */
 		$last_edited = sprintf( __( 'Last edited on %1$s at %2$s' ), $last_date, $last_time );
 	}
 
@@ -3166,7 +3188,8 @@ function wp_ajax_query_themes() {
 	}
 
 	$args = wp_parse_args(
-		wp_unslash( $_REQUEST['request'] ), array(
+		wp_unslash( $_REQUEST['request'] ),
+		array(
 			'per_page' => 20,
 			'fields'   => $theme_field_defaults,
 		)
@@ -3196,7 +3219,8 @@ function wp_ajax_query_themes() {
 			array(
 				'theme'    => $theme->slug,
 				'_wpnonce' => wp_create_nonce( 'install-theme_' . $theme->slug ),
-			), $update_php
+			),
+			$update_php
 		);
 
 		if ( current_user_can( 'switch_themes' ) ) {
@@ -3206,7 +3230,8 @@ function wp_ajax_query_themes() {
 						'action'   => 'enable',
 						'_wpnonce' => wp_create_nonce( 'enable-theme_' . $theme->slug ),
 						'theme'    => $theme->slug,
-					), network_admin_url( 'themes.php' )
+					),
+					network_admin_url( 'themes.php' )
 				);
 			} else {
 				$theme->activate_url = add_query_arg(
@@ -3214,7 +3239,8 @@ function wp_ajax_query_themes() {
 						'action'     => 'activate',
 						'_wpnonce'   => wp_create_nonce( 'switch-theme_' . $theme->slug ),
 						'stylesheet' => $theme->slug,
-					), admin_url( 'themes.php' )
+					),
+					admin_url( 'themes.php' )
 				);
 			}
 		}
@@ -3223,7 +3249,8 @@ function wp_ajax_query_themes() {
 			$theme->customize_url = add_query_arg(
 				array(
 					'return' => urlencode( network_admin_url( 'theme-install.php', 'relative' ) ),
-				), wp_customize_url( $theme->slug )
+				),
+				wp_customize_url( $theme->slug )
 			);
 		}
 
@@ -3325,6 +3352,7 @@ function wp_ajax_parse_embed() {
 		wp_send_json_error(
 			array(
 				'type'    => 'not-embeddable',
+				/* translators: %s: URL which cannot be embedded, between code tags */
 				'message' => sprintf( __( '%s failed to embed.' ), '<code>' . esc_html( $url ) . '</code>' ),
 			)
 		);
@@ -3666,7 +3694,8 @@ function wp_ajax_install_theme() {
 	include_once( ABSPATH . 'wp-admin/includes/theme.php' );
 
 	$api = themes_api(
-		'theme_information', array(
+		'theme_information',
+		array(
 			'slug'   => $slug,
 			'fields' => array( 'sections' => false ),
 		)
@@ -3719,7 +3748,8 @@ function wp_ajax_install_theme() {
 					'action'   => 'enable',
 					'_wpnonce' => wp_create_nonce( 'enable-theme_' . $slug ),
 					'theme'    => $slug,
-				), network_admin_url( 'themes.php' )
+				),
+				network_admin_url( 'themes.php' )
 			);
 		} else {
 			$status['activateUrl'] = add_query_arg(
@@ -3727,7 +3757,8 @@ function wp_ajax_install_theme() {
 					'action'     => 'activate',
 					'_wpnonce'   => wp_create_nonce( 'switch-theme_' . $slug ),
 					'stylesheet' => $slug,
-				), admin_url( 'themes.php' )
+				),
+				admin_url( 'themes.php' )
 			);
 		}
 	}
@@ -3736,7 +3767,8 @@ function wp_ajax_install_theme() {
 		$status['customizeUrl'] = add_query_arg(
 			array(
 				'return' => urlencode( network_admin_url( 'theme-install.php', 'relative' ) ),
-			), wp_customize_url( $slug )
+			),
+			wp_customize_url( $slug )
 		);
 	}
 
@@ -3950,7 +3982,8 @@ function wp_ajax_install_plugin() {
 	include_once( ABSPATH . 'wp-admin/includes/plugin-install.php' );
 
 	$api = plugins_api(
-		'plugin_information', array(
+		'plugin_information',
+		array(
 			'slug'   => sanitize_key( wp_unslash( $_POST['slug'] ) ),
 			'fields' => array(
 				'sections' => false,
@@ -4010,7 +4043,8 @@ function wp_ajax_install_plugin() {
 				'_wpnonce' => wp_create_nonce( 'activate-plugin_' . $install_status['file'] ),
 				'action'   => 'activate',
 				'plugin'   => $install_status['file'],
-			), $plugins_url
+			),
+			$plugins_url
 		);
 	}
 
@@ -4220,7 +4254,8 @@ function wp_ajax_search_plugins() {
 
 	/** @var WP_Plugins_List_Table $wp_list_table */
 	$wp_list_table = _get_list_table(
-		'WP_Plugins_List_Table', array(
+		'WP_Plugins_List_Table',
+		array(
 			'screen' => get_current_screen(),
 		)
 	);
@@ -4235,11 +4270,13 @@ function wp_ajax_search_plugins() {
 	// Set the correct requester, so pagination works.
 	$_SERVER['REQUEST_URI'] = add_query_arg(
 		array_diff_key(
-			$_POST, array(
+			$_POST,
+			array(
 				'_ajax_nonce' => null,
 				'action'      => null,
 			)
-		), network_admin_url( 'plugins.php', 'relative' )
+		),
+		network_admin_url( 'plugins.php', 'relative' )
 	);
 
 	$GLOBALS['s'] = wp_unslash( $_POST['s'] );
@@ -4269,7 +4306,8 @@ function wp_ajax_search_install_plugins() {
 
 	/** @var WP_Plugin_Install_List_Table $wp_list_table */
 	$wp_list_table = _get_list_table(
-		'WP_Plugin_Install_List_Table', array(
+		'WP_Plugin_Install_List_Table',
+		array(
 			'screen' => get_current_screen(),
 		)
 	);
@@ -4284,11 +4322,13 @@ function wp_ajax_search_install_plugins() {
 	// Set the correct requester, so pagination works.
 	$_SERVER['REQUEST_URI'] = add_query_arg(
 		array_diff_key(
-			$_POST, array(
+			$_POST,
+			array(
 				'_ajax_nonce' => null,
 				'action'      => null,
 			)
-		), network_admin_url( 'plugin-install.php', 'relative' )
+		),
+		network_admin_url( 'plugin-install.php', 'relative' )
 	);
 
 	$wp_list_table->prepare_items();

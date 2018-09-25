@@ -190,7 +190,8 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 				'path'     => '/path',
 				'query'    => 'arg1=value1&arg2=value2',
 				'fragment' => 'anchor',
-			), $actual
+			),
+			$actual
 		);
 	}
 

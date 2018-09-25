@@ -906,7 +906,8 @@ class Tests_User extends WP_UnitTestCase {
 	 */
 	public function test_wp_insert_user_should_not_truncate_to_a_duplicate_user_nicename_when_suffix_has_more_than_one_character() {
 		$user_ids = self::factory()->user->create_many(
-			4, array(
+			4,
+			array(
 				'user_nicename' => str_repeat( 'a', 50 ),
 			)
 		);
@@ -1556,7 +1557,7 @@ class Tests_User extends WP_UnitTestCase {
 		$_POST['role']     = 'subscriber';
 		$_POST['email']    = 'subscriber@subscriber.test';
 		$_POST['nickname'] = 'subscriber';
-		$this->assertSame(  $administrator, edit_user( $administrator ) );
+		$this->assertSame( $administrator, edit_user( $administrator ) );
 
 		// Should still have the old role.
 		$this->assertSame( array( 'administrator' ), get_userdata( $administrator )->roles );
@@ -1571,7 +1572,7 @@ class Tests_User extends WP_UnitTestCase {
 		$_POST['role']     = 'administrator';
 		$_POST['email']    = 'administrator@administrator.test';
 		$_POST['nickname'] = 'administrator';
-		$this->assertSame(  $editor, edit_user( $editor ) );
+		$this->assertSame( $editor, edit_user( $editor ) );
 
 		// Should have the new role.
 		$this->assertSame( array( 'administrator' ), get_userdata( $editor )->roles );

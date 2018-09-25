@@ -95,7 +95,8 @@ class Tests_Query extends WP_UnitTestCase {
 		remove_action( 'pre_get_posts', array( $this, 'pre_get_posts_tax_category_tax_query' ) );
 		register_taxonomy( 'wptests_tax', 'post' );
 		$terms = self::factory()->term->create_many(
-			2, array(
+			2,
+			array(
 				'taxonomy' => 'wptests_tax',
 			)
 		);
@@ -181,7 +182,8 @@ class Tests_Query extends WP_UnitTestCase {
 		$url = add_query_arg(
 			array(
 				'cat' => $c1,
-			), '/'
+			),
+			'/'
 		);
 
 		$this->go_to( $url );
@@ -224,7 +226,8 @@ class Tests_Query extends WP_UnitTestCase {
 		$url = add_query_arg(
 			array(
 				'cat' => implode( ',', array( $c1, $c2 ) ),
-			), '/'
+			),
+			'/'
 		);
 
 		$this->go_to( $url );
@@ -270,7 +273,8 @@ class Tests_Query extends WP_UnitTestCase {
 		$url = add_query_arg(
 			array(
 				'cat' => array( $c1, $c2 ),
-			), '/'
+			),
+			'/'
 		);
 
 		$this->go_to( $url );
@@ -306,7 +310,8 @@ class Tests_Query extends WP_UnitTestCase {
 		$url = add_query_arg(
 			array(
 				'tag' => $t1->slug,
-			), '/'
+			),
+			'/'
 		);
 
 		$this->go_to( $url );
@@ -349,7 +354,8 @@ class Tests_Query extends WP_UnitTestCase {
 		$url = add_query_arg(
 			array(
 				'tag' => implode( ',', array( $c1->slug, $c2->slug ) ),
-			), '/'
+			),
+			'/'
 		);
 
 		$this->go_to( $url );
@@ -395,7 +401,8 @@ class Tests_Query extends WP_UnitTestCase {
 		$url = add_query_arg(
 			array(
 				'tag' => array( $c1->slug, $c2->slug ),
-			), '/'
+			),
+			'/'
 		);
 
 		$this->go_to( $url );
@@ -423,7 +430,8 @@ class Tests_Query extends WP_UnitTestCase {
 		$url = add_query_arg(
 			array(
 				'test_tax_cat' => 'test1',
-			), '/'
+			),
+			'/'
 		);
 
 		$this->go_to( $url );
@@ -451,7 +459,8 @@ class Tests_Query extends WP_UnitTestCase {
 		$url = add_query_arg(
 			array(
 				'test_tax_cat' => 'test1,test2',
-			), '/'
+			),
+			'/'
 		);
 
 		$this->go_to( $url );
@@ -482,7 +491,8 @@ class Tests_Query extends WP_UnitTestCase {
 		$url = add_query_arg(
 			array(
 				'test_tax_cat' => array( 'test1', 'test2' ),
-			), '/'
+			),
+			'/'
 		);
 
 		$this->go_to( $url );
@@ -519,7 +529,8 @@ class Tests_Query extends WP_UnitTestCase {
 		global $wp_rewrite;
 
 		register_post_type(
-			'guide', array(
+			'guide',
+			array(
 				'name'         => 'Guide',
 				'public'       => true,
 				'hierarchical' => true,

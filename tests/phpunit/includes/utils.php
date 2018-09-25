@@ -206,7 +206,8 @@ class testXMLParser {
 					'XML error: %s at line %d',
 					xml_error_string( xml_get_error_code( $this->xml ) ),
 					xml_get_current_line_number( $this->xml )
-				), E_USER_ERROR
+				),
+				E_USER_ERROR
 			);
 			xml_parser_free( $this->xml );
 		}
@@ -497,7 +498,7 @@ function benchmark_pcre_backtracking( $pattern, $subject, $strategy ) {
 			case PREG_NO_ERROR:
 				return $i;
 			case PREG_BACKTRACK_LIMIT_ERROR:
-				continue;
+				break;
 			case PREG_RECURSION_LIMIT_ERROR:
 				trigger_error( 'PCRE recursion limit encountered before backtrack limit.' );
 				return;

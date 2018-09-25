@@ -189,7 +189,9 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		);
 
 		$media_id = $this->factory->attachment->create_object(
-			'/tmp/canola.jpg', 0, array(
+			'/tmp/canola.jpg',
+			0,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_excerpt'   => 'A sample caption',
 				'post_name'      => 'restapi-client-fixture-attachment',

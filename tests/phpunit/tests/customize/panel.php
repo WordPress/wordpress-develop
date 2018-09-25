@@ -81,7 +81,9 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 		$this->assertTrue( $panel->active() );
 
 		$panel = new WP_Customize_Panel(
-			$this->manager, 'foo', array(
+			$this->manager,
+			'foo',
+			array(
 				'active_callback' => '__return_false',
 			)
 		);

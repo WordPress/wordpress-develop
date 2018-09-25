@@ -262,7 +262,8 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 		$screen = get_current_screen();
 		$screen->add_help_tab( $tab_args );
 		$this->assertEquals(
-			$screen->get_help_tab( $tab ), array(
+			$screen->get_help_tab( $tab ),
+			array(
 				'id'       => $tab,
 				'title'    => 'Help!',
 				'content'  => 'Some content',
@@ -352,7 +353,8 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 				$tab_1 => $tab_1_args,
 				$tab_4 => $tab_4_args,
 				$tab_3 => $tab_3_args,
-			), $tabs
+			),
+			$tabs
 		);
 
 		$screen->remove_help_tab( $tab_1 );

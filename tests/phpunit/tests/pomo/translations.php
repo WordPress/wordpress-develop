@@ -22,7 +22,8 @@ class Tests_POMO_Translations extends WP_UnitTestCase {
 			array(
 				$entry->key()  => $entry,
 				$entry2->key() => $entry2,
-			), $po->entries
+			),
+			$po->entries
 		);
 		// add empty entry
 		$this->assertEquals( false, $po->add_entry( $empty ) );
@@ -30,7 +31,8 @@ class Tests_POMO_Translations extends WP_UnitTestCase {
 			array(
 				$entry->key()  => $entry,
 				$entry2->key() => $entry2,
-			), $po->entries
+			),
+			$po->entries
 		);
 
 		// give add_entry() the arguments and let it create the entry itself

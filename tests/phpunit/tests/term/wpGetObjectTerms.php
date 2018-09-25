@@ -24,7 +24,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 
 		// make sure they're correct
 		$terms = wp_get_object_terms(
-			$post_id, $this->taxonomy, array(
+			$post_id,
+			$this->taxonomy,
+			array(
 				'fields'  => 'slugs',
 				'orderby' => 'term_id',
 			)
@@ -48,7 +50,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		$this->assertEquals( array( $cat_id, $cat_id2 ), wp_list_pluck( $terms, 'term_id' ) );
 
 		$terms2 = wp_get_object_terms(
-			array( $post_id1, $post_id2 ), 'category', array(
+			array( $post_id1, $post_id2 ),
+			'category',
+			array(
 				'fields' => 'all_with_object_id',
 			)
 		);
@@ -137,7 +141,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		wp_set_object_terms( $p, array( $t1, $t2, $t3 ), $this->taxonomy );
 
 		$found = wp_get_object_terms(
-			$p, $this->taxonomy, array(
+			$p,
+			$this->taxonomy,
+			array(
 				'orderby' => 'name',
 				'fields'  => 'ids',
 			)
@@ -173,7 +179,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		wp_set_object_terms( $posts[2], array( $t3 ), $this->taxonomy );
 
 		$found = wp_get_object_terms(
-			$posts[0], $this->taxonomy, array(
+			$posts[0],
+			$this->taxonomy,
+			array(
 				'orderby' => 'count',
 				'fields'  => 'ids',
 			)
@@ -207,7 +215,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		wp_set_object_terms( $p, array( $t1, $t2, $t3 ), $this->taxonomy );
 
 		$found = wp_get_object_terms(
-			$p, $this->taxonomy, array(
+			$p,
+			$this->taxonomy,
+			array(
 				'orderby' => 'slug',
 				'fields'  => 'ids',
 			)
@@ -244,7 +254,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		wp_set_object_terms( $p, array( $t1, $t2, $t3 ), $this->taxonomy );
 
 		$found = wp_get_object_terms(
-			$p, $this->taxonomy, array(
+			$p,
+			$this->taxonomy,
+			array(
 				'orderby' => 'term_group',
 				'fields'  => 'ids',
 			)
@@ -281,26 +293,34 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 
 		global $wpdb;
 		$wpdb->update(
-			$wpdb->term_relationships, array( 'term_order' => 1 ), array(
+			$wpdb->term_relationships,
+			array( 'term_order' => 1 ),
+			array(
 				'term_taxonomy_id' => $term_1->term_taxonomy_id,
 				'object_id'        => $p,
 			)
 		);
 		$wpdb->update(
-			$wpdb->term_relationships, array( 'term_order' => 3 ), array(
+			$wpdb->term_relationships,
+			array( 'term_order' => 3 ),
+			array(
 				'term_taxonomy_id' => $term_2->term_taxonomy_id,
 				'object_id'        => $p,
 			)
 		);
 		$wpdb->update(
-			$wpdb->term_relationships, array( 'term_order' => 2 ), array(
+			$wpdb->term_relationships,
+			array( 'term_order' => 2 ),
+			array(
 				'term_taxonomy_id' => $term_3->term_taxonomy_id,
 				'object_id'        => $p,
 			)
 		);
 
 		$found = wp_get_object_terms(
-			$p, $this->taxonomy, array(
+			$p,
+			$this->taxonomy,
+			array(
 				'orderby' => 'term_order',
 				'fields'  => 'ids',
 			)
@@ -343,7 +363,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		$wpdb->update( $wpdb->term_taxonomy, array( 'parent' => 2 ), array( 'term_taxonomy_id' => $term_3->term_taxonomy_id ) );
 
 		$found = wp_get_object_terms(
-			$p, $this->taxonomy, array(
+			$p,
+			$this->taxonomy,
+			array(
 				'orderby' => 'parent',
 				'fields'  => 'ids',
 			)
@@ -382,7 +404,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		wp_set_object_terms( $p, $t3, 'wptests_tax_2' );
 
 		$found = wp_get_object_terms(
-			$p, array( $this->taxonomy, 'wptests_tax_2', 'wptests_tax_3' ), array(
+			$p,
+			array( $this->taxonomy, 'wptests_tax_2', 'wptests_tax_3' ),
+			array(
 				'orderby' => 'taxonomy',
 				'fields'  => 'ids',
 			)
@@ -426,7 +450,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		$set = wp_set_object_terms( $p, array( $t1, $t2, $t3 ), $this->taxonomy );
 
 		$found = wp_get_object_terms(
-			$p, $this->taxonomy, array(
+			$p,
+			$this->taxonomy,
+			array(
 				'orderby' => 'term_taxonomy_id',
 				'fields'  => 'ids',
 			)
@@ -460,7 +486,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		wp_set_object_terms( $p, array( $t1, $t2, $t3 ), $this->taxonomy );
 
 		$found = wp_get_object_terms(
-			$p, $this->taxonomy, array(
+			$p,
+			$this->taxonomy,
+			array(
 				'orderby' => 'name',
 				'order'   => 'DESC',
 				'fields'  => 'ids',
@@ -475,7 +503,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 	 */
 	public function test_parent() {
 		register_taxonomy(
-			'wptests_tax2', 'post', array(
+			'wptests_tax2',
+			'post',
+			array(
 				'hierarchical' => true,
 			)
 		);
@@ -508,7 +538,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		wp_set_object_terms( $p, array( $t1, $t2, $t3, $t3 ), 'wptests_tax2' );
 
 		$found = wp_get_object_terms(
-			$p, 'wptests_tax2', array(
+			$p,
+			'wptests_tax2',
+			array(
 				'parent' => $t1,
 				'fields' => 'ids',
 			)
@@ -549,7 +581,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		wp_set_object_terms( $p, array( $t1, $t2, $t3, $t3 ), $this->taxonomy );
 
 		$found = wp_get_object_terms(
-			$p, $this->taxonomy, array(
+			$p,
+			$this->taxonomy,
+			array(
 				'parent' => 0,
 				'fields' => 'ids',
 			)
@@ -600,7 +634,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		wp_set_object_terms( $p, $terms, 'wptests_tax' );
 
 		$found = wp_get_object_terms(
-			$p, 'wptests_tax', array(
+			$p,
+			'wptests_tax',
+			array(
 				'update_term_meta_cache' => false,
 			)
 		);
@@ -630,7 +666,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		wp_set_object_terms( $p, $terms, 'wptests_tax' );
 
 		$found = wp_get_object_terms(
-			$p, 'wptests_tax', array(
+			$p,
+			'wptests_tax',
+			array(
 				'update_term_meta_cache' => true,
 				'fields'                 => 'all_with_object_id',
 			)
@@ -661,7 +699,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		wp_set_object_terms( $p, $terms, 'wptests_tax' );
 
 		$found = wp_get_object_terms(
-			$p, 'wptests_tax', array(
+			$p,
+			'wptests_tax',
+			array(
 				'update_term_meta_cache' => true,
 				'fields'                 => 'ids',
 			)
@@ -691,7 +731,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		wp_set_object_terms( $p, $terms, 'wptests_tax' );
 
 		$found = wp_get_object_terms(
-			$p, 'wptests_tax', array(
+			$p,
+			'wptests_tax',
+			array(
 				'meta_query' => array(
 					array(
 						'key'   => 'foo',
@@ -714,7 +756,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		wp_set_object_terms( $p, $t, 'wptests_tax' );
 
 		$found = wp_get_object_terms(
-			$p, 'wptests_tax', array(
+			$p,
+			'wptests_tax',
+			array(
 				'fields' => 'all',
 			)
 		);
@@ -735,7 +779,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		wp_set_object_terms( $p, $t, 'wptests_tax' );
 
 		$found = wp_get_object_terms(
-			$p, 'wptests_tax', array(
+			$p,
+			'wptests_tax',
+			array(
 				'fields' => 'all_with_object_id',
 			)
 		);
@@ -758,7 +804,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		wp_set_object_terms( $p, $t, 'wptests_tax' );
 
 		$found = wp_get_object_terms(
-			$p, 'wptests_tax', array(
+			$p,
+			'wptests_tax',
+			array(
 				'fields' => 'all_with_object_id',
 			)
 		);
@@ -778,7 +826,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		wp_set_object_terms( $p, $t, 'wptests_tax' );
 
 		$found = wp_get_object_terms(
-			$p, 'wptests_tax', array(
+			$p,
+			'wptests_tax',
+			array(
 				'fields' => 'all_with_object_id',
 			)
 		);
@@ -806,10 +856,12 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		wp_set_object_terms( $p, $t2, 'wptests_tax2' );
 
 		$found = wp_get_object_terms(
-			$p, array(
+			$p,
+			array(
 				'wptests_tax1',
 				'wptests_tax2',
-			), array(
+			),
+			array(
 				'fields' => 'all_with_object_id',
 			)
 		);
@@ -833,7 +885,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		wp_set_object_terms( $posts[1], $t, 'wptests_tax' );
 
 		$found = wp_get_object_terms(
-			$posts, 'wptests_tax', array(
+			$posts,
+			'wptests_tax',
+			array(
 				'fields' => 'all_with_object_id',
 			)
 		);
@@ -937,7 +991,9 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		$expected = array( $term_1_id, $term_2_id );
 
 		$actual = wp_get_object_terms(
-			$post_id, array( $taxonomy1, $taxonomy2 ), array(
+			$post_id,
+			array( $taxonomy1, $taxonomy2 ),
+			array(
 				'orderby' => 'term_id',
 				'fields'  => 'ids',
 			)

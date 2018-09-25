@@ -152,7 +152,8 @@ if ( is_multisite() ) :
 				array(
 					'domain' => 'wordpress.org',
 					'path'   => '/',
-				), $get_all
+				),
+				$get_all
 			);
 
 			$result = array_keys( get_object_vars( $site ) );
@@ -170,7 +171,8 @@ if ( is_multisite() ) :
 				array(
 					'domain' => 'wordpress.org',
 					'path'   => '/',
-				), $get_all
+				),
+				$get_all
 			);
 
 			$result = array();
@@ -206,7 +208,8 @@ if ( is_multisite() ) :
 
 			if ( $all ) {
 				$fields = array_merge(
-					$fields, array(
+					$fields,
+					array(
 						'blogname',
 						'siteurl',
 						'post_count',

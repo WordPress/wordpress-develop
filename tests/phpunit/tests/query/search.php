@@ -613,7 +613,8 @@ class Tests_Query_Search extends WP_UnitTestCase {
 		add_filter( 'posts_clauses', '_filter_query_attachment_filenames' );
 
 		apply_filters(
-			'posts_clauses', array(
+			'posts_clauses',
+			array(
 				'where'    => '',
 				'groupby'  => '',
 				'join'     => '',

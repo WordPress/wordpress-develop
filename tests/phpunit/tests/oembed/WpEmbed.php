@@ -61,13 +61,15 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		$this->assertEqualSets(
 			array(
 				'youtube_embed_url',
-			), array_keys( $GLOBALS['wp_embed']->handlers[10] )
+			),
+			array_keys( $GLOBALS['wp_embed']->handlers[10] )
 		);
 		$this->assertEqualSets(
 			array(
 				'audio',
 				'video',
-			), array_keys( $GLOBALS['wp_embed']->handlers[9999] )
+			),
+			array_keys( $GLOBALS['wp_embed']->handlers[9999] )
 		);
 	}
 

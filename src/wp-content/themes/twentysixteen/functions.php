@@ -70,7 +70,8 @@ if ( ! function_exists( 'twentysixteen_setup' ) ) :
 		 *  @since Twenty Sixteen 1.2
 		 */
 		add_theme_support(
-			'custom-logo', array(
+			'custom-logo',
+			array(
 				'height'      => 240,
 				'width'       => 240,
 				'flex-height' => true,
@@ -98,7 +99,8 @@ if ( ! function_exists( 'twentysixteen_setup' ) ) :
 		 * to output valid HTML5.
 		 */
 		add_theme_support(
-			'html5', array(
+			'html5',
+			array(
 				'search-form',
 				'comment-form',
 				'comment-list',
@@ -113,7 +115,8 @@ if ( ! function_exists( 'twentysixteen_setup' ) ) :
 		 * See: https://codex.wordpress.org/Post_Formats
 		 */
 		add_theme_support(
-			'post-formats', array(
+			'post-formats',
+			array(
 				'aside',
 				'image',
 				'video',
@@ -151,6 +154,27 @@ function twentysixteen_content_width() {
 	$GLOBALS['content_width'] = apply_filters( 'twentysixteen_content_width', 840 );
 }
 add_action( 'after_setup_theme', 'twentysixteen_content_width', 0 );
+
+/**
+ * Add preconnect for Google Fonts.
+ *
+ * @since Twenty Sixteen 1.6
+ *
+ * @param array  $urls           URLs to print for resource hints.
+ * @param string $relation_type  The relation type the URLs are printed.
+ * @return array $urls           URLs to print for resource hints.
+ */
+function twentysixteen_resource_hints( $urls, $relation_type ) {
+	if ( wp_style_is( 'twentysixteen-fonts', 'queue' ) && 'preconnect' === $relation_type ) {
+		$urls[] = array(
+			'href' => 'https://fonts.gstatic.com',
+			'crossorigin',
+		);
+	}
+
+	return $urls;
+}
+add_filter( 'wp_resource_hints', 'twentysixteen_resource_hints', 10, 2 );
 
 /**
  * Registers a widget area.
@@ -233,7 +257,8 @@ if ( ! function_exists( 'twentysixteen_fonts_url' ) ) :
 				array(
 					'family' => urlencode( implode( '|', $fonts ) ),
 					'subset' => urlencode( $subsets ),
-				), 'https://fonts.googleapis.com/css'
+				),
+				'https://fonts.googleapis.com/css'
 			);
 		}
 
@@ -297,7 +322,9 @@ function twentysixteen_scripts() {
 	wp_enqueue_script( 'twentysixteen-script', get_template_directory_uri() . '/js/functions.js', array( 'jquery' ), '20160816', true );
 
 	wp_localize_script(
-		'twentysixteen-script', 'screenReaderText', array(
+		'twentysixteen-script',
+		'screenReaderText',
+		array(
 			'expand'   => __( 'expand child menu', 'twentysixteen' ),
 			'collapse' => __( 'collapse child menu', 'twentysixteen' ),
 		)

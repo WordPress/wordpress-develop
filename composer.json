@@ -10,8 +10,8 @@
 		"issues": "https://core.trac.wordpress.org/"
 	},
 	"require-dev": {
-		"dealerdirect/phpcodesniffer-composer-installer": "^0.4.4",
-		"wp-coding-standards/wpcs": "dev-master"
+		"dealerdirect/phpcodesniffer-composer-installer": "~0.4.4",
+		"wp-coding-standards/wpcs": "~1.0.0"
 	},
 	"scripts": {
 		"format": "phpcbf --standard=phpcs.xml.dist --report-summary --report-source",

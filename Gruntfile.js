@@ -25,7 +25,10 @@ module.exports = function(grunt) {
 			'wp-content/plugins/hello.php',
 			'wp-content/plugins/akismet/**'
 		],
-		cleanFiles = [];
+		cleanFiles = [],
+		changedFiles = {
+			php: []
+		};
 
 	buildFiles.forEach( function( buildFile ) {
 		cleanFiles.push( BUILD_DIR + buildFile );
@@ -1218,6 +1221,7 @@ module.exports = function(grunt) {
 			grunt.log.writeln( 'Cannot determine which files are modified as SVN and GIT are not available.' );
 			grunt.log.writeln( 'Running all tasks and all tests.' );
 			grunt.task.run([
+				'format:php',
 				'precommit:js',
 				'precommit:css',
 				'precommit:image',
@@ -1250,7 +1254,7 @@ module.exports = function(grunt) {
 				}
 
 				if ( code === 0 ) {
-					if ( [ 'package.json', 'Gruntfile.js' ].some( testPath ) ) {
+					if ( [ 'package.json', 'Gruntfile.js', 'composer.json' ].some( testPath ) ) {
 						grunt.log.writeln( 'Configuration files modified. Running `prerelease`.' );
 						taskList.push( 'prerelease' );
 					} else {
@@ -1269,6 +1273,26 @@ module.exports = function(grunt) {
 						if ( [ 'twemoji.js' ].some( testPath ) ) {
 							grunt.log.writeln( 'twemoji.js has updated. Running `precommit:emoji.' );
 							taskList.push( 'precommit:emoji' );
+						}
+
+						if ( testExtension( 'php' ) ) {
+							grunt.log.writeln( 'PHP files modified. Code formatting will be run.' );
+							var PHPfiles = result.stdout.split( '\n' );
+
+							// Find .php files that have been modified or added.
+							PHPfiles = PHPfiles.filter( function( file ) {
+								return /^\s*[MA]\s*.*\.php$/.test( file );
+							} );
+
+							PHPfiles = PHPfiles.map( function( file ) {
+								return file.replace( /^\s*[MA]\s*/, '' );
+							} );
+
+							changedFiles = {
+								php: PHPfiles
+							};
+
+							taskList.push( 'format:php' );
 						}
 					}
 
@@ -1340,6 +1364,7 @@ module.exports = function(grunt) {
 	] );
 
 	grunt.registerTask( 'prerelease', [
+		'format:php:error',
 		'precommit:php',
 		'precommit:js',
 		'precommit:css',
@@ -1360,9 +1385,28 @@ module.exports = function(grunt) {
 
 	grunt.registerTask('test', 'Runs all QUnit and PHPUnit tasks.', ['qunit:compiled', 'phpunit']);
 
+	grunt.registerTask( 'format:php', 'Runs the code formatter on changed files.', function() {
+		var done = this.async();
+		var flags = this.flags;
+		var args = changedFiles.php;
+		args.unshift( 'format' );
+		grunt.util.spawn( {
+			cmd: 'composer',
+			args: args,
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			if ( flags.error && error ) {
+				done( false );
+			} else {
+				done( true );
+			}
+		} );
+	} );
+
 	// Travis CI tasks.
 	grunt.registerTask('travis:js', 'Runs Javascript Travis CI tasks.', [ 'jshint:corejs', 'qunit:compiled' ]);
 	grunt.registerTask('travis:phpunit', 'Runs PHPUnit Travis CI tasks.', [ 'build', 'phpunit' ]);
+	grunt.registerTask('travis:format', 'Runs Code formatting Travis CI tasks.', [ 'format:php:error' ]);
 
 	// Patch task.
 	grunt.renameTask('patch_wordpress', 'patch');

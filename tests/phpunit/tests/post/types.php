@@ -298,7 +298,8 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		global $wp;
 
 		register_post_type(
-			'foo', array(
+			'foo',
+			array(
 				'public'    => true,
 				'query_var' => 'bar',
 			)
@@ -318,7 +319,8 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		global $wp_rewrite;
 
 		register_post_type(
-			'foo', array(
+			'foo',
+			array(
 				'public'    => true,
 				'query_var' => 'bar',
 			)
@@ -343,7 +345,8 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		global $wp_rewrite;
 
 		register_post_type(
-			'foo', array(
+			'foo',
+			array(
 				'public'      => true,
 				'has_archive' => true,
 			)
@@ -361,7 +364,8 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		global $post_type_meta_caps;
 
 		register_post_type(
-			'foo', array(
+			'foo',
+			array(
 				'public'          => true,
 				'capability_type' => 'bar',
 				'map_meta_cap'    => true,
@@ -386,7 +390,8 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		global $_wp_post_type_features;
 
 		register_post_type(
-			'foo', array(
+			'foo',
+			array(
 				'public'   => true,
 				'supports' => array( 'editor', 'author', 'title' ),
 			)
@@ -411,7 +416,8 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		global $wp_taxonomies;
 
 		register_post_type(
-			'foo', array(
+			'foo',
+			array(
 				'public'     => true,
 				'taxonomies' => array( 'category', 'post_tag' ),
 			)
@@ -432,7 +438,8 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		global $wp_filter;
 
 		register_post_type(
-			'foo', array(
+			'foo',
+			array(
 				'public' => true,
 			)
 		);
@@ -450,7 +457,8 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		global $wp_filter;
 
 		register_post_type(
-			'foo', array(
+			'foo',
+			array(
 				'public'               => true,
 				'register_meta_box_cb' => '__return_empty_string',
 			)
@@ -469,7 +477,8 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		global $wp_post_types;
 
 		register_post_type(
-			'foo', array(
+			'foo',
+			array(
 				'public' => true,
 			)
 		);
@@ -488,7 +497,8 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 */
 	public function test_post_type_does_not_exist_after_unregister_post_type() {
 		register_post_type(
-			'foo', array(
+			'foo',
+			array(
 				'public' => true,
 			)
 		);

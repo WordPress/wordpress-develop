@@ -61,7 +61,8 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 				'contributor'   => 1,
 				'subscriber'    => 1,
 				'none'          => 2,
-			), $count['avail_roles']
+			),
+			$count['avail_roles']
 		);
 
 	}
@@ -140,7 +141,8 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 				'contributor'   => 1,
 				'subscriber'    => 1,
 				'none'          => 2,
-			), $count['avail_roles']
+			),
+			$count['avail_roles']
 		);
 
 		// Test users counts on blog 1
@@ -154,7 +156,8 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 				'administrator' => 1,
 				'editor'        => 1,
 				'none'          => 0,
-			), $count['avail_roles']
+			),
+			$count['avail_roles']
 		);
 
 		// Test users counts on blog 2
@@ -168,7 +171,8 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 				'administrator' => 1,
 				'contributor'   => 1,
 				'none'          => 0,
-			), $count['avail_roles']
+			),
+			$count['avail_roles']
 		);
 
 	}
@@ -197,7 +201,8 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			array(
 				'tester' => 1,
 				'none'   => 0,
-			), $count['avail_roles']
+			),
+			$count['avail_roles']
 		);
 	}
 
@@ -226,7 +231,8 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			array(
 				'editor',
 				'author',
-			), get_userdata( $editor )->roles
+			),
+			get_userdata( $editor )->roles
 		);
 
 		// Test user counts
@@ -239,7 +245,8 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 				'editor'        => 1,
 				'author'        => 1,
 				'none'          => 0,
-			), $count['avail_roles']
+			),
+			$count['avail_roles']
 		);
 
 	}
@@ -263,7 +270,8 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 
 		// Manually delete the user, but leave the capabilities usermeta.
 		$wpdb->delete(
-			$wpdb->users, array(
+			$wpdb->users,
+			array(
 				'ID' => $u,
 			)
 		);

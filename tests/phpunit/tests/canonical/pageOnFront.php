@@ -12,7 +12,8 @@ class Tests_Canonical_PageOnFront extends WP_Canonical_UnitTestCase {
 
 		update_option( 'show_on_front', 'page' );
 		update_option(
-			'page_for_posts', self::factory()->post->create(
+			'page_for_posts',
+			self::factory()->post->create(
 				array(
 					'post_title' => 'blog-page',
 					'post_type'  => 'page',
@@ -20,7 +21,8 @@ class Tests_Canonical_PageOnFront extends WP_Canonical_UnitTestCase {
 			)
 		);
 		update_option(
-			'page_on_front', self::factory()->post->create(
+			'page_on_front',
+			self::factory()->post->create(
 				array(
 					'post_title'   => 'front-page',
 					'post_type'    => 'page',

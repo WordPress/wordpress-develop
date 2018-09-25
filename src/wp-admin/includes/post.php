@@ -239,7 +239,8 @@ function edit_post( $post_data = null ) {
 
 	if ( post_type_supports( $ptype->name, 'revisions' ) ) {
 		$revisions = wp_get_post_revisions(
-			$post_ID, array(
+			$post_ID,
+			array(
 				'order'          => 'ASC',
 				'posts_per_page' => 1,
 			)
@@ -955,8 +956,10 @@ function has_meta( $postid ) {
 		$wpdb->prepare(
 			"SELECT meta_key, meta_value, meta_id, post_id
 			FROM $wpdb->postmeta WHERE post_id = %d
-			ORDER BY meta_key,meta_id", $postid
-		), ARRAY_A
+			ORDER BY meta_key,meta_id",
+			$postid
+		),
+		ARRAY_A
 	);
 }
 
@@ -1516,9 +1519,9 @@ function _wp_post_thumbnail_html( $thumbnail_id = null, $post = null ) {
 	 * @since 3.5.0 Added the `$post_id` parameter.
 	 * @since 4.6.0 Added the `$thumbnail_id` parameter.
 	 *
-	 * @param string $content      Admin post thumbnail HTML markup.
-	 * @param int    $post_id      Post ID.
-	 * @param int    $thumbnail_id Thumbnail ID.
+	 * @param string   $content      Admin post thumbnail HTML markup.
+	 * @param int      $post_id      Post ID.
+	 * @param int|null $thumbnail_id Thumbnail attachment ID, or null if there isn't one.
 	 */
 	return apply_filters( 'admin_post_thumbnail_html', $content, $post->ID, $thumbnail_id );
 }
@@ -1701,7 +1704,7 @@ function _admin_notice_post_locked() {
 		<a class="button" href="<?php echo esc_url( $sendback ); ?>"><?php echo $sendback_text; ?></a>
 		<?php if ( $preview_link ) { ?>
 		<a class="button<?php echo $tab_last; ?>" href="<?php echo esc_url( $preview_link ); ?>"><?php _e( 'Preview' ); ?></a>
-		<?php
+			<?php
 }
 
 		// Allow plugins to prevent some users overriding the post lock
@@ -1711,7 +1714,7 @@ if ( $override ) {
 			<?php
 }
 
-		?>
+?>
 		</p>
 		</div>
 		<?php
@@ -2002,7 +2005,8 @@ function taxonomy_meta_box_sanitize_cb_input( $taxonomy, $terms ) {
 		}
 
 		$_term = get_terms(
-			$taxonomy, array(
+			$taxonomy,
+			array(
 				'name'       => $term,
 				'fields'     => 'ids',
 				'hide_empty' => false,

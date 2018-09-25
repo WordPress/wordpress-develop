@@ -35,7 +35,7 @@ class WP_Scripts extends WP_Dependencies {
 	public $content_url;
 
 	/**
-	 * Default version string for stylesheets.
+	 * Default version string for scripts.
 	 *
 	 * @since 2.6.0
 	 * @var string
@@ -204,7 +204,7 @@ class WP_Scripts extends WP_Dependencies {
 			return $output;
 		}
 
-		echo "<script type='text/javascript'>\n"; // CDATA and type='text/javascript' is not needed for HTML 5
+		echo "<script type='text/javascript'>\n"; // CDATA and type='text/javascript' is not needed for HTML 5.
 		echo "/* <![CDATA[ */\n";
 		echo "$output\n";
 		echo "/* ]]> */\n";
@@ -221,7 +221,7 @@ class WP_Scripts extends WP_Dependencies {
 	 *
 	 * @see WP_Dependencies::do_item()
 	 *
-	 * @param string $handle    The script's registered handle.
+	 * @param string    $handle The script's registered handle.
 	 * @param int|false $group  Optional. Group level: (int) level, (false) no groups. Default false.
 	 * @return bool True on success, false on failure.
 	 */
@@ -271,6 +271,12 @@ class WP_Scripts extends WP_Dependencies {
 			$after_handle = sprintf( "<script type='text/javascript'>\n%s\n</script>\n", $after_handle );
 		}
 
+		if ( $before_handle || $after_handle ) {
+			$inline_script_tag = "{$cond_before}{$before_handle}{$after_handle}{$cond_after}";
+		} else {
+			$inline_script_tag = '';
+		}
+
 		if ( $this->do_concat ) {
 			/**
 			 * Filters the script loader source.
@@ -312,7 +318,15 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		// A single item may alias a set of items, by having dependencies, but no source.
-		if ( ! $obj->src ) {
+		if ( ! $src ) {
+			if ( $inline_script_tag ) {
+				if ( $this->do_concat ) {
+					$this->print_html .= $inline_script_tag;
+				} else {
+					echo $inline_script_tag;
+				}
+			}
+
 			return true;
 		}
 
@@ -387,7 +401,7 @@ class WP_Scripts extends WP_Dependencies {
 	 * @param string $handle   Name of the script to add the inline script to. Must be lowercase.
 	 * @param string $position Optional. Whether to add the inline script before the handle
 	 *                         or after. Default 'after'.
-	 * @param bool $echo       Optional. Whether to echo the script instead of just returning it.
+	 * @param bool   $echo     Optional. Whether to echo the script instead of just returning it.
 	 *                         Default true.
 	 * @return string|false Script on success, false otherwise.
 	 */
@@ -412,17 +426,17 @@ class WP_Scripts extends WP_Dependencies {
 	 *
 	 * @since 2.1.0
 	 *
-	 * @param string $handle
-	 * @param string $object_name
-	 * @param array $l10n
-	 * @return bool
+	 * @param string $handle      Name of the script to attach data to.
+	 * @param string $object_name Name of the variable that will contain the data.
+	 * @param array  $l10n        Array of data to localize.
+	 * @return bool True on success, false on failure.
 	 */
 	public function localize( $handle, $object_name, $l10n ) {
 		if ( $handle === 'jquery' ) {
 			$handle = 'jquery-core';
 		}
 
-		if ( is_array( $l10n ) && isset( $l10n['l10n_print_after'] ) ) { // back compat, preserve the code in 'l10n_print_after' if present
+		if ( is_array( $l10n ) && isset( $l10n['l10n_print_after'] ) ) { // back compat, preserve the code in 'l10n_print_after' if present.
 			$after = $l10n['l10n_print_after'];
 			unset( $l10n['l10n_print_after'] );
 		}

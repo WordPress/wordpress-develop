@@ -144,7 +144,8 @@ class Tests_Meta extends WP_UnitTestCase {
 
 		// Test EXISTS and NOT EXISTS together, no users should be found
 		$this->assertEquals(
-			0, count(
+			0,
+			count(
 				get_users(
 					array(
 						'meta_query' => array(
@@ -163,7 +164,8 @@ class Tests_Meta extends WP_UnitTestCase {
 		);
 
 		$this->assertEquals(
-			2, count(
+			2,
+			count(
 				get_users(
 					array(
 						'meta_query' => array(
@@ -180,7 +182,8 @@ class Tests_Meta extends WP_UnitTestCase {
 		delete_metadata( 'user', $this->author->ID, 'meta_key' );
 
 		$this->assertEquals(
-			2, count(
+			2,
+			count(
 				get_users(
 					array(
 						'meta_query' => array(

@@ -197,11 +197,17 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array() ) {
 /**
  * Reschedules a recurring event.
  *
+ * Mainly for internal use, this takes the time stamp of a previously run
+ * recurring event and reschedules it for its next run.
+ *
+ * To change upcoming scheduled events, use {@see wp_schedule_event} to
+ * change the recurrence frequency.
+ *
  * @since 2.1.0
  * @since 5.0.0 Return value modified to boolean indicating success or failure,
  *              {@see pre_reschedule_event} filter added to short-circuit the function.
  *
- * @param int    $timestamp  Unix timestamp (UTC) for when to next run the event.
+ * @param int    $timestamp  Unix timestamp (UTC) for when the event was scheduled.
  * @param string $recurrence How often the event should subsequently recur. See wp_get_schedules() for accepted values.
  * @param string $hook       Action hook to execute when the event is run.
  * @param array  $args       Optional. Array containing each separate argument to pass to the hook's callback function.
@@ -692,7 +698,8 @@ function spawn_cron( $gmt_time = 0 ) {
 	 * @param string $doing_wp_cron The unix timestamp of the cron lock.
 	 */
 	$cron_request = apply_filters(
-		'cron_request', array(
+		'cron_request',
+		array(
 			'url'  => add_query_arg( 'doing_wp_cron', $doing_wp_cron, site_url( 'wp-cron.php' ) ),
 			'key'  => $doing_wp_cron,
 			'args' => array(
@@ -701,7 +708,8 @@ function spawn_cron( $gmt_time = 0 ) {
 				/** This filter is documented in wp-includes/class-wp-http-streams.php */
 				'sslverify' => apply_filters( 'https_local_ssl_verify', false ),
 			),
-		), $doing_wp_cron
+		),
+		$doing_wp_cron
 	);
 
 	$result = wp_remote_post( $cron_request['url'], $cron_request['args'] );

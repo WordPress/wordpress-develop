@@ -15,19 +15,22 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	public static function wpSetUpBeforeClass( $factory ) {
 		self::$author_ids = $factory->user->create_many(
-			4, array(
+			4,
+			array(
 				'role' => 'author',
 			)
 		);
 
 		self::$sub_ids = $factory->user->create_many(
-			2, array(
+			2,
+			array(
 				'role' => 'subscriber',
 			)
 		);
 
 		self::$editor_ids = $factory->user->create_many(
-			3, array(
+			3,
+			array(
 				'role' => 'editor',
 			)
 		);
@@ -39,7 +42,8 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 
 		self::$admin_ids = $factory->user->create_many(
-			2, array(
+			2,
+			array(
 				'role' => 'administrator',
 			)
 		);

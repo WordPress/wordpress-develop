@@ -252,7 +252,7 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	 */
 	public function test_anonymize_with_filter() {
 		add_filter( 'wp_privacy_anonymize_data', array( $this, 'filter_wp_privacy_anonymize_data' ), 10, 3 );
-		$actual_url   = wp_privacy_anonymize_data( 'url', 'https://example.com/author/username' );
+		$actual_url = wp_privacy_anonymize_data( 'url', 'https://example.com/author/username' );
 		remove_filter( 'wp_privacy_anonymize_data', array( $this, 'filter_wp_privacy_anonymize_data' ), 10 );
 
 		$this->assertSame( 'http://local.host/why-this-was-removed', $actual_url );

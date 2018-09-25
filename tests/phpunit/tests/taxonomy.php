@@ -66,10 +66,12 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	function test_the_taxonomies() {
 		$post_id = self::factory()->post->create();
 
-		$this->expectOutputString( sprintf(
-			'Categories: <a href="%s">Uncategorized</a>.',
-			get_category_link( 1 )
-		) );
+		$this->expectOutputString(
+			sprintf(
+				'Categories: <a href="%s">Uncategorized</a>.',
+				get_category_link( 1 )
+			)
+		);
 		the_taxonomies( array( 'post' => $post_id ) );
 	}
 
@@ -80,7 +82,8 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create();
 
 		$output = get_echo(
-			'the_taxonomies', array(
+			'the_taxonomies',
+			array(
 				array(
 					'post'          => $post_id,
 					'term_template' => '%2$s',
@@ -90,7 +93,8 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertEquals( 'Categories: Uncategorized.', $output );
 
 		$output = get_echo(
-			'the_taxonomies', array(
+			'the_taxonomies',
+			array(
 				array(
 					'post'          => $post_id,
 					'term_template' => '<span class="foo"><a href="%1$s">%2$s</a></span>',
@@ -188,13 +192,17 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 */
 	public function test_register_taxonomy_show_in_quick_edit_should_default_to_value_of_show_ui() {
 		register_taxonomy(
-			'wptests_tax_1', 'post', array(
+			'wptests_tax_1',
+			'post',
+			array(
 				'show_ui' => true,
 			)
 		);
 
 		register_taxonomy(
-			'wptests_tax_2', 'post', array(
+			'wptests_tax_2',
+			'post',
+			array(
 				'show_ui' => false,
 			)
 		);
@@ -449,7 +457,9 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 	public function test_get_ancestors_taxonomy() {
 		register_taxonomy(
-			'wptests_tax', 'post', array(
+			'wptests_tax',
+			'post',
+			array(
 				'hierarchical' => true,
 			)
 		);
@@ -494,7 +504,8 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 	public function test_get_ancestors_post_type() {
 		register_post_type(
-			'wptests_pt', array(
+			'wptests_pt',
+			array(
 				'hierarchical' => true,
 			)
 		);
@@ -531,7 +542,8 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 */
 	public function test_get_ancestors_taxonomy_post_type_conflict_resource_type_taxonomy() {
 		register_post_type(
-			'wptests_conflict', array(
+			'wptests_conflict',
+			array(
 				'hierarchical' => true,
 			)
 		);
@@ -548,7 +560,9 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		);
 
 		register_taxonomy(
-			'wptests_conflict', 'post', array(
+			'wptests_conflict',
+			'post',
+			array(
 				'hierarchical' => true,
 			)
 		);
@@ -575,7 +589,9 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 */
 	public function test_nonpublicly_queryable_taxonomy_should_not_be_queryable_using_taxname_query_var() {
 		register_taxonomy(
-			'wptests_tax', 'post', array(
+			'wptests_tax',
+			'post',
+			array(
 				'publicly_queryable' => false,
 			)
 		);
@@ -601,7 +617,9 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		global $wp;
 
 		register_taxonomy(
-			'wptests_tax', 'post', array(
+			'wptests_tax',
+			'post',
+			array(
 				'publicly_queryable' => false,
 			)
 		);
@@ -638,7 +656,9 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 */
 	public function test_nonpublicly_queryable_taxonomy_should_not_be_queryable_using_taxonomy_and_term_vars() {
 		register_taxonomy(
-			'wptests_tax', 'post', array(
+			'wptests_tax',
+			'post',
+			array(
 				'publicly_queryable' => false,
 			)
 		);
@@ -662,7 +682,9 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 */
 	public function test_public_taxonomy_should_be_publicly_queryable() {
 		register_taxonomy(
-			'wptests_tax', 'post', array(
+			'wptests_tax',
+			'post',
+			array(
 				'public' => true,
 			)
 		);
@@ -688,7 +710,9 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 */
 	public function test_private_taxonomy_should_not_be_publicly_queryable() {
 		register_taxonomy(
-			'wptests_tax', 'post', array(
+			'wptests_tax',
+			'post',
+			array(
 				'public' => false,
 			)
 		);
@@ -714,7 +738,9 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 */
 	public function test_private_taxonomy_should_be_overridden_by_publicly_queryable() {
 		register_taxonomy(
-			'wptests_tax', 'post', array(
+			'wptests_tax',
+			'post',
+			array(
 				'public'             => false,
 				'publicly_queryable' => true,
 			)
@@ -741,7 +767,9 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 */
 	public function test_query_var_should_be_forced_to_false_for_non_public_taxonomy() {
 		register_taxonomy(
-			'wptests_tax', 'post', array(
+			'wptests_tax',
+			'post',
+			array(
 				'public'    => false,
 				'query_var' => true,
 			)
@@ -797,7 +825,9 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		global $wp_rewrite;
 
 		register_taxonomy(
-			'foo', 'post', array(
+			'foo',
+			'post',
+			array(
 				'query_var' => 'bar',
 				'rewrite'   => true,
 			)
@@ -890,7 +920,9 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$term_name     = 'bar';
 
 		register_taxonomy(
-			$taxonomy_name, array( 'post' ), array(
+			$taxonomy_name,
+			array( 'post' ),
+			array(
 				'hierarchical' => false,
 				'meta_box_cb'  => 'post_categories_meta_box',
 			)

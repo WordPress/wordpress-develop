@@ -18,22 +18,27 @@ class Tests_User_CountUserPosts extends WP_UnitTestCase {
 		);
 
 		self::$post_ids = $factory->post->create_many(
-			4, array(
+			4,
+			array(
 				'post_author' => self::$user_id,
 				'post_type'   => 'post',
 			)
 		);
 		self::$post_ids = array_merge(
-			self::$post_ids, $factory->post->create_many(
-				3, array(
+			self::$post_ids,
+			$factory->post->create_many(
+				3,
+				array(
 					'post_author' => self::$user_id,
 					'post_type'   => 'wptests_pt',
 				)
 			)
 		);
 		self::$post_ids = array_merge(
-			self::$post_ids, $factory->post->create_many(
-				2, array(
+			self::$post_ids,
+			$factory->post->create_many(
+				2,
+				array(
 					'post_author' => 12345,
 					'post_type'   => 'wptests_pt',
 				)

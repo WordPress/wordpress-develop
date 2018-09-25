@@ -116,7 +116,9 @@ class Test_WP_Customize_Partial extends WP_UnitTestCase {
 		$this->assertContains( 'Lorem Ipsum', $partial->render() );
 
 		$partial = new WP_Customize_Partial(
-			$this->selective_refresh, $partial_id, array(
+			$this->selective_refresh,
+			$partial_id,
+			array(
 				'settings' => 'blogdescription',
 			)
 		);
@@ -221,7 +223,9 @@ class Test_WP_Customize_Partial extends WP_UnitTestCase {
 	 */
 	function test_render_with_bad_callback_should_give_preference_to_return_value() {
 		$partial = new WP_Customize_Partial(
-			$this->selective_refresh, 'foo', array(
+			$this->selective_refresh,
+			'foo',
+			array(
 				'render_callback' => array( $this, 'render_echo_and_return' ),
 			)
 		);
@@ -236,7 +240,9 @@ class Test_WP_Customize_Partial extends WP_UnitTestCase {
 	 */
 	function test_render_echo_callback() {
 		$partial                                       = new WP_Customize_Partial(
-			$this->selective_refresh, 'foo', array(
+			$this->selective_refresh,
+			'foo',
+			array(
 				'render_callback' => array( $this, 'render_echo' ),
 			)
 		);
@@ -257,7 +263,9 @@ class Test_WP_Customize_Partial extends WP_UnitTestCase {
 	 */
 	function test_render_return_callback() {
 		$partial                                       = new WP_Customize_Partial(
-			$this->selective_refresh, 'foo', array(
+			$this->selective_refresh,
+			'foo',
+			array(
 				'render_callback' => array( $this, 'render_return' ),
 			)
 		);
@@ -319,40 +327,51 @@ class Test_WP_Customize_Partial extends WP_UnitTestCase {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		do_action( 'customize_register', $this->wp_customize );
 		$partial = new WP_Customize_Partial(
-			$this->selective_refresh, 'blogname', array(
+			$this->selective_refresh,
+			'blogname',
+			array(
 				'settings' => array( 'blogname' ),
 			)
 		);
 		$this->assertTrue( $partial->check_capabilities() );
 
 		$partial = new WP_Customize_Partial(
-			$this->selective_refresh, 'blogname', array(
+			$this->selective_refresh,
+			'blogname',
+			array(
 				'settings' => array( 'blogname', 'non_existing' ),
 			)
 		);
 		$this->assertFalse( $partial->check_capabilities() );
 
 		$this->wp_customize->add_setting(
-			'top_secret_message', array(
+			'top_secret_message',
+			array(
 				'capability' => 'top_secret_clearance',
 			)
 		);
 		$partial = new WP_Customize_Partial(
-			$this->selective_refresh, 'blogname', array(
+			$this->selective_refresh,
+			'blogname',
+			array(
 				'settings' => array( 'blogname', 'top_secret_clearance' ),
 			)
 		);
 		$this->assertFalse( $partial->check_capabilities() );
 
 		$partial = new WP_Customize_Partial(
-			$this->selective_refresh, 'no_setting', array(
+			$this->selective_refresh,
+			'no_setting',
+			array(
 				'settings' => array(),
 			)
 		);
 		$this->assertTrue( $partial->check_capabilities() );
 
 		$partial = new WP_Customize_Partial(
-			$this->selective_refresh, 'no_setting', array(
+			$this->selective_refresh,
+			'no_setting',
+			array(
 				'settings'   => array(),
 				'capability' => 'top_secret_clearance',
 			)
@@ -360,7 +379,9 @@ class Test_WP_Customize_Partial extends WP_UnitTestCase {
 		$this->assertFalse( $partial->check_capabilities() );
 
 		$partial = new WP_Customize_Partial(
-			$this->selective_refresh, 'no_setting', array(
+			$this->selective_refresh,
+			'no_setting',
+			array(
 				'settings'   => array(),
 				'capability' => 'edit_theme_options',
 			)

@@ -187,7 +187,9 @@ class Tests_Post_GetBodyClass extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create();
 
 		$attachment_id = self::factory()->attachment->create_object(
-			'image.jpg', $post_id, array(
+			'image.jpg',
+			$post_id,
+			array(
 				'post_mime_type' => 'image/jpeg',
 			)
 		);
