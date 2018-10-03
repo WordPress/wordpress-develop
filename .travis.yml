@@ -12,6 +12,13 @@ env:
     - WP_TRAVISCI=travis:phpunit
 matrix:
   include:
+  - php: 7.3
+    sudo: required
+    dist: xenial
+    addons:
+      apt:
+        packages:
+          - libzip4
   - php: 7.2
     env: WP_TRAVISCI=travis:format
   - php: 7.1
@@ -33,6 +40,7 @@ matrix:
   - php: nightly
   allow_failures:
   - php: nightly
+  - php: 7.3
 before_install:
 - |
   if [[ "$WP_TRAVISCI" == "travis:phpunit" ]]; then
