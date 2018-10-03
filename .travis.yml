@@ -15,6 +15,7 @@ matrix:
   - php: 7.3.0RC1
     sudo: required
     dist: xenial
+    services: mysql
     addons:
       apt:
         packages:
