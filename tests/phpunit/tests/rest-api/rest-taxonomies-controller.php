@@ -197,7 +197,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 9, count( $properties ) );
+		$this->assertEquals( 10, count( $properties ) );
 		$this->assertArrayHasKey( 'capabilities', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'hierarchical', $properties );
@@ -206,6 +206,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'show_cloud', $properties );
 		$this->assertArrayHasKey( 'types', $properties );
+		$this->assertArrayHasKey( 'visibility', $properties );
 		$this->assertArrayHasKey( 'rest_base', $properties );
 	}
 
@@ -239,10 +240,18 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 			$this->assertEquals( $tax_obj->cap, $data['capabilities'] );
 			$this->assertEquals( $tax_obj->labels, $data['labels'] );
 			$this->assertEquals( $tax_obj->show_tagcloud, $data['show_cloud'] );
+
+			$this->assertEquals( $tax_obj->public, $data['visibility']['public'] );
+			$this->assertEquals( $tax_obj->publicly_queryable, $data['visibility']['publicly_queryable'] );
+			$this->assertEquals( $tax_obj->show_admin_column, $data['visibility']['show_admin_column'] );
+			$this->assertEquals( $tax_obj->show_in_nav_menus, $data['visibility']['show_in_nav_menus'] );
+			$this->assertEquals( $tax_obj->show_in_quick_edit, $data['visibility']['show_in_quick_edit'] );
+			$this->assertEquals( $tax_obj->show_ui, $data['visibility']['show_ui'] );
 		} else {
 			$this->assertFalse( isset( $data['capabilities'] ) );
 			$this->assertFalse( isset( $data['labels'] ) );
 			$this->assertFalse( isset( $data['show_cloud'] ) );
+			$this->assertFalse( isset( $data['visibility'] ) );
 		}
 	}
 
