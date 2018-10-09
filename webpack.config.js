@@ -13,22 +13,22 @@ module.exports = function( env = { environment: "production" } ) {
 	const mode = env.environment;
 
 	const mediaConfig = {
+		mode,
 		cache: true,
 		entry: mediaEntries,
 		output: {
 			path: path.join( __dirname, 'src/wp-includes/js' ),
 			filename: 'media-[name].js'
+		},
+		optimization: {
+			// The files are minified by uglify afterwards. We could change this
+			// later, but for now prevent doing the work twice.
+			minimize: false
 		}
 	};
 
 	if ( mode === 'development' ) {
 		mediaConfig.watch = true;
-	}
-
-	if ( mode === 'production' ) {
-		mediaConfig.plugins = [
-			new webpack.optimize.ModuleConcatenationPlugin()
-		];
 	}
 
 	return mediaConfig;
