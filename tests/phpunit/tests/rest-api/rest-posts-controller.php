@@ -16,6 +16,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	protected static $editor_id;
 	protected static $author_id;
 	protected static $contributor_id;
+	protected static $private_reader_id;
 
 	protected static $supported_formats;
 
@@ -38,6 +39,12 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		self::$contributor_id = $factory->user->create( array(
 			'role' => 'contributor',
 		) );
+
+		self::$private_reader_id = $factory->user->create(
+			array(
+				'role' => 'private_reader',
+			)
+		);
 
 		if ( is_multisite() ) {
 			update_site_option( 'site_admins', array( 'superadmin' ) );
@@ -62,11 +69,17 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		self::delete_user( self::$editor_id );
 		self::delete_user( self::$author_id );
 		self::delete_user( self::$contributor_id );
+		self::delete_user( self::$private_reader_id );
 	}
 
 	public function setUp() {
 		parent::setUp();
 		register_post_type( 'youseeme', array( 'supports' => array(), 'show_in_rest' => true ) );
+
+		add_role( 'private_reader', 'Private Reader' );
+		$role = get_role( 'private_reader' );
+		$role->add_cap( 'read_private_posts' );
+
 		add_filter( 'rest_pre_dispatch', array( $this, 'wpSetUpBeforeRequest' ), 10, 3 );
 		add_filter( 'posts_clauses', array( $this, 'save_posts_clauses' ), 10, 2 );
 	}
@@ -494,6 +507,20 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'context', 'edit' );
 		$request->set_param( 'status', array( 'draft', 'nonsense' ) );
 		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * @ticket 43701
+	 */
+	public function test_get_items_multiple_statuses_custom_role_one_invalid_query() {
+		$private_post_id = $this->factory->post->create( array( 'post_status' => 'private' ) );
+
+		wp_set_current_user( self::$private_reader_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'status', array( 'private', 'future' ) );
+
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
@@ -993,21 +1020,52 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 	}
 
-	public function test_get_items_private_status_query_var() {
-		// Private query vars inaccessible to unauthorized users
-		wp_set_current_user( 0 );
+	public function test_get_items_status_draft_permissions() {
 		$draft_id = $this->factory->post->create( array( 'post_status' => 'draft' ) );
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+
+		// Drafts status query var inaccessible to unauthorized users.
+		wp_set_current_user( 0 );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'status', 'draft' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 
-		// But they are accessible to authorized users
+		// Users with 'read_private_posts' cap shouldn't also be able to view drafts.
+		wp_set_current_user( self::$private_reader_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'status', 'draft' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+
+		// But drafts are accessible to authorized users.
 		wp_set_current_user( self::$editor_id );
-		$response = $this->server->dispatch( $request );
-		$data = $response->get_data();
-		$this->assertCount( 1, $data );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
 		$this->assertEquals( $draft_id, $data[0]['id'] );
+	}
+
+	/**
+	 * @ticket 43701
+	 */
+	public function test_get_items_status_private_permissions() {
+		$private_post_id = $this->factory->post->create( array( 'post_status' => 'private' ) );
+
+		wp_set_current_user( 0 );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'status', 'private' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+
+		wp_set_current_user( self::$private_reader_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'status', 'private' );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertCount( 1, $data );
+		$this->assertEquals( $private_post_id, $data[0]['id'] );
 	}
 
 	public function test_get_items_invalid_per_page() {
