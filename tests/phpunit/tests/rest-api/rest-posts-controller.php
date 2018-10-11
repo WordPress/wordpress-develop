@@ -3094,7 +3094,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 24, count( $properties ) );
+		$this->assertEquals( 26, count( $properties ) );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
@@ -3102,6 +3102,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertArrayHasKey( 'date_gmt', $properties );
 		$this->assertArrayHasKey( 'excerpt', $properties );
 		$this->assertArrayHasKey( 'featured_media', $properties );
+		$this->assertArrayHasKey( 'generated_slug', $properties );
 		$this->assertArrayHasKey( 'guid', $properties );
 		$this->assertArrayHasKey( 'format', $properties );
 		$this->assertArrayHasKey( 'id', $properties );
@@ -3110,6 +3111,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertArrayHasKey( 'modified', $properties );
 		$this->assertArrayHasKey( 'modified_gmt', $properties );
 		$this->assertArrayHasKey( 'password', $properties );
+		$this->assertArrayHasKey( 'permalink_template', $properties );
 		$this->assertArrayHasKey( 'ping_status', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'status', $properties );
@@ -3179,6 +3181,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'excerpt',
 			'featured_media',
 			'format',
+			'generated_slug',
 			'guid',
 			'id',
 			'link',
@@ -3186,6 +3189,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'modified',
 			'modified_gmt',
 			'password',
+			'permalink_template',
 			'ping_status',
 			'slug',
 			'status',
@@ -3684,7 +3688,76 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertArrayNotHasKey( 'https://api.w.org/action-unfiltered-html', $links );
 	}
 
+	public function test_generated_permalink_template_generated_slug_for_non_viewable_posts() {
+		register_post_type(
+			'private-post',
+			array(
+				'label'              => 'Private Posts',
+				'supports'           => array( 'title', 'editor', 'author' ),
+				'show_in_rest'       => true,
+				'publicly_queryable' => false,
+				'public'             => true,
+				'rest_base'          => 'private-post',
+			)
+		);
+		create_initial_rest_routes();
+
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = $this->factory->post->create(
+			array(
+				'post_title'  => 'Permalink Template',
+				'post_type'   => 'private-post',
+				'post_status' => 'draft',
+			)
+		);
+
+		// Neither 'permalink_template' and 'generated_slug' are expected for this post type.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/private-post/' . $post_id );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertArrayNotHasKey( 'permalink_template', $data );
+		$this->assertArrayNotHasKey( 'generated_slug', $data );
+	}
+
+	public function test_generated_permalink_template_generated_slug_for_posts() {
+		$this->set_permalink_structure( '/%postname%/' );
+		$expected_permalink_template = trailingslashit( home_url( '/%postname%/' ) );
+
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = $this->factory->post->create(
+			array(
+				'post_title'  => 'Permalink Template',
+				'post_type'   => 'post',
+				'post_status' => 'draft',
+			)
+		);
+
+		// Both 'permalink_template' and 'generated_slug' are expected for context=edit.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEquals( $expected_permalink_template, $data['permalink_template'] );
+		$this->assertEquals( 'permalink-template', $data['generated_slug'] );
+
+		// Neither 'permalink_template' and 'generated_slug' are expected for context=view.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
+		$request->set_param( 'context', 'view' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertArrayNotHasKey( 'permalink_template', $data );
+		$this->assertArrayNotHasKey( 'generated_slug', $data );
+
+	}
+
 	public function tearDown() {
+		_unregister_post_type( 'private-post' );
 		_unregister_post_type( 'youseeeme' );
 		if ( isset( $this->attachment_id ) ) {
 			$this->remove_added_uploads();
