@@ -91,7 +91,6 @@ before_script:
     esac
   fi
 - npm --version
-- npm --version
 - node --version
 - nvm install 8.9.3
 - npm install -g grunt-cli
