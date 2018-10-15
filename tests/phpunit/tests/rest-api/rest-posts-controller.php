@@ -2913,9 +2913,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			array(
 				// Raw values.
 				array(
-					'title'   => '<a href="#" target="_blank" data-unfiltered=true>link</a>',
-					'content' => '<a href="#" target="_blank" data-unfiltered=true>link</a>',
-					'excerpt' => '<a href="#" target="_blank" data-unfiltered=true>link</a>',
+					'title'   => '<a href="#" target="_blank" unfiltered=true>link</a>',
+					'content' => '<a href="#" target="_blank" unfiltered=true>link</a>',
+					'excerpt' => '<a href="#" target="_blank" unfiltered=true>link</a>',
 				),
 				// Expected returned values.
 				array(
