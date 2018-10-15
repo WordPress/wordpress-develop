@@ -509,4 +509,62 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 			array( '', 'registered_key3' ),
 		);
 	}
+
+	/**
+	 * @ticket 44467
+	 */
+	public function test_add_metadata_sets_terms_last_changed() {
+		$term_id = self::factory()->term->create();
+
+		wp_cache_delete( 'last_changed', 'terms' );
+
+		$this->assertInternalType( 'integer', add_metadata( 'term', $term_id, 'foo', 'bar' ) );
+		$this->assertNotFalse( wp_cache_get_last_changed( 'terms' ) );
+	}
+
+	/**
+	 * @ticket 44467
+	 */
+	public function test_update_metadata_sets_terms_last_changed() {
+		$term_id = self::factory()->term->create();
+
+		wp_cache_delete( 'last_changed', 'terms' );
+
+		$this->assertInternalType( 'integer', update_metadata( 'term', $term_id, 'foo', 'bar' ) );
+		$this->assertNotFalse( wp_cache_get_last_changed( 'terms' ) );
+	}
+
+	/**
+	 * @ticket 44467
+	 */
+	public function test_delete_metadata_sets_terms_last_changed() {
+		$term_id = self::factory()->term->create();
+
+		update_metadata( 'term', $term_id, 'foo', 'bar' );
+		wp_cache_delete( 'last_changed', 'terms' );
+
+		$this->assertTrue( delete_metadata( 'term', $term_id, 'foo' ) );
+		$this->assertNotFalse( wp_cache_get_last_changed( 'terms' ) );
+	}
+
+	/**
+	 * @ticket 44467
+	 */
+	public function test_metadata_functions_respect_term_meta_support() {
+		$term_id = self::factory()->term->create();
+
+		$meta_id = add_metadata( 'term', $term_id, 'foo', 'bar' );
+
+		// Set database version to last version before term meta support.
+		update_option( 'db_version', 34369 );
+
+		$this->assertFalse( get_metadata( 'term', $term_id, 'foo', true ) );
+		$this->assertFalse( add_metadata( 'term', $term_id, 'foo', 'bar' ) );
+		$this->assertFalse( update_metadata( 'term', $term_id, 'foo', 'bar' ) );
+		$this->assertFalse( delete_metadata( 'term', $term_id, 'foo' ) );
+		$this->assertFalse( get_metadata_by_mid( 'term', $meta_id ) );
+		$this->assertFalse( update_metadata_by_mid( 'term', $meta_id, 'baz' ) );
+		$this->assertFalse( delete_metadata_by_mid( 'term', $meta_id ) );
+		$this->assertFalse( update_meta_cache( 'term', array( $term_id ) ) );
+	}
 }

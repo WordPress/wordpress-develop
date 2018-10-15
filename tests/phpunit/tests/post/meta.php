@@ -305,4 +305,41 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 			array( '', 'registered_key3' ),
 		);
   	}
+
+	/**
+	 * @ticket 44467
+	 */
+	public function test_add_metadata_sets_posts_last_changed() {
+		$post_id = self::factory()->post->create();
+
+		wp_cache_delete( 'last_changed', 'posts' );
+
+		$this->assertInternalType( 'integer', add_metadata( 'post', $post_id, 'foo', 'bar' ) );
+		$this->assertNotFalse( wp_cache_get_last_changed( 'posts' ) );
+	}
+
+	/**
+	 * @ticket 44467
+	 */
+	public function test_update_metadata_sets_posts_last_changed() {
+		$post_id = self::factory()->post->create();
+
+		wp_cache_delete( 'last_changed', 'posts' );
+
+		$this->assertInternalType( 'integer', update_metadata( 'post', $post_id, 'foo', 'bar' ) );
+		$this->assertNotFalse( wp_cache_get_last_changed( 'posts' ) );
+	}
+
+	/**
+	 * @ticket 44467
+	 */
+	public function test_delete_metadata_sets_posts_last_changed() {
+		$post_id = self::factory()->post->create();
+
+		update_metadata( 'post', $post_id, 'foo', 'bar' );
+		wp_cache_delete( 'last_changed', 'posts' );
+
+		$this->assertTrue( delete_metadata( 'post', $post_id, 'foo' ) );
+		$this->assertNotFalse( wp_cache_get_last_changed( 'posts' ) );
+	}
 }
