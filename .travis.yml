@@ -12,14 +12,7 @@ env:
     - WP_TRAVISCI=travis:phpunit
 matrix:
   include:
-  - php: 7.3.0RC1
-    sudo: required
-    dist: xenial
-    services: mysql
-    addons:
-      apt:
-        packages:
-          - libzip4
+  - php: 7.3
   - php: 7.1
     env: WP_TRAVISCI=travis:js
   - php: 7.2
@@ -38,7 +31,7 @@ matrix:
   - php: nightly
   allow_failures:
   - php: nightly
-  - php: 7.3.0RC1
+  - php: 7.3
 before_install:
 - |
   if [[ "$WP_TRAVISCI" == "travis:phpunit" ]]; then
@@ -72,7 +65,7 @@ before_script:
   # Install the specified version of PHPUnit depending on the PHP version:
   if [[ "$WP_TRAVISCI" == "travis:phpunit" ]]; then
     case "$TRAVIS_PHP_VERSION" in
-      7.3.0RC1|7.2|7.1|7.0|nightly)
+      7.3|7.2|7.1|7.0|nightly)
         echo "Using PHPUnit 6.x"
         travis_retry composer global require "phpunit/phpunit:^6"
         ;;
