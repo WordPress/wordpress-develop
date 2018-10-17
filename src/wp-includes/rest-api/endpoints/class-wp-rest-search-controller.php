@@ -3,13 +3,13 @@
  * REST API: WP_REST_Search_Controller class
  *
  * @package gutenberg
- * @since 3.3.0
+ * @since 5.0.0
  */
 
 /**
  * Core class to search through all WordPress content via the REST API.
  *
- * @since 3.3.0
+ * @since 5.0.0
  *
  * @see WP_REST_Controller
  */
@@ -48,7 +48,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	/**
 	 * Search handlers used by the controller.
 	 *
-	 * @since 3.3.0
+	 * @since 5.0.0
 	 * @var array
 	 */
 	protected $search_handlers = array();
@@ -56,7 +56,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	/**
 	 * Constructor.
 	 *
-	 * @since 3.3.0
+	 * @since 5.0.0
 	 *
 	 * @param array $search_handlers List of search handlers to use in the controller. Each search
 	 *                               handler instance must extend the `WP_REST_Search_Handler` class.
@@ -80,7 +80,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	/**
 	 * Registers the routes for the objects of the controller.
 	 *
-	 * @since 3.3.0
+	 * @since 5.0.0
 	 *
 	 * @see register_rest_route()
 	 */
@@ -103,7 +103,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	/**
 	 * Checks if a given request has access to search content.
 	 *
-	 * @since 3.3.0
+	 * @since 5.0.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has search access, WP_Error object otherwise.
@@ -115,7 +115,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves a collection of search results.
 	 *
-	 * @since 3.3.0
+	 * @since 5.0.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
@@ -171,7 +171,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	/**
 	 * Prepares a single search result for response.
 	 *
-	 * @since 3.3.0
+	 * @since 5.0.0
 	 *
 	 * @param int             $id      ID of the item to prepare.
 	 * @param WP_REST_Request $request Request object.
@@ -210,7 +210,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves the item schema, conforming to JSON Schema.
 	 *
-	 * @since 3.3.0
+	 * @since 5.0.0
 	 *
 	 * @return array Item schema data.
 	 */
@@ -272,7 +272,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves the query params for the search results collection.
 	 *
-	 * @since 3.3.0
+	 * @since 5.0.0
 	 *
 	 * @return array Collection parameters.
 	 */
@@ -315,7 +315,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	/**
 	 * Sanitizes the list of subtypes, to ensure only subtypes of the passed type are included.
 	 *
-	 * @since 3.3.0
+	 * @since 5.0.0
 	 *
 	 * @param string|array    $subtypes  One or more subtypes.
 	 * @param WP_REST_Request $request   Full details about the request.
@@ -346,7 +346,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	/**
 	 * Gets the search handler to handle the current request.
 	 *
-	 * @since 3.3.0
+	 * @since 5.0.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Search_Handler|WP_Error Search handler for the request type, or WP_Error object on failure.

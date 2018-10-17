@@ -3,20 +3,20 @@
  * REST API: WP_REST_Post_Search_Handler class
  *
  * @package gutenberg
- * @since 3.3.0
+ * @since 5.0.0
  */
 
 /**
  * Core class representing a search handler for posts in the REST API.
  *
- * @since 3.3.0
+ * @since 5.0.0
  */
 class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 
 	/**
 	 * Constructor.
 	 *
-	 * @since 3.3.0
+	 * @since 5.0.0
 	 */
 	public function __construct() {
 		$this->type = 'post';
@@ -39,7 +39,7 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 	/**
 	 * Searches the object type content for a given search request.
 	 *
-	 * @since 3.3.0
+	 * @since 5.0.0
 	 *
 	 * @param WP_REST_Request $request Full REST request.
 	 * @return array Associative array containing an `WP_REST_Search_Handler::RESULT_IDS` containing
@@ -80,7 +80,7 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 	/**
 	 * Prepares the search result for a given ID.
 	 *
-	 * @since 3.3.0
+	 * @since 5.0.0
 	 *
 	 * @param int   $id     Item ID.
 	 * @param array $fields Fields to include for the item.
@@ -123,7 +123,7 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 	/**
 	 * Prepares links for the search result of a given ID.
 	 *
-	 * @since 3.3.0
+	 * @since 5.0.0
 	 *
 	 * @param int $id Item ID.
 	 * @return array Links for the given item.
@@ -155,7 +155,7 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 	 * "Protected: %s". As the REST API communicates the protected status of a post
 	 * in a machine readable format, we remove the "Protected: " prefix.
 	 *
-	 * @since 3.3.0
+	 * @since 5.0.0
 	 *
 	 * @return string Protected title format.
 	 */
@@ -166,7 +166,7 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 	/**
 	 * Attempts to detect the route to access a single item.
 	 *
-	 * @since 3.3.0
+	 * @since 5.0.0
 	 *
 	 * @param WP_Post $post Post object.
 	 * @return string REST route relative to the REST base URI, or empty string if unknown.

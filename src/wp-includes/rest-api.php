@@ -233,7 +233,7 @@ function create_initial_rest_routes() {
 	/**
 	 * Filters the search handlers to use in the REST search controller.
 	 *
-	 * @since 3.3.0
+	 * @since 5.0.0
 	 *
 	 * @param array $search_handlers List of search handlers to use in the controller. Each search
 	 *                               handler instance must extend the `WP_REST_Search_Handler` class.
