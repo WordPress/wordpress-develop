@@ -85,8 +85,8 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 
-		$this->assertArrayHasKey( '/gutenberg/v1/search', $routes );
-		$this->assertCount( 1, $routes['/gutenberg/v1/search'] );
+		$this->assertArrayHasKey( '/wp/v2/search', $routes );
+		$this->assertCount( 1, $routes['/wp/v2/search'] );
 	}
 
 	/**
@@ -294,7 +294,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_get_item() {
 		/** The search controller does not allow getting individual item content */
-		$request  = new WP_REST_Request( 'GET', '/gutenberg/v1/search' . self::$my_title_post_ids[0] );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/search' . self::$my_title_post_ids[0] );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 404, $response->get_status() );
 	}
@@ -304,7 +304,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_create_item() {
 		/** The search controller does not allow creating content */
-		$request  = new WP_REST_Request( 'POST', '/gutenberg/v1/search' );
+		$request  = new WP_REST_Request( 'POST', '/wp/v2/search' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 404, $response->get_status() );
 	}
@@ -314,7 +314,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_update_item() {
 		/** The search controller does not allow upading content */
-		$request  = new WP_REST_Request( 'POST', '/gutenberg/v1/search' . self::$my_title_post_ids[0] );
+		$request  = new WP_REST_Request( 'POST', '/wp/v2/search' . self::$my_title_post_ids[0] );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 404, $response->get_status() );
 	}
@@ -324,7 +324,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_delete_item() {
 		/** The search controller does not allow deleting content */
-		$request  = new WP_REST_Request( 'DELETE', '/gutenberg/v1/search' . self::$my_title_post_ids[0] );
+		$request  = new WP_REST_Request( 'DELETE', '/wp/v2/search' . self::$my_title_post_ids[0] );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 404, $response->get_status() );
 	}
@@ -380,7 +380,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	 * Tests the item schema is correct.
 	 */
 	public function test_get_item_schema() {
-		$request    = new WP_REST_Request( 'OPTIONS', '/gutenberg/v1/search' );
+		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/search' );
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
@@ -513,7 +513,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	 * Get a REST request object for given parameters.
 	 */
 	private function get_request( $params = array(), $method = 'GET' ) {
-		$request = new WP_REST_Request( $method, '/gutenberg/v1/search' );
+		$request = new WP_REST_Request( $method, '/wp/v2/search' );
 
 		foreach ( $params as $param => $value ) {
 			$request->set_param( $param, $value );
