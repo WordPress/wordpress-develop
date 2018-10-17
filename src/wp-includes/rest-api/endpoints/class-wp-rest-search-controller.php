@@ -184,12 +184,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 			return new WP_REST_Response();
 		}
 
-		if ( method_exists( $this, 'get_fields_for_response' ) ) {
-			$fields = $this->get_fields_for_response( $request );
-		} else {
-			$schema = $this->get_item_schema();
-			$fields = array_keys( $schema['properties'] );
-		}
+		$fields = $this->get_fields_for_response( $request );
 
 		$data = $handler->prepare_item( $id, $fields );
 		$data = $this->add_additional_fields_to_object( $data, $request );
