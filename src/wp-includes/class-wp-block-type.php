@@ -2,14 +2,15 @@
 /**
  * Blocks API: WP_Block_Type class
  *
- * @package gutenberg
- * @since 0.6.0
+ * @package WordPress
+ * @subpackage Blocks
+ * @since 5.0.0
  */
 
 /**
  * Core class representing a block type.
  *
- * @since 0.6.0
+ * @since 5.0.0
  *
  * @see register_block_type()
  */
@@ -17,7 +18,7 @@ class WP_Block_Type {
 	/**
 	 * Block type key.
 	 *
-	 * @since 0.6.0
+	 * @since 5.0.0
 	 * @var string
 	 */
 	public $name;
@@ -25,7 +26,7 @@ class WP_Block_Type {
 	/**
 	 * Block type render callback.
 	 *
-	 * @since 0.6.0
+	 * @since 5.0.0
 	 * @var callable
 	 */
 	public $render_callback;
@@ -33,7 +34,7 @@ class WP_Block_Type {
 	/**
 	 * Block type attributes property schemas.
 	 *
-	 * @since 0.10.0
+	 * @since 5.0.0
 	 * @var array
 	 */
 	public $attributes;
@@ -41,7 +42,7 @@ class WP_Block_Type {
 	/**
 	 * Block type editor script handle.
 	 *
-	 * @since 2.0.0
+	 * @since 5.0.0
 	 * @var string
 	 */
 	public $editor_script;
@@ -49,7 +50,7 @@ class WP_Block_Type {
 	/**
 	 * Block type front end script handle.
 	 *
-	 * @since 2.0.0
+	 * @since 5.0.0
 	 * @var string
 	 */
 	public $script;
@@ -57,7 +58,7 @@ class WP_Block_Type {
 	/**
 	 * Block type editor style handle.
 	 *
-	 * @since 2.0.0
+	 * @since 5.0.0
 	 * @var string
 	 */
 	public $editor_style;
@@ -65,7 +66,7 @@ class WP_Block_Type {
 	/**
 	 * Block type front end style handle.
 	 *
-	 * @since 2.0.0
+	 * @since 5.0.0
 	 * @var string
 	 */
 	public $style;
@@ -75,7 +76,7 @@ class WP_Block_Type {
 	 *
 	 * Will populate object properties from the provided arguments.
 	 *
-	 * @since 0.6.0
+	 * @since 5.0.0
 	 *
 	 * @see register_block_type()
 	 *
@@ -92,7 +93,7 @@ class WP_Block_Type {
 	/**
 	 * Renders the block type output for given attributes.
 	 *
-	 * @since 0.6.0
+	 * @since 5.0.0
 	 *
 	 * @param array  $attributes Optional. Block attributes. Default empty array.
 	 * @param string $content    Optional. Block content. Default empty string.
@@ -155,7 +156,7 @@ class WP_Block_Type {
 	/**
 	 * Sets block type properties.
 	 *
-	 * @since 0.6.0
+	 * @since 5.0.0
 	 *
 	 * @param array|string $args Array or string of arguments for registering a block type.
 	 */

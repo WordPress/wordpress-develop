@@ -2,20 +2,21 @@
 /**
  * Blocks API: WP_Block_Type_Registry class
  *
- * @package gutenberg
- * @since 0.6.0
+ * @package WordPress
+ * @subpackage Blocks
+ * @since 5.0.0
  */
 
 /**
  * Core class used for interacting with block types.
  *
- * @since 0.6.0
+ * @since 5.0.0
  */
 final class WP_Block_Type_Registry {
 	/**
 	 * Registered block types, as `$name => $instance` pairs.
 	 *
-	 * @since 0.6.0
+	 * @since 5.0.0
 	 * @access private
 	 * @var WP_Block_Type[]
 	 */
@@ -24,7 +25,7 @@ final class WP_Block_Type_Registry {
 	/**
 	 * Container for the main instance of the class.
 	 *
-	 * @since 0.6.0
+	 * @since 5.0.0
 	 * @access private
 	 * @static
 	 * @var WP_Block_Type_Registry|null
@@ -34,7 +35,7 @@ final class WP_Block_Type_Registry {
 	/**
 	 * Registers a block type.
 	 *
-	 * @since 0.6.0
+	 * @since 5.0.0
 	 * @access public
 	 *
 	 * @param string|WP_Block_Type $name Block type name including namespace, or alternatively a
@@ -57,28 +58,28 @@ final class WP_Block_Type_Registry {
 		}
 
 		if ( ! is_string( $name ) ) {
-			$message = __( 'Block type names must be strings.', 'gutenberg' );
-			_doing_it_wrong( __METHOD__, $message, '0.1.0' );
+			$message = __( 'Block type names must be strings.' );
+			_doing_it_wrong( __METHOD__, $message, '5.0.0' );
 			return false;
 		}
 
 		if ( preg_match( '/[A-Z]+/', $name ) ) {
-			$message = __( 'Block type names must not contain uppercase characters.', 'gutenberg' );
-			_doing_it_wrong( __METHOD__, $message, '1.5.0' );
+			$message = __( 'Block type names must not contain uppercase characters.' );
+			_doing_it_wrong( __METHOD__, $message, '5.0.0' );
 			return false;
 		}
 
 		$name_matcher = '/^[a-z0-9-]+\/[a-z0-9-]+$/';
 		if ( ! preg_match( $name_matcher, $name ) ) {
-			$message = __( 'Block type names must contain a namespace prefix. Example: my-plugin/my-custom-block-type', 'gutenberg' );
-			_doing_it_wrong( __METHOD__, $message, '0.1.0' );
+			$message = __( 'Block type names must contain a namespace prefix. Example: my-plugin/my-custom-block-type' );
+			_doing_it_wrong( __METHOD__, $message, '5.0.0' );
 			return false;
 		}
 
 		if ( $this->is_registered( $name ) ) {
 			/* translators: 1: block name */
-			$message = sprintf( __( 'Block type "%s" is already registered.', 'gutenberg' ), $name );
-			_doing_it_wrong( __METHOD__, $message, '0.1.0' );
+			$message = sprintf( __( 'Block type "%s" is already registered.' ), $name );
+			_doing_it_wrong( __METHOD__, $message, '5.0.0' );
 			return false;
 		}
 
@@ -94,7 +95,7 @@ final class WP_Block_Type_Registry {
 	/**
 	 * Unregisters a block type.
 	 *
-	 * @since 0.6.0
+	 * @since 5.0.0
 	 * @access public
 	 *
 	 * @param string|WP_Block_Type $name Block type name including namespace, or alternatively a
@@ -108,8 +109,8 @@ final class WP_Block_Type_Registry {
 
 		if ( ! $this->is_registered( $name ) ) {
 			/* translators: 1: block name */
-			$message = sprintf( __( 'Block type "%s" is not registered.', 'gutenberg' ), $name );
-			_doing_it_wrong( __METHOD__, $message, '0.1.0' );
+			$message = sprintf( __( 'Block type "%s" is not registered.' ), $name );
+			_doing_it_wrong( __METHOD__, $message, '5.0.0' );
 			return false;
 		}
 
@@ -122,7 +123,7 @@ final class WP_Block_Type_Registry {
 	/**
 	 * Retrieves a registered block type.
 	 *
-	 * @since 0.6.0
+	 * @since 5.0.0
 	 * @access public
 	 *
 	 * @param string $name Block type name including namespace.
@@ -139,7 +140,7 @@ final class WP_Block_Type_Registry {
 	/**
 	 * Retrieves all registered block types.
 	 *
-	 * @since 0.6.0
+	 * @since 5.0.0
 	 * @access public
 	 *
 	 * @return WP_Block_Type[] Associative array of `$block_type_name => $block_type` pairs.
@@ -151,7 +152,7 @@ final class WP_Block_Type_Registry {
 	/**
 	 * Checks if a block type is registered.
 	 *
-	 * @since 0.6.0
+	 * @since 5.0.0
 	 * @access public
 	 *
 	 * @param string $name Block type name including namespace.
@@ -166,7 +167,7 @@ final class WP_Block_Type_Registry {
 	 *
 	 * The instance will be created if it does not exist yet.
 	 *
-	 * @since 0.6.0
+	 * @since 5.0.0
 	 * @access public
 	 * @static
 	 *
