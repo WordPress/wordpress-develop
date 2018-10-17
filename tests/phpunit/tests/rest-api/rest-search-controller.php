@@ -2,7 +2,8 @@
 /**
  * WP_REST_Search_Controller tests
  *
- * @package gutenberg
+ * @package WordPress
+ * @subpackage REST_API
  */
 
 /**

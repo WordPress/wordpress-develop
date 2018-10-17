@@ -2,7 +2,8 @@
 /**
  * REST API: WP_REST_Dummy_Search_Handler class
  *
- * @package gutenberg
+ * @package WordPress
+ * @subpackage REST_API
  */
 
 /**
