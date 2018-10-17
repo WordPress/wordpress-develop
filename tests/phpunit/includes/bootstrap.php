@@ -117,6 +117,7 @@ require dirname( __FILE__ ) . '/testcase-canonical.php';
 require dirname( __FILE__ ) . '/exceptions.php';
 require dirname( __FILE__ ) . '/utils.php';
 require dirname( __FILE__ ) . '/spy-rest-server.php';
+require dirname( __FILE__ ) . '/class-wp-rest-dummy-search-handler.php';
 
 /**
  * A child class of the PHP test runner.
