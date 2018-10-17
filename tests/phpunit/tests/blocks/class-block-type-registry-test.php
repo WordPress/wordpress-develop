@@ -2,11 +2,14 @@
 /**
  * WP_Block_Type_Registry Tests
  *
- * @package Gutenberg
+ * @package WordPress
+ * @subpackage Blocks
  */
 
 /**
  * Tests for WP_Block_Type_Registry
+ *
+ * @group blocks
  */
 class Block_Type_Registry_Test extends WP_UnitTestCase {
 
