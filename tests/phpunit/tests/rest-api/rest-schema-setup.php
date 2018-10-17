@@ -110,6 +110,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/users/me',
 			'/wp/v2/comments',
 			'/wp/v2/comments/(?P<id>[\\d]+)',
+			'/wp/v2/search',
 			'/wp/v2/settings',
 			'/wp/v2/themes',
 		);
