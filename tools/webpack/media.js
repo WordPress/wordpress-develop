@@ -11,10 +11,9 @@ mediaBuilds.forEach( function ( build ) {
 const baseDir = path.join( __dirname, '../../' );
 
 module.exports = function( env = { environment: 'production', watch: false } ) {
-	const mode = env.environment;
 
 	const mediaConfig = {
-		mode,
+		mode: "production",
 		cache: true,
 		entry: mediaEntries,
 		output: {
