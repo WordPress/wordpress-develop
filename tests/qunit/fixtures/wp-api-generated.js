@@ -3406,6 +3406,74 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/search": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "required": false,
+                            "default": "view",
+                            "enum": [
+                                "view",
+                                "embed"
+                            ],
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
+                        },
+                        "page": {
+                            "required": false,
+                            "default": 1,
+                            "description": "Current page of the collection.",
+                            "type": "integer"
+                        },
+                        "per_page": {
+                            "required": false,
+                            "default": 10,
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer"
+                        },
+                        "search": {
+                            "required": false,
+                            "description": "Limit results to those matching a string.",
+                            "type": "string"
+                        },
+                        "type": {
+                            "required": false,
+                            "default": "post",
+                            "enum": [
+                                "post"
+                            ],
+                            "description": "Limit results to items of an object type.",
+                            "type": "string"
+                        },
+                        "subtype": {
+                            "required": false,
+                            "default": "any",
+                            "description": "Limit results to items of one or more object subtypes.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post",
+                                    "page",
+                                    "any"
+                                ],
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": "http://example.org/index.php?rest_route=/wp/v2/search"
+            }
+        },
         "/wp/v2/settings": {
             "namespace": "wp/v2",
             "methods": [
