@@ -7,8 +7,10 @@
 
 /**
  * Tests for WP_REST_Search_Controller.
+ *
+ * @group restapi
  */
-class REST_Search_Controller_Test extends WP_Test_REST_Controller_Testcase {
+class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * Posts with title 'my-footitle'.
