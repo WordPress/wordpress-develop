@@ -118,6 +118,7 @@ require dirname( __FILE__ ) . '/exceptions.php';
 require dirname( __FILE__ ) . '/utils.php';
 require dirname( __FILE__ ) . '/spy-rest-server.php';
 require dirname( __FILE__ ) . '/class-wp-rest-test-search-handler.php';
+require dirname( __FILE__ ) . '/class-wp-fake-block-type.php';
 
 /**
  * A child class of the PHP test runner.
