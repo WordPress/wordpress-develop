@@ -697,7 +697,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_param( 'name', 'Existing' );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 409, $response->get_status() );
+		$this->assertEquals( 400, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( 'term_exists', $data['code'] );
 		$this->assertEquals( $existing_id, (int) $data['data']['term_id'] );
