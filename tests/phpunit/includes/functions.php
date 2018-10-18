@@ -182,3 +182,17 @@ function _upload_dir_https( $uploads ) {
 // Skip `setcookie` calls in auth_cookie functions due to warning:
 // Cannot modify header information - headers already sent by ...
 tests_add_filter( 'send_auth_cookies', '__return_false' );
+
+/**
+ * After the init action has been run once, trying to re-register block types can cause
+ * _doing_it_wrong warnings. To avoid this, unhook the block registration functions.
+ *
+ * @since 5.0.0
+ */
+function _unhook_block_registration() {
+	remove_action( 'init', 'register_block_core_archives' );
+	remove_action( 'init', 'register_block_core_categories' );
+	remove_action( 'init', 'register_block_core_latest_posts' );
+	remove_action( 'init', 'register_block_core_shortcode' );
+}
+tests_add_filter( 'init', '_unhook_block_registration', 1000 );

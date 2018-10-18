@@ -117,7 +117,14 @@ module.exports = function( env = { environment: 'production', watch: false } ) {
 	};
 
 	const phpFiles = {
-		'block-serialization-default-parser/parser.php': 'wp-includes/class-wp-block-parser.php',
+		// Parser shouldn't be copied until nested block issues are resolved.
+		// 'block-serialization-default-parser/parser.php': 'wp-includes/class-wp-block-parser.php',
+		'block-library/src/archives/index.php': 'wp-includes/blocks/archives.php',
+		'block-library/src/block/index.php': 'wp-includes/blocks/block.php',
+		'block-library/src/categories/index.php': 'wp-includes/blocks/categories.php',
+		'block-library/src/latest-comments/index.php': 'wp-includes/blocks/latest-comments.php',
+		'block-library/src/latest-posts/index.php': 'wp-includes/blocks/latest-posts.php',
+		'block-library/src/shortcode/index.php': 'wp-includes/blocks/shortcode.php',
 	};
 
 	const externals = {
