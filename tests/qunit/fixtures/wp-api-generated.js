@@ -4342,13 +4342,13 @@ mockedApiResponse.postRevisions = [
         "author": 389,
         "date": "2017-02-14T00:00:00",
         "date_gmt": "2017-02-14T00:00:00",
-        "id": 36707,
+        "id": 36710,
         "modified": "2017-02-14T00:00:00",
         "modified_gmt": "2017-02-14T00:00:00",
-        "parent": 36706,
-        "slug": "36706-revision-v1",
+        "parent": 36709,
+        "slug": "36709-revision-v1",
         "guid": {
-            "rendered": "http://example.org/?p=36707"
+            "rendered": "http://example.org/?p=36710"
         },
         "title": {
             "rendered": "REST API Client Fixture: Post"
@@ -4362,7 +4362,7 @@ mockedApiResponse.postRevisions = [
         "_links": {
             "parent": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/posts/36706"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/posts/36709"
                 }
             ]
         }
@@ -4397,13 +4397,13 @@ mockedApiResponse.postAutosaves = [
         "author": 389,
         "date": "2017-02-14T00:00:00",
         "date_gmt": "2017-02-14T00:00:00",
-        "id": 36708,
+        "id": 36711,
         "modified": "2017-02-14T00:00:00",
         "modified_gmt": "2017-02-14T00:00:00",
-        "parent": 36706,
-        "slug": "36706-autosave-v1",
+        "parent": 36709,
+        "slug": "36709-autosave-v1",
         "guid": {
-            "rendered": "http://example.org/?p=36708"
+            "rendered": "http://example.org/?p=36711"
         },
         "title": {
             "rendered": ""
@@ -4417,7 +4417,7 @@ mockedApiResponse.postAutosaves = [
         "_links": {
             "parent": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/posts/36706"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/posts/36709"
                 }
             ]
         }
@@ -4428,13 +4428,13 @@ mockedApiResponse.autosave = {
     "author": 389,
     "date": "2017-02-14T00:00:00",
     "date_gmt": "2017-02-14T00:00:00",
-    "id": 36708,
+    "id": 36711,
     "modified": "2017-02-14T00:00:00",
     "modified_gmt": "2017-02-14T00:00:00",
-    "parent": 36706,
-    "slug": "36706-autosave-v1",
+    "parent": 36709,
+    "slug": "36709-autosave-v1",
     "guid": {
-        "rendered": "http://example.org/?p=36708"
+        "rendered": "http://example.org/?p=36711"
     },
     "title": {
         "rendered": ""
@@ -4602,13 +4602,13 @@ mockedApiResponse.pageRevisions = [
         "author": 389,
         "date": "2017-02-14T00:00:00",
         "date_gmt": "2017-02-14T00:00:00",
-        "id": 36710,
+        "id": 36713,
         "modified": "2017-02-14T00:00:00",
         "modified_gmt": "2017-02-14T00:00:00",
-        "parent": 36709,
-        "slug": "36709-revision-v1",
+        "parent": 36712,
+        "slug": "36712-revision-v1",
         "guid": {
-            "rendered": "http://example.org/?p=36710"
+            "rendered": "http://example.org/?p=36713"
         },
         "title": {
             "rendered": "REST API Client Fixture: Page"
@@ -4622,7 +4622,7 @@ mockedApiResponse.pageRevisions = [
         "_links": {
             "parent": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/pages/36709"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/pages/36712"
                 }
             ]
         }
@@ -4657,13 +4657,13 @@ mockedApiResponse.pageAutosaves = [
         "author": 389,
         "date": "2017-02-14T00:00:00",
         "date_gmt": "2017-02-14T00:00:00",
-        "id": 36711,
+        "id": 36714,
         "modified": "2017-02-14T00:00:00",
         "modified_gmt": "2017-02-14T00:00:00",
-        "parent": 36709,
-        "slug": "36709-autosave-v1",
+        "parent": 36712,
+        "slug": "36712-autosave-v1",
         "guid": {
-            "rendered": "http://example.org/?p=36711"
+            "rendered": "http://example.org/?p=36714"
         },
         "title": {
             "rendered": ""
@@ -4677,7 +4677,7 @@ mockedApiResponse.pageAutosaves = [
         "_links": {
             "parent": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/pages/36709"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/pages/36712"
                 }
             ]
         }
@@ -4688,13 +4688,13 @@ mockedApiResponse.pageAutosave = {
     "author": 389,
     "date": "2017-02-14T00:00:00",
     "date_gmt": "2017-02-14T00:00:00",
-    "id": 36711,
+    "id": 36714,
     "modified": "2017-02-14T00:00:00",
     "modified_gmt": "2017-02-14T00:00:00",
-    "parent": 36709,
-    "slug": "36709-autosave-v1",
+    "parent": 36712,
+    "slug": "36712-autosave-v1",
     "guid": {
-        "rendered": "http://example.org/?p=36711"
+        "rendered": "http://example.org/?p=36714"
     },
     "title": {
         "rendered": ""

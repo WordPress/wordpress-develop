@@ -310,4 +310,47 @@ class WP_Test_Block_Type extends WP_UnitTestCase {
 
 		return json_encode( $attributes );
 	}
+
+	/**
+	 * Testing the block version.
+	 *
+	 * @ticket 43887
+	 *
+	 * @dataProvider data_block_version
+	 *
+	 * @param string|null $content  Content.
+	 * @param int         $expected Expected block version.
+	 */
+	public function test_block_version( $content, $expected ) {
+		$this->assertSame( $expected, block_version( $content ) );
+	}
+
+	/**
+	 * Test cases for test_block_version().
+	 *
+	 * @since 5.0.0
+	 *
+	 * @return array {
+	 *     @type array {
+	 *         @type string|null Content.
+	 *         @type int         Expected block version.
+	 *     }
+	 * }
+	 */
+	public function data_block_version() {
+		return array(
+			// Null.
+			array( null, 0 ),
+			// Empty post content.
+			array( '', 0 ),
+			// Post content without blocks.
+			array( '<hr class="wp-block-separator" />', 0 ),
+			// Post content with a block.
+			array( '<!-- wp:core/separator -->', 1 ),
+			// Post content with a fake block.
+			array( '<!-- wp:core/fake --><!-- /wp:core/fake -->', 1 ),
+			// Post content with an invalid block.
+			array( '<!- - wp:core/separator -->', 0 ),
+		);
+	}
 }

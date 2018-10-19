@@ -1332,6 +1332,65 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertTrue( $data['excerpt']['protected'] );
 	}
 
+	/**
+	 * The post response should not have `block_version` when in view context.
+	 *
+	 * @ticket 43887
+	 */
+	public function test_get_post_should_not_have_block_version_when_context_view() {
+		$post_id = $this->factory->post->create(
+			array(
+				'post_content' => '<!-- wp:core/separator -->',
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertFalse( isset( $data['content']['block_version'] ) );
+	}
+
+	/**
+	 * The post response should have `block_version` indicate that block content is present when in edit context.
+	 *
+	 * @ticket 43887
+	 */
+	public function test_get_post_should_have_block_version_indicate_block_content_when_context_edit() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = $this->factory->post->create(
+			array(
+				'post_content' => '<!-- wp:core/separator -->',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertSame( 1, $data['content']['block_version'] );
+	}
+	
+	/**
+	 * The post response should have `block_version` indicate that no block content is present when in edit context.
+	 *
+	 * @ticket 43887
+	 */
+	public function test_get_post_should_have_block_version_indicate_no_block_content_when_context_edit() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = $this->factory->post->create(
+			array(
+				'post_content' => '<hr />',
+			)
+		);
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertSame( 0, $data['content']['block_version'] );
+	}
+
 	public function test_get_item_read_permission_custom_post_status_not_authenticated() {
 		register_post_status( 'testpubstatus', array( 'public' => true ) );
 		register_post_status( 'testprivtatus', array( 'public' => false ) );
