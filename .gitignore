@@ -18,6 +18,8 @@ wp-tests-config.php
 /wp-cli.local.yml
 /jsdoc
 /vendor
+/src/wp-includes/js/dist
+/src/wp-includes/css/dist
 
 # Files and folders that get created in wp-content
 /src/wp-content/blogs.dir

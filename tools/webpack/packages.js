@@ -37,20 +37,22 @@ function camelCaseDash( string ) {
 /**
  * Maps vendors to copy commands for the CopyWebpackPlugin.
  *
- * @param {Object} vendors Vendors to include in the vendor folder.
+ * @param {Object} vendors     Vendors to include in the vendor folder.
+ * @param {string} buildTarget The folder in which to build the packages.
  *
  * @return {Object[]} Copy object suitable for the CopyWebpackPlugin.
  */
-function mapVendorCopies( vendors ) {
+function mapVendorCopies( vendors, buildTarget ) {
 	return Object.keys( vendors ).map( ( filename ) => ( {
 		from: join( baseDir, `node_modules/${ vendors[ filename ] }` ),
-		to: join( baseDir, `build/js/dist/vendor/${ filename }` ),
+		to: join( baseDir, `${ buildTarget }/js/dist/vendor/${ filename }` ),
 	} ) );
 }
 
 module.exports = function( env = { environment: 'production', watch: false } ) {
 	const mode = env.environment;
-	const suffix = mode === 'production' ? '.min': '';
+	const suffix = mode === 'production' ? '.min' : '';
+	const buildTarget = ( mode === 'production' ? 'build' : 'src' ) + '/wp-includes';
 
 	const packages = [
 		'api-fetch',
@@ -143,9 +145,9 @@ module.exports = function( env = { environment: 'production', watch: false } ) {
 		};
 	} );
 
-	const developmentCopies = mapVendorCopies( vendors );
-	const minifiedCopies = mapVendorCopies( minifiedVendors );
-	const minifyCopies = mapVendorCopies( minifyVendors ).map( ( copyCommand ) => {
+	const developmentCopies = mapVendorCopies( vendors, buildTarget );
+	const minifiedCopies = mapVendorCopies( minifiedVendors, buildTarget );
+	const minifyCopies = mapVendorCopies( minifyVendors, buildTarget ).map( ( copyCommand ) => {
 		return {
 			...copyCommand,
 			transform: ( content ) => {
@@ -158,7 +160,7 @@ module.exports = function( env = { environment: 'production', watch: false } ) {
 
 	let cssCopies = packages.map( ( packageName ) => ( {
 		from: join( baseDir, `node_modules/@wordpress/${ packageName }/build-style/*.css` ),
-		to: join( baseDir, `build/styles/dist/${ packageName }/` ),
+		to: join( baseDir, `${ buildTarget }/css/dist/${ packageName }/` ),
 		flatten: true,
 		transform: ( content ) => {
 			if ( config.mode === 'production' ) {
@@ -190,7 +192,7 @@ module.exports = function( env = { environment: 'production', watch: false } ) {
 		}, {} ),
 		output: {
 			filename: `[basename]${ suffix }.js`,
-			path: join( baseDir, 'build/js/dist' ),
+			path: join( baseDir, `${ buildTarget }/js/dist` ),
 			library: {
 				root: [ 'wp', '[name]' ]
 			},

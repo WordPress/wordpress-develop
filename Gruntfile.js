@@ -935,6 +935,7 @@ module.exports = function(grunt) {
 		'includes:emoji',
 		'includes:embed',
 		'usebanner',
+		'webpack:prod',
 		'jsvalidate:build'
 	] );
 
