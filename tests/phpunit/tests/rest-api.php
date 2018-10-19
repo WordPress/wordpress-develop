@@ -488,6 +488,33 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @ticket 42452
+	 */
+	public function test_always_prepend_path_with_slash_in_rest_url_filter() {
+		$filter = new MockAction();
+		add_filter( 'rest_url', array( $filter, 'filter' ), 10, 2 );
+
+		// Passing no path should return a slash.
+		get_rest_url();
+		$args = $filter->get_args();
+		$this->assertEquals( '/', $args[0][1] );
+		$filter->reset();
+
+		// Paths without a prepended slash should have one added.
+		get_rest_url( null, 'wp/media/' );
+		$args = $filter->get_args();
+		$this->assertEquals( '/wp/media/', $args[0][1] );
+		$filter->reset();
+
+		// Do not modify paths with a prepended slash.
+		get_rest_url( null, '/wp/media/' );
+		$args = $filter->get_args();
+		$this->assertEquals( '/wp/media/', $args[0][1] );
+
+		unset( $filter );
+	}
+
 	public function jsonp_callback_provider() {
 		return array(
 			// Standard names
