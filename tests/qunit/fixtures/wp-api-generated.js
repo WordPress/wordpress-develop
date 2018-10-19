@@ -850,6 +850,200 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/posts/(?P<parent>[\\d]+)/autosaves": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "parent": {
+                            "required": false,
+                            "description": "The ID for the parent of the object.",
+                            "type": "integer"
+                        },
+                        "context": {
+                            "required": false,
+                            "default": "view",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
+                        },
+                        "page": {
+                            "required": false,
+                            "default": 1,
+                            "description": "Current page of the collection.",
+                            "type": "integer"
+                        },
+                        "per_page": {
+                            "required": false,
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer"
+                        },
+                        "search": {
+                            "required": false,
+                            "description": "Limit results to those matching a string.",
+                            "type": "string"
+                        },
+                        "exclude": {
+                            "required": false,
+                            "default": [],
+                            "description": "Ensure result set excludes specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        },
+                        "include": {
+                            "required": false,
+                            "default": [],
+                            "description": "Limit result set to specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        },
+                        "offset": {
+                            "required": false,
+                            "description": "Offset the result set by a specific number of items.",
+                            "type": "integer"
+                        },
+                        "order": {
+                            "required": false,
+                            "default": "desc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string"
+                        },
+                        "orderby": {
+                            "required": false,
+                            "default": "date",
+                            "enum": [
+                                "date",
+                                "id",
+                                "include",
+                                "relevance",
+                                "slug",
+                                "include_slugs",
+                                "title"
+                            ],
+                            "description": "Sort collection by object attribute.",
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "parent": {
+                            "required": false,
+                            "description": "The ID for the parent of the object.",
+                            "type": "integer"
+                        },
+                        "author": {
+                            "required": false,
+                            "description": "The ID for the author of the object.",
+                            "type": "integer"
+                        },
+                        "date": {
+                            "required": false,
+                            "description": "The date the object was published, in the site's timezone.",
+                            "type": "string"
+                        },
+                        "date_gmt": {
+                            "required": false,
+                            "description": "The date the object was published, as GMT.",
+                            "type": "string"
+                        },
+                        "id": {
+                            "required": false,
+                            "description": "Unique identifier for the object.",
+                            "type": "integer"
+                        },
+                        "modified": {
+                            "required": false,
+                            "description": "The date the object was last modified, in the site's timezone.",
+                            "type": "string"
+                        },
+                        "modified_gmt": {
+                            "required": false,
+                            "description": "The date the object was last modified, as GMT.",
+                            "type": "string"
+                        },
+                        "slug": {
+                            "required": false,
+                            "description": "An alphanumeric identifier for the object unique to its type.",
+                            "type": "string"
+                        },
+                        "title": {
+                            "required": false,
+                            "description": "The title for the object.",
+                            "type": "object"
+                        },
+                        "content": {
+                            "required": false,
+                            "description": "The content for the object.",
+                            "type": "object"
+                        },
+                        "excerpt": {
+                            "required": false,
+                            "description": "The excerpt for the object.",
+                            "type": "object"
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/posts/(?P<parent>[\\d]+)/autosaves/(?P<id>[\\d]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "parent": {
+                            "required": false,
+                            "description": "The ID for the parent of the object.",
+                            "type": "integer"
+                        },
+                        "id": {
+                            "required": false,
+                            "description": "The ID for the object.",
+                            "type": "integer"
+                        },
+                        "context": {
+                            "required": false,
+                            "default": "view",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/pages": {
             "namespace": "wp/v2",
             "methods": [
@@ -1451,6 +1645,200 @@ mockedApiResponse.Schema = {
                             "default": false,
                             "description": "Required to be true, as revisions do not support trashing.",
                             "type": "boolean"
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/pages/(?P<parent>[\\d]+)/autosaves": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "parent": {
+                            "required": false,
+                            "description": "The ID for the parent of the object.",
+                            "type": "integer"
+                        },
+                        "context": {
+                            "required": false,
+                            "default": "view",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
+                        },
+                        "page": {
+                            "required": false,
+                            "default": 1,
+                            "description": "Current page of the collection.",
+                            "type": "integer"
+                        },
+                        "per_page": {
+                            "required": false,
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer"
+                        },
+                        "search": {
+                            "required": false,
+                            "description": "Limit results to those matching a string.",
+                            "type": "string"
+                        },
+                        "exclude": {
+                            "required": false,
+                            "default": [],
+                            "description": "Ensure result set excludes specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        },
+                        "include": {
+                            "required": false,
+                            "default": [],
+                            "description": "Limit result set to specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        },
+                        "offset": {
+                            "required": false,
+                            "description": "Offset the result set by a specific number of items.",
+                            "type": "integer"
+                        },
+                        "order": {
+                            "required": false,
+                            "default": "desc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string"
+                        },
+                        "orderby": {
+                            "required": false,
+                            "default": "date",
+                            "enum": [
+                                "date",
+                                "id",
+                                "include",
+                                "relevance",
+                                "slug",
+                                "include_slugs",
+                                "title"
+                            ],
+                            "description": "Sort collection by object attribute.",
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "parent": {
+                            "required": false,
+                            "description": "The ID for the parent of the object.",
+                            "type": "integer"
+                        },
+                        "author": {
+                            "required": false,
+                            "description": "The ID for the author of the object.",
+                            "type": "integer"
+                        },
+                        "date": {
+                            "required": false,
+                            "description": "The date the object was published, in the site's timezone.",
+                            "type": "string"
+                        },
+                        "date_gmt": {
+                            "required": false,
+                            "description": "The date the object was published, as GMT.",
+                            "type": "string"
+                        },
+                        "id": {
+                            "required": false,
+                            "description": "Unique identifier for the object.",
+                            "type": "integer"
+                        },
+                        "modified": {
+                            "required": false,
+                            "description": "The date the object was last modified, in the site's timezone.",
+                            "type": "string"
+                        },
+                        "modified_gmt": {
+                            "required": false,
+                            "description": "The date the object was last modified, as GMT.",
+                            "type": "string"
+                        },
+                        "slug": {
+                            "required": false,
+                            "description": "An alphanumeric identifier for the object unique to its type.",
+                            "type": "string"
+                        },
+                        "title": {
+                            "required": false,
+                            "description": "The title for the object.",
+                            "type": "object"
+                        },
+                        "content": {
+                            "required": false,
+                            "description": "The content for the object.",
+                            "type": "object"
+                        },
+                        "excerpt": {
+                            "required": false,
+                            "description": "The excerpt for the object.",
+                            "type": "object"
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/pages/(?P<parent>[\\d]+)/autosaves/(?P<id>[\\d]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "parent": {
+                            "required": false,
+                            "description": "The ID for the parent of the object.",
+                            "type": "integer"
+                        },
+                        "id": {
+                            "required": false,
+                            "description": "The ID for the object.",
+                            "type": "integer"
+                        },
+                        "context": {
+                            "required": false,
+                            "default": "view",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         }
                     }
                 }
@@ -3842,7 +4230,7 @@ mockedApiResponse.PostsCollection = [
             ],
             "version-history": [
                 {
-                    "count": 1,
+                    "count": 2,
                     "href": "http://example.org/index.php?rest_route=/wp/v2/posts/4/revisions"
                 }
             ],
@@ -3934,6 +4322,35 @@ mockedApiResponse.postRevisions = [
             "rendered": "http://example.org/?p=5"
         },
         "title": {
+            "rendered": ""
+        },
+        "content": {
+            "rendered": "<p>Autosave post content.</p>\n"
+        },
+        "excerpt": {
+            "rendered": ""
+        },
+        "_links": {
+            "parent": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/posts/4"
+                }
+            ]
+        }
+    },
+    {
+        "author": 389,
+        "date": "2017-02-14T00:00:00",
+        "date_gmt": "2017-02-14T00:00:00",
+        "id": 36707,
+        "modified": "2017-02-14T00:00:00",
+        "modified_gmt": "2017-02-14T00:00:00",
+        "parent": 36706,
+        "slug": "36706-revision-v1",
+        "guid": {
+            "rendered": "http://example.org/?p=36707"
+        },
+        "title": {
             "rendered": "REST API Client Fixture: Post"
         },
         "content": {
@@ -3945,7 +4362,7 @@ mockedApiResponse.postRevisions = [
         "_links": {
             "parent": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/posts/4"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/posts/36706"
                 }
             ]
         }
@@ -3972,6 +4389,61 @@ mockedApiResponse.revision = {
     },
     "excerpt": {
         "rendered": "<p>REST API Client Fixture: Post</p>\n"
+    }
+};
+
+mockedApiResponse.postAutosaves = [
+    {
+        "author": 389,
+        "date": "2017-02-14T00:00:00",
+        "date_gmt": "2017-02-14T00:00:00",
+        "id": 36708,
+        "modified": "2017-02-14T00:00:00",
+        "modified_gmt": "2017-02-14T00:00:00",
+        "parent": 36706,
+        "slug": "36706-autosave-v1",
+        "guid": {
+            "rendered": "http://example.org/?p=36708"
+        },
+        "title": {
+            "rendered": ""
+        },
+        "content": {
+            "rendered": "<p>Autosave post content.</p>\n"
+        },
+        "excerpt": {
+            "rendered": ""
+        },
+        "_links": {
+            "parent": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/posts/36706"
+                }
+            ]
+        }
+    }
+];
+
+mockedApiResponse.autosave = {
+    "author": 389,
+    "date": "2017-02-14T00:00:00",
+    "date_gmt": "2017-02-14T00:00:00",
+    "id": 36708,
+    "modified": "2017-02-14T00:00:00",
+    "modified_gmt": "2017-02-14T00:00:00",
+    "parent": 36706,
+    "slug": "36706-autosave-v1",
+    "guid": {
+        "rendered": "http://example.org/?p=36708"
+    },
+    "title": {
+        "rendered": ""
+    },
+    "content": {
+        "rendered": "<p>Autosave post content.</p>\n"
+    },
+    "excerpt": {
+        "rendered": ""
     }
 };
 
@@ -4034,7 +4506,7 @@ mockedApiResponse.PagesCollection = [
             ],
             "version-history": [
                 {
-                    "count": 1,
+                    "count": 2,
                     "href": "http://example.org/index.php?rest_route=/wp/v2/pages/6/revisions"
                 }
             ],
@@ -4110,6 +4582,35 @@ mockedApiResponse.pageRevisions = [
             "rendered": "http://example.org/?p=7"
         },
         "title": {
+            "rendered": ""
+        },
+        "content": {
+            "rendered": "<p>Autosave page content.</p>\n"
+        },
+        "excerpt": {
+            "rendered": ""
+        },
+        "_links": {
+            "parent": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/pages/6"
+                }
+            ]
+        }
+    },
+    {
+        "author": 389,
+        "date": "2017-02-14T00:00:00",
+        "date_gmt": "2017-02-14T00:00:00",
+        "id": 36710,
+        "modified": "2017-02-14T00:00:00",
+        "modified_gmt": "2017-02-14T00:00:00",
+        "parent": 36709,
+        "slug": "36709-revision-v1",
+        "guid": {
+            "rendered": "http://example.org/?p=36710"
+        },
+        "title": {
             "rendered": "REST API Client Fixture: Page"
         },
         "content": {
@@ -4121,7 +4622,7 @@ mockedApiResponse.pageRevisions = [
         "_links": {
             "parent": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/pages/6"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/pages/36709"
                 }
             ]
         }
@@ -4148,6 +4649,61 @@ mockedApiResponse.pageRevision = {
     },
     "excerpt": {
         "rendered": "<p>REST API Client Fixture: Page</p>\n"
+    }
+};
+
+mockedApiResponse.pageAutosaves = [
+    {
+        "author": 389,
+        "date": "2017-02-14T00:00:00",
+        "date_gmt": "2017-02-14T00:00:00",
+        "id": 36711,
+        "modified": "2017-02-14T00:00:00",
+        "modified_gmt": "2017-02-14T00:00:00",
+        "parent": 36709,
+        "slug": "36709-autosave-v1",
+        "guid": {
+            "rendered": "http://example.org/?p=36711"
+        },
+        "title": {
+            "rendered": ""
+        },
+        "content": {
+            "rendered": "<p>Autosave page content.</p>\n"
+        },
+        "excerpt": {
+            "rendered": ""
+        },
+        "_links": {
+            "parent": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/pages/36709"
+                }
+            ]
+        }
+    }
+];
+
+mockedApiResponse.pageAutosave = {
+    "author": 389,
+    "date": "2017-02-14T00:00:00",
+    "date_gmt": "2017-02-14T00:00:00",
+    "id": 36711,
+    "modified": "2017-02-14T00:00:00",
+    "modified_gmt": "2017-02-14T00:00:00",
+    "parent": 36709,
+    "slug": "36709-autosave-v1",
+    "guid": {
+        "rendered": "http://example.org/?p=36711"
+    },
+    "title": {
+        "rendered": ""
+    },
+    "content": {
+        "rendered": "<p>Autosave page content.</p>\n"
+    },
+    "excerpt": {
+        "rendered": ""
     }
 };
 
