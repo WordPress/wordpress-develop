@@ -140,9 +140,9 @@
 			window.wpApiSettings.root = 'http://localhost/index.php?rest_route=/';
 			assert.deepEqual( wp.apiRequest.buildAjaxOptions( {
 				namespace: '/wp/v2/',
-				endpoint: '/posts'
+				endpoint: '/posts?orderby=title'
 			} ), {
-				url: 'http://localhost/index.php?rest_route=/wp/v2/posts',
+				url: 'http://localhost/index.php?rest_route=/wp/v2/posts&orderby=title',
 				headers: nonceHeader
 			} );
 		}
