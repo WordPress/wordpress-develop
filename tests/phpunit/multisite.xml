@@ -15,15 +15,14 @@
             <exclude>tests/phpunit/tests/image/editor.php</exclude>
             <exclude>tests/phpunit/tests/image/editorGd.php</exclude>
             <exclude>tests/phpunit/tests/image/editorImagick.php</exclude>
+            <!-- DOING_AUTOSAVE constant pollutes test suite -->
+            <!-- and there is a weird 5.2 edge case: https://core.trac.wordpress.org/ticket/45132 -->
             <exclude>tests/rest-api/rest-autosaves-controller.php</exclude>
+            <exclude>tests/phpunit/tests/rest-api/rest-autosaves-controller.php</exclude>
             <file phpVersion="5.3.0">tests/phpunit/tests/actions/closures.php</file>
             <file phpVersion="5.3.0">tests/phpunit/tests/image/editor.php</file>
             <file phpVersion="5.3.0">tests/phpunit/tests/image/editorGd.php</file>
             <file phpVersion="5.3.0">tests/phpunit/tests/image/editorImagick.php</file>
-        </testsuite>
-        <!-- Sets the DOING_AUTOSAVE constant, so needs to be run last -->
-        <testsuite name="restapi-autosave">
-            <file>tests/rest-api/rest-autosaves-controller.php</file>
         </testsuite>
     </testsuites>
     <groups>
