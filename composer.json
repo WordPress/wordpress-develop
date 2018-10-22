@@ -1,0 +1,20 @@
+{
+	"name": "wordpress/wordpress",
+	"license": "GPL-2.0-or-later",
+	"description": "WordPress is open source software you can use to create a beautiful website, blog, or app.",
+	"homepage": "https://wordpress.org",
+	"keywords": [
+		"blog", "cms", "wordpress", "wp"
+	],
+	"support": {
+		"issues": "https://core.trac.wordpress.org/"
+	},
+	"require-dev": {
+		"dealerdirect/phpcodesniffer-composer-installer": "~0.4.4",
+		"wp-coding-standards/wpcs": "~1.0.0"
+	},
+	"scripts": {
+		"format": "phpcbf --standard=phpcs.xml.dist --report-summary --report-source",
+		"lint": "phpcs --standard=phpcs.xml.dist --report-summary --report-source"
+	}
+}
