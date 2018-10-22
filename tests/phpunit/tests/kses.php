@@ -813,4 +813,151 @@ EOF;
 			array( 'data**', false ),
 		);
 	}
+
+	/**
+	 * Test URL sanitization in the style tag.
+	 *
+	 * @dataProvider data_kses_style_attr_with_url
+	 *
+	 * @ticket 45067
+	 *
+	 * @param $input string The style attribute saved in the editor.
+	 * @param $expected string The sanitized style attribute.
+	 */
+	function test_kses_style_attr_with_url( $input, $expected ) {
+		$actual = safecss_filter_attr( $input );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider testing style attribute sanitization.
+	 *
+	 * @return array Nested array of input, expected pairs.
+	 */
+	function data_kses_style_attr_with_url() {
+		return array(
+			/*
+			 * Valid use cases.
+			 */
+
+			// Double quotes.
+			array(
+				'background-image: url( "http://example.com/valid.gif" );',
+				'background-image: url( "http://example.com/valid.gif" )',
+			),
+
+			// Single quotes.
+			array(
+				"background-image: url( 'http://example.com/valid.gif' );",
+				"background-image: url( 'http://example.com/valid.gif' )",
+			),
+
+			// No quotes.
+			array(
+				'background-image: url( http://example.com/valid.gif );',
+				'background-image: url( http://example.com/valid.gif )',
+			),
+
+			// Single quotes, extra spaces.
+			array(
+				"background-image: url( '  http://example.com/valid.gif ' );",
+				"background-image: url( '  http://example.com/valid.gif ' )",
+			),
+
+			// Line breaks, single quotes.
+			array(
+				"background-image: url(\n'http://example.com/valid.gif' );",
+				"background-image: url('http://example.com/valid.gif' )",
+			),
+
+			// Tabs not spaces, single quotes.
+			array(
+				"background-image: url(\t'http://example.com/valid.gif'\t\t);",
+				"background-image: url('http://example.com/valid.gif')",
+			),
+
+			// Single quotes, absolute path.
+			array(
+				"background: url('/valid.gif');",
+				"background: url('/valid.gif')",
+			),
+
+			// Single quotes, relative path.
+			array(
+				"background: url('../wp-content/uploads/2018/10/valid.gif');",
+				"background: url('../wp-content/uploads/2018/10/valid.gif')",
+			),
+
+			// Error check: valid property not containing a URL.
+			array(
+				"background: red",
+				"background: red",
+			),
+
+			/*
+			 * Invalid use cases.
+			 */
+
+			// Attribute doesn't support URL properties.
+			array(
+				'color: url( "http://example.com/invalid.gif" );',
+				'',
+			),
+
+			// Mismatched quotes.
+			array(
+				'background-image: url( "http://example.com/valid.gif\' );',
+				'',
+			),
+
+			// Bad protocol, double quotes.
+			array(
+				'background-image: url( "bad://example.com/invalid.gif" );',
+				'',
+			),
+
+			// Bad protocol, single quotes.
+			array(
+				"background-image: url( 'bad://example.com/invalid.gif' );",
+				'',
+			),
+
+			// Bad protocol, single quotes.
+			array(
+				"background-image: url( 'bad://example.com/invalid.gif' );",
+				'',
+			),
+
+			// Bad protocol, single quotes, strange spacing.
+			array(
+				"background-image: url( '  \tbad://example.com/invalid.gif ' );",
+				'',
+			),
+
+			// Bad protocol, no quotes.
+			array(
+				'background-image: url( bad://example.com/invalid.gif );',
+				'',
+			),
+
+			// No URL inside url().
+			array(
+				'background-image: url();',
+				'',
+			),
+
+			// Malformed, no closing `)`.
+			array(
+				'background-image: url( "http://example.com" ;',
+				'',
+			),
+
+			// Malformed, no closing `"`.
+			array(
+				'background-image: url( "http://example.com );',
+				'',
+			),
+		);
+	}
 }
