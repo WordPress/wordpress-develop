@@ -66,7 +66,7 @@
 		"@wordpress/dom": "^2.0.4",
 		"@wordpress/dom-ready": "^2.0.2",
 		"@wordpress/edit-post": "^1.0.4",
-		"@wordpress/editor": "^4.0.3",
+		"@wordpress/editor": "^5.0.1",
 		"@wordpress/element": "^2.1.4",
 		"@wordpress/escape-html": "^1.0.1",
 		"@wordpress/hooks": "^2.0.2",
