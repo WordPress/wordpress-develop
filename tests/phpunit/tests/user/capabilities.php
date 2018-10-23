@@ -17,6 +17,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	);
 	protected static $super_admin = null;
 
+	protected static $block_id;
+
 	public static function wpSetUpBeforeClass( $factory ) {
 		self::$users = array(
 			'administrator' => $factory->user->create_and_get( array( 'role' => 'administrator' ) ),
@@ -27,6 +29,16 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		);
 		self::$super_admin = $factory->user->create_and_get( array( 'role' => 'contributor' ) );
 		grant_super_admin( self::$super_admin->ID );
+
+		self::$block_id = $factory->post->create(
+			array(
+				'post_author'  => self::$users['administrator']->ID,
+				'post_type'    => 'wp_block',
+				'post_status'  => 'publish',
+				'post_title'   => 'Test Block',
+				'post_content' => '<!-- wp:core/paragraph --><p>Hello world!</p><!-- /wp:core/paragraph -->',
+			)
+		);
 	}
 
 	function setUp() {
@@ -35,6 +47,11 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->_flush_roles();
 
 	}
+
+	public static function wpTearDownAfterClass() {
+		wp_delete_post( self::$block_id, true );
+	}
+
 
 	function _flush_roles() {
 		// we want to make sure we're testing against the db, not just in-memory data
@@ -2015,5 +2032,77 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$wpdb->suppress_errors( $suppress );
 
 		$this->assertSame( 333, $roles->get_site_id() );
+	}
+
+	/**
+	 * @dataProvider data_block_caps
+	 */
+	function test_block_caps( $role, $cap, $use_post, $expected ) {
+		if ( $use_post ) {
+			$this->assertEquals( $expected, self::$users[ $role ]->has_cap( $cap, self::$block_id ) );
+		} else {
+			$this->assertEquals( $expected, self::$users[ $role ]->has_cap( $cap ) );
+		}
+	}
+
+	function data_block_caps() {
+		$post_caps = array(
+			'edit_block',
+			'read_block',
+			'delete_block',
+		);
+
+		$all_caps = array(
+			'edit_block',
+			'read_block',
+			'delete_block',
+			'edit_blocks',
+			'edit_others_blocks',
+			'publish_blocks',
+			'read_private_blocks',
+			'delete_blocks',
+			'delete_private_blocks',
+			'delete_published_blocks',
+			'delete_others_blocks',
+			'edit_private_blocks',
+			'edit_published_blocks',
+		);
+
+		$roles = array(
+			'administrator' => $all_caps,
+			'editor' => $all_caps,
+			'author' => array(
+				'read_block',
+				'edit_blocks',
+				'publish_blocks',
+				'delete_blocks',
+				'delete_published_blocks',
+				'edit_published_blocks',
+			),
+			'contributor' => array(
+				'read_block',
+				'edit_blocks',
+				'delete_blocks',
+			),
+			'subscriber' => array(),
+		);
+
+		$data = array();
+
+		foreach( $roles as $role => $caps ) {
+			foreach ( $caps as $cap ) {
+				$use_post = in_array( $cap, $post_caps, true );
+				$data[] = array( $role, $cap, $use_post, true );
+			}
+
+			foreach ( $all_caps as $cap ) {
+				if ( ! in_array( $cap, $caps, true ) ) {
+					$use_post = in_array( $cap, $post_caps, true );
+					$data[] = array( $role, $cap, $use_post, false );
+				}
+			}
+		}
+
+		return $data;
 	}
 }
