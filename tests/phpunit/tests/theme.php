@@ -11,6 +11,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	protected $default_themes = array(
 		'twentyten', 'twentyeleven', 'twentytwelve', 'twentythirteen',
 		'twentyfourteen', 'twentyfifteen', 'twentysixteen', 'twentyseventeen',
+		'twentynineteen',
 	);
 
 	function setUp() {
