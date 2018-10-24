@@ -3520,7 +3520,7 @@ class wp_xmlrpc_server extends IXR_Server {
  		$comment = array(
  			'comment_ID' => $comment_ID,
  		);
- 
+
 
 		if ( isset($content_struct['status']) ) {
 			$statuses = get_comment_statuses();
@@ -3555,9 +3555,6 @@ class wp_xmlrpc_server extends IXR_Server {
 		if ( isset($content_struct['author_email']) ) {
  			$comment['comment_author_email'] = $content_struct['author_email'];
 		}
-
-		// We've got all the data -- post it:
-		$comment = compact('comment_ID', 'comment_content', 'comment_approved', 'comment_date', 'comment_date_gmt', 'comment_author', 'comment_author_email', 'comment_author_url');
 
 		$result = wp_update_comment($comment);
 		if ( is_wp_error( $result ) )
