@@ -861,6 +861,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 * @covers wp_enqueue_code_editor()
 	 */
 	public function test_wp_enqueue_code_editor_when_generated_array_by_compact_will_be_passed() {
+		$file                   = '';
 		$wp_enqueue_code_editor = wp_enqueue_code_editor( compact( 'file' ) );
 		$this->assertNonEmptyMultidimensionalArray( $wp_enqueue_code_editor );
 
