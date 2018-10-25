@@ -393,7 +393,9 @@ class WP_Network_Query {
 
 		$where = implode( ' AND ', $this->sql_clauses['where'] );
 
-		$pieces = array( 'fields', 'join', 'where', 'orderby', 'limits' );
+		$groupby = '';
+
+		$pieces = array( 'fields', 'join', 'where', 'orderby', 'limits', 'groupby' );
 
 		/**
 		 * Filters the network query clauses.
