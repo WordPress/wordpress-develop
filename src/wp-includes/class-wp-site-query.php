@@ -327,7 +327,6 @@ class WP_Site_Query {
 	protected function get_site_ids() {
 		global $wpdb;
 
-		$limits = '';
 		$order = $this->parse_order( $this->query_vars['order'] );
 
 		// Disable ORDER BY with 'none', an empty array, or boolean false.
@@ -373,6 +372,7 @@ class WP_Site_Query {
 
 		$number = absint( $this->query_vars['number'] );
 		$offset = absint( $this->query_vars['offset'] );
+		$limits = '';
 
 		if ( ! empty( $number ) ) {
 			if ( $offset ) {
