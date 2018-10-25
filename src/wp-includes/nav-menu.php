@@ -1142,7 +1142,7 @@ function wp_map_nav_menu_locations( $new_nav_menu_locations, $old_nav_menu_locat
 				if ( is_string( $new_location ) && false === stripos( $new_location, $slug ) && false === stripos(
 					$slug, $new_location ) ) {
 					continue;
-				} elseif ( $new_location !== $slug ) {
+				} elseif ( is_numeric( $new_location ) && $new_location !== $slug ) {
 					continue;
 				}
 
@@ -1155,7 +1155,7 @@ function wp_map_nav_menu_locations( $new_nav_menu_locations, $old_nav_menu_locat
 						// ... have a match as well.
 						if ( is_string( $location ) && false === stripos( $location, $slug ) && false === stripos( $slug, $location ) ) {
 							continue;
-						} elseif ( $location !== $slug ) {
+						} elseif ( is_numeric( $location ) && $location !== $slug ) {
 							continue;
 						}
 
