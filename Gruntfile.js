@@ -1,6 +1,7 @@
 /* jshint node:true */
 /* globals Set */
 var webpackConfig = require( './webpack.config' );
+const { execSync } = require( 'child_process' );
 
 module.exports = function(grunt) {
 	var path = require('path'),
@@ -10,6 +11,8 @@ module.exports = function(grunt) {
 		BUILD_DIR = 'build/',
  		BANNER_TEXT = '/*! This file is auto-generated */',
 		autoprefixer = require( 'autoprefixer' );
+
+	const packageJson = grunt.file.readJSON( 'package.json' );
 
 	// Load tasks.
 	require('matchdep').filterDev(['grunt-*', '!grunt-legacy-util']).forEach( grunt.loadNpmTasks );
@@ -783,6 +786,24 @@ module.exports = function(grunt) {
 		'phpunit:restapi-jsclient',
 		'qunit:compiled'
 	] );
+
+	grunt.registerTask( 'download-packages', function() {
+		const directory = 'packages';
+		const version = packageJson.wordpress.packagesVersion;
+
+		if ( ! grunt.file.exists( directory  ) ) {
+			// Clone gutenberg
+			execSync( `git clone https://github.com/WordPress/gutenberg.git ${ directory }`, { stdio: 'inherit' } );
+		}
+
+		execSync( 'git fetch --tags', { cwd: directory, stdio: 'inherit' } );
+
+		// Make sure we are on the correct version of Gutenberg.
+		execSync( `git reset --hard ${ version }`, { cwd: directory, stdio: 'inherit' } );
+
+		// Install Gutenberg dependencies and build the packages.
+		execSync( 'npm install', { cwd: directory, stdio: 'inherit' } );
+	} );
 
 	grunt.renameTask( 'watch', '_watch' );
 
