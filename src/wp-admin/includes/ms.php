@@ -98,7 +98,7 @@ function wpmu_delete_blog( $blog_id, $drop = false ) {
 	}
 
 	// Don't destroy the initial, main, or root blog.
-	if ( $drop && ( 1 == $blog_id || is_main_site( $blog_id ) || ( $blog->path == $current_network->path && $blog->domain == $current_network->domain ) ) ) {
+	if ( $drop && $blog && ( 1 == $blog_id || is_main_site( $blog_id ) || ( $blog->path == $current_network->path && $blog->domain == $current_network->domain ) ) ) {
 		$drop = false;
 	}
 
