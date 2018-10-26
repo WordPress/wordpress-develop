@@ -1139,8 +1139,7 @@ function wp_map_nav_menu_locations( $new_nav_menu_locations, $old_nav_menu_locat
 			foreach ( $registered_nav_menus as $new_location => $name ) {
 
 				// ...actually match!
-				if ( is_string( $new_location ) && false === stripos( $new_location, $slug ) && false === stripos(
-					$slug, $new_location ) ) {
+				if ( is_string( $new_location ) && false === stripos( $new_location, $slug ) && false === stripos( $slug, $new_location ) ) {
 					continue;
 				} elseif ( is_numeric( $new_location ) && $new_location !== $slug ) {
 					continue;
