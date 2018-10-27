@@ -329,6 +329,7 @@ class WP_Network_Query {
 
 		$number = absint( $this->query_vars['number'] );
 		$offset = absint( $this->query_vars['offset'] );
+		$limits = '';
 
 		if ( ! empty( $number ) ) {
 			if ( $offset ) {

@@ -22,6 +22,7 @@ wp-tests-config.php
 /vendor
 /src/wp-includes/js/dist
 /src/wp-includes/css/dist
+/packages
 
 # Files and folders that get created in wp-content
 /src/wp-content/blogs.dir

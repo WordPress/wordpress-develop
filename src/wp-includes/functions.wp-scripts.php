@@ -193,6 +193,37 @@ function wp_localize_script( $handle, $object_name, $l10n ) {
 }
 
 /**
+ * Register translated strings for a script.
+ *
+ * Works only if the script has already been added.
+ *
+ * @see WP_Scripts::set_translations()
+ * @link https://core.trac.wordpress.org/ticket/45103
+ * @global WP_Scripts $wp_scripts The WP_Scripts object for printing scripts.
+ *
+ * @since 5.0.0
+ *
+ * @param string $handle Script handle the textdomain will be attached to.
+ * @param string $domain The textdomain.
+ * @param string $path   Optional. The full file path to the directory containing translation files.
+ *
+ * @return bool True if the textdomain was successfully localized, false otherwise.
+ */
+function wp_set_script_translations( $handle, $domain, $path = null ) {
+	global $wp_scripts;
+	if ( ! ( $wp_scripts instanceof WP_Scripts ) ) {
+		_wp_scripts_maybe_doing_it_wrong( __FUNCTION__ );
+		return false;
+	}
+
+	if ( ! wp_script_is( $handle, 'enqueued' ) ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Script translations may only be set if the script is enqueued.' ), '5.0.0' );
+	}
+
+	return $wp_scripts->set_translations( $handle, $domain, $path );
+}
+
+/**
  * Remove a registered script.
  *
  * Note: there are intentional safeguards in place to prevent critical admin scripts,
@@ -298,8 +329,12 @@ function wp_dequeue_script( $handle ) {
 }
 
 /**
- * Check whether a script has been added to the queue.
- *
+ * Determines whether a script has been added to the queue.
+ * 
+ * For more information on this and similar theme functions, check out
+ * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/ 
+ * Conditional Tags} article in the Theme Developer Handbook.
+ *  
  * @since 2.8.0
  * @since 3.5.0 'enqueued' added as an alias of the 'queue' list.
  *

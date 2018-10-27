@@ -50,40 +50,6 @@
 	},
 	"dependencies": {
 		"@babel/polyfill": "^7.0.0",
-		"@wordpress/a11y": "^2.0.2",
-		"@wordpress/api-fetch": "^2.1.0",
-		"@wordpress/autop": "^2.0.2",
-		"@wordpress/blob": "^2.1.0",
-		"@wordpress/block-library": "^2.1.4",
-		"@wordpress/block-serialization-default-parser": "^1.0.1",
-		"@wordpress/blocks": "^4.0.4",
-		"@wordpress/components": "^4.2.1",
-		"@wordpress/compose": "^2.0.5",
-		"@wordpress/core-data": "^2.0.6",
-		"@wordpress/data": "^2.1.4",
-		"@wordpress/date": "^2.0.3",
-		"@wordpress/deprecated": "^2.0.2",
-		"@wordpress/dom": "^2.0.4",
-		"@wordpress/dom-ready": "^2.0.2",
-		"@wordpress/edit-post": "^1.0.4",
-		"@wordpress/editor": "^5.0.1",
-		"@wordpress/element": "^2.1.4",
-		"@wordpress/escape-html": "^1.0.1",
-		"@wordpress/hooks": "^2.0.2",
-		"@wordpress/html-entities": "^2.0.2",
-		"@wordpress/i18n": "^3.0.1",
-		"@wordpress/is-shallow-equal": "^1.1.4",
-		"@wordpress/keycodes": "^2.0.2",
-		"@wordpress/list-reusable-blocks": "^1.1.4",
-		"@wordpress/nux": "^2.0.6",
-		"@wordpress/plugins": "^2.0.5",
-		"@wordpress/redux-routine": "^3.0.3",
-		"@wordpress/rich-text": "^1.0.1",
-		"@wordpress/shortcode": "^2.0.2",
-		"@wordpress/token-list": "^1.0.2",
-		"@wordpress/url": "^2.1.0",
-		"@wordpress/viewport": "^2.0.5",
-		"@wordpress/wordcount": "^2.0.2",
 		"element-closest": "^2.0.2",
 		"formdata-polyfill": "^3.0.12",
 		"lodash": "^4.17.11",
@@ -92,5 +58,11 @@
 		"react": "^16.5.2",
 		"react-dom": "^16.5.2",
 		"whatwg-fetch": "^3.0.0"
+	},
+	"scripts": {
+		"postinstall": "grunt download-packages"
+	},
+	"wordpress": {
+		"packagesVersion": "v4.1.0"
 	}
 }
