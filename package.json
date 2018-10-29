@@ -92,5 +92,8 @@
 		"react": "^16.5.2",
 		"react-dom": "^16.5.2",
 		"whatwg-fetch": "^3.0.0"
+	},
+	"scripts":{
+		"grunt": "grunt"
 	}
 }
