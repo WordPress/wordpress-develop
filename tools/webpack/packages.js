@@ -16,7 +16,6 @@ const CustomTemplatedPathPlugin = require( '@wordpress/custom-templated-path-web
 const LibraryExportDefaultPlugin = require( '@wordpress/library-export-default-webpack-plugin' );
 
 const baseDir = join( __dirname, '../../' );
-const PACKAGES_PATH = 'packages/packages';
 
 /**
  * Given a string, returns a new string with dash separators converedd to
@@ -160,7 +159,7 @@ module.exports = function( env = { environment: 'production', watch: false } ) {
 	let vendorCopies = mode === "development" ? developmentCopies : [ ...minifiedCopies, ...minifyCopies ];
 
 	let cssCopies = packages.map( ( packageName ) => ( {
-		from: join( baseDir, PACKAGES_PATH, `${ packageName }/build-style/*.css` ),
+		from: join( baseDir, `node_modules/@wordpress/${ packageName }/build-style/*.css` ),
 		to: join( baseDir, `${ buildTarget }/css/dist/${ packageName }/` ),
 		flatten: true,
 		transform: ( content ) => {
@@ -179,7 +178,7 @@ module.exports = function( env = { environment: 'production', watch: false } ) {
 	} ) );
 
 	const phpCopies = Object.keys( phpFiles ).map( ( filename ) => ( {
-		from: join( baseDir, PACKAGES_PATH, filename ),
+		from: join( baseDir, `node_modules/@wordpress/${ filename }` ),
 		to: join( baseDir, `src/${ phpFiles[ filename ] }` ),
 	} ) );
 
@@ -188,7 +187,7 @@ module.exports = function( env = { environment: 'production', watch: false } ) {
 
 		entry: packages.reduce( ( memo, packageName ) => {
 			const name = camelCaseDash( packageName );
-			memo[ name ] = join( baseDir, PACKAGES_PATH, packageName );
+			memo[ name ] = join( baseDir, `node_modules/@wordpress/${ packageName }` );
 			return memo;
 		}, {} ),
 		output: {
