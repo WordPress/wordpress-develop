@@ -85,7 +85,7 @@ before_script:
   fi
 - npm --version
 - node --version
-- nvm install 8.9.3
+- nvm install 10.13.0
 - npm install -g grunt-cli
 - npm install
 - npm prune
