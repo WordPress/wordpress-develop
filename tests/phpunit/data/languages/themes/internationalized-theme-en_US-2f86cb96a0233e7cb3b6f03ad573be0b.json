@@ -1,0 +1,17 @@
+{
+  "translation-revision-data": "+0000",
+  "generator":                 "GlotPress/2.3.0-alpha",
+  "domain":                    "messages",
+  "locale_data":               {
+    "messages": {
+      "":                                                             {
+        "domain":       "messages",
+        "plural-forms": "n != 1",
+        "lang":         "en-gb"
+      },
+      "This is a dummy theme.": [
+        "This is a dummy theme."
+      ]
+    }
+  }
+}
