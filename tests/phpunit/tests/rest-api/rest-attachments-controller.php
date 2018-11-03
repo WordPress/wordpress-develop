@@ -16,6 +16,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	protected static $author_id;
 	protected static $contributor_id;
 	protected static $uploader_id;
+	protected static $rest_after_insert_attachment_count;
+	protected static $rest_insert_attachment_count;
 
 	public static function wpSetUpBeforeClass( $factory ) {
 		self::$superadmin_id = $factory->user->create( array(
@@ -1306,6 +1308,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			unlink( $this->test_file2 );
 		}
 
+		remove_action( 'rest_insert_attachment', array( $this, 'filter_rest_insert_attachment' ) );
+		remove_action( 'rest_after_insert_attachment', array( $this, 'filter_rest_after_insert_attachment' ) );
+
 		$this->remove_added_uploads();
 	}
 
@@ -1437,4 +1442,67 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertErrorResponse( 'rest_upload_limited_space', $response, 400 );
 	}
 
+	/**
+	 * Ensure the `rest_after_insert_attachment` and `rest_insert_attachment` hooks only fire
+	 * once when attachments are created.
+	 *
+	 * @ticket 45269
+	 */
+	public function test_rest_insert_attachment_hooks_fire_once_on_create() {
+		self::$rest_insert_attachment_count = 0;
+		self::$rest_after_insert_attachment_count = 0;
+		add_action( 'rest_insert_attachment', array( $this, 'filter_rest_insert_attachment' ) );
+		add_action( 'rest_after_insert_attachment', array( $this, 'filter_rest_after_insert_attachment' ) );
+
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_param( 'title', 'My title is very cool' );
+		$request->set_param( 'caption', 'This is a better caption.' );
+		$request->set_param( 'description', 'Without a description, my attachment is descriptionless.' );
+		$request->set_param( 'alt_text', 'Alt text is stored outside post schema.' );
+
+		$request->set_body( file_get_contents( $this->test_file ) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 201, $response->get_status() );
+
+		$this->assertSame( 1, self::$rest_insert_attachment_count );
+		$this->assertSame( 1, self::$rest_after_insert_attachment_count );
+	}
+
+	/**
+	 * Ensure the `rest_after_insert_attachment` and `rest_insert_attachment` hooks only fire
+	 * once when attachments are updated.
+	 *
+	 * @ticket 45269
+	 */
+	public function test_rest_insert_attachment_hooks_fire_once_on_update() {
+		self::$rest_insert_attachment_count = 0;
+		self::$rest_after_insert_attachment_count = 0;
+		add_action( 'rest_insert_attachment', array( $this, 'filter_rest_insert_attachment' ) );
+		add_action( 'rest_after_insert_attachment', array( $this, 'filter_rest_after_insert_attachment' ) );
+
+		wp_set_current_user( self::$editor_id );
+		$attachment_id = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+			'post_author'    => self::$editor_id,
+		) );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media/' . $attachment_id );
+		$request->set_param( 'title', 'My title is very cool' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 1, self::$rest_insert_attachment_count );
+		$this->assertSame( 1, self::$rest_after_insert_attachment_count );
+	}
+
+	public function filter_rest_insert_attachment( $attachment ) {
+		self::$rest_insert_attachment_count++;
+	}
+
+	public function filter_rest_after_insert_attachment( $attachment ) {
+		self::$rest_after_insert_attachment_count++;
+	}
 }
