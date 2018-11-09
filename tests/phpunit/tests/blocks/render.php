@@ -75,7 +75,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 		// Block rendering add some extra blank lines, but we're not worried about them.
 		$block_filtered_content = preg_replace( "/\n{2,}/", "\n", $block_filtered_content );
 
-		$this->assertEquals( $classic_filtered_content, $block_filtered_content );
+		$this->assertEquals( trim( $classic_filtered_content ), trim( $block_filtered_content ) );
 	}
 
 	function handle_shortcode( $atts, $content ) {
