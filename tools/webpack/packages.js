@@ -57,6 +57,7 @@ module.exports = function( env = { environment: 'production', watch: false } ) {
 	const packages = [
 		'api-fetch',
 		'a11y',
+		'annotations',
 		'autop',
 		'blob',
 		'blocks',
@@ -95,7 +96,7 @@ module.exports = function( env = { environment: 'production', watch: false } ) {
 
 	const vendors = {
 		'lodash.js': 'lodash/lodash.js',
-		'wp-polyfill-ecmascript.js': '@babel/polyfill/dist/polyfill.js',
+		'wp-polyfill.js': '@babel/polyfill/dist/polyfill.js',
 		'wp-polyfill-fetch.js': 'whatwg-fetch/dist/fetch.umd.js',
 		'wp-polyfill-element-closest.js': 'element-closest/element-closest.js',
 		'wp-polyfill-node-contains.js': 'polyfill-library/polyfills/Node/prototype/contains/polyfill.js',
@@ -107,7 +108,7 @@ module.exports = function( env = { environment: 'production', watch: false } ) {
 
 	const minifiedVendors = {
 		'lodash.min.js': 'lodash/lodash.min.js',
-		'wp-polyfill-ecmascript.min.js': '@babel/polyfill/dist/polyfill.min.js',
+		'wp-polyfill.min.js': '@babel/polyfill/dist/polyfill.min.js',
 		'wp-polyfill-formdata.min.js': 'formdata-polyfill/formdata.min.js',
 		'moment.min.js': 'moment/min/moment.min.js',
 		'react.min.js': 'react/umd/react.production.min.js',
@@ -121,8 +122,7 @@ module.exports = function( env = { environment: 'production', watch: false } ) {
 	};
 
 	const phpFiles = {
-		// Parser shouldn't be copied until nested block issues are resolved.
-		// 'block-serialization-default-parser/parser.php': 'wp-includes/class-wp-block-parser.php',
+		'block-serialization-default-parser/parser.php': 'wp-includes/class-wp-block-parser.php',
 		'block-library/src/archives/index.php': 'wp-includes/blocks/archives.php',
 		'block-library/src/block/index.php': 'wp-includes/blocks/block.php',
 		'block-library/src/categories/index.php': 'wp-includes/blocks/categories.php',
