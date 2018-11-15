@@ -850,7 +850,7 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/posts/(?P<parent>[\\d]+)/autosaves": {
+        "/wp/v2/posts/(?P<id>[\\d]+)/autosaves": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -877,70 +877,6 @@ mockedApiResponse.Schema = {
                             ],
                             "description": "Scope under which the request is made; determines fields present in response.",
                             "type": "string"
-                        },
-                        "page": {
-                            "required": false,
-                            "default": 1,
-                            "description": "Current page of the collection.",
-                            "type": "integer"
-                        },
-                        "per_page": {
-                            "required": false,
-                            "description": "Maximum number of items to be returned in result set.",
-                            "type": "integer"
-                        },
-                        "search": {
-                            "required": false,
-                            "description": "Limit results to those matching a string.",
-                            "type": "string"
-                        },
-                        "exclude": {
-                            "required": false,
-                            "default": [],
-                            "description": "Ensure result set excludes specific IDs.",
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            }
-                        },
-                        "include": {
-                            "required": false,
-                            "default": [],
-                            "description": "Limit result set to specific IDs.",
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            }
-                        },
-                        "offset": {
-                            "required": false,
-                            "description": "Offset the result set by a specific number of items.",
-                            "type": "integer"
-                        },
-                        "order": {
-                            "required": false,
-                            "default": "desc",
-                            "enum": [
-                                "asc",
-                                "desc"
-                            ],
-                            "description": "Order sort attribute ascending or descending.",
-                            "type": "string"
-                        },
-                        "orderby": {
-                            "required": false,
-                            "default": "date",
-                            "enum": [
-                                "date",
-                                "id",
-                                "include",
-                                "relevance",
-                                "slug",
-                                "include_slugs",
-                                "title"
-                            ],
-                            "description": "Sort collection by object attribute.",
-                            "type": "string"
                         }
                     }
                 },
@@ -954,11 +890,6 @@ mockedApiResponse.Schema = {
                             "description": "The ID for the parent of the object.",
                             "type": "integer"
                         },
-                        "author": {
-                            "required": false,
-                            "description": "The ID for the author of the object.",
-                            "type": "integer"
-                        },
                         "date": {
                             "required": false,
                             "description": "The date the object was published, in the site's timezone.",
@@ -969,24 +900,26 @@ mockedApiResponse.Schema = {
                             "description": "The date the object was published, as GMT.",
                             "type": "string"
                         },
-                        "id": {
-                            "required": false,
-                            "description": "Unique identifier for the object.",
-                            "type": "integer"
-                        },
-                        "modified": {
-                            "required": false,
-                            "description": "The date the object was last modified, in the site's timezone.",
-                            "type": "string"
-                        },
-                        "modified_gmt": {
-                            "required": false,
-                            "description": "The date the object was last modified, as GMT.",
-                            "type": "string"
-                        },
                         "slug": {
                             "required": false,
                             "description": "An alphanumeric identifier for the object unique to its type.",
+                            "type": "string"
+                        },
+                        "status": {
+                            "required": false,
+                            "enum": [
+                                "publish",
+                                "future",
+                                "draft",
+                                "pending",
+                                "private"
+                            ],
+                            "description": "A named status for the object.",
+                            "type": "string"
+                        },
+                        "password": {
+                            "required": false,
+                            "description": "A password to protect access to the content and excerpt.",
                             "type": "string"
                         },
                         "title": {
@@ -999,10 +932,86 @@ mockedApiResponse.Schema = {
                             "description": "The content for the object.",
                             "type": "object"
                         },
+                        "author": {
+                            "required": false,
+                            "description": "The ID for the author of the object.",
+                            "type": "integer"
+                        },
                         "excerpt": {
                             "required": false,
                             "description": "The excerpt for the object.",
                             "type": "object"
+                        },
+                        "featured_media": {
+                            "required": false,
+                            "description": "The ID of the featured media for the object.",
+                            "type": "integer"
+                        },
+                        "comment_status": {
+                            "required": false,
+                            "enum": [
+                                "open",
+                                "closed"
+                            ],
+                            "description": "Whether or not comments are open on the object.",
+                            "type": "string"
+                        },
+                        "ping_status": {
+                            "required": false,
+                            "enum": [
+                                "open",
+                                "closed"
+                            ],
+                            "description": "Whether or not the object can be pinged.",
+                            "type": "string"
+                        },
+                        "format": {
+                            "required": false,
+                            "enum": [
+                                "standard",
+                                "aside",
+                                "chat",
+                                "gallery",
+                                "link",
+                                "image",
+                                "quote",
+                                "status",
+                                "video",
+                                "audio"
+                            ],
+                            "description": "The format for the object.",
+                            "type": "string"
+                        },
+                        "meta": {
+                            "required": false,
+                            "description": "Meta fields.",
+                            "type": "object"
+                        },
+                        "sticky": {
+                            "required": false,
+                            "description": "Whether or not the object should be treated as sticky.",
+                            "type": "boolean"
+                        },
+                        "template": {
+                            "required": false,
+                            "description": "The theme file to use to display the object.",
+                            "type": "string"
+                        },
+                        "categories": {
+                            "required": false,
+                            "description": "The terms assigned to the object in the category taxonomy.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        },
+                        "tags": {
+                            "required": false,
+                            "description": "The terms assigned to the object in the post_tag taxonomy.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
                         }
                     }
                 }
@@ -1650,7 +1659,7 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/pages/(?P<parent>[\\d]+)/autosaves": {
+        "/wp/v2/pages/(?P<id>[\\d]+)/autosaves": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -1677,70 +1686,6 @@ mockedApiResponse.Schema = {
                             ],
                             "description": "Scope under which the request is made; determines fields present in response.",
                             "type": "string"
-                        },
-                        "page": {
-                            "required": false,
-                            "default": 1,
-                            "description": "Current page of the collection.",
-                            "type": "integer"
-                        },
-                        "per_page": {
-                            "required": false,
-                            "description": "Maximum number of items to be returned in result set.",
-                            "type": "integer"
-                        },
-                        "search": {
-                            "required": false,
-                            "description": "Limit results to those matching a string.",
-                            "type": "string"
-                        },
-                        "exclude": {
-                            "required": false,
-                            "default": [],
-                            "description": "Ensure result set excludes specific IDs.",
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            }
-                        },
-                        "include": {
-                            "required": false,
-                            "default": [],
-                            "description": "Limit result set to specific IDs.",
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            }
-                        },
-                        "offset": {
-                            "required": false,
-                            "description": "Offset the result set by a specific number of items.",
-                            "type": "integer"
-                        },
-                        "order": {
-                            "required": false,
-                            "default": "desc",
-                            "enum": [
-                                "asc",
-                                "desc"
-                            ],
-                            "description": "Order sort attribute ascending or descending.",
-                            "type": "string"
-                        },
-                        "orderby": {
-                            "required": false,
-                            "default": "date",
-                            "enum": [
-                                "date",
-                                "id",
-                                "include",
-                                "relevance",
-                                "slug",
-                                "include_slugs",
-                                "title"
-                            ],
-                            "description": "Sort collection by object attribute.",
-                            "type": "string"
                         }
                     }
                 },
@@ -1754,11 +1699,6 @@ mockedApiResponse.Schema = {
                             "description": "The ID for the parent of the object.",
                             "type": "integer"
                         },
-                        "author": {
-                            "required": false,
-                            "description": "The ID for the author of the object.",
-                            "type": "integer"
-                        },
                         "date": {
                             "required": false,
                             "description": "The date the object was published, in the site's timezone.",
@@ -1769,24 +1709,26 @@ mockedApiResponse.Schema = {
                             "description": "The date the object was published, as GMT.",
                             "type": "string"
                         },
-                        "id": {
-                            "required": false,
-                            "description": "Unique identifier for the object.",
-                            "type": "integer"
-                        },
-                        "modified": {
-                            "required": false,
-                            "description": "The date the object was last modified, in the site's timezone.",
-                            "type": "string"
-                        },
-                        "modified_gmt": {
-                            "required": false,
-                            "description": "The date the object was last modified, as GMT.",
-                            "type": "string"
-                        },
                         "slug": {
                             "required": false,
                             "description": "An alphanumeric identifier for the object unique to its type.",
+                            "type": "string"
+                        },
+                        "status": {
+                            "required": false,
+                            "enum": [
+                                "publish",
+                                "future",
+                                "draft",
+                                "pending",
+                                "private"
+                            ],
+                            "description": "A named status for the object.",
+                            "type": "string"
+                        },
+                        "password": {
+                            "required": false,
+                            "description": "A password to protect access to the content and excerpt.",
                             "type": "string"
                         },
                         "title": {
@@ -1799,10 +1741,53 @@ mockedApiResponse.Schema = {
                             "description": "The content for the object.",
                             "type": "object"
                         },
+                        "author": {
+                            "required": false,
+                            "description": "The ID for the author of the object.",
+                            "type": "integer"
+                        },
                         "excerpt": {
                             "required": false,
                             "description": "The excerpt for the object.",
                             "type": "object"
+                        },
+                        "featured_media": {
+                            "required": false,
+                            "description": "The ID of the featured media for the object.",
+                            "type": "integer"
+                        },
+                        "comment_status": {
+                            "required": false,
+                            "enum": [
+                                "open",
+                                "closed"
+                            ],
+                            "description": "Whether or not comments are open on the object.",
+                            "type": "string"
+                        },
+                        "ping_status": {
+                            "required": false,
+                            "enum": [
+                                "open",
+                                "closed"
+                            ],
+                            "description": "Whether or not the object can be pinged.",
+                            "type": "string"
+                        },
+                        "menu_order": {
+                            "required": false,
+                            "description": "The order of the object in relation to other object of its type.",
+                            "type": "integer"
+                        },
+                        "meta": {
+                            "required": false,
+                            "description": "Meta fields.",
+                            "type": "object"
+                        },
+                        "template": {
+                            "required": false,
+                            "description": "The theme file to use to display the object.",
+                            "type": "string"
                         }
                     }
                 }
@@ -2584,7 +2569,7 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/blocks/(?P<parent>[\\d]+)/autosaves": {
+        "/wp/v2/blocks/(?P<id>[\\d]+)/autosaves": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -2611,70 +2596,6 @@ mockedApiResponse.Schema = {
                             ],
                             "description": "Scope under which the request is made; determines fields present in response.",
                             "type": "string"
-                        },
-                        "page": {
-                            "required": false,
-                            "default": 1,
-                            "description": "Current page of the collection.",
-                            "type": "integer"
-                        },
-                        "per_page": {
-                            "required": false,
-                            "description": "Maximum number of items to be returned in result set.",
-                            "type": "integer"
-                        },
-                        "search": {
-                            "required": false,
-                            "description": "Limit results to those matching a string.",
-                            "type": "string"
-                        },
-                        "exclude": {
-                            "required": false,
-                            "default": [],
-                            "description": "Ensure result set excludes specific IDs.",
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            }
-                        },
-                        "include": {
-                            "required": false,
-                            "default": [],
-                            "description": "Limit result set to specific IDs.",
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            }
-                        },
-                        "offset": {
-                            "required": false,
-                            "description": "Offset the result set by a specific number of items.",
-                            "type": "integer"
-                        },
-                        "order": {
-                            "required": false,
-                            "default": "desc",
-                            "enum": [
-                                "asc",
-                                "desc"
-                            ],
-                            "description": "Order sort attribute ascending or descending.",
-                            "type": "string"
-                        },
-                        "orderby": {
-                            "required": false,
-                            "default": "date",
-                            "enum": [
-                                "date",
-                                "id",
-                                "include",
-                                "relevance",
-                                "slug",
-                                "include_slugs",
-                                "title"
-                            ],
-                            "description": "Sort collection by object attribute.",
-                            "type": "string"
                         }
                     }
                 },
@@ -2688,11 +2609,6 @@ mockedApiResponse.Schema = {
                             "description": "The ID for the parent of the object.",
                             "type": "integer"
                         },
-                        "author": {
-                            "required": false,
-                            "description": "The ID for the author of the object.",
-                            "type": "integer"
-                        },
                         "date": {
                             "required": false,
                             "description": "The date the object was published, in the site's timezone.",
@@ -2703,24 +2619,26 @@ mockedApiResponse.Schema = {
                             "description": "The date the object was published, as GMT.",
                             "type": "string"
                         },
-                        "id": {
-                            "required": false,
-                            "description": "Unique identifier for the object.",
-                            "type": "integer"
-                        },
-                        "modified": {
-                            "required": false,
-                            "description": "The date the object was last modified, in the site's timezone.",
-                            "type": "string"
-                        },
-                        "modified_gmt": {
-                            "required": false,
-                            "description": "The date the object was last modified, as GMT.",
-                            "type": "string"
-                        },
                         "slug": {
                             "required": false,
                             "description": "An alphanumeric identifier for the object unique to its type.",
+                            "type": "string"
+                        },
+                        "status": {
+                            "required": false,
+                            "enum": [
+                                "publish",
+                                "future",
+                                "draft",
+                                "pending",
+                                "private"
+                            ],
+                            "description": "A named status for the object.",
+                            "type": "string"
+                        },
+                        "password": {
+                            "required": false,
+                            "description": "A password to protect access to the content and excerpt.",
                             "type": "string"
                         },
                         "title": {
@@ -2732,6 +2650,11 @@ mockedApiResponse.Schema = {
                             "required": false,
                             "description": "The content for the object.",
                             "type": "object"
+                        },
+                        "template": {
+                            "required": false,
+                            "description": "The theme file to use to display the object.",
+                            "type": "string"
                         }
                     }
                 }
