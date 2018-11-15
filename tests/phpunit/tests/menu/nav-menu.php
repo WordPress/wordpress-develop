@@ -200,4 +200,29 @@ class Tests_Nav_Menu_Theme_Change extends WP_UnitTestCase {
 		);
 		$this->assertEqualSets( $expected_nav_menu_locations, $new_next_theme_nav_menu_locations );
 	}
+
+	/**
+	 * Technically possible old nav menu locations were registered numerically.
+	 *
+	 * @covers wp_map_nav_menu_locations()
+	 */
+	public function test_numerical_old_locations() {
+		$this->register_nav_menu_locations( array( 'primary', 1 ) );
+
+		$old_nav_menu_locations = array(
+			'primary'  => 1,
+			'tertiary' => 2,
+			0          => 3,
+		);
+
+		$next_theme_nav_menu_locations     = array();
+		$new_next_theme_nav_menu_locations = wp_map_nav_menu_locations( $next_theme_nav_menu_locations, $old_nav_menu_locations );
+
+		$expected_nav_menu_locations = array(
+			'primary' => 1,
+			0         => 3,
+		);
+
+		$this->assertEqualSets( $expected_nav_menu_locations, $new_next_theme_nav_menu_locations );
+	}
 }
