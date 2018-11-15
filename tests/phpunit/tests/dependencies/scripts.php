@@ -863,7 +863,11 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 		wp_set_script_translations( 'test-example', 'admin',  DIR_TESTDATA . '/languages/' );
 
 		$expected  = "<script type='text/javascript' src='/wp-includes/js/dist/wp-i18n.js'></script>";
-		$expected .= "\n<script type='text/javascript' src='/wp-admin/js/script.js'></script>\n";
+		$expected .= "\n<script type='text/javascript'>\n(function( translations ){" .
+		             "translations.locale_data.messages[\"\"].domain = \"admin\";" .
+		             "wp.i18n.setLocaleData( translations.locale_data.messages, \"admin\" );" .
+		             "})({ \"locale_data\": { \"messages\": { \"\": {} } } });\n</script>\n";
+		$expected .= "<script type='text/javascript' src='/wp-admin/js/script.js'></script>\n";
 
 		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
 	}
