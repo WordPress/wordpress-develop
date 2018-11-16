@@ -199,6 +199,15 @@ module.exports = function(grunt) {
 					'wp-includes/js/mediaelement/wp-mediaelement.css'
 				]
 			},
+			dist: {
+				expand: true,
+				cwd: BUILD_DIR,
+				dest: BUILD_DIR,
+				ext: '.min.css',
+				src: [
+					'wp-includes/css/dist/*/*.css'
+				]
+			},
 			rtl: {
 				expand: true,
 				cwd: BUILD_DIR,
@@ -939,6 +948,7 @@ module.exports = function(grunt) {
 		'usebanner',
 		'webpack:prod',
 		'webpack:devProdTarget',
+		'cssmin:dist',
 		'jsvalidate:build'
 	] );
 
