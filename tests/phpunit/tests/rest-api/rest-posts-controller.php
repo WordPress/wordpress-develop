@@ -3365,6 +3365,38 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$wp_rest_additional_fields = array();
 	}
 
+	/**
+	 * @ticket 45220
+	 */
+	public function test_get_additional_field_registration_null_schema() {
+		register_rest_field( 'post', 'my_custom_int', array(
+			'schema'          => null,
+			'get_callback'    => array( $this, 'additional_field_get_callback' ),
+			'update_callback' => null,
+		) );
+		$post_id = $this->factory->post->create();
+
+		// 'my_custom_int' should appear because ?_fields= isn't set.
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertArrayHasKey( 'my_custom_int', $response->data );
+
+		// 'my_custom_int' should appear because it's present in ?_fields=.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
+		$request->set_param( '_fields', 'title,my_custom_int' );
+		$response = $this->server->dispatch( $request );
+		$this->assertArrayHasKey( 'my_custom_int', $response->data );
+
+		// 'my_custom_int' should not appear because it's not present in ?_fields=.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
+		$request->set_param( '_fields', 'title' );
+		$response = $this->server->dispatch( $request );
+		$this->assertArrayNotHasKey( 'my_custom_int', $response->data );
+
+		global $wp_rest_additional_fields;
+		$wp_rest_additional_fields = array();
+	}
+
 	public function test_additional_field_update_errors() {
 		$schema = array(
 			'type'        => 'integer',
