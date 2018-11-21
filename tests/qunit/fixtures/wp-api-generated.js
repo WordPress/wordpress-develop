@@ -4314,6 +4314,7 @@ mockedApiResponse.Schema = {
                         },
                         "attributes": {
                             "required": false,
+                            "default": [],
                             "description": "Attributes for core/block block",
                             "type": "object"
                         },
@@ -4353,6 +4354,7 @@ mockedApiResponse.Schema = {
                         },
                         "attributes": {
                             "required": false,
+                            "default": [],
                             "description": "Attributes for core/latest-comments block",
                             "type": "object"
                         },
@@ -4392,6 +4394,7 @@ mockedApiResponse.Schema = {
                         },
                         "attributes": {
                             "required": false,
+                            "default": [],
                             "description": "Attributes for core/archives block",
                             "type": "object"
                         },
@@ -4431,6 +4434,7 @@ mockedApiResponse.Schema = {
                         },
                         "attributes": {
                             "required": false,
+                            "default": [],
                             "description": "Attributes for core/categories block",
                             "type": "object"
                         },
@@ -4470,6 +4474,7 @@ mockedApiResponse.Schema = {
                         },
                         "attributes": {
                             "required": false,
+                            "default": [],
                             "description": "Attributes for core/latest-posts block",
                             "type": "object"
                         },
@@ -4509,6 +4514,7 @@ mockedApiResponse.Schema = {
                         },
                         "attributes": {
                             "required": false,
+                            "default": [],
                             "description": "Attributes for core/shortcode block",
                             "type": "object"
                         },
