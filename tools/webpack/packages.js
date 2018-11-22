@@ -264,8 +264,16 @@ module.exports = function( env = { environment: 'production', watch: false, forc
 		watch: env.watch,
 	};
 
-	if ( config.mode !== 'production' && ! env.forceBuildTarget ) {
+	if ( config.mode !== 'production' ) {
 		config.devtool = process.env.SOURCEMAP || 'source-map';
+	}
+
+	if ( env.forceBuildTarget ) {
+		delete config.devtool;
+		config.mode = 'production';
+		config.optimization = {
+			minimize: false
+		};
 	}
 
 	if ( config.mode === 'development' ) {
