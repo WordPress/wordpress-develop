@@ -264,7 +264,7 @@ module.exports = function( env = { environment: 'production', watch: false, forc
 		watch: env.watch,
 	};
 
-	if ( config.mode !== 'production' ) {
+	if ( config.mode !== 'production' && ! env.forceBuildTarget ) {
 		config.devtool = process.env.SOURCEMAP || 'source-map';
 	}
 

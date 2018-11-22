@@ -71,7 +71,11 @@ module.exports = function(grunt) {
 			}
 		},
 		clean: {
-			all: [BUILD_DIR],
+			all: [
+				BUILD_DIR,
+				SOURCE_DIR + 'wp-includes/js/dist',
+				SOURCE_DIR + 'wp-includes/css/dist'
+			],
 			dynamic: {
 				dot: true,
 				expand: true,
@@ -98,7 +102,8 @@ module.exports = function(grunt) {
 							'!wp-includes/js/jquery/jquery.masonry.js',
 							'!wp-includes/js/jquery/ui/*.js',
 							'!wp-includes/js/tinymce/tinymce.js',
-							'!wp-includes/version.php' // Exclude version.php
+							'!wp-includes/version.php', // Exclude version.php
+							'!**/*.map' // The build doesn't need .map files.
 						],
 						dest: BUILD_DIR
 					},
