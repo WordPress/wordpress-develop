@@ -156,7 +156,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 * @dataProvider data_like_query
 	 * @param $data string The haystack, raw.
 	 * @param $like string The like phrase, raw.
-         * @param $result string The expected comparison result; '1' = true, '0' = false
+	 * @param $result string The expected comparison result; '1' = true, '0' = false
 	 */
 	function test_like_query( $data, $like, $result ) {
 		global $wpdb;
@@ -557,6 +557,96 @@ class Tests_DB extends WP_UnitTestCase {
 		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->users WHERE ID = %d", $wpdb->insert_id ) );
 		$this->assertInternalType( 'object', $row );
 		$this->assertEquals( 'Walter Sobchak', $row->display_name );
+	}
+
+	/**
+	 * Test the `get_col()` method.
+	 *
+	 * @param string|null        $query       The query to run.
+	 * @param string|array       $expected    The expected resulting value.
+	 * @param arrray|string|null $last_result The value to assign to `$wpdb->last_result`.
+	 * @param int|string         $column      The column index to retrieve.
+	 *
+	 * @dataProvider data_test_get_col
+	 *
+	 * @ticket 45299
+	 */
+	function test_get_col( $query, $expected, $last_result, $column ) {
+		global $wpdb;
+
+		$wpdb->last_result = $last_result;
+
+		$result = $wpdb->get_col( $query, $column );
+
+		if ( $query ) {
+			$this->assertSame( $query, $wpdb->last_query );
+		}
+
+		if ( is_array( $expected ) ) {
+			$this->assertSame( $expected, $result );
+		} else {
+			$this->assertContains( $expected, $result );
+		}
+	}
+
+	/**
+	 * Data provider for testing `get_col()`.
+	 *
+	 * @return array {
+	 *     Arguments for testing `get_col()`.
+	 *
+	 *     @type string|null        $query       The query to run.
+	 *     @type string|array       $expected    The resulting expected value.
+	 *     @type arrray|string|null $last_result The value to assign to `$wpdb->last_result`.
+	 *     @type int|string         $column      The column index to retrieve.
+	 */
+	function data_test_get_col() {
+		global $wpdb;
+
+		return array(
+			array(
+				"SELECT display_name FROM $wpdb->users",
+				'admin',
+				array(),
+				0,
+			),
+			array(
+				"SELECT user_login, user_email FROM $wpdb->users",
+				'admin',
+				array(),
+				0,
+			),
+			array(
+				"SELECT user_login, user_email FROM $wpdb->users",
+				'admin@example.org',
+				array(),
+				1,
+			),
+			array(
+				"SELECT user_login, user_email FROM $wpdb->users",
+				'admin@example.org',
+				array(),
+				'1',
+			),
+			array(
+				"SELECT user_login, user_email FROM $wpdb->users",
+				array( null ),
+				array(),
+				3,
+			),
+			array(
+				'',
+				array(),
+				null,
+				0,
+			),
+			array(
+				null,
+				array(),
+				'',
+				0
+			),
+		);
 	}
 
 	function test_replace() {
