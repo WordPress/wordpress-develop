@@ -1,3 +1,7 @@
+/**
+ * @output wp-admin/js/customize-widgets.js
+ */
+
 /* global _wpCustomizeWidgetsSettings */
 (function( wp, $ ){
 
@@ -1630,7 +1634,7 @@
 				 */
 				getActiveSectionCount = function() {
 					return _.filter( panel.sections(), function( section ) {
-						return section.active();
+						return 'sidebar' === section.params.type && section.active();
 					} ).length;
 				};
 

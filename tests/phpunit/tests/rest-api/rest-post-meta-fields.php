@@ -12,36 +12,55 @@
 class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	protected static $wp_meta_keys_saved;
 	protected static $post_id;
+	protected static $cpt_post_id;
 
 	public static function wpSetUpBeforeClass( $factory ) {
-		self::$wp_meta_keys_saved = $GLOBALS['wp_meta_keys'];
+		register_post_type(
+			'cpt',
+			array(
+				'show_in_rest' => true,
+				'supports'     => array( 'custom-fields' ),
+			)
+		);
+
+		self::$wp_meta_keys_saved = isset( $GLOBALS['wp_meta_keys'] ) ? $GLOBALS['wp_meta_keys'] : array();
 		self::$post_id            = $factory->post->create();
+		self::$cpt_post_id        = $factory->post->create( array( 'post_type' => 'cpt' ) );
 	}
 
 	public static function wpTearDownAfterClass() {
 		$GLOBALS['wp_meta_keys'] = self::$wp_meta_keys_saved;
 		wp_delete_post( self::$post_id, true );
+		wp_delete_post( self::$cpt_post_id, true );
+
+		unregister_post_type( 'cpt' );
 	}
 
 	public function setUp() {
 		parent::setUp();
 
 		register_meta(
-			'post', 'test_single', array(
+			'post',
+			'test_single',
+			array(
 				'show_in_rest' => true,
 				'single'       => true,
 				'type'         => 'string',
 			)
 		);
 		register_meta(
-			'post', 'test_multi', array(
+			'post',
+			'test_multi',
+			array(
 				'show_in_rest' => true,
 				'single'       => false,
 				'type'         => 'string',
 			)
 		);
 		register_meta(
-			'post', 'test_bad_auth', array(
+			'post',
+			'test_bad_auth',
+			array(
 				'show_in_rest'  => true,
 				'single'        => true,
 				'auth_callback' => '__return_false',
@@ -49,7 +68,9 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			)
 		);
 		register_meta(
-			'post', 'test_bad_auth_multi', array(
+			'post',
+			'test_bad_auth_multi',
+			array(
 				'show_in_rest'  => true,
 				'single'        => false,
 				'auth_callback' => '__return_false',
@@ -58,13 +79,17 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		);
 		register_meta( 'post', 'test_no_rest', array() );
 		register_meta(
-			'post', 'test_rest_disabled', array(
+			'post',
+			'test_rest_disabled',
+			array(
 				'show_in_rest' => false,
 				'type'         => 'string',
 			)
 		);
 		register_meta(
-			'post', 'test_custom_schema', array(
+			'post',
+			'test_custom_schema',
+			array(
 				'single'       => true,
 				'type'         => 'integer',
 				'show_in_rest' => array(
@@ -75,7 +100,9 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			)
 		);
 		register_meta(
-			'post', 'test_custom_schema_multi', array(
+			'post',
+			'test_custom_schema_multi',
+			array(
 				'single'       => false,
 				'type'         => 'integer',
 				'show_in_rest' => array(
@@ -86,14 +113,18 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			)
 		);
 		register_meta(
-			'post', 'test_invalid_type', array(
+			'post',
+			'test_invalid_type',
+			array(
 				'single'       => true,
 				'type'         => 'lalala',
 				'show_in_rest' => true,
 			)
 		);
 		register_meta(
-			'post', 'test_no_type', array(
+			'post',
+			'test_no_type',
+			array(
 				'single'       => true,
 				'type'         => null,
 				'show_in_rest' => true,
@@ -101,7 +132,9 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		);
 
 		register_meta(
-			'post', 'test_custom_name', array(
+			'post',
+			'test_custom_name',
+			array(
 				'single'       => true,
 				'type'         => 'string',
 				'show_in_rest' => array(
@@ -111,12 +144,51 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		);
 
 		register_meta(
-			'post', 'test_custom_name_multi', array(
+			'post',
+			'test_custom_name_multi',
+			array(
 				'single'       => false,
 				'type'         => 'string',
 				'show_in_rest' => array(
 					'name' => 'new_name_multi',
 				),
+			)
+		);
+
+		register_post_type(
+			'cpt',
+			array(
+				'show_in_rest' => true,
+				'supports'     => array( 'custom-fields' ),
+			)
+		);
+
+		register_post_meta(
+			'cpt',
+			'test_cpt_single',
+			array(
+				'show_in_rest' => true,
+				'single'       => true,
+			)
+		);
+
+		register_post_meta(
+			'cpt',
+			'test_cpt_multi',
+			array(
+				'show_in_rest' => true,
+				'single'       => false,
+			)
+		);
+
+		// Register 'test_single' on subtype to override for bad auth.
+		register_post_meta(
+			'cpt',
+			'test_single',
+			array(
+				'show_in_rest'  => true,
+				'single'        => true,
+				'auth_callback' => '__return_false',
 			)
 		);
 
@@ -226,21 +298,27 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 	public function test_get_value_types() {
 		register_meta(
-			'post', 'test_string', array(
+			'post',
+			'test_string',
+			array(
 				'show_in_rest' => true,
 				'single'       => true,
 				'type'         => 'string',
 			)
 		);
 		register_meta(
-			'post', 'test_number', array(
+			'post',
+			'test_number',
+			array(
 				'show_in_rest' => true,
 				'single'       => true,
 				'type'         => 'number',
 			)
 		);
 		register_meta(
-			'post', 'test_bool', array(
+			'post',
+			'test_bool',
+			array(
 				'show_in_rest' => true,
 				'single'       => true,
 				'type'         => 'boolean',
@@ -541,7 +619,9 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 	public function test_set_value_invalid_value() {
 		register_meta(
-			'post', 'my_meta_key', array(
+			'post',
+			'my_meta_key',
+			array(
 				'show_in_rest' => true,
 				'single'       => true,
 				'type'         => 'string',
@@ -564,7 +644,9 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 	public function test_set_value_invalid_value_multiple() {
 		register_meta(
-			'post', 'my_meta_key', array(
+			'post',
+			'my_meta_key',
+			array(
 				'show_in_rest' => true,
 				'single'       => false,
 				'type'         => 'string',
@@ -587,7 +669,9 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 	public function test_set_value_sanitized() {
 		register_meta(
-			'post', 'my_meta_key', array(
+			'post',
+			'my_meta_key',
+			array(
 				'show_in_rest' => true,
 				'single'       => true,
 				'type'         => 'integer',
@@ -611,7 +695,9 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 	public function test_set_value_csv() {
 		register_meta(
-			'post', 'my_meta_key', array(
+			'post',
+			'my_meta_key',
+			array(
 				'show_in_rest' => true,
 				'single'       => false,
 				'type'         => 'integer',
@@ -1045,6 +1131,128 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$this->assertArrayNotHasKey( 'test_rest_disabled', $meta_schema );
 		$this->assertArrayNotHasKey( 'test_invalid_type', $meta_schema );
 		$this->assertArrayNotHasKey( 'test_no_type', $meta_schema );
+	}
+
+	/**
+	 * @ticket 38323
+	 * @dataProvider data_get_subtype_meta_value
+	 */
+	public function test_get_subtype_meta_value( $post_type, $meta_key, $single, $in_post_type ) {
+		$post_id  = self::$post_id;
+		$endpoint = 'posts';
+		if ( 'cpt' === $post_type ) {
+			$post_id  = self::$cpt_post_id;
+			$endpoint = 'cpt';
+		}
+
+		$meta_value = 'testvalue';
+
+		add_post_meta( $post_id, $meta_key, $meta_value );
+
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/%s/%d', $endpoint, $post_id ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+
+		$this->assertArrayHasKey( 'meta', $data );
+		$this->assertInternalType( 'array', $data['meta'] );
+
+		if ( $in_post_type ) {
+			$expected_value = $meta_value;
+			if ( ! $single ) {
+				$expected_value = array( $expected_value );
+			}
+
+			$this->assertArrayHasKey( $meta_key, $data['meta'] );
+			$this->assertEquals( $expected_value, $data['meta'][ $meta_key ] );
+		} else {
+			$this->assertArrayNotHasKey( $meta_key, $data['meta'] );
+		}
+	}
+
+	public function data_get_subtype_meta_value() {
+		return array(
+			array( 'cpt', 'test_cpt_single', true, true ),
+			array( 'cpt', 'test_cpt_multi', false, true ),
+			array( 'cpt', 'test_single', true, true ),
+			array( 'cpt', 'test_multi', false, true ),
+			array( 'post', 'test_cpt_single', true, false ),
+			array( 'post', 'test_cpt_multi', false, false ),
+			array( 'post', 'test_single', true, true ),
+			array( 'post', 'test_multi', false, true ),
+		);
+	}
+
+	/**
+	 * @ticket 38323
+	 * @dataProvider data_set_subtype_meta_value
+	 */
+	public function test_set_subtype_meta_value( $post_type, $meta_key, $single, $in_post_type, $can_write ) {
+		$post_id  = self::$post_id;
+		$endpoint = 'posts';
+		if ( 'cpt' === $post_type ) {
+			$post_id  = self::$cpt_post_id;
+			$endpoint = 'cpt';
+		}
+
+		$meta_value = 'value_to_set';
+
+		$this->grant_write_permission();
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/%s/%d', $endpoint, $post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					$meta_key => $meta_value,
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		if ( ! $can_write ) {
+			$this->assertEquals( 403, $response->get_status() );
+			$this->assertEmpty( get_post_meta( $post_id, $meta_key, $single ) );
+			return;
+		}
+
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'meta', $data );
+		$this->assertInternalType( 'array', $data['meta'] );
+
+		if ( $in_post_type ) {
+			$expected_value = $meta_value;
+			if ( ! $single ) {
+				$expected_value = array( $expected_value );
+			}
+
+			$this->assertEquals( $expected_value, get_post_meta( $post_id, $meta_key, $single ) );
+			$this->assertArrayHasKey( $meta_key, $data['meta'] );
+			$this->assertEquals( $expected_value, $data['meta'][ $meta_key ] );
+		} else {
+			$this->assertEmpty( get_post_meta( $post_id, $meta_key, $single ) );
+			$this->assertArrayNotHasKey( $meta_key, $data['meta'] );
+		}
+	}
+
+	public function data_set_subtype_meta_value() {
+		$data = $this->data_get_subtype_meta_value();
+
+		foreach ( $data as $index => $dataset ) {
+			$can_write = true;
+
+			// This combination is not writable because of an auth callback of '__return_false'.
+			if ( 'cpt' === $dataset[0] && 'test_single' === $dataset[1] ) {
+				$can_write = false;
+			}
+
+			$data[ $index ][] = $can_write;
+		}
+
+		return $data;
 	}
 
 	/**

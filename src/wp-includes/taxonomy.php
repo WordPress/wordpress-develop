@@ -58,7 +58,9 @@ function create_initial_taxonomies() {
 	}
 
 	register_taxonomy(
-		'category', 'post', array(
+		'category',
+		'post',
+		array(
 			'hierarchical'          => true,
 			'query_var'             => 'category_name',
 			'rewrite'               => $rewrite['category'],
@@ -79,7 +81,9 @@ function create_initial_taxonomies() {
 	);
 
 	register_taxonomy(
-		'post_tag', 'post', array(
+		'post_tag',
+		'post',
+		array(
 			'hierarchical'          => false,
 			'query_var'             => 'tag',
 			'rewrite'               => $rewrite['post_tag'],
@@ -100,7 +104,9 @@ function create_initial_taxonomies() {
 	);
 
 	register_taxonomy(
-		'nav_menu', 'nav_menu_item', array(
+		'nav_menu',
+		'nav_menu_item',
+		array(
 			'public'            => false,
 			'hierarchical'      => false,
 			'labels'            => array(
@@ -116,7 +122,9 @@ function create_initial_taxonomies() {
 	);
 
 	register_taxonomy(
-		'link_category', 'link', array(
+		'link_category',
+		'link',
+		array(
 			'hierarchical' => false,
 			'labels'       => array(
 				'name'                       => __( 'Link Categories' ),
@@ -148,7 +156,9 @@ function create_initial_taxonomies() {
 	);
 
 	register_taxonomy(
-		'post_format', 'post', array(
+		'post_format',
+		'post',
+		array(
 			'public'            => true,
 			'hierarchical'      => false,
 			'labels'            => array(
@@ -613,6 +623,16 @@ function register_taxonomy_for_object_type( $taxonomy, $object_type ) {
 	// Filter out empties.
 	$wp_taxonomies[ $taxonomy ]->object_type = array_filter( $wp_taxonomies[ $taxonomy ]->object_type );
 
+	/**
+	 * Fires after a taxonomy is registered for an object type.
+	 *
+	 * @since 4.9.9
+	 *
+	 * @param string $taxonomy    Taxonomy name.
+	 * @param string $object_type Name of the object type.
+	 */
+	do_action( 'registered_taxonomy_for_object_type', $taxonomy, $object_type );
+
 	return true;
 }
 
@@ -644,6 +664,17 @@ function unregister_taxonomy_for_object_type( $taxonomy, $object_type ) {
 	}
 
 	unset( $wp_taxonomies[ $taxonomy ]->object_type[ $key ] );
+
+	/**
+	 * Fires after a taxonomy is unregistered for an object type.
+	 *
+	 * @since 4.9.9
+	 *
+	 * @param string $taxonomy    Taxonomy name.
+	 * @param string $object_type Name of the object type.
+	 */
+	do_action( 'unregistered_taxonomy_for_object_type', $taxonomy, $object_type );
+
 	return true;
 }
 
@@ -1323,6 +1354,39 @@ function has_term_meta( $term_id ) {
 }
 
 /**
+ * Registers a meta key for terms.
+ *
+ * @since 4.9.8
+ *
+ * @param string $taxonomy Taxonomy to register a meta key for. Pass an empty string
+ *                         to register the meta key across all existing taxonomies.
+ * @param string $meta_key The meta key to register.
+ * @param array  $args     Data used to describe the meta key when registered. See
+ *                         {@see register_meta()} for a list of supported arguments.
+ * @return bool True if the meta key was successfully registered, false if not.
+ */
+function register_term_meta( $taxonomy, $meta_key, array $args ) {
+	$args['object_subtype'] = $taxonomy;
+
+	return register_meta( 'term', $meta_key, $args );
+}
+
+/**
+ * Unregisters a meta key for terms.
+ *
+ * @since 4.9.8
+ *
+ * @param string $taxonomy Taxonomy the meta key is currently registered for. Pass
+ *                         an empty string if the meta key is registered across all
+ *                         existing taxonomies.
+ * @param string $meta_key The meta key to unregister.
+ * @return bool True on success, false if the meta key was not previously registered.
+ */
+function unregister_term_meta( $taxonomy, $meta_key ) {
+	return unregister_meta_key( 'term', $meta_key, $taxonomy );
+}
+
+/**
  * Determines whether a term exists.
  *
  * Formerly is_term(), introduced in 2.3.0.
@@ -1813,7 +1877,9 @@ function wp_delete_term( $term, $taxonomy, $args = array() ) {
 
 	foreach ( $object_ids as $object_id ) {
 		$terms = wp_get_object_terms(
-			$object_id, $taxonomy, array(
+			$object_id,
+			$taxonomy,
+			array(
 				'fields'  => 'ids',
 				'orderby' => 'none',
 			)
@@ -2146,7 +2212,9 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 			$term_group = $wpdb->get_var( "SELECT MAX(term_group) FROM $wpdb->terms" ) + 1;
 
 			wp_update_term(
-				$alias->term_id, $taxonomy, array(
+				$alias->term_id,
+				$taxonomy,
+				array(
 					'term_group' => $term_group,
 				)
 			);
@@ -2158,7 +2226,8 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	 * unless a unique slug has been explicitly provided.
 	 */
 	$name_matches = get_terms(
-		$taxonomy, array(
+		$taxonomy,
+		array(
 			'name'                   => $name,
 			'hide_empty'             => false,
 			'parent'                 => $args['parent'],
@@ -2185,7 +2254,8 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 		if ( ! $slug_provided || $name_match->slug === $slug || $slug_match ) {
 			if ( is_taxonomy_hierarchical( $taxonomy ) ) {
 				$siblings = get_terms(
-					$taxonomy, array(
+					$taxonomy,
+					array(
 						'get'                    => 'all',
 						'parent'                 => $parent,
 						'update_term_meta_cache' => false,
@@ -2258,7 +2328,26 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	 * and term_taxonomy_id of the older term instead. Then return out of the function so that the "create" hooks
 	 * are not fired.
 	 */
-	$duplicate_term = $wpdb->get_row( $wpdb->prepare( "SELECT t.term_id, tt.term_taxonomy_id FROM $wpdb->terms t INNER JOIN $wpdb->term_taxonomy tt ON ( tt.term_id = t.term_id ) WHERE t.slug = %s AND tt.parent = %d AND tt.taxonomy = %s AND t.term_id < %d AND tt.term_taxonomy_id != %d", $slug, $parent, $taxonomy, $term_id, $tt_id ) );
+	$duplicate_term = $wpdb->get_row( $wpdb->prepare( "SELECT t.term_id, t.slug, tt.term_taxonomy_id, tt.taxonomy FROM $wpdb->terms t INNER JOIN $wpdb->term_taxonomy tt ON ( tt.term_id = t.term_id ) WHERE t.slug = %s AND tt.parent = %d AND tt.taxonomy = %s AND t.term_id < %d AND tt.term_taxonomy_id != %d", $slug, $parent, $taxonomy, $term_id, $tt_id ) );
+
+	/**
+	 * Filters the duplicate term check that takes place during term creation.
+	 *
+	 * Term parent+taxonomy+slug combinations are meant to be unique, and wp_insert_term()
+	 * performs a last-minute confirmation of this uniqueness before allowing a new term
+	 * to be created. Plugins with different uniqueness requirements may use this filter
+	 * to bypass or modify the duplicate-term check.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @param object $duplicate_term Duplicate term row from terms table, if found.
+	 * @param string $term           Term being inserted.
+	 * @param string $taxonomy       Taxonomy name.
+	 * @param array  $args           Term arguments passed to the function.
+	 * @param int    $tt_id          term_taxonomy_id for the newly created term.
+	 */
+	$duplicate_term = apply_filters( 'wp_insert_term_duplicate_term_check', $duplicate_term, $term, $taxonomy, $args, $tt_id );
+
 	if ( $duplicate_term ) {
 		$wpdb->delete( $wpdb->terms, array( 'term_id' => $term_id ) );
 		$wpdb->delete( $wpdb->term_taxonomy, array( 'term_taxonomy_id' => $tt_id ) );
@@ -2377,7 +2466,9 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 
 	if ( ! $append ) {
 		$old_tt_ids = wp_get_object_terms(
-			$object_id, $taxonomy, array(
+			$object_id,
+			$taxonomy,
+			array(
 				'fields'                 => 'tt_ids',
 				'orderby'                => 'none',
 				'update_term_meta_cache' => false,
@@ -2426,7 +2517,8 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 		 */
 		do_action( 'add_term_relationship', $object_id, $tt_id, $taxonomy );
 		$wpdb->insert(
-			$wpdb->term_relationships, array(
+			$wpdb->term_relationships,
+			array(
 				'object_id'        => $object_id,
 				'term_taxonomy_id' => $tt_id,
 			)
@@ -2817,7 +2909,9 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 			$term_group = $wpdb->get_var( "SELECT MAX(term_group) FROM $wpdb->terms" ) + 1;
 
 			wp_update_term(
-				$alias->term_id, $taxonomy, array(
+				$alias->term_id,
+				$taxonomy,
+				array(
 					'term_group' => $term_group,
 				)
 			);
@@ -3329,7 +3423,9 @@ function update_object_term_cache( $object_ids, $object_type ) {
 	}
 
 	$terms = wp_get_object_terms(
-		$ids, $taxonomies, array(
+		$ids,
+		$taxonomies,
+		array(
 			'fields'                 => 'all_with_object_id',
 			'orderby'                => 'name',
 			'update_term_meta_cache' => false,
@@ -3403,7 +3499,8 @@ function _get_term_hierarchy( $taxonomy ) {
 	}
 	$children = array();
 	$terms    = get_terms(
-		$taxonomy, array(
+		$taxonomy,
+		array(
 			'get'                    => 'all',
 			'orderby'                => 'id',
 			'fields'                 => 'id=>parent',
@@ -4253,7 +4350,8 @@ function get_the_taxonomies( $post = 0, $args = array() ) {
 	$post = get_post( $post );
 
 	$args = wp_parse_args(
-		$args, array(
+		$args,
+		array(
 			/* translators: %s: taxonomy label, %l: list of terms formatted as per $term_template */
 			'template'      => __( '%s: %l.' ),
 			'term_template' => '<a href="%1$s">%2$s</a>',
@@ -4514,4 +4612,23 @@ function wp_check_term_hierarchy_for_loops( $parent, $term_id, $taxonomy ) {
 	}
 
 	return $parent;
+}
+
+/**
+ * Determines whether a taxonomy is considered "viewable".
+ *
+ * @since 5.0.0
+ *
+ * @param string|WP_Taxonomy $taxonomy Taxonomy name or object.
+ * @return bool Whether the taxonomy should be considered viewable.
+ */
+function is_taxonomy_viewable( $taxonomy ) {
+	if ( is_scalar( $taxonomy ) ) {
+		$taxonomy = get_taxonomy( $taxonomy );
+		if ( ! $taxonomy ) {
+			return false;
+		}
+	}
+
+	return $taxonomy->publicly_queryable;
 }

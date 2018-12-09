@@ -122,6 +122,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$type = $file['type'];
 		$file = $file['file'];
 
+		// Include image functions to get access to wp_read_image_metadata().
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+
 		// use image exif/iptc data for title and caption defaults if possible
 		$image_meta = wp_read_image_metadata( $file );
 
@@ -136,7 +139,6 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		$attachment                 = $this->prepare_item_for_database( $request );
-		$attachment->file           = $file;
 		$attachment->post_mime_type = $type;
 		$attachment->guid           = $url;
 
@@ -144,7 +146,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$attachment->post_title = preg_replace( '/\.[^.]+$/', '', basename( $file ) );
 		}
 
-		$id = wp_insert_post( wp_slash( (array) $attachment ), true );
+		// $post_parent is inherited from $attachment['post_parent'].
+		$id = wp_insert_attachment( wp_slash( (array) $attachment ), $file, 0, true );
 
 		if ( is_wp_error( $id ) ) {
 			if ( 'db_update_error' === $id->get_error_code() ) {
@@ -169,8 +172,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 */
 		do_action( 'rest_insert_attachment', $attachment, $request, true );
 
-		// Include admin functions to get access to wp_generate_attachment_metadata().
-		require_once ABSPATH . 'wp-admin/includes/admin.php';
+		// Include admin function to get access to wp_generate_attachment_metadata().
+		require_once ABSPATH . 'wp-admin/includes/image.php';
 
 		wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $file ) );
 
@@ -368,10 +371,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$data = $this->filter_response_by_context( $data, $context );
 
+		$links = $response->get_links();
+
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
-
-		$response->add_links( $this->prepare_links( $post ) );
+		$response->add_links( $links );
 
 		/**
 		 * Filters an attachment returned from the REST API.
@@ -535,8 +539,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		// Get the content-type.
 		$type = array_shift( $headers['content_type'] );
 
-		/** Include admin functions to get access to wp_tempnam() and wp_handle_sideload() */
-		require_once ABSPATH . 'wp-admin/includes/admin.php';
+		/** Include admin functions to get access to wp_tempnam() and wp_handle_sideload(). */
+		require_once ABSPATH . 'wp-admin/includes/file.php';
 
 		// Save the file.
 		$tmpfname = wp_tempnam( $filename );
@@ -557,6 +561,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'name'     => $filename,
 			'type'     => $type,
 		);
+
+		$size_check = self::check_upload_size( $file_data );
+		if ( is_wp_error( $size_check ) ) {
+			return $size_check;
+		}
 
 		$overrides = array(
 			'test_form' => false,
@@ -725,8 +734,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$overrides['action'] = 'wp_handle_mock_upload';
 		}
 
-		/** Include admin functions to get access to wp_handle_upload() */
-		require_once ABSPATH . 'wp-admin/includes/admin.php';
+		$size_check = self::check_upload_size( $files['file'] );
+		if ( is_wp_error( $size_check ) ) {
+			return $size_check;
+		}
+
+		/** Include admin function to get access to wp_handle_upload(). */
+		require_once ABSPATH . 'wp-admin/includes/file.php';
 
 		$file = wp_handle_upload( $files['file'], $overrides );
 
@@ -760,6 +774,47 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		return $media_types;
+	}
+
+	/**
+	 * Determine if uploaded file exceeds space quota on multisite.
+	 *
+	 * Replicates check_upload_size().
+	 *
+	 * @since 4.9.8
+	 *
+	 * @param array $file $_FILES array for a given file.
+	 * @return true|WP_Error True if can upload, error for errors.
+	 */
+	protected function check_upload_size( $file ) {
+		if ( ! is_multisite() ) {
+			return true;
+		}
+
+		if ( get_site_option( 'upload_space_check_disabled' ) ) {
+			return true;
+		}
+
+		$space_left = get_upload_space_available();
+
+		$file_size = filesize( $file['tmp_name'] );
+		if ( $space_left < $file_size ) {
+			/* translators: %s: required disk space in kilobytes */
+			return new WP_Error( 'rest_upload_limited_space', sprintf( __( 'Not enough space to upload. %s KB needed.' ), number_format( ( $file_size - $space_left ) / KB_IN_BYTES ) ), array( 'status' => 400 ) );
+		}
+
+		if ( $file_size > ( KB_IN_BYTES * get_site_option( 'fileupload_maxk', 1500 ) ) ) {
+			/* translators: %s: maximum allowed file size in kilobytes */
+			return new WP_Error( 'rest_upload_file_too_big', sprintf( __( 'This file is too big. Files must be less than %s KB in size.' ), get_site_option( 'fileupload_maxk', 1500 ) ), array( 'status' => 400 ) );
+		}
+
+		// Include admin function to get access to upload_is_user_over_quota().
+		require_once ABSPATH . 'wp-admin/includes/ms.php';
+
+		if ( upload_is_user_over_quota( false ) ) {
+			return new WP_Error( 'rest_upload_user_quota_exceeded', __( 'You have used your space quota. Please delete files before uploading.' ), array( 'status' => 400 ) );
+		}
+		return true;
 	}
 
 }

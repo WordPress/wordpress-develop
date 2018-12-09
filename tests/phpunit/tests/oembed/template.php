@@ -43,7 +43,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		);
 		$file          = DIR_TESTDATA . '/images/canola.jpg';
 		$attachment_id = self::factory()->attachment->create_object(
-			$file, $post_id, array(
+			$file,
+			$post_id,
+			array(
 				'post_mime_type' => 'image/jpeg',
 			)
 		);
@@ -83,7 +85,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$post          = self::factory()->post->create_and_get();
 		$file          = DIR_TESTDATA . '/images/canola.jpg';
 		$attachment_id = self::factory()->attachment->create_object(
-			$file, $post->ID, array(
+			$file,
+			$post->ID,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_title'     => 'Hello World',
 				'post_content'   => 'Foo Bar',
@@ -244,7 +248,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$post_id       = self::factory()->post->create();
 		$file          = DIR_TESTDATA . '/images/canola.jpg';
 		$attachment_id = self::factory()->attachment->create_object(
-			$file, $post_id, array(
+			$file,
+			$post_id,
+			array(
 				'post_mime_type' => 'image/jpeg',
 			)
 		);

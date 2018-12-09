@@ -1,3 +1,7 @@
+/**
+ * @output wp-includes/js/wp-api.js
+ */
+
 (function( window, undefined ) {
 
 	'use strict';
@@ -141,7 +145,7 @@
 	wp.api.utils.getRootUrl = function() {
 		return window.location.origin ?
 			window.location.origin + '/' :
-			window.location.protocol + '/' + window.location.host + '/';
+			window.location.protocol + '//' + window.location.host + '/';
 	};
 
 	/**

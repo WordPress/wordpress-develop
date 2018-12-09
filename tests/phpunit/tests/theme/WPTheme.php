@@ -181,7 +181,8 @@ class Tests_Theme_WPTheme extends WP_UnitTestCase {
 		$new_allowed_themes = get_site_option( 'allowedthemes' );
 		update_site_option( 'allowedthemes', $current_allowed_themes ); // reset previous value.
 		$current_allowed_themes = array_merge(
-			$current_allowed_themes, array(
+			$current_allowed_themes,
+			array(
 				'testtheme-2' => true,
 				'testtheme-3' => true,
 			)

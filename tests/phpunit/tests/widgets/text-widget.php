@@ -188,7 +188,8 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 			'filter' => 'content',
 		);
 		$expected_instance              = array_merge(
-			$instance, array(
+			$instance,
+			array(
 				'filter' => true,
 				'visual' => true,
 			)
@@ -334,7 +335,8 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 
 		// Legacy Text Widget without wpautop.
 		$instance                     = array_merge(
-			$base_instance, array(
+			$base_instance,
+			array(
 				'filter' => false,
 			)
 		);
@@ -350,7 +352,8 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 
 		// Legacy Text Widget with wpautop.
 		$instance                     = array_merge(
-			$base_instance, array(
+			$base_instance,
+			array(
 				'filter' => true,
 				'visual' => false,
 			)
@@ -378,7 +381,8 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		remove_filter( 'widget_text', 'do_shortcode' );
 
 		$instance = array_merge(
-			$base_instance, array(
+			$base_instance,
+			array(
 				'filter' => true,
 				'visual' => true,
 			)
@@ -469,28 +473,32 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		);
 
 		$instance = array_merge(
-			$base_instance, array(
+			$base_instance,
+			array(
 				'visual' => false,
 			)
 		);
 		$this->assertTrue( $widget->is_legacy_instance( $instance ), 'Legacy when visual=false prop is present.' );
 
 		$instance = array_merge(
-			$base_instance, array(
+			$base_instance,
+			array(
 				'visual' => true,
 			)
 		);
 		$this->assertFalse( $widget->is_legacy_instance( $instance ), 'Not legacy when visual=true prop is present.' );
 
 		$instance = array_merge(
-			$base_instance, array(
+			$base_instance,
+			array(
 				'filter' => 'content',
 			)
 		);
 		$this->assertFalse( $widget->is_legacy_instance( $instance ), 'Not legacy when filter is explicitly content (in WP 4.8.0 only).' );
 
 		$instance = array_merge(
-			$base_instance, array(
+			$base_instance,
+			array(
 				'text'   => '',
 				'filter' => true,
 			)
@@ -498,7 +506,8 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		$this->assertFalse( $widget->is_legacy_instance( $instance ), 'Not legacy when text is empty.' );
 
 		$instance = array_merge(
-			$base_instance, array(
+			$base_instance,
+			array(
 				'text'   => "\nOne line",
 				'filter' => false,
 			)
@@ -506,7 +515,8 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		$this->assertFalse( $widget->is_legacy_instance( $instance ), 'Not legacy when there is leading whitespace.' );
 
 		$instance = array_merge(
-			$base_instance, array(
+			$base_instance,
+			array(
 				'text'   => "\nOne line\n\n",
 				'filter' => false,
 			)
@@ -514,7 +524,8 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		$this->assertFalse( $widget->is_legacy_instance( $instance ), 'Not legacy when there is trailing whitespace.' );
 
 		$instance = array_merge(
-			$base_instance, array(
+			$base_instance,
+			array(
 				'text'   => "One\nTwo",
 				'filter' => false,
 			)
@@ -522,7 +533,8 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		$this->assertTrue( $widget->is_legacy_instance( $instance ), 'Legacy when not-wpautop and there are line breaks.' );
 
 		$instance = array_merge(
-			$base_instance, array(
+			$base_instance,
+			array(
 				'text'   => "One\n\nTwo",
 				'filter' => false,
 			)
@@ -530,7 +542,8 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		$this->assertTrue( $widget->is_legacy_instance( $instance ), 'Legacy when not-wpautop and there are paragraph breaks.' );
 
 		$instance = array_merge(
-			$base_instance, array(
+			$base_instance,
+			array(
 				'text'   => "One\nTwo",
 				'filter' => true,
 			)
@@ -538,7 +551,8 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		$this->assertFalse( $widget->is_legacy_instance( $instance ), 'Not automatically legacy when wpautop and there are line breaks.' );
 
 		$instance = array_merge(
-			$base_instance, array(
+			$base_instance,
+			array(
 				'text'   => "One\n\nTwo",
 				'filter' => true,
 			)
@@ -546,7 +560,8 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		$this->assertFalse( $widget->is_legacy_instance( $instance ), 'Not automatically legacy when wpautop and there are paragraph breaks.' );
 
 		$instance = array_merge(
-			$base_instance, array(
+			$base_instance,
+			array(
 				'text'   => 'Test<!-- comment -->',
 				'filter' => true,
 			)
@@ -568,7 +583,8 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		);
 		foreach ( $legacy_text_examples as $legacy_text_example ) {
 			$instance = array_merge(
-				$base_instance, array(
+				$base_instance,
+				array(
 					'text'   => $legacy_text_example,
 					'filter' => true,
 				)
@@ -576,7 +592,8 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 			$this->assertTrue( $widget->is_legacy_instance( $instance ), 'Legacy when wpautop and there is HTML that is not liable to be mutated.' );
 
 			$instance = array_merge(
-				$base_instance, array(
+				$base_instance,
+				array(
 					'text'   => $legacy_text_example,
 					'filter' => false,
 				)
@@ -597,7 +614,8 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		);
 		foreach ( $migratable_text_examples as $migratable_text_example ) {
 			$instance = array_merge(
-				$base_instance, array(
+				$base_instance,
+				array(
 					'text'   => $migratable_text_example,
 					'filter' => true,
 				)
@@ -764,12 +782,14 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 			'visual' => true,
 		);
 		$old_instance = array_merge(
-			$instance, array(
+			$instance,
+			array(
 				'filter' => false,
 			)
 		);
 		$expected     = array_merge(
-			$instance, array(
+			$instance,
+			array(
 				'filter' => true,
 			)
 		);
@@ -783,13 +803,15 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 			'filter' => true,
 		);
 		$old_instance = array_merge(
-			$instance, array(
+			$instance,
+			array(
 				'visual' => true,
 			)
 		);
 		$result       = $widget->update( $instance, $old_instance );
 		$expected     = array_merge(
-			$instance, array(
+			$instance,
+			array(
 				'visual' => true,
 			)
 		);
@@ -801,13 +823,15 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 			'text'  => 'Text',
 		);
 		$old_instance = array_merge(
-			$instance, array(
+			$instance,
+			array(
 				'visual' => true,
 			)
 		);
 		$result       = $widget->update( $instance, $old_instance );
 		$expected     = array_merge(
-			$instance, array(
+			$instance,
+			array(
 				'visual' => true,
 				'filter' => true,
 			)
@@ -821,7 +845,8 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 			'visual' => true,
 		);
 		$expected = array_merge(
-			$instance, array(
+			$instance,
+			array(
 				'filter' => true,
 			)
 		);
@@ -836,7 +861,8 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		);
 		$result   = $widget->update( $instance, array() );
 		$expected = array_merge(
-			$instance, array(
+			$instance,
+			array(
 				'filter' => false,
 			)
 		);
@@ -849,14 +875,16 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 			'filter' => false,
 		);
 		$old_instance = array_merge(
-			$instance, array(
+			$instance,
+			array(
 				'visual' => false,
 				'filter' => true,
 			)
 		);
 		$result       = $widget->update( $instance, $old_instance );
 		$expected     = array_merge(
-			$instance, array(
+			$instance,
+			array(
 				'visual' => false,
 				'filter' => false,
 			)
@@ -871,7 +899,8 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		);
 		$result   = $widget->update( $instance, array() );
 		$expected = array_merge(
-			$instance, array(
+			$instance,
+			array(
 				'filter' => true,
 				'visual' => true,
 			)
@@ -884,13 +913,15 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 			'text'  => 'Text',
 		);
 		$old_instance = array_merge(
-			$instance, array(
+			$instance,
+			array(
 				'filter' => 'content',
 			)
 		);
 		$result       = $widget->update( $instance, $old_instance );
 		$expected     = array_merge(
-			$instance, array(
+			$instance,
+			array(
 				'visual' => true,
 				'filter' => true,
 			)
@@ -905,7 +936,8 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		);
 		$result   = $widget->update( $instance, array() );
 		$expected = array_merge(
-			$instance, array(
+			$instance,
+			array(
 				'filter' => true,
 				'visual' => true,
 			)

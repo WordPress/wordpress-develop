@@ -64,24 +64,30 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 		}
 
 		$this->assertEquals(
-			2, get_page_of_comment(
-				$trackbacks[0], array(
+			2,
+			get_page_of_comment(
+				$trackbacks[0],
+				array(
 					'per_page' => 2,
 					'type'     => 'trackback',
 				)
 			)
 		);
 		$this->assertEquals(
-			3, get_page_of_comment(
-				$pingbacks[0], array(
+			3,
+			get_page_of_comment(
+				$pingbacks[0],
+				array(
 					'per_page' => 2,
 					'type'     => 'pingback',
 				)
 			)
 		);
 		$this->assertEquals(
-			5, get_page_of_comment(
-				$trackbacks[0], array(
+			5,
+			get_page_of_comment(
+				$trackbacks[0],
+				array(
 					'per_page' => 2,
 					'type'     => 'pings',
 				)
@@ -136,7 +142,8 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 
 		// Prime cache for trackbacks.
 		$page_trackbacks = get_page_of_comment(
-			$trackbacks[1], array(
+			$trackbacks[1],
+			array(
 				'per_page' => 3,
 				'type'     => 'trackback',
 			)
@@ -145,7 +152,8 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 
 		$num_queries   = $wpdb->num_queries;
 		$page_comments = get_page_of_comment(
-			$comment, array(
+			$comment,
+			array(
 				'per_page' => 3,
 				'type'     => 'comment',
 			)

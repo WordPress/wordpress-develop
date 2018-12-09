@@ -10,7 +10,8 @@ if ( ! class_exists( '_WP_Editors', false ) ) {
 class Tests_WP_Editors extends WP_UnitTestCase {
 	public function wp_link_query_callback( $results ) {
 		return array_merge(
-			$results, array(
+			$results,
+			array(
 				array(
 					'ID'        => 123,
 					'title'     => 'foo',
@@ -39,7 +40,8 @@ class Tests_WP_Editors extends WP_UnitTestCase {
 					'permalink' => get_permalink( $post->ID ),
 					'info'      => mysql2date( __( 'Y/m/d' ), $post->post_date ),
 				),
-			), $actual
+			),
+			$actual
 		);
 	}
 
@@ -59,7 +61,8 @@ class Tests_WP_Editors extends WP_UnitTestCase {
 					'permalink' => 'bar',
 					'info'      => 'baz',
 				),
-			), $actual
+			),
+			$actual
 		);
 	}
 
@@ -84,7 +87,8 @@ class Tests_WP_Editors extends WP_UnitTestCase {
 					'permalink' => 'bar',
 					'info'      => 'baz',
 				),
-			), $actual
+			),
+			$actual
 		);
 	}
 }

@@ -95,10 +95,10 @@ class Tests_Compat extends WP_UnitTestCase {
 		$length    = 5;
 		$unset_var = 10;
 		unset( $unset_var );
-		$heredoc = <<<EOT
+		$heredoc  = <<<EOT
 hello world
 EOT;
-		$inputs  = array(
+		$inputs   = array(
 			0,
 			1,
 			12345,

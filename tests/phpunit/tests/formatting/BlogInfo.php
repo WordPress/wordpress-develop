@@ -29,6 +29,7 @@ class Tests_Formatting_BlogInfo extends WP_UnitTestCase {
 			array( 'de_DE_formal', 'de-DE-formal' ),
 			array( 'oci', 'oci' ),
 			array( 'pt_PT_ao1990', 'pt-PT-ao1990' ),
+			array( 'ja_JP', 'ja-JP' ),
 		);
 	}
 

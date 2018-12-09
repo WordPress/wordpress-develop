@@ -297,6 +297,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 */
 	function test_search_available_items_query() {
 		$menus = new WP_Customize_Nav_Menus( $this->wp_customize );
+		do_action( 'customize_register', $this->wp_customize );
 
 		// Create posts.
 		$post_ids   = array();
@@ -425,7 +426,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 
 		if ( 'cat' === $args['s'] ) {
 			array_unshift(
-				$items, array(
+				$items,
+				array(
 					'id'         => 'home',
 					'title'      => 'COOL CAT!',
 					'type'       => 'custom',
@@ -498,7 +500,9 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		$menu_id = wp_create_nav_menu( 'Primary' );
 		$post_id = self::factory()->post->create( array( 'post_title' => 'Hello World' ) );
 		$item_id = wp_update_nav_menu_item(
-			$menu_id, 0, array(
+			$menu_id,
+			0,
+			array(
 				'menu-item-type'      => 'post_type',
 				'menu-item-object'    => 'post',
 				'menu-item-object-id' => $post_id,
@@ -1137,7 +1141,9 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 
 		$menu = wp_create_nav_menu( 'Foo' );
 		wp_update_nav_menu_item(
-			$menu, 0, array(
+			$menu,
+			0,
+			array(
 				'menu-item-type'   => 'custom',
 				'menu-item-title'  => 'WordPress.org',
 				'menu-item-url'    => 'https://wordpress.org',

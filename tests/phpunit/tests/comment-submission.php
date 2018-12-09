@@ -783,7 +783,8 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 				'comment_parent'       => '0',
 				'user_ID'              => $user->ID,
 				'user_id'              => $user->ID,
-			), $this->preprocess_comment_data
+			),
+			$this->preprocess_comment_data
 		);
 
 	}

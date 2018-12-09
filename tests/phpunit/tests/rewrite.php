@@ -53,7 +53,8 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$redirect = 'index.php?test_var1=$matches[1]&test_var2=1';
 
 		$wp_rewrite->add_rule(
-			$pattern, array(
+			$pattern,
+			array(
 				'test_var1' => '$matches[1]',
 				'test_var2' => '1',
 			)
@@ -282,7 +283,8 @@ class Tests_Rewrite extends WP_UnitTestCase {
 			array(
 				'page'     => '',
 				'pagename' => 'page',
-			), $GLOBALS['wp']->query_vars
+			),
+			$GLOBALS['wp']->query_vars
 		);
 	}
 
@@ -302,7 +304,8 @@ class Tests_Rewrite extends WP_UnitTestCase {
 			array(
 				'page'     => '',
 				'pagename' => 'page',
-			), $GLOBALS['wp']->query_vars
+			),
+			$GLOBALS['wp']->query_vars
 		);
 
 		$this->go_to( $not_a_home_url . 'page' );
@@ -310,13 +313,15 @@ class Tests_Rewrite extends WP_UnitTestCase {
 			array(
 				'page'     => '',
 				'pagename' => 'page',
-			), $GLOBALS['wp']->query_vars
+			),
+			$GLOBALS['wp']->query_vars
 		);
 		$this->assertEquals(
 			array(
 				'page'     => '',
 				'pagename' => 'match/page',
-			), $GLOBALS['wp']->query_vars
+			),
+			$GLOBALS['wp']->query_vars
 		);
 	}
 

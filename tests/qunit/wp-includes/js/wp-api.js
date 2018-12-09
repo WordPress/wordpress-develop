@@ -400,9 +400,13 @@
 
 					// Get the main endpoint.
 					var endpoint = theModels.at(0);
+					var expectedMetas = '{"meta_key":"meta_value"}';
+					if ( 'Tags' === modelType ) {
+						expectedMetas = '{"test_single":"","test_multi":[],"meta_key":"meta_value","test_tag_meta":""}';
+					}
 
 					// Verify the meta object returned correctly from `getMetas()`.
-					assert.equal( JSON.stringify( endpoint.getMetas() ), '{"meta_key":"meta_value"}', 'Full meta key/values object should be readable.' );
+					assert.equal( JSON.stringify( endpoint.getMetas() ), expectedMetas, 'Full meta key/values object should be readable.' );
 
 					// Verify single meta returned correctly from `getMeta()`
 					assert.equal( endpoint.getMeta( 'meta_key' ), 'meta_value', 'Single meta should be readable by key.' );

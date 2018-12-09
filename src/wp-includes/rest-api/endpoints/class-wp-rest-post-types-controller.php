@@ -36,7 +36,9 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	public function register_routes() {
 
 		register_rest_route(
-			$this->namespace, '/' . $this->rest_base, array(
+			$this->namespace,
+			'/' . $this->rest_base,
+			array(
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_items' ),
@@ -48,7 +50,9 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 		);
 
 		register_rest_route(
-			$this->namespace, '/' . $this->rest_base . '/(?P<type>[\w-]+)', array(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<type>[\w-]+)',
+			array(
 				'args'   => array(
 					'type' => array(
 						'description' => __( 'An alphanumeric identifier for the post type.' ),
@@ -145,7 +149,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param stdClass        $post_type Post type data.
+	 * @param WP_Post_Type    $post_type Post type object.
 	 * @param WP_REST_Request $request   Full details about the request.
 	 * @return WP_REST_Response Response object.
 	 */

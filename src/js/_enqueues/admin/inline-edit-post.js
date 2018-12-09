@@ -1,9 +1,11 @@
-/* global inlineEditL10n, ajaxurl, typenow */
 /**
  * This file contains the functions needed for the inline editing of posts.
  *
  * @since 2.7.0
+ * @output wp-admin/js/inline-edit-post.js
  */
+
+/* global inlineEditL10n, ajaxurl, typenow, inlineEditPost */
 
 window.wp = window.wp || {};
 
@@ -20,10 +22,9 @@ window.wp = window.wp || {};
  * @property {string} what The prefix before the post id.
  *
  */
-var inlineEditPost;
 ( function( $, wp ) {
 
-	inlineEditPost = {
+	window.inlineEditPost = {
 
 	/**
 	 * Initializes the inline and bulk post editor.

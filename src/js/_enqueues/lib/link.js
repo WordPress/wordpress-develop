@@ -1,4 +1,8 @@
-var wpLink;
+/**
+ * @output wp-includes/js/wplink.js
+ */
+
+ /* global wpLink */
 
 ( function( $, wpLinkL10n, wp ) {
 	var editor, searchTimer, River, Query, correctedURL, linkNode,
@@ -12,7 +16,7 @@ var wpLink;
 		return linkNode || editor.dom.getParent( editor.selection.getNode(), 'a[href]' );
 	}
 
-	wpLink = {
+	window.wpLink = {
 		timeToTriggerRiver: 150,
 		minRiverAJAXDuration: 200,
 		riverBottomThreshold: 5,

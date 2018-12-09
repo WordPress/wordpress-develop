@@ -909,7 +909,8 @@ function count_users( $strategy = 'time', $site_id = null ) {
 			FROM {$wpdb->usermeta}
 			INNER JOIN {$wpdb->users} ON user_id = ID
 			WHERE meta_key = '{$blog_prefix}capabilities'
-		", ARRAY_N
+		",
+			ARRAY_N
 		);
 
 		// Run the previous loop again to associate results with role names.
@@ -2606,7 +2607,8 @@ function wp_get_users_with_no_role( $site_id = null ) {
 		FROM $wpdb->usermeta
 		WHERE meta_key = '{$prefix}capabilities'
 		AND meta_value NOT REGEXP %s
-	", $regex
+	",
+			$regex
 		)
 	);
 
@@ -2707,7 +2709,9 @@ function send_confirmation_on_profile_email() {
 	if ( $current_user->user_email != $_POST['email'] ) {
 		if ( ! is_email( $_POST['email'] ) ) {
 			$errors->add(
-				'user_email', __( '<strong>ERROR</strong>: The email address isn&#8217;t correct.' ), array(
+				'user_email',
+				__( '<strong>ERROR</strong>: The email address isn&#8217;t correct.' ),
+				array(
 					'form-field' => 'email',
 				)
 			);
@@ -2717,7 +2721,9 @@ function send_confirmation_on_profile_email() {
 
 		if ( $wpdb->get_var( $wpdb->prepare( "SELECT user_email FROM {$wpdb->users} WHERE user_email=%s", $_POST['email'] ) ) ) {
 			$errors->add(
-				'user_email', __( '<strong>ERROR</strong>: The email address is already used.' ), array(
+				'user_email',
+				__( '<strong>ERROR</strong>: The email address is already used.' ),
+				array(
 					'form-field' => 'email',
 				)
 			);
@@ -2726,18 +2732,14 @@ function send_confirmation_on_profile_email() {
 			return;
 		}
 
-		$hash           = md5( $_POST['email'] . time() . mt_rand() );
+		$hash           = md5( $_POST['email'] . time() . wp_rand() );
 		$new_user_email = array(
 			'hash'     => $hash,
 			'newemail' => $_POST['email'],
 		);
 		update_user_meta( $current_user->ID, '_new_email', $new_user_email );
 
-		if ( is_multisite() ) {
-			$sitename = get_site_option( 'site_name' );
-		} else {
-			$sitename = get_option( 'blogname' );
-		}
+		$sitename = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 
 		/* translators: Do not translate USERNAME, ADMIN_URL, EMAIL, SITENAME, SITEURL: those are placeholders. */
 		$email_text = __(
@@ -2784,10 +2786,10 @@ All at ###SITENAME###
 		$content = str_replace( '###USERNAME###', $current_user->user_login, $content );
 		$content = str_replace( '###ADMIN_URL###', esc_url( admin_url( 'profile.php?newuseremail=' . $hash ) ), $content );
 		$content = str_replace( '###EMAIL###', $_POST['email'], $content );
-		$content = str_replace( '###SITENAME###', wp_specialchars_decode( $sitename, ENT_QUOTES ), $content );
-		$content = str_replace( '###SITEURL###', network_home_url(), $content );
+		$content = str_replace( '###SITENAME###', $sitename, $content );
+		$content = str_replace( '###SITEURL###', home_url(), $content );
 
-		wp_mail( $_POST['email'], sprintf( __( '[%s] New Email Address' ), wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ) ), $content );
+		wp_mail( $_POST['email'], sprintf( __( '[%s] New Email Address' ), $sitename ), $content );
 
 		$_POST['email'] = $current_user->user_email;
 	}
@@ -2944,10 +2946,12 @@ function _wp_privacy_account_request_confirmed( $request_id ) {
 	}
 
 	update_post_meta( $request_id, '_wp_user_request_confirmed_timestamp', time() );
-	wp_update_post( array(
-		'ID'          => $request_id,
-		'post_status' => 'request-confirmed',
-	) );
+	wp_update_post(
+		array(
+			'ID'          => $request_id,
+			'post_status' => 'request-confirmed',
+		)
+	);
 }
 
 /**
@@ -2973,13 +2977,8 @@ function _wp_privacy_send_request_confirmation_notification( $request_id ) {
 		return;
 	}
 
-	$subject = sprintf(
-		/* translators: %s Site name. */
-		__( '[%s] Action Confirmed' ),
-		wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES )
-	);
-
-	$manage_url = add_query_arg( 'page', $request_data->action_name, admin_url( 'tools.php' ) );
+	$manage_url         = add_query_arg( 'page', $request_data->action_name, admin_url( 'tools.php' ) );
+	$action_description = wp_user_request_action_description( $request_data->action_name );
 
 	/**
 	 * Filters the recipient of the data request confirmation notification.
@@ -3000,9 +2999,9 @@ function _wp_privacy_send_request_confirmation_notification( $request_id ) {
 	$email_data = array(
 		'request'     => $request_data,
 		'user_email'  => $request_data->email,
-		'description' => wp_user_request_action_description( $request_data->action_name ),
+		'description' => $action_description,
 		'manage_url'  => $manage_url,
-		'sitename'    => get_option( 'blogname' ),
+		'sitename'    => wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ),
 		'siteurl'     => home_url(),
 		'admin_email' => $admin_email,
 	);
@@ -3049,15 +3048,44 @@ All at ###SITENAME###
 	 *     @type string          $manage_url  The link to click manage privacy requests of this type.
 	 *     @type string          $sitename    The site name sending the mail.
 	 *     @type string          $siteurl     The site URL sending the mail.
+	 *     @type string          $admin_email The administrator email receiving the mail.
 	 * }
 	 */
 	$content = apply_filters( 'user_confirmed_action_email_content', $email_text, $email_data );
 
-	$content = str_replace( '###SITENAME###', wp_specialchars_decode( $email_data['sitename'], ENT_QUOTES ), $content );
+	$content = str_replace( '###SITENAME###', $email_data['sitename'], $content );
 	$content = str_replace( '###USER_EMAIL###', $email_data['user_email'], $content );
 	$content = str_replace( '###DESCRIPTION###', $email_data['description'], $content );
 	$content = str_replace( '###MANAGE_URL###', esc_url_raw( $email_data['manage_url'] ), $content );
 	$content = str_replace( '###SITEURL###', esc_url_raw( $email_data['siteurl'] ), $content );
+
+	$subject = sprintf(
+		/* translators: 1: Site name. 2: Name of the confirmed action. */
+		__( '[%1$s] Action Confirmed: %2$s' ),
+		$email_data['sitename'],
+		$action_description
+	);
+
+	/**
+	 * Filters the subject of the user request confirmation email.
+	 *
+	 * @since 4.9.8
+	 *
+	 * @param string $subject    The email subject.
+	 * @param string $sitename   The name of the site.
+	 * @param array  $email_data {
+	 *     Data relating to the account action email.
+	 *
+	 *     @type WP_User_Request $request     User request object.
+	 *     @type string          $user_email  The email address confirming a request
+	 *     @type string          $description Description of the action being performed so the user knows what the email is for.
+	 *     @type string          $manage_url  The link to click manage privacy requests of this type.
+	 *     @type string          $sitename    The site name sending the mail.
+	 *     @type string          $siteurl     The site URL sending the mail.
+	 *     @type string          $admin_email The administrator email receiving the mail.
+	 * }
+	 */
+	$subject = apply_filters( 'user_request_confirmed_email_subject', $subject, $email_data['sitename'], $email_data );
 
 	$email_sent = wp_mail( $email_data['admin_email'], $subject, $content );
 
@@ -3088,12 +3116,6 @@ function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 		return;
 	}
 
-	$subject = sprintf(
-		/* translators: %s Site name. */
-		__( '[%s] Erasure Request Fulfilled' ),
-		wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES )
-	);
-
 	/**
 	 * Filters the recipient of the data erasure fulfillment notification.
 	 *
@@ -3108,9 +3130,36 @@ function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 		'request'            => $request_data,
 		'message_recipient'  => $user_email,
 		'privacy_policy_url' => get_privacy_policy_url(),
-		'sitename'           => get_option( 'blogname' ),
+		'sitename'           => wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ),
 		'siteurl'            => home_url(),
 	);
+
+	$subject = sprintf(
+		/* translators: %s: Site name. */
+		__( '[%s] Erasure Request Fulfilled' ),
+		$email_data['sitename']
+	);
+
+	/**
+	 * Filters the subject of the email sent when an erasure request is completed.
+	 *
+	 * @since 4.9.8
+	 *
+	 * @param string $subject    The email subject.
+	 * @param string $sitename   The name of the site.
+	 * @param array  $email_data {
+	 *     Data relating to the account action email.
+	 *
+	 *     @type WP_User_Request $request            User request object.
+	 *     @type string          $message_recipient  The address that the email will be sent to. Defaults
+	 *                                               to the value of `$request->email`, but can be changed
+	 *                                               by the `user_erasure_fulfillment_email_to` filter.
+	 *     @type string          $privacy_policy_url Privacy policy URL.
+	 *     @type string          $sitename           The site name sending the mail.
+	 *     @type string          $siteurl            The site URL sending the mail.
+	 * }
+	 */
+	$subject = apply_filters( 'user_erasure_complete_email_subject', $subject, $email_data['sitename'], $email_data );
 
 	if ( empty( $email_data['privacy_policy_url'] ) ) {
 		/* translators: Do not translate SITENAME, SITEURL; those are placeholders. */
@@ -3171,7 +3220,7 @@ All at ###SITENAME###
 	 */
 	$content = apply_filters( 'user_confirmed_action_email_content', $email_text, $email_data );
 
-	$content = str_replace( '###SITENAME###', wp_specialchars_decode( $email_data['sitename'], ENT_QUOTES ), $content );
+	$content = str_replace( '###SITENAME###', $email_data['sitename'], $content );
 	$content = str_replace( '###PRIVACY_POLICY_URL###', $email_data['privacy_policy_url'], $content );
 	$content = str_replace( '###SITEURL###', esc_url_raw( $email_data['siteurl'] ), $content );
 
@@ -3194,15 +3243,15 @@ All at ###SITENAME###
 function _wp_privacy_account_request_confirmed_message( $request_id ) {
 	$request = wp_get_user_request_data( $request_id );
 
-	$message = '<p class="success">' . __( 'Action has been confirmed.' ) . '</p>';
+	$message  = '<p class="success">' . __( 'Action has been confirmed.' ) . '</p>';
 	$message .= '<p>' . __( 'The site administrator has been notified and will fulfill your request as soon as possible.' ) . '</p>';
 
 	if ( $request && in_array( $request->action_name, _wp_privacy_action_request_types(), true ) ) {
 		if ( 'export_personal_data' === $request->action_name ) {
-			$message = '<p class="success">' . __( 'Thanks for confirming your export request.' ) . '</p>';
+			$message  = '<p class="success">' . __( 'Thanks for confirming your export request.' ) . '</p>';
 			$message .= '<p>' . __( 'The site administrator has been notified. You will receive a link to download your export via email when they fulfill your request.' ) . '</p>';
 		} elseif ( 'remove_personal_data' === $request->action_name ) {
-			$message = '<p class="success">' . __( 'Thanks for confirming your erasure request.' ) . '</p>';
+			$message  = '<p class="success">' . __( 'Thanks for confirming your erasure request.' ) . '</p>';
 			$message .= '<p>' . __( 'The site administrator has been notified. You will receive an email confirmation when they erase your data.' ) . '</p>';
 		}
 	}
@@ -3249,28 +3298,33 @@ function wp_create_user_request( $email_address = '', $action_name = '', $reques
 	$user_id = $user && ! is_wp_error( $user ) ? $user->ID : 0;
 
 	// Check for duplicates.
-	$requests_query = new WP_Query( array(
-		'post_type'     => 'user_request',
-		'post_name__in' => array( $action_name ),  // Action name stored in post_name column.
-		'title'         => $email_address, // Email address stored in post_title column.
-		'post_status'   => 'any',
-		'fields'        => 'ids',
-	) );
+	$requests_query = new WP_Query(
+		array(
+			'post_type'     => 'user_request',
+			'post_name__in' => array( $action_name ),  // Action name stored in post_name column.
+			'title'         => $email_address, // Email address stored in post_title column.
+			'post_status'   => 'any',
+			'fields'        => 'ids',
+		)
+	);
 
 	if ( $requests_query->found_posts ) {
 		return new WP_Error( 'duplicate_request', __( 'A request for this email address already exists.' ) );
 	}
 
-	$request_id = wp_insert_post( array(
-		'post_author'   => $user_id,
-		'post_name'     => $action_name,
-		'post_title'    => $email_address,
-		'post_content'  => wp_json_encode( $request_data ),
-		'post_status'   => 'request-pending',
-		'post_type'     => 'user_request',
-		'post_date'     => current_time( 'mysql', false ),
-		'post_date_gmt' => current_time( 'mysql', true ),
-	), true );
+	$request_id = wp_insert_post(
+		array(
+			'post_author'   => $user_id,
+			'post_name'     => $action_name,
+			'post_title'    => $email_address,
+			'post_content'  => wp_json_encode( $request_data ),
+			'post_status'   => 'request-pending',
+			'post_type'     => 'user_request',
+			'post_date'     => current_time( 'mysql', false ),
+			'post_date_gmt' => current_time( 'mysql', true ),
+		),
+		true
+	);
 
 	return $request_id;
 }
@@ -3316,29 +3370,42 @@ function wp_user_request_action_description( $action_name ) {
  * @since 4.9.6
  *
  * @param string $request_id ID of the request created via wp_create_user_request().
- * @return WP_Error|bool Will return true/false based on the success of sending the email, or a WP_Error object.
+ * @return bool|WP_Error True on success, `WP_Error` on failure.
  */
 function wp_send_user_request( $request_id ) {
 	$request_id = absint( $request_id );
 	$request    = wp_get_user_request_data( $request_id );
 
 	if ( ! $request ) {
-		return new WP_Error( 'user_request_error', __( 'Invalid request.' ) );
+		return new WP_Error( 'invalid_request', __( 'Invalid user request.' ) );
 	}
 
+	// Localize message content for user; fallback to site default for visitors.
+	if ( ! empty( $request->user_id ) ) {
+		$locale = get_user_locale( $request->user_id );
+	} else {
+		$locale = get_locale();
+	}
+
+	$switched_locale = switch_to_locale( $locale );
+
 	$email_data = array(
+		'request'     => $request,
 		'email'       => $request->email,
 		'description' => wp_user_request_action_description( $request->action_name ),
-		'confirm_url' => add_query_arg( array(
-			'action'      => 'confirmaction',
-			'request_id'  => $request_id,
-			'confirm_key' => wp_generate_user_request_key( $request_id ),
-		), site_url( 'wp-login.php' ) ),
-		'sitename'    => is_multisite() ? get_site_option( 'site_name' ) : get_option( 'blogname' ),
-		'siteurl'     => network_home_url(),
+		'confirm_url' => add_query_arg(
+			array(
+				'action'      => 'confirmaction',
+				'request_id'  => $request_id,
+				'confirm_key' => wp_generate_user_request_key( $request_id ),
+			),
+			wp_login_url()
+		),
+		'sitename'    => wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ),
+		'siteurl'     => home_url(),
 	);
 
-	/* translators: Do not translate DESCRIPTION, CONFIRM_URL, EMAIL, SITENAME, SITEURL: those are placeholders. */
+	/* translators: Do not translate DESCRIPTION, CONFIRM_URL, SITENAME, SITEURL: those are placeholders. */
 	$email_text = __(
 		'Howdy,
 
@@ -3352,8 +3419,6 @@ To confirm this, please click on the following link:
 You can safely ignore and delete this email if you do not want to
 take this action.
 
-This email has been sent to ###EMAIL###.
-
 Regards,
 All at ###SITENAME###
 ###SITEURL###'
@@ -3366,7 +3431,6 @@ All at ###SITENAME###
 	 *
 	 * ###DESCRIPTION### Description of the action being performed so the user knows what the email is for.
 	 * ###CONFIRM_URL### The link to click on to confirm the account action.
-	 * ###EMAIL###       The email we are sending to.
 	 * ###SITENAME###    The name of the site.
 	 * ###SITEURL###     The URL to the site.
 	 *
@@ -3389,13 +3453,11 @@ All at ###SITENAME###
 	$content = str_replace( '###DESCRIPTION###', $email_data['description'], $content );
 	$content = str_replace( '###CONFIRM_URL###', esc_url_raw( $email_data['confirm_url'] ), $content );
 	$content = str_replace( '###EMAIL###', $email_data['email'], $content );
-	$content = str_replace( '###SITENAME###', wp_specialchars_decode( $email_data['sitename'], ENT_QUOTES ), $content );
+	$content = str_replace( '###SITENAME###', $email_data['sitename'], $content );
 	$content = str_replace( '###SITEURL###', esc_url_raw( $email_data['siteurl'] ), $content );
 
-	$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
-
 	/* translators: Privacy data request subject. 1: Site name, 2: Name of the action */
-	$subject = sprintf( __( '[%1$s] Confirm Action: %2$s' ), $blogname, $email_data['description'] );
+	$subject = sprintf( __( '[%1$s] Confirm Action: %2$s' ), $email_data['sitename'], $email_data['description'] );
 
 	/**
 	 * Filters the subject of the email sent when an account action is attempted.
@@ -3403,7 +3465,7 @@ All at ###SITENAME###
 	 * @since 4.9.6
 	 *
 	 * @param string $subject    The email subject.
-	 * @param string $blogname   The name of the site.
+	 * @param string $sitename   The name of the site.
 	 * @param array  $email_data {
 	 *     Data relating to the account action email.
 	 *
@@ -3415,9 +3477,19 @@ All at ###SITENAME###
 	 *     @type string          $siteurl     The site URL sending the mail.
 	 * }
 	 */
-	$subject = apply_filters( 'user_request_action_email_subject', $subject, $blogname, $email_data );
+	$subject = apply_filters( 'user_request_action_email_subject', $subject, $email_data['sitename'], $email_data );
 
-	return wp_mail( $email_data['email'], $subject, $content );
+	$email_sent = wp_mail( $email_data['email'], $subject, $content );
+
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
+
+	if ( ! $email_sent ) {
+		return new WP_Error( 'privacy_email_error', __( 'Unable to send personal data export confirmation email.' ) );
+	}
+
+	return true;
 }
 
 /**
@@ -3440,13 +3512,15 @@ function wp_generate_user_request_key( $request_id ) {
 		$wp_hasher = new PasswordHash( 8, true );
 	}
 
-	wp_update_post( array(
-		'ID'                => $request_id,
-		'post_status'       => 'request-pending',
-		'post_password'     => $wp_hasher->HashPassword( $key ),
-		'post_modified'     => current_time( 'mysql', false ),
-		'post_modified_gmt' => current_time( 'mysql', true ),
-	) );
+	wp_update_post(
+		array(
+			'ID'                => $request_id,
+			'post_status'       => 'request-pending',
+			'post_password'     => $wp_hasher->HashPassword( $key ),
+			'post_modified'     => current_time( 'mysql', false ),
+			'post_modified_gmt' => current_time( 'mysql', true ),
+		)
+	);
 
 	return $key;
 }
@@ -3467,11 +3541,11 @@ function wp_validate_user_request_key( $request_id, $key ) {
 	$request    = wp_get_user_request_data( $request_id );
 
 	if ( ! $request ) {
-		return new WP_Error( 'user_request_error', __( 'Invalid request.' ) );
+		return new WP_Error( 'invalid_request', __( 'Invalid request.' ) );
 	}
 
 	if ( ! in_array( $request->status, array( 'request-pending', 'request-failed' ), true ) ) {
-		return __( 'This link has expired.' );
+		return new WP_Error( 'expired_link', __( 'This link has expired.' ) );
 	}
 
 	if ( empty( $key ) ) {
@@ -3554,7 +3628,6 @@ final class WP_User_Request {
 	 *
 	 * @var int
 	 */
-
 	public $user_id = 0;
 
 	/**

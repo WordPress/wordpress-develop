@@ -1,7 +1,9 @@
-/* jshint curly: false, eqeqeq: false */
-/* global ajaxurl */
+/**
+ * @output wp-admin/js/tags-box.js
+ */
 
-var tagBox, array_unique_noempty;
+/* jshint curly: false, eqeqeq: false */
+/* global ajaxurl, tagBox, array_unique_noempty */
 
 ( function( $ ) {
 	var tagDelimiter = ( window.tagsSuggestL10n && window.tagsSuggestL10n.tagDelimiter ) || ',';
@@ -20,7 +22,7 @@ var tagBox, array_unique_noempty;
 	 *
 	 * @return {Array} A new array containing only the unique items.
 	 */
-	array_unique_noempty = function( array ) {
+	window.array_unique_noempty = function( array ) {
 		var out = [];
 
 		// Trim the values and ensure they are unique.
@@ -45,7 +47,7 @@ var tagBox, array_unique_noempty;
 	 *
 	 * @global
 	 */
-	tagBox = {
+	window.tagBox = {
 		/**
 		 * Cleans up tags by removing redundant characters.
 		 *

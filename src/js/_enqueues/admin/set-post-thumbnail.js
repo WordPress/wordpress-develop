@@ -1,7 +1,11 @@
+/**
+ * @output wp-admin/js/set-post-thumbnail.js
+ */
+
 /* global setPostThumbnailL10n, ajaxurl, post_id, alert */
 /* exported WPSetAsThumbnail */
 
-function WPSetAsThumbnail( id, nonce ) {
+window.WPSetAsThumbnail = function( id, nonce ) {
 	var $link = jQuery('a#wp-post-thumbnail-' + id);
 
 	$link.text( setPostThumbnailL10n.saving );
@@ -21,4 +25,4 @@ function WPSetAsThumbnail( id, nonce ) {
 		}
 	}
 	);
-}
+};

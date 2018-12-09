@@ -14,7 +14,7 @@ class Tests_Date_I18n extends WP_UnitTestCase {
 	}
 
 	public function test_date_should_be_in_gmt() {
-		$this->assertEquals( strtotime( date( 'Y-m-d H:i:s' ) ), strtotime( date_i18n( 'Y-m-d H:i:s', false, true ) ), 'The dates should be equal', 2 );
+		$this->assertEquals( strtotime( date( DATE_RFC3339 ) ), strtotime( date_i18n( DATE_RFC3339, false, true ) ), 'The dates should be equal', 2 );
 	}
 
 	public function test_custom_timestamp_ignores_gmt_setting() {
@@ -30,7 +30,7 @@ class Tests_Date_I18n extends WP_UnitTestCase {
 	public function test_date_should_be_in_gmt_with_custom_timezone_setting() {
 		update_option( 'timezone_string', 'America/Regina' );
 
-		$this->assertEquals( strtotime( date( 'Y-m-d H:i:s' ) ), strtotime( date_i18n( 'Y-m-d H:i:s', false, true ) ), 'The dates should be equal', 2 );
+		$this->assertEquals( strtotime( date( DATE_RFC3339 ) ), strtotime( date_i18n( DATE_RFC3339, false, true ) ), 'The dates should be equal', 2 );
 	}
 
 	public function test_date_should_be_in_gmt_with_custom_timezone_setting_and_timestamp() {
@@ -66,5 +66,43 @@ class Tests_Date_I18n extends WP_UnitTestCase {
 		update_option( 'timezone_string', 'America/Regina' );
 
 		$this->assertEquals( '2012-12-01 00:00:00 CST -06:00 America/Regina', date_i18n( 'Y-m-d H:i:s T P e', strtotime( '2012-12-01 00:00:00' ) ) );
+	}
+
+	/**
+	 * @ticket 34835
+	 */
+	public function test_gmt_offset_should_output_correct_timezone() {
+		$timezone_formats = 'P I O T Z e';
+		$timezone_string  = 'America/Regina';
+		$datetimezone     = new DateTimeZone( $timezone_string );
+		update_option( 'timezone_string', '' );
+		$offset = $datetimezone->getOffset( new DateTime() ) / 3600;
+		update_option( 'gmt_offset', $offset );
+		$datetime = new DateTime( 'now', $datetimezone );
+		$datetime = new DateTime( $datetime->format( 'P' ) );
+
+		$this->assertEquals( $datetime->format( $timezone_formats ), date_i18n( $timezone_formats ) );
+	}
+
+	/**
+	 * @dataProvider data_formats
+	 * @ticket 20973
+	 */
+	public function test_date_i18n_handles_shorthand_formats( $short, $full ) {
+		$this->assertEquals( strtotime( date_i18n( $full ) ), strtotime( date_i18n( $short ) ), 'The dates should be equal', 2 );
+		$this->assertEquals( $short, date_i18n( '\\' . $short ) );
+	}
+
+	public function data_formats() {
+		return array(
+			array(
+				'c',
+				'Y-m-d\TH:i:sP',
+			),
+			array(
+				'r',
+				'D, d M Y H:i:s O',
+			),
+		);
 	}
 }

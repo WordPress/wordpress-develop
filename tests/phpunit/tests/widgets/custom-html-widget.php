@@ -92,7 +92,8 @@ class Test_WP_Widget_Custom_HTML extends WP_UnitTestCase {
 
 		// Convert Custom HTML widget instance into Text widget instance data.
 		$text_widget_instance = array_merge(
-			$instance, array(
+			$instance,
+			array(
 				'text'   => $instance['content'],
 				'filter' => false,
 				'visual' => false,

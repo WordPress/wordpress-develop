@@ -234,9 +234,11 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		$key = wp_generate_password( 20, false );
 		$wpdb->update(
-			$wpdb->users, array(
+			$wpdb->users,
+			array(
 				'user_activation_key' => strtotime( '-1 hour' ) . ':' . self::$wp_hasher->HashPassword( $key ),
-			), array(
+			),
+			array(
 				'ID' => $this->user->ID,
 			)
 		);
@@ -269,9 +271,11 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		$key = wp_generate_password( 20, false );
 		$wpdb->update(
-			$wpdb->users, array(
+			$wpdb->users,
+			array(
 				'user_activation_key' => strtotime( '-48 hours' ) . ':' . self::$wp_hasher->HashPassword( $key ),
-			), array(
+			),
+			array(
 				'ID' => $this->user->ID,
 			)
 		);
@@ -304,9 +308,11 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		$key = wp_generate_password( 20, false );
 		$wpdb->update(
-			$wpdb->users, array(
+			$wpdb->users,
+			array(
 				'user_activation_key' => self::$wp_hasher->HashPassword( $key ),
-			), array(
+			),
+			array(
 				'ID' => $this->user->ID,
 			)
 		);
@@ -331,9 +337,11 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		$key = wp_generate_password( 20, false );
 		$wpdb->update(
-			$wpdb->users, array(
+			$wpdb->users,
+			array(
 				'user_activation_key' => $key,
-			), array(
+			),
+			array(
 				'ID' => $this->user->ID,
 			)
 		);

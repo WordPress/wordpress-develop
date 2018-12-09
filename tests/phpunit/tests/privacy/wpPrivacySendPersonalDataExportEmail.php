@@ -39,7 +39,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 *
 	 * @since 4.9.6
 	 */
-	function setUp() {
+	public function setUp() {
 		parent::setUp();
 		reset_phpmailer_instance();
 	}
@@ -49,7 +49,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 *
 	 * @since 4.9.6
 	 */
-	function tearDown() {
+	public function tearDown() {
 		reset_phpmailer_instance();
 		parent::tearDown();
 	}
@@ -95,12 +95,12 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 		$request_id = 0;
 		$email_sent = wp_privacy_send_personal_data_export_email( $request_id );
 		$this->assertWPError( $email_sent );
-		$this->assertSame( 'invalid', $email_sent->get_error_code() );
+		$this->assertSame( 'invalid_request', $email_sent->get_error_code() );
 
 		$request_id = PHP_INT_MAX;
 		$email_sent = wp_privacy_send_personal_data_export_email( $request_id );
 		$this->assertWPError( $email_sent );
-		$this->assertSame( 'invalid', $email_sent->get_error_code() );
+		$this->assertSame( 'invalid_request', $email_sent->get_error_code() );
 	}
 
 	/**
@@ -111,10 +111,9 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	public function test_return_wp_error_when_send_fails() {
 		add_filter( 'wp_mail_from', '__return_empty_string' ); // Cause `wp_mail()` to return false.
 		$email_sent = wp_privacy_send_personal_data_export_email( self::$request_id );
-		remove_filter( 'wp_mail_from', '__return_empty_string' );
 
 		$this->assertWPError( $email_sent );
-		$this->assertSame( 'error', $email_sent->get_error_code() );
+		$this->assertSame( 'privacy_email_error', $email_sent->get_error_code() );
 	}
 
 	/**
@@ -125,7 +124,6 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	public function test_export_expiration_should_be_filterable() {
 		add_filter( 'wp_privacy_export_expiration', array( $this, 'modify_export_expiration' ) );
 		wp_privacy_send_personal_data_export_email( self::$request_id );
-		remove_filter( 'wp_privacy_export_expiration', array( $this, 'modify_export_expiration' ) );
 
 		$mailer = tests_retrieve_phpmailer_instance();
 		$this->assertContains( 'we will automatically delete the file on December 18, 2017,', $mailer->get_sent()->body );
@@ -152,7 +150,6 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	public function test_email_content_should_be_filterable() {
 		add_filter( 'wp_privacy_personal_data_email_content', array( $this, 'modify_email_content' ), 10, 2 );
 		wp_privacy_send_personal_data_export_email( self::$request_id );
-		remove_filter( 'wp_privacy_personal_data_email_content', array( $this, 'modify_email_content' ) );
 
 		$mailer = tests_retrieve_phpmailer_instance();
 		$this->assertContains( 'Custom content for request ID: ' . self::$request_id, $mailer->get_sent()->body );

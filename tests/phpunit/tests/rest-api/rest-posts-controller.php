@@ -75,7 +75,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function setUp() {
 		parent::setUp();
 		register_post_type(
-			'youseeme', array(
+			'youseeme',
+			array(
 				'supports'     => array(),
 				'show_in_rest' => true,
 			)
@@ -161,7 +162,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'sticky',
 				'tags',
 				'tags_exclude',
-			), $keys
+			),
+			$keys
 		);
 	}
 
@@ -1108,7 +1110,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$next_link = add_query_arg(
 			array(
 				'page' => 2,
-			), rest_url( '/wp/v2/posts' )
+			),
+			rest_url( '/wp/v2/posts' )
 		);
 		$this->assertFalse( stripos( $headers['Link'], 'rel="prev"' ) );
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
@@ -1127,13 +1130,15 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$prev_link = add_query_arg(
 			array(
 				'page' => 2,
-			), rest_url( '/wp/v2/posts' )
+			),
+			rest_url( '/wp/v2/posts' )
 		);
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$next_link = add_query_arg(
 			array(
 				'page' => 4,
-			), rest_url( '/wp/v2/posts' )
+			),
+			rest_url( '/wp/v2/posts' )
 		);
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 		// Last page
@@ -1146,7 +1151,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$prev_link = add_query_arg(
 			array(
 				'page' => 5,
-			), rest_url( '/wp/v2/posts' )
+			),
+			rest_url( '/wp/v2/posts' )
 		);
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
@@ -1174,14 +1180,16 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			array(
 				'per_page' => 5,
 				'page'     => 1,
-			), rest_url( '/wp/v2/posts' )
+			),
+			rest_url( '/wp/v2/posts' )
 		);
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$next_link = add_query_arg(
 			array(
 				'per_page' => 5,
 				'page'     => 3,
-			), rest_url( '/wp/v2/posts' )
+			),
+			rest_url( '/wp/v2/posts' )
 		);
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 	}
@@ -1283,6 +1291,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( $replies_url, $links['replies'][0]['href'] );
 
 		$this->assertEquals( rest_url( '/wp/v2/posts/' . self::$post_id . '/revisions' ), $links['version-history'][0]['href'] );
+		$this->assertEquals( 0, $links['version-history'][0]['attributes']['count'] );
+		$this->assertFalse( isset( $links['predecessor-version'] ) );
 
 		$attachments_url = rest_url( '/wp/v2/media' );
 		$attachments_url = add_query_arg( 'parent', self::$post_id, $attachments_url );
@@ -1308,6 +1318,28 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$category_url = add_query_arg( 'post', self::$post_id, rest_url( '/wp/v2/categories' ) );
 		$this->assertEquals( $category_url, $cat_link['href'] );
+	}
+
+	public function test_get_item_links_predecessor() {
+		wp_update_post(
+			array(
+				'post_content' => 'This content is marvelous.',
+				'ID'           => self::$post_id,
+			)
+		);
+		$revisions  = wp_get_post_revisions( self::$post_id );
+		$revision_1 = array_pop( $revisions );
+
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$links = $response->get_links();
+
+		$this->assertEquals( rest_url( '/wp/v2/posts/' . self::$post_id . '/revisions' ), $links['version-history'][0]['href'] );
+		$this->assertEquals( 1, $links['version-history'][0]['attributes']['count'] );
+
+		$this->assertEquals( rest_url( '/wp/v2/posts/' . self::$post_id . '/revisions/' . $revision_1->ID ), $links['predecessor-version'][0]['href'] );
+		$this->assertEquals( $revision_1->ID, $links['predecessor-version'][0]['attributes']['id'] );
 	}
 
 	public function test_get_item_links_no_author() {
@@ -1507,10 +1539,13 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( '_fields', 'id,slug' );
 		$obj      = get_post( self::$post_id );
 		$response = $endpoint->prepare_item_for_response( $obj, $request );
-		$this->assertEquals( array(
-			'id',
-			'slug',
-		), array_keys( $response->get_data() ) );
+		$this->assertEquals(
+			array(
+				'id',
+				'slug',
+			),
+			array_keys( $response->get_data() )
+		);
 	}
 
 	public function test_create_item() {
@@ -1994,7 +2029,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$file                = DIR_TESTDATA . '/images/canola.jpg';
 		$this->attachment_id = $this->factory->attachment->create_object(
-			$file, 0, array(
+			$file,
+			0,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'menu_order'     => rand( 1, 100 ),
 			)
@@ -3229,7 +3266,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 					'title'   => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 					'content' => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 					'excerpt' => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
-				), array(
+				),
+				array(
 					'title'   => array(
 						'raw'      => 'div <strong>strong</strong> oh noes',
 						'rendered' => 'div <strong>strong</strong> oh noes',
@@ -3251,7 +3289,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 					'title'   => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 					'content' => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 					'excerpt' => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
-				), array(
+				),
+				array(
 					'title'   => array(
 						'raw'      => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 						'rendered' => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
@@ -3277,7 +3316,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'title'   => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 				'content' => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 				'excerpt' => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
-			), array(
+			),
+			array(
 				'title'   => array(
 					'raw'      => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 					'rendered' => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
@@ -3363,7 +3403,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_register_post_type_invalid_controller() {
 
 		register_post_type(
-			'invalid-controller', array(
+			'invalid-controller',
+			array(
 				'show_in_rest'          => true,
 				'rest_controller_class' => 'Fake_Class_Baba',
 			)
@@ -3532,7 +3573,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 					'request-completed',
 					'any',
 				),
-			), $status_arg['items']
+			),
+			$status_arg['items']
 		);
 	}
 
@@ -3546,7 +3588,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		);
 
 		register_rest_field(
-			'post', 'my_custom_int', array(
+			'post',
+			'my_custom_int',
+			array(
 				'schema'          => $schema,
 				'get_callback'    => array( $this, 'additional_field_get_callback' ),
 				'update_callback' => array( $this, 'additional_field_update_callback' ),
@@ -3605,7 +3649,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		);
 
 		register_rest_field(
-			'post', 'my_custom_int', array(
+			'post',
+			'my_custom_int',
+			array(
 				'schema'          => $schema,
 				'get_callback'    => array( $this, 'additional_field_get_callback' ),
 				'update_callback' => array( $this, 'additional_field_update_callback' ),
@@ -3638,6 +3684,312 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
 		}
 		update_post_meta( $post->ID, 'my_custom_int', $value );
+	}
+
+	public function test_publish_action_ldo_registered() {
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' ) );
+		$data     = $response->get_data();
+		$schema   = $data['schema'];
+
+		$this->assertArrayHasKey( 'links', $schema );
+		$publish = wp_list_filter( $schema['links'], array( 'rel' => 'https://api.w.org/action-publish' ) );
+
+		$this->assertCount( 1, $publish, 'LDO found on schema.' );
+	}
+
+	public function test_sticky_action_ldo_registered_for_posts() {
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' ) );
+		$data     = $response->get_data();
+		$schema   = $data['schema'];
+
+		$this->assertArrayHasKey( 'links', $schema );
+		$publish = wp_list_filter( $schema['links'], array( 'rel' => 'https://api.w.org/action-sticky' ) );
+
+		$this->assertCount( 1, $publish, 'LDO found on schema.' );
+	}
+
+	public function test_sticky_action_ldo_not_registered_for_non_posts() {
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'OPTIONS', '/wp/v2/pages' ) );
+		$data     = $response->get_data();
+		$schema   = $data['schema'];
+
+		$this->assertArrayHasKey( 'links', $schema );
+		$publish = wp_list_filter( $schema['links'], array( 'rel' => 'https://api.w.org/action-sticky' ) );
+
+		$this->assertCount( 0, $publish, 'LDO found on schema.' );
+	}
+
+	public function test_author_action_ldo_registered_for_post_types_with_author_support() {
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' ) );
+		$data     = $response->get_data();
+		$schema   = $data['schema'];
+
+		$this->assertArrayHasKey( 'links', $schema );
+		$publish = wp_list_filter( $schema['links'], array( 'rel' => 'https://api.w.org/action-assign-author' ) );
+
+		$this->assertCount( 1, $publish, 'LDO found on schema.' );
+	}
+
+	public function test_author_action_ldo_not_registered_for_post_types_without_author_support() {
+
+		remove_post_type_support( 'post', 'author' );
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' ) );
+		$data     = $response->get_data();
+		$schema   = $data['schema'];
+
+		$this->assertArrayHasKey( 'links', $schema );
+		$publish = wp_list_filter( $schema['links'], array( 'rel' => 'https://api.w.org/action-assign-author' ) );
+
+		$this->assertCount( 0, $publish, 'LDO found on schema.' );
+	}
+
+	public function test_term_action_ldos_registered() {
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' ) );
+		$data     = $response->get_data();
+		$schema   = $data['schema'];
+
+		$this->assertArrayHasKey( 'links', $schema );
+		$rels = array_flip( wp_list_pluck( $schema['links'], 'rel' ) );
+
+		$this->assertArrayHasKey( 'https://api.w.org/action-assign-categories', $rels );
+		$this->assertArrayHasKey( 'https://api.w.org/action-create-categories', $rels );
+		$this->assertArrayHasKey( 'https://api.w.org/action-assign-tags', $rels );
+		$this->assertArrayHasKey( 'https://api.w.org/action-create-tags', $rels );
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-assign-post_format', $rels );
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-create-post_format', $rels );
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-assign-nav_menu', $rels );
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-create-nav_menu', $rels );
+	}
+
+	public function test_action_links_only_available_in_edit_context() {
+
+		wp_set_current_user( self::$author_id );
+
+		$post = self::factory()->post->create( array( 'post_author' => self::$author_id ) );
+		$this->assertGreaterThan( 0, $post );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post}" );
+		$request->set_query_params( array( 'context' => 'view' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-publish', $links );
+	}
+
+	public function test_publish_action_link_exists_for_author() {
+
+		wp_set_current_user( self::$author_id );
+
+		$post = self::factory()->post->create( array( 'post_author' => self::$author_id ) );
+		$this->assertGreaterThan( 0, $post );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post}" );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayHasKey( 'https://api.w.org/action-publish', $links );
+	}
+
+	public function test_publish_action_link_does_not_exist_for_contributor() {
+
+		wp_set_current_user( self::$contributor_id );
+
+		$post = self::factory()->post->create( array( 'post_author' => self::$contributor_id ) );
+		$this->assertGreaterThan( 0, $post );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post}" );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-publish', $links );
+	}
+
+	public function test_sticky_action_exists_for_editor() {
+
+		wp_set_current_user( self::$editor_id );
+
+		$post = self::factory()->post->create( array( 'post_author' => self::$author_id ) );
+		$this->assertGreaterThan( 0, $post );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post}" );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayHasKey( 'https://api.w.org/action-sticky', $links );
+	}
+
+	public function test_sticky_action_does_not_exist_for_author() {
+
+		wp_set_current_user( self::$author_id );
+
+		$post = self::factory()->post->create( array( 'post_author' => self::$author_id ) );
+		$this->assertGreaterThan( 0, $post );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post}" );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-sticky', $links );
+	}
+
+	public function test_sticky_action_does_not_exist_for_non_post_posts() {
+
+		wp_set_current_user( self::$editor_id );
+
+		$post = self::factory()->post->create(
+			array(
+				'post_author' => self::$author_id,
+				'post_type'   => 'page',
+			)
+		);
+		$this->assertGreaterThan( 0, $post );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post}" );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-sticky', $links );
+	}
+
+
+	public function test_assign_author_action_exists_for_editor() {
+
+		wp_set_current_user( self::$editor_id );
+
+		$post = self::factory()->post->create( array( 'post_author' => self::$author_id ) );
+		$this->assertGreaterThan( 0, $post );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post}" );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayHasKey( 'https://api.w.org/action-assign-author', $links );
+	}
+
+	public function test_assign_author_action_does_not_exist_for_author() {
+
+		wp_set_current_user( self::$author_id );
+
+		$post = self::factory()->post->create( array( 'post_author' => self::$author_id ) );
+		$this->assertGreaterThan( 0, $post );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post}" );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-assign-author', $links );
+	}
+
+	public function test_assign_author_action_does_not_exist_for_post_types_without_author_support() {
+
+		remove_post_type_support( 'post', 'author' );
+
+		wp_set_current_user( self::$editor_id );
+
+		$post = self::factory()->post->create();
+		$this->assertGreaterThan( 0, $post );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post}" );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-assign-author', $links );
+	}
+
+	public function test_create_term_action_exists_for_editor() {
+
+		wp_set_current_user( self::$editor_id );
+
+		$post = self::factory()->post->create( array( 'post_author' => self::$author_id ) );
+		$this->assertGreaterThan( 0, $post );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post}" );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayHasKey( 'https://api.w.org/action-create-categories', $links );
+		$this->assertArrayHasKey( 'https://api.w.org/action-create-tags', $links );
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-create-post_format', $links );
+	}
+
+	public function test_create_term_action_non_hierarchical_exists_for_author() {
+
+		wp_set_current_user( self::$author_id );
+
+		$post = self::factory()->post->create( array( 'post_author' => self::$author_id ) );
+		$this->assertGreaterThan( 0, $post );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post}" );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayHasKey( 'https://api.w.org/action-create-tags', $links );
+	}
+
+	public function test_create_term_action_hierarchical_does_not_exists_for_author() {
+
+		wp_set_current_user( self::$author_id );
+
+		$post = self::factory()->post->create( array( 'post_author' => self::$author_id ) );
+		$this->assertGreaterThan( 0, $post );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post}" );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-create-categories', $links );
+	}
+
+	public function test_assign_term_action_exists_for_contributor() {
+
+		wp_set_current_user( self::$contributor_id );
+
+		$post = self::factory()->post->create(
+			array(
+				'post_author' => self::$contributor_id,
+				'post_status' => 'draft',
+			)
+		);
+		$this->assertGreaterThan( 0, $post );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post}" );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayHasKey( 'https://api.w.org/action-assign-categories', $links );
+		$this->assertArrayHasKey( 'https://api.w.org/action-assign-tags', $links );
 	}
 
 	public function tearDown() {

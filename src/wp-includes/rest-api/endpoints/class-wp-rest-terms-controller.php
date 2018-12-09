@@ -74,7 +74,9 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	public function register_routes() {
 
 		register_rest_route(
-			$this->namespace, '/' . $this->rest_base, array(
+			$this->namespace,
+			'/' . $this->rest_base,
+			array(
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_items' ),
@@ -92,7 +94,9 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		);
 
 		register_rest_route(
-			$this->namespace, '/' . $this->rest_base . '/(?P<id>[\d]+)', array(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<id>[\d]+)',
+			array(
 				'args'   => array(
 					'id' => array(
 						'description' => __( 'Unique identifier for the term.' ),
@@ -380,7 +384,10 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		}
 
 		$taxonomy_obj = get_taxonomy( $this->taxonomy );
-		if ( ! current_user_can( $taxonomy_obj->cap->edit_terms ) ) {
+		if ( ( is_taxonomy_hierarchical( $this->taxonomy )
+				&& ! current_user_can( $taxonomy_obj->cap->edit_terms ) )
+			|| ( ! is_taxonomy_hierarchical( $this->taxonomy )
+				&& ! current_user_can( $taxonomy_obj->cap->assign_terms ) ) ) {
 			return new WP_Error( 'rest_cannot_create', __( 'Sorry, you are not allowed to create new terms.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
@@ -419,7 +426,12 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			if ( $term_id = $term->get_error_data( 'term_exists' ) ) {
 				$existing_term = get_term( $term_id, $this->taxonomy );
 				$term->add_data( $existing_term->term_id, 'term_exists' );
-				$term->add_data( array( 'status' => 400, 'term_id' => $term_id ) );
+				$term->add_data(
+					array(
+						'status'  => 400,
+						'term_id' => $term_id,
+					)
+				);
 			}
 
 			return $term;
@@ -442,7 +454,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$schema = $this->get_item_schema();
 		if ( ! empty( $schema['properties']['meta'] ) && isset( $request['meta'] ) ) {
-			$meta_update = $this->meta->update_value( $request['meta'], (int) $request['id'] );
+			$meta_update = $this->meta->update_value( $request['meta'], $term->term_id );
 
 			if ( is_wp_error( $meta_update ) ) {
 				return $meta_update;

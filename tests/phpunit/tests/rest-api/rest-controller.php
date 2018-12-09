@@ -14,7 +14,9 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 	public function setUp() {
 		parent::setUp();
 		$this->request = new WP_REST_Request(
-			'GET', '/wp/v2/testroute', array(
+			'GET',
+			'/wp/v2/testroute',
+			array(
 				'args' => array(
 					'someinteger' => array(
 						'type' => 'integer',
@@ -205,22 +207,28 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$controller = new WP_REST_Test_Controller();
 		$request    = new WP_REST_Request( 'GET', '/wp/v2/testroute' );
 		$fields     = $controller->get_fields_for_response( $request );
-		$this->assertEquals( array(
-			'somestring',
-			'someinteger',
-			'someboolean',
-			'someurl',
-			'somedate',
-			'someemail',
-			'someenum',
-			'someargoptions',
-			'somedefault',
-		), $fields );
+		$this->assertEquals(
+			array(
+				'somestring',
+				'someinteger',
+				'someboolean',
+				'someurl',
+				'somedate',
+				'someemail',
+				'someenum',
+				'someargoptions',
+				'somedefault',
+			),
+			$fields
+		);
 		$request->set_param( '_fields', 'somestring,someinteger' );
 		$fields = $controller->get_fields_for_response( $request );
-		$this->assertEquals( array(
-			'somestring',
-			'someinteger',
-		), $fields );
+		$this->assertEquals(
+			array(
+				'somestring',
+				'someinteger',
+			),
+			$fields
+		);
 	}
 }

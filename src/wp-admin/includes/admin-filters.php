@@ -47,6 +47,8 @@ add_action( 'admin_head', '_ipad_meta' );
 
 // Privacy tools
 add_action( 'admin_menu', '_wp_privacy_hook_requests_page' );
+add_action( 'load-tools_page_export_personal_data', '_wp_privacy_requests_screen_options' );
+add_action( 'load-tools_page_remove_personal_data', '_wp_privacy_requests_screen_options' );
 
 // Prerendering.
 if ( ! is_customize_preview() ) {
@@ -149,3 +151,6 @@ add_action( 'admin_init', array( 'WP_Privacy_Policy_Content', 'add_suggested_con
 
 // Update the cached policy info when the policy page is updated.
 add_action( 'post_updated', array( 'WP_Privacy_Policy_Content', '_policy_page_updated' ) );
+
+// Append '(Draft)' to draft page titles in the privacy page dropdown.
+add_filter( 'list_pages', '_wp_privacy_settings_filter_draft_page_titles', 10, 2 );

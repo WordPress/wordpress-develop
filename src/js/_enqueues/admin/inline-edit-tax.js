@@ -1,7 +1,10 @@
-/* global inlineEditL10n, ajaxurl */
 /**
  * This file is used on the term overview page to power quick-editing terms.
+ *
+ * @output wp-admin/js/inline-edit-tax.js
  */
+
+/* global inlineEditL10n, ajaxurl, inlineEditTax */
 
 window.wp = window.wp || {};
 
@@ -14,11 +17,9 @@ window.wp = window.wp || {};
  * @property {string} what The type property with a hash prefixed and a dash
  *                         suffixed.
  */
-var inlineEditTax;
-
 ( function( $, wp ) {
 
-inlineEditTax = {
+window.inlineEditTax = {
 
 	/**
 	 * Initializes the inline taxonomy editor by adding event handlers to be able to

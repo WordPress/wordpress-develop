@@ -13,7 +13,9 @@ class Tests_Post extends WP_UnitTestCase {
 		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
 
 		add_role(
-			'grammarian', 'Grammarian', array(
+			'grammarian',
+			'Grammarian',
+			array(
 				'read'                 => true,
 				'edit_posts'           => true,
 				'edit_others_posts'    => true,
@@ -813,7 +815,8 @@ class Tests_Post extends WP_UnitTestCase {
 		$post_type = rand_str( 20 );
 		register_post_type( $post_type );
 		self::factory()->post->create_many(
-			3, array(
+			3,
+			array(
 				'post_type'   => $post_type,
 				'post_author' => self::$editor_id,
 			)

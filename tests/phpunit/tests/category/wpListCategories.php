@@ -103,6 +103,35 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 		$this->assertNotContains( 'Test Cat 1', $found );
 	}
 
+	public function list_cats_callback( $cat ) {
+		if ( 'Test Cat 1' === $cat ) {
+			return '';
+		}
+
+		return $cat;
+	}
+
+	/**
+	 * @ticket 44872
+	 */
+	public function test_should_create_element_when_cat_name_is_zero() {
+		$c = self::factory()->category->create(
+			array(
+				'name' => '0',
+			)
+		);
+
+		$found = wp_list_categories(
+			array(
+				'hide_empty' => false,
+				'echo'       => false,
+			)
+		);
+
+		$this->assertContains( "cat-item-$c", $found );
+		$this->assertContains( '0', $found );
+	}
+
 	public function test_show_option_all_link_should_go_to_home_page_when_show_on_front_is_false() {
 		$cats = self::factory()->category->create_many( 2 );
 
@@ -146,7 +175,8 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', array( 'foo', 'wptests_pt', 'wptests_pt2' ) );
 
 		$terms = self::factory()->term->create_many(
-			2, array(
+			2,
+			array(
 				'taxonomy' => 'wptests_tax',
 			)
 		);
@@ -174,7 +204,8 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', array( 'foo', 'wptests_pt', 'wptests_pt2' ) );
 
 		$terms = self::factory()->term->create_many(
-			2, array(
+			2,
+			array(
 				'taxonomy' => 'wptests_tax',
 			)
 		);
@@ -199,7 +230,8 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', array( 'foo', 'wptests_pt', 'post', 'wptests_pt2' ) );
 
 		$terms = self::factory()->term->create_many(
-			2, array(
+			2,
+			array(
 				'taxonomy' => 'wptests_tax',
 			)
 		);
@@ -224,7 +256,8 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', array( 'foo', 'wptests_pt', 'wptests_pt2' ) );
 
 		$terms = self::factory()->term->create_many(
-			2, array(
+			2,
+			array(
 				'taxonomy' => 'wptests_tax',
 			)
 		);
@@ -241,14 +274,6 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 		$url = home_url( '/' );
 
 		$this->assertContains( "<li class='cat-item-all'><a href='" . $url . "'>All</a></li>", $found );
-	}
-
-	public function list_cats_callback( $cat ) {
-		if ( 'Test Cat 1' === $cat ) {
-			return '';
-		}
-
-		return $cat;
 	}
 
 	/**

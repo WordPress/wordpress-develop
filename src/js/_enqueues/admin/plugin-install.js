@@ -1,9 +1,11 @@
-/* global plugininstallL10n, tb_click, tb_remove */
-
 /**
  * @file Functionality for the plugin install screens.
+ *
+ * @output wp-admin/js/plugin-install.js
  */
-var tb_position;
+
+/* global plugininstallL10n, tb_click, tb_remove, tb_position */
+
 jQuery( document ).ready( function( $ ) {
 
 	var tbWindow,
@@ -16,7 +18,7 @@ jQuery( document ).ready( function( $ ) {
 		$wrap = $ ( '.wrap' ),
 		$body = $( document.body );
 
-	tb_position = function() {
+	window.tb_position = function() {
 		var width = $( window ).width(),
 			H = $( window ).height() - ( ( 792 < width ) ? 60 : 20 ),
 			W = ( 792 < width ) ? 772 : width - 20;

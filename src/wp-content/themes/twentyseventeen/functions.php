@@ -71,7 +71,8 @@ function twentyseventeen_setup() {
 	 * to output valid HTML5.
 	 */
 	add_theme_support(
-		'html5', array(
+		'html5',
+		array(
 			'comment-form',
 			'comment-list',
 			'gallery',
@@ -85,7 +86,8 @@ function twentyseventeen_setup() {
 	 * See: https://codex.wordpress.org/Post_Formats
 	 */
 	add_theme_support(
-		'post-formats', array(
+		'post-formats',
+		array(
 			'aside',
 			'image',
 			'video',
@@ -98,7 +100,8 @@ function twentyseventeen_setup() {
 
 	// Add theme support for Custom Logo.
 	add_theme_support(
-		'custom-logo', array(
+		'custom-logo',
+		array(
 			'width'      => 250,
 			'height'     => 250,
 			'flex-width' => true,
@@ -418,11 +421,11 @@ function twentyseventeen_colors_css_wrap() {
 	if ( is_customize_preview() ) {
 		$customize_preview_data_hue = 'data-hue="' . $hue . '"';
 	}
-?>
+	?>
 	<style type="text/css" id="custom-theme-colors" <?php echo $customize_preview_data_hue; ?>>
 		<?php echo twentyseventeen_custom_colors_css(); ?>
 	</style>
-<?php
+	<?php
 }
 add_action( 'wp_head', 'twentyseventeen_colors_css_wrap' );
 
@@ -585,6 +588,30 @@ function twentyseventeen_widget_tag_cloud_args( $args ) {
 	return $args;
 }
 add_filter( 'widget_tag_cloud_args', 'twentyseventeen_widget_tag_cloud_args' );
+
+/**
+ * Get unique ID.
+ *
+ * This is a PHP implementation of Underscore's uniqueId method. A static variable
+ * contains an integer that is incremented with each call. This number is returned
+ * with the optional prefix. As such the returned value is not universally unique,
+ * but it is unique across the life of the PHP process.
+ *
+ * @since Twenty Seventeen 1.8
+ * @see wp_unique_id() Themes requiring WordPress 4.9.9 and greater should use this instead.
+ *
+ * @staticvar int $id_counter
+ *
+ * @param string $prefix Prefix for the returned ID.
+ * @return string Unique ID.
+ */
+function twentyseventeen_unique_id( $prefix = '' ) {
+	static $id_counter = 0;
+	if ( function_exists( 'wp_unique_id' ) ) {
+		return wp_unique_id( $prefix );
+	}
+	return $prefix . (string) ++$id_counter;
+}
 
 /**
  * Implement the Custom Header feature.

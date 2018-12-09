@@ -172,8 +172,8 @@ class WP_Term_Query {
 	 *                                                Can be used in conjunction with `$meta_value`. Default empty.
 	 *     @type string       $meta_value             Limit terms to those matching a specific metadata value.
 	 *                                                Usually used in conjunction with `$meta_key`. Default empty.
-	 *     @type string       $meta_type              Type of object metadata is for (e.g., comment, post, or user).
-	 *                                                Default empty.
+	 *     @type string       $meta_type              MySQL data type that the `$meta_value` will be CAST to for
+	 *                                                comparisons. Default empty.
 	 *     @type string       $meta_compare           Comparison operator to test the 'meta_value'. Default empty.
 	 * }
 	 */
@@ -428,7 +428,8 @@ class WP_Term_Query {
 				$excluded_children = array_merge(
 					$excluded_children,
 					(array) get_terms(
-						reset( $taxonomies ), array(
+						reset( $taxonomies ),
+						array(
 							'child_of'   => intval( $extrunk ),
 							'fields'     => 'ids',
 							'hide_empty' => 0,
@@ -978,7 +979,7 @@ class WP_Term_Query {
 	 *
 	 * Also discards invalid term objects.
 	 *
-	 * @since 5.0.0
+	 * @since 4.9.8
 	 *
 	 * @param array $term_ids Term IDs.
 	 * @return array

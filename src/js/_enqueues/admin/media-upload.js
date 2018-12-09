@@ -1,5 +1,3 @@
-/* global tinymce, QTags */
-
 /**
  * Contains global functions for the media upload within the post edit screen.
  *
@@ -9,11 +7,12 @@
  *
  * @file
  * @since 2.5.0
+ * @output wp-admin/js/media-upload.js
  *
  * @requires jQuery
  */
 
-var wpActiveEditor, send_to_editor;
+/* global tinymce, QTags, wpActiveEditor, tb_position */
 
 /**
  * Sends the HTML passed in the parameters to TinyMCE.
@@ -27,7 +26,7 @@ var wpActiveEditor, send_to_editor;
  *                         are unavailable. This means that the HTML was not
  *                         sent to the editor.
  */
-send_to_editor = function( html ) {
+window.send_to_editor = function( html ) {
 	var editor,
 		hasTinymce = typeof tinymce !== 'undefined',
 		hasQuicktags = typeof QTags !== 'undefined';
@@ -36,7 +35,7 @@ send_to_editor = function( html ) {
 	if ( ! wpActiveEditor ) {
 		if ( hasTinymce && tinymce.activeEditor ) {
 			editor = tinymce.activeEditor;
-			wpActiveEditor = editor.id;
+			window.wpActiveEditor = editor.id;
 		} else if ( ! hasQuicktags ) {
 			return false;
 		}
@@ -63,7 +62,6 @@ send_to_editor = function( html ) {
 	}
 };
 
-var tb_position;
 (function($) {
 	/**
 	 * Recalculates and applies the new ThickBox position based on the current
@@ -76,7 +74,7 @@ var tb_position;
 	 * @returns {Object[]} Array containing jQuery objects for all the found
 	 *                     ThickBox anchors.
 	 */
-	tb_position = function() {
+	window.tb_position = function() {
 		var tbWindow = $('#TB_window'),
 			width = $(window).width(),
 			H = $(window).height(),

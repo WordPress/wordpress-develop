@@ -85,12 +85,14 @@ function wp_add_inline_style( $handle, $data ) {
 
 	if ( false !== stripos( $data, '</style>' ) ) {
 		_doing_it_wrong(
-			__FUNCTION__, sprintf(
+			__FUNCTION__,
+			sprintf(
 				/* translators: 1: <style>, 2: wp_add_inline_style() */
 				__( 'Do not pass %1$s tags to %2$s.' ),
 				'<code>&lt;style&gt;</code>',
 				'<code>wp_add_inline_style()</code>'
-			), '3.7.0'
+			),
+			'3.7.0'
 		);
 		$data = trim( preg_replace( '#<style[^>]*>(.*)</style>#is', '$1', $data ) );
 	}
@@ -108,7 +110,8 @@ function wp_add_inline_style( $handle, $data ) {
  * @since 4.3.0 A return value was added.
  *
  * @param string           $handle Name of the stylesheet. Should be unique.
- * @param string           $src    Full URL of the stylesheet, or path of the stylesheet relative to the WordPress root directory.
+ * @param string|bool      $src    Full URL of the stylesheet, or path of the stylesheet relative to the WordPress root directory.
+ *                                 If source is set to false, stylesheet is an alias of other stylesheets it depends on.
  * @param array            $deps   Optional. An array of registered stylesheet handles this stylesheet depends on. Default empty array.
  * @param string|bool|null $ver    Optional. String specifying stylesheet version number, if it has one, which is added to the URL
  *                                 as a query string for cache busting purposes. If version is set to false, a version

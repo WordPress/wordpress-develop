@@ -886,13 +886,13 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 		 * @since 2.5.0
 		 * @since 4.9.0 The `$token` parameter was added.
 		 *
-		 * @param string $auth_cookie Authentication cookie.
+		 * @param string $auth_cookie Authentication cookie value.
 		 * @param int    $expire      The time the login grace period expires as a UNIX timestamp.
 		 *                            Default is 12 hours past the cookie's expiration time.
 		 * @param int    $expiration  The time when the authentication cookie expires as a UNIX timestamp.
 		 *                            Default is 14 days from now.
 		 * @param int    $user_id     User ID.
-		 * @param string $scheme      Authentication scheme. Values include 'auth', 'secure_auth', or 'logged_in'.
+		 * @param string $scheme      Authentication scheme. Values include 'auth' or 'secure_auth'.
 		 * @param string $token       User's session token to use for this cookie.
 		 */
 		do_action( 'set_auth_cookie', $auth_cookie, $expire, $expiration, $user_id, $scheme, $token );
@@ -903,7 +903,7 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 		 * @since 2.6.0
 		 * @since 4.9.0 The `$token` parameter was added.
 		 *
-		 * @param string $logged_in_cookie The logged-in cookie.
+		 * @param string $logged_in_cookie The logged-in cookie value.
 		 * @param int    $expire           The time the login grace period expires as a UNIX timestamp.
 		 *                                 Default is 12 hours past the cookie's expiration time.
 		 * @param int    $expiration       The time when the logged-in authentication cookie expires as a UNIX timestamp.
@@ -1336,7 +1336,7 @@ if ( ! function_exists( 'wp_safe_redirect' ) ) :
 	 * @param string $location      The path or URL to redirect to.
 	 * @param int    $status        Optional. HTTP response status code to use. Default '302' (Moved Temporarily).
 	 * @param string $x_redirect_by Optional. The application doing the redirect. Default 'WordPress'.
- 	 * @return bool  $redirect False if the redirect was cancelled, true otherwise.
+	 * @return bool  $redirect False if the redirect was cancelled, true otherwise.
 	 */
 	function wp_safe_redirect( $location, $status = 302, $x_redirect_by = 'WordPress' ) {
 
@@ -1554,7 +1554,7 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 			default: // Comments
 				/* translators: %s: post title */
 				$notify_message = sprintf( __( 'New comment on your post "%s"' ), $post->post_title ) . "\r\n";
-				/* translators: 1: comment author, 2: comment author's IP address, 3: comment author's hostname */
+				/* translators: 1: comment author's name, 2: comment author's IP address, 3: comment author's hostname */
 				$notify_message .= sprintf( __( 'Author: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 				/* translators: %s: comment author email */
 				$notify_message .= sprintf( __( 'Email: %s' ), $comment->comment_author_email ) . "\r\n";
@@ -1724,7 +1724,7 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 				/* translators: %s: post title */
 				$notify_message  = sprintf( __( 'A new comment on the post "%s" is waiting for your approval' ), $post->post_title ) . "\r\n";
 				$notify_message .= get_permalink( $comment->comment_post_ID ) . "\r\n\r\n";
-				/* translators: 1: comment author name, 2: comment author's IP address, 3: comment author's hostname */
+				/* translators: 1: comment author's name, 2: comment author's IP address, 3: comment author's hostname */
 				$notify_message .= sprintf( __( 'Author: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 				/* translators: %s: comment author email */
 				$notify_message .= sprintf( __( 'Email: %s' ), $comment->comment_author_email ) . "\r\n";
@@ -1753,8 +1753,10 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 		$notify_message .= sprintf(
 			_n(
 				'Currently %s comment is waiting for approval. Please visit the moderation panel:',
-				'Currently %s comments are waiting for approval. Please visit the moderation panel:', $comments_waiting
-			), number_format_i18n( $comments_waiting )
+				'Currently %s comments are waiting for approval. Please visit the moderation panel:',
+				$comments_waiting
+			),
+			number_format_i18n( $comments_waiting )
 		) . "\r\n";
 		$notify_message .= admin_url( 'edit-comments.php?comment_status=moderated#wpbody-content' ) . "\r\n";
 
@@ -2489,10 +2491,12 @@ if ( ! function_exists( 'wp_set_password' ) ) :
 
 		$hash = wp_hash_password( $password );
 		$wpdb->update(
-			$wpdb->users, array(
+			$wpdb->users,
+			array(
 				'user_pass'           => $hash,
 				'user_activation_key' => '',
-			), array( 'ID' => $user_id )
+			),
+			array( 'ID' => $user_id )
 		);
 
 		wp_cache_delete( $user_id, 'users' );

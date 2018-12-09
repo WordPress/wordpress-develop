@@ -815,6 +815,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * The `wp_comments_personal_data_eraser()` function should erase user's comments.
 	 *
+	 * @group privacy
 	 * @ticket 43442
 	 */
 	public function test_wp_comments_personal_data_eraser() {
@@ -856,8 +857,8 @@ class Tests_Comment extends WP_UnitTestCase {
 			'comment_ID'           => (string) $comment_id,
 			'user_id'              => '0', // Anonymized.
 			'comment_author'       => 'Anonymous', // Anonymized.
-			'comment_author_email' => 'deleted@site.invalid', // Anonymized.
-			'comment_author_url'   => 'https://site.invalid', // Anonymized.
+			'comment_author_email' => '', // Anonymized.
+			'comment_author_url'   => '', // Anonymized.
 			'comment_author_IP'    => '192.168.0.0', // Anonymized.
 			'comment_date'         => '2018-04-14 17:20:00',
 			'comment_date_gmt'     => '2018-04-14 17:20:00',
@@ -871,6 +872,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * Testing the `wp_comments_personal_data_eraser()` function's output on an empty first page.
 	 *
+	 * @group privacy
 	 * @ticket 43442
 	 */
 	public function test_wp_comments_personal_data_eraser_empty_first_page_output() {
@@ -889,6 +891,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * Testing the `wp_comments_personal_data_eraser()` function's output, for the non-empty first page.
 	 *
+	 * @group privacy
 	 * @ticket 43442
 	 */
 	public function test_wp_comments_personal_data_eraser_non_empty_first_page_output() {
@@ -920,6 +923,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * Testing the `wp_comments_personal_data_eraser()` function's output, for an empty second page.
 	 *
+	 * @group privacy
 	 * @ticket 43442
 	 */
 	public function test_wp_comments_personal_data_eraser_empty_second_page_output() {
@@ -951,6 +955,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * Testing the `wp_anonymize_comment` filter, to prevent comment anonymization.
 	 *
+	 * @group privacy
 	 * @ticket 43442
 	 */
 	public function test_wp_anonymize_comment_filter_to_prevent_comment_anonymization() {
@@ -987,6 +992,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * Testing the `wp_anonymize_comment` filter, to prevent comment anonymization, with a custom message.
 	 *
+	 * @group privacy
 	 * @ticket 43442
 	 */
 	public function test_wp_anonymize_comment_filter_to_prevent_comment_anonymization_with_custom_message() {
@@ -1156,7 +1162,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertSame( $expected['comment_agent'], $actual['data'][0]['data'][4]['value'] );
 		$this->assertSame( $expected['comment_date'], $actual['data'][0]['data'][5]['value'] );
 		$this->assertSame( $expected['comment_content'], $actual['data'][0]['data'][6]['value'] );
-		$this->assertSame( get_comment_link( $comment_id ), strip_tags( $actual['data'][0]['data'][7]['value'] ) );
+		$this->assertSame( esc_html( get_comment_link( $comment_id ) ), strip_tags( $actual['data'][0]['data'][7]['value'] ) );
 	}
 
 	/**

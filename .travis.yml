@@ -12,6 +12,16 @@ env:
     - WP_TRAVISCI=travis:phpunit
 matrix:
   include:
+  - php: 7.3.0RC1
+    sudo: required
+    dist: xenial
+    services: mysql
+    addons:
+      apt:
+        packages:
+          - libzip4
+  - php: 7.2
+    env: WP_TRAVISCI=travis:format
   - php: 7.1
     env: WP_TRAVISCI=travis:js
   - php: 7.2
@@ -31,6 +41,7 @@ matrix:
   - php: nightly
   allow_failures:
   - php: nightly
+  - php: 7.3.0RC1
 before_install:
 - |
   if [[ "$WP_TRAVISCI" == "travis:phpunit" ]]; then
@@ -39,7 +50,7 @@ before_install:
       sed -i "s/youremptytestdbnamehere/wordpress_tests/" wp-tests-config.php
       sed -i "s/yourusernamehere/root/" wp-tests-config.php
       sed -i "s/yourpasswordhere//" wp-tests-config.php
-      svn checkout https://plugins.svn.wordpress.org/wordpress-importer/tags/0.6.3/ tests/phpunit/data/plugins/wordpress-importer
+      travis_retry svn checkout https://plugins.svn.wordpress.org/wordpress-importer/tags/0.6.3/ tests/phpunit/data/plugins/wordpress-importer
   fi
 - |
   if [[ "$WP_TRAVIS_OBJECT_CACHE" == "true" ]]; then
@@ -64,13 +75,13 @@ before_script:
   # Install the specified version of PHPUnit depending on the PHP version:
   if [[ "$WP_TRAVISCI" == "travis:phpunit" ]]; then
     case "$TRAVIS_PHP_VERSION" in
-      7.2|7.1|7.0|nightly)
+      7.3.0RC1|7.2|7.1|7.0|nightly)
         echo "Using PHPUnit 6.x"
-        composer global require "phpunit/phpunit:^6"
+        travis_retry composer global require "phpunit/phpunit:^6"
         ;;
       5.6|5.5|5.4|5.3)
         echo "Using PHPUnit 4.x"
-        composer global require "phpunit/phpunit:^4"
+        travis_retry composer global require "phpunit/phpunit:^4"
         ;;
       5.2)
         # Do nothing, use default PHPUnit 3.6.x
@@ -81,6 +92,12 @@ before_script:
         exit 1
         ;;
     esac
+  fi
+- |
+  # We only need to run composer install on the code formatting job.
+  if [[ "$WP_TRAVISCI" == "travis:format" ]]; then
+    composer --version
+    travis_retry composer install
   fi
 - npm --version
 - node --version

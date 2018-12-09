@@ -2,13 +2,13 @@
  * Handles the addition of the comment form.
  *
  * @since 2.7.0
+ * @output wp-includes/js/comment-reply.js
  *
  * @namespace addComment
  *
  * @type {Object}
  */
-var addComment;
-addComment = ( function( window ) {
+window.addComment = ( function( window ) {
 	// Avoid scope lookups on commonly used variables.
 	var document = window.document;
 

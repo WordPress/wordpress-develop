@@ -39,13 +39,15 @@ function _wp_scripts_maybe_doing_it_wrong( $function ) {
 	}
 
 	_doing_it_wrong(
-		$function, sprintf(
+		$function,
+		sprintf(
 			/* translators: 1: wp_enqueue_scripts, 2: admin_enqueue_scripts, 3: login_enqueue_scripts */
 			__( 'Scripts and styles should not be registered or enqueued until the %1$s, %2$s, or %3$s hooks.' ),
 			'<code>wp_enqueue_scripts</code>',
 			'<code>admin_enqueue_scripts</code>',
 			'<code>login_enqueue_scripts</code>'
-		), '3.3.0'
+		),
+		'3.3.0'
 	);
 }
 
@@ -111,12 +113,14 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
 
 	if ( false !== stripos( $data, '</script>' ) ) {
 		_doing_it_wrong(
-			__FUNCTION__, sprintf(
+			__FUNCTION__,
+			sprintf(
 				/* translators: 1: <script>, 2: wp_add_inline_script() */
 				__( 'Do not pass %1$s tags to %2$s.' ),
 				'<code>&lt;script&gt;</code>',
 				'<code>wp_add_inline_script()</code>'
-			), '4.5.0'
+			),
+			'4.5.0'
 		);
 		$data = trim( preg_replace( '#<script[^>]*>(.*)</script>#is', '$1', $data ) );
 	}
@@ -136,7 +140,8 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
  * @since 4.3.0 A return value was added.
  *
  * @param string           $handle    Name of the script. Should be unique.
- * @param string           $src       Full URL of the script, or path of the script relative to the WordPress root directory.
+ * @param string|bool      $src       Full URL of the script, or path of the script relative to the WordPress root directory.
+ *                                    If source is set to false, script is an alias of other scripts it depends on.
  * @param array            $deps      Optional. An array of registered script handles this script depends on. Default empty array.
  * @param string|bool|null $ver       Optional. String specifying script version number, if it has one, which is added to the URL
  *                                    as a query string for cache busting purposes. If version is set to false, a version

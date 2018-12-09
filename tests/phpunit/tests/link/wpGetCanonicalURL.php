@@ -51,7 +51,8 @@ class Tests_WpGetCanonicalURL extends WP_UnitTestCase {
 			array(
 				'page' => 2,
 				'foo'  => 'bar',
-			), get_permalink( self::$post_id )
+			),
+			get_permalink( self::$post_id )
 		);
 
 		$this->go_to( $link );
@@ -59,7 +60,8 @@ class Tests_WpGetCanonicalURL extends WP_UnitTestCase {
 		$expected = add_query_arg(
 			array(
 				'page' => 2,
-			), get_permalink( self::$post_id )
+			),
+			get_permalink( self::$post_id )
 		);
 
 		$this->assertEquals( $expected, wp_get_canonical_url( self::$post_id ) );
@@ -76,7 +78,8 @@ class Tests_WpGetCanonicalURL extends WP_UnitTestCase {
 			array(
 				'page' => $page,
 				'foo'  => 'bar',
-			), get_permalink( self::$post_id )
+			),
+			get_permalink( self::$post_id )
 		);
 
 		$this->go_to( $link );
@@ -96,7 +99,8 @@ class Tests_WpGetCanonicalURL extends WP_UnitTestCase {
 			array(
 				'cpage' => $cpage,
 				'foo'   => 'bar',
-			), get_permalink( self::$post_id )
+			),
+			get_permalink( self::$post_id )
 		);
 
 		$this->go_to( $link );
@@ -104,7 +108,8 @@ class Tests_WpGetCanonicalURL extends WP_UnitTestCase {
 		$expected = add_query_arg(
 			array(
 				'cpage' => $cpage,
-			), get_permalink( self::$post_id ) . '#comments'
+			),
+			get_permalink( self::$post_id ) . '#comments'
 		);
 
 		$this->assertEquals( $expected, wp_get_canonical_url( self::$post_id ) );
@@ -123,7 +128,8 @@ class Tests_WpGetCanonicalURL extends WP_UnitTestCase {
 			array(
 				'cpage' => $cpage,
 				'foo'   => 'bar',
-			), get_permalink( self::$post_id )
+			),
+			get_permalink( self::$post_id )
 		);
 
 		$this->go_to( $link );
