@@ -14,10 +14,11 @@ include_files = {
 	'build/wp-includes/js/media-views.min.js': ['./src/js/_enqueues/wp/media/views.js'],
 };
 
-module.exports = [
-	{
+module.exports = function( env = { environment: "production" } ) {
+	const mode = env.environment;
+
+	const mediaConfig = {
 		cache: true,
-		watch: false,
 		entry: Object.assign( admin_files, include_files ),
 		output: {
 			filename: '[name]',
@@ -28,5 +29,11 @@ module.exports = [
 				minimize: true
 			})
 		]
+	};
+
+	if ( mode === 'production' ) {
+		mediaConfig.plugins.push( new webpack.optimize.ModuleConcatenationPlugin() );
 	}
-];
+
+	return mediaConfig;
+};

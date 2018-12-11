@@ -1,7 +1,6 @@
 /* jshint node:true */
 /* globals Set */
-var webpackConfig = require( './webpack.config.prod' );
-var webpackDevConfig = require( './webpack.config.dev' );
+var webpackConfig = require( './webpack.config' );
 
 module.exports = function(grunt) {
 	var path = require('path'),
@@ -704,8 +703,8 @@ module.exports = function(grunt) {
 			}
 		},
 		webpack: {
-			prod: webpackConfig,
-			dev: webpackDevConfig
+			prod: webpackConfig( { environment: 'production' } ),
+			dev: webpackConfig( { environment: 'development' } )
 		},
 		concat: {
 			tinymce: {
@@ -1090,7 +1089,6 @@ module.exports = function(grunt) {
 			config: {
 				files: [
 					'Gruntfile.js',
-					'webpack-dev.config.js',
 					'webpack.config.js'
 				]
 			},
