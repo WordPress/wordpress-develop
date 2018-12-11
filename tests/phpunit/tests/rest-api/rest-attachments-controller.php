@@ -1467,6 +1467,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$links    = $response->get_links();
 
 		$this->assertArrayHasKey( 'self', $links );
+		$this->assertArrayHasKey( 'author', $links );
+
+		$this->assertCount( 1, $links['author'] );
+		$this->assertArrayHasKey( 'embeddable', $links['author'][0]['attributes'] );
+		$this->assertTrue( $links['author'][0]['attributes']['embeddable'] );
 	}
 
 	public function test_publish_action_ldo_not_registered() {
