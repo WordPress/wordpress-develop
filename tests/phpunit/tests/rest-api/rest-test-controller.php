@@ -10,9 +10,23 @@
  * @group restapi
  */
 class WP_REST_Test_Controller extends WP_REST_Controller {
+	/**
+	 * Prepares the item for the REST response.
+	 *
+	 * @param mixed           $item    WordPress representation of the item.
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
+	 */
+	public function prepare_item_for_response( $item, $request ) {
+		$context  = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$item     = $this->add_additional_fields_to_object( $item, $request );
+		$item     = $this->filter_response_by_context( $item, $context );
+		$response = rest_ensure_response( $item );
+		return $response;
+	}
 
 	/**
-	 * Get the Post type's schema, conforming to JSON Schema
+	 * Get the item's schema, conforming to JSON Schema.
 	 *
 	 * @return array
 	 */
@@ -72,7 +86,7 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 			),
 		);
 
-		return $schema;
+		return $this->add_additional_fields_schema( $schema );
 	}
 
 }
