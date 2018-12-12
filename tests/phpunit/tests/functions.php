@@ -1115,8 +1115,8 @@ class Tests_Functions extends WP_UnitTestCase {
 				DIR_TESTDATA . '/formatting/big5.txt',
 				'big5.jpg',
 				array(
-					'ext' => 'jpg',
-					'type' => 'image/jpeg',
+					'ext' => false,
+					'type' => false,
 					'proper_filename' => false,
 				),
 			),
@@ -1124,6 +1124,26 @@ class Tests_Functions extends WP_UnitTestCase {
 			array(
 				DIR_TESTDATA . '/export/crazy-cdata.xml',
 				'crazy-cdata.xml',
+				array(
+					'ext' => false,
+					'type' => false,
+					'proper_filename' => false,
+				),
+			),
+			// Non-image file not allowed even if it's named like one.
+			array(
+				DIR_TESTDATA . '/export/crazy-cdata.xml',
+				'crazy-cdata.jpg',
+				array(
+					'ext' => false,
+					'type' => false,
+					'proper_filename' => false,
+				),
+			),
+			// Non-image file not allowed if it's named like something else.
+			array(
+				DIR_TESTDATA . '/export/crazy-cdata.xml',
+				'crazy-cdata.doc',
 				array(
 					'ext' => false,
 					'type' => false,
