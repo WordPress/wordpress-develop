@@ -461,12 +461,12 @@ class Tests_Functions extends WP_UnitTestCase {
 				'Mozilla/5.0 (iPad; CPU OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5376e Safari/8536.25',
 				true,
 			),
-			// Android 2.2, Android Webkit Browser 
+			// Android 2.2, Android Webkit Browser
 			array(
 				'Mozilla/5.0 (Android 2.2; Windows; U; Windows NT 6.1; en-US) AppleWebKit/533.19.4 (KHTML, like Gecko) Version/5.0.3 Safari/533.19.4',
 				true,
 			),
-			// BlackBerry 9900, BlackBerry browser 
+			// BlackBerry 9900, BlackBerry browser
 			array(
 				'Mozilla/5.0 (BlackBerry; U; BlackBerry 9900; en) AppleWebKit/534.11+ (KHTML, like Gecko) Version/7.1.0.346 Mobile Safari/534.11+',
 				true,
@@ -480,6 +480,26 @@ class Tests_Functions extends WP_UnitTestCase {
 			array(
 				'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:41.0) Gecko/20100101 Firefox/41.0',
 				true,
+			),
+			// Non-image file not allowed even if it's named like one.
+			array(
+				DIR_TESTDATA . '/export/crazy-cdata.xml',
+				'crazy-cdata.jpg',
+				array(
+					'ext' => false,
+					'type' => false,
+					'proper_filename' => false,
+				),
+			),
+			// Non-image file not allowed if it's named like something else.
+			array(
+				DIR_TESTDATA . '/export/crazy-cdata.xml',
+				'crazy-cdata.doc',
+				array(
+					'ext' => false,
+					'type' => false,
+					'proper_filename' => false,
+				),
 			),
 		);
 	}
