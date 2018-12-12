@@ -498,26 +498,6 @@ class Tests_Functions extends WP_UnitTestCase {
 				'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:41.0) Gecko/20100101 Firefox/41.0',
 				true,
 			),
-			// Non-image file not allowed even if it's named like one.
-			array(
-				DIR_TESTDATA . '/export/crazy-cdata.xml',
-				'crazy-cdata.jpg',
-				array(
-					'ext' => false,
-					'type' => false,
-					'proper_filename' => false,
-				),
-			),
-			// Non-image file not allowed if it's named like something else.
-			array(
-				DIR_TESTDATA . '/export/crazy-cdata.xml',
-				'crazy-cdata.doc',
-				array(
-					'ext' => false,
-					'type' => false,
-					'proper_filename' => false,
-				),
-			),
 		);
 	}
 
