@@ -825,4 +825,99 @@ EOF;
 			),
 		);
 	}
+
+	/**
+	 * Data attributes are globally accepted.
+	 *
+	 * @ticket 33121
+	 */
+	function test_wp_kses_attr_data_attribute_is_allowed() {
+		$test     = '<div data-foo="foo" data-bar="bar" datainvalid="gone" data--invaild="gone"  data-also-invaild-="gone" data-two-hyphens="remains">Pens and pencils</div>';
+		$expected = '<div data-foo="foo" data-bar="bar" data-two-hyphens="remains">Pens and pencils</div>';
+
+		$this->assertEquals( $expected, wp_kses_post( $test ) );
+	}
+
+	/**
+	 * Ensure wildcard attributes block unprefixed wildcard uses.
+	 *
+	 * @ticket 33121
+	 */
+	function test_wildcard_requires_hyphen_after_prefix() {
+		$allowed_html = array(
+			'div' => array(
+				'data-*' => true,
+				'on-*'   => true,
+			),
+		);
+
+		$string   = '<div datamelformed-prefix="gone" data="gone" data-="gone" onclick="alert(1)">Malformed attributes</div>';
+		$expected = '<div>Malformed attributes</div>';
+
+		$actual = wp_kses( $string, $allowed_html );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Ensure wildcard allows two hyphen.
+	 *
+	 * @ticket 33121
+	 */
+	function test_wildcard_allows_two_hyphens() {
+		$allowed_html = array(
+			'div' => array(
+				'data-*' => true,
+			),
+		);
+
+		$string   = '<div data-wp-id="pens-and-pencils">Well formed attribute</div>';
+		$expected = '<div data-wp-id="pens-and-pencils">Well formed attribute</div>';
+
+		$actual = wp_kses( $string, $allowed_html );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Ensure wildcard attributes only support valid prefixes.
+	 *
+	 * @dataProvider data_wildcard_attribute_prefixes
+	 *
+	 * @ticket 33121
+	 */
+	function test_wildcard_attribute_prefixes( $wildcard_attribute, $expected ) {
+		$allowed_html = array(
+			'div' => array(
+				$wildcard_attribute => true,
+			),
+		);
+
+		$name  = str_replace( '*', strtolower( __FUNCTION__ ), $wildcard_attribute );
+		$value = __FUNCTION__;
+		$whole = "{$name}=\"{$value}\"";
+
+		$actual = wp_kses_attr_check( $name, $value, $whole, 'n', 'div', $allowed_html );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * @return array Array of arguments for wildcard testing
+	 *               [0] The prefix being tested.
+	 *               [1] The outcome of `wp_kses_attr_check` for the prefix.
+	 */
+	function data_wildcard_attribute_prefixes() {
+		return array(
+			// Ends correctly
+			array( 'data-*', true ),
+
+			// Does not end with trialing `-`.
+			array( 'data*', false ),
+
+			// Multiple wildcards.
+			array( 'd*ta-*', false ),
+			array( 'data**', false ),
+		);
+	}
 }

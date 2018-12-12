@@ -1079,9 +1079,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			array(
 				// Raw values.
 				array(
-					'title'       => '<a href="#" target="_blank" data-unfiltered=true>link</a>',
-					'description' => '<a href="#" target="_blank" data-unfiltered=true>link</a>',
-					'caption'     => '<a href="#" target="_blank" data-unfiltered=true>link</a>',
+					'title'       => '<a href="#" target="_blank" unfiltered=true>link</a>',
+					'description' => '<a href="#" target="_blank" unfiltered=true>link</a>',
+					'caption'     => '<a href="#" target="_blank" unfiltered=true>link</a>',
 				),
 				// Expected returned values.
 				array(
