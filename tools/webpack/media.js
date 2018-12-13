@@ -18,10 +18,9 @@ include_files = {
 const baseDir = path.join( __dirname, '../../' );
 
 module.exports = function( env = { environment: 'production', watch: false } ) {
-	const mode = env.environment;
 
 	const mediaConfig = {
-		mode,
+		mode: "production",
 		cache: true,
 		entry: Object.assign( admin_files, include_files ),
 		output: {
