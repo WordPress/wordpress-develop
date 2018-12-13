@@ -1,3 +1,5 @@
+const UglifyJsPlugin = require( 'uglifyjs-webpack-plugin' );
+
 var path        	= require( 'path' ),
 	webpack       	= require( 'webpack' ),
 	admin_files   	= {},
@@ -18,22 +20,22 @@ module.exports = function( env = { environment: "production" } ) {
 	const mode = env.environment;
 
 	const mediaConfig = {
+		mode,
 		cache: true,
 		entry: Object.assign( admin_files, include_files ),
 		output: {
+			path: path.resolve( __dirname ),
 			filename: '[name]',
 		},
-		plugins: [
-			new webpack.optimize.UglifyJsPlugin({
-				include: /\.min\.js$/,
-				minimize: true
-			})
-		]
+		optimization: {
+			minimize: true,
+			minimizer: [
+				new UglifyJsPlugin( {
+					include: /\.min\.js$/,
+				} )
+			]
+		},
 	};
-
-	if ( mode === 'production' ) {
-		mediaConfig.plugins.push( new webpack.optimize.ModuleConcatenationPlugin() );
-	}
 
 	return mediaConfig;
 };
