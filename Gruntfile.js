@@ -704,7 +704,8 @@ module.exports = function(grunt) {
 		},
 		webpack: {
 			prod: webpackConfig( { environment: 'production' } ),
-			dev: webpackConfig( { environment: 'development' } )
+			dev: webpackConfig( { environment: 'development' } ),
+			watch: webpackConfig( { environment: 'development', watch: true } )
 		},
 		concat: {
 			tinymce: {
