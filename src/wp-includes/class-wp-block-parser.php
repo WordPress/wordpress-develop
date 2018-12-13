@@ -245,15 +245,17 @@ class WP_Block_Parser {
 				 */
 				if ( 0 === $stack_depth ) {
 					if ( isset( $leading_html_start ) ) {
-						$this->output[] = (array) self::freeform( substr(
-							$this->document,
-							$leading_html_start,
-							$start_offset - $leading_html_start
-						) );
+						$this->output[] = (array) self::freeform(
+							substr(
+								$this->document,
+								$leading_html_start,
+								$start_offset - $leading_html_start
+							)
+						);
 					}
 
 					$this->output[] = (array) new WP_Block_Parser_Block( $block_name, $attrs, array(), '' );
-					$this->offset = $start_offset + $token_length;
+					$this->offset   = $start_offset + $token_length;
 					return true;
 				}
 
@@ -268,13 +270,16 @@ class WP_Block_Parser {
 
 			case 'block-opener':
 				// track all newly-opened blocks on the stack
-				array_push( $this->stack, new WP_Block_Parser_Frame(
-					new WP_Block_Parser_Block( $block_name, $attrs, array(), '' ),
-					$start_offset,
-					$token_length,
-					$start_offset + $token_length,
-					$leading_html_start
-				) );
+				array_push(
+					$this->stack,
+					new WP_Block_Parser_Frame(
+						new WP_Block_Parser_Block( $block_name, $attrs, array(), '' ),
+						$start_offset,
+						$token_length,
+						$start_offset + $token_length,
+						$leading_html_start
+					)
+				);
 				$this->offset = $start_offset + $token_length;
 				return true;
 
@@ -305,9 +310,9 @@ class WP_Block_Parser {
 				 * otherwise we're nested and we have to close out the current
 				 * block and add it as a new innerBlock to the parent
 				 */
-				$stack_top = array_pop( $this->stack );
+				$stack_top                    = array_pop( $this->stack );
 				$stack_top->block->innerHTML .= substr( $this->document, $stack_top->prev_offset, $start_offset - $stack_top->prev_offset );
-				$stack_top->prev_offset = $start_offset + $token_length;
+				$stack_top->prev_offset       = $start_offset + $token_length;
 
 				$this->add_inner_block(
 					$stack_top->block,
@@ -359,22 +364,22 @@ class WP_Block_Parser {
 			return array( 'no-more-tokens', null, null, null, null );
 		}
 
-		list( $match, $started_at ) = $matches[ 0 ];
+		list( $match, $started_at ) = $matches[0];
 
 		$length    = strlen( $match );
-		$is_closer = isset( $matches[ 'closer' ] ) && -1 !== $matches[ 'closer' ][ 1 ];
-		$is_void   = isset( $matches[ 'void' ] ) && -1 !== $matches[ 'void' ][ 1 ];
-		$namespace = $matches[ 'namespace' ];
-		$namespace = ( isset( $namespace ) && -1 !== $namespace[ 1 ] ) ? $namespace[ 0 ] : 'core/';
-		$name      = $namespace . $matches[ 'name' ][ 0 ];
-		$has_attrs = isset( $matches[ 'attrs' ] ) && -1 !== $matches[ 'attrs' ][ 1 ];
+		$is_closer = isset( $matches['closer'] ) && -1 !== $matches['closer'][1];
+		$is_void   = isset( $matches['void'] ) && -1 !== $matches['void'][1];
+		$namespace = $matches['namespace'];
+		$namespace = ( isset( $namespace ) && -1 !== $namespace[1] ) ? $namespace[0] : 'core/';
+		$name      = $namespace . $matches['name'][0];
+		$has_attrs = isset( $matches['attrs'] ) && -1 !== $matches['attrs'][1];
 
 		/*
 		 * Fun fact! It's not trivial in PHP to create "an empty associative array" since all arrays
 		 * are associative arrays. If we use `array()` we get a JSON `[]`
 		 */
 		$attrs = $has_attrs
-			? json_decode( $matches[ 'attrs' ][ 0 ], /* as-associative */ true )
+			? json_decode( $matches['attrs'][0], /* as-associative */ true )
 			: json_decode( '{}', /* don't ask why, just verify in PHP */ false );
 
 		/*
@@ -439,10 +444,10 @@ class WP_Block_Parser {
 	 * @param int|null $last_offset last byte offset into document if continuing form earlier output
 	 */
 	function add_inner_block( WP_Block_Parser_Block $block, $token_start, $token_length, $last_offset = null ) {
-		$parent = $this->stack[ count( $this->stack ) - 1 ];
+		$parent                       = $this->stack[ count( $this->stack ) - 1 ];
 		$parent->block->innerBlocks[] = $block;
-		$parent->block->innerHTML .= substr( $this->document, $parent->prev_offset, $token_start - $parent->prev_offset );
-		$parent->prev_offset = $last_offset ? $last_offset : $token_start + $token_length;
+		$parent->block->innerHTML    .= substr( $this->document, $parent->prev_offset, $token_start - $parent->prev_offset );
+		$parent->prev_offset          = $last_offset ? $last_offset : $token_start + $token_length;
 	}
 
 	/**
@@ -461,11 +466,13 @@ class WP_Block_Parser {
 			: substr( $this->document, $prev_offset );
 
 		if ( isset( $stack_top->leading_html_start ) ) {
-			$this->output[] = (array) self::freeform( substr(
-				$this->document,
-				$stack_top->leading_html_start,
-				$stack_top->token_start - $stack_top->leading_html_start
-			) );
+			$this->output[] = (array) self::freeform(
+				substr(
+					$this->document,
+					$stack_top->leading_html_start,
+					$stack_top->token_start - $stack_top->leading_html_start
+				)
+			);
 		}
 
 		$this->output[] = (array) $stack_top->block;
