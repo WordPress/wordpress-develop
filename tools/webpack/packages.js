@@ -116,6 +116,10 @@ module.exports = function( env = { environment: 'production', watch: false } ) {
 		'wp-polyfill-node-contains.min.js': 'polyfill-library/polyfills/Node/prototype/contains/polyfill.js',
 	};
 
+	const phpFiles = {
+		'block-serialization-default-parser/parser.php': 'wp-includes/class-wp-block-parser.php',
+	};
+
 	const externals = {
 		react: 'React',
 		'react-dom': 'ReactDOM',
@@ -162,6 +166,11 @@ module.exports = function( env = { environment: 'production', watch: false } ) {
 
 			return content;
 		}
+	} ) );
+
+	const phpCopies = Object.keys( phpFiles ).map( ( filename ) => ( {
+		from: join( baseDir, `node_modules/@wordpress/${ filename }` ),
+		to: join( baseDir, `src/${ phpFiles[ filename ] }` ),
 	} ) );
 
 	const config = {
@@ -232,6 +241,7 @@ module.exports = function( env = { environment: 'production', watch: false } ) {
 				[
 					...vendorCopies,
 					...cssCopies,
+					...phpCopies,
 				],
 			),
 		],
