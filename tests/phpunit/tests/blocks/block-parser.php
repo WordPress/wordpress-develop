@@ -59,7 +59,7 @@ class WP_Test_Block_Parser extends WP_UnitTestCase {
 
 		foreach ( array( $html_path, $parsed_json_path ) as $filename ) {
 			if ( ! file_exists( $filename ) ) {
-				//throw new Exception( "Missing fixture file: '$filename'" );
+				throw new Exception( "Missing fixture file: '$filename'" );
 			}
 		}
 
@@ -116,5 +116,4 @@ class WP_Test_Block_Parser extends WP_UnitTestCase {
 	protected function strip_r( $input ) {
 		return str_replace( "\r", '', $input );
 	}
-
 }
