@@ -1360,6 +1360,7 @@ module.exports = function(grunt) {
 		'includes:embed',
 		'usebanner',
 		'webpack:prod',
+		'webpack:dev',
 		'jsvalidate:build'
 	] );
 
