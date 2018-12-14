@@ -12,8 +12,8 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	protected static $editor;
 	protected static $administrator;
 	protected static $subscriber;
-	const YOUTUBE_VIDEO_ID   = 'OQSNhk5ICTI';
-	const INVALID_OEMBED_URL = 'https://www.notreallyanoembedprovider.com/watch?v=awesome-cat-video';
+	const YOUTUBE_VIDEO_ID       = 'OQSNhk5ICTI';
+	const INVALID_OEMBED_URL     = 'https://www.notreallyanoembedprovider.com/watch?v=awesome-cat-video';
 	const UNTRUSTED_PROVIDER_URL = 'https://www.untrustedprovider.com';
 
 	public static function wpSetUpBeforeClass( $factory ) {
@@ -137,13 +137,13 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 				),
 				'body'     => wp_json_encode(
 					array(
-						'version'          => '1.0',
-						'type'             => 'rich',
-						'provider_name'    => 'Untrusted',
-						'provider_url'     => self::UNTRUSTED_PROVIDER_URL,
-						'html'             => '<b>Filtered</b><a href="">Unfiltered</a>',
-						'author_name'      => 'Untrusted Embed Author',
-						'title'            => 'Untrusted Embed',
+						'version'       => '1.0',
+						'type'          => 'rich',
+						'provider_name' => 'Untrusted',
+						'provider_url'  => self::UNTRUSTED_PROVIDER_URL,
+						'html'          => '<b>Filtered</b><a href="">Unfiltered</a>',
+						'author_name'   => 'Untrusted Embed Author',
+						'title'         => 'Untrusted Embed',
 					)
 				),
 			);
@@ -651,13 +651,17 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	function test_proxy_with_internal_url() {
 		wp_set_current_user( self::$editor );
 
-		$user = self::factory()->user->create_and_get( array(
-			'display_name' => 'John Doe',
-		) );
-		$post = self::factory()->post->create_and_get( array(
-			'post_author' => $user->ID,
-			'post_title'  => 'Hello World',
-		) );
+		$user = self::factory()->user->create_and_get(
+			array(
+				'display_name' => 'John Doe',
+			)
+		);
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_author' => $user->ID,
+				'post_title'  => 'Hello World',
+			)
+		);
 
 		$request = new WP_REST_Request( 'GET', '/oembed/1.0/proxy' );
 		$request->set_param( 'url', get_permalink( $post->ID ) );
@@ -695,11 +699,13 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	function test_proxy_with_static_front_page_url() {
 		wp_set_current_user( self::$editor );
 
-		$post = self::factory()->post->create_and_get( array(
-			'post_title'  => 'Front page',
-			'post_type'   => 'page',
-			'post_author' => 0,
-		) );
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_title'  => 'Front page',
+				'post_type'   => 'page',
+				'post_author' => 0,
+			)
+		);
 
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_on_front', $post->ID );
