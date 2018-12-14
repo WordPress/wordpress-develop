@@ -1346,7 +1346,6 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'build', [
 		'clean:all',
-		'webpack:dev',
 		'copy:all',
 		'file_append',
 		'cssmin:core',
@@ -1360,6 +1359,7 @@ module.exports = function(grunt) {
 		'includes:emoji',
 		'includes:embed',
 		'usebanner',
+		'webpack:prod',
 		'jsvalidate:build'
 	] );
 
