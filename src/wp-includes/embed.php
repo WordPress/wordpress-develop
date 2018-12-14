@@ -61,13 +61,11 @@ function wp_embed_unregister_handler( $id, $priority = 10 ) {
  * @return array Default embed parameters.
  */
 function wp_embed_defaults( $url = '' ) {
-	if ( ! empty( $GLOBALS['content_width'] ) ) {
+	if ( ! empty( $GLOBALS['content_width'] ) )
 		$width = (int) $GLOBALS['content_width'];
-	}
 
-	if ( empty( $width ) ) {
+	if ( empty( $width ) )
 		$width = 500;
-	}
 
 	$height = min( ceil( $width * 1.5 ), 1000 );
 
@@ -76,7 +74,7 @@ function wp_embed_defaults( $url = '' ) {
 	 *
 	 * @since 2.9.0
 	 *
-	 * @param int[]  $size An array of embed width and height values
+	 * @param array  $size An array of embed width and height values
 	 *                     in pixels (in that order).
 	 * @param string $url  The URL that should be embedded.
 	 */
@@ -133,8 +131,8 @@ function _wp_oembed_get_object() {
  */
 function wp_oembed_add_provider( $format, $provider, $regex = false ) {
 	if ( did_action( 'plugins_loaded' ) ) {
-		$oembed                       = _wp_oembed_get_object();
-		$oembed->providers[ $format ] = array( $provider, $regex );
+		$oembed = _wp_oembed_get_object();
+		$oembed->providers[$format] = array( $provider, $regex );
 	} else {
 		WP_oEmbed::_add_provider_early( $format, $provider, $regex );
 	}
@@ -228,7 +226,7 @@ function wp_maybe_load_embeds() {
  */
 function wp_embed_handler_youtube( $matches, $attr, $url, $rawattr ) {
 	global $wp_embed;
-	$embed = $wp_embed->autoembed( sprintf( 'https://youtube.com/watch?v=%s', urlencode( $matches[2] ) ) );
+	$embed = $wp_embed->autoembed( sprintf( "https://youtube.com/watch?v=%s", urlencode( $matches[2] ) ) );
 
 	/**
 	 * Filters the YoutTube embed output.
@@ -397,13 +395,10 @@ function get_oembed_endpoint_url( $permalink = '', $format = 'json' ) {
 	$url = rest_url( 'oembed/1.0/embed' );
 
 	if ( '' !== $permalink ) {
-		$url = add_query_arg(
-			array(
-				'url'    => urlencode( $permalink ),
-				'format' => ( 'json' !== $format ) ? $format : false,
-			),
-			$url
-		);
+		$url = add_query_arg( array(
+			'url'    => urlencode( $permalink ),
+			'format' => ( 'json' !== $format ) ? $format : false,
+		), $url );
 	}
 
 	/**
@@ -454,7 +449,7 @@ function get_post_embed_html( $width, $height, $post = null ) {
 		 * minified JavaScript. If you need to debug it, please turn on SCRIPT_DEBUG
 		 * and edit wp-embed.js directly.
 		 */
-		$output .= <<<JS
+		$output .=<<<JS
 		include "js/wp-embed.min.js"
 JS;
 	}
@@ -522,13 +517,10 @@ function get_oembed_response_data( $post, $width ) {
 	 *     @type int $max Maximum width. Default 600.
 	 * }
 	 */
-	$min_max_width = apply_filters(
-		'oembed_min_max_width',
-		array(
-			'min' => 200,
-			'max' => 600,
-		)
-	);
+	$min_max_width = apply_filters( 'oembed_min_max_width', array(
+		'min' => 200,
+		'max' => 600
+	) );
 
 	$width  = min( max( $min_max_width['min'], $width ), $min_max_width['max'] );
 	$height = max( ceil( $width / 16 * 9 ), 200 );
@@ -563,6 +555,71 @@ function get_oembed_response_data( $post, $width ) {
 	return apply_filters( 'oembed_response_data', $data, $post, $width, $height );
 }
 
+
+/**
+ * Retrieves the oEmbed response data for a given URL.
+ *
+ * @since 5.0.0
+ *
+ * @param string $url  The URL that should be inspected for discovery `<link>` tags.
+ * @param array  $args oEmbed remote get arguments.
+ * @return object|false oEmbed response data if the URL does belong to the current site. False otherwise.
+ */
+function get_oembed_response_data_for_url( $url, $args ) {
+	$switched_blog = false;
+
+	if ( is_multisite() ) {
+		$url_parts = wp_parse_args( wp_parse_url( $url ), array(
+			'host'   => '',
+			'path'   => '/',
+		) );
+
+		$qv = array( 'domain' => $url_parts['host'], 'path' => '/' );
+
+		// In case of subdirectory configs, set the path.
+		if ( ! is_subdomain_install() ) {
+			$path = explode( '/', ltrim( $url_parts['path'], '/' ) );
+			$path = reset( $path );
+
+			if ( $path ) {
+				$qv['path'] = get_network()->path . $path . '/';
+			}
+		}
+
+		$sites = get_sites( $qv );
+		$site  = reset( $sites );
+
+		if ( $site && (int) $site->blog_id !== get_current_blog_id() ) {
+			switch_to_blog( $site->blog_id );
+			$switched_blog = true;
+		}
+	}
+
+	$post_id = url_to_postid( $url );
+
+	/** This filter is documented in wp-includes/class-wp-oembed-controller.php */
+	$post_id = apply_filters( 'oembed_request_post_id', $post_id, $url );
+
+	if ( ! $post_id ) {
+		if ( $switched_blog ) {
+			restore_current_blog();
+		}
+
+		return false;
+	}
+
+	$width = isset( $args['width'] ) ? $args['width'] : 0;
+
+	$data = get_oembed_response_data( $post_id, $width );
+
+	if ( $switched_blog ) {
+		restore_current_blog();
+	}
+
+	return $data ? (object) $data : false;
+}
+
+
 /**
  * Filters the oEmbed response data to return an iframe embed code.
  *
@@ -590,7 +647,7 @@ function get_oembed_response_data_rich( $data, $post, $width, $height ) {
 	if ( 'attachment' === get_post_type( $post ) ) {
 		if ( wp_attachment_is_image( $post ) ) {
 			$thumbnail_id = $post->ID;
-		} elseif ( wp_attachment_is( 'video', $post ) ) {
+		} else if ( wp_attachment_is( 'video', $post ) ) {
 			$thumbnail_id = get_post_thumbnail_id( $post );
 			$data['type'] = 'video';
 		}
@@ -598,9 +655,9 @@ function get_oembed_response_data_rich( $data, $post, $width, $height ) {
 
 	if ( $thumbnail_id ) {
 		list( $thumbnail_url, $thumbnail_width, $thumbnail_height ) = wp_get_attachment_image_src( $thumbnail_id, array( $width, 99999 ) );
-		$data['thumbnail_url']                                      = $thumbnail_url;
-		$data['thumbnail_width']                                    = $thumbnail_width;
-		$data['thumbnail_height']                                   = $thumbnail_height;
+		$data['thumbnail_url']    = $thumbnail_url;
+		$data['thumbnail_width']  = $thumbnail_width;
+		$data['thumbnail_height'] = $thumbnail_height;
 	}
 
 	return $data;
@@ -737,7 +794,7 @@ function wp_filter_oembed_result( $result, $data, $url ) {
 
 	$allowed_html = array(
 		'a'          => array(
-			'href' => true,
+			'href'         => true,
 		),
 		'blockquote' => array(),
 		'iframe'     => array(
@@ -767,14 +824,14 @@ function wp_filter_oembed_result( $result, $data, $url ) {
 		$secret = wp_generate_password( 10, false );
 
 		$url = esc_url( "{$results[2]}#?secret=$secret" );
-		$q   = $results[1];
+		$q = $results[1];
 
 		$html = str_replace( $results[0], ' src=' . $q . $url . $q . ' data-secret=' . $q . $secret . $q, $html );
 		$html = str_replace( '<blockquote', "<blockquote data-secret=\"$secret\"", $html );
 	}
 
 	$allowed_html['blockquote']['data-secret'] = true;
-	$allowed_html['iframe']['data-secret']     = true;
+	$allowed_html['iframe']['data-secret'] = true;
 
 	$html = wp_kses( $html, $allowed_html );
 
@@ -805,8 +862,7 @@ function wp_embed_excerpt_more( $more_string ) {
 		return $more_string;
 	}
 
-	$link = sprintf(
-		'<a href="%1$s" class="wp-embed-more" target="_top">%2$s</a>',
+	$link = sprintf( '<a href="%1$s" class="wp-embed-more" target="_top">%2$s</a>',
 		esc_url( get_permalink() ),
 		/* translators: %s: Name of current post */
 		sprintf( __( 'Continue reading %s' ), '<span class="screen-reader-text">' . get_the_title() . '</span>' )
@@ -882,23 +938,23 @@ function print_embed_styles() {
 	?>
 	<style type="text/css">
 	<?php
-	if ( SCRIPT_DEBUG ) {
-		readfile( ABSPATH . WPINC . '/css/wp-embed-template.css' );
-	} else {
-		/*
-		 * If you're looking at a src version of this file, you'll see an "include"
-		 * statement below. This is used by the `grunt build` process to directly
-		 * include a minified version of wp-oembed-embed.css, instead of using the
-		 * readfile() method from above.
-		 *
-		 * If you're looking at a build version of this file, you'll see a string of
-		 * minified CSS. If you need to debug it, please turn on SCRIPT_DEBUG
-		 * and edit wp-embed-template.css directly.
-		 */
-		?>
-		include "css/wp-embed-template.min.css"
-		<?php
-	}
+		if ( SCRIPT_DEBUG ) {
+			readfile( ABSPATH . WPINC . "/css/wp-embed-template.css" );
+		} else {
+			/*
+			 * If you're looking at a src version of this file, you'll see an "include"
+			 * statement below. This is used by the `grunt build` process to directly
+			 * include a minified version of wp-oembed-embed.css, instead of using the
+			 * readfile() method from above.
+			 *
+			 * If you're looking at a build version of this file, you'll see a string of
+			 * minified CSS. If you need to debug it, please turn on SCRIPT_DEBUG
+			 * and edit wp-embed-template.css directly.
+			 */
+			?>
+			include "css/wp-embed-template.min.css"
+			<?php
+		}
 	?>
 	</style>
 	<?php
@@ -913,23 +969,23 @@ function print_embed_scripts() {
 	?>
 	<script type="text/javascript">
 	<?php
-	if ( SCRIPT_DEBUG ) {
-		readfile( ABSPATH . WPINC . '/js/wp-embed-template.js' );
-	} else {
-		/*
-		 * If you're looking at a src version of this file, you'll see an "include"
-		 * statement below. This is used by the `grunt build` process to directly
-		 * include a minified version of wp-embed-template.js, instead of using the
-		 * readfile() method from above.
-		 *
-		 * If you're looking at a build version of this file, you'll see a string of
-		 * minified JavaScript. If you need to debug it, please turn on SCRIPT_DEBUG
-		 * and edit wp-embed-template.js directly.
-		 */
-		?>
-		include "js/wp-embed-template.min.js"
-		<?php
-	}
+		if ( SCRIPT_DEBUG ) {
+			readfile( ABSPATH . WPINC . "/js/wp-embed-template.js" );
+		} else {
+			/*
+			 * If you're looking at a src version of this file, you'll see an "include"
+			 * statement below. This is used by the `grunt build` process to directly
+			 * include a minified version of wp-embed-template.js, instead of using the
+			 * readfile() method from above.
+			 *
+			 * If you're looking at a build version of this file, you'll see a string of
+			 * minified JavaScript. If you need to debug it, please turn on SCRIPT_DEBUG
+			 * and edit wp-embed-template.js directly.
+			 */
+			?>
+			include "js/wp-embed-template.min.js"
+			<?php
+		}
 	?>
 	</script>
 	<?php
@@ -1080,66 +1136,11 @@ function the_embed_site_title() {
  *                     Null if the URL does not belong to the current site.
  */
 function wp_filter_pre_oembed_result( $result, $url, $args ) {
-	$switched_blog = false;
+	$data = get_oembed_response_data_for_url( $url, $args );
 
-	if ( is_multisite() ) {
-		$url_parts = wp_parse_args(
-			wp_parse_url( $url ),
-			array(
-				'host' => '',
-				'path' => '/',
-			)
-		);
-
-		$qv = array(
-			'domain' => $url_parts['host'],
-			'path'   => '/',
-		);
-
-		// In case of subdirectory configs, set the path.
-		if ( ! is_subdomain_install() ) {
-			$path = explode( '/', ltrim( $url_parts['path'], '/' ) );
-			$path = reset( $path );
-
-			if ( $path ) {
-				$qv['path'] = get_network()->path . $path . '/';
-			}
-		}
-
-		$sites = get_sites( $qv );
-		$site  = reset( $sites );
-
-		if ( $site && (int) $site->blog_id !== get_current_blog_id() ) {
-			switch_to_blog( $site->blog_id );
-			$switched_blog = true;
-		}
+	if ( $data ) {
+		return _wp_oembed_get_object()->data2html( $data, $url );
 	}
 
-	$post_id = url_to_postid( $url );
-
-	/** This filter is documented in wp-includes/class-wp-oembed-controller.php */
-	$post_id = apply_filters( 'oembed_request_post_id', $post_id, $url );
-
-	if ( ! $post_id ) {
-		if ( $switched_blog ) {
-			restore_current_blog();
-		}
-
-		return $result;
-	}
-
-	$width = isset( $args['width'] ) ? $args['width'] : 0;
-
-	$data = get_oembed_response_data( $post_id, $width );
-	$data = _wp_oembed_get_object()->data2html( (object) $data, $url );
-
-	if ( $switched_blog ) {
-		restore_current_blog();
-	}
-
-	if ( ! $data ) {
-		return $result;
-	}
-
-	return $data;
+	return $result;
 }
