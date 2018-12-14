@@ -4,24 +4,45 @@
  * @group scripts
  */
 class Tests_Dependencies_Styles extends WP_UnitTestCase {
-	var $old_wp_styles;
+	private $old_wp_styles;
+	private $old_wp_scripts;
 
 	function setUp() {
 		parent::setUp();
+
 		if ( empty( $GLOBALS['wp_styles'] ) ) {
 			$GLOBALS['wp_styles'] = null;
 		}
+
 		$this->old_wp_styles = $GLOBALS['wp_styles'];
+
+		if ( empty( $GLOBALS['wp_scripts'] ) ) {
+			$GLOBALS['wp_scripts'] = null;
+		}
+
+		$this->old_wp_styles = $GLOBALS['wp_scripts'];
+
 		remove_action( 'wp_default_styles', 'wp_default_styles' );
 		remove_action( 'wp_print_styles', 'print_emoji_styles' );
+
 		$GLOBALS['wp_styles']                  = new WP_Styles();
 		$GLOBALS['wp_styles']->default_version = get_bloginfo( 'version' );
+
+		$GLOBALS['wp_scripts']                  = new WP_Scripts();
+		$GLOBALS['wp_scripts']->default_version = get_bloginfo( 'version' );
 	}
 
 	function tearDown() {
-		$GLOBALS['wp_styles'] = $this->old_wp_styles;
+		$GLOBALS['wp_styles']  = $this->old_wp_styles;
+		$GLOBALS['wp_scripts'] = $this->old_wp_scripts;
+
 		add_action( 'wp_default_styles', 'wp_default_styles' );
 		add_action( 'wp_print_styles', 'print_emoji_styles' );
+
+		if ( current_theme_supports( 'wp-block-styles' ) ) {
+			remove_theme_support( 'wp-block-styles' );
+		}
+
 		parent::tearDown();
 	}
 
@@ -304,5 +325,68 @@ CSS;
 				'not screen and (color)',
 			),
 		);
+	}
+
+	/**
+	 * Tests that visual block styles are enqueued in the editor even when there is not theme support for 'wp-block-styles'.
+	 *
+	 * Visual block styles should always be enqueued when editing to avoid the appearance of a broken editor.
+	 */
+	function test_block_styles_for_editing_without_theme_support() {
+		// Confirm we are without theme support by default.
+		$this->assertFalse( current_theme_supports( 'wp-block-styles' ) );
+
+		wp_default_styles( $GLOBALS['wp_styles'] );
+
+		$this->assertFalse( wp_style_is( 'wp-block-library-theme' ) );
+		wp_enqueue_style( 'wp-edit-blocks' );
+		$this->assertTrue( wp_style_is( 'wp-block-library-theme' ) );
+	}
+
+	/**
+	 * Tests that visual block styles are enqueued when there is theme support for 'wp-block-styles'.
+	 *
+	 * Visual block styles should always be enqueued when editing to avoid the appearance of a broken editor.
+	 */
+	function test_block_styles_for_editing_with_theme_support() {
+		add_theme_support( 'wp-block-styles' );
+
+		wp_default_styles( $GLOBALS['wp_styles'] );
+
+		$this->assertFalse( wp_style_is( 'wp-block-library-theme' ) );
+		wp_common_block_scripts_and_styles();
+		$this->assertTrue( wp_style_is( 'wp-block-library-theme' ) );
+	}
+
+	/**
+	 * Tests that visual block styles are not enqueued for viewing when there is no theme support for 'wp-block-styles'.
+	 *
+	 * Visual block styles should not be enqueued unless a theme opts in.
+	 * This way we avoid style conflicts with existing themes.
+	 */
+	function test_no_block_styles_for_viewing_without_theme_support() {
+		// Confirm we are without theme support by default.
+		$this->assertFalse( current_theme_supports( 'wp-block-styles' ) );
+
+		wp_default_styles( $GLOBALS['wp_styles'] );
+
+		$this->assertFalse( wp_style_is( 'wp-block-library-theme' ) );
+		wp_enqueue_style( 'wp-block-library' );
+		$this->assertFalse( wp_style_is( 'wp-block-library-theme' ) );
+	}
+
+	/**
+	 * Tests that visual block styles are enqueued for viewing when there is theme support for 'wp-block-styles'.
+	 *
+	 * Visual block styles should be enqueued when a theme opts in.
+	 */
+	function test_block_styles_for_viewing_with_theme_support() {
+		add_theme_support( 'wp-block-styles' );
+
+		wp_default_styles( $GLOBALS['wp_styles'] );
+
+		$this->assertFalse( wp_style_is( 'wp-block-library-theme' ) );
+		wp_common_block_scripts_and_styles();
+		$this->assertTrue( wp_style_is( 'wp-block-library-theme' ) );
 	}
 }
