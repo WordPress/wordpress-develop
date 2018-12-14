@@ -37,20 +37,27 @@ class Tests_Kses extends WP_UnitTestCase {
 		global $allowedposttags;
 
 		$attributes = array(
-			'class'  => 'classname',
-			'id'     => 'id',
-			'style'  => 'color: red;',
-			'title'  => 'title',
-			'href'   => 'http://example.com',
-			'rel'    => 'related',
-			'rev'    => 'revision',
-			'name'   => 'name',
-			'target' => '_blank',
+			'class'    => 'classname',
+			'id'       => 'id',
+			'style'    => 'color: red;',
+			'title'    => 'title',
+			'href'     => 'http://example.com',
+			'rel'      => 'related',
+			'rev'      => 'revision',
+			'name'     => 'name',
+			'target'   => '_blank',
+			'download' => '',
 		);
 
 		foreach ( $attributes as $name => $value ) {
-			$string        = "<a $name='$value'>I link this</a>";
-			$expect_string = "<a $name='" . trim( $value, ';' ) . "'>I link this</a>";
+			if ( $value ) {
+				$attr          = "$name='$value'";
+				$expected_attr = "$name='" . trim( $value, ';' ) . "'";
+			} else {
+				$attr = $expected_attr = $name;
+			}
+			$string        = "<a $attr>I link this</a>";
+			$expect_string = "<a $expected_attr>I link this</a>";
 			$this->assertEquals( $expect_string, wp_kses( $string, $allowedposttags ) );
 		}
 	}
