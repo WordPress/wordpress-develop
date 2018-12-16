@@ -10,6 +10,7 @@ module.exports = function(grunt) {
 		BUILD_DIR = 'build/',
  		BANNER_TEXT = '/*! This file is auto-generated */',
 		autoprefixer = require( 'autoprefixer' ),
+		nodesass = require( 'node-sass' ),
 		phpUnitWatchGroup = grunt.option( 'group' ),
 		buildFiles = [
 			'*.php',
@@ -371,6 +372,7 @@ module.exports = function(grunt) {
 				ext: '.css',
 				src: ['wp-admin/css/colors/*/colors.scss'],
 				options: {
+					implementation: nodesass,
 					outputStyle: 'expanded'
 				}
 			}
