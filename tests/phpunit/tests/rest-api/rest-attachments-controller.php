@@ -1671,7 +1671,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_param( 'alt_text', 'Alt text is stored outside post schema.' );
 
 		$request->set_body( file_get_contents( $this->test_file ) );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 201, $response->get_status() );
 
@@ -1703,7 +1703,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		);
 		$request       = new WP_REST_Request( 'POST', '/wp/v2/media/' . $attachment_id );
 		$request->set_param( 'title', 'My title is very cool' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 1, self::$rest_insert_attachment_count );
 		$this->assertSame( 1, self::$rest_after_insert_attachment_count );
