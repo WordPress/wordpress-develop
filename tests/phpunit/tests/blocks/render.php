@@ -75,11 +75,42 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 		// Block rendering add some extra blank lines, but we're not worried about them.
 		$block_filtered_content = preg_replace( "/\n{2,}/", "\n", $block_filtered_content );
 
-		$this->assertEquals( $classic_filtered_content, $block_filtered_content );
+		$this->assertEquals( trim( $classic_filtered_content ), trim( $block_filtered_content ) );
 	}
 
 	function handle_shortcode( $atts, $content ) {
 		return $content;
+	}
+
+	/**
+	 * @ticket 45290
+	 */
+	public function test_blocks_arent_autopeed() {
+		$expected_content = 'test';
+		$test_content     = "<!-- wp:fake/block -->\n$expected_content\n<!-- /wp:fake/block -->";
+
+		$current_priority = has_action( 'the_content', 'wpautop' );
+
+		$filtered_content = trim( apply_filters( 'the_content', $test_content ) );
+
+		$this->assertEquals( $expected_content, $filtered_content );
+
+		// Check that wpautop() is still defined in the same place.
+		$this->assertSame( $current_priority, has_action( 'the_content', 'wpautop' ) );
+		// ... and that the restore function has removed itself.
+		$this->assertFalse( has_action( 'the_content', '_restore_wpautop_hook' ) );
+
+		$test_content     = 'test';
+		$expected_content = "<p>$test_content</p>";
+
+		$current_priority = has_action( 'the_content', 'wpautop' );
+
+		$filtered_content = trim( apply_filters( 'the_content', $test_content ) );
+
+		$this->assertEquals( $expected_content, $filtered_content );
+
+		$this->assertSame( $current_priority, has_action( 'the_content', 'wpautop' ) );
+		$this->assertFalse( has_action( 'the_content', '_restore_wpautop_hook' ) );
 	}
 
 	/**
