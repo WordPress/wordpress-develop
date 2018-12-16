@@ -49,10 +49,10 @@ function mapVendorCopies( vendors, buildTarget ) {
 	} ) );
 }
 
-module.exports = function( env = { environment: 'production', watch: false } ) {
+module.exports = function( env = { environment: 'production', watch: false, forceBuildTarget: false } ) {
 	const mode = env.environment;
 	const suffix = mode === 'production' ? '.min' : '';
-	const buildTarget = ( mode === 'production' ? 'build' : 'src' ) + '/wp-includes';
+	const buildTarget = env.forceBuildTarget ? env.forceBuildTarget : ( mode === 'production' ? 'build' : 'src' ) + '/wp-includes';
 
 	const packages = [
 		'api-fetch',
