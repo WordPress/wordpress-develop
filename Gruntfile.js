@@ -12,10 +12,6 @@ module.exports = function(grunt) {
 		autoprefixer = require( 'autoprefixer' ),
 		nodesass = require( 'node-sass' ),
 		phpUnitWatchGroup = grunt.option( 'group' ),
-		themeFiles = [
-			'wp-content/themes/index.php',
-			'wp-content/themes/twenty*/**'
-		],
 		buildFiles = [
 			'*.php',
 			'*.txt',
@@ -23,10 +19,12 @@ module.exports = function(grunt) {
 			'wp-includes/**', // Include everything in wp-includes.
 			'wp-admin/**', // Include everything in wp-admin.
 			'wp-content/index.php',
+			'wp-content/themes/index.php',
+			'wp-content/themes/twenty*/**',
 			'wp-content/plugins/index.php',
 			'wp-content/plugins/hello.php',
 			'wp-content/plugins/akismet/**'
-		].concat( themeFiles ),
+		],
 		cleanFiles = [],
 		changedFiles = {
 			php: []
@@ -129,42 +127,6 @@ module.exports = function(grunt) {
 				]
 			}
 		},
-		symlink: {
-			expanded: {
-				files: [
-				  {
-				    expand: true,
-				    overwrite: true,
-				    cwd: SOURCE_DIR,
-				    src: [
-							'wp-admin/*',
-							'wp-content/uploads/',
-							'wp-content/index.php',
-							'wp-content/plugins/*',
-							'wp-includes/*',
-							'*.php',
-							'*.txt',
-							'*.html',
-							'!wp-load.php',
-							'!wp-admin/css',
-							'!wp-content/themes',
-							'!wp-includes/css',
-							'!wp-includes/version.php', // Exclude version.php
-							'!wp-includes/formatting.php', // Exclude formatting.php
-							'!wp-includes/embed.php', // Exclude formatting.php
-							'!index.php', '!wp-admin/index.php',
-							'!_index.php', '!wp-admin/_index.php'
-						],
-				    dest: BUILD_DIR
-				  },
-					{
-						'build/wp-config-sample.php': ['wp-config-sample.php'],
-						'build/index.php': ['src/_index.php'],
-						'build/wp-admin/index.php': ['src/wp-admin/_index.php']
-					}
-				]
-			}
-		},
 		copy: {
 			files: {
 				files: [
@@ -176,8 +138,6 @@ module.exports = function(grunt) {
 							'!js/**', // JavaScript is extracted into separate copy tasks.
 							'!.{svn,git}', // Exclude version control folders.
 							'!wp-includes/version.php', // Exclude version.php
-							'!wp-admin/css/**/*', // Exclude the CSS
-							'!wp-includes/css/**/*', // Exclude the CSS
 							'!index.php', '!wp-admin/index.php',
 							'!_index.php', '!wp-admin/_index.php'
 						] ),
@@ -192,23 +152,6 @@ module.exports = function(grunt) {
 						'build/wp-admin/index.php': ['src/wp-admin/_index.php']
 					}
 				]
-			},
-			css: {
-				dot: true,
-				expand: true,
-				cwd: SOURCE_DIR,
-				src: [
-					'wp-admin/**/*.css',
-					'wp-includes/**/*.css'
-				],
-				dest: BUILD_DIR
-			},
-			themes: {
-				dot: true,
-				expand: true,
-				cwd: SOURCE_DIR,
-				src: themeFiles,
-				dest: BUILD_DIR
 			},
 			'npm-packages': {
 				files: {
@@ -397,13 +340,6 @@ module.exports = function(grunt) {
 				},
 				src: SOURCE_DIR + 'wp-includes/version.php',
 				dest: BUILD_DIR + 'wp-includes/version.php'
-			},
-			'php-buildFiles': {
-				files: {
-					'build/wp-includes/formatting.php': ['src/wp-includes/formatting.php'],
-					'build/wp-includes/embed.php': ['src/wp-includes/embed.php'],
-					'build/wp-load.php': ['src/wp-load.php'],
-				}
 			},
 			dynamic: {
 				dot: true,
@@ -1223,7 +1159,7 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'watch', function() {
 		if ( ! this.args.length || this.args.indexOf( 'webpack' ) > -1 ) {
-			grunt.task.run( 'build:dev' );
+			grunt.task.run( 'build' );
 		}
 
 		if ( 'watch:phpunit' === grunt.cli.tasks[ 0 ] || 'undefined' !== typeof grunt.option( 'phpunit' ) ) {
@@ -1372,13 +1308,6 @@ module.exports = function(grunt) {
 		}
 	} );
 
-	grunt.registerTask( 'uglify:all', [
-		'uglify:core',
-		'uglify:embed',
-		'uglify:jqueryui',
-		'uglify:imgareaselect'
-	] );
-
 	grunt.registerTask( 'copy:js', [
 		'copy:npm-packages',
 		'copy:vendor-js',
@@ -1386,20 +1315,11 @@ module.exports = function(grunt) {
 		'copy:includes-js'
 	] );
 
-	grunt.registerTask( 'copyOrSymlink', function() {
-		var task = grunt.option( 'symlink' ) === true ? 'symlink:expanded' : 'copy:files';
-		grunt.task.run( task );
-	} );
-
-	grunt.registerTask( 'copy:all', [
-		'copyOrSymlink',
-		'copy:php-buildFiles',
-		'copy:css',
-		'copy:themes',
-		'copy:wp-admin-css-compat-rtl',
-		'copy:wp-admin-css-compat-min',
-		'copy:version',
-		'copy:js'
+	grunt.registerTask( 'uglify:all', [
+		'uglify:core',
+		'uglify:embed',
+		'uglify:jqueryui',
+		'uglify:imgareaselect'
 	] );
 
 	grunt.registerTask( 'build:tinymce', [
@@ -1419,26 +1339,16 @@ module.exports = function(grunt) {
 		'jsvalidate:build'
 	] );
 
-	grunt.registerTask( 'clean-all', function() {
-		if ( grunt.option( 'symlink' ) === true ) {
-			// clean all symlinks
-			try {
-				var delSymlinks = require('del-symlinks');
+	grunt.registerTask( 'copy:all', [
+		'copy:files',
+		'copy:wp-admin-css-compat-rtl',
+		'copy:wp-admin-css-compat-min',
+		'copy:version',
+		'copy:js'
+	] );
 
-				var result = delSymlinks.sync(['./build/**']);
-				grunt.log.writeln( '>> ' + result.length + ' symlinks cleaned.' );
-			} catch ( e ) {
-				grunt.verbose.error( 'Error:', e.message );
-				grunt.fail.warn( "Failed to delete symlinks. If you're on Windows, " +
-												 "running as administrator could resolve this issue.");
-			}
-		}
-
-		grunt.task.run( 'clean:all' );
-	} );
-
-	grunt.registerTask( 'build:all', [
-		'clean-all',
+	grunt.registerTask( 'build', [
+		'clean:all',
 		'copy:all',
 		'file_append',
 		'cssmin:core',
@@ -1456,27 +1366,6 @@ module.exports = function(grunt) {
 		'webpack:devProdTarget',
 		'jsvalidate:build'
 	] );
-
-	grunt.registerTask( 'build', function() {
-		grunt.task.run( 'build:all' );
-	} );
-
-	grunt.registerTask( 'build:dev', function() {
-		try {
-			// Try creating a symlink.
-			fs.symlinkSync( './symlink', './symlinktest');
-			grunt.option( 'symlink', true );
-			// If succeeded, remove it again.
-			fs.unlinkSync( './symlinktest' );
-		} catch( e ) {
-			grunt.verbose.error( 'Error:', e.message );
-			grunt.log.error( "Failed to delete symlinks. Falling back to copying " +
-											 "files instead. If you're on Windows, " +
-											 "running as administrator could resolve this issue.");
-		} finally {
-			grunt.task.run( 'build:all' );
-		}
-	} );
 
 	grunt.registerTask( 'prerelease', [
 		'format:php:error',
