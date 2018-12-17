@@ -17,7 +17,7 @@
 		"@wordpress/library-export-default-webpack-plugin": "1.0.4",
 		"autoprefixer": "^9.1.5",
 		"check-node-version": "3.2.0",
-		"copy-webpack-plugin": "^4.5.2",
+		"copy-webpack-plugin": "^4.6.0",
 		"cssnano": "^4.1.4",
 		"grunt": "~1.0.3",
 		"grunt-banner": "^0.6.0",
@@ -49,7 +49,7 @@
 		"source-map-loader": "^0.2.4",
 		"uglify-js": "^3.4.9",
 		"uglifyjs-webpack-plugin": "^2.0.1",
-		"webpack": "^4.20.2",
+		"webpack": "^4.24.0",
 		"webpack-dev-server": "^3.1.9",
 		"webpack-livereload-plugin": "^2.1.1"
 	},
