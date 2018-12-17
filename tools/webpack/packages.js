@@ -225,6 +225,7 @@ module.exports = function( env = { environment: 'production', watch: false, forc
 				'deprecated',
 				'dom-ready',
 				'redux-routine',
+				'token-list',
 			].map( camelCaseDash ) ),
 			new CustomTemplatedPathPlugin( {
 				basename( path, data ) {
