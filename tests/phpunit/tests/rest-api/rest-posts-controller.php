@@ -3778,19 +3778,19 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		// 'my_custom_int' should appear because ?_fields= isn't set.
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertArrayHasKey( 'my_custom_int', $response->data );
 
 		// 'my_custom_int' should appear because it's present in ?_fields=.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
 		$request->set_param( '_fields', 'title,my_custom_int' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertArrayHasKey( 'my_custom_int', $response->data );
 
 		// 'my_custom_int' should not appear because it's not present in ?_fields=.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
 		$request->set_param( '_fields', 'title' );
-		$response = $this->server->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertArrayNotHasKey( 'my_custom_int', $response->data );
 
 		global $wp_rest_additional_fields;
