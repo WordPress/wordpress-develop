@@ -81,25 +81,33 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 			)
 		);
 
-		self::$draft_page_id       = $factory->post->create( array(
-			'post_type'   => 'page',
-			'post_status' => 'draft',
-		) );
-		self::$parent_page_id      = $factory->post->create( array(
-			'post_type' => 'page',
-		) );
-		self::$child_page_id       = $factory->post->create( array(
-			'post_type'   => 'page',
-			'post_parent' => self::$parent_page_id,
-		) );
-		self::$child_draft_page_id = $factory->post->create( array(
-			'post_type'   => 'page',
-			'post_parent' => self::$parent_page_id,
-			// The "update post" behavior of the autosave endpoint only occurs
-			// when saving a draft/auto-draft authored by the current user.
-			'post_status' => 'draft',
-			'post_author' => self::$editor_id,
-		) );
+		self::$draft_page_id       = $factory->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'draft',
+			)
+		);
+		self::$parent_page_id      = $factory->post->create(
+			array(
+				'post_type' => 'page',
+			)
+		);
+		self::$child_page_id       = $factory->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_parent' => self::$parent_page_id,
+			)
+		);
+		self::$child_draft_page_id = $factory->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_parent' => self::$parent_page_id,
+				// The "update post" behavior of the autosave endpoint only occurs
+				// when saving a draft/auto-draft authored by the current user.
+				'post_status' => 'draft',
+				'post_author' => self::$editor_id,
+			)
+		);
 	}
 
 	public static function wpTearDownAfterClass() {
@@ -144,15 +152,18 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	}
 
 	public function test_registered_query_params() {
-		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
 		$response = $this->server->dispatch( $request );
-		$data = $response->get_data();
-		$keys = array_keys( $data['endpoints'][0]['args'] );
+		$data     = $response->get_data();
+		$keys     = array_keys( $data['endpoints'][0]['args'] );
 		sort( $keys );
-		$this->assertEquals( array(
-			'context',
-			'parent',
-		), $keys );
+		$this->assertEquals(
+			array(
+				'context',
+				'parent',
+			),
+			$keys
+		);
 	}
 
 	public function test_get_items() {
@@ -579,10 +590,12 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$request = new WP_REST_Request( 'POST', '/wp/v2/pages/' . self::$draft_page_id . '/autosaves' );
 		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
 
-		$params = $this->set_post_data( array(
-			'id' => self::$draft_page_id,
-			'comment_status' => 'garbage',
-		) );
+		$params = $this->set_post_data(
+			array(
+				'id'             => self::$draft_page_id,
+				'comment_status' => 'garbage',
+			)
+		);
 
 		$request->set_body_params( $params );
 
