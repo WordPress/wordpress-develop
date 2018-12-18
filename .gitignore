@@ -61,6 +61,4 @@ wp-tests-config.php
 *.patch
 *.diff
 .svn
-
-vendor
 !/src/js/_enqueues/vendor
