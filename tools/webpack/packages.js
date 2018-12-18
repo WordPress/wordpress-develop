@@ -268,6 +268,14 @@ module.exports = function( env = { environment: 'production', watch: false, forc
 		config.devtool = process.env.SOURCEMAP || 'source-map';
 	}
 
+	if ( env.forceBuildTarget ) {
+		delete config.devtool;
+		config.mode = 'production';
+		config.optimization = {
+			minimize: false
+		};
+	}
+
 	if ( config.mode === 'development' ) {
 		config.plugins.push( new LiveReloadPlugin( { port: process.env.WORDPRESS_LIVE_RELOAD_PORT || 35729 } ) );
 	}

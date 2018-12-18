@@ -105,7 +105,11 @@ module.exports = function(grunt) {
 		clean: {
 			plugins: [BUILD_DIR + 'wp-content/plugins'],
 			themes: [BUILD_DIR + 'wp-content/themes'],
-			all: cleanFiles,
+			all: [
+				cleanFiles,
+				SOURCE_DIR + 'wp-includes/js/dist',
+				SOURCE_DIR + 'wp-includes/css/dist'
+			],
 			js: [BUILD_DIR + 'wp-admin/js/', BUILD_DIR + 'wp-includes/js/'],
 			dynamic: {
 				dot: true,
@@ -138,6 +142,7 @@ module.exports = function(grunt) {
 							'!js/**', // JavaScript is extracted into separate copy tasks.
 							'!.{svn,git}', // Exclude version control folders.
 							'!wp-includes/version.php', // Exclude version.php
+							'!**/*.map', // The build doesn't need .map files.
 							'!index.php', '!wp-admin/index.php',
 							'!_index.php', '!wp-admin/_index.php'
 						] ),
