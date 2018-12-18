@@ -165,7 +165,7 @@ module.exports = function( env = { environment: 'production', watch: false, forc
 		to: join( baseDir, `${ buildTarget }/css/dist/${ packageName }/` ),
 		flatten: true,
 		transform: ( content ) => {
-			if ( config.mode === 'production' ) {
+			if ( config.mode === 'production' && ! env.forceBuildTarget ) {
 				return postcss( [
 					require( 'cssnano' )( {
 						preset: 'default',
