@@ -5,10 +5,6 @@ var webpackConfig = require( './webpack.config' );
 module.exports = function(grunt) {
 	var path = require('path'),
 		fs = require( 'fs' ),
-		rot = require( 'rot' );
-		esprima = require( 'esprima' );
-		estraverse = require( 'estraverse' );
-		escodegen = require( 'escodegen' );
 		spawn = require( 'child_process' ).spawnSync,
 		SOURCE_DIR = 'src/',
 		BUILD_DIR = 'build/',
@@ -684,10 +680,7 @@ module.exports = function(grunt) {
 					'!wp-admin/js/custom-header.js', // Why? We should minify this.
 					'!wp-admin/js/farbtastic.js',
 					'!wp-includes/js/swfobject.js',
-					'!wp-includes/js/wp-embed.js', // We have extra options for this, see uglify:embed
-
-					// .min files that still need to be minified.
-					'wp-includes/js/zxcvbn.min.js'
+					'!wp-includes/js/wp-embed.js' // We have extra options for this, see uglify:embed
 				]
 			},
 			embed: {
@@ -1075,12 +1068,6 @@ module.exports = function(grunt) {
 				]
 			}
 		},
-		rot13: {
-			zxcvbn: {
-				src: './node_modules/zxcvbn/dist/zxcvbn.js',
-				dest: 'build/wp-includes/js/zxcvbn.min.js'
-			},
-		},
 		_watch: {
 			options: {
 				interval: 2000
@@ -1359,7 +1346,6 @@ module.exports = function(grunt) {
 		'clean:js',
 		'webpack:dev',
 		'copy:js',
-		'rot13:zxcvbn',
 		'file_append',
 		'uglify:all',
 		'build:tinymce',
@@ -1378,7 +1364,6 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'build', [
 		'clean:all',
 		'copy:all',
-		'rot13:zxcvbn',
 		'file_append',
 		'cssmin:core',
 		'colors',
@@ -1450,59 +1435,6 @@ module.exports = function(grunt) {
 
 	// Default task.
 	grunt.registerTask('default', ['build']);
-
-	grunt.registerMultiTask('rot13', 'ROT-13 zxcvbn passwords for PG-ness.', function() {
-		this.files.forEach(function(f) {
-			// Build AST from source code
-			var code = grunt.file.read(f.src);
-			var ast = esprima.parse(code);
-
-			ast = estraverse.replace(ast, {
-				enter: function(node) {
-					// Filter string
-					let key_names = [
-						'passwords',
-						'english_wikipedia',
-						'female_names',
-						'surnames',
-						'us_tv_and_film',
-						'male_names'
-					];
-
-					if( node.type === 'Property' && key_names.includes( node.key.name ) ) {
-						// Wrap encrypted string with decrypt function.
-						var value = {
-							type: 'CallExpression',
-							callee: {
-								type: 'Identifier',
-								name: 'rot'
-							},
-							arguments: [{
-								type: 'Literal',
-								value: rot(node.value.callee.object.value, 13),
-								raw: rot(node.value.callee.object.raw, 13)
-							}, {
-								type: 'Literal',
-								value: 13,
-								raw: 13
-							}]
-						};
-						node.value = value;
-						return node;
-					}
-				}
-			});
-
-			// ROT-13 decode function
-			var prependCode = 'var lowercase="abcdefghijklmnopqrstuvwxyz",uppercase="ABCDEFGHIJKLMNOPQRSTUVWXYZ",regexLowercase=/[a-z]/,regexUppercase=/[A-Z]/,rot=function(e,r){if(null==r&&(r=13),r=Number(r),e=String(e),0==r)return e;0>r&&(r+=26);for(var a,c,t,s=e.length,p=-1,n="";++p<s;)a=e.charAt(p),regexLowercase.test(a)?(c=lowercase.indexOf(a),t=(c+r)%26,n+=lowercase.charAt(t)):regexUppercase.test(a)?(c=uppercase.indexOf(a),t=(c+r)%26,n+=uppercase.charAt(t)):n+=a;return n};\n';
-
-			// Generate new file from modified AST
-			var modifiedCode = prependCode + escodegen.generate(ast);
-			grunt.file.write(f.dest, modifiedCode);
-
-			grunt.log.writeln('File "' + f.dest + '" encrypted.');
-		});
-	});
 
 	/*
 	 * Automatically updates the `:dynamic` configurations
