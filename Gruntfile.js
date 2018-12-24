@@ -25,7 +25,10 @@ module.exports = function(grunt) {
 			'wp-content/plugins/index.php',
 			'wp-content/plugins/hello.php',
 			'wp-content/plugins/akismet/**'
-		];
+		],
+		changedFiles = {
+			php: []
+		};
 
 	if ( 'watch:phpunit' === grunt.cli.tasks[ 0 ] && ! phpUnitWatchGroup ) {
 		grunt.log.writeln();

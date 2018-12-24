@@ -36,25 +36,25 @@ $die = sprintf(
 	'WordPress'
 ) . '</p>';
 
-$die .= '<p>' . __( 'Before running any grunt tasks you need to make sure the dependencies are installed. You can install these by running ');
+$die .= '<p>' . __( 'Before running any grunt tasks you need to make sure the dependencies are installed. You can install these by running ' );
 $die .= '<code style="color: green;">npm install</code>.</p>';
 
 $die .= '<ul>';
 $die .= '<li>' . sprintf(
 	/* translators: %s: WordPress */
 		__( 'To build %s while developing run:' ),
-		'WordPress'
-	) . '<br /><br />';
+	'WordPress'
+) . '<br /><br />';
 $die .= '<code style="color: green;">grunt build --dev</code></li>';
 $die .= '<li>' . sprintf(
-		__( 'To build files automatically when changing the source files run:' ),
-		'WordPress'
-	) . '<br /><br />';
+	__( 'To build files automatically when changing the source files run:' ),
+	'WordPress'
+) . '<br /><br />';
 $die .= '<code style="color: green;">grunt watch</code></li>';
 $die .= '<li>' . sprintf(
-		__( 'To create a production build of %s run:' ),
-		'WordPress'
-	) . '<br /><br />';
+	__( 'To create a production build of %s run:' ),
+	'WordPress'
+) . '<br /><br />';
 $die .= '<code style="color: green;">grunt build</code></li>';
 $die .= '</ul>';
 
@@ -62,9 +62,9 @@ $die .= '</ul>';
 $die .= '<p>' . sprintf(
 	/* translators: %1$s: NPM URL, %2$s: Grunt URL */
 		__( 'This requires <a href="%1$s">NPM</a> and <a href="%2$s">Grunt</a>. <a href="%3$s">Read more about setting up your local development environment</a>.' ),
-		'https://www.npmjs.com/',
-		'https://gruntjs.com/',
-		__( 'https://make.wordpress.org/core/handbook/tutorials/installing-wordpress-locally/' )
-	) . '</p>';
+	'https://www.npmjs.com/',
+	'https://gruntjs.com/',
+	__( 'https://make.wordpress.org/core/handbook/tutorials/installing-wordpress-locally/' )
+) . '</p>';
 
 wp_die( $die, __( 'WordPress &rsaquo; Error' ) );
