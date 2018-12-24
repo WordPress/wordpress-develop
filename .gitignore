@@ -21,6 +21,10 @@ wp-tests-config.php
 /jsdoc
 /src/wp-includes/js
 /src/wp-includes/css/dist
+/src/wp-admin/css/*.min.css
+/src/wp-admin/css/*-rtl.css
+/src/wp-includes/css/*.min.css
+/src/wp-admin/css/colors/*/*.css
 
 # Files and folders that get created in wp-content
 /src/wp-content/blogs.dir
