@@ -19,6 +19,7 @@ wp-tests-config.php
 /tests/phpunit/build
 /wp-cli.local.yml
 /jsdoc
+/vendor
 /src/wp-includes/js
 /src/wp-includes/css/dist
 /src/wp-admin/css/*.min.css
