@@ -30,38 +30,26 @@ wp_check_php_mysql_versions();
 wp_load_translations_early();
 
 // Die with an error message
-$die = sprintf(
-	/* translators: %1$s: WordPress */
-	__( 'You are running %1$s without JavaScript and CSS files. These need to be built.' ),
-	'WordPress'
+$die = __( 'You are running WordPress without JavaScript and CSS files. These need to be built.' ) . '</p>';
+
+$die .= '<p>' . sprintf(
+	/* translators: %s: npm install */
+	__( 'Before running any grunt tasks you need to make sure the dependencies are installed. You can install these by running %s.' ),
+	'<code style="color: green;">npm install</code>'
 ) . '</p>';
 
-$die .= '<p>' . __( 'Before running any grunt tasks you need to make sure the dependencies are installed. You can install these by running ' );
-$die .= '<code style="color: green;">npm install</code>.</p>';
-
 $die .= '<ul>';
-$die .= '<li>' . sprintf(
-	/* translators: %s: WordPress */
-		__( 'To build %s while developing run:' ),
-	'WordPress'
-) . '<br /><br />';
+$die .= '<li>' . __( 'To build WordPress while developing, run:' ) . '<br /><br />';
 $die .= '<code style="color: green;">grunt build --dev</code></li>';
-$die .= '<li>' . sprintf(
-	__( 'To build files automatically when changing the source files run:' ),
-	'WordPress'
-) . '<br /><br />';
+$die .= '<li>' . __( 'To build files automatically when changing the source files, run:' ) . '<br /><br />';
 $die .= '<code style="color: green;">grunt watch</code></li>';
-$die .= '<li>' . sprintf(
-	__( 'To create a production build of %s run:' ),
-	'WordPress'
-) . '<br /><br />';
+$die .= '<li>' . __( 'To create a production build of WordPress, run:' ) . '<br /><br />';
 $die .= '<code style="color: green;">grunt build</code></li>';
 $die .= '</ul>';
 
-
 $die .= '<p>' . sprintf(
-	/* translators: %1$s: NPM URL, %2$s: Grunt URL */
-		__( 'This requires <a href="%1$s">NPM</a> and <a href="%2$s">Grunt</a>. <a href="%3$s">Read more about setting up your local development environment</a>.' ),
+	/* translators: 1: NPM URL, 2: Grunt URL, 3: Handbook URL */
+	__( 'This requires <a href="%1$s">NPM</a> and <a href="%2$s">Grunt</a>. <a href="%3$s">Read more about setting up your local development environment</a>.' ),
 	'https://www.npmjs.com/',
 	'https://gruntjs.com/',
 	__( 'https://make.wordpress.org/core/handbook/tutorials/installing-wordpress-locally/' )
