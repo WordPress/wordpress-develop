@@ -20,12 +20,13 @@ wp-tests-config.php
 /wp-cli.local.yml
 /jsdoc
 /vendor
-/src/wp-includes/js
-/src/wp-includes/css/dist
 /src/wp-admin/css/*.min.css
 /src/wp-admin/css/*-rtl.css
-/src/wp-includes/css/*.min.css
 /src/wp-admin/css/colors/*/*.css
+/src/wp-admin/js
+/src/wp-includes/js
+/src/wp-includes/css/dist
+/src/wp-includes/css/*.min.css
 
 # Files and folders that get created in wp-content
 /src/wp-content/blogs.dir
