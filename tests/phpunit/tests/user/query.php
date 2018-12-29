@@ -1690,4 +1690,37 @@ class Tests_User_Query extends WP_UnitTestCase {
 		/* must not include user that has same string in other fields */
 		$this->assertEquals( array(), $ids );
 	}
+
+	/**
+	 * @ticket 44169
+	 */
+	public function test_users_pre_query_filter_should_bypass_database_query() {
+		global $wpdb;
+
+		add_filter( 'users_pre_query', array( __CLASS__, 'filter_users_pre_query' ), 10, 2 );
+
+		$num_queries = $wpdb->num_queries;
+		$q           = new WP_User_Query(
+			array(
+				'fields' => 'ID',
+			)
+		);
+
+		remove_filter( 'users_pre_query', array( __CLASS__, 'filter_users_pre_query' ), 10, 2 );
+
+		// Make sure no queries were executed.
+		$this->assertSame( $num_queries, $wpdb->num_queries );
+
+		// We manually inserted a non-existing user and overrode the results with it.
+		$this->assertSame( array( 555 ), $q->results );
+
+		// Make sure manually setting total_users doesn't get overwritten.
+		$this->assertEquals( 1, $q->total_users );
+	}
+
+	public static function filter_users_pre_query( $posts, $query ) {
+		$query->total_users = 1;
+
+		return array( 555 );
+	}
 }
