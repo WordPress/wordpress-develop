@@ -4255,7 +4255,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function tearDown() {
 		_unregister_post_type( 'private-post' );
-		_unregister_post_type( 'youseeeme' );
+		_unregister_post_type( 'youseeme' );
 		if ( isset( $this->attachment_id ) ) {
 			$this->remove_added_uploads();
 		}
