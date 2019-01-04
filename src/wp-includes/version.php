@@ -1,10 +1,19 @@
 <?php
 /**
+ * WordPress Version
+ *
+ * Contains version information for the current WordPress release.
+ *
+ * @package WordPress
+ * @since 1.1.0
+ */
+
+/**
  * The WordPress version string
  *
  * @global string $wp_version
  */
-$wp_version = '5.0-alpha-42970-src';
+$wp_version = '5.1-alpha-43677-src';
 
 /**
  * Holds the WordPress DB revision, increments when changes are made to the WordPress DB schema.

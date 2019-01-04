@@ -6144,7 +6144,8 @@ function wp_generate_uuid4() {
  * @since 4.9.0
  *
  * @param mixed $uuid    UUID to check.
- * @param int   $version Specify which version of UUID to check against. Default is none, to accept any UUID version. Otherwise, only version allowed is `4`.
+ * @param int   $version Specify which version of UUID to check against. Default is none,
+ *                       to accept any UUID version. Otherwise, only version allowed is `4`.
  * @return bool The string is a valid UUID or false on failure.
  */
 function wp_is_uuid( $uuid, $version = null ) {
@@ -6164,6 +6165,26 @@ function wp_is_uuid( $uuid, $version = null ) {
 	}
 
 	return (bool) preg_match( $regex, $uuid );
+}
+
+/**
+ * Get unique ID.
+ *
+ * This is a PHP implementation of Underscore's uniqueId method. A static variable
+ * contains an integer that is incremented with each call. This number is returned
+ * with the optional prefix. As such the returned value is not universally unique,
+ * but it is unique across the life of the PHP process.
+ *
+ * @since 4.9.9
+ *
+ * @staticvar int $id_counter
+ *
+ * @param string $prefix Prefix for the returned ID.
+ * @return string Unique ID.
+ */
+function wp_unique_id( $prefix = '' ) {
+	static $id_counter = 0;
+	return $prefix . (string) ++$id_counter;
 }
 
 /**

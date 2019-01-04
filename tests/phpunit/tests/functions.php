@@ -1118,6 +1118,34 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests wp_unique_id().
+	 *
+	 * @covers ::wp_unique_id
+	 * @ticket 44883
+	 */
+	function test_wp_unique_id() {
+
+		// Test without prefix.
+		$ids = array();
+		for ( $i = 0; $i < 20; $i += 1 ) {
+			$id = wp_unique_id();
+			$this->assertInternalType( 'string', $id );
+			$this->assertTrue( is_numeric( $id ) );
+			$ids[] = $id;
+		}
+		$this->assertEquals( $ids, array_unique( $ids ) );
+
+		// Test with prefix.
+		$ids = array();
+		for ( $i = 0; $i < 20; $i += 1 ) {
+			$id = wp_unique_id( 'foo-' );
+			$this->assertRegExp( '/^foo-\d+$/', $id );
+			$ids[] = $id;
+		}
+		$this->assertEquals( $ids, array_unique( $ids ) );
+	}
+
+	/**
 	 * @ticket 40017
 	 * @dataProvider _wp_get_image_mime
 	 */

@@ -581,17 +581,18 @@ if ( current_user_can( $tax->cap->edit_terms ) ) {
 <div class="form-wrap edit-term-notes">
 <p>
 	<?php
-	echo '<strong>' . __( 'Note:' ) . '</strong><br />';
 	printf(
 		/* translators: %s: default category */
-		__( 'Deleting a category does not delete the posts in that category. Instead, posts that were only assigned to the deleted category are set to the category %s.' ),
+		__( 'Deleting a category does not delete the posts in that category. Instead, posts that were only assigned to the deleted category are set to the default category %s. The default category cannot be deleted.' ),
 		/** This filter is documented in wp-includes/category-template.php */
 		'<strong>' . apply_filters( 'the_category', get_cat_name( get_option( 'default_category' ) ), '', '' ) . '</strong>'
 	);
 	?>
 </p>
 	<?php if ( current_user_can( 'import' ) ) : ?>
-<p><?php printf( __( 'Categories can be selectively converted to tags using the <a href="%s">category to tag converter</a>.' ), esc_url( $import_link ) ); ?></p>
+	<p>
+		<?php printf( __( 'Categories can be selectively converted to tags using the <a href="%s">category to tag converter</a>.' ), esc_url( $import_link ) ); ?>
+	</p>
 	<?php endif; ?>
 </div>
 <?php elseif ( 'post_tag' == $taxonomy && current_user_can( 'import' ) ) : ?>

@@ -1,5 +1,4 @@
 <?php
-// phpcs:ignoreFile WordPress.DB.PreparedSQL.NotPrepared
 
 /**
  * @group admin

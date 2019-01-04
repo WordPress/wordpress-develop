@@ -11,7 +11,7 @@
  * Test cases for `wp_privacy_delete_old_export_files()`.
  *
  * @group privacy
- * @covers wp_privacy_delete_old_export_files
+ * @covers ::wp_privacy_delete_old_export_files
  *
  * @since 4.9.6
  */
@@ -142,5 +142,31 @@ class Tests_Privacy_WpPrivacyDeleteOldExportFiles extends WP_UnitTestCase {
 		wp_privacy_delete_old_export_files();
 
 		$this->assertTrue( file_exists( self::$index_path ) );
+	}
+
+	/**
+	 * Test the correct files are deleted when the expiration time is filtered.
+	 *
+	 * @since 4.9.9
+	 */
+	public function test_filtered_expiration_time() {
+		add_filter( 'wp_privacy_export_expiration', array( $this, 'filter_export_file_expiration_time' ) );
+
+		wp_privacy_delete_old_export_files();
+		$this->assertTrue( file_exists( self::$active_export_file ) );
+		$this->assertTrue( file_exists( self::$expired_export_file ) );
+
+		remove_filter( 'wp_privacy_export_expiration', array( $this, 'filter_export_file_expiration_time' ) );
+	}
+
+	/**
+	 * Filters the expiration time for export files.
+	 *
+	 * @since 4.9.9
+	 *
+	 * @return int New, longer expiration time.
+	 */
+	public function filter_export_file_expiration_time() {
+		return 6 * DAY_IN_SECONDS;
 	}
 }
