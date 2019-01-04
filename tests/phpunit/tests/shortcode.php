@@ -561,8 +561,8 @@ EOF;
 				'<[gallery]>',
 			),
 			array(
-				'<div style="background:url([[gallery]])">',
-				'<div style="background:url([[gallery]])">',
+				'<div style="selector:url([[gallery]])">',
+				'<div style="selector:url([[gallery]])">',
 			),
 			array(
 				'[gallery]<div>Hello</div>[/gallery]',

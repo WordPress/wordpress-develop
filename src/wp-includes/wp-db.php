@@ -178,7 +178,7 @@ class wpdb {
 	 *
 	 * @since 1.5.0
 	 * @since 2.5.0 The third element in each query log was added to record the calling functions.
-	 * @since 5.0.0 The fourth element in each query log was added to record the start time.
+	 * @since 5.1.0 The fourth element in each query log was added to record the start time.
 	 *
 	 * @var array[] {
 	 *     Array of queries that were executed.
@@ -1273,7 +1273,7 @@ class wpdb {
 	 *
 	 * Literal percentage signs (%) in the query string must be written as %%. Percentage wildcards (for example,
 	 * to use in LIKE syntax) must be passed via a substitution argument containing the complete LIKE string, these
-	 * cannot be inserted directly in the query string. Also see {@see esc_like()}.
+	 * cannot be inserted directly in the query string. Also see {@see wpdb::esc_like()}.
 	 *
 	 * Arguments may be passed as individual arguments to the method, or as a single array containing all arguments. A combination
 	 * of the two is not supported.
@@ -2544,8 +2544,10 @@ class wpdb {
 
 		$new_array = array();
 		// Extract the column values
-		for ( $i = 0, $j = count( $this->last_result ); $i < $j; $i++ ) {
-			$new_array[ $i ] = $this->get_var( null, $x, $i );
+		if ( $this->last_result ) {
+			for ( $i = 0, $j = count( $this->last_result ); $i < $j; $i++ ) {
+				$new_array[ $i ] = $this->get_var( null, $x, $i );
+			}
 		}
 		return $new_array;
 	}
@@ -2585,11 +2587,13 @@ class wpdb {
 		} elseif ( $output == OBJECT_K ) {
 			// Return an array of row objects with keys from column 1
 			// (Duplicates are discarded)
-			foreach ( $this->last_result as $row ) {
-				$var_by_ref = get_object_vars( $row );
-				$key        = array_shift( $var_by_ref );
-				if ( ! isset( $new_array[ $key ] ) ) {
-					$new_array[ $key ] = $row;
+			if ( $this->last_result ) {
+				foreach ( $this->last_result as $row ) {
+					$var_by_ref = get_object_vars( $row );
+					$key        = array_shift( $var_by_ref );
+					if ( ! isset( $new_array[ $key ] ) ) {
+						$new_array[ $key ] = $row;
+					}
 				}
 			}
 			return $new_array;

@@ -1,14 +1,19 @@
 <?php
 
 /**
- * Note: this file exists only to remind developers to run WordPress from the
- * build directory. For the real index.php that gets built and boots WordPress,
+ * Note: this file exists only to remind developers to build the assets.
+ * For the real index.php that gets built and boots WordPress,
  * please refer to _index.php.
  */
 
 /** Define ABSPATH as this file's directory */
 if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', dirname( __FILE__ ) . '/' );
+}
+
+if ( file_exists( ABSPATH . 'wp-includes/js/dist/edit-post.js' ) ) {
+	require_once ABSPATH . '/_index.php';
+	return;
 }
 
 define( 'WPINC', 'wp-includes' );
@@ -25,21 +30,25 @@ wp_check_php_mysql_versions();
 wp_load_translations_early();
 
 // Die with an error message
-$die = sprintf(
-	/* translators: %1$s: WordPress, %2$s: src, %3$s: build */
-	__( 'You seem to be running %1$s from the %2$s directory. %1$s needs to be built and run from the %3$s directory before we can get started.' ),
-	'WordPress',
-	'<code>src</code>',
-	'<code>build</code>'
-) . '</p>';
+$die = __( 'You are running WordPress without JavaScript and CSS files. These need to be built.' ) . '</p>';
+
 $die .= '<p>' . sprintf(
-	/* translators: %s: WordPress */
-	__( 'You can build %s by running:' ),
-	'WordPress'
+	/* translators: %s: npm install */
+	__( 'Before running any grunt tasks you need to make sure the dependencies are installed. You can install these by running %s.' ),
+	'<code style="color: green;">npm install</code>'
 ) . '</p>';
-$die .= '<p><code>npm install && grunt build</code></p>';
+
+$die .= '<ul>';
+$die .= '<li>' . __( 'To build WordPress while developing, run:' ) . '<br /><br />';
+$die .= '<code style="color: green;">grunt build --dev</code></li>';
+$die .= '<li>' . __( 'To build files automatically when changing the source files, run:' ) . '<br /><br />';
+$die .= '<code style="color: green;">grunt watch</code></li>';
+$die .= '<li>' . __( 'To create a production build of WordPress, run:' ) . '<br /><br />';
+$die .= '<code style="color: green;">grunt build</code></li>';
+$die .= '</ul>';
+
 $die .= '<p>' . sprintf(
-	/* translators: %1$s: NPM URL, %2$s: Grunt URL */
+	/* translators: 1: NPM URL, 2: Grunt URL, 3: Handbook URL */
 	__( 'This requires <a href="%1$s">NPM</a> and <a href="%2$s">Grunt</a>. <a href="%3$s">Read more about setting up your local development environment</a>.' ),
 	'https://www.npmjs.com/',
 	'https://gruntjs.com/',

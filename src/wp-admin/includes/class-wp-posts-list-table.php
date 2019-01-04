@@ -1268,12 +1268,15 @@ class WP_Posts_List_Table extends WP_List_Table {
 				esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $title ) ),
 				__( 'Edit' )
 			);
-			$actions['inline hide-if-no-js'] = sprintf(
-				'<button type="button" class="button-link editinline" aria-label="%s" aria-expanded="false">%s</button>',
-				/* translators: %s: post title */
-				esc_attr( sprintf( __( 'Quick edit &#8220;%s&#8221; inline' ), $title ) ),
-				__( 'Quick&nbsp;Edit' )
-			);
+
+			if ( 'wp_block' !== $post->post_type ) {
+				$actions['inline hide-if-no-js'] = sprintf(
+					'<button type="button" class="button-link editinline" aria-label="%s" aria-expanded="false">%s</button>',
+					/* translators: %s: post title */
+					esc_attr( sprintf( __( 'Quick edit &#8220;%s&#8221; inline' ), $title ) ),
+					__( 'Quick&nbsp;Edit' )
+				);
+			}
 		}
 
 		if ( current_user_can( 'delete_post', $post->ID ) ) {
@@ -1326,6 +1329,16 @@ class WP_Posts_List_Table extends WP_List_Table {
 					__( 'View' )
 				);
 			}
+		}
+
+		if ( 'wp_block' === $post->post_type ) {
+			$actions['export'] = sprintf(
+				'<button type="button" class="wp-list-reusable-blocks__export button-link" data-id="%s" aria-label="%s">%s</button>',
+				$post->ID,
+				/* translators: %s: post title */
+				esc_attr( sprintf( __( 'Export &#8220;%s&#8221; as JSON' ), $title ) ),
+				__( 'Export as JSON' )
+			);
 		}
 
 		if ( is_post_type_hierarchical( $post->post_type ) ) {
@@ -1458,7 +1471,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				<span class="input-text-wrap"><input type="text" name="post_title" class="ptitle" value="" /></span>
 			</label>
 
-		<?php if ( $post_type_object->publicly_queryable ) : // publicly_queryable check ?>
+		<?php if ( is_post_type_viewable( $screen->post_type ) ) : // is_post_type_viewable check ?>
 
 			<label>
 				<span class="title"><?php _e( 'Slug' ); ?></span>
@@ -1466,7 +1479,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			</label>
 
 			<?php
-	endif; // publicly_queryable check
+	endif; // is_post_type_viewable check
 	endif; // $bulk
 	endif; // post_type_supports title
 			?>

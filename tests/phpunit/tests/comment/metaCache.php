@@ -224,4 +224,41 @@ class Tests_Comment_Meta_Cache extends WP_UnitTestCase {
 		$num_queries++;
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 	}
+
+	/**
+	 * @ticket 44467
+	 */
+	public function test_add_metadata_sets_comments_last_changed() {
+		$comment_id = self::factory()->comment->create();
+
+		wp_cache_delete( 'last_changed', 'comment' );
+
+		$this->assertInternalType( 'integer', add_metadata( 'comment', $comment_id, 'foo', 'bar' ) );
+		$this->assertNotFalse( wp_cache_get_last_changed( 'comment' ) );
+	}
+
+	/**
+	 * @ticket 44467
+	 */
+	public function test_update_metadata_sets_comments_last_changed() {
+		$comment_id = self::factory()->comment->create();
+
+		wp_cache_delete( 'last_changed', 'comment' );
+
+		$this->assertInternalType( 'integer', update_metadata( 'comment', $comment_id, 'foo', 'bar' ) );
+		$this->assertNotFalse( wp_cache_get_last_changed( 'comment' ) );
+	}
+
+	/**
+	 * @ticket 44467
+	 */
+	public function test_delete_metadata_sets_comments_last_changed() {
+		$comment_id = self::factory()->comment->create();
+
+		update_metadata( 'comment', $comment_id, 'foo', 'bar' );
+		wp_cache_delete( 'last_changed', 'comment' );
+
+		$this->assertTrue( delete_metadata( 'comment', $comment_id, 'foo' ) );
+		$this->assertNotFalse( wp_cache_get_last_changed( 'comment' ) );
+	}
 }

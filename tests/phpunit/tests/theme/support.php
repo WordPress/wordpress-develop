@@ -192,4 +192,16 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 		$this->assertEmpty( get_registered_nav_menus() );
 		$this->assertFalse( current_theme_supports( 'menus' ) );
 	}
+
+	/**
+	 * @ticket 45125
+	 */
+	function test_responsive_embeds() {
+		add_theme_support( 'responsive-embeds' );
+		$this->assertTrue( current_theme_supports( 'responsive-embeds' ) );
+		remove_theme_support( 'responsive-embeds' );
+		$this->assertFalse( current_theme_supports( 'responsive-embeds' ) );
+		add_theme_support( 'responsive-embeds' );
+		$this->assertTrue( current_theme_supports( 'responsive-embeds' ) );
+	}
 }

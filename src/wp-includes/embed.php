@@ -76,7 +76,7 @@ function wp_embed_defaults( $url = '' ) {
 	 *
 	 * @since 2.9.0
 	 *
-	 * @param int[]  $size An array of embed width and height values
+	 * @param array  $size An array of embed width and height values
 	 *                     in pixels (in that order).
 	 * @param string $url  The URL that should be embedded.
 	 */
@@ -563,6 +563,77 @@ function get_oembed_response_data( $post, $width ) {
 	return apply_filters( 'oembed_response_data', $data, $post, $width, $height );
 }
 
+
+/**
+ * Retrieves the oEmbed response data for a given URL.
+ *
+ * @since 5.0.0
+ *
+ * @param string $url  The URL that should be inspected for discovery `<link>` tags.
+ * @param array  $args oEmbed remote get arguments.
+ * @return object|false oEmbed response data if the URL does belong to the current site. False otherwise.
+ */
+function get_oembed_response_data_for_url( $url, $args ) {
+	$switched_blog = false;
+
+	if ( is_multisite() ) {
+		$url_parts = wp_parse_args(
+			wp_parse_url( $url ),
+			array(
+				'host' => '',
+				'path' => '/',
+			)
+		);
+
+		$qv = array(
+			'domain' => $url_parts['host'],
+			'path'   => '/',
+		);
+
+		// In case of subdirectory configs, set the path.
+		if ( ! is_subdomain_install() ) {
+			$path = explode( '/', ltrim( $url_parts['path'], '/' ) );
+			$path = reset( $path );
+
+			if ( $path ) {
+				$qv['path'] = get_network()->path . $path . '/';
+			}
+		}
+
+		$sites = get_sites( $qv );
+		$site  = reset( $sites );
+
+		if ( $site && (int) $site->blog_id !== get_current_blog_id() ) {
+			switch_to_blog( $site->blog_id );
+			$switched_blog = true;
+		}
+	}
+
+	$post_id = url_to_postid( $url );
+
+	/** This filter is documented in wp-includes/class-wp-oembed-controller.php */
+	$post_id = apply_filters( 'oembed_request_post_id', $post_id, $url );
+
+	if ( ! $post_id ) {
+		if ( $switched_blog ) {
+			restore_current_blog();
+		}
+
+		return false;
+	}
+
+	$width = isset( $args['width'] ) ? $args['width'] : 0;
+
+	$data = get_oembed_response_data( $post_id, $width );
+
+	if ( $switched_blog ) {
+		restore_current_blog();
+	}
+
+	return $data ? (object) $data : false;
+}
+
+
 /**
  * Filters the oEmbed response data to return an iframe embed code.
  *
@@ -896,7 +967,7 @@ function print_embed_styles() {
 		 * and edit wp-embed-template.css directly.
 		 */
 		?>
-		include "css/wp-embed-template.min.css"
+			include "css/wp-embed-template.min.css"
 		<?php
 	}
 	?>
@@ -927,7 +998,7 @@ function print_embed_scripts() {
 		 * and edit wp-embed-template.js directly.
 		 */
 		?>
-		include "js/wp-embed-template.min.js"
+			include "js/wp-embed-template.min.js"
 		<?php
 	}
 	?>
@@ -1080,66 +1151,11 @@ function the_embed_site_title() {
  *                     Null if the URL does not belong to the current site.
  */
 function wp_filter_pre_oembed_result( $result, $url, $args ) {
-	$switched_blog = false;
+	$data = get_oembed_response_data_for_url( $url, $args );
 
-	if ( is_multisite() ) {
-		$url_parts = wp_parse_args(
-			wp_parse_url( $url ),
-			array(
-				'host' => '',
-				'path' => '/',
-			)
-		);
-
-		$qv = array(
-			'domain' => $url_parts['host'],
-			'path'   => '/',
-		);
-
-		// In case of subdirectory configs, set the path.
-		if ( ! is_subdomain_install() ) {
-			$path = explode( '/', ltrim( $url_parts['path'], '/' ) );
-			$path = reset( $path );
-
-			if ( $path ) {
-				$qv['path'] = get_network()->path . $path . '/';
-			}
-		}
-
-		$sites = get_sites( $qv );
-		$site  = reset( $sites );
-
-		if ( $site && (int) $site->blog_id !== get_current_blog_id() ) {
-			switch_to_blog( $site->blog_id );
-			$switched_blog = true;
-		}
+	if ( $data ) {
+		return _wp_oembed_get_object()->data2html( $data, $url );
 	}
 
-	$post_id = url_to_postid( $url );
-
-	/** This filter is documented in wp-includes/class-wp-oembed-controller.php */
-	$post_id = apply_filters( 'oembed_request_post_id', $post_id, $url );
-
-	if ( ! $post_id ) {
-		if ( $switched_blog ) {
-			restore_current_blog();
-		}
-
-		return $result;
-	}
-
-	$width = isset( $args['width'] ) ? $args['width'] : 0;
-
-	$data = get_oembed_response_data( $post_id, $width );
-	$data = _wp_oembed_get_object()->data2html( (object) $data, $url );
-
-	if ( $switched_blog ) {
-		restore_current_blog();
-	}
-
-	if ( ! $data ) {
-		return $result;
-	}
-
-	return $data;
+	return $result;
 }

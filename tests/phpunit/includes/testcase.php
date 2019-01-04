@@ -273,10 +273,9 @@ class WP_UnitTestCase extends PHPUnit_Framework_TestCase {
 	/**
 	 * Saves the action and filter-related globals so they can be restored later.
 	 *
-	 * Stores $merged_filters, $wp_actions, $wp_current_filter, and $wp_filter
+	 * Stores $wp_actions, $wp_current_filter, and $wp_filter
 	 * on a class variable so they can be restored on tearDown() using _restore_hooks().
 	 *
-	 * @global array $merged_filters
 	 * @global array $wp_actions
 	 * @global array $wp_current_filter
 	 * @global array $wp_filter
@@ -297,7 +296,6 @@ class WP_UnitTestCase extends PHPUnit_Framework_TestCase {
 	 * Restores the hook-related globals to their state at setUp()
 	 * so that future tests aren't affected by hooks set during this last test.
 	 *
-	 * @global array $merged_filters
 	 * @global array $wp_actions
 	 * @global array $wp_current_filter
 	 * @global array $wp_filter

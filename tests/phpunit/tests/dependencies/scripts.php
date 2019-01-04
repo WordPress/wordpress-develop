@@ -10,6 +10,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 		parent::setUp();
 		$this->old_wp_scripts = isset( $GLOBALS['wp_scripts'] ) ? $GLOBALS['wp_scripts'] : null;
 		remove_action( 'wp_default_scripts', 'wp_default_scripts' );
+		remove_action( 'wp_default_scripts', 'wp_default_packages' );
 		$GLOBALS['wp_scripts']                  = new WP_Scripts();
 		$GLOBALS['wp_scripts']->default_version = get_bloginfo( 'version' );
 	}
@@ -773,6 +774,152 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 45103
+	 */
+	public function test_wp_set_script_translations() {
+		wp_register_script( 'wp-i18n', '/wp-includes/js/dist/wp-i18n.js', array(), null );
+		wp_enqueue_script( 'test-example', '/wp-includes/js/script.js', array(), null );
+		wp_set_script_translations( 'test-example', 'default', DIR_TESTDATA . '/languages' );
+
+		$expected  = "<script type='text/javascript' src='/wp-includes/js/dist/wp-i18n.js'></script>";
+		$expected .= "\n<script type='text/javascript'>\n(function( translations ){" .
+					 'translations.locale_data.messages[""].domain = "default";' .
+					 'wp.i18n.setLocaleData( translations.locale_data.messages, "default" );' .
+					 '})(' . file_get_contents( DIR_TESTDATA . '/languages/en_US-813e104eb47e13dd4cc5af844c618754.json' ) . ");\n</script>\n";
+		$expected .= "<script type='text/javascript' src='/wp-includes/js/script.js'></script>\n";
+
+		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * @ticket 45103
+	 */
+	public function test_wp_set_script_translations_for_plugin() {
+		wp_register_script( 'wp-i18n', '/wp-includes/js/dist/wp-i18n.js', array(), null );
+		wp_enqueue_script( 'plugin-example', '/wp-content/plugins/my-plugin/js/script.js', array(), null );
+		wp_set_script_translations( 'plugin-example', 'internationalized-plugin', DIR_TESTDATA . '/languages/plugins' );
+
+		$expected  = "<script type='text/javascript' src='/wp-includes/js/dist/wp-i18n.js'></script>";
+		$expected .= "\n<script type='text/javascript'>\n(function( translations ){" .
+					 'translations.locale_data.messages[""].domain = "internationalized-plugin";' .
+					 'wp.i18n.setLocaleData( translations.locale_data.messages, "internationalized-plugin" );' .
+					 '})(' . file_get_contents( DIR_TESTDATA . '/languages/plugins/internationalized-plugin-en_US-2f86cb96a0233e7cb3b6f03ad573be0b.json' ) . ");\n</script>\n";
+		$expected .= "<script type='text/javascript' src='/wp-content/plugins/my-plugin/js/script.js'></script>\n";
+
+		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * @ticket 45103
+	 */
+	public function test_wp_set_script_translations_for_theme() {
+		wp_register_script( 'wp-i18n', '/wp-includes/js/dist/wp-i18n.js', array(), null );
+		wp_enqueue_script( 'theme-example', '/wp-content/themes/my-theme/js/script.js', array(), null );
+		wp_set_script_translations( 'theme-example', 'internationalized-theme', DIR_TESTDATA . '/languages/themes' );
+
+		$expected  = "<script type='text/javascript' src='/wp-includes/js/dist/wp-i18n.js'></script>";
+		$expected .= "\n<script type='text/javascript'>\n(function( translations ){" .
+					 'translations.locale_data.messages[""].domain = "internationalized-theme";' .
+					 'wp.i18n.setLocaleData( translations.locale_data.messages, "internationalized-theme" );' .
+					 '})(' . file_get_contents( DIR_TESTDATA . '/languages/themes/internationalized-theme-en_US-2f86cb96a0233e7cb3b6f03ad573be0b.json' ) . ");\n</script>\n";
+		$expected .= "<script type='text/javascript' src='/wp-content/themes/my-theme/js/script.js'></script>\n";
+
+		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * @ticket 45103
+	 */
+	public function test_wp_set_script_translations_with_handle_file() {
+		wp_register_script( 'wp-i18n', '/wp-includes/js/dist/wp-i18n.js', array(), null );
+		wp_enqueue_script( 'script-handle', '/wp-admin/js/script.js', array(), null );
+		wp_set_script_translations( 'script-handle', 'admin', DIR_TESTDATA . '/languages/' );
+
+		$expected  = "<script type='text/javascript' src='/wp-includes/js/dist/wp-i18n.js'></script>";
+		$expected .= "\n<script type='text/javascript'>\n(function( translations ){" .
+					 'translations.locale_data.messages[""].domain = "admin";' .
+					 'wp.i18n.setLocaleData( translations.locale_data.messages, "admin" );' .
+					 '})(' . file_get_contents( DIR_TESTDATA . '/languages/admin-en_US-script-handle.json' ) . ");\n</script>\n";
+		$expected .= "<script type='text/javascript' src='/wp-admin/js/script.js'></script>\n";
+
+		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * @ticket 45103
+	 */
+	public function test_wp_set_script_translations_i18n_dependency() {
+		global $wp_scripts;
+
+		wp_register_script( 'wp-i18n', '/wp-includes/js/dist/wp-i18n.js', array(), null );
+		wp_enqueue_script( 'test-example', '/wp-includes/js/script.js', array(), null );
+		wp_set_script_translations( 'test-example', 'default', DIR_TESTDATA . '/languages/' );
+
+		$script = $wp_scripts->registered['test-example'];
+
+		$this->assertContains( 'wp-i18n', $script->deps );
+	}
+
+	/**
+	 * @ticket 45103
+	 */
+	public function test_wp_set_script_translations_when_translation_file_does_not_exist() {
+		wp_register_script( 'wp-i18n', '/wp-includes/js/dist/wp-i18n.js', array(), null );
+		wp_enqueue_script( 'test-example', '/wp-admin/js/script.js', array(), null );
+		wp_set_script_translations( 'test-example', 'admin', DIR_TESTDATA . '/languages/' );
+
+		$expected  = "<script type='text/javascript' src='/wp-includes/js/dist/wp-i18n.js'></script>";
+		$expected .= "\n<script type='text/javascript'>\n(function( translations ){" .
+					 'translations.locale_data.messages[""].domain = "admin";' .
+					 'wp.i18n.setLocaleData( translations.locale_data.messages, "admin" );' .
+					 "})({ \"locale_data\": { \"messages\": { \"\": {} } } });\n</script>\n";
+		$expected .= "<script type='text/javascript' src='/wp-admin/js/script.js'></script>\n";
+
+		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * @ticket 45103
+	 */
+	public function test_wp_set_script_translations_after_register() {
+		wp_register_script( 'wp-i18n', '/wp-includes/js/dist/wp-i18n.js', array(), null );
+		wp_register_script( 'test-example', '/wp-includes/js/script.js', array(), null );
+		wp_set_script_translations( 'test-example', 'default', DIR_TESTDATA . '/languages' );
+
+		wp_enqueue_script( 'test-example' );
+
+		$expected  = "<script type='text/javascript' src='/wp-includes/js/dist/wp-i18n.js'></script>";
+		$expected .= "\n<script type='text/javascript'>\n(function( translations ){" .
+					 'translations.locale_data.messages[""].domain = "default";' .
+					 'wp.i18n.setLocaleData( translations.locale_data.messages, "default" );' .
+					 '})(' . file_get_contents( DIR_TESTDATA . '/languages/en_US-813e104eb47e13dd4cc5af844c618754.json' ) . ");\n</script>\n";
+		$expected .= "<script type='text/javascript' src='/wp-includes/js/script.js'></script>\n";
+
+		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * @ticket 45103
+	 */
+	public function test_wp_set_script_translations_dependency() {
+		wp_register_script( 'wp-i18n', '/wp-includes/js/dist/wp-i18n.js', array(), null );
+		wp_register_script( 'test-dependency', '/wp-includes/js/script.js', array(), null );
+		wp_set_script_translations( 'test-dependency', 'default', DIR_TESTDATA . '/languages' );
+
+		wp_enqueue_script( 'test-example', '/wp-includes/js/script2.js', array( 'test-dependency' ), null );
+
+		$expected  = "<script type='text/javascript' src='/wp-includes/js/dist/wp-i18n.js'></script>";
+		$expected .= "\n<script type='text/javascript'>\n(function( translations ){" .
+					 'translations.locale_data.messages[""].domain = "default";' .
+					 'wp.i18n.setLocaleData( translations.locale_data.messages, "default" );' .
+					 '})(' . file_get_contents( DIR_TESTDATA . '/languages/en_US-813e104eb47e13dd4cc5af844c618754.json' ) . ");\n</script>\n";
+		$expected .= "<script type='text/javascript' src='/wp-includes/js/script.js'></script>\n";
+		$expected .= "<script type='text/javascript' src='/wp-includes/js/script2.js'></script>\n";
+
+		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
 	 * Testing `wp_enqueue_code_editor` with file path.
 	 *
 	 * @ticket 41871
@@ -866,6 +1013,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 * @covers ::wp_enqueue_code_editor()
 	 */
 	public function test_wp_enqueue_code_editor_when_generated_array_by_compact_will_be_passed() {
+		$file                   = '';
 		$wp_enqueue_code_editor = wp_enqueue_code_editor( compact( 'file' ) );
 		$this->assertNonEmptyMultidimensionalArray( $wp_enqueue_code_editor );
 
