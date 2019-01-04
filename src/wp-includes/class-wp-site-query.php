@@ -420,6 +420,7 @@ class WP_Site_Query {
 
 		$number = absint( $this->query_vars['number'] );
 		$offset = absint( $this->query_vars['offset'] );
+		$limits = '';
 
 		if ( ! empty( $number ) ) {
 			if ( $offset ) {
@@ -569,7 +570,8 @@ class WP_Site_Query {
 			$this->sql_clauses['where']['date_query'] = preg_replace( '/^\s*AND\s*/', '', $this->date_query->get_sql() );
 		}
 
-		$join = '';
+		$join    = '';
+		$groupby = '';
 
 		if ( ! empty( $this->meta_query_clauses ) ) {
 			$join .= $this->meta_query_clauses['join'];

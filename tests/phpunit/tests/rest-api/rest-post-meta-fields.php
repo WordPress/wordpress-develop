@@ -192,6 +192,48 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			)
 		);
 
+		register_meta(
+			'post',
+			'test_boolean_update',
+			array(
+				'single'            => true,
+				'type'              => 'boolean',
+				'sanitize_callback' => 'absint',
+				'show_in_rest'      => true,
+			)
+		);
+
+		register_meta(
+			'post',
+			'test_textured_text_update',
+			array(
+				'single'            => true,
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+				'show_in_rest'      => true,
+			)
+		);
+
+		register_meta(
+			'post',
+			'test_json_encoded',
+			array(
+				'single'       => true,
+				'type'         => 'string',
+				'show_in_rest' => true,
+			)
+		);
+
+		register_meta(
+			'post',
+			'test\'slashed\'key',
+			array(
+				'single'       => true,
+				'type'         => 'string',
+				'show_in_rest' => true,
+			)
+		);
+
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = new Spy_REST_Server;
@@ -1253,6 +1295,56 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * @ticket 42069
+	 * @dataProvider data_update_value_return_success_with_same_value
+	 */
+	public function test_update_value_return_success_with_same_value( $meta_key, $meta_value ) {
+		add_post_meta( self::$post_id, $meta_key, $meta_value );
+
+		$this->grant_write_permission();
+
+		$data = array(
+			'meta' => array(
+				$meta_key => $meta_value,
+			),
+		);
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params( $data );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+	}
+
+	public function data_update_value_return_success_with_same_value() {
+		return array(
+			array( 'test_boolean_update', false ),
+			array( 'test_boolean_update', true ),
+			array( 'test_textured_text_update', 'She said, "What about the > 10,000 penguins in the kitchen?"' ),
+			array( 'test_textured_text_update', "He's about to do something rash..." ),
+			array( 'test_json_encoded', json_encode( array( 'foo' => 'bar' ) ) ),
+			array( 'test\'slashed\'key', 'Hello' ),
+		);
+	}
+
+	/**
+	 * @ticket 42069
+	 */
+	public function test_slashed_meta_key() {
+
+		add_post_meta( self::$post_id, 'test\'slashed\'key', 'Hello' );
+
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertArrayHasKey( 'test\'slashed\'key', $data['meta'] );
+		$this->assertEquals( 'Hello', $data['meta']['test\'slashed\'key'] );
 	}
 
 	/**

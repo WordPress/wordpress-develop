@@ -750,4 +750,70 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$this->assertSame( $p, post_exists( $title, $content, $date ) );
 	}
 
+	function test_use_block_editor_for_post() {
+		$this->assertFalse( use_block_editor_for_post( -1 ) );
+		$bogus_post_id = $this->factory()->post->create(
+			array(
+				'post_type' => 'bogus',
+			)
+		);
+		$this->assertFalse( use_block_editor_for_post( $bogus_post_id ) );
+
+		register_post_type(
+			'restless',
+			array(
+				'show_in_rest' => false,
+			)
+		);
+		$restless_post_id = $this->factory()->post->create(
+			array(
+				'post_type' => 'restless',
+			)
+		);
+		$this->assertFalse( use_block_editor_for_post( $restless_post_id ) );
+
+		$generic_post_id = $this->factory()->post->create();
+
+		add_filter( 'use_block_editor_for_post', '__return_false' );
+		$this->assertFalse( use_block_editor_for_post( $generic_post_id ) );
+		remove_filter( 'use_block_editor_for_post', '__return_false' );
+
+		add_filter( 'use_block_editor_for_post', '__return_true' );
+		$this->assertTrue( use_block_editor_for_post( $restless_post_id ) );
+		remove_filter( 'use_block_editor_for_post', '__return_true' );
+	}
+
+	function test_get_block_editor_server_block_settings() {
+		$name     = 'core/test';
+		$settings = array(
+			'icon'            => 'text',
+			'render_callback' => 'foo',
+		);
+
+		register_block_type( $name, $settings );
+
+		$blocks = get_block_editor_server_block_settings();
+
+		unregister_block_type( $name );
+
+		$this->assertArrayHasKey( $name, $blocks );
+		$this->assertSame( array( 'icon' => 'text' ), $blocks[ $name ] );
+	}
+
+	/**
+	 * @ticket 43559
+	 */
+	public function test_post_add_meta_empty_is_allowed() {
+		$p = self::factory()->post->create();
+
+		$_POST = array(
+			'metakeyinput' => 'testkey',
+			'metavalue'    => '',
+		);
+
+		wp_set_current_user( self::$admin_id );
+
+		$this->assertNotFalse( add_meta( $p ) );
+		$this->assertEquals( '', get_post_meta( $p, 'testkey', true ) );
+	}
 }
