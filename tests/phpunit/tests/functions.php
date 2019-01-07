@@ -1230,7 +1230,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data profider for test_wp_get_image_mime();
+	 * Data provider for test_wp_get_image_mime();
 	 */
 	public function _wp_get_image_mime() {
 		$data = array(
@@ -1333,6 +1333,55 @@ class Tests_Functions extends WP_UnitTestCase {
 				array(
 					'ext'             => false,
 					'type'            => false,
+					'proper_filename' => false,
+				),
+			),
+			// Non-image file not allowed even if it's named like one.
+			array(
+				DIR_TESTDATA . '/export/crazy-cdata.xml',
+				'crazy-cdata.jpg',
+				array(
+					'ext' => false,
+					'type' => false,
+					'proper_filename' => false,
+				),
+			),
+			// Non-image file not allowed if it's named like something else.
+			array(
+				DIR_TESTDATA . '/export/crazy-cdata.xml',
+				'crazy-cdata.doc',
+				array(
+					'ext' => false,
+					'type' => false,
+					'proper_filename' => false,
+				),
+			),
+			// Assorted text/* sample files
+			array(
+				DIR_TESTDATA . '/uploads/test.vtt',
+				'test.vtt',
+				array(
+					'ext' => 'vtt',
+					'type' => 'text/vtt',
+					'proper_filename' => false,
+				),
+			),
+			array(
+				DIR_TESTDATA . '/uploads/test.csv',
+				'test.csv',
+				array(
+					'ext' => 'csv',
+					'type' => 'text/csv',
+					'proper_filename' => false,
+				),
+			),
+			// RTF files.
+			array(
+				DIR_TESTDATA . '/uploads/test.rtf',
+				'test.rtf',
+				array(
+					'ext' => 'rtf',
+					'type' => 'application/rtf',
 					'proper_filename' => false,
 				),
 			),
