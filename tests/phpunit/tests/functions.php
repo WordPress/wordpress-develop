@@ -1356,35 +1356,6 @@ class Tests_Functions extends WP_UnitTestCase {
 					'proper_filename' => false,
 				),
 			),
-			// Assorted text/* sample files
-			array(
-				DIR_TESTDATA . '/uploads/test.vtt',
-				'test.vtt',
-				array(
-					'ext'             => 'vtt',
-					'type'            => 'text/vtt',
-					'proper_filename' => false,
-				),
-			),
-			array(
-				DIR_TESTDATA . '/uploads/test.csv',
-				'test.csv',
-				array(
-					'ext'             => 'csv',
-					'type'            => 'text/csv',
-					'proper_filename' => false,
-				),
-			),
-			// RTF files.
-			array(
-				DIR_TESTDATA . '/uploads/test.rtf',
-				'test.rtf',
-				array(
-					'ext'             => 'rtf',
-					'type'            => 'application/rtf',
-					'proper_filename' => false,
-				),
-			),
 		);
 
 		// Test a few additional file types on single sites.
@@ -1419,6 +1390,35 @@ class Tests_Functions extends WP_UnitTestCase {
 						array(
 							'ext'             => 'flac',
 							'type'            => 'audio/flac',
+							'proper_filename' => false,
+						),
+					),
+					// Assorted text/* sample files
+					array(
+						DIR_TESTDATA . '/uploads/test.vtt',
+						'test.vtt',
+						array(
+							'ext'             => 'vtt',
+							'type'            => 'text/vtt',
+							'proper_filename' => false,
+						),
+					),
+					array(
+						DIR_TESTDATA . '/uploads/test.csv',
+						'test.csv',
+						array(
+							'ext'             => 'csv',
+							'type'            => 'text/csv',
+							'proper_filename' => false,
+						),
+					),
+					// RTF files.
+					array(
+						DIR_TESTDATA . '/uploads/test.rtf',
+						'test.rtf',
+						array(
+							'ext'             => 'rtf',
+							'type'            => 'application/rtf',
 							'proper_filename' => false,
 						),
 					),
