@@ -182,11 +182,13 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		$ordered = array( $posts[2], $posts[0], $posts[3] );
 
-		$q = new WP_Query( array(
-			'post_type' => 'any',
-			'post__in' => $ordered,
-			'orderby' => array( 'post__in' => 'ASC' ),
-		) );
+		$q = new WP_Query(
+			array(
+				'post_type' => 'any',
+				'post__in'  => $ordered,
+				'orderby'   => array( 'post__in' => 'ASC' ),
+			)
+		);
 		$this->assertSame( $ordered, wp_list_pluck( $q->posts, 'ID' ) );
 	}
 
@@ -198,11 +200,13 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		$ordered = array( $posts[2], $posts[0], $posts[3] );
 
-		$q = new WP_Query( array(
-			'post_type' => 'any',
-			'post__in' => $ordered,
-			'orderby' => 'post__in',
-		) );
+		$q = new WP_Query(
+			array(
+				'post_type' => 'any',
+				'post__in'  => $ordered,
+				'orderby'   => 'post__in',
+			)
+		);
 		$this->assertSame( $ordered, wp_list_pluck( $q->posts, 'ID' ) );
 	}
 
