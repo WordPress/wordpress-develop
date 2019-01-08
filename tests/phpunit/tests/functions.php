@@ -236,44 +236,6 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertFalse( is_serialized( 'C:16:"Serialized_Class":6:{a:0:{}}' ) );
 	}
 
-	/**
-	 * @dataProvider data_is_serialized_string
-	 */
-	public function test_is_serialized_string( $value, $result ) {
-		$this->assertSame( is_serialized_string( $value ), $result );
-	}
-
-	public function data_is_serialized_string() {
-		return array(
-			// Not a string.
-			array( 0, false ),
-
-			// Too short when trimmed.
-			array( 's:3   ', false ),
-
-			// Too short.
-			array( 's:3', false ),
-
-			// No colon in second position.
-			array( 's!3:"foo";', false ),
-
-			// No trailing semicolon.
-			array( 's:3:"foo"', false ),
-
-			// Wrong type.
-			array( 'a:3:"foo";', false ),
-
-			// No closing quote.
-			array( 'a:3:"foo;', false ),
-
-			// Wrong number of characters is close enough for is_serialized_string().
-			array( 's:12:"foo";', true ),
-
-			// Okay.
-			array( 's:3:"foo";', true ),
-
-		);
-	}
 
 	/**
 	 * @group add_query_arg
@@ -1230,7 +1192,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data profider for test_wp_get_image_mime();
+	 * Data provider for test_wp_get_image_mime();
 	 */
 	public function _wp_get_image_mime() {
 		$data = array(
@@ -1336,6 +1298,26 @@ class Tests_Functions extends WP_UnitTestCase {
 					'proper_filename' => false,
 				),
 			),
+			// Non-image file not allowed even if it's named like one.
+			array(
+				DIR_TESTDATA . '/export/crazy-cdata.xml',
+				'crazy-cdata.jpg',
+				array(
+					'ext'             => false,
+					'type'            => false,
+					'proper_filename' => false,
+				),
+			),
+			// Non-image file not allowed if it's named like something else.
+			array(
+				DIR_TESTDATA . '/export/crazy-cdata.xml',
+				'crazy-cdata.doc',
+				array(
+					'ext'             => false,
+					'type'            => false,
+					'proper_filename' => false,
+				),
+			),
 		);
 
 		// Test a few additional file types on single sites.
@@ -1370,6 +1352,35 @@ class Tests_Functions extends WP_UnitTestCase {
 						array(
 							'ext'             => 'flac',
 							'type'            => 'audio/flac',
+							'proper_filename' => false,
+						),
+					),
+					// Assorted text/* sample files
+					array(
+						DIR_TESTDATA . '/uploads/test.vtt',
+						'test.vtt',
+						array(
+							'ext'             => 'vtt',
+							'type'            => 'text/vtt',
+							'proper_filename' => false,
+						),
+					),
+					array(
+						DIR_TESTDATA . '/uploads/test.csv',
+						'test.csv',
+						array(
+							'ext'             => 'csv',
+							'type'            => 'text/csv',
+							'proper_filename' => false,
+						),
+					),
+					// RTF files.
+					array(
+						DIR_TESTDATA . '/uploads/test.rtf',
+						'test.rtf',
+						array(
+							'ext'             => 'rtf',
+							'type'            => 'application/rtf',
 							'proper_filename' => false,
 						),
 					),

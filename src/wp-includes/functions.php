@@ -2569,8 +2569,35 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 			 * This means that common mismatches are forgiven: application/vnd.apple.numbers is often misidentified as application/zip,
 			 * and some media files are commonly named with the wrong extension (.mov instead of .mp4)
 			 */
-
 			if ( substr( $real_mime, 0, strcspn( $real_mime, '/' ) ) !== substr( $type, 0, strcspn( $type, '/' ) ) ) {
+				$type = $ext = false;
+			}
+		} elseif ( 'text/plain' === $real_mime ) {
+			// A few common file types are occasionally detected as text/plain; allow those.
+			if ( ! in_array(
+				$type,
+				array(
+					'text/plain',
+					'text/csv',
+					'text/richtext',
+					'text/tsv',
+					'text/vtt',
+				)
+			)
+			) {
+				$type = $ext = false;
+			}
+		} elseif ( 'text/rtf' === $real_mime ) {
+			// Special casing for RTF files.
+			if ( ! in_array(
+				$type,
+				array(
+					'text/rtf',
+					'text/plain',
+					'application/rtf',
+				)
+			)
+			) {
 				$type = $ext = false;
 			}
 		} else {
@@ -4885,7 +4912,7 @@ function global_terms_enabled() {
  * a setting for the main network, making it essentially a global setting. Subsequent requests
  * will refer to this setting instead of running the query.
  *
- * @since 5.0.0
+ * @since 5.1.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -6209,7 +6236,7 @@ function wp_is_uuid( $uuid, $version = null ) {
  * with the optional prefix. As such the returned value is not universally unique,
  * but it is unique across the life of the PHP process.
  *
- * @since 4.9.9
+ * @since 5.0.3
  *
  * @staticvar int $id_counter
  *
@@ -6552,4 +6579,59 @@ function wp_privacy_delete_old_export_files() {
 			unlink( $export_file );
 		}
 	}
+}
+
+/**
+ * Gets the URL to learn more about updating the PHP version the site is running on.
+ *
+ * This URL can be overridden by specifying an environment variable `WP_UPDATE_PHP_URL` or by using the
+ * {@see 'wp_update_php_url'} filter. Providing an empty string is not allowed and will result in the
+ * default URL being used. Furthermore the page the URL links to should preferably be localized in the
+ * site language.
+ *
+ * @since 5.1.0
+ *
+ * @return string URL to learn more about updating PHP.
+ */
+function wp_get_update_php_url() {
+	$default_url = wp_get_default_update_php_url();
+
+	$update_url = $default_url;
+	if ( false !== getenv( 'WP_UPDATE_PHP_URL' ) ) {
+		$update_url = getenv( 'WP_UPDATE_PHP_URL' );
+	}
+
+	/**
+	 * Filters the URL to learn more about updating the PHP version the site is running on.
+	 *
+	 * Providing an empty string is not allowed and will result in the default URL being used. Furthermore
+	 * the page the URL links to should preferably be localized in the site language.
+	 *
+	 * @since 5.1.0
+	 *
+	 * @param string $update_url URL to learn more about updating PHP.
+	 */
+	$update_url = apply_filters( 'wp_update_php_url', $update_url );
+
+	if ( empty( $update_url ) ) {
+		$update_url = $default_url;
+	}
+
+	return $update_url;
+}
+
+/**
+ * Gets the default URL to learn more about updating the PHP version the site is running on.
+ *
+ * Do not use this function to retrieve this URL. Instead, use {@see wp_get_update_php_url()} when relying on the URL.
+ * This function does not allow modifying the returned URL, and is only used to compare the actually used URL with the
+ * default one.
+ *
+ * @since 5.1.0
+ * @access private
+ *
+ * @return string Default URL to learn more about updating PHP.
+ */
+function wp_get_default_update_php_url() {
+	return _x( 'https://wordpress.org/support/update-php/', 'localized PHP upgrade information page' );
 }

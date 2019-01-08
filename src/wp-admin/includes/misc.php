@@ -313,6 +313,10 @@ function wp_make_theme_file_tree( $allowed_files ) {
  * @since 4.9.0
  * @access private
  *
+ * @global string $relative_file Name of the file being edited relative to the
+ *                               theme directory.
+ * @global string $stylesheet    The stylesheet name of the theme being edited.
+ *
  * @param array|string $tree  List of file/folder paths, or filename.
  * @param int          $level The aria-level for the current iteration.
  * @param int          $size  The aria-setsize for the current iteration.
@@ -380,7 +384,7 @@ function wp_print_theme_file_tree( $tree, $level = 2, $size = 1, $index = 1 ) {
  * @since 4.9.0
  * @access private
  *
- * @param string $plugin_editable_files List of plugin file paths.
+ * @param array $plugin_editable_files List of plugin file paths.
  * @return array Tree structure for listing plugin files.
  */
 function wp_make_plugin_file_tree( $plugin_editable_files ) {
@@ -1989,10 +1993,10 @@ final class WP_Privacy_Policy_Content {
 		 * @since 4.9.6
 		 * @since 5.0.0 Added the `$strings`, `$description`, and `$blocks` parameters.
 		 *
-		 * @param $content     string The default policy content.
-		 * @param $strings     array  An array of privacy policy content strings.
-		 * @param $description bool   Whether policy descriptions should be included.
-		 * @param $blocks      bool   Whether the content should be formatted for the block editor.
+		 * @param string $content     The default policy content.
+		 * @param array  $strings     An array of privacy policy content strings.
+		 * @param bool   $description Whether policy descriptions should be included.
+		 * @param bool   $blocks      Whether the content should be formatted for the block editor.
 		 */
 		return apply_filters( 'wp_get_default_privacy_policy_content', $content, $strings, $description, $blocks );
 	}

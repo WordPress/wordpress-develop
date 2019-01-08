@@ -560,6 +560,10 @@ code {
 	margin: 10px 20px 0 2px;
 }
 
+.wrap.block-editor-no-js {
+	padding-left: 20px;
+}
+
 .wrap > h2:first-child, /* Back-compat for pre-4.4 */
 .wrap [class$="icon32"] + h2, /* Back-compat for pre-4.4 */
 .postbox .inside h2, /* Back-compat for pre-4.4 */
@@ -2057,11 +2061,17 @@ html.wp-toolbar {
 	user-select: none;
 }
 
-.postbox .inside,
-.stuffbox .inside {
+.postbox .inside {
 	padding: 0 12px 12px;
 	line-height: 1.4em;
 	font-size: 13px;
+}
+
+.stuffbox .inside {
+	padding: 0;
+	line-height: 1.4em;
+	font-size: 13px;
+	margin-top: 0;
 }
 
 .postbox .inside {
@@ -2359,11 +2369,8 @@ body.iframe {
 }
 
 .edit-comment-author {
-	font-size: 14px;
-	line-height: 1.4;
-	font-weight: 600;
 	color: #222;
-	margin: 2px 0 0 9px;
+	border-bottom: 1px solid #eee;
 }
 
 #namediv h3 label, /* Back-compat for pre-4.4 */

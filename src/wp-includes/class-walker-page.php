@@ -148,6 +148,7 @@ class Walker_Page extends Walker {
 		 * @param int      $current_page ID of the current page.
 		 */
 		$css_classes = implode( ' ', apply_filters( 'page_css_class', $css_class, $page, $depth, $args, $current_page ) );
+		$css_classes = $css_classes ? ' class="' . esc_attr( $css_classes ) . '"' : '';
 
 		if ( '' === $page->post_title ) {
 			/* translators: %d: ID of a post */
@@ -157,8 +158,9 @@ class Walker_Page extends Walker {
 		$args['link_before'] = empty( $args['link_before'] ) ? '' : $args['link_before'];
 		$args['link_after']  = empty( $args['link_after'] ) ? '' : $args['link_after'];
 
-		$atts         = array();
-		$atts['href'] = get_permalink( $page->ID );
+		$atts                 = array();
+		$atts['href']         = get_permalink( $page->ID );
+		$atts['aria-current'] = ( $page->ID == $current_page ) ? 'page' : '';
 
 		/**
 		 * Filters the HTML attributes applied to a page menu item's anchor element.
@@ -168,7 +170,8 @@ class Walker_Page extends Walker {
 		 * @param array $atts {
 		 *     The HTML attributes applied to the menu item's `<a>` element, empty strings are ignored.
 		 *
-		 *     @type string $href The href attribute.
+		 *     @type string $href         The href attribute.
+		 *     @type string $aria_current The aria-current attribute.
 		 * }
 		 * @param WP_Post $page         Page data object.
 		 * @param int     $depth        Depth of page, used for padding.
@@ -186,7 +189,7 @@ class Walker_Page extends Walker {
 		}
 
 		$output .= $indent . sprintf(
-			'<li class="%s"><a%s>%s%s%s</a>',
+			'<li%s><a%s>%s%s%s</a>',
 			$css_classes,
 			$attributes,
 			$args['link_before'],

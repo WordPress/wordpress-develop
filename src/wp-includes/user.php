@@ -882,6 +882,24 @@ function count_users( $strategy = 'time', $site_id = null ) {
 	if ( ! $site_id ) {
 		$site_id = get_current_blog_id();
 	}
+
+	/**
+	 * Filter the user count before queries are run. Return a non-null value to cause count_users()
+	 * to return early.
+	 *
+	 * @since 5.1.0
+	 *
+	 * @param null|string $result   Default null.
+	 * @param string      $strategy Optional. The computational strategy to use when counting the users.
+	 *                              Accepts either 'time' or 'memory'. Default 'time'.
+	 * @param int|null    $site_id  Optional. The site ID to count users for. Defaults to the current site.
+	 */
+	$pre = apply_filters( 'pre_count_users', null, $strategy, $site_id );
+
+	if ( null !== $pre ) {
+		return $pre;
+	}
+
 	$blog_prefix = $wpdb->get_blog_prefix( $site_id );
 	$result      = array();
 
@@ -2692,10 +2710,9 @@ function _wp_get_current_user() {
  * @since 4.9.0 This function was moved from wp-admin/includes/ms.php so it's no longer Multisite specific.
  *
  * @global WP_Error $errors WP_Error object.
- * @global wpdb     $wpdb   WordPress database object.
  */
 function send_confirmation_on_profile_email() {
-	global $errors, $wpdb;
+	global $errors;
 
 	$current_user = wp_get_current_user();
 	if ( ! is_object( $errors ) ) {
@@ -2719,7 +2736,7 @@ function send_confirmation_on_profile_email() {
 			return;
 		}
 
-		if ( $wpdb->get_var( $wpdb->prepare( "SELECT user_email FROM {$wpdb->users} WHERE user_email=%s", $_POST['email'] ) ) ) {
+		if ( email_exists( $_POST['email'] ) ) {
 			$errors->add(
 				'user_email',
 				__( '<strong>ERROR</strong>: The email address is already used.' ),
