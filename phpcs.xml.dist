@@ -16,7 +16,7 @@
 	<!-- Strip the filepaths down to the relevant bit. -->
 	<arg name="basepath" value="./"/>
 
-	<!-- Check up to 20 files simultanously. -->
+	<!-- Check up to 20 files simultaneously. -->
 	<arg name="parallel" value="20"/>
 
 	<!-- Show sniff codes in all reports -->
