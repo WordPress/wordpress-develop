@@ -129,13 +129,13 @@ class Tests_L10n extends WP_UnitTestCase {
 	 */
 	function test_wp_dropdown_languages_exclude_en_us() {
 		$args   = array(
-			'id'                       => 'foo',
-			'name'                     => 'bar',
-			'languages'                => array( 'de_DE' ),
-			'translations'             => $this->wp_dropdown_languages_filter(),
-			'selected'                 => 'de_DE',
-			'echo'                     => false,
-			'show_option_en_us'        => false,
+			'id'                => 'foo',
+			'name'              => 'bar',
+			'languages'         => array( 'de_DE' ),
+			'translations'      => $this->wp_dropdown_languages_filter(),
+			'selected'          => 'de_DE',
+			'echo'              => false,
+			'show_option_en_us' => false,
 		);
 		$actual = wp_dropdown_languages( $args );
 
