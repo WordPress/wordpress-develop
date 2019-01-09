@@ -291,7 +291,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data     = $response->get_data();
 		$this->assertEquals( 2, count( $data ) );
 		$this->assertEquals( $id1, $data[0]['id'] );
-		$this->assertPostsOrderedBy( "FIELD( {posts}.ID, $id1,$id3 )" );
+		$this->assertPostsOrderedBy( "FIELD({posts}.ID,$id1,$id3)" );
 		// Invalid include should error
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'include', 'invalid' );
@@ -4255,7 +4255,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function tearDown() {
 		_unregister_post_type( 'private-post' );
-		_unregister_post_type( 'youseeeme' );
+		_unregister_post_type( 'youseeme' );
 		if ( isset( $this->attachment_id ) ) {
 			$this->remove_added_uploads();
 		}

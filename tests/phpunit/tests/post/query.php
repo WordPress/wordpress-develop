@@ -174,6 +174,42 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertSame( $ordered, wp_list_pluck( $q->posts, 'ID' ) );
 	}
 
+	/**
+	 * @ticket 38034
+	 */
+	public function test_orderby_post__in_array() {
+		$posts = self::factory()->post->create_many( 4 );
+
+		$ordered = array( $posts[2], $posts[0], $posts[3] );
+
+		$q = new WP_Query(
+			array(
+				'post_type' => 'any',
+				'post__in'  => $ordered,
+				'orderby'   => array( 'post__in' => 'ASC' ),
+			)
+		);
+		$this->assertSame( $ordered, wp_list_pluck( $q->posts, 'ID' ) );
+	}
+
+	/**
+	 * @ticket 38034
+	 */
+	public function test_orderby_post__in_array_with_implied_order() {
+		$posts = self::factory()->post->create_many( 4 );
+
+		$ordered = array( $posts[2], $posts[0], $posts[3] );
+
+		$q = new WP_Query(
+			array(
+				'post_type' => 'any',
+				'post__in'  => $ordered,
+				'orderby'   => 'post__in',
+			)
+		);
+		$this->assertSame( $ordered, wp_list_pluck( $q->posts, 'ID' ) );
+	}
+
 	function test_post__in_attachment_ordering() {
 		$post_id    = self::factory()->post->create();
 		$att_ids    = array();

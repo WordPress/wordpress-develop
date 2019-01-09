@@ -898,17 +898,18 @@ function load_child_theme_textdomain( $domain, $path = false ) {
  *
  * @since 5.0.0
  * @since 5.0.2 Uses load_script_translations() to load translation data.
+ * @since 5.1.0 The `$domain` parameter was made optional.
  *
  * @see WP_Scripts::set_translations()
  *
  * @param string $handle Name of the script to register a translation domain to.
- * @param string $domain The text domain.
+ * @param string $domain Optional. Text domain. Default 'default'.
  * @param string $path   Optional. The full file path to the directory containing translation files.
  *
  * @return false|string False if the script textdomain could not be loaded, the translated strings
  *                      in JSON encoding otherwise.
  */
-function load_script_textdomain( $handle, $domain, $path = null ) {
+function load_script_textdomain( $handle, $domain = 'default', $path = null ) {
 	$wp_scripts = wp_scripts();
 
 	if ( ! isset( $wp_scripts->registered[ $handle ] ) ) {
@@ -921,8 +922,13 @@ function load_script_textdomain( $handle, $domain, $path = null ) {
 	// If a path was given and the handle file exists simply return it.
 	$file_base       = $domain === 'default' ? $locale : $domain . '-' . $locale;
 	$handle_filename = $file_base . '-' . $handle . '.json';
-	if ( $path && file_exists( $path . '/' . $handle_filename ) ) {
-		return load_script_translations( $path . '/' . $handle_filename, $handle, $domain );
+
+	if ( $path ) {
+		$translations = load_script_translations( $path . '/' . $handle_filename, $handle, $domain );
+
+		if ( $translations ) {
+			return $translations;
+		}
 	}
 
 	$src = $wp_scripts->registered[ $handle ]->src;
@@ -982,11 +988,19 @@ function load_script_textdomain( $handle, $domain, $path = null ) {
 	}
 
 	$md5_filename = $file_base . '-' . md5( $relative ) . '.json';
-	if ( $path && file_exists( $path . '/' . $md5_filename ) ) {
-		return load_script_translations( $path . '/' . $md5_filename, $handle, $domain );
+
+	if ( $path ) {
+		$translations = load_script_translations( $path . '/' . $md5_filename, $handle, $domain );
+
+		if ( $translations ) {
+			return $translations;
+		}
 	}
-	if ( file_exists( $languages_path . '/' . $md5_filename ) ) {
-		return load_script_translations( $languages_path . '/' . $md5_filename, $handle, $domain );
+
+	$translations = load_script_translations( $languages_path . '/' . $md5_filename, $handle, $domain );
+
+	if ( $translations ) {
+		return $translations;
 	}
 
 	return load_script_translations( false, $handle, $domain );

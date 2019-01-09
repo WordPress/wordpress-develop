@@ -76,7 +76,7 @@ function wp_register_tinymce_scripts( &$scripts, $force_uncompressed = false ) {
 function wp_default_packages_vendor( &$scripts ) {
 	global $wp_locale;
 
-	$dev_suffix = wp_scripts_get_suffix( 'dev' );
+	$suffix = wp_scripts_get_suffix();
 
 	$vendor_scripts = array(
 		'react'     => array( 'wp-polyfill' ),
@@ -108,7 +108,7 @@ function wp_default_packages_vendor( &$scripts ) {
 			$dependencies = array();
 		}
 
-		$path    = "/wp-includes/js/dist/vendor/$handle$dev_suffix.js";
+		$path    = "/wp-includes/js/dist/vendor/$handle$suffix.js";
 		$version = $vendor_scripts_versions[ $handle ];
 
 		$scripts->add( $handle, $path, $dependencies, $version, 1 );
@@ -224,42 +224,42 @@ function wp_default_packages_scripts( &$scripts ) {
 	$suffix = wp_scripts_get_suffix();
 
 	$packages_versions = array(
-		'api-fetch'                          => '2.2.6',
+		'api-fetch'                          => '2.2.7',
 		'a11y'                               => '2.0.2',
-		'annotations'                        => '1.0.4',
+		'annotations'                        => '1.0.5',
 		'autop'                              => '2.0.2',
 		'blob'                               => '2.1.0',
-		'block-library'                      => '2.2.11',
-		'block-serialization-default-parser' => '2.0.2',
-		'blocks'                             => '6.0.4',
-		'components'                         => '7.0.4',
+		'block-library'                      => '2.2.12',
+		'block-serialization-default-parser' => '2.0.3',
+		'blocks'                             => '6.0.5',
+		'components'                         => '7.0.5',
 		'compose'                            => '3.0.0',
-		'core-data'                          => '2.0.15',
-		'data'                               => '4.1.0',
+		'core-data'                          => '2.0.16',
+		'data'                               => '4.2.0',
 		'date'                               => '3.0.1',
-		'deprecated'                         => '2.0.3',
-		'dom'                                => '2.0.7',
+		'deprecated'                         => '2.0.4',
+		'dom'                                => '2.0.8',
 		'dom-ready'                          => '2.0.2',
-		'edit-post'                          => '3.1.6',
-		'editor'                             => '9.0.6',
+		'edit-post'                          => '3.1.7',
+		'editor'                             => '9.0.7',
 		'element'                            => '2.1.8',
 		'escape-html'                        => '1.0.1',
-		'format-library'                     => '1.2.9',
-		'hooks'                              => '2.0.3',
+		'format-library'                     => '1.2.10',
+		'hooks'                              => '2.0.4',
 		'html-entities'                      => '2.0.4',
 		'i18n'                               => '3.1.0',
 		'is-shallow-equal'                   => '1.1.4',
 		'keycodes'                           => '2.0.5',
-		'list-reusable-blocks'               => '1.1.17',
-		'notices'                            => '1.1.1',
-		'nux'                                => '3.0.5',
-		'plugins'                            => '2.0.9',
+		'list-reusable-blocks'               => '1.1.18',
+		'notices'                            => '1.1.2',
+		'nux'                                => '3.0.6',
+		'plugins'                            => '2.0.10',
 		'redux-routine'                      => '3.0.3',
-		'rich-text'                          => '3.0.3',
+		'rich-text'                          => '3.0.4',
 		'shortcode'                          => '2.0.2',
 		'token-list'                         => '1.1.0',
-		'url'                                => '2.3.2',
-		'viewport'                           => '2.0.13',
+		'url'                                => '2.3.3',
+		'viewport'                           => '2.1.0',
 		'wordcount'                          => '2.0.3',
 	);
 
@@ -466,16 +466,16 @@ function wp_default_packages_scripts( &$scripts ) {
 	);
 
 	$package_translations = array(
-		'api-fetch'            => 'default',
-		'blocks'               => 'default',
-		'block-library'        => 'default',
-		'components'           => 'default',
-		'edit-post'            => 'default',
-		'editor'               => 'default',
-		'format-library'       => 'default',
-		'keycodes'             => 'default',
-		'list-reusable-blocks' => 'default',
-		'nux'                  => 'default',
+		'api-fetch',
+		'blocks',
+		'block-library',
+		'components',
+		'edit-post',
+		'editor',
+		'format-library',
+		'keycodes',
+		'list-reusable-blocks',
+		'nux',
 	);
 
 	foreach ( $packages_dependencies as $package => $dependencies ) {
@@ -485,8 +485,8 @@ function wp_default_packages_scripts( &$scripts ) {
 
 		$scripts->add( $handle, $path, $dependencies, $version, 1 );
 
-		if ( isset( $package_translations[ $package ] ) ) {
-			$scripts->set_translations( $handle, $package_translations[ $package ] );
+		if ( in_array( $package, $package_translations, true ) ) {
+			$scripts->set_translations( $handle );
 		}
 	}
 }

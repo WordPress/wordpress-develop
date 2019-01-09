@@ -63,7 +63,7 @@ if ( ! function_exists( 'wp_install' ) ) :
 
 		update_option( 'siteurl', $guessurl );
 
-		// If not a public blog, don't ping.
+		// If not a public site, don't ping.
 		if ( ! $public ) {
 			update_option( 'default_pingback_flag', 0 );
 		}
@@ -2262,7 +2262,7 @@ function upgrade_network() {
 	}
 
 	// 5.1
-	if ( $wp_current_db_version < 42836 ) {
+	if ( $wp_current_db_version < 44467 ) {
 		$network_id = get_main_network_id();
 		delete_network_option( $network_id, 'site_meta_supported' );
 		is_site_meta_supported();

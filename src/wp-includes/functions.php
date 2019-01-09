@@ -323,54 +323,68 @@ function size_format( $bytes, $decimals = 0 ) {
 }
 
 /**
- * Convert a filelength to human readable format.
+ * Convert a duration to human readable format.
  *
- * @since 5.0
+ * @since 5.1.0
  *
- * @param string $filelength Duration will be in string format (HH:ii:ss) OR (ii:ss).
- * @return boolean|string A human readable filelength string, false on failure.
+ * @param string $duration Duration will be in string format (HH:ii:ss) OR (ii:ss),
+ *                         with a possible prepended negative sign (-).
+ * @return string|false A human readable duration string, false on failure.
  */
-function human_readable_duration( $filelength = '' ) {
-	// Return false if filelength is empty or not in format.
-	if ( ( empty( $filelength ) || ! is_string( $filelength ) ) ) {
+function human_readable_duration( $duration = '' ) {
+	if ( ( empty( $duration ) || ! is_string( $duration ) ) ) {
 		return false;
 	}
 
-	// Validate filelength format.
-	if ( ! ( (bool) preg_match( '/^(([0-3]?[0-9])|([2][0-3])):([0-5]?[0-9])(:([0-5]?[0-9]))?$/', $filelength ) ) ) {
+	$duration = trim( $duration );
+
+	// Remove prepended negative sign.
+	if ( '-' === substr( $duration, 0, 1 ) ) {
+		$duration = substr( $duration, 1 );
+	}
+
+	// Extract duration parts.
+	$duration_parts = array_reverse( explode( ':', $duration ) );
+	$duration_count = count( $duration_parts );
+
+	$hour   = null;
+	$minute = null;
+	$second = null;
+
+	if ( 3 === $duration_count ) {
+		// Validate HH:ii:ss duration format.
+		if ( ! ( (bool) preg_match( '/^([0-9]+):([0-5]?[0-9]):([0-5]?[0-9])$/', $duration ) ) ) {
+			return false;
+		}
+		// Three parts: hours, minutes & seconds.
+		list( $second, $minute, $hour ) = $duration_parts;
+	} elseif ( 2 === $duration_count ) {
+		// Validate ii:ss duration format.
+		if ( ! ( (bool) preg_match( '/^([0-5]?[0-9]):([0-5]?[0-9])$/', $duration ) ) ) {
+			return false;
+		}
+		// Two parts: minutes & seconds.
+		list( $second, $minute ) = $duration_parts;
+	} else {
 		return false;
 	}
 
 	$human_readable_duration = array();
 
-	// Extract duration.
-	$durations      = array_reverse( explode( ':', $filelength ) );
-	$duration_count = count( $durations );
-
-	if ( 3 === $duration_count ) {
-		// Three parts: hours, minutes & seconds.
-		list( $second, $minute, $hour ) = $durations;
-	} elseif ( 2 === $duration_count ) {
-		// Two parts: minutes & seconds.
-		list( $second, $minute ) = $durations;
-	} else {
-		return false;
-	}
-
 	// Add the hour part to the string.
-	if ( ! empty( $hour ) && is_numeric( $hour ) ) {
+	if ( is_numeric( $hour ) ) {
 		/* translators: Time duration in hour or hours. */
 		$human_readable_duration[] = sprintf( _n( '%s hour', '%s hours', $hour ), (int) $hour );
 	}
 
 	// Add the minute part to the string.
-	if ( ! empty( $minute ) && is_numeric( $minute ) ) {
+	if ( is_numeric( $minute ) ) {
 		/* translators: Time duration in minute or minutes. */
 		$human_readable_duration[] = sprintf( _n( '%s minute', '%s minutes', $minute ), (int) $minute );
 	}
 
 	// Add the second part to the string.
-	if ( ! empty( $second ) && is_numeric( $second ) ) {
+	if ( is_numeric( $second ) ) {
 		/* translators: Time duration in second or seconds. */
 		$human_readable_duration[] = sprintf( _n( '%s second', '%s seconds', $second ), (int) $second );
 	}
@@ -2569,8 +2583,35 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 			 * This means that common mismatches are forgiven: application/vnd.apple.numbers is often misidentified as application/zip,
 			 * and some media files are commonly named with the wrong extension (.mov instead of .mp4)
 			 */
-
 			if ( substr( $real_mime, 0, strcspn( $real_mime, '/' ) ) !== substr( $type, 0, strcspn( $type, '/' ) ) ) {
+				$type = $ext = false;
+			}
+		} elseif ( 'text/plain' === $real_mime ) {
+			// A few common file types are occasionally detected as text/plain; allow those.
+			if ( ! in_array(
+				$type,
+				array(
+					'text/plain',
+					'text/csv',
+					'text/richtext',
+					'text/tsv',
+					'text/vtt',
+				)
+			)
+			) {
+				$type = $ext = false;
+			}
+		} elseif ( 'text/rtf' === $real_mime ) {
+			// Special casing for RTF files.
+			if ( ! in_array(
+				$type,
+				array(
+					'text/rtf',
+					'text/plain',
+					'application/rtf',
+				)
+			)
+			) {
 				$type = $ext = false;
 			}
 		} else {
@@ -3940,7 +3981,7 @@ function wp_list_pluck( $list, $field, $index_key = null ) {
  *
  * @since 4.7.0
  *
- * @param array        $list          An array of objects to filter.
+ * @param array        $list          An array of objects to sort.
  * @param string|array $orderby       Optional. Either the field name to order by or an array
  *                                    of multiple orderby fields as $orderby => $order.
  * @param string       $order         Optional. Either 'ASC' or 'DESC'. Only used if $orderby
@@ -4885,7 +4926,7 @@ function global_terms_enabled() {
  * a setting for the main network, making it essentially a global setting. Subsequent requests
  * will refer to this setting instead of running the query.
  *
- * @since 5.0.0
+ * @since 5.1.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -6209,7 +6250,7 @@ function wp_is_uuid( $uuid, $version = null ) {
  * with the optional prefix. As such the returned value is not universally unique,
  * but it is unique across the life of the PHP process.
  *
- * @since 4.9.9
+ * @since 5.0.3
  *
  * @staticvar int $id_counter
  *
@@ -6552,4 +6593,59 @@ function wp_privacy_delete_old_export_files() {
 			unlink( $export_file );
 		}
 	}
+}
+
+/**
+ * Gets the URL to learn more about updating the PHP version the site is running on.
+ *
+ * This URL can be overridden by specifying an environment variable `WP_UPDATE_PHP_URL` or by using the
+ * {@see 'wp_update_php_url'} filter. Providing an empty string is not allowed and will result in the
+ * default URL being used. Furthermore the page the URL links to should preferably be localized in the
+ * site language.
+ *
+ * @since 5.1.0
+ *
+ * @return string URL to learn more about updating PHP.
+ */
+function wp_get_update_php_url() {
+	$default_url = wp_get_default_update_php_url();
+
+	$update_url = $default_url;
+	if ( false !== getenv( 'WP_UPDATE_PHP_URL' ) ) {
+		$update_url = getenv( 'WP_UPDATE_PHP_URL' );
+	}
+
+	/**
+	 * Filters the URL to learn more about updating the PHP version the site is running on.
+	 *
+	 * Providing an empty string is not allowed and will result in the default URL being used. Furthermore
+	 * the page the URL links to should preferably be localized in the site language.
+	 *
+	 * @since 5.1.0
+	 *
+	 * @param string $update_url URL to learn more about updating PHP.
+	 */
+	$update_url = apply_filters( 'wp_update_php_url', $update_url );
+
+	if ( empty( $update_url ) ) {
+		$update_url = $default_url;
+	}
+
+	return $update_url;
+}
+
+/**
+ * Gets the default URL to learn more about updating the PHP version the site is running on.
+ *
+ * Do not use this function to retrieve this URL. Instead, use {@see wp_get_update_php_url()} when relying on the URL.
+ * This function does not allow modifying the returned URL, and is only used to compare the actually used URL with the
+ * default one.
+ *
+ * @since 5.1.0
+ * @access private
+ *
+ * @return string Default URL to learn more about updating PHP.
+ */
+function wp_get_default_update_php_url() {
+	return _x( 'https://wordpress.org/support/update-php/', 'localized PHP upgrade information page' );
 }
