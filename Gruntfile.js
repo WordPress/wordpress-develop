@@ -164,19 +164,34 @@ module.exports = function(grunt) {
 				]
 			},
 			'npm-packages': {
-				files: {
-					[ WORKING_DIR + 'wp-includes/js/backbone.js' ]: [ './node_modules/backbone/backbone.js' ],
-					[ WORKING_DIR + 'wp-includes/js/hoverIntent.js' ]: [ './node_modules/jquery-hoverintent/jquery.hoverIntent.js' ],
-					[ WORKING_DIR + 'wp-includes/js/imagesloaded.min.js' ]: [ './node_modules/imagesloaded/imagesloaded.pkgd.min.js' ],
-					[ WORKING_DIR + 'wp-includes/js/jquery/jquery-migrate.js' ]: [ './node_modules/jquery-migrate/dist/jquery-migrate.js' ],
-					[ WORKING_DIR + 'wp-includes/js/jquery/jquery-migrate.min.js' ]: [ './node_modules/jquery-migrate/dist/jquery-migrate.min.js' ],
-					[ WORKING_DIR + 'wp-includes/js/jquery/jquery.form.js' ]: [ './node_modules/jquery-form/src/jquery.form.js' ],
-					[ WORKING_DIR + 'wp-includes/js/jquery/jquery.form.min.js' ]: [ './node_modules/jquery-form/dist/jquery.form.min.js' ],
-					[ WORKING_DIR + 'wp-includes/js/jquery/jquery.js' ]: [ './node_modules/jquery/dist/jquery.min.js' ],
-					[ WORKING_DIR + 'wp-includes/js/masonry.min.js' ]: [ './node_modules/masonry-layout/dist/masonry.pkgd.min.js' ],
-					[ WORKING_DIR + 'wp-includes/js/twemoji.js' ]: [ './node_modules/twemoji/2/twemoji.js' ],
-					[ WORKING_DIR + 'wp-includes/js/underscore.min.js' ]: [ './node_modules/underscore/underscore-min.js' ]
-				}
+				files: [
+					{
+						[ WORKING_DIR + 'wp-includes/js/backbone.js' ]: [ './node_modules/backbone/backbone.js' ],
+						[ WORKING_DIR + 'wp-includes/js/hoverIntent.js' ]: [ './node_modules/jquery-hoverintent/jquery.hoverIntent.js' ],
+						[ WORKING_DIR + 'wp-includes/js/imagesloaded.min.js' ]: [ './node_modules/imagesloaded/imagesloaded.pkgd.min.js' ],
+						[ WORKING_DIR + 'wp-includes/js/jquery/jquery-migrate.js' ]: [ './node_modules/jquery-migrate/dist/jquery-migrate.js' ],
+						[ WORKING_DIR + 'wp-includes/js/jquery/jquery-migrate.min.js' ]: [ './node_modules/jquery-migrate/dist/jquery-migrate.min.js' ],
+						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.form.js' ]: [ './node_modules/jquery-form/src/jquery.form.js' ],
+						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.form.min.js' ]: [ './node_modules/jquery-form/dist/jquery.form.min.js' ],
+						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.js' ]: [ './node_modules/jquery/dist/jquery.min.js' ],
+						[ WORKING_DIR + 'wp-includes/js/masonry.min.js' ]: [ './node_modules/masonry-layout/dist/masonry.pkgd.min.js' ],
+						[ WORKING_DIR + 'wp-includes/js/twemoji.js' ]: [ './node_modules/twemoji/2/twemoji.js' ],
+						[ WORKING_DIR + 'wp-includes/js/underscore.js' ]: [ './node_modules/underscore/underscore.js' ],
+						[ WORKING_DIR + 'wp-includes/js/underscore.min.js' ]: [ './node_modules/underscore/underscore-min.js' ]
+					},
+					{
+						expand: true,
+						cwd: './node_modules/jquery-ui/ui/',
+						src: '*.js',
+						dest: SOURCE_DIR + 'wp-includes/js/jquery/ui/'
+					},
+					{
+						expand: true,
+						cwd: './node_modules/underscore/',
+						src: 'underscore.js',
+						dest: SOURCE_DIR + 'wp-includes/js/'
+					}
+				]
 			},
 			'vendor-js': {
 				files: [
@@ -211,7 +226,14 @@ module.exports = function(grunt) {
 							'suggest*'
 						],
 						dest: WORKING_DIR + 'wp-includes/js/jquery/'
-					}
+					},
+					{
+						expand: true,
+						cwd: SOURCE_DIR + 'js/_enqueues/vendor/tinymce/',
+						src: 'tinymce.js',
+						dest: SOURCE_DIR + 'wp-includes/js/tinymce/'
+					},
+
 				]
 			},
 			'admin-js': {
