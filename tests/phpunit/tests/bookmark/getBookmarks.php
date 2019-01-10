@@ -93,8 +93,9 @@ class Tests_Bookmark_GetBookmarks extends WP_UnitTestCase {
 				'exclude' => ',,',
 			)
 		);
+
 		$found_ids = array();
-		foreach( $found as $bookmark ) {
+		foreach ( $found as $bookmark ) {
 			$found_ids[] = $bookmark->link_id;
 		}
 
@@ -110,20 +111,25 @@ class Tests_Bookmark_GetBookmarks extends WP_UnitTestCase {
 				'include' => ',,',
 			)
 		);
+
 		$found_ids = array();
-        foreach( $found as $bookmark ) {
-            $found_ids[] = $bookmark->link_id;
-        }
+		foreach ( $found as $bookmark ) {
+			$found_ids[] = $bookmark->link_id;
+		}
 
 		// equal sets != same order.
 		$this->assertEqualSets( $bookmarks, $found_ids );
 	}
 
 	public function test_category_param_propelry_gets_parsed_as_list() {
-		$bookmarks = self::factory()->bookmark->create_many( 3 );
-		$categories = self::factory()->term->create_many( 3, array(
-			'taxonomy' => 'link_category',
-		) );
+		$bookmarks  = self::factory()->bookmark->create_many( 3 );
+		$categories = self::factory()->term->create_many(
+			3,
+			array(
+				'taxonomy' => 'link_category',
+			)
+		);
+
 		$add = wp_add_object_terms( $bookmarks[0], $categories[0], 'link_category' );
 		$add = wp_add_object_terms( $bookmarks[1], $categories[1], 'link_category' );
 		$add = wp_add_object_terms( $bookmarks[2], $categories[2], 'link_category' );
@@ -133,10 +139,11 @@ class Tests_Bookmark_GetBookmarks extends WP_UnitTestCase {
 				'category' => ',,',
 			)
 		);
+
 		$found_ids = array();
-        foreach( $found as $bookmark ) {
+		foreach ( $found as $bookmark ) {
 			$found_ids[] = $bookmark->link_id;
-        }
+		}
 
 		// equal sets != same order.
 		$this->assertEqualSets( $bookmarks, $found_ids );
