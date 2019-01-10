@@ -76,9 +76,11 @@ if ( file_exists( DIR_TESTDATA . '/themedir1' ) ) {
 	$wp_theme_directories[] = DIR_TESTDATA . '/themedir1';
 }
 
-system( WP_PHP_BINARY . ' ' . escapeshellarg( dirname( __FILE__ ) . '/install.php' ) . ' ' . escapeshellarg( $config_file_path ) . ' ' . $multisite, $retval );
-if ( 0 !== $retval ) {
-	exit( $retval );
+if ( '1' !== getenv( 'WP_TESTS_SKIP_INSTALL' ) ) {
+	system( WP_PHP_BINARY . ' ' . escapeshellarg( dirname( __FILE__ ) . '/install.php' ) . ' ' . escapeshellarg( $config_file_path ) . ' ' . $multisite, $retval );
+	if ( 0 !== $retval ) {
+		exit( $retval );
+	}
 }
 
 if ( $multisite ) {
