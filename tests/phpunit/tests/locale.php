@@ -11,6 +11,7 @@ class Tests_Locale extends WP_UnitTestCase {
 	protected $locale;
 
 	public function setUp() {
+		parent::setUp();
 		$this->locale = new WP_Locale();
 	}
 

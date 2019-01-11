@@ -7,6 +7,7 @@
  */
 class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	function setUp() {
+		parent::setUp();
 		add_filter( 'home_url', array( $this, 'home_url' ) );
 	}
 
