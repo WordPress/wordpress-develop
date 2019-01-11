@@ -111,6 +111,14 @@
 		<exclude-pattern>/src/wp-includes/template\.php</exclude-pattern>
 	</rule>
 
+	<!-- WPCS1621: These files are expected to use _ instead of -. -->
+	<rule ref="WordPress.Files.FileName.NotHyphenatedLowercase">
+		<exclude-pattern>/src/_index\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-admin/_index\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-content/themes/twentythirteen/taxonomy-post_format\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-content/themes/twentyfourteen/taxonomy-post_format\.php</exclude-pattern>
+	</rule>
+
 	<!-- Whitelist test classes for select sniffs. -->
 	<rule ref="WordPress.Files.FileName">
 		<properties>
