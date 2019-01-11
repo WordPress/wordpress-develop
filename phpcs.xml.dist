@@ -104,6 +104,11 @@
 		<exclude-pattern>/wp-config-sample\.php</exclude-pattern>
 	</rule>
 
+	<!-- WPCS1620: template.php isn't a template tag file. -->
+	<rule ref="WordPress.Files.FileName.InvalidTemplateTagFileName">
+		<exclude-pattern>/src/wp-includes/template\.php</exclude-pattern>
+	</rule>
+
 	<!-- Whitelist test classes for select sniffs. -->
 	<rule ref="WordPress.Files.FileName">
 		<properties>
