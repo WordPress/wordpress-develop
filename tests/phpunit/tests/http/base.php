@@ -13,7 +13,7 @@
 abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	// You can use your own version of data/WPHTTP-testcase-redirection-script.php here.
 	var $redirection_script = 'http://api.wordpress.org/core/tests/1.0/redirection.php';
-	var $fileStreamUrl      = 'http://s.w.org/screenshots/3.9/dashboard.png';
+	var $file_stream_url    = 'http://s.w.org/screenshots/3.9/dashboard.png';
 
 	protected $http_request_args;
 
@@ -254,7 +254,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	function test_file_stream() {
-		$url  = $this->fileStreamUrl;
+		$url  = $this->file_stream_url;
 		$size = 153204;
 		$res  = wp_remote_request(
 			$url,
@@ -282,7 +282,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * @ticket 26726
 	 */
 	function test_file_stream_limited_size() {
-		$url  = $this->fileStreamUrl;
+		$url  = $this->file_stream_url;
 		$size = 10000;
 		$res  = wp_remote_request(
 			$url,
@@ -311,7 +311,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * @ticket 31172
 	 */
 	function test_request_limited_size() {
-		$url  = $this->fileStreamUrl;
+		$url  = $this->file_stream_url;
 		$size = 10000;
 
 		$res = wp_remote_request(

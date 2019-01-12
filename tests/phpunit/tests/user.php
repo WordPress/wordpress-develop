@@ -199,6 +199,7 @@ class Tests_User extends WP_UnitTestCase {
 	 * @ticket 20043
 	 */
 	public function test_user_unset() {
+		// phpcs:disable WordPress.NamingConventions.ValidVariableName.NotSnakeCaseMemberVar
 		$user = new WP_User( self::$author_id );
 
 		// Test custom fields
@@ -207,6 +208,7 @@ class Tests_User extends WP_UnitTestCase {
 		unset( $user->customField );
 		$this->assertFalse( isset( $user->customField ) );
 		return $user;
+		// phpcs:enable
 	}
 
 	/**

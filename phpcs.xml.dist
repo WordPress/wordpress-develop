@@ -11,6 +11,60 @@
 		</properties>
 	</rule>
 
+	<rule ref="WordPress.NamingConventions.ValidVariableName">
+		<properties>
+			<property name="customPropertiesWhitelist" type="array">
+				<!-- From database structure queries -->
+				<element value="Collation"/>
+				<element value="Column_name"/>
+				<element value="Default"/>
+				<element value="Extra"/>
+				<element value="Field"/>
+				<element value="Index_type"/>
+				<element value="Key"/>
+				<element value="Key_name"/>
+				<element value="Msg_text"/>
+				<element value="Non_unique"/>
+				<element value="Null"/>
+				<element value="Sub_part"/>
+				<element value="Type"/>
+				<!-- From plugin/theme data -->
+				<element value="authorAndUri"/>
+				<element value="Name"/>
+				<element value="Version"/>
+				<!-- From the result of wp_xmlrpc_server::wp_getPageList() -->
+				<element value="dateCreated"/>
+
+				<!-- From DOMDocument -->
+				<element value="childNodes"/>
+				<element value="formatOutput"/>
+				<element value="nodeName"/>
+				<element value="nodeType"/>
+				<element value="parentNode"/>
+				<element value="preserveWhiteSpace"/>
+				<element value="textContent"/>
+				<!-- From PHPMailer -->
+				<element value="AltBody"/>
+				<element value="Body"/>
+				<element value="CharSet"/>
+				<element value="ContentType"/>
+				<element value="Encoding"/>
+				<element value="Hostname"/>
+				<element value="mailHeader"/>
+				<element value="MIMEBody"/>
+				<element value="MIMEHeader"/>
+				<element value="Sender"/>
+				<element value="Subject"/>
+				<!-- From PHPUnit_Util_Getopt -->
+				<element value="longOptions"/>
+				<!-- From POP3 -->
+				<element value="ERROR"/>
+				<!-- From ZipArchive -->
+				<element value="numFiles"/>
+			</property>
+		</properties>
+	</rule>
+
 	<arg name="extensions" value="php"/>
 
 	<!-- Strip the filepaths down to the relevant bit. -->
