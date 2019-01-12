@@ -46,17 +46,21 @@
 	<exclude-pattern>/src/wp-includes/class-simplepie\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-smtp\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-snoopy\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/class-wp-block-parser\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/deprecated\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/ms-deprecated\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/pluggable-deprecated\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/rss\.php</exclude-pattern>
 
+	<exclude-pattern>/src/wp-includes/blocks/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/ID3/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/IXR/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/random_compat/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/Requests/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/SimplePie/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/Text/*</exclude-pattern>
+
+	<exclude-pattern>/tests/phpunit/includes/speed-trap-listener\.php</exclude-pattern>
 
 	<!-- Test data and fixtures -->
 	<exclude-pattern>/tests/phpunit/build*</exclude-pattern>
