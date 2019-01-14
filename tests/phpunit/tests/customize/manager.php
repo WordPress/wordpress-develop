@@ -852,8 +852,8 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @covers WP_Customize_Manager::filter_iframe_security_headers()
 	 */
 	function test_filter_iframe_security_headers() {
-		$wp_customize  = new WP_Customize_Manager();
-		$headers       = $wp_customize->filter_iframe_security_headers( array() );
+		$wp_customize = new WP_Customize_Manager();
+		$headers      = $wp_customize->filter_iframe_security_headers( array() );
 		$this->assertArrayHasKey( 'X-Frame-Options', $headers );
 		$this->assertArrayHasKey( 'Content-Security-Policy', $headers );
 		$this->assertEquals( 'SAMEORIGIN', $headers['X-Frame-Options'] );
