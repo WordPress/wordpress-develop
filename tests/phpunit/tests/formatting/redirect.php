@@ -13,6 +13,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 
 	function tearDown() {
 		remove_filter( 'home_url', array( $this, 'home_url' ) );
+		parent::tearDown();
 	}
 
 	function home_url() {
