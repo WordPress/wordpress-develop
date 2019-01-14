@@ -5,6 +5,7 @@
  */
 abstract class WP_Filesystem_UnitTestCase extends WP_UnitTestCase {
 	function setUp() {
+		parent::setUp();
 		add_filter( 'filesystem_method_file', array( $this, 'filter_abstraction_file' ) );
 		add_filter( 'filesystem_method', array( $this, 'filter_fs_method' ) );
 		WP_Filesystem();
