@@ -1,0 +1,26 @@
+environment:
+  matrix:
+    - nodejs_version: 10.13.0
+
+clone_depth: 3
+
+branches:
+    only:
+      - master
+
+install:
+  - ps: Install-Product node $env:nodejs_version
+  - npm install npm -g
+  - npm install grunt-cli -g
+  - npm install
+
+
+test_script:
+  - node --version
+  - npm --version
+  - cmd: "grunt build"
+
+notifications:
+  - provider: Slack
+    incoming_webhook:
+      secure: CmhfxrWwgtwzO/kXoZWXRUB/Jh05AQ7DvOhToqtpm6dN1wBDp9+VnNqxldpv34uPd09vuUk4Nu/NQFkIswuZA5NYfIFJIFWqwnZExQFzTBA=
