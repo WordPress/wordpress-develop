@@ -650,27 +650,27 @@ module.exports = function(grunt) {
 		phpunit: {
 			'default': {
 				cmd: 'phpunit',
-				args: ['--verbose', '-c', 'phpunit.xml.dist']
+				args: ['-c', 'phpunit.xml.dist']
 			},
 			ajax: {
 				cmd: 'phpunit',
-				args: ['--verbose', '-c', 'phpunit.xml.dist', '--group', 'ajax']
+				args: ['-c', 'phpunit.xml.dist', '--group', 'ajax']
 			},
 			multisite: {
 				cmd: 'phpunit',
-				args: ['--verbose', '-c', 'tests/phpunit/multisite.xml']
+				args: ['-c', 'tests/phpunit/multisite.xml']
 			},
 			'ms-files': {
 				cmd: 'phpunit',
-				args: ['--verbose', '-c', 'tests/phpunit/multisite.xml', '--group', 'ms-files']
+				args: ['-c', 'tests/phpunit/multisite.xml', '--group', 'ms-files']
 			},
 			'external-http': {
 				cmd: 'phpunit',
-				args: ['--verbose', '-c', 'phpunit.xml.dist', '--group', 'external-http']
+				args: ['-c', 'phpunit.xml.dist', '--group', 'external-http']
 			},
 			'restapi-jsclient': {
 				cmd: 'phpunit',
-				args: ['--verbose', '-c', 'phpunit.xml.dist', '--group', 'restapi-jsclient']
+				args: ['-c', 'phpunit.xml.dist', '--group', 'restapi-jsclient']
 			}
 		},
 		uglify: {

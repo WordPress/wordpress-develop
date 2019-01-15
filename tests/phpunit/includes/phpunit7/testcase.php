@@ -1,7 +1,6 @@
 <?php
 
-require_once dirname( __FILE__ ) . '/abstract-testcase.php';
-
+require_once dirname( dirname( __FILE__ ) ) . '/abstract-testcase.php';
 
 /**
  * Defines a basic fixture to run multiple tests.
@@ -13,7 +12,6 @@ require_once dirname( __FILE__ ) . '/abstract-testcase.php';
  * All WordPress unit tests should inherit from this class.
  */
 class WP_UnitTestCase extends WP_UnitTestCase_Base {
-
 	/**
 	 * Asserts that a condition is not false.
 	 *
@@ -27,7 +25,7 @@ class WP_UnitTestCase extends WP_UnitTestCase_Base {
 	 *
 	 * @throws PHPUnit_Framework_AssertionFailedError
 	 */
-	public static function assertNotFalse( $condition, $message = '' ) {
+	public static function assertNotFalse( $condition, string $message = '' ): void {
 		self::assertThat( $condition, self::logicalNot( self::isFalse() ), $message );
 	}
 }

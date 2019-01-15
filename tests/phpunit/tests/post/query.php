@@ -719,7 +719,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		$q->posts = $posts;
 
-		$methd = new \ReflectionMethod( 'WP_Query', 'set_found_posts' );
+		$methd = new ReflectionMethod( 'WP_Query', 'set_found_posts' );
 		$methd->setAccessible( true );
 		$methd->invoke( $q, array( 'no_found_rows' => false ), array() );
 
