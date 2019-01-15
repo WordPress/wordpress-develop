@@ -3823,6 +3823,22 @@ function wp_parse_args( $args, $defaults = '' ) {
 }
 
 /**
+ * Cleans up an array, comma- or space-separated list of scalar values.
+ *
+ * @since 5.1.0
+ *
+ * @param array|string $list List of values.
+ * @return array Sanitized array of values.
+ */
+function wp_parse_list( $list ) {
+	if ( ! is_array( $list ) ) {
+		return preg_split( '/[\s,]+/', $list, -1, PREG_SPLIT_NO_EMPTY );
+	}
+
+	return $list;
+}
+
+/**
  * Clean up an array, comma- or space-separated list of IDs.
  *
  * @since 3.0.0
@@ -3831,9 +3847,7 @@ function wp_parse_args( $args, $defaults = '' ) {
  * @return array Sanitized array of IDs.
  */
 function wp_parse_id_list( $list ) {
-	if ( ! is_array( $list ) ) {
-		$list = preg_split( '/[\s,]+/', $list );
-	}
+	$list = wp_parse_list( $list );
 
 	return array_unique( array_map( 'absint', $list ) );
 }
@@ -3847,15 +3861,9 @@ function wp_parse_id_list( $list ) {
  * @return array Sanitized array of slugs.
  */
 function wp_parse_slug_list( $list ) {
-	if ( ! is_array( $list ) ) {
-		$list = preg_split( '/[\s,]+/', $list );
-	}
+	$list = wp_parse_list( $list );
 
-	foreach ( $list as $key => $value ) {
-		$list[ $key ] = sanitize_title( $value );
-	}
-
-	return array_unique( $list );
+	return array_unique( array_map( 'sanitize_title', $list ) );
 }
 
 /**
@@ -4489,7 +4497,7 @@ function _doing_it_wrong( $function, $message, $version ) {
 	 * Filters whether to trigger an error for _doing_it_wrong() calls.
 	 *
 	 * @since 3.1.0
-	 * @since 5.0.0 Added the $function, $message and $version parameters.
+	 * @since 5.1.0 Added the $function, $message and $version parameters.
 	 *
 	 * @param bool   $trigger  Whether to trigger the error for _doing_it_wrong() calls. Default true.
 	 * @param string $function The function that was called.
@@ -5065,6 +5073,7 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 		$exists[4] = ( $exists[1] && $exists[3] );
 		$exists[5] = ( $exists[2] && $exists[3] );
 
+		// phpcs:disable WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText
 		$zonen[] = array(
 			'continent'   => ( $exists[0] ? $zone[0] : '' ),
 			'city'        => ( $exists[1] ? $zone[1] : '' ),
@@ -5073,6 +5082,7 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 			't_city'      => ( $exists[4] ? translate( str_replace( '_', ' ', $zone[1] ), 'continents-cities' ) : '' ),
 			't_subcity'   => ( $exists[5] ? translate( str_replace( '_', ' ', $zone[2] ), 'continents-cities' ) : '' ),
 		);
+		// phpcs:enable
 	}
 	usort( $zonen, '_wp_timezone_choice_usort_callback' );
 
@@ -5706,16 +5716,16 @@ function _device_can_upload() {
  * @return bool True if the path is a stream URL.
  */
 function wp_is_stream( $path ) {
-	if ( false === strpos( $path, '://' ) ) {
+	$scheme_separator = strpos( $path, '://' );
+
+	if ( false === $scheme_separator ) {
 		// $path isn't a stream
 		return false;
 	}
 
-	$wrappers    = stream_get_wrappers();
-	$wrappers    = array_map( 'preg_quote', $wrappers );
-	$wrappers_re = '(' . join( '|', $wrappers ) . ')';
+	$stream = substr( $path, 0, $scheme_separator );
 
-	return preg_match( "!^$wrappers_re://!", $path ) === 1;
+	return in_array( $stream, stream_get_wrappers(), true );
 }
 
 /**

@@ -11,6 +11,8 @@ class Tests_Rewrite_Tags extends WP_UnitTestCase {
 
 	public function setUp() {
 		global $wp_rewrite;
+		parent::setUp();
+
 		$this->wp_rewrite = $wp_rewrite;
 		$wp_rewrite       = new WP_Rewrite();
 		$wp_rewrite->init();

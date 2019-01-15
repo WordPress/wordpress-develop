@@ -17,7 +17,10 @@ define( 'REST_API_VERSION', '2.0' );
 /**
  * Registers a REST API route.
  *
+ * Note: Do not use before the {@see 'rest_api_init'} hook.
+ *
  * @since 4.4.0
+ * @since 5.1.0 Added a _doing_it_wrong() notice when not called on or after the rest_api_init hook.
  *
  * @param string $namespace The first URL segment after core prefix. Should be unique to your package/plugin.
  * @param string $route     The base URL for route you are adding.
@@ -39,6 +42,10 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 	} elseif ( empty( $route ) ) {
 		_doing_it_wrong( 'register_rest_route', __( 'Route must be specified.' ), '4.4.0' );
 		return false;
+	}
+
+	if ( ! did_action( 'rest_api_init' ) ) {
+		_doing_it_wrong( 'register_rest_route', __( 'REST API routes must be registered on the rest_api_init action.' ), '5.1.0' );
 	}
 
 	if ( isset( $args['args'] ) ) {
@@ -679,7 +686,7 @@ function rest_filter_response_fields( $response, $server, $request ) {
 
 	$data = $response->get_data();
 
-	$fields = is_array( $request['_fields'] ) ? $request['_fields'] : preg_split( '/[\s,]+/', $request['_fields'] );
+	$fields = wp_parse_list( $request['_fields'] );
 
 	if ( 0 === count( $fields ) ) {
 		return $response;
@@ -1109,8 +1116,8 @@ function rest_get_avatar_sizes() {
  */
 function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 	if ( 'array' === $args['type'] ) {
-		if ( ! is_array( $value ) ) {
-			$value = preg_split( '/[\s,]+/', $value );
+		if ( ! is_null( $value ) ) {
+			$value = wp_parse_list( $value );
 		}
 		if ( ! wp_is_numeric_array( $value ) ) {
 			/* translators: 1: parameter, 2: type name */
@@ -1253,9 +1260,7 @@ function rest_sanitize_value_from_schema( $value, $args ) {
 		if ( empty( $args['items'] ) ) {
 			return (array) $value;
 		}
-		if ( ! is_array( $value ) ) {
-			$value = preg_split( '/[\s,]+/', $value );
-		}
+		$value = wp_parse_list( $value );
 		foreach ( $value as $index => $v ) {
 			$value[ $index ] = rest_sanitize_value_from_schema( $v, $args['items'] );
 		}

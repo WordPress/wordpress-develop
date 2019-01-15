@@ -690,6 +690,9 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->check_get_taxonomy_term_response( $response );
 	}
 
+	/**
+	 * @ticket 39122
+	 */
 	public function test_get_item_meta() {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/categories/1' );
 		$response = rest_get_server()->dispatch( $request );
@@ -698,24 +701,26 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 
 		$meta = (array) $data['meta'];
 		$this->assertArrayHasKey( 'test_single', $meta );
-		$this->assertEquals( $meta['test_single'], '' );
+		$this->assertSame( $meta['test_single'], '' );
 		$this->assertArrayHasKey( 'test_multi', $meta );
-		$this->assertEquals( $meta['test_multi'], array() );
+		$this->assertSame( $meta['test_multi'], array() );
 		$this->assertArrayHasKey( 'test_cat_single', $meta );
-		$this->assertEquals( $meta['test_cat_single'], '' );
+		$this->assertSame( $meta['test_cat_single'], '' );
 		$this->assertArrayHasKey( 'test_cat_multi', $meta );
-		$this->assertEquals( $meta['test_cat_multi'], array() );
+		$this->assertSame( $meta['test_cat_multi'], array() );
 	}
 
+	/**
+	 * @ticket 39122
+	 */
 	public function test_get_item_meta_registered_for_different_taxonomy() {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/categories/1' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertArrayHasKey( 'meta', $data );
-		$this->assertArrayHasKey( 'meta', $data );
 
 		$meta = (array) $data['meta'];
-		$this->assertEquals( false, isset( $meta['test_tag_meta'] ) );
+		$this->assertFalse( isset( $meta['test_tag_meta'] ) );
 	}
 
 	public function test_get_term_invalid_taxonomy() {

@@ -1005,12 +1005,12 @@ function count_users( $strategy = 'time', $site_id = null ) {
  * @global string  $user_url      The url in the user's profile
  * @global string  $user_identity The display name of the user
  *
- * @param int $for_user_id Optional. User ID to set up global data.
+ * @param int $for_user_id Optional. User ID to set up global data. Default 0.
  */
-function setup_userdata( $for_user_id = '' ) {
+function setup_userdata( $for_user_id = 0 ) {
 	global $user_login, $userdata, $user_level, $user_ID, $user_email, $user_url, $user_identity;
 
-	if ( '' == $for_user_id ) {
+	if ( ! $for_user_id ) {
 		$for_user_id = get_current_user_id();
 	}
 	$user = get_userdata( $for_user_id );
@@ -1400,7 +1400,8 @@ function clean_user_cache( $user ) {
  * @return int|false The user's ID on success, and false on failure.
  */
 function username_exists( $username ) {
-	if ( $user = get_user_by( 'login', $username ) ) {
+	$user = get_user_by( 'login', $username );
+	if ( $user ) {
 		$user_id = $user->ID;
 	} else {
 		$user_id = false;
@@ -1430,7 +1431,8 @@ function username_exists( $username ) {
  * @return int|false The user's ID on success, and false on failure.
  */
 function email_exists( $email ) {
-	if ( $user = get_user_by( 'email', $email ) ) {
+	$user = get_user_by( 'email', $email );
+	if ( $user ) {
 		return $user->ID;
 	}
 	return false;
@@ -2215,6 +2217,10 @@ function wp_get_password_hint() {
 function get_password_reset_key( $user ) {
 	global $wpdb, $wp_hasher;
 
+	if ( ! ( $user instanceof WP_User ) ) {
+		return new WP_Error( 'invalidcombo', __( '<strong>ERROR</strong>: There is no account with that username or email address.' ) );
+	}
+
 	/**
 	 * Fires before a new password is retrieved.
 	 *
@@ -2823,9 +2829,13 @@ All at ###SITENAME###
  */
 function new_user_email_admin_notice() {
 	global $pagenow;
-	if ( 'profile.php' === $pagenow && isset( $_GET['updated'] ) && $email = get_user_meta( get_current_user_id(), '_new_email', true ) ) {
-		/* translators: %s: New email address */
-		echo '<div class="notice notice-info"><p>' . sprintf( __( 'Your email address has not been updated yet. Please check your inbox at %s for a confirmation email.' ), '<code>' . esc_html( $email['newemail'] ) . '</code>' ) . '</p></div>';
+
+	if ( 'profile.php' === $pagenow && isset( $_GET['updated'] ) ) {
+		$email = get_user_meta( get_current_user_id(), '_new_email', true );
+		if ( $email ) {
+			/* translators: %s: New email address */
+			echo '<div class="notice notice-info"><p>' . sprintf( __( 'Your email address has not been updated yet. Please check your inbox at %s for a confirmation email.' ), '<code>' . esc_html( $email['newemail'] ) . '</code>' ) . '</p></div>';
+		}
 	}
 }
 
@@ -3531,11 +3541,9 @@ function wp_generate_user_request_key( $request_id ) {
 
 	wp_update_post(
 		array(
-			'ID'                => $request_id,
-			'post_status'       => 'request-pending',
-			'post_password'     => $wp_hasher->HashPassword( $key ),
-			'post_modified'     => current_time( 'mysql', false ),
-			'post_modified_gmt' => current_time( 'mysql', true ),
+			'ID'            => $request_id,
+			'post_status'   => 'request-pending',
+			'post_password' => $wp_hasher->HashPassword( $key ),
 		)
 	);
 

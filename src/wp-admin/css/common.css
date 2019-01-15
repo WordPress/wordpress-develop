@@ -134,6 +134,10 @@
 	word-wrap: normal !important; /* many screen reader and browser combinations announce broken words as they would appear visually */
 }
 
+.button .screen-reader-text {
+	height: auto; /* Fixes a Safari+VoiceOver bug, see ticket #42006 */
+}
+
 .screen-reader-shortcut {
 	position: absolute;
 	top: -1000em;
@@ -154,7 +158,9 @@
 	line-height: normal;
 	box-shadow: 0 0 2px 2px rgba(0,0,0,.6);
 	text-decoration: none;
-	outline: none;
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
+	outline-offset: -2px;
 }
 
 .hidden,
@@ -269,13 +275,21 @@ a:focus .media-icon img,
 	box-shadow:
 		0 0 0 1px #5b9dd9,
 		0 0 2px 1px rgba(30, 140, 190, .8);
+	/* Only visible in Windows High Contrast mode */
+	outline: 1px solid transparent;
 }
 
 .ie8 a:focus {
 	outline: #5b9dd9 solid 1px;
 }
 
-#adminmenu a:focus,
+#adminmenu a:focus {
+	box-shadow: none;
+	/* Only visible in Windows High Contrast mode */
+	outline: 1px solid transparent;
+	outline-offset: -1px;
+}
+
 .screen-reader-text:focus {
 	box-shadow: none;
 	outline: none;
@@ -613,7 +627,6 @@ code {
 	line-height: normal; /* IE8-IE11 need this for buttons */
 	color: #0073aa; /* some of these controls are button elements and don't inherit from links */
 	cursor: pointer;
-	outline: 0;
 }
 
 .wrap .wp-heading-inline + .page-title-action {
@@ -635,6 +648,8 @@ code {
 .wrap .page-title-action:focus {
 	border-color: #5b9dd9;
 	box-shadow: 0 0 2px rgba( 30, 140, 190, 0.8 );
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
 }
 
 .wrap h1.long-header {
@@ -3708,7 +3723,6 @@ img {
 	}
 
 	/* Hidden Elements */
-	#contextual-help-link-wrap,
 	#collapse-menu,
 	.post-format-select {
 		display: none !important;
@@ -3918,6 +3932,41 @@ img {
 		font-size: 13px;
 		line-height: 26px;
 		height: 28px;
+	}
+
+	/* Fix help tab columns for smaller screens */
+	#screen-meta #contextual-help-wrap {
+		overflow: visible;
+	}
+
+	#screen-meta #contextual-help-back,
+	#screen-meta .contextual-help-sidebar {
+		display: none;
+	}
+
+	#screen-meta .contextual-help-tabs {
+		clear: both;
+		width: 100%;
+		float: none;
+	}
+
+	#screen-meta .contextual-help-tabs ul {
+		margin: 0 0 1em;
+		padding: 1em 0 0;
+	}
+
+	#screen-meta .contextual-help-tabs .active {
+		margin: 0;
+	}
+
+	#screen-meta .contextual-help-tabs-wrap {
+		clear: both;
+		max-width: 100%;
+		float: none;
+	}
+
+	#screen-meta-links {
+		margin-bottom: 60px; /* Add margins beneath links for better spacing between boxes and elements */
 	}
 }
 

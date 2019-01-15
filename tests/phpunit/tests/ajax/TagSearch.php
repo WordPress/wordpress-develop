@@ -39,8 +39,6 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Test as an admin
-	 *
-	 * @expectedDeprecated wp_ajax_ajax_tag_search
 	 */
 	public function test_post_tag() {
 
@@ -64,8 +62,6 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Test with no results
-	 *
-	 * @expectedDeprecated wp_ajax_ajax_tag_search
 	 */
 	public function test_no_results() {
 
@@ -84,8 +80,6 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Test with commas
-	 *
-	 * @expectedDeprecated wp_ajax_ajax_tag_search
 	 */
 	public function test_with_comma() {
 
@@ -109,8 +103,6 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Test as a logged out user
-	 *
-	 * @expectedDeprecated wp_ajax_ajax_tag_search
 	 */
 	public function test_logged_out() {
 
@@ -128,8 +120,6 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Test with an invalid taxonomy type
-	 *
-	 * @expectedDeprecated wp_ajax_ajax_tag_search
 	 */
 	public function test_invalid_tax() {
 
@@ -147,8 +137,6 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Test as an unprivileged user
-	 *
-	 * @expectedDeprecated wp_ajax_ajax_tag_search
 	 */
 	public function test_unprivileged_user() {
 

@@ -36,12 +36,6 @@ if ( ! is_readable( $config_file_path ) ) {
 require_once $config_file_path;
 require_once dirname( __FILE__ ) . '/functions.php';
 
-if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && file_exists( ABSPATH . '_index.php' ) ) {
-	// Perhaps add more documentation about having to run `grunt` before running tests after changing code.
-	echo "ERROR: ABSPATH must point to the `build` directory, not the `src` directory. Please update your wp-tests-config.php file.\n";
-	exit( 1 );
-}
-
 tests_reset__SERVER();
 
 define( 'WP_TESTS_TABLE_PREFIX', $table_prefix );
@@ -82,9 +76,11 @@ if ( file_exists( DIR_TESTDATA . '/themedir1' ) ) {
 	$wp_theme_directories[] = DIR_TESTDATA . '/themedir1';
 }
 
-system( WP_PHP_BINARY . ' ' . escapeshellarg( dirname( __FILE__ ) . '/install.php' ) . ' ' . escapeshellarg( $config_file_path ) . ' ' . $multisite, $retval );
-if ( 0 !== $retval ) {
-	exit( $retval );
+if ( '1' !== getenv( 'WP_TESTS_SKIP_INSTALL' ) ) {
+	system( WP_PHP_BINARY . ' ' . escapeshellarg( dirname( __FILE__ ) . '/install.php' ) . ' ' . escapeshellarg( $config_file_path ) . ' ' . $multisite, $retval );
+	if ( 0 !== $retval ) {
+		exit( $retval );
+	}
 }
 
 if ( $multisite ) {

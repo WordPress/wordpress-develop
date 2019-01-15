@@ -187,7 +187,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	do_action( 'login_header' );
 	?>
 	<div id="login">
-		<h1><a href="<?php echo esc_url( $login_header_url ); ?>" title="<?php echo esc_attr( $login_header_title ); ?>" tabindex="-1"><?php echo $login_header_text; ?></a></h1>
+		<h1><a href="<?php echo esc_url( $login_header_url ); ?>" title="<?php echo esc_attr( $login_header_title ); ?>"><?php echo $login_header_text; ?></a></h1>
 	<?php
 
 	unset( $login_header_url, $login_header_title );
@@ -334,7 +334,7 @@ function retrieve_password() {
 	} elseif ( strpos( $_POST['user_login'], '@' ) ) {
 		$user_data = get_user_by( 'email', trim( wp_unslash( $_POST['user_login'] ) ) );
 		if ( empty( $user_data ) ) {
-			$errors->add( 'invalid_email', __( '<strong>ERROR</strong>: There is no user registered with that email address.' ) );
+			$errors->add( 'invalid_email', __( '<strong>ERROR</strong>: There is no account with that username or email address.' ) );
 		}
 	} else {
 		$login     = trim( $_POST['user_login'] );
@@ -357,7 +357,7 @@ function retrieve_password() {
 	}
 
 	if ( ! $user_data ) {
-		$errors->add( 'invalidcombo', __( '<strong>ERROR</strong>: Invalid username or email.' ) );
+		$errors->add( 'invalidcombo', __( '<strong>ERROR</strong>: There is no account with that username or email address.' ) );
 		return $errors;
 	}
 
@@ -1114,13 +1114,13 @@ switch ( $action ) {
 	d.value = '';
 	<?php } else { ?>
 	d = document.getElementById('user_login');
-	<?php if ( 'invalid_username' == $errors->get_error_code() ) { ?>
+			<?php if ( 'invalid_username' == $errors->get_error_code() ) { ?>
 	if( d.value != '' )
 	d.value = '';
-		<?php
-}
-}
-?>
+				<?php
+			}
+	}
+	?>
 	d.focus();
 	d.select();
 	} catch(e){}

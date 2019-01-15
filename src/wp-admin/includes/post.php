@@ -198,7 +198,7 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 /**
  * Returns only allowed post data fields
  *
- * @since 4.9.9
+ * @since 5.0.1
  *
  * @param array $post_data Array of post data. Defaults to the contents of $_POST.
  * @return object|bool WP_Error on failure, true on success.
@@ -1732,16 +1732,16 @@ function _admin_notice_post_locked() {
 		<?php if ( $preview_link ) { ?>
 		<a class="button<?php echo $tab_last; ?>" href="<?php echo esc_url( $preview_link ); ?>"><?php _e( 'Preview' ); ?></a>
 			<?php
-}
+		}
 
 		// Allow plugins to prevent some users overriding the post lock
-if ( $override ) {
-	?>
+		if ( $override ) {
+			?>
 	<a class="button button-primary wp-tab-last" href="<?php echo esc_url( add_query_arg( 'get-post-lock', '1', wp_nonce_url( get_edit_post_link( $post->ID, 'url' ), 'lock-post_' . $post->ID ) ) ); ?>"><?php _e( 'Take over' ); ?></a>
 			<?php
-}
+		}
 
-?>
+		?>
 		</p>
 		</div>
 		<?php
@@ -1994,7 +1994,7 @@ function redirect_post( $post_id = '' ) {
 /**
  * Sanitizes POST values from a checkbox taxonomy metabox.
  *
- * @since 5.0.0
+ * @since 5.1.0
  *
  * @param mixed $terms Raw term data from the 'tax_input' field.
  * @return array
@@ -2006,7 +2006,7 @@ function taxonomy_meta_box_sanitize_cb_checkboxes( $taxonomy, $terms ) {
 /**
  * Sanitizes POST values from an input taxonomy metabox.
  *
- * @since 5.0.0
+ * @since 5.1.0
  *
  * @param mixed $terms Raw term data from the 'tax_input' field.
  * @return array

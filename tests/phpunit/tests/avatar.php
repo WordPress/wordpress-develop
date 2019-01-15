@@ -103,21 +103,21 @@ class Tests_Avatar extends WP_UnitTestCase {
 		$this->assertEquals( $url, $url2 );
 	}
 
-	protected $fakeURL;
+	protected $fake_url;
 	/**
 	 * @ticket 21195
 	 */
 	public function test_pre_get_avatar_url_filter() {
-		$this->fakeURL = 'haha wat';
+		$this->fake_url = 'haha wat';
 
 		add_filter( 'pre_get_avatar_data', array( $this, 'pre_get_avatar_url_filter' ), 10, 1 );
 		$url = get_avatar_url( 1 );
 		remove_filter( 'pre_get_avatar_data', array( $this, 'pre_get_avatar_url_filter' ), 10 );
 
-		$this->assertEquals( $url, $this->fakeURL );
+		$this->assertEquals( $url, $this->fake_url );
 	}
 	public function pre_get_avatar_url_filter( $args ) {
-		$args['url'] = $this->fakeURL;
+		$args['url'] = $this->fake_url;
 		return $args;
 	}
 
@@ -125,16 +125,16 @@ class Tests_Avatar extends WP_UnitTestCase {
 	 * @ticket 21195
 	 */
 	public function test_get_avatar_url_filter() {
-		$this->fakeURL = 'omg lol';
+		$this->fake_url = 'omg lol';
 
 		add_filter( 'get_avatar_url', array( $this, 'get_avatar_url_filter' ), 10, 1 );
 		$url = get_avatar_url( 1 );
 		remove_filter( 'get_avatar_url', array( $this, 'get_avatar_url_filter' ), 10 );
 
-		$this->assertEquals( $url, $this->fakeURL );
+		$this->assertEquals( $url, $this->fake_url );
 	}
 	public function get_avatar_url_filter( $url ) {
-		return $this->fakeURL;
+		return $this->fake_url;
 	}
 
 	/**
@@ -207,37 +207,77 @@ class Tests_Avatar extends WP_UnitTestCase {
 	}
 
 
-	protected $fakeIMG;
+	protected $fake_img;
 	/**
 	 * @ticket 21195
 	 */
 	public function test_pre_get_avatar_filter() {
-		$this->fakeIMG = 'YOU TOO?!';
+		$this->fake_img = 'YOU TOO?!';
 
 		add_filter( 'pre_get_avatar', array( $this, 'pre_get_avatar_filter' ), 10, 1 );
 		$img = get_avatar( 1 );
 		remove_filter( 'pre_get_avatar', array( $this, 'pre_get_avatar_filter' ), 10 );
 
-		$this->assertEquals( $img, $this->fakeIMG );
+		$this->assertEquals( $img, $this->fake_img );
 	}
 	public function pre_get_avatar_filter( $img ) {
-		return $this->fakeIMG;
+		return $this->fake_img;
 	}
 
 	/**
 	 * @ticket 21195
 	 */
 	public function test_get_avatar_filter() {
-		$this->fakeURL = 'YA RLY';
+		$this->fake_url = 'YA RLY';
 
 		add_filter( 'get_avatar', array( $this, 'get_avatar_filter' ), 10, 1 );
 		$img = get_avatar( 1 );
 		remove_filter( 'get_avatar', array( $this, 'get_avatar_filter' ), 10 );
 
-		$this->assertEquals( $img, $this->fakeURL );
+		$this->assertEquals( $img, $this->fake_url );
 	}
 	public function get_avatar_filter( $img ) {
-		return $this->fakeURL;
+		return $this->fake_url;
+	}
+
+	/**
+	 * The `get_avatar_data()` function should return gravatar url when comment type allowed to retrieve avatars.
+	 *
+	 * @ticket 44033
+	 */
+	public function test_get_avatar_data_should_return_gravatar_url_when_input_avatar_comment_type() {
+		$comment_type = 'comment';
+		$comment      = self::factory()->comment->create_and_get(
+			array(
+				'comment_author_email' => 'commenter@example.com',
+				'comment_type'         => $comment_type,
+			)
+		);
+
+		$actual_data = get_avatar_data( $comment );
+
+		$this->assertTrue( is_avatar_comment_type( $comment_type ) );
+		$this->assertRegexp( '|^http?://[0-9]+.gravatar.com/avatar/[0-9a-f]{32}\?|', $actual_data['url'] );
+	}
+
+	/**
+	 * The `get_avatar_data()` function should return invalid url when comment type not allowed to retrieve avatars.
+	 *
+	 * @ticket 44033
+	 */
+	public function test_get_avatar_data_should_return_invalid_url_when_input_not_avatar_comment_type() {
+		$comment_type = 'review';
+		$comment      = self::factory()->comment->create_and_get(
+			array(
+				'comment_author_email' => 'commenter@example.com',
+				'comment_type'         => $comment_type,
+			)
+		);
+
+		$actual_data = get_avatar_data( $comment );
+
+		$this->assertFalse( is_avatar_comment_type( $comment_type ) );
+		$this->assertFalse( $actual_data['url'] );
 	}
 
 }

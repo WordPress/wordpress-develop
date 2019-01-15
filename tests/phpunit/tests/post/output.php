@@ -29,15 +29,14 @@ class Tests_Post_Output extends WP_UnitTestCase {
 	}
 
 	function _shortcode_paragraph( $atts, $content ) {
-		extract(
-			shortcode_atts(
-				array(
-					'class' => 'graf',
-				),
-				$atts
-			)
+		$processed_atts = shortcode_atts(
+			array(
+				'class' => 'graf',
+			),
+			$atts
 		);
-		return "<p class='$class'>$content</p>\n";
+
+		return "<p class='{$processed_atts['class']}'>$content</p>\n";
 	}
 
 	function test_the_content() {
