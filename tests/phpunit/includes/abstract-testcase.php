@@ -273,10 +273,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	/**
 	 * Saves the action and filter-related globals so they can be restored later.
 	 *
-	 * Stores $merged_filters, $wp_actions, $wp_current_filter, and $wp_filter
+	 * Stores $wp_actions, $wp_current_filter, and $wp_filter
 	 * on a class variable so they can be restored on tearDown() using _restore_hooks().
 	 *
-	 * @global array $merged_filters
 	 * @global array $wp_actions
 	 * @global array $wp_current_filter
 	 * @global array $wp_filter
@@ -297,7 +296,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	 * Restores the hook-related globals to their state at setUp()
 	 * so that future tests aren't affected by hooks set during this last test.
 	 *
-	 * @global array $merged_filters
 	 * @global array $wp_actions
 	 * @global array $wp_current_filter
 	 * @global array $wp_filter
@@ -328,7 +326,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 			$wp_object_cache->__remoteset();
 		}
 		wp_cache_flush();
-		wp_cache_add_global_groups( array( 'users', 'userlogins', 'usermeta', 'user_meta', 'useremail', 'userslugs', 'site-transient', 'site-options', 'blog-lookup', 'blog-details', 'rss', 'global-posts', 'blog-id-cache', 'networks', 'sites', 'site-details' ) );
+		wp_cache_add_global_groups( array( 'users', 'userlogins', 'usermeta', 'user_meta', 'useremail', 'userslugs', 'site-transient', 'site-options', 'blog-lookup', 'blog-details', 'rss', 'global-posts', 'blog-id-cache', 'networks', 'sites', 'site-details', 'blog_meta' ) );
 		wp_cache_add_non_persistent_groups( array( 'comment', 'counts', 'plugins' ) );
 	}
 
@@ -421,9 +419,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 
 		// Perform an assertion, but only if there are expected or unexpected deprecated calls or wrongdoings
 		if ( ! empty( $this->expected_deprecated ) ||
-			 ! empty( $this->expected_doing_it_wrong ) ||
-			 ! empty( $this->caught_deprecated ) ||
-			 ! empty( $this->caught_doing_it_wrong ) ) {
+			! empty( $this->expected_doing_it_wrong ) ||
+			! empty( $this->caught_deprecated ) ||
+			! empty( $this->caught_doing_it_wrong ) ) {
 			$this->assertEmpty( $errors, implode( "\n", $errors ) );
 		}
 	}
@@ -565,6 +563,23 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
+	 * Asserts that a condition is not false.
+	 *
+	 * This method has been backported from a more recent PHPUnit version, as tests running on PHP 5.2 use
+	 * PHPUnit 3.6.x.
+	 *
+	 * @since 4.7.4
+	 *
+	 * @param bool   $condition Condition to check.
+	 * @param string $message   Optional. Message to display when the assertion fails.
+	 *
+	 * @throws PHPUnit_Framework_AssertionFailedError
+	 */
+	public static function assertNotFalse( $condition, $message = '' ) {
+		self::assertThat( $condition, self::logicalNot( self::isFalse() ), $message );
+	}
+
+	/**
 	 * Sets the global state to as if a given URL has been requested.
 	 *
 	 * This sets:
@@ -637,11 +652,20 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 
 		$annotations = $this->getAnnotations();
 
-		if ( ! empty( $annotations['group'] ) ) {
-			if ( in_array( 'ms-required', $annotations['group'], true ) ) {
+		$groups = array();
+		if ( ! empty( $annotations['class']['group'] ) ) {
+			$groups = array_merge( $groups, $annotations['class']['group'] );
+		}
+		if ( ! empty( $annotations['method']['group'] ) ) {
+			$groups = array_merge( $groups, $annotations['method']['group'] );
+		}
+
+		if ( ! empty( $groups ) ) {
+			if ( in_array( 'ms-required', $groups, true ) ) {
 				$this->skipWithoutMultisite();
 			}
-			if ( in_array( 'ms-excluded', $annotations['group'], true ) ) {
+
+			if ( in_array( 'ms-excluded', $groups, true ) ) {
 				$this->skipWithMultisite();
 			}
 		}
