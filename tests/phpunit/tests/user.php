@@ -1169,6 +1169,11 @@ class Tests_User extends WP_UnitTestCase {
 				true,
 				true,
 			),
+			array(
+				'THIS IS NOT A SUPPORTED NOTIFICATION TYPE',
+				false,
+				false,
+			),
 		);
 	}
 
