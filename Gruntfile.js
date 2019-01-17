@@ -177,19 +177,12 @@ module.exports = function(grunt) {
 						[ WORKING_DIR + 'wp-includes/js/masonry.min.js' ]: [ './node_modules/masonry-layout/dist/masonry.pkgd.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/twemoji.js' ]: [ './node_modules/twemoji/2/twemoji.js' ],
 						[ WORKING_DIR + 'wp-includes/js/underscore.js' ]: [ './node_modules/underscore/underscore.js' ],
-						[ WORKING_DIR + 'wp-includes/js/underscore.min.js' ]: [ './node_modules/underscore/underscore-min.js' ]
 					},
 					{
 						expand: true,
 						cwd: './node_modules/jquery-ui/ui/',
 						src: '*.js',
 						dest: SOURCE_DIR + 'wp-includes/js/jquery/ui/'
-					},
-					{
-						expand: true,
-						cwd: './node_modules/underscore/',
-						src: 'underscore.js',
-						dest: SOURCE_DIR + 'wp-includes/js/'
 					}
 				]
 			},
