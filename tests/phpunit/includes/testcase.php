@@ -167,6 +167,7 @@ class WP_UnitTestCase extends PHPUnit_Framework_TestCase {
 			$GLOBALS[ $global ] = null;
 		}
 
+		$this->unregister_all_meta_keys();
 		remove_theme_support( 'html5' );
 		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
 		remove_filter( 'query', array( $this, '_drop_temporary_tables' ) );
@@ -328,6 +329,27 @@ class WP_UnitTestCase extends PHPUnit_Framework_TestCase {
 		wp_cache_flush();
 		wp_cache_add_global_groups( array( 'users', 'userlogins', 'usermeta', 'user_meta', 'useremail', 'userslugs', 'site-transient', 'site-options', 'blog-lookup', 'blog-details', 'rss', 'global-posts', 'blog-id-cache', 'networks', 'sites', 'site-details', 'blog_meta' ) );
 		wp_cache_add_non_persistent_groups( array( 'comment', 'counts', 'plugins' ) );
+	}
+
+	/**
+	 * Clean up any registered meta keys.
+	 *
+	 * @since 5.1.0
+	 *
+	 * @global array $wp_meta_keys
+	 */
+	function unregister_all_meta_keys() {
+		global $wp_meta_keys;
+		if ( ! is_array( $wp_meta_keys ) ) {
+			return;
+		}
+		foreach ( $wp_meta_keys as $object_type => $type_keys ) {
+			foreach ( $type_keys as $object_subtype => $subtype_keys ) {
+				foreach ( $subtype_keys as $key => $value ) {
+					unregister_meta_key( $object_type, $key, $object_subtype );
+				}
+			}
+		}
 	}
 
 	function start_transaction() {
