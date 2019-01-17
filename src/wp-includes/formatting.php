@@ -3058,7 +3058,7 @@ function wp_targeted_link_rel_callback( $matches ) {
 	/**
 	 * Filters the rel values that are added to links with `target` attribute.
 	 *
-	 * @since 5.0.0
+	 * @since 5.1.0
 	 *
 	 * @param string The rel values.
 	 * @param string $link_html The matched content of the link tag including all HTML attributes.
@@ -3456,9 +3456,9 @@ function sanitize_email( $email ) {
 		 *
 		 * @since 2.8.0
 		 *
-		 * @param string $email   The sanitized email address.
-		 * @param string $email   The email address, as provided to sanitize_email().
-		 * @param string $message A message to pass to the user.
+		 * @param string $sanitized_email The sanitized email address.
+		 * @param string $email           The email address, as provided to sanitize_email().
+		 * @param string|null $message    A message to pass to the user. null if email is sanitized.
 		 */
 		return apply_filters( 'sanitize_email', '', $email, 'email_too_short' );
 	}
@@ -3531,11 +3531,11 @@ function sanitize_email( $email ) {
 	$domain = join( '.', $new_subs );
 
 	// Put the email back together
-	$email = $local . '@' . $domain;
+	$sanitized_email = $local . '@' . $domain;
 
 	// Congratulations your email made it!
 	/** This filter is documented in wp-includes/formatting.php */
-	return apply_filters( 'sanitize_email', $email, $email, null );
+	return apply_filters( 'sanitize_email', $sanitized_email, $email, null );
 }
 
 /**
@@ -5102,6 +5102,10 @@ function sanitize_textarea_field( $str ) {
  * @return string Sanitized string.
  */
 function _sanitize_text_fields( $str, $keep_newlines = false ) {
+	if ( ! is_string( $str ) ) {
+		return '';
+	}
+
 	$filtered = wp_check_invalid_utf8( $str );
 
 	if ( strpos( $filtered, '<' ) !== false ) {

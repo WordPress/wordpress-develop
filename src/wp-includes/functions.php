@@ -2933,6 +2933,7 @@ function wp_nonce_ays( $action ) {
  * @since 2.0.4
  * @since 4.1.0 The `$title` and `$args` parameters were changed to optionally accept
  *              an integer to be used as the response code.
+ * @since 5.1.0 The `$link_url` and `$link_text` arguments were added.
  *
  * @param string|WP_Error  $message Optional. Error message. If this is a WP_Error object,
  *                                  and not an Ajax or XML-RPC request, the error's messages are used.
@@ -2946,6 +2947,10 @@ function wp_nonce_ays( $action ) {
  *     as the response code. Default empty array.
  *
  *     @type int    $response       The HTTP response code. Default 200 for Ajax requests, 500 otherwise.
+ *     @type string $link_url       A URL to include a link to. Only works in combination with $link_text.
+ *                                  Default empty string.
+ *     @type string $link_text      A label for the link to include. Only works in combination with $link_url.
+ *                                  Default empty string.
  *     @type bool   $back_link      Whether to include a link to go back. Default false.
  *     @type string $text_direction The text direction. This is only useful internally, when WordPress
  *                                  is still loading and the site's locale is not set up yet. Accepts 'rtl'.
@@ -2970,6 +2975,15 @@ function wp_die( $message = '', $title = '', $args = array() ) {
 		 * @param callable $function Callback function name.
 		 */
 		$function = apply_filters( 'wp_die_ajax_handler', '_ajax_wp_die_handler' );
+	} elseif ( wp_is_json_request() ) {
+		/**
+		 * Filters the callback for killing WordPress execution for JSON requests.
+		 *
+		 * @since 5.1.0
+		 *
+		 * @param callable $function Callback function name.
+		 */
+		$function = apply_filters( 'wp_die_json_handler', '_json_wp_die_handler' );
 	} elseif ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) {
 		/**
 		 * Filters the callback for killing WordPress execution for XML-RPC requests.
@@ -3033,6 +3047,15 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 		}
 	} elseif ( is_string( $message ) ) {
 		$message = "<p>$message</p>";
+	}
+
+	if ( ! empty( $r['link_url'] ) && ! empty( $r['link_text'] ) ) {
+		$link_url = $r['link_url'];
+		if ( function_exists( 'esc_url' ) ) {
+			$link_url = esc_url( $link_url );
+		}
+		$link_text = $r['link_text'];
+		$message  .= "\n<p><a href='{$link_url}'>{$link_text}</a></p>";
 	}
 
 	if ( isset( $r['back_link'] ) && $r['back_link'] ) {
@@ -3198,6 +3221,40 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 </body>
 </html>
 	<?php
+	die();
+}
+
+/**
+ * Kill WordPress execution and display JSON message with error message.
+ *
+ * This is the handler for wp_die when processing JSON requests.
+ *
+ * @since 5.1.0
+ * @access private
+ *
+ * @param string       $message Error message.
+ * @param string       $title   Optional. Error title. Default empty.
+ * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
+ */
+function _json_wp_die_handler( $message, $title = '', $args = array() ) {
+	$defaults = array( 'response' => 500 );
+
+	$r = wp_parse_args( $args, $defaults );
+
+	$data = array(
+		'code'    => 'wp_die',
+		'message' => $message,
+		'status'  => $r['response'],
+	);
+
+	if ( ! headers_sent() ) {
+		header( 'Content-Type: application/json; charset=utf-8' );
+		if ( null !== $r['response'] ) {
+			status_header( $r['response'] );
+		}
+	}
+
+	echo wp_json_encode( $data );
 	die();
 }
 
@@ -6658,4 +6715,29 @@ function wp_get_update_php_url() {
  */
 function wp_get_default_update_php_url() {
 	return _x( 'https://wordpress.org/support/update-php/', 'localized PHP upgrade information page' );
+}
+
+/**
+ * Prints the default annotation for the web host altering the "Update PHP" page URL.
+ *
+ * This function is to be used after {@see wp_get_update_php_url()} to display a consistent
+ * annotation if the web host has altered the default "Update PHP" page URL.
+ *
+ * @since 5.1.0
+ */
+function wp_update_php_annotation() {
+	$update_url  = wp_get_update_php_url();
+	$default_url = wp_get_default_update_php_url();
+
+	if ( $update_url === $default_url ) {
+		return;
+	}
+
+	echo '<p class="description">';
+	printf(
+		/* translators: %s: default Update PHP page URL */
+		__( 'This resource is provided by your web host, and is specific to your site. For more information, <a href="%s" target="_blank">see the official WordPress documentation</a>.' ),
+		esc_url( $default_url )
+	);
+	echo'</p>';
 }

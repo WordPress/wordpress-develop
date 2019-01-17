@@ -257,7 +257,16 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'show_in_rest'      => true,
 		);
 
+		$meta_multi_args           = $meta_args;
+		$meta_multi_args['single'] = false;
+
 		// Set up meta.
+		register_meta( 'term', 'test_single', $meta_args );
+		register_meta( 'term', 'test_multi', $meta_multi_args );
+		register_term_meta( 'category', 'test_cat_single', $meta_args );
+		register_term_meta( 'category', 'test_cat_multi', $meta_multi_args );
+		register_term_meta( 'post_tag', 'test_tag_meta', $meta_args );
+
 		register_meta( 'user', 'meta_key', $meta_args );
 		update_user_meta( 1, 'meta_key', 'meta_value' ); // Always use the first user.
 		register_meta( 'post', 'meta_key', $meta_args );
