@@ -1501,7 +1501,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$user = get_userdata( self::$editor );
 
-		$updated_email_with_case_change = ucwords( $user->user_email, '@' );
+		$updated_email_with_case_change = ucwords( $user->user_email );
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', self::$editor ) );
 		$request->set_param( 'email', $updated_email_with_case_change );
@@ -1521,7 +1521,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$user       = get_userdata( self::$editor );
 		$subscriber = get_userdata( self::$subscriber );
 
-		$updated_email_with_case_change = ucwords( $subscriber->user_email, '@' );
+		$updated_email_with_case_change = ucwords( $subscriber->user_email );
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', self::$editor ) );
 		$request->set_param( 'email', $updated_email_with_case_change );
