@@ -269,9 +269,9 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		set_post_format( $post_ids[1], 'aside' );
 
 		$request = array(
-			'post_format'    => -1, // Don't change the post format.
-			'_status'        => -1,
-			'post'           => $post_ids,
+			'post_format' => -1, // Don't change the post format.
+			'_status'     => -1,
+			'post'        => $post_ids,
 		);
 
 		bulk_edit_posts( $request );
