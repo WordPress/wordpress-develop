@@ -458,7 +458,6 @@ class Tests_Cron extends WP_UnitTestCase {
 	 */
 	function test_pre_scheduled_event_hooks() {
 		add_filter( 'pre_get_scheduled_event', array( $this, 'filter_pre_scheduled_event_hooks' ) );
-		add_filter( 'pre_next_scheduled', array( $this, 'filter_pre_scheduled_event_hooks' ) );
 
 		$actual  = wp_get_scheduled_event( 'preflight_event', array(), $this->plus_thirty_minutes );
 		$actual2 = wp_next_scheduled( 'preflight_event', array() );
@@ -471,7 +470,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		);
 
 		$this->assertEquals( $expected, $actual );
-		$this->assertEquals( $expected, $actual2 );
+		$this->assertEquals( $expected->timestamp, $actual2 );
 	}
 
 	function filter_pre_scheduled_event_hooks() {
@@ -481,5 +480,120 @@ class Tests_Cron extends WP_UnitTestCase {
 			'schedule'  => false,
 			'args'      => array(),
 		);
+	}
+
+	/**
+	 * Ensure wp_get_scheduled_event() returns the expected one off events.
+	 *
+	 * When no timestamp is specified, the next event should be returned.
+	 * When a timestamp is specified, a particular event should be returned.
+	 *
+	 * @ticket 45976.
+	 */
+	function test_get_scheduled_event_singles() {
+		$hook    = __FUNCTION__;
+		$args    = array( 'arg1' );
+		$ts_late = strtotime( '+30 minutes' );
+		$ts_next = strtotime( '+3 minutes' );
+
+		$expected1 = (object) array(
+			'hook'      => $hook,
+			'timestamp' => $ts_late,
+			'schedule'  => false,
+			'args'      => $args,
+		);
+
+		$expected2 = (object) array(
+			'hook'      => $hook,
+			'timestamp' => $ts_next,
+			'schedule'  => false,
+			'args'      => $args,
+		);
+
+		// Schedule late running event.
+		wp_schedule_single_event( $ts_late, $hook, $args );
+		// Schedule next running event.
+		wp_schedule_single_event( $ts_next, $hook, $args );
+
+		// Late running, timestamp specified.
+		$this->assertEquals( $expected1, wp_get_scheduled_event( $hook, $args, $ts_late ) );
+
+		// Next running, timestamp specified.
+		$this->assertEquals( $expected2, wp_get_scheduled_event( $hook, $args, $ts_next ) );
+
+		// Next running, no timestamp specified.
+		$this->assertEquals( $expected2, wp_get_scheduled_event( $hook, $args ) );
+	}
+
+	/**
+	 * Ensure wp_get_scheduled_event() returns the expected recurring events.
+	 *
+	 * When no timestamp is specified, the next event should be returned.
+	 * When a timestamp is specified, a particular event should be returned.
+	 *
+	 * @ticket 45976.
+	 */
+	function test_get_scheduled_event_recurring() {
+		$hook     = __FUNCTION__;
+		$args     = array( 'arg1' );
+		$ts_late  = strtotime( '+30 minutes' );
+		$ts_next  = strtotime( '+3 minutes' );
+		$schedule = 'hourly';
+		$interval = HOUR_IN_SECONDS;
+
+		$expected1 = (object) array(
+			'hook'      => $hook,
+			'timestamp' => $ts_late,
+			'schedule'  => $schedule,
+			'args'      => $args,
+			'interval'  => $interval,
+		);
+
+		$expected2 = (object) array(
+			'hook'      => $hook,
+			'timestamp' => $ts_next,
+			'schedule'  => $schedule,
+			'args'      => $args,
+			'interval'  => $interval,
+		);
+
+		// Schedule late running event.
+		wp_schedule_event( $ts_late, $schedule, $hook, $args );
+		// Schedule next running event.
+		wp_schedule_event( $ts_next, $schedule, $hook, $args );
+
+		// Late running, timestamp specified.
+		$this->assertEquals( $expected1, wp_get_scheduled_event( $hook, $args, $ts_late ) );
+
+		// Next running, timestamp specified.
+		$this->assertEquals( $expected2, wp_get_scheduled_event( $hook, $args, $ts_next ) );
+
+		// Next running, no timestamp specified.
+		$this->assertEquals( $expected2, wp_get_scheduled_event( $hook, $args ) );
+	}
+
+	/**
+	 * Ensure wp_get_scheduled_event() returns false when expected.
+	 *
+	 * @ticket 45976.
+	 */
+	function test_get_scheduled_event_false() {
+		$hook = __FUNCTION__;
+		$args = array( 'arg1' );
+		$ts   = strtotime( '+3 minutes' );
+
+		// No scheduled events.
+		// - With timestamp
+		$this->assertFalse( wp_get_scheduled_event( $hook, $args, $ts ) );
+		// - Get next, none scheduled.
+		$this->assertFalse( wp_get_scheduled_event( $hook, $args ) );
+
+		// Schedule an event.
+		wp_schedule_event( $ts, $hook, $args );
+		// - unregistered timestamp
+		$this->assertFalse( wp_get_scheduled_event( $hook, $args, strtotime( '+30 minutes' ) ) );
+		// - invalid timestamp.
+		$this->assertFalse( wp_get_scheduled_event( $hook, $args, 'Words Fail!' ) );
+
 	}
 }
