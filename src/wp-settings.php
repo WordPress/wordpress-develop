@@ -18,13 +18,13 @@ define( 'WPINC', 'wp-includes' );
 // Include files required for initialization.
 require( ABSPATH . WPINC . '/load.php' );
 require( ABSPATH . WPINC . '/class-wp-paused-extensions-storage.php' );
-require( ABSPATH . WPINC . '/class-wp-shutdown-handler.php' );
+require( ABSPATH . WPINC . '/class-wp-fatal-error-handler.php' );
 require( ABSPATH . WPINC . '/error-protection.php' );
 require( ABSPATH . WPINC . '/default-constants.php' );
 require_once( ABSPATH . WPINC . '/plugin.php' );
 
-// Make sure we register the premature shutdown handler as soon as possible.
-wp_register_premature_shutdown_handler();
+// Make sure we register the shutdown handler for fatal errors as soon as possible.
+wp_register_fatal_error_handler();
 
 /*
  * These can't be directly globalized in version.php. When updating,
@@ -288,7 +288,7 @@ foreach ( wp_get_mu_plugins() as $mu_plugin ) {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @param string $mu_plugin Loaded plugin's basename.
+	 * @param string $mu_plugin Full path to the plugin's main file.
 	 */
 	do_action( 'mu_plugin_loaded', $mu_plugin );
 }
@@ -305,7 +305,7 @@ if ( is_multisite() ) {
 		 *
 		 * @since 5.1.0
 		 *
-		 * @param string $network_plugin Loaded plugin's basename.
+		 * @param string $network_plugin Full path to the plugin's main file.
 		 */
 		do_action( 'network_plugin_loaded', $network_plugin );
 	}
@@ -352,7 +352,7 @@ foreach ( wp_get_active_and_valid_plugins() as $plugin ) {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @param string $plugin Loaded plugin's basename.
+	 * @param string $plugin Full path to the plugin's main file.
 	 */
 	do_action( 'plugin_loaded', $plugin );
 }

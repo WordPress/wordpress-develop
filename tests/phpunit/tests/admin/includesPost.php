@@ -255,6 +255,41 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The bulk_edit_posts() function should preserve the post format
+	 * when it's unchanged.
+	 *
+	 * @ticket 44914
+	 */
+	public function test_bulk_edit_posts_should_preserve_post_format_when_unchanged() {
+		wp_set_current_user( self::$admin_id );
+
+		$post_ids = self::factory()->post->create_many( 3 );
+
+		set_post_format( $post_ids[0], 'image' );
+		set_post_format( $post_ids[1], 'aside' );
+
+		$request = array(
+			'post_format' => -1, // Don't change the post format.
+			'_status'     => -1,
+			'post'        => $post_ids,
+		);
+
+		bulk_edit_posts( $request );
+
+		$terms1 = get_the_terms( $post_ids[0], 'post_format' );
+		$terms2 = get_the_terms( $post_ids[1], 'post_format' );
+		$terms3 = get_the_terms( $post_ids[2], 'post_format' );
+
+		$this->assertSame( 'post-format-image', $terms1[0]->slug );
+		$this->assertSame( 'post-format-aside', $terms2[0]->slug );
+		$this->assertFalse( $terms3 );
+
+		$this->assertSame( 'image', get_post_format( $post_ids[0] ) );
+		$this->assertSame( 'aside', get_post_format( $post_ids[1] ) );
+		$this->assertFalse( get_post_format( $post_ids[2] ) );
+	}
+
+	/**
 	 * @ticket 41396
 	 */
 	public function test_bulk_edit_posts_should_set_post_format_before_wp_update_post_runs() {

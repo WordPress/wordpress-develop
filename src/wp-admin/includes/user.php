@@ -25,7 +25,7 @@ function add_user() {
  * @since 2.0.0
  *
  * @param int $user_id Optional. User ID.
- * @return int|WP_Error user id of the updated user
+ * @return int|WP_Error user id of the updated user.
  */
 function edit_user( $user_id = 0 ) {
 	$wp_roles = wp_roles();
@@ -547,7 +547,7 @@ jQuery(document).ready( function($) {
  *
  * @since 2.7.0
  *
- * @param object $user User data object
+ * @param object $user User data object.
  */
 function use_ssl_preference( $user ) {
 	?>
@@ -1164,13 +1164,15 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 		$views          = array();
 		$admin_url      = admin_url( 'tools.php?page=' . $this->request_type );
 		$counts         = $this->get_request_counts();
+		$total_requests = absint( array_sum( (array) $counts ) );
 
 		$current_link_attributes = empty( $current_status ) ? ' class="current" aria-current="page"' : '';
-		$views['all']            = '<a href="' . esc_url( $admin_url ) . "\" $current_link_attributes>" . esc_html__( 'All' ) . ' <span class="count">(' . absint( array_sum( (array) $counts ) ) . ')</span></a>';
+		$views['all']            = '<a href="' . esc_url( $admin_url ) . "\" $current_link_attributes>" . sprintf( _nx( 'All <span class="count">(%s)</span>', 'All <span class="count">(%d)</span>', $total_requests, 'requests' ), number_format_i18n( $total_requests ) ) . '</a>';
 
 		foreach ( $statuses as $status => $label ) {
 			$current_link_attributes = $status === $current_status ? ' class="current" aria-current="page"' : '';
-			$views[ $status ]        = '<a href="' . esc_url( add_query_arg( 'filter-status', $status, $admin_url ) ) . "\" $current_link_attributes>" . esc_html( $label ) . ' <span class="count">(' . absint( $counts->$status ) . ')</span></a>';
+			$total_status_requests   = absint( $counts->$status );
+			$views[ $status ]        = '<a href="' . esc_url( add_query_arg( 'filter-status', $status, $admin_url ) ) . "\" $current_link_attributes>" . sprintf( _nx( '%1$s <span class="count">(%2$d)</span>', '%1$s <span class="count">(%2$d)</span>', $total_status_requests, 'requests' ), esc_html( $label ), number_format_i18n( $total_status_requests ) ) . '</a>';
 		}
 
 		return $views;

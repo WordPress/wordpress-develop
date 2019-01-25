@@ -169,4 +169,40 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 
 		$this->assertSame( array( 'this_does_not_exist' => true ), $cache );
 	}
+
+	/**
+	 * Ensure updating network options containing an object do not result in unneeded database calls.
+	 *
+	 * @ticket 44956
+	 */
+	public function test_update_network_option_array_with_object() {
+		$array_w_object = array(
+			'url'       => 'http://src.wordpress-develop.dev/wp-content/uploads/2016/10/cropped-Blurry-Lights.jpg',
+			'meta_data' => (object) array(
+				'attachment_id' => 292,
+				'height'        => 708,
+				'width'         => 1260,
+			),
+		);
+
+		$array_w_object_2 = array(
+			'url'       => 'http://src.wordpress-develop.dev/wp-content/uploads/2016/10/cropped-Blurry-Lights.jpg',
+			'meta_data' => (object) array(
+				'attachment_id' => 292,
+				'height'        => 708,
+				'width'         => 1260,
+			),
+		);
+
+		// Add the option, it did not exist before this.
+		add_network_option( null, 'array_w_object', $array_w_object );
+
+		$num_queries_pre_update = get_num_queries();
+
+		// Update the option using the same array with an object for the value.
+		$this->assertFalse( update_network_option( null, 'array_w_object', $array_w_object_2 ) );
+
+		// Check that no new database queries were performed.
+		$this->assertEquals( $num_queries_pre_update, get_num_queries() );
+	}
 }

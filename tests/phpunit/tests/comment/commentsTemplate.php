@@ -832,6 +832,42 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 43857
+	 */
+	public function test_comments_list_should_include_just_posted_unapproved_comment() {
+		$now     = time();
+		$p       = self::factory()->post->create();
+		$c       = self::factory()->comment->create(
+			array(
+				'comment_post_ID'      => $p,
+				'comment_content'      => '1',
+				'comment_approved'     => '0',
+				'comment_date_gmt'     => date( 'Y-m-d H:i:s', $now ),
+				'comment_author_email' => 'foo@bar.mail',
+			)
+		);
+		$comment = get_comment( $c );
+
+		$this->go_to(
+			add_query_arg(
+				array(
+					'unapproved'      => $comment->comment_ID,
+					'moderation-hash' => wp_hash( $comment->comment_date_gmt ),
+				),
+				get_comment_link( $comment )
+			)
+		);
+
+		$found = get_echo( 'comments_template' );
+
+		// Find the found comment in the markup.
+		preg_match( '|id="comment-([0-9]+)|', $found, $matches );
+
+		$found_cid = (int) $matches[1];
+		$this->assertSame( $c, $found_cid );
+	}
+
+	/**
 	 * @ticket 35378
 	 */
 	public function test_hierarchy_should_be_ignored_when_threading_is_disabled() {

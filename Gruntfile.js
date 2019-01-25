@@ -122,7 +122,6 @@ module.exports = function(grunt) {
 				cwd: WORKING_DIR,
 				src: []
 			},
-			tinymce: ['<%= concat.tinymce.dest %>'],
 			qunit: ['tests/qunit/compiled.html']
 		},
 		file_append: {
@@ -763,16 +762,6 @@ module.exports = function(grunt) {
 				dest: WORKING_DIR + 'wp-includes/js/wp-emoji-release.min.js'
 			}
 		},
-		compress: {
-			tinymce: {
-				options: {
-					mode: 'gzip',
-					level: 9
-				},
-				src: '<%= concat.tinymce.dest %>',
-				dest: WORKING_DIR + 'wp-includes/js/tinymce/wp-tinymce.js.gz'
-			}
-		},
 		patch:{
 			options: {
 				file_mappings: {
@@ -1346,12 +1335,6 @@ module.exports = function(grunt) {
 		'uglify:imgareaselect'
 	] );
 
-	grunt.registerTask( 'build:tinymce', [
-		'concat:tinymce',
-		'compress:tinymce',
-		'clean:tinymce'
-	] );
-
 	grunt.registerTask( 'build:js', [
 		'clean:js',
 		'webpack:prod',
@@ -1359,7 +1342,7 @@ module.exports = function(grunt) {
 		'copy:js',
 		'file_append',
 		'uglify:all',
-		'build:tinymce',
+		'concat:tinymce',
 		'concat:emoji',
 		'jsvalidate:build'
 	] );

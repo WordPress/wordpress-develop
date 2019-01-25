@@ -292,6 +292,7 @@ function create_initial_post_types() {
 				'read'                   => 'edit_posts',
 				// You need to be able to publish posts, in order to create blocks.
 				'create_posts'           => 'publish_posts',
+				'edit_posts'             => 'edit_posts',
 				'edit_published_posts'   => 'edit_published_posts',
 				'delete_published_posts' => 'delete_published_posts',
 				'edit_others_posts'      => 'edit_others_posts',
@@ -391,6 +392,7 @@ function create_initial_post_types() {
 			'label'               => _x( 'Pending', 'request status' ),
 			'internal'            => true,
 			'_builtin'            => true, /* internal use only. */
+			'label_count'         => _n_noop( 'Pending <span class="count">(%s)</span>', 'Pending <span class="count">(%s)</span>' ),
 			'exclude_from_search' => false,
 		)
 	);
@@ -401,6 +403,7 @@ function create_initial_post_types() {
 			'label'               => _x( 'Confirmed', 'request status' ),
 			'internal'            => true,
 			'_builtin'            => true, /* internal use only. */
+			'label_count'         => _n_noop( 'Confirmed <span class="count">(%s)</span>', 'Confirmed <span class="count">(%s)</span>' ),
 			'exclude_from_search' => false,
 		)
 	);
@@ -411,6 +414,7 @@ function create_initial_post_types() {
 			'label'               => _x( 'Failed', 'request status' ),
 			'internal'            => true,
 			'_builtin'            => true, /* internal use only. */
+			'label_count'         => _n_noop( 'Failed <span class="count">(%s)</span>', 'Failed <span class="count">(%s)</span>' ),
 			'exclude_from_search' => false,
 		)
 	);
@@ -421,6 +425,7 @@ function create_initial_post_types() {
 			'label'               => _x( 'Completed', 'request status' ),
 			'internal'            => true,
 			'_builtin'            => true, /* internal use only. */
+			'label_count'         => _n_noop( 'Completed <span class="count">(%s)</span>', 'Completed <span class="count">(%s)</span>' ),
 			'exclude_from_search' => false,
 		)
 	);
@@ -3368,7 +3373,7 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
  *     @type int    $menu_order            The order the post should be displayed in. Default 0.
  *     @type string $post_mime_type        The mime type of the post. Default empty.
  *     @type string $guid                  Global Unique ID for referencing the post. Default empty.
- *     @type array  $post_category         Array of category names, slugs, or IDs.
+ *     @type array  $post_category         Array of category IDs.
  *                                         Defaults to value of the 'default_category' option.
  *     @type array  $tags_input            Array of tag names, slugs, or IDs. Default empty.
  *     @type array  $tax_input             Array of taxonomy terms keyed by their taxonomy name. Default empty.
@@ -4381,10 +4386,10 @@ function wp_set_post_terms( $post_id = 0, $tags = '', $taxonomy = 'post_tag', $a
  *
  * @param int       $post_ID         Optional. The Post ID. Does not default to the ID
  *                                   of the global $post. Default 0.
- * @param array|int $post_categories Optional. List of categories or ID of category.
+ * @param array|int $post_categories Optional. List of category IDs, or the ID of a single category.
  *                                   Default empty array.
- * @param bool      $append         If true, don't delete existing categories, just add on.
- *                                  If false, replace the categories with the new categories.
+ * @param bool      $append          If true, don't delete existing categories, just add on.
+ *                                   If false, replace the categories with the new categories.
  * @return array|false|WP_Error Array of term taxonomy IDs of affected categories. WP_Error or false on failure.
  */
 function wp_set_post_categories( $post_ID = 0, $post_categories = array(), $append = false ) {
