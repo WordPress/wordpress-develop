@@ -153,7 +153,6 @@ class WP_PHPUnit_Util_Getopt {
 	protected $longOptions = array(
 		'exclude-group=',
 		'group=',
-		'verbose=',
 	);
 	function __construct( $argv ) {
 		array_shift( $argv );
@@ -274,8 +273,6 @@ class WP_PHPUnit_Util_Getopt {
 
 			return;
 		}
-
-		throw new Exception( "unrecognized option --$opt" );
 	}
 }
 new WP_PHPUnit_Util_Getopt( $_SERVER['argv'] );
