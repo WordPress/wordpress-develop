@@ -15,10 +15,10 @@ if ( class_exists( 'PHPUnit\Runner\Version' ) && version_compare( PHPUnit\Runner
 	class_alias( 'PHPUnit\Util\GlobalState', 'PHPUnit_Util_GlobalState' );
 	class_alias( 'PHPUnit\Util\Getopt', 'PHPUnit_Util_Getopt' );
 
-	class PHPUnit_Util_Test extends PHPUnit\Util\Test {
+	class PHPUnit_Util_Test {
 
 		public static function getTickets( $className, $methodName ) {
-			$annotations = self::parseTestMethodAnnotations( $className, $methodName );
+			$annotations = PHPUnit\Util\Test::parseTestMethodAnnotations( $className, $methodName );
 
 			$tickets = array();
 
