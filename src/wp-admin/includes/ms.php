@@ -56,7 +56,7 @@ function check_upload_size( $file ) {
  * Delete a site.
  *
  * @since 3.0.0
- * @since 5.0.0 Use wp_delete_site() internally to delete the site row from the database.
+ * @since 5.1.0 Use wp_delete_site() internally to delete the site row from the database.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -97,7 +97,7 @@ function wpmu_delete_blog( $blog_id, $drop = false ) {
 		wp_delete_site( $blog_id );
 	} else {
 		/** This action is documented in wp-includes/ms-blogs.php */
-		do_action_deprecated( 'delete_blog', array( $blog_id, false ), '5.0.0' );
+		do_action_deprecated( 'delete_blog', array( $blog_id, false ), '5.1.0' );
 
 		$users = get_users(
 			array(
@@ -116,7 +116,7 @@ function wpmu_delete_blog( $blog_id, $drop = false ) {
 		update_blog_status( $blog_id, 'deleted', 1 );
 
 		/** This action is documented in wp-includes/ms-blogs.php */
-		do_action_deprecated( 'deleted_blog', array( $blog_id, false ), '5.0.0' );
+		do_action_deprecated( 'deleted_blog', array( $blog_id, false ), '5.1.0' );
 	}
 
 	if ( $switch ) {
@@ -998,11 +998,11 @@ function confirm_delete_users( $users ) {
 		<p><?php _e( 'Once you hit &#8220;Confirm Deletion&#8221;, the user will be permanently removed.' ); ?></p>
 	<?php else : ?>
 		<p><?php _e( 'Once you hit &#8220;Confirm Deletion&#8221;, these users will be permanently removed.' ); ?></p>
-	<?php
+		<?php
 	endif;
 
 	submit_button( __( 'Confirm Deletion' ), 'primary' );
-?>
+	?>
 	</form>
 	<?php
 	return true;

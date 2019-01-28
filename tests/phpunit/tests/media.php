@@ -2344,6 +2344,21 @@ EOF;
 	}
 
 	/**
+	 * Test created timestamp is properly read from an MP4 file.
+	 *
+	 * This MP4 video file has an AAC audio track, so it can be used to test
+	 *`wp_read_audio_metadata()`.
+	 *
+	 * @ticket 42017
+	 */
+	function test_wp_read_audio_metadata_adds_creation_date_with_mp4() {
+		$video    = DIR_TESTDATA . '/uploads/small-video.mp4';
+		$metadata = wp_read_audio_metadata( $video );
+
+		$this->assertEquals( 1269120551, $metadata['created_timestamp'] );
+	}
+
+	/**
 	 * @ticket 35218
 	 */
 	function test_wp_read_video_metadata_adds_creation_date_with_quicktime() {

@@ -896,7 +896,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 	public function test_get_user_invalid_id() {
 		wp_set_current_user( self::$user );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/users/7777' );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/users/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_user_invalid_id', $response, 404 );
@@ -1490,6 +1491,45 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertInstanceOf( 'WP_Error', $response->as_error() );
 		$this->assertEquals( 'rest_user_invalid_email', $response->as_error()->get_error_code() );
+	}
+
+	/**
+	 * @ticket 44672
+	 */
+	public function test_update_item_existing_email_case() {
+		wp_set_current_user( self::$editor );
+
+		$user = get_userdata( self::$editor );
+
+		$updated_email_with_case_change = ucwords( $user->user_email );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', self::$editor ) );
+		$request->set_param( 'email', $updated_email_with_case_change );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEquals( $updated_email_with_case_change, $data['email'] );
+	}
+
+	/**
+	 * @ticket 44672
+	 */
+	public function test_update_item_existing_email_case_not_own() {
+		wp_set_current_user( self::$editor );
+
+		$user       = get_userdata( self::$editor );
+		$subscriber = get_userdata( self::$subscriber );
+
+		$updated_email_with_case_change = ucwords( $subscriber->user_email );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', self::$editor ) );
+		$request->set_param( 'email', $updated_email_with_case_change );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertEquals( 400, $response->get_status() );
+		$this->assertSame( 'rest_user_invalid_email', $data['code'] );
 	}
 
 	public function test_update_item_invalid_locale() {
@@ -2265,7 +2305,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( self::$user );
 
-		$request          = new WP_REST_Request( 'DELETE', '/wp/v2/users/7777' );
+		$request          = new WP_REST_Request( 'DELETE', '/wp/v2/users/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 		$request['force'] = true;
 		$request->set_param( 'reassign', false );
 		$response = rest_get_server()->dispatch( $request );
@@ -2317,7 +2357,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$request          = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d', $user_id ) );
 		$request['force'] = true;
-		$request->set_param( 'reassign', 7777 );
+		$request->set_param( 'reassign', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 		$response = rest_get_server()->dispatch( $request );
 
 		// Not implemented in multisite.
@@ -2733,10 +2773,6 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
 		}
 		update_user_meta( $user->ID, 'my_custom_int', $value );
-	}
-
-	public function tearDown() {
-		parent::tearDown();
 	}
 
 	protected function check_user_data( $user, $data, $context, $links ) {

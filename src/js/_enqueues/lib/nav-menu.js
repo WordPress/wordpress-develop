@@ -835,6 +835,20 @@
 					}
 				}
 			});
+
+			$( '#menu-name' ).on( 'input', _.debounce( function () {
+				var menuName = $( document.getElementById( 'menu-name' ) ),
+					menuNameVal = menuName.val();
+
+				if ( ! menuNameVal || ! menuNameVal.replace( /\s+/, '' ) ) {
+					// Add warning for invalid menu name.
+					menuName.parent().addClass( 'form-invalid' );
+				} else {
+					// Remove warning for valid menu name.
+					menuName.parent().removeClass( 'form-invalid' );
+				}
+			}, 500 ) );
+
 			$('#add-custom-links input[type="text"]').keypress(function(e){
 				$('#customlinkdiv').removeClass('form-invalid');
 
@@ -873,26 +887,14 @@
 		},
 
 		attachQuickSearchListeners : function() {
-			var searchTimer,
-				inputEvent;
+			var searchTimer;
 
 			// Prevent form submission.
 			$( '#nav-menu-meta' ).on( 'submit', function( event ) {
 				event.preventDefault();
 			});
 
-			/*
-			 * Use feature detection to determine whether inputs should use
-			 * the `keyup` or `input` event. Input is preferred but lacks support
-			 * in legacy browsers. See changeset 34078, see also ticket #26600#comment:59
-			 */
-			if ( 'oninput' in document.createElement( 'input' ) ) {
-				inputEvent = 'input';
-			} else {
-				inputEvent = 'keyup';
-			}
-
-			$( '#nav-menu-meta' ).on( inputEvent, '.quick-search', function() {
+			$( '#nav-menu-meta' ).on( 'input', '.quick-search', function() {
 				var $this = $( this );
 
 				$this.attr( 'autocomplete', 'off' );
@@ -1178,8 +1180,8 @@
 			menuName = $('#menu-name'),
 			menuNameVal = menuName.val();
 			// Cancel and warn if invalid menu name
-			if( !menuNameVal || menuNameVal == menuName.attr('title') || !menuNameVal.replace(/\s+/, '') ) {
-				menuName.parent().addClass('form-invalid');
+			if ( ! menuNameVal || ! menuNameVal.replace( /\s+/, '' ) ) {
+				menuName.parent().addClass( 'form-invalid' );
 				return false;
 			}
 			// Copy menu theme locations

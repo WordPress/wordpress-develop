@@ -88,7 +88,9 @@ function the_author( $deprecated = '', $deprecated_echo = true ) {
  * @return string|void The author's display name.
  */
 function get_the_modified_author() {
-	if ( $last_id = get_post_meta( get_post()->ID, '_edit_last', true ) ) {
+	$last_id = get_post_meta( get_post()->ID, '_edit_last', true );
+
+	if ( $last_id ) {
 		$last_user = get_userdata( $last_id );
 
 		/**
@@ -286,12 +288,12 @@ function the_author_posts() {
  *
  * @global object $authordata The current author's DB object.
  *
- * @return string An HTML link to the author page.
+ * @return string An HTML link to the author page, or an empty string if $authordata isn't defined.
  */
 function get_the_author_posts_link() {
 	global $authordata;
 	if ( ! is_object( $authordata ) ) {
-		return;
+		return '';
 	}
 
 	$link = sprintf(
@@ -389,7 +391,7 @@ function get_author_posts_url( $author_id, $author_nicename = '' ) {
  *     @type string       $order         Sorting direction for $orderby. Accepts 'ASC', 'DESC'. Default 'ASC'.
  *     @type int          $number        Maximum authors to return or display. Default empty (all authors).
  *     @type bool         $optioncount   Show the count in parenthesis next to the author's name. Default false.
- *     @type bool         $exclude_admin Whether to exclude the 'admin' account, if it exists. Default false.
+ *     @type bool         $exclude_admin Whether to exclude the 'admin' account, if it exists. Default true.
  *     @type bool         $show_fullname Whether to show the author's full name. Default false.
  *     @type bool         $hide_empty    Whether to hide any authors with no posts. Default true.
  *     @type string       $feed          If not empty, show a link to the author's feed and use this text as the alt

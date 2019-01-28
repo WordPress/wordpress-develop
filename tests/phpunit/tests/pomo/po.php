@@ -5,6 +5,7 @@
  */
 class Tests_POMO_PO extends WP_UnitTestCase {
 	function setUp() {
+		parent::setUp();
 		require_once ABSPATH . '/wp-includes/pomo/po.php';
 		// not so random wordpress.pot string -- multiple lines
 		$this->mail    = 'Your new WordPress blog has been successfully set up at:

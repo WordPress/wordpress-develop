@@ -13,7 +13,7 @@ class Tests_Dependencies_MediaElementjs extends WP_UnitTestCase {
 	 * restore them in the future, and doing so could introduce security vulnerabilities. If you
 	 * want to re-add them, please discuss that with the Security team first.
 	 *
-	 * @since 5.0.0
+	 * @since 5.1.0
 	 *
 	 * @ticket 42720
 	 */

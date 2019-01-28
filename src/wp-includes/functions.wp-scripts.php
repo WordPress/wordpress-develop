@@ -93,7 +93,7 @@ function wp_print_scripts( $handles = false ) {
 /**
  * Adds extra code to a registered script.
  *
- * Code will only be added if the script in already in the queue.
+ * Code will only be added if the script is already in the queue.
  * Accepts a string $data containing the Code. If two or more code blocks
  * are added to the same script $handle, they will be printed in the order
  * they were added, i.e. the latter added code can redeclare the previous.
@@ -198,6 +198,32 @@ function wp_localize_script( $handle, $object_name, $l10n ) {
 	}
 
 	return $wp_scripts->localize( $handle, $object_name, $l10n );
+}
+
+/**
+ * Sets translated strings for a script.
+ *
+ * Works only if the script has already been added.
+ *
+ * @see WP_Scripts::set_translations()
+ * @global WP_Scripts $wp_scripts The WP_Scripts object for printing scripts.
+ *
+ * @since 5.0.0
+ * @since 5.1.0 The `$domain` parameter was made optional.
+ *
+ * @param string $handle Script handle the textdomain will be attached to.
+ * @param string $domain Optional. Text domain. Default 'default'.
+ * @param string $path   Optional. The full file path to the directory containing translation files.
+ * @return bool True if the text domain was successfully localized, false otherwise.
+ */
+function wp_set_script_translations( $handle, $domain = 'default', $path = null ) {
+	global $wp_scripts;
+	if ( ! ( $wp_scripts instanceof WP_Scripts ) ) {
+		_wp_scripts_maybe_doing_it_wrong( __FUNCTION__ );
+		return false;
+	}
+
+	return $wp_scripts->set_translations( $handle, $domain, $path );
 }
 
 /**
@@ -354,7 +380,7 @@ function wp_script_is( $handle, $list = 'enqueued' ) {
  *
  * @since 4.2.0
  *
- * @see WP_Dependency::add_data()
+ * @see WP_Dependencies::add_data()
  *
  * @param string $handle Name of the script.
  * @param string $key    Name of data point for which we're storing a value.

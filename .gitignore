@@ -19,6 +19,14 @@ wp-tests-config.php
 /tests/phpunit/build
 /wp-cli.local.yml
 /jsdoc
+/vendor
+/src/wp-admin/css/*.min.css
+/src/wp-admin/css/*-rtl.css
+/src/wp-admin/css/colors/*/*.css
+/src/wp-admin/js
+/src/wp-includes/js
+/src/wp-includes/css/dist
+/src/wp-includes/css/*.min.css
 
 # Files and folders that get created in wp-content
 /src/wp-content/blogs.dir
@@ -32,7 +40,9 @@ wp-tests-config.php
 !/src/wp-content/themes/twentythirteen
 !/src/wp-content/themes/twentyfourteen
 !/src/wp-content/themes/twentyfifteen
+!/src/wp-content/themes/twentysixteen
 !/src/wp-content/themes/twentyseventeen
+!/src/wp-content/themes/twentynineteen
 /src/wp-content/upgrade
 /src/wp-content/uploads
 /src/wp-content/advanced-cache.php
@@ -59,6 +69,4 @@ wp-tests-config.php
 *.patch
 *.diff
 .svn
-
-vendor
 !/src/js/_enqueues/vendor

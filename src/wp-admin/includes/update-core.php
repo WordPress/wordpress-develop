@@ -253,7 +253,8 @@ $_old_files = array(
 	'wp-includes/js/jquery/autocomplete.js',
 	'wp-includes/js/jquery/interface.js',
 	'wp-includes/js/scriptaculous/prototype.js',
-	'wp-includes/js/tinymce/wp-tinymce.js',
+	// Following file added back in 5.1 see #45645
+	//'wp-includes/js/tinymce/wp-tinymce.js',
 	// 3.1
 	'wp-admin/edit-attachment-rows.php',
 	'wp-admin/edit-link-categories.php',
@@ -781,6 +782,8 @@ $_old_files = array(
 	'wp-includes/js/mediaelement/renderers/twitch.min.js',
 	// 5.0
 	'wp-includes/js/codemirror/jshint.js',
+	// 5.1
+	'wp-includes/js/tinymce/wp-tinymce.js.gz',
 );
 
 /**
@@ -816,6 +819,7 @@ $_new_bundled_files = array(
 	'themes/twentyfifteen/'   => '4.1',
 	'themes/twentysixteen/'   => '4.4',
 	'themes/twentyseventeen/' => '4.7',
+	'themes/twentynineteen/'  => '5.0',
 );
 
 /**

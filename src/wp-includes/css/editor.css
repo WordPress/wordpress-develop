@@ -361,6 +361,15 @@ div.mce-toolbar-grp > div {
 	margin: 0;
 }
 
+/* Classic block hide/show toolbars */
+.block-library-classic__toolbar .mce-toolbar-grp .mce-toolbar:not(:first-child) {
+	display: none;
+}
+
+.block-library-classic__toolbar.has-advanced-toolbar .mce-toolbar-grp .mce-toolbar {
+	display: block;
+}
+
 div.mce-statusbar {
 	border-top: 1px solid #e5e5e5;
 }
@@ -1136,7 +1145,7 @@ i.mce-i-wp_code:before {
 }
 
 .tmce-active .quicktags-toolbar {
-	 display: none;
+	display: none;
 }
 
 .tmce-active .switch-tmce,
@@ -1202,6 +1211,10 @@ i.mce-i-wp_code:before {
 	content: "\f104";
 }
 
+.mce-content-body dl.wp-caption {
+	max-width: 100%;
+}
+
 /* Quicktags */
 .quicktags-toolbar {
 	padding: 3px;
@@ -1248,7 +1261,7 @@ i.mce-i-wp_code:before {
 	margin: 2px;
 }
 
-@media screen and ( max-width: 782px ) {
+@media screen and (max-width: 782px) {
 	.mce-toolbar .mce-btn button,
 	.qt-dfw {
 		padding: 6px 7px;
@@ -1287,7 +1300,7 @@ i.mce-i-wp_code:before {
 	}
 }
 
-@media screen and ( min-width: 782px ) {
+@media screen and (min-width: 782px) {
 	.wp-core-ui .quicktags-toolbar input.button.button-small {
 		/* .button-small is normally 11px, but a bit too small for these buttons. */
 		font-size: 12px;
@@ -1635,7 +1648,7 @@ i.mce-i-wp_code:before {
 	float: right;
 }
 
-@media screen and ( max-width: 782px ) {
+@media screen and (max-width: 782px) {
 	#wp-link-wrap {
 		margin-top: -140px;
 	}
@@ -1669,7 +1682,7 @@ i.mce-i-wp_code:before {
 	}
 }
 
-@media screen and ( max-width: 520px ) {
+@media screen and (max-width: 520px) {
 	#wp-link-wrap {
 		width: auto;
 		margin-left: 0;
@@ -1679,7 +1692,7 @@ i.mce-i-wp_code:before {
 	}
 }
 
-@media screen and ( max-height: 520px ) {
+@media screen and (max-height: 520px) {
 	#wp-link-wrap {
 		transition: none;
 		height: auto;
@@ -1697,7 +1710,7 @@ i.mce-i-wp_code:before {
 	}
 }
 
-@media screen and ( max-height: 290px ) {
+@media screen and (max-height: 290px) {
 	#wp-link-wrap {
 		height: auto;
 		margin-top: 0;
@@ -1788,7 +1801,7 @@ div.wp-link-input input {
 	cursor: pointer;
 }
 
-@media screen and ( max-width: 782px ) {
+@media screen and (max-width: 782px) {
 	div.wp-link-preview,
 	div.wp-link-input {
 		max-width: 70%;
@@ -1836,7 +1849,7 @@ div.wp-link-input input {
 
 html:lang(he-il) .rtl .wp-switch-editor,
 html:lang(he-il) .rtl .quicktags-toolbar input {
- 	font-family: Arial, sans-serif;
+	font-family: Arial, sans-serif;
 }
 
 /* HiDPI */

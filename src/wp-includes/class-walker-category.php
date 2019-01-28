@@ -146,7 +146,7 @@ class Walker_Category extends Walker {
 			if ( empty( $args['feed_image'] ) ) {
 				$link .= $name;
 			} else {
-				$link .= "<img src='" . $args['feed_image'] . "'$alt" . ' />';
+				$link .= "<img src='" . esc_url( $args['feed_image'] ) . "'$alt" . ' />';
 			}
 			$link .= '</a>';
 
@@ -204,8 +204,9 @@ class Walker_Category extends Walker {
 			 * @param array  $args        An array of wp_list_categories() arguments.
 			 */
 			$css_classes = implode( ' ', apply_filters( 'category_css_class', $css_classes, $category, $depth, $args ) );
+			$css_classes = $css_classes ? ' class="' . esc_attr( $css_classes ) . '"' : '';
 
-			$output .= ' class="' . $css_classes . '"';
+			$output .= $css_classes;
 			$output .= ">$link\n";
 		} elseif ( isset( $args['separator'] ) ) {
 			$output .= "\t$link" . $args['separator'] . "\n";

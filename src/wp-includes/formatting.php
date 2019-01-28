@@ -2232,6 +2232,8 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 		// Strip these characters entirely
 		$title = str_replace(
 			array(
+				// soft hyphens
+				'%c2%ad',
 				// iexcl and iquest
 				'%c2%a1',
 				'%c2%bf',
@@ -2478,8 +2480,9 @@ function force_balance_tags( $text ) {
 			if ( $stacksize <= 0 ) {
 				$tag = '';
 				// or close to be safe $tag = '/' . $tag;
-			} // if stacktop value = tag close value then pop
-			elseif ( $tagstack[ $stacksize - 1 ] == $tag ) { // found closing tag
+
+				// if stacktop value = tag close value then pop
+			} elseif ( $tagstack[ $stacksize - 1 ] == $tag ) { // found closing tag
 				$tag = '</' . $tag . '>'; // Close Tag
 				// Pop
 				array_pop( $tagstack );
@@ -2505,18 +2508,15 @@ function force_balance_tags( $text ) {
 			// If it's an empty tag "< >", do nothing
 			if ( '' == $tag ) {
 				// do nothing
-			} // ElseIf it presents itself as a self-closing tag...
-			elseif ( substr( $regex[2], -1 ) == '/' ) {
+			} elseif ( substr( $regex[2], -1 ) == '/' ) { // ElseIf it presents itself as a self-closing tag...
 				// ...but it isn't a known single-entity self-closing tag, then don't let it be treated as such and
 				// immediately close it with a closing tag (the tag will encapsulate no text as a result)
 				if ( ! in_array( $tag, $single_tags ) ) {
 					$regex[2] = trim( substr( $regex[2], 0, -1 ) ) . "></$tag";
 				}
-			} // ElseIf it's a known single-entity tag but it doesn't close itself, do so
-			elseif ( in_array( $tag, $single_tags ) ) {
+			} elseif ( in_array( $tag, $single_tags ) ) { // ElseIf it's a known single-entity tag but it doesn't close itself, do so
 				$regex[2] .= '/';
-			} // Else it's not a single-entity tag
-			else {
+			} else { // Else it's not a single-entity tag
 				// If the top of the stack is the same as the tag we want to push, close previous tag
 				if ( $stacksize > 0 && ! in_array( $tag, $nestable_tags ) && $tagstack[ $stacksize - 1 ] == $tag ) {
 					$tagqueue = '</' . array_pop( $tagstack ) . '>';
@@ -3058,12 +3058,17 @@ function wp_targeted_link_rel_callback( $matches ) {
 	/**
 	 * Filters the rel values that are added to links with `target` attribute.
 	 *
-	 * @since 5.0.0
+	 * @since 5.1.0
 	 *
 	 * @param string The rel values.
 	 * @param string $link_html The matched content of the link tag including all HTML attributes.
 	 */
 	$rel = apply_filters( 'wp_targeted_link_rel', 'noopener noreferrer', $link_html );
+
+	// Avoid additional regex if the filter removes rel values.
+	if ( ! $rel ) {
+		return "<a $link_html>";
+	}
 
 	// Value with delimiters, spaces around are optional.
 	$attr_regex = '|rel\s*=\s*?(\\\\{0,1}["\'])(.*?)\\1|i';
@@ -3456,9 +3461,9 @@ function sanitize_email( $email ) {
 		 *
 		 * @since 2.8.0
 		 *
-		 * @param string $email   The sanitized email address.
-		 * @param string $email   The email address, as provided to sanitize_email().
-		 * @param string $message A message to pass to the user.
+		 * @param string $sanitized_email The sanitized email address.
+		 * @param string $email           The email address, as provided to sanitize_email().
+		 * @param string|null $message    A message to pass to the user. null if email is sanitized.
 		 */
 		return apply_filters( 'sanitize_email', '', $email, 'email_too_short' );
 	}
@@ -3531,11 +3536,11 @@ function sanitize_email( $email ) {
 	$domain = join( '.', $new_subs );
 
 	// Put the email back together
-	$email = $local . '@' . $domain;
+	$sanitized_email = $local . '@' . $domain;
 
 	// Congratulations your email made it!
 	/** This filter is documented in wp-includes/formatting.php */
-	return apply_filters( 'sanitize_email', $email, $email, null );
+	return apply_filters( 'sanitize_email', $sanitized_email, $email, null );
 }
 
 /**
@@ -3635,6 +3640,7 @@ function wp_trim_excerpt( $text = '' ) {
 		$text = get_the_content( '' );
 
 		$text = strip_shortcodes( $text );
+		$text = excerpt_remove_blocks( $text );
 
 		/** This filter is documented in wp-includes/post-template.php */
 		$text = apply_filters( 'the_content', $text );
@@ -5101,6 +5107,10 @@ function sanitize_textarea_field( $str ) {
  * @return string Sanitized string.
  */
 function _sanitize_text_fields( $str, $keep_newlines = false ) {
+	if ( ! is_string( $str ) ) {
+		return '';
+	}
+
 	$filtered = wp_check_invalid_utf8( $str );
 
 	if ( strpos( $filtered, '<' ) !== false ) {
@@ -5393,7 +5403,7 @@ function _print_emoji_detection_script() {
 		 *
 		 * @param string The emoji base URL for png images.
 		 */
-		'baseUrl' => apply_filters( 'emoji_url', 'https://s.w.org/images/core/emoji/11/72x72/' ),
+		'baseUrl' => apply_filters( 'emoji_url', 'https://s.w.org/images/core/emoji/11.2.0/72x72/' ),
 
 		/**
 		 * Filters the extension of the emoji png files.
@@ -5411,7 +5421,7 @@ function _print_emoji_detection_script() {
 		 *
 		 * @param string The emoji base URL for svg images.
 		 */
-		'svgUrl'  => apply_filters( 'emoji_svg_url', 'https://s.w.org/images/core/emoji/11/svg/' ),
+		'svgUrl'  => apply_filters( 'emoji_svg_url', 'https://s.w.org/images/core/emoji/11.2.0/svg/' ),
 
 		/**
 		 * Filters the extension of the emoji SVG files.
@@ -5475,10 +5485,11 @@ function _print_emoji_detection_script() {
  * @return string The encoded content.
  */
 function wp_encode_emoji( $content ) {
-	$emoji = _wp_emoji_list( 'partials' );
+	$emoji  = _wp_emoji_list( 'partials' );
+	$compat = version_compare( phpversion(), '5.4', '<' );
 
 	foreach ( $emoji as $emojum ) {
-		if ( version_compare( phpversion(), '5.4', '<' ) ) {
+		if ( $compat ) {
 			$emoji_char = html_entity_decode( $emojum, ENT_COMPAT, 'UTF-8' );
 		} else {
 			$emoji_char = html_entity_decode( $emojum );
@@ -5518,9 +5529,10 @@ function wp_staticize_emoji( $text ) {
 
 	// Quickly narrow down the list of emoji that might be in the text and need replacing.
 	$possible_emoji = array();
+	$compat         = version_compare( phpversion(), '5.4', '<' );
 	foreach ( $emoji as $emojum ) {
 		if ( false !== strpos( $text, $emojum ) ) {
-			if ( version_compare( phpversion(), '5.4', '<' ) ) {
+			if ( $compat ) {
 				$possible_emoji[ $emojum ] = html_entity_decode( $emojum, ENT_COMPAT, 'UTF-8' );
 			} else {
 				$possible_emoji[ $emojum ] = html_entity_decode( $emojum );
@@ -5533,7 +5545,7 @@ function wp_staticize_emoji( $text ) {
 	}
 
 	/** This filter is documented in wp-includes/formatting.php */
-	$cdn_url = apply_filters( 'emoji_url', 'https://s.w.org/images/core/emoji/11/72x72/' );
+	$cdn_url = apply_filters( 'emoji_url', 'https://s.w.org/images/core/emoji/11.2.0/72x72/' );
 
 	/** This filter is documented in wp-includes/formatting.php */
 	$ext = apply_filters( 'emoji_ext', '.png' );

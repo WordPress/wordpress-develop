@@ -42,7 +42,7 @@ class WP_Site_Query {
 	/**
 	 * Metadata query container.
 	 *
-	 * @since 5.0.0
+	 * @since 5.1.0
 	 * @var WP_Meta_Query
 	 */
 	public $meta_query = false;
@@ -50,7 +50,7 @@ class WP_Site_Query {
 	/**
 	 * Metadata query clauses.
 	 *
-	 * @since 5.0.0
+	 * @since 5.1.0
 	 * @var array
 	 */
 	protected $meta_query_clauses;
@@ -108,7 +108,7 @@ class WP_Site_Query {
 	 *
 	 * @since 4.6.0
 	 * @since 4.8.0 Introduced the 'lang_id', 'lang__in', and 'lang__not_in' parameters.
-	 * @since 5.0.0 Introduced the 'update_site_meta_cache', 'meta_query', 'meta_key',
+	 * @since 5.1.0 Introduced the 'update_site_meta_cache', 'meta_query', 'meta_key',
 	 *              'meta_value', 'meta_type' and 'meta_compare' parameters.
 	 *
 	 * @param string|array $query {
@@ -420,6 +420,7 @@ class WP_Site_Query {
 
 		$number = absint( $this->query_vars['number'] );
 		$offset = absint( $this->query_vars['offset'] );
+		$limits = '';
 
 		if ( ! empty( $number ) ) {
 			if ( $offset ) {
@@ -569,7 +570,8 @@ class WP_Site_Query {
 			$this->sql_clauses['where']['date_query'] = preg_replace( '/^\s*AND\s*/', '', $this->date_query->get_sql() );
 		}
 
-		$join = '';
+		$join    = '';
+		$groupby = '';
 
 		if ( ! empty( $this->meta_query_clauses ) ) {
 			$join .= $this->meta_query_clauses['join'];

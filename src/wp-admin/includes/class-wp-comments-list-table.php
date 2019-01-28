@@ -138,7 +138,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 		/**
 		 * Filters the arguments for the comment query in the comments list table.
 		 *
-		 * @since 5.0.0
+		 * @since 5.1.0
 		 *
 		 * @param array $args An array of get_comments() arguments.
 		 */
@@ -280,6 +280,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 				$current_user_id    = get_current_user_id();
 				$num_comments->mine = get_comments(
 					array(
+						'post_id' => $post_id ? $post_id : 0,
 						'user_id' => $current_user_id,
 						'count'   => true,
 					)
@@ -315,7 +316,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 		 * Filters the comment status links.
 		 *
 		 * @since 2.5.0
-		 * @since 5.0.0 The 'Mine' link was added.
+		 * @since 5.1.0 The 'Mine' link was added.
 		 *
 		 * @param string[] $status_links An associative array of fully-formed comment status links. Includes 'All', 'Mine',
 		 *                              'Pending', 'Approved', 'Spam', and 'Trash'.

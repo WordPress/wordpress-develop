@@ -236,7 +236,7 @@ class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 	public function assertCanonical( $test_url, $expected, $ticket = 0, $expected_doing_it_wrong = array() ) {
 		$this->expected_doing_it_wrong = array_merge( $this->expected_doing_it_wrong, (array) $expected_doing_it_wrong );
 
-		$ticket_ref = ( $ticket > 0 ) ? 'Ticket #' . $ticket : null;
+		$ticket_ref = ( $ticket > 0 ) ? 'Ticket #' . $ticket : '';
 
 		if ( is_string( $expected ) ) {
 			$expected = array( 'url' => $expected );

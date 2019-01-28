@@ -1,14 +1,14 @@
-# Copyright (C) 2018 the WordPress team
+# Copyright (C) 2019 the WordPress team
 # This file is distributed under the GNU General Public License v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Twenty Eleven 2.8\n"
+"Project-Id-Version: Twenty Eleven 3.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/theme/twentyeleven\n"
-"POT-Creation-Date: 2018-05-17 16:16:30+00:00\n"
+"POT-Creation-Date: 2019-01-02 18:09:07+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2018-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2019-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 
@@ -87,19 +87,19 @@ msgid_plural "%1$s thoughts on &ldquo;%2$s&rdquo;"
 msgstr[0] ""
 msgstr[1] ""
 
-#: comments.php:43 comments.php:64
+#: comments.php:44 comments.php:65
 msgid "Comment navigation"
 msgstr ""
 
-#: comments.php:44 comments.php:65
+#: comments.php:45 comments.php:66
 msgid "&larr; Older Comments"
 msgstr ""
 
-#: comments.php:45 comments.php:66
+#: comments.php:46 comments.php:67
 msgid "Newer Comments &rarr;"
 msgstr ""
 
-#: comments.php:77
+#: comments.php:78
 msgid "Comments are closed."
 msgstr ""
 
@@ -126,7 +126,7 @@ msgstr ""
 
 #: content-aside.php:35 content-gallery.php:34 content-image.php:29
 #: content-link.php:35 content-quote.php:35 content-status.php:48
-#: content.php:41 functions.php:388
+#: content.php:41 functions.php:457
 msgid "Continue reading <span class=\"meta-nav\">&rarr;</span>"
 msgstr ""
 
@@ -158,7 +158,7 @@ msgstr ""
 #: content-aside.php:53 content-featured.php:52 content-gallery.php:106
 #: content-image.php:79 content-intro.php:26 content-link.php:53
 #: content-page.php:28 content-quote.php:84 content-single.php:59
-#: content-status.php:66 content.php:94 functions.php:641 functions.php:672
+#: content-status.php:66 content.php:94 functions.php:710 functions.php:741
 #: image.php:45
 msgid "Edit"
 msgstr ""
@@ -212,7 +212,7 @@ msgstr ""
 msgid "<a href=\"%1$s\" rel=\"bookmark\"><time class=\"entry-date\" datetime=\"%2$s\">%3$s</time></a><span class=\"by-author\"> <span class=\"sep\"> by </span> <span class=\"author vcard\"><a class=\"url fn n\" href=\"%4$s\" title=\"%5$s\" rel=\"author\">%6$s</a></span></span>"
 msgstr ""
 
-#: content-image.php:49 functions.php:721
+#: content-image.php:49 functions.php:791
 msgid "View all posts by %s"
 msgstr ""
 
@@ -260,123 +260,147 @@ msgstr ""
 msgid "Proudly powered by %s"
 msgstr ""
 
-#: functions.php:96
+#: functions.php:100
+msgid "Blue"
+msgstr ""
+
+#: functions.php:105
+msgid "Black"
+msgstr ""
+
+#: functions.php:110
+msgid "Dark Gray"
+msgstr ""
+
+#: functions.php:115
+msgid "Medium Gray"
+msgstr ""
+
+#: functions.php:120
+msgid "Light Gray"
+msgstr ""
+
+#: functions.php:125
+msgid "White"
+msgstr ""
+
+#: functions.php:142
 msgid "Primary Menu"
 msgstr ""
 
 #. translators: header image description
 
-#: functions.php:189
+#: functions.php:236
 msgid "Wheel"
 msgstr ""
 
 #. translators: header image description
 
-#: functions.php:195
+#: functions.php:242
 msgid "Shore"
 msgstr ""
 
 #. translators: header image description
 
-#: functions.php:201
+#: functions.php:248
 msgid "Trolley"
 msgstr ""
 
 #. translators: header image description
 
-#: functions.php:207
+#: functions.php:254
 msgid "Pine Cone"
 msgstr ""
 
 #. translators: header image description
 
-#: functions.php:213
+#: functions.php:260
 msgid "Chessboard"
 msgstr ""
 
 #. translators: header image description
 
-#: functions.php:219
+#: functions.php:266
 msgid "Lanterns"
 msgstr ""
 
 #. translators: header image description
 
-#: functions.php:225
+#: functions.php:272
 msgid "Willow"
 msgstr ""
 
 #. translators: header image description
 
-#: functions.php:231
+#: functions.php:278
 msgid "Hanoi Plant"
 msgstr ""
 
-#: functions.php:461
+#: functions.php:530
 msgid "Main Sidebar"
 msgstr ""
 
-#: functions.php:472
+#: functions.php:541
 msgid "Showcase Sidebar"
 msgstr ""
 
-#: functions.php:474
+#: functions.php:543
 msgid "The sidebar for the optional Showcase Template"
 msgstr ""
 
-#: functions.php:484
+#: functions.php:553
 msgid "Footer Area One"
 msgstr ""
 
-#: functions.php:486 functions.php:498 functions.php:510
+#: functions.php:555 functions.php:567 functions.php:579
 msgid "An optional widget area for your site footer"
 msgstr ""
 
-#: functions.php:496
+#: functions.php:565
 msgid "Footer Area Two"
 msgstr ""
 
-#: functions.php:508
+#: functions.php:577
 msgid "Footer Area Three"
 msgstr ""
 
-#: functions.php:534 single.php:21
+#: functions.php:603 single.php:21
 msgid "Post navigation"
 msgstr ""
 
-#: functions.php:535
+#: functions.php:604
 msgid "<span class=\"meta-nav\">&larr;</span> Older posts"
 msgstr ""
 
-#: functions.php:536
+#: functions.php:605
 msgid "Newer posts <span class=\"meta-nav\">&rarr;</span>"
 msgstr ""
 
-#: functions.php:641
+#: functions.php:710
 msgid "Pingback:"
 msgstr ""
 
 #. translators: 1: comment author, 2: date and time
 
-#: functions.php:660
+#: functions.php:729
 msgid "%1$s on %2$s <span class=\"says\">said:</span>"
 msgstr ""
 
 #. translators: 1: date, 2: time
 
-#: functions.php:667
+#: functions.php:736
 msgid "%1$s at %2$s"
 msgstr ""
 
-#: functions.php:676
+#: functions.php:745
 msgid "Your comment is awaiting moderation."
 msgstr ""
 
-#: functions.php:689
+#: functions.php:759
 msgid "Reply <span>&darr;</span>"
 msgstr ""
 
-#: functions.php:715
+#: functions.php:785
 msgid "<span class=\"sep\">Posted on </span><a href=\"%1$s\" title=\"%2$s\" rel=\"bookmark\"><time class=\"entry-date\" datetime=\"%3$s\">%4$s</time></a><span class=\"by-author\"> <span class=\"sep\"> by </span> <span class=\"author vcard\"><a class=\"url fn n\" href=\"%5$s\" title=\"%6$s\" rel=\"author\">%7$s</a></span></span>"
 msgstr ""
 
@@ -412,11 +436,11 @@ msgstr ""
 msgid "<span class=\"meta-prep meta-prep-entry-date\">Published </span> <span class=\"entry-date\"><abbr class=\"published\" title=\"%1$s\">%2$s</abbr></span> at <a href=\"%3$s\" title=\"Link to full-size image\">%4$s &times; %5$s</a> in <a href=\"%6$s\" title=\"Return to %7$s\" rel=\"gallery\">%8$s</a>"
 msgstr ""
 
-#: inc/theme-options.php:56 inc/theme-options.php:560
+#: inc/theme-options.php:56 inc/theme-options.php:564
 msgid "Color Scheme"
 msgstr ""
 
-#: inc/theme-options.php:62 inc/theme-options.php:582
+#: inc/theme-options.php:62 inc/theme-options.php:589
 msgid "Link Color"
 msgstr ""
 
@@ -496,39 +520,39 @@ msgstr ""
 msgid "%s Theme Options"
 msgstr ""
 
-#: inc/theme-options.php:592
+#: inc/theme-options.php:600
 msgid "Layout"
 msgstr ""
 
-#: inc/widgets.php:22
+#: inc/widgets.php:23
 msgid "Twenty Eleven Ephemera"
 msgstr ""
 
-#: inc/widgets.php:24
+#: inc/widgets.php:26
 msgid "Use this widget to list your recent Aside, Status, Quote, and Link posts"
 msgstr ""
 
-#: inc/widgets.php:72
+#: inc/widgets.php:74
 msgid "Ephemera"
 msgstr ""
 
-#: inc/widgets.php:116 inc/widgets.php:125
+#: inc/widgets.php:118 inc/widgets.php:127
 msgid "0 <span class=\"reply\">comments &rarr;</span>"
 msgstr ""
 
-#: inc/widgets.php:116 inc/widgets.php:125
+#: inc/widgets.php:118 inc/widgets.php:127
 msgid "1 <span class=\"reply\">comment &rarr;</span>"
 msgstr ""
 
-#: inc/widgets.php:116 inc/widgets.php:125
+#: inc/widgets.php:118 inc/widgets.php:127
 msgid "% <span class=\"reply\">comments &rarr;</span>"
 msgstr ""
 
-#: inc/widgets.php:192
+#: inc/widgets.php:194
 msgid "Title:"
 msgstr ""
 
-#: inc/widgets.php:195
+#: inc/widgets.php:197
 msgid "Number of posts to show:"
 msgstr ""
 

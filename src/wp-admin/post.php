@@ -48,8 +48,8 @@ if ( isset( $_POST['deletepost'] ) ) {
 
 $sendback = wp_get_referer();
 if ( ! $sendback ||
-	strpos( $sendback, 'post.php' ) !== false ||
-	strpos( $sendback, 'post-new.php' ) !== false ) {
+	 strpos( $sendback, 'post.php' ) !== false ||
+	 strpos( $sendback, 'post-new.php' ) !== false ) {
 	if ( 'attachment' == $post_type ) {
 		$sendback = admin_url( 'upload.php' );
 	} else {
@@ -154,6 +154,8 @@ switch ( $action ) {
 			$post_new_file = "post-new.php?post_type=$post_type";
 		}
 
+		$title = $post_type_object->labels->edit_item;
+
 		/**
 		 * Allows replacement of the editor.
 		 *
@@ -166,6 +168,11 @@ switch ( $action ) {
 			break;
 		}
 
+		if ( use_block_editor_for_post( $post ) ) {
+			include( ABSPATH . 'wp-admin/edit-form-blocks.php' );
+			break;
+		}
+
 		if ( ! wp_check_post_lock( $post->ID ) ) {
 			$active_post_lock = wp_set_post_lock( $post->ID );
 
@@ -174,8 +181,7 @@ switch ( $action ) {
 			}
 		}
 
-		$title = $post_type_object->labels->edit_item;
-		$post  = get_post( $post_id, OBJECT, 'edit' );
+		$post = get_post( $post_id, OBJECT, 'edit' );
 
 		if ( post_type_supports( $post_type, 'comments' ) ) {
 			wp_enqueue_script( 'admin-comments' );
@@ -195,10 +201,11 @@ switch ( $action ) {
 
 		// Update the thumbnail filename
 		$newmeta          = wp_get_attachment_metadata( $post_id, true );
-		$newmeta['thumb'] = $_POST['thumb'];
+		$newmeta['thumb'] = wp_basename( $_POST['thumb'] );
 
 		wp_update_attachment_metadata( $post_id, $newmeta );
 
+		// Intentional fall-through to trigger the edit_post() call.
 	case 'editpost':
 		check_admin_referer( 'update-post_' . $post_id );
 
@@ -305,6 +312,18 @@ switch ( $action ) {
 		$url = post_preview();
 
 		wp_redirect( $url );
+		exit();
+
+	case 'toggle-custom-fields':
+		check_admin_referer( 'toggle-custom-fields' );
+
+		$current_user_id = get_current_user_id();
+		if ( $current_user_id ) {
+			$enable_custom_fields = (bool) get_user_meta( $current_user_id, 'enable_custom_fields', true );
+			update_user_meta( $current_user_id, 'enable_custom_fields', ! $enable_custom_fields );
+		}
+
+		wp_safe_redirect( wp_get_referer() );
 		exit();
 
 	default:

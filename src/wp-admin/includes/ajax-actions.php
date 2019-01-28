@@ -100,6 +100,70 @@ function wp_ajax_fetch_list() {
 }
 
 /**
+ * Ajax handler for tag search.
+ *
+ * @since 3.1.0
+ */
+function wp_ajax_ajax_tag_search() {
+	if ( ! isset( $_GET['tax'] ) ) {
+		wp_die( 0 );
+	}
+
+	$taxonomy = sanitize_key( $_GET['tax'] );
+	$tax      = get_taxonomy( $taxonomy );
+	if ( ! $tax ) {
+		wp_die( 0 );
+	}
+
+	if ( ! current_user_can( $tax->cap->assign_terms ) ) {
+		wp_die( -1 );
+	}
+
+	$s = wp_unslash( $_GET['q'] );
+
+	$comma = _x( ',', 'tag delimiter' );
+	if ( ',' !== $comma ) {
+		$s = str_replace( $comma, ',', $s );
+	}
+	if ( false !== strpos( $s, ',' ) ) {
+		$s = explode( ',', $s );
+		$s = $s[ count( $s ) - 1 ];
+	}
+	$s = trim( $s );
+
+	/**
+	 * Filters the minimum number of characters required to fire a tag search via Ajax.
+	 *
+	 * @since 4.0.0
+	 *
+	 * @param int         $characters The minimum number of characters required. Default 2.
+	 * @param WP_Taxonomy $tax        The taxonomy object.
+	 * @param string      $s          The search term.
+	 */
+	$term_search_min_chars = (int) apply_filters( 'term_search_min_chars', 2, $tax, $s );
+
+	/*
+	 * Require $term_search_min_chars chars for matching (default: 2)
+	 * ensure it's a non-negative, non-zero integer.
+	 */
+	if ( ( $term_search_min_chars == 0 ) || ( strlen( $s ) < $term_search_min_chars ) ) {
+		wp_die();
+	}
+
+	$results = get_terms(
+		$taxonomy,
+		array(
+			'name__like' => $s,
+			'fields'     => 'names',
+			'hide_empty' => false,
+		)
+	);
+
+	echo join( $results, "\n" );
+	wp_die();
+}
+
+/**
  * Ajax handler for compression testing.
  *
  * @since 3.1.0
@@ -800,9 +864,11 @@ function wp_ajax_untrash_post( $action ) {
 }
 
 /**
+ * Ajax handler to delete a page.
+ *
  * @since 3.1.0
  *
- * @param string $action
+ * @param string $action Action to perform.
  */
 function wp_ajax_delete_page( $action ) {
 	if ( empty( $action ) ) {
@@ -1442,9 +1508,6 @@ function wp_ajax_add_meta() {
 		$value = wp_unslash( $_POST['meta'][ $mid ]['value'] );
 		if ( '' == trim( $key ) ) {
 			wp_die( __( 'Please provide a custom field name.' ) );
-		}
-		if ( '' == trim( $value ) ) {
-			wp_die( __( 'Please provide a custom field value.' ) );
 		}
 		if ( ! $meta = get_metadata_by_mid( 'post', $mid ) ) {
 			wp_die( 0 ); // if meta doesn't exist
@@ -2265,7 +2328,11 @@ function wp_ajax_upload_attachment() {
 		$post_id = null;
 	}
 
-	$post_data = isset( $_REQUEST['post_data'] ) ? $_REQUEST['post_data'] : array();
+	$post_data = ! empty( $_REQUEST['post_data'] ) ? _wp_get_allowed_postdata( _wp_translate_postdata( false, (array) $_REQUEST['post_data'] ) ) : array();
+
+	if ( is_wp_error( $post_data ) ) {
+		wp_die( $post_data->get_error_message() );
+	}
 
 	// If the context is custom header or background, make sure the uploaded file is an image.
 	if ( isset( $post_data['context'] ) && in_array( $post_data['context'], array( 'custom-header', 'custom-background' ) ) ) {

@@ -1268,12 +1268,15 @@ class WP_Posts_List_Table extends WP_List_Table {
 				esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $title ) ),
 				__( 'Edit' )
 			);
-			$actions['inline hide-if-no-js'] = sprintf(
-				'<button type="button" class="button-link editinline" aria-label="%s" aria-expanded="false">%s</button>',
-				/* translators: %s: post title */
-				esc_attr( sprintf( __( 'Quick edit &#8220;%s&#8221; inline' ), $title ) ),
-				__( 'Quick&nbsp;Edit' )
-			);
+
+			if ( 'wp_block' !== $post->post_type ) {
+				$actions['inline hide-if-no-js'] = sprintf(
+					'<button type="button" class="button-link editinline" aria-label="%s" aria-expanded="false">%s</button>',
+					/* translators: %s: post title */
+					esc_attr( sprintf( __( 'Quick edit &#8220;%s&#8221; inline' ), $title ) ),
+					__( 'Quick&nbsp;Edit' )
+				);
+			}
 		}
 
 		if ( current_user_can( 'delete_post', $post->ID ) ) {
@@ -1326,6 +1329,16 @@ class WP_Posts_List_Table extends WP_List_Table {
 					__( 'View' )
 				);
 			}
+		}
+
+		if ( 'wp_block' === $post->post_type ) {
+			$actions['export'] = sprintf(
+				'<button type="button" class="wp-list-reusable-blocks__export button-link" data-id="%s" aria-label="%s">%s</button>',
+				$post->ID,
+				/* translators: %s: post title */
+				esc_attr( sprintf( __( 'Export &#8220;%s&#8221; as JSON' ), $title ) ),
+				__( 'Export as JSON' )
+			);
 		}
 
 		if ( is_post_type_hierarchical( $post->post_type ) ) {
@@ -1458,15 +1471,15 @@ class WP_Posts_List_Table extends WP_List_Table {
 				<span class="input-text-wrap"><input type="text" name="post_title" class="ptitle" value="" /></span>
 			</label>
 
-		<?php if ( $post_type_object->publicly_queryable ) : // publicly_queryable check ?>
+				<?php if ( is_post_type_viewable( $screen->post_type ) ) : // is_post_type_viewable check ?>
 
 			<label>
 				<span class="title"><?php _e( 'Slug' ); ?></span>
 				<span class="input-text-wrap"><input type="text" name="post_name" value="" /></span>
 			</label>
 
-			<?php
-	endif; // publicly_queryable check
+					<?php
+	endif; // is_post_type_viewable check
 	endif; // $bulk
 	endif; // post_type_supports title
 			?>
@@ -1480,39 +1493,39 @@ class WP_Posts_List_Table extends WP_List_Table {
 				<?php
 	endif; // $bulk
 
-if ( post_type_supports( $screen->post_type, 'author' ) ) :
-	$authors_dropdown = '';
+			if ( post_type_supports( $screen->post_type, 'author' ) ) :
+				$authors_dropdown = '';
 
-	if ( current_user_can( $post_type_object->cap->edit_others_posts ) ) :
-		$users_opt = array(
-			'hide_if_only_one_author' => false,
-			'who'                     => 'authors',
-			'name'                    => 'post_author',
-			'class'                   => 'authors',
-			'multi'                   => 1,
-			'echo'                    => 0,
-			'show'                    => 'display_name_with_login',
-		);
-		if ( $bulk ) {
-			$users_opt['show_option_none'] = __( '&mdash; No Change &mdash;' );
-		}
+				if ( current_user_can( $post_type_object->cap->edit_others_posts ) ) :
+					$users_opt = array(
+						'hide_if_only_one_author' => false,
+						'who'                     => 'authors',
+						'name'                    => 'post_author',
+						'class'                   => 'authors',
+						'multi'                   => 1,
+						'echo'                    => 0,
+						'show'                    => 'display_name_with_login',
+					);
+					if ( $bulk ) {
+						$users_opt['show_option_none'] = __( '&mdash; No Change &mdash;' );
+					}
 
-		if ( $authors = wp_dropdown_users( $users_opt ) ) :
-			$authors_dropdown  = '<label class="inline-edit-author">';
-			$authors_dropdown .= '<span class="title">' . __( 'Author' ) . '</span>';
-			$authors_dropdown .= $authors;
-			$authors_dropdown .= '</label>';
-		endif;
-	endif; // authors
-	?>
+					if ( $authors = wp_dropdown_users( $users_opt ) ) :
+						$authors_dropdown  = '<label class="inline-edit-author">';
+						$authors_dropdown .= '<span class="title">' . __( 'Author' ) . '</span>';
+						$authors_dropdown .= $authors;
+						$authors_dropdown .= '</label>';
+					endif;
+				endif; // authors
+				?>
 
-	<?php
-	if ( ! $bulk ) {
-		echo $authors_dropdown;}
+				<?php
+				if ( ! $bulk ) {
+					echo $authors_dropdown;}
 	endif; // post_type_supports author
 
-if ( ! $bulk && $can_publish ) :
-	?>
+			if ( ! $bulk && $can_publish ) :
+				?>
 
 		<div class="inline-edit-group wp-clearfix">
 			<label class="alignleft">
@@ -1532,7 +1545,7 @@ if ( ! $bulk && $can_publish ) :
 				</label>
 			</div>
 
-	<?php endif; ?>
+				<?php endif; ?>
 
 		</div></fieldset>
 
@@ -1677,7 +1690,7 @@ if ( ! $bulk && $can_publish ) :
 			<?php else : // $bulk ?>
 
 			<div class="inline-edit-group wp-clearfix">
-			<?php if ( post_type_supports( $screen->post_type, 'comments' ) ) : ?>
+				<?php if ( post_type_supports( $screen->post_type, 'comments' ) ) : ?>
 				<label class="alignleft">
 					<input type="checkbox" name="comment_status" value="open" />
 					<span class="checkbox-title"><?php _e( 'Allow Comments' ); ?></span>
@@ -1690,7 +1703,7 @@ if ( ! $bulk && $can_publish ) :
 			<?php endif; ?>
 			</div>
 
-	<?php
+				<?php
 	endif; // $bulk
 	endif; // post_type_supports comments or pings
 			?>

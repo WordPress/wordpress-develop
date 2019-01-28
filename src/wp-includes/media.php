@@ -104,8 +104,7 @@ function image_constrain_size_for_editor( $width, $height, $size = 'medium', $co
 		if ( intval( $content_width ) > 0 && 'edit' === $context ) {
 			$max_width = min( intval( $content_width ), $max_width );
 		}
-	} // $size == 'full' has no constraint
-	else {
+	} else { // $size == 'full' has no constraint
 		$max_width  = $width;
 		$max_height = $height;
 	}
@@ -266,8 +265,8 @@ function image_downsize( $id, $size = 'medium' ) {
  * @global array $_wp_additional_image_sizes Associative array of additional image sizes.
  *
  * @param string     $name   Image size identifier.
- * @param int        $width  Image width in pixels.
- * @param int        $height Image height in pixels.
+ * @param int        $width  Optional. Image width in pixels. Default 0.
+ * @param int        $height Optional. Image height in pixels. Default 0.
  * @param bool|array $crop   Optional. Whether to crop images to specified width and height or resize.
  *                           An array can specify positioning of the crop area. Default false.
  */
@@ -1498,7 +1497,7 @@ add_shortcode( 'caption', 'img_caption_shortcode' );
  *
  * @since 2.6.0
  * @since 3.9.0 The `class` attribute was added.
- * @since 5.0.0 The `caption_id` attribute was added.
+ * @since 5.1.0 The `caption_id` attribute was added.
  *
  * @param array  $attr {
  *     Attributes of the caption shortcode.

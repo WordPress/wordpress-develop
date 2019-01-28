@@ -70,6 +70,52 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 		// This theme styles the visual editor to resemble the theme style.
 		add_editor_style( array( 'css/editor-style.css', twentyfourteen_font_url(), 'genericons/genericons.css' ) );
 
+		// Load regular editor styles into the new block-based editor.
+		add_theme_support( 'editor-styles' );
+
+		// Load default block styles.
+		add_theme_support( 'wp-block-styles' );
+
+		// Add support for responsive embeds.
+		add_theme_support( 'responsive-embeds' );
+
+		// Add support for custom color scheme.
+		add_theme_support(
+			'editor-color-palette',
+			array(
+				array(
+					'name'  => __( 'Green', 'twentyfourteen' ),
+					'slug'  => 'green',
+					'color' => '#24890d',
+				),
+				array(
+					'name'  => __( 'Black', 'twentyfourteen' ),
+					'slug'  => 'black',
+					'color' => '#000',
+				),
+				array(
+					'name'  => __( 'Dark Gray', 'twentyfourteen' ),
+					'slug'  => 'dark-gray',
+					'color' => '#2b2b2b',
+				),
+				array(
+					'name'  => __( 'Medium Gray', 'twentyfourteen' ),
+					'slug'  => 'medium-gray',
+					'color' => '#767676',
+				),
+				array(
+					'name'  => __( 'Light Gray', 'twentyfourteen' ),
+					'slug'  => 'light-gray',
+					'color' => '#f5f5f5',
+				),
+				array(
+					'name'  => __( 'White', 'twentyfourteen' ),
+					'slug'  => 'white',
+					'color' => '#fff',
+				),
+			)
+		);
+
 		// Add RSS feed links to <head> for posts and comments.
 		add_theme_support( 'automatic-feed-links' );
 
@@ -272,6 +318,9 @@ function twentyfourteen_scripts() {
 	// Load our main stylesheet.
 	wp_enqueue_style( 'twentyfourteen-style', get_stylesheet_uri() );
 
+	// Theme block stylesheet.
+	wp_enqueue_style( 'twentyfourteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentyfourteen-style' ), '20181230' );
+
 	// Load the Internet Explorer specific stylesheet.
 	wp_enqueue_style( 'twentyfourteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentyfourteen-style' ), '20131205' );
 	wp_style_add_data( 'twentyfourteen-ie', 'conditional', 'lt IE 9' );
@@ -339,6 +388,19 @@ function twentyfourteen_resource_hints( $urls, $relation_type ) {
 }
 add_filter( 'wp_resource_hints', 'twentyfourteen_resource_hints', 10, 2 );
 
+/**
+ * Enqueue styles for the block-based editor.
+ *
+ * @since Twenty Fourteen 2.3
+ */
+function twentyfourteen_block_editor_styles() {
+	// Block styles.
+	wp_enqueue_style( 'twentyfourteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20181230' );
+	// Add custom fonts.
+	wp_enqueue_style( 'twentyfourteen-fonts', twentyfourteen_font_url(), array(), null );
+}
+add_action( 'enqueue_block_editor_assets', 'twentyfourteen_block_editor_styles' );
+
 if ( ! function_exists( 'twentyfourteen_the_attached_image' ) ) :
 	/**
 	 * Print the attached image with a link to the next attached image.
@@ -393,8 +455,8 @@ if ( ! function_exists( 'twentyfourteen_the_attached_image' ) ) :
 			// get the URL of the next image attachment...
 			if ( $next_id ) {
 				$next_attachment_url = get_attachment_link( $next_id );
-			} // or get the URL of the first image attachment.
-			else {
+			} else {
+				// or get the URL of the first image attachment.
 				$next_attachment_url = get_attachment_link( reset( $attachment_ids ) );
 			}
 		}

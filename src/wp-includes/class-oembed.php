@@ -60,13 +60,11 @@ class WP_oEmbed {
 			'#https?://flic\.kr/.*#i'                      => array( 'https://www.flickr.com/services/oembed/', true ),
 			'#https?://(.+\.)?smugmug\.com/.*#i'           => array( 'https://api.smugmug.com/services/oembed/', true ),
 			'#https?://(www\.)?hulu\.com/watch/.*#i'       => array( 'http://www.hulu.com/api/oembed.{format}', true ),
-			'http://i*.photobucket.com/albums/*'           => array( 'http://api.photobucket.com/oembed', false ),
-			'http://gi*.photobucket.com/groups/*'          => array( 'http://api.photobucket.com/oembed', false ),
 			'#https?://(www\.)?scribd\.com/doc/.*#i'       => array( 'https://www.scribd.com/services/oembed', true ),
 			'#https?://wordpress\.tv/.*#i'                 => array( 'https://wordpress.tv/oembed/', true ),
-			'#https?://(.+\.)?polldaddy\.com/.*#i'         => array( 'https://polldaddy.com/oembed/', true ),
-			'#https?://poll\.fm/.*#i'                      => array( 'https://polldaddy.com/oembed/', true ),
-			'#https?://(www\.)?funnyordie\.com/videos/.*#i' => array( 'http://www.funnyordie.com/oembed', true ),
+			'#https?://(.+\.)?polldaddy\.com/.*#i'         => array( 'https://api.crowdsignal.com/oembed', true ),
+			'#https?://poll\.fm/.*#i'                      => array( 'https://api.crowdsignal.com/oembed', true ),
+			'#https?://survey\.fm/.*#i'                    => array( 'https://api.crowdsignal.com/oembed', true ),
 			'#https?://(www\.)?twitter\.com/\w{1,15}/status(es)?/.*#i' => array( 'https://publish.twitter.com/oembed', true ),
 			'#https?://(www\.)?twitter\.com/\w{1,15}$#i'   => array( 'https://publish.twitter.com/oembed', true ),
 			'#https?://(www\.)?twitter\.com/\w{1,15}/likes$#i' => array( 'https://publish.twitter.com/oembed', true ),
@@ -75,7 +73,7 @@ class WP_oEmbed {
 			'#https?://(www\.)?twitter\.com/i/moments/.*#i' => array( 'https://publish.twitter.com/oembed', true ),
 			'#https?://(www\.)?soundcloud\.com/.*#i'       => array( 'https://soundcloud.com/oembed', true ),
 			'#https?://(.+?\.)?slideshare\.net/.*#i'       => array( 'https://www.slideshare.net/api/oembed/2', true ),
-			'#https?://(www\.)?instagr(\.am|am\.com)/p/.*#i' => array( 'https://api.instagram.com/oembed', true ),
+			'#https?://(www\.)?instagr(\.am|am\.com)/(p|tv)/.*#i' => array( 'https://api.instagram.com/oembed', true ),
 			'#https?://(open|play)\.spotify\.com/.*#i'     => array( 'https://embed.spotify.com/oembed/', true ),
 			'#https?://(.+\.)?imgur\.com/.*#i'             => array( 'https://api.imgur.com/oembed', true ),
 			'#https?://(www\.)?meetu(\.ps|p\.com)/.*#i'    => array( 'https://api.meetup.com/oembed', true ),
@@ -141,63 +139,64 @@ class WP_oEmbed {
 		 *
 		 * Supported providers:
 		 *
-		 * |   Provider   |              Flavor               | Supports HTTPS |  Since  |
-		 * | ------------ | --------------------------------- | :------------: | ------- |
-		 * | Dailymotion  | dailymotion.com                   |      Yes       | 2.9.0   |
-		 * | Flickr       | flickr.com                        |      Yes       | 2.9.0   |
-		 * | Hulu         | hulu.com                          |      Yes       | 2.9.0   |
-		 * | Photobucket  | photobucket.com                   |      No        | 2.9.0   |
-		 * | Scribd       | scribd.com                        |      Yes       | 2.9.0   |
-		 * | Vimeo        | vimeo.com                         |      Yes       | 2.9.0   |
-		 * | WordPress.tv | wordpress.tv                      |      Yes       | 2.9.0   |
-		 * | YouTube      | youtube.com/watch                 |      Yes       | 2.9.0   |
-		 * | Funny or Die | funnyordie.com                    |      Yes       | 3.0.0   |
-		 * | Polldaddy    | polldaddy.com                     |      Yes       | 3.0.0   |
-		 * | SmugMug      | smugmug.com                       |      Yes       | 3.0.0   |
-		 * | YouTube      | youtu.be                          |      Yes       | 3.0.0   |
-		 * | Twitter      | twitter.com                       |      Yes       | 3.4.0   |
-		 * | Instagram    | instagram.com                     |      Yes       | 3.5.0   |
-		 * | Instagram    | instagr.am                        |      Yes       | 3.5.0   |
-		 * | Slideshare   | slideshare.net                    |      Yes       | 3.5.0   |
-		 * | SoundCloud   | soundcloud.com                    |      Yes       | 3.5.0   |
-		 * | Dailymotion  | dai.ly                            |      Yes       | 3.6.0   |
-		 * | Flickr       | flic.kr                           |      Yes       | 3.6.0   |
-		 * | Spotify      | spotify.com                       |      Yes       | 3.6.0   |
-		 * | Imgur        | imgur.com                         |      Yes       | 3.9.0   |
-		 * | Meetup.com   | meetup.com                        |      Yes       | 3.9.0   |
-		 * | Meetup.com   | meetu.ps                          |      Yes       | 3.9.0   |
-		 * | Animoto      | animoto.com                       |      Yes       | 4.0.0   |
-		 * | Animoto      | video214.com                      |      Yes       | 4.0.0   |
-		 * | CollegeHumor | collegehumor.com                  |      Yes       | 4.0.0   |
-		 * | Issuu        | issuu.com                         |      Yes       | 4.0.0   |
-		 * | Mixcloud     | mixcloud.com                      |      Yes       | 4.0.0   |
-		 * | Polldaddy    | poll.fm                           |      Yes       | 4.0.0   |
-		 * | TED          | ted.com                           |      Yes       | 4.0.0   |
-		 * | YouTube      | youtube.com/playlist              |      Yes       | 4.0.0   |
-		 * | Tumblr       | tumblr.com                        |      Yes       | 4.2.0   |
-		 * | Kickstarter  | kickstarter.com                   |      Yes       | 4.2.0   |
-		 * | Kickstarter  | kck.st                            |      Yes       | 4.2.0   |
-		 * | Cloudup      | cloudup.com                       |      Yes       | 4.3.0   |
-		 * | ReverbNation | reverbnation.com                  |      Yes       | 4.4.0   |
-		 * | VideoPress   | videopress.com                    |      Yes       | 4.4.0   |
-		 * | Reddit       | reddit.com                        |      Yes       | 4.4.0   |
-		 * | Speaker Deck | speakerdeck.com                   |      Yes       | 4.4.0   |
-		 * | Twitter      | twitter.com/timelines             |      Yes       | 4.5.0   |
-		 * | Twitter      | twitter.com/moments               |      Yes       | 4.5.0   |
-		 * | Facebook     | facebook.com                      |      Yes       | 4.7.0   |
-		 * | Twitter      | twitter.com/user                  |      Yes       | 4.7.0   |
-		 * | Twitter      | twitter.com/likes                 |      Yes       | 4.7.0   |
-		 * | Twitter      | twitter.com/lists                 |      Yes       | 4.7.0   |
-		 * | Screencast   | screencast.com                    |      Yes       | 4.8.0   |
-		 * | Amazon       | amazon.com|com.mx|com.br|ca       |      Yes       | 4.9.0   |
-		 * | Amazon       | amazon.de|fr|it|es|in|nl|ru|co.uk |      Yes       | 4.9.0   |
-		 * | Amazon       | amazon.co.jp|com.au               |      Yes       | 4.9.0   |
-		 * | Amazon       | amazon.cn                         |      Yes       | 4.9.0   |
-		 * | Amazon       | a.co                              |      Yes       | 4.9.0   |
-		 * | Amazon       | amzn.to|eu|in|asia                |      Yes       | 4.9.0   |
-		 * | Amazon       | z.cn                              |      Yes       | 4.9.0   |
-		 * | Someecards   | someecards.com                    |      Yes       | 4.9.0   |
-		 * | Someecards   | some.ly                           |      Yes       | 4.9.0   |
+		 * |   Provider   |                     Flavor                | Supports HTTPS |  Since  |
+		 * | ------------ | ----------------------------------------- | :------------: | ------- |
+		 * | Dailymotion  | dailymotion.com                           |      Yes       | 2.9.0   |
+		 * | Flickr       | flickr.com                                |      Yes       | 2.9.0   |
+		 * | Hulu         | hulu.com                                  |      Yes       | 2.9.0   |
+		 * | Scribd       | scribd.com                                |      Yes       | 2.9.0   |
+		 * | Vimeo        | vimeo.com                                 |      Yes       | 2.9.0   |
+		 * | WordPress.tv | wordpress.tv                              |      Yes       | 2.9.0   |
+		 * | YouTube      | youtube.com/watch                         |      Yes       | 2.9.0   |
+		 * | Crowdsignal  | polldaddy.com                             |      Yes       | 3.0.0   |
+		 * | SmugMug      | smugmug.com                               |      Yes       | 3.0.0   |
+		 * | YouTube      | youtu.be                                  |      Yes       | 3.0.0   |
+		 * | Twitter      | twitter.com                               |      Yes       | 3.4.0   |
+		 * | Instagram    | instagram.com                             |      Yes       | 3.5.0   |
+		 * | Instagram    | instagr.am                                |      Yes       | 3.5.0   |
+		 * | Slideshare   | slideshare.net                            |      Yes       | 3.5.0   |
+		 * | SoundCloud   | soundcloud.com                            |      Yes       | 3.5.0   |
+		 * | Dailymotion  | dai.ly                                    |      Yes       | 3.6.0   |
+		 * | Flickr       | flic.kr                                   |      Yes       | 3.6.0   |
+		 * | Spotify      | spotify.com                               |      Yes       | 3.6.0   |
+		 * | Imgur        | imgur.com                                 |      Yes       | 3.9.0   |
+		 * | Meetup.com   | meetup.com                                |      Yes       | 3.9.0   |
+		 * | Meetup.com   | meetu.ps                                  |      Yes       | 3.9.0   |
+		 * | Animoto      | animoto.com                               |      Yes       | 4.0.0   |
+		 * | Animoto      | video214.com                              |      Yes       | 4.0.0   |
+		 * | CollegeHumor | collegehumor.com                          |      Yes       | 4.0.0   |
+		 * | Issuu        | issuu.com                                 |      Yes       | 4.0.0   |
+		 * | Mixcloud     | mixcloud.com                              |      Yes       | 4.0.0   |
+		 * | Crowdsignal  | poll.fm                                   |      Yes       | 4.0.0   |
+		 * | TED          | ted.com                                   |      Yes       | 4.0.0   |
+		 * | YouTube      | youtube.com/playlist                      |      Yes       | 4.0.0   |
+		 * | Tumblr       | tumblr.com                                |      Yes       | 4.2.0   |
+		 * | Kickstarter  | kickstarter.com                           |      Yes       | 4.2.0   |
+		 * | Kickstarter  | kck.st                                    |      Yes       | 4.2.0   |
+		 * | Cloudup      | cloudup.com                               |      Yes       | 4.3.0   |
+		 * | ReverbNation | reverbnation.com                          |      Yes       | 4.4.0   |
+		 * | VideoPress   | videopress.com                            |      Yes       | 4.4.0   |
+		 * | Reddit       | reddit.com                                |      Yes       | 4.4.0   |
+		 * | Speaker Deck | speakerdeck.com                           |      Yes       | 4.4.0   |
+		 * | Twitter      | twitter.com/timelines                     |      Yes       | 4.5.0   |
+		 * | Twitter      | twitter.com/moments                       |      Yes       | 4.5.0   |
+		 * | Facebook     | facebook.com                              |      Yes       | 4.7.0   |
+		 * | Twitter      | twitter.com/user                          |      Yes       | 4.7.0   |
+		 * | Twitter      | twitter.com/likes                         |      Yes       | 4.7.0   |
+		 * | Twitter      | twitter.com/lists                         |      Yes       | 4.7.0   |
+		 * | Screencast   | screencast.com                            |      Yes       | 4.8.0   |
+		 * | Amazon       | amazon.com (com.mx, com.br, ca)           |      Yes       | 4.9.0   |
+		 * | Amazon       | amazon.de (fr, it, es, in, nl, ru, co.uk) |      Yes       | 4.9.0   |
+		 * | Amazon       | amazon.co.jp (com.au)                     |      Yes       | 4.9.0   |
+		 * | Amazon       | amazon.cn                                 |      Yes       | 4.9.0   |
+		 * | Amazon       | a.co                                      |      Yes       | 4.9.0   |
+		 * | Amazon       | amzn.to (eu, in, asia)                    |      Yes       | 4.9.0   |
+		 * | Amazon       | z.cn                                      |      Yes       | 4.9.0   |
+		 * | Someecards   | someecards.com                            |      Yes       | 4.9.0   |
+		 * | Someecards   | some.ly                                   |      Yes       | 4.9.0   |
+		 * | Crowdsignal  | survey.fm                                 |      Yes       | 5.1.0   |
+		 * | Instagram TV | instagram.com                             |      Yes       | 5.1.0   |
+		 * | Instagram TV | instagr.am                                |      Yes       | 5.1.0   |
 		 *
 		 * No longer supported providers:
 		 *
@@ -210,6 +209,8 @@ class WP_oEmbed {
 		 * | Rdio         | rdio.com             |      Yes       | 3.6.0     | 4.4.1     |
 		 * | Rdio         | rd.io                |      Yes       | 3.6.0     | 4.4.1     |
 		 * | Vine         | vine.co              |      Yes       | 4.1.0     | 4.9.0     |
+		 * | Photobucket  | photobucket.com      |      No        | 2.9.0     | 5.1.0     |
+		 * | Funny or Die | funnyordie.com       |      Yes       | 3.0.0     | 5.1.0     |
 		 *
 		 * @see wp_oembed_add_provider()
 		 *
@@ -404,9 +405,9 @@ class WP_oEmbed {
 		 *
 		 * @since 2.9.0
 		 *
-		 * @param string $data The returned oEmbed HTML.
-		 * @param string $url  URL of the content to be embedded.
-		 * @param array  $args Optional arguments, usually passed from a shortcode.
+		 * @param string|false $data The returned oEmbed HTML (false if unsafe).
+		 * @param string       $url  URL of the content to be embedded.
+		 * @param array        $args Optional arguments, usually passed from a shortcode.
 		 */
 		return apply_filters( 'oembed_result', $this->data2html( $data, $url ), $url, $args );
 	}

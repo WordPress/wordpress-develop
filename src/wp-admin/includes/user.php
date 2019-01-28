@@ -25,7 +25,7 @@ function add_user() {
  * @since 2.0.0
  *
  * @param int $user_id Optional. User ID.
- * @return int|WP_Error user id of the updated user
+ * @return int|WP_Error user id of the updated user.
  */
 function edit_user( $user_id = 0 ) {
 	$wp_roles = wp_roles();
@@ -547,7 +547,7 @@ jQuery(document).ready( function($) {
  *
  * @since 2.7.0
  *
- * @param object $user User data object
+ * @param object $user User data object.
  */
 function use_ssl_preference( $user ) {
 	?>
@@ -618,26 +618,26 @@ function _wp_privacy_resend_request( $request_id ) {
  * @access private
  *
  * @param  int          $request_id Request ID.
- * @return int|WP_Error $request    Request ID on success or WP_Error.
+ * @return int|WP_Error $result Request ID on success or WP_Error.
  */
 function _wp_privacy_completed_request( $request_id ) {
-	$request_id   = absint( $request_id );
-	$request_data = wp_get_user_request_data( $request_id );
+	$request_id = absint( $request_id );
+	$request    = wp_get_user_request_data( $request_id );
 
-	if ( ! $request_data ) {
+	if ( ! $request ) {
 		return new WP_Error( 'privacy_request_error', __( 'Invalid request.' ) );
 	}
 
 	update_post_meta( $request_id, '_wp_user_request_completed_timestamp', time() );
 
-	$request = wp_update_post(
+	$result = wp_update_post(
 		array(
 			'ID'          => $request_id,
 			'post_status' => 'request-completed',
 		)
 	);
 
-	return $request;
+	return $result;
 }
 
 /**
@@ -809,6 +809,7 @@ function _wp_personal_data_export_page() {
 		array(
 			'plural'   => 'privacy_requests',
 			'singular' => 'privacy_request',
+			'screen'   => 'export_personal_data',
 		)
 	);
 	$requests_table->process_bulk_action();
@@ -882,6 +883,7 @@ function _wp_personal_data_removal_page() {
 		array(
 			'plural'   => 'privacy_requests',
 			'singular' => 'privacy_request',
+			'screen'   => 'remove_personal_data',
 		)
 	);
 
@@ -1090,7 +1092,15 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 * @return array Default sortable columns.
 	 */
 	protected function get_sortable_columns() {
-		return array();
+		// The initial sorting is by 'Requested' (post_date) and descending.
+		// With initial sorting, the first click on 'Requested' should be ascending.
+		// With 'Requester' sorting active, the next click on 'Requested' should be descending.
+		$desc_first = isset( $_GET['orderby'] );
+
+		return array(
+			'email'             => 'requester',
+			'created_timestamp' => array( 'requested', $desc_first ),
+		);
 	}
 
 	/**
@@ -1154,13 +1164,15 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 		$views          = array();
 		$admin_url      = admin_url( 'tools.php?page=' . $this->request_type );
 		$counts         = $this->get_request_counts();
+		$total_requests = absint( array_sum( (array) $counts ) );
 
 		$current_link_attributes = empty( $current_status ) ? ' class="current" aria-current="page"' : '';
-		$views['all']            = '<a href="' . esc_url( $admin_url ) . "\" $current_link_attributes>" . esc_html__( 'All' ) . ' <span class="count">(' . absint( array_sum( (array) $counts ) ) . ')</span></a>';
+		$views['all']            = '<a href="' . esc_url( $admin_url ) . "\" $current_link_attributes>" . sprintf( _nx( 'All <span class="count">(%s)</span>', 'All <span class="count">(%d)</span>', $total_requests, 'requests' ), number_format_i18n( $total_requests ) ) . '</a>';
 
 		foreach ( $statuses as $status => $label ) {
 			$current_link_attributes = $status === $current_status ? ' class="current" aria-current="page"' : '';
-			$views[ $status ]        = '<a href="' . esc_url( add_query_arg( 'filter-status', $status, $admin_url ) ) . "\" $current_link_attributes>" . esc_html( $label ) . ' <span class="count">(' . absint( $counts->$status ) . ')</span></a>';
+			$total_status_requests   = absint( $counts->$status );
+			$views[ $status ]        = '<a href="' . esc_url( add_query_arg( 'filter-status', $status, $admin_url ) ) . "\" $current_link_attributes>" . sprintf( _nx( '%1$s <span class="count">(%2$d)</span>', '%1$s <span class="count">(%2$d)</span>', $total_status_requests, 'requests' ), esc_html( $label ), number_format_i18n( $total_status_requests ) ) . '</a>';
 		}
 
 		return $views;
@@ -1235,17 +1247,10 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 * Prepare items to output.
 	 *
 	 * @since 4.9.6
+	 * @since 5.1.0 Added support for column sorting.
 	 */
 	public function prepare_items() {
 		global $wpdb;
-
-		$primary               = $this->get_primary_column_name();
-		$this->_column_headers = array(
-			$this->get_columns(),
-			array(),
-			$this->get_sortable_columns(),
-			$primary,
-		);
 
 		$this->items    = array();
 		$posts_per_page = $this->get_items_per_page( $this->request_type . '_requests_per_page' );
@@ -1257,6 +1262,19 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 			'post_status'    => 'any',
 			's'              => isset( $_REQUEST['s'] ) ? sanitize_text_field( $_REQUEST['s'] ) : '',
 		);
+
+		$orderby_mapping = array(
+			'requester' => 'post_title',
+			'requested' => 'post_date',
+		);
+
+		if ( isset( $_REQUEST['orderby'] ) && isset( $orderby_mapping[ $_REQUEST['orderby'] ] ) ) {
+			$args['orderby'] = $orderby_mapping[ $_REQUEST['orderby'] ];
+		}
+
+		if ( isset( $_REQUEST['order'] ) && in_array( strtoupper( $_REQUEST['order'] ), array( 'ASC', 'DESC' ), true ) ) {
+			$args['order'] = strtoupper( $_REQUEST['order'] );
+		}
 
 		if ( ! empty( $_REQUEST['filter-status'] ) ) {
 			$filter_status       = isset( $_REQUEST['filter-status'] ) ? sanitize_text_field( $_REQUEST['filter-status'] ) : '';

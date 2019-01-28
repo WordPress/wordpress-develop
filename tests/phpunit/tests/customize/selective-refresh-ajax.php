@@ -42,10 +42,8 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 		add_filter( 'wp_die_ajax_handler', array( $this, 'get_wp_die_handler' ), 1, 1 );
 
 		require_once( ABSPATH . WPINC . '/class-wp-customize-manager.php' );
-		// @codingStandardsIgnoreStart
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
-		// @codingStandardsIgnoreEnd
-		$this->wp_customize = $GLOBALS['wp_customize'];
+		$this->wp_customize      = $GLOBALS['wp_customize'];
 		if ( isset( $this->wp_customize->selective_refresh ) ) {
 			$this->selective_refresh = $this->wp_customize->selective_refresh;
 		}

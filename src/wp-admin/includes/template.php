@@ -870,7 +870,7 @@ function page_template_dropdown( $default = '', $post_type = 'page' ) {
  * @param int         $level   Optional. Page depth level. Default 0.
  * @param int|WP_Post $post    Post ID or WP_Post object.
  *
- * @return null|false Boolean False if page has no children, otherwise print out html elements
+ * @return null|false Boolean False if page has no children, otherwise print out html elements.
  */
 function parent_dropdown( $default = 0, $parent = 0, $level = 0, $post = null ) {
 	global $wpdb;
@@ -1079,8 +1079,107 @@ function add_meta_box( $id, $title, $callback, $screen = null, $context = 'advan
 	);
 }
 
+
 /**
- * Displays the meta boxes which are registered against the given screen and context.
+ * Function that renders a "fake" meta box with an information message,
+ * shown on the block editor, when an incompatible meta box is found.
+ *
+ * @since 5.0.0
+ *
+ * @param mixed $object The data object being rendered on this screen.
+ * @param array $box    {
+ *     Custom formats meta box arguments.
+ *
+ *     @type string   $id           Meta box 'id' attribute.
+ *     @type string   $title        Meta box title.
+ *     @type callable $old_callback The original callback for this meta box.
+ *     @type array    $args         Extra meta box arguments.
+ * }
+ */
+function do_block_editor_incompatible_meta_box( $object, $box ) {
+	$plugin  = _get_plugin_from_callback( $box['old_callback'] );
+	$plugins = get_plugins();
+	echo '<p>';
+	if ( $plugin ) {
+		/* translators: %s: the name of the plugin that generated this meta box. */
+		printf( __( "This meta box, from the %s plugin, isn't compatible with the block editor." ), "<strong>{$plugin['Name']}</strong>" );
+	} else {
+		_e( "This meta box isn't compatible with the block editor." );
+	}
+	echo '</p>';
+
+	if ( empty( $plugins['classic-editor/classic-editor.php'] ) ) {
+		if ( current_user_can( 'install_plugins' ) ) {
+			echo '<p>';
+			/* translators: %s: A link to install the Classic Editor plugin. */
+			printf( __( 'Please install the <a href="%s">Classic Editor plugin</a> to use this meta box.' ), esc_url( self_admin_url( 'plugin-install.php?tab=featured' ) ) );
+			echo '</p>';
+		}
+	} elseif ( is_plugin_inactive( 'classic-editor/classic-editor.php' ) ) {
+		if ( current_user_can( 'activate_plugins' ) ) {
+			$activate_url = wp_nonce_url( self_admin_url( 'plugins.php?action=activate&plugin=classic-editor/classic-editor.php' ), 'activate-plugin_classic-editor/classic-editor.php' );
+			echo '<p>';
+			/* translators: %s: A link to activate the Classic Editor plugin. */
+			printf( __( 'Please activate the <a href="%s">Classic Editor plugin</a> to use this meta box.' ), esc_url( $activate_url ) );
+			echo '</p>';
+		}
+	} elseif ( $object instanceof WP_Post ) {
+		$edit_url = add_query_arg( 'classic-editor', '', get_edit_post_link( $object ) );
+		echo '<p>';
+		/* translators: %s: A link to use the Classic Editor plugin. */
+		printf( __( 'Please open the <a href="%s">classic editor</a> to use this meta box.' ), esc_url( $edit_url ) );
+		echo '</p>';
+	}
+}
+
+/**
+ * Internal helper function to find the plugin from a meta box callback.
+ *
+ * @since 5.0.0
+ *
+ * @access private
+ *
+ * @param callable $callback The callback function to check.
+ * @return array|null The plugin that the callback belongs to, or null if it doesn't belong to a plugin.
+ */
+function _get_plugin_from_callback( $callback ) {
+	try {
+		if ( is_array( $callback ) ) {
+			$reflection = new ReflectionMethod( $callback[0], $callback[1] );
+		} elseif ( is_string( $callback ) && false !== strpos( $callback, '::' ) ) {
+			$reflection = new ReflectionMethod( $callback );
+		} else {
+			$reflection = new ReflectionFunction( $callback );
+		}
+	} catch ( ReflectionException $exception ) {
+		// We could not properly reflect on the callable, so we abort here.
+		return null;
+	}
+
+	// Don't show an error if it's an internal PHP function.
+	if ( ! $reflection->isInternal() ) {
+
+		// Only show errors if the meta box was registered by a plugin.
+		$filename   = wp_normalize_path( $reflection->getFileName() );
+		$plugin_dir = wp_normalize_path( WP_PLUGIN_DIR );
+		if ( strpos( $filename, $plugin_dir ) === 0 ) {
+			$filename = str_replace( $plugin_dir, '', $filename );
+			$filename = preg_replace( '|^/([^/]*/).*$|', '\\1', $filename );
+
+			$plugins = get_plugins();
+			foreach ( $plugins as $name => $plugin ) {
+				if ( strpos( $name, $filename ) === 0 ) {
+					return $plugin;
+				}
+			}
+		}
+	}
+
+	return null;
+}
+
+/**
+ * Meta-Box template function.
  *
  * @since 2.5.0
  *
@@ -1136,8 +1235,34 @@ function do_meta_boxes( $screen, $context, $object ) {
 					if ( false == $box || ! $box['title'] ) {
 						continue;
 					}
+
+					$block_compatible = true;
+					if ( is_array( $box['args'] ) ) {
+						// If a meta box is just here for back compat, don't show it in the block editor.
+						if ( $screen->is_block_editor() && isset( $box['args']['__back_compat_meta_box'] ) && $box['args']['__back_compat_meta_box'] ) {
+							continue;
+						}
+
+						if ( isset( $box['args']['__block_editor_compatible_meta_box'] ) ) {
+							$block_compatible = (bool) $box['args']['__block_editor_compatible_meta_box'];
+							unset( $box['args']['__block_editor_compatible_meta_box'] );
+						}
+
+						// If the meta box is declared as incompatible with the block editor, override the callback function.
+						if ( ! $block_compatible && $screen->is_block_editor() ) {
+							$box['old_callback'] = $box['callback'];
+							$box['callback']     = 'do_block_editor_incompatible_meta_box';
+						}
+
+						if ( isset( $box['args']['__back_compat_meta_box'] ) ) {
+							$block_compatible = $block_compatible || (bool) $box['args']['__back_compat_meta_box'];
+							unset( $box['args']['__back_compat_meta_box'] );
+						}
+					}
+
 					$i++;
-					$hidden_class = in_array( $box['id'], $hidden ) ? ' hide-if-js' : '';
+					// get_hidden_meta_boxes() doesn't apply in the block editor.
+					$hidden_class = ( ! $screen->is_block_editor() && in_array( $box['id'], $hidden ) ) ? ' hide-if-js' : '';
 					echo '<div id="' . $box['id'] . '" class="postbox ' . postbox_classes( $box['id'], $page ) . $hidden_class . '" ' . '>' . "\n";
 					if ( 'dashboard_browser_nag' != $box['id'] ) {
 						$widget_title = $box['title'];
@@ -1161,6 +1286,23 @@ function do_meta_boxes( $screen, $context, $object ) {
 					echo "<span>{$box['title']}</span>";
 					echo "</h2>\n";
 					echo '<div class="inside">' . "\n";
+
+					if ( WP_DEBUG && ! $block_compatible && 'edit' === $screen->parent_base && ! $screen->is_block_editor() && ! isset( $_GET['meta-box-loader'] ) ) {
+						$plugin = _get_plugin_from_callback( $box['callback'] );
+						if ( $plugin ) {
+							?>
+							<div class="error inline">
+								<p>
+									<?php
+										/* translators: %s: the name of the plugin that generated this meta box. */
+										printf( __( "This meta box, from the %s plugin, isn't compatible with the block editor." ), "<strong>{$plugin['Name']}</strong>" );
+									?>
+								</p>
+							</div>
+							<?php
+						}
+					}
+
 					call_user_func( $box['callback'], $object, $box );
 					echo "</div>\n";
 					echo "</div>\n";
@@ -1228,7 +1370,7 @@ function remove_meta_box( $id, $screen, $context ) {
 }
 
 /**
- * Meta Box Accordion Template Function
+ * Meta Box Accordion Template Function.
  *
  * Largely made up of abstracted code from do_meta_boxes(), this
  * function serves to build meta boxes as list items for display as
@@ -1308,7 +1450,7 @@ function do_accordion_sections( $screen, $context, $object ) {
  *
  * Part of the Settings API. Use this to define new settings sections for an admin page.
  * Show settings sections in your admin page callback function with do_settings_sections().
- * Add settings fields to your section with add_settings_field()
+ * Add settings fields to your section with add_settings_field().
  *
  * The $callback argument should be the name of a function that echoes out any
  * content you want to show at the top of the settings section before the actual
@@ -1316,7 +1458,7 @@ function do_accordion_sections( $screen, $context, $object ) {
  *
  * @since 2.7.0
  *
- * @global $wp_settings_sections Storage array of all settings sections added to admin pages
+ * @global $wp_settings_sections Storage array of all settings sections added to admin pages.
  *
  * @param string   $id       Slug-name to identify the section. Used in the 'id' attribute of tags.
  * @param string   $title    Formatted title of the section. Shown as the heading for the section.
@@ -1362,7 +1504,7 @@ function add_settings_section( $id, $title, $callback, $page ) {
 }
 
 /**
- * Add a new field to a section of a settings page
+ * Add a new field to a section of a settings page.
  *
  * Part of the Settings API. Use this to define a settings field that will show
  * as part of a settings section inside a settings page. The fields are shown using
@@ -1375,7 +1517,7 @@ function add_settings_section( $id, $title, $callback, $page ) {
  * @since 2.7.0
  * @since 4.2.0 The `$class` argument was added.
  *
- * @global $wp_settings_fields Storage array of settings fields and info about their pages/sections
+ * @global $wp_settings_fields Storage array of settings fields and info about their pages/sections.
  *
  * @param string   $id       Slug-name to identify the field. Used in the 'id' attribute of tags.
  * @param string   $title    Formatted title of the field. Shown as the label for the field
@@ -1440,11 +1582,11 @@ function add_settings_field( $id, $title, $callback, $page, $section = 'default'
  * to output all the sections and fields that were added to that $page with
  * add_settings_section() and add_settings_field()
  *
- * @global $wp_settings_sections Storage array of all settings sections added to admin pages
- * @global $wp_settings_fields Storage array of settings fields and info about their pages/sections
+ * @global $wp_settings_sections Storage array of all settings sections added to admin pages.
+ * @global $wp_settings_fields Storage array of settings fields and info about their pages/sections.
  * @since 2.7.0
  *
- * @param string $page The slug name of the page whose settings sections you want to output
+ * @param string $page The slug name of the page whose settings sections you want to output.
  */
 function do_settings_sections( $page ) {
 	global $wp_settings_sections, $wp_settings_fields;
@@ -1472,13 +1614,13 @@ function do_settings_sections( $page ) {
 }
 
 /**
- * Print out the settings fields for a particular settings section
+ * Print out the settings fields for a particular settings section.
  *
  * Part of the Settings API. Use this in a settings page to output
  * a specific section. Should normally be called by do_settings_sections()
  * rather than directly.
  *
- * @global $wp_settings_fields Storage array of settings fields and their pages/sections
+ * @global $wp_settings_fields Storage array of settings fields and their pages/sections.
  *
  * @since 2.7.0
  *
@@ -1515,7 +1657,7 @@ function do_settings_fields( $page, $section ) {
 }
 
 /**
- * Register a settings error to be displayed to the user
+ * Register a settings error to be displayed to the user.
  *
  * Part of the Settings API. Use this to show messages to users about settings validation
  * problems, missing settings or anything else.
@@ -1531,7 +1673,7 @@ function do_settings_fields( $page, $section ) {
  *
  * @global array $wp_settings_errors Storage array of errors registered during this pageload
  *
- * @param string $setting Slug title of the setting to which this error applies
+ * @param string $setting Slug title of the setting to which this error applies.
  * @param string $code    Slug-name to identify the error. Used as part of 'id' attribute in HTML output.
  * @param string $message The formatted message text to display to the user (will be shown inside styled
  *                        `<div>` and `<p>` tags).
@@ -1550,7 +1692,7 @@ function add_settings_error( $setting, $code, $message, $type = 'error' ) {
 }
 
 /**
- * Fetch settings errors registered by add_settings_error()
+ * Fetch settings errors registered by add_settings_error().
  *
  * Checks the $wp_settings_errors array for any errors declared during the current
  * pageload and returns them.
@@ -1570,7 +1712,7 @@ function add_settings_error( $setting, $code, $message, $type = 'error' ) {
  *
  * @param string $setting Optional slug title of a specific setting whose errors you want.
  * @param boolean $sanitize Whether to re-sanitize the setting value before returning errors.
- * @return array Array of settings errors
+ * @return array Array of settings errors.
  */
 function get_settings_errors( $setting = '', $sanitize = false ) {
 	global $wp_settings_errors;
@@ -2097,7 +2239,7 @@ function compression_test() {
  *                                       id attribute is given in $other_attributes below, $name will be
  *                                       used as the button's id.
  * @param bool         $wrap             True if the output button should be wrapped in a paragraph tag,
- *                                       false otherwise. Defaults to true
+ *                                       false otherwise. Defaults to true.
  * @param array|string $other_attributes Other attributes that should be output with the button, mapping
  *                                       attributes to their values, such as setting tabindex to 1, etc.
  *                                       These key/value attribute pairs will be output as attribute="value",

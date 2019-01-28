@@ -21,8 +21,8 @@
  * Use wp_schedule_event() to schedule a recurring event.
  *
  * @since 2.1.0
- * @since 5.0.0 Return value modified to boolean indicating success or failure,
- *              {@see pre_schedule_event} filter added to short-circuit the function.
+ * @since 5.1.0 Return value modified to boolean indicating success or failure,
+ *              {@see 'pre_schedule_event'} filter added to short-circuit the function.
  *
  * @link https://codex.wordpress.org/Function_Reference/wp_schedule_single_event
  *
@@ -52,16 +52,16 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array() ) {
 	 *
 	 * Both single events and recurring events are passed through this filter;
 	 * single events have `$event->schedule` as false, whereas recurring events
-	 * have this set to a recurrence from {@see wp_get_schedules}. Recurring
+	 * have this set to a recurrence from wp_get_schedules(). Recurring
 	 * events also have the integer recurrence interval set as `$event->interval`.
 	 *
 	 * For plugins replacing wp-cron, it is recommended you check for an
-	 * identical event within ten minutes and apply the {@see schedule_event}
+	 * identical event within ten minutes and apply the {@see 'schedule_event'}
 	 * filter to check if another plugin has disallowed the event before scheduling.
 	 *
 	 * Return true if the event was scheduled, false if not.
 	 *
-	 * @since 5.0.0
+	 * @since 5.1.0
 	 *
 	 * @param null|bool $pre   Value to return instead. Default null to continue adding the event.
 	 * @param stdClass  $event {
@@ -86,7 +86,7 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array() ) {
 	}
 
 	/**
-	 * Filters a single event before it is scheduled.
+	 * Modify an event before it is scheduled.
 	 *
 	 * @since 3.1.0
 	 *
@@ -137,8 +137,8 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array() ) {
  * Use wp_schedule_single_event() to schedule a non-recurring event.
  *
  * @since 2.1.0
- * @since 5.0.0 Return value modified to boolean indicating success or failure,
- *              {@see pre_schedule_event} filter added to short-circuit the function.
+ * @since 5.1.0 Return value modified to boolean indicating success or failure,
+ *              {@see 'pre_schedule_event'} filter added to short-circuit the function.
  *
  * @link https://codex.wordpress.org/Function_Reference/wp_schedule_event
  *
@@ -200,12 +200,12 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array() ) {
  * Mainly for internal use, this takes the time stamp of a previously run
  * recurring event and reschedules it for its next run.
  *
- * To change upcoming scheduled events, use {@see wp_schedule_event} to
+ * To change upcoming scheduled events, use wp_schedule_event() to
  * change the recurrence frequency.
  *
  * @since 2.1.0
- * @since 5.0.0 Return value modified to boolean indicating success or failure,
- *              {@see pre_reschedule_event} filter added to short-circuit the function.
+ * @since 5.1.0 Return value modified to boolean indicating success or failure,
+ *              {@see 'pre_reschedule_event'} filter added to short-circuit the function.
  *
  * @param int    $timestamp  Unix timestamp (UTC) for when the event was scheduled.
  * @param string $recurrence How often the event should subsequently recur. See wp_get_schedules() for accepted values.
@@ -252,7 +252,7 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array() ) 
 	 * For plugins replacing wp-cron, return true if the event was successfully
 	 * rescheduled, false if not.
 	 *
-	 * @since 5.0.0
+	 * @since 5.1.0
 	 *
 	 * @param null|bool $pre   Value to return instead. Default null to continue adding the event.
 	 * @param stdClass  $event {
@@ -293,8 +293,8 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array() ) 
  * identified.
  *
  * @since 2.1.0
- * @since 5.0.0 Return value modified to boolean indicating success or failure,
- *              {@see pre_unschedule_event} filter added to short-circuit the function.
+ * @since 5.1.0 Return value modified to boolean indicating success or failure,
+ *              {@see 'pre_unschedule_event'} filter added to short-circuit the function.
  *
  * @param int    $timestamp Unix timestamp (UTC) of the event.
  * @param string $hook      Action hook of the event.
@@ -318,7 +318,7 @@ function wp_unschedule_event( $timestamp, $hook, $args = array() ) {
 	 * For plugins replacing wp-cron, return true if the event was successfully
 	 * unscheduled, false if not.
 	 *
-	 * @since 5.0.0
+	 * @since 5.1.0
 	 *
 	 * @param null|bool $pre       Value to return instead. Default null to continue unscheduling the event.
 	 * @param int       $timestamp Timestamp for when to run the event.
@@ -351,8 +351,8 @@ function wp_unschedule_event( $timestamp, $hook, $args = array() ) {
  * the `===` operator for testing the return value of this function.
  *
  * @since 2.1.0
- * @since 5.0.0 Return value modified to indicate success or failure,
- *              {@see pre_clear_scheduled_hook} filter added to short-circuit the function.
+ * @since 5.1.0 Return value modified to indicate success or failure,
+ *              {@see 'pre_clear_scheduled_hook'} filter added to short-circuit the function.
  *
  * @param string $hook Action hook, the execution of which will be unscheduled.
  * @param array $args Optional. Arguments that were to be passed to the hook's callback function.
@@ -378,7 +378,7 @@ function wp_clear_scheduled_hook( $hook, $args = array() ) {
 	 * unscheduled (zero if no events were registered with the hook) or false
 	 * if unscheduling one or more events fails.
 	 *
-	 * @since 5.0.0
+	 * @since 5.1.0
 	 *
 	 * @param null|array $pre  Value to return instead. Default null to continue unscheduling the event.
 	 * @param string     $hook Action hook, the execution of which will be unscheduled.
@@ -421,7 +421,7 @@ function wp_clear_scheduled_hook( $hook, $args = array() ) {
  * the `===` operator for testing the return value of this function.
  *
  * @since 4.9.0
- * @since 5.0.0 Return value added to indicate success or failure.
+ * @since 5.1.0 Return value added to indicate success or failure.
  *
  * @param string $hook Action hook, the execution of which will be unscheduled.
  * @return bool|int On success an integer indicating number of events unscheduled (0 indicates no
@@ -438,7 +438,7 @@ function wp_unschedule_hook( $hook ) {
 	 * unscheduled (zero if no events were registered with the hook) or false
 	 * if unscheduling one or more events fails.
 	 *
-	 * @since 5.0.0
+	 * @since 5.1.0
 	 *
 	 * @param null|array $pre  Value to return instead. Default null to continue unscheduling the hook.
 	 * @param string     $hook Action hook, the execution of which will be unscheduled.
@@ -481,9 +481,10 @@ function wp_unschedule_hook( $hook ) {
 /**
  * Retrieve a scheduled event.
  *
- * Retrieve the full event object for a given event.
+ * Retrieve the full event object for a given event, if no timestamp is specified the next
+ * scheduled event is returned.
  *
- * @since 5.0.0
+ * @since 5.1.0
  *
  * @param string   $hook      Action hook of the event.
  * @param array    $args      Optional. Array containing each separate argument to pass to the hook's callback function.
@@ -493,11 +494,6 @@ function wp_unschedule_hook( $hook ) {
  * @return bool|object The event object. False if the event does not exist.
  */
 function wp_get_scheduled_event( $hook, $args = array(), $timestamp = null ) {
-	if ( ! $timestamp ) {
-		// Get the next scheduled event.
-		$timestamp = wp_next_scheduled( $hook, $args );
-	}
-
 	/**
 	 * Filter to preflight or hijack retrieving a scheduled event.
 	 *
@@ -507,29 +503,46 @@ function wp_get_scheduled_event( $hook, $args = array(), $timestamp = null ) {
 	 * Return false if the event does not exist, otherwise an event object
 	 * should be returned.
 	 *
-	 * @since 5.0.0
+	 * @since 5.1.0
 	 *
 	 * @param null|bool $pre       Value to return instead. Default null to continue retrieving the event.
 	 * @param string    $hook      Action hook of the event.
 	 * @param array     $args      Array containing each separate argument to pass to the hook's callback function.
 	 *                             Although not passed to a callback, these arguments are used to uniquely identify the
 	 *                             event.
-	 * @param int       $timestamp Unix timestamp (UTC) of the event.
+	 * @param int|null  $timestamp Unix timestamp (UTC) of the event. Null to retrieve next scheduled event.
 	 */
 	$pre = apply_filters( 'pre_get_scheduled_event', null, $hook, $args, $timestamp );
 	if ( null !== $pre ) {
 		return $pre;
 	}
 
-	$crons = _get_cron_array();
-	$key   = md5( serialize( $args ) );
-
-	if ( ! $timestamp || ! isset( $crons[ $timestamp ] ) ) {
-		// No such event.
+	if ( null !== $timestamp && ! is_numeric( $timestamp ) ) {
 		return false;
 	}
 
-	if ( ! isset( $crons[ $timestamp ][ $hook ] ) || ! isset( $crons[ $timestamp ][ $hook ][ $key ] ) ) {
+	$crons = _get_cron_array();
+	if ( empty( $crons ) ) {
+		return false;
+	}
+
+	$key = md5( serialize( $args ) );
+
+	if ( ! $timestamp ) {
+		// Get next event.
+		$next = false;
+		foreach ( $crons as $timestamp => $cron ) {
+			if ( isset( $cron[ $hook ][ $key ] ) ) {
+				$next = $timestamp;
+				break;
+			}
+		}
+		if ( ! $next ) {
+			return false;
+		}
+
+		$timestamp = $next;
+	} elseif ( ! isset( $crons[ $timestamp ][ $hook ][ $key ] ) ) {
 		return false;
 	}
 
@@ -551,7 +564,6 @@ function wp_get_scheduled_event( $hook, $args = array(), $timestamp = null ) {
  * Retrieve the next timestamp for an event.
  *
  * @since 2.1.0
- * @since 5.0.0 {@see pre_next_scheduled} and {@see next_scheduled} filters added.
  *
  * @param string $hook Action hook of the event.
  * @param array  $args Optional. Array containing each separate argument to pass to the hook's callback function.
@@ -560,55 +572,19 @@ function wp_get_scheduled_event( $hook, $args = array(), $timestamp = null ) {
  * @return false|int The Unix timestamp of the next time the event will occur. False if the event doesn't exist.
  */
 function wp_next_scheduled( $hook, $args = array() ) {
-	/**
-	 * Filter to preflight or hijack retrieving the next scheduled event timestamp.
-	 *
-	 * Returning a non-null value will short-circuit the normal retrieval
-	 * process, causing the function to return the filtered value instead.
-	 *
-	 * Pass the timestamp of the next event if it exists, false if not.
-	 *
-	 * @since 5.0.0
-	 *
-	 * @param null|bool $pre       Value to return instead. Default null to continue unscheduling the event.
-	 * @param string    $hook      Action hook of the event.
-	 * @param array     $args      Arguments to pass to the hook's callback function.
-	 */
-	$pre = apply_filters( 'pre_next_scheduled', null, $hook, $args );
-	if ( null !== $pre ) {
-		return $pre;
+	$next_event = wp_get_scheduled_event( $hook, $args );
+	if ( ! $next_event ) {
+		return false;
 	}
 
-	$crons = _get_cron_array();
-	$key   = md5( serialize( $args ) );
-	$next  = false;
-
-	if ( ! empty( $crons ) ) {
-		foreach ( $crons as $timestamp => $cron ) {
-			if ( isset( $cron[ $hook ][ $key ] ) ) {
-				$next = $timestamp;
-				break;
-			}
-		}
-	}
-
-	/**
-	 * Filter the next scheduled event timestamp.
-	 *
-	 * @since 5.0.0
-	 *
-	 * @param int|bool $next The UNIX timestamp when the scheduled event will next occur, or false if not found.
-	 * @param string   $hook Action hook to execute when cron is run.
-	 * @param array    $args Arguments to be passed to the callback function. Used for deduplicating events.
-	 */
-	return apply_filters( 'next_scheduled', $next, $hook, $args );
+	return $next_event->timestamp;
 }
 
 /**
  * Sends a request to run cron through HTTP request that doesn't halt page loading.
  *
  * @since 2.1.0
- * @since 5.0.0 Return values added.
+ * @since 5.1.0 Return values added.
  *
  * @param int $gmt_time Optional. Unix timestamp (UTC). Default 0 (current time is used).
  * @return bool True if spawned, false if no events spawned.
@@ -641,8 +617,8 @@ function spawn_cron( $gmt_time = 0 ) {
 	}
 
 	//sanity check
-	$crons = _get_cron_array();
-	if ( ! is_array( $crons ) ) {
+	$crons = wp_get_ready_cron_jobs();
+	if ( empty( $crons ) ) {
 		return false;
 	}
 
@@ -725,7 +701,7 @@ function spawn_cron( $gmt_time = 0 ) {
  * the `===` operator for testing the return value of this function.
  *
  * @since 2.1.0
- * @since 5.0.0 Return value added to indicate success or failure.
+ * @since 5.1.0 Return value added to indicate success or failure.
  *
  * @return bool|int On success an integer indicating number of events spawned (0 indicates no
  *                  events needed to be spawned), false if spawning fails for one or more events.
@@ -736,8 +712,8 @@ function wp_cron() {
 		return 0;
 	}
 
-	$crons = _get_cron_array();
-	if ( false === $crons ) {
+	$crons = wp_get_ready_cron_jobs();
+	if ( empty( $crons ) ) {
 		return 0;
 	}
 
@@ -828,7 +804,7 @@ function wp_get_schedules() {
  * @see wp_get_schedules() for available schedules.
  *
  * @since 2.1.0
- * @since 5.0.0 {@see get_schedule} filter added.
+ * @since 5.1.0 {@see 'get_schedule'} filter added.
  *
  * @param string $hook Action hook to identify the event.
  * @param array $args Optional. Arguments passed to the event's callback function.
@@ -845,13 +821,63 @@ function wp_get_schedule( $hook, $args = array() ) {
 	/**
 	 * Filter the schedule for a hook.
 	 *
-	 * @since 5.0.0
+	 * @since 5.1.0
 	 *
 	 * @param string|bool $schedule Schedule for the hook. False if not found.
 	 * @param string      $hook     Action hook to execute when cron is run.
 	 * @param array       $args     Optional. Arguments to pass to the hook's callback function.
 	 */
 	return apply_filters( 'get_schedule', $schedule, $hook, $args );
+}
+
+/**
+ * Retrieve cron jobs ready to be run.
+ *
+ * Returns the results of _get_cron_array() limited to events ready to be run,
+ * ie, with a timestamp in the past.
+ *
+ * @since 5.1.0
+ *
+ * @return array Cron jobs ready to be run.
+ */
+function wp_get_ready_cron_jobs() {
+	/**
+	 * Filter to preflight or hijack retrieving ready cron jobs.
+	 *
+	 * Returning an array will short-circuit the normal retrieval of ready
+	 * cron jobs, causing the function to return the filtered value instead.
+	 *
+	 * @since 5.1.0
+	 *
+	 * @param null|array $pre Array of ready cron tasks to return instead. Default null
+	 *                        to continue using results from _get_cron_array().
+	 */
+	$pre = apply_filters( 'pre_get_ready_cron_jobs', null );
+	if ( null !== $pre ) {
+		return $pre;
+	}
+
+	$crons = _get_cron_array();
+
+	if ( false === $crons ) {
+		return array();
+	}
+
+	$gmt_time = microtime( true );
+	$keys     = array_keys( $crons );
+	if ( isset( $keys[0] ) && $keys[0] > $gmt_time ) {
+		return array();
+	}
+
+	$results = array();
+	foreach ( $crons as $timestamp => $cronhooks ) {
+		if ( $timestamp > $gmt_time ) {
+			break;
+		}
+		$results[ $timestamp ] = $cronhooks;
+	}
+
+	return $results;
 }
 
 //
@@ -885,7 +911,7 @@ function _get_cron_array() {
  * Updates the CRON option with the new CRON array.
  *
  * @since 2.1.0
- * @since 5.0.0 Return value modified to outcome of {@see update_option}.
+ * @since 5.1.0 Return value modified to outcome of update_option().
  *
  * @access private
  *

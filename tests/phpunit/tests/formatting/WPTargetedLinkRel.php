@@ -71,4 +71,16 @@ class Tests_Targeted_Link_Rel extends WP_UnitTestCase {
 		$expected = '<p>Links: <a href="/" target="_blank" rel="noopener noreferrer">Change me</a> <a href="/">Do not change me</a></p>';
 		$this->assertEquals( $expected, wp_targeted_link_rel( $content ) );
 	}
+
+	/**
+	 * Ensure empty rel attributes are not added.
+	 *
+	 * @ticket 45352.
+	 */
+	public function test_ignore_if_wp_targeted_link_rel_nulled() {
+		add_filter( 'wp_targeted_link_rel', '__return_empty_string' );
+		$content  = '<p>Links: <a href="/" target="_blank">Do not change me</a></p>';
+		$expected = '<p>Links: <a href="/" target="_blank">Do not change me</a></p>';
+		$this->assertEquals( $expected, wp_targeted_link_rel( $content ) );
+	}
 }

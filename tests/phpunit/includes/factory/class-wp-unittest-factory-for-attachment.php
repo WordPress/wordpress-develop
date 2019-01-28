@@ -12,7 +12,9 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 	 *     @type string $file        Path of the attached file.
 	 * }
 	 * @param int   $legacy_parent Deprecated.
-	 * @param array $legacy_args   Deprecated
+	 * @param array $legacy_args   Deprecated.
+	 *
+	 * @return  int|WP_Error The attachment ID on success. The value 0 or WP_Error on failure.
 	 */
 	function create_object( $args, $legacy_parent = 0, $legacy_args = array() ) {
 		// Backward compatibility for legacy argument format.
@@ -34,6 +36,14 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 		return wp_insert_attachment( $r, $r['file'], $r['post_parent'] );
 	}
 
+	/**
+	 * Saves an attachment.
+	 *
+	 * @param string $file   The file name to create attachment object for.
+	 * @param int    $parent The post id to attach the file to.
+	 *
+	 * @return int|WP_Error The attachment ID on success. The value 0 or WP_Error on failure.
+	 */
 	function create_upload_object( $file, $parent = 0 ) {
 		$contents = file_get_contents( $file );
 		$upload   = wp_upload_bits( basename( $file ), null, $contents );

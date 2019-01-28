@@ -43,18 +43,16 @@ class Tests_Shortcode extends WP_UnitTestCase {
 
 	// [bartag foo="bar"]
 	function _shortcode_bartag( $atts ) {
-		extract(
-			shortcode_atts(
-				array(
-					'foo' => 'no foo',
-					'baz' => 'default baz',
-				),
-				$atts,
-				'bartag'
-			)
+		$processed_atts = shortcode_atts(
+			array(
+				'foo' => 'no foo',
+				'baz' => 'default baz',
+			),
+			$atts,
+			'bartag'
 		);
 
-		return "foo = {$foo}";
+		return "foo = {$processed_atts['foo']}";
 	}
 
 	// [baztag]content[/baztag]
@@ -561,8 +559,8 @@ EOF;
 				'<[gallery]>',
 			),
 			array(
-				'<div style="background:url([[gallery]])">',
-				'<div style="background:url([[gallery]])">',
+				'<div style="selector:url([[gallery]])">',
+				'<div style="selector:url([[gallery]])">',
 			),
 			array(
 				'[gallery]<div>Hello</div>[/gallery]',

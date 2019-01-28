@@ -5,9 +5,57 @@
 	<rule ref="WordPress-Core"/>
 	<rule ref="WordPress.CodeAnalysis.EmptyStatement"/>
 
-	<rule ref="PEAR.Functions.FunctionCallSignature">
+	<rule ref="WordPress.NamingConventions.ValidVariableName">
 		<properties>
-			<property name="allowMultipleArguments" value="false"/>
+			<property name="customPropertiesWhitelist" type="array">
+				<!-- From database structure queries -->
+				<element value="Collation"/>
+				<element value="Column_name"/>
+				<element value="Default"/>
+				<element value="Extra"/>
+				<element value="Field"/>
+				<element value="Index_type"/>
+				<element value="Key"/>
+				<element value="Key_name"/>
+				<element value="Msg_text"/>
+				<element value="Non_unique"/>
+				<element value="Null"/>
+				<element value="Sub_part"/>
+				<element value="Type"/>
+				<!-- From plugin/theme data -->
+				<element value="authorAndUri"/>
+				<element value="Name"/>
+				<element value="Version"/>
+				<!-- From the result of wp_xmlrpc_server::wp_getPageList() -->
+				<element value="dateCreated"/>
+
+				<!-- From DOMDocument -->
+				<element value="childNodes"/>
+				<element value="formatOutput"/>
+				<element value="nodeName"/>
+				<element value="nodeType"/>
+				<element value="parentNode"/>
+				<element value="preserveWhiteSpace"/>
+				<element value="textContent"/>
+				<!-- From PHPMailer -->
+				<element value="AltBody"/>
+				<element value="Body"/>
+				<element value="CharSet"/>
+				<element value="ContentType"/>
+				<element value="Encoding"/>
+				<element value="Hostname"/>
+				<element value="mailHeader"/>
+				<element value="MIMEBody"/>
+				<element value="MIMEHeader"/>
+				<element value="Sender"/>
+				<element value="Subject"/>
+				<!-- From PHPUnit_Util_Getopt -->
+				<element value="longOptions"/>
+				<!-- From POP3 -->
+				<element value="ERROR"/>
+				<!-- From ZipArchive -->
+				<element value="numFiles"/>
+			</property>
 		</properties>
 	</rule>
 
@@ -16,7 +64,7 @@
 	<!-- Strip the filepaths down to the relevant bit. -->
 	<arg name="basepath" value="./"/>
 
-	<!-- Check up to 20 files simultanously. -->
+	<!-- Check up to 20 files simultaneously. -->
 	<arg name="parallel" value="20"/>
 
 	<!-- Show sniff codes in all reports -->
@@ -46,17 +94,21 @@
 	<exclude-pattern>/src/wp-includes/class-simplepie\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-smtp\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-snoopy\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/class-wp-block-parser\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/deprecated\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/ms-deprecated\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/pluggable-deprecated\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/rss\.php</exclude-pattern>
 
+	<exclude-pattern>/src/wp-includes/blocks/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/ID3/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/IXR/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/random_compat/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/Requests/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/SimplePie/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/Text/*</exclude-pattern>
+
+	<exclude-pattern>/tests/phpunit/includes/speed-trap-listener\.php</exclude-pattern>
 
 	<!-- Test data and fixtures -->
 	<exclude-pattern>/tests/phpunit/build*</exclude-pattern>
@@ -90,6 +142,8 @@
 		(such as calling the low-level translate() function). -->
 	<rule ref="WordPress.WP.I18n">
 		<exclude-pattern>/src/wp-includes/l10n\.php</exclude-pattern>
+		<exclude-pattern>/tests/phpunit/tests/l10n\.php</exclude-pattern>
+		<exclude-pattern>/tests/phpunit/tests/l10n/loadTextdomainJustInTime\.php</exclude-pattern>
 	</rule>
 
 	<rule ref="Generic.Functions.FunctionCallArgumentSpacing">
@@ -102,6 +156,19 @@
 	<rule ref="Generic.Files.LineEndings">
 		<exclude-pattern>/wp-config\.php</exclude-pattern>
 		<exclude-pattern>/wp-config-sample\.php</exclude-pattern>
+	</rule>
+
+	<!-- WPCS1620: template.php isn't a template tag file. -->
+	<rule ref="WordPress.Files.FileName.InvalidTemplateTagFileName">
+		<exclude-pattern>/src/wp-includes/template\.php</exclude-pattern>
+	</rule>
+
+	<!-- WPCS1621: These files are expected to use _ instead of -. -->
+	<rule ref="WordPress.Files.FileName.NotHyphenatedLowercase">
+		<exclude-pattern>/src/_index\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-admin/_index\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-content/themes/twentythirteen/taxonomy-post_format\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-content/themes/twentyfourteen/taxonomy-post_format\.php</exclude-pattern>
 	</rule>
 
 	<!-- Whitelist test classes for select sniffs. -->

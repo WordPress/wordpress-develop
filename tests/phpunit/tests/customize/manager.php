@@ -848,15 +848,16 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * Test WP_Customize_Manager::filter_iframe_security_headers().
 	 *
 	 * @ticket 30937
+	 * @ticket 40020
 	 * @covers WP_Customize_Manager::filter_iframe_security_headers()
 	 */
 	function test_filter_iframe_security_headers() {
-		$customize_url = admin_url( 'customize.php' );
-		$wp_customize  = new WP_Customize_Manager();
-		$headers       = $wp_customize->filter_iframe_security_headers( array() );
+		$wp_customize = new WP_Customize_Manager();
+		$headers      = $wp_customize->filter_iframe_security_headers( array() );
 		$this->assertArrayHasKey( 'X-Frame-Options', $headers );
 		$this->assertArrayHasKey( 'Content-Security-Policy', $headers );
-		$this->assertEquals( "ALLOW-FROM $customize_url", $headers['X-Frame-Options'] );
+		$this->assertEquals( 'SAMEORIGIN', $headers['X-Frame-Options'] );
+		$this->assertEquals( "frame-ancestors 'self'", $headers['Content-Security-Policy'] );
 	}
 
 	/**

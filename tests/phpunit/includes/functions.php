@@ -1,6 +1,22 @@
 <?php
 
 /**
+ * Retrieves PHPUnit runner version.
+ */
+function tests_get_phpunit_version() {
+	if ( class_exists( 'PHPUnit_Runner_Version' ) ) {
+		$version = PHPUnit_Runner_Version::id();
+	} elseif ( class_exists( 'PHPUnit\Runner\Version' ) ) {
+		// Must be parsable by PHP 5.2.x.
+		$version = call_user_func( 'PHPUnit\Runner\Version::id' );
+	} else {
+		$version = 0;
+	}
+
+	return $version;
+}
+
+/**
  * Resets various `$_SERVER` variables that can get altered during tests.
  */
 function tests_reset__SERVER() {
@@ -212,3 +228,17 @@ function _wp_rest_server_class_filter() {
 // Skip `setcookie` calls in auth_cookie functions due to warning:
 // Cannot modify header information - headers already sent by ...
 tests_add_filter( 'send_auth_cookies', '__return_false' );
+
+/**
+ * After the init action has been run once, trying to re-register block types can cause
+ * _doing_it_wrong warnings. To avoid this, unhook the block registration functions.
+ *
+ * @since 5.0.0
+ */
+function _unhook_block_registration() {
+	remove_action( 'init', 'register_block_core_archives' );
+	remove_action( 'init', 'register_block_core_categories' );
+	remove_action( 'init', 'register_block_core_latest_posts' );
+	remove_action( 'init', 'register_block_core_shortcode' );
+}
+tests_add_filter( 'init', '_unhook_block_registration', 1000 );

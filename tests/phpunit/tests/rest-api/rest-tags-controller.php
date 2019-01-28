@@ -629,6 +629,9 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->check_get_taxonomy_term_response( $response, $id );
 	}
 
+	/**
+	 * @ticket 39122
+	 */
 	public function test_get_item_meta() {
 		$id       = $this->factory->tag->create();
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/tags/' . $id );
@@ -638,15 +641,18 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$meta = (array) $data['meta'];
 		$this->assertArrayHasKey( 'test_single', $meta );
-		$this->assertEquals( $meta['test_single'], '' );
+		$this->assertSame( $meta['test_single'], '' );
 		$this->assertArrayHasKey( 'test_multi', $meta );
-		$this->assertEquals( $meta['test_multi'], array() );
+		$this->assertSame( $meta['test_multi'], array() );
 		$this->assertArrayHasKey( 'test_tag_single', $meta );
-		$this->assertEquals( $meta['test_tag_single'], '' );
+		$this->assertSame( $meta['test_tag_single'], '' );
 		$this->assertArrayHasKey( 'test_tag_multi', $meta );
-		$this->assertEquals( $meta['test_tag_multi'], array() );
+		$this->assertSame( $meta['test_tag_multi'], array() );
 	}
 
+	/**
+	 * @ticket 39122
+	 */
 	public function test_get_item_meta_registered_for_different_taxonomy() {
 		$id       = $this->factory->tag->create();
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/tags/' . $id );
@@ -655,7 +661,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'meta', $data );
 
 		$meta = (array) $data['meta'];
-		$this->assertEquals( false, isset( $meta['test_cat_meta'] ) );
+		$this->assertFalse( isset( $meta['test_cat_meta'] ) );
 	}
 
 	public function test_get_term_invalid_term() {

@@ -7,7 +7,7 @@
  * Compatibility with PHPUnit 6+
  */
 if ( class_exists( 'PHPUnit\Runner\Version' ) ) {
-	require_once dirname( __FILE__ ) . '/phpunit6-compat.php';
+	require_once dirname( __FILE__ ) . '/phpunit6/compat.php';
 }
 
 if ( defined( 'WP_TESTS_CONFIG_FILE_PATH' ) ) {
@@ -35,12 +35,6 @@ if ( ! is_readable( $config_file_path ) ) {
 }
 require_once $config_file_path;
 require_once dirname( __FILE__ ) . '/functions.php';
-
-if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && file_exists( ABSPATH . '_index.php' ) ) {
-	// Perhaps add more documentation about having to run `grunt` before running tests after changing code.
-	echo "ERROR: ABSPATH must point to the `build` directory, not the `src` directory. Please update your wp-tests-config.php file.\n";
-	exit( 1 );
-}
 
 tests_reset__SERVER();
 
@@ -82,9 +76,11 @@ if ( file_exists( DIR_TESTDATA . '/themedir1' ) ) {
 	$wp_theme_directories[] = DIR_TESTDATA . '/themedir1';
 }
 
-system( WP_PHP_BINARY . ' ' . escapeshellarg( dirname( __FILE__ ) . '/install.php' ) . ' ' . escapeshellarg( $config_file_path ) . ' ' . $multisite, $retval );
-if ( 0 !== $retval ) {
-	exit( $retval );
+if ( '1' !== getenv( 'WP_TESTS_SKIP_INSTALL' ) ) {
+	system( WP_PHP_BINARY . ' ' . escapeshellarg( dirname( __FILE__ ) . '/install.php' ) . ' ' . escapeshellarg( $config_file_path ) . ' ' . $multisite, $retval );
+	if ( 0 !== $retval ) {
+		exit( $retval );
+	}
 }
 
 if ( $multisite ) {
@@ -122,7 +118,12 @@ require_once ABSPATH . '/wp-settings.php';
 // Delete any default posts & related data
 _delete_all_posts();
 
-require dirname( __FILE__ ) . '/testcase.php';
+if ( version_compare( tests_get_phpunit_version(), '7.0', '>=' ) ) {
+	require dirname( __FILE__ ) . '/phpunit7/testcase.php';
+} else {
+	require dirname( __FILE__ ) . '/testcase.php';
+}
+
 require dirname( __FILE__ ) . '/testcase-rest-api.php';
 require dirname( __FILE__ ) . '/testcase-rest-controller.php';
 require dirname( __FILE__ ) . '/testcase-rest-post-type-controller.php';
@@ -132,6 +133,8 @@ require dirname( __FILE__ ) . '/testcase-canonical.php';
 require dirname( __FILE__ ) . '/exceptions.php';
 require dirname( __FILE__ ) . '/utils.php';
 require dirname( __FILE__ ) . '/spy-rest-server.php';
+require dirname( __FILE__ ) . '/class-wp-rest-test-search-handler.php';
+require dirname( __FILE__ ) . '/class-wp-fake-block-type.php';
 
 /**
  * A child class of the PHP test runner.
@@ -146,7 +149,7 @@ require dirname( __FILE__ ) . '/spy-rest-server.php';
  * If WP_TESTS_FORCE_KNOWN_BUGS is already set in wp-tests-config.php, then
  * how you call phpunit has no effect.
  */
-class WP_PHPUnit_Util_Getopt extends PHPUnit_Util_Getopt {
+class WP_PHPUnit_Util_Getopt {
 	protected $longOptions = array(
 		'exclude-group=',
 		'group=',
@@ -159,7 +162,7 @@ class WP_PHPUnit_Util_Getopt extends PHPUnit_Util_Getopt {
 			next( $argv );
 			try {
 				if ( strlen( $arg ) > 1 && $arg[0] === '-' && $arg[1] === '-' ) {
-					PHPUnit_Util_Getopt::parseLongOption( substr( $arg, 2 ), $this->longOptions, $options, $argv );
+					self::parseLongOption( substr( $arg, 2 ), $this->longOptions, $options, $argv );
 				}
 			} catch ( PHPUnit_Framework_Exception $e ) {
 				// Enforcing recognized arguments or correctly formed arguments is
@@ -208,6 +211,67 @@ class WP_PHPUnit_Util_Getopt extends PHPUnit_Util_Getopt {
 			echo 'External HTTP skipped tests can be caused by timeouts.' . PHP_EOL;
 			echo 'If this changeset includes changes to HTTP, make sure there are no timeouts.' . PHP_EOL;
 			echo PHP_EOL;
+		}
+	}
+
+	/**
+	 * Copied from https://raw.githubusercontent.com/sebastianbergmann/phpunit/6.5.7/src/Util/Getopt.php
+	 *
+	 * @param $arg
+	 * @param $long_options
+	 * @param $opts
+	 * @param $args
+	 */
+	protected static function parseLongOption( $arg, $long_options, &$opts, &$args ) {
+		$count   = count( $long_options );
+		$list    = explode( '=', $arg );
+		$opt     = $list[0];
+		$opt_arg = null;
+
+		if ( count( $list ) > 1 ) {
+			$opt_arg = $list[1];
+		}
+
+		$opt_len = strlen( $opt );
+
+		for ( $i = 0; $i < $count; $i++ ) {
+			$long_opt  = $long_options[ $i ];
+			$opt_start = substr( $long_opt, 0, $opt_len );
+
+			if ( $opt_start != $opt ) {
+				continue;
+			}
+
+			$opt_rest = substr( $long_opt, $opt_len );
+
+			if ( $opt_rest != '' && $opt[0] != '=' && $i + 1 < $count &&
+				$opt == substr( $long_options[ $i + 1 ], 0, $opt_len ) ) {
+				throw new Exception(
+					"option --$opt is ambiguous"
+				);
+			}
+
+			if ( substr( $long_opt, -1 ) == '=' ) {
+				if ( substr( $long_opt, -2 ) != '==' ) {
+					if ( ! strlen( $opt_arg ) ) {
+						if ( false === $opt_arg = current( $args ) ) {
+							throw new Exception(
+								"option --$opt requires an argument"
+							);
+						}
+						next( $args );
+					}
+				}
+			} elseif ( $opt_arg ) {
+				throw new Exception(
+					"option --$opt doesn't allow an argument"
+				);
+			}
+
+			$full_option = '--' . preg_replace( '/={1,2}$/', '', $long_opt );
+			$opts[]      = array( $full_option, $opt_arg );
+
+			return;
 		}
 	}
 }

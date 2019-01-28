@@ -63,7 +63,7 @@ if ( ! function_exists( 'wp_install' ) ) :
 
 		update_option( 'siteurl', $guessurl );
 
-		// If not a public blog, don't ping.
+		// If not a public site, don't ping.
 		if ( ! $public ) {
 			update_option( 'default_pingback_flag', 0 );
 		}
@@ -192,8 +192,10 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 			$first_post = get_site_option( 'first_post' );
 
 			if ( ! $first_post ) {
-				/* translators: %s: site link */
-				$first_post = __( 'Welcome to %s. This is your first post. Edit or delete it, then start blogging!' );
+				$first_post = "<!-- wp:paragraph -->\n<p>" .
+				/* translators: first post content, %s: site link */
+				__( 'Welcome to %s. This is your first post. Edit or delete it, then start writing!' ) .
+				"</p>\n<!-- /wp:paragraph -->";
 			}
 
 			$first_post = sprintf(
@@ -205,7 +207,10 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 			$first_post = str_replace( 'SITE_URL', esc_url( network_home_url() ), $first_post );
 			$first_post = str_replace( 'SITE_NAME', get_network()->site_name, $first_post );
 		} else {
-			$first_post = __( 'Welcome to WordPress. This is your first post. Edit or delete it, then start writing!' );
+			$first_post = "<!-- wp:paragraph -->\n<p>" .
+			/* translators: first post content, %s: site link */
+			__( 'Welcome to WordPress. This is your first post. Edit or delete it, then start writing!' ) .
+			"</p>\n<!-- /wp:paragraph -->";
 		}
 
 		$wpdb->insert(
@@ -270,20 +275,35 @@ Commenter avatars come from <a href="https://gravatar.com">Gravatar</a>.'
 			$first_page = get_site_option( 'first_page' );
 		}
 
-		$first_page = ! empty( $first_page ) ? $first_page : sprintf(
-			__(
-				"This is an example page. It's different from a blog post because it will stay in one place and will show up in your site navigation (in most themes). Most people start with an About page that introduces them to potential site visitors. It might say something like this:
+		if ( empty( $first_page ) ) {
+			$first_page = "<!-- wp:paragraph -->\n<p>";
+			/* translators: first page content */
+			$first_page .= __( "This is an example page. It's different from a blog post because it will stay in one place and will show up in your site navigation (in most themes). Most people start with an About page that introduces them to potential site visitors. It might say something like this:" );
+			$first_page .= "</p>\n<!-- /wp:paragraph -->\n\n";
 
-<blockquote>Hi there! I'm a bike messenger by day, aspiring actor by night, and this is my website. I live in Los Angeles, have a great dog named Jack, and I like pi&#241;a coladas. (And gettin' caught in the rain.)</blockquote>
+			$first_page .= "<!-- wp:quote -->\n<blockquote class=\"wp-block-quote\"><p>";
+			/* translators: first page content */
+			$first_page .= __( "Hi there! I'm a bike messenger by day, aspiring actor by night, and this is my website. I live in Los Angeles, have a great dog named Jack, and I like pi&#241;a coladas. (And gettin' caught in the rain.)" );
+			$first_page .= "</p></blockquote>\n<!-- /wp:quote -->\n\n";
 
-...or something like this:
+			$first_page .= "<!-- wp:paragraph -->\n<p>";
+			/* translators: first page content */
+			$first_page .= __( '...or something like this:' );
+			$first_page .= "</p>\n<!-- /wp:paragraph -->\n\n";
 
-<blockquote>The XYZ Doohickey Company was founded in 1971, and has been providing quality doohickeys to the public ever since. Located in Gotham City, XYZ employs over 2,000 people and does all kinds of awesome things for the Gotham community.</blockquote>
+			$first_page .= "<!-- wp:quote -->\n<blockquote class=\"wp-block-quote\"><p>";
+			/* translators: first page content */
+			$first_page .= __( 'The XYZ Doohickey Company was founded in 1971, and has been providing quality doohickeys to the public ever since. Located in Gotham City, XYZ employs over 2,000 people and does all kinds of awesome things for the Gotham community.' );
+			$first_page .= "</p></blockquote>\n<!-- /wp:quote -->\n\n";
 
-As a new WordPress user, you should go to <a href=\"%s\">your dashboard</a> to delete this page and create new pages for your content. Have fun!"
-			),
-			admin_url()
-		);
+			$first_page .= "<!-- wp:paragraph -->\n<p>";
+			$first_page .= sprintf(
+				/* translators: first page content, %s: site admin URL */
+				__( 'As a new WordPress user, you should go to <a href="%s">your dashboard</a> to delete this page and create new pages for your content. Have fun!' ),
+				admin_url()
+			);
+			$first_page .= "</p>\n<!-- /wp:paragraph -->";
+		}
 
 		$first_post_guid = get_option( 'home' ) . '/?page_id=2';
 		$wpdb->insert(
@@ -434,8 +454,6 @@ As a new WordPress user, you should go to <a href=\"%s\">your dashboard</a> to d
 					4 => 'categories-2',
 					5 => 'meta-2',
 				),
-				'sidebar-2'           => array(),
-				'sidebar-3'           => array(),
 				'array_version'       => 3,
 			)
 		);
@@ -791,6 +809,10 @@ function upgrade_all() {
 
 	if ( $wp_current_db_version < 37965 ) {
 		upgrade_460();
+	}
+
+	if ( $wp_current_db_version < 43764 ) {
+		upgrade_500();
 	}
 
 	maybe_disable_link_manager();
@@ -1186,7 +1208,7 @@ function upgrade_210() {
 					$type   = 'attachment';
 				}
 
-							$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->posts SET post_status = %s, post_type = %s WHERE ID = %d", $status, $type, $post->ID ) );
+				$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->posts SET post_status = %s, post_type = %s WHERE ID = %d", $status, $type, $post->ID ) );
 			}
 		}
 	}
@@ -1727,6 +1749,7 @@ function upgrade_330() {
 			$sidebars_widgets                   = $_sidebars_widgets;
 			unset( $_sidebars_widgets );
 
+			// intentional fall-through to upgrade to the next version.
 		case 2:
 			$sidebars_widgets                  = retrieve_widgets();
 			$sidebars_widgets['array_version'] = 3;
@@ -2070,6 +2093,32 @@ function upgrade_460() {
 }
 
 /**
+ * Executes changes made in WordPress 5.0.0.
+ *
+ * @ignore
+ * @since 5.0.0
+ *
+ * @global int $wp_current_db_version Current database version.
+ */
+function upgrade_500() {
+	global $wp_current_db_version;
+	if ( $wp_current_db_version < 43764 ) {
+		// Allow bypassing Gutenberg plugin deactivation.
+		if ( defined( 'GUTENBERG_USE_PLUGIN' ) && GUTENBERG_USE_PLUGIN ) {
+			return;
+		}
+
+		$was_active = is_plugin_active( 'gutenberg/gutenberg.php' );
+		if ( $was_active ) {
+			// FIXME: Leave until 501 or 510 to clean up.
+			update_site_option( 'upgrade_500_was_gutenberg_active', '1' );
+		}
+
+		deactivate_plugins( array( 'gutenberg/gutenberg.php' ), true );
+	}
+}
+
+/**
  * Executes network-level upgrade routines.
  *
  * @since 3.0.0
@@ -2213,8 +2262,8 @@ function upgrade_network() {
 		}
 	}
 
-	// 5.0
-	if ( $wp_current_db_version < 42836 ) {
+	// 5.1
+	if ( $wp_current_db_version < 44467 ) {
 		$network_id = get_main_network_id();
 		delete_network_option( $network_id, 'site_meta_supported' );
 		is_site_meta_supported();

@@ -37,20 +37,27 @@ class Tests_Kses extends WP_UnitTestCase {
 		global $allowedposttags;
 
 		$attributes = array(
-			'class'  => 'classname',
-			'id'     => 'id',
-			'style'  => 'color: red;',
-			'title'  => 'title',
-			'href'   => 'http://example.com',
-			'rel'    => 'related',
-			'rev'    => 'revision',
-			'name'   => 'name',
-			'target' => '_blank',
+			'class'    => 'classname',
+			'id'       => 'id',
+			'style'    => 'color: red;',
+			'title'    => 'title',
+			'href'     => 'http://example.com',
+			'rel'      => 'related',
+			'rev'      => 'revision',
+			'name'     => 'name',
+			'target'   => '_blank',
+			'download' => '',
 		);
 
 		foreach ( $attributes as $name => $value ) {
-			$string        = "<a $name='$value'>I link this</a>";
-			$expect_string = "<a $name='" . trim( $value, ';' ) . "'>I link this</a>";
+			if ( $value ) {
+				$attr          = "$name='$value'";
+				$expected_attr = "$name='" . trim( $value, ';' ) . "'";
+			} else {
+				$attr = $expected_attr = $name;
+			}
+			$string        = "<a $attr>I link this</a>";
+			$expect_string = "<a $expected_attr>I link this</a>";
 			$this->assertEquals( $expect_string, wp_kses( $string, $allowedposttags ) );
 		}
 	}
@@ -818,10 +825,252 @@ EOF;
 				'css'      => 'margin: 10px 20px;padding: 5px 10px',
 				'expected' => 'margin: 10px 20px;padding: 5px 10px',
 			),
-			// Parenthesis ( isn't supported.
+			// Parenthesis ( is supported for some attributes.
 			array(
 				'css'      => 'background: green url("foo.jpg") no-repeat fixed center',
-				'expected' => '',
+				'expected' => 'background: green url("foo.jpg") no-repeat fixed center',
+			),
+		);
+	}
+
+	/**
+	 * Data attributes are globally accepted.
+	 *
+	 * @ticket 33121
+	 */
+	function test_wp_kses_attr_data_attribute_is_allowed() {
+		$test     = '<div data-foo="foo" data-bar="bar" datainvalid="gone" data--invaild="gone"  data-also-invaild-="gone" data-two-hyphens="remains">Pens and pencils</div>';
+		$expected = '<div data-foo="foo" data-bar="bar" data-two-hyphens="remains">Pens and pencils</div>';
+
+		$this->assertEquals( $expected, wp_kses_post( $test ) );
+	}
+
+	/**
+	 * Ensure wildcard attributes block unprefixed wildcard uses.
+	 *
+	 * @ticket 33121
+	 */
+	function test_wildcard_requires_hyphen_after_prefix() {
+		$allowed_html = array(
+			'div' => array(
+				'data-*' => true,
+				'on-*'   => true,
+			),
+		);
+
+		$string   = '<div datamelformed-prefix="gone" data="gone" data-="gone" onclick="alert(1)">Malformed attributes</div>';
+		$expected = '<div>Malformed attributes</div>';
+
+		$actual = wp_kses( $string, $allowed_html );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Ensure wildcard allows two hyphen.
+	 *
+	 * @ticket 33121
+	 */
+	function test_wildcard_allows_two_hyphens() {
+		$allowed_html = array(
+			'div' => array(
+				'data-*' => true,
+			),
+		);
+
+		$string   = '<div data-wp-id="pens-and-pencils">Well formed attribute</div>';
+		$expected = '<div data-wp-id="pens-and-pencils">Well formed attribute</div>';
+
+		$actual = wp_kses( $string, $allowed_html );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Ensure wildcard attributes only support valid prefixes.
+	 *
+	 * @dataProvider data_wildcard_attribute_prefixes
+	 *
+	 * @ticket 33121
+	 */
+	function test_wildcard_attribute_prefixes( $wildcard_attribute, $expected ) {
+		$allowed_html = array(
+			'div' => array(
+				$wildcard_attribute => true,
+			),
+		);
+
+		$name  = str_replace( '*', strtolower( __FUNCTION__ ), $wildcard_attribute );
+		$value = __FUNCTION__;
+		$whole = "{$name}=\"{$value}\"";
+
+		$actual = wp_kses_attr_check( $name, $value, $whole, 'n', 'div', $allowed_html );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * @return array Array of arguments for wildcard testing
+	 *               [0] The prefix being tested.
+	 *               [1] The outcome of `wp_kses_attr_check` for the prefix.
+	 */
+	function data_wildcard_attribute_prefixes() {
+		return array(
+			// Ends correctly
+			array( 'data-*', true ),
+
+			// Does not end with trialing `-`.
+			array( 'data*', false ),
+
+			// Multiple wildcards.
+			array( 'd*ta-*', false ),
+			array( 'data**', false ),
+		);
+	}
+
+	/**
+	 * Test URL sanitization in the style tag.
+	 *
+	 * @dataProvider data_kses_style_attr_with_url
+	 *
+	 * @ticket 45067
+	 *
+	 * @param $input string The style attribute saved in the editor.
+	 * @param $expected string The sanitized style attribute.
+	 */
+	function test_kses_style_attr_with_url( $input, $expected ) {
+		$actual = safecss_filter_attr( $input );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider testing style attribute sanitization.
+	 *
+	 * @return array Nested array of input, expected pairs.
+	 */
+	function data_kses_style_attr_with_url() {
+		return array(
+			/*
+			 * Valid use cases.
+			 */
+
+			// Double quotes.
+			array(
+				'background-image: url( "http://example.com/valid.gif" );',
+				'background-image: url( "http://example.com/valid.gif" )',
+			),
+
+			// Single quotes.
+			array(
+				"background-image: url( 'http://example.com/valid.gif' );",
+				"background-image: url( 'http://example.com/valid.gif' )",
+			),
+
+			// No quotes.
+			array(
+				'background-image: url( http://example.com/valid.gif );',
+				'background-image: url( http://example.com/valid.gif )',
+			),
+
+			// Single quotes, extra spaces.
+			array(
+				"background-image: url( '  http://example.com/valid.gif ' );",
+				"background-image: url( '  http://example.com/valid.gif ' )",
+			),
+
+			// Line breaks, single quotes.
+			array(
+				"background-image: url(\n'http://example.com/valid.gif' );",
+				"background-image: url('http://example.com/valid.gif' )",
+			),
+
+			// Tabs not spaces, single quotes.
+			array(
+				"background-image: url(\t'http://example.com/valid.gif'\t\t);",
+				"background-image: url('http://example.com/valid.gif')",
+			),
+
+			// Single quotes, absolute path.
+			array(
+				"background: url('/valid.gif');",
+				"background: url('/valid.gif')",
+			),
+
+			// Single quotes, relative path.
+			array(
+				"background: url('../wp-content/uploads/2018/10/valid.gif');",
+				"background: url('../wp-content/uploads/2018/10/valid.gif')",
+			),
+
+			// Error check: valid property not containing a URL.
+			array(
+				'background: red',
+				'background: red',
+			),
+
+			/*
+			 * Invalid use cases.
+			 */
+
+			// Attribute doesn't support URL properties.
+			array(
+				'color: url( "http://example.com/invalid.gif" );',
+				'',
+			),
+
+			// Mismatched quotes.
+			array(
+				'background-image: url( "http://example.com/valid.gif\' );',
+				'',
+			),
+
+			// Bad protocol, double quotes.
+			array(
+				'background-image: url( "bad://example.com/invalid.gif" );',
+				'',
+			),
+
+			// Bad protocol, single quotes.
+			array(
+				"background-image: url( 'bad://example.com/invalid.gif' );",
+				'',
+			),
+
+			// Bad protocol, single quotes.
+			array(
+				"background-image: url( 'bad://example.com/invalid.gif' );",
+				'',
+			),
+
+			// Bad protocol, single quotes, strange spacing.
+			array(
+				"background-image: url( '  \tbad://example.com/invalid.gif ' );",
+				'',
+			),
+
+			// Bad protocol, no quotes.
+			array(
+				'background-image: url( bad://example.com/invalid.gif );',
+				'',
+			),
+
+			// No URL inside url().
+			array(
+				'background-image: url();',
+				'',
+			),
+
+			// Malformed, no closing `)`.
+			array(
+				'background-image: url( "http://example.com" ;',
+				'',
+			),
+
+			// Malformed, no closing `"`.
+			array(
+				'background-image: url( "http://example.com );',
+				'',
 			),
 		);
 	}
