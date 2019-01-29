@@ -438,7 +438,7 @@ if ( isset( $_GET['key'] ) ) {
 }
 
 // Validate action so as to default to the login screen.
-if ( ! in_array( $action, array( 'postpass', 'logout', 'lostpassword', 'retrievepassword', 'resetpass', 'rp', 'register', 'login', 'confirmaction' ), true ) && false === has_filter( 'login_form_' . $action ) ) {
+if ( ! in_array( $action, array( 'postpass', 'logout', 'lostpassword', 'retrievepassword', 'resetpass', 'rp', 'register', 'login', 'confirmaction', 'begun_recovery_mode' ), true ) && false === has_filter( 'login_form_' . $action ) ) {
 	$action = 'login';
 }
 
@@ -1024,6 +1024,8 @@ switch ( $action ) {
 				$errors->add( 'registered', __( 'Registration complete. Please check your email.' ), 'message' );
 			} elseif ( strpos( $redirect_to, 'about.php?updated' ) ) {
 				$errors->add( 'updated', __( '<strong>You have successfully updated WordPress!</strong> Please log back in to see what&#8217;s new.' ), 'message' );
+			} elseif ( 'begun_recovery_mode' === $action ) {
+				$errors->add( 'begun_recovery_mode', __( 'Recovery Mode Initialized. Please login to continue.' ), 'message' );
 			}
 		}
 

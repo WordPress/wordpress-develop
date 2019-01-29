@@ -40,9 +40,11 @@ class WP_Fatal_Error_Handler {
 
 			// If the error was stored and thus the extension paused,
 			// redirect the request to catch multiple errors in one go.
-			if ( $this->store_error( $error ) ) {
+			if ( $this->store_error( $error ) && wp_is_recovery_mode() ) {
 				$this->redirect_protected();
 			}
+
+			maybe_send_recovery_mode_email();
 
 			// Display the PHP error template.
 			$this->display_error_template();
@@ -83,11 +85,6 @@ class WP_Fatal_Error_Handler {
 	 * @return bool True if the error was stored successfully, false otherwise.
 	 */
 	protected function store_error( $error ) {
-		// Do not pause extensions if they only crash on a non-protected endpoint.
-		if ( ! is_protected_endpoint() ) {
-			return false;
-		}
-
 		return wp_record_extension_error( $error );
 	}
 
@@ -102,11 +99,6 @@ class WP_Fatal_Error_Handler {
 	 * @since 5.1.0
 	 */
 	protected function redirect_protected() {
-		// Do not redirect requests on non-protected endpoints.
-		if ( ! is_protected_endpoint() ) {
-			return;
-		}
-
 		// Pluggable is usually loaded after plugins, so we manually include it here for redirection functionality.
 		if ( ! function_exists( 'wp_redirect' ) ) {
 			include ABSPATH . WPINC . '/pluggable.php';
@@ -171,9 +163,9 @@ class WP_Fatal_Error_Handler {
 			'response' => 500,
 			'exit'     => false,
 		);
-		if ( function_exists( 'admin_url' ) ) {
-			$args['link_url']  = admin_url();
-			$args['link_text'] = __( 'Log into the admin backend to fix this.' );
+		if ( function_exists( 'wp_login_url' ) ) {
+			$args['link_url']  = get_recovery_mode_request_url();
+			$args['link_text'] = __( 'Request a Recovery Mode email to fix this.' );
 		}
 
 		/**

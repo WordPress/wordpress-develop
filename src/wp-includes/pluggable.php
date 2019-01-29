@@ -979,6 +979,8 @@ if ( ! function_exists( 'wp_clear_auth_cookie' ) ) :
 
 		// Post password cookie
 		setcookie( 'wp-postpass_' . COOKIEHASH, ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
+
+		clear_recovery_mode_cookie();
 	}
 endif;
 

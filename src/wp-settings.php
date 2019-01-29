@@ -342,6 +342,9 @@ wp_start_scraping_edited_file_errors();
 // Register the default theme directory root
 register_theme_directory( get_theme_root() );
 
+// Handle users requesting a recovery mode link and initiating recovery mode.
+handle_recovery_mode_actions();
+
 // Load active plugins.
 foreach ( wp_get_active_and_valid_plugins() as $plugin ) {
 	wp_register_plugin_realpath( $plugin );

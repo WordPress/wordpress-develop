@@ -88,6 +88,8 @@ function wp_record_extension_error( $error ) {
 	$parts     = explode( '/', $path );
 	$extension = array_shift( $parts );
 
+	$error['wp_is_protected'] = is_protected_endpoint();
+
 	return call_user_func( $callback )->record( $extension, $error );
 }
 

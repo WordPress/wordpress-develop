@@ -701,7 +701,7 @@ function wp_get_active_and_valid_plugins() {
 	 * Remove plugins from the list of active plugins when we're on an endpoint
 	 * that should be protected against WSODs and the plugin is paused.
 	 */
-	if ( is_protected_endpoint() ) {
+	if ( wp_is_recovery_mode() ) {
 		$plugins = wp_skip_paused_plugins( $plugins );
 	}
 
@@ -766,7 +766,7 @@ function wp_get_active_and_valid_themes() {
 	 * Remove themes from the list of active themes when we're on an endpoint
 	 * that should be protected against WSODs and the theme is paused.
 	 */
-	if ( is_protected_endpoint() ) {
+	if ( wp_is_recovery_mode() ) {
 		$themes = wp_skip_paused_themes( $themes );
 
 		// If no active and valid themes exist, skip loading themes.
@@ -1287,6 +1287,483 @@ function wp_using_themes() {
 	 * @param bool $wp_using_themes Whether the current request should use themes.
 	 */
 	return apply_filters( 'wp_using_themes', defined( 'WP_USE_THEMES' ) && WP_USE_THEMES );
+}
+
+/**
+ * Is WordPress in Recovery Mode.
+ *
+ * In this mode, plugins or themes that cause WSODs will be paused.
+ *
+ * @since 5.1.0
+ *
+ * @return bool
+ */
+function wp_is_recovery_mode() {
+	/**
+	 * Filters whether WordPress is in Recovery Mode.
+	 *
+	 * @since 5.1.0
+	 *
+	 * @param bool $wp_is_recovery_mode Whether WordPress is in recovery mode.
+	 */
+	return apply_filters( 'wp_is_recovery_mode', defined( 'WP_RECOVERY_MODE' ) && WP_RECOVERY_MODE );
+}
+
+/**
+ * Create a recovery mode key for a user.
+ *
+ * @since 5.1.0
+ *
+ * @global PasswordHash $wp_hasher
+ *
+ * @return string Recovery mode key.
+ */
+function generate_and_store_recovery_mode_key() {
+
+	global $wp_hasher;
+
+	if ( ! function_exists( 'wp_generate_password' ) ) {
+		require_once ABSPATH . WPINC . '/pluggable.php';
+	}
+
+	$key = wp_generate_password( 20, false );
+
+	/**
+	 * Fires when a recovery mode key is generated for a user.
+	 *
+	 * @since 5.1.0
+	 *
+	 * @param string  $key  The recovery mode key.
+	 */
+	do_action( 'generate_recovery_mode_key', $key );
+
+	if ( empty( $wp_hasher ) ) {
+		require_once ABSPATH . WPINC . '/class-phpass.php';
+		$wp_hasher = new PasswordHash( 8, true );
+	}
+
+	$hashed = $wp_hasher->HashPassword( $key );
+
+	update_site_option( 'recovery_key', array(
+		'hashed_key' => $hashed,
+		'created_at' => time(),
+	) );
+
+	return $key;
+}
+
+/**
+ * Verify if the recovery mode key is correct.
+ *
+ * @since 5.1.0
+ *
+ * @param string $key The unhashed key.
+ *
+ * @return true|WP_Error
+ */
+function validate_recovery_mode_key( $key ) {
+
+	$record = get_site_option( 'recovery_key' );
+
+	if ( ! $record ) {
+		return new WP_Error( 'no_recovery_key_set', __( 'Recovery Mode not initialized.' ) );
+	}
+
+	if ( ! is_array( $record ) || ! isset( $record['hashed_key'], $record['created_at'] ) ) {
+		return new WP_Error( 'invalid_recovery_key_format', __( 'Invalid recovery key format.' ) );
+	}
+
+	if ( ! function_exists( 'wp_check_password' ) ) {
+		require_once ABSPATH . WPINC . '/pluggable.php';
+	}
+
+	if ( ! wp_check_password( $key, $record['hashed_key'] ) ) {
+		return new WP_Error( 'hash_mismatch', __( 'Invalid recovery key.' ) );
+	}
+
+	$valid_for = HOUR_IN_SECONDS;
+
+	if ( time() > $record['created_at'] + $valid_for ) {
+		return new WP_Error( 'key_expired', __( 'Recovery key expired.' ) );
+	}
+
+	return true;
+}
+
+/**
+ * A form of `wp_hash()` specific to Recovery Mode.
+ *
+ * We cannot use `wp_hash()` because it is defined in `pluggable.php` which is not loaded until after plugins are loaded,
+ * which is too late to verify the recovery mode cookie.
+ *
+ * This tries to use the `AUTH` salts first, but if they aren't valid specific salts will be generated and stored.
+ *
+ * @param string $data
+ *
+ * @return string|false
+ */
+function recovery_mode_hash( $data ) {
+
+	if ( ! defined( 'AUTH_KEY' ) || AUTH_KEY === 'put your unique phrase here' ) {
+		$auth_key = get_site_option( 'recovery_mode_auth_key' );
+
+		if ( ! $auth_key ) {
+			if ( ! function_exists( 'wp_generate_password' ) ) {
+				require_once ABSPATH . WPINC . '/pluggable.php';
+			}
+
+			$auth_key = wp_generate_password( 64, true, true );
+			update_site_option( 'recovery_mode_auth_key', $auth_key );
+		}
+	} else {
+		$auth_key = AUTH_KEY;
+	}
+
+	if ( ! defined( 'AUTH_SALT' ) || 'put your unique phrase here' === AUTH_SALT || $auth_key === AUTH_SALT ) {
+		$auth_salt = get_site_option( 'recovery_mode_auth_salt' );
+
+		if ( ! $auth_salt ) {
+			if ( ! function_exists( 'wp_generate_password' ) ) {
+				require_once ABSPATH . WPINC . '/pluggable.php';
+			}
+
+			$auth_salt = wp_generate_password( 64, true, true );
+			update_site_option( 'recovery_mode_auth_salt', $auth_salt );
+		}
+	} else {
+		$auth_salt = AUTH_SALT;
+	}
+
+	$secret = $auth_key . $auth_salt;
+
+	return hash_hmac( 'sha1', $data, $secret );
+}
+
+/**
+ * Generate the recovery mode cookie value.
+ *
+ * @since 5.1.0
+ *
+ * @return string
+ */
+function generate_recovery_mode_cookie() {
+
+	if ( ! function_exists( 'wp_generate_password' ) ) {
+		require_once ABSPATH . WPINC . '/pluggable.php';
+	}
+
+	$to_sign = sprintf( 'recovery_mode|%s|%s', time(), wp_generate_password( 20, false ) );
+	$signed  = recovery_mode_hash( $to_sign );
+
+	return base64_encode( sprintf( '%s|%s', $to_sign, $signed ) );
+}
+
+/**
+ * Set the recovery mode cookie.
+ *
+ * @since 5.1.0
+ */
+function set_recovery_mode_cookie() {
+
+	$value = generate_recovery_mode_cookie();
+
+	setcookie( RECOVERY_MODE_COOKIE, $value, 0, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true );
+
+	if ( COOKIEPATH !== SITECOOKIEPATH ) {
+		setcookie( RECOVERY_MODE_COOKIE, $value, 0, SITECOOKIEPATH, COOKIE_DOMAIN, is_ssl(), true );
+	}
+}
+
+/**
+ * Clear the recovery mode cookie.
+ *
+ * @sicne 5.1.0
+ */
+function clear_recovery_mode_cookie() {
+	setcookie( RECOVERY_MODE_COOKIE, ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
+	setcookie( RECOVERY_MODE_COOKIE, ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH, COOKIE_DOMAIN );
+}
+
+/**
+ * Validate the recovery mode cookie.
+ *
+ * @since 5.1.0
+ *
+ * @param string $cookie Optionally, specify the cookie value instead of fetching from the super global.
+ *
+ * @return true|WP_Error
+ */
+function validate_recovery_mode_cookie( $cookie = '' ) {
+
+	if ( ! $cookie ) {
+		if ( empty( $_COOKIE[ RECOVERY_MODE_COOKIE ] ) ) {
+			return new WP_Error( 'no_cookie' );
+		}
+
+		$cookie = $_COOKIE[ RECOVERY_MODE_COOKIE ];
+	}
+
+	$cookie = base64_decode( $cookie );
+	$parts  = explode( '|', $cookie );
+
+	if ( 4 !== count( $parts ) ) {
+		return new WP_Error( 'invalid_format', __( 'Invalid cookie format.' ) );
+	}
+
+	list( , $created_at, $random, $signature ) = $parts;
+
+	if ( ! ctype_digit( $created_at ) ) {
+		return new WP_Error( 'invalid_created_at', __( 'Invalid cookie format.' ) );
+	}
+
+	/**
+	 * Filter the length of time a Recovery Mode cookie is valid for.
+	 *
+	 * @since 5.1.0
+	 *
+	 * @param int $length Length in seconds.
+	 */
+	$length = apply_filters( 'recovery_mode_cookie_length', WEEK_IN_SECONDS );
+
+	if ( time() > $created_at + $length ) {
+		return new WP_Error( 'expired', __( 'Cookie expired.' ) );
+	}
+
+	$to_sign = sprintf( 'recovery_mode|%s|%s', $created_at, $random );
+	$hashed  = recovery_mode_hash( $to_sign );
+
+	if ( ! hash_equals( $signature, $hashed ) ) {
+		return new WP_Error( 'signature_mismatch', __( 'Invalid cookie.' ) );
+	}
+
+	return true;
+}
+
+/**
+ * Handle initializing Recovery Mode and sending a Recovery Mode link.
+ *
+ * @since 5.1.0
+ */
+function handle_recovery_mode_actions() {
+
+	if ( isset( $_COOKIE[ RECOVERY_MODE_COOKIE ] ) ) {
+		$validated = validate_recovery_mode_cookie();
+
+		if ( is_wp_error( $validated ) ) {
+			clear_recovery_mode_cookie();
+
+			wp_die( $validated, '', array(
+				'link_url'  => get_recovery_mode_request_url(),
+				'link_text' => __( 'Send a new email.' ),
+			) );
+		}
+
+		if ( ! defined( 'WP_RECOVERY_MODE' ) ) {
+			define( 'WP_RECOVERY_MODE', true );
+		}
+
+		return;
+	}
+
+	if ( ! isset( $GLOBALS['pagenow'] ) || 'wp-login.php' !== $GLOBALS['pagenow'] ) {
+		return;
+	}
+
+	if ( isset( $_GET['action'], $_GET['rm_key'] ) && 'begin_recovery_mode' === $_GET['action'] ) {
+		$validated = validate_recovery_mode_key( $_GET['rm_key'] );
+
+		if ( is_wp_error( $validated ) ) {
+			wp_die( $validated, '', array(
+				'link_url' => get_recovery_mode_request_url(),
+				'link_text' => __( 'Send a new email.' ),
+			) );
+		}
+
+		set_recovery_mode_cookie();
+
+		// This should be loaded by set_recovery_mode_cookie() but load it again to be safe.
+		if ( ! function_exists( 'wp_redirect' ) ) {
+			require_once ABSPATH . WPINC . '/pluggable.php';
+		}
+
+		$url     = add_query_arg( 'action', 'begun_recovery_mode', wp_login_url() );
+		$message = '<script type="application/javascript">window.location = \'' . esc_js( $url ) . '\';</script>';
+
+		wp_die( $message, '', array(
+			'response'  => 200,
+			'link_url'  => $url,
+			'link_text' => __( 'Continue to Login' ),
+		) );
+	}
+
+	if ( isset( $_GET['action'] ) && 'request_recovery_mode' === $_GET['action'] ) {
+		$sent = maybe_send_recovery_mode_email();
+
+		if ( ! function_exists( 'wp_redirect' ) ) {
+			require_once ABSPATH . WPINC . '/pluggable.php';
+		}
+
+		if ( is_wp_error( $sent ) ) {
+			$message = $sent;
+			$args    = array();
+		} else {
+			$message = __( 'Recovery Link sent to the Site Admin email address.' );
+			$args    = array( 'response' => 200 );
+		}
+
+		wp_die( $message, '', $args );
+		exit;
+	}
+}
+
+/**
+ * Get a URL to request a recovery mode link be emailed to the user.
+ *
+ * @since 5.1.0
+ *
+ * @return string
+ */
+function get_recovery_mode_request_url() {
+	$url = add_query_arg( 'action', 'request_recovery_mode', wp_login_url() );
+
+	/**
+	 * Filter the URL to request a recovery mode link be emailed to the user.
+	 *
+	 * @since 5.1.0
+	 *
+	 * @param string $url
+	 */
+	return apply_filters( 'recovery_mode_request_url', $url );
+}
+
+/**
+ * Get a URL to begin recovery mode.
+ *
+ * @since 5.1.0
+ *
+ * @param string $key Recovery Mode key created by {@see generate_and_store_recovery_mode_key()}
+ *
+ * @return string
+ */
+function get_recovery_mode_begin_url( $key ) {
+
+	$url = add_query_arg( array(
+		'action' => 'begin_recovery_mode',
+		'rm_key' => $key,
+	), wp_login_url() );
+
+	/**
+	 * Filter the URL to begin recovery mode.
+	 *
+	 * @since 5.1.0
+	 *
+	 * @param string $url
+	 * @param string $key
+	 */
+	return apply_filters( 'recovery_mode_begin_url', $url, $key );
+}
+
+/**
+ * Send the recovery mode email if the rate limit has not been sent.
+ *
+ * @since 5.1.0
+ *
+ * @return true|WP_Error True if email sent, WP_Error otherwise.
+ */
+function maybe_send_recovery_mode_email() {
+
+	/**
+	 * Filter the rate limit between sending new recovery mode email links.
+	 *
+	 * @since 5.1.0
+	 *
+	 * @param int $rate_limit Time to wait in seconds.
+	 */
+	$rate_limit = apply_filters( 'recovery_mode_email_rate_limit', HOUR_IN_SECONDS );
+
+	$last_sent = get_site_option( 'recovery_mode_email_last_sent' );
+
+	if ( ! $last_sent || time() > $last_sent + $rate_limit ) {
+		$sent = send_recovery_mode_email();
+		update_site_option( 'recovery_mode_email_last_sent', time() );
+
+		if ( $sent ) {
+			return true;
+		}
+
+		return new WP_Error( 'email_failed', __( 'The email could not be sent. Possible reason: your host may have disabled the mail() function.' ) );
+	}
+
+	$error = sprintf(
+		/* translators: 1. Last sent as a human time diff 2. Wait time as a human time diff. */
+		__( 'A recovery link was already sent %1$s ago. Please wait another %2$s before requesting a new email.' ),
+		human_time_diff( $last_sent ),
+		human_time_diff( $last_sent + $rate_limit )
+	);
+
+	return new WP_Error( 'email_sent_already', $error );
+}
+
+/**
+ * Send the Recovery Mode email to the site admin email address.
+ *
+ * @since 5.1.0
+ *
+ * @return bool Whether the email was sent successfully.
+ */
+function send_recovery_mode_email() {
+
+	$key      = generate_and_store_recovery_mode_key();
+	$url      = get_recovery_mode_begin_url( $key );
+	$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+
+	$switched_locale = false;
+
+	// The switch_to_locale() function is loaded before it can actually be used.
+	if ( function_exists( 'switch_to_locale' ) && isset( $GLOBALS['wp_locale_switcher'] ) ) {
+		$switched_locale = switch_to_locale( get_locale() );
+	}
+
+	$message = __(
+		'Howdy,
+
+Your site recently experienced a fatal error. Click the link below to initiate recovery mode to fix the problem.
+
+This link expires in one hour.
+
+###LINK###'
+	);
+	$message = str_replace( '###LINK###', $url, $message );
+
+	$email = array(
+		'to'      => get_option( 'admin_email' ),
+		'subject' => __( '[%s] Recovery Mode' ),
+		'message' => $message,
+		'headers' => '',
+	);
+
+	/**
+	 * Filter the contents of the Recovery Mode email.
+	 *
+	 * @since 5.1.0
+	 *
+	 * @param array  $email Used to build wp_mail().
+	 * @param string $key   Recovery mode key.
+	 */
+	$email = apply_filters( 'recovery_mode_email', $email, $key );
+
+	$sent = wp_mail(
+		$email['to'],
+		wp_specialchars_decode( sprintf( $email['subject'], $blogname ) ),
+		$email['message'],
+		$email['headers']
+	);
+
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
+
+	return $sent;
 }
 
 /**

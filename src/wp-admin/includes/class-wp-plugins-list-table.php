@@ -791,9 +791,9 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$class .= ' update';
 		}
 
-		$paused                        = is_plugin_paused( $plugin_file );
-		$paused_on_network_sites_count = $screen->in_admin( 'network' ) ? count_paused_plugin_sites_for_network( $plugin_file ) : 0;
-		if ( $paused || $paused_on_network_sites_count ) {
+		$paused = is_plugin_paused( $plugin_file );
+
+		if ( $paused ) {
 			$class .= ' paused';
 		}
 
@@ -885,15 +885,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 					echo '</div>';
 
-					if ( $paused || $paused_on_network_sites_count ) {
-						$notice_text = __( 'This plugin failed to load properly and was paused within the admin backend.' );
-						if ( $screen->in_admin( 'network' ) && $paused_on_network_sites_count ) {
-							$notice_text = sprintf(
-								/* translators: %s: number of sites */
-								_n( 'This plugin failed to load properly and was paused within the admin backend for %s site.', 'This plugin failed to load properly and was paused within the admin backend for %s sites.', $paused_on_network_sites_count ),
-								number_format_i18n( $paused_on_network_sites_count )
-							);
-						}
+					if ( $paused ) {
+						$notice_text = __( 'This plugin failed to load properly and is paused during recovery mode.' );
 
 						printf( '<p><span class="dashicons dashicons-warning"></span> <strong>%s</strong></p>', $notice_text );
 
@@ -911,11 +904,18 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 							$error['type'] = $core_errors[ $error['type'] ];
 
+							if ( empty( $error['wp_is_protected'] ) ) {
+								/* translators: 1: error type, 2: error line number, 3: error file name, 4: error message */
+								$error_message = __( 'The plugin caused an error of type %1$s in line %2$s of the file %3$s. Error message: %4$s' );
+							} else {
+								/* translators: 1: error type, 2: error line number, 3: error file name, 4: error message */
+								$error_message = __( 'The plugin caused an error in the <strong>admin backend</strong> of type %1$s in line %2$s of the file %3$s. Error message: %4$s' );
+							}
+
 							printf(
 								'<div class="error-display"><p>%s</p></div>',
 								sprintf(
-									/* translators: 1: error type, 2: error line number, 3: error file name, 4: error message */
-									__( 'The plugin caused an error of type %1$s in line %2$s of the file %3$s. Error message: %4$s' ),
+									$error_message,
 									"<code>{$error['type']}</code>",
 									"<code>{$error['line']}</code>",
 									"<code>{$error['file']}</code>",
