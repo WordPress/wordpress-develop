@@ -36,6 +36,15 @@ if ( ! is_readable( $config_file_path ) ) {
 require_once $config_file_path;
 require_once dirname( __FILE__ ) . '/functions.php';
 
+if ( version_compare( tests_get_phpunit_version(), '8.0', '>=' ) ) {
+	printf(
+		"ERROR: Looks like you're using PHPUnit %s. WordPress is currently only compatible with PHPUnit up to 7.x.\n",
+		tests_get_phpunit_version()
+	);
+	echo "Please use the latest PHPUnit version from the 7.x branch.\n";
+	exit( 1 );
+}
+
 tests_reset__SERVER();
 
 define( 'WP_TESTS_TABLE_PREFIX', $table_prefix );
