@@ -12,7 +12,48 @@ In this directory you'll find vendor JavaScript packages that cannot be installe
 - plupload: https://github.com/moxiecode/plupload
 - swfupload: https://github.com/WordPress/secure-swfupload
 - thickbox: http://codylindley.com/thickbox/
-- tinymce: https://github.com/tinymce/tinymce
+- tinymce: https://www.tiny.cloud/get-tiny/self-hosted/
+  - Download "TinyMCE Dev Package". This package is needed because it includes
+    the `compat3x` plugin.
+  - Open the package and go to `js/tinymce`.
+  - Replace all the following files and folders:
+    * license.txt
+    * plugins
+      * charmap
+      * colorpicker
+      * compat3x
+      * directionality
+      * fullscreen
+      * hr
+      * image
+      * link
+      * lists
+      * media
+      * paste
+      * tabfocus
+      * textcolor
+    * skins
+      * lightgray
+    * themes
+      * inlite
+      * modern
+    * tinymce.js
+    * tinymce.min.js
+  - Go to the `compat3x` plugin folder and move `tiny_mce_popup.js` and `utils`
+    to the root directory. Delete the `img` folder. Revert `css/dialog.css`.
+  - Go to the `lightgray` skin folder and delete `content.mobile.min.css`,
+    `fonts/tinymce-mobile.woff`, `skin.min.css.map`, `skin.mobile.min.css` and
+    `skin.mobile.min.css.map`.
+  - After all these steps, there should normally not be any file additions or
+    deletions when you run `svn status`, only file modifications. If there are,
+    make sure it's intentional.
+  - Update the TinyMCE version in `src/wp-includes/version.php`. Use the
+    following format:
+    - Major version number.
+    - Minor version number.
+    - Patch version number, holding 2 places.
+    - A dash "-".
+    - The date: YYYYMMDD.
 
 ## Single file dependencies
 

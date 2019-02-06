@@ -257,7 +257,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'export_others_personal_data' => array( 'administrator' ),
 			'erase_others_personal_data'  => array( 'administrator' ),
 			'manage_privacy_options'      => array( 'administrator' ),
-			'resume_themes'               => array( 'administrator' ),
 
 			'edit_categories'             => array( 'administrator', 'editor' ),
 			'delete_categories'           => array( 'administrator', 'editor' ),
@@ -297,7 +296,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'customize'                   => array( 'administrator' ),
 			'delete_site'                 => array( 'administrator' ),
 			'add_users'                   => array( 'administrator' ),
-			'resume_themes'               => array( 'administrator' ),
 
 			'edit_categories'             => array( 'administrator', 'editor' ),
 			'delete_categories'           => array( 'administrator', 'editor' ),
@@ -456,7 +454,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			// Singular object meta capabilities (where an object ID is passed) are not tested:
 			$expected['activate_plugin'],
 			$expected['deactivate_plugin'],
-			$expected['resume_plugin'],
 			$expected['remove_user'],
 			$expected['promote_user'],
 			$expected['edit_user'],

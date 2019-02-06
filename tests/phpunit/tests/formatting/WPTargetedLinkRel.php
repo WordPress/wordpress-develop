@@ -83,4 +83,22 @@ class Tests_Targeted_Link_Rel extends WP_UnitTestCase {
 		$expected = '<p>Links: <a href="/" target="_blank">Do not change me</a></p>';
 		$this->assertEquals( $expected, wp_targeted_link_rel( $content ) );
 	}
+
+	/**
+	 * Ensure default content filters are added.
+	 *
+	 * @ticket 45292.
+	 */
+	public function test_wp_targeted_link_rel_filters_run() {
+		$content  = '<p>Links: <a href="/" target="_blank">No rel</a></p>';
+		$expected = '<p>Links: <a href="/" target="_blank" rel="noopener noreferrer">No rel</a></p>';
+
+		$post = $this->factory()->post->create_and_get(
+			array(
+				'post_content' => $content,
+			)
+		);
+
+		$this->assertEquals( $expected, $post->post_content );
+	}
 }

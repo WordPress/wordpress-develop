@@ -12,6 +12,7 @@ require_once dirname( dirname( __FILE__ ) ) . '/abstract-testcase.php';
  * All WordPress unit tests should inherit from this class.
  */
 class WP_UnitTestCase extends WP_UnitTestCase_Base {
+
 	/**
 	 * Asserts that a condition is not false.
 	 *
