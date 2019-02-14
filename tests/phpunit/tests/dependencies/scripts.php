@@ -1345,7 +1345,7 @@ JS;
 	function test_no_source_mapping() {
 		$all_files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( dirname( ABSPATH ) . '/build/' ) );
 		$js_files  = new RegexIterator( $all_files, '/\.js$/' );
-		foreach( $js_files as $js_file ) {
+		foreach ( $js_files as $js_file ) {
 			$contents = trim( file_get_contents( $js_file ) );
 
 			// We allow data: URLs.
