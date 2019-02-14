@@ -83,14 +83,6 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 24994
-	 */
-	function test_exclusion_of_sourcemaps() {
-		$contents = trim( file_get_contents( ABSPATH . WPINC . '/js/jquery/jquery.js' ) );
-		$this->assertFalse( strpos( $contents, 'sourceMappingURL' ), 'Presence of sourceMappingURL' );
-	}
-
-	/**
 	 * @ticket 28404
 	 */
 	function test_wp_script_is_dep_enqueued() {
