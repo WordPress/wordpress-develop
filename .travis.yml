@@ -115,6 +115,10 @@ before_script:
 - svn --version
 - locale -a
 script: grunt $WP_TRAVISCI
+script:
+    - phpunit --coverage-clover=coverage.xml
+after_success:
+    - bash <(curl -s https://codecov.io/bash)
 after_script:
 - |
   if [[ "$WP_TEST_REPORTER" == "true" ]]; then
