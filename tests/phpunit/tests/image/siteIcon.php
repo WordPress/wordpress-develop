@@ -101,7 +101,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 	function test_create_attachment_object() {
 		$attachment_id = $this->_insert_attachment();
 		$parent_url    = get_post( $attachment_id )->guid;
-		$cropped       = str_replace( basename( $parent_url ), 'cropped-test-image.jpg', $parent_url );
+		$cropped       = str_replace( wp_basename( $parent_url ), 'cropped-test-image.jpg', $parent_url );
 
 		$object = $this->wp_site_icon->create_attachment_object( $cropped, $attachment_id );
 
@@ -115,7 +115,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 	function test_insert_cropped_attachment() {
 		$attachment_id = $this->_insert_attachment();
 		$parent_url    = get_post( $attachment_id )->guid;
-		$cropped       = str_replace( basename( $parent_url ), 'cropped-test-image.jpg', $parent_url );
+		$cropped       = str_replace( wp_basename( $parent_url ), 'cropped-test-image.jpg', $parent_url );
 
 		$object     = $this->wp_site_icon->create_attachment_object( $cropped, $attachment_id );
 		$cropped_id = $this->wp_site_icon->insert_attachment( $object, $cropped );
@@ -163,7 +163,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		$filename = DIR_TESTDATA . '/images/test-image.jpg';
 		$contents = file_get_contents( $filename );
 
-		$upload = wp_upload_bits( basename( $filename ), null, $contents );
+		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
 
 		$this->attachment_id = $this->_make_attachment( $upload );
 		return $this->attachment_id;

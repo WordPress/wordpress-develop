@@ -32,7 +32,7 @@ class Tests_Ajax_MediaEdit extends WP_Ajax_UnitTestCase {
 		$filename = DIR_TESTDATA . '/images/canola.jpg';
 		$contents = file_get_contents( $filename );
 
-		$upload = wp_upload_bits( basename( $filename ), null, $contents );
+		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
 		$id     = $this->_make_attachment( $upload );
 
 		$_REQUEST['action']  = 'image-editor';
@@ -63,7 +63,7 @@ class Tests_Ajax_MediaEdit extends WP_Ajax_UnitTestCase {
 		$filename = DIR_TESTDATA . '/images/canola.jpg';
 		$contents = file_get_contents( $filename );
 
-		$upload = wp_upload_bits( basename( $filename ), null, $contents );
+		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
 		$id     = $this->_make_attachment( $upload );
 
 		$_REQUEST['action']  = 'image-editor';

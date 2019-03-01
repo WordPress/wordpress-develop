@@ -85,7 +85,7 @@ class WP_Test_Block_Parser extends WP_UnitTestCase {
 	 * @return string The cleaned fixture name.
 	 */
 	protected function clean_fixture_filename( $filename ) {
-		$filename = basename( $filename );
+		$filename = wp_basename( $filename );
 		$filename = preg_replace( '/\..+$/', '', $filename );
 		return $filename;
 	}
