@@ -1062,7 +1062,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		}
 
 		$attachment = array(
-			'post_title'     => basename( $upload['file'] ),
+			'post_title'     => wp_basename( $upload['file'] ),
 			'post_content'   => '',
 			'post_type'      => 'attachment',
 			'post_parent'    => $parent_post_id,
