@@ -214,25 +214,6 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	}
 
 	/**
-	 * When the index.html file cannot be created an error should be displayed.
-	 *
-	 * @ticket 44233
-	 */
-	public function test_detects_cannot_create_index() {
-		// Make the export directory read only so the index.html file can't be created.
-		mkdir( self::$exports_dir );
-		chmod( self::$exports_dir, 0444 );
-
-		if ( '444' !== substr( decoct( fileperms( self::$exports_dir ) ), -3 ) ) {
-			$this->markTestSkipped( 'Data export directory permissions were not changed correctly.' );
-		}
-
-		$this->setExpectedException( 'WPDieException' );
-		$this->expectOutputString( '{"success":false,"data":"Unable to protect export folder from browsing."}' );
-		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
-	}
-
-	/**
 	 * Test that an index.html file can be added to the export directory.
 	 *
 	 * @ticket 44233
@@ -242,28 +223,6 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
 
 		$this->assertTrue( file_exists( self::$exports_dir . 'index.html' ) );
-	}
-
-	/**
-	 * When the export directory is not writable the report should fail to write.
-	 *
-	 * @ticket 44233
-	 */
-	public function test_detects_cannot_write_html() {
-		// Make the folder read only so HTML writing will fail.
-		mkdir( self::$exports_dir );
-		touch( self::$exports_dir . 'index.html' );
-		chmod( self::$exports_dir, 0555 );
-
-		if ( '555' !== substr( decoct( fileperms( self::$exports_dir ) ), -3 ) ) {
-			$this->markTestSkipped( 'Data export directory permissions were not changed correctly.' );
-		}
-
-		$this->setExpectedException( 'WPDieException' );
-		$this->expectOutputString( '{"success":false,"data":"Unable to open export file (HTML report) for writing."}' );
-		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
-
-		$this->assertEmpty( $this->export_file_name );
 	}
 
 	/**
