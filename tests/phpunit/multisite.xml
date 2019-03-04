@@ -6,6 +6,7 @@
 		>
 	<php>
 		<const name="WP_TESTS_MULTISITE" value="1" />
+		<const name="WP_RUN_CORE_TESTS" value="1" />
 	</php>
 	<testsuites>
 		<!-- Default test suite to run all tests -->
@@ -41,9 +42,6 @@
 			<group>oembed-headers</group>
 		</exclude>
 	</groups>
-	<php>
-		<const name="WP_RUN_CORE_TESTS" value="1" />
-	</php>
 	<listeners>
 		<listener class="SpeedTrapListener" file="tests/phpunit/includes/listener-loader.php">
 			<arguments>
