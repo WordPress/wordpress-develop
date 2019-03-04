@@ -130,16 +130,16 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		);
 
 		// Test with no parameters
-		$this->assertEquals( 'canola-100x50.jpg', basename( $editor->generate_filename() ) );
+		$this->assertEquals( 'canola-100x50.jpg', wp_basename( $editor->generate_filename() ) );
 
 		// Test with a suffix only
-		$this->assertEquals( 'canola-new.jpg', basename( $editor->generate_filename( 'new' ) ) );
+		$this->assertEquals( 'canola-new.jpg', wp_basename( $editor->generate_filename( 'new' ) ) );
 
 		// Test with a destination dir only
 		$this->assertEquals( trailingslashit( realpath( get_temp_dir() ) ), trailingslashit( realpath( dirname( $editor->generate_filename( null, get_temp_dir() ) ) ) ) );
 
 		// Test with a suffix only
-		$this->assertEquals( 'canola-100x50.png', basename( $editor->generate_filename( null, null, 'png' ) ) );
+		$this->assertEquals( 'canola-100x50.png', wp_basename( $editor->generate_filename( null, null, 'png' ) ) );
 
 		// Combo!
 		$this->assertEquals( trailingslashit( realpath( get_temp_dir() ) ) . 'canola-new.png', $editor->generate_filename( 'new', realpath( get_temp_dir() ), 'png' ) );
