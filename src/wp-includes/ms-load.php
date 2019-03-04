@@ -52,6 +52,7 @@ function wp_get_active_network_plugins() {
 			$plugins[] = WP_PLUGIN_DIR . '/' . $plugin;
 		}
 	}
+
 	return $plugins;
 }
 

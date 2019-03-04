@@ -318,7 +318,7 @@ endif;
 	<?php	else : ?>
 		<input name="original_publish" type="hidden" id="original_publish" value="<?php esc_attr_e( 'Publish' ); ?>" />
 		<?php submit_button( __( 'Publish' ), 'primary large', 'publish', false ); ?>
-	<?php
+		<?php
 	endif;
 	else :
 		?>
@@ -511,8 +511,8 @@ function post_tags_meta_box( $post, $box ) {
 	<?php if ( $user_can_assign_terms ) : ?>
 	<div class="ajaxtag hide-if-no-js">
 		<label class="screen-reader-text" for="new-tag-<?php echo $tax_name; ?>"><?php echo $taxonomy->labels->add_new_item; ?></label>
-		<p><input data-wp-taxonomy="<?php echo $tax_name; ?>" type="text" id="new-tag-<?php echo $tax_name; ?>" name="newtag[<?php echo $tax_name; ?>]" class="newtag form-input-tip" size="16" autocomplete="off" aria-describedby="new-tag-<?php echo $tax_name; ?>-desc" value="" />
-		<input type="button" class="button tagadd" value="<?php esc_attr_e( 'Add' ); ?>" /></p>
+		<input data-wp-taxonomy="<?php echo $tax_name; ?>" type="text" id="new-tag-<?php echo $tax_name; ?>" name="newtag[<?php echo $tax_name; ?>]" class="newtag form-input-tip" size="16" autocomplete="off" aria-describedby="new-tag-<?php echo $tax_name; ?>-desc" value="" />
+		<input type="button" class="button tagadd" value="<?php esc_attr_e( 'Add' ); ?>" />
 	</div>
 	<p class="howto" id="new-tag-<?php echo $tax_name; ?>-desc"><?php echo $taxonomy->labels->separate_items_with_commas; ?></p>
 	<?php elseif ( empty( $terms_to_edit ) ) : ?>
@@ -804,7 +804,7 @@ function post_comment_meta_box_thead( $result ) {
 function post_comment_meta_box( $post ) {
 	wp_nonce_field( 'get-comments', 'add_comment_nonce', false );
 	?>
-	<p class="hide-if-no-js" id="add-new-comment"><a class="button" href="#commentstatusdiv" onclick="window.commentReply && commentReply.addcomment(<?php echo $post->ID; ?>);return false;"><?php _e( 'Add comment' ); ?></a></p>
+	<p class="hide-if-no-js" id="add-new-comment"><button type="button" class="button" onclick="window.commentReply && commentReply.addcomment(<?php echo $post->ID; ?>);"><?php _e( 'Add comment' ); ?></button></p>
 	<?php
 
 	$total         = get_comments(
@@ -1463,21 +1463,18 @@ function register_and_do_post_meta_boxes( $post ) {
 	}
 
 	if ( post_type_supports( $post_type, 'custom-fields' ) ) {
-		$screen = get_current_screen();
-		if ( ! $screen || ! $screen->is_block_editor() || (bool) get_user_meta( get_current_user_id(), 'enable_custom_fields', true ) ) {
-			add_meta_box(
-				'postcustom',
-				__( 'Custom Fields' ),
-				'post_custom_meta_box',
-				null,
-				'normal',
-				'core',
-				array(
-					'__back_compat_meta_box'             => false,
-					'__block_editor_compatible_meta_box' => true,
-				)
-			);
-		}
+		add_meta_box(
+			'postcustom',
+			__( 'Custom Fields' ),
+			'post_custom_meta_box',
+			null,
+			'normal',
+			'core',
+			array(
+				'__back_compat_meta_box'             => ! (bool) get_user_meta( get_current_user_id(), 'enable_custom_fields', true ),
+				'__block_editor_compatible_meta_box' => true,
+			)
+		);
 	}
 
 	/**

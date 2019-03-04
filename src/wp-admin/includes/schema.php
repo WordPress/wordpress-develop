@@ -541,7 +541,7 @@ function populate_options( array $options = array() ) {
 		'wp_page_for_privacy_policy'      => 0,
 
 		// 4.9.8
-		'show_comments_cookies_opt_in'    => 0,
+		'show_comments_cookies_opt_in'    => 1,
 	);
 
 	// 3.3
@@ -1329,5 +1329,6 @@ function populate_site_meta( $site_id, array $meta = array() ) {
 
 	$wpdb->query( "INSERT INTO $wpdb->blogmeta ( blog_id, meta_key, meta_value ) VALUES " . $insert ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
+	wp_cache_delete( $site_id, 'blog_meta' );
 	wp_cache_set_sites_last_changed();
 }

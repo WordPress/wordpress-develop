@@ -7,7 +7,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	function test_wp_parse_args_object() {
 		$x        = new MockClass;
 		$x->_baba = 5;
-		$x->yZ    = 'baba';
+		$x->yZ    = 'baba'; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		$x->a     = array( 5, 111, 'x' );
 		$this->assertEquals(
 			array(
@@ -43,7 +43,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	function test_wp_parse_args_defaults() {
 		$x        = new MockClass;
 		$x->_baba = 5;
-		$x->yZ    = 'baba';
+		$x->yZ    = 'baba'; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		$x->a     = array( 5, 111, 'x' );
 		$d        = array( 'pu' => 'bu' );
 		$this->assertEquals(
@@ -532,6 +532,30 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertEquals( 'foobarbaz', get_option( 'blog_charset' ) );
 
 		update_option( 'blog_charset', $orig_blog_charset );
+	}
+
+	/**
+	 * @ticket 43977
+	 * @dataProvider data_wp_parse_list
+	 */
+	function test_wp_parse_list( $expected, $actual ) {
+		$this->assertSame( $expected, array_values( wp_parse_list( $actual ) ) );
+	}
+
+	function data_wp_parse_list() {
+		return array(
+			array( array( '1', '2', '3', '4' ), '1,2,3,4' ),
+			array( array( 'apple', 'banana', 'carrot', 'dog' ), 'apple,banana,carrot,dog' ),
+			array( array( '1', '2', 'apple', 'banana' ), '1,2,apple,banana' ),
+			array( array( '1', '2', 'apple', 'banana' ), '1, 2,apple,banana' ),
+			array( array( '1', '2', 'apple', 'banana' ), '1,2,apple,,banana' ),
+			array( array( '1', '2', 'apple', 'banana' ), ',1,2,apple,banana' ),
+			array( array( '1', '2', 'apple', 'banana' ), '1,2,apple,banana,' ),
+			array( array( '1', '2', 'apple', 'banana' ), '1,2 ,apple,banana' ),
+			array( array(), '' ),
+			array( array(), ',' ),
+			array( array(), ',,' ),
+		);
 	}
 
 	/**

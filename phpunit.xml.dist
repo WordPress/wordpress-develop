@@ -1,46 +1,46 @@
 <phpunit
-	bootstrap="tests/phpunit/includes/bootstrap.php"
-        backupGlobals="false"
-        colors="true"
-        beStrictAboutTestsThatDoNotTestAnything="true"
-        >
-    <testsuites>
-        <!-- Default test suite to run all tests -->
-        <testsuite name="default">
-            <directory suffix=".php">tests/phpunit/tests</directory>
-            <exclude>tests/phpunit/tests/actions/closures.php</exclude>
-            <exclude>tests/phpunit/tests/image/editor.php</exclude>
-            <exclude>tests/phpunit/tests/image/editorGd.php</exclude>
-            <exclude>tests/phpunit/tests/image/editorImagick.php</exclude>
-            <exclude>tests/phpunit/tests/oembed/headers.php</exclude>
-            <exclude>tests/phpunit/tests/rest-api/rest-autosaves-controller.php</exclude>
-            <file phpVersion="5.3.0">tests/phpunit/tests/actions/closures.php</file>
-            <file phpVersion="5.3.0">tests/phpunit/tests/image/editor.php</file>
-            <file phpVersion="5.3.0">tests/phpunit/tests/image/editorGd.php</file>
-            <file phpVersion="5.3.0">tests/phpunit/tests/image/editorImagick.php</file>
-            <file phpVersion="5.3.0">tests/phpunit/tests/oembed/headers.php</file>
-        </testsuite>
-        <!-- Sets the DOING_AUTOSAVE constant, so needs to be run last -->
-        <testsuite name="restapi-autosave">
-            <file>tests/phpunit/tests/rest-api/rest-autosaves-controller.php</file>
-        </testsuite>
-    </testsuites>
-    <groups>
-        <exclude>
-            <group>ajax</group>
-            <group>ms-files</group>
-            <group>ms-required</group>
-            <group>external-http</group>
-        </exclude>
-    </groups>
-    <logging>
-        <log type="junit" target="tests/phpunit/build/logs/junit.xml" logIncompleteSkipped="false"/>
-    </logging>
-    <php>
-        <const name="WP_RUN_CORE_TESTS" value="1" />
-    </php>
+		bootstrap="tests/phpunit/includes/bootstrap.php"
+		backupGlobals="false"
+		colors="true"
+		beStrictAboutTestsThatDoNotTestAnything="true"
+		>
+	<testsuites>
+		<!-- Default test suite to run all tests -->
+		<testsuite name="default">
+			<directory suffix=".php">tests/phpunit/tests</directory>
+			<file phpVersion="5.3.0">tests/phpunit/tests/actions/closures.php</file>
+			<file phpVersion="5.3.0">tests/phpunit/tests/image/editor.php</file>
+			<file phpVersion="5.3.0">tests/phpunit/tests/image/editorGd.php</file>
+			<file phpVersion="5.3.0">tests/phpunit/tests/image/editorImagick.php</file>
+			<file phpVersion="5.3.0">tests/phpunit/tests/oembed/headers.php</file>
+			<exclude>tests/phpunit/tests/actions/closures.php</exclude>
+			<exclude>tests/phpunit/tests/image/editor.php</exclude>
+			<exclude>tests/phpunit/tests/image/editorGd.php</exclude>
+			<exclude>tests/phpunit/tests/image/editorImagick.php</exclude>
+			<exclude>tests/phpunit/tests/oembed/headers.php</exclude>
+			<exclude>tests/phpunit/tests/rest-api/rest-autosaves-controller.php</exclude>
+		</testsuite>
+		<!-- Sets the DOING_AUTOSAVE constant, so needs to be run last -->
+		<testsuite name="restapi-autosave">
+			<file>tests/phpunit/tests/rest-api/rest-autosaves-controller.php</file>
+		</testsuite>
+	</testsuites>
+	<groups>
+		<exclude>
+			<group>ajax</group>
+			<group>ms-files</group>
+			<group>ms-required</group>
+			<group>external-http</group>
+		</exclude>
+	</groups>
+	<logging>
+		<log type="junit" target="tests/phpunit/build/logs/junit.xml" />
+	</logging>
+	<php>
+		<const name="WP_RUN_CORE_TESTS" value="1" />
+	</php>
 	<listeners>
-		<listener class="SpeedTrapListener" file="tests/phpunit/includes/speed-trap-listener.php">
+		<listener class="SpeedTrapListener" file="tests/phpunit/includes/listener-loader.php">
 			<arguments>
 				<array>
 					<element key="slowThreshold">
@@ -55,6 +55,13 @@
 			<directory suffix=".php">src</directory>
 			<exclude>
 				<!-- Third party library exclusions -->
+				<directory suffix=".php">src/wp-includes/ID3</directory>
+				<directory suffix=".php">src/wp-includes/IXR</directory>
+				<directory suffix=".php">src/wp-includes/random_compat</directory>
+				<directory suffix=".php">src/wp-includes/Requests</directory>
+				<directory suffix=".php">src/wp-includes/SimplePie</directory>
+				<directory suffix=".php">src/wp-includes/Text</directory>
+
 				<file>src/wp-admin/includes/class-ftp*</file>
 				<file>src/wp-admin/includes/class-pclzip.php</file>
 				<file>src/wp-admin/includes/deprecated.php</file>
@@ -74,13 +81,6 @@
 				<file>src/wp-includes/ms-deprecated.php</file>
 				<file>src/wp-includes/pluggable-deprecated.php</file>
 				<file>src/wp-includes/rss.php</file>
-
-				<directory suffix=".php">src/wp-includes/ID3</directory>
-				<directory suffix=".php">src/wp-includes/IXR</directory>
-				<directory suffix=".php">src/wp-includes/random_compat</directory>
-				<directory suffix=".php">src/wp-includes/Requests</directory>
-				<directory suffix=".php">src/wp-includes/SimplePie</directory>
-				<directory suffix=".php">src/wp-includes/Text</directory>
 			</exclude>
 		</whitelist>
 	</filter>

@@ -173,6 +173,7 @@ switch ( $action ) {
 			exit;
 		}
 
+		// Intentional fall-through to display $errors.
 	default:
 		$profileuser = get_user_to_edit( $user_id );
 
@@ -227,7 +228,7 @@ switch ( $action ) {
 	<?php } elseif ( is_multisite() && current_user_can( 'promote_users' ) ) { ?>
 		<a href="user-new.php" class="page-title-action"><?php echo esc_html_x( 'Add Existing', 'user' ); ?></a>
 				<?php
-}
+	}
 		}
 		?>
 
@@ -303,20 +304,19 @@ switch ( $action ) {
 </tr>
 			<?php
 endif; // $_wp_admin_css_colors
-if ( ! ( IS_PROFILE_PAGE && ! $user_can_edit ) ) :
-	?>
+		if ( ! ( IS_PROFILE_PAGE && ! $user_can_edit ) ) :
+			?>
 <tr class="user-comment-shortcuts-wrap">
 <th scope="row"><?php _e( 'Keyboard Shortcuts' ); ?></th>
 <td><label for="comment_shortcuts"><input type="checkbox" name="comment_shortcuts" id="comment_shortcuts" value="true" <?php checked( 'true', $profileuser->comment_shortcuts ); ?> /> <?php _e( 'Enable keyboard shortcuts for comment moderation.' ); ?></label> <?php _e( '<a href="https://codex.wordpress.org/Keyboard_Shortcuts" target="_blank">More information</a>' ); ?></td>
 </tr>
-<?php endif; ?>
+		<?php endif; ?>
 <tr class="show-admin-bar user-admin-bar-front-wrap">
 <th scope="row"><?php _e( 'Toolbar' ); ?></th>
-<td><fieldset><legend class="screen-reader-text"><span><?php _e( 'Toolbar' ); ?></span></legend>
+<td>
 <label for="admin_bar_front">
 <input name="admin_bar_front" type="checkbox" id="admin_bar_front" value="1"<?php checked( _get_admin_bar_pref( 'front', $profileuser->ID ) ); ?> />
 		<?php _e( 'Show Toolbar when viewing site' ); ?></label><br />
-</fieldset>
 </td>
 </tr>
 
@@ -413,17 +413,17 @@ endif;
 			<?php
 endif; //!IS_PROFILE_PAGE
 
-if ( is_multisite() && is_network_admin() && ! IS_PROFILE_PAGE && current_user_can( 'manage_network_options' ) && ! isset( $super_admins ) ) {
-	?>
+		if ( is_multisite() && is_network_admin() && ! IS_PROFILE_PAGE && current_user_can( 'manage_network_options' ) && ! isset( $super_admins ) ) {
+			?>
 <tr class="user-super-admin-wrap"><th><?php _e( 'Super Admin' ); ?></th>
 <td>
-	<?php if ( $profileuser->user_email != get_site_option( 'admin_email' ) || ! is_super_admin( $profileuser->ID ) ) : ?>
+			<?php if ( $profileuser->user_email != get_site_option( 'admin_email' ) || ! is_super_admin( $profileuser->ID ) ) : ?>
 <p><label><input type="checkbox" id="super_admin" name="super_admin"<?php checked( is_super_admin( $profileuser->ID ) ); ?> /> <?php _e( 'Grant this user super admin privileges for the Network.' ); ?></label></p>
 <?php else : ?>
 <p><?php _e( 'Super admin privileges cannot be removed because this user has the network admin email.' ); ?></p>
 <?php endif; ?>
 </td></tr>
-<?php } ?>
+		<?php } ?>
 
 <tr class="user-first-name-wrap">
 	<th><label for="first_name"><?php _e( 'First Name' ); ?></label></th>

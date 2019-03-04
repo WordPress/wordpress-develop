@@ -2320,6 +2320,34 @@ if ( is_multisite() ) :
 
 			return $args;
 		}
+
+		/**
+		 * @ticket 46125
+		 */
+		public function test_wpmu_create_blog_cache_cleanup_backward_compatible() {
+			add_action( 'populate_options', array( $this, 'populate_options_callback' ) );
+
+			$blog_id = wpmu_create_blog( 'testsite1.example.org', '/test', 'test', 1, array( 'public' => 1 ), 2 );
+
+			// Should not hit blog_details cache initialised in $this->populate_options_callback tirggered during
+			// populate_options callback's call of get_blog_details.
+			$this->assertEquals( 'http://testsite1.example.org/test', get_blog_details( $blog_id )->siteurl );
+			$this->assertEquals( 'http://testsite1.example.org/test', get_site( $blog_id )->siteurl );
+
+			remove_action( 'populate_options', array( $this, 'populate_options_callback' ) );
+		}
+
+		/**
+		 * Populate options callback to warm cache for blog-details / site-details cache group
+		 */
+		public function populate_options_callback() {
+			// Cache blog details
+			$blog_id = get_current_blog_id();
+			get_blog_details( $blog_id );
+			get_site( $blog_id )->siteurl;
+			// Set siteurl
+			update_option( 'siteurl', 'http://testsite1.example.org/test' );
+		}
 	}
 
 endif;

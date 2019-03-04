@@ -245,6 +245,11 @@
 	top: -1px;
 }
 
+.welcome-panel .welcome-setup-home:before {
+	content: "\f102";
+	top: -1px;
+}
+
 .welcome-panel .welcome-view-site:before {
 	content: "\f115";
 	top: -2px;
@@ -389,7 +394,7 @@
 .community-events li {
 	margin: 0;
 	padding: 8px 12px;
-	color: #72777c;
+	color: #32373c;
 }
 .community-events li:first-child {
 	border-top: 1px solid #eee;
@@ -1248,7 +1253,7 @@ a.rsswidget {
 
 }
 
-@media screen and ( max-width: 782px ) {
+@media screen and (max-width: 782px) {
 	#dashboard_recent_comments #the-comment-list .comment-item .avatar {
 		height: 30px;
 		width: 30px;

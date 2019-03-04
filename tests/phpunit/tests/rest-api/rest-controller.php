@@ -203,7 +203,10 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$this->assertEquals( 'a', $args['somedefault']['default'] );
 	}
 
-	public function test_get_fields_for_response() {
+	/**
+	 * @dataProvider data_get_fields_for_response,
+	 */
+	public function test_get_fields_for_response( $param, $expected ) {
 		$controller = new WP_REST_Test_Controller();
 		$request    = new WP_REST_Request( 'GET', '/wp/v2/testroute' );
 		$fields     = $controller->get_fields_for_response( $request );
@@ -221,14 +224,34 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 			),
 			$fields
 		);
-		$request->set_param( '_fields', 'somestring,someinteger' );
+		$request->set_param( '_fields', $param );
 		$fields = $controller->get_fields_for_response( $request );
-		$this->assertEquals(
+		$this->assertEquals( $expected, $fields );
+	}
+
+	public function data_get_fields_for_response() {
+		return array(
 			array(
-				'somestring',
-				'someinteger',
+				'somestring,someinteger',
+				array(
+					'somestring',
+					'someinteger',
+				),
 			),
-			$fields
+			array(
+				',,',
+				array(
+					'somestring',
+					'someinteger',
+					'someboolean',
+					'someurl',
+					'somedate',
+					'someemail',
+					'someenum',
+					'someargoptions',
+					'somedefault',
+				),
+			),
 		);
 	}
 

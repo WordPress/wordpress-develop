@@ -17,7 +17,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 	public function _make_attachment( $file, $parent_post_id = 0 ) {
 		$contents = file_get_contents( $file );
-		$upload   = wp_upload_bits( basename( $file ), null, $contents );
+		$upload   = wp_upload_bits( wp_basename( $file ), null, $contents );
 
 		return parent::_make_attachment( $upload, $parent_post_id );
 	}

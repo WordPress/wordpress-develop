@@ -275,6 +275,109 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 45933
+	 * @dataProvider data_die_process_input
+	 */
+	public function test_die_process_input( $input, $expected ) {
+		$defaults = array(
+			'message' => '',
+			'title'   => '',
+			'args'    => array(),
+		);
+
+		$input    = wp_parse_args(
+			$input,
+			$defaults
+		);
+		$expected = wp_parse_args(
+			$expected,
+			$defaults
+		);
+
+		list( $message, $title, $args ) = _wp_die_process_input( $input['message'], $input['title'], $input['args'] );
+
+		$this->assertSame( $expected['message'], $message );
+		$this->assertSame( $expected['title'], $title );
+
+		// Only check arguments that are explicitly asked for.
+		$this->assertEqualSets( $expected['args'], array_intersect_key( $args, $expected['args'] ) );
+	}
+
+	public function data_die_process_input() {
+		return array(
+			array(
+				array(
+					'message' => 'Broken.',
+				),
+				array(
+					'message' => 'Broken.',
+					'title'   => 'WordPress &rsaquo; Error',
+					'args'    => array(
+						'response'       => 500,
+						'code'           => 'wp_die',
+						'text_direction' => 'ltr',
+					),
+				),
+			),
+			array(
+				array(
+					'message' => 'Broken.',
+					'title'   => 'Fatal Error',
+					'args'    => array(
+						'response' => null,
+					),
+				),
+				array(
+					'message' => 'Broken.',
+					'title'   => 'Fatal Error',
+					'args'    => array(
+						'response' => 500,
+					),
+				),
+			),
+			array(
+				array(
+					'message' => 'More breakage.',
+					'args'    => array(
+						'response'       => 400,
+						'code'           => 'custom_code',
+						'text_direction' => 'rtl',
+					),
+				),
+				array(
+					'message' => 'More breakage.',
+					'title'   => 'WordPress &rsaquo; Error',
+					'args'    => array(
+						'response'       => 400,
+						'code'           => 'custom_code',
+						'text_direction' => 'rtl',
+					),
+				),
+			),
+			array(
+				array(
+					'message' => new WP_Error(
+						'no_access',
+						'You do not have access.',
+						array(
+							'status' => 403,
+							'title'  => 'Permission Error',
+						)
+					),
+				),
+				array(
+					'message' => 'You do not have access.',
+					'title'   => 'Permission Error',
+					'args'    => array(
+						'response' => 403,
+						'code'     => 'no_access',
+					),
+				),
+			),
+		);
+	}
+
+	/**
 	 * This test is just a setup for the one that follows.
 	 *
 	 * @ticket 38196

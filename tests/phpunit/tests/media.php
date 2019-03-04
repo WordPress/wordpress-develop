@@ -1524,7 +1524,7 @@ EOF;
 		// Copy hash generation method used in wp_save_image().
 		$hash = 'e' . time() . rand( 100, 999 );
 
-		$filename_base = basename( $image_meta['file'], '.png' );
+		$filename_base = wp_basename( $image_meta['file'], '.png' );
 
 		// Add the hash to the image URL
 		$image_url = str_replace( $filename_base, $filename_base . '-' . $hash, $image_url );
@@ -2341,6 +2341,21 @@ EOF;
 		);
 
 		$this->assertEquals( 1265680539, wp_get_media_creation_timestamp( $metadata ) );
+	}
+
+	/**
+	 * Test created timestamp is properly read from an MP4 file.
+	 *
+	 * This MP4 video file has an AAC audio track, so it can be used to test
+	 *`wp_read_audio_metadata()`.
+	 *
+	 * @ticket 42017
+	 */
+	function test_wp_read_audio_metadata_adds_creation_date_with_mp4() {
+		$video    = DIR_TESTDATA . '/uploads/small-video.mp4';
+		$metadata = wp_read_audio_metadata( $video );
+
+		$this->assertEquals( 1269120551, $metadata['created_timestamp'] );
 	}
 
 	/**

@@ -93,6 +93,34 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 				'Nested octects %%%ABABAB %A%A%ABBB',
 				'Nested octects',
 			),
+			array(
+				array(),
+				'',
+			),
+			array(
+				array( 1, 2, 'foo' ),
+				'',
+			),
+			array(
+				new WP_Query,
+				'',
+			),
+			array(
+				2,
+				'2',
+			),
+			array(
+				false,
+				'',
+			),
+			array(
+				true,
+				'1',
+			),
+			array(
+				10.1,
+				'10.1',
+			),
 		);
 	}
 

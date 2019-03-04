@@ -21,15 +21,37 @@ class WP_UnitTest_Factory_For_User extends WP_UnitTest_Factory_For_Thing {
 		);
 	}
 
+	/**
+	 * Inserts an user.
+	 *
+	 * @param array $args The user data to insert.
+	 *
+	 * @return int|WP_Error
+	 */
 	function create_object( $args ) {
 		return wp_insert_user( $args );
 	}
 
+	/**
+	 * Updates the user data.
+	 *
+	 * @param int   $user_id The user id to update.
+	 * @param array $fields  The user data to update.
+	 *
+	 * @return int|WP_Error User id on success. WP_Error on failure.
+	 */
 	function update_object( $user_id, $fields ) {
 		$fields['ID'] = $user_id;
 		return wp_update_user( $fields );
 	}
 
+	/**
+	 * Retrieves the user for given user id.
+	 *
+	 * @param int $user_id The user id to get.
+	 *
+	 * @return WP_User The user.
+	 */
 	function get_object_by_id( $user_id ) {
 		return new WP_User( $user_id );
 	}

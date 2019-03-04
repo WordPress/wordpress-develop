@@ -137,7 +137,9 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 		if ( null !== this.clickedOpenerEl ) {
 			this.clickedOpenerEl.focus();
 		} else {
-			$( '#wpbody-content' ).focus();
+			$( '#wpbody-content' )
+				.attr( 'tabindex', '-1' )
+				.focus();
 		}
 
 		this.propagate('close');

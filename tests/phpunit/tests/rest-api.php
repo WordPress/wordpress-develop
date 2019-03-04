@@ -14,9 +14,11 @@ require_once ABSPATH . WPINC . '/rest-api.php';
  */
 class Tests_REST_API extends WP_UnitTestCase {
 	public function setUp() {
+		parent::setUp();
+
 		// Override the normal server with our spying server.
 		$GLOBALS['wp_rest_server'] = new Spy_REST_Server();
-		parent::setUp();
+		do_action( 'rest_api_init', $GLOBALS['wp_rest_server'] );
 	}
 
 	public function tearDown() {

@@ -2096,7 +2096,7 @@ function wp_upload_dir( $time = null, $create_dir = true, $refresh_cache = false
 				if ( 0 === strpos( $uploads['basedir'], ABSPATH ) ) {
 					$error_path = str_replace( ABSPATH, '', $uploads['basedir'] ) . $uploads['subdir'];
 				} else {
-					$error_path = basename( $uploads['basedir'] ) . $uploads['subdir'];
+					$error_path = wp_basename( $uploads['basedir'] ) . $uploads['subdir'];
 				}
 
 				$uploads['error'] = sprintf(
@@ -2381,7 +2381,7 @@ function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 		if ( 0 === strpos( $upload['basedir'], ABSPATH ) ) {
 			$error_path = str_replace( ABSPATH, '', $upload['basedir'] ) . $upload['subdir'];
 		} else {
-			$error_path = basename( $upload['basedir'] ) . $upload['subdir'];
+			$error_path = wp_basename( $upload['basedir'] ) . $upload['subdir'];
 		}
 
 		$message = sprintf(
@@ -2638,15 +2638,17 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 	 * Filters the "real" file type of the given file.
 	 *
 	 * @since 3.0.0
+	 * @since 5.1.0 The $real_mime parameter was added.
 	 *
-	 * @param array  $wp_check_filetype_and_ext File data array containing 'ext', 'type', and
-	 *                                          'proper_filename' keys.
-	 * @param string $file                      Full path to the file.
-	 * @param string $filename                  The name of the file (may differ from $file due to
-	 *                                          $file being in a tmp directory).
-	 * @param array  $mimes                     Key is the file extension with value as the mime type.
+	 * @param array       $wp_check_filetype_and_ext File data array containing 'ext', 'type', and
+	 *                                               'proper_filename' keys.
+	 * @param string      $file                      Full path to the file.
+	 * @param string      $filename                  The name of the file (may differ from $file due to
+	 *                                               $file being in a tmp directory).
+	 * @param array       $mimes                     Key is the file extension with value as the mime type.
+	 * @param string|bool $real_mime                 The actual mime type or false if the type cannot be determined.
 	 */
-	return apply_filters( 'wp_check_filetype_and_ext', compact( 'ext', 'type', 'proper_filename' ), $file, $filename, $mimes );
+	return apply_filters( 'wp_check_filetype_and_ext', compact( 'ext', 'type', 'proper_filename' ), $file, $filename, $mimes, $real_mime );
 }
 
 /**
@@ -2933,6 +2935,7 @@ function wp_nonce_ays( $action ) {
  * @since 2.0.4
  * @since 4.1.0 The `$title` and `$args` parameters were changed to optionally accept
  *              an integer to be used as the response code.
+ * @since 5.1.0 The `$link_url`, `$link_text`, and `$exit` arguments were added.
  *
  * @param string|WP_Error  $message Optional. Error message. If this is a WP_Error object,
  *                                  and not an Ajax or XML-RPC request, the error's messages are used.
@@ -2946,10 +2949,17 @@ function wp_nonce_ays( $action ) {
  *     as the response code. Default empty array.
  *
  *     @type int    $response       The HTTP response code. Default 200 for Ajax requests, 500 otherwise.
+ *     @type string $link_url       A URL to include a link to. Only works in combination with $link_text.
+ *                                  Default empty string.
+ *     @type string $link_text      A label for the link to include. Only works in combination with $link_url.
+ *                                  Default empty string.
  *     @type bool   $back_link      Whether to include a link to go back. Default false.
  *     @type string $text_direction The text direction. This is only useful internally, when WordPress
  *                                  is still loading and the site's locale is not set up yet. Accepts 'rtl'.
  *                                  Default is the value of is_rtl().
+ *     @type string $code           Error code to use. Default is 'wp_die', or the main error code if $message
+ *                                  is a WP_Error.
+ *     @type bool   $exit           Whether to exit the process after completion. Default true.
  * }
  */
 function wp_die( $message = '', $title = '', $args = array() ) {
@@ -2970,6 +2980,15 @@ function wp_die( $message = '', $title = '', $args = array() ) {
 		 * @param callable $function Callback function name.
 		 */
 		$function = apply_filters( 'wp_die_ajax_handler', '_ajax_wp_die_handler' );
+	} elseif ( wp_is_json_request() ) {
+		/**
+		 * Filters the callback for killing WordPress execution for JSON requests.
+		 *
+		 * @since 5.1.0
+		 *
+		 * @param callable $function Callback function name.
+		 */
+		$function = apply_filters( 'wp_die_json_handler', '_json_wp_die_handler' );
 	} elseif ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) {
 		/**
 		 * Filters the callback for killing WordPress execution for XML-RPC requests.
@@ -3007,32 +3026,29 @@ function wp_die( $message = '', $title = '', $args = array() ) {
  * @param string|array    $args    Optional. Arguments to control behavior. Default empty array.
  */
 function _default_wp_die_handler( $message, $title = '', $args = array() ) {
-	$defaults = array( 'response' => 500 );
-	$r        = wp_parse_args( $args, $defaults );
+	list( $message, $title, $r ) = _wp_die_process_input( $message, $title, $args );
+
+	if ( is_string( $message ) ) {
+		if ( ! empty( $r['additional_errors'] ) ) {
+			$message = array_merge(
+				array( $message ),
+				wp_list_pluck( $r['additional_errors'], 'message' )
+			);
+			$message = "<ul>\n\t\t<li>" . join( "</li>\n\t\t<li>", $message ) . "</li>\n\t</ul>";
+		} else {
+			$message = "<p>$message</p>";
+		}
+	}
 
 	$have_gettext = function_exists( '__' );
 
-	if ( function_exists( 'is_wp_error' ) && is_wp_error( $message ) ) {
-		if ( empty( $title ) ) {
-			$error_data = $message->get_error_data();
-			if ( is_array( $error_data ) && isset( $error_data['title'] ) ) {
-				$title = $error_data['title'];
-			}
+	if ( ! empty( $r['link_url'] ) && ! empty( $r['link_text'] ) ) {
+		$link_url = $r['link_url'];
+		if ( function_exists( 'esc_url' ) ) {
+			$link_url = esc_url( $link_url );
 		}
-		$errors = $message->get_error_messages();
-		switch ( count( $errors ) ) {
-			case 0:
-				$message = '';
-				break;
-			case 1:
-				$message = "<p>{$errors[0]}</p>";
-				break;
-			default:
-				$message = "<ul>\n\t\t<li>" . join( "</li>\n\t\t<li>", $errors ) . "</li>\n\t</ul>";
-				break;
-		}
-	} elseif ( is_string( $message ) ) {
-		$message = "<p>$message</p>";
+		$link_text = $r['link_text'];
+		$message  .= "\n<p><a href='{$link_url}'>{$link_text}</a></p>";
 	}
 
 	if ( isset( $r['back_link'] ) && $r['back_link'] ) {
@@ -3047,17 +3063,7 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 			header( 'Content-Type: text/html; charset=utf-8' );
 		}
 
-		if ( empty( $title ) ) {
-			$title = $have_gettext ? __( 'WordPress &rsaquo; Error' ) : 'WordPress &rsaquo; Error';
-		}
-
-		$text_direction = 'ltr';
-		if ( isset( $r['text_direction'] ) && 'rtl' == $r['text_direction'] ) {
-			$text_direction = 'rtl';
-		} elseif ( function_exists( 'is_rtl' ) && is_rtl() ) {
-			$text_direction = 'rtl';
-		}
-
+		$text_direction = $r['text_direction'];
 		if ( function_exists( 'language_attributes' ) && function_exists( 'is_rtl' ) ) {
 			$dir_attr = get_language_attributes();
 		} else {
@@ -3198,7 +3204,46 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 </body>
 </html>
 	<?php
-	die();
+	if ( $r['exit'] ) {
+		die();
+	}
+}
+
+/**
+ * Kill WordPress execution and display JSON message with error message.
+ *
+ * This is the handler for wp_die when processing JSON requests.
+ *
+ * @since 5.1.0
+ * @access private
+ *
+ * @param string       $message Error message.
+ * @param string       $title   Optional. Error title. Default empty.
+ * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
+ */
+function _json_wp_die_handler( $message, $title = '', $args = array() ) {
+	list( $message, $title, $r ) = _wp_die_process_input( $message, $title, $args );
+
+	$data = array(
+		'code'              => $r['code'],
+		'message'           => $message,
+		'data'              => array(
+			'status' => $r['response'],
+		),
+		'additional_errors' => $r['additional_errors'],
+	);
+
+	if ( ! headers_sent() ) {
+		header( 'Content-Type: application/json; charset=utf-8' );
+		if ( null !== $r['response'] ) {
+			status_header( $r['response'] );
+		}
+	}
+
+	echo wp_json_encode( $data );
+	if ( $r['exit'] ) {
+		die();
+	}
 }
 
 /**
@@ -3217,15 +3262,16 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
  */
 function _xmlrpc_wp_die_handler( $message, $title = '', $args = array() ) {
 	global $wp_xmlrpc_server;
-	$defaults = array( 'response' => 500 );
 
-	$r = wp_parse_args( $args, $defaults );
+	list( $message, $title, $r ) = _wp_die_process_input( $message, $title, $args );
 
 	if ( $wp_xmlrpc_server ) {
 		$error = new IXR_Error( $r['response'], $message );
 		$wp_xmlrpc_server->output( $error->getXml() );
 	}
-	die();
+	if ( $r['exit'] ) {
+		die();
+	}
 }
 
 /**
@@ -3241,19 +3287,30 @@ function _xmlrpc_wp_die_handler( $message, $title = '', $args = array() ) {
  * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
  */
 function _ajax_wp_die_handler( $message, $title = '', $args = array() ) {
-	$defaults = array(
-		'response' => 200,
+	// Set default 'response' to 200 for AJAX requests.
+	$args = wp_parse_args(
+		$args,
+		array( 'response' => 200 )
 	);
-	$r        = wp_parse_args( $args, $defaults );
 
-	if ( ! headers_sent() && null !== $r['response'] ) {
+	list( $message, $title, $r ) = _wp_die_process_input( $message, $title, $args );
+
+	// This is intentional. For backward-compatibility, support passing null here.
+	if ( ! headers_sent() && null !== $args['response'] ) {
 		status_header( $r['response'] );
 	}
 
 	if ( is_scalar( $message ) ) {
-		die( (string) $message );
+		$message = (string) $message;
+	} else {
+		$message = '0';
 	}
-	die( '0' );
+
+	if ( $r['exit'] ) {
+		die( $message );
+	}
+
+	echo $message;
 }
 
 /**
@@ -3262,15 +3319,104 @@ function _ajax_wp_die_handler( $message, $title = '', $args = array() ) {
  * This is the handler for wp_die when processing APP requests.
  *
  * @since 3.4.0
+ * @since 5.1.0 Added the $title and $args parameters.
  * @access private
  *
- * @param string $message Optional. Response to print. Default empty.
+ * @param string       $message Optional. Response to print. Default empty.
+ * @param string       $title   Optional. Error title (unused). Default empty.
+ * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
  */
-function _scalar_wp_die_handler( $message = '' ) {
-	if ( is_scalar( $message ) ) {
-		die( (string) $message );
+function _scalar_wp_die_handler( $message = '', $title = '', $args = array() ) {
+	list( $message, $title, $r ) = _wp_die_process_input( $message, $title, $args );
+
+	if ( $r['exit'] ) {
+		if ( is_scalar( $message ) ) {
+			die( (string) $message );
+		}
+		die();
 	}
-	die();
+
+	if ( is_scalar( $message ) ) {
+		echo (string) $message;
+	}
+}
+
+/**
+ * Processes arguments passed to {@see wp_die()} consistently for its handlers.
+ *
+ * @since 5.1.0
+ * @access private
+ *
+ * @param string       $message Error message.
+ * @param string       $title   Optional. Error title. Default empty.
+ * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
+ * @return array List of processed $message string, $title string, and $args array.
+ */
+function _wp_die_process_input( $message, $title = '', $args = array() ) {
+	$defaults = array(
+		'response'          => 0,
+		'code'              => '',
+		'exit'              => true,
+		'back_link'         => false,
+		'link_url'          => '',
+		'link_text'         => '',
+		'text_direction'    => '',
+		'additional_errors' => array(),
+	);
+
+	$args = wp_parse_args( $args, $defaults );
+
+	if ( function_exists( 'is_wp_error' ) && is_wp_error( $message ) ) {
+		if ( ! empty( $message->errors ) ) {
+			$errors = array();
+			foreach ( (array) $message->errors as $error_code => $error_messages ) {
+				foreach ( (array) $error_messages as $error_message ) {
+					$errors[] = array(
+						'code'    => $error_code,
+						'message' => $error_message,
+						'data'    => $message->get_error_data( $error_code ),
+					);
+				}
+			}
+
+			$message = $errors[0]['message'];
+			if ( empty( $args['code'] ) ) {
+				$args['code'] = $errors[0]['code'];
+			}
+			if ( empty( $args['response'] ) && is_array( $errors[0]['data'] ) && ! empty( $errors[0]['data']['status'] ) ) {
+				$args['response'] = $errors[0]['data']['status'];
+			}
+			if ( empty( $title ) && is_array( $errors[0]['data'] ) && ! empty( $errors[0]['data']['title'] ) ) {
+				$title = $errors[0]['data']['title'];
+			}
+
+			unset( $errors[0] );
+			$args['additional_errors'] = array_values( $errors );
+		} else {
+			$message = '';
+		}
+	}
+
+	$have_gettext = function_exists( '__' );
+
+	// The $title and these specific $args must always have a non-empty value.
+	if ( empty( $args['code'] ) ) {
+		$args['code'] = 'wp_die';
+	}
+	if ( empty( $args['response'] ) ) {
+		$args['response'] = 500;
+	}
+	if ( empty( $title ) ) {
+		$title = $have_gettext ? __( 'WordPress &rsaquo; Error' ) : 'WordPress &rsaquo; Error';
+	}
+	if ( empty( $args['text_direction'] ) || ! in_array( $args['text_direction'], array( 'ltr', 'rtl' ), true ) ) {
+		$args['text_direction'] = 'ltr';
+		if ( function_exists( 'is_rtl' ) && is_rtl() ) {
+			$args['text_direction'] = 'rtl';
+		}
+	}
+
+	return array( $message, $title, $args );
 }
 
 /**
@@ -3823,6 +3969,22 @@ function wp_parse_args( $args, $defaults = '' ) {
 }
 
 /**
+ * Cleans up an array, comma- or space-separated list of scalar values.
+ *
+ * @since 5.1.0
+ *
+ * @param array|string $list List of values.
+ * @return array Sanitized array of values.
+ */
+function wp_parse_list( $list ) {
+	if ( ! is_array( $list ) ) {
+		return preg_split( '/[\s,]+/', $list, -1, PREG_SPLIT_NO_EMPTY );
+	}
+
+	return $list;
+}
+
+/**
  * Clean up an array, comma- or space-separated list of IDs.
  *
  * @since 3.0.0
@@ -3831,9 +3993,7 @@ function wp_parse_args( $args, $defaults = '' ) {
  * @return array Sanitized array of IDs.
  */
 function wp_parse_id_list( $list ) {
-	if ( ! is_array( $list ) ) {
-		$list = preg_split( '/[\s,]+/', $list );
-	}
+	$list = wp_parse_list( $list );
 
 	return array_unique( array_map( 'absint', $list ) );
 }
@@ -3847,15 +4007,9 @@ function wp_parse_id_list( $list ) {
  * @return array Sanitized array of slugs.
  */
 function wp_parse_slug_list( $list ) {
-	if ( ! is_array( $list ) ) {
-		$list = preg_split( '/[\s,]+/', $list );
-	}
+	$list = wp_parse_list( $list );
 
-	foreach ( $list as $key => $value ) {
-		$list[ $key ] = sanitize_title( $value );
-	}
-
-	return array_unique( $list );
+	return array_unique( array_map( 'sanitize_title', $list ) );
 }
 
 /**
@@ -4489,7 +4643,7 @@ function _doing_it_wrong( $function, $message, $version ) {
 	 * Filters whether to trigger an error for _doing_it_wrong() calls.
 	 *
 	 * @since 3.1.0
-	 * @since 5.0.0 Added the $function, $message and $version parameters.
+	 * @since 5.1.0 Added the $function, $message and $version parameters.
 	 *
 	 * @param bool   $trigger  Whether to trigger the error for _doing_it_wrong() calls. Default true.
 	 * @param string $function The function that was called.
@@ -5065,6 +5219,7 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 		$exists[4] = ( $exists[1] && $exists[3] );
 		$exists[5] = ( $exists[2] && $exists[3] );
 
+		// phpcs:disable WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText
 		$zonen[] = array(
 			'continent'   => ( $exists[0] ? $zone[0] : '' ),
 			'city'        => ( $exists[1] ? $zone[1] : '' ),
@@ -5073,6 +5228,7 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 			't_city'      => ( $exists[4] ? translate( str_replace( '_', ' ', $zone[1] ), 'continents-cities' ) : '' ),
 			't_subcity'   => ( $exists[5] ? translate( str_replace( '_', ' ', $zone[2] ), 'continents-cities' ) : '' ),
 		);
+		// phpcs:enable
 	}
 	usort( $zonen, '_wp_timezone_choice_usort_callback' );
 
@@ -5706,16 +5862,16 @@ function _device_can_upload() {
  * @return bool True if the path is a stream URL.
  */
 function wp_is_stream( $path ) {
-	if ( false === strpos( $path, '://' ) ) {
+	$scheme_separator = strpos( $path, '://' );
+
+	if ( false === $scheme_separator ) {
 		// $path isn't a stream
 		return false;
 	}
 
-	$wrappers    = stream_get_wrappers();
-	$wrappers    = array_map( 'preg_quote', $wrappers );
-	$wrappers_re = '(' . join( '|', $wrappers ) . ')';
+	$stream = substr( $path, 0, $scheme_separator );
 
-	return preg_match( "!^$wrappers_re://!", $path ) === 1;
+	return in_array( $stream, stream_get_wrappers(), true );
 }
 
 /**
@@ -6651,108 +6807,26 @@ function wp_get_default_update_php_url() {
 }
 
 /**
- * Handles sending password retrieval email to user.
+ * Prints the default annotation for the web host altering the "Update PHP" page URL.
  *
- * @global wpdb         $wpdb       WordPress database abstraction object.
- * @global PasswordHash $wp_hasher  Portable PHP password hashing framework.
- * @param  string       $user_login Optional user_login, default null.
- *                                  Uses $_POST['user_login'] if $user_login not set.
+ * This function is to be used after {@see wp_get_update_php_url()} to display a consistent
+ * annotation if the web host has altered the default "Update PHP" page URL.
  *
- * @return bool|WP_Error True: when finish. WP_Error on error
+ * @since 5.1.0
  */
-function retrieve_password( $user_login = null ) {
-	global $wpdb, $wp_hasher;
+function wp_update_php_annotation() {
+	$update_url  = wp_get_update_php_url();
+	$default_url = wp_get_default_update_php_url();
 
-	$errors = new WP_Error();
-
-	// Use the passed $user_login if available, otherwise use $_POST['user_login'].
-	if ( !$user_login && !empty( $_POST['user_login'] ) ) {
-		$user_login = $_POST['user_login'];
+	if ( $update_url === $default_url ) {
+		return;
 	}
 
-	if ( empty( $user_login ) ) {
-		$errors->add('empty_username', __('<strong>ERROR</strong>: Enter a username or email address.'));
-	} elseif ( strpos( $user_login, '@' ) ) {
-		$user_data = get_user_by( 'email', sanitize_email( $user_login ) );
-		if ( empty( $user_data ) )
-			$errors->add('invalid_email', __('<strong>ERROR</strong>: There is no user registered with that email address.'));
-	} else {
-		$user_data = get_user_by('login', sanitize_user( $user_login ) );
-	}
-
-	/**
-	 * Fires before errors are returned from a password reset request.
-	 *
-	 * @since 2.1.0
-	 * @since 4.4.0 Added the `$errors` parameter.
-	 *
-	 * @param WP_Error $errors A WP_Error object containing any errors generated
-	 *                         by using invalid credentials.
-	 */
-	do_action( 'lostpassword_post', $errors );
-
-	if ( $errors->get_error_code() )
-		return $errors;
-
-	if ( !$user_data ) {
-		$errors->add('invalidcombo', __('<strong>ERROR</strong>: Invalid username or email.'));
-		return $errors;
-	}
-
-	// Redefining user_login ensures we return the right case in the email.
-	$user_login = $user_data->user_login;
-	$user_email = $user_data->user_email;
-	$key = get_password_reset_key( $user_data );
-
-	if ( is_wp_error( $key ) ) {
-		return $key;
-	}
-
-	$message = __('Someone requested that the password be reset for the following account:') . "\r\n\r\n";
-	$message .= network_home_url( '/' ) . "\r\n\r\n";
-	$message .= sprintf(__('Username: %s'), $user_login) . "\r\n\r\n";
-	$message .= __('If this was a mistake, just ignore this email and nothing will happen.') . "\r\n\r\n";
-	$message .= __('To reset your password, visit the following address:') . "\r\n\r\n";
-	$message .= '<' . network_site_url("wp-login.php?action=rp&key=$key&login=" . rawurlencode($user_login), 'login') . ">\r\n";
-
-	if ( is_multisite() )
-		$blogname = $GLOBALS['current_site']->site_name;
-	else
-		/*
-		 * The blogname option is escaped with esc_html on the way into the database
-		 * in sanitize_option we want to reverse this for the plain text arena of emails.
-		 */
-		$blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
-
-	$title = sprintf( __('[%s] Password Reset'), $blogname );
-
-	/**
-	 * Filter the subject of the password reset email.
-	 *
-	 * @since 2.8.0
-	 * @since 4.4.0 Added the `$user_login` and `$user_data` parameters.
-	 *
-	 * @param string  $title      Default email title.
-	 * @param string  $user_login The username for the user.
-	 * @param WP_User $user_data  WP_User object.
-	 */
-	$title = apply_filters( 'retrieve_password_title', $title, $user_login, $user_data );
-
-	/**
-	 * Filter the message body of the password reset mail.
-	 *
-	 * @since 2.8.0
-	 * @since 4.1.0 Added `$user_login` and `$user_data` parameters.
-	 *
-	 * @param string  $message    Default mail message.
-	 * @param string  $key        The activation key.
-	 * @param string  $user_login The username for the user.
-	 * @param WP_User $user_data  WP_User object.
-	 */
-	$message = apply_filters( 'retrieve_password_message', $message, $key, $user_login, $user_data );
-
-	if ( $message && !wp_mail( $user_email, wp_specialchars_decode( $title ), $message ) )
-		wp_die( __('The email could not be sent.') . "<br />\n" . __('Possible reason: your host may have disabled the mail() function.') );
-
-	return true;
+	echo '<p class="description">';
+	printf(
+		/* translators: %s: default Update PHP page URL */
+		__( 'This resource is provided by your web host, and is specific to your site. For more information, <a href="%s" target="_blank">see the official WordPress documentation</a>.' ),
+		esc_url( $default_url )
+	);
+	echo'</p>';
 }

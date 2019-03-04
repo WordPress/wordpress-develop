@@ -50,8 +50,8 @@ $die .= '</ul>';
 $die .= '<p>' . sprintf(
 	/* translators: 1: NPM URL, 2: Grunt URL, 3: Handbook URL */
 	__( 'This requires <a href="%1$s">NPM</a> and <a href="%2$s">Grunt</a>. <a href="%3$s">Read more about setting up your local development environment</a>.' ),
-	'https://www.npmjs.com/',
-	'https://gruntjs.com/',
+	'https://www.npmjs.com/get-npm',
+	'https://gruntjs.com/getting-started',
 	__( 'https://make.wordpress.org/core/handbook/tutorials/installing-wordpress-locally/' )
 ) . '</p>';
 

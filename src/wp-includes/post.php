@@ -292,6 +292,7 @@ function create_initial_post_types() {
 				'read'                   => 'edit_posts',
 				// You need to be able to publish posts, in order to create blocks.
 				'create_posts'           => 'publish_posts',
+				'edit_posts'             => 'edit_posts',
 				'edit_published_posts'   => 'edit_published_posts',
 				'delete_published_posts' => 'delete_published_posts',
 				'edit_others_posts'      => 'edit_others_posts',
@@ -391,6 +392,7 @@ function create_initial_post_types() {
 			'label'               => _x( 'Pending', 'request status' ),
 			'internal'            => true,
 			'_builtin'            => true, /* internal use only. */
+			'label_count'         => _n_noop( 'Pending <span class="count">(%s)</span>', 'Pending <span class="count">(%s)</span>' ),
 			'exclude_from_search' => false,
 		)
 	);
@@ -401,6 +403,7 @@ function create_initial_post_types() {
 			'label'               => _x( 'Confirmed', 'request status' ),
 			'internal'            => true,
 			'_builtin'            => true, /* internal use only. */
+			'label_count'         => _n_noop( 'Confirmed <span class="count">(%s)</span>', 'Confirmed <span class="count">(%s)</span>' ),
 			'exclude_from_search' => false,
 		)
 	);
@@ -411,6 +414,7 @@ function create_initial_post_types() {
 			'label'               => _x( 'Failed', 'request status' ),
 			'internal'            => true,
 			'_builtin'            => true, /* internal use only. */
+			'label_count'         => _n_noop( 'Failed <span class="count">(%s)</span>', 'Failed <span class="count">(%s)</span>' ),
 			'exclude_from_search' => false,
 		)
 	);
@@ -421,6 +425,7 @@ function create_initial_post_types() {
 			'label'               => _x( 'Completed', 'request status' ),
 			'internal'            => true,
 			'_builtin'            => true, /* internal use only. */
+			'label_count'         => _n_noop( 'Completed <span class="count">(%s)</span>', 'Completed <span class="count">(%s)</span>' ),
 			'exclude_from_search' => false,
 		)
 	);
@@ -507,6 +512,7 @@ function update_attached_file( $attachment_id, $file ) {
  * The path is relative to the current upload dir.
  *
  * @since 2.9.0
+ * @access private
  *
  * @param string $path Full path to the file.
  * @return string Relative path on success, unchanged path on failure.
@@ -913,6 +919,7 @@ function get_page_statuses() {
  * Return statuses for privacy requests.
  *
  * @since 4.9.6
+ * @access private
  *
  * @return array
  */
@@ -1037,6 +1044,7 @@ function register_post_status( $post_status, $args = array() ) {
 	}
 
 	if ( false === $args->label_count ) {
+		// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingle,WordPress.WP.I18n.NonSingularStringLiteralPlural
 		$args->label_count = _n_noop( $args->label, $args->label );
 	}
 
@@ -2480,6 +2488,7 @@ function unstick_post( $post_id ) {
  * Return the cache key for wp_count_posts() based on the passed arguments.
  *
  * @since 3.9.0
+ * @access private
  *
  * @param string $type Optional. Post type to retrieve count Default 'post'.
  * @param string $perm Optional. 'readable' or empty. Default empty.
@@ -3364,7 +3373,7 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
  *     @type int    $menu_order            The order the post should be displayed in. Default 0.
  *     @type string $post_mime_type        The mime type of the post. Default empty.
  *     @type string $guid                  Global Unique ID for referencing the post. Default empty.
- *     @type array  $post_category         Array of category names, slugs, or IDs.
+ *     @type array  $post_category         Array of category IDs.
  *                                         Defaults to value of the 'default_category' option.
  *     @type array  $tags_input            Array of tag names, slugs, or IDs. Default empty.
  *     @type array  $tax_input             Array of taxonomy terms keyed by their taxonomy name. Default empty.
@@ -4377,10 +4386,10 @@ function wp_set_post_terms( $post_id = 0, $tags = '', $taxonomy = 'post_tag', $a
  *
  * @param int       $post_ID         Optional. The Post ID. Does not default to the ID
  *                                   of the global $post. Default 0.
- * @param array|int $post_categories Optional. List of categories or ID of category.
+ * @param array|int $post_categories Optional. List of category IDs, or the ID of a single category.
  *                                   Default empty array.
- * @param bool      $append         If true, don't delete existing categories, just add on.
- *                                  If false, replace the categories with the new categories.
+ * @param bool      $append          If true, don't delete existing categories, just add on.
+ *                                   If false, replace the categories with the new categories.
  * @return array|false|WP_Error Array of term taxonomy IDs of affected categories. WP_Error or false on failure.
  */
 function wp_set_post_categories( $post_ID = 0, $post_categories = array(), $append = false ) {
@@ -4902,6 +4911,7 @@ function get_page_hierarchy( &$pages, $page_id = 0 ) {
  * $children contains parent-children relations
  *
  * @since 2.9.0
+ * @access private
  *
  * @see _page_traverse_name()
  *
@@ -5056,7 +5066,8 @@ function get_pages( $args = array() ) {
 	$last_changed = wp_cache_get_last_changed( 'posts' );
 
 	$cache_key = "get_pages:$key:$last_changed";
-	if ( $cache = wp_cache_get( $cache_key, 'posts' ) ) {
+	$cache     = wp_cache_get( $cache_key, 'posts' );
+	if ( false !== $cache ) {
 		// Convert to WP_Post instances.
 		$pages = array_map( 'get_post', $cache );
 		/** This filter is documented in wp-includes/post.php */
@@ -5088,7 +5099,7 @@ function get_pages( $args = array() ) {
 
 	$author_query = '';
 	if ( ! empty( $r['authors'] ) ) {
-		$post_authors = preg_split( '/[\s,]+/', $r['authors'] );
+		$post_authors = wp_parse_list( $r['authors'] );
 
 		if ( ! empty( $post_authors ) ) {
 			foreach ( $post_authors as $post_author ) {
@@ -5217,6 +5228,8 @@ function get_pages( $args = array() ) {
 	$pages = $wpdb->get_results( $query );
 
 	if ( empty( $pages ) ) {
+		wp_cache_set( $cache_key, array(), 'posts' );
+
 		/** This filter is documented in wp-includes/post.php */
 		$pages = apply_filters( 'get_pages', array(), $r );
 		return $pages;
@@ -5461,7 +5474,7 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 	if ( ! empty( $meta['thumb'] ) ) {
 		// Don't delete the thumb if another attachment uses it.
 		if ( ! $wpdb->get_row( $wpdb->prepare( "SELECT meta_id FROM $wpdb->postmeta WHERE meta_key = '_wp_attachment_metadata' AND meta_value LIKE %s AND post_id <> %d", '%' . $wpdb->esc_like( $meta['thumb'] ) . '%', $post_id ) ) ) {
-			$thumbfile = str_replace( basename( $file ), $meta['thumb'], $file );
+			$thumbfile = str_replace( wp_basename( $file ), $meta['thumb'], $file );
 			if ( ! empty( $thumbfile ) ) {
 				$thumbfile = path_join( $uploadpath['basedir'], $thumbfile );
 				$thumbdir  = path_join( $uploadpath['basedir'], dirname( $file ) );
@@ -5477,7 +5490,7 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 	if ( isset( $meta['sizes'] ) && is_array( $meta['sizes'] ) ) {
 		$intermediate_dir = path_join( $uploadpath['basedir'], dirname( $file ) );
 		foreach ( $meta['sizes'] as $size => $sizeinfo ) {
-			$intermediate_file = str_replace( basename( $file ), $sizeinfo['file'], $file );
+			$intermediate_file = str_replace( wp_basename( $file ), $sizeinfo['file'], $file );
 			if ( ! empty( $intermediate_file ) ) {
 				$intermediate_file = path_join( $uploadpath['basedir'], $intermediate_file );
 
@@ -5603,7 +5616,7 @@ function wp_get_attachment_url( $attachment_id = 0 ) {
 				$url = str_replace( $uploads['basedir'], $uploads['baseurl'], $file );
 			} elseif ( false !== strpos( $file, 'wp-content/uploads' ) ) {
 				// Get the directory name relative to the basedir (back compat for pre-2.7 uploads)
-				$url = trailingslashit( $uploads['baseurl'] . '/' . _wp_get_attachment_relative_path( $file ) ) . basename( $file );
+				$url = trailingslashit( $uploads['baseurl'] . '/' . _wp_get_attachment_relative_path( $file ) ) . wp_basename( $file );
 			} else {
 				// It's a newly-uploaded file, therefore $file is relative to the basedir.
 				$url = $uploads['baseurl'] . "/$file";
@@ -5691,7 +5704,7 @@ function wp_get_attachment_thumb_file( $post_id = 0 ) {
 
 	$file = get_attached_file( $post->ID );
 
-	if ( ! empty( $imagedata['thumb'] ) && ( $thumbfile = str_replace( basename( $file ), $imagedata['thumb'], $file ) ) && file_exists( $thumbfile ) ) {
+	if ( ! empty( $imagedata['thumb'] ) && ( $thumbfile = str_replace( wp_basename( $file ), $imagedata['thumb'], $file ) ) && file_exists( $thumbfile ) ) {
 		/**
 		 * Filters the attachment thumbnail file path.
 		 *
@@ -5731,7 +5744,7 @@ function wp_get_attachment_thumb_url( $post_id = 0 ) {
 		return false;
 	}
 
-	$url = str_replace( basename( $url ), basename( $thumb ), $url );
+	$url = str_replace( wp_basename( $url ), wp_basename( $thumb ), $url );
 
 	/**
 	 * Filters the attachment thumbnail URL.
@@ -5883,7 +5896,7 @@ function wp_mime_type_icon( $mime = 0 ) {
 				$uri  = array_shift( $dirs );
 				if ( $dh = opendir( $dir ) ) {
 					while ( false !== $file = readdir( $dh ) ) {
-						$file = basename( $file );
+						$file = wp_basename( $file );
 						if ( substr( $file, 0, 1 ) == '.' ) {
 							continue;
 						}
@@ -5902,9 +5915,9 @@ function wp_mime_type_icon( $mime = 0 ) {
 		}
 
 		$types = array();
-		// Icon basename - extension = MIME wildcard.
+		// Icon wp_basename - extension = MIME wildcard.
 		foreach ( $icon_files as $file => $uri ) {
-			$types[ preg_replace( '/^([^.]*).*$/', '$1', basename( $file ) ) ] =& $icon_files[ $file ];
+			$types[ preg_replace( '/^([^.]*).*$/', '$1', wp_basename( $file ) ) ] =& $icon_files[ $file ];
 		}
 
 		if ( ! empty( $mime ) ) {

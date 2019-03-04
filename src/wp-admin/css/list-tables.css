@@ -152,8 +152,17 @@
 	overflow: hidden;
 }
 
+#replysubmit .reply-submit-buttons {
+	margin-bottom: 0;
+}
+
 #replysubmit .button {
 	margin-right: 5px;
+}
+
+#replysubmit .spinner {
+	float: none;
+	margin: -4px 0 0;
 }
 
 #replyrow.inline-edit-row fieldset.comment-reply {
@@ -243,12 +252,12 @@
 
 #the-comment-list tr:last-child th,
 #the-comment-list tr:last-child td {
-    box-shadow: none;
+	box-shadow: none;
 }
 
 #the-comment-list tr.unapproved + tr.approved th,
 #the-comment-list tr.unapproved + tr.approved td {
-    border-top: 1px solid rgba(0, 0, 0, 0.03);
+	border-top: 1px solid rgba(0, 0, 0, 0.03);
 }
 
 /* table vim shortcuts */
@@ -351,7 +360,7 @@ td.plugin-title p {
 table.media .column-title .media-icon {
 	float: left;
 	min-height: 60px;
- 	margin: 0 9px 0 0;
+	margin: 0 9px 0 0;
 }
 
 table.media .column-title .media-icon img {
@@ -393,7 +402,7 @@ table.media .column-title .filename {
 }
 
 #commentsdiv .inside .row-actions {
-	line-height:18px;
+	line-height: 18px;
 }
 
 #commentsdiv .inside .column-author {
@@ -495,8 +504,8 @@ th.asc a:focus span.sorting-indicator:before {
 }
 
 .wp-list-table .toggle-row:focus:before {
-    box-shadow:
-    	0 0 0 1px #5b9dd9,
+	box-shadow:
+		0 0 0 1px #5b9dd9,
 		0 0 2px 1px rgba(30, 140, 190, .8);
 }
 
@@ -1373,7 +1382,7 @@ ul.cat-checklist {
 	margin-right: 0;
 }
 
-@media screen and ( min-width: 1600px ) {
+@media screen and (min-width: 1600px) and ( max-width: 2299px ) {
 	.plugin-card {
 		width: 30%;
 		width: calc( 33.1% - 8px );
@@ -1398,7 +1407,7 @@ ul.cat-checklist {
 	}
 }
 
-@media screen and ( min-width: 2300px ) {
+@media screen and (min-width: 2300px) {
 	.plugin-card {
 		width: 25%;
 		width: calc( 25% - 12px );
@@ -1594,7 +1603,7 @@ div.action-links,
 /* =Media Queries
 -------------------------------------------------------------- */
 
-@media screen and ( max-width: 1100px ) and ( min-width: 782px ), ( max-width: 480px ) {
+@media screen and (max-width: 1100px) and (min-width: 782px), (max-width: 480px) {
 	.plugin-card .action-links {
 		position: static;
 		margin-left: 148px;
@@ -1630,7 +1639,7 @@ div.action-links,
 	}
 }
 
-@media screen and ( max-width: 782px ) {
+@media screen and (max-width: 782px) {
 	/* WP List Table Options & Filters */
 	.tablenav {
 		height: auto;
@@ -1787,6 +1796,11 @@ div.action-links,
 
 	.fixed .column-comment .comment-author {
 		display: block;
+	}
+
+	/* Comment author hidden via Screen Options */
+	.fixed .column-author.hidden ~ .column-comment .comment-author {
+		display: none;
 	}
 
 	#the-comment-list .is-expanded td {
@@ -2009,6 +2023,11 @@ div.action-links,
 		padding: 10px 9px; /* reset from other list tables that have a label at this width */
 	}
 
+	/* Plugin description hidden via Screen Options */
+	#wpbody-content .wp-list-table.plugins .desc.hidden {
+		display: none;
+	}
+
 	#wpbody-content .wp-list-table.plugins .column-description {
 		padding-top: 2px;
 	}
@@ -2123,7 +2142,7 @@ div.action-links,
 	}
 }
 
-@media screen and ( max-width: 480px ) {
+@media screen and (max-width: 480px) {
 	.tablenav-pages .current-page {
 		margin: 0;
 	}

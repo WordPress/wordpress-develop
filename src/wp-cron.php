@@ -18,6 +18,11 @@
 
 ignore_user_abort( true );
 
+/* Don't make the request block till we finish, if possible. */
+if ( function_exists( 'fastcgi_finish_request' ) && version_compare( phpversion(), '7.0.16', '>=' ) ) {
+	fastcgi_finish_request();
+}
+
 if ( ! empty( $_POST ) || defined( 'DOING_AJAX' ) || defined( 'DOING_CRON' ) ) {
 	die();
 }
@@ -70,6 +75,8 @@ $crons = wp_get_ready_cron_jobs();
 if ( empty( $crons ) ) {
 	die();
 }
+
+$gmt_time = microtime( true );
 
 // The cron lock: a unix timestamp from when the cron was spawned.
 $doing_cron_transient = get_transient( 'doing_cron' );

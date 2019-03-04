@@ -125,6 +125,24 @@ class Tests_L10n extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 44494
+	 */
+	function test_wp_dropdown_languages_exclude_en_us() {
+		$args   = array(
+			'id'                => 'foo',
+			'name'              => 'bar',
+			'languages'         => array( 'de_DE' ),
+			'translations'      => $this->wp_dropdown_languages_filter(),
+			'selected'          => 'de_DE',
+			'echo'              => false,
+			'show_option_en_us' => false,
+		);
+		$actual = wp_dropdown_languages( $args );
+
+		$this->assertNotContains( '<option value="" lang="en" data-installed="1">English (United States)</option>', $actual );
+	}
+
+	/**
 	 * @ticket 38632
 	 */
 	function test_wp_dropdown_languages_en_US_selected() {

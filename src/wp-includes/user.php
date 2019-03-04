@@ -1005,12 +1005,12 @@ function count_users( $strategy = 'time', $site_id = null ) {
  * @global string  $user_url      The url in the user's profile
  * @global string  $user_identity The display name of the user
  *
- * @param int $for_user_id Optional. User ID to set up global data.
+ * @param int $for_user_id Optional. User ID to set up global data. Default 0.
  */
-function setup_userdata( $for_user_id = '' ) {
+function setup_userdata( $for_user_id = 0 ) {
 	global $user_login, $userdata, $user_level, $user_ID, $user_email, $user_url, $user_identity;
 
-	if ( '' == $for_user_id ) {
+	if ( ! $for_user_id ) {
 		$for_user_id = get_current_user_id();
 	}
 	$user = get_userdata( $for_user_id );
@@ -1400,7 +1400,8 @@ function clean_user_cache( $user ) {
  * @return int|false The user's ID on success, and false on failure.
  */
 function username_exists( $username ) {
-	if ( $user = get_user_by( 'login', $username ) ) {
+	$user = get_user_by( 'login', $username );
+	if ( $user ) {
 		$user_id = $user->ID;
 	} else {
 		$user_id = false;
@@ -1430,7 +1431,8 @@ function username_exists( $username ) {
  * @return int|false The user's ID on success, and false on failure.
  */
 function email_exists( $email ) {
-	if ( $user = get_user_by( 'email', $email ) ) {
+	$user = get_user_by( 'email', $email );
+	if ( $user ) {
 		return $user->ID;
 	}
 	return false;
@@ -2215,6 +2217,10 @@ function wp_get_password_hint() {
 function get_password_reset_key( $user ) {
 	global $wpdb, $wp_hasher;
 
+	if ( ! ( $user instanceof WP_User ) ) {
+		return new WP_Error( 'invalidcombo', __( '<strong>ERROR</strong>: There is no account with that username or email address.' ) );
+	}
+
 	/**
 	 * Fires before a new password is retrieved.
 	 *
@@ -2823,9 +2829,13 @@ All at ###SITENAME###
  */
 function new_user_email_admin_notice() {
 	global $pagenow;
-	if ( 'profile.php' === $pagenow && isset( $_GET['updated'] ) && $email = get_user_meta( get_current_user_id(), '_new_email', true ) ) {
-		/* translators: %s: New email address */
-		echo '<div class="notice notice-info"><p>' . sprintf( __( 'Your email address has not been updated yet. Please check your inbox at %s for a confirmation email.' ), '<code>' . esc_html( $email['newemail'] ) . '</code>' ) . '</p></div>';
+
+	if ( 'profile.php' === $pagenow && isset( $_GET['updated'] ) ) {
+		$email = get_user_meta( get_current_user_id(), '_new_email', true );
+		if ( $email ) {
+			/* translators: %s: New email address */
+			echo '<div class="notice notice-info"><p>' . sprintf( __( 'Your email address has not been updated yet. Please check your inbox at %s for a confirmation email.' ), '<code>' . esc_html( $email['newemail'] ) . '</code>' ) . '</p></div>';
+		}
 	}
 }
 
@@ -2952,13 +2962,13 @@ function wp_user_personal_data_exporter( $email_address ) {
  * @param int $request_id ID of the request.
  */
 function _wp_privacy_account_request_confirmed( $request_id ) {
-	$request_data = wp_get_user_request_data( $request_id );
+	$request = wp_get_user_request_data( $request_id );
 
-	if ( ! $request_data ) {
+	if ( ! $request ) {
 		return;
 	}
 
-	if ( ! in_array( $request_data->status, array( 'request-pending', 'request-failed' ), true ) ) {
+	if ( ! in_array( $request->status, array( 'request-pending', 'request-failed' ), true ) ) {
 		return;
 	}
 
@@ -2982,9 +2992,9 @@ function _wp_privacy_account_request_confirmed( $request_id ) {
  * @param int $request_id The ID of the request.
  */
 function _wp_privacy_send_request_confirmation_notification( $request_id ) {
-	$request_data = wp_get_user_request_data( $request_id );
+	$request = wp_get_user_request_data( $request_id );
 
-	if ( ! is_a( $request_data, 'WP_User_Request' ) || 'request-confirmed' !== $request_data->status ) {
+	if ( ! is_a( $request, 'WP_User_Request' ) || 'request-confirmed' !== $request->status ) {
 		return;
 	}
 
@@ -2994,8 +3004,8 @@ function _wp_privacy_send_request_confirmation_notification( $request_id ) {
 		return;
 	}
 
-	$manage_url         = add_query_arg( 'page', $request_data->action_name, admin_url( 'tools.php' ) );
-	$action_description = wp_user_request_action_description( $request_data->action_name );
+	$manage_url         = add_query_arg( 'page', $request->action_name, admin_url( 'tools.php' ) );
+	$action_description = wp_user_request_action_description( $request->action_name );
 
 	/**
 	 * Filters the recipient of the data request confirmation notification.
@@ -3008,14 +3018,14 @@ function _wp_privacy_send_request_confirmation_notification( $request_id ) {
 	 *
 	 * @since 4.9.6
 	 *
-	 * @param string          $admin_email  The email address of the notification recipient.
-	 * @param WP_User_Request $request_data The request that is initiating the notification.
+	 * @param string          $admin_email The email address of the notification recipient.
+	 * @param WP_User_Request $request     The request that is initiating the notification.
 	 */
-	$admin_email = apply_filters( 'user_request_confirmed_email_to', get_site_option( 'admin_email' ), $request_data );
+	$admin_email = apply_filters( 'user_request_confirmed_email_to', get_site_option( 'admin_email' ), $request );
 
 	$email_data = array(
-		'request'     => $request_data,
-		'user_email'  => $request_data->email,
+		'request'     => $request,
+		'user_email'  => $request->email,
 		'description' => $action_description,
 		'manage_url'  => $manage_url,
 		'sitename'    => wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ),
@@ -3121,9 +3131,9 @@ All at ###SITENAME###
  * @param int $request_id The privacy request post ID associated with this request.
  */
 function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
-	$request_data = wp_get_user_request_data( $request_id );
+	$request = wp_get_user_request_data( $request_id );
 
-	if ( ! is_a( $request_data, 'WP_User_Request' ) || 'request-completed' !== $request_data->status ) {
+	if ( ! is_a( $request, 'WP_User_Request' ) || 'request-completed' !== $request->status ) {
 		return;
 	}
 
@@ -3138,13 +3148,13 @@ function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 	 *
 	 * @since 4.9.6
 	 *
-	 * @param string          $user_email   The email address of the notification recipient.
-	 * @param WP_User_Request $request_data The request that is initiating the notification.
+	 * @param string          $user_email The email address of the notification recipient.
+	 * @param WP_User_Request $request    The request that is initiating the notification.
 	 */
-	$user_email = apply_filters( 'user_erasure_fulfillment_email_to', $request_data->email, $request_data );
+	$user_email = apply_filters( 'user_erasure_fulfillment_email_to', $request->email, $request );
 
 	$email_data = array(
-		'request'            => $request_data,
+		'request'            => $request,
 		'message_recipient'  => $user_email,
 		'privacy_policy_url' => get_privacy_policy_url(),
 		'sitename'           => wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ),
@@ -3531,11 +3541,9 @@ function wp_generate_user_request_key( $request_id ) {
 
 	wp_update_post(
 		array(
-			'ID'                => $request_id,
-			'post_status'       => 'request-pending',
-			'post_password'     => $wp_hasher->HashPassword( $key ),
-			'post_modified'     => current_time( 'mysql', false ),
-			'post_modified_gmt' => current_time( 'mysql', true ),
+			'ID'            => $request_id,
+			'post_status'   => 'request-pending',
+			'post_password' => $wp_hasher->HashPassword( $key ),
 		)
 	);
 

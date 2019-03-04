@@ -12,5 +12,6 @@ function tests_make_plural_form_function( $nplurals, $expression ) {
 		\$index = (int)($expression);
 		return (\$index < $nplurals)? \$index : $nplurals - 1;";
 
+	// phpcs:ignore WordPress.PHP.RestrictedPHPFunctions.create_function_create_function
 	return create_function( '$n', $func_body );
 }

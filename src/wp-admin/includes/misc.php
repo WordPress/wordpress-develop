@@ -252,7 +252,7 @@ function iis7_save_url_rewrite_rules() {
 
 	// Using win_is_writable() instead of is_writable() because of a bug in Windows PHP
 	if ( iis7_supports_permalinks() && ( ( ! file_exists( $web_config_file ) && win_is_writable( $home_path ) && $wp_rewrite->using_mod_rewrite_permalinks() ) || win_is_writable( $web_config_file ) ) ) {
-		$rule = $wp_rewrite->iis7_url_rewrite_rules( false, '', '' );
+		$rule = $wp_rewrite->iis7_url_rewrite_rules( false );
 		if ( ! empty( $rule ) ) {
 			return iis7_add_rewrite_rule( $web_config_file, $rule );
 		} else {
@@ -362,7 +362,7 @@ function wp_print_theme_file_tree( $tree, $level = 2, $size = 1, $index = 1 ) {
 				aria-posinset="<?php echo esc_attr( $index ); ?>">
 				<?php
 				$file_description = esc_html( get_file_description( $filename ) );
-				if ( $file_description !== $filename && basename( $filename ) !== $file_description ) {
+				if ( $file_description !== $filename && wp_basename( $filename ) !== $file_description ) {
 					$file_description .= '<br /><span class="nonessential">(' . esc_html( $filename ) . ')</span>';
 				}
 
@@ -651,7 +651,7 @@ function set_screen_options() {
 				 *
 				 * @see set_screen_options()
 				 *
-				 * @param bool|int $value  Screen option value. Default false to skip.
+				 * @param bool     $keep   Whether to save or skip saving the screen option value. Default false.
 				 * @param string   $option The option name.
 				 * @param int      $value  The number of rows to use.
 				 */
@@ -1644,7 +1644,7 @@ final class WP_Privacy_Policy_Content {
 			/* translators: 1: Privacy Policy guide URL, 2: additional link attributes, 3: accessibility text */
 			printf(
 				__( 'Need help putting together your new Privacy Policy page? <a href="%1$s" %2$s>Check out our guide%3$s</a> for recommendations on what content to include, along with policies suggested by your plugins and theme.' ),
-				admin_url( 'tools.php?wp-privacy-policy-guide=1' ),
+				esc_url( admin_url( 'tools.php?wp-privacy-policy-guide=1' ) ),
 				'target="_blank"',
 				sprintf(
 					'<span class="screen-reader-text"> %s</span>',
@@ -1671,7 +1671,7 @@ final class WP_Privacy_Policy_Content {
 		$content       = '';
 		$toc           = array( '<li><a href="#wp-privacy-policy-guide-introduction">' . __( 'Introduction' ) . '</a></li>' );
 		$date_format   = __( 'F j, Y' );
-		$copy          = __( 'Copy' );
+		$copy          = __( 'Copy this section to clipboard' );
 		$return_to_top = '<a href="#" class="return-to-top">' . __( '&uarr; Return to Top' ) . '</a>';
 
 		foreach ( $content_array as $section ) {
@@ -2010,4 +2010,49 @@ final class WP_Privacy_Policy_Content {
 		$content = self::get_default_content( true, false );
 		wp_add_privacy_policy_content( __( 'WordPress' ), $content );
 	}
+}
+
+/**
+ * Checks if the user needs to update PHP.
+ *
+ * @since 5.1.0
+ *
+ * @return array|false $response Array of PHP version data. False on failure.
+ */
+function wp_check_php_version() {
+	$version = phpversion();
+	$key     = md5( $version );
+
+	$response = get_site_transient( 'php_check_' . $key );
+	if ( false === $response ) {
+		$url = 'http://api.wordpress.org/core/serve-happy/1.0/';
+		if ( wp_http_supports( array( 'ssl' ) ) ) {
+			$url = set_url_scheme( $url, 'https' );
+		}
+
+		$url = add_query_arg( 'php_version', $version, $url );
+
+		$response = wp_remote_get( $url );
+
+		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+			return false;
+		}
+
+		/**
+		 * Response should be an array with:
+		 *  'recommended_version' - string - The PHP version recommended by WordPress.
+		 *  'is_supported' - boolean - Whether the PHP version is actively supported.
+		 *  'is_secure' - boolean - Whether the PHP version receives security updates.
+		 *  'is_acceptable' - boolean - Whether the PHP version is still acceptable for WordPress.
+		 */
+		$response = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( ! is_array( $response ) ) {
+			return false;
+		}
+
+		set_site_transient( 'php_check_' . $key, $response, WEEK_IN_SECONDS );
+	}
+
+	return $response;
 }

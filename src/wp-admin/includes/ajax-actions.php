@@ -100,6 +100,70 @@ function wp_ajax_fetch_list() {
 }
 
 /**
+ * Ajax handler for tag search.
+ *
+ * @since 3.1.0
+ */
+function wp_ajax_ajax_tag_search() {
+	if ( ! isset( $_GET['tax'] ) ) {
+		wp_die( 0 );
+	}
+
+	$taxonomy = sanitize_key( $_GET['tax'] );
+	$tax      = get_taxonomy( $taxonomy );
+	if ( ! $tax ) {
+		wp_die( 0 );
+	}
+
+	if ( ! current_user_can( $tax->cap->assign_terms ) ) {
+		wp_die( -1 );
+	}
+
+	$s = wp_unslash( $_GET['q'] );
+
+	$comma = _x( ',', 'tag delimiter' );
+	if ( ',' !== $comma ) {
+		$s = str_replace( $comma, ',', $s );
+	}
+	if ( false !== strpos( $s, ',' ) ) {
+		$s = explode( ',', $s );
+		$s = $s[ count( $s ) - 1 ];
+	}
+	$s = trim( $s );
+
+	/**
+	 * Filters the minimum number of characters required to fire a tag search via Ajax.
+	 *
+	 * @since 4.0.0
+	 *
+	 * @param int         $characters The minimum number of characters required. Default 2.
+	 * @param WP_Taxonomy $tax        The taxonomy object.
+	 * @param string      $s          The search term.
+	 */
+	$term_search_min_chars = (int) apply_filters( 'term_search_min_chars', 2, $tax, $s );
+
+	/*
+	 * Require $term_search_min_chars chars for matching (default: 2)
+	 * ensure it's a non-negative, non-zero integer.
+	 */
+	if ( ( $term_search_min_chars == 0 ) || ( strlen( $s ) < $term_search_min_chars ) ) {
+		wp_die();
+	}
+
+	$results = get_terms(
+		$taxonomy,
+		array(
+			'name__like' => $s,
+			'fields'     => 'names',
+			'hide_empty' => false,
+		)
+	);
+
+	echo join( $results, "\n" );
+	wp_die();
+}
+
+/**
  * Ajax handler for compression testing.
  *
  * @since 3.1.0
@@ -3587,13 +3651,13 @@ function wp_ajax_crop_image() {
 			$cropped = apply_filters( 'wp_create_file_in_uploads', $cropped, $attachment_id ); // For replication.
 
 			$parent_url = wp_get_attachment_url( $attachment_id );
-			$url        = str_replace( basename( $parent_url ), basename( $cropped ), $parent_url );
+			$url        = str_replace( wp_basename( $parent_url ), wp_basename( $cropped ), $parent_url );
 
 			$size       = @getimagesize( $cropped );
 			$image_type = ( $size ) ? $size['mime'] : 'image/jpeg';
 
 			$object = array(
-				'post_title'     => basename( $cropped ),
+				'post_title'     => wp_basename( $cropped ),
 				'post_content'   => $url,
 				'post_mime_type' => $image_type,
 				'guid'           => $url,
@@ -4388,7 +4452,7 @@ function wp_ajax_wp_privacy_export_personal_data() {
 	}
 
 	if ( ! current_user_can( 'export_others_personal_data' ) ) {
-		wp_send_json_error( __( 'Invalid request.' ) );
+		wp_send_json_error( __( 'Sorry, you are not allowed to perform this action.' ) );
 	}
 
 	check_ajax_referer( 'wp-privacy-export-personal-data-' . $request_id, 'security' );
@@ -4570,7 +4634,7 @@ function wp_ajax_wp_privacy_erase_personal_data() {
 
 	// Both capabilities are required to avoid confusion, see `_wp_personal_data_removal_page()`.
 	if ( ! current_user_can( 'erase_others_personal_data' ) || ! current_user_can( 'delete_users' ) ) {
-		wp_send_json_error( __( 'Invalid request.' ) );
+		wp_send_json_error( __( 'Sorry, you are not allowed to perform this action.' ) );
 	}
 
 	check_ajax_referer( 'wp-privacy-erase-personal-data-' . $request_id, 'security' );

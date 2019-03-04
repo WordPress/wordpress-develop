@@ -280,7 +280,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		<?php } else { ?>
 			<div class="no-plugin-results"><?php _e( 'No plugins found. Try a different search.' ); ?></div>
 			<?php
-}
+		}
 	}
 
 	/**
@@ -392,7 +392,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 				<br class="clear" />
 			</div>
 			<?php
-}
+		}
 	}
 
 	/**
@@ -504,9 +504,9 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 
 			$wp_version = get_bloginfo( 'version' );
 
-			$compatible_php = ( empty( $plugin['requires_php'] ) || version_compare( substr( phpversion(), 0, strlen( $plugin['requires_php'] ) ), $plugin['requires_php'], '>=' ) );
-			$tested_wp      = ( empty( $plugin['tested'] ) || version_compare( substr( $wp_version, 0, strlen( $plugin['tested'] ) ), $plugin['tested'], '<=' ) );
-			$compatible_wp  = ( empty( $plugin['requires'] ) || version_compare( substr( $wp_version, 0, strlen( $plugin['requires'] ) ), $plugin['requires'], '>=' ) );
+			$compatible_php = ( empty( $plugin['requires_php'] ) || version_compare( phpversion(), $plugin['requires_php'], '>=' ) );
+			$tested_wp      = ( empty( $plugin['tested'] ) || version_compare( $wp_version, $plugin['tested'], '<=' ) );
+			$compatible_wp  = ( empty( $plugin['requires'] ) || version_compare( $wp_version, $plugin['requires'], '>=' ) );
 
 			$action_links = array();
 
@@ -635,19 +635,27 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 				echo '<div class="notice inline notice-error notice-alt"><p>';
 				if ( ! $compatible_php && ! $compatible_wp ) {
 					_e( 'This plugin doesn&#8217;t work with your versions of WordPress and PHP. ' );
-					if ( current_user_can( 'update_core' ) ) {
+					if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
 						printf(
-							/* translators: 1: "Update WordPress" screen URL, 2: "Updating PHP" page URL */
+							/* translators: 1: "Update WordPress" screen URL, 2: "Update PHP" page URL */
 							__( '<a href="%1$s">Please update WordPress</a>, and then <a href="%2$s">learn more about updating PHP</a>.' ),
 							self_admin_url( 'update-core.php' ),
-							esc_url( __( 'https://wordpress.org/support/update-php/' ) )
+							esc_url( wp_get_update_php_url() )
 						);
-					} else {
+						wp_update_php_annotation();
+					} elseif ( current_user_can( 'update_core' ) ) {
 						printf(
-							/* translators: %s: "Updating PHP" page URL */
-							__( '<a href="%s">Learn more about updating PHP</a>.' ),
-							esc_url( __( 'https://wordpress.org/support/update-php/' ) )
+							/* translators: %s: "Update WordPress" screen URL */
+							__( '<a href="%s">Please update WordPress</a>.' ),
+							self_admin_url( 'update-core.php' )
 						);
+					} elseif ( current_user_can( 'update_php' ) ) {
+						printf(
+							/* translators: %s: "Update PHP" page URL */
+							__( '<a href="%s">Learn more about updating PHP</a>.' ),
+							esc_url( wp_get_update_php_url() )
+						);
+						wp_update_php_annotation();
 					}
 				} elseif ( ! $compatible_wp ) {
 					_e( 'This plugin doesn&#8217;t work with your version of WordPress. ' );
@@ -660,11 +668,14 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 					}
 				} elseif ( ! $compatible_php ) {
 					_e( 'This plugin doesn&#8217;t work with your version of PHP. ' );
-					printf(
-						/* translators: %s: "Updating PHP" page URL */
-						__( '<a href="%s">Learn more about updating PHP</a>.' ),
-						esc_url( __( 'https://wordpress.org/support/update-php/' ) )
-					);
+					if ( current_user_can( 'update_php' ) ) {
+						printf(
+							/* translators: %s: "Update PHP" page URL */
+							__( '<a href="%s">Learn more about updating PHP</a>.' ),
+							esc_url( wp_get_update_php_url() )
+						);
+						wp_update_php_annotation();
+					}
 				}
 				echo '</p></div>';
 			}

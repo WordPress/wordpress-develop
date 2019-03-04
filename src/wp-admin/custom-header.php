@@ -642,43 +642,43 @@ class Custom_Image_Header {
 </tr>
 			<?php
 	endif;
-if ( ! empty( $this->default_headers ) ) :
-	?>
+		if ( ! empty( $this->default_headers ) ) :
+			?>
 <tr>
 <th scope="row"><?php _e( 'Default Images' ); ?></th>
 <td>
-	<?php if ( current_theme_supports( 'custom-header', 'uploads' ) ) : ?>
+			<?php if ( current_theme_supports( 'custom-header', 'uploads' ) ) : ?>
 	<p><?php _e( 'If you don&lsquo;t want to upload your own image, you can use one of these cool headers, or show a random one.' ); ?></p>
 	<?php else : ?>
 	<p><?php _e( 'You can use one of these cool headers or show a random one on each page.' ); ?></p>
 	<?php endif; ?>
-	<?php
-	$this->show_header_selector( 'default' );
-	?>
+			<?php
+			$this->show_header_selector( 'default' );
+			?>
 </td>
 </tr>
-	<?php
+			<?php
 	endif;
-if ( get_header_image() ) :
-	?>
+		if ( get_header_image() ) :
+			?>
 <tr>
 <th scope="row"><?php _e( 'Remove Image' ); ?></th>
 <td>
 	<p><?php _e( 'This will remove the header image. You will not be able to restore any customizations.' ); ?></p>
-	<?php submit_button( __( 'Remove Header Image' ), '', 'removeheader', false ); ?>
+			<?php submit_button( __( 'Remove Header Image' ), '', 'removeheader', false ); ?>
 </td>
 </tr>
-	<?php
+			<?php
 	endif;
 
-	$default_image = sprintf( get_theme_support( 'custom-header', 'default-image' ), get_template_directory_uri(), get_stylesheet_directory_uri() );
-if ( $default_image && get_header_image() != $default_image ) :
-	?>
+		$default_image = sprintf( get_theme_support( 'custom-header', 'default-image' ), get_template_directory_uri(), get_stylesheet_directory_uri() );
+		if ( $default_image && get_header_image() != $default_image ) :
+			?>
 <tr>
 <th scope="row"><?php _e( 'Reset Image' ); ?></th>
 <td>
 	<p><?php _e( 'This will restore the original header image. You will not be able to restore any customizations.' ); ?></p>
-	<?php submit_button( __( 'Restore Original Header Image' ), '', 'resetheader', false ); ?>
+			<?php submit_button( __( 'Restore Original Header Image' ), '', 'resetheader', false ); ?>
 </td>
 </tr>
 	<?php endif; ?>
@@ -741,7 +741,7 @@ endif;
 		do_action( 'custom_header_options' );
 
 		wp_nonce_field( 'custom-header-options', '_wpnonce-custom-header-options' );
-?>
+		?>
 
 		<?php submit_button( null, 'primary', 'save-header-options' ); ?>
 </form>
@@ -820,7 +820,7 @@ endif;
 			return $this->finished();
 		} elseif ( $width > $max_width ) {
 			$oitar = $width / $max_width;
-			$image = wp_crop_image( $attachment_id, 0, 0, $width, $height, $max_width, $height / $oitar, false, str_replace( basename( $file ), 'midsize-' . basename( $file ), $file ) );
+			$image = wp_crop_image( $attachment_id, 0, 0, $width, $height, $max_width, $height / $oitar, false, str_replace( wp_basename( $file ), 'midsize-' . wp_basename( $file ), $file ) );
 			if ( ! $image || is_wp_error( $image ) ) {
 				wp_die( __( 'Image could not be processed. Please go back and try again.' ), __( 'Image Processing Error' ) );
 			}
@@ -828,7 +828,7 @@ endif;
 			/** This filter is documented in wp-admin/custom-header.php */
 			$image = apply_filters( 'wp_create_file_in_uploads', $image, $attachment_id ); // For replication
 
-			$url    = str_replace( basename( $url ), basename( $image ), $url );
+			$url    = str_replace( wp_basename( $url ), wp_basename( $image ), $url );
 			$width  = $width / $oitar;
 			$height = $height / $oitar;
 		} else {
@@ -895,7 +895,7 @@ endif;
 		$url      = $file['url'];
 		$type     = $file['type'];
 		$file     = $file['file'];
-		$filename = basename( $file );
+		$filename = wp_basename( $file );
 
 		// Construct the object array
 		$object = array(
@@ -984,7 +984,7 @@ endif;
 		$this->set_header_image( compact( 'url', 'attachment_id', 'width', 'height' ) );
 
 		// Cleanup.
-		$medium = str_replace( basename( $original ), 'midsize-' . basename( $original ), $original );
+		$medium = str_replace( wp_basename( $original ), 'midsize-' . wp_basename( $original ), $original );
 		if ( file_exists( $medium ) ) {
 			wp_delete_file( $medium );
 		}
@@ -1208,14 +1208,14 @@ endif;
 	final public function create_attachment_object( $cropped, $parent_attachment_id ) {
 		$parent     = get_post( $parent_attachment_id );
 		$parent_url = wp_get_attachment_url( $parent->ID );
-		$url        = str_replace( basename( $parent_url ), basename( $cropped ), $parent_url );
+		$url        = str_replace( wp_basename( $parent_url ), wp_basename( $cropped ), $parent_url );
 
 		$size       = @getimagesize( $cropped );
 		$image_type = ( $size ) ? $size['mime'] : 'image/jpeg';
 
 		$object = array(
 			'ID'             => $parent_attachment_id,
-			'post_title'     => basename( $cropped ),
+			'post_title'     => wp_basename( $cropped ),
 			'post_mime_type' => $image_type,
 			'guid'           => $url,
 			'context'        => 'custom-header',

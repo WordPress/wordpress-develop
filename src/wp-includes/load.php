@@ -68,11 +68,11 @@ function wp_fix_server_vars() {
 	// Fix for IIS when running with PHP ISAPI
 	if ( empty( $_SERVER['REQUEST_URI'] ) || ( PHP_SAPI != 'cgi-fcgi' && preg_match( '/^Microsoft-IIS\//', $_SERVER['SERVER_SOFTWARE'] ) ) ) {
 
-		// IIS Mod-Rewrite
 		if ( isset( $_SERVER['HTTP_X_ORIGINAL_URL'] ) ) {
+			// IIS Mod-Rewrite
 			$_SERVER['REQUEST_URI'] = $_SERVER['HTTP_X_ORIGINAL_URL'];
-		} // IIS Isapi_Rewrite
-		elseif ( isset( $_SERVER['HTTP_X_REWRITE_URL'] ) ) {
+		} elseif ( isset( $_SERVER['HTTP_X_REWRITE_URL'] ) ) {
+			// IIS Isapi_Rewrite
 			$_SERVER['REQUEST_URI'] = $_SERVER['HTTP_X_REWRITE_URL'];
 		} else {
 			// Use ORIG_PATH_INFO if there is no PATH_INFO
@@ -696,7 +696,36 @@ function wp_get_active_and_valid_plugins() {
 			$plugins[] = WP_PLUGIN_DIR . '/' . $plugin;
 		}
 	}
+
 	return $plugins;
+}
+
+/**
+ * Retrieves an array of active and valid themes.
+ *
+ * While upgrading or installing WordPress, no themes are returned.
+ *
+ * @since 5.1.0
+ * @access private
+ *
+ * @return array Array of paths to theme directories.
+ */
+function wp_get_active_and_valid_themes() {
+	global $pagenow;
+
+	$themes = array();
+
+	if ( wp_installing() && 'wp-activate.php' !== $pagenow ) {
+		return $themes;
+	}
+
+	if ( TEMPLATEPATH !== STYLESHEETPATH ) {
+		$themes[] = STYLESHEETPATH;
+	}
+
+	$themes[] = TEMPLATEPATH;
+
+	return $themes;
 }
 
 /**
@@ -1161,6 +1190,24 @@ function wp_doing_ajax() {
 	 * @param bool $wp_doing_ajax Whether the current request is a WordPress Ajax request.
 	 */
 	return apply_filters( 'wp_doing_ajax', defined( 'DOING_AJAX' ) && DOING_AJAX );
+}
+
+/**
+ * Determines whether the current request should use themes.
+ *
+ * @since 5.1.0
+ *
+ * @return bool True if themes should be used, false otherwise.
+ */
+function wp_using_themes() {
+	/**
+	 * Filters whether the current request should use themes.
+	 *
+	 * @since 5.1.0
+	 *
+	 * @param bool $wp_using_themes Whether the current request should use themes.
+	 */
+	return apply_filters( 'wp_using_themes', defined( 'WP_USE_THEMES' ) && WP_USE_THEMES );
 }
 
 /**

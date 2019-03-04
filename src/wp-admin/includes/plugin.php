@@ -114,8 +114,29 @@ function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
  * Sanitizes plugin data, optionally adds markup, optionally translates.
  *
  * @since 2.7.0
- * @access private
+ *
  * @see get_plugin_data()
+ *
+ * @access private
+ *
+ * @param string $plugin_file Path to the main plugin file.
+ * @param array  $plugin_data An array of plugin data. See `get_plugin_data()`.
+ * @param bool   $markup      Optional. If the returned data should have HTML markup applied.
+ *                            Default true.
+ * @param bool   $translate   Optional. If the returned data should be translated. Default true.
+ * @return array {
+ *     Plugin data. Values will be empty if not supplied by the plugin.
+ *
+ *     @type string $Name        Name of the plugin. Should be unique.
+ *     @type string $Title       Title of the plugin and link to the plugin's site (if set).
+ *     @type string $Description Plugin description.
+ *     @type string $Author      Author's name.
+ *     @type string $AuthorURI   Author's website address (if set).
+ *     @type string $Version     Plugin version.
+ *     @type string $TextDomain  Plugin textdomain.
+ *     @type string $DomainPath  Plugins relative directory path to .mo files.
+ *     @type bool   $Network     Whether the plugin can only be activated network-wide.
+ * }
  */
 function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup = true, $translate = true ) {
 
@@ -137,19 +158,22 @@ function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup 
 		}
 		if ( $textdomain ) {
 			foreach ( array( 'Name', 'PluginURI', 'Description', 'Author', 'AuthorURI', 'Version' ) as $field ) {
+				// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
 				$plugin_data[ $field ] = translate( $plugin_data[ $field ], $textdomain );
 			}
 		}
 	}
 
 	// Sanitize fields
-	$allowed_tags      = $allowed_tags_in_links = array(
+	$allowed_tags_in_links = array(
 		'abbr'    => array( 'title' => true ),
 		'acronym' => array( 'title' => true ),
 		'code'    => true,
 		'em'      => true,
 		'strong'  => true,
 	);
+
+	$allowed_tags      = $allowed_tags_in_links;
 	$allowed_tags['a'] = array(
 		'href'  => true,
 		'title' => true,
@@ -246,7 +270,8 @@ function get_plugin_files( $plugin ) {
  */
 function get_plugins( $plugin_folder = '' ) {
 
-	if ( ! $cache_plugins = wp_cache_get( 'plugins', 'plugins' ) ) {
+	$cache_plugins = wp_cache_get( 'plugins', 'plugins' );
+	if ( ! $cache_plugins ) {
 		$cache_plugins = array();
 	}
 
@@ -375,7 +400,12 @@ function get_mu_plugins() {
  * Callback to sort array by a 'Name' key.
  *
  * @since 3.1.0
+ *
  * @access private
+ *
+ * @param array $a array with 'Name' key.
+ * @param array $b array with 'Name' key.
+ * @return int Return 0 or 1 based on two string comparison.
  */
 function _sort_uname_callback( $a, $b ) {
 	return strnatcasecmp( $a['Name'], $b['Name'] );
@@ -928,6 +958,11 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 			foreach ( $translations as $translation => $data ) {
 				$wp_filesystem->delete( WP_LANG_DIR . '/plugins/' . $plugin_slug . '-' . $translation . '.po' );
 				$wp_filesystem->delete( WP_LANG_DIR . '/plugins/' . $plugin_slug . '-' . $translation . '.mo' );
+
+				$json_translation_files = glob( WP_LANG_DIR . '/plugins/' . $plugin_slug . '-' . $translation . '-*.json' );
+				if ( $json_translation_files ) {
+					array_map( array( $wp_filesystem, 'delete' ), $json_translation_files );
+				}
 			}
 		}
 	}
