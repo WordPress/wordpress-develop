@@ -2379,8 +2379,7 @@ if ( is_multisite() ) :
 		public function data_wpmu_new_blog_action_backward_commpatible() {
 			return array(
 				'default values'  => array(
-					array(
-					),
+					array(),
 					array(
 						'public' => 0, // `public` is one of the defaults metas in `wpmu_create_blog' function prior WordPress 5.1.0
 						'WPLANG' => 'en_US', // WPLANG is another default meta in `wpmu_create_blog` function prior WordPress 5.1.0.
@@ -2392,7 +2391,7 @@ if ( is_multisite() ) :
 					),
 					array(
 						'public' => 1,
-						'WPLANG' => 'en_US'
+						'WPLANG' => 'en_US',
 					),
 				),
 				'all whitelisted' => array(
