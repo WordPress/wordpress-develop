@@ -62,6 +62,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'autop',
 		'blob',
 		'blocks',
+		'block-editor',
 		'block-library',
 		'block-serialization-default-parser',
 		'components',
@@ -86,6 +87,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'notices',
 		'nux',
 		'plugins',
+		'priority-queue',
 		'redux-routine',
 		'rich-text',
 		'shortcode',
@@ -126,10 +128,14 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'block-serialization-default-parser/parser.php': 'wp-includes/class-wp-block-parser.php',
 		'block-library/src/archives/index.php': 'wp-includes/blocks/archives.php',
 		'block-library/src/block/index.php': 'wp-includes/blocks/block.php',
+		'block-library/src/calendar/index.php': 'wp-includes/blocks/calendar.php',
 		'block-library/src/categories/index.php': 'wp-includes/blocks/categories.php',
 		'block-library/src/latest-comments/index.php': 'wp-includes/blocks/latest-comments.php',
 		'block-library/src/latest-posts/index.php': 'wp-includes/blocks/latest-posts.php',
+		'block-library/src/rss/index.php': 'wp-includes/blocks/rss.php',
+		'block-library/src/search/index.php': 'wp-includes/blocks/search.php',
 		'block-library/src/shortcode/index.php': 'wp-includes/blocks/shortcode.php',
+		'block-library/src/tag-cloud/index.php': 'wp-includes/blocks/tag-cloud.php',
 	};
 
 	const externals = {
