@@ -858,8 +858,9 @@ function wp_dashboard_recent_posts( $args ) {
 
 		echo '<ul>';
 
-		$today    = date( 'Y-m-d', current_time( 'timestamp' ) );
-		$tomorrow = date( 'Y-m-d', strtotime( '+1 day', current_time( 'timestamp' ) ) );
+		$today    = current_time( 'Y-m-d' );
+		$tomorrow = gmdate( 'Y-m-d', strtotime( '+1 day', current_time( 'timestamp' ) ) );
+		$year     = current_time( 'Y' );
 
 		while ( $posts->have_posts() ) {
 			$posts->the_post();
@@ -869,7 +870,7 @@ function wp_dashboard_recent_posts( $args ) {
 				$relative = __( 'Today' );
 			} elseif ( date( 'Y-m-d', $time ) == $tomorrow ) {
 				$relative = __( 'Tomorrow' );
-			} elseif ( date( 'Y', $time ) !== date( 'Y', current_time( 'timestamp' ) ) ) {
+			} elseif ( date( 'Y', $time ) !== $year ) {
 				/* translators: date and time format for recent posts on the dashboard, from a different calendar year, see https://secure.php.net/date */
 				$relative = date_i18n( __( 'M jS Y' ), $time );
 			} else {
@@ -1646,6 +1647,7 @@ function wp_dashboard_php_nag() {
 	<?php
 
 	wp_update_php_annotation();
+	wp_direct_php_update_button();
 }
 
 /**

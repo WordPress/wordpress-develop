@@ -4410,6 +4410,46 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/block-renderer/(?P<name>core/calendar)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "name": {
+                            "required": false,
+                            "description": "Unique registered name for the block.",
+                            "type": "string"
+                        },
+                        "context": {
+                            "required": false,
+                            "default": "view",
+                            "enum": [
+                                "edit"
+                            ],
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
+                        },
+                        "attributes": {
+                            "required": false,
+                            "default": [],
+                            "description": "Attributes for core/calendar block",
+                            "type": "object"
+                        },
+                        "post_id": {
+                            "required": false,
+                            "description": "ID of the post context.",
+                            "type": "integer"
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/block-renderer/(?P<name>core/categories)": {
             "namespace": "wp/v2",
             "methods": [
@@ -4490,6 +4530,86 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/block-renderer/(?P<name>core/rss)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "name": {
+                            "required": false,
+                            "description": "Unique registered name for the block.",
+                            "type": "string"
+                        },
+                        "context": {
+                            "required": false,
+                            "default": "view",
+                            "enum": [
+                                "edit"
+                            ],
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
+                        },
+                        "attributes": {
+                            "required": false,
+                            "default": [],
+                            "description": "Attributes for core/rss block",
+                            "type": "object"
+                        },
+                        "post_id": {
+                            "required": false,
+                            "description": "ID of the post context.",
+                            "type": "integer"
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/block-renderer/(?P<name>core/search)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "name": {
+                            "required": false,
+                            "description": "Unique registered name for the block.",
+                            "type": "string"
+                        },
+                        "context": {
+                            "required": false,
+                            "default": "view",
+                            "enum": [
+                                "edit"
+                            ],
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
+                        },
+                        "attributes": {
+                            "required": false,
+                            "default": [],
+                            "description": "Attributes for core/search block",
+                            "type": "object"
+                        },
+                        "post_id": {
+                            "required": false,
+                            "description": "ID of the post context.",
+                            "type": "integer"
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/block-renderer/(?P<name>core/shortcode)": {
             "namespace": "wp/v2",
             "methods": [
@@ -4519,6 +4639,46 @@ mockedApiResponse.Schema = {
                             "required": false,
                             "default": [],
                             "description": "Attributes for core/shortcode block",
+                            "type": "object"
+                        },
+                        "post_id": {
+                            "required": false,
+                            "description": "ID of the post context.",
+                            "type": "integer"
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/block-renderer/(?P<name>core/tag-cloud)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "name": {
+                            "required": false,
+                            "description": "Unique registered name for the block.",
+                            "type": "string"
+                        },
+                        "context": {
+                            "required": false,
+                            "default": "view",
+                            "enum": [
+                                "edit"
+                            ],
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
+                        },
+                        "attributes": {
+                            "required": false,
+                            "default": [],
+                            "description": "Attributes for core/tag-cloud block",
                             "type": "object"
                         },
                         "post_id": {

@@ -3058,9 +3058,9 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 
 	if ( ! did_action( 'admin_head' ) ) :
 		if ( ! headers_sent() ) {
+			header( 'Content-Type: text/html; charset=utf-8' );
 			status_header( $r['response'] );
 			nocache_headers();
-			header( 'Content-Type: text/html; charset=utf-8' );
 		}
 
 		$text_direction = $r['text_direction'];
@@ -3238,6 +3238,7 @@ function _json_wp_die_handler( $message, $title = '', $args = array() ) {
 		if ( null !== $r['response'] ) {
 			status_header( $r['response'] );
 		}
+		nocache_headers();
 	}
 
 	echo wp_json_encode( $data );
@@ -3264,6 +3265,10 @@ function _xmlrpc_wp_die_handler( $message, $title = '', $args = array() ) {
 	global $wp_xmlrpc_server;
 
 	list( $message, $title, $r ) = _wp_die_process_input( $message, $title, $args );
+
+	if ( ! headers_sent() ) {
+		nocache_headers();
+	}
 
 	if ( $wp_xmlrpc_server ) {
 		$error = new IXR_Error( $r['response'], $message );
@@ -3295,9 +3300,12 @@ function _ajax_wp_die_handler( $message, $title = '', $args = array() ) {
 
 	list( $message, $title, $r ) = _wp_die_process_input( $message, $title, $args );
 
-	// This is intentional. For backward-compatibility, support passing null here.
-	if ( ! headers_sent() && null !== $args['response'] ) {
-		status_header( $r['response'] );
+	if ( ! headers_sent() ) {
+		// This is intentional. For backward-compatibility, support passing null here.
+		if ( null !== $args['response'] ) {
+			status_header( $r['response'] );
+		}
+		nocache_headers();
 	}
 
 	if ( is_scalar( $message ) ) {
@@ -4248,28 +4256,7 @@ function dead_db() {
 	}
 
 	// Otherwise, be terse.
-	status_header( 500 );
-	nocache_headers();
-	header( 'Content-Type: text/html; charset=utf-8' );
-
-	$dir_attr = '';
-	if ( is_rtl() ) {
-		$dir_attr = ' dir="rtl"';
-	}
-	?>
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"<?php echo $dir_attr; ?>>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<title><?php _e( 'Database Error' ); ?></title>
-
-</head>
-<body>
-	<h1><?php _e( 'Error establishing a database connection' ); ?></h1>
-</body>
-</html>
-	<?php
-	die();
+	wp_die( '<h1>' . __( 'Error establishing a database connection' ) . '</h1>', __( 'Database Error' ) );
 }
 
 /**
@@ -6829,4 +6816,61 @@ function wp_update_php_annotation() {
 		esc_url( $default_url )
 	);
 	echo'</p>';
+}
+
+/**
+ * Gets the URL for directly updating the PHP version the site is running on.
+ *
+ * A URL will only be returned if the `WP_DIRECT_UPDATE_PHP_URL` environment variable is specified or
+ * by using the {@see 'wp_direct_php_update_url'} filter. This allows hosts to send users directly to
+ * the page where they can update PHP to a newer version.
+ *
+ * @since 5.1.1
+ *
+ * @return string URL for directly updating PHP or empty string.
+ */
+function wp_get_direct_php_update_url() {
+	$direct_update_url = '';
+
+	if ( false !== getenv( 'WP_DIRECT_UPDATE_PHP_URL' ) ) {
+		$direct_update_url = getenv( 'WP_DIRECT_UPDATE_PHP_URL' );
+	}
+
+	/**
+	 * Filters the URL for directly updating the PHP version the site is running on from the host.
+	 *
+	 * @since 5.1.1
+	 *
+	 * @param string $direct_update_url URL for directly updating PHP.
+	 */
+	$direct_update_url = apply_filters( 'wp_direct_php_update_url', $direct_update_url );
+
+	return $direct_update_url;
+}
+
+/**
+ * Display a button directly linking to a PHP update process.
+ *
+ * This provides hosts with a way for users to be sent directly to their PHP update process.
+ *
+ * The button is only displayed if a URL is returned by `wp_get_direct_php_update_url()`.
+ *
+ * @since 5.1.1
+ */
+function wp_direct_php_update_button() {
+	$direct_update_url = wp_get_direct_php_update_url();
+
+	if ( empty( $direct_update_url ) ) {
+		return;
+	}
+
+	echo '<p class="button-container">';
+	printf(
+		'<a class="button button-primary" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+		esc_url( $direct_update_url ),
+		__( 'Update PHP' ),
+		/* translators: accessibility text */
+		__( '(opens in a new tab)' )
+	);
+	echo '</p>';
 }
