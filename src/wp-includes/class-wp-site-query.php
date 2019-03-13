@@ -290,16 +290,16 @@ class WP_Site_Query {
 
 
 		/**
-		 * Filters the sites array before the query takes place.
+		 * Filter the sites array before the query takes place.
 		 *
 		 * Return a non-null value to bypass WordPress's default site queries.
 		 *
 		 *
-		 * @since 5.1.0
+		 * @since 5.2.0
 		 *
 		 * @param array|null $site_ids Return an array of site data to short-circuit WP's site query,
-		 *                          or null to allow WP to run its normal queries.
-		 * @param WP_Query $this The WP_Site_Query instance, passed by reference.
+		 *                             or null to allow WP to run its normal queries.
+		 * @param WP_Query   $this     The WP_Site_Query instance, passed by reference.
 		 */
 		$site_ids = apply_filters_ref_array( 'sites_pre_query', array( null, &$this ) );
 
