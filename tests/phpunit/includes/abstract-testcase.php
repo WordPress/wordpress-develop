@@ -46,6 +46,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		return $factory;
 	}
 
+	/**
+	 * Retrieves the name of the class the static method is called in.
+	 *
+	 * @return string The class name.
+	 */
 	public static function get_called_class() {
 		if ( function_exists( 'get_called_class' ) ) {
 			return get_called_class();
@@ -61,6 +66,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		return $backtrace[2]['class'];
 	}
 
+	/**
+	 * Runs the routine before setting up all tests.
+	 */
 	public static function setUpBeforeClass() {
 		global $wpdb;
 
@@ -82,6 +90,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		self::commit_transaction();
 	}
 
+	/**
+	 * Runs the routine after all tests have been run.
+	 */
 	public static function tearDownAfterClass() {
 		parent::tearDownAfterClass();
 
@@ -99,6 +110,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		self::commit_transaction();
 	}
 
+	/**
+	 * Runs the routine before each test is executed.
+	 */
 	public function setUp() {
 		set_time_limit( 0 );
 
@@ -165,6 +179,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		wp_set_current_user( 0 );
 	}
 
+	/**
+	 * Cleans the global scope (e.g `$_GET` and `$_POST`).
+	 */
 	public function clean_up_global_scope() {
 		$_GET  = array();
 		$_POST = array();
@@ -269,7 +286,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	 * @global array $wp_actions
 	 * @global array $wp_current_filter
 	 * @global array $wp_filter
-	 * @return void
 	 */
 	protected function _backup_hooks() {
 		$globals = array( 'wp_actions', 'wp_current_filter' );
@@ -289,7 +305,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	 * @global array $wp_actions
 	 * @global array $wp_current_filter
 	 * @global array $wp_filter
-	 * @return void
 	 */
 	protected function _restore_hooks() {
 		$globals = array( 'wp_actions', 'wp_current_filter' );
@@ -306,6 +321,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		}
 	}
 
+	/**
+	 * Flushes the WordPress object cache.
+	 */
 	public static function flush_cache() {
 		global $wp_object_cache;
 		$wp_object_cache->group_ops      = array();
@@ -341,6 +359,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		}
 	}
 
+	/**
+	 * Starts a database transaction.
+	 */
 	public function start_transaction() {
 		global $wpdb;
 		$wpdb->query( 'SET autocommit = 0;' );
@@ -359,6 +380,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		$wpdb->query( 'COMMIT;' );
 	}
 
+	/**
+	 * Replaces the `CREATE TABLE` statement with a `CREATE TEMPORARY TABLE` statement.
+	 *
+	 * @param string $query The query to replace the statement for.
+	 * @return string The altered query.
+	 */
 	public function _create_temporary_tables( $query ) {
 		if ( 'CREATE TABLE' === substr( trim( $query ), 0, 12 ) ) {
 			return substr_replace( trim( $query ), 'CREATE TEMPORARY TABLE', 0, 12 );
@@ -366,6 +393,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		return $query;
 	}
 
+	/**
+	 * Replaces the `DROP TABLE` statement with a `DROP TEMPORARY TABLE` statement.
+	 *
+	 * @param string $query The query to replace the statement for.
+	 * @return string The altered query.
+	 */
 	public function _drop_temporary_tables( $query ) {
 		if ( 'DROP TABLE' === substr( trim( $query ), 0, 10 ) ) {
 			return substr_replace( trim( $query ), 'DROP TEMPORARY TABLE', 0, 10 );
@@ -373,10 +406,23 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		return $query;
 	}
 
+	/**
+	 * Retrieves the `wp_die()` handler.
+	 *
+	 * @param callable $handler The current die handler.
+	 * @return callable The test die handler.
+	 */
 	public function get_wp_die_handler( $handler ) {
 		return array( $this, 'wp_die_handler' );
 	}
 
+	/**
+	 * Throws an exception when called.
+	 *
+	 * @throws WPDieException Exception containing the message.
+	 *
+	 * @param string $message The `wp_die()` message.
+	 */
 	public function wp_die_handler( $message ) {
 		if ( ! is_scalar( $message ) ) {
 			$message = '0';
@@ -385,6 +431,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		throw new WPDieException( $message );
 	}
 
+	/**
+	 * Sets up the expectations for testing a deprecated call.
+	 */
 	public function expectDeprecated() {
 		$annotations = $this->getAnnotations();
 		foreach ( array( 'class', 'method' ) as $depth ) {
@@ -405,6 +454,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		add_action( 'doing_it_wrong_trigger_error', '__return_false' );
 	}
 
+	/**
+	 * Handles a deprecated expectation.
+	 * 
+	 * The DocBlock should contain `@expectedDeprecated` to trigger this.
+	 */
 	public function expectedDeprecated() {
 		$errors = array();
 
@@ -493,22 +547,44 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		}
 	}
 
+	/**
+	 * Adds a deprecated function to the list of caught deprecated calls.
+	 *
+	 * @param string $function The deprecated function.
+	 */
 	public function deprecated_function_run( $function ) {
 		if ( ! in_array( $function, $this->caught_deprecated ) ) {
 			$this->caught_deprecated[] = $function;
 		}
 	}
 
+	/**
+	 * Adds a function called in a wrong way to the list of `_doing_it_wrong()` calls.
+	 *
+	 * @param string $function The function to add.
+	 */
 	public function doing_it_wrong_run( $function ) {
 		if ( ! in_array( $function, $this->caught_doing_it_wrong ) ) {
 			$this->caught_doing_it_wrong[] = $function;
 		}
 	}
 
+	/**
+	 * Asserts that the given value is an instance of WP_Error.
+	 *
+	 * @param mixed  $actual  The value to check.
+	 * @param string $message Optional. Message to display when the assertion fails.
+	 */
 	public function assertWPError( $actual, $message = '' ) {
 		$this->assertInstanceOf( 'WP_Error', $actual, $message );
 	}
 
+	/**
+	 * Asserts that the given value is not an instance of WP_Error.
+	 *
+	 * @param mixed  $actual  The value to check.
+	 * @param string $message Optional. Message to display when the assertion fails.
+	 */
 	public function assertNotWPError( $actual, $message = '' ) {
 		if ( is_wp_error( $actual ) && '' === $message ) {
 			$message = $actual->get_error_message();
@@ -516,10 +592,23 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		$this->assertNotInstanceOf( 'WP_Error', $actual, $message );
 	}
 
+
+	/**
+	 * Asserts that the given value is an instance of IXR_Error.
+	 *
+	 * @param mixed  $actual  The value to check.
+	 * @param string $message Optional. Message to display when the assertion fails.
+	 */
 	public function assertIXRError( $actual, $message = '' ) {
 		$this->assertInstanceOf( 'IXR_Error', $actual, $message );
 	}
 
+	/**
+	 * Asserts that the given value is not an instance of IXR_Error.
+	 *
+	 * @param mixed  $actual  The value to check.
+	 * @param string $message Optional. Message to display when the assertion fails.
+	 */
 	public function assertNotIXRError( $actual, $message = '' ) {
 		if ( $actual instanceof IXR_Error && '' === $message ) {
 			$message = $actual->message;
@@ -527,6 +616,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		$this->assertNotInstanceOf( 'IXR_Error', $actual, $message );
 	}
 
+	/**
+	 * Asserts that the given fields are present in the given object.
+	 *
+	 * @param object $object The object to check.
+	 * @param array  $fields The fields to check.
+	 */
 	public function assertEqualFields( $object, $fields ) {
 		foreach ( $fields as $field_name => $field_value ) {
 			if ( $object->$field_name != $field_value ) {
@@ -535,6 +630,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		}
 	}
 
+	/**
+	 * Asserts that two values are equal, with whitespace differences discarded.
+	 *
+	 * @param string $expected The expected value.
+	 * @param string $actual   The actual value.
+	 */
 	public function assertDiscardWhitespace( $expected, $actual ) {
 		$this->assertEquals( preg_replace( '/\s*/', '', $expected ), preg_replace( '/\s*/', '', $actual ) );
 	}
@@ -760,7 +861,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	 *
 	 * This method defines the constants after including files.
 	 *
-	 * @param Text_Template $template
+	 * @param Text_Template $template The template to prepare.
 	 */
 	public function prepareTemplate( Text_Template $template ) {
 		$template->setVar( array( 'constants' => '' ) );
@@ -918,7 +1019,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	 * @since 4.0.0
 	 *
 	 * @param string $dir Path to the directory to scan.
-	 *
 	 * @return array List of file paths.
 	 */
 	public function files_in_dir( $dir ) {
@@ -998,7 +1098,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	 * @since 4.1.0
 	 *
 	 * @param string $microtime Time string generated by `microtime()`.
-	 *
 	 * @return float `microtime()` output as a float.
 	 */
 	protected function _microtime_to_float( $microtime ) {
@@ -1012,7 +1111,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	 * @since 4.3.0
 	 *
 	 * @param int $user_id User ID.
-	 *
 	 * @return bool True if the user was deleted.
 	 */
 	public static function delete_user( $user_id ) {
@@ -1047,7 +1145,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	 *
 	 * @param array $upload         Array of information about the uploaded file, provided by wp_upload_bits().
 	 * @param int   $parent_post_id Optional. Parent post ID.
-	 *
 	 * @return int|WP_Error The attachment ID on success. The value 0 or WP_Error on failure.
 	 */
 	public function _make_attachment( $upload, $parent_post_id = 0 ) {
@@ -1084,7 +1181,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	 *
 	 * @param int    $post_id Post ID.
 	 * @param string $date    Post date, in the format YYYY-MM-DD HH:MM:SS.
-	 *
 	 * @return int|false 1 on success, or false on error.
 	 */
 	protected function update_post_modified( $post_id, $date ) {
