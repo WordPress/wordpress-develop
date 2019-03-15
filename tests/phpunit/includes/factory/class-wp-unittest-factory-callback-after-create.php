@@ -5,14 +5,14 @@ class WP_UnitTest_Factory_Callback_After_Create {
 	/**
 	 * @var callable
 	 */
-	var $callback;
+	public $callback;
 
 	/**
 	 * WP_UnitTest_Factory_Callback_After_Create constructor.
 	 *
 	 * @param callable $callback A callback function.
 	 */
-	function __construct( $callback ) {
+	public function __construct( $callback ) {
 		$this->callback = $callback;
 	}
 
@@ -23,7 +23,7 @@ class WP_UnitTest_Factory_Callback_After_Create {
 	 *
 	 * @return mixed The possibly altered object.
 	 */
-	function call( $object ) {
+	public function call( $object ) {
 		return call_user_func( $this->callback, $object );
 	}
 }
