@@ -1118,12 +1118,16 @@
 				<div class="file-size"><strong>File size:</strong> {{ data.filesizeHumanReadable }}</div>
 				<# if ( 'image' === data.type && ! data.uploading ) { #>
 					<# if ( data.width && data.height ) { #>
-						<div class="dimensions"><strong>Dimensions:</strong> {{ data.width }} &times; {{ data.height }}</div>
+						<div class="dimensions"><strong>Dimensions:</strong>
+							{{ data.width }} by {{ data.height }} pixels						</div>
 					<# } #>
 				<# } #>
 
-				<# if ( data.fileLength ) { #>
-					<div class="file-length"><strong>Length:</strong> {{ data.fileLength }}</div>
+				<# if ( data.fileLength && data.fileLengthHumanReadable ) { #>
+					<div class="file-length"><strong>Length:</strong>
+						<span aria-hidden="true">{{ data.fileLength }}</span>
+						<span class="screen-reader-text">{{ data.fileLengthHumanReadable }}</span>
+					</div>
 				<# } #>
 
 				<# if ( 'audio' === data.type && data.meta.bitrate ) { #>
@@ -1143,11 +1147,14 @@
 			</div>
 
 			<div class="settings">
-				<label class="setting" data-setting="url">
-					<span class="name">URL</span>
-					<input type="text" value="{{ data.url }}" readonly />
-				</label>
 				<# var maybeReadOnly = data.can.save || data.allowLocalEdits ? '' : 'readonly'; #>
+				<# if ( 'image' === data.type ) { #>
+					<label class="setting" data-setting="alt">
+						<span class="name">Alternative Text</span>
+						<input type="text" value="{{ data.alt }}" aria-describedby="alt-text-description" {{ maybeReadOnly }} />
+					</label>
+					<p class="description" id="alt-text-description">Describe <a href="https://www.w3.org/WAI/tutorials/images/decision-tree" target="_blank" rel="noopener noreferrer">the purpose of the image<span class="screen-reader-text"> (opens in a new tab)</span></a>. Leave empty if the image is purely decorative.</p>
+				<# } #>
 								<label class="setting" data-setting="title">
 					<span class="name">Title</span>
 					<input type="text" value="{{ data.title }}" {{ maybeReadOnly }} />
@@ -1166,37 +1173,35 @@
 					<span class="name">Caption</span>
 					<textarea {{ maybeReadOnly }}>{{ data.caption }}</textarea>
 				</label>
-				<# if ( 'image' === data.type ) { #>
-					<label class="setting" data-setting="alt">
-						<span class="name">Alt Text</span>
-						<input type="text" value="{{ data.alt }}" {{ maybeReadOnly }} />
-					</label>
-				<# } #>
 				<label class="setting" data-setting="description">
 					<span class="name">Description</span>
 					<textarea {{ maybeReadOnly }}>{{ data.description }}</textarea>
 				</label>
-				<label class="setting">
+				<div class="setting">
 					<span class="name">Uploaded By</span>
 					<span class="value">{{ data.authorName }}</span>
-				</label>
+				</div>
 				<# if ( data.uploadedToTitle ) { #>
-					<label class="setting">
+					<div class="setting">
 						<span class="name">Uploaded To</span>
 						<# if ( data.uploadedToLink ) { #>
 							<span class="value"><a href="{{ data.uploadedToLink }}">{{ data.uploadedToTitle }}</a></span>
 						<# } else { #>
 							<span class="value">{{ data.uploadedToTitle }}</span>
 						<# } #>
-					</label>
+					</div>
 				<# } #>
+				<label class="setting" data-setting="url">
+					<span class="name">Copy Link</span>
+					<input type="text" value="{{ data.url }}" readonly />
+				</label>
 				<div class="attachment-compat"></div>
 			</div>
 
 			<div class="actions">
 				<a class="view-attachment" href="{{ data.link }}">View attachment page</a>
 				<# if ( data.can.save ) { #> |
-					<a href="post.php?post={{ data.id }}&action=edit">Edit more details</a>
+					<a href="{{ data.editLink }}">Edit more details</a>
 				<# } #>
 				<# if ( ! data.uploading && data.can.remove ) { #> |
 											<button type="button" class="button-link delete-attachment">Delete Permanently</button>
@@ -1280,7 +1285,8 @@
 				<div class="file-size">{{ data.filesizeHumanReadable }}</div>
 				<# if ( 'image' === data.type && ! data.uploading ) { #>
 					<# if ( data.width && data.height ) { #>
-						<div class="dimensions">{{ data.width }} &times; {{ data.height }}</div>
+						<div class="dimensions">
+							{{ data.width }} by {{ data.height }} pixels						</div>
 					<# } #>
 
 					<# if ( data.can.save && data.sizes ) { #>
@@ -1288,8 +1294,10 @@
 					<# } #>
 				<# } #>
 
-				<# if ( data.fileLength ) { #>
-					<div class="file-length">Length: {{ data.fileLength }}</div>
+				<# if ( data.fileLength && data.fileLengthHumanReadable ) { #>
+					<div class="file-length">Length:						<span aria-hidden="true">{{ data.fileLength }}</span>
+						<span class="screen-reader-text">{{ data.fileLengthHumanReadable }}</span>
+					</div>
 				<# } #>
 
 				<# if ( ! data.uploading && data.can.remove ) { #>
@@ -1304,11 +1312,14 @@
 			</div>
 		</div>
 
-		<label class="setting" data-setting="url">
-			<span class="name">URL</span>
-			<input type="text" value="{{ data.url }}" readonly />
-		</label>
 		<# var maybeReadOnly = data.can.save || data.allowLocalEdits ? '' : 'readonly'; #>
+		<# if ( 'image' === data.type ) { #>
+			<label class="setting" data-setting="alt">
+				<span class="name">Alt Text</span>
+				<input type="text" value="{{ data.alt }}" aria-describedby="alt-text-description" {{ maybeReadOnly }} />
+			</label>
+			<p class="description" id="alt-text-description">Describe <a href="https://www.w3.org/WAI/tutorials/images/decision-tree" target="_blank" rel="noopener noreferrer">the purpose of the image<span class="screen-reader-text"> (opens in a new tab)</span></a>. Leave empty if the image is purely decorative.</p>
+		<# } #>
 				<label class="setting" data-setting="title">
 			<span class="name">Title</span>
 			<input type="text" value="{{ data.title }}" {{ maybeReadOnly }} />
@@ -1327,15 +1338,13 @@
 			<span class="name">Caption</span>
 			<textarea {{ maybeReadOnly }}>{{ data.caption }}</textarea>
 		</label>
-		<# if ( 'image' === data.type ) { #>
-			<label class="setting" data-setting="alt">
-				<span class="name">Alt Text</span>
-				<input type="text" value="{{ data.alt }}" {{ maybeReadOnly }} />
-			</label>
-		<# } #>
 		<label class="setting" data-setting="description">
 			<span class="name">Description</span>
 			<textarea {{ maybeReadOnly }}>{{ data.description }}</textarea>
+		</label>
+		<label class="setting" data-setting="url">
+			<span class="name">Copy Link</span>
+			<input type="text" value="{{ data.url }}" readonly />
 		</label>
 	</script>
 
@@ -1597,15 +1606,16 @@
 			<img src="{{ data.model.url }}" draggable="false" alt="" />
 		</div>
 
+		<label class="setting alt-text has-description">
+			<span>Alternative Text</span>
+			<input type="text" data-setting="alt" aria-describedby="alt-text-description" />
+		</label>
+		<p class="description" id="alt-text-description">Describe <a href="https://www.w3.org/WAI/tutorials/images/decision-tree" target="_blank" rel="noopener noreferrer">the purpose of the image<span class="screen-reader-text"> (opens in a new tab)</span></a>. Leave empty if the image is purely decorative.</p>
+
 					<label class="setting caption">
 				<span>Caption</span>
 				<textarea data-setting="caption" />
 			</label>
-
-		<label class="setting alt-text">
-			<span>Alt Text</span>
-			<input type="text" data-setting="alt" />
-		</label>
 
 		<div class="setting align">
 			<span>Align</span>
@@ -1651,15 +1661,16 @@
 					</div>
 				</div>
 				<div class="column-settings">
+					<label class="setting alt-text has-description">
+						<span>Alternative Text</span>
+						<input type="text" data-setting="alt" value="{{ data.model.alt }}" aria-describedby="alt-text-description" />
+					</label>
+					<p class="description" id="alt-text-description">Describe <a href="https://www.w3.org/WAI/tutorials/images/decision-tree" target="_blank" rel="noopener noreferrer">the purpose of the image<span class="screen-reader-text"> (opens in a new tab)</span></a>. Leave empty if the image is purely decorative.</p>
+
 											<label class="setting caption">
 							<span>Caption</span>
 							<textarea data-setting="caption">{{ data.model.caption }}</textarea>
 						</label>
-
-					<label class="setting alt-text">
-						<span>Alternative Text</span>
-						<input type="text" data-setting="alt" value="{{ data.model.alt }}" />
-					</label>
 
 					<h2>Display Settings</h2>
 					<div class="setting align">
@@ -1761,7 +1772,7 @@
 								</div>
 								<label class="setting link-rel">
 									<span>Link Rel</span>
-									<input type="text" data-setting="linkRel" value="{{ data.model.linkClassName }}" />
+									<input type="text" data-setting="linkRel" value="{{ data.model.linkRel }}" />
 								</label>
 								<label class="setting link-class-name">
 									<span>Link CSS Class</span>
