@@ -456,7 +456,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 
 	/**
 	 * Handles a deprecated expectation.
-	 * 
+	 *
 	 * The DocBlock should contain `@expectedDeprecated` to trigger this.
 	 */
 	public function expectedDeprecated() {
