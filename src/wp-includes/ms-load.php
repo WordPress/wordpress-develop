@@ -53,14 +53,6 @@ function wp_get_active_network_plugins() {
 		}
 	}
 
-	/*
-	 * Remove plugins from the list of active plugins when we're on an endpoint
-	 * that should be protected against WSODs and the plugin is paused.
-	 */
-	if ( is_protected_endpoint() ) {
-		$plugins = wp_skip_paused_plugins( $plugins );
-	}
-
 	return $plugins;
 }
 
@@ -243,7 +235,8 @@ function get_site_by_path( $domain, $path, $segments = null ) {
 	}
 
 	$args = array(
-		'number' => 1,
+		'number'                 => 1,
+		'update_site_meta_cache' => false,
 	);
 
 	if ( count( $domains ) > 1 ) {

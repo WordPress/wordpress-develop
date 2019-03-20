@@ -17,14 +17,8 @@ define( 'WPINC', 'wp-includes' );
 
 // Include files required for initialization.
 require( ABSPATH . WPINC . '/load.php' );
-require( ABSPATH . WPINC . '/class-wp-paused-extensions-storage.php' );
-require( ABSPATH . WPINC . '/class-wp-fatal-error-handler.php' );
-require( ABSPATH . WPINC . '/error-protection.php' );
 require( ABSPATH . WPINC . '/default-constants.php' );
 require_once( ABSPATH . WPINC . '/plugin.php' );
-
-// Make sure we register the shutdown handler for fatal errors as soon as possible.
-wp_register_fatal_error_handler();
 
 /*
  * These can't be directly globalized in version.php. When updating,
@@ -259,10 +253,14 @@ require( ABSPATH . WPINC . '/class-wp-block-parser.php' );
 require( ABSPATH . WPINC . '/blocks.php' );
 require( ABSPATH . WPINC . '/blocks/archives.php' );
 require( ABSPATH . WPINC . '/blocks/block.php' );
+require( ABSPATH . WPINC . '/blocks/calendar.php' );
 require( ABSPATH . WPINC . '/blocks/categories.php' );
 require( ABSPATH . WPINC . '/blocks/latest-comments.php' );
 require( ABSPATH . WPINC . '/blocks/latest-posts.php' );
+require( ABSPATH . WPINC . '/blocks/rss.php' );
+require( ABSPATH . WPINC . '/blocks/search.php' );
 require( ABSPATH . WPINC . '/blocks/shortcode.php' );
+require( ABSPATH . WPINC . '/blocks/tag-cloud.php' );
 
 $GLOBALS['wp_embed'] = new WP_Embed();
 
@@ -530,12 +528,3 @@ if ( is_multisite() ) {
  * @since 3.0.0
  */
 do_action( 'wp_loaded' );
-
-/*
- * Store the fact that we could successfully execute the entire WordPress
- * lifecycle. This is used to skip the premature shutdown handler, as it cannot
- * be unregistered.
- */
-if ( ! defined( 'WP_EXECUTION_SUCCEEDED' ) ) {
-	define( 'WP_EXECUTION_SUCCEEDED', true );
-}

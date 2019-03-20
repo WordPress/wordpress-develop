@@ -1524,7 +1524,7 @@ EOF;
 		// Copy hash generation method used in wp_save_image().
 		$hash = 'e' . time() . rand( 100, 999 );
 
-		$filename_base = basename( $image_meta['file'], '.png' );
+		$filename_base = wp_basename( $image_meta['file'], '.png' );
 
 		// Add the hash to the image URL
 		$image_url = str_replace( $filename_base, $filename_base . '-' . $hash, $image_url );

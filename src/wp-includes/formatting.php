@@ -3004,10 +3004,12 @@ function wp_rel_nofollow_callback( $matches ) {
 	$atts = shortcode_parse_atts( $matches[1] );
 	$rel  = 'nofollow';
 
-	if ( preg_match( '%href=["\'](' . preg_quote( set_url_scheme( home_url(), 'http' ) ) . ')%i', $text ) ||
-		preg_match( '%href=["\'](' . preg_quote( set_url_scheme( home_url(), 'https' ) ) . ')%i', $text ) ) {
-
-		return "<a $text>";
+	if ( ! empty( $atts['href'] ) ) {
+		if ( in_array( strtolower( wp_parse_url( $atts['href'], PHP_URL_SCHEME ) ), array( 'http', 'https' ), true ) ) {
+			if ( strtolower( wp_parse_url( $atts['href'], PHP_URL_HOST ) ) === strtolower( wp_parse_url( home_url(), PHP_URL_HOST ) ) ) {
+				return "<a $text>";
+			}
+		}
 	}
 
 	if ( ! empty( $atts['rel'] ) ) {
@@ -3020,11 +3022,11 @@ function wp_rel_nofollow_callback( $matches ) {
 
 		$html = '';
 		foreach ( $atts as $name => $value ) {
-			$html .= "{$name}=\"$value\" ";
+			$html .= "{$name}=\"" . esc_attr( $value ) . '" ';
 		}
 		$text = trim( $html );
 	}
-	return "<a $text rel=\"$rel\">";
+	return "<a $text rel=\"" . esc_attr( $rel ) . '">';
 }
 
 /**
@@ -3093,6 +3095,52 @@ function wp_targeted_link_rel_callback( $matches ) {
 	}
 
 	return "<a $link_html>";
+}
+
+/**
+ * Adds all filters modifying the rel attribute of targeted links.
+ *
+ * @since 5.1.0
+ */
+function wp_init_targeted_link_rel_filters() {
+	$filters = array(
+		'title_save_pre',
+		'content_save_pre',
+		'excerpt_save_pre',
+		'content_filtered_save_pre',
+		'pre_comment_content',
+		'pre_term_description',
+		'pre_link_description',
+		'pre_link_notes',
+		'pre_user_description',
+	);
+
+	foreach ( $filters as $filter ) {
+		add_filter( $filter, 'wp_targeted_link_rel' );
+	};
+}
+
+/**
+ * Removes all filters modifying the rel attribute of targeted links.
+ *
+ * @since 5.1.0
+ */
+function wp_remove_targeted_link_rel_filters() {
+	$filters = array(
+		'title_save_pre',
+		'content_save_pre',
+		'excerpt_save_pre',
+		'content_filtered_save_pre',
+		'pre_comment_content',
+		'pre_term_description',
+		'pre_link_description',
+		'pre_link_notes',
+		'pre_user_description',
+	);
+
+	foreach ( $filters as $filter ) {
+		remove_filter( $filter, 'wp_targeted_link_rel' );
+	};
 }
 
 /**
@@ -5107,9 +5155,11 @@ function sanitize_textarea_field( $str ) {
  * @return string Sanitized string.
  */
 function _sanitize_text_fields( $str, $keep_newlines = false ) {
-	if ( ! is_string( $str ) ) {
+	if ( is_object( $str ) || is_array( $str ) ) {
 		return '';
 	}
+
+	$str = (string) $str;
 
 	$filtered = wp_check_invalid_utf8( $str );
 

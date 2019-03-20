@@ -171,7 +171,6 @@ module.exports = function(grunt) {
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery-migrate.js' ]: [ './node_modules/jquery-migrate/dist/jquery-migrate.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery-migrate.min.js' ]: [ './node_modules/jquery-migrate/dist/jquery-migrate.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.form.js' ]: [ './node_modules/jquery-form/src/jquery.form.js' ],
-						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.form.min.js' ]: [ './node_modules/jquery-form/dist/jquery.form.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.js' ]: [ './node_modules/jquery/dist/jquery.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/masonry.min.js' ]: [ './node_modules/masonry-layout/dist/masonry.pkgd.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/twemoji.js' ]: [ './node_modules/twemoji/2/twemoji.js' ],
@@ -720,6 +719,10 @@ module.exports = function(grunt) {
 				src: WORKING_DIR + 'wp-includes/js/imgareaselect/jquery.imgareaselect.js',
 				dest: WORKING_DIR + 'wp-includes/js/imgareaselect/jquery.imgareaselect.min.js'
 			},
+			jqueryform: {
+				src: WORKING_DIR + 'wp-includes/js/jquery/jquery.form.js',
+				dest: WORKING_DIR + 'wp-includes/js/jquery/jquery.form.min.js'
+			},
 			dynamic: {
 				expand: true,
 				cwd: WORKING_DIR,
@@ -1193,6 +1196,7 @@ module.exports = function(grunt) {
 		'webpack:prod',
 		'jshint:corejs',
 		'uglify:imgareaselect',
+		'uglify:jqueryform',
 		'qunit:compiled'
 	] );
 
@@ -1332,7 +1336,8 @@ module.exports = function(grunt) {
 		'uglify:core',
 		'uglify:embed',
 		'uglify:jqueryui',
-		'uglify:imgareaselect'
+		'uglify:imgareaselect',
+		'uglify:jqueryform'
 	] );
 
 	grunt.registerTask( 'build:js', [

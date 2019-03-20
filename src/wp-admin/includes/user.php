@@ -812,6 +812,15 @@ function _wp_personal_data_export_page() {
 			'screen'   => 'export_personal_data',
 		)
 	);
+
+	$requests_table->screen->set_screen_reader_content(
+		array(
+			'heading_views'      => __( 'Filter export personal data list' ),
+			'heading_pagination' => __( 'Export personal data list navigation' ),
+			'heading_list'       => __( 'Export personal data list' ),
+		)
+	);
+
 	$requests_table->process_bulk_action();
 	$requests_table->prepare_items();
 	?>
@@ -884,6 +893,14 @@ function _wp_personal_data_removal_page() {
 			'plural'   => 'privacy_requests',
 			'singular' => 'privacy_request',
 			'screen'   => 'remove_personal_data',
+		)
+	);
+
+	$requests_table->screen->set_screen_reader_content(
+		array(
+			'heading_views'      => __( 'Filter erase personal data list' ),
+			'heading_pagination' => __( 'Erase personal data list navigation' ),
+			'heading_list'       => __( 'Erase personal data list' ),
 		)
 	);
 
@@ -1167,12 +1184,44 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 		$total_requests = absint( array_sum( (array) $counts ) );
 
 		$current_link_attributes = empty( $current_status ) ? ' class="current" aria-current="page"' : '';
-		$views['all']            = '<a href="' . esc_url( $admin_url ) . "\" $current_link_attributes>" . sprintf( _nx( 'All <span class="count">(%s)</span>', 'All <span class="count">(%d)</span>', $total_requests, 'requests' ), number_format_i18n( $total_requests ) ) . '</a>';
+		$status_label            = sprintf(
+			/* translators: %s: all requests count */
+			_nx(
+				'All <span class="count">(%s)</span>',
+				'All <span class="count">(%s)</span>',
+				$total_requests,
+				'requests'
+			),
+			number_format_i18n( $total_requests )
+		);
+
+		$views['all'] = sprintf(
+			'<a href="%s"%s>%s</a>',
+			esc_url( $admin_url ),
+			$current_link_attributes,
+			$status_label
+		);
 
 		foreach ( $statuses as $status => $label ) {
+			$post_status = get_post_status_object( $status );
+			if ( ! $post_status ) {
+				continue;
+			}
+
 			$current_link_attributes = $status === $current_status ? ' class="current" aria-current="page"' : '';
-			$total_status_requests   = absint( $counts->$status );
-			$views[ $status ]        = '<a href="' . esc_url( add_query_arg( 'filter-status', $status, $admin_url ) ) . "\" $current_link_attributes>" . sprintf( _nx( '%1$s <span class="count">(%2$d)</span>', '%1$s <span class="count">(%2$d)</span>', $total_status_requests, 'requests' ), esc_html( $label ), number_format_i18n( $total_status_requests ) ) . '</a>';
+			$total_status_requests   = absint( $counts->{$status} );
+			$status_label            = sprintf(
+				translate_nooped_plural( $post_status->label_count, $total_status_requests ),
+				number_format_i18n( $total_status_requests )
+			);
+			$status_link             = add_query_arg( 'filter-status', $status, $admin_url );
+
+			$views[ $status ] = sprintf(
+				'<a href="%s"%s>%s</a>',
+				esc_url( $status_link ),
+				$current_link_attributes,
+				$status_label
+			);
 		}
 
 		return $views;
@@ -1360,7 +1409,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 			return '';
 		}
 
-		$time_diff = current_time( 'timestamp', true ) - $timestamp;
+		$time_diff = time() - $timestamp;
 
 		if ( $time_diff >= 0 && $time_diff < DAY_IN_SECONDS ) {
 			/* translators: human readable timestamp */
@@ -1521,7 +1570,7 @@ class WP_Privacy_Data_Export_Requests_Table extends WP_Privacy_Requests_Table {
 					'">';
 
 				?>
-				<span class="export-personal-data-idle"><button type="button" class="button export-personal-data-handle"><?php _e( 'Email Data' ); ?></button></span>
+				<span class="export-personal-data-idle"><button type="button" class="button export-personal-data-handle"><?php _e( 'Send Export Link' ); ?></button></span>
 				<span style="display:none" class="export-personal-data-processing button updating-message" ><?php _e( 'Sending Email...' ); ?></span>
 				<span style="display:none" class="export-personal-data-success success-message" ><?php _e( 'Email sent.' ); ?></span>
 				<span style="display:none" class="export-personal-data-failed"><?php _e( 'Email could not be sent.' ); ?> <button type="button" class="button export-personal-data-handle"><?php _e( 'Retry' ); ?></button></span>

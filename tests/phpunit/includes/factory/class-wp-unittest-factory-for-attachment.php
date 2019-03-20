@@ -16,7 +16,7 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 	 *
 	 * @return  int|WP_Error The attachment ID on success. The value 0 or WP_Error on failure.
 	 */
-	function create_object( $args, $legacy_parent = 0, $legacy_args = array() ) {
+	public function create_object( $args, $legacy_parent = 0, $legacy_args = array() ) {
 		// Backward compatibility for legacy argument format.
 		if ( is_string( $args ) ) {
 			$file                = $args;
@@ -44,9 +44,9 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 	 *
 	 * @return int|WP_Error The attachment ID on success. The value 0 or WP_Error on failure.
 	 */
-	function create_upload_object( $file, $parent = 0 ) {
+	public function create_upload_object( $file, $parent = 0 ) {
 		$contents = file_get_contents( $file );
-		$upload   = wp_upload_bits( basename( $file ), null, $contents );
+		$upload   = wp_upload_bits( wp_basename( $file ), null, $contents );
 
 		$type = '';
 		if ( ! empty( $upload['type'] ) ) {
@@ -59,7 +59,7 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 		}
 
 		$attachment = array(
-			'post_title'     => basename( $upload['file'] ),
+			'post_title'     => wp_basename( $upload['file'] ),
 			'post_content'   => '',
 			'post_type'      => 'attachment',
 			'post_parent'    => $parent,

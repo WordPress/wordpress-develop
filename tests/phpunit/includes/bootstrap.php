@@ -7,7 +7,7 @@
  * Compatibility with PHPUnit 6+
  */
 if ( class_exists( 'PHPUnit\Runner\Version' ) ) {
-	require_once dirname( __FILE__ ) . '/phpunit6-compat.php';
+	require_once dirname( __FILE__ ) . '/phpunit6/compat.php';
 }
 
 if ( defined( 'WP_TESTS_CONFIG_FILE_PATH' ) ) {
@@ -35,6 +35,15 @@ if ( ! is_readable( $config_file_path ) ) {
 }
 require_once $config_file_path;
 require_once dirname( __FILE__ ) . '/functions.php';
+
+if ( version_compare( tests_get_phpunit_version(), '8.0', '>=' ) ) {
+	printf(
+		"ERROR: Looks like you're using PHPUnit %s. WordPress is currently only compatible with PHPUnit up to 7.x.\n",
+		tests_get_phpunit_version()
+	);
+	echo "Please use the latest PHPUnit version from the 7.x branch.\n";
+	exit( 1 );
+}
 
 tests_reset__SERVER();
 
@@ -118,7 +127,12 @@ require_once ABSPATH . '/wp-settings.php';
 // Delete any default posts & related data
 _delete_all_posts();
 
-require dirname( __FILE__ ) . '/testcase.php';
+if ( version_compare( tests_get_phpunit_version(), '7.0', '>=' ) ) {
+	require dirname( __FILE__ ) . '/phpunit7/testcase.php';
+} else {
+	require dirname( __FILE__ ) . '/testcase.php';
+}
+
 require dirname( __FILE__ ) . '/testcase-rest-api.php';
 require dirname( __FILE__ ) . '/testcase-rest-controller.php';
 require dirname( __FILE__ ) . '/testcase-rest-post-type-controller.php';
@@ -132,10 +146,7 @@ require dirname( __FILE__ ) . '/class-wp-rest-test-search-handler.php';
 require dirname( __FILE__ ) . '/class-wp-fake-block-type.php';
 
 /**
- * A child class of the PHP test runner.
- *
- * Used to access the protected longOptions property, to parse the arguments
- * passed to the script.
+ * A class to handle additional command line arguments passed to the script.
  *
  * If it is determined that phpunit was called with a --group that corresponds
  * to an @ticket annotation (such as `phpunit --group 12345` for bugs marked
@@ -144,43 +155,27 @@ require dirname( __FILE__ ) . '/class-wp-fake-block-type.php';
  * If WP_TESTS_FORCE_KNOWN_BUGS is already set in wp-tests-config.php, then
  * how you call phpunit has no effect.
  */
-class WP_PHPUnit_Util_Getopt extends PHPUnit_Util_Getopt {
-	protected $longOptions = array(
-		'exclude-group=',
-		'group=',
-	);
-	function __construct( $argv ) {
-		array_shift( $argv );
-		$options = array();
-		while ( current( $argv ) ) {
-			$arg = current( $argv );
-			next( $argv );
-			try {
-				if ( strlen( $arg ) > 1 && $arg[0] === '-' && $arg[1] === '-' ) {
-					PHPUnit_Util_Getopt::parseLongOption( substr( $arg, 2 ), $this->longOptions, $options, $argv );
-				}
-			} catch ( PHPUnit_Framework_Exception $e ) {
-				// Enforcing recognized arguments or correctly formed arguments is
-				// not really the concern here.
-				continue;
-			}
-		}
+class WP_PHPUnit_Util_Getopt {
 
+	function __construct( $argv ) {
 		$skipped_groups = array(
 			'ajax'          => true,
 			'ms-files'      => true,
 			'external-http' => true,
 		);
 
-		foreach ( $options as $option ) {
-			switch ( $option[0] ) {
+		while ( current( $argv ) ) {
+			$option = current( $argv );
+			$value  = next( $argv );
+
+			switch ( $option ) {
 				case '--exclude-group':
 					foreach ( $skipped_groups as $group_name => $skipped ) {
 						$skipped_groups[ $group_name ] = false;
 					}
 					continue 2;
 				case '--group':
-					$groups = explode( ',', $option[1] );
+					$groups = explode( ',', $value );
 					foreach ( $groups as $group ) {
 						if ( is_numeric( $group ) || preg_match( '/^(UT|Plugin)\d+$/', $group ) ) {
 							WP_UnitTestCase::forceTicket( $group );
@@ -208,5 +203,6 @@ class WP_PHPUnit_Util_Getopt extends PHPUnit_Util_Getopt {
 			echo PHP_EOL;
 		}
 	}
+
 }
 new WP_PHPUnit_Util_Getopt( $_SERVER['argv'] );

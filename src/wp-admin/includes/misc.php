@@ -362,7 +362,7 @@ function wp_print_theme_file_tree( $tree, $level = 2, $size = 1, $index = 1 ) {
 				aria-posinset="<?php echo esc_attr( $index ); ?>">
 				<?php
 				$file_description = esc_html( get_file_description( $filename ) );
-				if ( $file_description !== $filename && basename( $filename ) !== $file_description ) {
+				if ( $file_description !== $filename && wp_basename( $filename ) !== $file_description ) {
 					$file_description .= '<br /><span class="nonessential">(' . esc_html( $filename ) . ')</span>';
 				}
 
@@ -1644,7 +1644,7 @@ final class WP_Privacy_Policy_Content {
 			/* translators: 1: Privacy Policy guide URL, 2: additional link attributes, 3: accessibility text */
 			printf(
 				__( 'Need help putting together your new Privacy Policy page? <a href="%1$s" %2$s>Check out our guide%3$s</a> for recommendations on what content to include, along with policies suggested by your plugins and theme.' ),
-				admin_url( 'tools.php?wp-privacy-policy-guide=1' ),
+				esc_url( admin_url( 'tools.php?wp-privacy-policy-guide=1' ) ),
 				'target="_blank"',
 				sprintf(
 					'<span class="screen-reader-text"> %s</span>',
@@ -2010,4 +2010,67 @@ final class WP_Privacy_Policy_Content {
 		$content = self::get_default_content( true, false );
 		wp_add_privacy_policy_content( __( 'WordPress' ), $content );
 	}
+}
+
+/**
+ * Checks if the user needs to update PHP.
+ *
+ * @since 5.1.0
+ * @since 5.1.1 Added the {@see 'wp_is_php_version_acceptable'} filter.
+ *
+ * @return array|false $response Array of PHP version data. False on failure.
+ */
+function wp_check_php_version() {
+	$version = phpversion();
+	$key     = md5( $version );
+
+	$response = get_site_transient( 'php_check_' . $key );
+	if ( false === $response ) {
+		$url = 'http://api.wordpress.org/core/serve-happy/1.0/';
+		if ( wp_http_supports( array( 'ssl' ) ) ) {
+			$url = set_url_scheme( $url, 'https' );
+		}
+
+		$url = add_query_arg( 'php_version', $version, $url );
+
+		$response = wp_remote_get( $url );
+
+		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+			return false;
+		}
+
+		/**
+		 * Response should be an array with:
+		 *  'recommended_version' - string - The PHP version recommended by WordPress.
+		 *  'is_supported' - boolean - Whether the PHP version is actively supported.
+		 *  'is_secure' - boolean - Whether the PHP version receives security updates.
+		 *  'is_acceptable' - boolean - Whether the PHP version is still acceptable for WordPress.
+		 */
+		$response = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( ! is_array( $response ) ) {
+			return false;
+		}
+
+		set_site_transient( 'php_check_' . $key, $response, WEEK_IN_SECONDS );
+	}
+
+	if ( isset( $response['is_acceptable'] ) && $response['is_acceptable'] ) {
+		/**
+		 * Filters whether the active PHP version is considered acceptable by WordPress.
+		 *
+		 * Returning false will trigger a PHP version warning to show up in the admin dashboard to administrators.
+		 *
+		 * This filter is only run if the wordpress.org Serve Happy API considers the PHP version acceptable, ensuring
+		 * that this filter can only make this check stricter, but not loosen it.
+		 *
+		 * @since 5.1.1
+		 *
+		 * @param bool   $is_acceptable Whether the PHP version is considered acceptable. Default true.
+		 * @param string $version       PHP version checked.
+		 */
+		$response['is_acceptable'] = (bool) apply_filters( 'wp_is_php_version_acceptable', true, $version );
+	}
+
+	return $response;
 }

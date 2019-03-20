@@ -38,7 +38,8 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 			'type' => 'string',
 		);
 		$this->assertEquals( 'Hello', rest_sanitize_value_from_schema( 'Hello', $schema ) );
-		$this->assertEquals( '1.10', rest_sanitize_value_from_schema( 1.10, $schema ) );
+		$this->assertEquals( '1.10', rest_sanitize_value_from_schema( '1.10', $schema ) );
+		$this->assertEquals( '1.1', rest_sanitize_value_from_schema( 1.1, $schema ) );
 		$this->assertEquals( '1', rest_sanitize_value_from_schema( 1, $schema ) );
 	}
 
