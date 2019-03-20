@@ -539,7 +539,7 @@ function get_oembed_response_data( $post, $width ) {
 		'provider_url'  => get_home_url(),
 		'author_name'   => get_bloginfo( 'name' ),
 		'author_url'    => get_home_url(),
-		'title'         => $post->post_title,
+		'title'         => get_the_title( $post ),
 		'type'          => 'link',
 	);
 
@@ -586,8 +586,9 @@ function get_oembed_response_data_for_url( $url, $args ) {
 		);
 
 		$qv = array(
-			'domain' => $url_parts['host'],
-			'path'   => '/',
+			'domain'                 => $url_parts['host'],
+			'path'                   => '/',
+			'update_site_meta_cache' => false,
 		);
 
 		// In case of subdirectory configs, set the path.
@@ -778,6 +779,55 @@ function _oembed_create_xml( $data, $node = null ) {
 
 	return $node->asXML();
 }
+
+/**
+ * Filters the given oEmbed HTML to make sure iframes have a title attribute.
+ *
+ * @since 5.2.0
+ *
+ * @param string $result The oEmbed HTML result.
+ * @param object $data   A data object result from an oEmbed provider.
+ * @param string $url    The URL of the content to be embedded.
+ * @return string The filtered oEmbed result.
+ */
+function wp_filter_oembed_iframe_title_attribute( $result, $data, $url ) {
+	if ( false === $result || ! in_array( $data->type, array( 'rich', 'video' ) ) ) {
+		return $result;
+	}
+
+	$title = ! empty( $data->title ) ? $data->title : '';
+
+	$pattern        = '`<iframe[^>]*?title=(\\\\\'|\\\\"|[\'"])([^>]*?)\1`i';
+	$has_title_attr = preg_match( $pattern, $result, $matches );
+
+	if ( $has_title_attr && ! empty( $matches[2] ) ) {
+		$title = $matches[2];
+	}
+
+	/**
+	 * Filters the title attribute of the given oEmbed HTML iframe.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @param string $title  The title attribute.
+	 * @param string $result The oEmbed HTML result.
+	 * @param object $data   A data object result from an oEmbed provider.
+	 * @param string $url    The URL of the content to be embedded.
+	 */
+	$title = apply_filters( 'oembed_iframe_title_attribute', $title, $result, $data, $url );
+
+	if ( '' === $title ) {
+		return $result;
+	}
+
+	if ( $has_title_attr ) {
+		// Remove the old title, $matches[1]: quote, $matches[2]: title attribute value.
+		$result = str_replace( ' title=' . $matches[1] . $matches[2] . $matches[1], '', $result );
+	}
+
+	return str_ireplace( '<iframe ', sprintf( '<iframe title="%s" ', esc_attr( $title ) ), $result );
+}
+
 
 /**
  * Filters the given oEmbed HTML.

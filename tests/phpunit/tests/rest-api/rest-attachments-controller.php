@@ -208,6 +208,36 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertEquals( array( 'context', 'id' ), $keys );
 	}
 
+	/**
+	 * @ticket 43701
+	 */
+	public function test_allow_header_sent_on_options_request() {
+		$id1      = $this->factory->attachment->create_object(
+			$this->test_file,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption',
+			)
+		);
+		$request  = new WP_REST_Request( 'OPTIONS', sprintf( '/wp/v2/media/%d', $id1 ) );
+		$response = rest_get_server()->dispatch( $request );
+		$response = apply_filters( 'rest_post_dispatch', $response, rest_get_server(), $request );
+		$headers  = $response->get_headers();
+
+		$this->assertNotEmpty( $headers['Allow'] );
+		$this->assertEquals( $headers['Allow'], 'GET' );
+
+		wp_set_current_user( self::$editor_id );
+		$request  = new WP_REST_Request( 'OPTIONS', sprintf( '/wp/v2/media/%d', $id1 ) );
+		$response = rest_get_server()->dispatch( $request );
+		$response = apply_filters( 'rest_post_dispatch', $response, rest_get_server(), $request );
+		$headers  = $response->get_headers();
+
+		$this->assertNotEmpty( $headers['Allow'] );
+		$this->assertEquals( $headers['Allow'], 'GET, POST, PUT, PATCH, DELETE' );
+	}
+
 	public function test_get_items() {
 		wp_set_current_user( 0 );
 		$id1            = $this->factory->attachment->create_object(

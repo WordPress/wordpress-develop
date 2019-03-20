@@ -189,6 +189,28 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( array( 'context', 'id', 'password' ), $keys );
 	}
 
+	/**
+	 * @ticket 43701
+	 */
+	public function test_allow_header_sent_on_options_request() {
+		$request  = new WP_REST_Request( 'OPTIONS', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$response = apply_filters( 'rest_post_dispatch', $response, rest_get_server(), $request );
+		$headers  = $response->get_headers();
+
+		$this->assertNotEmpty( $headers['Allow'] );
+		$this->assertEquals( $headers['Allow'], 'GET' );
+
+		wp_set_current_user( self::$editor_id );
+		$request  = new WP_REST_Request( 'OPTIONS', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$response = apply_filters( 'rest_post_dispatch', $response, rest_get_server(), $request );
+		$headers  = $response->get_headers();
+
+		$this->assertNotEmpty( $headers['Allow'] );
+		$this->assertEquals( $headers['Allow'], 'GET, POST, PUT, PATCH, DELETE' );
+	}
+
 	public function test_get_items() {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$response = rest_get_server()->dispatch( $request );
