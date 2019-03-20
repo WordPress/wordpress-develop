@@ -36,20 +36,23 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		);
 
 		// Set a predictable time for testing date archives.
-		self::$post_date = '2003-05-27 10:07:53';
+		self::$post_date = strtotime( '2003-05-27 10:07:53' );
 
 		$count = get_option( 'posts_per_rss' ) + 1;
 
+		self::$posts = array();
 		// Create a few posts
-		self::$posts = $factory->post->create_many(
-			$count,
-			array(
-				'post_author'  => self::$user_id,
-				'post_date'    => self::$post_date,
-				'post_content' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec velit massa, ultrices eu est suscipit, mattis posuere est. Donec vitae purus lacus. Cras vitae odio odio.',
-				'post_excerpt' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-			)
-		);
+		for ( $i = 1; $i <= $count; $i++ ) {
+			self::$posts[] = $factory->post->create(
+				array(
+					'post_author'  => self::$user_id,
+					// Separate post dates 5 seconds apart.
+					'post_date'    => gmdate( 'Y-m-d H:i:s', self::$post_date + ( 5 * $i ) ),
+					'post_content' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec velit massa, ultrices eu est suscipit, mattis posuere est. Donec vitae purus lacus. Cras vitae odio odio.',
+					'post_excerpt' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+				)
+			);
+		}
 
 		// Assign a category to those posts
 		foreach ( self::$posts as $post ) {
@@ -396,6 +399,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		// Queries performed on valid feed endpoints should contain posts.
 		$this->assertTrue( have_posts() );
 
+
 		// Check to see if we have the expected XML output from the feed template.
 		$feed = $this->do_rss2();
 
@@ -462,5 +466,32 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 
 		// There should only be one <rss> child element.
 		$this->assertEquals( 1, count( $rss ) );
+	}
+
+	/**
+	 * Test <rss> element has correct last build date.
+	 *
+	 * @ticket 4575
+	 *
+	 * @dataProvider data_test_get_last_build_date
+	 */
+	public function test_get_last_build_date( $url, $element ) {
+		$this->go_to( $url );
+		$feed = $this->do_rss2();
+		$xml  = xml_to_array( $feed );
+
+		// Get the <rss> child element of <xml>.
+		$rss             = xml_find( $xml, $element );
+		$last_build_date = $rss[0]['child'][0]['child'][4]['content'];
+		$this->assertEquals( strtotime( get_last_build_date() ), strtotime( $last_build_date ) );
+	}
+
+
+	public function data_test_get_last_build_date() {
+		return array(
+			array( '/?feed=rss2', 'rss' ),
+			array( '/?feed=commentsrss2', 'rss' ),
+		);
+
 	}
 }
