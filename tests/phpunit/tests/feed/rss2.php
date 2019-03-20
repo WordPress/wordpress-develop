@@ -399,7 +399,6 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		// Queries performed on valid feed endpoints should contain posts.
 		$this->assertTrue( have_posts() );
 
-
 		// Check to see if we have the expected XML output from the feed template.
 		$feed = $this->do_rss2();
 
