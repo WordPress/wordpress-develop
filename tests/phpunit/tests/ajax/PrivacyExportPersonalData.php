@@ -154,6 +154,10 @@ class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 		add_filter( 'wp_privacy_personal_data_exporters', array( $this, 'filter_register_custom_personal_data_exporter' ) );
 
 		$this->_setRole( 'administrator' );
+		// export_others_personal_data meta cap in Multisite installation is only granted to those with `manage_network` capability.
+		if ( is_multisite() ) {
+			grant_super_admin( get_current_user_id() );
+		}
 	}
 
 	/**
@@ -162,6 +166,9 @@ class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 	public function tearDown() {
 		remove_filter( 'wp_privacy_personal_data_exporters', array( $this, 'filter_register_custom_personal_data_exporter' ) );
 
+		if ( is_multisite() ) {
+			revoke_super_admin( get_current_user_id() );
+		}
 		parent::tearDown();
 	}
 
@@ -260,6 +267,26 @@ class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 
 		$this->assertFalse( $this->_last_response_parsed['success'] );
 		$this->assertFalse( current_user_can( 'export_others_personal_data' ) );
+		$this->assertSame( 'Sorry, you are not allowed to perform this action.', $this->_last_response_parsed['data'] );
+	}
+
+	/**
+	 * Test requests do not succeed on multisite when the current user is not a network admin.
+	 *
+	 * @group multisite
+	 *
+	 * @ticket 43438
+	 */
+	public function test_error_when_current_user_missing_required_capability_multisite() {
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'This test only runs on multisite.' );
+		}
+
+		revoke_super_admin( get_current_user_id() );
+
+		$this->_make_ajax_call();
+
+		$this->assertFalse( $this->_last_response_parsed['success'] );
 		$this->assertSame( 'Sorry, you are not allowed to perform this action.', $this->_last_response_parsed['data'] );
 	}
 
