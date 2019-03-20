@@ -424,6 +424,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	 * @param string $message The `wp_die()` message.
 	 */
 	public function wp_die_handler( $message ) {
+		if ( is_wp_error( $message ) ) {
+			$message = $message->get_error_message();
+		}
+
 		if ( ! is_scalar( $message ) ) {
 			$message = '0';
 		}
