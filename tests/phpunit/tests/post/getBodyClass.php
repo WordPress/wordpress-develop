@@ -202,4 +202,28 @@ class Tests_Post_GetBodyClass extends WP_UnitTestCase {
 		$this->assertContains( "attachmentid-{$attachment_id}", $class );
 		$this->assertContains( 'attachment-jpeg', $class );
 	}
+
+	/**
+	 * @ticket 44005
+	 * @group privacy
+	 */
+	public function test_privacy_policy_body_class() {
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'Privacy Policy',
+			)
+		);
+		update_option( 'wp_page_for_privacy_policy', $page_id );
+
+		$this->go_to( get_permalink( $page_id ) );
+
+		$class = get_body_class();
+
+		$this->assertContains( 'privacy-policy', $class );
+		$this->assertContains( 'page-template-default', $class );
+		$this->assertContains( 'page', $class );
+		$this->assertContains( "page-id-{$page_id}", $class );
+	}
+
 }
