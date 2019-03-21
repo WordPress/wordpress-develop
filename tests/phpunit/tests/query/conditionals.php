@@ -1590,7 +1590,7 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		$this->assertTrue( is_single( $p2 ) );
 		$this->assertFalse( is_single( $p1 ) );
 	}
-	
+
 	/**
 	 * @ticket 44005
 	 * @group privacy

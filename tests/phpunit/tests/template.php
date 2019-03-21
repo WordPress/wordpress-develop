@@ -289,7 +289,7 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
- 	 * @ticket 44005
+	 * @ticket 44005
 	 * @group privacy
 	 */
 	public function test_privacy_template_hierarchy() {
