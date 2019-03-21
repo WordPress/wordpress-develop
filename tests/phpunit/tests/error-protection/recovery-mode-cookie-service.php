@@ -50,7 +50,7 @@ class Tests_Recovery_Mode_Cookie_Service extends WP_UnitTestCase {
 		$reflection = new ReflectionMethod( $service, 'generate_cookie' );
 		$reflection->setAccessible( true );
 
-		$cookie = $reflection->invoke( $service );
+		$cookie  = $reflection->invoke( $service );
 		$cookie .= 'gibbersih';
 
 		$error = $service->validate_cookie( $cookie );
