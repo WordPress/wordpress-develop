@@ -1734,10 +1734,12 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$num_queries = $wpdb->num_queries;
 
-		$q = new WP_Site_Query();
-		$results = $q->query( array(
+		$q       = new WP_Site_Query();
+		$results = $q->query(
+			array(
 				'fields' => 'ids',
-		) );
+			)
+		);
 
 		remove_filter( 'sites_pre_query', array( __CLASS__, 'filter_sites_pre_query' ), 10, 2 );
 

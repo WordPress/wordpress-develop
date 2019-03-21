@@ -288,7 +288,6 @@ class WP_Site_Query {
 			$this->meta_query_clauses = $this->meta_query->get_sql( 'blog', $wpdb->blogs, 'blog_id', $this );
 		}
 
-
 		/**
 		 * Filter the sites array before the query takes place.
 		 *
