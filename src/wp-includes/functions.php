@@ -2921,7 +2921,7 @@ function wp_nonce_ays( $action ) {
 }
 
 /**
- * Kill WordPress execution and display HTML message with error message.
+ * Kills WordPress execution and displays HTML page with an error message.
  *
  * This function complements the `die()` PHP function. The difference is that
  * HTML will be displayed to the user. It is recommended to use this function
@@ -3013,10 +3013,10 @@ function wp_die( $message = '', $title = '', $args = array() ) {
 }
 
 /**
- * Kills WordPress execution and display HTML message with error message.
+ * Kills WordPress execution and displays HTML page with an error message.
  *
- * This is the default handler for wp_die if you want a custom one for your
- * site then you can overload using the {@see 'wp_die_handler'} filter in wp_die().
+ * This is the default handler for wp_die(). If you want a custom one,
+ * you can override this using the {@see 'wp_die_handler'} filter in wp_die().
  *
  * @since 3.0.0
  * @access private
@@ -3210,9 +3210,9 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 }
 
 /**
- * Kill WordPress execution and display JSON message with error message.
+ * Kills WordPress execution and displays JSON response with an error message.
  *
- * This is the handler for wp_die when processing JSON requests.
+ * This is the handler for wp_die() when processing JSON requests.
  *
  * @since 5.1.0
  * @access private
@@ -3248,9 +3248,9 @@ function _json_wp_die_handler( $message, $title = '', $args = array() ) {
 }
 
 /**
- * Kill WordPress execution and display XML message with error message.
+ * Kills WordPress execution and displays XML response with an error message.
  *
- * This is the handler for wp_die when processing XMLRPC requests.
+ * This is the handler for wp_die() when processing XMLRPC requests.
  *
  * @since 3.2.0
  * @access private
@@ -3280,9 +3280,9 @@ function _xmlrpc_wp_die_handler( $message, $title = '', $args = array() ) {
 }
 
 /**
- * Kill WordPress ajax execution.
+ * Kills WordPress execution and displays Ajax response with an error message.
  *
- * This is the handler for wp_die when processing Ajax requests.
+ * This is the handler for wp_die() when processing Ajax requests.
  *
  * @since 3.4.0
  * @access private
@@ -3322,9 +3322,9 @@ function _ajax_wp_die_handler( $message, $title = '', $args = array() ) {
 }
 
 /**
- * Kill WordPress execution.
+ * Kills WordPress execution and displays an error message.
  *
- * This is the handler for wp_die when processing APP requests.
+ * This is the handler for wp_die() when processing APP requests.
  *
  * @since 3.4.0
  * @since 5.1.0 Added the $title and $args parameters.
@@ -3350,7 +3350,7 @@ function _scalar_wp_die_handler( $message = '', $title = '', $args = array() ) {
 }
 
 /**
- * Processes arguments passed to {@see wp_die()} consistently for its handlers.
+ * Processes arguments passed to wp_die() consistently for its handlers.
  *
  * @since 5.1.0
  * @access private
@@ -6712,9 +6712,12 @@ function wp_schedule_delete_old_privacy_export_files() {
  * @since 4.9.6
  */
 function wp_privacy_delete_old_export_files() {
-	require_once( ABSPATH . 'wp-admin/includes/file.php' );
+	$exports_dir = wp_privacy_exports_dir();
+	if ( ! is_dir( $exports_dir ) ) {
+		return;
+	}
 
-	$exports_dir  = wp_privacy_exports_dir();
+	require_once( ABSPATH . 'wp-admin/includes/file.php' );
 	$export_files = list_files( $exports_dir, 100, array( 'index.html' ) );
 
 	/**
@@ -6800,22 +6803,42 @@ function wp_get_default_update_php_url() {
  * annotation if the web host has altered the default "Update PHP" page URL.
  *
  * @since 5.1.0
+ * @since 5.2.0 Added the `$before` and `$after` parameters.
+ *
+ * @param string $before Markup to output before the annotation. Default `<p class="description">`.
+ * @param string $after  Markup to output after the annotation. Default `</p>`.
  */
-function wp_update_php_annotation() {
+function wp_update_php_annotation( $before = '<p class="description">', $after = '</p>' ) {
+	$annotation = wp_get_update_php_annotation();
+
+	echo $before . $annotation . $after;
+}
+
+/**
+ * Returns the default annotation for the web hosting altering the "Update PHP" page URL.
+ *
+ * This function is to be used after {@see wp_get_update_php_url()} to return a consistent
+ * annotation if the web host has altered the default "Update PHP" page URL.
+ *
+ * @since 5.2.0
+ *
+ * @return string $message Update PHP page annotation. An empty string if no custom URLs are provided.
+ */
+function wp_get_update_php_annotation() {
 	$update_url  = wp_get_update_php_url();
 	$default_url = wp_get_default_update_php_url();
 
 	if ( $update_url === $default_url ) {
-		return;
+		return '';
 	}
 
-	echo '<p class="description">';
-	printf(
+	$annotation = sprintf(
 		/* translators: %s: default Update PHP page URL */
 		__( 'This resource is provided by your web host, and is specific to your site. For more information, <a href="%s" target="_blank">see the official WordPress documentation</a>.' ),
 		esc_url( $default_url )
 	);
-	echo'</p>';
+
+	return $annotation;
 }
 
 /**

@@ -12,7 +12,7 @@
  */
 class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 
-	function __construct( $factory = null ) {
+	public function __construct( $factory = null ) {
 		global $current_site, $base;
 		parent::__construct( $factory );
 		$this->default_generation_definitions = array(
@@ -30,7 +30,7 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @return int|WP_Error Returns WP_Error object on failure, the site ID on success.
 	 */
-	function create_object( $args ) {
+	public function create_object( $args ) {
 		global $wpdb;
 		$meta    = isset( $args['meta'] ) ? $args['meta'] : array( 'public' => 1 );
 		$user_id = isset( $args['user_id'] ) ? $args['user_id'] : get_current_user_id();
@@ -53,7 +53,7 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @return void
 	 */
-	function update_object( $blog_id, $fields ) {}
+	public function update_object( $blog_id, $fields ) {}
 
 	/**
 	 * Retrieves a site by given blog id.
@@ -62,7 +62,7 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @return null|WP_Site The site object or null if not found.
 	 */
-	function get_object_by_id( $blog_id ) {
+	public function get_object_by_id( $blog_id ) {
 		return get_site( $blog_id );
 	}
 }

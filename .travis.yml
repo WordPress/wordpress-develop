@@ -34,6 +34,12 @@ matrix:
     dist: precise
   - php: nightly
   allow_failures:
+  - php: 5.5
+  - php: 5.4
+  - php: 5.3
+    dist: precise
+  - php: 5.2
+    dist: precise
   - php: 7.4snapshot
   - php: nightly
 before_install:

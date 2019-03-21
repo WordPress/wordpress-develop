@@ -175,11 +175,19 @@ function get_template_part( $slug, $name = null ) {
  * search. To give a few examples of what it can be used for.
  *
  * @since 2.7.0
+ * @since 5.2.0 The $args array parameter was added in place of an $echo boolean flag.
  *
- * @param bool $echo Default to echo and not return the form.
- * @return string|void String when $echo is false.
+ * @param array $args {
+ *     Optional. Array of display arguments.
+ *
+ *     @type bool   $echo       Whether to echo or return the form. Default true.
+ *     @type string $aria_label ARIA label for the search form. Useful to distinguish
+ *                              multiple search forms on the same page and improve
+ *                              accessibility. Default empty.
+ * }
+ * @return string|void String when the $echo param is false.
  */
-function get_search_form( $echo = true ) {
+function get_search_form( $args = array() ) {
 	/**
 	 * Fires before the search form is retrieved, at the start of get_search_form().
 	 *
@@ -191,6 +199,38 @@ function get_search_form( $echo = true ) {
 	do_action( 'pre_get_search_form' );
 
 	$format = current_theme_supports( 'html5', 'search-form' ) ? 'html5' : 'xhtml';
+
+	/*
+	 * Back compat: to ensure previous uses of get_search_form continue to
+	 * function as expected, we handle a value for the boolean $echo param removed
+	 * in 5.2.0. Then we deal with the $args array and cast its defaults.
+	 */
+	$echo = true;
+	if ( false === $args ) {
+		$echo = false;
+	}
+
+	if ( ! is_array( $args ) ) {
+		// Set an empty array and allow default arguments to take over.
+		$args = array();
+	}
+
+	// Defaults are to echo and to output no custom label on the form.
+	$defaults = array(
+		'echo'       => $echo,
+		'aria_label' => '',
+	);
+
+	$args = wp_parse_args( $args, $defaults );
+
+	/**
+	 * Filters the array of arguments used when generating the search form.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @param array $args The array of arguments for building the search form.
+	 */
+	$args = apply_filters( 'search_form_args', $args );
 
 	/**
 	 * Filters the HTML format of the search form.
@@ -208,8 +248,18 @@ function get_search_form( $echo = true ) {
 		require( $search_form_template );
 		$form = ob_get_clean();
 	} else {
+		// Build a string containing an aria-label to use for the search form.
+		if ( isset( $args['aria_label'] ) && $args['aria_label'] ) {
+			$aria_label = 'aria-label="' . esc_attr( $args['aria_label'] ) . '" ';
+		} else {
+			/*
+			 * If there's no custom aria-label, we can set a default here. At the
+			 * moment it's empty as there's uncertainty about what the default should be.
+			 */
+			$aria_label = '';
+		}
 		if ( 'html5' == $format ) {
-			$form = '<form role="search" method="get" class="search-form" action="' . esc_url( home_url( '/' ) ) . '">
+			$form = '<form role="search" ' . $aria_label . 'method="get" class="search-form" action="' . esc_url( home_url( '/' ) ) . '">
 				<label>
 					<span class="screen-reader-text">' . _x( 'Search for:', 'label' ) . '</span>
 					<input type="search" class="search-field" placeholder="' . esc_attr_x( 'Search &hellip;', 'placeholder' ) . '" value="' . get_search_query() . '" name="s" />
@@ -217,7 +267,7 @@ function get_search_form( $echo = true ) {
 				<input type="submit" class="search-submit" value="' . esc_attr_x( 'Search', 'submit button' ) . '" />
 			</form>';
 		} else {
-			$form = '<form role="search" method="get" id="searchform" class="searchform" action="' . esc_url( home_url( '/' ) ) . '">
+			$form = '<form role="search" ' . $aria_label . 'method="get" id="searchform" class="searchform" action="' . esc_url( home_url( '/' ) ) . '">
 				<div>
 					<label class="screen-reader-text" for="s">' . _x( 'Search for:', 'label' ) . '</label>
 					<input type="text" value="' . get_search_query() . '" name="s" id="s" />
@@ -240,7 +290,7 @@ function get_search_form( $echo = true ) {
 		$result = $form;
 	}
 
-	if ( $echo ) {
+	if ( isset( $args['echo'] ) && $args['echo'] ) {
 		echo $result;
 	} else {
 		return $result;
@@ -1659,22 +1709,25 @@ function get_the_post_type_description() {
  * three values for the format are not used, then custom format is assumed.
  *
  * @since 1.0.0
+ * @since 5.2.0 Added the `$selected` parameter.
  *
- * @param string $url    URL to archive.
- * @param string $text   Archive text description.
- * @param string $format Optional, default is 'html'. Can be 'link', 'option', 'html', or custom.
- * @param string $before Optional. Content to prepend to the description. Default empty.
- * @param string $after  Optional. Content to append to the description. Default empty.
+ * @param string $url      URL to archive.
+ * @param string $text     Archive text description.
+ * @param string $format   Optional, default is 'html'. Can be 'link', 'option', 'html', or custom.
+ * @param string $before   Optional. Content to prepend to the description. Default empty.
+ * @param string $after    Optional. Content to append to the description. Default empty.
+ * @param bool   $selected Optional. Set to true if the current page is the selected archive page.
  * @return string HTML link content for archive.
  */
-function get_archives_link( $url, $text, $format = 'html', $before = '', $after = '' ) {
+function get_archives_link( $url, $text, $format = 'html', $before = '', $after = '', $selected = false ) {
 	$text = wptexturize( $text );
 	$url  = esc_url( $url );
 
 	if ( 'link' == $format ) {
 		$link_html = "\t<link rel='archives' title='" . esc_attr( $text ) . "' href='$url' />\n";
 	} elseif ( 'option' == $format ) {
-		$link_html = "\t<option value='$url'>$before $text $after</option>\n";
+		$selected_attr = $selected ? " selected='selected'" : '';
+		$link_html     = "\t<option value='$url'$selected_attr>$before $text $after</option>\n";
 	} elseif ( 'html' == $format ) {
 		$link_html = "\t<li>$before<a href='$url'>$text</a>$after</li>\n";
 	} else { // custom
@@ -1686,6 +1739,7 @@ function get_archives_link( $url, $text, $format = 'html', $before = '', $after 
 	 *
 	 * @since 2.6.0
 	 * @since 4.5.0 Added the `$url`, `$text`, `$format`, `$before`, and `$after` parameters.
+	 * @since 5.2.0 Added the `$selected` parameter.
 	 *
 	 * @param string $link_html The archive HTML link content.
 	 * @param string $url       URL to archive.
@@ -1693,15 +1747,17 @@ function get_archives_link( $url, $text, $format = 'html', $before = '', $after 
 	 * @param string $format    Link format. Can be 'link', 'option', 'html', or custom.
 	 * @param string $before    Content to prepend to the description.
 	 * @param string $after     Content to append to the description.
+	 * @param bool   $selected  True if the current page is the selected archive.
 	 */
-	return apply_filters( 'get_archives_link', $link_html, $url, $text, $format, $before, $after );
+	return apply_filters( 'get_archives_link', $link_html, $url, $text, $format, $before, $after, $selected );
 }
 
 /**
  * Display archive links based on type and format.
  *
  * @since 1.2.0
- * @since 4.4.0 $post_type arg was added.
+ * @since 4.4.0 The `$post_type` argument was added.
+ * @since 5.2.0 The `$year`, `$monthnum`, `$day`, and `$w` arguments were added.
  *
  * @see get_archives_link()
  *
@@ -1729,6 +1785,10 @@ function get_archives_link( $url, $text, $format = 'html', $before = '', $after 
  *     @type string     $order           Whether to use ascending or descending order. Accepts 'ASC', or 'DESC'.
  *                                       Default 'DESC'.
  *     @type string     $post_type       Post type. Default 'post'.
+ *     @type string     $year            Year. Default current year.
+ *     @type string     $monthnum        Month number. Default current month number.
+ *     @type string     $day             Day. Default current day.
+ *     @type string     $w               Week. Default current week.
  * }
  * @return string|void String when retrieving.
  */
@@ -1745,6 +1805,10 @@ function wp_get_archives( $args = '' ) {
 		'echo'            => 1,
 		'order'           => 'DESC',
 		'post_type'       => 'post',
+		'year'            => get_query_var( 'year' ),
+		'monthnum'        => get_query_var( 'monthnum' ),
+		'day'             => get_query_var( 'day' ),
+		'w'               => get_query_var( 'w' ),
 	);
 
 	$r = wp_parse_args( $args, $defaults );
@@ -1820,7 +1884,8 @@ function wp_get_archives( $args = '' ) {
 				if ( $r['show_post_count'] ) {
 					$r['after'] = '&nbsp;(' . $result->posts . ')' . $after;
 				}
-				$output .= get_archives_link( $url, $text, $r['format'], $r['before'], $r['after'] );
+				$selected = is_archive() && (string) $r['year'] === $result->year && (string) $r['monthnum'] === $result->month;
+				$output  .= get_archives_link( $url, $text, $r['format'], $r['before'], $r['after'], $selected );
 			}
 		}
 	} elseif ( 'yearly' == $r['type'] ) {
@@ -1842,7 +1907,8 @@ function wp_get_archives( $args = '' ) {
 				if ( $r['show_post_count'] ) {
 					$r['after'] = '&nbsp;(' . $result->posts . ')' . $after;
 				}
-				$output .= get_archives_link( $url, $text, $r['format'], $r['before'], $r['after'] );
+				$selected = is_archive() && (string) $r['year'] === $result->year;
+				$output  .= get_archives_link( $url, $text, $r['format'], $r['before'], $r['after'], $selected );
 			}
 		}
 	} elseif ( 'daily' == $r['type'] ) {
@@ -1865,7 +1931,8 @@ function wp_get_archives( $args = '' ) {
 				if ( $r['show_post_count'] ) {
 					$r['after'] = '&nbsp;(' . $result->posts . ')' . $after;
 				}
-				$output .= get_archives_link( $url, $text, $r['format'], $r['before'], $r['after'] );
+				$selected = is_archive() && (string) $r['year'] === $result->year && (string) $r['monthnum'] === $result->month && (string) $r['day'] === $result->dayofmonth;
+				$output  .= get_archives_link( $url, $text, $r['format'], $r['before'], $r['after'], $selected );
 			}
 		}
 	} elseif ( 'weekly' == $r['type'] ) {
@@ -1901,7 +1968,8 @@ function wp_get_archives( $args = '' ) {
 					if ( $r['show_post_count'] ) {
 						$r['after'] = '&nbsp;(' . $result->posts . ')' . $after;
 					}
-					$output .= get_archives_link( $url, $text, $r['format'], $r['before'], $r['after'] );
+					$selected = is_archive() && (string) $r['year'] === $result->yr && (string) $r['w'] === $result->week;
+					$output  .= get_archives_link( $url, $text, $r['format'], $r['before'], $r['after'], $selected );
 				}
 			}
 		}
@@ -1924,7 +1992,8 @@ function wp_get_archives( $args = '' ) {
 					} else {
 						$text = $result->ID;
 					}
-					$output .= get_archives_link( $url, $text, $r['format'], $r['before'], $r['after'] );
+					$selected = $result->ID === get_the_ID();
+					$output  .= get_archives_link( $url, $text, $r['format'], $r['before'], $r['after'], $selected );
 				}
 			}
 		}

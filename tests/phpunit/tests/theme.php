@@ -288,6 +288,7 @@ class Tests_Theme extends WP_UnitTestCase {
 				$this->assertEquals( get_category_template(), get_query_template( 'category' ) );
 				$this->assertEquals( get_date_template(), get_query_template( 'date' ) );
 				$this->assertEquals( get_home_template(), get_query_template( 'home', array( 'home.php', 'index.php' ) ) );
+				$this->assertEquals( get_privacy_policy_template(), get_query_template( 'privacy_policy', array( 'privacy-policy.php' ) ) );
 				$this->assertEquals( get_page_template(), get_query_template( 'page' ) );
 				$this->assertEquals( get_search_template(), get_query_template( 'search' ) );
 				$this->assertEquals( get_single_template(), get_query_template( 'single' ) );

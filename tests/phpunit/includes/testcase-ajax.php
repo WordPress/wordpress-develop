@@ -119,6 +119,8 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 		'delete-theme',
 		'install-theme',
 		'get-post-thumbnail-html',
+		'wp-privacy-export-personal-data',
+		'wp-privacy-erase-personal-data',
 	);
 
 	public static function setUpBeforeClass() {

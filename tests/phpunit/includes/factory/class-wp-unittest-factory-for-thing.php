@@ -5,8 +5,8 @@
  */
 abstract class WP_UnitTest_Factory_For_Thing {
 
-	var $default_generation_definitions;
-	var $factory;
+	public $default_generation_definitions;
+	public $factory;
 
 	/**
 	 * Creates a new factory, which will create objects of a specific Thing
@@ -16,7 +16,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * can be generators -- an object with next() method. There are some default generators: {@link WP_UnitTest_Generator_Sequence},
 	 * {@link WP_UnitTest_Generator_Locale_Name}, {@link WP_UnitTest_Factory_Callback_After_Create}.
 	 */
-	function __construct( $factory, $default_generation_definitions = array() ) {
+	public function __construct( $factory, $default_generation_definitions = array() ) {
 		$this->factory                        = $factory;
 		$this->default_generation_definitions = $default_generation_definitions;
 	}
@@ -28,7 +28,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @return mixed The result. Can be anything.
 	 */
-	abstract function create_object( $args );
+	abstract public function create_object( $args );
 
 	/**
 	 * Updates an existing object.
@@ -38,7 +38,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @return mixed The result. Can be anything.
 	 */
-	abstract function update_object( $object, $fields );
+	abstract public function update_object( $object, $fields );
 
 	/**
 	 * Creates an object.
@@ -48,7 +48,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @return mixed The result. Can be anything.
 	 */
-	function create( $args = array(), $generation_definitions = null ) {
+	public function create( $args = array(), $generation_definitions = null ) {
 		if ( is_null( $generation_definitions ) ) {
 			$generation_definitions = $this->default_generation_definitions;
 		}
@@ -77,7 +77,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @return mixed The created object. Can be anything.
 	 */
-	function create_and_get( $args = array(), $generation_definitions = null ) {
+	public function create_and_get( $args = array(), $generation_definitions = null ) {
 		$object_id = $this->create( $args, $generation_definitions );
 		return $this->get_object_by_id( $object_id );
 	}
@@ -89,7 +89,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @return mixed The object. Can be anything.
 	 */
-	abstract function get_object_by_id( $object_id );
+	abstract public function get_object_by_id( $object_id );
 
 	/**
 	 * Creates multiple objects.
@@ -100,7 +100,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @return array
 	 */
-	function create_many( $count, $args = array(), $generation_definitions = null ) {
+	public function create_many( $count, $args = array(), $generation_definitions = null ) {
 		$results = array();
 		for ( $i = 0; $i < $count; $i++ ) {
 			$results[] = $this->create( $args, $generation_definitions );
@@ -118,7 +118,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @return array|WP_Error Combined array on success. WP_Error when default value is incorrent.
 	 */
-	function generate_args( $args = array(), $generation_definitions = null, &$callbacks = null ) {
+	public function generate_args( $args = array(), $generation_definitions = null, &$callbacks = null ) {
 		$callbacks = array();
 		if ( is_null( $generation_definitions ) ) {
 			$generation_definitions = $this->default_generation_definitions;
@@ -155,7 +155,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @return array The altered fields.
 	 */
-	function apply_callbacks( $callbacks, $created ) {
+	public function apply_callbacks( $callbacks, $created ) {
 		$updated_fields = array();
 
 		foreach ( $callbacks as $field_name => $generator ) {
@@ -171,7 +171,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @return WP_UnitTest_Factory_Callback_After_Create
 	 */
-	function callback( $function ) {
+	public function callback( $function ) {
 		return new WP_UnitTest_Factory_Callback_After_Create( $function );
 	}
 
@@ -182,7 +182,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @return array|string The value with the possibly applied slashes.
 	 */
-	function addslashes_deep( $value ) {
+	public function addslashes_deep( $value ) {
 		if ( is_array( $value ) ) {
 			$value = array_map( array( $this, 'addslashes_deep' ), $value );
 		} elseif ( is_object( $value ) ) {

@@ -95,10 +95,6 @@ function wp_signon( $credentials = array(), $secure_cookie = '' ) {
 	$user = wp_authenticate( $credentials['user_login'], $credentials['user_password'] );
 
 	if ( is_wp_error( $user ) ) {
-		if ( $user->get_error_codes() == array( 'empty_username', 'empty_password' ) ) {
-			$user = new WP_Error( '', '' );
-		}
-
 		return $user;
 	}
 
@@ -680,8 +676,9 @@ function get_blogs_of_user( $user_id, $all = false ) {
 
 	if ( ! empty( $site_ids ) ) {
 		$args = array(
-			'number'   => '',
-			'site__in' => $site_ids,
+			'number'                 => '',
+			'site__in'               => $site_ids,
+			'update_site_meta_cache' => false,
 		);
 		if ( ! $all ) {
 			$args['archived'] = 0;
@@ -2313,16 +2310,16 @@ function check_password_reset_key( $key, $login ) {
 	$key = preg_replace( '/[^a-z0-9]/i', '', $key );
 
 	if ( empty( $key ) || ! is_string( $key ) ) {
-		return new WP_Error( 'invalid_key', __( 'Invalid key' ) );
+		return new WP_Error( 'invalid_key', __( 'Invalid key.' ) );
 	}
 
 	if ( empty( $login ) || ! is_string( $login ) ) {
-		return new WP_Error( 'invalid_key', __( 'Invalid key' ) );
+		return new WP_Error( 'invalid_key', __( 'Invalid key.' ) );
 	}
 
 	$row = $wpdb->get_row( $wpdb->prepare( "SELECT ID, user_activation_key FROM $wpdb->users WHERE user_login = %s", $login ) );
 	if ( ! $row ) {
-		return new WP_Error( 'invalid_key', __( 'Invalid key' ) );
+		return new WP_Error( 'invalid_key', __( 'Invalid key.' ) );
 	}
 
 	if ( empty( $wp_hasher ) ) {
@@ -2348,7 +2345,7 @@ function check_password_reset_key( $key, $login ) {
 	}
 
 	if ( ! $pass_key ) {
-		return new WP_Error( 'invalid_key', __( 'Invalid key' ) );
+		return new WP_Error( 'invalid_key', __( 'Invalid key.' ) );
 	}
 
 	$hash_is_correct = $wp_hasher->CheckPassword( $key, $pass_key );
@@ -2357,11 +2354,11 @@ function check_password_reset_key( $key, $login ) {
 		return get_userdata( $row->ID );
 	} elseif ( $hash_is_correct && $expiration_time ) {
 		// Key has an expiration time that's passed
-		return new WP_Error( 'expired_key', __( 'Invalid key' ) );
+		return new WP_Error( 'expired_key', __( 'Invalid key.' ) );
 	}
 
 	if ( hash_equals( $row->user_activation_key, $key ) || ( $hash_is_correct && ! $expiration_time ) ) {
-		$return  = new WP_Error( 'expired_key', __( 'Invalid key' ) );
+		$return  = new WP_Error( 'expired_key', __( 'Invalid key.' ) );
 		$user_id = $row->ID;
 
 		/**
@@ -2378,7 +2375,7 @@ function check_password_reset_key( $key, $login ) {
 		return apply_filters( 'password_reset_key_expired', $return, $user_id );
 	}
 
-	return new WP_Error( 'invalid_key', __( 'Invalid key' ) );
+	return new WP_Error( 'invalid_key', __( 'Invalid key.' ) );
 }
 
 /**
@@ -3330,13 +3327,16 @@ function wp_create_user_request( $email_address = '', $action_name = '', $reques
 			'post_type'     => 'user_request',
 			'post_name__in' => array( $action_name ),  // Action name stored in post_name column.
 			'title'         => $email_address, // Email address stored in post_title column.
-			'post_status'   => 'any',
+			'post_status'   => array(
+				'request-pending',
+				'request-confirmed',
+			),
 			'fields'        => 'ids',
 		)
 	);
 
 	if ( $requests_query->found_posts ) {
-		return new WP_Error( 'duplicate_request', __( 'A request for this email address already exists.' ) );
+		return new WP_Error( 'duplicate_request', __( 'An incomplete request for this email address already exists.' ) );
 	}
 
 	$request_id = wp_insert_post(
@@ -3574,7 +3574,7 @@ function wp_validate_user_request_key( $request_id, $key ) {
 	}
 
 	if ( empty( $key ) ) {
-		return new WP_Error( 'invalid_key', __( 'Invalid key' ) );
+		return new WP_Error( 'missing_key', __( 'Missing confirm key.' ) );
 	}
 
 	if ( empty( $wp_hasher ) ) {
@@ -3586,11 +3586,11 @@ function wp_validate_user_request_key( $request_id, $key ) {
 	$saved_key        = $request->confirm_key;
 
 	if ( ! $saved_key ) {
-		return new WP_Error( 'invalid_key', __( 'Invalid key' ) );
+		return new WP_Error( 'invalid_key', __( 'Invalid key.' ) );
 	}
 
 	if ( ! $key_request_time ) {
-		return new WP_Error( 'invalid_key', __( 'Invalid action' ) );
+		return new WP_Error( 'invalid_key', __( 'Invalid action.' ) );
 	}
 
 	/**
@@ -3604,7 +3604,7 @@ function wp_validate_user_request_key( $request_id, $key ) {
 	$expiration_time     = $key_request_time + $expiration_duration;
 
 	if ( ! $wp_hasher->CheckPassword( $key, $saved_key ) ) {
-		return new WP_Error( 'invalid_key', __( 'Invalid key' ) );
+		return new WP_Error( 'invalid_key', __( 'Invalid key.' ) );
 	}
 
 	if ( ! $expiration_time || time() > $expiration_time ) {
