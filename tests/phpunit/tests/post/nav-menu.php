@@ -861,4 +861,69 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @ticket 44005
+	 * @group privacy
+	 */
+	function test_no_privacy_policy_class_applied() {
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'Privacy Policy Page',
+			)
+		);
+
+		wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'post_type',
+				'menu-item-object'    => 'page',
+				'menu-item-object-id' => $page_id,
+				'menu-item-status'    => 'publish',
+			)
+		);
+
+		$menu_items = wp_get_nav_menu_items( $this->menu_id );
+		_wp_menu_item_classes_by_context( $menu_items );
+
+		$classes = $menu_items[0]->classes;
+
+		$this->assertNotContains( 'menu-item-privacy-policy', $classes );
+	}
+
+	/**
+	 * @ticket 44005
+	 * @group privacy
+	 */
+	function test_class_applied_to_privacy_policy_page_item() {
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'Privacy Policy Page',
+			)
+		);
+		update_option( 'wp_page_for_privacy_policy', $page_id );
+
+		wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'post_type',
+				'menu-item-object'    => 'page',
+				'menu-item-object-id' => $page_id,
+				'menu-item-status'    => 'publish',
+			)
+		);
+
+		$menu_items = wp_get_nav_menu_items( $this->menu_id );
+		_wp_menu_item_classes_by_context( $menu_items );
+
+		$classes = $menu_items[0]->classes;
+
+		delete_option( 'wp_page_for_privacy_policy' );
+
+		$this->assertContains( 'menu-item-privacy-policy', $classes );
+	}
+
 }

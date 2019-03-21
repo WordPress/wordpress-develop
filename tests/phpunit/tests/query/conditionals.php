@@ -1590,4 +1590,24 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		$this->assertTrue( is_single( $p2 ) );
 		$this->assertFalse( is_single( $p1 ) );
 	}
+	
+	/**
+	 * @ticket 44005
+	 * @group privacy
+	 */
+	public function test_is_privacy_policy() {
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'Privacy Policy',
+			)
+		);
+
+		update_option( 'wp_page_for_privacy_policy', $page_id );
+
+		$this->go_to( get_permalink( $page_id ) );
+
+		$this->assertQueryTrue( 'is_page', 'is_singular', 'is_privacy_policy' );
+	}
+
 }
