@@ -262,13 +262,13 @@ class WP_Network_Query {
 			return intval( $this->network_ids );
 		}
 
+		$this->network_ids = array_map( 'intval', $this->network_ids );
+
 		if ( 'ids' == $this->query_vars['fields'] ) {
 			$this->networks = $this->network_ids;
 
 			return $this->networks;
 		}
-
-		$this->network_ids = array_map( 'intval', $this->network_ids );
 
 		if ( $this->query_vars['update_network_cache'] ) {
 			_prime_network_caches( $this->network_ids );
