@@ -88,6 +88,14 @@ class WP_Site_Query {
 	public $sites;
 
 	/**
+	 * List of site ids in the query.
+	 *
+	 * @since 5.2.0
+	 * @var array|null
+	 */
+	public $site_ids = null;
+
+	/**
 	 * The amount of found sites for the current query.
 	 *
 	 * @since 4.6.0
@@ -288,32 +296,49 @@ class WP_Site_Query {
 			$this->meta_query_clauses = $this->meta_query->get_sql( 'blog', $wpdb->blogs, 'blog_id', $this );
 		}
 
-		// $args can include anything. Only use the args defined in the query_var_defaults to compute the key.
-		$_args = wp_array_slice_assoc( $this->query_vars, array_keys( $this->query_var_defaults ) );
+		/**
+		 * Filter the sites array before the query takes place.
+		 *
+		 * Return a non-null value to bypass WordPress's default site queries.
+		 *
+		 *
+		 * @since 5.2.0
+		 *
+		 * @param array|null    $site_ids Return an array of site data to short-circuit WP's site query,
+		 *                                or null to allow WP to run its normal queries.
+		 * @param WP_Site_Query $this The WP_Site_Query instance, passed by reference.
+		 */
+		$this->site_ids = apply_filters_ref_array( 'sites_pre_query', array( $this->site_ids, &$this ) );
 
-		// Ignore the $fields argument as the queried result will be the same regardless.
-		unset( $_args['fields'] );
+		if ( null === $this->site_ids ) {
 
-		$key          = md5( serialize( $_args ) );
-		$last_changed = wp_cache_get_last_changed( 'sites' );
+			// $args can include anything. Only use the args defined in the query_var_defaults to compute the key.
+			$_args = wp_array_slice_assoc( $this->query_vars, array_keys( $this->query_var_defaults ) );
 
-		$cache_key   = "get_sites:$key:$last_changed";
-		$cache_value = wp_cache_get( $cache_key, 'sites' );
+			// Ignore the $fields argument as the queried result will be the same regardless.
+			unset( $_args['fields'] );
 
-		if ( false === $cache_value ) {
-			$site_ids = $this->get_site_ids();
-			if ( $site_ids ) {
-				$this->set_found_sites();
+			$key          = md5( serialize( $_args ) );
+			$last_changed = wp_cache_get_last_changed( 'sites' );
+
+			$cache_key   = "get_sites:$key:$last_changed";
+			$cache_value = wp_cache_get( $cache_key, 'sites' );
+
+			if ( false === $cache_value ) {
+				$this->site_ids = $this->get_site_ids();
+				if ( $this->site_ids ) {
+					$this->set_found_sites();
+				}
+
+				$cache_value = array(
+					'site_ids'    => $this->site_ids,
+					'found_sites' => $this->found_sites,
+				);
+				wp_cache_add( $cache_key, $cache_value, 'sites' );
+			} else {
+				$this->site_ids    = $cache_value['site_ids'];
+				$this->found_sites = $cache_value['found_sites'];
 			}
-
-			$cache_value = array(
-				'site_ids'    => $site_ids,
-				'found_sites' => $this->found_sites,
-			);
-			wp_cache_add( $cache_key, $cache_value, 'sites' );
-		} else {
-			$site_ids          = $cache_value['site_ids'];
-			$this->found_sites = $cache_value['found_sites'];
 		}
 
 		if ( $this->found_sites && $this->query_vars['number'] ) {
@@ -323,25 +348,25 @@ class WP_Site_Query {
 		// If querying for a count only, there's nothing more to do.
 		if ( $this->query_vars['count'] ) {
 			// $site_ids is actually a count in this case.
-			return intval( $site_ids );
+			return intval( $this->site_ids );
 		}
 
-		$site_ids = array_map( 'intval', $site_ids );
+		$this->site_ids = array_map( 'intval', $site_ids );
 
 		if ( 'ids' == $this->query_vars['fields'] ) {
-			$this->sites = $site_ids;
+			$this->sites = $this->site_ids;
 
 			return $this->sites;
 		}
 
 		// Prime site network caches.
 		if ( $this->query_vars['update_site_cache'] ) {
-			_prime_site_caches( $site_ids, $this->query_vars['update_site_meta_cache'] );
+			_prime_site_caches( $this->site_ids, $this->query_vars['update_site_meta_cache'] );
 		}
 
 		// Fetch full site objects from the primed cache.
 		$_sites = array();
-		foreach ( $site_ids as $site_id ) {
+		foreach ( $this->site_ids as $site_id ) {
 			if ( $_site = get_site( $site_id ) ) {
 				$_sites[] = $_site;
 			}
