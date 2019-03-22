@@ -351,7 +351,7 @@ class WP_Site_Query {
 			return intval( $this->site_ids );
 		}
 
-		$this->site_ids = array_map( 'intval', $site_ids );
+		$this->site_ids = array_map( 'intval', $this->site_ids );
 
 		if ( 'ids' == $this->query_vars['fields'] ) {
 			$this->sites = $this->site_ids;
