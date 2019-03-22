@@ -239,7 +239,7 @@ class WP_Network_Query {
 				);
 				wp_cache_add( $cache_key, $cache_value, 'networks' );
 			} else {
-				$network_ids    = $cache_value['network_ids'];
+				$network_ids          = $cache_value['network_ids'];
 				$this->found_networks = $cache_value['found_networks'];
 			}
 		}

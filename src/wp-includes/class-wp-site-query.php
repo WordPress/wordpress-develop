@@ -330,7 +330,7 @@ class WP_Site_Query {
 				);
 				wp_cache_add( $cache_key, $cache_value, 'sites' );
 			} else {
-				$site_ids    = $cache_value['site_ids'];
+				$site_ids          = $cache_value['site_ids'];
 				$this->found_sites = $cache_value['found_sites'];
 			}
 		}
