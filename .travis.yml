@@ -4,7 +4,7 @@ language: php
 cache:
   apt: true
   directories:
-    - node_modules
+    - $HOME/.npm
     - vendor
     - $HOME/.composer/cache
 env:
