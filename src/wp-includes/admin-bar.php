@@ -885,11 +885,15 @@ function wp_admin_bar_comments_menu( $wp_admin_bar ) {
 
 	$awaiting_mod  = wp_count_comments();
 	$awaiting_mod  = $awaiting_mod->moderated;
-	$awaiting_text = sprintf( _n( '%s comment awaiting moderation', '%s comments awaiting moderation', $awaiting_mod ), number_format_i18n( $awaiting_mod ) );
+	$awaiting_text = sprintf(
+		/* translators: %s: number of comments in moderation */
+		_n( '%s Comment in moderation', '%s Comments in moderation', $awaiting_mod ),
+		number_format_i18n( $awaiting_mod )
+	);
 
 	$icon   = '<span class="ab-icon"></span>';
 	$title  = '<span class="ab-label awaiting-mod pending-count count-' . $awaiting_mod . '" aria-hidden="true">' . number_format_i18n( $awaiting_mod ) . '</span>';
-	$title .= '<span class="screen-reader-text">' . $awaiting_text . '</span>';
+	$title .= '<span class="screen-reader-text comments-in-moderation-text">' . $awaiting_text . '</span>';
 
 	$wp_admin_bar->add_menu(
 		array(
@@ -1038,6 +1042,35 @@ function wp_admin_bar_search_menu( $wp_admin_bar ) {
 			'meta'   => array(
 				'class'    => 'admin-bar-search',
 				'tabindex' => -1,
+			),
+		)
+	);
+}
+
+/**
+ * Add a link to exit recovery mode when Recovery Mode is active.
+ *
+ * @since 5.2.0
+ *
+ * @param WP_Admin_Bar $wp_admin_bar
+ */
+function wp_admin_bar_recovery_mode_menu( $wp_admin_bar ) {
+	if ( ! wp_is_recovery_mode() ) {
+		return;
+	}
+
+	$url = wp_login_url();
+	$url = add_query_arg( 'action', WP_Recovery_Mode::EXIT_ACTION, $url );
+	$url = wp_nonce_url( $url, WP_Recovery_Mode::EXIT_ACTION );
+
+	$wp_admin_bar->add_menu(
+		array(
+			'parent' => 'top-secondary',
+			'id'     => 'recovery-mode',
+			'title'  => __( 'Exit Recovery Mode' ),
+			'href'   => $url,
+			'meta'   => array(
+				'title' => __( 'Exit Recovery Mode' ),
 			),
 		)
 	);

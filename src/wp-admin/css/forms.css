@@ -24,7 +24,7 @@ input[type="week"],
 select,
 textarea {
 	border: 1px solid #ddd;
-	box-shadow: inset 0 1px 2px rgba( 0, 0, 0, 0.07 );
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.07);
 	background-color: #fff;
 	color: #32373c;
 	outline: none;
@@ -51,7 +51,7 @@ input[type="radio"]:focus,
 select:focus,
 textarea:focus {
 	border-color: #5b9dd9;
-	box-shadow: 0 0 2px rgba( 30, 140, 190, 0.8 );
+	box-shadow: 0 0 2px rgba(30, 140, 190, 0.8);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -86,7 +86,7 @@ input[type="radio"] {
 	width: 16px;
 	min-width: 16px;
 	-webkit-appearance: none;
-	box-shadow: inset 0 1px 2px rgba( 0, 0, 0, 0.1 );
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 	transition: .05s border-color ease-in-out;
 }
 
@@ -243,7 +243,7 @@ textarea[readonly] {
 .form-invalid select,
 .form-invalid select:focus {
 	border-color: #dc3232 !important;
-	box-shadow: 0 0 2px rgba( 204, 0, 0, 0.8 );
+	box-shadow: 0 0 2px rgba(204, 0, 0, 0.8);
 }
 
 .form-table .form-required.form-invalid td:after {
@@ -277,10 +277,10 @@ select:disabled,
 select.disabled,
 textarea:disabled,
 textarea.disabled {
-	background: rgba( 255, 255, 255, 0.5 );
-	border-color: rgba( 222, 222, 222, 0.75 );
-	box-shadow: inset 0 1px 2px rgba( 0, 0, 0, 0.04 );
-	color: rgba( 51, 51, 51, 0.5 );
+	background: rgba(255, 255, 255, 0.5);
+	border-color: rgba(222, 222, 222, 0.75);
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+	color: rgba(51, 51, 51, 0.5);
 }
 
 input[type="file"]:disabled,
@@ -427,9 +427,14 @@ input[type="number"].tiny-text {
 	margin-left: 1em;
 }
 
-button.wp-hide-pw > .dashicons {
+.wp-hide-pw > .dashicons,
+.wp-cancel-pw > .dashicons {
 	position: relative;
 	top: 3px;
+}
+
+.wp-cancel-pw .dashicons-no {
+	display: none;
 }
 
 label,
@@ -459,7 +464,7 @@ fieldset label,
 	background-color: #eee;
 	border: 1px solid #ddd;
 	color: #23282d;
-	margin: -2px 5px 5px 1px;
+	margin: -1px 0 5px;
 	padding: 3px 5px;
 	text-align: center;
 	width: 25em;
@@ -515,13 +520,25 @@ fieldset label,
 	padding-top: 8px;
 }
 
+.wp-pwd [type="text"],
+.wp-pwd [type="password"] {
+	margin: 0;
+	/* Same height as the buttons */
+	line-height: 20px;
+	min-height: 28px;
+	max-height: 40px;
+}
+
 #pass1-text,
 .show-password #pass1 {
 	display: none;
 }
 
-.show-password #pass1-text
-{
+#pass1-text::-ms-clear {
+	display: none;
+}
+
+.show-password #pass1-text {
 	display: inline-block;
 }
 
@@ -579,7 +596,7 @@ ul#add-to-blog-users {
 	position: absolute;
 	z-index: 10000;
 	border: 1px solid #5b9dd9;
-	box-shadow: 0 1px 2px rgba( 30, 140, 190, 0.8 );
+	box-shadow: 0 1px 2px rgba(30, 140, 190, 0.8);
 	background-color: #fff;
 }
 
@@ -782,7 +799,7 @@ table.form-table td .updated p {
 	min-width: 255px;
 	max-width: 520px;
 	border: 1px solid #e5e5e5;
-	box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 	background: #fff;
 }
 
@@ -1114,7 +1131,7 @@ table.form-table td .updated p {
 .privacy_requests tbody th {
 	border-left: 4px solid #fff;
 	background: #fff;
-	box-shadow: inset 0 -1px 0 rgba(0,0,0,0.1);
+	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 }
 
 .privacy_requests tbody .has-request-results th {
@@ -1127,7 +1144,7 @@ table.form-table td .updated p {
 
 .privacy_requests tbody td {
 	background: #fff;
-	box-shadow: inset 0 -1px 0 rgba(0,0,0,0.1);
+	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 }
 
 .privacy_requests tbody .has-request-results td {
@@ -1462,29 +1479,42 @@ table.form-table td .updated p {
 
 	.wp-pwd [type="text"],
 	.wp-pwd [type="password"] {
-		padding-right: 40px;
+		padding-right: 88px;
 	}
 
 	.wp-pwd button.button {
 		background: transparent;
-		border: none;
+		border: 1px solid transparent;
 		box-shadow: none;
 		line-height: 2;
 		margin: 0;
-		padding: 5px 10px;
+		padding: 5px 9px;
 		position: absolute;
 		right: 0;
 		top: 0;
 	}
 
+	.wp-pwd button.wp-hide-pw {
+		right: 40px;
+	}
+
 	.wp-pwd button.button:hover,
-	.wp-pwd button.button:focus,
+	.wp-pwd button.button:focus {
+		background: transparent;
+	}
+
 	.wp-pwd button.button:active {
 		background: transparent;
+		box-shadow: none;
+		transform: none;
 	}
 
 	.wp-pwd .button .text {
 		display: none;
+	}
+
+	.wp-cancel-pw .dashicons-no {
+		display: inline-block;
 	}
 
 	.options-general-php input[type="text"].small-text {
@@ -1532,12 +1562,6 @@ table.form-table td .updated p {
 
 	.form-wrap .form-field {
 		padding: 0;
-	}
-
-	/* users */
-	#profile-page .form-table textarea {
-		max-width: 400px;
-		width: auto;
 	}
 }
 

@@ -777,7 +777,7 @@ final class WP_Customize_Widgets {
 				'saveBtnLabel'     => __( 'Apply' ),
 				'saveBtnTooltip'   => __( 'Save and preview changes before publishing them.' ),
 				'removeBtnLabel'   => __( 'Remove' ),
-				'removeBtnTooltip' => __( 'Trash widget by moving it to the inactive widgets sidebar.' ),
+				'removeBtnTooltip' => __( 'Keep widget settings and move it to the inactive widgets' ),
 				'error'            => __( 'An error has occurred. Please reload the page and try again.' ),
 				'widgetMovedUp'    => __( 'Widget moved up' ),
 				'widgetMovedDown'  => __( 'Widget moved down' ),
@@ -1151,8 +1151,8 @@ final class WP_Customize_Widgets {
 		<style>
 		.widget-customizer-highlighted-widget {
 			outline: none;
-			-webkit-box-shadow: 0 0 2px rgba(30,140,190,0.8);
-			box-shadow: 0 0 2px rgba(30,140,190,0.8);
+			-webkit-box-shadow: 0 0 2px rgba(30, 140, 190, 0.8);
+			box-shadow: 0 0 2px rgba(30, 140, 190, 0.8);
 			position: relative;
 			z-index: 1;
 		}

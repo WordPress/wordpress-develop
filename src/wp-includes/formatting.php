@@ -3004,10 +3004,12 @@ function wp_rel_nofollow_callback( $matches ) {
 	$atts = shortcode_parse_atts( $matches[1] );
 	$rel  = 'nofollow';
 
-	if ( preg_match( '%href=["\'](' . preg_quote( set_url_scheme( home_url(), 'http' ) ) . ')%i', $text ) ||
-		preg_match( '%href=["\'](' . preg_quote( set_url_scheme( home_url(), 'https' ) ) . ')%i', $text ) ) {
-
-		return "<a $text>";
+	if ( ! empty( $atts['href'] ) ) {
+		if ( in_array( strtolower( wp_parse_url( $atts['href'], PHP_URL_SCHEME ) ), array( 'http', 'https' ), true ) ) {
+			if ( strtolower( wp_parse_url( $atts['href'], PHP_URL_HOST ) ) === strtolower( wp_parse_url( home_url(), PHP_URL_HOST ) ) ) {
+				return "<a $text>";
+			}
+		}
 	}
 
 	if ( ! empty( $atts['rel'] ) ) {
@@ -3020,11 +3022,11 @@ function wp_rel_nofollow_callback( $matches ) {
 
 		$html = '';
 		foreach ( $atts as $name => $value ) {
-			$html .= "{$name}=\"$value\" ";
+			$html .= "{$name}=\"" . esc_attr( $value ) . '" ';
 		}
 		$text = trim( $html );
 	}
-	return "<a $text rel=\"$rel\">";
+	return "<a $text rel=\"" . esc_attr( $rel ) . '">';
 }
 
 /**
@@ -3676,14 +3678,17 @@ function human_time_diff( $from, $to = '' ) {
  * The ' [&hellip;]' string can be modified by plugins/themes using the {@see 'excerpt_more'} filter
  *
  * @since 1.5.0
+ * @since 5.2.0 Added the `$post` parameter.
  *
- * @param string $text Optional. The excerpt. If set to empty, an excerpt is generated.
+ * @param string             $text Optional. The excerpt. If set to empty, an excerpt is generated.
+ * @param WP_Post|object|int $post Optional. WP_Post instance or Post ID/object. Default is null.
  * @return string The excerpt.
  */
-function wp_trim_excerpt( $text = '' ) {
+function wp_trim_excerpt( $text = '', $post = null ) {
 	$raw_excerpt = $text;
 	if ( '' == $text ) {
-		$text = get_the_content( '' );
+		$post = get_post( $post );
+		$text = get_the_content( '', false, $post );
 
 		$text = strip_shortcodes( $text );
 		$text = excerpt_remove_blocks( $text );
@@ -5153,9 +5158,11 @@ function sanitize_textarea_field( $str ) {
  * @return string Sanitized string.
  */
 function _sanitize_text_fields( $str, $keep_newlines = false ) {
-	if ( ! is_string( $str ) ) {
+	if ( is_object( $str ) || is_array( $str ) ) {
 		return '';
 	}
+
+	$str = (string) $str;
 
 	$filtered = wp_check_invalid_utf8( $str );
 

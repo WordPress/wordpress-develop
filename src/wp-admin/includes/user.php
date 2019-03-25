@@ -812,6 +812,15 @@ function _wp_personal_data_export_page() {
 			'screen'   => 'export_personal_data',
 		)
 	);
+
+	$requests_table->screen->set_screen_reader_content(
+		array(
+			'heading_views'      => __( 'Filter export personal data list' ),
+			'heading_pagination' => __( 'Export personal data list navigation' ),
+			'heading_list'       => __( 'Export personal data list' ),
+		)
+	);
+
 	$requests_table->process_bulk_action();
 	$requests_table->prepare_items();
 	?>
@@ -884,6 +893,14 @@ function _wp_personal_data_removal_page() {
 			'plural'   => 'privacy_requests',
 			'singular' => 'privacy_request',
 			'screen'   => 'remove_personal_data',
+		)
+	);
+
+	$requests_table->screen->set_screen_reader_content(
+		array(
+			'heading_views'      => __( 'Filter erase personal data list' ),
+			'heading_pagination' => __( 'Erase personal data list navigation' ),
+			'heading_list'       => __( 'Erase personal data list' ),
 		)
 	);
 
@@ -1392,7 +1409,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 			return '';
 		}
 
-		$time_diff = current_time( 'timestamp', true ) - $timestamp;
+		$time_diff = time() - $timestamp;
 
 		if ( $time_diff >= 0 && $time_diff < DAY_IN_SECONDS ) {
 			/* translators: human readable timestamp */
@@ -1553,7 +1570,7 @@ class WP_Privacy_Data_Export_Requests_Table extends WP_Privacy_Requests_Table {
 					'">';
 
 				?>
-				<span class="export-personal-data-idle"><button type="button" class="button export-personal-data-handle"><?php _e( 'Email Data' ); ?></button></span>
+				<span class="export-personal-data-idle"><button type="button" class="button export-personal-data-handle"><?php _e( 'Send Export Link' ); ?></button></span>
 				<span style="display:none" class="export-personal-data-processing button updating-message" ><?php _e( 'Sending Email...' ); ?></span>
 				<span style="display:none" class="export-personal-data-success success-message" ><?php _e( 'Email sent.' ); ?></span>
 				<span style="display:none" class="export-personal-data-failed"><?php _e( 'Email could not be sent.' ); ?> <button type="button" class="button export-personal-data-handle"><?php _e( 'Retry' ); ?></button></span>

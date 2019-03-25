@@ -14,7 +14,7 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	private $taxonomy;
 	const DEFAULT_TAXONOMY = 'post_tag';
 
-	function __construct( $factory = null, $taxonomy = null ) {
+	public function __construct( $factory = null, $taxonomy = null ) {
 		parent::__construct( $factory );
 		$this->taxonomy                       = $taxonomy ? $taxonomy : self::DEFAULT_TAXONOMY;
 		$this->default_generation_definitions = array(
@@ -31,7 +31,7 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @return array|WP_Error
 	 */
-	function create_object( $args ) {
+	public function create_object( $args ) {
 		$args         = array_merge( array( 'taxonomy' => $this->taxonomy ), $args );
 		$term_id_pair = wp_insert_term( $args['name'], $args['taxonomy'], $args );
 		if ( is_wp_error( $term_id_pair ) ) {
@@ -48,7 +48,7 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @return int The term id.
 	 */
-	function update_object( $term, $fields ) {
+	public function update_object( $term, $fields ) {
 		$fields = array_merge( array( 'taxonomy' => $this->taxonomy ), $fields );
 		if ( is_object( $term ) ) {
 			$taxonomy = $term->taxonomy;
@@ -71,7 +71,7 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @return array|false|WP_Error Array of term taxonomy IDs of affected terms. WP_Error or false on failure.
 	 */
-	function add_post_terms( $post_id, $terms, $taxonomy, $append = true ) {
+	public function add_post_terms( $post_id, $terms, $taxonomy, $append = true ) {
 		return wp_set_post_terms( $post_id, $terms, $taxonomy, $append );
 	}
 
@@ -83,7 +83,7 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @return null|WP_Error|WP_Term WP_Term on success. WP_error if taxonomy does not exist. Null for miscellaneous failure.
 	 */
-	function create_and_get( $args = array(), $generation_definitions = null ) {
+	public function create_and_get( $args = array(), $generation_definitions = null ) {
 		$term_id  = $this->create( $args, $generation_definitions );
 		$taxonomy = isset( $args['taxonomy'] ) ? $args['taxonomy'] : $this->taxonomy;
 		return get_term( $term_id, $taxonomy );
@@ -96,7 +96,7 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @return null|WP_Error|WP_Term WP_Term on success. WP_error if taxonomy does not exist. Null for miscellaneous failure.
 	 */
-	function get_object_by_id( $term_id ) {
+	public function get_object_by_id( $term_id ) {
 		return get_term( $term_id, $this->taxonomy );
 	}
 }

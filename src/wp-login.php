@@ -113,13 +113,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	 */
 	do_action( 'login_head' );
 
-	if ( is_multisite() ) {
-		$login_header_url   = network_home_url();
-		$login_header_title = get_network()->site_name;
-	} else {
-		$login_header_url   = __( 'https://wordpress.org/' );
-		$login_header_title = __( 'Powered by WordPress' );
-	}
+	$login_header_url = __( 'https://wordpress.org/' );
 
 	/**
 	 * Filters link URL of the header logo above login form.
@@ -130,24 +124,34 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	 */
 	$login_header_url = apply_filters( 'login_headerurl', $login_header_url );
 
+	$login_header_title = '';
+
 	/**
 	 * Filters the title attribute of the header logo above login form.
 	 *
 	 * @since 2.1.0
+	 * @deprecated 5.2.0 Use login_headertext
 	 *
 	 * @param string $login_header_title Login header logo title attribute.
 	 */
-	$login_header_title = apply_filters( 'login_headertitle', $login_header_title );
+	$login_header_title = apply_filters_deprecated(
+		'login_headertitle',
+		array( $login_header_title ),
+		'5.2.0',
+		'login_headertext',
+		__( 'Usage of the title attribute on the login logo is not recommended for accessibility reasons. Use the link text instead.' )
+	);
 
-	/*
-	 * To match the URL/title set above, Multisite sites have the blog name,
-	 * while single sites get the header title.
+	$login_header_text = empty( $login_header_title ) ? __( 'Powered by WordPress' ) : $login_header_title;
+
+	/**
+	 * Filters the link text of the header logo above the login form.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @param string $login_header_text The login header logo link text.
 	 */
-	if ( is_multisite() ) {
-		$login_header_text = get_bloginfo( 'name', 'display' );
-	} else {
-		$login_header_text = $login_header_title;
-	}
+	$login_header_text = apply_filters( 'login_headertext', $login_header_text );
 
 	$classes = array( 'login-action-' . $action, 'wp-core-ui' );
 	if ( is_rtl() ) {
@@ -187,11 +191,8 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	do_action( 'login_header' );
 	?>
 	<div id="login">
-		<h1><a href="<?php echo esc_url( $login_header_url ); ?>" title="<?php echo esc_attr( $login_header_title ); ?>"><?php echo $login_header_text; ?></a></h1>
+		<h1><a href="<?php echo esc_url( $login_header_url ); ?>"><?php echo $login_header_text; ?></a></h1>
 	<?php
-
-	unset( $login_header_url, $login_header_title );
-
 	/**
 	 * Filters the message to display above the login form.
 	 *
@@ -438,7 +439,7 @@ if ( isset( $_GET['key'] ) ) {
 }
 
 // Validate action so as to default to the login screen.
-if ( ! in_array( $action, array( 'postpass', 'logout', 'lostpassword', 'retrievepassword', 'resetpass', 'rp', 'register', 'login', 'confirmaction' ), true ) && false === has_filter( 'login_form_' . $action ) ) {
+if ( ! in_array( $action, array( 'postpass', 'logout', 'lostpassword', 'retrievepassword', 'resetpass', 'rp', 'register', 'login', 'confirmaction', WP_Recovery_Mode_Link_Service::LOGIN_ACTION_ENTERED ), true ) && false === has_filter( 'login_form_' . $action ) ) {
 	$action = 'login';
 }
 
@@ -712,9 +713,9 @@ switch ( $action ) {
 		<div class="wp-pwd">
 			<div class="password-input-wrapper">
 				<input type="password" data-reveal="1" data-pw="<?php echo esc_attr( wp_generate_password( 16 ) ); ?>" name="pass1" id="pass1" class="input password-input" size="24" value="" autocomplete="off" aria-describedby="pass-strength-result" />
-				<span class="button button-secondary wp-hide-pw hide-if-no-js">
-					<span class="dashicons dashicons-hidden"></span>
-				</span>
+				<button type="button" class="button button-secondary wp-hide-pw hide-if-no-js">
+					<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
+				</button>
 			</div>
 			<div id="pass-strength-result" class="hide-if-no-js" aria-live="polite"><?php _e( 'Strength indicator' ); ?></div>
 		</div>
@@ -852,17 +853,16 @@ switch ( $action ) {
 
 	case 'confirmaction':
 		if ( ! isset( $_GET['request_id'] ) ) {
-			wp_die( __( 'Invalid request.' ) );
+			wp_die( __( 'Missing request ID.' ) );
+		}
+
+		if ( ! isset( $_GET['confirm_key'] ) ) {
+			wp_die( __( 'Missing confirm key.' ) );
 		}
 
 		$request_id = (int) $_GET['request_id'];
-
-		if ( isset( $_GET['confirm_key'] ) ) {
-			$key    = sanitize_text_field( wp_unslash( $_GET['confirm_key'] ) );
-			$result = wp_validate_user_request_key( $request_id, $key );
-		} else {
-			$result = new WP_Error( 'invalid_key', __( 'Invalid key' ) );
-		}
+		$key        = sanitize_text_field( wp_unslash( $_GET['confirm_key'] ) );
+		$result     = wp_validate_user_request_key( $request_id, $key );
 
 		if ( is_wp_error( $result ) ) {
 			wp_die( $result );
@@ -935,7 +935,7 @@ switch ( $action ) {
 					sprintf(
 						/* translators: 1: Browser cookie documentation URL, 2: Support forums URL */
 						__( '<strong>ERROR</strong>: Cookies are blocked due to unexpected output. For help, please see <a href="%1$s">this documentation</a> or try the <a href="%2$s">support forums</a>.' ),
-						__( 'https://codex.wordpress.org/Cookies' ),
+						__( 'https://wordpress.org/support/article/cookies/' ),
 						__( 'https://wordpress.org/support/' )
 					)
 				);
@@ -946,7 +946,7 @@ switch ( $action ) {
 					sprintf(
 						/* translators: %s: Browser cookie documentation URL */
 						__( '<strong>ERROR</strong>: Cookies are blocked or not supported by your browser. You must <a href="%s">enable cookies</a> to use WordPress.' ),
-						__( 'https://codex.wordpress.org/Cookies' )
+						__( 'https://wordpress.org/support/article/cookies/#enable-cookies-in-your-browser' )
 					)
 				);
 			}
@@ -1006,6 +1006,10 @@ switch ( $action ) {
 			$errors = new WP_Error();
 		}
 
+		if ( empty( $_POST ) && $errors->get_error_codes() === array( 'empty_username', 'empty_password' ) ) {
+			$errors = new WP_Error( '', '' );
+		}
+
 		if ( $interim_login ) {
 			if ( ! $errors->has_errors() ) {
 				$errors->add( 'expired', __( 'Your session has expired. Please log in to continue where you left off.' ), 'message' );
@@ -1024,6 +1028,8 @@ switch ( $action ) {
 				$errors->add( 'registered', __( 'Registration complete. Please check your email.' ), 'message' );
 			} elseif ( strpos( $redirect_to, 'about.php?updated' ) ) {
 				$errors->add( 'updated', __( '<strong>You have successfully updated WordPress!</strong> Please log back in to see what&#8217;s new.' ), 'message' );
+			} elseif ( WP_Recovery_Mode_Link_Service::LOGIN_ACTION_ENTERED === $action ) {
+				$errors->add( 'enter_recovery_mode', __( 'Recovery Mode Initialized. Please log in to continue.' ), 'message' );
 			}
 		}
 

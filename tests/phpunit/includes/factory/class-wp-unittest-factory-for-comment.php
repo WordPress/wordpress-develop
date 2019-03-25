@@ -12,7 +12,7 @@
  */
 class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 
-	function __construct( $factory = null ) {
+	public function __construct( $factory = null ) {
 		parent::__construct( $factory );
 		$this->default_generation_definitions = array(
 			'comment_author'     => new WP_UnitTest_Generator_Sequence( 'Commenter %s' ),
@@ -29,7 +29,7 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @return false|int The comment's ID on success, false on failure.
 	 */
-	function create_object( $args ) {
+	public function create_object( $args ) {
 		return wp_insert_comment( $this->addslashes_deep( $args ) );
 	}
 
@@ -41,7 +41,7 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @return int When updated 1, not update 0.
 	 */
-	function update_object( $comment_id, $fields ) {
+	public function update_object( $comment_id, $fields ) {
 		$fields['comment_ID'] = $comment_id;
 		return wp_update_comment( $this->addslashes_deep( $fields ) );
 	}
@@ -56,7 +56,7 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @return int[] Array with the comment ids.
 	 */
-	function create_post_comments( $post_id, $count = 1, $args = array(), $generation_definitions = null ) {
+	public function create_post_comments( $post_id, $count = 1, $args = array(), $generation_definitions = null ) {
 		$args['comment_post_ID'] = $post_id;
 		return $this->create_many( $count, $args, $generation_definitions );
 	}
@@ -68,7 +68,7 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @return null|WP_Comment WP_Comment when found, null when not found.
 	 */
-	function get_object_by_id( $comment_id ) {
+	public function get_object_by_id( $comment_id ) {
 		return get_comment( $comment_id );
 	}
 }

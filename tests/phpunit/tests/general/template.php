@@ -231,7 +231,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$filename = DIR_TESTDATA . '/images/test-image.jpg';
 		$contents = file_get_contents( $filename );
 
-		$upload              = wp_upload_bits( basename( $filename ), null, $contents );
+		$upload              = wp_upload_bits( wp_basename( $filename ), null, $contents );
 		$this->site_icon_url = $upload['url'];
 
 		// Save the data
@@ -409,7 +409,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	function _insert_custom_logo() {
 		$filename = DIR_TESTDATA . '/images/test-image.jpg';
 		$contents = file_get_contents( $filename );
-		$upload   = wp_upload_bits( basename( $filename ), null, $contents );
+		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
 
 		// Save the data.
 		$this->custom_logo_url = $upload['url'];

@@ -522,6 +522,41 @@ if ( is_multisite() ) :
 			);
 			$this->assertEquals( $number_of_queries + 1, $wpdb->num_queries );
 		}
+
+		/**
+		 * @ticket 45749
+		 */
+		public function test_networks_pre_query_filter_should_bypass_database_query() {
+			global $wpdb;
+
+			add_filter( 'networks_pre_query', array( __CLASS__, 'filter_networks_pre_query' ), 10, 2 );
+
+			$num_queries = $wpdb->num_queries;
+
+			$q       = new WP_Network_Query();
+			$results = $q->query(
+				array(
+					'fields' => 'ids',
+				)
+			);
+
+			remove_filter( 'networks_pre_query', array( __CLASS__, 'filter_networks_pre_query' ), 10, 2 );
+
+			// Make sure no queries were executed.
+			$this->assertSame( $num_queries, $wpdb->num_queries );
+
+			// We manually inserted a non-existing site and overrode the results with it.
+			$this->assertSame( array( 555 ), $q->networks );
+
+			// Make sure manually setting total_users doesn't get overwritten.
+			$this->assertEquals( 1, $q->found_networks );
+		}
+
+		public static function filter_networks_pre_query( $networks, $query ) {
+			$query->found_networks = 1;
+
+			return array( 555 );
+		}
 	}
 
 endif;

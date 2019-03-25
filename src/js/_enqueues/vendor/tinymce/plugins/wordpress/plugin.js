@@ -19,7 +19,7 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 	}
 
 	function toggleToolbars( state ) {
-		var initial, toolbars,
+		var initial, toolbars, iframeHeight,
 			pixels = 0,
 			classicBlockToolbar = tinymce.$( '.block-library-classic__toolbar' );
 
@@ -44,18 +44,24 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 				if ( i > 0 ) {
 					if ( state === 'hide' ) {
 						toolbar.hide();
-						pixels += 30;
+						pixels += 34;
 					} else {
 						toolbar.show();
-						pixels -= 30;
+						pixels -= 34;
 					}
 				}
 			});
 		}
 
 		// Resize editor iframe, not needed for iOS and inline instances.
-		if ( pixels && ! tinymce.Env.iOS && editor.iframeElement ) {
-			DOM.setStyle( editor.iframeElement, 'height', editor.iframeElement.clientHeight + pixels );
+		// Don't resize if the editor is in a hidden container.
+		if ( pixels && ! tinymce.Env.iOS && editor.iframeElement && editor.iframeElement.clientHeight ) {
+			iframeHeight = editor.iframeElement.clientHeight + pixels;
+
+			// Keep min-height.
+			if ( iframeHeight > 50  ) {
+				DOM.setStyle( editor.iframeElement, 'height', iframeHeight );
+			}
 		}
 
 		if ( ! initial ) {
@@ -673,7 +679,15 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 
 		// Workaround for not triggering the global help modal in the Block Editor by the Classic Block shortcut.
 		editor.on( 'keydown', function( event ) {
-			if ( event.shiftKey && event.altKey && event.code === 'KeyH' ) {
+			var match;
+
+			if ( tinymce.Env.mac ) {
+				match = event.ctrlKey && event.altKey && event.code === 'KeyH';
+			} else {
+				match = event.shiftKey && event.altKey && event.code === 'KeyH';
+			}
+
+			if ( match ) {
 				editor.execCommand( 'WP_Help' );
 				event.stopPropagation();
 				event.stopImmediatePropagation();

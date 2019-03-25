@@ -29,7 +29,7 @@ class Tests_Ajax_Attachments extends WP_Ajax_UnitTestCase {
 		$filename = DIR_TESTDATA . '/images/canola.jpg';
 		$contents = file_get_contents( $filename );
 
-		$upload     = wp_upload_bits( basename( $filename ), null, $contents );
+		$upload     = wp_upload_bits( wp_basename( $filename ), null, $contents );
 		$attachment = $this->_make_attachment( $upload );
 
 		// Set up a default request
@@ -80,7 +80,7 @@ class Tests_Ajax_Attachments extends WP_Ajax_UnitTestCase {
 		$filename = DIR_TESTDATA . '/formatting/entities.txt';
 		$contents = file_get_contents( $filename );
 
-		$upload     = wp_upload_bits( basename( $filename ), null, $contents );
+		$upload     = wp_upload_bits( wp_basename( $filename ), null, $contents );
 		$attachment = $this->_make_attachment( $upload );
 
 		// Set up a default request

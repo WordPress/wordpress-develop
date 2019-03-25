@@ -345,10 +345,11 @@ function get_blog_id_from_url( $domain, $path = '/' ) {
 	}
 
 	$args   = array(
-		'domain' => $domain,
-		'path'   => $path,
-		'fields' => 'ids',
-		'number' => 1,
+		'domain'                 => $domain,
+		'path'                   => $path,
+		'fields'                 => 'ids',
+		'number'                 => 1,
+		'update_site_meta_cache' => false,
 	);
 	$result = get_sites( $args );
 	$id     = array_shift( $result );
@@ -518,7 +519,7 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE user_login = %s", $user_name ) );
 	if ( $signup != null ) {
 		$registered_at = mysql2date( 'U', $signup->registered );
-		$now           = current_time( 'timestamp', true );
+		$now           = time();
 		$diff          = $now - $registered_at;
 		// If registered more than two days ago, cancel registration and let this signup go through.
 		if ( $diff > 2 * DAY_IN_SECONDS ) {
@@ -530,7 +531,7 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 
 	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE user_email = %s", $user_email ) );
 	if ( $signup != null ) {
-		$diff = current_time( 'timestamp', true ) - mysql2date( 'U', $signup->registered );
+		$diff = time() - mysql2date( 'U', $signup->registered );
 		// If registered more than two days ago, cancel registration and let this signup go through.
 		if ( $diff > 2 * DAY_IN_SECONDS ) {
 			$wpdb->delete( $wpdb->signups, array( 'user_email' => $user_email ) );
@@ -688,7 +689,7 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 	// Has someone already signed up for this domain?
 	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE domain = %s AND path = %s", $mydomain, $path ) ); // TODO: Check email too?
 	if ( ! empty( $signup ) ) {
-		$diff = current_time( 'timestamp', true ) - mysql2date( 'U', $signup->registered );
+		$diff = time() - mysql2date( 'U', $signup->registered );
 		// If registered more than two days ago, cancel registration and let this signup go through.
 		if ( $diff > 2 * DAY_IN_SECONDS ) {
 			$wpdb->delete(
@@ -1473,11 +1474,12 @@ Disable these notifications: %3$s'
 function domain_exists( $domain, $path, $network_id = 1 ) {
 	$path   = trailingslashit( $path );
 	$args   = array(
-		'network_id' => $network_id,
-		'domain'     => $domain,
-		'path'       => $path,
-		'fields'     => 'ids',
-		'number'     => 1,
+		'network_id'             => $network_id,
+		'domain'                 => $domain,
+		'path'                   => $path,
+		'fields'                 => 'ids',
+		'number'                 => 1,
+		'update_site_meta_cache' => false,
 	);
 	$result = get_sites( $args );
 	$result = array_shift( $result );
@@ -2433,11 +2435,12 @@ function wp_update_network_site_counts( $network_id = null ) {
 
 	$count = get_sites(
 		array(
-			'network_id' => $network_id,
-			'spam'       => 0,
-			'deleted'    => 0,
-			'archived'   => 0,
-			'count'      => true,
+			'network_id'             => $network_id,
+			'spam'                   => 0,
+			'deleted'                => 0,
+			'archived'               => 0,
+			'count'                  => true,
+			'update_site_meta_cache' => false,
 		)
 	);
 
