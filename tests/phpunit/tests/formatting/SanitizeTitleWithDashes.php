@@ -35,20 +35,6 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 		$this->assertEquals("penn-teller-bull", sanitize_title_with_dashes("penn & teller bull"));
 	}
 
-	/**
-	 * @ticket 10823
-	 */
-	function test_strips_entities() {
-		$this->assertEquals("no-entities-here", sanitize_title_with_dashes("No &nbsp; Entities &ndash; Here &amp;"));
-		$this->assertEquals("one-two", sanitize_title_with_dashes("One &amp; Two", '', 'save'));
-		$this->assertEquals("one-two", sanitize_title_with_dashes("One &#123; Two;", '', 'save'));
-		$this->assertEquals("one-two", sanitize_title_with_dashes("One & Two;", '', 'save'));
-		$this->assertEquals("one-two", sanitize_title_with_dashes("One Two™;", '', 'save'));
-		$this->assertEquals("one-two", sanitize_title_with_dashes("One &&amp; Two;", '', 'save'));
-		$this->assertEquals("onetwo", sanitize_title_with_dashes("One&Two", '', 'save'));
-		$this->assertEquals("onetwo-test", sanitize_title_with_dashes("One&Two Test;", '', 'save'));
-	}
-
 	function test_replaces_nbsp() {
 		$this->assertEquals("dont-break-the-space", sanitize_title_with_dashes("don't break the space", '', 'save'));
 	}
