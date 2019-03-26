@@ -33,22 +33,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		}
 	}
 
-	function test_get_the_taxonomies() {
-		$post_id = $this->factory->post->create();
-
-		$taxes = get_the_taxonomies( $post_id );
-		$this->assertNotEmpty( $taxes );
-		$this->assertEquals( array( 'category' ), array_keys( $taxes ) );
-
-		$id = $this->factory->tag->create();
-		wp_set_post_tags( $post_id, array( $id ) );
-
-		$taxes = get_the_taxonomies( $post_id );
-		$this->assertNotEmpty( $taxes );
-		$this->assertCount( 2, $taxes );
-		$this->assertEquals( array( 'category', 'post_tag' ), array_keys( $taxes ) );
-	}
-
 	function test_the_taxonomies() {
 		$post_id = $this->factory->post->create();
 
