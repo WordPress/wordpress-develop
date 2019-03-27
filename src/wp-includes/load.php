@@ -214,31 +214,16 @@ function wp_maintenance() {
 		die();
 	}
 
+	require_once( ABSPATH . WPINC . '/functions.php' );
 	wp_load_translations_early();
 
-	$protocol = wp_get_server_protocol();
-	header( "$protocol 503 Service Unavailable", true, 503 );
-	header( 'Content-Type: text/html; charset=utf-8' );
 	header( 'Retry-After: 600' );
 
-	$dir_attr = '';
-	if ( is_rtl() ) {
-		$dir_attr = ' dir="rtl"';
-	}
-	?>
-	<!DOCTYPE html>
-	<html xmlns="http://www.w3.org/1999/xhtml"<?php echo $dir_attr; ?>>
-	<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-		<title><?php _e( 'Maintenance' ); ?></title>
-
-	</head>
-	<body>
-		<h1><?php _e( 'Briefly unavailable for scheduled maintenance. Check back in a minute.' ); ?></h1>
-	</body>
-	</html>
-	<?php
-	die();
+	wp_die(
+		__( 'Briefly unavailable for scheduled maintenance. Check back in a minute.' ),
+		__( 'Maintenance' ),
+		503
+	);
 }
 
 /**
@@ -1500,4 +1485,64 @@ function wp_is_json_request() {
 
 	return false;
 
+}
+
+/**
+ * Checks whether current request is a JSONP request, or is expecting a JSONP response.
+ *
+ * @since 5.2.0
+ *
+ * @return bool True if JSONP request, false otherwise.
+ */
+function wp_is_jsonp_request() {
+	if ( ! isset( $_GET['_jsonp'] ) ) {
+		return false;
+	}
+
+	if ( ! function_exists( 'wp_check_jsonp_callback' ) ) {
+		require_once ABSPATH . WPINC . '/functions.php';
+	}
+
+	$jsonp_callback = $_GET['_jsonp'];
+	if ( ! wp_check_jsonp_callback( $jsonp_callback ) ) {
+		return false;
+	}
+
+	/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
+	$jsonp_enabled = apply_filters( 'rest_jsonp_enabled', true );
+
+	return $jsonp_enabled;
+
+}
+
+/**
+ * Checks whether current request is an XML request, or is expecting an XML response.
+ *
+ * @since 5.2.0
+ *
+ * @return bool True if Accepts or Content-Type headers contain xml, false otherwise.
+ */
+function wp_is_xml_request() {
+	$accepted = array(
+		'text/xml',
+		'application/rss+xml',
+		'application/atom+xml',
+		'application/rdf+xml',
+		'text/xml+oembed',
+		'application/xml+oembed',
+	);
+
+	if ( isset( $_SERVER['HTTP_ACCEPT'] ) ) {
+		foreach ( $accepted as $type ) {
+			if ( false !== strpos( $_SERVER['HTTP_ACCEPT'], $type ) ) {
+				return true;
+			}
+		}
+	}
+
+	if ( isset( $_SERVER['CONTENT_TYPE'] ) && in_array( $_SERVER['CONTENT_TYPE'], $accepted, true ) ) {
+		return true;
+	}
+
+	return false;
 }

@@ -26,11 +26,6 @@ class WP_Fatal_Error_Handler {
 	 * @since 5.2.0
 	 */
 	public function handle() {
-		// Bail if WordPress executed successfully.
-		if ( defined( 'WP_EXECUTION_SUCCEEDED' ) && WP_EXECUTION_SUCCEEDED ) {
-			return;
-		}
-
 		try {
 			// Bail if no error found.
 			$error = $this->detect_error();
@@ -42,8 +37,10 @@ class WP_Fatal_Error_Handler {
 				wp_recovery_mode()->handle_error( $error );
 			}
 
-			// Display the PHP error template.
-			$this->display_error_template();
+			// Display the PHP error template if headers not sent.
+			if ( ! headers_sent() ) {
+				$this->display_error_template( $error );
+			}
 		} catch ( Exception $e ) {
 			// Catch exceptions and remain silent.
 		}
@@ -120,8 +117,10 @@ class WP_Fatal_Error_Handler {
 	 * If no such drop-in is available, this will call {@see WP_Fatal_Error_Handler::display_default_error_template()}.
 	 *
 	 * @since 5.2.0
+	 *
+	 * @param array $error Error information retrieved from `error_get_last()`.
 	 */
-	protected function display_error_template() {
+	protected function display_error_template( $error ) {
 		if ( defined( 'WP_CONTENT_DIR' ) ) {
 			// Load custom PHP error template, if present.
 			$php_error_pluggable = WP_CONTENT_DIR . '/php-error.php';
@@ -133,7 +132,7 @@ class WP_Fatal_Error_Handler {
 		}
 
 		// Otherwise, display the default error template.
-		$this->display_default_error_template();
+		$this->display_default_error_template( $error );
 	}
 
 	/**
@@ -146,8 +145,10 @@ class WP_Fatal_Error_Handler {
 	 * be used to modify these parameters.
 	 *
 	 * @since 5.2.0
+	 *
+	 * @param array $error Error information retrieved from `error_get_last()`.
 	 */
-	protected function display_default_error_template() {
+	protected function display_default_error_template( $error ) {
 		if ( ! function_exists( '__' ) ) {
 			wp_load_translations_early();
 		}
@@ -169,8 +170,9 @@ class WP_Fatal_Error_Handler {
 		 * @since 5.2.0
 		 *
 		 * @param string $message HTML error message to display.
+		 * @param array  $error   Error information retrieved from `error_get_last()`.
 		 */
-		$message = apply_filters( 'wp_php_error_message', $message );
+		$message = apply_filters( 'wp_php_error_message', $message, $error );
 
 		/**
 		 * Filters the arguments passed to {@see wp_die()} for the default PHP error template.
@@ -179,11 +181,18 @@ class WP_Fatal_Error_Handler {
 		 *
 		 * @param array $args Associative array of arguments passed to `wp_die()`. By default these contain a
 		 *                    'response' key, and optionally 'link_url' and 'link_text' keys.
+		 * @param array $error Error information retrieved from `error_get_last()`.
 		 */
-		$args = apply_filters( 'wp_php_error_args', $args );
+		$args = apply_filters( 'wp_php_error_args', $args, $error );
 
-		$error = new WP_Error( 'internal_server_error', $message );
+		$wp_error = new WP_Error(
+			'internal_server_error',
+			$message,
+			array(
+				'error' => $error,
+			)
+		);
 
-		wp_die( $error, '', $args );
+		wp_die( $wp_error, '', $args );
 	}
 }

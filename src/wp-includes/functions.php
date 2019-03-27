@@ -2989,6 +2989,15 @@ function wp_die( $message = '', $title = '', $args = array() ) {
 		 * @param callable $function Callback function name.
 		 */
 		$function = apply_filters( 'wp_die_json_handler', '_json_wp_die_handler' );
+	} elseif ( wp_is_jsonp_request() ) {
+		/**
+		 * Filters the callback for killing WordPress execution for JSONP requests.
+		 *
+		 * @since 5.2.0
+		 *
+		 * @param callable $function Callback function name.
+		 */
+		$function = apply_filters( 'wp_die_jsonp_handler', '_jsonp_wp_die_handler' );
 	} elseif ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) {
 		/**
 		 * Filters the callback for killing WordPress execution for XML-RPC requests.
@@ -2998,9 +3007,21 @@ function wp_die( $message = '', $title = '', $args = array() ) {
 		 * @param callable $function Callback function name.
 		 */
 		$function = apply_filters( 'wp_die_xmlrpc_handler', '_xmlrpc_wp_die_handler' );
+	} elseif ( wp_is_xml_request()
+		|| function_exists( 'is_feed' ) && is_feed()
+		|| function_exists( 'is_comment_feed' ) && is_comment_feed()
+		|| function_exists( 'is_trackback' ) && is_trackback() ) {
+		/**
+		 * Filters the callback for killing WordPress execution for XML requests.
+		 *
+		 * @since 5.2.0
+		 *
+		 * @param callable $function Callback function name.
+		 */
+		$function = apply_filters( 'wp_die_xml_handler', '_xml_wp_die_handler' );
 	} else {
 		/**
-		 * Filters the callback for killing WordPress execution for all non-Ajax, non-XML-RPC requests.
+		 * Filters the callback for killing WordPress execution for all non-Ajax, non-JSON, non-XML requests.
 		 *
 		 * @since 3.0.0
 		 *
@@ -3210,76 +3231,6 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 }
 
 /**
- * Kills WordPress execution and displays JSON response with an error message.
- *
- * This is the handler for wp_die() when processing JSON requests.
- *
- * @since 5.1.0
- * @access private
- *
- * @param string       $message Error message.
- * @param string       $title   Optional. Error title. Default empty.
- * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
- */
-function _json_wp_die_handler( $message, $title = '', $args = array() ) {
-	list( $message, $title, $r ) = _wp_die_process_input( $message, $title, $args );
-
-	$data = array(
-		'code'              => $r['code'],
-		'message'           => $message,
-		'data'              => array(
-			'status' => $r['response'],
-		),
-		'additional_errors' => $r['additional_errors'],
-	);
-
-	if ( ! headers_sent() ) {
-		header( 'Content-Type: application/json; charset=utf-8' );
-		if ( null !== $r['response'] ) {
-			status_header( $r['response'] );
-		}
-		nocache_headers();
-	}
-
-	echo wp_json_encode( $data );
-	if ( $r['exit'] ) {
-		die();
-	}
-}
-
-/**
- * Kills WordPress execution and displays XML response with an error message.
- *
- * This is the handler for wp_die() when processing XMLRPC requests.
- *
- * @since 3.2.0
- * @access private
- *
- * @global wp_xmlrpc_server $wp_xmlrpc_server
- *
- * @param string       $message Error message.
- * @param string       $title   Optional. Error title. Default empty.
- * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
- */
-function _xmlrpc_wp_die_handler( $message, $title = '', $args = array() ) {
-	global $wp_xmlrpc_server;
-
-	list( $message, $title, $r ) = _wp_die_process_input( $message, $title, $args );
-
-	if ( ! headers_sent() ) {
-		nocache_headers();
-	}
-
-	if ( $wp_xmlrpc_server ) {
-		$error = new IXR_Error( $r['response'], $message );
-		$wp_xmlrpc_server->output( $error->getXml() );
-	}
-	if ( $r['exit'] ) {
-		die();
-	}
-}
-
-/**
  * Kills WordPress execution and displays Ajax response with an error message.
  *
  * This is the handler for wp_die() when processing Ajax requests.
@@ -3319,6 +3270,162 @@ function _ajax_wp_die_handler( $message, $title = '', $args = array() ) {
 	}
 
 	echo $message;
+}
+
+/**
+ * Kills WordPress execution and displays JSON response with an error message.
+ *
+ * This is the handler for wp_die() when processing JSON requests.
+ *
+ * @since 5.1.0
+ * @access private
+ *
+ * @param string       $message Error message.
+ * @param string       $title   Optional. Error title. Default empty.
+ * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
+ */
+function _json_wp_die_handler( $message, $title = '', $args = array() ) {
+	list( $message, $title, $r ) = _wp_die_process_input( $message, $title, $args );
+
+	$data = array(
+		'code'              => $r['code'],
+		'message'           => $message,
+		'data'              => array(
+			'status' => $r['response'],
+		),
+		'additional_errors' => $r['additional_errors'],
+	);
+
+	if ( ! headers_sent() ) {
+		header( 'Content-Type: application/json; charset=utf-8' );
+		if ( null !== $r['response'] ) {
+			status_header( $r['response'] );
+		}
+		nocache_headers();
+	}
+
+	echo wp_json_encode( $data );
+	if ( $r['exit'] ) {
+		die();
+	}
+}
+
+/**
+ * Kills WordPress execution and displays JSONP response with an error message.
+ *
+ * This is the handler for wp_die() when processing JSONP requests.
+ *
+ * @since 5.2.0
+ * @access private
+ *
+ * @param string       $message Error message.
+ * @param string       $title   Optional. Error title. Default empty.
+ * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
+ */
+function _jsonp_wp_die_handler( $message, $title = '', $args = array() ) {
+	list( $message, $title, $r ) = _wp_die_process_input( $message, $title, $args );
+
+	$data = array(
+		'code'              => $r['code'],
+		'message'           => $message,
+		'data'              => array(
+			'status' => $r['response'],
+		),
+		'additional_errors' => $r['additional_errors'],
+	);
+
+	if ( ! headers_sent() ) {
+		header( 'Content-Type: application/javascript; charset=utf-8' );
+		header( 'X-Content-Type-Options: nosniff' );
+		header( 'X-Robots-Tag: noindex' );
+		if ( null !== $r['response'] ) {
+			status_header( $r['response'] );
+		}
+		nocache_headers();
+	}
+
+	$result         = wp_json_encode( $data );
+	$jsonp_callback = $_GET['_jsonp'];
+	echo '/**/' . $jsonp_callback . '(' . $result . ')';
+	if ( $r['exit'] ) {
+		die();
+	}
+}
+
+/**
+ * Kills WordPress execution and displays XML response with an error message.
+ *
+ * This is the handler for wp_die() when processing XMLRPC requests.
+ *
+ * @since 3.2.0
+ * @access private
+ *
+ * @global wp_xmlrpc_server $wp_xmlrpc_server
+ *
+ * @param string       $message Error message.
+ * @param string       $title   Optional. Error title. Default empty.
+ * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
+ */
+function _xmlrpc_wp_die_handler( $message, $title = '', $args = array() ) {
+	global $wp_xmlrpc_server;
+
+	list( $message, $title, $r ) = _wp_die_process_input( $message, $title, $args );
+
+	if ( ! headers_sent() ) {
+		nocache_headers();
+	}
+
+	if ( $wp_xmlrpc_server ) {
+		$error = new IXR_Error( $r['response'], $message );
+		$wp_xmlrpc_server->output( $error->getXml() );
+	}
+	if ( $r['exit'] ) {
+		die();
+	}
+}
+
+/**
+ * Kills WordPress execution and displays XML response with an error message.
+ *
+ * This is the handler for wp_die() when processing XML requests.
+ *
+ * @since 5.2.0
+ * @access private
+ *
+ * @param string       $message Error message.
+ * @param string       $title   Optional. Error title. Default empty.
+ * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
+ */
+function _xml_wp_die_handler( $message, $title = '', $args = array() ) {
+	list( $message, $title, $r ) = _wp_die_process_input( $message, $title, $args );
+
+	$message = htmlspecialchars( $message );
+	$title   = htmlspecialchars( $title );
+
+	$xml = <<<EOD
+<error>
+    <code>{$r['code']}</code>
+    <title><![CDATA[{$title}]]></title>
+    <message><![CDATA[{$message}]]></message>
+    <data>
+        <status>{$r['response']}</status>
+    </data> 
+</error>
+
+EOD;
+
+	if ( ! headers_sent() ) {
+		header( 'Content-Type: text/xml; charset=utf-8' );
+		if ( null !== $r['response'] ) {
+			status_header( $r['response'] );
+		}
+		nocache_headers();
+	}
+
+	echo $xml;
+	if ( $r['exit'] ) {
+		die();
+	}
 }
 
 /**
