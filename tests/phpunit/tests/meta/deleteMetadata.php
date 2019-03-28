@@ -151,7 +151,7 @@ class Tests_Meta_DeleteMetadata extends WP_UnitTestCase {
 	public function test_object_id_is_int_inside_delete_post_meta() {
 		$post_id = self::factory()->post->create();
 		$meta_id = add_metadata( 'post', $post_id, 'my_key', 'my_value' );
-		add_action( 'delete_post_meta', [ $this, 'action_check_object_id_is_int' ], 10, 2 );
+		add_action( 'delete_post_meta', array( $this, 'action_check_object_id_is_int' ), 10, 2 );
 		delete_metadata_by_mid( 'post', $meta_id );
 	}
 
