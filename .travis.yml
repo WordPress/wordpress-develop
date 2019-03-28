@@ -1,5 +1,12 @@
+# Travis CI Configuration File
+sudo: false
 dist: trusty
 language: php
+cache:
+  directories:
+    - $HOME/.npm
+    - vendor
+    - $HOME/.composer/cache
 
 # Build matrix options
 matrix:
@@ -7,6 +14,7 @@ matrix:
     - php: 5.5
     - php: 5.2
       dist: precise
+  fast_finish: true
 
 before_script:
     - |
