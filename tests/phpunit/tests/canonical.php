@@ -216,7 +216,6 @@ class Tests_Canonical extends WP_UnitTestCase {
 			array( '/post-format-test-au/', '/2008/06/02/post-format-test-audio/'),
 
 			array( '/2008/09/03/images-test/3/', array( 'url' => '/2008/09/03/images-test/3/', 'qv' => array( 'name' => 'images-test', 'year' => '2008', 'monthnum' => '09', 'day' => '03', 'page' => '/3' ) ) ), // page = /3 ?!
-			array( '/2008/09/03/images-test/8/', '/2008/09/03/images-test/4/', 11694 ), // post with 4 pages
 			array( '/2008/09/03/images-test/?page=3', '/2008/09/03/images-test/3/' ),
 			array( '/2008/09/03/images-te?page=3', '/2008/09/03/images-test/3/' ),
 

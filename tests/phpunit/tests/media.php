@@ -114,24 +114,6 @@ CAP;
 		$this->assertFalse( wp_oembed_remove_provider( 'http://foo.bar/*' ) );
 	}
 
-	/**
-	 * Test secure youtube.com embeds
-	 *
-	 * @ticket 23149
-	 */
-	function test_youtube_com_secure_embed() {
-		global $wp_embed;
-
-		$out = wp_oembed_get( 'http://www.youtube.com/watch?v=oHg5SJYRHA0' );
-		$this->assertContains( 'http://www.youtube.com/embed/oHg5SJYRHA0?feature=oembed', $out );
-
-		$out = wp_oembed_get( 'https://www.youtube.com/watch?v=oHg5SJYRHA0' );
-		$this->assertContains( 'https://www.youtube.com/embed/oHg5SJYRHA0?feature=oembed', $out );
-
-		$out = wp_oembed_get( 'https://youtu.be/zHjMoNQN7s0' );
-		$this->assertContains( 'https://www.youtube.com/embed/zHjMoNQN7s0?feature=oembed', $out );
-	}
-
 	function test_wp_prepare_attachment_for_js() {
 		// Attachment without media
 		$id = wp_insert_attachment(array(
@@ -435,37 +417,6 @@ VIDEO;
 	function test_has_image_size() {
 		add_image_size( 'test-size', 200, 600 );
 		$this->assertTrue( has_image_size( 'test-size' ) );
-	}
-
-	/**
-	 * @ticket 37989
-	 */
-	public function test_media_handle_upload_expected_titles() {
-		$test_file = DIR_TESTDATA . '/images/test-image.jpg';
-
-		// Make a copy of this file as it gets moved during the file upload
-		$tmp_name = wp_tempnam( $test_file );
-
-		copy( $test_file, $tmp_name );
-
-		$_FILES['upload'] = array(
-			'tmp_name' => $tmp_name,
-			'name'     => 'This is a test.jpg',
-			'type'     => 'image/jpeg',
-			'error'    => 0,
-			'size'     => filesize( $test_file ),
-		);
-
-		$post_id = media_handle_upload( 'upload', 0, array(), array( 'action' => 'test_upload_titles', 'test_form' => false ) );
-
-		unset( $_FILES['upload'] );
-
-		$post = get_post( $post_id );
-
-		// Clean up.
-		wp_delete_attachment( $post_id );
-
-		$this->assertEquals( 'This is a test', $post->post_title );
 	}
 
 	/**

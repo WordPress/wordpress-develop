@@ -146,24 +146,6 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test the magic __unset method
-	 *
-	 * @ticket 20043
-	 */
-	public function test_user_unset() {
-		// New user
-		$user_id = $this->factory->user->create( array( 'role' => 'author' ) );
-		$user = new WP_User( $user_id );
-
-		// Test custom fields
-		$user->customField = 123;
-		$this->assertEquals( $user->customField, 123 );
-		unset( $user->customField );
-		$this->assertFalse( isset( $user->customField ) );
-		return $user;
-	}
-
-	/**
 	 * @depends test_user_unset
 	 * @expectedDeprecated WP_User->id
 	 * @ticket 20043

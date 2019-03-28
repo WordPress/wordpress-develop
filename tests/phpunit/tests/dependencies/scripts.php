@@ -88,14 +88,6 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	/**
 	 * @ticket 22229
 	 */
-	function test_inline_should_not_output_script_tag_with_src() {
-		wp_enqueue_script( 'baba-inline-0', 'inline' );
-		$this->assertEquals( '', get_echo( 'wp_print_scripts' ) );
-	}
-
-	/**
-	 * @ticket 22229
-	 */
 	function test_json_encode_should_not_encode_special_literal_values() {
 		if ( ! class_exists( 'WP_JS_Literal' ) ) {
 			$this->markTestSkipped( "WP_JS_Literal class doesn't exist" );
