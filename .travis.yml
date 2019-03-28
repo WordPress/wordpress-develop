@@ -28,6 +28,7 @@ before_script:
     - sed -i "s/yourusernamehere/travis/" wp-tests-config.php
     - sed -i "s/yourpasswordhere//" wp-tests-config.php
     - svn checkout https://plugins.svn.wordpress.org/wordpress-importer/trunk tests/phpunit/data/plugins/wordpress-importer
+    - nvm install 0.10.48
     - npm install -g grunt-cli
     - npm install
     - php --version
