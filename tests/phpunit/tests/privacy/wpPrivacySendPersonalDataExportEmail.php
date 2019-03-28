@@ -95,7 +95,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 			)
 		);
 
-		self::$request_id      = wp_create_user_request( self::$requester_email, 'export_personal_data' );
+		self::$request_id = wp_create_user_request( self::$requester_email, 'export_personal_data' );
 
 		_wp_privacy_account_request_confirmed( self::$request_id );
 	}
@@ -211,7 +211,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 		update_user_meta( self::$request_user->ID, 'locale', 'es_ES' );
 
 		wp_privacy_send_personal_data_export_email( self::$request_id );
-		
+
 		$mailer = tests_retrieve_phpmailer_instance();
 
 		$this->assertContains( 'Exportación de datos personales', $mailer->get_sent()->subject );
