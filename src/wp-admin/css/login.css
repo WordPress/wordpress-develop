@@ -144,6 +144,22 @@ p {
 	float: right;
 }
 
+.login .adminemailconfirmform .submit {
+	text-align: center;
+}
+
+.login .adminemailconfirmform .admin-email__later {
+	text-align: center;
+}
+
+.login .admin-email__details {
+	margin-top: 20px;
+}
+
+.login .adminemailconfirmform .button-primary {
+	float: none;
+}
+
 #login form p {
 	margin-bottom: 0;
 }
