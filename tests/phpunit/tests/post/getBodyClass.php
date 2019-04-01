@@ -210,13 +210,13 @@ class Tests_Post_GetBodyClass extends WP_UnitTestCase {
 		add_theme_support( 'custom-background', array( 'default-color', '#ffffff' ) );
 		set_theme_mod( 'background_color', '#000000' );
 
-		$class = get_body_class();
-		$current_theme_supports_custom_background = current_theme_supports( 'custom-background' );
+		$class                     = get_body_class();
+		$theme_supports_background = current_theme_supports( 'custom-background' );
 
 		remove_theme_mod( 'background_color' );
 		remove_theme_support( 'custom-background' );
 
-		$this->assertTrue( $current_theme_supports_custom_background );
+		$this->assertTrue( $theme_supports_background );
 		$this->assertContains( 'custom-background', $class );
 	}
 
@@ -226,12 +226,12 @@ class Tests_Post_GetBodyClass extends WP_UnitTestCase {
 	public function test_custom_background_class_is_not_added_when_theme_support_is_missing() {
 		set_theme_mod( 'background_color', '#000000' );
 
-		$class = get_body_class();
-		$current_theme_supports_custom_background = current_theme_supports( 'custom-background' );
+		$class                     = get_body_class();
+		$theme_supports_background = current_theme_supports( 'custom-background' );
 
 		remove_theme_mod( 'background_color' );
 
-		$this->assertFalse( $current_theme_supports_custom_background );
+		$this->assertFalse( $theme_supports_background );
 		$this->assertNotContains( 'custom-background', $class );
 	}
 
