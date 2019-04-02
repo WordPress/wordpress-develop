@@ -75,7 +75,6 @@ class Test_WP_Widget_Media_Video extends WP_UnitTestCase {
 	 *
 	 * @param array                 $schema Schema.
 	 * @param WP_Widget_Media_Video $widget Widget.
-	 *
 	 * @return array
 	 */
 	public function filter_instance_schema( $schema, $widget ) {

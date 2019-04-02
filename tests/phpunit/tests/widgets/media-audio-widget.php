@@ -74,7 +74,6 @@ class Test_WP_Widget_Media_Audio extends WP_UnitTestCase {
 	 *
 	 * @param array                 $schema Schema.
 	 * @param WP_Widget_Media_Audio $widget Widget.
-	 *
 	 * @return array
 	 */
 	public function filter_instance_schema( $schema, $widget ) {

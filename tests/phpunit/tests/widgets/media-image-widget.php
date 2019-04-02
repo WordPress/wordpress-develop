@@ -34,6 +34,7 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 	function test_get_instance_schema() {
 		$widget = new WP_Widget_Media_Image();
 		$schema = $widget->get_instance_schema();
+
 		$this->assertEqualSets(
 			array(
 				'alt',
@@ -80,7 +81,6 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 	 *
 	 * @param array                 $schema Schema.
 	 * @param WP_Widget_Media_Image $widget Widget.
-	 *
 	 * @return array
 	 */
 	public function filter_instance_schema( $schema, $widget ) {
