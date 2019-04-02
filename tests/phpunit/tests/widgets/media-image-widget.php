@@ -34,7 +34,6 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 	function test_get_instance_schema() {
 		$widget = new WP_Widget_Media_Image();
 		$schema = $widget->get_instance_schema();
-
 		$this->assertEqualSets(
 			array(
 				'alt',
@@ -55,6 +54,39 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 			),
 			array_keys( $schema )
 		);
+	}
+
+	/**
+	 * Test schema filtering.
+	 *
+	 * @covers WP_Widget_Media_Image::get_instance_schema
+	 *
+	 * @ticket 45029
+	 */
+	function test_get_instance_schema_filtering() {
+		$widget = new WP_Widget_Media_Image();
+		$schema = $widget->get_instance_schema();
+
+		add_filter( 'widget_media_image_instance_schema', array( $this, 'filter_instance_schema' ), 10, 2 );
+		$schema = $widget->get_instance_schema();
+
+		$this->assertSame( 'large', $schema['size']['default'] );
+	}
+
+	/**
+	 * Filters instance schema.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @param array                 $schema Schema.
+	 * @param WP_Widget_Media_Image $widget Widget.
+	 *
+	 * @return array
+	 */
+	public function filter_instance_schema( $schema, $widget ) {
+		// Override the default size value ('medium').
+		$schema['size']['default'] = 'large';
+		return $schema;
 	}
 
 	/**
