@@ -464,6 +464,12 @@ function map_meta_cap( $cap, $user_id ) {
 				}
 			}
 			break;
+		case 'resume_plugin':
+			$caps[] = 'resume_plugins';
+			break;
+		case 'resume_theme':
+			$caps[] = 'resume_themes';
+			break;
 		case 'delete_user':
 		case 'delete_users':
 			// If multisite only super admins can delete users.
@@ -950,3 +956,39 @@ function wp_maybe_grant_install_languages_cap( $allcaps ) {
 
 	return $allcaps;
 }
+
+/**
+ * Filters the user capabilities to grant the 'resume_plugins' and 'resume_themes' capabilities as necessary.
+ *
+ * @since 5.2.0
+ *
+ * @param bool[] $allcaps An array of all the user's capabilities.
+ * @return bool[] Filtered array of the user's capabilities.
+ */
+function wp_maybe_grant_resume_extensions_caps( $allcaps ) {
+	// Even in a multisite, regular administrators should be able to resume plugins.
+	if ( ! empty( $allcaps['activate_plugins'] ) ) {
+		$allcaps['resume_plugins'] = true;
+	}
+
+	// Even in a multisite, regular administrators should be able to resume themes.
+	if ( ! empty( $allcaps['switch_themes'] ) ) {
+		$allcaps['resume_themes'] = true;
+	}
+
+	return $allcaps;
+}
+
+return;
+
+// Dummy gettext calls to get strings in the catalog.
+/* translators: user role for administrators  */
+_x( 'Administrator', 'User role' );
+/* translators: user role for editors */
+_x( 'Editor', 'User role' );
+/* translators: user role for authors */
+_x( 'Author', 'User role' );
+/* translators: user role for contributors */
+_x( 'Contributor', 'User role' );
+/* translators: user role for subscriber */
+_x( 'Subscriber', 'User role' );

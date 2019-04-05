@@ -182,7 +182,7 @@ add_filter( 'the_excerpt', 'convert_smilies' );
 add_filter( 'the_excerpt', 'convert_chars' );
 add_filter( 'the_excerpt', 'wpautop' );
 add_filter( 'the_excerpt', 'shortcode_unautop' );
-add_filter( 'get_the_excerpt', 'wp_trim_excerpt' );
+add_filter( 'get_the_excerpt', 'wp_trim_excerpt', 10, 2 );
 
 add_filter( 'the_post_thumbnail_caption', 'wptexturize' );
 add_filter( 'the_post_thumbnail_caption', 'convert_smilies' );
@@ -573,10 +573,12 @@ add_filter( 'the_excerpt_embed', 'shortcode_unautop' );
 add_filter( 'the_excerpt_embed', 'wp_embed_excerpt_attachment' );
 
 add_filter( 'oembed_dataparse', 'wp_filter_oembed_result', 10, 3 );
+add_filter( 'oembed_dataparse', 'wp_filter_oembed_iframe_title_attribute', 20, 3 );
 add_filter( 'oembed_response_data', 'get_oembed_response_data_rich', 10, 4 );
 add_filter( 'pre_oembed_result', 'wp_filter_pre_oembed_result', 10, 3 );
 
 // Capabilities
 add_filter( 'user_has_cap', 'wp_maybe_grant_install_languages_cap', 1 );
+add_filter( 'user_has_cap', 'wp_maybe_grant_resume_extensions_caps', 1 );
 
 unset( $filter, $action );

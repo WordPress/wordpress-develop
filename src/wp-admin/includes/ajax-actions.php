@@ -1027,7 +1027,9 @@ function wp_ajax_add_tag() {
 
 	$wp_list_table = _get_list_table( 'WP_Terms_List_Table', array( 'screen' => $_POST['screen'] ) );
 
-	$level = 0;
+	$level     = 0;
+	$noparents = '';
+
 	if ( is_taxonomy_hierarchical( $taxonomy ) ) {
 		$level = count( get_ancestors( $tag->term_id, $taxonomy, 'taxonomy' ) );
 		ob_start();
@@ -3266,7 +3268,12 @@ function wp_ajax_query_themes() {
 		wp_unslash( $_REQUEST['request'] ),
 		array(
 			'per_page' => 20,
-			'fields'   => $theme_field_defaults,
+			'fields'   => array_merge(
+				(array) $theme_field_defaults,
+				array(
+					'reviews_url' => true, // Explicitly request the reviews URL to be linked from the Add Themes screen.
+				)
+			),
 		)
 	);
 
@@ -4852,4 +4859,102 @@ function wp_ajax_wp_privacy_erase_personal_data() {
 	}
 
 	wp_send_json_success( $response );
+}
+
+/**
+ * Ajax handler for site health checks on server communication.
+ *
+ * @since 5.2.0
+ */
+function wp_ajax_health_check_dotorg_communication() {
+	check_ajax_referer( 'health-check-site-status' );
+
+	if ( ! current_user_can( 'install_plugins' ) ) {
+		wp_send_json_error();
+	}
+
+	if ( ! class_exists( 'WP_Site_Health' ) ) {
+		require_once( ABSPATH . 'wp-admin/includes/class-wp-site-health.php' );
+	}
+
+	$site_health = new WP_Site_Health();
+	wp_send_json_success( $site_health->get_test_dotorg_communication() );
+}
+
+/**
+ * Ajax handler for site health checks on debug mode.
+ *
+ * @since 5.2.0
+ */
+function wp_ajax_health_check_is_in_debug_mode() {
+	wp_verify_nonce( 'health-check-site-status' );
+
+	if ( ! current_user_can( 'install_plugins' ) ) {
+		wp_send_json_error();
+	}
+
+	if ( ! class_exists( 'WP_Site_Health' ) ) {
+		require_once( ABSPATH . 'wp-admin/includes/class-wp-site-health.php' );
+	}
+
+	$site_health = new WP_Site_Health();
+	wp_send_json_success( $site_health->get_test_is_in_debug_mode() );
+}
+
+/**
+ * Ajax handler for site health checks on background updates.
+ *
+ * @since 5.2.0
+ */
+function wp_ajax_health_check_background_updates() {
+	check_ajax_referer( 'health-check-site-status' );
+
+	if ( ! current_user_can( 'install_plugins' ) ) {
+		wp_send_json_error();
+	}
+
+	if ( ! class_exists( 'WP_Site_Health' ) ) {
+		require_once( ABSPATH . 'wp-admin/includes/class-wp-site-health.php' );
+	}
+
+	$site_health = new WP_Site_Health();
+	wp_send_json_success( $site_health->get_test_background_updates() );
+}
+
+
+/**
+ * Ajax handler for site health checks on loopback requests.
+ *
+ * @since 5.2.0
+ */
+function wp_ajax_health_check_loopback_requests() {
+	check_ajax_referer( 'health-check-site-status' );
+
+	if ( ! current_user_can( 'install_plugins' ) ) {
+		wp_send_json_error();
+	}
+
+	if ( ! class_exists( 'WP_Site_Health' ) ) {
+		require_once( ABSPATH . 'wp-admin/includes/class-wp-site-health.php' );
+	}
+
+	$site_health = new WP_Site_Health();
+	wp_send_json_success( $site_health->get_test_loopback_requests() );
+}
+
+/**
+ * Ajax handler for site health check to update the result status.
+ *
+ * @since 5.2.0
+ */
+function wp_ajax_health_check_site_status_result() {
+	check_ajax_referer( 'health-check-site-status-result' );
+
+	if ( ! current_user_can( 'install_plugins' ) ) {
+		wp_send_json_error();
+	}
+
+	set_transient( 'health-check-site-status-result', wp_json_encode( $_POST['counts'] ) );
+
+	wp_send_json_success();
 }

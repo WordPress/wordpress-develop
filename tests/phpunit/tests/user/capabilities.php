@@ -101,6 +101,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'remove_users'           => array( 'administrator' ),
 			'switch_themes'          => array( 'administrator' ),
 			'edit_dashboard'         => array( 'administrator' ),
+			'resume_plugins'         => array( 'administrator' ),
+			'resume_themes'          => array( 'administrator' ),
 
 			'moderate_comments'      => array( 'administrator', 'editor' ),
 			'manage_categories'      => array( 'administrator', 'editor' ),
@@ -181,6 +183,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'remove_users'           => array( 'administrator' ),
 			'switch_themes'          => array( 'administrator' ),
 			'edit_dashboard'         => array( 'administrator' ),
+			'resume_plugins'         => array( 'administrator' ),
+			'resume_themes'          => array( 'administrator' ),
 
 			'moderate_comments'      => array( 'administrator', 'editor' ),
 			'manage_categories'      => array( 'administrator', 'editor' ),
@@ -392,7 +396,10 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			$actual['editor'],
 			$actual['author'],
 			$actual['subscriber'],
-			$actual['contributor']
+			$actual['contributor'],
+			// the following two are granted via `user_has_cap`:
+			$actual['resume_plugins'],
+			$actual['resume_themes']
 		);
 
 		unset(
@@ -454,6 +461,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			// Singular object meta capabilities (where an object ID is passed) are not tested:
 			$expected['activate_plugin'],
 			$expected['deactivate_plugin'],
+			$expected['resume_plugin'],
+			$expected['resume_theme'],
 			$expected['remove_user'],
 			$expected['promote_user'],
 			$expected['edit_user'],

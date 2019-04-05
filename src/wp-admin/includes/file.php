@@ -36,6 +36,7 @@ $wp_file_descriptions = array(
 	'single.php'            => __( 'Single Post' ),
 	'page.php'              => __( 'Single Page' ),
 	'front-page.php'        => __( 'Homepage' ),
+	'privacy-policy.php'    => __( 'Privacy Policy Page' ),
 	// Attachments
 	'attachment.php'        => __( 'Attachment Template' ),
 	'image.php'             => __( 'Image Attachment Template' ),
@@ -965,12 +966,14 @@ function wp_handle_sideload( &$file, $overrides = false, $time = null ) {
  * Please note that the calling function must unlink() the file.
  *
  * @since 2.5.0
+ * @since 5.2.0 Signature Verification with SoftFail was added.
  *
- * @param string $url  The URL of the file to download.
- * @param int $timeout The timeout for the request to download the file. Default 300 seconds.
+ * @param string $url                The URL of the file to download.
+ * @param int    $timeout            The timeout for the request to download the file. Default 300 seconds.
+ * @param bool   $signature_softfail Whether to allow Signature Verification to softfail. Default true.
  * @return string|WP_Error Filename on success, WP_Error on failure.
  */
-function download_url( $url, $timeout = 300 ) {
+function download_url( $url, $timeout = 300, $signature_softfail = true ) {
 	//WARNING: The file is not automatically deleted, The script must unlink() the file.
 	if ( ! $url ) {
 		return new WP_Error( 'http_no_url', __( 'Invalid URL Provided.' ) );
@@ -1034,6 +1037,55 @@ function download_url( $url, $timeout = 300 ) {
 		}
 	}
 
+	/**
+	 * Filters the list of hosts which should have Signature Verification attempted on.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @param array List of hostnames.
+	 */
+	$signed_hostnames       = apply_filters( 'wp_signature_hosts', array( 'wordpress.org', 'downloads.wordpress.org', 's.w.org' ) );
+	$signature_verification = in_array( parse_url( $url, PHP_URL_HOST ), $signed_hostnames, true );
+
+	// Perform the valiation
+	if ( $signature_verification ) {
+		$signature = wp_remote_retrieve_header( $response, 'x-content-signature' );
+		if ( ! $signature ) {
+			// Retrieve signatures from a file if the header wasn't included.
+			// WordPress.org stores signatures at $package_url.sig
+			$signature_request = wp_safe_remote_get( $url . '.sig' );
+			if ( ! is_wp_error( $signature_request ) && 200 === wp_remote_retrieve_response_code( $signature_request ) ) {
+				$signature = explode( "\n", wp_remote_retrieve_body( $signature_request ) );
+			}
+		}
+
+		// Perform the checks.
+		$signature_verification = verify_file_signature( $tmpfname, $signature, basename( parse_url( $url, PHP_URL_PATH ) ) );
+	}
+
+	if ( is_wp_error( $signature_verification ) ) {
+		if (
+			/**
+			 * Filters whether Signature Verification failures should be allowed to soft fail.
+			 *
+			 * WARNING: This may be removed from a future release.
+			 *
+			 * @since 5.2.0
+			 *
+			 * @param bool   $signature_softfail If a softfail is allowed.
+			 * @param string $url                The url being accessed.
+			 */
+			apply_filters( 'wp_signature_softfail', $signature_softfail, $url )
+		) {
+			$signature_verification->add_data( $tmpfname, 'softfail-filename' );
+		} else {
+			// Hard-fail.
+			unlink( $tmpfname );
+		}
+
+		return $signature_verification;
+	}
+
 	return $tmpfname;
 }
 
@@ -1067,6 +1119,131 @@ function verify_file_md5( $filename, $expected_md5 ) {
 }
 
 /**
+ * Verifies the contents of a file against its ED25519 signature.
+ *
+ * @since 5.2.0
+ *
+ * @param string       $filename            The file to validate.
+ * @param string|array $signatures          A Signature provided for the file.
+ * @param string       $filename_for_errors A friendly filename for errors. Optional.
+ *
+ * @return bool|WP_Error true on success, false if verificaiton not attempted, or WP_Error describing an error condition.
+ */
+function verify_file_signature( $filename, $signatures, $filename_for_errors = false ) {
+	if ( ! $filename_for_errors ) {
+		$filename_for_errors = wp_basename( $filename );
+	}
+
+	// Check we can process signatures.
+	if ( ! function_exists( 'sodium_crypto_sign_verify_detached' ) || ! in_array( 'sha384', array_map( 'strtolower', hash_algos() ) ) ) {
+		return new WP_Error(
+			'signature_verification_unsupported',
+			sprintf(
+				/* translators: 1: The filename of the package. */
+				__( 'The authenticity of %1$s could not be verified as signature verification is unavailable on this system.' ),
+				'<span class="code">' . esc_html( $filename_for_errors ) . '</span>'
+			),
+			( ! function_exists( 'sodium_crypto_sign_verify_detached' ) ? 'sodium_crypto_sign_verify_detached' : 'sha384' )
+		);
+	}
+
+	if ( ! $signatures ) {
+		return new WP_Error(
+			'signature_verification_no_signature',
+			sprintf(
+				/* translators: 1: The filename of the package. */
+				__( 'The authenticity of %1$s could not be verified as no signature was found.' ),
+				'<span class="code">' . esc_html( $filename_for_errors ) . '</span>'
+			),
+			array(
+				'filename' => $filename_for_errors,
+			)
+		);
+	}
+
+	$trusted_keys = wp_trusted_keys();
+	$file_hash    = hash_file( 'sha384', $filename, true );
+
+	mbstring_binary_safe_encoding();
+
+	$skipped_key = $skipped_signature = 0;
+
+	foreach ( (array) $signatures as $signature ) {
+		$signature_raw = base64_decode( $signature );
+
+		// Ensure only valid-length signatures are considered.
+		if ( SODIUM_CRYPTO_SIGN_BYTES !== strlen( $signature_raw ) ) {
+			$skipped_signature++;
+			continue;
+		}
+
+		foreach ( (array) $trusted_keys as $key ) {
+			$key_raw = base64_decode( $key );
+
+			// Only pass valid public keys through.
+			if ( SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES !== strlen( $key_raw ) ) {
+				$skipped_key++;
+				continue;
+			}
+
+			if ( sodium_crypto_sign_verify_detached( $signature_raw, $file_hash, $key_raw ) ) {
+				reset_mbstring_encoding();
+				return true;
+			}
+		}
+	}
+
+	reset_mbstring_encoding();
+
+	return new WP_Error(
+		'signature_verification_failed',
+		sprintf(
+			/* translators: 1: The filename of the package. */
+			__( 'The authenticity of %1$s could not be verified.' ),
+			'<span class="code">' . esc_html( $filename_for_errors ) . '</span>'
+		),
+		// Error data helpful for debugging:
+		array(
+			'filename'    => $filename_for_errors,
+			'keys'        => $trusted_keys,
+			'signatures'  => $signatures,
+			'hash'        => bin2hex( $file_hash ),
+			'skipped_key' => $skipped_key,
+			'skipped_sig' => $skipped_signature,
+			'php'         => phpversion(),
+			'sodium'      => defined( 'SODIUM_LIBRARY_VERSION' ) ? SODIUM_LIBRARY_VERSION : ( defined( 'ParagonIE_Sodium_Compat::VERSION_STRING' ) ? ParagonIE_Sodium_Compat::VERSION_STRING : false ),
+		)
+	);
+}
+
+/**
+ * Retrieve the list of signing keys trusted by WordPress.
+ *
+ * @since 5.2.0
+ *
+ * @return array List of base64-encoded Signing keys.
+ */
+function wp_trusted_keys() {
+	$trusted_keys = array();
+
+	if ( time() < 1617235200 ) {
+		// WordPress.org Key #1 - This key is only valid before April 1st, 2021.
+		$trusted_keys[] = 'fRPyrxb/MvVLbdsYi+OOEv4xc+Eqpsj+kkAS6gNOkI0=';
+	}
+
+	// TODO: Add key #2 with longer expiration.
+
+	/**
+	 * Filter the valid Signing keys used to verify the contents of files.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @param array $trusted_keys The trusted keys that may sign packages.
+	 */
+	return apply_filters( 'wp_trusted_keys', $trusted_keys );
+}
+
+/**
  * Unzips a specified ZIP file to a location on the filesystem via the WordPress
  * Filesystem Abstraction.
  *
@@ -1097,8 +1274,8 @@ function unzip_file( $file, $to ) {
 	$needed_dirs = array();
 	$to          = trailingslashit( $to );
 
-	// Determine any parent dir's needed (of the upgrade directory)
-	if ( ! $wp_filesystem->is_dir( $to ) ) { //Only do parents if no children exist
+	// Determine any parent directories needed (of the upgrade directory).
+	if ( ! $wp_filesystem->is_dir( $to ) ) { // Only do parents if no children exist.
 		$path = preg_split( '![/\\\]!', untrailingslashit( $to ) );
 		for ( $i = count( $path ); $i >= 0; $i-- ) {
 			if ( empty( $path[ $i ] ) ) {
@@ -1113,7 +1290,7 @@ function unzip_file( $file, $to ) {
 			if ( ! $wp_filesystem->is_dir( $dir ) ) {
 				$needed_dirs[] = $dir;
 			} else {
-				break; // A folder exists, therefor, we dont need the check the levels below this
+				break; // A folder exists, therefore we don't need to check the levels below this.
 			}
 		}
 	}
@@ -2187,6 +2364,15 @@ function wp_privacy_send_personal_data_export_email( $request_id ) {
 		return new WP_Error( 'invalid_request', __( 'Invalid request ID when sending personal data export email.' ) );
 	}
 
+	// Localize message content for user; fallback to site default for visitors.
+	if ( ! empty( $request->user_id ) ) {
+		$locale = get_user_locale( $request->user_id );
+	} else {
+		$locale = get_locale();
+	}
+
+	$switched_locale = switch_to_locale( $locale );
+
 	/** This filter is documented in wp-includes/functions.php */
 	$expiration      = apply_filters( 'wp_privacy_export_expiration', 3 * DAY_IN_SECONDS );
 	$expiration_date = date_i18n( get_option( 'date_format' ), time() + $expiration );
@@ -2242,6 +2428,10 @@ All at ###SITENAME###
 		),
 		$content
 	);
+
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
 
 	if ( ! $mail_success ) {
 		return new WP_Error( 'privacy_email_error', __( 'Unable to send personal data export email.' ) );
