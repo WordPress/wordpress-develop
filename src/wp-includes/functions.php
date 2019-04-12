@@ -1832,9 +1832,9 @@ function wp_mkdir_p( $target ) {
 function path_is_absolute( $path ) {
 	/*
 	 * Check to see if the path is a stream and check to see if its an actual
-	 * path or file as realpath() does not support streamwrappers.
+	 * path or file as realpath() does not support stream wrappers.
 	 */
-	if ( wp_is_stream( $path ) && ( is_dir( $path ) || is_file ( $path ) ) ) {
+	if ( wp_is_stream( $path ) && ( is_dir( $path ) || is_file( $path ) ) ) {
 		return true;
 	}
 
@@ -6277,7 +6277,7 @@ function wp_delete_file( $file ) {
  * @return bool True on success, false on failure.
  */
 function wp_delete_file_from_directory( $file, $directory ) {
-	if ( wp_is_stream($file) ) {
+	if ( wp_is_stream( $file ) ) {
 		$real_file = wp_normalize_path( $file );
 		$real_directory = wp_normalize_path( $directory );
 	} else {
