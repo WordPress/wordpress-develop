@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( file_exists( ABSPATH . 'wp-includes/js/dist/edit-post.js' ) ) {
-	require_once ABSPATH . '/_index.php';
+	require_once ABSPATH . '_index.php';
 	return;
 }
 
