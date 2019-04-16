@@ -671,19 +671,15 @@ function get_feed_build_date( $format ) {
 		$modified_times = array_merge( $modified_times, $comment_times );
 	}
 
-	if ( empty( $modified_times ) ) {
-		$max_modified_time = date( $format );
-	} else {
-		// Determine the maximum modified time.
-		$max_modified_time = max(
-			array_map(
-				function ( $time ) {
-							return mysql2date( $format, $time, false );
-				},
-				$modified_times
-			)
-		);
-	}
+	// Determine the maximum modified time.
+	$max_modified_time = max(
+		array_map(
+			function ( $time ) {
+						return mysql2date( $format, $time, false );
+			},
+			$modified_times
+		)
+	);
 
 	/**
 	 * Filters the date the last post or comment in the query was modified.
