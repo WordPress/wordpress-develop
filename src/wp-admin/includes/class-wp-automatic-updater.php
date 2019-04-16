@@ -205,6 +205,13 @@ class WP_Automatic_Updater {
 			}
 		}
 
+		// If updating a plugin, ensure the minimum PHP version requirements are satisfied.
+		if ( 'plugin' === $type ) {
+			if ( ! empty( $item->requires_php ) && version_compare( phpversion(), $item->requires_php, '<' ) ) {
+				return false;
+			}
+		}
+
 		return true;
 	}
 
@@ -641,18 +648,18 @@ class WP_Automatic_Updater {
 
 		switch ( $type ) {
 			case 'success': // We updated.
-				/* translators: 1: Site name, 2: WordPress version number. */
+				/* translators: Site updated notification email subject. 1: Site title, 2: WordPress version number. */
 				$subject = __( '[%1$s] Your site has updated to WordPress %2$s' );
 				break;
 
 			case 'fail':   // We tried to update but couldn't.
 			case 'manual': // We can't update (and made no attempt).
-				/* translators: 1: Site name, 2: WordPress version number. */
+				/* translators: Update available notification email subject. 1: Site title, 2: WordPress version number. */
 				$subject = __( '[%1$s] WordPress %2$s is available. Please update!' );
 				break;
 
 			case 'critical': // We tried to update, started to copy files, then things went wrong.
-				/* translators: 1: Site name. */
+				/* translators: Site down notification email subject. 1: Site title. */
 				$subject = __( '[%1$s] URGENT: Your site may be down due to a failed update' );
 				break;
 
@@ -904,11 +911,11 @@ Thanks! -- The WordPress Team"
 			);
 			$body[] = '';
 
-			/* translators: %s: site title */
-			$subject = sprintf( __( '[%s] There were failures during background updates' ), $site_title );
+			/* translators: Background update failed notification email subject. %s: Site title */
+			$subject = sprintf( __( '[%s] Background Update Failed' ), $site_title );
 		} else {
-			/* translators: %s: site title */
-			$subject = sprintf( __( '[%s] Background updates have finished' ), $site_title );
+			/* translators: Background update finished notification email subject. %s: Site title */
+			$subject = sprintf( __( '[%s] Background Update Finished' ), $site_title );
 		}
 
 		$body[] = trim(

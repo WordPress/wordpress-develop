@@ -587,13 +587,15 @@ final class _WP_Editors {
 
 				if ( ! wp_is_mobile() ) {
 					if ( $set['_content_editor_dfw'] ) {
+						$mce_buttons[] = 'wp_adv';
 						$mce_buttons[] = 'dfw';
 					} else {
 						$mce_buttons[] = 'fullscreen';
+						$mce_buttons[] = 'wp_adv';
 					}
+				} else {
+					$mce_buttons[] = 'wp_adv';
 				}
-
-				$mce_buttons[] = 'wp_adv';
 
 				/**
 				 * Filters the first-row list of TinyMCE buttons (Visual tab).
@@ -1151,7 +1153,6 @@ final class _WP_Editors {
 				// Link plugin
 				'Link'                                 => __( 'Link' ),
 				'Insert link'                          => __( 'Insert link' ),
-				'Insert/edit link'                     => __( 'Insert/edit link' ),
 				'Target'                               => __( 'Target' ),
 				'New window'                           => __( 'New window' ),
 				'Text to display'                      => __( 'Text to display' ),

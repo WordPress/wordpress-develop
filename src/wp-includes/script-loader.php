@@ -225,39 +225,39 @@ function wp_default_packages_scripts( &$scripts ) {
 
 	$packages_versions = array(
 		'a11y'                               => '2.2.0',
-		'annotations'                        => '1.2.0',
-		'api-fetch'                          => '3.1.0',
+		'annotations'                        => '1.2.2',
+		'api-fetch'                          => '3.1.2',
 		'autop'                              => '2.0.0',
 		'blob'                               => '2.3.0',
-		'block-editor'                       => '1.1.0',
-		'block-library'                      => '2.4.0',
+		'block-editor'                       => '1.1.2',
+		'block-library'                      => '2.4.2',
 		'block-serialization-default-parser' => '3.1.0',
-		'blocks'                             => '6.2.0',
-		'components'                         => '7.2.0',
+		'blocks'                             => '6.2.2',
+		'components'                         => '7.2.2',
 		'compose'                            => '3.2.0',
-		'core-data'                          => '2.2.0',
+		'core-data'                          => '2.2.2',
 		'data'                               => '4.4.0',
 		'date'                               => '3.2.0',
 		'deprecated'                         => '2.2.0',
-		'dom'                                => '2.2.0',
+		'dom'                                => '2.2.2',
 		'dom-ready'                          => '2.2.0',
-		'edit-post'                          => '3.3.0',
-		'editor'                             => '9.2.0',
+		'edit-post'                          => '3.3.2',
+		'editor'                             => '9.2.2',
 		'element'                            => '2.3.0',
 		'escape-html'                        => '1.2.0',
-		'format-library'                     => '1.4.0',
+		'format-library'                     => '1.4.2',
 		'hooks'                              => '2.2.0',
 		'html-entities'                      => '2.2.0',
 		'i18n'                               => '3.3.0',
 		'is-shallow-equal'                   => '1.2.0',
 		'keycodes'                           => '2.2.0',
-		'list-reusable-blocks'               => '1.3.0',
+		'list-reusable-blocks'               => '1.3.2',
 		'notices'                            => '1.3.0',
-		'nux'                                => '3.2.0',
+		'nux'                                => '3.2.2',
 		'plugins'                            => '2.2.0',
 		'priority-queue'                     => '1.1.0',
 		'redux-routine'                      => '3.2.0',
-		'rich-text'                          => '3.2.0',
+		'rich-text'                          => '3.2.2',
 		'shortcode'                          => '2.2.0',
 		'token-list'                         => '1.2.0',
 		'url'                                => '2.5.0',
@@ -923,6 +923,8 @@ function wp_default_scripts( &$scripts ) {
 	$scripts->add( 'colorpicker', "/wp-includes/js/colorpicker$suffix.js", array( 'prototype' ), '3517m' );
 
 	$scripts->add( 'editor', "/wp-admin/js/editor$suffix.js", array( 'utils', 'jquery' ), false, 1 );
+
+	$scripts->add( 'clipboard', "/wp-includes/js/clipboard$suffix.js", array(), false, 1 );
 
 	// Back-compat for old DFW. To-do: remove at the end of 2016.
 	$scripts->add( 'wp-fullscreen-stub', "/wp-admin/js/wp-fullscreen-stub$suffix.js", array(), false, 1 );
@@ -1688,7 +1690,7 @@ function wp_default_scripts( &$scripts ) {
 			)
 		);
 
-		$scripts->add( 'site-health', "/wp-admin/js/site-health$suffix.js", array( 'jquery', 'wp-util', 'wp-a11y' ), false, 1 );
+		$scripts->add( 'site-health', "/wp-admin/js/site-health$suffix.js", array( 'clipboard', 'jquery', 'wp-util', 'wp-a11y', 'wp-i18n' ), false, 1 );
 
 		$scripts->add( 'updates', "/wp-admin/js/updates$suffix.js", array( 'jquery', 'wp-util', 'wp-a11y' ), false, 1 );
 		did_action( 'init' ) && $scripts->localize(
@@ -2063,6 +2065,7 @@ function wp_default_styles( &$styles ) {
 		'customize-preview',
 		'ie',
 		'login',
+		'site-health',
 		// Includes CSS
 		'buttons',
 		'admin-bar',

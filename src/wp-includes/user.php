@@ -1970,8 +1970,8 @@ All at ###SITENAME###
 
 			$pass_change_email = array(
 				'to'      => $user['user_email'],
-				/* translators: User password change notification email subject. %s: Site name */
-				'subject' => __( '[%s] Notice of Password Change' ),
+				/* translators: Password change notification email subject. %s: Site name */
+				'subject' => __( '[%s] Password Changed' ),
 				'message' => $pass_change_text,
 				'headers' => '',
 			);
@@ -2027,8 +2027,8 @@ All at ###SITENAME###
 
 			$email_change_email = array(
 				'to'      => $user['user_email'],
-				/* translators: User email change notification email subject. %s: Site name */
-				'subject' => __( '[%s] Notice of Email Change' ),
+				/* translators: Email change notification email subject. %s: Site name */
+				'subject' => __( '[%s] Email Changed' ),
 				'message' => $email_change_text,
 				'headers' => '',
 			);
@@ -2809,7 +2809,8 @@ All at ###SITENAME###
 		$content = str_replace( '###SITENAME###', $sitename, $content );
 		$content = str_replace( '###SITEURL###', home_url(), $content );
 
-		wp_mail( $_POST['email'], sprintf( __( '[%s] New Email Address' ), $sitename ), $content );
+		/* translators: New email address notification email subject. %s: Site name */
+		wp_mail( $_POST['email'], sprintf( __( '[%s] Email Change Request' ), $sitename ), $content );
 
 		$_POST['email'] = $current_user->user_email;
 	}
@@ -3084,7 +3085,7 @@ All at ###SITENAME###
 	$content = str_replace( '###SITEURL###', esc_url_raw( $email_data['siteurl'] ), $content );
 
 	$subject = sprintf(
-		/* translators: 1: Site name. 2: Name of the confirmed action. */
+		/* translators: Privacy data request confirmed notification email subject. 1: Site title, 2: Name of the confirmed action. */
 		__( '[%1$s] Action Confirmed: %2$s' ),
 		$email_data['sitename'],
 		$action_description
@@ -3168,7 +3169,7 @@ function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 	);
 
 	$subject = sprintf(
-		/* translators: %s: Site name. */
+		/* translators: Erasure request fulfilled notification email subject. %s: Site name. */
 		__( '[%s] Erasure Request Fulfilled' ),
 		$email_data['sitename']
 	);
@@ -3496,7 +3497,7 @@ All at ###SITENAME###
 	$content = str_replace( '###SITENAME###', $email_data['sitename'], $content );
 	$content = str_replace( '###SITEURL###', esc_url_raw( $email_data['siteurl'] ), $content );
 
-	/* translators: Privacy data request subject. 1: Site name, 2: Name of the action */
+	/* translators: Confirm privacy data request notification email subject. 1: Site title, 2: Name of the action */
 	$subject = sprintf( __( '[%1$s] Confirm Action: %2$s' ), $email_data['sitename'], $email_data['description'] );
 
 	/**

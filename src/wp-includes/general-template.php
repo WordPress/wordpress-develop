@@ -154,6 +154,17 @@ function get_template_part( $slug, $name = null ) {
 
 	$templates[] = "{$slug}.php";
 
+	/**
+	 * Fires before a template part is loaded.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @param string   $slug      The slug name for the generic template.
+	 * @param string   $name      The name of the specialized template.
+	 * @param string[] $templates Array of template files to search for, in order.
+	 */
+	do_action( 'get_template_part', $slug, $name, $templates );
+
 	locate_template( $templates, true, false );
 }
 
@@ -2752,6 +2763,22 @@ function wp_footer() {
 }
 
 /**
+ * Fire the wp_body_open action.
+ *
+ * * See {@see 'wp_body_open'}.
+ *
+ * @since 5.2.0
+ */
+function wp_body_open() {
+	/**
+	 * Triggered after the opening <body> tag.
+	 *
+	 * @since 5.2.0
+	 */
+	do_action( 'wp_body_open' );
+}
+
+/**
  * Display the links to the general feeds.
  *
  * @since 2.8.0
@@ -3029,7 +3056,7 @@ function wp_resource_hints() {
 	 * The path is removed in the foreach loop below.
 	 */
 	/** This filter is documented in wp-includes/formatting.php */
-	$hints['dns-prefetch'][] = apply_filters( 'emoji_svg_url', 'https://s.w.org/images/core/emoji/11.2.0/svg/' );
+	$hints['dns-prefetch'][] = apply_filters( 'emoji_svg_url', 'https://s.w.org/images/core/emoji/12.0.0-1/svg/' );
 
 	foreach ( $hints as $relation_type => $urls ) {
 		$unique_urls = array();

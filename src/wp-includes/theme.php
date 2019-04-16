@@ -744,6 +744,12 @@ function switch_theme( $stylesheet ) {
 	$new_theme = wp_get_theme( $stylesheet );
 	$template  = $new_theme->get_template();
 
+	if ( wp_is_recovery_mode() ) {
+		$paused_themes = wp_paused_themes();
+		$paused_themes->delete( $old_theme->get_stylesheet() );
+		$paused_themes->delete( $old_theme->get_template() );
+	}
+
 	update_option( 'template', $template );
 	update_option( 'stylesheet', $stylesheet );
 
@@ -2634,7 +2640,7 @@ function _custom_logo_header_styles() {
  *
  * @global array $_wp_theme_features
  *
- * @param string $feature the feature to check
+ * @param string $feature The feature to check.
  * @return mixed The array of extra arguments or the value for the registered feature.
  */
 function get_theme_support( $feature ) {
@@ -2670,7 +2676,7 @@ function get_theme_support( $feature ) {
  *
  * @since 3.0.0
  * @see add_theme_support()
- * @param string $feature the feature being added
+ * @param string $feature The feature being removed.
  * @return bool|void Whether feature was removed.
  */
 function remove_theme_support( $feature ) {
@@ -2730,7 +2736,9 @@ function _remove_theme_support( $feature ) {
 				break;
 			}
 			$support = get_theme_support( 'custom-background' );
-			remove_action( 'wp_head', $support[0]['wp-head-callback'] );
+			if ( isset( $support[0]['wp-head-callback'] ) ) {
+				remove_action( 'wp_head', $support[0]['wp-head-callback'] );
+			}
 			remove_action( 'admin_menu', array( $GLOBALS['custom_background'], 'init' ) );
 			unset( $GLOBALS['custom_background'] );
 			break;
@@ -2741,14 +2749,14 @@ function _remove_theme_support( $feature ) {
 }
 
 /**
- * Checks a theme's support for a given feature
+ * Checks a theme's support for a given feature.
  *
  * @since 2.9.0
  *
  * @global array $_wp_theme_features
  *
- * @param string $feature the feature being checked
- * @return bool
+ * @param string $feature The feature being checked.
+ * @return bool True if the current theme supports the feature, false otherwise.
  */
 function current_theme_supports( $feature ) {
 	global $_wp_theme_features;

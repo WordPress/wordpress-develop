@@ -1139,8 +1139,8 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 		return new WP_Error(
 			'signature_verification_unsupported',
 			sprintf(
-				/* translators: 1: The filename of the package. */
-				__( 'The authenticity of %1$s could not be verified as signature verification is unavailable on this system.' ),
+				/* translators: %s: The filename of the package. */
+				__( 'The authenticity of %s could not be verified as signature verification is unavailable on this system.' ),
 				'<span class="code">' . esc_html( $filename_for_errors ) . '</span>'
 			),
 			( ! function_exists( 'sodium_crypto_sign_verify_detached' ) ? 'sodium_crypto_sign_verify_detached' : 'sha384' )
@@ -1151,9 +1151,12 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 		return new WP_Error(
 			'signature_verification_no_signature',
 			sprintf(
-				/* translators: 1: The filename of the package. */
-				__( 'The authenticity of %1$s could not be verified as no signature was found.' ),
+				/* translators: %s: The filename of the package. */
+				__( 'The authenticity of %s could not be verified as no signature was found.' ),
 				'<span class="code">' . esc_html( $filename_for_errors ) . '</span>'
+			),
+			array(
+				'filename' => $filename_for_errors,
 			)
 		);
 	}
@@ -1163,11 +1166,14 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 
 	mbstring_binary_safe_encoding();
 
+	$skipped_key = $skipped_signature = 0;
+
 	foreach ( (array) $signatures as $signature ) {
 		$signature_raw = base64_decode( $signature );
 
 		// Ensure only valid-length signatures are considered.
 		if ( SODIUM_CRYPTO_SIGN_BYTES !== strlen( $signature_raw ) ) {
+			$skipped_signature++;
 			continue;
 		}
 
@@ -1176,6 +1182,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 
 			// Only pass valid public keys through.
 			if ( SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES !== strlen( $key_raw ) ) {
+				$skipped_key++;
 				continue;
 			}
 
@@ -1191,16 +1198,20 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 	return new WP_Error(
 		'signature_verification_failed',
 		sprintf(
-			/* translators: 1: The filename of the package. */
-			__( 'The authenticity of %1$s could not be verified.' ),
+			/* translators: %s: The filename of the package. */
+			__( 'The authenticity of %s could not be verified.' ),
 			'<span class="code">' . esc_html( $filename_for_errors ) . '</span>'
 		),
 		// Error data helpful for debugging:
 		array(
-			'filename'   => $filename_for_errors,
-			'keys'       => $trusted_keys,
-			'signatures' => $signatures,
-			'hash'       => bin2hex( $file_hash ),
+			'filename'    => $filename_for_errors,
+			'keys'        => $trusted_keys,
+			'signatures'  => $signatures,
+			'hash'        => bin2hex( $file_hash ),
+			'skipped_key' => $skipped_key,
+			'skipped_sig' => $skipped_signature,
+			'php'         => phpversion(),
+			'sodium'      => defined( 'SODIUM_LIBRARY_VERSION' ) ? SODIUM_LIBRARY_VERSION : ( defined( 'ParagonIE_Sodium_Compat::VERSION_STRING' ) ? ParagonIE_Sodium_Compat::VERSION_STRING : false ),
 		)
 	);
 }
@@ -1210,7 +1221,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
  *
  * @since 5.2.0
  *
- * @return array List of hex-encoded Signing keys.
+ * @return array List of base64-encoded Signing keys.
  */
 function wp_trusted_keys() {
 	$trusted_keys = array();
@@ -1263,8 +1274,8 @@ function unzip_file( $file, $to ) {
 	$needed_dirs = array();
 	$to          = trailingslashit( $to );
 
-	// Determine any parent dir's needed (of the upgrade directory)
-	if ( ! $wp_filesystem->is_dir( $to ) ) { //Only do parents if no children exist
+	// Determine any parent directories needed (of the upgrade directory).
+	if ( ! $wp_filesystem->is_dir( $to ) ) { // Only do parents if no children exist.
 		$path = preg_split( '![/\\\]!', untrailingslashit( $to ) );
 		for ( $i = count( $path ); $i >= 0; $i-- ) {
 			if ( empty( $path[ $i ] ) ) {
@@ -1279,7 +1290,7 @@ function unzip_file( $file, $to ) {
 			if ( ! $wp_filesystem->is_dir( $dir ) ) {
 				$needed_dirs[] = $dir;
 			} else {
-				break; // A folder exists, therefor, we dont need the check the levels below this
+				break; // A folder exists, therefore we don't need to check the levels below this.
 			}
 		}
 	}
@@ -2353,6 +2364,15 @@ function wp_privacy_send_personal_data_export_email( $request_id ) {
 		return new WP_Error( 'invalid_request', __( 'Invalid request ID when sending personal data export email.' ) );
 	}
 
+	// Localize message content for user; fallback to site default for visitors.
+	if ( ! empty( $request->user_id ) ) {
+		$locale = get_user_locale( $request->user_id );
+	} else {
+		$locale = get_locale();
+	}
+
+	$switched_locale = switch_to_locale( $locale );
+
 	/** This filter is documented in wp-includes/functions.php */
 	$expiration      = apply_filters( 'wp_privacy_export_expiration', 3 * DAY_IN_SECONDS );
 	$expiration_date = date_i18n( get_option( 'date_format' ), time() + $expiration );
@@ -2403,11 +2423,16 @@ All at ###SITENAME###
 	$mail_success = wp_mail(
 		$email_address,
 		sprintf(
+			/* translators: Personal data export notification email subject. %s: Site title */
 			__( '[%s] Personal Data Export' ),
 			$site_name
 		),
 		$content
 	);
+
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
 
 	if ( ! $mail_success ) {
 		return new WP_Error( 'privacy_email_error', __( 'Unable to send personal data export email.' ) );
@@ -2526,6 +2551,9 @@ function wp_privacy_process_personal_data_export_page( $response, $exporter_inde
 		if ( is_wp_error( $mail_success ) ) {
 			wp_send_json_error( $mail_success->get_error_message() );
 		}
+
+		// Update the request to completed state when the export email is sent.
+		_wp_privacy_completed_request( $request_id );
 	} else {
 		// Modify the response to include the URL of the export file so the browser can fetch it.
 		$export_file_url = get_post_meta( $request_id, '_export_file_url', true );
@@ -2533,9 +2561,6 @@ function wp_privacy_process_personal_data_export_page( $response, $exporter_inde
 			$response['url'] = $export_file_url;
 		}
 	}
-
-	// Update the request to completed state.
-	_wp_privacy_completed_request( $request_id );
 
 	return $response;
 }
