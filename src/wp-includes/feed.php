@@ -651,7 +651,7 @@ function self_link() {
  *
  * @return string The timestamp.
  */
-function get_last_build_date( $format ) {
+function get_feed_build_date( $format ) {
 	global $wp_query;
 
 	if ( empty( $wp_query ) || ! $wp_query->have_posts() ) {
@@ -692,9 +692,9 @@ function get_last_build_date( $format ) {
 	 * @since 5.2.0
 	 *
 	 * @param string $max_modified_time Date the last post or comment was modified in the query.
-	 * @param string $format            The date format requested in get_last_build_date.
+	 * @param string $format            The date format requested in get_feed_build_date.
 	 */
-	return apply_filters( 'get_last_build_date', $max_modified_time, $format );
+	return apply_filters( 'get_feed_build_date', $max_modified_time, $format );
 }
 
 /**
