@@ -673,7 +673,7 @@ function get_feed_build_date( $format ) {
 
 	// Determine the maximum modified time.
 	$modified_timestamps = array();
-	foreach( $max_modified_time as $time ) {
+	foreach( $modified_times as $time ) {
 		$modified_timestamps[] = mysql2date( $format, $time, false );
 	}
 	$max_modified_time = max( $modified_timestamps );
