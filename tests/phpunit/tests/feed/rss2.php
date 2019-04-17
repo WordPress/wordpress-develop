@@ -482,7 +482,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		// Get the <rss> child element of <xml>.
 		$rss             = xml_find( $xml, $element );
 		$last_build_date = $rss[0]['child'][0]['child'][4]['content'];
-		$this->assertEquals( strtotime( get_feed_build_date() ), strtotime( $last_build_date ) );
+		$this->assertEquals( strtotime( get_feed_build_date( 'r' ) ), strtotime( $last_build_date ) );
 	}
 
 
