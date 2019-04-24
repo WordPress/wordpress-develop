@@ -175,4 +175,183 @@ EOF;
 
 		kses_remove_filters();
 	}
+
+	/**
+	 * Ensure the_content handles a More block on a singular page.
+	 *
+	 * @ticket 46471
+	 *
+	 * @group blocks
+	 */
+	public function test_the_content_should_handle_more_block_on_singular() {
+		$post_content = <<<EOF
+<!-- wp:paragraph -->
+<p>Teaser part.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:more {"customText":"Read More"} -->
+<!--more Read More-->
+<!-- /wp:more -->
+
+<!-- wp:paragraph -->
+<p>Second block.</p>
+<!-- /wp:paragraph -->
+EOF;
+
+		$post_id = self::factory()->post->create( compact( 'post_content' ) );
+
+		$expected_without_teaser = <<<EOF
+<span id="more-{$post_id}"></span>
+<p>Second block.</p>
+EOF;
+
+		$expected_with_teaser = <<<EOF
+<p>Teaser part.</p>
+<span id="more-{$post_id}"></span>
+<p>Second block.</p>
+EOF;
+
+		$this->go_to( get_permalink( $post_id ) );
+		$this->assertTrue( is_singular() );
+		$this->assertTrue( have_posts() );
+		$this->assertNull( the_post() );
+
+		// Without the teaser.
+		$actual = get_echo( 'the_content', array( null, true ) );
+		$this->assertSame( strip_ws( $expected_without_teaser ), strip_ws( $actual ) );
+
+		// With the teaser.
+		$actual = get_echo( 'the_content', array( null, false ) );
+		$this->assertSame( strip_ws( $expected_with_teaser ), strip_ws( $actual ) );
+	}
+
+	/**
+	 * Ensure the_content handles a More block when using the noteaser text tag on a singular page.
+	 *
+	 * @ticket 46471
+	 *
+	 * @group blocks
+	 */
+	public function test_the_content_should_handle_more_block_when_noteaser_on_singular() {
+		$post_content = <<<EOF
+<!-- wp:paragraph -->
+<p>Teaser part.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:more -->
+<!--more-->
+<!--noteaser-->
+<!-- /wp:more -->
+
+<!-- wp:paragraph -->
+<p>Second block.</p>
+<!-- /wp:paragraph -->
+EOF;
+
+		$post_id = self::factory()->post->create( compact( 'post_content' ) );
+
+		$expected = <<<EOF
+<span id="more-{$post_id}"></span>
+<!--noteaser-->
+<p>Second block.</p>
+EOF;
+
+		$this->go_to( get_permalink( $post_id ) );
+		$this->assertTrue( is_singular() );
+		$this->assertTrue( have_posts() );
+		$this->assertNull( the_post() );
+
+		$actual = get_echo( 'the_content', array( null, true ) );
+		$this->assertSame( strip_ws( $expected ), strip_ws( $actual ) );
+
+		$actual = get_echo( 'the_content', array( null, false ) );
+		$this->assertSame( strip_ws( $expected ), strip_ws( $actual ) );
+	}
+
+	/**
+	 * Ensure the_content displays the teaser part with a read more link
+	 * for a More block on a non-singular page.
+	 *
+	 * @ticket 46471
+	 *
+	 * @group blocks
+	 */
+	public function test_the_content_should_handle_more_block_when_non_singular() {
+		$post_content = <<<EOF
+<!-- wp:paragraph -->
+<p>Teaser part.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:more {"customText":"Read More"} -->
+<!--more Read More-->
+<!-- /wp:more -->
+
+<!-- wp:paragraph -->
+<p>Second block.</p>
+<!-- /wp:paragraph -->
+EOF;
+
+		$post_id = self::factory()->post->create( compact( 'post_content' ) );
+
+		$expected = <<<EOF
+<span id="more-{$post_id}"></span>
+<p>Second block.</p>
+EOF;
+
+		$this->go_to( home_url() );
+		$this->assertFalse( is_singular() );
+		$this->assertTrue( have_posts() );
+		$this->assertNull( the_post() );
+
+		foreach ( array( true, false ) as $strip_teaser ) {
+			$actual = get_echo( 'the_content', array( null, $strip_teaser ) );
+			$this->assertContains( 'Teaser part', $actual );
+			$this->assertContains( 'Read More</a>', $actual );
+			$this->assertNotContains( '<!--more-->', $actual );
+			$this->assertNotContains( 'wp:more', $actual );
+			$this->assertNotContains( 'wp:paragraph', $actual );
+		}
+	}
+
+	/**
+	 * Ensure the_content displays the teaser part with a read more link for a More block
+	 * when using the noteaser text tag on a non-singular page.
+	 *
+	 * @ticket 46471
+	 *
+	 * @group blocks
+	 */
+	public function test_the_content_should_handle_more_block_when_noteaser_on_non_singular() {
+		$post_content = <<<EOF
+<!-- wp:paragraph -->
+<p>Teaser part.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:more -->
+<!--more-->
+<!--noteaser-->
+<!-- /wp:more -->
+
+<!-- wp:paragraph -->
+<p>Second block.</p>
+<!-- /wp:paragraph -->
+EOF;
+
+		$post_id = self::factory()->post->create( compact( 'post_content' ) );
+
+		$this->go_to( home_url() );
+		$this->assertFalse( is_singular() );
+		$this->assertTrue( have_posts() );
+		$this->assertNull( the_post() );
+
+		foreach ( array( true, false ) as $strip_teaser ) {
+			$actual = get_echo( 'the_content', array( null, $strip_teaser ) );
+			$this->assertContains( 'Teaser part', $actual );
+			$this->assertContains( '(more&hellip;)</span></a>', $actual );
+			$this->assertNotContains( '<!--more-->', $actual );
+			$this->assertNotContains( '<!--noteaser-->', $actual ); // We placed the noteaser tag below the more tag.
+			$this->assertNotContains( 'wp:more', $actual );
+			$this->assertNotContains( 'wp:paragraph', $actual );
+		}
+	}
 }
