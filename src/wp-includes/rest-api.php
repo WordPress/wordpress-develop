@@ -210,7 +210,7 @@ function create_initial_rest_routes() {
 		}
 
 		if ( 'attachment' !== $post_type->name ) {
-			$autosaves_controller = new WP_REST_Autosaves_Controller( $post_type->name );
+			$autosaves_controller = new WP_REST_Autosaves_Controller( $post_type->name, $controller );
 			$autosaves_controller->register_routes();
 		}
 	}
