@@ -1128,7 +1128,7 @@ class wpdb {
 				$message .= '<p>' . sprintf(
 					/* translators: %s: support forums URL */
 					__( 'If you don&#8217;t know how to set up a database you should <strong>contact your host</strong>. If all else fails you may find help at the <a href="%s">WordPress Support Forums</a>.' ),
-					__( 'https://wordpress.org/support/' )
+					__( 'https://wordpress.org/support/forums/' )
 				) . "</p>\n";
 
 				$this->bail( $message, 'db_select_fail' );
@@ -1335,7 +1335,7 @@ class wpdb {
 		 * If a %s placeholder already has quotes around it, removing the existing quotes and re-inserting them
 		 * ensures the quotes are consistent.
 		 *
-		 * For backwards compatibility, this is only applied to %s, and not to placeholders like %1$s, which are frequently
+		 * For backward compatibility, this is only applied to %s, and not to placeholders like %1$s, which are frequently
 		 * used in the middle of longer strings, or as table name placeholders.
 		 */
 		$query = str_replace( "'%s'", '%s', $query ); // Strip any existing single quotes.
@@ -1673,7 +1673,7 @@ class wpdb {
 			$message .= '<p>' . sprintf(
 				/* translators: %s: support forums URL */
 				__( 'If you&#8217;re unsure what these terms mean you should probably contact your host. If you still need help you can always visit the <a href="%s">WordPress Support Forums</a>.' ),
-				__( 'https://wordpress.org/support/' )
+				__( 'https://wordpress.org/support/forums/' )
 			) . "</p>\n";
 
 			$this->bail( $message, 'db_connect_fail' );
@@ -1831,7 +1831,7 @@ class wpdb {
 		$message .= '<p>' . sprintf(
 			/* translators: %s: support forums URL */
 			__( 'If you&#8217;re unsure what these terms mean you should probably contact your host. If you still need help you can always visit the <a href="%s">WordPress Support Forums</a>.' ),
-			__( 'https://wordpress.org/support/' )
+			__( 'https://wordpress.org/support/forums/' )
 		) . "</p>\n";
 
 		// We weren't able to reconnect, so we better bail.

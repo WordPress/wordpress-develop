@@ -57,7 +57,7 @@ class WP_Site_Health_Auto_Updates {
 	}
 
 	/**
-	 * Test if auto-updated related constants are set correctly.
+	 * Test if auto-updates related constants are set correctly.
 	 *
 	 * @since 5.2.0
 	 *
@@ -66,7 +66,7 @@ class WP_Site_Health_Auto_Updates {
 	 * @return array The test results.
 	 */
 	public function test_constants( $constant, $value ) {
-		if ( defined( $constant ) && constant( $constant ) != $allowed_constants[ $constant ] ) {
+		if ( defined( $constant ) && constant( $constant ) != $value ) {
 			return array(
 				'description' => sprintf(
 					/* translators: %s: Name of the constant used. */
@@ -105,6 +105,17 @@ class WP_Site_Health_Auto_Updates {
 		);
 
 		$test = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout' ) );
+
+		if ( is_wp_error( $test ) ) {
+			return array(
+				'description' => sprintf(
+					/* translators: %s: Name of the filter used. */
+					__( 'Could not confirm that the %s filter is available.' ),
+					'<code>wp_version_check()</code>'
+				),
+				'severity'    => 'warning',
+			);
+		}
 
 		$response = wp_remote_retrieve_body( $test );
 
@@ -339,10 +350,10 @@ class WP_Site_Health_Auto_Updates {
 			if ( 'wp-content' == substr( $file, 0, 10 ) ) {
 				continue;
 			}
-			if ( ! file_exists( ABSPATH . '/' . $file ) ) {
+			if ( ! file_exists( ABSPATH . $file ) ) {
 				continue;
 			}
-			if ( ! is_writable( ABSPATH . '/' . $file ) ) {
+			if ( ! is_writable( ABSPATH . $file ) ) {
 				$unwritable_files[] = $file;
 			}
 		}

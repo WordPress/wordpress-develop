@@ -615,7 +615,7 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 */
 	public function data_export_page_status_transitions() {
 		return array(
-			// Mark the request as completed for the last exporter on the last page, with and without email.
+			// Mark the request as completed for the last exporter on the last page, with email.
 			array(
 				'request-completed',
 				'last',
@@ -624,8 +624,11 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 				true,
 				'last',
 			),
+			// Leave the request as pending for the last exporter on the last page, without email.
+			// This check was updated to account for admin vs user export.
+			// Don't mark the request as completed when it's an admin download.
 			array(
-				'request-completed',
+				'request-pending',
 				'last',
 				'last',
 				'last',
