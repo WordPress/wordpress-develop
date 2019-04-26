@@ -199,4 +199,29 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$this->assertSame( 'test', $cookie->name );
 		$this->assertSame( 'foo', $cookie->value );
 	}
+
+	/**
+	 * @ticket 43231
+	 */
+	function test_get_cookie_host_only() {
+		// emulate WP_Http::request() internals
+		$requests_response = new Requests_Response();
+
+		$requests_response->cookies['test'] = Requests_Cookie::parse( 'test=foo; domain=.wordpress.org' );
+
+		$requests_response->cookies['test']->flags['host-only'] = false; // https://github.com/rmccue/Requests/issues/306
+
+		$http_response = new WP_HTTP_Requests_Response( $requests_response );
+
+		$response = $http_response->to_array();
+
+		// check the host_only flag in the resulting WP_Http_Cookie
+		$cookie = wp_remote_retrieve_cookie( $response, 'test' );
+		$this->assertEquals( $cookie->domain, 'wordpress.org' );
+		$this->assertFalse( $cookie->host_only, 'host-only flag not set' );
+
+		// regurgitate (Requests_Cookie -> WP_Http_Cookie -> Requests_Cookie)
+		$cookies = WP_Http::normalize_cookies( wp_remote_retrieve_cookies( $response ) );
+		$this->assertFalse( $cookies['test']->flags['host-only'], 'host-only flag data lost' );
+	}
 }

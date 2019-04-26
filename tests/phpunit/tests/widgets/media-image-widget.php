@@ -541,6 +541,7 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 
 		$this->assertContains( '<a href="https://example.org"', $output );
 		$this->assertContains( 'target="_blank"', $output );
+		$this->assertContains( 'rel="noopener noreferrer"', $output );
 
 		// Populate caption in attachment.
 		wp_update_post(

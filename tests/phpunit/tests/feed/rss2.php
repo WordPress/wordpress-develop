@@ -472,9 +472,9 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 	 *
 	 * @ticket 4575
 	 *
-	 * @dataProvider data_test_get_last_build_date
+	 * @dataProvider data_test_get_feed_build_date
 	 */
-	public function test_get_last_build_date( $url, $element ) {
+	public function test_get_feed_build_date( $url, $element ) {
 		$this->go_to( $url );
 		$feed = $this->do_rss2();
 		$xml  = xml_to_array( $feed );
@@ -482,11 +482,11 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		// Get the <rss> child element of <xml>.
 		$rss             = xml_find( $xml, $element );
 		$last_build_date = $rss[0]['child'][0]['child'][4]['content'];
-		$this->assertEquals( strtotime( get_last_build_date() ), strtotime( $last_build_date ) );
+		$this->assertEquals( strtotime( get_feed_build_date( 'r' ) ), strtotime( $last_build_date ) );
 	}
 
 
-	public function data_test_get_last_build_date() {
+	public function data_test_get_feed_build_date() {
 		return array(
 			array( '/?feed=rss2', 'rss' ),
 			array( '/?feed=commentsrss2', 'rss' ),

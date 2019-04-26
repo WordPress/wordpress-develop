@@ -53,7 +53,7 @@ SelectModeToggle = Button.extend(/** @lends wp.media.view.SelectModeToggle.proto
 		if ( this.controller.isModeActive( 'select' ) ) {
 			this.model.set( {
 				size: 'large',
-				text: l10n.cancelSelection
+				text: l10n.cancel
 			} );
 			children.not( '.spinner, .media-button' ).hide();
 			this.$el.show();
