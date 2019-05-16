@@ -501,6 +501,14 @@ module.exports = function(grunt) {
 					'wp-admin/css/*.css',
 					'wp-includes/css/*.css',
 
+					// Exclude minified and already processed files, and files from external packages.
+					// These are present when running `grunt build` after `grunt --dev`.
+					'!wp-admin/css/*-rtl.css',
+					'!wp-includes/css/*-rtl.css',
+					'!wp-admin/css/*.min.css',
+					'!wp-includes/css/*.min.css',
+					'!wp-includes/css/dist',
+
 					// Exceptions
 					'!wp-includes/css/dashicons.css',
 					'!wp-includes/css/wp-embed-template.css',
