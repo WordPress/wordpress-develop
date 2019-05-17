@@ -101,4 +101,30 @@ class Tests_Targeted_Link_Rel extends WP_UnitTestCase {
 
 		$this->assertEquals( $expected, $post->post_content );
 	}
+
+	/**
+	 * Ensure JSON format is preserved when relation attribute (rel) is missing.
+	 *
+	 * @ticket 46316
+	 */
+	public function test_wp_targeted_link_rel_should_preserve_json() {
+		$content  = '<p>Links: <a href=\"\/\" target=\"_blank\">No rel<\/a><\/p>';
+		$expected = '<p>Links: <a href=\"\/\" target=\"_blank\" rel=\"noopener noreferrer\">No rel<\/a><\/p>';
+		$this->assertEquals( $expected, wp_targeted_link_rel( $content ) );
+	}
+
+	/**
+	 * Ensure correct quotes are used when relation attribute (rel) is missing.
+	 *
+	 * @ticket 47244
+	 */
+	public function test_wp_targeted_link_rel_should_use_correct_quotes() {
+		$content  = '<p>Links: <a href=\'\/\' target=\'_blank\'>No rel<\/a><\/p>';
+		$expected = '<p>Links: <a href=\'\/\' target=\'_blank\' rel=\'noopener noreferrer\'>No rel<\/a><\/p>';
+		$this->assertEquals( $expected, wp_targeted_link_rel( $content ) );
+
+		$content  = '<p>Links: <a href=\'\/\' target=_blank>No rel<\/a><\/p>';
+		$expected = '<p>Links: <a href=\'\/\' target=_blank rel=\'noopener noreferrer\'>No rel<\/a><\/p>';
+		$this->assertEquals( $expected, wp_targeted_link_rel( $content ) );
+	}
 }
