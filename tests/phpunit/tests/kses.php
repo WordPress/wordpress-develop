@@ -830,6 +830,11 @@ EOF;
 				'css'      => 'background: green url("foo.jpg") no-repeat fixed center',
 				'expected' => 'background: green url("foo.jpg") no-repeat fixed center',
 			),
+			// `flex` and related attributes introduced in 5.3.
+			array(
+				'css'      => 'flex: 0 1 auto;flex-basis: 75%;flex-shrink: 0;flex-grow: 1',
+				'expected' => 'flex: 0 1 auto;flex-basis: 75%;flex-shrink: 0;flex-grow: 1',
+			),
 		);
 	}
 
