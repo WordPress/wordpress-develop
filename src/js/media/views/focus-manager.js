@@ -14,8 +14,11 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 		'keydown': 'constrainTabbing'
 	},
 
-	focus: function() { // Reset focus on first left menu item
-		this.$('.media-menu-item').first().focus();
+	/**
+	 * Moves focus to the first visible menu item in the modal.
+	 */
+	focus: function() {
+		this.$( '.media-menu-item' ).filter( ':visible' ).first().focus();
 	},
 	/**
 	 * @param {Object} event
