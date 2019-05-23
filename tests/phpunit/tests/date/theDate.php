@@ -138,14 +138,14 @@ class Tests_Date_TheDate extends WP_UnitTestCase {
 		);
 
 		ob_start();
-		$GLOBALS['currentday']  = '18.09.15';
-		$GLOBALS['previousday'] = '17.09.15';
+		$GLOBALS['currentday']      = '18.09.15';
+		$GLOBALS['previousweekday'] = '17.09.15';
 		the_weekday_date();
 		$this->assertEquals( 'Wednesday', ob_get_clean() );
 
 		ob_start();
-		$GLOBALS['currentday']  = '18.09.15';
-		$GLOBALS['previousday'] = '17.09.15';
+		$GLOBALS['currentday']      = '18.09.15';
+		$GLOBALS['previousweekday'] = '17.09.15';
 		the_weekday_date( 'before ', ' after' );
 		$this->assertEquals( 'before Wednesday after', ob_get_clean() );
 	}
