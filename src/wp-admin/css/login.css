@@ -185,6 +185,7 @@ p {
 .login h2.admin-email__heading {
 	font-weight: normal;
 	padding-bottom: 1%;
+	padding-top: 3%;
 }
 
 .admin-email__actions div {

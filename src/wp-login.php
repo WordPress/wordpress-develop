@@ -530,16 +530,7 @@ switch ( $action ) {
 			wp_safe_redirect( $redirect_to );
 		}
 
-		if ( ! empty( $_POST[ 'admin_email' ] ) ) {
-			$new_email = sanitize_email( $_POST[ 'admin_email' ] );
-			update_option( 'admin_email', $admin_email );
-
-			/** WordPress Misc Administration API */
-			require_once( ABSPATH . 'wp-admin/includes/misc.php' );
-			// we use the same method to send a confirmation email
-			// like the options screen in wp-admin does
-			update_option_new_admin_email( $admin_email, $new_email );
-
+		if ( ! empty( $_POST[ 'correct_email' ] ) ) {
 			update_option( 'admin_email_lifespan', $admin_email_lifespan );
 			wp_safe_redirect( $redirect_to );
 		}
@@ -583,11 +574,11 @@ switch ( $action ) {
 					?>
 				</a>
 			</p>
-			<h1 class="admin-email__heading">
+			<h2 class="admin-email__heading">
 				<?php
 					_e( 'Current general admin email' );
 				?>
-			</h1>
+			</h2>
 			<p class="admin-email__details">
 				<?php _e( 'We have the following email address registered as your <strong>general admin email</strong>:' ); ?>
 			</p>
@@ -610,14 +601,12 @@ switch ( $action ) {
 				<div class="admin-email__actions-primary">
 					<?php
 		
-						$change_link = wp_login_url( $redirect_to ) .
-							'&' . 'action=confirm_admin_email' .
-							'&' . 'remind_me_later=true';
+					$change_link = admin_url( 'options-general.php?highlight=confirm_admin_email' );
 					?>
 					<a class="button button-large" href="<?php echo $change_link ?>">
 						<?php esc_attr_e( 'Please change' ); ?>
 					</a>
-					<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e( 'Yes it\'s correct' ); ?>" />
+					<input type="submit" name="correct_email" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e( 'Yes it\'s correct' ); ?>" />
 				</div>
 				<div class="admin-email__actions-secondary">
 					<p class="admin-email__later">
