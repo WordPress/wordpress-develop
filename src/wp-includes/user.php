@@ -187,6 +187,28 @@ function wp_authenticate_username_password( $user, $username, $password ) {
 	return $user;
 }
 
+function wp_confirm_admin_email( $redirect_to, $requested_redirect_to, $user ) {
+
+	if ( ! is_a ( $user , 'WP_User' ) || ! $user->exists() ) {
+		return $redirect_to;
+	}
+
+	if ( ! $user->has_cap( 'manage_options' ) ) {
+		return $redirect_to;
+	}
+
+	$admin_email_lifespan = get_option( 'admin_email_lifespan' );
+
+	if ( ! empty( $admin_email_lifespan ) ) {
+		if ( time() < $admin_email_lifespan ) {
+			return $redirect_to;
+		}
+	}
+
+	return wp_login_url( $redirect_to ) . '&' . 'action=confirm_admin_email';
+
+}
+
 /**
  * Authenticates a user using the email and password.
  *

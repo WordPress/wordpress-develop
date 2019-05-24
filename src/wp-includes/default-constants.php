@@ -138,6 +138,13 @@ function wp_initial_constants() {
 	define( 'MONTH_IN_SECONDS', 30 * DAY_IN_SECONDS );
 	define( 'YEAR_IN_SECONDS', 365 * DAY_IN_SECONDS );
 	/**#@-*/
+	
+	/**
+	 * Admin email maximmum age
+	 */
+	if ( ! defined( 'ADMIN_EMAIL_MAX_AGE' ) ) {
+	        define( 'ADMIN_EMAIL_MAX_AGE', 180 * DAY_IN_SECONDS );
+	}
 }
 
 /**

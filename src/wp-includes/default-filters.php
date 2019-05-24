@@ -428,6 +428,7 @@ add_filter( 'authenticate', 'wp_authenticate_email_password', 20, 3 );
 add_filter( 'authenticate', 'wp_authenticate_spam_check', 99 );
 add_filter( 'determine_current_user', 'wp_validate_auth_cookie' );
 add_filter( 'determine_current_user', 'wp_validate_logged_in_cookie', 20 );
+add_filter( 'login_redirect', 'wp_confirm_admin_email', 20, 3 );
 
 // Split term updates.
 add_action( 'admin_init', '_wp_check_for_scheduled_split_terms' );
