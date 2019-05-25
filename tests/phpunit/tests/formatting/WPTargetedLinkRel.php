@@ -131,7 +131,7 @@ class Tests_Targeted_Link_Rel extends WP_UnitTestCase {
 	/**
 	 * Ensure entirely serialized content is ignored.
 	 *
-	 * @ticket 46402.
+	 * @ticket 46402
 	 */
 	public function test_ignore_entirely_serialized_content() {
 		$content  = 'a:1:{s:4:"html";s:52:"<p>Links: <a href="/" target="_blank">No Rel</a></p>";}';
