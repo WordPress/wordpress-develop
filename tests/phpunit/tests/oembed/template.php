@@ -309,7 +309,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	 * So this test checks for ampersands in build/wp-includes/js/wp-embed.min.js.
 	 * In many cases, this file will not exist; in those cases, we simply skip the test.
 	 *
-	 * So when would it be run? We have Travis CI run `grunt test` which then runs, in order,
+	 * So when would it be run? We have Travis CI run `npm run test` which then runs, in order,
 	 * `qunit:compiled` (which runs the build) and then `phpunit`. Thus, this test will at least be
 	 * run during continuous integration.
 	 *

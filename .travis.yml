@@ -89,7 +89,6 @@ before_script:
 - npm --version
 - node --version
 - nvm install 10.13.0
-- npm install -g grunt-cli
 - npm install
 - npm prune
 - mysql --version
@@ -101,11 +100,10 @@ before_script:
 - which phpunit
 - phpunit --version
 - curl --version
-- grunt --version
 - git --version
 - svn --version
 - locale -a
-script: grunt $WP_TRAVISCI
+script: npm run grunt $WP_TRAVISCI
 after_script:
 - |
   if [[ "$WP_TEST_REPORTER" == "true" ]]; then

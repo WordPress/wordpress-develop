@@ -47,7 +47,7 @@ if ( version_compare( tests_get_phpunit_version(), '8.0', '>=' ) ) {
 }
 
 if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && ! is_dir( ABSPATH ) ) {
-	echo "ERROR: The /build/ directory is missing! Please run `grunt build` prior to running PHPUnit.\n";
+	echo "ERROR: The /build/ directory is missing! Please run `npm run build` prior to running PHPUnit.\n";
 	exit( 1 );
 }
 
