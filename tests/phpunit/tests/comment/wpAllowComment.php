@@ -42,7 +42,7 @@ class Tests_Comment_WpAllowComment extends WP_UnitTestCase {
 			'comment_content'      => 'Yes, we can!',
 			'comment_author_IP'    => '192.168.0.1',
 			'comment_parent'       => 0,
-			'comment_date_gmt'     => date( 'Y-m-d H:i:s', $now ),
+			'comment_date_gmt'     => gmdate( 'Y-m-d H:i:s', $now ),
 			'comment_agent'        => 'Bobbot/2.1',
 			'comment_type'         => '',
 		);
@@ -65,7 +65,7 @@ class Tests_Comment_WpAllowComment extends WP_UnitTestCase {
 			'comment_content'      => 'Yes, we can!',
 			'comment_author_IP'    => '192.168.0.1',
 			'comment_parent'       => 0,
-			'comment_date_gmt'     => date( 'Y-m-d H:i:s', $now ),
+			'comment_date_gmt'     => gmdate( 'Y-m-d H:i:s', $now ),
 			'comment_agent'        => 'Bobbot/2.1',
 			'comment_type'         => '',
 		);

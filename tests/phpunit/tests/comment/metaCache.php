@@ -142,7 +142,7 @@ class Tests_Comment_Meta_Cache extends WP_UnitTestCase {
 			$comments[] = self::factory()->comment->create(
 				array(
 					'comment_post_ID'  => $posts[0],
-					'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - ( 60 * $i ) ),
+					'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - ( 60 * $i ) ),
 				)
 			);
 		}
@@ -190,7 +190,7 @@ class Tests_Comment_Meta_Cache extends WP_UnitTestCase {
 			$comments[] = self::factory()->comment->create(
 				array(
 					'comment_post_ID'  => $posts[0],
-					'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - ( 60 * $i ) ),
+					'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - ( 60 * $i ) ),
 				)
 			);
 		}

@@ -274,7 +274,7 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 				'post_content' => 'Not edited',
 				'post_author'  => $editor_id,
 				'post_status'  => 'publish',
-				'post_date'    => date( 'Y-m-d H:i:s', $yesterday ),
+				'post_date'    => gmdate( 'Y-m-d H:i:s', $yesterday ),
 			)
 		);
 

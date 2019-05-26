@@ -2010,8 +2010,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( 'draft', $data['status'] );
 		$this->assertEquals( 'draft', $new_post->post_status );
 		// Confirm dates are shimmed for gmt_offset
-		$post_modified_gmt = date( 'Y-m-d H:i:s', strtotime( $new_post->post_modified ) + ( get_option( 'gmt_offset' ) * 3600 ) );
-		$post_date_gmt     = date( 'Y-m-d H:i:s', strtotime( $new_post->post_date ) + ( get_option( 'gmt_offset' ) * 3600 ) );
+		$post_modified_gmt = gmdate( 'Y-m-d H:i:s', strtotime( $new_post->post_modified ) + ( get_option( 'gmt_offset' ) * 3600 ) );
+		$post_date_gmt     = gmdate( 'Y-m-d H:i:s', strtotime( $new_post->post_date ) + ( get_option( 'gmt_offset' ) * 3600 ) );
 
 		$this->assertEquals( mysql_to_rfc3339( $post_modified_gmt ), $data['modified_gmt'] );
 		$this->assertEquals( mysql_to_rfc3339( $post_date_gmt ), $data['date_gmt'] );
@@ -2736,8 +2736,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( $new_content, $new_post->post_content );
 
 		// The modified date should equal the current time.
-		$this->assertEquals( date( 'Y-m-d', strtotime( mysql_to_rfc3339( $expected_modified ) ) ), date( 'Y-m-d', strtotime( $data['modified'] ) ) );
-		$this->assertEquals( date( 'Y-m-d', strtotime( $expected_modified ) ), date( 'Y-m-d', strtotime( $new_post->post_modified ) ) );
+		$this->assertEquals( gmdate( 'Y-m-d', strtotime( mysql_to_rfc3339( $expected_modified ) ) ), gmdate( 'Y-m-d', strtotime( $data['modified'] ) ) );
+		$this->assertEquals( gmdate( 'Y-m-d', strtotime( $expected_modified ) ), gmdate( 'Y-m-d', strtotime( $new_post->post_modified ) ) );
 	}
 
 	/**

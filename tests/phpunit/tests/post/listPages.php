@@ -49,7 +49,7 @@ class Tests_List_Pages extends WP_UnitTestCase {
 	public static function wpSetupBeforeClass() {
 		self::$time = time();
 
-		$post_date = date( 'Y-m-d H:i:s', self::$time );
+		$post_date = gmdate( 'Y-m-d H:i:s', self::$time );
 
 		self::$parent_1 = self::factory()->post->create(
 			array(
@@ -157,7 +157,7 @@ class Tests_List_Pages extends WP_UnitTestCase {
 			'depth'     => 1,
 			'show_date' => true,
 		);
-		$date = date( get_option( 'date_format' ), self::$time );
+		$date = gmdate( get_option( 'date_format' ), self::$time );
 
 		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_1 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1</a> ' . $date . '</li>
 <li class="page_item page-item-' . self::$parent_2 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_2 ) . '">Parent 2</a> ' . $date . '</li>
@@ -173,7 +173,7 @@ class Tests_List_Pages extends WP_UnitTestCase {
 			'show_date'   => true,
 			'date_format' => 'l, F j, Y',
 		);
-		$date = date( $args['date_format'], self::$time );
+		$date = gmdate( $args['date_format'], self::$time );
 
 		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_1 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1</a> ' . $date . '
 <ul class=\'children\'>

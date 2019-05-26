@@ -99,7 +99,7 @@ if ( is_multisite() ) :
 			remove_filter( 'wpmu_signup_user_notification', '__return_true' );
 
 			global $wpdb;
-			$date = date( 'Y-m-d H:i:s', time() - ( 2 * DAY_IN_SECONDS ) - 60 );
+			$date = gmdate( 'Y-m-d H:i:s', time() - ( 2 * DAY_IN_SECONDS ) - 60 );
 			$wpdb->update( $wpdb->signups, array( 'registered' => $date ), array( 'user_login' => 'foo123' ) );
 
 			$v = wpmu_validate_user_signup( 'foo123', 'foo2@example.com' );
@@ -123,7 +123,7 @@ if ( is_multisite() ) :
 			remove_filter( 'wpmu_signup_user_notification', '__return_true' );
 
 			global $wpdb;
-			$date = date( 'Y-m-d H:i:s', time() - ( 2 * DAY_IN_SECONDS ) - 60 );
+			$date = gmdate( 'Y-m-d H:i:s', time() - ( 2 * DAY_IN_SECONDS ) - 60 );
 			$wpdb->update( $wpdb->signups, array( 'registered' => $date ), array( 'user_login' => 'foo123' ) );
 
 			$v = wpmu_validate_user_signup( 'foo2', 'foo2@example.com' );

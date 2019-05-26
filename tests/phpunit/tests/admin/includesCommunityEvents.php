@@ -164,7 +164,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 
 		$this->assertNotWPError( $response );
 		$this->assertEqualSetsWithIndex( $this->get_user_location(), $response['location'] );
-		$this->assertEquals( date( 'l, M j, Y', strtotime( 'next Sunday 1pm' ) ), $response['events'][0]['formatted_date'] );
+		$this->assertEquals( gmdate( 'l, M j, Y', strtotime( 'next Sunday 1pm' ) ), $response['events'][0]['formatted_date'] );
 		$this->assertEquals( '1:00 pm', $response['events'][0]['formatted_time'] );
 
 		remove_filter( 'pre_http_request', array( $this, '_http_request_valid_response' ) );
@@ -185,7 +185,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 
 		$this->assertNotWPError( $cached_events );
 		$this->assertEqualSetsWithIndex( $this->get_user_location(), $cached_events['location'] );
-		$this->assertEquals( date( 'l, M j, Y', strtotime( 'next Sunday 1pm' ) ), $cached_events['events'][0]['formatted_date'] );
+		$this->assertEquals( gmdate( 'l, M j, Y', strtotime( 'next Sunday 1pm' ) ), $cached_events['events'][0]['formatted_date'] );
 		$this->assertEquals( '1:00 pm', $cached_events['events'][0]['formatted_time'] );
 
 		remove_filter( 'pre_http_request', array( $this, '_http_request_valid_response' ) );
@@ -211,7 +211,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 							'url'        => 'https://www.meetup.com/Eastbay-WordPress-Meetup/events/236031233/',
 							'meetup'     => 'The East Bay WordPress Meetup Group',
 							'meetup_url' => 'https://www.meetup.com/Eastbay-WordPress-Meetup/',
-							'date'       => date( 'Y-m-d H:i:s', strtotime( 'next Sunday 1pm' ) ),
+							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( 'next Sunday 1pm' ) ),
 							'location'   => array(
 								'location'  => 'Oakland, CA, USA',
 								'country'   => 'us',
@@ -225,7 +225,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 							'url'        => 'https://www.meetup.com/Wordpress-Bay-Area-CA-Foothills/events/237706839/',
 							'meetup'     => 'WordPress Bay Area Foothills Group',
 							'meetup_url' => 'https://www.meetup.com/Wordpress-Bay-Area-CA-Foothills/',
-							'date'       => date( 'Y-m-d H:i:s', strtotime( 'next Wednesday 1:30pm' ) ),
+							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( 'next Wednesday 1:30pm' ) ),
 							'location'   => array(
 								'location'  => 'Milpitas, CA, USA',
 								'country'   => 'us',
@@ -239,7 +239,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 							'url'        => 'https://2017.kansascity.wordcamp.org',
 							'meetup'     => null,
 							'meetup_url' => null,
-							'date'       => date( 'Y-m-d H:i:s', strtotime( 'next Saturday' ) ),
+							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( 'next Saturday' ) ),
 							'location'   => array(
 								'location'  => 'Kansas City, MO',
 								'country'   => 'US',
@@ -303,7 +303,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 							'url'        => 'https://www.meetup.com/Eastbay-WordPress-Meetup/events/236031233/',
 							'meetup'     => 'The East Bay WordPress Meetup Group',
 							'meetup_url' => 'https://www.meetup.com/Eastbay-WordPress-Meetup/',
-							'date'       => date( 'Y-m-d H:i:s', strtotime( 'next Monday 1pm' ) ),
+							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( 'next Monday 1pm' ) ),
 							'location'   => array(
 								'location'  => 'Oakland, CA, USA',
 								'country'   => 'us',
@@ -317,7 +317,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 							'url'        => 'https://www.meetup.com/Wordpress-Bay-Area-CA-Foothills/events/237706839/',
 							'meetup'     => 'WordPress Bay Area Foothills Group',
 							'meetup_url' => 'https://www.meetup.com/Wordpress-Bay-Area-CA-Foothills/',
-							'date'       => date( 'Y-m-d H:i:s', strtotime( 'next Tuesday 1:30pm' ) ),
+							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( 'next Tuesday 1:30pm' ) ),
 							'location'   => array(
 								'location'  => 'Milpitas, CA, USA',
 								'country'   => 'us',
@@ -331,7 +331,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 							'url'        => 'https://www.meetup.com/sanjosewp/events/245419844/',
 							'meetup'     => 'The San Jose WordPress Meetup',
 							'meetup_url' => 'https://www.meetup.com/sanjosewp/',
-							'date'       => date( 'Y-m-d H:i:s', strtotime( 'next Wednesday 5:30pm' ) ),
+							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( 'next Wednesday 5:30pm' ) ),
 							'location'   => array(
 								'location'  => 'Milpitas, CA, USA',
 								'country'   => 'us',
@@ -345,7 +345,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 							'url'        => 'https://2018.sandiego.wordcamp.org',
 							'meetup'     => null,
 							'meetup_url' => null,
-							'date'       => date( 'Y-m-d H:i:s', strtotime( 'next Thursday 9am' ) ),
+							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( 'next Thursday 9am' ) ),
 							'location'   => array(
 								'location'  => 'San Diego, CA',
 								'country'   => 'US',
@@ -406,7 +406,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 							'url'        => 'https://www.meetup.com/Eastbay-WordPress-Meetup/events/236031233/',
 							'meetup'     => 'The East Bay WordPress Meetup Group',
 							'meetup_url' => 'https://www.meetup.com/Eastbay-WordPress-Meetup/',
-							'date'       => date( 'Y-m-d H:i:s', strtotime( '2 days ago' ) ),
+							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( '2 days ago' ) ),
 							'location'   => array(
 								'location'  => 'Oakland, CA, USA',
 								'country'   => 'us',
@@ -420,7 +420,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 							'url'        => 'https://2018.sandiego.wordcamp.org',
 							'meetup'     => null,
 							'meetup_url' => null,
-							'date'       => date( 'Y-m-d H:i:s', strtotime( 'next Tuesday 9am' ) ),
+							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( 'next Tuesday 9am' ) ),
 							'location'   => array(
 								'location'  => 'San Diego, CA',
 								'country'   => 'US',
@@ -434,7 +434,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 							'url'        => 'https://www.meetup.com/Wordpress-Bay-Area-CA-Foothills/events/237706839/',
 							'meetup'     => 'WordPress Bay Area Foothills Group',
 							'meetup_url' => 'https://www.meetup.com/Wordpress-Bay-Area-CA-Foothills/',
-							'date'       => date( 'Y-m-d H:i:s', strtotime( 'next Wednesday 1:30pm' ) ),
+							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( 'next Wednesday 1:30pm' ) ),
 							'location'   => array(
 								'location'  => 'Milpitas, CA, USA',
 								'country'   => 'us',
@@ -448,7 +448,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 							'url'        => 'https://www.meetup.com/sanjosewp/events/245419844/',
 							'meetup'     => 'The San Jose WordPress Meetup',
 							'meetup_url' => 'https://www.meetup.com/sanjosewp/',
-							'date'       => date( 'Y-m-d H:i:s', strtotime( 'next Thursday 5:30pm' ) ),
+							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( 'next Thursday 5:30pm' ) ),
 							'location'   => array(
 								'location'  => 'Milpitas, CA, USA',
 								'country'   => 'us',
@@ -462,7 +462,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 							'url'        => 'https://2018.la.wordcamp.org',
 							'meetup'     => null,
 							'meetup_url' => null,
-							'date'       => date( 'Y-m-d H:i:s', strtotime( 'next Friday 9am' ) ),
+							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( 'next Friday 9am' ) ),
 							'location'   => array(
 								'location'  => 'Los Angeles, CA',
 								'country'   => 'US',

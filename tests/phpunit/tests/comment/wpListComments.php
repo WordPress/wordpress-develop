@@ -16,7 +16,7 @@ class Tests_Comment_WpListComments extends WP_UnitTestCase {
 			$comments[] = self::factory()->comment->create(
 				array(
 					'comment_post_ID'  => $p,
-					'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - $i ),
+					'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - $i ),
 					'comment_author'   => 'Commenter ' . $i,
 				)
 			);
@@ -54,7 +54,7 @@ class Tests_Comment_WpListComments extends WP_UnitTestCase {
 			$comments[] = self::factory()->comment->create(
 				array(
 					'comment_post_ID'  => $p,
-					'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - $i ),
+					'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - $i ),
 					'comment_author'   => 'Commenter ' . $i,
 				)
 			);
@@ -92,7 +92,7 @@ class Tests_Comment_WpListComments extends WP_UnitTestCase {
 			$comments[] = self::factory()->comment->create(
 				array(
 					'comment_post_ID'  => $p,
-					'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - $i ),
+					'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - $i ),
 					'comment_author'   => 'Commenter ' . $i,
 				)
 			);
@@ -138,7 +138,7 @@ class Tests_Comment_WpListComments extends WP_UnitTestCase {
 			$comments[] = self::factory()->comment->create(
 				array(
 					'comment_post_ID'  => $p,
-					'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - $i ),
+					'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - $i ),
 					'comment_author'   => 'Commenter ' . $i,
 				)
 			);
@@ -178,7 +178,7 @@ class Tests_Comment_WpListComments extends WP_UnitTestCase {
 			$comments[] = self::factory()->comment->create(
 				array(
 					'comment_post_ID'  => $p,
-					'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - $i ),
+					'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - $i ),
 					'comment_author'   => 'Commenter ' . $i,
 				)
 			);
@@ -223,7 +223,7 @@ class Tests_Comment_WpListComments extends WP_UnitTestCase {
 			$comments[] = self::factory()->comment->create(
 				array(
 					'comment_post_ID'  => $p,
-					'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - $i ),
+					'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - $i ),
 					'comment_author'   => 'Commenter ' . $i,
 					'user_id'          => $u,
 				)
