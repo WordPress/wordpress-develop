@@ -154,9 +154,13 @@
 		<exclude-pattern>/wp-tests-config-sample\.php</exclude-pattern>
 	</rule>
 
+	<!-- Exclude checking of line endings when reporting errors, but fix them when running phpcbf.
+		Git and SVN manage these pretty well cross-platform as "native".
+		Whitelist configuration files. -->
 	<rule ref="Generic.Files.LineEndings">
 		<exclude-pattern>/wp-config\.php</exclude-pattern>
 		<exclude-pattern>/wp-config-sample\.php</exclude-pattern>
+		<exclude phpcs-only="true" name="Generic.Files.LineEndings"/>
 	</rule>
 
 	<!-- WPCS1620: template.php isn't a template tag file. -->
