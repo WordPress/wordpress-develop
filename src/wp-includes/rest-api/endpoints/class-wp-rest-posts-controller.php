@@ -1147,7 +1147,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				break;
 			case 'publish':
 			case 'future':
-				if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
+				if ( ! current_user_can( $post_type->cap->publish_posts ) && ! current_user_can( $post_type->cap->edit_published_posts ) ) {
 					return new WP_Error( 'rest_cannot_publish', __( 'Sorry, you are not allowed to publish posts in this post type.' ), array( 'status' => rest_authorization_required_code() ) );
 				}
 				break;
@@ -1817,7 +1817,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$post_type = get_post_type_object( $post->post_type );
 
-		if ( 'attachment' !== $this->post_type && current_user_can( $post_type->cap->publish_posts ) ) {
+		if ( 'attachment' !== $this->post_type && ( ( 'publish' == $post->post_status && current_user_can( $post_type->cap->edit_published_posts ) ) || current_user_can( $post_type->cap->publish_posts ) )  ) {
 			$rels[] = 'https://api.w.org/action-publish';
 		}
 
