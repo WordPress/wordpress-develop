@@ -134,7 +134,7 @@ ImageDetails = Select.extend(/** @lends wp.media.view.MediaFrame.ImageDetails.pr
 			items: {
 				back: {
 					text:     l10n.back,
-					priority: 20,
+					priority: 80,
 					click:    function() {
 						if ( previous ) {
 							frame.setState( previous );
@@ -147,7 +147,7 @@ ImageDetails = Select.extend(/** @lends wp.media.view.MediaFrame.ImageDetails.pr
 				replace: {
 					style:    'primary',
 					text:     l10n.replace,
-					priority: 80,
+					priority: 20,
 					requires: { selection: true },
 
 					click: function() {
