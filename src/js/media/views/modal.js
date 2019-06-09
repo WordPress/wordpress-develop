@@ -26,9 +26,10 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 
 	initialize: function() {
 		_.defaults( this.options, {
-			container: document.body,
-			title:     '',
-			propagate: true
+			container:      document.body,
+			title:          '',
+			propagate:      true,
+			hasCloseButton: true
 		});
 
 		this.focusManager = new wp.media.view.FocusManager({
@@ -40,7 +41,8 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	 */
 	prepare: function() {
 		return {
-			title: this.options.title
+			title:          this.options.title,
+			hasCloseButton: this.options.hasCloseButton
 		};
 	},
 
