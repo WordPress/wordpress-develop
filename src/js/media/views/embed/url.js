@@ -56,24 +56,8 @@ EmbedUrl = View.extend(/** @lends wp.media.view.EmbedUrl.prototype */{
 		return this;
 	},
 
-	ready: function() {
-		if ( ! wp.media.isTouchDevice ) {
-			this.focus();
-		}
-	},
-
 	url: function( event ) {
 		this.model.set( 'url', $.trim( event.target.value ) );
-	},
-
-	/**
-	 * If the input is visible, focus and select its contents.
-	 */
-	focus: function() {
-		var $input = this.$input;
-		if ( $input.is(':visible') ) {
-			$input.focus()[0].select();
-		}
 	}
 });
 

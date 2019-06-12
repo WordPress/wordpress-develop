@@ -74,8 +74,7 @@ Selection = wp.media.View.extend(/** @lends wp.media.view.Selection.prototype */
 		event.preventDefault();
 		this.collection.reset();
 
-		// Keep focus inside media modal
-		// after clear link is selected
+		// Move focus to the modal.
 		this.controller.modal.focusManager.focus();
 	}
 });

@@ -15,11 +15,20 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	},
 
 	/**
-	 * Moves focus to the first visible menu item in the modal.
+	 * Gets all the tabbable elements.
+	 */
+	getTabbables: function() {
+		// Skip the file input added by Plupload.
+		return this.$( ':tabbable' ).not( '.moxie-shim input[type="file"]' );
+	},
+
+	/**
+	 * Moves focus to the modal dialog.
 	 */
 	focus: function() {
-		this.$( '.media-menu-item' ).filter( ':visible' ).first().focus();
+		this.$( '.media-modal' ).focus();
 	},
+
 	/**
 	 * @param {Object} event
 	 */
@@ -31,8 +40,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 			return;
 		}
 
-		// Skip the file input added by Plupload.
-		tabbables = this.$( ':tabbable' ).not( '.moxie-shim input[type="file"]' );
+		tabbables = this.getTabbables();
 
 		// Keep tab focus within media modal while it's open
 		if ( tabbables.last()[0] === event.target && ! event.shiftKey ) {

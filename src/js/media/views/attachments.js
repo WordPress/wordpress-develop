@@ -82,7 +82,7 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 
 		this.collection.on( 'reset', this.render, this );
 
-		this.listenTo( this.controller, 'library:selection:add',    this.attachmentFocus );
+		this.controller.on( 'library:selection:add', this.attachmentFocus, this );
 
 		// Throttle the scroll handler and bind this.
 		this.scroll = _.chain( this.scroll ).bind( this ).throttle( this.options.refreshSensitivity ).value();
@@ -130,11 +130,27 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 	 * @returns {void}
 	 */
 	attachmentFocus: function() {
-		this.$( 'li:first' ).focus();
+		/*
+		 * @todo: when uploading new attachments, this tries to move focus to the
+		 * attachmentz grid. Actually, a progress bar gets initially displayed
+		 * and then updated when uploading completes, so focus is lost.
+		 * Additionally: this view is used for both the attachments list and the
+		 * list of selected attachments in the bottom media toolbar. Thus, when
+		 * uploading attachments, it is called twice and returns two different `this`.
+		 * `this.columns` is truthy within the modal.
+		 */
+		if ( this.columns ) {
+			// Move focus to the grid list within the modal.
+			this.$el.focus();
+		}
 	},
 
 	/**
 	 * Restores focus to the selected item in the collection.
+	 *
+	 * Moves focus back to the first selected attachment in the grid. Used when
+	 * tabbing backwards from the attachment details sidebar.
+	 * See media.view.AttachmentsBrowser.
 	 *
 	 * @since 4.0.0
 	 *

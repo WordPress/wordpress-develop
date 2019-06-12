@@ -135,10 +135,12 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 		// Hide modal and remove restricted media modal tab focus once it's closed
 		this.$el.hide().undelegate( 'keydown' );
 
-		// Put focus back in useful location once modal is closed.
+		// Move focus back in useful location once modal is closed.
 		if ( null !== this.clickedOpenerEl ) {
+			// Move focus back to the element that opened the modal.
 			this.clickedOpenerEl.focus();
 		} else {
+			// Fallback to the admin page main element.
 			$( '#wpbody-content' )
 				.attr( 'tabindex', '-1' )
 				.focus();

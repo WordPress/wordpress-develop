@@ -83,11 +83,6 @@ AttachmentDisplay = Settings.extend(/** @lends wp.media.view.Settings.Attachment
 		}
 
 		$input.closest( '.setting' ).removeClass( 'hidden' );
-
-		// If the input is visible, focus and select its contents.
-		if ( ! wp.media.isTouchDevice && $input.is(':visible') ) {
-			$input.focus()[0].select();
-		}
 	}
 });
 
