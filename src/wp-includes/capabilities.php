@@ -649,17 +649,14 @@ function map_meta_cap( $cap, $user_id ) {
  * @return bool Whether the current user has the given capability. If `$capability` is a meta cap and `$object_id` is
  *              passed, whether the current user has the given meta capability for the given object.
  */
-function current_user_can( $capability ) {
+function current_user_can( $capability, ...$args ) {
 	$current_user = wp_get_current_user();
 
 	if ( empty( $current_user ) ) {
 		return false;
 	}
 
-	$args = array_slice( func_get_args(), 1 );
-	$args = array_merge( array( $capability ), $args );
-
-	return call_user_func_array( array( $current_user, 'has_cap' ), $args );
+	return $current_user->has_cap( $capability, ...$args );
 }
 
 /**
