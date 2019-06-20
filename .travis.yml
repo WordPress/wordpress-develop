@@ -13,6 +13,8 @@ env:
 matrix:
   include:
   - php: 7.2
+    env: WP_TRAVISCI=e2e
+  - php: 7.2
     env: WP_TRAVISCI=travis:format
   - php: 7.1
     env: WP_TRAVISCI=travis:js
@@ -103,7 +105,15 @@ before_script:
 - git --version
 - svn --version
 - locale -a
-script: npm run grunt $WP_TRAVISCI
+script:
+- |
+  if [[ "$WP_TRAVISCI" == "e2e" ]]; then
+    npm run env:start
+    npm run env:reset-site
+    npm run test:e2e
+  else
+    npm run grunt $WP_TRAVISCI
+  fi
 after_script:
 - |
   if [[ "$WP_TEST_REPORTER" == "true" ]]; then
