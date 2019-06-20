@@ -3,6 +3,7 @@
 /**
  * @group functions.php
  * @group i18n
+ * @group datetime
  */
 class Tests_Functions_MaybeDeclineDate extends WP_UnitTestCase {
 
@@ -68,6 +69,8 @@ class Tests_Functions_MaybeDeclineDate extends WP_UnitTestCase {
 		return array(
 			array( 'ru_RU', '21 Июнь', '21 июня' ),
 			array( 'ru_RU', '1 Январь 2016', '1 января 2016' ),
+			array( 'ru_RU', 'Январь 1st 2016', '1 января 2016' ),
+			array( 'ru_RU', 'Январь 1 2016', '1 января 2016' ),
 			array( 'pl_PL', '1 Styczeń', '1 stycznia' ),
 			array( 'hr', '1. Siječanj', '1. siječnja' ),
 			array( 'ca', '1 de abril', "1 d'abril" ),
