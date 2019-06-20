@@ -2062,6 +2062,8 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 	 * @since 4.6.0 Added support for `list-style-type`.
 	 * @since 5.0.0 Added support for `background-image`.
 	 * @since 5.1.0 Added support for `text-transform`.
+	 * @since 5.2.0 Added support for `background-position` and `grid-template-columns`
+	 * @since 5.3.0 Added support for `flex`, `flex-grow`, `flex-shrink`, and `flex-basis`.
 	 *
 	 * @param string[] $attr Array of allowed CSS attributes.
 	 */
@@ -2071,6 +2073,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'background',
 			'background-color',
 			'background-image',
+			'background-position',
 
 			'border',
 			'border-width',
@@ -2131,6 +2134,11 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'padding-left',
 			'padding-top',
 
+			'flex',
+			'flex-grow',
+			'flex-shrink',
+			'flex-basis',
+
 			'clear',
 			'cursor',
 			'direction',
@@ -2138,6 +2146,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'overflow',
 			'vertical-align',
 			'list-style-type',
+			'grid-template-columns',
 		)
 	);
 

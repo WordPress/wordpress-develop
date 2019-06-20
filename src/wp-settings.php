@@ -28,9 +28,6 @@ require( ABSPATH . WPINC . '/error-protection.php' );
 require( ABSPATH . WPINC . '/default-constants.php' );
 require_once( ABSPATH . WPINC . '/plugin.php' );
 
-// Make sure we register the shutdown handler for fatal errors as soon as possible.
-wp_register_fatal_error_handler();
-
 /*
  * These can't be directly globalized in version.php. When updating,
  * we're including version.php from another installation and don't want
@@ -50,6 +47,9 @@ global $blog_id;
 
 // Set initial default constants including WP_MEMORY_LIMIT, WP_MAX_MEMORY_LIMIT, WP_DEBUG, SCRIPT_DEBUG, WP_CONTENT_DIR and WP_CACHE.
 wp_initial_constants();
+
+// Make sure we register the shutdown handler for fatal errors as soon as possible.
+wp_register_fatal_error_handler();
 
 // Check for the required PHP version and for the MySQL extension or a database drop-in.
 wp_check_php_mysql_versions();
@@ -167,6 +167,7 @@ require( ABSPATH . WPINC . '/date.php' );
 require( ABSPATH . WPINC . '/theme.php' );
 require( ABSPATH . WPINC . '/class-wp-theme.php' );
 require( ABSPATH . WPINC . '/template.php' );
+require( ABSPATH . WPINC . '/class-wp-user-request.php' );
 require( ABSPATH . WPINC . '/user.php' );
 require( ABSPATH . WPINC . '/class-wp-user-query.php' );
 require( ABSPATH . WPINC . '/class-wp-session-tokens.php' );
@@ -544,12 +545,3 @@ if ( is_multisite() ) {
  * @since 3.0.0
  */
 do_action( 'wp_loaded' );
-
-/*
- * Store the fact that we could successfully execute the entire WordPress
- * lifecycle. This is used to skip the premature shutdown handler, as it cannot
- * be unregistered.
- */
-if ( ! defined( 'WP_EXECUTION_SUCCEEDED' ) ) {
-	define( 'WP_EXECUTION_SUCCEEDED', true );
-}

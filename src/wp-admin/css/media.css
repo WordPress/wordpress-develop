@@ -100,7 +100,7 @@
 .describe-toggle-on,
 .describe-toggle-off {
 	display: block;
-	line-height: 36px;
+	line-height: 2.76923076;
 	float: right;
 	margin-right: 10px;
 }
@@ -132,7 +132,7 @@
 }
 
 .media-item .filename {
-	line-height: 36px;
+	line-height: 2.76923076;
 	overflow: hidden;
 	margin-left: 6px;
 }
@@ -239,7 +239,7 @@
 	height: 36px;
 	font-size: 18px;
 	font-weight: 600;
-	line-height: 36px;
+	line-height: 2;
 	padding: 0 36px 0 16px;
 	position: absolute;
 	top: 0;
@@ -368,40 +368,17 @@
 	z-index: 100100;
 }
 
-ul#dismissed-updates {
-	display: none;
-}
-
-form.upgrade {
-	margin-top: 8px;
-}
-
-form.upgrade .hint {
-	font-style: italic;
-	font-size: 85%;
-	margin: -0.5em 0 2em 0;
-}
-
-#poststuff .inside .the-tagcloud {
-	margin: 5px 0 10px;
-	padding: 8px;
-	border: 1px solid #ddd;
-	line-height: 1.8em;
-	word-spacing: 3px;
-}
-
 .drag-drop #drag-drop-area {
 	border: 4px dashed #b4b9be;
 	height: 200px;
 }
 
 .drag-drop .drag-drop-inside {
-	margin: 70px auto 0;
+	margin: 60px auto 0;
 	width: 250px;
 }
 
 .drag-drop-inside p {
-	color: #a0a5aa;
 	font-size: 14px;
 	margin: 5px 0;
 	display: none;
@@ -502,7 +479,6 @@ border color while dragging a file over the uploader drop area */
 	color: #c00;
 }
 
-.upload-php .mode-grid .media-sidebar .media-uploader-status.errors h3, /* Back-compat for pre-4.4 */
 .upload-php .mode-grid .media-sidebar .media-uploader-status.errors h2 {
 	display: none;
 }
@@ -698,24 +674,19 @@ border color while dragging a file over the uploader drop area */
 	color: #000;
 }
 
-.edit-attachment-frame .edit-media-header .left:before,
-.rtl .edit-attachment-frame .edit-media-header .right:before {
+.edit-attachment-frame .edit-media-header .left:before {
 	content: "\f341";
 }
 
-.edit-attachment-frame .edit-media-header .right:before,
-.rtl .edit-attachment-frame .edit-media-header .left:before {
+.edit-attachment-frame .edit-media-header .right:before {
 	content: "\f345";
 }
 
-.edit-attachment-frame .edit-media-header .left.disabled,
-.edit-attachment-frame .edit-media-header .right.disabled,
-.edit-attachment-frame .edit-media-header .left.disabled:hover,
-.edit-attachment-frame .edit-media-header .right.disabled:hover {
+.edit-attachment-frame .edit-media-header [disabled],
+.edit-attachment-frame .edit-media-header [disabled]:hover {
 	color: #ccc;
 	background: inherit;
 	cursor: default;
-	pointer-events: none;
 }
 
 .edit-attachment-frame .media-frame-content,
@@ -777,7 +748,7 @@ border color while dragging a file over the uploader drop area */
 .edit-attachment-frame input,
 .edit-attachment-frame textarea {
 	padding: 6px 8px;
-	line-height: 16px;
+	line-height: 1.14285714;
 }
 
 .edit-attachment-frame .attachment-info {
@@ -825,6 +796,13 @@ border color while dragging a file over the uploader drop area */
 /*------------------------------------------------------------------------------
   14.2 - Image Editor
 ------------------------------------------------------------------------------*/
+.wp_attachment_details .attachment-alt-text {
+	margin-bottom: 5px;
+}
+
+.wp_attachment_details .attachment-alt-text-description {
+	margin-top: 5px;
+}
 
 .wp_attachment_details label[for="content"] {
 	font-size: 13px;
@@ -955,7 +933,7 @@ border color while dragging a file over the uploader drop area */
 	background: #f1f1f1;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	line-height: 16px;
+	line-height: 1.23076923;
 	color: #72777c;
 }
 
@@ -1048,7 +1026,6 @@ border color while dragging a file over the uploader drop area */
 	display: block;
 }
 
-#poststuff .imgedit-group-top h3, /* Back-compat for pre-4.4 */
 #poststuff .imgedit-group-top h2 {
 	display: inline-block;
 	margin: 0;
@@ -1126,6 +1103,10 @@ span.imgedit-scale-warn {
 	margin: 8px 0;
 }
 
+.imgedit-save-target legend {
+	font-weight: 600;
+}
+
 .imgedit-group {
 	margin-bottom: 8px;
 	padding: 10px;
@@ -1143,7 +1124,6 @@ span.imgedit-scale-warn {
 	display: inline-block;
 	width: 7px;
 	text-align: center;
-	vertical-align: middle;
 	font-size: 13px;
 	color: #444;
 }
@@ -1160,6 +1140,10 @@ audio, video {
 .mejs-container {
 	width: 100%;
 	max-width: 100%;
+}
+
+.mejs-container .mejs-controls {
+	box-sizing: border-box;
 }
 
 /* =Media Queries
@@ -1179,7 +1163,7 @@ audio, video {
 @media screen and (max-width: 782px) {
 	.wp_attachment_details label[for="content"] {
 		font-size: 14px;
-		line-height: 1.5em;
+		line-height: 1.5;
 	}
 
 	.media-upload-form .media-item.error,
@@ -1202,10 +1186,6 @@ audio, video {
 		width: 60px;
 		font-size: 16px;
 		padding: 6px 10px;
-	}
-
-	.imgedit-applyto .imgedit-label {
-		vertical-align: middle;
 	}
 }
 
@@ -1243,10 +1223,6 @@ audio, video {
 	.edit-attachment-frame .edit-media-header .right {
 		width: 40px;
 		height: 40px;
-	}
-
-	.upload-php .media-modal-close .media-modal-icon {
-		margin: 9px 10px;
 	}
 
 	.edit-attachment-frame .edit-media-header .right:before,

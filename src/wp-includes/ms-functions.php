@@ -1778,80 +1778,6 @@ function get_most_recent_post_of_user( $user_id ) {
 // Misc functions
 
 /**
- * Get the size of a directory.
- *
- * A helper function that is used primarily to check whether
- * a blog has exceeded its allowed upload space.
- *
- * @since MU (3.0.0)
- *
- * @param string $directory Full path of a directory.
- * @return int Size of the directory in MB.
- */
-function get_dirsize( $directory ) {
-	$dirsize = get_transient( 'dirsize_cache' );
-	if ( is_array( $dirsize ) && isset( $dirsize[ $directory ]['size'] ) ) {
-		return $dirsize[ $directory ]['size'];
-	}
-
-	if ( ! is_array( $dirsize ) ) {
-		$dirsize = array();
-	}
-
-	// Exclude individual site directories from the total when checking the main site,
-	// as they are subdirectories and should not be counted.
-	if ( is_main_site() ) {
-		$dirsize[ $directory ]['size'] = recurse_dirsize( $directory, $directory . '/sites' );
-	} else {
-		$dirsize[ $directory ]['size'] = recurse_dirsize( $directory );
-	}
-
-	set_transient( 'dirsize_cache', $dirsize, HOUR_IN_SECONDS );
-	return $dirsize[ $directory ]['size'];
-}
-
-/**
- * Get the size of a directory recursively.
- *
- * Used by get_dirsize() to get a directory's size when it contains
- * other directories.
- *
- * @since MU (3.0.0)
- * @since 4.3.0 $exclude parameter added.
- *
- * @param string $directory Full path of a directory.
- * @param string $exclude   Optional. Full path of a subdirectory to exclude from the total.
- * @return int|false Size in MB if a valid directory. False if not.
- */
-function recurse_dirsize( $directory, $exclude = null ) {
-	$size = 0;
-
-	$directory = untrailingslashit( $directory );
-
-	if ( ! file_exists( $directory ) || ! is_dir( $directory ) || ! is_readable( $directory ) || $directory === $exclude ) {
-		return false;
-	}
-
-	if ( $handle = opendir( $directory ) ) {
-		while ( ( $file = readdir( $handle ) ) !== false ) {
-			$path = $directory . '/' . $file;
-			if ( $file != '.' && $file != '..' ) {
-				if ( is_file( $path ) ) {
-					$size += filesize( $path );
-				} elseif ( is_dir( $path ) ) {
-					$handlesize = recurse_dirsize( $path, $exclude );
-					if ( $handlesize > 0 ) {
-						$size += $handlesize;
-					}
-				}
-			}
-		}
-		closedir( $handle );
-	}
-	return $size;
-}
-
-/**
  * Check an array of MIME types against a whitelist.
  *
  * WordPress ships with a set of allowed upload filetypes,
@@ -2719,7 +2645,8 @@ All at ###SITENAME###
 	$content      = str_replace( '###SITENAME###', wp_specialchars_decode( get_site_option( 'site_name' ), ENT_QUOTES ), $content );
 	$content      = str_replace( '###SITEURL###', network_home_url(), $content );
 
-	wp_mail( $value, sprintf( __( '[%s] New Network Admin Email Address' ), wp_specialchars_decode( get_site_option( 'site_name' ), ENT_QUOTES ) ), $content );
+	/* translators: Email change notification email subject. %s: Network title */
+	wp_mail( $value, sprintf( __( '[%s] Network Admin Email Change Request' ), wp_specialchars_decode( get_site_option( 'site_name' ), ENT_QUOTES ) ), $content );
 
 	if ( $switched_locale ) {
 		restore_previous_locale();
@@ -2778,7 +2705,7 @@ All at ###SITENAME###
 	$email_change_email = array(
 		'to'      => $old_email,
 		/* translators: Network admin email change notification email subject. %s: Network title */
-		'subject' => __( '[%s] Notice of Network Admin Email Change' ),
+		'subject' => __( '[%s] Network Admin Email Changed' ),
 		'message' => $email_change_text,
 		'headers' => '',
 	);

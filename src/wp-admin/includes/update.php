@@ -132,7 +132,7 @@ function get_core_checksums( $version, $locale ) {
 			sprintf(
 				/* translators: %s: support forums URL */
 				__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
-				__( 'https://wordpress.org/support/' )
+				__( 'https://wordpress.org/support/forums/' )
 			) . ' ' . __( '(WordPress could not establish a secure connection to WordPress.org. Please contact your server administrator.)' ),
 			headers_sent() || WP_DEBUG ? E_USER_WARNING : E_USER_NOTICE
 		);
@@ -400,7 +400,8 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 			$active_class = is_plugin_active( $file ) ? ' active' : '';
 		}
 
-		$compatible_php = ( empty( $response->requires_php ) || version_compare( phpversion(), $response->requires_php, '>=' ) );
+		$requires_php   = isset( $response->requires_php ) ? $response->requires_php : null;
+		$compatible_php = is_php_version_compatible( $requires_php );
 		$notice_type    = $compatible_php ? 'notice-warning' : 'notice-error';
 
 		echo '<tr class="plugin-update-tr' . $active_class . '" id="' . esc_attr( $response->slug . '-update' ) . '" data-slug="' . esc_attr( $response->slug ) . '" data-plugin="' . esc_attr( $file ) . '"><td colspan="' . esc_attr( $wp_list_table->get_column_count() ) . '" class="plugin-update colspanchange"><div class="update-message notice inline ' . $notice_type . ' notice-alt"><p>';
@@ -827,5 +828,34 @@ function wp_print_update_row_templates() {
 			</td>
 		</tr>
 	</script>
+	<?php
+}
+
+/**
+ * Displays a notice when the user is in recovery mode.
+ *
+ * @since 5.2.0
+ */
+function wp_recovery_mode_nag() {
+	if ( ! wp_is_recovery_mode() ) {
+		return;
+	}
+
+	$url = wp_login_url();
+	$url = add_query_arg( 'action', WP_Recovery_Mode::EXIT_ACTION, $url );
+	$url = wp_nonce_url( $url, WP_Recovery_Mode::EXIT_ACTION );
+
+	?>
+	<div class="notice notice-info">
+		<p>
+			<?php
+			printf(
+				/* translators: %s: Recovery Mode exit link */
+				__( 'You are in recovery mode. This means there may be an error with a theme or plugin. To exit recovery mode, log out or use the Exit button. <a href="%s">Exit Recovery Mode</a>' ),
+				esc_url( $url )
+			);
+			?>
+		</p>
+	</div>
 	<?php
 }

@@ -342,7 +342,7 @@ Commenter avatars come from <a href="https://gravatar.com">Gravatar</a>.'
 			$privacy_policy_content = get_site_option( 'default_privacy_policy_content' );
 		} else {
 			if ( ! class_exists( 'WP_Privacy_Policy_Content' ) ) {
-				include_once( ABSPATH . 'wp-admin/includes/misc.php' );
+				include_once( ABSPATH . 'wp-admin/includes/class-wp-privacy-policy-content.php' );
 			}
 
 			$privacy_policy_content = WP_Privacy_Policy_Content::get_default_content();
@@ -941,7 +941,7 @@ function upgrade_110() {
 
 	$time_difference = $all_options->time_difference;
 
-		$server_time = time() + date( 'Z' );
+		$server_time = time() + gmdate( 'Z' );
 	$weblogger_time  = $server_time + $time_difference * HOUR_IN_SECONDS;
 	$gmt_time        = time();
 
@@ -3177,7 +3177,7 @@ function wp_check_mysql_version() {
 	global $wpdb;
 	$result = $wpdb->check_database_version();
 	if ( is_wp_error( $result ) ) {
-		die( $result->get_error_message() );
+		wp_die( $result );
 	}
 }
 

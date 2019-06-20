@@ -80,8 +80,9 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 		// Initialize modal container view.
 		if ( this.options.modal ) {
 			this.modal = new wp.media.view.Modal({
-				controller: this,
-				title:      this.options.title
+				controller:     this,
+				title:          this.options.title,
+				hasCloseButton: false
 			});
 
 			this.modal.on( 'open', _.bind( function () {
@@ -90,8 +91,9 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 
 			// Completely destroy the modal DOM element when closing it.
 			this.modal.on( 'close', _.bind( function() {
-				$( 'body' ).off( 'keydown.media-modal' ); /* remove the keydown event */
-				// Restore the original focus item if possible
+				// Remove the keydown event.
+				$( 'body' ).off( 'keydown.media-modal' );
+				// Move focus back to the original item in the grid if possible.
 				$( 'li.attachment[data-id="' + this.model.get( 'id' ) +'"]' ).focus();
 				this.resetRoute();
 			}, this ) );
@@ -172,8 +174,8 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 	},
 
 	toggleNav: function() {
-		this.$('.left').toggleClass( 'disabled', ! this.hasPrevious() );
-		this.$('.right').toggleClass( 'disabled', ! this.hasNext() );
+		this.$( '.left' ).prop( 'disabled', ! this.hasPrevious() );
+		this.$( '.right' ).prop( 'disabled', ! this.hasNext() );
 	},
 
 	/**
@@ -203,8 +205,10 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 		if ( ! this.hasPrevious() ) {
 			return;
 		}
+
 		this.trigger( 'refresh', this.library.at( this.getCurrentIndex() - 1 ) );
-		this.$( '.left' ).focus();
+		// Move focus to the Previous button. When there are no more items, to the Next button.
+		this.focusNavButton( this.hasPrevious() ? '.left' : '.right' );
 	},
 
 	/**
@@ -214,8 +218,21 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 		if ( ! this.hasNext() ) {
 			return;
 		}
+
 		this.trigger( 'refresh', this.library.at( this.getCurrentIndex() + 1 ) );
-		this.$( '.right' ).focus();
+		// Move focus to the Next button. When there are no more items, to the Previous button.
+		this.focusNavButton( this.hasNext() ? '.right' : '.left' );
+	},
+
+	/**
+	 * Set focus to the navigation buttons depending on the browsing direction.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param {string} which A CSS selector to target the button to focus.
+	 */
+	focusNavButton: function( which ) {
+		$( which ).focus();
 	},
 
 	getCurrentIndex: function() {

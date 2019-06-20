@@ -18,9 +18,20 @@
 	-webkit-overflow-scrolling: touch;
 }
 
-.media-modal legend,
+.media-modal legend {
+	padding: 0;
+	font-size: 13px;
+}
+
 .media-modal label {
 	font-size: 13px;
+}
+
+.media-modal .legend-inline {
+	position: absolute;
+	transform: translate(-100%, 50%);
+	margin-left: -1%;
+	line-height: 1.2;
 }
 
 .media-frame input,
@@ -30,8 +41,10 @@
 
 .media-frame select,
 .wp-admin .media-frame select {
-	line-height: 28px;
-	margin-top: 3px;
+	padding: 2px;
+	line-height: 2;
+	height: 28px;
+	vertical-align: middle;
 }
 
 .media-frame a {
@@ -92,11 +105,6 @@
 	border-color: #5b9dd9;
 }
 
-.media-frame select {
-	height: 24px;
-	padding: 2px;
-}
-
 .media-frame input:disabled,
 .media-frame textarea:disabled,
 .media-frame input[readonly],
@@ -121,7 +129,12 @@
 	color: #72777c;
 }
 
-.media-frame .hidden {
+/*
+ * In some cases there's the need of higher specificity,
+ * for example higher than `.media-embed .setting`.
+ */
+.media-frame .hidden,
+.media-frame .setting.hidden {
 	display: none;
 }
 
@@ -234,10 +247,6 @@
 	width: calc(48% - 12px);
 }
 
-.media-modal-content .media-toolbar-primary .media-button {
-	float: right;
-}
-
 .media-modal-content .attachments-browser .search {
 	width: 100%;
 }
@@ -264,10 +273,10 @@
 }
 
 .media-frame-toolbar .media-toolbar {
-	top: initial;
+	top: auto;
 	bottom: -45px;
 	height: auto;
-	overflow: initial;
+	overflow: visible;
 	border-top: 1px solid #ddd;
 }
 
@@ -321,25 +330,6 @@
 	bottom: 0;
 }
 
-.media-sidebar .sidebar-title {
-	font-size: 20px;
-	margin: 0;
-	padding: 12px 10px 10px;
-	line-height: 28px;
-}
-
-.media-sidebar .sidebar-content {
-	padding: 0 10px;
-	margin-bottom: 130px;
-}
-
-.media-sidebar .search {
-	display: block;
-	width: 100%;
-}
-
-.media-sidebar h3, /* Back-compat for pre-4.4 */
-.image-details h3, /* Back-compat for pre-4.4 */
 .media-sidebar h2,
 .image-details h2 {
 	position: relative;
@@ -355,21 +345,27 @@
 	display: block;
 	float: left;
 	width: 100%;
+	margin: 0 0 10px;
+}
+
+.media-sidebar .collection-settings .setting {
 	margin: 1px 0;
 }
 
-.media-sidebar .setting label,
-.attachment-details .setting label {
-	display: block;
+.media-sidebar .setting.has-description,
+.attachment-details .setting.has-description {
+	margin-bottom: 5px;
 }
 
-.media-sidebar .setting .link-to-custom,
-.attachment-details .setting .link-to-custom {
+.media-sidebar .setting .link-to-custom {
 	margin: 3px 2px 0;
 }
 
-.media-sidebar .setting span,
-.attachment-details .setting span {
+.media-sidebar .setting span, /* Back-compat for pre-5.3 */
+.attachment-details .setting span, /* Back-compat for pre-5.3 */
+.media-sidebar .setting .name,
+.media-sidebar .setting .value,
+.attachment-details .setting .name {
 	min-width: 30%;
 	margin-right: 4%;
 	font-size: 12px;
@@ -381,8 +377,11 @@
 	max-width: 80px;
 }
 
-.media-sidebar .setting select,
-.attachment-details .setting select {
+.media-sidebar .setting .value {
+	text-align: left;
+}
+
+.media-sidebar .setting select {
 	max-width: 65%;
 }
 
@@ -399,15 +398,24 @@
 	padding: 0;
 }
 
-.media-sidebar .setting span,
-.attachment-details .setting span,
+.media-sidebar .setting span, /* Back-compat for pre-5.3 */
+.attachment-details .setting span, /* Back-compat for pre-5.3 */
+.media-sidebar .setting .name,
+.media-sidebar .setting .value,
+.media-sidebar .checkbox-label-inline,
+.attachment-details .setting .name,
+.attachment-details .setting .value,
 .compat-item label span {
 	float: left;
 	min-height: 22px;
 	padding-top: 8px;
-	line-height: 16px;
+	line-height: 1.33333333;
 	font-weight: 400;
 	color: #666;
+}
+
+.media-sidebar .checkbox-label-inline {
+	font-size: 12px;
 }
 
 .compat-item label span {
@@ -447,9 +455,10 @@
 }
 
 .attachment-details .setting + .description {
+	clear: both;
 	font-size: 12px;
 	font-style: normal;
-	margin-bottom: 0.5em;
+	margin-bottom: 10px;
 }
 
 .media-sidebar .setting textarea,
@@ -457,11 +466,6 @@
 .compat-item .field textarea {
 	height: 62px;
 	resize: vertical;
-}
-
-.media-sidebar select,
-.attachment-details select {
-	margin-top: 3px;
 }
 
 .compat-item {
@@ -554,7 +558,7 @@
 	position: relative;
 	padding: 8px 20px;
 	margin: 0;
-	line-height: 18px;
+	line-height: 1.28571428;
 	font-size: 14px;
 	color: #0073aa;
 	text-decoration: none;
@@ -606,7 +610,7 @@
 	padding: 8px 10px 9px;
 	margin: 0;
 	height: 18px;
-	line-height: 18px;
+	line-height: 1.28571428;
 	font-size: 14px;
 	text-decoration: none;
 }
@@ -733,7 +737,7 @@
 .media-frame-title h1 {
 	padding: 0 16px;
 	font-size: 22px;
-	line-height: 50px;
+	line-height: 2.27272727;
 	margin: 0;
 }
 
@@ -758,8 +762,7 @@
 	max-height: 100%;
 }
 
-.media-frame-content .crop-content .upload-errors
-{
+.media-frame-content .crop-content .upload-errors {
 	position: absolute;
 	width: 300px;
 	top: 50%;
@@ -937,11 +940,6 @@
 
 .wp-core-ui .attachments-browser .attachment .thumbnail .centered img.icon {
 	transform: translate( -50%, -70% );
-}
-
-.ie8 .wp-core-ui .attachment img.icon {
-	top: 20%;
-	position: relative;
 }
 
 .wp-core-ui .attachment .filename {
@@ -1200,7 +1198,6 @@
 	max-width: 400px;
 }
 
-.uploader-inline .media-uploader-status h3, /* Back-compat for pre-4.4 */
 .uploader-inline .media-uploader-status h2 {
 	display: none;
 }
@@ -1234,26 +1231,33 @@
 }
 
 .media-uploader-status .upload-dismiss-errors {
+	position: absolute;
+	top: -3px;
+	right: -5px;
+	padding: 5px;
+	border-radius: 50%;
+	transition: none;
 	text-decoration: none;
 }
 
-.media-sidebar .media-uploader-status .upload-dismiss-errors {
-	position: absolute;
-	top: -10px;
-	right: -10px;
-	padding: 10px;
-	transition: none;
+.uploader-inline .media-uploader-status .upload-dismiss-errors {
+	top: 2px;
+	right: 2px;
 }
 
-.media-sidebar .media-uploader-status .upload-dismiss-errors:before {
+.media-uploader-status .upload-dismiss-errors::before {
 	content: "\f153";
 	display: block;
 	font: normal 16px/1 dashicons;
 	color: #72777c;
 }
 
-.media-sidebar .media-uploader-status .upload-dismiss-errors:hover:before,
-.media-sidebar .media-uploader-status .upload-dismiss-errors:focus:before {
+.uploader-inline .errors.media-uploader-status .upload-dismiss-errors::before {
+	color: #606a73;
+}
+
+.errors.media-uploader-status .upload-dismiss-errors:hover::before,
+.errors.media-uploader-status .upload-dismiss-errors:focus::before {
 	color: #c00;
 }
 
@@ -1266,6 +1270,7 @@
 }
 
 .uploader-inline .upload-errors .upload-error {
+	padding: 12px 30px;
 	background-color: #fbeaea;
 	box-shadow: none;
 }
@@ -1280,21 +1285,39 @@
 	word-wrap: break-word;
 }
 
-.uploader-window {
-	position: fixed;
+/**
+ * Window and Editor uploaders used to display "drop zones"
+ */
+.uploader-window,
+.wp-editor-wrap .uploader-editor {
 	top: 0;
 	left: 0;
 	right: 0;
 	bottom: 0;
-	background: rgba(0, 86, 132, 0.9);
-	z-index: 250000;
-	display: none;
 	text-align: center;
-	opacity: 0;
+	display: none;
+}
+
+.uploader-window {
+	position: fixed;
+	z-index: 250000;
+	opacity: 0; /* Only the inline uploader is animated with JS, the editor one isn't */
 	transition: opacity 250ms;
 }
 
-.uploader-window-content {
+.wp-editor-wrap .uploader-editor {
+	position: absolute;
+	z-index: 99998; /* under the toolbar */
+	background: rgba(150, 150, 150, 0.9);
+}
+
+.uploader-window,
+.wp-editor-wrap .uploader-editor.droppable {
+	background: rgba(0, 86, 132, 0.9);
+}
+
+.uploader-window-content,
+.wp-editor-wrap .uploader-editor-content {
 	position: absolute;
 	top: 10px;
 	left: 10px;
@@ -1303,17 +1326,29 @@
 	border: 1px dashed #fff;
 }
 
-.uploader-window h3, /* Back-compat for pre-4.4 */
-.uploader-window h1 {
-	margin: -0.5em 0 0;
+/* uploader drop-zone title */
+.uploader-window h1, /* Back-compat for pre-5.3 */
+.uploader-window .uploader-editor-title,
+.wp-editor-wrap .uploader-editor .uploader-editor-title {
 	position: absolute;
 	top: 50%;
 	left: 0;
 	right: 0;
-	transform: translateY( -50% );
-	font-size: 40px;
+	transform: translateY(-50%);
+	font-size: 3em;
+	line-height: 1.3;
+	font-weight: 600;
 	color: #fff;
-	padding: 0;
+	margin: 0;
+	padding: 0 10px;
+}
+
+.wp-editor-wrap .uploader-editor .uploader-editor-title {
+	display: none;
+}
+
+.wp-editor-wrap .uploader-editor.droppable .uploader-editor-title {
+	display: block;
 }
 
 .uploader-window .media-progress-bar {
@@ -1357,10 +1392,9 @@
 	margin: 0 0 4em;
 }
 
-.uploader-inline h3, /* Back-compat for pre-4.4 */
 .uploader-inline h2 {
 	font-size: 20px;
-	line-height: 28px;
+	line-height: 1.4;
 	font-weight: 400;
 	margin: 0;
 }
@@ -1380,7 +1414,6 @@
 }
 
 .uploader-inline p {
-	font-size: 12px;
 	margin: 0.5em 0;
 }
 
@@ -1431,7 +1464,7 @@
 	display: block;
 	padding-top: 12px;
 	font-size: 14px;
-	line-height: 20px;
+	line-height: 1.42857142;
 	font-weight: 600;
 }
 
@@ -1439,7 +1472,7 @@
 	float: left;
 	padding: 1px 8px;
 	margin: 1px 8px 1px -8px;
-	line-height: 16px;
+	line-height: 1.4;
 	border-right: 1px solid #ddd;
 	color: #0073aa;
 	text-decoration: none;
@@ -1571,15 +1604,15 @@
 .attachment-details .settings-save-status {
 	float: right;
 	text-transform: none;
-	z-index: 10;
+	font-weight: 400;
 }
 
 .attachment-details .settings-save-status .spinner {
+	float: none;
 	margin-left: 5px;
 }
 
 .attachment-details .settings-save-status .saved {
-	float: right;
 	display: none;
 }
 
@@ -1588,14 +1621,14 @@
 }
 
 .attachment-details.save-complete .settings-save-status .saved {
-	display: block;
+	display: inline-block;
 }
 
 .attachment-info {
 	overflow: hidden;
 	min-height: 60px;
 	margin-bottom: 16px;
-	line-height: 18px;
+	line-height: 1.5;
 	color: #666;
 	border-bottom: 1px solid #ddd;
 	padding-bottom: 11px;
@@ -1695,10 +1728,6 @@
 	overflow: hidden;
 }
 
-.attachment-display-settings h4 {
-	margin: 1.4em 0 0.4em;
-}
-
 .collection-settings {
 	overflow: hidden;
 }
@@ -1708,7 +1737,8 @@
 	margin-right: 8px;
 }
 
-.collection-settings .setting span {
+.collection-settings .setting span, /* Back-compat for pre-5.3 */
+.collection-settings .setting .name {
 	min-width: inherit;
 }
 
@@ -1763,7 +1793,6 @@
 	margin: 0;
 }
 
-.media-modal .imgedit-group-top h3, /* Back-compat for pre-4.4 */
 .media-modal .imgedit-group-top h2,
 .media-modal .imgedit-group-top h2 .button-link {
 	display: inline-block;
@@ -1774,7 +1803,6 @@
 	margin-top: 3px;
 }
 
-.media-modal .imgedit-group-top h3 a, /* Back-compat for pre-4.4 */
 .media-modal .imgedit-group-top h2 a,
 .media-modal .imgedit-group-top h2 .button-link {
 	text-decoration: none;
@@ -1830,7 +1858,6 @@
 	margin-bottom: 16px;
 }
 
-
 /**
  * Embed from URL and Image Details
  */
@@ -1846,10 +1873,14 @@
 
 .media-frame .embed-url input {
 	font-size: 18px;
-	padding: 12px 14px;
+	padding: 12px 40px 12px 14px; /* right padding to leave room for the spinner */
 	width: 100%;
 	min-width: 200px;
 	box-shadow: inset 2px 2px 4px -2px rgba(0, 0, 0, 0.1);
+}
+
+.media-frame .embed-url input::-ms-clear {
+	display: none; /* the "x" in IE 11 conflicts with the spinner */
 }
 
 .media-frame .embed-url .spinner {
@@ -1869,7 +1900,7 @@
 	left: 0;
 	right: 0;
 	bottom: 0;
-	padding: 16px 16px 32px;
+	padding: 0 16px 32px;
 	overflow: auto;
 }
 
@@ -1932,7 +1963,6 @@
 	left: 0;
 }
 
-.image-details .column-settings h3, /* Back-compat for pre-4.4 */
 .image-details .column-settings h2 {
 	margin: 20px;
 	padding-top: 20px;
@@ -1983,22 +2013,14 @@
 	content: "\f142";
 }
 
-.image-details .embed-media-settings .size {
-	margin-bottom: 4px;
-}
-
-.image-details .custom-size span {
-	display: block;
-}
-
-.image-details .custom-size label {
+.image-details .custom-size label, /* Back-compat for pre-5.3 */
+.image-details .custom-size .custom-size-setting {
 	display: block;
 	float: left;
 }
 
-.image-details .custom-size span small {
-	color: #555d66; /* #f3f3f3 background */
-	font-size: inherit;
+.image-details .custom-size .custom-size-setting label {
+	float: none;
 }
 
 .image-details .custom-size input {
@@ -2010,10 +2032,8 @@
 	margin: 26px 6px 0 6px;
 }
 
-.image-details .custom-size:after {
-	content: "";
-	display: table;
-	clear: both;
+.image-details .custom-size .description {
+	margin-left: 0;
 }
 
 .media-embed .thumbnail {
@@ -2040,12 +2060,17 @@
 	overflow: hidden;
 }
 
-.media-embed .setting {
+.media-embed .setting,
+.media-embed .setting-group {
 	width: 100%;
 	margin: 10px 0;
 	float: left;
 	display: block;
 	clear: both;
+}
+
+.media-embed .setting-group .setting:not(.checkbox-setting) {
+	margin: 0;
 }
 
 .media-embed .setting.has-description {
@@ -2057,7 +2082,8 @@
 	font-style: normal;
 }
 
-.image-details .embed-media-settings .setting {
+.image-details .embed-media-settings .setting,
+.image-details .embed-media-settings .setting-group {
 	float: none;
 	width: auto;
 }
@@ -2071,11 +2097,11 @@
 }
 
 .media-embed .setting input[type="text"],
-.media-embed .setting textarea {
+.media-embed .setting textarea,
+.media-embed fieldset {
 	display: block;
 	width: 100%;
 	max-width: 400px;
-	margin: 1px 0;
 }
 
 .image-details .embed-media-settings .setting input[type="text"],
@@ -2087,6 +2113,7 @@
 .image-details .embed-media-settings .setting input.link-to-custom,
 .image-details .embed-media-settings .link-target,
 .image-details .embed-media-settings .custom-size,
+.image-details .embed-media-settings .setting-group,
 .image-details .description {
 	margin-left: 27%;
 	width: 70%;
@@ -2098,7 +2125,13 @@
 }
 
 .image-details .embed-media-settings .link-target {
-	margin-top: 24px;
+	margin-top: 16px;
+}
+
+.image-details .checkbox-label,
+.audio-details .checkbox-label,
+.video-details .checkbox-label {
+	vertical-align: baseline;
 }
 
 .media-embed .setting input.hidden,
@@ -2106,24 +2139,27 @@
 	display: none;
 }
 
-.media-embed .setting span {
-	display: block;
-	width: 200px;
+.media-embed .setting span, /* Back-compat for pre-5.3 */
+.media-embed .setting .name,
+.media-embed .setting-group .name {
+	display: inline-block;
 	font-size: 13px;
-	line-height: 24px;
+	line-height: 1.84615384;
 	color: #666;
 }
 
-.image-details .embed-media-settings .setting span {
+.media-embed .setting span {
+	display: block; /* Back-compat for pre-5.3 */
+	width: 200px; /* Back-compat for pre-5.3 */
+}
+
+.image-details .embed-media-settings .setting span, /* Back-compat for pre-5.3 */
+.image-details .embed-media-settings .setting .name {
 	float: left;
 	width: 25%;
 	text-align: right;
 	margin: 8px 1% 0 1%;
 	line-height: 1.1;
-}
-
-.media-embed .setting .button-group {
-	margin: 2px 0;
 }
 
 .media-embed-sidebar {
@@ -2137,99 +2173,14 @@
 	margin-top: 10px;
 }
 
-/* Drag & drop on the editor upload */
-.wp-editor-wrap .uploader-editor {
-	background: rgba(150, 150, 150, 0.9);
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	z-index: 99998; /* under the toolbar */
-	display: none;
-	text-align: center;
-}
-
-.wp-editor-wrap .uploader-editor-content {
-	border: 1px dashed #fff;
-	position: absolute;
-	top: 10px;
-	left: 10px;
-	right: 10px;
-	bottom: 10px;
-}
-
-.wp-editor-wrap .uploader-editor .uploader-editor-title {
-	position: absolute;
-	top: 50%;
-	left: 0;
-	right: 0;
-	transform: translateY( -50% );
-	font-size: 3em;
-	line-height: 1.3;
-	font-weight: 600;
-	color: #fff;
-	padding: 0;
-	margin: 0;
-	display: none;
-}
-
-.wp-editor-wrap .uploader-editor.droppable {
-	background: rgba(0, 86, 132, 0.9);
-}
-
-.wp-editor-wrap .uploader-editor.droppable .uploader-editor-title {
-	display: block;
-}
-
 /**
- * IE7 Fixes
+ * Button groups fix: can be removed together with the Back-compat for pre-5.3
  */
-.ie7 .media-frame .attachments-browser {
-	position: static;
-}
-
-.ie7 .media-frame .embed-url input {
-	margin-top: 4px;
-	width: 90%;
-}
-
-.ie7 .compat-item {
-	width: 99%;
-}
-
-.ie7 .attachment-display-settings {
-	width: auto;
-}
-
-.ie7 .attachment-preview,
-.ie7 .attachment-preview .thumbnail {
-	width: 120px;
-	height: 120px;
-}
-
-.ie7 .media-frame .attachment .describe {
-	width: 102px;
-}
-
-.ie7 .media-sidebar .setting select {
-	max-width: 55%;
-}
-
-.ie7 .media-sidebar .setting input[type="text"],
-.ie7 .media-sidebar .setting input[type="password"],
-.ie7 .media-sidebar .setting input[type="email"],
-.ie7 .media-sidebar .setting input[type="number"],
-.ie7 .media-sidebar .setting input[type="search"],
-.ie7 .media-sidebar .setting input[type="tel"],
-.ie7 .media-sidebar .setting input[type="url"],
-.ie7 .media-sidebar .setting textarea {
-	width: 55%;
-}
-
-.ie7 .media-sidebar .setting .link-to-custom {
-	float: left;
-}
+ .media-frame .setting .button-group {
+	 display: flex;
+	 margin: 0 !important;
+	 max-width: none !important;
+ }
 
 /**
  * Localization
@@ -2317,7 +2268,7 @@
 
 	.media-frame:not(.hide-menu) .media-frame-title .dashicons {
 		display: inline-block;
-		line-height: 50px;
+		line-height: 2.5;
 	}
 
 	.media-frame:not(.hide-menu) .media-frame-title h1 {
@@ -2346,21 +2297,33 @@
 
 	.media-sidebar .setting input,
 	.media-sidebar .setting textarea,
-	.media-sidebar .setting span,
+	.media-sidebar .setting .name,
 	.attachment-details .setting input,
 	.attachment-details .setting textarea,
-	.attachment-details .setting span,
+	.attachment-details .setting .name,
 	.compat-item label span {
+		float: none;
+		display: inline-block;
+	}
+
+	.media-sidebar .setting span, /* Back-compat for pre-5.3 */
+	.attachment-details .setting span, /* Back-compat for pre-5.3 */
+	.media-sidebar .checkbox-label-inline {
 		float: none;
 	}
 
-	.media-sidebar .setting span,
-	.attachment-details .setting span,
+	.media-sidebar .setting .select-label-inline {
+		display: inline;
+	}
+
+	.media-sidebar .setting .name,
+	.media-sidebar .checkbox-label-inline,
+	.attachment-details .setting .name,
 	.compat-item label span {
 		text-align: inherit;
 		min-height: 16px;
 		margin: 0;
-		padding: 8px 2px 0;
+		padding: 8px 2px 2px;
 	}
 
 	.media-sidebar .setting .value,
@@ -2386,7 +2349,8 @@
 	.attachment-details .setting input[type="tel"],
 	.attachment-details .setting input[type="url"],
 	.attachment-details .setting textarea,
-	.attachment-details .setting select {
+	.attachment-details .setting select,
+	.attachment-details .setting + .description {
 		float: none;
 		width: 98%;
 		max-width: none;
@@ -2418,15 +2382,29 @@
 		right: 30px;
 	}
 
-	.image-details .embed-media-settings .setting {
+	.image-details .embed-media-settings .setting,
+	.image-details .embed-media-settings .setting-group {
 		margin: 20px;
 	}
 
-	.image-details .embed-media-settings .setting span {
+	.image-details .embed-media-settings .setting span, /* Back-compat for pre-5.3 */
+	.image-details .embed-media-settings .setting .name {
 		float: none;
 		text-align: left;
 		width: 100%;
 		margin-bottom: 4px;
+		margin-left: 0;
+	}
+
+	.media-modal .legend-inline {
+		position: static;
+		transform: none;
+		margin-left: 0;
+		margin-bottom: 6px;
+	}
+
+	.image-details .embed-media-settings .setting-group .setting {
+		margin-bottom: 0;
 	}
 
 	.image-details .embed-media-settings .setting input.link-to-custom,
@@ -2436,11 +2414,21 @@
 		margin-left: 0;
 	}
 
+	.image-details .embed-media-settings .setting.has-description {
+		margin-bottom: 5px;
+	}
+
+	.image-details .description {
+		width: auto;
+		margin: 0 20px;
+	}
+
 	.image-details .embed-media-settings .custom-size {
 		margin-left: 20px;
 	}
 
 	.collection-settings .setting input[type="checkbox"] {
+		float: none;
 		margin-top: 0;
 	}
 
@@ -2580,11 +2568,11 @@
 	.media-modal .media-frame-title h1,
 	.media-frame:not(.hide-menu) .media-frame-title h1 {
 		font-size: 18px;
-		line-height: 40px;
+		line-height: 2.22222222;
 	}
 
 	.media-frame:not(.hide-menu) .media-frame-title .dashicons {
-		line-height: 40px;
+		line-height: 2;
 	}
 
 	.media-frame-router,

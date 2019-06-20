@@ -343,7 +343,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
 
 		$request_params = $request->get_query_params();
-		$base           = add_query_arg( $request_params, rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ) );
+		$base           = add_query_arg( urlencode_deep( $request_params ), rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ) );
 
 		if ( $page > 1 ) {
 			$prev_page = $page - 1;
@@ -1478,7 +1478,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			// based on the `post_modified` field with the site's timezone
 			// offset applied.
 			if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
-				$post_modified_gmt = date( 'Y-m-d H:i:s', strtotime( $post->post_modified ) - ( get_option( 'gmt_offset' ) * 3600 ) );
+				$post_modified_gmt = gmdate( 'Y-m-d H:i:s', strtotime( $post->post_modified ) - ( get_option( 'gmt_offset' ) * 3600 ) );
 			} else {
 				$post_modified_gmt = $post->post_modified_gmt;
 			}
@@ -1614,7 +1614,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( is_post_type_viewable( $post_type_obj ) && $post_type_obj->public ) {
 
 			if ( ! function_exists( 'get_sample_permalink' ) ) {
-				require_once ABSPATH . '/wp-admin/includes/post.php';
+				require_once ABSPATH . 'wp-admin/includes/post.php';
 			}
 
 			$sample_permalink = get_sample_permalink( $post->ID, $post->post_title, '' );

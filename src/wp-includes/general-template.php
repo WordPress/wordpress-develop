@@ -154,6 +154,17 @@ function get_template_part( $slug, $name = null ) {
 
 	$templates[] = "{$slug}.php";
 
+	/**
+	 * Fires before a template part is loaded.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @param string   $slug      The slug name for the generic template.
+	 * @param string   $name      The name of the specialized template.
+	 * @param string[] $templates Array of template files to search for, in order.
+	 */
+	do_action( 'get_template_part', $slug, $name, $templates );
+
 	locate_template( $templates, true, false );
 }
 
@@ -198,19 +209,16 @@ function get_search_form( $args = array() ) {
 	 */
 	do_action( 'pre_get_search_form' );
 
-	$format = current_theme_supports( 'html5', 'search-form' ) ? 'html5' : 'xhtml';
-
-	/*
-	 * Back compat: to ensure previous uses of get_search_form continue to
-	 * function as expected, we handle a value for the boolean $echo param removed
-	 * in 5.2.0. Then we deal with the $args array and cast its defaults.
-	 */
 	$echo = true;
-	if ( false === $args ) {
-		$echo = false;
-	}
 
 	if ( ! is_array( $args ) ) {
+		/*
+		 * Back compat: to ensure previous uses of get_search_form() continue to
+		 * function as expected, we handle a value for the boolean $echo param removed
+		 * in 5.2.0. Then we deal with the $args array and cast its defaults.
+		 */
+		$echo = (bool) $args;
+
 		// Set an empty array and allow default arguments to take over.
 		$args = array();
 	}
@@ -231,6 +239,8 @@ function get_search_form( $args = array() ) {
 	 * @param array $args The array of arguments for building the search form.
 	 */
 	$args = apply_filters( 'search_form_args', $args );
+
+	$format = current_theme_supports( 'html5', 'search-form' ) ? 'html5' : 'xhtml';
 
 	/**
 	 * Filters the HTML format of the search form.
@@ -342,12 +352,12 @@ function wp_loginout( $redirect = '', $echo = true ) {
  * @return string The logout URL. Note: HTML-encoded via esc_html() in wp_nonce_url().
  */
 function wp_logout_url( $redirect = '' ) {
-	$args = array( 'action' => 'logout' );
+	$args = array();
 	if ( ! empty( $redirect ) ) {
 		$args['redirect_to'] = urlencode( $redirect );
 	}
 
-	$logout_url = add_query_arg( $args, site_url( 'wp-login.php', 'login' ) );
+	$logout_url = add_query_arg( $args, site_url( 'wp-login.php?action=logout', 'login' ) );
 	$logout_url = wp_nonce_url( $logout_url, 'log-out' );
 
 	/**
@@ -548,12 +558,12 @@ function wp_login_form( $args = array() ) {
  * @return string Lost password URL.
  */
 function wp_lostpassword_url( $redirect = '' ) {
-	$args = array( 'action' => 'lostpassword' );
+	$args = array();
 	if ( ! empty( $redirect ) ) {
 		$args['redirect_to'] = urlencode( $redirect );
 	}
 
-	$lostpassword_url = add_query_arg( $args, network_site_url( 'wp-login.php', 'login' ) );
+	$lostpassword_url = add_query_arg( $args, network_site_url( 'wp-login.php?action=lostpassword', 'login' ) );
 
 	/**
 	 * Filters the Lost Password URL.
@@ -948,8 +958,7 @@ function get_custom_logo( $blog_id = 0 ) {
 	// We have a logo. Logo is go.
 	if ( $custom_logo_id ) {
 		$custom_logo_attr = array(
-			'class'    => 'custom-logo',
-			'itemprop' => 'logo',
+			'class' => 'custom-logo',
 		);
 
 		/*
@@ -966,7 +975,7 @@ function get_custom_logo( $blog_id = 0 ) {
 		 * it because wp_get_attachment_image() already adds the alt attribute.
 		 */
 		$html = sprintf(
-			'<a href="%1$s" class="custom-logo-link" rel="home" itemprop="url">%2$s</a>',
+			'<a href="%1$s" class="custom-logo-link" rel="home">%2$s</a>',
 			esc_url( home_url( '/' ) ),
 			wp_get_attachment_image( $custom_logo_id, 'full', false, $custom_logo_attr )
 		);
@@ -1169,7 +1178,7 @@ function _wp_render_title_tag() {
  * @param string $sep         Optional, default is '&raquo;'. How to separate the various items
  *                            within the page title.
  * @param bool   $display     Optional, default is true. Whether to display or retrieve title.
- * @param string $seplocation Optional. Direction to display title, 'right'.
+ * @param string $seplocation Optional. Location of the separator ('left' or 'right').
  * @return string|null String on retrieve, null when displaying.
  */
 function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
@@ -1285,9 +1294,9 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	 *
 	 * @since 2.0.0
 	 *
-	 * @param string $title Page title.
-	 * @param string $sep Title separator.
-	 * @param string $seplocation Location of the separator (left or right).
+	 * @param string $title       Page title.
+	 * @param string $sep         Title separator.
+	 * @param string $seplocation Location of the separator ('left' or 'right').
 	 */
 	$title = apply_filters( 'wp_title', $title, $sep, $seplocation );
 
@@ -2098,7 +2107,7 @@ function get_calendar( $initial = true, $echo = true ) {
 	}
 
 	$unixmonth = mktime( 0, 0, 0, $thismonth, 1, $thisyear );
-	$last_day  = date( 't', $unixmonth );
+	$last_day  = gmdate( 't', $unixmonth );
 
 	// Get the next and previous month and year with at least one post
 	$previous = $wpdb->get_row(
@@ -2124,7 +2133,7 @@ function get_calendar( $initial = true, $echo = true ) {
 	<caption>' . sprintf(
 		$calendar_caption,
 		$wp_locale->get_month( $thismonth ),
-		date( 'Y', $unixmonth )
+		gmdate( 'Y', $unixmonth )
 	) . '</caption>
 	<thead>
 	<tr>';
@@ -2190,13 +2199,13 @@ function get_calendar( $initial = true, $echo = true ) {
 	}
 
 	// See how much we should pad in the beginning
-	$pad = calendar_week_mod( date( 'w', $unixmonth ) - $week_begins );
+	$pad = calendar_week_mod( gmdate( 'w', $unixmonth ) - $week_begins );
 	if ( 0 != $pad ) {
 		$calendar_output .= "\n\t\t" . '<td colspan="' . esc_attr( $pad ) . '" class="pad">&nbsp;</td>';
 	}
 
 	$newrow      = false;
-	$daysinmonth = (int) date( 't', $unixmonth );
+	$daysinmonth = (int) gmdate( 't', $unixmonth );
 
 	for ( $day = 1; $day <= $daysinmonth; ++$day ) {
 		if ( isset( $newrow ) && $newrow ) {
@@ -2214,7 +2223,7 @@ function get_calendar( $initial = true, $echo = true ) {
 
 		if ( in_array( $day, $daywithpost ) ) {
 			// any posts today?
-			$date_format = date( _x( 'F j, Y', 'daily archives date format' ), strtotime( "{$thisyear}-{$thismonth}-{$day}" ) );
+			$date_format = gmdate( _x( 'F j, Y', 'daily archives date format' ), strtotime( "{$thisyear}-{$thismonth}-{$day}" ) );
 			/* translators: Post calendar label. %s: Date */
 			$label            = sprintf( __( 'Posts published on %s' ), $date_format );
 			$calendar_output .= sprintf(
@@ -2228,12 +2237,12 @@ function get_calendar( $initial = true, $echo = true ) {
 		}
 		$calendar_output .= '</td>';
 
-		if ( 6 == calendar_week_mod( date( 'w', mktime( 0, 0, 0, $thismonth, $day, $thisyear ) ) - $week_begins ) ) {
+		if ( 6 == calendar_week_mod( gmdate( 'w', mktime( 0, 0, 0, $thismonth, $day, $thisyear ) ) - $week_begins ) ) {
 			$newrow = true;
 		}
 	}
 
-	$pad = 7 - calendar_week_mod( date( 'w', mktime( 0, 0, 0, $thismonth, $day, $thisyear ) ) - $week_begins );
+	$pad = 7 - calendar_week_mod( gmdate( 'w', mktime( 0, 0, 0, $thismonth, $day, $thisyear ) ) - $week_begins );
 	if ( $pad != 0 && $pad != 7 ) {
 		$calendar_output .= "\n\t\t" . '<td class="pad" colspan="' . esc_attr( $pad ) . '">&nbsp;</td>';
 	}
@@ -2319,8 +2328,8 @@ function the_date_xml() {
  *
  * @since 0.71
  *
- * @global string|int|bool $currentday
- * @global string|int|bool $previousday
+ * @global string $currentday  The day of the current post in the loop.
+ * @global string $previousday The day of the previous post in the loop.
  *
  * @param string $d      Optional. PHP date format defaults to the date_format option if not specified.
  * @param string $before Optional. Output before the date.
@@ -2331,28 +2340,30 @@ function the_date_xml() {
 function the_date( $d = '', $before = '', $after = '', $echo = true ) {
 	global $currentday, $previousday;
 
+	$the_date = '';
+
 	if ( is_new_day() ) {
 		$the_date    = $before . get_the_date( $d ) . $after;
 		$previousday = $currentday;
+	}
 
-		/**
-		 * Filters the date a post was published for display.
-		 *
-		 * @since 0.71
-		 *
-		 * @param string $the_date The formatted date string.
-		 * @param string $d        PHP date format. Defaults to 'date_format' option
-		 *                         if not specified.
-		 * @param string $before   HTML output before the date.
-		 * @param string $after    HTML output after the date.
-		 */
-		$the_date = apply_filters( 'the_date', $the_date, $d, $before, $after );
+	/**
+	 * Filters the date a post was published for display.
+	 *
+	 * @since 0.71
+	 *
+	 * @param string $the_date The formatted date string.
+	 * @param string $d        PHP date format. Defaults to 'date_format' option
+	 *                         if not specified.
+	 * @param string $before   HTML output before the date.
+	 * @param string $after    HTML output after the date.
+	 */
+	$the_date = apply_filters( 'the_date', $the_date, $d, $before, $after );
 
-		if ( $echo ) {
-			echo $the_date;
-		} else {
-			return $the_date;
-		}
+	if ( $echo ) {
+		echo $the_date;
+	} else {
+		return $the_date;
 	}
 }
 
@@ -2647,6 +2658,7 @@ function get_post_modified_time( $d = 'U', $gmt = false, $post = null, $translat
 	} else {
 		$time = $post->post_modified;
 	}
+
 	$time = mysql2date( $d, $time, $translate );
 
 	/**
@@ -2655,8 +2667,9 @@ function get_post_modified_time( $d = 'U', $gmt = false, $post = null, $translat
 	 * @since 2.8.0
 	 *
 	 * @param string $time The formatted time.
-	 * @param string $d    The date format. Accepts 'G', 'U', or php date format. Default 'U'.
-	 * @param bool   $gmt  Whether to return the GMT time. Default false.
+	 * @param string $d    Format to use for retrieving the time the post was modified.
+	 *                     Accepts 'G', 'U', or php date format. Default 'U'.
+	 * @param bool   $gmt  Whether to retrieve the GMT time. Default false.
 	 */
 	return apply_filters( 'get_post_modified_time', $time, $d, $gmt );
 }
@@ -2666,11 +2679,18 @@ function get_post_modified_time( $d = 'U', $gmt = false, $post = null, $translat
  *
  * @since 0.71
  *
- * @global WP_Locale $wp_locale
+ * @global WP_Locale $wp_locale The WordPress date and time locale object.
  */
 function the_weekday() {
 	global $wp_locale;
-	$the_weekday = $wp_locale->get_weekday( mysql2date( 'w', get_post()->post_date, false ) );
+
+	$post = get_post();
+
+	if ( ! $post ) {
+		return;
+	}
+
+	$the_weekday = $wp_locale->get_weekday( get_post_time( 'w', false, $post ) );
 
 	/**
 	 * Filters the weekday on which the post was written, for display.
@@ -2690,19 +2710,27 @@ function the_weekday() {
  *
  * @since 0.71
  *
- * @global WP_Locale       $wp_locale
- * @global string|int|bool $currentday
- * @global string|int|bool $previousweekday
+ * @global WP_Locale $wp_locale       The WordPress date and time locale object.
+ * @global string    $currentday      The day of the current post in the loop.
+ * @global string    $previousweekday The day of the previous post in the loop.
  *
- * @param string $before Optional Output before the date.
- * @param string $after Optional Output after the date.
+ * @param string $before Optional. Output before the date.
+ * @param string $after  Optional. Output after the date.
  */
 function the_weekday_date( $before = '', $after = '' ) {
 	global $wp_locale, $currentday, $previousweekday;
+
+	$post = get_post();
+
+	if ( ! $post ) {
+		return;
+	}
+
 	$the_weekday_date = '';
-	if ( $currentday != $previousweekday ) {
+
+	if ( $currentday !== $previousweekday ) {
 		$the_weekday_date .= $before;
-		$the_weekday_date .= $wp_locale->get_weekday( mysql2date( 'w', get_post()->post_date, false ) );
+		$the_weekday_date .= $wp_locale->get_weekday( get_post_time( 'w', false, $post ) );
 		$the_weekday_date .= $after;
 		$previousweekday   = $currentday;
 	}
@@ -2712,12 +2740,11 @@ function the_weekday_date( $before = '', $after = '' ) {
 	 *
 	 * @since 0.71
 	 *
-	 * @param string $the_weekday_date
+	 * @param string $the_weekday_date The weekday on which the post was written.
 	 * @param string $before           The HTML to output before the date.
 	 * @param string $after            The HTML to output after the date.
 	 */
-	$the_weekday_date = apply_filters( 'the_weekday_date', $the_weekday_date, $before, $after );
-	echo $the_weekday_date;
+	echo apply_filters( 'the_weekday_date', $the_weekday_date, $before, $after );
 }
 
 /**
@@ -2750,6 +2777,22 @@ function wp_footer() {
 	 * @since 1.5.1
 	 */
 	do_action( 'wp_footer' );
+}
+
+/**
+ * Fire the wp_body_open action.
+ *
+ * * See {@see 'wp_body_open'}.
+ *
+ * @since 5.2.0
+ */
+function wp_body_open() {
+	/**
+	 * Triggered after the opening <body> tag.
+	 *
+	 * @since 5.2.0
+	 */
+	do_action( 'wp_body_open' );
 }
 
 /**
@@ -3030,7 +3073,7 @@ function wp_resource_hints() {
 	 * The path is removed in the foreach loop below.
 	 */
 	/** This filter is documented in wp-includes/formatting.php */
-	$hints['dns-prefetch'][] = apply_filters( 'emoji_svg_url', 'https://s.w.org/images/core/emoji/11.2.0/svg/' );
+	$hints['dns-prefetch'][] = apply_filters( 'emoji_svg_url', 'https://s.w.org/images/core/emoji/12.0.0-1/svg/' );
 
 	foreach ( $hints as $relation_type => $urls ) {
 		$unique_urls = array();
@@ -4409,7 +4452,7 @@ function get_the_generator( $type = '' ) {
 			$gen = '<!-- generator="WordPress/' . esc_attr( get_bloginfo( 'version' ) ) . '" -->';
 			break;
 		case 'export':
-			$gen = '<!-- generator="WordPress/' . esc_attr( get_bloginfo_rss( 'version' ) ) . '" created="' . date( 'Y-m-d H:i' ) . '" -->';
+			$gen = '<!-- generator="WordPress/' . esc_attr( get_bloginfo_rss( 'version' ) ) . '" created="' . gmdate( 'Y-m-d H:i' ) . '" -->';
 			break;
 	}
 

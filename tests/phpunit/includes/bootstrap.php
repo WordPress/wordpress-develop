@@ -33,6 +33,7 @@ if ( ! is_readable( $config_file_path ) ) {
 	echo "ERROR: wp-tests-config.php is missing! Please use wp-tests-config-sample.php to create a config file.\n";
 	exit( 1 );
 }
+
 require_once $config_file_path;
 require_once dirname( __FILE__ ) . '/functions.php';
 
@@ -42,6 +43,11 @@ if ( version_compare( tests_get_phpunit_version(), '8.0', '>=' ) ) {
 		tests_get_phpunit_version()
 	);
 	echo "Please use the latest PHPUnit version from the 7.x branch.\n";
+	exit( 1 );
+}
+
+if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && ! is_dir( ABSPATH ) ) {
+	echo "ERROR: The /build/ directory is missing! Please run `npm run build` prior to running PHPUnit.\n";
 	exit( 1 );
 }
 

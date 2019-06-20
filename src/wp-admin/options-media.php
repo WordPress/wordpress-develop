@@ -35,7 +35,7 @@ get_current_screen()->add_help_tab(
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
 	'<p>' . __( '<a href="https://codex.wordpress.org/Settings_Media_Screen">Documentation on Media Settings</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support Forums</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
 include( ABSPATH . 'wp-admin/admin-header.php' );
@@ -51,7 +51,7 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 <h2 class="title"><?php _e( 'Image sizes' ); ?></h2>
 <p><?php _e( 'The sizes listed below determine the maximum dimensions in pixels to use when adding an image to the Media Library.' ); ?></p>
 
-<table class="form-table">
+<table class="form-table" role="presentation">
 <tr>
 <th scope="row"><?php _e( 'Thumbnail size' ); ?></th>
 <td><fieldset><legend class="screen-reader-text"><span><?php _e( 'Thumbnail size' ); ?></span></legend>
@@ -98,14 +98,14 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 if ( isset( $GLOBALS['wp_settings']['media']['embeds'] ) ) :
 	?>
 <h2 class="title"><?php _e( 'Embeds' ); ?></h2>
-<table class="form-table">
+<table class="form-table" role="presentation">
 	<?php do_settings_fields( 'media', 'embeds' ); ?>
 </table>
 <?php endif; ?>
 
 <?php if ( ! is_multisite() ) : ?>
 <h2 class="title"><?php _e( 'Uploading Files' ); ?></h2>
-<table class="form-table">
+<table class="form-table" role="presentation">
 	<?php
 	// If upload_url_path is not the default (empty), and upload_path is not the default ('wp-content/uploads' or empty)
 	if ( get_option( 'upload_url_path' ) || ( get_option( 'upload_path' ) != 'wp-content/uploads' && get_option( 'upload_path' ) ) ) :

@@ -14,9 +14,21 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 		'keydown': 'constrainTabbing'
 	},
 
-	focus: function() { // Reset focus on first left menu item
-		this.$('.media-menu-item').first().focus();
+	/**
+	 * Gets all the tabbable elements.
+	 */
+	getTabbables: function() {
+		// Skip the file input added by Plupload.
+		return this.$( ':tabbable' ).not( '.moxie-shim input[type="file"]' );
 	},
+
+	/**
+	 * Moves focus to the modal dialog.
+	 */
+	focus: function() {
+		this.$( '.media-modal' ).focus();
+	},
+
 	/**
 	 * @param {Object} event
 	 */
@@ -28,8 +40,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 			return;
 		}
 
-		// Skip the file input added by Plupload.
-		tabbables = this.$( ':tabbable' ).not( '.moxie-shim input[type="file"]' );
+		tabbables = this.getTabbables();
 
 		// Keep tab focus within media modal while it's open
 		if ( tabbables.last()[0] === event.target && ! event.shiftKey ) {

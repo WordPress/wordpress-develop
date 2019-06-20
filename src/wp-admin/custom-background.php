@@ -97,7 +97,7 @@ class Custom_Background {
 		get_current_screen()->set_help_sidebar(
 			'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
 			'<p>' . __( '<a href="https://codex.wordpress.org/Appearance_Background_Screen">Documentation on Custom Background</a>' ) . '</p>' .
-			'<p>' . __( '<a href="https://wordpress.org/support/">Support Forums</a>' ) . '</p>'
+			'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 		);
 
 		wp_enqueue_media();
@@ -244,9 +244,9 @@ class Custom_Background {
 </div>
 		<?php } ?>
 
-<h3><?php _e( 'Background Image' ); ?></h3>
+<h2><?php _e( 'Background Image' ); ?></h2>
 
-<table class="form-table">
+<table class="form-table" role="presentation">
 <tbody>
 <tr>
 <th scope="row"><?php _e( 'Preview' ); ?></th>
@@ -338,9 +338,9 @@ class Custom_Background {
 </tbody>
 </table>
 
-<h3><?php _e( 'Display Options' ); ?></h3>
+<h2><?php _e( 'Display Options' ); ?></h2>
 <form method="post">
-<table class="form-table">
+<table class="form-table" role="presentation">
 <tbody>
 		<?php if ( get_background_image() ) : ?>
 <input name="background-preset" type="hidden" value="custom">

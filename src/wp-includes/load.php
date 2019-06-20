@@ -13,7 +13,7 @@
  * @return string The HTTP protocol. Default: HTTP/1.0.
  */
 function wp_get_server_protocol() {
-	$protocol = $_SERVER['SERVER_PROTOCOL'];
+	$protocol = isset( $_SERVER['SERVER_PROTOCOL'] ) ? $_SERVER['SERVER_PROTOCOL'] : '';
 	if ( ! in_array( $protocol, array( 'HTTP/1.1', 'HTTP/2', 'HTTP/2.0' ) ) ) {
 		$protocol = 'HTTP/1.0';
 	}
@@ -136,16 +136,23 @@ function wp_check_php_mysql_versions() {
 		header( sprintf( '%s 500 Internal Server Error', $protocol ), true, 500 );
 		header( 'Content-Type: text/html; charset=utf-8' );
 		/* translators: 1: Current PHP version number, 2: WordPress version number, 3: Minimum required PHP version number */
-		die( sprintf( __( 'Your server is running PHP version %1$s but WordPress %2$s requires at least %3$s.' ), $php_version, $wp_version, $required_php_version ) );
+		printf( __( 'Your server is running PHP version %1$s but WordPress %2$s requires at least %3$s.' ), $php_version, $wp_version, $required_php_version );
+		exit( 1 );
 	}
 
 	if ( ! extension_loaded( 'mysql' ) && ! extension_loaded( 'mysqli' ) && ! extension_loaded( 'mysqlnd' ) && ! file_exists( WP_CONTENT_DIR . '/db.php' ) ) {
+		require_once( ABSPATH . WPINC . '/functions.php' );
 		wp_load_translations_early();
-
-		$protocol = wp_get_server_protocol();
-		header( sprintf( '%s 500 Internal Server Error', $protocol ), true, 500 );
-		header( 'Content-Type: text/html; charset=utf-8' );
-		die( __( 'Your PHP installation appears to be missing the MySQL extension which is required by WordPress.' ) );
+		$args = array(
+			'exit' => false,
+			'code' => 'mysql_not_found',
+		);
+		wp_die(
+			__( 'Your PHP installation appears to be missing the MySQL extension which is required by WordPress.' ),
+			__( 'Insufficient Requirements' ),
+			$args
+		);
+		exit( 1 );
 	}
 }
 
@@ -214,31 +221,16 @@ function wp_maintenance() {
 		die();
 	}
 
+	require_once( ABSPATH . WPINC . '/functions.php' );
 	wp_load_translations_early();
 
-	$protocol = wp_get_server_protocol();
-	header( "$protocol 503 Service Unavailable", true, 503 );
-	header( 'Content-Type: text/html; charset=utf-8' );
 	header( 'Retry-After: 600' );
 
-	$dir_attr = '';
-	if ( is_rtl() ) {
-		$dir_attr = ' dir="rtl"';
-	}
-	?>
-	<!DOCTYPE html>
-	<html xmlns="http://www.w3.org/1999/xhtml"<?php echo $dir_attr; ?>>
-	<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-		<title><?php _e( 'Maintenance' ); ?></title>
-
-	</head>
-	<body>
-		<h1><?php _e( 'Briefly unavailable for scheduled maintenance. Check back in a minute.' ); ?></h1>
-	</body>
-	</html>
-	<?php
-	die();
+	wp_die(
+		__( 'Briefly unavailable for scheduled maintenance. Check back in a minute.' ),
+		__( 'Maintenance' ),
+		503
+	);
 }
 
 /**
@@ -1459,6 +1451,9 @@ function wp_start_scraping_edited_file_errors() {
 		echo "###### wp_scraping_result_end:$key ######";
 		die();
 	}
+	if ( ! defined( 'WP_SANDBOX_SCRAPING' ) ) {
+		define( 'WP_SANDBOX_SCRAPING', true );
+	}
 	register_shutdown_function( 'wp_finalize_scraping_edited_file_errors', $key );
 }
 
@@ -1500,4 +1495,64 @@ function wp_is_json_request() {
 
 	return false;
 
+}
+
+/**
+ * Checks whether current request is a JSONP request, or is expecting a JSONP response.
+ *
+ * @since 5.2.0
+ *
+ * @return bool True if JSONP request, false otherwise.
+ */
+function wp_is_jsonp_request() {
+	if ( ! isset( $_GET['_jsonp'] ) ) {
+		return false;
+	}
+
+	if ( ! function_exists( 'wp_check_jsonp_callback' ) ) {
+		require_once ABSPATH . WPINC . '/functions.php';
+	}
+
+	$jsonp_callback = $_GET['_jsonp'];
+	if ( ! wp_check_jsonp_callback( $jsonp_callback ) ) {
+		return false;
+	}
+
+	/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
+	$jsonp_enabled = apply_filters( 'rest_jsonp_enabled', true );
+
+	return $jsonp_enabled;
+
+}
+
+/**
+ * Checks whether current request is an XML request, or is expecting an XML response.
+ *
+ * @since 5.2.0
+ *
+ * @return bool True if Accepts or Content-Type headers contain xml, false otherwise.
+ */
+function wp_is_xml_request() {
+	$accepted = array(
+		'text/xml',
+		'application/rss+xml',
+		'application/atom+xml',
+		'application/rdf+xml',
+		'text/xml+oembed',
+		'application/xml+oembed',
+	);
+
+	if ( isset( $_SERVER['HTTP_ACCEPT'] ) ) {
+		foreach ( $accepted as $type ) {
+			if ( false !== strpos( $_SERVER['HTTP_ACCEPT'], $type ) ) {
+				return true;
+			}
+		}
+	}
+
+	if ( isset( $_SERVER['CONTENT_TYPE'] ) && in_array( $_SERVER['CONTENT_TYPE'], $accepted, true ) ) {
+		return true;
+	}
+
+	return false;
 }

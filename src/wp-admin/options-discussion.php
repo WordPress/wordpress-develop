@@ -29,7 +29,7 @@ get_current_screen()->add_help_tab(
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
 	'<p>' . __( '<a href="https://codex.wordpress.org/Settings_Discussion_Screen">Documentation on Discussion Settings</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support Forums</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
 include( ABSPATH . 'wp-admin/admin-header.php' );
@@ -41,23 +41,23 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 <form method="post" action="options.php">
 <?php settings_fields( 'discussion' ); ?>
 
-<table class="form-table">
+<table class="form-table" role="presentation">
 <tr>
-<th scope="row"><?php _e( 'Default article settings' ); ?></th>
-<td><fieldset><legend class="screen-reader-text"><span><?php _e( 'Default article settings' ); ?></span></legend>
+<th scope="row"><?php _e( 'Default post settings' ); ?></th>
+<td><fieldset><legend class="screen-reader-text"><span><?php _e( 'Default post settings' ); ?></span></legend>
 <label for="default_pingback_flag">
 <input name="default_pingback_flag" type="checkbox" id="default_pingback_flag" value="1" <?php checked( '1', get_option( 'default_pingback_flag' ) ); ?> />
-<?php _e( 'Attempt to notify any blogs linked to from the article' ); ?></label>
+<?php _e( 'Attempt to notify any blogs linked to from the post' ); ?></label>
 <br />
 <label for="default_ping_status">
 <input name="default_ping_status" type="checkbox" id="default_ping_status" value="open" <?php checked( 'open', get_option( 'default_ping_status' ) ); ?> />
-<?php _e( 'Allow link notifications from other blogs (pingbacks and trackbacks) on new articles' ); ?></label>
+<?php _e( 'Allow link notifications from other blogs (pingbacks and trackbacks) on new posts' ); ?></label>
 <br />
 <label for="default_comment_status">
 <input name="default_comment_status" type="checkbox" id="default_comment_status" value="open" <?php checked( 'open', get_option( 'default_comment_status' ) ); ?> />
-<?php _e( 'Allow people to post comments on new articles' ); ?></label>
+<?php _e( 'Allow people to submit comments on new posts' ); ?></label>
 <br />
-<p class="description"><?php echo '(' . __( 'These settings may be overridden for individual articles.' ) . ')'; ?></p>
+<p class="description"><?php echo '(' . __( 'These settings may be overridden for individual posts.' ) . ')'; ?></p>
 </fieldset></td>
 </tr>
 <tr>
@@ -79,7 +79,7 @@ if ( ! get_option( 'users_can_register' ) && is_multisite() ) {
 <input name="close_comments_for_old_posts" type="checkbox" id="close_comments_for_old_posts" value="1" <?php checked( '1', get_option( 'close_comments_for_old_posts' ) ); ?> />
 <?php
 printf(
-	__( 'Automatically close comments on articles older than %s days' ),
+	__( 'Automatically close comments on posts older than %s days' ),
 	'</label> <label for="close_comments_days_old"><input name="close_comments_days_old" type="number" min="0" step="1" id="close_comments_days_old" value="' . esc_attr( get_option( 'close_comments_days_old' ) ) . '" class="small-text" />'
 );
 ?>
@@ -88,7 +88,7 @@ printf(
 
 <label for="show_comments_cookies_opt_in">
 <input name="show_comments_cookies_opt_in" type="checkbox" id="show_comments_cookies_opt_in" value="1" <?php checked( '1', get_option( 'show_comments_cookies_opt_in' ) ); ?> />
-<?php _e( 'Show comments cookies opt-in checkbox, allowing comment author cookies to be set.' ); ?>
+<?php _e( 'Show comments cookies opt-in checkbox, allowing comment author cookies to be set' ); ?>
 </label>
 <br />
 
@@ -218,15 +218,15 @@ if ( ! $show_avatars ) {
 }
 ?>
 
-<table class="form-table">
+<table class="form-table" role="presentation">
 <tr>
 <th scope="row"><?php _e( 'Avatar Display' ); ?></th>
-<td><fieldset><legend class="screen-reader-text"><span><?php _e( 'Avatar Display' ); ?></span></legend>
+<td>
 	<label for="show_avatars">
 		<input type="checkbox" id="show_avatars" name="show_avatars" value="1" <?php checked( $show_avatars, 1 ); ?> />
 		<?php _e( 'Show Avatars' ); ?>
 	</label>
-</fieldset></td>
+</td>
 </tr>
 <tr class="avatar-settings<?php echo $show_avatars_class; ?>">
 <th scope="row"><?php _e( 'Maximum Rating' ); ?></th>
@@ -255,7 +255,9 @@ endforeach;
 <th scope="row"><?php _e( 'Default Avatar' ); ?></th>
 <td class="defaultavatarpicker"><fieldset><legend class="screen-reader-text"><span><?php _e( 'Default Avatar' ); ?></span></legend>
 
+<p>
 <?php _e( 'For users without a custom avatar of their own, you can either display a generic logo or a generated one based on their email address.' ); ?><br />
+</p>
 
 <?php
 $avatar_defaults = array(

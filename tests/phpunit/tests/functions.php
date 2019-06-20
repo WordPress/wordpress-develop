@@ -466,53 +466,6 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the media grid uses the correct available single media type.
-	 * @ticket 43658
-	 */
-	function test_wp_enqueue_media_single_mime_type() {
-		$filename      = DIR_TESTDATA . '/images/test-image.jpg';
-		$contents      = file_get_contents( $filename );
-		$upload        = wp_upload_bits( basename( $filename ), null, $contents );
-		$attachment_id = $this->_make_attachment( $upload );
-
-		add_filter(
-			'media_view_settings',
-			function( $settings ) {
-				$this->assertEquals( array( 'image' ), array_keys( $settings['mimeTypes'] ) );
-				return $settings;
-			}
-		);
-		wp_enqueue_media();
-		remove_all_filters( 'media_view_settings' );
-	}
-
-	/**
-	 * Test that the media grid uses the correct available multiple media types.
-	 * @ticket 43658
-	 */
-	function test_wp_enqueue_media_multiple_mime_types() {
-		$filename      = DIR_TESTDATA . '/images/test-image.jpg';
-		$contents      = file_get_contents( $filename );
-		$upload        = wp_upload_bits( basename( $filename ), null, $contents );
-		$attachment_id = $this->_make_attachment( $upload );
-
-		$filename      = DIR_TESTDATA . '/uploads/small-audio.mp3';
-		$contents      = file_get_contents( $filename );
-		$upload        = wp_upload_bits( basename( $filename ), null, $contents );
-		$attachment_id = $this->_make_attachment( $upload );
-
-		add_filter(
-			'media_view_settings',
-			function( $settings ) {
-				$this->assertEquals( array( 'image', 'audio' ), array_keys( $settings['mimeTypes'] ) );
-				return $settings;
-			}
-		);
-		wp_enqueue_media();
-		remove_all_filters( 'media_view_settings' );
-	}
-
-	/**
 	 * @ticket 21594
 	 */
 	function test_wp_get_mime_types() {
@@ -960,46 +913,6 @@ class Tests_Functions extends WP_UnitTestCase {
 		$data = array( 'あ', array( array( 1, 2, 3 ) ) );
 		$json = wp_json_encode( $data, 0, 1 );
 		$this->assertFalse( $json );
-	}
-
-	/**
-	 * @ticket 33750
-	 */
-	function test_the_date() {
-		ob_start();
-		the_date();
-		$actual = ob_get_clean();
-		$this->assertEquals( '', $actual );
-
-		$GLOBALS['post'] = self::factory()->post->create_and_get(
-			array(
-				'post_date' => '2015-09-16 08:00:00',
-			)
-		);
-
-		ob_start();
-		$GLOBALS['currentday']  = '18.09.15';
-		$GLOBALS['previousday'] = '17.09.15';
-		the_date();
-		$this->assertEquals( 'September 16, 2015', ob_get_clean() );
-
-		ob_start();
-		$GLOBALS['currentday']  = '18.09.15';
-		$GLOBALS['previousday'] = '17.09.15';
-		the_date( 'Y' );
-		$this->assertEquals( '2015', ob_get_clean() );
-
-		ob_start();
-		$GLOBALS['currentday']  = '18.09.15';
-		$GLOBALS['previousday'] = '17.09.15';
-		the_date( 'Y', 'before ', ' after' );
-		$this->assertEquals( 'before 2015 after', ob_get_clean() );
-
-		ob_start();
-		$GLOBALS['currentday']  = '18.09.15';
-		$GLOBALS['previousday'] = '17.09.15';
-		the_date( 'Y', 'before ', ' after', false );
-		$this->assertEquals( '', ob_get_clean() );
 	}
 
 	/**

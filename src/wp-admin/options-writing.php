@@ -50,7 +50,7 @@ if ( apply_filters( 'enable_update_services_configuration', true ) ) {
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
 	'<p>' . __( '<a href="https://codex.wordpress.org/Settings_Writing_Screen">Documentation on Writing Settings</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support Forums</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
 include( ABSPATH . 'wp-admin/admin-header.php' );
@@ -62,7 +62,7 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 <form method="post" action="options.php">
 <?php settings_fields( 'writing' ); ?>
 
-<table class="form-table">
+<table class="form-table" role="presentation">
 <?php if ( get_site_option( 'initial_db_version' ) < 32453 ) : ?>
 <tr>
 <th scope="row"><?php _e( 'Formatting' ); ?></th>
@@ -150,7 +150,7 @@ if ( apply_filters( 'enable_post_by_email_configuration', true ) ) {
 	?>
 </p>
 
-<table class="form-table">
+<table class="form-table" role="presentation">
 <tr>
 <th scope="row"><label for="mailserver_url"><?php _e( 'Mail Server' ); ?></label></th>
 <td><input name="mailserver_url" type="text" id="mailserver_url" value="<?php form_option( 'mailserver_url' ); ?>" class="regular-text code" />

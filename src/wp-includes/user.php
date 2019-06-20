@@ -1808,6 +1808,7 @@ function wp_insert_user( $userdata ) {
 	 *                                          not forced.
 	 *     @type bool     $show_admin_bar_front Whether to show the admin bar on the front end for the user.
 	 *                                          Default true.
+	 *     @type string   $locale               User's locale. Default empty.
 	 * }
 	 * @param WP_User $user   User object.
 	 * @param bool    $update Whether the user is being updated rather than created.
@@ -1970,8 +1971,8 @@ All at ###SITENAME###
 
 			$pass_change_email = array(
 				'to'      => $user['user_email'],
-				/* translators: User password change notification email subject. %s: Site name */
-				'subject' => __( '[%s] Notice of Password Change' ),
+				/* translators: Password change notification email subject. %s: Site name */
+				'subject' => __( '[%s] Password Changed' ),
 				'message' => $pass_change_text,
 				'headers' => '',
 			);
@@ -2027,8 +2028,8 @@ All at ###SITENAME###
 
 			$email_change_email = array(
 				'to'      => $user['user_email'],
-				/* translators: User email change notification email subject. %s: Site name */
-				'subject' => __( '[%s] Notice of Email Change' ),
+				/* translators: Email change notification email subject. %s: Site name */
+				'subject' => __( '[%s] Email Changed' ),
 				'message' => $email_change_text,
 				'headers' => '',
 			);
@@ -2809,7 +2810,8 @@ All at ###SITENAME###
 		$content = str_replace( '###SITENAME###', $sitename, $content );
 		$content = str_replace( '###SITEURL###', home_url(), $content );
 
-		wp_mail( $_POST['email'], sprintf( __( '[%s] New Email Address' ), $sitename ), $content );
+		/* translators: New email address notification email subject. %s: Site name */
+		wp_mail( $_POST['email'], sprintf( __( '[%s] Email Change Request' ), $sitename ), $content );
 
 		$_POST['email'] = $current_user->user_email;
 	}
@@ -3084,7 +3086,7 @@ All at ###SITENAME###
 	$content = str_replace( '###SITEURL###', esc_url_raw( $email_data['siteurl'] ), $content );
 
 	$subject = sprintf(
-		/* translators: 1: Site name. 2: Name of the confirmed action. */
+		/* translators: Privacy data request confirmed notification email subject. 1: Site title, 2: Name of the confirmed action. */
 		__( '[%1$s] Action Confirmed: %2$s' ),
 		$email_data['sitename'],
 		$action_description
@@ -3140,6 +3142,15 @@ function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 		return;
 	}
 
+	// Localize message content for user; fallback to site default for visitors.
+	if ( ! empty( $request->user_id ) ) {
+		$locale = get_user_locale( $request->user_id );
+	} else {
+		$locale = get_locale();
+	}
+
+	$switched_locale = switch_to_locale( $locale );
+
 	/**
 	 * Filters the recipient of the data erasure fulfillment notification.
 	 *
@@ -3159,7 +3170,7 @@ function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 	);
 
 	$subject = sprintf(
-		/* translators: %s: Site name. */
+		/* translators: Erasure request fulfilled notification email subject. %s: Site name. */
 		__( '[%s] Erasure Request Fulfilled' ),
 		$email_data['sitename']
 	);
@@ -3249,6 +3260,10 @@ All at ###SITENAME###
 	$content = str_replace( '###SITEURL###', esc_url_raw( $email_data['siteurl'] ), $content );
 
 	$email_sent = wp_mail( $user_email, $subject, $content );
+
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
 
 	if ( $email_sent ) {
 		update_post_meta( $request_id, '_wp_user_notified', true );
@@ -3483,7 +3498,7 @@ All at ###SITENAME###
 	$content = str_replace( '###SITENAME###', $email_data['sitename'], $content );
 	$content = str_replace( '###SITEURL###', esc_url_raw( $email_data['siteurl'] ), $content );
 
-	/* translators: Privacy data request subject. 1: Site name, 2: Name of the action */
+	/* translators: Confirm privacy data request notification email subject. 1: Site title, 2: Name of the action */
 	$subject = sprintf( __( '[%1$s] Confirm Action: %2$s' ), $email_data['sitename'], $email_data['description'] );
 
 	/**
@@ -3631,111 +3646,4 @@ function wp_get_user_request_data( $request_id ) {
 	}
 
 	return new WP_User_Request( $post );
-}
-
-/**
- * WP_User_Request class.
- *
- * Represents user request data loaded from a WP_Post object.
- *
- * @since 4.9.6
- */
-final class WP_User_Request {
-	/**
-	 * Request ID.
-	 *
-	 * @var int
-	 */
-	public $ID = 0;
-
-	/**
-	 * User ID.
-	 *
-	 * @var int
-	 */
-	public $user_id = 0;
-
-	/**
-	 * User email.
-	 *
-	 * @var int
-	 */
-	public $email = '';
-
-	/**
-	 * Action name.
-	 *
-	 * @var string
-	 */
-	public $action_name = '';
-
-	/**
-	 * Current status.
-	 *
-	 * @var string
-	 */
-	public $status = '';
-
-	/**
-	 * Timestamp this request was created.
-	 *
-	 * @var int|null
-	 */
-	public $created_timestamp = null;
-
-	/**
-	 * Timestamp this request was last modified.
-	 *
-	 * @var int|null
-	 */
-	public $modified_timestamp = null;
-
-	/**
-	 * Timestamp this request was confirmed.
-	 *
-	 * @var int
-	 */
-	public $confirmed_timestamp = null;
-
-	/**
-	 * Timestamp this request was completed.
-	 *
-	 * @var int
-	 */
-	public $completed_timestamp = null;
-
-	/**
-	 * Misc data assigned to this request.
-	 *
-	 * @var array
-	 */
-	public $request_data = array();
-
-	/**
-	 * Key used to confirm this request.
-	 *
-	 * @var string
-	 */
-	public $confirm_key = '';
-
-	/**
-	 * Constructor.
-	 *
-	 * @since 4.9.6
-	 *
-	 * @param WP_Post|object $post Post object.
-	 */
-	public function __construct( $post ) {
-		$this->ID                  = $post->ID;
-		$this->user_id             = $post->post_author;
-		$this->email               = $post->post_title;
-		$this->action_name         = $post->post_name;
-		$this->status              = $post->post_status;
-		$this->created_timestamp   = strtotime( $post->post_date_gmt );
-		$this->modified_timestamp  = strtotime( $post->post_modified_gmt );
-		$this->confirmed_timestamp = (int) get_post_meta( $post->ID, '_wp_user_request_confirmed_timestamp', true );
-		$this->completed_timestamp = (int) get_post_meta( $post->ID, '_wp_user_request_completed_timestamp', true );
-		$this->request_data        = json_decode( $post->post_content, true );
-		$this->confirm_key         = $post->post_password;
-	}
 }

@@ -31,6 +31,8 @@
  *     Network: Optional. Specify "Network: true" to require that a plugin is activated
  *          across all sites in an installation. This will prevent a plugin from being
  *          activated on a single site when Multisite is enabled.
+ *     Requires at least: Optional. Specify the minimum required WordPress version.
+ *     Requires PHP: Optional. Specify the minimum required PHP version.
  *      * / # Remove the space to close comment
  *
  * Some users have issues with opening large files and manipulating the contents
@@ -46,6 +48,7 @@
  * reading.
  *
  * @since 1.5.0
+ * @since 5.3.0 Added support for `Requires at least` and `Requires PHP`.
  *
  * @param string $plugin_file Absolute path to the main plugin file.
  * @param bool   $markup      Optional. If the returned data should have HTML markup applied.
@@ -63,6 +66,8 @@
  *     @type string $TextDomain  Plugin textdomain.
  *     @type string $DomainPath  Plugins relative directory path to .mo files.
  *     @type bool   $Network     Whether the plugin can only be activated network-wide.
+ *     @type string $RequiresWP  Minimum required version of WordPress.
+ *     @type string $RequiresPHP Minimum required version of PHP.
  * }
  */
 function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
@@ -77,6 +82,8 @@ function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
 		'TextDomain'  => 'Text Domain',
 		'DomainPath'  => 'Domain Path',
 		'Network'     => 'Network',
+		'RequiresWP'  => 'Requires at least',
+		'RequiresPHP' => 'Requires PHP',
 		// Site Wide Only is deprecated in favor of Network.
 		'_sitewide'   => 'Site Wide Only',
 	);
@@ -631,9 +638,13 @@ function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silen
 		if ( ! empty( $redirect ) ) {
 			wp_redirect( add_query_arg( '_error_nonce', wp_create_nonce( 'plugin-activation-error_' . $plugin ), $redirect ) ); // we'll override this later if the plugin can be included without fatal error
 		}
+
 		ob_start();
 		wp_register_plugin_realpath( WP_PLUGIN_DIR . '/' . $plugin );
 		$_wp_plugin_file = $plugin;
+		if ( ! defined( 'WP_SANDBOX_SCRAPING' ) ) {
+			define( 'WP_SANDBOX_SCRAPING', true );
+		}
 		include_once( WP_PLUGIN_DIR . '/' . $plugin );
 		$plugin = $_wp_plugin_file; // Avoid stomping of the $plugin variable in a plugin.
 
@@ -764,6 +775,11 @@ function deactivate_plugins( $plugins, $silent = false, $network_wide = null ) {
 				$do_blog = true;
 				unset( $current[ $key ] );
 			}
+		}
+
+		if ( $do_blog && wp_is_recovery_mode() ) {
+			list( $extension ) = explode( '/', $plugin );
+			wp_paused_plugins()->delete( $extension );
 		}
 
 		if ( ! $silent ) {
@@ -1076,6 +1092,10 @@ function validate_plugin( $plugin ) {
  */
 function validate_plugin_requirements( $plugin ) {
 	$readme_file = WP_PLUGIN_DIR . '/' . dirname( $plugin ) . '/readme.txt';
+	$plugin_data = array(
+		'requires'     => '',
+		'requires_php' => '',
+	);
 
 	if ( file_exists( $readme_file ) ) {
 		$plugin_data = get_file_data(
@@ -1086,14 +1106,16 @@ function validate_plugin_requirements( $plugin ) {
 			),
 			'plugin'
 		);
-	} else {
-		return true;
 	}
 
-	$plugin_data['wp_compatible']  = version_compare( get_bloginfo( 'version' ), $plugin_data['requires'], '>=' );
-	$plugin_data['php_compatible'] = version_compare( phpversion(), $plugin_data['requires_php'], '>=' );
-
 	$plugin_data = array_merge( $plugin_data, get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin ) );
+
+	// Check for headers in the plugin's PHP file, give precedence to the plugin headers.
+	$plugin_data['requires']     = ! empty( $plugin_data['RequiresWP'] ) ? $plugin_data['RequiresWP'] : $plugin_data['requires'];
+	$plugin_data['requires_php'] = ! empty( $plugin_data['RequiresPHP'] ) ? $plugin_data['RequiresPHP'] : $plugin_data['requires_php'];
+
+	$plugin_data['wp_compatible']  = is_wp_version_compatible( $plugin_data['requires'] );
+	$plugin_data['php_compatible'] = is_php_version_compatible( $plugin_data['requires_php'] );
 
 	if ( ! $plugin_data['wp_compatible'] && ! $plugin_data['php_compatible'] ) {
 		return new WP_Error(
@@ -1354,8 +1376,8 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 	$_registered_pages[ $hookname ] = true;
 
 	/*
-	 * Backward-compatibility for plugins using add_management page.
-	 * See wp-admin/admin.php for redirect from edit.php to tools.php
+	 * Backward-compatibility for plugins using add_management_page().
+	 * See wp-admin/admin.php for redirect from edit.php to tools.php.
 	 */
 	if ( 'tools.php' == $parent_slug ) {
 		$_registered_pages[ get_plugin_page_hookname( $menu_slug, 'edit.php' ) ] = true;
@@ -1713,6 +1735,8 @@ function menu_page_url( $menu_slug, $echo = true ) {
  * @global array $_wp_real_parent_file
  * @global array $_wp_menu_nopriv
  * @global array $_wp_submenu_nopriv
+ *
+ * @return string
  */
 function get_admin_page_parent( $parent = '' ) {
 	global $parent_file, $menu, $submenu, $pagenow, $typenow,
@@ -1783,6 +1807,8 @@ function get_admin_page_parent( $parent = '' ) {
  * @global string $pagenow
  * @global string $plugin_page
  * @global string $typenow
+ *
+ * @return string
  */
 function get_admin_page_title() {
 	global $title, $menu, $submenu, $pagenow, $plugin_page, $typenow;
@@ -1859,9 +1885,10 @@ function get_admin_page_title() {
 /**
  * @since 2.3.0
  *
- * @param string $plugin_page
- * @param string $parent_page
- * @return string|null
+ * @param string $plugin_page The slug name of the plugin page.
+ * @param string $parent_page The slug name for the parent menu (or the file name of a standard
+ *                            WordPress admin page).
+ * @return string|null Hook attached to the plugin page, null otherwise.
  */
 function get_plugin_page_hook( $plugin_page, $parent_page ) {
 	$hook = get_plugin_page_hookname( $plugin_page, $parent_page );
@@ -1874,8 +1901,11 @@ function get_plugin_page_hook( $plugin_page, $parent_page ) {
 
 /**
  * @global array $admin_page_hooks
- * @param string $plugin_page
- * @param string $parent_page
+ *
+ * @param string $plugin_page The slug name of the plugin page.
+ * @param string $parent_page The slug name for the parent menu (or the file name of a standard
+ *                            WordPress admin page).
+ * @return string Hook name for the plugin page.
  */
 function get_plugin_page_hookname( $plugin_page, $parent_page ) {
 	global $admin_page_hooks;
@@ -1906,6 +1936,8 @@ function get_plugin_page_hookname( $plugin_page, $parent_page ) {
  * @global array $_wp_submenu_nopriv
  * @global string $plugin_page
  * @global array $_registered_pages
+ *
+ * @return bool Whether the current user can access the current admin page.
  */
 function user_can_access_admin_page() {
 	global $pagenow, $menu, $submenu, $_wp_menu_nopriv, $_wp_submenu_nopriv,
@@ -2115,6 +2147,9 @@ function wp_clean_plugins_cache( $clear_update_cache = true ) {
  * @param string $plugin Path to the plugin file relative to the plugins directory.
  */
 function plugin_sandbox_scrape( $plugin ) {
+	if ( ! defined( 'WP_SANDBOX_SCRAPING' ) ) {
+		define( 'WP_SANDBOX_SCRAPING', true );
+	}
 	wp_register_plugin_realpath( WP_PLUGIN_DIR . '/' . $plugin );
 	include( WP_PLUGIN_DIR . '/' . $plugin );
 }
@@ -2165,7 +2200,7 @@ function wp_add_privacy_policy_content( $plugin_name, $policy_text ) {
 	}
 
 	if ( ! class_exists( 'WP_Privacy_Policy_Content' ) ) {
-		require_once( ABSPATH . 'wp-admin/includes/misc.php' );
+		require_once( ABSPATH . 'wp-admin/includes/class-wp-privacy-policy-content.php' );
 	}
 
 	WP_Privacy_Policy_Content::add( $plugin_name, $policy_text );

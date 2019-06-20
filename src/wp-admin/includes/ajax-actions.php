@@ -1027,7 +1027,9 @@ function wp_ajax_add_tag() {
 
 	$wp_list_table = _get_list_table( 'WP_Terms_List_Table', array( 'screen' => $_POST['screen'] ) );
 
-	$level = 0;
+	$level     = 0;
+	$noparents = '';
+
 	if ( is_taxonomy_hierarchical( $taxonomy ) ) {
 		$level = count( get_ancestors( $tag->term_id, $taxonomy, 'taxonomy' ) );
 		ob_start();
@@ -1474,7 +1476,7 @@ function wp_ajax_add_meta() {
 			$post_data['post_status'] = 'draft';
 			$now                      = time();
 			/* translators: 1: Post creation date, 2: Post creation time */
-			$post_data['post_title'] = sprintf( __( 'Draft created on %1$s at %2$s' ), date( __( 'F j, Y' ), $now ), date( __( 'g:i a' ), $now ) );
+			$post_data['post_title'] = sprintf( __( 'Draft created on %1$s at %2$s' ), gmdate( __( 'F j, Y' ), $now ), gmdate( __( 'g:i a' ), $now ) );
 
 			$pid = edit_post( $post_data );
 			if ( $pid ) {
@@ -3618,7 +3620,7 @@ function wp_ajax_crop_image() {
 
 	switch ( $context ) {
 		case 'site-icon':
-			require_once ABSPATH . '/wp-admin/includes/class-wp-site-icon.php';
+			require_once ABSPATH . 'wp-admin/includes/class-wp-site-icon.php';
 			$wp_site_icon = new WP_Site_Icon();
 
 			// Skip creating a new attachment if the attachment is a Site Icon.
@@ -4867,7 +4869,7 @@ function wp_ajax_wp_privacy_erase_personal_data() {
 function wp_ajax_health_check_dotorg_communication() {
 	check_ajax_referer( 'health-check-site-status' );
 
-	if ( ! current_user_can( 'install_plugins' ) ) {
+	if ( ! current_user_can( 'view_site_health_checks' ) ) {
 		wp_send_json_error();
 	}
 
@@ -4887,7 +4889,7 @@ function wp_ajax_health_check_dotorg_communication() {
 function wp_ajax_health_check_is_in_debug_mode() {
 	wp_verify_nonce( 'health-check-site-status' );
 
-	if ( ! current_user_can( 'install_plugins' ) ) {
+	if ( ! current_user_can( 'view_site_health_checks' ) ) {
 		wp_send_json_error();
 	}
 
@@ -4907,7 +4909,7 @@ function wp_ajax_health_check_is_in_debug_mode() {
 function wp_ajax_health_check_background_updates() {
 	check_ajax_referer( 'health-check-site-status' );
 
-	if ( ! current_user_can( 'install_plugins' ) ) {
+	if ( ! current_user_can( 'view_site_health_checks' ) ) {
 		wp_send_json_error();
 	}
 
@@ -4928,7 +4930,7 @@ function wp_ajax_health_check_background_updates() {
 function wp_ajax_health_check_loopback_requests() {
 	check_ajax_referer( 'health-check-site-status' );
 
-	if ( ! current_user_can( 'install_plugins' ) ) {
+	if ( ! current_user_can( 'view_site_health_checks' ) ) {
 		wp_send_json_error();
 	}
 
@@ -4948,11 +4950,64 @@ function wp_ajax_health_check_loopback_requests() {
 function wp_ajax_health_check_site_status_result() {
 	check_ajax_referer( 'health-check-site-status-result' );
 
-	if ( ! current_user_can( 'install_plugins' ) ) {
+	if ( ! current_user_can( 'view_site_health_checks' ) ) {
 		wp_send_json_error();
 	}
 
 	set_transient( 'health-check-site-status-result', wp_json_encode( $_POST['counts'] ) );
 
 	wp_send_json_success();
+}
+
+/**
+ * Ajax handler for site health check to get directories and database sizes.
+ *
+ * @since 5.2.0
+ */
+function wp_ajax_health_check_get_sizes() {
+	check_ajax_referer( 'health-check-site-status-result' );
+
+	if ( ! current_user_can( 'view_site_health_checks' ) || is_multisite() ) {
+		wp_send_json_error();
+	}
+
+	if ( ! class_exists( 'WP_Debug_Data' ) ) {
+		require_once( ABSPATH . 'wp-admin/includes/class-wp-debug-data.php' );
+	}
+
+	$sizes_data = WP_Debug_Data::get_sizes();
+	$all_sizes  = array( 'raw' => 0 );
+
+	foreach ( $sizes_data as $name => $value ) {
+		$name = sanitize_text_field( $name );
+		$data = array();
+
+		if ( isset( $value['size'] ) ) {
+			if ( is_string( $value['size'] ) ) {
+				$data['size'] = sanitize_text_field( $value['size'] );
+			} else {
+				$data['size'] = (int) $value['size'];
+			}
+		}
+
+		if ( isset( $value['debug'] ) ) {
+			if ( is_string( $value['debug'] ) ) {
+				$data['debug'] = sanitize_text_field( $value['debug'] );
+			} else {
+				$data['debug'] = (int) $value['debug'];
+			}
+		}
+
+		if ( ! empty( $value['raw'] ) ) {
+			$data['raw'] = (int) $value['raw'];
+		}
+
+		$all_sizes[ $name ] = $data;
+	}
+
+	if ( isset( $all_sizes['total_size']['debug'] ) && 'not available' === $all_sizes['total_size']['debug'] ) {
+		wp_send_json_error( $all_sizes );
+	}
+
+	wp_send_json_success( $all_sizes );
 }

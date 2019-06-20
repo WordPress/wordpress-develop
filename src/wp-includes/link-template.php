@@ -212,7 +212,7 @@ function get_permalink( $post = 0, $leavename = false ) {
 			$author     = $authordata->user_nicename;
 		}
 
-		$date           = explode( ' ', date( 'Y m d H i s', $unixtime ) );
+		$date           = explode( ' ', gmdate( 'Y m d H i s', $unixtime ) );
 		$rewritereplace =
 		array(
 			$date[0],
@@ -1688,7 +1688,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	$adjacent = $previous ? 'previous' : 'next';
 
 	if ( ! empty( $excluded_terms ) && ! is_array( $excluded_terms ) ) {
-		// back-compat, $excluded_terms used to be $excluded_terms with IDs separated by " and "
+		// Back-compat, $excluded_terms used to be $excluded_categories with IDs separated by " and ".
 		if ( false !== strpos( $excluded_terms, ' and ' ) ) {
 			_deprecated_argument( __FUNCTION__, '3.3.0', sprintf( __( 'Use commas instead of %s to separate excluded terms.' ), "'and'" ) );
 			$excluded_terms = explode( ' and ', $excluded_terms );
@@ -2189,7 +2189,7 @@ function adjacent_post_link( $format, $link, $in_same_term = false, $excluded_te
  *
  * @global WP_Rewrite $wp_rewrite
  *
- * @param int  $pagenum Optional. Page ID. Default 1.
+ * @param int  $pagenum Optional. Page number. Default 1.
  * @param bool $escape  Optional. Whether to escape the URL for display, with esc_url(). Defaults to true.
  *                      Otherwise, prepares the URL with esc_url_raw().
  * @return string The link URL for the given page number.
@@ -2248,10 +2248,12 @@ function get_pagenum_link( $pagenum = 1, $escape = true ) {
 	 * Filters the page number link for the current request.
 	 *
 	 * @since 2.5.0
+	 * @since 5.2.0 Added the `$pagenum` argument.
 	 *
-	 * @param string $result The page number link.
+	 * @param string $result  The page number link.
+	 * @param int    $pagenum The page number.
 	 */
-	$result = apply_filters( 'get_pagenum_link', $result );
+	$result = apply_filters( 'get_pagenum_link', $result, $pagenum );
 
 	if ( $escape ) {
 		return esc_url( $result );

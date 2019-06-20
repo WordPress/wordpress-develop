@@ -14,8 +14,10 @@ if ( isset( $_GET['tab'] ) && 'debug' === $_GET['tab'] ) {
 /** WordPress Administration Bootstrap */
 require_once( dirname( __FILE__ ) . '/admin.php' );
 
-if ( ! current_user_can( 'install_plugins' ) ) {
-	wp_die( __( 'Sorry, you do not have permission to access site health information.' ), '', array( 'reponse' => 401 ) );
+$title = __( 'Site Health Status' );
+
+if ( ! current_user_can( 'view_site_health_checks' ) ) {
+	wp_die( __( 'Sorry, you are not allowed to access site health information.' ), '', 403 );
 }
 
 wp_enqueue_style( 'site-health' );
@@ -27,37 +29,51 @@ if ( ! class_exists( 'WP_Site_Health' ) ) {
 
 $health_check_site_status = new WP_Site_Health();
 
+// Start by checking if this is a special request checking for the existence of certain filters.
+$health_check_site_status->check_wp_version_check_exists();
+
 require_once( ABSPATH . 'wp-admin/admin-header.php' );
 ?>
-
-<div class="wrap health-check-header">
-	<div class="title-section">
+<div class="health-check-header">
+	<div class="health-check-title-section">
 		<h1>
-			<?php _ex( 'Site Health', 'Menu, Section and Page Title' ); ?>
+			<?php _e( 'Site Health' ); ?>
 		</h1>
 
-		<div id="progressbar" class="loading" data-pct="0" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-valuetext="<?php esc_attr_e( 'Site tests are running, please wait a moment.' ); ?>">
-			<svg width="100%" height="100%" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
+		<div class="site-health-progress hide-if-no-js loading">
+			<svg role="img" aria-hidden="true" focusable="false" width="100%" height="100%" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
 				<circle r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
 				<circle id="bar" r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
 			</svg>
+			<span class="screen-reader-text"><?php _e( 'Current health score:' ); ?></span>
+			<span class="site-health-progress-count"></span>
 		</div>
 	</div>
 
-	<nav class="tabs-wrapper" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
-		<a href="<?php echo esc_url( admin_url( 'site-health.php' ) ); ?>" class="tab active" aria-current="true">
-			<?php _e( 'Status' ); ?>
+	<nav class="health-check-tabs-wrapper hide-if-no-js" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
+		<a href="<?php echo esc_url( admin_url( 'site-health.php' ) ); ?>" class="health-check-tab active" aria-current="true">
+			<?php
+			/* translators: tab heading for Site Health Status page */
+			_ex( 'Status', 'Site Health' );
+			?>
 		</a>
 
-		<a href="<?php echo esc_url( admin_url( 'site-health.php?tab=debug' ) ); ?>" class="tab">
-			<?php _e( 'Info' ); ?>
+		<a href="<?php echo esc_url( admin_url( 'site-health.php?tab=debug' ) ); ?>" class="health-check-tab">
+			<?php
+			/* translators: tab heading for Site Health Info page */
+			_ex( 'Info', 'Site Health' );
+			?>
 		</a>
 	</nav>
-
-	<div class="wp-clearfix"></div>
 </div>
 
-<div class="wrap health-check-body">
+<hr class="wp-header-end">
+
+<div class="notice notice-error hide-if-js">
+	<p><?php _e( 'The Site Health check requires JavaScript.' ); ?></p>
+</div>
+
+<div class="health-check-body hide-if-no-js">
 	<div class="site-status-all-clear hide">
 		<p class="icon">
 			<span class="dashicons dashicons-yes"></span>
@@ -79,52 +95,62 @@ require_once( ABSPATH . 'wp-admin/admin-header.php' );
 
 		<p><?php _e( 'The site health check shows critical information about your WordPress configuration and items that require your attention.' ); ?></p>
 
-		<div class="issues-wrapper" id="health-check-issues-critical">
-			<h3>
-				<span class="issue-count">0</span> <?php _e( 'Critical issues' ); ?>
+		<div class="site-health-issues-wrapper" id="health-check-issues-critical">
+			<h3 class="site-health-issue-count-title">
+				<?php
+					/* translators: %s: number of critical issues found */
+					printf( _n( '%s Critical issue', '%s Critical issues', 0 ), '<span class="issue-count">0</span>' );
+				?>
 			</h3>
 
-			<dl id="health-check-site-status-critical" role="presentation" class="health-check-accordion issues"></dl>
+			<div id="health-check-site-status-critical" class="health-check-accordion issues"></div>
 		</div>
 
-		<div class="issues-wrapper" id="health-check-issues-recommended">
-			<h3>
-				<span class="issue-count">0</span> <?php _e( 'Recommended improvements' ); ?>
+		<div class="site-health-issues-wrapper" id="health-check-issues-recommended">
+			<h3 class="site-health-issue-count-title">
+				<?php
+					/* translators: %s: number of recommended improvements */
+					printf( _n( '%s Recommended improvement', '%s Recommended improvements', 0 ), '<span class="issue-count">0</span>' );
+				?>
 			</h3>
 
-			<dl id="health-check-site-status-recommended" role="presentation" class="health-check-accordion issues"></dl>
+			<div id="health-check-site-status-recommended" class="health-check-accordion issues"></div>
 		</div>
 	</div>
 
-	<div class="view-more">
-		<button type="button" class="button site-health-view-passed" aria-expanded="false">
-			<?php _e( 'Show passed tests' ); ?>
+	<div class="site-health-view-more">
+		<button type="button" class="button site-health-view-passed" aria-expanded="false" aria-controls="health-check-issues-good">
+			<?php _e( 'Passed tests' ); ?>
+			<span class="icon"></span>
 		</button>
 	</div>
 
-	<div class="issues-wrapper hidden" id="health-check-issues-good">
-		<h3>
-			<span class="issue-count">0</span> <?php _e( 'Items with no issues detected' ); ?>
+	<div class="site-health-issues-wrapper hidden" id="health-check-issues-good">
+		<h3 class="site-health-issue-count-title">
+			<?php
+				/* translators: %s: number of items with no issues */
+				printf( _n( '%s Item with no issues detected', '%s Items with no issues detected', 0 ), '<span class="issue-count">0</span>' );
+			?>
 		</h3>
 
-		<dl id="health-check-site-status-good" role="presentation" class="health-check-accordion issues"></dl>
+		<div id="health-check-site-status-good" class="health-check-accordion issues"></div>
 	</div>
 </div>
 
 <script id="tmpl-health-check-issue" type="text/template">
-	<dt role="heading" aria-level="4">
-		<button aria-expanded="false" class="health-check-accordion-trigger" aria-controls="health-check-accordion-block-{{ data.test }}" id="health-check-accordion-heading-{{ data.test }}" type="button">
+	<h4 class="health-check-accordion-heading">
+		<button aria-expanded="false" class="health-check-accordion-trigger" aria-controls="health-check-accordion-block-{{ data.test }}" type="button">
 			<span class="title">{{ data.label }}</span>
 			<span class="badge {{ data.badge.color }}">{{ data.badge.label }}</span>
 			<span class="icon"></span>
 		</button>
-	</dt>
-	<dd id="health-check-accordion-block-{{ data.test }}" aria-labelledby="health-check-accordion-heading-{{ data.test }}" role="region" class="health-check-accordion-panel" hidden="hidden">
+	</h4>
+	<div id="health-check-accordion-block-{{ data.test }}" class="health-check-accordion-panel" hidden="hidden">
 		{{{ data.description }}}
 		<div class="actions">
 			<p class="button-container">{{{ data.actions }}}</p>
 		</div>
-	</dd>
+	</div>
 </script>
 
 <?php

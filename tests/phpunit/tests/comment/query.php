@@ -2949,25 +2949,25 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$c1 = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_id,
-				'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - 50 ),
+				'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - 50 ),
 			)
 		);
 		$c2 = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_id,
-				'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - 40 ),
+				'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - 40 ),
 			)
 		);
 		$c3 = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_id,
-				'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - 30 ),
+				'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - 30 ),
 			)
 		);
 		$c4 = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_id,
-				'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - 20 ),
+				'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - 20 ),
 			)
 		);
 
@@ -2995,25 +2995,25 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$c1 = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_id,
-				'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - 50 ),
+				'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - 50 ),
 			)
 		);
 		$c2 = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_id,
-				'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - 40 ),
+				'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - 40 ),
 			)
 		);
 		$c3 = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_id,
-				'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - 30 ),
+				'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - 30 ),
 			)
 		);
 		$c4 = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_id,
-				'comment_date_gmt' => date( 'Y-m-d H:i:s', $now - 20 ),
+				'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - 20 ),
 			)
 		);
 

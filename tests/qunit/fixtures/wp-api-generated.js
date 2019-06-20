@@ -4792,7 +4792,7 @@ mockedApiResponse.Schema = {
                                 "open",
                                 "closed"
                             ],
-                            "description": "Allow people to post comments on new articles.",
+                            "description": "Allow people to submit comments on new posts.",
                             "type": "string"
                         }
                     }

@@ -1,5 +1,4 @@
-var $ = jQuery,
-	MenuItem;
+var MenuItem;
 
 /**
  * wp.media.view.MenuItem
@@ -36,12 +35,6 @@ MenuItem = wp.media.View.extend(/** @lends wp.media.view.MenuItem.prototype */{
 			clickOverride.call( this );
 		} else {
 			this.click();
-		}
-
-		// When selecting a tab along the left side,
-		// focus should be transferred into the main panel
-		if ( ! wp.media.isTouchDevice ) {
-			$('.media-frame-content input').first().focus();
 		}
 	},
 

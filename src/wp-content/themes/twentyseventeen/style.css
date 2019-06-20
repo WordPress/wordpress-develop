@@ -4,7 +4,7 @@ Theme URI: https://wordpress.org/themes/twentyseventeen/
 Author: the WordPress team
 Author URI: https://wordpress.org/
 Description: Twenty Seventeen brings your site to life with header video and immersive featured images. With a focus on business sites, it features multiple sections on the front page as well as widgets, navigation and social menus, a logo, and more. Personalize its asymmetrical grid with a custom color scheme and showcase your multimedia content with post formats. Our default theme for 2017 works great in many languages, for any abilities, and on any device.
-Version: 2.1
+Version: 2.2
 License: GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: twentyseventeen
@@ -1034,7 +1034,7 @@ input[type="submit"].secondary {
 	color: #222;
 }
 
-button:hover,
+button:hover:not( .mejs-container > button ),
 button:focus,
 input[type="button"]:hover,
 input[type="button"]:focus,
@@ -1646,6 +1646,7 @@ body.home.title-tagline-hidden.has-header-video .custom-logo-link img {
 
 body:not(.title-tagline-hidden) .site-branding-text {
 	display: inline-block;
+	max-width: 100%;
 	vertical-align: middle;
 }
 
@@ -2843,6 +2844,11 @@ img.alignright {
 	margin-bottom: 0;
 	margin-top: 0;
 	padding: 0;
+}
+
+audio:focus,
+video:focus {
+	outline: thin dotted;
 }
 
 /* Make sure embeds and iframes fit their containers. */

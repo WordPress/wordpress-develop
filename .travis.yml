@@ -18,28 +18,16 @@ matrix:
     env: WP_TRAVISCI=travis:js
   - php: 7.4snapshot
   - php: 7.3
+  - php: 7.3
+    env: WP_TRAVIS_OBJECT_CACHE=true
+    services: memcached
   - php: 7.2
   - php: 7.1
   - php: 7.0
     env: WP_TEST_REPORTER=true
   - php: 5.6
-  - php: 5.6
-    env: WP_TRAVIS_OBJECT_CACHE=true
-    services: memcached
-  - php: 5.5
-  - php: 5.4
-  - php: 5.3
-    dist: precise
-  - php: 5.2
-    dist: precise
   - php: nightly
   allow_failures:
-  - php: 5.5
-  - php: 5.4
-  - php: 5.3
-    dist: precise
-  - php: 5.2
-    dist: precise
   - php: 7.4snapshot
   - php: nightly
   fast_finish: true
@@ -68,10 +56,8 @@ before_script:
   fi
 - |
   # Export Composer's global bin dir to PATH, but not on PHP 5.2:
-  if [[ ${TRAVIS_PHP_VERSION:0:3} != "5.2" ]]; then
-    composer config --list --global
-    export PATH=`composer config --list --global | grep '\[home\]' | { read a; echo "${a#* }/vendor/bin:$PATH"; }`
-  fi
+  composer config --list --global
+  export PATH=`composer config --list --global | grep '\[home\]' | { read a; echo "${a#* }/vendor/bin:$PATH"; }`
 - |
   # Install the specified version of PHPUnit depending on the PHP version:
   if [[ "$WP_TRAVISCI" == "travis:phpunit" ]]; then
@@ -84,13 +70,9 @@ before_script:
         echo "Using PHPUnit 6.x"
         travis_retry composer global require "phpunit/phpunit:^6"
         ;;
-      5.6|5.5|5.4|5.3)
+      5.6)
         echo "Using PHPUnit 4.x"
         travis_retry composer global require "phpunit/phpunit:^4"
-        ;;
-      5.2)
-        # Do nothing, use default PHPUnit 3.6.x
-        echo "Using default PHPUnit, hopefully 3.6"
         ;;
       *)
         echo "No PHPUnit version handling for PHP version $TRAVIS_PHP_VERSION"
@@ -107,7 +89,6 @@ before_script:
 - npm --version
 - node --version
 - nvm install 10.13.0
-- npm install -g grunt-cli
 - npm install
 - npm prune
 - mysql --version
@@ -119,11 +100,10 @@ before_script:
 - which phpunit
 - phpunit --version
 - curl --version
-- grunt --version
 - git --version
 - svn --version
 - locale -a
-script: grunt $WP_TRAVISCI
+script: npm run grunt $WP_TRAVISCI
 after_script:
 - |
   if [[ "$WP_TEST_REPORTER" == "true" ]]; then

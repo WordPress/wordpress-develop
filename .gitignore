@@ -27,6 +27,7 @@ wp-tests-config.php
 /src/wp-includes/js
 /src/wp-includes/css/dist
 /src/wp-includes/css/*.min.css
+/src/wp-includes/css/*-rtl.css
 
 # Files and folders that get created in wp-content
 /src/wp-content/blogs.dir
@@ -52,9 +53,11 @@ wp-tests-config.php
 /src/wp-content/db.php
 /src/wp-content/db-error.php
 /src/wp-content/debug.log
+/src/wp-content/fatal-error-handler.php
 /src/wp-content/install.php
 /src/wp-content/maintenance.php
 /src/wp-content/object-cache.php
+/src/wp-content/php-error.php
 /src/wp-content/sunrise.php
 
 # Operating system specific files

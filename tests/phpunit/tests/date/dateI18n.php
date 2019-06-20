@@ -6,7 +6,7 @@
  */
 class Tests_Date_I18n extends WP_UnitTestCase {
 	public function test_should_format_date() {
-		$this->assertEquals( strtotime( date( 'Y-m-d H:i:s' ) ), strtotime( date_i18n( 'Y-m-d H:i:s' ) ), 'The dates should be equal', 2 );
+		$this->assertEquals( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( date_i18n( 'Y-m-d H:i:s' ) ), 'The dates should be equal', 2 );
 	}
 
 	public function test_should_use_custom_timestamp() {
@@ -14,7 +14,7 @@ class Tests_Date_I18n extends WP_UnitTestCase {
 	}
 
 	public function test_date_should_be_in_gmt() {
-		$this->assertEquals( strtotime( date( DATE_RFC3339 ) ), strtotime( date_i18n( DATE_RFC3339, false, true ) ), 'The dates should be equal', 2 );
+		$this->assertEquals( strtotime( gmdate( DATE_RFC3339 ) ), strtotime( date_i18n( DATE_RFC3339, false, true ) ), 'The dates should be equal', 2 );
 	}
 
 	public function test_custom_timestamp_ignores_gmt_setting() {
@@ -24,13 +24,13 @@ class Tests_Date_I18n extends WP_UnitTestCase {
 	public function test_custom_timezone_setting() {
 		update_option( 'timezone_string', 'America/Regina' );
 
-		$this->assertEquals( strtotime( date( 'Y-m-d H:i:s', time() + get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) ), strtotime( date_i18n( 'Y-m-d H:i:s' ) ), 'The dates should be equal', 2 );
+		$this->assertEquals( strtotime( gmdate( 'Y-m-d H:i:s', time() + get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) ), strtotime( date_i18n( 'Y-m-d H:i:s' ) ), 'The dates should be equal', 2 );
 	}
 
 	public function test_date_should_be_in_gmt_with_custom_timezone_setting() {
 		update_option( 'timezone_string', 'America/Regina' );
 
-		$this->assertEquals( strtotime( date( DATE_RFC3339 ) ), strtotime( date_i18n( DATE_RFC3339, false, true ) ), 'The dates should be equal', 2 );
+		$this->assertEquals( strtotime( gmdate( DATE_RFC3339 ) ), strtotime( date_i18n( DATE_RFC3339, false, true ) ), 'The dates should be equal', 2 );
 	}
 
 	public function test_date_should_be_in_gmt_with_custom_timezone_setting_and_timestamp() {

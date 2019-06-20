@@ -81,4 +81,72 @@ class Tests_Date_TheDate extends WP_UnitTestCase {
 
 		return $input;
 	}
+
+	/**
+	 * @ticket 33750
+	 */
+	function test_the_date() {
+		ob_start();
+		the_date();
+		$actual = ob_get_clean();
+		$this->assertEquals( '', $actual );
+
+		$GLOBALS['post'] = self::factory()->post->create_and_get(
+			array(
+				'post_date' => '2015-09-16 08:00:00',
+			)
+		);
+
+		ob_start();
+		$GLOBALS['currentday']  = '18.09.15';
+		$GLOBALS['previousday'] = '17.09.15';
+		the_date();
+		$this->assertEquals( 'September 16, 2015', ob_get_clean() );
+
+		ob_start();
+		$GLOBALS['currentday']  = '18.09.15';
+		$GLOBALS['previousday'] = '17.09.15';
+		the_date( 'Y' );
+		$this->assertEquals( '2015', ob_get_clean() );
+
+		ob_start();
+		$GLOBALS['currentday']  = '18.09.15';
+		$GLOBALS['previousday'] = '17.09.15';
+		the_date( 'Y', 'before ', ' after' );
+		$this->assertEquals( 'before 2015 after', ob_get_clean() );
+
+		ob_start();
+		$GLOBALS['currentday']  = '18.09.15';
+		$GLOBALS['previousday'] = '17.09.15';
+		the_date( 'Y', 'before ', ' after', false );
+		$this->assertEquals( '', ob_get_clean() );
+	}
+
+	/**
+	 * @ticket 47354
+	 */
+	function test_the_weekday_date() {
+		ob_start();
+		the_weekday_date();
+		$actual = ob_get_clean();
+		$this->assertEquals( '', $actual );
+
+		$GLOBALS['post'] = self::factory()->post->create_and_get(
+			array(
+				'post_date' => '2015-09-16 08:00:00',
+			)
+		);
+
+		ob_start();
+		$GLOBALS['currentday']      = '18.09.15';
+		$GLOBALS['previousweekday'] = '17.09.15';
+		the_weekday_date();
+		$this->assertEquals( 'Wednesday', ob_get_clean() );
+
+		ob_start();
+		$GLOBALS['currentday']      = '18.09.15';
+		$GLOBALS['previousweekday'] = '17.09.15';
+		the_weekday_date( 'before ', ' after' );
+		$this->assertEquals( 'before Wednesday after', ob_get_clean() );
+	}
 }

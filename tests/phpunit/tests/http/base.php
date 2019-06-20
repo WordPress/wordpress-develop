@@ -226,7 +226,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * @ticket 11888
 	 */
 	function test_send_headers() {
-		// Test that the headers sent are recieved by the server
+		// Test that the headers sent are received by the server
 		$headers = array(
 			'test1' => 'test',
 			'test2' => 0,

@@ -51,6 +51,38 @@ class Test_WP_Widget_Media_Audio extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test get_instance_schema filtering.
+	 *
+	 * @covers WP_Widget_Media_Audio::get_instance_schema
+	 *
+	 * @ticket 45029
+	 */
+	function test_get_instance_schema_filtering() {
+		$wp_widget_audio = new WP_Widget_Media_Audio();
+		$schema          = $wp_widget_audio->get_instance_schema();
+
+		add_filter( 'widget_media_audio_instance_schema', array( $this, 'filter_instance_schema' ), 10, 2 );
+		$schema = $wp_widget_audio->get_instance_schema();
+
+		$this->assertTrue( $schema['loop']['default'] );
+	}
+
+	/**
+	 * Filters instance schema.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @param array                 $schema Schema.
+	 * @param WP_Widget_Media_Audio $widget Widget.
+	 * @return array
+	 */
+	public function filter_instance_schema( $schema, $widget ) {
+		// Override the default loop value (false).
+		$schema['loop']['default'] = true;
+		return $schema;
+	}
+
+	/**
 	 * Test constructor.
 	 *
 	 * @covers WP_Widget_Media_Audio::__construct()

@@ -45,11 +45,6 @@ add_action( 'admin_head', 'wp_color_scheme_settings' );
 add_action( 'admin_head', 'wp_site_icon' );
 add_action( 'admin_head', '_ipad_meta' );
 
-// Privacy tools
-add_action( 'admin_menu', '_wp_privacy_hook_requests_page' );
-add_action( 'load-tools_page_export_personal_data', '_wp_privacy_requests_screen_options' );
-add_action( 'load-tools_page_remove_personal_data', '_wp_privacy_requests_screen_options' );
-
 // Prerendering.
 if ( ! is_customize_preview() ) {
 	add_filter( 'admin_print_styles', 'wp_resource_hints', 1 );
@@ -120,6 +115,7 @@ add_action( 'admin_notices', 'update_nag', 3 );
 add_action( 'admin_notices', 'paused_plugins_notice', 5 );
 add_action( 'admin_notices', 'paused_themes_notice', 5 );
 add_action( 'admin_notices', 'maintenance_nag', 10 );
+add_action( 'admin_notices', 'wp_recovery_mode_nag', 1 );
 
 add_filter( 'update_footer', 'core_update_footer' );
 

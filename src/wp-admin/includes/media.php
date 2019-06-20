@@ -476,15 +476,16 @@ function media_handle_sideload( $file_array, $post_id, $desc = null, $post_data 
 }
 
 /**
- * Adds the iframe to display content for the media upload page
+ * Outputs the iframe to display the media upload page.
  *
  * @since 2.5.0
  *
  * @global int $body_id
  *
- * @param string|callable $content_func
+ * @param callable $content_func Function that outputs the content.
+ * @param mixed    ...$args      Optional additional parameters to pass to the callback function when it's called.
  */
-function wp_iframe( $content_func /* ... */ ) {
+function wp_iframe( $content_func ) {
 	_wp_admin_html_begin();
 	?>
 <title><?php bloginfo( 'name' ); ?> &rsaquo; <?php _e( 'Uploads' ); ?> &#8212; <?php _e( 'WordPress' ); ?></title>
@@ -2071,7 +2072,7 @@ wpUploaderInit = <?php echo wp_json_encode( $plupload_init ); ?>;
 	?>
 <div id="drag-drop-area">
 	<div class="drag-drop-inside">
-	<p class="drag-drop-info"><?php _e( 'Drop files here' ); ?></p>
+	<p class="drag-drop-info"><?php _e( 'Drop files to upload' ); ?></p>
 	<p><?php _ex( 'or', 'Uploader: Drop files here - or - Select Files' ); ?></p>
 	<p class="drag-drop-buttons"><input id="plupload-browse-button" type="button" value="<?php esc_attr_e( 'Select Files' ); ?>" class="button" /></p>
 	</div>
@@ -2898,7 +2899,11 @@ function media_upload_max_image_resize() {
  * @since 3.5.0
  */
 function multisite_over_quota_message() {
-	echo '<p>' . sprintf( __( 'Sorry, you have used all of your storage quota of %s MB.' ), get_space_allowed() ) . '</p>';
+	echo '<p>' . sprintf(
+		/* translators: %s: allowed space allocation */
+		__( 'Sorry, you have used your space allocation of %s. Please delete some files to upload more files.' ),
+		size_format( get_space_allowed() * MB_IN_BYTES )
+	) . '</p>';
 }
 
 /**
@@ -3008,18 +3013,32 @@ function edit_form_image_editor( $post ) {
 	?>
 	</div>
 	<div class="wp_attachment_details edit-form-section">
+	<?php if ( 'image' === substr( $post->post_mime_type, 0, 5 ) ) : ?>
+		<p class="attachment-alt-text">
+			<label for="attachment_alt"><strong><?php _e( 'Alternative Text' ); ?></strong></label><br />
+			<input type="text" class="widefat" name="_wp_attachment_image_alt" id="attachment_alt" aria-describedby="alt-text-description" value="<?php echo esc_attr( $alt_text ); ?>" />
+		</p>
+		<p class="attachment-alt-text-description" id="alt-text-description">
+			<?php
+			printf(
+				/* translators: 1: link to tutorial, 2: additional link attributes, 3: accessibility text */
+				__( '<a href="%1$s" %2$s>Describe the purpose of the image%3$s</a>. Leave empty if the image is purely decorative.' ),
+				esc_url( 'https://www.w3.org/WAI/tutorials/images/decision-tree' ),
+				'target="_blank" rel="noopener noreferrer"',
+				sprintf(
+					'<span class="screen-reader-text"> %s</span>',
+					/* translators: accessibility text */
+					__( '(opens in a new tab)' )
+				)
+			);
+			?>
+		</p>
+	<?php endif; ?>
+
 		<p>
 			<label for="attachment_caption"><strong><?php _e( 'Caption' ); ?></strong></label><br />
 			<textarea class="widefat" name="excerpt" id="attachment_caption"><?php echo $post->post_excerpt; ?></textarea>
 		</p>
-
-
-	<?php if ( 'image' === substr( $post->post_mime_type, 0, 5 ) ) : ?>
-		<p>
-			<label for="attachment_alt"><strong><?php _e( 'Alternative Text' ); ?></strong></label><br />
-			<input type="text" class="widefat" name="_wp_attachment_image_alt" id="attachment_alt" value="<?php echo esc_attr( $alt_text ); ?>" />
-		</p>
-	<?php endif; ?>
 
 	<?php
 		$quicktags_settings = array( 'buttons' => 'strong,em,link,block,del,ins,img,ul,ol,li,code,close' );
@@ -3033,11 +3052,11 @@ function edit_form_image_editor( $post ) {
 	?>
 
 	<label for="attachment_content"><strong><?php _e( 'Description' ); ?></strong>
-														<?php
-														if ( preg_match( '#^(audio|video)/#', $post->post_mime_type ) ) {
-															echo ': ' . __( 'Displayed on attachment pages.' );
-														}
-														?>
+		<?php
+		if ( preg_match( '#^(audio|video)/#', $post->post_mime_type ) ) {
+			echo ': ' . __( 'Displayed on attachment pages.' );
+		}
+		?>
 	</label>
 	<?php wp_editor( $post->post_content, 'attachment_content', $editor_args ); ?>
 

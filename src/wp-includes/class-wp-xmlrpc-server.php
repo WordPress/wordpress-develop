@@ -612,12 +612,12 @@ class wp_xmlrpc_server extends IXR_Server {
 				'option'   => 'large_size_h',
 			),
 			'default_comment_status'  => array(
-				'desc'     => __( 'Allow people to post comments on new articles' ),
+				'desc'     => __( 'Allow people to submit comments on new posts' ),
 				'readonly' => false,
 				'option'   => 'default_comment_status',
 			),
 			'default_ping_status'     => array(
-				'desc'     => __( 'Allow link notifications from other blogs (pingbacks and trackbacks) on new articles' ),
+				'desc'     => __( 'Allow link notifications from other blogs (pingbacks and trackbacks) on new posts' ),
 				'readonly' => false,
 				'option'   => 'default_ping_status',
 			),
@@ -6234,7 +6234,14 @@ class wp_xmlrpc_server extends IXR_Server {
 		}
 
 		if ( is_multisite() && upload_is_user_over_quota( false ) ) {
-			$this->error = new IXR_Error( 401, __( 'Sorry, you have used your space allocation.' ) );
+			$this->error = new IXR_Error(
+				401,
+				sprintf(
+					/* translators: %s: allowed space allocation */
+					__( 'Sorry, you have used your space allocation of %s. Please delete some files to upload more files.' ),
+					size_format( get_space_allowed() * MB_IN_BYTES )
+				)
+			);
 			return $this->error;
 		}
 

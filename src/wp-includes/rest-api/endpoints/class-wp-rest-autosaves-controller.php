@@ -12,6 +12,7 @@
  *
  * @since 5.0.0
  *
+ * @see WP_REST_Revisions_Controller
  * @see WP_REST_Controller
  */
 class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
@@ -243,7 +244,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		$parent_id = (int) $request->get_param( 'parent' );
 
 		if ( $parent_id <= 0 ) {
-			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid parent post ID.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post parent ID.' ), array( 'status' => 404 ) );
 		}
 
 		$autosave = wp_get_post_autosave( $parent_id );

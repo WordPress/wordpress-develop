@@ -314,7 +314,13 @@ function get_the_content( $more_link_text = null, $strip_teaser = false, $post =
 	$page_no = $elements['page'];
 	$content = $elements['pages'][ $page_no - 1 ];
 	if ( preg_match( '/<!--more(.*?)?-->/', $content, $matches ) ) {
+		if ( has_block( 'more', $content ) ) {
+			// Remove the core/more block delimiters. They will be left over after $content is split up.
+			$content = preg_replace( '/<!-- \/?wp:more(.*?) -->/', '', $content );
+		}
+
 		$content = explode( $matches[0], $content, 2 );
+
 		if ( ! empty( $matches[1] ) && ! empty( $more_link_text ) ) {
 			$more_link_text = strip_tags( wp_kses_no_null( trim( $matches[1] ) ) );
 		}
@@ -773,7 +779,8 @@ function get_body_class( $class = '' ) {
 		$classes[] = 'no-customize-support';
 	}
 
-	if ( get_background_color() !== get_theme_support( 'custom-background', 'default-color' ) || get_background_image() ) {
+	if ( current_theme_supports( 'custom-background' )
+		&& ( get_background_color() !== get_theme_support( 'custom-background', 'default-color' ) || get_background_image() ) ) {
 		$classes[] = 'custom-background';
 	}
 
@@ -1097,7 +1104,7 @@ function the_meta() {
 			}
 
 			$values = array_map( 'trim', get_post_custom_values( $key ) );
-			$value  = implode( $values, ', ' );
+			$value  = implode( ', ', $values );
 
 			$html = sprintf(
 				"<li><span class='post-meta-key'>%s</span> %s</li>\n",

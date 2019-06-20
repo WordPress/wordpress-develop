@@ -302,4 +302,57 @@ class Test_WP_Widget_Custom_HTML extends WP_UnitTestCase {
 
 		$this->assertContains( 'Use the Custom HTML widget to add arbitrary HTML code to your widget areas.', $help_tab['content'] );
 	}
+
+	/**
+	 * Ensure that rel="noopener noreferrer" is added to links with a target.
+	 *
+	 * @ticket 46421
+	 */
+	function test_render_links_with_target() {
+		$widget = new WP_Widget_Custom_HTML();
+
+		$content = 'Test content with an external <a href="https://example.org" target="_blank">link</a>.';
+
+		$args = array(
+			'before_title'  => '<h2>',
+			'after_title'   => '</h2>',
+			'before_widget' => '',
+			'after_widget'  => '',
+		);
+
+		$instance = array(
+			'title'   => 'Foo',
+			'content' => $content,
+		);
+
+		$output = get_echo( array( $widget, 'widget' ), array( $args, $instance ) );
+		$this->assertContains( 'rel="noopener noreferrer"', $output );
+	}
+
+	/**
+	 * Ensure that rel="noopener noreferrer" is not added to links without a target.
+	 *
+	 * @ticket 46421
+	 */
+	function test_render_links_without_target() {
+		$widget = new WP_Widget_Custom_HTML();
+
+		$content = 'Test content with an internal <a href="/">link</a>.';
+
+		$args = array(
+			'before_title'  => '<h2>',
+			'after_title'   => '</h2>',
+			'before_widget' => '',
+			'after_widget'  => '',
+		);
+
+		$instance = array(
+			'title'   => 'Foo',
+			'content' => $content,
+		);
+
+		$output = get_echo( array( $widget, 'widget' ), array( $args, $instance ) );
+		$this->assertNotContains( 'rel="noopener noreferrer"', $output );
+	}
+
 }

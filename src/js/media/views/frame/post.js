@@ -290,8 +290,7 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 						frame.close();
 					}
 
-					// Keep focus inside media modal
-					// after canceling a gallery
+					// Move focus to the modal after canceling a Gallery.
 					this.controller.modal.focusManager.focus();
 				}
 			},
@@ -317,6 +316,9 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 					} else {
 						frame.close();
 					}
+
+					// Move focus to the modal after canceling an Audio Playlist.
+					this.controller.modal.focusManager.focus();
 				}
 			},
 			separateCancel: new wp.media.View({
@@ -341,6 +343,9 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 					} else {
 						frame.close();
 					}
+
+					// Move focus to the modal after canceling a Video Playlist.
+					this.controller.modal.focusManager.focus();
 				}
 			},
 			separateCancel: new wp.media.View({
@@ -358,10 +363,6 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 		}).render();
 
 		this.content.set( view );
-
-		if ( ! wp.media.isTouchDevice ) {
-			view.url.focus();
-		}
 	},
 
 	editSelectionContent: function() {
@@ -388,6 +389,8 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 
 			click: function() {
 				this.controller.content.mode('browse');
+				// Move focus to the modal when jumping back from Edit Selection to Add Media view.
+				this.controller.modal.focusManager.focus();
 			}
 		});
 
@@ -483,10 +486,10 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 					multiple: true
 				}) );
 
-				this.controller.setState('gallery-edit');
+				// Jump to Edit Gallery view.
+				this.controller.setState( 'gallery-edit' );
 
-				// Keep focus inside media modal
-				// after jumping to gallery view
+				// Move focus to the modal after jumping to Edit Gallery view.
 				this.controller.modal.focusManager.focus();
 			}
 		});
@@ -513,10 +516,10 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 					multiple: true
 				}) );
 
-				this.controller.setState('playlist-edit');
+				// Jump to Edit Audio Playlist view.
+				this.controller.setState( 'playlist-edit' );
 
-				// Keep focus inside media modal
-				// after jumping to playlist view
+				// Move focus to the modal after jumping to Edit Audio Playlist view.
 				this.controller.modal.focusManager.focus();
 			}
 		});
@@ -543,10 +546,10 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 					multiple: true
 				}) );
 
-				this.controller.setState('video-playlist-edit');
+				// Jump to Edit Video Playlist view.
+				this.controller.setState( 'video-playlist-edit' );
 
-				// Keep focus inside media modal
-				// after jumping to video playlist view
+				// Move focus to the modal after jumping to Edit Video Playlist view.
 				this.controller.modal.focusManager.focus();
 			}
 		});
@@ -616,6 +619,8 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 						edit.get('library').add( state.get('selection').models );
 						state.trigger('reset');
 						controller.setState('gallery-edit');
+						// Move focus to the modal when jumping back from Add to Gallery to Edit Gallery view.
+						this.controller.modal.focusManager.focus();
 					}
 				}
 			}
@@ -673,6 +678,8 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 						edit.get('library').add( state.get('selection').models );
 						state.trigger('reset');
 						controller.setState('playlist-edit');
+						// Move focus to the modal when jumping back from Add to Audio Playlist to Edit Audio Playlist view.
+						this.controller.modal.focusManager.focus();
 					}
 				}
 			}
@@ -727,6 +734,8 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 						edit.get('library').add( state.get('selection').models );
 						state.trigger('reset');
 						controller.setState('video-playlist-edit');
+						// Move focus to the modal when jumping back from Add to Video Playlist to Edit Video Playlist view.
+						this.controller.modal.focusManager.focus();
 					}
 				}
 			}

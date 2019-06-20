@@ -275,6 +275,18 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 46813
+	 * @expectedException WPDieException
+	 */
+	public function test_die_handler_should_not_cause_doing_it_wrong_notice_without_wp_query_set() {
+		unset( $GLOBALS['wp_query'] );
+
+		wp_die();
+
+		$this->assertEmpty( $this->caught_doing_it_wrong );
+	}
+
+	/**
 	 * @ticket 45933
 	 * @dataProvider data_die_process_input
 	 */

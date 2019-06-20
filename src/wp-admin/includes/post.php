@@ -170,10 +170,10 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 		$hh                     = $post_data['hh'];
 		$mn                     = $post_data['mn'];
 		$ss                     = $post_data['ss'];
-		$aa                     = ( $aa <= 0 ) ? date( 'Y' ) : $aa;
-		$mm                     = ( $mm <= 0 ) ? date( 'n' ) : $mm;
+		$aa                     = ( $aa <= 0 ) ? gmdate( 'Y' ) : $aa;
+		$mm                     = ( $mm <= 0 ) ? gmdate( 'n' ) : $mm;
 		$jj                     = ( $jj > 31 ) ? 31 : $jj;
-		$jj                     = ( $jj <= 0 ) ? date( 'j' ) : $jj;
+		$jj                     = ( $jj <= 0 ) ? gmdate( 'j' ) : $jj;
 		$hh                     = ( $hh > 23 ) ? $hh - 24 : $hh;
 		$mn                     = ( $mn > 59 ) ? $mn - 60 : $mn;
 		$ss                     = ( $ss > 59 ) ? $ss - 60 : $ss;
@@ -1185,23 +1185,6 @@ function wp_edit_posts_query( $q = false ) {
 }
 
 /**
- * Get all available post MIME types for a given post type.
- *
- * @since 2.5.0
- *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
- * @param string $type
- * @return mixed
- */
-function get_available_post_mime_types( $type = 'attachment' ) {
-	global $wpdb;
-
-	$types = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT post_mime_type FROM $wpdb->posts WHERE post_type = %s", $type ) );
-	return $types;
-}
-
-/**
  * Get the query variables for the current attachments request.
  *
  * @since 4.2.0
@@ -1291,34 +1274,34 @@ function wp_edit_attachments_query( $q = false ) {
  *
  * @since 2.5.0
  *
- * @param string $id
- * @param string $page
- * @return string
+ * @param string $box_id    Meta box ID (used in the 'id' attribute for the meta box).
+ * @param string $screen_id The screen on which the meta box is shown.
+ * @return string Space-separated string of class names.
  */
-function postbox_classes( $id, $page ) {
-	if ( isset( $_GET['edit'] ) && $_GET['edit'] == $id ) {
+function postbox_classes( $box_id, $screen_id ) {
+	if ( isset( $_GET['edit'] ) && $_GET['edit'] == $box_id ) {
 		$classes = array( '' );
-	} elseif ( $closed = get_user_option( 'closedpostboxes_' . $page ) ) {
+	} elseif ( $closed = get_user_option( 'closedpostboxes_' . $screen_id ) ) {
 		if ( ! is_array( $closed ) ) {
 			$classes = array( '' );
 		} else {
-			$classes = in_array( $id, $closed ) ? array( 'closed' ) : array( '' );
+			$classes = in_array( $box_id, $closed ) ? array( 'closed' ) : array( '' );
 		}
 	} else {
 		$classes = array( '' );
 	}
 
 	/**
-	 * Filters the postbox classes for a specific screen and screen ID combo.
+	 * Filters the postbox classes for a specific screen and box ID combo.
 	 *
-	 * The dynamic portions of the hook name, `$page` and `$id`, refer to
-	 * the screen and screen ID, respectively.
+	 * The dynamic portions of the hook name, `$screen_id` and `$box_id`, refer to
+	 * the screen ID and meta box ID, respectively.
 	 *
 	 * @since 3.2.0
 	 *
 	 * @param string[] $classes An array of postbox classes.
 	 */
-	$classes = apply_filters( "postbox_classes_{$page}_{$id}", $classes );
+	$classes = apply_filters( "postbox_classes_{$screen_id}_{$box_id}", $classes );
 	return implode( ' ', $classes );
 }
 

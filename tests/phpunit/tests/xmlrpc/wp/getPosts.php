@@ -60,7 +60,7 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 			$post_ids[] = self::factory()->post->create(
 				array(
 					'post_type' => $cpt_name,
-					'post_date' => date( 'Y-m-d H:i:s', time() + $i ),
+					'post_date' => gmdate( 'Y-m-d H:i:s', time() + $i ),
 				)
 			);
 		}

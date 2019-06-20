@@ -45,7 +45,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	}
 
 	// Shake it!
-	$shake_error_codes = array( 'empty_password', 'empty_email', 'invalid_email', 'invalidcombo', 'empty_username', 'invalid_username', 'incorrect_password' );
+	$shake_error_codes = array( 'empty_password', 'empty_email', 'invalid_email', 'invalidcombo', 'empty_username', 'invalid_username', 'incorrect_password', 'retrieve_password_email_failure' );
 	/**
 	 * Filters the error codes array for shaking the login form.
 	 *
@@ -63,6 +63,11 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 
 	/* translators: Login screen title. 1: Login screen name, 2: Network or site name */
 	$login_title = sprintf( __( '%1$s &lsaquo; %2$s &#8212; WordPress' ), $title, $login_title );
+
+	if ( wp_is_recovery_mode() ) {
+		/* translators: %s: Login screen title. */
+		$login_title = sprintf( __( 'Recovery Mode &#8212; %s' ), $login_title );
+	}
 
 	/**
 	 * Filters the title tag content for login page.
@@ -390,7 +395,7 @@ function retrieve_password() {
 	$message .= __( 'To reset your password, visit the following address:' ) . "\r\n\r\n";
 	$message .= '<' . network_site_url( "wp-login.php?action=rp&key=$key&login=" . rawurlencode( $user_login ), 'login' ) . ">\r\n";
 
-	/* translators: Password reset email subject. %s: Site name */
+	/* translators: Password reset notification email subject. %s: Site title */
 	$title = sprintf( __( '[%s] Password Reset' ), $site_name );
 
 	/**
@@ -421,7 +426,16 @@ function retrieve_password() {
 	$message = apply_filters( 'retrieve_password_message', $message, $key, $user_login, $user_data );
 
 	if ( $message && ! wp_mail( $user_email, wp_specialchars_decode( $title ), $message ) ) {
-		wp_die( __( 'The email could not be sent.' ) . "<br />\n" . __( 'Possible reason: your host may have disabled the mail() function.' ) );
+		/* translators: URL to support page for resetting your password */
+		$support = __( 'https://wordpress.org/support/article/resetting-your-password/' );
+		$errors->add(
+			'retrieve_password_email_failure',
+			sprintf(
+				__( '<strong>ERROR</strong>: The email could not be sent. Your site may not be correctly configured to send emails. <a href="%s">Get support for resetting your password</a>.' ),
+				esc_url( $support )
+			)
+		);
+		return $errors;
 	}
 
 	return true;
@@ -936,7 +950,7 @@ switch ( $action ) {
 						/* translators: 1: Browser cookie documentation URL, 2: Support forums URL */
 						__( '<strong>ERROR</strong>: Cookies are blocked due to unexpected output. For help, please see <a href="%1$s">this documentation</a> or try the <a href="%2$s">support forums</a>.' ),
 						__( 'https://wordpress.org/support/article/cookies/' ),
-						__( 'https://wordpress.org/support/' )
+						__( 'https://wordpress.org/support/forums/' )
 					)
 				);
 			} elseif ( isset( $_POST['testcookie'] ) && empty( $_COOKIE[ TEST_COOKIE ] ) ) {

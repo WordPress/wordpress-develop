@@ -26,11 +26,11 @@ DeleteSelected = Button.extend(/** @lends wp.media.view.DeleteSelectedButton.pro
 
 	filterChange: function( model ) {
 		if ( 'trash' === model.get( 'status' ) ) {
-			this.model.set( 'text', l10n.untrashSelected );
+			this.model.set( 'text', l10n.restoreSelected );
 		} else if ( wp.media.view.settings.mediaTrash ) {
 			this.model.set( 'text', l10n.trashSelected );
 		} else {
-			this.model.set( 'text', l10n.deleteSelected );
+			this.model.set( 'text', l10n.deletePermanently );
 		}
 	},
 
