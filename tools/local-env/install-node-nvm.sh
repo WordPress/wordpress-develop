@@ -1,5 +1,5 @@
 #!/bin/bash
-NVM_VERSION=`curl -Ls -w %{url_effective} -o /dev/null https://github.com/creationix/nvm/releases/latest | rev | cut -d '/' -f 1 | rev`
+NVM_VERSION=`curl -Ls -w %{url_effective} -o /dev/null https://github.com/nvm-sh/nvm/releases/latest | rev | cut -d '/' -f 1 | rev`
 
 # Exit if any command fails
 set -e
@@ -30,7 +30,7 @@ if [ "$TRAVIS" != "true" ] && ! command_exists "nvm"; then
 		fi
 
 		echo -en $(status_message "Installing NVM..." )
-		download "https://raw.githubusercontent.com/creationix/nvm/$NVM_VERSION/install.sh" | bash >/dev/null 2>&1
+		download "https://raw.githubusercontent.com/nvm-sh/nvm/$NVM_VERSION/install.sh" | bash >/dev/null 2>&1
 		echo ' done!'
 
 		echo -e $(warning_message "NVM was updated, please run this command to reload it:" )
@@ -39,7 +39,7 @@ if [ "$TRAVIS" != "true" ] && ! command_exists "nvm"; then
 	else
 		echo -e $(error_message "")
 		echo -e $(error_message "Please install NVM manually, then re-run the setup script to continue.")
-		echo -e $(error_message "NVM installation instructions can be found here: $(action_format "https://github.com/creationix/nvm")")
+		echo -e $(error_message "NVM installation instructions can be found here: $(action_format "https://github.com/nvm-sh/nvm")")
 	fi
 
 	exit 1
@@ -48,7 +48,7 @@ fi
 # Check if the current nvm version is up to date.
 if [ "$TRAVIS" != "true" ] && [ $NVM_VERSION != "v$(nvm --version)" ]; then
 	echo -en $(status_message "Updating NVM..." )
-	download "https://raw.githubusercontent.com/creationix/nvm/$NVM_VERSION/install.sh" | bash >/dev/null 2>&1
+	download "https://raw.githubusercontent.com/nvm-sh/nvm/$NVM_VERSION/install.sh" | bash >/dev/null 2>&1
 	echo ' done!'
 
 	echo -e $(warning_message "NVM was updated, please run this command to reload it:" )
