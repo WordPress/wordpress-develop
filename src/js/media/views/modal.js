@@ -117,6 +117,9 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 		// Set initial focus on the content instead of this view element, to avoid page scrolling.
 		this.$( '.media-modal' ).focus();
 
+		// Hide the page content from assistive technologies.
+		this.focusManager.setAriaHiddenOnBodyChildren( $el );
+
 		return this.propagate('open');
 	},
 
@@ -134,6 +137,12 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 
 		// Hide modal and remove restricted media modal tab focus once it's closed
 		this.$el.hide().undelegate( 'keydown' );
+
+		/*
+		 * Make visible again to assistive technologies all body children that
+		 * have been made hidden when the modal opened.
+		 */
+		this.focusManager.removeAriaHiddenFromBodyChildren();
 
 		// Move focus back in useful location once modal is closed.
 		if ( null !== this.clickedOpenerEl ) {
