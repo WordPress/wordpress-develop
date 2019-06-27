@@ -1,0 +1,41 @@
+version: '3.1'
+
+services:
+  wordpress:
+    image: wordpress
+    restart: always
+    ports:
+      - 8889:80
+    environment:
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_PASSWORD: example
+      ABSPATH: /usr/src/wordpress/
+      WORDPRESS_DEBUG: 1
+      WORDPRESS_CONFIG_EXTRA: |
+        define( 'SCRIPT_DEBUG', true );
+    volumes:
+      - wordpress_data:/var/www/html
+      - ../../build/:/var/www/html/
+    depends_on:
+      - mysql
+
+  cli:
+    image: wordpress:cli
+    restart: always
+    user: xfs
+    volumes:
+      - wordpress_data:/var/www/html
+      - ../../build/:/var/www/html/
+    depends_on:
+      - mysql
+      - wordpress
+
+  mysql:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+      MYSQL_DATABASE: wordpress_test
+
+volumes:
+  wordpress_data:

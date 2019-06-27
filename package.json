@@ -13,11 +13,16 @@
 	"author": "The WordPress Contributors",
 	"license": "GPL-2.0-or-later",
 	"devDependencies": {
+		"@wordpress/babel-preset-default": "4.3.0",
 		"@wordpress/custom-templated-path-webpack-plugin": "1.2.0",
+		"@wordpress/e2e-test-utils": "2.1.0",
 		"@wordpress/library-export-default-webpack-plugin": "1.1.0",
+		"@wordpress/scripts": "3.3.0",
 		"autoprefixer": "9.4.7",
+		"babel-jest": "24.8.0",
 		"check-node-version": "3.2.0",
 		"copy-webpack-plugin": "^4.6.0",
+		"core-js": "3.1.4",
 		"cssnano": "4.1.8",
 		"grunt": "~1.0.3",
 		"grunt-banner": "^0.6.0",
@@ -117,6 +122,9 @@
 		"dev": "grunt build --dev",
 		"test": "grunt test",
 		"watch": "grunt watch",
-		"grunt": "grunt"
+		"grunt": "grunt",
+		"env:start": "./tools/local-env/start.sh",
+		"env:reset-site": "./tools/local-env/install-wordpress.sh --reset-site",
+		"test:e2e": "wp-scripts test-e2e --config tests/e2e/jest.config.js"
 	}
 }
