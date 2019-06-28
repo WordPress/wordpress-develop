@@ -312,7 +312,6 @@ Paragraph two.';
 			'h4',
 			'h5',
 			'h6',
-			'hr',
 			'fieldset',
 			'legend',
 			'section',
@@ -558,4 +557,13 @@ line 2<br/>
 		$this->assertEquals( $expected2, trim( wpautop( $content2 ) ) );
 	}
 
+	/**
+	 * @ticket 14674
+	 */
+	function test_the_hr_is_not_peed() {
+		$content  = 'paragraph1<hr>paragraph2';
+		$expected = "<p>paragraph1</p>\n<hr>\n<p>paragraph2</p>";
+
+		$this->assertEquals( $expected, trim( wpautop( $content ) ) );
+	}
 }
