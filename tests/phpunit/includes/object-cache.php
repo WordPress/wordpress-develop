@@ -761,6 +761,7 @@ function wp_cache_add_non_persistent_groups( $groups ) {
 	$wp_object_cache->add_non_persistent_groups( $groups );
 }
 
+// phpcs:disable WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
 class WP_Object_Cache {
 
 	/**
@@ -2160,3 +2161,4 @@ class WP_Object_Cache {
 		$this->blog_prefix = ( is_multisite() ? $blog_id : $table_prefix ) . ':';
 	}
 }
+// phpcs:enable

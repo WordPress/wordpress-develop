@@ -21,7 +21,7 @@ function tests_get_phpunit_version() {
 /**
  * Resets various `$_SERVER` variables that can get altered during tests.
  */
-function tests_reset__SERVER() {
+function tests_reset__SERVER() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	$_SERVER['HTTP_HOST']       = WP_TESTS_DOMAIN;
 	$_SERVER['REMOTE_ADDR']     = '127.0.0.1';
 	$_SERVER['REQUEST_METHOD']  = 'GET';

@@ -182,7 +182,7 @@ class MockAction {
 
 // convert valid xml to an array tree structure
 // kinda lame but it works with a default php 4 installation
-class testXMLParser {
+class TestXMLParser {
 	var $xml;
 	var $data = array();
 
@@ -193,8 +193,8 @@ class testXMLParser {
 		$this->xml = xml_parser_create();
 		xml_set_object( $this->xml, $this );
 		xml_parser_set_option( $this->xml, XML_OPTION_CASE_FOLDING, 0 );
-		xml_set_element_handler( $this->xml, array( $this, 'startHandler' ), array( $this, 'endHandler' ) );
-		xml_set_character_data_handler( $this->xml, array( $this, 'dataHandler' ) );
+		xml_set_element_handler( $this->xml, array( $this, 'start_handler' ), array( $this, 'end_handler' ) );
+		xml_set_character_data_handler( $this->xml, array( $this, 'data_handler' ) );
 		$this->parse( $in );
 	}
 
@@ -214,19 +214,19 @@ class testXMLParser {
 		return true;
 	}
 
-	function startHandler( $parser, $name, $attributes ) {
+	function start_handler( $parser, $name, $attributes ) {
 		$data['name'] = $name;
 		if ( $attributes ) {
 			$data['attributes'] = $attributes; }
 		$this->data[] = $data;
 	}
 
-	function dataHandler( $parser, $data ) {
+	function data_handler( $parser, $data ) {
 		$index                             = count( $this->data ) - 1;
 		@$this->data[ $index ]['content'] .= $data;
 	}
 
-	function endHandler( $parser, $name ) {
+	function end_handler( $parser, $name ) {
 		if ( count( $this->data ) > 1 ) {
 			$data                            = array_pop( $this->data );
 			$index                           = count( $this->data ) - 1;
@@ -236,7 +236,7 @@ class testXMLParser {
 }
 
 function xml_to_array( $in ) {
-	$p = new testXMLParser( $in );
+	$p = new TestXMLParser( $in );
 	return $p->data;
 }
 
