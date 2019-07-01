@@ -737,4 +737,34 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 		return $term;
 	}
+
+	/**
+	 * @ticket 41246
+	 */
+	public function test_terms_pre_query_filter_should_bypass_database_query() {
+		global $wpdb;
+
+		add_filter( 'terms_pre_query', array( __CLASS__, 'filter_terms_pre_query' ), 10, 2 );
+
+		$num_queries = $wpdb->num_queries;
+
+		$q       = new WP_Term_Query();
+		$results = $q->query(
+			array(
+				'fields' => 'ids',
+			)
+		);
+
+		remove_filter( 'terms_pre_query', array( __CLASS__, 'filter_terms_pre_query' ), 10, 2 );
+
+		// Make sure no queries were executed.
+		$this->assertSame( $num_queries, $wpdb->num_queries );
+
+		// We manually inserted a non-existing site and overrode the results with it.
+		$this->assertSame( array( 555 ), $q->terms );
+	}
+
+	public static function filter_terms_pre_query( $terms, $query ) {
+		return array( 555 );
+	}
 }
