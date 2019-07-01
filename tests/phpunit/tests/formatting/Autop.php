@@ -566,4 +566,38 @@ line 2<br/>
 
 		$this->assertEquals( $expected, trim( wpautop( $content ) ) );
 	}
+
+	/**
+	 * wpautop() should ignore inline SVG graphics
+	 *
+	 * @ticket 9437
+	 */
+	function test_that_wpautop_ignores_inline_svgs() {
+		$content =
+			'<svg xmlns="http://www.w3.org/2000/svg">
+				<circle cx="50" cy="50" r="30" fill="blue">
+					<animateTransform attributeName="transform" type="scale" to="1.5" dur="2s" fill="freeze"/>
+				</circle>
+			</svg>';
+
+		$expected = '<p>' . $content . '</p>';
+
+		$this->assertEquals( $expected, trim( wpautop( $content ) ) );
+	}
+
+	/**
+	 * wpautop() should ignore inline scripts
+	 *
+	 * @ticket 9437
+	 */
+	function test_that_wpautop_ignores_inline_scripts() {
+		$content =
+			'<script type="text/javascript">
+				var dummy = 1;
+			</script>';
+
+		$expected = '<p>' . $content . '</p>';
+
+		$this->assertEquals( $expected, trim( wpautop( $content ) ) );
+	}
 }
