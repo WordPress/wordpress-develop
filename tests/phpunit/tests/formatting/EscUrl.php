@@ -13,6 +13,7 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 		$this->assertEquals( 'http://example.com/Mr%20WordPress', esc_url( 'http://example.com/Mr%20WordPress' ) );
 		$this->assertEquals( 'http://example.com/Mr%20%20WordPress', esc_url( 'http://example.com/Mr%20%20WordPress' ) );
 		$this->assertEquals( 'http://example.com/Mr+WordPress', esc_url( 'http://example.com/Mr+WordPress' ) );
+		$this->assertEquals( 'http://example.com/Mr+WordPress', esc_url( ' http://example.com/Mr+WordPress' ) );
 
 		$this->assertEquals( 'http://example.com/?foo=one%20two%20three&#038;bar=four', esc_url( 'http://example.com/?foo=one two three&bar=four' ) );
 		$this->assertEquals( 'http://example.com/?foo=one%20two%20three&#038;bar=four', esc_url( 'http://example.com/?foo=one%20two%20three&bar=four' ) );
