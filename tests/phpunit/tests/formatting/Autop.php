@@ -600,4 +600,63 @@ line 2<br/>
 
 		$this->assertEquals( $expected, trim( wpautop( $content ) ) );
 	}
+
+	/**
+	 * wpautop() should remove stray <p> and </p> tags inside blocks
+	 *
+	 * @ticket 27350
+	 * @dataProvider data_wpautop_removes_stray_p_tags_in_blocks
+	 */
+	function test_wpautop_removes_stray_p_tags_in_blocks( $data, $expected ) {
+		$this->assertEquals( $expected, wpautop( $data ) );
+	}
+
+	function data_wpautop_removes_stray_p_tags_in_blocks() {
+		return array(
+			array(
+				'<div><p>123</p> </div>',
+				"<div>\n<p>123</p>\n</div>\n",
+			),
+			array(
+				'<div><p>123</p></div>',
+				"<div>\n<p>123</p>\n</div>\n",
+			),
+			array(
+				'hello<div>test</div>',
+				"<p>hello</p>\n<div>test</div>\n",
+			),
+			array(
+				'<div><p>Hello world</p><span>WordPress</span></div>',
+				"<div>\n<p>Hello world</p>\n<span>WordPress</span></div>\n",
+			),
+			array(
+				"<div>hello\n<pre>test</pre>\nworld</div>",
+				"<div>hello\n<pre>test</pre>\n<p>world</p></div>\n",
+			),
+			array(
+				'hello<div>test</div>',
+				"<p>hello</p>\n<div>test</div>\n",
+			),
+			array(
+				'<div><img src="/wp-content/uploads/example.jpg" alt="something" /><div>Something</div></div>',
+				"<div><img src=\"/wp-content/uploads/example.jpg\" alt=\"something\" />\n<div>Something</div>\n</div>\n",
+			),
+			array(
+				'<div><span></span><div></div></div>',
+				"<div><span></span>\n<div></div>\n</div>\n",
+			),
+			array(
+				'<div>X<div></div></div>',
+				"<div>X\n<div></div>\n</div>\n",
+			),
+			array(
+				"<div><div></div>\n </div>",
+				"<div>\n<div></div>\n</div>\n",
+			),
+			array(
+				"[banner]\n<h1>Test</h1>",
+				"<p>[banner]</p>\n<h1>Test</h1>\n",
+			),
+		);
+	}
 }
