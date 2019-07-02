@@ -21,9 +21,12 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	public static function wpSetUpBeforeClass( $factory ) {
-		self::$user_ids[] = self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
-		self::$user_ids[] = self::$admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
-		self::$user_ids[] = self::$no_role_id = $factory->user->create( array( 'role' => '' ) );
+		self::$editor_id  = $factory->user->create( array( 'role' => 'editor' ) );
+		self::$user_ids[] = self::$editor_id;
+		self::$admin_id   = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$user_ids[] = self::$admin_id;
+		self::$no_role_id = $factory->user->create( array( 'role' => '' ) );
+		self::$user_ids[] = self::$no_role_id;
 	}
 
 	/**

@@ -119,9 +119,11 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 
 		// Unauthorized.
 		wp_set_current_user( self::$subscriber_user_id );
-		$nonce          = wp_create_nonce( 'save-customize_' . $wp_customize->get_stylesheet() );
-		$_POST['nonce'] = $_GET['nonce'] = $_REQUEST['nonce'] = $nonce;
-		$exception      = null;
+		$nonce             = wp_create_nonce( 'save-customize_' . $wp_customize->get_stylesheet() );
+		$_POST['nonce']    = $nonce;
+		$_GET['nonce']     = $nonce;
+		$_REQUEST['nonce'] = $nonce;
+		$exception         = null;
 		try {
 			ob_start();
 			$wp_customize->setup_theme();
@@ -133,14 +135,18 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 
 		// Not called setup_theme.
 		wp_set_current_user( self::$admin_user_id );
-		$nonce          = wp_create_nonce( 'save-customize_' . $wp_customize->get_stylesheet() );
-		$_POST['nonce'] = $_GET['nonce'] = $_REQUEST['nonce'] = $nonce;
+		$nonce             = wp_create_nonce( 'save-customize_' . $wp_customize->get_stylesheet() );
+		$_POST['nonce']    = $nonce;
+		$_GET['nonce']     = $nonce;
+		$_REQUEST['nonce'] = $nonce;
 		$this->make_ajax_call( 'customize_save' );
 		$this->assertFalse( $this->_last_response_parsed['success'] );
 		$this->assertEquals( 'not_preview', $this->_last_response_parsed['data'] );
 
 		// Bad nonce.
-		$_POST['nonce'] = $_GET['nonce'] = $_REQUEST['nonce'] = 'bad';
+		$_POST['nonce']    = 'bad';
+		$_GET['nonce']     = 'bad';
+		$_REQUEST['nonce'] = 'bad';
 		$wp_customize->setup_theme();
 		$this->make_ajax_call( 'customize_save' );
 		$this->assertFalse( $this->_last_response_parsed['success'] );
@@ -148,7 +154,9 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 
 		// User cannot create.
 		$nonce                            = wp_create_nonce( 'save-customize_' . $wp_customize->get_stylesheet() );
-		$_POST['nonce']                   = $_GET['nonce'] = $_REQUEST['nonce'] = $nonce;
+		$_POST['nonce']                   = $nonce;
+		$_GET['nonce']                    = $nonce;
+		$_REQUEST['nonce']                = $nonce;
 		$post_type_obj                    = get_post_type_object( 'customize_changeset' );
 		$post_type_obj->cap->create_posts = 'create_customize_changesets';
 		$this->make_ajax_call( 'customize_save' );
@@ -250,8 +258,10 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 			)
 		);
 		$wp_customize->register_controls();
-		$nonce          = wp_create_nonce( 'save-customize_' . $wp_customize->get_stylesheet() );
-		$_POST['nonce'] = $_GET['nonce'] = $_REQUEST['nonce'] = $nonce;
+		$nonce             = wp_create_nonce( 'save-customize_' . $wp_customize->get_stylesheet() );
+		$_POST['nonce']    = $nonce;
+		$_GET['nonce']     = $nonce;
+		$_REQUEST['nonce'] = $nonce;
 		$wp_customize->setup_theme();
 		return $wp_customize;
 	}
@@ -482,8 +492,10 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 		$this->assertFalse( $this->_last_response_parsed['success'] );
 		$this->assertEquals( 'invalid_nonce', $this->_last_response_parsed['data']['code'] );
 
-		$nonce          = wp_create_nonce( 'trash_customize_changeset' );
-		$_POST['nonce'] = $_GET['nonce'] = $_REQUEST['nonce'] = $nonce;
+		$nonce             = wp_create_nonce( 'trash_customize_changeset' );
+		$_POST['nonce']    = $nonce;
+		$_GET['nonce']     = $nonce;
+		$_REQUEST['nonce'] = $nonce;
 		$this->make_ajax_call( 'customize_trash' );
 		$this->assertFalse( $this->_last_response_parsed['success'] );
 		$this->assertEquals( 'non_existent_changeset', $this->_last_response_parsed['data']['code'] );
@@ -567,15 +579,21 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 		$this->assertFalse( $this->_last_response_parsed['success'] );
 		$this->assertEquals( 'invalid_nonce', $this->_last_response_parsed['data'] );
 
-		$nonce          = wp_create_nonce( 'customize_dismiss_autosave_or_lock' );
-		$_POST['nonce'] = $_GET['nonce'] = $_REQUEST['nonce'] = $nonce;
+		$nonce             = wp_create_nonce( 'customize_dismiss_autosave_or_lock' );
+		$_POST['nonce']    = $nonce;
+		$_GET['nonce']     = $nonce;
+		$_REQUEST['nonce'] = $nonce;
 
-		$_POST['dismiss_lock'] = $_GET['dismiss_lock'] = $_REQUEST['dismiss_lock'] = true;
+		$_POST['dismiss_lock']    = true;
+		$_GET['dismiss_lock']     = true;
+		$_REQUEST['dismiss_lock'] = true;
 		$this->make_ajax_call( 'customize_dismiss_autosave_or_lock' );
 		$this->assertFalse( $this->_last_response_parsed['success'] );
 		$this->assertEquals( 'no_changeset_to_dismiss_lock', $this->_last_response_parsed['data'] );
 
-		$_POST['dismiss_autosave'] = $_GET['dismiss_autosave'] = $_REQUEST['dismiss_autosave'] = true;
+		$_POST['dismiss_autosave']    = true;
+		$_GET['dismiss_autosave']     = true;
+		$_REQUEST['dismiss_autosave'] = true;
 		$this->make_ajax_call( 'customize_dismiss_autosave_or_lock' );
 		$this->assertFalse( $this->_last_response_parsed['success'] );
 		$this->assertEquals( 'no_auto_draft_to_delete', $this->_last_response_parsed['data'] );
@@ -639,12 +657,16 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 			)
 		);
 
-		$_POST['dismiss_autosave'] = $_GET['dismiss_autosave'] = $_REQUEST['dismiss_autosave'] = false;
+		$_POST['dismiss_autosave']    = false;
+		$_GET['dismiss_autosave']     = false;
+		$_REQUEST['dismiss_autosave'] = false;
 		$this->make_ajax_call( 'customize_dismiss_autosave_or_lock' );
 		$this->assertTrue( $this->_last_response_parsed['success'] );
 		$this->assertEquals( 'changeset_lock_dismissed', $this->_last_response_parsed['data'] );
 
-		$_POST['dismiss_autosave'] = $_GET['dismiss_autosave'] = $_REQUEST['dismiss_autosave'] = true;
+		$_POST['dismiss_autosave']    = true;
+		$_GET['dismiss_autosave']     = true;
+		$_REQUEST['dismiss_autosave'] = true;
 		$this->assertNotWPError( $r );
 		$this->assertFalse( wp_get_post_autosave( $wp_customize->changeset_post_id() ) );
 		$this->assertContains( 'Foo', get_post( $wp_customize->changeset_post_id() )->post_content );

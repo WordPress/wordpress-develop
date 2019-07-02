@@ -71,7 +71,9 @@ define( 'WP_MAX_MEMORY_LIMIT', -1 );
 
 define( 'REST_TESTS_IMPOSSIBLY_HIGH_NUMBER', 99999999 );
 
-$PHP_SELF = $GLOBALS['PHP_SELF'] = $_SERVER['PHP_SELF'] = '/index.php';
+$PHP_SELF            = '/index.php';
+$GLOBALS['PHP_SELF'] = '/index.php';
+$_SERVER['PHP_SELF'] = '/index.php';
 
 // Should we run in multisite mode?
 $multisite = '1' == getenv( 'WP_MULTISITE' );

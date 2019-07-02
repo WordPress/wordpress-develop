@@ -22,49 +22,56 @@ class Tests_Query_Results extends WP_UnitTestCase {
 	static $child_four;
 
 	public static function wpSetUpBeforeClass( $factory ) {
-		self::$cat_ids[] = $cat_a = $factory->term->create(
+		$cat_a           = $factory->term->create(
 			array(
 				'taxonomy' => 'category',
 				'name'     => 'cat-a',
 			)
 		);
-		self::$cat_ids[] = $cat_b = $factory->term->create(
+		self::$cat_ids[] = $cat_a;
+		$cat_b           = $factory->term->create(
 			array(
 				'taxonomy' => 'category',
 				'name'     => 'cat-b',
 			)
 		);
-		self::$cat_ids[] = $cat_c = $factory->term->create(
+		self::$cat_ids[] = $cat_b;
+		$cat_c           = $factory->term->create(
 			array(
 				'taxonomy' => 'category',
 				'name'     => 'cat-c',
 			)
 		);
+		self::$cat_ids[] = $cat_c;
 
-		self::$tag_ids[] = $tag_a = $factory->term->create(
+		$tag_a           = $factory->term->create(
 			array(
 				'taxonomy' => 'post_tag',
 				'name'     => 'tag-a',
 			)
 		);
-		self::$tag_ids[] = $tag_b = $factory->term->create(
+		self::$tag_ids[] = $tag_a;
+		$tag_b           = $factory->term->create(
 			array(
 				'taxonomy' => 'post_tag',
 				'name'     => 'tag-b',
 			)
 		);
-		self::$tag_ids[] = $tag_c = $factory->term->create(
+		self::$tag_ids[] = $tag_b;
+		$tag_c           = $factory->term->create(
 			array(
 				'taxonomy' => 'post_tag',
 				'name'     => 'tag-c',
 			)
 		);
-		self::$tag_ids[] = $tag_nun = $factory->term->create(
+		self::$tag_ids[] = $tag_c;
+		$tag_nun         = $factory->term->create(
 			array(
 				'taxonomy' => 'post_tag',
 				'name'     => 'tag-נ',
 			)
 		);
+		self::$tag_ids[] = $tag_nun;
 
 		self::$post_ids[] = $factory->post->create(
 			array(
@@ -232,52 +239,59 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			)
 		);
 
-		self::$post_ids[] = self::$parent_one = $factory->post->create(
+		self::$parent_one   = $factory->post->create(
 			array(
 				'post_title' => 'parent-one',
 				'post_date'  => '2007-01-01 00:00:00',
 			)
 		);
-		self::$post_ids[] = self::$parent_two = $factory->post->create(
+		self::$post_ids[]   = self::$parent_one;
+		self::$parent_two   = $factory->post->create(
 			array(
 				'post_title' => 'parent-two',
 				'post_date'  => '2007-01-01 00:00:00',
 			)
 		);
-		self::$post_ids[] = self::$parent_three = $factory->post->create(
+		self::$post_ids[]   = self::$parent_two;
+		self::$parent_three = $factory->post->create(
 			array(
 				'post_title' => 'parent-three',
 				'post_date'  => '2007-01-01 00:00:00',
 			)
 		);
-		self::$post_ids[] = self::$child_one = $factory->post->create(
+		self::$post_ids[]   = self::$parent_three;
+		self::$child_one    = $factory->post->create(
 			array(
 				'post_title'  => 'child-one',
 				'post_parent' => self::$parent_one,
 				'post_date'   => '2007-01-01 00:00:01',
 			)
 		);
-		self::$post_ids[] = self::$child_two = $factory->post->create(
+		self::$post_ids[]   = self::$child_one;
+		self::$child_two    = $factory->post->create(
 			array(
 				'post_title'  => 'child-two',
 				'post_parent' => self::$parent_one,
 				'post_date'   => '2007-01-01 00:00:02',
 			)
 		);
-		self::$post_ids[] = self::$child_three = $factory->post->create(
+		self::$post_ids[]   = self::$child_two;
+		self::$child_three  = $factory->post->create(
 			array(
 				'post_title'  => 'child-three',
 				'post_parent' => self::$parent_two,
 				'post_date'   => '2007-01-01 00:00:03',
 			)
 		);
-		self::$post_ids[] = self::$child_four = $factory->post->create(
+		self::$post_ids[]   = self::$child_three;
+		self::$child_four   = $factory->post->create(
 			array(
 				'post_title'  => 'child-four',
 				'post_parent' => self::$parent_two,
 				'post_date'   => '2007-01-01 00:00:04',
 			)
 		);
+		self::$post_ids[]   = self::$child_four;
 	}
 
 	function setUp() {

@@ -31,7 +31,8 @@ class Tests_Post_WpUniquePostSlug extends WP_UnitTestCase {
 					'post_title'   => $post_title,
 				);
 
-				$id = $this->post_ids[] = self::factory()->post->create( $post );
+				$id               = self::factory()->post->create( $post );
+				$this->post_ids[] = $id;
 			}
 
 			$post = get_post( $id );

@@ -31,7 +31,8 @@ class Tests_Comment_GetCommentAuthorUrlLink extends WP_UnitTestCase {
 	}
 
 	public function test_global_comment() {
-		$GLOBALS['comment'] = $comment = reset( self::$comments );
+		$comment            = reset( self::$comments );
+		$GLOBALS['comment'] = $comment;
 
 		$url_link = get_comment_author_url_link();
 		$link     = $this->parseCommentAuthorUrl( $comment );

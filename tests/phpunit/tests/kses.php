@@ -54,7 +54,8 @@ class Tests_Kses extends WP_UnitTestCase {
 				$attr          = "$name='$value'";
 				$expected_attr = "$name='" . trim( $value, ';' ) . "'";
 			} else {
-				$attr = $expected_attr = $name;
+				$attr          = $name;
+				$expected_attr = $name;
 			}
 			$string        = "<a $attr>I link this</a>";
 			$expect_string = "<a $expected_attr>I link this</a>";

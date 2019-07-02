@@ -20,7 +20,9 @@ if ( ! defined( 'WP_DEFAULT_THEME' ) ) {
 
 tests_reset__SERVER();
 
-$PHP_SELF = $GLOBALS['PHP_SELF'] = $_SERVER['PHP_SELF'] = '/index.php';
+$PHP_SELF            = '/index.php';
+$GLOBALS['PHP_SELF'] = '/index.php';
+$_SERVER['PHP_SELF'] = '/index.php';
 
 tests_add_filter( 'wp_die_handler', '_wp_die_handler_filter_exit' );
 

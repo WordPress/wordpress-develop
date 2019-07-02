@@ -406,7 +406,8 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 			}
 
 			$files_to_move = array();
-			if ( $mu_plugins = opendir( WPMU_PLUGIN_DIR ) ) {
+			$mu_plugins    = opendir( WPMU_PLUGIN_DIR );
+			if ( $mu_plugins ) {
 				while ( false !== $plugin = readdir( $mu_plugins ) ) {
 					if ( 0 !== strpos( $plugin, '.' ) ) {
 						$files_to_move[] = $plugin;
@@ -432,7 +433,8 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	private function _restore_mu_plugins() {
 		$mu_bu_dir     = WP_CONTENT_DIR . '/mu-plugin-backup';
 		$files_to_move = array();
-		if ( is_dir( $mu_bu_dir ) && $mu_plugins = opendir( $mu_bu_dir ) ) {
+		$mu_plugins    = @opendir( $mu_bu_dir );
+		if ( $mu_plugins ) {
 			while ( false !== $plugin = readdir( $mu_plugins ) ) {
 				if ( 0 !== strpos( $plugin, '.' ) ) {
 					$files_to_move[] = $plugin;

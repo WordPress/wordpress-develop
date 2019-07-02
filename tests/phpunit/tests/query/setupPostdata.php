@@ -403,7 +403,8 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 	 */
 	function test_setup_postdata_loop() {
 		$post_id                   = self::factory()->post->create( array( 'post_content' => 'global post' ) );
-		$GLOBALS['wp_query']->post = $GLOBALS['post'] = get_post( $post_id );
+		$GLOBALS['post']           = get_post( $post_id );
+		$GLOBALS['wp_query']->post = $GLOBALS['post'];
 
 		$ids = self::factory()->post->create_many( 5 );
 		foreach ( $ids as $id ) {

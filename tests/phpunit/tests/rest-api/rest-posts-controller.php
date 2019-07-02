@@ -1378,8 +1378,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$attachments_url = add_query_arg( 'parent', self::$post_id, $attachments_url );
 		$this->assertEquals( $attachments_url, $links['https://api.w.org/attachment'][0]['href'] );
 
-		$term_links = $links['https://api.w.org/term'];
-		$tag_link   = $cat_link = $format_link = null;
+		$term_links  = $links['https://api.w.org/term'];
+		$tag_link    = null;
+		$cat_link    = null;
+		$format_link = null;
 		foreach ( $term_links as $link ) {
 			if ( 'post_tag' === $link['attributes']['taxonomy'] ) {
 				$tag_link = $link;
