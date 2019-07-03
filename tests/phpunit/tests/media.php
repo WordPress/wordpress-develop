@@ -1240,8 +1240,8 @@ EOF;
 https://youtube.com/watch?v=TEST01YRHA0<br />
 <script><!--
 my_function();
-// --> </script><br />
-https://youtube.com/watch?v=TEST02YRHA0<br />
+// --> </script>
+https://youtube.com/watch?v=TEST02YRHA0
 <a href="http://www.example.com/embed/TEST03YRHA0">http://www.example.com/embed/TEST03YRHA0</a><br />
 http://www.example.com/embed/TEST04YRHA0<br />
 Stop.</p>
