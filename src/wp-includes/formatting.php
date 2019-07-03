@@ -579,6 +579,13 @@ function wpautop( $pee, $br = true ) {
 
 	// Optionally insert line breaks.
 	if ( $br ) {
+
+		// Multi-line HTML comments. (Opening)
+		$pee = preg_replace_callback( '/<\!\-.*?\n/s', '_autop_newline_preservation_helper', $pee );
+
+		// Multi-line HTML comments. (Closing)
+		$pee = preg_replace_callback( '/\->.*?\n/s', '_autop_newline_preservation_helper', $pee );
+
 		// Replace newlines that shouldn't be touched with a placeholder.
 		$pee = preg_replace_callback( '/<(script|style|svg).*?<\/\\1>/s', '_autop_newline_preservation_helper', $pee );
 
@@ -592,12 +599,26 @@ function wpautop( $pee, $br = true ) {
 		$pee = str_replace( '<WPPreserveNewline />', "\n", $pee );
 	}
 
+	// No <p> around HTML comment
+	if ( strpos( $pee, '<!-' ) !== false ) {
+		$pee = preg_replace( '|<p>\s*<\!-|', '<!-', $pee );
+
+		// Remove the tailing paragraph if this paragraph starts as a comment.
+		if ( 0 === strpos( $pee, '<!-' ) ) {
+			$pee = preg_replace( '|\-->\s*</p>|', '-->', $pee );
+		}
+	}
+
 	// If a <br /> tag is after an opening or closing block tag, remove it.
 	$pee = preg_replace( '!(</?' . $allblocks . '[^>]*>)\s*<br />!', '$1', $pee );
 
 	// If a <br /> tag is before a subset of opening or closing block tags, remove it.
 	$pee = preg_replace( '!<br />(\s*</?(?:p|li|div|dl|dd|dt|th|pre|td|ul|ol)[^>]*>)!', '$1', $pee );
 	$pee = preg_replace( "|\n</p>$|", '</p>', $pee );
+
+	// No <br /> after HTML comment
+	$pee = preg_replace( "|(\-\->.*[^</p>])\n|", "$1<br />\n", $pee );
+	$pee = str_replace( "--><br />\n","-->\n", $pee );
 
 	// Replace placeholder <pre> tags with their original content.
 	if ( ! empty( $pre_tags ) ) {

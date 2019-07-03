@@ -430,6 +430,78 @@ Paragraph two.';
 	}
 
 	/**
+	 * Do not allow HTML comments to get wrapped in p tags.
+	 *
+	 * @dataProvider data_html_comments
+	 * @ticket 2691
+	 */
+	function test_html_comments( $input, $expected ) {
+		$this->assertEquals( $expected, trim( wpautop( $input ) ) );
+	}
+
+	function data_html_comments() {
+		return array(
+			array(
+				"<!-- HTML Comment -->",
+				"<!-- HTML Comment -->",
+			),
+			array(
+				"<!-- HTML\nmultiline\nComment -->",
+				"<!-- HTML\nmultiline\nComment -->",
+			),
+			array(
+				"Line One.\n<!-- HTML Comment -->Line Two\nLine Three.",
+				"<p>Line One.<br />
+<!-- HTML Comment -->Line Two<br />
+Line Three.</p>",
+			),
+			array(
+				"<p>Line One.\n<!-- HTML Comment -->Line Two</p>\nLine Three.",
+				"<p>Line One.<br />
+<!-- HTML Comment -->Line Two</p>
+<p>Line Three.</p>",
+			),
+			array(
+				"Line One.\n<!-- HTML\nComment -->\nLine Three.",
+				"<p>Line One.<br />
+<!-- HTML
+Comment -->
+Line Three.</p>",
+			),
+			array(
+				'<script type="text/javascript"><!--
+google_ad_client = "xxxxxxxx";
+google_ad_width = 120;
+google_ad_height = 60;
+google_ad_format = "120x60_as_rimg";
+google_cpa_choice = "CAAQ2eOZzgEaCD4zuVkdzt_CKI-293M";
+//--></script>',
+				'<p><script type="text/javascript"><!--
+google_ad_client = "xxxxxxxx";
+google_ad_width = 120;
+google_ad_height = 60;
+google_ad_format = "120x60_as_rimg";
+google_cpa_choice = "CAAQ2eOZzgEaCD4zuVkdzt_CKI-293M";
+//--></script></p>',
+			),
+			array(
+				'<!-- wp:paragraph -->
+<p><del>This is a paragraph.</del></p>
+<!-- /wp:paragraph -->
+<!-- wp:client/custom-block {"title":"This is the title"} /-->
+<!-- wp:paragraph -->
+<!-- /wp:paragraph -->',
+				'<!-- wp:paragraph -->
+<p><del>This is a paragraph.</del></p>
+<!-- /wp:paragraph -->
+<!-- wp:client/custom-block {"title":"This is the title"} /-->
+<!-- wp:paragraph -->
+<!-- /wp:paragraph -->'
+			),
+		);
+	}
+
+	/**
 	 * Do not allow newlines within HTML elements to become mangled.
 	 *
 	 * @ticket 33106
