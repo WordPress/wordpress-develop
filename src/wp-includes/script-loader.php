@@ -1994,7 +1994,7 @@ function wp_default_styles( &$styles ) {
 	 * to load that is supported by your language. Do not translate.
 	 * Set to 'off' to disable loading.
 	 */
-	$font_family = _x( 'Noto Serif:400,400i,700,700i', 'Google Font Name and Variants' );
+	$font_family = _x( 'off', 'Google Font Name and Variants' );
 	if ( 'off' !== $font_family ) {
 		$fonts_url = 'https://fonts.googleapis.com/css?family=' . urlencode( $font_family );
 	}
