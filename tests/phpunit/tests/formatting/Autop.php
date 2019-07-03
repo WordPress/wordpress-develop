@@ -442,8 +442,8 @@ Paragraph two.';
 	function data_html_comments() {
 		return array(
 			array(
-				"<!-- HTML Comment -->",
-				"<!-- HTML Comment -->",
+				'<!-- HTML Comment -->',
+				'<!-- HTML Comment -->',
 			),
 			array(
 				"<!-- HTML\nmultiline\nComment -->",
@@ -451,22 +451,22 @@ Paragraph two.';
 			),
 			array(
 				"Line One.\n<!-- HTML Comment -->Line Two\nLine Three.",
-				"<p>Line One.<br />
+				'<p>Line One.<br />
 <!-- HTML Comment -->Line Two<br />
-Line Three.</p>",
+Line Three.</p>',
 			),
 			array(
 				"<p>Line One.\n<!-- HTML Comment -->Line Two</p>\nLine Three.",
-				"<p>Line One.<br />
+				'<p>Line One.<br />
 <!-- HTML Comment -->Line Two</p>
-<p>Line Three.</p>",
+<p>Line Three.</p>',
 			),
 			array(
 				"Line One.\n<!-- HTML\nComment -->\nLine Three.",
-				"<p>Line One.<br />
+				'<p>Line One.<br />
 <!-- HTML
 Comment -->
-Line Three.</p>",
+Line Three.</p>',
 			),
 			array(
 				'<script type="text/javascript"><!--
@@ -496,7 +496,7 @@ google_cpa_choice = "CAAQ2eOZzgEaCD4zuVkdzt_CKI-293M";
 <!-- /wp:paragraph -->
 <!-- wp:client/custom-block {"title":"This is the title"} /-->
 <!-- wp:paragraph -->
-<!-- /wp:paragraph -->'
+<!-- /wp:paragraph -->',
 			),
 		);
 	}

@@ -618,7 +618,7 @@ function wpautop( $pee, $br = true ) {
 
 	// No <br /> after HTML comment
 	$pee = preg_replace( "|(\-\->.*[^</p>])\n|", "$1<br />\n", $pee );
-	$pee = str_replace( "--><br />\n","-->\n", $pee );
+	$pee = str_replace( "--><br />\n", "-->\n", $pee );
 
 	// Replace placeholder <pre> tags with their original content.
 	if ( ! empty( $pre_tags ) ) {
