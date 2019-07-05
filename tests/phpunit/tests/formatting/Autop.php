@@ -498,6 +498,10 @@ google_cpa_choice = "CAAQ2eOZzgEaCD4zuVkdzt_CKI-293M";
 <!-- wp:paragraph -->
 <!-- /wp:paragraph -->',
 			),
+			array(
+				'foo\n\n<!-- HTML comment ->\n\n still in the comment... -->',
+				'<p>foo</p>\n<!-- HTML comment ->\n\n still in the comment... -->',
+			)
 		);
 	}
 

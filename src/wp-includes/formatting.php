@@ -581,10 +581,10 @@ function wpautop( $pee, $br = true ) {
 	if ( $br ) {
 
 		// Multi-line HTML comments. (Opening)
-		$pee = preg_replace_callback( '/<\!\-.*?\n/s', '_autop_newline_preservation_helper', $pee );
+		$pee = preg_replace_callback( '/<\!\-\-.*?\n/s', '_autop_newline_preservation_helper', $pee );
 
 		// Multi-line HTML comments. (Closing)
-		$pee = preg_replace_callback( '/\->.*?\n/s', '_autop_newline_preservation_helper', $pee );
+		$pee = preg_replace_callback( '/\-\->.*?\n/s', '_autop_newline_preservation_helper', $pee );
 
 		// Replace newlines that shouldn't be touched with a placeholder.
 		$pee = preg_replace_callback( '/<(script|style|svg).*?<\/\\1>/s', '_autop_newline_preservation_helper', $pee );
