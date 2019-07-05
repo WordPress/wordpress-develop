@@ -184,6 +184,11 @@
 		</properties>
 	</rule>
 
+	<!-- Assignments in while conditions are a valid method of looping over iterables -->
+	<rule ref="WordPress.CodeAnalysis.AssignmentInCondition.FoundInWhileCondition">
+		<exclude-pattern>*</exclude-pattern>
+	</rule>
+
 	<!-- Exclude the unit tests from select sniffs. -->
 	<rule ref="WordPress.Files.FileName.NotHyphenatedLowercase">
 		<exclude-pattern>/tests/phpunit/tests/*</exclude-pattern>
