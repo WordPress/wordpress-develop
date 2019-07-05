@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c7426ffeca8db395605e43bccf174b02",
+    "content-hash": "54fbee5534d4ee1d332bb374c5442e79",
     "packages": [],
     "packages-dev": [
         {
@@ -126,16 +126,16 @@
         },
         {
             "name": "wp-coding-standards/wpcs",
-            "version": "2.0.0",
+            "version": "2.1.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards.git",
-                "reference": "c9eaadaafefce36b3cb7e06eb15305b8c4cae9ce"
+                "url": "https://github.com/WordPress/WordPress-Coding-Standards.git",
+                "reference": "bd9c33152115e6741e3510ff7189605b35167908"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WordPress-Coding-Standards/WordPress-Coding-Standards/zipball/c9eaadaafefce36b3cb7e06eb15305b8c4cae9ce",
-                "reference": "c9eaadaafefce36b3cb7e06eb15305b8c4cae9ce",
+                "url": "https://api.github.com/repos/WordPress/WordPress-Coding-Standards/zipball/bd9c33152115e6741e3510ff7189605b35167908",
+                "reference": "bd9c33152115e6741e3510ff7189605b35167908",
                 "shasum": ""
             },
             "require": {
@@ -148,7 +148,7 @@
                 "phpunit/phpunit": "^4.0 || ^5.0 || ^6.0 || ^7.0"
             },
             "suggest": {
-                "dealerdirect/phpcodesniffer-composer-installer": "^0.4.3 || This Composer plugin will sort out the PHPCS 'installed_paths' automatically."
+                "dealerdirect/phpcodesniffer-composer-installer": "^0.5.0 || This Composer plugin will sort out the PHPCS 'installed_paths' automatically."
             },
             "type": "phpcodesniffer-standard",
             "notification-url": "https://packagist.org/downloads/",
@@ -167,7 +167,7 @@
                 "standards",
                 "wordpress"
             ],
-            "time": "2019-01-16T10:13:16+00:00"
+            "time": "2019-05-21T02:50:00+00:00"
         }
     ],
     "aliases": [],
