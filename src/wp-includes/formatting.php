@@ -552,7 +552,16 @@ function wpautop( $pee, $br = true ) {
 
 	// Rebuild the content as a string, wrapping every bit with a <p>.
 	foreach ( $pees as $tinkle ) {
-		$pee .= '<p>' . trim( $tinkle, "\n" ) . "</p>\n";
+
+		// Don't wrap HTML comments in <p> tags.
+		if (
+			0 === strpos( trim( $tinkle, "\n" ), '<!--' ) &&
+			( strlen(  trim( $tinkle, "\n" ) ) - strlen( "-->" ) ) === strpos(  trim( $tinkle, "\n" ), "-->" )
+		) {
+			$pee .= trim( $tinkle, "\n" );
+		} else {
+			$pee .= '<p>' . trim( $tinkle, "\n" ) . "</p>\n";
+		}
 	}
 
 	// Under certain strange conditions it could create a P of entirely whitespace.
@@ -615,10 +624,6 @@ function wpautop( $pee, $br = true ) {
 	// If a <br /> tag is before a subset of opening or closing block tags, remove it.
 	$pee = preg_replace( '!<br />(\s*</?(?:p|li|div|dl|dd|dt|th|pre|td|ul|ol)[^>]*>)!', '$1', $pee );
 	$pee = preg_replace( "|\n</p>$|", '</p>', $pee );
-
-	// No <br /> after HTML comment
-	$pee = preg_replace( "|(\-\->.*[^</p>])\n|", "$1<br />\n", $pee );
-	$pee = str_replace( "--><br />\n", "-->\n", $pee );
 
 	// Replace placeholder <pre> tags with their original content.
 	if ( ! empty( $pre_tags ) ) {

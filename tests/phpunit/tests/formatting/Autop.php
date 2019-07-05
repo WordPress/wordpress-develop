@@ -452,7 +452,7 @@ Paragraph two.';
 			array(
 				"Line One.\n<!-- HTML Comment -->Line Two\nLine Three.",
 				'<p>Line One.<br />
-<!-- HTML Comment -->Line Two<br />
+<!-- HTML Comment -->Line Two
 Line Three.</p>',
 			),
 			array(
@@ -491,16 +491,18 @@ google_cpa_choice = "CAAQ2eOZzgEaCD4zuVkdzt_CKI-293M";
 <!-- wp:client/custom-block {"title":"This is the title"} /-->
 <!-- wp:paragraph -->
 <!-- /wp:paragraph -->',
-				'<!-- wp:paragraph -->
-<p><del>This is a paragraph.</del></p>
+				'<!-- wp:paragraph --><p><del>This is a paragraph.</del></p>
 <!-- /wp:paragraph -->
 <!-- wp:client/custom-block {"title":"This is the title"} /-->
 <!-- wp:paragraph -->
 <!-- /wp:paragraph -->',
 			),
 			array(
-				'foo\n\n<!-- HTML comment ->\n\n still in the comment... -->',
-				'<p>foo</p>\n<!-- HTML comment ->\n\n still in the comment... -->',
+				'<p>foo</p>
+
+<!-- HTML comment ->\n\n still in the comment... -->',
+				'<p>foo</p>
+<!-- HTML comment ->\n\n still in the comment... -->',
 			)
 		);
 	}
