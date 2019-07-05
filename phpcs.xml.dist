@@ -148,6 +148,11 @@
 		<exclude-pattern>/tests/phpunit/tests/l10n/loadTextdomainJustInTime\.php</exclude-pattern>
 	</rule>
 
+	<!-- Translator comments aren't needed in unit tests. -->
+	<rule ref="WordPress.WP.I18n.MissingTranslatorsComment">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+
 	<rule ref="Generic.Functions.FunctionCallArgumentSpacing">
 		<exclude-pattern>/wp-config\.php</exclude-pattern>
 		<exclude-pattern>/wp-config-sample\.php</exclude-pattern>
