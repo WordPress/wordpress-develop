@@ -1312,15 +1312,15 @@ class Tests_Functions extends WP_UnitTestCase {
 				$data,
 				array(
 					// Standard non-image file.
-					 array(
-						 DIR_TESTDATA . '/formatting/big5.txt',
-						 'big5.txt',
-						 array(
-							 'ext'             => 'txt',
-							 'type'            => 'text/plain',
-							 'proper_filename' => false,
-						 ),
-					 ),
+					array(
+						DIR_TESTDATA . '/formatting/big5.txt',
+						'big5.txt',
+						array(
+							'ext'             => 'txt',
+							'type'            => 'text/plain',
+							'proper_filename' => false,
+						),
+					),
 					// Non-image file with wrong sub-type.
 					array(
 						DIR_TESTDATA . '/uploads/pages-to-word.docx',
