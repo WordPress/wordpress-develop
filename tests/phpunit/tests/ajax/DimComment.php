@@ -89,7 +89,7 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 
 		// Check the status
 		$current = wp_get_comment_status( $comment->comment_ID );
-		if ( in_array( $prev_status, array( 'unapproved', 'spam' ) ) ) {
+		if ( in_array( $prev_status, array( 'unapproved', 'spam' ), true ) ) {
 			$this->assertEquals( 'approved', $current );
 		} else {
 			$this->assertEquals( 'unapproved', $current );
@@ -103,7 +103,7 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 		$total = $_POST['_total'] - 1;
 
 		// Check for either possible total
-		$this->assertTrue( in_array( (int) $xml->response[0]->comment[0]->supplemental[0]->total[0], array( $total, $recalc_total ) ) );
+		$this->assertTrue( in_array( (int) $xml->response[0]->comment[0]->supplemental[0]->total[0], array( $total, $recalc_total ), true ) );
 	}
 
 	/**

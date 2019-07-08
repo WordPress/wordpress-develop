@@ -208,7 +208,7 @@ class Tests_File extends WP_UnitTestCase {
 		$this->assertLessThan( 10, $time_taken, 'verify_file_signature() took longer than 10 seconds.' );
 
 		// Check to see if the system parameters prevent signature verifications.
-		if ( is_wp_error( $verify ) && 'signature_verification_unsupported' == $verify->get_error_code() ) {
+		if ( is_wp_error( $verify ) && 'signature_verification_unsupported' === $verify->get_error_code() ) {
 			$this->markTestSkipped( 'This system does not support Signature Verification.' );
 		}
 
@@ -228,7 +228,7 @@ class Tests_File extends WP_UnitTestCase {
 		$verify             = verify_file_signature( $file, $expected_signature, 'WordPress' );
 		unlink( $file );
 
-		if ( is_wp_error( $verify ) && 'signature_verification_unsupported' == $verify->get_error_code() ) {
+		if ( is_wp_error( $verify ) && 'signature_verification_unsupported' === $verify->get_error_code() ) {
 			$this->markTestSkipped( 'This system does not support Signature Verification.' );
 		}
 

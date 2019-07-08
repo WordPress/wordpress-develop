@@ -744,7 +744,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$nodes = $wp_admin_bar->get_nodes();
 		foreach ( $this->get_my_sites_network_menu_items() as $id => $cap ) {
-			if ( in_array( $cap, $network_user_caps ) ) {
+			if ( in_array( $cap, $network_user_caps, true ) ) {
 				$this->assertTrue( isset( $nodes[ $id ] ), sprintf( 'Menu item %1$s must display for a user with the %2$s cap.', $id, $cap ) );
 			} else {
 				$this->assertFalse( isset( $nodes[ $id ] ), sprintf( 'Menu item %1$s must not display for a user without the %2$s cap.', $id, $cap ) );

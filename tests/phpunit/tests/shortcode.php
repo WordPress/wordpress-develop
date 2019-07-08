@@ -38,7 +38,8 @@ class Tests_Shortcode extends WP_UnitTestCase {
 
 	// [footag foo="bar"]
 	function _shortcode_footag( $atts ) {
-		return @"foo = {$atts['foo']}";
+		$foo = isset( $atts['foo'] ) ? $atts['foo'] : '';
+		return "foo = $foo";
 	}
 
 	// [bartag foo="bar"]
@@ -444,7 +445,7 @@ EOF;
 	// Filter shortcode atts in various ways
 	function _filter_atts2( $out, $pairs, $atts ) {
 		// If foo attribute equals "foo1", change it to be default value
-		if ( isset( $out['foo'] ) && 'foo1' == $out['foo'] ) {
+		if ( isset( $out['foo'] ) && 'foo1' === $out['foo'] ) {
 			$out['foo'] = $pairs['foo'];
 		}
 

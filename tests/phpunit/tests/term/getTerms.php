@@ -2474,9 +2474,9 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertEqualSets( array( $t1, $t2, $t3 ), wp_list_pluck( $found, 'term_id' ) );
 
 		foreach ( $found as $f ) {
-			if ( $t1 == $f->term_id ) {
+			if ( $t1 === $f->term_id ) {
 				$this->assertSame( 3, $f->count );
-			} elseif ( $t2 == $f->term_id ) {
+			} elseif ( $t2 === $f->term_id ) {
 				$this->assertSame( 2, $f->count );
 			} else {
 				$this->assertSame( 1, $f->count );
@@ -2547,9 +2547,9 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$this->assertEqualSets( array( $t1, $t2, $t3 ), wp_list_pluck( $found, 'term_id' ) );
 
 		foreach ( $found as $f ) {
-			if ( $t1 == $f->term_id ) {
+			if ( $t1 === $f->term_id ) {
 				$this->assertEquals( 1, $f->count );
-			} elseif ( $t2 == $f->term_id ) {
+			} elseif ( $t2 === $f->term_id ) {
 				$this->assertEquals( 2, $f->count );
 			} else {
 				$this->assertEquals( 1, $f->count );

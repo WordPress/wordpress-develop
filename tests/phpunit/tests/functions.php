@@ -844,7 +844,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		$charsets     = mb_detect_order();
 		$old_charsets = $charsets;
-		if ( ! in_array( 'EUC-JP', $charsets ) ) {
+		if ( ! in_array( 'EUC-JP', $charsets, true ) ) {
 			$charsets[] = 'EUC-JP';
 			mb_detect_order( $charsets );
 		}
@@ -869,7 +869,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		$charsets     = mb_detect_order();
 		$old_charsets = $charsets;
-		if ( ! in_array( 'EUC-JP', $charsets ) ) {
+		if ( ! in_array( 'EUC-JP', $charsets, true ) ) {
 			$charsets[] = 'EUC-JP';
 			mb_detect_order( $charsets );
 		}
@@ -965,8 +965,8 @@ class Tests_Functions extends WP_UnitTestCase {
 	public function test_wp_ext2type() {
 		$extensions = wp_get_ext_types();
 
-		foreach ( $extensions as $type => $extensionList ) {
-			foreach ( $extensionList as $extension ) {
+		foreach ( $extensions as $type => $extension_list ) {
+			foreach ( $extension_list as $extension ) {
 				$this->assertEquals( $type, wp_ext2type( $extension ) );
 				$this->assertEquals( $type, wp_ext2type( strtoupper( $extension ) ) );
 			}

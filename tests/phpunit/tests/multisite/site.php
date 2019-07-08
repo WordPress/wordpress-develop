@@ -166,16 +166,21 @@ if ( is_multisite() ) :
 
 			// Check existence of each database table for the created site.
 			foreach ( $wpdb->tables( 'blog', false ) as $table ) {
-				$suppress     = $wpdb->suppress_errors();
+				$suppress = $wpdb->suppress_errors();
+
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$table_fields = $wpdb->get_results( "DESCRIBE $prefix$table;" );
+
 				$wpdb->suppress_errors( $suppress );
 
 				// The table should exist.
 				$this->assertNotEmpty( $table_fields );
 
 				// And the table should not be empty, unless commentmeta, termmeta, or links.
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$result = $wpdb->get_results( "SELECT * FROM $prefix$table LIMIT 1" );
-				if ( 'commentmeta' == $table || 'termmeta' == $table || 'links' == $table ) {
+
+				if ( 'commentmeta' === $table || 'termmeta' === $table || 'links' === $table ) {
 					$this->assertEmpty( $result );
 				} else {
 					$this->assertNotEmpty( $result );
@@ -244,8 +249,11 @@ if ( is_multisite() ) :
 
 			$prefix = $wpdb->get_blog_prefix( $blog_id );
 			foreach ( $wpdb->tables( 'blog', false ) as $table ) {
-				$suppress     = $wpdb->suppress_errors();
+				$suppress = $wpdb->suppress_errors();
+
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$table_fields = $wpdb->get_results( "DESCRIBE $prefix$table;" );
+
 				$wpdb->suppress_errors( $suppress );
 				$this->assertNotEmpty( $table_fields, $prefix . $table );
 			}
@@ -282,8 +290,11 @@ if ( is_multisite() ) :
 
 			$prefix = $wpdb->get_blog_prefix( $blog_id );
 			foreach ( $wpdb->tables( 'blog', false ) as $table ) {
-				$suppress     = $wpdb->suppress_errors();
+				$suppress = $wpdb->suppress_errors();
+
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$table_fields = $wpdb->get_results( "DESCRIBE $prefix$table;" );
+
 				$wpdb->suppress_errors( $suppress );
 				$this->assertEmpty( $table_fields );
 			}
@@ -320,8 +331,11 @@ if ( is_multisite() ) :
 
 			$prefix = $wpdb->get_blog_prefix( $blog_id );
 			foreach ( $wpdb->tables( 'blog', false ) as $table ) {
-				$suppress     = $wpdb->suppress_errors();
+				$suppress = $wpdb->suppress_errors();
+
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$table_fields = $wpdb->get_results( "DESCRIBE $prefix$table;" );
+
 				$wpdb->suppress_errors( $suppress );
 				$this->assertNotEmpty( $table_fields, $prefix . $table );
 			}
@@ -855,7 +869,7 @@ if ( is_multisite() ) :
 		 * the testing of the filter and for a test which does not need the database.
 		 */
 		function _domain_exists_cb( $exists, $domain, $path, $site_id ) {
-			if ( 'foo' == $domain && 'bar/' == $path ) {
+			if ( 'foo' === $domain && 'bar/' === $path ) {
 				return 1234;
 			} else {
 				return null;

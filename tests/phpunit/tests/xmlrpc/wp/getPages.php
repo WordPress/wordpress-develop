@@ -55,8 +55,8 @@ class Tests_XMLRPC_wp_getPages extends WP_XMLRPC_UnitTestCase {
 	}
 
 	function remove_editor_edit_page_cap( $caps, $cap, $user_id, $args ) {
-		if ( in_array( $cap, array( 'edit_page', 'edit_others_pages' ) ) ) {
-			if ( $user_id == self::$editor_id && $args[0] == self::$post_id ) {
+		if ( in_array( $cap, array( 'edit_page', 'edit_others_pages' ), true ) ) {
+			if ( $user_id === self::$editor_id && $args[0] === self::$post_id ) {
 				return array( false );
 			}
 		}
@@ -78,7 +78,7 @@ class Tests_XMLRPC_wp_getPages extends WP_XMLRPC_UnitTestCase {
 			// WP#20629
 			$this->assertNotIXRError( $result );
 
-			if ( $result['page_id'] == self::$post_id ) {
+			if ( $result['page_id'] === self::$post_id ) {
 				$found_incapable = true;
 				break;
 			}

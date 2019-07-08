@@ -18,8 +18,8 @@ if ( class_exists( 'PHPUnit\Runner\Version' ) && version_compare( PHPUnit\Runner
 	class PHPUnit_Util_Test {
 
 		// phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
-		public static function getTickets( $className, $methodName ) {
-			$annotations = PHPUnit\Util\Test::parseTestMethodAnnotations( $className, $methodName );
+		public static function getTickets( $class_name, $method_name ) {
+			$annotations = PHPUnit\Util\Test::parseTestMethodAnnotations( $class_name, $method_name );
 
 			$tickets = array();
 

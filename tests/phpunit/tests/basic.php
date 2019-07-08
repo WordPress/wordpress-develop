@@ -22,7 +22,7 @@ class Tests_Basic extends WP_UnitTestCase {
 		$package_json    = json_decode( $package_json, true );
 		list( $version ) = explode( '-', $GLOBALS['wp_version'] );
 		// package.json uses x.y.z, so fill cleaned $wp_version for .0 releases
-		if ( 1 == substr_count( $version, '.' ) ) {
+		if ( 1 === substr_count( $version, '.' ) ) {
 			$version .= '.0';
 		}
 		$this->assertEquals( $version, $package_json['version'], "package.json's version needs to be updated to $version." );

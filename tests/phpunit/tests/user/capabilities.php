@@ -1546,7 +1546,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	function _nullify_current_user() {
 		// Prevents fatal errors in ::tearDown()'s and other uses of restore_current_blog()
 		$function_stack = wp_debug_backtrace_summary( null, 0, false );
-		if ( in_array( 'restore_current_blog', $function_stack ) ) {
+		if ( in_array( 'restore_current_blog', $function_stack, true ) ) {
 			return;
 		}
 		$GLOBALS['current_user'] = null;

@@ -28,7 +28,7 @@ if ( is_multisite() ) :
 			// Our comparison of space relies on an initial value of 0. If a previous test has failed or if the
 			// src directory already contains a content directory with site content, then the initial expectation
 			// will be polluted. We create sites until an empty one is available.
-			while ( 0 != get_space_used() ) {
+			while ( 0 !== get_space_used() ) {
 				restore_current_blog();
 				$blog_id = self::factory()->blog->create();
 				switch_to_blog( $blog_id );
@@ -64,7 +64,7 @@ if ( is_multisite() ) :
 			// We don't rely on an initial value of 0 for space used, but should have a clean space available
 			// so that we can remove any uploaded files and directories without concern of a conflict with
 			// existing content directories in src.
-			while ( 0 != get_space_used() ) {
+			while ( 0 !== get_space_used() ) {
 				restore_current_blog();
 				$blog_id = self::factory()->blog->create();
 				switch_to_blog( $blog_id );

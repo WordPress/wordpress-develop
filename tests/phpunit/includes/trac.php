@@ -41,7 +41,7 @@ class TracTickets {
 			self::$trac_ticket_cache[ $trac_url ] = $tickets;
 		}
 
-		return ! in_array( $ticket_id, self::$trac_ticket_cache[ $trac_url ] );
+		return ! in_array( $ticket_id, self::$trac_ticket_cache[ $trac_url ], true );
 	}
 
 	// phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid

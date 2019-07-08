@@ -2491,7 +2491,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function revoke_assign_term( $caps, $cap, $user_id, $args ) {
-		if ( 'assign_term' === $cap && isset( $args[0] ) && $this->forbidden_cat == $args[0] ) {
+		if ( 'assign_term' === $cap && isset( $args[0] ) && $this->forbidden_cat === $args[0] ) {
 			$caps = array( 'do_not_allow' );
 		}
 		return $caps;

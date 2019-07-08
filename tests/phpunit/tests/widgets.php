@@ -150,7 +150,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 		$names = wp_list_pluck( $wp_registered_sidebars, 'name' );
 		for ( $i = 1; $i <= $num; $i++ ) {
-			if ( in_array( "$id_base $i", $names ) ) {
+			if ( in_array( "$id_base $i", $names, true ) ) {
 				$result[] = true;
 			}
 		}

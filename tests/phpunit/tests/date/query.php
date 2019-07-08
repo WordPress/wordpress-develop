@@ -1014,7 +1014,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		// Invalid values.
 		$days_of_year = array( -1, 0, 367 );
 		foreach ( $days_of_year as $day_of_year ) {
-			$this->assertFalse( @$this->q->validate_date_values( array( 'dayofyear' => $day_of_year ) ) );
+			$this->assertFalse( $this->q->validate_date_values( array( 'dayofyear' => $day_of_year ) ) );
 		}
 	}
 

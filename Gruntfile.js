@@ -1438,10 +1438,31 @@ module.exports = function(grunt) {
 		} );
 	} );
 
+	grunt.registerTask( 'lint:php', 'Runs the code linter on changed files.', function() {
+		var done = this.async();
+		var flags = this.flags;
+		var args = changedFiles.php;
+		if ( flags.travis ) {
+			args = [ 'tests' ];
+		}
+		args.unshift( 'lint' );
+		grunt.util.spawn( {
+			cmd: 'composer',
+			args: args,
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			if ( flags.error && error ) {
+				done( false );
+			} else {
+				done( true );
+			}
+		} );
+	} );
+
 	// Travis CI tasks.
 	grunt.registerTask('travis:js', 'Runs Javascript Travis CI tasks.', [ 'jshint:corejs', 'qunit:compiled' ]);
 	grunt.registerTask('travis:phpunit', 'Runs PHPUnit Travis CI tasks.', [ 'build', 'phpunit' ]);
-	grunt.registerTask('travis:format', 'Runs Code formatting Travis CI tasks.', [ 'format:php:error' ]);
+	grunt.registerTask('travis:phpcs', 'Runs PHP Coding Standards Travis CI tasks.', [ 'format:php:error', 'lint:php:travis:error' ]);
 
 	// Patch task.
 	grunt.renameTask('patch_wordpress', 'patch');

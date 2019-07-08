@@ -71,7 +71,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	function test_update_post_thumbnail_cache() {
 		set_post_thumbnail( self::$post, self::$attachment_id );
 
-		$WP_Query = new WP_Query(
+		$query = new WP_Query(
 			array(
 				'post_type' => 'any',
 				'post__in'  => array( self::$post->ID ),
@@ -79,11 +79,11 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertFalse( $WP_Query->thumbnails_cached );
+		$this->assertFalse( $query->thumbnails_cached );
 
-		update_post_thumbnail_cache( $WP_Query );
+		update_post_thumbnail_cache( $query );
 
-		$this->assertTrue( $WP_Query->thumbnails_cached );
+		$this->assertTrue( $query->thumbnails_cached );
 	}
 
 	/**
@@ -392,7 +392,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 			self::$different_post->ID => 'thumbnail',
 		);
 
-		$post = $which_post === 1 ? self::$different_post : self::$post;
+		$post = 1 === $which_post ? self::$different_post : self::$post;
 
 		add_filter( 'post_thumbnail_size', array( $this, 'filter_post_thumbnail_size' ), 10, 2 );
 

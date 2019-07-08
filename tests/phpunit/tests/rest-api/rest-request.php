@@ -463,8 +463,8 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 		$data = $valid->get_error_data( 'rest_missing_callback_param' );
 
-		$this->assertTrue( in_array( 'someinteger', $data['params'] ) );
-		$this->assertTrue( in_array( 'someotherinteger', $data['params'] ) );
+		$this->assertTrue( in_array( 'someinteger', $data['params'], true ) );
+		$this->assertTrue( in_array( 'someotherinteger', $data['params'], true ) );
 	}
 
 	public function test_has_valid_params_validate_callback() {

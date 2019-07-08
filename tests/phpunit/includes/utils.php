@@ -152,7 +152,7 @@ class MockAction {
 		if ( $tag ) {
 			$count = 0;
 			foreach ( $this->events as $e ) {
-				if ( $e['action'] == $tag ) {
+				if ( $e['action'] === $tag ) {
 					++$count;
 				}
 			}
@@ -222,8 +222,12 @@ class TestXMLParser {
 	}
 
 	function data_handler( $parser, $data ) {
-		$index                             = count( $this->data ) - 1;
-		@$this->data[ $index ]['content'] .= $data;
+		$index = count( $this->data ) - 1;
+
+		if ( ! isset( $this->data[ $index ]['content'] ) ) {
+			$this->data[ $index ]['content'] = '';
+		}
+		$this->data[ $index ]['content'] .= $data;
 	}
 
 	function end_handler( $parser, $name ) {
@@ -253,9 +257,9 @@ function xml_find( $tree /*, $el1, $el2, $el3, .. */ ) {
 	for ( $i = 0; $i < count( $tree ); $i++ ) {
 		#       echo "checking '{$tree[$i][name]}' == '{$a[0]}'\n";
 		#       var_dump($tree[$i]['name'], $a[0]);
-		if ( $tree[ $i ]['name'] == $a[0] ) {
+		if ( $tree[ $i ]['name'] === $a[0] ) {
 			#           echo "n == {$n}\n";
-			if ( $n == 1 ) {
+			if ( 1 === $n ) {
 				$out[] = $tree[ $i ];
 			} else {
 				$subtree   =& $tree[ $i ]['child'];
@@ -348,6 +352,7 @@ function drop_tables() {
 	global $wpdb;
 	$tables = $wpdb->get_col( 'SHOW TABLES;' );
 	foreach ( $tables as $table ) {
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->query( "DROP TABLE IF EXISTS {$table}" );
 	}
 }
@@ -438,7 +443,7 @@ function _clean_term_filters() {
 /**
  * Special class for exposing protected wpdb methods we need to access
  */
-class wpdb_exposed_methods_for_testing extends wpdb {
+class WpdbExposedMethodsForTesting extends wpdb {
 	public function __construct() {
 		global $wpdb;
 		$this->dbh         = $wpdb->dbh;

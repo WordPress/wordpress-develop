@@ -76,7 +76,7 @@ $GLOBALS['PHP_SELF'] = '/index.php';
 $_SERVER['PHP_SELF'] = '/index.php';
 
 // Should we run in multisite mode?
-$multisite = '1' == getenv( 'WP_MULTISITE' );
+$multisite = ( '1' === getenv( 'WP_MULTISITE' ) );
 $multisite = $multisite || ( defined( 'WP_TESTS_MULTISITE' ) && WP_TESTS_MULTISITE );
 $multisite = $multisite || ( defined( 'MULTISITE' ) && MULTISITE );
 
@@ -191,7 +191,7 @@ class WP_PHPUnit_Util_Getopt {
 					}
 
 					foreach ( $skipped_groups as $group_name => $skipped ) {
-						if ( in_array( $group_name, $groups ) ) {
+						if ( in_array( $group_name, $groups, true ) ) {
 							$skipped_groups[ $group_name ] = false;
 						}
 					}

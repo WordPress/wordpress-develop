@@ -109,7 +109,7 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 			$this->assertInternalType( 'string', $result['wp_post_thumbnail'] );
 			$this->assertStringMatchesFormat( '%d', $result['wp_post_thumbnail'] );
 
-			if ( ! empty( $result['wp_post_thumbnail'] ) || $result['postid'] == self::$post_id ) {
+			if ( ! empty( $result['wp_post_thumbnail'] ) || $result['postid'] === self::$post_id ) {
 				$attachment_id = get_post_meta( $result['postid'], '_thumbnail_id', true );
 
 				$this->assertEquals( $attachment_id, $result['wp_post_thumbnail'] );

@@ -386,7 +386,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$menu_items = wp_get_nav_menu_items( $secondary_menu_id );
 		$db_ids     = wp_list_pluck( $menu_items, 'db_id' );
 		$this->assertContains( $item_id, $db_ids );
-		$i                         = array_search( $item_id, $db_ids );
+		$i                         = array_search( $item_id, $db_ids, true );
 		$updated_item              = $menu_items[ $i ];
 		$post_value['post_status'] = $post_value['status'];
 		unset( $post_value['status'] );
@@ -676,7 +676,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$menu_items = wp_get_nav_menu_items( $secondary_menu_id );
 		$db_ids     = wp_list_pluck( $menu_items, 'db_id' );
 		$this->assertContains( $item_id, $db_ids );
-		$i                         = array_search( $item_id, $db_ids );
+		$i                         = array_search( $item_id, $db_ids, true );
 		$updated_item              = $menu_items[ $i ];
 		$post_value['post_status'] = $post_value['status'];
 		unset( $post_value['status'] );

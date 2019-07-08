@@ -33,18 +33,22 @@ class Tests_dbDelta extends WP_UnitTestCase {
 
 		// Forcing MyISAM, because InnoDB only started supporting FULLTEXT indexes in MySQL 5.7.
 		$wpdb->query(
-			"
-			CREATE TABLE {$wpdb->prefix}dbdelta_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
-				column_1 varchar(255) NOT NULL,
-				column_2 text,
-				column_3 blob,
-				PRIMARY KEY  (id),
-				KEY key_1 (column_1($this->max_index_length)),
-				KEY compound_key (id,column_1($this->max_index_length)),
-				FULLTEXT KEY fulltext_key (column_1)
-			) ENGINE=MyISAM
-			"
+			$wpdb->prepare(
+				"
+				CREATE TABLE {$wpdb->prefix}dbdelta_test (
+					id bigint(20) NOT NULL AUTO_INCREMENT,
+					column_1 varchar(255) NOT NULL,
+					column_2 text,
+					column_3 blob,
+					PRIMARY KEY  (id),
+					KEY key_1 (column_1(%d)),
+					KEY compound_key (id,column_1(%d)),
+					FULLTEXT KEY fulltext_key (column_1)
+				) ENGINE=MyISAM
+				",
+				$this->max_index_length,
+				$this->max_index_length
+			)
 		);
 
 		parent::setUp();
@@ -299,6 +303,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 	protected function assertTableRowHasValue( $column, $value, $table ) {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$table_row = $wpdb->get_row( "select $column from {$table} where $column = '$value'" );
 
 		$expected = (object) array(
@@ -317,7 +322,8 @@ class Tests_dbDelta extends WP_UnitTestCase {
 	protected function assertTableHasColumn( $column, $table ) {
 		global $wpdb;
 
-		$table_fields = $wpdb->get_results( "DESCRIBE {$table}" );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$table_fields = $wpdb->get_results( "DESCRIBE $table" );
 
 		$this->assertCount( 1, wp_list_filter( $table_fields, array( 'Field' => $column ) ) );
 	}
@@ -333,7 +339,8 @@ class Tests_dbDelta extends WP_UnitTestCase {
 	protected function assertTableHasPrimaryKey( $column, $table ) {
 		global $wpdb;
 
-		$table_indices = $wpdb->get_results( "SHOW INDEX FROM {$table}" );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$table_indices = $wpdb->get_results( "SHOW INDEX FROM $table" );
 
 		$this->assertCount(
 			1,
@@ -358,7 +365,8 @@ class Tests_dbDelta extends WP_UnitTestCase {
 
 		global $wpdb;
 
-		$table_fields = $wpdb->get_results( "DESCRIBE {$table}" );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$table_fields = $wpdb->get_results( "DESCRIBE $table" );
 
 		$this->assertCount( 0, wp_list_filter( $table_fields, array( 'Field' => $column ) ) );
 	}
@@ -385,15 +393,18 @@ class Tests_dbDelta extends WP_UnitTestCase {
 				KEY a_key (a)
 			) ENGINE=InnoDB ROW_FORMAT=DYNAMIC";
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		$wpdb->query( $create );
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$index = $wpdb->get_row( "SHOW INDEXES FROM $table_name WHERE Key_name='a_key';" );
 
 		$actual = dbDelta( $create, false );
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->query( "DROP TABLE IF EXISTS $table_name;" );
 
-		if ( 191 != $index->Sub_part ) {
+		if ( 191 !== $index->Sub_part ) {
 			$this->markTestSkipped( 'This test requires the index to be truncated.' );
 		}
 
@@ -527,6 +538,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 			)
 		";
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		$wpdb->query( $schema );
 
 		$updates = dbDelta( $schema, false );
@@ -556,6 +568,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 			) ENGINE=MyISAM;
 			";
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		$wpdb->query( $schema );
 
 		$updates = dbDelta( $schema, false );
@@ -602,6 +615,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 			)
 		";
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		$wpdb->query( $schema );
 
 		$updates = dbDelta( $schema );
@@ -998,6 +1012,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 			)
 		";
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		$wpdb->query( $schema );
 
 		$schema_update = "

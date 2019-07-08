@@ -1256,7 +1256,7 @@ EOF;
 	 * @ticket 33016
 	 */
 	function filter_wp_embed_shortcode_custom( $content, $url ) {
-		if ( 'https://www.example.com/?video=1' == $url ) {
+		if ( 'https://www.example.com/?video=1' === $url ) {
 			$content = '@embed URL was replaced@';
 		}
 		return $content;
@@ -1446,7 +1446,7 @@ EOF;
 
 		foreach ( $image_meta['sizes'] as $name => $size ) {
 			// Whitelist the sizes that should be included so we pick up 'medium_large' in 4.4.
-			if ( in_array( $name, $intermediates ) ) {
+			if ( in_array( $name, $intermediates, true ) ) {
 				$expected .= $uploads_dir_url . $year_month . '/' . $size['file'] . ' ' . $size['width'] . 'w, ';
 			}
 		}
@@ -1491,7 +1491,7 @@ EOF;
 
 		foreach ( $image_meta['sizes'] as $name => $size ) {
 			// Whitelist the sizes that should be included so we pick up 'medium_large' in 4.4.
-			if ( in_array( $name, $intermediates ) ) {
+			if ( in_array( $name, $intermediates, true ) ) {
 				$expected .= $uploads_dir_url . $size['file'] . ' ' . $size['width'] . 'w, ';
 			}
 		}
@@ -1568,7 +1568,7 @@ EOF;
 
 		foreach ( $image_meta['sizes'] as $name => $size ) {
 			// Whitelist the sizes that should be included so we pick up 'medium_large' in 4.4.
-			if ( in_array( $name, $intermediates ) ) {
+			if ( in_array( $name, $intermediates, true ) ) {
 				$expected .= $uploads_dir_url . $year_month . '/' . $size['file'] . ' ' . $size['width'] . 'w, ';
 			}
 		}
@@ -1847,7 +1847,7 @@ EOF;
 
 		foreach ( $image_meta['sizes'] as $name => $size ) {
 			// Whitelist the sizes that should be included so we pick up 'medium_large' in 4.4.
-			if ( in_array( $name, $intermediates ) ) {
+			if ( in_array( $name, $intermediates, true ) ) {
 				$expected .= $uploads_dir . $year_month . '/' . $size['file'] . ' ' . $size['width'] . 'w, ';
 			}
 		}

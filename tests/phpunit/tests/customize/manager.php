@@ -2668,7 +2668,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 */
 	function filter_customize_dynamic_setting_args_for_test_dynamic_settings( $setting_args, $setting_id ) {
 		$this->assertInternalType( 'string', $setting_id );
-		if ( in_array( $setting_id, array( 'foo', 'bar' ) ) ) {
+		if ( in_array( $setting_id, array( 'foo', 'bar' ), true ) ) {
 			$setting_args = array( 'default' => "dynamic_{$setting_id}_default" );
 		}
 		return $setting_args;

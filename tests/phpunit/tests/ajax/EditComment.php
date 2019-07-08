@@ -96,7 +96,7 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 		$comment  = array_pop( $comments );
 
 		// Manually update the comment_post_ID, because wp_update_comment() will prevent it.
-		$wpdb->query( "UPDATE {$wpdb->comments} SET comment_post_ID=0 WHERE comment_ID={$comment->comment_ID}" );
+		$wpdb->update( $wpdb->comments, array( 'comment_post_ID' => 0 ), array( 'comment_ID' => $comment->comment_ID ) );
 		clean_comment_cache( $comment->comment_ID );
 
 		// Set up a default request

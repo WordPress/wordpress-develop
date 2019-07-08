@@ -55,7 +55,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		$this->assertEquals( $sizes, $image_sizes );
 
 		// Remove custom size.
-		unset( $this->wp_site_icon->site_icon_sizes[ array_search( 321, $this->wp_site_icon->site_icon_sizes ) ] );
+		unset( $this->wp_site_icon->site_icon_sizes[ array_search( 321, $this->wp_site_icon->site_icon_sizes, true ) ] );
 		// Remove the filter we added
 		remove_filter( 'site_icon_image_sizes', array( $this, '_custom_test_sizes' ) );
 	}
@@ -95,7 +95,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		$this->assertEquals( $sizes, $image_sizes );
 
 		// Remove custom size.
-		unset( $this->wp_site_icon->site_icon_sizes[ array_search( 321, $this->wp_site_icon->site_icon_sizes ) ] );
+		unset( $this->wp_site_icon->site_icon_sizes[ array_search( 321, $this->wp_site_icon->site_icon_sizes, true ) ] );
 	}
 
 	function test_create_attachment_object() {

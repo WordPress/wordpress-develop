@@ -52,7 +52,7 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 	 */
 	function test_ajax_load_available_items_cap_check( $role, $expected_results ) {
 
-		if ( 'administrator' != $role ) {
+		if ( 'administrator' !== $role ) {
 			// If we're not an admin, we should get a wp_die(-1).
 			$this->setExpectedException( 'WPAjaxDieStopException' );
 		}
@@ -441,7 +441,7 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 	 */
 	function test_ajax_search_available_items_caps_check( $role, $expected_results ) {
 
-		if ( 'administrator' != $role ) {
+		if ( 'administrator' !== $role ) {
 			// If we're not an admin, we should get a wp_die(-1).
 			$this->setExpectedException( 'WPAjaxDieStopException' );
 		}

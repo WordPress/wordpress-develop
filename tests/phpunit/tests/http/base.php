@@ -54,7 +54,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		// Disable all transports aside from this one.
 		foreach ( array( 'curl', 'streams', 'fsockopen' ) as $t ) {
 			remove_filter( "use_{$t}_transport", '__return_false' ); // Just strip them all
-			if ( $t != $this->transport ) {
+			if ( $t !== $this->transport ) {
 				add_filter( "use_{$t}_transport", '__return_false' ); // and add it back if need be..
 			}
 		}
@@ -247,7 +247,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 			$headers[ $parts[0] ] = $parts[1];
 		}
 
-		$this->assertTrue( isset( $headers['test1'] ) && 'test' == $headers['test1'] );
+		$this->assertTrue( isset( $headers['test1'] ) && 'test' === $headers['test1'] );
 		$this->assertTrue( isset( $headers['test2'] ) && '0' === $headers['test2'] );
 		// cURL/HTTP Extension Note: Will never pass, cURL does not pass headers with an empty value.
 		// Should it be that empty headers with empty values are NOT sent?

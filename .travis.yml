@@ -15,7 +15,7 @@ matrix:
   - php: 7.2
     env: WP_TRAVISCI=e2e
   - php: 7.2
-    env: WP_TRAVISCI=travis:format
+    env: WP_TRAVISCI=travis:phpcs
   - php: 7.1
     env: WP_TRAVISCI=travis:js
   - php: 7.4snapshot
@@ -83,8 +83,8 @@ before_script:
     esac
   fi
 - |
-  # We only need to run composer install on the code formatting job.
-  if [[ "$WP_TRAVISCI" == "travis:format" ]]; then
+  # We only need to run composer install on the PHP coding standards job.
+  if [[ "$WP_TRAVISCI" == "travis:phpcs" ]]; then
     composer --version
     travis_retry composer install
   fi

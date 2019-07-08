@@ -8,9 +8,11 @@ class Test_Theme_File extends WP_UnitTestCase {
 		if ( ! function_exists( 'symlink' ) ) {
 			self::markTestSkipped( 'symlink() is not available.' );
 		}
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 		if ( ! @symlink( DIR_TESTDATA . '/theme-file-parent', WP_CONTENT_DIR . '/themes/theme-file-parent' ) ) {
 			self::markTestSkipped( 'Could not create parent symlink.' );
 		}
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 		if ( ! @symlink( DIR_TESTDATA . '/theme-file-child', WP_CONTENT_DIR . '/themes/theme-file-child' ) ) {
 			self::markTestSkipped( 'Could not create child symlink.' );
 		}

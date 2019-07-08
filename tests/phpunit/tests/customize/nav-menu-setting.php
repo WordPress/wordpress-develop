@@ -224,7 +224,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 
 		$menus     = wp_get_nav_menus();
 		$menus_ids = wp_list_pluck( $menus, 'term_id' );
-		$i         = array_search( $menu_id, $menus_ids );
+		$i         = array_search( $menu_id, $menus_ids, true );
 		$this->assertInternalType( 'int', $i, 'Update-previewed menu does not appear in wp_get_nav_menus()' );
 		$filtered_menu = $menus[ $i ];
 		$this->assertEquals( 'Name 2 \\o/', $filtered_menu->name );
@@ -269,7 +269,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 
 		$menus     = wp_get_nav_menus();
 		$menus_ids = wp_list_pluck( $menus, 'term_id' );
-		$i         = array_search( $menu_id, $menus_ids );
+		$i         = array_search( $menu_id, $menus_ids, true );
 		$this->assertInternalType( 'int', $i, 'Insert-previewed menu was not injected into wp_get_nav_menus()' );
 		$filtered_menu = $menus[ $i ];
 		$this->assertEquals( 'New Menu Name 1 \\o/', $filtered_menu->name );

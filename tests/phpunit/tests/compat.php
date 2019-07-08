@@ -125,10 +125,10 @@ EOT;
 			'string',
 			$heredoc,
 			// object data
-			new classA(),
-			// undefined data
+			new ClassA(),
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- intentionally undefined data
 			@$undefined_var,
-			// unset data
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- intentionally unset data
 			@$unset_var,
 		);
 		$outputs  = array(
@@ -315,7 +315,7 @@ EOT;
 }
 
 /* used in test_mb_substr_phpcore */
-class classA {
+class ClassA {
 	public function __toString() {
 		return 'Class A object';
 	}

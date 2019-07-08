@@ -185,7 +185,39 @@
 	<!-- Whitelist test classes for select sniffs. -->
 	<rule ref="WordPress.Files.FileName">
 		<properties>
-			<property name="custom_test_class_whitelist" type="array" value="WP_UnitTestCase,WP_Ajax_UnitTestCase,WP_Canonical_UnitTestCase,WP_Test_REST_TestCase,WP_Test_REST_Controller_Testcase,WP_Test_REST_Post_Type_Controller_Testcase,WP_XMLRPC_UnitTestCase"/>
+			<property name="custom_test_class_whitelist" type="array">
+				<!-- Test case parent classes -->
+				<element value="WP_UnitTestCase"/>
+				<element value="WP_Ajax_UnitTestCase"/>
+				<element value="WP_Canonical_UnitTestCase"/>
+				<element value="WP_Test_REST_TestCase"/>
+				<element value="WP_Test_REST_Controller_Testcase"/>
+				<element value="WP_Test_REST_Post_Type_Controller_Testcase"/>
+				<element value="WP_XMLRPC_UnitTestCase"/>
+				<element value="WP_Filesystem_UnitTestCase"/>
+				<element value="WP_Image_UnitTestCase"/>
+				<element value="WP_HTTP_UnitTestCase"/>
+				<element value="WP_Tests_Image_Resize_UnitTestCase"/>
+				<element value="WP_Import_UnitTestCase"/>
+				<element value="Tests_Query_Conditionals"/>
+
+				<!-- Mock classes -->
+				<element value="Spy_REST_Server"/>
+				<element value="WP_REST_Test_Controller"/>
+				<element value="WP_Image_Editor_Mock"/>
+				<element value="WP_Filesystem_MockFS"/>
+				<element value="MockPHPMailer"/>
+				<element value="MockAction"/>
+				<element value="WP_Object_Cache"/>
+
+				<!-- PHPUnit helpers -->
+				<element value="TracTickets"/>
+				<element value="WP_PHPUnit_Util_Getopt"/>
+				<element value="PHPUnit_Util_Test"/>
+				<element value="WPProfiler"/>
+				<element value="SpeedTrapListener"/>
+				<element value="PHPUnit_Framework_Exception"/>
+			</property>
 		</properties>
 	</rule>
 
