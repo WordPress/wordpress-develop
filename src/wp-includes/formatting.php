@@ -553,7 +553,7 @@ function wpautop( $pee, $br = true ) {
 	// Rebuild the content as a string, wrapping every bit with a <p>.
 	foreach ( $pees as $tinkle ) {
 
-		// Don't wrap HTML comments in <p> tags.
+		// Don't wrap HTML comment lines in <p> tags.
 		if (
 			0 === strpos( trim( $tinkle, "\n" ), '<!--' ) &&
 			( strlen(  trim( $tinkle, "\n" ) ) - strlen( "-->" ) ) === strpos(  trim( $tinkle, "\n" ), "-->" )
@@ -590,10 +590,10 @@ function wpautop( $pee, $br = true ) {
 	if ( $br ) {
 
 		// Multi-line HTML comments. (Opening)
-		$pee = preg_replace_callback( '/<\!\-\-.*?\n/s', '_autop_newline_preservation_helper', $pee );
+		$pee = preg_replace_callback( '/<!--.*?\n/s', '_autop_newline_preservation_helper', $pee );
 
 		// Multi-line HTML comments. (Closing)
-		$pee = preg_replace_callback( '/\-\->.*?\n/s', '_autop_newline_preservation_helper', $pee );
+		$pee = preg_replace_callback( '/-->.*?\n/s', '_autop_newline_preservation_helper', $pee );
 
 		// Replace newlines that shouldn't be touched with a placeholder.
 		$pee = preg_replace_callback( '/<(script|style|svg).*?<\/\\1>/s', '_autop_newline_preservation_helper', $pee );
