@@ -221,6 +221,27 @@
 		</properties>
 	</rule>
 
+	<rule ref="WordPress.PHP.NoSilencedErrors">
+		<properties>
+			<property name="custom_whitelist" type="array">
+				<element value="ssh2_connect"/>
+				<element value="ssh2_auth_password"/>
+				<element value="ssh2_auth_pubkey_file"/>
+				<element value="ftp_ssl_connect"/>
+				<element value="ftp_connect"/>
+				<element value="ftp_get_option"/>
+				<element value="ftp_set_option"/>
+				<element value="disk_free_space"/>
+				<element value="getimagesize"/>
+				<element value="iptcparse"/>
+				<element value="exif_read_data"/>
+				<element value="gzinflate"/>
+				<element value="gzuncompress"/>
+				<element value="gzdecode"/>
+			</property>
+		</properties>
+	</rule>
+
 	<!-- Assignments in while conditions are a valid method of looping over iterables -->
 	<rule ref="WordPress.CodeAnalysis.AssignmentInCondition.FoundInWhileCondition">
 		<exclude-pattern>*</exclude-pattern>
