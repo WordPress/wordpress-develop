@@ -610,11 +610,11 @@ function wpautop( $pee, $br = true ) {
 
 	// No <p> around HTML comment
 	if ( strpos( $pee, '<!--' ) !== false ) {
-		$pee = preg_replace( '|<p>\s*<\!--|', '<!--', $pee );
+		$pee = preg_replace( '|<p>\s*<!--|', '<!--', $pee );
 
 		// Remove the tailing paragraph if this paragraph starts as a comment.
 		if ( 0 === strpos( $pee, '<!--' ) ) {
-			$pee = preg_replace( '|\-->\s*</p>|', '-->', $pee );
+			$pee = preg_replace( '|-->\s*</p>|', '-->', $pee );
 		}
 	}
 
