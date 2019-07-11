@@ -719,7 +719,7 @@ function current_user_can_for_blog( $blog_id, $capability, ...$args ) {
  * @param mixed       ...$args    Optional further parameters, typically starting with an object ID.
  * @return bool Whether the post author has the given capability.
  */
-function author_can( $post, $capability ) {
+function author_can( $post, $capability, ...$args ) {
 	$post = get_post( $post );
 	if ( ! $post ) {
 		return false;
@@ -731,10 +731,7 @@ function author_can( $post, $capability ) {
 		return false;
 	}
 
-	$args = array_slice( func_get_args(), 2 );
-	$args = array_merge( array( $capability ), $args );
-
-	return call_user_func_array( array( $author, 'has_cap' ), $args );
+	return $author->has_cap( $capability, ...$args );
 }
 
 /**
