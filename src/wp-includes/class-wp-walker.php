@@ -184,10 +184,10 @@ class Walker {
 	 *
 	 * @param array $elements  An array of elements.
 	 * @param int   $max_depth The maximum hierarchical depth.
+	 * @param mixed ...$args   Optional additional arguments.
 	 * @return string The hierarchical item output.
 	 */
-	public function walk( $elements, $max_depth ) {
-		$args   = array_slice( func_get_args(), 2 );
+	public function walk( $elements, $max_depth, ...$args ) {
 		$output = '';
 
 		//invalid parameter or nothing to walk
