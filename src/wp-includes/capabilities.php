@@ -33,8 +33,7 @@
  * @param mixed  ...$args Optional further parameters, typically starting with an object ID.
  * @return array Actual capabilities for meta capability.
  */
-function map_meta_cap( $cap, $user_id ) {
-	$args = array_slice( func_get_args(), 2 );
+function map_meta_cap( $cap, $user_id, ...$args ) {
 	$caps = array();
 
 	switch ( $cap ) {
