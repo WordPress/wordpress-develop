@@ -2665,7 +2665,7 @@ function _custom_logo_header_styles() {
  * @param mixed  ...$args Optional extra arguments to be checked against certain features.
  * @return mixed The array of extra arguments or the value for the registered feature.
  */
-function get_theme_support( $feature ) {
+function get_theme_support( $feature, ...$args ) {
 	global $_wp_theme_features;
 	if ( ! isset( $_wp_theme_features[ $feature ] ) ) {
 		return false;
@@ -2675,7 +2675,6 @@ function get_theme_support( $feature ) {
 		return $_wp_theme_features[ $feature ];
 	}
 
-	$args = array_slice( func_get_args(), 1 );
 	switch ( $feature ) {
 		case 'custom-logo':
 		case 'custom-header':
