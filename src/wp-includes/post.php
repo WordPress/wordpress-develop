@@ -1779,7 +1779,7 @@ function _add_post_type_submenus() {
  *                                feature strings or a single string.
  * @param mixed        ...$args   Optional extra arguments to pass along with certain features.
  */
-function add_post_type_support( $post_type, $feature ) {
+function add_post_type_support( $post_type, $feature, ...$args ) {
 	global $_wp_post_type_features;
 
 	$features = (array) $feature;
@@ -1787,7 +1787,7 @@ function add_post_type_support( $post_type, $feature ) {
 		if ( func_num_args() == 2 ) {
 			$_wp_post_type_features[ $post_type ][ $feature ] = true;
 		} else {
-			$_wp_post_type_features[ $post_type ][ $feature ] = array_slice( func_get_args(), 2 );
+			$_wp_post_type_features[ $post_type ][ $feature ] = $args;
 		}
 	}
 }
