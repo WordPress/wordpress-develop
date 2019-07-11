@@ -678,7 +678,7 @@ function current_user_can( $capability, ...$args ) {
  * @param mixed  ...$args    Optional further parameters, typically starting with an object ID.
  * @return bool Whether the user has the given capability.
  */
-function current_user_can_for_blog( $blog_id, $capability ) {
+function current_user_can_for_blog( $blog_id, $capability, ...$args ) {
 	$switched = is_multisite() ? switch_to_blog( $blog_id ) : false;
 
 	$current_user = wp_get_current_user();
@@ -690,10 +690,7 @@ function current_user_can_for_blog( $blog_id, $capability ) {
 		return false;
 	}
 
-	$args = array_slice( func_get_args(), 2 );
-	$args = array_merge( array( $capability ), $args );
-
-	$can = call_user_func_array( array( $current_user, 'has_cap' ), $args );
+	$can = $current_user->has_cap( $capability, ...$args );
 
 	if ( $switched ) {
 		restore_current_blog();
