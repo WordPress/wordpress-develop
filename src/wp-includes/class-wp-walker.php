@@ -276,16 +276,16 @@ class Walker {
 	 *
 	 * @param array $elements
 	 * @param int   $max_depth The maximum hierarchical depth.
-	 * @param int   $page_num The specific page number, beginning with 1.
+	 * @param int   $page_num  The specific page number, beginning with 1.
 	 * @param int   $per_page
+	 * @param mixed ...$args   Optional additional arguments.
 	 * @return string XHTML of the specified page of elements
 	 */
-	public function paged_walk( $elements, $max_depth, $page_num, $per_page ) {
+	public function paged_walk( $elements, $max_depth, $page_num, $per_page, ...$args ) {
 		if ( empty( $elements ) || $max_depth < -1 ) {
 			return '';
 		}
 
-		$args   = array_slice( func_get_args(), 4 );
 		$output = '';
 
 		$parent_field = $this->db_fields['parent'];
