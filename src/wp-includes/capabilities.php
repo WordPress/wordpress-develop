@@ -754,7 +754,7 @@ function author_can( $post, $capability, ...$args ) {
  * @param mixed       ...$args    Optional further parameters, typically starting with an object ID.
  * @return bool Whether the user has the given capability.
  */
-function user_can( $user, $capability ) {
+function user_can( $user, $capability, ...$args ) {
 	if ( ! is_object( $user ) ) {
 		$user = get_userdata( $user );
 	}
@@ -763,10 +763,7 @@ function user_can( $user, $capability ) {
 		return false;
 	}
 
-	$args = array_slice( func_get_args(), 2 );
-	$args = array_merge( array( $capability ), $args );
-
-	return call_user_func_array( array( $user, 'has_cap' ), $args );
+	return $user->has_cap( $capability, ...$args );
 }
 
 /**
