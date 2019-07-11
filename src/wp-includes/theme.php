@@ -2785,7 +2785,7 @@ function _remove_theme_support( $feature ) {
  * @param mixed  ...$args Optional extra arguments to be checked against certain features.
  * @return bool True if the current theme supports the feature, false otherwise.
  */
-function current_theme_supports( $feature ) {
+function current_theme_supports( $feature, ...$args ) {
 	global $_wp_theme_features;
 
 	if ( 'custom-header-uploads' == $feature ) {
@@ -2800,8 +2800,6 @@ function current_theme_supports( $feature ) {
 	if ( func_num_args() <= 1 ) {
 		return true;
 	}
-
-	$args = array_slice( func_get_args(), 1 );
 
 	switch ( $feature ) {
 		case 'post-thumbnails':
