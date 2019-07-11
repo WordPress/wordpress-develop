@@ -2355,13 +2355,11 @@ function get_theme_starter_content() {
  * @param mixed  ...$args Optional extra arguments to pass along with certain features.
  * @return void|bool False on failure, void otherwise.
  */
-function add_theme_support( $feature ) {
+function add_theme_support( $feature, ...$args ) {
 	global $_wp_theme_features;
 
-	if ( func_num_args() == 1 ) {
+	if ( func_num_args() === 1 ) {
 		$args = true;
-	} else {
-		$args = array_slice( func_get_args(), 1 );
 	}
 
 	switch ( $feature ) {
