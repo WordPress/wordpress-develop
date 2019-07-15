@@ -150,7 +150,7 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'foo' );
 
-		$this->assertSame( null, $found['term_id'] );
+		$this->assertSame( null, $found );
 	}
 
 	public function test_term_exists_taxonomy_nonempty_parent_nonempty_match_name() {
