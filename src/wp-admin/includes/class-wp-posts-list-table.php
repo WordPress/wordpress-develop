@@ -690,7 +690,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			'title'    => 'title',
 			'parent'   => 'parent',
 			'comments' => 'comment_count',
-			'date'     => array( 'date', true ),
+			'date'     => array( 'date', false ),
 		);
 	}
 
