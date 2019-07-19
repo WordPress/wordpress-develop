@@ -258,7 +258,7 @@
 	<!-- Exclude some old classes that can't be renamed, as it would break back compat -->
 	<rule ref="PEAR.NamingConventions.ValidClassName.Invalid">
 		<exclude-pattern>/src/wp-admin/includes/class-wp-filesystem-ftpsockets\.php</exclude-pattern>
-		<exclude-pattern>/src/wp-includes/class-oembed\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-oembed\.php</exclude-pattern>
 		<exclude-pattern>/src/wp-includes/class-wp-oembed-controller\.php</exclude-pattern>
 		<exclude-pattern>/src/wp-includes/class-wp-xmlrpc-server\.php</exclude-pattern>
 		<exclude-pattern>/src/wp-includes/class-wp-text-diff-renderer-inline\.php</exclude-pattern>
