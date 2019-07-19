@@ -270,4 +270,14 @@
 		<exclude-pattern>/src/wp-includes/wp-db\.php</exclude-pattern>
 		<exclude-pattern>/src/wp-includes/class-wp-dependency\.php</exclude-pattern>
 	</rule>
+
+	<!-- Exclude some incorrectly named files that won't be renamed. -->
+	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
+		<exclude-pattern>/src/wp-admin/includes/class-wp-list-table-compat\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-dependency\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-editor\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-content/themes/twentyeleven/inc/widgets\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-content/themes/twentyfourteen/inc/widgets\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-content/themes/twentyfourteen/inc/featured-content\.php</exclude-pattern>
+	</rule>
 </ruleset>
