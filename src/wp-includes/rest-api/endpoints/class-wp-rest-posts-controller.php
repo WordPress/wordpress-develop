@@ -1038,11 +1038,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		// Sending a blank date or date_gmt value resets date and date_gmt to their default values (`0000-00-00 00:00:00`).
 		if (
-			( isset( $request[ 'date_gmt' ] ) && '' === $request[ 'date_gmt' ] ) ||
-			( isset( $request[ 'date' ] ) && '' === $request[ 'date' ] )
+			( isset( $request['date_gmt'] ) && '' === $request['date_gmt'] ) ||
+			( isset( $request['date'] ) && '' === $request['date'] )
 		) {
 			$prepared_post->post_date_gmt = null;
-			$prepared_post->post_date = null;
+			$prepared_post->post_date     = null;
 		}
 
 		// Post slug.
