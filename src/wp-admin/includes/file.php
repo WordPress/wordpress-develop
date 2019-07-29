@@ -310,7 +310,15 @@ function wp_print_file_editor_templates() {
 				</p>
 				<pre>{{ data.message }}</pre>
 			<# } else if ( 'file_not_writable' === data.code ) { #>
-				<p><?php _e( 'You need to make this file writable before you can save your changes. See <a href="https://codex.wordpress.org/Changing_File_Permissions">the Codex</a> for more information.' ); ?></p>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: Documentation URL */
+						__( 'You need to make this file writable before you can save your changes. See <a href="%s">Changing File Permissions</a> for more information.' ),
+						__( 'https://wordpress.org/support/article/changing-file-permissions/' )
+					);
+					?>
+				</p>
 			<# } else { #>
 				<p>{{ data.message || data.code }}</p>
 
@@ -1803,7 +1811,7 @@ function WP_Filesystem( $args = false, $context = false, $allow_relaxed_file_own
  * The return value can be overridden by defining the `FS_METHOD` constant in `wp-config.php`,
  * or filtering via {@see 'filesystem_method'}.
  *
- * @link https://codex.wordpress.org/Editing_wp-config.php#WordPress_Upgrade_Constants
+ * @link https://wordpress.org/support/article/editing-wp-config-php/#wordpress-upgrade-constants
  *
  * Plugins may define a custom transport handler, See WP_Filesystem().
  *

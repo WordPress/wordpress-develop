@@ -297,11 +297,11 @@ if ( 'category' == $taxonomy || 'link_category' == $taxonomy || 'post_tag' == $t
 	$help = '<p><strong>' . __( 'For more information:' ) . '</strong></p>';
 
 	if ( 'category' == $taxonomy ) {
-		$help .= '<p>' . __( '<a href="https://codex.wordpress.org/Posts_Categories_Screen">Documentation on Categories</a>' ) . '</p>';
+		$help .= '<p>' . __( '<a href="https://wordpress.org/support/article/posts-categories-screen/">Documentation on Categories</a>' ) . '</p>';
 	} elseif ( 'link_category' == $taxonomy ) {
 		$help .= '<p>' . __( '<a href="https://codex.wordpress.org/Links_Link_Categories_Screen">Documentation on Link Categories</a>' ) . '</p>';
 	} else {
-		$help .= '<p>' . __( '<a href="https://codex.wordpress.org/Posts_Tags_Screen">Documentation on Tags</a>' ) . '</p>';
+		$help .= '<p>' . __( '<a href="https://wordpress.org/support/article/posts-tags-screen/">Documentation on Tags</a>' ) . '</p>';
 	}
 
 	$help .= '<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>';
@@ -515,9 +515,12 @@ if ( $can_edit_terms ) {
 	 * @param string $taxonomy The taxonomy slug.
 	 */
 	do_action( "{$taxonomy}_add_form_fields", $taxonomy );
-
-	submit_button( $tax->labels->add_new_item );
-
+	?>
+	<p class="submit">
+		<?php submit_button( $tax->labels->add_new_item, 'primary', 'submit', false ); ?>
+		<span class="spinner"></span>
+	</p>
+	<?php
 	if ( 'category' == $taxonomy ) {
 		/**
 		 * Fires at the end of the Edit Category form.

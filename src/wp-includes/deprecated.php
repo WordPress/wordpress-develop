@@ -53,7 +53,7 @@ function get_postdata($postid) {
  *
  * Use The Loop instead.
  *
- * @link https://codex.wordpress.org/The_Loop
+ * @link https://developer.wordpress.org/themes/basics/the-loop/
  *
  * @since 1.0.1
  * @deprecated 1.5.0
@@ -430,9 +430,9 @@ function wp_get_linksbyname($category, $args = '') {
 		'title_li' => '',
 	);
 
-	$r = wp_parse_args( $args, $defaults );
+	$parsed_args = wp_parse_args( $args, $defaults );
 
-	return wp_list_bookmarks($r);
+	return wp_list_bookmarks($parsed_args);
 }
 
 /**
@@ -635,24 +635,24 @@ function list_cats($optionall = 1, $all = 'All', $sort_column = 'ID', $sort_orde
 function wp_list_cats($args = '') {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_list_categories()' );
 
-	$r = wp_parse_args( $args );
+	$parsed_args = wp_parse_args( $args );
 
 	// Map to new names.
-	if ( isset($r['optionall']) && isset($r['all']))
-		$r['show_option_all'] = $r['all'];
-	if ( isset($r['sort_column']) )
-		$r['orderby'] = $r['sort_column'];
-	if ( isset($r['sort_order']) )
-		$r['order'] = $r['sort_order'];
-	if ( isset($r['optiondates']) )
-		$r['show_last_update'] = $r['optiondates'];
-	if ( isset($r['optioncount']) )
-		$r['show_count'] = $r['optioncount'];
-	if ( isset($r['list']) )
-		$r['style'] = $r['list'] ? 'list' : 'break';
-	$r['title_li'] = '';
+	if ( isset($parsed_args['optionall']) && isset($parsed_args['all']))
+		$parsed_args['show_option_all'] = $parsed_args['all'];
+	if ( isset($parsed_args['sort_column']) )
+		$parsed_args['orderby'] = $parsed_args['sort_column'];
+	if ( isset($parsed_args['sort_order']) )
+		$parsed_args['order'] = $parsed_args['sort_order'];
+	if ( isset($parsed_args['optiondates']) )
+		$parsed_args['show_last_update'] = $parsed_args['optiondates'];
+	if ( isset($parsed_args['optioncount']) )
+		$parsed_args['show_count'] = $parsed_args['optioncount'];
+	if ( isset($parsed_args['list']) )
+		$parsed_args['style'] = $parsed_args['list'] ? 'list' : 'break';
+	$parsed_args['title_li'] = '';
 
-	return wp_list_categories($r);
+	return wp_list_categories($parsed_args);
 }
 
 /**
@@ -892,9 +892,9 @@ function wp_get_links($args = '') {
 		'title_li' => '',
 	);
 
-	$r = wp_parse_args( $args, $defaults );
+	$parsed_args = wp_parse_args( $args, $defaults );
 
-	return wp_list_bookmarks($r);
+	return wp_list_bookmarks($parsed_args);
 }
 
 /**
@@ -1279,7 +1279,7 @@ function get_category_children( $id, $before = '/', $after = '', $visited = arra
  * @deprecated 4.0.0 Use get_terms()
  * @see get_terms()
  *
- * @link https://codex.wordpress.org/Function_Reference/get_all_category_ids
+ * @link https://developer.wordpress.org/reference/functions/get_all_category_ids/
  *
  * @return object List of all of the category IDs.
  */

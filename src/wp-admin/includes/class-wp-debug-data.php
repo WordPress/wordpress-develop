@@ -128,8 +128,13 @@ class WP_Debug_Data {
 			'fields' => array(),
 		);
 
-		$info['wp-themes'] = array(
-			'label'      => __( 'Other Themes' ),
+		$info['wp-parent-theme'] = array(
+			'label'  => __( 'Parent Theme' ),
+			'fields' => array(),
+		);
+
+		$info['wp-themes-inactive'] = array(
+			'label'      => __( 'Inactive Themes' ),
 			'show_count' => true,
 			'fields'     => array(),
 		);
@@ -700,22 +705,7 @@ class WP_Debug_Data {
 			$extension = null;
 		}
 
-		/*
-		 * Check what database engine is used, this will throw compatibility
-		 * warnings from PHP compatibility testers, but `mysql_*` is
-		 * still valid in PHP 5.6, so we need to account for that.
-		 */
-		if ( method_exists( $wpdb, 'db_version' ) ) {
-			if ( $wpdb->use_mysqli ) {
-				// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_get_server_info
-				$server = mysqli_get_server_info( $wpdb->dbh );
-			} else {
-				// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysql_get_server_info
-				$server = mysql_get_server_info( $wpdb->dbh );
-			}
-		} else {
-			$server = null;
-		}
+		$server = $wpdb->db_version();
 
 		if ( isset( $wpdb->use_mysqli ) && $wpdb->use_mysqli ) {
 			$client_version = $wpdb->dbh->client_info;
@@ -873,11 +863,34 @@ class WP_Debug_Data {
 
 		$active_theme_author_uri = $active_theme->offsetGet( 'Author URI' );
 
+		if ( $active_theme->parent_theme ) {
+			$active_theme_parent_theme = sprintf(
+				// translators: 1: Theme name. 2: Theme slug.
+				__( '%1$s (%2$s)' ),
+				$active_theme->parent_theme,
+				$active_theme->template
+			);
+			$active_theme_parent_theme_debug = sprintf(
+				'%s (%s)',
+				$active_theme->parent_theme,
+				$active_theme->template
+			);
+		} else {
+			$active_theme_parent_theme       = __( 'None' );
+			$active_theme_parent_theme_debug = 'none';
+		}
+
 		$info['wp-active-theme']['fields'] = array(
 			'name'           => array(
 				'label' => __( 'Name' ),
 				// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-				'value' => $active_theme->Name,
+				'value' => sprintf(
+					// translators: 1: Theme name. 2: Theme slug.
+					__( '%1$s (%2$s)' ),
+					// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					$active_theme->Name,
+					$active_theme->stylesheet
+				),
 			),
 			'version'        => array(
 				'label' => __( 'Version' ),
@@ -896,8 +909,8 @@ class WP_Debug_Data {
 			),
 			'parent_theme'   => array(
 				'label' => __( 'Parent theme' ),
-				'value' => ( $active_theme->parent_theme ? $active_theme->parent_theme : __( 'None' ) ),
-				'debug' => ( $active_theme->parent_theme ? $active_theme->parent_theme : 'none' ),
+				'value' => $active_theme_parent_theme,
+				'debug' => $active_theme_parent_theme_debug,
 			),
 			'theme_features' => array(
 				'label' => __( 'Theme features' ),
@@ -905,18 +918,75 @@ class WP_Debug_Data {
 			),
 			'theme_path'     => array(
 				'label' => __( 'Theme directory location' ),
-				'value' => get_template_directory(),
+				'value' => get_stylesheet_directory(),
 			),
 		);
+
+		$parent_theme = $active_theme->parent();
+
+		if ( $parent_theme ) {
+			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+			$parent_theme_version       = $parent_theme->Version;
+			$parent_theme_version_debug = $parent_theme_version;
+
+			if ( array_key_exists( $parent_theme->stylesheet, $theme_updates ) ) {
+				$parent_theme_update_new_version = $theme_updates[ $parent_theme->stylesheet ]->update['new_version'];
+
+				// translators: %s: Latest theme version number.
+				$parent_theme_version       .= ' ' . sprintf( __( '(Latest version: %s)' ), $parent_theme_update_new_version );
+				$parent_theme_version_debug .= sprintf( ' (latest version: %s)', $parent_theme_update_new_version );
+			}
+
+			$parent_theme_author_uri = $parent_theme->offsetGet( 'Author URI' );
+
+			$info['wp-parent-theme']['fields'] = array(
+				'name'           => array(
+					'label' => __( 'Name' ),
+					// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					'value' => sprintf(
+						// translators: 1: Theme name. 2: Theme slug.
+						__( '%1$s (%2$s)' ),
+						// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+						$parent_theme->Name,
+						$parent_theme->stylesheet
+					),
+				),
+				'version'        => array(
+					'label' => __( 'Version' ),
+					'value' => $parent_theme_version,
+					'debug' => $parent_theme_version_debug,
+				),
+				'author'         => array(
+					'label' => __( 'Author' ),
+					// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					'value' => wp_kses( $parent_theme->Author, array() ),
+				),
+				'author_website' => array(
+					'label' => __( 'Author website' ),
+					'value' => ( $parent_theme_author_uri ? $parent_theme_author_uri : __( 'Undefined' ) ),
+					'debug' => ( $parent_theme_author_uri ? $parent_theme_author_uri : '(undefined)' ),
+				),
+				'theme_path'     => array(
+					'label' => __( 'Theme directory location' ),
+					'value' => get_template_directory(),
+				),
+			);
+		}
 
 		// Populate a list of all themes available in the install.
 		$all_themes = wp_get_themes();
 
 		foreach ( $all_themes as $theme_slug => $theme ) {
-			// Ignore the currently active theme from the list of all themes.
+			// Exclude the currently active theme from the list of all themes.
 			if ( $active_theme->stylesheet === $theme_slug ) {
 				continue;
 			}
+
+			// Exclude the currently active parent theme from the list of all themes.
+			if ( ! empty( $parent_theme ) && $parent_theme->stylesheet === $theme_slug ) {
+				continue;
+			}
+
 			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 			$theme_version = $theme->Version;
 			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
@@ -953,7 +1023,7 @@ class WP_Debug_Data {
 			}
 
 			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-			$info['wp-themes']['fields'][ sanitize_text_field( $theme->Name ) ] = array(
+			$info['wp-themes-inactive']['fields'][ sanitize_text_field( $theme->Name ) ] = array(
 				'label' => sprintf(
 					// translators: 1: Theme name. 2: Theme slug.
 					__( '%1$s (%2$s)' ),

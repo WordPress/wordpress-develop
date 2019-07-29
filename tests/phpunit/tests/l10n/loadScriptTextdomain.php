@@ -17,6 +17,14 @@ class Tests_L10n_loadScriptTextdomain extends WP_UnitTestCase {
 		return $relative;
 	}
 
+	public function plugins_url_custom_domain() {
+		return 'https://plugins.example.com';
+	}
+
+	public function content_url_custom_domain_with_no_path() {
+		return 'https://content.example.com';
+	}
+
 	/**
 	 * @ticket 45528
 	 */
@@ -37,5 +45,29 @@ class Tests_L10n_loadScriptTextdomain extends WP_UnitTestCase {
 		wp_enqueue_script( 'test-example-subdir', '/wp/wp-includes/js/script.js', array(), null );
 		$this->assertEquals( $json_translations, load_script_textdomain( 'test-example-subdir', 'default', DIR_TESTDATA . '/languages' ) );
 		remove_filter( 'site_url', array( $this, 'site_url_subdirectory' ) );
+	}
+
+	/**
+	 * @ticket 46336
+	 */
+	public function test_resolve_relative_path_custom_plugins_url() {
+		$json_translations = file_get_contents( DIR_TESTDATA . '/languages/plugins/internationalized-plugin-en_US-2f86cb96a0233e7cb3b6f03ad573be0b.json' );
+
+		add_filter( 'plugins_url', array( $this, 'plugins_url_custom_domain' ) );
+		wp_enqueue_script( 'plugin-example-1', 'https://plugins.example.com/my-plugin/js/script.js', array(), null );
+		$this->assertEquals( $json_translations, load_script_textdomain( 'plugin-example-1', 'internationalized-plugin', DIR_TESTDATA . '/languages' ) );
+		remove_filter( 'plugins_url', array( $this, 'plugins_url_custom_domain' ) );
+	}
+
+	/**
+	 * @ticket 46387
+	 */
+	public function test_resolve_relative_path_custom_content_url() {
+		$json_translations = file_get_contents( DIR_TESTDATA . '/languages/plugins/internationalized-plugin-en_US-2f86cb96a0233e7cb3b6f03ad573be0b.json' );
+
+		add_filter( 'content_url', array( $this, 'content_url_custom_domain_with_no_path' ) );
+		wp_enqueue_script( 'plugin-example-2', 'https://content.example.com/plugins/my-plugin/js/script.js', array(), null );
+		$this->assertEquals( $json_translations, load_script_textdomain( 'plugin-example-2', 'internationalized-plugin', DIR_TESTDATA . '/languages' ) );
+		remove_filter( 'content_url', array( $this, 'content_url_custom_domain_with_no_path' ) );
 	}
 }

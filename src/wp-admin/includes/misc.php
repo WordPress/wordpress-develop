@@ -11,7 +11,7 @@
  *
  * @since 2.0.0
  *
- * @return bool
+ * @return bool Whether the server is running Apache with the mod_rewrite module loaded.
  */
 function got_mod_rewrite() {
 	$got_rewrite = apache_mod_loaded( 'mod_rewrite', true );
@@ -60,9 +60,9 @@ function got_url_rewrite() {
  *
  * @since 1.5.0
  *
- * @param string $filename
- * @param string $marker
- * @return array An array of strings from a file (.htaccess ) from between BEGIN and END markers.
+ * @param string $filename Filename to extract the strings from.
+ * @param string $marker   The marker to extract the strings from.
+ * @return array An array of strings from a file (.htaccess) from between BEGIN and END markers.
  */
 function extract_from_markers( $filename, $marker ) {
 	$result = array();
@@ -79,6 +79,9 @@ function extract_from_markers( $filename, $marker ) {
 			$state = false;
 		}
 		if ( $state ) {
+			if ( '#' === substr( $markerline, 0, 1 ) ) {
+				continue;
+			}
 			$result[] = $markerline;
 		}
 		if ( false !== strpos( $markerline, '# BEGIN ' . $marker ) ) {
@@ -90,7 +93,7 @@ function extract_from_markers( $filename, $marker ) {
 }
 
 /**
- * Inserts an array of strings into a file (.htaccess ), placing it between
+ * Inserts an array of strings into a file (.htaccess), placing it between
  * BEGIN and END markers.
  *
  * Replaces existing marked info. Retains surrounding
@@ -118,6 +121,39 @@ function insert_with_markers( $filename, $marker, $insertion ) {
 	if ( ! is_array( $insertion ) ) {
 		$insertion = explode( "\n", $insertion );
 	}
+
+	$switched_locale = switch_to_locale( get_locale() );
+
+	$instructions = sprintf(
+		/* translators: 1: marker */
+		__(
+			'The directives (lines) between `BEGIN %1$s` and `END %1$s` are
+dynamically generated, and should only be modified via WordPress filters.
+Any changes to the directives between these markers will be overwritten.'
+		),
+		$marker
+	);
+
+	$instructions = explode( "\n", $instructions );
+	foreach ( $instructions as $line => $text ) {
+		$instructions[ $line ] = '# ' . $text;
+	}
+
+	/**
+	 * Filters the inline instructions inserted before the dynamically generated content.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param string[] $instructions Array of lines with inline instructions.
+	 * @param string   $marker       The marker being inserted.
+	 */
+	$instructions = apply_filters( 'insert_with_markers_inline_instructions', $instructions, $marker );
+
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
+
+	$insertion = array_merge( $instructions, $insertion );
 
 	$start_marker = "# BEGIN {$marker}";
 	$end_marker   = "# END {$marker}";
