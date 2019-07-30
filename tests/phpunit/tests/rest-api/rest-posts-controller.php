@@ -2555,6 +2555,53 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( $params['excerpt'], $post->post_excerpt );
 	}
 
+	/**
+	 * Verify that updating a post with an empty date or date_gmt results in a reset post, where all
+	 * date values are equal (date, date_gmt, date_modified and date_modofied_gmt) in the API response.
+	 * In the database, the post_date_gmt field is reset to the default `0000-00-00 00:00:00`.
+	 *
+	 * @ticket 44975
+	 */
+	public function test_rest_update_post_with_empty_date() {
+		// Create a new test post.
+		$post_id = $this->factory->post->create();
+		wp_set_current_user( self::$editor_id );
+
+		// Set the post date to the future.
+		$future_date = '2919-07-29T18:00:00';
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$params = $this->set_post_data( array( 'date_gmt' => $future_date, 'date' => $future_date,'title' => 'update', 'status' => 'draft' ) );
+		$request->set_body( wp_json_encode( $params ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->check_update_post_response( $response );
+		$new_data = $response->get_data();
+
+		// Verify the post is set to the future date.
+		$this->assertEquals( $new_data['date_gmt'], $future_date );
+		$this->assertEquals( $new_data['date'], $future_date );
+		$this->assertNotEquals( $new_data['date_gmt'], $new_data['modified_gmt'] );
+		$this->assertNotEquals( $new_data['date'], $new_data['modified'] );
+
+		// Update post with a blank field (date or date_gmt).
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$params = $this->set_post_data( array( 'date_gmt' => '', 'title' => 'test', 'status' => 'draft' ) );
+		$request->set_body( wp_json_encode( $params ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		// Verify the date field values are reset in the API response.
+		$this->check_update_post_response( $response );
+		$new_data = $response->get_data();
+		$this->assertEquals( $new_data['date_gmt'], $new_data['date'] );
+		$this->assertNotEquals( $new_data['date_gmt'], $future_date );
+
+		$post = get_post( $post_id, 'ARRAY_A' );
+		$this->assertEquals( $post['post_date_gmt'], '0000-00-00 00:00:00' );
+		$this->assertNotEquals( $new_data['date_gmt'], $future_date );
+		$this->assertNotEquals( $new_data['date'], $future_date );
+	}
+
 	public function test_rest_update_post_raw() {
 		wp_set_current_user( self::$editor_id );
 
