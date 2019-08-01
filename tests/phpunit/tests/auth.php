@@ -256,6 +256,7 @@ class Tests_Auth extends WP_UnitTestCase {
 				'ID' => $this->user->ID,
 			)
 		);
+		clean_user_cache( $this->user );
 
 		// A valid key should be accepted
 		$check = check_password_reset_key( $key, $this->user->user_login );
@@ -293,6 +294,7 @@ class Tests_Auth extends WP_UnitTestCase {
 				'ID' => $this->user->ID,
 			)
 		);
+		clean_user_cache( $this->user );
 
 		// An expired but otherwise valid key should be rejected
 		$check = check_password_reset_key( $key, $this->user->user_login );
@@ -330,6 +332,7 @@ class Tests_Auth extends WP_UnitTestCase {
 				'ID' => $this->user->ID,
 			)
 		);
+		clean_user_cache( $this->user );
 
 		// A legacy user_activation_key should not be accepted
 		$check = check_password_reset_key( $key, $this->user->user_login );
@@ -359,6 +362,7 @@ class Tests_Auth extends WP_UnitTestCase {
 				'ID' => $this->user->ID,
 			)
 		);
+		clean_user_cache( $this->user );
 
 		// A plaintext user_activation_key should not allow an otherwise valid key to be accepted
 		$check = check_password_reset_key( $key, $this->user->user_login );
