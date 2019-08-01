@@ -212,7 +212,7 @@ if ( is_multisite() ) :
 					'user_login' => $spam_username,
 				)
 			);
-			update_user_status( $spam_user_id, 'spam', '1' );
+			wp_update_user( array( 'ID' => $spam_user_id, 'spam' => '1' ) );
 
 			$this->assertTrue( is_user_spammy( $spam_username ) );
 			$this->assertFalse( is_user_spammy( 'testuser1' ) );
