@@ -227,6 +227,20 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 45746
+	 */
+	function test_user_activation_key_is_saved() {
+		$user = get_userdata( $this->user->ID );
+		$key  = get_password_reset_key( $user );
+
+		// A correctly saved key should be accepted
+		$check = check_password_reset_key( $key, $this->user->user_login );
+		$this->assertNotWPError( $check );
+		$this->assertInstanceOf( 'WP_User', $check );
+		$this->assertSame( $this->user->ID, $check->ID );
+	}
+
+	/**
 	 * @ticket 32429
 	 */
 	function test_user_activation_key_is_checked() {
