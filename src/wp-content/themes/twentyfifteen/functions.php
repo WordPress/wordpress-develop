@@ -536,6 +536,28 @@ function twentyfifteen_widget_tag_cloud_args( $args ) {
 }
 add_filter( 'widget_tag_cloud_args', 'twentyfifteen_widget_tag_cloud_args' );
 
+/**
+ * Prevents `author-bio.php` partial template from interfering with rendering
+ * an author archive of a user with the `bio` username.
+ *
+ * @since Twenty Fifteen 2.6
+ *
+ * @param string $template Template file.
+ * @return string Replacement template file.
+ */
+function twentyfifteen_author_bio_template( $template ) {
+	if ( is_author() ) {
+		$author = get_queried_object();
+		if ( $author instanceof WP_User && 'bio' === $author->user_nicename ) {
+			// Use author templates if exist, fall back to template hierarchy otherwise.
+			return locate_template( array( "author-{$author->ID}.php", 'author.php' ) );
+		}
+	}
+
+	return $template;
+}
+add_filter( 'author_template', 'twentyfifteen_author_bio_template' );
+
 
 /**
  * Implement the Custom Header feature.
