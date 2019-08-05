@@ -235,7 +235,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	function test_is_serialized_should_return_true_for_large_floats() {
 		$cases = array(
 			serialize( 1.7976931348623157E+308 ),
-			serialize( array( 1.7976931348623157E+308, 1.23e50 ) )
+			serialize( array( 1.7976931348623157E+308, 1.23e50 ) ),
 		);
 
 		foreach ( $cases as $case ) {
