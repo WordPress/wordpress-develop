@@ -121,7 +121,7 @@ function get_the_category_by_ID( $cat_ID ) { // phpcs:ignore WordPress.NamingCon
  *
  * @since 1.5.1
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param string $separator Optional. Separator between the categories. By default, the links are placed
  *                          in an unordered list. An empty string will result in the default behavior.
@@ -384,7 +384,7 @@ function wp_dropdown_categories( $args = '' ) {
 	// Avoid clashes with the 'name' param of get_terms().
 	$get_terms_args = $parsed_args;
 	unset( $get_terms_args['name'] );
-	$categories = get_terms( $parsed_args['taxonomy'], $get_terms_args );
+	$categories = get_terms( $get_terms_args );
 
 	$name     = esc_attr( $parsed_args['name'] );
 	$class    = esc_attr( $parsed_args['class'] );
@@ -701,7 +701,6 @@ function wp_tag_cloud( $args = '' ) {
 	$args     = wp_parse_args( $args, $defaults );
 
 	$tags = get_terms(
-		$args['taxonomy'],
 		array_merge(
 			$args,
 			array(

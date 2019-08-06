@@ -754,8 +754,8 @@ function wp_tinymce_inline_scripts() {
 			$init_obj .= $key . ':' . $val . ',';
 			continue;
 		} elseif ( ! empty( $value ) && is_string( $value ) && (
-			( '{' === $value{0} && '}' === $value{strlen( $value ) - 1} ) ||
-			( '[' === $value{0} && ']' === $value{strlen( $value ) - 1} ) ||
+			( '{' === $value[0] && '}' === $value[ strlen( $value ) - 1 ] ) ||
+			( '[' === $value[0] && ']' === $value[ strlen( $value ) - 1 ] ) ||
 			preg_match( '/^\(?function ?\(/', $value ) ) ) {
 			$init_obj .= $key . ':' . $value . ',';
 			continue;
@@ -2184,7 +2184,7 @@ function wp_just_in_time_script_localization() {
  *
  * @link https://api.jqueryui.com/datepicker/#options
  *
- * @global WP_Locale $wp_locale The WordPress date and time locale object.
+ * @global WP_Locale $wp_locale WordPress date and time locale object.
  */
 function wp_localize_jquery_ui_datepicker() {
 	global $wp_locale;
@@ -2708,7 +2708,7 @@ function script_concat_settings() {
  *
  * @since 5.0.0
  *
- * @global WP_Screen $current_screen
+ * @global WP_Screen $current_screen WordPress current screen object.
  */
 function wp_common_block_scripts_and_styles() {
 	global $current_screen;
@@ -2742,7 +2742,7 @@ function wp_common_block_scripts_and_styles() {
  *
  * @since 5.0.0
  *
- * @global WP_Screen $current_screen
+ * @global WP_Screen $current_screen WordPress current screen object.
  */
 function wp_enqueue_registered_block_scripts_and_styles() {
 	global $current_screen;

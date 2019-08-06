@@ -151,8 +151,8 @@ function wp_ajax_ajax_tag_search() {
 	}
 
 	$results = get_terms(
-		$taxonomy,
 		array(
+			'taxonomy'   => $taxonomy,
 			'name__like' => $s,
 			'fields'     => 'names',
 			'hide_empty' => false,
@@ -1085,11 +1085,11 @@ function wp_ajax_get_tagcloud() {
 	}
 
 	$tags = get_terms(
-		$taxonomy,
 		array(
-			'number'  => 45,
-			'orderby' => 'count',
-			'order'   => 'DESC',
+			'taxonomy' => $taxonomy,
+			'number'   => 45,
+			'orderby'  => 'count',
+			'order'    => 'DESC',
 		)
 	);
 
@@ -1430,6 +1430,7 @@ function wp_ajax_add_menu_item() {
 		$menu_obj = get_post( $menu_item_id );
 		if ( ! empty( $menu_obj->ID ) ) {
 			$menu_obj        = wp_setup_nav_menu_item( $menu_obj );
+			$menu_obj->title = empty( $menu_obj->title ) ? __( 'Menu Item' ) : $menu_obj->title;
 			$menu_obj->label = $menu_obj->title; // don't show "(pending)" in ajax-added items
 			$menu_items[]    = $menu_obj;
 		}
@@ -3080,7 +3081,7 @@ function wp_ajax_send_attachment_to_editor() {
  *
  * @since 3.5.0
  *
- * @global WP_Post  $post
+ * @global WP_Post  $post     Global post object.
  * @global WP_Embed $wp_embed
  */
 function wp_ajax_send_link_to_editor() {
@@ -3405,7 +3406,7 @@ function wp_ajax_query_themes() {
  *
  * @since 4.0.0
  *
- * @global WP_Post    $post       Global $post.
+ * @global WP_Post    $post       Global post object.
  * @global WP_Embed   $wp_embed   Embed API instance.
  * @global WP_Scripts $wp_scripts
  * @global int        $content_width
@@ -3538,7 +3539,7 @@ function wp_ajax_parse_embed() {
 /**
  * @since 4.0.0
  *
- * @global WP_Post    $post
+ * @global WP_Post    $post       Global post object.
  * @global WP_Scripts $wp_scripts
  */
 function wp_ajax_parse_media_shortcode() {

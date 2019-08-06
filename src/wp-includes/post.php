@@ -584,7 +584,7 @@ function _wp_relative_upload_path( $path ) {
  * @see get_posts()
  * @todo Check validity of description.
  *
- * @global WP_Post $post
+ * @global WP_Post $post Global post object.
  *
  * @param mixed  $args   Optional. User defined arguments for replacing the defaults. Default empty.
  * @param string $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
@@ -697,7 +697,7 @@ function get_extended( $post ) {
  *
  * @since 1.5.1
  *
- * @global WP_Post $post
+ * @global WP_Post $post Global post object.
  *
  * @param int|WP_Post|null $post   Optional. Post ID or post object. Defaults to global $post.
  * @param string           $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
@@ -3000,7 +3000,7 @@ function _reset_front_page_settings_for_post( $post_id ) {
 			update_option( 'page_on_front', 0 );
 		}
 		if ( get_option( 'page_for_posts' ) == $post->ID ) {
-			delete_option( 'page_for_posts', 0 );
+			update_option( 'page_for_posts', 0 );
 		}
 	}
 	unstick_post( $post->ID );
@@ -3059,12 +3059,16 @@ function wp_trash_post( $post_id = 0 ) {
 	add_post_meta( $post_id, '_wp_trash_meta_status', $post->post_status );
 	add_post_meta( $post_id, '_wp_trash_meta_time', time() );
 
-	wp_update_post(
+	$post_updated = wp_update_post(
 		array(
 			'ID'          => $post_id,
 			'post_status' => 'trash',
 		)
 	);
+
+	if ( ! $post_updated ) {
+		return false;
+	}
 
 	wp_trash_post_comments( $post_id );
 
@@ -3126,12 +3130,16 @@ function wp_untrash_post( $post_id = 0 ) {
 	delete_post_meta( $post_id, '_wp_trash_meta_status' );
 	delete_post_meta( $post_id, '_wp_trash_meta_time' );
 
-	wp_update_post(
+	$post_updated = wp_update_post(
 		array(
 			'ID'          => $post_id,
 			'post_status' => $post_status,
 		)
 	);
+
+	if ( ! $post_updated ) {
+		return false;
+	}
 
 	wp_untrash_post_comments( $post_id );
 
@@ -4189,8 +4197,8 @@ function check_and_publish_future_post( $post_id ) {
  *
  * @since 2.8.0
  *
- * @global wpdb       $wpdb WordPress database abstraction object.
- * @global WP_Rewrite $wp_rewrite
+ * @global wpdb       $wpdb       WordPress database abstraction object.
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param string $slug        The desired slug (post_name).
  * @param int    $post_ID     Post ID.

@@ -25,7 +25,7 @@ define( 'WXR_VERSION', '1.2' );
  * @since 2.1.0
  *
  * @global wpdb    $wpdb WordPress database abstraction object.
- * @global WP_Post $post Global `$post`.
+ * @global WP_Post $post Global post object.
  *
  * @param array $args {
  *     Optional. Arguments for generating the WXR export file for download. Default empty array.
@@ -159,7 +159,12 @@ function export_wp( $args = array() ) {
 		$tags       = (array) get_tags( array( 'get' => 'all' ) );
 
 		$custom_taxonomies = get_taxonomies( array( '_builtin' => false ) );
-		$custom_terms      = (array) get_terms( $custom_taxonomies, array( 'get' => 'all' ) );
+		$custom_terms      = (array) get_terms(
+			array(
+				'taxonomy' => $custom_taxonomies,
+				'get'      => 'all',
+			)
+		);
 
 		// Put categories in order with no child going before its parent.
 		while ( $cat = array_shift( $categories ) ) {
@@ -520,7 +525,7 @@ function export_wp( $args = array() ) {
 	<?php
 	if ( $post_ids ) {
 		/**
-		 * @global WP_Query $wp_query
+		 * @global WP_Query $wp_query WordPress Query object.
 		 */
 		global $wp_query;
 

@@ -230,6 +230,20 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 46570
+	 */
+	function test_is_serialized_should_return_true_for_large_floats() {
+		$cases = array(
+			serialize( 1.7976931348623157E+308 ),
+			serialize( array( 1.7976931348623157E+308, 1.23e50 ) ),
+		);
+
+		foreach ( $cases as $case ) {
+			$this->assertTrue( is_serialized( $case ), "Serialized data: $case" );
+		}
+	}
+
+	/**
 	 * @ticket 17375
 	 */
 	function test_no_new_serializable_types() {

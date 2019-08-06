@@ -687,7 +687,7 @@ function comment_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFunctio
  *
  * @see get_page_of_comment()
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite      WordPress rewrite component.
  * @global bool       $in_comment_loop
  *
  * @param WP_Comment|int|null $comment Comment to retrieve. Default current comment.
@@ -1302,9 +1302,9 @@ function wp_comment_form_unfiltered_html_nonce() {
  *
  * @since 1.5.0
  *
- * @global WP_Query   $wp_query
- * @global WP_Post    $post
- * @global wpdb       $wpdb
+ * @global WP_Query   $wp_query         WordPress Query object.
+ * @global WP_Post    $post             Global post object.
+ * @global wpdb       $wpdb             WordPress database abstraction object.
  * @global int        $id
  * @global WP_Comment $comment
  * @global string     $user_login
@@ -1621,7 +1621,7 @@ function comments_popup_link( $zero = false, $one = false, $more = false, $css_c
  * @param int|WP_Comment $comment Comment being replied to. Default current comment.
  * @param int|WP_Post    $post    Post ID or WP_Post object the comment is going to be displayed on.
  *                                Default current post.
- * @return void|false|string Link to show comment form, if successful. False, if comments are closed.
+ * @return string|false|null Link to show comment form, if successful. False, if comments are closed.
  */
 function get_comment_reply_link( $args = array(), $comment = null, $post = null ) {
 	$defaults = array(
@@ -1730,7 +1730,6 @@ function get_comment_reply_link( $args = array(), $comment = null, $post = null 
  * @param int         $comment Comment being replied to. Default current comment.
  * @param int|WP_Post $post    Post ID or WP_Post object the comment is going to be displayed on.
  *                             Default current post.
- * @return mixed Link to show comment form, if successful. False, if comments are closed.
  */
 function comment_reply_link( $args = array(), $comment = null, $post = null ) {
 	echo get_comment_reply_link( $args, $comment, $post );
@@ -1757,7 +1756,7 @@ function comment_reply_link( $args = array(), $comment = null, $post = null ) {
  * }
  * @param int|WP_Post $post    Optional. Post ID or WP_Post object the comment is going to be displayed on.
  *                             Default current post.
- * @return false|null|string Link to show comment form, if successful. False, if comments are closed.
+ * @return string|false|null Link to show comment form, if successful. False, if comments are closed.
  */
 function get_post_reply_link( $args = array(), $post = null ) {
 	$defaults = array(
@@ -1821,7 +1820,6 @@ function get_post_reply_link( $args = array(), $post = null ) {
  * @param array       $args Optional. Override default options,
  * @param int|WP_Post $post Post ID or WP_Post object the comment is going to be displayed on.
  *                          Default current post.
- * @return string|bool|null Link to show comment form, if successful. False, if comments are closed.
  */
 function post_reply_link( $args = array(), $post = null ) {
 	echo get_post_reply_link( $args, $post );
@@ -1959,7 +1957,7 @@ function comment_form_title( $noreplytext = false, $replytext = false, $linktopa
  *
  * @see WP_Query->comments
  *
- * @global WP_Query $wp_query
+ * @global WP_Query $wp_query           WordPress Query object.
  * @global int      $comment_alt
  * @global int      $comment_depth
  * @global int      $comment_thread_alt

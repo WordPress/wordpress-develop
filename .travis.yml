@@ -1,38 +1,49 @@
-sudo: false
-dist: trusty
 language: php
+services:
+  - docker
+  - mysql
+
+addons:
+  apt:
+    packages:
+      - docker-ce
+
 cache:
   apt: true
   directories:
     - $HOME/.npm
     - vendor
     - $HOME/.composer/cache
+
 env:
   global:
-    - WP_TRAVISCI=travis:phpunit
+    - LOCAL_DIR=build
+
 matrix:
   include:
-  - php: 7.2
-    env: WP_TRAVISCI=e2e
-  - php: 7.2
-    env: WP_TRAVISCI=travis:phpcs
-  - php: 7.1
-    env: WP_TRAVISCI=travis:js
-  - php: 7.4snapshot
+  - env: WP_TRAVISCI=test:e2e
+  - env: WP_TRAVISCI=travis:phpcs
+  - env: WP_TRAVISCI=travis:js
+  - env: LOCAL_PHP=7.3-fpm WP_TRAVISCI=test:php
   - php: 7.3
-  - php: 7.3
-    env: WP_TRAVIS_OBJECT_CACHE=true
+    dist: trusty
+    env: WP_TRAVIS_OBJECT_CACHE=true WP_TRAVISCI=travis:phpunit
     services: memcached
-  - php: 7.2
-  - php: 7.1
-  - php: 7.0
-    env: WP_TEST_REPORTER=true
-  - php: 5.6
+  - env: LOCAL_PHP=7.2-fpm WP_TRAVISCI=test:php
+  - env: LOCAL_PHP=7.1-fpm WP_TRAVISCI=test:php
+  - env: LOCAL_PHP=7.0-fpm WP_TEST_REPORTER=true WP_TRAVISCI=test:php
+  - env: LOCAL_PHP=5.6-fpm WP_TRAVISCI=test:php
+  - php: 7.4snapshot
+    dist: trusty
+    env: WP_TRAVISCI=travis:phpunit
   - php: nightly
+    dist: trusty
+    env: WP_TRAVISCI=travis:phpunit
   allow_failures:
   - php: 7.4snapshot
   - php: nightly
   fast_finish: true
+
 before_install:
 - |
   if [[ "$WP_TRAVISCI" == "travis:phpunit" ]]; then
@@ -44,10 +55,25 @@ before_install:
       travis_retry svn checkout https://plugins.svn.wordpress.org/wordpress-importer/tags/0.6.3/ tests/phpunit/data/plugins/wordpress-importer
   fi
 - |
+  if [[ "$WP_TRAVISCI" == "test:php" ]]; then
+      cp wp-tests-config-sample.php wp-tests-config.php
+      sed -i "s/youremptytestdbnamehere/wordpress_develop_tests/" wp-tests-config.php
+      sed -i "s/yourusernamehere/root/" wp-tests-config.php
+      sed -i "s/yourpasswordhere/password/" wp-tests-config.php
+      sed -i "s/localhost/mysql/" wp-tests-config.php
+      travis_retry svn checkout https://plugins.svn.wordpress.org/wordpress-importer/tags/0.6.3/ tests/phpunit/data/plugins/wordpress-importer
+  fi
+- |
+  sudo rm /usr/local/bin/docker-compose
+  curl -L https://github.com/docker/compose/releases/download/1.24.0/docker-compose-`uname -s`-`uname -m` > docker-compose
+  chmod +x docker-compose
+  sudo mv docker-compose /usr/local/bin
+- |
   if [[ "$WP_TRAVIS_OBJECT_CACHE" == "true" ]]; then
     cp tests/phpunit/includes/object-cache.php src/wp-content/object-cache.php
     echo "extension = memcached.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
   fi
+
 before_script:
 - |
   # Remove Xdebug for a huge performance increase:
@@ -57,30 +83,14 @@ before_script:
     echo "xdebug.ini does not exist"
   fi
 - |
-  # Export Composer's global bin dir to PATH, but not on PHP 5.2:
+  # Export Composer's global bin dir to PATH:
   composer config --list --global
   export PATH=`composer config --list --global | grep '\[home\]' | { read a; echo "${a#* }/vendor/bin:$PATH"; }`
 - |
-  # Install the specified version of PHPUnit depending on the PHP version:
+  # Install PHPUnit for the tests that don't run in Docker.
   if [[ "$WP_TRAVISCI" == "travis:phpunit" ]]; then
-    case "$TRAVIS_PHP_VERSION" in
-      7.4snapshot|7.3|7.2|7.1|nightly)
-        echo "Using PHPUnit 7.x"
-        travis_retry composer global require "phpunit/phpunit:^7"
-        ;;
-      7.0)
-        echo "Using PHPUnit 6.x"
-        travis_retry composer global require "phpunit/phpunit:^6"
-        ;;
-      5.6)
-        echo "Using PHPUnit 4.x"
-        travis_retry composer global require "phpunit/phpunit:^4"
-        ;;
-      *)
-        echo "No PHPUnit version handling for PHP version $TRAVIS_PHP_VERSION"
-        exit 1
-        ;;
-    esac
+    echo "Using PHPUnit 7.x"
+    travis_retry composer global require "phpunit/phpunit:^7"
   fi
 - |
   # We only need to run composer install on the PHP coding standards job.
@@ -93,6 +103,15 @@ before_script:
 - nvm install 10.13.0
 - npm install
 - npm prune
+- |
+  if [[ "$WP_TRAVISCI" == "test:e2e" ]] || [[ "$WP_TRAVISCI" == "test:php" ]]; then
+    npm run env:start
+    npm run build
+  fi
+- |
+  if [[ "$WP_TRAVISCI" == "test:e2e" ]]; then
+    npm run env:install
+  fi
 - mysql --version
 - phpenv versions
 - php --version
@@ -105,15 +124,22 @@ before_script:
 - git --version
 - svn --version
 - locale -a
+
 script:
-- |
-  if [[ "$WP_TRAVISCI" == "e2e" ]]; then
-    npm run env:start
-    npm run env:reset-site
-    npm run test:e2e
-  else
-    npm run grunt $WP_TRAVISCI
-  fi
+  - |
+    if [[ "$WP_TRAVISCI" == "test:e2e" ]]; then
+      npm run test:e2e
+    elif [[ "$WP_TRAVISCI" == "test:php" ]]; then
+      npm run test:php -- -- -- --verbose -c phpunit.xml.dist
+      npm run test:php -- -- -- --verbose -c phpunit.xml.dist --group ajax
+      npm run test:php -- -- -- --verbose -c tests/phpunit/multisite.xml
+      npm run test:php -- -- -- --verbose -c tests/phpunit/multisite.xml --group ms-files
+      npm run test:php -- -- -- --verbose -c phpunit.xml.dist --group external-http
+      npm run test:php -- -- -- --verbose -c phpunit.xml.dist --group restapi-jsclient
+    else
+      npm run grunt $WP_TRAVISCI
+    fi
+
 after_script:
 - |
   if [[ "$WP_TEST_REPORTER" == "true" ]]; then
@@ -122,6 +148,7 @@ after_script:
     export WPT_TEST_DIR=$(pwd)
     php test-runner/report.php
   fi
+
 notifications:
   slack:
     rooms:
