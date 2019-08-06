@@ -308,10 +308,8 @@ class WP_Site_Query {
 		 */
 		$site_data = apply_filters_ref_array( 'sites_pre_query', array( $site_data, &$this ) );
 
-		if ( null !== $site_ids ) {
-			$this->sites = $site_ids;
-
-			return $this->sites;
+		if ( null !== $site_data ) {
+			return $site_data;
 		}
 
 		// $args can include anything. Only use the args defined in the query_var_defaults to compute the key.
