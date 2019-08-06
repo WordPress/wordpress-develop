@@ -914,6 +914,7 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 45749
+		 * @ticket 47599
 		 */
 		public function test_sites_pre_query_filter_should_bypass_database_query() {
 			global $wpdb;
