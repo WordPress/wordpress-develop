@@ -213,35 +213,38 @@ class WP_Network_Query {
 		 */
 		$network_ids = apply_filters_ref_array( 'networks_pre_query', array( $network_ids, &$this ) );
 
-		if ( null === $network_ids ) {
+		if ( null !== $network_ids ) {
+			$this->networks = $network_ids;
 
-			// $args can include anything. Only use the args defined in the query_var_defaults to compute the key.
-			$_args = wp_array_slice_assoc( $this->query_vars, array_keys( $this->query_var_defaults ) );
+			return $this->networks;
+		}
 
-			// Ignore the $fields argument as the queried result will be the same regardless.
-			unset( $_args['fields'] );
+		// $args can include anything. Only use the args defined in the query_var_defaults to compute the key.
+		$_args = wp_array_slice_assoc( $this->query_vars, array_keys( $this->query_var_defaults ) );
 
-			$key          = md5( serialize( $_args ) );
-			$last_changed = wp_cache_get_last_changed( 'networks' );
+		// Ignore the $fields argument as the queried result will be the same regardless.
+		unset( $_args['fields'] );
 
-			$cache_key   = "get_network_ids:$key:$last_changed";
-			$cache_value = wp_cache_get( $cache_key, 'networks' );
+		$key          = md5( serialize( $_args ) );
+		$last_changed = wp_cache_get_last_changed( 'networks' );
 
-			if ( false === $cache_value ) {
-				$network_ids = $this->get_network_ids();
-				if ( $network_ids ) {
-					$this->set_found_networks();
-				}
+		$cache_key   = "get_network_ids:$key:$last_changed";
+		$cache_value = wp_cache_get( $cache_key, 'networks' );
 
-				$cache_value = array(
-					'network_ids'    => $network_ids,
-					'found_networks' => $this->found_networks,
-				);
-				wp_cache_add( $cache_key, $cache_value, 'networks' );
-			} else {
-				$network_ids          = $cache_value['network_ids'];
-				$this->found_networks = $cache_value['found_networks'];
+		if ( false === $cache_value ) {
+			$network_ids = $this->get_network_ids();
+			if ( $network_ids ) {
+				$this->set_found_networks();
 			}
+
+			$cache_value = array(
+				'network_ids'    => $network_ids,
+				'found_networks' => $this->found_networks,
+			);
+			wp_cache_add( $cache_key, $cache_value, 'networks' );
+		} else {
+			$network_ids          = $cache_value['network_ids'];
+			$this->found_networks = $cache_value['found_networks'];
 		}
 
 		if ( $this->found_networks && $this->query_vars['number'] ) {
