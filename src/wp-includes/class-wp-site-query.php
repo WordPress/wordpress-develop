@@ -288,21 +288,25 @@ class WP_Site_Query {
 			$this->meta_query_clauses = $this->meta_query->get_sql( 'blog', $wpdb->blogs, 'blog_id', $this );
 		}
 
-		$site_ids = null;
+		$site_data = null;
 
 		/**
-		 * Filter the sites array before the query takes place.
+		 * Filter the site data before the get_sites query takes place.
 		 *
 		 * Return a non-null value to bypass WordPress's default site queries.
 		 *
+		 * The expected return type from this filter depends on the value passed in the request query_vars:
+		 * When $this->query_vars['count'] is set, the filter should return the site count as an int.
+		 * When `'ids' == $this->query_vars['fields']`, the filter should return an array of site ids.
+		 * Otherwise the filter should return an array of WP_Site objects.
 		 *
 		 * @since 5.2.0
 		 *
-		 * @param array|null    $site_ids Return an array of site data to short-circuit WP's site query,
-		 *                                or null to allow WP to run its normal queries.
-		 * @param WP_Site_Query $this The WP_Site_Query instance, passed by reference.
+		 * @param array|int|null $site_data Return an array of site data (ints, objects or a count) to short-circuit
+		 *                                  WordPress's site query, or null to run the normal queries.
+		 * @param WP_Site_Query  $this      The WP_Site_Query instance, passed by reference.
 		 */
-		$site_ids = apply_filters_ref_array( 'sites_pre_query', array( $site_ids, &$this ) );
+		$site_data = apply_filters_ref_array( 'sites_pre_query', array( $site_data, &$this ) );
 
 		if ( null !== $site_ids ) {
 			$this->sites = $site_ids;
