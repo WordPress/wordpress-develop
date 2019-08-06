@@ -923,11 +923,7 @@ if ( is_multisite() ) :
 			$num_queries = $wpdb->num_queries;
 
 			$q       = new WP_Site_Query();
-			$results = $q->query(
-				array(
-					'fields' => 'ids',
-				)
-			);
+			$results = $q->query( array() );
 
 			remove_filter( 'sites_pre_query', array( __CLASS__, 'filter_sites_pre_query' ), 10, 2 );
 
