@@ -38,6 +38,7 @@ services:
 
     environment:
       LOCAL_PHP_XDEBUG: ${LOCAL_PHP_XDEBUG-false}
+      LOCAL_PHP_MEMCACHED: ${LOCAL_PHP_MEMCACHED-false}
 
     volumes:
       - ./php-config.ini:/usr/local/etc/php/conf.d/php-config.ini

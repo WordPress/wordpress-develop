@@ -147,6 +147,8 @@
 		"env:cli": "dotenv npm run env:__cli-next",
 		"env:__cli-next": "docker-compose -f ./tools/local-env/docker-compose.yml -f ./tools/local-env/docker-compose.scripts.yml run --rm cli",
 		"env:logs": "docker-compose -f ./tools/local-env/docker-compose.yml -f ./tools/local-env/docker-compose.scripts.yml logs",
+		"env:pull": "dotenv npm run env:__pull-next",
+		"env:__pull-next": "docker-compose -f ./tools/local-env/docker-compose.yml -f ./tools/local-env/docker-compose.scripts.yml pull",
 		"test:e2e": "dotenv npm run test:__e2e-next",
 		"test:__e2e-next": "cross-var cross-env WP_BASE_URL=http://localhost:$LOCAL_PORT wp-scripts test-e2e --config tests/e2e/jest.config.js",
 		"test:php": "dotenv npm run test:__php-next",

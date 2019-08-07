@@ -835,7 +835,7 @@ class WP_Object_Cache {
 		if ( isset( $memcached_servers ) ) {
 			$this->servers = $memcached_servers;
 		} else {
-			$this->servers = array( array( '127.0.0.1', 11211 ) );
+			$this->servers = array( array( 'memcached', 11211 ) );
 		}
 
 		$this->addServers( $this->servers );

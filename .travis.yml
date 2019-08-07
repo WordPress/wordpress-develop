@@ -17,43 +17,38 @@ cache:
 
 env:
   global:
-    - LOCAL_DIR=build
+    - LOCAL_DIR: build
 
 matrix:
   include:
   - env: WP_TRAVISCI=test:e2e
+    name: E2E Tests
   - env: WP_TRAVISCI=travis:phpcs
+    name: PHP Linting
   - env: WP_TRAVISCI=travis:js
+    name: JS Tests
   - env: LOCAL_PHP=7.3-fpm WP_TRAVISCI=test:php
-  - php: 7.3
-    dist: trusty
-    env: WP_TRAVIS_OBJECT_CACHE=true WP_TRAVISCI=travis:phpunit
-    services: memcached
+    name: "PHPUnit Tests: PHP 7.3"
+  - env: LOCAL_PHP=7.3-fpm LOCAL_PHP_MEMCACHED=true WP_TRAVISCI=test:php
+    name: "PHPUnit Tests: PHP 7.3 with Memcached"
   - env: LOCAL_PHP=7.2-fpm WP_TRAVISCI=test:php
+    name: "PHPUnit Tests: PHP 7.2"
   - env: LOCAL_PHP=7.1-fpm WP_TRAVISCI=test:php
+    name: "PHPUnit Tests: PHP 7.1"
   - env: LOCAL_PHP=7.0-fpm WP_TEST_REPORTER=true WP_TRAVISCI=test:php
+    name: "PHPUnit Tests: PHP 7.0"
   - env: LOCAL_PHP=5.6-fpm WP_TRAVISCI=test:php
-  - php: 7.4snapshot
-    dist: trusty
-    env: WP_TRAVISCI=travis:phpunit
-  - php: nightly
-    dist: trusty
-    env: WP_TRAVISCI=travis:phpunit
+    name: "PHPUnit Tests: PHP 5.6"
+  - env: LOCAL_PHP=7.4-fpm WP_TRAVISCI=test:php
+    name: "PHPUnit Tests: PHP 7.4"
+  - env: LOCAL_PHP=8.0-fpm WP_TRAVISCI=test:php
+    name: "PHPUnit Tests: PHP 8.0"
   allow_failures:
-  - php: 7.4snapshot
-  - php: nightly
+  - env: LOCAL_PHP=7.4-fpm WP_TRAVISCI=test:php
+  - env: LOCAL_PHP=8.0-fpm WP_TRAVISCI=test:php
   fast_finish: true
 
 before_install:
-- |
-  if [[ "$WP_TRAVISCI" == "travis:phpunit" ]]; then
-      mysql -u root -e "CREATE DATABASE wordpress_tests;"
-      cp wp-tests-config-sample.php wp-tests-config.php
-      sed -i "s/youremptytestdbnamehere/wordpress_tests/" wp-tests-config.php
-      sed -i "s/yourusernamehere/root/" wp-tests-config.php
-      sed -i "s/yourpasswordhere//" wp-tests-config.php
-      travis_retry svn checkout https://plugins.svn.wordpress.org/wordpress-importer/tags/0.6.3/ tests/phpunit/data/plugins/wordpress-importer
-  fi
 - |
   if [[ "$WP_TRAVISCI" == "test:php" ]]; then
       cp wp-tests-config-sample.php wp-tests-config.php
@@ -61,6 +56,7 @@ before_install:
       sed -i "s/yourusernamehere/root/" wp-tests-config.php
       sed -i "s/yourpasswordhere/password/" wp-tests-config.php
       sed -i "s/localhost/mysql/" wp-tests-config.php
+      echo "define( 'FS_METHOD', 'direct' );" >> wp-tests-config.php
       travis_retry svn checkout https://plugins.svn.wordpress.org/wordpress-importer/tags/0.6.3/ tests/phpunit/data/plugins/wordpress-importer
   fi
 - |
@@ -68,11 +64,6 @@ before_install:
   curl -L https://github.com/docker/compose/releases/download/1.24.0/docker-compose-`uname -s`-`uname -m` > docker-compose
   chmod +x docker-compose
   sudo mv docker-compose /usr/local/bin
-- |
-  if [[ "$WP_TRAVIS_OBJECT_CACHE" == "true" ]]; then
-    cp tests/phpunit/includes/object-cache.php src/wp-content/object-cache.php
-    echo "extension = memcached.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
-  fi
 
 before_script:
 - |
@@ -107,19 +98,22 @@ before_script:
   if [[ "$WP_TRAVISCI" == "test:e2e" ]] || [[ "$WP_TRAVISCI" == "test:php" ]]; then
     npm run env:start
     npm run build
+    docker-compose -f tools/local-env/docker-compose.yml run --rm mysql mysql --version
+    docker-compose -f tools/local-env/docker-compose.yml run --rm php php --version
+    docker-compose -f tools/local-env/docker-compose.yml run --rm php php -m
+    docker-compose -f tools/local-env/docker-compose.yml -f tools/local-env/docker-compose.scripts.yml run --rm phpunit phpunit --version
+  fi
+- |
+  if [[ "$LOCAL_PHP_MEMCACHED" == "true" ]]; then
+    cp tests/phpunit/includes/object-cache.php build/wp-content/object-cache.php
+    docker run --name memcached --net local-env_wpdevnet -d memcached
   fi
 - |
   if [[ "$WP_TRAVISCI" == "test:e2e" ]]; then
     npm run env:install
   fi
-- mysql --version
-- phpenv versions
-- php --version
-- php -m
 - npm --version
 - node --version
-- which phpunit
-- phpunit --version
 - curl --version
 - git --version
 - svn --version
@@ -130,11 +124,11 @@ script:
     if [[ "$WP_TRAVISCI" == "test:e2e" ]]; then
       npm run test:e2e
     elif [[ "$WP_TRAVISCI" == "test:php" ]]; then
-      npm run test:php -- -- -- --verbose -c phpunit.xml.dist
-      npm run test:php -- -- -- --verbose -c phpunit.xml.dist --group ajax
-      npm run test:php -- -- -- --verbose -c tests/phpunit/multisite.xml
-      npm run test:php -- -- -- --verbose -c tests/phpunit/multisite.xml --group ms-files
-      npm run test:php -- -- -- --verbose -c phpunit.xml.dist --group external-http
+      npm run test:php -- -- -- --verbose -c phpunit.xml.dist &&
+      npm run test:php -- -- -- --verbose -c phpunit.xml.dist --group ajax &&
+      npm run test:php -- -- -- --verbose -c tests/phpunit/multisite.xml &&
+      npm run test:php -- -- -- --verbose -c tests/phpunit/multisite.xml --group ms-files &&
+      npm run test:php -- -- -- --verbose -c phpunit.xml.dist --group external-http &&
       npm run test:php -- -- -- --verbose -c phpunit.xml.dist --group restapi-jsclient
     else
       npm run grunt $WP_TRAVISCI

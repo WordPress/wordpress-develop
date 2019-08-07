@@ -13,6 +13,7 @@ services:
 
     environment:
       LOCAL_PHP_XDEBUG: ${LOCAL_PHP_XDEBUG-false}
+      LOCAL_PHP_MEMCACHED: ${LOCAL_PHP_MEMCACHED-false}
 
     volumes:
       - ../../:/var/www
@@ -31,6 +32,7 @@ services:
 
     environment:
       LOCAL_PHP_XDEBUG: ${LOCAL_PHP_XDEBUG-false}
+      LOCAL_PHP_MEMCACHED: ${LOCAL_PHP_MEMCACHED-false}
 
     volumes:
       - ./phpunit-config.ini:/usr/local/etc/php/conf.d/phpunit-config.ini
