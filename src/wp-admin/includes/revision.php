@@ -87,6 +87,8 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 
 		$args = array(
 			'show_split_view' => true,
+			'title_left'      => __( 'Base revision' ),
+			'title_right'     => __( 'Compared revision' ),
 		);
 
 		/**
@@ -110,14 +112,30 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 
 		$diff = wp_text_diff( $content_from, $content_to, $args );
 
+		$is_split_view       = ! empty( $args['show_split_view'] );
+		$is_split_view_class = $is_split_view ? ' is-split-view' : '';
+
+		// Handle the post title when there's no diff.
 		if ( ! $diff && 'post_title' === $field ) {
-			// It's a better user experience to still show the Title, even if it didn't change.
-			// No, you didn't see this.
-			$diff = '<table class="diff"><colgroup><col class="content diffsplit left"><col class="content diffsplit middle"><col class="content diffsplit right"></colgroup><tbody><tr>';
+			$diff = "<table class='diff$is_split_view_class'><tbody>";
+
+			if ( $args['title_left'] || $args['title_right'] ) {
+				$th_or_td_left  = empty( $args['title_left'] ) ? 'td' : 'th';
+				$th_or_td_right = empty( $args['title_right'] ) ? 'td' : 'th';
+
+				$diff .= "<tr class='diff-sub-title'>\n";
+				$diff .= "\t<$th_or_td_left>$args[title_left]</$th_or_td_left>\n";
+				if ( $is_split_view ) {
+					$diff .= "\t<$th_or_td_right>$args[title_right]</$th_or_td_right>\n";
+				}
+				$diff .= "</tr>\n";
+			}
+
+			$diff .= "<tr>\n";
 
 			// In split screen mode, show the title before/after side by side.
 			if ( true === $args['show_split_view'] ) {
-				$diff .= '<td>' . esc_html( $compare_from->post_title ) . '</td><td></td><td>' . esc_html( $compare_to->post_title ) . '</td>';
+				$diff .= '<td>' . esc_html( $compare_from->post_title ) . '</td><td>' . esc_html( $compare_to->post_title ) . '</td>';
 			} else {
 				$diff .= '<td>' . esc_html( $compare_from->post_title ) . '</td>';
 
@@ -367,6 +385,11 @@ function wp_print_revision_templates() {
 		</div>
 	</script>
 
+	<script id="tmpl-revisions-slider-hidden-help" type="text/html">
+		<h2 class="screen-reader-text"><?php esc_html_e( 'Select a revision' ); ?></h2>
+		<p id="revisions-slider-hidden-help" hidden><?php esc_html_e( 'Change revision by using the left and arrow keys' ); ?></p>
+	</script>
+
 	<script id="tmpl-revisions-checkbox" type="text/html">
 		<div class="revision-toggle-compare-mode">
 			<label>
@@ -384,7 +407,7 @@ function wp_print_revision_templates() {
 
 	<script id="tmpl-revisions-meta" type="text/html">
 		<# if ( ! _.isUndefined( data.attributes ) ) { #>
-			<div class="diff-title">
+			<div class="diff-title" id="diff-title-{{ data.type }}">
 				<# if ( 'from' === data.type ) { #>
 					<strong><?php _ex( 'From:', 'Followed by post revision info' ); ?></strong>
 				<# } else if ( 'to' === data.type ) { #>
@@ -401,7 +424,7 @@ function wp_print_revision_templates() {
 							'<span class="author-name">{{ data.attributes.author.name }}</span>'
 						);
 						?>
-							</span>
+						</span>
 					<# } else if ( data.attributes.current ) { #>
 						<span class="byline">
 						<?php
@@ -410,7 +433,7 @@ function wp_print_revision_templates() {
 							'<span class="author-name">{{ data.attributes.author.name }}</span>'
 						);
 						?>
-							</span>
+						</span>
 					<# } else { #>
 						<span class="byline">
 						<?php
@@ -419,30 +442,31 @@ function wp_print_revision_templates() {
 							'<span class="author-name">{{ data.attributes.author.name }}</span>'
 						);
 						?>
-							</span>
+						</span>
 					<# } #>
 						<span class="time-ago">{{ data.attributes.timeAgo }}</span>
 						<span class="date">({{ data.attributes.dateShort }})</span>
 					</div>
-				<# if ( 'to' === data.type && data.attributes.restoreUrl ) { #>
-					<input  <?php if ( wp_check_post_lock( $post->ID ) ) { ?>
-						disabled="disabled"
-					<?php } else { ?>
-						<# if ( data.attributes.current ) { #>
-							disabled="disabled"
-						<# } #>
-					<?php } ?>
-					<# if ( data.attributes.autosave ) { #>
-						type="button" class="restore-revision button button-primary" value="<?php esc_attr_e( 'Restore This Autosave' ); ?>" />
-					<# } else { #>
-						type="button" class="restore-revision button button-primary" value="<?php esc_attr_e( 'Restore This Revision' ); ?>" />
-					<# } #>
-				<# } #>
+				</div>
 			</div>
-		<# if ( 'tooltip' === data.type ) { #>
-			<div class="revisions-tooltip-arrow"><span></span></div>
+			<# if ( 'to' === data.type && data.attributes.restoreUrl ) { #>
+				<input <?php if ( wp_check_post_lock( $post->ID ) ) { ?>
+					disabled="disabled"
+				<?php } else { ?>
+					<# if ( data.attributes.current ) { #>
+						disabled="disabled"
+					<# } #>
+				<?php } ?>
+				<# if ( data.attributes.autosave ) { #>
+					type="button" class="restore-revision button button-primary" value="<?php esc_attr_e( 'Restore This Autosave' ); ?>" />
+				<# } else { #>
+					type="button" class="restore-revision button button-primary" value="<?php esc_attr_e( 'Restore This Revision' ); ?>" />
+				<# } #>
+			<# } #>
+			<# if ( 'tooltip' === data.type ) { #>
+				<div class="revisions-tooltip-arrow"><span></span></div>
+			<# } #>
 		<# } #>
-	<# } #>
 	</script>
 
 	<script id="tmpl-revisions-diff" type="text/html">
@@ -450,7 +474,7 @@ function wp_print_revision_templates() {
 		<div class="diff-error"><?php _e( 'Sorry, something went wrong. The requested comparison could not be loaded.' ); ?></div>
 		<div class="diff">
 		<# _.each( data.fields, function( field ) { #>
-			<h3>{{ field.name }}</h3>
+			<h2 class="diff-field-heading">{{ field.name }}</h2>
 			{{{ field.diff }}}
 		<# }); #>
 		</div>

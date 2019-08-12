@@ -626,6 +626,9 @@ window.wp = window.wp || {};
 				model: tooltip
 			}) );
 
+			// Add the visually hidden slider help view.
+			this.views.add( new revisions.view.SliderHelp() );
+
 			// Add the slider view
 			this.views.add( new revisions.view.Slider({
 				model: slider
@@ -727,7 +730,7 @@ window.wp = window.wp || {};
 			// Add the 'from' view
 			this.views.add( new revisions.view.MetaFrom({
 				model: this.model,
-				className: 'diff-meta diff-meta-from'
+				className: 'diff-meta diff-meta-from',
 			}) );
 
 			// Add the 'to' view
@@ -800,6 +803,12 @@ window.wp = window.wp || {};
 			// Activate compare two mode?
 			this.model.set({ compareTwoMode: $('.compare-two-revisions').prop('checked') });
 		}
+	});
+
+	// The slider visually hidden help view.
+	revisions.view.SliderHelp = wp.Backbone.View.extend({
+		className: 'revisions-slider-hidden-help',
+		template:  wp.template( 'revisions-slider-hidden-help' )
 	});
 
 	// The tooltip view.
@@ -941,6 +950,19 @@ window.wp = window.wp || {};
 		ready: function() {
 			this.$el.css('width', ( this.model.revisions.length * 50 ) + 'px');
 			this.$el.slider( _.extend( this.model.toJSON(), {
+				create: function() {
+					var handles = $( '.ui-slider-handle' );
+					handles.first().attr( {
+						role: 'button',
+						'aria-labelledby': 'diff-title-from',
+						'aria-describedby': 'revisions-slider-hidden-help',
+					} );
+					handles.last().attr( {
+						role: 'button',
+						'aria-labelledby': 'diff-title-to',
+						'aria-describedby': 'revisions-slider-hidden-help',
+					} );
+				},
 				start: this.start,
 				slide: this.slide,
 				stop:  this.stop
