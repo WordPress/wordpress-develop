@@ -1,7 +1,7 @@
-language: php
+language: generic
+
 services:
   - docker
-  - mysql
 
 addons:
   apt:
@@ -51,12 +51,6 @@ matrix:
 before_install:
 - |
   if [[ "$WP_TRAVISCI" == "test:php" ]]; then
-      cp wp-tests-config-sample.php wp-tests-config.php
-      sed -i "s/youremptytestdbnamehere/wordpress_develop_tests/" wp-tests-config.php
-      sed -i "s/yourusernamehere/root/" wp-tests-config.php
-      sed -i "s/yourpasswordhere/password/" wp-tests-config.php
-      sed -i "s/localhost/mysql/" wp-tests-config.php
-      echo "define( 'FS_METHOD', 'direct' );" >> wp-tests-config.php
       travis_retry svn checkout https://plugins.svn.wordpress.org/wordpress-importer/tags/0.6.3/ tests/phpunit/data/plugins/wordpress-importer
   fi
 - |
@@ -74,16 +68,6 @@ before_script:
     echo "xdebug.ini does not exist"
   fi
 - |
-  # Export Composer's global bin dir to PATH:
-  composer config --list --global
-  export PATH=`composer config --list --global | grep '\[home\]' | { read a; echo "${a#* }/vendor/bin:$PATH"; }`
-- |
-  # Install PHPUnit for the tests that don't run in Docker.
-  if [[ "$WP_TRAVISCI" == "travis:phpunit" ]]; then
-    echo "Using PHPUnit 7.x"
-    travis_retry composer global require "phpunit/phpunit:^7"
-  fi
-- |
   # We only need to run composer install on the PHP coding standards job.
   if [[ "$WP_TRAVISCI" == "travis:phpcs" ]]; then
     composer --version
@@ -98,18 +82,20 @@ before_script:
   if [[ "$WP_TRAVISCI" == "test:e2e" ]] || [[ "$WP_TRAVISCI" == "test:php" ]]; then
     npm run env:start
     npm run build
-    docker-compose -f tools/local-env/docker-compose.yml run --rm mysql mysql --version
-    docker-compose -f tools/local-env/docker-compose.yml run --rm php php --version
-    docker-compose -f tools/local-env/docker-compose.yml run --rm php php -m
-    docker-compose -f tools/local-env/docker-compose.yml -f tools/local-env/docker-compose.scripts.yml run --rm phpunit phpunit --version
+    docker-compose run --rm mysql mysql --version
+    docker-compose run --rm php php --version
+    docker-compose run --rm php php -m
+    docker-compose run --rm phpunit phpunit --version
   fi
 - |
   if [[ "$LOCAL_PHP_MEMCACHED" == "true" ]]; then
     cp tests/phpunit/includes/object-cache.php build/wp-content/object-cache.php
-    docker run --name memcached --net local-env_wpdevnet -d memcached
+    # The memcached server needs to start after `npm run env:start`, which sets up the Docker network.
+    docker run --name memcached --net wordpress-develop_wpdevnet -d memcached
   fi
 - |
-  if [[ "$WP_TRAVISCI" == "test:e2e" ]]; then
+  if [[ "$WP_TRAVISCI" == "test:e2e" ]] || [[ "$WP_TRAVISCI" == "test:php" ]]; then
+    # Run the install process after memcached has started.
     npm run env:install
   fi
 - npm --version
@@ -124,12 +110,12 @@ script:
     if [[ "$WP_TRAVISCI" == "test:e2e" ]]; then
       npm run test:e2e
     elif [[ "$WP_TRAVISCI" == "test:php" ]]; then
-      npm run test:php -- -- -- --verbose -c phpunit.xml.dist &&
-      npm run test:php -- -- -- --verbose -c phpunit.xml.dist --group ajax &&
-      npm run test:php -- -- -- --verbose -c tests/phpunit/multisite.xml &&
-      npm run test:php -- -- -- --verbose -c tests/phpunit/multisite.xml --group ms-files &&
-      npm run test:php -- -- -- --verbose -c phpunit.xml.dist --group external-http &&
-      npm run test:php -- -- -- --verbose -c phpunit.xml.dist --group restapi-jsclient
+      npm run test:php -- --verbose -c phpunit.xml.dist &&
+      npm run test:php -- --verbose -c phpunit.xml.dist --group ajax &&
+      npm run test:php -- --verbose -c tests/phpunit/multisite.xml &&
+      npm run test:php -- --verbose -c tests/phpunit/multisite.xml --group ms-files &&
+      npm run test:php -- --verbose -c phpunit.xml.dist --group external-http &&
+      npm run test:php -- --verbose -c phpunit.xml.dist --group restapi-jsclient
     else
       npm run grunt $WP_TRAVISCI
     fi
@@ -138,9 +124,7 @@ after_script:
 - |
   if [[ "$WP_TEST_REPORTER" == "true" ]]; then
     git clone https://github.com/WordPress/phpunit-test-runner.git test-runner
-    export WPT_PREPARE_DIR=$(pwd)
-    export WPT_TEST_DIR=$(pwd)
-    php test-runner/report.php
+    docker-compose run --rm -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
   fi
 
 notifications:
