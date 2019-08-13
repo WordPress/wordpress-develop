@@ -2586,7 +2586,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		// Update post with a blank field (date or date_gmt).
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
 		$request->add_header( 'content-type', 'application/json' );
-		$params = $this->set_post_data( array( 'date_gmt' => '', 'title' => 'test', 'status' => 'draft' ) );
+		$params = $this->set_post_data( array( 'date_gmt' => null, 'title' => 'test', 'status' => 'draft' ) );
 		$request->set_body( wp_json_encode( $params ) );
 		$response = rest_get_server()->dispatch( $request );
 
