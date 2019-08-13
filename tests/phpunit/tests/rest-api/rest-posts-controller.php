@@ -2556,7 +2556,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
-	 * Verify that updating a post with an empty date or date_gmt results in a reset post, where all
+	 * Verify that updating a post with a `null` date or date_gmt results in a reset post, where all
 	 * date values are equal (date, date_gmt, date_modified and date_modofied_gmt) in the API response.
 	 * In the database, the post_date_gmt field is reset to the default `0000-00-00 00:00:00`.
 	 *
