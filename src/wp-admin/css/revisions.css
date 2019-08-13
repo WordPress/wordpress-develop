@@ -198,7 +198,10 @@ table.diff {
 	width: 100%;
 	white-space: pre-wrap;
 	border-collapse: collapse;
+}
 
+table.diff .diff-sub-title {
+    font-size: 12px;
 }
 
 table.diff col.content {
@@ -242,12 +245,16 @@ table.diff.is-split-view th:first-child,
 table.diff.is-split-view td:first-child {
 	width: 50%;
 	border-right: 50px solid transparent;
+	padding-right: 50px;
+
 }
 
 table.diff.is-split-view th:last-child,
 table.diff.is-split-view td:last-child {
 	width: 50%;
 	border-left: 50px solid transparent;
+	padding-left: 50px;
+
 }
 
 
