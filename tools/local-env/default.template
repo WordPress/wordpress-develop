@@ -13,6 +13,8 @@ server {
 
 	root /var/www/${LOCAL_DIR};
 
+	absolute_redirect off;
+
 	location / {
 		try_files $uri $uri/ /index.php?$args;
 	}

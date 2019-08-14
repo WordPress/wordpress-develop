@@ -18,8 +18,8 @@ services:
       LOCAL_DIR: ${LOCAL_DIR-src}
 
     volumes:
-      - ./default.template:/etc/nginx/conf.d/default.template
-      - ../../:/var/www
+      - ./tools/local-env/default.template:/etc/nginx/conf.d/default.template
+      - ./:/var/www
 
     # Load our config file, substituning environment variables into the config.
     command: /bin/sh -c "envsubst '$$LOCAL_DIR' < /etc/nginx/conf.d/default.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
@@ -41,8 +41,8 @@ services:
       LOCAL_PHP_MEMCACHED: ${LOCAL_PHP_MEMCACHED-false}
 
     volumes:
-      - ./php-config.ini:/usr/local/etc/php/conf.d/php-config.ini
-      - ../../:/var/www
+      - ./tools/local-env/php-config.ini:/usr/local/etc/php/conf.d/php-config.ini
+      - ./:/var/www
 
     depends_on:
       - mysql
@@ -60,15 +60,60 @@ services:
       MYSQL_ROOT_PASSWORD: password
 
     volumes:
-      - ./mysql-init.sql:/docker-entrypoint-initdb.d/mysql-init.sql
+      - ./tools/local-env/mysql-init.sql:/docker-entrypoint-initdb.d/mysql-init.sql
       - mysql:/var/lib/mysql
 
     # For compatibility with PHP versions that don't support the caching_sha2_password auth plugin used in MySQL 8.0.
     command: --default-authentication-plugin=mysql_native_password
 
+  ##
+  # The WP CLI container.
+  ##
+  cli:
+    image: wordpressdevelop/cli:${LOCAL_PHP-latest}
+
+    networks:
+      - wpdevnet
+
+    environment:
+      LOCAL_PHP_XDEBUG: ${LOCAL_PHP_XDEBUG-false}
+      LOCAL_PHP_MEMCACHED: ${LOCAL_PHP_MEMCACHED-false}
+
+    volumes:
+      - ./:/var/www
+
+    # The init directive ensures the command runs with a PID > 1, so Ctrl+C works correctly.
+    init: true
+
+  ##
+  # The PHPUnit container.
+  ##
+  phpunit:
+    image: wordpressdevelop/phpunit:${LOCAL_PHP-latest}
+
+    networks:
+      - wpdevnet
+
+    environment:
+      LOCAL_PHP_XDEBUG: ${LOCAL_PHP_XDEBUG-false}
+      LOCAL_PHP_MEMCACHED: ${LOCAL_PHP_MEMCACHED-false}
+
+    volumes:
+      - ./tools/local-env/phpunit-config.ini:/usr/local/etc/php/conf.d/phpunit-config.ini
+      - ./:/wordpress-develop
+      - phpunit-uploads:/wordpress-develop/${LOCAL_DIR-src}/wp-content/uploads
+
+    # The init directive ensures the command runs with a PID > 1, so Ctrl+C works correctly.
+    init: true
+
+    depends_on:
+      - mysql
+
 volumes:
   # So that sites aren't wiped every time containers are restarted, MySQL uses a persistent volume.
   mysql: {}
+  # Using a volume for the uploads directory improves PHPUnit performance.
+  phpunit-uploads: {}
 
 networks:
   # Creating our own network allows us to connect between containers using their service name.
