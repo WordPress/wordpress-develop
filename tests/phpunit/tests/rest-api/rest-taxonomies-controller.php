@@ -195,6 +195,9 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		);
 	}
 
+	/**
+	 * @ticket 42209
+	 */
 	public function test_object_types_is_an_array_if_object_type_is_unregistered() {
 		register_taxonomy_for_object_type( 'category', 'page' );
 		register_taxonomy_for_object_type( 'category', 'attachment' );
@@ -208,6 +211,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertEquals( 'post', $types[0] );
 		$this->assertArrayHasKey( 1, $types );
 		$this->assertEquals( 'attachment', $types[1] );
+		$this->assertEquals( 2, count( $types ) );
 	}
 
 	public function test_get_item_schema() {
