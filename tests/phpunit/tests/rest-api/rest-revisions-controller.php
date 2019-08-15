@@ -76,6 +76,27 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->revision_id3    = $this->revision_3->ID;
 	}
 
+	public function tearDown() {
+		parent::tearDown();
+
+		remove_filter( 'map_meta_cap', array( $this, '_filter_map_meta_cap_remove_no_allow_revisions' ) );
+	}
+
+	public function _filter_map_meta_cap_remove_no_allow_revisions( $caps, $cap, $user_id, $args ) {
+		if ( 'delete_post' !== $cap || empty( $args ) ) {
+			return $caps;
+		}
+		$post = get_post( $args[0] );
+		if ( ! $post || 'revision' !== $post->post_type ) {
+			return $caps;
+		}
+		$key = array_search( 'do_not_allow', $caps, true );
+		if ( false !== $key ) {
+			unset( $caps[ $key ] );
+		}
+		return $caps;
+	}
+
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey( '/wp/v2/posts/(?P<parent>[\d]+)/revisions', $routes );
@@ -216,13 +237,32 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$request = new WP_REST_Request( 'DELETE', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
 		$request->set_param( 'force', true );
 		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_delete', $response, 403 );
+		$this->assertNotNull( get_post( $this->revision_id1 ) );
+	}
+
+	public function test_delete_item_remove_do_not_allow() {
+		wp_set_current_user( self::$editor_id );
+		add_filter( 'map_meta_cap', array( $this, '_filter_map_meta_cap_remove_no_allow_revisions' ), 10, 4 );
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
+		$request->set_param( 'force', true );
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertNull( get_post( $this->revision_id1 ) );
 	}
 
+	public function test_delete_item_cannot_delete_parent() {
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
+		$request->set_param( 'force', true );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_delete', $response, 403 );
+		$this->assertNotNull( get_post( $this->revision_id1 ) );
+	}
+
 	public function test_delete_item_no_trash() {
 		wp_set_current_user( self::$editor_id );
-
+		add_filter( 'map_meta_cap', array( $this, '_filter_map_meta_cap_remove_no_allow_revisions' ), 10, 4 );
 		$request  = new WP_REST_Request( 'DELETE', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_trash_not_supported', $response, 501 );
