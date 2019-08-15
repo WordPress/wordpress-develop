@@ -195,6 +195,21 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		);
 	}
 
+	public function test_object_types_is_an_array_if_object_type_is_unregistered() {
+		register_taxonomy_for_object_type( 'category', 'page' );
+		register_taxonomy_for_object_type( 'category', 'attachment' );
+		unregister_taxonomy_for_object_type( 'category', 'page' );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/taxonomies/category' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$types = $response->get_data()['types'];
+		$this->assertArrayHasKey( 0, $types );
+		$this->assertEquals( 'post', $types[0] );
+		$this->assertArrayHasKey( 1, $types );
+		$this->assertEquals( 'attachment', $types[1] );
+	}
+
 	public function test_get_item_schema() {
 		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/taxonomies' );
 		$response   = rest_get_server()->dispatch( $request );
