@@ -241,6 +241,9 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->assertNotNull( get_post( $this->revision_id1 ) );
 	}
 
+	/**
+	 * @ticket 43709
+	 */
 	public function test_delete_item_remove_do_not_allow() {
 		wp_set_current_user( self::$editor_id );
 		add_filter( 'map_meta_cap', array( $this, '_filter_map_meta_cap_remove_no_allow_revisions' ), 10, 4 );
@@ -251,6 +254,9 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->assertNull( get_post( $this->revision_id1 ) );
 	}
 
+	/**
+	 * @ticket 43709
+	 */
 	public function test_delete_item_cannot_delete_parent() {
 		wp_set_current_user( self::$editor_id );
 		$request = new WP_REST_Request( 'DELETE', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
@@ -260,6 +266,10 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->assertNotNull( get_post( $this->revision_id1 ) );
 	}
 
+	/**
+	 * @ticket 38494
+	 * @ticket 43709
+	 */
 	public function test_delete_item_no_trash() {
 		wp_set_current_user( self::$editor_id );
 		add_filter( 'map_meta_cap', array( $this, '_filter_map_meta_cap_remove_no_allow_revisions' ), 10, 4 );
