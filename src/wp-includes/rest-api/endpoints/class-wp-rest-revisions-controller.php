@@ -349,6 +349,11 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			return $parent;
 		}
 
+		$parent_post_type = get_post_type_object( $parent->post_type );
+		if ( ! current_user_can( $parent_post_type->cap->delete_post, $parent->ID ) ) {
+			return new WP_Error( 'rest_cannot_delete', __( 'Sorry, you are not allowed to delete revisions of this post.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
 		$revision = $this->get_revision( $request['id'] );
 		if ( is_wp_error( $revision ) ) {
 			return $revision;
@@ -383,7 +388,12 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		}
 
 		$post_type = get_post_type_object( 'revision' );
-		return current_user_can( $post_type->cap->delete_post, $revision->ID );
+
+		if ( ! current_user_can( $post_type->cap->delete_post, $revision->ID ) ) {
+			return new WP_Error( 'rest_cannot_delete', __( 'Sorry, you are not allowed to delete this revision.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
+		return true;
 	}
 
 	/**
@@ -606,6 +616,10 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @return array Item schema data.
 	 */
 	public function get_item_schema() {
+		if ( $this->schema ) {
+			return $this->add_additional_fields_schema( $this->schema );
+		}
+
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => "{$this->parent_post_type}-revision",
@@ -682,7 +696,8 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			$schema['properties']['guid'] = $parent_schema['properties']['guid'];
 		}
 
-		return $this->add_additional_fields_schema( $schema );
+		$this->schema = $schema;
+		return $this->add_additional_fields_schema( $this->schema );
 	}
 
 	/**
