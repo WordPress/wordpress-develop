@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/class-basic-object.php';
 
 /**
  * Retrieves PHPUnit runner version.

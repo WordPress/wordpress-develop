@@ -13,19 +13,21 @@ cache:
   directories:
     - $HOME/.npm
     - vendor
-    - $HOME/.composer/cache
 
 env:
   global:
     - LOCAL_DIR: build
+    - COMPOSER_INSTALL: false
+    - NPM_INSTALL: true
+    - WP_INSTALL: true
 
 matrix:
   include:
   - env: WP_TRAVISCI=test:e2e
     name: E2E Tests
-  - env: WP_TRAVISCI=travis:phpcs
+  - env: WP_TRAVISCI=lint:php COMPOSER_INSTALL=true NPM_INSTALL=false WP_INSTALL=false
     name: PHP Linting
-  - env: WP_TRAVISCI=travis:js
+  - env: WP_TRAVISCI=travis:js WP_INSTALL=false
     name: JS Tests
   - env: LOCAL_PHP=7.3-fpm WP_TRAVISCI=test:php
     name: "PHPUnit Tests: PHP 7.3"
@@ -61,23 +63,17 @@ before_install:
 
 before_script:
 - |
-  # Remove Xdebug for a huge performance increase:
-  if [ -f ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/xdebug.ini ]; then
-    phpenv config-rm xdebug.ini
-  else
-    echo "xdebug.ini does not exist"
-  fi
-- |
-  # We only need to run composer install on the PHP coding standards job.
-  if [[ "$WP_TRAVISCI" == "travis:phpcs" ]]; then
-    composer --version
-    travis_retry composer install
+  if [[ "$COMPOSER_INSTALL" == "true" ]]; then
+    docker-compose run --rm php composer --version
+    docker-compose run --rm php composer install
   fi
 - npm --version
 - node --version
 - nvm install 10.13.0
-- npm install
-- npm prune
+- |
+  if [[ "$NPM_INSTALL" == "true" ]]; then
+    npm ci
+  fi
 - |
   if [[ "$WP_TRAVISCI" == "test:e2e" ]] || [[ "$WP_TRAVISCI" == "test:php" ]]; then
     npm run env:start
@@ -94,7 +90,7 @@ before_script:
     docker run --name memcached --net wordpress-develop_wpdevnet -d memcached
   fi
 - |
-  if [[ "$WP_TRAVISCI" == "test:e2e" ]] || [[ "$WP_TRAVISCI" == "test:php" ]]; then
+  if [[ "$WP_INSTALL" == "true" ]]; then
     # Run the install process after memcached has started.
     npm run env:install
   fi
@@ -116,6 +112,10 @@ script:
       npm run test:php -- --verbose -c tests/phpunit/multisite.xml --group ms-files &&
       npm run test:php -- --verbose -c phpunit.xml.dist --group external-http &&
       npm run test:php -- --verbose -c phpunit.xml.dist --group restapi-jsclient
+    elif [[ "$WP_TRAVISCI" == "lint:php" ]]; then
+      docker-compose run --rm php composer format &&
+      docker-compose run --rm php composer lint:errors &&
+      docker-compose run --rm php composer lint tests
     else
       npm run grunt $WP_TRAVISCI
     fi

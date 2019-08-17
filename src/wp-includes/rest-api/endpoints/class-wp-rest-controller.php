@@ -31,6 +31,14 @@ abstract class WP_REST_Controller {
 	protected $rest_base;
 
 	/**
+	 * Cached results of get_item_schema.
+	 *
+	 * @since 5.3.0
+	 * @var array
+	 */
+	protected $schema;
+
+	/**
 	 * Registers the routes for the objects of the controller.
 	 *
 	 * @since 4.7.0
@@ -372,11 +380,11 @@ abstract class WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param array           $object  Data object.
-	 * @param WP_REST_Request $request Full details about the request.
+	 * @param array           $prepared Prepared response array.
+	 * @param WP_REST_Request $request  Full details about the request.
 	 * @return array Modified data object with additional fields.
 	 */
-	protected function add_additional_fields_to_object( $object, $request ) {
+	protected function add_additional_fields_to_object( $prepared, $request ) {
 
 		$additional_fields = $this->get_additional_fields();
 
@@ -392,10 +400,10 @@ abstract class WP_REST_Controller {
 				continue;
 			}
 
-			$object[ $field_name ] = call_user_func( $field_options['get_callback'], $object, $field_name, $request, $this->get_object_type() );
+			$prepared[ $field_name ] = call_user_func( $field_options['get_callback'], $prepared, $field_name, $request, $this->get_object_type() );
 		}
 
-		return $object;
+		return $prepared;
 	}
 
 	/**
@@ -403,7 +411,7 @@ abstract class WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param array           $object  Data Object.
+	 * @param object          $object  Data model like WP_Term or WP_Post.
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return bool|WP_Error True on success, WP_Error object if a field cannot be updated.
 	 */
