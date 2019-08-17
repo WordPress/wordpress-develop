@@ -241,21 +241,32 @@ table.diff td h5,
 table.diff td h6 {
 	margin: 0;
 }
-table.diff.is-split-view th:first-child,
-table.diff.is-split-view td:first-child {
-	width: 50%;
-	border-left: 50px solid transparent;
-	padding-left: 25px;
+
+@media screen and (min-width: 768px) {
+
+	table.diff.is-split-view th:first-child,
+	table.diff.is-split-view td:first-child {
+		width: 50%;
+		border-left: 50px solid transparent;
+		padding-left: 25px;
+	}
+
+	table.diff.is-split-view th:last-child,
+	table.diff.is-split-view td:last-child {
+		width: 50%;
+		border-left: 50px solid transparent;
+		padding-left: 50px;
+
+	}
 }
 
-table.diff.is-split-view th:last-child,
-table.diff.is-split-view td:last-child {
-	width: 50%;
-	border-left: 50px solid transparent;
-	padding-left: 50px;
+@media screen and (max-width: 767px) {
 
+	.diff-addedline .dashicons-plus,
+	.diff-deletedline .dashicons-minus {
+		display: none;
+	}
 }
-
 
 table.diff .diff-deletedline del,
 table.diff .diff-addedline ins {
