@@ -244,9 +244,8 @@ table.diff td h6 {
 table.diff.is-split-view th:first-child,
 table.diff.is-split-view td:first-child {
 	width: 50%;
-	border-right: 50px solid transparent;
-	padding-right: 50px;
-
+	border-left: 50px solid transparent;
+	padding-left: 25px;
 }
 
 table.diff.is-split-view th:last-child,
