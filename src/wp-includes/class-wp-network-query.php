@@ -197,25 +197,27 @@ class WP_Network_Query {
 		 */
 		do_action_ref_array( 'pre_get_networks', array( &$this ) );
 
-		$network_ids = null;
+		$network_data = null;
 
 		/**
 		 * Filter the sites array before the query takes place.
 		 *
-		 * Return a non-null value to bypass WordPress's default site queries.
+		 * Return a non-null value to bypass WordPress's default network queries.
 		 *
+		 * The expected return type from this filter depends on the value passed in the request query_vars:
+		 * When $this->query_vars['count'] is set, the filter should return the network count as an int.
+		 * When `'ids' === $this->query_vars['fields']`, the filter should return an array of network ids.
+		 * Otherwise the filter should return an array of WP_Network objects.
 		 *
 		 * @since 5.2.0
 		 *
-		 * @param array|null       $site_ids Return an array of site data to short-circuit WP's site query,
-		 *                                   or null to allow WP to run its normal queries.
-		 * @param WP_Network_Query $this     The WP_Network_Query instance, passed by reference.
+		 * @param array|null       $network_data Return an array of network data (ints, objects or a count) to short-circuit WP's network query,
+		 *                                       or null to allow WP to run its normal queries.
+		 * @param WP_Network_Query $this         The WP_Network_Query instance, passed by reference.
 		 */
-		$network_ids = apply_filters_ref_array( 'networks_pre_query', array( $network_ids, &$this ) );
+		$network_data = apply_filters_ref_array( 'networks_pre_query', array( $network_data, &$this ) );
 
 		if ( null !== $network_ids ) {
-			$this->networks = $network_ids;
-
 			return $this->networks;
 		}
 
