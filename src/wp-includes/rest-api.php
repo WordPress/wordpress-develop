@@ -102,14 +102,14 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
  * @param array  $args {
  *     Optional. An array of arguments used to handle the registered field.
  *
- *     @type string|array|null $get_callback    Optional. The callback function used to retrieve the field
- *                                              value. Default is 'null', the field will not be returned in
- *                                              the response.
- *     @type string|array|null $update_callback Optional. The callback function used to set and update the
- *                                              field value. Default is 'null', the value cannot be set or
- *                                              updated.
- *     @type string|array|null $schema          Optional. The callback function used to create the schema for
- *                                              this field. Default is 'null', no schema entry will be returned.
+ *     @type callable|null $get_callback    Optional. The callback function used to retrieve the field value. Default is
+ *                                          'null', the field will not be returned in the response. The function will
+ *                                          be passed the prepared object data.
+ *     @type callable|null $update_callback Optional. The callback function used to set and update the field value. Default
+ *                                          is 'null', the value cannot be set or updated. The function will be passed
+ *                                          the model object, like WP_Post.
+ *     @type array|null $schema             Optional. The callback function used to create the schema for this field.
+ *                                          Default is 'null', no schema entry will be returned.
  * }
  */
 function register_rest_field( $object_type, $attribute, $args = array() ) {
@@ -373,7 +373,7 @@ function get_rest_url( $blog_id = null, $path = '/', $scheme = 'rest' ) {
 		$url = add_query_arg( 'rest_route', $path, $url );
 	}
 
-	if ( is_ssl() ) {
+	if ( is_ssl() && isset( $_SERVER['SERVER_NAME'] ) ) {
 		// If the current host is the same as the REST URL host, force the REST URL scheme to HTTPS.
 		if ( $_SERVER['SERVER_NAME'] === parse_url( get_home_url( $blog_id ), PHP_URL_HOST ) ) {
 			$url = set_url_scheme( $url, 'https' );
@@ -1159,6 +1159,11 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		if ( $value instanceof stdClass ) {
 			$value = (array) $value;
 		}
+
+		if ( $value instanceof JsonSerializable ) {
+			$value = $value->jsonSerialize();
+		}
+
 		if ( ! is_array( $value ) ) {
 			/* translators: 1: parameter, 2: type name */
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'object' ) );
@@ -1170,8 +1175,17 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 				if ( is_wp_error( $is_valid ) ) {
 					return $is_valid;
 				}
-			} elseif ( isset( $args['additionalProperties'] ) && false === $args['additionalProperties'] ) {
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not a valid property of Object.' ), $property ) );
+			} elseif ( isset( $args['additionalProperties'] ) ) {
+				if ( false === $args['additionalProperties'] ) {
+					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not a valid property of Object.' ), $property ) );
+				}
+
+				if ( is_array( $args['additionalProperties'] ) ) {
+					$is_valid = rest_validate_value_from_schema( $v, $args['additionalProperties'], $param . '[' . $property . ']' );
+					if ( is_wp_error( $is_valid ) ) {
+						return $is_valid;
+					}
+				}
 			}
 		}
 	}
@@ -1298,6 +1312,11 @@ function rest_sanitize_value_from_schema( $value, $args ) {
 		if ( $value instanceof stdClass ) {
 			$value = (array) $value;
 		}
+
+		if ( $value instanceof JsonSerializable ) {
+			$value = $value->jsonSerialize();
+		}
+
 		if ( ! is_array( $value ) ) {
 			return array();
 		}
@@ -1305,8 +1324,12 @@ function rest_sanitize_value_from_schema( $value, $args ) {
 		foreach ( $value as $property => $v ) {
 			if ( isset( $args['properties'][ $property ] ) ) {
 				$value[ $property ] = rest_sanitize_value_from_schema( $v, $args['properties'][ $property ] );
-			} elseif ( isset( $args['additionalProperties'] ) && false === $args['additionalProperties'] ) {
-				unset( $value[ $property ] );
+			} elseif ( isset( $args['additionalProperties'] ) ) {
+				if ( false === $args['additionalProperties'] ) {
+					unset( $value[ $property ] );
+				} elseif ( is_array( $args['additionalProperties'] ) ) {
+					$value[ $property ] = rest_sanitize_value_from_schema( $v, $args['additionalProperties'] );
+				}
 			}
 		}
 

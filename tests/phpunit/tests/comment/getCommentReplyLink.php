@@ -26,4 +26,44 @@ class Tests_Comment_GetCommentReplyLink extends WP_UnitTestCase {
 
 		$this->assertNull( get_comment_reply_link( $args ) );
 	}
+
+	/**
+	 * Ensure comment reply links include post permalink.
+	 *
+	 * @ticket 47174
+	 */
+	public function test_get_comment_reply_link_should_include_post_permalink() {
+		// Create a sample post.
+		$post_id = self::factory()->post->create();
+
+		// Insert comment.
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'user_id'         => 1,
+			)
+		);
+
+		// `depth` and `max_depth` required for reply links to display.
+		$comment_reply_link = get_comment_reply_link(
+			array(
+				'depth'     => 1,
+				'max_depth' => 5,
+			),
+			$comment_id,
+			$post_id
+		);
+
+		$expected_url = esc_url(
+			add_query_arg(
+				array(
+					'p'          => $post_id,
+					'replytocom' => $comment_id,
+				),
+				home_url( '/#respond' )
+			)
+		);
+
+		$this->assertContains( $expected_url, $comment_reply_link );
+	}
 }

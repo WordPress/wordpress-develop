@@ -713,6 +713,22 @@ class Tests_Widgets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 34226
+	 */
+	public function test_the_widget_should_short_circuit_with_widget_display_callback() {
+		add_filter( 'widget_display_callback', '__return_false' );
+
+		register_widget( 'WP_Widget_Text' );
+
+		ob_start();
+		the_widget( 'WP_Widget_Text' );
+		$widget_content = ob_get_clean();
+		unregister_widget( 'WP_Widget_Text' );
+
+		$this->assertEmpty( $widget_content );
+	}
+
+	/**
 	 * Register nav menu sidebars.
 	 *
 	 * @param array $sidebars Sidebar slugs.

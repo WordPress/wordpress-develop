@@ -815,6 +815,10 @@ function upgrade_all() {
 		upgrade_510();
 	}
 
+	if ( $wp_current_db_version < 45744 ) {
+		upgrade_530();
+	}
+
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -2112,6 +2116,23 @@ function upgrade_500() {
  */
 function upgrade_510() {
 	delete_site_option( 'upgrade_500_was_gutenberg_active' );
+}
+
+/**
+ * Executes changes made in WordPress 5.3.0.
+ *
+ * @ignore
+ * @since 5.3.0
+ */
+function upgrade_530() {
+	// The `admin_email_lifespan` option may have been set by an admin that just logged in,
+	// saw the verification screen, clicked on a button there, and is now upgrading the db,
+	// or by populate_options() that is called earlier in upgrade_all().
+	// In the second case `admin_email_lifespan` should be reset so the verification screen
+	// is shown next time an admin logs in.
+	if ( function_exists( 'current_user_can' ) && ! current_user_can( 'manage_options' ) ) {
+		update_option( 'admin_email_lifespan', 0 );
+	}
 }
 
 /**

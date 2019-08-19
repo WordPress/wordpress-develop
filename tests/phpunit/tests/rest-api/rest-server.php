@@ -1144,6 +1144,48 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertEquals( 200, $response->get_status() );
 	}
 
+	/**
+	 * @ticket 43691
+	 */
+	public function test_does_not_echo_body_for_null_responses() {
+		register_rest_route(
+			'test-ns',
+			'/test',
+			array(
+				'methods'  => array( 'GET' ),
+				'callback' => function () {
+					return new WP_REST_Response();
+				},
+			)
+		);
+
+		$result = rest_get_server()->serve_request( '/test-ns/test' );
+
+		$this->assertNull( $result );
+		$this->assertEquals( '', rest_get_server()->sent_body );
+	}
+
+	/**
+	 * @ticket 43691
+	 */
+	public function test_does_not_echo_body_for_responses_with_204_status() {
+		register_rest_route(
+			'test-ns',
+			'/test',
+			array(
+				'methods'  => array( 'GET' ),
+				'callback' => function () {
+					return new WP_REST_Response( 'data', 204 );
+				},
+			)
+		);
+
+		$result = rest_get_server()->serve_request( '/test-ns/test' );
+
+		$this->assertNull( $result );
+		$this->assertEquals( '', rest_get_server()->sent_body );
+	}
+
 	public function _validate_as_integer_123( $value, $request, $key ) {
 		if ( ! is_int( $value ) ) {
 			return new WP_Error( 'some-error', 'This is not valid!' );

@@ -35,7 +35,7 @@ function wpmu_update_blogs_date() {
  *
  * @since MU (3.0.0)
  *
- * @param int $blog_id Blog ID
+ * @param int $blog_id Blog ID.
  * @return string Full URL of the blog if found. Empty string if not.
  */
 function get_blogaddress_by_id( $blog_id ) {
@@ -286,7 +286,7 @@ function refresh_blog_details( $blog_id = 0 ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int   $blog_id Blog ID
+ * @param int   $blog_id Blog ID.
  * @param array $details Array of details keyed by blogs table field names.
  * @return bool True if update succeeds, false otherwise.
  */
@@ -484,46 +484,45 @@ function update_blog_option( $id, $option, $value, $deprecated = null ) {
  * @global string          $table_prefix
  * @global WP_Object_Cache $wp_object_cache
  *
- * @param int  $new_blog   The id of the blog you want to switch to. Default: current blog
- * @param bool $deprecated Deprecated argument
- * @return true Always returns True.
+ * @param int  $new_blog_id The ID of the blog to switch to. Default: current blog.
+ * @param bool $deprecated  Not used.
+ * @return true Always returns true.
  */
-function switch_to_blog( $new_blog, $deprecated = null ) {
+function switch_to_blog( $new_blog_id, $deprecated = null ) {
 	global $wpdb;
 
-	$blog_id = get_current_blog_id();
-	if ( empty( $new_blog ) ) {
-		$new_blog = $blog_id;
+	$prev_blog_id = get_current_blog_id();
+	if ( empty( $new_blog_id ) ) {
+		$new_blog_id = $prev_blog_id;
 	}
 
-	$GLOBALS['_wp_switched_stack'][] = $blog_id;
+	$GLOBALS['_wp_switched_stack'][] = $prev_blog_id;
 
 	/*
 	 * If we're switching to the same blog id that we're on,
 	 * set the right vars, do the associated actions, but skip
 	 * the extra unnecessary work
 	 */
-	if ( $new_blog == $blog_id ) {
+	if ( $new_blog_id == $prev_blog_id ) {
 		/**
 		 * Fires when the blog is switched.
 		 *
 		 * @since MU (3.0.0)
 		 *
-		 * @param int $new_blog New blog ID.
-		 * @param int $new_blog Blog ID.
+		 * @param int $new_blog_id  New blog ID.
+		 * @param int $prev_blog_id Previous blog ID.
 		 */
-		do_action( 'switch_blog', $new_blog, $new_blog );
+		do_action( 'switch_blog', $new_blog_id, $prev_blog_id );
 		$GLOBALS['switched'] = true;
 		return true;
 	}
 
-	$wpdb->set_blog_id( $new_blog );
+	$wpdb->set_blog_id( $new_blog_id );
 	$GLOBALS['table_prefix'] = $wpdb->get_blog_prefix();
-	$prev_blog_id            = $blog_id;
-	$GLOBALS['blog_id']      = $new_blog;
+	$GLOBALS['blog_id']      = $new_blog_id;
 
 	if ( function_exists( 'wp_cache_switch_to_blog' ) ) {
-		wp_cache_switch_to_blog( $new_blog );
+		wp_cache_switch_to_blog( $new_blog_id );
 	} else {
 		global $wp_object_cache;
 
@@ -545,14 +544,14 @@ function switch_to_blog( $new_blog, $deprecated = null ) {
 	}
 
 	/** This filter is documented in wp-includes/ms-blogs.php */
-	do_action( 'switch_blog', $new_blog, $prev_blog_id );
+	do_action( 'switch_blog', $new_blog_id, $prev_blog_id );
 	$GLOBALS['switched'] = true;
 
 	return true;
 }
 
 /**
- * Restore the current blog, after calling switch_to_blog()
+ * Restore the current blog, after calling switch_to_blog().
  *
  * @see switch_to_blog()
  * @since MU (3.0.0)
@@ -564,7 +563,7 @@ function switch_to_blog( $new_blog, $deprecated = null ) {
  * @global string          $table_prefix
  * @global WP_Object_Cache $wp_object_cache
  *
- * @return bool True on success, false if we're already on the current blog
+ * @return bool True on success, false if we're already on the current blog.
  */
 function restore_current_blog() {
 	global $wpdb;
@@ -573,24 +572,23 @@ function restore_current_blog() {
 		return false;
 	}
 
-	$blog    = array_pop( $GLOBALS['_wp_switched_stack'] );
-	$blog_id = get_current_blog_id();
+	$new_blog_id  = array_pop( $GLOBALS['_wp_switched_stack'] );
+	$prev_blog_id = get_current_blog_id();
 
-	if ( $blog_id == $blog ) {
+	if ( $new_blog_id == $prev_blog_id ) {
 		/** This filter is documented in wp-includes/ms-blogs.php */
-		do_action( 'switch_blog', $blog, $blog );
+		do_action( 'switch_blog', $new_blog_id, $prev_blog_id );
 		// If we still have items in the switched stack, consider ourselves still 'switched'
 		$GLOBALS['switched'] = ! empty( $GLOBALS['_wp_switched_stack'] );
 		return true;
 	}
 
-	$wpdb->set_blog_id( $blog );
-	$prev_blog_id            = $blog_id;
-	$GLOBALS['blog_id']      = $blog;
+	$wpdb->set_blog_id( $new_blog_id );
+	$GLOBALS['blog_id']      = $new_blog_id;
 	$GLOBALS['table_prefix'] = $wpdb->get_blog_prefix();
 
 	if ( function_exists( 'wp_cache_switch_to_blog' ) ) {
-		wp_cache_switch_to_blog( $blog );
+		wp_cache_switch_to_blog( $new_blog_id );
 	} else {
 		global $wp_object_cache;
 
@@ -613,7 +611,7 @@ function restore_current_blog() {
 	}
 
 	/** This filter is documented in wp-includes/ms-blogs.php */
-	do_action( 'switch_blog', $blog, $prev_blog_id );
+	do_action( 'switch_blog', $new_blog_id, $prev_blog_id );
 
 	// If we still have items in the switched stack, consider ourselves still 'switched'
 	$GLOBALS['switched'] = ! empty( $GLOBALS['_wp_switched_stack'] );
@@ -660,8 +658,8 @@ function ms_is_switched() {
  *
  * @since MU (3.0.0)
  *
- * @param int $id The blog id
- * @return string Whether the blog is archived or not
+ * @param int $id Blog ID.
+ * @return string Whether the blog is archived or not.
  */
 function is_archived( $id ) {
 	return get_blog_status( $id, 'archived' );
@@ -672,8 +670,8 @@ function is_archived( $id ) {
  *
  * @since MU (3.0.0)
  *
- * @param int    $id       The blog id
- * @param string $archived The new status
+ * @param int    $id       Blog ID.
+ * @param string $archived The new status.
  * @return string $archived
  */
 function update_archived( $id, $archived ) {
@@ -689,10 +687,10 @@ function update_archived( $id, $archived ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int    $blog_id BLog ID
- * @param string $pref    A field name
- * @param string $value   Value for $pref
- * @param null   $deprecated
+ * @param int    $blog_id    Blog ID.
+ * @param string $pref       Field name.
+ * @param string $value      Field value.
+ * @param null   $deprecated Not used.
  * @return string|false $value
  */
 function update_blog_status( $blog_id, $pref, $value, $deprecated = null ) {
@@ -727,8 +725,8 @@ function update_blog_status( $blog_id, $pref, $value, $deprecated = null ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int    $id   The blog id
- * @param string $pref A field name
+ * @param int    $id   Blog ID.
+ * @param string $pref Field name.
  * @return bool|string|null $value
  */
 function get_blog_status( $id, $pref ) {
@@ -749,10 +747,11 @@ function get_blog_status( $id, $pref ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param mixed $deprecated Not used
- * @param int   $start      The offset
- * @param int   $quantity   The maximum number of blogs to retrieve. Default is 40.
- * @return array The list of blogs
+ * @param mixed $deprecated Not used.
+ * @param int   $start      Optional. Number of blogs to offset the query. Used to build LIMIT clause.
+ *                          Can be used for pagination. Default 0.
+ * @param int   $quantity   Optional. The maximum number of blogs to retrieve. Default 40.
+ * @return array The list of blogs.
  */
 function get_last_updated( $deprecated = '', $start = 0, $quantity = 40 ) {
 	global $wpdb;

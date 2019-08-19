@@ -2522,6 +2522,13 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 	public function test_get_item_schema_show_avatar() {
 		update_option( 'show_avatars', false );
+
+		// Re-initialize the controller to cache-bust schemas from prior test runs.
+		$GLOBALS['wp_rest_server']->override_by_default = true;
+		$controller                                     = new WP_REST_Users_Controller();
+		$controller->register_routes();
+		$GLOBALS['wp_rest_server']->override_by_default = false;
+
 		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/users' );
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
