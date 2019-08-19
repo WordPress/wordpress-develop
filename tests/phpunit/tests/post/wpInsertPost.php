@@ -309,17 +309,21 @@ class Tests_WPInsertPost extends WP_UnitTestCase {
 
 		$now = new DateTimeImmutable( 'now', new DateTimeZone( 'UTC' ) );
 
-		$post_id = $this->factory()->post->create( [
-			'post_date_gmt' => $now->modify( '-1 year' )->format( 'Y-m-d H:i:s' ),
-			'post_status'   => 'future',
-		] );
+		$post_id = $this->factory()->post->create(
+			array(
+				'post_date_gmt' => $now->modify( '-1 year' )->format( 'Y-m-d H:i:s' ),
+				'post_status'   => 'future',
+			)
+		);
 
 		$this->assertEquals( 'publish', get_post_status( $post_id ) );
 
-		$post_id = $this->factory()->post->create( [
-			'post_date_gmt' => $now->modify( '+50 years' )->format( 'Y-m-d H:i:s' ),
-			'post_status'   => 'future',
-		] );
+		$post_id = $this->factory()->post->create(
+			array(
+				'post_date_gmt' => $now->modify( '+50 years' )->format( 'Y-m-d H:i:s' ),
+				'post_status'   => 'future',
+			)
+		);
 
 		$this->assertEquals( 'future', get_post_status( $post_id ) );
 	}
