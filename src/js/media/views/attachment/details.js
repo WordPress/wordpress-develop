@@ -18,12 +18,11 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 	className: 'attachment-details',
 	template:  wp.template('attachment-details'),
 
-	attributes: function() {
-		return {
-			'tabIndex':     0,
-			'data-id':      this.model.get( 'id' )
-		};
-	},
+	/*
+	 * Reset all the attributes inherited from Attachment including role=checkbox,
+	 * tabindex, etc., as they are inappropriate for this view. See #47458 and [30483] / #30390.
+	 */
+	attributes: {},
 
 	events: {
 		'change [data-setting]':          'updateSetting',
