@@ -200,7 +200,7 @@ class WP_Network_Query {
 		$network_data = null;
 
 		/**
-		 * Filter the sites array before the query takes place.
+		 * Filter the network data before the query takes place.
 		 *
 		 * Return a non-null value to bypass WordPress's default network queries.
 		 *
@@ -217,8 +217,8 @@ class WP_Network_Query {
 		 */
 		$network_data = apply_filters_ref_array( 'networks_pre_query', array( $network_data, &$this ) );
 
-		if ( null !== $network_ids ) {
-			return $this->networks;
+		if ( null !== $network_data ) {
+			return $network_data;
 		}
 
 		// $args can include anything. Only use the args defined in the query_var_defaults to compute the key.
