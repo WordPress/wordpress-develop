@@ -4882,4 +4882,39 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		$this->assertEqualSets( $c1, $found );
 	}
+
+	/**
+	 * @ticket 45800
+	 */
+	public function test_comments_pre_query_filter_should_bypass_database_query() {
+		global $wpdb;
+
+		add_filter( 'comments_pre_query', array( __CLASS__, 'filter_comments_pre_query' ), 10, 2 );
+
+		$num_queries = $wpdb->num_queries;
+
+		$q       = new WP_Comment_Query();
+		$results = $q->query(
+			array(
+				'fields' => 'ids',
+			)
+		);
+
+		remove_filter( 'comments_pre_query', array( __CLASS__, 'filter_comments_pre_query' ), 10, 2 );
+
+		// Make sure no queries were executed.
+		$this->assertSame( $num_queries, $wpdb->num_queries );
+
+		// We manually inserted a non-existing site and overrode the results with it.
+		$this->assertSame( array( 555 ), $q->comments );
+
+		// Make sure manually setting total_users doesn't get overwritten.
+		$this->assertEquals( 1, $q->found_comments );
+	}
+
+	public static function filter_comments_pre_query( $comments, $query ) {
+		$query->found_comments = 1;
+
+		return array( 555 );
+	}
 }
