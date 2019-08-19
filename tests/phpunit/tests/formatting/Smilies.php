@@ -146,8 +146,8 @@ class Tests_Formatting_Smilies extends WP_UnitTestCase {
 	public function test_ignore_smilies_in_tags( $element ) {
 		$includes_path = includes_url( 'images/smilies/' );
 
-		$in_str  = 'Do we ingore smilies ;-) in ' . $element . ' tags <' . $element . '>My Content Here :?: </' . $element . '>';
-		$exp_str = "Do we ingore smilies \xf0\x9f\x98\x89 in $element tags <$element>My Content Here :?: </$element>";
+		$in_str  = 'Do we ingore smilies ;-) in ' . $element . ' tags <' . $element . ' class="foo">My Content Here :?: </' . $element . '>';
+		$exp_str = "Do we ingore smilies \xf0\x9f\x98\x89 in $element tags <$element class=\"foo\">My Content Here :?: </$element>";
 
 		// standard smilies, use_smilies: ON
 		update_option( 'use_smilies', 1 );
