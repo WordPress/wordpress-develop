@@ -961,6 +961,23 @@ class Tests_User extends WP_UnitTestCase {
 		);
 
 		$this->assertWPError( $u );
+		$this->assertSame( 'invalid_user_id', $u->get_error_code() );
+	}
+
+	/**
+	 * @ticket 47902
+	 */
+	public function test_wp_insert_user_with_empty_data() {
+		global $wpdb;
+
+		add_filter( 'wp_pre_insert_user_data', '__return_empty_array' );
+
+		$u = self::factory()->user->create();
+
+		remove_filter( 'wp_pre_insert_user_data', '__return_empty_array' );
+
+		$this->assertWPError( $u );
+		$this->assertSame( 'empty_data', $u->get_error_code() );
 	}
 
 	/**
