@@ -312,7 +312,12 @@
 				}
 				$weakRow.show();
 			} else {
-				$submitButtons.prop( 'disabled', false );
+				if ( 0 === $pass1.val().length ) {
+					$submitButtons.prop( 'disabled', true );
+					$weakCheckbox.prop( 'checked', false );
+				} else {
+					$submitButtons.prop( 'disabled', false );
+				}
 				$weakRow.hide();
 			}
 		}
