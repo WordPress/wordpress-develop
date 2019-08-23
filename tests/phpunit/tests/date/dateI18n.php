@@ -17,10 +17,6 @@ class Tests_Date_I18n extends WP_UnitTestCase {
 		$this->assertEquals( strtotime( gmdate( DATE_RFC3339 ) ), strtotime( date_i18n( DATE_RFC3339, false, true ) ), 'The dates should be equal', 2 );
 	}
 
-	public function test_custom_timestamp_ignores_gmt_setting() {
-		$this->assertEquals( '2012-12-01 00:00:00', date_i18n( 'Y-m-d H:i:s', strtotime( '2012-12-01 00:00:00' ) ) );
-	}
-
 	public function test_custom_timezone_setting() {
 		update_option( 'timezone_string', 'America/Regina' );
 
@@ -85,8 +81,9 @@ class Tests_Date_I18n extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_formats
 	 * @ticket 20973
+	 *
+	 * @dataProvider data_formats
 	 */
 	public function test_date_i18n_handles_shorthand_formats( $short, $full ) {
 		update_option( 'timezone_string', 'America/Regina' );
@@ -105,6 +102,67 @@ class Tests_Date_I18n extends WP_UnitTestCase {
 				'r',
 				'D, d M Y H:i:s O',
 			),
+		);
+	}
+
+	/**
+	 * @ticket 25768
+	 */
+	public function test_should_return_wp_timestamp() {
+		update_option( 'timezone_string', 'Europe/Kiev' );
+
+		$datetime     = new DateTimeImmutable( 'now', wp_timezone() );
+		$timestamp    = $datetime->getTimestamp();
+		$wp_timestamp = $timestamp + $datetime->getOffset();
+
+		$this->assertEquals( $wp_timestamp, date_i18n( 'U' ), 2 );
+		$this->assertEquals( $timestamp, date_i18n( 'U', false, true ), 2 );
+		$this->assertEquals( $wp_timestamp, date_i18n( 'U', $wp_timestamp ) );
+	}
+
+	/**
+	 * @ticket 43530
+	 */
+	public function test_swatch_internet_time_with_wp_timestamp() {
+		update_option( 'timezone_string', 'America/Regina' );
+
+		$this->assertEquals( gmdate( 'B' ), date_i18n( 'B' ) );
+	}
+
+	/**
+	 * @ticket 25768
+	 */
+	public function test_should_handle_escaped_formats() {
+		$format = 'D | \D | \\D | \\\D | \\\\D | \\\\\D | \\\\\\D';
+
+		$this->assertEquals( gmdate( $format ), date_i18n( $format ) );
+	}
+
+	/**
+	 * @ticket 25768
+	 *
+	 * @dataProvider dst_times
+	 *
+	 * @param string $time     Time to test in Y-m-d H:i:s format.
+	 * @param string $timezone PHP timezone string to use.
+	 */
+	public function test_should_handle_dst( $time, $timezone ) {
+		update_option( 'timezone_string', $timezone );
+
+		$timezone     = new DateTimeZone( $timezone );
+		$datetime     = new DateTime( $time, $timezone );
+		$wp_timestamp = strtotime( $time );
+		$format       = 'I ' . DATE_RFC3339;
+
+		$this->assertEquals( $datetime->format( $format ), date_i18n( $format, $wp_timestamp ) );
+	}
+
+	public function dst_times() {
+		return array(
+			'Before DST start' => array( '2019-03-31 02:59:00', 'Europe/Kiev' ),
+			'After DST start'  => array( '2019-03-31 04:01:00', 'Europe/Kiev' ),
+			'Before DST end'   => array( '2019-10-27 02:59:00', 'Europe/Kiev' ),
+			'After DST end'    => array( '2019-10-27 04:01:00', 'Europe/Kiev' ),
 		);
 	}
 }
