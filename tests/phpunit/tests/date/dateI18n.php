@@ -115,8 +115,8 @@ class Tests_Date_I18n extends WP_UnitTestCase {
 		$timestamp    = $datetime->getTimestamp();
 		$wp_timestamp = $timestamp + $datetime->getOffset();
 
-		$this->assertEquals( $wp_timestamp, date_i18n( 'U' ), 2 );
-		$this->assertEquals( $timestamp, date_i18n( 'U', false, true ), 2 );
+		$this->assertEquals( $wp_timestamp, date_i18n( 'U' ), 'The dates should be equal', 2 );
+		$this->assertEquals( $timestamp, date_i18n( 'U', false, true ), 'The dates should be equal', 2 );
 		$this->assertEquals( $wp_timestamp, date_i18n( 'U', $wp_timestamp ) );
 	}
 
