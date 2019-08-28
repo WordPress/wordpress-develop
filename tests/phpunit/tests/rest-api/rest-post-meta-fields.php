@@ -2121,6 +2121,90 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @ticket 47928
+	 */
+	public function test_update_meta_with_unchanged_array_values() {
+		register_post_meta(
+			'post',
+			'list',
+			array(
+				'single'       => true,
+				'type'         => 'array',
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'  => 'array',
+						'items' => array(
+							'type' => 'string',
+						),
+					),
+				),
+			)
+		);
+
+		add_post_meta( self::$post_id, 'list', array( 'WordCamp' ) );
+
+		$this->grant_write_permission();
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'list' => array( 'WordCamp' ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertEquals( array( 'WordCamp' ), $data['meta']['list'] );
+	}
+
+	/**
+	 * @ticket 47928
+	 */
+	public function test_update_meta_with_unchanged_object_values() {
+		register_post_meta(
+			'post',
+			'object',
+			array(
+				'single'       => true,
+				'type'         => 'object',
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'project' => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		add_post_meta( self::$post_id, 'object', array( 'project' => 'WordCamp' ) );
+
+		$this->grant_write_permission();
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'object' => array( 'project' => 'WordCamp' ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertEquals( array( 'project' => 'WordCamp' ), $data['meta']['object'] );
+	}
+
+	/**
 	 * Internal function used to disable an insert query which
 	 * will trigger a wpdb error for testing purposes.
 	 */
