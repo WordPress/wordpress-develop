@@ -2384,6 +2384,51 @@ if ( is_multisite() ) :
 		}
 
 		/**
+		 * @ticket 42251
+		 */
+		public function test_get_site_not_found_cache() {
+			global $wpdb;
+
+			$new_site_id = $this->_get_next_site_id();
+			$this->assertNull( get_site( $new_site_id ) );
+
+			$num_queries = $wpdb->num_queries;
+			$this->assertNull( get_site( $new_site_id ) );
+			$this->assertSame( $num_queries, $wpdb->num_queries );
+		}
+
+		/**
+		 * @ticket 42251
+		 */
+		public function test_get_site_not_found_cache_clear() {
+			$new_site_id = $this->_get_next_site_id();
+			$this->assertNull( get_site( $new_site_id ) );
+
+			$new_site = $this->factory()->blog->create_and_get();
+
+			// Double-check we got the ID of the new site correct.
+			$this->assertEquals( $new_site_id, $new_site->blog_id );
+
+			// Verify that if we fetch the site now, it's no longer false.
+			$fetched_site = get_site( $new_site_id );
+			$this->assertInstanceOf( 'WP_Site', $fetched_site );
+			$this->assertEquals( $new_site_id, $fetched_site->blog_id );
+
+		}
+
+		/**
+		 * Gets the ID of the next site that will get inserted
+		 * @return int
+		 */
+		protected function _get_next_site_id() {
+			global $wpdb;
+			//create an entry
+			static::factory()->blog->create();
+			//get the ID after it
+			return (int) $wpdb->get_var( 'SELECT blog_id FROM ' . $wpdb->blogs . ' ORDER BY blog_ID DESC LIMIT 1' ) + 1;
+		}
+
+		/**
 		 * Capture the $meta value passed to the wpmu_new_blog action and compare it.
 		 */
 		public function wpmu_new_blog_callback( $blog_id, $user_id, $domain, $path, $network_id, $meta ) {
