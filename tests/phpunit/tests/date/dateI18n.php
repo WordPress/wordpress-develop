@@ -5,6 +5,20 @@
  * @group datetime
  */
 class Tests_Date_I18n extends WP_UnitTestCase {
+
+	/**
+	 * @ticket 28636
+	 */
+	public function test_should_return_current_time_on_invalid_timestamp() {
+		$timezone = 'Europe/Kiev';
+		update_option( 'timezone_string', $timezone );
+
+		$datetime     = new DateTime( 'now', new DateTimeZone( $timezone ) );
+		$wp_timestamp = $datetime->getTimestamp() + $datetime->getOffset();
+
+		$this->assertEquals( $wp_timestamp, date_i18n( 'U', 'invalid' ), '', 5 );
+	}
+
 	public function test_should_format_date() {
 		$this->assertEquals( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( date_i18n( 'Y-m-d H:i:s' ) ), 'The dates should be equal', 2 );
 	}
@@ -74,6 +88,7 @@ class Tests_Date_I18n extends WP_UnitTestCase {
 		update_option( 'timezone_string', '' );
 		$offset = $datetimezone->getOffset( new DateTime() ) / 3600;
 		update_option( 'gmt_offset', $offset );
+
 		$datetime = new DateTime( 'now', $datetimezone );
 		$datetime = new DateTime( $datetime->format( 'P' ) );
 
