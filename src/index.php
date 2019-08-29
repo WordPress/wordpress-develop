@@ -30,7 +30,10 @@ wp_check_php_mysql_versions();
 wp_load_translations_early();
 
 // Die with an error message
-$die = __( 'You are running WordPress without JavaScript and CSS files. These need to be built.' ) . '</p>';
+$die = sprintf(
+	'<p>%s</p>',
+	__( 'You are running WordPress without JavaScript and CSS files. These need to be built.' )
+);
 
 $die .= '<p>' . sprintf(
 	/* translators: %s: npm install */
