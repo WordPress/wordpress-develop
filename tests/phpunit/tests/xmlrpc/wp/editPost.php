@@ -510,7 +510,7 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 		);
 		$post_id = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post ) );
 
-		$before  = get_post( $post_id );
+		$before = get_post( $post_id );
 		$this->assertEquals( '0000-00-00 00:00:00', $before->post_date_gmt );
 
 		// Edit the post without specifying any dates.
