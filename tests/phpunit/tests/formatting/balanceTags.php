@@ -37,6 +37,158 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		);
 	}
 
+	function supported_traditional_tag_names() {
+		return array(
+			array( 'a' ),
+			array( 'div' ),
+			array( 'blockquote' ),
+			// HTML tag names can be CAPITALIZED and are case-insensitive.
+			array( 'A' ),
+			array( 'dIv' ),
+			array( 'BLOCKQUOTE' ),
+		);
+	}
+
+	function supported_custom_element_tag_names() {
+		return array(
+			array( 'custom-element' ),
+			array( 'my-custom-element' ),
+			array( 'weekday-5-item' ),
+			array( 'a-big-old-tag-name' ),
+			array( 'with_underscores-and_the_dash' ),
+			array( 'a-.' ),
+			array( 'a._-.-_' ),
+		);
+	}
+
+	function invalid_tag_names() {
+		return array(
+			array( '<0-day>inside', '&lt;0-day>inside' ), // Can't start with a number - handled by the "<3" fix.
+			array( '<UPPERCASE-TAG>inside', '<UPPERCASE-TAG>inside' ), // Custom elements cannot be uppercase.
+		);
+	}
+
+	/**
+	 * These are valid custom elements but we don't support them yet.
+	 *
+	 * @see https://w3c.github.io/webcomponents/spec/custom/#valid-custom-element-name
+	 */
+	function unsupported_valid_tag_names() {
+		return array(
+			// We don't allow ending in a dash.
+			array( '<what->inside' ),
+			// Examples from the spec working document.
+			array( 'math-α' ),
+			array( 'emotion-😍' ),
+			// UNICODE ranges
+			// 0x00b7
+			array( 'b-·' ),
+			// Latin characters with accents/modifiers.
+			// 0x00c0-0x00d6
+			// 0x00d8-0x00f6
+			array( 'a-À-Ó-Ý' ),
+			// 0x00f8-0x037d
+			array( 'a-ͳ' ),
+			// No 0x037e, which is a Greek semicolon.
+			// 0x037f-0x1fff
+			array( 'a-Ფ' ),
+			// Zero-width characters, probably never supported.
+			// 0x200c-0x200d
+			array( 'a-‌to-my-left-is-a-zero-width-non-joiner-do-not-delete-it' ),
+			array( 'a-‍to-my-left-is-a-zero-width-joiner-do-not-delete-it' ),
+			// Ties.
+			// 0x203f-0x2040
+			array( 'under-‿-tie' ),
+			array( 'over-⁀-tie' ),
+			// 0x2170-0x218f
+			array( 'a-⁰' ),
+			array( 'a-⅀' ),
+			array( 'tag-ↀ-it' ),
+			// 0x2c00-0x2fef
+			array( 'a-Ⰰ' ),
+			array( 'b-ⴓ-c' ),
+			array( 'd-⽗' ),
+			// 0x3001-0xd7ff
+			array( 'a-、' ),
+			array( 'z-态' ),
+			array( 'a-送-䠺-ퟱ-퟿' ),
+			// 0xf900-0xfdcf
+			array( 'a-豈' ),
+			array( 'my-切' ),
+			array( 'aﴀ-tag' ),
+			array( 'my-﷌' ),
+			// 0xfdf0-0xfffd
+			array( 'a-ﷰ' ),
+			array( 'a-￰-￸-�' ), // Warning; blank characters are in there.
+			// Extended ranges.
+			// 0x10000-0xeffff
+			array( 'a-𐀀' ),
+			array( 'my-𝀀' ),
+			array( 'a𞀀-𜿐' ),
+		);
+	}
+
+	/**
+	 * These are invalid custom elements but we support them right now in order to keep the parser simpler.
+	 *
+	 * @see https://w3c.github.io/webcomponents/spec/custom/#valid-custom-element-name
+	 */
+	function supported_invalid_tag_names() {
+		return array(
+			// Reserved names for custom elements.
+			array( 'annotation-xml' ),
+			array( 'color-profile' ),
+			array( 'font-face' ),
+			array( 'font-face-src' ),
+			array( 'font-face-uri' ),
+			array( 'font-face-format' ),
+			array( 'font-face-name' ),
+			array( 'missing-glyph' ),
+		);
+	}
+
+	/**
+	 * @ticket 47014
+	 * @dataProvider supported_traditional_tag_names
+	 */
+	function test_detects_traditional_tag_names( $tag ) {
+		$normalized = strtolower( $tag );
+
+		$this->assertEquals( "<$normalized>inside</$normalized>", balanceTags( "<$tag>inside", true ) );
+	}
+
+	/**
+	 * @ticket 47014
+	 * @dataProvider supported_custom_element_tag_names
+	 */
+	function test_detects_supported_custom_element_tag_names( $tag ) {
+		$this->assertEquals( "<$tag>inside</$tag>", balanceTags( "<$tag>inside", true ) );
+	}
+
+	/**
+	 * @ticket 47014
+	 * @dataProvider invalid_tag_names
+	 */
+	function test_ignores_invalid_tag_names( $input, $output ) {
+		$this->assertEquals( $output, balanceTags( $input, true ) );
+	}
+
+	/**
+	 * @ticket 47014
+	 * @dataProvider unsupported_valid_tag_names
+	 */
+	function test_ignores_unsupported_custom_tag_names( $tag ) {
+		$this->assertEquals( "<$tag>inside", balanceTags( "<$tag>inside", true ) );
+	}
+
+	/**
+	 * @ticket 47014
+	 * @dataProvider supported_invalid_tag_names
+	 */
+	function test_detects_supported_invalid_tag_names( $tag ) {
+		$this->assertEquals( "<$tag>inside</$tag>", balanceTags( "<$tag>inside", true ) );
+	}
+
 	/**
 	 * If a recognized valid single tag appears unclosed, it should get self-closed
 	 *
@@ -68,12 +220,15 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 			'<em />',
 			'<p class="main1"/>',
 			'<p class="main2" />',
+			'<STRONG/>',
 		);
 		$expected = array(
 			'<strong></strong>',
 			'<em></em>',
 			'<p class="main1"></p>',
 			'<p class="main2"></p>',
+			// Valid tags are transformed to lowercase.
+			'<strong></strong>',
 		);
 
 		foreach ( $inputs as $key => $input ) {
@@ -221,4 +376,68 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * Get custom element data.
+	 *
+	 * @return array Data.
+	 */
+	public function data_custom_elements() {
+		return array(
+			// Valid custom element tags.
+			array(
+				'<my-custom-element data-attribute="value"/>',
+				'<my-custom-element data-attribute="value"></my-custom-element>',
+			),
+			array(
+				'<my-custom-element>Test</my-custom-element>',
+				'<my-custom-element>Test</my-custom-element>',
+			),
+			array(
+				'<my-custom-element>Test',
+				'<my-custom-element>Test</my-custom-element>',
+			),
+			array(
+				'Test</my-custom-element>',
+				'Test',
+			),
+			array(
+				'</my-custom-element>Test',
+				'Test',
+			),
+			array(
+				'<my-custom-element/>',
+				'<my-custom-element></my-custom-element>',
+			),
+			array(
+				'<my-custom-element />',
+				'<my-custom-element></my-custom-element>',
+			),
+			// Invalid (or at least temporarily unsupported) custom element tags.
+			array(
+				'<MY-CUSTOM-ELEMENT>Test',
+				'<MY-CUSTOM-ELEMENT>Test',
+			),
+			array(
+				'<my->Test',
+				'<my->Test',
+			),
+			array(
+				'<--->Test',
+				'<--->Test',
+			),
+		);
+	}
+
+	/**
+	 * Test custom elements.
+	 *
+	 * @ticket 47014
+	 * @dataProvider data_custom_elements
+	 *
+	 * @param string $source   Source.
+	 * @param string $expected Expected.
+	 */
+	public function test_custom_elements( $source, $expected ) {
+		$this->assertEquals( $expected, balanceTags( $source, true ) );
+	}
 }
