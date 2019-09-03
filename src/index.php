@@ -51,7 +51,7 @@ $die .= '<code style="color: green;">npm run build</code></li>';
 $die .= '</ul>';
 
 $die .= '<p>' . sprintf(
-	/* translators: 1: NPM URL, 2: Handbook URL */
+	/* translators: 1: NPM URL, 2: Handbook URL. */
 	__( 'This requires <a href="%1$s">NPM</a>. <a href="%2$s">Learn more about setting up your local development environment</a>.' ),
 	'https://www.npmjs.com/get-npm',
 	__( 'https://make.wordpress.org/core/handbook/tutorials/installing-wordpress-locally/' )
