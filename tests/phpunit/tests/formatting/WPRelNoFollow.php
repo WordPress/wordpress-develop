@@ -22,4 +22,10 @@ class Tests_Rel_No_Follow extends WP_UnitTestCase {
 		$expected = '<p>This is some cool <a href=\"/\" rel=\"weird nofollow\">Code</a></p>';
 		$this->assertEquals( $expected, wp_rel_nofollow( $content ) );
 	}
+
+	public function test_append_no_follow_with_valueless_attribute() {
+		$content = '<p>This is some cool <a href="demo.com" download rel="hola">Code</a></p>';
+		$expected = '<p>This is some cool <a href=\"demo.com\" download rel=\"hola nofollow\">Code</a></p>';
+		$this->assertEquals( $expected, wp_rel_nofollow( $content ) );
+	}
 }
