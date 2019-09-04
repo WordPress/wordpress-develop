@@ -144,6 +144,8 @@ EOF;
 			'javascript&#0000058alert(1)//?:',
 			'feed:javascript:alert(1)',
 			'feed:javascript:feed:javascript:feed:javascript:alert(1)',
+			'javascript&#58alert(1)',
+			'javascript&#x3ax=1;alert(1)',
 		);
 		foreach ( $bad as $k => $x ) {
 			$result = wp_kses_bad_protocol( wp_kses_normalize_entities( $x ), wp_allowed_protocols() );
@@ -164,8 +166,14 @@ EOF;
 					case 24:
 						$this->assertEquals( 'feed:alert(1)', $result );
 						break;
+					case 26:
+						$this->assertEquals( 'javascript&amp;#58alert(1)', $result );
+						break;
+					case 27:
+						$this->assertEquals( 'javascript&amp;#x3ax=1;alert(1)', $result );
+						break;
 					default:
-						$this->fail( "wp_kses_bad_protocol failed on $x. Result: $result" );
+						$this->fail( "wp_kses_bad_protocol failed on $k, $x. Result: $result" );
 				}
 			}
 		}
