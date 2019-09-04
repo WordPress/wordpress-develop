@@ -55,7 +55,7 @@
 		"@wordpress/api-fetch": "^2.2.7",
 		"@wordpress/autop": "^2.0.2",
 		"@wordpress/blob": "^2.1.0",
-		"@wordpress/block-library": "^2.2.12",
+		"@wordpress/block-library": "^2.2.17",
 		"@wordpress/block-serialization-default-parser": "^2.0.3",
 		"@wordpress/blocks": "^6.0.5",
 		"@wordpress/components": "^7.0.5",
