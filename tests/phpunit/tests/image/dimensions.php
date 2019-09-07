@@ -131,6 +131,17 @@ class Tests_Image_Dimensions extends WP_UnitTestCase {
 	function test_640x480() {
 		// crop 640x480 to fit 640x480 (no change)
 		$out = image_resize_dimensions( 640, 480, 640, 480, true );
+		$this->assertFalse( $out );
+
+		// resize 640x480 to fit 640x480 (no change)
+		$out = image_resize_dimensions( 640, 480, 640, 480, false );
+		$this->assertFalse( $out );
+
+		// Test with the filter override.
+		add_filter( 'wp_image_resize_identical_dimensions', '__return_true' );
+
+		// crop 640x480 to fit 640x480 (no change)
+		$out = image_resize_dimensions( 640, 480, 640, 480, true );
 		// dst_x, dst_y, src_x, src_y, dst_w, dst_h, src_w, src_h
 		$this->assertEquals( array( 0, 0, 0, 0, 640, 480, 640, 480 ), $out );
 
@@ -138,6 +149,8 @@ class Tests_Image_Dimensions extends WP_UnitTestCase {
 		$out = image_resize_dimensions( 640, 480, 640, 480, false );
 		// dst_x, dst_y, src_x, src_y, dst_w, dst_h, src_w, src_h
 		$this->assertEquals( array( 0, 0, 0, 0, 640, 480, 640, 480 ), $out );
+
+		remove_filter( 'wp_image_resize_identical_dimensions', '__return_true' );
 	}
 
 	/**
