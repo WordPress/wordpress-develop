@@ -285,8 +285,10 @@ tests_add_filter( 'send_auth_cookies', '__return_false' );
  */
 function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_archives' );
+	remove_action( 'init', 'register_block_core_block' );
 	remove_action( 'init', 'register_block_core_calendar' );
 	remove_action( 'init', 'register_block_core_categories' );
+	remove_action( 'init', 'register_block_core_latest_comments' );
 	remove_action( 'init', 'register_block_core_latest_posts' );
 	remove_action( 'init', 'register_block_core_rss' );
 	remove_action( 'init', 'register_block_core_search' );
