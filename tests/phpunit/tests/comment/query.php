@@ -4902,7 +4902,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
 		// We manually inserted a non-existing site and overrode the results with it.
-		$this->assertSame( array( 555 ), $q->comments );
+		$this->assertSame( array( 555 ), $results );
 
 		// Make sure manually setting total_users doesn't get overwritten.
 		$this->assertEquals( 1, $q->found_comments );
