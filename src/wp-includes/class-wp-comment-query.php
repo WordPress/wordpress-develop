@@ -393,7 +393,7 @@ class WP_Comment_Query {
 		 *
 		 * @since 5.3.0
 		 *
-		 * @param array|null       $comment_data Return an array of comment data to short-circuit WP's comment query,
+		 * @param array|int|null   $comment_data Return an array of comment data to short-circuit WP's comment query,
 		 *                                       or null to allow WP to run its normal queries.
 		 * @param WP_Comment_Query $this         The WP_Comment_Query instance, passed by reference.
 		 */
