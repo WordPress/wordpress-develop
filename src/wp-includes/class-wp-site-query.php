@@ -296,14 +296,15 @@ class WP_Site_Query {
 		 * Return a non-null value to bypass WordPress's default site queries.
 		 *
 		 * The expected return type from this filter depends on the value passed in the request query_vars:
-		 * When $this->query_vars['count'] is set, the filter should return the site count as an int.
+		 * When `$this->query_vars['count']` is set, the filter should return the site count as an int.
 		 * When `'ids' == $this->query_vars['fields']`, the filter should return an array of site ids.
 		 * Otherwise the filter should return an array of WP_Site objects.
 		 *
 		 * @since 5.2.0
 		 *
-		 * @param array|int|null $site_data Return an array of site data (ints, objects or a count) to short-circuit
-		 *                                  WordPress's site query, or null to run the normal queries.
+		 * @param array|int|null $site_data Return an array of site data to short-circuit WP's site query,
+		 *                                  the site count as an integer if `$this->query_vars['count']` is set,
+		 *                                  or null to run the normal queries.
 		 * @param WP_Site_Query  $this      The WP_Site_Query instance, passed by reference.
 		 */
 		$site_data = apply_filters_ref_array( 'sites_pre_query', array( $site_data, &$this ) );
