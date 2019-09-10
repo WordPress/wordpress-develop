@@ -4894,7 +4894,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$num_queries = $wpdb->num_queries;
 
 		$q       = new WP_Comment_Query();
-		$results = $q->query();
+		$results = $q->query( array() );
 
 		remove_filter( 'comments_pre_query', array( __CLASS__, 'filter_comments_pre_query' ), 10, 2 );
 
