@@ -16,11 +16,11 @@ class Tests_Paginate_Links extends WP_UnitTestCase {
 		$page50 = get_pagenum_link( 50 );
 
 		$expected = <<<EXPECTED
-<span aria-current='page' class='page-numbers current'>1</span>
-<a class='page-numbers' href='$page2'>2</a>
-<a class='page-numbers' href='$page3'>3</a>
+<span aria-current="page" class="page-numbers current">1</span>
+<a class="page-numbers" href="$page2">2</a>
+<a class="page-numbers" href="$page3">3</a>
 <span class="page-numbers dots">&hellip;</span>
-<a class='page-numbers' href='$page50'>50</a>
+<a class="page-numbers" href="$page50">50</a>
 <a class="next page-numbers" href="$page2">Next &raquo;</a>
 EXPECTED;
 
@@ -34,11 +34,11 @@ EXPECTED;
 		$page50 = home_url( '/page/50/' );
 
 		$expected = <<<EXPECTED
-<span aria-current='page' class='page-numbers current'>1</span>
-<a class='page-numbers' href='$page2'>2</a>
-<a class='page-numbers' href='$page3'>3</a>
+<span aria-current="page" class="page-numbers current">1</span>
+<a class="page-numbers" href="$page2">2</a>
+<a class="page-numbers" href="$page3">3</a>
 <span class="page-numbers dots">&hellip;</span>
-<a class='page-numbers' href='$page50'>50</a>
+<a class="page-numbers" href="$page50">50</a>
 <a class="next page-numbers" href="$page2">Next &raquo;</a>
 EXPECTED;
 
@@ -58,12 +58,12 @@ EXPECTED;
 		$page50 = get_pagenum_link( 50 );
 
 		$expected = <<<EXPECTED
-<a class='page-numbers' href='$home'>1</a>
-<span aria-current='page' class='page-numbers current'>2</span>
-<a class='page-numbers' href='$page3'>3</a>
-<a class='page-numbers' href='$page4'>4</a>
+<a class="page-numbers" href="$home">1</a>
+<span aria-current="page" class="page-numbers current">2</span>
+<a class="page-numbers" href="$page3">3</a>
+<a class="page-numbers" href="$page4">4</a>
 <span class="page-numbers dots">&hellip;</span>
-<a class='page-numbers' href='$page50'>50</a>
+<a class="page-numbers" href="$page50">50</a>
 EXPECTED;
 
 		$links = paginate_links(
@@ -84,12 +84,12 @@ EXPECTED;
 
 		$expected = <<<EXPECTED
 <a class="prev page-numbers" href="$home">&laquo; Previous</a>
-<a class='page-numbers' href='$home'>1</a>
-<span aria-current='page' class='page-numbers current'>2</span>
-<a class='page-numbers' href='$page3'>3</a>
-<a class='page-numbers' href='$page4'>4</a>
+<a class="page-numbers" href="$home">1</a>
+<span aria-current="page" class="page-numbers current">2</span>
+<a class="page-numbers" href="$page3">3</a>
+<a class="page-numbers" href="$page4">4</a>
 <span class="page-numbers dots">&hellip;</span>
-<a class='page-numbers' href='$page50'>50</a>
+<a class="page-numbers" href="$page50">50</a>
 <a class="next page-numbers" href="$page3">Next &raquo;</a>
 EXPECTED;
 
@@ -333,7 +333,7 @@ EXPECTED;
 			)
 		);
 
-		$this->assertContains( "<span aria-current='page' class='page-numbers current'>3</span>", $links );
+		$this->assertContains( '<span aria-current="page" class="page-numbers current">3</span>', $links );
 	}
 
 	/**
@@ -355,6 +355,6 @@ EXPECTED;
 		);
 
 		$page_2_url = home_url() . '?foo=2';
-		$this->assertContains( "<a class='page-numbers' href='$page_2_url'>2</a>", $links );
+		$this->assertContains( "<a class=\"page-numbers\" href=\"$page_2_url\">2</a>", $links );
 	}
 }
