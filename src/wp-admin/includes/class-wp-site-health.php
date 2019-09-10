@@ -132,17 +132,15 @@ class WP_Site_Health {
 	private function prepare_sql_data() {
 		global $wpdb;
 
-		if ( method_exists( $wpdb, 'db_version' ) ) {
-			if ( $wpdb->use_mysqli ) {
-				// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_get_server_info
-				$mysql_server_type = mysqli_get_server_info( $wpdb->dbh );
-			} else {
-				// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysql_get_server_info
-				$mysql_server_type = mysql_get_server_info( $wpdb->dbh );
-			}
-
-			$this->mysql_server_version = $wpdb->db_version();
+		if ( $wpdb->use_mysqli ) {
+			// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_get_server_info
+			$mysql_server_type = mysqli_get_server_info( $wpdb->dbh );
+		} else {
+			// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysql_get_server_info
+			$mysql_server_type = mysql_get_server_info( $wpdb->dbh );
 		}
+
+		$this->mysql_server_version = $wpdb->get_var( 'SELECT VERSION()' );
 
 		$this->health_check_mysql_rec_version = '5.6';
 
@@ -206,7 +204,7 @@ class WP_Site_Health {
 			$result['status'] = 'recommended';
 
 			$result['label'] = sprintf(
-				// translators: %s: Your current version of WordPress.
+				/* translators: %s: Your current version of WordPress. */
 				__( 'WordPress version %s' ),
 				$core_current_version
 			);
@@ -231,7 +229,7 @@ class WP_Site_Health {
 					$new_major     = $new_version[0] . '.' . $new_version[1];
 
 					$result['label'] = sprintf(
-						// translators: %s: The latest version of WordPress available.
+						/* translators: %s: The latest version of WordPress available. */
 						__( 'WordPress update available (%s)' ),
 						$update->version
 					);
@@ -261,7 +259,7 @@ class WP_Site_Health {
 				} else {
 					$result['status'] = 'good';
 					$result['label']  = sprintf(
-						// translators: %s: The current version of WordPress installed on this site.
+						/* translators: %s: The current version of WordPress installed on this site. */
 						__( 'Your WordPress version is up to date (%s)' ),
 						$core_current_version
 					);
@@ -655,7 +653,7 @@ class WP_Site_Health {
 
 		$result = array(
 			'label'       => sprintf(
-				// translators: %s: The current PHP version.
+				/* translators: %s: The current PHP version. */
 				__( 'PHP is up to date (%s)' ),
 				PHP_VERSION
 			),
@@ -672,7 +670,7 @@ class WP_Site_Health {
 				'<p><a href="%s" target="_blank" rel="noopener noreferrer">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				esc_url( wp_get_update_php_url() ),
 				__( 'Learn more about updating PHP' ),
-				/* translators: accessibility text */
+				/* translators: Accessibility text. */
 				__( '(opens in a new tab)' )
 			),
 			'test'        => 'php_version',
@@ -764,7 +762,7 @@ class WP_Site_Health {
 					'target="_blank" rel="noopener noreferrer"',
 					sprintf(
 						' <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span>',
-						/* translators: accessibility text */
+						/* translators: Accessibility text. */
 						__( '(opens in a new tab)' )
 					)
 				)
@@ -964,7 +962,7 @@ class WP_Site_Health {
 				/* translators: Localized version of WordPress requirements if one exists. */
 				esc_url( __( 'https://wordpress.org/about/requirements/' ) ),
 				__( 'Learn more about what WordPress requires to run.' ),
-				/* translators: accessibility text */
+				/* translators: Accessibility text. */
 				__( '(opens in a new tab)' )
 			),
 			'test'        => 'sql_server',
@@ -1197,7 +1195,7 @@ class WP_Site_Health {
 				/* translators: Localized Support reference. */
 				esc_url( __( 'https://wordpress.org/support' ) ),
 				__( 'Get help resolving this issue.' ),
-				/* translators: accessibility text */
+				/* translators: Accessibility text. */
 				__( '(opens in a new tab)' )
 			);
 		}
@@ -1235,7 +1233,7 @@ class WP_Site_Health {
 				/* translators: Documentation explaining debugging in WordPress. */
 				esc_url( __( 'https://wordpress.org/support/article/debugging-in-wordpress/' ) ),
 				__( 'Learn more about debugging in WordPress.' ),
-				/* translators: accessibility text */
+				/* translators: Accessibility text. */
 				__( '(opens in a new tab)' )
 			),
 			'test'        => 'is_in_debug_mode',
@@ -1304,7 +1302,7 @@ class WP_Site_Health {
 				/* translators: Documentation explaining HTTPS and why it should be used. */
 				esc_url( __( 'https://wordpress.org/support/article/why-should-i-use-https/' ) ),
 				__( 'Learn more about why you should use HTTPS' ),
-				/* translators: accessibility text */
+				/* translators: Accessibility text. */
 				__( '(opens in a new tab)' )
 			),
 			'test'        => 'https_status',
@@ -1322,7 +1320,7 @@ class WP_Site_Health {
 				$result['description'] = sprintf(
 					'<p>%s</p>',
 					sprintf(
-						/* translators: %s: URL to Settings > General to change options. */
+						/* translators: %s: URL to General Settings screen. */
 						__( 'You are accessing this website using HTTPS, but your <a href="%s">WordPress Address</a> is not set up to use HTTPS by default.' ),
 						esc_url( admin_url( 'options-general.php' ) )
 					)
@@ -1740,7 +1738,7 @@ class WP_Site_Health {
 				$result['description'] .= sprintf(
 					'<p>%s</p>',
 					sprintf(
-						/* translators: %s: the name of the query parameter being tested. */
+						/* translators: %s: The name of the query parameter being tested. */
 						__( 'The REST API did not process the %s query parameter correctly.' ),
 						'<code>context</code>'
 					)
@@ -2019,7 +2017,7 @@ class WP_Site_Health {
 					'%s<br>%s',
 					__( 'The loopback request to your site failed, this means features relying on them are not currently working as expected.' ),
 					sprintf(
-						// translators: 1: The HTTP response code. 2: The error message returned.
+						/* translators: 1: The HTTP response code. 2: The error message returned. */
 						__( 'Error: [%1$s] %2$s' ),
 						wp_remote_retrieve_response_code( $r ),
 						$r->get_error_message()
@@ -2032,7 +2030,7 @@ class WP_Site_Health {
 			return (object) array(
 				'status'  => 'recommended',
 				'message' => sprintf(
-					// translators: %d: The HTTP response code returned.
+					/* translators: %d: The HTTP response code returned. */
 					__( 'The loopback request returned an unexpected http status code, %d, it was not possible to determine if this will prevent features from working as expected.' ),
 					wp_remote_retrieve_response_code( $r )
 				),

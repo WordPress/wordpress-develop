@@ -8,48 +8,54 @@
 require( ABSPATH . WPINC . '/option.php' );
 
 /**
- * Convert given date string into a different format.
+ * Convert given MySQL date string into a different format.
  *
- * $format should be either a PHP date format string, e.g. 'U' for a Unix
- * timestamp, or 'G' for a Unix timestamp assuming that $date is GMT.
+ * `$format` should be a PHP date format string.
+ * 'U' and 'G' formats will return a sum of timestamp with timezone offset.
+ * `$date` is expected to be local time in MySQL format (`Y-m-d H:i:s`).
  *
- * If $translate is true then the given date and format string will
- * be passed to date_i18n() for translation.
+ * Historically UTC time could be passed to the function to produce Unix timestamp.
+ *
+ * If `$translate` is true then the given date and format string will
+ * be passed to `wp_date()` for translation.
  *
  * @since 0.71
  *
  * @param string $format    Format of the date to return.
  * @param string $date      Date string to convert.
  * @param bool   $translate Whether the return date should be translated. Default true.
- * @return string|int|bool Formatted date string or Unix timestamp. False if $date is empty.
+ * @return string|int|false Formatted date string or sum of Unix timestamp and timezone offset.
+ *                          False on failure.
  */
 function mysql2date( $format, $date, $translate = true ) {
 	if ( empty( $date ) ) {
 		return false;
 	}
 
-	if ( 'G' == $format ) {
-		return strtotime( $date . ' +0000' );
+	$datetime = date_create( $date, wp_timezone() );
+
+	if ( false === $datetime ) {
+		return false;
 	}
 
-	$i = strtotime( $date );
-
-	if ( 'U' == $format ) {
-		return $i;
+	// Returns a sum of timestamp with timezone offset. Ideally should never be used.
+	if ( 'G' === $format || 'U' === $format ) {
+		return $datetime->getTimestamp() + $datetime->getOffset();
 	}
 
 	if ( $translate ) {
-		return date_i18n( $format, $i );
-	} else {
-		return gmdate( $format, $i );
+		return wp_date( $format, $datetime->getTimestamp() );
 	}
+
+	return $datetime->format( $format );
 }
 
 /**
- * Retrieve the current time based on specified type.
+ * Retrieves the current time based on specified type.
  *
  * The 'mysql' type will return the time in the format for MySQL DATETIME field.
- * The 'timestamp' type will return the current timestamp.
+ * The 'timestamp' type will return the current timestamp or a sum of timestamp
+ * and timezone offset, depending on `$gmt`.
  * Other strings will be interpreted as PHP date formats (e.g. 'Y-m-d').
  *
  * If $gmt is set to either '1' or 'true', then both types will use GMT time.
@@ -57,141 +63,246 @@ function mysql2date( $format, $date, $translate = true ) {
  *
  * @since 1.0.0
  *
- * @param string   $type Type of time to retrieve. Accepts 'mysql', 'timestamp', or PHP date
- *                       format string (e.g. 'Y-m-d').
+ * @param string   $type Type of time to retrieve. Accepts 'mysql', 'timestamp',
+ *                       or PHP date format string (e.g. 'Y-m-d').
  * @param int|bool $gmt  Optional. Whether to use GMT timezone. Default false.
  * @return int|string Integer if $type is 'timestamp', string otherwise.
  */
 function current_time( $type, $gmt = 0 ) {
-	switch ( $type ) {
-		case 'mysql':
-			return ( $gmt ) ? gmdate( 'Y-m-d H:i:s' ) : gmdate( 'Y-m-d H:i:s', ( time() + ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) ) );
-		case 'timestamp':
-			return ( $gmt ) ? time() : time() + ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
-		default:
-			return ( $gmt ) ? gmdate( $type ) : gmdate( $type, time() + ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) );
+	// Don't use non-GMT timestamp, unless you know the difference and really need to.
+	if ( 'timestamp' === $type || 'U' === $type ) {
+		return $gmt ? time() : time() + (int) ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
 	}
+
+	if ( 'mysql' === $type ) {
+		$type = 'Y-m-d H:i:s';
+	}
+
+	$timezone = $gmt ? new DateTimeZone( 'UTC' ) : wp_timezone();
+	$datetime = new DateTime( 'now', $timezone );
+
+	return $datetime->format( $type );
 }
 
 /**
- * Retrieve the date in localized format, based on a sum of Unix timestamp and
+ * Retrieves the current time as an object with the timezone from settings.
+ *
+ * @since 5.3.0
+ *
+ * @return DateTimeImmutable Date and time object.
+ */
+function current_datetime() {
+	return new DateTimeImmutable( 'now', wp_timezone() );
+}
+
+/**
+ * Retrieves the timezone from site settings as a string.
+ *
+ * Uses the `timezone_string` option to get a proper timezone if available,
+ * otherwise falls back to an offset.
+ *
+ * @since 5.3.0
+ *
+ * @return string PHP timezone string or a ±HH:MM offset.
+ */
+function wp_timezone_string() {
+	$timezone_string = get_option( 'timezone_string' );
+
+	if ( $timezone_string ) {
+		return $timezone_string;
+	}
+
+	$offset  = (float) get_option( 'gmt_offset' );
+	$hours   = (int) $offset;
+	$minutes = ( $offset - $hours );
+
+	$sign      = ( $offset < 0 ) ? '-' : '+';
+	$abs_hour  = abs( $hours );
+	$abs_mins  = abs( $minutes * 60 );
+	$tz_offset = sprintf( '%s%02d:%02d', $sign, $abs_hour, $abs_mins );
+
+	return $tz_offset;
+}
+
+/**
+ * Retrieves the timezone from site settings as a `DateTimeZone` object.
+ *
+ * Timezone can be based on a PHP timezone string or a ±HH:MM offset.
+ *
+ * @since 5.3.0
+ *
+ * @return DateTimeZone Timezone object.
+ */
+function wp_timezone() {
+	return new DateTimeZone( wp_timezone_string() );
+}
+
+/**
+ * Retrieves the date in localized format, based on a sum of Unix timestamp and
  * timezone offset in seconds.
  *
  * If the locale specifies the locale month and weekday, then the locale will
  * take over the format for the date. If it isn't, then the date format string
  * will be used instead.
  *
+ * Note that due to the way WP typically generates a sum of timestamp and offset
+ * with `strtotime()`, it implies offset added at a _current_ time, not at the time
+ * the timestamp represents. Storing such timestamps or calculating them differently
+ * will lead to invalid output.
+ *
  * @since 0.71
+ * @since 5.3.0 Converted into a wrapper for wp_date().
  *
  * @global WP_Locale $wp_locale WordPress date and time locale object.
  *
- * @param string   $dateformatstring      Format to display the date.
- * @param int|bool $timestamp_with_offset Optional. A sum of Unix timestamp and timezone offset in seconds.
- *                                        Default false.
- * @param bool     $gmt                   Optional. Whether to use GMT timezone. Only applies if timestamp is
- *                                        not provided. Default false.
- *
+ * @param string   $format                Format to display the date.
+ * @param int|bool $timestamp_with_offset Optional. A sum of Unix timestamp and timezone offset
+ *                                        in seconds. Default false.
+ * @param bool     $gmt                   Optional. Whether to use GMT timezone. Only applies
+ *                                        if timestamp is not provided. Default false.
  * @return string The date, translated if locale specifies it.
  */
-function date_i18n( $dateformatstring, $timestamp_with_offset = false, $gmt = false ) {
-	global $wp_locale;
-	$i = $timestamp_with_offset;
+function date_i18n( $format, $timestamp_with_offset = false, $gmt = false ) {
+	$timestamp = $timestamp_with_offset;
 
-	if ( ! is_numeric( $i ) ) {
-		$i = current_time( 'timestamp', $gmt );
+	// If timestamp is omitted it should be current time (summed with offset, unless `$gmt` is true).
+	if ( ! is_numeric( $timestamp ) ) {
+		$timestamp = current_time( 'timestamp', $gmt );
 	}
 
 	/*
-	 * Store original value for language with untypical grammars.
-	 * See https://core.trac.wordpress.org/ticket/9396
+	 * This is a legacy implementation quirk that the returned timestamp is also with offset.
+	 * Ideally this function should never be used to produce a timestamp.
 	 */
-	$req_format = $dateformatstring;
-
-	$dateformatstring = preg_replace( '/(?<!\\\\)c/', DATE_W3C, $dateformatstring );
-	$dateformatstring = preg_replace( '/(?<!\\\\)r/', DATE_RFC2822, $dateformatstring );
-
-	if ( ( ! empty( $wp_locale->month ) ) && ( ! empty( $wp_locale->weekday ) ) ) {
-		$datemonth            = $wp_locale->get_month( gmdate( 'm', $i ) );
-		$datemonth_abbrev     = $wp_locale->get_month_abbrev( $datemonth );
-		$dateweekday          = $wp_locale->get_weekday( gmdate( 'w', $i ) );
-		$dateweekday_abbrev   = $wp_locale->get_weekday_abbrev( $dateweekday );
-		$datemeridiem         = $wp_locale->get_meridiem( gmdate( 'a', $i ) );
-		$datemeridiem_capital = $wp_locale->get_meridiem( gmdate( 'A', $i ) );
-		$dateformatstring     = ' ' . $dateformatstring;
-		$dateformatstring     = preg_replace( '/([^\\\])D/', "\\1" . backslashit( $dateweekday_abbrev ), $dateformatstring );
-		$dateformatstring     = preg_replace( '/([^\\\])F/', "\\1" . backslashit( $datemonth ), $dateformatstring );
-		$dateformatstring     = preg_replace( '/([^\\\])l/', "\\1" . backslashit( $dateweekday ), $dateformatstring );
-		$dateformatstring     = preg_replace( '/([^\\\])M/', "\\1" . backslashit( $datemonth_abbrev ), $dateformatstring );
-		$dateformatstring     = preg_replace( '/([^\\\])a/', "\\1" . backslashit( $datemeridiem ), $dateformatstring );
-		$dateformatstring     = preg_replace( '/([^\\\])A/', "\\1" . backslashit( $datemeridiem_capital ), $dateformatstring );
-
-		$dateformatstring = substr( $dateformatstring, 1, strlen( $dateformatstring ) - 1 );
+	if ( 'U' === $format ) {
+		$date = $timestamp;
+	} elseif ( $gmt && ! $timestamp_with_offset ) { // Current time in UTC.
+		$date = wp_date( $format, null, new DateTimeZone( 'UTC' ) );
+	} elseif ( ! $timestamp_with_offset ) { // Current time in site's timezone.
+		$date = wp_date( $format );
+	} else {
+		/*
+		 * Timestamp with offset is typically produced by a UTC `strtotime()` call on an input without timezone.
+		 * This is the best attempt to reverse that operation into a local time to use.
+		 */
+		$local_time = gmdate( 'Y-m-d H:i:s', $timestamp );
+		$timezone   = wp_timezone();
+		$datetime   = date_create( $local_time, $timezone );
+		$date       = wp_date( $format, $datetime->getTimestamp(), $timezone );
 	}
-	$timezone_formats    = array( 'P', 'I', 'O', 'T', 'Z', 'e' );
-	$timezone_formats_re = implode( '|', $timezone_formats );
-	if ( preg_match( "/$timezone_formats_re/", $dateformatstring ) ) {
-		$timezone_string = get_option( 'timezone_string' );
-		if ( false === $timestamp_with_offset && $gmt ) {
-			$timezone_string = 'UTC';
-		}
-		if ( $timezone_string ) {
-			$timezone_object = timezone_open( $timezone_string );
-			$date_object     = date_create( null, $timezone_object );
-			foreach ( $timezone_formats as $timezone_format ) {
-				if ( false !== strpos( $dateformatstring, $timezone_format ) ) {
-					$formatted        = date_format( $date_object, $timezone_format );
-					$dateformatstring = ' ' . $dateformatstring;
-					$dateformatstring = preg_replace( "/([^\\\])$timezone_format/", "\\1" . backslashit( $formatted ), $dateformatstring );
-					$dateformatstring = substr( $dateformatstring, 1, strlen( $dateformatstring ) - 1 );
-				}
-			}
-		} else {
-			$offset = get_option( 'gmt_offset' );
-			foreach ( $timezone_formats as $timezone_format ) {
-				if ( 'I' === $timezone_format ) {
-					continue;
-				}
-
-				if ( false !== strpos( $dateformatstring, $timezone_format ) ) {
-					if ( 'Z' === $timezone_format ) {
-						$formatted = (string) ( $offset * HOUR_IN_SECONDS );
-					} else {
-						$prefix    = '';
-						$hours     = (int) $offset;
-						$separator = '';
-						$minutes   = abs( ( $offset - $hours ) * 60 );
-
-						if ( 'T' === $timezone_format ) {
-							$prefix = 'GMT';
-						} elseif ( 'e' === $timezone_format || 'P' === $timezone_format ) {
-							$separator = ':';
-						}
-
-						$formatted = sprintf( '%s%+03d%s%02d', $prefix, $hours, $separator, $minutes );
-					}
-
-					$dateformatstring = ' ' . $dateformatstring;
-					$dateformatstring = preg_replace( "/([^\\\])$timezone_format/", "\\1" . backslashit( $formatted ), $dateformatstring );
-					$dateformatstring = substr( $dateformatstring, 1 );
-				}
-			}
-		}
-	}
-	$j = gmdate( $dateformatstring, $i );
 
 	/**
 	 * Filters the date formatted based on the locale.
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param string $j          Formatted date string.
-	 * @param string $req_format Format to display the date.
-	 * @param int    $i          A sum of Unix timestamp and timezone offset in seconds.
-	 * @param bool   $gmt        Whether to use GMT timezone. Only applies if timestamp was
-	 *                           not provided. Default false.
+	 * @param string $date      Formatted date string.
+	 * @param string $format    Format to display the date.
+	 * @param int    $timestamp A sum of Unix timestamp and timezone offset in seconds.
+	 *                          Might be without offset if input omitted timestamp but requested GMT.
+	 * @param bool   $gmt       Whether to use GMT timezone. Only applies if timestamp was not provided.
+	 *                          Default false.
 	 */
-	$j = apply_filters( 'date_i18n', $j, $req_format, $i, $gmt );
-	return $j;
+	$date = apply_filters( 'date_i18n', $date, $format, $timestamp, $gmt );
+
+	return $date;
+}
+
+/**
+ * Retrieves the date, in localized format.
+ *
+ * This is a newer function, intended to replace `date_i18n()` without legacy quirks in it.
+ *
+ * Note that, unlike `date_i18n()`, this function accepts a true Unix timestamp, not summed
+ * with timezone offset.
+ *
+ * @since 5.3.0
+ *
+ * @param string       $format    PHP date format.
+ * @param int          $timestamp Optional. Unix timestamp. Defaults to current time.
+ * @param DateTimeZone $timezone  Optional. Timezone to output result in. Defaults to timezone
+ *                                from site settings.
+ * @return string|false The date, translated if locale specifies it. False on invalid timestamp input.
+ */
+function wp_date( $format, $timestamp = null, $timezone = null ) {
+	global $wp_locale;
+
+	if ( null === $timestamp ) {
+		$timestamp = time();
+	} elseif ( ! is_numeric( $timestamp ) ) {
+		return false;
+	}
+
+	if ( ! $timezone ) {
+		$timezone = wp_timezone();
+	}
+
+	$datetime = date_create( '@' . $timestamp );
+	$datetime->setTimezone( $timezone );
+
+	if ( empty( $wp_locale->month ) || empty( $wp_locale->weekday ) ) {
+		$date = $datetime->format( $format );
+	} else {
+		// We need to unpack shorthand `r` format because it has parts that might be localized.
+		$format = preg_replace( '/(?<!\\\\)r/', DATE_RFC2822, $format );
+
+		$new_format    = '';
+		$format_length = strlen( $format );
+		$month         = $wp_locale->get_month( $datetime->format( 'm' ) );
+		$weekday       = $wp_locale->get_weekday( $datetime->format( 'w' ) );
+
+		for ( $i = 0; $i < $format_length; $i ++ ) {
+			switch ( $format[ $i ] ) {
+				case 'D':
+					$new_format .= backslashit( $wp_locale->get_weekday_abbrev( $weekday ) );
+					break;
+				case 'F':
+					$new_format .= backslashit( $month );
+					break;
+				case 'l':
+					$new_format .= backslashit( $weekday );
+					break;
+				case 'M':
+					$new_format .= backslashit( $wp_locale->get_month_abbrev( $month ) );
+					break;
+				case 'a':
+					$new_format .= backslashit( $wp_locale->get_meridiem( $datetime->format( 'a' ) ) );
+					break;
+				case 'A':
+					$new_format .= backslashit( $wp_locale->get_meridiem( $datetime->format( 'A' ) ) );
+					break;
+				case '\\':
+					$new_format .= $format[ $i ];
+
+					// If character follows a slash, we add it without translating.
+					if ( $i < $format_length ) {
+						$new_format .= $format[ ++$i ];
+					}
+					break;
+				default:
+					$new_format .= $format[ $i ];
+					break;
+			}
+		}
+
+		$date = $datetime->format( $new_format );
+		$date = wp_maybe_decline_date( $date );
+	}
+
+	/**
+	 * Filters the date formatted based on the locale.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param string       $date      Formatted date string.
+	 * @param string       $format    Format to display the date.
+	 * @param int          $timestamp Unix timestamp.
+	 * @param DateTimeZone $timezone  Timezone.
+	 *
+	 */
+	$date = apply_filters( 'wp_date', $date, $format, $timestamp, $timezone );
+
+	return $date;
 }
 
 /**
@@ -215,7 +326,8 @@ function wp_maybe_decline_date( $date ) {
 		return $date;
 	}
 
-	/* translators: If months in your language require a genitive case,
+	/*
+	 * translators: If months in your language require a genitive case,
 	 * translate this to 'on'. Do not translate into your own language.
 	 */
 	if ( 'on' === _x( 'off', 'decline months names: on or off' ) ) {
@@ -388,19 +500,19 @@ function human_readable_duration( $duration = '' ) {
 
 	// Add the hour part to the string.
 	if ( is_numeric( $hour ) ) {
-		/* translators: Time duration in hour or hours. */
+		/* translators: %s: Time duration in hour or hours. */
 		$human_readable_duration[] = sprintf( _n( '%s hour', '%s hours', $hour ), (int) $hour );
 	}
 
 	// Add the minute part to the string.
 	if ( is_numeric( $minute ) ) {
-		/* translators: Time duration in minute or minutes. */
+		/* translators: %s: Time duration in minute or minutes. */
 		$human_readable_duration[] = sprintf( _n( '%s minute', '%s minutes', $minute ), (int) $minute );
 	}
 
 	// Add the second part to the string.
 	if ( is_numeric( $second ) ) {
-		/* translators: Time duration in second or seconds. */
+		/* translators: %s: Time duration in second or seconds. */
 		$human_readable_duration[] = sprintf( _n( '%s second', '%s seconds', $second ), (int) $second );
 	}
 
@@ -1468,12 +1580,11 @@ function do_feed_atom( $for_comments ) {
 }
 
 /**
- * Display the robots.txt file content.
- *
- * The echo content should be with usage of the permalinks or for creating the
- * robots.txt file.
+ * Displays the default robots.txt file content.
  *
  * @since 2.1.0
+ * @since 5.3.0 Remove the "Disallow: /" output if search engine visiblity is
+ *              discouraged in favor of robots meta HTML tag in wp_no_robots().
  */
 function do_robots() {
 	header( 'Content-Type: text/plain; charset=utf-8' );
@@ -1487,21 +1598,18 @@ function do_robots() {
 
 	$output = "User-agent: *\n";
 	$public = get_option( 'blog_public' );
-	if ( '0' == $public ) {
-		$output .= "Disallow: /\n";
-	} else {
-		$site_url = parse_url( site_url() );
-		$path     = ( ! empty( $site_url['path'] ) ) ? $site_url['path'] : '';
-		$output  .= "Disallow: $path/wp-admin/\n";
-		$output  .= "Allow: $path/wp-admin/admin-ajax.php\n";
-	}
+
+	$site_url = parse_url( site_url() );
+	$path     = ( ! empty( $site_url['path'] ) ) ? $site_url['path'] : '';
+	$output  .= "Disallow: $path/wp-admin/\n";
+	$output  .= "Allow: $path/wp-admin/admin-ajax.php\n";
 
 	/**
 	 * Filters the robots.txt output.
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param string $output Robots.txt output.
+	 * @param string $output The robots.txt output.
 	 * @param bool   $public Whether the site is considered "public".
 	 */
 	echo apply_filters( 'robots_txt', $output, $public );
@@ -1588,7 +1696,7 @@ function is_blog_installed() {
 
 		// Die with a DB error.
 		$wpdb->error = sprintf(
-			/* translators: %s: database repair URL */
+			/* translators: %s: Database repair URL. */
 			__( 'One or more database tables are unavailable. The database may need to be <a href="%s">repaired</a>.' ),
 			'maint/repair.php?referrer=is_blog_installed'
 		);
@@ -2122,7 +2230,7 @@ function wp_upload_dir( $time = null, $create_dir = true, $refresh_cache = false
 				}
 
 				$uploads['error'] = sprintf(
-					/* translators: %s: directory path */
+					/* translators: %s: Directory path. */
 					__( 'Unable to create directory %s. Is its parent directory writable by the server?' ),
 					esc_html( $error_path )
 				);
@@ -2408,7 +2516,7 @@ function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 		}
 
 		$message = sprintf(
-			/* translators: %s: directory path */
+			/* translators: %s: Directory path. */
 			__( 'Unable to create directory %s. Is its parent directory writable by the server?' ),
 			$error_path
 		);
@@ -2417,7 +2525,10 @@ function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 
 	$ifp = @fopen( $new_file, 'wb' );
 	if ( ! $ifp ) {
-		return array( 'error' => sprintf( __( 'Could not write file %s' ), $new_file ) );
+		return array(
+			/* translators: %s: File name. */
+			'error' => sprintf( __( 'Could not write file %s' ), $new_file ),
+		);
 	}
 
 	fwrite( $ifp, $bits );
@@ -2923,14 +3034,14 @@ function get_allowed_mime_types( $user = null ) {
 function wp_nonce_ays( $action ) {
 	if ( 'log-out' == $action ) {
 		$html = sprintf(
-			/* translators: %s: site name */
+			/* translators: %s: Site title. */
 			__( 'You are attempting to log out of %s' ),
 			get_bloginfo( 'name' )
 		);
 		$html       .= '</p><p>';
 		$redirect_to = isset( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : '';
 		$html       .= sprintf(
-			/* translators: %s: logout URL */
+			/* translators: %s: Logout URL. */
 			__( 'Do you really want to <a href="%s">log out</a>?' ),
 			wp_logout_url( $redirect_to )
 		);
@@ -3089,9 +3200,12 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 				wp_list_pluck( $parsed_args['additional_errors'], 'message' )
 			);
 			$message = "<ul>\n\t\t<li>" . join( "</li>\n\t\t<li>", $message ) . "</li>\n\t</ul>";
-		} else {
-			$message = "<p>$message</p>";
 		}
+
+		$message = sprintf(
+			'<div class="wp-die-message">%s</div>',
+			$message
+		);
 	}
 
 	$have_gettext = function_exists( '__' );
@@ -3161,7 +3275,8 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 		#error-page {
 			margin-top: 50px;
 		}
-		#error-page p {
+		#error-page p,
+		#error-page .wp-die-message {
 			font-size: 14px;
 			line-height: 1.5;
 			margin: 25px 0 20px;
@@ -4456,10 +4571,10 @@ function _deprecated_function( $function, $version, $replacement = null ) {
 	if ( WP_DEBUG && apply_filters( 'deprecated_function_trigger_error', true ) ) {
 		if ( function_exists( '__' ) ) {
 			if ( ! is_null( $replacement ) ) {
-				/* translators: 1: PHP function name, 2: version number, 3: alternative function name */
+				/* translators: 1: PHP function name, 2: Version number, 3: Alternative function name. */
 				trigger_error( sprintf( __( '%1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ), $function, $version, $replacement ) );
 			} else {
-				/* translators: 1: PHP function name, 2: version number */
+				/* translators: 1: PHP function name, 2: Version number. */
 				trigger_error( sprintf( __( '%1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ), $function, $version ) );
 			}
 		} else {
@@ -4518,9 +4633,9 @@ function _deprecated_constructor( $class, $version, $parent_class = '' ) {
 	if ( WP_DEBUG && apply_filters( 'deprecated_constructor_trigger_error', true ) ) {
 		if ( function_exists( '__' ) ) {
 			if ( ! empty( $parent_class ) ) {
-				/* translators: 1: PHP class name, 2: PHP parent class name, 3: version number, 4: __construct() method */
 				trigger_error(
 					sprintf(
+						/* translators: 1: PHP class name, 2: PHP parent class name, 3: Version number, 4: __construct() method. */
 						__( 'The called constructor method for %1$s in %2$s is <strong>deprecated</strong> since version %3$s! Use %4$s instead.' ),
 						$class,
 						$parent_class,
@@ -4529,9 +4644,9 @@ function _deprecated_constructor( $class, $version, $parent_class = '' ) {
 					)
 				);
 			} else {
-				/* translators: 1: PHP class name, 2: version number, 3: __construct() method */
 				trigger_error(
 					sprintf(
+						/* translators: 1: PHP class name, 2: Version number, 3: __construct() method. */
 						__( 'The called constructor method for %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
 						$class,
 						$version,
@@ -4610,10 +4725,10 @@ function _deprecated_file( $file, $version, $replacement = null, $message = '' )
 		$message = empty( $message ) ? '' : ' ' . $message;
 		if ( function_exists( '__' ) ) {
 			if ( ! is_null( $replacement ) ) {
-				/* translators: 1: PHP file name, 2: version number, 3: alternative file name */
+				/* translators: 1: PHP file name, 2: Version number, 3: Alternative file name. */
 				trigger_error( sprintf( __( '%1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ), $file, $version, $replacement ) . $message );
 			} else {
-				/* translators: 1: PHP file name, 2: version number */
+				/* translators: 1: PHP file name, 2: Version number. */
 				trigger_error( sprintf( __( '%1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ), $file, $version ) . $message );
 			}
 		} else {
@@ -4673,10 +4788,10 @@ function _deprecated_argument( $function, $version, $message = null ) {
 	if ( WP_DEBUG && apply_filters( 'deprecated_argument_trigger_error', true ) ) {
 		if ( function_exists( '__' ) ) {
 			if ( ! is_null( $message ) ) {
-				/* translators: 1: PHP function name, 2: version number, 3: optional message regarding the change */
+				/* translators: 1: PHP function name, 2: Version number, 3: Optional message regarding the change. */
 				trigger_error( sprintf( __( '%1$s was called with an argument that is <strong>deprecated</strong> since version %2$s! %3$s' ), $function, $version, $message ) );
 			} else {
-				/* translators: 1: PHP function name, 2: version number */
+				/* translators: 1: PHP function name, 2: Version number. */
 				trigger_error( sprintf( __( '%1$s was called with an argument that is <strong>deprecated</strong> since version %2$s with no alternative available.' ), $function, $version ) );
 			}
 		} else {
@@ -4732,10 +4847,10 @@ function _deprecated_hook( $hook, $version, $replacement = null, $message = null
 	if ( WP_DEBUG && apply_filters( 'deprecated_hook_trigger_error', true ) ) {
 		$message = empty( $message ) ? '' : ' ' . $message;
 		if ( ! is_null( $replacement ) ) {
-			/* translators: 1: WordPress hook name, 2: version number, 3: alternative hook name */
+			/* translators: 1: WordPress hook name, 2: Version number, 3: Alternative hook name. */
 			trigger_error( sprintf( __( '%1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ), $hook, $version, $replacement ) . $message );
 		} else {
-			/* translators: 1: WordPress hook name, 2: version number */
+			/* translators: 1: WordPress hook name, 2: Version number. */
 			trigger_error( sprintf( __( '%1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ), $hook, $version ) . $message );
 		}
 	}
@@ -4786,15 +4901,15 @@ function _doing_it_wrong( $function, $message, $version ) {
 			if ( is_null( $version ) ) {
 				$version = '';
 			} else {
-				/* translators: %s: version number */
+				/* translators: %s: Version number. */
 				$version = sprintf( __( '(This message was added in version %s.)' ), $version );
 			}
-			/* translators: %s: Documentation URL */
 			$message .= ' ' . sprintf(
+				/* translators: %s: Documentation URL. */
 				__( 'Please see <a href="%s">Debugging in WordPress</a> for more information.' ),
 				__( 'https://wordpress.org/support/article/debugging-in-wordpress/' )
 			);
-			/* translators: Developer debugging message. 1: PHP function name, 2: Explanatory message, 3: Version information message */
+			/* translators: Developer debugging message. 1: PHP function name, 2: Explanatory message, 3: Version information message. */
 			trigger_error( sprintf( __( '%1$s was called <strong>incorrectly</strong>. %2$s %3$s' ), $function, $message, $version ) );
 		} else {
 			if ( is_null( $version ) ) {
@@ -5572,11 +5687,11 @@ function wp_scheduled_delete() {
 /**
  * Retrieve metadata from a file.
  *
- * Searches for metadata in the first 8kiB of a file, such as a plugin or theme.
+ * Searches for metadata in the first 8 KB of a file, such as a plugin or theme.
  * Each piece of metadata must be on its own line. Fields can not span multiple
  * lines, the value will get cut at the end of the first line.
  *
- * If the file data is not within that first 8kiB, then the author should correct
+ * If the file data is not within that first 8 KB, then the author should correct
  * their plugin file and move the data headers to the top.
  *
  * @link https://codex.wordpress.org/File_Header
@@ -5584,7 +5699,7 @@ function wp_scheduled_delete() {
  * @since 2.9.0
  *
  * @param string $file            Absolute path to the file.
- * @param array  $default_headers List of headers, in the format `array('HeaderKey' => 'Header Name')`.
+ * @param array  $default_headers List of headers, in the format `array( 'HeaderKey' => 'Header Name' )`.
  * @param string $context         Optional. If specified adds filter hook {@see 'extra_$context_headers'}.
  *                                Default empty.
  * @return array Array of file headers in `HeaderKey => Header Value` format.
@@ -5593,8 +5708,8 @@ function get_file_data( $file, $default_headers, $context = '' ) {
 	// We don't need to write to the file, so just open for reading.
 	$fp = fopen( $file, 'r' );
 
-	// Pull only the first 8kiB of the file in.
-	$file_data = fread( $fp, 8192 );
+	// Pull only the first 8 KB of the file in.
+	$file_data = fread( $fp, 8 * KB_IN_BYTES );
 
 	// PHP will close file handle, but we are good citizens.
 	fclose( $fp );
@@ -6639,11 +6754,12 @@ All at ###SITENAME###
 
 	$email_change_email = array(
 		'to'      => $old_email,
-		/* translators: Site admin email change notification email subject. %s: Site title */
+		/* translators: Site admin email change notification email subject. %s: Site title. */
 		'subject' => __( '[%s] Admin Email Changed' ),
 		'message' => $email_change_text,
 		'headers' => '',
 	);
+
 	// get site name
 	$site_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 
@@ -6781,15 +6897,16 @@ function wp_privacy_anonymize_data( $type, $data = '' ) {
 			$anonymous = '0000-00-00 00:00:00';
 			break;
 		case 'text':
-			/* translators: deleted text */
+			/* translators: Deleted text. */
 			$anonymous = __( '[deleted]' );
 			break;
 		case 'longtext':
-			/* translators: deleted long text */
+			/* translators: Deleted long text. */
 			$anonymous = __( 'This content was deleted by the author.' );
 			break;
 		default:
 			$anonymous = '';
+			break;
 	}
 
 	/**
@@ -7000,7 +7117,7 @@ function wp_get_update_php_annotation() {
 	}
 
 	$annotation = sprintf(
-		/* translators: %s: default Update PHP page URL */
+		/* translators: %s: Default Update PHP page URL. */
 		__( 'This resource is provided by your web host, and is specific to your site. For more information, <a href="%s" target="_blank">see the official WordPress documentation</a>.' ),
 		esc_url( $default_url )
 	);
@@ -7059,7 +7176,7 @@ function wp_direct_php_update_button() {
 		'<a class="button button-primary" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 		esc_url( $direct_update_url ),
 		__( 'Update PHP' ),
-		/* translators: accessibility text */
+		/* translators: Accessibility text. */
 		__( '(opens in a new tab)' )
 	);
 	echo '</p>';
@@ -7198,4 +7315,20 @@ function is_wp_version_compatible( $required ) {
  */
 function is_php_version_compatible( $required ) {
 	return empty( $required ) || version_compare( phpversion(), $required, '>=' );
+}
+
+/**
+ * Check if two numbers are nearly the same.
+ *
+ * This is similar to using `round()` but the precision is more fine-grained.
+ *
+ * @since 5.3.0
+ *
+ * @param int|float $expected  The expected value.
+ * @param int|float $actual    The actual number.
+ * @param int|float $precision The allowed variation.
+ * @return bool Whether the numbers match whithin the specified precision.
+ */
+function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
+	return abs( (float) $expected - (float) $actual ) <= $precision;
 }

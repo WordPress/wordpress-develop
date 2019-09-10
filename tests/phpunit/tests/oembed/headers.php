@@ -5,6 +5,7 @@
  * @preserveGlobalState disabled
  * @group oembed
  * @group oembed-headers
+ * @group xdebug
  */
 class Tests_oEmbed_HTTP_Headers extends WP_UnitTestCase {
 	function test_rest_pre_serve_request_headers() {

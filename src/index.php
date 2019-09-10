@@ -30,7 +30,10 @@ wp_check_php_mysql_versions();
 wp_load_translations_early();
 
 // Die with an error message
-$die = __( 'You are running WordPress without JavaScript and CSS files. These need to be built.' ) . '</p>';
+$die = sprintf(
+	'<p>%s</p>',
+	__( 'You are running WordPress without JavaScript and CSS files. These need to be built.' )
+);
 
 $die .= '<p>' . sprintf(
 	/* translators: %s: npm install */
@@ -48,7 +51,7 @@ $die .= '<code style="color: green;">npm run build</code></li>';
 $die .= '</ul>';
 
 $die .= '<p>' . sprintf(
-	/* translators: 1: NPM URL, 2: Handbook URL */
+	/* translators: 1: NPM URL, 2: Handbook URL. */
 	__( 'This requires <a href="%1$s">NPM</a>. <a href="%2$s">Learn more about setting up your local development environment</a>.' ),
 	'https://www.npmjs.com/get-npm',
 	__( 'https://make.wordpress.org/core/handbook/tutorials/installing-wordpress-locally/' )

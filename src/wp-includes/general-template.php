@@ -708,7 +708,7 @@ function get_bloginfo( $show = '', $filter = 'raw' ) {
 				__FUNCTION__,
 				'2.2.0',
 				sprintf(
-					/* translators: 1: 'siteurl'/'home' argument, 2: bloginfo() function name, 3: 'url' argument */
+					/* translators: 1: 'siteurl'/'home' argument, 2: bloginfo() function name, 3: 'url' argument. */
 					__( 'The %1$s option is deprecated for the family of %2$s functions. Use the %3$s option instead.' ),
 					'<code>' . $show . '</code>',
 					'<code>bloginfo()</code>',
@@ -773,7 +773,8 @@ function get_bloginfo( $show = '', $filter = 'raw' ) {
 			$output = $wp_version;
 			break;
 		case 'language':
-			/* translators: Translate this to the correct language tag for your locale,
+			/*
+			 * translators: Translate this to the correct language tag for your locale,
 			 * see https://www.w3.org/International/articles/language-tags/ for reference.
 			 * Do not translate into your own language.
 			 */
@@ -788,7 +789,7 @@ function get_bloginfo( $show = '', $filter = 'raw' ) {
 				__FUNCTION__,
 				'2.2.0',
 				sprintf(
-					/* translators: 1: 'text_direction' argument, 2: bloginfo() function name, 3: is_rtl() function name */
+					/* translators: 1: 'text_direction' argument, 2: bloginfo() function name, 3: is_rtl() function name. */
 					__( 'The %1$s option is deprecated for the family of %2$s functions. Use the %3$s function instead.' ),
 					'<code>' . $show . '</code>',
 					'<code>bloginfo()</code>',
@@ -1053,7 +1054,7 @@ function wp_get_document_title() {
 
 		// If it's a search, use a dynamic search results title.
 	} elseif ( is_search() ) {
-		/* translators: %s: search phrase */
+		/* translators: %s: Search query. */
 		$title['title'] = sprintf( __( 'Search Results for &#8220;%s&#8221;' ), get_search_query() );
 
 		// If on the front page, use the site title.
@@ -1097,6 +1098,7 @@ function wp_get_document_title() {
 
 	// Add a page number if necessary.
 	if ( ( $paged >= 2 || $page >= 2 ) && ! is_404() ) {
+		/* translators: %s: Page number. */
 		$title['page'] = sprintf( __( 'Page %s' ), max( $paged, $page ) );
 	}
 
@@ -1259,7 +1261,7 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 
 	// If it's a search
 	if ( is_search() ) {
-		/* translators: 1: separator, 2: search phrase */
+		/* translators: 1: Separator, 2: Search query. */
 		$title = sprintf( __( 'Search Results %1$s %2$s' ), $t_sep, strip_tags( $search ) );
 	}
 
@@ -1557,22 +1559,22 @@ function get_the_archive_title() {
 	$title = __( 'Archives' );
 
 	if ( is_category() ) {
-		/* translators: Category archive title. %s: Category name */
+		/* translators: Category archive title. %s: Category name. */
 		$title = sprintf( __( 'Category: %s' ), single_cat_title( '', false ) );
 	} elseif ( is_tag() ) {
-		/* translators: Tag archive title. %s: Tag name */
+		/* translators: Tag archive title. %s: Tag name. */
 		$title = sprintf( __( 'Tag: %s' ), single_tag_title( '', false ) );
 	} elseif ( is_author() ) {
-		/* translators: Author archive title. %s: Author name */
+		/* translators: Author archive title. %s: Author name. */
 		$title = sprintf( __( 'Author: %s' ), '<span class="vcard">' . get_the_author() . '</span>' );
 	} elseif ( is_year() ) {
-		/* translators: Yearly archive title. %s: Year */
+		/* translators: Yearly archive title. %s: Year. */
 		$title = sprintf( __( 'Year: %s' ), get_the_date( _x( 'Y', 'yearly archives date format' ) ) );
 	} elseif ( is_month() ) {
-		/* translators: Monthly archive title. %s: Month name and year */
+		/* translators: Monthly archive title. %s: Month name and year. */
 		$title = sprintf( __( 'Month: %s' ), get_the_date( _x( 'F Y', 'monthly archives date format' ) ) );
 	} elseif ( is_day() ) {
-		/* translators: Daily archive title. %s: Date */
+		/* translators: Daily archive title. %s: Date. */
 		$title = sprintf( __( 'Day: %s' ), get_the_date( _x( 'F j, Y', 'daily archives date format' ) ) );
 	} elseif ( is_tax( 'post_format' ) ) {
 		if ( is_tax( 'post_format', 'post-format-aside' ) ) {
@@ -1595,13 +1597,13 @@ function get_the_archive_title() {
 			$title = _x( 'Chats', 'post format archive title' );
 		}
 	} elseif ( is_post_type_archive() ) {
-		/* translators: Post type archive title. %s: Post type name */
+		/* translators: Post type archive title. %s: Post type name. */
 		$title = sprintf( __( 'Archives: %s' ), post_type_archive_title( '', false ) );
 	} elseif ( is_tax() ) {
 		$queried_object = get_queried_object();
 		if ( $queried_object ) {
 			$tax = get_taxonomy( $queried_object->taxonomy );
-			/* translators: Taxonomy term archive title. 1: Taxonomy singular name, 2: Current taxonomy term */
+			/* translators: Taxonomy term archive title. 1: Taxonomy singular name, 2: Current taxonomy term. */
 			$title = sprintf( __( '%1$s: %2$s' ), $tax->labels->singular_name, single_term_title( '', false ) );
 		}
 	}
@@ -1893,7 +1895,7 @@ function wp_get_archives( $args = '' ) {
 				if ( 'post' !== $parsed_args['post_type'] ) {
 					$url = add_query_arg( 'post_type', $parsed_args['post_type'], $url );
 				}
-				/* translators: 1: month name, 2: 4-digit year */
+				/* translators: 1: Month name, 2: 4-digit year. */
 				$text = sprintf( __( '%1$s %2$d' ), $wp_locale->get_month( $result->month ), $result->year );
 				if ( $parsed_args['show_post_count'] ) {
 					$parsed_args['after'] = '&nbsp;(' . $result->posts . ')' . $after;
@@ -2136,7 +2138,7 @@ function get_calendar( $initial = true, $echo = true ) {
 			LIMIT 1"
 	);
 
-	/* translators: Calendar caption: 1: month name, 2: 4-digit year */
+	/* translators: Calendar caption: 1: Month name, 2: 4-digit year. */
 	$calendar_caption = _x( '%1$s %2$s', 'calendar caption' );
 	$calendar_output  = '<table id="wp-calendar">
 	<caption>' . sprintf(
@@ -2233,7 +2235,7 @@ function get_calendar( $initial = true, $echo = true ) {
 		if ( in_array( $day, $daywithpost ) ) {
 			// any posts today?
 			$date_format = gmdate( _x( 'F j, Y', 'daily archives date format' ), strtotime( "{$thisyear}-{$thismonth}-{$day}" ) );
-			/* translators: Post calendar label. %s: Date */
+			/* translators: Post calendar label. %s: Date. */
 			$label            = sprintf( __( 'Posts published on %s' ), $date_format );
 			$calendar_output .= sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
@@ -2817,11 +2819,11 @@ function feed_links( $args = array() ) {
 	}
 
 	$defaults = array(
-		/* translators: Separator between blog name and feed type in feed links */
+		/* translators: Separator between blog name and feed type in feed links. */
 		'separator' => _x( '&raquo;', 'feed link' ),
-		/* translators: 1: blog title, 2: separator (raquo) */
+		/* translators: 1: Blog title, 2: Separator (raquo). */
 		'feedtitle' => __( '%1$s %2$s Feed' ),
-		/* translators: 1: blog title, 2: separator (raquo) */
+		/* translators: 1: Blog title, 2: Separator (raquo). */
 		'comstitle' => __( '%1$s %2$s Comments Feed' ),
 	);
 
@@ -2859,21 +2861,21 @@ function feed_links( $args = array() ) {
  */
 function feed_links_extra( $args = array() ) {
 	$defaults = array(
-		/* translators: Separator between blog name and feed type in feed links */
+		/* translators: Separator between blog name and feed type in feed links. */
 		'separator'     => _x( '&raquo;', 'feed link' ),
-		/* translators: 1: blog name, 2: separator(raquo), 3: post title */
+		/* translators: 1: Blog name, 2: Separator (raquo), 3: Post title. */
 		'singletitle'   => __( '%1$s %2$s %3$s Comments Feed' ),
-		/* translators: 1: blog name, 2: separator(raquo), 3: category name */
+		/* translators: 1: Blog name, 2: Separator (raquo), 3: Category name. */
 		'cattitle'      => __( '%1$s %2$s %3$s Category Feed' ),
-		/* translators: 1: blog name, 2: separator(raquo), 3: tag name */
+		/* translators: 1: Blog name, 2: Separator (raquo), 3: Tag name. */
 		'tagtitle'      => __( '%1$s %2$s %3$s Tag Feed' ),
-		/* translators: 1: blog name, 2: separator(raquo), 3: term name, 4: taxonomy singular name */
+		/* translators: 1: Blog name, 2: Separator (raquo), 3: Term name, 4: Taxonomy singular name. */
 		'taxtitle'      => __( '%1$s %2$s %3$s %4$s Feed' ),
-		/* translators: 1: blog name, 2: separator(raquo), 3: author name  */
+		/* translators: 1: Blog name, 2: Separator (raquo), 3: Author name. */
 		'authortitle'   => __( '%1$s %2$s Posts by %3$s Feed' ),
-		/* translators: 1: blog name, 2: separator(raquo), 3: search phrase */
+		/* translators: 1: Blog name, 2: Separator (raquo), 3: Search query. */
 		'searchtitle'   => __( '%1$s %2$s Search Results for &#8220;%3$s&#8221; Feed' ),
-		/* translators: 1: blog name, 2: separator(raquo), 3: post type name */
+		/* translators: 1: Blog name, 2: Separator (raquo), 3: Post type name. */
 		'posttypetitle' => __( '%1$s %2$s %3$s Feed' ),
 	);
 
@@ -2985,12 +2987,18 @@ function noindex() {
  * Display a noindex meta tag.
  *
  * Outputs a noindex meta tag that tells web robots not to index the page content.
- * Typical usage is as a wp_head callback. add_action( 'wp_head', 'wp_no_robots' );
+ * Typical usage is as a {@see 'wp_head'} callback. add_action( 'wp_head', 'wp_no_robots' );
  *
  * @since 3.3.0
+ * @since 5.3.0 Echo "noindex,nofollow" if search engine visibility is discouraged.
  */
 function wp_no_robots() {
-	echo "<meta name='robots' content='noindex,follow' />\n";
+	if ( get_option( 'blog_public' ) ) {
+		echo "<meta name='robots' content='noindex,follow' />\n";
+		return;
+	}
+
+	echo "<meta name='robots' content='noindex,nofollow' />\n";
 }
 
 /**
@@ -4034,6 +4042,7 @@ function paginate_links( $args = '' ) {
 	if ( $mid_size < 0 ) {
 		$mid_size = 2;
 	}
+
 	$add_args   = $args['add_args'];
 	$r          = '';
 	$page_links = array();
@@ -4047,19 +4056,29 @@ function paginate_links( $args = '' ) {
 		}
 		$link .= $args['add_fragment'];
 
-		/**
-		 * Filters the paginated links for the given archive pages.
-		 *
-		 * @since 3.0.0
-		 *
-		 * @param string $link The paginated link URL.
-		 */
-		$page_links[] = '<a class="prev page-numbers" href="' . esc_url( apply_filters( 'paginate_links', $link ) ) . '">' . $args['prev_text'] . '</a>';
+		$page_links[] = sprintf(
+			'<a class="prev page-numbers" href="%s">%s</a>',
+			/**
+			 * Filters the paginated links for the given archive pages.
+			 *
+			 * @since 3.0.0
+			 *
+			 * @param string $link The paginated link URL.
+			 */
+			esc_url( apply_filters( 'paginate_links', $link ) ),
+			$args['prev_text']
+		);
 	endif;
+
 	for ( $n = 1; $n <= $total; $n++ ) :
 		if ( $n == $current ) :
-			$page_links[] = "<span aria-current='" . esc_attr( $args['aria_current'] ) . "' class='page-numbers current'>" . $args['before_page_number'] . number_format_i18n( $n ) . $args['after_page_number'] . '</span>';
-			$dots         = true;
+			$page_links[] = sprintf(
+				'<span aria-current="%s" class="page-numbers current">%s</span>',
+				esc_attr( $args['aria_current'] ),
+				$args['before_page_number'] . number_format_i18n( $n ) . $args['after_page_number']
+			);
+
+			$dots = true;
 		else :
 			if ( $args['show_all'] || ( $n <= $end_size || ( $current && $n >= $current - $mid_size && $n <= $current + $mid_size ) || $n > $total - $end_size ) ) :
 				$link = str_replace( '%_%', 1 == $n ? '' : $args['format'], $args['base'] );
@@ -4069,15 +4088,22 @@ function paginate_links( $args = '' ) {
 				}
 				$link .= $args['add_fragment'];
 
-				/** This filter is documented in wp-includes/general-template.php */
-				$page_links[] = "<a class='page-numbers' href='" . esc_url( apply_filters( 'paginate_links', $link ) ) . "'>" . $args['before_page_number'] . number_format_i18n( $n ) . $args['after_page_number'] . '</a>';
-				$dots         = true;
+				$page_links[] = sprintf(
+					'<a class="page-numbers" href="%s">%s</a>',
+					/** This filter is documented in wp-includes/general-template.php */
+					esc_url( apply_filters( 'paginate_links', $link ) ),
+					$args['before_page_number'] . number_format_i18n( $n ) . $args['after_page_number']
+				);
+
+				$dots = true;
 			elseif ( $dots && ! $args['show_all'] ) :
 				$page_links[] = '<span class="page-numbers dots">' . __( '&hellip;' ) . '</span>';
-				$dots         = false;
+
+				$dots = false;
 			endif;
 		endif;
 	endfor;
+
 	if ( $args['prev_next'] && $current && $current < $total ) :
 		$link = str_replace( '%_%', $args['format'], $args['base'] );
 		$link = str_replace( '%#%', $current + 1, $link );
@@ -4086,9 +4112,14 @@ function paginate_links( $args = '' ) {
 		}
 		$link .= $args['add_fragment'];
 
-		/** This filter is documented in wp-includes/general-template.php */
-		$page_links[] = '<a class="next page-numbers" href="' . esc_url( apply_filters( 'paginate_links', $link ) ) . '">' . $args['next_text'] . '</a>';
+		$page_links[] = sprintf(
+			'<a class="next page-numbers" href="%s">%s</a>',
+			/** This filter is documented in wp-includes/general-template.php */
+			esc_url( apply_filters( 'paginate_links', $link ) ),
+			$args['next_text']
+		);
 	endif;
+
 	switch ( $args['type'] ) {
 		case 'array':
 			return $page_links;
@@ -4103,6 +4134,7 @@ function paginate_links( $args = '' ) {
 			$r = join( "\n", $page_links );
 			break;
 	}
+
 	return $r;
 }
 
@@ -4314,17 +4346,24 @@ function wp_admin_css_uri( $file = 'wp-admin' ) {
  * @param bool   $force_echo Optional. Force the stylesheet link to be printed rather than enqueued.
  */
 function wp_admin_css( $file = 'wp-admin', $force_echo = false ) {
-	// For backward compatibility
+	// For backward compatibility.
 	$handle = 0 === strpos( $file, 'css/' ) ? substr( $file, 4 ) : $file;
 
 	if ( wp_styles()->query( $handle ) ) {
-		if ( $force_echo || did_action( 'wp_print_styles' ) ) { // we already printed the style queue. Print this one immediately
+		if ( $force_echo || did_action( 'wp_print_styles' ) ) {
+			// We already printed the style queue. Print this one immediately.
 			wp_print_styles( $handle );
-		} else { // Add to style queue
+		} else {
+			// Add to style queue.
 			wp_enqueue_style( $handle );
 		}
 		return;
 	}
+
+	$stylesheet_link = sprintf(
+		"<link rel='stylesheet' href='%s' type='text/css' />\n",
+		esc_url( wp_admin_css_uri( $file ) )
+	);
 
 	/**
 	 * Filters the stylesheet link to the specified CSS file.
@@ -4337,11 +4376,16 @@ function wp_admin_css( $file = 'wp-admin', $force_echo = false ) {
 	 * @param string $file            Style handle name or filename (without ".css" extension)
 	 *                                relative to wp-admin/. Defaults to 'wp-admin'.
 	 */
-	echo apply_filters( 'wp_admin_css', "<link rel='stylesheet' href='" . esc_url( wp_admin_css_uri( $file ) ) . "' type='text/css' />\n", $file );
+	echo apply_filters( 'wp_admin_css', $stylesheet_link, $file );
 
 	if ( function_exists( 'is_rtl' ) && is_rtl() ) {
+		$rtl_stylesheet_link = sprintf(
+			"<link rel='stylesheet' href='%s' type='text/css' />\n",
+			esc_url( wp_admin_css_uri( "$file-rtl" ) )
+		);
+
 		/** This filter is documented in wp-includes/general-template.php */
-		echo apply_filters( 'wp_admin_css', "<link rel='stylesheet' href='" . esc_url( wp_admin_css_uri( "$file-rtl" ) ) . "' type='text/css' />\n", "$file-rtl" );
+		echo apply_filters( 'wp_admin_css', $rtl_stylesheet_link, "$file-rtl" );
 	}
 }
 

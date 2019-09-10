@@ -599,7 +599,9 @@ class WP_User_Search {
 				'add_args' => $args
 			) );
 			if ( $this->paging_text ) {
-				$this->paging_text = sprintf( '<span class="displaying-num">' . __( 'Displaying %s&#8211;%s of %s' ) . '</span>%s',
+				$this->paging_text = sprintf(
+					/* translators: 1: Starting number of users on the current page, 2: Ending number of users, 3: Total number of users. */
+					'<span class="displaying-num">' . __( 'Displaying %1$s&#8211;%2$s of %3$s' ) . '</span>%s',
 					number_format_i18n( ( $this->page - 1 ) * $this->users_per_page + 1 ),
 					number_format_i18n( min( $this->page * $this->users_per_page, $this->total_users_for_query ) ),
 					number_format_i18n( $this->total_users_for_query ),
@@ -1377,7 +1379,7 @@ function wp_dashboard_plugins_output( $rss, $args = array() ) {
 		$ilink = wp_nonce_url('plugin-install.php?tab=plugin-information&plugin=' . $slug, 'install-plugin_' . $slug) . '&amp;TB_iframe=true&amp;width=600&amp;height=800';
 		echo '<li class="dashboard-news-plugin"><span>' . __( 'Popular Plugin' ) . ':</span> ' . esc_html( $raw_title ) .
 			'&nbsp;<a href="' . $ilink . '" class="thickbox open-plugin-details-modal" aria-label="' .
-			/* translators: %s: plugin name */
+			/* translators: %s: Plugin name. */
 			esc_attr( sprintf( __( 'Install %s' ), $raw_title ) ) . '">(' . __( 'Install' ) . ')</a></li>';
 
 		$feed->__destruct();

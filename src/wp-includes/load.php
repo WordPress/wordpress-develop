@@ -136,7 +136,7 @@ function wp_check_php_mysql_versions() {
 		$protocol = wp_get_server_protocol();
 		header( sprintf( '%s 500 Internal Server Error', $protocol ), true, 500 );
 		header( 'Content-Type: text/html; charset=utf-8' );
-		/* translators: 1: Current PHP version number, 2: WordPress version number, 3: Minimum required PHP version number */
+		/* translators: 1: Current PHP version number, 2: WordPress version number, 3: Minimum required PHP version number. */
 		printf( __( 'Your server is running PHP version %1$s but WordPress %2$s requires at least %3$s.' ), $php_version, $wp_version, $required_php_version );
 		exit( 1 );
 	}
@@ -489,8 +489,8 @@ function wp_set_wpdb_vars() {
 	if ( is_wp_error( $prefix ) ) {
 		wp_load_translations_early();
 		wp_die(
-			/* translators: 1: $table_prefix, 2: wp-config.php */
 			sprintf(
+				/* translators: 1: $table_prefix, 2: wp-config.php */
 				__( '<strong>ERROR</strong>: %1$s in %2$s can only contain numbers, letters, and underscores.' ),
 				'<code>$table_prefix</code>',
 				'<code>wp-config.php</code>'

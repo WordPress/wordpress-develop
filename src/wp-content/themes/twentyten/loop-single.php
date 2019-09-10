@@ -50,13 +50,14 @@ if ( have_posts() ) {
 						<div id="author-avatar">
 							<?php
 							/** This filter is documented in author.php */
-							echo get_avatar( get_the_author_meta( 'user_email' ), apply_filters( 'twentyten_author_bio_avatar_size', 60 ) );
+							$author_bio_avatar_size = apply_filters( 'twentyten_author_bio_avatar_size', 60 );
+							echo get_avatar( get_the_author_meta( 'user_email' ), $author_bio_avatar_size );
 							?>
 							</div><!-- #author-avatar -->
 							<div id="author-description">
 							<h2>
 							<?php
-							/* translators: %s: author display name */
+							/* translators: %s: Author display name. */
 							printf( __( 'About %s', 'twentyten' ), get_the_author() );
 							?>
 							</h2>
@@ -64,7 +65,7 @@ if ( have_posts() ) {
 							<div id="author-link">
 								<a href="<?php echo esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ); ?>" rel="author">
 									<?php
-									/* translators: %s: author display name */
+									/* translators: %s: Author display name. */
 									printf( __( 'View all posts by %s <span class="meta-nav">&rarr;</span>', 'twentyten' ), get_the_author() );
 									?>
 								</a>

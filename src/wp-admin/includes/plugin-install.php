@@ -174,7 +174,7 @@ function plugins_api( $action, $args = array() ) {
 		if ( $ssl && is_wp_error( $request ) ) {
 			trigger_error(
 				sprintf(
-					/* translators: %s: support forums URL */
+					/* translators: %s: Support forums URL. */
 					__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
 					__( 'https://wordpress.org/support/forums/' )
 				) . ' ' . __( '(WordPress could not establish a secure connection to WordPress.org. Please contact your server administrator.)' ),
@@ -187,7 +187,7 @@ function plugins_api( $action, $args = array() ) {
 			$res = new WP_Error(
 				'plugins_api_failed',
 				sprintf(
-					/* translators: %s: support forums URL */
+					/* translators: %s: Support forums URL. */
 					__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
 					__( 'https://wordpress.org/support/forums/' )
 				),
@@ -202,7 +202,7 @@ function plugins_api( $action, $args = array() ) {
 				$res = new WP_Error(
 					'plugins_api_failed',
 					sprintf(
-						/* translators: %s: support forums URL */
+						/* translators: %s: Support forums URL. */
 						__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
 						__( 'https://wordpress.org/support/forums/' )
 					),
@@ -261,7 +261,15 @@ function install_popular_tags( $args = array() ) {
  */
 function install_dashboard() {
 	?>
-	<p><?php printf( __( 'Plugins extend and expand the functionality of WordPress. You may automatically install plugins from the <a href="%1$s">WordPress Plugin Directory</a> or upload a plugin in .zip format by clicking the button at the top of this page.' ), __( 'https://wordpress.org/plugins/' ) ); ?></p>
+	<p>
+		<?php
+		printf(
+			/* translators: %s: https://wordpress.org/plugins/ */
+			__( 'Plugins extend and expand the functionality of WordPress. You may automatically install plugins from the <a href="%s">WordPress Plugin Directory</a> or upload a plugin in .zip format by clicking the button at the top of this page.' ),
+			__( 'https://wordpress.org/plugins/' )
+		);
+		?>
+	</p>
 
 	<?php display_plugins_table(); ?>
 
@@ -292,7 +300,9 @@ function install_dashboard() {
 		echo wp_generate_tag_cloud(
 			$tags,
 			array(
+				/* translators: %s: Number of plugins. */
 				'single_text'   => __( '%s plugin' ),
+				/* translators: %s: Number of plugins. */
 				'multiple_text' => __( '%s plugins' ),
 			)
 		);
@@ -390,6 +400,7 @@ function display_plugins_table() {
 			break;
 		case 'install_plugins_beta':
 			printf(
+				/* translators: %s: URL to "Features as Plugins" page. */
 				'<p>' . __( 'You are using a development version of WordPress. These feature plugins are also under development. <a href="%s">Learn more</a>.' ) . '</p>',
 				'https://make.wordpress.org/core/handbook/about/release-cycle/features-as-plugins/'
 			);
@@ -639,7 +650,7 @@ function install_plugin_information() {
 			<?php } if ( ! empty( $api->last_updated ) ) { ?>
 				<li><strong><?php _e( 'Last Updated:' ); ?></strong>
 					<?php
-					/* translators: %s: Time since the last update */
+					/* translators: %s: Human-readable time difference. */
 					printf( __( '%s ago' ), human_time_diff( strtotime( $api->last_updated ) ) );
 					?>
 				</li>
@@ -647,7 +658,7 @@ function install_plugin_information() {
 				<li>
 					<strong><?php _e( 'Requires WordPress Version:' ); ?></strong>
 					<?php
-					/* translators: %s: version number */
+					/* translators: %s: Version number. */
 					printf( __( '%s or higher' ), $api->requires );
 					?>
 				</li>
@@ -657,7 +668,7 @@ function install_plugin_information() {
 				<li>
 					<strong><?php _e( 'Requires PHP Version:' ); ?></strong>
 					<?php
-					/* translators: %s: version number */
+					/* translators: %s: Version number. */
 					printf( __( '%s or higher' ), $api->requires_php );
 					?>
 				</li>
@@ -667,6 +678,7 @@ function install_plugin_information() {
 				if ( $api->active_installs >= 1000000 ) {
 					$active_installs_millions = floor( $api->active_installs / 1000000 );
 					printf(
+						/* translators: %s: Number of millions. */
 						_nx( '%s+ Million', '%s+ Million', $active_installs_millions, 'Active plugin installations' ),
 						number_format_i18n( $active_installs_millions )
 					);
@@ -696,7 +708,15 @@ function install_plugin_information() {
 				)
 			);
 			?>
-			<p aria-hidden="true" class="fyi-description"><?php printf( _n( '(based on %s rating)', '(based on %s ratings)', $api->num_ratings ), number_format_i18n( $api->num_ratings ) ); ?></p>
+			<p aria-hidden="true" class="fyi-description">
+				<?php
+				printf(
+					/* translators: %s: Number of ratings. */
+					_n( '(based on %s rating)', '(based on %s ratings)', $api->num_ratings ),
+					number_format_i18n( $api->num_ratings )
+				);
+				?>
+			</p>
 			<?php
 		}
 
@@ -707,11 +727,15 @@ function install_plugin_information() {
 			<?php
 			foreach ( $api->ratings as $key => $ratecount ) {
 				// Avoid div-by-zero.
-				$_rating = $api->num_ratings ? ( $ratecount / $api->num_ratings ) : 0;
-				/* translators: 1: number of stars (used to determine singular/plural), 2: number of reviews */
+				$_rating    = $api->num_ratings ? ( $ratecount / $api->num_ratings ) : 0;
 				$aria_label = esc_attr(
 					sprintf(
-						_n( 'Reviews with %1$d star: %2$s. Opens in a new tab.', 'Reviews with %1$d stars: %2$s. Opens in a new tab.', $key ),
+						/* translators: 1: Number of stars (used to determine singular/plural), 2: Number of reviews. */
+						_n(
+							'Reviews with %1$d star: %2$s. Opens in a new tab.',
+							'Reviews with %1$d stars: %2$s. Opens in a new tab.',
+							$key
+						),
 						$key,
 						number_format_i18n( $ratecount )
 					)
@@ -719,8 +743,15 @@ function install_plugin_information() {
 				?>
 				<div class="counter-container">
 						<span class="counter-label">
-							<a href="https://wordpress.org/support/plugin/<?php echo $api->slug; ?>/reviews/?filter=<?php echo $key; ?>"
-								target="_blank" aria-label="<?php echo $aria_label; ?>"><?php printf( _n( '%d star', '%d stars', $key ), $key ); ?></a>
+							<?php
+							printf(
+								'<a href="%s" target="_blank" aria-label="%s">%s</a>',
+								"https://wordpress.org/support/plugin/{$api->slug}/reviews/?filter={$key}",
+								$aria_label,
+								/* translators: %s: Number of stars. */
+								sprintf( _n( '%d star', '%d stars', $key ), $key )
+							);
+							?>
 						</span>
 						<span class="counter-back">
 							<span class="counter-bar" style="width: <?php echo 92 * $_rating; ?>px;"></span>
@@ -768,7 +799,7 @@ function install_plugin_information() {
 		_e( '<strong>Error:</strong> This plugin <strong>requires a newer version of PHP</strong>.' );
 		if ( current_user_can( 'update_php' ) ) {
 			printf(
-				/* translators: %s: "Update PHP" page URL */
+				/* translators: %s: URL to Update PHP page. */
 				' ' . __( '<a href="%s" target="_blank">Click here to learn more about updating PHP</a>.' ),
 				esc_url( wp_get_update_php_url() )
 			);
@@ -789,7 +820,7 @@ function install_plugin_information() {
 		_e( '<strong>Error:</strong> This plugin <strong>requires a newer version of WordPress</strong>.' );
 		if ( current_user_can( 'update_core' ) ) {
 			printf(
-				/* translators: %s: "Update WordPress" screen URL */
+				/* translators: %s: URL to WordPress Updates screen. */
 				' ' . __( '<a href="%s" target="_parent">Click here to update WordPress</a>.' ),
 				self_admin_url( 'update-core.php' )
 			);
@@ -841,7 +872,7 @@ function install_plugin_information() {
 				}
 				break;
 			case 'newer_installed':
-				/* translators: %s: Plugin version */
+				/* translators: %s: Plugin version. */
 				echo '<a class="button button-primary right disabled">' . sprintf( __( 'Newer Version (%s) Installed' ), $status['version'] ) . '</a>';
 				break;
 			case 'latest_installed':

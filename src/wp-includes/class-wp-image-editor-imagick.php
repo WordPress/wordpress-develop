@@ -410,12 +410,20 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	}
 
 	/**
-	 * Resize multiple images from a single source.
+	 * Create multiple smaller images from a single source.
+	 *
+	 * Attempts to create all sub-sizes and returns the meta data at the end. This
+	 * may result in the server running out of resources. When it fails there may be few
+	 * "orphaned" images left over as the meta data is never returned and saved.
+	 *
+	 * As of 5.3.0 the preferred way to do this is with `make_subsize()`. It creates
+	 * the new images one at a time and allows for the meta data to be saved after
+	 * each new image is created.
 	 *
 	 * @since 3.5.0
 	 *
 	 * @param array $sizes {
-	 *     An array of image size arrays. Default sizes are 'thumbnail', 'medium', 'medium_large', 'large'.
+	 *     An array of image size data arrays.
 	 *
 	 *     Either a height or width must be provided.
 	 *     If one of the two is set to null, the resize will
@@ -657,9 +665,9 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		$perms = $stat['mode'] & 0000666; //same permissions as parent folder, strip off the executable bits
 		chmod( $filename, $perms );
 
-		/** This filter is documented in wp-includes/class-wp-image-editor-gd.php */
 		return array(
 			'path'      => $filename,
+			/** This filter is documented in wp-includes/class-wp-image-editor-gd.php */
 			'file'      => wp_basename( apply_filters( 'image_make_intermediate_size', $filename ) ),
 			'width'     => $this->size['width'],
 			'height'    => $this->size['height'],
@@ -705,12 +713,12 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	protected function strip_meta() {
 
 		if ( ! is_callable( array( $this->image, 'getImageProfiles' ) ) ) {
-			/* translators: %s: ImageMagick method name */
+			/* translators: %s: ImageMagick method name. */
 			return new WP_Error( 'image_strip_meta_error', sprintf( __( '%s is required to strip image meta.' ), '<code>Imagick::getImageProfiles()</code>' ) );
 		}
 
 		if ( ! is_callable( array( $this->image, 'removeImageProfile' ) ) ) {
-			/* translators: %s: ImageMagick method name */
+			/* translators: %s: ImageMagick method name. */
 			return new WP_Error( 'image_strip_meta_error', sprintf( __( '%s is required to strip image meta.' ), '<code>Imagick::removeImageProfile()</code>' ) );
 		}
 

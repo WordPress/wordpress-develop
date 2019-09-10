@@ -74,7 +74,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 * in Safari 11.1 and support is spotty in other browsers. In the future we
 	 * should consider to remove this helper function and only use `aria-modal="true"`.
 	 *
-	 * @since 5.3.0
+	 * @since 5.2.3
 	 *
 	 * @param {object} visibleElement The jQuery object representing the element that should not be hidden.
 	 *
@@ -113,7 +113,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 * Makes visible again to assistive technologies all body children
 	 * previously hidden and stored in this.ariaHiddenElements.
 	 *
-	 * @since 5.3.0
+	 * @since 5.2.3
 	 *
 	 * @returns {void}
 	 */
@@ -129,7 +129,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	/**
 	 * Determines if the passed element should not be hidden from assistive technologies.
 	 *
-	 * @since 5.3.0
+	 * @since 5.2.3
 	 *
 	 * @param {object} element The DOM element that should be checked.
 	 *
@@ -154,7 +154,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	/**
 	 * Whether the body children are hidden from assistive technologies.
 	 *
-	 * @since 5.3.0
+	 * @since 5.2.3
 	 */
 	isBodyAriaHidden: false,
 
@@ -162,7 +162,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 * Stores an array of DOM elements that should be hidden from assistive
 	 * technologies, for example when the media modal dialog opens.
 	 *
-	 * @since 5.3.0
+	 * @since 5.2.3
 	 */
 	ariaHiddenElements: []
 });

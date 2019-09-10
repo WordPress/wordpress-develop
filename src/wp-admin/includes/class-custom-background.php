@@ -67,12 +67,12 @@ class Custom_Background {
 			return;
 		}
 
-		add_action( "load-$page", array( $this, 'admin_load' ) );
-		add_action( "load-$page", array( $this, 'take_action' ), 49 );
-		add_action( "load-$page", array( $this, 'handle_upload' ), 49 );
+		add_action( "load-{$page}", array( $this, 'admin_load' ) );
+		add_action( "load-{$page}", array( $this, 'take_action' ), 49 );
+		add_action( "load-{$page}", array( $this, 'handle_upload' ), 49 );
 
 		if ( $this->admin_header_callback ) {
-			add_action( "admin_head-$page", $this->admin_header_callback, 51 );
+			add_action( "admin_head-{$page}", $this->admin_header_callback, 51 );
 		}
 	}
 
@@ -229,10 +229,11 @@ class Custom_Background {
 <div class="notice notice-info hide-if-no-customize">
 	<p>
 			<?php
-				printf(
-					__( 'You can now manage and live-preview Custom Backgrounds in the <a href="%1$s">Customizer</a>.' ),
-					admin_url( 'customize.php?autofocus[control]=background_image' )
-				);
+			printf(
+				/* translators: %s: URL to background image configuration in Customizer. */
+				__( 'You can now manage and live-preview Custom Backgrounds in the <a href="%s">Customizer</a>.' ),
+				admin_url( 'customize.php?autofocus[control]=background_image' )
+			);
 			?>
 	</p>
 </div>
@@ -240,7 +241,12 @@ class Custom_Background {
 
 		<?php if ( ! empty( $this->updated ) ) { ?>
 <div id="message" class="updated">
-<p><?php printf( __( 'Background updated. <a href="%s">Visit your site</a> to see how it looks.' ), home_url( '/' ) ); ?></p>
+	<p>
+			<?php
+			/* translators: %s: Home URL. */
+			printf( __( 'Background updated. <a href="%s">Visit your site</a> to see how it looks.' ), home_url( '/' ) );
+			?>
+	</p>
 </div>
 		<?php } ?>
 
@@ -578,9 +584,11 @@ class Custom_Background {
 		if ( ! current_user_can( 'edit_theme_options' ) || ! isset( $_POST['attachment_id'] ) ) {
 			exit;
 		}
+
 		$attachment_id = absint( $_POST['attachment_id'] );
-		/** This filter is documented in wp-admin/includes/media.php */
+
 		$sizes = array_keys(
+			/** This filter is documented in wp-admin/includes/media.php */
 			apply_filters(
 				'image_size_names_choose',
 				array(
@@ -591,12 +599,14 @@ class Custom_Background {
 				)
 			)
 		);
-		$size  = 'thumbnail';
+
+		$size = 'thumbnail';
 		if ( in_array( $_POST['size'], $sizes ) ) {
 			$size = esc_attr( $_POST['size'] );
 		}
 
 		update_post_meta( $attachment_id, '_wp_attachment_is_custom_background', get_option( 'stylesheet' ) );
+
 		$url       = wp_get_attachment_image_src( $attachment_id, $size );
 		$thumbnail = wp_get_attachment_image_src( $attachment_id, 'thumbnail' );
 		set_theme_mod( 'background_image', esc_url_raw( $url[0] ) );
