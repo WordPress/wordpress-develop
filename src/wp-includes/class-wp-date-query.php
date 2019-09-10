@@ -145,23 +145,19 @@ class WP_Date_Query {
 	 *                               'comment_date', 'comment_date_gmt'.
 	 */
 	public function __construct( $date_query, $default_column = 'post_date' ) {
+		if ( empty( $date_query ) || ! is_array( $date_query ) ) {
+			return;
+		}
+
 		if ( isset( $date_query['relation'] ) && 'OR' === strtoupper( $date_query['relation'] ) ) {
 			$this->relation = 'OR';
 		} else {
 			$this->relation = 'AND';
 		}
 
-		if ( ! is_array( $date_query ) ) {
-			return;
-		}
-
 		// Support for passing time-based keys in the top level of the $date_query array.
-		if ( ! isset( $date_query[0] ) && ! empty( $date_query ) ) {
+		if ( ! isset( $date_query[0] ) ) {
 			$date_query = array( $date_query );
-		}
-
-		if ( empty( $date_query ) ) {
-			return;
 		}
 
 		if ( ! empty( $date_query['column'] ) ) {
@@ -400,7 +396,7 @@ class WP_Date_Query {
 
 				if ( ! is_numeric( $_value ) || ! $is_between ) {
 					$error = sprintf(
-						/* translators: Date query invalid date message: 1: invalid value, 2: type of value, 3: minimum valid value, 4: maximum valid value */
+						/* translators: Date query invalid date message. 1: Invalid value, 2: Type of value, 3: Minimum valid value, 4: Maximum valid value. */
 						__( 'Invalid value %1$s for %2$s. Expected value should be between %3$s and %4$s.' ),
 						'<code>' . esc_html( $_value ) . '</code>',
 						'<code>' . esc_html( $key ) . '</code>',
@@ -429,8 +425,8 @@ class WP_Date_Query {
 		if ( $day_exists && $month_exists && $year_exists ) {
 			// 1. Checking day, month, year combination.
 			if ( ! wp_checkdate( $date_query['month'], $date_query['day'], $date_query['year'], sprintf( '%s-%s-%s', $date_query['year'], $date_query['month'], $date_query['day'] ) ) ) {
-				/* translators: 1: year, 2: month, 3: day of month */
 				$day_month_year_error_msg = sprintf(
+					/* translators: 1: Year, 2: Month, 3: Day of month. */
 					__( 'The following values do not describe a valid date: year %1$s, month %2$s, day %3$s.' ),
 					'<code>' . esc_html( $date_query['year'] ) . '</code>',
 					'<code>' . esc_html( $date_query['month'] ) . '</code>',
@@ -445,8 +441,8 @@ class WP_Date_Query {
 			 * We use 2012 because, as a leap year, it's the most permissive.
 			 */
 			if ( ! wp_checkdate( $date_query['month'], $date_query['day'], 2012, sprintf( '2012-%s-%s', $date_query['month'], $date_query['day'] ) ) ) {
-				/* translators: 1: month, 2: day of month */
 				$day_month_year_error_msg = sprintf(
+					/* translators: 1: Month, 2: Day of month. */
 					__( 'The following values do not describe a valid date: month %1$s, day %2$s.' ),
 					'<code>' . esc_html( $date_query['month'] ) . '</code>',
 					'<code>' . esc_html( $date_query['day'] ) . '</code>'
@@ -857,7 +853,7 @@ class WP_Date_Query {
 	 *
 	 * You can pass an array of values (year, month, etc.) with missing parameter values being defaulted to
 	 * either the maximum or minimum values (controlled by the $default_to parameter). Alternatively you can
-	 * pass a string that will be run through strtotime().
+	 * pass a string that will be passed to date_create().
 	 *
 	 * @since 3.7.0
 	 *
@@ -869,8 +865,6 @@ class WP_Date_Query {
 	 * @return string|false A MySQL format date/time or false on failure
 	 */
 	public function build_mysql_datetime( $datetime, $default_to_max = false ) {
-		$now = current_time( 'timestamp' );
-
 		if ( ! is_array( $datetime ) ) {
 
 			/*
@@ -911,15 +905,23 @@ class WP_Date_Query {
 
 			// If no match is found, we don't support default_to_max.
 			if ( ! is_array( $datetime ) ) {
-				// @todo Timezone issues here possibly
-				return gmdate( 'Y-m-d H:i:s', strtotime( $datetime, $now ) );
+				$wp_timezone = wp_timezone();
+
+				// Assume local timezone if not provided.
+				$dt = date_create( $datetime, $wp_timezone );
+
+				if ( false === $dt ) {
+					return gmdate( 'Y-m-d H:i:s', false );
+				}
+
+				return $dt->setTimezone( $wp_timezone )->format( 'Y-m-d H:i:s' );
 			}
 		}
 
 		$datetime = array_map( 'absint', $datetime );
 
 		if ( ! isset( $datetime['year'] ) ) {
-			$datetime['year'] = gmdate( 'Y', $now );
+			$datetime['year'] = current_time( 'Y' );
 		}
 
 		if ( ! isset( $datetime['month'] ) ) {

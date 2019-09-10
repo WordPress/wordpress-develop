@@ -71,7 +71,13 @@ if ( isset( $_GET['action'] ) ) {
 							case 'spam':
 								$user = get_userdata( $user_id );
 								if ( is_super_admin( $user->ID ) ) {
-									wp_die( sprintf( __( 'Warning! User cannot be modified. The user %s is a network administrator.' ), esc_html( $user->user_login ) ) );
+									wp_die(
+										sprintf(
+											/* translators: %s: User login. */
+											__( 'Warning! User cannot be modified. The user %s is a network administrator.' ),
+											esc_html( $user->user_login )
+										)
+									);
 								}
 
 								$userfunction = 'all_spam';
@@ -270,7 +276,7 @@ if ( isset( $_REQUEST['updated'] ) && $_REQUEST['updated'] == 'true' && ! empty(
 	endif;
 
 	if ( strlen( $usersearch ) ) {
-		/* translators: %s: search keywords */
+		/* translators: %s: Search query. */
 		printf( '<span class="subtitle">' . __( 'Search results for &#8220;%s&#8221;' ) . '</span>', esc_html( $usersearch ) );
 	}
 	?>

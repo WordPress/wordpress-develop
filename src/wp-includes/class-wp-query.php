@@ -1444,7 +1444,8 @@ class WP_Query {
 			return $this->stopwords;
 		}
 
-		/* translators: This is a comma-separated list of very common words that should be excluded from a search,
+		/*
+		 * translators: This is a comma-separated list of very common words that should be excluded from a search,
 		 * like a, an, and the. These are usually called "stopwords". You should not simply translate these individual
 		 * words into your language. Instead, look for and provide commonly accepted stopwords in your language.
 		 */
@@ -1788,8 +1789,8 @@ class WP_Query {
 			_deprecated_argument(
 				'WP_Query',
 				'3.1.0',
-				/* translators: 1: caller_get_posts, 2: ignore_sticky_posts */
 				sprintf(
+					/* translators: 1: caller_get_posts, 2: ignore_sticky_posts */
 					__( '%1$s is deprecated. Use %2$s instead.' ),
 					'<code>caller_get_posts</code>',
 					'<code>ignore_sticky_posts</code>'

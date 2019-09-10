@@ -91,7 +91,7 @@ function wp_list_widget_controls( $sidebar, $sidebar_name = '' ) {
 
 	if ( $sidebar_name ) {
 		$add_to = sprintf(
-			/* translators: %s: widgets sidebar name. */
+			/* translators: %s: Widgets sidebar name. */
 			__( 'Add to: %s' ),
 			$sidebar_name
 		);
@@ -244,8 +244,18 @@ function wp_widget_control( $sidebar_args ) {
 	<div class="widget-top">
 	<div class="widget-title-action">
 		<button type="button" class="widget-action hide-if-no-js" aria-expanded="false">
-			<span class="screen-reader-text edit"><?php printf( __( 'Edit widget: %s' ), $widget_title ); ?></span>
-			<span class="screen-reader-text add"><?php printf( __( 'Add widget: %s' ), $widget_title ); ?></span>
+			<span class="screen-reader-text edit">
+				<?php
+				/* translators: %s: Widget title. */
+				printf( __( 'Edit widget: %s' ), $widget_title );
+				?>
+			</span>
+			<span class="screen-reader-text add">
+				<?php
+				/* translators: %s: Widget title. */
+				printf( __( 'Add widget: %s' ), $widget_title );
+				?>
+			</span>
 			<span class="toggle-indicator" aria-hidden="true"></span>
 		</button>
 		<a class="widget-control-edit hide-if-js" href="<?php echo esc_url( add_query_arg( $query_arg ) ); ?>">

@@ -67,12 +67,12 @@ class Custom_Background {
 			return;
 		}
 
-		add_action( "load-$page", array( $this, 'admin_load' ) );
-		add_action( "load-$page", array( $this, 'take_action' ), 49 );
-		add_action( "load-$page", array( $this, 'handle_upload' ), 49 );
+		add_action( "load-{$page}", array( $this, 'admin_load' ) );
+		add_action( "load-{$page}", array( $this, 'take_action' ), 49 );
+		add_action( "load-{$page}", array( $this, 'handle_upload' ), 49 );
 
 		if ( $this->admin_header_callback ) {
-			add_action( "admin_head-$page", $this->admin_header_callback, 51 );
+			add_action( "admin_head-{$page}", $this->admin_header_callback, 51 );
 		}
 	}
 
@@ -229,10 +229,11 @@ class Custom_Background {
 <div class="notice notice-info hide-if-no-customize">
 	<p>
 			<?php
-				printf(
-					__( 'You can now manage and live-preview Custom Backgrounds in the <a href="%1$s">Customizer</a>.' ),
-					admin_url( 'customize.php?autofocus[control]=background_image' )
-				);
+			printf(
+				/* translators: %s: URL to background image configuration in Customizer. */
+				__( 'You can now manage and live-preview Custom Backgrounds in the <a href="%s">Customizer</a>.' ),
+				admin_url( 'customize.php?autofocus[control]=background_image' )
+			);
 			?>
 	</p>
 </div>
@@ -240,7 +241,12 @@ class Custom_Background {
 
 		<?php if ( ! empty( $this->updated ) ) { ?>
 <div id="message" class="updated">
-<p><?php printf( __( 'Background updated. <a href="%s">Visit your site</a> to see how it looks.' ), home_url( '/' ) ); ?></p>
+	<p>
+			<?php
+			/* translators: %s: Home URL. */
+			printf( __( 'Background updated. <a href="%s">Visit your site</a> to see how it looks.' ), home_url( '/' ) );
+			?>
+	</p>
 </div>
 		<?php } ?>
 

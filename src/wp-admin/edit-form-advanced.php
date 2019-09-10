@@ -166,8 +166,14 @@ if ( $viewable ) {
 
 }
 
-/* translators: Publish box date format, see https://secure.php.net/date */
-$scheduled_date = date_i18n( __( 'M j, Y @ H:i' ), strtotime( $post->post_date ) );
+$scheduled_date = sprintf(
+	/* translators: Publish box date string. 1: Date, 2: Time. */
+	__( '%1$s at %2$s' ),
+	/* translators: Publish box date format, see https://secure.php.net/date */
+	date_i18n( _x( 'M j, Y', 'publish box date format' ), strtotime( $post->post_date ) ),
+	/* translators: Publish box time format, see https://secure.php.net/date */
+	date_i18n( _x( 'H:i', 'publish box time format' ), strtotime( $post->post_date ) )
+);
 
 $messages['post']       = array(
 	0  => '', // Unused. Messages start at index 1.
@@ -175,11 +181,12 @@ $messages['post']       = array(
 	2  => __( 'Custom field updated.' ),
 	3  => __( 'Custom field deleted.' ),
 	4  => __( 'Post updated.' ),
-	/* translators: %s: date and time of the revision */
+	/* translators: %s: Date and time of the revision. */
 	5  => isset( $_GET['revision'] ) ? sprintf( __( 'Post restored to revision from %s.' ), wp_post_revision_title( (int) $_GET['revision'], false ) ) : false,
 	6  => __( 'Post published.' ) . $view_post_link_html,
 	7  => __( 'Post saved.' ),
 	8  => __( 'Post submitted.' ) . $preview_post_link_html,
+	/* translators: %s: Scheduled date for the post. */
 	9  => sprintf( __( 'Post scheduled for: %s.' ), '<strong>' . $scheduled_date . '</strong>' ) . $scheduled_post_link_html,
 	10 => __( 'Post draft updated.' ) . $preview_post_link_html,
 );
@@ -189,11 +196,12 @@ $messages['page']       = array(
 	2  => __( 'Custom field updated.' ),
 	3  => __( 'Custom field deleted.' ),
 	4  => __( 'Page updated.' ),
-	/* translators: %s: date and time of the revision */
+	/* translators: %s: Date and time of the revision. */
 	5  => isset( $_GET['revision'] ) ? sprintf( __( 'Page restored to revision from %s.' ), wp_post_revision_title( (int) $_GET['revision'], false ) ) : false,
 	6  => __( 'Page published.' ) . $view_page_link_html,
 	7  => __( 'Page saved.' ),
 	8  => __( 'Page submitted.' ) . $preview_page_link_html,
+	/* translators: %s: Scheduled date for the page. */
 	9  => sprintf( __( 'Page scheduled for: %s.' ), '<strong>' . $scheduled_date . '</strong>' ) . $scheduled_page_link_html,
 	10 => __( 'Page draft updated.' ) . $preview_page_link_html,
 );
@@ -238,7 +246,11 @@ $form_extra  .= "<input type='hidden' id='post_ID' name='post_ID' value='" . esc
 if ( $autosave && mysql2date( 'U', $autosave->post_modified_gmt, false ) > mysql2date( 'U', $post->post_modified_gmt, false ) ) {
 	foreach ( _wp_post_revision_fields( $post ) as $autosave_field => $_autosave_field ) {
 		if ( normalize_whitespace( $autosave->$autosave_field ) != normalize_whitespace( $post->$autosave_field ) ) {
-			$notice = sprintf( __( 'There is an autosave of this post that is more recent than the version below. <a href="%s">View the autosave</a>' ), get_edit_post_link( $autosave->ID ) );
+			$notice = sprintf(
+				/* translators: %s: URL to view the autosave. */
+				__( 'There is an autosave of this post that is more recent than the version below. <a href="%s">View the autosave</a>' ),
+				get_edit_post_link( $autosave->ID )
+			);
 			break;
 		}
 	}
@@ -292,7 +304,11 @@ if ( 'post' == $post_type ) {
 	);
 
 	get_current_screen()->set_help_sidebar(
-		'<p>' . sprintf( __( 'You can also create posts with the <a href="%s">Press This bookmarklet</a>.' ), 'tools.php' ) . '</p>' .
+		'<p>' . sprintf(
+			/* translators: %s: URL to Press This bookmarklet. */
+			__( 'You can also create posts with the <a href="%s">Press This bookmarklet</a>.' ),
+			'tools.php'
+		) . '</p>' .
 			'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
 			'<p>' . __( '<a href="https://wordpress.org/support/article/wordpress-editor/">Documentation on Writing and Editing Posts</a>' ) . '</p>' .
 			'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
@@ -359,8 +375,11 @@ if ( 'post' == $post_type ) {
 	}
 
 	if ( current_theme_supports( 'post-thumbnails' ) && post_type_supports( 'post', 'thumbnail' ) ) {
-		/* translators: %s: Featured Image */
-		$publish_box .= '<li>' . sprintf( __( '<strong>%s</strong> &mdash; This allows you to associate an image with your post without inserting it. This is usually useful only if your theme makes use of the image as a post thumbnail on the home page, a custom header, etc.' ), esc_html( $post_type_object->labels->featured_image ) ) . '</li>';
+		$publish_box .= '<li>' . sprintf(
+			/* translators: %s: Featured Image. */
+			__( '<strong>%s</strong> &mdash; This allows you to associate an image with your post without inserting it. This is usually useful only if your theme makes use of the image as a post thumbnail on the home page, a custom header, etc.' ),
+			esc_html( $post_type_object->labels->featured_image )
+		) . '</li>';
 	}
 
 	$publish_box .= '</ul>';
@@ -577,7 +596,15 @@ if ( post_type_supports( $post_type, 'editor' ) ) {
 	);
 	?>
 <table id="post-status-info"><tbody><tr>
-	<td id="wp-word-count" class="hide-if-no-js"><?php printf( __( 'Word count: %s' ), '<span class="word-count">0</span>' ); ?></td>
+	<td id="wp-word-count" class="hide-if-no-js">
+	<?php
+	printf(
+		/* translators: %s: Number of words. */
+		__( 'Word count: %s' ),
+		'<span class="word-count">0</span>'
+	);
+	?>
+	</td>
 	<td class="autosave-info">
 	<span class="autosave-message">&nbsp;</span>
 	<?php
@@ -585,10 +612,10 @@ if ( post_type_supports( $post_type, 'editor' ) ) {
 		echo '<span id="last-edit">';
 		$last_user = get_userdata( get_post_meta( $post_ID, '_edit_last', true ) );
 		if ( $last_user ) {
-			/* translators: 1: Name of most recent post author, 2: Post edited date, 3: Post edited time */
+			/* translators: 1: Name of most recent post author, 2: Post edited date, 3: Post edited time. */
 			printf( __( 'Last edited by %1$s on %2$s at %3$s' ), esc_html( $last_user->display_name ), mysql2date( __( 'F j, Y' ), $post->post_modified ), mysql2date( __( 'g:i a' ), $post->post_modified ) );
 		} else {
-			/* translators: 1: Post edited date, 2: Post edited time */
+			/* translators: 1: Post edited date, 2: Post edited time. */
 			printf( __( 'Last edited on %1$s at %2$s' ), mysql2date( __( 'F j, Y' ), $post->post_modified ), mysql2date( __( 'g:i a' ), $post->post_modified ) );
 		}
 		echo '</span>';

@@ -190,6 +190,7 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 				if ( is_wp_error( rest_validate_value_from_schema( get_option( $args['option_name'], false ), $args['schema'] ) ) ) {
 					return new WP_Error(
 						'rest_invalid_stored_value',
+						/* translators: %s: Property name. */
 						sprintf( __( 'The %s property has an invalid stored value, and cannot be updated to null.' ), $name ),
 						array( 'status' => 500 )
 					);
@@ -303,9 +304,9 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param  mixed           $value   The value for the setting.
-	 * @param  WP_REST_Request $request The request object.
-	 * @param  string          $param   The parameter name.
+	 * @param mixed           $value   The value for the setting.
+	 * @param WP_REST_Request $request The request object.
+	 * @param string          $param   The parameter name.
 	 * @return mixed|WP_Error
 	 */
 	public function sanitize_callback( $value, $request, $param ) {

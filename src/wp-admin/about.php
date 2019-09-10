@@ -20,7 +20,7 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 		<h1>
 			<?php
 			printf(
-				/* translators: %s: The current WordPress version number */
+				/* translators: %s: The current WordPress version number. */
 				__( 'Welcome to WordPress&nbsp;%s' ),
 				$display_version
 			);
@@ -30,7 +30,7 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 		<p class="about-text">
 			<?php
 			printf(
-				/* translators: %s: The current WordPress version number */
+				/* translators: %s: The current WordPress version number. */
 				__( 'Congratulations on updating to WordPress %s! This update makes it easier than ever to fix your site if something goes wrong.' ),
 				$display_version
 			);
@@ -40,7 +40,7 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 		<div class="wp-badge">
 			<?php
 			printf(
-				/* translators: %s: The current WordPress version number */
+				/* translators: %s: The current WordPress version number. */
 				__( 'Version %s' ),
 				$display_version
 			);
@@ -70,14 +70,14 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 				<p>
 					<?php
 					printf(
-						/* translators: 1: link to the WordPress 5.1 release post */
+						/* translators: 1: Link to the WordPress 5.1 release post. */
 						__( 'Building on <a href="%1$s">the Site Health features introduced in 5.1</a>, this release adds two new pages to help debug common configuration issues. It also adds space where developers can include debugging information for site maintainers.' ),
 						__( 'https://wordpress.org/news/2019/02/betty/' )
 					);
 
 					if ( current_user_can( 'install_plugins' ) ) {
 						printf(
-							/* translators: 1: link to /wp-admin/site-health.php 2: link to /wp-admin/site-health.php?tab=debug */
+							/* translators: 1: URL to Site Health Status screen, 2: URL to Site Health Info screen. */
 							__( ' <a href="%1$s">Check your site status</a>, and <a href="%2$s">learn how to debug issues</a>.' ),
 							admin_url( 'site-health.php' ),
 							admin_url( 'site-health.php?tab=debug' )
@@ -142,7 +142,7 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 				<p>
 					<?php
 					printf(
-						/* translators: 1: wp_body_open 2: <body> */
+						/* translators: 1: wp_body_open, 2: <body> */
 						__( '5.2 introduces a %1$s hook, which lets themes support injecting code right at the beginning of the %2$s element.' ),
 						'<code>wp_body_open</code>',
 						'<code>&lt;body&gt;</code>'
@@ -183,28 +183,28 @@ __( 'Security Releases' );
 __( 'Maintenance and Security Release' );
 __( 'Maintenance and Security Releases' );
 
-/* translators: %s: WordPress version number */
+/* translators: %s: WordPress version number. */
 __( '<strong>Version %s</strong> addressed one security issue.' );
-/* translators: %s: WordPress version number */
+/* translators: %s: WordPress version number. */
 __( '<strong>Version %s</strong> addressed some security issues.' );
 
-/* translators: 1: WordPress version number, 2: plural number of bugs. */
+/* translators: 1: WordPress version number, 2: Plural number of bugs. */
 _n_noop(
 	'<strong>Version %1$s</strong> addressed %2$s bug.',
 	'<strong>Version %1$s</strong> addressed %2$s bugs.'
 );
 
-/* translators: 1: WordPress version number, 2: plural number of bugs. Singular security issue. */
+/* translators: 1: WordPress version number, 2: Plural number of bugs. Singular security issue. */
 _n_noop(
 	'<strong>Version %1$s</strong> addressed a security issue and fixed %2$s bug.',
 	'<strong>Version %1$s</strong> addressed a security issue and fixed %2$s bugs.'
 );
 
-/* translators: 1: WordPress version number, 2: plural number of bugs. More than one security issue. */
+/* translators: 1: WordPress version number, 2: Plural number of bugs. More than one security issue. */
 _n_noop(
 	'<strong>Version %1$s</strong> addressed some security issues and fixed %2$s bug.',
 	'<strong>Version %1$s</strong> addressed some security issues and fixed %2$s bugs.'
 );
 
-/* translators: %s: Documentation URL */
+/* translators: %s: Documentation URL. */
 __( 'For more information, see <a href="%s">the release notes</a>.' );

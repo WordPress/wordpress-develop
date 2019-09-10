@@ -142,10 +142,11 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 
 		$data = array(
 			array(
-				'group_id'    => 'custom-exporter-group-id',
-				'group_label' => 'custom-exporter-group-label',
-				'item_id'     => 'custom-exporter-item-id',
-				'data'        => array(
+				'group_id'          => 'custom-exporter-group-id',
+				'group_label'       => 'Custom Exporter Group Label',
+				'group_description' => 'Custom Exporter Group Description',
+				'item_id'           => 'custom-exporter-item-id',
+				'data'              => array(
 					array(
 						'name'  => 'Email',
 						'value' => self::$requester_email,

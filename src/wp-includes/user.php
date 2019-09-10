@@ -174,7 +174,7 @@ function wp_authenticate_username_password( $user, $username, $password ) {
 		return new WP_Error(
 			'incorrect_password',
 			sprintf(
-				/* translators: %s: user name */
+				/* translators: %s: User name. */
 				__( '<strong>ERROR</strong>: The password you entered for the username %s is incorrect.' ),
 				'<strong>' . $username . '</strong>'
 			) .
@@ -248,7 +248,7 @@ function wp_authenticate_email_password( $user, $email, $password ) {
 		return new WP_Error(
 			'incorrect_password',
 			sprintf(
-				/* translators: %s: email address */
+				/* translators: %s: Email address. */
 				__( '<strong>ERROR</strong>: The password you entered for the email address %s is incorrect.' ),
 				'<strong>' . $email . '</strong>'
 			) .
@@ -1190,7 +1190,7 @@ function wp_dropdown_users( $args = '' ) {
 
 		foreach ( (array) $users as $user ) {
 			if ( 'display_name_with_login' === $show ) {
-				/* translators: 1: display name, 2: user_login */
+				/* translators: 1: User's display name, 2: User login. */
 				$display = sprintf( _x( '%1$s (%2$s)', 'user dropdown' ), $user->display_name, $user->user_login );
 			} elseif ( ! empty( $user->$show ) ) {
 				$display = $user->$show;
@@ -1665,7 +1665,7 @@ function wp_insert_user( $userdata ) {
 
 	$user_activation_key = empty( $userdata['user_activation_key'] ) ? '' : $userdata['user_activation_key'];
 
-	if ( isset( $userdata['spam'] ) && ! is_multisite() ) {
+	if ( ! empty( $userdata['spam'] ) && ! is_multisite() ) {
 		return new WP_Error( 'no_spam', __( 'Sorry, marking a user as spam is only supported on Multisite.' ) );
 	}
 
@@ -1711,7 +1711,7 @@ function wp_insert_user( $userdata ) {
 		if ( $update ) {
 			$display_name = $user_login;
 		} elseif ( $meta['first_name'] && $meta['last_name'] ) {
-			/* translators: 1: first name, 2: last name */
+			/* translators: 1: User's first name, 2: Last name. */
 			$display_name = sprintf( _x( '%1$s %2$s', 'Display name based on first name and last name' ), $meta['first_name'], $meta['last_name'] );
 		} elseif ( $meta['first_name'] ) {
 			$display_name = $meta['first_name'];
@@ -1793,6 +1793,10 @@ function wp_insert_user( $userdata ) {
 	 * @param int|null $id     ID of the user to be updated, or NULL if the user is being created.
 	 */
 	$data = apply_filters( 'wp_pre_insert_user_data', $data, $update, $update ? (int) $ID : null );
+
+	if ( empty( $data ) || ! is_array( $data ) ) {
+		return new WP_Error( 'empty_data', __( 'Not enough data to create this user.' ) );
+	}
 
 	if ( $update ) {
 		if ( $user_email !== $old_user_data->user_email ) {
@@ -2014,7 +2018,7 @@ All at ###SITENAME###
 
 			$pass_change_email = array(
 				'to'      => $user['user_email'],
-				/* translators: Password change notification email subject. %s: Site name */
+				/* translators: Password change notification email subject. %s: Site title. */
 				'subject' => __( '[%s] Password Changed' ),
 				'message' => $pass_change_text,
 				'headers' => '',
@@ -2071,7 +2075,7 @@ All at ###SITENAME###
 
 			$email_change_email = array(
 				'to'      => $user['user_email'],
-				/* translators: Email change notification email subject. %s: Site name */
+				/* translators: Email change notification email subject. %s: Site title. */
 				'subject' => __( '[%s] Email Changed' ),
 				'message' => $email_change_text,
 				'headers' => '',
@@ -2553,7 +2557,14 @@ function register_new_user( $user_login, $user_email ) {
 	$user_pass = wp_generate_password( 12, false );
 	$user_id   = wp_create_user( $sanitized_user_login, $user_pass, $user_email );
 	if ( ! $user_id || is_wp_error( $user_id ) ) {
-		$errors->add( 'registerfail', sprintf( __( '<strong>ERROR</strong>: Couldn&#8217;t register you&hellip; please contact the <a href="mailto:%s">webmaster</a> !' ), get_option( 'admin_email' ) ) );
+		$errors->add(
+			'registerfail',
+			sprintf(
+				/* translators: %s: Admin email address. */
+				__( '<strong>ERROR</strong>: Couldn&#8217;t register you&hellip; please contact the <a href="mailto:%s">webmaster</a> !' ),
+				get_option( 'admin_email' )
+			)
+		);
 		return $errors;
 	}
 
@@ -2864,7 +2875,7 @@ All at ###SITENAME###
 		$content = str_replace( '###SITENAME###', $sitename, $content );
 		$content = str_replace( '###SITEURL###', home_url(), $content );
 
-		/* translators: New email address notification email subject. %s: Site name */
+		/* translators: New email address notification email subject. %s: Site title. */
 		wp_mail( $_POST['email'], sprintf( __( '[%s] Email Change Request' ), $sitename ), $content );
 
 		$_POST['email'] = $current_user->user_email;
@@ -2886,7 +2897,7 @@ function new_user_email_admin_notice() {
 	if ( 'profile.php' === $pagenow && isset( $_GET['updated'] ) ) {
 		$email = get_user_meta( get_current_user_id(), '_new_email', true );
 		if ( $email ) {
-			/* translators: %s: New email address */
+			/* translators: %s: New email address. */
 			echo '<div class="notice notice-info"><p>' . sprintf( __( 'Your email address has not been updated yet. Please check your inbox at %s for a confirmation email.' ), '<code>' . esc_html( $email['newemail'] ) . '</code>' ) . '</p></div>';
 		}
 	}
@@ -2994,10 +3005,11 @@ function wp_user_personal_data_exporter( $email_address ) {
 	}
 
 	$data_to_export[] = array(
-		'group_id'    => 'user',
-		'group_label' => __( 'User' ),
-		'item_id'     => "user-{$user->ID}",
-		'data'        => $user_data_to_export,
+		'group_id'          => 'user',
+		'group_label'       => __( 'User' ),
+		'group_description' => __( 'User&#8217;s profile data.' ),
+		'item_id'           => "user-{$user->ID}",
+		'data'              => $user_data_to_export,
 	);
 
 	return array(
@@ -3224,7 +3236,7 @@ function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 	);
 
 	$subject = sprintf(
-		/* translators: Erasure request fulfilled notification email subject. %s: Site name. */
+		/* translators: Erasure request fulfilled notification email subject. %s: Site title. */
 		__( '[%s] Erasure Request Fulfilled' ),
 		$email_data['sitename']
 	);
@@ -3442,7 +3454,7 @@ function wp_user_request_action_description( $action_name ) {
 			$description = __( 'Erase Personal Data' );
 			break;
 		default:
-			/* translators: %s: action name */
+			/* translators: %s: Action name. */
 			$description = sprintf( __( 'Confirm the "%s" action' ), $action_name );
 			break;
 	}
@@ -3552,7 +3564,7 @@ All at ###SITENAME###
 	$content = str_replace( '###SITENAME###', $email_data['sitename'], $content );
 	$content = str_replace( '###SITEURL###', esc_url_raw( $email_data['siteurl'] ), $content );
 
-	/* translators: Confirm privacy data request notification email subject. 1: Site title, 2: Name of the action */
+	/* translators: Confirm privacy data request notification email subject. 1: Site title, 2: Name of the action. */
 	$subject = sprintf( __( '[%1$s] Confirm Action: %2$s' ), $email_data['sitename'], $email_data['description'] );
 
 	/**
