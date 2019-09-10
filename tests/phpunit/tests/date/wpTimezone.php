@@ -4,7 +4,7 @@
  * @group date
  * @group datetime
  */
-class Tests_WP_Timezone extends WP_UnitTestCase {
+class Tests_Date_WP_Timezone extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 24730

@@ -22,7 +22,7 @@ if ( defined( 'ABSPATH' ) ) {
 
 require_once( ABSPATH . 'wp-admin/admin.php' );
 
-header( 'Content-Type: text/html; charset=' . get_option( 'blog_charset' ) );
+header( 'Content-Type: text/plain; charset=' . get_option( 'blog_charset' ) );
 
 if ( isset( $_REQUEST['action'] ) && 'upload-attachment' === $_REQUEST['action'] ) {
 	include( ABSPATH . 'wp-admin/includes/ajax-actions.php' );
@@ -92,10 +92,19 @@ if ( isset( $_REQUEST['post_id'] ) ) {
 
 $id = media_handle_upload( 'async-upload', $post_id );
 if ( is_wp_error( $id ) ) {
-	echo '<div class="error-div error">
-	<button type="button" class="dismiss button-link" onclick="jQuery(this).parents(\'div.media-item\').slideUp(200, function(){jQuery(this).remove();});">' . __( 'Dismiss' ) . '</button>
-	<strong>' . sprintf( __( '&#8220;%s&#8221; has failed to upload.' ), esc_html( $_FILES['async-upload']['name'] ) ) . '</strong><br />' .
-	esc_html( $id->get_error_message() ) . '</div>';
+	printf(
+		'<div class="error-div error">%s <strong>%s</strong><br />%s</div>',
+		sprintf(
+			'<button type="button" class="dismiss button-link" onclick="jQuery(this).parents(\'div.media-item\').slideUp(200, function(){jQuery(this).remove();});">%s</button>',
+			__( 'Dismiss' )
+		),
+		sprintf(
+			/* translators: %s: Name of the file that failed to upload. */
+			__( '&#8220;%s&#8221; has failed to upload.' ),
+			esc_html( $_FILES['async-upload']['name'] )
+		),
+		esc_html( $id->get_error_message() )
+	);
 	exit;
 }
 

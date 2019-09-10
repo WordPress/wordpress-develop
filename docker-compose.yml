@@ -97,6 +97,7 @@ services:
     environment:
       LOCAL_PHP_XDEBUG: ${LOCAL_PHP_XDEBUG-false}
       LOCAL_PHP_MEMCACHED: ${LOCAL_PHP_MEMCACHED-false}
+      LOCAL_DIR: ${LOCAL_DIR-src}
       WP_MULTISITE: ${WP_MULTISITE-false}
 
     volumes:

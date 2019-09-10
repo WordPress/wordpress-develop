@@ -531,10 +531,22 @@ function wp_comment_reply( $position = 1, $checkbox = false, $mode = 'single', $
 function wp_comment_trashnotice() {
 	?>
 <div class="hidden" id="trash-undo-holder">
-	<div class="trash-undo-inside"><?php printf( __( 'Comment by %s moved to the trash.' ), '<strong></strong>' ); ?> <span class="undo untrash"><a href="#"><?php _e( 'Undo' ); ?></a></span></div>
+	<div class="trash-undo-inside">
+		<?php
+		/* translators: %s: Comment author, filled by AJAX. */
+		printf( __( 'Comment by %s moved to the trash.' ), '<strong></strong>' );
+		?>
+		<span class="undo untrash"><a href="#"><?php _e( 'Undo' ); ?></a></span>
+	</div>
 </div>
 <div class="hidden" id="spam-undo-holder">
-	<div class="spam-undo-inside"><?php printf( __( 'Comment by %s marked as spam.' ), '<strong></strong>' ); ?> <span class="undo unspam"><a href="#"><?php _e( 'Undo' ); ?></a></span></div>
+	<div class="spam-undo-inside">
+		<?php
+		/* translators: %s: Comment author, filled by AJAX. */
+		printf( __( 'Comment by %s marked as spam.' ), '<strong></strong>' );
+		?>
+		<span class="undo unspam"><a href="#"><?php _e( 'Undo' ); ?></a></span>
+	</div>
 </div>
 	<?php
 }
@@ -800,7 +812,7 @@ function touch_time( $edit = 1, $for_post = 1, $tab_index = 0, $multi = 0 ) {
 		$monthnum  = zeroise( $i, 2 );
 		$monthtext = $wp_locale->get_month_abbrev( $wp_locale->get_month( $i ) );
 		$month    .= "\t\t\t" . '<option value="' . $monthnum . '" data-text="' . $monthtext . '" ' . selected( $monthnum, $mm, false ) . '>';
-		/* translators: 1: month number (01, 02, etc.), 2: month abbreviation */
+		/* translators: 1: Month number (01, 02, etc.), 2: Month abbreviation. */
 		$month .= sprintf( __( '%1$s-%2$s' ), $monthnum, $monthtext ) . "</option>\n";
 	}
 	$month .= '</select></label>';
@@ -811,8 +823,8 @@ function touch_time( $edit = 1, $for_post = 1, $tab_index = 0, $multi = 0 ) {
 	$minute = '<label><span class="screen-reader-text">' . __( 'Minute' ) . '</span><input type="text" ' . ( $multi ? '' : 'id="mn" ' ) . 'name="mn" value="' . $mn . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" /></label>';
 
 	echo '<div class="timestamp-wrap">';
-	/* translators: 1: month, 2: day, 3: year, 4: hour, 5: minute */
-	printf( __( '%1$s %2$s, %3$s @ %4$s:%5$s' ), $month, $day, $year, $hour, $minute );
+	/* translators: 1: Month, 2: Day, 3: Year, 4: Hour, 5: Minute. */
+	printf( __( '%1$s %2$s, %3$s at %4$s:%5$s' ), $month, $day, $year, $hour, $minute );
 
 	echo '</div><input type="hidden" id="ss" name="ss" value="' . $ss . '" />';
 
@@ -955,7 +967,14 @@ function wp_import_upload_form( $action ) {
 		?>
 <form enctype="multipart/form-data" id="import-upload-form" method="post" class="wp-upload-form" action="<?php echo esc_url( wp_nonce_url( $action, 'import-upload' ) ); ?>">
 <p>
-<label for="upload"><?php _e( 'Choose a file from your computer:' ); ?></label> (<?php printf( __( 'Maximum size: %s' ), $size ); ?>)
+		<?php
+		printf(
+			'<label for="upload">%s</label> (%s)',
+			__( 'Choose a file from your computer:' ),
+			/* translators: %s: Maximum allowed file size. */
+			sprintf( __( 'Maximum size: %s' ), $size )
+		);
+		?>
 <input type="file" id="upload" name="import" size="25" />
 <input type="hidden" name="action" value="save" />
 <input type="hidden" name="max_file_size" value="<?php echo $bytes; ?>" />
@@ -1106,7 +1125,7 @@ function do_block_editor_incompatible_meta_box( $object, $box ) {
 	$plugins = get_plugins();
 	echo '<p>';
 	if ( $plugin ) {
-		/* translators: %s: the name of the plugin that generated this meta box. */
+		/* translators: %s: The name of the plugin that generated this meta box. */
 		printf( __( "This meta box, from the %s plugin, isn't compatible with the block editor." ), "<strong>{$plugin['Name']}</strong>" );
 	} else {
 		_e( "This meta box isn't compatible with the block editor." );
@@ -1289,7 +1308,11 @@ function do_meta_boxes( $screen, $context, $object ) {
 						}
 
 						echo '<button type="button" class="handlediv" aria-expanded="true">';
-						echo '<span class="screen-reader-text">' . sprintf( __( 'Toggle panel: %s' ), $widget_title ) . '</span>';
+						echo '<span class="screen-reader-text">' . sprintf(
+							/* translators: Meta box title. */
+							__( 'Toggle panel: %s' ),
+							$widget_title
+						) . '</span>';
 						echo '<span class="toggle-indicator" aria-hidden="true"></span>';
 						echo '</button>';
 					}
@@ -1309,7 +1332,7 @@ function do_meta_boxes( $screen, $context, $object ) {
 							<div class="error inline">
 								<p>
 									<?php
-										/* translators: %s: the name of the plugin that generated this meta box. */
+										/* translators: %s: The name of the plugin that generated this meta box. */
 										printf( __( "This meta box, from the %s plugin, isn't compatible with the block editor." ), "<strong>{$plugin['Name']}</strong>" );
 									?>
 								</p>
@@ -1489,8 +1512,8 @@ function add_settings_section( $id, $title, $callback, $page ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'3.0.0',
-			/* translators: %s: misc */
 			sprintf(
+				/* translators: %s: misc */
 				__( 'The "%s" options group has been removed. Use another settings group.' ),
 				'misc'
 			)
@@ -1502,8 +1525,8 @@ function add_settings_section( $id, $title, $callback, $page ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'3.5.0',
-			/* translators: %s: privacy */
 			sprintf(
+				/* translators: %s: privacy */
 				__( 'The "%s" options group has been removed. Use another settings group.' ),
 				'privacy'
 			)
@@ -1560,8 +1583,8 @@ function add_settings_field( $id, $title, $callback, $page, $section = 'default'
 		_deprecated_argument(
 			__FUNCTION__,
 			'3.0.0',
-			/* translators: %s: misc */
 			sprintf(
+				/* translators: %s: misc */
 				__( 'The "%s" options group has been removed. Use another settings group.' ),
 				'misc'
 			)
@@ -1573,8 +1596,8 @@ function add_settings_field( $id, $title, $callback, $page, $section = 'default'
 		_deprecated_argument(
 			__FUNCTION__,
 			'3.5.0',
-			/* translators: %s: privacy */
 			sprintf(
+				/* translators: %s: privacy */
 				__( 'The "%s" options group has been removed. Use another settings group.' ),
 				'privacy'
 			)
@@ -2488,11 +2511,11 @@ function wp_star_rating( $args = array() ) {
 	$empty_stars = 5 - $full_stars - $half_stars;
 
 	if ( $parsed_args['number'] ) {
-		/* translators: 1: the rating, 2: the number of ratings */
+		/* translators: 1: The rating, 2: The number of ratings. */
 		$format = _n( '%1$s rating based on %2$s rating', '%1$s rating based on %2$s ratings', $parsed_args['number'] );
 		$title  = sprintf( $format, number_format_i18n( $rating, 1 ), number_format_i18n( $parsed_args['number'] ) );
 	} else {
-		/* translators: %s: the rating */
+		/* translators: %s: The rating. */
 		$title = sprintf( __( '%s rating' ), number_format_i18n( $rating, 1 ) );
 	}
 

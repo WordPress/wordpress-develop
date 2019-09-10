@@ -280,7 +280,10 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 			$blogname = untrailingslashit( $blog['domain'] . $blog['path'] );
 			?>
 			<label class="screen-reader-text" for="blog_<?php echo $blog['blog_id']; ?>">
-				<?php printf( __( 'Select %s' ), $blogname ); ?>
+				<?php
+				/* translators: %s: Site URL. */
+				printf( __( 'Select %s' ), $blogname );
+				?>
 			</label>
 			<input type="checkbox" id="blog_<?php echo $blog['blog_id']; ?>" name="allblogs[]" value="<?php echo esc_attr( $blog['blog_id'] ); ?>" />
 			<?php
@@ -341,7 +344,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 			switch_to_blog( $blog['blog_id'] );
 			echo '<p>';
 			printf(
-				/* translators: 1: site name, 2: site tagline. */
+				/* translators: 1: Site title, 2: Site tagline. */
 				__( '%1$s &#8211; %2$s' ),
 				get_option( 'blogname' ),
 				'<em>' . get_option( 'blogdescription ' ) . '</em>'

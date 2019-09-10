@@ -1784,8 +1784,8 @@ EOF;
 		// Mock data for this test.
 		$image_src  = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test image-300x150.png';
 		$image_meta = array(
-			'width'  => 2000,
-			'height' => 1000,
+			'width'  => 3000,
+			'height' => 1500,
 			'file'   => '2015/12/test image.png',
 			'sizes'  => array(
 				'thumbnail'    => array(
