@@ -932,7 +932,7 @@ if ( is_multisite() ) :
 			$this->assertSame( $num_queries, $wpdb->num_queries );
 
 			// We manually inserted a non-existing site and overrode the results with it.
-			$this->assertSame( array( 555 ), $q->sites );
+			$this->assertSame( array( 555 ), $results );
 
 			// Make sure manually setting total_users doesn't get overwritten.
 			$this->assertEquals( 1, $q->found_sites );
