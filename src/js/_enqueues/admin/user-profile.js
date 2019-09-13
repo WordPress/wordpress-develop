@@ -272,7 +272,7 @@
 	function check_pass_strength() {
 		var pass1 = $('#pass1').val(), strength;
 
-		$('#pass-strength-result').removeClass('short bad good strong');
+		$('#pass-strength-result').removeClass('short bad good strong empty');
 		if ( ! pass1 ) {
 			$('#pass-strength-result').addClass( 'empty' ).html( '&nbsp;' );
 			return;
