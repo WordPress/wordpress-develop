@@ -1269,6 +1269,50 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 	}
 
+	/**
+	 * @ticket 41411
+	 */
+	public function test_editable_response_uses_edit_context() {
+		wp_set_current_user( self::$administrator );
+
+		$view_field = 'view_only_field';
+		$edit_field = 'edit_only_field';
+
+		register_rest_field(
+			'tag',
+			$view_field,
+			array(
+				'context'      => array( 'view' ),
+				'get_callback' => '__return_empty_string',
+			)
+		);
+
+		register_rest_field(
+			'tag',
+			$edit_field,
+			array(
+				'context'      => array( 'edit' ),
+				'get_callback' => '__return_empty_string',
+			)
+		);
+
+		$create = new WP_REST_Request( 'POST', '/wp/v2/tags' );
+		$create->set_param( 'name', 'My New Term' );
+		$response = rest_get_server()->dispatch( $create );
+		$this->assertEquals( 201, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertArrayHasKey( $edit_field, $data );
+		$this->assertArrayNotHasKey( $view_field, $data );
+
+		$update = new WP_REST_Request( 'PUT', '/wp/v2/tags/' . $data['id'] );
+		$update->set_param( 'name', 'My Awesome New Term' );
+		$response = rest_get_server()->dispatch( $update );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertArrayHasKey( $edit_field, $data );
+		$this->assertArrayNotHasKey( $view_field, $data );
+	}
+
 	public function additional_field_get_callback( $object, $request ) {
 		return 123;
 	}
