@@ -274,7 +274,7 @@
 
 		$('#pass-strength-result').removeClass('short bad good strong');
 		if ( ! pass1 ) {
-			$('#pass-strength-result').html( '&nbsp;' );
+			$('#pass-strength-result').addClass( 'empty' ).html( '&nbsp;' );
 			return;
 		}
 
@@ -312,7 +312,7 @@
 				}
 				$weakRow.show();
 			} else {
-				if ( 0 === $pass1.val().length ) {
+				if (  $( passStrength ).is( '.empty' ) ) {
 					$submitButtons.prop( 'disabled', true );
 					$weakCheckbox.prop( 'checked', false );
 				} else {
