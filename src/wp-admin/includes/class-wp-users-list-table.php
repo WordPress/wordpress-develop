@@ -194,7 +194,22 @@ class WP_Users_List_Table extends WP_List_Table {
 		$current_link_attributes = empty( $role ) ? ' class="current" aria-current="page"' : '';
 
 		$role_links        = array();
-		$role_links['all'] = "<a href='$url'$current_link_attributes>" . sprintf( _nx( 'All <span class="count">(%s)</span>', 'All <span class="count">(%s)</span>', $total_users, 'users' ), number_format_i18n( $total_users ) ) . '</a>';
+		$role_links['all'] = sprintf(
+			'<a href="%s"%s>%s</a>',
+			$url,
+			$current_link_attributes,
+			sprintf(
+				/* translators: %s: Number of users. */
+				_nx(
+					'All <span class="count">(%s)</span>',
+					'All <span class="count">(%s)</span>',
+					$total_users,
+					'users'
+				),
+				number_format_i18n( $total_users )
+			)
+		);
+
 		foreach ( $wp_roles->get_names() as $this_role => $name ) {
 			if ( ! isset( $avail_roles[ $this_role ] ) ) {
 				continue;
@@ -207,8 +222,13 @@ class WP_Users_List_Table extends WP_List_Table {
 			}
 
 			$name = translate_user_role( $name );
-			/* translators: User role name with count */
-			$name                     = sprintf( __( '%1$s <span class="count">(%2$s)</span>' ), $name, number_format_i18n( $avail_roles[ $this_role ] ) );
+			$name = sprintf(
+				/* translators: User role name with count. */
+				__( '%1$s <span class="count">(%2$s)</span>' ),
+				$name,
+				number_format_i18n( $avail_roles[ $this_role ] )
+			);
+
 			$role_links[ $this_role ] = "<a href='" . esc_url( add_query_arg( 'role', $this_role, $url ) ) . "'$current_link_attributes>$name</a>";
 		}
 
@@ -221,10 +241,14 @@ class WP_Users_List_Table extends WP_List_Table {
 			}
 
 			$name = __( 'No role' );
-			/* translators: User role name with count */
-			$name               = sprintf( __( '%1$s <span class="count">(%2$s)</span>' ), $name, number_format_i18n( $avail_roles['none'] ) );
-			$role_links['none'] = "<a href='" . esc_url( add_query_arg( 'role', 'none', $url ) ) . "'$current_link_attributes>$name</a>";
+			$name = sprintf(
+				/* translators: User role name with count. */
+				__( '%1$s <span class="count">(%2$s)</span>' ),
+				$name,
+				number_format_i18n( $avail_roles['none'] )
+			);
 
+			$role_links['none'] = "<a href='" . esc_url( add_query_arg( 'role', 'none', $url ) ) . "'$current_link_attributes>$name</a>";
 		}
 
 		return $role_links;
@@ -441,7 +465,7 @@ class WP_Users_List_Table extends WP_List_Table {
 				$actions['view'] = sprintf(
 					'<a href="%s" aria-label="%s">%s</a>',
 					esc_url( $author_posts_url ),
-					/* translators: %s: author's display name */
+					/* translators: %s: Author's display name. */
 					esc_attr( sprintf( __( 'View posts by %s' ), $user_object->display_name ) ),
 					__( 'View' )
 				);
@@ -463,12 +487,19 @@ class WP_Users_List_Table extends WP_List_Table {
 			$role_classes = esc_attr( implode( ' ', array_keys( $user_roles ) ) );
 
 			// Set up the checkbox ( because the user is editable, otherwise it's empty )
-			$checkbox = '<label class="screen-reader-text" for="user_' . $user_object->ID . '">' . sprintf( __( 'Select %s' ), $user_object->user_login ) . '</label>'
-						. "<input type='checkbox' name='users[]' id='user_{$user_object->ID}' class='{$role_classes}' value='{$user_object->ID}' />";
+			$checkbox = sprintf(
+				'<label class="screen-reader-text" for="user_%1$s">%2$s</label>' .
+				'<input type="checkbox" name="users[]" id="user_%1$s" class="%3$s" value="%1$s" />',
+				$user_object->ID,
+				/* translators: %s: User login. */
+				sprintf( __( 'Select %s' ), $user_object->user_login ),
+				$role_classes
+			);
 
 		} else {
 			$edit = "<strong>{$user_object->user_login}{$super_admin}</strong>";
 		}
+
 		$avatar = get_avatar( $user_object->ID, 32 );
 
 		// Comma-separated list of user roles.
@@ -511,7 +542,10 @@ class WP_Users_List_Table extends WP_List_Table {
 						} elseif ( $user_object->last_name ) {
 							$r .= $user_object->last_name;
 						} else {
-							$r .= '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' . _x( 'Unknown', 'name' ) . '</span>';
+							$r .= sprintf(
+								'<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">%s</span>',
+								_x( 'Unknown', 'name' )
+							);
 						}
 						break;
 					case 'email':
@@ -522,10 +556,16 @@ class WP_Users_List_Table extends WP_List_Table {
 						break;
 					case 'posts':
 						if ( $numposts > 0 ) {
-							$r .= "<a href='edit.php?author=$user_object->ID' class='edit'>";
-							$r .= '<span aria-hidden="true">' . $numposts . '</span>';
-							$r .= '<span class="screen-reader-text">' . sprintf( _n( '%s post by this author', '%s posts by this author', $numposts ), number_format_i18n( $numposts ) ) . '</span>';
-							$r .= '</a>';
+							$r .= sprintf(
+								'<a href="%s" class="edit"><span aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></a>',
+								"edit.php?author={$user_object->ID}",
+								$numposts,
+								sprintf(
+									/* translators: %s: Number of posts. */
+									_n( '%s post by this author', '%s posts by this author', $numposts ),
+									number_format_i18n( $numposts )
+								)
+							);
 						} else {
 							$r .= 0;
 						}

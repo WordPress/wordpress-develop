@@ -613,6 +613,49 @@ if ( is_multisite() ) :
 
 			$this->assertSame( (string) self::$different_site_ids[0], $network->blog_id );
 		}
+
+		/**
+		 * @ticket 42251
+		 */
+		public function test_get_network_not_found_cache() {
+			global $wpdb;
+
+			$new_network_id = $this->_get_next_network_id();
+			$this->assertNull( get_network( $new_network_id ) );
+
+			$num_queries = $wpdb->num_queries;
+			$this->assertNull( get_network( $new_network_id ) );
+			$this->assertSame( $num_queries, $wpdb->num_queries );
+		}
+
+		/**
+		 * @ticket 42251
+		 */
+		public function test_get_network_not_found_cache_clear() {
+			$new_network_id = $this->_get_next_network_id();
+			$this->assertNull( get_network( $new_network_id ) );
+
+			$new_network = $this->factory()->network->create_and_get();
+
+			// Double-check we got the ID of the new network correct.
+			$this->assertEquals( $new_network_id, $new_network->id );
+
+			// Verify that if we fetch the network now, it's no longer false.
+			$fetched_network = get_network( $new_network_id );
+			$this->assertInstanceOf( 'WP_Network', $fetched_network );
+			$this->assertEquals( $new_network_id, $fetched_network->id );
+		}
+
+		/**
+		 * Gets the ID of the site with the highest ID
+		 * @return int
+		 */
+		protected function _get_next_network_id() {
+			global $wpdb;
+			//create an extra network, just to make sure we know the ID of the following one
+			static::factory()->network->create();
+			return (int) $wpdb->get_var( 'SELECT id FROM ' . $wpdb->site . ' ORDER BY id DESC LIMIT 1' ) + 1;
+		}
 	}
 
 endif;

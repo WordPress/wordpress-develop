@@ -151,7 +151,7 @@ abstract class WP_REST_Meta_Fields {
 					if ( is_wp_error( rest_validate_value_from_schema( $current, $args['schema'] ) ) ) {
 						return new WP_Error(
 							'rest_invalid_stored_value',
-							/* translators: %s: custom field key */
+							/* translators: %s: Custom field key. */
 							sprintf( __( 'The %s property has an invalid stored value, and cannot be updated to null.' ), $name ),
 							array( 'status' => 500 )
 						);
@@ -170,7 +170,7 @@ abstract class WP_REST_Meta_Fields {
 			if ( ! $args['single'] && is_array( $value ) && count( array_filter( $value, 'is_null' ) ) ) {
 				return new WP_Error(
 					'rest_invalid_stored_value',
-					/* translators: %s: custom field key */
+					/* translators: %s: Custom field key. */
 					sprintf( __( 'The %s property has an invalid stored value, and cannot be updated to null.' ), $name ),
 					array( 'status' => 500 )
 				);
@@ -213,7 +213,7 @@ abstract class WP_REST_Meta_Fields {
 		if ( ! current_user_can( "delete_{$meta_type}_meta", $object_id, $meta_key ) ) {
 			return new WP_Error(
 				'rest_cannot_delete',
-				/* translators: %s: custom field key */
+				/* translators: %s: Custom field key. */
 				sprintf( __( 'Sorry, you are not allowed to edit the %s custom field.' ), $name ),
 				array(
 					'key'    => $name,
@@ -254,7 +254,7 @@ abstract class WP_REST_Meta_Fields {
 		if ( ! current_user_can( "edit_{$meta_type}_meta", $object_id, $meta_key ) ) {
 			return new WP_Error(
 				'rest_cannot_update',
-				/* translators: %s: custom field key */
+				/* translators: %s: Custom field key. */
 				sprintf( __( 'Sorry, you are not allowed to edit the %s custom field.' ), $name ),
 				array(
 					'key'    => $name,
@@ -295,7 +295,7 @@ abstract class WP_REST_Meta_Fields {
 			if ( ! delete_metadata( $meta_type, $object_id, wp_slash( $meta_key ), wp_slash( $value ) ) ) {
 				return new WP_Error(
 					'rest_meta_database_error',
-					/* translators: %s: custom field key */
+					/* translators: %s: Custom field key. */
 					sprintf( __( 'Could not update the meta value of %s in database.' ), $meta_key ),
 					array(
 						'key'    => $name,
@@ -309,7 +309,7 @@ abstract class WP_REST_Meta_Fields {
 			if ( ! add_metadata( $meta_type, $object_id, wp_slash( $meta_key ), wp_slash( $value ) ) ) {
 				return new WP_Error(
 					'rest_meta_database_error',
-					/* translators: %s: custom field key */
+					/* translators: %s: Custom field key. */
 					sprintf( __( 'Could not update the meta value of %s in database.' ), $meta_key ),
 					array(
 						'key'    => $name,
@@ -338,7 +338,7 @@ abstract class WP_REST_Meta_Fields {
 		if ( ! current_user_can( "edit_{$meta_type}_meta", $object_id, $meta_key ) ) {
 			return new WP_Error(
 				'rest_cannot_update',
-				/* translators: %s: custom field key */
+				/* translators: %s: Custom field key. */
 				sprintf( __( 'Sorry, you are not allowed to edit the %s custom field.' ), $name ),
 				array(
 					'key'    => $name,
@@ -350,9 +350,17 @@ abstract class WP_REST_Meta_Fields {
 		// Do the exact same check for a duplicate value as in update_metadata() to avoid update_metadata() returning false.
 		$old_value = get_metadata( $meta_type, $object_id, $meta_key );
 		$subtype   = get_object_subtype( $meta_type, $object_id );
+		$args      = $this->get_registered_fields()[ $meta_key ];
 
 		if ( 1 === count( $old_value ) ) {
-			if ( (string) sanitize_meta( $meta_key, $value, $meta_type, $subtype ) === $old_value[0] ) {
+			$sanitized = sanitize_meta( $meta_key, $value, $meta_type, $subtype );
+
+			if ( in_array( $args['type'], array( 'string', 'number', 'integer', 'boolean' ), true ) ) {
+				// The return value of get_metadata will always be a string for scalar types.
+				$sanitized = (string) $sanitized;
+			}
+
+			if ( $sanitized === $old_value[0] ) {
 				return true;
 			}
 		}
@@ -360,7 +368,7 @@ abstract class WP_REST_Meta_Fields {
 		if ( ! update_metadata( $meta_type, $object_id, wp_slash( $meta_key ), wp_slash( $value ) ) ) {
 			return new WP_Error(
 				'rest_meta_database_error',
-				/* translators: %s: custom field key */
+				/* translators: %s: Custom field key. */
 				sprintf( __( 'Could not update the meta value of %s in database.' ), $meta_key ),
 				array(
 					'key'    => $name,
@@ -505,9 +513,9 @@ abstract class WP_REST_Meta_Fields {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param  mixed           $value   The meta value submitted in the request.
-	 * @param  WP_REST_Request $request Full details about the request.
-	 * @param  string          $param   The parameter name.
+	 * @param mixed           $value   The meta value submitted in the request.
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @param string          $param   The parameter name.
 	 * @return WP_Error|string The meta array, if valid, otherwise an error.
 	 */
 	public function check_meta_is_array( $value, $request, $param ) {

@@ -312,7 +312,11 @@ function create_initial_post_types() {
 			'label'       => _x( 'Published', 'post status' ),
 			'public'      => true,
 			'_builtin'    => true, /* internal use only. */
-			'label_count' => _n_noop( 'Published <span class="count">(%s)</span>', 'Published <span class="count">(%s)</span>' ),
+			/* translators: %s: Number of published posts. */
+			'label_count' => _n_noop(
+				'Published <span class="count">(%s)</span>',
+				'Published <span class="count">(%s)</span>'
+			),
 		)
 	);
 
@@ -322,7 +326,11 @@ function create_initial_post_types() {
 			'label'       => _x( 'Scheduled', 'post status' ),
 			'protected'   => true,
 			'_builtin'    => true, /* internal use only. */
-			'label_count' => _n_noop( 'Scheduled <span class="count">(%s)</span>', 'Scheduled <span class="count">(%s)</span>' ),
+			/* translators: %s: Number of scheduled posts. */
+			'label_count' => _n_noop(
+				'Scheduled <span class="count">(%s)</span>',
+				'Scheduled <span class="count">(%s)</span>'
+			),
 		)
 	);
 
@@ -332,7 +340,11 @@ function create_initial_post_types() {
 			'label'       => _x( 'Draft', 'post status' ),
 			'protected'   => true,
 			'_builtin'    => true, /* internal use only. */
-			'label_count' => _n_noop( 'Draft <span class="count">(%s)</span>', 'Drafts <span class="count">(%s)</span>' ),
+			/* translators: %s: Number of draft posts. */
+			'label_count' => _n_noop(
+				'Draft <span class="count">(%s)</span>',
+				'Drafts <span class="count">(%s)</span>'
+			),
 		)
 	);
 
@@ -342,7 +354,11 @@ function create_initial_post_types() {
 			'label'       => _x( 'Pending', 'post status' ),
 			'protected'   => true,
 			'_builtin'    => true, /* internal use only. */
-			'label_count' => _n_noop( 'Pending <span class="count">(%s)</span>', 'Pending <span class="count">(%s)</span>' ),
+			/* translators: %s: Number of pending posts. */
+			'label_count' => _n_noop(
+				'Pending <span class="count">(%s)</span>',
+				'Pending <span class="count">(%s)</span>'
+			),
 		)
 	);
 
@@ -352,7 +368,11 @@ function create_initial_post_types() {
 			'label'       => _x( 'Private', 'post status' ),
 			'private'     => true,
 			'_builtin'    => true, /* internal use only. */
-			'label_count' => _n_noop( 'Private <span class="count">(%s)</span>', 'Private <span class="count">(%s)</span>' ),
+			/* translators: %s: Number of private posts. */
+			'label_count' => _n_noop(
+				'Private <span class="count">(%s)</span>',
+				'Private <span class="count">(%s)</span>'
+			),
 		)
 	);
 
@@ -362,7 +382,11 @@ function create_initial_post_types() {
 			'label'                     => _x( 'Trash', 'post status' ),
 			'internal'                  => true,
 			'_builtin'                  => true, /* internal use only. */
-			'label_count'               => _n_noop( 'Trash <span class="count">(%s)</span>', 'Trash <span class="count">(%s)</span>' ),
+			/* translators: %s: Number of trashed posts. */
+			'label_count'               => _n_noop(
+				'Trash <span class="count">(%s)</span>',
+				'Trash <span class="count">(%s)</span>'
+			),
 			'show_in_admin_status_list' => true,
 		)
 	);
@@ -392,7 +416,11 @@ function create_initial_post_types() {
 			'label'               => _x( 'Pending', 'request status' ),
 			'internal'            => true,
 			'_builtin'            => true, /* internal use only. */
-			'label_count'         => _n_noop( 'Pending <span class="count">(%s)</span>', 'Pending <span class="count">(%s)</span>' ),
+			/* translators: %s: Number of pending requests. */
+			'label_count'         => _n_noop(
+				'Pending <span class="count">(%s)</span>',
+				'Pending <span class="count">(%s)</span>'
+			),
 			'exclude_from_search' => false,
 		)
 	);
@@ -403,7 +431,11 @@ function create_initial_post_types() {
 			'label'               => _x( 'Confirmed', 'request status' ),
 			'internal'            => true,
 			'_builtin'            => true, /* internal use only. */
-			'label_count'         => _n_noop( 'Confirmed <span class="count">(%s)</span>', 'Confirmed <span class="count">(%s)</span>' ),
+			/* translators: %s: Number of confirmed requests. */
+			'label_count'         => _n_noop(
+				'Confirmed <span class="count">(%s)</span>',
+				'Confirmed <span class="count">(%s)</span>'
+			),
 			'exclude_from_search' => false,
 		)
 	);
@@ -414,7 +446,11 @@ function create_initial_post_types() {
 			'label'               => _x( 'Failed', 'request status' ),
 			'internal'            => true,
 			'_builtin'            => true, /* internal use only. */
-			'label_count'         => _n_noop( 'Failed <span class="count">(%s)</span>', 'Failed <span class="count">(%s)</span>' ),
+			/* translators: %s: Number of failed requests. */
+			'label_count'         => _n_noop(
+				'Failed <span class="count">(%s)</span>',
+				'Failed <span class="count">(%s)</span>'
+			),
 			'exclude_from_search' => false,
 		)
 	);
@@ -425,7 +461,11 @@ function create_initial_post_types() {
 			'label'               => _x( 'Completed', 'request status' ),
 			'internal'            => true,
 			'_builtin'            => true, /* internal use only. */
-			'label_count'         => _n_noop( 'Completed <span class="count">(%s)</span>', 'Completed <span class="count">(%s)</span>' ),
+			/* translators: %s: Number of completed requests. */
+			'label_count'         => _n_noop(
+				'Completed <span class="count">(%s)</span>',
+				'Completed <span class="count">(%s)</span>'
+			),
 			'exclude_from_search' => false,
 		)
 	);
@@ -1266,7 +1306,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                              If not set, the default is inherited from $public.
  *     @type bool        $show_ui               Whether to generate and allow a UI for managing this post type in the
  *                                              admin. Default is value of $public.
- *     @type bool        $show_in_menu          Where to show the post type in the admin menu. To work, $show_ui
+ *     @type bool|string $show_in_menu          Where to show the post type in the admin menu. To work, $show_ui
  *                                              must be true. If true, the post type is shown in its own top level
  *                                              menu. If false, no menu is shown. If a string of an existing top
  *                                              level menu (eg. 'tools.php' or 'edit.php?post_type=page'), the post
@@ -2650,32 +2690,56 @@ function get_post_mime_types() {
 		'image'       => array(
 			__( 'Images' ),
 			__( 'Manage Images' ),
-			_n_noop( 'Image <span class="count">(%s)</span>', 'Images <span class="count">(%s)</span>' ),
+			/* translators: %s: Number of images. */
+			_n_noop(
+				'Image <span class="count">(%s)</span>',
+				'Images <span class="count">(%s)</span>'
+			),
 		),
 		'audio'       => array(
 			__( 'Audio' ),
 			__( 'Manage Audio' ),
-			_n_noop( 'Audio <span class="count">(%s)</span>', 'Audio <span class="count">(%s)</span>' ),
+			/* translators: %s: Number of audio files. */
+			_n_noop(
+				'Audio <span class="count">(%s)</span>',
+				'Audio <span class="count">(%s)</span>'
+			),
 		),
 		'video'       => array(
 			__( 'Video' ),
 			__( 'Manage Video' ),
-			_n_noop( 'Video <span class="count">(%s)</span>', 'Video <span class="count">(%s)</span>' ),
+			/* translators: %s: Number of video files. */
+			_n_noop(
+				'Video <span class="count">(%s)</span>',
+				'Video <span class="count">(%s)</span>'
+			),
 		),
 		'document'    => array(
 			__( 'Documents' ),
 			__( 'Manage Documents' ),
-			_n_noop( 'Document <span class="count">(%s)</span>', 'Documents <span class="count">(%s)</span>' ),
+			/* translators: %s: Number of documents. */
+			_n_noop(
+				'Document <span class="count">(%s)</span>',
+				'Documents <span class="count">(%s)</span>'
+			),
 		),
 		'spreadsheet' => array(
 			__( 'Spreadsheets' ),
 			__( 'Manage Spreadsheets' ),
-			_n_noop( 'Spreadsheet <span class="count">(%s)</span>', 'Spreadsheets <span class="count">(%s)</span>' ),
+			/* translators: %s: Number of spreadsheets. */
+			_n_noop(
+				'Spreadsheet <span class="count">(%s)</span>',
+				'Spreadsheets <span class="count">(%s)</span>'
+			),
 		),
 		'archive'     => array(
 			__( 'Archives' ),
 			__( 'Manage Archives' ),
-			_n_noop( 'Archive <span class="count">(%s)</span>', 'Archives <span class="count">(%s)</span>' ),
+			/* translators: %s: Number of archives. */
+			_n_noop(
+				'Archive <span class="count">(%s)</span>',
+				'Archives <span class="count">(%s)</span>'
+			),
 		),
 	);
 
@@ -3856,7 +3920,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 		foreach ( $postarr['tax_input'] as $taxonomy => $tags ) {
 			$taxonomy_obj = get_taxonomy( $taxonomy );
 			if ( ! $taxonomy_obj ) {
-				/* translators: %s: taxonomy name */
+				/* translators: %s: Taxonomy name. */
 				_doing_it_wrong( __FUNCTION__, sprintf( __( 'Invalid taxonomy: %s.' ), $taxonomy ), '4.4.0' );
 				continue;
 			}
@@ -5574,6 +5638,7 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 		// Don't delete the thumb if another attachment uses it.
 		if ( ! $wpdb->get_row( $wpdb->prepare( "SELECT meta_id FROM $wpdb->postmeta WHERE meta_key = '_wp_attachment_metadata' AND meta_value LIKE %s AND post_id <> %d", '%' . $wpdb->esc_like( $meta['thumb'] ) . '%', $post_id ) ) ) {
 			$thumbfile = str_replace( wp_basename( $file ), $meta['thumb'], $file );
+
 			if ( ! empty( $thumbfile ) ) {
 				$thumbfile = path_join( $uploadpath['basedir'], $thumbfile );
 				$thumbdir  = path_join( $uploadpath['basedir'], dirname( $file ) );
@@ -5588,8 +5653,10 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 	// Remove intermediate and backup images if there are any.
 	if ( isset( $meta['sizes'] ) && is_array( $meta['sizes'] ) ) {
 		$intermediate_dir = path_join( $uploadpath['basedir'], dirname( $file ) );
+
 		foreach ( $meta['sizes'] as $size => $sizeinfo ) {
 			$intermediate_file = str_replace( wp_basename( $file ), $sizeinfo['file'], $file );
+
 			if ( ! empty( $intermediate_file ) ) {
 				$intermediate_file = path_join( $uploadpath['basedir'], $intermediate_file );
 
@@ -5600,10 +5667,28 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 		}
 	}
 
+	if ( ! empty( $meta['original_image'] ) ) {
+		if ( empty( $intermediate_dir ) ) {
+			$intermediate_dir = path_join( $uploadpath['basedir'], dirname( $file ) );
+		}
+
+		$original_image = str_replace( wp_basename( $file ), $meta['original_image'], $file );
+
+		if ( ! empty( $original_image ) ) {
+			$original_image = path_join( $uploadpath['basedir'], $original_image );
+
+			if ( ! wp_delete_file_from_directory( $original_image, $intermediate_dir ) ) {
+				$deleted = false;
+			}
+		}
+	}
+
 	if ( is_array( $backup_sizes ) ) {
 		$del_dir = path_join( $uploadpath['basedir'], dirname( $meta['file'] ) );
+
 		foreach ( $backup_sizes as $size ) {
 			$del_file = path_join( dirname( $meta['file'] ), $size['file'] );
+
 			if ( ! empty( $del_file ) ) {
 				$del_file = path_join( $uploadpath['basedir'], $del_file );
 
@@ -6416,7 +6501,7 @@ function _get_last_post_time( $timezone, $field, $post_type = 'any' ) {
  *
  * @since 1.5.1
  *
- * @param array $posts Array of post objects (passed by reference).
+ * @param WP_Post[] $posts Array of post objects (passed by reference).
  */
 function update_post_cache( &$posts ) {
 	if ( ! $posts ) {
@@ -6493,10 +6578,10 @@ function clean_post_cache( $post ) {
  *
  * @since 1.5.0
  *
- * @param array  $posts             Array of Post objects
- * @param string $post_type         Optional. Post type. Default 'post'.
- * @param bool   $update_term_cache Optional. Whether to update the term cache. Default true.
- * @param bool   $update_meta_cache Optional. Whether to update the meta cache. Default true.
+ * @param WP_Post[] $posts             Array of Post objects
+ * @param string    $post_type         Optional. Post type. Default 'post'.
+ * @param bool      $update_term_cache Optional. Whether to update the term cache. Default true.
+ * @param bool      $update_meta_cache Optional. Whether to update the meta cache. Default true.
  */
 function update_post_caches( &$posts, $post_type = 'post', $update_term_cache = true, $update_meta_cache = true ) {
 	// No point in doing all this work if we didn't match any posts.
@@ -6548,7 +6633,7 @@ function update_post_caches( &$posts, $post_type = 'post', $update_term_cache = 
  *
  * @since 2.1.0
  *
- * @param array $post_ids List of post IDs.
+ * @param int[] $post_ids Array of post IDs.
  * @return array|false Returns false if there is nothing to update or an array
  *                     of metadata.
  */

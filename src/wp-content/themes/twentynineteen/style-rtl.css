@@ -8,7 +8,7 @@ Description: Our 2019 default theme is designed to show off the power of the blo
 Requires at least: WordPress 4.9.6
 Version: 1.4
 License: GNU General Public License v2 or later
-License URI: LICENSE
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: twentynineteen
 Tags: one-column, flexible-header, accessibility-ready, custom-colors, custom-menu, custom-logo, editor-style, featured-images, footer-widgets, rtl-language-support, sticky-post, threaded-comments, translation-ready
 
@@ -2212,7 +2212,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #111;
-  font-family: "NonBreakingSpaceOverride", "Hoefler Text", "Baskerville Old Face", Garamond, "Times New Roman", serif;
+  font-family: "NonBreakingSpaceOverride", "Hoefler Text", Garamond, "Times New Roman", serif;
   font-weight: 400;
   font-size: 1em;
   line-height: 1.8;
@@ -2226,7 +2226,7 @@ select,
 optgroup,
 textarea {
   color: #111;
-  font-family: "NonBreakingSpaceOverride", "Hoefler Text", "Baskerville Old Face", Garamond, "Times New Roman", serif;
+  font-family: "NonBreakingSpaceOverride", "Hoefler Text", Garamond, "Times New Roman", serif;
   font-weight: 400;
   line-height: 1.8;
   text-rendering: optimizeLegibility;
@@ -2286,7 +2286,7 @@ h6 {
 }
 
 .page-title {
-  font-family: "NonBreakingSpaceOverride", "Hoefler Text", "Baskerville Old Face", Garamond, "Times New Roman", serif;
+  font-family: "NonBreakingSpaceOverride", "Hoefler Text", Garamond, "Times New Roman", serif;
 }
 
 .site-branding,
@@ -3116,14 +3116,14 @@ body.page .main-navigation {
 }
 
 .main-navigation .main-menu .menu-item-has-children:not(.off-canvas)[focus-within] > .sub-menu .sub-menu > li > a::before {
-  font-family: "NonBreakingSpaceOverride", "Hoefler Text", "Baskerville Old Face", Garamond, "Times New Roman", serif;
+  font-family: "NonBreakingSpaceOverride", "Hoefler Text", Garamond, "Times New Roman", serif;
   font-weight: normal;
   content: "– " counters(submenu, "– ", none);
   counter-increment: submenu;
 }
 
 .main-navigation .main-menu .menu-item-has-children:not(.off-canvas):focus-within > .sub-menu .sub-menu > li > a::before {
-  font-family: "NonBreakingSpaceOverride", "Hoefler Text", "Baskerville Old Face", Garamond, "Times New Roman", serif;
+  font-family: "NonBreakingSpaceOverride", "Hoefler Text", Garamond, "Times New Roman", serif;
   font-weight: normal;
   content: "– " counters(submenu, "– ", none);
   counter-increment: submenu;
@@ -3219,7 +3219,7 @@ body.page .main-navigation {
 .main-navigation .main-menu .menu-item-has-children:not(.off-canvas):hover > .sub-menu .sub-menu > li > a::before,
 .main-navigation .main-menu .menu-item-has-children:not(.off-canvas):focus > .sub-menu .sub-menu > li > a::before,
 .main-navigation .main-menu .menu-item-has-children.is-focused:not(.off-canvas) > .sub-menu .sub-menu > li > a::before {
-  font-family: "NonBreakingSpaceOverride", "Hoefler Text", "Baskerville Old Face", Garamond, "Times New Roman", serif;
+  font-family: "NonBreakingSpaceOverride", "Hoefler Text", Garamond, "Times New Roman", serif;
   font-weight: normal;
   content: "– " counters(submenu, "– ", none);
   counter-increment: submenu;
@@ -5144,7 +5144,7 @@ body.page .main-navigation {
 .widget_recent_comments ul ul > li > a::before,
 .widget_recent_entries ul ul > li > a::before,
 .widget_rss ul ul > li > a::before {
-  font-family: "NonBreakingSpaceOverride", "Hoefler Text", "Baskerville Old Face", Garamond, "Times New Roman", serif;
+  font-family: "NonBreakingSpaceOverride", "Hoefler Text", Garamond, "Times New Roman", serif;
   font-weight: normal;
   content: "– " counters(submenu, "– ", none);
   counter-increment: submenu;
@@ -5521,7 +5521,7 @@ body.page .main-navigation {
 }
 
 .entry .entry-content .wp-block-categories ul > li > a::before {
-  font-family: "NonBreakingSpaceOverride", "Hoefler Text", "Baskerville Old Face", Garamond, "Times New Roman", serif;
+  font-family: "NonBreakingSpaceOverride", "Hoefler Text", Garamond, "Times New Roman", serif;
   font-weight: normal;
   content: "– " counters(submenu, "– ", none);
   counter-increment: submenu;
@@ -5577,7 +5577,7 @@ body.page .main-navigation {
 }
 
 .entry .entry-content .wp-block-verse {
-  font-family: "NonBreakingSpaceOverride", "Hoefler Text", "Baskerville Old Face", Garamond, "Times New Roman", serif;
+  font-family: "NonBreakingSpaceOverride", "Hoefler Text", Garamond, "Times New Roman", serif;
   font-size: 22px;
   line-height: 1.8;
 }
@@ -6010,9 +6010,13 @@ body.page .main-navigation {
   }
 }
 
+.entry .entry-content .wp-block-separator.is-style-dots:not(.has-text-color):not(.has-background),
+.entry .entry-content hr.is-style-dots:not(.has-text-color):not(.has-background) {
+  color: #767676;
+}
+
 .entry .entry-content .wp-block-separator.is-style-dots:before,
 .entry .entry-content hr.is-style-dots:before {
-  color: #767676;
   font-size: 1.6875em;
   letter-spacing: 0.88889em;
   padding-right: 0.88889em;
@@ -6092,13 +6096,15 @@ body.page .main-navigation {
 }
 
 @media only screen and (min-width: 768px) {
-  .entry .entry-content .wp-block-columns .wp-block-image > img:not(.alignwide):not(.alignfull) {
+  .entry .entry-content .wp-block-columns .wp-block-image > img:not(.alignwide):not(.alignfull),
+  .entry .entry-content .wp-block-columns .wp-block-image > figure {
     max-width: 100%;
   }
 }
 
 @media only screen and (min-width: 1168px) {
-  .entry .entry-content .wp-block-columns .wp-block-image > img:not(.alignwide):not(.alignfull) {
+  .entry .entry-content .wp-block-columns .wp-block-image > img:not(.alignwide):not(.alignfull),
+  .entry .entry-content .wp-block-columns .wp-block-image > figure {
     max-width: 100%;
   }
 }
