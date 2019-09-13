@@ -182,6 +182,8 @@ class Tests_Nav_Menu_Theme_Change extends WP_UnitTestCase {
 	/**
 	 * Technically possible to register menu locations numerically.
 	 *
+	 * @expectedIncorrectUsage register_nav_menus
+	 *
 	 * @covers ::wp_map_nav_menu_locations()
 	 */
 	function test_numerical_locations() {
@@ -204,6 +206,8 @@ class Tests_Nav_Menu_Theme_Change extends WP_UnitTestCase {
 
 	/**
 	 * Technically possible old nav menu locations were registered numerically.
+	 *
+	 * @expectedIncorrectUsage register_nav_menus
 	 *
 	 * @covers wp_map_nav_menu_locations()
 	 */
