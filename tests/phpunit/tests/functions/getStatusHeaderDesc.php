@@ -32,7 +32,7 @@ class Tests_Functions_get_status_header_desc extends WP_UnitTestCase {
 			array( 500, 'Internal Server Error' ),
 
 			// A string to make sure that the absint() is working.
-			array( "200", 'OK' ),
+			array( '200', 'OK' ),
 
 			// Not recognized codes return empty strings.
 			array( 9999, '' ),
