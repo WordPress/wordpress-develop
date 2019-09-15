@@ -2541,10 +2541,11 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * Capture the actions fired when calling WP_Customize_Manager::set_post_value().
 	 *
 	 * @see Tests_WP_Customize_Manager::test_set_post_value()
+	 *
+	 * @param mixed ...$args Optional arguments passed to the action.
 	 */
-	function capture_customize_post_value_set_actions() {
+	function capture_customize_post_value_set_actions( ...$args ) {
 		$action = current_action();
-		$args   = func_get_args();
 		$this->captured_customize_post_value_set_actions[] = compact( 'action', 'args' );
 	}
 

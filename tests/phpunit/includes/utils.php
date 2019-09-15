@@ -128,17 +128,16 @@ class MockAction {
 		return $arg . '_append';
 	}
 
-	function filterall( $tag, $arg = null ) {
+	function filterall( $tag, ...$args ) {
 		// this one doesn't return the result, so it's safe to use with the new 'all' filter
 		if ( $this->debug ) {
 			dmp( __FUNCTION__, $this->current_filter() );
 		}
 
-		$args           = func_get_args();
 		$this->events[] = array(
 			'filter' => __FUNCTION__,
 			'tag'    => $tag,
-			'args'   => array_slice( $args, 1 ),
+			'args'   => $args,
 		);
 	}
 
@@ -244,10 +243,8 @@ function xml_to_array( $in ) {
 	return $p->data;
 }
 
-function xml_find( $tree /*, $el1, $el2, $el3, .. */ ) {
-	$a   = func_get_args();
-	$a   = array_slice( $a, 1 );
-	$n   = count( $a );
+function xml_find( $tree, ...$elements ) {
+	$n   = count( $elements );
 	$out = array();
 
 	if ( $n < 1 ) {
@@ -255,17 +252,15 @@ function xml_find( $tree /*, $el1, $el2, $el3, .. */ ) {
 	}
 
 	for ( $i = 0; $i < count( $tree ); $i++ ) {
-		#       echo "checking '{$tree[$i][name]}' == '{$a[0]}'\n";
-		#       var_dump($tree[$i]['name'], $a[0]);
-		if ( $tree[ $i ]['name'] === $a[0] ) {
+		#       echo "checking '{$tree[$i][name]}' == '{$elements[0]}'\n";
+		#       var_dump( $tree[$i]['name'], $elements[0] );
+		if ( $tree[ $i ]['name'] === $elements[0] ) {
 			#           echo "n == {$n}\n";
 			if ( 1 === $n ) {
 				$out[] = $tree[ $i ];
 			} else {
-				$subtree   =& $tree[ $i ]['child'];
-				$call_args = array( $subtree );
-				$call_args = array_merge( $call_args, array_slice( $a, 1 ) );
-				$out       = array_merge( $out, call_user_func_array( 'xml_find', $call_args ) );
+				$subtree =& $tree[ $i ]['child'];
+				$out     = array_merge( $out, xml_find( $subtree, ...array_slice( $elements, 1 ) ) );
 			}
 		}
 	}
@@ -300,9 +295,7 @@ function xml_array_dumbdown( &$data ) {
 	return $out;
 }
 
-function dmp() {
-	$args = func_get_args();
-
+function dmp( ...$args ) {
 	foreach ( $args as $thing ) {
 		echo ( is_scalar( $thing ) ? strval( $thing ) : var_export( $thing, true ) ), "\n";
 	}
