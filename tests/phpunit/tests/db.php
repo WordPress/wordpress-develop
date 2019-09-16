@@ -422,11 +422,8 @@ class Tests_DB extends WP_UnitTestCase {
 	public function test_prepare_incorrect_arg_count( $query, $args, $expected ) {
 		global $wpdb;
 
-		// $query is the first argument to be passed to wpdb::prepare()
-		array_unshift( $args, $query );
-
-		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		$prepared = @call_user_func_array( array( $wpdb, 'prepare' ), $args );
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged,WordPress.DB.PreparedSQL
+		$prepared = @$wpdb->prepare( $query, ...$args );
 		$this->assertEquals( $expected, $prepared );
 	}
 
@@ -1366,9 +1363,8 @@ class Tests_DB extends WP_UnitTestCase {
 			$values = array( $values );
 		}
 
-		array_unshift( $values, $sql );
-
-		$sql = call_user_func_array( array( $wpdb, 'prepare' ), $values );
+		// phpcs:ignore WordPress.DB.PreparedSQL
+		$sql = $wpdb->prepare( $sql, ...$values );
 		$this->assertEquals( $expected, $sql );
 	}
 
@@ -1386,7 +1382,8 @@ class Tests_DB extends WP_UnitTestCase {
 			$values = array( $values );
 		}
 
-		$sql = call_user_func_array( array( $wpdb, 'prepare' ), array( $sql, $values ) );
+		// phpcs:ignore WordPress.DB.PreparedSQL
+		$sql = $wpdb->prepare( $sql, $values );
 		$this->assertEquals( $expected, $sql );
 	}
 

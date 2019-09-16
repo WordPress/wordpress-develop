@@ -903,7 +903,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	 * Checks each of the WP_Query is_* functions/properties against expected boolean value.
 	 *
 	 * Any properties that are listed by name as parameters will be expected to be true; all others are
-	 * expected to be false. For example, assertQueryTrue('is_single', 'is_feed') means is_single()
+	 * expected to be false. For example, assertQueryTrue( 'is_single', 'is_feed' ) means is_single()
 	 * and is_feed() must be true and everything else must be false to pass.
 	 *
 	 * @since 2.5.0
@@ -911,9 +911,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	 *
 	 * @param string ...$prop Any number of WP_Query properties that are expected to be true for the current request.
 	 */
-	public function assertQueryTrue() {
+	public function assertQueryTrue( ...$prop ) {
 		global $wp_query;
-		$all  = array(
+
+		$all = array(
 			'is_404',
 			'is_admin',
 			'is_archive',
@@ -944,9 +945,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 			'is_trackback',
 			'is_year',
 		);
-		$true = func_get_args();
 
-		foreach ( $true as $true_thing ) {
+		foreach ( $prop as $true_thing ) {
 			$this->assertContains( $true_thing, $all, "Unknown conditional: {$true_thing}." );
 		}
 
@@ -956,7 +956,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		foreach ( $all as $query_thing ) {
 			$result = is_callable( $query_thing ) ? call_user_func( $query_thing ) : $wp_query->$query_thing;
 
-			if ( in_array( $query_thing, $true, true ) ) {
+			if ( in_array( $query_thing, $prop, true ) ) {
 				if ( ! $result ) {
 					$message .= $query_thing . ' is false but is expected to be true. ' . PHP_EOL;
 					$passed   = false;

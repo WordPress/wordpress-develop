@@ -99,6 +99,8 @@ before_script:
 - curl --version
 - git --version
 - svn --version
+- php --version
+- php -i
 - locale -a
 
 script:
