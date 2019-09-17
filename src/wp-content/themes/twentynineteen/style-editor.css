@@ -611,7 +611,7 @@ body .wp-block[data-align="full"] {
 /** === Base Typography === */
 body {
   font-size: 22px;
-  font-family: "NonBreakingSpaceOverride", "Hoefler Text", "Baskerville Old Face", Garamond, "Times New Roman", serif;
+  font-family: "NonBreakingSpaceOverride", "Hoefler Text", Garamond, "Times New Roman", serif;
   line-height: 1.8;
   color: #111;
 }
@@ -792,7 +792,7 @@ figcaption,
 
 /** === Default Appender === */
 .editor-default-block-appender .editor-default-block-appender__content {
-  font-family: "NonBreakingSpaceOverride", "Hoefler Text", "Baskerville Old Face", Garamond, "Times New Roman", serif;
+  font-family: "NonBreakingSpaceOverride", "Hoefler Text", Garamond, "Times New Roman", serif;
   font-size: 22px;
 }
 
@@ -1135,7 +1135,8 @@ figcaption,
 
 /** === Separator === */
 .wp-block-separator:not(.is-style-dots) {
-  border-bottom: 2px solid #767676;
+  background-color: #767676;
+  height: 2px;
 }
 
 .wp-block-separator:not(.is-style-wide):not(.is-style-dots) {
@@ -1143,8 +1144,11 @@ figcaption,
   margin-left: 0;
 }
 
-.wp-block-separator.is-style-dots:before {
+.wp-block-separator.is-style-dots {
   color: #767676;
+}
+
+.wp-block-separator.is-style-dots:before {
   font-size: 1.6875em;
   letter-spacing: calc(2 * 1rem);
   padding-left: calc(2 * 1rem);
@@ -1197,7 +1201,7 @@ ul.wp-block-archives li ul,
 }
 
 .wp-block-categories ul ul > li > a::before {
-  font-family: "NonBreakingSpaceOverride", "Hoefler Text", "Baskerville Old Face", Garamond, "Times New Roman", serif;
+  font-family: "NonBreakingSpaceOverride", "Hoefler Text", Garamond, "Times New Roman", serif;
   font-weight: normal;
   content: "– " counters(submenu, "– ", none);
   counter-increment: submenu;

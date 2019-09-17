@@ -176,10 +176,10 @@ function wp_terms_checklist( $post_id = 0, $args = array() ) {
 		}
 
 		// Put checked cats on top
-		$output .= call_user_func_array( array( $walker, 'walk' ), array( $checked_categories, 0, $args ) );
+		$output .= $walker->walk( $checked_categories, 0, $args );
 	}
 	// Then the rest of them
-	$output .= call_user_func_array( array( $walker, 'walk' ), array( $categories, 0, $args ) );
+	$output .= $walker->walk( $categories, 0, $args );
 
 	if ( $parsed_args['echo'] ) {
 		echo $output;
@@ -309,7 +309,6 @@ function get_inline_data( $post ) {
 
 	$title = esc_textarea( trim( $post->post_title ) );
 
-	/** This filter is documented in wp-admin/edit-tag-form.php */
 	echo '
 <div class="hidden" id="inline_' . $post->ID . '">
 	<div class="post_title">' . $title . '</div>' .
@@ -531,10 +530,22 @@ function wp_comment_reply( $position = 1, $checkbox = false, $mode = 'single', $
 function wp_comment_trashnotice() {
 	?>
 <div class="hidden" id="trash-undo-holder">
-	<div class="trash-undo-inside"><?php printf( __( 'Comment by %s moved to the trash.' ), '<strong></strong>' ); ?> <span class="undo untrash"><a href="#"><?php _e( 'Undo' ); ?></a></span></div>
+	<div class="trash-undo-inside">
+		<?php
+		/* translators: %s: Comment author, filled by AJAX. */
+		printf( __( 'Comment by %s moved to the trash.' ), '<strong></strong>' );
+		?>
+		<span class="undo untrash"><a href="#"><?php _e( 'Undo' ); ?></a></span>
+	</div>
 </div>
 <div class="hidden" id="spam-undo-holder">
-	<div class="spam-undo-inside"><?php printf( __( 'Comment by %s marked as spam.' ), '<strong></strong>' ); ?> <span class="undo unspam"><a href="#"><?php _e( 'Undo' ); ?></a></span></div>
+	<div class="spam-undo-inside">
+		<?php
+		/* translators: %s: Comment author, filled by AJAX. */
+		printf( __( 'Comment by %s marked as spam.' ), '<strong></strong>' );
+		?>
+		<span class="undo unspam"><a href="#"><?php _e( 'Undo' ); ?></a></span>
+	</div>
 </div>
 	<?php
 }
@@ -800,7 +811,7 @@ function touch_time( $edit = 1, $for_post = 1, $tab_index = 0, $multi = 0 ) {
 		$monthnum  = zeroise( $i, 2 );
 		$monthtext = $wp_locale->get_month_abbrev( $wp_locale->get_month( $i ) );
 		$month    .= "\t\t\t" . '<option value="' . $monthnum . '" data-text="' . $monthtext . '" ' . selected( $monthnum, $mm, false ) . '>';
-		/* translators: 1: month number (01, 02, etc.), 2: month abbreviation */
+		/* translators: 1: Month number (01, 02, etc.), 2: Month abbreviation. */
 		$month .= sprintf( __( '%1$s-%2$s' ), $monthnum, $monthtext ) . "</option>\n";
 	}
 	$month .= '</select></label>';
@@ -811,8 +822,8 @@ function touch_time( $edit = 1, $for_post = 1, $tab_index = 0, $multi = 0 ) {
 	$minute = '<label><span class="screen-reader-text">' . __( 'Minute' ) . '</span><input type="text" ' . ( $multi ? '' : 'id="mn" ' ) . 'name="mn" value="' . $mn . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" /></label>';
 
 	echo '<div class="timestamp-wrap">';
-	/* translators: 1: month, 2: day, 3: year, 4: hour, 5: minute */
-	printf( __( '%1$s %2$s, %3$s @ %4$s:%5$s' ), $month, $day, $year, $hour, $minute );
+	/* translators: 1: Month, 2: Day, 3: Year, 4: Hour, 5: Minute. */
+	printf( __( '%1$s %2$s, %3$s at %4$s:%5$s' ), $month, $day, $year, $hour, $minute );
 
 	echo '</div><input type="hidden" id="ss" name="ss" value="' . $ss . '" />';
 
@@ -955,7 +966,14 @@ function wp_import_upload_form( $action ) {
 		?>
 <form enctype="multipart/form-data" id="import-upload-form" method="post" class="wp-upload-form" action="<?php echo esc_url( wp_nonce_url( $action, 'import-upload' ) ); ?>">
 <p>
-<label for="upload"><?php _e( 'Choose a file from your computer:' ); ?></label> (<?php printf( __( 'Maximum size: %s' ), $size ); ?>)
+		<?php
+		printf(
+			'<label for="upload">%s</label> (%s)',
+			__( 'Choose a file from your computer:' ),
+			/* translators: %s: Maximum allowed file size. */
+			sprintf( __( 'Maximum size: %s' ), $size )
+		);
+		?>
 <input type="file" id="upload" name="import" size="25" />
 <input type="hidden" name="action" value="save" />
 <input type="hidden" name="max_file_size" value="<?php echo $bytes; ?>" />
@@ -1106,7 +1124,7 @@ function do_block_editor_incompatible_meta_box( $object, $box ) {
 	$plugins = get_plugins();
 	echo '<p>';
 	if ( $plugin ) {
-		/* translators: %s: the name of the plugin that generated this meta box. */
+		/* translators: %s: The name of the plugin that generated this meta box. */
 		printf( __( "This meta box, from the %s plugin, isn't compatible with the block editor." ), "<strong>{$plugin['Name']}</strong>" );
 	} else {
 		_e( "This meta box isn't compatible with the block editor." );
@@ -1289,7 +1307,11 @@ function do_meta_boxes( $screen, $context, $object ) {
 						}
 
 						echo '<button type="button" class="handlediv" aria-expanded="true">';
-						echo '<span class="screen-reader-text">' . sprintf( __( 'Toggle panel: %s' ), $widget_title ) . '</span>';
+						echo '<span class="screen-reader-text">' . sprintf(
+							/* translators: Meta box title. */
+							__( 'Toggle panel: %s' ),
+							$widget_title
+						) . '</span>';
 						echo '<span class="toggle-indicator" aria-hidden="true"></span>';
 						echo '</button>';
 					}
@@ -1309,7 +1331,7 @@ function do_meta_boxes( $screen, $context, $object ) {
 							<div class="error inline">
 								<p>
 									<?php
-										/* translators: %s: the name of the plugin that generated this meta box. */
+										/* translators: %s: The name of the plugin that generated this meta box. */
 										printf( __( "This meta box, from the %s plugin, isn't compatible with the block editor." ), "<strong>{$plugin['Name']}</strong>" );
 									?>
 								</p>
@@ -1489,8 +1511,8 @@ function add_settings_section( $id, $title, $callback, $page ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'3.0.0',
-			/* translators: %s: misc */
 			sprintf(
+				/* translators: %s: misc */
 				__( 'The "%s" options group has been removed. Use another settings group.' ),
 				'misc'
 			)
@@ -1502,8 +1524,8 @@ function add_settings_section( $id, $title, $callback, $page ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'3.5.0',
-			/* translators: %s: privacy */
 			sprintf(
+				/* translators: %s: privacy */
 				__( 'The "%s" options group has been removed. Use another settings group.' ),
 				'privacy'
 			)
@@ -1560,8 +1582,8 @@ function add_settings_field( $id, $title, $callback, $page, $section = 'default'
 		_deprecated_argument(
 			__FUNCTION__,
 			'3.0.0',
-			/* translators: %s: misc */
 			sprintf(
+				/* translators: %s: misc */
 				__( 'The "%s" options group has been removed. Use another settings group.' ),
 				'misc'
 			)
@@ -1573,8 +1595,8 @@ function add_settings_field( $id, $title, $callback, $page, $section = 'default'
 		_deprecated_argument(
 			__FUNCTION__,
 			'3.5.0',
-			/* translators: %s: privacy */
 			sprintf(
+				/* translators: %s: privacy */
 				__( 'The "%s" options group has been removed. Use another settings group.' ),
 				'privacy'
 			)
@@ -1685,6 +1707,7 @@ function do_settings_fields( $page, $section ) {
  * page is first accessed.
  *
  * @since 3.0.0
+ * @since 5.3.0 Added `warning` and `info` as possible values for `$type`.
  *
  * @global array $wp_settings_errors Storage array of errors registered during this pageload
  *
@@ -1692,8 +1715,8 @@ function do_settings_fields( $page, $section ) {
  * @param string $code    Slug-name to identify the error. Used as part of 'id' attribute in HTML output.
  * @param string $message The formatted message text to display to the user (will be shown inside styled
  *                        `<div>` and `<p>` tags).
- * @param string $type    Optional. Message type, controls HTML class. Accepts 'error' or 'updated'.
- *                        Default 'error'.
+ * @param string $type    Optional. Message type, controls HTML class. Possible values include 'error',
+ *                        'success', 'warning', 'info'. Default 'error'.
  */
 function add_settings_error( $setting, $code, $message, $type = 'error' ) {
 	global $wp_settings_errors;
@@ -1787,6 +1810,8 @@ function get_settings_errors( $setting = '', $sanitize = false ) {
  * missing settings when the user arrives at the settings page.
  *
  * @since 3.0.0
+ * @since 5.3.0 Legacy `error` and `updated` CSS classes are mapped to
+ *              `notice-error` and `notice-success`.
  *
  * @param string $setting        Optional slug title of a specific setting whose errors you want.
  * @param bool   $sanitize       Whether to re-sanitize the setting value before returning errors.
@@ -1807,11 +1832,26 @@ function settings_errors( $setting = '', $sanitize = false, $hide_on_update = fa
 
 	$output = '';
 	foreach ( $settings_errors as $key => $details ) {
-		$css_id    = 'setting-error-' . $details['code'];
-		$css_class = $details['type'] . ' settings-error notice is-dismissible';
-		$output   .= "<div id='$css_id' class='$css_class'> \n";
-		$output   .= "<p><strong>{$details['message']}</strong></p>";
-		$output   .= "</div> \n";
+		if ( 'updated' === $details['type'] ) {
+			$details['type'] = 'success';
+		}
+
+		if ( in_array( $details['type'], array( 'error', 'success', 'warning', 'info' ) ) ) {
+			$details['type'] = 'notice-' . $details['type'];
+		}
+
+		$css_id    = sprintf(
+			'setting-error-%s',
+			esc_attr( $details['code'] )
+		);
+		$css_class = sprintf(
+			'notice %s settings-error is-dismissible',
+			esc_attr( $details['type'] )
+		);
+
+		$output .= "<div id='$css_id' class='$css_class'> \n";
+		$output .= "<p><strong>{$details['message']}</strong></p>";
+		$output .= "</div> \n";
 	}
 	echo $output;
 }
@@ -1940,19 +1980,19 @@ var ajaxurl = '<?php echo admin_url( 'admin-ajax.php', 'relative' ); ?>',
 	do_action( 'admin_enqueue_scripts', $hook_suffix );
 
 	/** This action is documented in wp-admin/admin-header.php */
-	do_action( "admin_print_styles-$hook_suffix" );  // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+	do_action( "admin_print_styles-{$hook_suffix}" );  // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 	/** This action is documented in wp-admin/admin-header.php */
 	do_action( 'admin_print_styles' );
 
 	/** This action is documented in wp-admin/admin-header.php */
-	do_action( "admin_print_scripts-$hook_suffix" ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+	do_action( "admin_print_scripts-{$hook_suffix}" ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 	/** This action is documented in wp-admin/admin-header.php */
 	do_action( 'admin_print_scripts' );
 
 	/** This action is documented in wp-admin/admin-header.php */
-	do_action( "admin_head-$hook_suffix" ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+	do_action( "admin_head-{$hook_suffix}" ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 	/** This action is documented in wp-admin/admin-header.php */
 	do_action( 'admin_head' );
@@ -2009,7 +2049,7 @@ function iframe_footer() {
 	do_action( 'admin_footer', $hook_suffix );
 
 	/** This action is documented in wp-admin/admin-footer.php */
-	do_action( "admin_print_footer_scripts-$hook_suffix" ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+	do_action( "admin_print_footer_scripts-{$hook_suffix}" ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 	/** This action is documented in wp-admin/admin-footer.php */
 	do_action( 'admin_print_footer_scripts' );
@@ -2470,11 +2510,11 @@ function wp_star_rating( $args = array() ) {
 	$empty_stars = 5 - $full_stars - $half_stars;
 
 	if ( $parsed_args['number'] ) {
-		/* translators: 1: the rating, 2: the number of ratings */
+		/* translators: 1: The rating, 2: The number of ratings. */
 		$format = _n( '%1$s rating based on %2$s rating', '%1$s rating based on %2$s ratings', $parsed_args['number'] );
 		$title  = sprintf( $format, number_format_i18n( $rating, 1 ), number_format_i18n( $parsed_args['number'] ) );
 	} else {
-		/* translators: %s: the rating */
+		/* translators: %s: The rating. */
 		$title = sprintf( __( '%s rating' ), number_format_i18n( $rating, 1 ) );
 	}
 

@@ -88,7 +88,7 @@ function _wp_personal_data_handle_actions() {
 				'privacy_action_email_retry',
 				'privacy_action_email_retry',
 				__( 'Confirmation request sent again successfully.' ),
-				'updated'
+				'success'
 			);
 		}
 	} elseif ( isset( $_POST['action'] ) ) {
@@ -166,7 +166,7 @@ function _wp_personal_data_handle_actions() {
 					'username_or_email_for_privacy_request',
 					'username_or_email_for_privacy_request',
 					__( 'Confirmation request initiated successfully.' ),
-					'updated'
+					'success'
 				);
 				break;
 		}
@@ -234,7 +234,12 @@ function _wp_personal_data_cleanup_requests() {
  * @return string The HTML for this group and its items.
  */
 function wp_privacy_generate_personal_data_export_group_html( $group_data ) {
-	$group_html  = '<h2>' . esc_html( $group_data['group_label'] ) . '</h2>';
+	$group_html = '<h2>' . esc_html( $group_data['group_label'] ) . '</h2>';
+
+	if ( ! empty( $group_data['group_description'] ) ) {
+		$group_html .= '<p>' . esc_html( $group_data['group_description'] ) . '</p>';
+	}
+
 	$group_html .= '<div>';
 
 	foreach ( (array) $group_data['items'] as $group_item_id => $group_item_data ) {
@@ -319,7 +324,7 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	}
 
 	$title = sprintf(
-		/* translators: %s: user's email address */
+		/* translators: %s: User's email address. */
 		__( 'Personal Data Export for %s' ),
 		$email_address
 	);
@@ -355,8 +360,10 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	// First, build an "About" group on the fly for this report.
 	$about_group = array(
 		/* translators: Header for the About section in a personal data export. */
-		'group_label' => _x( 'About', 'personal data group label' ),
-		'items'       => array(
+		'group_label'       => _x( 'About', 'personal data group label' ),
+		/* translators: Description for the About section in a personal data export. */
+		'group_description' => _x( 'Overview of export report.', 'personal data group description' ),
+		'items'             => array(
 			'about-1' => array(
 				array(
 					'name'  => _x( 'Report generated for', 'email address' ),
@@ -524,7 +531,7 @@ All at ###SITENAME###
 	$mail_success = wp_mail(
 		$email_address,
 		sprintf(
-			/* translators: Personal data export notification email subject. %s: Site title */
+			/* translators: Personal data export notification email subject. %s: Site title. */
 			__( '[%s] Personal Data Export' ),
 			$site_name
 		),
@@ -613,10 +620,17 @@ function wp_privacy_process_personal_data_export_page( $response, $exporter_inde
 	foreach ( (array) $export_data as $export_datum ) {
 		$group_id    = $export_datum['group_id'];
 		$group_label = $export_datum['group_label'];
+
+		$group_description = '';
+		if ( ! empty( $export_datum['group_description'] ) ) {
+			$group_description = $export_datum['group_description'];
+		}
+
 		if ( ! array_key_exists( $group_id, $groups ) ) {
 			$groups[ $group_id ] = array(
-				'group_label' => $group_label,
-				'items'       => array(),
+				'group_label'       => $group_label,
+				'group_description' => $group_description,
+				'items'             => array(),
 			);
 		}
 

@@ -1,75 +1,59 @@
 <?php
 
 /**
+ * Tests the wp_validate_boolean function.
+ *
+ * @covers ::wp_validate_boolean
  * @group functions.php
  */
 class Tests_Functions_WpValidateBoolean extends WP_UnitTestCase {
-	public function test_bool_true() {
-		$this->assertTrue( wp_validate_boolean( true ) );
-	}
+	/**
+	 * Provides test scenarios for all possible scenarios in wp_validate_boolean().
+	 *
+	 * @return array
+	 */
+	function data_provider() {
+			$std = new \stdClass();
 
-	public function test_int_1() {
-		$this->assertTrue( wp_validate_boolean( 1 ) );
-	}
-
-	public function test_string_true_lowercase() {
-		$this->assertTrue( wp_validate_boolean( 'true' ) );
-	}
-
-	public function test_string_true_uppercase() {
-		$this->assertTrue( wp_validate_boolean( 'TRUE' ) );
-	}
-
-	public function test_arbitrary_string_should_return_true() {
-		$this->assertTrue( wp_validate_boolean( 'foobar' ) );
-	}
-
-	public function test_bool_false() {
-		$this->assertFalse( wp_validate_boolean( false ) );
-	}
-
-	public function test_int_0() {
-		$this->assertFalse( wp_validate_boolean( 0 ) );
-	}
-
-	public function test_float_0() {
-		$this->assertFalse( wp_validate_boolean( 0.0 ) );
-	}
-
-	public function test_empty_string() {
-		$this->assertFalse( wp_validate_boolean( '' ) );
-	}
-
-	public function test_string_0() {
-		$this->assertFalse( wp_validate_boolean( '0' ) );
-	}
-
-	public function test_empty_array() {
-		$this->assertFalse( wp_validate_boolean( array() ) );
-	}
-
-	public function test_null() {
-		$this->assertFalse( wp_validate_boolean( null ) );
-	}
-
-	public function test_string_false_lowercase() {
-		// Differs from (bool) conversion.
-		$this->assertFalse( wp_validate_boolean( 'false' ) );
+			return array(
+				array( null, false ),
+				array( true, true ),
+				array( false, false ),
+				array( 'true', true ),
+				array( 'false', false ),
+				array( 'FalSE', false ), // @ticket 30238
+				array( 'FALSE', false ), // @ticket 30238
+				array( 'TRUE', true ),
+				array( ' FALSE ', true ),
+				array( 'yes', true ),
+				array( 'no', true ),
+				array( 'string', true ),
+				array( '', false ),
+				array( array(), false ),
+				array( 1, true ),
+				array( 0, false ),
+				array( -1, true ),
+				array( 99, true ),
+				array( 0.1, true ),
+				array( 0.0, false ),
+				array( '1', true ),
+				array( '0', false ),
+				array( $std, true ),
+			);
 	}
 
 	/**
+	 * Test wp_validate_boolean().
+	 *
+	 * @dataProvider data_provider
+	 *
+	 * @param mixed $test_value.
+	 * @param bool $expected.
+	 *
 	 * @ticket 30238
+	 * @ticket 39868
 	 */
-	public function test_string_false_uppercase() {
-		// Differs from (bool) conversion.
-		$this->assertFalse( wp_validate_boolean( 'FALSE' ) );
-	}
-
-	/**
-	 * @ticket 30238
-	 */
-	public function test_string_false_mixedcase() {
-		// Differs from (bool) conversion.
-		$this->assertFalse( wp_validate_boolean( 'FaLsE' ) );
+	public function test_wp_validate_boolean( $test_value, $expected ) {
+		$this->assertEquals( wp_validate_boolean( $test_value ), $expected );
 	}
 }

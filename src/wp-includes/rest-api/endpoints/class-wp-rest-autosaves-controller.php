@@ -296,6 +296,10 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 * @return array Item schema data.
 	 */
 	public function get_item_schema() {
+		if ( $this->schema ) {
+			return $this->add_additional_fields_schema( $this->schema );
+		}
+
 		$schema = $this->revisions_controller->get_item_schema();
 
 		$schema['properties']['preview_link'] = array(
@@ -306,7 +310,8 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			'readonly'    => true,
 		);
 
-		return $schema;
+		$this->schema = $schema;
+		return $this->add_additional_fields_schema( $this->schema );
 	}
 
 	/**
@@ -353,9 +358,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 				return new WP_Error( 'rest_autosave_no_changes', __( 'There is nothing to save. The autosave and the post content are the same.' ), array( 'status' => 400 ) );
 			}
 
-			/**
-			 * This filter is documented in wp-admin/post.php.
-			 */
+			/** This filter is documented in wp-admin/post.php */
 			do_action( 'wp_creating_autosave', $new_autosave );
 
 			// wp_update_post expects escaped array.

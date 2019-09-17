@@ -103,16 +103,19 @@ if ( 'approved' === wp_get_comment_status( $comment ) && $comment->comment_post_
 
 <div class="misc-pub-section curtime misc-pub-curtime">
 <?php
-/* translators: Publish box date format, see https://secure.php.net/date */
-$datef = __( 'M j, Y @ H:i' );
+$submitted = sprintf(
+	/* translators: 1: Comment date, 2: Comment time. */
+	__( '%1$s at %2$s' ),
+	/* translators: Publish box date format, see https://secure.php.net/date */
+	date_i18n( _x( 'M j, Y', 'publish box date format' ), strtotime( $comment->comment_date ) ),
+	/* translators: Publish box time format, see https://secure.php.net/date */
+	date_i18n( _x( 'H:i', 'publish box time format' ), strtotime( $comment->comment_date ) )
+);
 ?>
 <span id="timestamp">
 <?php
-printf(
-	/* translators: %s: comment date */
-	__( 'Submitted on: %s' ),
-	'<b>' . date_i18n( $datef, strtotime( $comment->comment_date ) ) . '</b>'
-);
+/* translators: %s: Comment date. */
+printf( __( 'Submitted on: %s' ), '<b>' . $submitted . '</b>' );
 ?>
 </span>
 <a href="#edit_timestamp" class="edit-timestamp hide-if-no-js"><span aria-hidden="true"><?php _e( 'Edit' ); ?></span> <span class="screen-reader-text"><?php _e( 'Edit date and time' ); ?></span></a>
@@ -135,7 +138,7 @@ if ( current_user_can( 'edit_post', $post_id ) ) {
 <div class="misc-pub-section misc-pub-response-to">
 	<?php
 	printf(
-		/* translators: %s: post link */
+		/* translators: %s: Post link. */
 		__( 'In response to: %s' ),
 		'<b>' . $post_link . '</b>'
 	);
@@ -152,7 +155,7 @@ if ( $comment->comment_parent ) :
 	<div class="misc-pub-section misc-pub-reply-to">
 		<?php
 		printf(
-			/* translators: %s: comment link */
+			/* translators: %s: Comment link. */
 			__( 'In reply to: %s' ),
 			'<b><a href="' . $parent_link . '">' . $name . '</a></b>'
 		);

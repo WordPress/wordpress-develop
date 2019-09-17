@@ -914,6 +914,7 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 45749
+		 * @ticket 47599
 		 */
 		public function test_sites_pre_query_filter_should_bypass_database_query() {
 			global $wpdb;
@@ -923,11 +924,7 @@ if ( is_multisite() ) :
 			$num_queries = $wpdb->num_queries;
 
 			$q       = new WP_Site_Query();
-			$results = $q->query(
-				array(
-					'fields' => 'ids',
-				)
-			);
+			$results = $q->query( array() );
 
 			remove_filter( 'sites_pre_query', array( __CLASS__, 'filter_sites_pre_query' ), 10, 2 );
 
@@ -935,7 +932,7 @@ if ( is_multisite() ) :
 			$this->assertSame( $num_queries, $wpdb->num_queries );
 
 			// We manually inserted a non-existing site and overrode the results with it.
-			$this->assertSame( array( 555 ), $q->sites );
+			$this->assertSame( array( 555 ), $results );
 
 			// Make sure manually setting total_users doesn't get overwritten.
 			$this->assertEquals( 1, $q->found_sites );

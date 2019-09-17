@@ -14,16 +14,13 @@
  * @augments Backbone.Model
  * @mixin
  * @mixes Backbone.Events
- *
- * @param {Array} states
  */
-var StateMachine = function( states ) {
-	// @todo This is dead code. The states collection gets created in media.view.Frame._createStates.
-	this.states = new Backbone.Collection( states );
+var StateMachine = function() {
+	return {
+		// Use Backbone's self-propagating `extend` inheritance method.
+		extend: Backbone.Model.extend
+	};
 };
-
-// Use Backbone's self-propagating `extend` inheritance method.
-StateMachine.extend = Backbone.Model.extend;
 
 _.extend( StateMachine.prototype, Backbone.Events,/** @lends wp.media.controller.StateMachine.prototype */{
 	/**

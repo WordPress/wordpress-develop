@@ -72,11 +72,8 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			}
 
 			if ( 'revision' == $post->post_type ) {
-				$post = get_post( $post->post_parent );
-				if ( ! $post ) {
-					$caps[] = 'do_not_allow';
-					break;
-				}
+				$caps[] = 'do_not_allow';
+				break;
 			}
 
 			if ( ( get_option( 'page_for_posts' ) == $post->ID ) || ( get_option( 'page_on_front' ) == $post->ID ) ) {
@@ -86,7 +83,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 
 			$post_type = get_post_type_object( $post->post_type );
 			if ( ! $post_type ) {
-				/* translators: 1: post type, 2: capability name */
+				/* translators: 1: Post type, 2: Capability name. */
 				_doing_it_wrong( __FUNCTION__, sprintf( __( 'The post type %1$s is not registered, so it may not be reliable to check the capability "%2$s" against a post of that type.' ), $post->post_type, $cap ), '4.4.0' );
 				$caps[] = 'edit_others_posts';
 				break;
@@ -157,7 +154,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 
 			$post_type = get_post_type_object( $post->post_type );
 			if ( ! $post_type ) {
-				/* translators: 1: post type, 2: capability name */
+				/* translators: 1: Post type, 2: Capability name. */
 				_doing_it_wrong( __FUNCTION__, sprintf( __( 'The post type %1$s is not registered, so it may not be reliable to check the capability "%2$s" against a post of that type.' ), $post->post_type, $cap ), '4.4.0' );
 				$caps[] = 'edit_others_posts';
 				break;
@@ -226,7 +223,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 
 			$post_type = get_post_type_object( $post->post_type );
 			if ( ! $post_type ) {
-				/* translators: 1: post type, 2: capability name */
+				/* translators: 1: Post type, 2: Capability name. */
 				_doing_it_wrong( __FUNCTION__, sprintf( __( 'The post type %1$s is not registered, so it may not be reliable to check the capability "%2$s" against a post of that type.' ), $post->post_type, $cap ), '4.4.0' );
 				$caps[] = 'edit_others_posts';
 				break;
@@ -264,7 +261,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 
 			$post_type = get_post_type_object( $post->post_type );
 			if ( ! $post_type ) {
-				/* translators: 1: post type, 2: capability name */
+				/* translators: 1: Post type, 2: Capability name. */
 				_doing_it_wrong( __FUNCTION__, sprintf( __( 'The post type %1$s is not registered, so it may not be reliable to check the capability "%2$s" against a post of that type.' ), $post->post_type, $cap ), '4.4.0' );
 				$caps[] = 'edit_others_posts';
 				break;
@@ -582,8 +579,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			// Handle meta capabilities for custom post types.
 			global $post_type_meta_caps;
 			if ( isset( $post_type_meta_caps[ $cap ] ) ) {
-				$args = array_merge( array( $post_type_meta_caps[ $cap ], $user_id ), $args );
-				return call_user_func_array( 'map_meta_cap', $args );
+				return map_meta_cap( $post_type_meta_caps[ $cap ], $user_id, ...$args );
 			}
 
 			// Block capabilities map to their post equivalent.
@@ -1042,13 +1038,13 @@ function wp_maybe_grant_site_health_caps( $allcaps, $caps, $args, $user ) {
 return;
 
 // Dummy gettext calls to get strings in the catalog.
-/* translators: user role for administrators  */
+/* translators: User role for administrators. */
 _x( 'Administrator', 'User role' );
-/* translators: user role for editors */
+/* translators: User role for editors. */
 _x( 'Editor', 'User role' );
-/* translators: user role for authors */
+/* translators: User role for authors. */
 _x( 'Author', 'User role' );
-/* translators: user role for contributors */
+/* translators: User role for contributors. */
 _x( 'Contributor', 'User role' );
-/* translators: user role for subscriber */
+/* translators: User role for subscribers. */
 _x( 'Subscriber', 'User role' );

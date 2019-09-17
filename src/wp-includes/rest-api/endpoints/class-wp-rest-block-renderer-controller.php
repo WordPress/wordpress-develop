@@ -56,7 +56,7 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 						'args'                => array(
 							'context'    => $this->get_context_param( array( 'default' => 'view' ) ),
 							'attributes' => array(
-								/* translators: %s is the name of the block */
+								/* translators: %s: The name of the block. */
 								'description'          => sprintf( __( 'Attributes for %s block' ), $block_type->name ),
 								'type'                 => 'object',
 								'additionalProperties' => false,
@@ -161,7 +161,11 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 	 * @return array Item schema data.
 	 */
 	public function get_item_schema() {
-		return array(
+		if ( $this->schema ) {
+			return $this->schema;
+		}
+
+		$this->schema = array(
 			'$schema'    => 'http://json-schema.org/schema#',
 			'title'      => 'rendered-block',
 			'type'       => 'object',
@@ -174,5 +178,6 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 				),
 			),
 		);
+		return $this->schema;
 	}
 }

@@ -127,4 +127,49 @@ class Tests_Term_WpUniqueTermSlug extends WP_UnitTestCase {
 		$actual = wp_unique_term_slug( 'bar', $term2_object );
 		$this->assertEquals( 'bar-2', $actual );
 	}
+
+	/**
+	 * @ticket 46431
+	 */
+	public function test_duplicate_parent_suffixed_slug_should_get_numeric_suffix() {
+		$t1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax2',
+				'name'     => 'Animal',
+				'slug'     => 'animal',
+			)
+		);
+
+		$t2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax2',
+				'name'     => 'Dog',
+				'slug'     => 'dog',
+			)
+		);
+
+		$t3 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax2',
+				'name'     => 'Cat',
+				'slug'     => 'dog-animal',
+				'parent'   => $t1,
+			)
+		);
+
+		$t4 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax2',
+				'name'     => 'Giraffe',
+				'slug'     => 'giraffe',
+				'parent'   => $t1,
+			)
+		);
+
+		$term = get_term( $t4 );
+
+		$slug = wp_unique_term_slug( 'dog', $term );
+
+		$this->assertSame( 'dog-animal-2', $slug );
+	}
 }

@@ -32,7 +32,12 @@ global $hook_suffix;
 	?>
 	<p id="footer-left" class="alignleft">
 		<?php
-		$text = sprintf( __( 'Thank you for creating with <a href="%s">WordPress</a>.' ), __( 'https://wordpress.org/' ) );
+		$text = sprintf(
+			/* translators: %s: https://wordpress.org/ */
+			__( 'Thank you for creating with <a href="%s">WordPress</a>.' ),
+			__( 'https://wordpress.org/' )
+		);
+
 		/**
 		 * Filters the "Thank you" text displayed in the admin footer.
 		 *

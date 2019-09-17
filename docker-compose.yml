@@ -97,11 +97,13 @@ services:
     environment:
       LOCAL_PHP_XDEBUG: ${LOCAL_PHP_XDEBUG-false}
       LOCAL_PHP_MEMCACHED: ${LOCAL_PHP_MEMCACHED-false}
+      LOCAL_DIR: ${LOCAL_DIR-src}
+      WP_MULTISITE: ${WP_MULTISITE-false}
 
     volumes:
       - ./tools/local-env/phpunit-config.ini:/usr/local/etc/php/conf.d/phpunit-config.ini
-      - ./:/wordpress-develop
-      - phpunit-uploads:/wordpress-develop/${LOCAL_DIR-src}/wp-content/uploads
+      - ./:/var/www
+      - phpunit-uploads:/var/www/${LOCAL_DIR-src}/wp-content/uploads
 
     # The init directive ensures the command runs with a PID > 1, so Ctrl+C works correctly.
     init: true

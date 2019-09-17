@@ -310,6 +310,11 @@ table.fixed {
 	width: 10%;
 }
 
+.column-date span[title] {
+	-webkit-text-decoration: dotted underline;
+	text-decoration: dotted underline;
+}
+
 .fixed .column-posts {
 	width: 74px;
 }
@@ -1465,7 +1470,7 @@ div.action-links,
 }
 
 .plugin-card h3 {
-	margin: 0 0 12px;
+	margin: 0 12px 12px 0;
 	font-size: 18px;
 	line-height: 1.3;
 }
@@ -1644,6 +1649,10 @@ div.action-links,
 
 	.plugin-action-buttons li .button {
 		margin-right: 20px;
+	}
+
+	.plugin-card h3 {
+		margin-right: 24px;
 	}
 
 	.plugin-card .name,

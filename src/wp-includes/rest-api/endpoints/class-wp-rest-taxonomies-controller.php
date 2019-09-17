@@ -138,7 +138,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param  WP_REST_Request $request Full details about the request.
+	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, otherwise false or WP_Error object.
 	 */
 	public function get_item_permissions_check( $request ) {
@@ -210,7 +210,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		}
 
 		if ( in_array( 'types', $fields, true ) ) {
-			$data['types'] = $taxonomy->object_type;
+			$data['types'] = array_values( $taxonomy->object_type );
 		}
 
 		if ( in_array( 'show_cloud', $fields, true ) ) {
@@ -276,6 +276,10 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 * @return array Item schema data.
 	 */
 	public function get_item_schema() {
+		if ( $this->schema ) {
+			return $this->add_additional_fields_schema( $this->schema );
+		}
+
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'taxonomy',
@@ -373,7 +377,9 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 				),
 			),
 		);
-		return $this->add_additional_fields_schema( $schema );
+
+		$this->schema = $schema;
+		return $this->add_additional_fields_schema( $this->schema );
 	}
 
 	/**

@@ -1,4 +1,5 @@
 var Frame = wp.media.view.Frame,
+	l10n = wp.media.view.l10n,
 	$ = jQuery,
 	MediaFrame;
 
@@ -32,7 +33,7 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 		Frame.prototype.initialize.apply( this, arguments );
 
 		_.defaults( this.options, {
-			title:    '',
+			title:    l10n.mediaFrameDefaultTitle,
 			modal:    true,
 			uploader: true
 		});

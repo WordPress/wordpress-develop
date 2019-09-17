@@ -262,7 +262,8 @@
 
 		if ( 'undefined' !== typeof response.debug && window.console && window.console.log ) {
 			_.map( response.debug, function( message ) {
-				window.console.log( $( '<p />' ).html( message ).text() );
+				// Remove all HTML tags and write a message to the console.
+				window.console.log( wp.sanitize.stripTagsAndEncodeText( message ) );
 			} );
 		}
 	};
@@ -2235,7 +2236,7 @@
 					wp.a11y.speak( wp.updates.l10n.pluginsFound.replace( '%d', response.count ) );
 				}
 			} );
-		}, 500 ) );
+		}, 1000 ) );
 
 		if ( $pluginSearch.length ) {
 			$pluginSearch.attr( 'aria-describedby', 'live-search-desc' );

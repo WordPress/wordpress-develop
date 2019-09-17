@@ -575,6 +575,34 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 45747
+	 */
+	function test_wp_update_user_should_not_mark_user_as_spam_on_single_site() {
+		if ( is_multisite() ) {
+			$this->markTestSkipped( 'This test is intended for single site.' );
+		}
+
+		$u = wp_update_user(
+			array(
+				'ID'   => self::$contrib_id,
+				'spam' => '0',
+			)
+		);
+
+		$this->assertNotWPError( $u );
+
+		$u = wp_update_user(
+			array(
+				'ID'   => self::$contrib_id,
+				'spam' => '1',
+			)
+		);
+
+		$this->assertWPError( $u );
+		$this->assertSame( 'no_spam', $u->get_error_code() );
+	}
+
+	/**
 	 * @ticket 28315
 	 */
 	function test_user_meta_error() {
@@ -961,6 +989,21 @@ class Tests_User extends WP_UnitTestCase {
 		);
 
 		$this->assertWPError( $u );
+		$this->assertSame( 'invalid_user_id', $u->get_error_code() );
+	}
+
+	/**
+	 * @ticket 47902
+	 */
+	public function test_wp_insert_user_with_empty_data() {
+		add_filter( 'wp_pre_insert_user_data', '__return_empty_array' );
+
+		$u = self::factory()->user->create();
+
+		remove_filter( 'wp_pre_insert_user_data', '__return_empty_array' );
+
+		$this->assertWPError( $u );
+		$this->assertSame( 'empty_data', $u->get_error_code() );
 	}
 
 	/**

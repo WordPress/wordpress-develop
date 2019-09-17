@@ -177,7 +177,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 */
 	public function __call( $name, $arguments ) {
 		if ( '_multisite_getUsersBlogs' === $name ) {
-			return call_user_func_array( array( $this, $name ), $arguments );
+			return $this->_multisite_getUsersBlogs( ...$arguments );
 		}
 		return false;
 	}
@@ -727,12 +727,12 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @param string|array $args Sanitize single string or array of strings.
-	 * @param int $count         Minimum number of arguments.
-	 * @return bool if `$args` contains at least $count arguments.
+	 * @param array $args  An array of arguments to check.
+	 * @param int   $count Minimum number of arguments.
+	 * @return bool True if `$args` contains at least `$count` arguments, false otherwise.
 	 */
 	protected function minimum_args( $args, $count ) {
-		if ( count( $args ) < $count ) {
+		if ( ! is_array( $args ) || count( $args ) < $count ) {
 			$this->error = new IXR_Error( 400, __( 'Insufficient arguments passed to this XML-RPC method.' ) );
 			return false;
 		}
@@ -1706,6 +1706,16 @@ class wp_xmlrpc_server extends IXR_Server {
 			unset( $post['post_date_gmt'] );
 		} else {
 			$post['post_date_gmt'] = $this->_convert_date( $post['post_date_gmt'] );
+		}
+
+		/*
+		 * If the API client did not provide post_date, then we must not perpetuate the value that was
+		 * stored in the database, or it will appear to be an intentional edit. Conveying it here as if
+		 * it was coming from the API client will cause an otherwise zeroed out post_date_gmt to get set
+		 * with the value that was originally stored in the database when the draft was created.
+		 */
+		if ( ! isset( $content_struct['post_date'] ) ) {
+			unset( $post['post_date'] );
 		}
 
 		$this->escape( $post );
@@ -6305,7 +6315,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			$this->error = new IXR_Error(
 				401,
 				sprintf(
-					/* translators: %s: allowed space allocation */
+					/* translators: %s: Allowed space allocation. */
 					__( 'Sorry, you have used your space allocation of %s. Please delete some files to upload more files.' ),
 					size_format( get_space_allowed() * MB_IN_BYTES )
 				)
@@ -6330,7 +6340,7 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		$upload = wp_upload_bits( $name, null, $bits );
 		if ( ! empty( $upload['error'] ) ) {
-			/* translators: 1: file name, 2: error message */
+			/* translators: 1: File name, 2: Error message. */
 			$errorString = sprintf( __( 'Could not write file %1$s (%2$s).' ), $name, $upload['error'] );
 			return new IXR_Error( 500, $errorString );
 		}
@@ -6880,7 +6890,10 @@ class wp_xmlrpc_server extends IXR_Server {
 			return $this->pingback_error( 32, __( 'We cannot find a title on that page.' ) );
 		}
 
-		$remote_source = strip_tags( $remote_source, '<a>' ); // just keep the tag we need
+		// Remove all script and style tags including their content.
+		$remote_source = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $remote_source );
+		// Just keep the tag we need.
+		$remote_source = strip_tags( $remote_source, '<a>' );
 
 		$p = explode( "\n\n", $remote_source );
 
@@ -6959,7 +6972,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		 */
 		do_action( 'pingback_post', $comment_ID );
 
-		/* translators: 1: URL of the page linked from, 2: URL of the page linked to */
+		/* translators: 1: URL of the page linked from, 2: URL of the page linked to. */
 		return sprintf( __( 'Pingback from %1$s to %2$s registered. Keep the web talking! :-)' ), $pagelinkedfrom, $pagelinkedto );
 	}
 

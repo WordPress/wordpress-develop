@@ -39,26 +39,25 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 	 */
 	public function add_strings() {
 		$this->upgrader->strings['skin_upgrade_start'] = __( 'The update process is starting. This process may take a while on some hosts, so please be patient.' );
-		/* translators: 1: Title of an update, 2: Error message */
+		/* translators: 1: Title of an update, 2: Error message. */
 		$this->upgrader->strings['skin_update_failed_error'] = __( 'An error occurred while updating %1$s: %2$s' );
-		/* translators: %s: Title of an update */
+		/* translators: %s: Title of an update. */
 		$this->upgrader->strings['skin_update_failed'] = __( 'The update of %s failed.' );
-		/* translators: %s: Title of an update */
+		/* translators: %s: Title of an update. */
 		$this->upgrader->strings['skin_update_successful'] = __( '%s updated successfully.' );
 		$this->upgrader->strings['skin_upgrade_end']       = __( 'All updates have been completed.' );
 	}
 
 	/**
 	 * @param string $string
+	 * @param mixed  ...$args Optional text replacements.
 	 */
-	public function feedback( $string ) {
+	public function feedback( $string, ...$args ) {
 		if ( isset( $this->upgrader->strings[ $string ] ) ) {
 			$string = $this->upgrader->strings[ $string ];
 		}
 
 		if ( strpos( $string, '%' ) !== false ) {
-			$args = func_get_args();
-			$args = array_splice( $args, 1 );
 			if ( $args ) {
 				$args   = array_map( 'strip_tags', $args );
 				$args   = array_map( 'esc_html', $args );

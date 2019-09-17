@@ -11,14 +11,17 @@ class WP_Site_Health {
 	private $mysql_min_version_check;
 	private $mysql_rec_version_check;
 
-	public  $is_mariadb                          = false;
+	public $is_mariadb                           = false;
 	private $mysql_server_version                = '';
 	private $health_check_mysql_required_version = '5.5';
 	private $health_check_mysql_rec_version      = '';
 
 	public $schedules;
 	public $crons;
-	public $last_missed_cron = null;
+	public $last_missed_cron     = null;
+	public $last_late_cron       = null;
+	private $timeout_missed_cron = null;
+	private $timeout_late_cron   = null;
 
 	/**
 	 * WP_Site_Health constructor.
@@ -27,6 +30,14 @@ class WP_Site_Health {
 	 */
 	public function __construct() {
 		$this->prepare_sql_data();
+
+		$this->timeout_late_cron   = 0;
+		$this->timeout_missed_cron = - 5 * MINUTE_IN_SECONDS;
+
+		if ( defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON ) {
+			$this->timeout_late_cron   = - 15 * MINUTE_IN_SECONDS;
+			$this->timeout_missed_cron = - 1 * HOUR_IN_SECONDS;
+		}
 
 		add_filter( 'admin_body_class', array( $this, 'admin_body_class' ) );
 
@@ -121,17 +132,15 @@ class WP_Site_Health {
 	private function prepare_sql_data() {
 		global $wpdb;
 
-		if ( method_exists( $wpdb, 'db_version' ) ) {
-			if ( $wpdb->use_mysqli ) {
-				// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_get_server_info
-				$mysql_server_type = mysqli_get_server_info( $wpdb->dbh );
-			} else {
-				// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysql_get_server_info
-				$mysql_server_type = mysql_get_server_info( $wpdb->dbh );
-			}
-
-			$this->mysql_server_version = $wpdb->db_version();
+		if ( $wpdb->use_mysqli ) {
+			// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_get_server_info
+			$mysql_server_type = mysqli_get_server_info( $wpdb->dbh );
+		} else {
+			// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysql_get_server_info
+			$mysql_server_type = mysql_get_server_info( $wpdb->dbh );
 		}
+
+		$this->mysql_server_version = $wpdb->get_var( 'SELECT VERSION()' );
 
 		$this->health_check_mysql_rec_version = '5.6';
 
@@ -195,7 +204,7 @@ class WP_Site_Health {
 			$result['status'] = 'recommended';
 
 			$result['label'] = sprintf(
-				// translators: %s: Your current version of WordPress.
+				/* translators: %s: Your current version of WordPress. */
 				__( 'WordPress version %s' ),
 				$core_current_version
 			);
@@ -220,7 +229,7 @@ class WP_Site_Health {
 					$new_major     = $new_version[0] . '.' . $new_version[1];
 
 					$result['label'] = sprintf(
-						// translators: %s: The latest version of WordPress available.
+						/* translators: %s: The latest version of WordPress available. */
 						__( 'WordPress update available (%s)' ),
 						$update->version
 					);
@@ -250,7 +259,7 @@ class WP_Site_Health {
 				} else {
 					$result['status'] = 'good';
 					$result['label']  = sprintf(
-						// translators: %s: The current version of WordPress installed on this site.
+						/* translators: %s: The current version of WordPress installed on this site. */
 						__( 'Your WordPress version is up to date (%s)' ),
 						$core_current_version
 					);
@@ -644,7 +653,7 @@ class WP_Site_Health {
 
 		$result = array(
 			'label'       => sprintf(
-				// translators: %s: The current PHP version.
+				/* translators: %s: The current PHP version. */
 				__( 'PHP is up to date (%s)' ),
 				PHP_VERSION
 			),
@@ -661,7 +670,7 @@ class WP_Site_Health {
 				'<p><a href="%s" target="_blank" rel="noopener noreferrer">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				esc_url( wp_get_update_php_url() ),
 				__( 'Learn more about updating PHP' ),
-				/* translators: accessibility text */
+				/* translators: Accessibility text. */
 				__( '(opens in a new tab)' )
 			),
 			'test'        => 'php_version',
@@ -753,7 +762,7 @@ class WP_Site_Health {
 					'target="_blank" rel="noopener noreferrer"',
 					sprintf(
 						' <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span>',
-						/* translators: accessibility text */
+						/* translators: Accessibility text. */
 						__( '(opens in a new tab)' )
 					)
 				)
@@ -953,7 +962,7 @@ class WP_Site_Health {
 				/* translators: Localized version of WordPress requirements if one exists. */
 				esc_url( __( 'https://wordpress.org/about/requirements/' ) ),
 				__( 'Learn more about what WordPress requires to run.' ),
-				/* translators: accessibility text */
+				/* translators: Accessibility text. */
 				__( '(opens in a new tab)' )
 			),
 			'test'        => 'sql_server',
@@ -1186,7 +1195,7 @@ class WP_Site_Health {
 				/* translators: Localized Support reference. */
 				esc_url( __( 'https://wordpress.org/support' ) ),
 				__( 'Get help resolving this issue.' ),
-				/* translators: accessibility text */
+				/* translators: Accessibility text. */
 				__( '(opens in a new tab)' )
 			);
 		}
@@ -1224,7 +1233,7 @@ class WP_Site_Health {
 				/* translators: Documentation explaining debugging in WordPress. */
 				esc_url( __( 'https://wordpress.org/support/article/debugging-in-wordpress/' ) ),
 				__( 'Learn more about debugging in WordPress.' ),
-				/* translators: accessibility text */
+				/* translators: Accessibility text. */
 				__( '(opens in a new tab)' )
 			),
 			'test'        => 'is_in_debug_mode',
@@ -1293,7 +1302,7 @@ class WP_Site_Health {
 				/* translators: Documentation explaining HTTPS and why it should be used. */
 				esc_url( __( 'https://wordpress.org/support/article/why-should-i-use-https/' ) ),
 				__( 'Learn more about why you should use HTTPS' ),
-				/* translators: accessibility text */
+				/* translators: Accessibility text. */
 				__( '(opens in a new tab)' )
 			),
 			'test'        => 'https_status',
@@ -1311,7 +1320,7 @@ class WP_Site_Health {
 				$result['description'] = sprintf(
 					'<p>%s</p>',
 					sprintf(
-						/* translators: %s: URL to Settings > General to change options. */
+						/* translators: %s: URL to General Settings screen. */
 						__( 'You are accessing this website using HTTPS, but your <a href="%s">WordPress Address</a> is not set up to use HTTPS by default.' ),
 						esc_url( admin_url( 'options-general.php' ) )
 					)
@@ -1416,21 +1425,32 @@ class WP_Site_Health {
 					$this->has_missed_cron()->get_error_message()
 				)
 			);
-		} else {
-			if ( $this->has_missed_cron() ) {
-				$result['status'] = 'recommended';
+		} elseif ( $this->has_missed_cron() ) {
+			$result['status'] = 'recommended';
 
-				$result['label'] = __( 'A scheduled event has failed' );
+			$result['label'] = __( 'A scheduled event has failed' );
 
-				$result['description'] = sprintf(
-					'<p>%s</p>',
-					sprintf(
-						/* translators: %s: The name of the failed cron event. */
-						__( 'The scheduled event, %s, failed to run. Your site still works, but this may indicate that scheduling posts or automated updates may not work as intended.' ),
-						$this->last_missed_cron
-					)
-				);
-			}
+			$result['description'] = sprintf(
+				'<p>%s</p>',
+				sprintf(
+					/* translators: %s: The name of the failed cron event. */
+					__( 'The scheduled event, %s, failed to run. Your site still works, but this may indicate that scheduling posts or automated updates may not work as intended.' ),
+					$this->last_missed_cron
+				)
+			);
+		} elseif ( $this->has_late_cron() ) {
+			$result['status'] = 'recommended';
+
+			$result['label'] = __( 'A scheduled event is late' );
+
+			$result['description'] = sprintf(
+				'<p>%s</p>',
+				sprintf(
+					/* translators: %s: The name of the late cron event. */
+					__( 'The scheduled event, %s, is late to run. Your site still works, but this may indicate that scheduling posts or automated updates may not work as intended.' ),
+					$this->last_late_cron
+				)
+			);
 		}
 
 		return $result;
@@ -1718,7 +1738,7 @@ class WP_Site_Health {
 				$result['description'] .= sprintf(
 					'<p>%s</p>',
 					sprintf(
-						/* translators: %s: the name of the query parameter being tested. */
+						/* translators: %s: The name of the query parameter being tested. */
 						__( 'The REST API did not process the %s query parameter correctly.' ),
 						'<code>context</code>'
 					)
@@ -1918,7 +1938,7 @@ class WP_Site_Health {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @return bool|WP_Error true if a cron was missed, false if it wasn't. WP_Error if the cron is set to that.
+	 * @return bool|WP_Error True if a cron was missed, false if not. WP_Error if the cron is set to that.
 	 */
 	public function has_missed_cron() {
 		if ( is_wp_error( $this->crons ) ) {
@@ -1926,8 +1946,37 @@ class WP_Site_Health {
 		}
 
 		foreach ( $this->crons as $id => $cron ) {
-			if ( ( $cron->time - time() ) < 0 ) {
+			if ( ( $cron->time - time() ) < $this->timeout_missed_cron ) {
 				$this->last_missed_cron = $cron->hook;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Check if any scheduled tasks are late.
+	 *
+	 * Returns a boolean value of `true` if a scheduled task is late and ends processing. If the list of
+	 * crons is an instance of WP_Error, return the instance instead of a boolean value.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @return bool|WP_Error True if a cron is late, false if not. WP_Error if the cron is set to that.
+	 */
+	public function has_late_cron() {
+		if ( is_wp_error( $this->crons ) ) {
+			return $this->crons;
+		}
+
+		foreach ( $this->crons as $id => $cron ) {
+			$cron_offset = $cron->time - time();
+			if (
+					$cron_offset >= $this->timeout_missed_cron &&
+					$cron_offset < $this->timeout_late_cron
+				) {
+				$this->last_late_cron = $cron->hook;
 				return true;
 			}
 		}
@@ -1968,7 +2017,7 @@ class WP_Site_Health {
 					'%s<br>%s',
 					__( 'The loopback request to your site failed, this means features relying on them are not currently working as expected.' ),
 					sprintf(
-						// translators: 1: The HTTP response code. 2: The error message returned.
+						/* translators: 1: The HTTP response code. 2: The error message returned. */
 						__( 'Error: [%1$s] %2$s' ),
 						wp_remote_retrieve_response_code( $r ),
 						$r->get_error_message()
@@ -1981,7 +2030,7 @@ class WP_Site_Health {
 			return (object) array(
 				'status'  => 'recommended',
 				'message' => sprintf(
-					// translators: %d: The HTTP response code returned.
+					/* translators: %d: The HTTP response code returned. */
 					__( 'The loopback request returned an unexpected http status code, %d, it was not possible to determine if this will prevent features from working as expected.' ),
 					wp_remote_retrieve_response_code( $r )
 				),

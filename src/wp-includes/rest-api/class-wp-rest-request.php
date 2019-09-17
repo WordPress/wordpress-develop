@@ -690,15 +690,6 @@ class WP_REST_Request implements ArrayAccess {
 		parse_str( $this->get_body(), $params );
 
 		/*
-		 * Amazingly, parse_str follows magic quote rules. Sigh.
-		 *
-		 * NOTE: Do not refactor to use `wp_unslash`.
-		 */
-		if ( get_magic_quotes_gpc() ) {
-			$params = stripslashes_deep( $params );
-		}
-
-		/*
 		 * Add to the POST parameters stored internally. If a user has already
 		 * set these manually (via `set_body_params`), don't override them.
 		 */
@@ -805,6 +796,7 @@ class WP_REST_Request implements ArrayAccess {
 		if ( $invalid_params ) {
 			return new WP_Error(
 				'rest_invalid_param',
+				/* translators: %s: List of invalid parameters. */
 				sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', array_keys( $invalid_params ) ) ),
 				array(
 					'status' => 400,
@@ -850,6 +842,7 @@ class WP_REST_Request implements ArrayAccess {
 		if ( ! empty( $required ) ) {
 			return new WP_Error(
 				'rest_missing_callback_param',
+				/* translators: %s: List of required parameters. */
 				sprintf( __( 'Missing parameter(s): %s' ), implode( ', ', $required ) ),
 				array(
 					'status' => 400,
@@ -885,6 +878,7 @@ class WP_REST_Request implements ArrayAccess {
 		if ( $invalid_params ) {
 			return new WP_Error(
 				'rest_invalid_param',
+				/* translators: %s: List of invalid parameters. */
 				sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', array_keys( $invalid_params ) ) ),
 				array(
 					'status' => 400,
