@@ -1891,13 +1891,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'properties' => array(
 				'date'         => array(
 					'description' => __( "The date the object was published, in the site's timezone." ),
-					'type'        => 'string',
+					'type'        => [ 'string', 'null' ],
 					'format'      => 'date-time',
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 				'date_gmt'     => array(
 					'description' => __( 'The date the object was published, as GMT.' ),
-					'type'        => 'string',
+					'type'        => [ 'string', 'null' ],
 					'format'      => 'date-time',
 					'context'     => array( 'view', 'edit' ),
 				),
