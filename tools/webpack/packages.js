@@ -207,6 +207,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			return memo;
 		}, {} ),
 		output: {
+			devtoolNamespace: 'wp',
 			filename: `[basename]${ suffix }.js`,
 			path: join( baseDir, `${ buildTarget }/js/dist` ),
 			library: {
