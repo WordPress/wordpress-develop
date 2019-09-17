@@ -2569,9 +2569,16 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		// Set the post date to the future.
 		$future_date = '2919-07-29T18:00:00';
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request     = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
 		$request->add_header( 'content-type', 'application/json' );
-		$params = $this->set_post_data( array( 'date_gmt' => $future_date, 'date' => $future_date,'title' => 'update', 'status' => 'draft' ) );
+		$params = $this->set_post_data(
+			array(
+				'date_gmt' => $future_date,
+				'date'     => $future_date,
+				'title'    => 'update',
+				'status'   => 'draft',
+			)
+		);
 		$request->set_body( wp_json_encode( $params ) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->check_update_post_response( $response );
@@ -2586,7 +2593,13 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		// Update post with a blank field (date or date_gmt).
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
 		$request->add_header( 'content-type', 'application/json' );
-		$params = $this->set_post_data( array( 'date_gmt' => null, 'title' => 'test', 'status' => 'draft' ) );
+		$params = $this->set_post_data(
+			array(
+				'date_gmt' => null,
+				'title'    => 'test',
+				'status'   => 'draft',
+			)
+		);
 		$request->set_body( wp_json_encode( $params ) );
 		$response = rest_get_server()->dispatch( $request );
 
