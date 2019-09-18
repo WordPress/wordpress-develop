@@ -57,6 +57,72 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		wp_set_current_user( $current_user );
 	}
 
+	/**
+	 * Tests the priority parameter.
+	 *
+	 * @ticket 39776
+	 * @covers ::add_submenu_page
+	 *
+	 * @param int $priority          The position of the new item.
+	 * @param int $expected_position Where the new item is expected to appear.
+	 * @dataProvider data_submenu_priority
+	 */
+	function test_submenu_priority( $priority, $expected_position ) {
+		global $submenu;
+		$current_user = get_current_user_id();
+		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_user );
+		set_current_screen( 'dashboard' );
+
+		// Setup a menu with some items.
+		$parent = add_menu_page( 'Test Toplevel', 'Test Toplevel', 'manage_options', 'mt-top-level-handle', 'mt_toplevel_page' );
+		foreach ( $this->submenus_to_add() as $menu ) {
+			add_submenu_page( $parent, $menu[0], $menu[1], $menu[2], $menu[3], $menu[4] );
+		}
+
+		// Insert the new page.
+		add_submenu_page( $parent, 'New Page', 'New Page', 'manage_options', 'custom-position', 'custom_pos', $priority );
+		wp_set_current_user( $current_user );
+
+		// Clean up the temporary user.
+		wp_delete_user( $admin_user );
+
+		$this->assertSame( 'custom-position', $submenu[ $parent ][ $expected_position ][2] );
+	}
+
+	/**
+	 * Helper to store the menus to add so getting the length is programmatically done.
+	 * @since 5.3.0
+	 *
+	 * @return array
+	 */
+	function submenus_to_add() {
+		return array(
+			array( 'Submenu Priority', 'Submenu Priority', 'manage_options', 'sub-page', '' ),
+			array( 'Submenu Priority 2', 'Submenu Priority 2', 'manage_options', 'sub-page2', '' ),
+			array( 'Submenu Priority 3', 'Submenu Priority 3', 'manage_options', 'sub-page3', '' ),
+			array( 'Submenu Priority 4', 'Submenu Priority 4', 'manage_options', 'sub-page4', '' ),
+			array( 'Submenu Priority 5', 'Submenu Priority 5', 'manage_options', 'sub-page5', '' ),
+		);
+	}
+	/**
+	 * Data provider for the above priority parameter tests.
+	 * @return array
+	 */
+	function data_submenu_priority() {
+		$menu_count = count( $this->submenus_to_add() );
+		return array(
+			array( null, $menu_count ),        // Insert at the end of the menu if null is passed. Default behaviour.
+			array( 0, 0 ),                     // Insert at the beginning of the menu if 0 is passed.
+			array( -1, 0 ),                    // Negative numbers are treated the same as passing 0.
+			array( -7, 0 ),                    // Negative numbers are treated the same as passing 0.
+			array( 1, 1 ),                     // Insert as the second item.
+			array( 3, 3 ),                     // Insert as the 4th item.
+			array( $menu_count, $menu_count ), // Numbers equal to the number of items are added at the end.
+			array( 123456, $menu_count ),       // Numbers higher than the number of items are added at the end.
+		);
+	}
+
 	function test_is_plugin_active_true() {
 		activate_plugin( 'hello.php' );
 		$test = is_plugin_active( 'hello.php' );
