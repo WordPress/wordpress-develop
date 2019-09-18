@@ -69,6 +69,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 */
 	function test_submenu_priority( $priority, $expected_position ) {
 		global $submenu;
+		global $menu;
 		$current_user = get_current_user_id();
 		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $admin_user );
@@ -76,8 +77,8 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 
 		// Setup a menu with some items.
 		$parent = add_menu_page( 'Test Toplevel', 'Test Toplevel', 'manage_options', 'mt-top-level-handle', 'mt_toplevel_page' );
-		foreach ( $this->submenus_to_add() as $menu ) {
-			add_submenu_page( $parent, $menu[0], $menu[1], $menu[2], $menu[3], $menu[4] );
+		foreach ( $this->submenus_to_add() as $menu_to_add ) {
+			add_submenu_page( $parent, $menu_to_add[0], $menu_to_add[1], $menu_to_add[2], $menu_to_add[3], $menu_to_add[4] );
 		}
 
 		// Insert the new page.
@@ -87,7 +88,110 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		// Clean up the temporary user.
 		wp_delete_user( $admin_user );
 
+		// Verify the menu was inserted at the expected position.
 		$this->assertSame( 'custom-position', $submenu[ $parent ][ $expected_position ][2] );
+	}
+
+	/**
+	 * Tests the priority parameter for menu helper functions.
+	 *
+	 * @ticket 39776
+	 *
+	 * @covers ::add_management_page
+	 * @covers ::add_options_page
+	 * @covers ::add_theme_page
+	 * @covers ::add_plugins_page
+	 * @covers ::add_users_page
+	 * @covers ::add_dashboard_page
+	 * @covers ::add_posts_page
+	 * @covers ::add_media_page
+	 * @covers ::add_links_page
+	 * @covers ::add_pages_page
+	 * @covers ::add_comments_page
+	 *
+	 * @param int $priority          The position of the new item.
+	 * @param int $expected_position Where the new item is expected to appear.
+	 *
+ 	 * @dataProvider data_submenu_priority
+	 */
+	function test_submenu_helpers_priority( $priority, $expected_position ) {
+		global $submenu, $menu;
+		$current_user = get_current_user_id();
+		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_user );
+		set_current_screen( 'dashboard' );
+
+
+		// Test the helper functions that use `add_submenu_page`. Each helper adds to a specific menu root.
+		$helper_functions = array(
+			array(
+				'callback'  => 'add_management_page',
+				'menu_root' => 'tools.php',
+			),
+			array(
+				'callback'  => 'add_options_page',
+				'menu_root' => 'options-general.php',
+			),
+			array(
+				'callback'  => 'add_theme_page',
+				'menu_root' => 'themes.php',
+			),
+			array(
+				'callback' => 'add_plugins_page',
+				'menu_root' => 'plugins.php',
+			),
+			array(
+				'callback'  => 'add_users_page',
+				'menu_root' => 'users.php',
+			),
+			array(
+				'callback'  => 'add_dashboard_page',
+				'menu_root' => 'index.php',
+			),
+			array(
+				'callback'  => 'add_posts_page',
+				'menu_root' => 'edit.php',
+			),
+			array(
+				'callback'  => 'add_media_page',
+				'menu_root' => 'upload.php',
+			),
+			array(
+				'callback'  => 'add_links_page',
+				'menu_root' => 'link-manager.php',
+			),
+			array(
+				'callback'  => 'add_pages_page',
+				'menu_root' => 'edit.php?post_type=page',
+			),
+			array(
+				'callback'  => 'add_comments_page',
+				'menu_root' => 'edit-comments.php',
+			),
+		);
+
+		foreach ( $helper_functions as $helper_function ) {
+
+			// Reset menus.
+			$submenu = [];
+			$menu = [];
+
+			// Build up demo pages on the menu root.
+			foreach ( $this->submenus_to_add() as $menu_to_add ) {
+				add_menu_page( $menu_to_add[0], $menu_to_add[1], $menu_to_add[2], $helper_function[ 'menu_root' ], $helper_function[ 'menu_root' ] );
+			}
+
+			$test = 'test_' . $helper_function[ 'callback' ];
+
+			// Call the helper function, passing the desired priority.
+			call_user_func( $helper_function[ 'callback' ], $test, $test, 'manage_options', 'custom-position', '', $priority );
+
+			// Verify the menu was inserted at the expected position.
+			$this->assertSame( 'custom-position', $submenu[ $helper_function[ 'menu_root' ] ][ $expected_position ][2] );
+		}
+
+		// Clean up the temporary user.
+		wp_delete_user( $admin_user );
 	}
 
 	/**
@@ -105,6 +209,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 			array( 'Submenu Priority 5', 'Submenu Priority 5', 'manage_options', 'sub-page5', '' ),
 		);
 	}
+
 	/**
 	 * Data provider for the above priority parameter tests.
 	 * @return array
