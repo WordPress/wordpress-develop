@@ -680,6 +680,7 @@ JS;
 		global $wp_scripts;
 
 		wp_default_scripts( $wp_scripts );
+		wp_default_packages( $wp_scripts );
 
 		$wp_scripts->base_url  = '';
 		$wp_scripts->do_concat = true;
@@ -705,6 +706,7 @@ JS;
 		global $wp_scripts;
 
 		wp_default_scripts( $wp_scripts );
+		wp_default_packages( $wp_scripts );
 
 		$wp_scripts->base_url  = '';
 		$wp_scripts->do_concat = true;
@@ -739,7 +741,7 @@ JS;
 		$wp_scripts->base_url  = '';
 		$wp_scripts->do_concat = true;
 
-		$expected_tail = "<script type='text/javascript' src='/customize-dependency.js'></script>\n";
+		$expected_tail  = "<script type='text/javascript' src='/customize-dependency.js'></script>\n";
 		$expected_tail .= "<script type='text/javascript'>\n";
 		$expected_tail .= "tryCustomizeDependency()\n";
 		$expected_tail .= "</script>\n";
@@ -748,10 +750,8 @@ JS;
 		wp_enqueue_script( $handle, '/customize-dependency.js', array( 'customize-controls' ), null );
 		wp_add_inline_script( $handle, 'tryCustomizeDependency()' );
 
-		// Open a buffer to get the output of `wp_print_scripts`.
-		ob_start();
 		wp_print_scripts();
-		$print_scripts = ob_get_clean();
+		$print_scripts = get_echo( '_print_scripts' );
 
 		$tail = substr( $print_scripts, strrpos( $print_scripts, "<script type='text/javascript' src='/customize-dependency.js'>" ) );
 		$this->assertEquals( $expected_tail, $tail );
