@@ -44,6 +44,7 @@ JS;
 		wp_enqueue_script( 'empty-deps-no-version', 'example.com' );
 		wp_enqueue_script( 'empty-deps-version', 'example.com', array(), 1.2 );
 		wp_enqueue_script( 'empty-deps-null-version', 'example.com', array(), null );
+
 		$ver       = get_bloginfo( 'version' );
 		$expected  = "<script type='text/javascript' src='http://example.com?ver=$ver'></script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com?ver=$ver'></script>\n";
@@ -54,6 +55,23 @@ JS;
 
 		// No scripts left to print
 		$this->assertEquals( '', get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * @ticket 42804
+	 */
+	function test_wp_enqueue_script_with_html5_support_does_not_contain_type_attribute() {
+		add_theme_support( 'html5', array( 'script' ) );
+
+		$GLOBALS['wp_scripts']                  = new WP_Scripts();
+		$GLOBALS['wp_scripts']->default_version = get_bloginfo( 'version' );
+
+		wp_enqueue_script( 'empty-deps-no-version', 'example.com' );
+
+		$ver      = get_bloginfo( 'version' );
+		$expected = "<script src='http://example.com?ver=$ver'></script>\n";
+
+		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -716,12 +734,12 @@ JS;
 		global $wp_scripts;
 
 		wp_default_scripts( $wp_scripts );
+		wp_default_packages( $wp_scripts );
 
 		$wp_scripts->base_url  = '';
 		$wp_scripts->do_concat = true;
 
-		$expected_tail  = "<![endif]-->\n";
-		$expected_tail .= "<script type='text/javascript' src='/customize-dependency.js'></script>\n";
+		$expected_tail = "<script type='text/javascript' src='/customize-dependency.js'></script>\n";
 		$expected_tail .= "<script type='text/javascript'>\n";
 		$expected_tail .= "tryCustomizeDependency()\n";
 		$expected_tail .= "</script>\n";
@@ -730,10 +748,12 @@ JS;
 		wp_enqueue_script( $handle, '/customize-dependency.js', array( 'customize-controls' ), null );
 		wp_add_inline_script( $handle, 'tryCustomizeDependency()' );
 
+		// Open a buffer to get the output of `wp_print_scripts`.
+		ob_start();
 		wp_print_scripts();
-		$print_scripts = get_echo( '_print_scripts' );
+		$print_scripts = ob_get_clean();
 
-		$tail = substr( $print_scripts, strrpos( $print_scripts, '<![endif]-->' ) );
+		$tail = substr( $print_scripts, strrpos( $print_scripts, "<script type='text/javascript' src='/customize-dependency.js'>" ) );
 		$this->assertEquals( $expected_tail, $tail );
 	}
 
