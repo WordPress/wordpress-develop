@@ -2205,6 +2205,66 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @ticket 43392
+	 */
+	public function test_register_meta_issues_doing_it_wrong_when_show_in_rest_is_true() {
+		$this->setExpectedIncorrectUsage( 'register_meta' );
+
+		$registered = register_meta(
+			'post',
+			'invalid_array',
+			array(
+				'type'         => 'array',
+				'show_in_rest' => true,
+			)
+		);
+
+		self::assertFalse( $registered );
+	}
+
+	/**
+	 * @ticket 43392
+	 */
+	public function test_register_meta_issues_doing_it_wrong_when_show_in_rest_omits_schema() {
+		$this->setExpectedIncorrectUsage( 'register_meta' );
+
+		$registered = register_meta(
+			'post',
+			'invalid_array',
+			array(
+				'type'         => 'array',
+				'show_in_rest' => array(
+					'prepare_callback' => 'rest_sanitize_value_from_schema',
+				),
+			)
+		);
+
+		self::assertFalse( $registered );
+	}
+
+	/**
+	 * @ticket 43392
+	 */
+	public function test_register_meta_issues_doing_it_wrong_when_show_in_rest_omits_schema_items() {
+		$this->setExpectedIncorrectUsage( 'register_meta' );
+
+		$registered = register_meta(
+			'post',
+			'invalid_array',
+			array(
+				'type'         => 'array',
+				'show_in_rest' => array(
+					'schema' => array(
+						'default' => array( 'Hi!' ),
+					),
+				),
+			)
+		);
+
+		self::assertFalse( $registered );
+	}
+
+	/**
 	 * Internal function used to disable an insert query which
 	 * will trigger a wpdb error for testing purposes.
 	 */
