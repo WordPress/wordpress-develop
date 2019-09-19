@@ -232,7 +232,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 	public function data_get_fields_for_response() {
 		return array(
 			array(
-				'somestring,someinteger',
+				'somestring,someinteger,someinvalidkey',
 				array(
 					'somestring',
 					'someinteger',
