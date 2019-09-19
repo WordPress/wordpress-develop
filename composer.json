@@ -14,8 +14,8 @@
 		"wp-coding-standards/wpcs": "~2.1.0"
 	},
 	"scripts": {
-		"format": "phpcbf --standard=phpcs.xml.dist --report-summary --report-source --cache -d memory_limit=256M",
-		"lint": "phpcs --standard=phpcs.xml.dist --report-summary --report-source --cache -d memory_limit=256M",
-		"lint:errors": "phpcs --standard=phpcs.xml.dist --report-summary --report-source --cache -d memory_limit=256M -n"
+		"format": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcbf --report=summary,source --cache -d memory_limit=256M",
+		"lint": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --report=summary,source --cache -d memory_limit=256M",
+		"lint:errors": "@lint -n"
 	}
 }
