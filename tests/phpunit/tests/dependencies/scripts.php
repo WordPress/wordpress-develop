@@ -732,14 +732,16 @@ JS;
 		$print_scripts  = get_echo( 'wp_print_scripts' );
 		$print_scripts .= get_echo( '_print_scripts' );
 
-		// We've replaced wp-a11y.js with @wordpress/a11y package (see #45066),
-		// and `wp-polyfill` is now a dependency of the packaged wp-a11y.
-		// The packaged scripts contain various version numbers, which are
-		// not exposed, so we will remove all version args from the output.
+		/*
+		 * We've replaced wp-a11y.js with @wordpress/a11y package (see #45066),
+		 * and `wp-polyfill` is now a dependency of the packaged wp-a11y.
+		 * The packaged scripts contain various version numbers, which are not exposed,
+		 * so we will remove all version args from the output.
+		 */
 		$print_scripts = preg_replace(
 			'~js\?ver=([^"\']*)~', // Matches `js?ver=X.X.X` and everything to single or double quote.
 			'js',                  // The replacement, `js` without the version arg.
-			$print_scripts // Printed scripts.
+			$print_scripts         // Printed scripts.
 		);
 
 		$this->assertEquals( $expected, $print_scripts );
