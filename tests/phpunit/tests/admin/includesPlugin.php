@@ -182,7 +182,6 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 
 		foreach ( $helper_functions as $helper_function ) {
 
-
 			// Build up demo pages on the menu root.
 			foreach ( $this->submenus_to_add() as $menu_to_add ) {
 				add_menu_page( $menu_to_add[0], $menu_to_add[1], $menu_to_add[2], $helper_function['menu_root'], $helper_function['menu_root'] );
