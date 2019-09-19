@@ -738,6 +738,42 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verifies only that meta_type_key is passed. See query/metaQuery.php for more complete tests.
+	 *
+	 * @ticket 43446
+	 */
+	public function test_meta_type_key_should_be_passed_to_meta_query() {
+		$posts = self::factory()->post->create_many( 3 );
+
+		add_post_meta( $posts[0], 'AAA_FOO_AAA', 'abc' );
+		add_post_meta( $posts[1], 'aaa_bar_aaa', 'abc' );
+		add_post_meta( $posts[2], 'aaa_foo_bbb', 'abc' );
+		add_post_meta( $posts[2], 'aaa_foo_aaa', 'abc' );
+
+		$q = new WP_Query(
+			array(
+				'meta_key'         => 'AAA_foo_.*',
+				'meta_compare_key' => 'REGEXP',
+				'fields'           => 'ids',
+			)
+		);
+
+		$this->assertEqualSets( array( $posts[0], $posts[2] ), $q->posts );
+
+		$q = new WP_Query(
+			array(
+				'meta_key'         => 'AAA_FOO_.*',
+				'meta_compare_key' => 'REGEXP',
+				'meta_type_key'    => 'BINARY',
+				'fields'           => 'ids',
+				'fields'           => 'ids',
+			)
+		);
+
+		$this->assertEqualSets( array( $posts[0] ), $q->posts );
+	}
+
+	/**
 	 * This is the clause that ensures that empty arrays are not valid queries.
 	 */
 	public function test_get_sql_null_value_and_empty_key_should_not_have_table_join() {
