@@ -712,9 +712,15 @@ JS;
 		$wp_scripts->do_concat = true;
 
 		$ver       = get_bloginfo( 'version' );
-		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate,wp-sanitize,wp-a11y&amp;ver={$ver}'></script>\n";
+		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate&amp;ver={$ver}'></script>\n";
 		$expected .= "<script type='text/javascript'>\nconsole.log(\"before\");\n</script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com'></script>\n";
+		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/vendor/wp-polyfill.min.js'></script>\n";
+		$expected .= "<script type='text/javascript'>\n";
+		$expected .= "( 'fetch' in window ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-fetch.min.js\"></scr' + 'ipt>' );( document.contains ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-node-contains.min.js\"></scr' + 'ipt>' );( window.FormData && window.FormData.prototype.keys ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-formdata.min.js\"></scr' + 'ipt>' );( Element.prototype.matches && Element.prototype.closest ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-element-closest.min.js\"></scr' + 'ipt>' );\n";
+		$expected .= "</script>\n";
+		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/dom-ready.min.js'></script>\n";
+		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/a11y.min.js'></script>\n";
 		$expected .= "<script type='text/javascript' src='http://example2.com'></script>\n";
 		$expected .= "<script type='text/javascript'>\nconsole.log(\"after\");\n</script>\n";
 
@@ -723,8 +729,18 @@ JS;
 		wp_enqueue_script( 'test-example2', 'http://example2.com', array( 'wp-a11y' ), null );
 		wp_add_inline_script( 'test-example2', 'console.log("after");', 'after' );
 
-		wp_print_scripts();
-		$print_scripts = get_echo( '_print_scripts' );
+		$print_scripts  = get_echo( 'wp_print_scripts' );
+		$print_scripts .= get_echo( '_print_scripts' );
+
+		// We've replaced wp-a11y.js with @wordpress/a11y package (see #45066),
+		// and `wp-polyfill` is now a dependency of the packaged wp-a11y.
+		// The packaged scripts contain various version numbers, which are
+		// not exposed, so we will remove all version args from the output.
+		$print_scripts = preg_replace(
+			'~js\?ver=([^"\']*)~', // Matches `js?ver=X.X.X` and everything to single or double quote.
+			'js',                  // The replacement, `js` without the version arg.
+			$print_scripts // Printed scripts.
+		);
 
 		$this->assertEquals( $expected, $print_scripts );
 	}
@@ -750,8 +766,8 @@ JS;
 		wp_enqueue_script( $handle, '/customize-dependency.js', array( 'customize-controls' ), null );
 		wp_add_inline_script( $handle, 'tryCustomizeDependency()' );
 
-		wp_print_scripts();
-		$print_scripts = get_echo( '_print_scripts' );
+		$print_scripts  = get_echo( 'wp_print_scripts' );
+		$print_scripts .= get_echo( '_print_scripts' );
 
 		$tail = substr( $print_scripts, strrpos( $print_scripts, "<script type='text/javascript' src='/customize-dependency.js'>" ) );
 		$this->assertEquals( $expected_tail, $tail );
