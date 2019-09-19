@@ -115,7 +115,13 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 * @dataProvider data_submenu_priority
 	 */
 	function test_submenu_helpers_priority( $priority, $expected_position ) {
-		global $submenu, $menu;
+		global $submenu;
+		global $menu;
+
+		// Reset menus.
+		$submenu = [];
+		$menu    = [];
+
 		$current_user = get_current_user_id();
 		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $admin_user );
@@ -171,9 +177,6 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 
 		foreach ( $helper_functions as $helper_function ) {
 
-			// Reset menus.
-			$submenu = [];
-			$menu    = [];
 
 			// Build up demo pages on the menu root.
 			foreach ( $this->submenus_to_add() as $menu_to_add ) {
@@ -183,7 +186,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 			$test = 'test_' . $helper_function['callback'];
 
 			// Call the helper function, passing the desired priority.
-			call_user_func( $helper_function['callback'], $test, $test, 'manage_options', 'custom-position', '', $priority );
+			call_user_func_array( $helper_function['callback'], array( $test, $test, 'manage_options', 'custom-position', '', $priority ) );
 
 			// Verify the menu was inserted at the expected position.
 			$this->assertSame( 'custom-position', $submenu[ $helper_function['menu_root'] ][ $expected_position ][2] );
