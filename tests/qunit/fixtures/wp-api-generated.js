@@ -4290,86 +4290,6 @@ mockedApiResponse.Schema = {
                 "self": "http://example.org/index.php?rest_route=/wp/v2/search"
             }
         },
-        "/wp/v2/block-renderer/(?P<name>core/block)": {
-            "namespace": "wp/v2",
-            "methods": [
-                "GET"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "GET"
-                    ],
-                    "args": {
-                        "name": {
-                            "required": false,
-                            "description": "Unique registered name for the block.",
-                            "type": "string"
-                        },
-                        "context": {
-                            "required": false,
-                            "default": "view",
-                            "enum": [
-                                "edit"
-                            ],
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string"
-                        },
-                        "attributes": {
-                            "required": false,
-                            "default": [],
-                            "description": "Attributes for core/block block",
-                            "type": "object"
-                        },
-                        "post_id": {
-                            "required": false,
-                            "description": "ID of the post context.",
-                            "type": "integer"
-                        }
-                    }
-                }
-            ]
-        },
-        "/wp/v2/block-renderer/(?P<name>core/latest-comments)": {
-            "namespace": "wp/v2",
-            "methods": [
-                "GET"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "GET"
-                    ],
-                    "args": {
-                        "name": {
-                            "required": false,
-                            "description": "Unique registered name for the block.",
-                            "type": "string"
-                        },
-                        "context": {
-                            "required": false,
-                            "default": "view",
-                            "enum": [
-                                "edit"
-                            ],
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string"
-                        },
-                        "attributes": {
-                            "required": false,
-                            "default": [],
-                            "description": "Attributes for core/latest-comments block",
-                            "type": "object"
-                        },
-                        "post_id": {
-                            "required": false,
-                            "description": "ID of the post context.",
-                            "type": "integer"
-                        }
-                    }
-                }
-            ]
-        },
         "/wp/v2/block-renderer/(?P<name>core/archives)": {
             "namespace": "wp/v2",
             "methods": [
@@ -4399,6 +4319,46 @@ mockedApiResponse.Schema = {
                             "required": false,
                             "default": [],
                             "description": "Attributes for core/archives block",
+                            "type": "object"
+                        },
+                        "post_id": {
+                            "required": false,
+                            "description": "ID of the post context.",
+                            "type": "integer"
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/block-renderer/(?P<name>core/block)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "name": {
+                            "required": false,
+                            "description": "Unique registered name for the block.",
+                            "type": "string"
+                        },
+                        "context": {
+                            "required": false,
+                            "default": "view",
+                            "enum": [
+                                "edit"
+                            ],
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
+                        },
+                        "attributes": {
+                            "required": false,
+                            "default": [],
+                            "description": "Attributes for core/block block",
                             "type": "object"
                         },
                         "post_id": {
@@ -4479,6 +4439,46 @@ mockedApiResponse.Schema = {
                             "required": false,
                             "default": [],
                             "description": "Attributes for core/categories block",
+                            "type": "object"
+                        },
+                        "post_id": {
+                            "required": false,
+                            "description": "ID of the post context.",
+                            "type": "integer"
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/block-renderer/(?P<name>core/latest-comments)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "name": {
+                            "required": false,
+                            "description": "Unique registered name for the block.",
+                            "type": "string"
+                        },
+                        "context": {
+                            "required": false,
+                            "default": "view",
+                            "enum": [
+                                "edit"
+                            ],
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
+                        },
+                        "attributes": {
+                            "required": false,
+                            "default": [],
+                            "description": "Attributes for core/latest-comments block",
                             "type": "object"
                         },
                         "post_id": {
