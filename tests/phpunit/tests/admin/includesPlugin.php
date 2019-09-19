@@ -112,7 +112,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 * @param int $priority          The position of the new item.
 	 * @param int $expected_position Where the new item is expected to appear.
 	 *
- 	 * @dataProvider data_submenu_priority
+	 * @dataProvider data_submenu_priority
 	 */
 	function test_submenu_helpers_priority( $priority, $expected_position ) {
 		global $submenu, $menu;
@@ -120,7 +120,6 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $admin_user );
 		set_current_screen( 'dashboard' );
-
 
 		// Test the helper functions that use `add_submenu_page`. Each helper adds to a specific menu root.
 		$helper_functions = array(
@@ -137,7 +136,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 				'menu_root' => 'themes.php',
 			),
 			array(
-				'callback' => 'add_plugins_page',
+				'callback'  => 'add_plugins_page',
 				'menu_root' => 'plugins.php',
 			),
 			array(
@@ -174,20 +173,20 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 
 			// Reset menus.
 			$submenu = [];
-			$menu = [];
+			$menu    = [];
 
 			// Build up demo pages on the menu root.
 			foreach ( $this->submenus_to_add() as $menu_to_add ) {
-				add_menu_page( $menu_to_add[0], $menu_to_add[1], $menu_to_add[2], $helper_function[ 'menu_root' ], $helper_function[ 'menu_root' ] );
+				add_menu_page( $menu_to_add[0], $menu_to_add[1], $menu_to_add[2], $helper_function['menu_root'], $helper_function['menu_root'] );
 			}
 
-			$test = 'test_' . $helper_function[ 'callback' ];
+			$test = 'test_' . $helper_function['callback'];
 
 			// Call the helper function, passing the desired priority.
-			call_user_func( $helper_function[ 'callback' ], $test, $test, 'manage_options', 'custom-position', '', $priority );
+			call_user_func( $helper_function['callback'], $test, $test, 'manage_options', 'custom-position', '', $priority );
 
 			// Verify the menu was inserted at the expected position.
-			$this->assertSame( 'custom-position', $submenu[ $helper_function[ 'menu_root' ] ][ $expected_position ][2] );
+			$this->assertSame( 'custom-position', $submenu[ $helper_function['menu_root'] ][ $expected_position ][2] );
 		}
 
 		// Clean up the temporary user.
