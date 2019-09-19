@@ -252,7 +252,7 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	 * @return string          All enclosure data for the given post.
 	 */
 	protected function get_enclosed_by_post_id( $post_id ) {
-		return join( (array) get_post_meta( $post_id, 'enclosure', false ), '' );
+		return implode( '', (array) get_post_meta( $post_id, 'enclosure', false ) );
 	}
 
 	/**
