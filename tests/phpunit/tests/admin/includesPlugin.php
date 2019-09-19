@@ -118,6 +118,11 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		global $submenu;
 		global $menu;
 
+		// Skip for multisite.
+		if ( is_multisite() ) {
+			return;
+		}
+
 		// Reset menus.
 		$submenu = [];
 		$menu    = [];
