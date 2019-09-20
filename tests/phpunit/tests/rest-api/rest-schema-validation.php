@@ -296,4 +296,36 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertTrue( rest_validate_value_from_schema( 1, $schema ) );
 		$this->assertTrue( rest_validate_value_from_schema( array(), $schema ) );
 	}
+
+	public function test_type_null() {
+		$this->assertTrue( rest_validate_value_from_schema( null, array( 'type' => 'null' ) ) );
+		$this->assertWPError( rest_validate_value_from_schema( '', array( 'type' => 'null' ) ) );
+		$this->assertWPError( rest_validate_value_from_schema( 'null', array( 'type' => 'null' ) ) );
+	}
+
+	public function test_nullable_date() {
+		$schema = array(
+			'type'   => array( 'string', 'null' ),
+			'format' => 'date-time',
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( null, $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( '2019-09-19T18:00:00', $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( 'some random string', $schema ) );
+	}
+
+	public function test_object_or_string() {
+		$schema = array(
+			'type'       => array( 'object', 'string' ),
+			'properties' => array(
+				'raw' => array(
+					'type' => 'string',
+				),
+			),
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( 'My Value', $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( array( 'raw' => 'My Value' ), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( array( 'raw' => array( 'a list' ) ), $schema ) );
+	}
 }
