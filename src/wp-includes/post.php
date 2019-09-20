@@ -1313,10 +1313,11 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                              type will be placed as a sub-menu of that.
  *                                              Default is value of $show_ui.
  *     @type bool        $show_in_nav_menus     Makes this post type available for selection in navigation menus.
- *                                              Default is value $public.
+ *                                              Default is value of $public.
  *     @type bool        $show_in_admin_bar     Makes this post type available via the admin bar. Default is value
  *                                              of $show_in_menu.
- *     @type bool        $show_in_rest          Whether to add the post type route in the REST API 'wp/v2' namespace.
+ *     @type bool        $show_in_rest          Whether to include the post type in the REST API. Set this to true
+ *                                              for the post type to be available in the block editor.
  *     @type string      $rest_base             To change the base url of REST API route. Default is $post_type.
  *     @type string      $rest_controller_class REST API Controller class name. Default is 'WP_REST_Posts_Controller'.
  *     @type int         $menu_position         The position in the menu order the post type should appear. To work,
@@ -6785,6 +6786,11 @@ function _publish_post_hook( $post_id ) {
 		add_post_meta( $post_id, '_pingme', '1' );
 	}
 	add_post_meta( $post_id, '_encloseme', '1' );
+
+	$to_ping = get_to_ping( $post_id );
+	if ( ! empty( $to_ping ) ) {
+		add_post_meta( $post_id, '_trackbackme', '1' );
+	}
 
 	if ( ! wp_next_scheduled( 'do_pings' ) ) {
 		wp_schedule_single_event( time(), 'do_pings' );

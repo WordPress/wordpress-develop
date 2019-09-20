@@ -1689,6 +1689,76 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		);
 	}
 
+	/**
+	 * @ticket 42094
+	 */
+	public function test_prepare_item_filters_content_when_needed() {
+		$filter_count   = 0;
+		$filter_content = function() use ( &$filter_count ) {
+			$filter_count++;
+			return '<p>Filtered content.</p>';
+		};
+		add_filter( 'the_content', $filter_content );
+
+		wp_set_current_user( self::$editor_id );
+		$endpoint = new WP_REST_Posts_Controller( 'post' );
+		$request  = new WP_REST_REQUEST( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'content.rendered' );
+
+		$post     = get_post( self::$post_id );
+		$response = $endpoint->prepare_item_for_response( $post, $request );
+
+		remove_filter( 'the_content', $filter_content );
+
+		$this->assertEquals(
+			array(
+				'id'      => self::$post_id,
+				'content' => array(
+					'rendered' => '<p>Filtered content.</p>',
+				),
+			),
+			$response->get_data()
+		);
+		$this->assertSame( 1, $filter_count );
+	}
+
+	/**
+	 * @ticket 42094
+	 */
+	public function test_prepare_item_skips_content_filter_if_not_needed() {
+		$filter_count   = 0;
+		$filter_content = function() use ( &$filter_count ) {
+			$filter_count++;
+			return '<p>Filtered content.</p>';
+		};
+		add_filter( 'the_content', $filter_content );
+
+		wp_set_current_user( self::$editor_id );
+		$endpoint = new WP_REST_Posts_Controller( 'post' );
+		$request  = new WP_REST_REQUEST( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'content.raw' );
+
+		$post     = get_post( self::$post_id );
+		$response = $endpoint->prepare_item_for_response( $post, $request );
+
+		remove_filter( 'the_content', $filter_content );
+
+		$this->assertEquals(
+			array(
+				'id'      => $post->ID,
+				'content' => array(
+					'raw' => $post->post_content,
+				),
+			),
+			$response->get_data()
+		);
+		$this->assertSame( 0, $filter_count );
+	}
+
 	public function test_create_item() {
 		wp_set_current_user( self::$editor_id );
 

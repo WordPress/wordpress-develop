@@ -1922,4 +1922,247 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		$this->assertEqualSets( array( $posts[0] ), $q->posts );
 
 	}
+
+	/**
+	 * @ticket 43446
+	 */
+	public function test_compare_key_not_equals() {
+		$posts = self::factory()->post->create_many( 3 );
+
+		add_post_meta( $posts[0], 'aaa_foo_aaa', 'abc' );
+		add_post_meta( $posts[1], 'aaa_bar_aaa', 'abc' );
+		add_post_meta( $posts[2], 'aaa_foo_bbb', 'abc' );
+		add_post_meta( $posts[2], 'aaa_foo_ccc', 'abc' );
+
+		$q = new WP_Query(
+			array(
+				'meta_query' => array(
+					array(
+						'compare_key' => '!=',
+						'key'         => 'aaa_foo_bbb',
+						'value'       => 'abc',
+					),
+				),
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertEqualSets( array( $posts[0], $posts[1] ), $q->posts );
+	}
+
+	/**
+	 * @ticket 43446
+	 */
+	public function test_compare_key_not_like() {
+		$posts = self::factory()->post->create_many( 3 );
+
+		add_post_meta( $posts[0], 'aaa_foo_aaa', 'abc' );
+		add_post_meta( $posts[1], 'aaa_bar_aaa', 'abc' );
+		add_post_meta( $posts[1], 'aaa_bar_ccc', 'abc' );
+		add_post_meta( $posts[2], 'aaa_foo_bbb', 'abc' );
+
+		$q = new WP_Query(
+			array(
+				'meta_query' => array(
+					array(
+						'compare_key' => 'NOT LIKE',
+						'key'         => 'aaa_bar',
+						'value'       => 'abc',
+					),
+				),
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertEqualSets( array( $posts[0], $posts[2] ), $q->posts );
+	}
+
+	/**
+	 * @ticket 43446
+	 */
+	public function test_compare_key_in() {
+		$posts = self::factory()->post->create_many( 3 );
+
+		add_post_meta( $posts[0], 'aaa_foo_aaa', 'abc' );
+		add_post_meta( $posts[1], 'aaa_bar_aaa', 'abc' );
+		add_post_meta( $posts[2], 'aaa_foo_bbb', 'abc' );
+
+		$q = new WP_Query(
+			array(
+				'meta_query' => array(
+					array(
+						'compare_key' => 'IN',
+						'key'         => array( 'aaa_foo_bbb', 'aaa_bar_aaa' ),
+					),
+				),
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertEqualSets( array( $posts[1], $posts[2] ), $q->posts );
+	}
+
+	/**
+	 * @ticket 43446
+	 */
+	public function test_compare_key_not_in() {
+		$posts = self::factory()->post->create_many( 3 );
+
+		add_post_meta( $posts[0], 'aaa_foo_aaa', 'abc' );
+		add_post_meta( $posts[0], 'aaa_foo_ddd', 'abc' );
+		add_post_meta( $posts[1], 'aaa_bar_aaa', 'abc' );
+		add_post_meta( $posts[2], 'aaa_foo_bbb', 'abc' );
+		add_post_meta( $posts[2], 'aaa_foo_ccc', 'abc' );
+
+		$q = new WP_Query(
+			array(
+				'meta_query' => array(
+					array(
+						'compare_key' => 'NOT IN',
+						'key'         => array( 'aaa_foo_bbb', 'aaa_foo_ddd' ),
+					),
+				),
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertEqualSets( array( $posts[1] ), $q->posts );
+	}
+
+	/**
+	 * @ticket 43446
+	 */
+	public function test_compare_key_not_exists() {
+		$posts = self::factory()->post->create_many( 3 );
+
+		add_post_meta( $posts[0], 'aaa_foo_aaa', 'abc' );
+		add_post_meta( $posts[1], 'aaa_bar_aaa', 'abc' );
+		add_post_meta( $posts[2], 'aaa_foo_bbb', 'abc' );
+		add_post_meta( $posts[2], 'aaa_foo_ccc', 'abc' );
+
+		$q = new WP_Query(
+			array(
+				'meta_query' => array(
+					array(
+						'compare_key' => 'NOT EXISTS',
+						'key'         => 'aaa_foo_bbb',
+						'value'       => 'abc',
+					),
+				),
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertEqualSets( array( $posts[0], $posts[1] ), $q->posts );
+	}
+
+	/**
+	 * @ticket 43446
+	 */
+	public function test_compare_key_exists() {
+		$posts = self::factory()->post->create_many( 3 );
+
+		add_post_meta( $posts[0], 'aaa_foo_aaa', 'abc' );
+		add_post_meta( $posts[1], 'aaa_bar_aaa', 'abc' );
+		add_post_meta( $posts[2], 'aaa_foo_bbb', 'abc' );
+		add_post_meta( $posts[2], 'aaa_foo_ccc', 'abc' );
+
+		$q = new WP_Query(
+			array(
+				'meta_query' => array(
+					array(
+						'compare_key' => 'EXISTS',
+						'key'         => 'aaa_foo_bbb',
+						'value'       => 'abc',
+					),
+				),
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertEqualSets( array( $posts[2] ), $q->posts );
+	}
+
+	/**
+	 * @ticket 43446
+	 */
+	public function test_compare_key_regexp_rlike() {
+		$posts = self::factory()->post->create_many( 3 );
+
+		add_post_meta( $posts[0], 'AAA_FOO_AAA', 'abc' );
+		add_post_meta( $posts[1], 'aaa_bar_aaa', 'abc' );
+		add_post_meta( $posts[2], 'aaa_foo_bbb', 'abc' );
+		add_post_meta( $posts[2], 'aaa_foo_aaa', 'abc' );
+
+		$q = new WP_Query(
+			array(
+				'meta_query' => array(
+					array(
+						'compare_key' => 'REGEXP',
+						'key'         => 'AAA_foo_.*',
+					),
+				),
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertEqualSets( array( $posts[0], $posts[2] ), $q->posts );
+
+		$q = new WP_Query(
+			array(
+				'meta_query' => array(
+					array(
+						'compare_key' => 'RLIKE',
+						'key'         => 'AAA_FOO_.*',
+						'type_key'    => 'BINARY',
+					),
+				),
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertEqualSets( array( $posts[0] ), $q->posts );
+	}
+
+	/**
+	 * @ticket 43446
+	 */
+	public function test_compare_key_not_regexp() {
+		$posts = self::factory()->post->create_many( 3 );
+
+		add_post_meta( $posts[0], 'AAA_FOO_AAA', 'abc' );
+		add_post_meta( $posts[0], 'AAA_foo_AAA', 'abc' );
+		add_post_meta( $posts[1], 'aaa_bar_aaa', 'abc' );
+		add_post_meta( $posts[2], 'aaa_foo_bbb', 'abc' );
+		add_post_meta( $posts[2], 'aaa_foo_aaa', 'abc' );
+
+		$q = new WP_Query(
+			array(
+				'meta_query' => array(
+					array(
+						'compare_key' => 'NOT REGEXP',
+						'key'         => 'AAA_foo_.*',
+					),
+				),
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertEqualSets( array( $posts[1] ), $q->posts );
+
+		$q = new WP_Query(
+			array(
+				'meta_query' => array(
+					array(
+						'compare_key' => 'NOT REGEXP',
+						'key'         => 'AAA_FOO_.*',
+						'type_key'    => 'BINARY',
+					),
+				),
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertEqualSets( array( $posts[1], $posts[2] ), $q->posts );
+	}
 }
