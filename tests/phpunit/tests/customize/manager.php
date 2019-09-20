@@ -1856,9 +1856,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		$r = $manager->save_changeset_post( $args );
 		$this->assertInstanceOf( 'WP_Error', $r );
-		if ( function_exists( 'json_last_error' ) ) {
-			$this->assertEquals( 'json_parse_error', $r->get_error_code() );
-		}
+		$this->assertEquals( 'json_parse_error', $r->get_error_code() );
 
 		wp_update_post(
 			array(
