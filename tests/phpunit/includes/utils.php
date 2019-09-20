@@ -465,7 +465,7 @@ class WpdbExposedMethodsForTesting extends wpdb {
 function benchmark_pcre_backtracking( $pattern, $subject, $strategy ) {
 	$saved_config = ini_get( 'pcre.backtrack_limit' );
 
-	// Attempt to prevent PHP crashes. Adjust these lower when needed.
+	// Attempt to prevent PHP crashes. Adjust lower when needed.
 	$limit = 1000000;
 
 	// Start with small numbers, so if a crash is encountered at higher numbers we can still debug the problem.
