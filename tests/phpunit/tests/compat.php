@@ -179,6 +179,9 @@ EOT;
 		$this->assertEquals( array( 1 => '993003b95758e0ac2eba451a4c5877eb1bb7b92a' ), unpack( 'H40', _hash_hmac( 'sha1', 'simple', 'key', true ) ) );
 	}
 
+	/**
+	 * @expectedException PHPUnit_Framework_Error_Notice
+	 */
 	function test_json_encode_decode() {
 		require_once( ABSPATH . WPINC . '/class-json.php' );
 		$json = new Services_JSON();
