@@ -9,6 +9,9 @@
 	"support": {
 		"issues": "https://core.trac.wordpress.org/"
 	},
+	"require": {
+		"php": ">=5.6"
+	},
 	"require-dev": {
 		"dealerdirect/phpcodesniffer-composer-installer": "~0.5.0",
 		"wp-coding-standards/wpcs": "~2.1.0"
