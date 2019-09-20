@@ -49,21 +49,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	/**
 	 * Retrieves the name of the class the static method is called in.
 	 *
+	 * @deprecated 5.3.0 Use the PHP native get_called_class() function instead.
+	 *
 	 * @return string The class name.
 	 */
 	public static function get_called_class() {
-		if ( function_exists( 'get_called_class' ) ) {
-			return get_called_class();
-		}
-
-		// PHP 5.2 only
-		$backtrace = debug_backtrace();
-		// [0] WP_UnitTestCase::get_called_class()
-		// [1] WP_UnitTestCase::setUpBeforeClass()
-		if ( 'call_user_func' === $backtrace[2]['function'] ) {
-			return $backtrace[2]['args'][0][0];
-		}
-		return $backtrace[2]['class'];
+		return get_called_class();
 	}
 
 	/**
@@ -79,7 +70,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 
 		parent::setUpBeforeClass();
 
-		$c = self::get_called_class();
+		$c = get_called_class();
 		if ( ! method_exists( $c, 'wpSetUpBeforeClass' ) ) {
 			self::commit_transaction();
 			return;
@@ -99,7 +90,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		_delete_all_data();
 		self::flush_cache();
 
-		$c = self::get_called_class();
+		$c = get_called_class();
 		if ( ! method_exists( $c, 'wpTearDownAfterClass' ) ) {
 			self::commit_transaction();
 			return;
