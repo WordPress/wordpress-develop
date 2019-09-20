@@ -372,17 +372,6 @@ function mask_input_value( $in, $name = '_wpnonce' ) {
 	return preg_replace( '@<input([^>]*) name="' . preg_quote( $name ) . '"([^>]*) value="[^>]*" />@', '<input$1 name="' . preg_quote( $name ) . '"$2 value="***" />', $in );
 }
 
-if ( ! function_exists( 'str_getcsv' ) ) {
-	function str_getcsv( $input, $delimiter = ',', $enclosure = '"', $escape = '\\' ) {
-		$fp = fopen( 'php://temp/', 'r+' );
-		fputs( $fp, $input );
-		rewind( $fp );
-		$data = fgetcsv( $fp, strlen( $input ), $delimiter, $enclosure );
-		fclose( $fp );
-		return $data;
-	}
-}
-
 /**
  * Removes the post type and its taxonomy associations.
  */
