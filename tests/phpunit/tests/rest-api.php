@@ -780,15 +780,6 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertEquals( $routes['/test-ns/test'][0]['methods'], array( 'GET' => true ) );
 	}
 
-	/**
-	 * Ensure rest_preload_api_request() works without notices in PHP 5.2.
-	 *
-	 * The array_reduce() function only accepts mixed variables starting with PHP 5.3.
-	 */
-	function test_rest_preload_api_request_no_notices_php_52() {
-		$this->assertTrue( is_array( rest_preload_api_request( 0, '/' ) ) );
-	}
-
 	function test_rest_preload_api_request_with_method() {
 		$rest_server               = $GLOBALS['wp_rest_server'];
 		$GLOBALS['wp_rest_server'] = null;
