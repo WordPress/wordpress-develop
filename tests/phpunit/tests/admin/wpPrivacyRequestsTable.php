@@ -24,10 +24,6 @@ class Tests_Admin_WpPrivacyRequestsTable extends WP_UnitTestCase {
 	 * @return PHPUnit_Framework_MockObject_MockObject|WP_Privacy_Requests_Table $instance Mocked class instance.
 	 */
 	public function get_mocked_class_instance() {
-		if ( version_compare( PHP_VERSION, '5.3', '<' ) ) {
-			$this->markTestSkipped( 'ReflectionMethod::setAccessible is only available in PHP 5.3+' );
-		}
-
 		$args = array(
 			'plural'   => 'privacy_requests',
 			'singular' => 'privacy_request',

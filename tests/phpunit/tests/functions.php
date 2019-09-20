@@ -918,10 +918,6 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * @ticket 28786
 	 */
 	function test_wp_json_encode_depth() {
-		if ( version_compare( PHP_VERSION, '5.5', '<' ) ) {
-			$this->markTestSkipped( 'json_encode() supports the $depth parameter in PHP 5.5+' );
-		};
-
 		$data = array( array( array( 1, 2, 3 ) ) );
 		$json = wp_json_encode( $data, 0, 1 );
 		$this->assertFalse( $json );

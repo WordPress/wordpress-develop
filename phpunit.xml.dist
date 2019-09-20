@@ -8,16 +8,6 @@
 		<!-- Default test suite to run all tests -->
 		<testsuite name="default">
 			<directory suffix=".php">tests/phpunit/tests</directory>
-			<file phpVersion="5.3.0">tests/phpunit/tests/actions/closures.php</file>
-			<file phpVersion="5.3.0">tests/phpunit/tests/image/editor.php</file>
-			<file phpVersion="5.3.0">tests/phpunit/tests/image/editorGd.php</file>
-			<file phpVersion="5.3.0">tests/phpunit/tests/image/editorImagick.php</file>
-			<file phpVersion="5.3.0">tests/phpunit/tests/oembed/headers.php</file>
-			<exclude>tests/phpunit/tests/actions/closures.php</exclude>
-			<exclude>tests/phpunit/tests/image/editor.php</exclude>
-			<exclude>tests/phpunit/tests/image/editorGd.php</exclude>
-			<exclude>tests/phpunit/tests/image/editorImagick.php</exclude>
-			<exclude>tests/phpunit/tests/oembed/headers.php</exclude>
 			<exclude>tests/phpunit/tests/rest-api/rest-autosaves-controller.php</exclude>
 		</testsuite>
 		<!-- Sets the DOING_AUTOSAVE constant, so needs to be run last -->
