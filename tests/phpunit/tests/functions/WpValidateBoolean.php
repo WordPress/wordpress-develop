@@ -54,6 +54,6 @@ class Tests_Functions_WpValidateBoolean extends WP_UnitTestCase {
 	 * @ticket 39868
 	 */
 	public function test_wp_validate_boolean( $test_value, $expected ) {
-		$this->assertEquals( wp_validate_boolean( $test_value ), $expected );
+		$this->assertSame( wp_validate_boolean( $test_value ), $expected );
 	}
 }
