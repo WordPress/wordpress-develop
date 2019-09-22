@@ -839,10 +839,44 @@ EOF;
 				'css'      => 'background: green url("foo.jpg") no-repeat fixed center',
 				'expected' => 'background: green url("foo.jpg") no-repeat fixed center',
 			),
+			// Additional background attributes introduced in 5.3.
+			array(
+				'css'      => 'background-size: cover;background-size: 200px 100px;background-attachment: local, scroll;background-blend-mode: hard-light',
+				'expected' => 'background-size: cover;background-size: 200px 100px;background-attachment: local, scroll;background-blend-mode: hard-light',
+			),
+			// `border-radius` attribute introduced in 5.3.
+			array(
+				'css'      => 'border-radius: 10% 30% 50% 70%;border-radius: 30px',
+				'expected' => 'border-radius: 10% 30% 50% 70%;border-radius: 30px',
+			),
 			// `flex` and related attributes introduced in 5.3.
 			array(
-				'css'      => 'flex: 0 1 auto;flex-basis: 75%;flex-shrink: 0;flex-grow: 1',
-				'expected' => 'flex: 0 1 auto;flex-basis: 75%;flex-shrink: 0;flex-grow: 1',
+				'css'      => 'flex: 0 1 auto;flex-basis: 75%;flex-direction: row-reverse;flex-flow: row-reverse nowrap;flex-grow: 2;flex-shrink: 1',
+				'expected' => 'flex: 0 1 auto;flex-basis: 75%;flex-direction: row-reverse;flex-flow: row-reverse nowrap;flex-grow: 2;flex-shrink: 1',
+			),
+			// `grid` and related attributes introduced in 5.3.
+			array(
+				'css'      => 'grid-template-columns: 1fr 60px;grid-auto-columns: min-content;grid-column-start: span 2;grid-column-end: -1;grid-column-gap: 10%;grid-gap: 10px 20px',
+				'expected' => 'grid-template-columns: 1fr 60px;grid-auto-columns: min-content;grid-column-start: span 2;grid-column-end: -1;grid-column-gap: 10%;grid-gap: 10px 20px',
+			),
+			array(
+				'css'      => 'grid-template-rows: 40px 4em 40px;grid-auto-rows: min-content;grid-row-start: -1;grid-row-end: 3;grid-row-gap: 1em',
+				'expected' => 'grid-template-rows: 40px 4em 40px;grid-auto-rows: min-content;grid-row-start: -1;grid-row-end: 3;grid-row-gap: 1em',
+			),
+			// `grid` does not yet support functions or `\`.
+			array(
+				'css'      => 'grid-template-columns: repeat(2, 50px 1fr);grid-template: 1em / 20% 20px 1fr',
+				'expected' => '',
+			),
+			// `flex` and `grid` alignments introduced in 5.3.
+			array(
+				'css'      => 'align-content: space-between;align-items: start;align-self: center;justify-items: center;justify-content: space-between;justify-self: end',
+				'expected' => 'align-content: space-between;align-items: start;align-self: center;justify-items: center;justify-content: space-between;justify-self: end',
+			),
+			// `columns` and related attributes introduced in 5.3.
+			array(
+				'css'      => 'columns: 6rem auto;column-count: 4;column-fill: balance;column-gap: 9px;column-rule: thick inset blue;column-span: none;column-width: 120px',
+				'expected' => 'columns: 6rem auto;column-count: 4;column-fill: balance;column-gap: 9px;column-rule: thick inset blue;column-span: none;column-width: 120px',
 			),
 		);
 	}
