@@ -33,8 +33,8 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		unset( $GLOBALS['_wp_sidebars_widgets'] ); // clear out cache set by wp_get_sidebars_widgets()
 		$sidebars_widgets = wp_get_sidebars_widgets();
 		$this->assertEqualSets( array( 'wp_inactive_widgets', 'footer-one', 'footer-two' ), array_keys( wp_get_sidebars_widgets() ) );
-		$this->assertContains( 'search-2', $sidebars_widgets['sidebar-1'] );
-		$this->assertContains( 'categories-2', $sidebars_widgets['sidebar-1'] );
+		$this->assertContains( 'search-2', $sidebars_widgets['footer-one'] );
+		$this->assertContains( 'categories-2', $sidebars_widgets['footer-two'] );
 		$this->assertArrayHasKey( 2, get_option( 'widget_search' ) );
 		$widget_categories = get_option( 'widget_categories' );
 		$this->assertArrayHasKey( 2, $widget_categories );
@@ -101,7 +101,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 * @ticket 36660
 	 */
 	function test_customize_register_with_deleted_sidebars() {
-		$sidebar_id = 'sidebar-1';
+		$sidebar_id = 'footer-one';
 		delete_option( 'sidebars_widgets' );
 		register_sidebar( array( 'id' => $sidebar_id ) );
 		$this->manager->widgets->customize_register();
@@ -311,11 +311,11 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 			'sanitize_callback'    => array( $this->manager->widgets, 'sanitize_sidebar_widgets' ),
 			'sanitize_js_callback' => array( $this->manager->widgets, 'sanitize_sidebar_widgets_js_instance' ),
 		);
-		$args         = $this->manager->widgets->get_setting_args( 'sidebars_widgets[sidebar-1]' );
+		$args         = $this->manager->widgets->get_setting_args( 'sidebars_widgets[footer-one]' );
 		foreach ( $default_args as $key => $default_value ) {
 			$this->assertEquals( $default_value, $args[ $key ] );
 		}
-		$this->assertEquals( 'SIDEBARS_WIDGETS[SIDEBAR-1]', $args['uppercase_id_set_by_filter'] );
+		$this->assertEquals( 'SIDEBARS_WIDGETS[FOOTER-ONE]', $args['uppercase_id_set_by_filter'] );
 
 		$override_args = array(
 			'type'                 => 'theme_mod',
@@ -653,7 +653,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertFalse( $this->manager->widgets->render_widget_partial( $partial, array() ) );
 		$this->assertFalse( $this->manager->widgets->render_widget_partial( $partial, array( 'sidebar_id' => 'non-existing' ) ) );
 
-		$output = $this->manager->widgets->render_widget_partial( $partial, array( 'sidebar_id' => 'sidebar-1' ) );
+		$output = $this->manager->widgets->render_widget_partial( $partial, array( 'sidebar_id' => 'footer-one' ) );
 
 		$this->assertEquals( 1, substr_count( $output, 'data-customize-partial-id' ) );
 		$this->assertEquals( 1, substr_count( $output, 'data-customize-partial-type="widget"' ) );
