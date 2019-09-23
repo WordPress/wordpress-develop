@@ -97,16 +97,17 @@ class WP_Block_Type {
 	 *
 	 * @param array  $attributes Optional. Block attributes. Default empty array.
 	 * @param string $content    Optional. Block content. Default empty string.
+	 * @param string $block      Optional. The block object. Default null.
 	 * @return string Rendered block type output.
 	 */
-	public function render( $attributes = array(), $content = '' ) {
+	public function render( $attributes = array(), $content = '', $block = null ) {
 		if ( ! $this->is_dynamic() ) {
 			return '';
 		}
 
 		$attributes = $this->prepare_attributes_for_render( $attributes );
 
-		return (string) call_user_func( $this->render_callback, $attributes, $content );
+		return (string) call_user_func( $this->render_callback, $attributes, $content, $block );
 	}
 
 	/**

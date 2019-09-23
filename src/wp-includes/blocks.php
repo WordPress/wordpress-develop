@@ -260,7 +260,7 @@ function render_block( $block ) {
 
 	if ( $is_dynamic ) {
 		$global_post   = $post;
-		$block_content = $block_type->render( $block['attrs'], $block_content );
+		$block_content = $block_type->render( $block['attrs'], $block_content, $block );
 		$post          = $global_post;
 	}
 
