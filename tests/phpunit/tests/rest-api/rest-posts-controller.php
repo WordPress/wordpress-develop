@@ -4413,6 +4413,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	}
 
+	/**
+	 * @ticket 39953
+	 */
 	public function test_putting_same_publish_date_does_not_remove_floating_date() {
 
 		wp_set_current_user( self::$superadmin_id );
@@ -4440,12 +4443,15 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $put );
 		$body     = $response->get_data();
 
-		$this->assertEquals( $get_body['date'], $body['date'] );
-		$this->assertEquals( $get_body['date_gmt'], $body['date_gmt'] );
+		$this->assertEquals( strtotime( $get_body['date'] ), strtotime( $body['date'] ), 'The dates should be equal', 2 );
+		$this->assertEquals( strtotime( $get_body['date_gmt'] ), strtotime( $body['date_gmt'] ), 'The dates should be equal', 2 );
 
 		$this->assertEquals( '0000-00-00 00:00:00', get_post( $post->ID )->post_date_gmt );
 	}
 
+	/**
+	 * @ticket 39953
+	 */
 	public function test_putting_different_publish_date_removes_floating_date() {
 
 		wp_set_current_user( self::$superadmin_id );
@@ -4481,11 +4487,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $put );
 		$body     = $response->get_data();
 
-		$this->assertEquals( mysql_to_rfc3339( $new_time ), $body['date'] );
+		$this->assertEquals( strtotime( mysql_to_rfc3339( $new_time ) ), strtotime( $body['date'] ), 'The dates should be equal', 2 );
 
 		$this->assertNotEquals( '0000-00-00 00:00:00', get_post( $post->ID )->post_date_gmt );
 	}
 
+	/**
+	 * @ticket 39953
+	 */
 	public function test_publishing_post_with_same_date_removes_floating_date() {
 
 		wp_set_current_user( self::$superadmin_id );
@@ -4520,8 +4529,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $put );
 		$body     = $response->get_data();
 
-		$this->assertEquals( $get_body['date'], $body['date'] );
-		$this->assertEquals( $get_body['date_gmt'], $body['date_gmt'] );
+		$this->assertEquals( strtotime( $get_body['date'] ), strtotime( $body['date'] ), 'The dates should be equal', 2 );
+		$this->assertEquals( strtotime( $get_body['date_gmt'] ), strtotime( $body['date_gmt'] ), 'The dates should be equal', 2 );
 
 		$this->assertNotEquals( '0000-00-00 00:00:00', get_post( $post->ID )->post_date_gmt );
 	}
