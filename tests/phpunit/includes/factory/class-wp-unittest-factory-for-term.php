@@ -85,6 +85,11 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 */
 	public function create_and_get( $args = array(), $generation_definitions = null ) {
 		$term_id  = $this->create( $args, $generation_definitions );
+
+		if ( is_wp_error( $term_id ) ) {
+			return $term_id;
+		}
+
 		$taxonomy = isset( $args['taxonomy'] ) ? $args['taxonomy'] : $this->taxonomy;
 		return get_term( $term_id, $taxonomy );
 	}
