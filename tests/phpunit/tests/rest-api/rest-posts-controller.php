@@ -4413,6 +4413,119 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	}
 
+	public function test_putting_same_publish_date_does_not_remove_floating_date() {
+
+		wp_set_current_user( self::$superadmin_id );
+
+		$time = date( 'Y-m-d H:i:s' );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'draft',
+				'post_date'   => $time,
+			)
+		);
+
+		$this->assertEquals( '0000-00-00 00:00:00', $post->post_date_gmt );
+
+		$get = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post->ID}" );
+		$get->set_query_params( array( 'context' => 'edit' ) );
+
+		$get      = rest_get_server()->dispatch( $get );
+		$get_body = $get->get_data();
+
+		$put = new WP_REST_Request( 'PUT', "/wp/v2/posts/{$post->ID}" );
+		$put->set_body_params( $get_body );
+
+		$response = rest_get_server()->dispatch( $put );
+		$body     = $response->get_data();
+
+		$this->assertEquals( $get_body['date'], $body['date'] );
+		$this->assertEquals( $get_body['date_gmt'], $body['date_gmt'] );
+
+		$this->assertEquals( '0000-00-00 00:00:00', get_post( $post->ID )->post_date_gmt );
+	}
+
+	public function test_putting_different_publish_date_removes_floating_date() {
+
+		wp_set_current_user( self::$superadmin_id );
+
+		$time     = date( 'Y-m-d H:i:s' );
+		$new_time = date( 'Y-m-d H:i:s', strtotime( '+1 week' ) );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'draft',
+				'post_date'   => $time,
+			)
+		);
+
+		$this->assertEquals( '0000-00-00 00:00:00', $post->post_date_gmt );
+
+		$get = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post->ID}" );
+		$get->set_query_params( array( 'context' => 'edit' ) );
+
+		$get      = rest_get_server()->dispatch( $get );
+		$get_body = $get->get_data();
+
+		$put = new WP_REST_Request( 'PUT', "/wp/v2/posts/{$post->ID}" );
+		$put->set_body_params(
+			array_merge(
+				$get_body,
+				array(
+					'date' => mysql_to_rfc3339( $new_time ),
+				)
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $put );
+		$body     = $response->get_data();
+
+		$this->assertEquals( mysql_to_rfc3339( $new_time ), $body['date'] );
+
+		$this->assertNotEquals( '0000-00-00 00:00:00', get_post( $post->ID )->post_date_gmt );
+	}
+
+	public function test_publishing_post_with_same_date_removes_floating_date() {
+
+		wp_set_current_user( self::$superadmin_id );
+
+		$time = date( 'Y-m-d H:i:s' );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'draft',
+				'post_date'   => $time,
+			)
+		);
+
+		$this->assertEquals( '0000-00-00 00:00:00', $post->post_date_gmt );
+
+		$get = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post->ID}" );
+		$get->set_query_params( array( 'context' => 'edit' ) );
+
+		$get      = rest_get_server()->dispatch( $get );
+		$get_body = $get->get_data();
+
+		$put = new WP_REST_Request( 'PUT', "/wp/v2/posts/{$post->ID}" );
+		$put->set_body_params(
+			array_merge(
+				$get_body,
+				array(
+					'status' => 'publish',
+				)
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $put );
+		$body     = $response->get_data();
+
+		$this->assertEquals( $get_body['date'], $body['date'] );
+		$this->assertEquals( $get_body['date_gmt'], $body['date_gmt'] );
+
+		$this->assertNotEquals( '0000-00-00 00:00:00', get_post( $post->ID )->post_date_gmt );
+	}
+
 	public function tearDown() {
 		_unregister_post_type( 'private-post' );
 		_unregister_post_type( 'youseeme' );

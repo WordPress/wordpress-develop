@@ -7392,6 +7392,7 @@ mockedApiResponse.StatusesCollection = {
         "public": true,
         "queryable": true,
         "slug": "publish",
+        "date_floating": false,
         "_links": {
             "archives": [
                 {
@@ -7405,6 +7406,7 @@ mockedApiResponse.StatusesCollection = {
         "public": false,
         "queryable": false,
         "slug": "future",
+        "date_floating": false,
         "_links": {
             "archives": [
                 {
@@ -7418,6 +7420,7 @@ mockedApiResponse.StatusesCollection = {
         "public": false,
         "queryable": false,
         "slug": "draft",
+        "date_floating": true,
         "_links": {
             "archives": [
                 {
@@ -7431,6 +7434,7 @@ mockedApiResponse.StatusesCollection = {
         "public": false,
         "queryable": false,
         "slug": "pending",
+        "date_floating": false,
         "_links": {
             "archives": [
                 {
@@ -7444,6 +7448,7 @@ mockedApiResponse.StatusesCollection = {
         "public": false,
         "queryable": false,
         "slug": "private",
+        "date_floating": false,
         "_links": {
             "archives": [
                 {
@@ -7457,6 +7462,7 @@ mockedApiResponse.StatusesCollection = {
         "public": false,
         "queryable": false,
         "slug": "trash",
+        "date_floating": false,
         "_links": {
             "archives": [
                 {
@@ -7471,7 +7477,8 @@ mockedApiResponse.StatusModel = {
     "name": "Published",
     "public": true,
     "queryable": true,
-    "slug": "publish"
+    "slug": "publish",
+    "date_floating": false
 };
 
 mockedApiResponse.TaxonomiesCollection = {
