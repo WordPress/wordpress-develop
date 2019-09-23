@@ -1394,4 +1394,40 @@ class Tests_Post extends WP_UnitTestCase {
 	function filter_pre_wp_unique_post_slug( $default, $slug, $post_ID, $post_status, $post_type, $post_parent ) {
 		return 'override-slug-' . $post_type;
 	}
+
+	/**
+	 * @ticket 48113
+	 */
+	public function test_insert_post_should_respect_date_floating_post_status_arg() {
+		register_post_status( 'floating', array( 'date_floating' => true ) );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status'   => 'floating',
+				'post_date'     => null,
+				'post_date_gmt' => null,
+			)
+		);
+
+		$post = get_post( $post_id );
+		self::assertEquals( '0000-00-00 00:00:00', $post->post_date_gmt );
+	}
+
+	/**
+	 * @ticket 48113
+	 */
+	public function test_insert_post_should_respect_date_floating_post_status_arg_not_set() {
+		register_post_status( 'not-floating', array( 'date_floating' => false ) );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status'   => 'floating',
+				'post_date'     => null,
+				'post_date_gmt' => null,
+			)
+		);
+
+		$post = get_post( $post_id );
+		self::assertEquals( gmdate( 'Y-m-d H:i:s' ), $post->post_date_gmt );
+	}
 }
