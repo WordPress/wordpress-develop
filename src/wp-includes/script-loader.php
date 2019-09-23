@@ -651,17 +651,20 @@ function wp_default_packages_inline_scripts( &$scripts ) {
 	}
 	$scripts->add_inline_script(
 		'wp-api-fetch',
-		join( array(
-			sprintf(
-				'wp.apiFetch.nonceMiddleware = wp.apiFetch.createNonceMiddleware( "%s" );',
-				( wp_installing() && ! is_multisite() ) ? '' : wp_create_nonce( 'wp_rest' )
+		join(
+			array(
+				sprintf(
+					'wp.apiFetch.nonceMiddleware = wp.apiFetch.createNonceMiddleware( "%s" );',
+					( wp_installing() && ! is_multisite() ) ? '' : wp_create_nonce( 'wp_rest' )
+				),
+				'wp.apiFetch.use( wp.apiFetch.nonceMiddleware );',
+				sprintf(
+					'wp.apiFetch.nonceEndpoint = "%s";',
+					admin_url( 'admin-ajax.php?action=rest-nonce' )
+				),
 			),
-			'wp.apiFetch.use( wp.apiFetch.nonceMiddleware );',
-			sprintf(
-				'wp.apiFetch.nonceEndpoint = "%s";',
-				admin_url( 'admin-ajax.php?action=rest-nonce' )
-			),
-		), "\n" ),
+			"\n"
+		),
 		'after'
 	);
 	$scripts->add_inline_script(
