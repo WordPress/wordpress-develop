@@ -71,8 +71,9 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 * provided element and other elements that should not be hidden.
 	 *
 	 * The reason why we use `aria-hidden` is that `aria-modal="true"` is buggy
-	 * in Safari 11.1 and support is spotty in other browsers. In the future we
-	 * should consider to remove this helper function and only use `aria-modal="true"`.
+	 * in Safari 11.1 and support is spotty in other browsers. Also, `aria-modal="true"`
+	 * prevents the `wp.a11y.speak()` ARIA live regions to work as they're outside
+	 * of the modal dialog and get hidden from assistive technologies.
 	 *
 	 * @since 5.2.3
 	 *
