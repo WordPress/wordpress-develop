@@ -1368,7 +1368,7 @@ div.error {
 	background: #fff;
 	border: 1px solid #ccd0d4;
 	border-left-width: 4px;
-	box-shadow: 0 1px 1px rgba(0,0,0,.04)
+	box-shadow: 0 1px 1px rgba(0,0,0,.04);
 	margin: 5px 15px 2px;
 	padding: 1px 12px;
 }
@@ -1673,7 +1673,7 @@ form.upgrade .hint {
 	background-color: #fff;
 	border: 1px solid #ccd0d4;
 	border-top: none;
-	box-shadow: 0 1px 0 rgba(0, 0, 0, 0.025);
+	box-shadow: 0 0 0 transparent;
 }
 
 #screen-options-link-wrap,
@@ -1690,15 +1690,15 @@ form.upgrade .hint {
 #screen-meta-links .show-settings {
 	border: 1px solid #ccd0d4;
 	border-top: none;
-	border-bottom-color: #ccd0d4;
 	height: auto;
 	margin-bottom: 0;
 	padding: 3px 6px 3px 16px;
 	background: #fff;
-	border-radius: 0;
+	border-radius: 0 0 4px 4px;
 	color: #72777c;
 	line-height: 1.7;
-	box-shadow: none;
+	box-shadow: 0 0 0 transparent;
+	transition: box-shadow 0.1s linear;
 }
 
 #screen-meta-links .show-settings:hover,
