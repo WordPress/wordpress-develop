@@ -84,7 +84,7 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 * @return null|WP_Error|WP_Term WP_Term on success. WP_error if taxonomy does not exist. Null for miscellaneous failure.
 	 */
 	public function create_and_get( $args = array(), $generation_definitions = null ) {
-		$term_id  = $this->create( $args, $generation_definitions );
+		$term_id = $this->create( $args, $generation_definitions );
 
 		if ( is_wp_error( $term_id ) ) {
 			return $term_id;
