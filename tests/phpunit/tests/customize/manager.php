@@ -1777,8 +1777,8 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		$old_sidebars_widgets = get_option( 'sidebars_widgets' );
 		$new_sidebars_widgets = $old_sidebars_widgets;
-		$this->assertGreaterThan( 2, count( $new_sidebars_widgets['footer-one'] ) );
-		$new_sidebar_1 = array_reverse( $new_sidebars_widgets['footer-one'] );
+		$this->assertGreaterThan( 2, count( $new_sidebars_widgets['sidebar-1'] ) );
+		$new_sidebar_1 = array_reverse( $new_sidebars_widgets['sidebar-1'] );
 
 		$post_id = $this->factory()->post->create(
 			array(
@@ -1787,7 +1787,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 				'post_name'    => wp_generate_uuid4(),
 				'post_content' => wp_json_encode(
 					array(
-						'sidebars_widgets[footer-one]' => array(
+						'sidebars_widgets[sidebar-1]' => array(
 							'value' => $new_sidebar_1,
 						),
 					)
@@ -1804,7 +1804,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		// Ensure that the value has actually been written to the DB.
 		$updated_sidebars_widgets = get_option( 'sidebars_widgets' );
-		$this->assertEquals( $new_sidebar_1, $updated_sidebars_widgets['footer-one'] );
+		$this->assertEquals( $new_sidebar_1, $updated_sidebars_widgets['sidebar-1'] );
 	}
 
 	/**
