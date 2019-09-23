@@ -66,7 +66,7 @@ if ( is_multisite() ) :
 			$counts = wp_count_sites();
 
 			$counts_by_status = array_map( 'count', $site_ids );
-			$expected        = array_merge(
+			$expected         = array_merge(
 				array( 'all' => array_sum( $counts_by_status ) ),
 				$counts_by_status
 			);
