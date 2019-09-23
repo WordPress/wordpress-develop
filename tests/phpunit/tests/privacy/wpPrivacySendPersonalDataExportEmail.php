@@ -175,6 +175,58 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	}
 
 	/**
+	 * The email address of the recipient of the personal data export notification should be filterable.
+	 *
+	 * @ticket 46303
+	 */
+	public function test_email_address_of_recipient_should_be_filterable() {
+		add_filter( 'wp_privacy_personal_data_email_to', array( $this, 'filter_email_address' ) );
+		wp_privacy_send_personal_data_export_email( self::$request_id );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$this->assertSame( 'modified-' . self::$requester_email, $mailer->get_recipient( 'to' )->address );
+	}
+
+	/**
+	 * Filter callback that modifies the email address of the recipient of the personal data export notification.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param  string $user_email The email address of the notification recipient.
+	 * @return string $user_email The modified email address of the notification recipient.
+	 */
+	public function filter_email_address( $user_email ) {
+		return 'modified-' . $user_email;
+	}
+
+	/**
+	 * The email subject of the personal data export notification should be filterable.
+	 *
+	 * @ticket 46303
+	 */
+	public function test_email_subject_should_be_filterable() {
+		add_filter( 'wp_privacy_personal_data_email_subject', array( $this, 'filter_email_subject' ) );
+		wp_privacy_send_personal_data_export_email( self::$request_id );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$this->assertSame( 'Modified subject', $mailer->get_sent()->subject );
+	}
+
+	/**
+	 * Filter callback that modifies the email subject of the data erasure fulfillment notification.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param string $subject The email subject.
+	 * @return string $subject The email subject.
+	 */
+	public function filter_email_subject( $subject ) {
+		return 'Modified subject';
+	}
+
+	/**
 	 * The email content should be filterable.
 	 *
 	 * @since 4.9.6
@@ -198,6 +250,47 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 */
 	public function modify_email_content( $email_text, $request_id ) {
 		return 'Custom content for request ID: ' . $request_id;
+	}
+
+	/**
+	 * The email content should be filterable using the $email_data
+	 *
+	 * @ticket 46303
+	 */
+	public function test_email_content_should_be_filterable_using_email_data() {
+		add_filter( 'wp_privacy_personal_data_email_content', array( $this, 'modify_email_content_with_email_data' ), 10, 3 );
+		wp_privacy_send_personal_data_export_email( self::$request_id );
+
+		$site_url = home_url();
+		$mailer   = tests_retrieve_phpmailer_instance();
+		$this->assertContains( 'Custom content using the $site_url of $email_data: ' . $site_url, $mailer->get_sent()->body );
+	}
+
+	/**
+	 * Filter callback that modifies the text of the email by using the $email_data sent with a personal data export file.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param string $email_text Text in the email.
+	 * @param int    $request_id The request ID for this personal data export.
+	 * @param array  $email_data {
+	 *     Data relating to the account action email.
+	 *
+	 *     @type WP_User_Request $request           User request object.
+	 *     @type int             $expiration        The time in seconds until the export file expires.
+	 *     @type string          $expiration_date   The localized date and time when the export file expires.
+	 *     @type string          $message_recipient The address that the email will be sent to. Defaults
+	 *                                              to the value of `$request->email`, but can be changed
+	 *                                              by the `wp_privacy_personal_data_email_to` filter.
+	 *     @type string          $export_file_url   The export file URL.
+	 *     @type string          $sitename          The site name sending the mail.
+	 *     @type string          $siteurl           The site URL sending the mail.
+	 * }
+	 *
+	 * @return string $email_text Text in the email.
+	 */
+	public function modify_email_content_with_email_data( $email_text, $request_id, $email_data ) {
+		return 'Custom content using the $site_url of $email_data: ' . $email_data['siteurl'];
 	}
 
 	/**
