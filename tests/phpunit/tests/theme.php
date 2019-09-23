@@ -18,6 +18,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		'twentysixteen',
 		'twentyseventeen',
 		'twentynineteen',
+		'twentytwenty',
 	);
 
 	function setUp() {
