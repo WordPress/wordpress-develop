@@ -2,8 +2,8 @@
  * External dependencies
  */
 const { DefinePlugin } = require( 'webpack' );
-const LiveReloadPlugin = require( 'webpack-livereload-plugin' );
 const CopyWebpackPlugin = require( 'copy-webpack-plugin' );
+const LiveReloadPlugin = require( 'webpack-livereload-plugin' );
 const postcss = require( 'postcss' );
 const UglifyJS = require( 'uglify-js' );
 
@@ -14,6 +14,7 @@ const { get } = require( 'lodash' );
  * WordPress dependencies
  */
 const CustomTemplatedPathPlugin = require( '@wordpress/custom-templated-path-webpack-plugin' );
+const DependencyExtractionPlugin = require( '@wordpress/dependency-extraction-webpack-plugin' );
 const LibraryExportDefaultPlugin = require( '@wordpress/library-export-default-webpack-plugin' );
 
 /**
@@ -246,6 +247,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 					...phpCopies,
 				],
 			),
+			new DependencyExtractionPlugin( { injectPolyfill: true } ),
 		],
 		stats: {
 			children: false,
