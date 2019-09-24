@@ -108,22 +108,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'block-library/src/tag-cloud/index.php': 'wp-includes/blocks/tag-cloud.php',
 	};
 
-	const externals = {
-		react: 'React',
-		'react-dom': 'ReactDOM',
-		tinymce: 'tinymce',
-		moment: 'moment',
-		jquery: 'jQuery',
-		lodash: 'lodash',
-		'lodash-es': 'lodash',
-	};
-
-	packages.forEach( ( name ) => {
-		externals[ `@wordpress/${ name }` ] = {
-			this: [ 'wp', camelCaseDash( name ) ],
-		};
-	} );
-
 	const developmentCopies = mapVendorCopies( vendors, buildTarget );
 	const minifiedCopies = mapVendorCopies( minifiedVendors, buildTarget );
 	const minifyCopies = mapVendorCopies( minifyVendors, buildTarget ).map( ( copyCommand ) => {
@@ -185,7 +169,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			},
 			libraryTarget: 'this',
 		},
-		externals,
 		resolve: {
 			modules: [
 				baseDir,
