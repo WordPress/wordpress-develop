@@ -19,8 +19,8 @@
 	},
 	"scripts": {
 		"compat": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --standard=phpcompat.xml.dist --report=summary,source",
-		"format": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcbf --report=summary,source --cache -d memory_limit=256M",
-		"lint": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --report=summary,source --cache -d memory_limit=256M",
+		"format": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcbf --report=summary,source",
+		"lint": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --report=summary,source",
 		"lint:errors": "@lint -n"
 	}
 }
