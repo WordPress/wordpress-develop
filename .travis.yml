@@ -29,6 +29,8 @@ matrix:
     name: PHP Linting
   - env: WP_TRAVISCI=travis:js WP_INSTALL=false
     name: JS Tests
+  - env: WP_TRAVISCI=test:compat COMPOSER_INSTALL=true NPM_INSTALL=false WP_INSTALL=false
+    name: "PHP Compatibility Check"
   - env: LOCAL_PHP=7.3-fpm WP_TRAVISCI=test:php
     name: "PHPUnit Tests: PHP 7.3"
   - env: LOCAL_PHP=7.3-fpm LOCAL_PHP_MEMCACHED=true WP_TRAVISCI=test:php
@@ -46,6 +48,7 @@ matrix:
   - env: LOCAL_PHP=8.0-fpm WP_TRAVISCI=test:php
     name: "PHPUnit Tests: PHP 8.0"
   allow_failures:
+  - env: WP_TRAVISCI=test:compat COMPOSER_INSTALL=true NPM_INSTALL=false WP_INSTALL=false
   - env: LOCAL_PHP=7.4-fpm WP_TRAVISCI=test:php
   - env: LOCAL_PHP=8.0-fpm WP_TRAVISCI=test:php
   fast_finish: true
@@ -120,6 +123,8 @@ script:
       docker-compose run --rm php composer format &&
       docker-compose run --rm php composer lint:errors &&
       docker-compose run --rm php composer lint tests
+    elif [[ "$WP_TRAVISCI" == "test:compat" ]]; then
+      docker-compose run --rm php composer compat
     else
       npm run grunt $WP_TRAVISCI
     fi
