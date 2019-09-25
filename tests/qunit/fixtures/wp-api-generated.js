@@ -7434,7 +7434,7 @@ mockedApiResponse.StatusesCollection = {
         "public": false,
         "queryable": false,
         "slug": "pending",
-        "date_floating": false,
+        "date_floating": true,
         "_links": {
             "archives": [
                 {
