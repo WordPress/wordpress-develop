@@ -20,6 +20,8 @@ env:
     - COMPOSER_INSTALL: false
     - NPM_INSTALL: true
     - WP_INSTALL: true
+    - PHP_FPM_UID: "`id -u`"
+    - PHP_FPM_GID: "`id -g`"
 
 matrix:
   include:
