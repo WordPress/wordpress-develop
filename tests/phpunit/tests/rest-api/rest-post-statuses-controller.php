@@ -161,7 +161,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$this->assertArrayHasKey( 'queryable', $properties );
 		$this->assertArrayHasKey( 'show_in_list', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
-		$this->assertArrayhasKey( 'date_floating', $properties );
+		$this->assertArrayHasKey( 'date_floating', $properties );
 	}
 
 	public function test_get_additional_field_registration() {
