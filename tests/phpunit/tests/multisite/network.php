@@ -274,7 +274,7 @@ if ( is_multisite() ) :
 
 			// activate the plugin sitewide
 			activate_plugin( $path, '', $network_wide = true );
-			$active_plugins = wp_get_active_network_plugins();
+			$active_plugins                           = wp_get_active_network_plugins();
 			$this->assertEquals( array( WP_PLUGIN_DIR . '/hello.php' ), $active_plugins );
 
 			//deactivate the plugin
