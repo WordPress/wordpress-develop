@@ -173,8 +173,9 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		// Force last_changed to bump.
 		wp_delete_term( $terms[0]->term_id, 'post_tag' );
 
-		$num_queries                           = $wpdb->num_queries;
-		$this->assertNotEquals( $time1, $time2 = wp_cache_get( 'last_changed', 'terms' ) );
+		$num_queries = $wpdb->num_queries;
+		$time2       = wp_cache_get( 'last_changed', 'terms' );
+		$this->assertNotEquals( $time1, $time2 );
 
 		// last_changed and num_queries should bump after a term is deleted.
 		$terms = get_terms( 'post_tag' );
