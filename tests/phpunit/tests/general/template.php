@@ -627,4 +627,19 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$actual_public = get_echo( 'wp_no_robots' );
 		$this->assertSame( "<meta name='robots' content='noindex,follow' />\n", $actual_public );
 	}
+
+	/**
+	 * @ticket 40969
+	 */
+	function test_get_template_part_returns_nothing() {
+		ob_start();
+
+		// The `get_template_part()` function must not return anything
+		// due to themes in the wild that echo its return value.
+		$part   = get_template_part( 'template', 'part' );
+		$output = ob_get_clean();
+
+		self::assertSame( 'Template Part', trim( $output ) );
+		self::assertSame( null, $part );
+	}
 }
