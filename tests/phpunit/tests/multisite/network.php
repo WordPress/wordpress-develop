@@ -273,8 +273,8 @@ if ( is_multisite() ) :
 			add_action( 'deactivated_plugin', array( $this, '_helper_deactivate_hook' ) );
 
 			// Activate the plugin sitewide.
-			activate_plugin( $path, '', $network_wide = true ); // Enable the plugin for all sites in the network.
-			$active_plugins                           = wp_get_active_network_plugins();
+			activate_plugin( $path, '', true ); // Enable the plugin for all sites in the network.
+			$active_plugins = wp_get_active_network_plugins();
 			$this->assertEquals( array( WP_PLUGIN_DIR . '/hello.php' ), $active_plugins );
 
 			// Deactivate the plugin.
@@ -284,8 +284,8 @@ if ( is_multisite() ) :
 
 			$this->assertEquals( 1, $this->plugin_hook_count ); // Testing actions and silent mode.
 
-			activate_plugin( $path, '', $network_wide = true ); // Enable the plugin for all sites in the network.
-			deactivate_plugins( $path, true ); // Silent mode.
+			activate_plugin( $path, '', true ); // Enable the plugin for all sites in the network.
+			deactivate_plugins( $path, true );  // Silent mode.
 
 			$this->assertEquals( 1, $this->plugin_hook_count ); // Testing actions and silent mode.
 		}
