@@ -257,8 +257,11 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 	mainMenu: function( view ) {
 		view.set({
 			'library-separator': new wp.media.View({
-				className: 'separator',
-				priority: 100
+				className:  'separator',
+				priority:   100,
+				attributes: {
+					role: 'presentation'
+				}
 			})
 		});
 	},

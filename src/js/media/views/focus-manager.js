@@ -1,3 +1,5 @@
+var $ = jQuery;
+
 /**
  * wp.media.view.FocusManager
  *
@@ -11,7 +13,40 @@
 var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.prototype */{
 
 	events: {
-		'keydown': 'constrainTabbing'
+		'keydown': 'focusManagementMode'
+	},
+
+	/**
+	 * Initializes the Focus Manager.
+	 *
+	 * @param {object} options The Focus Manager options.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @return {void}
+	 */
+	initialize: function( options ) {
+		this.mode                    = options.mode || 'constrainTabbing';
+		this.tabsAutomaticActivation = options.tabsAutomaticActivation || false;
+	},
+
+ 	/**
+	 * Determines which focus management mode to use.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param {object} event jQuery event object.
+	 *
+	 * @returns {void}
+	 */
+	focusManagementMode: function( event ) {
+		if ( this.mode === 'constrainTabbing' ) {
+			this.constrainTabbing( event );
+		}
+
+		if ( this.mode === 'tabsNavigation' ) {
+			this.tabsNavigation( event );
+		}
 	},
 
 	/**
@@ -67,8 +102,10 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	},
 
 	/**
-	 * Hides from assistive technologies all the body children except the
-	 * provided element and other elements that should not be hidden.
+	 * Hides from assistive technologies all the body children.
+	 *
+	 * Sets an `aria-hidden="true"` attribute on all the body children except
+	 * the provided element and other elements that should not be hidden.
 	 *
 	 * The reason why we use `aria-hidden` is that `aria-modal="true"` is buggy
 	 * in Safari 11.1 and support is spotty in other browsers. Also, `aria-modal="true"`
@@ -111,7 +148,9 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	},
 
 	/**
-	 * Makes visible again to assistive technologies all body children
+	 * Unhides from assistive technologies all the body children.
+	 *
+	 * Makes visible again to assistive technologies all the body children
 	 * previously hidden and stored in this.ariaHiddenElements.
 	 *
 	 * @since 5.2.3
@@ -165,7 +204,158 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 *
 	 * @since 5.2.3
 	 */
-	ariaHiddenElements: []
+	ariaHiddenElements: [],
+
+	/**
+	 * Holds the jQuery collection of ARIA tabs.
+	 *
+	 * @since 5.3.0
+	 */
+	tabs: $(),
+
+	/**
+	 * Sets up tabs in an ARIA tabbed interface.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param {object} event jQuery event object.
+	 *
+	 * @returns {void}
+	 */
+	setupAriaTabs: function() {
+		this.tabs = this.$( '[role="tab"]' );
+
+		// Set up initial attributes.
+		this.tabs.attr( {
+			'aria-selected': 'false',
+			tabIndex: '-1'
+		} );
+
+		// Set up attributes on the initially active tab.
+		this.tabs.filter( '.active' )
+			.removeAttr( 'tabindex' )
+			.attr( 'aria-selected', 'true' );
+	},
+
+	/**
+	 * Enables arrows navigation within the ARIA tabbed interface.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param {object} event jQuery event object.
+	 *
+	 * @returns {void}
+	 */
+	tabsNavigation: function( event ) {
+		var orientation = 'horizontal',
+			keys = [ 32, 35, 36, 37, 38, 39, 40 ];
+
+		// Return if not Spacebar, End, Home, or Arrow keys.
+		if ( keys.indexOf( event.which ) === -1 ) {
+			return;
+		}
+
+		// Determine navigation direction.
+		if ( this.$el.attr( 'aria-orientation' ) === 'vertical' ) {
+			orientation = 'vertical';
+		}
+
+		// Make Up and Down arrow keys do nothing with horizontal tabs.
+		if ( orientation === 'horizontal' && [ 38, 40 ].indexOf( event.which ) !== -1 ) {
+			return;
+		}
+
+		// Make Left and Right arrow keys do nothing with vertical tabs.
+		if ( orientation === 'vertical' && [ 37, 39 ].indexOf( event.which ) !== -1 ) {
+			return;
+		}
+
+		this.switchTabs( event, this.tabs );
+	},
+
+	/**
+	 * Switches tabs in the ARIA tabbed interface.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param {object} event jQuery event object.
+	 *
+	 * @returns {void}
+	 */
+	switchTabs: function( event ) {
+		var key   = event.which,
+			index = this.tabs.index( $( event.target ) ),
+			newIndex;
+
+		switch ( key ) {
+			// Space bar: Activate current targeted tab.
+			case 32: {
+				this.activateTab( this.tabs[ index ] );
+				break;
+			}
+			// End key: Activate last tab.
+			case 35: {
+				event.preventDefault();
+				this.activateTab( this.tabs[ this.tabs.length - 1 ] );
+				break;
+			}
+			// Home key: Activate first tab.
+			case 36: {
+				event.preventDefault();
+				this.activateTab( this.tabs[ 0 ] );
+				break;
+			}
+			// Left and up keys: Activate previous tab.
+			case 37:
+			case 38: {
+				event.preventDefault();
+				newIndex = ( index - 1 ) < 0 ? this.tabs.length - 1 : index - 1;
+				this.activateTab( this.tabs[ newIndex ] );
+				break;
+			}
+			// Right and down keys: Activate next tab.
+			case 39:
+			case 40: {
+				event.preventDefault();
+				newIndex = ( index + 1 ) === this.tabs.length ? 0 : index + 1;
+				this.activateTab( this.tabs[ newIndex ] );
+				break;
+			}
+		}
+	},
+
+	/**
+	 * Sets a single tab to be focusable and semantically selected.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param {object} tab The tab DOM element.
+	 *
+	 * @returns {void}
+	 */
+	activateTab: function( tab ) {
+		if ( ! tab ) {
+			return;
+		}
+
+		// The tab is a DOM element: no need for jQuery methods.
+		tab.focus();
+
+		// Handle automatic activation.
+		if ( this.tabsAutomaticActivation ) {
+			tab.removeAttribute( 'tabindex' );
+			tab.setAttribute( 'aria-selected', 'true' );
+			tab.click();
+
+			return;
+		}
+
+		// Handle manual activation.
+		$( tab ).on( 'click', function() {
+			tab.removeAttribute( 'tabindex' );
+			tab.setAttribute( 'aria-selected', 'true' );
+		} );
+ 	}
 });
 
 module.exports = FocusManager;

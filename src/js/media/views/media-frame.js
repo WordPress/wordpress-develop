@@ -23,7 +23,7 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 	regions:   ['menu','title','content','toolbar','router'],
 
 	events: {
-		'click div.media-frame-title h1': 'toggleMenu'
+		'click .media-frame-menu-toggle': 'toggleMenu'
 	},
 
 	/**
@@ -75,13 +75,78 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 		this.on( 'title:create:default', this.createTitle, this );
 		this.title.mode('default');
 
-		this.on( 'title:render', function( view ) {
-			view.$el.append( '<span class="dashicons dashicons-arrow-down"></span>' );
-		});
-
 		// Bind default menu.
 		this.on( 'menu:create:default', this.createMenu, this );
+
+		// Set the menu ARIA tab panel attributes when the modal opens.
+		this.on( 'open', this.setMenuTabPanelAriaAttributes, this );
+		// Set the router ARIA tab panel attributes when the modal opens.
+		this.on( 'open', this.setRouterTabPanelAriaAttributes, this );
+
+		// Update the menu ARIA tab panel attributes when the content updates.
+		this.on( 'content:render', this.setMenuTabPanelAriaAttributes, this );
+		// Update the router ARIA tab panel attributes when the content updates.
+		this.on( 'content:render', this.setRouterTabPanelAriaAttributes, this );
 	},
+
+	/**
+	 * Sets the attributes to be used on the menu ARIA tab panel.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @returns {void}
+	 */
+	setMenuTabPanelAriaAttributes: function() {
+		var stateId = this.state().get( 'id' ),
+			tabPanelEl = this.$el.find( '.media-frame-tab-panel' ),
+			ariaLabelledby;
+
+		tabPanelEl.removeAttr( 'role aria-labelledby tabindex' );
+
+		if ( this.menuView && this.menuView.isVisible ) {
+			ariaLabelledby = 'menu-item-' + stateId;
+
+			// Set the tab panel attributes only if the tabs are visible.
+			tabPanelEl
+				.attr( {
+					role: 'tabpanel',
+					'aria-labelledby': ariaLabelledby,
+					tabIndex: '0'
+				} );
+		}
+	},
+
+	/**
+	 * Sets the attributes to be used on the router ARIA tab panel.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @returns {void}
+	 */
+	setRouterTabPanelAriaAttributes: function() {
+		var tabPanelEl = this.$el.find( '.media-frame-content' ),
+			ariaLabelledby;
+
+		tabPanelEl.removeAttr( 'role aria-labelledby tabindex' );
+
+		// On the Embed view the router menu is hidden.
+		if ( 'embed' === this.content._mode ) {
+			return;
+		}
+
+		// Set the tab panel attributes only if the tabs are visible.
+		if ( this.routerView && this.routerView.isVisible && this.content._mode ) {
+			ariaLabelledby = 'menu-item-' + this.content._mode;
+
+			tabPanelEl
+				.attr( {
+					role: 'tabpanel',
+					'aria-labelledby': ariaLabelledby,
+					tabIndex: '0'
+				} );
+		}
+	},
+
 	/**
 	 * @returns {wp.media.view.MediaFrame} Returns itself to allow chaining
 	 */
@@ -111,12 +176,22 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 	 */
 	createMenu: function( menu ) {
 		menu.view = new wp.media.view.Menu({
-			controller: this
+			controller: this,
+
+			attributes: {
+				role:               'tablist',
+				'aria-orientation': 'vertical'
+			}
 		});
+
+		this.menuView = menu.view;
 	},
 
-	toggleMenu: function() {
-		this.$el.find( '.media-menu' ).toggleClass( 'visible' );
+	toggleMenu: function( event ) {
+		var menu = this.$el.find( '.media-menu' );
+
+		menu.toggleClass( 'visible' );
+		$( event.target ).attr( 'aria-expanded', menu.hasClass( 'visible' ) );
 	},
 
 	/**
@@ -134,8 +209,15 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 	 */
 	createRouter: function( router ) {
 		router.view = new wp.media.view.Router({
-			controller: this
+			controller: this,
+
+			attributes: {
+				role:               'tablist',
+				'aria-orientation': 'horizontal'
+			}
 		});
+
+		this.routerView = router.view;
 	},
 	/**
 	 * @param {Object} options
