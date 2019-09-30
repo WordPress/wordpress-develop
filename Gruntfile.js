@@ -25,7 +25,8 @@ module.exports = function(grunt) {
 			'wp-content/themes/twenty*/**',
 			'wp-content/plugins/index.php',
 			'wp-content/plugins/hello.php',
-			'wp-content/plugins/akismet/**'
+			'wp-content/plugins/akismet/**',
+			'!wp-content/themes/twenty*/node_modules/**'
 		],
 		changedFiles = {
 			php: []
@@ -553,7 +554,8 @@ module.exports = function(grunt) {
 					// Third party scripts
 					'!twenty{fourteen,fifteen,sixteen}/js/html5.js',
 					'!twentyseventeen/assets/js/html5.js',
-					'!twentyseventeen/assets/js/jquery.scrollTo.js'
+					'!twentyseventeen/assets/js/jquery.scrollTo.js',
+					'!twentytwenty/node_modules/**'
 				]
 			},
 			media: {
