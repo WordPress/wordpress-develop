@@ -62,8 +62,6 @@ Select = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.Select.prototype 
 	 * Create the default states on the frame.
 	 */
 	createStates: function() {
-		console.log("test");
-		this.on( 'content:render:edit-image', this.editState, this );
 		var options = this.options;
 
 		if ( this.options.states ) {
@@ -78,8 +76,7 @@ Select = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.Select.prototype 
 				multiple:  options.multiple,
 				title:     options.title,
 				priority:  20
-			}),
-				new wp.media.controller.EditImage( { model: this.options.editImage } ),
+			})
 		]);
 	},
 
