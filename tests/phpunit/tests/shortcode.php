@@ -740,7 +740,7 @@ EOF;
 	}
 
 	function data_whole_posts() {
-		require_once( DIR_TESTDATA . '/formatting/whole-posts.php' );
+		require_once DIR_TESTDATA . '/formatting/whole-posts.php';
 		return data_whole_posts();
 	}
 
@@ -992,6 +992,8 @@ EOF;
 	/**
 	 * Data provider for `test_shortcode_parse_atts()`.
 	 *
+	 * @ticket 47863
+	 *
 	 * @return array {
 	 *     @type array {
 	 *         @type string       $text     A single shortcode format or key/value pair string.
@@ -1057,19 +1059,19 @@ EOF;
 			array(
 				'[unittest link=https://unit.test/ /]',
 				array(
-					'link'  => 'https://unit.test/',
+					'link' => 'https://unit.test/',
 				),
 			),
 			array(
 				'[unittest link=https://unit.test/ ]',
 				array(
-					'link'  => 'https://unit.test/',
+					'link' => 'https://unit.test/',
 				),
 			),
 			array(
 				'[unittest link=https://unit.test/]',
 				array(
-					'link'  => 'https://unit.test',
+					'link' => 'https://unit.test',
 				),
 			),
 			array(
