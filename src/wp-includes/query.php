@@ -1165,7 +1165,11 @@ function generate_postdata( $post ) {
 /**
  * Simplifies the WordPress loop.
  *
- * @param WP_Query|WP_Post[] $iterable
+ * @since 5.x
+ *
+ * @global WP_Query $wp_query WordPress Query object.
+ *
+ * @param WP_Query|WP_Post[] $iterable WordPress query object or an array of posts.
  *
  * @return Generator
  */
