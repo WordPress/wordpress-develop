@@ -142,7 +142,7 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	}
 
 	function supports_foobar( $yesno, $args, $feature ) {
-		if ( $args[0] == $feature[0] ) {
+		if ( $args[0] === $feature[0] ) {
 			return true;
 		}
 		return false;

@@ -24,7 +24,7 @@ if ( defined( 'WP_TESTS_CONFIG_FILE_PATH' ) ) {
 }
 
 /*
- * Globalize some WordPress variables, because PHPUnit loads this file inside a function
+ * Globalize some WordPress variables, because PHPUnit loads this file inside a function.
  * See: https://github.com/sebastianbergmann/phpunit/issues/325
  */
 global $wpdb, $current_site, $current_blog, $wp_rewrite, $shortcode_tags, $wp, $phpmailer, $wp_theme_directories;
@@ -63,7 +63,10 @@ if ( ! defined( 'WP_TESTS_FORCE_KNOWN_BUGS' ) ) {
 	define( 'WP_TESTS_FORCE_KNOWN_BUGS', false );
 }
 
-// Cron tries to make an HTTP request to the blog, which always fails, because tests are run in CLI mode only
+/*
+ * Cron tries to make an HTTP request to the site, which always fails,
+ * because tests are run in CLI mode only.
+ */
 define( 'DISABLE_WP_CRON', true );
 
 define( 'WP_MEMORY_LIMIT', -1 );
@@ -71,10 +74,12 @@ define( 'WP_MAX_MEMORY_LIMIT', -1 );
 
 define( 'REST_TESTS_IMPOSSIBLY_HIGH_NUMBER', 99999999 );
 
-$PHP_SELF = $GLOBALS['PHP_SELF'] = $_SERVER['PHP_SELF'] = '/index.php';
+$PHP_SELF            = '/index.php';
+$GLOBALS['PHP_SELF'] = '/index.php';
+$_SERVER['PHP_SELF'] = '/index.php';
 
 // Should we run in multisite mode?
-$multisite = '1' == getenv( 'WP_MULTISITE' );
+$multisite = ( '1' === getenv( 'WP_MULTISITE' ) );
 $multisite = $multisite || ( defined( 'WP_TESTS_MULTISITE' ) && WP_TESTS_MULTISITE );
 $multisite = $multisite || ( defined( 'MULTISITE' ) && MULTISITE );
 
@@ -189,7 +194,7 @@ class WP_PHPUnit_Util_Getopt {
 					}
 
 					foreach ( $skipped_groups as $group_name => $skipped ) {
-						if ( in_array( $group_name, $groups ) ) {
+						if ( in_array( $group_name, $groups, true ) ) {
 							$skipped_groups[ $group_name ] = false;
 						}
 					}

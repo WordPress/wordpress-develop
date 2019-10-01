@@ -31,7 +31,7 @@ global $opml;
  * @param string $tagName XML element name.
  * @param array $attrs XML element attributes.
  */
-function startElement( $parser, $tagName, $attrs ) {
+function startElement( $parser, $tagName, $attrs ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	global $names, $urls, $targets, $descriptions, $feeds;
 
 	if ( 'OUTLINE' === $tagName ) {
@@ -68,7 +68,7 @@ function startElement( $parser, $tagName, $attrs ) {
  * @param mixed $parser XML Parser resource.
  * @param string $tagName XML tag name.
  */
-function endElement( $parser, $tagName ) {
+function endElement( $parser, $tagName ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	// Nothing to do.
 }
 
@@ -85,7 +85,7 @@ xml_set_element_handler( $xml_parser, 'startElement', 'endElement' );
 
 if ( ! xml_parse( $xml_parser, $opml, true ) ) {
 	printf(
-		/* translators: 1: error message, 2: line number */
+		/* translators: 1: Error message, 2: Line number. */
 		__( 'XML Error: %1$s at line %2$s' ),
 		xml_error_string( xml_get_error_code( $xml_parser ) ),
 		xml_get_current_line_number( $xml_parser )

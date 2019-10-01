@@ -54,11 +54,12 @@ class Tests_Nav_Menu_Theme_Change extends WP_UnitTestCase {
 	 */
 	function test_filter_registered_locations() {
 		$this->register_nav_menu_locations( array( 'primary', 'secondary' ) );
-		$old_next_theme_nav_menu_locations = $prev_theme_nav_menu_locations = array(
+		$prev_theme_nav_menu_locations     = array(
 			'primary'   => 1,
 			'secondary' => 2,
 			'social'    => 3,
 		);
+		$old_next_theme_nav_menu_locations = $prev_theme_nav_menu_locations;
 		$new_next_theme_nav_menu_locations = wp_map_nav_menu_locations( $old_next_theme_nav_menu_locations, $prev_theme_nav_menu_locations );
 
 		$expected_nav_menu_locations = array(
@@ -181,6 +182,8 @@ class Tests_Nav_Menu_Theme_Change extends WP_UnitTestCase {
 	/**
 	 * Technically possible to register menu locations numerically.
 	 *
+	 * @expectedIncorrectUsage register_nav_menus
+	 *
 	 * @covers ::wp_map_nav_menu_locations()
 	 */
 	function test_numerical_locations() {
@@ -203,6 +206,8 @@ class Tests_Nav_Menu_Theme_Change extends WP_UnitTestCase {
 
 	/**
 	 * Technically possible old nav menu locations were registered numerically.
+	 *
+	 * @expectedIncorrectUsage register_nav_menus
 	 *
 	 * @covers wp_map_nav_menu_locations()
 	 */

@@ -36,7 +36,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$post = get_post( $id, ARRAY_N );
 		$this->assertInternalType( 'array', $post );
 		$this->assertFalse( isset( $post['post_type'] ) );
-		$this->assertTrue( in_array( 'post', $post ) );
+		$this->assertTrue( in_array( 'post', $post, true ) );
 
 		$post = get_post( $id );
 		$post = get_post( $post, ARRAY_A );

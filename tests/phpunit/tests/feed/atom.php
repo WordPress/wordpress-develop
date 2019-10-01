@@ -71,6 +71,7 @@ class Tests_Feeds_Atom extends WP_UnitTestCase {
 		// Nasty hack! In the future it would better to leverage do_feed( 'atom' ).
 		global $post;
 		try {
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 			@require( ABSPATH . 'wp-includes/feed-atom.php' );
 			$out = ob_get_clean();
 		} catch ( Exception $e ) {
@@ -162,7 +163,7 @@ class Tests_Feeds_Atom extends WP_UnitTestCase {
 			// Link rel="alternate"
 			$link_alts = xml_find( $entries[ $key ]['child'], 'link' );
 			foreach ( $link_alts as $link_alt ) {
-				if ( 'alternate' == $link_alt['attributes']['rel'] ) {
+				if ( 'alternate' === $link_alt['attributes']['rel'] ) {
 					$this->assertEquals( get_permalink( $post ), $link_alt['attributes']['href'] );
 				}
 			}
@@ -185,7 +186,7 @@ class Tests_Feeds_Atom extends WP_UnitTestCase {
 			}
 			$categories = xml_find( $entries[ $key ]['child'], 'category' );
 			foreach ( $categories as $category ) {
-				$this->assertTrue( in_array( $category['attributes']['term'], $terms ) );
+				$this->assertTrue( in_array( $category['attributes']['term'], $terms, true ) );
 			}
 			unset( $terms );
 
@@ -198,7 +199,7 @@ class Tests_Feeds_Atom extends WP_UnitTestCase {
 			// Link rel="replies"
 			$link_replies = xml_find( $entries[ $key ]['child'], 'link' );
 			foreach ( $link_replies as $link_reply ) {
-				if ( 'replies' == $link_reply['attributes']['rel'] && 'application/atom+xml' == $link_reply['attributes']['type'] ) {
+				if ( 'replies' === $link_reply['attributes']['rel'] && 'application/atom+xml' === $link_reply['attributes']['type'] ) {
 					$this->assertEquals( get_post_comments_feed_link( $post->ID, 'atom' ), $link_reply['attributes']['href'] );
 				}
 			}

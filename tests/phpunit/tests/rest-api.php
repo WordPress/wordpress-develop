@@ -255,7 +255,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 */
 	function test_rest_route_query_var() {
 		rest_api_init();
-		$this->assertTrue( in_array( 'rest_route', $GLOBALS['wp']->public_query_vars ) );
+		$this->assertTrue( in_array( 'rest_route', $GLOBALS['wp']->public_query_vars, true ) );
 	}
 
 	public function test_route_method() {
@@ -520,6 +520,71 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that nested fields may be whitelisted with request['_fields'].
+	 *
+	 * @ticket 42094
+	 */
+	public function test_rest_filter_response_fields_nested_field_filter() {
+		$response = new WP_REST_Response();
+
+		$response->set_data(
+			array(
+				'a' => 0,
+				'b' => array(
+					'1' => 1,
+					'2' => 2,
+				),
+				'c' => 3,
+				'd' => array(
+					'4' => 4,
+					'5' => 5,
+				),
+			)
+		);
+		$request = array(
+			'_fields' => 'b.1,c,d.5',
+		);
+
+		$response = rest_filter_response_fields( $response, null, $request );
+		$this->assertEquals(
+			array(
+				'b' => array(
+					'1' => 1,
+				),
+				'c' => 3,
+				'd' => array(
+					'5' => 5,
+				),
+			),
+			$response->get_data()
+		);
+	}
+
+	/**
+	 * @ticket 42094
+	 */
+	public function test_rest_is_field_included() {
+		$fields = array(
+			'id',
+			'title',
+			'content.raw',
+			'custom.property',
+		);
+
+		$this->assertTrue( rest_is_field_included( 'id', $fields ) );
+		$this->assertTrue( rest_is_field_included( 'title', $fields ) );
+		$this->assertTrue( rest_is_field_included( 'title.raw', $fields ) );
+		$this->assertTrue( rest_is_field_included( 'title.rendered', $fields ) );
+		$this->assertTrue( rest_is_field_included( 'content', $fields ) );
+		$this->assertTrue( rest_is_field_included( 'content.raw', $fields ) );
+		$this->assertTrue( rest_is_field_included( 'custom.property', $fields ) );
+		$this->assertFalse( rest_is_field_included( 'content.rendered', $fields ) );
+		$this->assertFalse( rest_is_field_included( 'type', $fields ) );
+		$this->assertFalse( rest_is_field_included( 'meta', $fields ) );
+		$this->assertFalse( rest_is_field_included( 'meta.value', $fields ) );
+	}
+
+	/**
 	 * The get_rest_url function should return a URL consistently terminated with a "/",
 	 * whether the blog is configured with pretty permalink support or not.
 	 */
@@ -715,15 +780,6 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertEquals( $routes['/test-ns/test'][0]['methods'], array( 'GET' => true ) );
 	}
 
-	/**
-	 * Ensure rest_preload_api_request() works without notices in PHP 5.2.
-	 *
-	 * The array_reduce() function only accepts mixed variables starting with PHP 5.3.
-	 */
-	function test_rest_preload_api_request_no_notices_php_52() {
-		$this->assertTrue( is_array( rest_preload_api_request( 0, '/' ) ) );
-	}
-
 	function test_rest_preload_api_request_with_method() {
 		$rest_server               = $GLOBALS['wp_rest_server'];
 		$GLOBALS['wp_rest_server'] = null;
@@ -743,5 +799,15 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertTrue( isset( $preload_data['OPTIONS']['/wp/v2/media'] ) );
 
 		$GLOBALS['wp_rest_server'] = $rest_server;
+	}
+
+	/**
+	 * @ticket 40614
+	 */
+	function test_rest_ensure_response_accepts_path_string() {
+		$request = rest_ensure_request( '/wp/v2/posts' );
+		$this->assertInstanceOf( 'WP_REST_Request', $request );
+		$this->assertEquals( '/wp/v2/posts', $request->get_route() );
+		$this->assertEquals( 'GET', $request->get_method() );
 	}
 }

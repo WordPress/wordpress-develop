@@ -59,7 +59,7 @@ function _wp_scripts_maybe_doing_it_wrong( $function ) {
  * Makes use of already-instantiated $wp_scripts global if present. Use provided {@see 'wp_print_scripts'}
  * hook to register/enqueue new scripts.
  *
- * @see WP_Scripts::do_items()
+ * @see WP_Scripts::do_item()
  * @global WP_Scripts $wp_scripts The WP_Scripts object for printing scripts.
  *
  * @since 2.1.0
@@ -279,7 +279,7 @@ function wp_deregister_script( $handle ) {
 
 		if ( in_array( $handle, $no ) ) {
 			$message = sprintf(
-				/* translators: 1: script name, 2: wp_enqueue_scripts */
+				/* translators: 1: Script name, 2: wp_enqueue_scripts */
 				__( 'Do not deregister the %1$s script in the administration area. To target the front-end theme, use the %2$s hook.' ),
 				"<code>$handle</code>",
 				'<code>wp_enqueue_scripts</code>'

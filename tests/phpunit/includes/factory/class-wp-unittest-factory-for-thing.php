@@ -79,6 +79,11 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 */
 	public function create_and_get( $args = array(), $generation_definitions = null ) {
 		$object_id = $this->create( $args, $generation_definitions );
+
+		if ( is_wp_error( $object_id ) ) {
+			return $object_id;
+		}
+
 		return $this->get_object_by_id( $object_id );
 	}
 

@@ -936,7 +936,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		);
 		$uuid       = wp_generate_uuid4();
 
-		$wp_customize = $manager = new WP_Customize_Manager(
+		$manager      = new WP_Customize_Manager(
 			array(
 				'changeset_uuid' => $uuid,
 			)
@@ -1039,7 +1039,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$this->assertEquals( $previous_saved_data, json_decode( get_post( $post_id )->post_content, true ) );
 
 		// Attempt a non-transactional/incremental update.
-		$wp_customize = $manager = new WP_Customize_Manager(
+		$manager      = new WP_Customize_Manager(
 			array(
 				'changeset_uuid' => $uuid,
 			)
@@ -1100,7 +1100,8 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 			$action_counts[ $action_name ] = did_action( $action_name );
 		}
 
-		$wp_customize = $manager = new WP_Customize_Manager( array( 'changeset_uuid' => $uuid ) );
+		$manager      = new WP_Customize_Manager( array( 'changeset_uuid' => $uuid ) );
+		$wp_customize = $manager;
 		do_action( 'customize_register', $wp_customize );
 		$manager->add_setting(
 			'scratchpad',
@@ -1142,7 +1143,8 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		// Test revisions.
 		add_post_type_support( 'customize_changeset', 'revisions' );
 		$uuid         = wp_generate_uuid4();
-		$wp_customize = $manager = new WP_Customize_Manager( array( 'changeset_uuid' => $uuid ) );
+		$manager      = new WP_Customize_Manager( array( 'changeset_uuid' => $uuid ) );
+		$wp_customize = $manager;
 		do_action( 'customize_register', $manager );
 
 		$manager->set_post_value( 'blogname', 'Hello Surface' );
@@ -1854,9 +1856,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		$r = $manager->save_changeset_post( $args );
 		$this->assertInstanceOf( 'WP_Error', $r );
-		if ( function_exists( 'json_last_error' ) ) {
-			$this->assertEquals( 'json_parse_error', $r->get_error_code() );
-		}
+		$this->assertEquals( 'json_parse_error', $r->get_error_code() );
 
 		wp_update_post(
 			array(
@@ -2539,10 +2539,11 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * Capture the actions fired when calling WP_Customize_Manager::set_post_value().
 	 *
 	 * @see Tests_WP_Customize_Manager::test_set_post_value()
+	 *
+	 * @param mixed ...$args Optional arguments passed to the action.
 	 */
-	function capture_customize_post_value_set_actions() {
+	function capture_customize_post_value_set_actions( ...$args ) {
 		$action = current_action();
-		$args   = func_get_args();
 		$this->captured_customize_post_value_set_actions[] = compact( 'action', 'args' );
 	}
 
@@ -2666,7 +2667,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 */
 	function filter_customize_dynamic_setting_args_for_test_dynamic_settings( $setting_args, $setting_id ) {
 		$this->assertInternalType( 'string', $setting_id );
-		if ( in_array( $setting_id, array( 'foo', 'bar' ) ) ) {
+		if ( in_array( $setting_id, array( 'foo', 'bar' ), true ) ) {
 			$setting_args = array( 'default' => "dynamic_{$setting_id}_default" );
 		}
 		return $setting_args;

@@ -292,7 +292,7 @@ function wp_nav_menu_item_link_meta_box() {
 		<input type="hidden" value="custom" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-type]" />
 		<p id="menu-item-url-wrap" class="wp-clearfix">
 			<label class="howto" for="custom-menu-item-url"><?php _e( 'URL' ); ?></label>
-			<input id="custom-menu-item-url" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-url]" type="text" class="code menu-item-textbox" value="http://" />
+			<input id="custom-menu-item-url" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-url]" type="text" class="code menu-item-textbox" placeholder="https://" />
 		</p>
 
 		<p id="menu-item-name-wrap" class="wp-clearfix">
@@ -354,12 +354,88 @@ function wp_nav_menu_item_post_type_meta_box( $object, $box ) {
 		$args = array_merge( $args, (array) $box['args']->_default_query );
 	}
 
+	/*
+	 * If we're dealing with pages, let's prioritize the Front Page,
+	 * Posts Page and Privacy Policy Page at the top of the list.
+	 */
+	$important_pages = array();
+	if ( 'page' == $post_type_name ) {
+		$suppress_page_ids = array();
+
+		// Insert Front Page or custom Home link.
+		$front_page = 'page' == get_option( 'show_on_front' ) ? (int) get_option( 'page_on_front' ) : 0;
+
+		$front_page_obj = null;
+		if ( ! empty( $front_page ) ) {
+			$front_page_obj                = get_post( $front_page );
+			$front_page_obj->front_or_home = true;
+
+			$important_pages[]   = $front_page_obj;
+			$suppress_page_ids[] = $front_page_obj->ID;
+		} else {
+			$_nav_menu_placeholder = ( 0 > $_nav_menu_placeholder ) ? intval( $_nav_menu_placeholder ) - 1 : -1;
+			$front_page_obj        = (object) array(
+				'front_or_home' => true,
+				'ID'            => 0,
+				'object_id'     => $_nav_menu_placeholder,
+				'post_content'  => '',
+				'post_excerpt'  => '',
+				'post_parent'   => '',
+				'post_title'    => _x( 'Home', 'nav menu home label' ),
+				'post_type'     => 'nav_menu_item',
+				'type'          => 'custom',
+				'url'           => home_url( '/' ),
+			);
+
+			$important_pages[] = $front_page_obj;
+		}
+
+		// Insert Posts Page.
+		$posts_page = 'page' == get_option( 'show_on_front' ) ? (int) get_option( 'page_for_posts' ) : 0;
+
+		if ( ! empty( $posts_page ) ) {
+			$posts_page_obj             = get_post( $posts_page );
+			$posts_page_obj->posts_page = true;
+
+			$important_pages[]   = $posts_page_obj;
+			$suppress_page_ids[] = $posts_page_obj->ID;
+		}
+
+		// Insert Privacy Policy Page.
+		$privacy_policy_page_id = (int) get_option( 'wp_page_for_privacy_policy' );
+
+		if ( ! empty( $privacy_policy_page_id ) ) {
+			$privacy_policy_page = get_post( $privacy_policy_page_id );
+			if ( $privacy_policy_page instanceof WP_Post && 'publish' === $privacy_policy_page->post_status ) {
+				$privacy_policy_page->privacy_policy_page = true;
+
+				$important_pages[]   = $privacy_policy_page;
+				$suppress_page_ids[] = $privacy_policy_page->ID;
+			}
+		}
+
+		// Add suppression array to arguments for WP_Query.
+		if ( ! empty( $suppress_page_ids ) ) {
+			$args['post__not_in'] = $suppress_page_ids;
+		}
+	}
+
 	// @todo transient caching of these results with proper invalidation on updating of a post of this type
 	$get_posts = new WP_Query;
 	$posts     = $get_posts->query( $args );
+
+	// Only suppress and insert when more than just suppression pages available.
 	if ( ! $get_posts->post_count ) {
-		echo '<p>' . __( 'No items.' ) . '</p>';
-		return;
+		if ( ! empty( $suppress_page_ids ) ) {
+			unset( $args['post__not_in'] );
+			$get_posts = new WP_Query;
+			$posts     = $get_posts->query( $args );
+		} else {
+			echo '<p>' . __( 'No items.' ) . '</p>';
+			return;
+		}
+	} elseif ( ! empty( $important_pages ) ) {
+		$posts = array_merge( $important_pages, $posts );
 	}
 
 	$num_pages = $get_posts->max_num_pages;
@@ -411,7 +487,9 @@ function wp_nav_menu_item_post_type_meta_box( $object, $box ) {
 		'_wpnonce',
 	);
 
-	$most_recent_url = $view_all_url = $search_url = '';
+	$most_recent_url = '';
+	$view_all_url    = '';
+	$search_url      = '';
 	if ( $nav_menu_selected_id ) {
 		$most_recent_url = esc_url( add_query_arg( $post_type_name . '-tab', 'most-recent', remove_query_arg( $removed_args ) ) );
 		$view_all_url    = esc_url( add_query_arg( $post_type_name . '-tab', 'all', remove_query_arg( $removed_args ) ) );
@@ -520,36 +598,6 @@ function wp_nav_menu_item_post_type_meta_box( $object, $box ) {
 				<?php
 				$args['walker'] = $walker;
 
-				/*
-				 * If we're dealing with pages, let's put a checkbox for the front
-				 * page at the top of the list.
-				 */
-				if ( 'page' == $post_type_name ) {
-					$front_page = 'page' == get_option( 'show_on_front' ) ? (int) get_option( 'page_on_front' ) : 0;
-					if ( ! empty( $front_page ) ) {
-						$front_page_obj                = get_post( $front_page );
-						$front_page_obj->front_or_home = true;
-						array_unshift( $posts, $front_page_obj );
-					} else {
-						$_nav_menu_placeholder = ( 0 > $_nav_menu_placeholder ) ? intval( $_nav_menu_placeholder ) - 1 : -1;
-						array_unshift(
-							$posts,
-							(object) array(
-								'front_or_home' => true,
-								'ID'            => 0,
-								'object_id'     => $_nav_menu_placeholder,
-								'post_content'  => '',
-								'post_excerpt'  => '',
-								'post_parent'   => '',
-								'post_title'    => _x( 'Home', 'nav menu home label' ),
-								'post_type'     => 'nav_menu_item',
-								'type'          => 'custom',
-								'url'           => home_url( '/' ),
-							)
-						);
-					}
-				}
-
 				$post_type = get_post_type_object( $post_type_name );
 
 				if ( $post_type->has_archive ) {
@@ -591,11 +639,6 @@ function wp_nav_menu_item_post_type_meta_box( $object, $box ) {
 
 				$checkbox_items = walk_nav_menu_tree( array_map( 'wp_setup_nav_menu_item', $posts ), 0, (object) $args );
 
-				if ( 'all' == $current_tab && ! empty( $_REQUEST['selectall'] ) ) {
-					$checkbox_items = preg_replace( '/(type=(.)checkbox(\2))/', '$1 checked=$2checked$2', $checkbox_items );
-
-				}
-
 				echo $checkbox_items;
 				?>
 			</ul>
@@ -606,21 +649,10 @@ function wp_nav_menu_item_post_type_meta_box( $object, $box ) {
 			<?php endif; ?>
 		</div><!-- /.tabs-panel -->
 
-		<p class="button-controls wp-clearfix">
-			<span class="list-controls">
-				<a href="
-				<?php
-					echo esc_url(
-						add_query_arg(
-							array(
-								$post_type_name . '-tab' => 'all',
-								'selectall'              => 1,
-							),
-							remove_query_arg( $removed_args )
-						)
-					);
-				?>
-				#posttype-<?php echo $post_type_name; ?>" class="select-all aria-button-if-js"><?php _e( 'Select All' ); ?></a>
+		<p class="button-controls wp-clearfix" data-items-type="posttype-<?php echo esc_attr( $post_type_name ); ?>">
+			<span class="list-controls hide-if-no-js">
+				<input type="checkbox" id="<?php echo esc_attr( $post_type_name . '-tab' ); ?>" class="select-all" />
+				<label for="<?php echo esc_attr( $post_type_name . '-tab' ); ?>"><?php _e( 'Select All' ); ?></label>
 			</span>
 
 			<span class="add-to-menu">
@@ -661,6 +693,7 @@ function wp_nav_menu_item_taxonomy_meta_box( $object, $box ) {
 	$offset   = 0 < $pagenum ? $per_page * ( $pagenum - 1 ) : 0;
 
 	$args = array(
+		'taxonomy'     => $taxonomy_name,
 		'child_of'     => 0,
 		'exclude'      => '',
 		'hide_empty'   => false,
@@ -673,7 +706,7 @@ function wp_nav_menu_item_taxonomy_meta_box( $object, $box ) {
 		'pad_counts'   => false,
 	);
 
-	$terms = get_terms( $taxonomy_name, $args );
+	$terms = get_terms( $args );
 
 	if ( ! $terms || is_wp_error( $terms ) ) {
 		echo '<p>' . __( 'No items.' ) . '</p>';
@@ -740,7 +773,9 @@ function wp_nav_menu_item_taxonomy_meta_box( $object, $box ) {
 		'_wpnonce',
 	);
 
-	$most_used_url = $view_all_url = $search_url = '';
+	$most_used_url = '';
+	$view_all_url  = '';
+	$search_url    = '';
 	if ( $nav_menu_selected_id ) {
 		$most_used_url = esc_url( add_query_arg( $taxonomy_name . '-tab', 'most-used', remove_query_arg( $removed_args ) ) );
 		$view_all_url  = esc_url( add_query_arg( $taxonomy_name . '-tab', 'all', remove_query_arg( $removed_args ) ) );
@@ -770,8 +805,8 @@ function wp_nav_menu_item_taxonomy_meta_box( $object, $box ) {
 			<ul id="<?php echo $taxonomy_name; ?>checklist-pop" class="categorychecklist form-no-clear" >
 				<?php
 				$popular_terms  = get_terms(
-					$taxonomy_name,
 					array(
+						'taxonomy'     => $taxonomy_name,
 						'orderby'      => 'count',
 						'order'        => 'DESC',
 						'number'       => 10,
@@ -808,8 +843,8 @@ function wp_nav_menu_item_taxonomy_meta_box( $object, $box ) {
 			if ( isset( $_REQUEST[ 'quick-search-taxonomy-' . $taxonomy_name ] ) ) {
 				$searched       = esc_attr( $_REQUEST[ 'quick-search-taxonomy-' . $taxonomy_name ] );
 				$search_results = get_terms(
-					$taxonomy_name,
 					array(
+						'taxonomy'     => $taxonomy_name,
 						'name__like'   => $searched,
 						'fields'       => 'all',
 						'orderby'      => 'count',
@@ -843,21 +878,10 @@ function wp_nav_menu_item_taxonomy_meta_box( $object, $box ) {
 			</ul>
 		</div><!-- /.tabs-panel -->
 
-		<p class="button-controls wp-clearfix">
-			<span class="list-controls">
-				<a href="
-				<?php
-					echo esc_url(
-						add_query_arg(
-							array(
-								$taxonomy_name . '-tab' => 'all',
-								'selectall'             => 1,
-							),
-							remove_query_arg( $removed_args )
-						)
-					);
-				?>
-				#taxonomy-<?php echo $taxonomy_name; ?>" class="select-all aria-button-if-js"><?php _e( 'Select All' ); ?></a>
+		<p class="button-controls wp-clearfix" data-items-type="taxonomy-<?php echo esc_attr( $taxonomy_name ); ?>">
+			<span class="list-controls hide-if-no-js">
+				<input type="checkbox" id="<?php echo esc_attr( $taxonomy_name . '-tab' ); ?>" class="select-all" />
+				<label for="<?php echo esc_attr( $taxonomy_name . '-tab' ); ?>"><?php _e( 'Select All' ); ?></label>
 			</span>
 
 			<span class="add-to-menu">
@@ -894,7 +918,7 @@ function wp_save_nav_menu_items( $menu_id = 0, $menu_data = array() ) {
 					// And item type either isn't set.
 					! isset( $_item_object_data['menu-item-type'] ) ||
 					// Or URL is the default.
-					in_array( $_item_object_data['menu-item-url'], array( 'http://', '' ) ) ||
+					in_array( $_item_object_data['menu-item-url'], array( 'https://', 'http://', '' ) ) ||
 					! ( 'custom' == $_item_object_data['menu-item-type'] && ! isset( $_item_object_data['menu-item-db-id'] ) ) || // or it's not a custom menu item (but not the custom home page)
 					// Or it *is* a custom menu item that already exists.
 					! empty( $_item_object_data['menu-item-db-id'] )
@@ -1019,15 +1043,16 @@ function wp_get_nav_menu_to_edit( $menu_id = 0 ) {
 		} else {
 			return new WP_Error(
 				'menu_walker_not_exist',
-				/* translators: %s: walker class name */
 				sprintf(
+					/* translators: %s: Walker class name. */
 					__( 'The Walker class named %s does not exist.' ),
 					'<strong>' . $walker_class_name . '</strong>'
 				)
 			);
 		}
 
-		$some_pending_menu_items = $some_invalid_menu_items = false;
+		$some_pending_menu_items = false;
+		$some_invalid_menu_items = false;
 		foreach ( (array) $menu_items as $menu_item ) {
 			if ( isset( $menu_item->post_status ) && 'draft' == $menu_item->post_status ) {
 				$some_pending_menu_items = true;
@@ -1181,7 +1206,8 @@ function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selecte
 			$nav_menu_option['auto_add'][] = $nav_menu_selected_id;
 		}
 	} else {
-		if ( false !== ( $key = array_search( $nav_menu_selected_id, $nav_menu_option['auto_add'] ) ) ) {
+		$key = array_search( $nav_menu_selected_id, $nav_menu_option['auto_add'] );
+		if ( false !== $key ) {
 			unset( $nav_menu_option['auto_add'][ $key ] );
 		}
 	}
@@ -1195,8 +1221,8 @@ function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selecte
 	do_action( 'wp_update_nav_menu', $nav_menu_selected_id );
 
 	$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' .
-		/* translators: %s: nav menu title */
 		sprintf(
+			/* translators: %s: Nav menu title. */
 			__( '%s has been updated.' ),
 			'<strong>' . $nav_menu_selected_title . '</strong>'
 		) . '</p></div>';

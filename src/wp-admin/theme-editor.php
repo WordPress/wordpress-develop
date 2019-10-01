@@ -38,7 +38,7 @@ get_current_screen()->add_help_tab(
 				'<p>' . __( 'After typing in your edits, click Update File.' ) . '</p>' .
 				'<p>' . __( '<strong>Advice:</strong> Think very carefully about your site crashing if you are live-editing the theme currently in use.' ) . '</p>' .
 				'<p>' . sprintf(
-					/* translators: %s: link to documentation on child themes */
+					/* translators: %s: Link to documentation on child themes. */
 					__( 'Upgrading to a newer version of the same theme will override changes made here. To avoid this, consider creating a <a href="%s">child theme</a> instead.' ),
 					__( 'https://developer.wordpress.org/themes/advanced-topics/child-themes/' )
 				) . '</p>' .
@@ -48,10 +48,10 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://codex.wordpress.org/Theme_Development">Documentation on Theme Development</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://codex.wordpress.org/Using_Themes">Documentation on Using Themes</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://codex.wordpress.org/Editing_Files">Documentation on Editing Files</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://codex.wordpress.org/Template_Tags">Documentation on Template Tags</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://developer.wordpress.org/themes/">Documentation on Theme Development</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/article/using-themes/">Documentation on Using Themes</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/article/editing-files/">Documentation on Editing Files</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://developer.wordpress.org/themes/basics/template-tags/">Documentation on Template Tags</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
@@ -73,7 +73,8 @@ if ( $theme->errors() && 'theme_no_stylesheet' == $theme->errors()->get_error_co
 	wp_die( __( 'The requested theme does not exist.' ) . ' ' . $theme->errors()->get_error_message() );
 }
 
-$allowed_files = $style_files = array();
+$allowed_files = array();
+$style_files   = array();
 $has_templates = false;
 
 $file_types = wp_get_theme_file_editable_extensions( $theme );
@@ -200,7 +201,7 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] ) {
 		<p>
 			<?php
 			echo sprintf(
-				/* translators: %s: link to Custom CSS section in the Customizer */
+				/* translators: %s: Link to Custom CSS section in the Customizer. */
 				__( 'There&#8217;s no need to change your CSS here &mdash; you can edit and live preview CSS changes in the <a href="%s">built-in CSS editor</a>.' ),
 				esc_url( add_query_arg( 'autofocus[section]', 'custom_css', admin_url( 'customize.php' ) ) )
 			);
@@ -250,8 +251,8 @@ if ( $theme->errors() ) {
 		<?php if ( ( $has_templates || $theme->parent() ) && $theme->parent() ) : ?>
 			<li class="howto">
 				<?php
-				/* translators: %s: link to edit parent theme */
-				echo sprintf(
+				printf(
+					/* translators: %s: Link to edit parent theme. */
 					__( 'This child theme inherits templates from a parent theme, %s.' ),
 					sprintf(
 						'<a href="%s">%s</a>',
@@ -312,7 +313,15 @@ else :
 			<span class="spinner"></span>
 		</p>
 	<?php else : ?>
-		<p><em><?php _e( 'You need to make this file writable before you can save your changes. See <a href="https://codex.wordpress.org/Changing_File_Permissions">the Codex</a> for more information.' ); ?></em></p>
+		<p><em>
+			<?php
+			printf(
+				/* translators: %s: Documentation URL. */
+				__( 'You need to make this file writable before you can save your changes. See <a href="%s">Changing File Permissions</a> for more information.' ),
+				__( 'https://wordpress.org/support/article/changing-file-permissions/' )
+			);
+			?>
+		</em></p>
 	<?php endif; ?>
 	</div>
 	<?php wp_print_file_editor_templates(); ?>
@@ -343,13 +352,20 @@ if ( ! in_array( 'theme_editor_notice', $dismissed_pointers, true ) ) :
 				<h1><?php _e( 'Heads up!' ); ?></h1>
 				<p>
 					<?php
-					echo sprintf(
-						/* translators: %s: link to documentation on child themes */
-						__( 'You appear to be making direct edits to your theme in the WordPress dashboard. We recommend that you don&#8217;t! Editing your theme directly could break your site and your changes may be lost in future updates. If you need to tweak more than your theme&#8217;s CSS, you might want to try <a href="%s">making a child theme</a>.' ),
-						esc_url( __( 'https://developer.wordpress.org/themes/advanced-topics/child-themes/' ) )
-					);
+					_e( 'You appear to be making direct edits to your theme in the WordPress dashboard. We recommend that you don&#8217;t! Editing your theme directly could break your site and your changes may be lost in future updates.' );
 					?>
 				</p>
+					<?php
+					if ( ! $theme->parent() ) {
+						echo '<p>';
+						echo sprintf(
+							/* translators: %s: Link to documentation on child themes. */
+							__( 'If you need to tweak more than your theme&#8217;s CSS, you might want to try <a href="%s">making a child theme</a>.' ),
+							esc_url( __( 'https://developer.wordpress.org/themes/advanced-topics/child-themes/' ) )
+						);
+						echo '</p>';
+					}
+					?>
 				<p><?php _e( 'If you decide to go ahead with direct edits anyway, use a file manager to create a copy with a new name and hang on to the original. That way, you can re-enable a functional version if something goes wrong.' ); ?></p>
 			</div>
 			<p>

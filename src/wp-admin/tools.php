@@ -49,7 +49,7 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://codex.wordpress.org/Tools_Screen">Documentation on Tools</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/article/tools-screen/">Documentation on Tools</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
@@ -67,7 +67,15 @@ if ( current_user_can( 'import' ) ) :
 		?>
 		<div class="card">
 			<h2 class="title"><?php _e( 'Categories and Tags Converter' ); ?></h2>
-			<p><?php printf( __( 'If you want to convert your categories to tags (or vice versa), use the <a href="%s">Categories and Tags Converter</a> available from the Import screen.' ), 'import.php' ); ?></p>
+			<p>
+			<?php
+				printf(
+					/* translators: URL to Import screen. */
+					__( 'If you want to convert your categories to tags (or vice versa), use the <a href="%s">Categories and Tags Converter</a> available from the Import screen.' ),
+					'import.php'
+				);
+			?>
+			</p>
 		</div>
 		<?php
 	endif;

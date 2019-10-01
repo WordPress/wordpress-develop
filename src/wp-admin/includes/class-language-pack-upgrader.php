@@ -111,9 +111,9 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	 */
 	public function upgrade_strings() {
 		$this->strings['starting_upgrade'] = __( 'Some of your translations need updating. Sit tight for a few more seconds while we update them as well.' );
-		$this->strings['up_to_date']       = __( 'The translations are up to date.' );
+		$this->strings['up_to_date']       = __( 'Your translations are all up to date.' );
 		$this->strings['no_package']       = __( 'Update package not available.' );
-		/* translators: %s: package URL */
+		/* translators: %s: Package URL. */
 		$this->strings['downloading_package'] = sprintf( __( 'Downloading translation from %s&#8230;' ), '<span class="code">%s</span>' );
 		$this->strings['unpack_package']      = __( 'Unpacking the update&#8230;' );
 		$this->strings['process_failed']      = __( 'Translation update failed.' );
@@ -332,7 +332,8 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 		$files = $wp_filesystem->dirlist( $remote_source );
 
 		// Check to see if a .po and .mo exist in the folder.
-		$po = $mo = false;
+		$po = false;
+		$mo = false;
 		foreach ( (array) $files as $file => $filedata ) {
 			if ( '.po' == substr( $file, -3 ) ) {
 				$po = true;

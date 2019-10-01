@@ -33,7 +33,7 @@ class WP_Debug_Data {
 		global $wpdb;
 
 		// Save few function calls.
-		$upload_dir             = wp_get_upload_dir();
+		$upload_dir             = wp_upload_dir();
 		$permalink_structure    = get_option( 'permalink_structure' );
 		$is_ssl                 = is_ssl();
 		$users_can_register     = get_option( 'users_can_register' );
@@ -45,7 +45,7 @@ class WP_Debug_Data {
 
 		foreach ( $core_updates as $core => $update ) {
 			if ( 'upgrade' === $update->response ) {
-				// translators: %s: Latest WordPress version number.
+				/* translators: %s: Latest WordPress version number. */
 				$core_update_needed = ' ' . sprintf( __( '(Latest version: %s)' ), $update->version );
 			} else {
 				$core_update_needed = '';
@@ -70,6 +70,10 @@ class WP_Debug_Data {
 				'user_language'          => array(
 					'label' => __( 'User Language' ),
 					'value' => get_user_locale(),
+				),
+				'timezone'               => array(
+					'label' => __( 'Timezone' ),
+					'value' => wp_timezone_string(),
 				),
 				'home_url'               => array(
 					'label'   => __( 'Home URL' ),
@@ -119,7 +123,11 @@ class WP_Debug_Data {
 		$info['wp-dropins'] = array(
 			'label'       => __( 'Drop-ins' ),
 			'show_count'  => true,
-			'description' => __( 'Drop-ins are single files that replace or enhance WordPress features in ways that are not possible for traditional plugins.' ),
+			'description' => sprintf(
+				/* translators: %s: wp-content directory name. */
+				__( 'Drop-ins are single files, found in the %s directory, that replace or enhance WordPress features in ways that are not possible for traditional plugins.' ),
+				'<code>' . str_replace( ABSPATH, '', WP_CONTENT_DIR ) . '</code>'
+			),
 			'fields'      => array(),
 		);
 
@@ -128,8 +136,13 @@ class WP_Debug_Data {
 			'fields' => array(),
 		);
 
-		$info['wp-themes'] = array(
-			'label'      => __( 'Other Themes' ),
+		$info['wp-parent-theme'] = array(
+			'label'  => __( 'Parent Theme' ),
+			'fields' => array(),
+		);
+
+		$info['wp-themes-inactive'] = array(
+			'label'      => __( 'Inactive Themes' ),
 			'show_count' => true,
 			'fields'     => array(),
 		);
@@ -289,6 +302,16 @@ class WP_Debug_Data {
 					'value' => $wp_local_dev,
 					'debug' => $wp_local_dev_debug,
 				),
+				'DB_CHARSET'          => array(
+					'label' => 'DB_CHARSET',
+					'value' => ( defined( 'DB_CHARSET' ) ? DB_CHARSET : __( 'Undefined' ) ),
+					'debug' => ( defined( 'DB_CHARSET' ) ? DB_CHARSET : 'undefined' ),
+				),
+				'DB_COLLATE'          => array(
+					'label' => 'DB_COLLATE',
+					'value' => ( defined( 'DB_COLLATE' ) ? DB_COLLATE : __( 'Undefined' ) ),
+					'debug' => ( defined( 'DB_COLLATE' ) ? DB_COLLATE : 'undefined' ),
+				),
 			),
 		);
 
@@ -382,7 +405,7 @@ class WP_Debug_Data {
 			$info['wp-core']['fields']['dotorg_communication'] = array(
 				'label' => __( 'Communication with WordPress.org' ),
 				'value' => sprintf(
-					// translators: 1: The IP address WordPress.org resolves to. 2: The error returned by the lookup.
+					/* translators: 1: The IP address WordPress.org resolves to. 2: The error returned by the lookup. */
 					__( 'Unable to reach WordPress.org at %1$s: %2$s' ),
 					gethostbyname( 'wordpress.org' ),
 					$wp_dotorg->get_error_message()
@@ -700,27 +723,12 @@ class WP_Debug_Data {
 			$extension = null;
 		}
 
-		/*
-		 * Check what database engine is used, this will throw compatibility
-		 * warnings from PHP compatibility testers, but `mysql_*` is
-		 * still valid in PHP 5.6, so we need to account for that.
-		 */
-		if ( method_exists( $wpdb, 'db_version' ) ) {
-			if ( $wpdb->use_mysqli ) {
-				// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_get_server_info
-				$server = mysqli_get_server_info( $wpdb->dbh );
-			} else {
-				// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysql_get_server_info
-				$server = mysql_get_server_info( $wpdb->dbh );
-			}
-		} else {
-			$server = null;
-		}
+		$server = $wpdb->get_var( 'SELECT VERSION()' );
 
 		if ( isset( $wpdb->use_mysqli ) && $wpdb->use_mysqli ) {
 			$client_version = $wpdb->dbh->client_info;
 		} else {
-			// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysql_get_client_info
+			// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysql_get_client_info,PHPCompatibility.Extensions.RemovedExtensions.mysql_DeprecatedRemoved
 			if ( preg_match( '|[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}|', mysql_get_client_info(), $matches ) ) {
 				$client_version = $matches[0];
 			} else {
@@ -767,6 +775,18 @@ class WP_Debug_Data {
 			'private' => true,
 		);
 
+		$info['wp-database']['fields']['database_charset'] = array(
+			'label'   => __( 'Database charset' ),
+			'value'   => $wpdb->charset,
+			'private' => true,
+		);
+
+		$info['wp-database']['fields']['database_collate'] = array(
+			'label'   => __( 'Database collation' ),
+			'value'   => $wpdb->collate,
+			'private' => true,
+		);
+
 		// List must use plugins if there are any.
 		$mu_plugins = get_mu_plugins();
 
@@ -778,18 +798,18 @@ class WP_Debug_Data {
 			$plugin_version_string_debug = 'author: (undefined), version: (undefined)';
 
 			if ( ! empty( $plugin_version ) && ! empty( $plugin_author ) ) {
-				// translators: 1: Plugin version number. 2: Plugin author name.
+				/* translators: 1: Plugin version number. 2: Plugin author name. */
 				$plugin_version_string       = sprintf( __( 'Version %1$s by %2$s' ), $plugin_version, $plugin_author );
 				$plugin_version_string_debug = sprintf( 'version: %s, author: %s', $plugin_version, $plugin_author );
 			} else {
 				if ( ! empty( $plugin_author ) ) {
-					// translators: %s: Plugin author name.
+					/* translators: %s: Plugin author name. */
 					$plugin_version_string       = sprintf( __( 'By %s' ), $plugin_author );
 					$plugin_version_string_debug = sprintf( 'author: %s, version: (undefined)', $plugin_author );
 				}
 
 				if ( ! empty( $plugin_version ) ) {
-					// translators: %s: Plugin version number.
+					/* translators: %s: Plugin version number. */
 					$plugin_version_string       = sprintf( __( 'Version %s' ), $plugin_version );
 					$plugin_version_string_debug = sprintf( 'author: (undefined), version: %s', $plugin_version );
 				}
@@ -816,25 +836,25 @@ class WP_Debug_Data {
 			$plugin_version_string_debug = 'author: (undefined), version: (undefined)';
 
 			if ( ! empty( $plugin_version ) && ! empty( $plugin_author ) ) {
-				// translators: 1: Plugin version number. 2: Plugin author name.
+				/* translators: 1: Plugin version number. 2: Plugin author name. */
 				$plugin_version_string       = sprintf( __( 'Version %1$s by %2$s' ), $plugin_version, $plugin_author );
 				$plugin_version_string_debug = sprintf( 'version: %s, author: %s', $plugin_version, $plugin_author );
 			} else {
 				if ( ! empty( $plugin_author ) ) {
-					// translators: %s: Plugin author name.
+					/* translators: %s: Plugin author name. */
 					$plugin_version_string       = sprintf( __( 'By %s' ), $plugin_author );
 					$plugin_version_string_debug = sprintf( 'author: %s, version: (undefined)', $plugin_author );
 				}
 
 				if ( ! empty( $plugin_version ) ) {
-					// translators: %s: Plugin version number.
+					/* translators: %s: Plugin version number. */
 					$plugin_version_string       = sprintf( __( 'Version %s' ), $plugin_version );
 					$plugin_version_string_debug = sprintf( 'author: (undefined), version: %s', $plugin_version );
 				}
 			}
 
 			if ( array_key_exists( $plugin_path, $plugin_updates ) ) {
-				// translators: %s: Latest plugin version number.
+				/* translators: %s: Latest plugin version number. */
 				$plugin_version_string       .= ' ' . sprintf( __( '(Latest version: %s)' ), $plugin_updates[ $plugin_path ]->update->new_version );
 				$plugin_version_string_debug .= sprintf( ' (latest version: %s)', $plugin_updates[ $plugin_path ]->update->new_version );
 			}
@@ -866,18 +886,41 @@ class WP_Debug_Data {
 		if ( array_key_exists( $active_theme->stylesheet, $theme_updates ) ) {
 			$theme_update_new_version = $theme_updates[ $active_theme->stylesheet ]->update['new_version'];
 
-			// translators: %s: Latest theme version number.
+			/* translators: %s: Latest theme version number. */
 			$active_theme_version       .= ' ' . sprintf( __( '(Latest version: %s)' ), $theme_update_new_version );
 			$active_theme_version_debug .= sprintf( ' (latest version: %s)', $theme_update_new_version );
 		}
 
 		$active_theme_author_uri = $active_theme->offsetGet( 'Author URI' );
 
+		if ( $active_theme->parent_theme ) {
+			$active_theme_parent_theme = sprintf(
+				/* translators: 1: Theme name. 2: Theme slug. */
+				__( '%1$s (%2$s)' ),
+				$active_theme->parent_theme,
+				$active_theme->template
+			);
+			$active_theme_parent_theme_debug = sprintf(
+				'%s (%s)',
+				$active_theme->parent_theme,
+				$active_theme->template
+			);
+		} else {
+			$active_theme_parent_theme       = __( 'None' );
+			$active_theme_parent_theme_debug = 'none';
+		}
+
 		$info['wp-active-theme']['fields'] = array(
 			'name'           => array(
 				'label' => __( 'Name' ),
 				// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-				'value' => $active_theme->Name,
+				'value' => sprintf(
+					/* translators: 1: Theme name. 2: Theme slug. */
+					__( '%1$s (%2$s)' ),
+					// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					$active_theme->Name,
+					$active_theme->stylesheet
+				),
 			),
 			'version'        => array(
 				'label' => __( 'Version' ),
@@ -896,8 +939,8 @@ class WP_Debug_Data {
 			),
 			'parent_theme'   => array(
 				'label' => __( 'Parent theme' ),
-				'value' => ( $active_theme->parent_theme ? $active_theme->parent_theme : __( 'None' ) ),
-				'debug' => ( $active_theme->parent_theme ? $active_theme->parent_theme : 'none' ),
+				'value' => $active_theme_parent_theme,
+				'debug' => $active_theme_parent_theme_debug,
 			),
 			'theme_features' => array(
 				'label' => __( 'Theme features' ),
@@ -905,18 +948,75 @@ class WP_Debug_Data {
 			),
 			'theme_path'     => array(
 				'label' => __( 'Theme directory location' ),
-				'value' => get_template_directory(),
+				'value' => get_stylesheet_directory(),
 			),
 		);
+
+		$parent_theme = $active_theme->parent();
+
+		if ( $parent_theme ) {
+			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+			$parent_theme_version       = $parent_theme->Version;
+			$parent_theme_version_debug = $parent_theme_version;
+
+			if ( array_key_exists( $parent_theme->stylesheet, $theme_updates ) ) {
+				$parent_theme_update_new_version = $theme_updates[ $parent_theme->stylesheet ]->update['new_version'];
+
+				/* translators: %s: Latest theme version number. */
+				$parent_theme_version       .= ' ' . sprintf( __( '(Latest version: %s)' ), $parent_theme_update_new_version );
+				$parent_theme_version_debug .= sprintf( ' (latest version: %s)', $parent_theme_update_new_version );
+			}
+
+			$parent_theme_author_uri = $parent_theme->offsetGet( 'Author URI' );
+
+			$info['wp-parent-theme']['fields'] = array(
+				'name'           => array(
+					'label' => __( 'Name' ),
+					// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					'value' => sprintf(
+						/* translators: 1: Theme name. 2: Theme slug. */
+						__( '%1$s (%2$s)' ),
+						// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+						$parent_theme->Name,
+						$parent_theme->stylesheet
+					),
+				),
+				'version'        => array(
+					'label' => __( 'Version' ),
+					'value' => $parent_theme_version,
+					'debug' => $parent_theme_version_debug,
+				),
+				'author'         => array(
+					'label' => __( 'Author' ),
+					// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+					'value' => wp_kses( $parent_theme->Author, array() ),
+				),
+				'author_website' => array(
+					'label' => __( 'Author website' ),
+					'value' => ( $parent_theme_author_uri ? $parent_theme_author_uri : __( 'Undefined' ) ),
+					'debug' => ( $parent_theme_author_uri ? $parent_theme_author_uri : '(undefined)' ),
+				),
+				'theme_path'     => array(
+					'label' => __( 'Theme directory location' ),
+					'value' => get_template_directory(),
+				),
+			);
+		}
 
 		// Populate a list of all themes available in the install.
 		$all_themes = wp_get_themes();
 
 		foreach ( $all_themes as $theme_slug => $theme ) {
-			// Ignore the currently active theme from the list of all themes.
+			// Exclude the currently active theme from the list of all themes.
 			if ( $active_theme->stylesheet === $theme_slug ) {
 				continue;
 			}
+
+			// Exclude the currently active parent theme from the list of all themes.
+			if ( ! empty( $parent_theme ) && $parent_theme->stylesheet === $theme_slug ) {
+				continue;
+			}
+
 			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 			$theme_version = $theme->Version;
 			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
@@ -929,33 +1029,33 @@ class WP_Debug_Data {
 			$theme_version_string_debug = 'undefined';
 
 			if ( ! empty( $theme_version ) && ! empty( $theme_author ) ) {
-				// translators: 1: Theme version number. 2: Theme author name.
+				/* translators: 1: Theme version number. 2: Theme author name. */
 				$theme_version_string       = sprintf( __( 'Version %1$s by %2$s' ), $theme_version, $theme_author );
 				$theme_version_string_debug = sprintf( 'version: %s, author: %s', $theme_version, $theme_author );
 			} else {
 				if ( ! empty( $theme_author ) ) {
-					// translators: %s: Theme author name.
+					/* translators: %s: Theme author name. */
 					$theme_version_string       = sprintf( __( 'By %s' ), $theme_author );
 					$theme_version_string_debug = sprintf( 'author: %s, version: (undefined)', $theme_author );
 				}
 
 				if ( ! empty( $theme_version ) ) {
-					// translators: %s: Theme version number.
+					/* translators: %s: Theme version number. */
 					$theme_version_string       = sprintf( __( 'Version %s' ), $theme_version );
 					$theme_version_string_debug = sprintf( 'author: (undefined), version: %s', $theme_version );
 				}
 			}
 
 			if ( array_key_exists( $theme_slug, $theme_updates ) ) {
-				// translators: %s: Latest theme version number.
+				/* translators: %s: Latest theme version number. */
 				$theme_version_string       .= ' ' . sprintf( __( '(Latest version: %s)' ), $theme_updates[ $theme_slug ]->update['new_version'] );
 				$theme_version_string_debug .= sprintf( ' (latest version: %s)', $theme_updates[ $theme_slug ]->update['new_version'] );
 			}
 
 			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-			$info['wp-themes']['fields'][ sanitize_text_field( $theme->Name ) ] = array(
+			$info['wp-themes-inactive']['fields'][ sanitize_text_field( $theme->Name ) ] = array(
 				'label' => sprintf(
-					// translators: 1: Theme name. 2: Theme slug.
+					/* translators: 1: Theme name. 2: Theme slug. */
 					__( '%1$s (%2$s)' ),
 					// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 					$theme->Name,

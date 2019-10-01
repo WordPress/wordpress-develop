@@ -463,8 +463,8 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 		$data = $valid->get_error_data( 'rest_missing_callback_param' );
 
-		$this->assertTrue( in_array( 'someinteger', $data['params'] ) );
-		$this->assertTrue( in_array( 'someotherinteger', $data['params'] ) );
+		$this->assertTrue( in_array( 'someinteger', $data['params'], true ) );
+		$this->assertTrue( in_array( 'someotherinteger', $data['params'], true ) );
 	}
 
 	public function test_has_valid_params_validate_callback() {
@@ -491,10 +491,6 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	}
 
 	public function test_has_valid_params_json_error() {
-		if ( version_compare( PHP_VERSION, '5.3', '<' ) ) {
-			return $this->markTestSkipped( 'JSON validation is only available for PHP 5.3+' );
-		}
-
 		$this->request->set_header( 'Content-Type', 'application/json' );
 		$this->request->set_body( '{"invalid": JSON}' );
 
@@ -507,10 +503,6 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 
 	public function test_has_valid_params_empty_json_no_error() {
-		if ( version_compare( PHP_VERSION, '5.3', '<' ) ) {
-			return $this->markTestSkipped( 'JSON validation is only available for PHP 5.3+' );
-		}
-
 		$this->request->set_header( 'Content-Type', 'application/json' );
 		$this->request->set_body( '' );
 

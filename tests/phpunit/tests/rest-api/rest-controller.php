@@ -232,7 +232,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 	public function data_get_fields_for_response() {
 		return array(
 			array(
-				'somestring,someinteger',
+				'somestring,someinteger,someinvalidkey',
 				array(
 					'somestring',
 					'someinteger',
@@ -253,6 +253,94 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 				),
 			),
 		);
+	}
+
+	public function test_get_fields_for_response_filters_by_context() {
+		$controller = new WP_REST_Test_Controller();
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/testroute' );
+		$request->set_param( 'context', 'view' );
+
+		$schema = $controller->get_item_schema();
+		$field  = 'somefield';
+
+		$listener = new MockAction();
+		$method   = 'action';
+
+		register_rest_field(
+			$schema['title'],
+			$field,
+			array(
+				'schema'       => array(
+					'type'    => 'string',
+					'context' => array( 'embed' ),
+				),
+				'get_callback' => array( $listener, $method ),
+			)
+		);
+
+		$controller->prepare_item_for_response( array(), $request );
+
+		$this->assertSame( 0, $listener->get_call_count( $method ) );
+
+		$request->set_param( 'context', 'embed' );
+
+		$controller->prepare_item_for_response( array(), $request );
+
+		$this->assertGreaterThan( 0, $listener->get_call_count( $method ) );
+	}
+
+	public function test_filtering_fields_for_response_by_context_returns_fields_with_no_context() {
+		$controller = new WP_REST_Test_Controller();
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/testroute' );
+		$request->set_param( 'context', 'view' );
+
+		$schema = $controller->get_item_schema();
+		$field  = 'somefield';
+
+		$listener = new MockAction();
+		$method   = 'action';
+
+		register_rest_field(
+			$schema['title'],
+			$field,
+			array(
+				'schema'       => array(
+					'type' => 'string',
+				),
+				'get_callback' => array( $listener, $method ),
+			)
+		);
+
+		$controller->prepare_item_for_response( array(), $request );
+
+		$this->assertGreaterThan( 0, $listener->get_call_count( $method ) );
+	}
+
+	public function test_filtering_fields_for_response_by_context_returns_fields_with_no_schema() {
+		$controller = new WP_REST_Test_Controller();
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/testroute' );
+		$request->set_param( 'context', 'view' );
+
+		$schema = $controller->get_item_schema();
+		$field  = 'somefield';
+
+		$listener = new MockAction();
+		$method   = 'action';
+
+		register_rest_field(
+			$schema['title'],
+			$field,
+			array(
+				'get_callback' => array( $listener, $method ),
+			)
+		);
+
+		$controller->prepare_item_for_response( array(), $request );
+
+		$this->assertGreaterThan( 0, $listener->get_call_count( $method ) );
 	}
 
 	public function test_add_additional_fields_to_object_respects_fields_param() {

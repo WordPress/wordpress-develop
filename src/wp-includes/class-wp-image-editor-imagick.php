@@ -83,11 +83,6 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			return false;
 		}
 
-		// HHVM Imagick does not support loading from URL, so fail to allow fallback to GD.
-		if ( defined( 'HHVM_VERSION' ) && isset( $args['path'] ) && preg_match( '|^https?://|', $args['path'] ) ) {
-			return false;
-		}
-
 		return true;
 	}
 
@@ -113,6 +108,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		}
 
 		try {
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 			return ( (bool) @Imagick::queryFormats( $imagick_extension ) );
 		} catch ( Exception $e ) {
 			return false;
@@ -409,12 +405,20 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	}
 
 	/**
-	 * Resize multiple images from a single source.
+	 * Create multiple smaller images from a single source.
+	 *
+	 * Attempts to create all sub-sizes and returns the meta data at the end. This
+	 * may result in the server running out of resources. When it fails there may be few
+	 * "orphaned" images left over as the meta data is never returned and saved.
+	 *
+	 * As of 5.3.0 the preferred way to do this is with `make_subsize()`. It creates
+	 * the new images one at a time and allows for the meta data to be saved after
+	 * each new image is created.
 	 *
 	 * @since 3.5.0
 	 *
 	 * @param array $sizes {
-	 *     An array of image size arrays. Default sizes are 'thumbnail', 'medium', 'medium_large', 'large'.
+	 *     An array of image size data arrays.
 	 *
 	 *     Either a height or width must be provided.
 	 *     If one of the two is set to null, the resize will
@@ -557,7 +561,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		try {
 			$this->image->rotateImage( new ImagickPixel( 'none' ), 360 - $angle );
 
-			// Normalise Exif orientation data so that display is consistent across devices.
+			// Normalise EXIF orientation data so that display is consistent across devices.
 			if ( is_callable( array( $this->image, 'setImageOrientation' ) ) && defined( 'Imagick::ORIENTATION_TOPLEFT' ) ) {
 				$this->image->setImageOrientation( Imagick::ORIENTATION_TOPLEFT );
 			}
@@ -593,10 +597,35 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			if ( $vert ) {
 				$this->image->flopImage();
 			}
+
+			// Normalise EXIF orientation data so that display is consistent across devices.
+			if ( is_callable( array( $this->image, 'setImageOrientation' ) ) && defined( 'Imagick::ORIENTATION_TOPLEFT' ) ) {
+				$this->image->setImageOrientation( Imagick::ORIENTATION_TOPLEFT );
+			}
 		} catch ( Exception $e ) {
 			return new WP_Error( 'image_flip_error', $e->getMessage() );
 		}
+
 		return true;
+	}
+
+	/**
+	 * Check if a JPEG image has EXIF Orientation tag and rotate it if needed.
+	 *
+	 * As ImageMagick copies the EXIF data to the flipped/rotated image, proceed only
+	 * if EXIF Orientation can be reset afterwards.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @return bool|WP_Error True if the image was rotated. False if no EXIF data or if the image doesn't need rotation.
+	 *                       WP_Error if error while rotating.
+	 */
+	public function maybe_exif_rotate() {
+		if ( is_callable( array( $this->image, 'setImageOrientation' ) ) && defined( 'Imagick::ORIENTATION_TOPLEFT' ) ) {
+			return parent::maybe_exif_rotate();
+		} else {
+			return new WP_Error( 'write_exif_error', __( 'The image cannot be rotated because the embedded meta data cannot be updated.' ) );
+		}
 	}
 
 	/**
@@ -654,11 +683,11 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		// Set correct file permissions
 		$stat  = stat( dirname( $filename ) );
 		$perms = $stat['mode'] & 0000666; //same permissions as parent folder, strip off the executable bits
-		@ chmod( $filename, $perms );
+		chmod( $filename, $perms );
 
-		/** This filter is documented in wp-includes/class-wp-image-editor-gd.php */
 		return array(
 			'path'      => $filename,
+			/** This filter is documented in wp-includes/class-wp-image-editor-gd.php */
 			'file'      => wp_basename( apply_filters( 'image_make_intermediate_size', $filename ) ),
 			'width'     => $this->size['width'],
 			'height'    => $this->size['height'],
@@ -704,12 +733,12 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	protected function strip_meta() {
 
 		if ( ! is_callable( array( $this->image, 'getImageProfiles' ) ) ) {
-			/* translators: %s: ImageMagick method name */
+			/* translators: %s: ImageMagick method name. */
 			return new WP_Error( 'image_strip_meta_error', sprintf( __( '%s is required to strip image meta.' ), '<code>Imagick::getImageProfiles()</code>' ) );
 		}
 
 		if ( ! is_callable( array( $this->image, 'removeImageProfile' ) ) ) {
-			/* translators: %s: ImageMagick method name */
+			/* translators: %s: ImageMagick method name. */
 			return new WP_Error( 'image_strip_meta_error', sprintf( __( '%s is required to strip image meta.' ), '<code>Imagick::removeImageProfile()</code>' ) );
 		}
 
@@ -757,6 +786,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			// By default, PDFs are rendered in a very low resolution.
 			// We want the thumbnail to be readable, so increase the rendering DPI.
 			$this->image->setResolution( 128, 128 );
+
+			// When generating thumbnails from cropped PDF pages, Imagemagick uses the uncropped
+			// area (resulting in unnecessary whitespace) unless the following option is set.
+			$this->image->setOption( 'pdf:use-cropbox', true );
 
 			// Only load the first page.
 			return $this->file . '[0]';

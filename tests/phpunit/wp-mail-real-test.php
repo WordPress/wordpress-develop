@@ -53,7 +53,7 @@ require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 wp_install( WP_BLOG_TITLE, WP_USER_NAME, WP_USER_EMAIL, true );
 
 // make sure we're installed
-assert( true == is_blog_installed() );
+assert( true === is_blog_installed() );
 
 // phpcs:ignore Generic.NamingConventions.UpperCaseConstantName.ConstantNotUpperCase
 define( 'PHPUnit_MAIN_METHOD', false );

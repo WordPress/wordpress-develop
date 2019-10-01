@@ -104,6 +104,7 @@ class Tests_Option_WP_Load_Alloptions extends WP_UnitTestCase {
 	}
 
 	function return_pre_cache_filter( $alloptions ) {
-		return $this->alloptions = $alloptions;
+		$this->alloptions = $alloptions;
+		return $this->alloptions;
 	}
 }

@@ -149,7 +149,7 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 			array(
 				'menu-item-type'   => 'custom',
 				'menu-item-title'  => 'Wordpress.org',
-				'menu-item-link'   => 'http://wordpress.org',
+				'menu-item-url'    => 'http://wordpress.org',
 				'menu-item-status' => 'publish',
 			)
 		);
@@ -651,9 +651,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		);
 		$tag_id  = self::factory()->tag->create();
 
-		$wpdb->query( "UPDATE $wpdb->posts SET ID=$new_id WHERE ID=$page_id" );
-		$wpdb->query( "UPDATE $wpdb->terms SET term_id=$new_id WHERE term_id=$tag_id" );
-		$wpdb->query( "UPDATE $wpdb->term_taxonomy SET term_id=$new_id WHERE term_id=$tag_id" );
+		$wpdb->update( $wpdb->posts, array( 'ID' => $new_id ), array( 'ID' => $page_id ) );
+		$wpdb->update( $wpdb->terms, array( 'term_id' => $new_id ), array( 'term_id' => $tag_id ) );
+		$wpdb->update( $wpdb->term_taxonomy, array( 'term_id' => $new_id ), array( 'term_id' => $tag_id ) );
 
 		update_option( 'page_on_front', $new_id );
 
@@ -924,6 +924,36 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		delete_option( 'wp_page_for_privacy_policy' );
 
 		$this->assertContains( 'menu-item-privacy-policy', $classes );
+	}
+
+	/**
+	 * @ticket 47723
+	 * @dataProvider data_trim_url_for_custom_item
+	 */
+	function test_trim_url_for_custom_item( $custom_url, $correct_url ) {
+		$custom_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'   => 'custom',
+				'menu-item-title'  => 'WordPress.org',
+				'menu-item-url'    => $custom_url,
+				'menu-item-status' => 'publish',
+			)
+		);
+
+		$custom_item = wp_setup_nav_menu_item( get_post( $custom_item_id ) );
+		$this->assertEquals( $correct_url, $custom_item->url );
+	}
+
+	/**
+	 * Provides data for test_trim_url_for_custom_item().
+	 */
+	function data_trim_url_for_custom_item() {
+		return array(
+			array( 'https://wordpress.org ', 'https://wordpress.org' ),
+			array( ' https://wordpress.org', 'https://wordpress.org' ),
+		);
 	}
 
 }

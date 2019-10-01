@@ -22,8 +22,7 @@ Search = wp.media.View.extend(/** @lends wp.media.view.Search.prototype */{
 	},
 
 	events: {
-		'input':  'search',
-		'keyup':  'search'
+		'input': 'search'
 	},
 
 	/**
@@ -35,12 +34,15 @@ Search = wp.media.View.extend(/** @lends wp.media.view.Search.prototype */{
 	},
 
 	search: _.debounce( function( event ) {
-		if ( event.target.value ) {
-			this.model.set( 'search', event.target.value );
+		var searchTerm = event.target.value.trim();
+
+		// Trigger the search only after 2 ASCII characters.
+		if ( searchTerm && searchTerm.length > 1 ) {
+			this.model.set( 'search', searchTerm );
 		} else {
-			this.model.unset('search');
+			this.model.unset( 'search' );
 		}
-	}, 300 )
+	}, 500 )
 });
 
 module.exports = Search;

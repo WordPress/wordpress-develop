@@ -53,6 +53,7 @@ class Tests_Functions_AllowedProtocols extends WP_UnitTestCase {
 			array( 'rtsp', 'rtsp://media.example.com:554/wordpress/audiotrack' ), // RFC2326
 			array( 'svn', 'svn://core.svn.wordpress.org/' ),
 			array( 'tel', 'tel:+1-234-567-8910' ), // RFC3966
+			array( 'sms', 'sms:+1-234-567-8910' ), // RFC3966
 			array( 'fax', 'fax:+123.456.78910' ), // RFC2806/RFC3966
 			array( 'xmpp', 'xmpp://guest@example.com' ), // RFC5122
 			array( 'webcal', 'webcal://example.com/calendar.ics' ),

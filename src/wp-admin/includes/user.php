@@ -44,7 +44,8 @@ function edit_user( $user_id = 0 ) {
 		$user->user_login = sanitize_user( $_POST['user_login'], true );
 	}
 
-	$pass1 = $pass2 = '';
+	$pass1 = '';
+	$pass2 = '';
 	if ( isset( $_POST['pass1'] ) ) {
 		$pass1 = $_POST['pass1'];
 	}
@@ -201,8 +202,11 @@ function edit_user( $user_id = 0 ) {
 		$errors->add( 'empty_email', __( '<strong>ERROR</strong>: Please enter an email address.' ), array( 'form-field' => 'email' ) );
 	} elseif ( ! is_email( $user->user_email ) ) {
 		$errors->add( 'invalid_email', __( '<strong>ERROR</strong>: The email address isn&#8217;t correct.' ), array( 'form-field' => 'email' ) );
-	} elseif ( ( $owner_id = email_exists( $user->user_email ) ) && ( ! $update || ( $owner_id != $user->ID ) ) ) {
-		$errors->add( 'email_exists', __( '<strong>ERROR</strong>: This email is already registered, please choose another one.' ), array( 'form-field' => 'email' ) );
+	} else {
+		$owner_id = email_exists( $user->user_email );
+		if ( $owner_id && ( ! $update || ( $owner_id != $user->ID ) ) ) {
+			$errors->add( 'email_exists', __( '<strong>ERROR</strong>: This email is already registered, please choose another one.' ), array( 'form-field' => 'email' ) );
+		}
 	}
 
 	/**
@@ -559,14 +563,17 @@ function use_ssl_preference( $user ) {
 }
 
 /**
+ * @since MU (3.0.0)
+ *
  * @param string $text
  * @return string
  */
 function admin_created_user_email( $text ) {
 	$roles = get_editable_roles();
 	$role  = $roles[ $_REQUEST['role'] ];
-	/* translators: 1: site name, 2: site URL, 3: role */
+
 	return sprintf(
+		/* translators: 1: Site title, 2: Site URL, 3: User role. */
 		__(
 			'Hi,
 You\'ve been invited to join \'%1$s\' at

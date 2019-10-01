@@ -24,7 +24,7 @@ class Tests_Query_GeneratePostdata extends WP_UnitTestCase {
 		$data     = generate_postdata( $fake->ID );
 
 		// Fails because there's no post with this ID.
-		$this->assertNotSame( $fake->ID, $data['id'] );
+		$this->assertFalse( $data );
 	}
 
 	/**

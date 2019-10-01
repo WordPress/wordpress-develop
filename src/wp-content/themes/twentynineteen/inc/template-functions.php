@@ -86,7 +86,7 @@ function twentynineteen_get_the_archive_title() {
 		$title = __( 'Post Type Archives: ', 'twentynineteen' ) . '<span class="page-description">' . post_type_archive_title( '', false ) . '</span>';
 	} elseif ( is_tax() ) {
 		$tax = get_taxonomy( get_queried_object()->taxonomy );
-		/* translators: %s: Taxonomy singular name */
+		/* translators: %s: Taxonomy singular name. */
 		$title = sprintf( esc_html__( '%s Archives:', 'twentynineteen' ), $tax->labels->singular_name );
 	} else {
 		$title = __( 'Archives:', 'twentynineteen' );
@@ -202,24 +202,25 @@ function twentynineteen_add_ellipses_to_nav( $nav_menu, $args ) {
 
 	if ( 'menu-1' === $args->theme_location ) :
 
-		$nav_menu .= '<div class="main-menu-more">';
-		$nav_menu .= '<ul class="main-menu">';
-		$nav_menu .= '<li class="menu-item menu-item-has-children">';
-		$nav_menu .= '<button class="submenu-expand main-menu-more-toggle is-empty" tabindex="-1" aria-label="More" aria-haspopup="true" aria-expanded="false">';
-		$nav_menu .= '<span class="screen-reader-text">' . esc_html__( 'More', 'twentynineteen' ) . '</span>';
-		$nav_menu .= twentynineteen_get_icon_svg( 'arrow_drop_down_ellipsis' );
-		$nav_menu .= '</button>';
-		$nav_menu .= '<ul class="sub-menu hidden-links">';
-		$nav_menu .= '<li id="menu-item--1" class="mobile-parent-nav-menu-item menu-item--1">';
-		$nav_menu .= '<button class="menu-item-link-return">';
-		$nav_menu .= twentynineteen_get_icon_svg( 'chevron_left' );
-		$nav_menu .= esc_html__( 'Back', 'twentynineteen' );
-		$nav_menu .= '</button>';
-		$nav_menu .= '</li>';
-		$nav_menu .= '</ul>';
-		$nav_menu .= '</li>';
-		$nav_menu .= '</ul>';
-		$nav_menu .= '</div>';
+		$nav_menu .= '
+			<div class="main-menu-more">
+				<ul class="main-menu">
+					<li class="menu-item menu-item-has-children">
+						<button class="submenu-expand main-menu-more-toggle is-empty" tabindex="-1"
+							aria-label="' . esc_attr__( 'More', 'twentynineteen' ) . '" aria-haspopup="true" aria-expanded="false">' .
+							twentynineteen_get_icon_svg( 'arrow_drop_down_ellipsis' ) . '
+						</button>
+						<ul class="sub-menu hidden-links">
+							<li class="mobile-parent-nav-menu-item">
+								<button class="menu-item-link-return">' .
+									twentynineteen_get_icon_svg( 'chevron_left' ) .
+									esc_html__( 'Back', 'twentynineteen' ) . '
+								</button>
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</div>';
 
 	endif;
 

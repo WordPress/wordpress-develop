@@ -61,12 +61,12 @@ class WP_Filesystem_MockFS extends WP_Filesystem_Base {
 
 		foreach ( $paths as $path ) {
 			// Allow for comments
-			if ( '#' == $path[0] ) {
+			if ( '#' === $path[0] ) {
 				continue;
 			}
 
 			// Directories
-			if ( '/' == $path[ strlen( $path ) - 1 ] ) {
+			if ( '/' === $path[ strlen( $path ) - 1 ] ) {
 				$this->mkdir( $path );
 			} else { // Files (with dummy content for now)
 				$this->put_contents( $path, 'This is a test file' );
@@ -161,7 +161,7 @@ class WP_Filesystem_MockFS extends WP_Filesystem_Base {
 
 	function dirlist( $path = '.', $include_hidden = true, $recursive = false ) {
 
-		if ( empty( $path ) || '.' == $path ) {
+		if ( empty( $path ) || '.' === $path ) {
 			$path = $this->cwd();
 		}
 
@@ -177,15 +177,15 @@ class WP_Filesystem_MockFS extends WP_Filesystem_Base {
 
 		$ret = array();
 		foreach ( $this->fs_map[ $path ]->children as $entry ) {
-			if ( '.' == $entry->name || '..' == $entry->name ) {
+			if ( '.' === $entry->name || '..' === $entry->name ) {
 				continue;
 			}
 
-			if ( ! $include_hidden && '.' == $entry->name ) {
+			if ( ! $include_hidden && '.' === $entry->name ) {
 				continue;
 			}
 
-			if ( $limit_file && $entry->name != $limit_file ) {
+			if ( $limit_file && $entry->name !== $limit_file ) {
 				continue;
 			}
 
@@ -193,7 +193,7 @@ class WP_Filesystem_MockFS extends WP_Filesystem_Base {
 			$struc['name'] = $entry->name;
 			$struc['type'] = $entry->type;
 
-			if ( 'd' == $struc['type'] ) {
+			if ( 'd' === $struc['type'] ) {
 				if ( $recursive ) {
 					$struc['files'] = $this->dirlist( trailingslashit( $path ) . trailingslashit( $struc['name'] ), $include_hidden, $recursive );
 				} else {
@@ -219,11 +219,11 @@ class MockFS_Node {
 	}
 
 	function is_file() {
-		return $this->type == 'f';
+		return 'f' === $this->type;
 	}
 
 	function is_dir() {
-		return $this->type == 'd';
+		return 'd' === $this->type;
 	}
 }
 

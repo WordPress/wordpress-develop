@@ -56,7 +56,7 @@ foreach ( array( 'p', 'attachment_id', 'page_id' ) as $_redirect ) {
 }
 unset( $_redirect );
 
-if ( 'post' != $post_type ) {
+if ( 'post' !== $post_type ) {
 	$parent_file   = "edit.php?post_type=$post_type";
 	$submenu_file  = "edit.php?post_type=$post_type";
 	$post_new_file = "post-new.php?post_type=$post_type";
@@ -80,7 +80,7 @@ if ( $doaction ) {
 		$sendback = admin_url( $post_new_file );
 	}
 
-	if ( 'delete_all' == $doaction ) {
+	if ( 'delete_all' === $doaction ) {
 		// Prepare for deletion of all posts with a specified post status (i.e. Empty trash).
 		$post_status = preg_replace( '/[^a-z0-9_-]+/i', '', $_REQUEST['post_status'] );
 		// Validate the post status exists.
@@ -103,7 +103,8 @@ if ( $doaction ) {
 
 	switch ( $doaction ) {
 		case 'trash':
-			$trashed = $locked = 0;
+			$trashed = 0;
+			$locked  = 0;
 
 			foreach ( (array) $post_ids as $post_id ) {
 				if ( ! current_user_can( 'delete_post', $post_id ) ) {
@@ -155,7 +156,7 @@ if ( $doaction ) {
 					wp_die( __( 'Sorry, you are not allowed to delete this item.' ) );
 				}
 
-				if ( $post_del->post_type == 'attachment' ) {
+				if ( 'attachment' === $post_del->post_type ) {
 					if ( ! wp_delete_attachment( $post_id ) ) {
 						wp_die( __( 'Error in deleting.' ) );
 					}
@@ -182,7 +183,7 @@ if ( $doaction ) {
 			break;
 		default:
 			/** This action is documented in wp-admin/edit-comments.php */
-			$sendback = apply_filters( 'handle_bulk_actions-' . get_current_screen()->id, $sendback, $doaction, $post_ids );
+			$sendback = apply_filters( 'handle_bulk_actions-' . get_current_screen()->id, $sendback, $doaction, $post_ids ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 			break;
 	}
 
@@ -207,13 +208,13 @@ if ( 'wp_block' === $post_type ) {
 
 $title = $post_type_object->labels->name;
 
-if ( 'post' == $post_type ) {
+if ( 'post' === $post_type ) {
 	get_current_screen()->add_help_tab(
 		array(
 			'id'      => 'overview',
 			'title'   => __( 'Overview' ),
 			'content' =>
-					 '<p>' . __( 'This screen provides access to all of your posts. You can customize the display of this screen to suit your workflow.' ) . '</p>',
+					'<p>' . __( 'This screen provides access to all of your posts. You can customize the display of this screen to suit your workflow.' ) . '</p>',
 		)
 	);
 	get_current_screen()->add_help_tab(
@@ -221,13 +222,13 @@ if ( 'post' == $post_type ) {
 			'id'      => 'screen-content',
 			'title'   => __( 'Screen Content' ),
 			'content' =>
-					 '<p>' . __( 'You can customize the display of this screen&#8217;s contents in a number of ways:' ) . '</p>' .
-					 '<ul>' .
-						 '<li>' . __( 'You can hide/display columns based on your needs and decide how many posts to list per screen using the Screen Options tab.' ) . '</li>' .
-						 '<li>' . __( 'You can filter the list of posts by post status using the text links above the posts list to only show posts with that status. The default view is to show all posts.' ) . '</li>' .
-						 '<li>' . __( 'You can view posts in a simple title list or with an excerpt using the Screen Options tab.' ) . '</li>' .
-						 '<li>' . __( 'You can refine the list to show only posts in a specific category or from a specific month by using the dropdown menus above the posts list. Click the Filter button after making your selection. You also can refine the list by clicking on the post author, category or tag in the posts list.' ) . '</li>' .
-					 '</ul>',
+					'<p>' . __( 'You can customize the display of this screen&#8217;s contents in a number of ways:' ) . '</p>' .
+					'<ul>' .
+						'<li>' . __( 'You can hide/display columns based on your needs and decide how many posts to list per screen using the Screen Options tab.' ) . '</li>' .
+						'<li>' . __( 'You can filter the list of posts by post status using the text links above the posts list to only show posts with that status. The default view is to show all posts.' ) . '</li>' .
+						'<li>' . __( 'You can view posts in a simple title list or with an excerpt using the Screen Options tab.' ) . '</li>' .
+						'<li>' . __( 'You can refine the list to show only posts in a specific category or from a specific month by using the dropdown menus above the posts list. Click the Filter button after making your selection. You also can refine the list by clicking on the post author, category or tag in the posts list.' ) . '</li>' .
+					'</ul>',
 		)
 	);
 	get_current_screen()->add_help_tab(
@@ -235,13 +236,13 @@ if ( 'post' == $post_type ) {
 			'id'      => 'action-links',
 			'title'   => __( 'Available Actions' ),
 			'content' =>
-					 '<p>' . __( 'Hovering over a row in the posts list will display action links that allow you to manage your post. You can perform the following actions:' ) . '</p>' .
-					 '<ul>' .
-						 '<li>' . __( '<strong>Edit</strong> takes you to the editing screen for that post. You can also reach that screen by clicking on the post title.' ) . '</li>' .
-						 '<li>' . __( '<strong>Quick Edit</strong> provides inline access to the metadata of your post, allowing you to update post details without leaving this screen.' ) . '</li>' .
-						 '<li>' . __( '<strong>Trash</strong> removes your post from this list and places it in the trash, from which you can permanently delete it.' ) . '</li>' .
-						 '<li>' . __( '<strong>Preview</strong> will show you what your draft post will look like if you publish it. View will take you to your live site to view the post. Which link is available depends on your post&#8217;s status.' ) . '</li>' .
-					 '</ul>',
+					'<p>' . __( 'Hovering over a row in the posts list will display action links that allow you to manage your post. You can perform the following actions:' ) . '</p>' .
+					'<ul>' .
+						'<li>' . __( '<strong>Edit</strong> takes you to the editing screen for that post. You can also reach that screen by clicking on the post title.' ) . '</li>' .
+						'<li>' . __( '<strong>Quick Edit</strong> provides inline access to the metadata of your post, allowing you to update post details without leaving this screen.' ) . '</li>' .
+						'<li>' . __( '<strong>Trash</strong> removes your post from this list and places it in the trash, from which you can permanently delete it.' ) . '</li>' .
+						'<li>' . __( '<strong>Preview</strong> will show you what your draft post will look like if you publish it. View will take you to your live site to view the post. Which link is available depends on your post&#8217;s status.' ) . '</li>' .
+					'</ul>',
 		)
 	);
 	get_current_screen()->add_help_tab(
@@ -249,24 +250,24 @@ if ( 'post' == $post_type ) {
 			'id'      => 'bulk-actions',
 			'title'   => __( 'Bulk Actions' ),
 			'content' =>
-					 '<p>' . __( 'You can also edit or move multiple posts to the trash at once. Select the posts you want to act on using the checkboxes, then select the action you want to take from the Bulk Actions menu and click Apply.' ) . '</p>' .
-							 '<p>' . __( 'When using Bulk Edit, you can change the metadata (categories, author, etc.) for all selected posts at once. To remove a post from the grouping, just click the x next to its name in the Bulk Edit area that appears.' ) . '</p>',
+					'<p>' . __( 'You can also edit or move multiple posts to the trash at once. Select the posts you want to act on using the checkboxes, then select the action you want to take from the Bulk Actions menu and click Apply.' ) . '</p>' .
+							'<p>' . __( 'When using Bulk Edit, you can change the metadata (categories, author, etc.) for all selected posts at once. To remove a post from the grouping, just click the x next to its name in the Bulk Edit area that appears.' ) . '</p>',
 		)
 	);
 
 	get_current_screen()->set_help_sidebar(
 		'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-		'<p>' . __( '<a href="https://codex.wordpress.org/Posts_Screen">Documentation on Managing Posts</a>' ) . '</p>' .
+		'<p>' . __( '<a href="https://wordpress.org/support/article/posts-screen/">Documentation on Managing Posts</a>' ) . '</p>' .
 		'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 	);
 
-} elseif ( 'page' == $post_type ) {
+} elseif ( 'page' === $post_type ) {
 	get_current_screen()->add_help_tab(
 		array(
 			'id'      => 'overview',
 			'title'   => __( 'Overview' ),
 			'content' =>
-					 '<p>' . __( 'Pages are similar to posts in that they have a title, body text, and associated metadata, but they are different in that they are not part of the chronological blog stream, kind of like permanent posts. Pages are not categorized or tagged, but can have a hierarchy. You can nest pages under other pages by making one the &#8220;Parent&#8221; of the other, creating a group of pages.' ) . '</p>',
+					'<p>' . __( 'Pages are similar to posts in that they have a title, body text, and associated metadata, but they are different in that they are not part of the chronological blog stream, kind of like permanent posts. Pages are not categorized or tagged, but can have a hierarchy. You can nest pages under other pages by making one the &#8220;Parent&#8221; of the other, creating a group of pages.' ) . '</p>',
 		)
 	);
 	get_current_screen()->add_help_tab(
@@ -274,14 +275,14 @@ if ( 'post' == $post_type ) {
 			'id'      => 'managing-pages',
 			'title'   => __( 'Managing Pages' ),
 			'content' =>
-					 '<p>' . __( 'Managing pages is very similar to managing posts, and the screens can be customized in the same way.' ) . '</p>' .
-					 '<p>' . __( 'You can also perform the same types of actions, including narrowing the list by using the filters, acting on a page using the action links that appear when you hover over a row, or using the Bulk Actions menu to edit the metadata for multiple pages at once.' ) . '</p>',
+					'<p>' . __( 'Managing pages is very similar to managing posts, and the screens can be customized in the same way.' ) . '</p>' .
+					'<p>' . __( 'You can also perform the same types of actions, including narrowing the list by using the filters, acting on a page using the action links that appear when you hover over a row, or using the Bulk Actions menu to edit the metadata for multiple pages at once.' ) . '</p>',
 		)
 	);
 
 	get_current_screen()->set_help_sidebar(
 		'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-		'<p>' . __( '<a href="https://codex.wordpress.org/Pages_Screen">Documentation on Managing Pages</a>' ) . '</p>' .
+		'<p>' . __( '<a href="https://wordpress.org/support/article/pages-screen/">Documentation on Managing Pages</a>' ) . '</p>' .
 		'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 	);
 
@@ -313,26 +314,42 @@ $bulk_counts = array(
 
 $bulk_messages             = array();
 $bulk_messages['post']     = array(
+	/* translators: %s: Number of posts. */
 	'updated'   => _n( '%s post updated.', '%s posts updated.', $bulk_counts['updated'] ),
 	'locked'    => ( 1 == $bulk_counts['locked'] ) ? __( '1 post not updated, somebody is editing it.' ) :
+					/* translators: %s: Number of posts. */
 					_n( '%s post not updated, somebody is editing it.', '%s posts not updated, somebody is editing them.', $bulk_counts['locked'] ),
+	/* translators: %s: Number of posts. */
 	'deleted'   => _n( '%s post permanently deleted.', '%s posts permanently deleted.', $bulk_counts['deleted'] ),
+	/* translators: %s: Number of posts. */
 	'trashed'   => _n( '%s post moved to the Trash.', '%s posts moved to the Trash.', $bulk_counts['trashed'] ),
+	/* translators: %s: Number of posts. */
 	'untrashed' => _n( '%s post restored from the Trash.', '%s posts restored from the Trash.', $bulk_counts['untrashed'] ),
 );
 $bulk_messages['page']     = array(
+	/* translators: %s: Number of pages. */
 	'updated'   => _n( '%s page updated.', '%s pages updated.', $bulk_counts['updated'] ),
 	'locked'    => ( 1 == $bulk_counts['locked'] ) ? __( '1 page not updated, somebody is editing it.' ) :
+					/* translators: %s: Number of pages. */
 					_n( '%s page not updated, somebody is editing it.', '%s pages not updated, somebody is editing them.', $bulk_counts['locked'] ),
+	/* translators: %s: Number of pages. */
 	'deleted'   => _n( '%s page permanently deleted.', '%s pages permanently deleted.', $bulk_counts['deleted'] ),
+	/* translators: %s: Number of pages. */
 	'trashed'   => _n( '%s page moved to the Trash.', '%s pages moved to the Trash.', $bulk_counts['trashed'] ),
+	/* translators: %s: Number of pages. */
 	'untrashed' => _n( '%s page restored from the Trash.', '%s pages restored from the Trash.', $bulk_counts['untrashed'] ),
 );
 $bulk_messages['wp_block'] = array(
+	/* translators: %s: Number of blocks. */
 	'updated'   => _n( '%s block updated.', '%s blocks updated.', $bulk_counts['updated'] ),
-	'locked'    => ( 1 == $bulk_counts['locked'] ) ? __( '1 block not updated, somebody is editing it.' ) : _n( '%s block not updated, somebody is editing it.', '%s blocks not updated, somebody is editing them.', $bulk_counts['locked'] ),
+	'locked'    => ( 1 == $bulk_counts['locked'] ) ? __( '1 block not updated, somebody is editing it.' ) :
+					/* translators: %s: Number of blocks. */
+					_n( '%s block not updated, somebody is editing it.', '%s blocks not updated, somebody is editing them.', $bulk_counts['locked'] ),
+	/* translators: %s: Number of blocks. */
 	'deleted'   => _n( '%s block permanently deleted.', '%s blocks permanently deleted.', $bulk_counts['deleted'] ),
+	/* translators: %s: Number of blocks. */
 	'trashed'   => _n( '%s block moved to the Trash.', '%s blocks moved to the Trash.', $bulk_counts['trashed'] ),
+	/* translators: %s: Number of blocks. */
 	'untrashed' => _n( '%s block restored from the Trash.', '%s blocks restored from the Trash.', $bulk_counts['untrashed'] ),
 );
 
@@ -365,7 +382,7 @@ if ( current_user_can( $post_type_object->cap->create_posts ) ) {
 }
 
 if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
-	/* translators: %s: search keywords */
+	/* translators: %s: Search query. */
 	printf( ' <span class="subtitle">' . __( 'Search results for &#8220;%s&#8221;' ) . '</span>', get_search_query() );
 }
 ?>
@@ -382,7 +399,7 @@ foreach ( $bulk_counts as $message => $count ) {
 		$messages[] = sprintf( $bulk_messages['post'][ $message ], number_format_i18n( $count ) );
 	}
 
-	if ( $message == 'trashed' && isset( $_REQUEST['ids'] ) ) {
+	if ( 'trashed' === $message && isset( $_REQUEST['ids'] ) ) {
 		$ids        = preg_replace( '/[^0-9,]/', '', $_REQUEST['ids'] );
 		$messages[] = '<a href="' . esc_url( wp_nonce_url( "edit.php?post_type=$post_type&doaction=undo&action=untrash&ids=$ids", 'bulk-posts' ) ) . '">' . __( 'Undo' ) . '</a>';
 	}

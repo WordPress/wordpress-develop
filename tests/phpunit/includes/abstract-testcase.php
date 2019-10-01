@@ -49,21 +49,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	/**
 	 * Retrieves the name of the class the static method is called in.
 	 *
+	 * @deprecated 5.3.0 Use the PHP native get_called_class() function instead.
+	 *
 	 * @return string The class name.
 	 */
 	public static function get_called_class() {
-		if ( function_exists( 'get_called_class' ) ) {
-			return get_called_class();
-		}
-
-		// PHP 5.2 only
-		$backtrace = debug_backtrace();
-		// [0] WP_UnitTestCase::get_called_class()
-		// [1] WP_UnitTestCase::setUpBeforeClass()
-		if ( 'call_user_func' === $backtrace[2]['function'] ) {
-			return $backtrace[2]['args'][0][0];
-		}
-		return $backtrace[2]['class'];
+		return get_called_class();
 	}
 
 	/**
@@ -79,7 +70,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 
 		parent::setUpBeforeClass();
 
-		$c = self::get_called_class();
+		$c = get_called_class();
 		if ( ! method_exists( $c, 'wpSetUpBeforeClass' ) ) {
 			self::commit_transaction();
 			return;
@@ -99,7 +90,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		_delete_all_data();
 		self::flush_cache();
 
-		$c = self::get_called_class();
+		$c = get_called_class();
 		if ( ! method_exists( $c, 'wpTearDownAfterClass' ) ) {
 			self::commit_transaction();
 			return;
@@ -706,7 +697,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		// note: the WP and WP_Query classes like to silently fetch parameters
 		// from all over the place (globals, GET, etc), which makes it tricky
 		// to run them more than once without very carefully clearing everything
-		$_GET = $_POST = array();
+		$_GET  = array();
+		$_POST = array();
 		foreach ( array( 'query_string', 'id', 'postdata', 'authordata', 'day', 'currentmonth', 'page', 'pages', 'multipage', 'more', 'numpages', 'pagenow', 'current_screen' ) as $v ) {
 			if ( isset( $GLOBALS[ $v ] ) ) {
 				unset( $GLOBALS[ $v ] );
@@ -902,7 +894,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	 * Checks each of the WP_Query is_* functions/properties against expected boolean value.
 	 *
 	 * Any properties that are listed by name as parameters will be expected to be true; all others are
-	 * expected to be false. For example, assertQueryTrue('is_single', 'is_feed') means is_single()
+	 * expected to be false. For example, assertQueryTrue( 'is_single', 'is_feed' ) means is_single()
 	 * and is_feed() must be true and everything else must be false to pass.
 	 *
 	 * @since 2.5.0
@@ -910,9 +902,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	 *
 	 * @param string ...$prop Any number of WP_Query properties that are expected to be true for the current request.
 	 */
-	public function assertQueryTrue() {
+	public function assertQueryTrue( ...$prop ) {
 		global $wp_query;
-		$all  = array(
+
+		$all = array(
 			'is_404',
 			'is_admin',
 			'is_archive',
@@ -943,9 +936,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 			'is_trackback',
 			'is_year',
 		);
-		$true = func_get_args();
 
-		foreach ( $true as $true_thing ) {
+		foreach ( $prop as $true_thing ) {
 			$this->assertContains( $true_thing, $all, "Unknown conditional: {$true_thing}." );
 		}
 
@@ -955,7 +947,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		foreach ( $all as $query_thing ) {
 			$result = is_callable( $query_thing ) ? call_user_func( $query_thing ) : $wp_query->$query_thing;
 
-			if ( in_array( $query_thing, $true, true ) ) {
+			if ( in_array( $query_thing, $prop, true ) ) {
 				if ( ! $result ) {
 					$message .= $query_thing . ' is false but is expected to be true. ' . PHP_EOL;
 					$passed   = false;

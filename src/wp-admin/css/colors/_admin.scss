@@ -2,6 +2,9 @@
 @import 'variables';
 @import 'mixins';
 
+@function url-friendly-colour( $color ) {
+	@return '%23' + str-slice( '#{ $color }', 2, -1 );
+}
 
 body {
 	background: $body-background;
@@ -20,21 +23,22 @@ a {
 	}
 }
 
-#media-upload a.del-link:hover,
-div.dashboard-widget-submit input:hover,
-.subsubsub a:hover,
-.subsubsub a.current:hover {
+#post-body .misc-pub-post-status:before,
+#post-body #visibility:before,
+.curtime #timestamp:before,
+#post-body .misc-pub-revisions:before,
+span.wp-media-buttons-icon:before {
 	color: $link-focus;
 }
 
 
 /* Forms */
 
-input[type=checkbox]:checked:before {
-	color: $form-checked;
+input[type=checkbox]:checked::before {
+	content: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M14.83%204.89l1.34.94-5.81%208.38H9.02L5.78%209.67l1.34-1.25%202.57%202.4z%27%20fill%3D%27#{url-friendly-colour($form-checked)}%27%2F%3E%3C%2Fsvg%3E");
 }
 
-input[type=radio]:checked:before {
+input[type=radio]:checked::before {
 	background: $form-checked;
 }
 
@@ -43,12 +47,64 @@ input[type=radio]:checked:before {
 	color: $link-focus;
 }
 
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="color"]:focus,
+input[type="date"]:focus,
+input[type="datetime"]:focus,
+input[type="datetime-local"]:focus,
+input[type="email"]:focus,
+input[type="month"]:focus,
+input[type="number"]:focus,
+input[type="search"]:focus,
+input[type="tel"]:focus,
+input[type="text"]:focus,
+input[type="time"]:focus,
+input[type="url"]:focus,
+input[type="week"]:focus,
+input[type="checkbox"]:focus,
+input[type="radio"]:focus,
+select:focus,
+textarea:focus {
+	border-color: $highlight-color;
+	box-shadow: 0 0 0 1px $highlight-color;
+}
+
 
 /* Core UI */
 
 .wp-core-ui {
+
+	.button,
+	.button-secondary {
+		color: $button-color;
+		border-color: $button-color;
+	}
+
+	.button.hover,
+	.button:hover,
+	.button-secondary:hover,
+	.button.focus,
+	.button:focus,
+	.button-secondary:focus {
+		border-color: darken( $button-color, 5% );
+		color: darken( $button-color, 5% );
+	}
+
+	.button.focus,
+	.button:focus,
+	.button-secondary:focus {
+		border-color: $button-color;
+		color: darken( $button-color, 5% );
+		box-shadow: 0 0 0 1px $button-color;
+	}
+
 	.button-primary {
 		@include button( $button-color );
+	}
+
+	.button-group > .button.active {
+		border-color: $button-color;
 	}
 
 	.wp-ui-primary {

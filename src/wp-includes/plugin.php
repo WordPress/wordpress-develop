@@ -11,7 +11,7 @@
  * {@link https://secure.php.net/manual/en/language.pseudo-types.php#language.types.callback 'callback'}
  * type are valid.
  *
- * Also see the {@link https://codex.wordpress.org/Plugin_API Plugin API} for
+ * Also see the {@link https://developer.wordpress.org/plugins/ Plugin API} for
  * more information and examples on how to use a lot of these functions.
  *
  * This file should have no external dependencies.
@@ -181,12 +181,11 @@ function has_filter( $tag, $function_to_check = false ) {
 function apply_filters( $tag, $value ) {
 	global $wp_filter, $wp_current_filter;
 
-	$args = array();
+	$args = func_get_args();
 
 	// Do 'all' actions first.
 	if ( isset( $wp_filter['all'] ) ) {
 		$wp_current_filter[] = $tag;
-		$args                = func_get_args();
 		_wp_call_all_hook( $args );
 	}
 
@@ -201,11 +200,7 @@ function apply_filters( $tag, $value ) {
 		$wp_current_filter[] = $tag;
 	}
 
-	if ( empty( $args ) ) {
-		$args = func_get_args();
-	}
-
-	// don't pass the tag name to WP_Hook
+	// Don't pass the tag name to WP_Hook.
 	array_shift( $args );
 
 	$filtered = $wp_filter[ $tag ]->apply_filters( $value, $args );
@@ -444,7 +439,7 @@ function add_action( $tag, $function_to_add, $priority = 10, $accepted_args = 1 
  * @param mixed  ...$arg Optional. Additional arguments which are passed on to the
  *                       functions hooked to the action. Default empty.
  */
-function do_action( $tag, $arg = '' ) {
+function do_action( $tag, ...$arg ) {
 	global $wp_filter, $wp_actions, $wp_current_filter;
 
 	if ( ! isset( $wp_actions[ $tag ] ) ) {
@@ -471,17 +466,11 @@ function do_action( $tag, $arg = '' ) {
 		$wp_current_filter[] = $tag;
 	}
 
-	$args = array();
-	if ( is_array( $arg ) && 1 == count( $arg ) && isset( $arg[0] ) && is_object( $arg[0] ) ) { // array(&$this)
-		$args[] =& $arg[0];
-	} else {
-		$args[] = $arg;
-	}
-	for ( $a = 2, $num = func_num_args(); $a < $num; $a++ ) {
-		$args[] = func_get_arg( $a );
+	if ( empty( $arg ) ) {
+		$arg[] = '';
 	}
 
-	$wp_filter[ $tag ]->do_action( $args );
+	$wp_filter[ $tag ]->do_action( $arg );
 
 	array_pop( $wp_current_filter );
 }
@@ -851,10 +840,12 @@ function register_uninstall_hook( $file, $callback ) {
 	 * cases. Emphasis should be put on using the 'uninstall.php' way of
 	 * uninstalling the plugin.
 	 */
-	$uninstallable_plugins                             = (array) get_option( 'uninstall_plugins' );
-	$uninstallable_plugins[ plugin_basename( $file ) ] = $callback;
-
-	update_option( 'uninstall_plugins', $uninstallable_plugins );
+	$uninstallable_plugins = (array) get_option( 'uninstall_plugins' );
+	$plugin_basename       = plugin_basename( $file );
+	if ( ! isset( $uninstallable_plugins[ $plugin_basename ] ) || $uninstallable_plugins[ $plugin_basename ] !== $callback ) {
+		$uninstallable_plugins[ $plugin_basename ] = $callback;
+		update_option( 'uninstall_plugins', $uninstallable_plugins );
+	}
 }
 
 /**
@@ -932,23 +923,7 @@ function _wp_filter_build_unique_id( $tag, $function, $priority ) {
 
 	if ( is_object( $function[0] ) ) {
 		// Object Class Calling
-		if ( function_exists( 'spl_object_hash' ) ) {
-			return spl_object_hash( $function[0] ) . $function[1];
-		} else {
-			$obj_idx = get_class( $function[0] ) . $function[1];
-			if ( ! isset( $function[0]->wp_filter_id ) ) {
-				if ( false === $priority ) {
-					return false;
-				}
-				$obj_idx                  .= isset( $wp_filter[ $tag ][ $priority ] ) ? count( (array) $wp_filter[ $tag ][ $priority ] ) : $filter_id_count;
-				$function[0]->wp_filter_id = $filter_id_count;
-				++$filter_id_count;
-			} else {
-				$obj_idx .= $function[0]->wp_filter_id;
-			}
-
-			return $obj_idx;
-		}
+		return spl_object_hash( $function[0] ) . $function[1];
 	} elseif ( is_string( $function[0] ) ) {
 		// Static Calling
 		return $function[0] . '::' . $function[1];

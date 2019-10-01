@@ -114,10 +114,10 @@ class WPProfiler {
 	public function log_filter( $tag ) {
 		if ( $this->stack ) {
 			global $wp_actions;
-			if ( $tag == end( $wp_actions ) ) {
-				@$this->stack[ count( $this->stack ) - 1 ]['actions'][ $tag ] ++;
+			if ( end( $wp_actions ) === $tag ) {
+				$this->stack[ count( $this->stack ) - 1 ]['actions'][ $tag ]++;
 			} else {
-				@$this->stack[ count( $this->stack ) - 1 ]['filters'][ $tag ] ++;
+				$this->stack[ count( $this->stack ) - 1 ]['filters'][ $tag ]++;
 			}
 		}
 		return $arg;
@@ -125,7 +125,7 @@ class WPProfiler {
 
 	public function log_action( $tag ) {
 		if ( $this->stack ) {
-			@$this->stack[ count( $this->stack ) - 1 ]['actions'][ $tag ] ++;
+			$this->stack[ count( $this->stack ) - 1 ]['actions'][ $tag ]++;
 		}
 	}
 
@@ -144,7 +144,7 @@ class WPProfiler {
 			$sql = preg_replace( '/(WHERE \w+ =) \d+/', '$1 x', $sql );
 			$sql = preg_replace( '/(WHERE \w+ =) \'\[-\w]+\'/', '$1 \'xxx\'', $sql );
 
-			@$out[ $sql ] ++;
+			$out[ $sql ] ++;
 		}
 		asort( $out );
 		return;
@@ -155,9 +155,9 @@ class WPProfiler {
 		$out = array();
 		foreach ( $queries as $q ) {
 			if ( empty( $q[2] ) ) {
-				@$out['unknown'] ++;
+				$out['unknown']++;
 			} else {
-				@$out[ $q[2] ] ++;
+				$out[ $q[2] ]++;
 			}
 		}
 		return $out;

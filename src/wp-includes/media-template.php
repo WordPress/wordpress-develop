@@ -163,13 +163,13 @@ function wp_print_media_templates() {
 	}
 
 	$alt_text_description = sprintf(
-		/* translators: 1: link to tutorial, 2: additional link attributes, 3: accessibility text */
+		/* translators: 1: Link to tutorial, 2: Additional link attributes, 3: Accessibility text. */
 		__( '<a href="%1$s" %2$s>Describe the purpose of the image%3$s</a>. Leave empty if the image is purely decorative.' ),
 		esc_url( 'https://www.w3.org/WAI/tutorials/images/decision-tree' ),
 		'target="_blank" rel="noopener noreferrer"',
 		sprintf(
 			'<span class="screen-reader-text"> %s</span>',
-			/* translators: accessibility text */
+			/* translators: Accessibility text. */
 			__( '(opens in a new tab)' )
 		)
 	);
@@ -177,21 +177,27 @@ function wp_print_media_templates() {
 
 	<?php // Template for the media frame: used both in the media grid and in the media modal. ?>
 	<script type="text/html" id="tmpl-media-frame">
+		<div class="media-frame-title" id="media-frame-title"></div>
+		<button type="button" class="button button-link media-frame-menu-toggle" aria-expanded="false">
+			<?php _e( 'Media Types' ); ?>
+			<span class="dashicons dashicons-arrow-down" aria-hidden="true"></span>
+		</button>
 		<div class="media-frame-menu"></div>
-		<div class="media-frame-title"></div>
-		<div class="media-frame-router"></div>
-		<div class="media-frame-content"></div>
+		<div class="media-frame-tab-panel">
+			<div class="media-frame-router"></div>
+			<div class="media-frame-content"></div>
+		</div>
 		<div class="media-frame-toolbar"></div>
 		<div class="media-frame-uploader"></div>
 	</script>
 
 	<?php // Template for the media modal. ?>
 	<script type="text/html" id="tmpl-media-modal">
-		<div tabindex="0" class="<?php echo $class; ?>">
+		<div tabindex="0" class="<?php echo $class; ?>" role="dialog" aria-labelledby="media-frame-title">
 			<# if ( data.hasCloseButton ) { #>
 				<button type="button" class="media-modal-close"><span class="media-modal-icon"><span class="screen-reader-text"><?php _e( 'Close dialog' ); ?></span></span></button>
 			<# } #>
-			<div class="media-modal-content"></div>
+			<div class="media-modal-content" role="document"></div>
 		</div>
 		<div class="media-modal-backdrop"></div>
 	</script>
@@ -222,8 +228,16 @@ function wp_print_media_templates() {
 		<# } #>
 		<?php if ( ! _device_can_upload() ) : ?>
 			<div class="upload-ui">
-				<h2 class="upload-instructions"><?php _e( 'Your browseer cannot upload files' ); ?></h2>
-				<p><?php printf( __( 'The web browser on your device cannot be used to upload files. You may be able to use the <a href="%s">native app for your device</a> instead.' ), 'https://apps.wordpress.org/' ); ?></p>
+				<h2 class="upload-instructions"><?php _e( 'Your browser cannot upload files' ); ?></h2>
+				<p>
+				<?php
+					printf(
+						/* translators: %s: https://apps.wordpress.org/ */
+						__( 'The web browser on your device cannot be used to upload files. You may be able to use the <a href="%s">native app for your device</a> instead.' ),
+						'https://apps.wordpress.org/'
+					);
+				?>
+				</p>
 			</div>
 		<?php elseif ( is_multisite() && ! is_upload_space_available() ) : ?>
 			<div class="upload-ui">
@@ -245,17 +259,17 @@ function wp_print_media_templates() {
 			<div class="post-upload-ui">
 				<?php
 				/** This action is documented in wp-admin/includes/media.php */
-				do_action( 'pre-upload-ui' );
+				do_action( 'pre-upload-ui' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 				/** This action is documented in wp-admin/includes/media.php */
-				do_action( 'pre-plupload-upload-ui' );
+				do_action( 'pre-plupload-upload-ui' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 				if ( 10 === remove_action( 'post-plupload-upload-ui', 'media_upload_flash_bypass' ) ) {
 					/** This action is documented in wp-admin/includes/media.php */
-					do_action( 'post-plupload-upload-ui' );
+					do_action( 'post-plupload-upload-ui' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 					add_action( 'post-plupload-upload-ui', 'media_upload_flash_bypass' );
 				} else {
 					/** This action is documented in wp-admin/includes/media.php */
-					do_action( 'post-plupload-upload-ui' );
+					do_action( 'post-plupload-upload-ui' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 				}
 
 				$max_upload_size = wp_max_upload_size();
@@ -266,14 +280,18 @@ function wp_print_media_templates() {
 
 				<p class="max-upload-size">
 				<?php
-					printf( __( 'Maximum upload file size: %s.' ), esc_html( size_format( $max_upload_size ) ) );
+					printf(
+						/* translators: %s: Maximum allowed file size. */
+						__( 'Maximum upload file size: %s.' ),
+						esc_html( size_format( $max_upload_size ) )
+					);
 				?>
 				</p>
 
 				<# if ( data.suggestedWidth && data.suggestedHeight ) { #>
 					<p class="suggested-dimensions">
 						<?php
-							/* translators: 1: suggested width number, 2: suggested height number. */
+							/* translators: 1: Suggested width number, 2: Suggested height number. */
 							printf( __( 'Suggested image dimensions: %1$s by %2$s pixels.' ), '{{data.suggestedWidth}}', '{{data.suggestedHeight}}' );
 						?>
 					</p>
@@ -281,7 +299,7 @@ function wp_print_media_templates() {
 
 				<?php
 				/** This action is documented in wp-admin/includes/media.php */
-				do_action( 'post-upload-ui' );
+				do_action( 'post-upload-ui' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 				?>
 			</div>
 		<?php endif; ?>
@@ -395,7 +413,7 @@ function wp_print_media_templates() {
 					<# if ( data.width && data.height ) { #>
 						<div class="dimensions"><strong><?php _e( 'Dimensions:' ); ?></strong>
 							<?php
-							/* translators: 1: a number of pixels wide, 2: a number of pixels tall. */
+							/* translators: 1: A number of pixels wide, 2: A number of pixels tall. */
 							printf( __( '%1$s by %2$s pixels' ), '{{ data.width }}', '{{ data.height }}' );
 							?>
 						</div>
@@ -585,7 +603,7 @@ function wp_print_media_templates() {
 					<# if ( data.width && data.height ) { #>
 						<div class="dimensions">
 							<?php
-							/* translators: 1: a number of pixels wide, 2: a number of pixels tall. */
+							/* translators: 1: A number of pixels wide, 2: A number of pixels tall. */
 							printf( __( '%1$s by %2$s pixels' ), '{{ data.width }}', '{{ data.height }}' );
 							?>
 						</div>
@@ -1175,7 +1193,7 @@ function wp_print_media_templates() {
 					}
 				#>
 				<span class="setting">
-					<label for="audio-details-source" class="name"><?php _e( 'caca URL' ); ?></label>
+					<label for="audio-details-source" class="name"><?php _e( 'URL' ); ?></label>
 					<input type="text" id="audio-details-source" readonly data-setting="src" value="{{ data.model.src }}" />
 					<button type="button" class="button-link remove-setting"><?php _e( 'Remove audio source' ); ?></button>
 				</span>
@@ -1361,9 +1379,9 @@ function wp_print_media_templates() {
 					<dl class="gallery-item">
 						<dt class="gallery-icon">
 							<# if ( attachment.thumbnail ) { #>
-								<img src="{{ attachment.thumbnail.url }}" width="{{ attachment.thumbnail.width }}" height="{{ attachment.thumbnail.height }}" alt="" />
+								<img src="{{ attachment.thumbnail.url }}" width="{{ attachment.thumbnail.width }}" height="{{ attachment.thumbnail.height }}" alt="{{ attachment.alt }}" />
 							<# } else { #>
-								<img src="{{ attachment.url }}" alt="" />
+								<img src="{{ attachment.url }}" alt="{{ attachment.alt }}" />
 							<# } #>
 						</dt>
 						<# if ( attachment.caption ) { #>

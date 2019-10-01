@@ -509,40 +509,81 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( $expected, $found );
 	}
 
-	public function test_build_mysql_datetime_default_to_max_true() {
+	/**
+	 * @ticket 41782
+	 *
+	 * @dataProvider mysql_datetime_input_provider
+	 *
+	 * @param array|string $datetime       Array or string date input.
+	 * @param string       $expected       Expected built result.
+	 * @param bool         $default_to_max Flag to default missing values to max.
+	 */
+	public function test_build_mysql_datetime( $datetime, $expected, $default_to_max = false ) {
 		$q = new WP_Date_Query( array() );
 
-		$found = $q->build_mysql_datetime(
-			array(
-				'year' => 2011,
-			),
-			true
-		);
-		$this->assertSame( '2011-12-31 23:59:59', $found );
+		$found = $q->build_mysql_datetime( $datetime, $default_to_max );
+
+		$message = "Expected {$expected}, got {$found}";
+		$this->assertEquals( strtotime( $expected ), strtotime( $found ), $message, 10 );
 	}
 
-	public function test_build_mysql_datetime_default_to_max_false() {
-		$q = new WP_Date_Query( array() );
-
-		$found = $q->build_mysql_datetime(
-			array(
-				'year' => 2011,
-			),
-			false
+	public function mysql_datetime_input_provider() {
+		return array(
+			array( '2019-06-04T08:18:24+03:00', '2019-06-04 05:18:24' ),
+			array( '2019-06-04T05:18:24+00:00', '2019-06-04 05:18:24' ),
+			array( array(), current_time( 'Y' ) . '-01-01 00:00:00' ),
+			array( array( 'year' => 2011 ), '2011-12-31 23:59:59', true ),
+			array( array( 'year' => 2011 ), '2011-01-01 00:00:00' ),
+			array( '2011', '2011-01-01 00:00:00' ),
+			array( '2011-02', '2011-02-01 00:00:00' ),
+			array( '2011-02-03', '2011-02-03 00:00:00' ),
+			array( '2011-02-03 13:30', '2011-02-03 13:30:00' ),
+			array( '2011-02-03 13:30:35', '2011-02-03 13:30:35' ),
 		);
-		$this->assertSame( '2011-01-01 00:00:00', $found );
 	}
 
-	public function test_build_mysql_datetime_default_to_max_default_to_false() {
+	/**
+	 * @ticket 41782
+	 *
+	 * @dataProvider mysql_datetime_input_provider_custom_timezone
+	 *
+	 * @param array|string $datetime       Array or string date input.
+	 * @param string       $expected       Expected built result.
+	 * @param bool         $default_to_max Flag to default missing values to max.
+	 */
+	public function test_build_mysql_datetime_with_custom_timezone( $datetime, $expected, $default_to_max = false ) {
+		update_option( 'timezone_string', 'Europe/Kiev' );
+
 		$q = new WP_Date_Query( array() );
 
-		$found = $q->build_mysql_datetime(
-			array(
-				'year' => 2011,
-			),
-			false
+		$found = $q->build_mysql_datetime( $datetime, $default_to_max );
+
+		$message = "Expected {$expected}, got {$found}";
+		$this->assertEquals( strtotime( $expected ), strtotime( $found ), $message, 10 );
+
+	}
+
+	public function mysql_datetime_input_provider_custom_timezone() {
+		return array(
+			array( '2019-06-04T08:18:24+03:00', '2019-06-04 08:18:24' ),
+			array( '2019-06-04T05:18:24+00:00', '2019-06-04 08:18:24' ),
 		);
-		$this->assertSame( '2011-01-01 00:00:00', $found );
+	}
+
+	/**
+	 * @ticket 41782
+	 */
+	public function test_build_mysql_datetime_with_relative_date() {
+		update_option( 'timezone_string', 'Europe/Kiev' );
+
+		$q = new WP_Date_Query( array() );
+
+		$yesterday = new DateTimeImmutable( '-1 day', wp_timezone() );
+		$expected  = $yesterday->format( 'Y-m-d H:i:s' );
+		$found     = $q->build_mysql_datetime( '-1 day' );
+
+		$message = "Expected {$expected}, got {$found}";
+		$this->assertEquals( strtotime( $expected ), strtotime( $found ), $message, 10 );
 	}
 
 	public function test_build_time_query_insufficient_time_values() {
@@ -1014,7 +1055,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		// Invalid values.
 		$days_of_year = array( -1, 0, 367 );
 		foreach ( $days_of_year as $day_of_year ) {
-			$this->assertFalse( @$this->q->validate_date_values( array( 'dayofyear' => $day_of_year ) ) );
+			$this->assertFalse( $this->q->validate_date_values( array( 'dayofyear' => $day_of_year ) ) );
 		}
 	}
 

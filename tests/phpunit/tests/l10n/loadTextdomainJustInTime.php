@@ -175,15 +175,15 @@ class Tests_L10n_loadTextdomainJustInTime extends WP_UnitTestCase {
 		require_once DIR_TESTDATA . '/plugins/internationalized-plugin.php';
 
 		switch_to_locale( 'de_DE' );
-		$expected_de_DE = i18n_plugin_test();
+		$expected_de_de = i18n_plugin_test();
 
 		switch_to_locale( 'es_ES' );
-		$expected_es_ES = i18n_plugin_test();
+		$expected_es_es = i18n_plugin_test();
 
 		restore_current_locale();
 
-		$this->assertSame( 'Das ist ein Dummy Plugin', $expected_de_DE );
-		$this->assertSame( 'This is a dummy plugin', $expected_es_ES );
+		$this->assertSame( 'Das ist ein Dummy Plugin', $expected_de_de );
+		$this->assertSame( 'This is a dummy plugin', $expected_es_es );
 	}
 
 	/**

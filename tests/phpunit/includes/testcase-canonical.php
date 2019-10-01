@@ -61,13 +61,14 @@ class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 				'post_date'  => '2008-06-02 00:00:00',
 			)
 		);
-		self::$post_ids[] = $post_id = $factory->post->create(
+		$post_id          = $factory->post->create(
 			array(
 				'post_title' => 'post-format-test-gallery',
 				'post_date'  => '2008-06-10 00:00:00',
 			)
 		);
-		self::$post_ids[] = $factory->post->create(
+		self::$post_ids[] = $post_id;
+		$factory->post->create(
 			array(
 				'import_id'   => 611,
 				'post_type'   => 'attachment',
@@ -75,6 +76,7 @@ class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 				'post_parent' => $post_id,
 			)
 		);
+		self::$post_ids[] = $post_id;
 
 		self::$post_ids[] = $factory->post->create(
 			array(
@@ -84,13 +86,14 @@ class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 			)
 		);
 
-		self::$post_ids[]  = $post_id = $factory->post->create(
+		$post_id           = $factory->post->create(
 			array(
 				'import_id'  => 149,
 				'post_title' => 'comment-test',
 				'post_date'  => '2008-03-03 00:00:00',
 			)
 		);
+		self::$post_ids[]  = $post_id;
 		self::$comment_ids = $factory->comment->create_post_comments( $post_id, 15 );
 
 		self::$post_ids[] = $factory->post->create( array( 'post_date' => '2008-09-05 00:00:00' ) );
@@ -111,12 +114,13 @@ class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 				'post_title' => 'about',
 			)
 		);
-		self::$post_ids[] = $post_id = $factory->post->create(
+		$post_id          = $factory->post->create(
 			array(
 				'post_type'  => 'page',
 				'post_title' => 'parent-page',
 			)
 		);
+		self::$post_ids[] = $post_id;
 		self::$post_ids[] = $factory->post->create(
 			array(
 				'import_id'   => 144,
@@ -126,40 +130,45 @@ class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 			)
 		);
 
-		self::$post_ids[] = $parent_id = $factory->post->create(
+		$parent_id        = $factory->post->create(
 			array(
 				'post_name' => 'parent',
 				'post_type' => 'page',
 			)
 		);
-		self::$post_ids[] = $child_id_1 = $factory->post->create(
+		self::$post_ids[] = $parent_id;
+		$child_id_1       = $factory->post->create(
 			array(
 				'post_name'   => 'child1',
 				'post_type'   => 'page',
 				'post_parent' => $parent_id,
 			)
 		);
-		self::$post_ids[] = $child_id_2 = $factory->post->create(
+		self::$post_ids[] = $child_id_1;
+		$child_id_2       = $factory->post->create(
 			array(
 				'post_name'   => 'child2',
 				'post_type'   => 'page',
 				'post_parent' => $parent_id,
 			)
 		);
-		self::$post_ids[] = $grandchild_id_1 = $factory->post->create(
+		self::$post_ids[] = $child_id_2;
+		$grandchild_id_1  = $factory->post->create(
 			array(
 				'post_name'   => 'grandchild',
 				'post_type'   => 'page',
 				'post_parent' => $child_id_1,
 			)
 		);
-		self::$post_ids[] = $grandchild_id_2 = $factory->post->create(
+		self::$post_ids[] = $grandchild_id_1;
+		$grandchild_id_2  = $factory->post->create(
 			array(
 				'post_name'   => 'grandchild',
 				'post_type'   => 'page',
 				'post_parent' => $child_id_2,
 			)
 		);
+		self::$post_ids[] = $grandchild_id_2;
 
 		$cat1                             = $factory->term->create(
 			array(

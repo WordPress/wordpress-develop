@@ -13,11 +13,15 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 	protected static $user_ids = array();
 
 	public static function wpSetUpBeforeClass( $factory ) {
-		self::$user_ids = self::$author_ids = $factory->user->create_many( 2, array( 'role' => 'author' ) );
+		self::$user_ids   = $factory->user->create_many( 2, array( 'role' => 'author' ) );
+		self::$author_ids = self::$user_ids;
 
-		self::$user_ids[] = self::$contributor_id = $factory->user->create( array( 'role' => 'contributor' ) );
-		self::$user_ids[] = self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
-		self::$user_ids[] = self::$admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$contributor_id = $factory->user->create( array( 'role' => 'contributor' ) );
+		self::$user_ids[]     = self::$contributor_id;
+		self::$editor_id      = $factory->user->create( array( 'role' => 'editor' ) );
+		self::$user_ids[]     = self::$editor_id;
+		self::$admin_id       = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$user_ids[]     = self::$admin_id;
 
 		self::$post_id = $factory->post->create();
 	}

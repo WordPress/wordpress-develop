@@ -705,11 +705,6 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @dataProvider set_found_posts_provider
 	 */
 	public function test_set_found_posts_not_posts_as_an_array( $posts, $expected ) {
-		if ( version_compare( PHP_VERSION, '5.3', '<' ) ) {
-			$this->markTestSkipped( 'ReflectionMethod::setAccessible is only available in PHP 5.3+' );
-			return;
-		}
-
 		$q = new WP_Query(
 			array(
 				'post_type'      => 'wptests_pt',

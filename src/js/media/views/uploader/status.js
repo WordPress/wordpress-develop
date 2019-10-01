@@ -111,10 +111,13 @@ UploaderStatus = View.extend(/** @lends wp.media.view.UploaderStatus.prototype *
 	 * @param {Backbone.Model} error
 	 */
 	error: function( error ) {
-		this.views.add( '.upload-errors', new wp.media.view.UploaderStatusError({
-			filename: this.filename( error.get('file').name ),
-			message:  error.get('message')
-		}), { at: 0 });
+		var statusError = new wp.media.view.UploaderStatusError( {
+			filename: this.filename( error.get( 'file' ).name ),
+			message:  error.get( 'message' )
+		} );
+
+		// Can show additional info here while retrying to create image sub-sizes.
+		this.views.add( '.upload-errors', statusError, { at: 0 } );
 	},
 
 	dismiss: function() {
@@ -125,7 +128,9 @@ UploaderStatus = View.extend(/** @lends wp.media.view.UploaderStatus.prototype *
 		}
 		wp.Uploader.errors.reset();
 		// Move focus to the modal after the dismiss button gets removed from the DOM.
-		this.controller.modal.focusManager.focus();
+		if ( this.controller.modal ) {
+			this.controller.modal.focusManager.focus();
+		}
 	}
 });
 

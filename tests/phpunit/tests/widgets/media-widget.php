@@ -479,11 +479,6 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 	 * @covers WP_Widget_Media::has_content()
 	 */
 	function test_has_content() {
-		if ( version_compare( PHP_VERSION, '5.3', '<' ) ) {
-			$this->markTestSkipped( 'ReflectionMethod::setAccessible is only available for PHP 5.3+' );
-			return;
-		}
-
 		$attachment_id = self::factory()->attachment->create_object(
 			array(
 				'file'           => DIR_TESTDATA . '/images/canola.jpg',

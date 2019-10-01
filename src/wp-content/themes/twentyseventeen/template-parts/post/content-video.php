@@ -77,9 +77,9 @@
 
 		if ( is_single() || empty( $video ) ) {
 
-			/* translators: %s: Name of current post */
 			the_content(
 				sprintf(
+					/* translators: %s: Post title. */
 					__( 'Continue reading<span class="screen-reader-text"> "%s"</span>', 'twentyseventeen' ),
 					get_the_title()
 				)

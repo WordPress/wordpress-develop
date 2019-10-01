@@ -166,16 +166,21 @@ if ( is_multisite() ) :
 
 			// Check existence of each database table for the created site.
 			foreach ( $wpdb->tables( 'blog', false ) as $table ) {
-				$suppress     = $wpdb->suppress_errors();
+				$suppress = $wpdb->suppress_errors();
+
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$table_fields = $wpdb->get_results( "DESCRIBE $prefix$table;" );
+
 				$wpdb->suppress_errors( $suppress );
 
 				// The table should exist.
 				$this->assertNotEmpty( $table_fields );
 
 				// And the table should not be empty, unless commentmeta, termmeta, or links.
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$result = $wpdb->get_results( "SELECT * FROM $prefix$table LIMIT 1" );
-				if ( 'commentmeta' == $table || 'termmeta' == $table || 'links' == $table ) {
+
+				if ( 'commentmeta' === $table || 'termmeta' === $table || 'links' === $table ) {
 					$this->assertEmpty( $result );
 				} else {
 					$this->assertNotEmpty( $result );
@@ -244,8 +249,11 @@ if ( is_multisite() ) :
 
 			$prefix = $wpdb->get_blog_prefix( $blog_id );
 			foreach ( $wpdb->tables( 'blog', false ) as $table ) {
-				$suppress     = $wpdb->suppress_errors();
+				$suppress = $wpdb->suppress_errors();
+
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$table_fields = $wpdb->get_results( "DESCRIBE $prefix$table;" );
+
 				$wpdb->suppress_errors( $suppress );
 				$this->assertNotEmpty( $table_fields, $prefix . $table );
 			}
@@ -282,8 +290,11 @@ if ( is_multisite() ) :
 
 			$prefix = $wpdb->get_blog_prefix( $blog_id );
 			foreach ( $wpdb->tables( 'blog', false ) as $table ) {
-				$suppress     = $wpdb->suppress_errors();
+				$suppress = $wpdb->suppress_errors();
+
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$table_fields = $wpdb->get_results( "DESCRIBE $prefix$table;" );
+
 				$wpdb->suppress_errors( $suppress );
 				$this->assertEmpty( $table_fields );
 			}
@@ -320,8 +331,11 @@ if ( is_multisite() ) :
 
 			$prefix = $wpdb->get_blog_prefix( $blog_id );
 			foreach ( $wpdb->tables( 'blog', false ) as $table ) {
-				$suppress     = $wpdb->suppress_errors();
+				$suppress = $wpdb->suppress_errors();
+
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$table_fields = $wpdb->get_results( "DESCRIBE $prefix$table;" );
+
 				$wpdb->suppress_errors( $suppress );
 				$this->assertNotEmpty( $table_fields, $prefix . $table );
 			}
@@ -855,7 +869,7 @@ if ( is_multisite() ) :
 		 * the testing of the filter and for a test which does not need the database.
 		 */
 		function _domain_exists_cb( $exists, $domain, $path, $site_id ) {
-			if ( 'foo' == $domain && 'bar/' == $path ) {
+			if ( 'foo' === $domain && 'bar/' === $path ) {
 				return 1234;
 			} else {
 				return null;
@@ -2367,6 +2381,51 @@ if ( is_multisite() ) :
 			$this->assertEquals( $expected_meta, $this->wp_initialize_site_meta );
 
 			$this->wp_initialize_site_meta = array();
+		}
+
+		/**
+		 * @ticket 42251
+		 */
+		public function test_get_site_not_found_cache() {
+			global $wpdb;
+
+			$new_site_id = $this->_get_next_site_id();
+			$this->assertNull( get_site( $new_site_id ) );
+
+			$num_queries = $wpdb->num_queries;
+			$this->assertNull( get_site( $new_site_id ) );
+			$this->assertSame( $num_queries, $wpdb->num_queries );
+		}
+
+		/**
+		 * @ticket 42251
+		 */
+		public function test_get_site_not_found_cache_clear() {
+			$new_site_id = $this->_get_next_site_id();
+			$this->assertNull( get_site( $new_site_id ) );
+
+			$new_site = $this->factory()->blog->create_and_get();
+
+			// Double-check we got the ID of the new site correct.
+			$this->assertEquals( $new_site_id, $new_site->blog_id );
+
+			// Verify that if we fetch the site now, it's no longer false.
+			$fetched_site = get_site( $new_site_id );
+			$this->assertInstanceOf( 'WP_Site', $fetched_site );
+			$this->assertEquals( $new_site_id, $fetched_site->blog_id );
+
+		}
+
+		/**
+		 * Gets the ID of the next site that will get inserted
+		 * @return int
+		 */
+		protected function _get_next_site_id() {
+			global $wpdb;
+			//create an entry
+			static::factory()->blog->create();
+			//get the ID after it
+			return (int) $wpdb->get_var( 'SELECT blog_id FROM ' . $wpdb->blogs . ' ORDER BY blog_ID DESC LIMIT 1' ) + 1;
 		}
 
 		/**

@@ -9,12 +9,18 @@
 	"support": {
 		"issues": "https://core.trac.wordpress.org/"
 	},
+	"require": {
+		"php": ">=5.6"
+	},
 	"require-dev": {
 		"dealerdirect/phpcodesniffer-composer-installer": "~0.5.0",
-		"wp-coding-standards/wpcs": "~2.0.0"
+		"wp-coding-standards/wpcs": "~2.1.0",
+		"phpcompatibility/phpcompatibility-wp": "^2.1.0"
 	},
 	"scripts": {
-		"format": "phpcbf --standard=phpcs.xml.dist --report-summary --report-source",
-		"lint": "phpcs --standard=phpcs.xml.dist --report-summary --report-source"
+		"compat": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --standard=phpcompat.xml.dist --report=summary,source",
+		"format": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcbf --report=summary,source",
+		"lint": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --report=summary,source",
+		"lint:errors": "@lint -n"
 	}
 }

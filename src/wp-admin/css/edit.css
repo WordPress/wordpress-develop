@@ -71,7 +71,8 @@
 	color: #72777c;
 	position: absolute;
 	font-size: 1.7em;
-	padding: 11px 10px;
+	padding: 10px;
+	pointer-events: none;
 }
 
 input#link_description,
@@ -153,7 +154,7 @@ body.post-new-php .submitbox .submitdelete {
 .postbox {
 	position: relative;
 	min-width: 255px;
-	border: 1px solid #e5e5e5;
+	border: 1px solid #ccd0d4;
 	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 	background: #fff;
 }
@@ -309,7 +310,7 @@ form#tags-filter {
 #post-status-info {
 	width: 100%;
 	border-spacing: 0;
-	border: 1px solid #e5e5e5;
+	border: 1px solid #ccd0d4;
 	border-top: none;
 	background-color: #f7f7f7;
 	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
@@ -360,7 +361,7 @@ form#tags-filter {
 
 .wp-editor-expand #wp-content-editor-tools {
 	z-index: 1000;
-	border-bottom: 1px solid #e5e5e5;
+	border-bottom: 1px solid #ccd0d4;
 }
 
 .wp-editor-expand #wp-content-editor-container {
@@ -377,7 +378,7 @@ form#tags-filter {
 }
 
 .wp-editor-expand #post-status-info {
-	border-top: 1px solid #e5e5e5;
+	border-top: 1px solid #ccd0d4;
 }
 
 .wp-editor-expand div.mce-toolbar-grp {
@@ -418,16 +419,15 @@ form#tags-filter {
 }
 
 #timestampdiv select {
-	height: 21px;
-	line-height: 1.16666666;
-	padding: 0;
 	vertical-align: top;
 	font-size: 12px;
+	line-height: 1.5; /* 18px */
 }
 
 #aa, #jj, #hh, #mn {
-	padding: 1px;
+	padding: 6px 1px;
 	font-size: 12px;
+	line-height: 1.16666666; /* 14px */
 }
 
 #jj, #hh, #mn {
@@ -447,8 +447,7 @@ form#tags-filter {
 #post-body .misc-pub-post-status:before,
 #post-body #visibility:before,
 .curtime #timestamp:before,
-#post-body .misc-pub-revisions:before,
-span.wp-media-buttons-icon:before {
+#post-body .misc-pub-revisions:before {
 	color: #82878c;
 }
 
@@ -494,8 +493,6 @@ span.wp-media-buttons-icon:before {
 }
 
 #timestampdiv input {
-	border-width: 1px;
-	border-style: solid;
 	text-align: center;
 }
 
@@ -653,6 +650,12 @@ span.wp-media-buttons-icon:before {
 #post-body-content,
 .edit-form-section {
 	margin-bottom: 20px;
+}
+
+.wp_attachment_details .attachment-content-description {
+	margin-top: 0.5385em;
+	display: inline-block;
+	min-height: 1.6923em;
 }
 
 /* Suggested text for privacy policy */
@@ -1161,6 +1164,11 @@ p.popular-tags a {
 
 .ac_match {
 	text-decoration: underline;
+}
+
+#addtag .spinner {
+	float: none;
+	vertical-align: top;
 }
 
 #edittag {

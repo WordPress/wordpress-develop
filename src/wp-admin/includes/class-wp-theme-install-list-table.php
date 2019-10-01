@@ -187,6 +187,11 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	}
 
 	/**
+	 * Displays the theme install table.
+	 *
+	 * Overrides the parent display() method to provide a different container.
+	 *
+	 * @since 3.1.0
 	 */
 	public function display() {
 		wp_nonce_field( 'fetch-list-' . get_class( $this ), '_ajax_fetch_list_nonce' );
@@ -241,15 +246,15 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	 * @param object $theme {
 	 *     An object that contains theme data returned by the WordPress.org API.
 	 *
-	 *     @type string $name           Theme name, e.g. 'Twenty Nineteen'.
-	 *     @type string $slug           Theme slug, e.g. 'twentynineteen'.
+	 *     @type string $name           Theme name, e.g. 'Twenty Twenty'.
+	 *     @type string $slug           Theme slug, e.g. 'twentytwenty'.
 	 *     @type string $version        Theme version, e.g. '1.1'.
 	 *     @type string $author         Theme author username, e.g. 'melchoyce'.
-	 *     @type string $preview_url    Preview URL, e.g. 'http://2019.wordpress.net/'.
-	 *     @type string $screenshot_url Screenshot URL, e.g. 'https://wordpress.org/themes/twentynineteen/'.
+	 *     @type string $preview_url    Preview URL, e.g. 'http://2020.wordpress.net/'.
+	 *     @type string $screenshot_url Screenshot URL, e.g. 'https://wordpress.org/themes/twentytwenty/'.
 	 *     @type float  $rating         Rating score.
 	 *     @type int    $num_ratings    The number of ratings.
-	 *     @type string $homepage       Theme homepage, e.g. 'https://wordpress.org/themes/twentynineteen/'.
+	 *     @type string $homepage       Theme homepage, e.g. 'https://wordpress.org/themes/twentytwenty/'.
 	 *     @type string $description    Theme description.
 	 *     @type string $download_link  Theme ZIP download URL.
 	 * }
@@ -264,7 +269,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		$name   = wp_kses( $theme->name, $themes_allowedtags );
 		$author = wp_kses( $theme->author, $themes_allowedtags );
 
-		/* translators: %s: theme name */
+		/* translators: %s: Theme name. */
 		$preview_title = sprintf( __( 'Preview &#8220;%s&#8221;' ), $name );
 		$preview_url   = add_query_arg(
 			array(
@@ -299,7 +304,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 				$actions[] = sprintf(
 					'<a class="install-now" href="%s" title="%s">%s</a>',
 					esc_url( wp_nonce_url( $update_url, 'upgrade-theme_' . $theme->slug ) ),
-					/* translators: %s: theme version */
+					/* translators: %s: Theme version. */
 					esc_attr( sprintf( __( 'Update to version %s' ), $theme->version ) ),
 					__( 'Update' )
 				);
@@ -317,7 +322,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 				$actions[] = sprintf(
 					'<a class="install-now" href="%s" title="%s">%s</a>',
 					esc_url( wp_nonce_url( $install_url, 'install-theme_' . $theme->slug ) ),
-					/* translators: %s: theme name */
+					/* translators: %s: Theme name. */
 					esc_attr( sprintf( __( 'Install %s' ), $name ) ),
 					__( 'Install Now' )
 				);
@@ -327,7 +332,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		$actions[] = sprintf(
 			'<a class="install-theme-preview" href="%s" title="%s">%s</a>',
 			esc_url( $preview_url ),
-			/* translators: %s: theme name */
+			/* translators: %s: Theme name. */
 			esc_attr( sprintf( __( 'Preview %s' ), $name ) ),
 			__( 'Preview' )
 		);
@@ -351,7 +356,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		<h3><?php echo $name; ?></h3>
 		<div class="theme-author">
 		<?php
-			/* translators: %s: theme author */
+			/* translators: %s: Theme author. */
 			printf( __( 'By %s' ), $author );
 		?>
 		</div>
@@ -457,7 +462,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 				printf(
 					'<a class="theme-install button button-primary" href="%s" title="%s">%s</a>',
 					esc_url( wp_nonce_url( $update_url, 'upgrade-theme_' . $theme->slug ) ),
-					/* translators: %s: theme version */
+					/* translators: %s: Theme version. */
 					esc_attr( sprintf( __( 'Update to version %s' ), $theme->version ) ),
 					__( 'Update' )
 				);
@@ -483,7 +488,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 			<h3 class="theme-name"><?php echo $name; ?></h3>
 			<span class="theme-by">
 			<?php
-				/* translators: %s: theme author */
+				/* translators: %s: Theme author. */
 				printf( __( 'By %s' ), $author );
 			?>
 			</span>

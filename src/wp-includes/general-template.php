@@ -708,7 +708,7 @@ function get_bloginfo( $show = '', $filter = 'raw' ) {
 				__FUNCTION__,
 				'2.2.0',
 				sprintf(
-					/* translators: 1: 'siteurl'/'home' argument, 2: bloginfo() function name, 3: 'url' argument */
+					/* translators: 1: 'siteurl'/'home' argument, 2: bloginfo() function name, 3: 'url' argument. */
 					__( 'The %1$s option is deprecated for the family of %2$s functions. Use the %3$s option instead.' ),
 					'<code>' . $show . '</code>',
 					'<code>bloginfo()</code>',
@@ -773,7 +773,8 @@ function get_bloginfo( $show = '', $filter = 'raw' ) {
 			$output = $wp_version;
 			break;
 		case 'language':
-			/* translators: Translate this to the correct language tag for your locale,
+			/*
+			 * translators: Translate this to the correct language tag for your locale,
 			 * see https://www.w3.org/International/articles/language-tags/ for reference.
 			 * Do not translate into your own language.
 			 */
@@ -788,7 +789,7 @@ function get_bloginfo( $show = '', $filter = 'raw' ) {
 				__FUNCTION__,
 				'2.2.0',
 				sprintf(
-					/* translators: 1: 'text_direction' argument, 2: bloginfo() function name, 3: is_rtl() function name */
+					/* translators: 1: 'text_direction' argument, 2: bloginfo() function name, 3: is_rtl() function name. */
 					__( 'The %1$s option is deprecated for the family of %2$s functions. Use the %3$s function instead.' ),
 					'<code>' . $show . '</code>',
 					'<code>bloginfo()</code>',
@@ -1053,7 +1054,7 @@ function wp_get_document_title() {
 
 		// If it's a search, use a dynamic search results title.
 	} elseif ( is_search() ) {
-		/* translators: %s: search phrase */
+		/* translators: %s: Search query. */
 		$title['title'] = sprintf( __( 'Search Results for &#8220;%s&#8221;' ), get_search_query() );
 
 		// If on the front page, use the site title.
@@ -1080,7 +1081,8 @@ function wp_get_document_title() {
 		$title['title'] = single_term_title( '', false );
 
 		// If on an author archive, use the author's display name.
-	} elseif ( is_author() && $author = get_queried_object() ) {
+	} elseif ( is_author() && get_queried_object() ) {
+		$author         = get_queried_object();
 		$title['title'] = $author->display_name;
 
 		// If it's a date archive, use the date as the title.
@@ -1096,6 +1098,7 @@ function wp_get_document_title() {
 
 	// Add a page number if necessary.
 	if ( ( $paged >= 2 || $page >= 2 ) && ! is_404() ) {
+		/* translators: %s: Page number. */
 		$title['page'] = sprintf( __( 'Page %s' ), max( $paged, $page ) );
 	}
 
@@ -1173,7 +1176,7 @@ function _wp_render_title_tag() {
  *
  * @since 1.0.0
  *
- * @global WP_Locale $wp_locale
+ * @global WP_Locale $wp_locale WordPress date and time locale object.
  *
  * @param string $sep         Optional, default is '&raquo;'. How to separate the various items
  *                            within the page title.
@@ -1258,7 +1261,7 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 
 	// If it's a search
 	if ( is_search() ) {
-		/* translators: 1: separator, 2: search phrase */
+		/* translators: 1: Separator, 2: Search query. */
 		$title = sprintf( __( 'Search Results %1$s %2$s' ), $t_sep, strip_tags( $search ) );
 	}
 
@@ -1494,7 +1497,7 @@ function single_term_title( $prefix = '', $display = true ) {
  *
  * @since 0.71
  *
- * @global WP_Locale $wp_locale
+ * @global WP_Locale $wp_locale WordPress date and time locale object.
  *
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional, default is true. Whether to display or retrieve title.
@@ -1553,23 +1556,25 @@ function the_archive_title( $before = '', $after = '' ) {
  * @return string Archive title.
  */
 function get_the_archive_title() {
+	$title = __( 'Archives' );
+
 	if ( is_category() ) {
-		/* translators: Category archive title. %s: Category name */
+		/* translators: Category archive title. %s: Category name. */
 		$title = sprintf( __( 'Category: %s' ), single_cat_title( '', false ) );
 	} elseif ( is_tag() ) {
-		/* translators: Tag archive title. %s: Tag name */
+		/* translators: Tag archive title. %s: Tag name. */
 		$title = sprintf( __( 'Tag: %s' ), single_tag_title( '', false ) );
 	} elseif ( is_author() ) {
-		/* translators: Author archive title. %s: Author name */
+		/* translators: Author archive title. %s: Author name. */
 		$title = sprintf( __( 'Author: %s' ), '<span class="vcard">' . get_the_author() . '</span>' );
 	} elseif ( is_year() ) {
-		/* translators: Yearly archive title. %s: Year */
+		/* translators: Yearly archive title. %s: Year. */
 		$title = sprintf( __( 'Year: %s' ), get_the_date( _x( 'Y', 'yearly archives date format' ) ) );
 	} elseif ( is_month() ) {
-		/* translators: Monthly archive title. %s: Month name and year */
+		/* translators: Monthly archive title. %s: Month name and year. */
 		$title = sprintf( __( 'Month: %s' ), get_the_date( _x( 'F Y', 'monthly archives date format' ) ) );
 	} elseif ( is_day() ) {
-		/* translators: Daily archive title. %s: Date */
+		/* translators: Daily archive title. %s: Date. */
 		$title = sprintf( __( 'Day: %s' ), get_the_date( _x( 'F j, Y', 'daily archives date format' ) ) );
 	} elseif ( is_tax( 'post_format' ) ) {
 		if ( is_tax( 'post_format', 'post-format-aside' ) ) {
@@ -1592,14 +1597,15 @@ function get_the_archive_title() {
 			$title = _x( 'Chats', 'post format archive title' );
 		}
 	} elseif ( is_post_type_archive() ) {
-		/* translators: Post type archive title. %s: Post type name */
+		/* translators: Post type archive title. %s: Post type name. */
 		$title = sprintf( __( 'Archives: %s' ), post_type_archive_title( '', false ) );
 	} elseif ( is_tax() ) {
-		$tax = get_taxonomy( get_queried_object()->taxonomy );
-		/* translators: Taxonomy term archive title. 1: Taxonomy singular name, 2: Current taxonomy term */
-		$title = sprintf( __( '%1$s: %2$s' ), $tax->labels->singular_name, single_term_title( '', false ) );
-	} else {
-		$title = __( 'Archives' );
+		$queried_object = get_queried_object();
+		if ( $queried_object ) {
+			$tax = get_taxonomy( $queried_object->taxonomy );
+			/* translators: Taxonomy term archive title. 1: Taxonomy singular name, 2: Current taxonomy term. */
+			$title = sprintf( __( '%1$s: %2$s' ), $tax->labels->singular_name, single_term_title( '', false ) );
+		}
 	}
 
 	/**
@@ -1729,18 +1735,19 @@ function get_the_post_type_description() {
  * @return string HTML link content for archive.
  */
 function get_archives_link( $url, $text, $format = 'html', $before = '', $after = '', $selected = false ) {
-	$text = wptexturize( $text );
-	$url  = esc_url( $url );
+	$text         = wptexturize( $text );
+	$url          = esc_url( $url );
+	$aria_current = $selected ? ' aria-current="page"' : '';
 
-	if ( 'link' == $format ) {
+	if ( 'link' === $format ) {
 		$link_html = "\t<link rel='archives' title='" . esc_attr( $text ) . "' href='$url' />\n";
-	} elseif ( 'option' == $format ) {
+	} elseif ( 'option' === $format ) {
 		$selected_attr = $selected ? " selected='selected'" : '';
 		$link_html     = "\t<option value='$url'$selected_attr>$before $text $after</option>\n";
-	} elseif ( 'html' == $format ) {
-		$link_html = "\t<li>$before<a href='$url'>$text</a>$after</li>\n";
+	} elseif ( 'html' === $format ) {
+		$link_html = "\t<li>$before<a href='$url'$aria_current>$text</a>$after</li>\n";
 	} else { // custom
-		$link_html = "\t$before<a href='$url'>$text</a>$after\n";
+		$link_html = "\t$before<a href='$url'$aria_current>$text</a>$after\n";
 	}
 
 	/**
@@ -1770,8 +1777,8 @@ function get_archives_link( $url, $text, $format = 'html', $before = '', $after 
  *
  * @see get_archives_link()
  *
- * @global wpdb      $wpdb
- * @global WP_Locale $wp_locale
+ * @global wpdb      $wpdb      WordPress database abstraction object.
+ * @global WP_Locale $wp_locale WordPress date and time locale object.
  *
  * @param string|array $args {
  *     Default archive links arguments. Optional.
@@ -1820,24 +1827,24 @@ function wp_get_archives( $args = '' ) {
 		'w'               => get_query_var( 'w' ),
 	);
 
-	$r = wp_parse_args( $args, $defaults );
+	$parsed_args = wp_parse_args( $args, $defaults );
 
-	$post_type_object = get_post_type_object( $r['post_type'] );
+	$post_type_object = get_post_type_object( $parsed_args['post_type'] );
 	if ( ! is_post_type_viewable( $post_type_object ) ) {
 		return;
 	}
-	$r['post_type'] = $post_type_object->name;
+	$parsed_args['post_type'] = $post_type_object->name;
 
-	if ( '' == $r['type'] ) {
-		$r['type'] = 'monthly';
+	if ( '' == $parsed_args['type'] ) {
+		$parsed_args['type'] = 'monthly';
 	}
 
-	if ( ! empty( $r['limit'] ) ) {
-		$r['limit'] = absint( $r['limit'] );
-		$r['limit'] = ' LIMIT ' . $r['limit'];
+	if ( ! empty( $parsed_args['limit'] ) ) {
+		$parsed_args['limit'] = absint( $parsed_args['limit'] );
+		$parsed_args['limit'] = ' LIMIT ' . $parsed_args['limit'];
 	}
 
-	$order = strtoupper( $r['order'] );
+	$order = strtoupper( $parsed_args['order'] );
 	if ( $order !== 'ASC' ) {
 		$order = 'DESC';
 	}
@@ -1845,7 +1852,7 @@ function wp_get_archives( $args = '' ) {
 	// this is what will separate dates on weekly archive links
 	$archive_week_separator = '&#8211;';
 
-	$sql_where = $wpdb->prepare( "WHERE post_type = %s AND post_status = 'publish'", $r['post_type'] );
+	$sql_where = $wpdb->prepare( "WHERE post_type = %s AND post_status = 'publish'", $parsed_args['post_type'] );
 
 	/**
 	 * Filters the SQL WHERE clause for retrieving archives.
@@ -1853,109 +1860,113 @@ function wp_get_archives( $args = '' ) {
 	 * @since 2.2.0
 	 *
 	 * @param string $sql_where Portion of SQL query containing the WHERE clause.
-	 * @param array  $r         An array of default arguments.
+	 * @param array  $parsed_args         An array of default arguments.
 	 */
-	$where = apply_filters( 'getarchives_where', $sql_where, $r );
+	$where = apply_filters( 'getarchives_where', $sql_where, $parsed_args );
 
 	/**
 	 * Filters the SQL JOIN clause for retrieving archives.
 	 *
 	 * @since 2.2.0
 	 *
-	 * @param string $sql_join Portion of SQL query containing JOIN clause.
-	 * @param array  $r        An array of default arguments.
+	 * @param string $sql_join    Portion of SQL query containing JOIN clause.
+	 * @param array  $parsed_args An array of default arguments.
 	 */
-	$join = apply_filters( 'getarchives_join', '', $r );
+	$join = apply_filters( 'getarchives_join', '', $parsed_args );
 
 	$output = '';
 
 	$last_changed = wp_cache_get_last_changed( 'posts' );
 
-	$limit = $r['limit'];
+	$limit = $parsed_args['limit'];
 
-	if ( 'monthly' == $r['type'] ) {
-		$query = "SELECT YEAR(post_date) AS `year`, MONTH(post_date) AS `month`, count(ID) as posts FROM $wpdb->posts $join $where GROUP BY YEAR(post_date), MONTH(post_date) ORDER BY post_date $order $limit";
-		$key   = md5( $query );
-		$key   = "wp_get_archives:$key:$last_changed";
-		if ( ! $results = wp_cache_get( $key, 'posts' ) ) {
+	if ( 'monthly' == $parsed_args['type'] ) {
+		$query   = "SELECT YEAR(post_date) AS `year`, MONTH(post_date) AS `month`, count(ID) as posts FROM $wpdb->posts $join $where GROUP BY YEAR(post_date), MONTH(post_date) ORDER BY post_date $order $limit";
+		$key     = md5( $query );
+		$key     = "wp_get_archives:$key:$last_changed";
+		$results = wp_cache_get( $key, 'posts' );
+		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
 			wp_cache_set( $key, $results, 'posts' );
 		}
 		if ( $results ) {
-			$after = $r['after'];
+			$after = $parsed_args['after'];
 			foreach ( (array) $results as $result ) {
 				$url = get_month_link( $result->year, $result->month );
-				if ( 'post' !== $r['post_type'] ) {
-					$url = add_query_arg( 'post_type', $r['post_type'], $url );
+				if ( 'post' !== $parsed_args['post_type'] ) {
+					$url = add_query_arg( 'post_type', $parsed_args['post_type'], $url );
 				}
-				/* translators: 1: month name, 2: 4-digit year */
+				/* translators: 1: Month name, 2: 4-digit year. */
 				$text = sprintf( __( '%1$s %2$d' ), $wp_locale->get_month( $result->month ), $result->year );
-				if ( $r['show_post_count'] ) {
-					$r['after'] = '&nbsp;(' . $result->posts . ')' . $after;
+				if ( $parsed_args['show_post_count'] ) {
+					$parsed_args['after'] = '&nbsp;(' . $result->posts . ')' . $after;
 				}
-				$selected = is_archive() && (string) $r['year'] === $result->year && (string) $r['monthnum'] === $result->month;
-				$output  .= get_archives_link( $url, $text, $r['format'], $r['before'], $r['after'], $selected );
+				$selected = is_archive() && (string) $parsed_args['year'] === $result->year && (string) $parsed_args['monthnum'] === $result->month;
+				$output  .= get_archives_link( $url, $text, $parsed_args['format'], $parsed_args['before'], $parsed_args['after'], $selected );
 			}
 		}
-	} elseif ( 'yearly' == $r['type'] ) {
-		$query = "SELECT YEAR(post_date) AS `year`, count(ID) as posts FROM $wpdb->posts $join $where GROUP BY YEAR(post_date) ORDER BY post_date $order $limit";
-		$key   = md5( $query );
-		$key   = "wp_get_archives:$key:$last_changed";
-		if ( ! $results = wp_cache_get( $key, 'posts' ) ) {
+	} elseif ( 'yearly' == $parsed_args['type'] ) {
+		$query   = "SELECT YEAR(post_date) AS `year`, count(ID) as posts FROM $wpdb->posts $join $where GROUP BY YEAR(post_date) ORDER BY post_date $order $limit";
+		$key     = md5( $query );
+		$key     = "wp_get_archives:$key:$last_changed";
+		$results = wp_cache_get( $key, 'posts' );
+		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
 			wp_cache_set( $key, $results, 'posts' );
 		}
 		if ( $results ) {
-			$after = $r['after'];
+			$after = $parsed_args['after'];
 			foreach ( (array) $results as $result ) {
 				$url = get_year_link( $result->year );
-				if ( 'post' !== $r['post_type'] ) {
-					$url = add_query_arg( 'post_type', $r['post_type'], $url );
+				if ( 'post' !== $parsed_args['post_type'] ) {
+					$url = add_query_arg( 'post_type', $parsed_args['post_type'], $url );
 				}
 				$text = sprintf( '%d', $result->year );
-				if ( $r['show_post_count'] ) {
-					$r['after'] = '&nbsp;(' . $result->posts . ')' . $after;
+				if ( $parsed_args['show_post_count'] ) {
+					$parsed_args['after'] = '&nbsp;(' . $result->posts . ')' . $after;
 				}
-				$selected = is_archive() && (string) $r['year'] === $result->year;
-				$output  .= get_archives_link( $url, $text, $r['format'], $r['before'], $r['after'], $selected );
+				$selected = is_archive() && (string) $parsed_args['year'] === $result->year;
+				$output  .= get_archives_link( $url, $text, $parsed_args['format'], $parsed_args['before'], $parsed_args['after'], $selected );
 			}
 		}
-	} elseif ( 'daily' == $r['type'] ) {
-		$query = "SELECT YEAR(post_date) AS `year`, MONTH(post_date) AS `month`, DAYOFMONTH(post_date) AS `dayofmonth`, count(ID) as posts FROM $wpdb->posts $join $where GROUP BY YEAR(post_date), MONTH(post_date), DAYOFMONTH(post_date) ORDER BY post_date $order $limit";
-		$key   = md5( $query );
-		$key   = "wp_get_archives:$key:$last_changed";
-		if ( ! $results = wp_cache_get( $key, 'posts' ) ) {
+	} elseif ( 'daily' == $parsed_args['type'] ) {
+		$query   = "SELECT YEAR(post_date) AS `year`, MONTH(post_date) AS `month`, DAYOFMONTH(post_date) AS `dayofmonth`, count(ID) as posts FROM $wpdb->posts $join $where GROUP BY YEAR(post_date), MONTH(post_date), DAYOFMONTH(post_date) ORDER BY post_date $order $limit";
+		$key     = md5( $query );
+		$key     = "wp_get_archives:$key:$last_changed";
+		$results = wp_cache_get( $key, 'posts' );
+		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
 			wp_cache_set( $key, $results, 'posts' );
 		}
 		if ( $results ) {
-			$after = $r['after'];
+			$after = $parsed_args['after'];
 			foreach ( (array) $results as $result ) {
 				$url = get_day_link( $result->year, $result->month, $result->dayofmonth );
-				if ( 'post' !== $r['post_type'] ) {
-					$url = add_query_arg( 'post_type', $r['post_type'], $url );
+				if ( 'post' !== $parsed_args['post_type'] ) {
+					$url = add_query_arg( 'post_type', $parsed_args['post_type'], $url );
 				}
 				$date = sprintf( '%1$d-%2$02d-%3$02d 00:00:00', $result->year, $result->month, $result->dayofmonth );
 				$text = mysql2date( get_option( 'date_format' ), $date );
-				if ( $r['show_post_count'] ) {
-					$r['after'] = '&nbsp;(' . $result->posts . ')' . $after;
+				if ( $parsed_args['show_post_count'] ) {
+					$parsed_args['after'] = '&nbsp;(' . $result->posts . ')' . $after;
 				}
-				$selected = is_archive() && (string) $r['year'] === $result->year && (string) $r['monthnum'] === $result->month && (string) $r['day'] === $result->dayofmonth;
-				$output  .= get_archives_link( $url, $text, $r['format'], $r['before'], $r['after'], $selected );
+				$selected = is_archive() && (string) $parsed_args['year'] === $result->year && (string) $parsed_args['monthnum'] === $result->month && (string) $parsed_args['day'] === $result->dayofmonth;
+				$output  .= get_archives_link( $url, $text, $parsed_args['format'], $parsed_args['before'], $parsed_args['after'], $selected );
 			}
 		}
-	} elseif ( 'weekly' == $r['type'] ) {
-		$week  = _wp_mysql_week( '`post_date`' );
-		$query = "SELECT DISTINCT $week AS `week`, YEAR( `post_date` ) AS `yr`, DATE_FORMAT( `post_date`, '%Y-%m-%d' ) AS `yyyymmdd`, count( `ID` ) AS `posts` FROM `$wpdb->posts` $join $where GROUP BY $week, YEAR( `post_date` ) ORDER BY `post_date` $order $limit";
-		$key   = md5( $query );
-		$key   = "wp_get_archives:$key:$last_changed";
-		if ( ! $results = wp_cache_get( $key, 'posts' ) ) {
+	} elseif ( 'weekly' == $parsed_args['type'] ) {
+		$week    = _wp_mysql_week( '`post_date`' );
+		$query   = "SELECT DISTINCT $week AS `week`, YEAR( `post_date` ) AS `yr`, DATE_FORMAT( `post_date`, '%Y-%m-%d' ) AS `yyyymmdd`, count( `ID` ) AS `posts` FROM `$wpdb->posts` $join $where GROUP BY $week, YEAR( `post_date` ) ORDER BY `post_date` $order $limit";
+		$key     = md5( $query );
+		$key     = "wp_get_archives:$key:$last_changed";
+		$results = wp_cache_get( $key, 'posts' );
+		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
 			wp_cache_set( $key, $results, 'posts' );
 		}
 		$arc_w_last = '';
 		if ( $results ) {
-			$after = $r['after'];
+			$after = $parsed_args['after'];
 			foreach ( (array) $results as $result ) {
 				if ( $result->week != $arc_w_last ) {
 					$arc_year       = $result->yr;
@@ -1970,24 +1981,25 @@ function wp_get_archives( $args = '' ) {
 						),
 						home_url( '/' )
 					);
-					if ( 'post' !== $r['post_type'] ) {
-						$url = add_query_arg( 'post_type', $r['post_type'], $url );
+					if ( 'post' !== $parsed_args['post_type'] ) {
+						$url = add_query_arg( 'post_type', $parsed_args['post_type'], $url );
 					}
 					$text = $arc_week_start . $archive_week_separator . $arc_week_end;
-					if ( $r['show_post_count'] ) {
-						$r['after'] = '&nbsp;(' . $result->posts . ')' . $after;
+					if ( $parsed_args['show_post_count'] ) {
+						$parsed_args['after'] = '&nbsp;(' . $result->posts . ')' . $after;
 					}
-					$selected = is_archive() && (string) $r['year'] === $result->yr && (string) $r['w'] === $result->week;
-					$output  .= get_archives_link( $url, $text, $r['format'], $r['before'], $r['after'], $selected );
+					$selected = is_archive() && (string) $parsed_args['year'] === $result->yr && (string) $parsed_args['w'] === $result->week;
+					$output  .= get_archives_link( $url, $text, $parsed_args['format'], $parsed_args['before'], $parsed_args['after'], $selected );
 				}
 			}
 		}
-	} elseif ( ( 'postbypost' == $r['type'] ) || ( 'alpha' == $r['type'] ) ) {
-		$orderby = ( 'alpha' == $r['type'] ) ? 'post_title ASC ' : 'post_date DESC, ID DESC ';
+	} elseif ( ( 'postbypost' == $parsed_args['type'] ) || ( 'alpha' == $parsed_args['type'] ) ) {
+		$orderby = ( 'alpha' == $parsed_args['type'] ) ? 'post_title ASC ' : 'post_date DESC, ID DESC ';
 		$query   = "SELECT * FROM $wpdb->posts $join $where ORDER BY $orderby $limit";
 		$key     = md5( $query );
 		$key     = "wp_get_archives:$key:$last_changed";
-		if ( ! $results = wp_cache_get( $key, 'posts' ) ) {
+		$results = wp_cache_get( $key, 'posts' );
+		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
 			wp_cache_set( $key, $results, 'posts' );
 		}
@@ -2002,12 +2014,12 @@ function wp_get_archives( $args = '' ) {
 						$text = $result->ID;
 					}
 					$selected = $result->ID === get_the_ID();
-					$output  .= get_archives_link( $url, $text, $r['format'], $r['before'], $r['after'], $selected );
+					$output  .= get_archives_link( $url, $text, $parsed_args['format'], $parsed_args['before'], $parsed_args['after'], $selected );
 				}
 			}
 		}
 	}
-	if ( $r['echo'] ) {
+	if ( $parsed_args['echo'] ) {
 		echo $output;
 	} else {
 		return $output;
@@ -2035,11 +2047,11 @@ function calendar_week_mod( $num ) {
  *
  * @since 1.0.0
  *
- * @global wpdb      $wpdb
+ * @global wpdb      $wpdb      WordPress database abstraction object.
  * @global int       $m
  * @global int       $monthnum
  * @global int       $year
- * @global WP_Locale $wp_locale
+ * @global WP_Locale $wp_locale WordPress date and time locale object.
  * @global array     $posts
  *
  * @param bool $initial Optional, default is true. Use initial calendar names.
@@ -2127,7 +2139,7 @@ function get_calendar( $initial = true, $echo = true ) {
 			LIMIT 1"
 	);
 
-	/* translators: Calendar caption: 1: month name, 2: 4-digit year */
+	/* translators: Calendar caption: 1: Month name, 2: 4-digit year. */
 	$calendar_caption = _x( '%1$s %2$s', 'calendar caption' );
 	$calendar_output  = '<table id="wp-calendar">
 	<caption>' . sprintf(
@@ -2224,7 +2236,7 @@ function get_calendar( $initial = true, $echo = true ) {
 		if ( in_array( $day, $daywithpost ) ) {
 			// any posts today?
 			$date_format = gmdate( _x( 'F j, Y', 'daily archives date format' ), strtotime( "{$thisyear}-{$thismonth}-{$day}" ) );
-			/* translators: Post calendar label. %s: Date */
+			/* translators: Post calendar label. %s: Date. */
 			$label            = sprintf( __( 'Posts published on %s' ), $date_format );
 			$calendar_output .= sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
@@ -2504,7 +2516,7 @@ function the_time( $d = '' ) {
  * @param string      $d    Optional. Format to use for retrieving the time the post
  *                          was written. Either 'G', 'U', or php date format defaults
  *                          to the value specified in the time_format option. Default empty.
- * @param int|WP_Post $post WP_Post object or ID. Default is global $post object.
+ * @param int|WP_Post $post WP_Post object or ID. Default is global `$post` object.
  * @return string|int|false Formatted date string or Unix timestamp if `$d` is 'U' or 'G'. False on failure.
  */
 function get_the_time( $d = '', $post = null ) {
@@ -2542,7 +2554,7 @@ function get_the_time( $d = '', $post = null ) {
  * @param string      $d         Optional. Format to use for retrieving the time the post
  *                               was written. Either 'G', 'U', or php date format. Default 'U'.
  * @param bool        $gmt       Optional. Whether to retrieve the GMT time. Default false.
- * @param int|WP_Post $post      WP_Post object or ID. Default is global $post object.
+ * @param int|WP_Post $post      WP_Post object or ID. Default is global `$post` object.
  * @param bool        $translate Whether to translate the time string. Default false.
  * @return string|int|false Formatted date string or Unix timestamp if `$d` is 'U' or 'G'. False on failure.
  */
@@ -2553,13 +2565,28 @@ function get_post_time( $d = 'U', $gmt = false, $post = null, $translate = false
 		return false;
 	}
 
-	if ( $gmt ) {
-		$time = $post->post_date_gmt;
-	} else {
-		$time = $post->post_date;
+	$datetime = get_post_datetime( $post );
+
+	if ( false === $datetime ) {
+		return false;
 	}
 
-	$time = mysql2date( $d, $time, $translate );
+	if ( 'U' === $d || 'G' === $d ) {
+		$time = $datetime->getTimestamp();
+
+		// Returns a sum of timestamp with timezone offset. Ideally should never be used.
+		if ( ! $gmt ) {
+			$time += $datetime->getOffset();
+		}
+	} elseif ( $translate ) {
+		$time = wp_date( $d, $datetime->getTimestamp(), $gmt ? new DateTimeZone( 'UTC' ) : null );
+	} else {
+		if ( $gmt ) {
+			$datetime = $datetime->setTimezone( new DateTimeZone( 'UTC' ) );
+		}
+
+		$time = $datetime->format( $d );
+	}
 
 	/**
 	 * Filters the localized time a post was written.
@@ -2572,6 +2599,55 @@ function get_post_time( $d = 'U', $gmt = false, $post = null, $translate = false
 	 * @param bool   $gmt  Whether to retrieve the GMT time. Default false.
 	 */
 	return apply_filters( 'get_post_time', $time, $d, $gmt );
+}
+
+/**
+ * Retrieve post published or modified time as a `DateTimeImmutable` object instance.
+ *
+ * The object will be set to the timezone from WordPress settings.
+ *
+ * @since 5.3.0
+ *
+ * @param int|WP_Post $post  Optional. WP_Post object or ID. Default is global `$post` object.
+ * @param string      $field Optional. Post field to use. Accepts 'date' or 'modified'.
+ * @return DateTimeImmutable|false Time object on success, false on failure.
+ */
+function get_post_datetime( $post = null, $field = 'date' ) {
+	$post = get_post( $post );
+
+	if ( ! $post ) {
+		return false;
+	}
+
+	$time = ( 'modified' === $field ) ? $post->post_modified : $post->post_date;
+
+	if ( empty( $time ) || '0000-00-00 00:00:00' === $time ) {
+		return false;
+	}
+
+	return date_create_immutable_from_format( 'Y-m-d H:i:s', $time, wp_timezone() );
+}
+
+/**
+ * Retrieve post published or modified time as a Unix timestamp.
+ *
+ * Note that this function returns a true Unix timestamp, not summed with timezone offset
+ * like older WP functions.
+ *
+ * @since 5.3.0
+ *
+ * @param int|WP_Post $post  Optional. WP_Post object or ID. Default is global `$post` object.
+ * @param string      $field Optional. Post field to use. Accepts 'date' or 'modified'.
+ * @return int|false Unix timestamp on success, false on failure.
+ */
+function get_post_timestamp( $post = null, $field = 'date' ) {
+	$datetime = get_post_datetime( $post, $field );
+
+	if ( false === $datetime ) {
+		return false;
+	}
+
+	return $datetime->getTimestamp();
 }
 
 /**
@@ -2642,7 +2718,7 @@ function get_the_modified_time( $d = '', $post = null ) {
  * @param string      $d         Optional. Format to use for retrieving the time the post
  *                               was modified. Either 'G', 'U', or php date format. Default 'U'.
  * @param bool        $gmt       Optional. Whether to retrieve the GMT time. Default false.
- * @param int|WP_Post $post      WP_Post object or ID. Default is global $post object.
+ * @param int|WP_Post $post      WP_Post object or ID. Default is global `$post` object.
  * @param bool        $translate Whether to translate the time string. Default false.
  * @return string|int|false Formatted date string or Unix timestamp if `$d` is 'U' or 'G'. False on failure.
  */
@@ -2653,13 +2729,28 @@ function get_post_modified_time( $d = 'U', $gmt = false, $post = null, $translat
 		return false;
 	}
 
-	if ( $gmt ) {
-		$time = $post->post_modified_gmt;
-	} else {
-		$time = $post->post_modified;
+	$datetime = get_post_datetime( $post, 'modified' );
+
+	if ( false === $datetime ) {
+		return false;
 	}
 
-	$time = mysql2date( $d, $time, $translate );
+	if ( 'U' === $d || 'G' === $d ) {
+		$time = $datetime->getTimestamp();
+
+		// Returns a sum of timestamp with timezone offset. Ideally should never be used.
+		if ( ! $gmt ) {
+			$time += $datetime->getOffset();
+		}
+	} elseif ( $translate ) {
+		$time = wp_date( $d, $datetime->getTimestamp(), $gmt ? new DateTimeZone( 'UTC' ) : null );
+	} else {
+		if ( $gmt ) {
+			$datetime = $datetime->setTimezone( new DateTimeZone( 'UTC' ) );
+		}
+
+		$time = $datetime->format( $d );
+	}
 
 	/**
 	 * Filters the localized time a post was last modified.
@@ -2679,7 +2770,7 @@ function get_post_modified_time( $d = 'U', $gmt = false, $post = null, $translat
  *
  * @since 0.71
  *
- * @global WP_Locale $wp_locale The WordPress date and time locale object.
+ * @global WP_Locale $wp_locale WordPress date and time locale object.
  */
 function the_weekday() {
 	global $wp_locale;
@@ -2710,7 +2801,7 @@ function the_weekday() {
  *
  * @since 0.71
  *
- * @global WP_Locale $wp_locale       The WordPress date and time locale object.
+ * @global WP_Locale $wp_locale       WordPress date and time locale object.
  * @global string    $currentday      The day of the current post in the loop.
  * @global string    $previousweekday The day of the previous post in the loop.
  *
@@ -2808,11 +2899,11 @@ function feed_links( $args = array() ) {
 	}
 
 	$defaults = array(
-		/* translators: Separator between blog name and feed type in feed links */
+		/* translators: Separator between blog name and feed type in feed links. */
 		'separator' => _x( '&raquo;', 'feed link' ),
-		/* translators: 1: blog title, 2: separator (raquo) */
+		/* translators: 1: Blog title, 2: Separator (raquo). */
 		'feedtitle' => __( '%1$s %2$s Feed' ),
-		/* translators: 1: blog title, 2: separator (raquo) */
+		/* translators: 1: Blog title, 2: Separator (raquo). */
 		'comstitle' => __( '%1$s %2$s Comments Feed' ),
 	);
 
@@ -2850,21 +2941,21 @@ function feed_links( $args = array() ) {
  */
 function feed_links_extra( $args = array() ) {
 	$defaults = array(
-		/* translators: Separator between blog name and feed type in feed links */
+		/* translators: Separator between blog name and feed type in feed links. */
 		'separator'     => _x( '&raquo;', 'feed link' ),
-		/* translators: 1: blog name, 2: separator(raquo), 3: post title */
+		/* translators: 1: Blog name, 2: Separator (raquo), 3: Post title. */
 		'singletitle'   => __( '%1$s %2$s %3$s Comments Feed' ),
-		/* translators: 1: blog name, 2: separator(raquo), 3: category name */
+		/* translators: 1: Blog name, 2: Separator (raquo), 3: Category name. */
 		'cattitle'      => __( '%1$s %2$s %3$s Category Feed' ),
-		/* translators: 1: blog name, 2: separator(raquo), 3: tag name */
+		/* translators: 1: Blog name, 2: Separator (raquo), 3: Tag name. */
 		'tagtitle'      => __( '%1$s %2$s %3$s Tag Feed' ),
-		/* translators: 1: blog name, 2: separator(raquo), 3: term name, 4: taxonomy singular name */
+		/* translators: 1: Blog name, 2: Separator (raquo), 3: Term name, 4: Taxonomy singular name. */
 		'taxtitle'      => __( '%1$s %2$s %3$s %4$s Feed' ),
-		/* translators: 1: blog name, 2: separator(raquo), 3: author name  */
+		/* translators: 1: Blog name, 2: Separator (raquo), 3: Author name. */
 		'authortitle'   => __( '%1$s %2$s Posts by %3$s Feed' ),
-		/* translators: 1: blog name, 2: separator(raquo), 3: search phrase */
+		/* translators: 1: Blog name, 2: Separator (raquo), 3: Search query. */
 		'searchtitle'   => __( '%1$s %2$s Search Results for &#8220;%3$s&#8221; Feed' ),
-		/* translators: 1: blog name, 2: separator(raquo), 3: post type name */
+		/* translators: 1: Blog name, 2: Separator (raquo), 3: Post type name. */
 		'posttypetitle' => __( '%1$s %2$s %3$s Feed' ),
 	);
 
@@ -2902,10 +2993,13 @@ function feed_links_extra( $args = array() ) {
 			$href  = get_tag_feed_link( $term->term_id );
 		}
 	} elseif ( is_tax() ) {
-		$term  = get_queried_object();
-		$tax   = get_taxonomy( $term->taxonomy );
-		$title = sprintf( $args['taxtitle'], get_bloginfo( 'name' ), $args['separator'], $term->name, $tax->labels->singular_name );
-		$href  = get_term_feed_link( $term->term_id, $term->taxonomy );
+		$term = get_queried_object();
+
+		if ( $term ) {
+			$tax   = get_taxonomy( $term->taxonomy );
+			$title = sprintf( $args['taxtitle'], get_bloginfo( 'name' ), $args['separator'], $term->name, $tax->labels->singular_name );
+			$href  = get_term_feed_link( $term->term_id, $term->taxonomy );
+		}
 	} elseif ( is_author() ) {
 		$author_id = intval( get_query_var( 'author' ) );
 
@@ -2944,8 +3038,7 @@ function rsd_link() {
  * @since 2.3.1
  */
 function wlwmanifest_link() {
-	echo '<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="',
-		includes_url( 'wlwmanifest.xml' ), '" /> ', "\n";
+	echo '<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="' . includes_url( 'wlwmanifest.xml' ) . '" /> ' . "\n";
 }
 
 /**
@@ -2974,12 +3067,18 @@ function noindex() {
  * Display a noindex meta tag.
  *
  * Outputs a noindex meta tag that tells web robots not to index the page content.
- * Typical usage is as a wp_head callback. add_action( 'wp_head', 'wp_no_robots' );
+ * Typical usage is as a {@see 'wp_head'} callback. add_action( 'wp_head', 'wp_no_robots' );
  *
  * @since 3.3.0
+ * @since 5.3.0 Echo "noindex,nofollow" if search engine visibility is discouraged.
  */
 function wp_no_robots() {
-	echo "<meta name='robots' content='noindex,follow' />\n";
+	if ( get_option( 'blog_public' ) ) {
+		echo "<meta name='robots' content='noindex,follow' />\n";
+		return;
+	}
+
+	echo "<meta name='robots' content='noindex,nofollow' />\n";
 }
 
 /**
@@ -3830,7 +3929,8 @@ function get_language_attributes( $doctype = 'html' ) {
 		$attributes[] = 'dir="rtl"';
 	}
 
-	if ( $lang = get_bloginfo( 'language' ) ) {
+	$lang = get_bloginfo( 'language' );
+	if ( $lang ) {
 		if ( get_option( 'html_type' ) == 'text/html' || $doctype == 'html' ) {
 			$attributes[] = 'lang="' . esc_attr( $lang ) . '"';
 		}
@@ -3918,8 +4018,8 @@ function language_attributes( $doctype = 'html' ) {
  * @since 2.1.0
  * @since 4.9.0 Added the `aria_current` argument.
  *
- * @global WP_Query   $wp_query
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Query   $wp_query   WordPress Query object.
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param string|array $args {
  *     Optional. Array or string of arguments for generating paginated links for archives.
@@ -4022,6 +4122,7 @@ function paginate_links( $args = '' ) {
 	if ( $mid_size < 0 ) {
 		$mid_size = 2;
 	}
+
 	$add_args   = $args['add_args'];
 	$r          = '';
 	$page_links = array();
@@ -4035,19 +4136,29 @@ function paginate_links( $args = '' ) {
 		}
 		$link .= $args['add_fragment'];
 
-		/**
-		 * Filters the paginated links for the given archive pages.
-		 *
-		 * @since 3.0.0
-		 *
-		 * @param string $link The paginated link URL.
-		 */
-		$page_links[] = '<a class="prev page-numbers" href="' . esc_url( apply_filters( 'paginate_links', $link ) ) . '">' . $args['prev_text'] . '</a>';
+		$page_links[] = sprintf(
+			'<a class="prev page-numbers" href="%s">%s</a>',
+			/**
+			 * Filters the paginated links for the given archive pages.
+			 *
+			 * @since 3.0.0
+			 *
+			 * @param string $link The paginated link URL.
+			 */
+			esc_url( apply_filters( 'paginate_links', $link ) ),
+			$args['prev_text']
+		);
 	endif;
+
 	for ( $n = 1; $n <= $total; $n++ ) :
 		if ( $n == $current ) :
-			$page_links[] = "<span aria-current='" . esc_attr( $args['aria_current'] ) . "' class='page-numbers current'>" . $args['before_page_number'] . number_format_i18n( $n ) . $args['after_page_number'] . '</span>';
-			$dots         = true;
+			$page_links[] = sprintf(
+				'<span aria-current="%s" class="page-numbers current">%s</span>',
+				esc_attr( $args['aria_current'] ),
+				$args['before_page_number'] . number_format_i18n( $n ) . $args['after_page_number']
+			);
+
+			$dots = true;
 		else :
 			if ( $args['show_all'] || ( $n <= $end_size || ( $current && $n >= $current - $mid_size && $n <= $current + $mid_size ) || $n > $total - $end_size ) ) :
 				$link = str_replace( '%_%', 1 == $n ? '' : $args['format'], $args['base'] );
@@ -4057,15 +4168,22 @@ function paginate_links( $args = '' ) {
 				}
 				$link .= $args['add_fragment'];
 
-				/** This filter is documented in wp-includes/general-template.php */
-				$page_links[] = "<a class='page-numbers' href='" . esc_url( apply_filters( 'paginate_links', $link ) ) . "'>" . $args['before_page_number'] . number_format_i18n( $n ) . $args['after_page_number'] . '</a>';
-				$dots         = true;
+				$page_links[] = sprintf(
+					'<a class="page-numbers" href="%s">%s</a>',
+					/** This filter is documented in wp-includes/general-template.php */
+					esc_url( apply_filters( 'paginate_links', $link ) ),
+					$args['before_page_number'] . number_format_i18n( $n ) . $args['after_page_number']
+				);
+
+				$dots = true;
 			elseif ( $dots && ! $args['show_all'] ) :
 				$page_links[] = '<span class="page-numbers dots">' . __( '&hellip;' ) . '</span>';
-				$dots         = false;
+
+				$dots = false;
 			endif;
 		endif;
 	endfor;
+
 	if ( $args['prev_next'] && $current && $current < $total ) :
 		$link = str_replace( '%_%', $args['format'], $args['base'] );
 		$link = str_replace( '%#%', $current + 1, $link );
@@ -4074,9 +4192,14 @@ function paginate_links( $args = '' ) {
 		}
 		$link .= $args['add_fragment'];
 
-		/** This filter is documented in wp-includes/general-template.php */
-		$page_links[] = '<a class="next page-numbers" href="' . esc_url( apply_filters( 'paginate_links', $link ) ) . '">' . $args['next_text'] . '</a>';
+		$page_links[] = sprintf(
+			'<a class="next page-numbers" href="%s">%s</a>',
+			/** This filter is documented in wp-includes/general-template.php */
+			esc_url( apply_filters( 'paginate_links', $link ) ),
+			$args['next_text']
+		);
 	endif;
+
 	switch ( $args['type'] ) {
 		case 'array':
 			return $page_links;
@@ -4091,6 +4214,7 @@ function paginate_links( $args = '' ) {
 			$r = join( "\n", $page_links );
 			break;
 	}
+
 	return $r;
 }
 
@@ -4302,17 +4426,24 @@ function wp_admin_css_uri( $file = 'wp-admin' ) {
  * @param bool   $force_echo Optional. Force the stylesheet link to be printed rather than enqueued.
  */
 function wp_admin_css( $file = 'wp-admin', $force_echo = false ) {
-	// For backward compatibility
+	// For backward compatibility.
 	$handle = 0 === strpos( $file, 'css/' ) ? substr( $file, 4 ) : $file;
 
 	if ( wp_styles()->query( $handle ) ) {
-		if ( $force_echo || did_action( 'wp_print_styles' ) ) { // we already printed the style queue. Print this one immediately
+		if ( $force_echo || did_action( 'wp_print_styles' ) ) {
+			// We already printed the style queue. Print this one immediately.
 			wp_print_styles( $handle );
-		} else { // Add to style queue
+		} else {
+			// Add to style queue.
 			wp_enqueue_style( $handle );
 		}
 		return;
 	}
+
+	$stylesheet_link = sprintf(
+		"<link rel='stylesheet' href='%s' type='text/css' />\n",
+		esc_url( wp_admin_css_uri( $file ) )
+	);
 
 	/**
 	 * Filters the stylesheet link to the specified CSS file.
@@ -4325,11 +4456,16 @@ function wp_admin_css( $file = 'wp-admin', $force_echo = false ) {
 	 * @param string $file            Style handle name or filename (without ".css" extension)
 	 *                                relative to wp-admin/. Defaults to 'wp-admin'.
 	 */
-	echo apply_filters( 'wp_admin_css', "<link rel='stylesheet' href='" . esc_url( wp_admin_css_uri( $file ) ) . "' type='text/css' />\n", $file );
+	echo apply_filters( 'wp_admin_css', $stylesheet_link, $file );
 
 	if ( function_exists( 'is_rtl' ) && is_rtl() ) {
+		$rtl_stylesheet_link = sprintf(
+			"<link rel='stylesheet' href='%s' type='text/css' />\n",
+			esc_url( wp_admin_css_uri( "$file-rtl" ) )
+		);
+
 		/** This filter is documented in wp-includes/general-template.php */
-		echo apply_filters( 'wp_admin_css', "<link rel='stylesheet' href='" . esc_url( wp_admin_css_uri( "$file-rtl" ) ) . "' type='text/css' />\n", "$file-rtl" );
+		echo apply_filters( 'wp_admin_css', $rtl_stylesheet_link, "$file-rtl" );
 	}
 }
 
@@ -4548,7 +4684,7 @@ function readonly( $readonly, $current = true, $echo = true ) {
  * @param string $type    The type of checked|selected|disabled|readonly we are doing
  * @return string html attribute or empty string
  */
-function __checked_selected_helper( $helper, $current, $echo, $type ) {
+function __checked_selected_helper( $helper, $current, $echo, $type ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
 	if ( (string) $helper === (string) $current ) {
 		$result = " $type='$type'";
 	} else {

@@ -64,7 +64,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @global string $s
 	 * @global string $mode
-	 * @global wpdb   $wpdb
+	 * @global wpdb   $wpdb WordPress database abstraction object.
 	 */
 	public function prepare_items() {
 		global $s, $mode, $wpdb;
@@ -93,10 +93,12 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		 */
 		if ( ! $s && wp_is_large_network() ) {
 			if ( ! isset( $_REQUEST['orderby'] ) ) {
-				$_GET['orderby'] = $_REQUEST['orderby'] = '';
+				$_GET['orderby']     = '';
+				$_REQUEST['orderby'] = '';
 			}
 			if ( ! isset( $_REQUEST['order'] ) ) {
-				$_GET['order'] = $_REQUEST['order'] = 'DESC';
+				$_GET['order']     = 'DESC';
+				$_REQUEST['order'] = 'DESC';
 			}
 		}
 
@@ -158,6 +160,12 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 			$args['no_found_rows'] = false;
 		}
 
+		// Take into account the role the user has selected.
+		$status = isset( $_REQUEST['status'] ) ? wp_unslash( trim( $_REQUEST['status'] ) ) : '';
+		if ( in_array( $status, array( 'public', 'archived', 'mature', 'spam', 'deleted' ), true ) ) {
+			$args[ $status ] = 1;
+		}
+
 		/**
 		 * Filters the arguments for the site query in the sites list table.
 		 *
@@ -200,6 +208,50 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Gets links to filter sites by status.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @return array
+	 *
+	 */
+	protected function get_views() {
+		$counts = wp_count_sites();
+
+		$statuses = array(
+			'all'      => _n_noop( 'All <span class="count">(%s)</span>', 'All <span class="count">(%1$s)</span>' ),
+			'public'   => _n_noop( 'Public <span class="count">(%s)</span>', 'Public <span class="count">(%1$s)</span>' ),
+			'archived' => _n_noop( 'Archived <span class="count">(%1$s)</span>', 'Archived <span class="count">(%1$s)</span>' ),
+			'mature'   => _n_noop( 'Mature <span class="count">(%1$s)</span>', 'Mature <span class="count">(%1$s)</span>' ),
+			'spam'     => _n_noop( 'Spam <span class="count">(%1$s)</span>', 'Spam <span class="count">(%1$s)</span>' ),
+			'deleted'  => _n_noop( 'Deleted <span class="count">(%1$s)</span>', 'Deleted <span class="count">(%1$s)</span>' ),
+		);
+
+		$view_links       = array();
+		$requested_status = isset( $_REQUEST['status'] ) ? wp_unslash( trim( $_REQUEST['status'] ) ) : '';
+		$url              = 'sites.php';
+
+		foreach ( $statuses as $status => $label_count ) {
+			$current_link_attributes = $requested_status === $status || ( $requested_status === '' && 'all' === $status )
+				? ' class="current" aria-current="page"'
+				: '';
+			if ( (int) $counts[ $status ] > 0 ) {
+				$label    = sprintf( translate_nooped_plural( $label_count, $counts[ $status ] ), number_format_i18n( $counts[ $status ] ) );
+				$full_url = 'all' === $status ? $url : add_query_arg( 'status', $status, $url );
+
+				$view_links[ $status ] = sprintf(
+					'<a href="%1$s"%2$s>%3$s</a>',
+					esc_url( $full_url ),
+					$current_link_attributes,
+					$label
+				);
+			}
+		}
+
+		return $view_links;
+	}
+
+	/**
 	 * @return array
 	 */
 	protected function get_bulk_actions() {
@@ -216,7 +268,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	/**
 	 * @global string $mode List table view mode.
 	 *
-	 * @param string $which
+	 * @param string $which The location of the pagination nav markup: 'top' or 'bottom'.
 	 */
 	protected function pagination( $which ) {
 		global $mode;
@@ -226,6 +278,48 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		if ( 'top' === $which ) {
 			$this->view_switcher( $mode );
 		}
+	}
+
+	/**
+	 * Extra controls to be displayed between bulk actions and pagination.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param string $which The location of the extra table nav markup: 'top' or 'bottom'.
+	 */
+	protected function extra_tablenav( $which ) {
+		?>
+		<div class="alignleft actions">
+		<?php
+		if ( 'top' === $which ) {
+			ob_start();
+
+			/**
+			 * Fires before the Filter button on the MS sites list table.
+			 *
+			 * @since 5.3.0
+			 *
+			 * @param string $which The location of the extra table nav markup: 'top' or 'bottom'.
+			 */
+			do_action( 'restrict_manage_sites', $which );
+			$output = ob_get_clean();
+			if ( ! empty( $output ) ) {
+				echo $output;
+				submit_button( __( 'Filter' ), '', 'filter_action', false, array( 'id' => 'site-query-submit' ) );
+			}
+		}
+		?>
+		</div>
+		<?php
+		/**
+		 * Fires immediately following the closing "actions" div in the tablenav for the
+		 * MS sites list table.
+		 *
+		 * @since 5.3.0
+		 *
+		 * @param string $which The location of the extra table nav markup: 'top' or 'bottom'.
+		 */
+		do_action( 'manage_sites_extra_tablenav', $which );
 	}
 
 	/**
@@ -278,9 +372,10 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 			$blogname = untrailingslashit( $blog['domain'] . $blog['path'] );
 			?>
 			<label class="screen-reader-text" for="blog_<?php echo $blog['blog_id']; ?>">
-																	<?php
-																	printf( __( 'Select %s' ), $blogname );
-																	?>
+				<?php
+				/* translators: %s: Site URL. */
+				printf( __( 'Select %s' ), $blogname );
+				?>
 			</label>
 			<input type="checkbox" id="blog_<?php echo $blog['blog_id']; ?>" name="allblogs[]" value="<?php echo esc_attr( $blog['blog_id'] ); ?>" />
 			<?php
@@ -310,41 +405,22 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	public function column_blogname( $blog ) {
 		global $mode;
 
-		$blogname    = untrailingslashit( $blog['domain'] . $blog['path'] );
-		$blog_states = array();
-		reset( $this->status_list );
-
-		foreach ( $this->status_list as $status => $col ) {
-			if ( $blog[ $status ] == 1 ) {
-				$blog_states[] = $col[1];
-			}
-		}
-		$blog_state = '';
-		if ( ! empty( $blog_states ) ) {
-			$state_count = count( $blog_states );
-			$i           = 0;
-			$blog_state .= ' &mdash; ';
-			foreach ( $blog_states as $state ) {
-				++$i;
-				$sep         = ( $i == $state_count ) ? '' : ', ';
-				$blog_state .= "<span class='post-state'>$state$sep</span>";
-			}
-		}
+		$blogname = untrailingslashit( $blog['domain'] . $blog['path'] );
 
 		?>
 		<strong>
 			<a href="<?php echo esc_url( network_admin_url( 'site-info.php?id=' . $blog['blog_id'] ) ); ?>" class="edit"><?php echo $blogname; ?></a>
-			<?php echo $blog_state; ?>
+			<?php $this->site_states( $blog ); ?>
 		</strong>
 		<?php
 		if ( 'list' !== $mode ) {
 			switch_to_blog( $blog['blog_id'] );
 			echo '<p>';
 			printf(
-				/* translators: 1: site name, 2: site tagline. */
+				/* translators: 1: Site title, 2: Site tagline. */
 				__( '%1$s &#8211; %2$s' ),
 				get_option( 'blogname' ),
-				'<em>' . get_option( 'blogdescription ' ) . '</em>'
+				'<em>' . get_option( 'blogdescription' ) . '</em>'
 			);
 			echo '</p>';
 			restore_current_blog();
@@ -488,6 +564,54 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 			$this->single_row_columns( $blog );
 
 			echo '</tr>';
+		}
+	}
+
+	/**
+	 * Maybe output comma-separated site states.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param array $site
+	 */
+	protected function site_states( $site ) {
+		$site_states = array();
+
+		// $site is still an array, so get the object.
+		$_site = WP_Site::get_instance( $site['blog_id'] );
+
+		if ( is_main_site( $_site->id ) ) {
+			$site_states['main'] = __( 'Main' );
+		}
+
+		reset( $this->status_list );
+
+		foreach ( $this->status_list as $status => $col ) {
+			if ( $_site->{$status} == 1 ) {
+				$site_states[ $col[0] ] = $col[1];
+			}
+		}
+
+		/**
+		 * Filter the default site display states for items in the Sites list table.
+		 *
+		 * @since 5.3.0
+		 *
+		 * @param array $site_states An array of site states. Default 'Main',
+		 *                           'Archived', 'Mature', 'Spam', 'Deleted'.
+		 * @param WP_Site $site The current site object.
+		 */
+		$site_states = apply_filters( 'display_site_states', $site_states, $_site );
+
+		if ( ! empty( $site_states ) ) {
+			$state_count = count( $site_states );
+			$i           = 0;
+			echo ' &mdash; ';
+			foreach ( $site_states as $state ) {
+				++$i;
+				( $i == $state_count ) ? $sep = '' : $sep = ', ';
+				echo "<span class='post-state'>{$state}{$sep}</span>";
+			}
 		}
 	}
 

@@ -21,8 +21,9 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 
 		$pages = get_pages();
 		$this->assertEquals( 3, count( $pages ) );
-		$this->assertNotEmpty( $time1 = wp_cache_get( 'last_changed', 'posts' ) );
-		$num_queries                  = $wpdb->num_queries;
+		$time1 = wp_cache_get( 'last_changed', 'posts' );
+		$this->assertNotEmpty( $time1 );
+		$num_queries = $wpdb->num_queries;
 		foreach ( $pages as $page ) {
 			$this->assertInstanceOf( 'WP_Post', $page );
 		}

@@ -69,6 +69,7 @@ class Tests_Ajax_Response extends WP_UnitTestCase {
 	 * @ticket 19448
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
+	 * @group xdebug
 	 */
 	public function test_response_charset_in_header() {
 
@@ -85,7 +86,7 @@ class Tests_Ajax_Response extends WP_UnitTestCase {
 		$headers = xdebug_get_headers();
 		ob_end_clean();
 
-		$this->assertTrue( in_array( 'Content-Type: text/xml; charset=' . get_option( 'blog_charset' ), $headers ) );
+		$this->assertTrue( in_array( 'Content-Type: text/xml; charset=' . get_option( 'blog_charset' ), $headers, true ) );
 	}
 
 	/**

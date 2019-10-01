@@ -26,11 +26,10 @@ class WP_Site_Health_Auto_Updates {
 	 */
 	public function run_tests() {
 		$tests = array(
-			$this->test_constants( 'DISALLOW_FILE_MODS', false ),
-			$this->test_constants( 'AUTOMATIC_UPDATER_DISABLED', false ),
 			$this->test_constants( 'WP_AUTO_UPDATE_CORE', true ),
 			$this->test_wp_version_check_attached(),
 			$this->test_filters_automatic_updater_disabled(),
+			$this->test_wp_automatic_updates_disabled(),
 			$this->test_if_failed_update(),
 			$this->test_vcs_abspath(),
 			$this->test_check_wp_filesystem_method(),
@@ -95,6 +94,8 @@ class WP_Site_Health_Auto_Updates {
 		$headers = array(
 			'Cache-Control' => 'no-cache',
 		);
+		/** This filter is documented in wp-includes/class-wp-http-streams.php */
+		$sslverify = apply_filters( 'https_local_ssl_verify', false );
 
 		// Include Basic auth in loopback requests.
 		if ( isset( $_SERVER['PHP_AUTH_USER'] ) && isset( $_SERVER['PHP_AUTH_PW'] ) ) {
@@ -108,7 +109,7 @@ class WP_Site_Health_Auto_Updates {
 			admin_url( 'site-health.php' )
 		);
 
-		$test = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout' ) );
+		$test = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
 
 		if ( is_wp_error( $test ) ) {
 			return array(
@@ -157,11 +158,35 @@ class WP_Site_Health_Auto_Updates {
 	}
 
 	/**
+	 * Check if automatic updates are disabled.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @return array|bool The test results. False if auto updates are enabled.
+	 */
+	public function test_wp_automatic_updates_disabled() {
+		if ( ! class_exists( 'WP_Automatic_Updater' ) ) {
+			require_once( ABSPATH . 'wp-admin/includes/class-wp-automatic-updates.php' );
+		}
+
+		$auto_updates = new WP_Automatic_Updater();
+
+		if ( ! $auto_updates->is_disabled() ) {
+			return false;
+		}
+
+		return array(
+			'description' => __( 'All automatic updates are disabled.' ),
+			'severity'    => 'fail',
+		);
+	}
+
+	/**
 	 * Check if automatic updates have tried to run, but failed, previously.
 	 *
 	 * @since 5.2.0
 	 *
-	 * @return array|bool The test results. false if the auto updates failed.
+	 * @return array|bool The test results. False if the auto updates failed.
 	 */
 	function test_if_failed_update() {
 		$failed = get_site_option( 'auto_core_update_failed' );
@@ -244,7 +269,7 @@ class WP_Site_Health_Auto_Updates {
 		if ( $checkout && ! apply_filters( 'automatic_updates_is_vcs_checkout', true, ABSPATH ) ) {
 			return array(
 				'description' => sprintf(
-					// translators: 1: Folder name. 2: Version control directory. 3: Filter name.
+					/* translators: 1: Folder name. 2: Version control directory. 3: Filter name. */
 					__( 'The folder %1$s was detected as being under version control (%2$s), but the %3$s filter is allowing updates.' ),
 					'<code>' . $check_dir . '</code>',
 					"<code>$vcs_dir</code>",
@@ -257,12 +282,12 @@ class WP_Site_Health_Auto_Updates {
 		if ( $checkout ) {
 			return array(
 				'description' => sprintf(
-					// translators: 1: Folder name. 2: Version control directory.
+					/* translators: 1: Folder name. 2: Version control directory. */
 					__( 'The folder %1$s was detected as being under version control (%2$s).' ),
 					'<code>' . $check_dir . '</code>',
 					"<code>$vcs_dir</code>"
 				),
-				'severity'    => 'fail',
+				'severity'    => 'warning',
 			);
 		}
 
@@ -306,7 +331,7 @@ class WP_Site_Health_Auto_Updates {
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @return array|bool The test results. false if they're not writeable.
+	 * @return array|bool The test results. False if they're not writeable.
 	 */
 	function test_all_files_writable() {
 		global $wp_filesystem;
@@ -340,7 +365,7 @@ class WP_Site_Health_Auto_Updates {
 
 		if ( ! $checksums ) {
 			$description = sprintf(
-				// translators: %s: WordPress version
+				/* translators: %s: WordPress version. */
 				__( "Couldn't retrieve a list of the checksums for WordPress %s." ),
 				$wp_version
 			);
@@ -386,7 +411,7 @@ class WP_Site_Health_Auto_Updates {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @return array|bool The test results. false if it isn't a development version.
+	 * @return array|bool The test results. False if it isn't a development version.
 	 */
 	function test_accepts_dev_updates() {
 		include ABSPATH . WPINC . '/version.php'; // $wp_version; // x.y.z

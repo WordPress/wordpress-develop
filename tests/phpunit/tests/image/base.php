@@ -75,7 +75,7 @@ abstract class WP_Image_UnitTestCase extends WP_UnitTestCase {
 	protected function assertImageDimensions( $filename, $width, $height ) {
 		$detected_width  = 0;
 		$detected_height = 0;
-		$image_size      = @getimagesize( $filename );
+		$image_size      = getimagesize( $filename );
 
 		if ( isset( $image_size[0] ) ) {
 			$detected_width = $image_size[0];

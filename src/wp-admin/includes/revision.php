@@ -20,12 +20,14 @@
  *                    Or, false on failure.
  */
 function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
-	if ( ! $post = get_post( $post ) ) {
+	$post = get_post( $post );
+	if ( ! $post ) {
 		return false;
 	}
 
 	if ( $compare_from ) {
-		if ( ! $compare_from = get_post( $compare_from ) ) {
+		$compare_from = get_post( $compare_from );
+		if ( ! $compare_from ) {
 			return false;
 		}
 	} else {
@@ -33,7 +35,8 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 		$compare_from = false;
 	}
 
-	if ( ! $compare_to = get_post( $compare_to ) ) {
+	$compare_to = get_post( $compare_to );
+	if ( ! $compare_to ) {
 		return false;
 	}
 
@@ -238,6 +241,7 @@ function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null
 			'author'     => $authors[ $revision->post_author ],
 			'date'       => date_i18n( __( 'M j, Y @ H:i' ), $modified ),
 			'dateShort'  => date_i18n( _x( 'j M @ H:i', 'revision date short format' ), $modified ),
+			/* translators: %s: Human-readable time difference. */
 			'timeAgo'    => sprintf( __( '%s ago' ), human_time_diff( $modified_gmt, $now_gmt ) ),
 			'autosave'   => $autosave,
 			'current'    => $current,
@@ -280,6 +284,7 @@ function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null
 			'author'     => $authors[ $post->post_author ],
 			'date'       => date_i18n( __( 'M j, Y @ H:i' ), strtotime( $post->post_modified ) ),
 			'dateShort'  => date_i18n( _x( 'j M @ H:i', 'revision date short format' ), strtotime( $post->post_modified ) ),
+			/* translators: %s: Human-readable time difference. */
 			'timeAgo'    => sprintf( __( '%s ago' ), human_time_diff( strtotime( $post->post_modified_gmt ), $now_gmt ) ),
 			'autosave'   => false,
 			'current'    => true,
@@ -345,7 +350,7 @@ function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null
  *
  * @since 4.1.0
  *
- * @global WP_Post $post The global `$post` object.
+ * @global WP_Post $post Global post object.
  */
 function wp_print_revision_templates() {
 	global $post;
@@ -394,6 +399,7 @@ function wp_print_revision_templates() {
 						<span class="byline">
 						<?php
 						printf(
+							/* translators: %s: User's display name. */
 							__( 'Autosave by %s' ),
 							'<span class="author-name">{{ data.attributes.author.name }}</span>'
 						);
@@ -403,6 +409,7 @@ function wp_print_revision_templates() {
 						<span class="byline">
 						<?php
 						printf(
+							/* translators: %s: User's display name. */
 							__( 'Current Revision by %s' ),
 							'<span class="author-name">{{ data.attributes.author.name }}</span>'
 						);
@@ -412,6 +419,7 @@ function wp_print_revision_templates() {
 						<span class="byline">
 						<?php
 						printf(
+							/* translators: %s: User's display name. */
 							__( 'Revision by %s' ),
 							'<span class="author-name">{{ data.attributes.author.name }}</span>'
 						);

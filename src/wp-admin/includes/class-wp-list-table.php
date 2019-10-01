@@ -239,7 +239,7 @@ class WP_List_Table {
 	 */
 	public function __call( $name, $arguments ) {
 		if ( in_array( $name, $this->compat_methods ) ) {
-			return call_user_func_array( array( $this, $name ), $arguments );
+			return $this->$name( ...$arguments );
 		}
 		return false;
 	}
@@ -451,7 +451,7 @@ class WP_List_Table {
 			 *
 			 * @param string[] $actions An array of the available bulk actions.
 			 */
-			$this->_actions = apply_filters( "bulk_actions-{$this->screen->id}", $this->_actions );
+			$this->_actions = apply_filters( "bulk_actions-{$this->screen->id}", $this->_actions );  // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 			$two            = '';
 		} else {
 			$two = '2';
@@ -535,8 +535,8 @@ class WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @global wpdb      $wpdb
-	 * @global WP_Locale $wp_locale
+	 * @global wpdb      $wpdb      WordPress database abstraction object.
+	 * @global WP_Locale $wp_locale WordPress date and time locale object.
 	 *
 	 * @param string $post_type
 	 */
@@ -609,7 +609,7 @@ class WP_List_Table {
 				"<option %s value='%s'>%s</option>\n",
 				selected( $m, $year . $month, false ),
 				esc_attr( $arc_row->year . $month ),
-				/* translators: 1: month name, 2: 4-digit year */
+				/* translators: 1: Month name, 2: 4-digit year. */
 				sprintf( __( '%1$s %2$d' ), $wp_locale->get_month( $month ), $year )
 			);
 		}
@@ -661,9 +661,23 @@ class WP_List_Table {
 		$approved_comments_number = number_format_i18n( $approved_comments );
 		$pending_comments_number  = number_format_i18n( $pending_comments );
 
-		$approved_only_phrase = sprintf( _n( '%s comment', '%s comments', $approved_comments ), $approved_comments_number );
-		$approved_phrase      = sprintf( _n( '%s approved comment', '%s approved comments', $approved_comments ), $approved_comments_number );
-		$pending_phrase       = sprintf( _n( '%s pending comment', '%s pending comments', $pending_comments ), $pending_comments_number );
+		$approved_only_phrase = sprintf(
+			/* translators: %s: Number of comments. */
+			_n( '%s comment', '%s comments', $approved_comments ),
+			$approved_comments_number
+		);
+
+		$approved_phrase = sprintf(
+			/* translators: %s: Number of comments. */
+			_n( '%s approved comment', '%s approved comments', $approved_comments ),
+			$approved_comments_number
+		);
+
+		$pending_phrase = sprintf(
+			/* translators: %s: Number of comments. */
+			_n( '%s pending comment', '%s pending comments', $pending_comments ),
+			$pending_comments_number
+		);
 
 		// No comments at all.
 		if ( ! $approved_comments && ! $pending_comments ) {
@@ -790,7 +804,11 @@ class WP_List_Table {
 			$this->screen->render_screen_reader_content( 'heading_pagination' );
 		}
 
-		$output = '<span class="displaying-num">' . sprintf( _n( '%s item', '%s items', $total_items ), number_format_i18n( $total_items ) ) . '</span>';
+		$output = '<span class="displaying-num">' . sprintf(
+			/* translators: %s: Number of items. */
+			_n( '%s item', '%s items', $total_items ),
+			number_format_i18n( $total_items )
+		) . '</span>';
 
 		$current              = $this->get_pagenum();
 		$removable_query_args = wp_removable_query_args();
@@ -804,7 +822,10 @@ class WP_List_Table {
 		$total_pages_before = '<span class="paging-input">';
 		$total_pages_after  = '</span></span>';
 
-		$disable_first = $disable_last = $disable_prev = $disable_next = false;
+		$disable_first = false;
+		$disable_last  = false;
+		$disable_prev  = false;
+		$disable_next  = false;
 
 		if ( $current == 1 ) {
 			$disable_first = true;
@@ -855,7 +876,12 @@ class WP_List_Table {
 			);
 		}
 		$html_total_pages = sprintf( "<span class='total-pages'>%s</span>", number_format_i18n( $total_pages ) );
-		$page_links[]     = $total_pages_before . sprintf( _x( '%1$s of %2$s', 'paging' ), $html_current_page, $html_total_pages ) . $total_pages_after;
+		$page_links[]     = $total_pages_before . sprintf(
+			/* translators: 1: Current page, 2: Total pages. */
+			_x( '%1$s of %2$s', 'paging' ),
+			$html_current_page,
+			$html_total_pages
+		) . $total_pages_after;
 
 		if ( $disable_next ) {
 			$page_links[] = '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&rsaquo;</span>';
@@ -1147,7 +1173,7 @@ class WP_List_Table {
 	}
 
 	/**
-	 * Display the table
+	 * Displays the table.
 	 *
 	 * @since 3.1.0
 	 */
@@ -1371,6 +1397,7 @@ class WP_List_Table {
 
 		if ( isset( $this->_pagination_args['total_items'] ) ) {
 			$response['total_items_i18n'] = sprintf(
+				/* translators: Number of items. */
 				_n( '%s item', '%s items', $this->_pagination_args['total_items'] ),
 				number_format_i18n( $this->_pagination_args['total_items'] )
 			);

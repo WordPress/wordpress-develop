@@ -133,7 +133,8 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 			$expected_oneline   = $expected['oneline'];
 			$expected_multiline = $expected['multiline'];
 		} else {
-			$expected_oneline = $expected_multiline = $expected;
+			$expected_oneline   = $expected;
+			$expected_multiline = $expected;
 		}
 		$this->assertEquals( $expected_oneline, sanitize_text_field( $string ) );
 		$this->assertEquals( $expected_multiline, sanitize_textarea_field( $string ) );

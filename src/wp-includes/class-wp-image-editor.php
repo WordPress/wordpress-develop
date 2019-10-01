@@ -359,8 +359,11 @@ abstract class WP_Image_Editor {
 		$name    = wp_basename( $this->file, ".$ext" );
 		$new_ext = strtolower( $extension ? $extension : $ext );
 
-		if ( ! is_null( $dest_path ) && $_dest_path = realpath( $dest_path ) ) {
-			$dir = $_dest_path;
+		if ( ! is_null( $dest_path ) ) {
+			$_dest_path = realpath( $dest_path );
+			if ( $_dest_path ) {
+				$dir = $_dest_path;
+			}
 		}
 
 		return trailingslashit( $dir ) . "{$name}-{$suffix}.{$new_ext}";
@@ -382,6 +385,84 @@ abstract class WP_Image_Editor {
 	}
 
 	/**
+	 * Check if a JPEG image has EXIF Orientation tag and rotate it if needed.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @return bool|WP_Error True if the image was rotated. False if not rotated (no EXIF data or the image doesn't need to be rotated).
+	 *                       WP_Error if error while rotating.
+	 */
+	public function maybe_exif_rotate() {
+		$orientation = null;
+
+		if ( is_callable( 'exif_read_data' ) && 'image/jpeg' === $this->mime_type ) {
+			$exif_data = @exif_read_data( $this->file );
+
+			if ( ! empty( $exif_data['Orientation'] ) ) {
+				$orientation = (int) $exif_data['Orientation'];
+			}
+		}
+
+		/**
+		 * Filters the `$orientation` value to correct it before rotating or to prevemnt rotating the image.
+		 *
+		 * @since 5.3.0
+		 *
+		 * @param int    $orientation EXIF Orientation value as retrieved from the image file.
+		 * @param string $file        Path to the image file.
+		 */
+		$orientation = apply_filters( 'wp_image_maybe_exif_rotate', $orientation, $this->file );
+
+		if ( ! $orientation || $orientation === 1 ) {
+			return false;
+		}
+
+		switch ( $orientation ) {
+			case 2:
+				// Flip horizontally.
+				$result = $this->flip( true, false );
+				break;
+			case 3:
+				// Rotate 180 degrees or flip horizontally and vertically.
+				// Flipping seems faster/uses less resources.
+				$result = $this->flip( true, true );
+				break;
+			case 4:
+				// Flip vertically.
+				$result = $this->flip( false, true );
+				break;
+			case 5:
+				// Rotate 90 degrees counter-clockwise and flip vertically.
+				$result = $this->rotate( 90 );
+
+				if ( ! is_wp_error( $result ) ) {
+					$result = $this->flip( false, true );
+				}
+
+				break;
+			case 6:
+				// Rotate 90 degrees clockwise (270 counter-clockwise).
+				$result = $this->rotate( 270 );
+				break;
+			case 7:
+				// Rotate 90 degrees counter-clockwise and flip horizontally.
+				$result = $this->rotate( 90 );
+
+				if ( ! is_wp_error( $result ) ) {
+					$result = $this->flip( true, false );
+				}
+
+				break;
+			case 8:
+				// Rotate 90 degrees counter-clockwise.
+				$result = $this->rotate( 90 );
+				break;
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Either calls editor's save function or handles file as a stream.
 	 *
 	 * @since 3.5.0
@@ -392,7 +473,8 @@ abstract class WP_Image_Editor {
 	 * @return bool
 	 */
 	protected function make_image( $filename, $function, $arguments ) {
-		if ( $stream = wp_is_stream( $filename ) ) {
+		$stream = wp_is_stream( $filename );
+		if ( $stream ) {
 			ob_start();
 		} else {
 			// The directory containing the original file may no longer exist when using a replication plugin.

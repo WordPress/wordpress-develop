@@ -238,7 +238,7 @@ function image_downsize( $id, $size = 'medium' ) {
 		$info       = null;
 
 		if ( $thumb_file ) {
-			$info = getimagesize( $thumb_file );
+			$info = @getimagesize( $thumb_file );
 		}
 
 		if ( $thumb_file && $info ) {
@@ -543,8 +543,28 @@ function image_resize_dimensions( $orig_w, $orig_h, $dest_w, $dest_h, $crop = fa
 		return $output;
 	}
 
+	// Stop if the destination size is larger than the original image dimensions.
+	if ( empty( $dest_h ) ) {
+		if ( $orig_w < $dest_w ) {
+			return false;
+		}
+	} elseif ( empty( $dest_w ) ) {
+		if ( $orig_h < $dest_h ) {
+			return false;
+		}
+	} else {
+		if ( $orig_w < $dest_w && $orig_h < $dest_h ) {
+			return false;
+		}
+	}
+
 	if ( $crop ) {
-		// crop the largest possible portion of the original image that we can size to $dest_w x $dest_h
+		// Crop the largest possible portion of the original image that we can size to $dest_w x $dest_h.
+		// Note that the requested crop dimensions are used as a maximum bounding box for the original image.
+		// If the original image's width or height is less than the requested width or height
+		// only the greater one will be cropped.
+		// For example when the original image is 600x300, and the requested crop dimensions are 400x400,
+		// the resulting image will be 400x300.
 		$aspect_ratio = $orig_w / $orig_h;
 		$new_w        = min( $dest_w, $orig_w );
 		$new_h        = min( $dest_h, $orig_h );
@@ -584,7 +604,7 @@ function image_resize_dimensions( $orig_w, $orig_h, $dest_w, $dest_h, $crop = fa
 			$s_y = floor( ( $orig_h - $crop_h ) / 2 );
 		}
 	} else {
-		// don't crop, just resize using $dest_w x $dest_h as a maximum bounding box
+		// Resize using $dest_w x $dest_h as a maximum bounding box.
 		$crop_w = $orig_w;
 		$crop_h = $orig_h;
 
@@ -594,15 +614,29 @@ function image_resize_dimensions( $orig_w, $orig_h, $dest_w, $dest_h, $crop = fa
 		list( $new_w, $new_h ) = wp_constrain_dimensions( $orig_w, $orig_h, $dest_w, $dest_h );
 	}
 
-	// if the resulting image would be the same size or larger we don't want to resize it
-	if ( $new_w >= $orig_w && $new_h >= $orig_h && intval( $dest_w ) !== intval( $orig_w ) && intval( $dest_h ) !== intval( $orig_h ) ) {
-		return false;
+	if ( wp_fuzzy_number_match( $new_w, $orig_w ) && wp_fuzzy_number_match( $new_h, $orig_h ) ) {
+		// The new size has virtually the same dimensions as the original image.
+
+		/**
+		 * Filters whether to proceed with making an image sub-size with identical dimensions
+		 * with the original/source image. Differences of 1px may be due to rounding and are ignored.
+		 *
+		 * @since 5.3.0
+		 *
+		 * @param bool The filtered value.
+		 * @param int  Original image width.
+		 * @param int  Original image height.
+		 */
+		$proceed = (bool) apply_filters( 'wp_image_resize_identical_dimensions', false, $orig_w, $orig_h );
+
+		if ( ! $proceed ) {
+			return false;
+		}
 	}
 
-	// the return array matches the parameters to imagecopyresampled()
+	// The return array matches the parameters to imagecopyresampled().
 	// int dst_x, int dst_y, int src_x, int src_y, int dst_w, int dst_h, int src_w, int src_h
 	return array( 0, 0, (int) $s_x, (int) $s_y, (int) $new_w, (int) $new_h, (int) $crop_w, (int) $crop_h );
-
 }
 
 /**
@@ -664,7 +698,7 @@ function wp_image_matches_ratio( $source_width, $source_height, $target_width, $
 	}
 
 	// If the image dimensions are within 1px of the expected size, we consider it a match.
-	$matched = ( abs( $constrained_size[0] - $expected_size[0] ) <= 1 && abs( $constrained_size[1] - $expected_size[1] ) <= 1 );
+	$matched = ( wp_fuzzy_number_match( $constrained_size[0], $expected_size[0] ) && wp_fuzzy_number_match( $constrained_size[1], $expected_size[1] ) );
 
 	return $matched;
 }
@@ -910,8 +944,8 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
 				/** This filter is documented in wp-includes/post.php */
 				$icon_dir = apply_filters( 'icon_dir', ABSPATH . WPINC . '/images/media' );
 
-				$src_file                = $icon_dir . '/' . wp_basename( $src );
-				@list( $width, $height ) = getimagesize( $src_file );
+				$src_file               = $icon_dir . '/' . wp_basename( $src );
+				list( $width, $height ) = @getimagesize( $src_file );
 			}
 		}
 
@@ -1200,10 +1234,10 @@ function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attac
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param int   $max_width  The maximum image width to be included in the 'srcset'. Default '1600'.
+	 * @param int   $max_width  The maximum image width to be included in the 'srcset'. Default '2048'.
 	 * @param array $size_array Array of width and height values in pixels (in that order).
 	 */
-	$max_srcset_image_width = apply_filters( 'max_srcset_image_width', 1600, $size_array );
+	$max_srcset_image_width = apply_filters( 'max_srcset_image_width', 2048, $size_array );
 
 	// Array to hold URL candidates.
 	$sources = array();
@@ -1910,8 +1944,10 @@ function gallery_shortcode( $attr ) {
 	 *                    Otherwise, defaults to true.
 	 */
 	if ( apply_filters( 'use_default_gallery_style', ! $html5 ) ) {
+		$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
+
 		$gallery_style = "
-		<style type='text/css'>
+		<style{$type_attr}>
 			#{$selector} {
 				margin: auto;
 			}
@@ -2011,7 +2047,7 @@ function wp_underscore_playlist_templates() {
 	<div class="wp-playlist-caption">
 		<span class="wp-playlist-item-meta wp-playlist-item-title">
 		<?php
-			/* translators: playlist item title */
+			/* translators: %s: Playlist item title. */
 			printf( _x( '&#8220;%s&#8221;', 'playlist item title' ), '{{ data.title }}' );
 		?>
 		</span>
@@ -2028,7 +2064,7 @@ function wp_underscore_playlist_templates() {
 			<# } else { #>
 				<span class="wp-playlist-item-title">
 				<?php
-					/* translators: playlist item title */
+					/* translators: %s: Playlist item title. */
 					printf( _x( '&#8220;%s&#8221;', 'playlist item title' ), '{{{ data.title }}}' );
 				?>
 				</span>
@@ -3560,8 +3596,8 @@ function wp_prepare_attachment_for_js( $attachment ) {
  * @since 3.5.0
  *
  * @global int       $content_width
- * @global wpdb      $wpdb
- * @global WP_Locale $wp_locale
+ * @global wpdb      $wpdb          WordPress database abstraction object.
+ * @global WP_Locale $wp_locale     WordPress date and time locale object.
  *
  * @param array $args {
  *     Arguments for enqueuing media scripts.
@@ -3705,7 +3741,12 @@ function wp_enqueue_media( $args = array() ) {
 		);
 	}
 	foreach ( $months as $month_year ) {
-		$month_year->text = sprintf( __( '%1$s %2$d' ), $wp_locale->get_month( $month_year->month ), $month_year->year );
+		$month_year->text = sprintf(
+			/* translators: 1: Month, 2: Year. */
+			__( '%1$s %2$d' ),
+			$wp_locale->get_month( $month_year->month ),
+			$month_year->year
+		);
 	}
 
 	$settings = array(
@@ -3764,6 +3805,7 @@ function wp_enqueue_media( $args = array() ) {
 
 	$strings = array(
 		// Generic
+		'mediaFrameDefaultTitle'      => __( 'Media' ),
 		'url'                         => __( 'URL' ),
 		'addMedia'                    => __( 'Add Media' ),
 		'search'                      => __( 'Search' ),
@@ -3812,7 +3854,10 @@ function wp_enqueue_media( $args = array() ) {
 		'filterByType'                => __( 'Filter by type' ),
 		'searchMediaLabel'            => __( 'Search Media' ),
 		'searchMediaPlaceholder'      => __( 'Search media items...' ), // placeholder (no ellipsis)
-		'noMedia'                     => __( 'No media files found.' ),
+		'mediaFound'                  => __( 'Number of media items found: %d' ),
+		'mediaFoundHasMoreResults'    => __( 'Number of media items displayed: %d. Scroll the page for more results.' ),
+		'noMedia'                     => __( 'No media items found.' ),
+		'noMediaTryNewSearch'         => __( 'No media items found. Try a different search.' ),
 
 		// Library Details
 		'attachmentDetails'           => __( 'Attachment Details' ),
@@ -3847,7 +3892,7 @@ function wp_enqueue_media( $args = array() ) {
 		'cropImage'                   => __( 'Crop Image' ),
 		'cropYourImage'               => __( 'Crop your image' ),
 		'cropping'                    => __( 'Cropping&hellip;' ),
-		/* translators: 1: suggested width number, 2: suggested height number. */
+		/* translators: 1: Suggested width number, 2: Suggested height number. */
 		'suggestedDimensions'         => __( 'Suggested image dimensions: %1$s by %2$s pixels.' ),
 		'cropError'                   => __( 'There has been an error cropping your image.' ),
 
@@ -4307,10 +4352,11 @@ function wp_media_personal_data_exporter( $email_address, $page = 1 ) {
 			);
 
 			$data_to_export[] = array(
-				'group_id'    => 'media',
-				'group_label' => __( 'Media' ),
-				'item_id'     => "post-{$post->ID}",
-				'data'        => $post_data_to_export,
+				'group_id'          => 'media',
+				'group_label'       => __( 'Media' ),
+				'group_description' => __( 'User&#8217;s media data.' ),
+				'item_id'           => "post-{$post->ID}",
+				'data'              => $post_data_to_export,
 			);
 		}
 	}
@@ -4321,4 +4367,24 @@ function wp_media_personal_data_exporter( $email_address, $page = 1 ) {
 		'data' => $data_to_export,
 		'done' => $done,
 	);
+}
+
+/**
+ * Add additional default image sub-sizes.
+ *
+ * These sizes are meant to enhance the way WordPress displays images on the front-end on larger,
+ * high-density devices. They make it possible to generate more suitable `srcset` and `sizes` attributes
+ * when the users upload large images.
+ *
+ * The sizes can be changed or removed by themes and plugins but that is not recommended.
+ * The size "names" reflect the image dimensions, so changing the sizes would be quite misleading.
+ *
+ * @since 5.3.0
+ * @access private
+ */
+function _wp_add_additional_image_sizes() {
+	// 2x medium_large size
+	add_image_size( '1536x1536', 1536, 1536 );
+	// 2x large size
+	add_image_size( '2048x2048', 2048, 2048 );
 }

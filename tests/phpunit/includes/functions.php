@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/class-basic-object.php';
 
 /**
  * Retrieves PHPUnit runner version.
@@ -21,7 +22,7 @@ function tests_get_phpunit_version() {
 /**
  * Resets various `$_SERVER` variables that can get altered during tests.
  */
-function tests_reset__SERVER() {
+function tests_reset__SERVER() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	$_SERVER['HTTP_HOST']       = WP_TESTS_DOMAIN;
 	$_SERVER['REMOTE_ADDR']     = '127.0.0.1';
 	$_SERVER['REQUEST_METHOD']  = 'GET';
@@ -100,6 +101,7 @@ function _delete_all_data() {
 		$wpdb->term_relationships,
 		$wpdb->termmeta,
 	) as $table ) {
+		//phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->query( "DELETE FROM {$table}" );
 	}
 
@@ -107,6 +109,7 @@ function _delete_all_data() {
 		$wpdb->terms,
 		$wpdb->term_taxonomy,
 	) as $table ) {
+		//phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->query( "DELETE FROM {$table} WHERE term_id != 1" );
 	}
 
@@ -282,12 +285,15 @@ tests_add_filter( 'send_auth_cookies', '__return_false' );
  */
 function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_archives' );
+	remove_action( 'init', 'register_block_core_block' );
 	remove_action( 'init', 'register_block_core_calendar' );
 	remove_action( 'init', 'register_block_core_categories' );
+	remove_action( 'init', 'register_block_core_latest_comments' );
 	remove_action( 'init', 'register_block_core_latest_posts' );
 	remove_action( 'init', 'register_block_core_rss' );
 	remove_action( 'init', 'register_block_core_search' );
 	remove_action( 'init', 'register_block_core_shortcode' );
+	remove_action( 'init', 'register_block_core_social_link' );
 	remove_action( 'init', 'register_block_core_tag_cloud' );
 }
 tests_add_filter( 'init', '_unhook_block_registration', 1000 );

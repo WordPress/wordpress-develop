@@ -33,7 +33,8 @@ $redirect = 'edit.php';
 
 switch ( $action ) {
 	case 'restore':
-		if ( ! $revision = wp_get_post_revision( $revision_id ) ) {
+		$revision = wp_get_post_revision( $revision_id );
+		if ( ! $revision ) {
 			break;
 		}
 
@@ -41,7 +42,8 @@ switch ( $action ) {
 			break;
 		}
 
-		if ( ! $post = get_post( $revision->post_parent ) ) {
+		$post = get_post( $revision->post_parent );
+		if ( ! $post ) {
 			break;
 		}
 
@@ -70,10 +72,13 @@ switch ( $action ) {
 	case 'view':
 	case 'edit':
 	default:
-		if ( ! $revision = wp_get_post_revision( $revision_id ) ) {
+		$revision = wp_get_post_revision( $revision_id );
+		if ( ! $revision ) {
 			break;
 		}
-		if ( ! $post = get_post( $revision->post_parent ) ) {
+
+		$post = get_post( $revision->post_parent );
+		if ( ! $post ) {
 			break;
 		}
 
@@ -89,7 +94,7 @@ switch ( $action ) {
 
 		$post_edit_link = get_edit_post_link();
 		$post_title     = '<a href="' . $post_edit_link . '">' . _draft_or_post_title() . '</a>';
-		/* translators: %s: post title */
+		/* translators: %s: Post title. */
 		$h1             = sprintf( __( 'Compare Revisions of &#8220;%s&#8221;' ), $post_title );
 		$return_to_post = '<a href="' . $post_edit_link . '">' . __( '&larr; Return to editor' ) . '</a>';
 		$title          = __( 'Revisions' );
@@ -110,10 +115,11 @@ if ( ! empty( $redirect ) ) {
 
 // This is so that the correct "Edit" menu item is selected.
 if ( ! empty( $post->post_type ) && 'post' != $post->post_type ) {
-	$parent_file = $submenu_file = 'edit.php?post_type=' . $post->post_type;
+	$parent_file = 'edit.php?post_type=' . $post->post_type;
 } else {
-	$parent_file = $submenu_file = 'edit.php';
+	$parent_file = 'edit.php';
 }
+$submenu_file = $parent_file;
 
 wp_enqueue_script( 'revisions' );
 wp_localize_script( 'revisions', '_wpRevisionsSettings', wp_prepare_revisions_for_js( $post, $revision_id, $from ) );
@@ -136,7 +142,7 @@ get_current_screen()->add_help_tab(
 );
 
 $revisions_sidebar  = '<p><strong>' . __( 'For more information:' ) . '</strong></p>';
-$revisions_sidebar .= '<p>' . __( '<a href="https://codex.wordpress.org/Revision_Management">Revisions Management</a>' ) . '</p>';
+$revisions_sidebar .= '<p>' . __( '<a href="https://wordpress.org/support/article/revisions/">Revisions Management</a>' ) . '</p>';
 $revisions_sidebar .= '<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>';
 
 get_current_screen()->set_help_sidebar( $revisions_sidebar );

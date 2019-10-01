@@ -468,7 +468,7 @@ JS;
 		absint( $height ),
 		esc_attr(
 			sprintf(
-				/* translators: 1: post title, 2: site name */
+				/* translators: 1: Post title, 2: Site title. */
 				__( '&#8220;%1$s&#8221; &#8212; %2$s' ),
 				get_the_title( $post ),
 				get_bloginfo( 'name' )
@@ -929,7 +929,7 @@ function wp_embed_excerpt_more( $more_string ) {
 	$link = sprintf(
 		'<a href="%1$s" class="wp-embed-more" target="_top">%2$s</a>',
 		esc_url( get_permalink() ),
-		/* translators: %s: Name of current post */
+		/* translators: %s: Post title. */
 		sprintf( __( 'Continue reading %s' ), '<span class="screen-reader-text">' . get_the_title() . '</span>' )
 	);
 	return ' &hellip; ' . $link;
@@ -1000,8 +1000,9 @@ function enqueue_embed_scripts() {
  * @since 4.4.0
  */
 function print_embed_styles() {
+	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
 	?>
-	<style type="text/css">
+	<style<?php echo $type_attr; ?>>
 	<?php
 	if ( SCRIPT_DEBUG ) {
 		readfile( ABSPATH . WPINC . '/css/wp-embed-template.css' );
@@ -1031,8 +1032,9 @@ function print_embed_styles() {
  * @since 4.4.0
  */
 function print_embed_scripts() {
+	$type_attr = current_theme_supports( 'html5', 'script' ) ? '' : ' type="text/javascript"';
 	?>
-	<script type="text/javascript">
+	<script<?php echo $type_attr; ?>>
 	<?php
 	if ( SCRIPT_DEBUG ) {
 		readfile( ABSPATH . WPINC . '/js/wp-embed-template.js' );
@@ -1084,6 +1086,7 @@ function print_embed_comments_button() {
 			<span class="dashicons dashicons-admin-comments"></span>
 			<?php
 			printf(
+				/* translators: %s: Number of comments. */
 				_n(
 					'%s <span class="screen-reader-text">Comment</span>',
 					'%s <span class="screen-reader-text">Comments</span>',

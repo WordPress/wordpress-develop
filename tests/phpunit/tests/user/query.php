@@ -53,7 +53,9 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$users = new WP_User_Query();
 
 		$this->assertEquals( '', $users->get( 'fields' ) );
-		$this->assertEquals( '', @$users->query_vars['fields'] );
+		if ( isset( $users->query_vars['fields'] ) ) {
+			$this->assertEquals( '', $users->query_vars['fields'] );
+		}
 
 		$users->set( 'fields', 'all' );
 
@@ -1136,11 +1138,11 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$foundCount    = count( $q->get_results() );
-		$expectedCount = 10; // 13 total users minus 3 from query
+		$found_count    = count( $q->get_results() );
+		$expected_count = 10; // 13 total users minus 3 from query
 
 		$this->assertContains( "AND user_nicename NOT IN ( 'peter','paul','mary' )", $q->query_where );
-		$this->assertEquals( $expectedCount, $foundCount );
+		$this->assertEquals( $expected_count, $found_count );
 	}
 
 	/**
@@ -1237,11 +1239,11 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$foundCount    = count( $q->get_results() );
-		$expectedCount = 10; // 13 total users minus 3 from query
+		$found_count    = count( $q->get_results() );
+		$expected_count = 10; // 13 total users minus 3 from query
 
 		$this->assertContains( "AND user_login NOT IN ( '$user_login1','$user_login2','$user_login3' )", $q->query_where );
-		$this->assertEquals( $expectedCount, $foundCount );
+		$this->assertEquals( $expected_count, $found_count );
 	}
 
 	/**

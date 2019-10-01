@@ -59,11 +59,13 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	public function __construct( $parent_post_type ) {
 		$this->parent_post_type = $parent_post_type;
 		$post_type_object       = get_post_type_object( $parent_post_type );
+		$parent_controller      = $post_type_object->get_rest_controller();
 
-		// Ensure that post type-specific controller logic is available.
-		$parent_controller_class = ! empty( $post_type_object->rest_controller_class ) ? $post_type_object->rest_controller_class : 'WP_REST_Posts_Controller';
+		if ( ! $parent_controller ) {
+			$parent_controller = new WP_REST_Posts_Controller( $parent_post_type );
+		}
 
-		$this->parent_controller    = new $parent_controller_class( $post_type_object->name );
+		$this->parent_controller    = $parent_controller;
 		$this->revisions_controller = new WP_REST_Revisions_Controller( $parent_post_type );
 		$this->rest_namespace       = 'wp/v2';
 		$this->rest_base            = 'autosaves';
@@ -296,6 +298,10 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 * @return array Item schema data.
 	 */
 	public function get_item_schema() {
+		if ( $this->schema ) {
+			return $this->add_additional_fields_schema( $this->schema );
+		}
+
 		$schema = $this->revisions_controller->get_item_schema();
 
 		$schema['properties']['preview_link'] = array(
@@ -306,7 +312,8 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			'readonly'    => true,
 		);
 
-		return $schema;
+		$this->schema = $schema;
+		return $this->add_additional_fields_schema( $this->schema );
 	}
 
 	/**
@@ -353,9 +360,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 				return new WP_Error( 'rest_autosave_no_changes', __( 'There is nothing to save. The autosave and the post content are the same.' ), array( 'status' => 400 ) );
 			}
 
-			/**
-			 * This filter is documented in wp-admin/post.php.
-			 */
+			/** This filter is documented in wp-admin/post.php */
 			do_action( 'wp_creating_autosave', $new_autosave );
 
 			// wp_update_post expects escaped array.

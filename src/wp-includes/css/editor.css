@@ -803,11 +803,6 @@ div.mce-menu .mce-menu-item-sep,
 	margin-top: 2px;
 }
 
-/* Don't show the tooltip. Used in Chrome RTL, see #42018 */
-.rtl .mce-tooltip.wp-hide-mce-tooltip {
-	display: none !important;
-}
-
 .mce-tooltip-inner {
 	border-radius: 3px;
 	box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
@@ -1327,7 +1322,7 @@ i.mce-i-wp_code:before {
 	.wp-core-ui .quicktags-toolbar input.button.button-small {
 		/* .button-small is normally 11px, but a bit too small for these buttons. */
 		font-size: 12px;
-		height: 26px;
+		min-height: 26px;
 		line-height: 2;
 	}
 }
@@ -1458,6 +1453,9 @@ i.mce-i-wp_code:before {
 	box-shadow:
 		0 0 0 1px #5b9dd9,
 		0 0 2px 1px rgba(30, 140, 190, 0.8);
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
+	outline-offset: -2px;
 }
 
 #wp-link-wrap #link-selector {
@@ -1511,7 +1509,6 @@ i.mce-i-wp_code:before {
 }
 
 #wp-link .link-search-field {
-	float: left;
 	width: 250px;
 	max-width: 70%;
 }
@@ -1522,13 +1519,9 @@ i.mce-i-wp_code:before {
 	overflow: hidden;
 }
 
-#wp-link .link-search-wrapper span {
-	float: left;
-	margin-top: 4px;
-}
-
 #wp-link .link-search-wrapper .spinner {
-	margin-top: 5px;
+	float: none;
+	margin: -3px 0 0 4px;
 }
 
 #wp-link .link-target {
@@ -1555,7 +1548,7 @@ i.mce-i-wp_code:before {
 }
 
 .has-text-field #wp-link .query-results {
-	top: 200px;
+	top: 210px;
 }
 
 #wp-link li {
@@ -1783,6 +1776,7 @@ div.wp-link-input input {
 	width: 300px;
 	padding: 3px;
 	box-sizing: border-box;
+	line-height: 1.28571429;
 }
 
 .mce-toolbar div.wp-link-preview ~ .mce-btn,

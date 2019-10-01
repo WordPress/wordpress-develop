@@ -135,7 +135,7 @@ class Test_Functions_Deprecated extends WP_UnitTestCase {
 				$key    = 'file';
 		}
 		foreach ( $search as $v ) {
-			if ( $name == $v[ $key ] ) {
+			if ( $name === $v[ $key ] ) {
 				return $v;
 			}
 		}

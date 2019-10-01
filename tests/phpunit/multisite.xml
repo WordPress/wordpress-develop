@@ -12,14 +12,6 @@
 		<!-- Default test suite to run all tests -->
 		<testsuite name="default">
 			<directory suffix=".php">tests</directory>
-			<file phpVersion="5.3.0">tests/phpunit/tests/actions/closures.php</file>
-			<file phpVersion="5.3.0">tests/phpunit/tests/image/editor.php</file>
-			<file phpVersion="5.3.0">tests/phpunit/tests/image/editorGd.php</file>
-			<file phpVersion="5.3.0">tests/phpunit/tests/image/editorImagick.php</file>
-			<exclude>tests/phpunit/tests/actions/closures.php</exclude>
-			<exclude>tests/phpunit/tests/image/editor.php</exclude>
-			<exclude>tests/phpunit/tests/image/editorGd.php</exclude>
-			<exclude>tests/phpunit/tests/image/editorImagick.php</exclude>
 			<!-- Path relative to the checkout root, for PHPUnit 3.6.x -->
 			<exclude>tests/phpunit/tests/rest-api/rest-autosaves-controller.php</exclude>
 			<!-- Same path relative to the configuration file, for PHPUnit 4.0.0+ -->

@@ -224,11 +224,11 @@ class WP_Customize_Panel {
 	 * @return bool False if theme doesn't support the panel or the user doesn't have the capability.
 	 */
 	final public function check_capabilities() {
-		if ( $this->capability && ! call_user_func_array( 'current_user_can', (array) $this->capability ) ) {
+		if ( $this->capability && ! current_user_can( $this->capability ) ) {
 			return false;
 		}
 
-		if ( $this->theme_supports && ! call_user_func_array( 'current_theme_supports', (array) $this->theme_supports ) ) {
+		if ( $this->theme_supports && ! current_theme_supports( ... (array) $this->theme_supports ) ) {
 			return false;
 		}
 
@@ -358,7 +358,7 @@ class WP_Customize_Panel {
 			<div class="accordion-section-title">
 				<span class="preview-notice">
 				<?php
-					/* translators: %s: the site/panel title in the Customizer */
+					/* translators: %s: The site/panel title in the Customizer. */
 					echo sprintf( __( 'You are customizing %s' ), '<strong class="panel-title">{{ data.title }}</strong>' );
 				?>
 				</span>

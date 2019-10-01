@@ -97,11 +97,7 @@ class Walker_Category extends Walker {
 	 */
 	public function start_el( &$output, $category, $depth = 0, $args = array(), $id = 0 ) {
 		/** This filter is documented in wp-includes/category-template.php */
-		$cat_name = apply_filters(
-			'list_cats',
-			esc_attr( $category->name ),
-			$category
-		);
+		$cat_name = apply_filters( 'list_cats', esc_attr( $category->name ), $category );
 
 		// Don't generate an element if the category name is empty.
 		if ( '' === $cat_name ) {
@@ -165,7 +161,7 @@ class Walker_Category extends Walker {
 			$link .= '<a href="' . esc_url( get_term_feed_link( $category->term_id, $category->taxonomy, $args['feed_type'] ) ) . '"';
 
 			if ( empty( $args['feed'] ) ) {
-				/* translators: %s: category name */
+				/* translators: %s: Category name. */
 				$alt = ' alt="' . sprintf( __( 'Feed for all posts filed under %s' ), $cat_name ) . '"';
 			} else {
 				$alt   = ' alt="' . $args['feed'] . '"';
@@ -200,8 +196,8 @@ class Walker_Category extends Walker {
 			if ( ! empty( $args['current_category'] ) ) {
 				// 'current_category' can be an array, so we use `get_terms()`.
 				$_current_terms = get_terms(
-					$category->taxonomy,
 					array(
+						'taxonomy'   => $category->taxonomy,
 						'include'    => $args['current_category'],
 						'hide_empty' => false,
 					)
@@ -210,6 +206,7 @@ class Walker_Category extends Walker {
 				foreach ( $_current_terms as $_current_term ) {
 					if ( $category->term_id == $_current_term->term_id ) {
 						$css_classes[] = 'current-cat';
+						$link          = str_replace( '<a', '<a aria-current="page"', $link );
 					} elseif ( $category->term_id == $_current_term->parent ) {
 						$css_classes[] = 'current-cat-parent';
 					}

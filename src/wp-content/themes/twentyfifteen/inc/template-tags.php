@@ -23,13 +23,15 @@ if ( ! function_exists( 'twentyfifteen_comment_nav' ) ) :
 		<h2 class="screen-reader-text"><?php _e( 'Comment navigation', 'twentyfifteen' ); ?></h2>
 		<div class="nav-links">
 			<?php
-			if ( $prev_link = get_previous_comments_link( __( 'Older Comments', 'twentyfifteen' ) ) ) :
+			$prev_link = get_previous_comments_link( __( 'Older Comments', 'twentyfifteen' ) );
+			if ( $prev_link ) {
 				printf( '<div class="nav-previous">%s</div>', $prev_link );
-				endif;
+			}
 
-			if ( $next_link = get_next_comments_link( __( 'Newer Comments', 'twentyfifteen' ) ) ) :
+			$next_link = get_next_comments_link( __( 'Newer Comments', 'twentyfifteen' ) );
+			if ( $next_link ) {
 				printf( '<div class="nav-next">%s</div>', $next_link );
-				endif;
+			}
 			?>
 			</div><!-- .nav-links -->
 		</nav><!-- .comment-navigation -->
@@ -126,7 +128,7 @@ if ( ! function_exists( 'twentyfifteen_entry_meta' ) ) :
 
 		if ( ! is_single() && ! post_password_required() && ( comments_open() || get_comments_number() ) ) {
 			echo '<span class="comments-link">';
-			/* translators: %s: post title */
+			/* translators: %s: Post title. */
 			comments_popup_link( sprintf( __( 'Leave a comment<span class="screen-reader-text"> on %s</span>', 'twentyfifteen' ), get_the_title() ) );
 			echo '</span>';
 		}
@@ -141,7 +143,8 @@ endif;
  * @return bool True of there is more than one category, false otherwise.
  */
 function twentyfifteen_categorized_blog() {
-	if ( false === ( $all_the_cool_cats = get_transient( 'twentyfifteen_categories' ) ) ) {
+	$all_the_cool_cats = get_transient( 'twentyfifteen_categories' );
+	if ( false === $all_the_cool_cats ) {
 		// Create an array of all the categories that are attached to posts.
 		$all_the_cool_cats = get_categories(
 			array(
@@ -245,7 +248,7 @@ if ( ! function_exists( 'twentyfifteen_excerpt_more' ) && ! is_admin() ) :
 		$link = sprintf(
 			'<a href="%1$s" class="more-link">%2$s</a>',
 			esc_url( get_permalink( get_the_ID() ) ),
-			/* translators: %s: Name of current post */
+			/* translators: %s: Post title. */
 			sprintf( __( 'Continue reading %s', 'twentyfifteen' ), '<span class="screen-reader-text">' . get_the_title( get_the_ID() ) . '</span>' )
 		);
 		return ' &hellip; ' . $link;

@@ -137,8 +137,8 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 		if ( ! $this->link ) {
 			$this->errors->add(
 				'connect',
-				/* translators: %s: hostname:port */
 				sprintf(
+					/* translators: %s: hostname:port */
 					__( 'Failed to connect to SSH2 Server %s' ),
 					$this->options['hostname'] . ':' . $this->options['port']
 				)
@@ -150,8 +150,8 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 			if ( ! @ssh2_auth_password( $this->link, $this->options['username'], $this->options['password'] ) ) {
 				$this->errors->add(
 					'auth',
-					/* translators: %s: username */
 					sprintf(
+						/* translators: %s: Username. */
 						__( 'Username/Password incorrect for %s' ),
 						$this->options['username']
 					)
@@ -162,8 +162,8 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 			if ( ! @ssh2_auth_pubkey_file( $this->link, $this->options['username'], $this->options['public_key'], $this->options['private_key'], $this->options['password'] ) ) {
 				$this->errors->add(
 					'auth',
-					/* translators: %s: username */
 					sprintf(
+						/* translators: %s: Username. */
 						__( 'Public and Private keys incorrect for %s' ),
 						$this->options['username']
 					)
@@ -176,8 +176,8 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 		if ( ! $this->sftp_link ) {
 			$this->errors->add(
 				'connect',
-				/* translators: %s: hostname:port */
 				sprintf(
+					/* translators: %s: hostname:port */
 					__( 'Failed to initialize a SFTP subsystem session with the SSH2 Server %s' ),
 					$this->options['hostname'] . ':' . $this->options['port']
 				)
@@ -221,11 +221,12 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 			return false;
 		}
 
-		if ( ! ( $stream = ssh2_exec( $this->link, $command ) ) ) {
+		$stream = ssh2_exec( $this->link, $command );
+		if ( ! $stream ) {
 			$this->errors->add(
 				'command',
-				/* translators: %s: command */
 				sprintf(
+					/* translators: %s: Command. */
 					__( 'Unable to perform command: %s' ),
 					$command
 				)
@@ -483,7 +484,17 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 * @return bool True on success, false on failure.
 	 */
 	public function move( $source, $destination, $overwrite = false ) {
-		return @ssh2_sftp_rename( $this->sftp_link, $source, $destination );
+		if ( $this->exists( $destination ) ) {
+			if ( $overwrite ) {
+				// We need to remove the destination file before we can rename the source.
+				$this->delete( $destination, false, 'f' );
+			} else {
+				// If we're not overwriting, the rename will fail, so return early.
+				return false;
+			}
+		}
+
+		return ssh2_sftp_rename( $this->sftp_link, $source, $destination );
 	}
 
 	/**
@@ -710,12 +721,12 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 			$limit_file = false;
 		}
 
-		if ( ! $this->is_dir( $path ) ) {
+		if ( ! $this->is_dir( $path ) || ! $this->is_readable( $path ) ) {
 			return false;
 		}
 
 		$ret = array();
-		$dir = @dir( $this->sftp_path( $path ) );
+		$dir = dir( $this->sftp_path( $path ) );
 
 		if ( ! $dir ) {
 			return false;

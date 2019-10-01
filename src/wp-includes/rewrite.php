@@ -127,7 +127,7 @@ define( 'EP_ALL', EP_PERMALINK | EP_ATTACHMENT | EP_ROOT | EP_COMMENTS | EP_SEAR
  * @since 2.1.0
  * @since 4.4.0 Array support was added to the `$query` parameter.
  *
- * @global WP_Rewrite $wp_rewrite WordPress Rewrite Component.
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param string       $regex Regular expression to match request against.
  * @param string|array $query The corresponding query vars for this rewrite rule.
@@ -149,8 +149,8 @@ function add_rewrite_rule( $regex, $query, $after = 'bottom' ) {
  *
  * @since 2.1.0
  *
- * @global WP_Rewrite $wp_rewrite
- * @global WP         $wp
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+ * @global WP         $wp         Current WordPress environment instance.
  *
  * @param string $tag   Name of the new rewrite tag.
  * @param string $regex Regular expression to substitute the tag for in rewrite rules.
@@ -238,7 +238,7 @@ function remove_permastruct( $name ) {
  *
  * @since 2.1.0
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param string   $feedname Feed name.
  * @param callable $function Callback to run on feed display.
@@ -266,14 +266,17 @@ function add_feed( $feedname, $function ) {
  *
  * @since 3.0.0
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param bool $hard Whether to update .htaccess (hard flush) or just update
  *                   rewrite_rules transient (soft flush). Default is true (hard).
  */
 function flush_rewrite_rules( $hard = true ) {
 	global $wp_rewrite;
-	$wp_rewrite->flush_rules( $hard );
+
+	if ( is_callable( array( $wp_rewrite, 'flush_rules' ) ) ) {
+		$wp_rewrite->flush_rules( $hard );
+	}
 }
 
 /**
@@ -301,7 +304,7 @@ function flush_rewrite_rules( $hard = true ) {
  * @since 2.1.0
  * @since 4.3.0 Added support for skipping query var registration by passing `false` to `$query_var`.
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param string      $name      Name of the endpoint.
  * @param int         $places    Endpoint mask describing the places the endpoint should be added.
@@ -456,8 +459,8 @@ function wp_resolve_numeric_slug_conflicts( $query_vars = array() ) {
  *
  * @since 1.0.0
  *
- * @global WP_Rewrite $wp_rewrite
- * @global WP         $wp
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+ * @global WP         $wp         Current WordPress environment instance.
  *
  * @param string $url Permalink to check.
  * @return int Post ID, or 0 on failure.

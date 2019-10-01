@@ -380,6 +380,7 @@ class Featured_Content {
 			array(
 				'title'          => __( 'Featured Content', 'twentyfourteen' ),
 				'description'    => sprintf(
+					/* translators: 1: Featured tag editor URL, 2: Post editor URL. */
 					__( 'Use a <a href="%1$s">tag</a> to feature your posts. If no posts match the tag, <a href="%2$s">sticky posts</a> will be displayed instead.', 'twentyfourteen' ),
 					esc_url( add_query_arg( 'tag', _x( 'featured', 'featured content default tag slug', 'twentyfourteen' ), admin_url( 'edit.php' ) ) ),
 					admin_url( 'edit.php?show_sticky=1' )
@@ -433,7 +434,7 @@ class Featured_Content {
 	 * @since Twenty Fourteen 1.0
 	 */
 	public static function enqueue_scripts() {
-		wp_enqueue_script( 'featured-content-suggest', get_template_directory_uri() . '/js/featured-content-admin.js', array( 'jquery', 'suggest' ), '20131022', true );
+		wp_enqueue_script( 'featured-content-suggest', get_template_directory_uri() . '/js/featured-content-admin.js', array( 'jquery', 'suggest' ), '20131205', true );
 	}
 
 	/**

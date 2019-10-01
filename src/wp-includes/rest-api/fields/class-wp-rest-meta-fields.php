@@ -143,6 +143,21 @@ abstract class WP_REST_Meta_Fields {
 			 * from the database and then relying on the default value.
 			 */
 			if ( is_null( $meta[ $name ] ) ) {
+				$args = $this->get_registered_fields()[ $meta_key ];
+
+				if ( $args['single'] ) {
+					$current = get_metadata( $this->get_meta_type(), $object_id, $meta_key, true );
+
+					if ( is_wp_error( rest_validate_value_from_schema( $current, $args['schema'] ) ) ) {
+						return new WP_Error(
+							'rest_invalid_stored_value',
+							/* translators: %s: Custom field key. */
+							sprintf( __( 'The %s property has an invalid stored value, and cannot be updated to null.' ), $name ),
+							array( 'status' => 500 )
+						);
+					}
+				}
+
 				$result = $this->delete_meta_value( $object_id, $meta_key, $name );
 				if ( is_wp_error( $result ) ) {
 					return $result;
@@ -150,13 +165,24 @@ abstract class WP_REST_Meta_Fields {
 				continue;
 			}
 
-			$is_valid = rest_validate_value_from_schema( $meta[ $name ], $args['schema'], 'meta.' . $name );
+			$value = $meta[ $name ];
+
+			if ( ! $args['single'] && is_array( $value ) && count( array_filter( $value, 'is_null' ) ) ) {
+				return new WP_Error(
+					'rest_invalid_stored_value',
+					/* translators: %s: Custom field key. */
+					sprintf( __( 'The %s property has an invalid stored value, and cannot be updated to null.' ), $name ),
+					array( 'status' => 500 )
+				);
+			}
+
+			$is_valid = rest_validate_value_from_schema( $value, $args['schema'], 'meta.' . $name );
 			if ( is_wp_error( $is_valid ) ) {
 				$is_valid->add_data( array( 'status' => 400 ) );
 				return $is_valid;
 			}
 
-			$value = rest_sanitize_value_from_schema( $meta[ $name ], $args['schema'] );
+			$value = rest_sanitize_value_from_schema( $value, $args['schema'] );
 
 			if ( $args['single'] ) {
 				$result = $this->update_meta_value( $object_id, $meta_key, $name, $value );
@@ -187,7 +213,7 @@ abstract class WP_REST_Meta_Fields {
 		if ( ! current_user_can( "delete_{$meta_type}_meta", $object_id, $meta_key ) ) {
 			return new WP_Error(
 				'rest_cannot_delete',
-				/* translators: %s: custom field key */
+				/* translators: %s: Custom field key. */
 				sprintf( __( 'Sorry, you are not allowed to edit the %s custom field.' ), $name ),
 				array(
 					'key'    => $name,
@@ -228,7 +254,7 @@ abstract class WP_REST_Meta_Fields {
 		if ( ! current_user_can( "edit_{$meta_type}_meta", $object_id, $meta_key ) ) {
 			return new WP_Error(
 				'rest_cannot_update',
-				/* translators: %s: custom field key */
+				/* translators: %s: Custom field key. */
 				sprintf( __( 'Sorry, you are not allowed to edit the %s custom field.' ), $name ),
 				array(
 					'key'    => $name,
@@ -260,14 +286,17 @@ abstract class WP_REST_Meta_Fields {
 			unset( $to_add[ $add_key ] );
 		}
 
-		// `delete_metadata` removes _all_ instances of the value, so only call once.
-		$to_remove = array_unique( $to_remove );
+		// `delete_metadata` removes _all_ instances of the value, so only call once. Otherwise,
+		// `delete_metadata` will return false for subsequent calls of the same value.
+		// Use serialization to produce a predictable string that can be used by array_unique.
+		$to_remove = array_map( 'maybe_unserialize', array_unique( array_map( 'maybe_serialize', $to_remove ) ) );
 
 		foreach ( $to_remove as $value ) {
 			if ( ! delete_metadata( $meta_type, $object_id, wp_slash( $meta_key ), wp_slash( $value ) ) ) {
 				return new WP_Error(
 					'rest_meta_database_error',
-					__( 'Could not update meta value in database.' ),
+					/* translators: %s: Custom field key. */
+					sprintf( __( 'Could not update the meta value of %s in database.' ), $meta_key ),
 					array(
 						'key'    => $name,
 						'status' => WP_Http::INTERNAL_SERVER_ERROR,
@@ -280,7 +309,8 @@ abstract class WP_REST_Meta_Fields {
 			if ( ! add_metadata( $meta_type, $object_id, wp_slash( $meta_key ), wp_slash( $value ) ) ) {
 				return new WP_Error(
 					'rest_meta_database_error',
-					__( 'Could not update meta value in database.' ),
+					/* translators: %s: Custom field key. */
+					sprintf( __( 'Could not update the meta value of %s in database.' ), $meta_key ),
 					array(
 						'key'    => $name,
 						'status' => WP_Http::INTERNAL_SERVER_ERROR,
@@ -308,7 +338,7 @@ abstract class WP_REST_Meta_Fields {
 		if ( ! current_user_can( "edit_{$meta_type}_meta", $object_id, $meta_key ) ) {
 			return new WP_Error(
 				'rest_cannot_update',
-				/* translators: %s: custom field key */
+				/* translators: %s: Custom field key. */
 				sprintf( __( 'Sorry, you are not allowed to edit the %s custom field.' ), $name ),
 				array(
 					'key'    => $name,
@@ -320,9 +350,17 @@ abstract class WP_REST_Meta_Fields {
 		// Do the exact same check for a duplicate value as in update_metadata() to avoid update_metadata() returning false.
 		$old_value = get_metadata( $meta_type, $object_id, $meta_key );
 		$subtype   = get_object_subtype( $meta_type, $object_id );
+		$args      = $this->get_registered_fields()[ $meta_key ];
 
 		if ( 1 === count( $old_value ) ) {
-			if ( (string) sanitize_meta( $meta_key, $value, $meta_type, $subtype ) === $old_value[0] ) {
+			$sanitized = sanitize_meta( $meta_key, $value, $meta_type, $subtype );
+
+			if ( in_array( $args['type'], array( 'string', 'number', 'integer', 'boolean' ), true ) ) {
+				// The return value of get_metadata will always be a string for scalar types.
+				$sanitized = (string) $sanitized;
+			}
+
+			if ( $sanitized === $old_value[0] ) {
 				return true;
 			}
 		}
@@ -330,7 +368,8 @@ abstract class WP_REST_Meta_Fields {
 		if ( ! update_metadata( $meta_type, $object_id, wp_slash( $meta_key ), wp_slash( $value ) ) ) {
 			return new WP_Error(
 				'rest_meta_database_error',
-				__( 'Could not update meta value in database.' ),
+				/* translators: %s: Custom field key. */
+				sprintf( __( 'Could not update the meta value of %s in database.' ), $meta_key ),
 				array(
 					'key'    => $name,
 					'status' => WP_Http::INTERNAL_SERVER_ERROR,
@@ -390,15 +429,21 @@ abstract class WP_REST_Meta_Fields {
 			$type = ! empty( $rest_args['type'] ) ? $rest_args['type'] : null;
 			$type = ! empty( $rest_args['schema']['type'] ) ? $rest_args['schema']['type'] : $type;
 
-			if ( ! in_array( $type, array( 'string', 'boolean', 'integer', 'number' ) ) ) {
+			if ( null === $rest_args['schema']['default'] ) {
+				$rest_args['schema']['default'] = $this->get_default_for_type( $type );
+			}
+
+			$rest_args['schema'] = $this->default_additional_properties_to_false( $rest_args['schema'] );
+
+			if ( ! in_array( $type, array( 'string', 'boolean', 'integer', 'number', 'array', 'object' ) ) ) {
 				continue;
 			}
 
 			if ( empty( $rest_args['single'] ) ) {
-				$rest_args['schema']['items'] = array(
-					'type' => $rest_args['type'],
+				$rest_args['schema'] = array(
+					'type'  => 'array',
+					'items' => $rest_args['schema'],
 				);
-				$rest_args['schema']['type']  = 'array';
 			}
 
 			$registered[ $name ] = $rest_args;
@@ -449,34 +494,18 @@ abstract class WP_REST_Meta_Fields {
 	 * @return mixed Value prepared for output. If a non-JsonSerializable object, null.
 	 */
 	public static function prepare_value( $value, $request, $args ) {
-		$type = $args['schema']['type'];
 
-		// For multi-value fields, check the item type instead.
-		if ( 'array' === $type && ! empty( $args['schema']['items']['type'] ) ) {
-			$type = $args['schema']['items']['type'];
+		if ( $args['single'] ) {
+			$schema = $args['schema'];
+		} else {
+			$schema = $args['schema']['items'];
 		}
 
-		switch ( $type ) {
-			case 'string':
-				$value = (string) $value;
-				break;
-			case 'integer':
-				$value = (int) $value;
-				break;
-			case 'number':
-				$value = (float) $value;
-				break;
-			case 'boolean':
-				$value = (bool) $value;
-				break;
-		}
-
-		// Don't allow objects to be output.
-		if ( is_object( $value ) && ! ( $value instanceof JsonSerializable ) ) {
+		if ( is_wp_error( rest_validate_value_from_schema( $value, $schema ) ) ) {
 			return null;
 		}
 
-		return $value;
+		return rest_sanitize_value_from_schema( $value, $schema );
 	}
 
 	/**
@@ -484,9 +513,9 @@ abstract class WP_REST_Meta_Fields {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param  mixed           $value   The meta value submitted in the request.
-	 * @param  WP_REST_Request $request Full details about the request.
-	 * @param  string          $param   The parameter name.
+	 * @param mixed           $value   The meta value submitted in the request.
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @param string          $param   The parameter name.
 	 * @return WP_Error|string The meta array, if valid, otherwise an error.
 	 */
 	public function check_meta_is_array( $value, $request, $param ) {
@@ -495,5 +524,63 @@ abstract class WP_REST_Meta_Fields {
 		}
 
 		return $value;
+	}
+
+	/**
+	 * Recursively add additionalProperties = false to all objects in a schema if no additionalProperties setting
+	 * is specified.
+	 *
+	 * This is needed to restrict properties of objects in meta values to only
+	 * registered items, as the REST API will allow additional properties by
+	 * default.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param array $schema The schema array.
+	 * @return array
+	 */
+	protected function default_additional_properties_to_false( $schema ) {
+		switch ( $schema['type'] ) {
+			case 'object':
+				foreach ( $schema['properties'] as $key => $child_schema ) {
+					$schema['properties'][ $key ] = $this->default_additional_properties_to_false( $child_schema );
+				}
+
+				if ( ! isset( $schema['additionalProperties'] ) ) {
+					$schema['additionalProperties'] = false;
+				}
+				break;
+			case 'array':
+				$schema['items'] = $this->default_additional_properties_to_false( $schema['items'] );
+				break;
+		}
+
+		return $schema;
+	}
+
+	/**
+	 * Gets the default value for a schema type.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param string $type The schema type.
+	 * @return mixed
+	 */
+	protected function get_default_for_type( $type ) {
+		switch ( $type ) {
+			case 'string':
+				return '';
+			case 'boolean':
+				return false;
+			case 'integer':
+				return 0;
+			case 'number':
+				return 0.0;
+			case 'array':
+			case 'object':
+				return array();
+			default:
+				return null;
+		}
 	}
 }

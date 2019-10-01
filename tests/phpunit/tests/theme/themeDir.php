@@ -145,7 +145,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 
 		// Ignore themes in the default /themes directory.
 		foreach ( $themes as $theme_name => $theme ) {
-			if ( $theme->get_theme_root() != $this->theme_root ) {
+			if ( $theme->get_theme_root() !== $this->theme_root ) {
 				unset( $themes[ $theme_name ] );
 			}
 		}
@@ -209,7 +209,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 		$this->assertFalse( empty( $theme ) );
 
 		$templates = $theme['Template Files'];
-		$this->assertTrue( in_array( $this->theme_root . '/page-templates/template-top-level.php', $templates ) );
+		$this->assertTrue( in_array( $this->theme_root . '/page-templates/template-top-level.php', $templates, true ) );
 	}
 
 	/**

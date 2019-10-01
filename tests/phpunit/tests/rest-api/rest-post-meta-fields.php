@@ -1176,7 +1176,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 38323
+	 * @ticket       38323
 	 * @dataProvider data_get_subtype_meta_value
 	 */
 	public function test_get_subtype_meta_value( $post_type, $meta_key, $single, $in_post_type ) {
@@ -1228,7 +1228,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 38323
+	 * @ticket       38323
 	 * @dataProvider data_set_subtype_meta_value
 	 */
 	public function test_set_subtype_meta_value( $post_type, $meta_key, $single, $in_post_type, $can_write ) {
@@ -1256,6 +1256,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		if ( ! $can_write ) {
 			$this->assertEquals( 403, $response->get_status() );
 			$this->assertEmpty( get_post_meta( $post_id, $meta_key, $single ) );
+
 			return;
 		}
 
@@ -1298,7 +1299,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 42069
+	 * @ticket       42069
 	 * @dataProvider data_update_value_return_success_with_same_value
 	 */
 	public function test_update_value_return_success_with_same_value( $meta_key, $meta_value ) {
@@ -1345,6 +1346,922 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 		$this->assertArrayHasKey( 'test\'slashed\'key', $data['meta'] );
 		$this->assertEquals( 'Hello', $data['meta']['test\'slashed\'key'] );
+	}
+
+	/**
+	 * @ticket 43392
+	 */
+	public function test_object_single() {
+		$this->grant_write_permission();
+
+		register_post_meta(
+			'post',
+			'object',
+			array(
+				'single'       => true,
+				'type'         => 'object',
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'project' => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'object' => array(
+						'project' => 'WordPress',
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertArrayHasKey( 'object', $data['meta'] );
+		$this->assertArrayHasKey( 'project', $data['meta']['object'] );
+		$this->assertEquals( 'WordPress', $data['meta']['object']['project'] );
+
+		$meta = get_post_meta( self::$post_id, 'object', true );
+		$this->assertArrayHasKey( 'project', $meta );
+		$this->assertEquals( 'WordPress', $meta['project'] );
+	}
+
+	/**
+	 * @ticket 43392
+	 */
+	public function test_object_multiple() {
+		$this->grant_write_permission();
+
+		register_post_meta(
+			'post',
+			'object',
+			array(
+				'single'       => false,
+				'type'         => 'object',
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'project' => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'object' => array(
+						array(
+							'project' => 'WordPress',
+						),
+						array(
+							'project' => 'bbPress',
+						),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertArrayHasKey( 'object', $data['meta'] );
+		$this->assertCount( 2, $data['meta']['object'] );
+
+		$this->assertArrayHasKey( 'project', $data['meta']['object'][0] );
+		$this->assertEquals( 'WordPress', $data['meta']['object'][0]['project'] );
+
+		$this->assertArrayHasKey( 'project', $data['meta']['object'][1] );
+		$this->assertEquals( 'bbPress', $data['meta']['object'][1]['project'] );
+
+		$meta = get_post_meta( self::$post_id, 'object' );
+
+		$this->assertCount( 2, $meta );
+
+		$this->assertArrayHasKey( 'project', $meta[0] );
+		$this->assertEquals( 'WordPress', $meta[0]['project'] );
+
+		$this->assertArrayHasKey( 'project', $meta[1] );
+		$this->assertEquals( 'bbPress', $meta[1]['project'] );
+	}
+
+	/**
+	 * @ticket 43392
+	 */
+	public function test_array_single() {
+		$this->grant_write_permission();
+
+		register_post_meta(
+			'post',
+			'list',
+			array(
+				'single'       => true,
+				'type'         => 'array',
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'  => 'array',
+						'items' => array(
+							'type' => 'string',
+						),
+					),
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'list' => array( 'WordPress', 'bbPress' ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertArrayHasKey( 'list', $data['meta'] );
+		$this->assertEquals( array( 'WordPress', 'bbPress' ), $data['meta']['list'] );
+
+		$meta = get_post_meta( self::$post_id, 'list', true );
+		$this->assertEquals( array( 'WordPress', 'bbPress' ), $meta );
+	}
+
+	/**
+	 * @ticket 43392
+	 */
+	public function test_array_of_objects_multiple() {
+		$this->grant_write_permission();
+
+		register_post_meta(
+			'post',
+			'list_of_objects',
+			array(
+				'single'       => false,
+				'type'         => 'array',
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'  => 'array',
+						'items' => array(
+							'type'       => 'object',
+							'properties' => array(
+								'version' => array(
+									'type' => 'string',
+								),
+								'artist'  => array(
+									'type' => 'string',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'list_of_objects' => array(
+						// Meta 1
+						array(
+							array(
+								'version' => '5.2',
+								'artist'  => 'Jaco',
+							),
+							array(
+								'version' => '5.1',
+								'artist'  => 'Betty',
+							),
+						),
+						// Meta 2
+						array(
+							array(
+								'version' => '4.9',
+								'artist'  => 'Tipton',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertArrayHasKey( 'list_of_objects', $data['meta'] );
+		$this->assertCount( 2, $data['meta']['list_of_objects'] );
+
+		$this->assertEquals(
+			array(
+				array(
+					'version' => '5.2',
+					'artist'  => 'Jaco',
+				),
+				array(
+					'version' => '5.1',
+					'artist'  => 'Betty',
+				),
+			),
+			$data['meta']['list_of_objects'][0]
+		);
+
+		$this->assertEquals(
+			array(
+				array(
+					'version' => '4.9',
+					'artist'  => 'Tipton',
+				),
+			),
+			$data['meta']['list_of_objects'][1]
+		);
+
+		$meta = get_post_meta( self::$post_id, 'list_of_objects' );
+
+		$this->assertCount( 2, $meta );
+
+		$this->assertEquals(
+			array(
+				array(
+					'version' => '5.2',
+					'artist'  => 'Jaco',
+				),
+				array(
+					'version' => '5.1',
+					'artist'  => 'Betty',
+				),
+			),
+			$meta[0]
+		);
+
+		$this->assertEquals(
+			array(
+				array(
+					'version' => '4.9',
+					'artist'  => 'Tipton',
+				),
+			),
+			$meta[1]
+		);
+	}
+
+	/**
+	 * @ticket 43392
+	 */
+	public function test_php_objects_returned_as_null() {
+		register_post_meta(
+			'post',
+			'object',
+			array(
+				'single'       => true,
+				'type'         => 'object',
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'project' => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$basic          = new Basic_Object();
+		$basic->project = 'WordPress';
+		update_post_meta( self::$post_id, 'object', $basic );
+
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertArrayHasKey( 'object', $data['meta'] );
+		$this->assertNull( $data['meta']['object'] );
+	}
+
+	/**
+	 * @ticket 43392
+	 */
+	public function test_php_objects_returned_as_null_multiple() {
+		register_post_meta(
+			'post',
+			'object',
+			array(
+				'single'       => false,
+				'type'         => 'object',
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'project' => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$basic          = new Basic_Object();
+		$basic->project = 'WordPress';
+		add_post_meta( self::$post_id, 'object', array( 'project' => 'bbPress' ) );
+		add_post_meta( self::$post_id, 'object', $basic );
+
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertArrayHasKey( 'object', $data['meta'] );
+		$this->assertCount( 2, $data['meta']['object'] );
+		$this->assertEquals( array( 'project' => 'bbPress' ), $data['meta']['object'][0] );
+		$this->assertNull( $data['meta']['object'][1] );
+	}
+
+	/**
+	 * @ticket 43392
+	 */
+	public function test_php_jsonserializable_object_returns_value() {
+		require_once __DIR__ . '/../../includes/class-jsonserializable-object.php';
+
+		register_post_meta(
+			'post',
+			'object',
+			array(
+				'single'       => true,
+				'type'         => 'object',
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'project' => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		update_post_meta( self::$post_id, 'object', new JsonSerializable_Object( array( 'project' => 'WordPress' ) ) );
+
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertArrayHasKey( 'object', $data['meta'] );
+		$this->assertEquals( array( 'project' => 'WordPress' ), $data['meta']['object'] );
+	}
+
+	/**
+	 * @ticket 43392
+	 */
+	public function test_updating_meta_to_null_for_key_with_existing_php_object_does_not_delete_meta_value() {
+		$this->grant_write_permission();
+
+		register_post_meta(
+			'post',
+			'object',
+			array(
+				'single'       => true,
+				'type'         => 'object',
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'project' => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$basic          = new Basic_Object();
+		$basic->project = 'WordPress';
+		update_post_meta( self::$post_id, 'object', $basic );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'object' => null,
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 500, $response->get_status() );
+	}
+
+	/**
+	 * @ticket 43392
+	 */
+	public function test_updating_non_single_meta_to_null_for_key_with_existing_php_object_does_not_set_meta_value_to_null() {
+		$this->grant_write_permission();
+
+		register_post_meta(
+			'post',
+			'object',
+			array(
+				'single'       => false,
+				'type'         => 'object',
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'project' => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$basic          = new Basic_Object();
+		$basic->project = 'WordPress';
+		add_post_meta( self::$post_id, 'object', array( 'project' => 'bbPress' ) );
+		add_post_meta( self::$post_id, 'object', $basic );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'object' => array(
+						array( 'project' => 'BuddyPress' ),
+						null,
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 500, $response->get_status() );
+	}
+
+	/**
+	 * @ticket 43392
+	 */
+	public function test_object_rejects_additional_properties_by_default() {
+		$this->grant_write_permission();
+
+		register_post_meta(
+			'post',
+			'object',
+			array(
+				'single'       => true,
+				'type'         => 'object',
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'project' => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'object' => array(
+						'project'     => 'BuddyPress',
+						'awesomeness' => 100,
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 400, $response->get_status() );
+	}
+
+	/**
+	 * @ticket 43392
+	 */
+	public function test_object_allows_additional_properties_if_explicitly_set() {
+		$this->grant_write_permission();
+
+		$value = array(
+			'project'     => 'BuddyPress',
+			'awesomeness' => 100,
+		);
+
+		register_post_meta(
+			'post',
+			'object',
+			array(
+				'single'       => true,
+				'type'         => 'object',
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'                 => 'object',
+						'additionalProperties' => true,
+						'properties'           => array(
+							'project' => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'object' => $value,
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEquals( $value, $response->get_data()['meta']['object'] );
+
+		$this->assertEquals( $value, get_post_meta( self::$post_id, 'object', true ) );
+	}
+
+	/**
+	 * @ticket 43392
+	 */
+	public function test_object_allows_additional_properties_and_uses_its_schema() {
+		$this->grant_write_permission();
+
+		$value = array(
+			'project'     => 'BuddyPress',
+			'awesomeness' => 'fabulous',
+		);
+
+		register_post_meta(
+			'post',
+			'object',
+			array(
+				'single'       => true,
+				'type'         => 'object',
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'                 => 'object',
+						'additionalProperties' => array(
+							'type' => 'number',
+						),
+						'properties'           => array(
+							'project' => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'object' => $value,
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 400, $response->get_status() );
+	}
+
+	/**
+	 * @ticket 43392
+	 */
+	public function test_invalid_meta_value_are_set_to_null_in_response() {
+		register_post_meta(
+			'post',
+			'email',
+			array(
+				'single'       => true,
+				'type'         => 'string',
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'   => 'string',
+						'format' => 'email',
+					),
+				),
+			)
+		);
+
+		update_post_meta( self::$post_id, 'email', 'invalid_meta_value' );
+
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertNull( $response->get_data()['meta']['email'] );
+	}
+
+	/**
+	 * @ticket 43392
+	 */
+	public function test_meta_values_are_not_set_to_null_in_response_if_type_safely_serializable() {
+		register_post_meta(
+			'post',
+			'boolean',
+			array(
+				'single'       => true,
+				'show_in_rest' => true,
+				'type'         => 'boolean',
+			)
+		);
+
+		update_post_meta( self::$post_id, 'boolean', 'true' );
+
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertTrue( $response->get_data()['meta']['boolean'] );
+	}
+
+	/**
+	 * @ticket 43392
+	 */
+	public function test_update_multi_meta_value_object() {
+		register_post_meta(
+			'post',
+			'object',
+			array(
+				'single'       => false,
+				'type'         => 'object',
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'project' => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		add_post_meta(
+			self::$post_id,
+			'object',
+			array(
+				'project' => 'WordPress',
+			)
+		);
+		add_post_meta(
+			self::$post_id,
+			'object',
+			array(
+				'project' => 'bbPress',
+			)
+		);
+
+		$this->grant_write_permission();
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'object' => array(
+						array( 'project' => 'WordPress' ),
+						array( 'project' => 'BuddyPress' ),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'object', $data['meta'] );
+
+		$this->assertCount( 2, $data['meta']['object'] );
+		$this->assertEquals( array( 'project' => 'WordPress' ), $data['meta']['object'][0] );
+		$this->assertEquals( array( 'project' => 'BuddyPress' ), $data['meta']['object'][1] );
+
+		$meta = get_post_meta( self::$post_id, 'object' );
+		$this->assertCount( 2, $meta );
+		$this->assertEquals( array( 'project' => 'WordPress' ), $meta[0] );
+		$this->assertEquals( array( 'project' => 'BuddyPress' ), $meta[1] );
+	}
+
+	/**
+	 * @ticket 43392
+	 */
+	public function test_update_multi_meta_value_array() {
+		register_post_meta(
+			'post',
+			'list',
+			array(
+				'type'         => 'array',
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'  => 'array',
+						'items' => array(
+							'type' => 'string',
+						),
+					),
+				),
+			)
+		);
+
+		add_post_meta( self::$post_id, 'list', array( 'WordPress', 'bbPress' ) );
+		add_post_meta( self::$post_id, 'list', array( 'WordCamp' ) );
+
+		$this->grant_write_permission();
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'list' => array(
+						array( 'WordPress', 'bbPress' ),
+						array( 'BuddyPress' ),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'list', $data['meta'] );
+
+		$this->assertCount( 2, $data['meta']['list'] );
+		$this->assertEquals( array( 'WordPress', 'bbPress' ), $data['meta']['list'][0] );
+		$this->assertEquals( array( 'BuddyPress' ), $data['meta']['list'][1] );
+
+		$meta = get_post_meta( self::$post_id, 'list' );
+		$this->assertCount( 2, $meta );
+		$this->assertEquals( array( 'WordPress', 'bbPress' ), $meta[0] );
+		$this->assertEquals( array( 'BuddyPress' ), $meta[1] );
+	}
+
+	/**
+	 * @ticket 47928
+	 */
+	public function test_update_meta_with_unchanged_array_values() {
+		register_post_meta(
+			'post',
+			'list',
+			array(
+				'single'       => true,
+				'type'         => 'array',
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'  => 'array',
+						'items' => array(
+							'type' => 'string',
+						),
+					),
+				),
+			)
+		);
+
+		add_post_meta( self::$post_id, 'list', array( 'WordCamp' ) );
+
+		$this->grant_write_permission();
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'list' => array( 'WordCamp' ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertEquals( array( 'WordCamp' ), $data['meta']['list'] );
+	}
+
+	/**
+	 * @ticket 47928
+	 */
+	public function test_update_meta_with_unchanged_object_values() {
+		register_post_meta(
+			'post',
+			'object',
+			array(
+				'single'       => true,
+				'type'         => 'object',
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'project' => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		add_post_meta( self::$post_id, 'object', array( 'project' => 'WordCamp' ) );
+
+		$this->grant_write_permission();
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'object' => array( 'project' => 'WordCamp' ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertEquals( array( 'project' => 'WordCamp' ), $data['meta']['object'] );
+	}
+
+	/**
+	 * @ticket 43392
+	 */
+	public function test_register_meta_issues_doing_it_wrong_when_show_in_rest_is_true() {
+		$this->setExpectedIncorrectUsage( 'register_meta' );
+
+		$registered = register_meta(
+			'post',
+			'invalid_array',
+			array(
+				'type'         => 'array',
+				'show_in_rest' => true,
+			)
+		);
+
+		self::assertFalse( $registered );
+	}
+
+	/**
+	 * @ticket 43392
+	 */
+	public function test_register_meta_issues_doing_it_wrong_when_show_in_rest_omits_schema() {
+		$this->setExpectedIncorrectUsage( 'register_meta' );
+
+		$registered = register_meta(
+			'post',
+			'invalid_array',
+			array(
+				'type'         => 'array',
+				'show_in_rest' => array(
+					'prepare_callback' => 'rest_sanitize_value_from_schema',
+				),
+			)
+		);
+
+		self::assertFalse( $registered );
+	}
+
+	/**
+	 * @ticket 43392
+	 */
+	public function test_register_meta_issues_doing_it_wrong_when_show_in_rest_omits_schema_items() {
+		$this->setExpectedIncorrectUsage( 'register_meta' );
+
+		$registered = register_meta(
+			'post',
+			'invalid_array',
+			array(
+				'type'         => 'array',
+				'show_in_rest' => array(
+					'schema' => array(
+						'default' => array( 'Hi!' ),
+					),
+				),
+			)
+		);
+
+		self::assertFalse( $registered );
 	}
 
 	/**

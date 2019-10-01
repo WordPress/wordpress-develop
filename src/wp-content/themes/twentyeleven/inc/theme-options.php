@@ -17,8 +17,8 @@
  * @param string $hook_suffix An admin page's hook suffix.
  */
 function twentyeleven_admin_enqueue_scripts( $hook_suffix ) {
-	wp_enqueue_style( 'twentyeleven-theme-options', get_template_directory_uri() . '/inc/theme-options.css', false, '2011-04-28' );
-	wp_enqueue_script( 'twentyeleven-theme-options', get_template_directory_uri() . '/inc/theme-options.js', array( 'farbtastic' ), '2011-06-10' );
+	wp_enqueue_style( 'twentyeleven-theme-options', get_template_directory_uri() . '/inc/theme-options.css', false, '20110602' );
+	wp_enqueue_script( 'twentyeleven-theme-options', get_template_directory_uri() . '/inc/theme-options.js', array( 'farbtastic' ), '20110610' );
 	wp_enqueue_style( 'farbtastic' );
 }
 add_action( 'admin_print_styles-appearance_page_theme_options', 'twentyeleven_admin_enqueue_scripts' );
@@ -103,7 +103,7 @@ function twentyeleven_theme_options_add_page() {
 		return;
 	}
 
-	add_action( "load-$theme_page", 'twentyeleven_theme_options_help' );
+	add_action( "load-{$theme_page}", 'twentyeleven_theme_options_help' );
 }
 add_action( 'admin_menu', 'twentyeleven_theme_options_add_page' );
 
@@ -118,7 +118,7 @@ function twentyeleven_theme_options_help() {
 			'<p>' . __( 'Remember to click "Save Changes" to save any changes you have made to the theme options.', 'twentyeleven' ) . '</p>';
 
 	$sidebar = '<p><strong>' . __( 'For more information:', 'twentyeleven' ) . '</strong></p>' .
-		'<p>' . __( '<a href="https://codex.wordpress.org/Appearance_Theme_Options_Screen" target="_blank">Documentation on Theme Options</a>', 'twentyeleven' ) . '</p>' .
+		'<p>' . __( '<a href="https://wordpress.org/support/article/appearance-customize-screen/" target="_blank">Documentation on Theme Options</a>', 'twentyeleven' ) . '</p>' .
 		'<p>' . __( '<a href="https://wordpress.org/support/" target="_blank">Support</a>', 'twentyeleven' ) . '</p>';
 
 	$screen = get_current_screen();
@@ -302,7 +302,12 @@ function twentyeleven_settings_field_link_color() {
 	<input type="button" class="pickcolor button hide-if-no-js" value="<?php esc_attr_e( 'Select a Color', 'twentyeleven' ); ?>" />
 	<div id="colorPickerDiv" style="z-index: 100; background:#eee; border:1px solid #ccc; position:absolute; display:none;"></div>
 	<br />
-	<span><?php printf( __( 'Default color: %s', 'twentyeleven' ), '<span id="default-color">' . twentyeleven_get_default_link_color( $options['color_scheme'] ) . '</span>' ); ?></span>
+	<span>
+	<?php
+	/* translators: %s: Link color. */
+	printf( __( 'Default color: %s', 'twentyeleven' ), '<span id="default-color">' . twentyeleven_get_default_link_color( $options['color_scheme'] ) . '</span>' );
+	?>
+	</span>
 	<?php
 }
 
@@ -338,7 +343,12 @@ function twentyeleven_theme_options_render_page() {
 	<div class="wrap">
 		<?php screen_icon(); ?>
 		<?php $theme_name = function_exists( 'wp_get_theme' ) ? wp_get_theme() : get_current_theme(); ?>
-		<h2><?php printf( __( '%s Theme Options', 'twentyeleven' ), $theme_name ); ?></h2>
+		<h2>
+		<?php
+		/* translators: %s: Theme name. */
+		printf( __( '%s Theme Options', 'twentyeleven' ), $theme_name );
+		?>
+		</h2>
 		<?php settings_errors(); ?>
 
 		<form method="post" action="options.php">
@@ -365,7 +375,8 @@ function twentyeleven_theme_options_render_page() {
  * @param array $input An array of form input.
  */
 function twentyeleven_theme_options_validate( $input ) {
-	$output = $defaults = twentyeleven_get_default_theme_options();
+	$defaults = twentyeleven_get_default_theme_options();
+	$output   = $defaults;
 
 	// Color scheme must be in our array of color scheme options
 	if ( isset( $input['color_scheme'] ) && array_key_exists( $input['color_scheme'], twentyeleven_color_schemes() ) ) {
@@ -373,7 +384,8 @@ function twentyeleven_theme_options_validate( $input ) {
 	}
 
 	// Our defaults for the link color may have changed, based on the color scheme.
-	$output['link_color'] = $defaults['link_color'] = twentyeleven_get_default_link_color( $output['color_scheme'] );
+	$defaults['link_color'] = twentyeleven_get_default_link_color( $output['color_scheme'] );
+	$output['link_color']   = $defaults['link_color'];
 
 	// Link color must be 3 or 6 hexadecimal characters
 	if ( isset( $input['link_color'] ) && preg_match( '/^#?([a-f0-9]{3}){1,2}$/i', $input['link_color'] ) ) {
@@ -407,7 +419,7 @@ function twentyeleven_enqueue_color_scheme() {
 	$color_scheme = $options['color_scheme'];
 
 	if ( 'dark' == $color_scheme ) {
-		wp_enqueue_style( 'dark', get_template_directory_uri() . '/colors/dark.css', array(), null );
+		wp_enqueue_style( 'dark', get_template_directory_uri() . '/colors/dark.css', array(), '20190404' );
 	}
 
 	/**

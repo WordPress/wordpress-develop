@@ -73,4 +73,14 @@ class Tests_Formatting_WPTrimWords extends WP_UnitTestCase {
 		restore_previous_locale();
 		$this->assertEquals( $expected, $actual );
 	}
+
+	/**
+	 * @ticket 47867
+	 */
+	function test_works_with_non_numeric_num_words() {
+		$this->assertEquals( '', wp_trim_words( $this->long_text, '', '' ) );
+		$this->assertEquals( '', wp_trim_words( $this->long_text, 'abc', '' ) );
+		$this->assertEquals( '', wp_trim_words( $this->long_text, null, '' ) );
+		$this->assertEquals( 'Lorem ipsum dolor', wp_trim_words( $this->long_text, '3', '' ) );
+	}
 }

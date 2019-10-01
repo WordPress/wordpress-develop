@@ -164,7 +164,13 @@ function get_option( $option, $default = false ) {
  */
 function wp_protect_special_option( $option ) {
 	if ( 'alloptions' === $option || 'notoptions' === $option ) {
-		wp_die( sprintf( __( '%s is a protected WP option and may not be modified' ), esc_html( $option ) ) );
+		wp_die(
+			sprintf(
+				/* translators: %s: Option name. */
+				__( '%s is a protected WP option and may not be modified' ),
+				esc_html( $option )
+			)
+		);
 	}
 }
 
@@ -198,8 +204,9 @@ function wp_load_alloptions() {
 	}
 
 	if ( ! $alloptions ) {
-		$suppress = $wpdb->suppress_errors();
-		if ( ! $alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE autoload = 'yes'" ) ) {
+		$suppress      = $wpdb->suppress_errors();
+		$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE autoload = 'yes'" );
+		if ( ! $alloptions_db ) {
 			$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options" );
 		}
 		$wpdb->suppress_errors( $suppress );
@@ -275,6 +282,9 @@ function wp_load_core_site_options( $network_id = null ) {
  *
  * If the option does not exist, then the option will be added with the option value,
  * with an `$autoload` value of 'yes'.
+
+ * This function is designed to work with or without a logged-in user. In terms of security,
+ * plugin developers should check the current user's capabilities before updating any options.
  *
  * @since 1.0.0
  * @since 4.2.0 The `$autoload` parameter was added.
@@ -913,7 +923,8 @@ function wp_user_settings() {
 		return;
 	}
 
-	if ( ! $user_id = get_current_user_id() ) {
+	$user_id = get_current_user_id();
+	if ( ! $user_id ) {
 		return;
 	}
 
@@ -967,7 +978,7 @@ function get_user_setting( $name, $default = false ) {
 /**
  * Add or update user interface setting.
  *
- * Both $name and $value can contain only ASCII letters, numbers and underscores.
+ * Both $name and $value can contain only ASCII letters, numbers, hyphens, and underscores.
  *
  * This function has to be used before any output has started as it calls setcookie().
  *
@@ -1035,7 +1046,8 @@ function delete_user_setting( $names ) {
 function get_all_user_settings() {
 	global $_updated_user_settings;
 
-	if ( ! $user_id = get_current_user_id() ) {
+	$user_id = get_current_user_id();
+	if ( ! $user_id ) {
 		return array();
 	}
 
@@ -1078,7 +1090,8 @@ function get_all_user_settings() {
 function wp_set_all_user_settings( $user_settings ) {
 	global $_updated_user_settings;
 
-	if ( ! $user_id = get_current_user_id() ) {
+	$user_id = get_current_user_id();
+	if ( ! $user_id ) {
 		return false;
 	}
 
@@ -1111,7 +1124,8 @@ function wp_set_all_user_settings( $user_settings ) {
  * @since 2.7.0
  */
 function delete_all_user_settings() {
-	if ( ! $user_id = get_current_user_id() ) {
+	$user_id = get_current_user_id();
+	if ( ! $user_id ) {
 		return;
 	}
 
@@ -2131,8 +2145,8 @@ function register_setting( $option_group, $option_name, $args = array() ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'3.0.0',
-			/* translators: %s: misc */
 			sprintf(
+				/* translators: %s: misc */
 				__( 'The "%s" options group has been removed. Use another settings group.' ),
 				'misc'
 			)
@@ -2144,8 +2158,8 @@ function register_setting( $option_group, $option_name, $args = array() ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'3.5.0',
-			/* translators: %s: privacy */
 			sprintf(
+				/* translators: %s: privacy */
 				__( 'The "%s" options group has been removed. Use another settings group.' ),
 				'privacy'
 			)
@@ -2184,8 +2198,8 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'3.0.0',
-			/* translators: %s: misc */
 			sprintf(
+				/* translators: %s: misc */
 				__( 'The "%s" options group has been removed. Use another settings group.' ),
 				'misc'
 			)
@@ -2197,8 +2211,8 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'3.5.0',
-			/* translators: %s: privacy */
 			sprintf(
+				/* translators: %s: privacy */
 				__( 'The "%s" options group has been removed. Use another settings group.' ),
 				'privacy'
 			)
@@ -2214,8 +2228,8 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'4.7.0',
-			/* translators: 1: $sanitize_callback, 2: register_setting() */
 			sprintf(
+				/* translators: 1: $sanitize_callback, 2: register_setting() */
 				__( '%1$s is deprecated. The callback from %2$s is used instead.' ),
 				'<code>$sanitize_callback</code>',
 				'<code>register_setting()</code>'

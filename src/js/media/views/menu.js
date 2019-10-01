@@ -20,15 +20,30 @@ Menu = PriorityList.extend(/** @lends wp.media.view.Menu.prototype */{
 	ItemView:  MenuItem,
 	region:    'menu',
 
-	/* TODO: alternatively hide on any click anywhere
-	events: {
-		'click': 'click'
+	attributes: {
+		role:               'tablist',
+		'aria-orientation': 'horizontal'
 	},
 
-	click: function() {
-		this.$el.removeClass( 'visible' );
+	initialize: function() {
+		this._views = {};
+
+		this.set( _.extend( {}, this._views, this.options.views ), { silent: true });
+		delete this.options.views;
+
+		if ( ! this.options.silent ) {
+			this.render();
+		}
+
+		// Initialize the Focus Manager.
+		this.focusManager = new wp.media.view.FocusManager( {
+			el:   this.el,
+			mode: 'tabsNavigation'
+		} );
+
+		// The menu is always rendered and can be visible or hidden on some frames.
+		this.isVisible = true;
 	},
-	*/
 
 	/**
 	 * @param {Object} options
@@ -47,6 +62,9 @@ Menu = PriorityList.extend(/** @lends wp.media.view.Menu.prototype */{
 		 */
 		PriorityList.prototype.ready.apply( this, arguments );
 		this.visibility();
+
+		// Set up aria tabs initial attributes.
+		this.focusManager.setupAriaTabs();
 	},
 
 	set: function() {
@@ -72,6 +90,9 @@ Menu = PriorityList.extend(/** @lends wp.media.view.Menu.prototype */{
 			hide = ! views || views.length < 2;
 
 		if ( this === view ) {
+			// Flag this menu as hidden or visible.
+			this.isVisible = ! hide;
+			// Set or remove a CSS class to hide the menu.
 			this.controller.$el.toggleClass( 'hide-' + region, hide );
 		}
 	},
@@ -87,6 +108,9 @@ Menu = PriorityList.extend(/** @lends wp.media.view.Menu.prototype */{
 
 		this.deselect();
 		view.$el.addClass('active');
+
+		// Set up again the aria tabs initial attributes after the menu updates.
+		this.focusManager.setupAriaTabs();
 	},
 
 	deselect: function() {

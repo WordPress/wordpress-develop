@@ -19,17 +19,18 @@ wp_reset_vars( array( 'action' ) );
 if ( isset( $_GET['post'] ) && isset( $_POST['post_ID'] ) && (int) $_GET['post'] !== (int) $_POST['post_ID'] ) {
 	wp_die( __( 'A post ID mismatch has been detected.' ), __( 'Sorry, you are not allowed to edit this item.' ), 400 );
 } elseif ( isset( $_GET['post'] ) ) {
-	$post_id = $post_ID = (int) $_GET['post'];
+	$post_id = (int) $_GET['post'];
 } elseif ( isset( $_POST['post_ID'] ) ) {
-	$post_id = $post_ID = (int) $_POST['post_ID'];
+	$post_id = (int) $_POST['post_ID'];
 } else {
-	$post_id = $post_ID = 0;
+	$post_id = 0;
 }
+$post_ID = $post_id;
 
 /**
  * @global string  $post_type
  * @global object  $post_type_object
- * @global WP_Post $post
+ * @global WP_Post $post             Global post object.
  */
 global $post_type, $post_type_object, $post;
 
@@ -54,8 +55,8 @@ if ( isset( $_POST['deletepost'] ) ) {
 
 $sendback = wp_get_referer();
 if ( ! $sendback ||
-	 strpos( $sendback, 'post.php' ) !== false ||
-	 strpos( $sendback, 'post-new.php' ) !== false ) {
+	strpos( $sendback, 'post.php' ) !== false ||
+	strpos( $sendback, 'post-new.php' ) !== false ) {
 	if ( 'attachment' == $post_type ) {
 		$sendback = admin_url( 'upload.php' );
 	} else {
@@ -241,8 +242,10 @@ switch ( $action ) {
 			wp_die( __( 'Sorry, you are not allowed to move this item to the Trash.' ) );
 		}
 
-		if ( $user_id = wp_check_post_lock( $post_id ) ) {
+		$user_id = wp_check_post_lock( $post_id );
+		if ( $user_id ) {
 			$user = get_userdata( $user_id );
+			/* translators: %s: User's display name. */
 			wp_die( sprintf( __( 'You cannot move this item to the Trash. %s is currently editing.' ), $user->display_name ) );
 		}
 

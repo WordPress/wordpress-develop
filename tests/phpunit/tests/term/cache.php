@@ -90,7 +90,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 				$this->assertEquals( $children, count( $hierarchy, COUNT_RECURSIVE ) - count( $hierarchy ) );
 			}
 
-			if ( $i % 3 === 0 ) {
+			if ( 0 === ( $i % 3 ) ) {
 				$step = 1;
 			} else {
 				$step++;

@@ -11,14 +11,14 @@
  * functions.php file. The child theme's functions.php file is included before
  * the parent theme's file, so the child theme functions would be used.
  *
- * @link https://codex.wordpress.org/Theme_Development
+ * @link https://developer.wordpress.org/themes/basics/theme-functions/
  * @link https://developer.wordpress.org/themes/advanced-topics/child-themes/
  *
  * Functions that are not pluggable (not wrapped in function_exists()) are
  * instead attached to a filter or action hook.
  *
  * For more information on hooks, actions, and filters,
- * {@link https://codex.wordpress.org/Plugin_API}
+ * {@link https://developer.wordpress.org/plugins/}
  *
  * @package WordPress
  * @subpackage Twenty_Sixteen
@@ -106,13 +106,15 @@ if ( ! function_exists( 'twentysixteen_setup' ) ) :
 				'comment-list',
 				'gallery',
 				'caption',
+				'script',
+				'style',
 			)
 		);
 
 		/*
 		 * Enable support for Post Formats.
 		 *
-		 * See: https://codex.wordpress.org/Post_Formats
+		 * See: https://wordpress.org/support/article/post-formats/
 		 */
 		add_theme_support(
 			'post-formats',
@@ -313,17 +315,26 @@ if ( ! function_exists( 'twentysixteen_fonts_url' ) ) :
 		$fonts     = array();
 		$subsets   = 'latin,latin-ext';
 
-		/* translators: If there are characters in your language that are not supported by Merriweather, translate this to 'off'. Do not translate into your own language. */
+		/*
+		 * translators: If there are characters in your language that are not supported
+		 * by Merriweather, translate this to 'off'. Do not translate into your own language.
+		 */
 		if ( 'off' !== _x( 'on', 'Merriweather font: on or off', 'twentysixteen' ) ) {
 			$fonts[] = 'Merriweather:400,700,900,400italic,700italic,900italic';
 		}
 
-		/* translators: If there are characters in your language that are not supported by Montserrat, translate this to 'off'. Do not translate into your own language. */
+		/*
+		 * translators: If there are characters in your language that are not supported
+		 * by Montserrat, translate this to 'off'. Do not translate into your own language.
+		 */
 		if ( 'off' !== _x( 'on', 'Montserrat font: on or off', 'twentysixteen' ) ) {
 			$fonts[] = 'Montserrat:400,700';
 		}
 
-		/* translators: If there are characters in your language that are not supported by Inconsolata, translate this to 'off'. Do not translate into your own language. */
+		/*
+		 * translators: If there are characters in your language that are not supported
+		 * by Inconsolata, translate this to 'off'. Do not translate into your own language.
+		 */
 		if ( 'off' !== _x( 'on', 'Inconsolata font: on or off', 'twentysixteen' ) ) {
 			$fonts[] = 'Inconsolata:400';
 		}
@@ -368,38 +379,38 @@ function twentysixteen_scripts() {
 	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.4.1' );
 
 	// Theme stylesheet.
-	wp_enqueue_style( 'twentysixteen-style', get_stylesheet_uri() );
+	wp_enqueue_style( 'twentysixteen-style', get_stylesheet_uri(), array(), '20190507' );
 
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentysixteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentysixteen-style' ), '20181230' );
+	wp_enqueue_style( 'twentysixteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentysixteen-style' ), '20190102' );
 
 	// Load the Internet Explorer specific stylesheet.
-	wp_enqueue_style( 'twentysixteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentysixteen-style' ), '20160816' );
+	wp_enqueue_style( 'twentysixteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentysixteen-style' ), '20170530' );
 	wp_style_add_data( 'twentysixteen-ie', 'conditional', 'lt IE 10' );
 
 	// Load the Internet Explorer 8 specific stylesheet.
-	wp_enqueue_style( 'twentysixteen-ie8', get_template_directory_uri() . '/css/ie8.css', array( 'twentysixteen-style' ), '20160816' );
+	wp_enqueue_style( 'twentysixteen-ie8', get_template_directory_uri() . '/css/ie8.css', array( 'twentysixteen-style' ), '20170530' );
 	wp_style_add_data( 'twentysixteen-ie8', 'conditional', 'lt IE 9' );
 
 	// Load the Internet Explorer 7 specific stylesheet.
-	wp_enqueue_style( 'twentysixteen-ie7', get_template_directory_uri() . '/css/ie7.css', array( 'twentysixteen-style' ), '20160816' );
+	wp_enqueue_style( 'twentysixteen-ie7', get_template_directory_uri() . '/css/ie7.css', array( 'twentysixteen-style' ), '20170530' );
 	wp_style_add_data( 'twentysixteen-ie7', 'conditional', 'lt IE 8' );
 
 	// Load the html5 shiv.
 	wp_enqueue_script( 'twentysixteen-html5', get_template_directory_uri() . '/js/html5.js', array(), '3.7.3' );
 	wp_script_add_data( 'twentysixteen-html5', 'conditional', 'lt IE 9' );
 
-	wp_enqueue_script( 'twentysixteen-skip-link-focus-fix', get_template_directory_uri() . '/js/skip-link-focus-fix.js', array(), '20160816', true );
+	wp_enqueue_script( 'twentysixteen-skip-link-focus-fix', get_template_directory_uri() . '/js/skip-link-focus-fix.js', array(), '20170530', true );
 
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 		wp_enqueue_script( 'comment-reply' );
 	}
 
 	if ( is_singular() && wp_attachment_is_image() ) {
-		wp_enqueue_script( 'twentysixteen-keyboard-image-navigation', get_template_directory_uri() . '/js/keyboard-image-navigation.js', array( 'jquery' ), '20160816' );
+		wp_enqueue_script( 'twentysixteen-keyboard-image-navigation', get_template_directory_uri() . '/js/keyboard-image-navigation.js', array( 'jquery' ), '20170530' );
 	}
 
-	wp_enqueue_script( 'twentysixteen-script', get_template_directory_uri() . '/js/functions.js', array( 'jquery' ), '20181230', true );
+	wp_enqueue_script( 'twentysixteen-script', get_template_directory_uri() . '/js/functions.js', array( 'jquery' ), '20181217', true );
 
 	wp_localize_script(
 		'twentysixteen-script',
@@ -419,7 +430,7 @@ add_action( 'wp_enqueue_scripts', 'twentysixteen_scripts' );
  */
 function twentysixteen_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentysixteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20181230' );
+	wp_enqueue_style( 'twentysixteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20190102' );
 	// Add custom fonts.
 	wp_enqueue_style( 'twentysixteen-fonts', twentysixteen_fonts_url(), array(), null );
 }

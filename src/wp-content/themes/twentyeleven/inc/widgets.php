@@ -4,7 +4,7 @@
  *
  * Handles displaying Aside, Link, Status, and Quote Posts available with Twenty Eleven.
  *
- * @link https://codex.wordpress.org/Widgets_API#Developing_Widgets
+ * @link https://developer.wordpress.org/themes/functionality/widgets/#developing-widgets
  *
  * @package WordPress
  * @subpackage Twenty_Eleven
@@ -76,7 +76,8 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 			$instance['number'] = '10';
 		}
 
-		if ( ! $args['number'] = absint( $instance['number'] ) ) {
+		$args['number'] = absint( $instance['number'] );
+		if ( ! $args['number'] ) {
 			$args['number'] = 10;
 		}
 

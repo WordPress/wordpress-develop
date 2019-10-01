@@ -153,7 +153,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 7, count( $properties ) );
+		$this->assertEquals( 8, count( $properties ) );
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'private', $properties );
 		$this->assertArrayHasKey( 'protected', $properties );
@@ -161,6 +161,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$this->assertArrayHasKey( 'queryable', $properties );
 		$this->assertArrayHasKey( 'show_in_list', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
+		$this->assertArrayHasKey( 'date_floating', $properties );
 	}
 
 	public function test_get_additional_field_registration() {
@@ -217,6 +218,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 			),
 			array_keys( $links )
 		);
+		$this->assertEquals( $status_obj->date_floating, $data['date_floating'] );
 	}
 
 	protected function check_post_status_object_response( $response ) {

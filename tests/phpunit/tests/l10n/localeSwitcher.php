@@ -86,25 +86,25 @@ class Tests_Locale_Switcher extends WP_UnitTestCase {
 
 		switch_to_locale( 'de_DE' );
 
-		$wp_locale_de_DE = clone $wp_locale;
+		$wp_locale_de_de = clone $wp_locale;
 
 		// Cleanup.
 		restore_previous_locale();
 
-		$this->assertEqualSetsWithIndex( $expected, $wp_locale_de_DE->number_format );
+		$this->assertEqualSetsWithIndex( $expected, $wp_locale_de_de->number_format );
 	}
 
 	public function test_switch_to_locale_en_US() {
 		switch_to_locale( 'en_GB' );
-		$locale_en_GB = get_locale();
+		$locale_en_gb = get_locale();
 		switch_to_locale( 'en_US' );
-		$locale_en_US = get_locale();
+		$locale_en_us = get_locale();
 
 		// Cleanup.
 		restore_current_locale();
 
-		$this->assertSame( 'en_GB', $locale_en_GB );
-		$this->assertSame( 'en_US', $locale_en_US );
+		$this->assertSame( 'en_GB', $locale_en_gb );
+		$this->assertSame( 'en_US', $locale_en_us );
 	}
 
 	public function test_switch_to_locale_multiple_times() {

@@ -312,7 +312,6 @@ Paragraph two.';
 			'h4',
 			'h5',
 			'h6',
-			'hr',
 			'fieldset',
 			'legend',
 			'section',
@@ -416,7 +415,8 @@ Paragraph two.';
 			'select',
 		);
 
-		$content = $expected = array();
+		$content  = array();
+		$expected = array();
 
 		foreach ( $inlines as $inline ) {
 			$content[]  = "<$inline>foo</$inline>";
@@ -544,7 +544,8 @@ line 2<br/>
 	 * @ticket 39307
 	 */
 	function test_that_wpautop_doses_not_add_extra_closing_p_in_figure() {
-		$content1 = $expected1 = '<figure><img src="example.jpg" /><figcaption>Caption</figcaption></figure>';
+		$content1  = '<figure><img src="example.jpg" /><figcaption>Caption</figcaption></figure>';
+		$expected1 = $content1;
 
 		$content2 = '<figure>
 <img src="example.jpg" />
@@ -558,4 +559,47 @@ line 2<br/>
 		$this->assertEquals( $expected2, trim( wpautop( $content2 ) ) );
 	}
 
+	/**
+	 * @ticket 14674
+	 */
+	function test_the_hr_is_not_peed() {
+		$content  = 'paragraph1<hr>paragraph2';
+		$expected = "<p>paragraph1</p>\n<hr>\n<p>paragraph2</p>";
+
+		$this->assertEquals( $expected, trim( wpautop( $content ) ) );
+	}
+
+	/**
+	 * wpautop() should ignore inline SVG graphics
+	 *
+	 * @ticket 9437
+	 */
+	function test_that_wpautop_ignores_inline_svgs() {
+		$content =
+			'<svg xmlns="http://www.w3.org/2000/svg">
+				<circle cx="50" cy="50" r="30" fill="blue">
+					<animateTransform attributeName="transform" type="scale" to="1.5" dur="2s" fill="freeze"/>
+				</circle>
+			</svg>';
+
+		$expected = '<p>' . $content . '</p>';
+
+		$this->assertEquals( $expected, trim( wpautop( $content ) ) );
+	}
+
+	/**
+	 * wpautop() should ignore inline scripts
+	 *
+	 * @ticket 9437
+	 */
+	function test_that_wpautop_ignores_inline_scripts() {
+		$content =
+			'<script type="text/javascript">
+				var dummy = 1;
+			</script>';
+
+		$expected = '<p>' . $content . '</p>';
+
+		$this->assertEquals( $expected, trim( wpautop( $content ) ) );
+	}
 }

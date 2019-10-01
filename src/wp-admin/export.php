@@ -26,17 +26,17 @@ function export_add_js() {
 	?>
 <script type="text/javascript">
 	jQuery(document).ready(function($){
-		 var form = $('#export-filters'),
-			 filters = form.find('.export-filters');
-		 filters.hide();
-		 form.find('input:radio').change(function() {
+		var form = $('#export-filters'),
+			filters = form.find('.export-filters');
+		filters.hide();
+		form.find('input:radio').change(function() {
 			filters.slideUp('fast');
 			switch ( $(this).val() ) {
 				case 'attachment': $('#attachment-filters').slideDown(); break;
 				case 'posts': $('#post-filters').slideDown(); break;
 				case 'pages': $('#page-filters').slideDown(); break;
 			}
-		 });
+		});
 	});
 </script>
 	<?php
@@ -54,7 +54,7 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://codex.wordpress.org/Tools_Export_Screen">Documentation on Export</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/article/tools-export-screen/">Documentation on Export</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
@@ -128,7 +128,7 @@ require_once( ABSPATH . 'wp-admin/admin-header.php' );
  * Create the date options fields for exporting a given post type.
  *
  * @global wpdb      $wpdb      WordPress database abstraction object.
- * @global WP_Locale $wp_locale Date and Time Locale object.
+ * @global WP_Locale $wp_locale WordPress date and time locale object.
  *
  * @since 3.1.0
  *

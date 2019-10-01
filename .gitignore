@@ -73,3 +73,6 @@ wp-tests-config.php
 *.diff
 .svn
 !/src/js/_enqueues/vendor
+
+# Files for local environment config
+/docker-compose.override.yml

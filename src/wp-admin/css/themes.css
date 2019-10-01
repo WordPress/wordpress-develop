@@ -34,9 +34,6 @@ body.js .theme-browser.search-loading {
 	left: 20px;
 	margin: 0;
 	width: 280px;
-	font-size: 16px;
-	font-weight: 300;
-	line-height: 1.5;
 }
 
 /* Position admin messages */
@@ -178,8 +175,7 @@ body.js .theme-browser.search-loading {
 }
 
 .theme-browser .theme:focus {
-	border-color: #5b9dd9;
-	box-shadow: 0 0 2px rgba(30, 140, 190, 0.8);
+	outline: 1px dotted #555d66;
 }
 
 .theme-browser .theme:focus .more-details {
@@ -1048,7 +1044,7 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 .upload-theme .wp-upload-form,
 .upload-plugin .wp-upload-form {
 	background: #fafafa;
-	border: 1px solid #e5e5e5;
+	border: 1px solid #ccd0d4;
 	padding: 30px;
 	margin: 30px auto;
 	max-width: 380px;

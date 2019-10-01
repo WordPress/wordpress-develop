@@ -158,7 +158,8 @@ final class _WP_Editors {
 		$editor_class   = ' class="' . trim( esc_attr( $set['editor_class'] ) . ' wp-editor-area' ) . '"';
 		$tabindex       = $set['tabindex'] ? ' tabindex="' . (int) $set['tabindex'] . '"' : '';
 		$default_editor = 'html';
-		$buttons        = $autocomplete = '';
+		$buttons        = '';
+		$autocomplete   = '';
 		$editor_id_attr = esc_attr( $editor_id );
 
 		if ( $set['drag_drop_upload'] ) {
@@ -437,7 +438,8 @@ final class _WP_Editors {
 					 */
 					$plugins = array_unique( apply_filters( 'tiny_mce_plugins', $plugins ) );
 
-					if ( ( $key = array_search( 'spellchecker', $plugins ) ) !== false ) {
+					$key = array_search( 'spellchecker', $plugins );
+					if ( false !== $key ) {
 						// Remove 'spellchecker' from the internal plugins if added with 'tiny_mce_plugins' filter to prevent errors.
 						// It can be added with 'mce_external_plugins'.
 						unset( $plugins[ $key ] );
@@ -489,9 +491,7 @@ final class _WP_Editors {
 								$path = str_replace( content_url(), '', $plugurl );
 								$path = WP_CONTENT_DIR . $path . '/langs/';
 
-								if ( function_exists( 'realpath' ) ) {
-									$path = trailingslashit( realpath( $path ) );
-								}
+								$path = trailingslashit( realpath( $path ) );
 
 								if ( @is_file( $path . $mce_locale . '.js' ) ) {
 									$strings .= @file_get_contents( $path . $mce_locale . '.js' ) . "\n";
@@ -538,18 +538,24 @@ final class _WP_Editors {
 					$settings['wpeditimage_disable_captions'] = true;
 				}
 
-				$mce_css       = $settings['content_css'];
-				$editor_styles = get_editor_stylesheets();
+				$mce_css = $settings['content_css'];
 
-				if ( ! empty( $editor_styles ) ) {
-					// Force urlencoding of commas.
-					foreach ( $editor_styles as $key => $url ) {
-						if ( strpos( $url, ',' ) !== false ) {
-							$editor_styles[ $key ] = str_replace( ',', '%2C', $url );
+				// The `editor-style.css` added by the theme is generally intended for the editor instance on the Edit Post screen.
+				// Plugins that use wp_editor() on the front-end can decide whether to add the theme stylesheet
+				// by using `get_editor_stylesheets()` and the `mce_css` or `tiny_mce_before_init` filters, see below.
+				if ( is_admin() ) {
+					$editor_styles = get_editor_stylesheets();
+
+					if ( ! empty( $editor_styles ) ) {
+						// Force urlencoding of commas.
+						foreach ( $editor_styles as $key => $url ) {
+							if ( strpos( $url, ',' ) !== false ) {
+								$editor_styles[ $key ] = str_replace( ',', '%2C', $url );
+							}
 						}
-					}
 
-					$mce_css .= ',' . implode( ',', $editor_styles );
+						$mce_css .= ',' . implode( ',', $editor_styles );
+					}
 				}
 
 				/**
@@ -581,7 +587,9 @@ final class _WP_Editors {
 				 * @param string $editor_id Unique editor identifier, e.g. 'content'.
 				 */
 				$mce_buttons   = apply_filters( 'teeny_mce_buttons', array( 'bold', 'italic', 'underline', 'blockquote', 'strikethrough', 'bullist', 'numlist', 'alignleft', 'aligncenter', 'alignright', 'undo', 'redo', 'link', 'fullscreen' ), $editor_id );
-				$mce_buttons_2 = $mce_buttons_3 = $mce_buttons_4 = array();
+				$mce_buttons_2 = array();
+				$mce_buttons_3 = array();
+				$mce_buttons_4 = array();
 			} else {
 				$mce_buttons = array( 'formatselect', 'bold', 'italic', 'bullist', 'numlist', 'blockquote', 'alignleft', 'aligncenter', 'alignright', 'link', 'wp_more', 'spellchecker' );
 
@@ -646,7 +654,8 @@ final class _WP_Editors {
 
 			$body_class = $editor_id;
 
-			if ( $post = get_post() ) {
+			$post = get_post();
+			if ( $post ) {
 				$body_class .= ' post-type-' . sanitize_html_class( $post->post_type ) . ' post-status-' . sanitize_html_class( $post->post_status );
 
 				if ( post_type_supports( $post->post_type, 'post-formats' ) ) {
@@ -746,8 +755,8 @@ final class _WP_Editors {
 				$options .= $key . ':' . $val . ',';
 				continue;
 			} elseif ( ! empty( $value ) && is_string( $value ) && (
-				( '{' == $value{0} && '}' == $value{strlen( $value ) - 1} ) ||
-				( '[' == $value{0} && ']' == $value{strlen( $value ) - 1} ) ||
+				( '{' == $value[0] && '}' == $value[ strlen( $value ) - 1 ] ) ||
+				( '[' == $value[0] && ']' == $value[ strlen( $value ) - 1 ] ) ||
 				preg_match( '/^\(?function ?\(/', $value ) ) ) {
 
 				$options .= $key . ':' . $value . ',';
@@ -1036,7 +1045,7 @@ final class _WP_Editors {
 				'Heading 5'                            => array( __( 'Heading 5' ), 'access5' ),
 				'Heading 6'                            => array( __( 'Heading 6' ), 'access6' ),
 
-				/* translators: block tags */
+				/* translators: Block tags. */
 				'Blocks'                               => _x( 'Blocks', 'TinyMCE' ),
 				'Paragraph'                            => array( __( 'Paragraph' ), 'access7' ),
 				'Blockquote'                           => array( __( 'Blockquote' ), 'accessQ' ),
@@ -1174,7 +1183,7 @@ final class _WP_Editors {
 				'Could not find the specified string.' => __( 'Could not find the specified string.' ),
 				'Replace'                              => _x( 'Replace', 'find/replace' ),
 				'Next'                                 => _x( 'Next', 'find/replace' ),
-				/* translators: previous */
+				/* translators: Previous. */
 				'Prev'                                 => _x( 'Prev', 'find/replace' ),
 				'Whole words'                          => _x( 'Whole words', 'find/replace' ),
 				'Find and replace'                     => __( 'Find and replace' ),
@@ -1249,7 +1258,7 @@ final class _WP_Editors {
 				'Show blocks'                          => _x( 'Show blocks', 'editor button' ),
 				'Show invisible characters'            => __( 'Show invisible characters' ),
 
-				/* translators: word count */
+				/* translators: Word count. */
 				'Words: {0}'                           => sprintf( __( 'Words: %s' ), '{0}' ),
 				'Paste is now in plain text mode. Contents will now be pasted as plain text until you toggle this option off.' =>
 					__( 'Paste is now in plain text mode. Contents will now be pasted as plain text until you toggle this option off.' ) . "\n\n" .
@@ -1321,13 +1330,13 @@ final class _WP_Editors {
 			'Image options' => __( 'Image options' ),
 			'Back' => __( 'Back' ),
 			'Invert' => __( 'Invert' ),
-			'Flip horizontally' => __( 'Flip horizontally' ),
-			'Flip vertically' => __( 'Flip vertically' ),
+			'Flip horizontally' => __( 'Flip horizontal' ),
+			'Flip vertically' => __( 'Flip vertical' ),
 			'Crop' => __( 'Crop' ),
 			'Orientation' => __( 'Orientation' ),
 			'Resize' => __( 'Resize' ),
-			'Rotate clockwise' => __( 'Rotate clockwise' ),
-			'Rotate counterclockwise' => __( 'Rotate counterclockwise' ),
+			'Rotate clockwise' => __( 'Rotate right' ),
+			'Rotate counterclockwise' => __( 'Rotate left' ),
 			'Sharpen' => __( 'Sharpen' ),
 			'Brightness' => __( 'Brightness' ),
 			'Color levels' => __( 'Color levels' ),
@@ -1460,7 +1469,8 @@ final class _WP_Editors {
 		global $tinymce_version;
 
 		$tmce_on = ! empty( self::$mce_settings );
-		$mceInit = $qtInit = '';
+		$mceInit = '';
+		$qtInit  = '';
 
 		if ( $tmce_on ) {
 			foreach ( self::$mce_settings as $editor_id => $init ) {
@@ -1765,8 +1775,8 @@ final class _WP_Editors {
 					<div class="river-waiting">
 						<span class="spinner"></span>
 					</div>
-				 </div>
-			 </div>
+				</div>
+			</div>
 		</div>
 		<div class="submitbox">
 			<div id="wp-link-cancel">

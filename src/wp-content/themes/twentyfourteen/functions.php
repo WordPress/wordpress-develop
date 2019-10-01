@@ -11,14 +11,14 @@
  * functions.php file. The child theme's functions.php file is included before
  * the parent theme's file, so the child theme functions would be used.
  *
- * @link https://codex.wordpress.org/Theme_Development
+ * @link https://developer.wordpress.org/themes/basics/theme-functions/
  * @link https://developer.wordpress.org/themes/advanced-topics/child-themes/
  *
  * Functions that are not pluggable (not wrapped in function_exists()) are
  * instead attached to a filter or action hook.
  *
  * For more information on hooks, actions, and filters,
- * @link https://codex.wordpress.org/Plugin_API
+ * @link https://developer.wordpress.org/plugins/
  *
  * @package WordPress
  * @subpackage Twenty_Fourteen
@@ -144,12 +144,14 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 				'comment-list',
 				'gallery',
 				'caption',
+				'script',
+				'style',
 			)
 		);
 
 		/*
 		 * Enable support for Post Formats.
-		 * See https://codex.wordpress.org/Post_Formats
+		 * See https://wordpress.org/support/article/post-formats/
 		 */
 		add_theme_support(
 			'post-formats',
@@ -289,7 +291,7 @@ add_action( 'widgets_init', 'twentyfourteen_widgets_init' );
 function twentyfourteen_font_url() {
 	$font_url = '';
 	/*
-	 * Translators: If there are characters in your language that are not supported
+	 * translators: If there are characters in your language that are not supported
 	 * by Lato, translate this to 'off'. Do not translate into your own language.
 	 */
 	if ( 'off' !== _x( 'on', 'Lato font: on or off', 'twentyfourteen' ) ) {
@@ -317,13 +319,13 @@ function twentyfourteen_scripts() {
 	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.0.3' );
 
 	// Load our main stylesheet.
-	wp_enqueue_style( 'twentyfourteen-style', get_stylesheet_uri() );
+	wp_enqueue_style( 'twentyfourteen-style', get_stylesheet_uri(), array(), '20190507' );
 
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentyfourteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentyfourteen-style' ), '20181230' );
+	wp_enqueue_style( 'twentyfourteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentyfourteen-style' ), '20190102' );
 
 	// Load the Internet Explorer specific stylesheet.
-	wp_enqueue_style( 'twentyfourteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentyfourteen-style' ), '20131205' );
+	wp_enqueue_style( 'twentyfourteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentyfourteen-style' ), '20140701' );
 	wp_style_add_data( 'twentyfourteen-ie', 'conditional', 'lt IE 9' );
 
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
@@ -331,7 +333,7 @@ function twentyfourteen_scripts() {
 	}
 
 	if ( is_singular() && wp_attachment_is_image() ) {
-		wp_enqueue_script( 'twentyfourteen-keyboard-image-navigation', get_template_directory_uri() . '/js/keyboard-image-navigation.js', array( 'jquery' ), '20130402' );
+		wp_enqueue_script( 'twentyfourteen-keyboard-image-navigation', get_template_directory_uri() . '/js/keyboard-image-navigation.js', array( 'jquery' ), '20150120' );
 	}
 
 	if ( is_active_sidebar( 'sidebar-3' ) ) {
@@ -339,7 +341,7 @@ function twentyfourteen_scripts() {
 	}
 
 	if ( is_front_page() && 'slider' == get_theme_mod( 'featured_content_layout' ) ) {
-		wp_enqueue_script( 'twentyfourteen-slider', get_template_directory_uri() . '/js/slider.js', array( 'jquery' ), '20131205', true );
+		wp_enqueue_script( 'twentyfourteen-slider', get_template_directory_uri() . '/js/slider.js', array( 'jquery' ), '20150120', true );
 		wp_localize_script(
 			'twentyfourteen-slider',
 			'featuredSliderDefaults',
@@ -350,7 +352,7 @@ function twentyfourteen_scripts() {
 		);
 	}
 
-	wp_enqueue_script( 'twentyfourteen-script', get_template_directory_uri() . '/js/functions.js', array( 'jquery' ), '20150315', true );
+	wp_enqueue_script( 'twentyfourteen-script', get_template_directory_uri() . '/js/functions.js', array( 'jquery' ), '20171218', true );
 }
 add_action( 'wp_enqueue_scripts', 'twentyfourteen_scripts' );
 
@@ -396,7 +398,7 @@ add_filter( 'wp_resource_hints', 'twentyfourteen_resource_hints', 10, 2 );
  */
 function twentyfourteen_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentyfourteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20181230' );
+	wp_enqueue_style( 'twentyfourteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20190102' );
 	// Add custom fonts.
 	wp_enqueue_style( 'twentyfourteen-fonts', twentyfourteen_font_url(), array(), null );
 }
@@ -504,7 +506,10 @@ if ( ! function_exists( 'twentyfourteen_list_authors' ) ) :
 					<?php echo get_the_author_meta( 'description', $contributor_id ); ?>
 				</p>
 				<a class="button contributor-posts-link" href="<?php echo esc_url( get_author_posts_url( $contributor_id ) ); ?>">
-					<?php printf( _n( '%d Article', '%d Articles', $post_count, 'twentyfourteen' ), $post_count ); ?>
+					<?php
+					/* translators: %d: Post count. */
+					printf( _n( '%d Article', '%d Articles', $post_count, 'twentyfourteen' ), $post_count );
+					?>
 				</a>
 			</div><!-- .contributor-summary -->
 		</div><!-- .contributor-info -->
@@ -623,6 +628,7 @@ function twentyfourteen_wp_title( $title, $sep ) {
 
 	// Add a page number if necessary.
 	if ( ( $paged >= 2 || $page >= 2 ) && ! is_404() ) {
+		/* translators: %s: Page number. */
 		$title = "$title $sep " . sprintf( __( 'Page %s', 'twentyfourteen' ), max( $paged, $page ) );
 	}
 

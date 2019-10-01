@@ -33,7 +33,7 @@ if ( $doaction && isset( $_REQUEST['linkcheck'] ) ) {
 		$redirect_to = add_query_arg( 'deleted', count( $bulklinks ), $redirect_to );
 	} else {
 		/** This action is documented in wp-admin/edit-comments.php */
-		$redirect_to = apply_filters( 'handle_bulk_actions-' . get_current_screen()->id, $redirect_to, $doaction, $bulklinks );
+		$redirect_to = apply_filters( 'handle_bulk_actions-' . get_current_screen()->id, $redirect_to, $doaction, $bulklinks ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 	}
 	wp_redirect( $redirect_to );
 	exit;
@@ -44,17 +44,22 @@ if ( $doaction && isset( $_REQUEST['linkcheck'] ) ) {
 
 $wp_list_table->prepare_items();
 
-$title     = __( 'Links' );
-$this_file = $parent_file = 'link-manager.php';
+$title       = __( 'Links' );
+$this_file   = 'link-manager.php';
+$parent_file = $this_file;
 
 get_current_screen()->add_help_tab(
 	array(
 		'id'      => 'overview',
 		'title'   => __( 'Overview' ),
 		'content' =>
-			 '<p>' . sprintf( __( 'You can add links here to be displayed on your site, usually using <a href="%s">Widgets</a>. By default, links to several sites in the WordPress community are included as examples.' ), 'widgets.php' ) . '</p>' .
-			 '<p>' . __( 'Links may be separated into Link Categories; these are different than the categories used on your posts.' ) . '</p>' .
-			 '<p>' . __( 'You can customize the display of this screen using the Screen Options tab and/or the dropdown filters above the links table.' ) . '</p>',
+			'<p>' . sprintf(
+				/* translators: %s: URL to Widgets screen. */
+				__( 'You can add links here to be displayed on your site, usually using <a href="%s">Widgets</a>. By default, links to several sites in the WordPress community are included as examples.' ),
+				'widgets.php'
+			) . '</p>' .
+			'<p>' . __( 'Links may be separated into Link Categories; these are different than the categories used on your posts.' ) . '</p>' .
+			'<p>' . __( 'You can customize the display of this screen using the Screen Options tab and/or the dropdown filters above the links table.' ) . '</p>',
 	)
 );
 get_current_screen()->add_help_tab(
@@ -62,7 +67,7 @@ get_current_screen()->add_help_tab(
 		'id'      => 'deleting-links',
 		'title'   => __( 'Deleting Links' ),
 		'content' =>
-			 '<p>' . __( 'If you delete a link, it will be removed permanently, as Links do not have a Trash function yet.' ) . '</p>',
+			'<p>' . __( 'If you delete a link, it will be removed permanently, as Links do not have a Trash function yet.' ) . '</p>',
 	)
 );
 
@@ -97,7 +102,7 @@ echo esc_html( $title );
 
 <?php
 if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
-	/* translators: %s: search keywords */
+	/* translators: %s: Search query. */
 	printf( '<span class="subtitle">' . __( 'Search results for &#8220;%s&#8221;' ) . '</span>', esc_html( wp_unslash( $_REQUEST['s'] ) ) );
 }
 ?>
@@ -108,6 +113,7 @@ if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
 if ( isset( $_REQUEST['deleted'] ) ) {
 	echo '<div id="message" class="updated notice is-dismissible"><p>';
 	$deleted = (int) $_REQUEST['deleted'];
+	/* translators: %s: Number of links. */
 	printf( _n( '%s link deleted.', '%s links deleted.', $deleted ), $deleted );
 	echo '</p></div>';
 	$_SERVER['REQUEST_URI'] = remove_query_arg( array( 'deleted' ), $_SERVER['REQUEST_URI'] );

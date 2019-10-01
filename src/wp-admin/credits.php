@@ -20,15 +20,18 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 
 <h1>
 	<?php
-	/* translators: %s: The current WordPress version number */
-	printf( __( 'Welcome to WordPress&nbsp;%s' ), $display_version );
+	printf(
+		/* translators: %s: The current WordPress version number. */
+		__( 'Welcome to WordPress&nbsp;%s' ),
+		$display_version
+	);
 	?>
 </h1>
 
 <p class="about-text">
 	<?php
 	printf(
-		/* translators: %s: The current WordPress version number */
+		/* translators: %s: The current WordPress version number. */
 		__( 'Congratulations on updating to WordPress %s! This update makes it easier than ever to fix your site if something goes wrong.' ),
 		$display_version
 	);
@@ -37,8 +40,11 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 
 <div class="wp-badge">
 	<?php
-	/* translators: %s: The current WordPress version number */
-	printf( __( 'Version %s' ), $display_version );
+	printf(
+		/* translators: %s: The current WordPress version number. */
+		__( 'Version %s' ),
+		$display_version
+	);
 	?>
 </div>
 
@@ -59,7 +65,7 @@ if ( ! $credits ) {
 	printf(
 		/* translators: 1: https://wordpress.org/about/, 2: https://make.wordpress.org/ */
 		__( 'WordPress is created by a <a href="%1$s">worldwide team</a> of passionate individuals. <a href="%2$s">Get involved in WordPress</a>.' ),
-		'https://wordpress.org/about/',
+		__( 'https://wordpress.org/about/' ),
 		__( 'https://make.wordpress.org/' )
 	);
 	echo '</p>';
@@ -141,7 +147,7 @@ return;
 
 // These are strings returned by the API that we want to be translatable
 __( 'Project Leaders' );
-/* translators: %s: The current WordPress version number */
+/* translators: %s: The current WordPress version number. */
 __( 'Core Contributors to WordPress %s' );
 __( 'Noteworthy Contributors' );
 __( 'Cofounder, Project Lead' );

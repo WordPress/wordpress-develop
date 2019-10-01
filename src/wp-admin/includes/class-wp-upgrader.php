@@ -153,7 +153,7 @@ class WP_Upgrader {
 		$this->strings['fs_no_content_dir'] = __( 'Unable to locate WordPress content directory (wp-content).' );
 		$this->strings['fs_no_plugins_dir'] = __( 'Unable to locate WordPress plugin directory.' );
 		$this->strings['fs_no_themes_dir']  = __( 'Unable to locate WordPress theme directory.' );
-		/* translators: %s: directory name */
+		/* translators: %s: Directory name. */
 		$this->strings['fs_no_folder'] = __( 'Unable to locate needed folder (%s).' );
 
 		$this->strings['download_failed']      = __( 'Download failed.' );
@@ -185,7 +185,8 @@ class WP_Upgrader {
 	public function fs_connect( $directories = array(), $allow_relaxed_file_ownership = false ) {
 		global $wp_filesystem;
 
-		if ( false === ( $credentials = $this->skin->request_filesystem_credentials( false, $directories[0], $allow_relaxed_file_ownership ) ) ) {
+		$credentials = $this->skin->request_filesystem_credentials( false, $directories[0], $allow_relaxed_file_ownership );
+		if ( false === $credentials ) {
 			return false;
 		}
 
@@ -464,7 +465,7 @@ class WP_Upgrader {
 		$destination       = $args['destination'];
 		$clear_destination = $args['clear_destination'];
 
-		@set_time_limit( 300 );
+		set_time_limit( 300 );
 
 		if ( empty( $source ) || empty( $destination ) ) {
 			return new WP_Error( 'bad_request', $this->strings['bad_request'] );

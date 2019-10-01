@@ -13,7 +13,7 @@
  *
  * @since 0.71
  */
-function the_ID() {
+function the_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	echo get_the_ID();
 }
 
@@ -24,7 +24,7 @@ function the_ID() {
  *
  * @return int|false The ID of the current item in the WordPress Loop. False if $post is not set.
  */
-function get_the_ID() {
+function get_the_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	$post = get_post();
 	return ! empty( $post ) ? $post->ID : false;
 }
@@ -78,24 +78,24 @@ function the_title( $before = '', $after = '', $echo = true ) {
  * @return string|void String when echo is false.
  */
 function the_title_attribute( $args = '' ) {
-	$defaults = array(
+	$defaults    = array(
 		'before' => '',
 		'after'  => '',
 		'echo'   => true,
 		'post'   => get_post(),
 	);
-	$r        = wp_parse_args( $args, $defaults );
+	$parsed_args = wp_parse_args( $args, $defaults );
 
-	$title = get_the_title( $r['post'] );
+	$title = get_the_title( $parsed_args['post'] );
 
 	if ( strlen( $title ) == 0 ) {
 		return;
 	}
 
-	$title = $r['before'] . $title . $r['after'];
+	$title = $parsed_args['before'] . $title . $parsed_args['after'];
 	$title = esc_attr( strip_tags( $title ) );
 
-	if ( $r['echo'] ) {
+	if ( $parsed_args['echo'] ) {
 		echo $title;
 	} else {
 		return $title;
@@ -123,6 +123,9 @@ function get_the_title( $post = 0 ) {
 	if ( ! is_admin() ) {
 		if ( ! empty( $post->post_password ) ) {
 
+			/* translators: %s: Protected post title. */
+			$prepend = __( 'Protected: %s' );
+
 			/**
 			 * Filters the text prepended to the post title for protected posts.
 			 *
@@ -134,9 +137,12 @@ function get_the_title( $post = 0 ) {
 			 *                         Default 'Protected: %s'.
 			 * @param WP_Post $post    Current post object.
 			 */
-			$protected_title_format = apply_filters( 'protected_title_format', __( 'Protected: %s' ), $post );
+			$protected_title_format = apply_filters( 'protected_title_format', $prepend, $post );
 			$title                  = sprintf( $protected_title_format, $title );
 		} elseif ( isset( $post->post_status ) && 'private' == $post->post_status ) {
+
+			/* translators: %s: Private post title. */
+			$prepend = __( 'Private: %s' );
 
 			/**
 			 * Filters the text prepended to the post title of private posts.
@@ -149,7 +155,7 @@ function get_the_title( $post = 0 ) {
 			 *                         Default 'Private: %s'.
 			 * @param WP_Post $post    Current post object.
 			 */
-			$private_title_format = apply_filters( 'private_title_format', __( 'Private: %s' ), $post );
+			$private_title_format = apply_filters( 'private_title_format', $prepend, $post );
 			$title                = sprintf( $private_title_format, $title );
 		}
 	}
@@ -286,7 +292,7 @@ function get_the_content( $more_link_text = null, $strip_teaser = false, $post =
 		$more_link_text = sprintf(
 			'<span aria-label="%1$s">%2$s</span>',
 			sprintf(
-				/* translators: %s: Name of current post */
+				/* translators: %s: Post title. */
 				__( 'Continue reading %s' ),
 				the_title_attribute(
 					array(
@@ -362,24 +368,7 @@ function get_the_content( $more_link_text = null, $strip_teaser = false, $post =
 		}
 	}
 
-	if ( $preview ) { // Preview fix for JavaScript bug with foreign languages.
-		$output = preg_replace_callback( '/\%u([0-9A-F]{4})/', '_convert_urlencoded_to_entities', $output );
-	}
-
 	return $output;
-}
-
-/**
- * Preview fix for JavaScript bug with foreign languages.
- *
- * @since 3.1.0
- * @access private
- *
- * @param array $match Match array from preg_replace_callback.
- * @return string
- */
-function _convert_urlencoded_to_entities( $match ) {
-	return '&#' . base_convert( $match[1], 16, 10 ) . ';';
 }
 
 /**
@@ -607,7 +596,7 @@ function body_class( $class = '' ) {
  *
  * @since 2.8.0
  *
- * @global WP_Query $wp_query
+ * @global WP_Query $wp_query WordPress Query object.
  *
  * @param string|string[] $class Space-separated string or array of class names to add to the class list.
  * @return string[] Array of class names.
@@ -946,27 +935,27 @@ function wp_link_pages( $args = '' ) {
 		'echo'             => 1,
 	);
 
-	$params = wp_parse_args( $args, $defaults );
+	$parsed_args = wp_parse_args( $args, $defaults );
 
 	/**
 	 * Filters the arguments used in retrieving page links for paginated posts.
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param array $params An array of arguments for page links for paginated posts.
+	 * @param array $parsed_args An array of arguments for page links for paginated posts.
 	 */
-	$r = apply_filters( 'wp_link_pages_args', $params );
+	$parsed_args = apply_filters( 'wp_link_pages_args', $parsed_args );
 
 	$output = '';
 	if ( $multipage ) {
-		if ( 'number' == $r['next_or_number'] ) {
-			$output .= $r['before'];
+		if ( 'number' == $parsed_args['next_or_number'] ) {
+			$output .= $parsed_args['before'];
 			for ( $i = 1; $i <= $numpages; $i++ ) {
-				$link = $r['link_before'] . str_replace( '%', $i, $r['pagelink'] ) . $r['link_after'];
+				$link = $parsed_args['link_before'] . str_replace( '%', $i, $parsed_args['pagelink'] ) . $parsed_args['link_after'];
 				if ( $i != $page || ! $more && 1 == $page ) {
 					$link = _wp_link_page( $i ) . $link . '</a>';
 				} elseif ( $i === $page ) {
-					$link = '<span class="post-page-numbers current" aria-current="' . esc_attr( $r['aria_current'] ) . '">' . $link . '</span>';
+					$link = '<span class="post-page-numbers current" aria-current="' . esc_attr( $parsed_args['aria_current'] ) . '">' . $link . '</span>';
 				}
 				/**
 				 * Filters the HTML output of individual page number links.
@@ -979,15 +968,15 @@ function wp_link_pages( $args = '' ) {
 				$link = apply_filters( 'wp_link_pages_link', $link, $i );
 
 				// Use the custom links separator beginning with the second link.
-				$output .= ( 1 === $i ) ? ' ' : $r['separator'];
+				$output .= ( 1 === $i ) ? ' ' : $parsed_args['separator'];
 				$output .= $link;
 			}
-			$output .= $r['after'];
+			$output .= $parsed_args['after'];
 		} elseif ( $more ) {
-			$output .= $r['before'];
+			$output .= $parsed_args['before'];
 			$prev    = $page - 1;
 			if ( $prev > 0 ) {
-				$link = _wp_link_page( $prev ) . $r['link_before'] . $r['previouspagelink'] . $r['link_after'] . '</a>';
+				$link = _wp_link_page( $prev ) . $parsed_args['link_before'] . $parsed_args['previouspagelink'] . $parsed_args['link_after'] . '</a>';
 
 				/** This filter is documented in wp-includes/post-template.php */
 				$output .= apply_filters( 'wp_link_pages_link', $link, $prev );
@@ -995,14 +984,14 @@ function wp_link_pages( $args = '' ) {
 			$next = $page + 1;
 			if ( $next <= $numpages ) {
 				if ( $prev ) {
-					$output .= $r['separator'];
+					$output .= $parsed_args['separator'];
 				}
-				$link = _wp_link_page( $next ) . $r['link_before'] . $r['nextpagelink'] . $r['link_after'] . '</a>';
+				$link = _wp_link_page( $next ) . $parsed_args['link_before'] . $parsed_args['nextpagelink'] . $parsed_args['link_after'] . '</a>';
 
 				/** This filter is documented in wp-includes/post-template.php */
 				$output .= apply_filters( 'wp_link_pages_link', $link, $next );
 			}
-			$output .= $r['after'];
+			$output .= $parsed_args['after'];
 		}
 	}
 
@@ -1016,7 +1005,7 @@ function wp_link_pages( $args = '' ) {
 	 */
 	$html = apply_filters( 'wp_link_pages', $output, $args );
 
-	if ( $r['echo'] ) {
+	if ( $parsed_args['echo'] ) {
 		echo $html;
 	}
 	return $html;
@@ -1028,7 +1017,7 @@ function wp_link_pages( $args = '' ) {
  * @since 3.1.0
  * @access private
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param int $i Page number.
  * @return string Link.
@@ -1095,7 +1084,8 @@ function post_custom( $key = '' ) {
  * @internal This will probably change at some point...
  */
 function the_meta() {
-	if ( $keys = get_post_custom_keys() ) {
+	$keys = get_post_custom_keys();
+	if ( $keys ) {
 		$li_html = '';
 		foreach ( (array) $keys as $key ) {
 			$keyt = trim( $key );
@@ -1108,7 +1098,7 @@ function the_meta() {
 
 			$html = sprintf(
 				"<li><span class='post-meta-key'>%s</span> %s</li>\n",
-				/* translators: %s: Post custom field name */
+				/* translators: %s: Post custom field name. */
 				sprintf( _x( '%s:', 'Post custom field name' ), $key ),
 				$value
 			);
@@ -1180,29 +1170,29 @@ function wp_dropdown_pages( $args = '' ) {
 		'value_field'           => 'ID',
 	);
 
-	$r = wp_parse_args( $args, $defaults );
+	$parsed_args = wp_parse_args( $args, $defaults );
 
-	$pages  = get_pages( $r );
+	$pages  = get_pages( $parsed_args );
 	$output = '';
 	// Back-compat with old system where both id and name were based on $name argument
-	if ( empty( $r['id'] ) ) {
-		$r['id'] = $r['name'];
+	if ( empty( $parsed_args['id'] ) ) {
+		$parsed_args['id'] = $parsed_args['name'];
 	}
 
 	if ( ! empty( $pages ) ) {
 		$class = '';
-		if ( ! empty( $r['class'] ) ) {
-			$class = " class='" . esc_attr( $r['class'] ) . "'";
+		if ( ! empty( $parsed_args['class'] ) ) {
+			$class = " class='" . esc_attr( $parsed_args['class'] ) . "'";
 		}
 
-		$output = "<select name='" . esc_attr( $r['name'] ) . "'" . $class . " id='" . esc_attr( $r['id'] ) . "'>\n";
-		if ( $r['show_option_no_change'] ) {
-			$output .= "\t<option value=\"-1\">" . $r['show_option_no_change'] . "</option>\n";
+		$output = "<select name='" . esc_attr( $parsed_args['name'] ) . "'" . $class . " id='" . esc_attr( $parsed_args['id'] ) . "'>\n";
+		if ( $parsed_args['show_option_no_change'] ) {
+			$output .= "\t<option value=\"-1\">" . $parsed_args['show_option_no_change'] . "</option>\n";
 		}
-		if ( $r['show_option_none'] ) {
-			$output .= "\t<option value=\"" . esc_attr( $r['option_none_value'] ) . '">' . $r['show_option_none'] . "</option>\n";
+		if ( $parsed_args['show_option_none'] ) {
+			$output .= "\t<option value=\"" . esc_attr( $parsed_args['option_none_value'] ) . '">' . $parsed_args['show_option_none'] . "</option>\n";
 		}
-		$output .= walk_page_dropdown_tree( $pages, $r['depth'], $r );
+		$output .= walk_page_dropdown_tree( $pages, $parsed_args['depth'], $parsed_args );
 		$output .= "</select>\n";
 	}
 
@@ -1210,15 +1200,15 @@ function wp_dropdown_pages( $args = '' ) {
 	 * Filters the HTML output of a list of pages as a drop down.
 	 *
 	 * @since 2.1.0
-	 * @since 4.4.0 `$r` and `$pages` added as arguments.
+	 * @since 4.4.0 `$parsed_args` and `$pages` added as arguments.
 	 *
-	 * @param string $output HTML output for drop down list of pages.
-	 * @param array  $r      The parsed arguments array.
-	 * @param array  $pages  List of WP_Post objects returned by `get_pages()`
+	 * @param string $output      HTML output for drop down list of pages.
+	 * @param array  $parsed_args The parsed arguments array.
+	 * @param array  $pages       List of WP_Post objects returned by `get_pages()`
 	 */
-	$html = apply_filters( 'wp_dropdown_pages', $output, $r, $pages );
+	$html = apply_filters( 'wp_dropdown_pages', $output, $parsed_args, $pages );
 
-	if ( $r['echo'] ) {
+	if ( $parsed_args['echo'] ) {
 		echo $html;
 	}
 	return $html;
@@ -1232,7 +1222,7 @@ function wp_dropdown_pages( $args = '' ) {
  *
  * @see get_pages()
  *
- * @global WP_Query $wp_query
+ * @global WP_Query $wp_query WordPress Query object.
  *
  * @param array|string $args {
  *     Optional. Array or string of arguments to generate a list of pages. See `get_pages()` for additional arguments.
@@ -1281,21 +1271,21 @@ function wp_list_pages( $args = '' ) {
 		'walker'       => '',
 	);
 
-	$r = wp_parse_args( $args, $defaults );
+	$parsed_args = wp_parse_args( $args, $defaults );
 
-	if ( ! in_array( $r['item_spacing'], array( 'preserve', 'discard' ), true ) ) {
+	if ( ! in_array( $parsed_args['item_spacing'], array( 'preserve', 'discard' ), true ) ) {
 		// invalid value, fall back to default.
-		$r['item_spacing'] = $defaults['item_spacing'];
+		$parsed_args['item_spacing'] = $defaults['item_spacing'];
 	}
 
 	$output       = '';
 	$current_page = 0;
 
 	// sanitize, mostly to keep spaces out
-	$r['exclude'] = preg_replace( '/[^0-9,]/', '', $r['exclude'] );
+	$parsed_args['exclude'] = preg_replace( '/[^0-9,]/', '', $parsed_args['exclude'] );
 
 	// Allow plugins to filter an array of excluded pages (but don't put a nullstring into the array)
-	$exclude_array = ( $r['exclude'] ) ? explode( ',', $r['exclude'] ) : array();
+	$exclude_array = ( $parsed_args['exclude'] ) ? explode( ',', $parsed_args['exclude'] ) : array();
 
 	/**
 	 * Filters the array of pages to exclude from the pages list.
@@ -1304,15 +1294,16 @@ function wp_list_pages( $args = '' ) {
 	 *
 	 * @param array $exclude_array An array of page IDs to exclude.
 	 */
-	$r['exclude'] = implode( ',', apply_filters( 'wp_list_pages_excludes', $exclude_array ) );
+	$parsed_args['exclude'] = implode( ',', apply_filters( 'wp_list_pages_excludes', $exclude_array ) );
+
+	$parsed_args['hierarchical'] = 0;
 
 	// Query pages.
-	$r['hierarchical'] = 0;
-	$pages             = get_pages( $r );
+	$pages = get_pages( $parsed_args );
 
 	if ( ! empty( $pages ) ) {
-		if ( $r['title_li'] ) {
-			$output .= '<li class="pagenav">' . $r['title_li'] . '<ul>';
+		if ( $parsed_args['title_li'] ) {
+			$output .= '<li class="pagenav">' . $parsed_args['title_li'] . '<ul>';
 		}
 		global $wp_query;
 		if ( is_page() || is_attachment() || $wp_query->is_posts_page ) {
@@ -1324,9 +1315,9 @@ function wp_list_pages( $args = '' ) {
 			}
 		}
 
-		$output .= walk_page_tree( $pages, $r['depth'], $current_page, $r );
+		$output .= walk_page_tree( $pages, $parsed_args['depth'], $current_page, $parsed_args );
 
-		if ( $r['title_li'] ) {
+		if ( $parsed_args['title_li'] ) {
 			$output .= '</ul></li>';
 		}
 	}
@@ -1339,13 +1330,13 @@ function wp_list_pages( $args = '' ) {
 	 *
 	 * @see wp_list_pages()
 	 *
-	 * @param string $output HTML output of the pages list.
-	 * @param array  $r      An array of page-listing arguments.
-	 * @param array  $pages  List of WP_Post objects returned by `get_pages()`
+	 * @param string $output      HTML output of the pages list.
+	 * @param array  $parsed_args An array of page-listing arguments.
+	 * @param array  $pages       List of WP_Post objects returned by `get_pages()`
 	 */
-	$html = apply_filters( 'wp_list_pages', $output, $r, $pages );
+	$html = apply_filters( 'wp_list_pages', $output, $parsed_args, $pages );
 
-	if ( $r['echo'] ) {
+	if ( $parsed_args['echo'] ) {
 		echo $html;
 	} else {
 		return $html;
@@ -1533,8 +1524,7 @@ function walk_page_tree( $pages, $depth, $current_page, $r ) {
 		}
 	}
 
-	$args = array( $pages, $depth, $r, $current_page );
-	return call_user_func_array( array( $walker, 'walk' ), $args );
+	return $walker->walk( $pages, $depth, $r, $current_page );
 }
 
 /**
@@ -1546,15 +1536,14 @@ function walk_page_tree( $pages, $depth, $current_page, $r ) {
  *
  * @return string
  */
-function walk_page_dropdown_tree() {
-	$args = func_get_args();
+function walk_page_dropdown_tree( ...$args ) {
 	if ( empty( $args[2]['walker'] ) ) { // the user's options are the third parameter
 		$walker = new Walker_PageDropdown;
 	} else {
 		$walker = $args[2]['walker'];
 	}
 
-	return call_user_func_array( array( $walker, 'walk' ), $args );
+	return $walker->walk( ...$args );
 }
 
 //
@@ -1603,9 +1592,11 @@ function the_attachment_link( $id = 0, $fullsize = false, $deprecated = false, $
 function wp_get_attachment_link( $id = 0, $size = 'thumbnail', $permalink = false, $icon = false, $text = false, $attr = '' ) {
 	$_post = get_post( $id );
 
-	if ( empty( $_post ) || ( 'attachment' !== $_post->post_type ) || ! $url = wp_get_attachment_url( $_post->ID ) ) {
+	if ( empty( $_post ) || ( 'attachment' !== $_post->post_type ) || ! wp_get_attachment_url( $_post->ID ) ) {
 		return __( 'Missing Attachment' );
 	}
+
+	$url = wp_get_attachment_url( $_post->ID );
 
 	if ( $permalink ) {
 		$url = get_attachment_link( $_post->ID );
@@ -1807,7 +1798,8 @@ function get_page_template_slug( $post = null ) {
  * @return string|false i18n formatted datetimestamp or localized 'Current Revision'.
  */
 function wp_post_revision_title( $revision, $link = true ) {
-	if ( ! $revision = get_post( $revision ) ) {
+	$revision = get_post( $revision );
+	if ( ! $revision ) {
 		return $revision;
 	}
 
@@ -1815,16 +1807,17 @@ function wp_post_revision_title( $revision, $link = true ) {
 		return false;
 	}
 
-	/* translators: revision date format, see https://secure.php.net/date */
+	/* translators: Revision date format, see https://secure.php.net/date */
 	$datef = _x( 'F j, Y @ H:i:s', 'revision date format' );
-	/* translators: %s: revision date */
+	/* translators: %s: Revision date. */
 	$autosavef = __( '%s [Autosave]' );
-	/* translators: %s: revision date */
+	/* translators: %s: Revision date. */
 	$currentf = __( '%s [Current Revision]' );
 
-	$date = date_i18n( $datef, strtotime( $revision->post_modified ) );
-	if ( $link && current_user_can( 'edit_post', $revision->ID ) && $link = get_edit_post_link( $revision->ID ) ) {
-		$date = "<a href='$link'>$date</a>";
+	$date      = date_i18n( $datef, strtotime( $revision->post_modified ) );
+	$edit_link = get_edit_post_link( $revision->ID );
+	if ( $link && current_user_can( 'edit_post', $revision->ID ) && $edit_link ) {
+		$date = "<a href='$edit_link'>$date</a>";
 	}
 
 	if ( ! wp_is_post_revision( $revision ) ) {
@@ -1846,7 +1839,8 @@ function wp_post_revision_title( $revision, $link = true ) {
  * @return string|false gravatar, user, i18n formatted datetimestamp or localized 'Current Revision'.
  */
 function wp_post_revision_title_expanded( $revision, $link = true ) {
-	if ( ! $revision = get_post( $revision ) ) {
+	$revision = get_post( $revision );
+	if ( ! $revision ) {
 		return $revision;
 	}
 
@@ -1855,28 +1849,29 @@ function wp_post_revision_title_expanded( $revision, $link = true ) {
 	}
 
 	$author = get_the_author_meta( 'display_name', $revision->post_author );
-	/* translators: revision date format, see https://secure.php.net/date */
+	/* translators: Revision date format, see https://secure.php.net/date */
 	$datef = _x( 'F j, Y @ H:i:s', 'revision date format' );
 
 	$gravatar = get_avatar( $revision->post_author, 24 );
 
-	$date = date_i18n( $datef, strtotime( $revision->post_modified ) );
-	if ( $link && current_user_can( 'edit_post', $revision->ID ) && $link = get_edit_post_link( $revision->ID ) ) {
-		$date = "<a href='$link'>$date</a>";
+	$date      = date_i18n( $datef, strtotime( $revision->post_modified ) );
+	$edit_link = get_edit_post_link( $revision->ID );
+	if ( $link && current_user_can( 'edit_post', $revision->ID ) && $edit_link ) {
+		$date = "<a href='$edit_link'>$date</a>";
 	}
 
 	$revision_date_author = sprintf(
-		/* translators: post revision title: 1: author avatar, 2: author name, 3: time ago, 4: date */
+		/* translators: Post revision title. 1: Author avatar, 2: Author name, 3: Time ago, 4: Date. */
 		__( '%1$s %2$s, %3$s ago (%4$s)' ),
 		$gravatar,
 		$author,
-		human_time_diff( strtotime( $revision->post_modified ), current_time( 'timestamp' ) ),
+		human_time_diff( strtotime( $revision->post_modified_gmt ) ),
 		$date
 	);
 
-	/* translators: %s: revision date with author avatar */
+	/* translators: %s: Revision date with author avatar. */
 	$autosavef = __( '%s [Autosave]' );
-	/* translators: %s: revision date with author avatar */
+	/* translators: %s: Revision date with author avatar. */
 	$currentf = __( '%s [Current Revision]' );
 
 	if ( ! wp_is_post_revision( $revision ) ) {
@@ -1910,7 +1905,8 @@ function wp_post_revision_title_expanded( $revision, $link = true ) {
  * @param string      $type    'all' (default), 'revision' or 'autosave'
  */
 function wp_list_post_revisions( $post_id = 0, $type = 'all' ) {
-	if ( ! $post = get_post( $post_id ) ) {
+	$post = get_post( $post_id );
+	if ( ! $post ) {
 		return;
 	}
 
@@ -1920,7 +1916,8 @@ function wp_list_post_revisions( $post_id = 0, $type = 'all' ) {
 		_deprecated_argument( __FUNCTION__, '3.6.0' );
 	}
 
-	if ( ! $revisions = wp_get_post_revisions( $post->ID ) ) {
+	$revisions = wp_get_post_revisions( $post->ID );
+	if ( ! $revisions ) {
 		return;
 	}
 

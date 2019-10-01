@@ -23,8 +23,16 @@ get_current_screen()->add_help_tab(
 		'id'      => 'overview',
 		'title'   => __( 'Overview' ),
 		'content' => '<p>' . __( 'This screen contains the settings that affect the display of your content.' ) . '</p>' .
-			'<p>' . sprintf( __( 'You can choose what&#8217;s displayed on the homepage of your site. It can be posts in reverse chronological order (classic blog), or a fixed/static page. To set a static homepage, you first need to create two <a href="%s">Pages</a>. One will become the homepage, and the other will be where your posts are displayed.' ), 'post-new.php?post_type=page' ) . '</p>' .
-			'<p>' . __( 'You can also control the display of your content in RSS feeds, including the maximum number of posts to display and whether to show full text or a summary.' ) . '</p>' .
+			'<p>' . sprintf(
+				/* translators: %s: URL to create a new page. */
+				__( 'You can choose what&#8217;s displayed on the homepage of your site. It can be posts in reverse chronological order (classic blog), or a fixed/static page. To set a static homepage, you first need to create two <a href="%s">Pages</a>. One will become the homepage, and the other will be where your posts are displayed.' ),
+				'post-new.php?post_type=page'
+			) . '</p>' .
+			'<p>' . sprintf(
+				/* translators: %s: Documentation URL. */
+				__( 'You can also control the display of your content in RSS feeds, including the maximum number of posts to display and whether to show full text or a summary. <a href="%s">Learn more about feeds</a>.' ),
+				__( 'https://wordpress.org/support/article/wordpress-feeds/' )
+			) . '</p>' .
 			'<p>' . __( 'You must click the Save Changes button at the bottom of the screen for new settings to take effect.' ) . '</p>',
 	)
 );
@@ -40,7 +48,7 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://codex.wordpress.org/Settings_Reading_Screen">Documentation on Reading Settings</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/article/settings-reading-screen/">Documentation on Reading Settings</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
@@ -68,7 +76,7 @@ if ( ! in_array( get_option( 'blog_charset' ), array( 'utf8', 'utf-8', 'UTF8', '
 	endif;
 
 else :
-	if ( 'page' == get_option( 'show_on_front' ) && ! get_option( 'page_on_front' ) && ! get_option( 'page_for_posts' ) ) {
+	if ( 'page' === get_option( 'show_on_front' ) && ! get_option( 'page_on_front' ) && ! get_option( 'page_for_posts' ) ) {
 		update_option( 'show_on_front', 'posts' );
 	}
 	?>
@@ -83,13 +91,20 @@ else :
 	</p>
 	<p><label>
 		<input name="show_on_front" type="radio" value="page" class="tog" <?php checked( 'page', get_option( 'show_on_front' ) ); ?> />
-		<?php printf( __( 'A <a href="%s">static page</a> (select below)' ), 'edit.php?post_type=page' ); ?>
+		<?php
+		printf(
+			/* translators: %s: URL to Pages screen. */
+			__( 'A <a href="%s">static page</a> (select below)' ),
+			'edit.php?post_type=page'
+		);
+		?>
 	</label>
 	</p>
 <ul>
 	<li><label for="page_on_front">
 	<?php
 	printf(
+		/* translators: %s: Select field to choose the front page. */
 		__( 'Homepage: %s' ),
 		wp_dropdown_pages(
 			array(
@@ -106,6 +121,7 @@ else :
 	<li><label for="page_for_posts">
 	<?php
 	printf(
+		/* translators: %s: Select field to choose the page for posts. */
 		__( 'Posts page: %s' ),
 		wp_dropdown_pages(
 			array(
@@ -120,9 +136,12 @@ else :
 	?>
 </label></li>
 </ul>
-	<?php if ( 'page' == get_option( 'show_on_front' ) && get_option( 'page_for_posts' ) == get_option( 'page_on_front' ) ) : ?>
-<div id="front-page-warning" class="error inline"><p><?php _e( '<strong>Warning:</strong> these pages should not be the same!' ); ?></p></div>
-<?php endif; ?>
+	<?php if ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_for_posts' ) === get_option( 'page_on_front' ) ) : ?>
+	<div id="front-page-warning" class="error inline"><p><?php _e( '<strong>Warning:</strong> these pages should not be the same!' ); ?></p></div>
+	<?php endif; ?>
+	<?php if ( get_option( 'wp_page_for_privacy_policy' ) === get_option( 'page_for_posts' ) || get_option( 'wp_page_for_privacy_policy' ) === get_option( 'page_on_front' ) ) : ?>
+	<div id="privacy-policy-page-warning" class="error inline"><p><?php _e( '<strong>Warning:</strong> these pages should not be the same as your Privacy Policy page!' ); ?></p></div>
+	<?php endif; ?>
 </fieldset></td>
 </tr>
 <?php endif; ?>
@@ -137,10 +156,21 @@ else :
 <td><input name="posts_per_rss" type="number" step="1" min="1" id="posts_per_rss" value="<?php form_option( 'posts_per_rss' ); ?>" class="small-text" /> <?php _e( 'items' ); ?></td>
 </tr>
 <tr>
-<th scope="row"><?php _e( 'For each post in a feed, show' ); ?> </th>
-<td><fieldset><legend class="screen-reader-text"><span><?php _e( 'For each post in a feed, show' ); ?> </span></legend>
-<p><label><input name="rss_use_excerpt" type="radio" value="0" <?php checked( 0, get_option( 'rss_use_excerpt' ) ); ?>	/> <?php _e( 'Full text' ); ?></label><br />
-<label><input name="rss_use_excerpt" type="radio" value="1" <?php checked( 1, get_option( 'rss_use_excerpt' ) ); ?> /> <?php _e( 'Summary' ); ?></label></p>
+<th scope="row"><?php _e( 'For each post in a feed, include' ); ?> </th>
+<td><fieldset><legend class="screen-reader-text"><span><?php _e( 'For each post in a feed, include' ); ?> </span></legend>
+	<p>
+		<label><input name="rss_use_excerpt" type="radio" value="0" <?php checked( 0, get_option( 'rss_use_excerpt' ) ); ?>	/> <?php _e( 'Full text' ); ?></label><br />
+		<label><input name="rss_use_excerpt" type="radio" value="1" <?php checked( 1, get_option( 'rss_use_excerpt' ) ); ?> /> <?php _e( 'Summary' ); ?></label>
+	</p>
+	<p class="description">
+		<?php
+		printf(
+			/* translators: %s: Documentation URL. */
+			__( 'Your theme determines how content is displayed in browsers. <a href="%s">Learn more about feeds</a>.' ),
+			__( 'https://wordpress.org/support/article/wordpress-feeds/' )
+		);
+		?>
+	</p>
 </fieldset></td>
 </tr>
 

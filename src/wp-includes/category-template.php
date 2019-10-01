@@ -105,7 +105,7 @@ function get_the_category( $id = false ) {
  * @param int $cat_ID Category ID.
  * @return string|WP_Error Category name on success, WP_Error on failure.
  */
-function get_the_category_by_ID( $cat_ID ) {
+function get_the_category_by_ID( $cat_ID ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	$cat_ID   = (int) $cat_ID;
 	$category = get_term( $cat_ID );
 
@@ -121,7 +121,7 @@ function get_the_category_by_ID( $cat_ID ) {
  *
  * @since 1.5.1
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param string $separator Optional. Separator between the categories. By default, the links are placed
  *                          in an unordered list. An empty string will result in the default behavior.
@@ -288,7 +288,7 @@ function category_description( $category = 0 ) {
  * @since 4.2.0 Introduced the `value_field` argument.
  * @since 4.6.0 Introduced the `required` argument.
  *
- * @param string|array $args {
+ * @param array|string $args {
  *     Optional. Array or string of arguments to generate a categories drop-down element. See WP_Term_Query::__construct()
  *     for information on additional accepted arguments.
  *
@@ -321,7 +321,7 @@ function category_description( $category = 0 ) {
  *     @type bool         $required          Whether the `<select>` element should have the HTML5 'required' attribute.
  *                                           Default false.
  * }
- * @return string HTML content only if 'echo' argument is 0.
+ * @return string HTML dropdown list of categories.
  */
 function wp_dropdown_categories( $args = '' ) {
 	$defaults = array(
@@ -355,8 +355,8 @@ function wp_dropdown_categories( $args = '' ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'3.0.0',
-			/* translators: 1: "type => link", 2: "taxonomy => link_category" */
 			sprintf(
+				/* translators: 1: "type => link", 2: "taxonomy => link_category" */
 				__( '%1$s is deprecated. Use %2$s instead.' ),
 				'<code>type => link</code>',
 				'<code>taxonomy => link_category</code>'
@@ -365,14 +365,16 @@ function wp_dropdown_categories( $args = '' ) {
 		$args['taxonomy'] = 'link_category';
 	}
 
-	$r                 = wp_parse_args( $args, $defaults );
-	$option_none_value = $r['option_none_value'];
+	// Parse incoming $args into an array and merge it with $defaults.
+	$parsed_args = wp_parse_args( $args, $defaults );
 
-	if ( ! isset( $r['pad_counts'] ) && $r['show_count'] && $r['hierarchical'] ) {
-		$r['pad_counts'] = true;
+	$option_none_value = $parsed_args['option_none_value'];
+
+	if ( ! isset( $parsed_args['pad_counts'] ) && $parsed_args['show_count'] && $parsed_args['hierarchical'] ) {
+		$parsed_args['pad_counts'] = true;
 	}
 
-	$tab_index = $r['tab_index'];
+	$tab_index = $parsed_args['tab_index'];
 
 	$tab_index_attribute = '';
 	if ( (int) $tab_index > 0 ) {
@@ -380,21 +382,21 @@ function wp_dropdown_categories( $args = '' ) {
 	}
 
 	// Avoid clashes with the 'name' param of get_terms().
-	$get_terms_args = $r;
+	$get_terms_args = $parsed_args;
 	unset( $get_terms_args['name'] );
-	$categories = get_terms( $r['taxonomy'], $get_terms_args );
+	$categories = get_terms( $get_terms_args );
 
-	$name     = esc_attr( $r['name'] );
-	$class    = esc_attr( $r['class'] );
-	$id       = $r['id'] ? esc_attr( $r['id'] ) : $name;
-	$required = $r['required'] ? 'required' : '';
+	$name     = esc_attr( $parsed_args['name'] );
+	$class    = esc_attr( $parsed_args['class'] );
+	$id       = $parsed_args['id'] ? esc_attr( $parsed_args['id'] ) : $name;
+	$required = $parsed_args['required'] ? 'required' : '';
 
-	if ( ! $r['hide_if_empty'] || ! empty( $categories ) ) {
+	if ( ! $parsed_args['hide_if_empty'] || ! empty( $categories ) ) {
 		$output = "<select $required name='$name' id='$id' class='$class' $tab_index_attribute>\n";
 	} else {
 		$output = '';
 	}
-	if ( empty( $categories ) && ! $r['hide_if_empty'] && ! empty( $r['show_option_none'] ) ) {
+	if ( empty( $categories ) && ! $parsed_args['hide_if_empty'] && ! empty( $parsed_args['show_option_none'] ) ) {
 
 		/**
 		 * Filters a taxonomy drop-down display element.
@@ -411,52 +413,54 @@ function wp_dropdown_categories( $args = '' ) {
 		 * @param string       $element  Category name.
 		 * @param WP_Term|null $category The category object, or null if there's no corresponding category.
 		 */
-		$show_option_none = apply_filters( 'list_cats', $r['show_option_none'], null );
+		$show_option_none = apply_filters( 'list_cats', $parsed_args['show_option_none'], null );
 		$output          .= "\t<option value='" . esc_attr( $option_none_value ) . "' selected='selected'>$show_option_none</option>\n";
 	}
 
 	if ( ! empty( $categories ) ) {
 
-		if ( $r['show_option_all'] ) {
+		if ( $parsed_args['show_option_all'] ) {
 
 			/** This filter is documented in wp-includes/category-template.php */
-			$show_option_all = apply_filters( 'list_cats', $r['show_option_all'], null );
-			$selected        = ( '0' === strval( $r['selected'] ) ) ? " selected='selected'" : '';
+			$show_option_all = apply_filters( 'list_cats', $parsed_args['show_option_all'], null );
+			$selected        = ( '0' === strval( $parsed_args['selected'] ) ) ? " selected='selected'" : '';
 			$output         .= "\t<option value='0'$selected>$show_option_all</option>\n";
 		}
 
-		if ( $r['show_option_none'] ) {
+		if ( $parsed_args['show_option_none'] ) {
 
 			/** This filter is documented in wp-includes/category-template.php */
-			$show_option_none = apply_filters( 'list_cats', $r['show_option_none'], null );
-			$selected         = selected( $option_none_value, $r['selected'], false );
+			$show_option_none = apply_filters( 'list_cats', $parsed_args['show_option_none'], null );
+			$selected         = selected( $option_none_value, $parsed_args['selected'], false );
 			$output          .= "\t<option value='" . esc_attr( $option_none_value ) . "'$selected>$show_option_none</option>\n";
 		}
 
-		if ( $r['hierarchical'] ) {
-			$depth = $r['depth'];  // Walk the full depth.
+		if ( $parsed_args['hierarchical'] ) {
+			$depth = $parsed_args['depth'];  // Walk the full depth.
 		} else {
 			$depth = -1; // Flat.
 		}
-		$output .= walk_category_dropdown_tree( $categories, $depth, $r );
+		$output .= walk_category_dropdown_tree( $categories, $depth, $parsed_args );
 	}
 
-	if ( ! $r['hide_if_empty'] || ! empty( $categories ) ) {
+	if ( ! $parsed_args['hide_if_empty'] || ! empty( $categories ) ) {
 		$output .= "</select>\n";
 	}
+
 	/**
 	 * Filters the taxonomy drop-down output.
 	 *
 	 * @since 2.1.0
 	 *
 	 * @param string $output HTML output.
-	 * @param array  $r      Arguments used to build the drop-down.
+	 * @param array  $parsed_args      Arguments used to build the drop-down.
 	 */
-	$output = apply_filters( 'wp_dropdown_cats', $output, $r );
+	$output = apply_filters( 'wp_dropdown_cats', $output, $parsed_args );
 
-	if ( $r['echo'] ) {
+	if ( $parsed_args['echo'] ) {
 		echo $output;
 	}
+
 	return $output;
 }
 
@@ -464,13 +468,13 @@ function wp_dropdown_categories( $args = '' ) {
  * Display or retrieve the HTML list of categories.
  *
  * @since 2.1.0
- * @since 4.4.0 Introduced the `hide_title_if_empty` and `separator` arguments. The `current_category` argument was modified to
- *              optionally accept an array of values.
+ * @since 4.4.0 Introduced the `hide_title_if_empty` and `separator` arguments.
+ * @since 4.4.0 The `current_category` argument was modified to optionally accept an array of values.
  *
- * @param string|array $args {
- *     Array of optional arguments.
+ * @param array|string $args {
+ *     Array of optional arguments. See get_categories(), get_terms(), and WP_Term_Query::__construct()
+ *     for information on additional accepted arguments.
  *
- *     @type int          $child_of              Term ID to retrieve child terms of. See get_terms(). Default 0.
  *     @type int|array    $current_category      ID of category, or array of IDs of categories, that should get the
  *                                               'current-cat' class. Default 0.
  *     @type int          $depth                 Category depth. Used for tab indentation. Default 0.
@@ -486,15 +490,8 @@ function wp_dropdown_categories( $args = '' ) {
  *     @type string       $feed_image            URL of an image to use for the feed link. Default empty string.
  *     @type string       $feed_type             Feed type. Used to build feed link. See get_term_feed_link().
  *                                               Default empty string (default feed).
- *     @type bool|int     $hide_empty            Whether to hide categories that don't have any posts attached to them.
- *                                               Default 1.
  *     @type bool         $hide_title_if_empty   Whether to hide the `$title_li` element if there are no terms in
  *                                               the list. Default false (title will always be shown).
- *     @type bool         $hierarchical          Whether to include terms that have non-empty descendants.
- *                                               See get_terms(). Default true.
- *     @type string       $order                 Which direction to order categories. Accepts 'ASC' or 'DESC'.
- *                                               Default 'ASC'.
- *     @type string       $orderby               The column to use for ordering categories. Default 'name'.
  *     @type string       $separator             Separator between links. Default '<br />'.
  *     @type bool|int     $show_count            Whether to show how many posts are in the category. Default 0.
  *     @type string       $show_option_all       Text to display for showing all categories. Default empty string.
@@ -503,13 +500,12 @@ function wp_dropdown_categories( $args = '' ) {
  *     @type string       $style                 The style used to display the categories list. If 'list', categories
  *                                               will be output as an unordered list. If left empty or another value,
  *                                               categories will be output separated by `<br>` tags. Default 'list'.
- *     @type string       $taxonomy              Taxonomy name. Default 'category'.
  *     @type string       $title_li              Text to use for the list title `<li>` element. Pass an empty string
  *                                               to disable. Default 'Categories'.
  *     @type bool|int     $use_desc_for_title    Whether to use the category description as the title attribute.
  *                                               Default 1.
  * }
- * @return false|string HTML content only if 'echo' argument is 0.
+ * @return false|string HTML list of categories only if 'echo' argument is 0.
  */
 function wp_list_categories( $args = '' ) {
 	$defaults = array(
@@ -537,48 +533,48 @@ function wp_list_categories( $args = '' ) {
 		'use_desc_for_title'  => 1,
 	);
 
-	$r = wp_parse_args( $args, $defaults );
+	$parsed_args = wp_parse_args( $args, $defaults );
 
-	if ( ! isset( $r['pad_counts'] ) && $r['show_count'] && $r['hierarchical'] ) {
-		$r['pad_counts'] = true;
+	if ( ! isset( $parsed_args['pad_counts'] ) && $parsed_args['show_count'] && $parsed_args['hierarchical'] ) {
+		$parsed_args['pad_counts'] = true;
 	}
 
 	// Descendants of exclusions should be excluded too.
-	if ( true == $r['hierarchical'] ) {
+	if ( true == $parsed_args['hierarchical'] ) {
 		$exclude_tree = array();
 
-		if ( $r['exclude_tree'] ) {
-			$exclude_tree = array_merge( $exclude_tree, wp_parse_id_list( $r['exclude_tree'] ) );
+		if ( $parsed_args['exclude_tree'] ) {
+			$exclude_tree = array_merge( $exclude_tree, wp_parse_id_list( $parsed_args['exclude_tree'] ) );
 		}
 
-		if ( $r['exclude'] ) {
-			$exclude_tree = array_merge( $exclude_tree, wp_parse_id_list( $r['exclude'] ) );
+		if ( $parsed_args['exclude'] ) {
+			$exclude_tree = array_merge( $exclude_tree, wp_parse_id_list( $parsed_args['exclude'] ) );
 		}
 
-		$r['exclude_tree'] = $exclude_tree;
-		$r['exclude']      = '';
+		$parsed_args['exclude_tree'] = $exclude_tree;
+		$parsed_args['exclude']      = '';
 	}
 
-	if ( ! isset( $r['class'] ) ) {
-		$r['class'] = ( 'category' == $r['taxonomy'] ) ? 'categories' : $r['taxonomy'];
+	if ( ! isset( $parsed_args['class'] ) ) {
+		$parsed_args['class'] = ( 'category' == $parsed_args['taxonomy'] ) ? 'categories' : $parsed_args['taxonomy'];
 	}
 
-	if ( ! taxonomy_exists( $r['taxonomy'] ) ) {
+	if ( ! taxonomy_exists( $parsed_args['taxonomy'] ) ) {
 		return false;
 	}
 
-	$show_option_all  = $r['show_option_all'];
-	$show_option_none = $r['show_option_none'];
+	$show_option_all  = $parsed_args['show_option_all'];
+	$show_option_none = $parsed_args['show_option_none'];
 
-	$categories = get_categories( $r );
+	$categories = get_categories( $parsed_args );
 
 	$output = '';
-	if ( $r['title_li'] && 'list' == $r['style'] && ( ! empty( $categories ) || ! $r['hide_title_if_empty'] ) ) {
-		$output = '<li class="' . esc_attr( $r['class'] ) . '">' . $r['title_li'] . '<ul>';
+	if ( $parsed_args['title_li'] && 'list' == $parsed_args['style'] && ( ! empty( $categories ) || ! $parsed_args['hide_title_if_empty'] ) ) {
+		$output = '<li class="' . esc_attr( $parsed_args['class'] ) . '">' . $parsed_args['title_li'] . '<ul>';
 	}
 	if ( empty( $categories ) ) {
 		if ( ! empty( $show_option_none ) ) {
-			if ( 'list' == $r['style'] ) {
+			if ( 'list' == $parsed_args['style'] ) {
 				$output .= '<li class="cat-item-none">' . $show_option_none . '</li>';
 			} else {
 				$output .= $show_option_none;
@@ -590,7 +586,7 @@ function wp_list_categories( $args = '' ) {
 			$posts_page = '';
 
 			// For taxonomies that belong only to custom post types, point to a valid archive.
-			$taxonomy_object = get_taxonomy( $r['taxonomy'] );
+			$taxonomy_object = get_taxonomy( $parsed_args['taxonomy'] );
 			if ( ! in_array( 'post', $taxonomy_object->object_type ) && ! in_array( 'page', $taxonomy_object->object_type ) ) {
 				foreach ( $taxonomy_object->object_type as $object_type ) {
 					$_object_type = get_post_type_object( $object_type );
@@ -613,29 +609,29 @@ function wp_list_categories( $args = '' ) {
 			}
 
 			$posts_page = esc_url( $posts_page );
-			if ( 'list' == $r['style'] ) {
+			if ( 'list' == $parsed_args['style'] ) {
 				$output .= "<li class='cat-item-all'><a href='$posts_page'>$show_option_all</a></li>";
 			} else {
 				$output .= "<a href='$posts_page'>$show_option_all</a>";
 			}
 		}
 
-		if ( empty( $r['current_category'] ) && ( is_category() || is_tax() || is_tag() ) ) {
+		if ( empty( $parsed_args['current_category'] ) && ( is_category() || is_tax() || is_tag() ) ) {
 			$current_term_object = get_queried_object();
-			if ( $current_term_object && $r['taxonomy'] === $current_term_object->taxonomy ) {
-				$r['current_category'] = get_queried_object_id();
+			if ( $current_term_object && $parsed_args['taxonomy'] === $current_term_object->taxonomy ) {
+				$parsed_args['current_category'] = get_queried_object_id();
 			}
 		}
 
-		if ( $r['hierarchical'] ) {
-			$depth = $r['depth'];
+		if ( $parsed_args['hierarchical'] ) {
+			$depth = $parsed_args['depth'];
 		} else {
 			$depth = -1; // Flat.
 		}
-		$output .= walk_category_tree( $categories, $depth, $r );
+		$output .= walk_category_tree( $categories, $depth, $parsed_args );
 	}
 
-	if ( $r['title_li'] && 'list' == $r['style'] && ( ! empty( $categories ) || ! $r['hide_title_if_empty'] ) ) {
+	if ( $parsed_args['title_li'] && 'list' == $parsed_args['style'] && ( ! empty( $categories ) || ! $parsed_args['hide_title_if_empty'] ) ) {
 		$output .= '</ul></li>';
 	}
 
@@ -649,7 +645,7 @@ function wp_list_categories( $args = '' ) {
 	 */
 	$html = apply_filters( 'wp_list_categories', $output, $args );
 
-	if ( $r['echo'] ) {
+	if ( $parsed_args['echo'] ) {
 		echo $html;
 	} else {
 		return $html;
@@ -699,7 +695,6 @@ function wp_tag_cloud( $args = '' ) {
 	$args     = wp_parse_args( $args, $defaults );
 
 	$tags = get_terms(
-		$args['taxonomy'],
 		array_merge(
 			$args,
 			array(
@@ -836,6 +831,7 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 	} elseif ( ! empty( $args['topic_count_text_callback'] ) ) {
 		// Look for the alternative callback style. Ignore the previous default.
 		if ( $args['topic_count_text_callback'] === 'default_topic_count_text' ) {
+			/* translators: %s: Number of items (tags). */
 			$translate_nooped_plural = _n_noop( '%s item', '%s items' );
 		} else {
 			$translate_nooped_plural = false;
@@ -846,6 +842,7 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 		$translate_nooped_plural = _n_noop( $args['single_text'], $args['multiple_text'] );
 	} else {
 		// This is the default for when no callback, plural, or argument is passed in.
+		/* translators: %s: Number of items (tags). */
 		$translate_nooped_plural = _n_noop( '%s item', '%s items' );
 	}
 
@@ -1059,18 +1056,19 @@ function _wp_object_count_sort_cb( $a, $b ) {
  *
  * @uses Walker_Category to create HTML list content.
  * @since 2.1.0
- * @see Walker_Category::walk() for parameters and return description.
+ * @see Walker::walk() for parameters and return description.
+ *
+ * @param mixed ...$args Elements array, maximum hierarchical depth and optional additional arguments.
  * @return string
  */
-function walk_category_tree() {
-	$args = func_get_args();
-	// the user's options are the third parameter
+function walk_category_tree( ...$args ) {
+	// The user's options are the third parameter.
 	if ( empty( $args[2]['walker'] ) || ! ( $args[2]['walker'] instanceof Walker ) ) {
 		$walker = new Walker_Category;
 	} else {
 		$walker = $args[2]['walker'];
 	}
-	return call_user_func_array( array( $walker, 'walk' ), $args );
+	return $walker->walk( ...$args );
 }
 
 /**
@@ -1078,18 +1076,19 @@ function walk_category_tree() {
  *
  * @uses Walker_CategoryDropdown to create HTML dropdown content.
  * @since 2.1.0
- * @see Walker_CategoryDropdown::walk() for parameters and return description.
+ * @see Walker::walk() for parameters and return description.
+ *
+ * @param mixed ...$args Elements array, maximum hierarchical depth and optional additional arguments.
  * @return string
  */
-function walk_category_dropdown_tree() {
-	$args = func_get_args();
-	// the user's options are the third parameter
+function walk_category_dropdown_tree( ...$args ) {
+	// The user's options are the third parameter.
 	if ( empty( $args[2]['walker'] ) || ! ( $args[2]['walker'] instanceof Walker ) ) {
 		$walker = new Walker_CategoryDropdown;
 	} else {
 		$walker = $args[2]['walker'];
 	}
-	return call_user_func_array( array( $walker, 'walk' ), $args );
+	return $walker->walk( ...$args );
 }
 
 //
@@ -1223,7 +1222,8 @@ function term_description( $term = 0, $deprecated = null ) {
  *                                  or the post does not exist, WP_Error on failure.
  */
 function get_the_terms( $post, $taxonomy ) {
-	if ( ! $post = get_post( $post ) ) {
+	$post = get_post( $post );
+	if ( ! $post ) {
 		return false;
 	}
 
@@ -1297,7 +1297,7 @@ function get_the_term_list( $id, $taxonomy, $before = '', $sep = '', $after = ''
 	 *
 	 * @param string[] $links An array of term links.
 	 */
-	$term_links = apply_filters( "term_links-{$taxonomy}", $links );
+	$term_links = apply_filters( "term_links-{$taxonomy}", $links );  // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 	return $before . join( $sep, $term_links ) . $after;
 }

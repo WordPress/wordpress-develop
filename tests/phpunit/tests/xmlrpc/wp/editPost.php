@@ -445,7 +445,7 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertEquals( 1, count( get_post_meta( $post_id, 'enclosure' ) ) );
 
 		// For good measure, check that the expected value is in the array
-		$this->assertTrue( in_array( $enclosure_string, get_post_meta( $post_id, 'enclosure' ) ) );
+		$this->assertTrue( in_array( $enclosure_string, get_post_meta( $post_id, 'enclosure' ), true ) );
 
 		// Attempt to add a brand new enclosure via XML-RPC
 		$this->myxmlrpcserver->add_enclosure_if_new( $post_id, $new_enclosure );
@@ -455,10 +455,10 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 
 		// Check that the new enclosure is in the enclosure meta
 		$new_enclosure_string = "{$new_enclosure['url']}\n{$new_enclosure['length']}\n{$new_enclosure['type']}\n";
-		$this->assertTrue( in_array( $new_enclosure_string, get_post_meta( $post_id, 'enclosure' ) ) );
+		$this->assertTrue( in_array( $new_enclosure_string, get_post_meta( $post_id, 'enclosure' ), true ) );
 
 		// Check that the old enclosure is in the enclosure meta
-		$this->assertTrue( in_array( $enclosure_string, get_post_meta( $post_id, 'enclosure' ) ) );
+		$this->assertTrue( in_array( $enclosure_string, get_post_meta( $post_id, 'enclosure' ), true ) );
 	}
 
 	/**
@@ -495,5 +495,34 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 
 		$future_date_string = strftime( '%Y-%m-%d %H:%M:%S', $future_time );
 		$this->assertEquals( $future_date_string, $after->post_date );
+	}
+
+	/**
+	 * @ticket 45322
+	 */
+	function test_draft_not_assigned_published_date() {
+		$editor_id = $this->make_user_by_role( 'editor' );
+
+		// Start with a draft post, confirming its post_date_gmt is "zero".
+		$post    = array(
+			'post_title'  => 'Test',
+			'post_status' => 'draft',
+		);
+		$post_id = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post ) );
+
+		$before = get_post( $post_id );
+		$this->assertEquals( '0000-00-00 00:00:00', $before->post_date_gmt );
+
+		// Edit the post without specifying any dates.
+		$new_post_content = array(
+			'ID'         => $post_id,
+			'post_title' => 'Updated',
+		);
+
+		$this->myxmlrpcserver->wp_editPost( array( 1, 'editor', 'editor', $post_id, $new_post_content ) );
+
+		// The published date should still be zero.
+		$after = get_post( $post_id );
+		$this->assertEquals( '0000-00-00 00:00:00', $after->post_date_gmt );
 	}
 }

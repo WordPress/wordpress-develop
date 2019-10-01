@@ -137,7 +137,7 @@ if ( $action ) {
 					<?php
 					foreach ( $theme_info as $theme ) {
 						echo '<li>' . sprintf(
-							/* translators: 1: theme name, 2: theme author */
+							/* translators: 1: Theme name, 2: Theme author. */
 							_x( '%1$s by %2$s', 'theme' ),
 							'<strong>' . $theme->display( 'Name' ) . '</strong>',
 							'<em>' . $theme->display( 'Author' ) . '</em>'
@@ -146,9 +146,9 @@ if ( $action ) {
 					?>
 					</ul>
 				<?php if ( 1 == $themes_to_delete ) : ?>
-					<p><?php _e( 'Are you sure you wish to delete this theme?' ); ?></p>
+					<p><?php _e( 'Are you sure you want to delete this theme?' ); ?></p>
 				<?php else : ?>
-					<p><?php _e( 'Are you sure you wish to delete these themes?' ); ?></p>
+					<p><?php _e( 'Are you sure you want to delete these themes?' ); ?></p>
 				<?php endif; ?>
 				<form method="post" action="<?php echo esc_url( $_SERVER['REQUEST_URI'] ); ?>" style="display:inline;">
 					<input type="hidden" name="verify-delete" value="1" />
@@ -217,7 +217,7 @@ if ( $action ) {
 			check_admin_referer( 'bulk-themes' );
 
 			/** This action is documented in wp-admin/network/site-themes.php */
-			$referer = apply_filters( 'handle_network_bulk_actions-' . get_current_screen()->id, $referer, $action, $themes );
+			$referer = apply_filters( 'handle_network_bulk_actions-' . get_current_screen()->id, $referer, $action, $themes ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 			wp_safe_redirect( $referer );
 			exit;
@@ -274,7 +274,7 @@ require_once( ABSPATH . 'wp-admin/admin-header.php' );
 
 <?php
 if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
-	/* translators: %s: search keywords */
+	/* translators: %s: Search query. */
 	printf( '<span class="subtitle">' . __( 'Search results for &#8220;%s&#8221;' ) . '</span>', esc_html( $s ) );
 }
 ?>
@@ -287,6 +287,7 @@ if ( isset( $_GET['enabled'] ) ) {
 	if ( 1 == $enabled ) {
 		$message = __( 'Theme enabled.' );
 	} else {
+		/* translators: %s: Number of themes. */
 		$message = _n( '%s theme enabled.', '%s themes enabled.', $enabled );
 	}
 	echo '<div id="message" class="updated notice is-dismissible"><p>' . sprintf( $message, number_format_i18n( $enabled ) ) . '</p></div>';
@@ -295,6 +296,7 @@ if ( isset( $_GET['enabled'] ) ) {
 	if ( 1 == $disabled ) {
 		$message = __( 'Theme disabled.' );
 	} else {
+		/* translators: %s: Number of themes. */
 		$message = _n( '%s theme disabled.', '%s themes disabled.', $disabled );
 	}
 	echo '<div id="message" class="updated notice is-dismissible"><p>' . sprintf( $message, number_format_i18n( $disabled ) ) . '</p></div>';
@@ -303,6 +305,7 @@ if ( isset( $_GET['enabled'] ) ) {
 	if ( 1 == $deleted ) {
 		$message = __( 'Theme deleted.' );
 	} else {
+		/* translators: %s: Number of themes. */
 		$message = _n( '%s theme deleted.', '%s themes deleted.', $deleted );
 	}
 	echo '<div id="message" class="updated notice is-dismissible"><p>' . sprintf( $message, number_format_i18n( $deleted ) ) . '</p></div>';

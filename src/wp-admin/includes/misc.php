@@ -11,7 +11,7 @@
  *
  * @since 2.0.0
  *
- * @return bool
+ * @return bool Whether the server is running Apache with the mod_rewrite module loaded.
  */
 function got_mod_rewrite() {
 	$got_rewrite = apache_mod_loaded( 'mod_rewrite', true );
@@ -60,9 +60,9 @@ function got_url_rewrite() {
  *
  * @since 1.5.0
  *
- * @param string $filename
- * @param string $marker
- * @return array An array of strings from a file (.htaccess ) from between BEGIN and END markers.
+ * @param string $filename Filename to extract the strings from.
+ * @param string $marker   The marker to extract the strings from.
+ * @return array An array of strings from a file (.htaccess) from between BEGIN and END markers.
  */
 function extract_from_markers( $filename, $marker ) {
 	$result = array();
@@ -79,6 +79,9 @@ function extract_from_markers( $filename, $marker ) {
 			$state = false;
 		}
 		if ( $state ) {
+			if ( '#' === substr( $markerline, 0, 1 ) ) {
+				continue;
+			}
 			$result[] = $markerline;
 		}
 		if ( false !== strpos( $markerline, '# BEGIN ' . $marker ) ) {
@@ -90,7 +93,7 @@ function extract_from_markers( $filename, $marker ) {
 }
 
 /**
- * Inserts an array of strings into a file (.htaccess ), placing it between
+ * Inserts an array of strings into a file (.htaccess), placing it between
  * BEGIN and END markers.
  *
  * Replaces existing marked info. Retains surrounding
@@ -119,6 +122,39 @@ function insert_with_markers( $filename, $marker, $insertion ) {
 		$insertion = explode( "\n", $insertion );
 	}
 
+	$switched_locale = switch_to_locale( get_locale() );
+
+	$instructions = sprintf(
+		/* translators: 1: Marker. */
+		__(
+			'The directives (lines) between `BEGIN %1$s` and `END %1$s` are
+dynamically generated, and should only be modified via WordPress filters.
+Any changes to the directives between these markers will be overwritten.'
+		),
+		$marker
+	);
+
+	$instructions = explode( "\n", $instructions );
+	foreach ( $instructions as $line => $text ) {
+		$instructions[ $line ] = '# ' . $text;
+	}
+
+	/**
+	 * Filters the inline instructions inserted before the dynamically generated content.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param string[] $instructions Array of lines with inline instructions.
+	 * @param string   $marker       The marker being inserted.
+	 */
+	$instructions = apply_filters( 'insert_with_markers_inline_instructions', $instructions, $marker );
+
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
+
+	$insertion = array_merge( $instructions, $insertion );
+
 	$start_marker = "# BEGIN {$marker}";
 	$end_marker   = "# END {$marker}";
 
@@ -136,8 +172,11 @@ function insert_with_markers( $filename, $marker, $insertion ) {
 	}
 
 	// Split out the existing file into the preceding lines, and those that appear after the marker
-	$pre_lines    = $post_lines = $existing_lines = array();
-	$found_marker = $found_end_marker = false;
+	$pre_lines        = array();
+	$post_lines       = array();
+	$existing_lines   = array();
+	$found_marker     = false;
+	$found_end_marker = false;
 	foreach ( $lines as $line ) {
 		if ( ! $found_marker && false !== strpos( $line, $start_marker ) ) {
 			$found_marker = true;
@@ -196,7 +235,7 @@ function insert_with_markers( $filename, $marker, $insertion ) {
  *
  * @since 1.5.0
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @return bool|null True on write success, false on failure. Null in multisite.
  */
@@ -233,7 +272,7 @@ function save_mod_rewrite_rules() {
  *
  * @since 2.8.0
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @return bool|null True on write success, false on failure. Null in multisite.
  */
@@ -596,7 +635,8 @@ function set_screen_options() {
 	if ( isset( $_POST['wp_screen_options'] ) && is_array( $_POST['wp_screen_options'] ) ) {
 		check_admin_referer( 'screen-options-nonce', 'screenoptionnonce' );
 
-		if ( ! $user = wp_get_current_user() ) {
+		$user = wp_get_current_user();
+		if ( ! $user ) {
 			return;
 		}
 		$option = $_POST['wp_screen_options']['option'];
@@ -655,7 +695,7 @@ function set_screen_options() {
 				 * @param string   $option The option name.
 				 * @param int      $value  The number of rows to use.
 				 */
-				$value = apply_filters( 'set-screen-option', false, $option, $value );
+				$value = apply_filters( 'set-screen-option', false, $option, $value );  // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 				if ( false === $value ) {
 					return;
@@ -831,7 +871,7 @@ function iis7_add_rewrite_rule( $filename, $rewrite_rule ) {
  * @param DOMDocument $doc
  * @param string $filename
  */
-function saveDomDocument( $doc, $filename ) {
+function saveDomDocument( $doc, $filename ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	$config = $doc->saveXML();
 	$config = preg_replace( "/([^\r])\n/", "$1\r\n", $config );
 	$fp     = fopen( $filename, 'w' );
@@ -964,18 +1004,27 @@ function wp_check_locked_posts( $response, $data, $screen_id ) {
 
 	if ( array_key_exists( 'wp-check-locked-posts', $data ) && is_array( $data['wp-check-locked-posts'] ) ) {
 		foreach ( $data['wp-check-locked-posts'] as $key ) {
-			if ( ! $post_id = absint( substr( $key, 5 ) ) ) {
+			$post_id = absint( substr( $key, 5 ) );
+			if ( ! $post_id ) {
 				continue;
 			}
 
-			if ( ( $user_id = wp_check_post_lock( $post_id ) ) && ( $user = get_userdata( $user_id ) ) && current_user_can( 'edit_post', $post_id ) ) {
-				$send = array( 'text' => sprintf( __( '%s is currently editing' ), $user->display_name ) );
+			$user_id = wp_check_post_lock( $post_id );
+			if ( $user_id ) {
+				$user = get_userdata( $user_id );
+				if ( $user && current_user_can( 'edit_post', $post_id ) ) {
+					$send = array(
+						/* translators: %s: User's display name. */
+						'text' => sprintf( __( '%s is currently editing' ), $user->display_name ),
+					);
 
-				if ( ( $avatar = get_avatar( $user->ID, 18 ) ) && preg_match( "|src='([^']+)'|", $avatar, $matches ) ) {
-					$send['avatar_src'] = $matches[1];
+					$avatar = get_avatar( $user->ID, 18 );
+					if ( $avatar && preg_match( "|src='([^']+)'|", $avatar, $matches ) ) {
+						$send['avatar_src'] = $matches[1];
+					}
+
+					$checked[ $key ] = $send;
 				}
-
-				$checked[ $key ] = $send;
 			}
 		}
 	}
@@ -1002,7 +1051,8 @@ function wp_refresh_post_lock( $response, $data, $screen_id ) {
 		$received = $data['wp-refresh-post-lock'];
 		$send     = array();
 
-		if ( ! $post_id = absint( $received['post_id'] ) ) {
+		$post_id = absint( $received['post_id'] );
+		if ( ! $post_id ) {
 			return $response;
 		}
 
@@ -1010,12 +1060,16 @@ function wp_refresh_post_lock( $response, $data, $screen_id ) {
 			return $response;
 		}
 
-		if ( ( $user_id = wp_check_post_lock( $post_id ) ) && ( $user = get_userdata( $user_id ) ) ) {
+		$user_id = wp_check_post_lock( $post_id );
+		$user    = get_userdata( $user_id );
+		if ( $user ) {
 			$error = array(
+				/* translators: %s: User's display name. */
 				'text' => sprintf( __( '%s has taken over and is currently editing.' ), $user->display_name ),
 			);
 
-			if ( $avatar = get_avatar( $user->ID, 64 ) ) {
+			$avatar = get_avatar( $user->ID, 64 );
+			if ( $avatar ) {
 				if ( preg_match( "|src='([^']+)'|", $avatar, $matches ) ) {
 					$error['avatar_src'] = $matches[1];
 				}
@@ -1023,7 +1077,8 @@ function wp_refresh_post_lock( $response, $data, $screen_id ) {
 
 			$send['lock_error'] = $error;
 		} else {
-			if ( $new_lock = wp_set_post_lock( $post_id ) ) {
+			$new_lock = wp_set_post_lock( $post_id );
+			if ( $new_lock ) {
 				$send['new_lock'] = implode( ':', $new_lock );
 			}
 		}
@@ -1049,7 +1104,8 @@ function wp_refresh_post_nonces( $response, $data, $screen_id ) {
 		$received                           = $data['wp-refresh-post-nonces'];
 		$response['wp-refresh-post-nonces'] = array( 'check' => 1 );
 
-		if ( ! $post_id = absint( $received['post_id'] ) ) {
+		$post_id = absint( $received['post_id'] );
+		if ( ! $post_id ) {
 			return $response;
 		}
 
@@ -1132,11 +1188,11 @@ function heartbeat_autosave( $response, $data ) {
 				'message' => __( 'Error while saving.' ),
 			);
 		} else {
-			/* translators: draft saved date format, see https://secure.php.net/date */
+			/* translators: Draft saved date format, see https://secure.php.net/date */
 			$draft_saved_date_format = __( 'g:i:s a' );
-			/* translators: %s: date and time */
 			$response['wp_autosave'] = array(
 				'success' => true,
+				/* translators: %s: Date and time. */
 				'message' => sprintf( __( 'Draft saved at %s.' ), date_i18n( $draft_saved_date_format ) ),
 			);
 		}
@@ -1289,8 +1345,15 @@ All at ###SITENAME###
 	$content      = str_replace( '###SITENAME###', wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ), $content );
 	$content      = str_replace( '###SITEURL###', home_url(), $content );
 
-	/* translators: New admin email address notification email subject. %s: Site title */
-	wp_mail( $value, sprintf( __( '[%s] New Admin Email Address' ), wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ) ), $content );
+	wp_mail(
+		$value,
+		sprintf(
+			/* translators: New admin email address notification email subject. %s: Site title. */
+			__( '[%s] New Admin Email Address' ),
+			wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES )
+		),
+		$content
+	);
 
 	if ( $switched_locale ) {
 		restore_previous_locale();
@@ -1311,7 +1374,7 @@ All at ###SITENAME###
  */
 function _wp_privacy_settings_filter_draft_page_titles( $title, $page ) {
 	if ( 'draft' === $page->post_status && 'privacy' === get_current_screen()->id ) {
-		/* translators: %s: Page Title */
+		/* translators: %s: Page title. */
 		$title = sprintf( __( '%s (Draft)' ), $title );
 	}
 

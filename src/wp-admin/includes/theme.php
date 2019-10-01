@@ -76,7 +76,11 @@ function delete_theme( $stylesheet, $redirect = '' ) {
 	$deleted    = $wp_filesystem->delete( $theme_dir, true );
 
 	if ( ! $deleted ) {
-		return new WP_Error( 'could_not_remove_theme', sprintf( __( 'Could not fully remove the theme %s.' ), $stylesheet ) );
+		return new WP_Error(
+			'could_not_remove_theme',
+			/* translators: %s: Theme name. */
+			sprintf( __( 'Could not fully remove the theme %s.' ), $stylesheet )
+		);
 	}
 
 	$theme_translations = wp_get_installed_translations( 'themes' );
@@ -195,47 +199,47 @@ function get_theme_update_available( $theme ) {
 
 		if ( ! is_multisite() ) {
 			if ( ! current_user_can( 'update_themes' ) ) {
-				/* translators: 1: theme name, 2: theme details URL, 3: additional link attributes, 4: version number */
 				$html = sprintf(
+					/* translators: 1: Theme name, 2: Theme details URL, 3: Additional link attributes, 4: Version number. */
 					'<p><strong>' . __( 'There is a new version of %1$s available. <a href="%2$s" %3$s>View version %4$s details</a>.' ) . '</strong></p>',
 					$theme_name,
 					esc_url( $details_url ),
 					sprintf(
 						'class="thickbox open-plugin-details-modal" aria-label="%s"',
-						/* translators: 1: theme name, 2: version number */
+						/* translators: 1: Theme name, 2: Version number. */
 						esc_attr( sprintf( __( 'View %1$s version %2$s details' ), $theme_name, $update['new_version'] ) )
 					),
 					$update['new_version']
 				);
 			} elseif ( empty( $update['package'] ) ) {
-				/* translators: 1: theme name, 2: theme details URL, 3: additional link attributes, 4: version number */
 				$html = sprintf(
+					/* translators: 1: Theme name, 2: Theme details URL, 3: Additional link attributes, 4: Version number. */
 					'<p><strong>' . __( 'There is a new version of %1$s available. <a href="%2$s" %3$s>View version %4$s details</a>. <em>Automatic update is unavailable for this theme.</em>' ) . '</strong></p>',
 					$theme_name,
 					esc_url( $details_url ),
 					sprintf(
 						'class="thickbox open-plugin-details-modal" aria-label="%s"',
-						/* translators: 1: theme name, 2: version number */
+						/* translators: 1: Theme name, 2: Version number. */
 						esc_attr( sprintf( __( 'View %1$s version %2$s details' ), $theme_name, $update['new_version'] ) )
 					),
 					$update['new_version']
 				);
 			} else {
-				/* translators: 1: theme name, 2: theme details URL, 3: additional link attributes, 4: version number, 5: update URL, 6: additional link attributes */
 				$html = sprintf(
+					/* translators: 1: Theme name, 2: Theme details URL, 3: Additional link attributes, 4: Version number, 5: Update URL, 6: Additional link attributes. */
 					'<p><strong>' . __( 'There is a new version of %1$s available. <a href="%2$s" %3$s>View version %4$s details</a> or <a href="%5$s" %6$s>update now</a>.' ) . '</strong></p>',
 					$theme_name,
 					esc_url( $details_url ),
 					sprintf(
 						'class="thickbox open-plugin-details-modal" aria-label="%s"',
-						/* translators: 1: theme name, 2: version number */
+						/* translators: 1: Theme name, 2: Version number. */
 						esc_attr( sprintf( __( 'View %1$s version %2$s details' ), $theme_name, $update['new_version'] ) )
 					),
 					$update['new_version'],
 					$update_url,
 					sprintf(
 						'aria-label="%s" id="update-theme" data-slug="%s"',
-						/* translators: %s: theme name */
+						/* translators: %s: Theme name. */
 						esc_attr( sprintf( __( 'Update %s now' ), $theme_name ) ),
 						$stylesheet
 					)
@@ -303,7 +307,8 @@ function get_theme_feature_list( $api = true ) {
 		return $features;
 	}
 
-	if ( ! $feature_list = get_site_transient( 'wporg_theme_feature_list' ) ) {
+	$feature_list = get_site_transient( 'wporg_theme_feature_list' );
+	if ( ! $feature_list ) {
 		set_site_transient( 'wporg_theme_feature_list', array(), 3 * HOUR_IN_SECONDS );
 	}
 
@@ -490,7 +495,8 @@ function themes_api( $action, $args = array() ) {
 		);
 
 		$http_url = $url;
-		if ( $ssl = wp_http_supports( array( 'ssl' ) ) ) {
+		$ssl      = wp_http_supports( array( 'ssl' ) );
+		if ( $ssl ) {
 			$url = set_url_scheme( $url, 'https' );
 		}
 
@@ -503,7 +509,7 @@ function themes_api( $action, $args = array() ) {
 			if ( ! wp_doing_ajax() ) {
 				trigger_error(
 					sprintf(
-						/* translators: %s: support forums URL */
+						/* translators: %s: Support forums URL. */
 						__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
 						__( 'https://wordpress.org/support/forums/' )
 					) . ' ' . __( '(WordPress could not establish a secure connection to WordPress.org. Please contact your server administrator.)' ),
@@ -517,7 +523,7 @@ function themes_api( $action, $args = array() ) {
 			$res = new WP_Error(
 				'themes_api_failed',
 				sprintf(
-					/* translators: %s: support forums URL */
+					/* translators: %s: Support forums URL. */
 					__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
 					__( 'https://wordpress.org/support/forums/' )
 				),
@@ -532,7 +538,7 @@ function themes_api( $action, $args = array() ) {
 				$res = new WP_Error(
 					'themes_api_failed',
 					sprintf(
-						/* translators: %s: support forums URL */
+						/* translators: %s: Support forums URL. */
 						__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
 						__( 'https://wordpress.org/support/forums/' )
 					),
@@ -680,7 +686,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 	 *
 	 * @since 3.8.0
 	 *
-	 * @param array $prepared_themes Array of themes.
+	 * @param array $prepared_themes Array of theme data.
 	 */
 	$prepared_themes = apply_filters( 'wp_prepare_themes_for_js', $prepared_themes );
 	$prepared_themes = array_values( $prepared_themes );
@@ -715,8 +721,18 @@ function customize_themes_print_templates() {
 					<# if ( data.active ) { #>
 						<span class="current-label"><?php _e( 'Current Theme' ); ?></span>
 					<# } #>
-					<h2 class="theme-name">{{{ data.name }}}<span class="theme-version"><?php printf( __( 'Version: %s' ), '{{ data.version }}' ); ?></span></h2>
-					<h3 class="theme-author"><?php printf( __( 'By %s' ), '{{{ data.authorAndUri }}}' ); ?></h3>
+					<h2 class="theme-name">{{{ data.name }}}<span class="theme-version">
+						<?php
+						/* translators: %s: Theme version. */
+						printf( __( 'Version: %s' ), '{{ data.version }}' );
+						?>
+					</span></h2>
+					<h3 class="theme-author">
+						<?php
+						/* translators: %s: Theme author link. */
+						printf( __( 'By %s' ), '{{{ data.authorAndUri }}}' );
+						?>
+					</h3>
 
 					<# if ( data.stars && 0 != data.num_ratings ) { #>
 						<div class="theme-rating">
@@ -725,9 +741,9 @@ function customize_themes_print_templates() {
 								<?php
 								printf(
 									'%1$s <span class="screen-reader-text">%2$s</span>',
-									/* translators: %s: number of ratings */
+									/* translators: %s: Number of ratings. */
 									sprintf( __( '(%s ratings)' ), '{{ data.num_ratings }}' ),
-									/* translators: accessibility text */
+									/* translators: Accessibility text. */
 									__( '(opens in a new tab)' )
 								);
 								?>
@@ -743,7 +759,15 @@ function customize_themes_print_templates() {
 					<# } #>
 
 					<# if ( data.parent ) { #>
-						<p class="parent-theme"><?php printf( __( 'This is a child theme of %s.' ), '<strong>{{{ data.parent }}}</strong>' ); ?></p>
+						<p class="parent-theme">
+							<?php
+							printf(
+								/* translators: %s: Theme name. */
+								__( 'This is a child theme of %s.' ),
+								'<strong>{{{ data.parent }}}</strong>'
+							);
+							?>
+						</p>
 					<# } #>
 
 					<p class="theme-description">{{{ data.description }}}</p>

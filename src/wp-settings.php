@@ -15,8 +15,19 @@
  */
 define( 'WPINC', 'wp-includes' );
 
-// Include files required for initialization.
+/*
+ * These can't be directly globalized in version.php. When updating,
+ * we're including version.php from another installation and don't want
+ * these values to be overridden if already set.
+ */
+global $wp_version, $wp_db_version, $tinymce_version, $required_php_version, $required_mysql_version, $wp_local_package;
+require( ABSPATH . WPINC . '/version.php' );
 require( ABSPATH . WPINC . '/load.php' );
+
+// Check for the required PHP version and for the MySQL extension or a database drop-in.
+wp_check_php_mysql_versions();
+
+// Include files required for initialization.
 require( ABSPATH . WPINC . '/class-wp-paused-extensions-storage.php' );
 require( ABSPATH . WPINC . '/class-wp-fatal-error-handler.php' );
 require( ABSPATH . WPINC . '/class-wp-recovery-mode-cookie-service.php' );
@@ -27,14 +38,6 @@ require( ABSPATH . WPINC . '/class-wp-recovery-mode.php' );
 require( ABSPATH . WPINC . '/error-protection.php' );
 require( ABSPATH . WPINC . '/default-constants.php' );
 require_once( ABSPATH . WPINC . '/plugin.php' );
-
-/*
- * These can't be directly globalized in version.php. When updating,
- * we're including version.php from another installation and don't want
- * these values to be overridden if already set.
- */
-global $wp_version, $wp_db_version, $tinymce_version, $required_php_version, $required_mysql_version, $wp_local_package;
-require( ABSPATH . WPINC . '/version.php' );
 
 /**
  * If not already configured, `$blog_id` will default to 1 in a single site
@@ -50,13 +53,6 @@ wp_initial_constants();
 
 // Make sure we register the shutdown handler for fatal errors as soon as possible.
 wp_register_fatal_error_handler();
-
-// Check for the required PHP version and for the MySQL extension or a database drop-in.
-wp_check_php_mysql_versions();
-
-// Disable magic quotes at runtime. Magic quotes are added using wpdb later in wp-settings.php.
-@ini_set( 'magic_quotes_runtime', 0 );
-@ini_set( 'magic_quotes_sybase', 0 );
 
 // WordPress calculates offsets from UTC.
 date_default_timezone_set( 'UTC' );
@@ -90,9 +86,9 @@ wp_debug_mode();
  * @param bool $enable_advanced_cache Whether to enable loading advanced-cache.php (if present).
  *                                    Default true.
  */
-if ( WP_CACHE && apply_filters( 'enable_loading_advanced_cache_dropin', true ) ) {
+if ( WP_CACHE && apply_filters( 'enable_loading_advanced_cache_dropin', true ) && file_exists( WP_CONTENT_DIR . '/advanced-cache.php' ) ) {
 	// For an advanced caching plugin to use. Uses a static drop-in because you would only want one.
-	WP_DEBUG ? include( WP_CONTENT_DIR . '/advanced-cache.php' ) : @include( WP_CONTENT_DIR . '/advanced-cache.php' );
+	include( WP_CONTENT_DIR . '/advanced-cache.php' );
 
 	// Re-initialize any hooks added manually by advanced-cache.php
 	if ( $wp_filter ) {
@@ -163,7 +159,7 @@ require( ABSPATH . WPINC . '/class-wp-role.php' );
 require( ABSPATH . WPINC . '/class-wp-user.php' );
 require( ABSPATH . WPINC . '/class-wp-query.php' );
 require( ABSPATH . WPINC . '/query.php' );
-require( ABSPATH . WPINC . '/date.php' );
+require( ABSPATH . WPINC . '/class-wp-date-query.php' );
 require( ABSPATH . WPINC . '/theme.php' );
 require( ABSPATH . WPINC . '/class-wp-theme.php' );
 require( ABSPATH . WPINC . '/template.php' );
@@ -213,7 +209,7 @@ require( ABSPATH . WPINC . '/canonical.php' );
 require( ABSPATH . WPINC . '/shortcodes.php' );
 require( ABSPATH . WPINC . '/embed.php' );
 require( ABSPATH . WPINC . '/class-wp-embed.php' );
-require( ABSPATH . WPINC . '/class-oembed.php' );
+require( ABSPATH . WPINC . '/class-wp-oembed.php' );
 require( ABSPATH . WPINC . '/class-wp-oembed-controller.php' );
 require( ABSPATH . WPINC . '/media.php' );
 require( ABSPATH . WPINC . '/http.php' );
@@ -260,6 +256,7 @@ require( ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-user-meta-fields.php'
 require( ABSPATH . WPINC . '/rest-api/search/class-wp-rest-search-handler.php' );
 require( ABSPATH . WPINC . '/rest-api/search/class-wp-rest-post-search-handler.php' );
 require( ABSPATH . WPINC . '/class-wp-block-type.php' );
+require( ABSPATH . WPINC . '/class-wp-block-styles-registry.php' );
 require( ABSPATH . WPINC . '/class-wp-block-type-registry.php' );
 require( ABSPATH . WPINC . '/class-wp-block-parser.php' );
 require( ABSPATH . WPINC . '/blocks.php' );
@@ -272,6 +269,7 @@ require( ABSPATH . WPINC . '/blocks/latest-posts.php' );
 require( ABSPATH . WPINC . '/blocks/rss.php' );
 require( ABSPATH . WPINC . '/blocks/search.php' );
 require( ABSPATH . WPINC . '/blocks/shortcode.php' );
+require( ABSPATH . WPINC . '/blocks/social-link.php' );
 require( ABSPATH . WPINC . '/blocks/tag-cloud.php' );
 
 $GLOBALS['wp_embed'] = new WP_Embed();
@@ -410,7 +408,7 @@ do_action( 'sanitize_comment_cookies' );
 /**
  * WordPress Query object
  *
- * @global WP_Query $wp_the_query
+ * @global WP_Query $wp_the_query WordPress Query object.
  * @since 2.0.0
  */
 $GLOBALS['wp_the_query'] = new WP_Query();
@@ -419,7 +417,7 @@ $GLOBALS['wp_the_query'] = new WP_Query();
  * Holds the reference to @see $wp_the_query
  * Use this global for WordPress queries
  *
- * @global WP_Query $wp_query
+ * @global WP_Query $wp_query WordPress Query object.
  * @since 1.5.0
  */
 $GLOBALS['wp_query'] = $GLOBALS['wp_the_query'];
@@ -427,7 +425,7 @@ $GLOBALS['wp_query'] = $GLOBALS['wp_the_query'];
 /**
  * Holds the WordPress Rewrite object for creating pretty URLs
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  * @since 1.5.0
  */
 $GLOBALS['wp_rewrite'] = new WP_Rewrite();
@@ -435,7 +433,7 @@ $GLOBALS['wp_rewrite'] = new WP_Rewrite();
 /**
  * WordPress Object
  *
- * @global WP $wp
+ * @global WP $wp Current WordPress environment instance.
  * @since 2.0.0
  */
 $GLOBALS['wp'] = new WP();
@@ -451,7 +449,7 @@ $GLOBALS['wp_widget_factory'] = new WP_Widget_Factory();
 /**
  * WordPress User Roles
  *
- * @global WP_Roles $wp_roles
+ * @global WP_Roles $wp_roles WordPress role management object.
  * @since 2.0.0
  */
 $GLOBALS['wp_roles'] = new WP_Roles();
@@ -479,7 +477,7 @@ unset( $locale_file );
 /**
  * WordPress Locale object for loading locale domain date and various strings.
  *
- * @global WP_Locale $wp_locale
+ * @global WP_Locale $wp_locale WordPress date and time locale object.
  * @since 2.1.0
  */
 $GLOBALS['wp_locale'] = new WP_Locale();
@@ -527,7 +525,8 @@ do_action( 'init' );
 
 // Check site status
 if ( is_multisite() ) {
-	if ( true !== ( $file = ms_site_check() ) ) {
+	$file = ms_site_check();
+	if ( true !== $file ) {
 		require( $file );
 		die();
 	}

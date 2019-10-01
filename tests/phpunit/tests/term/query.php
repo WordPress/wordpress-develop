@@ -737,4 +737,113 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 		return $term;
 	}
+
+	/**
+	 * @ticket 41246
+	 */
+	public function test_terms_pre_query_filter_should_bypass_database_query() {
+		global $wpdb;
+
+		add_filter( 'terms_pre_query', array( __CLASS__, 'filter_terms_pre_query' ), 10, 2 );
+
+		$num_queries = $wpdb->num_queries;
+
+		$q       = new WP_Term_Query();
+		$results = $q->query(
+			array(
+				'fields' => 'ids',
+			)
+		);
+
+		remove_filter( 'terms_pre_query', array( __CLASS__, 'filter_terms_pre_query' ), 10, 2 );
+
+		// Make sure no queries were executed.
+		$this->assertSame( $num_queries, $wpdb->num_queries );
+
+		// We manually inserted a non-existing term and overrode the results with it.
+		$this->assertSame( array( 555 ), $q->terms );
+	}
+
+	public static function filter_terms_pre_query( $terms, $query ) {
+		return array( 555 );
+	}
+
+	/**
+	 * @ticket 37728
+	 */
+	public function test_hide_empty_should_include_empty_parents_of_nonempty_children() {
+		register_taxonomy(
+			'wptests_tax',
+			'post',
+			array(
+				'hierarchical' => true,
+			)
+		);
+
+		$t1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$t2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'parent'   => $t1,
+			)
+		);
+
+		$p = self::factory()->post->create();
+
+		wp_set_object_terms( $p, $t2, 'wptests_tax' );
+
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'hide_empty' => true,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertContains( $t1, $q->terms );
+	}
+
+	/**
+	 * @ticket 37728
+	 */
+	public function test_hide_empty_should_include_empty_parents_of_nonempty_children_when_category_is_unspecified() {
+		register_taxonomy(
+			'wptests_tax',
+			'post',
+			array(
+				'hierarchical' => true,
+			)
+		);
+
+		$t1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$t2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'parent'   => $t1,
+			)
+		);
+
+		$p = self::factory()->post->create();
+
+		wp_set_object_terms( $p, $t2, 'wptests_tax' );
+
+		$q = new WP_Term_Query(
+			array(
+				'hide_empty' => true,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertContains( $t1, $q->terms );
+	}
 }

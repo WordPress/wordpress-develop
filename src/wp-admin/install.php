@@ -71,10 +71,7 @@ function display_header( $body_classes = '' ) {
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<meta name="robots" content="noindex,nofollow" />
 	<title><?php _e( 'WordPress &rsaquo; Installation' ); ?></title>
-	<?php
-		wp_admin_css( 'install', true );
-		wp_admin_css( 'dashicons', true );
-	?>
+	<?php wp_admin_css( 'install', true ); ?>
 </head>
 <body class="wp-core-ui<?php echo $body_classes; ?>">
 <p id="logo"><a href="<?php echo esc_url( __( 'https://wordpress.org/' ) ); ?>"><?php _e( 'WordPress' ); ?></a></p>
@@ -142,7 +139,7 @@ function display_setup_form( $error = null ) {
 				</label>
 			</th>
 			<td>
-				<div class="">
+				<div class="wp-pwd">
 					<?php $initial_password = isset( $_POST['admin_password'] ) ? stripslashes( $_POST['admin_password'] ) : wp_generate_password( 18 ); ?>
 					<input type="password" name="admin_password" id="pass1" class="regular-text" autocomplete="off" data-reveal="1" data-pw="<?php echo esc_attr( $initial_password ); ?>" aria-describedby="pass-strength-result" />
 					<button type="button" class="button wp-hide-pw hide-if-no-js" data-start-masked="<?php echo (int) isset( $_POST['admin_password'] ); ?>" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
@@ -238,12 +235,12 @@ $php_compat    = version_compare( $php_version, $required_php_version, '>=' );
 $mysql_compat  = version_compare( $mysql_version, $required_mysql_version, '>=' ) || file_exists( WP_CONTENT_DIR . '/db.php' );
 
 $version_url = sprintf(
-	/* translators: %s: WordPress version */
+	/* translators: %s: WordPress version. */
 	esc_url( __( 'https://wordpress.org/support/wordpress-version/version-%s/' ) ),
 	sanitize_title( $wp_version )
 );
 
-/* translators: %s: Update PHP page URL */
+/* translators: %s: URL to Update PHP page. */
 $php_update_message = '</p><p>' . sprintf( __( '<a href="%s">Learn more about updating PHP</a>.' ), esc_url( wp_get_update_php_url() ) );
 
 $annotation = wp_get_update_php_annotation();
@@ -252,19 +249,19 @@ if ( $annotation ) {
 }
 
 if ( ! $mysql_compat && ! $php_compat ) {
-	/* translators: 1: URL to WordPress release notes, 2: WordPress version number, 3: Minimum required PHP version number, 4: Minimum required MySQL version number, 5: Current PHP version number, 6: Current MySQL version number */
+	/* translators: 1: URL to WordPress release notes, 2: WordPress version number, 3: Minimum required PHP version number, 4: Minimum required MySQL version number, 5: Current PHP version number, 6: Current MySQL version number. */
 	$compat = sprintf( __( 'You cannot install because <a href="%1$s">WordPress %2$s</a> requires PHP version %3$s or higher and MySQL version %4$s or higher. You are running PHP version %5$s and MySQL version %6$s.' ), $version_url, $wp_version, $required_php_version, $required_mysql_version, $php_version, $mysql_version ) . $php_update_message;
 } elseif ( ! $php_compat ) {
-	/* translators: 1: URL to WordPress release notes, 2: WordPress version number, 3: Minimum required PHP version number, 4: Current PHP version number */
+	/* translators: 1: URL to WordPress release notes, 2: WordPress version number, 3: Minimum required PHP version number, 4: Current PHP version number. */
 	$compat = sprintf( __( 'You cannot install because <a href="%1$s">WordPress %2$s</a> requires PHP version %3$s or higher. You are running version %4$s.' ), $version_url, $wp_version, $required_php_version, $php_version ) . $php_update_message;
 } elseif ( ! $mysql_compat ) {
-	/* translators: 1: URL to WordPress release notes, 2: WordPress version number, 3: Minimum required MySQL version number, 4: Current MySQL version number */
+	/* translators: 1: URL to WordPress release notes, 2: WordPress version number, 3: Minimum required MySQL version number, 4: Current MySQL version number. */
 	$compat = sprintf( __( 'You cannot install because <a href="%1$s">WordPress %2$s</a> requires MySQL version %3$s or higher. You are running version %4$s.' ), $version_url, $wp_version, $required_mysql_version, $mysql_version );
 }
 
 if ( ! $mysql_compat || ! $php_compat ) {
 	display_header();
-	die( '<h1>' . __( 'Insufficient Requirements' ) . '</h1><p>' . $compat . '</p></body></html>' );
+	die( '<h1>' . __( 'Requirements Not Met' ) . '</h1><p>' . $compat . '</p></body></html>' );
 }
 
 if ( ! is_string( $wpdb->base_prefix ) || '' === $wpdb->base_prefix ) {
@@ -294,7 +291,7 @@ if ( defined( 'DO_NOT_UPGRADE_GLOBAL_TABLES' ) ) {
 
 /**
  * @global string    $wp_local_package
- * @global WP_Locale $wp_locale
+ * @global WP_Locale $wp_locale        WordPress date and time locale object.
  */
 $language = '';
 if ( ! empty( $_REQUEST['language'] ) ) {
@@ -307,13 +304,16 @@ $scripts_to_print = array( 'jquery' );
 
 switch ( $step ) {
 	case 0: // Step 0
-		if ( wp_can_install_language_pack() && empty( $language ) && ( $languages = wp_get_available_translations() ) ) {
-			$scripts_to_print[] = 'language-chooser';
-			display_header( 'language-chooser' );
-			echo '<form id="setup" method="post" action="?step=1">';
-			wp_install_language_form( $languages );
-			echo '</form>';
-			break;
+		if ( wp_can_install_language_pack() && empty( $language ) ) {
+			$languages = wp_get_available_translations();
+			if ( $languages ) {
+				$scripts_to_print[] = 'language-chooser';
+				display_header( 'language-chooser' );
+				echo '<form id="setup" method="post" action="?step=1">';
+				wp_install_language_form( $languages );
+				echo '</form>';
+				break;
+			}
 		}
 
 		// Deliberately fall through if we can't reach the translations API.

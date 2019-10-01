@@ -112,7 +112,7 @@ if ( isset( $_REQUEST['action'] ) && 'adduser' == $_REQUEST['action'] ) {
 
 			$switched_locale = switch_to_locale( get_user_locale( $user_details ) );
 
-			/* translators: 1: Site name, 2: site URL, 3: role, 4: activation URL */
+			/* translators: 1: Site title, 2: Site URL, 3: User role, 4: Activation URL. */
 			$message = __(
 				'Hi,
 
@@ -123,8 +123,21 @@ Please click the following link to confirm the invite:
 %4$s'
 			);
 
-			/* translators: Joining confirmation notification email subject. %s: Site title */
-			wp_mail( $new_user_email, sprintf( __( '[%s] Joining Confirmation' ), wp_specialchars_decode( get_option( 'blogname' ) ) ), sprintf( $message, get_option( 'blogname' ), home_url(), wp_specialchars_decode( translate_user_role( $role['name'] ) ), home_url( "/newbloguser/$newuser_key/" ) ) );
+			wp_mail(
+				$new_user_email,
+				sprintf(
+					/* translators: Joining confirmation notification email subject. %s: Site title. */
+					__( '[%s] Joining Confirmation' ),
+					wp_specialchars_decode( get_option( 'blogname' ) )
+				),
+				sprintf(
+					$message,
+					get_option( 'blogname' ),
+					home_url(),
+					wp_specialchars_decode( translate_user_role( $role['name'] ) ),
+					home_url( "/newbloguser/$newuser_key/" )
+				)
+			);
 
 			if ( $switched_locale ) {
 				restore_previous_locale();
@@ -240,19 +253,19 @@ get_current_screen()->add_help_tab(
 		'id'      => 'user-roles',
 		'title'   => __( 'User Roles' ),
 		'content' => '<p>' . __( 'Here is a basic overview of the different user roles and the permissions associated with each one:' ) . '</p>' .
-							 '<ul>' .
-							 '<li>' . __( 'Subscribers can read comments/comment/receive newsletters, etc. but cannot create regular site content.' ) . '</li>' .
-							 '<li>' . __( 'Contributors can write and manage their posts but not publish posts or upload media files.' ) . '</li>' .
-							 '<li>' . __( 'Authors can publish and manage their own posts, and are able to upload files.' ) . '</li>' .
-							 '<li>' . __( 'Editors can publish posts, manage posts as well as manage other people&#8217;s posts, etc.' ) . '</li>' .
-							 '<li>' . __( 'Administrators have access to all the administration features.' ) . '</li>' .
-							 '</ul>',
+							'<ul>' .
+							'<li>' . __( 'Subscribers can read comments/comment/receive newsletters, etc. but cannot create regular site content.' ) . '</li>' .
+							'<li>' . __( 'Contributors can write and manage their posts but not publish posts or upload media files.' ) . '</li>' .
+							'<li>' . __( 'Authors can publish and manage their own posts, and are able to upload files.' ) . '</li>' .
+							'<li>' . __( 'Editors can publish posts, manage posts as well as manage other people&#8217;s posts, etc.' ) . '</li>' .
+							'<li>' . __( 'Administrators have access to all the administration features.' ) . '</li>' .
+							'</ul>',
 	)
 );
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://codex.wordpress.org/Users_Add_New_Screen">Documentation on Adding New Users</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/article/users-add-new-screen/">Documentation on Adding New Users</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
@@ -296,11 +309,7 @@ if ( isset( $_GET['update'] ) ) {
 				$message = __( 'User has been added to your site.' );
 
 				if ( $edit_link ) {
-					$message .= sprintf(
-						' <a href="%s">%s</a>',
-						$edit_link,
-						__( 'Edit user' )
-					);
+					$message .= sprintf( ' <a href="%s">%s</a>', $edit_link, __( 'Edit user' ) );
 				}
 
 				$messages[] = $message;

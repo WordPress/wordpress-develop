@@ -273,6 +273,22 @@ class Tests_Mail extends WP_UnitTestCase {
 		$this->assertTrue( strpos( $mailer->get_sent()->header, $expected ) > 0 );
 	}
 
+	/**
+	 * @ticket 43542
+	 */
+	public function test_wp_mail_does_not_duplicate_mime_version_header() {
+		$to       = 'user@example.com';
+		$subject  = 'Test email with a MIME-Version header';
+		$message  = 'The MIME-Version header should not be duplicated.';
+		$headers  = 'MIME-Version: 1.0';
+		$expected = 'MIME-Version: 1.0';
+
+		wp_mail( $to, $subject, $message, $headers );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+		$this->assertEquals( 1, substr_count( $mailer->get_sent()->header, $expected ) );
+	}
+
 	function wp_mail_quoted_printable( $mailer ) {
 		$mailer->Encoding = 'quoted-printable';
 	}

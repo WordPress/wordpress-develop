@@ -6,7 +6,7 @@
  * @subpackage Administration
  */
 
-@header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option( 'blog_charset' ) );
+header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option( 'blog_charset' ) );
 if ( ! defined( 'WP_ADMIN' ) ) {
 	require_once( dirname( __FILE__ ) . '/admin.php' );
 }
@@ -16,8 +16,8 @@ if ( ! defined( 'WP_ADMIN' ) ) {
  *
  * @global string    $title
  * @global string    $hook_suffix
- * @global WP_Screen $current_screen
- * @global WP_Locale $wp_locale
+ * @global WP_Screen $current_screen     WordPress current screen object.
+ * @global WP_Locale $wp_locale          WordPress date and time locale object.
  * @global string    $pagenow
  * @global string    $update_title
  * @global int       $total_update_count
@@ -35,20 +35,20 @@ get_admin_page_title();
 $title = esc_html( strip_tags( $title ) );
 
 if ( is_network_admin() ) {
-	/* translators: Network admin screen title. %s: Network name */
+	/* translators: Network admin screen title. %s: Network title. */
 	$admin_title = sprintf( __( 'Network Admin: %s' ), esc_html( get_network()->site_name ) );
 } elseif ( is_user_admin() ) {
-	/* translators: User dashboard screen title. %s: Network name */
+	/* translators: User dashboard screen title. %s: Network title. */
 	$admin_title = sprintf( __( 'User Dashboard: %s' ), esc_html( get_network()->site_name ) );
 } else {
 	$admin_title = get_bloginfo( 'name' );
 }
 
 if ( $admin_title == $title ) {
-	/* translators: Admin screen title. %s: Admin screen name */
+	/* translators: Admin screen title. %s: Admin screen name. */
 	$admin_title = sprintf( __( '%s &#8212; WordPress' ), $title );
 } else {
-	/* translators: Admin screen title. 1: Admin screen name, 2: Network or site name */
+	/* translators: Admin screen title. 1: Admin screen name, 2: Network or site name. */
 	$admin_title = sprintf( __( '%1$s &lsaquo; %2$s &#8212; WordPress' ), $title, $admin_title );
 }
 
@@ -108,7 +108,7 @@ do_action( 'admin_enqueue_scripts', $hook_suffix );
  *
  * @since 2.6.0
  */
-do_action( "admin_print_styles-{$hook_suffix}" );
+do_action( "admin_print_styles-{$hook_suffix}" ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 /**
  * Fires when styles are printed for all admin pages.
@@ -122,7 +122,7 @@ do_action( 'admin_print_styles' );
  *
  * @since 2.1.0
  */
-do_action( "admin_print_scripts-{$hook_suffix}" );
+do_action( "admin_print_scripts-{$hook_suffix}" ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 /**
  * Fires when scripts are printed for all admin pages.
@@ -139,7 +139,7 @@ do_action( 'admin_print_scripts' );
  *
  * @since 2.1.0
  */
-do_action( "admin_head-{$hook_suffix}" );
+do_action( "admin_head-{$hook_suffix}" ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 /**
  * Fires in head section for all admin pages.

@@ -122,24 +122,24 @@ if ( ! is_file( $real_file ) ) {
 			'id'      => 'overview',
 			'title'   => __( 'Overview' ),
 			'content' =>
-					 '<p>' . __( 'You can use the plugin editor to make changes to any of your plugins&#8217; individual PHP files. Be aware that if you make changes, plugins updates will overwrite your customizations.' ) . '</p>' .
-					 '<p>' . __( 'Choose a plugin to edit from the dropdown menu and click the Select button. Click once on any file name to load it in the editor, and make your changes. Don&#8217;t forget to save your changes (Update File) when you&#8217;re finished.' ) . '</p>' .
-					 '<p>' . __( 'The Documentation menu below the editor lists the PHP functions recognized in the plugin file. Clicking Look Up takes you to a web page about that particular function.' ) . '</p>' .
-					 '<p id="editor-keyboard-trap-help-1">' . __( 'When using a keyboard to navigate:' ) . '</p>' .
-					 '<ul>' .
-					 '<li id="editor-keyboard-trap-help-2">' . __( 'In the editing area, the Tab key enters a tab character.' ) . '</li>' .
-					 '<li id="editor-keyboard-trap-help-3">' . __( 'To move away from this area, press the Esc key followed by the Tab key.' ) . '</li>' .
-					 '<li id="editor-keyboard-trap-help-4">' . __( 'Screen reader users: when in forms mode, you may need to press the Esc key twice.' ) . '</li>' .
-					 '</ul>' .
-					 '<p>' . __( 'If you want to make changes but don&#8217;t want them to be overwritten when the plugin is updated, you may be ready to think about writing your own plugin. For information on how to edit plugins, write your own from scratch, or just better understand their anatomy, check out the links below.' ) . '</p>' .
-					 ( is_network_admin() ? '<p>' . __( 'Any edits to files from this screen will be reflected on all sites in the network.' ) . '</p>' : '' ),
+					'<p>' . __( 'You can use the plugin editor to make changes to any of your plugins&#8217; individual PHP files. Be aware that if you make changes, plugins updates will overwrite your customizations.' ) . '</p>' .
+					'<p>' . __( 'Choose a plugin to edit from the dropdown menu and click the Select button. Click once on any file name to load it in the editor, and make your changes. Don&#8217;t forget to save your changes (Update File) when you&#8217;re finished.' ) . '</p>' .
+					'<p>' . __( 'The Documentation menu below the editor lists the PHP functions recognized in the plugin file. Clicking Look Up takes you to a web page about that particular function.' ) . '</p>' .
+					'<p id="editor-keyboard-trap-help-1">' . __( 'When using a keyboard to navigate:' ) . '</p>' .
+					'<ul>' .
+					'<li id="editor-keyboard-trap-help-2">' . __( 'In the editing area, the Tab key enters a tab character.' ) . '</li>' .
+					'<li id="editor-keyboard-trap-help-3">' . __( 'To move away from this area, press the Esc key followed by the Tab key.' ) . '</li>' .
+					'<li id="editor-keyboard-trap-help-4">' . __( 'Screen reader users: when in forms mode, you may need to press the Esc key twice.' ) . '</li>' .
+					'</ul>' .
+					'<p>' . __( 'If you want to make changes but don&#8217;t want them to be overwritten when the plugin is updated, you may be ready to think about writing your own plugin. For information on how to edit plugins, write your own from scratch, or just better understand their anatomy, check out the links below.' ) . '</p>' .
+					( is_network_admin() ? '<p>' . __( 'Any edits to files from this screen will be reflected on all sites in the network.' ) . '</p>' : '' ),
 		)
 	);
 
 	get_current_screen()->set_help_sidebar(
 		'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-		'<p>' . __( '<a href="https://codex.wordpress.org/Plugins_Editor_Screen">Documentation on Editing Plugins</a>' ) . '</p>' .
-		'<p>' . __( '<a href="https://codex.wordpress.org/Writing_a_Plugin">Documentation on Writing Plugins</a>' ) . '</p>' .
+		'<p>' . __( '<a href="https://wordpress.org/support/article/plugins-editor-screen/">Documentation on Editing Plugins</a>' ) . '</p>' .
+		'<p>' . __( '<a href="https://developer.wordpress.org/plugins/">Documentation on Writing Plugins</a>' ) . '</p>' .
 		'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 	);
 
@@ -195,18 +195,18 @@ if ( ! is_file( $real_file ) ) {
 	<?php
 	if ( is_plugin_active( $plugin ) ) {
 		if ( is_writeable( $real_file ) ) {
-			/* translators: %s: plugin file name */
+			/* translators: %s: Plugin file name. */
 			echo sprintf( __( 'Editing %s (active)' ), '<strong>' . esc_html( $file ) . '</strong>' );
 		} else {
-			/* translators: %s: plugin file name */
+			/* translators: %s: Plugin file name. */
 			echo sprintf( __( 'Browsing %s (active)' ), '<strong>' . esc_html( $file ) . '</strong>' );
 		}
 	} else {
 		if ( is_writeable( $real_file ) ) {
-			/* translators: %s: plugin file name */
+			/* translators: %s: Plugin file name. */
 			echo sprintf( __( 'Editing %s (inactive)' ), '<strong>' . esc_html( $file ) . '</strong>' );
 		} else {
-			/* translators: %s: plugin file name */
+			/* translators: %s: Plugin file name. */
 			echo sprintf( __( 'Browsing %s (inactive)' ), '<strong>' . esc_html( $file ) . '</strong>' );
 		}
 	}
@@ -280,7 +280,15 @@ foreach ( $plugins as $plugin_key => $a_plugin ) {
 		<span class="spinner"></span>
 	</p>
 <?php else : ?>
-	<p><em><?php _e( 'You need to make this file writable before you can save your changes. See <a href="https://codex.wordpress.org/Changing_File_Permissions">the Codex</a> for more information.' ); ?></em></p>
+	<p><em>
+		<?php
+		printf(
+			/* translators: %s: Documentation URL. */
+			__( 'You need to make this file writable before you can save your changes. See <a href="%s">Changing File Permissions</a> for more information.' ),
+			__( 'https://wordpress.org/support/article/changing-file-permissions/' )
+		);
+		?>
+	</em></p>
 <?php endif; ?>
 <?php wp_print_file_editor_templates(); ?>
 </form>

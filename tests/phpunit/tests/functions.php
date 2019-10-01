@@ -230,6 +230,20 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 46570
+	 */
+	function test_is_serialized_should_return_true_for_large_floats() {
+		$cases = array(
+			serialize( 1.7976931348623157E+308 ),
+			serialize( array( 1.7976931348623157E+308, 1.23e50 ) ),
+		);
+
+		foreach ( $cases as $case ) {
+			$this->assertTrue( is_serialized( $case ), "Serialized data: $case" );
+		}
+	}
+
+	/**
 	 * @ticket 17375
 	 */
 	function test_no_new_serializable_types() {
@@ -842,8 +856,9 @@ class Tests_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( 'mbstring extension not available.' );
 		}
 
-		$old_charsets = $charsets = mb_detect_order();
-		if ( ! in_array( 'EUC-JP', $charsets ) ) {
+		$charsets     = mb_detect_order();
+		$old_charsets = $charsets;
+		if ( ! in_array( 'EUC-JP', $charsets, true ) ) {
 			$charsets[] = 'EUC-JP';
 			mb_detect_order( $charsets );
 		}
@@ -866,8 +881,9 @@ class Tests_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( 'mbstring extension not available.' );
 		}
 
-		$old_charsets = $charsets = mb_detect_order();
-		if ( ! in_array( 'EUC-JP', $charsets ) ) {
+		$charsets     = mb_detect_order();
+		$old_charsets = $charsets;
+		if ( ! in_array( 'EUC-JP', $charsets, true ) ) {
 			$charsets[] = 'EUC-JP';
 			mb_detect_order( $charsets );
 		}
@@ -902,10 +918,6 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * @ticket 28786
 	 */
 	function test_wp_json_encode_depth() {
-		if ( version_compare( PHP_VERSION, '5.5', '<' ) ) {
-			$this->markTestSkipped( 'json_encode() supports the $depth parameter in PHP 5.5+' );
-		};
-
 		$data = array( array( array( 1, 2, 3 ) ) );
 		$json = wp_json_encode( $data, 0, 1 );
 		$this->assertFalse( $json );
@@ -963,8 +975,8 @@ class Tests_Functions extends WP_UnitTestCase {
 	public function test_wp_ext2type() {
 		$extensions = wp_get_ext_types();
 
-		foreach ( $extensions as $type => $extensionList ) {
-			foreach ( $extensionList as $extension ) {
+		foreach ( $extensions as $type => $extension_list ) {
+			foreach ( $extension_list as $extension ) {
 				$this->assertEquals( $type, wp_ext2type( $extension ) );
 				$this->assertEquals( $type, wp_ext2type( strtoupper( $extension ) ) );
 			}
@@ -1310,15 +1322,15 @@ class Tests_Functions extends WP_UnitTestCase {
 				$data,
 				array(
 					// Standard non-image file.
-					 array(
-						 DIR_TESTDATA . '/formatting/big5.txt',
-						 'big5.txt',
-						 array(
-							 'ext'             => 'txt',
-							 'type'            => 'text/plain',
-							 'proper_filename' => false,
-						 ),
-					 ),
+					array(
+						DIR_TESTDATA . '/formatting/big5.txt',
+						'big5.txt',
+						array(
+							'ext'             => 'txt',
+							'type'            => 'text/plain',
+							'proper_filename' => false,
+						),
+					),
 					// Non-image file with wrong sub-type.
 					array(
 						DIR_TESTDATA . '/uploads/pages-to-word.docx',

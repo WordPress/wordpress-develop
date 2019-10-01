@@ -88,7 +88,7 @@ function _wp_personal_data_handle_actions() {
 				'privacy_action_email_retry',
 				'privacy_action_email_retry',
 				__( 'Confirmation request sent again successfully.' ),
-				'updated'
+				'success'
 			);
 		}
 	} elseif ( isset( $_POST['action'] ) ) {
@@ -166,7 +166,7 @@ function _wp_personal_data_handle_actions() {
 					'username_or_email_for_privacy_request',
 					'username_or_email_for_privacy_request',
 					__( 'Confirmation request initiated successfully.' ),
-					'updated'
+					'success'
 				);
 				break;
 		}
@@ -234,7 +234,20 @@ function _wp_personal_data_cleanup_requests() {
  * @return string The HTML for this group and its items.
  */
 function wp_privacy_generate_personal_data_export_group_html( $group_data ) {
-	$group_html  = '<h2>' . esc_html( $group_data['group_label'] ) . '</h2>';
+	$group_html  = '<h2>';
+	$group_html .= esc_html( $group_data['group_label'] );
+
+	$items_count = count( (array) $group_data['items'] );
+	if ( $items_count > 1 ) {
+		$group_html .= sprintf( ' <span class="count">(%d)</span>', $items_count );
+	}
+
+	$group_html .= '</h2>';
+
+	if ( ! empty( $group_data['group_description'] ) ) {
+		$group_html .= '<p>' . esc_html( $group_data['group_description'] ) . '</p>';
+	}
+
 	$group_html .= '<div>';
 
 	foreach ( (array) $group_data['items'] as $group_item_id => $group_item_data ) {
@@ -319,7 +332,7 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	}
 
 	$title = sprintf(
-		/* translators: %s: user's email address */
+		/* translators: %s: User's email address. */
 		__( 'Personal Data Export for %s' ),
 		$email_address
 	);
@@ -355,8 +368,10 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	// First, build an "About" group on the fly for this report.
 	$about_group = array(
 		/* translators: Header for the About section in a personal data export. */
-		'group_label' => _x( 'About', 'personal data group label' ),
-		'items'       => array(
+		'group_label'       => _x( 'About', 'personal data group label' ),
+		/* translators: Description for the About section in a personal data export. */
+		'group_description' => _x( 'Overview of export report.', 'personal data group description' ),
+		'items'             => array(
 			'about-1' => array(
 				array(
 					'name'  => _x( 'Report generated for', 'email address' ),
@@ -478,6 +493,57 @@ function wp_privacy_send_personal_data_export_email( $request_id ) {
 	$expiration      = apply_filters( 'wp_privacy_export_expiration', 3 * DAY_IN_SECONDS );
 	$expiration_date = date_i18n( get_option( 'date_format' ), time() + $expiration );
 
+	$export_file_url = get_post_meta( $request_id, '_export_file_url', true );
+	$site_name       = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+	$site_url        = home_url();
+
+	/**
+	 * Filters the recipient of the personal data export email notification.
+	 * Should be used with great caution to avoid sending the data export link to wrong emails.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param string          $request_email The email address of the notification recipient.
+	 * @param WP_User_Request $request       The request that is initiating the notification.
+	 */
+	$request_email = apply_filters( 'wp_privacy_personal_data_email_to', $request->email, $request );
+
+	$email_data = array(
+		'request'           => $request,
+		'expiration'        => $expiration,
+		'expiration_date'   => $expiration_date,
+		'message_recipient' => $request_email,
+		'export_file_url'   => $export_file_url,
+		'sitename'          => $site_name,
+		'siteurl'           => $site_url,
+	);
+
+	/* translators: Personal data export notification email subject. %s: Site title. */
+	$subject = sprintf( __( '[%s] Personal Data Export' ), $site_name );
+
+	/**
+	 * Filters the subject of the email sent when an export request is completed.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param string $subject    The email subject.
+	 * @param string $sitename   The name of the site.
+	 * @param array  $email_data {
+	 *     Data relating to the account action email.
+	 *
+	 *     @type WP_User_Request $request           User request object.
+	 *     @type int             $expiration        The time in seconds until the export file expires.
+	 *     @type string          $expiration_date   The localized date and time when the export file expires.
+	 *     @type string          $message_recipient The address that the email will be sent to. Defaults
+	 *                                              to the value of `$request->email`, but can be changed
+	 *                                              by the `wp_privacy_personal_data_email_to` filter.
+	 *     @type string          $export_file_url   The export file URL.
+	 *     @type string          $sitename          The site name sending the mail.
+	 *     @type string          $siteurl           The site URL sending the mail.
+	 * }
+	 */
+	$subject = apply_filters( 'wp_privacy_personal_data_email_subject', $subject, $site_name, $email_data );
+
 	/* translators: Do not translate EXPIRATION, LINK, SITENAME, SITEURL: those are placeholders. */
 	$email_text = __(
 		'Howdy,
@@ -504,32 +570,32 @@ All at ###SITENAME###
 	 * ###SITEURL###            The URL to the site.
 	 *
 	 * @since 4.9.6
+	 * @since 5.3.0 Introduced the `$email_data` array.
 	 *
-	 * @param string $email_text     Text in the email.
-	 * @param int    $request_id     The request ID for this personal data export.
+	 * @param string $email_text Text in the email.
+	 * @param int    $request_id The request ID for this personal data export.
+	 * @param array  $email_data {
+	 *     Data relating to the account action email.
+	 *
+	 *     @type WP_User_Request $request           User request object.
+	 *     @type int             $expiration        The time in seconds until the export file expires.
+	 *     @type string          $expiration_date   The localized date and time when the export file expires.
+	 *     @type string          $message_recipient The address that the email will be sent to. Defaults
+	 *                                              to the value of `$request->email`, but can be changed
+	 *                                              by the `wp_privacy_personal_data_email_to` filter.
+	 *     @type string          $export_file_url   The export file URL.
+	 *     @type string          $sitename          The site name sending the mail.
+	 *     @type string          $siteurl           The site URL sending the mail.
 	 */
-	$content = apply_filters( 'wp_privacy_personal_data_email_content', $email_text, $request_id );
-
-	$email_address   = $request->email;
-	$export_file_url = get_post_meta( $request_id, '_export_file_url', true );
-	$site_name       = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
-	$site_url        = home_url();
+	$content = apply_filters( 'wp_privacy_personal_data_email_content', $email_text, $request_id, $email_data );
 
 	$content = str_replace( '###EXPIRATION###', $expiration_date, $content );
 	$content = str_replace( '###LINK###', esc_url_raw( $export_file_url ), $content );
-	$content = str_replace( '###EMAIL###', $email_address, $content );
+	$content = str_replace( '###EMAIL###', $request_email, $content );
 	$content = str_replace( '###SITENAME###', $site_name, $content );
 	$content = str_replace( '###SITEURL###', esc_url_raw( $site_url ), $content );
 
-	$mail_success = wp_mail(
-		$email_address,
-		sprintf(
-			/* translators: Personal data export notification email subject. %s: Site title */
-			__( '[%s] Personal Data Export' ),
-			$site_name
-		),
-		$content
-	);
+	$mail_success = wp_mail( $request_email, $subject, $content );
 
 	if ( $switched_locale ) {
 		restore_previous_locale();
@@ -613,10 +679,17 @@ function wp_privacy_process_personal_data_export_page( $response, $exporter_inde
 	foreach ( (array) $export_data as $export_datum ) {
 		$group_id    = $export_datum['group_id'];
 		$group_label = $export_datum['group_label'];
+
+		$group_description = '';
+		if ( ! empty( $export_datum['group_description'] ) ) {
+			$group_description = $export_datum['group_description'];
+		}
+
 		if ( ! array_key_exists( $group_id, $groups ) ) {
 			$groups[ $group_id ] = array(
-				'group_label' => $group_label,
-				'items'       => array(),
+				'group_label'       => $group_label,
+				'group_description' => $group_description,
+				'items'             => array(),
 			);
 		}
 

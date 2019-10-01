@@ -257,7 +257,8 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 		$posts = self::factory()->post->create_many( 2 );
 
 		$now        = time();
-		$comments_0 = $comments_1 = array();
+		$comments_0 = array();
+		$comments_1 = array();
 		for ( $i = 0; $i < 5; $i++ ) {
 			$comments_0[] = self::factory()->comment->create(
 				array(
@@ -286,8 +287,9 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 	public function test_only_top_level_comments_should_be_included_in_older_count() {
 		$post = self::factory()->post->create();
 
-		$now             = time();
-		$comment_parents = $comment_children = array();
+		$now              = time();
+		$comment_parents  = array();
+		$comment_children = array();
 		for ( $i = 0; $i < 5; $i++ ) {
 			$parent                = self::factory()->comment->create(
 				array(

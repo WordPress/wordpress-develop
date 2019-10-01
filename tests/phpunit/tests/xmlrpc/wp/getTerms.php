@@ -121,9 +121,9 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotEquals( 0, count( $results ) );
 
 		foreach ( $results as $term ) {
-			if ( $term['term_id'] == $cat1 ) {
+			if ( $term['term_id'] === $cat1 ) {
 				break;  // found cat1 first as expected
-			} elseif ( $term['term_id'] == $cat2 ) {
+			} elseif ( $term['term_id'] === $cat2 ) {
 				$this->assertFalse( false, 'Incorrect category ordering.' );
 			}
 		}

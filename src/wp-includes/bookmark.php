@@ -34,11 +34,14 @@ function get_bookmark( $bookmark, $output = OBJECT, $filter = 'raw' ) {
 	} else {
 		if ( isset( $GLOBALS['link'] ) && ( $GLOBALS['link']->link_id == $bookmark ) ) {
 			$_bookmark = & $GLOBALS['link'];
-		} elseif ( ! $_bookmark = wp_cache_get( $bookmark, 'bookmark' ) ) {
-			$_bookmark = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->links WHERE link_id = %d LIMIT 1", $bookmark ) );
-			if ( $_bookmark ) {
-				$_bookmark->link_category = array_unique( wp_get_object_terms( $_bookmark->link_id, 'link_category', array( 'fields' => 'ids' ) ) );
-				wp_cache_add( $_bookmark->link_id, $_bookmark, 'bookmark' );
+		} else {
+			$_bookmark = wp_cache_get( $bookmark, 'bookmark' );
+			if ( ! $_bookmark ) {
+				$_bookmark = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->links WHERE link_id = %d LIMIT 1", $bookmark ) );
+				if ( $_bookmark ) {
+					$_bookmark->link_category = array_unique( wp_get_object_terms( $_bookmark->link_id, 'link_category', array( 'fields' => 'ids' ) ) );
+					wp_cache_add( $_bookmark->link_id, $_bookmark, 'bookmark' );
+				}
 			}
 		}
 	}
@@ -103,11 +106,16 @@ function get_bookmark_field( $field, $bookmark, $context = 'display' ) {
  * @param string|array $args {
  *     Optional. String or array of arguments to retrieve bookmarks.
  *
- *     @type string   $orderby        How to order the links by. Accepts post fields. Default 'name'.
+ *     @type string   $orderby        How to order the links by. Accepts 'id', 'link_id', 'name', 'link_name',
+ *                                    'url', 'link_url', 'visible', 'link_visible', 'rating', 'link_rating',
+ *                                    'owner', 'link_owner', 'updated', 'link_updated', 'notes', 'link_notes',
+ *                                    'description', 'link_description', 'length' and 'rand'.
+ *                                    When `$orderby` is 'length', orders by the character length of
+ *                                    'link_name'. Default 'name'.
  *     @type string   $order          Whether to order bookmarks in ascending or descending order.
  *                                    Accepts 'ASC' (ascending) or 'DESC' (descending). Default 'ASC'.
- *     @type int      $limit          Amount of bookmarks to display. Accepts 1+ or -1 for all.
- *                                    Default -1.
+ *     @type int      $limit          Amount of bookmarks to display. Accepts any positive number or
+ *                                    -1 for all.  Default -1.
  *     @type string   $category       Comma-separated list of category ids to include links from.
  *                                    Default empty.
  *     @type string   $category_name  Category to retrieve links for by name. Default empty.
@@ -117,6 +125,9 @@ function get_bookmark_field( $field, $bookmark, $context = 'display' ) {
  *                                    Accepts 1|true or 0|false. Default 0|false.
  *     @type string   $include        Comma-separated list of bookmark IDs to include. Default empty.
  *     @type string   $exclude        Comma-separated list of bookmark IDs to exclude. Default empty.
+ *     @type string   $search         Search terms. Will be SQL-formatted with wildcards before and after
+ *                                    and searched in 'link_url', 'link_name' and 'link_description'.
+ *                                    Default empty.
  * }
  * @return array List of bookmark row objects.
  */
@@ -136,11 +147,12 @@ function get_bookmarks( $args = '' ) {
 		'search'         => '',
 	);
 
-	$r = wp_parse_args( $args, $defaults );
+	$parsed_args = wp_parse_args( $args, $defaults );
 
-	$key   = md5( serialize( $r ) );
-	$cache = false;
-	if ( 'rand' !== $r['orderby'] && $cache = wp_cache_get( 'get_bookmarks', 'bookmark' ) ) {
+	$key   = md5( serialize( $parsed_args ) );
+	$cache = wp_cache_get( 'get_bookmarks', 'bookmark' );
+
+	if ( 'rand' !== $parsed_args['orderby'] && $cache ) {
 		if ( is_array( $cache ) && isset( $cache[ $key ] ) ) {
 			$bookmarks = $cache[ $key ];
 			/**
@@ -156,9 +168,9 @@ function get_bookmarks( $args = '' ) {
 			 * @see get_bookmarks()
 			 *
 			 * @param array $bookmarks List of the cached bookmarks.
-			 * @param array $r         An array of bookmark query arguments.
+			 * @param array $parsed_args         An array of bookmark query arguments.
 			 */
-			return apply_filters( 'get_bookmarks', $bookmarks, $r );
+			return apply_filters( 'get_bookmarks', $bookmarks, $parsed_args );
 		}
 	}
 
@@ -167,11 +179,12 @@ function get_bookmarks( $args = '' ) {
 	}
 
 	$inclusions = '';
-	if ( ! empty( $r['include'] ) ) {
-		$r['exclude']       = '';  //ignore exclude, category, and category_name params if using include
-		$r['category']      = '';
-		$r['category_name'] = '';
-		$inclinks           = wp_parse_id_list( $r['include'] );
+	if ( ! empty( $parsed_args['include'] ) ) {
+		$parsed_args['exclude']       = '';  //ignore exclude, category, and category_name params if using include
+		$parsed_args['category']      = '';
+		$parsed_args['category_name'] = '';
+
+		$inclinks = wp_parse_id_list( $parsed_args['include'] );
 		if ( count( $inclinks ) ) {
 			foreach ( $inclinks as $inclink ) {
 				if ( empty( $inclusions ) ) {
@@ -187,8 +200,8 @@ function get_bookmarks( $args = '' ) {
 	}
 
 	$exclusions = '';
-	if ( ! empty( $r['exclude'] ) ) {
-		$exlinks = wp_parse_id_list( $r['exclude'] );
+	if ( ! empty( $parsed_args['exclude'] ) ) {
+		$exlinks = wp_parse_id_list( $parsed_args['exclude'] );
 		if ( count( $exlinks ) ) {
 			foreach ( $exlinks as $exlink ) {
 				if ( empty( $exclusions ) ) {
@@ -203,27 +216,28 @@ function get_bookmarks( $args = '' ) {
 		$exclusions .= ')';
 	}
 
-	if ( ! empty( $r['category_name'] ) ) {
-		if ( $r['category'] = get_term_by( 'name', $r['category_name'], 'link_category' ) ) {
-			$r['category'] = $r['category']->term_id;
+	if ( ! empty( $parsed_args['category_name'] ) ) {
+		$parsed_args['category'] = get_term_by( 'name', $parsed_args['category_name'], 'link_category' );
+		if ( $parsed_args['category'] ) {
+			$parsed_args['category'] = $parsed_args['category']->term_id;
 		} else {
 			$cache[ $key ] = array();
 			wp_cache_set( 'get_bookmarks', $cache, 'bookmark' );
 			/** This filter is documented in wp-includes/bookmark.php */
-			return apply_filters( 'get_bookmarks', array(), $r );
+			return apply_filters( 'get_bookmarks', array(), $parsed_args );
 		}
 	}
 
 	$search = '';
-	if ( ! empty( $r['search'] ) ) {
-		$like   = '%' . $wpdb->esc_like( $r['search'] ) . '%';
+	if ( ! empty( $parsed_args['search'] ) ) {
+		$like   = '%' . $wpdb->esc_like( $parsed_args['search'] ) . '%';
 		$search = $wpdb->prepare( ' AND ( (link_url LIKE %s) OR (link_name LIKE %s) OR (link_description LIKE %s) ) ', $like, $like, $like );
 	}
 
 	$category_query = '';
 	$join           = '';
-	if ( ! empty( $r['category'] ) ) {
-		$incategories = wp_parse_id_list( $r['category'] );
+	if ( ! empty( $parsed_args['category'] ) ) {
+		$incategories = wp_parse_id_list( $parsed_args['category'] );
 		if ( count( $incategories ) ) {
 			foreach ( $incategories as $incat ) {
 				if ( empty( $category_query ) ) {
@@ -239,15 +253,15 @@ function get_bookmarks( $args = '' ) {
 		$join            = " INNER JOIN $wpdb->term_relationships AS tr ON ($wpdb->links.link_id = tr.object_id) INNER JOIN $wpdb->term_taxonomy as tt ON tt.term_taxonomy_id = tr.term_taxonomy_id";
 	}
 
-	if ( $r['show_updated'] ) {
+	if ( $parsed_args['show_updated'] ) {
 		$recently_updated_test = ', IF (DATE_ADD(link_updated, INTERVAL 120 MINUTE) >= NOW(), 1,0) as recently_updated ';
 	} else {
 		$recently_updated_test = '';
 	}
 
-	$get_updated = ( $r['show_updated'] ) ? ', UNIX_TIMESTAMP(link_updated) AS link_updated_f ' : '';
+	$get_updated = ( $parsed_args['show_updated'] ) ? ', UNIX_TIMESTAMP(link_updated) AS link_updated_f ' : '';
 
-	$orderby = strtolower( $r['orderby'] );
+	$orderby = strtolower( $parsed_args['orderby'] );
 	$length  = '';
 	switch ( $orderby ) {
 		case 'length':
@@ -278,21 +292,21 @@ function get_bookmarks( $args = '' ) {
 		$orderby = 'link_name';
 	}
 
-	$order = strtoupper( $r['order'] );
+	$order = strtoupper( $parsed_args['order'] );
 	if ( '' !== $order && ! in_array( $order, array( 'ASC', 'DESC' ) ) ) {
 		$order = 'ASC';
 	}
 
 	$visible = '';
-	if ( $r['hide_invisible'] ) {
+	if ( $parsed_args['hide_invisible'] ) {
 		$visible = "AND link_visible = 'Y'";
 	}
 
 	$query  = "SELECT * $length $recently_updated_test $get_updated FROM $wpdb->links $join WHERE 1=1 $visible $category_query";
 	$query .= " $exclusions $inclusions $search";
 	$query .= " ORDER BY $orderby $order";
-	if ( $r['limit'] != -1 ) {
-		$query .= ' LIMIT ' . $r['limit'];
+	if ( $parsed_args['limit'] != -1 ) {
+		$query .= ' LIMIT ' . $parsed_args['limit'];
 	}
 
 	$results = $wpdb->get_results( $query );
@@ -303,7 +317,7 @@ function get_bookmarks( $args = '' ) {
 	}
 
 	/** This filter is documented in wp-includes/bookmark.php */
-	return apply_filters( 'get_bookmarks', $results, $r );
+	return apply_filters( 'get_bookmarks', $results, $parsed_args );
 }
 
 /**

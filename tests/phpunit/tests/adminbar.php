@@ -21,9 +21,12 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	public static function wpSetUpBeforeClass( $factory ) {
-		self::$user_ids[] = self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
-		self::$user_ids[] = self::$admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
-		self::$user_ids[] = self::$no_role_id = $factory->user->create( array( 'role' => '' ) );
+		self::$editor_id  = $factory->user->create( array( 'role' => 'editor' ) );
+		self::$user_ids[] = self::$editor_id;
+		self::$admin_id   = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$user_ids[] = self::$admin_id;
+		self::$no_role_id = $factory->user->create( array( 'role' => '' ) );
+		self::$user_ids[] = self::$no_role_id;
 	}
 
 	/**
@@ -741,7 +744,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$nodes = $wp_admin_bar->get_nodes();
 		foreach ( $this->get_my_sites_network_menu_items() as $id => $cap ) {
-			if ( in_array( $cap, $network_user_caps ) ) {
+			if ( in_array( $cap, $network_user_caps, true ) ) {
 				$this->assertTrue( isset( $nodes[ $id ] ), sprintf( 'Menu item %1$s must display for a user with the %2$s cap.', $id, $cap ) );
 			} else {
 				$this->assertFalse( isset( $nodes[ $id ] ), sprintf( 'Menu item %1$s must not display for a user without the %2$s cap.', $id, $cap ) );

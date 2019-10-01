@@ -1378,8 +1378,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$attachments_url = add_query_arg( 'parent', self::$post_id, $attachments_url );
 		$this->assertEquals( $attachments_url, $links['https://api.w.org/attachment'][0]['href'] );
 
-		$term_links = $links['https://api.w.org/term'];
-		$tag_link   = $cat_link = $format_link = null;
+		$term_links  = $links['https://api.w.org/term'];
+		$tag_link    = null;
+		$cat_link    = null;
+		$format_link = null;
 		foreach ( $term_links as $link ) {
 			if ( 'post_tag' === $link['attributes']['taxonomy'] ) {
 				$tag_link = $link;
@@ -1685,6 +1687,76 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			),
 			array_keys( $response->get_data() )
 		);
+	}
+
+	/**
+	 * @ticket 42094
+	 */
+	public function test_prepare_item_filters_content_when_needed() {
+		$filter_count   = 0;
+		$filter_content = function() use ( &$filter_count ) {
+			$filter_count++;
+			return '<p>Filtered content.</p>';
+		};
+		add_filter( 'the_content', $filter_content );
+
+		wp_set_current_user( self::$editor_id );
+		$endpoint = new WP_REST_Posts_Controller( 'post' );
+		$request  = new WP_REST_REQUEST( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'content.rendered' );
+
+		$post     = get_post( self::$post_id );
+		$response = $endpoint->prepare_item_for_response( $post, $request );
+
+		remove_filter( 'the_content', $filter_content );
+
+		$this->assertEquals(
+			array(
+				'id'      => self::$post_id,
+				'content' => array(
+					'rendered' => '<p>Filtered content.</p>',
+				),
+			),
+			$response->get_data()
+		);
+		$this->assertSame( 1, $filter_count );
+	}
+
+	/**
+	 * @ticket 42094
+	 */
+	public function test_prepare_item_skips_content_filter_if_not_needed() {
+		$filter_count   = 0;
+		$filter_content = function() use ( &$filter_count ) {
+			$filter_count++;
+			return '<p>Filtered content.</p>';
+		};
+		add_filter( 'the_content', $filter_content );
+
+		wp_set_current_user( self::$editor_id );
+		$endpoint = new WP_REST_Posts_Controller( 'post' );
+		$request  = new WP_REST_REQUEST( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'content.raw' );
+
+		$post     = get_post( self::$post_id );
+		$response = $endpoint->prepare_item_for_response( $post, $request );
+
+		remove_filter( 'the_content', $filter_content );
+
+		$this->assertEquals(
+			array(
+				'id'      => $post->ID,
+				'content' => array(
+					'raw' => $post->post_content,
+				),
+			),
+			$response->get_data()
+		);
+		$this->assertSame( 0, $filter_count );
 	}
 
 	public function test_create_item() {
@@ -2489,7 +2561,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function revoke_assign_term( $caps, $cap, $user_id, $args ) {
-		if ( 'assign_term' === $cap && isset( $args[0] ) && $this->forbidden_cat == $args[0] ) {
+		if ( 'assign_term' === $cap && isset( $args[0] ) && $this->forbidden_cat === $args[0] ) {
 			$caps = array( 'do_not_allow' );
 		}
 		return $caps;
@@ -2551,6 +2623,66 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( $params['title'], $post->post_title );
 		$this->assertEquals( $params['content'], $post->post_content );
 		$this->assertEquals( $params['excerpt'], $post->post_excerpt );
+	}
+
+	/**
+	 * Verify that updating a post with a `null` date or date_gmt results in a reset post, where all
+	 * date values are equal (date, date_gmt, date_modified and date_modofied_gmt) in the API response.
+	 * In the database, the post_date_gmt field is reset to the default `0000-00-00 00:00:00`.
+	 *
+	 * @ticket 44975
+	 */
+	public function test_rest_update_post_with_empty_date() {
+		// Create a new test post.
+		$post_id = $this->factory->post->create();
+		wp_set_current_user( self::$editor_id );
+
+		// Set the post date to the future.
+		$future_date = '2919-07-29T18:00:00';
+		$request     = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$params = $this->set_post_data(
+			array(
+				'date_gmt' => $future_date,
+				'date'     => $future_date,
+				'title'    => 'update',
+				'status'   => 'draft',
+			)
+		);
+		$request->set_body( wp_json_encode( $params ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->check_update_post_response( $response );
+		$new_data = $response->get_data();
+
+		// Verify the post is set to the future date.
+		$this->assertEquals( $new_data['date_gmt'], $future_date );
+		$this->assertEquals( $new_data['date'], $future_date );
+		$this->assertNotEquals( $new_data['date_gmt'], $new_data['modified_gmt'] );
+		$this->assertNotEquals( $new_data['date'], $new_data['modified'] );
+
+		// Update post with a blank field (date or date_gmt).
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$params = $this->set_post_data(
+			array(
+				'date_gmt' => null,
+				'title'    => 'test',
+				'status'   => 'draft',
+			)
+		);
+		$request->set_body( wp_json_encode( $params ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		// Verify the date field values are reset in the API response.
+		$this->check_update_post_response( $response );
+		$new_data = $response->get_data();
+		$this->assertEquals( $new_data['date_gmt'], $new_data['date'] );
+		$this->assertNotEquals( $new_data['date_gmt'], $future_date );
+
+		$post = get_post( $post_id, 'ARRAY_A' );
+		$this->assertEquals( $post['post_date_gmt'], '0000-00-00 00:00:00' );
+		$this->assertNotEquals( $new_data['date_gmt'], $future_date );
+		$this->assertNotEquals( $new_data['date'], $future_date );
 	}
 
 	public function test_rest_update_post_raw() {
@@ -3917,6 +4049,12 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		remove_post_type_support( 'post', 'author' );
 
+		// Re-initialize the controller to cache-bust schemas from prior test runs.
+		$GLOBALS['wp_rest_server']->override_by_default = true;
+		$controller                                     = new WP_REST_Posts_Controller( 'post' );
+		$controller->register_routes();
+		$GLOBALS['wp_rest_server']->override_by_default = false;
+
 		$response = rest_get_server()->dispatch( new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' ) );
 		$data     = $response->get_data();
 		$schema   = $data['schema'];
@@ -4273,6 +4411,209 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertArrayNotHasKey( 'permalink_template', $data );
 		$this->assertArrayNotHasKey( 'generated_slug', $data );
 
+	}
+
+	/**
+	 * @ticket 39953
+	 */
+	public function test_putting_same_publish_date_does_not_remove_floating_date() {
+
+		wp_set_current_user( self::$superadmin_id );
+
+		$time = date( 'Y-m-d H:i:s' );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'draft',
+				'post_date'   => $time,
+			)
+		);
+
+		$this->assertEquals( '0000-00-00 00:00:00', $post->post_date_gmt );
+
+		$get = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post->ID}" );
+		$get->set_query_params( array( 'context' => 'edit' ) );
+
+		$get      = rest_get_server()->dispatch( $get );
+		$get_body = $get->get_data();
+
+		$put = new WP_REST_Request( 'PUT', "/wp/v2/posts/{$post->ID}" );
+		$put->set_body_params( $get_body );
+
+		$response = rest_get_server()->dispatch( $put );
+		$body     = $response->get_data();
+
+		$this->assertEquals( strtotime( $get_body['date'] ), strtotime( $body['date'] ), 'The dates should be equal', 2 );
+		$this->assertEquals( strtotime( $get_body['date_gmt'] ), strtotime( $body['date_gmt'] ), 'The dates should be equal', 2 );
+
+		$this->assertEquals( '0000-00-00 00:00:00', get_post( $post->ID )->post_date_gmt );
+	}
+
+	/**
+	 * @ticket 39953
+	 */
+	public function test_putting_different_publish_date_removes_floating_date() {
+
+		wp_set_current_user( self::$superadmin_id );
+
+		$time     = date( 'Y-m-d H:i:s' );
+		$new_time = date( 'Y-m-d H:i:s', strtotime( '+1 week' ) );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'draft',
+				'post_date'   => $time,
+			)
+		);
+
+		$this->assertEquals( '0000-00-00 00:00:00', $post->post_date_gmt );
+
+		$get = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post->ID}" );
+		$get->set_query_params( array( 'context' => 'edit' ) );
+
+		$get      = rest_get_server()->dispatch( $get );
+		$get_body = $get->get_data();
+
+		$put = new WP_REST_Request( 'PUT', "/wp/v2/posts/{$post->ID}" );
+		$put->set_body_params(
+			array_merge(
+				$get_body,
+				array(
+					'date' => mysql_to_rfc3339( $new_time ),
+				)
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $put );
+		$body     = $response->get_data();
+
+		$this->assertEquals( strtotime( mysql_to_rfc3339( $new_time ) ), strtotime( $body['date'] ), 'The dates should be equal', 2 );
+
+		$this->assertNotEquals( '0000-00-00 00:00:00', get_post( $post->ID )->post_date_gmt );
+	}
+
+	/**
+	 * @ticket 39953
+	 */
+	public function test_publishing_post_with_same_date_removes_floating_date() {
+
+		wp_set_current_user( self::$superadmin_id );
+
+		$time = date( 'Y-m-d H:i:s' );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'draft',
+				'post_date'   => $time,
+			)
+		);
+
+		$this->assertEquals( '0000-00-00 00:00:00', $post->post_date_gmt );
+
+		$get = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post->ID}" );
+		$get->set_query_params( array( 'context' => 'edit' ) );
+
+		$get      = rest_get_server()->dispatch( $get );
+		$get_body = $get->get_data();
+
+		$put = new WP_REST_Request( 'PUT', "/wp/v2/posts/{$post->ID}" );
+		$put->set_body_params(
+			array_merge(
+				$get_body,
+				array(
+					'status' => 'publish',
+				)
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $put );
+		$body     = $response->get_data();
+
+		$this->assertEquals( strtotime( $get_body['date'] ), strtotime( $body['date'] ), 'The dates should be equal', 2 );
+		$this->assertEquals( strtotime( $get_body['date_gmt'] ), strtotime( $body['date_gmt'] ), 'The dates should be equal', 2 );
+
+		$this->assertNotEquals( '0000-00-00 00:00:00', get_post( $post->ID )->post_date_gmt );
+	}
+
+	/**
+	 * @ticket 45677
+	 */
+	public function test_get_for_post_type_reuses_same_instance() {
+		$this->assertSame(
+			get_post_type_object( 'post' )->get_rest_controller(),
+			get_post_type_object( 'post' )->get_rest_controller()
+		);
+	}
+
+	/**
+	 * @ticket 45677
+	 */
+	public function test_get_for_post_type_returns_null_if_post_type_does_not_show_in_rest() {
+		register_post_type(
+			'not_in_rest',
+			array(
+				'show_in_rest' => false,
+			)
+		);
+
+		$this->assertNull( get_post_type_object( 'not_in_rest' )->get_rest_controller() );
+	}
+
+	/**
+	 * @ticket 45677
+	 */
+	public function test_get_for_post_type_returns_null_if_class_does_not_exist() {
+		register_post_type(
+			'class_not_found',
+			array(
+				'show_in_rest'          => true,
+				'rest_controller_class' => 'Class_That_Does_Not_Exist',
+			)
+		);
+
+		$this->assertNull( get_post_type_object( 'class_not_found' )->get_rest_controller() );
+	}
+
+	/**
+	 * @ticket 45677
+	 */
+	public function test_get_for_post_type_returns_null_if_class_does_not_subclass_rest_controller() {
+		register_post_type(
+			'invalid_class',
+			array(
+				'show_in_rest'          => true,
+				'rest_controller_class' => 'WP_Post',
+			)
+		);
+
+		$this->assertNull( get_post_type_object( 'invalid_class' )->get_rest_controller() );
+	}
+
+	/**
+	 * @ticket 45677
+	 */
+	public function test_get_for_post_type_returns_posts_controller_if_custom_class_not_specified() {
+		register_post_type(
+			'test',
+			array(
+				'show_in_rest' => true,
+			)
+		);
+
+		$this->assertInstanceOf(
+			WP_REST_Posts_Controller::class,
+			get_post_type_object( 'test' )->get_rest_controller()
+		);
+	}
+
+	/**
+	 * @ticket 45677
+	 */
+	public function test_get_for_post_type_returns_provided_controller_class() {
+		$this->assertInstanceOf(
+			WP_REST_Blocks_Controller::class,
+			get_post_type_object( 'wp_block' )->get_rest_controller()
+		);
 	}
 
 	public function tearDown() {

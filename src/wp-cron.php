@@ -20,6 +20,8 @@ ignore_user_abort( true );
 
 /* Don't make the request block till we finish, if possible. */
 if ( function_exists( 'fastcgi_finish_request' ) && version_compare( phpversion(), '7.0.16', '>=' ) ) {
+	header( 'Expires: Wed, 11 Jan 1984 05:00:00 GMT' );
+	header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
 	fastcgi_finish_request();
 }
 
@@ -88,7 +90,8 @@ if ( empty( $doing_wp_cron ) ) {
 		if ( $doing_cron_transient && ( $doing_cron_transient + WP_CRON_LOCK_TIMEOUT > $gmt_time ) ) {
 			return;
 		}
-		$doing_cron_transient = $doing_wp_cron = sprintf( '%.22F', microtime( true ) );
+		$doing_wp_cron        = sprintf( '%.22F', microtime( true ) );
+		$doing_cron_transient = $doing_wp_cron;
 		set_transient( 'doing_cron', $doing_wp_cron );
 	} else {
 		$doing_wp_cron = $_GET['doing_wp_cron'];
@@ -114,9 +117,8 @@ foreach ( $crons as $timestamp => $cronhooks ) {
 
 			$schedule = $v['schedule'];
 
-			if ( $schedule != false ) {
-				$new_args = array( $timestamp, $schedule, $hook, $v['args'] );
-				call_user_func_array( 'wp_reschedule_event', $new_args );
+			if ( $schedule ) {
+				wp_reschedule_event( $timestamp, $schedule, $hook, $v['args'] );
 			}
 
 			wp_unschedule_event( $timestamp, $hook, $v['args'] );

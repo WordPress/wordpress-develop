@@ -32,13 +32,14 @@ if ( $site_description && ( is_home() || is_front_page() ) ) {
 
 	// Add a page number if necessary:
 if ( ( $paged >= 2 || $page >= 2 ) && ! is_404() ) {
+	/* translators: %s: Page number. */
 	echo esc_html( ' | ' . sprintf( __( 'Page %s', 'twentyten' ), max( $paged, $page ) ) );
 }
 
 ?>
 	</title>
 <link rel="profile" href="http://gmpg.org/xfn/11" />
-<link rel="stylesheet" type="text/css" media="all" href="<?php bloginfo( 'stylesheet_url' ); ?>" />
+<link rel="stylesheet" type="text/css" media="all" href="<?php bloginfo( 'stylesheet_url' ); ?>?ver=20190507" />
 <link rel="pingback" href="<?php echo esc_url( get_bloginfo( 'pingback_url' ) ); ?>">
 <?php
 	/*
@@ -85,25 +86,27 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 					$header_image_width = HEADER_IMAGE_WIDTH;
 				}
 
-					// Check if this is a post or page, if it has a thumbnail, and if it's a big one
-				if ( is_singular() && current_theme_supports( 'post-thumbnails' ) &&
-							has_post_thumbnail( $post->ID ) &&
-							( /* $src, $width, $height */ $image = wp_get_attachment_image_src( get_post_thumbnail_id( $post->ID ), 'post-thumbnail' ) ) &&
-							$image[1] >= $header_image_width ) :
-					// Houston, we have a new header image!
-					echo get_the_post_thumbnail( $post->ID );
-					elseif ( get_header_image() ) :
-						// Compatibility with versions of WordPress prior to 3.4.
-						if ( function_exists( 'get_custom_header' ) ) {
-							$header_image_width  = get_custom_header()->width;
-							$header_image_height = get_custom_header()->height;
-						} else {
-							$header_image_width  = HEADER_IMAGE_WIDTH;
-							$header_image_height = HEADER_IMAGE_HEIGHT;
-						}
-						?>
-						<img src="<?php header_image(); ?>" width="<?php echo esc_attr( $header_image_width ); ?>" height="<?php echo esc_attr( $header_image_height ); ?>" alt="" />
-					<?php endif; ?>
+				// Check if this is a post or page, if it has a thumbnail, and if it's a big one
+				if ( is_singular() && has_post_thumbnail( $post->ID ) ) {
+					$image = wp_get_attachment_image_src( get_post_thumbnail_id( $post->ID ), array( $header_image_width, $header_image_width ) );
+					if ( $image && $image[1] >= $header_image_width ) {
+						// Houston, we have a new header image!
+						echo get_the_post_thumbnail( $post->ID, 'post-thumbnail' );
+					}
+				} else {
+					// Compatibility with versions of WordPress prior to 3.4.
+					if ( function_exists( 'get_custom_header' ) ) {
+						$header_image_width  = get_custom_header()->width;
+						$header_image_height = get_custom_header()->height;
+					} else {
+						$header_image_width  = HEADER_IMAGE_WIDTH;
+						$header_image_height = HEADER_IMAGE_HEIGHT;
+					}
+					?>
+					<img src="<?php header_image(); ?>" width="<?php echo esc_attr( $header_image_width ); ?>" height="<?php echo esc_attr( $header_image_height ); ?>" alt="" />
+					<?php
+				} // end check for featured image or standard header
+				?>
 			</div><!-- #branding -->
 
 			<div id="access" role="navigation">

@@ -58,16 +58,17 @@ wp_localize_script(
 			'upload'              => __( 'Upload Theme' ),
 			'back'                => __( 'Back' ),
 			'error'               => sprintf(
-				/* translators: %s: support forums URL */
+				/* translators: %s: Support forums URL. */
 				__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
 				__( 'https://wordpress.org/support/forums/' )
 			),
 			'tryAgain'            => __( 'Try Again' ),
+			/* translators: %d: Number of themes. */
 			'themesFound'         => __( 'Number of Themes found: %d' ),
 			'noThemesFound'       => __( 'No themes found. Try a different search.' ),
 			'collapseSidebar'     => __( 'Collapse Sidebar' ),
 			'expandSidebar'       => __( 'Expand Sidebar' ),
-			/* translators: accessibility text */
+			/* translators: Accessibility text. */
 			'selectFeatureFilter' => __( 'Select one or more Theme features to filter by' ),
 		),
 		'installedThemes' => array_keys( $installed_themes ),
@@ -92,15 +93,15 @@ if ( $tab ) {
 
 $help_overview =
 	'<p>' . sprintf(
-		/* translators: %s: Theme Directory URL */
-			__( 'You can find additional themes for your site by using the Theme Browser/Installer on this screen, which will display themes from the <a href="%s">WordPress Theme Directory</a>. These themes are designed and developed by third parties, are available free of charge, and are compatible with the license WordPress uses.' ),
+		/* translators: %s: Theme Directory URL. */
+		__( 'You can find additional themes for your site by using the Theme Browser/Installer on this screen, which will display themes from the <a href="%s">WordPress Theme Directory</a>. These themes are designed and developed by third parties, are available free of charge, and are compatible with the license WordPress uses.' ),
 		__( 'https://wordpress.org/themes/' )
 	) . '</p>' .
 	'<p>' . __( 'You can Search for themes by keyword, author, or tag, or can get more specific and search by criteria listed in the feature filter.' ) . ' <span id="live-search-desc">' . __( 'The search results will be updated as you type.' ) . '</span></p>' .
 	'<p>' . __( 'Alternately, you can browse the themes that are Featured, Popular, or Latest. When you find a theme you like, you can preview it or install it.' ) . '</p>' .
 	'<p>' . sprintf(
 		/* translators: %s: /wp-content/themes */
-			__( 'You can Upload a theme manually if you have already downloaded its ZIP archive onto your computer (make sure it is from a trusted and original source). You can also do it the old-fashioned way and copy a downloaded theme&#8217;s folder via FTP into your %s directory.' ),
+		__( 'You can Upload a theme manually if you have already downloaded its ZIP archive onto your computer (make sure it is from a trusted and original source). You can also do it the old-fashioned way and copy a downloaded theme&#8217;s folder via FTP into your %s directory.' ),
 		'<code>/wp-content/themes</code>'
 	) . '</p>';
 
@@ -126,7 +127,7 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://codex.wordpress.org/Using_Themes#Adding_New_Themes">Documentation on Adding New Themes</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/article/using-themes/#adding-new-themes">Documentation on Adding New Themes</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
@@ -269,7 +270,7 @@ if ( $tab ) {
 	<span class="more-details"><?php _ex( 'Details &amp; Preview', 'theme' ); ?></span>
 	<div class="theme-author">
 		<?php
-		/* translators: %s: Theme author name */
+		/* translators: %s: Theme author name. */
 		printf( __( 'By %s' ), '{{ data.author }}' );
 		?>
 	</div>
@@ -280,7 +281,7 @@ if ( $tab ) {
 		<div class="theme-actions">
 			<# if ( data.installed ) { #>
 				<?php
-				/* translators: %s: Theme name */
+				/* translators: %s: Theme name. */
 				$aria_label = sprintf( _x( 'Activate %s', 'theme' ), '{{ data.name }}' );
 				?>
 				<# if ( data.activate_url ) { #>
@@ -293,7 +294,7 @@ if ( $tab ) {
 				<# } #>
 			<# } else { #>
 				<?php
-				/* translators: %s: Theme name */
+				/* translators: %s: Theme name. */
 				$aria_label = sprintf( __( 'Install %s' ), '{{ data.name }}' );
 				?>
 				<a class="button button-primary theme-install" data-name="{{ data.name }}" data-slug="{{ data.id }}" href="{{ data.install_url }}" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Install' ); ?></a>
@@ -324,7 +325,7 @@ if ( $tab ) {
 				<h3 class="theme-name">{{ data.name }}</h3>
 					<span class="theme-by">
 						<?php
-						/* translators: %s: Theme author name */
+						/* translators: %s: Theme author name. */
 						printf( __( 'By %s' ), '{{ data.author }}' );
 						?>
 					</span>
@@ -337,7 +338,7 @@ if ( $tab ) {
 								{{{ data.stars }}}
 								<a class="num-ratings" href="{{ data.reviews_url }}">
 									<?php
-									/* translators: %s: number of ratings */
+									/* translators: %s: Number of ratings. */
 									echo sprintf( __( '(%s ratings)' ), '{{ data.num_ratings }}' );
 									?>
 								</a>
@@ -347,7 +348,7 @@ if ( $tab ) {
 						<# } #>
 						<div class="theme-version">
 							<?php
-							/* translators: %s: Theme version */
+							/* translators: %s: Theme version. */
 							printf( __( 'Version: %s' ), '{{ data.version }}' );
 							?>
 						</div>

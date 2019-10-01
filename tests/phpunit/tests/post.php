@@ -48,7 +48,8 @@ class Tests_Post extends WP_UnitTestCase {
 	function _unset_current_user() {
 		global $current_user, $user_ID;
 
-		$current_user = $user_ID = null;
+		$current_user = null;
+		$user_ID      = null;
 	}
 
 	// test simple valid behavior: insert and get a post
@@ -94,7 +95,7 @@ class Tests_Post extends WP_UnitTestCase {
 			$this->assertEquals( 2, count( $tcache ) );
 
 			$tcache = wp_cache_get( $id, 'ctax_relationships' );
-			if ( 'cpt' == $post_type ) {
+			if ( 'cpt' === $post_type ) {
 				$this->assertInternalType( 'array', $tcache );
 				$this->assertEquals( 2, count( $tcache ) );
 			} else {
@@ -124,7 +125,8 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 
 		// insert a post and make sure the ID is ok
-		$id = $this->post_ids[] = wp_insert_post( $post );
+		$id               = wp_insert_post( $post );
+		$this->post_ids[] = $id;
 		#dmp(_get_cron_array());
 		$this->assertTrue( is_numeric( $id ) );
 		$this->assertTrue( $id > 0 );
@@ -158,7 +160,8 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 
 		// insert a post and make sure the ID is ok
-		$id = $this->post_ids[] = wp_insert_post( $post );
+		$id               = wp_insert_post( $post );
+		$this->post_ids[] = $id;
 
 		// fetch the post and make sure has the correct date and status
 		$out = get_post( $id );
@@ -200,7 +203,8 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 
 		// insert a post and make sure the ID is ok
-		$id = $this->post_ids[] = wp_insert_post( $post );
+		$id               = wp_insert_post( $post );
+		$this->post_ids[] = $id;
 
 		// fetch the post and make sure has the correct date and status
 		$out = get_post( $id );
@@ -240,7 +244,8 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 
 		// insert a post and make sure the ID is ok
-		$id = $this->post_ids[] = wp_insert_post( $post );
+		$id               = wp_insert_post( $post );
+		$this->post_ids[] = $id;
 		#dmp(_get_cron_array());
 		$this->assertTrue( is_numeric( $id ) );
 		$this->assertTrue( $id > 0 );
@@ -272,7 +277,8 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 
 		// insert a post and make sure the ID is ok
-		$id = $this->post_ids[] = wp_insert_post( $post );
+		$id               = wp_insert_post( $post );
+		$this->post_ids[] = $id;
 
 		// fetch the post and make sure has the correct date and status
 		$out = get_post( $id );
@@ -313,7 +319,8 @@ class Tests_Post extends WP_UnitTestCase {
 			);
 
 			// insert a post and make sure the ID is ok
-			$id = $this->post_ids[] = wp_insert_post( $post );
+			$id               = wp_insert_post( $post );
+			$this->post_ids[] = $id;
 
 			// fetch the post and make sure has the correct date and status
 			$out = get_post( $id );
@@ -353,7 +360,8 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 
 		// insert a post and make sure the ID is ok
-		$id = $this->post_ids[] = wp_insert_post( $post );
+		$id               = wp_insert_post( $post );
+		$this->post_ids[] = $id;
 		#dmp(_get_cron_array());
 		$this->assertTrue( is_numeric( $id ) );
 		$this->assertTrue( $id > 0 );
@@ -407,7 +415,8 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 
 		// insert a post and make sure the ID is ok
-		$id = $this->post_ids[] = wp_insert_post( $post );
+		$id               = wp_insert_post( $post );
+		$this->post_ids[] = $id;
 
 		// fetch the post and make sure has the correct date and status
 		$out = get_post( $id );
@@ -511,7 +520,8 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 
 		// insert a post and make sure the ID is ok
-		$id = $this->post_ids[] = wp_insert_post( $post );
+		$id               = wp_insert_post( $post );
+		$this->post_ids[] = $id;
 
 		// check that there's a publish_future_post job scheduled at the right time
 		$this->assertEquals( $future_date, $this->_next_schedule_for_post( 'publish_future_post', $id ) );
@@ -540,7 +550,8 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 
 		// insert a post and make sure the ID is ok
-		$id = $this->post_ids[] = wp_insert_post( $post );
+		$id               = wp_insert_post( $post );
+		$this->post_ids[] = $id;
 
 		$plink = get_permalink( $id );
 
@@ -997,7 +1008,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 */
 	function test_utf8mb3_post_saves_with_emoji() {
 		global $wpdb;
-		$_wpdb = new wpdb_exposed_methods_for_testing();
+		$_wpdb = new WpdbExposedMethodsForTesting();
 
 		if ( 'utf8' !== $_wpdb->get_col_charset( $wpdb->posts, 'post_title' ) ) {
 			$this->markTestSkipped( 'This test is only useful with the utf8 character set' );
@@ -1382,5 +1393,41 @@ class Tests_Post extends WP_UnitTestCase {
 
 	function filter_pre_wp_unique_post_slug( $default, $slug, $post_ID, $post_status, $post_type, $post_parent ) {
 		return 'override-slug-' . $post_type;
+	}
+
+	/**
+	 * @ticket 48113
+	 */
+	public function test_insert_post_should_respect_date_floating_post_status_arg() {
+		register_post_status( 'floating', array( 'date_floating' => true ) );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status'   => 'floating',
+				'post_date'     => null,
+				'post_date_gmt' => null,
+			)
+		);
+
+		$post = get_post( $post_id );
+		self::assertEquals( '0000-00-00 00:00:00', $post->post_date_gmt );
+	}
+
+	/**
+	 * @ticket 48113
+	 */
+	public function test_insert_post_should_respect_date_floating_post_status_arg_not_set() {
+		register_post_status( 'not-floating', array( 'date_floating' => false ) );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status'   => 'floating',
+				'post_date'     => null,
+				'post_date_gmt' => null,
+			)
+		);
+
+		$post = get_post( $post_id );
+		self::assertEquals( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date_gmt ), 'The dates should be equal', 2 );
 	}
 }

@@ -1,6 +1,3 @@
-@import url(forms.css);
-@import url(l10n.css);
-
 html,
 body {
 	height: 100%;
@@ -35,13 +32,7 @@ a:active {
 
 a:focus {
 	color: #124964;
-	box-shadow:
-		0 0 0 1px #5b9dd9,
-		0 0 2px 1px rgba(30, 140, 190, 0.8);
-}
-
-.ie8 a:focus {
-	outline: #5b9dd9 solid 1px;
+	outline: 1px dotted #555d66;
 }
 
 p {
@@ -78,14 +69,6 @@ p {
 	padding: 0;
 }
 
-.login .password-input-wrapper {
-	position: relative;
-}
-
-.login .input.password-input {
-	margin: 0;
-}
-
 .login .input::-ms-clear {
 	display: none;
 }
@@ -94,7 +77,7 @@ p {
 	margin-bottom: 15px;
 }
 
-.login .button.button-secondary {
+.login .button.wp-hide-pw {
 	background: transparent;
 	border: 1px solid transparent;
 	box-shadow: none;
@@ -105,23 +88,35 @@ p {
 	padding: 5px 9px;
 	position: absolute;
 	right: 0;
-	top: 0;
+	top: 3px;
 }
 
-.login .button.button-secondary:hover {
+.login .button.wp-hide-pw:hover {
 	background: transparent;
 }
 
-.login .button.button-secondary:focus {
+.login .button.wp-hide-pw:focus {
 	background: transparent;
 	border-color: #5b9dd9;
 	box-shadow: 0 0 3px rgba(0, 115, 170, 0.8);
 }
 
-.login .button.button-secondary:active {
+.login .button.wp-hide-pw:active {
 	background: transparent;
 	box-shadow: none;
 	transform: none;
+}
+
+.login .button.wp-hide-pw .dashicons {
+	top: 4px;
+}
+
+.login .wp-pwd {
+	position: relative;
+}
+
+.no-js .hide-if-no-js {
+	display: none;
 }
 
 .login form {
@@ -131,7 +126,19 @@ p {
 	font-weight: 400;
 	overflow: hidden;
 	background: #fff;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.13);
+	border: 1px solid #ccd0d4;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.login-action-confirm_admin_email #login {
+	width: 60vw;
+	margin-top: -2vh;
+}
+
+@media screen and (max-width: 782px) {
+	.login-action-confirm_admin_email #login {
+		width: 100vw;
+	}
 }
 
 .login form .forgetmenot {
@@ -142,6 +149,36 @@ p {
 
 .login .button-primary {
 	float: right;
+}
+
+.login .admin-email-confirm-form .submit {
+	text-align: center;
+}
+
+.admin-email__later {
+	text-align: left;
+}
+
+.login form p.admin-email__details {
+	margin: 1.1em 0;
+}
+
+.login h1.admin-email__heading {
+	border-bottom: 1px rgb(241, 241, 241) solid;
+	color: rgb(95, 95, 95);
+	font-weight: normal;
+	padding-bottom: 0.5em;
+	text-align: left;
+}
+
+.admin-email__actions div {
+	padding-top: 1.5em;
+}
+
+.login .admin-email__actions .button-primary {
+	float: none;
+	margin-left: 0.25em;
+	margin-right: 0.25em;
 }
 
 #login form p {
@@ -157,9 +194,10 @@ p {
 	font-size: 14px;
 }
 
-.login form .forgetmenot label {
-	font-size: 12px;
-	line-height: 1.58333333;
+.login .forgetmenot label,
+.login .pw-weak label {
+	line-height: 1.5;
+	vertical-align: baseline;
 }
 
 .login h1 {
@@ -232,16 +270,19 @@ p {
 }
 
 .login form .input,
-.login input[type="text"] {
+.login input[type="text"],
+.login input[type="password"] {
 	font-size: 24px;
+	line-height: 1.16666666; /* 28px */
 	width: 100%;
 	padding: 5px;
-	margin: 2px 6px 16px 0;
+	margin: 3px 6px 16px 0;
 }
 
-.login-action-rp form .input,
-.login-action-rp input[type="text"] {
-	padding: 5px 45px 5px 5px;
+.js.login input.password-input,
+.js.login-action-rp form .input,
+.js.login-action-rp input[type="text"] {
+	padding-right: 45px;
 }
 
 .login form .input,
@@ -250,14 +291,9 @@ p {
 	background: #fbfbfb;
 }
 
-.ie7 .login form .input,
-.ie8 .login form .input {
-	font-family: sans-serif;
-}
-
-.login-action-rp input[type="text"] {
-	box-shadow: none;
-	margin: 0;
+.js.login-action-rp input[type="text"],
+.js.login-action-rp input[type="password"] {
+	margin-bottom: 0;
 }
 
 .login #pass-strength-result {
@@ -288,6 +324,22 @@ body.interim-login {
 
 .interim-login.login form {
 	margin: 0;
+}
+
+/* Hide visually but not from screen readers */
+.screen-reader-text,
+.screen-reader-text span {
+	border: 0;
+	clip: rect(1px, 1px, 1px, 1px);
+	-webkit-clip-path: inset(50%);
+	clip-path: inset(50%);
+	height: 1px;
+	margin: -1px;
+	overflow: hidden;
+	padding: 0;
+	position: absolute;
+	width: 1px;
+	word-wrap: normal !important; /* many screen reader and browser combinations announce broken words as they would appear visually */
 }
 
 @-ms-viewport {

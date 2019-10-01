@@ -101,11 +101,30 @@ class WP_Styles extends WP_Dependencies {
 	public $default_dirs;
 
 	/**
+	 * Holds a string which contains the type attribute for style tag.
+	 *
+	 * If the current theme does not declare HTML5 support for 'style',
+	 * then it initializes as `type='text/css'`.
+	 *
+	 * @since 5.3.0
+	 * @var string
+	 */
+	private $type_attr = '';
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 2.6.0
 	 */
 	public function __construct() {
+		if (
+			function_exists( 'is_admin' ) && ! is_admin()
+		&&
+			function_exists( 'current_theme_supports' ) && ! current_theme_supports( 'html5', 'style' )
+		) {
+			$this->type_attr = " type='text/css'";
+		}
+
 		/**
 		 * Fires when the WP_Styles instance is initialized.
 		 *
@@ -144,7 +163,8 @@ class WP_Styles extends WP_Dependencies {
 		}
 
 		$src         = $obj->src;
-		$cond_before = $cond_after = '';
+		$cond_before = '';
+		$cond_after  = '';
 		$conditional = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
 
 		if ( $conditional ) {
@@ -155,7 +175,12 @@ class WP_Styles extends WP_Dependencies {
 		$inline_style = $this->print_inline_style( $handle, false );
 
 		if ( $inline_style ) {
-			$inline_style_tag = sprintf( "<style id='%s-inline-css' type='text/css'>\n%s\n</style>\n", esc_attr( $handle ), $inline_style );
+			$inline_style_tag = sprintf(
+				"<style id='%s-inline-css'%s>\n%s\n</style>\n",
+				esc_attr( $handle ),
+				$this->type_attr,
+				$inline_style
+			);
 		} else {
 			$inline_style_tag = '';
 		}
@@ -196,7 +221,17 @@ class WP_Styles extends WP_Dependencies {
 		}
 
 		$rel   = isset( $obj->extra['alt'] ) && $obj->extra['alt'] ? 'alternate stylesheet' : 'stylesheet';
-		$title = isset( $obj->extra['title'] ) ? "title='" . esc_attr( $obj->extra['title'] ) . "'" : '';
+		$title = isset( $obj->extra['title'] ) ? sprintf( "title='%s'", esc_attr( $obj->extra['title'] ) ) : '';
+
+		$tag = sprintf(
+			"<link rel='%s' id='%s-css' %s href='%s'%s media='%s' />\n",
+			$rel,
+			$handle,
+			$title,
+			$href,
+			$this->type_attr,
+			$media
+		);
 
 		/**
 		 * Filters the HTML link tag of an enqueued style.
@@ -210,7 +245,7 @@ class WP_Styles extends WP_Dependencies {
 		 * @param string $href   The stylesheet's source URL.
 		 * @param string $media  The stylesheet's media attribute.
 		 */
-		$tag = apply_filters( 'style_loader_tag', "<link rel='$rel' id='$handle-css' $title href='$href' type='text/css' media='$media' />\n", $handle, $href, $media );
+		$tag = apply_filters( 'style_loader_tag', $tag, $handle, $href, $media );
 
 		if ( 'rtl' === $this->text_direction && isset( $obj->extra['rtl'] ) && $obj->extra['rtl'] ) {
 			if ( is_bool( $obj->extra['rtl'] ) || 'replace' === $obj->extra['rtl'] ) {
@@ -220,8 +255,18 @@ class WP_Styles extends WP_Dependencies {
 				$rtl_href = $this->_css_href( $obj->extra['rtl'], $ver, "$handle-rtl" );
 			}
 
+			$rtl_tag = sprintf(
+				"<link rel='%s' id='%s-rtl-css' %s href='%s'%s media='%s' />\n",
+				$rel,
+				$handle,
+				$title,
+				$rtl_href,
+				$this->type_attr,
+				$media
+			);
+
 			/** This filter is documented in wp-includes/class.wp-styles.php */
-			$rtl_tag = apply_filters( 'style_loader_tag', "<link rel='$rel' id='$handle-rtl-css' $title href='$rtl_href' type='text/css' media='$media' />\n", $handle, $rtl_href, $media );
+			$rtl_tag = apply_filters( 'style_loader_tag', $rtl_tag, $handle, $rtl_href, $media );
 
 			if ( $obj->extra['rtl'] === 'replace' ) {
 				$tag = $rtl_tag;
@@ -294,7 +339,12 @@ class WP_Styles extends WP_Dependencies {
 			return $output;
 		}
 
-		printf( "<style id='%s-inline-css' type='text/css'>\n%s\n</style>\n", esc_attr( $handle ), $output );
+		printf(
+			"<style id='%s-inline-css'%s>\n%s\n</style>\n",
+			esc_attr( $handle ),
+			$this->type_attr,
+			$output
+		);
 
 		return true;
 	}

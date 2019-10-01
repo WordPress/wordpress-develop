@@ -40,8 +40,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 #wpadminbar #wp-admin-bar-site-name a.ab-item,
 #wpadminbar #wp-admin-bar-my-sites a.ab-item {
 	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
 }
 
 #wpadminbar ul li:before,
@@ -89,7 +87,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 	top: 0;
 	left: 0;
 	width: 100%;
-	min-width: 600px; /* match the min-width of the body in wp-admin.css */
+	min-width: 600px; /* match the min-width of the body in wp-admin/css/common.css */
 	z-index: 99999;
 	background: #23282d;
 }
@@ -519,7 +517,8 @@ html:lang(he-il) .rtl #wpadminbar * {
  * My Sites & Site Title
  */
 #wpadminbar .quicklinks li .blavatar {
-	float: left;
+	display: inline-block;
+	vertical-align: middle;
 	font: normal 16px/1 dashicons !important;
 	speak: none;
 	-webkit-font-smoothing: antialiased;
@@ -538,7 +537,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 	height: 16px;
 	width: 16px;
 	display: inline-block;
-	margin: 6px 8px 0 -2px;
+	margin: 0 8px 2px -2px;
 }
 
 #wpadminbar #wp-admin-bar-appearance {
@@ -809,7 +808,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 	/* Toolbar Touchification*/
 	html #wpadminbar {
 		height: 46px;
-		min-width: 300px;
+		min-width: 240px; /* match the min-width of the body in wp-admin/css/common.css */
 	}
 
 	#wpadminbar * {
@@ -1066,7 +1065,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 		to 100% viewport width at responsive sizes. */
 	#wpadminbar .ab-top-menu > .menupop > .ab-sub-wrapper {
 		min-width: -webkit-fit-content;
-		min-width: -moz-fit-content;
 		min-width: fit-content;
 	}
 

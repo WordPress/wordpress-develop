@@ -18,6 +18,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		'twentysixteen',
 		'twentyseventeen',
 		'twentynineteen',
+		'twentytwenty',
 	);
 
 	function setUp() {
@@ -243,7 +244,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		for ( $i = 0; $i < 3; $i++ ) {
 			foreach ( $themes as $name => $theme ) {
 				// switch to this theme
-				if ( $i === 2 ) {
+				if ( 2 === $i ) {
 					switch_theme( $theme['Template'], $theme['Stylesheet'] );
 				} else {
 					switch_theme( $theme['Stylesheet'] );

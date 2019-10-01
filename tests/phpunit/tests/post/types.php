@@ -305,9 +305,9 @@ class Tests_Post_Types extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertInternalType( 'int', array_search( 'bar', $wp->public_query_vars ) );
+		$this->assertInternalType( 'int', array_search( 'bar', $wp->public_query_vars, true ) );
 		$this->assertTrue( unregister_post_type( 'foo' ) );
-		$this->assertFalse( array_search( 'bar', $wp->public_query_vars ) );
+		$this->assertFalse( array_search( 'bar', $wp->public_query_vars, true ) );
 	}
 
 	/**

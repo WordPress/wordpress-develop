@@ -23,9 +23,9 @@
 
 	<div class="entry-content">
 		<?php
-			/* translators: %s: Name of current post */
 			the_content(
 				sprintf(
+					/* translators: %s: Post title. */
 					__( 'Continue reading<span class="screen-reader-text"> "%s"</span>', 'twentysixteen' ),
 					get_the_title()
 				)
@@ -49,7 +49,7 @@
 		<?php
 			edit_post_link(
 				sprintf(
-					/* translators: %s: Name of current post */
+					/* translators: %s: Post title. */
 					__( 'Edit<span class="screen-reader-text"> "%s"</span>', 'twentysixteen' ),
 					get_the_title()
 				),

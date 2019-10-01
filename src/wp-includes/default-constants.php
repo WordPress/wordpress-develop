@@ -34,7 +34,7 @@ function wp_initial_constants() {
 		define( 'WP_START_TIMESTAMP', microtime( true ) );
 	}
 
-	$current_limit     = @ini_get( 'memory_limit' );
+	$current_limit     = ini_get( 'memory_limit' );
 	$current_limit_int = wp_convert_hr_to_bytes( $current_limit );
 
 	// Define memory limits.
@@ -61,7 +61,7 @@ function wp_initial_constants() {
 	// Set memory limits.
 	$wp_limit_int = wp_convert_hr_to_bytes( WP_MEMORY_LIMIT );
 	if ( -1 !== $current_limit_int && ( -1 === $wp_limit_int || $wp_limit_int > $current_limit_int ) ) {
-		@ini_set( 'memory_limit', WP_MEMORY_LIMIT );
+		ini_set( 'memory_limit', WP_MEMORY_LIMIT );
 	}
 
 	if ( ! isset( $blog_id ) ) {
@@ -404,7 +404,7 @@ function wp_templating_constants() {
 	 * @see WP_Theme::get_core_default_theme()
 	 */
 	if ( ! defined( 'WP_DEFAULT_THEME' ) ) {
-		define( 'WP_DEFAULT_THEME', 'twentynineteen' );
+		define( 'WP_DEFAULT_THEME', 'twentytwenty' );
 	}
 
 }

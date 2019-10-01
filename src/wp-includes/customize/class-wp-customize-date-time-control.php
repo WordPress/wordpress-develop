@@ -173,7 +173,7 @@ class WP_Customize_Date_Time_Control extends WP_Customize_Control {
 								<option value="pm"><?php esc_html_e( 'PM' ); ?></option>
 							</select>
 						<# } #>
-						<abbr class="date-timezone" aria-label="<?php esc_attr_e( 'Timezone' ); ?>" title="<?php echo esc_attr( $timezone_info['description'] ); ?>"><?php echo esc_html( $timezone_info['abbr'] ); ?></abbr>
+						<p><?php echo $timezone_info['description']; ?></p>
 					</div>
 				</fieldset>
 			<# } #>
@@ -189,7 +189,7 @@ class WP_Customize_Date_Time_Control extends WP_Customize_Control {
 	 * @since 4.9.0
 	 * @see touch_time()
 	 *
-	 * @global WP_Locale $wp_locale
+	 * @global WP_Locale $wp_locale WordPress date and time locale object.
 	 *
 	 * @return array
 	 */
@@ -199,7 +199,7 @@ class WP_Customize_Date_Time_Control extends WP_Customize_Control {
 		for ( $i = 1; $i < 13; $i++ ) {
 			$month_text = $wp_locale->get_month_abbrev( $wp_locale->get_month( $i ) );
 
-			/* translators: 1: month number (01, 02, etc.), 2: month abbreviation */
+			/* translators: 1: Month number (01, 02, etc.), 2: Month abbreviation. */
 			$months[ $i ]['text']  = sprintf( __( '%1$s-%2$s' ), $i, $month_text );
 			$months[ $i ]['value'] = $i;
 		}
@@ -228,21 +228,30 @@ class WP_Customize_Date_Time_Control extends WP_Customize_Control {
 
 			if ( $tz ) {
 				$now                   = new DateTime( 'now', $tz );
-				$formatted_gmt_offset  = sprintf( 'UTC%s', $this->format_gmt_offset( $tz->getOffset( $now ) / 3600 ) );
+				$formatted_gmt_offset  = $this->format_gmt_offset( $tz->getOffset( $now ) / 3600 );
 				$tz_name               = str_replace( '_', ' ', $tz->getName() );
 				$timezone_info['abbr'] = $now->format( 'T' );
 
-				/* translators: 1: timezone name, 2: timezone abbreviation, 3: gmt offset  */
-				$timezone_info['description'] = sprintf( __( 'Timezone is %1$s (%2$s), currently %3$s.' ), $tz_name, $timezone_info['abbr'], $formatted_gmt_offset );
+				$timezone_info['description'] = sprintf(
+					/* translators: 1: Timezone name, 2: Timezone abbreviation, 3: UTC abbreviation and offset, 4: UTC offset. */
+					__( 'Your timezone is set to %1$s (%2$s), currently %3$s (Coordinated Universal Time %4$s).' ),
+					$tz_name,
+					'<abbr>' . $timezone_info['abbr'] . '</abbr>',
+					'<abbr>UTC</abbr>' . $formatted_gmt_offset,
+					$formatted_gmt_offset
+				);
 			} else {
 				$timezone_info['description'] = '';
 			}
 		} else {
-			$formatted_gmt_offset  = $this->format_gmt_offset( intval( get_option( 'gmt_offset', 0 ) ) );
-			$timezone_info['abbr'] = sprintf( 'UTC%s', $formatted_gmt_offset );
+			$formatted_gmt_offset = $this->format_gmt_offset( intval( get_option( 'gmt_offset', 0 ) ) );
 
-			/* translators: %s: UTC offset  */
-			$timezone_info['description'] = sprintf( __( 'Timezone is %s.' ), $timezone_info['abbr'] );
+			$timezone_info['description'] = sprintf(
+				/* translators: 1: UTC abbreviation and offset, 2: UTC offset. */
+				__( 'Your timezone is set to %1$s (Coordinated Universal Time %2$s).' ),
+				'<abbr>UTC</abbr>' . $formatted_gmt_offset,
+				$formatted_gmt_offset
+			);
 		}
 
 		return $timezone_info;

@@ -2,8 +2,48 @@
 <ruleset name="WordPress Coding Standards">
 	<description>Apply WordPress Coding Standards to all Core files</description>
 
+	<!-- Only scan PHP files. -->
+	<arg name="extensions" value="php"/>
+
+	<!-- Whenever possible, cache the scan results and re-use those for unchanged files on the next scan. -->
+	<arg name="cache"/>
+
+	<!-- Set the memory limit to 256M.
+		 For most standard PHP configurations, this means the memory limit will temporarily be raised.
+		 Ref: https://github.com/squizlabs/PHP_CodeSniffer/wiki/Advanced-Usage#specifying-phpini-settings
+	-->
+	<ini name="memory_limit" value="256M"/>
+
+	<!-- Strip the filepaths down to the relevant bit. -->
+	<arg name="basepath" value="./"/>
+
+	<!-- Check up to 20 files simultaneously. -->
+	<arg name="parallel" value="20"/>
+
+	<!-- Show sniff codes in all reports -->
+	<arg value="ps"/>
+
+	<file>.</file>
+
 	<rule ref="WordPress-Core"/>
 	<rule ref="WordPress.CodeAnalysis.EmptyStatement"/>
+
+	<!-- These rules are being set as warnings instead of errors, so we can error check the entire codebase. -->
+	<rule ref="WordPress.PHP.YodaConditions.NotYoda">
+		<type>warning</type>
+	</rule>
+	<rule ref="WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase">
+		<type>warning</type>
+	</rule>
+	<rule ref="WordPress.DB.PreparedSQL.InterpolatedNotPrepared">
+		<type>warning</type>
+	</rule>
+	<rule ref="WordPress.DB.PreparedSQL.NotPrepared">
+		<type>warning</type>
+	</rule>
+	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
+		<type>warning</type>
+	</rule>
 
 	<rule ref="WordPress.NamingConventions.ValidVariableName">
 		<properties>
@@ -59,19 +99,6 @@
 		</properties>
 	</rule>
 
-	<arg name="extensions" value="php"/>
-
-	<!-- Strip the filepaths down to the relevant bit. -->
-	<arg name="basepath" value="./"/>
-
-	<!-- Check up to 20 files simultaneously. -->
-	<arg name="parallel" value="20"/>
-
-	<!-- Show sniff codes in all reports -->
-	<arg value="ps"/>
-
-	<file>.</file>
-
 	<!-- Exclude the build folder in the current directory, as Travis puts the checkout in a build directory. -->
 	<exclude-pattern type="relative">^build/*</exclude-pattern>
 
@@ -103,6 +130,7 @@
 	<exclude-pattern>/src/wp-includes/blocks/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/ID3/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/IXR/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/js/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/random_compat/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/Requests/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/SimplePie/*</exclude-pattern>
@@ -147,6 +175,11 @@
 		<exclude-pattern>/tests/phpunit/tests/l10n/loadTextdomainJustInTime\.php</exclude-pattern>
 	</rule>
 
+	<!-- Translator comments aren't needed in unit tests. -->
+	<rule ref="WordPress.WP.I18n.MissingTranslatorsComment">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+
 	<rule ref="Generic.Functions.FunctionCallArgumentSpacing">
 		<exclude-pattern>/wp-config\.php</exclude-pattern>
 		<exclude-pattern>/wp-config-sample\.php</exclude-pattern>
@@ -179,8 +212,66 @@
 	<!-- Whitelist test classes for select sniffs. -->
 	<rule ref="WordPress.Files.FileName">
 		<properties>
-			<property name="custom_test_class_whitelist" type="array" value="WP_UnitTestCase,WP_Ajax_UnitTestCase,WP_Canonical_UnitTestCase,WP_Test_REST_TestCase,WP_Test_REST_Controller_Testcase,WP_Test_REST_Post_Type_Controller_Testcase,WP_XMLRPC_UnitTestCase"/>
+			<property name="custom_test_class_whitelist" type="array">
+				<!-- Test case parent classes -->
+				<element value="WP_UnitTestCase"/>
+				<element value="WP_Ajax_UnitTestCase"/>
+				<element value="WP_Canonical_UnitTestCase"/>
+				<element value="WP_Test_REST_TestCase"/>
+				<element value="WP_Test_REST_Controller_Testcase"/>
+				<element value="WP_Test_REST_Post_Type_Controller_Testcase"/>
+				<element value="WP_XMLRPC_UnitTestCase"/>
+				<element value="WP_Filesystem_UnitTestCase"/>
+				<element value="WP_Image_UnitTestCase"/>
+				<element value="WP_HTTP_UnitTestCase"/>
+				<element value="WP_Tests_Image_Resize_UnitTestCase"/>
+				<element value="WP_Import_UnitTestCase"/>
+				<element value="Tests_Query_Conditionals"/>
+
+				<!-- Mock classes -->
+				<element value="Spy_REST_Server"/>
+				<element value="WP_REST_Test_Controller"/>
+				<element value="WP_Image_Editor_Mock"/>
+				<element value="WP_Filesystem_MockFS"/>
+				<element value="MockPHPMailer"/>
+				<element value="MockAction"/>
+				<element value="WP_Object_Cache"/>
+
+				<!-- PHPUnit helpers -->
+				<element value="TracTickets"/>
+				<element value="WP_PHPUnit_Util_Getopt"/>
+				<element value="PHPUnit_Util_Test"/>
+				<element value="WPProfiler"/>
+				<element value="SpeedTrapListener"/>
+				<element value="PHPUnit_Framework_Exception"/>
+			</property>
 		</properties>
+	</rule>
+
+	<rule ref="WordPress.PHP.NoSilencedErrors">
+		<properties>
+			<property name="custom_whitelist" type="array">
+				<element value="ssh2_connect"/>
+				<element value="ssh2_auth_password"/>
+				<element value="ssh2_auth_pubkey_file"/>
+				<element value="ftp_ssl_connect"/>
+				<element value="ftp_connect"/>
+				<element value="ftp_get_option"/>
+				<element value="ftp_set_option"/>
+				<element value="disk_free_space"/>
+				<element value="getimagesize"/>
+				<element value="iptcparse"/>
+				<element value="exif_read_data"/>
+				<element value="gzinflate"/>
+				<element value="gzuncompress"/>
+				<element value="gzdecode"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Assignments in while conditions are a valid method of looping over iterables -->
+	<rule ref="WordPress.CodeAnalysis.AssignmentInCondition.FoundInWhileCondition">
+		<exclude-pattern>*</exclude-pattern>
 	</rule>
 
 	<!-- Exclude the unit tests from select sniffs. -->
@@ -191,4 +282,29 @@
 		<exclude-pattern>/tests/phpunit/tests/*</exclude-pattern>
 	</rule>
 
+	<!-- Exclude some old classes that can't be renamed, as it would break back compat -->
+	<rule ref="PEAR.NamingConventions.ValidClassName.Invalid">
+		<exclude-pattern>/src/wp-admin/includes/class-wp-filesystem-ftpsockets\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-oembed\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-oembed-controller\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-xmlrpc-server\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-text-diff-renderer-inline\.php</exclude-pattern>
+	</rule>
+	<rule ref="PEAR.NamingConventions.ValidClassName.StartWithCapital">
+		<exclude-pattern>/src/wp-admin/includes/class-wp-list-table-compat\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-editor\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-xmlrpc-server\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/wp-db\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-dependency\.php</exclude-pattern>
+	</rule>
+
+	<!-- Exclude some incorrectly named files that won't be renamed. -->
+	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
+		<exclude-pattern>/src/wp-admin/includes/class-wp-list-table-compat\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-dependency\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-includes/class-wp-editor\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-content/themes/twentyeleven/inc/widgets\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-content/themes/twentyfourteen/inc/widgets\.php</exclude-pattern>
+		<exclude-pattern>/src/wp-content/themes/twentyfourteen/inc/featured-content\.php</exclude-pattern>
+	</rule>
 </ruleset>

@@ -83,7 +83,7 @@ if ( is_blog_admin() && current_user_can( 'edit_posts' ) ) {
 }
 
 $help .= '<p>' . sprintf(
-	/* translators: %s: WordPress Planet URL */
+	/* translators: %s: WordPress Planet URL. */
 	__( '<strong>WordPress Events and News</strong> &mdash; Upcoming events near you as well as the latest news from the official WordPress project and the <a href="%s">WordPress Planet</a>.' ),
 	__( 'https://planet.wordpress.org/' )
 ) . '</p>';
@@ -104,7 +104,7 @@ unset( $help );
 
 $screen->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://codex.wordpress.org/Dashboard_Screen">Documentation on Dashboard</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/article/dashboard-screen/">Documentation on Dashboard</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
