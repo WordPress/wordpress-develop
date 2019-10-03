@@ -132,7 +132,8 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 	},
 
 	createToolbar: function() {
-		var LibraryViewSwitcher, Filters, toolbarOptions;
+		var LibraryViewSwitcher, Filters, toolbarOptions,
+			showFilterByType = -1 !== $.inArray( this.options.filters, [ 'uploaded', 'all' ] );
 
 		toolbarOptions = {
 			controller: this.controller
@@ -153,9 +154,21 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			priority: -60
 		}) );
 
-		if ( -1 !== $.inArray( this.options.filters, [ 'uploaded', 'all' ] ) ) {
-			// "Filters" will return a <select>, need to render
-			// screen reader text before
+		if ( showFilterByType || this.options.date ) {
+			/*
+			 * Create a h2 heading before the select elements that filter attachments.
+			 * This heading is visible in the modal and visually hidden in the grid.
+			 */
+			this.toolbar.set( 'filters-heading', new wp.media.view.Heading( {
+				priority:   -100,
+				text:       l10n.filterAttachments,
+				level:      'h2',
+				className:  'media-attachments-filter-heading'
+			}).render() );
+		}
+
+		if ( showFilterByType ) {
+			// "Filters" is a <select>, a visually hidden label element needs to be rendered before.
 			this.toolbar.set( 'filtersLabel', new wp.media.view.Label({
 				value: l10n.filterByType,
 				attributes: {
@@ -195,7 +208,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 				priority: -90
 			}).render() );
 
-			// DateFilter is a <select>, screen reader text needs to be rendered before
+			// DateFilter is a <select>, a visually hidden label element needs to be rendered before.
 			this.toolbar.set( 'dateFilterLabel', new wp.media.view.Label({
 				value: l10n.filterByDate,
 				attributes: {
@@ -317,7 +330,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			}
 
 		} else if ( this.options.date ) {
-			// DateFilter is a <select>, screen reader text needs to be rendered before
+			// DateFilter is a <select>, a visually hidden label element needs to be rendered before.
 			this.toolbar.set( 'dateFilterLabel', new wp.media.view.Label({
 				value: l10n.filterByDate,
 				attributes: {
@@ -333,7 +346,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		}
 
 		if ( this.options.search ) {
-			// Search is an input, screen reader text needs to be rendered before
+			// Search is an input, a visually hidden label element needs to be rendered before.
 			this.toolbar.set( 'searchLabel', new wp.media.view.Label({
 				value: l10n.searchMediaLabel,
 				attributes: {
