@@ -94,13 +94,14 @@ jQuery( window ).load( function (){
 		collection = new wp.customize.Notifications({
 			container: container
 		});
-		collection.add( 'mycode-1', new wp.customize.Notification( 'mycode-1' ) );
+		collection.add( 'mycode-1', new wp.customize.Notification( 'mycode-1', { message: 'My message 1' } ) );
 		collection.render();
 		items = collection.container.find( 'li' );
 		equal( items.length, 1 );
 		equal( items.first().data( 'code' ), 'mycode-1' );
 
 		collection.add( 'mycode-2', new wp.customize.Notification( 'mycode-2', {
+			message: 'My message 2',
 			dismissible: true
 		} ) );
 		collection.render();
@@ -187,8 +188,8 @@ jQuery( window ).load( function (){
 			assert.equal( 0, notificationContainerElement.find( '> ul > li' ).length );
 			assert.equal( 0, notificationContainerElement.height() );
 
-			settingNotification = new wp.customize.Notification( 'setting_invalidity', 'Invalid setting' );
-			controlOnlyNotification = new wp.customize.Notification( 'control_invalidity', 'Invalid control' );
+			settingNotification = new wp.customize.Notification( 'setting_invalidity', { message: 'Invalid setting' } );
+			controlOnlyNotification = new wp.customize.Notification( 'control_invalidity', { message: 'Invalid control' } );
 			control.settings['default'].notifications.add( settingNotification.code, settingNotification );
 			control.notifications.add( controlOnlyNotification.code, controlOnlyNotification );
 
