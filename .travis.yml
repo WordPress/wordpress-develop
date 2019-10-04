@@ -58,7 +58,7 @@ matrix:
 before_install:
 - |
   if [[ "$WP_TRAVISCI" == "test:php" ]]; then
-      travis_retry svn checkout https://plugins.svn.wordpress.org/wordpress-importer/tags/0.6.3/ tests/phpunit/data/plugins/wordpress-importer
+      travis_retry svn checkout https://plugins.svn.wordpress.org/wordpress-importer/trunk/ tests/phpunit/data/plugins/wordpress-importer
   fi
 - |
   sudo rm /usr/local/bin/docker-compose
