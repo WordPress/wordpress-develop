@@ -665,8 +665,9 @@ module.exports = function(grunt) {
 		},
 		uglify: {
 			options: {
-				'output.ascii_only': true,
-				'!ie8': false
+				output: {
+					ascii_only: true
+				}
 			},
 			core: {
 				expand: true,
@@ -706,7 +707,9 @@ module.exports = function(grunt) {
 			jqueryui: {
 				options: {
 					// Preserve comments that start with a bang.
-					'output.comments': /^!/
+					output: {
+						comments: /^!/
+					}
 				},
 				expand: true,
 				cwd: 'node_modules/jquery-ui/ui/',
