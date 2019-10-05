@@ -16,7 +16,6 @@ matrix:
     env: WP_TRAVISCI=travis:format
   - php: 7.1
     env: WP_TRAVISCI=travis:js
-  - php: 7.4snapshot
   - php: 7.3
   - php: 7.3
     env: WP_TRAVIS_OBJECT_CACHE=true
@@ -26,10 +25,6 @@ matrix:
   - php: 7.0
     env: WP_TEST_REPORTER=true
   - php: 5.6
-  - php: nightly
-  allow_failures:
-  - php: 7.4snapshot
-  - php: nightly
   fast_finish: true
 before_install:
 - |
@@ -62,7 +57,7 @@ before_script:
   # Install the specified version of PHPUnit depending on the PHP version:
   if [[ "$WP_TRAVISCI" == "travis:phpunit" ]]; then
     case "$TRAVIS_PHP_VERSION" in
-      7.4snapshot|7.3|7.2|7.1|nightly)
+      7.3|7.2|7.1)
         echo "Using PHPUnit 7.x"
         travis_retry composer global require "phpunit/phpunit:^7"
         ;;
