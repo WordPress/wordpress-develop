@@ -31,9 +31,6 @@ matrix:
     dist: precise
   - php: 5.2
     dist: precise
-  - php: nightly
-  allow_failures:
-  - php: nightly
 before_install:
 - |
   if [[ "$WP_TRAVISCI" == "travis:phpunit" ]]; then
@@ -67,7 +64,7 @@ before_script:
   # Install the specified version of PHPUnit depending on the PHP version:
   if [[ "$WP_TRAVISCI" == "travis:phpunit" ]]; then
     case "$TRAVIS_PHP_VERSION" in
-      7.3|7.2|7.1|nightly)
+      7.3|7.2|7.1)
         echo "Using PHPUnit 7.x"
         travis_retry composer global require "phpunit/phpunit:^7"
         ;;
