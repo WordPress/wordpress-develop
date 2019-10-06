@@ -1,6 +1,6 @@
 <?php
 /**
- * @group navmenus
+ * @group menu
  * @group walker
  */
 class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
