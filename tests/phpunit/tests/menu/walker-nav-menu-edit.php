@@ -4,7 +4,7 @@
  * @group navmenus
  * @group walker
  */
-class Tests_Walker_Nav_Menu_Edit extends WP_UnitTestCase {
+class Tests_Menu_Walker_Nav_Menu_Edit extends WP_UnitTestCase {
 	protected $_wp_nav_menu_max_depth;
 
 	function setUp() {
