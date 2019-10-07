@@ -99,6 +99,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/pages/(?P<parent>[\\d]+)/autosaves/(?P<id>[\\d]+)',
 			'/wp/v2/media',
 			'/wp/v2/media/(?P<id>[\\d]+)',
+			'/wp/v2/media/(?P<id>[\\d]+)/post-process',
 			'/wp/v2/blocks',
 			'/wp/v2/blocks/(?P<id>[\d]+)',
 			'/wp/v2/blocks/(?P<id>[\d]+)/autosaves',

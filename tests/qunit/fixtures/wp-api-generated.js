@@ -2304,6 +2304,33 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/media/(?P<id>[\\d+])/post-process": {
+            "namespace": "wp/v2",
+            "methods": [
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "id": {
+                            "required": false,
+                            "description": "Unique identifier for the object.",
+                            "type": "integer"
+                        },
+                        "action": {
+                            "required": true,
+                            "enum": [
+                                "create-image-subsizes"
+                            ],
+                            "type": "string"
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/blocks": {
             "namespace": "wp/v2",
             "methods": [
