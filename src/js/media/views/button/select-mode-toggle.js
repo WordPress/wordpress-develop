@@ -57,6 +57,7 @@ SelectModeToggle = Button.extend(/** @lends wp.media.view.SelectModeToggle.proto
 			} );
 			children.not( '.spinner, .media-button' ).hide();
 			this.$el.show();
+			toolbar.$el.addClass( 'media-toolbar-mode-select' );
 			toolbar.$( '.delete-selected-button' ).removeClass( 'hidden' );
 		} else {
 			this.model.set( {
@@ -65,6 +66,7 @@ SelectModeToggle = Button.extend(/** @lends wp.media.view.SelectModeToggle.proto
 			} );
 			this.controller.content.get().$el.removeClass( 'fixed' );
 			toolbar.$el.css( 'width', '' );
+			toolbar.$el.removeClass( 'media-toolbar-mode-select' );
 			toolbar.$( '.delete-selected-button' ).addClass( 'hidden' );
 			children.not( '.media-button' ).show();
 			this.controller.state().get( 'selection' ).reset();
