@@ -1430,27 +1430,4 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = get_post( $post_id );
 		self::assertEquals( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date_gmt ), 'The dates should be equal', 2 );
 	}
-
-	/**
-	 * @ticket 48014
-	 */
-	public function test_updated_post_should_not_duplicate_enclosure_meta_fields() {
-		$post_id = self::factory()->post->create();
-
-		$encloseme_before = get_post_meta( $post_id, '_encloseme' );
-		$pingme_before    = get_post_meta( $post_id, '_pingme' );
-
-		$updated = wp_update_post( get_post( $post_id ), true );
-
-		$encloseme_after = get_post_meta( $post_id, '_encloseme' );
-		$pingme_after    = get_post_meta( $post_id, '_pingme' );
-
-		$this->assertSame( $post_id, $updated );
-
-		$this->assertCount( 1, $encloseme_before );
-		$this->assertCount( 1, $encloseme_after );
-
-		$this->assertCount( 1, $pingme_before );
-		$this->assertCount( 1, $pingme_after );
-	}
 }
