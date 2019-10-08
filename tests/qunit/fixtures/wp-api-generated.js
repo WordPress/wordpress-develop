@@ -2304,7 +2304,7 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/media/(?P<id>[\\d+])/post-process": {
+        "/wp/v2/media/(?P<id>[\\d]+)/post-process": {
             "namespace": "wp/v2",
             "methods": [
                 "POST"
