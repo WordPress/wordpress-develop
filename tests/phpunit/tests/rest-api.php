@@ -561,6 +561,102 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that specifying a single top-level key in _fields includes that field and all children.
+	 *
+	 * @ticket 48266
+	 */
+	public function test_rest_filter_response_fields_top_level_key() {
+		$response = new WP_REST_Response();
+
+		$response->set_data(
+			array(
+				'meta' => array(
+					'key1' => 1,
+					'key2' => 2,
+				),
+			)
+		);
+		$request = array(
+			'_fields' => 'meta',
+		);
+
+		$response = rest_filter_response_fields( $response, null, $request );
+		$this->assertEquals(
+			array(
+				'meta' => array(
+					'key1' => 1,
+					'key2' => 2,
+				),
+			),
+			$response->get_data()
+		);
+	}
+
+	/**
+	 * Ensure that a top-level key in _fields supersedes any specified children of that field.
+	 *
+	 * @ticket 48266
+	 */
+	public function test_rest_filter_response_fields_child_after_parent() {
+		$response = new WP_REST_Response();
+
+		$response->set_data(
+			array(
+				'meta' => array(
+					'key1' => 1,
+					'key2' => 2,
+				),
+			)
+		);
+		$request = array(
+			'_fields' => 'meta,meta.key1',
+		);
+
+		$response = rest_filter_response_fields( $response, null, $request );
+		$this->assertEquals(
+			array(
+				'meta' => array(
+					'key1' => 1,
+					'key2' => 2,
+				),
+			),
+			$response->get_data()
+		);
+	}
+
+	/**
+	 * Ensure that specifying two sibling properties in _fields causes both to be included.
+	 *
+	 * @ticket 48266
+	 */
+	public function test_rest_filter_response_fields_include_all_specified_siblings() {
+		$response = new WP_REST_Response();
+
+		$response->set_data(
+			array(
+				'meta' => array(
+					'key1' => 1,
+					'key2' => 2,
+				),
+			)
+		);
+		$request = array(
+			'_fields' => 'meta.key1,meta.key2',
+		);
+
+		$response = rest_filter_response_fields( $response, null, $request );
+		$this->assertEquals(
+			array(
+				'meta' => array(
+					'key1' => 1,
+					'key2' => 2,
+				),
+			),
+			$response->get_data()
+		);
+	}
+
+	/**
 	 * @ticket 42094
 	 */
 	public function test_rest_is_field_included() {
