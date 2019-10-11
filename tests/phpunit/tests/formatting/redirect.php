@@ -37,6 +37,14 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @group 36998
+	 */
+	function test_wp_sanitize_redirect_should_encode_spaces() {
+		$this->assertEquals( 'http://example.com/test%20spaces', wp_sanitize_redirect( 'http://example.com/test%20spaces' ) );
+		$this->assertEquals( 'http://example.com/test%20spaces%20in%20url', wp_sanitize_redirect( 'http://example.com/test spaces in url' ) );
+	}
+
+	/**
 	 * @dataProvider valid_url_provider
 	 */
 	function test_wp_validate_redirect_valid_url( $url, $expected ) {
