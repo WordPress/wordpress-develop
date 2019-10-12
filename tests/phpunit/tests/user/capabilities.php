@@ -1750,7 +1750,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @ticket 17253
 	 */
 	function test_cpt_with_page_capability_type() {
-
 		register_post_type(
 			'page_capability',
 			array(
@@ -1799,8 +1798,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	}
 
-	public function testNonLoggedInUsersHaveNoCapabilities() {
-
+	public function test_non_logged_in_users_have_no_capabilities() {
 		$this->assertFalse( is_user_logged_in() );
 
 		$caps = $this->getAllCapsAndRoles();
@@ -1816,6 +1814,20 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertFalse( current_user_can( 'start_a_fire' ), 'Non-logged-in user should not have a custom capability' );
 		$this->assertFalse( current_user_can( 'do_not_allow' ), 'Non-logged-in user should not have the do_not_allow capability' );
 	}
+
+	/**
+	 * @ticket 35488
+	 */
+	function test_wp_logout_should_clear_current_user() {
+		$user_id = self::factory()->user->create();
+		wp_set_current_user( $user_id );
+
+		wp_logout();
+
+		$this->assertEquals( 0, get_current_user_id() );
+
+	}
+
 
 	protected $_role_test_wp_roles_role;
 	/**
