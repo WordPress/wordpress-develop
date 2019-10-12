@@ -992,8 +992,6 @@ EOF;
 	/**
 	 * Data provider for `test_shortcode_parse_atts()`.
 	 *
-	 * @ticket 47863
-	 *
 	 * @return array {
 	 *     @type array {
 	 *         @type string       $text     A single shortcode format or key/value pair string.
