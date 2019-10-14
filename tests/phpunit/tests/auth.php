@@ -166,7 +166,6 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	public function test_check_admin_referer_with_default_action_as_string_not_doing_it_wrong() {
-		$this->setExpectedIncorrectUsage( 'check_admin_referer' );
 		// A valid nonce needs to be set so the check doesn't die()
 		$_REQUEST['_wpnonce'] = wp_create_nonce( '-1' );
 		$result               = check_admin_referer( '-1' );
