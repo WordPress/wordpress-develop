@@ -24,7 +24,7 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		self::$user_id = self::$_user->ID;
 
-		require_once( ABSPATH . WPINC . '/class-phpass.php' );
+		require_once ABSPATH . WPINC . '/class-phpass.php';
 		self::$wp_hasher = new PasswordHash( 8, true );
 	}
 
@@ -160,6 +160,16 @@ class Tests_Auth extends WP_UnitTestCase {
 		// A valid nonce needs to be set so the check doesn't die()
 		$_REQUEST['_wpnonce'] = wp_create_nonce( -1 );
 		$result               = check_admin_referer();
+		$this->assertSame( 1, $result );
+
+		unset( $_REQUEST['_wpnonce'] );
+	}
+
+	public function test_check_admin_referer_with_default_action_as_string_not_doing_it_wrong() {
+		$this->setExpectedIncorrectUsage( 'check_admin_referer' );
+		// A valid nonce needs to be set so the check doesn't die()
+		$_REQUEST['_wpnonce'] = wp_create_nonce( '-1' );
+		$result               = check_admin_referer( '-1' );
 		$this->assertSame( 1, $result );
 
 		unset( $_REQUEST['_wpnonce'] );
