@@ -141,4 +141,79 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 			array( 'http://user.pass@#example.com/' ),
 		);
 	}
+
+	/**
+	 * @ticket 47980
+	 * @dataProvider relative_url_provider
+	 */
+	function test_wp_validate_redirect_relative_url( $current_uri, $url, $expected ) {
+		// Backup the global.
+		$unset = false;
+		if ( ! isset( $_SERVER['REQUEST_URI'] ) ) {
+			$unset = true;
+		} else {
+			$backup_request_uri = $_SERVER['REQUEST_URI'];
+		}
+
+		// Set the global to current URI.
+		$_SERVER['REQUEST_URI'] = $current_uri;
+
+		$this->assertEquals( $expected, wp_validate_redirect( $url, false ) );
+
+		// Delete or reset the global as required.
+		if ( $unset ) {
+			unset( $_SERVER['REQUEST_URI'] );
+		} else {
+			$_SERVER['REQUEST_URI'] = $backup_request_uri;
+		}
+	}
+
+	/**
+	 * Data provider for test_wp_validate_redirect_relative_url.
+	 *
+	 * @return array[] {
+	 *      string Current URI (i.e. path and query string only).
+	 *      string Redirect requested.
+	 *      string Expected destination.
+	 * }
+	 */
+	function relative_url_provider() {
+		return array(
+			array(
+				'/',
+				'wp-login.php?loggedout=true',
+				'/wp-login.php?loggedout=true',
+			),
+			array(
+				'/src/',
+				'wp-login.php?loggedout=true',
+				'/src/wp-login.php?loggedout=true',
+			),
+			array(
+				'/wp-admin/settings.php?page=my-plugin',
+				'./settings.php?page=my-plugin',
+				'/wp-admin/./settings.php?page=my-plugin',
+			),
+			array(
+				'/wp-admin/settings.php?page=my-plugin',
+				'/wp-login.php',
+				'/wp-login.php',
+			),
+			array(
+				'/wp-admin/settings.php?page=my-plugin',
+				'../wp-admin/admin.php?page=my-plugin',
+				'/wp-admin/../wp-admin/admin.php?page=my-plugin',
+			),
+			array(
+				'/2019/10/13/my-post',
+				'../../',
+				'/2019/10/13/../../',
+			),
+			array(
+				'/2019/10/13/my-post',
+				'/',
+				'/',
+			),
+		);
+	}
 }
