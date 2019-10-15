@@ -51,7 +51,6 @@ matrix:
     name: "PHPUnit Tests: PHP 8.0"
   allow_failures:
   - env: WP_TRAVISCI=test:compat COMPOSER_INSTALL=true NPM_INSTALL=false WP_INSTALL=false
-  - env: LOCAL_PHP=7.4-fpm WP_TRAVISCI=test:php
   - env: LOCAL_PHP=8.0-fpm WP_TRAVISCI=test:php
   fast_finish: true
 
