@@ -62,4 +62,51 @@ class Tests_Date_Post_Time extends WP_UnitTestCase {
 		$this->assertEquals( $rfc3339, get_post_modified_time( DATE_RFC3339, false, $post_id, true ) );
 		$this->assertEquals( $rfc3339_utc, get_post_modified_time( DATE_RFC3339, true, $post_id, true ) );
 	}
+
+	/**
+	 * @ticket 48384
+	 */
+	public function test_should_keep_utc_time_on_timezone_change_with_gmt_offset() {
+		// Set the timezone to UTC+0.
+		update_option( 'gmt_offset', 0 );
+
+		$datetime = new DateTimeImmutable( 'now', new DateTimeZone( 'UTC' ) );
+		$mysql    = $datetime->format( 'Y-m-d H:i:s' );
+		$rfc3339  = $datetime->format( DATE_RFC3339 );
+		$post_id  = self::factory()->post->create(
+			array(
+				'post_date'     => $mysql,
+				'post_modified' => $mysql,
+			)
+		);
+
+		// Change the timezone to UTC+2.
+		update_option( 'gmt_offset', 2 );
+
+		$this->assertEquals( $rfc3339, get_post_time( DATE_RFC3339, true, $post_id ) );
+		$this->assertEquals( $rfc3339, get_post_modified_time( DATE_RFC3339, true, $post_id ) );
+	}
+
+	/**
+	 * @ticket 48384
+	 */
+	public function test_should_keep_utc_time_on_timezone_change() {
+		$timezone = 'UTC';
+		update_option( 'timezone_string', $timezone );
+
+		$datetime = new DateTimeImmutable( 'now', new DateTimeZone( $timezone ) );
+		$mysql    = $datetime->format( 'Y-m-d H:i:s' );
+		$rfc3339  = $datetime->format( DATE_RFC3339 );
+		$post_id  = self::factory()->post->create(
+			array(
+				'post_date'     => $mysql,
+				'post_modified' => $mysql,
+			)
+		);
+
+		update_option( 'timezone_string', 'Europe/Kiev' );
+
+		$this->assertEquals( $rfc3339, get_post_time( DATE_RFC3339, true, $post_id ) );
+		$this->assertEquals( $rfc3339, get_post_modified_time( DATE_RFC3339, true, $post_id ) );
+	}
 }
