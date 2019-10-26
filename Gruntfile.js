@@ -83,7 +83,12 @@ module.exports = function(grunt) {
 			files: {
 				src: [
 					WORKING_DIR + 'wp-admin/css/*.min.css',
+					WORKING_DIR + 'wp-admin/css/*-rtl*.css',
+					WORKING_DIR + 'wp-admin/js/**/*.min.js',
 					WORKING_DIR + 'wp-includes/css/*.min.css',
+					WORKING_DIR + 'wp-includes/css/*-rtl*.css',
+					WORKING_DIR + 'wp-includes/js/*.min.js',
+					WORKING_DIR + 'wp-includes/js/dist/*.min.js',
 					WORKING_DIR + 'wp-admin/css/colors/*/*.css'
 				]
 			}
@@ -96,9 +101,9 @@ module.exports = function(grunt) {
 			}),
 			css: [
 				WORKING_DIR + 'wp-admin/css/*.min.css',
-				WORKING_DIR + 'wp-admin/css/*rtl*',
+				WORKING_DIR + 'wp-admin/css/*-rtl*.css',
 				WORKING_DIR + 'wp-includes/css/*.min.css',
-				WORKING_DIR + 'wp-includes/css/*rtl*',
+				WORKING_DIR + 'wp-includes/css/*-rtl*.css',
 				WORKING_DIR + 'wp-admin/css/colors/**/*.css'
 			],
 			js: [
