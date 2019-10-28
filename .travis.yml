@@ -91,7 +91,7 @@ before_script:
   if [[ "$LOCAL_PHP_MEMCACHED" == "true" ]]; then
     cp tests/phpunit/includes/object-cache.php build/wp-content/object-cache.php
     # The memcached server needs to start after `npm run env:start`, which sets up the Docker network.
-    docker run --name memcached --net wordpress-develop_wpdevnet -d memcached
+    docker run --name memcached --net $(basename "$PWD")_wpdevnet -d memcached
   fi
 - |
   if [[ "$WP_INSTALL" == "true" ]]; then
