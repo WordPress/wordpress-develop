@@ -31,7 +31,7 @@ matrix:
       name: JS Tests
     - env: WP_TRAVISCI=test:php
       name: "PHPUnit Tests: PHP 7.3"
-    - env: LOCAL_PHP=7.3-fpm LOCAL_PHP_MEMCACHED=true WP_TRAVISCI=test:php
+    - env: LOCAL_PHP_MEMCACHED=true WP_TRAVISCI=test:php
       name: "PHPUnit Tests: PHP 7.3 with Memcached"
     - env: LOCAL_PHP=7.2-fpm WP_TRAVISCI=test:php
       name: "PHPUnit Tests: PHP 7.2"
