@@ -133,7 +133,7 @@ class WP_Http {
 	 *                                             compressed content is returned in the response anyway, it will
 	 *                                             need to be separately decompressed. Default true.
 	 *     @type bool         $sslverify           Whether to verify SSL for the request. Default true.
-	 *     @type string       sslcertificates      Absolute path to an SSL certificate .crt file.
+	 *     @type string       $sslcertificates     Absolute path to an SSL certificate .crt file.
 	 *                                             Default ABSPATH . WPINC . '/certificates/ca-bundle.crt'.
 	 *     @type bool         $stream              Whether to stream to a file. If set to true and no filename was
 	 *                                             given, it will be droped it in the WP temp dir and its name will
@@ -215,7 +215,7 @@ class WP_Http {
 		// Pre-parse for the HEAD checks.
 		$args = wp_parse_args( $args );
 
-		// By default, Head requests do not cause redirections.
+		// By default, HEAD requests do not cause redirections.
 		if ( isset( $args['method'] ) && 'HEAD' == $args['method'] ) {
 			$defaults['redirection'] = 0;
 		}
@@ -250,9 +250,9 @@ class WP_Http {
 		 *
 		 * @since 2.9.0
 		 *
-		 * @param false|array|WP_Error $preempt Whether to preempt an HTTP request's return value. Default false.
-		 * @param array                $parsed_args        HTTP request arguments.
-		 * @param string               $url      The request URL.
+		 * @param false|array|WP_Error $preempt     Whether to preempt an HTTP request's return value. Default false.
+		 * @param array                $parsed_args HTTP request arguments.
+		 * @param string               $url         The request URL.
 		 */
 		$pre = apply_filters( 'pre_http_request', false, $parsed_args, $url );
 
@@ -409,11 +409,11 @@ class WP_Http {
 		 *
 		 * @since 2.8.0
 		 *
-		 * @param array|WP_Error $response HTTP response or WP_Error object.
-		 * @param string         $context  Context under which the hook is fired.
-		 * @param string         $class    HTTP transport used.
-		 * @param array          $parsed_args        HTTP request arguments.
-		 * @param string         $url      The request URL.
+		 * @param array|WP_Error $response    HTTP response or WP_Error object.
+		 * @param string         $context     Context under which the hook is fired.
+		 * @param string         $class       HTTP transport used.
+		 * @param array          $parsed_args HTTP request arguments.
+		 * @param string         $url         The request URL.
 		 */
 		do_action( 'http_api_debug', $response, 'response', 'Requests', $parsed_args, $url );
 		if ( is_wp_error( $response ) ) {
@@ -438,9 +438,9 @@ class WP_Http {
 		 *
 		 * @since 2.9.0
 		 *
-		 * @param array  $response HTTP response.
-		 * @param array  $parsed_args        HTTP request arguments.
-		 * @param string $url      The request URL.
+		 * @param array  $response    HTTP response.
+		 * @param array  $parsed_args HTTP request arguments.
+		 * @param string $url         The request URL.
 		 */
 		return apply_filters( 'http_response', $response, $parsed_args, $url );
 	}
@@ -521,10 +521,10 @@ class WP_Http {
 		 *
 		 * @since 3.7.0
 		 *
-		 * @param array  $transports Array of HTTP transports to check. Default array contains
-		 *                           'curl', and 'streams', in that order.
-		 * @param array  $args       HTTP request arguments.
-		 * @param string $url        The URL to request.
+		 * @param string[] $transports Array of HTTP transports to check. Default array contains
+		 *                             'curl' and 'streams', in that order.
+		 * @param array    $args       HTTP request arguments.
+		 * @param string   $url        The URL to request.
 		 */
 		$request_order = apply_filters( 'http_api_transports', $transports, $args, $url );
 
@@ -822,16 +822,16 @@ class WP_Http {
 	}
 
 	/**
-	 * Block requests through the proxy.
+	 * Determines whether an HTTP API request to the given URL should be blocked.
 	 *
 	 * Those who are behind a proxy and want to prevent access to certain hosts may do so. This will
-	 * prevent plugins from working and core functionality, if you don't include api.wordpress.org.
+	 * prevent plugins from working and core functionality, if you don't include `api.wordpress.org`.
 	 *
-	 * You block external URL requests by defining WP_HTTP_BLOCK_EXTERNAL as true in your wp-config.php
+	 * You block external URL requests by defining `WP_HTTP_BLOCK_EXTERNAL` as true in your `wp-config.php`
 	 * file and this will only allow localhost and your site to make requests. The constant
-	 * WP_ACCESSIBLE_HOSTS will allow additional hosts to go through for requests. The format of the
-	 * WP_ACCESSIBLE_HOSTS constant is a comma separated list of hostnames to allow, wildcard domains
-	 * are supported, eg *.wordpress.org will allow for all subdomains of wordpress.org to be contacted.
+	 * `WP_ACCESSIBLE_HOSTS` will allow additional hosts to go through for requests. The format of the
+	 * `WP_ACCESSIBLE_HOSTS` constant is a comma separated list of hostnames to allow, wildcard domains
+	 * are supported, eg `*.wordpress.org` will allow for all subdomains of `wordpress.org` to be contacted.
 	 *
 	 * @since 2.8.0
 	 * @link https://core.trac.wordpress.org/ticket/8927 Allow preventing external requests.
@@ -859,12 +859,13 @@ class WP_Http {
 		// Don't block requests back to ourselves by default.
 		if ( 'localhost' == $check['host'] || ( isset( $home['host'] ) && $home['host'] == $check['host'] ) ) {
 			/**
-			 * Filters whether to block local requests through the proxy.
+			 * Filters whether to block local HTTP API requests.
+			 *
+			 * A local request is one to `localhost` or to the same host as the site itself.
 			 *
 			 * @since 2.8.0
 			 *
-			 * @param bool $block Whether to block local requests through proxy.
-			 *                    Default false.
+			 * @param bool $block Whether to block local requests. Default false.
 			 */
 			return apply_filters( 'block_local_requests', false );
 		}
@@ -890,7 +891,7 @@ class WP_Http {
 		if ( ! empty( $wildcard_regex ) ) {
 			return ! preg_match( $wildcard_regex, $check['host'] );
 		} else {
-			return ! in_array( $check['host'], $accessible_hosts ); //Inverse logic, If it's in the array, then we can't access it.
+			return ! in_array( $check['host'], $accessible_hosts ); // Inverse logic, if it's in the array, then don't block it.
 		}
 
 	}
@@ -989,14 +990,15 @@ class WP_Http {
 	}
 
 	/**
-	 * Handles HTTP Redirects and follows them if appropriate.
+	 * Handles an HTTP redirect and follows it if appropriate.
 	 *
 	 * @since 3.7.0
 	 *
-	 * @param string $url The URL which was requested.
-	 * @param array $args The Arguments which were used to make the request.
-	 * @param array $response The Response of the HTTP request.
-	 * @return false|object False if no redirect is present, a WP_HTTP or WP_Error result otherwise.
+	 * @param string $url      The URL which was requested.
+	 * @param array  $args     The arguments which were used to make the request.
+	 * @param array  $response The response of the HTTP request.
+	 * @return false|WP_Error|array False if no redirect is present, a WP_Error object if there's an error, or an HTTP
+	 *                              API response array if the redirect is successfully followed.
 	 */
 	public static function handle_redirects( $url, $args, $response ) {
 		// If no redirects are present, or, redirects were not requested, perform no action.

@@ -15,75 +15,92 @@ $title = __( 'Credits' );
 list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
 
 include( ABSPATH . 'wp-admin/admin-header.php' );
-?>
-<div class="wrap about-wrap full-width-layout">
-
-<h1>
-	<?php
-	printf(
-		/* translators: %s: The current WordPress version number. */
-		__( 'Welcome to WordPress&nbsp;%s' ),
-		$display_version
-	);
-	?>
-</h1>
-
-<p class="about-text">
-	<?php
-	printf(
-		/* translators: %s: The current WordPress version number. */
-		__( 'Congratulations on updating to WordPress %s! This update makes it easier than ever to fix your site if something goes wrong.' ),
-		$display_version
-	);
-	?>
-</p>
-
-<div class="wp-badge">
-	<?php
-	printf(
-		/* translators: %s: The current WordPress version number. */
-		__( 'Version %s' ),
-		$display_version
-	);
-	?>
-</div>
-
-<nav class="nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
-	<a href="about.php" class="nav-tab"><?php _e( 'What&#8217;s New' ); ?></a>
-	<a href="credits.php" class="nav-tab nav-tab-active" aria-current="page"><?php _e( 'Credits' ); ?></a>
-	<a href="freedoms.php" class="nav-tab"><?php _e( 'Freedoms' ); ?></a>
-	<a href="privacy.php" class="nav-tab"><?php _e( 'Privacy' ); ?></a>
-</nav>
-
-<div class="about-wrap-content">
-<?php
 
 $credits = wp_credits();
+?>
+<div class="wrap about__container">
 
+	<div class="about__header">
+		<div class="about__header-title">
+			<h1>
+				<span><?php echo $display_version; ?></span>
+				<?php _e( 'WordPress' ); ?>
+			</h1>
+		</div>
+
+		<div class="about__header-badge">
+			<img src="https://wordpress.org/images/core/5.4/code-is-poetry-rc.svg" alt="<?php _e( 'Code is Poetry' ); ?>" />
+		</div>
+
+		<div class="about__header-text">
+			<p>
+				<?php
+				printf(
+					/* translators: %s: The current WordPress version number. */
+					__( 'Introducing our most refined user experience with the improved block editor in WordPress %s!' ),
+					$display_version
+				);
+				?>
+			</p>
+		</div>
+
+		<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
+			<a href="about.php" class="nav-tab"><?php _e( 'What&#8217;s New' ); ?></a>
+			<a href="credits.php" class="nav-tab nav-tab-active" aria-current="page"><?php _e( 'Credits' ); ?></a>
+			<a href="freedoms.php" class="nav-tab"><?php _e( 'Freedoms' ); ?></a>
+			<a href="privacy.php" class="nav-tab"><?php _e( 'Privacy' ); ?></a>
+		</nav>
+	</div>
+
+	<div class="about__section">
+		<div class="column">
+			<h2><?php _e( 'WordPress is created by a worldwide team of passionate individuals.' ); ?></h2>
+
+			<p>
+				<?php
+				if ( ! $credits ) {
+					printf(
+						/* translators: 1: https://wordpress.org/about/, 2: https://make.wordpress.org/ */
+						__( 'WordPress is created by a <a href="%1$s">worldwide team</a> of passionate individuals. <a href="%2$s">Get involved in WordPress</a>.' ),
+						__( 'https://wordpress.org/about/' ),
+						__( 'https://make.wordpress.org/' )
+					);
+				} else {
+					printf(
+						/* translators: %s: https://make.wordpress.org/ */
+						__( 'Want to see your name in lights on this page? <a href="%s">Get involved in WordPress</a>.' ),
+						__( 'https://make.wordpress.org/' )
+					);
+				}
+				?>
+			</p>
+		</div>
+
+		<div class="about__image aligncenter">
+			<img src="data:image/svg+xml;charset=utf8,%3Csvg width='1320' height='350' viewbox='0 0 1320 350' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='72' height='220' transform='matrix(1 0 0 -1 61 220)' fill='%23321017'/%3E%3Crect width='72' height='250' transform='matrix(1 0 0 -1 166 300)' fill='%23BD3854'/%3E%3Crect width='72' height='220' transform='matrix(1 0 0 -1 272 220)' fill='%23321017'/%3E%3Crect width='71' height='220' transform='matrix(1 0 0 -1 378 220)' fill='%235F1B29'/%3E%3Crect width='71' height='220' transform='matrix(1 0 0 -1 483 220)' fill='%23321017'/%3E%3Crect width='71' height='220' transform='matrix(1 0 0 -1 587 220)' fill='%235F1B29'/%3E%3Crect width='71.28' height='250' transform='matrix(1 0 0 -1 689 300)' fill='%23BD3854'/%3E%3Crect width='72' height='220' transform='matrix(1 0 0 -1 884 220)' fill='%235F1B29'/%3E%3Crect width='72' height='220' transform='matrix(1 0 0 -1 789 220)' fill='%23321017'/%3E%3Crect width='71' height='220' transform='matrix(1 0 0 -1 985 220)' fill='%23321017'/%3E%3Crect width='72' height='220' transform='matrix(1 0 0 -1 1084 220)' fill='%235F1B29'/%3E%3Crect width='72' height='220' transform='matrix(1 0 0 -1 1179 220)' fill='%233D0F19'/%3E%3C/svg%3E%0A" alt="" />
+		</div>
+	</div>
+
+<?php
 if ( ! $credits ) {
-	echo '<p class="about-description">';
-	printf(
-		/* translators: 1: https://wordpress.org/about/, 2: https://make.wordpress.org/ */
-		__( 'WordPress is created by a <a href="%1$s">worldwide team</a> of passionate individuals. <a href="%2$s">Get involved in WordPress</a>.' ),
-		__( 'https://wordpress.org/about/' ),
-		__( 'https://make.wordpress.org/' )
-	);
-	echo '</p>';
-	echo '</div>';
 	echo '</div>';
 	include( ABSPATH . 'wp-admin/admin-footer.php' );
 	exit;
 }
 
-echo '<p class="about-description">' . __( 'WordPress is created by a worldwide team of passionate individuals.' ) . "</p>\n";
+$previous_type = '';
 
-echo '<p>' . sprintf(
-	/* translators: %s: https://make.wordpress.org/ */
-	__( 'Want to see your name in lights on this page? <a href="%s">Get involved in WordPress</a>.' ),
-	__( 'https://make.wordpress.org/' )
-) . '</p>';
+foreach ( $credits['groups'] as $group_slug => $group_data ) :
+	?>
+	<?php
+	if ( $previous_type !== $group_data['type'] ) {
+		echo '<hr />';
+	}
+	?>
+	<div class="about__section">
+		<div class="column <?php echo 'titles' === $group_data['type'] ? 'has-subtle-background-color' : ''; ?>">
 
-foreach ( $credits['groups'] as $group_slug => $group_data ) {
+	<?php
 	if ( $group_data['name'] ) {
 		if ( 'Translators' == $group_data['name'] ) {
 			// Considered a special slug in the API response. (Also, will never be returned for en_US.)
@@ -96,7 +113,7 @@ foreach ( $credits['groups'] as $group_slug => $group_data ) {
 			$title = translate( $group_data['name'] );
 		}
 
-		echo '<h2 class="wp-people-group">' . esc_html( $title ) . "</h2>\n";
+		echo '<h2 class="wp-people-group-title">' . esc_html( $title ) . "</h2>\n";
 	}
 
 	if ( ! empty( $group_data['shuffle'] ) ) {
@@ -119,7 +136,7 @@ foreach ( $credits['groups'] as $group_slug => $group_data ) {
 			foreach ( $group_data['data'] as $person_data ) {
 				echo '<li class="wp-person" id="wp-person-' . esc_attr( $person_data[2] ) . '">' . "\n\t";
 				echo '<a href="' . esc_url( sprintf( $credits['data']['profiles'], $person_data[2] ) ) . '" class="web">';
-				$size   = 'compact' == $group_data['type'] ? 30 : 60;
+				$size   = 'compact' == $group_data['type'] ? 40 : 80;
 				$data   = get_avatar_data( $person_data[1] . '@md5.gravatar.com', array( 'size' => $size ) );
 				$size  *= 2;
 				$data2x = get_avatar_data( $person_data[1] . '@md5.gravatar.com', array( 'size' => $size ) );
@@ -134,10 +151,12 @@ foreach ( $credits['groups'] as $group_slug => $group_data ) {
 			echo "</ul>\n";
 			break;
 	}
-}
+	$previous_type = $group_data['type'];
+	?>
 
-?>
-</div>
+		</div>
+	</div>
+<?php endforeach; ?>
 </div>
 <?php
 

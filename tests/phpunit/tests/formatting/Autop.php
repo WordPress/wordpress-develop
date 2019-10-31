@@ -502,7 +502,7 @@ line 3<br />
 line 4<br />
 line 5</p>';
 
-		$this->assertEquals( $expected, trim( wpautop( $content ) ) );
+		$this->assertEqualsIgnoreEOL( $expected, trim( wpautop( $content ) ) );
 	}
 
 	/**
@@ -521,7 +521,7 @@ line 2<br/>
 		$expected = '<p>line 1</p>
 <p>line 2</p>';
 
-		$this->assertEquals( $expected, trim( wpautop( $content ) ) );
+		$this->assertEqualsIgnoreEOL( $expected, trim( wpautop( $content ) ) );
 	}
 
 
@@ -543,7 +543,7 @@ line 2<br/>
 	 *
 	 * @ticket 39307
 	 */
-	function test_that_wpautop_doses_not_add_extra_closing_p_in_figure() {
+	function test_that_wpautop_does_not_add_extra_closing_p_in_figure() {
 		$content1  = '<figure><img src="example.jpg" /><figcaption>Caption</figcaption></figure>';
 		$expected1 = $content1;
 
@@ -556,7 +556,7 @@ line 2<br/>
 <img src="example.jpg" /><figcaption>Caption</figcaption></figure>';
 
 		$this->assertEquals( $expected1, trim( wpautop( $content1 ) ) );
-		$this->assertEquals( $expected2, trim( wpautop( $content2 ) ) );
+		$this->assertEqualsIgnoreEOL( $expected2, trim( wpautop( $content2 ) ) );
 	}
 
 	/**
@@ -584,7 +584,7 @@ line 2<br/>
 
 		$expected = '<p>' . $content . '</p>';
 
-		$this->assertEquals( $expected, trim( wpautop( $content ) ) );
+		$this->assertEqualsIgnoreEOL( $expected, trim( wpautop( $content ) ) );
 	}
 
 	/**
@@ -600,6 +600,6 @@ line 2<br/>
 
 		$expected = '<p>' . $content . '</p>';
 
-		$this->assertEquals( $expected, trim( wpautop( $content ) ) );
+		$this->assertEqualsIgnoreEOL( $expected, trim( wpautop( $content ) ) );
 	}
 }

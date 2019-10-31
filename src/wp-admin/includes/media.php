@@ -11,7 +11,7 @@
  *
  * @since 2.5.0
  *
- * @return array default tabs
+ * @return string[] Default tabs.
  */
 function media_upload_tabs() {
 	$_default_tabs = array(
@@ -26,7 +26,7 @@ function media_upload_tabs() {
 	 *
 	 * @since 2.5.0
 	 *
-	 * @param array $_default_tabs An array of media tabs.
+	 * @param string[] $_default_tabs An array of media tabs.
 	 */
 	return apply_filters( 'media_upload_tabs', $_default_tabs );
 }
@@ -314,7 +314,6 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 	$title   = sanitize_text_field( $name );
 	$content = '';
 	$excerpt = '';
-	$_ref    = false;
 
 	if ( preg_match( '#^audio#', $type ) ) {
 		$meta = wp_read_audio_metadata( $file );
@@ -409,20 +408,15 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 	$attachment_id = wp_insert_attachment( $attachment, $file, $post_id, true );
 
 	if ( ! is_wp_error( $attachment_id ) ) {
-		// If an image, keep the upload reference until all image sub-sizes are created.
-		if ( ! empty( $_POST['_wp_temp_upload_ref'] ) && wp_attachment_is_image( $attachment_id ) ) {
-			$_ref = _wp_set_upload_ref( $_POST['_wp_temp_upload_ref'], $attachment_id );
+		// Set a custom header with the attachment_id.
+		// Used by the browser/client to resume creating image sub-sizes after a PHP fatal error.
+		if ( ! headers_sent() ) {
+			header( 'X-WP-Upload-Attachment-ID: ' . $attachment_id );
 		}
 
 		// The image sub-sizes are created during wp_generate_attachment_metadata().
 		// This is generally slow and may cause timeouts or out of memory errors.
 		wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $file ) );
-
-		// At this point the image is uploaded successfully even if there were specific errors or some sub-sizes were not created.
-		// The transient is not needed any more.
-		if ( $_ref ) {
-			_wp_clear_upload_ref( $_POST['_wp_temp_upload_ref'] );
-		}
 	}
 
 	return $attachment_id;
@@ -510,6 +504,8 @@ function media_handle_sideload( $file_array, $post_id = 0, $desc = null, $post_d
  * Outputs the iframe to display the media upload page.
  *
  * @since 2.5.0
+ * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
+ *              by adding it to the function signature.
  *
  * @global int $body_id
  *
@@ -1132,8 +1128,8 @@ function image_size_input_fields( $post, $check = '' ) {
 	 *
 	 * @since 3.3.0
 	 *
-	 * @param array $size_names Array of image sizes and their names. Default values
-	 *                          include 'Thumbnail', 'Medium', 'Large', 'Full Size'.
+	 * @param string[] $size_names Array of image size labels keyed by their name. Default values
+	 *                             include 'Thumbnail', 'Medium', 'Large', and 'Full Size'.
 	 */
 	$size_names = apply_filters(
 		'image_size_names_choose',

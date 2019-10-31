@@ -1,5 +1,4 @@
-var l10n = wp.media.view.l10n,
-	Search;
+var Search;
 
 /**
  * wp.media.view.Search
@@ -17,8 +16,7 @@ Search = wp.media.View.extend(/** @lends wp.media.view.Search.prototype */{
 	id:        'media-search-input',
 
 	attributes: {
-		type:        'search',
-		placeholder: l10n.searchMediaPlaceholder
+		type: 'search'
 	},
 
 	events: {

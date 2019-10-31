@@ -1,7 +1,7 @@
 <?php
 /**
  * @group post
- * @group navmenus
+ * @group menu
  */
 class Test_Nav_Menus extends WP_UnitTestCase {
 	/**

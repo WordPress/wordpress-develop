@@ -588,7 +588,9 @@ function rest_send_cors_headers( $value ) {
 		header( 'Access-Control-Allow-Origin: ' . $origin );
 		header( 'Access-Control-Allow-Methods: OPTIONS, GET, POST, PUT, PATCH, DELETE' );
 		header( 'Access-Control-Allow-Credentials: true' );
-		header( 'Vary: Origin' );
+		header( 'Vary: Origin', false );
+	} elseif ( ! headers_sent() && 'GET' === $_SERVER['REQUEST_METHOD'] && ! is_user_logged_in() ) {
+		header( 'Vary: Origin', false );
 	}
 
 	return $value;
@@ -743,8 +745,12 @@ function rest_filter_response_fields( $response, $server, $request ) {
 		$parts = explode( '.', $field );
 		$ref   = &$fields_as_keyed;
 		while ( count( $parts ) > 1 ) {
-			$next         = array_shift( $parts );
-			$ref[ $next ] = array();
+			$next = array_shift( $parts );
+			if ( isset( $ref[ $next ] ) && true === $ref[ $next ] ) {
+				// Skip any sub-properties if their parent prop is already marked for inclusion.
+				break 2;
+			}
+			$ref[ $next ] = isset( $ref[ $next ] ) ? $ref[ $next ] : array();
 			$ref          = &$ref[ $next ];
 		}
 		$last         = array_shift( $parts );

@@ -19,6 +19,24 @@ class Tests_Date_I18n extends WP_UnitTestCase {
 		$this->assertEquals( $wp_timestamp, date_i18n( 'U', 'invalid' ), '', 5 );
 	}
 
+	/**
+	 * @ticket 28636
+	 */
+	public function test_should_handle_zero_timestamp() {
+		$timezone = 'Europe/Kiev';
+		update_option( 'timezone_string', $timezone );
+
+		$datetime = DateTimeImmutable::createFromFormat(
+			'Y-m-d H:i:s',
+			'1970-01-01 00:00:00',
+			new DateTimeZone( $timezone )
+		);
+		$rfc3339  = $datetime->format( DATE_RFC3339 );
+
+		$this->assertEquals( 0, date_i18n( 'U', 0 ) );
+		$this->assertEquals( $rfc3339, date_i18n( DATE_RFC3339, 0 ) );
+	}
+
 	public function test_should_format_date() {
 		$this->assertEquals( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( date_i18n( 'Y-m-d H:i:s' ) ), 'The dates should be equal', 2 );
 	}

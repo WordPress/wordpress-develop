@@ -1066,17 +1066,15 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$h_time    = $t_time;
 			$time_diff = 0;
 		} else {
-			$t_time = get_the_time( __( 'Y/m/d g:i:s a' ) );
-			$m_time = $post->post_date;
-			$time   = get_post_time( 'G', true, $post );
-
+			$t_time    = get_the_time( __( 'Y/m/d g:i:s a' ), $post );
+			$time      = get_post_timestamp( $post );
 			$time_diff = time() - $time;
 
-			if ( $time_diff > 0 && $time_diff < DAY_IN_SECONDS ) {
+			if ( $time && $time_diff > 0 && $time_diff < DAY_IN_SECONDS ) {
 				/* translators: %s: Human-readable time difference. */
 				$h_time = sprintf( __( '%s ago' ), human_time_diff( $time ) );
 			} else {
-				$h_time = mysql2date( __( 'Y/m/d' ), $m_time );
+				$h_time = get_the_time( __( 'Y/m/d' ), $post );
 			}
 		}
 
@@ -1210,9 +1208,9 @@ class WP_Posts_List_Table extends WP_List_Table {
 				 *
 				 * @since 5.2.0
 				 *
-				 * @param array  $term_links List of links to edit.php, filtered by the taxonomy term.
-				 * @param string $taxonomy   Taxonomy name.
-				 * @param array  $terms      Array of terms appearing in the post row.
+				 * @param string[]  $term_links Array of term editing links.
+				 * @param string    $taxonomy   Taxonomy name.
+				 * @param WP_Term[] $terms      Array of term objects appearing in the post row.
 				 */
 				$term_links = apply_filters( 'post_column_taxonomy_links', $term_links, $taxonomy, $terms );
 

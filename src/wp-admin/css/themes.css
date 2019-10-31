@@ -34,6 +34,7 @@ body.js .theme-browser.search-loading {
 	left: 20px;
 	margin: 0;
 	width: 280px;
+	font-size: inherit;
 }
 
 /* Position admin messages */
@@ -175,7 +176,8 @@ body.js .theme-browser.search-loading {
 }
 
 .theme-browser .theme:focus {
-	outline: 1px dotted #555d66;
+	border-color: #5b9dd9;
+	box-shadow: 0 0 2px rgba(30, 140, 190, 0.8);
 }
 
 .theme-browser .theme:focus .more-details {
@@ -822,7 +824,7 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 }
 
 /* Admin menu is folded */
-@media only screen and (max-width: 900px) {
+@media only screen and (max-width: 960px) {
 	.theme-overlay .theme-wrap {
 		left: 65px;
 	}
@@ -1412,7 +1414,6 @@ body.full-overlay-active {
 	float: left;
 	width: 45px;
 	height: 45px;
-	padding-right: 2px;
 	background: #eee;
 	border-right: 1px solid #ddd;
 	color: #444;

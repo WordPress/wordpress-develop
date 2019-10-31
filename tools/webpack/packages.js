@@ -1,6 +1,7 @@
 /**
  * External dependencies
  */
+const { DefinePlugin } = require( 'webpack' );
 const LiveReloadPlugin = require( 'webpack-livereload-plugin' );
 const CopyWebpackPlugin = require( 'copy-webpack-plugin' );
 const postcss = require( 'postcss' );
@@ -103,7 +104,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'block-library/src/rss/index.php': 'wp-includes/blocks/rss.php',
 		'block-library/src/search/index.php': 'wp-includes/blocks/search.php',
 		'block-library/src/shortcode/index.php': 'wp-includes/blocks/shortcode.php',
-		'block-library/src/social-link/index.php': 'wp-includes/blocks/social-link.php',
 		'block-library/src/tag-cloud/index.php': 'wp-includes/blocks/tag-cloud.php',
 	};
 
@@ -204,6 +204,10 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			],
 		},
 		plugins: [
+			new DefinePlugin( {
+				// Inject the `GUTENBERG_PHASE` global, used for feature flagging.
+				'process.env.GUTENBERG_PHASE': 1,
+			} ),
 			new LibraryExportDefaultPlugin( [
 				'api-fetch',
 				'deprecated',

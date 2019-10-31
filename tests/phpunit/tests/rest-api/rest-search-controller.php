@@ -501,6 +501,20 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * @ticket 47684
+	 */
+	public function test_search_result_links_are_embedded() {
+		$response = $this->do_request_with_params( array( 'per_page' => 1 ) );
+		$data     = rest_get_server()->response_to_data( $response, true )[0];
+
+		$this->assertArrayHasKey( '_embedded', $data );
+		$this->assertArrayHasKey( 'self', $data['_embedded'] );
+		$this->assertCount( 1, $data['_embedded']['self'] );
+		$this->assertArrayHasKey( WP_REST_Search_Controller::PROP_ID, $data['_embedded']['self'][0] );
+		$this->assertEquals( $data[ WP_REST_Search_Controller::PROP_ID ], $data['_embedded']['self'][0][ WP_REST_Search_Controller::PROP_ID ] );
+	}
+
+	/**
 	 * Perform a REST request to our search endpoint with given parameters.
 	 */
 	private function do_request_with_params( $params = array(), $method = 'GET' ) {

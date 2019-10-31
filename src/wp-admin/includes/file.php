@@ -713,7 +713,7 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
  * @param string         $time      Time formatted in 'yyyy/mm'.
  * @param string         $action    Expected value for `$_POST['action']`.
  * @return string[] On success, returns an associative array of file attributes. On failure, returns
- *               `$overrides['upload_error_handler'](&$file, $message )` or `array( 'error'=>$message )`.
+ *                  `$overrides['upload_error_handler']( &$file, $message )` or `array( 'error' => $message )`.
  */
 function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 	// The default error handler.
@@ -982,64 +982,6 @@ function wp_handle_sideload( &$file, $overrides = false, $time = null ) {
 }
 
 /**
- * Temporarily stores the client upload reference in a transient.
- *
- * @since 5.3.0
- * @access private
- *
- * @param string $upload_ref    The upload reference sent by the client.
- * @param int    $attachment_id Attachment post ID.
- * @return bool Whether the transient was set.
- */
-function _wp_set_upload_ref( $upload_ref, $attachment_id ) {
-	$upload_ref = preg_replace( '/[^a-zA-Z0-9_]/', '', $upload_ref );
-
-	if ( ! empty( $upload_ref ) ) {
-		return set_transient( '_wp_temp_image_ref:' . $upload_ref, $attachment_id, HOUR_IN_SECONDS );
-	}
-
-	return false;
-}
-
-/**
- * Get attachment post ID from an upload reference.
- *
- * @since 5.3.0
- * @access private
- *
- * @param string $upload_ref    The upload reference sent by the client.
- * @return int The attachemtn post ID. Zero if the upload reference has expired or doesn't exist.
- */
-function _wp_get_upload_ref_attachment_id( $upload_ref ) {
-	$upload_ref = preg_replace( '/[^a-zA-Z0-9_]/', '', $upload_ref );
-
-	if ( ! empty( $upload_ref ) ) {
-		return (int) get_transient( '_wp_temp_image_ref:' . $upload_ref );
-	}
-
-	return 0;
-}
-
-/**
- * Remove the transient that stores a temporary upload reference.
- *
- * @since 5.3.0
- * @access private
- *
- * @param string $upload_ref    The upload reference sent by the client.
- * @return bool Whether the transient was removed.
- */
-function _wp_clear_upload_ref( $upload_ref ) {
-	$upload_ref = preg_replace( '/[^a-zA-Z0-9_]/', '', $upload_ref );
-
-	if ( ! empty( $upload_ref ) ) {
-		return delete_transient( '_wp_temp_image_ref:' . $upload_ref );
-	}
-
-	return false;
-}
-
-/**
  * Downloads a URL to a local temporary file using the WordPress HTTP API.
  *
  * Please note that the calling function must unlink() the file.
@@ -1119,11 +1061,11 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 	// If the caller expects signature verification to occur, check to see if this URL supports it.
 	if ( $signature_verification ) {
 		/**
-		 * Filters the list of hosts which should have Signature Verification attempteds on.
+		 * Filters the list of hosts which should have Signature Verification attempted on.
 		 *
 		 * @since 5.2.0
 		 *
-		 * @param array List of hostnames.
+		 * @param string[] $hostnames List of hostnames.
 		 */
 		$signed_hostnames       = apply_filters( 'wp_signature_hosts', array( 'wordpress.org', 'downloads.wordpress.org', 's.w.org' ) );
 		$signature_verification = in_array( parse_url( $url, PHP_URL_HOST ), $signed_hostnames, true );
@@ -1399,7 +1341,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
  *
  * @since 5.2.0
  *
- * @return array List of base64-encoded Signing keys.
+ * @return string[] Array of base64-encoded signing keys.
  */
 function wp_trusted_keys() {
 	$trusted_keys = array();
@@ -1412,11 +1354,11 @@ function wp_trusted_keys() {
 	// TODO: Add key #2 with longer expiration.
 
 	/**
-	 * Filter the valid Signing keys used to verify the contents of files.
+	 * Filter the valid signing keys used to verify the contents of files.
 	 *
 	 * @since 5.2.0
 	 *
-	 * @param array $trusted_keys The trusted keys that may sign packages.
+	 * @param string[] $trusted_keys The trusted keys that may sign packages.
 	 */
 	return apply_filters( 'wp_trusted_keys', $trusted_keys );
 }
@@ -1507,9 +1449,9 @@ function unzip_file( $file, $to ) {
  *
  * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
- * @param string $file       Full path and filename of ZIP archive.
- * @param string $to         Full path on the filesystem to extract archive to.
- * @param array $needed_dirs A partial list of required folders needed to be created.
+ * @param string   $file        Full path and filename of ZIP archive.
+ * @param string   $to          Full path on the filesystem to extract archive to.
+ * @param string[] $needed_dirs A partial list of required folders needed to be created.
  * @return true|WP_Error True on success, WP_Error on failure.
  */
 function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
@@ -1638,9 +1580,9 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
  *
  * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
- * @param string $file       Full path and filename of ZIP archive.
- * @param string $to         Full path on the filesystem to extract archive to.
- * @param array $needed_dirs A partial list of required folders needed to be created.
+ * @param string   $file        Full path and filename of ZIP archive.
+ * @param string   $to          Full path on the filesystem to extract archive to.
+ * @param string[] $needed_dirs A partial list of required folders needed to be created.
  * @return true|WP_Error True on success, WP_Error on failure.
  */
 function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
@@ -1749,9 +1691,9 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
  *
  * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
- * @param string $from     Source directory.
- * @param string $to       Destination directory.
- * @param array $skip_list A list of files/folders to skip copying.
+ * @param string   $from      Source directory.
+ * @param string   $to        Destination directory.
+ * @param string[] $skip_list An array of files/folders to skip copying.
  * @return true|WP_Error True on success, WP_Error on failure.
  */
 function copy_dir( $from, $to, $skip_list = array() ) {
@@ -1763,7 +1705,7 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 	$to   = trailingslashit( $to );
 
 	foreach ( (array) $dirlist as $filename => $fileinfo ) {
-		if ( in_array( $filename, $skip_list ) ) {
+		if ( in_array( $filename, $skip_list, true ) ) {
 			continue;
 		}
 
@@ -1989,15 +1931,15 @@ function get_filesystem_method( $args = array(), $context = '', $allow_relaxed_f
  *
  * @global string $pagenow
  *
- * @param string $form_post                    The URL to post the form to.
- * @param string $type                         Optional. Chosen type of filesystem. Default empty.
- * @param bool   $error                        Optional. Whether the current request has failed to connect.
- *                                             Default false.
- * @param string $context                      Optional. Full path to the directory that is tested for being
- *                                             writable. Default empty.
- * @param array  $extra_fields                 Optional. Extra `POST` fields to be checked for inclusion in
- *                                             the post. Default null.
- * @param bool   $allow_relaxed_file_ownership Optional. Whether to allow Group/World writable. Default false.
+ * @param string        $form_post                    The URL to post the form to.
+ * @param string        $type                         Optional. Chosen type of filesystem. Default empty.
+ * @param bool|WP_Error $error                        Optional. Whether the current request has failed to connect,
+ *                                                    or an error object. Default false.
+ * @param string        $context                      Optional. Full path to the directory that is tested for being
+ *                                                    writable. Default empty.
+ * @param array         $extra_fields                 Optional. Extra `POST` fields to be checked for inclusion in
+ *                                                    the post. Default null.
+ * @param bool          $allow_relaxed_file_ownership Optional. Whether to allow Group/World writable. Default false.
  *
  * @return bool True on success, false on failure.
  */
@@ -2013,16 +1955,16 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 	 * @since 2.5.0
 	 * @since 4.6.0 The `$context` parameter default changed from `false` to an empty string.
 	 *
-	 * @param mixed  $output                       Form output to return instead. Default empty.
-	 * @param string $form_post                    The URL to post the form to.
-	 * @param string $type                         Chosen type of filesystem.
-	 * @param bool   $error                        Whether the current request has failed to connect.
-	 *                                             Default false.
-	 * @param string $context                      Full path to the directory that is tested for
-	 *                                             being writable.
-	 * @param bool   $allow_relaxed_file_ownership Whether to allow Group/World writable.
-	 *                                             Default false.
-	 * @param array  $extra_fields                 Extra POST fields.
+	 * @param mixed         $output                       Form output to return instead. Default empty.
+	 * @param string        $form_post                    The URL to post the form to.
+	 * @param string        $type                         Chosen type of filesystem.
+	 * @param bool|WP_Error $error                        Optional. Whether the current request has failed to connect,
+	 *                                                    or an error object. Default false.
+	 * @param string        $context                      Full path to the directory that is tested for
+	 *                                                    being writable.
+	 * @param bool          $allow_relaxed_file_ownership Whether to allow Group/World writable.
+	 *                                                    Default false.
+	 * @param array         $extra_fields                 Extra POST fields.
 	 */
 	$req_cred = apply_filters( 'request_filesystem_credentials', '', $form_post, $type, $error, $context, $extra_fields, $allow_relaxed_file_ownership );
 	if ( '' !== $req_cred ) {
@@ -2141,12 +2083,11 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 	 * @since 2.9.0
 	 * @since 4.6.0 The `$context` parameter default changed from `false` to an empty string.
 	 *
-	 * @param array  $types       Types of connections.
-	 * @param array  $credentials Credentials to connect with.
-	 * @param string $type        Chosen filesystem method.
-	 * @param object $error       Error object.
-	 * @param string $context     Full path to the directory that is tested
-	 *                            for being writable.
+	 * @param string[]      $types       Types of connections.
+	 * @param array         $credentials Credentials to connect with.
+	 * @param string        $type        Chosen filesystem method.
+	 * @param WP_Error|bool $error       Error object or status.
+	 * @param string        $context     Full path to the directory that is tested for being writable.
 	 */
 	$types = apply_filters( 'fs_ftp_connection_types', $types, $credentials, $type, $error, $context );
 

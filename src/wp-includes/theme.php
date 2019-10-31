@@ -107,7 +107,7 @@ function wp_get_themes( $args = array() ) {
  *                           is used to calculate the theme root for the $stylesheet provided (or current theme).
  * @return WP_Theme Theme object. Be sure to check the object's exists() method if you need to confirm the theme's existence.
  */
-function wp_get_theme( $stylesheet = null, $theme_root = null ) {
+function wp_get_theme( $stylesheet = '', $theme_root = '' ) {
 	global $wp_theme_directories;
 
 	if ( empty( $stylesheet ) ) {
@@ -566,10 +566,11 @@ function search_theme_directories( $force = false ) {
  *
  * @global array $wp_theme_directories
  *
- * @param string $stylesheet_or_template The stylesheet or template name of the theme
- * @return string Theme path.
+ * @param string $stylesheet_or_template Optional. The stylesheet or template name of the theme.
+ *                                       Default is to leverage the main theme root.
+ * @return string Themes directory path.
  */
-function get_theme_root( $stylesheet_or_template = false ) {
+function get_theme_root( $stylesheet_or_template = '' ) {
 	global $wp_theme_directories;
 
 	$theme_root = '';
@@ -608,13 +609,13 @@ function get_theme_root( $stylesheet_or_template = false ) {
  *
  * @global array $wp_theme_directories
  *
- * @param bool|string $stylesheet_or_template Optional. The stylesheet or template name of the theme.
- *                                            Default value false, to use the main theme root.
- * @param bool|string $theme_root             Optional. The theme root for which calculations will be based, preventing
- *                                            the need for a get_raw_theme_root() call. Default value false.
- * @return string Themes URI.
+ * @param string $stylesheet_or_template Optional. The stylesheet or template name of the theme.
+ *                                       Default is to leverage the main theme root.
+ * @param string $theme_root             Optional. The theme root for which calculations will be based,
+ *                                       preventing the need for a get_raw_theme_root() call. Default empty.
+ * @return string Themes directory URI.
  */
-function get_theme_root_uri( $stylesheet_or_template = false, $theme_root = false ) {
+function get_theme_root_uri( $stylesheet_or_template = '', $theme_root = '' ) {
 	global $wp_theme_directories;
 
 	if ( $stylesheet_or_template && ! $theme_root ) {
@@ -647,7 +648,7 @@ function get_theme_root_uri( $stylesheet_or_template = false, $theme_root = fals
 	 *
 	 * @param string $theme_root_uri         The URI for themes directory.
 	 * @param string $siteurl                WordPress web address which is set in General Options.
-	 * @param string $stylesheet_or_template Stylesheet or template name of the theme.
+	 * @param string $stylesheet_or_template The stylesheet or template name of the theme.
 	 */
 	return apply_filters( 'theme_root_uri', $theme_root_uri, get_option( 'siteurl' ), $stylesheet_or_template );
 }
@@ -659,10 +660,10 @@ function get_theme_root_uri( $stylesheet_or_template = false, $theme_root = fals
  *
  * @global array $wp_theme_directories
  *
- * @param string $stylesheet_or_template The stylesheet or template name of the theme
+ * @param string $stylesheet_or_template The stylesheet or template name of the theme.
  * @param bool   $skip_cache             Optional. Whether to skip the cache.
  *                                       Defaults to false, meaning the cache is used.
- * @return string Theme root
+ * @return string Theme root.
  */
 function get_raw_theme_root( $stylesheet_or_template, $skip_cache = false ) {
 	global $wp_theme_directories;
@@ -904,15 +905,15 @@ function get_theme_mods() {
  * Retrieve theme modification value for the current theme.
  *
  * If the modification name does not exist, then the $default will be passed
- * through {@link https://secure.php.net/sprintf sprintf()} PHP function with the first
- * string the template directory URI and the second string the stylesheet
- * directory URI.
+ * through {@link https://secure.php.net/sprintf sprintf()} PHP function with
+ * the template directory URI as the first string and the stylesheet directory URI
+ * as the second string.
  *
  * @since 2.1.0
  *
- * @param string      $name    Theme modification name.
- * @param bool|string $default
- * @return mixed
+ * @param string       $name    Theme modification name.
+ * @param string|false $default Optional. Theme modification default value. Default false.
+ * @return mixed Theme modification value.
  */
 function get_theme_mod( $name, $default = false ) {
 	$mods = get_theme_mods();
@@ -921,10 +922,9 @@ function get_theme_mod( $name, $default = false ) {
 		/**
 		 * Filters the theme modification, or 'theme_mod', value.
 		 *
-		 * The dynamic portion of the hook name, `$name`, refers to
-		 * the key name of the modification array. For example,
-		 * 'header_textcolor', 'header_image', and so on depending
-		 * on the theme options.
+		 * The dynamic portion of the hook name, `$name`, refers to the key name
+		 * of the modification array. For example, 'header_textcolor', 'header_image',
+		 * and so on depending on the theme options.
 		 *
 		 * @since 2.2.0
 		 *
@@ -934,7 +934,10 @@ function get_theme_mod( $name, $default = false ) {
 	}
 
 	if ( is_string( $default ) ) {
-		$default = sprintf( $default, get_template_directory_uri(), get_stylesheet_directory_uri() );
+		// Only run the replacement if an sprintf() string format pattern was found.
+		if ( preg_match( '#(?<!%)%(?:\d+\$?)?s#', $default ) ) {
+			$default = sprintf( $default, get_template_directory_uri(), get_stylesheet_directory_uri() );
+		}
 	}
 
 	/** This filter is documented in wp-includes/theme.php */
@@ -954,16 +957,16 @@ function set_theme_mod( $name, $value ) {
 	$old_value = isset( $mods[ $name ] ) ? $mods[ $name ] : false;
 
 	/**
-	 * Filters the theme mod value on save.
+	 * Filters the theme modification, or 'theme_mod', value on save.
 	 *
-	 * The dynamic portion of the hook name, `$name`, refers to the key name of
-	 * the modification array. For example, 'header_textcolor', 'header_image',
+	 * The dynamic portion of the hook name, `$name`, refers to the key name
+	 * of the modification array. For example, 'header_textcolor', 'header_image',
 	 * and so on depending on the theme options.
 	 *
 	 * @since 3.9.0
 	 *
-	 * @param string $value     The new value of the theme mod.
-	 * @param string $old_value The current value of the theme mod.
+	 * @param string $value     The new value of the theme modification.
+	 * @param string $old_value The current value of the theme modification.
 	 */
 	$mods[ $name ] = apply_filters( "pre_set_theme_mod_{$name}", $value, $old_value );
 
@@ -2188,17 +2191,26 @@ function get_theme_starter_content() {
 			'home'             => array(
 				'post_type'    => 'page',
 				'post_title'   => _x( 'Home', 'Theme starter content' ),
-				'post_content' => _x( 'Welcome to your site! This is your homepage, which is what most visitors will see when they come to your site for the first time.', 'Theme starter content' ),
+				'post_content' => sprintf(
+					"<!-- wp:paragraph -->\n<p>%s</p>\n<!-- /wp:paragraph -->",
+					_x( 'Welcome to your site! This is your homepage, which is what most visitors will see when they come to your site for the first time.', 'Theme starter content' )
+				),
 			),
 			'about'            => array(
 				'post_type'    => 'page',
 				'post_title'   => _x( 'About', 'Theme starter content' ),
-				'post_content' => _x( 'You might be an artist who would like to introduce yourself and your work here or maybe you&rsquo;re a business with a mission to describe.', 'Theme starter content' ),
+				'post_content' => sprintf(
+					"<!-- wp:paragraph -->\n<p>%s</p>\n<!-- /wp:paragraph -->",
+					_x( 'You might be an artist who would like to introduce yourself and your work here or maybe you&rsquo;re a business with a mission to describe.', 'Theme starter content' )
+				),
 			),
 			'contact'          => array(
 				'post_type'    => 'page',
 				'post_title'   => _x( 'Contact', 'Theme starter content' ),
-				'post_content' => _x( 'This is a page with some basic contact information, such as an address and phone number. You might also try a plugin to add a contact form.', 'Theme starter content' ),
+				'post_content' => sprintf(
+					"<!-- wp:paragraph -->\n<p>%s</p>\n<!-- /wp:paragraph -->",
+					_x( 'This is a page with some basic contact information, such as an address and phone number. You might also try a plugin to add a contact form.', 'Theme starter content' )
+				),
 			),
 			'blog'             => array(
 				'post_type'  => 'page',
@@ -2212,7 +2224,10 @@ function get_theme_starter_content() {
 			'homepage-section' => array(
 				'post_type'    => 'page',
 				'post_title'   => _x( 'A homepage section', 'Theme starter content' ),
-				'post_content' => _x( 'This is an example of a homepage section. Homepage sections can be any page other than the homepage itself, including the page that shows your latest blog posts.', 'Theme starter content' ),
+				'post_content' => sprintf(
+					"<!-- wp:paragraph -->\n<p>%s</p>\n<!-- /wp:paragraph -->",
+					_x( 'This is an example of a homepage section. Homepage sections can be any page other than the homepage itself, including the page that shows your latest blog posts.', 'Theme starter content' )
+				),
 			),
 		),
 	);
@@ -2354,6 +2369,8 @@ function get_theme_starter_content() {
  *              `disable-custom-font-sizes`, `editor-color-palette`, `editor-font-sizes`,
  *              `editor-styles`, and `wp-block-styles` features were added.
  * @since 5.3.0 The `html5` feature now also accepts 'script' and 'style'.
+ * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
+ *              by adding it to the function signature.
  *
  * @global array $_wp_theme_features
  *
@@ -2668,6 +2685,8 @@ function _custom_logo_header_styles() {
  *     get_theme_support( 'custom-header', 'width' );
  *
  * @since 3.1.0
+ * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
+ *              by adding it to the function signature.
  *
  * @global array $_wp_theme_features
  *
@@ -2788,6 +2807,8 @@ function _remove_theme_support( $feature ) {
  *     current_theme_supports( 'html5', 'comment-form' );
  *
  * @since 2.9.0
+ * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
+ *              by adding it to the function signature.
  *
  * @global array $_wp_theme_features
  *
@@ -2849,9 +2870,9 @@ function current_theme_supports( $feature, ...$args ) {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @param bool   true     Whether the current theme supports the given feature. Default true.
-	 * @param array  $args    Array of arguments for the feature.
-	 * @param string $feature The theme feature.
+	 * @param bool   $supports Whether the current theme supports the given feature. Default true.
+	 * @param array  $args     Array of arguments for the feature.
+	 * @param string $feature  The theme feature.
 	 */
 	return apply_filters( "current_theme_supports-{$feature}", true, $args, $_wp_theme_features[ $feature ] ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 }
@@ -3180,7 +3201,7 @@ function _wp_customize_loader_settings() {
  *                           The theme's stylesheet will be urlencoded if necessary.
  * @return string
  */
-function wp_customize_url( $stylesheet = null ) {
+function wp_customize_url( $stylesheet = '' ) {
 	$url = admin_url( 'customize.php' );
 	if ( $stylesheet ) {
 		$url .= '?theme=' . urlencode( $stylesheet );

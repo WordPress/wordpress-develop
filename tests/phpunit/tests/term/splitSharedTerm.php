@@ -228,7 +228,7 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 33187
-	 * @group navmenus
+	 * @group menu
 	 */
 	public function test_nav_menu_locations_should_be_updated_on_split() {
 		global $wpdb;
@@ -257,7 +257,7 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 33187
-	 * @group navmenus
+	 * @group menu
 	 */
 	public function test_nav_menu_term_should_retain_menu_items_on_split() {
 		global $wpdb;

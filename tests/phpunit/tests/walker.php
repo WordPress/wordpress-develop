@@ -2,7 +2,7 @@
 
 /**
  * @group post
- * @group navmenus
+ * @group menu
  * @group taxonomy
  * @group walker
  */

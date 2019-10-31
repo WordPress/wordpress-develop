@@ -19,8 +19,8 @@
  * Custom Logo
  * WP Body Open
  * Register Sidebars
- * Enqueue Block editor assets
- * Classic Editor Style
+ * Enqueue block editor assets
+ * Enqueue classic editor styles
  * Block editor settings
  */
 
@@ -60,16 +60,15 @@ function twentytwenty_theme_support() {
 	// Set post thumbnail size.
 	set_post_thumbnail_size( 1200, 9999 );
 
-	// Add custom image sizes.
+	// Add custom image size used in Cover Template.
 	add_image_size( 'twentytwenty-fullscreen', 1980, 9999 );
 
 	// Custom logo.
-	$logo_id     = get_theme_mod( 'custom_logo' );
 	$logo_width  = 120;
 	$logo_height = 90;
 
 	// If the retina setting is active, double the recommended width and height.
-	if ( get_theme_mod( 'twentytwenty_retina_logo', false ) ) {
+	if ( get_theme_mod( 'retina_logo', false ) ) {
 		$logo_width  = floor( $logo_width * 2 );
 		$logo_height = floor( $logo_height * 2 );
 	}
@@ -81,7 +80,6 @@ function twentytwenty_theme_support() {
 			'width'       => $logo_width,
 			'flex-height' => true,
 			'flex-width'  => true,
-			'header-text' => array( 'site-title', 'site-description' ),
 		)
 	);
 
@@ -163,6 +161,9 @@ require get_template_directory() . '/classes/class-twentytwenty-walker-page.php'
 // Custom script loader class.
 require get_template_directory() . '/classes/class-twentytwenty-script-loader.php';
 
+// Non-latin language handling.
+require get_template_directory() . '/classes/class-twentytwenty-non-latin-languages.php';
+
 // Custom CSS.
 require get_template_directory() . '/inc/custom-css.php';
 
@@ -174,27 +175,9 @@ require get_template_directory() . '/inc/starter-content.php';
  */
 function twentytwenty_register_styles() {
 
-	$theme_version    = wp_get_theme()->get( 'Version' );
-	$css_dependencies = array();
+	$theme_version = wp_get_theme()->get( 'Version' );
 
-	/**
-	* Filter to load, unload Font Awesome CSS
-	*
-	* By default, only load the Font Awesome fonts if the social menu is in use or
-	* using filter Font Awesome css be loaded
-	*
-	* @since 1.0.0
-	*
-	* @param bool Whether to load font awesome, Default false.
-	*/
-	$load_font_awesome = apply_filters( 'twentytwenty_load_font_awesome', has_nav_menu( 'social' ) );
-
-	if ( $load_font_awesome ) {
-		wp_register_style( 'font-awesome', get_template_directory_uri() . '/assets/css/font-awesome.css', false, '5.10.2', 'all' );
-		$css_dependencies[] = 'font-awesome';
-	}
-
-	wp_enqueue_style( 'twentytwenty-style', get_template_directory_uri() . '/style.css', $css_dependencies, $theme_version );
+	wp_enqueue_style( 'twentytwenty-style', get_stylesheet_uri(), array(), $theme_version );
 	wp_style_add_data( 'twentytwenty-style', 'rtl', 'replace' );
 
 	// Add output of Customizer settings as inline style.
@@ -226,6 +209,40 @@ function twentytwenty_register_scripts() {
 add_action( 'wp_enqueue_scripts', 'twentytwenty_register_scripts' );
 
 /**
+ * Fix skip link focus in IE11.
+ *
+ * This does not enqueue the script because it is tiny and because it is only for IE11,
+ * thus it does not warrant having an entire dedicated blocking script being loaded.
+ *
+ * @link https://git.io/vWdr2
+ */
+function twentytwenty_skip_link_focus_fix() {
+	// The following is minified via `terser --compress --mangle -- assets/js/skip-link-focus-fix.js`.
+	?>
+	<script>
+	/(trident|msie)/i.test(navigator.userAgent)&&document.getElementById&&window.addEventListener&&window.addEventListener("hashchange",function(){var t,e=location.hash.substring(1);/^[A-z0-9_-]+$/.test(e)&&(t=document.getElementById(e))&&(/^(?:a|select|input|button|textarea)$/i.test(t.tagName)||(t.tabIndex=-1),t.focus())},!1);
+	</script>
+	<?php
+}
+add_action( 'wp_print_footer_scripts', 'twentytwenty_skip_link_focus_fix' );
+
+/** Enqueue non-latin language styles
+ *
+ * @since 1.0.0
+ *
+ * @return void
+ */
+function twentytwenty_non_latin_languages() {
+	$custom_css = TwentyTwenty_Non_Latin_Languages::get_non_latin_css( 'front-end' );
+
+	if ( $custom_css ) {
+		wp_add_inline_style( 'twentytwenty-style', $custom_css );
+	}
+}
+
+add_action( 'wp_enqueue_scripts', 'twentytwenty_non_latin_languages' );
+
+/**
  * Register navigation menus uses wp_nav_menu in five places.
  */
 function twentytwenty_menus() {
@@ -247,6 +264,8 @@ add_action( 'init', 'twentytwenty_menus' );
  * Get the information about the logo.
  *
  * @param string $html The HTML output from get_custom_logo (core function).
+ *
+ * @return string $html
  */
 function twentytwenty_get_custom_logo( $html ) {
 
@@ -278,7 +297,17 @@ function twentytwenty_get_custom_logo( $html ) {
 				"height=\"{$logo_height}\"",
 			);
 
+			// Add a style attribute with the height, or append the height to the style attribute if the style attribute already exists.
+			if ( strpos( $html, ' style=' ) === false ) {
+				$search[]  = '/(src=)/';
+				$replace[] = "style=\"height: {$logo_height}px;\" src=";
+			} else {
+				$search[]  = '/(style="[^"]*)/';
+				$replace[] = "$1 height: {$logo_height}px;";
+			}
+
 			$html = preg_replace( $search, $replace, $html );
+
 		}
 	}
 
@@ -302,7 +331,7 @@ if ( ! function_exists( 'wp_body_open' ) ) {
  * Include a skip to content link at the top of the page so that users can bypass the menu.
  */
 function twentytwenty_skip_link() {
-	echo '<a class="skip-link screen-reader-text" href="#site-content">' . __( 'Skip to the content', 'twentytwenty' ) . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- core trusts translations
+	echo '<a class="skip-link screen-reader-text" href="#site-content">' . __( 'Skip to the content', 'twentytwenty' ) . '</a>';
 }
 
 add_action( 'wp_body_open', 'twentytwenty_skip_link', 5 );
@@ -364,6 +393,9 @@ function twentytwenty_block_editor_styles() {
 	// Add inline style from the Customizer.
 	wp_add_inline_style( 'twentytwenty-block-editor-styles', twentytwenty_get_customizer_css( 'block-editor' ) );
 
+	// Add inline style for non-latin fonts.
+	wp_add_inline_style( 'twentytwenty-block-editor-styles', TwentyTwenty_Non_Latin_Languages::get_non_latin_css( 'block-editor' ) );
+
 	// Enqueue the editor script.
 	wp_enqueue_script( 'twentytwenty-block-editor-script', get_theme_file_uri( '/assets/js/editor-script-block.js' ), array( 'wp-blocks', 'wp-dom' ), wp_get_theme()->get( 'Version' ), true );
 }
@@ -386,10 +418,12 @@ function twentytwenty_classic_editor_styles() {
 add_action( 'init', 'twentytwenty_classic_editor_styles' );
 
 /**
- * Output Customizer Settings in the Classic Editor.
+ * Output Customizer settings in the classic editor.
  * Adds styles to the head of the TinyMCE iframe. Kudos to @Otto42 for the original solution.
  *
  * @param array $mce_init TinyMCE styles.
+ *
+ * @return array $mce_init TinyMCE styles.
  */
 function twentytwenty_add_classic_editor_customizer_styles( $mce_init ) {
 
@@ -408,6 +442,35 @@ function twentytwenty_add_classic_editor_customizer_styles( $mce_init ) {
 add_filter( 'tiny_mce_before_init', 'twentytwenty_add_classic_editor_customizer_styles' );
 
 /**
+ * Output non-latin font styles in the classic editor.
+ * Adds styles to the head of the TinyMCE iframe. Kudos to @Otto42 for the original solution.
+ *
+ * @param array $mce_init TinyMCE styles.
+ *
+ * @return array $mce_init TinyMCE styles.
+ */
+function twentytwenty_add_classic_editor_non_latin_styles( $mce_init ) {
+
+	$styles = TwentyTwenty_Non_Latin_Languages::get_non_latin_css( 'classic-editor' );
+
+	// Return if there are no styles to add.
+	if ( ! $styles ) {
+		return $mce_init;
+	}
+
+	if ( ! isset( $mce_init['content_style'] ) ) {
+		$mce_init['content_style'] = $styles . ' ';
+	} else {
+		$mce_init['content_style'] .= ' ' . $styles . ' ';
+	}
+
+	return $mce_init;
+
+}
+
+add_filter( 'tiny_mce_before_init', 'twentytwenty_add_classic_editor_non_latin_styles' );
+
+/**
  * Block Editor Settings.
  * Add custom colors and font sizes to the block editor.
  */
@@ -416,17 +479,22 @@ function twentytwenty_block_editor_settings() {
 	// Block Editor Palette.
 	$editor_color_palette = array(
 		array(
-			'name'  => esc_html__( 'Accent Color', 'twentytwenty' ),
+			'name'  => __( 'Accent Color', 'twentytwenty' ),
 			'slug'  => 'accent',
 			'color' => twentytwenty_get_color_for_area( 'content', 'accent' ),
 		),
 		array(
-			'name'  => esc_html__( 'Secondary', 'twentytwenty' ),
+			'name'  => __( 'Primary', 'twentytwenty' ),
+			'slug'  => 'primary',
+			'color' => twentytwenty_get_color_for_area( 'content', 'text' ),
+		),
+		array(
+			'name'  => __( 'Secondary', 'twentytwenty' ),
 			'slug'  => 'secondary',
 			'color' => twentytwenty_get_color_for_area( 'content', 'secondary' ),
 		),
 		array(
-			'name'  => esc_html__( 'Subtle Background', 'twentytwenty' ),
+			'name'  => __( 'Subtle Background', 'twentytwenty' ),
 			'slug'  => 'subtle-background',
 			'color' => twentytwenty_get_color_for_area( 'content', 'borders' ),
 		),
@@ -449,31 +517,31 @@ function twentytwenty_block_editor_settings() {
 		add_theme_support( 'editor-color-palette', $editor_color_palette );
 	}
 
-	// Gutenberg Font Sizes.
+	// Block Editor Font Sizes.
 	add_theme_support(
 		'editor-font-sizes',
 		array(
 			array(
-				'name'      => _x( 'Small', 'Name of the small font size in Gutenberg', 'twentytwenty' ),
-				'shortName' => _x( 'S', 'Short name of the small font size in the Gutenberg editor.', 'twentytwenty' ),
-				'size'      => 16,
+				'name'      => _x( 'Small', 'Name of the small font size in the block editor', 'twentytwenty' ),
+				'shortName' => _x( 'S', 'Short name of the small font size in the block editor.', 'twentytwenty' ),
+				'size'      => 18,
 				'slug'      => 'small',
 			),
 			array(
-				'name'      => _x( 'Regular', 'Name of the regular font size in Gutenberg', 'twentytwenty' ),
-				'shortName' => _x( 'M', 'Short name of the regular font size in the Gutenberg editor.', 'twentytwenty' ),
-				'size'      => 18,
+				'name'      => _x( 'Regular', 'Name of the regular font size in the block editor', 'twentytwenty' ),
+				'shortName' => _x( 'M', 'Short name of the regular font size in the block editor.', 'twentytwenty' ),
+				'size'      => 21,
 				'slug'      => 'regular',
 			),
 			array(
-				'name'      => _x( 'Large', 'Name of the large font size in Gutenberg', 'twentytwenty' ),
-				'shortName' => _x( 'L', 'Short name of the large font size in the Gutenberg editor.', 'twentytwenty' ),
-				'size'      => 24,
+				'name'      => _x( 'Large', 'Name of the large font size in the block editor', 'twentytwenty' ),
+				'shortName' => _x( 'L', 'Short name of the large font size in the block editor.', 'twentytwenty' ),
+				'size'      => 26.25,
 				'slug'      => 'large',
 			),
 			array(
-				'name'      => _x( 'Larger', 'Name of the larger font size in Gutenberg', 'twentytwenty' ),
-				'shortName' => _x( 'XL', 'Short name of the larger font size in the Gutenberg editor.', 'twentytwenty' ),
+				'name'      => _x( 'Larger', 'Name of the larger font size in the block editor', 'twentytwenty' ),
+				'shortName' => _x( 'XL', 'Short name of the larger font size in the block editor.', 'twentytwenty' ),
 				'size'      => 32,
 				'slug'      => 'larger',
 			),
@@ -491,17 +559,16 @@ function twentytwenty_block_editor_settings() {
 add_action( 'after_setup_theme', 'twentytwenty_block_editor_settings' );
 
 /**
- * Read More Link
- * Overwrite default (more ...) tag
+ * Overwrite default more tag with styling and screen reader markup.
+ *
+ * @param string $html The default output HTML for the more tag.
+ *
+ * @return string $html
  */
-function twentytwenty_read_more_tag() {
-	return sprintf(
-		'<a href="%1$s" class="more-link faux-button">%2$s <span class="screen-reader-text">"%3$s"</span></a>',
-		esc_url( get_permalink( get_the_ID() ) ),
-		esc_html__( 'Continue reading', 'twentytwenty' ),
-		get_the_title( get_the_ID() )
-	);
+function twentytwenty_read_more_tag( $html ) {
+	return preg_replace( '/<a.*>(.*)<\/a>/iU', sprintf( '<span class="faux-button">$1</span> <span class="screen-reader-text">"%1$s"</span>', get_the_title( get_the_ID() ) ), $html );
 }
+
 add_filter( 'the_content_more_link', 'twentytwenty_read_more_tag' );
 
 /**
@@ -513,6 +580,9 @@ add_filter( 'the_content_more_link', 'twentytwenty_read_more_tag' );
  */
 function twentytwenty_customize_controls_enqueue_scripts() {
 	$theme_version = wp_get_theme()->get( 'Version' );
+
+	// Add main customizer js file.
+	wp_enqueue_script( 'twentytwenty-customize', get_template_directory_uri() . '/assets/js/customize.js', array( 'jquery' ), $theme_version, false );
 
 	// Add script for color calculations.
 	wp_enqueue_script( 'twentytwenty-color-calculations', get_template_directory_uri() . '/assets/js/color-calculations.js', array( 'wp-color-picker' ), $theme_version, false );
@@ -622,27 +692,29 @@ function twentytwenty_get_elements_array() {
 	$elements = array(
 		'content'       => array(
 			'accent'     => array(
-				'color'            => array( '.color-accent', '.color-accent-hover:hover', '.color-accent-hover:focus', '.has-accent-color', '.has-drop-cap:not(:focus):first-letter', '.wp-block-button.is-style-outline', 'a' ),
-				'border-color'     => array( 'blockquote', '.border-color-accent', '.border-color-accent-hover:hover', '.border-color-accent-hover:focus' ),
-				'background'       => array( 'button:not(.toggle)', '.button', '.faux-button', '.wp-block-button__link', '.wp-block-file__button', 'input[type="button"]', 'input[type="reset"]', 'input[type="submit"]' ),
-				'background-color' => array( '.bg-accent', '.bg-accent-hover:hover', '.bg-accent-hover:focus', '.has-accent-background-color', '.comment-reply-link' ),
-				'fill'             => array( '.fill-children-accent', '.fill-children-accent *' ),
+				'color'        => array( '.color-accent', '.color-accent-hover:hover', '.color-accent-hover:focus', ':root .has-accent-color', '.has-drop-cap:not(:focus):first-letter', '.wp-block-button.is-style-outline', 'a' ),
+				'border-color' => array( 'blockquote', '.border-color-accent', '.border-color-accent-hover:hover', '.border-color-accent-hover:focus' ),
+				'background'   => array( 'button:not(.toggle)', '.button', '.faux-button', '.wp-block-button__link', '.wp-block-file .wp-block-file__button', 'input[type="button"]', 'input[type="reset"]', 'input[type="submit"]', '.bg-accent', '.bg-accent-hover:hover', '.bg-accent-hover:focus', ':root .has-accent-background-color', '.comment-reply-link' ),
+				'fill'         => array( '.fill-children-accent', '.fill-children-accent *' ),
 			),
 			'background' => array(
-				'color'      => array( 'button', '.button', '.faux-button', '.wp-block-button__link', '.wp-block-button__link:active', '.wp-block-button__link:focus', '.wp-block-button__link:visited', '.wp-block-button__link:hover', '.wp-block-file__button', 'input[type="button"]', 'input[type="reset"]', 'input[type="submit"]', '.comment-reply-link' ),
-				'background' => array(),
+				'color'      => array( ':root .has-background-color', 'button', '.button', '.faux-button', '.wp-block-button__link', '.wp-block-file__button', 'input[type="button"]', 'input[type="reset"]', 'input[type="submit"]', '.wp-block-button', '.comment-reply-link' ),
+				'background' => array( ':root .has-background-background-color' ),
 			),
 			'text'       => array(
-				'color' => array( 'body', '.entry-title a' ),
+				'color'      => array( 'body', '.entry-title a', ':root .has-primary-color' ),
+				'background' => array( ':root .has-primary-background-color' ),
 			),
 			'secondary'  => array(
-				'color' => array( 'cite', 'figcaption', '.wp-caption-text', '.post-meta', '.entry-content .wp-block-archives li', '.entry-content .wp-block-categories li', '.entry-content .wp-block-latest-posts li', '.wp-block-latest-comments__comment-date', '.wp-block-latest-posts__post-date', '.wp-block-embed figcaption', '.wp-block-image figcaption', '.wp-block-pullquote cite', '.comment-metadata', '.comment-respond .comment-notes', '.comment-respond .logged-in-as', '.pagination .dots', '.entry-content hr:not(.has-background)', 'hr.styled-separator' ),
+				'color'      => array( 'cite', 'figcaption', '.wp-caption-text', '.post-meta', '.entry-content .wp-block-archives li', '.entry-content .wp-block-categories li', '.entry-content .wp-block-latest-posts li', '.wp-block-latest-comments__comment-date', '.wp-block-latest-posts__post-date', '.wp-block-embed figcaption', '.wp-block-image figcaption', '.wp-block-pullquote cite', '.comment-metadata', '.comment-respond .comment-notes', '.comment-respond .logged-in-as', '.pagination .dots', '.entry-content hr:not(.has-background)', 'hr.styled-separator', ':root .has-secondary-color' ),
+				'background' => array( ':root .has-secondary-background-color' ),
 			),
 			'borders'    => array(
 				'border-color'        => array( 'pre', 'fieldset', 'input', 'textarea', 'table', 'table *', 'hr' ),
-				'background'          => array( 'caption', 'code', 'code', 'kbd', 'samp', '.wp-block-table.is-style-stripes tbody tr:nth-child(odd)' ),
+				'background'          => array( 'caption', 'code', 'code', 'kbd', 'samp', '.wp-block-table.is-style-stripes tbody tr:nth-child(odd)', ':root .has-subtle-background-background-color' ),
 				'border-bottom-color' => array( '.wp-block-table.is-style-stripes' ),
 				'border-top-color'    => array( '.wp-block-latest-posts.is-grid li' ),
+				'color'               => array( ':root .has-subtle-background-color' ),
 			),
 		),
 		'header-footer' => array(
@@ -651,7 +723,7 @@ function twentytwenty_get_elements_array() {
 				'background' => array( '.social-icons a', '#site-footer button:not(.toggle)', '#site-footer .button', '#site-footer .faux-button', '#site-footer .wp-block-button__link', '#site-footer .wp-block-file__button', '#site-footer input[type="button"]', '#site-footer input[type="reset"]', '#site-footer input[type="submit"]' ),
 			),
 			'background' => array(
-				'color'      => array( '.social-icons a', '.overlay-header .header-inner', '.primary-menu ul', '.header-footer-group button', '.header-footer-group .button', '.header-footer-group .faux-button', '.header-footer-group .wp-block-button:not(.is-style-outline) .wp-block-button__link', '.header-footer-group .wp-block-file__button', '.header-footer-group input[type="button"]', '.header-footer-group input[type="reset"]', '.header-footer-group input[type="submit"]' ),
+				'color'      => array( '.social-icons a', 'body:not(.overlay-header) .primary-menu ul', '.header-footer-group button', '.header-footer-group .button', '.header-footer-group .faux-button', '.header-footer-group .wp-block-button:not(.is-style-outline) .wp-block-button__link', '.header-footer-group .wp-block-file__button', '.header-footer-group input[type="button"]', '.header-footer-group input[type="reset"]', '.header-footer-group input[type="submit"]' ),
 				'background' => array( '#site-header', '.footer-nav-widgets-wrapper', '#site-footer', '.menu-modal', '.menu-modal-inner', '.search-modal-inner', '.archive-header', '.singular .entry-header', '.singular .featured-media:before', '.wp-block-pullquote:before' ),
 			),
 			'text'       => array(

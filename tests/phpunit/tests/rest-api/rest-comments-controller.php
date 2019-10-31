@@ -13,6 +13,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	protected static $superadmin_id;
 	protected static $admin_id;
 	protected static $editor_id;
+	protected static $moderator_id;
 	protected static $subscriber_id;
 	protected static $author_id;
 
@@ -27,6 +28,15 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	protected $endpoint;
 
 	public static function wpSetUpBeforeClass( $factory ) {
+		add_role(
+			'comment_moderator',
+			'Comment Moderator',
+			array(
+				'read'              => true,
+				'moderate_comments' => true,
+			)
+		);
+
 		self::$superadmin_id = $factory->user->create(
 			array(
 				'role'       => 'administrator',
@@ -41,6 +51,11 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		self::$editor_id     = $factory->user->create(
 			array(
 				'role' => 'editor',
+			)
+		);
+		self::$moderator_id  = $factory->user->create(
+			array(
+				'role' => 'comment_moderator',
 			)
 		);
 		self::$subscriber_id = $factory->user->create(
@@ -98,9 +113,12 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public static function wpTearDownAfterClass() {
+		remove_role( 'comment_moderator' );
+
 		self::delete_user( self::$superadmin_id );
 		self::delete_user( self::$admin_id );
 		self::delete_user( self::$editor_id );
+		self::delete_user( self::$moderator_id );
 		self::delete_user( self::$subscriber_id );
 		self::delete_user( self::$author_id );
 
@@ -2478,6 +2496,31 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 401 );
+	}
+
+	/**
+	 * @ticket 47024
+	 */
+	public function test_update_comment_when_can_moderate_comments() {
+		wp_set_current_user( self::$moderator_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', self::$approved_id ) );
+		$params  = array(
+			'content' => 'Updated comment.',
+			'date'    => '2019-10-07T23:14:25',
+		);
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$comment = $response->get_data();
+		$updated = get_comment( self::$approved_id );
+
+		$this->assertEquals( $params['content'], $updated->comment_content );
+		$this->assertEquals( self::$post_id, $comment['post'] );
+		$this->assertEquals( '2019-10-07T23:14:25', $comment['date'] );
 	}
 
 	public function test_update_comment_private_post_invalid_permission() {

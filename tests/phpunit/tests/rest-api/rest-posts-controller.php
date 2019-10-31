@@ -1363,6 +1363,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$this->assertEquals( rest_url( '/wp/v2/posts/' . self::$post_id ), $links['self'][0]['href'] );
 		$this->assertEquals( rest_url( '/wp/v2/posts' ), $links['collection'][0]['href'] );
+		$this->assertArrayNotHasKey( 'embeddable', $links['self'][0]['attributes'] );
 
 		$this->assertEquals( rest_url( '/wp/v2/types/' . get_post_type( self::$post_id ) ), $links['about'][0]['href'] );
 
@@ -4614,6 +4615,37 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			WP_REST_Blocks_Controller::class,
 			get_post_type_object( 'wp_block' )->get_rest_controller()
 		);
+	}
+
+	/**
+	 * @ticket 45677
+	 */
+	public function test_get_for_post_type_returns_null_for_invalid_provided_controller() {
+		register_post_type(
+			'test',
+			array(
+				'show_in_rest'    => true,
+				'rest_controller' => new \stdClass(),
+			)
+		);
+
+		$this->assertNull( get_post_type_object( 'test' )->get_rest_controller() );
+	}
+
+	/**
+	 * @ticket 45677
+	 */
+	public function test_get_for_post_type_returns_null_for_controller_class_mismatch() {
+		register_post_type(
+			'test',
+			array(
+				'show_in_rest'          => true,
+				'rest_controller_class' => WP_REST_Posts_Controller::class,
+				'rest_controller'       => new WP_REST_Terms_Controller( 'category' ),
+			)
+		);
+
+		$this->assertNull( get_post_type_object( 'test' )->get_rest_controller() );
 	}
 
 	public function tearDown() {

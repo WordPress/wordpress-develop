@@ -60,7 +60,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 
 		$actual_html = do_blocks( $original_html );
 
-		$this->assertEquals( $expected_html, $actual_html );
+		$this->assertEqualsIgnoreEOL( $expected_html, $actual_html );
 	}
 
 	/**
