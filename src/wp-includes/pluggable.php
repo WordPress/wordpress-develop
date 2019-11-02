@@ -1250,6 +1250,10 @@ if ( ! function_exists( 'wp_redirect' ) ) :
 			return false;
 		}
 
+		if ( 300 >= $status && 400 < $status ) {
+			wp_die( __( 'HTTP redirect status code must be a redirection code, 3xx.' ) );
+		}
+
 		$location = wp_sanitize_redirect( $location );
 
 		if ( ! $is_IIS && PHP_SAPI != 'cgi-fcgi' ) {
