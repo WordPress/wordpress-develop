@@ -68,6 +68,15 @@
 	wp.updates.searchTerm = '';
 
 	/**
+	 * Minimum number of characters before an ajax search is fired.
+	 *
+	 * @since 4.8.0
+	 *
+	 * @type {number}
+	 */
+	wp.updates.searchMinCharacters = 2;
+
+	/**
 	 * Whether filesystem credentials need to be requested from the user.
 	 *
 	 * @since 4.2.0
@@ -2187,6 +2196,18 @@
 			};
 			searchLocation = location.href.split( '?' )[ 0 ] + '?' + $.param( _.omit( data, [ '_ajax_nonce', 'pagenow' ] ) );
 
+			// Set the autocomplete attribute, turing off autocomplete 1 character before ajax search kicks in.
+			if ( 0 === $pluginInstallSearch.val().length || $pluginInstallSearch.val().length < wp.updates.searchMinCharacters - 1 ) {
+				$pluginInstallSearch.attr( 'autocomplete', 'on' );
+			} else {
+				$pluginInstallSearch.attr( 'autocomplete', 'off' );
+			}
+
+			// Don't search when user has typed a a minimum number of characters (default 2, 0 clears the search).
+			if ( 0 !== $pluginInstallSearch.val().length && $pluginInstallSearch.val().length < wp.updates.searchMinCharacters ) {
+				return;
+			}
+
 			// Clear on escape.
 			if ( 'keyup' === event.type && 27 === event.which ) {
 				event.target.value = '';
@@ -2240,6 +2261,7 @@
 
 		if ( $pluginSearch.length ) {
 			$pluginSearch.attr( 'aria-describedby', 'live-search-desc' );
+
 		}
 
 		/**
@@ -2256,6 +2278,18 @@
 				plugin_status: 'all'
 			},
 			queryArgs;
+
+			// Set the autocomplete attribute, turing off autocomplete 1 character before ajax search kicks in.
+			if ( 0 === $pluginSearch.val().length || $pluginSearch.val().length < wp.updates.searchMinCharacters - 1 ) {
+				$pluginSearch.attr( 'autocomplete', 'on' );
+			} else {
+				$pluginSearch.attr( 'autocomplete', 'off' );
+			}
+
+			// Don't search when user has typed a a minimum number of characters (default 2, 0 clears the search).
+			if ( 0 !== $pluginSearch.val().length && $pluginSearch.val().length < wp.updates.searchMinCharacters ) {
+				return;
+			}
 
 			// Clear on escape.
 			if ( 'keyup' === event.type && 27 === event.which ) {
