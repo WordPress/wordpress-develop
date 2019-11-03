@@ -70,7 +70,7 @@
 	/**
 	 * Minimum number of characters before an ajax search is fired.
 	 *
-	 * @since 4.8.0
+	 * @since 5.4.0
 	 *
 	 * @type {number}
 	 */
@@ -2178,6 +2178,9 @@
 			$pluginInstallSearch.attr( 'aria-describedby', 'live-search-desc' );
 		}
 
+		// Track the previous search string length.
+		var previousSearchStringLength = 0;
+
 		/**
 		 * Handles changes to the plugin search box on the new-plugin page,
 		 * searching the repository dynamically.
@@ -2185,7 +2188,8 @@
 		 * @since 4.6.0
 		 */
 		$pluginInstallSearch.on( 'keyup input', _.debounce( function( event, eventtype ) {
-			var $searchTab = $( '.plugin-install-search' ), data, searchLocation;
+			var $searchTab = $( '.plugin-install-search' ), data, searchLocation,
+				searchStringLength = $pluginInstallSearch.val().length;
 
 			data = {
 				_ajax_nonce: wp.updates.ajaxNonce,
@@ -2196,17 +2200,22 @@
 			};
 			searchLocation = location.href.split( '?' )[ 0 ] + '?' + $.param( _.omit( data, [ '_ajax_nonce', 'pagenow' ] ) );
 
-			// Set the autocomplete attribute, turing off autocomplete 1 character before ajax search kicks in.
-			if ( 0 === $pluginInstallSearch.val().length || $pluginInstallSearch.val().length < wp.updates.searchMinCharacters - 1 ) {
+			// Set the autocomplete attribute, turning off autocomplete 1 character before ajax search kicks in.
+			if ( 0 === searchStringLength || searchStringLength < wp.updates.searchMinCharacters ) {
 				$pluginInstallSearch.attr( 'autocomplete', 'on' );
 			} else {
 				$pluginInstallSearch.attr( 'autocomplete', 'off' );
 			}
 
-			// Don't search when user has typed a a minimum number of characters (default 2, 0 clears the search).
-			if ( 0 !== $pluginInstallSearch.val().length && $pluginInstallSearch.val().length < wp.updates.searchMinCharacters ) {
+			// Only search when user has typed a a minimum number of characters (default 2).
+			if (
+				0 !== searchStringLength &&
+				searchStringLength < wp.updates.searchMinCharacters &&
+				previousSearchStringLength < wp.updates.searchMinCharacters
+			) {
 				return;
 			}
+			previousSearchStringLength = searchStringLength;
 
 			// Clear on escape.
 			if ( 'keyup' === event.type && 27 === event.which ) {
@@ -2277,19 +2286,25 @@
 				pagenow:       pagenow,
 				plugin_status: 'all'
 			},
-			queryArgs;
+			queryArgs,
+			searchStringLength = $pluginSearch.val().length;
 
-			// Set the autocomplete attribute, turing off autocomplete 1 character before ajax search kicks in.
-			if ( 0 === $pluginSearch.val().length || $pluginSearch.val().length < wp.updates.searchMinCharacters - 1 ) {
+			// Set the autocomplete attribute, turning off autocomplete 1 character before ajax search kicks in.
+			if ( 0 === searchStringLength || searchStringLength < wp.updates.searchMinCharacters - 1 ) {
 				$pluginSearch.attr( 'autocomplete', 'on' );
 			} else {
 				$pluginSearch.attr( 'autocomplete', 'off' );
 			}
 
-			// Don't search when user has typed a a minimum number of characters (default 2, 0 clears the search).
-			if ( 0 !== $pluginSearch.val().length && $pluginSearch.val().length < wp.updates.searchMinCharacters ) {
+			// Only search when user has typed a a minimum number of characters (default 2).
+			if (
+				0 !== searchStringLength &&
+				searchStringLength < wp.updates.searchMinCharacters &&
+				previousSearchStringLength < wp.updates.searchMinCharacters
+			) {
 				return;
 			}
+			previousSearchStringLength = searchStringLength;
 
 			// Clear on escape.
 			if ( 'keyup' === event.type && 27 === event.which ) {
