@@ -2180,6 +2180,12 @@
 
 		// Track the previous search string length.
 		var previousSearchStringLength = 0;
+		wp.updates.shouldSearch = function( searchStringLength ) {
+			var shouldSearch = searchStringLength >= wp.updates.searchMinCharacters ||
+				previousSearchStringLength >= wp.updates.searchMinCharacters;
+			previousSearchStringLength = searchStringLength;
+			return shouldSearch;
+		}
 
 		/**
 		 * Handles changes to the plugin search box on the new-plugin page,
@@ -2199,23 +2205,14 @@
 				pagenow:     pagenow
 			};
 			searchLocation = location.href.split( '?' )[ 0 ] + '?' + $.param( _.omit( data, [ '_ajax_nonce', 'pagenow' ] ) );
-
+			console.log( wp.updates.shouldSearch( searchStringLength ) );
 			// Set the autocomplete attribute, turning off autocomplete 1 character before ajax search kicks in.
-			if ( 0 === searchStringLength || searchStringLength < wp.updates.searchMinCharacters - 1 ) {
-				$pluginInstallSearch.attr( 'autocomplete', 'on' );
-			} else {
+			if ( wp.updates.shouldSearch( searchStringLength ) ) {
 				$pluginInstallSearch.attr( 'autocomplete', 'off' );
-			}
-
-			// Only search when user has typed a a minimum number of characters (default 2).
-			if (
-				0 !== searchStringLength &&
-				searchStringLength < wp.updates.searchMinCharacters &&
-				previousSearchStringLength < wp.updates.searchMinCharacters
-			) {
+			} else {
+				$pluginInstallSearch.attr( 'autocomplete', 'on' );
 				return;
 			}
-			previousSearchStringLength = searchStringLength;
 
 			// Clear on escape.
 			if ( 'keyup' === event.type && 27 === event.which ) {
@@ -2289,22 +2286,15 @@
 			queryArgs,
 			searchStringLength = $pluginSearch.val().length;
 
-			// Set the autocomplete attribute, turning off autocomplete 1 character before ajax search kicks in.
-			if ( 0 === searchStringLength || searchStringLength < wp.updates.searchMinCharacters - 1 ) {
-				$pluginSearch.attr( 'autocomplete', 'on' );
-			} else {
-				$pluginSearch.attr( 'autocomplete', 'off' );
-			}
+			console.log( wp.updates.shouldSearch( searchStringLength ) );
 
-			// Only search when user has typed a a minimum number of characters (default 2).
-			if (
-				0 !== searchStringLength &&
-				searchStringLength < wp.updates.searchMinCharacters &&
-				previousSearchStringLength < wp.updates.searchMinCharacters
-			) {
+			// Set the autocomplete attribute, turning off autocomplete 1 character before ajax search kicks in.
+			if ( wp.updates.shouldSearch( searchStringLength ) ) {
+				$pluginSearch.attr( 'autocomplete', 'off' );
+			} else {
+				$pluginSearch.attr( 'autocomplete', 'on' );
 				return;
 			}
-			previousSearchStringLength = searchStringLength;
 
 			// Clear on escape.
 			if ( 'keyup' === event.type && 27 === event.which ) {
