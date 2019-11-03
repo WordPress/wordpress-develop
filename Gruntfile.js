@@ -167,8 +167,6 @@ module.exports = function(grunt) {
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery-migrate.min.js' ]: [ './node_modules/jquery-migrate/dist/jquery-migrate.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.form.js' ]: [ './node_modules/jquery-form/src/jquery.form.js' ],
 						[ WORKING_DIR + 'wp-includes/js/masonry.min.js' ]: [ './node_modules/masonry-layout/dist/masonry.pkgd.min.js' ],
-						[ WORKING_DIR + 'wp-includes/js/plupload/moxie.js' ]: [ './node_modules/plupload/js/moxie.js' ],
-						[ WORKING_DIR + 'wp-includes/js/plupload/plupload.js' ]: [ './node_modules/plupload/js/plupload.dev.js' ],
 						[ WORKING_DIR + 'wp-includes/js/twemoji.js' ]: [ './node_modules/twemoji/dist/twemoji.js' ],
 						[ WORKING_DIR + 'wp-includes/js/underscore.js' ]: [ './node_modules/underscore/underscore.js' ],
 					},
@@ -296,8 +294,6 @@ module.exports = function(grunt) {
 					[ WORKING_DIR + 'wp-includes/js/heartbeat.js' ]: [ './src/js/_enqueues/wp/heartbeat.js' ],
 					[ WORKING_DIR + 'wp-includes/js/mce-view.js' ]: [ './src/js/_enqueues/wp/mce-view.js' ],
 					[ WORKING_DIR + 'wp-includes/js/media-editor.js' ]: [ './src/js/_enqueues/wp/media/editor.js' ],
-					[ WORKING_DIR + 'wp-includes/js/plupload/handlers.js' ]: [ './src/js/_enqueues/wp/plupload/handlers.js' ],
-					[ WORKING_DIR + 'wp-includes/js/plupload/wp-plupload.js' ]: [ './src/js/_enqueues/wp/plupload/wp-plupload.js' ],
 					[ WORKING_DIR + 'wp-includes/js/quicktags.js' ]: [ './src/js/_enqueues/lib/quicktags.js' ],
 					[ WORKING_DIR + 'wp-includes/js/shortcode.js' ]: [ './src/js/_enqueues/wp/shortcode.js' ],
 					[ WORKING_DIR + 'wp-includes/js/utils.js' ]: [ './src/js/_enqueues/lib/cookies.js' ],
@@ -1079,28 +1075,6 @@ module.exports = function(grunt) {
 						dest: SOURCE_DIR + 'wp-includes/'
 					}
 				]
-			},
-			plupload: {
-				options: {
-					patterns: [
-						{
-							match: /;var MXI_DEBUG = true;/g,
-							replacement: function () {
-								return ';var MXI_DEBUG = false;';
-							}
-						}
-					]
-				},
-				files: [
-					{
-						expand: true,
-						flatten: true,
-						src: [
-							'build/wp-includes/js/plupload/moxie.js'
-						],
-						dest: 'build/wp-includes/js/plupload/'
-					}
-				]
 			}
 		},
 		_watch: {
@@ -1378,7 +1352,6 @@ module.exports = function(grunt) {
 		'webpack:prod',
 		'webpack:dev',
 		'copy:js',
-		'replace:plupload',
 		'file_append',
 		'uglify:all',
 		'concat:tinymce',
