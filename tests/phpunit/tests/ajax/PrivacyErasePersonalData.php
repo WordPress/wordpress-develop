@@ -177,7 +177,7 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 *
 	 * @param array $erasers List of data erasers.
 	 *
-	 * @return array $erasersList of data erasers.
+	 * @return array Array of data erasers.
 	 */
 	public function filter_eraser_callback_value( $erasers ) {
 		$erasers[ self::$eraser_key ]['callback'] = $this->new_callback_value;
@@ -204,7 +204,7 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 *
 	 * @param array $erasers Erasers.
 	 *
-	 * @return array $erasers Erasers.
+	 * @return array Erasers.
 	 */
 	public function filter_unset_eraser_index( $erasers ) {
 		if ( false === $this->key_to_unset ) {
@@ -236,7 +236,7 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 * @param string $email_address The requester's email address.
 	 * @param int    $page          Page number.
 	 *
-	 * @return array $return Export data.
+	 * @return array Export data.
 	 */
 	public function filter_unset_response_index( $email_address, $page = 1 ) {
 		$response = $this->callback_personal_data_eraser( $email_address, $page );
@@ -649,7 +649,7 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 * @param string $email_address The requester's email address.
 	 * @param int    $page          Page number.
 	 *
-	 * @return array $return Export data.
+	 * @return array Export data.
 	 */
 	public function filter_response_messages_invalid( $email_address, $page = 1 ) {
 		$response             = $this->callback_personal_data_eraser( $email_address, $page );
@@ -770,7 +770,7 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 *
 	 * @param array $erasers An array of personal data erasers.
 	 *
-	 * @return array $erasers An array of personal data erasers.
+	 * @return array An array of personal data erasers.
 	 */
 	public function register_custom_personal_data_eraser( $erasers ) {
 		$erasers[ self::$eraser_key ] = array(

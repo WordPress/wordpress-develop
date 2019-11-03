@@ -71,7 +71,7 @@ class Tests_Comment_IsAvatarCommentType extends WP_UnitTestCase {
 	 * @since 5.1.0
 	 *
 	 * @param  array $types An array of content types.
-	 * @return array $types An array of content types.
+	 * @return array An array of content types.
 	 */
 	public function _filter_avatar_comment_types( $types ) {
 		$types[] = 'review';

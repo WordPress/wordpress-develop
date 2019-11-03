@@ -210,7 +210,7 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 * @since 5.2.0
 	 *
 	 * @param  array $exporters An array of personal data exporters.
-	 * @return array $exporters An array of personal data exporters.
+	 * @return array An array of personal data exporters.
 	 */
 	public function filter_register_custom_personal_data_exporters( $exporters ) {
 		// Let's override other unrelated exporters.
