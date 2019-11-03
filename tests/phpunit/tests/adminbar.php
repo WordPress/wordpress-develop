@@ -346,6 +346,26 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 19647
+	 */
+	public function test_deprecated_menu_methods() {
+		$admin_bar = new WP_Admin_Bar();
+		$node_data = array( 'id' => 'test-node-19647' );
+
+		// Test add_menu() deprecation.
+		$this->setExpectedDeprecated( 'WP_Admin_Bar::add_menu' );
+		$admin_bar->add_menu( $node_data );
+		$node_test = $admin_bar->get_node( 'test-node-19647' );
+		$this->assertNotNull( $node_test );
+
+		// Test remove_menu() deprecation.
+		$this->setExpectedDeprecated( 'WP_Admin_Bar::remove_menu' );
+		$admin_bar->remove_menu( 'test-node-19647' );
+		$node_test = $admin_bar->get_node( 'test-node-19647' );
+		$this->assertNull( $node_test );
+	}
+
+	/**
 	 * @ticket 22247
 	 */
 	public function test_admin_bar_has_edit_link_for_existing_posts() {
