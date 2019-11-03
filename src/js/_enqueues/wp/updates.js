@@ -2201,7 +2201,7 @@
 			searchLocation = location.href.split( '?' )[ 0 ] + '?' + $.param( _.omit( data, [ '_ajax_nonce', 'pagenow' ] ) );
 
 			// Set the autocomplete attribute, turning off autocomplete 1 character before ajax search kicks in.
-			if ( 0 === searchStringLength || searchStringLength < wp.updates.searchMinCharacters ) {
+			if ( 0 === searchStringLength || searchStringLength < wp.updates.searchMinCharacters - 1 ) {
 				$pluginInstallSearch.attr( 'autocomplete', 'on' );
 			} else {
 				$pluginInstallSearch.attr( 'autocomplete', 'off' );
