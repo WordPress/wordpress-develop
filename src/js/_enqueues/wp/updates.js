@@ -2185,7 +2185,7 @@
 				previousSearchStringLength >= wp.updates.searchMinCharacters;
 			previousSearchStringLength = searchStringLength;
 			return shouldSearch;
-		}
+		};
 
 		/**
 		 * Handles changes to the plugin search box on the new-plugin page,
@@ -2205,7 +2205,7 @@
 				pagenow:     pagenow
 			};
 			searchLocation = location.href.split( '?' )[ 0 ] + '?' + $.param( _.omit( data, [ '_ajax_nonce', 'pagenow' ] ) );
-			console.log( wp.updates.shouldSearch( searchStringLength ) );
+
 			// Set the autocomplete attribute, turning off autocomplete 1 character before ajax search kicks in.
 			if ( wp.updates.shouldSearch( searchStringLength ) ) {
 				$pluginInstallSearch.attr( 'autocomplete', 'off' );
@@ -2285,8 +2285,6 @@
 			},
 			queryArgs,
 			searchStringLength = $pluginSearch.val().length;
-
-			console.log( wp.updates.shouldSearch( searchStringLength ) );
 
 			// Set the autocomplete attribute, turning off autocomplete 1 character before ajax search kicks in.
 			if ( wp.updates.shouldSearch( searchStringLength ) ) {
