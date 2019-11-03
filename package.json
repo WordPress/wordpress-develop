@@ -125,6 +125,7 @@
 		"lodash": "4.17.15",
 		"masonry-layout": "3.3.2",
 		"moment": "2.22.2",
+		"plupload": "2.3.6",
 		"polyfill-library": "3.27.4",
 		"react": "16.9.0",
 		"react-dom": "16.9.0",

@@ -180,7 +180,7 @@ EOT;
 	}
 
 	/**
-	 * @expectedException PHPUnit_Framework_Error_Notice
+	 * @expectedException PHPUnit_Framework_Error_Deprecated
 	 */
 	function test_json_encode_decode() {
 		require_once( ABSPATH . WPINC . '/class-json.php' );
