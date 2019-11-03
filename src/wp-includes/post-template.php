@@ -419,8 +419,8 @@ function get_the_excerpt( $post = null ) {
 	 * @since 1.2.0
 	 * @since 4.5.0 Introduced the `$post` parameter.
 	 *
-	 * @param string $post_excerpt The post excerpt.
-	 * @param WP_Post $post Post object.
+	 * @param string  $post_excerpt The post excerpt.
+	 * @param WP_Post $post         Post object.
 	 */
 	return apply_filters( 'get_the_excerpt', $post->post_excerpt, $post );
 }
@@ -1202,9 +1202,9 @@ function wp_dropdown_pages( $args = '' ) {
 	 * @since 2.1.0
 	 * @since 4.4.0 `$parsed_args` and `$pages` added as arguments.
 	 *
-	 * @param string $output      HTML output for drop down list of pages.
-	 * @param array  $parsed_args The parsed arguments array.
-	 * @param array  $pages       List of WP_Post objects returned by `get_pages()`
+	 * @param string    $output      HTML output for drop down list of pages.
+	 * @param array     $parsed_args The parsed arguments array.
+	 * @param WP_Post[] $pages       Array of the page objects.
 	 */
 	$html = apply_filters( 'wp_dropdown_pages', $output, $parsed_args, $pages );
 
@@ -1292,7 +1292,7 @@ function wp_list_pages( $args = '' ) {
 	 *
 	 * @since 2.1.0
 	 *
-	 * @param array $exclude_array An array of page IDs to exclude.
+	 * @param string[] $exclude_array An array of page IDs to exclude.
 	 */
 	$parsed_args['exclude'] = implode( ',', apply_filters( 'wp_list_pages_excludes', $exclude_array ) );
 
@@ -1330,9 +1330,9 @@ function wp_list_pages( $args = '' ) {
 	 *
 	 * @see wp_list_pages()
 	 *
-	 * @param string $output      HTML output of the pages list.
-	 * @param array  $parsed_args An array of page-listing arguments.
-	 * @param array  $pages       List of WP_Post objects returned by `get_pages()`
+	 * @param string    $output      HTML output of the pages list.
+	 * @param array     $parsed_args An array of page-listing arguments.
+	 * @param WP_Post[] $pages       Array of the page objects.
 	 */
 	$html = apply_filters( 'wp_list_pages', $output, $parsed_args, $pages );
 
@@ -1530,8 +1530,11 @@ function walk_page_tree( $pages, $depth, $current_page, $r ) {
 /**
  * Retrieve HTML dropdown (select) content for page list.
  *
- * @uses Walker_PageDropdown to create HTML dropdown content.
  * @since 2.1.0
+ * @since 5.3.0 Formalized the existing `...$args` parameter by adding it
+ *              to the function signature.
+ *
+ * @uses Walker_PageDropdown to create HTML dropdown content.
  * @see Walker_PageDropdown::walk() for parameters and return description.
  *
  * @return string

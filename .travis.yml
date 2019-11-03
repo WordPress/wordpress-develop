@@ -33,6 +33,8 @@ matrix:
     name: JS Tests
   - env: WP_TRAVISCI=test:compat COMPOSER_INSTALL=true NPM_INSTALL=false WP_INSTALL=false
     name: "PHP Compatibility Check"
+  - env: LOCAL_PHP=7.4-fpm WP_TRAVISCI=test:php
+    name: "PHPUnit Tests: PHP 7.4"
   - env: LOCAL_PHP=7.3-fpm WP_TRAVISCI=test:php
     name: "PHPUnit Tests: PHP 7.3"
   - env: LOCAL_PHP=7.3-fpm LOCAL_PHP_MEMCACHED=true WP_TRAVISCI=test:php
@@ -45,20 +47,17 @@ matrix:
     name: "PHPUnit Tests: PHP 7.0"
   - env: LOCAL_PHP=5.6-fpm WP_TRAVISCI=test:php
     name: "PHPUnit Tests: PHP 5.6"
-  - env: LOCAL_PHP=7.4-fpm WP_TRAVISCI=test:php
-    name: "PHPUnit Tests: PHP 7.4"
   - env: LOCAL_PHP=8.0-fpm WP_TRAVISCI=test:php
     name: "PHPUnit Tests: PHP 8.0"
   allow_failures:
   - env: WP_TRAVISCI=test:compat COMPOSER_INSTALL=true NPM_INSTALL=false WP_INSTALL=false
-  - env: LOCAL_PHP=7.4-fpm WP_TRAVISCI=test:php
   - env: LOCAL_PHP=8.0-fpm WP_TRAVISCI=test:php
   fast_finish: true
 
 before_install:
 - |
   if [[ "$WP_TRAVISCI" == "test:php" ]]; then
-      travis_retry svn checkout https://plugins.svn.wordpress.org/wordpress-importer/tags/0.6.3/ tests/phpunit/data/plugins/wordpress-importer
+      travis_retry svn checkout -r 2170172 https://plugins.svn.wordpress.org/wordpress-importer/trunk/ tests/phpunit/data/plugins/wordpress-importer
   fi
 - |
   sudo rm /usr/local/bin/docker-compose
@@ -92,7 +91,7 @@ before_script:
   if [[ "$LOCAL_PHP_MEMCACHED" == "true" ]]; then
     cp tests/phpunit/includes/object-cache.php build/wp-content/object-cache.php
     # The memcached server needs to start after `npm run env:start`, which sets up the Docker network.
-    docker run --name memcached --net wordpress-develop_wpdevnet -d memcached
+    docker run --name memcached --net $(basename "$PWD")_wpdevnet -d memcached
   fi
 - |
   if [[ "$WP_INSTALL" == "true" ]]; then

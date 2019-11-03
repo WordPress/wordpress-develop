@@ -78,7 +78,7 @@ function ms_site_check() {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param bool null Whether to skip the blog status check. Default null.
+	 * @param bool|null $check Whether to skip the blog status check. Default null.
 	 */
 	$check = apply_filters( 'ms_site_check', null );
 	if ( null !== $check ) {
@@ -208,7 +208,7 @@ function get_site_by_path( $domain, $path, $segments = null ) {
 	 * @param string             $path     The requested path, in full.
 	 * @param int|null           $segments The suggested number of paths to consult.
 	 *                                     Default null, meaning the entire path was to be consulted.
-	 * @param array              $paths    The paths to search for, based on $path and $segments.
+	 * @param string[]           $paths    The paths to search for, based on $path and $segments.
 	 */
 	$pre = apply_filters( 'pre_get_site_by_path', null, $domain, $path, $segments, $paths );
 	if ( null !== $pre ) {

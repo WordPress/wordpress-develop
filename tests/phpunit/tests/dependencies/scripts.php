@@ -846,7 +846,7 @@ JS;
 		);
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/script.js'></script>\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertEqualsIgnoreEOL( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -871,7 +871,7 @@ JS;
 		);
 		$expected .= "<script type='text/javascript' src='/wp-content/plugins/my-plugin/js/script.js'></script>\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertEqualsIgnoreEOL( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -896,7 +896,7 @@ JS;
 		);
 		$expected .= "<script type='text/javascript' src='/wp-content/themes/my-theme/js/script.js'></script>\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertEqualsIgnoreEOL( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -921,7 +921,7 @@ JS;
 		);
 		$expected .= "<script type='text/javascript' src='/wp-admin/js/script.js'></script>\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertEqualsIgnoreEOL( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -961,7 +961,7 @@ JS;
 		);
 		$expected .= "<script type='text/javascript' src='/wp-admin/js/script.js'></script>\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertEqualsIgnoreEOL( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -988,7 +988,7 @@ JS;
 		);
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/script.js'></script>\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertEqualsIgnoreEOL( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -1016,7 +1016,7 @@ JS;
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/script.js'></script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/script2.js'></script>\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertEqualsIgnoreEOL( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**

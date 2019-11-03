@@ -74,6 +74,8 @@ input[type="week"] {
 	padding: 0 8px;
 	/* inherits font size 14px */
 	line-height: 2; /* 28px */
+	/* Only necessary for IE11 */
+	min-height: 30px;
 }
 
 ::-webkit-datetime-edit {
@@ -315,6 +317,7 @@ input[type="radio"].disabled:checked:before {
 	border-radius: 3px;
 	padding: 3px 24px 3px 8px;
 	min-height: 28px;
+	max-width: 25rem;
 	vertical-align: middle;
 	-webkit-appearance: none;
 	/* The SVG is arrow-down-alt2 from Dashicons. */
@@ -1170,7 +1173,7 @@ table.form-table td .updated p {
 
 .tools-privacy-policy-page input.button,
 .tools-privacy-policy-page select {
-	margin-left: 6px;
+	margin: 0 1px 0 6px;
 }
 
 .tools-privacy-edit {

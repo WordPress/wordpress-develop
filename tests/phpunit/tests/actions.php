@@ -153,6 +153,25 @@ class Tests_Actions extends WP_UnitTestCase {
 		$this->assertEquals( array( $val1, $val2 ), array_pop( $argsvar3 ) );
 	}
 
+	/**
+	 * Tests PHP 4 notation for calling actions while passing in an object by reference.
+	 *
+	 * @ticket 48312
+	 */
+	function test_action_args_with_php4_syntax() {
+		$a   = new MockAction();
+		$tag = __FUNCTION__;
+		$val = new stdClass;
+
+		add_action( $tag, array( &$a, 'action' ) );
+		// Ñall the action with PHP 4 notation for passing object by reference.
+		do_action( $tag, array( &$val ) );
+
+		$call_count = $a->get_call_count();
+		$argsvar    = $a->get_args();
+		$this->assertSame( array( $val ), array_pop( $argsvar ) );
+	}
+
 	function test_action_priority() {
 		$a   = new MockAction();
 		$tag = __FUNCTION__;

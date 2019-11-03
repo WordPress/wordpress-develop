@@ -1979,24 +1979,46 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 	/**
 	 * @ticket 43392
+	 * @ticket 48363
+	 * @dataProvider _dp_meta_values_are_not_set_to_null_in_response_if_type_safely_serializable
 	 */
-	public function test_meta_values_are_not_set_to_null_in_response_if_type_safely_serializable() {
+	public function test_meta_values_are_not_set_to_null_in_response_if_type_safely_serializable( $type, $stored, $expected ) {
 		register_post_meta(
 			'post',
-			'boolean',
+			'safe',
 			array(
 				'single'       => true,
 				'show_in_rest' => true,
-				'type'         => 'boolean',
+				'type'         => $type,
 			)
 		);
 
-		update_post_meta( self::$post_id, 'boolean', 'true' );
+		update_post_meta( self::$post_id, 'safe', $stored );
 
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertTrue( $response->get_data()['meta']['boolean'] );
+		$this->assertSame( $expected, $response->get_data()['meta']['safe'] );
+	}
+
+	public function _dp_meta_values_are_not_set_to_null_in_response_if_type_safely_serializable() {
+		return array(
+			array( 'boolean', 'true', true ),
+			array( 'boolean', 'false', false ),
+			array( 'boolean', '1', true ),
+			array( 'boolean', '0', false ),
+			array( 'boolean', '', false ),
+			array( 'integer', '', 0 ),
+			array( 'integer', '1', 1 ),
+			array( 'integer', '0', 0 ),
+			array( 'number', '', 0.0 ),
+			array( 'number', '1.1', 1.1 ),
+			array( 'number', '0.0', 0.0 ),
+			array( 'string', '', '' ),
+			array( 'string', '1', '1' ),
+			array( 'string', '0', '0' ),
+			array( 'string', 'str', 'str' ),
+		);
 	}
 
 	/**
@@ -2262,6 +2284,375 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		);
 
 		self::assertFalse( $registered );
+	}
+
+	/**
+	 * @ticket 48264
+	 */
+	public function test_update_array_of_ints_meta() {
+		$this->grant_write_permission();
+		register_post_meta(
+			'post',
+			'items',
+			array(
+				'single'       => true,
+				'type'         => 'array',
+				'show_in_rest' => array(
+					'schema' => array(
+						'items' => array(
+							'type' => 'integer',
+						),
+					),
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'items' => array( 1, 2, 3 ),
+				),
+			)
+		);
+
+		rest_get_server()->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+	}
+
+	/**
+	 * @ticket 48264
+	 */
+	public function test_update_array_of_ints_meta_stored_strings_are_updated() {
+		$this->grant_write_permission();
+		register_post_meta(
+			'post',
+			'items',
+			array(
+				'single'       => true,
+				'type'         => 'array',
+				'show_in_rest' => array(
+					'schema' => array(
+						'items' => array(
+							'type' => 'integer',
+						),
+					),
+				),
+			)
+		);
+
+		update_post_meta( self::$post_id, 'items', array( '1', '2', '3' ) );
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) ) );
+		$this->assertEquals( array( 1, 2, 3 ), $response->get_data()['meta']['items'] );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'items' => array( 1, 2, 3 ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( array( 1, 2, 3 ), get_post_meta( self::$post_id, 'items', true ) );
+	}
+
+	/**
+	 * @ticket 48264
+	 */
+	public function test_update_array_of_ints_meta_string_request_data_is_set_as_ints() {
+		$this->grant_write_permission();
+		register_post_meta(
+			'post',
+			'items',
+			array(
+				'single'       => true,
+				'type'         => 'array',
+				'show_in_rest' => array(
+					'schema' => array(
+						'items' => array(
+							'type' => 'integer',
+						),
+					),
+				),
+			)
+		);
+
+		update_post_meta( self::$post_id, 'items', array( 1, 2, 3 ) );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'items' => array( '1', '2', '3' ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( array( 1, 2, 3 ), get_post_meta( self::$post_id, 'items', true ) );
+	}
+
+	/**
+	 * @ticket 48264
+	 */
+	public function test_update_array_of_ints_meta_string_request_data_and_string_stored_data() {
+		$this->grant_write_permission();
+		register_post_meta(
+			'post',
+			'items',
+			array(
+				'single'       => true,
+				'type'         => 'array',
+				'show_in_rest' => array(
+					'schema' => array(
+						'items' => array(
+							'type' => 'integer',
+						),
+					),
+				),
+			)
+		);
+
+		update_post_meta( self::$post_id, 'items', array( '1', '2', '3' ) );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'items' => array( '1', '2', '3' ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( array( 1, 2, 3 ), get_post_meta( self::$post_id, 'items', true ) );
+	}
+
+	/**
+	 * @ticket 48264
+	 */
+	public function test_update_array_of_bools_meta() {
+		$this->grant_write_permission();
+		register_post_meta(
+			'post',
+			'items',
+			array(
+				'single'       => true,
+				'type'         => 'array',
+				'show_in_rest' => array(
+					'schema' => array(
+						'items' => array(
+							'type' => 'boolean',
+						),
+					),
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'items' => array( true, false ),
+				),
+			)
+		);
+
+		rest_get_server()->dispatch( $request );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+	}
+
+	/**
+	 * @ticket 48264
+	 */
+	public function test_update_array_of_bools_meta_stored_strings_are_updated() {
+		$this->grant_write_permission();
+		register_post_meta(
+			'post',
+			'items',
+			array(
+				'single'       => true,
+				'type'         => 'array',
+				'show_in_rest' => array(
+					'schema' => array(
+						'items' => array(
+							'type' => 'boolean',
+						),
+					),
+				),
+			)
+		);
+
+		update_post_meta( self::$post_id, 'items', array( '1', '0' ) );
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) ) );
+		$this->assertEquals( array( true, false ), $response->get_data()['meta']['items'] );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'items' => array( true, false ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( array( true, false ), get_post_meta( self::$post_id, 'items', true ) );
+	}
+
+	/**
+	 * @ticket 48264
+	 */
+	public function test_update_array_of_bools_meta_string_request_data_is_set_as_bools() {
+		$this->grant_write_permission();
+		register_post_meta(
+			'post',
+			'items',
+			array(
+				'single'       => true,
+				'type'         => 'array',
+				'show_in_rest' => array(
+					'schema' => array(
+						'items' => array(
+							'type' => 'boolean',
+						),
+					),
+				),
+			)
+		);
+
+		update_post_meta( self::$post_id, 'items', array( true, false ) );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'items' => array( '1', '0' ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( array( true, false ), get_post_meta( self::$post_id, 'items', true ) );
+	}
+
+	/**
+	 * @ticket 48264
+	 */
+	public function test_update_array_of_bools_meta_string_request_data_and_string_stored_data() {
+		$this->grant_write_permission();
+		register_post_meta(
+			'post',
+			'items',
+			array(
+				'single'       => true,
+				'type'         => 'array',
+				'show_in_rest' => array(
+					'schema' => array(
+						'items' => array(
+							'type' => 'boolean',
+						),
+					),
+				),
+			)
+		);
+
+		update_post_meta( self::$post_id, 'items', array( '1', '0' ) );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'items' => array( '1', '0' ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( array( true, false ), get_post_meta( self::$post_id, 'items', true ) );
+	}
+
+	/**
+	 * @ticket 48264
+	 */
+	public function test_update_array_of_bools_with_string_values_stored_and_opposite_request_data() {
+		$this->grant_write_permission();
+		register_post_meta(
+			'post',
+			'items',
+			array(
+				'single'       => true,
+				'type'         => 'array',
+				'show_in_rest' => array(
+					'schema' => array(
+						'items' => array(
+							'type' => 'boolean',
+						),
+					),
+				),
+			)
+		);
+
+		update_post_meta( self::$post_id, 'items', array( '1', '0' ) );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'items' => array( false, true ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( array( false, true ), get_post_meta( self::$post_id, 'items', true ) );
+	}
+
+	/**
+	 * @ticket 48363
+	 */
+	public function test_boolean_meta_update_to_false_stores_0() {
+		$this->grant_write_permission();
+
+		register_post_meta(
+			'post',
+			'boolean',
+			array(
+				'single'            => true,
+				'type'              => 'boolean',
+				'show_in_rest'      => true,
+				'sanitize_callback' => function( $value ) {
+					return $value ? '1' : '0';
+				},
+			)
+		);
+
+		update_post_meta( self::$post_id, 'boolean', 1 );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'boolean' => false,
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEquals( '0', get_post_meta( self::$post_id, 'boolean', true ) );
 	}
 
 	/**

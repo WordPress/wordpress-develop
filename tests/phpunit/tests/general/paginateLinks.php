@@ -25,7 +25,7 @@ class Tests_Paginate_Links extends WP_UnitTestCase {
 EXPECTED;
 
 		$links = paginate_links( array( 'total' => 50 ) );
-		$this->assertEquals( $expected, $links );
+		$this->assertEqualsIgnoreEOL( $expected, $links );
 	}
 
 	function test_format() {
@@ -48,7 +48,7 @@ EXPECTED;
 				'format' => 'page/%#%/',
 			)
 		);
-		$this->assertEquals( $expected, $links );
+		$this->assertEqualsIgnoreEOL( $expected, $links );
 	}
 
 	function test_prev_next_false() {
@@ -73,7 +73,7 @@ EXPECTED;
 				'current'   => 2,
 			)
 		);
-		$this->assertEquals( $expected, $links );
+		$this->assertEqualsIgnoreEOL( $expected, $links );
 	}
 
 	function test_prev_next_true() {
@@ -100,7 +100,7 @@ EXPECTED;
 				'current'   => 2,
 			)
 		);
-		$this->assertEquals( $expected, $links );
+		$this->assertEqualsIgnoreEOL( $expected, $links );
 	}
 
 	function increment_i18n_count() {

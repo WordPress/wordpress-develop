@@ -224,48 +224,48 @@ function wp_default_packages_scripts( &$scripts ) {
 	$suffix = wp_scripts_get_suffix();
 
 	$packages_versions = array(
-		'a11y'                               => '2.5.0',
-		'annotations'                        => '1.7.1',
-		'api-fetch'                          => '3.6.1',
-		'autop'                              => '2.5.0',
-		'blob'                               => '2.5.0',
-		'block-editor'                       => '3.2.1',
-		'block-library'                      => '2.9.1',
-		'block-serialization-default-parser' => '3.4.0',
-		'blocks'                             => '6.7.1',
-		'components'                         => '8.3.1',
-		'compose'                            => '3.7.1',
-		'core-data'                          => '2.7.1',
-		'data'                               => '4.9.1',
-		'data-controls'                      => '1.3.1',
+		'a11y'                               => '2.5.1',
+		'annotations'                        => '1.7.2',
+		'api-fetch'                          => '3.6.4',
+		'autop'                              => '2.5.1',
+		'blob'                               => '2.5.1',
+		'block-editor'                       => '3.2.3',
+		'block-library'                      => '2.9.4',
+		'block-serialization-default-parser' => '3.4.1',
+		'blocks'                             => '6.7.2',
+		'components'                         => '8.3.2',
+		'compose'                            => '3.7.2',
+		'core-data'                          => '2.7.4',
+		'data-controls'                      => '1.3.4',
+		'data'                               => '4.9.2',
 		'date'                               => '3.5.0',
-		'deprecated'                         => '2.6.0',
-		'dom'                                => '2.5.1',
-		'dom-ready'                          => '2.5.0',
-		'edit-post'                          => '3.8.1',
-		'editor'                             => '9.7.1',
-		'element'                            => '2.8.1',
-		'escape-html'                        => '1.5.0',
-		'format-library'                     => '1.9.1',
+		'deprecated'                         => '2.6.1',
+		'dom-ready'                          => '2.5.1',
+		'dom'                                => '2.5.2',
+		'edit-post'                          => '3.8.4',
+		'editor'                             => '9.7.4',
+		'element'                            => '2.8.2',
+		'escape-html'                        => '1.5.1',
+		'format-library'                     => '1.9.3',
 		'hooks'                              => '2.6.0',
 		'html-entities'                      => '2.5.0',
 		'i18n'                               => '3.6.1',
-		'is-shallow-equal'                   => '1.6.0',
-		'keycodes'                           => '2.6.1',
-		'list-reusable-blocks'               => '1.8.1',
-		'media-utils'                        => '1.2.1',
-		'notices'                            => '1.8.1',
-		'nux'                                => '3.7.1',
-		'plugins'                            => '2.7.1',
-		'priority-queue'                     => '1.3.0',
-		'redux-routine'                      => '3.6.1',
-		'rich-text'                          => '3.7.1',
+		'is-shallow-equal'                   => '1.6.1',
+		'keycodes'                           => '2.6.2',
+		'list-reusable-blocks'               => '1.8.4',
+		'media-utils'                        => '1.2.4',
+		'notices'                            => '1.8.2',
+		'nux'                                => '3.7.2',
+		'plugins'                            => '2.7.2',
+		'priority-queue'                     => '1.3.1',
+		'redux-routine'                      => '3.6.2',
+		'rich-text'                          => '3.7.2',
 		'shortcode'                          => '2.4.1',
-		'server-side-render'                 => '1.3.1',
+		'server-side-render'                 => '1.3.4',
 		'token-list'                         => '1.6.1',
-		'url'                                => '2.8.0',
-		'viewport'                           => '2.8.1',
-		'wordcount'                          => '2.6.1',
+		'url'                                => '2.8.2',
+		'viewport'                           => '2.8.2',
+		'wordcount'                          => '2.6.2',
 	);
 
 	$packages_dependencies = array(
@@ -659,6 +659,7 @@ function wp_default_packages_inline_scripts( &$scripts ) {
 					( wp_installing() && ! is_multisite() ) ? '' : wp_create_nonce( 'wp_rest' )
 				),
 				'wp.apiFetch.use( wp.apiFetch.nonceMiddleware );',
+				'wp.apiFetch.use( wp.apiFetch.mediaUploadMiddleware );',
 				sprintf(
 					'wp.apiFetch.nonceEndpoint = "%s";',
 					admin_url( 'admin-ajax.php?action=rest-nonce' )
@@ -777,7 +778,7 @@ function wp_tinymce_inline_scripts() {
 		'wpview',
 	);
 
-	/* This filter is documented in wp-includes/class-wp-editor.php */
+	/** This filter is documented in wp-includes/class-wp-editor.php */
 	$tinymce_plugins = apply_filters( 'tiny_mce_plugins', $tinymce_plugins, 'classic-block' );
 	$tinymce_plugins = array_unique( $tinymce_plugins );
 
@@ -806,7 +807,7 @@ function wp_tinymce_inline_scripts() {
 		'wp_adv',
 	);
 
-	/* This filter is documented in wp-includes/class-wp-editor.php */
+	/** This filter is documented in wp-includes/class-wp-editor.php */
 	$toolbar1 = apply_filters( 'mce_buttons', $toolbar1, 'classic-block' );
 
 	$toolbar2 = array(
@@ -823,13 +824,13 @@ function wp_tinymce_inline_scripts() {
 		'wp_help',
 	);
 
-	/* This filter is documented in wp-includes/class-wp-editor.php */
+	/** This filter is documented in wp-includes/class-wp-editor.php */
 	$toolbar2 = apply_filters( 'mce_buttons_2', $toolbar2, 'classic-block' );
-	/* This filter is documented in wp-includes/class-wp-editor.php */
+	/** This filter is documented in wp-includes/class-wp-editor.php */
 	$toolbar3 = apply_filters( 'mce_buttons_3', array(), 'classic-block' );
-	/* This filter is documented in wp-includes/class-wp-editor.php */
+	/** This filter is documented in wp-includes/class-wp-editor.php */
 	$toolbar4 = apply_filters( 'mce_buttons_4', array(), 'classic-block' );
-	/* This filter is documented in wp-includes/class-wp-editor.php */
+	/** This filter is documented in wp-includes/class-wp-editor.php */
 	$external_plugins = apply_filters( 'mce_external_plugins', array(), 'classic-block' );
 
 	$tinymce_settings = array(
@@ -850,7 +851,7 @@ function wp_tinymce_inline_scripts() {
 		array_merge( $tinymce_settings, $editor_settings['tinymce'] );
 	}
 
-	/* This filter is documented in wp-includes/class-wp-editor.php */
+	/** This filter is documented in wp-includes/class-wp-editor.php */
 	$tinymce_settings = apply_filters( 'tiny_mce_before_init', $tinymce_settings, 'classic-block' );
 
 	// Do "by hand" translation from PHP array to js object.
@@ -1295,8 +1296,8 @@ function wp_default_scripts( &$scripts ) {
 
 	$scripts->add( 'imgareaselect', "/wp-includes/js/imgareaselect/jquery.imgareaselect$suffix.js", array( 'jquery' ), false, 1 );
 
-	$scripts->add( 'mediaelement', false, array( 'jquery', 'mediaelement-core', 'mediaelement-migrate' ), '4.2.6-78496d1' );
-	$scripts->add( 'mediaelement-core', "/wp-includes/js/mediaelement/mediaelement-and-player$suffix.js", array(), '4.2.6-78496d1', 1 );
+	$scripts->add( 'mediaelement', false, array( 'jquery', 'mediaelement-core', 'mediaelement-migrate' ), '4.2.13-9993131', 1 );
+	$scripts->add( 'mediaelement-core', "/wp-includes/js/mediaelement/mediaelement-and-player$suffix.js", array(), '4.2.13-9993131', 1 );
 	$scripts->add( 'mediaelement-migrate', "/wp-includes/js/mediaelement/mediaelement-migrate$suffix.js", array(), false, 1 );
 
 	did_action( 'init' ) && $scripts->add_inline_script(
@@ -1398,7 +1399,7 @@ function wp_default_scripts( &$scripts ) {
 		'before'
 	);
 
-	$scripts->add( 'mediaelement-vimeo', '/wp-includes/js/mediaelement/renderers/vimeo.min.js', array( 'mediaelement' ), '4.2.6-78496d1', 1 );
+	$scripts->add( 'mediaelement-vimeo', '/wp-includes/js/mediaelement/renderers/vimeo.min.js', array( 'mediaelement' ), '4.2.13-9993131', 1 );
 	$scripts->add( 'wp-mediaelement', "/wp-includes/js/mediaelement/wp-mediaelement$suffix.js", array( 'mediaelement' ), false, 1 );
 	$mejs_settings = array(
 		'pluginPath'  => includes_url( 'js/mediaelement/', 'relative' ),
@@ -1617,7 +1618,7 @@ function wp_default_scripts( &$scripts ) {
 
 	// To enqueue media-views or media-editor, call wp_enqueue_media().
 	// Both rely on numerous settings, styles, and templates to operate correctly.
-	$scripts->add( 'media-views', "/wp-includes/js/media-views$suffix.js", array( 'utils', 'media-models', 'wp-plupload', 'jquery-ui-sortable', 'wp-mediaelement', 'wp-api-request', 'wp-a11y' ), false, 1 );
+	$scripts->add( 'media-views', "/wp-includes/js/media-views$suffix.js", array( 'utils', 'media-models', 'wp-plupload', 'jquery-ui-sortable', 'wp-mediaelement', 'wp-api-request', 'wp-a11y', 'wp-i18n' ), false, 1 );
 	$scripts->add( 'media-editor', "/wp-includes/js/media-editor$suffix.js", array( 'shortcode', 'media-views' ), false, 1 );
 	$scripts->add( 'media-audiovideo', "/wp-includes/js/media-audiovideo$suffix.js", array( 'media-editor' ), false, 1 );
 	$scripts->add( 'mce-view', "/wp-includes/js/mce-view$suffix.js", array( 'shortcode', 'jquery', 'media-views', 'media-audiovideo' ), false, 1 );
@@ -1801,6 +1802,7 @@ function wp_default_scripts( &$scripts ) {
 				'noneRemoved'     => __( 'Personal data was found for this user but was not erased.' ),
 				'someNotRemoved'  => __( 'Personal data was found for this user but some of the personal data found was not erased.' ),
 				'removalError'    => __( 'An error occurred while attempting to find and erase personal data.' ),
+				'emailSent'       => __( 'The personal data export link for this user was sent.' ),
 				'noExportFile'    => __( 'No personal data export file was generated.' ),
 				'exportError'     => __( 'An error occurred while attempting to export personal data.' ),
 			)
@@ -2087,7 +2089,7 @@ function wp_default_styles( &$styles ) {
 	// External libraries and friends
 	$styles->add( 'imgareaselect', '/wp-includes/js/imgareaselect/imgareaselect.css', array(), '0.9.8' );
 	$styles->add( 'wp-jquery-ui-dialog', "/wp-includes/css/jquery-ui-dialog$suffix.css", array( 'dashicons' ) );
-	$styles->add( 'mediaelement', '/wp-includes/js/mediaelement/mediaelementplayer-legacy.min.css', array(), '4.2.6-78496d1' );
+	$styles->add( 'mediaelement', '/wp-includes/js/mediaelement/mediaelementplayer-legacy.min.css', array(), '4.2.13-9993131' );
 	$styles->add( 'wp-mediaelement', "/wp-includes/js/mediaelement/wp-mediaelement$suffix.css", array( 'mediaelement' ) );
 	$styles->add( 'thickbox', '/wp-includes/js/thickbox/thickbox.css', array( 'dashicons' ) );
 	$styles->add( 'wp-codemirror', '/wp-includes/js/codemirror/codemirror.min.css', array(), '5.29.1-alpha-ee20357' );

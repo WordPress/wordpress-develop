@@ -27,6 +27,12 @@ if ( force_ssl_admin() && ! is_ssl() ) {
  *
  * @since 2.1.0
  *
+ * @global string      $error         Login error message set by deprecated pluggable wp_login() function
+ *                                    or plugins replacing it.
+ * @global bool|string $interim_login Whether interim login modal is being displayed. String 'success'
+ *                                    upon successful login.
+ * @global string      $action        The action that brought the visitor to the login page.
+ *
  * @param string   $title    Optional. WordPress login Page title to display in the `<title>` element.
  *                           Default 'Log In'.
  * @param string   $message  Optional. Message to display in header. Default empty.
@@ -268,6 +274,9 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
  * Outputs the footer for the login page.
  *
  * @since 3.1.0
+ *
+ * @global bool|string $interim_login Whether interim login modal is being displayed. String 'success'
+ *                                    upon successful login.
  *
  * @param string $input_id Which input to auto-focus.
  */
@@ -594,7 +603,7 @@ switch ( $action ) {
 			 *
 			 * @since 5.3.0
 			 *
-			 * @param int Interval time (in seconds).
+			 * @param int $interval Interval time (in seconds).
 			 */
 			$admin_email_check_interval = (int) apply_filters( 'admin_email_check_interval', 6 * MONTH_IN_SECONDS );
 

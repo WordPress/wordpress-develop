@@ -569,6 +569,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 	/**
 	 * @depends test_link_embedding
+	 * @ticket 47684
 	 */
 	public function test_link_embedding_self() {
 		// Register our testing route.
@@ -582,8 +583,32 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		);
 		$response = new WP_REST_Response();
 
-		// 'self' should be ignored.
-		$response->add_link( 'self', rest_url( '/test/notembeddable' ), array( 'embeddable' => true ) );
+		// 'self' should not be special-cased, and may be marked embeddable.
+		$response->add_link( 'self', rest_url( '/test/embeddable' ), array( 'embeddable' => true ) );
+
+		$data = rest_get_server()->response_to_data( $response, true );
+
+		$this->assertArrayHasKey( '_embedded', $data );
+	}
+
+	/**
+	 * @depends test_link_embedding
+	 * @ticket 47684
+	 */
+	public function test_link_embedding_self_non_embeddable() {
+		// Register our testing route.
+		rest_get_server()->register_route(
+			'test',
+			'/test/embeddable',
+			array(
+				'methods'  => 'GET',
+				'callback' => array( $this, 'embedded_response_callback' ),
+			)
+		);
+		$response = new WP_REST_Response();
+
+		// 'self' should not be special-cased, and should be ignored if not marked embeddable.
+		$response->add_link( 'self', rest_url( '/test/notembeddable' ) );
 
 		$data = rest_get_server()->response_to_data( $response, true );
 

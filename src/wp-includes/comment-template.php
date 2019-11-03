@@ -1307,7 +1307,7 @@ function wp_comment_form_unfiltered_html_nonce() {
  * @global WP_Post    $post             Global post object.
  * @global wpdb       $wpdb             WordPress database abstraction object.
  * @global int        $id
- * @global WP_Comment $comment
+ * @global WP_Comment $comment          Global comment object.
  * @global string     $user_login
  * @global int        $user_ID
  * @global string     $user_identity
@@ -1922,7 +1922,7 @@ function comment_id_fields( $id = 0 ) {
  *
  * @since 2.7.0
  *
- * @global WP_Comment $comment Current comment.
+ * @global WP_Comment $comment Global comment object.
  *
  * @param string $noreplytext  Optional. Text to display when not replying to a comment.
  *                             Default false.
@@ -1991,7 +1991,7 @@ function comment_form_title( $noreplytext = false, $replytext = false, $linktopa
  *     @type bool   $short_ping        Whether to output short pings. Default false.
  *     @type bool   $echo              Whether to echo the output or return it. Default true.
  * }
- * @param array $comments Optional. Array of WP_Comment objects.
+ * @param WP_Comment[] $comments Optional. Array of WP_Comment objects.
  */
 function wp_list_comments( $args = array(), $comments = null ) {
 	global $wp_query, $comment_alt, $comment_depth, $comment_thread_alt, $overridden_cpage, $in_comment_loop;
@@ -2628,7 +2628,7 @@ function comment_form( $args = array(), $post_id = null ) {
 			echo apply_filters( 'comment_form_submit_field', $submit_field, $args );
 
 			/**
-			 * Fires at the bottom of the comment form, inside the closing </form> tag.
+			 * Fires at the bottom of the comment form, inside the closing form tag.
 			 *
 			 * @since 1.5.0
 			 *
