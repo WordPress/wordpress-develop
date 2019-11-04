@@ -6,30 +6,6 @@
 class Tests_Pluggable extends WP_UnitTestCase {
 
 	/**
-	 * @expectedException WPDieException
-	 * @dataProvider get_bad_status_codes
-	 *
-	 * @ticket 44317
-	 * @param string $location The path or URL to redirect to.
-	 * @param int $status HTTP response status code to use.
-	 */
-	public function test_wp_redirect_bad_status_code( $location, $status ) {
-		wp_redirect( $location, $status );
-	}
-
-	public function get_bad_status_codes() {
-		return [
-			// Tests for bad arguments
-			[ '/wp-admin', 404 ],
-			[ '/wp-admin', 410 ],
-			[ '/wp-admin', 500 ],
-			// Tests for condition.
-			[ '/wp-admin', 299 ],
-			[ '/wp-admin', 400 ],
-		];
-	}
-
-	/**
 	 * Tests that the signatures of all functions in pluggable.php match their expected signature.
 	 *
 	 * @ticket 33654

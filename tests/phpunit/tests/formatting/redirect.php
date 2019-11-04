@@ -20,6 +20,31 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 		return 'http://example.com/';
 	}
 
+	/**
+	 * @ticket 44317
+	 *
+	 * @dataProvider get_bad_status_codes
+	 * @expectedException WPDieException
+	 *
+	 * @param string $location The path or URL to redirect to.
+	 * @param int    $status   HTTP response status code to use.
+	 */
+	public function test_wp_redirect_bad_status_code( $location, $status ) {
+		wp_redirect( $location, $status );
+	}
+
+	public function get_bad_status_codes() {
+		return array(
+			// Tests for bad arguments
+			array( '/wp-admin', 404 ),
+			array( '/wp-admin', 410 ),
+			array( '/wp-admin', 500 ),
+			// Tests for condition.
+			array( '/wp-admin', 299 ),
+			array( '/wp-admin', 400 ),
+		);
+	}
+
 	function test_wp_sanitize_redirect() {
 		$this->assertEquals( 'http://example.com/watchthelinefeedgo', wp_sanitize_redirect( 'http://example.com/watchthelinefeed%0Ago' ) );
 		$this->assertEquals( 'http://example.com/watchthelinefeedgo', wp_sanitize_redirect( 'http://example.com/watchthelinefeed%0ago' ) );
