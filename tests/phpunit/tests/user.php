@@ -35,22 +35,6 @@ class Tests_User extends WP_UnitTestCase {
 		);
 		self::$user_ids[] = self::$contrib_id;
 
-		self::$user_ids[] = $factory->user->create(
-			array(
-				'user_login'    => "testemailaddress'@test.com",
-				'user_nicename' => 'user_email_with_apostrophe',
-				'user_pass'     => 'password',
-				'first_name'    => 'John',
-				'last_name'     => 'Doe',
-				'display_name'  => 'John Doe',
-				'user_email'    => "testemailaddress'@test.com",
-				'user_url'      => 'http://tacos.com',
-				'role'          => 'contributor',
-				'nickname'      => 'Johnny',
-				'description'   => 'I am a WordPress user that cares about privacy.',
-			)
-		);
-
 		self::$author_id  = $factory->user->create(
 			array(
 				'user_login' => 'author_login',
@@ -64,8 +48,8 @@ class Tests_User extends WP_UnitTestCase {
 		self::$user_ids[] = self::$admin_id;
 		self::$editor_id  = $factory->user->create(
 			array(
-				'role'       => 'editor',
 				'user_email' => 'test@test.com',
+				'role'       => 'editor',
 			)
 		);
 		self::$user_ids[] = self::$editor_id;
@@ -79,24 +63,6 @@ class Tests_User extends WP_UnitTestCase {
 		parent::setUp();
 
 		$this->author = clone self::$_author;
-	}
-
-	public function test_that_you_can_login_with_an_email_that_has_apostrophe() {
-
-		// Create the user with an email that has an apostrophe (see test setup).
-
-		// Login as the user.
-		$credentials = [
-			'user_login'    => "testemailaddress'@test.com",
-			'user_password' => 'password',
-		];
-
-		// Attempt to login.
-		$user = wp_signon( $credentials );
-
-		// Assert that the login was successfull.
-		// If the login fails, an instance of WP_Error is returned rather than User object.
-		$this->assertNotWPError( $user );
 	}
 
 	function test_get_users_of_blog() {

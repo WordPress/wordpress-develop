@@ -387,7 +387,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 *
 	 * @ticket 9568
 	 */
-	function test_log_in_using_email() {
+	public function test_log_in_using_email() {
 		$user_args = array(
 			'user_login' => 'johndoe',
 			'user_email' => 'mail@example.com',
@@ -398,4 +398,20 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_User', wp_authenticate( $user_args['user_email'], $user_args['user_pass'] ) );
 		$this->assertInstanceOf( 'WP_User', wp_authenticate( $user_args['user_login'], $user_args['user_pass'] ) );
 	}
+
+	/**
+	 * @ticket 38744
+	 */
+	public function test_wp_signon_using_email_with_an_apostrophe() {
+		$user_args = array(
+			'user_email' => "mail\'@example.com",
+			'user_pass'  => 'password',
+		);
+		$this->factory()->user->create( $user_args );
+
+		$_POST['log'] = $user_args['user_email'];
+		$_POST['pwd'] = $user_args['user_pass'];
+		$this->assertInstanceOf( 'WP_User', wp_signon() );
+	}
+
 }
