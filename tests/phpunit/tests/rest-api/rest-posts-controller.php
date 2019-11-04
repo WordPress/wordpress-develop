@@ -978,6 +978,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'tax_relation', 'OR' );
 		$request->set_param( 'tags', array( $tag['term_id'] ) );
 		$request->set_param( 'categories', array( $category['term_id'] ) );
+		$request->set_param( 'orderby', 'id' );
 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
@@ -1032,12 +1033,13 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'tags', array( $tag['term_id'] ) );
 		$request->set_param( 'categories_exclude', array( $category['term_id'] ) );
 		$request->set_param( 'tax_relation', 'OR' );
+		$request->set_param( 'orderby', 'id' );
 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertCount( 3, $data );
-		$this->assertEquals( $id2, $data[0]['id'] );
-		$this->assertEquals( $id4, $data[1]['id'] );
+		$this->assertEquals( $id4, $data[0]['id'] );
+		$this->assertEquals( $id2, $data[1]['id'] );
 		$this->assertEquals( $id1, $data[2]['id'] );
 	}
 
