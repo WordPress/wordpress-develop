@@ -330,12 +330,18 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items_include_query() {
-		$id1 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
-		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id1 = $this->factory->post->create( array(
+			'post_status' => 'publish',
+			'post_date'   => '2001-02-03 04:05:06',
+		) );
+		$id2 = $this->factory->post->create( array(
+			'post_status' => 'publish',
+			'post_date'   => '2001-02-03 04:05:07',
+		) );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 
-		// Order defaults to 'desc'.
+		// Order defaults to date descending.
 		$request->set_param( 'include', array( $id1, $id2 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
