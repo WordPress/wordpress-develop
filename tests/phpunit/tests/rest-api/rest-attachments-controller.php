@@ -1451,7 +1451,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function test_search_item_by_filename() {
-		$id  = $this->factory->attachment->create_object(
+		$id1 = $this->factory->attachment->create_object(
 			$this->test_file,
 			0,
 			array(

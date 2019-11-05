@@ -125,18 +125,21 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'post_parent' => $id1,
 			)
 		);
-		// No parent
+
+		// No parent.
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 2, count( $data ) );
-		// Filter to parent
+
+		// Filter to parent.
 		$request->set_param( 'parent', $id1 );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 1, count( $data ) );
 		$this->assertEquals( $id2, $data[0]['id'] );
-		// Invalid parent should fail
+
+		// Invalid 'parent' should error.
 		$request->set_param( 'parent', 'some-slug' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
@@ -169,12 +172,14 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'post_parent' => $id3,
 			)
 		);
-		// No parent
+
+		// No parent.
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 4, count( $data ) );
-		// Filter to parents
+
+		// Filter to parents.
 		$request->set_param( 'parent', array( $id1, $id3 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
@@ -196,18 +201,21 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'post_parent' => $id1,
 			)
 		);
-		// No parent
+
+		// No parent.
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 2, count( $data ) );
-		// Filter to parent
+
+		// Filter to parent.
 		$request->set_param( 'parent_exclude', $id1 );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 1, count( $data ) );
 		$this->assertEquals( $id1, $data[0]['id'] );
-		// Invalid parent_exclude should error
+
+		// Invalid 'parent_exclude' should error.
 		$request->set_param( 'parent_exclude', 'some-slug' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
@@ -241,17 +249,20 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'menu_order'  => 1,
 			)
 		);
-		// No parent
+
+		// No parent.
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEqualSets( array( $id1, $id2, $id3, $id4 ), wp_list_pluck( $data, 'id' ) );
-		// Filter to menu_order
+
+		// Filter to 'menu_order'.
 		$request->set_param( 'menu_order', 1 );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEqualSets( array( $id4 ), wp_list_pluck( $data, 'id' ) );
-		// Order by menu order
+
+		// Order by 'menu order'.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$request->set_param( 'order', 'asc' );
 		$request->set_param( 'orderby', 'menu_order' );
@@ -261,7 +272,8 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( $id4, $data[1]['id'] );
 		$this->assertEquals( $id2, $data[2]['id'] );
 		$this->assertEquals( $id3, $data[3]['id'] );
-		// Invalid menu_order should fail
+
+		// Invalid 'menu_order' should error.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$request->set_param( 'menu_order', 'top-first' );
 		$response = rest_get_server()->dispatch( $request );
