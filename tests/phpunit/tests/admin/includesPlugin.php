@@ -122,7 +122,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 
 		// Skip for multisite.
 		if ( is_multisite() ) {
-			return;
+			$this->markTestSkipped( 'This test is intended for single site.' );
 		}
 
 		// Reset menus.
