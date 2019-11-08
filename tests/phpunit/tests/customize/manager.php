@@ -1726,7 +1726,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		// Verify that autosave happened.
 		$autosave_revision = wp_get_post_autosave( $changeset_post_id, get_current_user_id() );
-		$this->assertInstanceOf( 'stdClass', $autosave_revision );
+		$this->assertInstanceOf( 'WP_Post', $autosave_revision );
 		$this->assertContains( 'Draft Title', get_post( $changeset_post_id )->post_content );
 		$this->assertContains( 'Autosave Title', $autosave_revision->post_content );
 	}
