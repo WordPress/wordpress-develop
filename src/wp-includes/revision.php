@@ -237,16 +237,16 @@ function wp_get_post_autosave( $post_id, $user_id = 0 ) {
 	$autosave_name = $post_id . '-autosave-v1';
 	$user_id_query = ( 0 !== $user_id ) ? "AND post_author = $user_id" : null;
 
-	// Construct the autosave query	
+	// Construct the autosave query.
 	$autosave_query = "
 		SELECT *
 		FROM $wpdb->posts
 		WHERE post_parent = %d
 		AND post_type = 'revision'
 		AND post_status = 'inherit'
-		AND post_name   = %s " . $user_id_query . "
+		AND post_name   = %s " . $user_id_query . '
 		ORDER BY post_date DESC
-		LIMIT 1";
+		LIMIT 1';
 
 	$autosave = $wpdb->get_results(
 		$wpdb->prepare(
@@ -255,8 +255,8 @@ function wp_get_post_autosave( $post_id, $user_id = 0 ) {
 			$autosave_name
 		)
 	);
-	
-	if ( ! $autosave  ) {
+
+	if ( ! $autosave ) {
 		return false;
 	}
 
