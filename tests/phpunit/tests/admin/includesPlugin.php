@@ -98,6 +98,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 * Tests the priority parameter for menu helper functions.
 	 *
 	 * @ticket 39776
+	 * @group ms-excluded
 	 *
 	 * @covers ::add_management_page
 	 * @covers ::add_options_page
@@ -119,11 +120,6 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	function test_submenu_helpers_priority( $priority, $expected_position ) {
 		global $submenu;
 		global $menu;
-
-		// Skip for multisite.
-		if ( is_multisite() ) {
-			$this->markTestSkipped( 'This test is intended for single site.' );
-		}
 
 		// Reset menus.
 		$submenu = array();

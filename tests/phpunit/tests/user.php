@@ -576,12 +576,9 @@ class Tests_User extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45747
+	 * @group ms-excluded
 	 */
 	function test_wp_update_user_should_not_mark_user_as_spam_on_single_site() {
-		if ( is_multisite() ) {
-			$this->markTestSkipped( 'This test is intended for single site.' );
-		}
-
 		$u = wp_update_user(
 			array(
 				'ID'   => self::$contrib_id,
