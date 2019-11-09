@@ -303,7 +303,7 @@ class Tests_Filters extends WP_UnitTestCase {
 		$p = 'Foo';
 
 		add_filter( 'tests_apply_filters_deprecated', array( __CLASS__, 'deprecated_filter_callback' ) );
-		$p = apply_filters_deprecated( 'tests_apply_filters_deprecated', array( $p ), '4.6' );
+		$p = apply_filters_deprecated( 'tests_apply_filters_deprecated', array( $p ), '4.6.0' );
 		remove_filter( 'tests_apply_filters_deprecated', array( __CLASS__, 'deprecated_filter_callback' ) );
 
 		$this->assertSame( 'Bar', $p );
@@ -323,7 +323,7 @@ class Tests_Filters extends WP_UnitTestCase {
 		$p2 = 'Foo2';
 
 		add_filter( 'tests_apply_filters_deprecated', array( __CLASS__, 'deprecated_filter_callback_multiple_params' ), 10, 2 );
-		$p1 = apply_filters_deprecated( 'tests_apply_filters_deprecated', array( $p1, $p2 ), '4.6' );
+		$p1 = apply_filters_deprecated( 'tests_apply_filters_deprecated', array( $p1, $p2 ), '4.6.0' );
 		remove_filter( 'tests_apply_filters_deprecated', array( __CLASS__, 'deprecated_filter_callback_multiple_params' ), 10, 2 );
 
 		$this->assertSame( 'Bar1', $p1 );
@@ -345,7 +345,7 @@ class Tests_Filters extends WP_UnitTestCase {
 	public function test_apply_filters_deprecated_without_filter() {
 		$val = 'Foobar';
 
-		$this->assertSame( $val, apply_filters_deprecated( 'tests_apply_filters_deprecated', array( $val ), '4.6' ) );
+		$this->assertSame( $val, apply_filters_deprecated( 'tests_apply_filters_deprecated', array( $val ), '4.6.0' ) );
 	}
 
 	private $current_priority;

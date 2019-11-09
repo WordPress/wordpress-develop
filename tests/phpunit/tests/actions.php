@@ -546,7 +546,7 @@ class Tests_Actions extends WP_UnitTestCase {
 		$p = new WP_Post( (object) array( 'post_title' => 'Foo' ) );
 
 		add_action( 'tests_do_action_deprecated', array( __CLASS__, 'deprecated_action_callback' ) );
-		do_action_deprecated( 'tests_do_action_deprecated', array( $p ), '4.6' );
+		do_action_deprecated( 'tests_do_action_deprecated', array( $p ), '4.6.0' );
 		remove_action( 'tests_do_action_deprecated', array( __CLASS__, 'deprecated_action_callback' ) );
 
 		$this->assertSame( 'Bar', $p->post_title );
@@ -565,7 +565,7 @@ class Tests_Actions extends WP_UnitTestCase {
 		$p2 = new WP_Post( (object) array( 'post_title' => 'Foo2' ) );
 
 		add_action( 'tests_do_action_deprecated', array( __CLASS__, 'deprecated_action_callback_multiple_params' ), 10, 2 );
-		do_action_deprecated( 'tests_do_action_deprecated', array( $p1, $p2 ), '4.6' );
+		do_action_deprecated( 'tests_do_action_deprecated', array( $p1, $p2 ), '4.6.0' );
 		remove_action( 'tests_do_action_deprecated', array( __CLASS__, 'deprecated_action_callback_multiple_params' ), 10, 2 );
 
 		$this->assertSame( 'Bar1', $p1->post_title );
