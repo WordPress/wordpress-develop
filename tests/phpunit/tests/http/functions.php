@@ -6,27 +6,6 @@
  */
 class Tests_HTTP_Functions extends WP_UnitTestCase {
 
-	/**
-	 * Mark test as skipped if the HTTP request times out.
-	 */
-	function skipTestOnTimeout( $response ) {
-		if ( ! is_wp_error( $response ) ) {
-			return;
-		}
-		if ( 'connect() timed out!' === $response->get_error_message() ) {
-			$this->markTestSkipped( 'HTTP timeout' );
-		}
-
-		if ( false !== strpos( $response->get_error_message(), 'timed out after' ) ) {
-			$this->markTestSkipped( 'HTTP timeout' );
-		}
-
-		if ( 0 === strpos( $response->get_error_message(), 'stream_socket_client(): unable to connect to tcp://s.w.org:80' ) ) {
-			$this->markTestSkipped( 'HTTP timeout' );
-		}
-
-	}
-
 	public function setUp() {
 		if ( ! extension_loaded( 'openssl' ) ) {
 			$this->markTestSkipped( 'Tests_HTTP_Functions requires openssl.' );

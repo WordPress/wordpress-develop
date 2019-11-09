@@ -17,27 +17,6 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 	protected $http_request_args;
 
-	/**
-	 * Mark test as skipped if the HTTP request times out.
-	 */
-	function skipTestOnTimeout( $response ) {
-		if ( ! is_wp_error( $response ) ) {
-			return;
-		}
-		if ( 'connect() timed out!' === $response->get_error_message() ) {
-			$this->markTestSkipped( 'HTTP timeout' );
-		}
-
-		if ( false !== strpos( $response->get_error_message(), 'timed out after' ) ) {
-			$this->markTestSkipped( 'HTTP timeout' );
-		}
-
-		if ( 0 === strpos( $response->get_error_message(), 'stream_socket_client(): unable to connect to tcp://s.w.org:80' ) ) {
-			$this->markTestSkipped( 'HTTP timeout' );
-		}
-
-	}
-
 	function setUp() {
 		parent::setUp();
 
