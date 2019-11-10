@@ -273,15 +273,11 @@ class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test requests do not succeed on multisite when the current user is not a network admin.
 	 *
-	 * @group multisite
-	 *
 	 * @ticket 43438
+	 * @group multisite
+	 * @group ms-required
 	 */
 	public function test_error_when_current_user_missing_required_capability_multisite() {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'This test only runs on multisite.' );
-		}
-
 		revoke_super_admin( get_current_user_id() );
 
 		$this->_make_ajax_call();
