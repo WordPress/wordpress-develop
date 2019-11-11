@@ -161,10 +161,10 @@ class Tests_Actions extends WP_UnitTestCase {
 	function test_action_args_with_php4_syntax() {
 		$a   = new MockAction();
 		$tag = __FUNCTION__;
-		$val = new stdClass;
+		$val = new stdClass();
 
 		add_action( $tag, array( &$a, 'action' ) );
-		// Ñall the action with PHP 4 notation for passing object by reference.
+		// Call the action with PHP 4 notation for passing object by reference.
 		do_action( $tag, array( &$val ) );
 
 		$call_count = $a->get_call_count();
