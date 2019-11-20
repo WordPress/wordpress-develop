@@ -2830,6 +2830,14 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 46686
+	 */
+	function test_return_url_with_deactivated_theme() {
+		$this->manager->set_return_url( admin_url( 'themes.php?page=mytheme_documentation' ) );
+		$this->assertEquals( admin_url( 'themes.php' ), $this->manager->get_return_url() );
+	}
+
+	/**
 	 * Test get_autofocus()/set_autofocus() methods.
 	 *
 	 * @see WP_Customize_Manager::get_autofocus()
