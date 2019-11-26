@@ -111,14 +111,20 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			$formats                           = array_merge( array( 'standard' ), $formats );
 			$data['theme_supports']['formats'] = $formats;
 
-			$data['theme_supports']['post-thumbnails']   = false;
-			$data['theme_supports']['responsive-embeds'] = (bool) get_theme_support( 'responsive-embeds' );
-			$post_thumbnails                             = get_theme_support( 'post-thumbnails' );
+			$data['theme_supports']['post-thumbnails']      = false;
+			$data['theme_supports']['responsive-embeds']    = (bool) get_theme_support( 'responsive-embeds' );
+			$data['theme_supports']['editor-color-palette'] = false;
+			$post_thumbnails                                = get_theme_support( 'post-thumbnails' );
+			$editor_color_palette                           = get_theme_support( 'editor-color-palette' );
 
 			if ( $post_thumbnails ) {
 				// $post_thumbnails can contain a nested array of post types.
 				// e.g. array( array( 'post', 'page' ) ).
 				$data['theme_supports']['post-thumbnails'] = is_array( $post_thumbnails ) ? $post_thumbnails[0] : true;
+			}
+
+			if ( is_array( $editor_color_palette ) ) {
+				$data['theme_supports']['editor-color-palette'] = $editor_color_palette[0];
 			}
 		}
 
@@ -174,6 +180,20 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 						'responsive-embeds' => array(
 							'description' => __( 'Whether the theme supports responsive embedded content.' ),
 							'type'        => 'bool',
+							'readonly'    => true,
+						),
+						'editor-color-palette' => array(
+							'description' => __( 'Whether the theme supports a custom color scheme.' ),
+							'type'        => array( 'array', 'bool' ),
+							'items'       => [
+								'type'       => 'object',
+								'properties' => array(
+									'name'  => 'string',
+									'slug'  => 'string',
+									'color' => 'string,'
+								),
+								'required'   => [ 'name', 'slug', 'color' ],
+							],
 							'readonly'    => true,
 						),
 					),

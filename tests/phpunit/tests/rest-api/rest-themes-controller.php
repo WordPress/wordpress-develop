@@ -189,10 +189,11 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 1, count( $properties ) );
 		$this->assertArrayHasKey( 'theme_supports', $properties );
 
-		$this->assertEquals( 3, count( $properties['theme_supports']['properties'] ) );
+		$this->assertEquals( 4, count( $properties['theme_supports']['properties'] ) );
 		$this->assertArrayHasKey( 'formats', $properties['theme_supports']['properties'] );
 		$this->assertArrayHasKey( 'post-thumbnails', $properties['theme_supports']['properties'] );
 		$this->assertArrayHasKey( 'responsive-embeds', $properties['theme_supports']['properties'] );
+		$this->assertArrayHasKey( 'editor-color-palette', $properties['theme_supports']['properties'] );
 	}
 
 	/**
@@ -293,6 +294,41 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$result   = $response->get_data();
 		$this->assertTrue( isset( $result[0]['theme_supports'] ) );
 		$this->assertEquals( array( 'post' ), $result[0]['theme_supports']['post-thumbnails'] );
+	}
+
+	/**
+	 * Test when a theme doesn't support a custom color palette.
+	 *
+	 * @ticket TBD
+	 */
+	public function test_theme_supports_editor_color_palette_false() {
+		remove_theme_support( 'editor-color-palette' );
+		$response = self::perform_active_theme_request();
+
+		$result = $response->get_data();
+		$this->assertTrue( isset( $result[0]['theme_supports'] ) );
+		$this->assertTrue( isset( $result[0]['theme_supports']['editor-color-palette'] ) );
+		$this->assertFalse( $result[0]['theme_supports']['editor-color-palette'] );
+	}
+
+	/**
+	 * Test when a theme doesn't support a custom color palette.
+	 *
+	 * @ticket TBD
+	 */
+	public function test_theme_supports_editor_color_palette_array() {
+		remove_theme_support( 'editor-color-palette' );
+		$wordpress_blue = array(
+			'name'  => 'WordPress Blue',
+			'slug'  => 'wordpress-blue',
+			'color' => '#0073AA',
+		);
+		add_theme_support( 'editor-color-palette', array( $wordpress_blue ) );
+		$response = self::perform_active_theme_request();
+
+		$result = $response->get_data();
+		$this->assertTrue( isset( $result[0]['theme_supports'] ) );
+		$this->assertEquals( array( $wordpress_blue), $result[0]['theme_supports']['editor-color-palette'] );
 	}
 
 	/**
