@@ -3,6 +3,7 @@
 /**
  * @group date
  * @group datetime
+ * @group feed
  */
 class Tests_Date_Get_Feed_Build_Date extends WP_UnitTestCase {
 
