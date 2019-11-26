@@ -43,13 +43,13 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_item' ),
 					'args'                => array(),
-					'permission_callback' => array( $this, 'get_item_permissions_check' ),
+					'permission_callback' => array( $this, 'read_item_permissions_check' ),
 				),
 				array(
 					'methods'             => WP_REST_Server::EDITABLE,
 					'callback'            => array( $this, 'update_item' ),
 					'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
-					'permission_callback' => array( $this, 'get_item_permissions_check' ),
+					'permission_callback' => array( $this, 'edit_item_permissions_check' ),
 				),
 				'schema' => array( $this, 'get_public_item_schema' ),
 			)
@@ -58,14 +58,26 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Checks if a given request has access to read settings.
+	 *
+	 * @since ?
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return bool True if the request has read access for the item, otherwise false.
+	 */
+	public function read_item_permissions_check( $request ) {
+		return current_user_can( 'edit_posts' );
+	}
+
+	/**
 	 * Checks if a given request has access to read and manage settings.
 	 *
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return bool True if the request has read access for the item, otherwise false.
+	 * @return bool True if the request has read and edit access for the item, otherwise false.
 	 */
-	public function get_item_permissions_check( $request ) {
+	public function edit_item_permissions_check( $request ) {
 		return current_user_can( 'manage_options' );
 	}
 
