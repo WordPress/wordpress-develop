@@ -123,7 +123,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 	},
 
 	/**
-	 * @returns {wp.media.view.AttachmentsBrowser} Returns itself to allow chaining
+	 * @returns {wp.media.view.AttachmentsBrowser} Returns itself to allow chaining.
 	 */
 	dispose: function() {
 		this.options.selection.off( null, null, this );

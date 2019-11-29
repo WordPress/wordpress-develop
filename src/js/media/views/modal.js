@@ -47,7 +47,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	},
 
 	/**
-	 * @returns {wp.media.view.Modal} Returns itself to allow chaining
+	 * @returns {wp.media.view.Modal} Returns itself to allow chaining.
 	 */
 	attach: function() {
 		if ( this.views.attached ) {
@@ -68,7 +68,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	},
 
 	/**
-	 * @returns {wp.media.view.Modal} Returns itself to allow chaining
+	 * @returns {wp.media.view.Modal} Returns itself to allow chaining.
 	 */
 	detach: function() {
 		if ( this.$el.is(':visible') ) {
@@ -81,7 +81,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	},
 
 	/**
-	 * @returns {wp.media.view.Modal} Returns itself to allow chaining
+	 * @returns {wp.media.view.Modal} Returns itself to allow chaining.
 	 */
 	open: function() {
 		var $el = this.$el,
@@ -125,7 +125,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 
 	/**
 	 * @param {Object} options
-	 * @returns {wp.media.view.Modal} Returns itself to allow chaining
+	 * @returns {wp.media.view.Modal} Returns itself to allow chaining.
 	 */
 	close: function( options ) {
 		if ( ! this.views.attached || ! this.$el.is(':visible') ) {
@@ -164,7 +164,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 		return this;
 	},
 	/**
-	 * @returns {wp.media.view.Modal} Returns itself to allow chaining
+	 * @returns {wp.media.view.Modal} Returns itself to allow chaining.
 	 */
 	escape: function() {
 		return this.close({ escape: true });
@@ -179,7 +179,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 
 	/**
 	 * @param {Array|Object} content Views to register to '.media-modal-content'
-	 * @returns {wp.media.view.Modal} Returns itself to allow chaining
+	 * @returns {wp.media.view.Modal} Returns itself to allow chaining.
 	 */
 	content: function( content ) {
 		this.views.set( '.media-modal-content', content );
@@ -191,7 +191,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	 * forwards events to the modal's controller.
 	 *
 	 * @param {string} id
-	 * @returns {wp.media.view.Modal} Returns itself to allow chaining
+	 * @returns {wp.media.view.Modal} Returns itself to allow chaining.
 	 */
 	propagate: function( id ) {
 		this.trigger( id );

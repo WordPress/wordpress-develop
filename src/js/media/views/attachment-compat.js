@@ -28,7 +28,7 @@ AttachmentCompat = View.extend(/** @lends wp.media.view.AttachmentCompat.prototy
 		this.listenTo( this.model, 'change:compat', this.render );
 	},
 	/**
-	 * @returns {wp.media.view.AttachmentCompat} Returns itself to allow chaining
+	 * @returns {wp.media.view.AttachmentCompat} Returns itself to allow chaining.
 	 */
 	dispose: function() {
 		if ( this.$(':focus').length ) {
@@ -40,7 +40,7 @@ AttachmentCompat = View.extend(/** @lends wp.media.view.AttachmentCompat.prototy
 		return View.prototype.dispose.apply( this, arguments );
 	},
 	/**
-	 * @returns {wp.media.view.AttachmentCompat} Returns itself to allow chaining
+	 * @returns {wp.media.view.AttachmentCompat} Returns itself to allow chaining.
 	 */
 	render: function() {
 		var compat = this.model.get('compat');

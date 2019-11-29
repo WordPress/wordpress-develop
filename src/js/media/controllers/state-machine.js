@@ -65,7 +65,7 @@ _.extend( StateMachine.prototype, Backbone.Events,/** @lends wp.media.controller
 	 * @fires wp.media.controller.State#deactivate
 	 * @fires wp.media.controller.State#activate
 	 *
-	 * @returns {wp.media.controller.StateMachine} Returns itself to allow chaining
+	 * @returns {wp.media.controller.StateMachine} Returns itself to allow chaining.
 	 */
 	setState: function( id ) {
 		var previous = this.state();

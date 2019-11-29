@@ -143,7 +143,7 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 	},
 
 	/**
-	 * @returns {wp.media.view.MediaFrame} Returns itself to allow chaining
+	 * @returns {wp.media.view.MediaFrame} Returns itself to allow chaining.
 	 */
 	render: function() {
 		// Activate the default state if no active state exists.
@@ -316,35 +316,35 @@ _.each(['open','close','attach','detach','escape'], function( method ) {
 	 * @memberOf wp.media.view.MediaFrame
 	 * @instance
 	 *
-	 * @returns {wp.media.view.MediaFrame} Returns itself to allow chaining
+	 * @returns {wp.media.view.MediaFrame} Returns itself to allow chaining.
 	 */
 	/**
 	 * @function close
 	 * @memberOf wp.media.view.MediaFrame
 	 * @instance
 	 *
-	 * @returns {wp.media.view.MediaFrame} Returns itself to allow chaining
+	 * @returns {wp.media.view.MediaFrame} Returns itself to allow chaining.
 	 */
 	/**
 	 * @function attach
 	 * @memberOf wp.media.view.MediaFrame
 	 * @instance
 	 *
-	 * @returns {wp.media.view.MediaFrame} Returns itself to allow chaining
+	 * @returns {wp.media.view.MediaFrame} Returns itself to allow chaining.
 	 */
 	/**
 	 * @function detach
 	 * @memberOf wp.media.view.MediaFrame
 	 * @instance
 	 *
-	 * @returns {wp.media.view.MediaFrame} Returns itself to allow chaining
+	 * @returns {wp.media.view.MediaFrame} Returns itself to allow chaining.
 	 */
 	/**
 	 * @function escape
 	 * @memberOf wp.media.view.MediaFrame
 	 * @instance
 	 *
-	 * @returns {wp.media.view.MediaFrame} Returns itself to allow chaining
+	 * @returns {wp.media.view.MediaFrame} Returns itself to allow chaining.
 	 */
 	MediaFrame.prototype[ method ] = function() {
 		if ( this.modal ) {

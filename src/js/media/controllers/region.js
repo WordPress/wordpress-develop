@@ -77,7 +77,7 @@ _.extend( Region.prototype,/** @lends wp.media.controller.Region.prototype */{
 	 * @fires Region#create
 	 * @fires Region#render
 	 *
-	 * @returns {wp.media.controller.Region} Returns itself to allow chaining
+	 * @returns {wp.media.controller.Region} Returns itself to allow chaining.
 	 */
 	render: function( mode ) {
 		// If the mode isn't active, activate it.
@@ -133,7 +133,7 @@ _.extend( Region.prototype,/** @lends wp.media.controller.Region.prototype */{
 	 *
 	 * @param {Array|Object} views
 	 * @param {Object} [options={}]
-	 * @returns {wp.Backbone.Subviews} Subviews is returned to allow chaining
+	 * @returns {wp.Backbone.Subviews} Subviews is returned to allow chaining.
 	 */
 	set: function( views, options ) {
 		if ( options ) {

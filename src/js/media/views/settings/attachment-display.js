@@ -42,7 +42,7 @@ AttachmentDisplay = Settings.extend(/** @lends wp.media.view.Settings.Attachment
 		Settings.prototype.dispose.apply( this, arguments );
 	},
 	/**
-	 * @returns {wp.media.view.AttachmentDisplay} Returns itself to allow chaining
+	 * @returns {wp.media.view.AttachmentDisplay} Returns itself to allow chaining.
 	 */
 	render: function() {
 		var attachment = this.options.attachment;

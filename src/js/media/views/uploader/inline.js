@@ -60,7 +60,7 @@ UploaderInline = View.extend(/** @lends wp.media.view.UploaderInline.prototype *
 		return data;
 	},
 	/**
-	 * @returns {wp.media.view.UploaderInline} Returns itself to allow chaining
+	 * @returns {wp.media.view.UploaderInline} Returns itself to allow chaining.
 	 */
 	dispose: function() {
 		if ( this.disposing ) {
@@ -77,7 +77,7 @@ UploaderInline = View.extend(/** @lends wp.media.view.UploaderInline.prototype *
 		return this.remove();
 	},
 	/**
-	 * @returns {wp.media.view.UploaderInline} Returns itself to allow chaining
+	 * @returns {wp.media.view.UploaderInline} Returns itself to allow chaining.
 	 */
 	remove: function() {
 		/**

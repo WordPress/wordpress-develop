@@ -25,7 +25,7 @@ var PriorityList = wp.media.View.extend(/** @lends wp.media.view.PriorityList.pr
 	 * @param {string} id
 	 * @param {wp.media.View|Object} view
 	 * @param {Object} options
-	 * @returns {wp.media.view.PriorityList} Returns itself to allow chaining
+	 * @returns {wp.media.view.PriorityList} Returns itself to allow chaining.
 	 */
 	set: function( id, view, options ) {
 		var priority, views, index;

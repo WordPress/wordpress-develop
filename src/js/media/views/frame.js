@@ -80,7 +80,7 @@ var Frame = wp.media.View.extend(/** @lends wp.media.view.Frame.prototype */{
 	/**
 	 * Reset all states on the frame to their defaults.
 	 *
-	 * @returns {wp.media.view.Frame} Returns itself to allow chaining
+	 * @returns {wp.media.view.Frame} Returns itself to allow chaining.
 	 */
 	reset: function() {
 		this.states.invoke( 'trigger', 'reset' );

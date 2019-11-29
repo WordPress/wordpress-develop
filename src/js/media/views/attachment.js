@@ -69,7 +69,7 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 		this.listenTo( this.controller.states, 'attachment:compat:waiting attachment:compat:ready', this.updateSave );
 	},
 	/**
-	 * @returns {wp.media.view.Attachment} Returns itself to allow chaining
+	 * @returns {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
 	dispose: function() {
 		var selection = this.options.selection;
@@ -87,7 +87,7 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 		return this;
 	},
 	/**
-	 * @returns {wp.media.view.Attachment} Returns itself to allow chaining
+	 * @returns {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
 	render: function() {
 		var options = _.defaults( this.model.toJSON(), {
@@ -434,7 +434,7 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 	},
 	/**
 	 * @param {string} status
-	 * @returns {wp.media.view.Attachment} Returns itself to allow chaining
+	 * @returns {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
 	updateSave: function( status ) {
 		var save = this._save = this._save || { status: 'ready' };
@@ -529,7 +529,7 @@ _.each({
 	 *
 	 * @param {Backbone.Model} model
 	 * @param {string} value
-	 * @returns {wp.media.view.Attachment} Returns itself to allow chaining
+	 * @returns {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
 	/**
 	 * @function _syncTitle
@@ -538,7 +538,7 @@ _.each({
 	 *
 	 * @param {Backbone.Model} model
 	 * @param {string} value
-	 * @returns {wp.media.view.Attachment} Returns itself to allow chaining
+	 * @returns {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
 	/**
 	 * @function _syncArtist
@@ -547,7 +547,7 @@ _.each({
 	 *
 	 * @param {Backbone.Model} model
 	 * @param {string} value
-	 * @returns {wp.media.view.Attachment} Returns itself to allow chaining
+	 * @returns {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
 	/**
 	 * @function _syncAlbum
@@ -556,7 +556,7 @@ _.each({
 	 *
 	 * @param {Backbone.Model} model
 	 * @param {string} value
-	 * @returns {wp.media.view.Attachment} Returns itself to allow chaining
+	 * @returns {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
 	Attachment.prototype[ method ] = function( model, value ) {
 		var $setting = this.$('[data-setting="' + setting + '"]');

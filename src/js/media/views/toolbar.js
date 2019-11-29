@@ -74,7 +74,7 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 	 * @param {string} id
 	 * @param {Backbone.View|Object} view
 	 * @param {Object} [options={}]
-	 * @returns {wp.media.view.Toolbar} Returns itself to allow chaining
+	 * @returns {wp.media.view.Toolbar} Returns itself to allow chaining.
 	 */
 	set: function( id, view, options ) {
 		var list;
@@ -116,7 +116,7 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 	/**
 	 * @param {string} id
 	 * @param {Object} options
-	 * @returns {wp.media.view.Toolbar} Returns itself to allow chaining
+	 * @returns {wp.media.view.Toolbar} Returns itself to allow chaining.
 	 */
 	unset: function( id, options ) {
 		delete this._views[ id ];
