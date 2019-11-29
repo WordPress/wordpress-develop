@@ -28,7 +28,7 @@ var View = wp.Backbone.View.extend(/** @lends wp.media.View.prototype */{
 	 *       before Backbone 0.9.8 came out. Figure out if Backbone core takes
 	 *       care of this in Backbone.View now.
 	 *
-	 * @returns {wp.media.View} Returns itself to allow chaining.
+	 * @return {wp.media.View} Returns itself to allow chaining.
 	 */
 	dispose: function() {
 		// Undelegating events, removing events from the model, and
@@ -52,7 +52,7 @@ var View = wp.Backbone.View.extend(/** @lends wp.media.View.prototype */{
 		return this;
 	},
 	/**
-	 * @returns {wp.media.View} Returns itself to allow chaining.
+	 * @return {wp.media.View} Returns itself to allow chaining.
 	 */
 	remove: function() {
 		this.dispose();

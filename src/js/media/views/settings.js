@@ -31,7 +31,7 @@ Settings = View.extend(/** @lends wp.media.view.Settings.prototype */{
 		}, this.options );
 	},
 	/**
-	 * @returns {wp.media.view.Settings} Returns itself to allow chaining.
+	 * @return {wp.media.view.Settings} Returns itself to allow chaining.
 	 */
 	render: function() {
 		View.prototype.render.apply( this, arguments );

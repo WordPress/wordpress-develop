@@ -138,7 +138,7 @@ _.extend( media, /** @lends wp.media */{
 	 * Scales a set of dimensions to fit within bounding dimensions.
 	 *
 	 * @param {Object} dimensions
-	 * @returns {Object}
+	 * @return {Object}
 	 */
 	fit: function( dimensions ) {
 		var width     = dimensions.width,
@@ -184,7 +184,7 @@ _.extend( media, /** @lends wp.media */{
 	 * @param {String} string
 	 * @param {Number} [length=30]
 	 * @param {String} [replacement=&hellip;]
-	 * @returns {String} The string, unless length is greater than string.length.
+	 * @return {String} The string, unless length is greater than string.length.
 	 */
 	truncate: function( string, length, replacement ) {
 		length = length || 30;
@@ -208,7 +208,7 @@ _.extend( media, /** @lends wp.media */{
  *
  * @static
  * @param {String} id A string used to identify a model.
- * @returns {wp.media.model.Attachment}
+ * @return {wp.media.model.Attachment}
  */
 media.attachment = function( id ) {
 	return Attachment.get( id );
@@ -228,7 +228,7 @@ Attachments.all = new Attachments();
  * Shorthand for creating a new Attachments Query.
  *
  * @param {object} [props]
- * @returns {wp.media.model.Attachments}
+ * @return {wp.media.model.Attachments}
  */
 media.query = function( props ) {
 	return new Attachments( null, {

@@ -47,7 +47,7 @@ var Button = wp.media.View.extend(/** @lends wp.media.view.Button.prototype */{
 		this.listenTo( this.model, 'change', this.render );
 	},
 	/**
-	 * @returns {wp.media.view.Button} Returns itself to allow chaining.
+	 * @return {wp.media.view.Button} Returns itself to allow chaining.
 	 */
 	render: function() {
 		var classes = [ 'button', this.className ],

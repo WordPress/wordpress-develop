@@ -47,7 +47,7 @@ MenuItem = wp.media.View.extend(/** @lends wp.media.view.MenuItem.prototype */{
 	},
 
 	/**
-	 * @returns {wp.media.view.MenuItem} returns itself to allow chaining.
+	 * @return {wp.media.view.MenuItem} returns itself to allow chaining.
 	 */
 	render: function() {
 		var options = this.options,

@@ -80,7 +80,7 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	 * Whether there are more attachments that haven't been sync'd from the server
 	 * that match the collection's query.
 	 *
-	 * @returns {boolean}
+	 * @return {boolean}
 	 */
 	hasMore: function() {
 		return this._hasMore;
@@ -89,7 +89,7 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	 * Fetch more attachments from the server for the collection.
 	 *
 	 * @param   {object}  [options={}]
-	 * @returns {Promise}
+	 * @return {Promise}
 	 */
 	more: function( options ) {
 		var query = this;
@@ -119,7 +119,7 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	 * @param {String} method
 	 * @param {Backbone.Model} model
 	 * @param {Object} [options={}]
-	 * @returns {Promise}
+	 * @return {Promise}
 	 */
 	sync: function( method, model, options ) {
 		var args, fallback;
@@ -221,7 +221,7 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	 * @param {Object} [props.author]
 	 * @param {Object} [options]
 	 *
-	 * @returns {wp.media.model.Query} A new Attachments Query collection.
+	 * @return {wp.media.model.Query} A new Attachments Query collection.
 	 */
 	get: (function(){
 		/**
@@ -231,7 +231,7 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 		var queries = [];
 
 		/**
-		 * @returns {Query}
+		 * @return {Query}
 		 */
 		return function( props, options ) {
 			var args     = {},

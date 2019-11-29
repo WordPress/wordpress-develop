@@ -34,7 +34,7 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 	 * @constructs wp.media.view.Attachment.Details
 	 * @augments wp.media.view.Attachment
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	initialize: function() {
 		this.options = _.defaults( this.options, {
@@ -106,7 +106,7 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 	 *
 	 * @param {MouseEvent} event A click event.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	deleteAttachment: function( event ) {
 		event.preventDefault();
@@ -129,7 +129,7 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 	 *
 	 * @param {MouseEvent} event A click event.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	trashAttachment: function( event ) {
 		var library = this.controller.library,
@@ -165,7 +165,7 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 	 *
 	 * @param {MouseEvent} event A click event.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	untrashAttachment: function( event ) {
 		var library = this.controller.library;
@@ -184,7 +184,7 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 	 *
 	 * @param {MouseEvent} event A click event.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	editAttachment: function( event ) {
 		var editState = this.controller.states.get( 'edit-image' );
@@ -210,7 +210,7 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 	 *
 	 * @param {KeyboardEvent} event A keyboard event.
 	 *
-	 * @returns {boolean|void} Returns false or undefined.
+	 * @return {boolean|void} Returns false or undefined.
 	 */
 	toggleSelectionHandler: function( event ) {
 		if ( 'keydown' === event.type && 9 === event.keyCode && event.shiftKey && event.target === this.$( ':tabbable' ).get( 0 ) ) {

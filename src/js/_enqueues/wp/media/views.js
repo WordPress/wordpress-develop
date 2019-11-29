@@ -49,7 +49,7 @@ media.events = _.extend( {}, Backbone.Events );
  *
  * @param {string} selector
  * @param {Number} sensitivity
- * @returns {Promise}
+ * @return {Promise}
  */
 media.transition = function( selector, sensitivity ) {
 	var deferred = $.Deferred();

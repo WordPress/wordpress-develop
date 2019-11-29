@@ -24,7 +24,7 @@ Search = wp.media.View.extend(/** @lends wp.media.view.Search.prototype */{
 	},
 
 	/**
-	 * @returns {wp.media.view.Search} Returns itself to allow chaining.
+	 * @return {wp.media.view.Search} Returns itself to allow chaining.
 	 */
 	render: function() {
 		this.el.value = this.model.escape('search');

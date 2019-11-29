@@ -95,7 +95,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 	 *
 	 * @since 5.3.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	announceSearchResults: _.debounce( function() {
 		var count;
@@ -123,7 +123,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 	},
 
 	/**
-	 * @returns {wp.media.view.AttachmentsBrowser} Returns itself to allow chaining.
+	 * @return {wp.media.view.AttachmentsBrowser} Returns itself to allow chaining.
 	 */
 	dispose: function() {
 		this.options.selection.off( null, null, this );
