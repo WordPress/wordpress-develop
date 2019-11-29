@@ -94,7 +94,7 @@ function _test_filter_build_unique_id( $tag, $function, $priority ) {
 		return spl_object_hash( $function[0] ) . $function[1];
 	} elseif ( is_string( $function[0] ) ) {
 		// Static calling.
-		return $function[0] . $function[1];
+		return $function[0] . '::' . $function[1];
 	}
 }
 
