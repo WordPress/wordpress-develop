@@ -38,11 +38,17 @@ function tests_reset__SERVER() { // phpcs:ignore WordPress.NamingConventions.Val
 /**
  * Adds hooks before loading WP.
  *
- * @param string       $tag             The name for the filter to add.
- * @param object|array $function_to_add The function/callback to execute on call.
- * @param int          $priority        The priority.
- * @param int          $accepted_args   The amount of accepted arguments.
- * @return bool Always true.
+ * @see add_filter()
+ *
+ * @param string   $tag             The name of the filter to hook the $function_to_add callback to.
+ * @param callable $function_to_add The callback to be run when the filter is applied.
+ * @param int      $priority        Optional. Used to specify the order in which the functions
+ *                                  associated with a particular action are executed.
+ *                                  Lower numbers correspond with earlier execution,
+ *                                  and functions with the same priority are executed
+ *                                  in the order in which they were added to the action. Default 10.
+ * @param int      $accepted_args   Optional. The number of arguments the function accepts. Default 1.
+ * @return true
  */
 function tests_add_filter( $tag, $function_to_add, $priority = 10, $accepted_args = 1 ) {
 	global $wp_filter;
@@ -50,7 +56,8 @@ function tests_add_filter( $tag, $function_to_add, $priority = 10, $accepted_arg
 	if ( function_exists( 'add_filter' ) ) {
 		add_filter( $tag, $function_to_add, $priority, $accepted_args );
 	} else {
-		$idx                                    = _test_filter_build_unique_id( $tag, $function_to_add, $priority );
+		$idx = _test_filter_build_unique_id( $tag, $function_to_add, $priority );
+
 		$wp_filter[ $tag ][ $priority ][ $idx ] = array(
 			'function'      => $function_to_add,
 			'accepted_args' => $accepted_args,
@@ -62,10 +69,13 @@ function tests_add_filter( $tag, $function_to_add, $priority = 10, $accepted_arg
 /**
  * Generates a unique function ID based on the given arguments.
  *
- * @param string       $tag      Unused. The name of the filter to build ID for.
- * @param object|array $function The function to generate ID for.
- * @param int          $priority Unused. The priority.
- * @return string Unique function ID.
+ * @see _wp_filter_build_unique_id()
+ *
+ * @param string   $tag      Unused. The name of the filter to build ID for.
+ * @param callable $function The function to generate ID for.
+ * @param int      $priority Unused. The order in which the functions
+ *                           associated with a particular action are executed.
+ * @return string Unique function ID for usage as array key.
  */
 function _test_filter_build_unique_id( $tag, $function, $priority ) {
 	if ( is_string( $function ) ) {
@@ -80,9 +90,10 @@ function _test_filter_build_unique_id( $tag, $function, $priority ) {
 	}
 
 	if ( is_object( $function[0] ) ) {
+		// Object class calling.
 		return spl_object_hash( $function[0] ) . $function[1];
 	} elseif ( is_string( $function[0] ) ) {
-		// Static Calling.
+		// Static calling.
 		return $function[0] . $function[1];
 	}
 }
