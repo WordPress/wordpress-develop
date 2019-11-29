@@ -109,13 +109,17 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			$formats                           = get_theme_support( 'post-formats' );
 			$formats                           = is_array( $formats ) ? array_values( $formats[0] ) : array();
 			$formats                           = array_merge( array( 'standard' ), $formats );
-			$data['theme_supports']['formats'] = $formats;
+			$data['theme_supports']['disable-custom-colors']     = (bool) get_theme_support( 'disable-custom-colors' );
+			$data['theme_supports']['disable-custom-font-sizes'] = (bool) get_theme_support( 'disable-custom-font-sizes' );
+			$data['theme_supports']['editor-color-palette']      = false;
+			$data['theme_supports']['editor-font-sizes']         = false;
+			$data['theme_supports']['formats']                   = $formats;
+			$data['theme_supports']['post-thumbnails']           = false;
+			$data['theme_supports']['responsive-embeds']         = (bool) get_theme_support( 'responsive-embeds' );
 
-			$data['theme_supports']['post-thumbnails']      = false;
-			$data['theme_supports']['responsive-embeds']    = (bool) get_theme_support( 'responsive-embeds' );
-			$data['theme_supports']['editor-color-palette'] = false;
-			$post_thumbnails                                = get_theme_support( 'post-thumbnails' );
-			$editor_color_palette                           = get_theme_support( 'editor-color-palette' );
+			$post_thumbnails      = get_theme_support( 'post-thumbnails' );
+			$editor_color_palette = get_theme_support( 'editor-color-palette' );
+			$editor_font_sizes    = get_theme_support( 'editor-font-sizes' );
 
 			if ( $post_thumbnails ) {
 				// $post_thumbnails can contain a nested array of post types.
@@ -125,6 +129,10 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 
 			if ( is_array( $editor_color_palette ) ) {
 				$data['theme_supports']['editor-color-palette'] = $editor_color_palette[0];
+			}
+
+			if ( is_array( $editor_font_sizes ) ) {
+				$data['theme_supports']['editor-font-sizes'] = $editor_font_sizes[0];
 			}
 		}
 
@@ -167,23 +175,18 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'type'        => 'array',
 					'readonly'    => true,
 					'properties'  => array(
-						'formats'           => array(
-							'description' => __( 'Post formats supported.' ),
-							'type'        => 'array',
-							'readonly'    => true,
-						),
-						'post-thumbnails'   => array(
-							'description' => __( 'Whether the theme supports post thumbnails.' ),
-							'type'        => array( 'array', 'bool' ),
-							'readonly'    => true,
-						),
-						'responsive-embeds' => array(
-							'description' => __( 'Whether the theme supports responsive embedded content.' ),
+						'disable-custom-colors'     => array(
+							'description' => __( 'Whether the theme disables custom colors.' ),
 							'type'        => 'bool',
 							'readonly'    => true,
 						),
-						'editor-color-palette' => array(
-							'description' => __( 'Whether the theme supports a custom color scheme.' ),
+						'disable-custom-font-sizes' => array(
+							'description' => __( 'Whether the theme disables custom font sizes.' ),
+							'type'        => 'bool',
+							'readonly'    => true,
+						),
+						'editor-color-palette'      => array(
+							'description' => __( 'Custom color palette if defined by the theme.' ),
 							'type'        => array( 'array', 'bool' ),
 							'items'       => [
 								'type'       => 'object',
@@ -192,8 +195,37 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 									'slug'  => 'string',
 									'color' => 'string,'
 								),
-								'required'   => [ 'name', 'slug', 'color' ],
+								'required'   => array( 'name', 'slug', 'color' ),
 							],
+							'readonly'    => true,
+						),
+						'editor-font-sizes'         => array(
+							'description' => __( 'Custom font sizes if defined by the theme.' ),
+							'type'        => array( 'array', 'bool' ),
+							'items'       => array(
+								'type'       => 'object',
+								'properties' => array(
+									'name' => 'string',
+									'size' => 'number',
+									'slug' => 'string',
+								),
+								'required'   => array( 'name', 'size', 'slug' ),
+							),
+							'readonly'    => true,
+						),
+						'formats'                   => array(
+							'description' => __( 'Post formats supported.' ),
+							'type'        => 'array',
+							'readonly'    => true,
+						),
+						'post-thumbnails'           => array(
+							'description' => __( 'Whether the theme supports post thumbnails.' ),
+							'type'        => array( 'array', 'bool' ),
+							'readonly'    => true,
+						),
+						'responsive-embeds'         => array(
+							'description' => __( 'Whether the theme supports responsive embedded content.' ),
+							'type'        => 'bool',
 							'readonly'    => true,
 						),
 					),
