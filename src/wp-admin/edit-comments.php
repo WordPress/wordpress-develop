@@ -16,6 +16,9 @@ if ( ! current_user_can( 'edit_posts' ) ) {
 	);
 }
 
+//* TODO determine whether to move globally (i.e. filter "pre_comment_content"). Ticket #40916
+add_filter( 'comment_text', 'wp_unbind_links', 35 );
+
 $wp_list_table = _get_list_table( 'WP_Comments_List_Table' );
 $pagenum       = $wp_list_table->get_pagenum();
 

@@ -3263,6 +3263,53 @@ function wp_remove_targeted_link_rel_filters() {
 }
 
 /**
+ * Adds target="_blank" and rel="noreferrer noopener" strings to all HTML A elements
+ * in content.
+ *
+ * Removes current target and rel attributes prior.
+ *
+ * @since TODO Ticket #40916
+ *
+ * @param string $text Content that may contain HTML A elements.
+ * @return string Converted content.
+ */
+function wp_unbind_links( $text ) {
+       // Ticket #40916 Filter usage to be determined...
+       if ( 'pre_comment_content' === current_filter() ) {
+               // This is a pre save filter, so text is already escaped.
+               $text = stripslashes( $text );
+               $text = preg_replace_callback( '|<a (.+?)>|i', 'wp_unbind_links_callback', $text );
+               return wp_slash( $text );
+       }
+       return preg_replace_callback( '|<a (.+?)>|i', 'wp_unbind_links_callback', $text );
+}
+
+/**
+* Callback to add target="_blank" and rel="noreferrer noopener" string to HTML A element.
+*
+* Will remove already existing rel="noreferrer", rel='noreferrer', rel="noopener"
+* and rel='noopener' from the string to prevent from invalidating (X)HTML.
+*
+* @since TODO Ticket #40916
+*
+* @param array $matches Single Match
+* @return string HTML A Element with target="_blank" and rel="noreferrer noopener".
+*/
+function wp_unbind_links_callback( $matches ) {
+       $text = $matches[1];
+       /**
+        * Captures rel and target attributes with content.
+        * Closing/opening tag aware, i.e. it captures:
+        * rel='nofollow"', rel="nofollow", rel=nofollow, rel="nofollow noreferrer"
+        */
+       $regex = '/(target|rel)\=(\'|"?)((?:.(?!\2?\s+(?:\S+)=|[>]\2))+.)\2?/i';
+       //* TODO This will add stray whitespaces... It's not important enough to clean up.
+       $text = preg_replace( $regex, '', $text );
+       return sprintf( '<a %s target=_blank rel="noopener noreferrer">', $text );
+}
+   
+
+/**
  * Convert one smiley code to the icon graphic file equivalent.
  *
  * Callback handler for convert_smilies().

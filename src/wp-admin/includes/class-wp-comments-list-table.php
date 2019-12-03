@@ -833,7 +833,8 @@ class WP_Comments_List_Table extends WP_List_Table {
 		comment_author( $comment );
 		echo '</strong><br />';
 		if ( ! empty( $author_url_display ) ) {
-			printf( '<a href="%s">%s</a><br />', esc_url( $author_url ), esc_html( $author_url_display ) );
+			// Ticket #40916
+ 			printf( '<a href="%s" rel="noopener noreferrer" target="_blank">%s</a><br />', esc_url( $author_url ), esc_html( $author_url_display ) );
 		}
 
 		if ( $this->user_can ) {
