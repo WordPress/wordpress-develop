@@ -272,11 +272,10 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		set_current_screen( 'dashboard' );
 
 		// Setup a menu with some items.
-		add_menu_page( 'Main Menu', 'Main Menu','manage_options','main_slug','main_page_callback');
+		add_menu_page( 'Main Menu', 'Main Menu', 'manage_options', 'main_slug', 'main_page_callback' );
 		add_submenu_page( 'main_slug', 'SubMenu 1', 'SubMenu 1', 'manage_options', 'main_slug', 'submenu_callback_1', 1 );
 		add_submenu_page( 'main_slug', 'SubMenu 2', 'SubMenu 2', 'manage_options', 'submenu_page2', 'submenu_callback_2', 2 );
 		add_submenu_page( 'main_slug', 'SubMenu 3', 'SubMenu 3', 'manage_options', 'submenu_page3', 'submenu_callback_3', 3 );
-
 
 		// Clean up the temporary user.
 		wp_set_current_user( $current_user );
@@ -294,7 +293,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 * @ticket 48599
 	 */
 	function test_passing_string_as_priority_fires_doing_it_wrong() {
-		$this->setExpectedIncorrectUsage('add_submenu_page' );
+		$this->setExpectedIncorrectUsage( 'add_submenu_page' );
 		global $submenu, $menu;
 
 		// Reset menus.
@@ -306,9 +305,8 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		set_current_screen( 'dashboard' );
 
 		// Setup a menu with some items.
-		add_menu_page( 'Main Menu', 'Main Menu','manage_options','main_slug','main_page_callback');
+		add_menu_page( 'Main Menu', 'Main Menu', 'manage_options', 'main_slug', 'main_page_callback' );
 		add_submenu_page( 'main_slug', 'SubMenu 1', 'SubMenu 1', 'manage_options', 'submenu_page_1', 'submenu_callback_1', '2' );
-
 
 		// Clean up the temporary user.
 		wp_set_current_user( $current_user );
