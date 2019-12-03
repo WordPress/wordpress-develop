@@ -1390,8 +1390,8 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 
 		$submenu[ $parent_slug ][] = $new_sub_menu;
 	} else {
-		// If position is equal or higher than the number of items in the array, append the submenu.
-		if ( $position >= count( $submenu[ $parent_slug ] ) ) {
+		// If the parent item isn't present in the submenu or, if position is equal or higher than the number of items in the array, append the submenu.
+		if ( ! isset( $submenu[ $parent_slug ] ) || $position >= count( $submenu[ $parent_slug ] ) ) {
 			$submenu[ $parent_slug ][] = $new_sub_menu;
 		} else {
 			// Test for a negative position.
