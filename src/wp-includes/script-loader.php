@@ -299,7 +299,7 @@ function wp_default_packages_scripts( &$scripts ) {
 				array_push( $dependencies, 'media-models', 'media-views', 'postbox', 'wp-dom-ready' );
 				break;
 		}
-		
+
 		$scripts->add( $handle, $path, $dependencies, $asset_file['version'], 1 );
 
 		if ( in_array( $package, $package_translations, true ) ) {

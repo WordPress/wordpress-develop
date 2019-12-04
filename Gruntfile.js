@@ -354,7 +354,7 @@ module.exports = function(grunt) {
 			assets: {
 				expand: true,
 				cwd: WORKING_DIR + 'wp-includes/js/',
-    			src: 'dist/*.asset.php',
+				src: 'dist/*.asset.php',
 				dest: WORKING_DIR + 'wp-includes/assets/'
 			},
 			version: {
