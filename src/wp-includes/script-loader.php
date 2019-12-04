@@ -229,6 +229,7 @@ function wp_default_packages_scripts( &$scripts ) {
 		'api-fetch',
 		'autop',
 		'blob',
+		'block-directory',
 		'block-editor',
 		'block-library',
 		'block-serialization-default-parser',
@@ -271,6 +272,7 @@ function wp_default_packages_scripts( &$scripts ) {
 	$package_translations = array(
 		'api-fetch',
 		'blocks',
+		'block-directory',
 		'block-editor',
 		'block-library',
 		'components',
@@ -297,7 +299,7 @@ function wp_default_packages_scripts( &$scripts ) {
 				array_push( $dependencies, 'media-models', 'media-views', 'postbox', 'wp-dom-ready' );
 				break;
 		}
-
+		
 		$scripts->add( $handle, $path, $dependencies, $asset_file['version'], 1 );
 
 		if ( in_array( $package, $package_translations, true ) ) {

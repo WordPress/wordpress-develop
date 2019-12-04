@@ -77,6 +77,7 @@
 		"@wordpress/api-fetch": "3.6.4",
 		"@wordpress/autop": "2.5.1",
 		"@wordpress/blob": "2.5.1",
+		"@wordpress/block-directory": "1.0.5",
 		"@wordpress/block-editor": "3.2.5",
 		"@wordpress/block-library": "2.9.6",
 		"@wordpress/block-serialization-default-parser": "3.4.1",
