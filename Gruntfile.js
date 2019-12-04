@@ -110,6 +110,12 @@ module.exports = function(grunt) {
 				WORKING_DIR + 'wp-admin/js/',
 				WORKING_DIR + 'wp-includes/js/'
 			],
+			assets: [
+				WORKING_DIR + 'wp-includes/assets/'
+			],
+			webpack: [
+				WORKING_DIR + 'wp-includes/js/dist/*.asset.php',
+			],
 			dynamic: {
 				dot: true,
 				expand: true,
@@ -344,6 +350,12 @@ module.exports = function(grunt) {
 						dest: WORKING_DIR + 'wp-admin/css/wp-admin-rtl.min.css'
 					}
 				]
+			},
+			assets: {
+				expand: true,
+				cwd: WORKING_DIR + 'wp-includes/js/',
+    			src: 'dist/*.asset.php',
+				dest: WORKING_DIR + 'wp-includes/assets/'
 			},
 			version: {
 				options: {
@@ -1352,8 +1364,11 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'build:js', [
 		'clean:js',
+		'clean:assets',
 		'webpack:prod',
 		'webpack:dev',
+		'copy:assets',
+		'clean:webpack',
 		'copy:js',
 		'file_append',
 		'uglify:all',

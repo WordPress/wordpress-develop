@@ -223,6 +223,9 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 					return path;
 				},
 			} ),
+			new DependencyExtractionPlugin( {
+				injectPolyfill: true,
+			} ),
 			new CopyWebpackPlugin(
 				[
 					...vendorCopies,
@@ -230,10 +233,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 					...phpCopies,
 				],
 			),
-			new DependencyExtractionPlugin( {
-				injectPolyfill: true,
-				outputFormat: 'json',
-			 } ),
 		],
 		stats: {
 			children: false,
