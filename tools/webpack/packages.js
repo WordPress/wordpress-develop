@@ -230,7 +230,10 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 					...phpCopies,
 				],
 			),
-			new DependencyExtractionPlugin( { injectPolyfill: true } ),
+			new DependencyExtractionPlugin( {
+				injectPolyfill: true,
+				outputFormat: 'json',
+			 } ),
 		],
 		stats: {
 			children: false,
