@@ -176,7 +176,7 @@ add_filter( 'the_content', 'wpautop' );
 add_filter( 'the_content', 'shortcode_unautop' );
 add_filter( 'the_content', 'prepend_attachment' );
 add_filter( 'the_content', 'wp_make_content_images_responsive' );
-add_filter( 'the_content', 'wp_make_content_images_lazy' );
+add_filter( 'the_content', 'wp_lazy_load_content_media' );
 
 add_filter( 'the_excerpt', 'wptexturize' );
 add_filter( 'the_excerpt', 'convert_smilies' );

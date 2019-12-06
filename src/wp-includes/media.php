@@ -1012,9 +1012,12 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			'class' => "attachment-$size_class size-$size_class",
 			'alt'   => trim( strip_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) ),
 		);
-		if ( current_theme_supports( 'lazy-loading-images' ) ) {
+
+		/** This filter is documented in wp-includes/media.php */
+		if ( apply_filters( 'wp_lazy_load_content_media', true ) ) {
 			$default_attr['loading'] = 'lazy';
-        }
+		}
+
 		$attr = wp_parse_args( $attr, $default_attr );
 
 		// Generate 'srcset' and 'sizes' if not already present.
@@ -1596,50 +1599,38 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
 }
 
 /**
- * Filters 'img' elements in post content to add 'loading' attributes.
+ * Filters 'img' and 'iframe' elements in post content to add 'loading' attributes.
+ *
+ * @since 5.4.0
  *
  * @param string $content The raw post content to be filtered.
- *
- * @since 5.x.x
- *
- * @return string Converted content with 'loading' attributes added to images.
- * @see   wp_tag_add_lazy_load()
- *
- */
-function wp_make_content_images_lazy( $content ) {
-	if ( current_theme_supports( 'lazy-loading-images' ) ) {
-		$content = wp_tag_add_lazy_load( $content, 'img' );
-	}
-
-	return $content;
-}
-
-
-/**
- * Filters html tag elements in post content to add 'loading' attributes.
- *
- * @param string $content The raw post content to be filtered.
- * @param string $tag     The html tag to scan and replace with loading attribute. Default: img
- *
- * @since 5.x.x
- *
  * @return string Converted content with 'loading' attributes added to images.
  */
-function wp_tag_add_lazy_load( $content, $tag = 'img' ) {
-	if ( ! preg_match_all( '/<' . $tag . ' [^>]+>/', $content, $matches ) ) {
+function wp_lazy_load_content_media( $content ) {
+	$tags = array( 'img', 'iframe' );
+
+	/**
+	 * Filters whether media in post content should be lazy-loaded with 'loading' attributes.
+	 *
+	 * @since 5.4.0
+	 *
+	 * @param bool $enabled Whether to lazy-load content media. Default true.
+	 */
+	if ( ! apply_filters( 'wp_lazy_load_content_media', true ) ) {
 		return $content;
 	}
 
-	$images = array_shift( $matches );
-
-	foreach ( $images as $image ) {
-		if ( false === strpos( $image, ' loading=' ) ) {
-			$lazy_image = str_replace( '<' . $tag . ' ', '<' . $tag . ' loading="lazy" ', $image );
-			$content    = str_replace( $image, $lazy_image, $content );
-		}
-	}
-
-	return $content;
+	return preg_replace_callback(
+		'/<(' . implode( '|', $tags ) . ') [^>]+>/',
+		function( array $matches ) {
+			if ( false === strpos( $matches[0], ' loading=' ) ) {
+				$tag = $matches[1];
+				return str_replace( '<' . $tag . ' ', '<' . $tag . ' loading="lazy" ', $matches[0] );
+			}
+			return $matches[0];
+		},
+		$content
+	);
 }
 
 /**
