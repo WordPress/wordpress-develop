@@ -108,13 +108,11 @@ module.exports = function(grunt) {
 			],
 			js: [
 				WORKING_DIR + 'wp-admin/js/',
+				WORKING_DIR + 'wp-includes/assets/',
 				WORKING_DIR + 'wp-includes/js/'
 			],
 			assets: [
-				WORKING_DIR + 'wp-includes/assets/'
-			],
-			webpack: [
-				WORKING_DIR + 'wp-includes/js/dist/*.asset.php',
+				WORKING_DIR + 'wp-includes/js/**/*.asset.php'
 			],
 			dynamic: {
 				dot: true,
@@ -143,6 +141,7 @@ module.exports = function(grunt) {
 						expand: true,
 						cwd: SOURCE_DIR,
 						src: buildFiles.concat( [
+							'!assets/**', // Assets is extracted into separate copy tasks.
 							'!js/**', // JavaScript is extracted into separate copy tasks.
 							'!.{svn,git}', // Exclude version control folders.
 							'!wp-includes/version.php', // Exclude version.php
@@ -1362,13 +1361,16 @@ module.exports = function(grunt) {
 		'uglify:jqueryform'
 	] );
 
+	grunt.registerTask( 'assets:move', [
+		'copy:assets',
+		'clean:assets',
+	] );
+
 	grunt.registerTask( 'build:js', [
 		'clean:js',
-		'clean:assets',
 		'webpack:prod',
 		'webpack:dev',
-		'copy:assets',
-		'clean:webpack',
+		'assets:move',
 		'copy:js',
 		'file_append',
 		'uglify:all',
