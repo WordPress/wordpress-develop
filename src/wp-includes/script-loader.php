@@ -79,9 +79,11 @@ function wp_default_packages_vendor( &$scripts ) {
 	$suffix = wp_scripts_get_suffix();
 
 	$vendor_scripts = array(
-		'react'     => array( 'wp-polyfill' ),
-		'react-dom' => array( 'react' ),
+		'react'            => array( 'wp-polyfill' ),
+		'react-dom'        => array( 'react' ),
 		'moment',
+		'lazysizes',
+		'lazysizes-native' => array( 'lazysizes' ),
 		'lodash',
 		'wp-polyfill-fetch',
 		'wp-polyfill-formdata',
@@ -124,6 +126,21 @@ function wp_default_packages_vendor( &$scripts ) {
 				'document.contains'   => 'wp-polyfill-node-contains',
 				'window.FormData && window.FormData.prototype.keys' => 'wp-polyfill-formdata',
 				'Element.prototype.matches && Element.prototype.closest' => 'wp-polyfill-element-closest',
+			)
+		)
+	);
+
+	did_action( 'init' ) && $scripts->add_inline_script(
+		'lazysizes-native',
+		implode(
+			"\n",
+			array(
+				'lazySizes.cfg.nativeLoading = {',
+				'	setLoadingAttribute: true,',
+				'	disableListeners: {',
+				'		scroll: true,',
+				'	},',
+				'};',
 			)
 		)
 	);

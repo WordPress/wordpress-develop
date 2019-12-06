@@ -67,6 +67,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		.map( ( packageName ) => packageName.replace( WORDPRESS_NAMESPACE, '' ) );
 
 	const vendors = {
+		'lazysizes.js': 'lazysizes/lazysizes.js',
+		'lazysizes-native.js': 'lazysizes/plugins/native-loading/ls.native-loading.js',
 		'lodash.js': 'lodash/lodash.js',
 		'wp-polyfill.js': '@babel/polyfill/dist/polyfill.js',
 		'wp-polyfill-fetch.js': 'whatwg-fetch/dist/fetch.umd.js',
@@ -79,6 +81,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	};
 
 	const minifiedVendors = {
+		'lazysizes.min.js': 'lazysizes/lazysizes.min.js',
+		'lazysizes-native.min.js': 'lazysizes/plugins/native-loading/ls.native-loading.min.js',
 		'lodash.min.js': 'lodash/lodash.min.js',
 		'wp-polyfill.min.js': '@babel/polyfill/dist/polyfill.min.js',
 		'wp-polyfill-formdata.min.js': 'formdata-polyfill/formdata.min.js',
@@ -115,6 +119,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		jquery: 'jQuery',
 		lodash: 'lodash',
 		'lodash-es': 'lodash',
+		lazysizes: 'lazysizes',
 	};
 
 	packages.forEach( ( name ) => {

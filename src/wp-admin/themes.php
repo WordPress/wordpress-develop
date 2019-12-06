@@ -179,6 +179,9 @@ wp_localize_script(
 );
 
 add_thickbox();
+
+// Enqueue lazysizes first to load theme screenshots
+wp_enqueue_script( 'lazysizes-native' );
 wp_enqueue_script( 'theme' );
 wp_enqueue_script( 'updates' );
 
@@ -484,7 +487,7 @@ if ( ! is_multisite() && current_user_can( 'edit_themes' ) && $broken_themes ) {
 <script id="tmpl-theme" type="text/template">
 	<# if ( data.screenshot[0] ) { #>
 		<div class="theme-screenshot">
-			<img src="{{ data.screenshot[0] }}" alt="" />
+			<img data-src="{{ data.screenshot[0] }}" class="lazyload" alt="" />
 		</div>
 	<# } else { #>
 		<div class="theme-screenshot blank"></div>
