@@ -1012,7 +1012,9 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			'class' => "attachment-$size_class size-$size_class",
 			'alt'   => trim( strip_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) ),
 		);
-
+		if ( current_theme_supports( 'lazy-loading-images' ) ) {
+			$default_attr['loading'] = 'lazy';
+        }
 		$attr = wp_parse_args( $attr, $default_attr );
 
 		// Generate 'srcset' and 'sizes' if not already present.
@@ -1591,6 +1593,53 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
 	}
 
 	return $image;
+}
+
+/**
+ * Filters 'img' elements in post content to add 'loading' attributes.
+ *
+ * @param string $content The raw post content to be filtered.
+ *
+ * @since 5.x.x
+ *
+ * @return string Converted content with 'loading' attributes added to images.
+ * @see   wp_tag_add_lazy_load()
+ *
+ */
+function wp_make_content_images_lazy( $content ) {
+	if ( current_theme_supports( 'lazy-loading-images' ) ) {
+		$content = wp_tag_add_lazy_load( $content, 'img' );
+	}
+
+	return $content;
+}
+
+
+/**
+ * Filters html tag elements in post content to add 'loading' attributes.
+ *
+ * @param string $content The raw post content to be filtered.
+ * @param string $tag     The html tag to scan and replace with loading attribute. Default: img
+ *
+ * @since 5.x.x
+ *
+ * @return string Converted content with 'loading' attributes added to images.
+ */
+function wp_tag_add_lazy_load( $content, $tag = 'img' ) {
+	if ( ! preg_match_all( '/<' . $tag . ' [^>]+>/', $content, $matches ) ) {
+		return $content;
+	}
+
+	$images = array_shift( $matches );
+
+	foreach ( $images as $image ) {
+		if ( false === strpos( $image, ' loading=' ) ) {
+			$lazy_image = str_replace( '<' . $tag . ' ', '<' . $tag . ' loading="lazy" ', $image );
+			$content    = str_replace( $image, $lazy_image, $content );
+		}
+	}
+
+	return $content;
 }
 
 /**

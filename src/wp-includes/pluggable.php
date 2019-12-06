@@ -2596,6 +2596,10 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			'extra_attr'    => '',
 		);
 
+		if ( current_theme_supports( 'lazy-loading-images' ) ) {
+			$defaults['loading'] = 'lazy';
+		}
+
 		if ( empty( $args ) ) {
 			$args = array();
 		}

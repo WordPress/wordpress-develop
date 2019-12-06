@@ -75,8 +75,6 @@ wp_localize_script(
 	)
 );
 
-// Enqueue lazysizes first to load theme screenshots
-wp_enqueue_script( 'lazysizes-native' );
 wp_enqueue_script( 'theme' );
 wp_enqueue_script( 'updates' );
 
@@ -264,7 +262,7 @@ if ( $tab ) {
 <script id="tmpl-theme" type="text/template">
 	<# if ( data.screenshot_url ) { #>
 		<div class="theme-screenshot">
-			<img data-src="{{ data.screenshot_url }}" class="lazyload" alt="" />
+			<img src="{{ data.screenshot_url }}" alt="" />
 		</div>
 	<# } else { #>
 		<div class="theme-screenshot blank"></div>
