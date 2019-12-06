@@ -195,6 +195,19 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertEquals( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\\\fg.png' ), 'Tripple slashed not removed' );
 	}
 
+	/**
+	 * @group 42437
+	 */
+	function test_unique_filename_with_dimension_like_filename() {
+		$testdir = DIR_TESTDATA . '/images/';
+
+		// Test collision with "dimension-like" original filename.
+		$this->assertEquals( 'one-blue-pixel-100x100-1.png', wp_unique_filename( $testdir, 'one-blue-pixel-100x100.png' ) );
+		// Test collision with existing sub-size filename.
+		// Existing files: one-blue-pixel-100x100.png, one-blue-pixel-1-100x100.png.
+		$this->assertEquals( 'one-blue-pixel-2.png', wp_unique_filename( $testdir, 'one-blue-pixel.png' ) );
+	}
+
 	function test_is_serialized() {
 		$cases = array(
 			serialize( null ),
