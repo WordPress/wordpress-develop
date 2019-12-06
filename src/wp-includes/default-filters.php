@@ -176,11 +176,9 @@ add_filter( 'the_content', 'wpautop' );
 add_filter( 'the_content', 'shortcode_unautop' );
 add_filter( 'the_content', 'prepend_attachment' );
 add_filter( 'the_content', 'wp_make_content_images_responsive' );
-add_filter( 'the_content', 'wp_lazy_load_content_media' );
 
 add_filter( 'the_excerpt', 'wptexturize' );
 add_filter( 'the_excerpt', 'convert_smilies' );
-add_filter( 'the_excerpt', 'wp_lazy_load_content_media' );
 add_filter( 'the_excerpt', 'convert_chars' );
 add_filter( 'the_excerpt', 'wpautop' );
 add_filter( 'the_excerpt', 'shortcode_unautop' );
@@ -195,7 +193,6 @@ add_filter( 'comment_text', 'convert_chars' );
 add_filter( 'comment_text', 'make_clickable', 9 );
 add_filter( 'comment_text', 'force_balance_tags', 25 );
 add_filter( 'comment_text', 'convert_smilies', 20 );
-add_filter( 'comment_text', 'wp_lazy_load_content_media' );
 add_filter( 'comment_text', 'wpautop', 30 );
 
 add_filter( 'comment_excerpt', 'convert_chars' );
@@ -262,6 +259,11 @@ add_filter( 'nav_menu_meta_box_object', '_wp_nav_menu_meta_box_object' );
 add_filter( 'pingback_ping_source_uri', 'pingback_ping_source_uri' );
 add_filter( 'xmlrpc_pingback_error', 'xmlrpc_pingback_error' );
 add_filter( 'title_save_pre', 'trim' );
+
+// Add lazy loading attrs to core functions.
+foreach ( array( 'get_avatar', 'wp_get_attachment_image', 'smilies_html', 'the_content', 'the_excerpt', 'comment_text', 'widget_text_content' ) as $filter ) {
+	add_filter( $filter, 'wp_lazy_load_content_media' );
+}
 
 add_action( 'transition_comment_status', '_clear_modified_cache_on_transition_comment_status', 10, 2 );
 

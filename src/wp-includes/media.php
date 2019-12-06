@@ -1013,11 +1013,6 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			'alt'   => trim( strip_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) ),
 		);
 
-		/** This filter is documented in wp-includes/media.php */
-		if ( apply_filters( 'wp_lazy_load_content_media', true ) ) {
-			$default_attr['loading'] = 'lazy';
-		}
-
 		$attr = wp_parse_args( $attr, $default_attr );
 
 		// Generate 'srcset' and 'sizes' if not already present.
@@ -1057,6 +1052,19 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		}
 		$html .= ' />';
 	}
+
+	/**
+	 * Filters the markup of image attachments.
+	 *
+	 * @since 5.4.0
+	 *
+	 * @param string       $html       The markup for image attachments.
+	 * @param string[]     $attr       Array of attribute values for the image markup, keyed by attribute name.
+	 * @param WP_Post      $attachment Image attachment post.
+	 * @param string|array $size       Requested size. Image size or array of width and height values
+	 *                                 (in that order). Default 'thumbnail'.
+	 */
+	$html = apply_filters( 'wp_get_attachment_image', $html, $attr, $attachment, $size );
 
 	return $html;
 }
@@ -1614,9 +1622,10 @@ function wp_lazy_load_content_media( $content ) {
 	 *
 	 * @since 5.4.0
 	 *
-	 * @param bool $enabled Whether to lazy-load content media. Default true.
+	 * @param bool   $enabled Whether to lazy-load content media. Default true.
+	 * @param string $content The raw post content to be filtered.
 	 */
-	if ( ! apply_filters( 'wp_lazy_load_content_media', true ) ) {
+	if ( ! apply_filters( 'wp_lazy_load_content_media', true, $content ) ) {
 		return $content;
 	}
 

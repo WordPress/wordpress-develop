@@ -2596,11 +2596,6 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			'extra_attr'    => '',
 		);
 
-		/** This filter is documented in wp-includes/media.php */
-		if ( apply_filters( 'wp_lazy_load_content_media', true ) ) {
-			$defaults['loading'] = 'lazy';
-		}
-
 		if ( empty( $args ) ) {
 			$args = array();
 		}
