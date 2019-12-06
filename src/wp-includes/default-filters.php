@@ -180,6 +180,7 @@ add_filter( 'the_content', 'wp_lazy_load_content_media' );
 
 add_filter( 'the_excerpt', 'wptexturize' );
 add_filter( 'the_excerpt', 'convert_smilies' );
+add_filter( 'the_excerpt', 'wp_lazy_load_content_media' );
 add_filter( 'the_excerpt', 'convert_chars' );
 add_filter( 'the_excerpt', 'wpautop' );
 add_filter( 'the_excerpt', 'shortcode_unautop' );
@@ -194,6 +195,7 @@ add_filter( 'comment_text', 'convert_chars' );
 add_filter( 'comment_text', 'make_clickable', 9 );
 add_filter( 'comment_text', 'force_balance_tags', 25 );
 add_filter( 'comment_text', 'convert_smilies', 20 );
+add_filter( 'comment_text', 'wp_lazy_load_content_media' );
 add_filter( 'comment_text', 'wpautop', 30 );
 
 add_filter( 'comment_excerpt', 'convert_chars' );

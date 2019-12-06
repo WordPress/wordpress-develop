@@ -3296,6 +3296,12 @@ function translate_smiley( $matches ) {
 		return $img;
 	}
 
+	$loading = 'auto';
+	/** This filter is documented in wp-includes/media.php */
+	if ( apply_filters( 'wp_lazy_load_content_media', true ) ) {
+		$loading = 'lazy';
+	}
+
 	/**
 	 * Filters the Smiley image URL before it's used in the image element.
 	 *
@@ -3307,7 +3313,7 @@ function translate_smiley( $matches ) {
 	 */
 	$src_url = apply_filters( 'smilies_src', includes_url( "images/smilies/$img" ), $img, site_url() );
 
-	return sprintf( '<img src="%s" alt="%s" class="wp-smiley" style="height: 1em; max-height: 1em;" />', esc_url( $src_url ), esc_attr( $smiley ) );
+	return sprintf( '<img src="%s" alt="%s" loading="%s" class="wp-smiley" style="height: 1em; max-height: 1em;" />', esc_url( $src_url ), esc_attr( $smiley ), esc_attr( $loading ) );
 }
 
 /**
