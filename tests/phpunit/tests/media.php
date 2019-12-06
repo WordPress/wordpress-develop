@@ -1301,11 +1301,18 @@ EOF;
 	 * Tests the default output of `wp_get_attachment_image()`.
 	 *
 	 * @ticket 34635
+	 * @ticket 44427
 	 */
 	function test_wp_get_attachment_image_defaults() {
 		$image    = image_downsize( self::$large_id, 'thumbnail' );
 		$expected = sprintf( '<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="" />', $image[1], $image[2], $image[0] );
 
+		add_filter( 'wp_lazy_load_content_media', '__return_false' );
+		$this->assertEquals( $expected, wp_get_attachment_image( self::$large_id ) );
+
+		$expected = str_replace( ' alt=""', ' alt="" loading="lazy"', $expected );
+
+		remove_filter( 'wp_lazy_load_content_media', '__return_false' );
 		$this->assertEquals( $expected, wp_get_attachment_image( self::$large_id ) );
 	}
 
@@ -1319,7 +1326,7 @@ EOF;
 		update_post_meta( self::$large_id, '_wp_attachment_image_alt', 'Some very clever alt text', true );
 
 		$image    = image_downsize( self::$large_id, 'thumbnail' );
-		$expected = sprintf( '<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="Some very clever alt text" />', $image[1], $image[2], $image[0] );
+		$expected = sprintf( '<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="Some very clever alt text" loading="lazy" />', $image[1], $image[2], $image[0] );
 
 		$this->assertEquals( $expected, wp_get_attachment_image( self::$large_id ) );
 
@@ -2232,7 +2239,7 @@ EOF;
 		$month  = gmdate( 'm' );
 
 		$expected = '<img width="999" height="999" src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $year . '/' . $month . '/test-image-testsize-999x999.png"' .
-			' class="attachment-testsize size-testsize" alt=""' .
+			' class="attachment-testsize size-testsize" alt="" loading="lazy"' .
 			' srcset="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $year . '/' . $month . '/test-image-testsize-999x999.png 999w,' .
 				' http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $year . '/' . $month . '/test-image-large-150x150.png 150w"' .
 				' sizes="(max-width: 999px) 100vw, 999px" />';
@@ -2494,6 +2501,60 @@ EOF;
 		wp_delete_post( $parent_id );
 
 		$this->assertSame( $expected, $url );
+	}
+
+	/**
+	 * @ticket 44427
+	 */
+	function test_wp_lazy_load_content_media() {
+		$img       = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$img_xhtml = str_replace( ' />', '/>', $img );
+		$img_html5 = str_replace( ' />', '>', $img );
+		$iframe    = '<iframe src="https://www.example.com"></iframe>';
+
+		$lazy_img       = str_replace( '<img ', '<img loading="lazy" ', $img );
+		$lazy_img_xhtml = str_replace( '<img ', '<img loading="lazy" ', $img_xhtml );
+		$lazy_img_html5 = str_replace( '<img ', '<img loading="lazy" ', $img_html5 );
+		$lazy_iframe    = str_replace( '<iframe ', '<iframe loading="lazy" ', $iframe );
+
+		// The following should not be modified because there already is a 'loading' attribute.
+		$img_eager = str_replace( ' />', ' loading="eager" />', $img );
+
+		$content = '
+			<p>Image, standard.</p>
+			%1$s
+
+			<p>Image, XHTML 1.0 style (no space before the closing slash).</p>
+			%2$s
+
+			<p>Image, HTML 5.0 style.</p>
+			%3$s
+
+			<p>Image, with pre-existing "loading" attribute.</p>
+			%5$s
+
+			<p>Iframe, standard.</p>
+			%4$s';
+
+		$content_unfiltered = sprintf( $content, $img, $img_xhtml, $img_html5, $iframe, $img_eager );
+		$content_filtered   = sprintf( $content, $lazy_img, $lazy_img_xhtml, $lazy_img_html5, $lazy_iframe, $img_eager );
+
+		$this->assertSame( $content_filtered, wp_lazy_load_content_media( $content_unfiltered ) );
+	}
+
+	/**
+	 * @ticket 44427
+	 */
+	function test_wp_lazy_load_content_media_opted_out() {
+		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
+
+		$content = '
+			<p>Image, standard.</p>
+			%1$s';
+		$content = sprintf( $content, $img );
+
+		add_filter( 'wp_lazy_load_content_media', '__return_false' );
+		$this->assertSame( $content, wp_lazy_load_content_media( $content ) );
 	}
 }
 
