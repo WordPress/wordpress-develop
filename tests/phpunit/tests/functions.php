@@ -196,7 +196,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @group 42437
+	 * @ticket 42437
 	 */
 	function test_unique_filename_with_dimension_like_filename() {
 		$testdir = DIR_TESTDATA . '/images/';
