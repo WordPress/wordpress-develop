@@ -1602,6 +1602,10 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 				$notify_message .= sprintf( __( 'Email: %s' ), $comment->comment_author_email ) . "\r\n";
 				/* translators: %s: Trackback/pingback/comment author URL. */
 				$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
+				if ( 0 !== $comment->comment_parent ) {
+					/* translators: Comment parent. 1: Comment parent URL */
+					$notify_message .= sprintf( __( 'In reply to: %s' ), admin_url( "comment.php?action=editcomment&c={$comment->comment_parent}" ) ) . "\r\n";
+				}
 				/* translators: %s: Comment text. */
 				$notify_message .= sprintf( __( 'Comment: %s' ), "\r\n" . $comment_content ) . "\r\n\r\n";
 				$notify_message .= __( 'You can see all comments on this post here:' ) . "\r\n";
