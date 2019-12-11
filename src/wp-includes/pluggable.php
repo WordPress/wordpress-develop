@@ -2596,6 +2596,10 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			'extra_attr'    => '',
 		);
 
+		if ( in_array( 'img', wp_get_lazy_load_tags(), true ) ) {
+			$defaults['loading'] = 'lazy';
+		}
+
 		if ( empty( $args ) ) {
 			$args = array();
 		}
@@ -2665,6 +2669,14 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			}
 		}
 
+		$extra_attr = $args['extra_attr'];
+		if ( ! empty( $args['loading'] ) ) {
+			if ( ! empty( $extra_attr ) ) {
+				$extra_attr = ' ' . $extra_attr;
+			}
+			$extra_attr = 'loading="' . esc_attr( $args['loading'] ) . '"' . $extra_attr;
+		}
+
 		$avatar = sprintf(
 			"<img alt='%s' src='%s' srcset='%s' class='%s' height='%d' width='%d' %s/>",
 			esc_attr( $args['alt'] ),
@@ -2673,7 +2685,7 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			esc_attr( join( ' ', $class ) ),
 			(int) $args['height'],
 			(int) $args['width'],
-			$args['extra_attr']
+			$extra_attr
 		);
 
 		/**

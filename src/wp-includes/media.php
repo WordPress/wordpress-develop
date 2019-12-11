@@ -1013,6 +1013,10 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			'alt'   => trim( strip_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) ),
 		);
 
+		if ( in_array( 'img', wp_get_lazy_load_tags(), true ) ) {
+			$default_attr['loading'] = 'lazy';
+		}
+
 		$attr = wp_parse_args( $attr, $default_attr );
 
 		// Generate 'srcset' and 'sizes' if not already present.
@@ -1052,19 +1056,6 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		}
 		$html .= ' />';
 	}
-
-	/**
-	 * Filters the markup of image attachments.
-	 *
-	 * @since 5.4.0
-	 *
-	 * @param string       $html       The markup for image attachments.
-	 * @param string[]     $attr       Array of attribute values for the image markup, keyed by attribute name.
-	 * @param WP_Post      $attachment Image attachment post.
-	 * @param string|array $size       Requested size. Image size or array of width and height values
-	 *                                 (in that order). Default 'thumbnail'.
-	 */
-	$html = apply_filters( 'wp_get_attachment_image', $html, $attr, $attachment, $size );
 
 	return $html;
 }
@@ -1607,6 +1598,34 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
 }
 
 /**
+ * Gets the tags to lazy-load.
+ *
+ * @since 5.4.0
+ *
+ * @return array List of tags to add loading="lazy" attributes to.
+ */
+function wp_get_lazy_load_tags() {
+	$supported_tags = array( 'img', 'iframe' );
+
+	/**
+	 * Filters which media should be lazy-loaded with loading="lazy" attributes.
+	 *
+	 * @since 5.4.0
+	 *
+	 * @param array $tags List of tags to add loading="lazy" attributes to. Default is an array with 'img'.
+	 */
+	$tags = apply_filters( 'wp_lazy_load_content_media', array( 'img' ) );
+
+	// Support a boolean, just in case.
+	if ( ! is_array( $tags ) ) {
+		return $tags ? $supported_tags : array();
+	}
+
+	// Only allow supported tags to be included.
+	return array_values( array_intersect( $tags, $supported_tags ) );
+}
+
+/**
  * Filters 'img' and 'iframe' elements in post content to add 'loading' attributes.
  *
  * @since 5.4.0
@@ -1615,26 +1634,18 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
  * @return string Converted content with 'loading' attributes added to images.
  */
 function wp_lazy_load_content_media( $content ) {
-	$tags = array( 'img', 'iframe' );
-
-	/**
-	 * Filters whether media in post content should be lazy-loaded with 'loading' attributes.
-	 *
-	 * @since 5.4.0
-	 *
-	 * @param bool   $enabled Whether to lazy-load content media. Default true.
-	 * @param string $content The raw post content to be filtered.
-	 */
-	if ( ! apply_filters( 'wp_lazy_load_content_media', true, $content ) ) {
+	$tags = wp_get_lazy_load_tags();
+	if ( empty( $tags ) ) {
 		return $content;
 	}
 
 	return preg_replace_callback(
-		'/<(' . implode( '|', $tags ) . ') [^>]+>/',
+		'/<(' . implode( '|', $tags ) . ')(\s)[^>]+>/',
 		function( array $matches ) {
-			if ( false === strpos( $matches[0], ' loading=' ) ) {
-				$tag = $matches[1];
-				return str_replace( '<' . $tag . ' ', '<' . $tag . ' loading="lazy" ', $matches[0] );
+			if ( ! preg_match( '/\sloading\s*=/', $matches[0] ) ) {
+				$tag   = $matches[1];
+				$space = $matches[2];
+				return str_replace( '<' . $tag . $space, '<' . $tag . $space . 'loading="lazy" ', $matches[0] );
 			}
 			return $matches[0];
 		},

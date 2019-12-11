@@ -260,8 +260,8 @@ add_filter( 'pingback_ping_source_uri', 'pingback_ping_source_uri' );
 add_filter( 'xmlrpc_pingback_error', 'xmlrpc_pingback_error' );
 add_filter( 'title_save_pre', 'trim' );
 
-// Add lazy loading attrs to core functions.
-foreach ( array( 'get_avatar', 'wp_get_attachment_image', 'smilies_html', 'the_content', 'the_excerpt', 'comment_text', 'widget_text_content' ) as $filter ) {
+// Add lazy loading attributes to content.
+foreach ( array( 'the_content', 'the_excerpt', 'comment_text', 'widget_text_content' ) as $filter ) {
 	add_filter( $filter, 'wp_lazy_load_content_media' );
 }
 
