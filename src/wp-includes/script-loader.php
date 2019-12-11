@@ -229,24 +229,24 @@ function wp_default_packages_scripts( &$scripts ) {
 		'api-fetch'                          => '3.6.4',
 		'autop'                              => '2.5.1',
 		'blob'                               => '2.5.1',
-		'block-editor'                       => '3.2.4',
-		'block-library'                      => '2.9.5',
+		'block-editor'                       => '3.2.5',
+		'block-library'                      => '2.9.6',
 		'block-serialization-default-parser' => '3.4.1',
 		'blocks'                             => '6.7.2',
 		'components'                         => '8.3.2',
 		'compose'                            => '3.7.2',
-		'core-data'                          => '2.7.4',
+		'core-data'                          => '2.7.5',
 		'data-controls'                      => '1.3.4',
 		'data'                               => '4.9.2',
 		'date'                               => '3.5.0',
 		'deprecated'                         => '2.6.1',
 		'dom-ready'                          => '2.5.1',
 		'dom'                                => '2.5.2',
-		'edit-post'                          => '3.8.5',
-		'editor'                             => '9.7.5',
+		'edit-post'                          => '3.8.6',
+		'editor'                             => '9.7.6',
 		'element'                            => '2.8.2',
 		'escape-html'                        => '1.5.1',
-		'format-library'                     => '1.9.4',
+		'format-library'                     => '1.9.5',
 		'hooks'                              => '2.6.0',
 		'html-entities'                      => '2.5.0',
 		'i18n'                               => '3.6.1',
@@ -1490,7 +1490,7 @@ function wp_default_scripts( &$scripts ) {
 
 	$scripts->add( 'user-suggest', "/wp-admin/js/user-suggest$suffix.js", array( 'jquery-ui-autocomplete' ), false, 1 );
 
-	$scripts->add( 'admin-bar', "/wp-includes/js/admin-bar$suffix.js", array(), false, 1 );
+	$scripts->add( 'admin-bar', "/wp-includes/js/admin-bar$suffix.js", array( 'hoverintent-js' ), false, 1 );
 
 	$scripts->add( 'wplink', "/wp-includes/js/wplink$suffix.js", array( 'jquery', 'wp-a11y' ), false, 1 );
 	did_action( 'init' ) && $scripts->localize(
@@ -1514,6 +1514,9 @@ function wp_default_scripts( &$scripts ) {
 	$scripts->add( 'media-upload', "/wp-admin/js/media-upload$suffix.js", array( 'thickbox', 'shortcode' ), false, 1 );
 
 	$scripts->add( 'hoverIntent', "/wp-includes/js/hoverIntent$suffix.js", array( 'jquery' ), '1.8.1', 1 );
+
+	// JS-only version of hoverintent (no dependencies).
+	$scripts->add( 'hoverintent-js', '/wp-includes/js/hoverintent-js.min.js', array(), '2.2.1', 1 );
 
 	$scripts->add( 'customize-base', "/wp-includes/js/customize-base$suffix.js", array( 'jquery', 'json2', 'underscore' ), false, 1 );
 	$scripts->add( 'customize-loader', "/wp-includes/js/customize-loader$suffix.js", array( 'customize-base' ), false, 1 );

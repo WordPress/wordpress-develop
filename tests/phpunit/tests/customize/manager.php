@@ -1252,7 +1252,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 *
 	 * @param array $data    Data.
 	 * @param array $context Context.
-	 * @returns array Data.
+	 * @return array Data.
 	 */
 	function filter_customize_changeset_save_data( $data, $context ) {
 		$this->customize_changeset_save_data_call_count += 1;

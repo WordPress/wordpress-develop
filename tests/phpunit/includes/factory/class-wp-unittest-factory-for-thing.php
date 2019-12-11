@@ -130,8 +130,9 @@ abstract class WP_UnitTest_Factory_For_Thing {
 		}
 
 		// Use the same incrementor for all fields belonging to this object.
-		$gen  = new WP_UnitTest_Generator_Sequence();
-		$incr = $gen->get_incr();
+		$gen = new WP_UnitTest_Generator_Sequence();
+		// Add leading zeros to make sure MySQL sorting works as expected.
+		$incr = zeroise( $gen->get_incr(), 7 );
 
 		foreach ( array_keys( $generation_definitions ) as $field_name ) {
 			if ( ! isset( $args[ $field_name ] ) ) {
