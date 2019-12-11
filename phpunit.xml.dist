@@ -33,7 +33,7 @@
 		<listener class="SpeedTrapListener" file="tests/phpunit/includes/listener-loader.php">
 			<arguments>
 				<array>
-					<element key="slow_threshold">
+					<element key="slowThreshold">
 						<integer>150</integer>
 					</element>
 				</array>
