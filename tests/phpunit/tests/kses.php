@@ -170,6 +170,28 @@ EOF;
 			}
 		}
 
+		$bad_not_normalized = array(
+			'dummy&colon;alert(1)',
+			'javascript&colon;alert(1)',
+			'javascript&CoLon;alert(1)',
+			'javascript&COLON;alert(1);',
+			'javascript&#58;alert(1);',
+			'javascript&#0058;alert(1);',
+			'javascript&#0000058alert(1);',
+			'jav	ascript&COLON;alert(1);',
+			'javascript&#58;javascript&colon;alert(1);',
+			'javascript&#58;javascript&colon;alert(1);',
+			'javascript&#0000058javascript&colon;alert(1);',
+			'javascript&#58;javascript&#0000058alert(1);',
+			'javascript&#58alert(1)',
+		);
+		foreach ( $bad_not_normalized as $k => $x ) {
+			$result = wp_kses_bad_protocol( $x, wp_allowed_protocols() );
+			if ( ! empty( $result ) && 'alert(1);' !== $result && 'alert(1)' !== $result ) {
+				$this->fail( "wp_kses_bad_protocol failed on $k, $x. Result: $result" );
+			}
+		}
+
 		$safe = array(
 			'dummy:alert(1)',
 			'HTTP://example.org/',
