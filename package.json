@@ -1,6 +1,6 @@
 {
 	"name": "WordPress",
-	"version": "5.0.7",
+	"version": "5.0.8",
 	"description": "WordPress is web software you can use to create a beautiful website or blog.",
 	"repository": {
 		"type": "svn",
@@ -38,7 +38,7 @@
 		"grunt-postcss": "~0.9.0",
 		"grunt-replace": "~1.0.1",
 		"grunt-rtlcss": "~2.0.1",
-		"grunt-sass": "~2.0.0",
+		"grunt-sass": "^2.0.0",
 		"grunt-webpack": "^3.0.2",
 		"ink-docstrap": "^1.3.0",
 		"matchdep": "~2.0.0",
