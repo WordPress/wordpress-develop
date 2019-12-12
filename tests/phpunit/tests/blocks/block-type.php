@@ -304,6 +304,24 @@ class WP_Test_Block_Type extends WP_UnitTestCase {
 		$this->assertFalse( has_block( 'core/fake' ) );
 	}
 
+	public function test_post_has_block_serialized_name() {
+		$content = '<!-- wp:serialized /--><!-- wp:core/normalized /--><!-- wp:plugin/third-party /-->';
+
+		$this->assertTrue( has_block( 'core/serialized', $content ) );
+
+		/*
+		 * Technically, `has_block` should receive a "full" (normalized, parsed)
+		 * block name. But this test conforms to expected pre-5.3.1 behavior.
+		 */
+		$this->assertTrue( has_block( 'serialized', $content ) );
+		$this->assertTrue( has_block( 'core/normalized', $content ) );
+		$this->assertTrue( has_block( 'normalized', $content ) );
+		$this->assertFalse( has_block( 'plugin/normalized', $content ) );
+		$this->assertFalse( has_block( 'plugin/serialized', $content ) );
+		$this->assertFalse( has_block( 'third-party', $content ) );
+		$this->assertFalse( has_block( 'core/third-party', $content ) );
+	}
+
 	/**
 	 * Renders a test block without content.
 	 *
