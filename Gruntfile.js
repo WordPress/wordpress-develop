@@ -111,7 +111,7 @@ module.exports = function(grunt) {
 				WORKING_DIR + 'wp-includes/assets/',
 				WORKING_DIR + 'wp-includes/js/'
 			],
-			assets: [
+			'webpack-assets': [
 				WORKING_DIR + 'wp-includes/js/**/*.asset.php'
 			],
 			dynamic: {
@@ -350,7 +350,7 @@ module.exports = function(grunt) {
 					}
 				]
 			},
-			assets: {
+			'webpack-assets': {
 				expand: true,
 				cwd: WORKING_DIR + 'wp-includes/js/',
 				src: 'dist/*.asset.php',
@@ -1361,16 +1361,16 @@ module.exports = function(grunt) {
 		'uglify:jqueryform'
 	] );
 
-	grunt.registerTask( 'assets:move', [
-		'copy:assets',
-		'clean:assets',
+	grunt.registerTask( 'build:webpack', [
+		'webpack:prod',
+		'webpack:dev',
+		'copy:webpack-assets',
+		'clean:webpack-assets',
 	] );
 
 	grunt.registerTask( 'build:js', [
 		'clean:js',
-		'webpack:prod',
-		'webpack:dev',
-		'assets:move',
+		'build:webpack',
 		'copy:js',
 		'file_append',
 		'uglify:all',
