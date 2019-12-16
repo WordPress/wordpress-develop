@@ -201,11 +201,21 @@ class Tests_Functions extends WP_UnitTestCase {
 	function test_unique_filename_with_dimension_like_filename() {
 		$testdir = DIR_TESTDATA . '/images/';
 
+		add_filter( 'upload_dir', array( $this, 'upload_dir_patch_basedir' ) );
+
 		// Test collision with "dimension-like" original filename.
 		$this->assertEquals( 'one-blue-pixel-100x100-1.png', wp_unique_filename( $testdir, 'one-blue-pixel-100x100.png' ) );
 		// Test collision with existing sub-size filename.
 		// Existing files: one-blue-pixel-100x100.png, one-blue-pixel-1-100x100.png.
 		$this->assertEquals( 'one-blue-pixel-2.png', wp_unique_filename( $testdir, 'one-blue-pixel.png' ) );
+
+		remove_filter( 'upload_dir', array( $this, 'upload_dir_patch_basedir' ) );
+	}
+
+	// Callback to patch "basedir" when used in `wp_unique_filename()`.
+	function upload_dir_patch_basedir( $upload_dir ) {
+		$upload_dir['basedir'] = DIR_TESTDATA . '/images/';
+		return $upload_dir;
 	}
 
 	function test_is_serialized() {
@@ -228,6 +238,7 @@ class Tests_Functions extends WP_UnitTestCase {
 				)
 			),
 		);
+
 		foreach ( $cases as $case ) {
 			$this->assertTrue( is_serialized( $case ), "Serialized data: $case" );
 		}
@@ -237,6 +248,7 @@ class Tests_Functions extends WP_UnitTestCase {
 			'garbage:a:0:garbage;',
 			's:4:test;',
 		);
+
 		foreach ( $not_serialized as $case ) {
 			$this->assertFalse( is_serialized( $case ), "Test data: $case" );
 		}
