@@ -208,6 +208,8 @@ class Tests_Functions extends WP_UnitTestCase {
 		// Test collision with existing sub-size filename.
 		// Existing files: one-blue-pixel-100x100.png, one-blue-pixel-1-100x100.png.
 		$this->assertEquals( 'one-blue-pixel-2.png', wp_unique_filename( $testdir, 'one-blue-pixel.png' ) );
+		// Same as above with upper case extension.
+		$this->assertEquals( 'one-blue-pixel-2.png', wp_unique_filename( $testdir, 'one-blue-pixel.PNG' ) );
 
 		remove_filter( 'upload_dir', array( $this, 'upload_dir_patch_basedir' ) );
 	}
