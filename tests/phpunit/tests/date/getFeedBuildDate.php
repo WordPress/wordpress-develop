@@ -36,4 +36,46 @@ class Tests_Date_Get_Feed_Build_Date extends WP_UnitTestCase {
 
 		$this->assertEquals( '2018-07-23T03:13:23+00:00', get_feed_build_date( DATE_RFC3339 ) );
 	}
+
+	/**
+	 * Test that get_feed_build_date() works with invalid post dates.
+	 *
+	 * @ticket 48957
+	 */
+	public function test_should_fall_back_to_last_post_modified() {
+		global $wp_query;
+
+		update_option( 'timezone_string', 'Europe/Kiev' );
+		$datetime     = new DateTimeImmutable( 'now', wp_timezone() );
+		$datetime_utc = $datetime->setTimezone( new DateTimeZone( 'UTC' ) );
+
+		$wp_query->posts = array();
+
+		$this->assertFalse( get_feed_build_date( DATE_RFC3339 ), 'False when unable to determine valid time' );
+
+		$this->factory->post->create(
+			array(
+				'post_date' => $datetime->format( 'Y-m-d H:i:s' ),
+			)
+		);
+
+		$this->assertEquals(
+			$datetime_utc->format( DATE_RFC3339 ),
+			get_feed_build_date( DATE_RFC3339 ),
+			'Fall back to time of last post modified with no posts'
+		);
+
+		$post_id_broken = $this->factory->post->create();
+		$post_broken    = get_post( $post_id_broken );
+
+		$post_broken->post_modified_gmt = 0;
+
+		$wp_query->posts = array( $post_broken );
+
+		$this->assertEquals(
+			$datetime_utc->format( DATE_RFC3339 ),
+			get_feed_build_date( DATE_RFC3339 ),
+			'Fall back to time of last post modified with broken post object'
+		);
+	}
 }
