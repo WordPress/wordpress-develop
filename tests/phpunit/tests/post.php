@@ -595,6 +595,22 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 48145
+	 */
+	function test_wp_insert_post_should_default_to_publish_if_post_date_is_within_59_seconds_from_current_time() {
+		$future_date = gmdate( 'Y-m-d H:i:s', time() + 59 );
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_date' => $future_date,
+			)
+		);
+
+		$post = get_post( $post_id );
+		$this->assertEquals( 'publish', $post->post_status );
+		$this->assertEquals( $future_date, $post->post_date );
+	}
+
+	/**
 	 * @ticket 22944
 	 */
 	function test_publish_post_with_content_filtering() {
