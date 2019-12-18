@@ -33,7 +33,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	/**
 	 * Updates an existing object.
 	 *
-	 * @param int   $object The object id.
+	 * @param int   $object The object ID.
 	 * @param array $fields The values to update.
 	 *
 	 * @return mixed The result. Can be anything.
@@ -90,7 +90,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	/**
 	 * Retrieves an object by ID.
 	 *
-	 * @param int $object_id The object id.
+	 * @param int $object_id The object ID.
 	 *
 	 * @return mixed The object. Can be anything.
 	 */
@@ -114,7 +114,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	}
 
 	/**
-	 * Combines the given argument with the generation_definitions (defaults) and applies
+	 * Combines the given arguments with the generation_definitions (defaults) and applies
 	 * possibly set callbacks on it.
 	 *
 	 * @param array       $args                   Optional. The arguments to combine with defaults. Default is empty array.

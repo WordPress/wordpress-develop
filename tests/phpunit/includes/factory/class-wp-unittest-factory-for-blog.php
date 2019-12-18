@@ -24,11 +24,11 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 	}
 
 	/**
-	 * Creates a blog object.
+	 * Creates a site object.
 	 *
 	 * @param array $args Arguments for the site object.
 	 *
-	 * @return int|WP_Error Returns WP_Error object on failure, the site ID on success.
+	 * @return int|WP_Error The site ID on success, WP_Error object on failure.
 	 */
 	public function create_object( $args ) {
 		global $wpdb;
@@ -46,9 +46,9 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 	}
 
 	/**
-	 * Updates a blog object. Not implemented.
+	 * Updates a site object. Not implemented.
 	 *
-	 * @param int   $blog_id The blog id to update.
+	 * @param int   $blog_id ID of the site to update.
 	 * @param array $fields  The fields to update.
 	 *
 	 * @return void
@@ -56,11 +56,11 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 	public function update_object( $blog_id, $fields ) {}
 
 	/**
-	 * Retrieves a site by given blog id.
+	 * Retrieves a site by a given ID.
 	 *
-	 * @param int $blog_id The blog id to retrieve.
+	 * @param int $blog_id ID of the site to retrieve.
 	 *
-	 * @return null|WP_Site The site object or null if not found.
+	 * @return WP_Site|null The site object on success, null on failure.
 	 */
 	public function get_object_by_id( $blog_id ) {
 		return get_site( $blog_id );
