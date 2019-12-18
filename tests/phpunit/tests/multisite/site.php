@@ -1287,8 +1287,6 @@ if ( is_multisite() ) :
 				array( '%blog_id%' . 'short', 'blog-details' ),
 				array( '%domain_path_key%', 'blog-lookup' ),
 				array( '%domain_path_key%', 'blog-id-cache' ),
-				array( 'current_blog_%domain%', 'site-options' ),
-				array( 'current_blog_%domain%%path%', 'site-options' ),
 			);
 		}
 
