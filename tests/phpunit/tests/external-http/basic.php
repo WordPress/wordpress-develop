@@ -16,8 +16,9 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 
 		$this->skipTestOnTimeout( $response );
 
-		if ( 200 !== wp_remote_retrieve_response_code( $response ) ) {
-			$this->fail( 'Could not contact PHP.net to check versions.' );
+		$response_code = wp_remote_retrieve_response_code( $response );
+		if ( 200 !== $response_code ) {
+			$this->fail( sprintf( 'Could not contact PHP.net to check versions. Response code: %s', $response_code ) );
 		}
 
 		$php = wp_remote_retrieve_body( $response );
@@ -32,8 +33,9 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 
 		$this->skipTestOnTimeout( $response );
 
-		if ( 200 !== wp_remote_retrieve_response_code( $response ) ) {
-			$this->fail( 'Could not contact dev.MySQL.com to check versions.' );
+		$response_code = wp_remote_retrieve_response_code( $response );
+		if ( 200 !== $response_code ) {
+			$this->fail( sprintf( 'Could not contact dev.MySQL.com to check versions. Response code: %s', $response_code ) );
 		}
 
 		$mysql = wp_remote_retrieve_body( $response );
