@@ -5,25 +5,35 @@
 class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 
 	function test_readme() {
-		// This test is designed to only run on trunk/master
+		// This test is designed to only run on trunk/master.
 		$this->skipOnAutomatedBranches();
 
 		$readme = file_get_contents( ABSPATH . 'readme.html' );
 
 		preg_match( '#Recommendations.*PHP</a> version <strong>([0-9.]*)#s', $readme, $matches );
 
-		$response = wp_remote_get( 'https://secure.php.net/supported-versions.php' );
+		$response = wp_remote_get( 'https://www.php.net/supported-versions.php' );
 
 		$this->skipTestOnTimeout( $response );
 
 		$response_code = wp_remote_retrieve_response_code( $response );
+		$response_body = wp_remote_retrieve_body( $response );
+
 		if ( 200 !== $response_code ) {
-			$this->fail( sprintf( 'Could not contact PHP.net to check versions. Response code: %s', $response_code ) );
+			$error_message = sprintf(
+				'Could not contact PHP.net to check versions. Response code: %s. Response body: %s',
+				$response_code,
+				$response_body
+			);
+
+			if ( 503 === $response_code ) {
+				$this->markTestSkipped( $error_message );
+			}
+
+			$this->fail( $error_message );
 		}
 
-		$php = wp_remote_retrieve_body( $response );
-
-		preg_match_all( '#<tr class="stable">\s*<td>\s*<a [^>]*>\s*([0-9.]*)#s', $php, $phpmatches );
+		preg_match_all( '#<tr class="stable">\s*<td>\s*<a [^>]*>\s*([0-9.]*)#s', $response_body, $phpmatches );
 
 		$this->assertContains( $matches[1], $phpmatches[1], "readme.html's Recommended PHP version is too old. Remember to update the WordPress.org Requirements page, too." );
 
@@ -34,13 +44,23 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 		$this->skipTestOnTimeout( $response );
 
 		$response_code = wp_remote_retrieve_response_code( $response );
+		$response_body = wp_remote_retrieve_body( $response );
+
 		if ( 200 !== $response_code ) {
-			$this->fail( sprintf( 'Could not contact dev.MySQL.com to check versions. Response code: %s', $response_code ) );
+			$error_message = sprintf(
+				'Could not contact dev.MySQL.com to check versions. Response code: %s. Response body: %s',
+				$response_code,
+				$response_body
+			);
+
+			if ( 503 === $response_code ) {
+				$this->markTestSkipped( $error_message );
+			}
+
+			$this->fail( $error_message );
 		}
 
-		$mysql = wp_remote_retrieve_body( $response );
-
-		preg_match( '#(\d{4}-\d{2}-\d{2}), General Availability#', $mysql, $mysqlmatches );
+		preg_match( '#(\d{4}-\d{2}-\d{2}), General Availability#', $response_body, $mysqlmatches );
 
 		// Per https://www.mysql.com/support/, Oracle actively supports MySQL releases for 5 years from GA release
 		$mysql_eol = strtotime( $mysqlmatches[1] . ' +5 years' );
