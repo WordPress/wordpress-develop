@@ -191,7 +191,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		$travis_pull_request = getenv( 'TRAVIS_PULL_REQUEST' );
 
 		if ( ! $travis_branch || ! $travis_pull_request ) {
-			$this->fail( 'Could not read TRAVIS_BRANCH or TRAVIS_PULL_REQUEST' );
+			return;
 		}
 
 		if ( 'master' !== $travis_branch || 'false' !== $travis_pull_request ) {
