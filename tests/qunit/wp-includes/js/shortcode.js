@@ -212,4 +212,29 @@ jQuery( function() {
 
 		deepEqual( wp.shortcode.attrs('a="foo" b=\'bar\' c=baz foo "bar" \'baz\''), expected, 'attr parsed numeric attributes');
 	});
+
+	test( 'string() should accept attrs in any order', function() {
+		var expected = '[short abc123 foo="bar"]';
+		var result;
+
+		result = wp.shortcode.string({
+			tag   : 'short',
+			type  : 'single',
+			attrs : {
+				named   : { foo : 'bar' },
+				numeric : [ 'abc123' ]
+			}
+		});
+		deepEqual( result, expected, 'attributes are accepted in any order' );
+
+		result = wp.shortcode.string({
+			tag   : 'short',
+			type  : 'single',
+			attrs : {
+				numeric : [ 'abc123' ],
+				named   : { foo : 'bar' }
+			}
+		});
+		deepEqual( result, expected, 'attributes are accepted in any order' );
+	});
 });
