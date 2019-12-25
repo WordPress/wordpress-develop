@@ -32,11 +32,43 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 	 */
 	public function create_object( $args ) {
 		global $wpdb;
-		$meta    = isset( $args['meta'] ) ? $args['meta'] : array( 'public' => 1 );
-		$user_id = isset( $args['user_id'] ) ? $args['user_id'] : get_current_user_id();
-		// temp tables will trigger db errors when we attempt to reference them as new temp tables
+
+		// Map some arguments for backward compatibility with wpmu_create_blog() previously used here.
+		if ( ! isset( $args['public'] ) ) {
+			// Default to public, unless an options array was provided.
+			$args['public'] = ! isset( $args['meta'] ) ? 1 : 0;
+		}
+
+		if ( ! isset( $args['user_id'] ) ) {
+			$args['user_id'] = get_current_user_id();
+		}
+
+		if ( isset( $args['site_id'] ) ) {
+			$args['network_id'] = $args['site_id'];
+			unset( $args['site_id'] );
+		}
+
+		if ( isset( $args['meta'] ) ) {
+			// The `$site_data_whitelist` matches the one used in `wpmu_create_blog()`.
+			$site_data_whitelist = array( 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' );
+
+			foreach ( $args['meta'] as $key => $value ) {
+				// Promote whitelisted keys to top-level arguments, add others to the options array.
+				if ( in_array( $key, $site_data_whitelist, true ) ) {
+					$args[ $key ] = $value;
+				} else {
+					$args['options'][ $key ] = $value;
+				}
+			}
+
+			unset( $args['meta'] );
+		}
+
+		// Temporary tables will trigger DB errors when we attempt to reference them as new temporary tables.
 		$suppress = $wpdb->suppress_errors();
-		$blog     = wpmu_create_blog( $args['domain'], $args['path'], $args['title'], $user_id, $meta, $args['site_id'] );
+
+		$blog = wp_insert_site( $args );
+
 		$wpdb->suppress_errors( $suppress );
 
 		// Tell WP we're done installing.
