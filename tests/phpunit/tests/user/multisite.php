@@ -122,15 +122,12 @@ if ( is_multisite() ) :
 			$this->assertTrue( is_blog_user() );
 			$this->assertTrue( is_blog_user( get_current_blog_id() ) );
 
-			$blog_ids = array();
+			$blog_id = self::factory()->blog->create( array( 'user_id' => get_current_user_id() ) );
 
-			$blog_ids = self::factory()->blog->create_many( 1 );
-			foreach ( $blog_ids as $blog_id ) {
-				$this->assertInternalType( 'int', $blog_id );
-				$this->assertTrue( is_blog_user( $blog_id ) );
-				$this->assertTrue( remove_user_from_blog( $user1_id, $blog_id ) );
-				$this->assertFalse( is_blog_user( $blog_id ) );
-			}
+			$this->assertInternalType( 'int', $blog_id );
+			$this->assertTrue( is_blog_user( $blog_id ) );
+			$this->assertTrue( remove_user_from_blog( $user1_id, $blog_id ) );
+			$this->assertFalse( is_blog_user( $blog_id ) );
 
 			wp_set_current_user( $old_current );
 		}
@@ -157,34 +154,33 @@ if ( is_multisite() ) :
 			$this->assertTrue( is_user_member_of_blog( $user1_id ) );
 			$this->assertTrue( is_user_member_of_blog( $user1_id, $site_id ) );
 
-			$blog_ids = self::factory()->blog->create_many( 1 );
-			foreach ( $blog_ids as $blog_id ) {
-				$this->assertInternalType( 'int', $blog_id );
+			$blog_id = self::factory()->blog->create( array( 'user_id' => get_current_user_id() ) );
 
-				// Current user gets added to new blogs
-				$this->assertTrue( is_user_member_of_blog( $user1_id, $blog_id ) );
-				// Other users should not
-				$this->assertFalse( is_user_member_of_blog( $user2_id, $blog_id ) );
+			$this->assertInternalType( 'int', $blog_id );
 
-				switch_to_blog( $blog_id );
+			// Current user gets added to new blogs
+			$this->assertTrue( is_user_member_of_blog( $user1_id, $blog_id ) );
+			// Other users should not
+			$this->assertFalse( is_user_member_of_blog( $user2_id, $blog_id ) );
 
-				$this->assertTrue( is_user_member_of_blog( $user1_id ) );
-				$this->assertFalse( is_user_member_of_blog( $user2_id ) );
+			switch_to_blog( $blog_id );
 
-				// Remove user 1 from blog
-				$this->assertTrue( remove_user_from_blog( $user1_id, $blog_id ) );
+			$this->assertTrue( is_user_member_of_blog( $user1_id ) );
+			$this->assertFalse( is_user_member_of_blog( $user2_id ) );
 
-				// Add user 2 to blog
-				$this->assertTrue( add_user_to_blog( $blog_id, $user2_id, 'subscriber' ) );
+			// Remove user 1 from blog
+			$this->assertTrue( remove_user_from_blog( $user1_id, $blog_id ) );
 
-				$this->assertFalse( is_user_member_of_blog( $user1_id ) );
-				$this->assertTrue( is_user_member_of_blog( $user2_id ) );
+			// Add user 2 to blog
+			$this->assertTrue( add_user_to_blog( $blog_id, $user2_id, 'subscriber' ) );
 
-				restore_current_blog();
+			$this->assertFalse( is_user_member_of_blog( $user1_id ) );
+			$this->assertTrue( is_user_member_of_blog( $user2_id ) );
 
-				$this->assertFalse( is_user_member_of_blog( $user1_id, $blog_id ) );
-				$this->assertTrue( is_user_member_of_blog( $user2_id, $blog_id ) );
-			}
+			restore_current_blog();
+
+			$this->assertFalse( is_user_member_of_blog( $user1_id, $blog_id ) );
+			$this->assertTrue( is_user_member_of_blog( $user2_id, $blog_id ) );
 
 			wpmu_delete_user( $user1_id );
 			$user = new WP_User( $user1_id );

@@ -34,9 +34,9 @@ if ( is_multisite() ) :
 
 			self::$existing_blog_id = $factory->blog->create(
 				array(
-					'domain'  => $domain,
-					'path'    => $path,
-					'site_id' => $network->id,
+					'domain'     => $domain,
+					'path'       => $path,
+					'network_id' => $network->id,
 				)
 			);
 		}

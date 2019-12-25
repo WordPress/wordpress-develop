@@ -43,23 +43,37 @@ if ( is_multisite() ) :
 			$site_ids = array(
 				'public'   => self::factory()->blog->create_many(
 					random_int( 0, 5 ),
-					array( 'meta' => array( 'public' => 1 ) )
+					array(
+						'public' => 1,
+					)
 				),
 				'archived' => self::factory()->blog->create_many(
 					random_int( 0, 5 ),
-					array( 'meta' => array( 'archived' => 1 ) )
+					array(
+						'public'   => 0,
+						'archived' => 1,
+					)
 				),
 				'mature'   => self::factory()->blog->create_many(
 					random_int( 0, 5 ),
-					array( 'meta' => array( 'mature' => 1 ) )
+					array(
+						'public' => 0,
+						'mature' => 1,
+					)
 				),
 				'spam'     => self::factory()->blog->create_many(
 					random_int( 0, 5 ),
-					array( 'meta' => array( 'spam' => 1 ) )
+					array(
+						'public' => 0,
+						'spam'   => 1,
+					)
 				),
 				'deleted'  => self::factory()->blog->create_many(
 					random_int( 0, 5 ),
-					array( 'meta' => array( 'deleted' => 1 ) )
+					array(
+						'public'  => 0,
+						'deleted' => 1,
+					)
 				),
 			);
 

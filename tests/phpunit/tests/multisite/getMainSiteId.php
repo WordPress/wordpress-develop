@@ -35,14 +35,14 @@ if ( is_multisite() ) :
 					'path'   => '/',
 				),
 				'wordpress.org/'     => array(
-					'domain'  => 'wordpress.org',
-					'path'    => '/',
-					'site_id' => self::$network_ids['wordpress.org/'],
+					'domain'     => 'wordpress.org',
+					'path'       => '/',
+					'network_id' => self::$network_ids['wordpress.org/'],
 				),
 				'wordpress.org/foo/' => array(
-					'domain'  => 'wordpress.org',
-					'path'    => '/foo/',
-					'site_id' => self::$network_ids['wordpress.org/'],
+					'domain'     => 'wordpress.org',
+					'path'       => '/foo/',
+					'network_id' => self::$network_ids['wordpress.org/'],
 				),
 			);
 

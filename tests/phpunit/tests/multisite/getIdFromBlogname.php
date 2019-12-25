@@ -31,34 +31,34 @@ if ( is_multisite() ) :
 
 			self::$site_ids = array(
 				'wordpress.org/'         => array(
-					'domain'  => 'wordpress.org',
-					'path'    => '/',
-					'site_id' => self::$network_ids['wordpress.org/'],
+					'domain'     => 'wordpress.org',
+					'path'       => '/',
+					'network_id' => self::$network_ids['wordpress.org/'],
 				),
 				'foo.wordpress.org/'     => array(
-					'domain'  => 'foo.wordpress.org',
-					'path'    => '/',
-					'site_id' => self::$network_ids['wordpress.org/'],
+					'domain'     => 'foo.wordpress.org',
+					'path'       => '/',
+					'network_id' => self::$network_ids['wordpress.org/'],
 				),
 				'wordpress.org/foo/'     => array(
-					'domain'  => 'wordpress.org',
-					'path'    => '/foo/',
-					'site_id' => self::$network_ids['wordpress.org/'],
+					'domain'     => 'wordpress.org',
+					'path'       => '/foo/',
+					'network_id' => self::$network_ids['wordpress.org/'],
 				),
 				'www.wordpress.net/'     => array(
-					'domain'  => 'www.wordpress.net',
-					'path'    => '/',
-					'site_id' => self::$network_ids['www.wordpress.net/'],
+					'domain'     => 'www.wordpress.net',
+					'path'       => '/',
+					'network_id' => self::$network_ids['www.wordpress.net/'],
 				),
 				'foo.wordpress.net/'     => array(
-					'domain'  => 'foo.wordpress.net',
-					'path'    => '/',
-					'site_id' => self::$network_ids['www.wordpress.net/'],
+					'domain'     => 'foo.wordpress.net',
+					'path'       => '/',
+					'network_id' => self::$network_ids['www.wordpress.net/'],
 				),
 				'www.wordpress.net/foo/' => array(
-					'domain'  => 'www.wordpress.net',
-					'path'    => '/foo/',
-					'site_id' => self::$network_ids['www.wordpress.net/'],
+					'domain'     => 'www.wordpress.net',
+					'path'       => '/foo/',
+					'network_id' => self::$network_ids['www.wordpress.net/'],
 				),
 			);
 

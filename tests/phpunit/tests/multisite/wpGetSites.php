@@ -13,21 +13,21 @@ if ( is_multisite() ) :
 		public static function wpSetUpBeforeClass( $factory ) {
 			self::$site_ids = array(
 				'w.org/'      => array(
-					'domain'  => 'w.org',
-					'path'    => '/',
-					'site_id' => 2,
+					'domain'     => 'w.org',
+					'path'       => '/',
+					'network_id' => 2,
 				),
 				'wp.org/'     => array(
-					'domain'  => 'wp.org',
-					'path'    => '/',
-					'site_id' => 2,
-					'meta'    => array( 'public' => 0 ),
+					'domain'     => 'wp.org',
+					'path'       => '/',
+					'network_id' => 2,
+					'public'     => 0,
 				),
 				'wp.org/foo/' => array(
-					'domain'  => 'wp.org',
-					'path'    => '/foo/',
-					'site_id' => 1,
-					'meta'    => array( 'public' => 0 ),
+					'domain'     => 'wp.org',
+					'path'       => '/foo/',
+					'network_id' => 1,
+					'public'     => 0,
 				),
 				'wp.org/oof/' => array(
 					'domain' => 'wp.org',

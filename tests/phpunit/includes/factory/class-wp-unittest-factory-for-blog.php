@@ -33,17 +33,8 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 	public function create_object( $args ) {
 		global $wpdb;
 
-		// Map some arguments for backward compatibility with wpmu_create_blog() previously used here.
-		if ( ! isset( $args['public'] ) ) {
-			// Default to public, unless an options array was provided.
-			$args['public'] = ! isset( $args['meta'] ) ? 1 : 0;
-		}
-
-		if ( ! isset( $args['user_id'] ) ) {
-			$args['user_id'] = get_current_user_id();
-		}
-
-		if ( isset( $args['site_id'] ) ) {
+		// Map some arguments for backward compatibility with `wpmu_create_blog()` previously used here.
+		if ( ! isset( $args['network_id'] ) && isset( $args['site_id'] ) ) {
 			$args['network_id'] = $args['site_id'];
 			unset( $args['site_id'] );
 		}

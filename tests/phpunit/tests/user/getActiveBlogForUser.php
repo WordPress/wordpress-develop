@@ -83,7 +83,7 @@ if ( is_multisite() ) :
 			$site_id = self::factory()->blog->create(
 				array(
 					'user_id' => self::$user_id,
-					'meta'    => array( 'spam' => 1 ),
+					'spam'    => 1,
 				)
 			);
 

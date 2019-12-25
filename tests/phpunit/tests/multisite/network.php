@@ -38,19 +38,19 @@ if ( is_multisite() ) :
 
 			$sites = array(
 				array(
-					'domain'  => 'wordpress.org',
-					'path'    => '/',
-					'site_id' => self::$different_network_id,
+					'domain'     => 'wordpress.org',
+					'path'       => '/',
+					'network_id' => self::$different_network_id,
 				),
 				array(
-					'domain'  => 'wordpress.org',
-					'path'    => '/foo/',
-					'site_id' => self::$different_network_id,
+					'domain'     => 'wordpress.org',
+					'path'       => '/foo/',
+					'network_id' => self::$different_network_id,
 				),
 				array(
-					'domain'  => 'wordpress.org',
-					'path'    => '/bar/',
-					'site_id' => self::$different_network_id,
+					'domain'     => 'wordpress.org',
+					'path'       => '/bar/',
+					'network_id' => self::$different_network_id,
 				),
 			);
 

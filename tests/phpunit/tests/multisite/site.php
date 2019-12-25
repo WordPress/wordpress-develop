@@ -44,14 +44,14 @@ if ( is_multisite() ) :
 
 			self::$site_ids = array(
 				'make.wordpress.org/'     => array(
-					'domain'  => 'make.wordpress.org',
-					'path'    => '/',
-					'site_id' => self::$network_ids['make.wordpress.org/'],
+					'domain'     => 'make.wordpress.org',
+					'path'       => '/',
+					'network_id' => self::$network_ids['make.wordpress.org/'],
 				),
 				'make.wordpress.org/foo/' => array(
-					'domain'  => 'make.wordpress.org',
-					'path'    => '/foo/',
-					'site_id' => self::$network_ids['make.wordpress.org/'],
+					'domain'     => 'make.wordpress.org',
+					'path'       => '/foo/',
+					'network_id' => self::$network_ids['make.wordpress.org/'],
 				),
 			);
 
@@ -63,9 +63,9 @@ if ( is_multisite() ) :
 			remove_action( 'wp_initialize_site', 'wp_initialize_site', 10 );
 			self::$uninitialized_site_id = wp_insert_site(
 				array(
-					'domain'  => 'uninitialized.org',
-					'path'    => '/',
-					'site_id' => self::$network_ids['make.wordpress.org/'],
+					'domain'     => 'uninitialized.org',
+					'path'       => '/',
+					'network_id' => self::$network_ids['make.wordpress.org/'],
 				)
 			);
 			add_action( 'wp_initialize_site', 'wp_initialize_site', 10, 2 );

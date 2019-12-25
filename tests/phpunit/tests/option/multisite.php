@@ -104,9 +104,7 @@ if ( is_multisite() ) :
 			$blog_id = self::factory()->blog->create(
 				array(
 					'user_id' => $user_id,
-					'meta'    => array(
-						'public' => 1,
-					),
+					'public'  => 1,
 				)
 			);
 			$this->assertInternalType( 'integer', $blog_id );

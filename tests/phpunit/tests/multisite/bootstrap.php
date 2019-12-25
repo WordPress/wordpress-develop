@@ -55,29 +55,29 @@ if ( is_multisite() ) :
 
 			self::$site_ids = array(
 				'wordpress.org/'          => array(
-					'domain'  => 'wordpress.org',
-					'path'    => '/',
-					'site_id' => self::$network_ids['wordpress.org/'],
+					'domain'     => 'wordpress.org',
+					'path'       => '/',
+					'network_id' => self::$network_ids['wordpress.org/'],
 				),
 				'wordpress.org/foo/'      => array(
-					'domain'  => 'wordpress.org',
-					'path'    => '/foo/',
-					'site_id' => self::$network_ids['wordpress.org/'],
+					'domain'     => 'wordpress.org',
+					'path'       => '/foo/',
+					'network_id' => self::$network_ids['wordpress.org/'],
 				),
 				'wordpress.org/foo/bar/'  => array(
-					'domain'  => 'wordpress.org',
-					'path'    => '/foo/bar/',
-					'site_id' => self::$network_ids['wordpress.org/'],
+					'domain'     => 'wordpress.org',
+					'path'       => '/foo/bar/',
+					'network_id' => self::$network_ids['wordpress.org/'],
 				),
 				'make.wordpress.org/'     => array(
-					'domain'  => 'make.wordpress.org',
-					'path'    => '/',
-					'site_id' => self::$network_ids['make.wordpress.org/'],
+					'domain'     => 'make.wordpress.org',
+					'path'       => '/',
+					'network_id' => self::$network_ids['make.wordpress.org/'],
 				),
 				'make.wordpress.org/foo/' => array(
-					'domain'  => 'make.wordpress.org',
-					'path'    => '/foo/',
-					'site_id' => self::$network_ids['make.wordpress.org/'],
+					'domain'     => 'make.wordpress.org',
+					'path'       => '/foo/',
+					'network_id' => self::$network_ids['make.wordpress.org/'],
 				),
 				'www.w.org/'              => array(
 					'domain' => 'www.w.org',
