@@ -1058,7 +1058,10 @@ VIDEO;
 		$this->assertEquals( $attachment_id, attachment_url_to_postid( $image_url ) );
 	}
 
-	function test_attachment_url_to_postid_schemes() {
+	/**
+	 * @ticket 33109
+	 */
+	function test_attachment_url_to_postid_with_different_scheme() {
 		$image_path    = '2014/11/' . $this->img_name;
 		$attachment_id = self::factory()->attachment->create_object(
 			$image_path,
@@ -1069,11 +1072,36 @@ VIDEO;
 			)
 		);
 
-		/**
-		 * @ticket 33109 Testing protocols not matching
-		 */
 		$image_url = 'https://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $image_path;
 		$this->assertEquals( $attachment_id, attachment_url_to_postid( $image_url ) );
+	}
+
+	/**
+	 * @ticket 39768
+	 */
+	function test_attachment_url_to_postid_should_be_case_sensitive() {
+		$image_path_lower_case    = '2014/11/' . $this->img_name;
+		$attachment_id_lower_case = self::factory()->attachment->create_object(
+			$image_path_lower_case,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+
+		$image_path_upper_case    = '2014/11/' . ucfirst( $this->img_name );
+		$attachment_id_upper_case = self::factory()->attachment->create_object(
+			$image_path_upper_case,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+
+		$image_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $image_path_upper_case;
+		$this->assertEquals( $attachment_id_upper_case, attachment_url_to_postid( $image_url ) );
 	}
 
 	function test_attachment_url_to_postid_filtered() {
