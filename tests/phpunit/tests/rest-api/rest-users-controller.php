@@ -136,7 +136,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		_unregister_post_type( 'r_false_p_false' );
 
 		if ( is_multisite() ) {
-			wpmu_delete_blog( self::$site, true );
+			wp_delete_site( self::$site );
 		}
 
 		// Remove users for pagination tests.

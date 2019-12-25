@@ -51,8 +51,8 @@ if ( is_multisite() ) :
 
 			$result = get_active_blog_for_user( self::$user_id );
 
-			wpmu_delete_blog( $site_id_one, true );
-			wpmu_delete_blog( $site_id_two, true );
+			wp_delete_site( $site_id_one );
+			wp_delete_site( $site_id_two );
 
 			$this->assertEquals( $primary_site_id, $result->id );
 		}
@@ -69,7 +69,7 @@ if ( is_multisite() ) :
 
 			$result = get_active_blog_for_user( self::$user_id );
 
-			wpmu_delete_blog( $primary_site_id, true );
+			wp_delete_site( $primary_site_id );
 
 			$this->assertEquals( $primary_site_id, $result->id );
 		}
@@ -92,7 +92,7 @@ if ( is_multisite() ) :
 
 			$result = get_active_blog_for_user( self::$user_id );
 
-			wpmu_delete_blog( $site_id, true );
+			wp_delete_site( $site_id );
 
 			$this->assertEquals( $current_site_id, $result->id );
 		}

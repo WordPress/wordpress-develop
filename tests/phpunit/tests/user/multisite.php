@@ -389,7 +389,7 @@ if ( is_multisite() ) :
 			$user = get_user_by( 'id', $user_id );
 			restore_current_blog();
 
-			wpmu_delete_blog( $site_id );
+			wp_delete_site( $site_id );
 			wpmu_delete_user( $user_id );
 
 			$this->assertContains( 'subscriber', $user->roles );
@@ -402,7 +402,8 @@ if ( is_multisite() ) :
 			$site_id = self::factory()->blog->create();
 
 			$result = add_user_to_blog( 73622, $site_id, 'subscriber' );
-			wpmu_delete_blog( $site_id );
+
+			wp_delete_site( $site_id );
 
 			$this->assertWPError( $result );
 		}

@@ -139,7 +139,7 @@ if ( is_multisite() ) :
 
 			$cached_details = wp_cache_get( $site->id, 'site-details' );
 
-			wpmu_delete_blog( $id, true );
+			wp_delete_site( $id );
 			wp_update_network_site_counts();
 
 			$this->assertNotFalse( $cached_details );

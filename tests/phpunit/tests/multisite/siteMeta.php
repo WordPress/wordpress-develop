@@ -41,8 +41,8 @@ if ( is_multisite() ) :
 				delete_network_option( get_main_network_id(), 'site_meta_supported' );
 			}
 
-			wpmu_delete_blog( self::$site_id, true );
-			wpmu_delete_blog( self::$site_id2, true );
+			wp_delete_site( self::$site_id );
+			wp_delete_site( self::$site_id2 );
 
 			wp_update_network_site_counts();
 		}
@@ -213,7 +213,7 @@ if ( is_multisite() ) :
 			$this->assertSame( 'bar', get_site_meta( $site_id, 'foo', true ) );
 			$this->assertSame( 'bar', get_site_meta( $site_id, 'foo1', true ) );
 
-			wpmu_delete_blog( $site_id, true );
+			wp_delete_site( $site_id );
 
 			$this->assertSame( '', get_site_meta( $site_id, 'foo', true ) );
 			$this->assertSame( '', get_site_meta( $site_id, 'foo1', true ) );

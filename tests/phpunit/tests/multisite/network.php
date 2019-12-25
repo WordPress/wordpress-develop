@@ -63,7 +63,7 @@ if ( is_multisite() ) :
 			global $wpdb;
 
 			foreach ( self::$different_site_ids as $id ) {
-				wpmu_delete_blog( $id, true );
+				wp_delete_site( $id );
 			}
 
 			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->sitemeta} WHERE site_id = %d", self::$different_network_id ) );
@@ -155,7 +155,7 @@ if ( is_multisite() ) :
 			$actual   = (int) get_blog_count(); // Count only updated when cron runs, so should be unchanged.
 
 			foreach ( $site_ids as $site_id ) {
-				wpmu_delete_blog( $site_id, true );
+				wp_delete_site( $site_id );
 			}
 			wp_update_network_counts();
 
@@ -175,7 +175,7 @@ if ( is_multisite() ) :
 			remove_filter( 'enable_live_network_counts', '__return_false' );
 
 			foreach ( $site_ids as $site_id ) {
-				wpmu_delete_blog( $site_id, true );
+				wp_delete_site( $site_id );
 			}
 			wp_update_network_counts();
 
@@ -195,7 +195,7 @@ if ( is_multisite() ) :
 			remove_filter( 'enable_live_network_counts', '__return_true' );
 
 			foreach ( $site_ids as $site_id ) {
-				wpmu_delete_blog( $site_id, true );
+				wp_delete_site( $site_id );
 			}
 			wp_update_network_counts();
 
@@ -590,13 +590,7 @@ if ( is_multisite() ) :
 		public function test_wpmu_create_blog_updates_correct_network_site_count() {
 			$original_count = get_blog_count( self::$different_network_id );
 
-			$site_id = self::factory()->blog->create(
-				array(
-					'domain'  => 'example.org',
-					'path'    => '/',
-					'site_id' => self::$different_network_id,
-				)
-			);
+			$site_id = wpmu_create_blog( 'example.org', '/', '', 1, array(), self::$different_network_id );
 
 			$result = get_blog_count( self::$different_network_id );
 

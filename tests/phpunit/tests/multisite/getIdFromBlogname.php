@@ -72,7 +72,7 @@ if ( is_multisite() ) :
 			global $wpdb;
 
 			foreach ( self::$site_ids as $id ) {
-				wpmu_delete_blog( $id, true );
+				wp_delete_site( $id );
 			}
 
 			foreach ( self::$network_ids as $id ) {

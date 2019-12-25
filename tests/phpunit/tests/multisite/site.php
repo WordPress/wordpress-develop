@@ -79,7 +79,7 @@ if ( is_multisite() ) :
 			add_action( 'wp_uninitialize_site', 'wp_uninitialize_site', 10, 1 );
 
 			foreach ( self::$site_ids as $id ) {
-				wpmu_delete_blog( $id, true );
+				wp_delete_site( $id );
 			}
 
 			foreach ( self::$network_ids as $id ) {

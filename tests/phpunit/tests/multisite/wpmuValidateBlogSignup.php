@@ -47,7 +47,7 @@ if ( is_multisite() ) :
 
 			wpmu_delete_user( self::$existing_user_id );
 
-			wpmu_delete_blog( self::$existing_blog_id, true );
+			wp_delete_site( self::$existing_blog_id );
 		}
 
 		/**
