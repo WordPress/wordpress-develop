@@ -65,6 +65,7 @@ class WP_oEmbed {
 			'#https?://(.+\.)?polldaddy\.com/.*#i'         => array( 'https://api.crowdsignal.com/oembed', true ),
 			'#https?://poll\.fm/.*#i'                      => array( 'https://api.crowdsignal.com/oembed', true ),
 			'#https?://(.+\.)?survey\.fm/.*#i'             => array( 'https://api.crowdsignal.com/oembed', true ),
+			'#https?://(www\.)?tiktok\.com/.*/video/.*#i'  => array( 'https://www.tiktok.com/oembed', true ),
 			'#https?://(www\.)?twitter\.com/\w{1,15}/status(es)?/.*#i' => array( 'https://publish.twitter.com/oembed', true ),
 			'#https?://(www\.)?twitter\.com/\w{1,15}$#i'   => array( 'https://publish.twitter.com/oembed', true ),
 			'#https?://(www\.)?twitter\.com/\w{1,15}/likes$#i' => array( 'https://publish.twitter.com/oembed', true ),
@@ -150,6 +151,7 @@ class WP_oEmbed {
 		 * | Crowdsignal  | polldaddy.com                             | 3.0.0   |
 		 * | SmugMug      | smugmug.com                               | 3.0.0   |
 		 * | YouTube      | youtu.be                                  | 3.0.0   |
+		 * | TikTok       | tiktok.com                                | 5.?.?   |
 		 * | Twitter      | twitter.com                               | 3.4.0   |
 		 * | Instagram    | instagram.com                             | 3.5.0   |
 		 * | Instagram    | instagr.am                                | 3.5.0   |
