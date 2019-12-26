@@ -16,10 +16,10 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 		global $current_site, $base;
 		parent::__construct( $factory );
 		$this->default_generation_definitions = array(
-			'domain'  => $current_site->domain,
-			'path'    => new WP_UnitTest_Generator_Sequence( $base . 'testpath%s' ),
-			'title'   => new WP_UnitTest_Generator_Sequence( 'Site %s' ),
-			'site_id' => $current_site->id,
+			'domain'     => $current_site->domain,
+			'path'       => new WP_UnitTest_Generator_Sequence( $base . 'testpath%s' ),
+			'title'      => new WP_UnitTest_Generator_Sequence( 'Site %s' ),
+			'network_id' => $current_site->id,
 		);
 	}
 
@@ -34,7 +34,7 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 		global $wpdb;
 
 		// Map some arguments for backward compatibility with `wpmu_create_blog()` previously used here.
-		if ( ! isset( $args['network_id'] ) && isset( $args['site_id'] ) ) {
+		if ( isset( $args['site_id'] ) ) {
 			$args['network_id'] = $args['site_id'];
 			unset( $args['site_id'] );
 		}
