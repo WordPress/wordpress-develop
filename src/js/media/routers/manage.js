@@ -43,12 +43,13 @@ var Router = Backbone.Router.extend(/** @lends wp.media.view.MediaFrame.Manage.R
 
 		// Trigger the media frame to open the correct item
 		item = library.findWhere( { id: parseInt( query, 10 ) } );
-		item.set( 'skipHistory', true );
 
 		if ( item ) {
+			item.set( 'skipHistory', true );
 			frame.trigger( 'edit:attachment', item );
 		} else {
 			item = media.attachment( query );
+			item.set( 'skipHistory', true );
 			frame.listenTo( item, 'change', function( model ) {
 				frame.stopListening( item );
 				frame.trigger( 'edit:attachment', model );
