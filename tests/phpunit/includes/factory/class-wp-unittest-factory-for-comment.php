@@ -27,7 +27,7 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @param array $args The comment details.
 	 *
-	 * @return false|int The comment's ID on success, false on failure.
+	 * @return int|false The comment's ID on success, false on failure.
 	 */
 	public function create_object( $args ) {
 		return wp_insert_comment( $this->addslashes_deep( $args ) );
@@ -39,7 +39,7 @@ class WP_UnitTest_Factory_For_Comment extends WP_UnitTest_Factory_For_Thing {
 	 * @param int   $comment_id The comment ID.
 	 * @param array $fields     The comment details.
 	 *
-	 * @return int When updated 1, not update 0.
+	 * @return int The value 1 if the comment was updated, 0 if not updated.
 	 */
 	public function update_object( $comment_id, $fields ) {
 		$fields['comment_ID'] = $comment_id;
