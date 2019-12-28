@@ -60,6 +60,7 @@ class Tests_Query_Vars extends WP_UnitTestCase {
 				'subpost_id',
 				'preview',
 				'robots',
+				'favicon',
 				'taxonomy',
 				'term',
 				'cpage',

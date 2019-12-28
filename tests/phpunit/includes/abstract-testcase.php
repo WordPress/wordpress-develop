@@ -962,6 +962,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 			'is_posts_page',
 			'is_preview',
 			'is_robots',
+			'is_favicon',
 			'is_search',
 			'is_single',
 			'is_singular',
