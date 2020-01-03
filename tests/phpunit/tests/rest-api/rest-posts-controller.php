@@ -3919,6 +3919,20 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
+	 * @ticket 48401
+	 */
+	public function test_get_item_schema_issues_doing_it_wrong_when_taxonomy_name_is_already_set_in_properties() {
+		$this->setExpectedIncorrectUsage( 'register_taxonomy' );
+
+		// Register a taxonomy with 'status' as name.
+		register_taxonomy( 'status', 'post', array( 'show_in_rest' => true ) );
+
+		// Re-initialize the controller
+		$controller = new WP_REST_Posts_Controller( 'post' );
+		$controller->register_routes();
+	}
+
+	/**
 	 * @ticket 39805
 	 */
 	public function test_get_post_view_context_properties() {
