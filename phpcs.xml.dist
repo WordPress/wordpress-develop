@@ -127,6 +127,7 @@
 	<exclude-pattern>/src/wp-includes/pluggable-deprecated\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/rss\.php</exclude-pattern>
 
+	<exclude-pattern>/src/wp-includes/assets/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/blocks/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/ID3/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/IXR/*</exclude-pattern>

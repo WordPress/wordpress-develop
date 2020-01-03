@@ -6163,7 +6163,7 @@ mockedApiResponse.UsersCollection = [
     {
         "id": 1,
         "name": "admin",
-        "url": "",
+        "url": "http://example.org",
         "description": "",
         "link": "http://example.org/?author=1",
         "slug": "admin",

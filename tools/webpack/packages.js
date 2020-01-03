@@ -2,8 +2,8 @@
  * External dependencies
  */
 const { DefinePlugin } = require( 'webpack' );
-const LiveReloadPlugin = require( 'webpack-livereload-plugin' );
 const CopyWebpackPlugin = require( 'copy-webpack-plugin' );
+const LiveReloadPlugin = require( 'webpack-livereload-plugin' );
 const postcss = require( 'postcss' );
 const UglifyJS = require( 'uglify-js' );
 
@@ -14,6 +14,7 @@ const { get } = require( 'lodash' );
  * WordPress dependencies
  */
 const CustomTemplatedPathPlugin = require( '@wordpress/custom-templated-path-webpack-plugin' );
+const DependencyExtractionPlugin = require( '@wordpress/dependency-extraction-webpack-plugin' );
 const LibraryExportDefaultPlugin = require( '@wordpress/library-export-default-webpack-plugin' );
 
 /**
@@ -107,22 +108,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'block-library/src/tag-cloud/index.php': 'wp-includes/blocks/tag-cloud.php',
 	};
 
-	const externals = {
-		react: 'React',
-		'react-dom': 'ReactDOM',
-		tinymce: 'tinymce',
-		moment: 'moment',
-		jquery: 'jQuery',
-		lodash: 'lodash',
-		'lodash-es': 'lodash',
-	};
-
-	packages.forEach( ( name ) => {
-		externals[ `@wordpress/${ name }` ] = {
-			this: [ 'wp', camelCaseDash( name ) ],
-		};
-	} );
-
 	const developmentCopies = mapVendorCopies( vendors, buildTarget );
 	const minifiedCopies = mapVendorCopies( minifiedVendors, buildTarget );
 	const minifyCopies = mapVendorCopies( minifyVendors, buildTarget ).map( ( copyCommand ) => {
@@ -184,7 +169,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			},
 			libraryTarget: 'this',
 		},
-		externals,
 		resolve: {
 			modules: [
 				baseDir,
@@ -238,6 +222,9 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 
 					return path;
 				},
+			} ),
+			new DependencyExtractionPlugin( {
+				injectPolyfill: true,
 			} ),
 			new CopyWebpackPlugin(
 				[
