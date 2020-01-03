@@ -3240,4 +3240,31 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			$this->assertArrayNotHasKey( 'raw', $data['content'] );
 		}
 	}
+
+	/**
+	 * @ticket 42238
+	 */
+	public function test_check_read_post_permission_with_invalid_post_type() {
+		register_post_type(
+			'bug-post',
+			array(
+				'label'        => 'Bug Posts',
+				'supports'     => array( 'title', 'editor', 'author', 'comments' ),
+				'show_in_rest' => true,
+				'public'       => true,
+			)
+		);
+		create_initial_rest_routes();
+
+		$post_id    = self::factory()->post->create( array( 'post_type' => 'bug-post' ) );
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => $post_id ) );
+		_unregister_post_type( 'bug-post' );
+
+		$this->setExpectedIncorrectUsage( 'map_meta_cap' );
+
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/comments/' . $comment_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 403, $response->get_status() );
+	}
 }
