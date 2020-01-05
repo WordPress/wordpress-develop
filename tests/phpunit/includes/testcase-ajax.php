@@ -1,13 +1,5 @@
 <?php
 /**
- * Ajax test cases
- *
- * @package    WordPress
- * @subpackage UnitTests
- * @since      3.4.0
- */
-
-/**
  * Ajax test case class
  *
  * @package    WordPress
@@ -17,14 +9,14 @@
 abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 
 	/**
-	 * Last AJAX response.  This is set via echo -or- wp_die.
+	 * Last Ajax response. This is set via echo -or- wp_die.
 	 *
 	 * @var string
 	 */
 	protected $_last_response = '';
 
 	/**
-	 * List of ajax actions called via GET
+	 * List of Ajax actions called via GET.
 	 *
 	 * @var array
 	 */
@@ -40,14 +32,14 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	);
 
 	/**
-	 * Saved error reporting level
+	 * Saved error reporting level.
 	 *
 	 * @var int
 	 */
 	protected $_error_level = 0;
 
 	/**
-	 * List of ajax actions called via POST
+	 * List of Ajax actions called via POST.
 	 *
 	 * @var array
 	 */
@@ -139,8 +131,9 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Set up the test fixture.
-	 * Override wp_die(), pretend to be ajax, and suppress E_WARNINGs
+	 * Sets up the test fixture.
+	 *
+	 * Overrides wp_die(), pretends to be Ajax, and suppresses E_WARNINGs.
 	 */
 	public function setUp() {
 		parent::setUp();
@@ -162,8 +155,9 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tear down the test fixture.
-	 * Reset $_POST, remove the wp_die() override, restore error reporting
+	 * Tears down the test fixture.
+	 *
+	 * Resets $_POST, removes the wp_die() override, restores error reporting.
 	 */
 	public function tearDown() {
 		parent::tearDown();
@@ -178,7 +172,7 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Clear login cookies, unset the current user
+	 * Clears login cookies, unsets the current user.
 	 */
 	public function logout() {
 		unset( $GLOBALS['current_user'] );
@@ -189,7 +183,7 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Return our callback handler
+	 * Returns our callback handler
 	 *
 	 * @return callback
 	 */
@@ -198,8 +192,10 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Handler for wp_die()
+	 * Handler for wp_die().
+	 *
 	 * Save the output for analysis, stop execution by throwing an exception.
+	 *
 	 * Error conditions (no output, just die) will throw <code>WPAjaxDieStopException( $message )</code>
 	 * You can test for this with:
 	 * <code>
@@ -211,7 +207,11 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	 * $this->setExpectedException( 'WPAjaxDieContinueException', 'something contained in $message' );
 	 * </code>
 	 *
-	 * @param string $message
+	 * @param string $message The message to set.
+	 *
+	 * @throws WPAjaxDieStopException     Thrown to stop further execution.
+	 * @throws WPAjaxDieContinueException Thrown to stop execution of the Ajax function,
+	 *                                    but continue the unit test.
 	 */
 	public function dieHandler( $message ) {
 		$this->_last_response .= ob_get_clean();
@@ -228,10 +228,11 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Switch between user roles
-	 * E.g. administrator, editor, author, contributor, subscriber
+	 * Switches between user roles.
 	 *
-	 * @param string $role
+	 * E.g. administrator, editor, author, contributor, subscriber.
+	 *
+	 * @param string $role The role to set.
 	 */
 	protected function _setRole( $role ) {
 		$post    = $_POST;
@@ -241,11 +242,12 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Mimic the ajax handling of admin-ajax.php
-	 * Capture the output via output buffering, and if there is any, store
-	 * it in $this->_last_response.
+	 * Mimics the Ajax handling of admin-ajax.php.
 	 *
-	 * @param string $action
+	 * Captures the output via output buffering, and if there is any,
+	 * stores it in $this->_last_response.
+	 *
+	 * @param string $action The action to handle.
 	 */
 	protected function _handleAjax( $action ) {
 
