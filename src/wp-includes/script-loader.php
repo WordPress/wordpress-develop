@@ -288,7 +288,7 @@ function wp_default_packages_scripts( &$scripts ) {
 		$handle = 'wp-' . $package;
 		$path   = "/wp-includes/js/dist/$package$suffix.js";
 
-		if ( ! file_exists( $path ) ) {
+		if ( ! file_exists( ABSPATH . $path ) ) {
 			continue;
 		}
 
