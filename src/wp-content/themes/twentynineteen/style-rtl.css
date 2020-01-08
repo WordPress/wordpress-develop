@@ -6354,14 +6354,14 @@ svg {
 @media only screen and (min-width: 768px) {
   .wp-caption.aligncenter {
     position: relative;
-    right: calc( calc(8 * (100vw / 12) - 28px) / 2);
+    right: calc( (8 * 100vw / 12 - 28px) / 2);
     transform: translateX(50%);
   }
 }
 
 @media only screen and (min-width: 1168px) {
   .wp-caption.aligncenter {
-    right: calc( calc(6 * (100vw / 12) - 28px) / 2);
+    right: calc( (6 * 100vw / 12 - 28px) / 2);
   }
 }
 

@@ -6365,14 +6365,14 @@ svg {
 @media only screen and (min-width: 768px) {
   .wp-caption.aligncenter {
     position: relative;
-    left: calc( calc(8 * (100vw / 12) - 28px) / 2);
+    left: calc( (8 * 100vw / 12 - 28px) / 2);
     transform: translateX(-50%);
   }
 }
 
 @media only screen and (min-width: 1168px) {
   .wp-caption.aligncenter {
-    left: calc( calc(6 * (100vw / 12) - 28px) / 2);
+    left: calc( (6 * 100vw / 12 - 28px) / 2);
   }
 }
 
