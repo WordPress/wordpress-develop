@@ -25,7 +25,7 @@ env:
 
 matrix:
   include:
-    - env: WP_TRAVISCI=travis:format LOCAL_PHP=7.2-fpm COMPOSER_INSTALL=true NPM_INSTALL=false WP_INSTALL=false
+    - env: WP_TRAVISCI=travis:format LOCAL_PHP=7.2-fpm COMPOSER_INSTALL=true WP_INSTALL=false
       name: "PHP Linting"
     - env: WP_TRAVISCI=travis:js LOCAL_PHP=7.1-fpm WP_INSTALL=false
       name: "JS Tests"
