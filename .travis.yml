@@ -43,11 +43,11 @@ matrix:
       name: "PHPUnit Tests: PHP 5.6 with Memcached"
     - env: LOCAL_PHP=5.5-fpm WP_TRAVISCI=test:php
       name: "PHPUnit Tests: PHP 5.5"
-    - env: LOCAL_PHP=5.4-fpm WP_TRAVISCI=test:php
+    - env: LOCAL_PHP=5.4-fpm LOCAL_MYSQL=5.6 WP_TRAVISCI=test:php
       name: "PHPUnit Tests: PHP 5.4"
-    - env: LOCAL_PHP=5.3-fpm WP_TRAVISCI=test:php
+    - env: LOCAL_PHP=5.3-fpm LOCAL_MYSQL=5.6 WP_TRAVISCI=test:php
       name: "PHPUnit Tests: PHP 5.3"
-    - env: LOCAL_PHP=5.2-fpm WP_TRAVISCI=test:php
+    - env: LOCAL_PHP=5.2-fpm LOCAL_MYSQL=5.6 WP_TRAVISCI=test:php
       name: "PHPUnit Tests: PHP 5.2"
   fast_finish: true
 
