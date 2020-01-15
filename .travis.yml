@@ -1,96 +1,117 @@
-sudo: false
-dist: trusty
-language: php
+language: generic
+
+services:
+  - docker
+
+addons:
+  apt:
+    packages:
+      - docker-ce
+
 cache:
   apt: true
   directories:
     - $HOME/.npm
     - vendor
-    - $HOME/.composer/cache
+
 env:
   global:
-    - WP_TRAVISCI=travis:phpunit
+    - LOCAL_DIR: build
+    - COMPOSER_INSTALL: false
+    - NPM_INSTALL: true
+    - WP_INSTALL: true
+    - PHP_FPM_UID: "`id -u`"
+    - PHP_FPM_GID: "`id -g`"
+
 matrix:
   include:
-  - php: 7.3
-  - php: 7.1
-    env: WP_TRAVISCI=travis:js
-  - php: 5.6
-    env: WP_TRAVIS_OBJECT_CACHE=true
-    services: memcached
-  - php: 5.2
-    dist: precise
+    - env: WP_TRAVISCI=travis:js LOCAL_PHP=7.1-fpm WP_INSTALL=false
+      name: "JS Tests"
+    - env: LOCAL_PHP=7.3-fpm WP_TRAVISCI=test:php
+      name: "PHPUnit Tests: PHP 7.3"
+    - env: LOCAL_PHP=5.6-fpm LOCAL_PHP_MEMCACHED=true WP_TRAVISCI=test:php
+      name: "PHPUnit Tests: PHP 5.6 with Memcached"
+    - env: LOCAL_PHP=5.2-fpm LOCAL_MYSQL=5.6 WP_TRAVISCI=test:php
+      name: "PHPUnit Tests: PHP 5.2"
+  fast_finish: true
+
 before_install:
-- |
-  if [[ "$WP_TRAVISCI" == "travis:phpunit" ]]; then
-      mysql -u root -e "CREATE DATABASE wordpress_tests;"
-      cp wp-tests-config-sample.php wp-tests-config.php
-      sed -i "s/youremptytestdbnamehere/wordpress_tests/" wp-tests-config.php
-      sed -i "s/yourusernamehere/root/" wp-tests-config.php
-      sed -i "s/yourpasswordhere//" wp-tests-config.php
+  - |
+    if [[ "$WP_TRAVISCI" == "test:php" ]]; then
       travis_retry svn checkout https://plugins.svn.wordpress.org/wordpress-importer/tags/0.6.3/ tests/phpunit/data/plugins/wordpress-importer
-  fi
-- |
-  if [[ "$WP_TRAVIS_OBJECT_CACHE" == "true" ]]; then
-    cp tests/phpunit/includes/object-cache.php src/wp-content/object-cache.php
-    echo "extension = memcached.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
-  fi
+    fi
+  - |
+    sudo rm /usr/local/bin/docker-compose
+    curl -L https://github.com/docker/compose/releases/download/1.24.0/docker-compose-`uname -s`-`uname -m` > docker-compose
+    chmod +x docker-compose
+    sudo mv docker-compose /usr/local/bin
+
 before_script:
-- |
-  # Remove Xdebug for a huge performance increase:
-  if [ -f ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/xdebug.ini ]; then
-    phpenv config-rm xdebug.ini
-  else
-    echo "xdebug.ini does not exist"
-  fi
-- |
-  # Export Composer's global bin dir to PATH, but not on PHP 5.2:
-  if [[ ${TRAVIS_PHP_VERSION:0:3} != "5.2" ]]; then
-    composer config --list --global
-    export PATH=`composer config --list --global | grep '\[home\]' | { read a; echo "${a#* }/vendor/bin:$PATH"; }`
-  fi
-- |
-  # Install the specified version of PHPUnit depending on the PHP version:
-  if [[ "$WP_TRAVISCI" == "travis:phpunit" ]]; then
-    case "$TRAVIS_PHP_VERSION" in
-      7.3|7.2|7.1|7.0|nightly)
-        echo "Using PHPUnit 6.x"
-        travis_retry composer global require "phpunit/phpunit:^6"
-        ;;
-      5.6|5.5|5.4|5.3)
-        echo "Using PHPUnit 4.x"
-        travis_retry composer global require "phpunit/phpunit:^4"
-        ;;
-      5.2)
-        # Do nothing, use default PHPUnit 3.6.x
-        echo "Using default PHPUnit, hopefully 3.6"
-        ;;
-      *)
-        echo "No PHPUnit version handling for PHP version $TRAVIS_PHP_VERSION"
-        exit 1
-        ;;
-    esac
-  fi
-- npm --version
-- node --version
-- nvm install 10.13.0
-- npm install -g grunt-cli
-- npm install
-- npm prune
-- mysql --version
-- phpenv versions
-- php --version
-- php -m
-- npm --version
-- node --version
-- which phpunit
-- phpunit --version
-- curl --version
-- grunt --version
-- git --version
-- svn --version
-- locale -a
-script: grunt $WP_TRAVISCI
+  - |
+    if [[ "$COMPOSER_INSTALL" == "true" ]]; then
+      docker-compose run --rm php composer --version
+      docker-compose run --rm php composer install
+    fi
+  - npm --version
+  - node --version
+  - nvm install 10.13.0
+  - |
+    if [[ "$NPM_INSTALL" == "true" ]]; then
+      npm ci
+    fi
+  - |
+    if [[ "$WP_TRAVISCI" == "test:php" ]]; then
+      npm run env:start
+      npm run build
+      docker-compose run --rm mysql mysql --version
+      docker-compose run --rm php php --version
+      docker-compose run --rm php php -m
+      docker-compose run --rm phpunit phpunit --version
+    fi
+  - |
+    if [[ "$LOCAL_PHP_MEMCACHED" == "true" ]]; then
+      cp tests/phpunit/includes/object-cache.php build/wp-content/object-cache.php
+      # The memcached server needs to start after `npm run env:start`, which sets up the Docker network.
+      docker run --name memcached --net $(basename "$PWD")_wpdevnet -d memcached
+    fi
+  - |
+    if [[ "$WP_INSTALL" == "true" ]]; then
+      # Run the install process after memcached has started.
+      npm run env:install
+    fi
+  - npm --version
+  - node --version
+  - curl --version
+  - git --version
+  - svn --version
+  - php --version
+  - php -i
+  - locale -a
+
+script:
+  - |
+    if [[ "$WP_TRAVISCI" == "test:php" ]]; then
+      npm run test:php -- --verbose -c phpunit.xml.dist &&
+      npm run test:php -- --verbose -c phpunit.xml.dist --group ajax &&
+      npm run test:php -- --verbose -c tests/phpunit/multisite.xml &&
+      npm run test:php -- --verbose -c tests/phpunit/multisite.xml --group ms-files &&
+      npm run test:php -- --verbose -c phpunit.xml.dist --group external-http &&
+      npm run test:php -- --verbose -c phpunit.xml.dist --group restapi-jsclient &&
+      # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
+      LOCAL_PHP_XDEBUG=true npm run test:php -- -v --group xdebug --exclude-group __fakegroup__
+    elif [[ "$WP_TRAVISCI" == "lint:php" ]]; then
+      docker-compose run --rm php composer format
+    else
+      npm run grunt $WP_TRAVISCI
+    fi
+
+after_script:
+  - |
+    if [[ "$WP_TEST_REPORTER" == "true" ]]; then
+      git clone https://github.com/WordPress/phpunit-test-runner.git test-runner
+      docker-compose run --rm -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
+    fi
+
 notifications:
   slack:
     rooms:
