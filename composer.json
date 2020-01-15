@@ -14,7 +14,8 @@
 		"wp-coding-standards/wpcs": "~2.0.0"
 	},
 	"scripts": {
-		"format": "phpcbf --standard=phpcs.xml.dist --report-summary --report-source",
-		"lint": "phpcs --standard=phpcs.xml.dist --report-summary --report-source"
+		"format": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcbf --report=summary,source",
+		"lint": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --report=summary,source",
+		"lint:errors": "@lint -n"
 	}
 }

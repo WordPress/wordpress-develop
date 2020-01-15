@@ -25,7 +25,7 @@ env:
 
 matrix:
   include:
-    - env: WP_TRAVISCI=travis:format LOCAL_PHP=7.2-fpm COMPOSER_INSTALL=true WP_INSTALL=false
+    - env: WP_TRAVISCI=lint:php LOCAL_PHP=7.2-fpm COMPOSER_INSTALL=true WP_INSTALL=false
       name: "PHP Linting"
     - env: WP_TRAVISCI=travis:js LOCAL_PHP=7.1-fpm WP_INSTALL=false
       name: "JS Tests"
@@ -107,6 +107,8 @@ script:
       npm run test:php -- --verbose -c phpunit.xml.dist --group restapi-jsclient &&
       # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
       LOCAL_PHP_XDEBUG=true npm run test:php -- -v --group xdebug --exclude-group __fakegroup__
+    elif [[ "$WP_TRAVISCI" == "lint:php" ]]; then
+      docker-compose run --rm php composer format
     else
       npm run grunt $WP_TRAVISCI
     fi
