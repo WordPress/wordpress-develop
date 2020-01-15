@@ -54,7 +54,7 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 
 		if ( 'administrator' != $role ) {
 			// If we're not an admin, we should get a wp_die(-1).
-			$this->setExpectedException( 'WPAjaxDieStopException' );
+			$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		}
 
 		wp_set_current_user( self::factory()->user->create( array( 'role' => $role ) ) );
@@ -429,7 +429,7 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 
 		if ( 'administrator' != $role ) {
 			// If we're not an admin, we should get a wp_die(-1).
-			$this->setExpectedException( 'WPAjaxDieStopException' );
+			$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		}
 
 		wp_set_current_user( self::factory()->user->create( array( 'role' => $role ) ) );
