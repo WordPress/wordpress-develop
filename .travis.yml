@@ -57,7 +57,7 @@ before_script:
   - nvm install 6.9.1
   - |
     if [[ "$NPM_INSTALL" == "true" ]]; then
-      npm ci
+      npm install
     fi
   - |
     if [[ "$WP_TRAVISCI" == "test:php" ]]; then
