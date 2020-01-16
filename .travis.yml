@@ -57,6 +57,7 @@ before_script:
   - nvm install 6.9.1
   - |
     if [[ "$NPM_INSTALL" == "true" ]]; then
+      npm install -g grunt-cli
       npm install
     fi
   - |
