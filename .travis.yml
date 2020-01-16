@@ -25,7 +25,7 @@ env:
 
 matrix:
   include:
-    - env: WP_TRAVISCI=travis:js LOCAL_PHP=7.1-fpm WP_INSTALL=false
+    - env: LOCAL_PHP=7.1-fpm WP_TRAVISCI=travis:js WP_INSTALL=false
       name: "JS Tests"
     - env: WP_TRAVISCI=test:php
       name: "PHPUnit Tests: PHP 7.2"
