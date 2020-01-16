@@ -25,11 +25,11 @@ env:
 
 matrix:
   include:
-    - env: WP_TRAVISCI=lint:php LOCAL_PHP=7.2-fpm COMPOSER_INSTALL=true WP_INSTALL=false
+    - env: LOCAL_PHP=7.2-fpm WP_TRAVISCI=lint:php COMPOSER_INSTALL=true WP_INSTALL=false
       name: "PHP Linting"
-    - env: WP_TRAVISCI=travis:js LOCAL_PHP=7.1-fpm WP_INSTALL=false
+    - env: LOCAL_PHP=7.1-fpm WP_TRAVISCI=travis:js WP_INSTALL=false
       name: "JS Tests"
-    - env: LOCAL_PHP=7.3-fpm WP_TRAVISCI=test:php
+    - env: WP_TRAVISCI=test:php
       name: "PHPUnit Tests: PHP 7.3"
     - env: LOCAL_PHP=7.2-fpm WP_TRAVISCI=test:php
       name: "PHPUnit Tests: PHP 7.2"
