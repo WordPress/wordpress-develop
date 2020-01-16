@@ -1,6 +1,6 @@
 {
   "name": "WordPress",
-  "version": "4.8.0",
+  "version": "4.8.12",
   "dependencies": {
     "abbrev": {
       "version": "1.1.0",
@@ -359,6 +359,13 @@
       "from": "binary-extensions@>=1.0.0 <2.0.0",
       "resolved": "https://registry.npmjs.org/binary-extensions/-/binary-extensions-1.8.0.tgz",
       "dev": true
+    },
+    "bindings": {
+      "version": "1.5.0",
+      "from": "bindings@>=1.5.0 <2.0.0",
+      "resolved": "https://registry.npmjs.org/bindings/-/bindings-1.5.0.tgz",
+      "dev": true,
+      "optional": true
     },
     "bl": {
       "version": "1.2.1",
@@ -817,6 +824,12 @@
       "resolved": "https://registry.npmjs.org/convert-source-map/-/convert-source-map-1.1.3.tgz",
       "dev": true
     },
+    "core-js": {
+      "version": "2.6.11",
+      "from": "core-js@>=2.4.1 <3.0.0",
+      "resolved": "https://registry.npmjs.org/core-js/-/core-js-2.6.11.tgz",
+      "dev": true
+    },
     "core-util-is": {
       "version": "1.0.2",
       "from": "core-util-is@>=1.0.0 <1.1.0",
@@ -1190,6 +1203,18 @@
       "resolved": "https://registry.npmjs.org/domutils/-/domutils-1.5.1.tgz",
       "dev": true
     },
+    "dotenv": {
+      "version": "8.1.0",
+      "from": "dotenv@8.1.0",
+      "resolved": "https://registry.npmjs.org/dotenv/-/dotenv-8.1.0.tgz",
+      "dev": true
+    },
+    "dotenv-expand": {
+      "version": "5.1.0",
+      "from": "dotenv-expand@5.1.0",
+      "resolved": "https://registry.npmjs.org/dotenv-expand/-/dotenv-expand-5.1.0.tgz",
+      "dev": true
+    },
     "download": {
       "version": "4.4.3",
       "from": "download@>=4.1.2 <5.0.0",
@@ -1449,6 +1474,13 @@
       "from": "file-type@>=3.1.0 <4.0.0",
       "resolved": "https://registry.npmjs.org/file-type/-/file-type-3.9.0.tgz",
       "dev": true
+    },
+    "file-uri-to-path": {
+      "version": "1.0.0",
+      "from": "file-uri-to-path@1.0.0",
+      "resolved": "https://registry.npmjs.org/file-uri-to-path/-/file-uri-to-path-1.0.0.tgz",
+      "dev": true,
+      "optional": true
     },
     "filename-regex": {
       "version": "2.0.1",
@@ -2717,6 +2749,12 @@
       "resolved": "https://registry.npmjs.org/isarray/-/isarray-1.0.0.tgz",
       "dev": true
     },
+    "isemail": {
+      "version": "2.2.1",
+      "from": "isemail@>=2.0.0 <3.0.0",
+      "resolved": "https://registry.npmjs.org/isemail/-/isemail-2.2.1.tgz",
+      "dev": true
+    },
     "isexe": {
       "version": "2.0.0",
       "from": "isexe@>=2.0.0 <3.0.0",
@@ -2735,12 +2773,32 @@
       "resolved": "https://registry.npmjs.org/isstream/-/isstream-0.1.2.tgz",
       "dev": true
     },
+    "items": {
+      "version": "2.1.2",
+      "from": "items@>=2.0.0 <3.0.0",
+      "resolved": "https://registry.npmjs.org/items/-/items-2.1.2.tgz",
+      "dev": true
+    },
     "jodid25519": {
       "version": "1.0.2",
       "from": "jodid25519@>=1.0.0 <2.0.0",
       "resolved": "https://registry.npmjs.org/jodid25519/-/jodid25519-1.0.2.tgz",
       "dev": true,
       "optional": true
+    },
+    "joi": {
+      "version": "9.2.0",
+      "from": "joi@>=9.2.0 <10.0.0",
+      "resolved": "https://registry.npmjs.org/joi/-/joi-9.2.0.tgz",
+      "dev": true,
+      "dependencies": {
+        "hoek": {
+          "version": "4.2.1",
+          "from": "hoek@>=4.0.0 <5.0.0",
+          "resolved": "https://registry.npmjs.org/hoek/-/hoek-4.2.1.tgz",
+          "dev": true
+        }
+      }
     },
     "jpegtran-bin": {
       "version": "3.2.0",
@@ -3257,6 +3315,12 @@
       "version": "4.1.1",
       "from": "module-deps@>=4.0.8 <5.0.0",
       "resolved": "https://registry.npmjs.org/module-deps/-/module-deps-4.1.1.tgz",
+      "dev": true
+    },
+    "moment": {
+      "version": "2.24.0",
+      "from": "moment@>=2.0.0 <3.0.0",
+      "resolved": "https://registry.npmjs.org/moment/-/moment-2.24.0.tgz",
       "dev": true
     },
     "ms": {
@@ -3952,6 +4016,12 @@
       "resolved": "https://registry.npmjs.org/run-async/-/run-async-0.1.0.tgz",
       "dev": true
     },
+    "rx": {
+      "version": "4.1.0",
+      "from": "rx@>=4.1.0 <5.0.0",
+      "resolved": "https://registry.npmjs.org/rx/-/rx-4.1.0.tgz",
+      "dev": true
+    },
     "rx-lite": {
       "version": "3.1.2",
       "from": "rx-lite@>=3.1.2 <4.0.0",
@@ -4438,6 +4508,20 @@
       "resolved": "https://registry.npmjs.org/to-arraybuffer/-/to-arraybuffer-1.0.1.tgz",
       "dev": true
     },
+    "topo": {
+      "version": "2.0.2",
+      "from": "topo@>=2.0.0 <3.0.0",
+      "resolved": "https://registry.npmjs.org/topo/-/topo-2.0.2.tgz",
+      "dev": true,
+      "dependencies": {
+        "hoek": {
+          "version": "4.2.1",
+          "from": "hoek@4.x.x",
+          "resolved": "https://registry.npmjs.org/hoek/-/hoek-4.2.1.tgz",
+          "dev": true
+        }
+      }
+    },
     "tough-cookie": {
       "version": "2.3.2",
       "from": "tough-cookie@>=2.3.0 <2.4.0",
@@ -4658,6 +4742,12 @@
       "version": "0.0.4",
       "from": "vm-browserify@>=0.0.1 <0.1.0",
       "resolved": "https://registry.npmjs.org/vm-browserify/-/vm-browserify-0.0.4.tgz",
+      "dev": true
+    },
+    "wait-on": {
+      "version": "2.1.2",
+      "from": "wait-on@2.1.2",
+      "resolved": "https://registry.npmjs.org/wait-on/-/wait-on-2.1.2.tgz",
       "dev": true
     },
     "walkdir": {

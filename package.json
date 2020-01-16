@@ -35,7 +35,7 @@
     "grunt-rtlcss": "~2.0.1",
     "grunt-sass": "~1.2.1",
     "matchdep": "~1.0.0",
-    "wait-on": "3.3.0"
+    "wait-on": "2.1.2"
   },
   "scripts": {
     "build": "grunt build",
