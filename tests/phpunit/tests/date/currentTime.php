@@ -7,6 +7,47 @@
 class Tests_Date_Current_Time extends WP_UnitTestCase {
 
 	/**
+	 * @ticket 34378
+	 */
+	public function test_current_time_with_date_format_string() {
+		update_option( 'gmt_offset', 6 );
+
+		$format       = 'F j, Y, g:i a';
+		$timestamp    = time();
+		$wp_timestamp = $timestamp + 6 * HOUR_IN_SECONDS;
+
+		$this->assertEquals( strtotime( gmdate( $format ) ), strtotime( current_time( $format, true ) ), 'The dates should be equal', 2 );
+		$this->assertEquals( strtotime( gmdate( $format, $wp_timestamp ) ), strtotime( current_time( $format ) ), 'The dates should be equal', 2 );
+	}
+
+	/**
+	 * @ticket 34378
+	 */
+	public function test_current_time_with_mysql_format() {
+		update_option( 'gmt_offset', 6 );
+
+		$format       = 'Y-m-d H:i:s';
+		$timestamp    = time();
+		$wp_timestamp = $timestamp + 6 * HOUR_IN_SECONDS;
+
+		$this->assertEquals( strtotime( gmdate( $format ) ), strtotime( current_time( 'mysql', true ) ), 'The dates should be equal', 2 );
+		$this->assertEquals( strtotime( gmdate( $format, $wp_timestamp ) ), strtotime( current_time( 'mysql' ) ), 'The dates should be equal', 2 );
+	}
+
+	/**
+	 * @ticket 34378
+	 */
+	public function test_current_time_with_timestamp() {
+		update_option( 'gmt_offset', 6 );
+
+		$timestamp    = time();
+		$wp_timestamp = $timestamp + 6 * HOUR_IN_SECONDS;
+
+		$this->assertEquals( $timestamp, current_time( 'timestamp', true ), 'The dates should be equal', 2 );
+		$this->assertEquals( $wp_timestamp, current_time( 'timestamp' ), 'The dates should be equal', 2 );
+	}
+
+	/**
 	 * @ticket 37440
 	 */
 	public function test_should_work_with_changed_timezone() {
