@@ -4616,7 +4616,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_putting_same_publish_date_does_not_remove_floating_date() {
 		wp_set_current_user( self::$superadmin_id );
 
-		$time = date( 'Y-m-d H:i:s' );
+		$time = gmdate( 'Y-m-d H:i:s' );
 
 		$post = self::factory()->post->create_and_get(
 			array(
@@ -4651,8 +4651,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_putting_different_publish_date_removes_floating_date() {
 		wp_set_current_user( self::$superadmin_id );
 
-		$time     = date( 'Y-m-d H:i:s' );
-		$new_time = date( 'Y-m-d H:i:s', strtotime( '+1 week' ) );
+		$time     = gmdate( 'Y-m-d H:i:s' );
+		$new_time = gmdate( 'Y-m-d H:i:s', strtotime( '+1 week' ) );
 
 		$post = self::factory()->post->create_and_get(
 			array(
@@ -4693,7 +4693,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_publishing_post_with_same_date_removes_floating_date() {
 		wp_set_current_user( self::$superadmin_id );
 
-		$time = date( 'Y-m-d H:i:s' );
+		$time = gmdate( 'Y-m-d H:i:s' );
 
 		$post = self::factory()->post->create_and_get(
 			array(
