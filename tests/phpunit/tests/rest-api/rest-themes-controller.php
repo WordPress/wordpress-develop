@@ -289,7 +289,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$result = $response->get_data();
 		$this->assertTrue( isset( $result[0]['theme_supports'] ) );
-		$this->assertEquals( array( $tiny), $result[0]['theme_supports']['editor-font-sizes'] );
+		$this->assertEquals( array( $tiny ), $result[0]['theme_supports']['editor-font-sizes'] );
 	}
 
 	/**
@@ -324,7 +324,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$result = $response->get_data();
 		$this->assertTrue( isset( $result[0]['theme_supports'] ) );
-		$this->assertEquals( array( $wordpress_blue), $result[0]['theme_supports']['editor-color-palette'] );
+		$this->assertEquals( array( $wordpress_blue ), $result[0]['theme_supports']['editor-color-palette'] );
 	}
 
 	/**

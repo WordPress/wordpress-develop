@@ -106,9 +106,9 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		$fields = $this->get_fields_for_response( $request );
 
 		if ( in_array( 'theme_supports', $fields, true ) ) {
-			$formats                           = get_theme_support( 'post-formats' );
-			$formats                           = is_array( $formats ) ? array_values( $formats[0] ) : array();
-			$formats                           = array_merge( array( 'standard' ), $formats );
+			$formats = get_theme_support( 'post-formats' );
+			$formats = is_array( $formats ) ? array_values( $formats[0] ) : array();
+			$formats = array_merge( array( 'standard' ), $formats );
 			$data['theme_supports']['disable-custom-colors']     = (bool) get_theme_support( 'disable-custom-colors' );
 			$data['theme_supports']['disable-custom-font-sizes'] = (bool) get_theme_support( 'disable-custom-font-sizes' );
 			$data['theme_supports']['editor-color-palette']      = false;
@@ -192,15 +192,15 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 								'type'       => 'object',
 								'properties' => array(
 									'name'  => array(
-										'type' 	   => 'string',
+										'type'     => 'string',
 										'required' => true,
 									),
 									'slug'  => array(
-										'type' 	   => 'string',
+										'type'     => 'string',
 										'required' => true,
 									),
 									'color' => array(
-										'type' 	   => 'string',
+										'type'     => 'string',
 										'required' => true,
 									),
 								),
@@ -214,15 +214,15 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 								'type'       => 'object',
 								'properties' => array(
 									'name' => array(
-										'type' 	   => 'string',
+										'type'     => 'string',
 										'required' => true,
 									),
 									'size' => array(
-										'type' 	   => 'number',
+										'type'     => 'number',
 										'required' => true,
 									),
 									'slug' => array(
-										'type' 	   => 'string',
+										'type'     => 'string',
 										'required' => true,
 									),
 								),
