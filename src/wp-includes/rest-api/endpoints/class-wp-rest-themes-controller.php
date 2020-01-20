@@ -188,15 +188,23 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 						'editor-color-palette'      => array(
 							'description' => __( 'Custom color palette if defined by the theme.' ),
 							'type'        => array( 'array', 'bool' ),
-							'items'       => [
+							'items'       => array(
 								'type'       => 'object',
 								'properties' => array(
-									'name'  => 'string',
-									'slug'  => 'string',
-									'color' => 'string,'
+									'name'  => array(
+										'type' 	   => 'string',
+										'required' => true,
+									),
+									'slug'  => array(
+										'type' 	   => 'string',
+										'required' => true,
+									),
+									'color' => array(
+										'type' 	   => 'string',
+										'required' => true,
+									),
 								),
-								'required'   => array( 'name', 'slug', 'color' ),
-							],
+							),
 							'readonly'    => true,
 						),
 						'editor-font-sizes'         => array(
@@ -205,11 +213,19 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 							'items'       => array(
 								'type'       => 'object',
 								'properties' => array(
-									'name' => 'string',
-									'size' => 'number',
-									'slug' => 'string',
+									'name' => array(
+										'type' 	   => 'string',
+										'required' => true,
+									),
+									'size' => array(
+										'type' 	   => 'number',
+										'required' => true,
+									),
+									'slug' => array(
+										'type' 	   => 'string',
+										'required' => true,
+									),
 								),
-								'required'   => array( 'name', 'size', 'slug' ),
 							),
 							'readonly'    => true,
 						),
