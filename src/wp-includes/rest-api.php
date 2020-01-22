@@ -974,11 +974,9 @@ function rest_parse_date( $date, $force_utc = false ) {
  * @param string $color 3 or 6 digit hex color (with #).
  * @return string|boolean
  */
-function rest_parse_color($color)
-{
+function rest_parse_hex_color( $color ) {
 	$regex = '|^#([A-Fa-f0-9]{3}){1,2}$|';
-
-	if (!preg_match($regex, $color, $matches)) {
+	if ( ! preg_match( $regex, $color, $matches ) ) {
 		return false;
 	}
 
@@ -1333,8 +1331,8 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 
 	if ( isset( $args['format'] ) ) {
 		switch ( $args['format'] ) {
-			case 'color':
-				if ( ! rest_parse_color( $value ) ) {
+			case 'hex-color':
+				if ( ! rest_parse_hex_color( $value ) ) {
 					return new WP_Error( 'rest_invalid_color', __( 'Invalid color.' ) );
 				}
 				break;
@@ -1495,7 +1493,7 @@ function rest_sanitize_value_from_schema( $value, $args ) {
 
 	if ( isset( $args['format'] ) ) {
 		switch ( $args['format'] ) {
-			case 'color':
+			case 'hex-color':
 				return sanitize_hex_color( $value );
 
 			case 'date-time':

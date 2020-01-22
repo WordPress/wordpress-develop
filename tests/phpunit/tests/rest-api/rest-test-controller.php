@@ -64,6 +64,11 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 					'format'  => 'email',
 					'context' => array( 'view' ),
 				),
+				'somehex'      => array(
+					'type'    => 'string',
+					'format'  => 'hex-color',
+					'context' => array( 'view' ),
+				),
 				'someenum'       => array(
 					'type'    => 'string',
 					'enum'    => array( 'a', 'b', 'c' ),
