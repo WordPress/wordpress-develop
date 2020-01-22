@@ -971,14 +971,14 @@ function rest_parse_date( $date, $force_utc = false ) {
  *
  * @since 5.4.0
  *
- * @param string $color      3 or 6 digit hex color (with #).
- *                          the timestamp's timezone. Default false.
+ * @param string $color 3 or 6 digit hex color (with #).
  * @return string|boolean
  */
-function rest_parse_color( $color ) {
+function rest_parse_color($color)
+{
 	$regex = '|^#([A-Fa-f0-9]{3}){1,2}$|';
 
-	if ( ! preg_match( $regex, $color, $matches ) ) {
+	if (!preg_match($regex, $color, $matches)) {
 		return false;
 	}
 
