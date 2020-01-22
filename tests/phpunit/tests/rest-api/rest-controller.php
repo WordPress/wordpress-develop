@@ -27,6 +27,10 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 					'somestring'  => array(
 						'type' => 'string',
 					),
+					'somehex'     => array(
+						'type'   => 'string',
+						'format' => 'hex-color',
+					),
 					'someenum'    => array(
 						'type' => 'string',
 						'enum' => array( 'a' ),
@@ -177,7 +181,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
 		$this->assertErrorResponse(
 			'rest_invalid_color',
-			rest_validate_request_arg( 'blue', $this->request, 'somehex' )
+			rest_validate_request_arg( 'wibble', $this->request, 'somehex' )
 		);
 	}
 
@@ -233,6 +237,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 				'someurl',
 				'somedate',
 				'someemail',
+				'somehex',
 				'someenum',
 				'someargoptions',
 				'somedefault',
@@ -262,6 +267,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 					'someurl',
 					'somedate',
 					'someemail',
+					'somehex',
 					'someenum',
 					'someargoptions',
 					'somedefault',
