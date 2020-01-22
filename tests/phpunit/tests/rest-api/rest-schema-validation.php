@@ -82,7 +82,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		);
 		$this->assertTrue( rest_validate_value_from_schema( '#000000', $schema ) );
 		$this->assertTrue( rest_validate_value_from_schema( '#FFF', $schema ) );
-		$this->assertWPError( rest_validate_value_from_schema( 'wordpress', $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( 'WordPress', $schema ) );
 	}
 
 	public function test_format_date_time() {
