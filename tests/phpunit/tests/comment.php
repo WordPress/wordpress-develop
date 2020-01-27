@@ -6,6 +6,7 @@
 class Tests_Comment extends WP_UnitTestCase {
 	protected static $user_id;
 	protected static $post_id;
+	protected static $notify_message = '';
 
 	public function setUp() {
 		parent::setUp();
@@ -432,6 +433,66 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$sent = wp_new_comment_notify_postauthor( $c );
 		$this->assertFalse( $sent );
+	}
+
+	/**
+	 * @ticket 43805
+	 */
+	public function test_wp_new_comment_notify_postauthor_content_should_include_link_to_parent() {
+		$c1 = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => self::$post_id,
+			)
+		);
+
+		$c2 = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => self::$post_id,
+				'comment_parent'  => $c1,
+			)
+		);
+
+		add_filter( 'comment_notification_text', array( $this, 'save_comment_notification_text' ) );
+		wp_new_comment_notify_postauthor( $c2 );
+		remove_filter( 'comment_notification_text', array( $this, 'save_comment_notification_text' ) );
+
+		$this->assertContains( admin_url( "comment.php?action=editcomment&c={$c1}" ), self::$notify_message );
+	}
+
+	/**
+	 * @ticket 43805
+	 */
+	public function test_wp_new_comment_notify_moderator_content_should_include_link_to_parent() {
+		$c1 = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => self::$post_id,
+			)
+		);
+
+		$c2 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_parent'   => $c1,
+				'comment_approved' => '0',
+			)
+		);
+
+		add_filter( 'comment_moderation_text', array( $this, 'save_comment_notification_text' ) );
+		wp_new_comment_notify_moderator( $c2 );
+		remove_filter( 'comment_moderation_text', array( $this, 'save_comment_notification_text' ) );
+
+		$this->assertContains( admin_url( "comment.php?action=editcomment&c={$c1}" ), self::$notify_message );
+	}
+
+	/**
+	 * Callback for the `comment_notification_text` & `comment_moderation_text` filters.
+	 *
+	 * @param string $notify_message The comment notification or moderation email text.
+	 * @return string
+	 */
+	public function save_comment_notification_text( $notify_message = '' ) {
+		self::$notify_message = $notify_message;
+		return $notify_message;
 	}
 
 	/**
