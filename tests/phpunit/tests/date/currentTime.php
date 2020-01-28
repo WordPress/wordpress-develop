@@ -43,7 +43,9 @@ class Tests_Date_Current_Time extends WP_UnitTestCase {
 		$timestamp    = time();
 		$wp_timestamp = $timestamp + 6 * HOUR_IN_SECONDS;
 
+		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.RequestedUTC
 		$this->assertEquals( $timestamp, current_time( 'timestamp', true ), 'The dates should be equal', 2 );
+		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
 		$this->assertEquals( $wp_timestamp, current_time( 'timestamp' ), 'The dates should be equal', 2 );
 	}
 
@@ -56,11 +58,13 @@ class Tests_Date_Current_Time extends WP_UnitTestCase {
 		update_option( 'timezone_string', $timezone_string );
 		$datetime = new DateTime( 'now', new DateTimeZone( $timezone_string ) );
 
+		// phpcs:ignore WordPress.DateTime.RestrictedFunctions.timezone_change_date_default_timezone_set
 		date_default_timezone_set( $timezone_string );
 
 		$current_time_custom_timezone_gmt = current_time( $format, true );
 		$current_time_custom_timezone     = current_time( $format );
 
+		// phpcs:ignore WordPress.DateTime.RestrictedFunctions.timezone_change_date_default_timezone_set
 		date_default_timezone_set( 'UTC' );
 
 		$current_time_gmt = current_time( $format, true );
@@ -83,12 +87,17 @@ class Tests_Date_Current_Time extends WP_UnitTestCase {
 		$datetime->setTimezone( wp_timezone() );
 		$wp_timestamp = $timestamp + $datetime->getOffset();
 
+		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.RequestedUTC
 		$this->assertEquals( $timestamp, current_time( 'timestamp', true ), 'The dates should be equal', 2 );
+		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.RequestedUTC
 		$this->assertEquals( $timestamp, current_time( 'U', true ), 'The dates should be equal', 2 );
 
+		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
 		$this->assertEquals( $wp_timestamp, current_time( 'timestamp' ), 'The dates should be equal', 2 );
+		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
 		$this->assertEquals( $wp_timestamp, current_time( 'U' ), 'The dates should be equal', 2 );
 
+		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
 		$this->assertInternalType( 'int', current_time( 'timestamp' ) );
 	}
 

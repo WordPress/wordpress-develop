@@ -998,9 +998,9 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$term = get_term_by(
 			'id',
 			$this->factory->category->create(
-				[
+				array(
 					'parent' => $old_parent_term->term_id,
-				]
+				)
 			),
 			'category'
 		);
