@@ -105,6 +105,8 @@ services:
       WP_MULTISITE: ${WP_MULTISITE-false}
       PHP_FPM_UID: ${PHP_FPM_UID-1000}
       PHP_FPM_GID: ${PHP_FPM_GID-1000}
+      TRAVIS_BRANCH: ${TRAVIS_BRANCH-false}
+      TRAVIS_PULL_REQUEST: ${TRAVIS_PULL_REQUEST-false}
 
     volumes:
       - ./tools/local-env/phpunit-config.ini:/usr/local/etc/php/conf.d/phpunit-config.ini

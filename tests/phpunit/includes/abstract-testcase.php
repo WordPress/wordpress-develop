@@ -186,16 +186,15 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	 * we want to skip tests that only need to run for master.
 	 */
 	public function skipOnAutomatedBranches() {
-		// gentenv can be disabled
-		if ( ! function_exists( 'getenv' ) ) {
-			return false;
-		}
-
 		// https://docs.travis-ci.com/user/environment-variables/#Default-Environment-Variables
 		$travis_branch       = getenv( 'TRAVIS_BRANCH' );
 		$travis_pull_request = getenv( 'TRAVIS_PULL_REQUEST' );
 
-		if ( false !== $travis_pull_request && 'master' !== $travis_branch ) {
+		if ( ! $travis_branch || ! $travis_pull_request ) {
+			return;
+		}
+
+		if ( 'master' !== $travis_branch || 'false' !== $travis_pull_request ) {
 			$this->markTestSkipped( 'For automated test runs, this test is only run on trunk/master' );
 		}
 	}
