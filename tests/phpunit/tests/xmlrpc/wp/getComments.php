@@ -76,7 +76,7 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 		);
 		$this->assertNotIXRError( $results );
 
-		// if no 'number' filter is specified, default should be 10
+		// If no 'number' filter is specified, default should be 10.
 		$this->assertCount( 10, $results );
 
 		$results2 = $this->myxmlrpcserver->wp_getComments(

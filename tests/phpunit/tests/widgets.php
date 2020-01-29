@@ -495,14 +495,14 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertEmpty( $wp_registered_widgets );
 		wp_widgets_init();
 
-		// Note: We cannot use array_keys() here because $settings could be an ArrayIterator
+		// Note: We cannot use array_keys() here because $settings could be an ArrayIterator.
 		foreach ( $settings as $widget_number => $instance ) {
 			$widget_id = "search-$widget_number";
 			$this->assertArrayHasKey( $widget_id, $wp_registered_widgets );
 		}
 	}
 
-	// @todo test WP_Widget::display_callback()
+	// @todo Test WP_Widget::display_callback().
 
 	/**
 	 * @see WP_Widget::is_preview()
@@ -523,9 +523,9 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertTrue( $widget->is_preview() );
 	}
 
-	// @todo test WP_Widget::update_callback()
-	// @todo test WP_Widget::form_callback()
-	// @todo test WP_Widget::_register_one()
+	// @todo Test WP_Widget::update_callback().
+	// @todo Test WP_Widget::form_callback().
+	// @todo Test WP_Widget::_register_one().
 
 	/**
 	 * @see WP_Widget::get_settings()

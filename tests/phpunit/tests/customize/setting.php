@@ -386,7 +386,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 		$this->assertTrue( $setting->preview() );
 		$this->assertEquals( 1, did_action( "customize_preview_{$setting->id}" ) );
 		$this->assertEquals( 1, did_action( "customize_preview_{$setting->type}" ) );
-		$this->assertEquals( $this->undefined, $this->custom_type_getter( $name, $this->undefined ) ); // Note: for a non-custom type this is $default
+		$this->assertEquals( $this->undefined, $this->custom_type_getter( $name, $this->undefined ) ); // Note: for a non-custom type this is $default.
 		$this->assertEquals( $default, $setting->value() ); // Should be same as above.
 
 		// Custom type existing and no post value override.

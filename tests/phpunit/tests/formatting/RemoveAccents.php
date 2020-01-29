@@ -35,7 +35,7 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 	}
 
 	public function test_remove_accents_iso8859() {
-		// File is Latin1 encoded
+		// File is Latin1-encoded.
 		$file   = DIR_TESTDATA . '/formatting/remove_accents.01.input.txt';
 		$input  = file_get_contents( $file );
 		$input  = trim( $input );
@@ -48,18 +48,18 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 	 * @ticket 17738
 	 */
 	public function test_remove_accents_vowels_diacritic() {
-		// Vowels with diacritic
-		// unmarked
+		// Vowels with diacritic.
+		// Unmarked.
 		$this->assertEquals( 'OoUu', remove_accents( 'ƠơƯư' ) );
-		// grave accent
+		// Grave accent.
 		$this->assertEquals( 'AaAaEeOoOoUuYy', remove_accents( 'ẦầẰằỀềỒồỜờỪừỲỳ' ) );
-		// hook
+		// Hook.
 		$this->assertEquals( 'AaAaAaEeEeIiOoOoOoUuUuYy', remove_accents( 'ẢảẨẩẲẳẺẻỂểỈỉỎỏỔổỞởỦủỬửỶỷ' ) );
-		// tilde
+		// Tilde.
 		$this->assertEquals( 'AaAaEeEeOoOoUuYy', remove_accents( 'ẪẫẴẵẼẽỄễỖỗỠỡỮữỸỹ' ) );
-		// acute accent
+		// Acute accent.
 		$this->assertEquals( 'AaAaEeOoOoUu', remove_accents( 'ẤấẮắẾếỐốỚớỨứ' ) );
-		// dot below
+		// Dot below.
 		$this->assertEquals( 'AaAaAaEeEeIiOoOoOoUuUuYy', remove_accents( 'ẠạẬậẶặẸẹỆệỊịỌọỘộỢợỤụỰựỴỵ' ) );
 	}
 
@@ -67,16 +67,16 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 	 * @ticket 20772
 	 */
 	public function test_remove_accents_hanyu_pinyin() {
-		// Vowels with diacritic (Chinese, Hanyu Pinyin)
-		// macron
+		// Vowels with diacritic (Chinese, Hanyu Pinyin).
+		// Macron.
 		$this->assertEquals( 'aeiouuAEIOUU', remove_accents( 'āēīōūǖĀĒĪŌŪǕ' ) );
-		// acute accent
+		// Acute accent.
 		$this->assertEquals( 'aeiouuAEIOUU', remove_accents( 'áéíóúǘÁÉÍÓÚǗ' ) );
-		// caron
+		// Caron.
 		$this->assertEquals( 'aeiouuAEIOUU', remove_accents( 'ǎěǐǒǔǚǍĚǏǑǓǙ' ) );
-		// grave accent
+		// Grave accent.
 		$this->assertEquals( 'aeiouuAEIOUU', remove_accents( 'àèìòùǜÀÈÌÒÙǛ' ) );
-		// unmarked
+		// Unmarked.
 		$this->assertEquals( 'aaeiouuAEIOUU', remove_accents( 'aɑeiouüAEIOUÜ' ) );
 	}
 

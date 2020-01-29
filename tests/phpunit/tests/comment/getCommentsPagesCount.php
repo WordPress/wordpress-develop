@@ -38,7 +38,7 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 	 * Validate get_comments_pages_count for empty comments
 	 */
 	function test_empty() {
-		//setup post and comments
+		// Setup post and comments.
 		$post_id = self::factory()->post->create(
 			array(
 				'post_title' => 'comment--post',
@@ -65,7 +65,7 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 	 * Validate get_comments_pages_count for treaded comments
 	 */
 	function test_threaded_comments() {
-		//setup post and comments
+		// Setup post and comments.
 		$post     = self::factory()->post->create_and_get(
 			array(
 				'post_title' => 'comment--post',
@@ -86,7 +86,7 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 	 */
 	function test_option_thread_comments() {
 
-		//setup post and comments
+		// Setup post and comments.
 		$post     = self::factory()->post->create_and_get(
 			array(
 				'post_title' => 'comment--post',

@@ -33,9 +33,10 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	}
 
 	function data_canonical() {
-		/* Data format:
+		/*
+		 * Data format:
 		 * [0]: Test URL.
-		 * [1]: expected results: Any of the following can be used
+		 * [1]: Expected results: Any of the following can be used.
 		 *      array( 'url': expected redirection location, 'qv': expected query vars to be set via the rewrite AND $_GET );
 		 *      array( expected query vars to be set, same as 'qv' above )
 		 *      (string) expected redirect location
@@ -43,13 +44,13 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		 * [3]: (optional) Array of class/function names expected to throw `_doing_it_wrong()` notices.
 		 */
 
-		// Please Note: A few test cases are commented out below, Look at the test case following it, in most cases it's simply showing 2 options for the "proper" redirect.
+		// Please Note: A few test cases are commented out below, look at the test case following it.
+		// In most cases it's simply showing 2 options for the "proper" redirect.
 		return array(
-			// Categories
-
+			// Categories.
 			array( '?cat=%d', array( 'url' => '/category/parent/' ), 15256 ),
 			array( '?cat=%d', array( 'url' => '/category/parent/child-1/' ), 15256 ),
-			array( '?cat=%d', array( 'url' => '/category/parent/child-1/child-2/' ) ), // no children
+			array( '?cat=%d', array( 'url' => '/category/parent/child-1/child-2/' ) ), // No children.
 			array(
 				'/category/uncategorized/',
 				array(
@@ -89,7 +90,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 				17174,
 			),
 
-			// Categories & Intersections with other vars
+			// Categories & intersections with other vars.
 			array(
 				'/category/uncategorized/?tag=post-formats',
 				array(
@@ -108,10 +109,10 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 				),
 			),
 
-			// Taxonomies with extra Query Vars
-			array( '/category/cat-a/page/1/?test=one%20two', '/category/cat-a/?test=one%20two', 18086 ), // Extra query vars should stay encoded
+			// Taxonomies with extra query vars.
+			array( '/category/cat-a/page/1/?test=one%20two', '/category/cat-a/?test=one%20two', 18086 ), // Extra query vars should stay encoded.
 
-			// Categories with Dates
+			// Categories with dates.
 			array(
 				'/2008/04/?cat=1',
 				array(
@@ -124,27 +125,38 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 				),
 				17661,
 			),
-			//          array( '/2008/?category_name=cat-a', array( 'url' => '/2008/?category_name=cat-a', 'qv' => array('category_name' => 'cat-a', 'year' => '2008' ) ) ),
+			/*
+			array(
+				'/2008/?category_name=cat-a',
+					array(
+						'url' => '/2008/?category_name=cat-a',
+						'qv'  => array(
+							'category_name' => 'cat-a',
+							'year'          => '2008'
+						)
+					)
+			),
+			*/
 
-							// Pages
-							array( '/child-page-1/', '/parent-page/child-page-1/' ),
+			// Pages.
+			array( '/child-page-1/', '/parent-page/child-page-1/' ),
 			array( '/?page_id=144', '/parent-page/child-page-1/' ),
 			array( '/abo', '/about/' ),
 			array( '/parent/child1/grandchild/', '/parent/child1/grandchild/' ),
 			array( '/parent/child2/grandchild/', '/parent/child2/grandchild/' ),
 
-			// Posts
+			// Posts.
 			array( '?p=587', '/2008/06/02/post-format-test-audio/' ),
 			array( '/?name=images-test', '/2008/09/03/images-test/' ),
-			// Incomplete slug should resolve and remove the ?name= parameter
+			// Incomplete slug should resolve and remove the ?name= parameter.
 			array( '/?name=images-te', '/2008/09/03/images-test/', 20374 ),
-			// Page slug should resolve to post slug and remove the ?pagename= parameter
+			// Page slug should resolve to post slug and remove the ?pagename= parameter.
 			array( '/?pagename=images-test', '/2008/09/03/images-test/', 20374 ),
 
 			array( '/2008/06/02/post-format-test-au/', '/2008/06/02/post-format-test-audio/' ),
 			array( '/2008/06/post-format-test-au/', '/2008/06/02/post-format-test-audio/' ),
 			array( '/2008/post-format-test-au/', '/2008/06/02/post-format-test-audio/' ),
-			array( '/2010/post-format-test-au/', '/2008/06/02/post-format-test-audio/' ), // A Year the post is not in
+			array( '/2010/post-format-test-au/', '/2008/06/02/post-format-test-audio/' ), // A year the post is not in.
 			array( '/post-format-test-au/', '/2008/06/02/post-format-test-audio/' ),
 
 			array(
@@ -163,19 +175,19 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			array( '/2008/09/03/images-test/?page=3', '/2008/09/03/images-test/3/' ),
 			array( '/2008/09/03/images-te?page=3', '/2008/09/03/images-test/3/' ),
 
-			// Comments
+			// Comments.
 			array( '/2008/03/03/comment-test/?cpage=2', '/2008/03/03/comment-test/comment-page-2/' ),
 
-			// Attachments
+			// Attachments.
 			array( '/?attachment_id=611', '/2008/06/10/post-format-test-gallery/canola2/' ),
 			array( '/2008/06/10/post-format-test-gallery/?attachment_id=611', '/2008/06/10/post-format-test-gallery/canola2/' ),
 
-			// Dates
+			// Dates.
 			array( '/?m=2008', '/2008/' ),
 			array( '/?m=200809', '/2008/09/' ),
 			array( '/?m=20080905', '/2008/09/05/' ),
 
-			array( '/2008/?day=05', '/2008/?day=05' ), // no redirect
+			array( '/2008/?day=05', '/2008/?day=05' ), // No redirect.
 			array( '/2008/09/?day=05', '/2008/09/05/' ),
 			array( '/2008/?monthnum=9', '/2008/09/' ),
 
@@ -184,33 +196,33 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			array( '/2012/13/', '/2012/' ),
 			array( '/2012/11/51/', '/2012/11/', 0, array( 'WP_Date_Query' ) ),
 
-			// Authors
+			// Authors.
 			array( '/?author=%d', '/author/canonical-author/' ),
-			//          array( '/?author=%d&year=2008', '/2008/?author=3'),
-			//          array( '/author/canonical-author/?year=2008', '/2008/?author=3'), //Either or, see previous testcase.
+			// array( '/?author=%d&year=2008', '/2008/?author=3'),
+			// array( '/author/canonical-author/?year=2008', '/2008/?author=3'), // Either or, see previous testcase.
 
-				// Feeds
-				array( '/?feed=atom', '/feed/atom/' ),
+			// Feeds.
+			array( '/?feed=atom', '/feed/atom/' ),
 			array( '/?feed=rss2', '/feed/' ),
 			array( '/?feed=comments-rss2', '/comments/feed/' ),
 			array( '/?feed=comments-atom', '/comments/feed/atom/' ),
 
-			// Feeds (per-post)
+			// Feeds (per-post).
 			array( '/2008/03/03/comment-test/?feed=comments-atom', '/2008/03/03/comment-test/feed/atom/' ),
 			array( '/?p=149&feed=comments-atom', '/2008/03/03/comment-test/feed/atom/' ),
 
-			// Index
+			// Index.
 			array( '/?paged=1', '/' ),
 			array( '/page/1/', '/' ),
 			array( '/page1/', '/' ),
 			array( '/?paged=2', '/page/2/' ),
 			array( '/page2/', '/page/2/' ),
 
-			// Misc
+			// Misc.
 			array( '/2008%20', '/2008' ),
 			array( '//2008////', '/2008/' ),
 
-			// Todo: Endpoints (feeds, trackbacks, etc), More fuzzed mixed query variables, comment paging, Home page (Static)
+			// @todo Endpoints (feeds, trackbacks, etc). More fuzzed mixed query variables, comment paging, Home page (static).
 		);
 	}
 

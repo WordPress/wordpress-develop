@@ -161,7 +161,7 @@ function _wp_die_handler( $message, $title = '', $args = array() ) {
 	if ( ! $GLOBALS['_wp_die_disabled'] ) {
 		_wp_die_handler_txt( $message, $title, $args );
 	} else {
-		//Ignore at our peril
+		// Ignore at our peril.
 	}
 }
 
@@ -285,7 +285,7 @@ function _wp_rest_server_class_filter() {
 }
 
 // Skip `setcookie` calls in auth_cookie functions due to warning:
-// Cannot modify header information - headers already sent by ...
+// Cannot modify header information - headers already sent by...
 tests_add_filter( 'send_auth_cookies', '__return_false' );
 
 /**

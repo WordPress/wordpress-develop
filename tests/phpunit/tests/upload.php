@@ -13,14 +13,14 @@ class Tests_Upload extends WP_UnitTestCase {
 	}
 
 	function _reset_options() {
-		// system defaults
+		// System defaults.
 		update_option( 'upload_path', 'wp-content/uploads' );
 		update_option( 'upload_url_path', '' );
 		update_option( 'uploads_use_yearmonth_folders', 1 );
 	}
 
 	function test_upload_dir_default() {
-		// wp_upload_dir() with default parameters
+		// wp_upload_dir() with default parameters.
 		$info   = wp_upload_dir();
 		$subdir = gmstrftime( '/%Y/%m' );
 
@@ -31,7 +31,7 @@ class Tests_Upload extends WP_UnitTestCase {
 	}
 
 	function test_upload_dir_relative() {
-		// wp_upload_dir() with a relative upload path that is not 'wp-content/uploads'
+		// wp_upload_dir() with a relative upload path that is not 'wp-content/uploads'.
 		update_option( 'upload_path', 'foo/bar' );
 		$info   = _wp_upload_dir();
 		$subdir = gmstrftime( '/%Y/%m' );
@@ -48,10 +48,10 @@ class Tests_Upload extends WP_UnitTestCase {
 	function test_upload_dir_absolute() {
 		$path = '/tmp/wp-unit-test';
 
-		// wp_upload_dir() with an absolute upload path
+		// wp_upload_dir() with an absolute upload path.
 		update_option( 'upload_path', $path );
 
-		// doesn't make sense to use an absolute file path without setting the url path
+		// Doesn't make sense to use an absolute file path without setting the url path.
 		update_option( 'upload_url_path', '/baz' );
 
 		// Use `_wp_upload_dir()` directly to bypass caching and work with the changed options.
@@ -92,7 +92,7 @@ class Tests_Upload extends WP_UnitTestCase {
 	}
 
 	function test_upload_dir_empty() {
-		// upload path setting is empty - it should default to 'wp-content/uploads'
+		// Upload path setting is empty - it should default to 'wp-content/uploads'.
 		update_option( 'upload_path', '' );
 
 		// Use `_wp_upload_dir()` directly to bypass caching and work with the changed options.

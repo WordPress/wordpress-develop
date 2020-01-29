@@ -31,9 +31,11 @@ var View = wp.Backbone.View.extend(/** @lends wp.media.View.prototype */{
 	 * @return {wp.media.View} Returns itself to allow chaining.
 	 */
 	dispose: function() {
-		// Undelegating events, removing events from the model, and
-		// removing events from the controller mirror the code for
-		// `Backbone.View.dispose` in Backbone 0.9.8 development.
+		/*
+		 * Undelegating events, removing events from the model, and
+		 * removing events from the controller mirror the code for
+		 * `Backbone.View.dispose` in Backbone 0.9.8 development.
+		 */
 		this.undelegateEvents();
 
 		if ( this.model && this.model.off ) {

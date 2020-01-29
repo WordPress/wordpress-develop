@@ -18,7 +18,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	}
 
 	function test_exif_d70() {
-		// exif from a Nikon D70
+		// Exif from a Nikon D70.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/2004-07-22-DSC_0008.jpg' );
 
 		$this->assertEquals( 6.3, $out['aperture'] );
@@ -34,7 +34,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	}
 
 	function test_exif_d70_mf() {
-		// exif from a Nikon D70 - manual focus lens, so some data is unavailable
+		// Exif from a Nikon D70 - manual focus lens, so some data is unavailable.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG' );
 
 		$this->assertEquals( 0, $out['aperture'] );
@@ -44,14 +44,14 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertEquals( strtotime( '2007-06-17 21:18:00' ), $out['created_timestamp'] );
 		$this->assertEquals( '', $out['copyright'] );
 		$this->assertEquals( 0, $out['focal_length'] );
-		$this->assertEquals( 0, $out['iso'] ); // interesting - a Nikon bug?
+		$this->assertEquals( 0, $out['iso'] ); // Interesting - a Nikon bug?
 		$this->assertEquals( 1 / 500, $out['shutter_speed'] );
 		$this->assertEquals( '', $out['title'] );
-		#$this->assertEquals(array('Flowers'), $out['keywords']);
+		// $this->assertEquals( array( 'Flowers' ), $out['keywords'] );
 	}
 
 	function test_exif_d70_iptc() {
-		// exif from a Nikon D70 with IPTC data added later
+		// Exif from a Nikon D70 with IPTC data added later.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/2004-07-22-DSC_0007.jpg' );
 
 		$this->assertEquals( 6.3, $out['aperture'] );
@@ -67,7 +67,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	}
 
 	function test_exif_fuji() {
-		// exif from a Fuji FinePix S5600 (thanks Mark)
+		// Exif from a Fuji FinePix S5600 (thanks Mark).
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/a2-small.jpg' );
 
 		$this->assertEquals( 4.5, $out['aperture'] );
@@ -87,9 +87,8 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	 * @ticket 6571
 	 */
 	function test_exif_error() {
-
 		// https://core.trac.wordpress.org/ticket/6571
-		// this triggers a warning mesage when reading the exif block
+		// This triggers a warning mesage when reading the Exif block.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/waffles.jpg' );
 
 		$this->assertEquals( 0, $out['aperture'] );
@@ -105,7 +104,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	}
 
 	function test_exif_no_data() {
-		// no exif data in this image (from burningwell.org)
+		// No Exif data in this image (from burningwell.org).
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/canola.jpg' );
 
 		$this->assertEquals( 0, $out['aperture'] );
@@ -124,8 +123,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	 * @ticket 9417
 	 */
 	function test_utf8_iptc_tags() {
-
-		// trilingual UTF-8 text in the ITPC caption-abstract field
+		// Trilingual UTF-8 text in the ITPC caption-abstract field.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/test-image-iptc.jpg' );
 
 		$this->assertEquals( 'This is a comment. / Это комментарий. / Βλέπετε ένα σχόλιο.', $out['caption'] );

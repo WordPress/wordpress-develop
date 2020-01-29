@@ -51,7 +51,7 @@ class Tests_XMLRPC_mw_getPost extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->mw_getPost( array( self::$post_id, 'author', 'author' ) );
 		$this->assertNotIXRError( $result );
 
-		// Check data types
+		// Check data types.
 		$this->assertInternalType( 'string', $result['userid'] );
 		$this->assertInternalType( 'int', $result['postid'] );
 		$this->assertInternalType( 'string', $result['description'] );
@@ -76,7 +76,7 @@ class Tests_XMLRPC_mw_getPost extends WP_XMLRPC_UnitTestCase {
 
 		$post_data = get_post( self::$post_id );
 
-		// Check expected values
+		// Check expected values.
 		$this->assertStringMatchesFormat( '%d', $result['userid'] );
 		$this->assertEquals( $post_data->post_title, $result['title'] );
 		$this->assertEquals( 'publish', $result['post_status'] );
@@ -92,7 +92,7 @@ class Tests_XMLRPC_mw_getPost extends WP_XMLRPC_UnitTestCase {
 	function test_post_thumbnail() {
 		add_theme_support( 'post-thumbnails' );
 
-		// create attachment
+		// Create attachment.
 		$filename      = ( DIR_TESTDATA . '/images/a2-small.jpg' );
 		$attachment_id = self::factory()->attachment->create_upload_object( $filename );
 

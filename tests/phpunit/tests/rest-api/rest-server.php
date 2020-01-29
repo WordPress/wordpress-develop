@@ -13,7 +13,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	public function setUp() {
 		parent::setUp();
 
-		// Reset REST server to ensure only our routes are registered
+		// Reset REST server to ensure only our routes are registered.
 		$GLOBALS['wp_rest_server'] = null;
 		add_filter( 'wp_rest_server_class', array( $this, 'filter_wp_rest_server_class' ) );
 		$GLOBALS['wp_rest_server'] = rest_get_server();
@@ -21,7 +21,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	public function tearDown() {
-		// Remove our temporary spy server
+		// Remove our temporary spy server.
 		$GLOBALS['wp_rest_server'] = null;
 		unset( $_REQUEST['_wpnonce'] );
 
@@ -909,7 +909,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			$this->assertEquals( $value, $headers[ $header ] );
 		}
 
-		// Last-Modified should be unset as per #WP23021
+		// Last-Modified should be unset as per #WP23021.
 		$this->assertFalse( isset( $headers['Last-Modified'] ), 'Last-Modified should not be sent.' );
 	}
 
@@ -962,7 +962,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			)
 		);
 
-		// WordPress internally will slash the superglobals on bootstrap
+		// WordPress internally will slash the superglobals on bootstrap.
 		$_GET = wp_slash(
 			array(
 				'data' => 'data\\with\\slashes',
@@ -990,7 +990,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			)
 		);
 
-		// WordPress internally will slash the superglobals on bootstrap
+		// WordPress internally will slash the superglobals on bootstrap.
 		$_POST = wp_slash(
 			array(
 				'data' => 'data\\with\\slashes',
@@ -1047,7 +1047,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			)
 		);
 
-		// WordPress internally will slash the superglobals on bootstrap
+		// WordPress internally will slash the superglobals on bootstrap.
 		$_FILES = array(
 			'data' => array(
 				'name' => 'data\\with\\slashes',
@@ -1075,7 +1075,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			)
 		);
 
-		// WordPress internally will slash the superglobals on bootstrap
+		// WordPress internally will slash the superglobals on bootstrap.
 		$_SERVER['HTTP_X_MY_HEADER'] = wp_slash( 'data\\with\\slashes' );
 
 		$result = rest_get_server()->serve_request( '/test/data\\with\\slashes' );

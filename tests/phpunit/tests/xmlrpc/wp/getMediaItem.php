@@ -49,7 +49,7 @@ class Tests_XMLRPC_wp_getMediaItem extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getMediaItem( array( 1, 'author', 'author', $this->attachment_id, $fields ) );
 		$this->assertNotIXRError( $result );
 
-		// Check data types
+		// Check data types.
 		$this->assertInternalType( 'string', $result['attachment_id'] );
 		$this->assertInternalType( 'int', $result['parent'] );
 		$this->assertInternalType( 'string', $result['title'] );
@@ -60,7 +60,7 @@ class Tests_XMLRPC_wp_getMediaItem extends WP_XMLRPC_UnitTestCase {
 		$this->assertInternalType( 'string', $result['thumbnail'] );
 		$this->assertInternalType( 'array', $result['metadata'] );
 
-		// Check expected values
+		// Check expected values.
 		$this->assertStringMatchesFormat( '%d', $result['attachment_id'] );
 		$this->assertEquals( $this->attachment_data['post_title'], $result['title'] );
 		$this->assertEquals( wp_get_attachment_url( $this->attachment_id ), $result['link'] );

@@ -29,7 +29,7 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 		$this->assertFalse( $this->myxmlrpcserver->login_pass_ok( 'username', 'password' ) );
 		$this->assertFalse( $this->myxmlrpcserver->login( 'username', 'password' ) );
 
-		// The auth will still fail due to authentication blocking after the first failed attempt
+		// The auth will still fail due to authentication blocking after the first failed attempt.
 		$this->assertFalse( $this->myxmlrpcserver->login_pass_ok( 'subscriber', 'subscriber' ) );
 	}
 
@@ -45,7 +45,7 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 		);
 
 		$method_calls = array(
-			// Valid login
+			// Valid login.
 			array(
 				'methodName' => 'wp.editPost',
 				'params'     => array(
@@ -58,7 +58,7 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 					),
 				),
 			),
-			// *Invalid* login
+			// *Invalid* login.
 			array(
 				'methodName' => 'wp.editPost',
 				'params'     => array(
@@ -71,7 +71,7 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 					),
 				),
 			),
-			// Valid login
+			// Valid login.
 			array(
 				'methodName' => 'wp.editPost',
 				'params'     => array(

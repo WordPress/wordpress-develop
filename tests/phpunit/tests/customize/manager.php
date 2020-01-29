@@ -204,7 +204,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$wp_customize = new WP_Customize_Manager(
 			array(
 				'changeset_uuid' => false, // Cause UUID to be deferred.
-				'branching'      => true, // To cause no drafted changeset to be autoloaded.
+				'branching'      => true,  // To cause no drafted changeset to be autoloaded.
 			)
 		);
 		$this->assertNotContains( $wp_customize->changeset_uuid(), array( $uuid1, $uuid2 ) );
@@ -3451,12 +3451,12 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$video_url = 'https://www.youtube.com/watch?v=KiS8rZBeIO0';
 
 		$whitespaces = array(
-			' ',  // space
-			"\t", // horizontal tab
-			"\n", // line feed
-			"\r", // carriage return,
-			"\f", // form feed,
-			"\v", // vertical tab
+			' ',  // Space.
+			"\t", // Horizontal tab.
+			"\n", // Line feed.
+			"\r", // Carriage return.
+			"\f", // Form feed.
+			"\v", // Vertical tab.
 		);
 
 		foreach ( $whitespaces as $whitespace ) {

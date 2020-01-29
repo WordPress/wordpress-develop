@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Admin ajax functions to be tested
+ * Admin Ajax functions to be tested.
  */
 require_once( ABSPATH . 'wp-admin/includes/ajax-actions.php' );
 
@@ -75,11 +75,11 @@ class Tests_Ajax_QuickEdit extends WP_Ajax_UnitTestCase {
 			unset( $e );
 		}
 
-		// wptests_tax_1 terms should have been refused.
+		// 'wptests_tax_1' terms should have been refused.
 		$post_terms_1 = wp_get_object_terms( $post->ID, 'wptests_tax_1' );
 		$this->assertEmpty( $post_terms_1 );
 
-		// wptests_tax_2 terms should have been added successfully.
+		// 'wptests_tax_2' terms should have been added successfully.
 		$post_terms_2 = wp_get_object_terms( $post->ID, 'wptests_tax_2' );
 		$this->assertEqualSets( array( $t2 ), wp_list_pluck( $post_terms_2, 'term_id' ) );
 	}

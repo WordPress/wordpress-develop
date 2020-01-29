@@ -154,7 +154,7 @@ class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 		add_filter( 'wp_privacy_personal_data_exporters', array( $this, 'filter_register_custom_personal_data_exporter' ) );
 
 		$this->_setRole( 'administrator' );
-		// export_others_personal_data meta cap in Multisite installation is only granted to those with `manage_network` capability.
+		// `export_others_personal_data` meta cap in Multisite installation is only granted to those with `manage_network` capability.
 		if ( is_multisite() ) {
 			grant_super_admin( get_current_user_id() );
 		}
@@ -807,7 +807,7 @@ class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Helper function for ajax handler.
+	 * Helper function for Ajax handler.
 	 *
 	 * @since 5.2.0
 	 *

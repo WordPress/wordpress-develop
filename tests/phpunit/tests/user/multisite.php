@@ -142,7 +142,7 @@ if ( is_multisite() ) :
 
 			$this->assertSame( 0, $old_current );
 
-			// test for "get current user" when not logged in
+			// Test for "get current user" when not logged in.
 			$this->assertFalse( is_user_member_of_blog() );
 
 			wp_set_current_user( $user1_id );
@@ -158,9 +158,9 @@ if ( is_multisite() ) :
 
 			$this->assertInternalType( 'int', $blog_id );
 
-			// Current user gets added to new blogs
+			// Current user gets added to new blogs.
 			$this->assertTrue( is_user_member_of_blog( $user1_id, $blog_id ) );
-			// Other users should not
+			// Other users should not.
 			$this->assertFalse( is_user_member_of_blog( $user2_id, $blog_id ) );
 
 			switch_to_blog( $blog_id );
@@ -168,10 +168,10 @@ if ( is_multisite() ) :
 			$this->assertTrue( is_user_member_of_blog( $user1_id ) );
 			$this->assertFalse( is_user_member_of_blog( $user2_id ) );
 
-			// Remove user 1 from blog
+			// Remove user 1 from blog.
 			$this->assertTrue( remove_user_from_blog( $user1_id, $blog_id ) );
 
-			// Add user 2 to blog
+			// Add user 2 to blog.
 			$this->assertTrue( add_user_to_blog( $blog_id, $user2_id, 'subscriber' ) );
 
 			$this->assertFalse( is_user_member_of_blog( $user1_id ) );

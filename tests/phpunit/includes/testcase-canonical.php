@@ -263,27 +263,28 @@ class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 		$can_url        = $this->get_canonical( $test_url );
 		$parsed_can_url = parse_url( $can_url );
 
-		// Just test the Path and Query if present
+		// Just test the path and query if present.
 		if ( isset( $expected['url'] ) ) {
 			$this->assertEquals( $expected['url'], $parsed_can_url['path'] . ( ! empty( $parsed_can_url['query'] ) ? '?' . $parsed_can_url['query'] : '' ), $ticket_ref );
 		}
 
-		// If the test data doesn't include expected query vars, then we're done here
+		// If the test data doesn't include expected query vars, then we're done here.
 		if ( ! isset( $expected['qv'] ) ) {
 			return;
 		}
 
-		// "make" that the request and check the query is correct
+		// "make" that the request and check the query is correct.
 		$this->go_to( $can_url );
 
-		// Are all query vars accounted for, And correct?
+		// Are all query vars accounted for, and correct?
 		global $wp;
 
 		$query_vars = array_diff( $wp->query_vars, $wp->extra_query_vars );
 		if ( ! empty( $parsed_can_url['query'] ) ) {
 			parse_str( $parsed_can_url['query'], $_qv );
 
-			// $_qv should not contain any elements which are set in $query_vars already (ie. $_GET vars should not be present in the Rewrite)
+			// $_qv should not contain any elements which are set in $query_vars already
+			// (i.e. $_GET vars should not be present in the Rewrite).
 			$this->assertEquals( array(), array_intersect( $query_vars, $_qv ), 'Query vars are duplicated from the Rewrite into $_GET; ' . $ticket_ref );
 
 			$query_vars = array_merge( $query_vars, $_qv );
@@ -305,7 +306,7 @@ class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 
 		$can_url = redirect_canonical( $test_url, false );
 		if ( ! $can_url ) {
-			return $test_url; // No redirect will take place for this request
+			return $test_url; // No redirect will take place for this request.
 		}
 
 		return $can_url;

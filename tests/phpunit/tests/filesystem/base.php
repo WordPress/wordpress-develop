@@ -33,12 +33,12 @@ abstract class WP_Filesystem_UnitTestCase extends WP_UnitTestCase {
 
 		$wp_filesystem->init( '/' );
 
-		// Test creation/exists checks
+		// Test creation/exists checks.
 		$this->assertFalse( $wp_filesystem->is_dir( '/test/' ) );
 		$wp_filesystem->mkdir( '/test' );
 		$this->assertTrue( $wp_filesystem->exists( '/test' ) );
 		$this->assertTrue( $wp_filesystem->is_dir( '/test/' ) );
 		$this->assertFalse( $wp_filesystem->is_file( '/test' ) );
-		//$this->assertFalse( true );
+		// $this->assertFalse( true );
 	}
 }

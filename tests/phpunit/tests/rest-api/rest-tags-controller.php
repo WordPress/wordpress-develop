@@ -131,13 +131,13 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_context_param() {
-		// Collection
+		// Collection.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/tags' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertEqualSets( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
-		// Single
+		// Single.
 		$tag1     = $this->factory->tag->create( array( 'name' => 'Season 5' ) );
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/tags/' . $tag1 );
 		$response = rest_get_server()->dispatch( $request );
@@ -887,8 +887,8 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 200, $response->get_status() );
 		$request->set_param( 'slug', $term->slug );
 
-		// Run twice to make sure that the update still succeeds even if no DB
-		// rows are updated.
+		// Run twice to make sure that the update still succeeds
+		// even if no DB rows are updated.
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
@@ -980,7 +980,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function verify_tag_roundtrip( $input = array(), $expected_output = array() ) {
-		// Create the tag
+		// Create the tag.
 		$request = new WP_REST_Request( 'POST', '/wp/v2/tags' );
 		foreach ( $input as $name => $value ) {
 			$request->set_param( $name, $value );
@@ -989,16 +989,16 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 201, $response->get_status() );
 		$actual_output = $response->get_data();
 
-		// Compare expected API output to actual API output
+		// Compare expected API output to actual API output.
 		$this->assertEquals( $expected_output['name'], $actual_output['name'] );
 		$this->assertEquals( $expected_output['description'], $actual_output['description'] );
 
-		// Compare expected API output to WP internal values
+		// Compare expected API output to WP internal values.
 		$tag = get_term_by( 'id', $actual_output['id'], 'post_tag' );
 		$this->assertEquals( $expected_output['name'], $tag->name );
 		$this->assertEquals( $expected_output['description'], $tag->description );
 
-		// Update the tag
+		// Update the tag.
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/tags/%d', $actual_output['id'] ) );
 		foreach ( $input as $name => $value ) {
 			$request->set_param( $name, $value );
@@ -1007,11 +1007,11 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 200, $response->get_status() );
 		$actual_output = $response->get_data();
 
-		// Compare expected API output to actual API output
+		// Compare expected API output to actual API output.
 		$this->assertEquals( $expected_output['name'], $actual_output['name'] );
 		$this->assertEquals( $expected_output['description'], $actual_output['description'] );
 
-		// Compare expected API output to WP internal values
+		// Compare expected API output to WP internal values.
 		$tag = get_term_by( 'id', $actual_output['id'], 'post_tag' );
 		$this->assertEquals( $expected_output['name'], $tag->name );
 		$this->assertEquals( $expected_output['description'], $tag->description );

@@ -48,7 +48,7 @@ jQuery( function( $ ) {
 	});
 
 	// @todo Test Class.applicator?
-	// @todo do we test object.instance?
+	// @todo Do we test object.instance?
 
 	module( 'Customize Base: Subclass' );
 
@@ -82,7 +82,7 @@ jQuery( function( $ ) {
 	});
 
 
-	// Implements todo : Test Class.constructor() manipulation
+	// Implements todo: Test Class.constructor() manipulation.
 	module( 'Customize Base: Constructor Manipulation' );
 
 	newConstructor = function ( instanceProps ) {

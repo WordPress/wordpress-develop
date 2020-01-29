@@ -19,7 +19,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 		add_filter( 'theme_root', array( $this, '_theme_root' ) );
 		add_filter( 'stylesheet_root', array( $this, '_theme_root' ) );
 		add_filter( 'template_root', array( $this, '_theme_root' ) );
-		// clear caches
+		// Clear caches.
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
 	}
@@ -34,7 +34,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 		parent::tearDown();
 	}
 
-	// replace the normal theme root dir with our premade test dir
+	// Replace the normal theme root directory with our premade test directory.
 	function _theme_root( $dir ) {
 		return $this->theme_root;
 	}
@@ -50,7 +50,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 
 		$this->assertFalse( empty( $theme ) );
 
-		#echo gen_tests_array('theme', $theme);
+		// echo gen_tests_array( 'theme', $theme );
 
 		$this->assertEquals( 'WordPress Default', $theme['Name'] );
 		$this->assertEquals( 'WordPress Default', $theme['Title'] );
@@ -79,7 +79,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 
 		$this->assertFalse( empty( $theme ) );
 
-		#echo gen_tests_array('theme', $theme);
+		// echo gen_tests_array( 'theme', $theme );
 
 		$this->assertEquals( 'Sandbox', $theme['Name'] );
 		$this->assertEquals( 'Sandbox', $theme['Title'] );
@@ -116,7 +116,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 		$theme = $themes['Stylesheet Only'];
 		$this->assertFalse( empty( $theme ) );
 
-		#echo gen_tests_array('theme', $theme);
+		// echo gen_tests_array( 'theme', $theme );
 
 		$this->assertEquals( 'Stylesheet Only', $theme['Name'] );
 		$this->assertEquals( 'Stylesheet Only', $theme['Title'] );
@@ -156,10 +156,10 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'Sandbox',
 			'Stylesheet Only',
 			'My Theme',
-			'My Theme/theme1', // duplicate theme should be given a unique name
-			'My Subdir Theme', // theme in a subdirectory should work
-			'Page Template Child Theme', // theme which inherits page templates
-			'Page Template Theme', // theme with page templates for other test code
+			'My Theme/theme1',                    // Duplicate theme should be given a unique name.
+			'My Subdir Theme',                    // Theme in a subdirectory should work.
+			'Page Template Child Theme',          // Theme which inherits page templates.
+			'Page Template Theme',                // Theme with page templates for other test code.
 			'Theme with Spaces in the Directory',
 			'Internationalized Theme',
 			'camelCase',

@@ -13,7 +13,7 @@ class Tests_Theme_WPTheme extends WP_UnitTestCase {
 		add_filter( 'theme_root', array( $this, '_theme_root' ) );
 		add_filter( 'stylesheet_root', array( $this, '_theme_root' ) );
 		add_filter( 'template_root', array( $this, '_theme_root' ) );
-		// clear caches
+		// Clear caches.
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
 	}
@@ -28,14 +28,14 @@ class Tests_Theme_WPTheme extends WP_UnitTestCase {
 		parent::tearDown();
 	}
 
-	// replace the normal theme root dir with our premade test dir
+	// Replace the normal theme root directory with our premade test directory.
 	function _theme_root( $dir ) {
 		return $this->theme_root;
 	}
 	function test_new_WP_Theme_top_level() {
 		$theme = new WP_Theme( 'theme1', $this->theme_root );
 
-		//Meta
+		// Meta.
 		$this->assertEquals( 'My Theme', $theme->get( 'Name' ) );
 		$this->assertEquals( 'http://example.org/', $theme->get( 'ThemeURI' ) );
 		$this->assertEquals( 'An example theme', $theme->get( 'Description' ) );
@@ -46,7 +46,7 @@ class Tests_Theme_WPTheme extends WP_UnitTestCase {
 		$this->assertEquals( 'publish', $theme->get( 'Status' ) );
 		$this->assertEquals( array(), $theme->get( 'Tags' ) );
 
-		//Important
+		// Important.
 		$this->assertEquals( 'theme1', $theme->get_stylesheet() );
 		$this->assertEquals( 'theme1', $theme->get_template() );
 	}
@@ -54,7 +54,7 @@ class Tests_Theme_WPTheme extends WP_UnitTestCase {
 	function test_new_WP_Theme_subdir() {
 		$theme = new WP_Theme( 'subdir/theme2', $this->theme_root );
 
-		//Meta
+		// Meta.
 		$this->assertEquals( 'My Subdir Theme', $theme->get( 'Name' ) );
 		$this->assertEquals( 'http://example.org/', $theme->get( 'ThemeURI' ) );
 		$this->assertEquals( 'An example theme in a sub directory', $theme->get( 'Description' ) );
@@ -65,7 +65,7 @@ class Tests_Theme_WPTheme extends WP_UnitTestCase {
 		$this->assertEquals( 'publish', $theme->get( 'Status' ) );
 		$this->assertEquals( array(), $theme->get( 'Tags' ) );
 
-		//Important
+		// Important.
 		$this->assertEquals( 'subdir/theme2', $theme->get_stylesheet() );
 		$this->assertEquals( 'subdir/theme2', $theme->get_template() );
 	}
@@ -74,10 +74,10 @@ class Tests_Theme_WPTheme extends WP_UnitTestCase {
 	 * @ticket 20313
 	 */
 	function test_new_WP_Theme_subdir_bad_root() {
-		// This is what get_theme_data() does when you pass it a style.css file for a theme in a subdir.
+		// This is what get_theme_data() does when you pass it a style.css file for a theme in a subdirectory.
 		$theme = new WP_Theme( 'theme2', $this->theme_root . '/subdir' );
 
-		//Meta
+		// Meta.
 		$this->assertEquals( 'My Subdir Theme', $theme->get( 'Name' ) );
 		$this->assertEquals( 'http://example.org/', $theme->get( 'ThemeURI' ) );
 		$this->assertEquals( 'An example theme in a sub directory', $theme->get( 'Description' ) );
@@ -88,7 +88,7 @@ class Tests_Theme_WPTheme extends WP_UnitTestCase {
 		$this->assertEquals( 'publish', $theme->get( 'Status' ) );
 		$this->assertEquals( array(), $theme->get( 'Tags' ) );
 
-		//Important
+		// Important.
 		$this->assertEquals( 'subdir/theme2', $theme->get_stylesheet() );
 		$this->assertEquals( 'subdir/theme2', $theme->get_template() );
 	}
@@ -101,12 +101,12 @@ class Tests_Theme_WPTheme extends WP_UnitTestCase {
 		// Make sure subdir/ is considered part of the stylesheet, as we must avoid encoding /'s.
 		$this->assertEquals( 'subdir/theme with spaces', $theme->get_stylesheet() );
 
-		// Check that in a URI path, we have raw url encoding (spaces become %20)
+		// Check that in a URI path, we have raw URL encoding (spaces become %20).
 		// Don't try to verify the complete URI path. get_theme_root_uri() breaks down quickly.
 		$this->assertEquals( 'theme%20with%20spaces', basename( $theme->get_stylesheet_directory_uri() ) );
 		$this->assertEquals( 'theme%20with%20spaces', basename( $theme->get_template_directory_uri() ) );
 
-		// Check that wp_customize_url() uses url encoding, as it is a query arg (spaces become +)
+		// Check that wp_customize_url() uses URL encoding, as it is a query arg (spaces become +).
 		$this->assertEquals( admin_url( 'customize.php?theme=theme+with+spaces' ), wp_customize_url( 'theme with spaces' ) );
 	}
 
@@ -162,7 +162,7 @@ class Tests_Theme_WPTheme extends WP_UnitTestCase {
 		$current_allowed_themes = get_site_option( 'allowedthemes' );
 		WP_Theme::network_enable_theme( $theme );
 		$new_allowed_themes = get_site_option( 'allowedthemes' );
-		update_site_option( 'allowedthemes', $current_allowed_themes ); // reset previous value.
+		update_site_option( 'allowedthemes', $current_allowed_themes ); // Reset previous value.
 		$current_allowed_themes['testtheme-1'] = true; // Add the new theme to the previous set.
 
 		$this->assertEqualSetsWithIndex( $current_allowed_themes, $new_allowed_themes );
@@ -179,7 +179,7 @@ class Tests_Theme_WPTheme extends WP_UnitTestCase {
 		$current_allowed_themes = get_site_option( 'allowedthemes' );
 		WP_Theme::network_enable_theme( $themes );
 		$new_allowed_themes = get_site_option( 'allowedthemes' );
-		update_site_option( 'allowedthemes', $current_allowed_themes ); // reset previous value.
+		update_site_option( 'allowedthemes', $current_allowed_themes ); // Reset previous value.
 		$current_allowed_themes = array_merge(
 			$current_allowed_themes,
 			array(
@@ -210,7 +210,7 @@ class Tests_Theme_WPTheme extends WP_UnitTestCase {
 		$disable_theme = 'existing-2';
 		WP_Theme::network_disable_theme( $disable_theme );
 		$new_allowed_themes = get_site_option( 'allowedthemes' );
-		update_site_option( 'allowedthemes', $current_allowed_themes ); // reset previous value.
+		update_site_option( 'allowedthemes', $current_allowed_themes ); // Reset previous value.
 		unset( $allowed_themes[ $disable_theme ] ); // Remove deleted theme from initial set.
 
 		$this->assertEqualSetsWithIndex( $allowed_themes, $new_allowed_themes );
@@ -235,7 +235,7 @@ class Tests_Theme_WPTheme extends WP_UnitTestCase {
 		$disable_themes = array( 'existing-4', 'existing-5' );
 		WP_Theme::network_disable_theme( $disable_themes );
 		$new_allowed_themes = get_site_option( 'allowedthemes' );
-		update_site_option( 'allowedthemes', $current_allowed_themes ); // reset previous value.
+		update_site_option( 'allowedthemes', $current_allowed_themes ); // Reset previous value.
 		unset( $allowed_themes['existing-4'] );
 		unset( $allowed_themes['existing-5'] );
 

@@ -83,7 +83,7 @@ $multisite = ( '1' === getenv( 'WP_MULTISITE' ) );
 $multisite = $multisite || ( defined( 'WP_TESTS_MULTISITE' ) && WP_TESTS_MULTISITE );
 $multisite = $multisite || ( defined( 'MULTISITE' ) && MULTISITE );
 
-// Override the PHPMailer
+// Override the PHPMailer.
 require_once( dirname( __FILE__ ) . '/mock-mailer.php' );
 $phpmailer = new MockPHPMailer( true );
 
@@ -114,13 +114,13 @@ if ( $multisite ) {
 unset( $multisite );
 
 $GLOBALS['_wp_die_disabled'] = false;
-// Allow tests to override wp_die
+// Allow tests to override wp_die().
 tests_add_filter( 'wp_die_handler', '_wp_die_handler_filter' );
-// Use the Spy REST Server instead of default
+// Use the Spy REST Server instead of default.
 tests_add_filter( 'wp_rest_server_class', '_wp_rest_server_class_filter' );
 
 // Preset WordPress options defined in bootstrap file.
-// Used to activate themes, plugins, as well as  other settings.
+// Used to activate themes, plugins, as well as other settings.
 if ( isset( $GLOBALS['wp_tests_options'] ) ) {
 	function wp_tests_options( $value ) {
 		$key = substr( current_filter(), strlen( 'pre_option_' ) );
@@ -132,10 +132,10 @@ if ( isset( $GLOBALS['wp_tests_options'] ) ) {
 	}
 }
 
-// Load WordPress
+// Load WordPress.
 require_once ABSPATH . '/wp-settings.php';
 
-// Delete any default posts & related data
+// Delete any default posts & related data.
 _delete_all_posts();
 
 if ( version_compare( tests_get_phpunit_version(), '7.0', '>=' ) ) {

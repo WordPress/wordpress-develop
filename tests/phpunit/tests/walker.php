@@ -214,13 +214,13 @@ class Tests_Walker extends WP_UnitTestCase {
 
 		$this->assertEquals( 0, $this->walker->get_number_of_root_elements( $items ) );
 
-		// It's not clear what the output of this "should" be
+		// It's not clear what the output of this "should" be.
 
-		// Currently the item is simply returned
+		// Currently the item is simply returned.
 		$this->assertEquals( '<li>1</li>', $output );
 
 		// But as we've only asked for the first depth maybe nothing should be returned?
-		//$this->assertEquals( '', $output );
+		// $this->assertEquals( '', $output );
 
 	}
 
@@ -269,16 +269,16 @@ class Tests_Walker extends WP_UnitTestCase {
 
 		$this->assertEquals( 0, $this->walker->get_number_of_root_elements( $items ) );
 
-		// It's not clear what the output of this "should" be
+		// It's not clear what the output of this "should" be.
 
-		// Currently the first item is simply returned
+		// Currently the first item is simply returned.
 		$this->assertEquals( '<li>4</li>', $output );
 
 		// But as we've only asked for the first depth maybe nothing should be returned?
-		//$this->assertEquals( '', $output );
+		// $this->assertEquals( '', $output );
 
 		// Or maybe all items which are missing parents should simply be treat top level?
-		//$this->assertEquals( '<li>4</li><li>5</li><li>6</li>', $output );
+		// $this->assertEquals( '<li>4</li><li>5</li><li>6</li>', $output );
 
 	}
 

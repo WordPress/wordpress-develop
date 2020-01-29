@@ -131,11 +131,11 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 	 */
 	attachmentFocus: function() {
 		/*
-		 * @todo: when uploading new attachments, this tries to move focus to the
-		 * attachmentz grid. Actually, a progress bar gets initially displayed
+		 * @todo When uploading new attachments, this tries to move focus to
+		 * the attachments grid. Actually, a progress bar gets initially displayed
 		 * and then updated when uploading completes, so focus is lost.
-		 * Additionally: this view is used for both the attachments list and the
-		 * list of selected attachments in the bottom media toolbar. Thus, when
+		 * Additionally: this view is used for both the attachments list and
+		 * the list of selected attachments in the bottom media toolbar. Thus, when
 		 * uploading attachments, it is called twice and returns two different `this`.
 		 * `this.columns` is truthy within the modal.
 		 */
@@ -257,8 +257,8 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 	/**
 	 * Initializes jQuery sortable on the attachment list.
 	 *
-	 * Fails gracefully if jQuery sortable doesn't exist or isn't passed in the
-	 * options.
+	 * Fails gracefully if jQuery sortable doesn't exist or isn't passed
+	 * in the options.
 	 *
 	 * @since 3.5.0
 	 *
@@ -278,8 +278,8 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 			disabled: !! collection.comparator,
 
 			/*
-			 * Change the position of the attachment as soon as the mouse pointer overlaps a
-			 * thumbnail.
+			 * Change the position of the attachment as soon as the mouse pointer
+			 * overlaps a thumbnail.
 			 */
 			tolerance: 'pointer',
 
@@ -321,8 +321,8 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 		}, this.options.sortable ) );
 
 		/*
-		 * If the `orderby` property is changed on the `collection`, check to see if we
-		 * have a `comparator`. If so, disable sorting.
+		 * If the `orderby` property is changed on the `collection`,
+		 * check to see if we have a `comparator`. If so, disable sorting.
 		 */
 		collection.props.on( 'change:orderby', function() {
 			this.$el.sortable( 'option', 'disabled', !! collection.comparator );

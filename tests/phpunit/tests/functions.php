@@ -22,7 +22,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	function test_wp_parse_args_array() {
-		// arrays
+		// Arrays.
 		$a = array();
 		$this->assertEquals( array(), wp_parse_args( $a ) );
 		$b = array(
@@ -140,22 +140,22 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 	function data_wp_normalize_path() {
 		return array(
-			// Windows paths
+			// Windows paths.
 			array( 'C:\\www\\path\\', 'C:/www/path/' ),
 			array( 'C:\\www\\\\path\\', 'C:/www/path/' ),
 			array( 'c:/www/path', 'C:/www/path' ),
-			array( 'c:\\www\\path\\', 'C:/www/path/' ), // uppercase drive letter
+			array( 'c:\\www\\path\\', 'C:/www/path/' ), // Uppercase drive letter.
 			array( 'c:\\\\www\\path\\', 'C:/www/path/' ),
 			array( '\\\\Domain\\DFSRoots\\share\\path\\', '//Domain/DFSRoots/share/path/' ),
 			array( '\\\\Server\\share\\path', '//Server/share/path' ),
 			array( '\\\\Server\\share', '//Server/share' ),
 
-			// Linux paths
+			// Linux paths.
 			array( '/www/path/', '/www/path/' ),
 			array( '/www/path/////', '/www/path/' ),
 			array( '/www/path', '/www/path' ),
 
-			// PHP Stream wrappers
+			// PHP stream wrappers.
 			array( 'php://input', 'php://input' ),
 			array( 'http://example.com//path.ext', 'http://example.com/path.ext' ),
 			array( 'file://c:\\www\\path\\', 'file://C:/www/path/' ),
@@ -166,30 +166,30 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		$testdir = DIR_TESTDATA . '/images/';
 
-		// sanity check
+		// Sanity check.
 		$this->assertEquals( 'abcdefg.png', wp_unique_filename( $testdir, 'abcdefg.png' ), 'Sanitiy check failed' );
 
-		// check number is appended for file already exists
+		// Check number is appended for file already exists.
 		$this->assertFileExists( $testdir . 'test-image.png', 'Test image does not exist' );
 		$this->assertEquals( 'test-image-1.png', wp_unique_filename( $testdir, 'test-image.png' ), 'Number not appended correctly' );
 		$this->assertFileNotExists( $testdir . 'test-image-1.png' );
 
-		// check special chars
+		// Check special chars.
 		$this->assertEquals( 'testtést-imagé.png', wp_unique_filename( $testdir, 'testtést-imagé.png' ), 'Filename with special chars failed' );
 
-		// check special chars with potential conflicting name
+		// Check special chars with potential conflicting name.
 		$this->assertEquals( 'tést-imagé.png', wp_unique_filename( $testdir, 'tést-imagé.png' ), 'Filename with special chars failed' );
 
-		// check with single quotes in name (somehow)
+		// Check with single quotes in name (somehow).
 		$this->assertEquals( 'abcdefgh.png', wp_unique_filename( $testdir, "abcdefg'h.png" ), 'File with quote failed' );
 
-		// check with single quotes in name (somehow)
+		// Check with double quotes in name (somehow).
 		$this->assertEquals( 'abcdefgh.png', wp_unique_filename( $testdir, 'abcdefg"h.png' ), 'File with quote failed' );
 
-		// test crazy name (useful for regression tests)
+		// Test crazy name (useful for regression tests).
 		$this->assertEquals( '12af34567890@..^_qwerty-fghjkl-zx.png', wp_unique_filename( $testdir, '12%af34567890#~!@#$..%^&*()|_+qwerty  fgh`jkl zx<>?:"{}[]="\'/?.png' ), 'Failed crazy file name' );
 
-		// test slashes in names
+		// Test slashes in names.
 		$this->assertEquals( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\fg.png' ), 'Slash not removed' );
 		$this->assertEquals( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\\fg.png' ), 'Double slashed not removed' );
 		$this->assertEquals( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\\\fg.png' ), 'Tripple slashed not removed' );
@@ -525,7 +525,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertInternalType( 'array', $mimes );
 		$this->assertNotEmpty( $mimes );
 
-		// upload_mimes shouldn't affect wp_get_mime_types()
+		// 'upload_mimes' should not affect wp_get_mime_types().
 		add_filter( 'upload_mimes', '__return_empty_array' );
 		$mimes = wp_get_mime_types();
 		$this->assertInternalType( 'array', $mimes );
@@ -646,47 +646,47 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	function data_device_can_upload() {
 		return array(
-			// iPhone iOS 5.0.1, Safari 5.1
+			// iPhone iOS 5.0.1, Safari 5.1.
 			array(
 				'Mozilla/5.0 (iPhone; CPU iPhone OS 5_0_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Mobile/9A406)',
 				false,
 			),
-			// iPad iOS 3.2, Safari 4.0.4
+			// iPad iOS 3.2, Safari 4.0.4.
 			array(
 				'Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B334b Safari/531.21.10',
 				false,
 			),
-			// iPod iOS 4.3.3, Safari 5.0.2
+			// iPod iOS 4.3.3, Safari 5.0.2.
 			array(
 				'Mozilla/5.0 (iPod; U; CPU iPhone OS 4_3_3 like Mac OS X; ja-jp) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5',
 				false,
 			),
-			// iPhone iOS 6.0.0, Safari 6.0
+			// iPhone iOS 6.0.0, Safari 6.0.
 			array(
 				'Mozilla/5.0 (iPhone; CPU iPhone OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5376e Safari/8536.25',
 				true,
 			),
-			// iPad iOS 6.0.0, Safari 6.0
+			// iPad iOS 6.0.0, Safari 6.0.
 			array(
 				'Mozilla/5.0 (iPad; CPU OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5376e Safari/8536.25',
 				true,
 			),
-			// Android 2.2, Android Webkit Browser
+			// Android 2.2, Android Webkit Browser.
 			array(
 				'Mozilla/5.0 (Android 2.2; Windows; U; Windows NT 6.1; en-US) AppleWebKit/533.19.4 (KHTML, like Gecko) Version/5.0.3 Safari/533.19.4',
 				true,
 			),
-			// BlackBerry 9900, BlackBerry browser
+			// BlackBerry 9900, BlackBerry browser.
 			array(
 				'Mozilla/5.0 (BlackBerry; U; BlackBerry 9900; en) AppleWebKit/534.11+ (KHTML, like Gecko) Version/7.1.0.346 Mobile Safari/534.11+',
 				true,
 			),
-			// Windows Phone 8.0, Internet Explorer 10.0;
+			// Windows Phone 8.0, Internet Explorer 10.0.
 			array(
 				'Mozilla/5.0 (compatible; MSIE 10.0; Windows Phone 8.0; Trident/6.0; IEMobile/10.0; ARM; Touch; NOKIA; Lumia 920)',
 				true,
 			),
-			// Ubuntu desktop, Firefox 41.0
+			// Ubuntu desktop, Firefox 41.0.
 			array(
 				'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:41.0) Gecko/20100101 Firefox/41.0',
 				true,
@@ -716,10 +716,10 @@ class Tests_Functions extends WP_UnitTestCase {
 			'http://българия.icom.museum',
 			'http://تشادر.icom.museum',
 			'http://中国.icom.museum',
-			#'http://القمر.icom.museum', // Comoros	http://القمر.icom.museum
-			#'http://κυπρος.icom.museum', Cyprus 	http://κυπρος.icom.museum
+			// 'http://القمر.icom.museum',         // Comoros http://القمر.icom.museum
+			// 'http://κυπρος.icom.museum',        // Cyprus  http://κυπρος.icom.museum
 			'http://českárepublika.icom.museum',
-			#'http://مصر.icom.museum', // Egypt	http://مصر.icom.museum
+			// 'http://مصر.icom.museum',           // Egypt   http://مصر.icom.museum
 			'http://ελλάδα.icom.museum',
 			'http://magyarország.icom.museum',
 			'http://ísland.icom.museum',
@@ -735,12 +735,12 @@ class Tests_Functions extends WP_UnitTestCase {
 			'http://ລາວ.icom.museum',
 			'http://لبنان.icom.museum',
 			'http://македонија.icom.museum',
-			#'http://موريتانيا.icom.museum', // Mauritania	http://موريتانيا.icom.museum
+			// 'http://موريتانيا.icom.museum',     // Mauritania http://موريتانيا.icom.museum
 			'http://méxico.icom.museum',
 			'http://монголулс.icom.museum',
-			#'http://المغرب.icom.museum', // Morocco	http://المغرب.icom.museum
+			// 'http://المغرب.icom.museum',        // Morocco    http://المغرب.icom.museum
 			'http://नेपाल.icom.museum',
-			#'http://عمان.icom.museum', // Oman	http://عمان.icom.museum
+			// 'http://عمان.icom.museum',          // Oman       http://عمان.icom.museum
 			'http://قطر.icom.museum',
 			'http://românia.icom.museum',
 			'http://россия.иком.museum',
@@ -826,7 +826,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertEquals( $original_urls, $urls );
 
 		$exploded = array_values( array_filter( array_map( 'trim', explode( "\n", $blob ) ) ) );
-		// wp_extract_urls calls html_entity_decode
+		// wp_extract_urls() calls html_entity_decode().
 		$decoded = array_map( 'html_entity_decode', $exploded );
 
 		$this->assertEquals( $decoded, $urls );
@@ -1664,17 +1664,17 @@ class Tests_Functions extends WP_UnitTestCase {
 			array( 1, false ),
 			array( '00', false ),
 			array( '30:-10', false ),
-			array( ':30:00', false ), // Missing HH.
+			array( ':30:00', false ),   // Missing HH.
 			array( 'MM:30:00', false ), // Invalid HH.
 			array( '30:MM:00', false ), // Invalid ii.
 			array( '30:30:MM', false ), // Invalid ss.
-			array( '30:MM', false ), // Invalid ss.
-			array( 'MM:00', false ), // Invalid ii.
-			array( 'MM:MM', false ), // Invalid ii and ss.
-			array( '10 :30', false ), // Containing a space.
-			array( '59:61', false ), // Out of bound.
-			array( '61:59', false ), // Out of bound.
-			array( '3:59:61', false ), // Out of bound.
+			array( '30:MM', false ),    // Invalid ss.
+			array( 'MM:00', false ),    // Invalid ii.
+			array( 'MM:MM', false ),    // Invalid ii and ss.
+			array( '10 :30', false ),   // Containing a space.
+			array( '59:61', false ),    // Out of bound.
+			array( '61:59', false ),    // Out of bound.
+			array( '3:59:61', false ),  // Out of bound.
 			array( '03:61:59', false ), // Out of bound.
 		);
 	}

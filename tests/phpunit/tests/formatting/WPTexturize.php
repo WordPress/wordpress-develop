@@ -32,19 +32,25 @@ class Tests_Formatting_WPTexturize extends WP_UnitTestCase {
 
 	}
 
-	//WP Ticket #1418
+	/**
+	 * @ticket 1418
+	 */
 	function test_bracketed_quotes_1418() {
 		$this->assertEquals( '(&#8220;test&#8221;)', wptexturize( '("test")' ) );
 		$this->assertEquals( '(&#8216;test&#8217;)', wptexturize( "('test')" ) );
 		$this->assertEquals( '(&#8217;twas)', wptexturize( "('twas)" ) );
 	}
 
-	//WP Ticket #3810
+	/**
+	 * @ticket 3810
+	 */
 	function test_bracketed_quotes_3810() {
 		$this->assertEquals( 'A dog (&#8220;Hubertus&#8221;) was sent out.', wptexturize( 'A dog ("Hubertus") was sent out.' ) );
 	}
 
-	//WP Ticket #4539
+	/**
+	 * @ticket 4539
+	 */
 	function test_basic_quotes() {
 		$this->assertEquals( 'test&#8217;s', wptexturize( 'test\'s' ) );
 
@@ -80,16 +86,16 @@ class Tests_Formatting_WPTexturize extends WP_UnitTestCase {
 	 */
 	function test_quotes() {
 		$this->assertEquals( '&#8220;Quoted String&#8221;', wptexturize( '"Quoted String"' ) );
-		//$this->assertEquals('Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;', wptexturize('Here is "<a href="http://example.com">a test with a link</a>"'));
-		//$this->assertEquals('Here is &#8220;<a href="http://example.com">a test with a link and a period</a>&#8221;.', wptexturize('Here is "<a href="http://example.com">a test with a link and a period</a>".'));
+		// $this->assertEquals( 'Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;', wptexturize( 'Here is "<a href="http://example.com">a test with a link</a>"' ) );
+		// $this->assertEquals( 'Here is &#8220;<a href="http://example.com">a test with a link and a period</a>&#8221;.', wptexturize( 'Here is "<a href="http://example.com">a test with a link and a period</a>".' ) );
 		$this->assertEquals( 'Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221; and a space.', wptexturize( 'Here is "<a href="http://example.com">a test with a link</a>" and a space.' ) );
 		$this->assertEquals( 'Here is &#8220;<a href="http://example.com">a test with a link</a> and some text quoted&#8221;', wptexturize( 'Here is "<a href="http://example.com">a test with a link</a> and some text quoted"' ) );
-		//$this->assertEquals('Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;, and a comma.', wptexturize('Here is "<a href="http://example.com">a test with a link</a>", and a comma.'));
-		//$this->assertEquals('Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;; and a semi-colon.', wptexturize('Here is "<a href="http://example.com">a test with a link</a>"; and a semi-colon.'));
-		//$this->assertEquals('Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;- and a dash.', wptexturize('Here is "<a href="http://example.com">a test with a link</a>"- and a dash.'));
-		//$this->assertEquals('Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;&#8230; and ellipses.', wptexturize('Here is "<a href="http://example.com">a test with a link</a>"... and ellipses.'));
-		//$this->assertEquals('Here is &#8220;a test <a href="http://example.com">with a link</a>&#8221;.', wptexturize('Here is "a test <a href="http://example.com">with a link</a>".'));
-		//$this->assertEquals('Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;and a work stuck to the end.', wptexturize('Here is "<a href="http://example.com">a test with a link</a>"and a work stuck to the end.'));
+		// $this->assertEquals( 'Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;, and a comma.', wptexturize( 'Here is "<a href="http://example.com">a test with a link</a>", and a comma.' ) );
+		// $this->assertEquals( 'Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;; and a semi-colon.', wptexturize( 'Here is "<a href="http://example.com">a test with a link</a>"; and a semi-colon.' ) );
+		// $this->assertEquals( 'Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;- and a dash.', wptexturize( 'Here is "<a href="http://example.com">a test with a link</a>"- and a dash.' ) );
+		// $this->assertEquals( 'Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;&#8230; and ellipses.', wptexturize( 'Here is "<a href="http://example.com">a test with a link</a>"... and ellipses.' ) );
+		// $this->assertEquals( 'Here is &#8220;a test <a href="http://example.com">with a link</a>&#8221;.', wptexturize( 'Here is "a test <a href="http://example.com">with a link</a>".' ) );
+		// $this->assertEquals( 'Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;and a work stuck to the end.', wptexturize( 'Here is "<a href="http://example.com">a test with a link</a>"and a work stuck to the end.' ) );
 		$this->assertEquals( 'A test with a finishing number, &#8220;like 23&#8221;.', wptexturize( 'A test with a finishing number, "like 23".' ) );
 		$this->assertEquals( 'A test with a number, &#8220;like 62&#8221;, is nice to have.', wptexturize( 'A test with a number, "like 62", is nice to have.' ) );
 	}
@@ -131,7 +137,8 @@ class Tests_Formatting_WPTexturize extends WP_UnitTestCase {
 		$this->assertEquals( ' &#8220;Class of &#8217;99&#8221;;', wptexturize( " \"Class of '99\";" ) );
 		$this->assertEquals( ' &#8220;Class of &#8217;99&#8221;!', wptexturize( " \"Class of '99\"!" ) );
 		$this->assertEquals( ' &#8220;Class of &#8217;99&#8221;?', wptexturize( " \"Class of '99\"?" ) );
-		$this->assertEquals( '}&#8221;Class of &#8217;99&#8243;{', wptexturize( "}\"Class of '99\"{" ) ); // Not a quotation, may be between two other quotations.
+		// Not a quotation, may be between two other quotations.
+		$this->assertEquals( '}&#8221;Class of &#8217;99&#8243;{', wptexturize( "}\"Class of '99\"{" ) );
 	}
 
 	function test_quotes_after_numbers() {
@@ -144,8 +151,8 @@ class Tests_Formatting_WPTexturize extends WP_UnitTestCase {
 	 */
 	function test_other_html() {
 		$this->assertEquals( '&#8216;<strong>', wptexturize( "'<strong>" ) );
-		//$this->assertEquals('&#8216;<strong>Quoted Text</strong>&#8217;,', wptexturize("'<strong>Quoted Text</strong>',"));
-		//$this->assertEquals('&#8220;<strong>Quoted Text</strong>&#8221;,', wptexturize('"<strong>Quoted Text</strong>",'));
+		// $this->assertEquals( '&#8216;<strong>Quoted Text</strong>&#8217;,', wptexturize( "'<strong>Quoted Text</strong>'," ) );
+		// $this->assertEquals( '&#8220;<strong>Quoted Text</strong>&#8221;,', wptexturize( '"<strong>Quoted Text</strong>",' ) );
 	}
 
 	function test_x() {
@@ -188,7 +195,7 @@ class Tests_Formatting_WPTexturize extends WP_UnitTestCase {
 	 */
 	function test_entity_quote_cuddling() {
 		$this->assertEquals( '&nbsp;&#8220;Testing&#8221;', wptexturize( '&nbsp;"Testing"' ) );
-		//$this->assertEquals('&#38;&#8220;Testing&#8221;', wptexturize('&#38;"Testing"'));
+		// $this->assertEquals( '&#38;&#8220;Testing&#8221;', wptexturize( '&#38;"Testing"' ) );
 	}
 
 	/**
@@ -341,7 +348,7 @@ class Tests_Formatting_WPTexturize extends WP_UnitTestCase {
 				'word &#8217;99&#8217;s word',
 			),
 			array(
-				"according to our source, '33 students scored less than 50' on the test.", // Apostrophes and primes have priority over quotes
+				"according to our source, '33 students scored less than 50' on the test.", // Apostrophes and primes have priority over quotes.
 				'according to our source, &#8217;33 students scored less than 50&#8242; on the test.',
 			),
 		);
@@ -374,7 +381,7 @@ class Tests_Formatting_WPTexturize extends WP_UnitTestCase {
 				'word [&#8216;word word',
 			),
 			array(
-				"word <'word word", // Invalid HTML
+				"word <'word word",    // Invalid HTML.
 				"word <'word word",
 			),
 			array(
@@ -387,7 +394,7 @@ class Tests_Formatting_WPTexturize extends WP_UnitTestCase {
 			),
 			array(
 				"word \"'word word",
-				'word &#8220;&#8216;word word', // Two opening quotes
+				'word &#8220;&#8216;word word', // Two opening quotes.
 			),
 			array(
 				"'word word",
@@ -415,7 +422,7 @@ class Tests_Formatting_WPTexturize extends WP_UnitTestCase {
 			),
 			array(
 				"word\"'word word",
-				'word&#8221;&#8216;word word', // Closing quote, then opening quote
+				'word&#8221;&#8216;word word', // Closing quote, then opening quote.
 			),
 			array(
 				"word ' word word",
@@ -443,7 +450,7 @@ class Tests_Formatting_WPTexturize extends WP_UnitTestCase {
 			),
 			array(
 				"word \"' word word",
-				'word &#8220;&#8216; word word', // Two opening quotes
+				'word &#8220;&#8216; word word', // Two opening quotes.
 			),
 			array(
 				"' word word",
@@ -471,7 +478,7 @@ class Tests_Formatting_WPTexturize extends WP_UnitTestCase {
 			),
 			array(
 				"word\"' word word",
-				'word&#8221;&#8216; word word', // Closing quote, then opening quote
+				'word&#8221;&#8216; word word', // Closing quote, then opening quote.
 			),
 		);
 	}
@@ -536,7 +543,7 @@ class Tests_Formatting_WPTexturize extends WP_UnitTestCase {
 				'word99&#8242; word',
 			),
 			array(
-				"word99'word", // Not a prime anymore.
+				"word99'word",  // Not a prime anymore.
 				'word99&#8217;word',
 			),
 		);
@@ -610,7 +617,7 @@ class Tests_Formatting_WPTexturize extends WP_UnitTestCase {
 				'word [&#8220;word word',
 			),
 			array(
-				'word <"word word', // Invalid HTML
+				'word <"word word', // Invalid HTML.
 				'word <"word word',
 			),
 			array(
@@ -691,11 +698,11 @@ class Tests_Formatting_WPTexturize extends WP_UnitTestCase {
 				'word word&#8221;} word',
 			),
 			array(
-				'word word"> word', // Invalid HTML input?
+				'word word"> word',    // Invalid HTML input?
 				'word word&#8221;> word',
 			),
 			array(
-				'word word"&gt; word', // Valid HTML should work
+				'word word"&gt; word', // Valid HTML should work.
 				'word word&#8221;&gt; word',
 			),
 			array(
@@ -844,6 +851,7 @@ class Tests_Formatting_WPTexturize extends WP_UnitTestCase {
 	 * Checks all baseline patterns. If anything ever changes in wptexturize(), these tests may fail.
 	 *
 	 * @ticket 22692
+	 * @ticket 30445
 	 * @dataProvider data_multiplication
 	 */
 	function test_multiplication( $input, $output ) {
@@ -1291,15 +1299,15 @@ class Tests_Formatting_WPTexturize extends WP_UnitTestCase {
 				'[gallery ...]]',
 			),
 			array(
-				'[/gallery ...]', // This would actually be ignored by the shortcode system.  The decision to not texturize it is intentional, if not correct.
-				'[/gallery ...]',
+				'[/gallery ...]', // This would actually be ignored by the shortcode system.
+				'[/gallery ...]', // The decision to not texturize it is intentional, if not correct.
 			),
 			array(
-				'[[gallery]]...[[/gallery]]', // Shortcode parsing will ignore the inner ]...[ part and treat this as a single escaped shortcode.
+				'[[gallery]]...[[/gallery]]', // Shortcode parsing will ignore the inner ']...[' part and treat this as a single escaped shortcode.
 				'[[gallery]]&#8230;[[/gallery]]',
 			),
 			array(
-				'[[[gallery]]]...[[[/gallery]]]', // Again, shortcode parsing matches, but only the [[gallery] and [/gallery]] parts.
+				'[[[gallery]]]...[[[/gallery]]]', // Again, shortcode parsing matches, but only the '[[gallery]' and '[/gallery]]' parts.
 				'[[[gallery]]]&#8230;[[[/gallery]]]',
 			),
 			array(
@@ -1307,8 +1315,8 @@ class Tests_Formatting_WPTexturize extends WP_UnitTestCase {
 				'[gallery &#8230;',
 			),
 			array(
-				'[gallery <br ... /> ...]', // This tag is still valid. Shortcode 'attributes' are not considered in the initial parsing of shortcodes, and HTML is allowed.
-				'[gallery <br ... /> ...]',
+				'[gallery <br ... /> ...]', // This tag is still valid. Shortcode 'attributes' are not considered
+				'[gallery <br ... /> ...]', // in the initial parsing of shortcodes, and HTML is allowed.
 			),
 			array(
 				'<br [gallery ...] ... />',
@@ -1347,7 +1355,7 @@ class Tests_Formatting_WPTexturize extends WP_UnitTestCase {
 				'[/gallery ...]]',
 			),
 			array(
-				'[[gallery <br ... /> ...]]', // This gets parsed as an escaped shortcode with embedded HTML.  Brains may explode.
+				'[[gallery <br ... /> ...]]', // This gets parsed as an escaped shortcode with embedded HTML. Brains may explode.
 				'[[gallery <br ... /> ...]]',
 			),
 			array(
@@ -1443,7 +1451,7 @@ class Tests_Formatting_WPTexturize extends WP_UnitTestCase {
 				'[ but also catches the <b>styled &#8220;[quote]&#8221; here</b> ]',
 			),
 			array(
-				'[Let\'s get crazy<input>[caption code="<a href=\'?a[]=100\'>hello</a>"]</input>world]', // caption shortcode is invalid here because it contains [] chars.
+				'[Let\'s get crazy<input>[caption code="<a href=\'?a[]=100\'>hello</a>"]</input>world]', // [caption] shortcode is invalid here because it contains '[]' chars.
 				'[Let&#8217;s get crazy<input>[caption code=&#8221;<a href=\'?a[]=100\'>hello</a>&#8220;]</input>world]',
 			),
 			array(
@@ -1490,7 +1498,7 @@ class Tests_Formatting_WPTexturize extends WP_UnitTestCase {
 				'word &#8217;99; word',
 			),
 			array(
-				"word '99' word", // For this pattern, prime doesn't make sense.  Should get apos and a closing quote.
+				"word '99' word", // For this pattern, prime doesn't make sense. Should get apos and a closing quote.
 				'word &#8217;99&#8217; word',
 			),
 			array(
@@ -1855,15 +1863,15 @@ class Tests_Formatting_WPTexturize extends WP_UnitTestCase {
 				'[a]a&#8211;b[audio]---[/audio]a&#8211;b[/a]',
 			),
 			array(
-				'[code ...]...[/code]', // code is not a registered shortcode.
+				'[code ...]...[/code]',   // '[code]' is not a registered shortcode.
 				'[code &#8230;]&#8230;[/code]',
 			),
 			array(
-				'[hello ...]...[/hello]', // hello is not a registered shortcode.
+				'[hello ...]...[/hello]', // '[hello]' is not a registered shortcode.
 				'[hello &#8230;]&#8230;[/hello]',
 			),
 			array(
-				'[...]...[/...]', // These are potentially usable shortcodes.
+				'[...]...[/...]',         // These are potentially usable shortcodes.
 				'[&#8230;]&#8230;[/&#8230;]',
 			),
 			array(
@@ -1875,13 +1883,13 @@ class Tests_Formatting_WPTexturize extends WP_UnitTestCase {
 				'[randomthing param=&#8221;test&#8221;]',
 			),
 			array(
-				'[[audio]...[/audio]...', // These are potentially usable shortcodes.  Unfortunately, the meaning of [[audio] is ambiguous unless we run the entire shortcode regexp.
-				'[[audio]&#8230;[/audio]&#8230;',
+				'[[audio]...[/audio]...',         // These are potentially usable shortcodes.
+				'[[audio]&#8230;[/audio]&#8230;', // Unfortunately, the meaning of [[audio] is ambiguous unless we run the entire shortcode regexp.
 			),
 			array(
-				'[audio]...[/audio]]...', // These are potentially usable shortcodes.  Unfortunately, the meaning of [/audio]] is ambiguous unless we run the entire shortcode regexp.
-				'[audio]...[/audio]]...', // This test would not pass in 3.9 because the extra brace was always ignored by texturize.
-			),
+				'[audio]...[/audio]]...', // These are potentially usable shortcodes.
+				'[audio]...[/audio]]...', // Unfortunately, the meaning of [/audio]] is ambiguous unless we run the entire shortcode regexp.
+			),                            // This test would not pass in 3.9 because the extra brace was always ignored by texturize.
 			array(
 				'<span>hello[/audio]---</span>',
 				'<span>hello[/audio]&#8212;</span>',
@@ -1934,7 +1942,7 @@ class Tests_Formatting_WPTexturize extends WP_UnitTestCase {
 				'The best year &#8220;was that time in 2012&#8221; when everyone partied, he said.',
 			),
 			array(
-				"I need 4 x 20' = 80' of trim.", // Works only with a space before the = char.
+				"I need 4 x 20' = 80' of trim.", // Works only with a space before the '=' char.
 				'I need 4 x 20&#8242; = 80&#8242; of trim.',
 			),
 			array(
@@ -2030,7 +2038,7 @@ String with a number followed by a single quote &#8216;Expendables 3&#8217; vest
 				'The best year !q2!was that time in 2012!q2! when everyone partied, he said.',
 			),
 			array(
-				"I need 4 x 20' = 80' of trim.", // Works only with a space before the = char.
+				"I need 4 x 20' = 80' of trim.", // Works only with a space before the '=' char.
 				'I need 4 x 20!prime1! = 80!prime1! of trim.',
 			),
 			array(
@@ -2077,12 +2085,12 @@ String with a number followed by a single quote !q1!Expendables 3!q1! vestibulum
 	function test_pcre_performance( $input ) {
 		global $shortcode_tags;
 
-		// With Shortcodes Disabled
+		// With shortcodes disabled.
 		$regex  = _get_wptexturize_split_regex();
 		$result = benchmark_pcre_backtracking( $regex, $input, 'split' );
 		$this->assertLessThan( 200, $result );
 
-		// With Shortcodes Enabled
+		// With shortcodes enabled.
 		$shortcode_regex = _get_wptexturize_shortcode_regex( array_keys( $shortcode_tags ) );
 		$regex           = _get_wptexturize_split_regex( $shortcode_regex );
 		$result          = benchmark_pcre_backtracking( $regex, $input, 'split' );

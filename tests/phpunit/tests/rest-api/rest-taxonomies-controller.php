@@ -33,13 +33,13 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 	}
 
 	public function test_context_param() {
-		// Collection
+		// Collection.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/taxonomies' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertEqualSets( array( 'view', 'edit', 'embed' ), $data['endpoints'][0]['args']['context']['enum'] );
-		// Single
+		// Single.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/taxonomies/post_tag' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
@@ -246,7 +246,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 	 * Utility function to filter down to only public taxonomies
 	 */
 	private function get_public_taxonomies( $taxonomies ) {
-		// Pass through array_values to re-index after filtering
+		// Pass through array_values to re-index after filtering.
 		return array_values( array_filter( $taxonomies, array( $this, 'is_public' ) ) );
 	}
 

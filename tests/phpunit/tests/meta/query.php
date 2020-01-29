@@ -45,8 +45,8 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 	public function test_invalid_query_clauses() {
 		$query = new WP_Meta_Query(
 			array(
-				'foo', // empty string
-				5, // int
+				'foo', // Empty string.
+				5,     // int
 				false, // bool
 				array(),
 			)
@@ -76,7 +76,7 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 
 		$this->assertEquals( 1, substr_count( $sql['join'], 'INNER JOIN' ) );
 
-		// also check mixing key and key => value
+		// Also check mixing key and key => value.
 
 		$query = new WP_Meta_Query(
 			array(
@@ -174,7 +174,7 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 
 		$query = new WP_Meta_Query();
 
-		// just meta_value
+		// Just meta_value.
 		$expected = array(
 			'relation' => 'OR',
 			array(
@@ -188,7 +188,7 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 		);
 		$this->assertEquals( $expected, $query->queries );
 
-		// meta_key & meta_value
+		// meta_key & meta_value.
 		$expected = array(
 			'relation' => 'OR',
 			array(
@@ -204,7 +204,7 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 		);
 		$this->assertEquals( $expected, $query->queries );
 
-		// meta_compare
+		// meta_compare.
 		$expected = array(
 			'relation' => 'OR',
 			array(
@@ -562,30 +562,30 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 			array(
 				'relation' => 'OR',
 
-				// Empty 'compare'
+				// Empty 'compare'.
 				array(
 					'key' => 'foo',
 				),
 
-				// Non-empty 'compare'
+				// Non-empty 'compare'.
 				array(
 					'key'     => 'bar',
 					'compare' => '<',
 				),
 
-				// NOT EXISTS
+				// NOT EXISTS.
 				array(
 					'key'     => 'baz',
 					'compare' => 'NOT EXISTS',
 				),
 
-				// Has a value
+				// Has a value.
 				array(
 					'key'   => 'barry',
 					'value' => 'foo',
 				),
 
-				// Has no key
+				// Has no key.
 				array(
 					'value' => 'bar',
 				),
@@ -594,24 +594,24 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 
 		$sql = $query1->get_sql( 'post', $wpdb->posts, 'ID', $this );
 
-		// 'foo' and 'bar' should be queried against the non-aliased table
+		// 'foo' and 'bar' should be queried against the non-aliased table.
 		$this->assertSame( 1, substr_count( $sql['where'], "$wpdb->postmeta.meta_key = 'foo'" ) );
 		$this->assertSame( 1, substr_count( $sql['where'], "$wpdb->postmeta.meta_key = 'bar'" ) );
 
-		// NOT EXISTS compare queries are not key-only so should not be non-aliased
+		// NOT EXISTS compare queries are not key-only so should not be non-aliased.
 		$this->assertSame( 0, substr_count( $sql['where'], "$wpdb->postmeta.meta_key = 'baz'" ) );
 
-		// 'AND' queries don't have key-only queries
+		// 'AND' queries don't have key-only queries.
 		$query2 = new WP_Meta_Query(
 			array(
 				'relation' => 'AND',
 
-				// Empty 'compare'
+				// Empty 'compare'.
 				array(
 					'key' => 'foo',
 				),
 
-				// Non-empty 'compare'
+				// Non-empty 'compare'.
 				array(
 					'key'     => 'bar',
 					'compare' => '<',
@@ -621,7 +621,7 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 
 		$sql = $query2->get_sql( 'post', $wpdb->posts, 'ID', $this );
 
-		// Only 'foo' should be queried against the non-aliased table
+		// Only 'foo' should be queried against the non-aliased table.
 		$this->assertSame( 1, substr_count( $sql['where'], "$wpdb->postmeta.meta_key = 'foo'" ) );
 		$this->assertSame( 0, substr_count( $sql['where'], "$wpdb->postmeta.meta_key = 'bar'" ) );
 	}

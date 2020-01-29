@@ -22,7 +22,7 @@ class Tests_Formatting_BlogInfo extends WP_UnitTestCase {
 
 	function locales() {
 		return array(
-			//     Locale          Language code
+			// Locale, language code.
 			array( 'en_US', 'en-US' ),
 			array( 'ar', 'ar' ),
 			array( 'de_DE', 'de-DE' ),

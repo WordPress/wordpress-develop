@@ -110,7 +110,7 @@ class PluralFormsTest extends WP_UnitTestCase {
 				),
 			),
 			array(
-				// Ternary
+				// Ternary.
 				'n ? 1 : 2',
 				array(
 					-1 => 1,
@@ -120,7 +120,7 @@ class PluralFormsTest extends WP_UnitTestCase {
 				),
 			),
 			array(
-				// Comparison
+				// Comparison.
 				'n > 1 ? 1 : 2',
 				array(
 					-2 => 2,
@@ -163,9 +163,9 @@ class PluralFormsTest extends WP_UnitTestCase {
 	public function data_exceptions() {
 		return array(
 			array(
-				'n # 2',              // Invalid expression to parse
-				'Unknown symbol "#"', // Expected exception message
-				false,                // Whether to call the get() method or not
+				'n # 2',              // Invalid expression to parse.
+				'Unknown symbol "#"', // Expected exception message.
+				false,                // Whether to call the get() method or not.
 			),
 			array(
 				'n & 1',

@@ -192,7 +192,7 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$found = get_approved_comments( self::$post_id );
 
-		// all comments types will be returned
+		// All comment types will be returned.
 		$this->assertEquals( array( $ca1, $ca2, $c2, $c3, $c4, $c5 ), wp_list_pluck( $found, 'comment_ID' ) );
 	}
 

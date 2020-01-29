@@ -442,7 +442,7 @@ if ( is_multisite() ) :
 			$this->assertEmpty( $found );
 		}
 
-		// archived, mature, spam, deleted, public
+		// archived, mature, spam, deleted, public.
 
 		public function test_wp_site_query_by_archived() {
 			$q     = new WP_Site_Query();

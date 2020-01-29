@@ -29,7 +29,7 @@ require_once( ABSPATH . WPINC . '/version.php' );
 wp_check_php_mysql_versions();
 wp_load_translations_early();
 
-// Die with an error message
+// Die with an error message.
 $die = sprintf(
 	'<p>%s</p>',
 	__( 'You are running WordPress without JavaScript and CSS files. These need to be built.' )

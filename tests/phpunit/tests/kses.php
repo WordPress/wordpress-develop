@@ -1034,7 +1034,7 @@ EOF;
 	 */
 	function data_wildcard_attribute_prefixes() {
 		return array(
-			// Ends correctly
+			// Ends correctly.
 			array( 'data-*', true ),
 
 			// Does not end with trialing `-`.

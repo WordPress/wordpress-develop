@@ -113,13 +113,13 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 	}
 
 	public function test_context_param() {
-		// Collection
+		// Collection.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/categories' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertEqualSets( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
-		// Single
+		// Single.
 		$category1 = $this->factory->category->create( array( 'name' => 'Season 5' ) );
 		$request   = new WP_REST_Request( 'OPTIONS', '/wp/v2/categories/' . $category1 );
 		$response  = rest_get_server()->dispatch( $request );
@@ -441,7 +441,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$data = $response->get_data();
 		$this->assertEquals( 3, count( $data ) );
 
-		// Check ordered by name by default
+		// Check ordered by name by default.
 		$names = wp_list_pluck( $data, 'name' );
 		$this->assertEquals( array( 'DC', 'Image', 'Marvel' ), $names );
 	}
@@ -449,7 +449,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 	public function test_get_items_post_ordered_by_description() {
 		$post_id = $this->post_with_categories();
 
-		// Regular request
+		// Regular request.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		$request->set_param( 'post', $post_id );
 		$request->set_param( 'orderby', 'description' );
@@ -461,7 +461,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$names = wp_list_pluck( $data, 'name' );
 		$this->assertEquals( array( 'Image', 'Marvel', 'DC' ), $names, 'Terms should be ordered by description' );
 
-		// Flip the order
+		// Flip the order.
 		$request->set_param( 'order', 'desc' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );

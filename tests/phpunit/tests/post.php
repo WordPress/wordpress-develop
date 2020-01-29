@@ -39,12 +39,16 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->post_ids = array();
 	}
 
-	// helper function: return the timestamp(s) of cron jobs for the specified hook and post
+	/**
+	 * Helper function: return the timestamp(s) of cron jobs for the specified hook and post.
+	 */
 	function _next_schedule_for_post( $hook, $id ) {
 		return wp_next_scheduled( 'publish_future_post', array( 0 => intval( $id ) ) );
 	}
 
-	// helper function, unsets current user globally
+	/**
+	 * Helper function, unsets current user globally.
+	 */
 	function _unset_current_user() {
 		global $current_user, $user_ID;
 
@@ -52,7 +56,9 @@ class Tests_Post extends WP_UnitTestCase {
 		$user_ID      = null;
 	}
 
-	// test simple valid behavior: insert and get a post
+	/**
+	 * Test simple valid behavior: insert and get a post.
+	 */
 	function test_vb_insert_get_delete() {
 		register_post_type( 'cpt', array( 'taxonomies' => array( 'post_tag', 'ctax' ) ) );
 		register_taxonomy( 'ctax', 'cpt' );
@@ -71,12 +77,12 @@ class Tests_Post extends WP_UnitTestCase {
 				'post_type'    => $post_type,
 			);
 
-			// insert a post and make sure the ID is ok
+			// Insert a post and make sure the ID is OK.
 			$id = wp_insert_post( $post );
 			$this->assertTrue( is_numeric( $id ) );
 			$this->assertTrue( $id > 0 );
 
-			// fetch the post and make sure it matches
+			// Fetch the post and make sure it matches.
 			$out = get_post( $id );
 
 			$this->assertEquals( $post['post_content'], $out->post_content );
@@ -84,7 +90,7 @@ class Tests_Post extends WP_UnitTestCase {
 			$this->assertEquals( $post['post_status'], $out->post_status );
 			$this->assertEquals( $post['post_author'], $out->post_author );
 
-			// test cache state
+			// Test cache state.
 			$pcache = wp_cache_get( $id, 'posts' );
 			$this->assertInstanceOf( 'stdClass', $pcache );
 			$this->assertEquals( $id, $pcache->ID );
@@ -111,9 +117,10 @@ class Tests_Post extends WP_UnitTestCase {
 		$GLOBALS['wp_taxonomies']['post_tag']->object_type = array( 'post' );
 	}
 
+	/**
+	 * Insert a post with a future date, and make sure the status and cron schedule are correct.
+	 */
 	function test_vb_insert_future() {
-		// insert a post with a future date, and make sure the status and cron schedule are correct
-
 		$future_date = strtotime( '+1 day' );
 
 		$post = array(
@@ -124,14 +131,14 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date ),
 		);
 
-		// insert a post and make sure the ID is ok
+		// Insert a post and make sure the ID is OK.
 		$id               = wp_insert_post( $post );
 		$this->post_ids[] = $id;
-		#dmp(_get_cron_array());
+		// dmp( _get_cron_array() );
 		$this->assertTrue( is_numeric( $id ) );
 		$this->assertTrue( $id > 0 );
 
-		// fetch the post and make sure it matches
+		// Fetch the post and make sure it matches.
 		$out = get_post( $id );
 
 		$this->assertEquals( $post['post_content'], $out->post_content );
@@ -140,14 +147,15 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertEquals( $post['post_author'], $out->post_author );
 		$this->assertEquals( $post['post_date'], $out->post_date );
 
-		// there should be a publish_future_post hook scheduled on the future date
+		// There should be a publish_future_post hook scheduled on the future date.
 		$this->assertEquals( $future_date, $this->_next_schedule_for_post( 'publish_future_post', $id ) );
 	}
 
+	/**
+	 * Insert a post with a future date, and make sure the status and cron schedule are correct.
+	 */
 	function test_vb_insert_future_over_dst() {
-		// insert a post with a future date, and make sure the status and cron schedule are correct
-
-		// Some magic days - one dst one not
+		// Some magic days - one DST one not.
 		$future_date_1 = strtotime( 'June 21st +1 year' );
 		$future_date_2 = strtotime( 'Jan 11th +1 year' );
 
@@ -159,38 +167,40 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date_1 ),
 		);
 
-		// insert a post and make sure the ID is ok
+		// Insert a post and make sure the ID is OK.
 		$id               = wp_insert_post( $post );
 		$this->post_ids[] = $id;
 
-		// fetch the post and make sure has the correct date and status
+		// Fetch the post and make sure has the correct date and status.
 		$out = get_post( $id );
 		$this->assertEquals( 'future', $out->post_status );
 		$this->assertEquals( $post['post_date'], $out->post_date );
 
-		// check that there's a publish_future_post job scheduled at the right time
+		// Check that there's a publish_future_post job scheduled at the right time.
 		$this->assertEquals( $future_date_1, $this->_next_schedule_for_post( 'publish_future_post', $id ) );
 
-		// now save it again with a date further in the future
+		// Now save it again with a date further in the future.
 
 		$post['ID']            = $id;
 		$post['post_date']     = strftime( '%Y-%m-%d %H:%M:%S', $future_date_2 );
 		$post['post_date_gmt'] = null;
 		wp_update_post( $post );
 
-		// fetch the post again and make sure it has the new post_date
+		// Fetch the post again and make sure it has the new post_date.
 		$out = get_post( $id );
 		$this->assertEquals( 'future', $out->post_status );
 		$this->assertEquals( $post['post_date'], $out->post_date );
 
-		// and the correct date on the cron job
+		// And the correct date on the cron job.
 		$this->assertEquals( $future_date_2, $this->_next_schedule_for_post( 'publish_future_post', $id ) );
 	}
 
+	/**
+	 * Future post bug: posts get published at the wrong time if you edit the timestamp.
+	 *
+	 * @ticket 4710
+	 */
 	function test_vb_insert_future_edit_bug() {
-		// future post bug: posts get published at the wrong time if you edit the timestamp
-		// https://core.trac.wordpress.org/ticket/4710
-
 		$future_date_1 = strtotime( '+1 day' );
 		$future_date_2 = strtotime( '+2 day' );
 
@@ -202,37 +212,38 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date_1 ),
 		);
 
-		// insert a post and make sure the ID is ok
+		// Insert a post and make sure the ID is OK.
 		$id               = wp_insert_post( $post );
 		$this->post_ids[] = $id;
 
-		// fetch the post and make sure has the correct date and status
+		// Fetch the post and make sure has the correct date and status.
 		$out = get_post( $id );
 		$this->assertEquals( 'future', $out->post_status );
 		$this->assertEquals( $post['post_date'], $out->post_date );
 
-		// check that there's a publish_future_post job scheduled at the right time
+		// Check that there's a publish_future_post job scheduled at the right time.
 		$this->assertEquals( $future_date_1, $this->_next_schedule_for_post( 'publish_future_post', $id ) );
 
-		// now save it again with a date further in the future
+		// Now save it again with a date further in the future.
 
 		$post['ID']            = $id;
 		$post['post_date']     = strftime( '%Y-%m-%d %H:%M:%S', $future_date_2 );
 		$post['post_date_gmt'] = null;
 		wp_update_post( $post );
 
-		// fetch the post again and make sure it has the new post_date
+		// Fetch the post again and make sure it has the new post_date.
 		$out = get_post( $id );
 		$this->assertEquals( 'future', $out->post_status );
 		$this->assertEquals( $post['post_date'], $out->post_date );
 
-		// and the correct date on the cron job
+		// And the correct date on the cron job.
 		$this->assertEquals( $future_date_2, $this->_next_schedule_for_post( 'publish_future_post', $id ) );
 	}
 
+	/**
+	 * Insert a draft post with a future date, and make sure no cron schedule is set.
+	 */
 	function test_vb_insert_future_draft() {
-		// insert a draft post with a future date, and make sure no cron schedule is set
-
 		$future_date = strtotime( '+1 day' );
 
 		$post = array(
@@ -243,14 +254,14 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date ),
 		);
 
-		// insert a post and make sure the ID is ok
+		// Insert a post and make sure the ID is OK.
 		$id               = wp_insert_post( $post );
 		$this->post_ids[] = $id;
-		#dmp(_get_cron_array());
+		// dmp( _get_cron_array() );
 		$this->assertTrue( is_numeric( $id ) );
 		$this->assertTrue( $id > 0 );
 
-		// fetch the post and make sure it matches
+		// Fetch the post and make sure it matches.
 		$out = get_post( $id );
 
 		$this->assertEquals( $post['post_content'], $out->post_content );
@@ -259,13 +270,15 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertEquals( $post['post_author'], $out->post_author );
 		$this->assertEquals( $post['post_date'], $out->post_date );
 
-		// there should be a publish_future_post hook scheduled on the future date
+		// There should be a publish_future_post hook scheduled on the future date.
 		$this->assertEquals( false, $this->_next_schedule_for_post( 'publish_future_post', $id ) );
 
 	}
 
+	/**
+	 * Insert a future post, then edit and change it to draft, and make sure cron gets it right.
+	 */
 	function test_vb_insert_future_change_to_draft() {
-		// insert a future post, then edit and change it to draft, and make sure cron gets it right
 		$future_date_1 = strtotime( '+1 day' );
 
 		$post = array(
@@ -276,35 +289,37 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date_1 ),
 		);
 
-		// insert a post and make sure the ID is ok
+		// Insert a post and make sure the ID is OK.
 		$id               = wp_insert_post( $post );
 		$this->post_ids[] = $id;
 
-		// fetch the post and make sure has the correct date and status
+		// Fetch the post and make sure has the correct date and status.
 		$out = get_post( $id );
 		$this->assertEquals( 'future', $out->post_status );
 		$this->assertEquals( $post['post_date'], $out->post_date );
 
-		// check that there's a publish_future_post job scheduled at the right time
+		// Check that there's a publish_future_post job scheduled at the right time.
 		$this->assertEquals( $future_date_1, $this->_next_schedule_for_post( 'publish_future_post', $id ) );
 
-		// now save it again with status set to draft
+		// Now save it again with status set to draft.
 
 		$post['ID']          = $id;
 		$post['post_status'] = 'draft';
 		wp_update_post( $post );
 
-		// fetch the post again and make sure it has the new post_date
+		// Fetch the post again and make sure it has the new post_date.
 		$out = get_post( $id );
 		$this->assertEquals( 'draft', $out->post_status );
 		$this->assertEquals( $post['post_date'], $out->post_date );
 
-		// and the correct date on the cron job
+		// And the correct date on the cron job.
 		$this->assertEquals( false, $this->_next_schedule_for_post( 'publish_future_post', $id ) );
 	}
 
+	/**
+	 * Insert a future post, then edit and change the status, and make sure cron gets it right.
+	 */
 	function test_vb_insert_future_change_status() {
-		// insert a future post, then edit and change the status, and make sure cron gets it right
 		$future_date_1 = strtotime( '+1 day' );
 
 		$statuses = array( 'draft', 'static', 'object', 'attachment', 'inherit', 'pending' );
@@ -318,37 +333,38 @@ class Tests_Post extends WP_UnitTestCase {
 				'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date_1 ),
 			);
 
-			// insert a post and make sure the ID is ok
+			// Insert a post and make sure the ID is OK.
 			$id               = wp_insert_post( $post );
 			$this->post_ids[] = $id;
 
-			// fetch the post and make sure has the correct date and status
+			// Fetch the post and make sure has the correct date and status.
 			$out = get_post( $id );
 			$this->assertEquals( 'future', $out->post_status );
 			$this->assertEquals( $post['post_date'], $out->post_date );
 
-			// check that there's a publish_future_post job scheduled at the right time
+			// Check that there's a publish_future_post job scheduled at the right time.
 			$this->assertEquals( $future_date_1, $this->_next_schedule_for_post( 'publish_future_post', $id ) );
 
-			// now save it again with status changed
+			// Now save it again with status changed.
 
 			$post['ID']          = $id;
 			$post['post_status'] = $status;
 			wp_update_post( $post );
 
-			// fetch the post again and make sure it has the new post_date
+			// Fetch the post again and make sure it has the new post_date.
 			$out = get_post( $id );
 			$this->assertEquals( $status, $out->post_status );
 			$this->assertEquals( $post['post_date'], $out->post_date );
 
-			// and the correct date on the cron job
+			// And the correct date on the cron job.
 			$this->assertEquals( false, $this->_next_schedule_for_post( 'publish_future_post', $id ) );
 		}
 	}
 
+	/**
+	 * Insert a draft post with a future date, and make sure no cron schedule is set.
+	 */
 	function test_vb_insert_future_private() {
-		// insert a draft post with a future date, and make sure no cron schedule is set
-
 		$future_date = strtotime( '+1 day' );
 
 		$post = array(
@@ -359,14 +375,14 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date ),
 		);
 
-		// insert a post and make sure the ID is ok
+		// Insert a post and make sure the ID is OK.
 		$id               = wp_insert_post( $post );
 		$this->post_ids[] = $id;
-		#dmp(_get_cron_array());
+		// dmp( _get_cron_array() );
 		$this->assertTrue( is_numeric( $id ) );
 		$this->assertTrue( $id > 0 );
 
-		// fetch the post and make sure it matches
+		// Fetch the post and make sure it matches.
 		$out = get_post( $id );
 
 		$this->assertEquals( $post['post_content'], $out->post_content );
@@ -375,16 +391,16 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertEquals( $post['post_author'], $out->post_author );
 		$this->assertEquals( $post['post_date'], $out->post_date );
 
-		// there should be a publish_future_post hook scheduled on the future date
+		// There should be a publish_future_post hook scheduled on the future date.
 		$this->assertEquals( false, $this->_next_schedule_for_post( 'publish_future_post', $id ) );
 	}
 
 	/**
+	 * Insert a post with an invalid date, make sure it fails.
+	 *
 	 * @ticket 17180
 	 */
 	function test_vb_insert_invalid_date() {
-		// insert a post with an invalid date, make sure it fails
-
 		$post = array(
 			'post_author'  => self::$editor_id,
 			'post_status'  => 'public',
@@ -393,7 +409,7 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_date'    => '2012-02-30 00:00:00',
 		);
 
-		// Test both return paths with or without WP_Error
+		// Test both return paths with or without WP_Error.
 		$insert_post = wp_insert_post( $post, true );
 		$this->assertWPError( $insert_post );
 		$this->assertEquals( 'invalid_date', $insert_post->get_error_code() );
@@ -402,8 +418,10 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertEquals( 0, $insert_post );
 	}
 
+	/**
+	 * Insert a future post, then edit and change it to private, and make sure cron gets it right.
+	 */
 	function test_vb_insert_future_change_to_private() {
-		// insert a future post, then edit and change it to private, and make sure cron gets it right
 		$future_date_1 = strtotime( '+1 day' );
 
 		$post = array(
@@ -414,30 +432,30 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date_1 ),
 		);
 
-		// insert a post and make sure the ID is ok
+		// Insert a post and make sure the ID is OK.
 		$id               = wp_insert_post( $post );
 		$this->post_ids[] = $id;
 
-		// fetch the post and make sure has the correct date and status
+		// Fetch the post and make sure has the correct date and status.
 		$out = get_post( $id );
 		$this->assertEquals( 'future', $out->post_status );
 		$this->assertEquals( $post['post_date'], $out->post_date );
 
-		// check that there's a publish_future_post job scheduled at the right time
+		// Check that there's a publish_future_post job scheduled at the right time.
 		$this->assertEquals( $future_date_1, $this->_next_schedule_for_post( 'publish_future_post', $id ) );
 
-		// now save it again with status set to draft
+		// Now save it again with status set to draft.
 
 		$post['ID']          = $id;
 		$post['post_status'] = 'private';
 		wp_update_post( $post );
 
-		// fetch the post again and make sure it has the new post_date
+		// Fetch the post again and make sure it has the new post_date.
 		$out = get_post( $id );
 		$this->assertEquals( 'private', $out->post_status );
 		$this->assertEquals( $post['post_date'], $out->post_date );
 
-		// and the correct date on the cron job
+		// And the correct date on the cron job.
 		$this->assertEquals( false, $this->_next_schedule_for_post( 'publish_future_post', $id ) );
 	}
 
@@ -505,10 +523,11 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
+	 * "When I delete a future post using wp_delete_post( $post->ID ) it does not update the cron correctly."
+	 *
 	 * @ticket 5364
 	 */
 	function test_delete_future_post_cron() {
-		// "When I delete a future post using wp_delete_post($post->ID) it does not update the cron correctly."
 		$future_date = strtotime( '+1 day' );
 
 		$post = array(
@@ -519,26 +538,27 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_date'    => strftime( '%Y-%m-%d %H:%M:%S', $future_date ),
 		);
 
-		// insert a post and make sure the ID is ok
+		// Insert a post and make sure the ID is OK.
 		$id               = wp_insert_post( $post );
 		$this->post_ids[] = $id;
 
-		// check that there's a publish_future_post job scheduled at the right time
+		// Check that there's a publish_future_post job scheduled at the right time.
 		$this->assertEquals( $future_date, $this->_next_schedule_for_post( 'publish_future_post', $id ) );
 
-		// now delete the post and make sure the cron entry is removed
+		// Now delete the post and make sure the cron entry is removed.
 		wp_delete_post( $id );
 
 		$this->assertFalse( $this->_next_schedule_for_post( 'publish_future_post', $id ) );
 	}
 
 	/**
+	 * Bug: permalink doesn't work if post title is empty.
+	 *
+	 * Might only fail if the post ID is greater than four characters.
+	 *
 	 * @ticket 5305
 	 */
 	function test_permalink_without_title() {
-		// bug: permalink doesn't work if post title is empty
-		// might only fail if the post ID is greater than four characters
-
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
 		$post = array(
@@ -549,13 +569,13 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_date'    => '2007-10-31 06:15:00',
 		);
 
-		// insert a post and make sure the ID is ok
+		// Insert a post and make sure the ID is OK.
 		$id               = wp_insert_post( $post );
 		$this->post_ids[] = $id;
 
 		$plink = get_permalink( $id );
 
-		// permalink should include the post ID at the end
+		// Permalink should include the post ID at the end.
 		$this->assertEquals( get_option( 'siteurl' ) . '/2007/10/31/' . $id . '/', $plink );
 	}
 
@@ -1106,7 +1126,7 @@ class Tests_Post extends WP_UnitTestCase {
 	function test_user_without_publish_cannot_affect_sticky() {
 		wp_set_current_user( self::$grammarian_id );
 
-		// Sanity Check.
+		// Sanity check.
 		$this->assertFalse( current_user_can( 'publish_posts' ) );
 		$this->assertTrue( current_user_can( 'edit_others_posts' ) );
 		$this->assertTrue( current_user_can( 'edit_published_posts' ) );
@@ -1120,7 +1140,7 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 		stick_post( $post->ID );
 
-		// Sanity Check.
+		// Sanity check.
 		$this->assertTrue( is_sticky( $post->ID ) );
 
 		// Edit the post.
@@ -1151,17 +1171,17 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 		stick_post( $post->ID );
 
-		// Sanity Check.
+		// Sanity check.
 		$this->assertTrue( is_sticky( $post->ID ) );
 
 		wp_set_current_user( self::$grammarian_id );
 
-		// Sanity Check.
+		// Sanity check.
 		$this->assertFalse( current_user_can( 'publish_posts' ) );
 		$this->assertTrue( current_user_can( 'edit_others_posts' ) );
 		$this->assertTrue( current_user_can( 'edit_published_posts' ) );
 
-		// Edit the post - The key 'sticky' is intentionally unset.
+		// Edit the post - the key 'sticky' is intentionally unset.
 		$data = array(
 			'post_ID'      => $post->ID,
 			'post_title'   => 'Updated',
@@ -1169,7 +1189,7 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 		edit_post( $data );
 
-		// Make sure it's still sticky
+		// Make sure it's still sticky.
 		$saved_post = get_post( $post->ID );
 		$this->assertTrue( is_sticky( $saved_post->ID ) );
 		$this->assertEquals( 'Updated', $saved_post->post_title );
@@ -1259,7 +1279,7 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_date_gmt' => '2014-01-01 12:00:00',
 		);
 
-		// insert a post and make sure the ID is ok
+		// Insert a post and make sure the ID is OK.
 		$id = wp_insert_post( $post );
 
 		$out = get_post( $id );

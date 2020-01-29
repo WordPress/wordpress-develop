@@ -70,9 +70,11 @@ UploaderInline = View.extend(/** @lends wp.media.view.UploaderInline.prototype *
 			return View.prototype.dispose.apply( this, arguments );
 		}
 
-		// Run remove on `dispose`, so we can be sure to refresh the
-		// uploader with a view-less DOM. Track whether we're disposing
-		// so we don't trigger an infinite loop.
+		/*
+		 * Run remove on `dispose`, so we can be sure to refresh the
+		 * uploader with a view-less DOM. Track whether we're disposing
+		 * so we don't trigger an infinite loop.
+		 */
 		this.disposing = true;
 		return this.remove();
 	},

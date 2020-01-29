@@ -43,7 +43,7 @@ module.exports = function(grunt) {
 
 	// Load tasks.
 	require('matchdep').filterDev(['grunt-*', '!grunt-legacy-util']).forEach( grunt.loadNpmTasks );
-	// Load legacy utils
+	// Load legacy utils.
 	grunt.util = require('grunt-legacy-util');
 
 	// Project configuration.
@@ -144,7 +144,7 @@ module.exports = function(grunt) {
 							'!assets/**', // Assets is extracted into separate copy tasks.
 							'!js/**', // JavaScript is extracted into separate copy tasks.
 							'!.{svn,git}', // Exclude version control folders.
-							'!wp-includes/version.php', // Exclude version.php
+							'!wp-includes/version.php', // Exclude version.php.
 							'!**/*.map', // The build doesn't need .map files.
 							'!index.php', '!wp-admin/index.php',
 							'!_index.php', '!wp-admin/_index.php'
@@ -168,7 +168,7 @@ module.exports = function(grunt) {
 						[ WORKING_DIR + 'wp-includes/js/clipboard.js' ]: [ './node_modules/clipboard/dist/clipboard.js' ],
 						[ WORKING_DIR + 'wp-includes/js/hoverIntent.js' ]: [ './node_modules/jquery-hoverintent/jquery.hoverIntent.js' ],
 
-						// Renamed to avoid conflict with jQuery hoverIntent.min.js (after minifying)
+						// Renamed to avoid conflict with jQuery hoverIntent.min.js (after minifying).
 						[ WORKING_DIR + 'wp-includes/js/hoverintent-js.min.js' ]: [ './node_modules/hoverintent/dist/hoverintent.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/imagesloaded.min.js' ]: [ './node_modules/imagesloaded/imagesloaded.pkgd.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery-migrate.js' ]: [ './node_modules/jquery-migrate/dist/jquery-migrate.js' ],
@@ -448,7 +448,7 @@ module.exports = function(grunt) {
 		},
 		rtlcss: {
 			options: {
-				// rtlcss options
+				// rtlcss options.
 				opts: {
 					clean: false,
 					processUrls: { atrule: true, decl: false },
@@ -516,7 +516,7 @@ module.exports = function(grunt) {
 					'!wp-includes/css/*.min.css',
 					'!wp-includes/css/dist',
 
-					// Exceptions
+					// Exceptions.
 					'!wp-includes/css/dashicons.css',
 					'!wp-includes/css/wp-embed-template.css',
 					'!wp-includes/css/wp-embed-template-ie.css'
@@ -558,7 +558,7 @@ module.exports = function(grunt) {
 				src: [
 					'twenty*/**/*.js',
 					'!twenty{eleven,twelve,thirteen}/**',
-					// Third party scripts
+					// Third party scripts.
 					'!twenty{fourteen,fifteen,sixteen}/js/html5.js',
 					'!twentyseventeen/assets/js/html5.js',
 					'!twentyseventeen/assets/js/jquery.scrollTo.js',
@@ -575,35 +575,36 @@ module.exports = function(grunt) {
 				cwd: SOURCE_DIR,
 				src: [
 					'js/_enqueues/**/*.js',
-					// Third party scripts
+					// Third party scripts.
 					'!js/_enqueues/vendor/**/*.js'
 				],
-				// Remove once other JSHint errors are resolved
+				// Remove once other JSHint errors are resolved.
 				options: {
 					curly: false,
 					eqeqeq: false
 				},
-				// Limit JSHint's run to a single specified file:
-				//
-				//    grunt jshint:core --file=filename.js
-				//
-				// Optionally, include the file path:
-				//
-				//    grunt jshint:core --file=path/to/filename.js
-				//
+				/*
+				 * Limit JSHint's run to a single specified file:
+				 *
+				 *    grunt jshint:core --file=filename.js
+				 *
+				 * Optionally, include the file path:
+				 *
+				 *    grunt jshint:core --file=path/to/filename.js
+				 */
 				filter: function( filepath ) {
 					var index, file = grunt.option( 'file' );
 
-					// Don't filter when no target file is specified
+					// Don't filter when no target file is specified.
 					if ( ! file ) {
 						return true;
 					}
 
-					// Normalize filepath for Windows
+					// Normalize filepath for Windows.
 					filepath = filepath.replace( /\\/g, '/' );
 					index = filepath.lastIndexOf( '/' + file );
 
-					// Match only the filename passed from cli
+					// Match only the filename passed from cli.
 					if ( filepath === file || ( -1 !== index && index === filepath.length - ( file.length + 1 ) ) ) {
 						return true;
 					}
@@ -618,14 +619,15 @@ module.exports = function(grunt) {
 					'**/*.js',
 					'!**/*.min.js'
 				],
-				// Limit JSHint's run to a single specified plugin directory:
-				//
-				//    grunt jshint:plugins --dir=foldername
-				//
+				/*
+				 * Limit JSHint's run to a single specified plugin directory:
+				 *
+				 *    grunt jshint:plugins --dir=foldername
+				 */
 				filter: function( dirpath ) {
 					var index, dir = grunt.option( 'dir' );
 
-					// Don't filter when no target folder is specified
+					// Don't filter when no target folder is specified.
 					if ( ! dir ) {
 						return true;
 					}
@@ -633,7 +635,7 @@ module.exports = function(grunt) {
 					dirpath = dirpath.replace( /\\/g, '/' );
 					index = dirpath.lastIndexOf( '/' + dir );
 
-					// Match only the folder name passed from cli
+					// Match only the folder name passed from cli.
 					if ( -1 !== index ) {
 						return true;
 					}
@@ -703,12 +705,12 @@ module.exports = function(grunt) {
 					'wp-includes/js/tinymce/plugins/wordpress/plugin.js',
 					'wp-includes/js/tinymce/plugins/wp*/plugin.js',
 
-					// Exceptions
+					// Exceptions.
 					'!**/*.min.js',
 					'!wp-admin/js/custom-header.js', // Why? We should minify this.
 					'!wp-admin/js/farbtastic.js',
 					'!wp-includes/js/swfobject.js',
-					'!wp-includes/js/wp-embed.js' // We have extra options for this, see uglify:embed
+					'!wp-includes/js/wp-embed.js' // We have extra options for this, see uglify:embed.
 				]
 			},
 			embed: {
@@ -1030,7 +1032,7 @@ module.exports = function(grunt) {
 
 								grunt.log.writeln( 'Fetching list of Twemoji files...' );
 
-								// Fetch a list of the files that Twemoji supplies
+								// Fetch a list of the files that Twemoji supplies.
 								files = spawn( 'svn', [ 'ls', 'https://github.com/twitter/twemoji.git/trunk/assets/svg' ] );
 								if ( 0 !== files.status ) {
 									grunt.fatal( 'Unable to fetch Twemoji file list' );
@@ -1038,33 +1040,33 @@ module.exports = function(grunt) {
 
 								entities = files.stdout.toString();
 
-								// Tidy up the file list
+								// Tidy up the file list.
 								entities = entities.replace( /\.svg/g, '' );
 								entities = entities.replace( /^$/g, '' );
 
-								// Convert the emoji entities to HTML entities
+								// Convert the emoji entities to HTML entities.
 								partials = entities = entities.replace( /([a-z0-9]+)/g, '&#x$1;' );
 
-								// Remove the hyphens between the HTML entities
+								// Remove the hyphens between the HTML entities.
 								entities = entities.replace( /-/g, '' );
 
-								// Sort the entities list by length, so the longest emoji will be found first
+								// Sort the entities list by length, so the longest emoji will be found first.
 								emojiArray = entities.split( '\n' ).sort( function ( a, b ) {
 									return b.length - a.length;
 								} );
 
-								// Convert the entities list to PHP array syntax
+								// Convert the entities list to PHP array syntax.
 								entities = '\'' + emojiArray.filter( function( val ) {
 									return val.length >= 8 ? val : false ;
 								} ).join( '\', \'' ) + '\'';
 
-								// Create a list of all characters used by the emoji list
+								// Create a list of all characters used by the emoji list.
 								partials = partials.replace( /-/g, '\n' );
 
-								// Set automatically removes duplicates
+								// Set automatically removes duplicates.
 								partialsSet = new Set( partials.split( '\n' ) );
 
-								// Convert the partials list to PHP array syntax
+								// Convert the partials list to PHP array syntax.
 								partials = '\'' + Array.from( partialsSet ).filter( function( val ) {
 									return val.length >= 8 ? val : false ;
 								} ).join( '\', \'' ) + '\'';
@@ -1158,7 +1160,7 @@ module.exports = function(grunt) {
 		}
 	});
 
-	// Allow builds to be minimal
+	// Allow builds to be minimal.
 	if( grunt.option( 'minimal-copy' ) ) {
 		var copyFilesOptions = grunt.config.get( 'copy.files.files' );
 		copyFilesOptions[0].src.push( '!wp-content/plugins/**' );

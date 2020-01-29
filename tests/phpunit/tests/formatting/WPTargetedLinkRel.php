@@ -69,7 +69,7 @@ class Tests_Targeted_Link_Rel extends WP_UnitTestCase {
 	/**
 	 * Ensure empty rel attributes are not added.
 	 *
-	 * @ticket 45352.
+	 * @ticket 45352
 	 */
 	public function test_ignore_if_wp_targeted_link_rel_nulled() {
 		add_filter( 'wp_targeted_link_rel', '__return_empty_string' );
@@ -81,7 +81,7 @@ class Tests_Targeted_Link_Rel extends WP_UnitTestCase {
 	/**
 	 * Ensure default content filters are added.
 	 *
-	 * @ticket 45292.
+	 * @ticket 45292
 	 */
 	public function test_wp_targeted_link_rel_filters_run() {
 		$content  = '<p>Links: <a href="/" target="_blank">No rel</a></p>';

@@ -146,10 +146,10 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 			this.model.save().done( function() {
 				library._requery( true );
 				/*
-				 * @todo: We need to move focus back to the previous, next, or first
-				 * attachment but the library gets re-queried and refreshed. Thus,
-				 * the references to the previous attachments are lost. We need an
-				 * alternate method.
+				 * @todo We need to move focus back to the previous, next, or first
+				 * attachment but the library gets re-queried and refreshed.
+				 * Thus, the references to the previous attachments are lost.
+				 * We need an alternate method.
 				 */
 				self.moveFocusToLastFallback();
 			} );

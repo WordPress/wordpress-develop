@@ -18,7 +18,7 @@ delete l10n.settings;
 // Copy the `post` setting over to the model settings.
 media.model.settings.post = media.view.settings.post;
 
-// Check if the browser supports CSS 3.0 transitions
+// Check if the browser supports CSS 3.0 transitions.
 $.support.transition = (function(){
 	var style = document.documentElement.style,
 		transitions = {

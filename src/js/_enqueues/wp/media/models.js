@@ -147,9 +147,11 @@ _.extend( media, /** @lends wp.media */{
 			maxHeight = dimensions.maxHeight,
 			constraint;
 
-		// Compare ratios between the two values to determine which
-		// max to constrain by. If a max value doesn't exist, then the
-		// opposite side is the constraint.
+		/*
+		 * Compare ratios between the two values to determine
+		 * which max to constrain by. If a max value doesn't exist,
+		 * then the opposite side is the constraint.
+		 */
 		if ( ! _.isUndefined( maxWidth ) && ! _.isUndefined( maxHeight ) ) {
 			constraint = ( width / height > maxWidth / maxHeight ) ? 'width' : 'height';
 		} else if ( _.isUndefined( maxHeight ) ) {
@@ -236,7 +238,7 @@ media.query = function( props ) {
 	});
 };
 
-// Clean up. Prevents mobile browsers caching
+// Clean up. Prevents mobile browsers caching.
 $(window).on('unload', function(){
 	window.wp = null;
 });

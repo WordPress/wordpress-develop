@@ -1,7 +1,8 @@
 <?php
 
-// tests for link-template.php and related URL functions
 /**
+ * Tests for link-template.php and related URL functions.
+ *
  * @group url
  */
 class Tests_URL extends WP_UnitTestCase {
@@ -200,39 +201,39 @@ class Tests_URL extends WP_UnitTestCase {
 	function test_home_url_from_admin() {
 		$screen = get_current_screen();
 
-		// Pretend to be in the site admin
+		// Pretend to be in the site admin.
 		set_current_screen( 'dashboard' );
 		$home = get_option( 'home' );
 
-		// home_url() should return http when in the admin
+		// home_url() should return http when in the admin.
 		$_SERVER['HTTPS'] = 'on';
 		$this->assertEquals( $home, home_url() );
 
 		$_SERVER['HTTPS'] = 'off';
 		$this->assertEquals( $home, home_url() );
 
-		// If not in the admin, is_ssl() should determine the scheme
+		// If not in the admin, is_ssl() should determine the scheme.
 		set_current_screen( 'front' );
 		$this->assertEquals( $home, home_url() );
 		$_SERVER['HTTPS'] = 'on';
 		$home             = str_replace( 'http://', 'https://', $home );
 		$this->assertEquals( $home, home_url() );
 
-		// Test with https in home
+		// Test with https in home.
 		update_option( 'home', set_url_scheme( $home, 'https' ) );
 
-		// Pretend to be in the site admin
+		// Pretend to be in the site admin.
 		set_current_screen( 'dashboard' );
 		$home = get_option( 'home' );
 
-		// home_url() should return whatever scheme is set in the home option when in the admin
+		// home_url() should return whatever scheme is set in the home option when in the admin.
 		$_SERVER['HTTPS'] = 'on';
 		$this->assertEquals( $home, home_url() );
 
 		$_SERVER['HTTPS'] = 'off';
 		$this->assertEquals( $home, home_url() );
 
-		// If not in the admin, is_ssl() should determine the scheme unless https hard-coded in home
+		// If not in the admin, is_ssl() should determine the scheme unless https hard-coded in home.
 		set_current_screen( 'front' );
 		$this->assertEquals( $home, home_url() );
 		$_SERVER['HTTPS'] = 'on';
@@ -248,11 +249,11 @@ class Tests_URL extends WP_UnitTestCase {
 	function test_network_home_url_from_admin() {
 		$screen = get_current_screen();
 
-		// Pretend to be in the site admin
+		// Pretend to be in the site admin.
 		set_current_screen( 'dashboard' );
 		$home = network_home_url();
 
-		// home_url() should return http when in the admin
+		// home_url() should return http when in the admin.
 		$this->assertEquals( 0, strpos( $home, 'http://' ) );
 		$_SERVER['HTTPS'] = 'on';
 		$this->assertEquals( $home, network_home_url() );
@@ -260,7 +261,7 @@ class Tests_URL extends WP_UnitTestCase {
 		$_SERVER['HTTPS'] = 'off';
 		$this->assertEquals( $home, network_home_url() );
 
-		// If not in the admin, is_ssl() should determine the scheme
+		// If not in the admin, is_ssl() should determine the scheme.
 		set_current_screen( 'front' );
 		$this->assertEquals( $home, network_home_url() );
 		$_SERVER['HTTPS'] = 'on';
@@ -349,12 +350,12 @@ class Tests_URL extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Post', $p );
 		$this->assertEquals( $post_id, $p->ID );
 
-		// The same again to make sure a cached query returns the same result
+		// The same again to make sure a cached query returns the same result.
 		$p = get_adjacent_post();
 		$this->assertInstanceOf( 'WP_Post', $p );
 		$this->assertEquals( $post_id, $p->ID );
 
-		// Test next
+		// Test next.
 		$p = get_adjacent_post( false, '', false );
 		$this->assertEquals( '', $p );
 

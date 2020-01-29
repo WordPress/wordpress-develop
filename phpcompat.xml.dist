@@ -4,7 +4,7 @@
 
 	<rule ref="PHPCompatibilityWP"/>
 
-	<!-- WordPress Core currently supports PHP 5.6+ -->
+	<!-- WordPress Core currently supports PHP 5.6+. -->
 	<config name="testVersion" value="5.6-"/>
 
 	<!-- Only scan PHP files. -->
@@ -25,7 +25,7 @@
 	<!-- Check up to 20 files simultaneously. -->
 	<arg name="parallel" value="20"/>
 
-	<!-- Show sniff codes in all reports -->
+	<!-- Show sniff codes in all reports. -->
 	<arg value="ps"/>
 
 	<!-- For now, only the files in src are scanned. -->

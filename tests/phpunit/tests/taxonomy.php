@@ -16,7 +16,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 * @ticket 5417
 	 */
 	function test_get_unknown_taxonomies() {
-		// taxonomies for an unknown object type
+		// Taxonomies for an unknown object type.
 		$this->assertEquals( array(), get_object_taxonomies( rand_str() ) );
 		$this->assertEquals( array(), get_object_taxonomies( '' ) );
 		$this->assertEquals( array(), get_object_taxonomies( 0 ) );
@@ -26,7 +26,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	function test_get_post_taxonomy() {
 		foreach ( get_object_taxonomies( 'post' ) as $taxonomy ) {
 			$tax = get_taxonomy( $taxonomy );
-			// should return an object with the correct taxonomy object type
+			// Should return an object with the correct taxonomy object type.
 			$this->assertTrue( is_object( $tax ) );
 			$this->assertTrue( is_array( $tax->object_type ) );
 			$this->assertEquals( array( 'post' ), $tax->object_type );
@@ -108,7 +108,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	function test_get_link_taxonomy() {
 		foreach ( get_object_taxonomies( 'link' ) as $taxonomy ) {
 			$tax = get_taxonomy( $taxonomy );
-			// should return an object with the correct taxonomy object type
+			// Should return an object with the correct taxonomy object type.
 			$this->assertTrue( is_object( $tax ) );
 			$this->assertTrue( is_array( $tax->object_type ) );
 			$this->assertEquals( array( 'link' ), $tax->object_type );
@@ -143,7 +143,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 	function test_register_taxonomy() {
 
-		// make up a new taxonomy name, and ensure it's unused
+		// Make up a new taxonomy name, and ensure it's unused.
 		$tax = rand_str();
 		$this->assertFalse( taxonomy_exists( $tax ) );
 
@@ -151,13 +151,13 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertTrue( taxonomy_exists( $tax ) );
 		$this->assertFalse( is_taxonomy_hierarchical( $tax ) );
 
-		// clean up
+		// Clean up.
 		unset( $GLOBALS['wp_taxonomies'][ $tax ] );
 	}
 
 	function test_register_hierarchical_taxonomy() {
 
-		// make up a new taxonomy name, and ensure it's unused
+		// Make up a new taxonomy name, and ensure it's unused.
 		$tax = rand_str();
 		$this->assertFalse( taxonomy_exists( $tax ) );
 
@@ -165,7 +165,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertTrue( taxonomy_exists( $tax ) );
 		$this->assertTrue( is_taxonomy_hierarchical( $tax ) );
 
-		// clean up
+		// Clean up.
 		unset( $GLOBALS['wp_taxonomies'][ $tax ] );
 	}
 
@@ -218,43 +218,43 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 * @ticket 11058
 	 */
 	function test_registering_taxonomies_to_object_types() {
-		// Create a taxonomy to test with
+		// Create a taxonomy to test with.
 		$tax = 'test_tax';
 		$this->assertFalse( taxonomy_exists( $tax ) );
 		register_taxonomy( $tax, 'post', array( 'hierarchical' => true ) );
 
-		// Create a post type to test with
+		// Create a post type to test with.
 		$post_type = 'test_cpt';
 		$this->assertFalse( get_post_type( $post_type ) );
 		$this->assertObjectHasAttribute( 'name', register_post_type( $post_type ) );
 
-		// Core taxonomy, core post type
+		// Core taxonomy, core post type.
 		$this->assertTrue( unregister_taxonomy_for_object_type( 'category', 'post' ) );
 		$this->assertFalse( unregister_taxonomy_for_object_type( 'category', 'post' ) );
 		$this->assertTrue( register_taxonomy_for_object_type( 'category', 'post' ) );
 
-		// Core taxonomy, non-core post type
+		// Core taxonomy, non-core post type.
 		$this->assertTrue( register_taxonomy_for_object_type( 'category', $post_type ) );
 		$this->assertTrue( unregister_taxonomy_for_object_type( 'category', $post_type ) );
 		$this->assertFalse( unregister_taxonomy_for_object_type( 'category', $post_type ) );
 		$this->assertTrue( register_taxonomy_for_object_type( 'category', $post_type ) );
 
-		// Core taxonomies, non-post object types
+		// Core taxonomies, non-post object types.
 		$this->assertFalse( register_taxonomy_for_object_type( 'category', 'user' ) );
 		$this->assertFalse( unregister_taxonomy_for_object_type( 'category', 'user' ) );
 
-		// Non-core taxonomy, core post type
+		// Non-core taxonomy, core post type.
 		$this->assertTrue( unregister_taxonomy_for_object_type( $tax, 'post' ) );
 		$this->assertFalse( unregister_taxonomy_for_object_type( $tax, 'post' ) );
 		$this->assertTrue( register_taxonomy_for_object_type( $tax, 'post' ) );
 
-		// Non-core taxonomy, non-core post type
+		// Non-core taxonomy, non-core post type.
 		$this->assertTrue( register_taxonomy_for_object_type( $tax, $post_type ) );
 		$this->assertTrue( unregister_taxonomy_for_object_type( $tax, $post_type ) );
 		$this->assertFalse( unregister_taxonomy_for_object_type( $tax, $post_type ) );
 		$this->assertTrue( register_taxonomy_for_object_type( $tax, $post_type ) );
 
-		// Non-core taxonomies, non-post object types
+		// Non-core taxonomies, non-post object types.
 		$this->assertFalse( register_taxonomy_for_object_type( $tax, 'user' ) );
 		$this->assertFalse( unregister_taxonomy_for_object_type( $tax, 'user' ) );
 
@@ -396,12 +396,12 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	function test_in_category() {
 		$post = self::factory()->post->create_and_get();
 
-		// in_category() returns false when first parameter is empty()
+		// in_category() returns false when first parameter is empty().
 		$this->assertFalse( in_category( '', $post ) );
 		$this->assertFalse( in_category( false, $post ) );
 		$this->assertFalse( in_category( null, $post ) );
 
-		// Test expected behavior of in_category()
+		// Test expected behavior of in_category().
 		$term = wp_insert_term( 'Test', 'category' );
 		wp_set_object_terms( $post->ID, $term['term_id'], 'category' );
 		$this->assertTrue( in_category( $term['term_id'], $post ) );
@@ -947,7 +947,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 				'post_type' => 'post',
 				'tax_input' => array(
 					$taxonomy_name => array(
-						(string) $term_id, // Cast term_id as string to match whats sent in WP Admin.
+						(string) $term_id, // Cast term_id as string to match what's sent in WP Admin.
 					),
 				),
 			)

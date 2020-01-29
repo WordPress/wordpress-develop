@@ -87,10 +87,10 @@ class Tests_Post_Formats extends WP_UnitTestCase {
 		// Standard is a special case. It shows as false when set.
 		$this->assertFalse( has_post_format( 'standard', $post_id ) );
 
-		// Dummy format type
+		// Dummy format type.
 		$this->assertFalse( has_post_format( 'dummy', $post_id ) );
 
-		// Dummy post id
+		// Dummy post ID.
 		$this->assertFalse( has_post_format( 'aside', 12345 ) );
 	}
 
@@ -133,7 +133,7 @@ DATA;
 		$content_link = get_url_in_content( get_post_field( 'post_content', $comm_post_id ) );
 		$this->assertEquals( false, $content_link );
 
-		// Now with an href
+		// Now with an href.
 		$href_post_id = self::factory()->post->create( array( 'post_content' => $href ) );
 		$content_link = get_url_in_content( get_post_field( 'post_content', $href_post_id ) );
 		$this->assertEquals( $link, $content_link );

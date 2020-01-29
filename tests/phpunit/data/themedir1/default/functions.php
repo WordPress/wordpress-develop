@@ -1,6 +1,6 @@
 <?php
 
-// Minimum functions.php to pass unit tests
+// Minimum functions.php to pass unit tests.
 
 function default_widgets_init() {
 	register_sidebar( array( 'id' => 'sidebar-1' ) );

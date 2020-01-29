@@ -27,7 +27,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 	function test_malformed_wxr() {
 		$file = DIR_TESTDATA . '/export/malformed.xml';
 
-		// regex based parser cannot detect malformed XML
+		// Regex based parser cannot detect malformed XML.
 		foreach ( array( 'WXR_Parser_SimpleXML', 'WXR_Parser_XML' ) as $p ) {
 			$parser = new $p;
 			$result = $parser->parse( $file );
@@ -296,5 +296,5 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 		}
 	}
 
-	// tags in CDATA #11574
+	// Tags in CDATA #11574.
 }

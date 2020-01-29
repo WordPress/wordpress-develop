@@ -164,13 +164,13 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_context_param() {
-		// Collection
+		// Collection.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/users' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
-		// Single
+		// Single.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/users/' . self::$user );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
@@ -663,7 +663,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'search', 'yololololo' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 1, count( $response->get_data() ) );
-		// default to wildcard search
+		// Default to wildcard search.
 		$adam_id = $this->factory->user->create(
 			array(
 				'role'          => 'author',
@@ -788,7 +788,10 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( array( 'taco', 'enchilada', 'burrito' ), $slugs );
 	}
 
-	// Note: Do not test using editor role as there is an editor role created in testing and it makes it hard to test this functionality.
+	/**
+	 * Note: Do not test using editor role as there is an editor role created in testing,
+	 * and it makes it hard to test this functionality.
+	 */
 	public function test_get_items_roles() {
 		wp_set_current_user( self::$user );
 
@@ -947,10 +950,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 96, $data['avatar_urls'] );
 
 		$user = get_user_by( 'id', self::$editor );
-		/**
-		 * Ignore the subdomain, since 'get_avatar_url randomly sets the Gravatar
-		 * server when building the url string.
-		 */
+		// Ignore the subdomain, since get_avatar_url() randomly sets
+		// the Gravatar server when building the URL string.
 		$this->assertEquals( substr( get_avatar_url( $user->user_email ), 9 ), substr( $data['avatar_urls'][96], 9 ) );
 	}
 
@@ -1196,7 +1197,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'url'         => 'http://example.com',
 		);
 
-		// Username rules are different (more strict) for multisite; see `wpmu_validate_user_signup`
+		// Username rules are different (more strict) for multisite; see `wpmu_validate_user_signup`.
 		if ( is_multisite() ) {
 			$params['username'] = 'no-dashes-allowed';
 		}
@@ -1521,7 +1522,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->check_add_edit_user_response( $response, true );
 
-		// Check that the name has been updated correctly
+		// Check that the name has been updated correctly.
 		$new_data = $response->get_data();
 		$this->assertEquals( 'New Name', $new_data['first_name'] );
 		$user = get_userdata( $user_id );
@@ -1546,8 +1547,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', self::$editor ) );
 		$request->set_param( 'slug', $user->user_nicename );
 
-		// Run twice to make sure that the update still succeeds even if no DB
-		// rows are updated.
+		// Run twice to make sure that the update still succeeds
+		// even if no DB rows are updated.
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
@@ -1768,7 +1769,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$this->check_add_edit_user_response( $response, true );
 
-		// Check that the name has been updated correctly
+		// Check that the name has been updated correctly.
 		$new_data = $response->get_data();
 		$this->assertEquals( 'JSON Name', $new_data['first_name'] );
 		$this->assertEquals( 'New Last', $new_data['last_name'] );
@@ -2035,11 +2036,12 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 
 		if ( is_multisite() ) {
-			// Site administrators can promote users, as verified by the
-			// previous test, but they cannot perform other user-editing
-			// operations.  This also tests the branch of logic that verifies
-			// that no parameters other than 'id' and 'roles' are specified for
-			// a roles update.
+			/*
+			 * Site administrators can promote users, as verified by the previous test,
+			 * but they cannot perform other user-editing operations.
+			 * This also tests the branch of logic that verifies that no parameters
+			 * other than 'id' and 'roles' are specified for a roles update.
+			 */
 			$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 		} else {
 			$this->assertEquals( 200, $response->get_status() );
@@ -2066,10 +2068,10 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 	public function verify_user_roundtrip( $input = array(), $expected_output = array() ) {
 		if ( isset( $input['id'] ) ) {
-			// Existing user; don't try to create one
+			// Existing user; don't try to create one.
 			$user_id = $input['id'];
 		} else {
-			// Create a new user
+			// Create a new user.
 			$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
 			foreach ( $input as $name => $value ) {
 				$request->set_param( $name, $value );
@@ -2079,7 +2081,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertEquals( 201, $response->get_status() );
 			$actual_output = $response->get_data();
 
-			// Compare expected API output to actual API output
+			// Compare expected API output to actual API output.
 			$this->assertEquals( $expected_output['username'], $actual_output['username'] );
 			$this->assertEquals( $expected_output['name'], $actual_output['name'] );
 			$this->assertEquals( $expected_output['first_name'], $actual_output['first_name'] );
@@ -2088,7 +2090,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertEquals( $expected_output['description'], $actual_output['description'] );
 			$this->assertEquals( $expected_output['nickname'], $actual_output['nickname'] );
 
-			// Compare expected API output to WP internal values
+			// Compare expected API output to WP internal values.
 			$user = get_userdata( $actual_output['id'] );
 			$this->assertEquals( $expected_output['username'], $user->user_login );
 			$this->assertEquals( $expected_output['name'], $user->display_name );
@@ -2102,7 +2104,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$user_id = $actual_output['id'];
 		}
 
-		// Update the user
+		// Update the user.
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
 		foreach ( $input as $name => $value ) {
 			if ( 'username' !== $name ) {
@@ -2113,7 +2115,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 200, $response->get_status() );
 		$actual_output = $response->get_data();
 
-		// Compare expected API output to actual API output
+		// Compare expected API output to actual API output.
 		if ( isset( $expected_output['username'] ) ) {
 			$this->assertEquals( $expected_output['username'], $actual_output['username'] );
 		}
@@ -2124,7 +2126,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( $expected_output['description'], $actual_output['description'] );
 		$this->assertEquals( $expected_output['nickname'], $actual_output['nickname'] );
 
-		// Compare expected API output to WP internal values
+		// Compare expected API output to WP internal values.
 		$user = get_userdata( $actual_output['id'] );
 		if ( isset( $expected_output['username'] ) ) {
 			$this->assertEquals( $expected_output['username'], $user->user_login );
@@ -2387,7 +2389,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_trash_not_supported', $response, 501 );
 
-		// Ensure the user still exists
+		// Ensure the user still exists.
 		$user = get_user_by( 'id', $user_id );
 		$this->assertNotEmpty( $user );
 	}
@@ -2459,7 +2461,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertEquals( 200, $response->get_status() );
 
-		// Check that the post has been updated correctly
+		// Check that the post has been updated correctly.
 		$post = get_post( $test_post );
 		$this->assertEquals( $reassign_id, $post->post_author );
 	}

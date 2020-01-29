@@ -30,29 +30,29 @@ class Tests_Link extends WP_UnitTestCase {
 		$post_id  = self::factory()->post->create();
 		$post_id2 = self::factory()->post->create();
 
-		// Basic case
+		// Basic case.
 		$this->assertEquals( get_permalink( $post_id ), wp_get_shortlink( $post_id, 'post' ) );
 
 		unset( $GLOBALS['post'] );
 
-		// Global post is not set
+		// Global post is not set.
 		$this->assertEquals( '', wp_get_shortlink( 0, 'post' ) );
 		$this->assertEquals( '', wp_get_shortlink( 0 ) );
 		$this->assertEquals( '', wp_get_shortlink() );
 
 		$GLOBALS['post'] = get_post( $post_id );
 
-		// Global post is set
+		// Global post is set.
 		$this->assertEquals( get_permalink( $post_id ), wp_get_shortlink( 0, 'post' ) );
 		$this->assertEquals( get_permalink( $post_id ), wp_get_shortlink( 0 ) );
 		$this->assertEquals( get_permalink( $post_id ), wp_get_shortlink() );
 
-		// Not the global post
+		// Not the global post.
 		$this->assertEquals( get_permalink( $post_id2 ), wp_get_shortlink( $post_id2, 'post' ) );
 
 		unset( $GLOBALS['post'] );
 
-		// Global post is not set, once again
+		// Global post is not set, once again.
 		$this->assertEquals( '', wp_get_shortlink( 0, 'post' ) );
 		$this->assertEquals( '', wp_get_shortlink( 0 ) );
 		$this->assertEquals( '', wp_get_shortlink() );
@@ -63,7 +63,7 @@ class Tests_Link extends WP_UnitTestCase {
 		$this->assertNotEquals( get_permalink( $post_id ), wp_get_shortlink( $post_id, 'post' ) );
 		$this->assertEquals( home_url( '?p=' . $post_id ), wp_get_shortlink( $post_id, 'post' ) );
 
-		// Global post and permalink structure are set
+		// Global post and permalink structure are set.
 		$GLOBALS['post'] = get_post( $post_id );
 		$this->assertEquals( home_url( '?p=' . $post_id ), wp_get_shortlink( 0, 'post' ) );
 		$this->assertEquals( home_url( '?p=' . $post_id ), wp_get_shortlink( 0 ) );
@@ -73,7 +73,7 @@ class Tests_Link extends WP_UnitTestCase {
 	function test_wp_get_shortlink_with_page() {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 
-		// Basic case
+		// Basic case.
 		// Don't test against get_permalink() since it uses ?page_id= for pages.
 		$this->assertEquals( home_url( '?p=' . $post_id ), wp_get_shortlink( $post_id, 'post' ) );
 

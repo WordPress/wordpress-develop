@@ -11,10 +11,10 @@ class Tests_Formatting_LikeEscape extends WP_UnitTestCase {
 	function test_like_escape() {
 
 		$inputs   = array(
-			'howdy%', //Single Percent
-			'howdy_', //Single Underscore
-			'howdy\\', //Single slash
-			'howdy\\howdy%howdy_', //The works
+			'howdy%',              // Single percent.
+			'howdy_',              // Single underscore.
+			'howdy\\',             // Single slash.
+			'howdy\\howdy%howdy_', // The works.
 		);
 		$expected = array(
 			'howdy\\%',

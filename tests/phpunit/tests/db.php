@@ -86,16 +86,16 @@ class Tests_DB extends WP_UnitTestCase {
 	public function test_locale_floats() {
 		global $wpdb;
 
-		// Save the current locale settings
+		// Save the current locale settings.
 		$current_locales = explode( ';', setlocale( LC_ALL, 0 ) );
 
-		// Switch to Russian
+		// Switch to Russian.
 		$flag = setlocale( LC_ALL, 'ru_RU.utf8', 'rus', 'fr_FR.utf8', 'fr_FR', 'de_DE.utf8', 'de_DE', 'es_ES.utf8', 'es_ES', 'ja_JP.utf8', 'ja_JP' );
 		if ( false === $flag ) {
 			$this->markTestSkipped( 'No European languages available for testing' );
 		}
 
-		// Try an update query
+		// Try an update query.
 		$wpdb->suppress_errors( true );
 		$wpdb->update(
 			'test_table',
@@ -106,14 +106,14 @@ class Tests_DB extends WP_UnitTestCase {
 		);
 		$wpdb->suppress_errors( false );
 
-		// Ensure the float isn't 0,700
+		// Ensure the float isn't 0,700.
 		$this->assertContains( '0.700', array_pop( $this->_queries ) );
 
-		// Try a prepare
+		// Try a prepare.
 		$sql = $wpdb->prepare( 'UPDATE test_table SET float_column = %f AND meta_id = %d', 0.7, 5 );
 		$this->assertContains( '0.700', $sql );
 
-		// Restore locale settings
+		// Restore locale settings.
 		foreach ( $current_locales as $locale_setting ) {
 			if ( false !== strpos( $locale_setting, '=' ) ) {
 				list( $category, $locale ) = explode( '=', $locale_setting );
@@ -133,11 +133,11 @@ class Tests_DB extends WP_UnitTestCase {
 		global $wpdb;
 
 		$inputs   = array(
-			'howdy%', //Single Percent
-			'howdy_', //Single Underscore
-			'howdy\\', //Single slash
-			'howdy\\howdy%howdy_', //The works
-			'howdy\'"[[]*#[^howdy]!+)(*&$#@!~|}{=--`/.,<>?', //Plain text
+			'howdy%',              // Single percent.
+			'howdy_',              // Single underscore.
+			'howdy\\',             // Single slash.
+			'howdy\\howdy%howdy_', // The works.
+			'howdy\'"[[]*#[^howdy]!+)(*&$#@!~|}{=--`/.,<>?', // Plain text.
 		);
 		$expected = array(
 			'howdy\\%',
@@ -194,7 +194,7 @@ class Tests_DB extends WP_UnitTestCase {
 			),
 			array(
 				'a\\%aa', // SELECT 'a\\%aa'
-				'a\\%aa', // LIKE 'a\\\\\\%aa' # The PHP literal would be "LIKE 'a\\\\\\\\\\\\%aa'".  This is why we need reliable escape functions!
+				'a\\%aa', // LIKE 'a\\\\\\%aa' # The PHP literal would be "LIKE 'a\\\\\\\\\\\\%aa'". This is why we need reliable escape functions!
 				'1',
 			),
 			array(
@@ -234,7 +234,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertNotEmpty( $wpdb->dbh );
 		$dbh = $wpdb->dbh;
 		$this->assertNotEmpty( $dbh );
-		$this->assertTrue( isset( $wpdb->dbh ) ); // Test __isset()
+		$this->assertTrue( isset( $wpdb->dbh ) ); // Test __isset().
 		unset( $wpdb->dbh );
 		$this->assertTrue( empty( $wpdb->dbh ) );
 		$wpdb->dbh = $dbh;
@@ -432,9 +432,9 @@ class Tests_DB extends WP_UnitTestCase {
 
 		return array(
 			array(
-				"SELECT * FROM $wpdb->users WHERE id = %d AND user_login = %s",     // Query
-				array( 1, 'admin', 'extra-arg' ),                                   // ::prepare() args, to be passed via call_user_func_array
-				"SELECT * FROM $wpdb->users WHERE id = 1 AND user_login = 'admin'", // Expected output
+				"SELECT * FROM $wpdb->users WHERE id = %d AND user_login = %s",     // Query.
+				array( 1, 'admin', 'extra-arg' ),                                   // ::prepare() args, to be passed via call_user_func_array().
+				"SELECT * FROM $wpdb->users WHERE id = 1 AND user_login = 'admin'", // Expected output.
 			),
 			array(
 				"SELECT * FROM $wpdb->users WHERE id = %%%d AND user_login = %s",
@@ -748,6 +748,7 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21212
+	 * @ticket 32763
 	 */
 	function data_get_table_from_query() {
 		$table       = 'a_test_table_name';
@@ -758,7 +759,7 @@ class Tests_DB extends WP_UnitTestCase {
 		);
 
 		$queries = array(
-			// Basic
+			// Basic.
 			"SELECT * FROM $table",
 			"SELECT * FROM `$table`",
 
@@ -795,7 +796,7 @@ class Tests_DB extends WP_UnitTestCase {
 			"DELETE a FROM $table a",
 			"DELETE `a` FROM $table a",
 
-			// Extended
+			// Extended.
 			"EXPLAIN SELECT * FROM $table",
 			"EXPLAIN EXTENDED SELECT * FROM $table",
 			"EXPLAIN EXTENDED SELECT * FROM `$table`",
@@ -897,13 +898,13 @@ class Tests_DB extends WP_UnitTestCase {
 	 */
 	function data_get_escaped_table_from_show_query() {
 		return array(
-			// Equality
+			// Equality.
 			array( "SHOW TABLE STATUS WHERE Name = 'test_name'", 'test_name' ),
 			array( 'SHOW TABLE STATUS WHERE NAME="test_name"', 'test_name' ),
 			array( 'SHOW TABLES WHERE Name = "test_name"', 'test_name' ),
 			array( "SHOW FULL TABLES WHERE Name='test_name'", 'test_name' ),
 
-			// LIKE
+			// LIKE.
 			array( "SHOW TABLE STATUS LIKE 'test\_prefix\_%'", 'test_prefix_' ),
 			array( 'SHOW TABLE STATUS LIKE "test\_prefix\_%"', 'test_prefix_' ),
 			array( "SHOW TABLES LIKE 'test\_prefix\_%'", 'test_prefix_' ),
@@ -946,7 +947,7 @@ class Tests_DB extends WP_UnitTestCase {
 				'post_content' => 'foo',
 				'post_parent'  => 0,
 			),
-			array( '%d', '%s' ), // These override core field_types
+			array( '%d', '%s' ), // These override core field_types.
 			array(
 				'post_content' => array(
 					'value'  => 'foo',
@@ -1001,7 +1002,7 @@ class Tests_DB extends WP_UnitTestCase {
 				'this_is_not_either'       => 's',
 				'nor_this'                 => 1,
 			),
-			array( '%d', '%s' ), // The first format is used for the third
+			array( '%d', '%s' ), // The first format is used for the third.
 			array(
 				'this_is_not_a_core_field' => array(
 					'value'  => 0,
@@ -1019,7 +1020,7 @@ class Tests_DB extends WP_UnitTestCase {
 		);
 
 		$vars = get_defined_vars();
-		// Push the variable name onto the end for assertSame $message
+		// Push the variable name onto the end for assertSame() $message.
 		foreach ( $vars as $var_name => $var ) {
 			$vars[ $var_name ][] = $var_name;
 		}
@@ -1392,10 +1393,10 @@ class Tests_DB extends WP_UnitTestCase {
 
 		return array(
 			array(
-				'%5s',   // SQL to prepare
-				'foo',   // Value to insert in the SQL
-				false,   // Whether to expect an incorrect usage error or not
-				'  foo', // Expected output
+				'%5s',   // SQL to prepare.
+				'foo',   // Value to insert in the SQL.
+				false,   // Whether to expect an incorrect usage error or not.
+				'  foo', // Expected output.
 			),
 			array(
 				'%1$d %%% % %%1$d%% %%%1$d%%',
@@ -1586,11 +1587,11 @@ class Tests_DB extends WP_UnitTestCase {
 		global $wpdb;
 		return array(
 			array(
-				'%s',                                  // String to pass through esc_url()
-				' {ESCAPE} ',                          // Query to insert the output of esc_url() into, replacing "{ESCAPE}"
-				'foo',                                 // Data to send to prepare()
-				true,                                  // Whether to expect an incorrect usage error or not
-				" {$wpdb->placeholder_escape()}s ",    // Expected output
+				'%s',                                  // String to pass through esc_url().
+				' {ESCAPE} ',                          // Query to insert the output of esc_url() into, replacing "{ESCAPE}".
+				'foo',                                 // Data to send to prepare().
+				true,                                  // Whether to expect an incorrect usage error or not.
+				" {$wpdb->placeholder_escape()}s ",    // Expected output.
 			),
 			array(
 				'foo%sbar',
@@ -1704,12 +1705,12 @@ class Tests_DB extends WP_UnitTestCase {
 	public function parse_db_host_data_provider() {
 		return array(
 			array(
-				'',    // DB_HOST
-				false, // Expect parse_db_host to bail for this hostname
-				'',    // Parsed host
-				null,  // Parsed port
-				null,  // Parsed socket
-				false, // is_ipv6
+				'',    // DB_HOST.
+				false, // Expect parse_db_host to bail for this hostname.
+				'',    // Parsed host.
+				null,  // Parsed port.
+				null,  // Parsed socket.
+				false, // $is_ipv6.
 			),
 			array(
 				':3306',

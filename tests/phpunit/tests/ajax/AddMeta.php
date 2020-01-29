@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Admin ajax functions to be tested
+ * Admin Ajax functions to be tested.
  */
 require_once( ABSPATH . 'wp-admin/includes/ajax-actions.php' );
 

@@ -35,7 +35,9 @@ class Tests_Formatting_WPTrimWords extends WP_UnitTestCase {
 		$this->assertEquals( $trimmed, wp_trim_words( $text, 5 ) );
 	}
 
-	// #18726
+	/**
+	 * @ticket 18726
+	 */
 	function test_strips_script_and_style_content() {
 		$trimmed = 'This text contains. It should go.';
 

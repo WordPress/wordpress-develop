@@ -144,7 +144,7 @@ if ( is_multisite() ) :
 			$this->assertInternalType( 'int', $blog_id );
 			$prefix = $wpdb->get_blog_prefix( $blog_id );
 
-			// $get_all = false, only retrieve details from the blogs table
+			// $get_all = false, only retrieve details from the blogs table.
 			$details = get_blog_details( $blog_id, false );
 
 			// Combine domain and path for a site specific cache key.
@@ -152,14 +152,14 @@ if ( is_multisite() ) :
 
 			$this->assertEquals( $details, wp_cache_get( $blog_id . 'short', 'blog-details' ) );
 
-			// get_blogaddress_by_name()
+			// get_blogaddress_by_name().
 			$this->assertEquals( 'http://' . $details->domain . $details->path, get_blogaddress_by_name( trim( $details->path, '/' ) ) );
 
-			// These are empty until get_blog_details() is called with $get_all = true
+			// These are empty until get_blog_details() is called with $get_all = true.
 			$this->assertEquals( false, wp_cache_get( $blog_id, 'blog-details' ) );
 			$this->assertEquals( false, wp_cache_get( $key, 'blog-lookup' ) );
 
-			// $get_all = true, populate the full blog-details cache and the blog slug lookup cache
+			// $get_all = true, populate the full blog-details cache and the blog slug lookup cache.
 			$details = get_blog_details( $blog_id, true );
 			$this->assertEquals( $details, wp_cache_get( $blog_id, 'blog-details' ) );
 			$this->assertEquals( $details, wp_cache_get( $key, 'blog-lookup' ) );
@@ -187,7 +187,7 @@ if ( is_multisite() ) :
 				}
 			}
 
-			// update the blog count cache to use get_blog_count()
+			// Update the blog count cache to use get_blog_count().
 			wp_update_network_counts();
 			$this->assertEquals( 2, (int) get_blog_count() );
 		}
@@ -350,7 +350,7 @@ if ( is_multisite() ) :
 			// Delete the site without forcing a table drop.
 			wpmu_delete_blog( $blog_id, false );
 
-			// update the blog count cache to use get_blog_count()
+			// Update the blog count cache to use get_blog_count().
 			wp_update_network_counts();
 			$this->assertEquals( 1, get_blog_count() );
 		}
@@ -364,7 +364,7 @@ if ( is_multisite() ) :
 			// Delete the site and force a table drop.
 			wpmu_delete_blog( $blog_id, true );
 
-			// update the blog count cache to use get_blog_count()
+			// Update the blog count cache to use get_blog_count().
 			wp_update_network_counts();
 			$this->assertEquals( 1, get_blog_count() );
 		}
@@ -405,7 +405,7 @@ if ( is_multisite() ) :
 
 			wpmu_update_blogs_date();
 
-			// compare the update time with the current time, allow delta < 2
+			// Compare the update time with the current time, allow delta < 2.
 			$blog            = get_site( get_current_blog_id() );
 			$current_time    = time();
 			$time_difference = $current_time - strtotime( $blog->last_updated );
@@ -919,7 +919,7 @@ if ( is_multisite() ) :
 			$exists2 = domain_exists( 'foo', 'bar/' );
 			remove_filter( 'domain_exists', array( $this, '_domain_exists_cb' ), 10, 4 );
 
-			// Make sure the same result is returned with or without a trailing slash
+			// Make sure the same result is returned with or without a trailing slash.
 			$this->assertEquals( $exists1, $exists2 );
 		}
 
@@ -2354,11 +2354,11 @@ if ( is_multisite() ) :
 		 * Populate options callback to warm cache for blog-details / site-details cache group
 		 */
 		public function populate_options_callback() {
-			// Cache blog details
+			// Cache blog details.
 			$blog_id = get_current_blog_id();
 			get_blog_details( $blog_id );
 			get_site( $blog_id )->siteurl;
-			// Set siteurl
+			// Set siteurl.
 			update_option( 'siteurl', 'http://testsite1.example.org/test' );
 		}
 
@@ -2420,9 +2420,9 @@ if ( is_multisite() ) :
 		 */
 		protected function _get_next_site_id() {
 			global $wpdb;
-			//create an entry
+			// Create an entry.
 			static::factory()->blog->create();
-			//get the ID after it
+			// Get the ID after it.
 			return (int) $wpdb->get_var( 'SELECT blog_id FROM ' . $wpdb->blogs . ' ORDER BY blog_ID DESC LIMIT 1' ) + 1;
 		}
 
@@ -2438,8 +2438,8 @@ if ( is_multisite() ) :
 				'default values'  => array(
 					array(),
 					array(
-						'public' => 0, // `public` is one of the defaults metas in `wpmu_create_blog' function prior WordPress 5.1.0
-						'WPLANG' => 'en_US', // WPLANG is another default meta in `wpmu_create_blog` function prior WordPress 5.1.0.
+						'public' => 0, // `public` is one of the default metas in `wpmu_create_blog()' function prior to WordPress 5.1.0.
+						'WPLANG' => 'en_US', // WPLANG is another default meta in `wpmu_create_blog()` function prior to WordPress 5.1.0.
 					),
 				),
 				'public site'     => array(

@@ -89,7 +89,7 @@ class Tests_Post_Embed_URL extends WP_UnitTestCase {
 	function test_static_front_page_conflicts_with_embed_slug() {
 		$this->set_permalink_structure( '/%postname%/' );
 
-		// Create a post with the 'embed' post_name
+		// Create a post with the 'embed' post_name.
 		add_filter( 'wp_unique_post_slug', array( $this, 'filter_unique_post_slug' ) );
 		$post_embed_slug = self::factory()->post->create( array( 'post_name' => 'embed' ) );
 		remove_filter( 'wp_unique_post_slug', array( $this, 'filter_unique_post_slug' ) );

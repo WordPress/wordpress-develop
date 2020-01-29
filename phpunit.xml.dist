@@ -5,12 +5,12 @@
 		beStrictAboutTestsThatDoNotTestAnything="true"
 		>
 	<testsuites>
-		<!-- Default test suite to run all tests -->
+		<!-- Default test suite to run all tests. -->
 		<testsuite name="default">
 			<directory suffix=".php">tests/phpunit/tests</directory>
 			<exclude>tests/phpunit/tests/rest-api/rest-autosaves-controller.php</exclude>
 		</testsuite>
-		<!-- Sets the DOING_AUTOSAVE constant, so needs to be run last -->
+		<!-- Sets the DOING_AUTOSAVE constant, so needs to be run last. -->
 		<testsuite name="restapi-autosave">
 			<file>tests/phpunit/tests/rest-api/rest-autosaves-controller.php</file>
 		</testsuite>
@@ -44,7 +44,7 @@
 		<whitelist addUncoveredFilesFromWhitelist="true">
 			<directory suffix=".php">src</directory>
 			<exclude>
-				<!-- Third party library exclusions -->
+				<!-- Third party library exclusions. -->
 				<directory suffix=".php">src/wp-includes/ID3</directory>
 				<directory suffix=".php">src/wp-includes/IXR</directory>
 				<directory suffix=".php">src/wp-includes/random_compat</directory>

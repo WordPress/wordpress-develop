@@ -91,7 +91,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 
 		tabbables = this.getTabbables();
 
-		// Keep tab focus within media modal while it's open
+		// Keep tab focus within media modal while it's open.
 		if ( tabbables.last()[0] === event.target && ! event.shiftKey ) {
 			tabbables.first().focus();
 			return false;

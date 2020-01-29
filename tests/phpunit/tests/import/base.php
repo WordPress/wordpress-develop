@@ -11,9 +11,9 @@ abstract class WP_Import_UnitTestCase extends WP_UnitTestCase {
 	 *
 	 * <code>
 	 * $users = array(
-	 *   'alice' => 1, // alice will be mapped to user ID 1
-	 *   'bob' => 'john', // bob will be transformed into john
-	 *   'eve' => false // eve will be imported as is
+	 *   'alice' => 1,      // alice will be mapped to user ID 1.
+	 *   'bob'   => 'john', // bob will be transformed into john.
+	 *   'eve'   => false   // eve will be imported as is.
 	 * );</code>
 	 *
 	 * @param string $filename Full path of the file to import
@@ -32,8 +32,8 @@ abstract class WP_Import_UnitTestCase extends WP_UnitTestCase {
 		$new     = array();
 		$i       = 0;
 
-		// each user is either mapped to a given ID, mapped to a new user
-		// with given login or imported using details in WXR file
+		// Each user is either mapped to a given ID, mapped to a new user
+		// with given login or imported using details in WXR file.
 		foreach ( $users as $user => $map ) {
 			$authors[ $i ] = $user;
 			if ( is_int( $map ) ) {

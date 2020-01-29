@@ -102,7 +102,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 
 		$el.show();
 
-		// Try to close the onscreen keyboard
+		// Try to close the onscreen keyboard.
 		if ( 'ontouchend' in document ) {
 			if ( ( mceEditor = window.tinymce && window.tinymce.activeEditor ) && ! mceEditor.isHidden() && mceEditor.iframeElement ) {
 				mceEditor.iframeElement.focus();
@@ -135,7 +135,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 		// Enable page scrolling.
 		$( 'body' ).removeClass( 'modal-open' );
 
-		// Hide modal and remove restricted media modal tab focus once it's closed
+		// Hide modal and remove restricted media modal tab focus once it's closed.
 		this.$el.hide().undelegate( 'keydown' );
 
 		/*

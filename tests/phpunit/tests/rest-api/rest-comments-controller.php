@@ -168,13 +168,13 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_context_param() {
-		// Collection
+		// Collection.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/comments' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
-		// Single
+		// Single.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/comments/' . self::$approved_id );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
@@ -979,10 +979,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertArrayHasKey( 96, $data['author_avatar_urls'] );
 
 		$comment = get_comment( self::$approved_id );
-		/**
-		 * Ignore the subdomain, since 'get_avatar_url randomly sets the Gravatar
-		 * server when building the url string.
-		 */
+		// Ignore the subdomain, since get_avatar_url() randomly sets
+		// the Gravatar server when building the URL string.
 		$this->assertEquals( substr( get_avatar_url( $comment->comment_author_email ), 9 ), substr( $data['author_avatar_urls'][96], 9 ) );
 	}
 
@@ -1565,7 +1563,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$data = $response->get_data();
 		$this->assertEquals( $user_id, $data['author'] );
 
-		// Check author data matches
+		// Check author data matches.
 		$author  = get_user_by( 'id', $user_id );
 		$comment = get_comment( $data['id'] );
 		$this->assertEquals( $author->display_name, $comment->comment_author );
@@ -2072,8 +2070,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function anonymous_comments_callback_null() {
-		// I'm a plugin developer who forgot to include a return value for some
-		// code path in my 'rest_allow_anonymous_comments' filter.
+		// I'm a plugin developer who forgot to include a return value
+		// for some code path in my 'rest_allow_anonymous_comments' filter.
 	}
 
 	public function test_allow_anonymous_comments_null() {
@@ -2332,8 +2330,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', self::$approved_id ) );
 		$request->set_param( 'post', $comment->comment_post_ID );
 
-		// Run twice to make sure that the update still succeeds even if no DB
-		// rows are updated.
+		// Run twice to make sure that the update still succeeds
+		// even if no DB rows are updated.
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
@@ -2793,7 +2791,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function verify_comment_roundtrip( $input = array(), $expected_output = array() ) {
-		// Create the comment
+		// Create the comment.
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$request->set_param( 'author_email', 'cbg@androidsdungeon.com' );
 		$request->set_param( 'post', self::$post_id );
@@ -2804,7 +2802,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 201, $response->get_status() );
 		$actual_output = $response->get_data();
 
-		// Compare expected API output to actual API output
+		// Compare expected API output to actual API output.
 		$this->assertInternalType( 'array', $actual_output['content'] );
 		$this->assertArrayHasKey( 'raw', $actual_output['content'] );
 		$this->assertEquals( $expected_output['content']['raw'], $actual_output['content']['raw'] );
@@ -2812,31 +2810,31 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( $expected_output['author_name'], $actual_output['author_name'] );
 		$this->assertEquals( $expected_output['author_user_agent'], $actual_output['author_user_agent'] );
 
-		// Compare expected API output to WP internal values
+		// Compare expected API output to WP internal values.
 		$comment = get_comment( $actual_output['id'] );
 		$this->assertEquals( $expected_output['content']['raw'], $comment->comment_content );
 		$this->assertEquals( $expected_output['author_name'], $comment->comment_author );
 		$this->assertEquals( $expected_output['author_user_agent'], $comment->comment_agent );
 
-		// Update the comment
+		// Update the comment.
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $actual_output['id'] ) );
 		foreach ( $input as $name => $value ) {
 			$request->set_param( $name, $value );
 		}
-		// FIXME at least one value must change, or update fails
+		// FIXME At least one value must change, or update fails.
 		// See https://core.trac.wordpress.org/ticket/38700
 		$request->set_param( 'author_ip', '127.0.0.2' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$actual_output = $response->get_data();
 
-		// Compare expected API output to actual API output
+		// Compare expected API output to actual API output.
 		$this->assertEquals( $expected_output['content']['raw'], $actual_output['content']['raw'] );
 		$this->assertEquals( $expected_output['content']['rendered'], trim( $actual_output['content']['rendered'] ) );
 		$this->assertEquals( $expected_output['author_name'], $actual_output['author_name'] );
 		$this->assertEquals( $expected_output['author_user_agent'], $actual_output['author_user_agent'] );
 
-		// Compare expected API output to WP internal values
+		// Compare expected API output to WP internal values.
 		$comment = get_comment( $actual_output['id'] );
 		$this->assertEquals( $expected_output['content']['raw'], $comment->comment_content );
 		$this->assertEquals( $expected_output['author_name'], $comment->comment_author );

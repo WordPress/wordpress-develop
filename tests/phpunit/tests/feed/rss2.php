@@ -18,7 +18,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 	 * Setup a new user and attribute some posts.
 	 */
 	public static function wpSetUpBeforeClass( $factory ) {
-		// Create a user
+		// Create a user.
 		self::$user_id = $factory->user->create(
 			array(
 				'role'         => 'author',
@@ -27,7 +27,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 			)
 		);
 
-		// Create a taxonomy
+		// Create a taxonomy.
 		self::$category = $factory->category->create_and_get(
 			array(
 				'name' => 'Foo Category',
@@ -41,7 +41,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$count = get_option( 'posts_per_rss' ) + 1;
 
 		self::$posts = array();
-		// Create a few posts
+		// Create a few posts.
 		for ( $i = 1; $i <= $count; $i++ ) {
 			self::$posts[] = $factory->post->create(
 				array(
@@ -54,7 +54,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 			);
 		}
 
-		// Assign a category to those posts
+		// Assign a category to those posts.
 		foreach ( self::$posts as $post ) {
 			wp_set_object_terms( $post, self::$category->slug, 'category' );
 		}
@@ -68,7 +68,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 
 		$this->post_count   = (int) get_option( 'posts_per_rss' );
 		$this->excerpt_only = get_option( 'rss_use_excerpt' );
-		// this seems to break something
+		// This seems to break something.
 		update_option( 'use_smilies', false );
 
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
@@ -113,7 +113,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$this->assertEquals( 'http://wellformedweb.org/CommentAPI/', $rss[0]['attributes']['xmlns:wfw'] );
 		$this->assertEquals( 'http://purl.org/dc/elements/1.1/', $rss[0]['attributes']['xmlns:dc'] );
 
-		// rss should have exactly one child element (channel)
+		// RSS should have exactly one child element (channel).
 		$this->assertEquals( 1, count( $rss[0]['child'] ) );
 	}
 
@@ -127,13 +127,13 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$feed = $this->do_rss2();
 		$xml  = xml_to_array( $feed );
 
-		// get the rss -> channel element
+		// Get the rss -> channel element.
 		$channel = xml_find( $xml, 'rss', 'channel' );
 
-		// The channel should be free of attributes
+		// The channel should be free of attributes.
 		$this->assertTrue( empty( $channel[0]['attributes'] ) );
 
-		// Verify the channel is present and contains a title child element
+		// Verify the channel is present and contains a title child element.
 		$title = xml_find( $xml, 'rss', 'channel', 'title' );
 		$this->assertEquals( get_option( 'blogname' ), $title[0]['content'] );
 
@@ -180,45 +180,45 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$feed = $this->do_rss2();
 		$xml  = xml_to_array( $feed );
 
-		// Get all the <item> child elements of the <channel> element
+		// Get all the <item> child elements of the <channel> element.
 		$items = xml_find( $xml, 'rss', 'channel', 'item' );
 
 		// Verify we are displaying the correct number of posts.
 		$this->assertCount( $this->post_count, $items );
 
-		// We Really only need to test X number of items unless the content is different
+		// We really only need to test X number of items unless the content is different.
 		$items = array_slice( $items, 1 );
 
-		// Check each of the desired entries against the known post data
+		// Check each of the desired entries against the known post data.
 		foreach ( $items as $key => $item ) {
 
-			// Get post for comparison
+			// Get post for comparison.
 			$guid = xml_find( $items[ $key ]['child'], 'guid' );
 			preg_match( '/\?p=(\d+)/', $guid[0]['content'], $matches );
 			$post = get_post( $matches[1] );
 
-			// Title
+			// Title.
 			$title = xml_find( $items[ $key ]['child'], 'title' );
 			$this->assertEquals( $post->post_title, $title[0]['content'] );
 
-			// Link
+			// Link.
 			$link = xml_find( $items[ $key ]['child'], 'link' );
 			$this->assertEquals( get_permalink( $post ), $link[0]['content'] );
 
-			// Comment link
+			// Comment link.
 			$comments_link = xml_find( $items[ $key ]['child'], 'comments' );
 			$this->assertEquals( get_permalink( $post ) . '#respond', $comments_link[0]['content'] );
 
-			// Pub date
+			// Pub date.
 			$pubdate = xml_find( $items[ $key ]['child'], 'pubDate' );
 			$this->assertEquals( strtotime( $post->post_date_gmt ), strtotime( $pubdate[0]['content'] ) );
 
-			// Author
+			// Author.
 			$creator = xml_find( $items[ $key ]['child'], 'dc:creator' );
 			$user    = new WP_User( $post->post_author );
 			$this->assertEquals( $user->display_name, $creator[0]['content'] );
 
-			// Categories (perhaps multiple)
+			// Categories (perhaps multiple).
 			$categories = xml_find( $items[ $key ]['child'], 'category' );
 			$cats       = array();
 			foreach ( get_the_category( $post->ID ) as $term ) {
@@ -232,32 +232,32 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 				}
 			}
 			$cats = array_filter( $cats );
-			// Should be the same number of categories
+			// Should be the same number of categories.
 			$this->assertEquals( count( $cats ), count( $categories ) );
 
-			// ..with the same names
+			// ..with the same names.
 			foreach ( $cats as $id => $cat ) {
 				$this->assertEquals( $cat, $categories[ $id ]['content'] );
 			}
 
-			// GUID
+			// GUID.
 			$guid = xml_find( $items[ $key ]['child'], 'guid' );
 			$this->assertEquals( 'false', $guid[0]['attributes']['isPermaLink'] );
 			$this->assertEquals( $post->guid, $guid[0]['content'] );
 
-			// Description / Excerpt
+			// Description / Excerpt.
 			if ( ! empty( $post->post_excerpt ) ) {
 				$description = xml_find( $items[ $key ]['child'], 'description' );
 				$this->assertEquals( trim( $post->post_excerpt ), trim( $description[0]['content'] ) );
 			}
 
-			// Post content
+			// Post content.
 			if ( ! $this->excerpt_only ) {
 				$content = xml_find( $items[ $key ]['child'], 'content:encoded' );
 				$this->assertEquals( trim( apply_filters( 'the_content', $post->post_content ) ), trim( $content[0]['content'] ) );
 			}
 
-			// Comment rss
+			// Comment RSS.
 			$comment_rss = xml_find( $items[ $key ]['child'], 'wfw:commentRss' );
 			$this->assertEquals( html_entity_decode( get_post_comments_feed_link( $post->ID ) ), $comment_rss[0]['content'] );
 		}
@@ -273,21 +273,21 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$feed = $this->do_rss2();
 		$xml  = xml_to_array( $feed );
 
-		// get all the rss -> channel -> item elements
+		// Get all the rss -> channel -> item elements.
 		$items = xml_find( $xml, 'rss', 'channel', 'item' );
 
-		// check each of the items against the known post data
+		// Check each of the items against the known post data.
 		foreach ( $items as $key => $item ) {
-			// Get post for comparison
+			// Get post for comparison.
 			$guid = xml_find( $items[ $key ]['child'], 'guid' );
 			preg_match( '/\?p=(\d+)/', $guid[0]['content'], $matches );
 			$post = get_post( $matches[1] );
 
-			// comment link
+			// Comment link.
 			$comments_link = xml_find( $items[ $key ]['child'], 'comments' );
 			$this->assertEmpty( $comments_link );
 
-			// comment rss
+			// Comment RSS.
 			$comment_rss = xml_find( $items[ $key ]['child'], 'wfw:commentRss' );
 			$this->assertEmpty( $comment_rss );
 		}
@@ -358,7 +358,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 	 * @ticket 30210
 	 */
 	function test_valid_main_comment_feed_endpoint() {
-		// Generate a bunch of comments
+		// Generate a bunch of comments.
 		foreach ( self::$posts as $post ) {
 			self::factory()->comment->create_post_comments( $post, 3 );
 		}
@@ -447,7 +447,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 	 * @ticket 30210
 	 */
 	function test_valid_search_feed_endpoint() {
-		// An example of an valid search feed endpoint
+		// An example of an valid search feed endpoint.
 		$this->go_to( '?s=Lorem&feed=rss' );
 
 		// Verify the query object is a feed.

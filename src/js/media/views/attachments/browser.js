@@ -194,9 +194,11 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			}
 		}
 
-		// Feels odd to bring the global media library switcher into the Attachment
-		// browser view. Is this a use case for doAction( 'add:toolbar-items:attachments-browser', this.toolbar );
-		// which the controller can tap into and add this view?
+		/*
+		 * Feels odd to bring the global media library switcher into the Attachment browser view.
+		 * Is this a use case for doAction( 'add:toolbar-items:attachments-browser', this.toolbar );
+		 * which the controller can tap into and add this view?
+		 */
 		if ( this.controller.isModeActive( 'grid' ) ) {
 			LibraryViewSwitcher = View.extend({
 				className: 'view-switch media-grid-view-switch',
@@ -222,7 +224,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 				priority: -75
 			}).render() );
 
-			// BulkSelection is a <div> with subviews, including screen reader text
+			// BulkSelection is a <div> with subviews, including screen reader text.
 			this.toolbar.set( 'selectModeToggleButton', new wp.media.view.SelectModeToggleButton({
 				text: l10n.bulkSelect,
 				controller: this.controller,
@@ -437,7 +439,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			AttachmentView: this.options.AttachmentView
 		});
 
-		// Add keydown listener to the instance of the Attachments view
+		// Add keydown listener to the instance of the Attachments view.
 		this.controller.on( 'attachment:keydown:arrow',     _.bind( this.attachments.arrowEvent, this.attachments ) );
 		this.controller.on( 'attachment:details:shift-tab', _.bind( this.attachments.restoreFocus, this.attachments ) );
 
@@ -516,7 +518,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			}) );
 		}
 
-		// Show the sidebar on mobile
+		// Show the sidebar on mobile.
 		if ( this.model.id === 'insert' ) {
 			sidebar.$el.addClass( 'visible' );
 		}
@@ -527,7 +529,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		sidebar.unset('details');
 		sidebar.unset('compat');
 		sidebar.unset('display');
-		// Hide the sidebar on mobile
+		// Hide the sidebar on mobile.
 		sidebar.$el.removeClass( 'visible' );
 	}
 });

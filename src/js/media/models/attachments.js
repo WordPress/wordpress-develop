@@ -133,9 +133,8 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 			return;
 		}
 
-		// If no `Attachments` model is provided to source the searches
-		// from, then automatically generate a source from the existing
-		// models.
+		// If no `Attachments` model is provided to source the searches from,
+		// then automatically generate a source from the existing models.
 		if ( ! this._source ) {
 			this._source = new Attachments( this.models );
 		}
@@ -326,10 +325,12 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		if ( ! mirroring || ! mirroring.more ) {
 			return deferred.resolveWith( this ).promise();
 		}
-		// If we're mirroring another collection, forward `more` to
-		// the mirrored collection. Account for a race condition by
-		// checking if we're still mirroring that collection when
-		// the request resolves.
+		/*
+		 * If we're mirroring another collection, forward `more` to
+		 * the mirrored collection. Account for a race condition by
+		 * checking if we're still mirroring that collection when
+		 * the request resolves.
+		 */
 		mirroring.more( options ).done( function() {
 			if ( this === attachments.mirroring ) {
 				deferred.resolveWith( this );
@@ -412,9 +413,11 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 			return;
 		}
 
-		// Removes any uploading attachments, updates each attachment's
-		// menu order, and returns an object with an { id: menuOrder }
-		// mapping to pass to the request.
+		/*
+		 * Removes any uploading attachments, updates each attachment's
+		 * menu order, and returns an object with an { id: menuOrder }
+		 * mapping to pass to the request.
+		 */
 		var attachments = this.chain().filter( function( attachment ) {
 			return ! _.isUndefined( attachment.id );
 		}).map( function( attachment, index ) {

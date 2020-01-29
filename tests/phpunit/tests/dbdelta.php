@@ -195,7 +195,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 
 		global $wpdb;
 
-		// No column column_1
+		// No column column_1.
 		$updates = dbDelta(
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
@@ -219,7 +219,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 
 		global $wpdb;
 
-		// Added column extra_col
+		// Added column extra_col.
 		$updates = dbDelta(
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
@@ -381,7 +381,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 			$this->markTestSkipped( 'This test requires utf8mb4 support in MySQL.' );
 		}
 
-		// This table needs to be actually created
+		// This table needs to be actually created.
 		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
 		remove_filter( 'query', array( $this, '_drop_temporary_tables' ) );
 

@@ -61,7 +61,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			update_site_option( 'site_admins', array( 'superadmin' ) );
 		}
 
-		// Only support 'post' and 'gallery'
+		// Only support 'post' and 'gallery'.
 		self::$supported_formats = get_theme_support( 'post-formats' );
 		add_theme_support( 'post-formats', array( 'post', 'gallery' ) );
 
@@ -150,13 +150,13 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_context_param() {
-		// Collection
+		// Collection.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
-		// Single
+		// Single.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts/' . self::$post_id );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
@@ -1454,7 +1454,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 * @ticket 39061
 	 */
 	public function test_get_items_invalid_max_pages() {
-		// Out of bounds
+		// Out of bounds.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'page', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 		$response = rest_get_server()->dispatch( $request );
@@ -2050,7 +2050,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		add_filter( 'theme_post_templates', array( $this, 'filter_theme_post_templates' ) );
 
-		// reregister the route as we now have a template available.
+		// Re-register the route as we now have a template available.
 		$GLOBALS['wp_rest_server']->override_by_default = true;
 		$controller                                     = new WP_REST_Posts_Controller( 'post' );
 		$controller->register_routes();
@@ -2152,8 +2152,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
 		$params  = $this->set_post_data(
 			array(
-				// This results in a special `post_date_gmt` value of
-				// '0000-00-00 00:00:00'.  See #38883.
+				// This results in a special `post_date_gmt` value
+				// of '0000-00-00 00:00:00'. See #38883.
 				'status' => 'pending',
 			)
 		);
@@ -2252,7 +2252,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$new_post = get_post( $data['id'] );
 		$this->assertEquals( 'draft', $data['status'] );
 		$this->assertEquals( 'draft', $new_post->post_status );
-		// Confirm dates are shimmed for gmt_offset
+		// Confirm dates are shimmed for gmt_offset.
 		$post_modified_gmt = gmdate( 'Y-m-d H:i:s', strtotime( $new_post->post_modified ) + ( get_option( 'gmt_offset' ) * 3600 ) );
 		$post_date_gmt     = gmdate( 'Y-m-d H:i:s', strtotime( $new_post->post_date ) + ( get_option( 'gmt_offset' ) * 3600 ) );
 
@@ -2775,8 +2775,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 		$request->set_param( 'author', $post->post_author );
 
-		// Run twice to make sure that the update still succeeds even if no DB
-		// rows are updated.
+		// Run twice to make sure that the update still succeeds
+		// even if no DB rows are updated.
 		$response = rest_get_server()->dispatch( $request );
 		$this->check_update_post_response( $response );
 
@@ -3224,7 +3224,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$post = get_post( $new_data['id'] );
 		$this->assertEquals( true, is_sticky( $post->ID ) );
 
-		// Updating another field shouldn't change sticky status
+		// Updating another field shouldn't change sticky status.
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 		$params  = $this->set_post_data(
 			array(
@@ -3564,7 +3564,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function verify_post_roundtrip( $input = array(), $expected_output = array() ) {
-		// Create the post
+		// Create the post.
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
 		foreach ( $input as $name => $value ) {
 			$request->set_param( $name, $value );
@@ -3573,7 +3573,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( 201, $response->get_status() );
 		$actual_output = $response->get_data();
 
-		// Compare expected API output to actual API output
+		// Compare expected API output to actual API output.
 		$this->assertEquals( $expected_output['title']['raw'], $actual_output['title']['raw'] );
 		$this->assertEquals( $expected_output['title']['rendered'], trim( $actual_output['title']['rendered'] ) );
 		$this->assertEquals( $expected_output['content']['raw'], $actual_output['content']['raw'] );
@@ -3581,13 +3581,13 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( $expected_output['excerpt']['raw'], $actual_output['excerpt']['raw'] );
 		$this->assertEquals( $expected_output['excerpt']['rendered'], trim( $actual_output['excerpt']['rendered'] ) );
 
-		// Compare expected API output to WP internal values
+		// Compare expected API output to WP internal values.
 		$post = get_post( $actual_output['id'] );
 		$this->assertEquals( $expected_output['title']['raw'], $post->post_title );
 		$this->assertEquals( $expected_output['content']['raw'], $post->post_content );
 		$this->assertEquals( $expected_output['excerpt']['raw'], $post->post_excerpt );
 
-		// Update the post
+		// Update the post.
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $actual_output['id'] ) );
 		foreach ( $input as $name => $value ) {
 			$request->set_param( $name, $value );
@@ -3596,7 +3596,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( 200, $response->get_status() );
 		$actual_output = $response->get_data();
 
-		// Compare expected API output to actual API output
+		// Compare expected API output to actual API output.
 		$this->assertEquals( $expected_output['title']['raw'], $actual_output['title']['raw'] );
 		$this->assertEquals( $expected_output['title']['rendered'], trim( $actual_output['title']['rendered'] ) );
 		$this->assertEquals( $expected_output['content']['raw'], $actual_output['content']['raw'] );
@@ -3604,7 +3604,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( $expected_output['excerpt']['raw'], $actual_output['excerpt']['raw'] );
 		$this->assertEquals( $expected_output['excerpt']['rendered'], trim( $actual_output['excerpt']['rendered'] ) );
 
-		// Compare expected API output to WP internal values
+		// Compare expected API output to WP internal values.
 		$post = get_post( $actual_output['id'] );
 		$this->assertEquals( $expected_output['title']['raw'], $post->post_title );
 		$this->assertEquals( $expected_output['content']['raw'], $post->post_content );
@@ -3927,7 +3927,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		// Register a taxonomy with 'status' as name.
 		register_taxonomy( 'status', 'post', array( 'show_in_rest' => true ) );
 
-		// Re-initialize the controller
+		// Re-initialize the controller.
 		$controller = new WP_REST_Posts_Controller( 'post' );
 		$controller->register_routes();
 	}
@@ -4538,7 +4538,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'context', 'edit' );
 		$response = rest_do_request( $request );
 		$links    = $response->get_links();
-		// Authors can't ever unfiltered html
+		// Authors can't ever unfiltered html.
 		$this->assertArrayNotHasKey( 'https://api.w.org/action-unfiltered-html', $links );
 	}
 

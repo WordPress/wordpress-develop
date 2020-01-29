@@ -8,7 +8,7 @@ jQuery( window ).load( function (){
 	module( 'Customize Nav Menus' );
 
 	/**
-	 * Generate 20 ids and verify they are all unique.
+	 * Generate 20 IDs and verify they are all unique.
 	 */
 	test( 'generatePlaceholderAutoIncrementId generates unique IDs', function() {
 		var testIterations = 20,
@@ -36,7 +36,8 @@ jQuery( window ).load( function (){
 		ok( 0 !== wp.customize.Menus.getMenuControl( primaryMenuId ).getMenuItemControls().length, 'non-empty menus' );
 	} );
 
-	// @todo Add tests for api.Menus.AvailableMenuItemsPanelView (and api.Menus.AvailableItemCollection, api.Menus.AvailableItemCollection, api.Menus.AvailableItemModel)
+	// @todo Add tests for api.Menus.AvailableMenuItemsPanelView
+	// (and api.Menus.AvailableItemCollection, api.Menus.AvailableItemModel).
 
 	test( 'there is a properly configured MenusPanel', function() {
 		var panel, sections;
@@ -50,7 +51,7 @@ jQuery( window ).load( function (){
 		ok( sections[1].extended( api.Menus.MenuSection ), 'second section is MenuSection' );
 		ok( sections[ sections.length - 1 ].extended( api.Menus.NewMenuSection ), 'last section is NewMenuSection' );
 	} );
-	// @todo Add more tests for api.Menus.MenusPanel behaviors
+	// @todo Add more tests for api.Menus.MenusPanel behaviors.
 
 	test( 'there an expected MenuSection for the primary menu', function() {
 		var section, controls, lastControl;
@@ -70,7 +71,7 @@ jQuery( window ).load( function (){
 		ok( lastControl.extended( api.Control ), 'last control in menu section is a base Control' );
 		ok( lastControl.params.templateId === 'nav-menu-delete-button', 'last control in menu section has a delete-button template' );
 	} );
-	// @todo Add more tests for api.Menus.MenuSection behaviors
+	// @todo Add more tests for api.Menus.MenuSection behaviors.
 
 	test( 'changing a MenuNameControl change the corresponding menu value', function() {
 		var section, control;
@@ -104,18 +105,18 @@ jQuery( window ).load( function (){
 		equal( value.position, 1 );
 		equal( control.priority(), 1 );
 
-		// @todo test control.moveDown();
+		// @todo Test control.moveDown().
 	} );
-	// @todo Add more tests for api.Menus.MenuItemControl
+	// @todo Add more tests for api.Menus.MenuItemControl.
 
-	// @todo Add tests for api.Menus.NewMenuSection
-	// @todo Add tests for api.Menus.MenuLocationControl
-	// @todo Add tests for api.Menus.MenuLocationsControl
-	// @todo Add tests for api.Menus.MenuAutoAddControl
-	// @todo Add tests for api.Menus.MenuControl
-	// @todo Add tests for api.Menus.applySavedData
-	// @todo Add tests for api.Menus.focusMenuItemControl
-	// @todo Add tests for api.Menus.createNavMenu
+	// @todo Add tests for api.Menus.NewMenuSection.
+	// @todo Add tests for api.Menus.MenuLocationControl.
+	// @todo Add tests for api.Menus.MenuLocationsControl.
+	// @todo Add tests for api.Menus.MenuAutoAddControl.
+	// @todo Add tests for api.Menus.MenuControl.
+	// @todo Add tests for api.Menus.applySavedData.
+	// @todo Add tests for api.Menus.focusMenuItemControl.
+	// @todo Add tests for api.Menus.createNavMenu.
 
 	test( 'api.Menus.getMenuControl() should return the expected control', function() {
 		var control = api.Menus.getMenuControl( primaryMenuId );

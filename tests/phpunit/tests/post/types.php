@@ -32,7 +32,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Post_Type', $pobj );
 		$this->assertEquals( 'foo', $pobj->name );
 
-		// Test some defaults
+		// Test some defaults.
 		$this->assertFalse( is_post_type_hierarchical( 'foo' ) );
 		$this->assertEquals( array(), get_object_taxonomies( 'foo' ) );
 
@@ -45,7 +45,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage register_post_type
 	 */
 	function test_register_post_type_with_too_long_name() {
-		// post type too long
+		// Post type too long.
 		$this->assertInstanceOf( 'WP_Error', register_post_type( 'abcdefghijklmnopqrstuvwxyz0123456789' ) );
 	}
 
@@ -55,7 +55,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage register_post_type
 	 */
 	function test_register_post_type_with_empty_name() {
-		// post type too short
+		// Post type too short.
 		$this->assertInstanceOf( 'WP_Error', register_post_type( '' ) );
 	}
 
@@ -333,7 +333,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		$this->assertTrue( unregister_post_type( 'foo' ) );
 		$this->assertNotContains( '%foo%', $wp_rewrite->rewritecode );
 		$this->assertNotContains( 'bar=', $wp_rewrite->queryreplace );
-		$this->assertSame( -- $count_before, count( $wp_rewrite->rewritereplace ) ); // Array was reduced by one value.
+		$this->assertSame( --$count_before, count( $wp_rewrite->rewritereplace ) ); // Array was reduced by one value.
 	}
 
 	/**

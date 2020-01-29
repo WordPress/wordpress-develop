@@ -7,7 +7,7 @@
 class Tests_Compat extends WP_UnitTestCase {
 	function utf8_string_lengths() {
 		return array(
-			//                     string, character_length, byte_length
+			// String, character_length, byte_length.
 			array( 'баба', 4, 8 ),
 			array( 'баб', 3, 6 ),
 			array( 'I am your б', 11, 12 ),
@@ -21,7 +21,7 @@ class Tests_Compat extends WP_UnitTestCase {
 
 	function utf8_substrings() {
 		return array(
-			//               string, start, length, character_substring,   byte_substring
+			// String, start, length, character_substring, byte_substring.
 			array( 'баба', 0, 3, 'баб', "б\xD0" ),
 			array( 'баба', 0, -1, 'баб', "баб\xD0" ),
 			array( 'баба', 1, null, 'аба', "\xB1аба" ),
@@ -86,7 +86,7 @@ class Tests_Compat extends WP_UnitTestCase {
 		$this->assertEquals( 'DEF', _mb_substr( $string_ascii, 3 ) );
 		$this->assertEquals( 'DEF', _mb_substr( $string_ascii, 3, 5, 'ISO-8859-1' ) );
 
-		// specific latin-1 as that is the default the core php test opporates under
+		// Specific latin-1 as that is the default the core PHP test operates under.
 		$this->assertEquals( 'peacrOiqng==', base64_encode( _mb_substr( $string_mb, 2, 7, 'latin-1' ) ) );
 		$this->assertEquals( '6Kqe44OG44Kt44K544OI44Gn44GZ', base64_encode( _mb_substr( $string_mb, 2, 7, 'utf-8' ) ) );
 
@@ -103,28 +103,28 @@ EOT;
 			1,
 			12345,
 			-2345,
-			// float data
+			// Float data.
 			10.5,
 			-10.5,
 			12.3456789000e10,
 			12.3456789000E-10,
 			.5,
-			// null data
+			// Null data.
 			null,
 			null,
-			// boolean data
+			// Boolean data.
 			true,
 			false,
 			true,
 			false,
-			// empty data
+			// Empty data.
 			'',
 			'',
-			// string data
+			// String data.
 			'string',
 			'string',
 			$heredoc,
-			// object data
+			// Object data.
 			new ClassA(),
 			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- intentionally undefined data
 			@$undefined_var,

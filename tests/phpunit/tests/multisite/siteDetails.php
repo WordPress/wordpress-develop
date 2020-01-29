@@ -134,7 +134,7 @@ if ( is_multisite() ) :
 
 			$site = get_site( $id );
 
-			// Trigger retrieving site details (post_count is not set on new sites)
+			// Trigger retrieving site details (post_count is not set on new sites).
 			$post_count = $site->post_count;
 
 			$cached_details = wp_cache_get( $site->id, 'site-details' );

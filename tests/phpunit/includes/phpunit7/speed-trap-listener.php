@@ -154,7 +154,7 @@ class SpeedTrapListener implements PHPUnit_Framework_TestListener {
 		$this->suites--;
 
 		if ( 0 === $this->suites && $this->hasSlowTests() ) {
-			arsort( $this->slow ); // Sort longest running tests to the top
+			arsort( $this->slow ); // Sort longest running tests to the top.
 
 			$this->renderHeader();
 			$this->renderBody();

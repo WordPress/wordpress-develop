@@ -50,7 +50,7 @@ class Tests_User_Settings extends WP_UnitTestCase {
 		$this->assertEquals( 'foobarbaz', get_user_setting( 'foo' ) );
 	}
 
-	// set_user_setting bails if `headers_sent()` is true
+	// set_user_setting() bails if `headers_sent()` is true.
 	function set_user_setting( $name, $value ) {
 		$all_user_settings          = get_all_user_settings();
 		$all_user_settings[ $name ] = $value;

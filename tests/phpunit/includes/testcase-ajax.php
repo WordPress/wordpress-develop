@@ -120,7 +120,7 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 		remove_action( 'admin_init', '_maybe_update_plugins' );
 		remove_action( 'admin_init', '_maybe_update_themes' );
 
-		// Register the core actions
+		// Register the core actions.
 		foreach ( array_merge( self::$_core_actions_get, self::$_core_actions_post ) as $action ) {
 			if ( function_exists( 'wp_ajax_' . str_replace( '-', '_', $action ) ) ) {
 				add_action( 'wp_ajax_' . $action, 'wp_ajax_' . str_replace( '-', '_', $action ), 1 );
@@ -143,14 +143,14 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 
 		set_current_screen( 'ajax' );
 
-		// Clear logout cookies
+		// Clear logout cookies.
 		add_action( 'clear_auth_cookie', array( $this, 'logout' ) );
 
-		// Suppress warnings from "Cannot modify header information - headers already sent by"
+		// Suppress warnings from "Cannot modify header information - headers already sent by".
 		$this->_error_level = error_reporting();
 		error_reporting( $this->_error_level & ~E_WARNING );
 
-		// Make some posts
+		// Make some posts.
 		self::factory()->post->create_many( 5 );
 	}
 
@@ -251,20 +251,20 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	 */
 	protected function _handleAjax( $action ) {
 
-		// Start output buffering
+		// Start output buffering.
 		ini_set( 'implicit_flush', false );
 		ob_start();
 
-		// Build the request
+		// Build the request.
 		$_POST['action'] = $action;
 		$_GET['action']  = $action;
 		$_REQUEST        = array_merge( $_POST, $_GET );
 
-		// Call the hooks
+		// Call the hooks.
 		do_action( 'admin_init' );
 		do_action( 'wp_ajax_' . $_REQUEST['action'], null );
 
-		// Save the output
+		// Save the output.
 		$buffer = ob_get_clean();
 		if ( ! empty( $buffer ) ) {
 			$this->_last_response = $buffer;

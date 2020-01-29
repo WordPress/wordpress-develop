@@ -1,11 +1,11 @@
 <?php
 /**
- * Admin ajax functions to be tested
+ * Admin Ajax functions to be tested.
  */
 require_once( ABSPATH . 'wp-admin/includes/ajax-actions.php' );
 
 /**
- * Testing ajax media editing
+ * Testing Ajax media editing.
  *
  * @package    WordPress
  * @subpackage UnitTests
@@ -18,7 +18,7 @@ class Tests_Ajax_MediaEdit extends WP_Ajax_UnitTestCase {
 	 * Tear down the test fixture.
 	 */
 	public function tearDown() {
-		// Cleanup
+		// Cleanup.
 		$this->remove_added_uploads();
 		parent::tearDown();
 	}

@@ -234,7 +234,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$upload              = wp_upload_bits( wp_basename( $filename ), null, $contents );
 		$this->site_icon_url = $upload['url'];
 
-		// Save the data
+		// Save the data.
 		$this->site_icon_id = $this->_make_attachment( $upload );
 		return $this->site_icon_id;
 	}
@@ -445,7 +445,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @since 4.6.0
 	 */
 	function test_get_the_modified_time_failures_are_filtered() {
-		// Remove global post objet
+		// Remove global post object.
 		$GLOBALS['post'] = null;
 
 		$expected = 'filtered modified time failure result';
@@ -516,7 +516,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @since 4.6.0
 	 */
 	function test_get_the_modified_date_failures_are_filtered() {
-		// Remove global post objet
+		// Remove global post object.
 		$GLOBALS['post'] = null;
 
 		$expected = 'filtered modified date failure result';

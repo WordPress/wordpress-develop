@@ -5,7 +5,7 @@
  * Test script for wp_mail with real addresses.
  */
 
-// parse options
+// Parse options.
 $options = 'v:r:d';
 if ( is_callable( 'getopt' ) ) {
 	$opts = getopt( $options );
@@ -27,24 +27,24 @@ if ( ! empty( $opts['r'] ) ) {
 	define( 'DIR_WP', DIR_TESTROOT . '/wordpress' );
 }
 
-// make sure all useful errors are displayed during setup
+// Make sure all useful errors are displayed during setup.
 error_reporting( E_ALL & ~E_DEPRECATED );
 ini_set( 'display_errors', true );
 
 require_once( DIR_TESTROOT . '/wp-testlib/utils.php' );
 
-// configure wp
+// Configure WP.
 require_once( DIR_TESTROOT . '/wp-config.php' );
 define( 'ABSPATH', realpath( DIR_WP ) . '/' );
 
-// install wp
+// Install WP.
 define( 'WP_BLOG_TITLE', rand_str() );
 define( 'WP_USER_NAME', rand_str() );
 define( 'WP_USER_EMAIL', rand_str() . '@example.com' );
 
-// initialize wp
+// Initialize WP.
 define( 'WP_INSTALLING', 1 );
-$_SERVER['PATH_INFO'] = $_SERVER['SCRIPT_NAME']; // prevent a warning from some sloppy code in wp-settings.php
+$_SERVER['PATH_INFO'] = $_SERVER['SCRIPT_NAME']; // Prevent a warning from some sloppy code in wp-settings.php.
 require_once( ABSPATH . 'wp-settings.php' );
 
 drop_tables();
@@ -52,14 +52,14 @@ drop_tables();
 require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 wp_install( WP_BLOG_TITLE, WP_USER_NAME, WP_USER_EMAIL, true );
 
-// make sure we're installed
+// Make sure we're installed.
 assert( true === is_blog_installed() );
 
 // phpcs:ignore Generic.NamingConventions.UpperCaseConstantName.ConstantNotUpperCase
 define( 'PHPUnit_MAIN_METHOD', false );
 $original_wpdb = $GLOBALS['wpdb'];
 
-// hide warnings during testing, since that's the normal WP behaviour
+// Hide warnings during testing, since that's the normal WP behaviour.
 if ( ! WP_DEBUG ) {
 	error_reporting( E_ALL ^ E_NOTICE );
 }

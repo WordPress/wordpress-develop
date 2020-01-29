@@ -1,6 +1,6 @@
 <?php
 
-// misc help functions and utilities
+// Misc help functions and utilities.
 
 function rand_str( $len = 32 ) {
 	return substr( md5( uniqid( rand() ) ), 0, $len );
@@ -18,7 +18,7 @@ function rand_long_str( $length ) {
 	return $string;
 }
 
-// strip leading and trailing whitespace from each line in the string
+// Strip leading and trailing whitespace from each line in the string.
 function strip_ws( $txt ) {
 	$lines  = explode( "\n", $txt );
 	$result = array();
@@ -31,10 +31,12 @@ function strip_ws( $txt ) {
 	return trim( join( "\n", $result ) );
 }
 
-// helper class for testing code that involves actions and filters
-// typical use:
-// $ma = new MockAction();
-// add_action('foo', array(&$ma, 'action'));
+/*
+ * Helper class for testing code that involves actions and filters.
+ * Typical use:
+ * $ma = new MockAction();
+ * add_action( 'foo', array( &$ma, 'action' ) );
+ */
 class MockAction {
 	var $events;
 	var $debug;
@@ -129,7 +131,7 @@ class MockAction {
 	}
 
 	function filterall( $tag, ...$args ) {
-		// this one doesn't return the result, so it's safe to use with the new 'all' filter
+		// This one doesn't return the result, so it's safe to use with the new 'all' filter.
 		if ( $this->debug ) {
 			dmp( __FUNCTION__, $this->current_filter() );
 		}
@@ -141,12 +143,12 @@ class MockAction {
 		);
 	}
 
-	// return a list of all the actions, tags and args
+	// Return a list of all the actions, tags and args.
 	function get_events() {
 		return $this->events;
 	}
 
-	// return a count of the number of times the action was called since the last reset
+	// Return a count of the number of times the action was called since the last reset.
 	function get_call_count( $tag = '' ) {
 		if ( $tag ) {
 			$count = 0;
@@ -160,7 +162,7 @@ class MockAction {
 		return count( $this->events );
 	}
 
-	// return an array of the tags that triggered calls to this action
+	// Return an array of the tags that triggered calls to this action.
 	function get_tags() {
 		$out = array();
 		foreach ( $this->events as $e ) {
@@ -169,7 +171,7 @@ class MockAction {
 		return $out;
 	}
 
-	// return an array of args passed in calls to this action
+	// Return an array of args passed in calls to this action.
 	function get_args() {
 		$out = array();
 		foreach ( $this->events as $e ) {
@@ -179,8 +181,8 @@ class MockAction {
 	}
 }
 
-// convert valid xml to an array tree structure
-// kinda lame but it works with a default php 4 installation
+// Convert valid XML to an array tree structure.
+// Kinda lame, but it works with a default PHP 4 installation.
 class TestXMLParser {
 	var $xml;
 	var $data = array();
@@ -312,7 +314,7 @@ function get_echo( $callable, $args = array() ) {
 	return ob_get_clean();
 }
 
-// recursively generate some quick assertEquals tests based on an array
+// Recursively generate some quick assertEquals() tests based on an array.
 function gen_tests_array( $name, $array ) {
 	$out = array();
 	foreach ( $array as $k => $v ) {
@@ -367,7 +369,7 @@ function print_backtrace() {
 	echo "\n";
 }
 
-// mask out any input fields matching the given name
+// Mask out any input fields matching the given name.
 function mask_input_value( $in, $name = '_wpnonce' ) {
 	return preg_replace( '@<input([^>]*) name="' . preg_quote( $name ) . '"([^>]*) value="[^>]*" />@', '<input$1 name="' . preg_quote( $name ) . '"$2 value="***" />', $in );
 }
@@ -395,7 +397,7 @@ function _unregister_post_status( $status ) {
 }
 
 function _cleanup_query_vars() {
-	// clean out globals to stop them polluting wp and wp_query
+	// Clean out globals to stop them polluting wp and wp_query.
 	foreach ( $GLOBALS['wp']->public_query_vars as $v ) {
 		unset( $GLOBALS[ $v ] );
 	}

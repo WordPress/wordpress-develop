@@ -245,13 +245,13 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 
 	function test_post_type_with_special_suffix_as_hookname() {
 		register_post_type( 'value-add' );
-		$screen = convert_to_screen( 'value-add' ); // the -add part is key.
+		$screen = convert_to_screen( 'value-add' ); // The '-add' part is key.
 		$this->assertEquals( $screen->post_type, 'value-add' );
 		$this->assertEquals( $screen->base, 'post' );
 		$this->assertEquals( $screen->id, 'value-add' );
 		$this->assertFalse( $screen->is_block_editor ); // Post types do not support `show_in_rest` by default.
 
-		$screen = convert_to_screen( 'edit-value-add' ); // the -add part is key.
+		$screen = convert_to_screen( 'edit-value-add' ); // The '-add' part is key.
 		$this->assertEquals( $screen->post_type, 'value-add' );
 		$this->assertEquals( $screen->base, 'edit' );
 		$this->assertEquals( $screen->id, 'edit-value-add' );
@@ -260,7 +260,7 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 
 	function test_taxonomy_with_special_suffix_as_hookname() {
 		register_taxonomy( 'old-or-new', 'post' );
-		$screen = convert_to_screen( 'edit-old-or-new' ); // the -new part is key.
+		$screen = convert_to_screen( 'edit-old-or-new' ); // The '-new' part is key.
 		$this->assertEquals( $screen->taxonomy, 'old-or-new' );
 		$this->assertEquals( $screen->base, 'edit-tags' );
 		$this->assertEquals( $screen->id, 'edit-old-or-new' );
@@ -369,12 +369,12 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 			'id'       => $tab_4,
 			'content'  => 'some content',
 			'callback' => false,
-			// Don't include a priority
+			// Don't include a priority.
 		);
 
 		$screen = get_current_screen();
 
-		// add help tabs.
+		// Add help tabs.
 
 		$screen->add_help_tab( $tab_1_args );
 		$this->assertequals( $screen->get_help_tab( $tab_1 ), $tab_1_args );
@@ -386,7 +386,7 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 		$this->assertEquals( $screen->get_help_tab( $tab_3 ), $tab_3_args );
 
 		$screen->add_help_tab( $tab_4_args );
-		// Priority is added with the default for future calls
+		// Priority is added with the default for future calls.
 		$tab_4_args['priority'] = 10;
 		$this->assertEquals( $screen->get_help_tab( $tab_4 ), $tab_4_args );
 

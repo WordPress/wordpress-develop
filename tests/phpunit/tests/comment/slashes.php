@@ -8,12 +8,12 @@
 class Tests_Comment_Slashes extends WP_UnitTestCase {
 	function setUp() {
 		parent::setUp();
-		// we need an admin user to bypass comment flood protection
+		// We need an admin user to bypass comment flood protection.
 		$this->author_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $this->author_id );
 
-		// it is important to test with both even and odd numbered slashes as
-		// kses does a strip-then-add slashes in some of its function calls
+		// It is important to test with both even and odd numbered slashes,
+		// as KSES does a strip-then-add slashes in some of its function calls.
 		$this->slash_1 = 'String with 1 slash \\';
 		$this->slash_2 = 'String with 2 slashes \\\\';
 		$this->slash_3 = 'String with 3 slashes \\\\\\';
@@ -24,13 +24,13 @@ class Tests_Comment_Slashes extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the extended model function that expects slashed data
+	 * Tests the extended model function that expects slashed data.
 	 */
 	function test_wp_new_comment() {
 		$post_id = self::factory()->post->create();
 
-		// not testing comment_author_email or comment_author_url
-		// as slashes are not permitted in that data
+		// Not testing comment_author_email or comment_author_url
+		// as slashes are not permitted in that data.
 		$data = array(
 			'comment_post_ID'      => $post_id,
 			'comment_author'       => $this->slash_1,
@@ -63,7 +63,7 @@ class Tests_Comment_Slashes extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the controller function that expects slashed data
+	 * Tests the controller function that expects slashed data.
 	 */
 	function test_edit_comment() {
 		$post_id    = self::factory()->post->create();
@@ -73,8 +73,8 @@ class Tests_Comment_Slashes extends WP_UnitTestCase {
 			)
 		);
 
-		// not testing comment_author_email or comment_author_url
-		// as slashes are not permitted in that data
+		// Not testing comment_author_email or comment_author_url
+		// as slashes are not permitted in that data.
 		$_POST                            = array();
 		$_POST['comment_ID']              = $comment_id;
 		$_POST['comment_status']          = '';
@@ -82,7 +82,8 @@ class Tests_Comment_Slashes extends WP_UnitTestCase {
 		$_POST['newcomment_author_url']   = '';
 		$_POST['newcomment_author_email'] = '';
 		$_POST['content']                 = $this->slash_7;
-		$_POST                            = add_magic_quotes( $_POST );
+
+		$_POST = add_magic_quotes( $_POST ); // The edit_comment() function will strip slashes.
 
 		edit_comment();
 		$comment = get_comment( $comment_id );
@@ -97,7 +98,8 @@ class Tests_Comment_Slashes extends WP_UnitTestCase {
 		$_POST['newcomment_author_url']   = '';
 		$_POST['newcomment_author_email'] = '';
 		$_POST['content']                 = $this->slash_4;
-		$_POST                            = add_magic_quotes( $_POST );
+
+		$_POST = add_magic_quotes( $_POST ); // The edit_comment() function will strip slashes.
 
 		edit_comment();
 		$comment = get_comment( $comment_id );
@@ -107,7 +109,7 @@ class Tests_Comment_Slashes extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the model function that expects slashed data
+	 * Tests the model function that expects slashed data.
 	 */
 	function test_wp_insert_comment() {
 		$post_id = self::factory()->post->create();
@@ -138,7 +140,7 @@ class Tests_Comment_Slashes extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the model function that expects slashed data
+	 * Tests the model function that expects slashed data.
 	 */
 	function test_wp_update_comment() {
 		$post_id    = self::factory()->post->create();

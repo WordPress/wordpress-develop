@@ -20,9 +20,9 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 	}
 
 	public static function wpSetUpBeforeClass( $factory ) {
-		// note that our top/children/grandchildren arrays are 1-indexed
+		// Note that our top/children/grandchildren arrays are 1-indexed.
 
-		// create top level pages
+		// Create top-level pages.
 		$num_posts = 5;
 		foreach ( range( 1, $num_posts ) as $i ) {
 			$p = $factory->post->create_and_get(
@@ -36,7 +36,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 			self::$post_ids[] = $p->ID;
 		}
 
-		// create child pages
+		// Create child pages.
 		$num_children = 3;
 		foreach ( self::$top as $top => $top_page ) {
 			foreach ( range( 1, $num_children ) as $i ) {
@@ -53,7 +53,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 			}
 		}
 
-		// create grand-child pages for the third and fourth top-level pages
+		// Create grand-child pages for the third and fourth top-level pages.
 		$num_grandchildren = 3;
 		foreach ( range( 3, 4 ) as $top ) {
 			foreach ( self::$children[ $top ] as $child => $child_page ) {
@@ -144,7 +144,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 	 * @ticket 15459
 	 */
 	function test_grandchildren_hierarchical_pages_first_page() {
-		// page 6 is the first page with grandchildren
+		// Page 6 is the first page with grandchildren.
 		$this->_test_list_hierarchical_page(
 			array(
 				'paged'          => 6,
@@ -163,7 +163,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 	 * @ticket 15459
 	 */
 	function test_grandchildren_hierarchical_pages_second_page() {
-		// page 7 is the second page with grandchildren
+		// Page 7 is the second page with grandchildren.
 		$this->_test_list_hierarchical_page(
 			array(
 				'paged'          => 7,

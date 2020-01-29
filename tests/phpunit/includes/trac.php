@@ -33,7 +33,7 @@ class TracTickets {
 					return true; // Assume the ticket is closed, which means it gets run.
 				}
 			} else {
-				$tickets = substr( $tickets, 2 ); // remove 'id' column header
+				$tickets = substr( $tickets, 2 ); // Remove 'id' column header.
 				$tickets = trim( $tickets );
 				file_put_contents( $file, $tickets );
 			}

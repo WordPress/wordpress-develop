@@ -20,14 +20,14 @@ class Tests_Category extends WP_UnitTestCase {
 	 * @expectedDeprecated get_all_category_ids
 	 */
 	function test_get_all_category_ids() {
-		// create categories
+		// Ccreate categories.
 		self::factory()->category->create_many( 2 );
 
-		// create new taxonomy to ensure not included
+		// Create new taxonomy to ensure not included.
 		register_taxonomy( 'test_tax_cat', 'post' );
 		wp_insert_term( 'test1', 'test_tax_cat' );
 
-		// Validate length is 1 + created due to uncategorized
+		// Validate length is 1 + created due to uncategorized.
 		$cat_ids = get_all_category_ids();
 		$this->assertEquals( 3, count( $cat_ids ) );
 	}
@@ -37,7 +37,7 @@ class Tests_Category extends WP_UnitTestCase {
 	 */
 	function test_get_category_by_slug() {
 
-		// create Test Categories
+		// Create test categories.
 		$testcat  = self::factory()->category->create_and_get(
 			array(
 				'slug' => 'testcat',
@@ -51,13 +51,13 @@ class Tests_Category extends WP_UnitTestCase {
 			)
 		);
 
-		// validate category is returned by slug
+		// Validate category is returned by slug.
 		$ret_testcat = get_category_by_slug( 'testcat' );
 		$this->assertEquals( $testcat->term_id, $ret_testcat->term_id );
 		$ret_testcat = get_category_by_slug( 'TeStCaT' );
 		$this->assertEquals( $testcat->term_id, $ret_testcat->term_id );
 
-		// validate unknown category returns false
+		// Validate unknown category returns false.
 		$this->assertFalse( get_category_by_slug( 'testcat3' ) );
 
 	}
@@ -67,7 +67,7 @@ class Tests_Category extends WP_UnitTestCase {
 	 */
 	function test__make_cat_compat() {
 
-		// create Test Categories and Array Representations
+		// Create test categories and array representations.
 		$testcat_array            = array(
 			'slug'        => 'testmcc',
 			'name'        => 'Test MCC',
@@ -85,7 +85,7 @@ class Tests_Category extends WP_UnitTestCase {
 		$testcat2                  = self::factory()->category->create_and_get( $testcat2_array );
 		$testcat2_array['term_id'] = $testcat2->term_id;
 
-		// unset properties to enable validation of object
+		// Unset properties to enable validation of object.
 		unset( $testcat->cat_ID );
 		unset( $testcat->category_count );
 		unset( $testcat->category_description );
@@ -100,13 +100,13 @@ class Tests_Category extends WP_UnitTestCase {
 		unset( $testcat2->category_nicename );
 		unset( $testcat2->category_parent );
 
-		// make Compatible
+		// Make compatible.
 		_make_cat_compat( $testcat );
 		_make_cat_compat( $testcat2 );
 		_make_cat_compat( $testcat_array );
 		_make_cat_compat( $testcat2_array );
 
-		// Validate Compatibility Object
+		// Validate compatibility object.
 		$this->assertEquals( $testcat->cat_ID, $testcat->term_id );
 		$this->assertEquals( $testcat->category_count, $testcat->count );
 		$this->assertEquals( $testcat->category_description, $testcat->description );
@@ -114,7 +114,7 @@ class Tests_Category extends WP_UnitTestCase {
 		$this->assertEquals( $testcat->category_nicename, $testcat->slug );
 		$this->assertEquals( $testcat->category_parent, $testcat->parent );
 
-		// Validate Compatibility Object with Parent
+		// Validate compatibility object with parent.
 		$this->assertEquals( $testcat->cat_ID, $testcat->term_id );
 		$this->assertEquals( $testcat->category_count, $testcat->count );
 		$this->assertEquals( $testcat->category_description, $testcat->description );
@@ -122,7 +122,7 @@ class Tests_Category extends WP_UnitTestCase {
 		$this->assertEquals( $testcat->category_nicename, $testcat->slug );
 		$this->assertEquals( $testcat->category_parent, $testcat->parent );
 
-		// Validate Compatibility Array
+		// Validate compatibility array.
 		$this->assertEquals( $testcat_array['cat_ID'], $testcat_array['term_id'] );
 		$this->assertEquals( $testcat_array['category_count'], $testcat_array['count'] );
 		$this->assertEquals( $testcat_array['category_description'], $testcat_array['description'] );
@@ -130,7 +130,7 @@ class Tests_Category extends WP_UnitTestCase {
 		$this->assertEquals( $testcat_array['category_nicename'], $testcat_array['slug'] );
 		$this->assertEquals( $testcat_array['category_parent'], $testcat_array['parent'] );
 
-		// Validate Compatibility Array with Parent
+		// Validate compatibility array with parent.
 		$this->assertEquals( $testcat_array['cat_ID'], $testcat_array['term_id'] );
 		$this->assertEquals( $testcat_array['category_count'], $testcat_array['count'] );
 		$this->assertEquals( $testcat_array['category_description'], $testcat_array['description'] );
@@ -144,7 +144,7 @@ class Tests_Category extends WP_UnitTestCase {
 	 */
 	function test_get_cat_name() {
 
-		// create Test Category
+		// Create test category.
 		$testcat = self::factory()->category->create_and_get(
 			array(
 				'slug' => 'testcat',
@@ -152,7 +152,7 @@ class Tests_Category extends WP_UnitTestCase {
 			)
 		);
 
-		// Validate
+		// Validate.
 		$this->assertEquals( $testcat->name, get_cat_name( $testcat->term_id ) );
 		$this->assertEquals( '', get_cat_name( -1 ) );
 		$this->assertEquals( '', get_cat_name( $testcat->term_id + 100 ) );
@@ -164,7 +164,7 @@ class Tests_Category extends WP_UnitTestCase {
 	 */
 	function test_get_cat_ID() {
 
-		// create Test Category
+		// Create test category.
 		$testcat = self::factory()->category->create_and_get(
 			array(
 				'slug' => 'testcat',
@@ -172,7 +172,7 @@ class Tests_Category extends WP_UnitTestCase {
 			)
 		);
 
-		// Validate
+		// Validate.
 		$this->assertEquals( $testcat->term_id, get_cat_ID( $testcat->name ) );
 		$this->assertEquals( 0, get_cat_ID( 'NO CAT' ) );
 		$this->assertEquals( 0, get_cat_ID( 12 ) );
@@ -184,7 +184,7 @@ class Tests_Category extends WP_UnitTestCase {
 	 */
 	function test_get_category_by_path() {
 
-		// create Test Categories
+		// Create test categories.
 		$root_id           = self::factory()->category->create(
 			array(
 				'slug' => 'root',
@@ -198,7 +198,7 @@ class Tests_Category extends WP_UnitTestCase {
 		);
 		$root_cat_cat_id   = self::factory()->category->create(
 			array(
-				'slug'   => 'cat', //note this is modified on create
+				'slug'   => 'cat', // Note this is modified on create.
 				'parent' => $root_cat_id,
 			)
 		);
@@ -210,7 +210,7 @@ class Tests_Category extends WP_UnitTestCase {
 		);
 		$root_path_cat_id  = self::factory()->category->create(
 			array(
-				'slug'   => 'cat', //note this is modified on create
+				'slug'   => 'cat', // Note this is modified on create.
 				'parent' => $root_path_id,
 			)
 		);
@@ -222,18 +222,18 @@ class Tests_Category extends WP_UnitTestCase {
 		);
 		$root_level_cat_id = self::factory()->category->create(
 			array(
-				'slug'   => 'cat', //note this is modified on create
+				'slug'   => 'cat', // Note this is modified on create.
 				'parent' => $root_level_id,
 			)
 		);
 
-		// Validate Full Match
+		// Validate full match.
 		$ret_cat = get_category_by_path( '/root/level-1', true );
 		$this->assertEquals( $root_level_id, $ret_cat->term_id );
 		$this->assertNull( get_category_by_path( 'level-1', true ) );
 		$this->assertNull( get_category_by_path( 'nocat/nocat/', true ) );
 
-		// Validate Partial Match
+		// Validate partial match.
 		$ret_cat = get_category_by_path( 'level-1', false );
 		$this->assertEquals( $root_level_id, $ret_cat->term_id );
 		$ret_cat = get_category_by_path( 'root/cat/level-1', false );

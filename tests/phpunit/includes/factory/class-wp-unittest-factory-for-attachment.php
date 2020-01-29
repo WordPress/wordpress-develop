@@ -67,7 +67,7 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 			'guid'           => $upload['url'],
 		);
 
-		// Save the data
+		// Save the data.
 		$id = wp_insert_attachment( $attachment, $upload['file'], $parent );
 		wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $upload['file'] ) );
 

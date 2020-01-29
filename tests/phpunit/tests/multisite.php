@@ -30,7 +30,7 @@ if ( is_multisite() ) :
 
 			wpmu_log_new_registrations( 1, 1 );
 
-			// currently there is no wrapper function for the registration_log
+			// Currently there is no wrapper function for the registration_log.
 			$reg_blog = $wpdb->get_col( $wpdb->prepare( "SELECT email FROM {$wpdb->registration_log} WHERE {$wpdb->registration_log}.blog_id = 1 AND IP LIKE %s", $ip ) );
 			$this->assertEquals( $user->user_email, $reg_blog[ count( $reg_blog ) - 1 ] );
 		}
@@ -39,7 +39,7 @@ if ( is_multisite() ) :
 		 * @ticket 37392
 		 */
 		function test_wp_count_sites() {
-			// create a random number of sites with each status.
+			// Create a random number of sites with each status.
 			$site_ids = array(
 				'public'   => self::factory()->blog->create_many(
 					random_int( 0, 5 ),
@@ -84,7 +84,7 @@ if ( is_multisite() ) :
 				array( 'all' => array_sum( $counts_by_status ) ),
 				$counts_by_status
 			);
-			// add 1 to all & public for the main site.
+			// Add 1 to all & public for the main site.
 			$expected['all']    += 1;
 			$expected['public'] += 1;
 

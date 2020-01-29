@@ -304,7 +304,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 	function test_query_default() {
 		$posts = $this->q->query( '' );
 
-		// the output should be the most recent 10 posts as listed here
+		// The output should be the most recent 10 posts as listed here.
 		$expected = array(
 			0 => 'tags-a-and-c',
 			1 => 'tags-b-and-c',
@@ -324,7 +324,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 	function test_query_tag_a() {
 		$posts = $this->q->query( 'tag=tag-a' );
 
-		// there are 4 posts with Tag A
+		// There are 4 posts with Tag A.
 		$this->assertCount( 4, $posts );
 		$this->assertEquals( 'tags-a-and-c', $posts[0]->post_name );
 		$this->assertEquals( 'tags-a-and-b', $posts[1]->post_name );
@@ -335,7 +335,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 	function test_query_tag_b() {
 		$posts = $this->q->query( 'tag=tag-b' );
 
-		// there are 4 posts with Tag A
+		// There are 4 posts with Tag A.
 		$this->assertCount( 4, $posts );
 		$this->assertEquals( 'tags-b-and-c', $posts[0]->post_name );
 		$this->assertEquals( 'tags-a-and-b', $posts[1]->post_name );
@@ -349,7 +349,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 	function test_query_tag_nun() {
 		$posts = $this->q->query( 'tag=tag-נ' );
 
-		// there is 1 post with Tag נ
+		// There is 1 post with Tag נ.
 		$this->assertCount( 1, $posts );
 		$this->assertEquals( 'tag-%d7%a0', $posts[0]->post_name );
 	}
@@ -358,7 +358,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$tag   = tag_exists( 'tag-a' );
 		$posts = $this->q->query( 'tag_id=' . $tag['term_id'] );
 
-		// there are 4 posts with Tag A
+		// There are 4 posts with Tag A.
 		$this->assertCount( 4, $posts );
 		$this->assertEquals( 'tags-a-and-c', $posts[0]->post_name );
 		$this->assertEquals( 'tags-a-and-b', $posts[1]->post_name );
@@ -369,7 +369,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 	function test_query_tag_slug__in() {
 		$posts = $this->q->query( 'tag_slug__in[]=tag-b&tag_slug__in[]=tag-c' );
 
-		// there are 4 posts with either Tag B or Tag C
+		// There are 4 posts with either Tag B or Tag C.
 		$this->assertCount( 6, $posts );
 		$this->assertEquals( 'tags-a-and-c', $posts[0]->post_name );
 		$this->assertEquals( 'tags-b-and-c', $posts[1]->post_name );
@@ -385,7 +385,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$tag_b = tag_exists( 'tag-b' );
 		$posts = $this->q->query( 'tag__in[]=' . $tag_a['term_id'] . '&tag__in[]=' . $tag_b['term_id'] );
 
-		// there are 6 posts with either Tag A or Tag B
+		// There are 6 posts with either Tag A or Tag B.
 		$this->assertCount( 6, $posts );
 		$this->assertEquals( 'tags-a-and-c', $posts[0]->post_name );
 		$this->assertEquals( 'tags-b-and-c', $posts[1]->post_name );
@@ -399,8 +399,8 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$tag_a = tag_exists( 'tag-a' );
 		$posts = $this->q->query( 'tag__not_in[]=' . $tag_a['term_id'] );
 
-		// the most recent 10 posts with Tag A excluded
-		// (note the different between this and test_query_default)
+		// The most recent 10 posts with Tag A excluded
+		// (note the different between this and test_query_default).
 		$expected = array(
 			0 => 'tags-b-and-c',
 			1 => 'tag-c',
@@ -422,7 +422,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$tag_b = tag_exists( 'tag-b' );
 		$posts = $this->q->query( 'tag__in[]=' . $tag_a['term_id'] . '&tag__not_in[]=' . $tag_b['term_id'] );
 
-		// there are 4 posts with Tag A, only 2 when we exclude Tag B
+		// There are 4 posts with Tag A, only 2 when we exclude Tag B.
 		$this->assertCount( 2, $posts );
 		$this->assertEquals( 'tags-a-and-c', $posts[0]->post_name );
 		$this->assertEquals( 'tag-a', $posts[1]->post_name );
@@ -433,7 +433,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 	function test_query_category_name() {
 		$posts = $this->q->query( 'category_name=cat-a' );
 
-		// there are 4 posts with Cat A, we'll check for them by name
+		// There are 4 posts with Cat A, we'll check for them by name.
 		$this->assertCount( 4, $posts );
 		$this->assertEquals( 'cat-a', $posts[0]->post_name );
 		$this->assertEquals( 'cats-a-and-c', $posts[1]->post_name );
@@ -445,7 +445,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$cat   = category_exists( 'cat-b' );
 		$posts = $this->q->query( "cat=$cat" );
 
-		// there are 4 posts with Cat B
+		// There are 4 posts with Cat B.
 		$this->assertCount( 4, $posts );
 		$this->assertEquals( 'cat-b', $posts[0]->post_name );
 		$this->assertEquals( 'cats-b-and-c', $posts[1]->post_name );
@@ -528,7 +528,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 	 * @ticket 11056
 	 */
 	function test_query_post_parent__in() {
-		// Query for first parent's children
+		// Query for first parent's children.
 		$posts = $this->q->query(
 			array(
 				'post_parent__in' => array( self::$parent_one ),
@@ -545,7 +545,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			wp_list_pluck( $posts, 'post_title' )
 		);
 
-		// Second parent's children
+		// Second parent's children.
 		$posts = $this->q->query(
 			array(
 				'post_parent__in' => array( self::$parent_two ),
@@ -562,7 +562,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			wp_list_pluck( $posts, 'post_title' )
 		);
 
-		// Both first and second parent's children
+		// Both first and second parent's children.
 		$posts = $this->q->query(
 			array(
 				'post_parent__in' => array( self::$parent_one, self::$parent_two ),
@@ -581,7 +581,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			wp_list_pluck( $posts, 'post_title' )
 		);
 
-		// Third parent's children
+		// Third parent's children.
 		$posts = $this->q->query(
 			array(
 				'post_parent__in' => array( self::$parent_three ),
@@ -629,7 +629,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			)
 		);
 
-		// order=desc does not influence the order of returned results (returns same order as order=asc)
+		// 'order=desc' does not influence the order of returned results (returns same order as 'order=asc').
 		$this->assertEquals( $expected_returned_array, wp_list_pluck( $posts, 'post_title' ) );
 	}
 
@@ -648,7 +648,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			)
 		);
 
-		// Expect post ids in the same order as post__in array when no 'order' param is passed in
+		// Expect post IDs in the same order as post__in array when no 'order' param is passed in.
 		$this->assertSame( $expected_returned_array, $q->posts );
 	}
 
@@ -668,7 +668,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			)
 		);
 
-		// Expect post ids in the same order as post__in array when order=asc is passed in
+		// Expect post IDs in the same order as post__in array when order=asc is passed in.
 		$this->assertSame( $expected_returned_array, $q->posts );
 	}
 
@@ -688,8 +688,8 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			)
 		);
 
-		// Note that results are returned in the order specified in the post__in array
-		// Order=desc does not have an effect on the order of returned results
+		// Note that results are returned in the order specified in the post__in array.
+		// 'order=desc' does not influence the order of returned results.
 		$this->assertSame( $expected_returned_array, $q->posts );
 	}
 
@@ -724,7 +724,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			)
 		);
 
-		// order=desc does not influence the order of returned results (returns same order as order=asc)
+		// 'order=desc' does not influence the order of returned results (returns same order as 'order=asc').
 		$this->assertSame( $post_name__in_array, array_unique( wp_list_pluck( $q->posts, 'post_title' ) ) );
 	}
 

@@ -140,7 +140,7 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 		add_filter( 'wp_privacy_personal_data_erasers', array( $this, 'register_custom_personal_data_eraser' ) );
 
 		$this->_setRole( 'administrator' );
-		// erase_others_personal_data meta cap in Multisite installation is only granted to those with `manage_network` capability.
+		// `erase_others_personal_data` meta cap in Multisite installation is only granted to those with `manage_network` capability.
 		if ( is_multisite() ) {
 			grant_super_admin( get_current_user_id() );
 		}
@@ -805,7 +805,7 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Helper function for ajax handler.
+	 * Helper function for Ajax handler.
 	 *
 	 * @since 5.2.0
 	 *

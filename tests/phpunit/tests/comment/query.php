@@ -1,6 +1,6 @@
 <?php
 
-// Test the output of Comment Querying functions
+// Test the output of Comment Querying functions.
 
 /**
  * @group comment
@@ -1415,8 +1415,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 		$this->assertEquals( array( $comment_id3, $comment_id ), wp_list_pluck( $comments, 'comment_ID' ) );
 
-		// value1 is present on two different keys for $comment_id yet we should get only one instance
-		// of that comment in the results
+		// 'value1' is present on two different keys for $comment_id,
+		// yet we should get only one instance of that comment in the results.
 		$comments = get_comments(
 			array(
 				'meta_value' => 'value1',

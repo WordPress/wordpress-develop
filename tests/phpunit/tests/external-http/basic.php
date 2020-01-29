@@ -62,7 +62,7 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 
 		preg_match( '#(\d{4}-\d{2}-\d{2}), General Availability#', $response_body, $mysqlmatches );
 
-		// Per https://www.mysql.com/support/, Oracle actively supports MySQL releases for 5 years from GA release
+		// Per https://www.mysql.com/support/, Oracle actively supports MySQL releases for 5 years from GA release.
 		$mysql_eol = strtotime( $mysqlmatches[1] . ' +5 years' );
 
 		$this->assertLessThan( $mysql_eol, time(), "readme.html's Recommended MySQL version is too old. Remember to update the WordPress.org Requirements page, too." );

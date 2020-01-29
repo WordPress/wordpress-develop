@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Admin ajax functions to be tested
+ * Admin Ajax functions to be tested.
  */
 require_once( ABSPATH . 'wp-admin/includes/ajax-actions.php' );
 
 /**
- * Testing ajax comment functionality
+ * Testing Ajax comment functionality.
  *
  * @package    WordPress
  * @subpackage UnitTests
@@ -50,10 +50,10 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_as_admin() {
 
-		// Become an administrator
+		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
-		// Get a comment
+		// Get a comment.
 		$comments = get_comments(
 			array(
 				'post_id' => self::$comment_post->ID,
@@ -61,31 +61,31 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		);
 		$comment  = array_pop( $comments );
 
-		// Set up a default request
+		// Set up a default request.
 		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
 		$_POST['comment_ID']                  = $comment->comment_ID;
 		$_POST['content']                     = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
 		$_POST['comment_post_ID']             = self::$comment_post->ID;
 
-		// Make the request
+		// Make the request.
 		try {
 			$this->_handleAjax( 'replyto-comment' );
 		} catch ( WPAjaxDieContinueException $e ) {
 			unset( $e );
 		}
 
-		// Get the response
+		// Get the response.
 		$xml = simplexml_load_string( $this->_last_response, 'SimpleXMLElement', LIBXML_NOCDATA );
 
-		// Check the meta data
+		// Check the meta data.
 		$this->assertEquals( -1, (string) $xml->response[0]->comment['position'] );
 		$this->assertGreaterThan( 0, (int) $xml->response[0]->comment['id'] );
 		$this->assertNotEmpty( (string) $xml->response['action'] );
 
-		// Check the payload
+		// Check the payload.
 		$this->assertNotEmpty( (string) $xml->response[0]->comment[0]->response_data );
 
-		// And supplemental is empty
+		// And supplemental is empty.
 		$this->assertEmpty( (string) $xml->response[0]->comment[0]->supplemental );
 	}
 
@@ -97,10 +97,10 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_as_subscriber() {
 
-		// Become an administrator
+		// Become an administrator.
 		$this->_setRole( 'subscriber' );
 
-		// Get a comment
+		// Get a comment.
 		$comments = get_comments(
 			array(
 				'post_id' => self::$comment_post->ID,
@@ -108,13 +108,13 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		);
 		$comment  = array_pop( $comments );
 
-		// Set up a default request
+		// Set up a default request.
 		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
 		$_POST['comment_ID']                  = $comment->comment_ID;
 		$_POST['content']                     = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
 		$_POST['comment_post_ID']             = self::$comment_post->ID;
 
-		// Make the request
+		// Make the request.
 		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		$this->_handleAjax( 'replyto-comment' );
 	}
@@ -127,10 +127,10 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_bad_nonce() {
 
-		// Become an administrator
+		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
-		// Get a comment
+		// Get a comment.
 		$comments = get_comments(
 			array(
 				'post_id' => self::$comment_post->ID,
@@ -138,13 +138,13 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		);
 		$comment  = array_pop( $comments );
 
-		// Set up a default request
+		// Set up a default request.
 		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( uniqid() );
 		$_POST['comment_ID']                  = $comment->comment_ID;
 		$_POST['content']                     = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
 		$_POST['comment_post_ID']             = self::$comment_post->ID;
 
-		// Make the request
+		// Make the request.
 		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		$this->_handleAjax( 'replyto-comment' );
 	}
@@ -157,15 +157,15 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_invalid_post() {
 
-		// Become an administrator
+		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
-		// Set up a default request
+		// Set up a default request.
 		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
 		$_POST['content']                     = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
 		$_POST['comment_post_ID']             = 123456789;
 
-		// Make the request
+		// Make the request.
 		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		$this->_handleAjax( 'replyto-comment' );
 	}
@@ -178,15 +178,15 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_with_draft_post() {
 
-		// Become an administrator
+		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
-		// Set up a default request
+		// Set up a default request.
 		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
 		$_POST['content']                     = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
 		$_POST['comment_post_ID']             = self::$draft_post->ID;
 
-		// Make the request
+		// Make the request.
 		$this->setExpectedException( 'WPAjaxDieStopException', 'ERROR: you are replying to a comment on a draft post.' );
 		$this->_handleAjax( 'replyto-comment' );
 	}
@@ -201,18 +201,18 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	public function test_blocked_comment() {
 		global $wpdb;
 
-		// Become an administrator
+		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
-		// Set up a default request
+		// Set up a default request.
 		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
 		$_POST['content']                     = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
 		$_POST['comment_post_ID']             = self::$comment_post->ID;
 
-		// Block comments from being saved, simulate a DB error
+		// Block comments from being saved, simulate a DB error.
 		add_filter( 'query', array( $this, '_block_comments' ) );
 
-		// Make the request
+		// Make the request.
 		try {
 			$wpdb->suppress_errors( true );
 			$this->_handleAjax( 'replyto-comment' );
@@ -246,18 +246,18 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_pre_comments_approved() {
 
-		// Become an administrator
+		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
-		// Set up a default request
+		// Set up a default request.
 		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
 		$_POST['content']                     = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
 		$_POST['comment_post_ID']             = self::$comment_post->ID;
 
-		// Simulate filter check error
+		// Simulate filter check error.
 		add_filter( 'pre_comment_approved', array( $this, '_pre_comment_approved_filter' ), 10, 2 );
 
-		// Make the request
+		// Make the request.
 		$this->setExpectedException( 'WPAjaxDieStopException', 'pre_comment_approved filter fails for new comment' );
 		$this->_handleAjax( 'replyto-comment' );
 	}

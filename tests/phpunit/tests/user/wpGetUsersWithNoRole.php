@@ -10,7 +10,7 @@ class Tests_User_GetUsersWithNoRole extends WP_UnitTestCase {
 	 * @group ms-excluded
 	 */
 	public function test_get_users_with_no_role_is_accurate() {
-		// Setup users
+		// Setup users.
 		$admin       = self::factory()->user->create(
 			array(
 				'role' => 'administrator',
@@ -32,7 +32,7 @@ class Tests_User_GetUsersWithNoRole extends WP_UnitTestCase {
 			)
 		);
 
-		// Test users
+		// Test users.
 		$users = wp_get_users_with_no_role();
 
 		$this->assertEquals(
@@ -52,7 +52,7 @@ class Tests_User_GetUsersWithNoRole extends WP_UnitTestCase {
 	 * @group ms-required
 	 */
 	public function test_get_users_with_no_role_multisite_is_accurate() {
-		// Setup users
+		// Setup users.
 		$admin  = self::factory()->user->create(
 			array(
 				'role' => 'administrator',
@@ -69,17 +69,17 @@ class Tests_User_GetUsersWithNoRole extends WP_UnitTestCase {
 			)
 		);
 
-		// Setup blogs
+		// Setup blogs.
 		$blog_1 = (int) self::factory()->blog->create(
 			array(
 				'user_id' => $editor,
 			)
 		);
 
-		// Add editor to blog 1
+		// Add editor to blog 1.
 		add_user_to_blog( $blog_1, $editor, 'editor' );
 
-		// Test users on root site
+		// Test users on root site.
 		$users = wp_get_users_with_no_role();
 		$this->assertSame(
 			array(
@@ -88,14 +88,14 @@ class Tests_User_GetUsersWithNoRole extends WP_UnitTestCase {
 			$users
 		);
 
-		// Test users counts on blog 1
+		// Test users counts on blog 1.
 		$users = wp_get_users_with_no_role( $blog_1 );
 		$this->assertSame( array(), $users );
 
-		// Add admin to blog 1 with no role
+		// Add admin to blog 1 with no role.
 		add_user_to_blog( $blog_1, $admin, '' );
 
-		// Re-test users counts on blog 1
+		// Re-test users counts on blog 1.
 		$users = wp_get_users_with_no_role( $blog_1 );
 		$this->assertSame(
 			array(

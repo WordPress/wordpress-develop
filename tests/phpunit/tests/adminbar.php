@@ -99,10 +99,10 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$node_user_info    = $wp_admin_bar->get_node( 'user-info' );
 		$node_edit_profile = $wp_admin_bar->get_node( 'edit-profile' );
 
-		// Site menu points to the home page instead of the admin URL
+		// Site menu points to the home page instead of the admin URL.
 		$this->assertEquals( home_url( '/' ), $node_site_name->href );
 
-		// No profile links as the user doesn't have any permissions on the site
+		// No profile links as the user doesn't have any permissions on the site.
 		$this->assertFalse( $node_my_account->href );
 		$this->assertFalse( $node_user_info->href );
 		$this->assertNull( $node_edit_profile );
@@ -124,12 +124,12 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$node_user_info    = $wp_admin_bar->get_node( 'user-info' );
 		$node_edit_profile = $wp_admin_bar->get_node( 'edit-profile' );
 
-		// Site menu points to the admin URL
+		// Site menu points to the admin URL.
 		$this->assertEquals( admin_url( '/' ), $node_site_name->href );
 
 		$profile_url = admin_url( 'profile.php' );
 
-		// Profile URLs point to profile.php
+		// Profile URLs point to profile.php.
 		$this->assertEquals( $profile_url, $node_my_account->href );
 		$this->assertEquals( $profile_url, $node_user_info->href );
 		$this->assertEquals( $profile_url, $node_edit_profile->href );
@@ -164,19 +164,19 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$node_user_info    = $wp_admin_bar->get_node( 'user-info' );
 		$node_edit_profile = $wp_admin_bar->get_node( 'edit-profile' );
 
-		// get primary blog
+		// Get primary blog.
 		$primary = get_active_blog_for_user( self::$editor_id );
 		$this->assertInternalType( 'object', $primary );
 
-		// No Site menu as the user isn't a member of this blog
+		// No Site menu as the user isn't a member of this blog.
 		$this->assertNull( $node_site_name );
 
 		$primary_profile_url = get_admin_url( $primary->blog_id, 'profile.php' );
 
-		// Ensure the user's primary blog is not the same as the main site
+		// Ensure the user's primary blog is not the same as the main site.
 		$this->assertNotEquals( $primary_profile_url, admin_url( 'profile.php' ) );
 
-		// Profile URLs should go to the user's primary blog
+		// Profile URLs should go to the user's primary blog.
 		$this->assertEquals( $primary_profile_url, $node_my_account->href );
 		$this->assertEquals( $primary_profile_url, $node_user_info->href );
 		$this->assertEquals( $primary_profile_url, $node_edit_profile->href );
@@ -203,7 +203,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$this->assertFalse( is_user_member_of_blog( self::$no_role_id, $blog_id ) );
 		$this->assertTrue( is_user_member_of_blog( self::$no_role_id, get_current_blog_id() ) );
 
-		// Remove `$nobody` from the current blog, so they're not a member of any blog
+		// Remove `$nobody` from the current blog, so they're not a member of any blog.
 		$removed = remove_user_from_blog( self::$no_role_id, get_current_blog_id() );
 
 		$this->assertTrue( $removed );
@@ -220,18 +220,18 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$node_user_info    = $wp_admin_bar->get_node( 'user-info' );
 		$node_edit_profile = $wp_admin_bar->get_node( 'edit-profile' );
 
-		// get primary blog
+		// Get primary blog.
 		$primary = get_active_blog_for_user( self::$no_role_id );
 		$this->assertNull( $primary );
 
-		// No Site menu as the user isn't a member of this site
+		// No Site menu as the user isn't a member of this site.
 		$this->assertNull( $node_site_name );
 
 		$user_profile_url = user_admin_url( 'profile.php' );
 
 		$this->assertNotEquals( $user_profile_url, admin_url( 'profile.php' ) );
 
-		// Profile URLs should go to the user's primary blog
+		// Profile URLs should go to the user's primary blog.
 		$this->assertEquals( $user_profile_url, $node_my_account->href );
 		$this->assertEquals( $user_profile_url, $node_user_info->href );
 		$this->assertEquals( $user_profile_url, $node_edit_profile->href );
@@ -335,7 +335,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 				'<div class="ab-item ab-empty-item" tabindex="2">',
 			),
 			array(
-				// Boolean, false
+				// Boolean, false.
 				array(
 					'id'   => 'test-node',
 					'meta' => array( 'tabindex' => false ),

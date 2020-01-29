@@ -41,7 +41,7 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 	function test_resize_png() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/test-image.png', 25, 25 );
 
-		if ( ! is_string( $image ) ) {  // WP_Error, stop GLib-GObject-CRITICAL assertion
+		if ( ! is_string( $image ) ) {  // WP_Error, stop GLib-GObject-CRITICAL assertion.
 			$this->fail( sprintf( 'No PNG support in the editor engine %s on this system', $this->editor_engine ) );
 		}
 
@@ -57,7 +57,7 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 	function test_resize_gif() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/test-image.gif', 25, 25 );
 
-		if ( ! is_string( $image ) ) {  // WP_Error, stop GLib-GObject-CRITICAL assertion
+		if ( ! is_string( $image ) ) {  // WP_Error, stop GLib-GObject-CRITICAL assertion.
 			$this->fail( sprintf( 'No GIF support in the editor engine %s on this system', $this->editor_engine ) );
 		}
 
@@ -71,7 +71,7 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 	}
 
 	function test_resize_larger() {
-		// image_resize() should refuse to make an image larger
+		// image_resize() should refuse to make an image larger.
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/test-image.jpg', 100, 100 );
 
 		$this->assertInstanceOf( 'WP_Error', $image );

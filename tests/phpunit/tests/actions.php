@@ -14,9 +14,9 @@ class Tests_Actions extends WP_UnitTestCase {
 		add_action( $tag, array( &$a, 'action' ) );
 		do_action( $tag );
 
-		// only one event occurred for the hook, with empty args
+		// Only one event occurred for the hook, with empty args.
 		$this->assertEquals( 1, $a->get_call_count() );
-		// only our hook was called
+		// Only our hook was called.
 		$this->assertEquals( array( $tag ), $a->get_tags() );
 
 		$argsvar = $a->get_args();
@@ -31,11 +31,11 @@ class Tests_Actions extends WP_UnitTestCase {
 		add_action( $tag, array( &$a, 'action' ) );
 		do_action( $tag );
 
-		// make sure our hook was called correctly
+		// Make sure our hook was called correctly.
 		$this->assertEquals( 1, $a->get_call_count() );
 		$this->assertEquals( array( $tag ), $a->get_tags() );
 
-		// now remove the action, do it again, and make sure it's not called this time
+		// Now remove the action, do it again, and make sure it's not called this time.
 		remove_action( $tag, array( &$a, 'action' ) );
 		do_action( $tag );
 		$this->assertEquals( 1, $a->get_call_count() );
@@ -57,19 +57,19 @@ class Tests_Actions extends WP_UnitTestCase {
 		$this->assertFalse( has_action( $tag ) );
 	}
 
-	// one tag with multiple actions
+	// One tag with multiple actions.
 	function test_multiple_actions() {
 		$a1  = new MockAction();
 		$a2  = new MockAction();
 		$tag = __FUNCTION__;
 
-		// add both actions to the hook
+		// Add both actions to the hook.
 		add_action( $tag, array( &$a1, 'action' ) );
 		add_action( $tag, array( &$a2, 'action' ) );
 
 		do_action( $tag );
 
-		// both actions called once each
+		// Both actions called once each.
 		$this->assertEquals( 1, $a1->get_call_count() );
 		$this->assertEquals( 1, $a2->get_call_count() );
 	}
@@ -80,7 +80,7 @@ class Tests_Actions extends WP_UnitTestCase {
 		$val = __FUNCTION__ . '_val';
 
 		add_action( $tag, array( &$a, 'action' ) );
-		// call the action with a single argument
+		// Call the action with a single argument.
 		do_action( $tag, $val );
 
 		$call_count = $a->get_call_count();
@@ -96,19 +96,19 @@ class Tests_Actions extends WP_UnitTestCase {
 		$val1 = __FUNCTION__ . '_val1';
 		$val2 = __FUNCTION__ . '_val2';
 
-		// a1 accepts two arguments, a2 doesn't
+		// $a1 accepts two arguments, $a2 doesn't.
 		add_action( $tag, array( &$a1, 'action' ), 10, 2 );
 		add_action( $tag, array( &$a2, 'action' ) );
-		// call the action with two arguments
+		// Call the action with two arguments.
 		do_action( $tag, $val1, $val2 );
 
 		$call_count = $a1->get_call_count();
-		// a1 should be called with both args
+		// $a1 should be called with both args.
 		$this->assertEquals( 1, $call_count );
 		$argsvar1 = $a1->get_args();
 		$this->assertEquals( array( $val1, $val2 ), array_pop( $argsvar1 ) );
 
-		// a2 should be called with one only
+		// $a2 should be called with one only.
 		$this->assertEquals( 1, $a2->get_call_count() );
 		$argsvar2 = $a2->get_args();
 		$this->assertEquals( array( $val1 ), array_pop( $argsvar2 ) );
@@ -129,25 +129,25 @@ class Tests_Actions extends WP_UnitTestCase {
 		$val1 = __FUNCTION__ . '_val1';
 		$val2 = __FUNCTION__ . '_val2';
 
-		// a1 accepts two arguments, a2 doesn't, a3 accepts two arguments
+		// $a1 accepts two arguments, $a2 doesn't, $a3 accepts two arguments.
 		add_action( $tag, array( &$a1, 'action' ), 10, 2 );
 		add_action( $tag, array( &$a2, 'action' ) );
 		add_action( $tag, array( &$a3, 'action' ), 10, 2 );
-		// call the action with two arguments
+		// Call the action with two arguments.
 		do_action( $tag, $val1, $val2 );
 
 		$call_count = $a1->get_call_count();
-		// a1 should be called with both args
+		// $a1 should be called with both args.
 		$this->assertEquals( 1, $call_count );
 		$argsvar1 = $a1->get_args();
 		$this->assertEquals( array( $val1, $val2 ), array_pop( $argsvar1 ) );
 
-		// a2 should be called with one only
+		// $a2 should be called with one only.
 		$this->assertEquals( 1, $a2->get_call_count() );
 		$argsvar2 = $a2->get_args();
 		$this->assertEquals( array( $val1 ), array_pop( $argsvar2 ) );
 
-		// a3 should be called with both args
+		// $a3 should be called with both args.
 		$this->assertEquals( 1, $a3->get_call_count() );
 		$argsvar3 = $a3->get_args();
 		$this->assertEquals( array( $val1, $val2 ), array_pop( $argsvar3 ) );
@@ -180,17 +180,17 @@ class Tests_Actions extends WP_UnitTestCase {
 		add_action( $tag, array( &$a, 'action2' ), 9 );
 		do_action( $tag );
 
-		// two events, one per action
+		// Two events, one per action.
 		$this->assertEquals( 2, $a->get_call_count() );
 
 		$expected = array(
-			// action2 is called first because it has priority 9
+			// 'action2' is called first because it has priority 9.
 			array(
 				'action' => 'action2',
 				'tag'    => $tag,
 				'args'   => array( '' ),
 			),
-			// action 1 is called second
+			// 'action' is called second.
 			array(
 				'action' => 'action',
 				'tag'    => $tag,
@@ -205,18 +205,18 @@ class Tests_Actions extends WP_UnitTestCase {
 		$tag1 = 'action1';
 		$tag2 = 'action2';
 
-		// do action tag1 but not tag2
+		// Do action $tag1 but not $tag2.
 		do_action( $tag1 );
 		$this->assertEquals( 1, did_action( $tag1 ) );
 		$this->assertEquals( 0, did_action( $tag2 ) );
 
-		// do action tag2 a random number of times
+		// Do action $tag2 a random number of times.
 		$count = rand( 0, 10 );
 		for ( $i = 0; $i < $count; $i++ ) {
 			do_action( $tag2 );
 		}
 
-		// tag1's count hasn't changed, tag2 should be correct
+		// $tag1's count hasn't changed, $tag2 should be correct.
 		$this->assertEquals( 1, did_action( $tag1 ) );
 		$this->assertEquals( $count, did_action( $tag2 ) );
 
@@ -227,18 +227,18 @@ class Tests_Actions extends WP_UnitTestCase {
 		$tag1 = __FUNCTION__ . '_1';
 		$tag2 = __FUNCTION__ . '_2';
 
-		// add an 'all' action
+		// Add an 'all' action.
 		add_action( 'all', array( &$a, 'action' ) );
 		$this->assertEquals( 10, has_filter( 'all', array( &$a, 'action' ) ) );
-		// do some actions
+		// Do some actions.
 		do_action( $tag1 );
 		do_action( $tag2 );
 		do_action( $tag1 );
 		do_action( $tag1 );
 
-		// our action should have been called once for each tag
+		// Our action should have been called once for each tag.
 		$this->assertEquals( 4, $a->get_call_count() );
-		// only our hook was called
+		// Only our hook was called.
 		$this->assertEquals( array( $tag1, $tag2, $tag1, $tag1 ), $a->get_tags() );
 
 		remove_action( 'all', array( &$a, 'action' ) );
@@ -254,11 +254,11 @@ class Tests_Actions extends WP_UnitTestCase {
 		$this->assertEquals( 10, has_filter( 'all', array( &$a, 'action' ) ) );
 		do_action( $tag );
 
-		// make sure our hook was called correctly
+		// Make sure our hook was called correctly.
 		$this->assertEquals( 1, $a->get_call_count() );
 		$this->assertEquals( array( $tag ), $a->get_tags() );
 
-		// now remove the action, do it again, and make sure it's not called this time
+		// Now remove the action, do it again, and make sure it's not called this time.
 		remove_action( 'all', array( &$a, 'action' ) );
 		$this->assertFalse( has_filter( 'all', array( &$a, 'action' ) ) );
 		do_action( $tag );
@@ -277,7 +277,7 @@ class Tests_Actions extends WP_UnitTestCase {
 
 		$args = $a->get_args();
 		$this->assertSame( $args[0][0], $obj );
-		// just in case we don't trust assertSame
+		// Just in case we don't trust assertSame().
 		$obj->foo = true;
 		$this->assertFalse( empty( $args[0][0]->foo ) );
 	}
@@ -456,16 +456,16 @@ class Tests_Actions extends WP_UnitTestCase {
 	 */
 	function test_doing_filter() {
 		global $wp_current_filter;
-		$wp_current_filter = array(); // Set to an empty array first
+		$wp_current_filter = array(); // Set to an empty array first.
 
-		$this->assertFalse( doing_filter() ); // No filter is passed in, and no filter is being processed
-		$this->assertFalse( doing_filter( 'testing' ) ); // Filter is passed in but not being processed
+		$this->assertFalse( doing_filter() );            // No filter is passed in, and no filter is being processed.
+		$this->assertFalse( doing_filter( 'testing' ) ); // Filter is passed in but not being processed.
 
 		$wp_current_filter[] = 'testing';
 
-		$this->assertTrue( doing_filter() ); // No action is passed in, and a filter is being processed
-		$this->assertTrue( doing_filter( 'testing' ) ); // Filter is passed in and is being processed
-		$this->assertFalse( doing_filter( 'something_else' ) ); // Filter is passed in but not being processed
+		$this->assertTrue( doing_filter() );                    // No action is passed in, and a filter is being processed.
+		$this->assertTrue( doing_filter( 'testing' ) );         // Filter is passed in and is being processed.
+		$this->assertFalse( doing_filter( 'something_else' ) ); // Filter is passed in but not being processed.
 
 		$wp_current_filter = array();
 	}
@@ -475,16 +475,16 @@ class Tests_Actions extends WP_UnitTestCase {
 	 */
 	function test_doing_action() {
 		global $wp_current_filter;
-		$wp_current_filter = array(); // Set to an empty array first
+		$wp_current_filter = array(); // Set to an empty array first.
 
-		$this->assertFalse( doing_action() ); // No action is passed in, and no filter is being processed
-		$this->assertFalse( doing_action( 'testing' ) ); // Action is passed in but not being processed
+		$this->assertFalse( doing_action() );            // No action is passed in, and no filter is being processed.
+		$this->assertFalse( doing_action( 'testing' ) ); // Action is passed in but not being processed.
 
 		$wp_current_filter[] = 'testing';
 
-		$this->assertTrue( doing_action() ); // No action is passed in, and a filter is being processed
-		$this->assertTrue( doing_action( 'testing' ) ); // Action is passed in and is being processed
-		$this->assertFalse( doing_action( 'something_else' ) ); // Action is passed in but not being processed
+		$this->assertTrue( doing_action() );                    // No action is passed in, and a filter is being processed.
+		$this->assertTrue( doing_action( 'testing' ) );         // Action is passed in and is being processed.
+		$this->assertFalse( doing_action( 'something_else' ) ); // Action is passed in but not being processed.
 
 		$wp_current_filter = array();
 	}
@@ -493,8 +493,8 @@ class Tests_Actions extends WP_UnitTestCase {
 	 * @ticket 14994
 	 */
 	function test_doing_filter_real() {
-		$this->assertFalse( doing_filter() ); // No filter is passed in, and no filter is being processed
-		$this->assertFalse( doing_filter( 'testing' ) ); // Filter is passed in but not being processed
+		$this->assertFalse( doing_filter() );            // No filter is passed in, and no filter is being processed.
+		$this->assertFalse( doing_filter( 'testing' ) ); // Filter is passed in but not being processed.
 
 		add_filter( 'testing', array( $this, 'apply_testing_filter' ) );
 		$this->assertTrue( has_action( 'testing' ) );
@@ -505,8 +505,8 @@ class Tests_Actions extends WP_UnitTestCase {
 		// Make sure it ran.
 		$this->assertTrue( $this->apply_testing_filter );
 
-		$this->assertFalse( doing_filter() ); // No longer doing any filters
-		$this->assertFalse( doing_filter( 'testing' ) ); // No longer doing this filter
+		$this->assertFalse( doing_filter() );            // No longer doing any filters.
+		$this->assertFalse( doing_filter( 'testing' ) ); // No longer doing this filter.
 	}
 
 	function apply_testing_filter() {

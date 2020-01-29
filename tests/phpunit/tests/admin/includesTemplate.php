@@ -66,7 +66,7 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 		// Remove the meta box.
 		remove_meta_box( 'testbox1', $current_screen, 'advanced' );
 
-		// Check that it was removed properly (The meta box should be set to false once that it has been removed)
+		// Check that it was removed properly (the meta box should be set to false once that it has been removed).
 		$this->assertFalse( $wp_meta_boxes[ $current_screen ]['advanced']['default']['testbox1'] );
 	}
 
@@ -76,7 +76,7 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 	public function test_add_meta_box_on_multiple_screens() {
 		global $wp_meta_boxes;
 
-		// Add a meta box to three different post types
+		// Add a meta box to three different post types.
 		add_meta_box( 'testbox1', 'Test Metabox', '__return_false', array( 'post', 'comment', 'attachment' ) );
 
 		$this->assertArrayHasKey( 'testbox1', $wp_meta_boxes['post']['advanced']['default'] );
@@ -96,7 +96,7 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 		// Remove meta box from posts.
 		remove_meta_box( 'testbox1', 'post', 'advanced' );
 
-		// Check that we have removed the meta boxes only from posts
+		// Check that we have removed the meta boxes only from posts.
 		$this->assertFalse( $wp_meta_boxes['post']['advanced']['default']['testbox1'] );
 		$this->assertArrayHasKey( 'testbox1', $wp_meta_boxes['comment']['advanced']['default'] );
 		$this->assertArrayHasKey( 'testbox1', $wp_meta_boxes['attachment']['advanced']['default'] );

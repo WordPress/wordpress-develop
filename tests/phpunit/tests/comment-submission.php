@@ -152,7 +152,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	public function test_submitting_comment_to_scheduled_post_returns_error() {
 
-		// Same error as commenting on a draft
+		// Same error as commenting on a draft.
 		$error = 'comment_on_draft';
 
 		$this->assertSame( 0, did_action( $error ) );
@@ -491,7 +491,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 		$this->assertFalse( defined( 'DISALLOW_UNFILTERED_HTML' ) );
 
 		if ( is_multisite() ) {
-			// In multisite, only Super Admins can post unfiltered HTML
+			// In multisite, only Super Admins can post unfiltered HTML.
 			$this->assertFalse( user_can( self::$editor_id, 'unfiltered_html' ) );
 			grant_super_admin( self::$editor_id );
 		}
@@ -521,7 +521,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	public function test_privileged_user_cannot_comment_unfiltered_html_without_valid_nonce() {
 
 		if ( is_multisite() ) {
-			// In multisite, only Super Admins can post unfiltered HTML
+			// In multisite, only Super Admins can post unfiltered HTML.
 			$this->assertFalse( user_can( self::$editor_id, 'unfiltered_html' ) );
 			grant_super_admin( self::$editor_id );
 		}

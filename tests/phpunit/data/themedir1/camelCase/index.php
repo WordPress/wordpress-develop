@@ -1,5 +1,5 @@
 <?php
 
-// dummy theme
+// Dummy theme.
 
 echo dirname(__FILE__).'/'.basename(__FILE__);

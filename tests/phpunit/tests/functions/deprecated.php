@@ -153,7 +153,7 @@ class Test_Functions_Deprecated extends WP_UnitTestCase {
 			$this->fail( 'jpeg support unavailable' );
 		}
 
-		// Call wp_save_image_file
+		// Call wp_save_image_file().
 		include_once( ABSPATH . 'wp-admin/includes/image-edit.php' );
 		$file = wp_tempnam();
 		$img  = imagecreatefromjpeg( DIR_TESTDATA . '/images/canola.jpg' );
@@ -161,7 +161,7 @@ class Test_Functions_Deprecated extends WP_UnitTestCase {
 		imagedestroy( $img );
 		unlink( $file );
 
-		// Check if the arg was deprecated
+		// Check if the arg was deprecated.
 		$check = $this->was_deprecated( 'argument', 'wp_save_image_file' );
 		$this->assertNotEmpty( $check );
 	}
@@ -176,7 +176,7 @@ class Test_Functions_Deprecated extends WP_UnitTestCase {
 			$this->fail( 'jpeg support unavailable' );
 		}
 
-		// Call wp_save_image_file
+		// Call wp_save_image_file().
 		include_once( ABSPATH . 'wp-admin/includes/image-edit.php' );
 		$file = wp_tempnam();
 		$img  = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
@@ -184,7 +184,7 @@ class Test_Functions_Deprecated extends WP_UnitTestCase {
 		unset( $img );
 		unlink( $file );
 
-		// Check if the arg was deprecated
+		// Check if the arg was deprecated.
 		$check = $this->was_deprecated( 'argument', 'wp_save_image_file' );
 		$this->assertFalse( $check );
 	}

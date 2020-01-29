@@ -65,7 +65,7 @@ class Tests_User_WpDeleteUser extends WP_UnitTestCase {
 			'post_type'    => 'post',
 		);
 
-		// insert a post and make sure the ID is ok
+		// Insert a post and make sure the ID is OK.
 		$post_id = wp_insert_post( $post );
 		$this->assertTrue( is_numeric( $post_id ) );
 		$this->assertTrue( $post_id > 0 );
@@ -81,7 +81,7 @@ class Tests_User_WpDeleteUser extends WP_UnitTestCase {
 			'post_type'    => 'nav_menu_item',
 		);
 
-		// insert a post and make sure the ID is ok
+		// Insert a post and make sure the ID is OK.
 		$nav_id = wp_insert_post( $post );
 		$this->assertTrue( is_numeric( $nav_id ) );
 		$this->assertTrue( $nav_id > 0 );
@@ -99,7 +99,7 @@ class Tests_User_WpDeleteUser extends WP_UnitTestCase {
 
 		$this->assertNotNull( get_post( $post_id ) );
 		$this->assertEquals( 'trash', get_post( $post_id )->post_status );
-		// nav_menu_item is delete_with_user = false so the nav post should remain published.
+		// 'nav_menu_item' is `delete_with_user = false` so the nav post should remain published.
 		$this->assertNotNull( get_post( $nav_id ) );
 		$this->assertEquals( 'publish', get_post( $nav_id )->post_status );
 		wp_delete_post( $nav_id, true );
