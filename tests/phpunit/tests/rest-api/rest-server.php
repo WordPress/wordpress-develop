@@ -678,6 +678,108 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @ticket 48838
+	 */
+	public function test_link_embedding_clears_cache() {
+		$post_id = self::factory()->post->create();
+
+		$response = new WP_REST_Response();
+		$response->add_link( 'post', rest_url( 'wp/v2/posts/' . $post_id ), array( 'embeddable' => true ) );
+
+		$data = rest_get_server()->response_to_data( $response, true );
+		$this->assertArrayHasKey( 'post', $data['_embedded'] );
+		$this->assertCount( 1, $data['_embedded']['post'] );
+
+		wp_update_post(
+			array(
+				'ID'         => $post_id,
+				'post_title' => 'My Awesome Title',
+			)
+		);
+
+		$data = rest_get_server()->response_to_data( $response, true );
+		$this->assertArrayHasKey( 'post', $data['_embedded'] );
+		$this->assertCount( 1, $data['_embedded']['post'] );
+		$this->assertEquals( 'My Awesome Title', $data['_embedded']['post'][0]['title']['rendered'] );
+	}
+
+	/**
+	 * @ticket 48838
+	 */
+	public function test_link_embedding_cache() {
+		$response = new WP_REST_Response(
+			array(
+				'id' => 1,
+			)
+		);
+		$response->add_link(
+			'author',
+			rest_url( 'wp/v2/users/1' ),
+			array( 'embeddable' => true )
+		);
+		$response->add_link(
+			'author',
+			rest_url( 'wp/v2/users/1' ),
+			array( 'embeddable' => true )
+		);
+
+		$mock = new MockAction();
+		add_filter( 'rest_post_dispatch', array( $mock, 'filter' ) );
+
+		$data = rest_get_server()->response_to_data( $response, true );
+
+		$this->assertArrayHasKey( '_embedded', $data );
+		$this->assertArrayHasKey( 'author', $data['_embedded'] );
+		$this->assertCount( 2, $data['_embedded']['author'] );
+
+		$this->assertCount( 1, $mock->get_events() );
+	}
+
+	/**
+	 * @ticket 48838
+	 */
+	public function test_link_embedding_cache_collection() {
+		$response = new WP_REST_Response(
+			array(
+				array(
+					'id'     => 1,
+					'_links' => array(
+						'author' => array(
+							array(
+								'href'       => rest_url( 'wp/v2/users/1' ),
+								'embeddable' => true,
+							),
+						),
+					),
+				),
+				array(
+					'id'     => 2,
+					'_links' => array(
+						'author' => array(
+							array(
+								'href'       => rest_url( 'wp/v2/users/1' ),
+								'embeddable' => true,
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$mock = new MockAction();
+		add_filter( 'rest_post_dispatch', array( $mock, 'filter' ) );
+
+		$data = rest_get_server()->response_to_data( $response, true );
+
+		$embeds = wp_list_pluck( $data, '_embedded' );
+		$this->assertCount( 2, $embeds );
+		$this->assertArrayHasKey( 'author', $embeds[0] );
+		$this->assertArrayHasKey( 'author', $embeds[1] );
+
+		$this->assertCount( 1, $mock->get_events() );
+	}
+
+	/**
 	 * Ensure embedding is a no-op without links in the data.
 	 */
 	public function test_link_embedding_without_links() {
