@@ -94,18 +94,29 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'wp-polyfill-node-contains.min.js': 'polyfill-library/polyfills/Node/prototype/contains/polyfill.js',
 	};
 
+	const blockNames = [
+		'archives',
+		'block',
+		'calendar',
+		'categories',
+		'latest-comments',
+		'latest-posts',
+		'rss',
+		'search',
+		'shortcode',
+		'tag-cloud',
+	];
 	const phpFiles = {
 		'block-serialization-default-parser/parser.php': 'wp-includes/class-wp-block-parser.php',
-		'block-library/src/archives/index.php': 'wp-includes/blocks/archives.php',
-		'block-library/src/block/index.php': 'wp-includes/blocks/block.php',
-		'block-library/src/calendar/index.php': 'wp-includes/blocks/calendar.php',
-		'block-library/src/categories/index.php': 'wp-includes/blocks/categories.php',
-		'block-library/src/latest-comments/index.php': 'wp-includes/blocks/latest-comments.php',
-		'block-library/src/latest-posts/index.php': 'wp-includes/blocks/latest-posts.php',
-		'block-library/src/rss/index.php': 'wp-includes/blocks/rss.php',
-		'block-library/src/search/index.php': 'wp-includes/blocks/search.php',
-		'block-library/src/shortcode/index.php': 'wp-includes/blocks/shortcode.php',
-		'block-library/src/tag-cloud/index.php': 'wp-includes/blocks/tag-cloud.php',
+		...blockNames.reduce( ( files, blockName ) => {
+			files[ `block-library/src/${ blockName }/index.php` ] = `wp-includes/blocks/${ blockName }.php`;
+			return files;
+		} , {} ),
+	};
+	const blockMetadataCopies = {
+		from: join( baseDir, `node_modules/@wordpress/block-library/src/+(${ blockNames.join( '|' ) })/block.json` ),
+		test: new RegExp( `\/([^/]+)\/block\.json$` ),
+		to: join( baseDir, `${ buildTarget }/blocks/[1]/block.json` ),
 	};
 
 	const developmentCopies = mapVendorCopies( vendors, buildTarget );
@@ -231,6 +242,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 					...vendorCopies,
 					...cssCopies,
 					...phpCopies,
+					blockMetadataCopies,
 				],
 			),
 		],
