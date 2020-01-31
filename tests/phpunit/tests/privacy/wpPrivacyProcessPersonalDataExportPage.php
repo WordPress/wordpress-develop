@@ -131,7 +131,7 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 */
 	public static function wpSetUpBeforeClass( $factory ) {
 		self::$requester_email      = 'requester@example.com';
-		self::$export_file_url      = wp_privacy_exports_url() . 'wp-personal-data-file-requester-at-example-com-Wv0RfMnGIkl4CFEDEEkSeIdfLmaUrLsl.zip';
+		self::$export_file_url      = wp_privacy_exports_url() . 'wp-personal-data-file-Wv0RfMnGIkl4CFEDEEkSeIdfLmaUrLsl.zip';
 		self::$request_id           = wp_create_user_request( self::$requester_email, 'export_personal_data' );
 		self::$page_index_first     = 1;
 		self::$page_index_last      = 2;

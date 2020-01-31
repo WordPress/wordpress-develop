@@ -104,7 +104,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * The function should send an export link to the requester when the user request is confirmed.
 	 */
 	public function test_function_should_send_export_link_to_requester() {
-		$archive_url = wp_privacy_exports_url() . 'wp-personal-data-file-requester-at-example-com-Wv0RfMnGIkl4CFEDEEkSeIdfLmaUrLsl.zip';
+		$archive_url = wp_privacy_exports_url() . 'wp-personal-data-file-Wv0RfMnGIkl4CFEDEEkSeIdfLmaUrLsl.zip';
 		update_post_meta( self::$request_id, '_export_file_url', $archive_url );
 
 		$email_sent = wp_privacy_send_personal_data_export_email( self::$request_id );

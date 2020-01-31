@@ -56,8 +56,8 @@ class Tests_Privacy_WpPrivacyDeleteOldExportFiles extends WP_UnitTestCase {
 		}
 
 		self::$index_path          = $exports_dir . 'index.html';
-		self::$expired_export_file = $exports_dir . 'wp-personal-data-file-user-at-example-com-0123456789abcdef.zip';
-		self::$active_export_file  = $exports_dir . 'wp-personal-data-file-user-at-example-com-fedcba9876543210.zip';
+		self::$expired_export_file = $exports_dir . 'wp-personal-data-file-0123456789abcdef.zip';
+		self::$active_export_file  = $exports_dir . 'wp-personal-data-file-fedcba9876543210.zip';
 	}
 
 	/**
