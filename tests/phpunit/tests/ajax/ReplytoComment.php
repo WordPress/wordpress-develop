@@ -187,7 +187,7 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		$_POST['comment_post_ID']             = self::$draft_post->ID;
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', 'ERROR: You are replying to a comment on a draft post.' );
+		$this->setExpectedException( 'WPAjaxDieStopException', 'Error: You are replying to a comment on a draft post.' );
 		$this->_handleAjax( 'replyto-comment' );
 	}
 
