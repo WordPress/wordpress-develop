@@ -84,7 +84,7 @@ class Tests_XMLRPC_mw_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertEquals( $post_data->post_excerpt, $result['mt_excerpt'] );
 		$this->assertEquals( url_to_postid( $result['link'] ), self::$post_id );
 
-		$this->assertEquals( '', $result['wp_post_thumbnail'] );
+		$this->assertEquals( 0, $result['wp_post_thumbnail'] );
 
 		remove_theme_support( 'post-thumbnails' );
 	}
@@ -102,7 +102,7 @@ class Tests_XMLRPC_mw_getPost extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->mw_getPost( array( self::$post_id, 'author', 'author' ) );
 		$this->assertNotIXRError( $result );
 
-		$this->assertInternalType( 'string', $result['wp_post_thumbnail'] );
+		$this->assertInternalType( 'int', $result['wp_post_thumbnail'] );
 		$this->assertStringMatchesFormat( '%d', $result['wp_post_thumbnail'] );
 		$this->assertEquals( $attachment_id, $result['wp_post_thumbnail'] );
 
