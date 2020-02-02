@@ -711,7 +711,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$this->assertEquals( 'sample-page-template.php', get_page_template_slug( $posts_by_name['about'] ) );
 		$this->assertEquals( '', get_page_template_slug( $posts_by_name['blog'] ) );
 		$this->assertEquals( $posts_by_name['waffles'], get_post_thumbnail_id( $posts_by_name['custom'] ) );
-		$this->assertEquals( '', get_post_thumbnail_id( $posts_by_name['blog'] ) );
+		$this->assertEquals( 0, get_post_thumbnail_id( $posts_by_name['blog'] ) );
 		$attachment_metadata = wp_get_attachment_metadata( $posts_by_name['waffles'] );
 		$this->assertEquals( 'Waffles', get_post( $posts_by_name['waffles'] )->post_title );
 		$this->assertEquals( 'waffles', get_post_meta( $posts_by_name['waffles'], '_customize_draft_post_name', true ) );
