@@ -103,7 +103,6 @@ class Tests_XMLRPC_mw_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $result );
 
 		$this->assertInternalType( 'int', $result['wp_post_thumbnail'] );
-		$this->assertStringMatchesFormat( '%d', $result['wp_post_thumbnail'] );
 		$this->assertEquals( $attachment_id, $result['wp_post_thumbnail'] );
 
 		remove_theme_support( 'post-thumbnails' );
