@@ -301,6 +301,7 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_categories' );
 	remove_action( 'init', 'register_block_core_latest_comments' );
 	remove_action( 'init', 'register_block_core_latest_posts' );
+	remove_action( 'init', 'register_block_core_navigation' );
 	remove_action( 'init', 'register_block_core_rss' );
 	remove_action( 'init', 'register_block_core_search' );
 	remove_action( 'init', 'register_block_core_shortcode' );
