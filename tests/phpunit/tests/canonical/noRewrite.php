@@ -34,9 +34,9 @@ class Tests_Canonical_NoRewrite extends WP_Canonical_UnitTestCase {
 		 * [0]: Test URL.
 		 * [1]: Expected results: Any of the following can be used.
 		 *      array( 'url': expected redirection location, 'qv': expected query vars to be set via the rewrite AND $_GET );
-		 *      array( expected query vars to be set, same as 'qv' above )
-		 *      (string) expected redirect location
-		 * [3]: (optional) The ticket the test refers to, Can be skipped if unknown.
+		 *      array( expected query vars to be set, same as 'qv' above );
+		 *      (string) expected redirect location.
+		 * [3]: (optional) The ticket the test refers to. Can be skipped if unknown.
 		 */
 		return array(
 			array( '/?p=123', '/?p=123' ),
@@ -267,11 +267,13 @@ class Tests_Canonical_NoRewrite extends WP_Canonical_UnitTestCase {
 			array( '/page/2/%E2%80%9C', '/page/2/', 20383 ), // Encoded opening curly quote.
 			array( '/page/2/%E2%80%9D', '/page/2/', 20383 ), // Encoded closing curly quote.
 
-			array( '/?page_id=1', '/?p=1' ), // Redirect page_id to p (should cover page_id|p|attachment_id to one another.
+			array( '/?page_id=1', '/?p=1' ), // Redirect page_id to p (should cover page_id|p|attachment_id to one another).
 			array( '/?page_id=1&post_type=revision', '/?p=1' ),
 
 			array( '/?feed=rss2&p=1', '/?feed=rss2&p=1', 21841 ),
 			array( '/?feed=rss&p=1', '/?feed=rss2&p=1', 24623 ),
+
+			array( '/?comp=East+(North)', '/?comp=East+(North)', 49347 ),
 		);
 	}
 }
