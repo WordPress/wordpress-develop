@@ -1774,6 +1774,29 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 48653
+	 * @expectedIncorrectUsage map_meta_cap
+	 */
+	function test_require_edit_others_posts_if_post_status_doesnt_exist() {
+		register_post_status( 'existed' );
+		$post_id = self::factory()->post->create( array( 'post_status' => 'existed' ) );
+		_unregister_post_status( 'existed' );
+
+		$subscriber_id = self::$users['subscriber']->ID;
+		$editor_id     = self::$users['editor']->ID;
+
+		foreach ( array( 'read_post', 'read_page' ) as $cap ) {
+			wp_set_current_user( $subscriber_id );
+			$this->assertSame( array( 'edit_others_posts' ), map_meta_cap( $cap, $subscriber_id, $post_id ) );
+			$this->assertFalse( current_user_can( $cap, $post_id ) );
+
+			wp_set_current_user( $editor_id );
+			$this->assertSame( array( 'edit_others_posts' ), map_meta_cap( $cap, $editor_id, $post_id ) );
+			$this->assertTrue( current_user_can( $cap, $post_id ) );
+		}
+	}
+
+	/**
 	 * @ticket 17253
 	 */
 	function test_cpt_with_page_capability_type() {
