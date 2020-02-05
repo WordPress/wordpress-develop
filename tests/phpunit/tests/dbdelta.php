@@ -15,6 +15,13 @@ class Tests_dbDelta extends WP_UnitTestCase {
 	protected $max_index_length = 191;
 
 	/**
+	 * Database engine used for creating tables.
+	 *
+	 * Prior to MySQL 5.7, InnoDB did not support FULLTEXT indexes, so MyISAM is used instead.
+	 */
+	protected $db_engine = '';
+
+	/**
 	 * Display width for BIGINT data type.
 	 *
 	 * Prior to MySQL 8.0.17, default width of 20 digits was used: BIGINT(20).
@@ -40,11 +47,10 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		global $wpdb;
 
 		$db_version = $wpdb->db_version();
-		$db_engine  = '';
 
 		if ( version_compare( $db_version, '5.7', '<' ) ) {
-			// Forcing MyISAM, because InnoDB only started supporting FULLTEXT indexes in MySQL 5.7.
-			$db_engine = 'ENGINE=MyISAM';
+			// Prior to MySQL 5.7, InnoDB did not support FULLTEXT indexes, so MyISAM is used instead.
+			$this->db_engine = 'ENGINE=MyISAM';
 		}
 
 		if ( version_compare( $db_version, '8.0.17', '<' ) ) {
@@ -66,7 +72,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 					KEY compound_key (id,column_1(%d)),
 					FULLTEXT KEY fulltext_key (column_1)" .
 					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				") $db_engine
+				") {$this->db_engine}
 				",
 				$this->max_index_length,
 				$this->max_index_length
@@ -450,7 +456,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 				KEY key_1 (column_1({$this->max_index_length})),
 				KEY compound_key (id,column_1($this->max_index_length)),
 				FULLTEXT KEY fulltext_key (column_1)
-			) ENGINE=MyISAM
+			) {$this->db_engine}
 			",
 			false
 		);
@@ -475,7 +481,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 				KEY key_1 (column_1({$this->max_index_length})),
 				KEY compound_key (id,column_1($this->max_index_length)),
 				FULLTEXT KEY fulltext_key (column_1)
-			) ENGINE=MyISAM
+			) {$this->db_engine}
 			",
 			false
 		);
@@ -500,7 +506,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 				KEY key_1 (column_1({$this->max_index_length})),
 				KEY compound_key (id,column_1($this->max_index_length)),
 				FULLTEXT KEY fulltext_key (column_1)
-			) ENGINE=MyISAM
+			) {$this->db_engine}
 			",
 			false
 		);
@@ -531,7 +537,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 				KEY key_1 (column_1({$this->max_index_length})),
 				KEY compound_key (id,column_1($this->max_index_length)),
 				FULLTEXT KEY fulltext_key (column_1)
-			) ENGINE=MyISAM
+			) {$this->db_engine}
 			",
 			false
 		);
@@ -596,7 +602,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 				spatial_value {$geomcollection_name} NOT NULL,
 				KEY non_spatial (non_spatial),
 				SPATIAL KEY spatial_key (spatial_value)
-			) ENGINE=MyISAM;
+			) {$this->db_engine};
 			";
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
@@ -615,7 +621,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 				KEY non_spatial (non_spatial),
 				SPATIAL KEY spatial_key (spatial_value)
 				SPATIAL KEY spatial_key2 (spatial_value2)
-			) ENGINE=MyISAM;
+			) {$this->db_engine};
 			";
 
 		$updates = dbDelta( $schema, false );
@@ -679,7 +685,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 				KEY compound_key (id , column_1($this->max_index_length)),
 				KEY compound_key2 (id,`references`($this->max_index_length)),
 				FULLTEXT KEY fulltext_key (column_1)
-			) ENGINE=MyISAM
+			) {$this->db_engine}
 			"
 		);
 
@@ -725,7 +731,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 				UNIQUE KEY key_3 (column_1($this->max_index_length)),
 				UNIQUE INDEX key_4 (column_1($this->max_index_length)),
 				FULLTEXT INDEX key_5 (column_1),
-			) ENGINE=MyISAM
+			) {$this->db_engine}
 		";
 
 		$creates = dbDelta( $schema );
@@ -760,7 +766,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 				INDEX key_1 (column_1($this->max_index_length)),
 				INDEX compound_key (id,column_1($this->max_index_length)),
 				FULLTEXT INDEX fulltext_key (column_1)
-			) ENGINE=MyISAM
+			) {$this->db_engine}
 			"
 		);
 
@@ -785,7 +791,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 				FULLTEXT KEY fulltext_key (column_1),
 				KEY key_2 (column_1(10)),
 				KEY key_3 (column_2(100),column_1(10)),
-			) ENGINE=MyISAM
+			) {$this->db_engine}
 		";
 
 		$creates = dbDelta( $schema );
@@ -818,7 +824,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 				KEY key_1 (column_1($this->max_index_length) DESC),
 				KEY compound_key (id,column_1($this->max_index_length) ASC),
 				FULLTEXT KEY fulltext_key (column_1)
-			) ENGINE=MyISAM
+			) {$this->db_engine}
 			"
 		);
 
@@ -842,7 +848,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 				KEY key_1 (column_1($this->max_index_length)),
 				KEY compound_key (id,column_1($this->max_index_length)),
 				FULLTEXT KEY fulltext_key (column_1)
-			) ENGINE=MyISAM
+			) {$this->db_engine}
 			"
 		);
 
@@ -866,7 +872,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 				KEY key_1        (         column_1($this->max_index_length)),
 				KEY compound_key (id,      column_1($this->max_index_length)),
 				FULLTEXT KEY fulltext_key (column_1)
-			) ENGINE=MyISAM
+			) {$this->db_engine}
 			"
 		);
 
@@ -890,7 +896,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 				key key_1 (column_1($this->max_index_length)),
 				key compound_key (id,column_1($this->max_index_length)),
 				FULLTEXT KEY fulltext_key (column_1)
-			) ENGINE=MyISAM
+			) {$this->db_engine}
 			"
 		);
 
@@ -914,7 +920,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 				KEY KEY_1 (column_1($this->max_index_length)),
 				KEY compOUND_key (id,column_1($this->max_index_length)),
 				FULLTEXT KEY FULLtext_kEY (column_1)
-			) ENGINE=MyISAM
+			) {$this->db_engine}
 			",
 			false
 		);
@@ -939,7 +945,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 				KEY key_1 (column_1({$this->max_index_length})),
 				KEY compound_key (id,column_1($this->max_index_length)),
 				FULLTEXT KEY fulltext_key (column_1)
-			) ENGINE=MyISAM
+			) {$this->db_engine}
 			",
 			false
 		);
@@ -965,7 +971,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 				KEY compound_key (id,column_1($this->max_index_length)),
 				KEY changing_key_length (column_1(20)),
 				FULLTEXT KEY fulltext_key (column_1)
-			) ENGINE=MyISAM
+			) {$this->db_engine}
 			"
 		);
 
@@ -988,7 +994,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 				KEY compound_key (id,column_1($this->max_index_length)),
 				KEY changing_key_length (column_1(50)),
 				FULLTEXT KEY fulltext_key (column_1)
-			) ENGINE=MyISAM
+			) {$this->db_engine}
 			"
 		);
 
@@ -1006,7 +1012,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 				KEY compound_key (id,column_1($this->max_index_length)),
 				KEY changing_key_length (column_1(1)),
 				FULLTEXT KEY fulltext_key (column_1)
-			) ENGINE=MyISAM
+			) {$this->db_engine}
 			"
 		);
 
@@ -1024,7 +1030,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 				KEY compound_key (id,column_1),
 				KEY changing_key_length (column_1),
 				FULLTEXT KEY fulltext_key (column_1)
-			) ENGINE=MyISAM
+			) {$this->db_engine}
 			"
 		);
 
