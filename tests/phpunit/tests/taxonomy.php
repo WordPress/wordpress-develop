@@ -170,6 +170,13 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 48558
+	 */
+	function test_register_taxonomy_return_value() {
+		$this->assertInstanceOf( 'WP_Taxonomy', register_taxonomy( 'foo', 'post' ) );
+	}
+
+	/**
 	 * @ticket 21593
 	 *
 	 * @expectedIncorrectUsage register_taxonomy

@@ -40,6 +40,13 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 48558
+	 */
+	function test_register_post_type_return_value() {
+		$this->assertInstanceOf( 'WP_Post_Type', register_post_type( 'foo' ) );
+	}
+
+	/**
 	 * @ticket 31134
 	 *
 	 * @expectedIncorrectUsage register_post_type
