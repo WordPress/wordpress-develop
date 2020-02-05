@@ -50,8 +50,9 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		$wpdb->query(
 			$wpdb->prepare(
 				"
-				CREATE TABLE {$wpdb->prefix}dbdelta_test (
-					id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
+				CREATE TABLE {$wpdb->prefix}dbdelta_test (" .
+					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					"id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 					column_1 varchar(255) NOT NULL,
 					column_2 text,
 					column_3 blob,
