@@ -264,6 +264,15 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 38844
+	 */
+	public function test_get_post_type_object_includes_menu_icon_for_builtin_post_types() {
+		$this->assertEquals( 'dashicons-admin-post', get_post_type_object( 'post' )->menu_icon );
+		$this->assertEquals( 'dashicons-admin-page', get_post_type_object( 'page' )->menu_icon );
+		$this->assertEquals( 'dashicons-admin-media', get_post_type_object( 'attachment' )->menu_icon );
+	}
+
+	/**
 	 * @ticket 14761
 	 */
 	public function test_unregister_post_type() {
