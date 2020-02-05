@@ -40,13 +40,18 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		global $wpdb;
 
 		$db_version = $wpdb->db_version();
+		$db_engine  = '';
+
+		if ( version_compare( $db_version, '5.7', '<' ) ) {
+			// Forcing MyISAM, because InnoDB only started supporting FULLTEXT indexes in MySQL 5.7.
+			$db_engine = 'ENGINE=MyISAM';
+		}
 
 		if ( version_compare( $db_version, '8.0.17', '<' ) ) {
 			// Prior to MySQL 8.0.17, default width of 20 digits was used: BIGINT(20).
 			$this->bigint_display_width = '(20)';
 		}
 
-		// Forcing MyISAM, because InnoDB only started supporting FULLTEXT indexes in MySQL 5.7.
 		$wpdb->query(
 			$wpdb->prepare(
 				"
@@ -59,8 +64,9 @@ class Tests_dbDelta extends WP_UnitTestCase {
 					PRIMARY KEY  (id),
 					KEY key_1 (column_1(%d)),
 					KEY compound_key (id,column_1(%d)),
-					FULLTEXT KEY fulltext_key (column_1)
-				) ENGINE=MyISAM
+					FULLTEXT KEY fulltext_key (column_1)" .
+					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				") $db_engine
 				",
 				$this->max_index_length,
 				$this->max_index_length
