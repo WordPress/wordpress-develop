@@ -15,6 +15,14 @@ class Tests_dbDelta extends WP_UnitTestCase {
 	protected $max_index_length = 191;
 
 	/**
+	 * Display width for BIGINT data type.
+	 *
+	 * Prior to MySQL 8.0.17, default width of 20 digits was used: BIGINT(20).
+	 * Since MySQL 8.0.17, display width for integer data types is no longer supported.
+	 */
+	protected $bigint_display_width = '';
+
+	/**
 	 * Make sure the upgrade code is loaded before the tests are run.
 	 */
 	public static function setUpBeforeClass() {
@@ -31,12 +39,19 @@ class Tests_dbDelta extends WP_UnitTestCase {
 
 		global $wpdb;
 
+		$db_version = $wpdb->db_version();
+
+		if ( version_compare( $db_version, '8.0.17', '<' ) ) {
+			// Prior to MySQL 8.0.17, default width of 20 digits was used: BIGINT(20).
+			$this->bigint_display_width = '(20)';
+		}
+
 		// Forcing MyISAM, because InnoDB only started supporting FULLTEXT indexes in MySQL 5.7.
 		$wpdb->query(
 			$wpdb->prepare(
 				"
 				CREATE TABLE {$wpdb->prefix}dbdelta_test (
-					id bigint(20) NOT NULL AUTO_INCREMENT,
+					id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 					column_1 varchar(255) NOT NULL,
 					column_2 text,
 					column_3 blob,
@@ -78,7 +93,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 
 		$updates = dbDelta(
 			"CREATE TABLE {$wpdb->prefix}dbdelta_create_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
+				id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				column_1 varchar(255) NOT NULL,
 				PRIMARY KEY  (id)
 			);"
@@ -113,7 +128,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		$updates = dbDelta(
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
+				id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				column_1 varchar(255) NOT NULL,
 				PRIMARY KEY  (id),
 				KEY key_1 (column_1($this->max_index_length)),
@@ -132,7 +147,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 
 		global $wpdb;
 
-		// id: bigint(20) => int(11)
+		// id: bigint => int(11)
 		$updates = dbDelta(
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
@@ -148,7 +163,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		$this->assertEquals(
 			array(
 				"{$wpdb->prefix}dbdelta_test.id"
-					=> "Changed type of {$wpdb->prefix}dbdelta_test.id from bigint(20) to int(11)",
+					=> "Changed type of {$wpdb->prefix}dbdelta_test.id from bigint{$this->bigint_display_width} to int(11)",
 			),
 			$updates
 		);
@@ -164,7 +179,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		$updates = dbDelta(
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
+				id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				column_1 varchar(255) NOT NULL,
 				extra_col longtext,
 				PRIMARY KEY  (id),
@@ -199,7 +214,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		$updates = dbDelta(
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
+				id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				PRIMARY KEY  (id),
 				KEY key_1 (column_1($this->max_index_length)),
 				KEY compound_key (id,column_1($this->max_index_length))
@@ -223,7 +238,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		$updates = dbDelta(
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
+				id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				column_1 varchar(255) NOT NULL,
 				extra_col longtext,
 				PRIMARY KEY  (id),
@@ -275,7 +290,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		$updates = dbDelta(
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
+				id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				column_1 varchar(255) NOT NULL,
 				PRIMARY KEY  (id),
 				KEY key_1 (column_1($this->max_index_length)),
@@ -420,7 +435,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		$result = dbDelta(
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
+				id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				column_1 varchar(255) NOT NULL,
 				column_2 tinytext,
 				column_3 blob,
@@ -445,7 +460,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		$result = dbDelta(
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
+				id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				column_1 varchar(255) NOT NULL,
 				column_2 text,
 				column_3 tinyblob,
@@ -470,7 +485,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		$result = dbDelta(
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
+				id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				column_1 varchar(255) NOT NULL,
 				column_2 bigtext,
 				column_3 blob,
@@ -501,7 +516,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		$result = dbDelta(
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
+				id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				column_1 varchar(255) NOT NULL,
 				column_2 text,
 				column_3 mediumblob,
@@ -531,7 +546,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 
 		$schema = "
 			CREATE TABLE {$wpdb->prefix}dbdelta_test2 (
-				`id` bigint(20) NOT NULL AUTO_INCREMENT,
+				`id` bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				`column_1` varchar(255) NOT NULL,
 				PRIMARY KEY  (id),
 				KEY compound_key (id,column_1($this->max_index_length))
@@ -554,15 +569,24 @@ class Tests_dbDelta extends WP_UnitTestCase {
 	function test_spatial_indices() {
 		global $wpdb;
 
-		if ( version_compare( $wpdb->db_version(), '5.4', '<' ) ) {
+		$db_version = $wpdb->db_version();
+
+		if ( version_compare( $db_version, '5.4', '<' ) ) {
 			$this->markTestSkipped( 'Spatial indices require MySQL 5.4 and above.' );
+		}
+
+		$geomcollection_name = 'geomcollection';
+
+		if ( version_compare( $db_version, '8.0.11', '<' ) ) {
+			// Prior to MySQL 8.0.11, GeometryCollection data type name was used.
+			$geomcollection_name = 'geometrycollection';
 		}
 
 		$schema =
 			"
 			CREATE TABLE {$wpdb->prefix}spatial_index_test (
-				non_spatial bigint(20) unsigned NOT NULL,
-				spatial_value geometrycollection NOT NULL,
+				non_spatial bigint{$this->bigint_display_width} unsigned NOT NULL,
+				spatial_value {$geomcollection_name} NOT NULL,
 				KEY non_spatial (non_spatial),
 				SPATIAL KEY spatial_key (spatial_value)
 			) ENGINE=MyISAM;
@@ -578,9 +602,9 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		$schema =
 			"
 			CREATE TABLE {$wpdb->prefix}spatial_index_test (
-				non_spatial bigint(20) unsigned NOT NULL,
-				spatial_value geometrycollection NOT NULL,
-				spatial_value2 geometrycollection NOT NULL,
+				non_spatial bigint{$this->bigint_display_width} unsigned NOT NULL,
+				spatial_value {$geomcollection_name} NOT NULL,
+				spatial_value2 {$geomcollection_name} NOT NULL,
 				KEY non_spatial (non_spatial),
 				SPATIAL KEY spatial_key (spatial_value)
 				SPATIAL KEY spatial_key2 (spatial_value2)
@@ -608,7 +632,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 
 		$schema = "
 			CREATE TABLE {$wpdb->prefix}dbdelta_test2 (
-				`id` bigint(20) NOT NULL AUTO_INCREMENT,
+				`id` bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				`references` varchar(255) NOT NULL,
 				PRIMARY KEY  (`id`),
 				KEY `compound_key` (`id`,`references`($this->max_index_length))
@@ -638,7 +662,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		$updates = dbDelta(
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
+				id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				column_1 varchar(255) NOT NULL,
 				column_2 text,
 				column_3 blob,
@@ -682,7 +706,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 
 		$schema = "
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
+				id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				column_1 varchar(255) NOT NULL,
 				column_2 text,
 				column_3 blob,
@@ -721,7 +745,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		$updates = dbDelta(
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
+				id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				column_1 varchar(255) NOT NULL,
 				column_2 text,
 				column_3 blob,
@@ -744,7 +768,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 
 		$schema = "
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
+				id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				column_1 varchar(255) NOT NULL,
 				column_2 text,
 				column_3 blob,
@@ -779,7 +803,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		$updates = dbDelta(
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
+				id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				column_1 varchar(255) NOT NULL,
 				column_2 text,
 				column_3 blob,
@@ -803,7 +827,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		$updates = dbDelta(
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
+				id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				column_1 varchar(255) NOT NULL,
 				column_2 text,
 				column_3 blob,
@@ -827,7 +851,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		$updates = dbDelta(
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
+				id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				column_1 varchar(255) NOT NULL,
 				column_2 text,
 				column_3 blob,
@@ -851,7 +875,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		$updates = dbDelta(
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
+				id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				column_1 varchar(255) NOT NULL,
 				column_2 text,
 				column_3 blob,
@@ -875,7 +899,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		$updates = dbDelta(
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
+				id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				column_1 varchar(255) NOT NULL,
 				column_2 text,
 				column_3 blob,
@@ -900,7 +924,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		$updates = dbDelta(
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
+				id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				column_1 varchar(255) NOT NULL,
 				column_2 text,
 				column_3 blob,
@@ -925,7 +949,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		$updates = dbDelta(
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
+				id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				column_1 varchar(255) NOT NULL,
 				column_2 text,
 				column_3 blob,
@@ -948,7 +972,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		$updates = dbDelta(
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
+				id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				column_1 varchar(255) NOT NULL,
 				column_2 text,
 				column_3 blob,
@@ -966,7 +990,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		$updates = dbDelta(
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
+				id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				column_1 varchar(255) NOT NULL,
 				column_2 text,
 				column_3 blob,
@@ -984,7 +1008,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 		$updates = dbDelta(
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_test (
-				id bigint(20) NOT NULL AUTO_INCREMENT,
+				id bigint{$this->bigint_display_width} NOT NULL AUTO_INCREMENT,
 				column_1 varchar(255) NOT NULL,
 				column_2 text,
 				column_3 blob,
