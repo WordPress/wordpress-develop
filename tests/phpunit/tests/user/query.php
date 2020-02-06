@@ -1661,7 +1661,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$ids = $q->get_results();
 
-		/* must include user that has same string in display_name */
+		// Must include user that has the same string in display_name.
 		$this->assertEquals( array( $new_user1 ), $ids );
 	}
 
@@ -1689,7 +1689,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$ids = $q->get_results();
 
-		/* must not include user that has same string in other fields */
+		// Must not include user that has the same string in other fields.
 		$this->assertEquals( array(), $ids );
 	}
 
