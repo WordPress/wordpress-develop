@@ -1,7 +1,7 @@
 <?php
 
-require_once dirname( __FILE__ ) . '/factory.php';
-require_once dirname( __FILE__ ) . '/trac.php';
+require_once __DIR__ . '/factory.php';
+require_once __DIR__ . '/trac.php';
 
 /**
  * Defines a basic fixture to run multiple tests.

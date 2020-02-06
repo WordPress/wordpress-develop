@@ -1,5 +1,5 @@
 <?php
-require_once( ABSPATH . 'wp-admin/includes/class-custom-image-header.php' );
+require_once ABSPATH . 'wp-admin/includes/class-custom-image-header.php';
 
 /**
  * @group image

@@ -10,11 +10,11 @@ $options = 'v:r:d';
 if ( is_callable( 'getopt' ) ) {
 	$opts = getopt( $options );
 } else {
-	include( dirname( __FILE__ ) . '/wp-testlib/getopt.php' );
+	require __DIR__ . '/wp-testlib/getopt.php';
 	$opts = getoptParser::getopt( $options );
 }
 
-define( 'DIR_TESTROOT', realpath( dirname( __FILE__ ) ) );
+define( 'DIR_TESTROOT', realpath( __DIR__ ) );
 
 define( 'TEST_WP', true );
 define( 'WP_DEBUG', array_key_exists( 'd', $opts ) );
@@ -31,10 +31,10 @@ if ( ! empty( $opts['r'] ) ) {
 error_reporting( E_ALL & ~E_DEPRECATED );
 ini_set( 'display_errors', true );
 
-require_once( DIR_TESTROOT . '/wp-testlib/utils.php' );
+require_once DIR_TESTROOT . '/wp-testlib/utils.php';
 
 // Configure WP.
-require_once( DIR_TESTROOT . '/wp-config.php' );
+require_once DIR_TESTROOT . '/wp-config.php';
 define( 'ABSPATH', realpath( DIR_WP ) . '/' );
 
 // Install WP.
@@ -45,11 +45,11 @@ define( 'WP_USER_EMAIL', rand_str() . '@example.com' );
 // Initialize WP.
 define( 'WP_INSTALLING', 1 );
 $_SERVER['PATH_INFO'] = $_SERVER['SCRIPT_NAME']; // Prevent a warning from some sloppy code in wp-settings.php.
-require_once( ABSPATH . 'wp-settings.php' );
+require_once ABSPATH . 'wp-settings.php';
 
 drop_tables();
 
-require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 wp_install( WP_BLOG_TITLE, WP_USER_NAME, WP_USER_EMAIL, true );
 
 // Make sure we're installed.

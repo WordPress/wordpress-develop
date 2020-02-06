@@ -72,7 +72,7 @@ class Tests_Feeds_Atom extends WP_UnitTestCase {
 		global $post;
 		try {
 			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-			@require( ABSPATH . 'wp-includes/feed-atom.php' );
+			@require ABSPATH . 'wp-includes/feed-atom.php';
 			$out = ob_get_clean();
 		} catch ( Exception $e ) {
 			$out = ob_get_clean();

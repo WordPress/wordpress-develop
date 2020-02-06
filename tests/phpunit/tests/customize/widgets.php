@@ -22,7 +22,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 
 	function setUp() {
 		parent::setUp();
-		require_once( ABSPATH . WPINC . '/class-wp-customize-manager.php' );
+		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 
 		add_theme_support( 'customize-selective-refresh-widgets' );
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );

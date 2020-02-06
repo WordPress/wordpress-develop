@@ -7,15 +7,15 @@
  * @group media
  * @group wp-image-editor-gd
  */
-require_once( dirname( __FILE__ ) . '/base.php' );
+require_once __DIR__ . '/base.php';
 
 class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 	public $editor_engine = 'WP_Image_Editor_GD';
 
 	public function setUp() {
-		require_once( ABSPATH . WPINC . '/class-wp-image-editor.php' );
-		require_once( ABSPATH . WPINC . '/class-wp-image-editor-gd.php' );
+		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
+		require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
 
 		parent::setUp();
 	}

@@ -7,15 +7,15 @@
  * @group media
  * @group wp-image-editor-imagick
  */
-require_once( dirname( __FILE__ ) . '/base.php' );
+require_once __DIR__ . '/base.php';
 
 class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 	public $editor_engine = 'WP_Image_Editor_Imagick';
 
 	public function setUp() {
-		require_once( ABSPATH . WPINC . '/class-wp-image-editor.php' );
-		require_once( ABSPATH . WPINC . '/class-wp-image-editor-imagick.php' );
+		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
+		require_once ABSPATH . WPINC . '/class-wp-image-editor-imagick.php';
 
 		parent::setUp();
 	}

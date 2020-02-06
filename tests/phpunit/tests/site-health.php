@@ -6,7 +6,7 @@
 class Tests_Site_Health extends WP_UnitTestCase {
 	public static function wpSetUpBeforeClass() {
 		// Include the `WP_Site_Health` file.
-		include_once( ABSPATH . 'wp-admin/includes/class-wp-site-health.php' );
+		require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
 	}
 
 	/**

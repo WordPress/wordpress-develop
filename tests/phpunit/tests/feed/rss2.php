@@ -84,7 +84,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		global $post;
 		try {
 			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-			@require( ABSPATH . 'wp-includes/feed-rss2.php' );
+			@require ABSPATH . 'wp-includes/feed-rss2.php';
 			$out = ob_get_clean();
 		} catch ( Exception $e ) {
 			$out = ob_get_clean();

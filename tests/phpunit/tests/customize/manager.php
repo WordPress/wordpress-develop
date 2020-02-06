@@ -55,7 +55,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 */
 	function setUp() {
 		parent::setUp();
-		require_once( ABSPATH . WPINC . '/class-wp-customize-manager.php' );
+		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$this->manager   = $this->instantiate();
 		$this->undefined = new stdClass();
 

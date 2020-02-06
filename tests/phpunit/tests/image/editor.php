@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname( __FILE__ ) . '/base.php';
+require_once __DIR__ . '/base.php';
 
 /**
  * Test the WP_Image_Editor base class
@@ -15,9 +15,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * Setup test fixture
 	 */
 	public function setUp() {
-		require_once( ABSPATH . WPINC . '/class-wp-image-editor.php' );
+		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 
-		include_once( DIR_TESTDATA . '/../includes/mock-image-editor.php' );
+		require_once DIR_TESTDATA . '/../includes/mock-image-editor.php';
 
 		parent::setUp();
 	}

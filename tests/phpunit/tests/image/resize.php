@@ -6,7 +6,7 @@
  * @group upload
  * @group resize
  */
-require_once( dirname( __FILE__ ) . '/base.php' );
+require_once __DIR__ . '/base.php';
 
 abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase {
 

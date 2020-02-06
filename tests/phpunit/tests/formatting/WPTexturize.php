@@ -2107,7 +2107,7 @@ String with a number followed by a single quote !q1!Expendables 3!q1! vestibulum
 	}
 
 	function data_whole_posts() {
-		require_once( DIR_TESTDATA . '/formatting/whole-posts.php' );
+		require_once DIR_TESTDATA . '/formatting/whole-posts.php';
 		return data_whole_posts();
 	}
 }

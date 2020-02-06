@@ -13,11 +13,11 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	public function setUp() {
 		parent::setUp();
 
-		require_once( ABSPATH . WPINC . '/class-wp-image-editor.php' );
-		require_once( ABSPATH . WPINC . '/class-wp-image-editor-gd.php' );
-		require_once( ABSPATH . WPINC . '/class-wp-image-editor-imagick.php' );
+		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
+		require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
+		require_once ABSPATH . WPINC . '/class-wp-image-editor-imagick.php';
 
-		include_once( DIR_TESTDATA . '/../includes/mock-image-editor.php' );
+		require_once DIR_TESTDATA . '/../includes/mock-image-editor.php';
 
 		// Ensure no legacy / failed tests detritus.
 		$folder = '/tmp/wordpress-gsoc-flyer*.{jpg,pdf}';
@@ -133,7 +133,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( 'The fileinfo PHP extension is not loaded.' );
 		}
 
-		include_once( ABSPATH . 'wp-admin/includes/image-edit.php' );
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
 		// Mime types.
 		$mime_types = array(

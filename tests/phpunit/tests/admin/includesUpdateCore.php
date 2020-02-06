@@ -8,7 +8,7 @@ class Tests_Admin_IncludesUpdateCore extends WP_UnitTestCase {
 	public function data_old_files() {
 		global $_old_files;
 
-		require_once( ABSPATH . 'wp-admin/includes/update-core.php' );
+		require_once ABSPATH . 'wp-admin/includes/update-core.php';
 
 		$files = $_old_files;
 

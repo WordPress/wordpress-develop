@@ -1010,7 +1010,7 @@ class Tests_Post extends WP_UnitTestCase {
 			$this->markTestSkipped( 'This test is only useful with the utf8 character set' );
 		}
 
-		require_once( ABSPATH . '/wp-admin/includes/post.php' );
+		require_once ABSPATH . '/wp-admin/includes/post.php';
 
 		$post_id = self::factory()->post->create();
 
