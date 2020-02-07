@@ -169,7 +169,7 @@
 	</rule>
 
 	<!-- Whitelist the I18n functions file from issues identified by the I18n sniff
-		(such as calling the low-level translate() function). -->
+		 (such as calling the low-level translate() function). -->
 	<rule ref="WordPress.WP.I18n">
 		<exclude-pattern>/src/wp-includes/l10n\.php</exclude-pattern>
 		<exclude-pattern>/tests/phpunit/tests/l10n\.php</exclude-pattern>
@@ -189,8 +189,8 @@
 	</rule>
 
 	<!-- Exclude checking of line endings when reporting errors, but fix them when running phpcbf.
-		Git and SVN manage these pretty well cross-platform as "native".
-		Whitelist configuration files. -->
+		 Git and SVN manage these pretty well cross-platform as "native".
+		 Whitelist configuration files. -->
 	<rule ref="Generic.Files.LineEndings">
 		<exclude-pattern>/wp-config\.php</exclude-pattern>
 		<exclude-pattern>/wp-config-sample\.php</exclude-pattern>
@@ -269,6 +269,21 @@
 			</property>
 		</properties>
 	</rule>
+
+	<!-- Enforce no parenthesis for language constructs, and only one space immediately after.
+		 Including this rule is temporary until it is moved from the WordPress-Extra ruleset to
+		 the WordPress-Core ruleset upstream.
+	-->
+	<rule ref="PEAR.Files.IncludingFile.BracketsNotRequired">
+		<type>warning</type>
+	</rule>
+	<rule ref="PEAR.Files.IncludingFile.UseRequire">
+		<type>warning</type>
+	</rule>
+	<rule ref="PEAR.Files.IncludingFile.UseRequireOnce">
+		<type>warning</type>
+	</rule>
+	<rule ref="Squiz.WhiteSpace.LanguageConstructSpacing"/>
 
 	<!-- Assignments in while conditions are a valid method of looping over iterables. -->
 	<rule ref="WordPress.CodeAnalysis.AssignmentInCondition.FoundInWhileCondition">
