@@ -4,7 +4,7 @@
  * @group external-http
  * @group functions.php
  */
-class Tests_wp_remote_fopen extends WP_UnitTestCase {
+class Tests_Functions_wp_remote_fopen extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 48845

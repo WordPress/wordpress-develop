@@ -1,9 +1,9 @@
 <?php
 
 /**
- * @group functions.php
- *
  * Tests for the behavior of `wp_auth_check()`
+ *
+ * @group functions.php
  */
 class Tests_Functions_WP_Auth_Check extends WP_UnitTestCase {
 
