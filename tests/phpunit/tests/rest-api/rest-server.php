@@ -845,6 +845,66 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertEquals( $self_not_filtered, $data['_links']['self'][0] );
 	}
 
+	/**
+	 * @dataProvider _dp_response_to_data_embedding
+	 */
+	public function test_response_to_data_embedding( $expected, $embed ) {
+		$response = new WP_REST_Response();
+		$response->add_link( 'author', rest_url( '404' ), array( 'embeddable' => true ) );
+		$response->add_link( 'https://api.w.org/term', rest_url( '404' ), array( 'embeddable' => true ) );
+		$response->add_link( 'https://wordpress.org', rest_url( '404' ), array( 'embeddable' => true ) );
+		$response->add_link( 'no-embed', rest_url( '404' ) );
+
+		$data = rest_get_server()->response_to_data( $response, $embed );
+
+		if ( false === $expected ) {
+			$this->assertArrayNotHasKey( '_embedded', $data );
+		} else {
+			$this->assertEqualSets( $expected, array_keys( $data['_embedded'] ) );
+		}
+	}
+
+	public function _dp_response_to_data_embedding() {
+		return array(
+			array(
+				array( 'author', 'wp:term', 'https://wordpress.org' ),
+				true,
+			),
+			array(
+				array( 'author', 'wp:term', 'https://wordpress.org' ),
+				array( 'author', 'wp:term', 'https://wordpress.org' ),
+			),
+			array(
+				array( 'author' ),
+				array( 'author' ),
+			),
+			array(
+				array( 'wp:term' ),
+				array( 'wp:term' ),
+			),
+			array(
+				array( 'https://wordpress.org' ),
+				array( 'https://wordpress.org' ),
+			),
+			array(
+				array( 'author', 'wp:term' ),
+				array( 'author', 'wp:term' ),
+			),
+			array(
+				false,
+				false,
+			),
+			array(
+				false,
+				array( 'no-embed' ),
+			),
+			array(
+				array( 'author' ),
+				array( 'author', 'no-embed' ),
+			),
+		);
+	}
+
 	public function test_get_index() {
 		$server = new WP_REST_Server();
 		$server->register_route(
