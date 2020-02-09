@@ -91,7 +91,7 @@ function set_query_var( $var, $value ) {
  * @global WP_Query $wp_query WordPress Query object.
  *
  * @param array|string $query Array or string of WP_Query arguments.
- * @return array List of post objects.
+ * @return WP_Post[]|int[] Array of post objects or post IDs.
  */
 function query_posts( $query ) {
 	$GLOBALS['wp_query'] = new WP_Query();
@@ -623,7 +623,7 @@ function is_preview() {
 }
 
 /**
- * Is the query for the robots file?
+ * Is the query for the robots.txt file?
  *
  * @since 2.1.0
  *
@@ -640,6 +640,26 @@ function is_robots() {
 	}
 
 	return $wp_query->is_robots();
+}
+
+/**
+ * Is the query for the favicon.ico file?
+ *
+ * @since 5.4.0
+ *
+ * @global WP_Query $wp_query WordPress Query object.
+ *
+ * @return bool
+ */
+function is_favicon() {
+	global $wp_query;
+
+	if ( ! isset( $wp_query ) ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1.0' );
+		return false;
+	}
+
+	return $wp_query->is_favicon();
 }
 
 /**
@@ -978,7 +998,7 @@ function the_comment() {
  */
 function wp_old_slug_redirect() {
 	if ( is_404() && '' !== get_query_var( 'name' ) ) {
-		// Guess the current post_type based on the query vars.
+		// Guess the current post type based on the query vars.
 		if ( get_query_var( 'post_type' ) ) {
 			$post_type = get_query_var( 'post_type' );
 		} elseif ( get_query_var( 'attachment' ) ) {
@@ -996,7 +1016,7 @@ function wp_old_slug_redirect() {
 			$post_type = reset( $post_type );
 		}
 
-		// Do not attempt redirect for hierarchical post types
+		// Do not attempt redirect for hierarchical post types.
 		if ( is_post_type_hierarchical( $post_type ) ) {
 			return;
 		}
@@ -1041,7 +1061,7 @@ function wp_old_slug_redirect() {
 			return;
 		}
 
-		wp_redirect( $link, 301 ); // Permanent redirect
+		wp_redirect( $link, 301 ); // Permanent redirect.
 		exit;
 	}
 }
@@ -1064,8 +1084,8 @@ function _find_post_by_old_slug( $post_type ) {
 
 	$query = $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta, $wpdb->posts WHERE ID = post_id AND post_type = %s AND meta_key = '_wp_old_slug' AND meta_value = %s", $post_type, get_query_var( 'name' ) );
 
-	// if year, monthnum, or day have been specified, make our query more precise
-	// just in case there are multiple identical _wp_old_slug values
+	// If year, monthnum, or day have been specified, make our query more precise
+	// just in case there are multiple identical _wp_old_slug values.
 	if ( get_query_var( 'year' ) ) {
 		$query .= $wpdb->prepare( ' AND YEAR(post_date) = %d', get_query_var( 'year' ) );
 	}
@@ -1113,7 +1133,7 @@ function _find_post_by_old_date( $post_type ) {
 		$id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta AS pm_date, $wpdb->posts WHERE ID = post_id AND post_type = %s AND meta_key = '_wp_old_date' AND post_name = %s" . $date_query, $post_type, get_query_var( 'name' ) ) );
 
 		if ( ! $id ) {
-			// Check to see if an old slug matches the old date
+			// Check to see if an old slug matches the old date.
 			$id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->posts, $wpdb->postmeta AS pm_slug, $wpdb->postmeta AS pm_date WHERE ID = pm_slug.post_id AND ID = pm_date.post_id AND post_type = %s AND pm_slug.meta_key = '_wp_old_slug' AND pm_slug.meta_value = %s AND pm_date.meta_key = '_wp_old_date'" . $date_query, $post_type, get_query_var( 'name' ) ) );
 		}
 	}

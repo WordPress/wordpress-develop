@@ -1,8 +1,6 @@
 === Twenty Seventeen ===
 Contributors: wordpressdotorg
-Requires at least: WordPress 4.7
-Tested up to: WordPress 5.0
-Requires PHP: 5.2.4
+Tested up to: 5.0
 Version: 2.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -24,7 +22,7 @@ For more information about Twenty Seventeen please go to https://wordpress.org/s
 
 == Copyright ==
 
-Twenty Seventeen WordPress Theme, Copyright 2016 WordPress.org
+Twenty Seventeen WordPress Theme, Copyright 2016-2020 WordPress.org
 Twenty Seventeen is distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify

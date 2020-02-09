@@ -22,7 +22,7 @@ class Tests_Term_Slashes extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Tests the model function that expects slashed data
+	 * Tests the model function that expects slashed data.
 	 */
 	function test_wp_insert_term() {
 		$taxonomies = array(
@@ -69,7 +69,7 @@ class Tests_Term_Slashes extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Tests the model function that expects slashed data
+	 * Tests the model function that expects slashed data.
 	 */
 	function test_wp_update_term() {
 		$taxonomies = array(

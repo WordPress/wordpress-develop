@@ -18,8 +18,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		$this->assertFalse( get_option( 'doesnotexist' ) );
 		$this->assertTrue( add_option( $key, $value ) );
 		$this->assertEquals( $value, get_option( $key ) );
-		$this->assertFalse( add_option( $key, $value ) );  // Already exists
-		$this->assertFalse( update_option( $key, $value ) );  // Value is the same
+		$this->assertFalse( add_option( $key, $value ) );    // Already exists.
+		$this->assertFalse( update_option( $key, $value ) ); // Value is the same.
 		$this->assertTrue( update_option( $key, $value2 ) );
 		$this->assertEquals( $value2, get_option( $key ) );
 		$this->assertFalse( add_option( $key, $value ) );
@@ -54,7 +54,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		$this->assertEquals( $value, get_option( 'doesnotexist', 'foo' ) );
 		remove_filter( 'default_option_doesnotexist', array( $this, '__return_foo' ) );
 
-		// Cleanup
+		// Cleanup.
 		$this->assertTrue( delete_option( 'doesnotexist' ) );
 		$this->assertFalse( get_option( 'doesnotexist' ) );
 	}

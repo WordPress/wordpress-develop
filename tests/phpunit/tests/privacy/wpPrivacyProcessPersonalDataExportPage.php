@@ -131,7 +131,7 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 */
 	public static function wpSetUpBeforeClass( $factory ) {
 		self::$requester_email      = 'requester@example.com';
-		self::$export_file_url      = wp_privacy_exports_url() . 'wp-personal-data-file-requester-at-example-com-Wv0RfMnGIkl4CFEDEEkSeIdfLmaUrLsl.zip';
+		self::$export_file_url      = wp_privacy_exports_url() . 'wp-personal-data-file-Wv0RfMnGIkl4CFEDEEkSeIdfLmaUrLsl.zip';
 		self::$request_id           = wp_create_user_request( self::$requester_email, 'export_personal_data' );
 		self::$page_index_first     = 1;
 		self::$page_index_last      = 2;
@@ -210,7 +210,7 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 * @since 5.2.0
 	 *
 	 * @param  array $exporters An array of personal data exporters.
-	 * @return array $exporters An array of personal data exporters.
+	 * @return array An array of personal data exporters.
 	 */
 	public function filter_register_custom_personal_data_exporters( $exporters ) {
 		// Let's override other unrelated exporters.

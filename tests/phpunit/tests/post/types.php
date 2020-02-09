@@ -32,11 +32,18 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Post_Type', $pobj );
 		$this->assertEquals( 'foo', $pobj->name );
 
-		// Test some defaults
+		// Test some defaults.
 		$this->assertFalse( is_post_type_hierarchical( 'foo' ) );
 		$this->assertEquals( array(), get_object_taxonomies( 'foo' ) );
 
 		_unregister_post_type( 'foo' );
+	}
+
+	/**
+	 * @ticket 48558
+	 */
+	function test_register_post_type_return_value() {
+		$this->assertInstanceOf( 'WP_Post_Type', register_post_type( 'foo' ) );
 	}
 
 	/**
@@ -45,7 +52,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage register_post_type
 	 */
 	function test_register_post_type_with_too_long_name() {
-		// post type too long
+		// Post type too long.
 		$this->assertInstanceOf( 'WP_Error', register_post_type( 'abcdefghijklmnopqrstuvwxyz0123456789' ) );
 	}
 
@@ -55,7 +62,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage register_post_type
 	 */
 	function test_register_post_type_with_empty_name() {
-		// post type too short
+		// Post type too short.
 		$this->assertInstanceOf( 'WP_Error', register_post_type( '' ) );
 	}
 
@@ -257,6 +264,15 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 38844
+	 */
+	public function test_get_post_type_object_includes_menu_icon_for_builtin_post_types() {
+		$this->assertEquals( 'dashicons-admin-post', get_post_type_object( 'post' )->menu_icon );
+		$this->assertEquals( 'dashicons-admin-page', get_post_type_object( 'page' )->menu_icon );
+		$this->assertEquals( 'dashicons-admin-media', get_post_type_object( 'attachment' )->menu_icon );
+	}
+
+	/**
 	 * @ticket 14761
 	 */
 	public function test_unregister_post_type() {
@@ -333,7 +349,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		$this->assertTrue( unregister_post_type( 'foo' ) );
 		$this->assertNotContains( '%foo%', $wp_rewrite->rewritecode );
 		$this->assertNotContains( 'bar=', $wp_rewrite->queryreplace );
-		$this->assertSame( -- $count_before, count( $wp_rewrite->rewritereplace ) ); // Array was reduced by one value.
+		$this->assertSame( --$count_before, count( $wp_rewrite->rewritereplace ) ); // Array was reduced by one value.
 	}
 
 	/**

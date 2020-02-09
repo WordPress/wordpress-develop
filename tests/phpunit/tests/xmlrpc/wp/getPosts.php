@@ -64,7 +64,7 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 				)
 			);
 		}
-		// get them all
+		// Get them all.
 		$filter  = array(
 			'post_type' => $cpt_name,
 			'number'    => $num_posts + 10,
@@ -73,7 +73,7 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $results );
 		$this->assertEquals( $num_posts, count( $results ) );
 
-		// page through results
+		// Page through results.
 		$posts_found      = array();
 		$filter['number'] = 2;
 		$filter['offset'] = 0;
@@ -82,16 +82,16 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 			$posts_found       = array_merge( $posts_found, wp_list_pluck( $presults, 'post_id' ) );
 			$filter['offset'] += $filter['number'];
 		} while ( count( $presults ) > 0 );
-		// verify that $post_ids matches $posts_found
+		// Verify that $post_ids matches $posts_found.
 		$this->assertEquals( 0, count( array_diff( $post_ids, $posts_found ) ) );
 
-		// add comments to some of the posts
+		// Add comments to some of the posts.
 		foreach ( $post_ids as $key => $post_id ) {
 			// Larger post IDs will get more comments.
 			self::factory()->comment->create_post_comments( $post_id, $key );
 		}
 
-		// get results ordered by comment count
+		// Get results ordered by comment count.
 		$filter2  = array(
 			'post_type' => $cpt_name,
 			'number'    => $num_posts,
@@ -107,7 +107,7 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 			$last_comment_count = $comment_count;
 		}
 
-		// set one of the posts to draft and get drafts
+		// Set one of the posts to draft and get drafts.
 		$post              = get_post( $post_ids[0] );
 		$post->post_status = 'draft';
 		wp_update_post( $post );
@@ -127,15 +127,15 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 		$this->make_user_by_role( 'editor' );
 		self::factory()->post->create();
 
-		// check default fields
+		// Check default fields.
 		$results = $this->myxmlrpcserver->wp_getPosts( array( 1, 'editor', 'editor' ) );
 		$this->assertNotIXRError( $results );
-		$expected_fields = array( 'post_id', 'post_title', 'terms', 'custom_fields', 'link' ); // subset of expected fields
+		$expected_fields = array( 'post_id', 'post_title', 'terms', 'custom_fields', 'link' ); // Subset of expected fields.
 		foreach ( $expected_fields as $field ) {
 			$this->assertArrayHasKey( $field, $results[0] );
 		}
 
-		// request specific fields and verify that only those are returned
+		// Request specific fields and verify that only those are returned.
 		$filter   = array();
 		$fields   = array( 'post_name', 'post_author', 'enclosure' );
 		$results2 = $this->myxmlrpcserver->wp_getPosts( array( 1, 'editor', 'editor', $filter, $fields ) );
@@ -155,13 +155,13 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 		$post_ids[] = self::factory()->post->create( array( 'post_title' => 'First: Hello, World!' ) );
 		$post_ids[] = self::factory()->post->create( array( 'post_title' => 'Second: Hello, World!' ) );
 
-		// Search for none of them
+		// Search for none of them.
 		$filter  = array( 's' => 'Third' );
 		$results = $this->myxmlrpcserver->wp_getPosts( array( 1, 'editor', 'editor', $filter ) );
 		$this->assertNotIXRError( $results );
 		$this->assertEquals( 0, count( $results ) );
 
-		// Search for one of them
+		// Search for one of them.
 		$filter  = array( 's' => 'First:' );
 		$results = $this->myxmlrpcserver->wp_getPosts( array( 1, 'editor', 'editor', $filter ) );
 		$this->assertNotIXRError( $results );

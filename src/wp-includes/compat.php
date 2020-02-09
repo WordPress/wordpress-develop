@@ -6,7 +6,7 @@
  * @access private
  */
 
-// If gettext isn't available
+// If gettext isn't available.
 if ( ! function_exists( '_' ) ) {
 	function _( $string ) {
 		return $string;
@@ -312,7 +312,7 @@ if ( ! function_exists( 'hash_equals' ) ) :
 	 */
 	function hash_equals( $a, $b ) {
 		$a_length = strlen( $a );
-		if ( $a_length !== strlen( $b ) ) {
+		if ( strlen( $b ) !== $a_length ) {
 			return false;
 		}
 		$result = 0;
@@ -322,15 +322,15 @@ if ( ! function_exists( 'hash_equals' ) ) :
 			$result |= ord( $a[ $i ] ) ^ ord( $b[ $i ] );
 		}
 
-		return $result === 0;
+		return 0 === $result;
 	}
 endif;
 
-// random_int was introduced in PHP 7.0
+// random_int() was introduced in PHP 7.0.
 if ( ! function_exists( 'random_int' ) ) {
 	require ABSPATH . WPINC . '/random_compat/random.php';
 }
-// sodium_crypto_box was introduced in PHP 7.2
+// sodium_crypto_box() was introduced in PHP 7.2.
 if ( ! function_exists( 'sodium_crypto_box' ) ) {
 	require ABSPATH . WPINC . '/sodium_compat/autoload.php';
 }

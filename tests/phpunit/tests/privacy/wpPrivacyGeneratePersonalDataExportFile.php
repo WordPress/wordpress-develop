@@ -237,11 +237,11 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	}
 
 	/**
-	 * Test the export file has all the expected parts.
+	 * Test the export HTML file has all the expected parts.
 	 *
 	 * @ticket 44233
 	 */
-	public function test_contents() {
+	public function test_html_contents() {
 		$this->expectOutputString( '' );
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
 		$this->assertTrue( file_exists( $this->export_file_name ) );
@@ -263,5 +263,35 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		$this->assertContains( '<h1>Personal Data Export</h1>', $report_contents );
 		$this->assertContains( '<h2>About</h2>', $report_contents );
 		$this->assertContains( $request->email, $report_contents );
+	}
+
+	/**
+	 * Test the export JSON file has all the expected parts.
+	 *
+	 * @ticket 49029
+	 */
+	public function test_json_contents() {
+		$this->expectOutputString( '' );
+		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
+		$this->assertTrue( file_exists( $this->export_file_name ) );
+
+		$report_dir = trailingslashit( self::$exports_dir . 'test_contents' );
+		mkdir( $report_dir );
+
+		$zip        = new ZipArchive();
+		$opened_zip = $zip->open( $this->export_file_name );
+		$this->assertTrue( $opened_zip );
+
+		$zip->extractTo( $report_dir );
+		$zip->close();
+
+		$request = wp_get_user_request_data( self::$export_request_id );
+
+		$this->assertTrue( file_exists( $report_dir . 'export.json' ) );
+
+		$report_contents_json = file_get_contents( $report_dir . 'export.json' );
+
+		$this->assertContains( '"Personal Data Export for ' . $request->email . '"', $report_contents_json );
+		$this->assertContains( '"about"', $report_contents_json );
 	}
 }

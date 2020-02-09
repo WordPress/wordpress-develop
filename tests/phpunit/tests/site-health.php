@@ -6,7 +6,7 @@
 class Tests_Site_Health extends WP_UnitTestCase {
 	public static function wpSetUpBeforeClass() {
 		// Include the `WP_Site_Health` file.
-		include_once( ABSPATH . 'wp-admin/includes/class-wp-site-health.php' );
+		require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
 	}
 
 	/**
@@ -15,10 +15,12 @@ class Tests_Site_Health extends WP_UnitTestCase {
 	 * @ticket 47223
 	 */
 	function test_cron_health_checks_critical() {
+		$wp_site_health = new WP_Site_Health();
+
 		// Clear the cron array.
 		_set_cron_array( array() );
-		$wp_site_health = new WP_Site_Health();
-		$cron_health    = $wp_site_health->get_test_scheduled_events();
+
+		$cron_health = $wp_site_health->get_test_scheduled_events();
 
 		$this->assertSame( 'critical', $cron_health['status'] );
 		$this->assertSame( __( 'It was not possible to check your scheduled events' ), $cron_health['label'] );
@@ -33,6 +35,8 @@ class Tests_Site_Health extends WP_UnitTestCase {
 	 * @ticket 47223
 	 */
 	function test_cron_health_checks( $times, $expected_status, $expected_label, $expected_late, $expected_missed ) {
+		$wp_site_health = new WP_Site_Health();
+
 		/*
 		 * Clear the cron array.
 		 *
@@ -47,8 +51,7 @@ class Tests_Site_Health extends WP_UnitTestCase {
 			wp_schedule_event( $timestamp, 'daily', __FUNCTION__ . "_{$job}" );
 		}
 
-		$wp_site_health = new WP_Site_Health();
-		$cron_health    = $wp_site_health->get_test_scheduled_events();
+		$cron_health = $wp_site_health->get_test_scheduled_events();
 
 		$this->assertSame( $expected_status, $cron_health['status'] );
 		$this->assertSame( $expected_label, $cron_health['label'] );

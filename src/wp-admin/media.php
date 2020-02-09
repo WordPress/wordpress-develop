@@ -7,7 +7,7 @@
  */
 
 /** Load WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 $parent_file  = 'upload.php';
 $submenu_file = 'upload.php';
@@ -69,7 +69,7 @@ switch ( $action ) {
 		if ( 'attachment' !== $att->post_type ) {
 			wp_die( __( 'You attempted to edit an item that isn&#8217;t an attachment. Please go back and try again.' ) );
 		}
-		if ( $att->post_status == 'trash' ) {
+		if ( 'trash' == $att->post_status ) {
 			wp_die( __( 'You can&#8217;t edit this attachment because it is in the Trash. Please move it out of the Trash and try again.' ) );
 		}
 
@@ -97,7 +97,7 @@ switch ( $action ) {
 			'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 		);
 
-		require( ABSPATH . 'wp-admin/admin-header.php' );
+		require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		$parent_file = 'upload.php';
 		$message     = '';
@@ -166,7 +166,7 @@ switch ( $action ) {
 
 		<?php
 
-		require( ABSPATH . 'wp-admin/admin-footer.php' );
+		require_once ABSPATH . 'wp-admin/admin-footer.php';
 
 		exit;
 

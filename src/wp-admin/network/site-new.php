@@ -8,10 +8,10 @@
  */
 
 /** Load WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 /** WordPress Translation Installation API */
-require_once( ABSPATH . 'wp-admin/includes/translation-install.php' );
+require_once ABSPATH . 'wp-admin/includes/translation-install.php';
 
 if ( ! current_user_can( 'create_sites' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to add sites to this network.' ) );
@@ -48,7 +48,7 @@ if ( isset( $_REQUEST['action'] ) && 'add-site' == $_REQUEST['action'] ) {
 		$domain = strtolower( $blog['domain'] );
 	}
 
-	// If not a subdomain installation, make sure the domain isn't a reserved word
+	// If not a subdomain installation, make sure the domain isn't a reserved word.
 	if ( ! is_subdomain_install() ) {
 		$subdirectory_reserved_names = get_subdirectory_reserved_names();
 
@@ -106,7 +106,7 @@ if ( isset( $_REQUEST['action'] ) && 'add-site' == $_REQUEST['action'] ) {
 
 	$password = 'N/A';
 	$user_id  = email_exists( $email );
-	if ( ! $user_id ) { // Create a new user with a random password
+	if ( ! $user_id ) { // Create a new user with a random password.
 		/**
 		 * Fires immediately before a new user is created via the network site-new.php page.
 		 *
@@ -202,7 +202,7 @@ $parent_file = 'sites.php';
 
 wp_enqueue_script( 'user-suggest' );
 
-require( ABSPATH . 'wp-admin/admin-header.php' );
+require_once ABSPATH . 'wp-admin/admin-header.php';
 
 ?>
 
@@ -300,4 +300,4 @@ printf(
 	</form>
 </div>
 <?php
-require( ABSPATH . 'wp-admin/admin-footer.php' );
+require_once ABSPATH . 'wp-admin/admin-footer.php';

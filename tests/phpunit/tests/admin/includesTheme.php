@@ -15,7 +15,7 @@ class Tests_Admin_includesTheme extends WP_UnitTestCase {
 		add_filter( 'stylesheet_root', array( $this, '_theme_root' ) );
 		add_filter( 'template_root', array( $this, '_theme_root' ) );
 
-		// clear caches
+		// Clear caches.
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
 	}
@@ -31,7 +31,7 @@ class Tests_Admin_includesTheme extends WP_UnitTestCase {
 		parent::tearDown();
 	}
 
-	// replace the normal theme root dir with our premade test dir
+	// Replace the normal theme root directory with our premade test directory.
 	function _theme_root( $dir ) {
 		return $this->theme_root;
 	}

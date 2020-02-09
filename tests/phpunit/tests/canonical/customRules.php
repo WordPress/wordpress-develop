@@ -11,7 +11,7 @@ class Tests_Canonical_CustomRules extends WP_Canonical_UnitTestCase {
 		parent::setUp();
 		global $wp_rewrite;
 		// Add a custom Rewrite rule to test category redirections.
-		$wp_rewrite->add_rule( 'ccr/(.+?)/sort/(asc|desc)', 'index.php?category_name=$matches[1]&order=$matches[2]', 'top' ); // ccr = Custom_Cat_Rule
+		$wp_rewrite->add_rule( 'ccr/(.+?)/sort/(asc|desc)', 'index.php?category_name=$matches[1]&order=$matches[2]', 'top' ); // ccr = Custom_Cat_Rule.
 		$wp_rewrite->flush_rules();
 	}
 
@@ -23,16 +23,17 @@ class Tests_Canonical_CustomRules extends WP_Canonical_UnitTestCase {
 	}
 
 	function data() {
-		/* Format:
-		 * [0]: $test_url,
-		 * [1]: expected results: Any of the following can be used
+		/*
+		 * Data format:
+		 * [0]: Test URL.
+		 * [1]: Expected results: Any of the following can be used.
 		 *      array( 'url': expected redirection location, 'qv': expected query vars to be set via the rewrite AND $_GET );
 		 *      array( expected query vars to be set, same as 'qv' above )
 		 *      (string) expected redirect location
 		 * [3]: (optional) The ticket the test refers to, Can be skipped if unknown.
 		 */
 		return array(
-			// Custom Rewrite rules leading to Categories
+			// Custom Rewrite rules leading to Categories.
 			array(
 				'/ccr/uncategorized/sort/asc/',
 				array(

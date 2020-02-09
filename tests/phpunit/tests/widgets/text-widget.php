@@ -333,7 +333,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 			'filter' => false,
 		);
 
-		// Legacy Text Widget without wpautop.
+		// Legacy Text Widget without wpautop().
 		$instance                     = array_merge(
 			$base_instance,
 			array(
@@ -350,7 +350,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		$this->assertNotContains( '<p>' . $this->example_shortcode_content . '</p>', $output, 'Expected shortcode_unautop() to have run.' );
 		$this->assertNull( $this->post_during_shortcode );
 
-		// Legacy Text Widget with wpautop.
+		// Legacy Text Widget with wpautop().
 		$instance                     = array_merge(
 			$base_instance,
 			array(
@@ -388,7 +388,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 			)
 		);
 
-		// Visual Text Widget with only core-added widget_text_content filter for do_shortcode.
+		// Visual Text Widget with only core-added widget_text_content filter for do_shortcode().
 		$this->assertFalse( has_filter( 'widget_text', 'do_shortcode' ) );
 		$this->assertEquals( 11, has_filter( 'widget_text_content', 'do_shortcode' ), 'Expected core to have set do_shortcode as widget_text_content filter.' );
 		$this->shortcode_render_count = 0;

@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname( dirname( __FILE__ ) ) . '/abstract-testcase.php';
+require_once dirname( __DIR__ ) . '/abstract-testcase.php';
 
 /**
  * Defines a basic fixture to run multiple tests.

@@ -25,17 +25,21 @@ window.wp = window.wp || {};
 	inherits = function( parent, protoProps, staticProps ) {
 		var child;
 
-		// The constructor function for the new subclass is either defined by you
-		// (the "constructor" property in your `extend` definition), or defaulted
-		// by us to simply call `super()`.
+		/*
+		 * The constructor function for the new subclass is either defined by you
+		 * (the "constructor" property in your `extend` definition), or defaulted
+		 * by us to simply call `super()`.
+		 */
 		if ( protoProps && protoProps.hasOwnProperty( 'constructor' ) ) {
 			child = protoProps.constructor;
 		} else {
 			child = function() {
-				// Storing the result `super()` before returning the value
-				// prevents a bug in Opera where, if the constructor returns
-				// a function, Opera will reject the return value in favor of
-				// the original object. This causes all sorts of trouble.
+				/*
+				 * Storing the result `super()` before returning the value
+				 * prevents a bug in Opera where, if the constructor returns
+				 * a function, Opera will reject the return value in favor of
+				 * the original object. This causes all sorts of trouble.
+				 */
 				var result = parent.apply( this, arguments );
 				return result;
 			};
@@ -44,19 +48,21 @@ window.wp = window.wp || {};
 		// Inherit class (static) properties from parent.
 		$.extend( child, parent );
 
-		// Set the prototype chain to inherit from `parent`, without calling
-		// `parent`'s constructor function.
+		// Set the prototype chain to inherit from `parent`,
+		// without calling `parent`'s constructor function.
 		ctor.prototype  = parent.prototype;
 		child.prototype = new ctor();
 
 		// Add prototype properties (instance properties) to the subclass,
 		// if supplied.
-		if ( protoProps )
+		if ( protoProps ) {
 			$.extend( child.prototype, protoProps );
+		}
 
 		// Add static properties to the constructor function, if supplied.
-		if ( staticProps )
+		if ( staticProps ) {
 			$.extend( child, staticProps );
+		}
 
 		// Correctly set child's `prototype.constructor`.
 		child.prototype.constructor = child;
@@ -132,10 +138,12 @@ window.wp = window.wp || {};
 		var proto = this;
 
 		while ( typeof proto.constructor !== 'undefined' ) {
-			if ( proto.constructor === constructor )
+			if ( proto.constructor === constructor ) {
 				return true;
-			if ( typeof proto.constructor.__super__ === 'undefined' )
+			}
+			if ( typeof proto.constructor.__super__ === 'undefined' ) {
 				return false;
+			}
 			proto = proto.constructor.__super__;
 		}
 		return false;
@@ -148,8 +156,9 @@ window.wp = window.wp || {};
 	 */
 	api.Events = {
 		trigger: function( id ) {
-			if ( this.topics && this.topics[ id ] )
+			if ( this.topics && this.topics[ id ] ) {
 				this.topics[ id ].fireWith( this, slice.call( arguments, 1 ) );
+			}
 			return this;
 		},
 
@@ -161,8 +170,9 @@ window.wp = window.wp || {};
 		},
 
 		unbind: function( id ) {
-			if ( this.topics && this.topics[ id ] )
+			if ( this.topics && this.topics[ id ] ) {
 				this.topics[ id ].remove.apply( this.topics[ id ], slice.call( arguments, 1 ) );
+			}
 			return this;
 		}
 	};
@@ -181,7 +191,7 @@ window.wp = window.wp || {};
 		 * @param {object} options
 		 */
 		initialize: function( initial, options ) {
-			this._value = initial; // @todo: potentially change this to a this.set() call.
+			this._value = initial; // @todo Potentially change this to a this.set() call.
 			this.callbacks = $.Callbacks();
 			this._dirty = false;
 
@@ -351,8 +361,9 @@ window.wp = window.wp || {};
 		 *                    A Deferred Promise object if a callback function is supplied.
 		 */
 		instance: function( id ) {
-			if ( arguments.length === 1 )
+			if ( arguments.length === 1 ) {
 				return this.value( id );
+			}
 
 			return this.when.apply( this, arguments );
 		},
@@ -482,24 +493,26 @@ window.wp = window.wp || {};
 		 * For example:
 		 *     when( id1, id2, id3, function( value1, value2, value3 ) {} );
 		 *
-		 * @returns $.Deferred.promise();
+		 * @return $.Deferred.promise();
 		 */
 		when: function() {
 			var self = this,
 				ids  = slice.call( arguments ),
 				dfd  = $.Deferred();
 
-			// If the last argument is a callback, bind it to .done()
-			if ( $.isFunction( ids[ ids.length - 1 ] ) )
+			// If the last argument is a callback, bind it to .done().
+			if ( $.isFunction( ids[ ids.length - 1 ] ) ) {
 				dfd.done( ids.pop() );
+			}
 
 			/*
 			 * Create a stack of deferred objects for each item that is not
 			 * yet available, and invoke the supplied callback when they are.
 			 */
 			$.when.apply( $, $.map( ids, function( id ) {
-				if ( self.has( id ) )
+				if ( self.has( id ) ) {
 					return;
+				}
 
 				/*
 				 * The requested item is not available yet, create a deferred
@@ -546,7 +559,7 @@ window.wp = window.wp || {};
 	 * @param {string|jQuery collection} element
 	 */
 	api.ensure = function( element ) {
-		return typeof element == 'string' ? $( element ) : element;
+		return typeof element === 'string' ? $( element ) : element;
 	};
 
 	/**
@@ -690,7 +703,7 @@ window.wp = window.wp || {};
 				return urlParser.protocol + '//' + urlParser.host.replace( /:(80|443)$/, '' );
 			});
 
-			// first add with no value
+			// First add with no value.
 			this.add( 'targetWindow', null );
 			// This avoids SecurityErrors when setting a window object in x-origin iframe'd scenarios.
 			this.targetWindow.set = function( to ) {
@@ -710,15 +723,17 @@ window.wp = window.wp || {};
 
 				return this;
 			};
-			// now set it
+			// Now set it.
 			this.targetWindow( params.targetWindow || defaultTarget );
 
 
-			// Since we want jQuery to treat the receive function as unique
-			// to this instance, we give the function a new guid.
-			//
-			// This will prevent every Messenger's receive function from being
-			// unbound when calling $.off( 'message', this.receive );
+			/*
+			 * Since we want jQuery to treat the receive function as unique
+			 * to this instance, we give the function a new guid.
+			 *
+			 * This will prevent every Messenger's receive function from being
+			 * unbound when calling $.off( 'message', this.receive );
+			 */
 			this.receive = $.proxy( this.receive, this );
 			this.receive.guid = $.guid++;
 
@@ -744,10 +759,11 @@ window.wp = window.wp || {};
 			}
 
 			// Check to make sure the origin is valid.
-			if ( this.origin() && event.origin !== this.origin() )
+			if ( this.origin() && event.origin !== this.origin() ) {
 				return;
+			}
 
-			// Ensure we have a string that's JSON.parse-able
+			// Ensure we have a string that's JSON.parse-able.
 			if ( typeof event.data !== 'string' || event.data[0] !== '{' ) {
 				return;
 			}
@@ -755,12 +771,14 @@ window.wp = window.wp || {};
 			message = JSON.parse( event.data );
 
 			// Check required message properties.
-			if ( ! message || ! message.id || typeof message.data === 'undefined' )
+			if ( ! message || ! message.id || typeof message.data === 'undefined' ) {
 				return;
+			}
 
 			// Check if channel names match.
-			if ( ( message.channel || this.channel() ) && this.channel() !== message.channel )
+			if ( ( message.channel || this.channel() ) && this.channel() !== message.channel ) {
 				return;
+			}
 
 			this.trigger( message.id, message.data );
 		},
@@ -776,12 +794,14 @@ window.wp = window.wp || {};
 
 			data = typeof data === 'undefined' ? null : data;
 
-			if ( ! this.url() || ! this.targetWindow() )
+			if ( ! this.url() || ! this.targetWindow() ) {
 				return;
+			}
 
 			message = { id: id, data: data };
-			if ( this.channel() )
+			if ( this.channel() ) {
 				message.channel = this.channel();
+			}
 
 			this.targetWindow().postMessage( JSON.stringify( message ), this.origin() );
 		}
@@ -876,7 +896,7 @@ window.wp = window.wp || {};
 		 *
 		 * @since 4.9.0
 		 *
-		 * @returns {jQuery} Notification container element.
+		 * @return {jQuery} Notification container element.
 		 */
 		render: function() {
 			var notification = this, container, data;
@@ -942,7 +962,7 @@ window.wp = window.wp || {};
 	 * @alias wp.customize.utils.parseQueryString
 	 *
 	 * @param {string} queryString Query string.
-	 * @returns {object} Parsed query string.
+	 * @return {object} Parsed query string.
 	 */
 	api.utils.parseQueryString = function parseQueryString( queryString ) {
 		var queryParams = {};

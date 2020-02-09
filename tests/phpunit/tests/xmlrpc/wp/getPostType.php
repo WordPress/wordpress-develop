@@ -64,7 +64,7 @@ class Tests_XMLRPC_wp_getPostType extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getPostType( array( 1, 'editor', 'editor', $this->cpt_name, array( 'labels', 'cap', 'menu', 'taxonomies' ) ) );
 		$this->assertNotIXRError( $result );
 
-		// check data types
+		// Check data types.
 		$this->assertInternalType( 'string', $result['name'] );
 		$this->assertInternalType( 'string', $result['label'] );
 		$this->assertInternalType( 'bool', $result['hierarchical'] );
@@ -80,7 +80,7 @@ class Tests_XMLRPC_wp_getPostType extends WP_XMLRPC_UnitTestCase {
 		$this->assertInternalType( 'array', $result['taxonomies'] );
 		$this->assertInternalType( 'array', $result['supports'] );
 
-		// check label data types
+		// Check label data types.
 		$this->assertInternalType( 'string', $result['labels']['name'] );
 		$this->assertInternalType( 'string', $result['labels']['singular_name'] );
 		$this->assertInternalType( 'string', $result['labels']['add_new'] );
@@ -96,7 +96,7 @@ class Tests_XMLRPC_wp_getPostType extends WP_XMLRPC_UnitTestCase {
 		$this->assertInternalType( 'string', $result['labels']['menu_name'] );
 		$this->assertInternalType( 'string', $result['labels']['name_admin_bar'] );
 
-		// check cap data types
+		// Check cap data types.
 		$this->assertInternalType( 'string', $result['cap']['edit_post'] );
 		$this->assertInternalType( 'string', $result['cap']['read_post'] );
 		$this->assertInternalType( 'string', $result['cap']['delete_post'] );
@@ -112,18 +112,18 @@ class Tests_XMLRPC_wp_getPostType extends WP_XMLRPC_UnitTestCase {
 		$this->assertInternalType( 'string', $result['cap']['edit_private_posts'] );
 		$this->assertInternalType( 'string', $result['cap']['edit_published_posts'] );
 
-		// check taxonomy data types
+		// Check taxonomy data types.
 		foreach ( $result['taxonomies'] as $taxonomy ) {
 			$this->assertInternalType( 'string', $taxonomy );
 		}
 
-		// check taxonomy data types
+		// Check support data types.
 		foreach ( $result['supports'] as $key => $value ) {
 			$this->assertInternalType( 'string', $key );
 			$this->assertInternalType( 'bool', $value );
 		}
 
-		// Check expected values
+		// Check expected values.
 		$this->assertEquals( $this->cpt_name, $result['name'] );
 		foreach ( $this->cpt_args as $key => $value ) {
 			$this->assertEquals( $value, $result[ $key ] );

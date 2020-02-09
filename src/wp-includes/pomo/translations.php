@@ -7,8 +7,8 @@
  * @subpackage translations
  */
 
-require_once dirname( __FILE__ ) . '/plural-forms.php';
-require_once dirname( __FILE__ ) . '/entry.php';
+require_once __DIR__ . '/plural-forms.php';
+require_once __DIR__ . '/entry.php';
 
 if ( ! class_exists( 'Translations', false ) ) :
 	class Translations {
@@ -113,7 +113,7 @@ if ( ! class_exists( 'Translations', false ) ) :
 		 * Here, in the base Translations class, the common logic for English is implemented:
 		 *  0 if there is one element, 1 otherwise
 		 *
-		 * This function should be overridden by the sub-classes. For example MO/PO can derive the logic
+		 * This function should be overridden by the subclasses. For example MO/PO can derive the logic
 		 * from their headers.
 		 *
 		 * @param integer $count number of items
@@ -268,7 +268,7 @@ if ( ! class_exists( 'Translations', false ) ) :
 		 */
 		function make_headers( $translation ) {
 			$headers = array();
-			// sometimes \ns are used instead of real new lines
+			// Sometimes \n's are used instead of real new lines.
 			$translation = str_replace( '\n', "\n", $translation );
 			$lines       = explode( "\n", $translation );
 			foreach ( $lines as $line ) {

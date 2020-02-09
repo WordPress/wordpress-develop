@@ -28,7 +28,7 @@ class Tests_XMLRPC_wp_editProfile extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $result );
 		$this->assertTrue( $result );
 
-		// verify that the new values were stored
+		// Verify that the new values were stored.
 		$user_data = get_userdata( $subscriber_id );
 		$this->assertEquals( $new_data['first_name'], $user_data->first_name );
 		$this->assertEquals( $new_data['last_name'], $user_data->last_name );

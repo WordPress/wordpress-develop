@@ -3,7 +3,7 @@
  * Plugins may load this file to gain access to special helper functions for
  * plugin installation. This file is not included by WordPress and it is
  * recommended, to prevent fatal errors, that this file is included using
- * require_once().
+ * require_once.
  *
  * These functions are not optimized for speed, but they should only be used
  * once in a while, so speed shouldn't be a concern. If it is and you are
@@ -18,7 +18,7 @@
  *     $error_count = 0;
  *     $tablename = $wpdb->links;
  *     // Check the column.
- *     if ( ! check_column($wpdb->links, 'link_description', 'varchar( 255 )' ) ) {
+ *     if ( ! check_column( $wpdb->links, 'link_description', 'varchar( 255 )' ) ) {
  *         $ddl = "ALTER TABLE $wpdb->links MODIFY COLUMN link_description varchar(255) NOT NULL DEFAULT '' ";
  *         $q = $wpdb->query( $ddl );
  *     }
@@ -35,7 +35,7 @@
  */
 
 /** Load WordPress Bootstrap */
-require_once( dirname( dirname( __FILE__ ) ) . '/wp-load.php' );
+require_once dirname( __DIR__ ) . '/wp-load.php';
 
 if ( ! function_exists( 'maybe_create_table' ) ) :
 	/**
@@ -114,7 +114,7 @@ endif;
  * @param string $table_name Table name
  * @param string $column_name Column name
  * @param string $drop_ddl SQL statement to drop column.
- * @return bool False on failure, true on success or doesn't exist.
+ * @return bool True on success or if the column doesn't exist, false on failure.
  */
 function maybe_drop_column( $table_name, $column_name, $drop_ddl ) {
 	global $wpdb;
@@ -175,26 +175,26 @@ function check_column( $table_name, $col_name, $col_type, $is_null = null, $key 
 		if ( $row->Field == $col_name ) {
 
 			// Got our column, check the params.
-			if ( ( $col_type != null ) && ( $row->Type != $col_type ) ) {
+			if ( ( null != $col_type ) && ( $row->Type != $col_type ) ) {
 				++$diffs;
 			}
-			if ( ( $is_null != null ) && ( $row->Null != $is_null ) ) {
+			if ( ( null != $is_null ) && ( $row->Null != $is_null ) ) {
 				++$diffs;
 			}
-			if ( ( $key != null ) && ( $row->Key != $key ) ) {
+			if ( ( null != $key ) && ( $row->Key != $key ) ) {
 				++$diffs;
 			}
-			if ( ( $default != null ) && ( $row->Default != $default ) ) {
+			if ( ( null != $default ) && ( $row->Default != $default ) ) {
 				++$diffs;
 			}
-			if ( ( $extra != null ) && ( $row->Extra != $extra ) ) {
+			if ( ( null != $extra ) && ( $row->Extra != $extra ) ) {
 				++$diffs;
 			}
 			if ( $diffs > 0 ) {
 				return false;
 			}
 			return true;
-		} // end if found our column
+		} // End if found our column.
 	}
 	return false;
 }

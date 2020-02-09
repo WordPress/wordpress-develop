@@ -78,7 +78,7 @@ class Tests_XMLRPC_wp_getTerm extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $result );
 		$this->assertEquals( $result, $term );
 
-		// Check DataTypes
+		// Check data types.
 		$this->assertInternalType( 'string', $result['name'] );
 		$this->assertInternalType( 'string', $result['slug'] );
 		$this->assertInternalType( 'string', $result['taxonomy'] );
@@ -91,7 +91,7 @@ class Tests_XMLRPC_wp_getTerm extends WP_XMLRPC_UnitTestCase {
 		$this->assertStringMatchesFormat( '%d', $result['term_taxonomy_id'] );
 		$this->assertStringMatchesFormat( '%d', $result['parent'] );
 
-		// Check Data
+		// Check data.
 		$this->assertEquals( 0, $result['count'] );
 		$this->assertEquals( $term['name'], $result['name'] );
 		$this->assertEquals( $term['slug'], $result['slug'] );

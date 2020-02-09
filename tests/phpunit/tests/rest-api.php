@@ -316,9 +316,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The 'methods' arg should a comma seperated string.
+	 * The 'methods' arg should a comma-separated string.
 	 */
-	public function test_route_method_comma_seperated() {
+	public function test_route_method_comma_separated() {
 		register_rest_route(
 			'test-ns',
 			'/test',
@@ -708,32 +708,32 @@ class Tests_REST_API extends WP_UnitTestCase {
 		set_current_screen( 'edit.php' );
 		$this->assertTrue( is_admin() );
 
-		// Test an HTTP URL
+		// Test an HTTP URL.
 		unset( $_SERVER['HTTPS'] );
 		$url = get_rest_url();
 		$this->assertSame( 'http', parse_url( $url, PHP_URL_SCHEME ) );
 
-		// Test an HTTPS URL
+		// Test an HTTPS URL.
 		$_SERVER['HTTPS'] = 'on';
 		$url              = get_rest_url();
 		$this->assertSame( 'https', parse_url( $url, PHP_URL_SCHEME ) );
 
-		// Switch to an admin request on a different domain name
+		// Switch to an admin request on a different domain name.
 		$_SERVER['SERVER_NAME'] = 'admin.example.org';
 		update_option( 'siteurl', 'http://admin.example.org' );
 		$this->assertNotEquals( $_SERVER['SERVER_NAME'], parse_url( home_url(), PHP_URL_HOST ) );
 
-		// // Test an HTTP URL
+		// Test an HTTP URL.
 		unset( $_SERVER['HTTPS'] );
 		$url = get_rest_url();
 		$this->assertSame( 'http', parse_url( $url, PHP_URL_SCHEME ) );
 
-		// // Test an HTTPS URL
+		// Test an HTTPS URL.
 		$_SERVER['HTTPS'] = 'on';
 		$url              = get_rest_url();
 		$this->assertSame( 'http', parse_url( $url, PHP_URL_SCHEME ) );
 
-		// Reset
+		// Reset.
 		update_option( 'siteurl', $_siteurl );
 		set_current_screen( 'front' );
 
@@ -768,13 +768,13 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 	public function jsonp_callback_provider() {
 		return array(
-			// Standard names
+			// Standard names.
 			array( 'Springfield', true ),
 			array( 'shelby.ville', true ),
 			array( 'cypress_creek', true ),
 			array( 'KampKrusty1', true ),
 
-			// Invalid names
+			// Invalid names.
 			array( 'ogden-ville', false ),
 			array( 'north haverbrook', false ),
 			array( "Terror['Lake']", false ),
@@ -793,7 +793,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 	public function rest_date_provider() {
 		return array(
-			// Valid dates with timezones
+			// Valid dates with timezones.
 			array( '2017-01-16T11:30:00-05:00', gmmktime( 11, 30, 0, 1, 16, 2017 ) + 5 * HOUR_IN_SECONDS ),
 			array( '2017-01-16T11:30:00-05:30', gmmktime( 11, 30, 0, 1, 16, 2017 ) + 5.5 * HOUR_IN_SECONDS ),
 			array( '2017-01-16T11:30:00-05', gmmktime( 11, 30, 0, 1, 16, 2017 ) + 5 * HOUR_IN_SECONDS ),
@@ -802,10 +802,10 @@ class Tests_REST_API extends WP_UnitTestCase {
 			array( '2017-01-16T11:30:00+00', gmmktime( 11, 30, 0, 1, 16, 2017 ) ),
 			array( '2017-01-16T11:30:00Z', gmmktime( 11, 30, 0, 1, 16, 2017 ) ),
 
-			// Valid dates without timezones
+			// Valid dates without timezones.
 			array( '2017-01-16T11:30:00', gmmktime( 11, 30, 0, 1, 16, 2017 ) ),
 
-			// Invalid dates (TODO: support parsing partial dates as ranges, see #38641)
+			// Invalid dates (TODO: support parsing partial dates as ranges, see #38641).
 			array( '2017-01-16T11:30:00-5', false ),
 			array( '2017-01-16T11:30', false ),
 			array( '2017-01-16T11', false ),
@@ -825,7 +825,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 	public function rest_date_force_utc_provider() {
 		return array(
-			// Valid dates with timezones
+			// Valid dates with timezones.
 			array( '2017-01-16T11:30:00-05:00', gmmktime( 11, 30, 0, 1, 16, 2017 ) ),
 			array( '2017-01-16T11:30:00-05:30', gmmktime( 11, 30, 0, 1, 16, 2017 ) ),
 			array( '2017-01-16T11:30:00-05', gmmktime( 11, 30, 0, 1, 16, 2017 ) ),
@@ -834,10 +834,10 @@ class Tests_REST_API extends WP_UnitTestCase {
 			array( '2017-01-16T11:30:00+00', gmmktime( 11, 30, 0, 1, 16, 2017 ) ),
 			array( '2017-01-16T11:30:00Z', gmmktime( 11, 30, 0, 1, 16, 2017 ) ),
 
-			// Valid dates without timezones
+			// Valid dates without timezones.
 			array( '2017-01-16T11:30:00', gmmktime( 11, 30, 0, 1, 16, 2017 ) ),
 
-			// Invalid dates (TODO: support parsing partial dates as ranges, see #38641)
+			// Invalid dates (TODO: support parsing partial dates as ranges, see #38641).
 			array( '2017-01-16T11:30:00-5', false ),
 			array( '2017-01-16T11:30', false ),
 			array( '2017-01-16T11', false ),

@@ -8,7 +8,7 @@
  */
 
 /** WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'list_users' ) ) {
 	wp_die(
@@ -25,7 +25,7 @@ $parent_file   = 'users.php';
 
 add_screen_option( 'per_page' );
 
-// contextual help - choose Help on the top right of admin panel to preview this.
+// Contextual help - choose Help on the top right of admin panel to preview this.
 get_current_screen()->add_help_tab(
 	array(
 		'id'      => 'overview',
@@ -131,7 +131,8 @@ switch ( $wp_list_table->current_action() ) {
 			if ( ! current_user_can( 'promote_user', $id ) ) {
 				wp_die( __( 'Sorry, you are not allowed to edit this user.' ), 403 );
 			}
-			// The new role of the current user must also have the promote_users cap or be a multisite super admin
+
+			// The new role of the current user must also have the promote_users cap or be a multisite super admin.
 			if ( $id == $current_user->ID && ! $wp_roles->role_objects[ $role ]->has_cap( 'promote_users' )
 			&& ! ( is_multisite() && current_user_can( 'manage_network_users' ) ) ) {
 					$update = 'err_admin_role';
@@ -263,7 +264,7 @@ switch ( $wp_list_table->current_action() ) {
 			add_action( 'admin_head', 'delete_users_add_js' );
 		}
 
-		include( ABSPATH . 'wp-admin/admin-header.php' );
+		require_once ABSPATH . 'wp-admin/admin-header.php';
 		?>
 	<form method="post" name="updateusers" id="updateusers">
 		<?php wp_nonce_field( 'delete-users' ); ?>
@@ -273,7 +274,7 @@ switch ( $wp_list_table->current_action() ) {
 <h1><?php _e( 'Delete Users' ); ?></h1>
 		<?php if ( isset( $_REQUEST['error'] ) ) : ?>
 	<div class="error">
-		<p><strong><?php _e( 'ERROR:' ); ?></strong> <?php _e( 'Please select an option.' ); ?></p>
+		<p><strong><?php _e( 'Error:' ); ?></strong> <?php _e( 'Please select an option.' ); ?></p>
 	</div>
 		<?php endif; ?>
 
@@ -405,7 +406,7 @@ switch ( $wp_list_table->current_action() ) {
 			$userids = $_REQUEST['users'];
 		}
 
-		include( ABSPATH . 'wp-admin/admin-header.php' );
+		require_once ABSPATH . 'wp-admin/admin-header.php';
 		?>
 	<form method="post" name="updateusers" id="updateusers">
 		<?php wp_nonce_field( 'remove-users' ); ?>
@@ -456,11 +457,12 @@ switch ( $wp_list_table->current_action() ) {
 		}
 
 		if ( $wp_list_table->current_action() && ! empty( $_REQUEST['users'] ) ) {
-			$userids  = $_REQUEST['users'];
+			$screen   = get_current_screen()->id;
 			$sendback = wp_get_referer();
+			$userids  = $_REQUEST['users'];
 
-			/** This action is documented in wp-admin/edit-comments.php */
-			$sendback = apply_filters( 'handle_bulk_actions-' . get_current_screen()->id, $sendback, $wp_list_table->current_action(), $userids ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+			/** This action is documented in wp-admin/edit.php */
+			$sendback = apply_filters( "handle_bulk_actions-{$screen}", $sendback, $wp_list_table->current_action(), $userids ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 			wp_safe_redirect( $sendback );
 			exit;
@@ -473,7 +475,7 @@ switch ( $wp_list_table->current_action() ) {
 			exit;
 		}
 
-		include( ABSPATH . 'wp-admin/admin-header.php' );
+		require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		$messages = array();
 		if ( isset( $_GET['update'] ) ) :
@@ -593,6 +595,6 @@ if ( strlen( $usersearch ) ) {
 		<?php
 		break;
 
-} // end of the $doaction switch
+} // End of the $doaction switch.
 
-include( ABSPATH . 'wp-admin/admin-footer.php' );
+require_once ABSPATH . 'wp-admin/admin-footer.php';

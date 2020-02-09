@@ -153,7 +153,7 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	 * @since 3.5.0
 	 *
 	 * @param {wp.media.model.Attachment} attachment
-	 * @returns {Backbone.Model}
+	 * @return {Backbone.Model}
 	 */
 	display: function( attachment ) {
 		var displays = this._displays;
@@ -170,12 +170,13 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	 * @since 3.6.0
 	 *
 	 * @param {wp.media.model.Attachment} attachment
-	 * @returns {Object}
+	 * @return {Object}
 	 */
 	defaultDisplaySettings: function( attachment ) {
 		var settings = _.clone( this._defaultDisplaySettings );
 
-		if ( settings.canEmbed = this.canEmbed( attachment ) ) {
+		settings.canEmbed = this.canEmbed( attachment );
+		if ( settings.canEmbed ) {
 			settings.link = 'embed';
 		} else if ( ! this.isImageAttachment( attachment ) && settings.link === 'none' ) {
 			settings.link = 'file';
@@ -190,7 +191,7 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	 * @since 4.4.1
 	 *
 	 * @param {wp.media.model.Attachment} attachment
-	 * @returns {Boolean}
+	 * @return {Boolean}
 	 */
 	isImageAttachment: function( attachment ) {
 		// If uploading, we know the filename but not the mime type.
@@ -207,7 +208,7 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	 * @since 3.6.0
 	 *
 	 * @param {wp.media.model.Attachment} attachment
-	 * @returns {Boolean}
+	 * @return {Boolean}
 	 */
 	canEmbed: function( attachment ) {
 		// If uploading, we know the filename but not the mime type.

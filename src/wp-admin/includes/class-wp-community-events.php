@@ -92,8 +92,8 @@ class WP_Community_Events {
 			return $cached_events;
 		}
 
-		// include an unmodified $wp_version
-		include( ABSPATH . WPINC . '/version.php' );
+		// Include an unmodified $wp_version.
+		require ABSPATH . WPINC . '/version.php';
 
 		$api_url                    = 'http://api.wordpress.org/events/1.0/';
 		$request_args               = $this->get_request_args( $location_search, $timezone );
@@ -114,7 +114,7 @@ class WP_Community_Events {
 			$response_error = new WP_Error(
 				'api-error',
 				/* translators: %d: Numeric HTTP status code, e.g. 400, 403, 500, 504, etc. */
-				sprintf( __( 'Invalid API response code (%d)' ), $response_code )
+				sprintf( __( 'Invalid API response code (%d).' ), $response_code )
 			);
 		} elseif ( ! isset( $response_body['location'], $response_body['events'] ) ) {
 			$response_error = new WP_Error(
@@ -229,7 +229,7 @@ class WP_Community_Events {
 	 *
 	 * @since 4.8.0
 	 *
-	 * @return false|string The anonymized address on success; the given address
+	 * @return string|false The anonymized address on success; the given address
 	 *                      or false on failure.
 	 */
 	public static function get_unsafe_client_ip() {
@@ -341,8 +341,8 @@ class WP_Community_Events {
 	 *
 	 * @since 4.8.0
 	 *
-	 * @return false|array false on failure; an array containing `location`
-	 *                     and `events` items on success.
+	 * @return array|false An array containing `location` and `events` items
+	 *                     on success, false on failure.
 	 */
 	public function get_cached_events() {
 		$cached_response = get_site_transient( $this->get_events_transient_key( $this->user_location ) );
@@ -375,9 +375,48 @@ class WP_Community_Events {
 				 * so that users can tell at a glance if the event is on a day they
 				 * are available, without having to open the link.
 				 */
-				/* translators: Date format for upcoming events on the dashboard. Include the day of the week. See https://secure.php.net/date */
-				$response_body['events'][ $key ]['formatted_date'] = date_i18n( __( 'l, M j, Y' ), $timestamp );
-				$response_body['events'][ $key ]['formatted_time'] = date_i18n( get_option( 'time_format' ), $timestamp );
+				/* translators: Date format for upcoming events on the dashboard. Include the day of the week. See https://www.php.net/date */
+				$formatted_date = date_i18n( __( 'l, M j, Y' ), $timestamp );
+				$formatted_time = date_i18n( get_option( 'time_format' ), $timestamp );
+
+				if ( isset( $event['end_date'] ) ) {
+					$end_timestamp      = strtotime( $event['end_date'] );
+					$formatted_end_date = date_i18n( __( 'l, M j, Y' ), $end_timestamp );
+
+					if ( 'meetup' !== $event['type'] && $formatted_end_date !== $formatted_date ) {
+						/* translators: Upcoming events month format. See https://www.php.net/date */
+						$start_month = date_i18n( _x( 'F', 'upcoming events month format' ), $timestamp );
+						$end_month   = date_i18n( _x( 'F', 'upcoming events month format' ), $end_timestamp );
+
+						if ( $start_month === $end_month ) {
+							$formatted_date = sprintf(
+								/* translators: Date string for upcoming events. 1: Month, 2: Starting day, 3: Ending day, 4: Year. */
+								__( '%1$s %2$d–%3$d, %4$d' ),
+								$start_month,
+								/* translators: Upcoming events day format. See https://www.php.net/date */
+								date_i18n( _x( 'j', 'upcoming events day format' ), $timestamp ),
+								date_i18n( _x( 'j', 'upcoming events day format' ), $end_timestamp ),
+								/* translators: Upcoming events year format. See https://www.php.net/date */
+								date_i18n( _x( 'Y', 'upcoming events year format' ), $timestamp )
+							);
+						} else {
+							$formatted_date = sprintf(
+								/* translators: Date string for upcoming events. 1: Starting month, 2: Starting day, 3: Ending month, 4: Ending day, 5: Year. */
+								__( '%1$s %2$d – %3$s %4$d, %5$d' ),
+								$start_month,
+								date_i18n( _x( 'j', 'upcoming events day format' ), $timestamp ),
+								$end_month,
+								date_i18n( _x( 'j', 'upcoming events day format' ), $end_timestamp ),
+								date_i18n( _x( 'Y', 'upcoming events year format' ), $timestamp )
+							);
+						}
+
+						$formatted_date = wp_maybe_decline_date( $formatted_date, 'F j, Y' );
+					}
+				}
+
+				$response_body['events'][ $key ]['formatted_date'] = $formatted_date;
+				$response_body['events'][ $key ]['formatted_time'] = $formatted_time;
 			}
 		}
 

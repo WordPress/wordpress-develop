@@ -7,6 +7,7 @@
  * as a way to indicate expected return values from the given factory methods.
  *
  * @method int create( $args = array(), $generation_definitions = null )
+ * @method WP_Term create_and_get( $args = array(), $generation_definitions = null )
  * @method int[] create_many( $count, $args = array(), $generation_definitions = null )
  */
 class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
@@ -46,7 +47,7 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	 * @param int|object   $term   The term to update.
 	 * @param array|string $fields The context in which to relate the term to the object.
 	 *
-	 * @return int The term id.
+	 * @return int The term ID.
 	 */
 	public function update_object( $term, $fields ) {
 		$fields = array_merge( array( 'taxonomy' => $this->taxonomy ), $fields );
@@ -58,9 +59,9 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	}
 
 	/**
-	 * Attach terms on the given post.
+	 * Attach terms to the given post.
 	 *
-	 * @param int          $post_id  The Post ID.
+	 * @param int          $post_id  The post ID.
 	 * @param string|array $terms    An array of terms to set for the post, or a string of terms
 	 *                               separated by commas. Hierarchical taxonomies must always pass IDs rather
 	 *                               than names so that children with the same names but different parents
@@ -76,12 +77,12 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	}
 
 	/**
-	 * Create a term and returns it as a object.
+	 * Create a term and returns it as an object.
 	 *
 	 * @param array $args                   Array or string of arguments for inserting a term.
 	 * @param null  $generation_definitions The default values.
 	 *
-	 * @return null|WP_Error|WP_Term WP_Term on success. WP_error if taxonomy does not exist. Null for miscellaneous failure.
+	 * @return WP_Term|WP_Error|null WP_Term on success. WP_error if taxonomy does not exist. Null for miscellaneous failure.
 	 */
 	public function create_and_get( $args = array(), $generation_definitions = null ) {
 		$term_id = $this->create( $args, $generation_definitions );
@@ -95,11 +96,11 @@ class WP_UnitTest_Factory_For_Term extends WP_UnitTest_Factory_For_Thing {
 	}
 
 	/**
-	 * Retrieves the term by given term id.
+	 * Retrieves the term by a given ID.
 	 *
-	 * @param int $term_id The term id to retrieve.
+	 * @param int $term_id ID of the term to retrieve.
 	 *
-	 * @return null|WP_Error|WP_Term WP_Term on success. WP_error if taxonomy does not exist. Null for miscellaneous failure.
+	 * @return WP_Term|WP_Error|null WP_Term on success. WP_error if taxonomy does not exist. Null for miscellaneous failure.
 	 */
 	public function get_object_by_id( $term_id ) {
 		return get_term( $term_id, $this->taxonomy );

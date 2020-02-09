@@ -14,21 +14,21 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$this->assertTrue( isset( $post->ancestors ) );
 		$this->assertEquals( array(), $post->ancestors );
 
-		// Unset and then verify that the magic method fills the property again
+		// Unset and then verify that the magic method fills the property again.
 		unset( $post->ancestors );
 		$this->assertEquals( array(), $post->ancestors );
 
-		// Magic get should make meta accessible as properties
+		// Magic get should make meta accessible as properties.
 		add_post_meta( $id, 'test', 'test' );
 		$this->assertEquals( 'test', get_post_meta( $id, 'test', true ) );
 		$this->assertEquals( 'test', $post->test );
 
-		// Make sure meta does not eclipse true properties
+		// Make sure meta does not eclipse true properties.
 		add_post_meta( $id, 'post_type', 'dummy' );
 		$this->assertEquals( 'dummy', get_post_meta( $id, 'post_type', true ) );
 		$this->assertEquals( 'post', $post->post_type );
 
-		// Excercise the output argument
+		// Excercise the output argument.
 		$post = get_post( $id, ARRAY_A );
 		$this->assertInternalType( 'array', $post );
 		$this->assertEquals( 'post', $post['post_type'] );
@@ -44,12 +44,12 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$this->assertEquals( 'post', $post['post_type'] );
 		$this->assertEquals( $id, $post['ID'] );
 
-		// Should default to OBJECT when given invalid output argument
+		// Should default to OBJECT when given invalid output argument.
 		$post = get_post( $id, 'invalid-output-value' );
 		$this->assertInstanceOf( 'WP_Post', $post );
 		$this->assertEquals( $id, $post->ID );
 
-		// Make sure stdClass in $GLOBALS['post'] is handled
+		// Make sure stdClass in $GLOBALS['post'] is handled.
 		$post_std = $post->to_array();
 		$this->assertInternalType( 'array', $post_std );
 		$post_std        = (object) $post_std;
@@ -213,16 +213,16 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$id = self::factory()->post->create();
 		wp_cache_delete( $id, 'posts' );
 
-		// get_post( stdClass ) should not prime the cache
+		// get_post( stdClass ) should not prime the cache.
 		$post = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->posts WHERE ID = %d LIMIT 1", $id ) );
 		$post = get_post( $post );
 		$this->assertEmpty( wp_cache_get( $id, 'posts' ) );
 
-		// get_post( WP_Post ) should not prime the cache
+		// get_post( WP_Post ) should not prime the cache.
 		get_post( $post );
 		$this->assertEmpty( wp_cache_get( $id, 'posts' ) );
 
-		// get_post( ID ) should prime the cache
+		// get_post( ID ) should prime the cache.
 		get_post( $post->ID );
 		$this->assertNotEmpty( wp_cache_get( $id, 'posts' ) );
 	}

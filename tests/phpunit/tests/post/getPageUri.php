@@ -40,13 +40,13 @@ class Tests_Post_getPageUri extends WP_UnitTestCase {
 			)
 		);
 
-		// check the parent for good measure
+		// Check the parent for good measure.
 		$this->assertEquals( 'parent', get_page_uri( $parent_id ) );
 
-		// try the child normally
+		// Try the child normally.
 		$this->assertEquals( 'parent/child', get_page_uri( $child_id ) );
 
-		// now delete the parent from the database and check
+		// Now delete the parent from the database and check.
 		wp_delete_post( $parent_id, true );
 		$this->assertEquals( 'child', get_page_uri( $child_id ) );
 	}

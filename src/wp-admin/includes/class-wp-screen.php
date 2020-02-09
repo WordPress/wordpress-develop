@@ -226,7 +226,7 @@ final class WP_Screen {
 		// For those pesky meta boxes.
 		if ( $hook_name && post_type_exists( $hook_name ) ) {
 			$post_type = $id;
-			$id        = 'post'; // changes later. ends up being $base.
+			$id        = 'post'; // Changes later. Ends up being $base.
 		} else {
 			if ( '.php' == substr( $id, -4 ) ) {
 				$id = substr( $id, 0, -4 );
@@ -373,7 +373,7 @@ final class WP_Screen {
 
 		if ( isset( self::$_registry[ $id ] ) ) {
 			$screen = self::$_registry[ $id ];
-			if ( $screen === get_current_screen() ) {
+			if ( get_current_screen() === $screen ) {
 				return $screen;
 			}
 		} else {
@@ -454,7 +454,7 @@ final class WP_Screen {
 	 * @return bool True if the block editor is being loaded, false otherwise.
 	 */
 	public function is_block_editor( $set = null ) {
-		if ( $set !== null ) {
+		if ( null !== $set ) {
 			$this->is_block_editor = (bool) $set;
 		}
 
@@ -790,13 +790,18 @@ final class WP_Screen {
 		 * Filters the legacy contextual help list.
 		 *
 		 * @since 2.7.0
-		 * @deprecated 3.3.0 Use get_current_screen()->add_help_tab() or
-		 *                   get_current_screen()->remove_help_tab() instead.
+		 * @deprecated 3.3.0 Use {@see get_current_screen()->add_help_tab()} or
+		 *                   {@see get_current_screen()->remove_help_tab()} instead.
 		 *
 		 * @param array     $old_compat_help Old contextual help.
 		 * @param WP_Screen $this            Current WP_Screen instance.
 		 */
-		self::$_old_compat_help = apply_filters( 'contextual_help_list', self::$_old_compat_help, $this );
+		self::$_old_compat_help = apply_filters_deprecated(
+			'contextual_help_list',
+			array( self::$_old_compat_help, $this ),
+			'3.3.0',
+			'get_current_screen()->add_help_tab(), get_current_screen()->remove_help_tab()'
+		);
 
 		$old_help = isset( self::$_old_compat_help[ $this->id ] ) ? self::$_old_compat_help[ $this->id ] : '';
 
@@ -804,14 +809,19 @@ final class WP_Screen {
 		 * Filters the legacy contextual help text.
 		 *
 		 * @since 2.7.0
-		 * @deprecated 3.3.0 Use get_current_screen()->add_help_tab() or
-		 *                   get_current_screen()->remove_help_tab() instead.
+		 * @deprecated 3.3.0 Use {@see get_current_screen()->add_help_tab()} or
+		 *                   {@see get_current_screen()->remove_help_tab()} instead.
 		 *
 		 * @param string    $old_help  Help text that appears on the screen.
 		 * @param string    $screen_id Screen ID.
 		 * @param WP_Screen $this      Current WP_Screen instance.
 		 */
-		$old_help = apply_filters( 'contextual_help', $old_help, $this->id, $this );
+		$old_help = apply_filters_deprecated(
+			'contextual_help',
+			array( $old_help, $this->id, $this ),
+			'3.3.0',
+			'get_current_screen()->add_help_tab(), get_current_screen()->remove_help_tab()'
+		);
 
 		// Default help only if there is no old-style block of text and no new-style help tabs.
 		if ( empty( $old_help ) && ! $this->get_help_tabs() ) {
@@ -820,12 +830,17 @@ final class WP_Screen {
 			 * Filters the default legacy contextual help text.
 			 *
 			 * @since 2.8.0
-			 * @deprecated 3.3.0 Use get_current_screen()->add_help_tab() or
-			 *                   get_current_screen()->remove_help_tab() instead.
+			 * @deprecated 3.3.0 Use {@see get_current_screen()->add_help_tab()} or
+			 *                   {@see get_current_screen()->remove_help_tab()} instead.
 			 *
 			 * @param string $old_help_default Default contextual help text.
 			 */
-			$default_help = apply_filters( 'default_contextual_help', '' );
+			$default_help = apply_filters_deprecated(
+				'default_contextual_help',
+				array( '' ),
+				'3.3.0',
+				'get_current_screen()->add_help_tab(), get_current_screen()->remove_help_tab()'
+			);
 			if ( $default_help ) {
 				$old_help = '<p>' . $default_help . '</p>';
 			}
@@ -908,7 +923,7 @@ final class WP_Screen {
 				</div>
 			</div>
 		<?php
-		// Setup layout columns
+		// Setup layout columns.
 
 		/**
 		 * Filters the array of screen layout columns.
@@ -937,7 +952,7 @@ final class WP_Screen {
 		}
 		$GLOBALS['screen_layout_columns'] = $this->columns; // Set the global for back-compat.
 
-		// Add screen options
+		// Add screen options.
 		if ( $this->show_screen_options() ) {
 			$this->render_screen_options();
 		}
@@ -1141,7 +1156,7 @@ final class WP_Screen {
 		$special = array( '_title', 'cb', 'comment', 'media', 'name', 'title', 'username', 'blogname' );
 
 		foreach ( $columns as $column => $title ) {
-			// Can't hide these for they are special
+			// Can't hide these for they are special.
 			if ( in_array( $column, $special ) ) {
 				continue;
 			}
@@ -1240,13 +1255,13 @@ final class WP_Screen {
 			$per_page = apply_filters( "{$option}", $per_page );
 		}
 
-		// Back compat
+		// Back compat.
 		if ( isset( $this->post_type ) ) {
 			/** This filter is documented in wp-admin/includes/post.php */
 			$per_page = apply_filters( 'edit_posts_per_page', $per_page, $this->post_type );
 		}
 
-		// This needs a submit button
+		// This needs a submit button.
 		add_filter( 'screen_options_show_submit', '__return_true' );
 
 		?>
@@ -1273,7 +1288,7 @@ final class WP_Screen {
 	public function render_view_mode() {
 		$screen = get_current_screen();
 
-		// Currently only enabled for posts lists
+		// Currently only enabled for posts lists.
 		if ( 'edit' !== $screen->base ) {
 			return;
 		}
@@ -1301,7 +1316,7 @@ final class WP_Screen {
 
 		global $mode;
 
-		// This needs a submit button
+		// This needs a submit button.
 		add_filter( 'screen_options_show_submit', '__return_true' );
 		?>
 		<fieldset class="metabox-prefs view-mode">

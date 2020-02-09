@@ -1,6 +1,6 @@
 <?php
 /**
- * Testing ajax response class
+ * Testing Ajax response class
  *
  * @package    WordPress
  * @subpackage UnitTests
@@ -26,7 +26,7 @@ class Tests_Ajax_Response extends WP_UnitTestCase {
 		add_filter( 'wp_die_ajax_handler', array( $this, 'getDieHandler' ), 1, 1 );
 		add_filter( 'wp_doing_ajax', '__return_true' );
 
-		// Suppress warnings from "Cannot modify header information - headers already sent by"
+		// Suppress warnings from "Cannot modify header information - headers already sent by".
 		$this->_error_level = error_reporting();
 		error_reporting( $this->_error_level & ~E_WARNING );
 	}
@@ -77,12 +77,12 @@ class Tests_Ajax_Response extends WP_UnitTestCase {
 			$this->markTestSkipped( 'xdebug is required for this test' );
 		}
 
-		// Generate an ajax response
+		// Generate an Ajax response.
 		ob_start();
 		$ajax_response = new WP_Ajax_Response();
 		$ajax_response->send();
 
-		// Check the header
+		// Check the header.
 		$headers = xdebug_get_headers();
 		ob_end_clean();
 
@@ -96,12 +96,12 @@ class Tests_Ajax_Response extends WP_UnitTestCase {
 	 */
 	public function test_response_charset_in_xml() {
 
-		// Generate an ajax response
+		// Generate an Ajax response.
 		ob_start();
 		$ajax_response = new WP_Ajax_Response();
 		$ajax_response->send();
 
-		// Check the XML tag
+		// Check the XML tag.
 		$contents = ob_get_clean();
 		$this->assertRegExp( '/<\?xml\s+version=\'1.0\'\s+encoding=\'' . preg_quote( get_option( 'blog_charset' ) ) . '\'\s+standalone=\'yes\'\?>/', $contents );
 	}

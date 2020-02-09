@@ -19,9 +19,9 @@ class Tests_Formatting_StripSlashesDeep extends WP_UnitTestCase {
 			'c' => 4,
 			'd' => 'foo',
 		);
-		$arr['e'] = $arr; // Add a sub-array
-		$this->assertEquals( $arr, stripslashes_deep( $arr ) ); // Keyed array
-		$this->assertEquals( array_values( $arr ), stripslashes_deep( array_values( $arr ) ) ); // Non-keyed
+		$arr['e'] = $arr; // Add a sub-array.
+		$this->assertEquals( $arr, stripslashes_deep( $arr ) ); // Keyed array.
+		$this->assertEquals( array_values( $arr ), stripslashes_deep( array_values( $arr ) ) ); // Non-keyed.
 
 		$obj = new stdClass;
 		foreach ( $arr as $k => $v ) {
@@ -35,8 +35,8 @@ class Tests_Formatting_StripSlashesDeep extends WP_UnitTestCase {
 		$new = "I can't see, isn't that it?";
 		$this->assertEquals( $new, stripslashes_deep( $old ) );
 		$this->assertEquals( $new, stripslashes_deep( "I can\\'t see, isn\\'t that it?" ) );
-		$this->assertEquals( array( 'a' => $new ), stripslashes_deep( array( 'a' => $old ) ) ); // Keyed array
-		$this->assertEquals( array( $new ), stripslashes_deep( array( $old ) ) ); // Non-keyed
+		$this->assertEquals( array( 'a' => $new ), stripslashes_deep( array( 'a' => $old ) ) ); // Keyed array.
+		$this->assertEquals( array( $new ), stripslashes_deep( array( $old ) ) ); // Non-keyed.
 
 		$obj_old    = new stdClass;
 		$obj_old->a = $old;

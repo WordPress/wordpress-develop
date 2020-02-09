@@ -145,32 +145,32 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 
 		$this->assertEquals( '', get_post_meta( $post_id, '_thumbnail_id', true ) );
 
-		// create attachment
+		// Create attachment.
 		$filename      = ( DIR_TESTDATA . '/images/a2-small.jpg' );
 		$attachment_id = self::factory()->attachment->create_upload_object( $filename, $post_id );
 
-		// add post thumbnail to post that does not have one
+		// Add post thumbnail to post that does not have one.
 		$post2  = array( 'wp_post_thumbnail' => $attachment_id );
 		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'author', 'author', $post2 ) );
 		$this->assertNotIXRError( $result );
 		$this->assertEquals( $attachment_id, get_post_meta( $post_id, '_thumbnail_id', true ) );
 
-		// edit the post without supplying a post_thumbnail and check that it didn't change
+		// Edit the post without supplying a post_thumbnail and check that it didn't change.
 		$post3  = array( 'post_content' => 'Updated post' );
 		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'author', 'author', $post3 ) );
 		$this->assertNotIXRError( $result );
 		$this->assertEquals( $attachment_id, get_post_meta( $post_id, '_thumbnail_id', true ) );
 
-		// create another attachment
+		// Create another attachment.
 		$attachment2_id = self::factory()->attachment->create_upload_object( $filename, $post_id );
 
-		// change the post's post_thumbnail
+		// Change the post's post_thumbnail.
 		$post4  = array( 'wp_post_thumbnail' => $attachment2_id );
 		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'author', 'author', $post4 ) );
 		$this->assertNotIXRError( $result );
 		$this->assertEquals( $attachment2_id, get_post_meta( $post_id, '_thumbnail_id', true ) );
 
-		// unset the post's post_thumbnail
+		// Unset the post's post_thumbnail.
 		$post5  = array( 'wp_post_thumbnail' => '' );
 		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'author', 'author', $post5 ) );
 		$this->assertNotIXRError( $result );
@@ -246,7 +246,7 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertTrue( $result );
 	}
 
-	// Not allowed since [19914]
+	// Not allowed since [19914].
 	function test_change_post_type() {
 		$contributor_id = $this->make_user_by_role( 'contributor' );
 

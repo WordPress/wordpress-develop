@@ -226,7 +226,7 @@ function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup 
  * @since 2.8.0
  *
  * @param string $plugin Path to the plugin file relative to the plugins directory.
- * @return array List of files relative to the plugin root.
+ * @return string[] Array of file names relative to the plugin root.
  */
 function get_plugin_files( $plugin ) {
 	$plugin_file = WP_PLUGIN_DIR . '/' . $plugin;
@@ -273,7 +273,7 @@ function get_plugin_files( $plugin ) {
  * @since 1.5.0
  *
  * @param string $plugin_folder Optional. Relative path to single plugin folder.
- * @return array Key is the plugin file path and the value is an array of the plugin data.
+ * @return array[] Array of arrays of plugin data, keyed by plugin file name. See `get_plugin_data()`.
  */
 function get_plugins( $plugin_folder = '' ) {
 
@@ -331,7 +331,8 @@ function get_plugins( $plugin_folder = '' ) {
 			continue;
 		}
 
-		$plugin_data = get_plugin_data( "$plugin_root/$plugin_file", false, false ); //Do not apply markup/translate as it'll be cached.
+		// Do not apply markup/translate as it will be cached.
+		$plugin_data = get_plugin_data( "$plugin_root/$plugin_file", false, false );
 
 		if ( empty( $plugin_data['Name'] ) ) {
 			continue;
@@ -354,16 +355,17 @@ function get_plugins( $plugin_folder = '' ) {
  * WordPress only includes mu-plugin files in the base mu-plugins directory (wp-content/mu-plugins).
  *
  * @since 3.0.0
- * @return array Key is the mu-plugin file path and the value is an array of the mu-plugin data.
+ * @return array[] Array of arrays of mu-plugin data, keyed by plugin file name. See `get_plugin_data()`.
  */
 function get_mu_plugins() {
-	$wp_plugins = array();
-	// Files in wp-content/mu-plugins directory.
+	$wp_plugins   = array();
 	$plugin_files = array();
 
 	if ( ! is_dir( WPMU_PLUGIN_DIR ) ) {
 		return $wp_plugins;
 	}
+
+	// Files in wp-content/mu-plugins directory.
 	$plugins_dir = @opendir( WPMU_PLUGIN_DIR );
 	if ( $plugins_dir ) {
 		while ( ( $file = readdir( $plugins_dir ) ) !== false ) {
@@ -386,7 +388,8 @@ function get_mu_plugins() {
 			continue;
 		}
 
-		$plugin_data = get_plugin_data( WPMU_PLUGIN_DIR . "/$plugin_file", false, false ); //Do not apply markup/translate as it'll be cached.
+		// Do not apply markup/translate as it will be cached.
+		$plugin_data = get_plugin_data( WPMU_PLUGIN_DIR . "/$plugin_file", false, false );
 
 		if ( empty( $plugin_data['Name'] ) ) {
 			$plugin_data['Name'] = $plugin_file;
@@ -395,7 +398,8 @@ function get_mu_plugins() {
 		$wp_plugins[ $plugin_file ] = $plugin_data;
 	}
 
-	if ( isset( $wp_plugins['index.php'] ) && filesize( WPMU_PLUGIN_DIR . '/index.php' ) <= 30 ) { // silence is golden
+	if ( isset( $wp_plugins['index.php'] ) && filesize( WPMU_PLUGIN_DIR . '/index.php' ) <= 30 ) {
+		// Silence is golden.
 		unset( $wp_plugins['index.php'] );
 	}
 
@@ -423,7 +427,7 @@ function _sort_uname_callback( $a, $b ) {
  * Check the wp-content directory and retrieve all drop-ins with any plugin data.
  *
  * @since 3.0.0
- * @return array Key is the file path and the value is an array of the plugin data.
+ * @return array[] Array of arrays of dropin plugin data, keyed by plugin file name. See `get_plugin_data()`.
  */
 function get_dropins() {
 	$dropins      = array();
@@ -431,7 +435,7 @@ function get_dropins() {
 
 	$_dropins = _get_dropins();
 
-	// These exist in the wp-content directory.
+	// Files in wp-content directory.
 	$plugins_dir = @opendir( WP_CONTENT_DIR );
 	if ( $plugins_dir ) {
 		while ( ( $file = readdir( $plugins_dir ) ) !== false ) {
@@ -453,10 +457,14 @@ function get_dropins() {
 		if ( ! is_readable( WP_CONTENT_DIR . "/$plugin_file" ) ) {
 			continue;
 		}
-		$plugin_data = get_plugin_data( WP_CONTENT_DIR . "/$plugin_file", false, false ); //Do not apply markup/translate as it'll be cached.
+
+		// Do not apply markup/translate as it will be cached.
+		$plugin_data = get_plugin_data( WP_CONTENT_DIR . "/$plugin_file", false, false );
+
 		if ( empty( $plugin_data['Name'] ) ) {
 			$plugin_data['Name'] = $plugin_file;
 		}
+
 		$dropins[ $plugin_file ] = $plugin_data;
 	}
 
@@ -471,27 +479,27 @@ function get_dropins() {
  * Includes Multisite drop-ins only when is_multisite()
  *
  * @since 3.0.0
- * @return array Key is file name. The value is an array, with the first value the
+ * @return array[] Key is file name. The value is an array, with the first value the
  *  purpose of the drop-in and the second value the name of the constant that must be
  *  true for the drop-in to be used, or true if no constant is required.
  */
 function _get_dropins() {
 	$dropins = array(
-		'advanced-cache.php'      => array( __( 'Advanced caching plugin.' ), 'WP_CACHE' ), // WP_CACHE
-		'db.php'                  => array( __( 'Custom database class.' ), true ), // auto on load
-		'db-error.php'            => array( __( 'Custom database error message.' ), true ), // auto on error
-		'install.php'             => array( __( 'Custom installation script.' ), true ), // auto on installation
-		'maintenance.php'         => array( __( 'Custom maintenance message.' ), true ), // auto on maintenance
-		'object-cache.php'        => array( __( 'External object cache.' ), true ), // auto on load
-		'php-error.php'           => array( __( 'Custom PHP error message.' ), true ), // auto on error
-		'fatal-error-handler.php' => array( __( 'Custom PHP fatal error handler.' ), true ), // auto on error
+		'advanced-cache.php'      => array( __( 'Advanced caching plugin.' ), 'WP_CACHE' ),  // WP_CACHE
+		'db.php'                  => array( __( 'Custom database class.' ), true ),          // Auto on load.
+		'db-error.php'            => array( __( 'Custom database error message.' ), true ),  // Auto on error.
+		'install.php'             => array( __( 'Custom installation script.' ), true ),     // Auto on installation.
+		'maintenance.php'         => array( __( 'Custom maintenance message.' ), true ),     // Auto on maintenance.
+		'object-cache.php'        => array( __( 'External object cache.' ), true ),          // Auto on load.
+		'php-error.php'           => array( __( 'Custom PHP error message.' ), true ),       // Auto on error.
+		'fatal-error-handler.php' => array( __( 'Custom PHP fatal error handler.' ), true ), // Auto on error.
 	);
 
 	if ( is_multisite() ) {
 		$dropins['sunrise.php']        = array( __( 'Executed before Multisite is loaded.' ), 'SUNRISE' ); // SUNRISE
-		$dropins['blog-deleted.php']   = array( __( 'Custom site deleted message.' ), true ); // auto on deleted blog
-		$dropins['blog-inactive.php']  = array( __( 'Custom site inactive message.' ), true ); // auto on inactive blog
-		$dropins['blog-suspended.php'] = array( __( 'Custom site suspended message.' ), true ); // auto on archived or spammed blog
+		$dropins['blog-deleted.php']   = array( __( 'Custom site deleted message.' ), true );   // Auto on deleted blog.
+		$dropins['blog-inactive.php']  = array( __( 'Custom site inactive message.' ), true );  // Auto on inactive blog.
+		$dropins['blog-suspended.php'] = array( __( 'Custom site suspended message.' ), true ); // Auto on archived or spammed blog.
 	}
 
 	return $dropins;
@@ -613,7 +621,7 @@ function is_network_only_plugin( $plugin ) {
  * @param bool   $network_wide Optional. Whether to enable the plugin for all sites in the network
  *                             or just the current site. Multisite only. Default false.
  * @param bool   $silent       Optional. Whether to prevent calling activation hooks. Default false.
- * @return WP_Error|null WP_Error on invalid file or null on success.
+ * @return null|WP_Error Null on success, WP_Error on invalid file.
  */
 function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silent = false ) {
 	$plugin = plugin_basename( trim( $plugin ) );
@@ -638,7 +646,8 @@ function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silen
 
 	if ( ( $network_wide && ! isset( $current[ $plugin ] ) ) || ( ! $network_wide && ! in_array( $plugin, $current ) ) ) {
 		if ( ! empty( $redirect ) ) {
-			wp_redirect( add_query_arg( '_error_nonce', wp_create_nonce( 'plugin-activation-error_' . $plugin ), $redirect ) ); // we'll override this later if the plugin can be included without fatal error
+			// We'll override this later if the plugin can be included without fatal error.
+			wp_redirect( add_query_arg( '_error_nonce', wp_create_nonce( 'plugin-activation-error_' . $plugin ), $redirect ) );
 		}
 
 		ob_start();
@@ -647,7 +656,7 @@ function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silen
 		if ( ! defined( 'WP_SANDBOX_SCRAPING' ) ) {
 			define( 'WP_SANDBOX_SCRAPING', true );
 		}
-		include_once( WP_PLUGIN_DIR . '/' . $plugin );
+		include_once WP_PLUGIN_DIR . '/' . $plugin;
 		$plugin = $_wp_plugin_file; // Avoid stomping of the $plugin variable in a plugin.
 
 		if ( ! $silent ) {
@@ -726,10 +735,11 @@ function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silen
  *
  * @since 2.5.0
  *
- * @param string|array $plugins Single plugin or list of plugins to deactivate.
- * @param bool $silent Prevent calling deactivation hooks. Default is false.
- * @param mixed $network_wide Whether to deactivate the plugin for all sites in the network.
- *  A value of null (the default) will deactivate plugins for both the site and the network.
+ * @param string|string[] $plugins      Single plugin or list of plugins to deactivate.
+ * @param bool            $silent       Prevent calling deactivation hooks. Default false.
+ * @param bool|null       $network_wide Whether to deactivate the plugin for all sites in the network.
+ *                                      A value of null will deactivate plugins for both the network
+ *                                      and the current site. Multisite only. Default null.
  */
 function deactivate_plugins( $plugins, $silent = false, $network_wide = null ) {
 	if ( is_multisite() ) {
@@ -758,7 +768,7 @@ function deactivate_plugins( $plugins, $silent = false, $network_wide = null ) {
 			 *
 			 * @param string $plugin               Path to the plugin file relative to the plugins directory.
 			 * @param bool   $network_deactivating Whether the plugin is deactivated for all sites in the network
-			 *                                     or just the current site. Multisite only. Default is false.
+			 *                                     or just the current site. Multisite only. Default false.
 			 */
 			do_action( 'deactivate_plugin', $plugin, $network_deactivating );
 		}
@@ -797,7 +807,7 @@ function deactivate_plugins( $plugins, $silent = false, $network_wide = null ) {
 			 * @since 2.0.0
 			 *
 			 * @param bool $network_deactivating Whether the plugin is deactivated for all sites in the network
-			 *                                   or just the current site. Multisite only. Default is false.
+			 *                                   or just the current site. Multisite only. Default false.
 			 */
 			do_action( "deactivate_{$plugin}", $network_deactivating );
 
@@ -810,7 +820,7 @@ function deactivate_plugins( $plugins, $silent = false, $network_wide = null ) {
 			 * @since 2.9.0
 			 *
 			 * @param string $plugin               Path to the plugin file relative to the plugins directory.
-			 * @param bool   $network_deactivating Whether the plugin is deactivated for all sites in the network.
+			 * @param bool   $network_deactivating Whether the plugin is deactivated for all sites in the network
 			 *                                     or just the current site. Multisite only. Default false.
 			 */
 			do_action( 'deactivated_plugin', $plugin, $network_deactivating );
@@ -829,16 +839,17 @@ function deactivate_plugins( $plugins, $silent = false, $network_wide = null ) {
  * Activate multiple plugins.
  *
  * When WP_Error is returned, it does not mean that one of the plugins had
- * errors. It means that one or more of the plugins file path was invalid.
+ * errors. It means that one or more of the plugin file paths were invalid.
  *
  * The execution will be halted as soon as one of the plugins has an error.
  *
  * @since 2.6.0
  *
- * @param string|array $plugins Single plugin or list of plugins to activate.
- * @param string $redirect Redirect to page after successful activation.
- * @param bool $network_wide Whether to enable the plugin for all sites in the network.
- * @param bool $silent Prevent calling activation hooks. Default is false.
+ * @param string|string[] $plugins      Single plugin or list of plugins to activate.
+ * @param string          $redirect     Redirect to page after successful activation.
+ * @param bool            $network_wide Whether to enable the plugin for all sites in the network.
+ *                                      Default false.
+ * @param bool $silent                  Prevent calling activation hooks. Default false.
  * @return bool|WP_Error True when finished or WP_Error if there were errors during a plugin activation.
  */
 function activate_plugins( $plugins, $redirect = '', $network_wide = false, $silent = false ) {
@@ -896,9 +907,9 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 
 	if ( false === $credentials ) {
 		if ( ! empty( $data ) ) {
-			include_once( ABSPATH . 'wp-admin/admin-header.php' );
+			require_once ABSPATH . 'wp-admin/admin-header.php';
 			echo $data;
-			include( ABSPATH . 'wp-admin/admin-footer.php' );
+			require_once ABSPATH . 'wp-admin/admin-footer.php';
 			exit;
 		}
 		return;
@@ -906,13 +917,14 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 
 	if ( ! WP_Filesystem( $credentials ) ) {
 		ob_start();
-		request_filesystem_credentials( $url, '', true ); // Failed to connect, Error and request again.
+		// Failed to connect. Error and request again.
+		request_filesystem_credentials( $url, '', true );
 		$data = ob_get_clean();
 
 		if ( ! empty( $data ) ) {
-			include_once( ABSPATH . 'wp-admin/admin-header.php' );
+			require_once ABSPATH . 'wp-admin/admin-header.php';
 			echo $data;
-			include( ABSPATH . 'wp-admin/admin-footer.php' );
+			require_once ABSPATH . 'wp-admin/admin-footer.php';
 			exit;
 		}
 		return;
@@ -956,7 +968,8 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 		$this_plugin_dir = trailingslashit( dirname( $plugins_dir . $plugin_file ) );
 
 		// If plugin is in its own directory, recursively delete the directory.
-		if ( strpos( $plugin_file, '/' ) && $this_plugin_dir != $plugins_dir ) { //base check on if plugin includes directory separator AND that it's not the root plugin folder
+		// Base check on if plugin includes directory separator AND that it's not the root plugin folder.
+		if ( strpos( $plugin_file, '/' ) && $this_plugin_dir != $plugins_dir ) {
 			$deleted = $wp_filesystem->delete( $this_plugin_dir, true );
 		} else {
 			$deleted = $wp_filesystem->delete( $plugins_dir . $plugin_file );
@@ -1029,7 +1042,7 @@ function delete_plugins( $plugins, $deprecated = '' ) {
  * returns an array of deactivated ones.
  *
  * @since 2.5.0
- * @return array invalid plugins, plugin as key, error as value
+ * @return WP_Error[] Array of plugin errors keyed by plugin file name.
  */
 function validate_active_plugins() {
 	$plugins = get_option( 'active_plugins', array() );
@@ -1069,7 +1082,7 @@ function validate_active_plugins() {
  * @since 2.5.0
  *
  * @param string $plugin Path to the plugin file relative to the plugins directory.
- * @return WP_Error|int 0 on success, WP_Error on failure.
+ * @return int|WP_Error 0 on success, WP_Error on failure.
  */
 function validate_plugin( $plugin ) {
 	if ( validate_file( $plugin ) ) {
@@ -1206,7 +1219,7 @@ function uninstall_plugin( $plugin ) {
 
 		define( 'WP_UNINSTALL_PLUGIN', $file );
 		wp_register_plugin_realpath( WP_PLUGIN_DIR . '/' . $file );
-		include( WP_PLUGIN_DIR . '/' . dirname( $file ) . '/uninstall.php' );
+		include WP_PLUGIN_DIR . '/' . dirname( $file ) . '/uninstall.php';
 
 		return true;
 	}
@@ -1218,7 +1231,7 @@ function uninstall_plugin( $plugin ) {
 		unset( $uninstallable_plugins );
 
 		wp_register_plugin_realpath( WP_PLUGIN_DIR . '/' . $file );
-		include( WP_PLUGIN_DIR . '/' . $file );
+		include WP_PLUGIN_DIR . '/' . $file;
 
 		add_action( "uninstall_{$file}", $callable );
 
@@ -1235,7 +1248,7 @@ function uninstall_plugin( $plugin ) {
 }
 
 //
-// Menu
+// Menu.
 //
 
 /**
@@ -1304,7 +1317,7 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $func
 
 	$_registered_pages[ $hookname ] = true;
 
-	// No parent as top level
+	// No parent as top level.
 	$_parent_pages[ $menu_slug ] = false;
 
 	return $hookname;
@@ -1340,7 +1353,7 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $func
  *                              to be compatible with sanitize_key().
  * @param callable $function    The function to be called to output the content for this page.
  * @param int      $position    The position in the menu order this item should appear.
- * @return false|string The resulting page's hook_suffix, or false if the user does not have the capability required.
+ * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
 function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
 	global $submenu, $menu, $_wp_real_parent_file, $_wp_submenu_nopriv,
@@ -1388,8 +1401,9 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 
 		$submenu[ $parent_slug ][] = $new_sub_menu;
 	} else {
-		// If position is equal or higher than the number of items in the array, append the submenu.
-		if ( $position >= count( $submenu[ $parent_slug ] ) ) {
+		// Append the submenu if the parent item is not present in the submenu,
+		// or if position is equal or higher than the number of items in the array.
+		if ( ! isset( $submenu[ $parent_slug ] ) || $position >= count( $submenu[ $parent_slug ] ) ) {
 			$submenu[ $parent_slug ][] = $new_sub_menu;
 		} else {
 			// Test for a negative position.
@@ -1409,7 +1423,7 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 			}
 		}
 	}
-	// Sort the parent array
+	// Sort the parent array.
 	ksort( $submenu[ $parent_slug ] );
 
 	$hookname = get_plugin_page_hookname( $menu_slug, $parent_slug );
@@ -1451,7 +1465,7 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
  * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
  * @param callable $function   The function to be called to output the content for this page.
  * @param int      $position   The position in the menu order this item should appear.
- * @return false|string The resulting page's hook_suffix, or false if the user does not have the capability required.
+ * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
 function add_management_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
 	return add_submenu_page( 'tools.php', $page_title, $menu_title, $capability, $menu_slug, $function, $position );
@@ -1475,7 +1489,7 @@ function add_management_page( $page_title, $menu_title, $capability, $menu_slug,
  * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
  * @param callable $function   The function to be called to output the content for this page.
  * @param int      $position   The position in the menu order this item should appear.
- * @return false|string The resulting page's hook_suffix, or false if the user does not have the capability required.
+ * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
 function add_options_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
 	return add_submenu_page( 'options-general.php', $page_title, $menu_title, $capability, $menu_slug, $function, $position );
@@ -1499,7 +1513,7 @@ function add_options_page( $page_title, $menu_title, $capability, $menu_slug, $f
  * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
  * @param callable $function   The function to be called to output the content for this page.
  * @param int      $position   The position in the menu order this item should appear.
- * @return false|string The resulting page's hook_suffix, or false if the user does not have the capability required.
+ * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
 function add_theme_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
 	return add_submenu_page( 'themes.php', $page_title, $menu_title, $capability, $menu_slug, $function, $position );
@@ -1523,7 +1537,7 @@ function add_theme_page( $page_title, $menu_title, $capability, $menu_slug, $fun
  * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
  * @param callable $function   The function to be called to output the content for this page.
  * @param int      $position   The position in the menu order this item should appear.
- * @return false|string The resulting page's hook_suffix, or false if the user does not have the capability required.
+ * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
 function add_plugins_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
 	return add_submenu_page( 'plugins.php', $page_title, $menu_title, $capability, $menu_slug, $function, $position );
@@ -1547,7 +1561,7 @@ function add_plugins_page( $page_title, $menu_title, $capability, $menu_slug, $f
  * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
  * @param callable $function   The function to be called to output the content for this page.
  * @param int      $position   The position in the menu order this item should appear.
- * @return false|string The resulting page's hook_suffix, or false if the user does not have the capability required.
+ * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
 function add_users_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
 	if ( current_user_can( 'edit_users' ) ) {
@@ -1576,7 +1590,7 @@ function add_users_page( $page_title, $menu_title, $capability, $menu_slug, $fun
  * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
  * @param callable $function   The function to be called to output the content for this page.
  * @param int      $position   The position in the menu order this item should appear.
- * @return false|string The resulting page's hook_suffix, or false if the user does not have the capability required.
+ * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
 function add_dashboard_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
 	return add_submenu_page( 'index.php', $page_title, $menu_title, $capability, $menu_slug, $function, $position );
@@ -1600,7 +1614,7 @@ function add_dashboard_page( $page_title, $menu_title, $capability, $menu_slug, 
  * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
  * @param callable $function   The function to be called to output the content for this page.
  * @param int      $position   The position in the menu order this item should appear.
- * @return false|string The resulting page's hook_suffix, or false if the user does not have the capability required.
+ * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
 function add_posts_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
 	return add_submenu_page( 'edit.php', $page_title, $menu_title, $capability, $menu_slug, $function, $position );
@@ -1624,7 +1638,7 @@ function add_posts_page( $page_title, $menu_title, $capability, $menu_slug, $fun
  * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
  * @param callable $function   The function to be called to output the content for this page.
  * @param int      $position   The position in the menu order this item should appear.
- * @return false|string The resulting page's hook_suffix, or false if the user does not have the capability required.
+ * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
 function add_media_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
 	return add_submenu_page( 'upload.php', $page_title, $menu_title, $capability, $menu_slug, $function, $position );
@@ -1648,7 +1662,7 @@ function add_media_page( $page_title, $menu_title, $capability, $menu_slug, $fun
  * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
  * @param callable $function   The function to be called to output the content for this page.
  * @param int      $position   The position in the menu order this item should appear.
- * @return false|string The resulting page's hook_suffix, or false if the user does not have the capability required.
+ * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
 function add_links_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
 	return add_submenu_page( 'link-manager.php', $page_title, $menu_title, $capability, $menu_slug, $function, $position );
@@ -1672,7 +1686,7 @@ function add_links_page( $page_title, $menu_title, $capability, $menu_slug, $fun
  * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
  * @param callable $function   The function to be called to output the content for this page.
  * @param int      $position   The position in the menu order this item should appear.
- * @return false|string The resulting page's hook_suffix, or false if the user does not have the capability required.
+ * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
 function add_pages_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
 	return add_submenu_page( 'edit.php?post_type=page', $page_title, $menu_title, $capability, $menu_slug, $function, $position );
@@ -1696,7 +1710,7 @@ function add_pages_page( $page_title, $menu_title, $capability, $menu_slug, $fun
  * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
  * @param callable $function   The function to be called to output the content for this page.
  * @param int      $position   The position in the menu order this item should appear.
- * @return false|string The resulting page's hook_suffix, or false if the user does not have the capability required.
+ * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  */
 function add_comments_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $position = null ) {
 	return add_submenu_page( 'edit-comments.php', $page_title, $menu_title, $capability, $menu_slug, $function, $position );
@@ -1754,17 +1768,17 @@ function remove_submenu_page( $menu_slug, $submenu_slug ) {
 }
 
 /**
- * Get the url to access a particular menu page based on the slug it was registered with.
+ * Get the URL to access a particular menu page based on the slug it was registered with.
  *
- * If the slug hasn't been registered properly no url will be returned
+ * If the slug hasn't been registered properly, no URL will be returned.
  *
  * @since 3.0.0
  *
  * @global array $_parent_pages
  *
- * @param string $menu_slug The slug name to refer to this menu by (should be unique for this menu)
- * @param bool $echo Whether or not to echo the url - default is true
- * @return string the url
+ * @param string $menu_slug The slug name to refer to this menu by (should be unique for this menu).
+ * @param bool   $echo      Whether or not to echo the URL. Default true.
+ * @return string The menu page URL.
  */
 function menu_page_url( $menu_slug, $echo = true ) {
 	global $_parent_pages;
@@ -1790,9 +1804,13 @@ function menu_page_url( $menu_slug, $echo = true ) {
 }
 
 //
-// Pluggable Menu Support -- Private
+// Pluggable Menu Support -- Private.
 //
 /**
+ * Gets the parent file of the current admin page.
+ *
+ * @since 1.5.0
+ *
  * @global string $parent_file
  * @global array $menu
  * @global array $submenu
@@ -1803,7 +1821,7 @@ function menu_page_url( $menu_slug, $echo = true ) {
  * @global array $_wp_menu_nopriv
  * @global array $_wp_submenu_nopriv
  *
- * @return string
+ * @return string The parent file of the current admin page.
  */
 function get_admin_page_parent( $parent = '' ) {
 	global $parent_file, $menu, $submenu, $pagenow, $typenow,
@@ -1816,7 +1834,7 @@ function get_admin_page_parent( $parent = '' ) {
 		return $parent;
 	}
 
-	if ( $pagenow == 'admin.php' && isset( $plugin_page ) ) {
+	if ( 'admin.php' === $pagenow && isset( $plugin_page ) ) {
 		foreach ( (array) $menu as $parent_menu ) {
 			if ( $parent_menu[2] == $plugin_page ) {
 				$parent_file = $plugin_page;
@@ -1848,7 +1866,7 @@ function get_admin_page_parent( $parent = '' ) {
 			if ( isset( $_wp_real_parent_file[ $parent ] ) ) {
 				$parent = $_wp_real_parent_file[ $parent ];
 			}
-			if ( ! empty( $typenow ) && ( $submenu_array[2] == "$pagenow?post_type=$typenow" ) ) {
+			if ( ! empty( $typenow ) && ( "$pagenow?post_type=$typenow" === $submenu_array[2] ) ) {
 				$parent_file = $parent;
 				return $parent;
 			} elseif ( $submenu_array[2] == $pagenow && empty( $typenow ) && ( empty( $parent_file ) || false === strpos( $parent_file, '?' ) ) ) {
@@ -1868,6 +1886,10 @@ function get_admin_page_parent( $parent = '' ) {
 }
 
 /**
+ * Gets the title of the current admin page.
+ *
+ * @since 1.5.0
+ *
  * @global string $title
  * @global array $menu
  * @global array $submenu
@@ -1875,7 +1897,7 @@ function get_admin_page_parent( $parent = '' ) {
  * @global string $plugin_page
  * @global string $typenow
  *
- * @return string
+ * @return string The title of the current admin page.
  */
 function get_admin_page_title() {
 	global $title, $menu, $submenu, $pagenow, $plugin_page, $typenow;
@@ -1913,7 +1935,7 @@ function get_admin_page_title() {
 						( $parent == $pagenow ) ||
 						( $parent == $plugin_page ) ||
 						( $plugin_page == $hook ) ||
-						( $pagenow == 'admin.php' && $parent1 != $submenu_array[2] ) ||
+						( 'admin.php' === $pagenow && $parent1 != $submenu_array[2] ) ||
 						( ! empty( $typenow ) && $parent == $pagenow . '?post_type=' . $typenow )
 					)
 					) {
@@ -1921,7 +1943,7 @@ function get_admin_page_title() {
 						return $submenu_array[3];
 				}
 
-				if ( $submenu_array[2] != $pagenow || isset( $_GET['page'] ) ) { // not the current page
+				if ( $submenu_array[2] != $pagenow || isset( $_GET['page'] ) ) { // Not the current page.
 					continue;
 				}
 
@@ -1938,7 +1960,7 @@ function get_admin_page_title() {
 			foreach ( $menu as $menu_array ) {
 				if ( isset( $plugin_page ) &&
 					( $plugin_page == $menu_array[2] ) &&
-					( $pagenow == 'admin.php' ) &&
+					( 'admin.php' === $pagenow ) &&
 					( $parent1 == $menu_array[2] ) ) {
 						$title = $menu_array[3];
 						return $menu_array[3];
@@ -1951,7 +1973,9 @@ function get_admin_page_title() {
 }
 
 /**
- * @since 2.3.0
+ * Gets the hook attached to the administrative page of a plugin.
+ *
+ * @since 1.5.0
  *
  * @param string $plugin_page The slug name of the plugin page.
  * @param string $parent_page The slug name for the parent menu (or the file name of a standard
@@ -1968,6 +1992,10 @@ function get_plugin_page_hook( $plugin_page, $parent_page ) {
 }
 
 /**
+ * Gets the hook name for the administrative page of a plugin.
+ *
+ * @since 1.5.0
+ *
  * @global array $admin_page_hooks
  *
  * @param string $plugin_page The slug name of the plugin page.
@@ -1997,15 +2025,19 @@ function get_plugin_page_hookname( $plugin_page, $parent_page ) {
 }
 
 /**
- * @global string $pagenow
- * @global array $menu
- * @global array $submenu
- * @global array $_wp_menu_nopriv
- * @global array $_wp_submenu_nopriv
- * @global string $plugin_page
- * @global array $_registered_pages
+ * Determines whether the current user can access the current admin page.
  *
- * @return bool Whether the current user can access the current admin page.
+ * @since 1.5.0
+ *
+ * @global string $pagenow
+ * @global array  $menu
+ * @global array  $submenu
+ * @global array  $_wp_menu_nopriv
+ * @global array  $_wp_submenu_nopriv
+ * @global string $plugin_page
+ * @global array  $_registered_pages
+ *
+ * @return bool True if the current user can access the admin page, false otherwise.
  */
 function user_can_access_admin_page() {
 	global $pagenow, $menu, $submenu, $_wp_menu_nopriv, $_wp_submenu_nopriv,
@@ -2124,7 +2156,7 @@ function option_update_filter( $options ) {
  * @return array
  */
 function add_option_whitelist( $new_options, $options = '' ) {
-	if ( $options == '' ) {
+	if ( '' == $options ) {
 		global $whitelist_options;
 	} else {
 		$whitelist_options = $options;
@@ -2137,7 +2169,7 @@ function add_option_whitelist( $new_options, $options = '' ) {
 				$whitelist_options[ $page ][] = $key;
 			} else {
 				$pos = array_search( $key, $whitelist_options[ $page ] );
-				if ( $pos === false ) {
+				if ( false === $pos ) {
 					$whitelist_options[ $page ][] = $key;
 				}
 			}
@@ -2159,7 +2191,7 @@ function add_option_whitelist( $new_options, $options = '' ) {
  * @return array
  */
 function remove_option_whitelist( $del_options, $options = '' ) {
-	if ( $options == '' ) {
+	if ( '' == $options ) {
 		global $whitelist_options;
 	} else {
 		$whitelist_options = $options;
@@ -2169,7 +2201,7 @@ function remove_option_whitelist( $del_options, $options = '' ) {
 		foreach ( $keys as $key ) {
 			if ( isset( $whitelist_options[ $page ] ) && is_array( $whitelist_options[ $page ] ) ) {
 				$pos = array_search( $key, $whitelist_options[ $page ] );
-				if ( $pos !== false ) {
+				if ( false !== $pos ) {
 					unset( $whitelist_options[ $page ][ $pos ] );
 				}
 			}
@@ -2184,7 +2216,8 @@ function remove_option_whitelist( $del_options, $options = '' ) {
  *
  * @since 2.7.0
  *
- * @param string $option_group A settings group name. This should match the group name used in register_setting().
+ * @param string $option_group A settings group name. This should match the group name
+ *                             used in register_setting().
  */
 function settings_fields( $option_group ) {
 	echo "<input type='hidden' name='option_page' value='" . esc_attr( $option_group ) . "' />";
@@ -2193,11 +2226,11 @@ function settings_fields( $option_group ) {
 }
 
 /**
- * Clears the Plugins cache used by get_plugins() and by default, the Plugin Update cache.
+ * Clears the plugins cache used by get_plugins() and by default, the plugin updates cache.
  *
  * @since 3.7.0
  *
- * @param bool $clear_update_cache Whether to clear the Plugin updates cache
+ * @param bool $clear_update_cache Whether to clear the plugin updates cache. Default true.
  */
 function wp_clean_plugins_cache( $clear_update_cache = true ) {
 	if ( $clear_update_cache ) {
@@ -2219,7 +2252,7 @@ function plugin_sandbox_scrape( $plugin ) {
 		define( 'WP_SANDBOX_SCRAPING', true );
 	}
 	wp_register_plugin_realpath( WP_PLUGIN_DIR . '/' . $plugin );
-	include( WP_PLUGIN_DIR . '/' . $plugin );
+	include WP_PLUGIN_DIR . '/' . $plugin;
 }
 
 /**
@@ -2235,11 +2268,17 @@ function plugin_sandbox_scrape( $plugin ) {
  * For more information see the Plugin Handbook:
  * https://developer.wordpress.org/plugins/privacy/suggesting-text-for-the-site-privacy-policy/.
  *
+ * The HTML contents of the `$policy_text` supports use of a specialized `.privacy-policy-tutorial`
+ * CSS class which can be used to provide supplemental information. Any content contained within
+ * HTML elements that have the `.privacy-policy-tutorial` CSS class applied will be omitted
+ * from the clipboard when the section content is copied.
+ *
  * Intended for use with the `'admin_init'` action.
  *
  * @since 4.9.6
  *
- * @param string $plugin_name The name of the plugin or theme that is suggesting content for the site's privacy policy.
+ * @param string $plugin_name The name of the plugin or theme that is suggesting content
+ *                            for the site's privacy policy.
  * @param string $policy_text The suggested content for inclusion in the policy.
  */
 function wp_add_privacy_policy_content( $plugin_name, $policy_text ) {
@@ -2268,7 +2307,7 @@ function wp_add_privacy_policy_content( $plugin_name, $policy_text ) {
 	}
 
 	if ( ! class_exists( 'WP_Privacy_Policy_Content' ) ) {
-		require_once( ABSPATH . 'wp-admin/includes/class-wp-privacy-policy-content.php' );
+		require_once ABSPATH . 'wp-admin/includes/class-wp-privacy-policy-content.php';
 	}
 
 	WP_Privacy_Policy_Content::add( $plugin_name, $policy_text );
@@ -2285,7 +2324,7 @@ function wp_add_privacy_policy_content( $plugin_name, $policy_text ) {
  * @since 5.2.0
  *
  * @param string $plugin Path to the plugin file relative to the plugins directory.
- * @return bool True, if in the list of paused plugins. False, not in the list.
+ * @return bool True, if in the list of paused plugins. False, if not in the list.
  */
 function is_plugin_paused( $plugin ) {
 	if ( ! isset( $GLOBALS['_paused_plugins'] ) ) {
@@ -2306,10 +2345,9 @@ function is_plugin_paused( $plugin ) {
  *
  * @since 5.2.0
  *
- * @param string $plugin Path to the plugin file relative to the plugins
- *                       directory.
- * @return array|false Array of error information as it was returned by
- *                     `error_get_last()`, or false if none was recorded.
+ * @param string $plugin Path to the plugin file relative to the plugins directory.
+ * @return array|false Array of error information as returned by `error_get_last()`,
+ *                     or false if none was recorded.
  */
 function wp_get_plugin_error( $plugin ) {
 	if ( ! isset( $GLOBALS['_paused_plugins'] ) ) {
@@ -2337,8 +2375,8 @@ function wp_get_plugin_error( $plugin ) {
  *
  * @since 5.2.0
  *
- * @param string $plugin       Single plugin to resume.
- * @param string $redirect     Optional. URL to redirect to. Default empty string.
+ * @param string $plugin   Single plugin to resume.
+ * @param string $redirect Optional. URL to redirect to. Default empty string.
  * @return bool|WP_Error True on success, false if `$plugin` was not paused,
  *                       `WP_Error` on failure.
  */

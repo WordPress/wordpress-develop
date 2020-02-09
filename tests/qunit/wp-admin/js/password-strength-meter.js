@@ -17,7 +17,7 @@ jQuery( function() {
 			for ( i = 0, n = possibility.length; i < length; i++ ) {
 				retVal += possibility.charAt( Math.floor( Math.random() * n ) );
 			}
-			return retVal + 'aB2'; // add a lower case, uppercase and number just to make sure we always have one of each
+			return retVal + 'aB2'; // Add a lower case, uppercase and number just to make sure we always have one of each.
 		},
 		twofifty = password( 250 );
 

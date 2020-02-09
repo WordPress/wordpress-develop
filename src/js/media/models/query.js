@@ -43,15 +43,19 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 				return true;
 			}
 
-			// We want any items that can be placed before the last
-			// item in the set. If we add any items after the last
-			// item, then we can't guarantee the set is complete.
+			/*
+			 * We want any items that can be placed before the last
+			 * item in the set. If we add any items after the last
+			 * item, then we can't guarantee the set is complete.
+			 */
 			if ( this.length ) {
 				return 1 !== this.comparator( attachment, this.last(), { ties: true });
 
-			// Handle the case where there are no items yet and
-			// we're sorting for recent items. In that case, we want
-			// changes that occurred after we created the query.
+			/*
+			 * Handle the case where there are no items yet and
+			 * we're sorting for recent items. In that case, we want
+			 * changes that occurred after we created the query.
+			 */
 			} else if ( 'DESC' === order && ( 'date' === orderby || 'modified' === orderby ) ) {
 				return attachment.get( orderby ) >= this.created;
 
@@ -65,12 +69,14 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 			return false;
 		};
 
-		// Observe the central `wp.Uploader.queue` collection to watch for
-		// new matches for the query.
-		//
-		// Only observe when a limited number of query args are set. There
-		// are no filters for other properties, so observing will result in
-		// false positives in those queries.
+		/*
+		 * Observe the central `wp.Uploader.queue` collection to watch for
+		 * new matches for the query.
+		 *
+		 * Only observe when a limited number of query args are set. There
+		 * are no filters for other properties, so observing will result in
+		 * false positives in those queries.
+		 */
 		allowed = [ 's', 'order', 'orderby', 'posts_per_page', 'post_mime_type', 'post_parent', 'author' ];
 		if ( wp.Uploader && _( this.args ).chain().keys().difference( allowed ).isEmpty().value() ) {
 			this.observe( wp.Uploader.queue );
@@ -80,7 +86,7 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	 * Whether there are more attachments that haven't been sync'd from the server
 	 * that match the collection's query.
 	 *
-	 * @returns {boolean}
+	 * @return {boolean}
 	 */
 	hasMore: function() {
 		return this._hasMore;
@@ -89,7 +95,7 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	 * Fetch more attachments from the server for the collection.
 	 *
 	 * @param   {object}  [options={}]
-	 * @returns {Promise}
+	 * @return {Promise}
 	 */
 	more: function( options ) {
 		var query = this;
@@ -119,7 +125,7 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	 * @param {String} method
 	 * @param {Backbone.Model} model
 	 * @param {Object} [options={}]
-	 * @returns {Promise}
+	 * @return {Promise}
 	 */
 	sync: function( method, model, options ) {
 		var args, fallback;
@@ -144,7 +150,7 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 			options.data.query = args;
 			return wp.media.ajax( options );
 
-		// Otherwise, fall back to Backbone.sync()
+		// Otherwise, fall back to `Backbone.sync()`.
 		} else {
 			/**
 			 * Call wp.media.model.Attachments.sync or Backbone.sync
@@ -221,7 +227,7 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	 * @param {Object} [props.author]
 	 * @param {Object} [options]
 	 *
-	 * @returns {wp.media.model.Query} A new Attachments Query collection.
+	 * @return {wp.media.model.Query} A new Attachments Query collection.
 	 */
 	get: (function(){
 		/**
@@ -231,7 +237,7 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 		var queries = [];
 
 		/**
-		 * @returns {Query}
+		 * @return {Query}
 		 */
 		return function( props, options ) {
 			var args     = {},

@@ -1,8 +1,6 @@
 === Twenty Twelve ===
 Contributors: wordpressdotorg
-Requires at least: WordPress 3.5
-Tested up to: WordPress 5.0
-Requires PHP: 5.2.4
+Tested up to: 5.0
 Stable tag: 3.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -23,7 +21,7 @@ For more information about Twenty Twelve please go to https://codex.wordpress.or
 
 == Copyright ==
 
-Twenty Twelve WordPress Theme, Copyright 2012-2018 WordPress.org & Automattic.com
+Twenty Twelve WordPress Theme, Copyright 2012-2020 WordPress.org & Automattic.com
 Twenty Twelve is Distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify

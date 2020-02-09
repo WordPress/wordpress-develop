@@ -23,7 +23,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 	function test_insert_image_no_thumb() {
 
-		// this image is smaller than the thumbnail size so it won't have one
+		// This image is smaller than the thumbnail size so it won't have one.
 		$filename = ( DIR_TESTDATA . '/images/test-image.jpg' );
 		$contents = file_get_contents( $filename );
 
@@ -32,12 +32,12 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 		$id = $this->_make_attachment( $upload );
 
-		// intermediate copies should not exist
+		// Intermediate copies should not exist.
 		$this->assertFalse( image_get_intermediate_size( $id, 'thumbnail' ) );
 		$this->assertFalse( image_get_intermediate_size( $id, 'medium' ) );
 		$this->assertFalse( image_get_intermediate_size( $id, 'medium_large' ) );
 
-		// medium, medium_large, and full size will both point to the original
+		// medium, medium_large, and full size will both point to the original.
 		$downsize = image_downsize( $id, 'medium' );
 		$this->assertEquals( wp_basename( $upload['file'] ), wp_basename( $downsize[0] ) );
 		$this->assertEquals( 50, $downsize[1] );
@@ -71,7 +71,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 		$id = $this->_make_attachment( $upload );
 
-		// intermediate copies should exist: thumbnail only
+		// Intermediate copies should exist: thumbnail only.
 		$thumb = image_get_intermediate_size( $id, 'thumbnail' );
 		$this->assertEquals( 'a2-small-150x150.jpg', $thumb['file'] );
 
@@ -81,16 +81,16 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$this->assertFalse( image_get_intermediate_size( $id, 'medium' ) );
 		$this->assertFalse( image_get_intermediate_size( $id, 'medium_large' ) );
 
-		// the thumb url should point to the thumbnail intermediate
+		// The thumb url should point to the thumbnail intermediate.
 		$this->assertEquals( $thumb['url'], wp_get_attachment_thumb_url( $id ) );
 
-		// image_downsize() should return the correct images and sizes
+		// image_downsize() should return the correct images and sizes.
 		$downsize = image_downsize( $id, 'thumbnail' );
 		$this->assertEquals( 'a2-small-150x150.jpg', wp_basename( $downsize[0] ) );
 		$this->assertEquals( 150, $downsize[1] );
 		$this->assertEquals( 150, $downsize[2] );
 
-		// medium, medium_large, and full will both point to the original
+		// medium, medium_large, and full will both point to the original.
 		$downsize = image_downsize( $id, 'medium' );
 		$this->assertEquals( 'a2-small.jpg', wp_basename( $downsize[0] ) );
 		$this->assertEquals( 400, $downsize[1] );
@@ -128,7 +128,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$id      = $this->_make_attachment( $upload );
 		$uploads = wp_upload_dir();
 
-		// intermediate copies should exist: thumbnail and medium
+		// Intermediate copies should exist: thumbnail and medium.
 		$thumb = image_get_intermediate_size( $id, 'thumbnail' );
 		$this->assertEquals( '2007-06-17DSC_4173-150x150.jpg', $thumb['file'] );
 		$this->assertTrue( is_file( $uploads['basedir'] . DIRECTORY_SEPARATOR . $thumb['path'] ) );
@@ -141,10 +141,10 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$this->assertEquals( '2007-06-17DSC_4173-600x904.jpg', $medium_large['file'] );
 		$this->assertTrue( is_file( $uploads['basedir'] . DIRECTORY_SEPARATOR . $medium_large['path'] ) );
 
-		// the thumb url should point to the thumbnail intermediate
+		// The thumb url should point to the thumbnail intermediate.
 		$this->assertEquals( $thumb['url'], wp_get_attachment_thumb_url( $id ) );
 
-		// image_downsize() should return the correct images and sizes
+		// image_downsize() should return the correct images and sizes.
 		$downsize = image_downsize( $id, 'thumbnail' );
 		$this->assertEquals( '2007-06-17DSC_4173-150x150.jpg', wp_basename( $downsize[0] ) );
 		$this->assertEquals( 150, $downsize[1] );
@@ -187,7 +187,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$id      = $this->_make_attachment( $upload );
 		$uploads = wp_upload_dir();
 
-		// check that the file and intermediates exist
+		// Check that the file and intermediates exist.
 		$thumb = image_get_intermediate_size( $id, 'thumbnail' );
 		$this->assertEquals( '2007-06-17DSC_4173-150x150.jpg', $thumb['file'] );
 		$this->assertTrue( is_file( $uploads['basedir'] . DIRECTORY_SEPARATOR . $thumb['path'] ) );
@@ -204,7 +204,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$original = $meta['file'];
 		$this->assertTrue( is_file( $uploads['basedir'] . DIRECTORY_SEPARATOR . $original ) );
 
-		// now delete the attachment and make sure all files are gone
+		// Now delete the attachment and make sure all files are gone.
 		wp_delete_attachment( $id );
 
 		$this->assertFalse( is_file( $thumb['path'] ) );
@@ -220,7 +220,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	 * @ticket 21963
 	 */
 	function test_insert_image_without_guid() {
-		// this image is smaller than the thumbnail size so it won't have one
+		// This image is smaller than the thumbnail size so it won't have one.
 		$filename = ( DIR_TESTDATA . '/images/test-image.jpg' );
 		$contents = file_get_contents( $filename );
 
@@ -272,7 +272,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 		$attachment_id = $this->_make_attachment( $upload );
 
-		// Assert that the attachment is an orphan
+		// Assert that the attachment is an orphan.
 		$attachment = get_post( $attachment_id );
 		$this->assertEquals( $attachment->post_parent, 0 );
 
@@ -283,7 +283,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 			)
 		);
 
-		// Assert that the attachment has a parent
+		// Assert that the attachment has a parent.
 		wp_insert_attachment( $attachment, '', $post_id );
 		$attachment = get_post( $attachment_id );
 		$this->assertEquals( $attachment->post_parent, $post_id );
@@ -352,7 +352,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
 		$this->assertTrue( empty( $upload['error'] ) );
 
-		// Set attachment ID
+		// Set attachment ID.
 		$attachment_id = $this->_make_attachment( $upload );
 
 		$_SERVER['HTTPS'] = 'on';
@@ -408,7 +408,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
 		$this->assertTrue( empty( $upload['error'] ) );
 
-		// Set attachment ID
+		// Set attachment ID.
 		$attachment_id = $this->_make_attachment( $upload );
 
 		$_SERVER['HTTPS'] = 'on';
@@ -426,7 +426,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	 * @ticket 15928
 	 */
 	public function test_wp_get_attachment_url_should_force_https_when_administering_over_https_and_siteurl_is_https() {
-		// Set https upload URL
+		// Set https upload URL.
 		add_filter( 'upload_dir', '_upload_dir_https' );
 
 		$filename = ( DIR_TESTDATA . '/images/test-image.jpg' );
@@ -435,7 +435,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
 		$this->assertTrue( empty( $upload['error'] ) );
 
-		// Set attachment ID
+		// Set attachment ID.
 		$attachment_id = $this->_make_attachment( $upload );
 
 		$_SERVER['HTTPS'] = 'on';

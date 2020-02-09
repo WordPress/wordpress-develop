@@ -31,7 +31,7 @@ if ( isset( $_GET['import'] ) && ! defined( 'WP_LOAD_IMPORTERS' ) ) {
 	define( 'WP_LOAD_IMPORTERS', true );
 }
 
-require_once( dirname( dirname( __FILE__ ) ) . '/wp-load.php' );
+require_once dirname( __DIR__ ) . '/wp-load.php';
 
 nocache_headers();
 
@@ -72,8 +72,8 @@ if ( get_option( 'db_upgraded' ) ) {
 		 * If there are 50 or fewer sites, run every time. Otherwise, throttle to reduce load:
 		 * attempt to do no more than threshold value, with some +/- allowed.
 		 */
-		if ( $c <= 50 || ( $c > 50 && mt_rand( 0, (int) ( $c / 50 ) ) == 1 ) ) {
-			require_once( ABSPATH . WPINC . '/http.php' );
+		if ( $c <= 50 || ( $c > 50 && mt_rand( 0, (int) ( $c / 50 ) ) === 1 ) ) {
+			require_once ABSPATH . WPINC . '/http.php';
 			$response = wp_remote_get(
 				admin_url( 'upgrade.php?step=1' ),
 				array(
@@ -89,16 +89,16 @@ if ( get_option( 'db_upgraded' ) ) {
 	}
 }
 
-require_once( ABSPATH . 'wp-admin/includes/admin.php' );
+require_once ABSPATH . 'wp-admin/includes/admin.php';
 
 auth_redirect();
 
-// Schedule trash collection
+// Schedule trash collection.
 if ( ! wp_next_scheduled( 'wp_scheduled_delete' ) && ! wp_installing() ) {
 	wp_schedule_event( time(), 'daily', 'wp_scheduled_delete' );
 }
 
-// Schedule Transient cleanup.
+// Schedule transient cleanup.
 if ( ! wp_next_scheduled( 'delete_expired_transients' ) && ! wp_installing() ) {
 	wp_schedule_event( time(), 'daily', 'delete_expired_transients' );
 }
@@ -146,11 +146,11 @@ if ( isset( $_REQUEST['taxonomy'] ) && taxonomy_exists( $_REQUEST['taxonomy'] ) 
 }
 
 if ( WP_NETWORK_ADMIN ) {
-	require( ABSPATH . 'wp-admin/network/menu.php' );
+	require ABSPATH . 'wp-admin/network/menu.php';
 } elseif ( WP_USER_ADMIN ) {
-	require( ABSPATH . 'wp-admin/user/menu.php' );
+	require ABSPATH . 'wp-admin/user/menu.php';
 } else {
-	require( ABSPATH . 'wp-admin/menu.php' );
+	require ABSPATH . 'wp-admin/menu.php';
 }
 
 if ( current_user_can( 'manage_options' ) ) {
@@ -181,8 +181,8 @@ if ( isset( $plugin_page ) ) {
 		$page_hook = get_plugin_page_hook( $plugin_page, $plugin_page );
 
 		// Back-compat for plugins using add_management_page().
-		if ( empty( $page_hook ) && 'edit.php' == $pagenow && '' != get_plugin_page_hook( $plugin_page, 'tools.php' ) ) {
-			// There could be plugin specific params on the URL, so we need the whole query string
+		if ( empty( $page_hook ) && 'edit.php' === $pagenow && get_plugin_page_hook( $plugin_page, 'tools.php' ) ) {
+			// There could be plugin specific params on the URL, so we need the whole query string.
 			if ( ! empty( $_SERVER['QUERY_STRING'] ) ) {
 				$query_string = $_SERVER['QUERY_STRING'];
 			} else {
@@ -231,7 +231,7 @@ if ( isset( $plugin_page ) ) {
 		 */
 		do_action( "load-{$page_hook}" ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 		if ( ! isset( $_GET['noheader'] ) ) {
-			require_once( ABSPATH . 'wp-admin/admin-header.php' );
+			require_once ABSPATH . 'wp-admin/admin-header.php';
 		}
 
 		/**
@@ -277,17 +277,17 @@ if ( isset( $plugin_page ) ) {
 		do_action( "load-{$plugin_page}" ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 		if ( ! isset( $_GET['noheader'] ) ) {
-			require_once( ABSPATH . 'wp-admin/admin-header.php' );
+			require_once ABSPATH . 'wp-admin/admin-header.php';
 		}
 
 		if ( file_exists( WPMU_PLUGIN_DIR . "/$plugin_page" ) ) {
-			include( WPMU_PLUGIN_DIR . "/$plugin_page" );
+			include WPMU_PLUGIN_DIR . "/$plugin_page";
 		} else {
-			include( WP_PLUGIN_DIR . "/$plugin_page" );
+			include WP_PLUGIN_DIR . "/$plugin_page";
 		}
 	}
 
-	include( ABSPATH . 'wp-admin/admin-footer.php' );
+	require_once ABSPATH . 'wp-admin/admin-footer.php';
 
 	exit();
 } elseif ( isset( $_GET['import'] ) ) {
@@ -322,10 +322,10 @@ if ( isset( $plugin_page ) ) {
 	$title        = __( 'Import' );
 
 	if ( ! isset( $_GET['noheader'] ) ) {
-		require_once( ABSPATH . 'wp-admin/admin-header.php' );
+		require_once ABSPATH . 'wp-admin/admin-header.php';
 	}
 
-	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+	require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 	define( 'WP_IMPORTING', true );
 
@@ -345,9 +345,9 @@ if ( isset( $plugin_page ) ) {
 
 	call_user_func( $wp_importers[ $importer ][2] );
 
-	include( ABSPATH . 'wp-admin/admin-footer.php' );
+	require_once ABSPATH . 'wp-admin/admin-footer.php';
 
-	// Make sure rules are flushed
+	// Make sure rules are flushed.
 	flush_rewrite_rules( false );
 
 	exit();
@@ -370,16 +370,16 @@ if ( isset( $plugin_page ) ) {
 	 * The following hooks are fired to ensure backward compatibility.
 	 * In all other cases, 'load-' . $pagenow should be used instead.
 	 */
-	if ( $typenow == 'page' ) {
-		if ( $pagenow == 'post-new.php' ) {
+	if ( 'page' === $typenow ) {
+		if ( 'post-new.php' === $pagenow ) {
 			do_action( 'load-page-new.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
-		} elseif ( $pagenow == 'post.php' ) {
+		} elseif ( 'post.php' === $pagenow ) {
 			do_action( 'load-page.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 		}
-	} elseif ( $pagenow == 'edit-tags.php' ) {
-		if ( $taxnow == 'category' ) {
+	} elseif ( 'edit-tags.php' === $pagenow ) {
+		if ( 'category' === $taxnow ) {
 			do_action( 'load-categories.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
-		} elseif ( $taxnow == 'link_category' ) {
+		} elseif ( 'link_category' === $taxnow ) {
 			do_action( 'load-edit-link-categories.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 		}
 	} elseif ( 'term.php' === $pagenow ) {

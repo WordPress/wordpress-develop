@@ -15,12 +15,16 @@ if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
  */
 define( 'WP_DEFAULT_THEME', 'default' );
 
-// Test with multisite enabled.
-// Alternatively, use the tests/phpunit/multisite.xml configuration file.
+/*
+ * Test with multisite enabled.
+ * Alternatively, use the tests/phpunit/multisite.xml configuration file.
+ */
 // define( 'WP_TESTS_MULTISITE', true );
 
-// Force known bugs to be run.
-// Tests with an associated Trac ticket that is still open are normally skipped.
+/*
+ * Force known bugs to be run.
+ * Tests with an associated Trac ticket that is still open are normally skipped.
+ */
 // define( 'WP_TESTS_FORCE_KNOWN_BUGS', true );
 
 // Test with WordPress debug mode (default).
@@ -28,12 +32,14 @@ define( 'WP_DEBUG', true );
 
 // ** MySQL settings ** //
 
-// This configuration file will be used by the copy of WordPress being tested.
-// wordpress/wp-config.php will be ignored.
-
-// WARNING WARNING WARNING!
-// These tests will DROP ALL TABLES in the database with the prefix named below.
-// DO NOT use a production database or one that is shared with something else.
+/*
+ * This configuration file will be used by the copy of WordPress being tested.
+ * wordpress/wp-config.php will be ignored.
+ *
+ * WARNING WARNING WARNING!
+ * These tests will DROP ALL TABLES in the database with the prefix named below.
+ * DO NOT use a production database or one that is shared with something else.
+ */
 
 define( 'DB_NAME', 'youremptytestdbnamehere' );
 define( 'DB_USER', 'yourusernamehere' );

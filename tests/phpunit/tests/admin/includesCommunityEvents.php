@@ -34,7 +34,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	public function setUp() {
 		parent::setUp();
 
-		require_once( ABSPATH . 'wp-admin/includes/class-wp-community-events.php' );
+		require_once ABSPATH . 'wp-admin/includes/class-wp-community-events.php';
 
 		$this->instance = new WP_Community_Events( 1, $this->get_user_location() );
 	}

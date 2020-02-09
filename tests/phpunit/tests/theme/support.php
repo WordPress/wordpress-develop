@@ -78,7 +78,7 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 		// array of arguments, with the key of 'types' holding the post types.
 		add_theme_support( 'post-thumbnails', array( 'types' => true ) );
 		$this->assertTrue( current_theme_supports( 'post-thumbnails' ) );
-		$this->assertTrue( current_theme_supports( 'post-thumbnails', rand_str() ) ); // any type
+		$this->assertTrue( current_theme_supports( 'post-thumbnails', rand_str() ) ); // Any type.
 		remove_theme_support( 'post-thumbnails' );
 		$this->assertFalse( current_theme_supports( 'post-thumbnails' ) );
 	}
@@ -167,7 +167,7 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	 * @ticket 26900
 	 */
 	function test_supports_menus() {
-		// Start fresh
+		// Start fresh.
 		foreach ( get_registered_nav_menus() as $location => $desc ) {
 			unregister_nav_menu( $location );
 		}

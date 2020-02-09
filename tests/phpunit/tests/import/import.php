@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname( __FILE__ ) . '/base.php';
+require_once __DIR__ . '/base.php';
 
 /**
  * @group import
@@ -26,7 +26,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		require_once DIR_TESTDATA . '/plugins/wordpress-importer/wordpress-importer.php';
 
 		global $wpdb;
-		// crude but effective: make sure there's no residual data in the main tables
+		// Crude but effective: make sure there's no residual data in the main tables.
 		foreach ( array( 'posts', 'postmeta', 'comments', 'terms', 'term_taxonomy', 'term_relationships', 'users', 'usermeta' ) as $table ) {
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$wpdb->query( "DELETE FROM {$wpdb->$table}" );
@@ -49,7 +49,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		);
 		$this->_import_wp( DIR_TESTDATA . '/export/small-export.xml', $authors );
 
-		// ensure that authors were imported correctly
+		// Ensure that authors were imported correctly.
 		$user_count = count_users();
 		$this->assertEquals( 3, $user_count['total_users'] );
 		$admin = get_user_by( 'login', 'admin' );
@@ -64,7 +64,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$this->assertEquals( 'author', $author->user_login );
 		$this->assertEquals( 'author@example.org', $author->user_email );
 
-		// check that terms were imported correctly
+		// Check that terms were imported correctly.
 		$this->assertEquals( 30, wp_count_terms( 'category' ) );
 		$this->assertEquals( 3, wp_count_terms( 'post_tag' ) );
 		$foo = get_term_by( 'slug', 'foo', 'category' );
@@ -73,7 +73,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$foo_bar = get_term_by( 'slug', 'foo-bar', 'category' );
 		$this->assertEquals( $bar->term_id, $foo_bar->parent );
 
-		// check that posts/pages were imported correctly
+		// Check that posts/pages were imported correctly.
 		$post_count = wp_count_posts( 'post' );
 		$this->assertEquals( 5, $post_count->publish );
 		$this->assertEquals( 1, $post_count->private );
@@ -250,7 +250,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 
 	function test_ordering_of_importers() {
 		global $wp_importers;
-		$_wp_importers = $wp_importers; // Preserve global state
+		$_wp_importers = $wp_importers; // Preserve global state.
 		$wp_importers  = array(
 			'xyz1' => array( 'xyz1' ),
 			'XYZ2' => array( 'XYZ2' ),
@@ -268,7 +268,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 			),
 			get_importers()
 		);
-		$wp_importers = $_wp_importers; // Restore global state
+		$wp_importers = $_wp_importers; // Restore global state.
 	}
 
 	/**
@@ -294,6 +294,4 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		);
 		$this->assertSame( 'Slashes aren\\\'t \"cool\"', $posts[0]->post_content );
 	}
-
-	// function test_menu_import
 }

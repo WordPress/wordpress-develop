@@ -41,7 +41,7 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getPost( array( 1, 'author', 'author', $this->post_id, $fields ) );
 		$this->assertNotIXRError( $result );
 
-		// Check data types
+		// Check data types.
 		$this->assertInternalType( 'string', $result['post_id'] );
 		$this->assertInternalType( 'string', $result['post_title'] );
 		$this->assertInstanceOf( 'IXR_Date', $result['post_date'] );
@@ -63,7 +63,7 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertInternalType( 'array', $result['post_thumbnail'] );
 		$this->assertInternalType( 'array', $result['custom_fields'] );
 
-		// Check expected values
+		// Check expected values.
 		$this->assertStringMatchesFormat( '%d', $result['post_id'] );
 		$this->assertEquals( $this->post_data['post_title'], $result['post_title'] );
 		$this->assertEquals( 'draft', $result['post_status'] );
@@ -84,7 +84,7 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getPost( array( 1, 'author', 'author', $this->post_id, $fields ) );
 		$this->assertNotIXRError( $result );
 
-		// when no fields are requested, only the IDs should be returned
+		// When no fields are requested, only the IDs should be returned.
 		$this->assertEquals( 1, count( $result ) );
 		$this->assertEquals( array( 'post_id' ), array_keys( $result ) );
 	}
@@ -94,7 +94,7 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $result );
 
 		$this->assertArrayHasKey( 'post_id', $result );
-		$this->assertArrayHasKey( 'link', $result ); // random field from 'posts' group
+		$this->assertArrayHasKey( 'link', $result ); // Random field from 'posts' group.
 		$this->assertArrayHasKey( 'terms', $result );
 		$this->assertArrayHasKey( 'custom_fields', $result );
 	}

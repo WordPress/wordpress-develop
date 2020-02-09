@@ -38,7 +38,7 @@ class Tests_Targeted_Link_Rel extends WP_UnitTestCase {
 
 	public function test_rel_with_single_quote_delimiter() {
 		$content  = '<p>Links: <a href="/" rel=\'existing values\' target="_blank">Existing rel</a></p>';
-		$expected = '<p>Links: <a href="/" rel=\'existing values noopener noreferrer\' target="_blank">Existing rel</a></p>';
+		$expected = '<p>Links: <a href="/" rel="existing values noopener noreferrer" target="_blank">Existing rel</a></p>';
 		$this->assertEquals( $expected, wp_targeted_link_rel( $content ) );
 	}
 
@@ -51,12 +51,6 @@ class Tests_Targeted_Link_Rel extends WP_UnitTestCase {
 	public function test_rel_value_spaced_and_no_delimiter() {
 		$content  = '<p>Links: <a href="/" rel = existing target="_blank">Existing rel</a></p>';
 		$expected = '<p>Links: <a href="/" rel="existing noopener noreferrer" target="_blank">Existing rel</a></p>';
-		$this->assertEquals( $expected, wp_targeted_link_rel( $content ) );
-	}
-
-	public function test_rel_value_spaced_and_no_delimiter_and_values_to_escape() {
-		$content  = '<p>Links: <a href="/" rel = existing"value target="_blank">Existing rel</a></p>';
-		$expected = '<p>Links: <a href="/" rel="existing&quot;value noopener noreferrer" target="_blank">Existing rel</a></p>';
 		$this->assertEquals( $expected, wp_targeted_link_rel( $content ) );
 	}
 
@@ -75,7 +69,7 @@ class Tests_Targeted_Link_Rel extends WP_UnitTestCase {
 	/**
 	 * Ensure empty rel attributes are not added.
 	 *
-	 * @ticket 45352.
+	 * @ticket 45352
 	 */
 	public function test_ignore_if_wp_targeted_link_rel_nulled() {
 		add_filter( 'wp_targeted_link_rel', '__return_empty_string' );
@@ -87,7 +81,7 @@ class Tests_Targeted_Link_Rel extends WP_UnitTestCase {
 	/**
 	 * Ensure default content filters are added.
 	 *
-	 * @ticket 45292.
+	 * @ticket 45292
 	 */
 	public function test_wp_targeted_link_rel_filters_run() {
 		$content  = '<p>Links: <a href="/" target="_blank">No rel</a></p>';
@@ -114,17 +108,13 @@ class Tests_Targeted_Link_Rel extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure correct quotes are used when relation attribute (rel) is missing.
+	 * Ensure the content of style and script tags are not processed
 	 *
 	 * @ticket 47244
 	 */
-	public function test_wp_targeted_link_rel_should_use_correct_quotes() {
-		$content  = '<p>Links: <a href=\'\/\' target=\'_blank\'>No rel<\/a><\/p>';
-		$expected = '<p>Links: <a href=\'\/\' target=\'_blank\' rel=\'noopener noreferrer\'>No rel<\/a><\/p>';
-		$this->assertEquals( $expected, wp_targeted_link_rel( $content ) );
-
-		$content  = '<p>Links: <a href=\'\/\' target=_blank>No rel<\/a><\/p>';
-		$expected = '<p>Links: <a href=\'\/\' target=_blank rel=\'noopener noreferrer\'>No rel<\/a><\/p>';
+	public function test_wp_targeted_link_rel_skips_style_and_scripts() {
+		$content  = '<style><a href="/" target=a></style><p>Links: <script>console.log("<a href=\'/\' target=a>hi</a>");</script><script>alert(1);</script>here <a href="/" target=_blank>aq</a></p><script>console.log("<a href=\'last\' target=\'_blank\'")</script>';
+		$expected = '<style><a href="/" target=a></style><p>Links: <script>console.log("<a href=\'/\' target=a>hi</a>");</script><script>alert(1);</script>here <a href="/" target="_blank" rel="noopener noreferrer">aq</a></p><script>console.log("<a href=\'last\' target=\'_blank\'")</script>';
 		$this->assertEquals( $expected, wp_targeted_link_rel( $content ) );
 	}
 
@@ -136,6 +126,12 @@ class Tests_Targeted_Link_Rel extends WP_UnitTestCase {
 	public function test_ignore_entirely_serialized_content() {
 		$content  = 'a:1:{s:4:"html";s:52:"<p>Links: <a href="/" target="_blank">No Rel</a></p>";}';
 		$expected = 'a:1:{s:4:"html";s:52:"<p>Links: <a href="/" target="_blank">No Rel</a></p>";}';
+		$this->assertEquals( $expected, wp_targeted_link_rel( $content ) );
+	}
+
+	public function test_wp_targeted_link_rel_tab_separated_values_are_split() {
+		$content  = "<p>Links: <a href=\"/\" target=\"_blank\" rel=\"ugc\t\tnoopener\t\">No rel</a></p>";
+		$expected = '<p>Links: <a href="/" target="_blank" rel="ugc noopener noreferrer">No rel</a></p>';
 		$this->assertEquals( $expected, wp_targeted_link_rel( $content ) );
 	}
 

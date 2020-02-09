@@ -38,7 +38,7 @@ class Tests_XMLRPC_wp_getRevisions extends WP_XMLRPC_UnitTestCase {
 				'ID'           => $post_id,
 				'post_content' => 'Edit 1',
 			)
-		); // Create the initial revision
+		); // Create the initial revision.
 
 		$result = $this->myxmlrpcserver->wp_getRevisions( array( 1, 'editor', 'editor', $post_id ) );
 		$this->assertInternalType( 'array', $result );

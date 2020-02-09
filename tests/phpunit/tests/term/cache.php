@@ -14,14 +14,14 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	 * @ticket 25711
 	 */
 	function test_category_children_cache() {
-		// Test with only one Parent => Child
+		// Test with only one Parent => Child.
 		$term_id1       = self::factory()->category->create();
 		$term_id1_child = self::factory()->category->create( array( 'parent' => $term_id1 ) );
 		$hierarchy      = _get_term_hierarchy( 'category' );
 
 		$this->assertEquals( array( $term_id1 => array( $term_id1_child ) ), $hierarchy );
 
-		// Add another Parent => Child
+		// Add another Parent => Child.
 		$term_id2       = self::factory()->category->create();
 		$term_id2_child = self::factory()->category->create( array( 'parent' => $term_id2 ) );
 		$hierarchy      = _get_term_hierarchy( 'category' );

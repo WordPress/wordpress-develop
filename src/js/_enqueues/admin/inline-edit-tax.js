@@ -29,7 +29,7 @@ window.inlineEditTax = {
 	 *
 	 * @this inlineEditTax
 	 * @memberof inlineEditTax
-	 * @returns {void}
+	 * @return {void}
 	 */
 	init : function() {
 		var t = this, row = $('#inline-edit');
@@ -43,12 +43,12 @@ window.inlineEditTax = {
 		});
 
 		/**
-		 * Cancels inline editing when pressing escape inside the inline editor.
+		 * Cancels inline editing when pressing Escape inside the inline editor.
 		 *
 		 * @param {Object} e The keyup event that has been triggered.
 		 */
 		row.keyup( function( e ) {
-			// 27 = [escape]
+			// 27 = [Escape].
 			if ( e.which === 27 ) {
 				return inlineEditTax.revert();
 			}
@@ -69,10 +69,10 @@ window.inlineEditTax = {
 		});
 
 		/**
-		 * Saves the inline edits when pressing enter inside the inline editor.
+		 * Saves the inline edits when pressing Enter inside the inline editor.
 		 */
 		$( 'input, select', row ).keydown( function( e ) {
-			// 13 = [enter]
+			// 13 = [Enter].
 			if ( e.which === 13 ) {
 				return inlineEditTax.save( this );
 			}
@@ -96,7 +96,7 @@ window.inlineEditTax = {
 	 *
 	 * @param {HTMLElement} el An element within the table row or the table row
 	 *                         itself that we want to quick edit.
-	 * @returns {void}
+	 * @return {void}
 	 */
 	toggle : function(el) {
 		var t = this;
@@ -115,7 +115,7 @@ window.inlineEditTax = {
 	 * @param {string|HTMLElement} id The ID of the term we want to quick edit or an
 	 *                                element within the table row or the
 	 * table row itself.
-	 * @returns {boolean} Always returns false.
+	 * @return {boolean} Always returns false.
 	 */
 	edit : function(id) {
 		var editRow, rowData, val,
@@ -162,7 +162,7 @@ window.inlineEditTax = {
 	 * @param {string|HTMLElement} id The ID of the term we want to quick edit or an
 	 *                                element within the table row or the
 	 * table row itself.
-	 * @returns {boolean} Always returns false.
+	 * @return {boolean} Always returns false.
 	 */
 	save : function(id) {
 		var params, fields, tax = $('input[name="taxonomy"]').val() || '';
@@ -184,7 +184,7 @@ window.inlineEditTax = {
 		fields = $('#edit-'+id).find(':input').serialize();
 		params = fields + '&' + $.param(params);
 
-		// Do the ajax request to save the data to the server.
+		// Do the Ajax request to save the data to the server.
 		$.post( ajaxurl, params,
 			/**
 			 * Handles the response from the server
@@ -255,7 +255,7 @@ window.inlineEditTax = {
 	 *
 	 * @this inlineEditTax
 	 * @memberof inlineEditTax
-	 * @returns {void}
+	 * @return {void}
 	 */
 	revert : function() {
 		var id = $('table.widefat tr.inline-editor').attr('id');
@@ -280,7 +280,7 @@ window.inlineEditTax = {
 	 * @memberof inlineEditTax
 	 *
 	 * @param {HTMLElement} o An element within the table row or the table row itself.
-	 * @returns {string} The ID of the term based on the element.
+	 * @return {string} The ID of the term based on the element.
 	 */
 	getId : function(o) {
 		var id = o.tagName === 'TR' ? o.id : $(o).parents('tr').attr('id'), parts = id.split('-');

@@ -11,7 +11,7 @@ class Tests_Formatting_JSEscape extends WP_UnitTestCase {
 
 	function test_js_escape_quotes() {
 		$out = esc_js( 'foo "bar" \'baz\'' );
-		// does it make any sense to change " into &quot;?  Why not \"?
+		// Does it make any sense to change " into &quot;?  Why not \"?
 		$this->assertEquals( "foo &quot;bar&quot; \'baz\'", $out );
 	}
 
@@ -34,13 +34,13 @@ class Tests_Formatting_JSEscape extends WP_UnitTestCase {
 
 	function test_js_no_carriage_return() {
 		$out = esc_js( "foo\rbar\nbaz\r" );
-		// \r is stripped
+		// \r is stripped.
 		$this->assertequals( "foobar\\nbaz", $out );
 	}
 
 	function test_js_escape_rn() {
 		$out = esc_js( "foo\r\nbar\nbaz\r\n" );
-		// \r is stripped
+		// \r is stripped.
 		$this->assertequals( "foo\\nbar\\nbaz\\n", $out );
 	}
 }

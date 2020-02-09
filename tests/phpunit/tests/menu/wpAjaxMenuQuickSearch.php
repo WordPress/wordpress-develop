@@ -36,7 +36,7 @@ class Tests_Menu_WpAjaxMenuQuickSeach extends WP_UnitTestCase {
 	 * @ticket 27042
 	 */
 	public function test_search_returns_results_for_pages() {
-		include_once ABSPATH . 'wp-admin/includes/nav-menu.php';
+		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
 
 		self::factory()->post->create_many(
 			3,

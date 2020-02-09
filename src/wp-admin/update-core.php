@@ -7,7 +7,7 @@
  */
 
 /** WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 wp_enqueue_style( 'plugin-install' );
 wp_enqueue_script( 'plugin-install' );
@@ -24,6 +24,10 @@ if ( ! current_user_can( 'update_core' ) && ! current_user_can( 'update_themes' 
 }
 
 /**
+ * Lists available core updates.
+ *
+ * @since 2.7.0
+ *
  * @global string $wp_local_package
  * @global wpdb   $wpdb             WordPress database abstraction object.
  *
@@ -38,9 +42,9 @@ function list_core_update( $update ) {
 	$wp_version     = get_bloginfo( 'version' );
 	$version_string = sprintf( '%s&ndash;<strong>%s</strong>', $update->current, $update->locale );
 
-	if ( 'en_US' == $update->locale && 'en_US' == get_locale() ) {
+	if ( 'en_US' === $update->locale && 'en_US' === get_locale() ) {
 		$version_string = $update->current;
-	} elseif ( 'en_US' == $update->locale && $update->packages->partial && $wp_version == $update->partial_version ) {
+	} elseif ( 'en_US' === $update->locale && $update->packages->partial && $wp_version == $update->partial_version ) {
 		$updates = get_core_updates();
 		if ( $updates && 1 == count( $updates ) ) {
 			// If the only available update is a partial builds, it doesn't need a language-specific version string.
@@ -49,7 +53,7 @@ function list_core_update( $update ) {
 	}
 
 	$current = false;
-	if ( ! isset( $update->response ) || 'latest' == $update->response ) {
+	if ( ! isset( $update->response ) || 'latest' === $update->response ) {
 		$current = true;
 	}
 	$submit        = __( 'Update Now' );
@@ -57,7 +61,7 @@ function list_core_update( $update ) {
 	$php_version   = phpversion();
 	$mysql_version = $wpdb->db_version();
 	$show_buttons  = true;
-	if ( 'development' == $update->response ) {
+	if ( 'development' === $update->response ) {
 		$message = __( 'You are using a development version of WordPress. You can update to the latest nightly build automatically:' );
 	} else {
 		if ( $current ) {
@@ -149,7 +153,7 @@ function list_core_update( $update ) {
 			submit_button( $submit, '', 'upgrade', false );
 		}
 	}
-	if ( 'en_US' != $update->locale ) {
+	if ( 'en_US' !== $update->locale ) {
 		if ( ! isset( $update->dismissed ) || ! $update->dismissed ) {
 			submit_button( __( 'Hide this update' ), '', 'dismiss', false );
 		} else {
@@ -157,14 +161,14 @@ function list_core_update( $update ) {
 		}
 	}
 	echo '</p>';
-	if ( 'en_US' != $update->locale && ( ! isset( $wp_local_package ) || $wp_local_package != $update->locale ) ) {
-		echo '<p class="hint">' . __( 'This localized version contains both the translation and various other localization fixes. You can skip upgrading if you want to keep your current translation.' ) . '</p>';
-	} elseif ( 'en_US' == $update->locale && get_locale() != 'en_US' && ( ! $update->packages->partial && $wp_version == $update->partial_version ) ) {
+	if ( 'en_US' !== $update->locale && ( ! isset( $wp_local_package ) || $wp_local_package != $update->locale ) ) {
+		echo '<p class="hint">' . __( 'This localized version contains both the translation and various other localization fixes.' ) . '</p>';
+	} elseif ( 'en_US' === $update->locale && 'en_US' !== get_locale() && ( ! $update->packages->partial && $wp_version == $update->partial_version ) ) {
 		// Partial builds don't need language-specific warnings.
 		echo '<p class="hint">' . sprintf(
 			/* translators: %s: WordPress version. */
 			__( 'You are about to install WordPress %s <strong>in English (US).</strong> There is a chance this update will break your translation. You may prefer to wait for the localized version to be released.' ),
-			$update->response != 'development' ? $update->current : ''
+			'development' !== $update->response ? $update->current : ''
 		) . '</p>';
 	}
 	echo '</form>';
@@ -221,7 +225,7 @@ function core_upgrade_preamble() {
 	$wp_version = get_bloginfo( 'version' );
 	$updates    = get_core_updates();
 
-	if ( ! isset( $updates[0]->response ) || 'latest' == $updates[0]->response ) {
+	if ( ! isset( $updates[0]->response ) || 'latest' === $updates[0]->response ) {
 		echo '<h2>';
 		_e( 'You have the latest version of WordPress.' );
 
@@ -252,7 +256,7 @@ function core_upgrade_preamble() {
 		echo '</h2>';
 	}
 
-	if ( isset( $updates[0] ) && $updates[0]->response == 'development' ) {
+	if ( isset( $updates[0] ) && 'development' === $updates[0]->response ) {
 		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 		$upgrader = new WP_Automatic_Updater;
 		if ( wp_http_supports( 'ssl' ) && $upgrader->should_update( 'core', $updates[0], ABSPATH ) ) {
@@ -270,7 +274,7 @@ function core_upgrade_preamble() {
 	}
 	echo '</ul>';
 	// Don't show the maintenance mode notice when we are only showing a single re-install option.
-	if ( $updates && ( count( $updates ) > 1 || $updates[0]->response != 'latest' ) ) {
+	if ( $updates && ( count( $updates ) > 1 || 'latest' !== $updates[0]->response ) ) {
 		echo '<p>' . __( 'While your site is being updated, it will be in maintenance mode. As soon as your updates are complete, your site will return to normal.' ) . '</p>';
 	} elseif ( ! $updates ) {
 		list( $normalized_version ) = explode( '-', $wp_version );
@@ -293,7 +297,7 @@ function list_plugin_updates() {
 	$wp_version     = get_bloginfo( 'version' );
 	$cur_wp_version = preg_replace( '/-.*$/', '', $wp_version );
 
-	require_once( ABSPATH . 'wp-admin/includes/plugin-install.php' );
+	require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 	$plugins = get_plugin_updates();
 	if ( empty( $plugins ) ) {
 		echo '<h2>' . __( 'Plugins' ) . '</h2>';
@@ -303,7 +307,7 @@ function list_plugin_updates() {
 	$form_action = 'update-core.php?action=do-plugin-upgrade';
 
 	$core_updates = get_core_updates();
-	if ( ! isset( $core_updates[0]->response ) || 'latest' == $core_updates[0]->response || 'development' == $core_updates[0]->response || version_compare( $core_updates[0]->current, $cur_wp_version, '=' ) ) {
+	if ( ! isset( $core_updates[0]->response ) || 'latest' === $core_updates[0]->response || 'development' === $core_updates[0]->response || version_compare( $core_updates[0]->current, $cur_wp_version, '=' ) ) {
 		$core_update_version = false;
 	} else {
 		$core_update_version = $core_updates[0]->current;
@@ -525,7 +529,7 @@ function list_theme_updates() {
 function list_translation_updates() {
 	$updates = wp_get_translation_updates();
 	if ( ! $updates ) {
-		if ( 'en_US' != get_locale() ) {
+		if ( 'en_US' !== get_locale() ) {
 			echo '<h2>' . __( 'Translations' ) . '</h2>';
 			echo '<p>' . __( 'Your translations are all up to date.' ) . '</p>';
 		}
@@ -555,7 +559,7 @@ function list_translation_updates() {
 function do_core_upgrade( $reinstall = false ) {
 	global $wp_filesystem;
 
-	include_once( ABSPATH . 'wp-admin/includes/class-wp-upgrader.php' );
+	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
 	if ( $reinstall ) {
 		$url = 'update-core.php?action=do-core-reinstall';
@@ -587,7 +591,7 @@ function do_core_upgrade( $reinstall = false ) {
 	}
 
 	if ( ! WP_Filesystem( $credentials, ABSPATH, $allow_relaxed_file_ownership ) ) {
-		// Failed to connect, Error and request again
+		// Failed to connect. Error and request again.
 		request_filesystem_credentials( $url, '', true, ABSPATH, array( 'version', 'locale' ), $allow_relaxed_file_ownership );
 		echo '</div>';
 		return;
@@ -688,7 +692,7 @@ $action = isset( $_GET['action'] ) ? $_GET['action'] : 'upgrade-core';
 $upgrade_error = false;
 if ( ( 'do-theme-upgrade' == $action || ( 'do-plugin-upgrade' == $action && ! isset( $_GET['plugins'] ) ) )
 	&& ! isset( $_POST['checked'] ) ) {
-	$upgrade_error = $action == 'do-theme-upgrade' ? 'themes' : 'plugins';
+	$upgrade_error = 'do-theme-upgrade' == $action ? 'themes' : 'plugins';
 	$action        = 'upgrade-core';
 }
 
@@ -709,7 +713,7 @@ get_current_screen()->add_help_tab(
 $updates_howto  = '<p>' . __( '<strong>WordPress</strong> &mdash; Updating your WordPress installation is a simple one-click procedure: just <strong>click on the &#8220;Update Now&#8221; button</strong> when you are notified that a new version is available.' ) . ' ' . __( 'In most cases, WordPress will automatically apply maintenance and security updates in the background for you.' ) . '</p>';
 $updates_howto .= '<p>' . __( '<strong>Themes and Plugins</strong> &mdash; To update individual themes or plugins from this screen, use the checkboxes to make your selection, then <strong>click on the appropriate &#8220;Update&#8221; button</strong>. To update all of your themes or plugins at once, you can check the box at the top of the section to select all before clicking the update button.' ) . '</p>';
 
-if ( 'en_US' != get_locale() ) {
+if ( 'en_US' !== get_locale() ) {
 	$updates_howto .= '<p>' . __( '<strong>Translations</strong> &mdash; The files translating WordPress into your language are updated for you whenever any other updates occur. But if these files are out of date, you can <strong>click the &#8220;Update Translations&#8221;</strong> button.' ) . '</p>';
 }
 
@@ -728,18 +732,18 @@ get_current_screen()->set_help_sidebar(
 );
 
 if ( 'upgrade-core' == $action ) {
-	// Force a update check when requested
+	// Force a update check when requested.
 	$force_check = ! empty( $_GET['force-check'] );
 	wp_version_check( array(), $force_check );
 
-	require_once( ABSPATH . 'wp-admin/admin-header.php' );
+	require_once ABSPATH . 'wp-admin/admin-header.php';
 	?>
 	<div class="wrap">
 	<h1><?php _e( 'WordPress Updates' ); ?></h1>
 	<?php
 	if ( $upgrade_error ) {
 		echo '<div class="error"><p>';
-		if ( $upgrade_error == 'themes' ) {
+		if ( 'themes' === $upgrade_error ) {
 			_e( 'Please select one or more themes to update.' );
 		} else {
 			_e( 'Please select one or more plugins to update.' );
@@ -789,7 +793,7 @@ if ( 'upgrade-core' == $action ) {
 		)
 	);
 
-	include( ABSPATH . 'wp-admin/admin-footer.php' );
+	require_once ABSPATH . 'wp-admin/admin-footer.php';
 
 } elseif ( 'do-core-upgrade' == $action || 'do-core-reinstall' == $action ) {
 
@@ -806,7 +810,7 @@ if ( 'upgrade-core' == $action ) {
 		do_undismiss_core_update();
 	}
 
-	require_once( ABSPATH . 'wp-admin/admin-header.php' );
+	require_once ABSPATH . 'wp-admin/admin-header.php';
 	if ( 'do-core-reinstall' == $action ) {
 		$reinstall = true;
 	} else {
@@ -825,7 +829,7 @@ if ( 'upgrade-core' == $action ) {
 		)
 	);
 
-	include( ABSPATH . 'wp-admin/admin-footer.php' );
+	require_once ABSPATH . 'wp-admin/admin-footer.php';
 
 } elseif ( 'do-plugin-upgrade' == $action ) {
 
@@ -849,7 +853,7 @@ if ( 'upgrade-core' == $action ) {
 
 	$title = __( 'Update Plugins' );
 
-	require_once( ABSPATH . 'wp-admin/admin-header.php' );
+	require_once ABSPATH . 'wp-admin/admin-header.php';
 	echo '<div class="wrap">';
 	echo '<h1>' . __( 'Update Plugins' ) . '</h1>';
 	echo '<iframe src="', $url, '" style="width: 100%; height: 100%; min-height: 750px;" frameborder="0" title="' . esc_attr__( 'Update progress' ) . '"></iframe>';
@@ -863,7 +867,7 @@ if ( 'upgrade-core' == $action ) {
 		)
 	);
 
-	include( ABSPATH . 'wp-admin/admin-footer.php' );
+	require_once ABSPATH . 'wp-admin/admin-footer.php';
 
 } elseif ( 'do-theme-upgrade' == $action ) {
 
@@ -887,7 +891,7 @@ if ( 'upgrade-core' == $action ) {
 
 	$title = __( 'Update Themes' );
 
-	require_once( ABSPATH . 'wp-admin/admin-header.php' );
+	require_once ABSPATH . 'wp-admin/admin-header.php';
 	?>
 	<div class="wrap">
 		<h1><?php _e( 'Update Themes' ); ?></h1>
@@ -903,7 +907,7 @@ if ( 'upgrade-core' == $action ) {
 		)
 	);
 
-	include( ABSPATH . 'wp-admin/admin-footer.php' );
+	require_once ABSPATH . 'wp-admin/admin-footer.php';
 
 } elseif ( 'do-translation-upgrade' == $action ) {
 
@@ -913,8 +917,8 @@ if ( 'upgrade-core' == $action ) {
 
 	check_admin_referer( 'upgrade-translations' );
 
-	require_once( ABSPATH . 'wp-admin/admin-header.php' );
-	include_once( ABSPATH . 'wp-admin/includes/class-wp-upgrader.php' );
+	require_once ABSPATH . 'wp-admin/admin-header.php';
+	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
 	$url     = 'update-core.php?action=do-translation-upgrade';
 	$nonce   = 'upgrade-translations';
@@ -932,7 +936,7 @@ if ( 'upgrade-core' == $action ) {
 		)
 	);
 
-	require_once( ABSPATH . 'wp-admin/admin-footer.php' );
+	require_once ABSPATH . 'wp-admin/admin-footer.php';
 
 } else {
 	/**

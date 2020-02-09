@@ -1,10 +1,10 @@
-/* global twentyTwentyBgColors, twentyTwentyColor, Color, jQuery, wp, _ */
+/* global twentyTwentyBgColors, twentyTwentyColor, jQuery, wp, _ */
 /**
  * Customizer enhancements for a better user experience.
  *
  * Contains extra logic for our Customizer controls & settings.
  *
- * @since 1.0.0
+ * @since Twenty Twenty 1.0
  */
 
 ( function() {
@@ -40,7 +40,7 @@
 	/**
 	 * Updates the value of the "accent_accessible_colors" setting.
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty 1.0
 	 *
 	 * @param {string} context The area for which we want to get colors. Can be for example "content", "header" etc.
 	 * @param {string} backgroundColor The background color (HEX value).
@@ -74,11 +74,11 @@
 				.toCSS();
 
 			// Get secondary color.
-			value[ context ].secondary = Color( {
-				h: colors.bgColorObj.h(),
-				s: colors.bgColorObj.s() / 2,
-				l: ( colors.textColorObj.l() * 0.57 ) + ( colors.bgColorObj.l() * 0.43 )
-			} ).toCSS();
+			value[ context ].secondary = colors.bgColorObj
+				.clone()
+				.getReadableContrastingColor( colors.bgColorObj )
+				.s( colors.bgColorObj.s() / 2 )
+				.toCSS();
 		}
 
 		// Change the value.

@@ -134,12 +134,12 @@ if ( is_multisite() ) :
 
 			$site = get_site( $id );
 
-			// Trigger retrieving site details (post_count is not set on new sites)
+			// Trigger retrieving site details (post_count is not set on new sites).
 			$post_count = $site->post_count;
 
 			$cached_details = wp_cache_get( $site->id, 'site-details' );
 
-			wpmu_delete_blog( $id, true );
+			wp_delete_site( $id );
 			wp_update_network_site_counts();
 
 			$this->assertNotFalse( $cached_details );

@@ -1563,7 +1563,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 	 * @ticket 16829
 	 */
 	public function test_meta_default_compare() {
-		// compare should default to IN when meta_value is an array
+		// Compare should default to IN when meta_value is an array.
 		$post_id = self::factory()->post->create();
 		add_post_meta( $post_id, 'foo', 'bar' );
 		$post_id2 = self::factory()->post->create();

@@ -22,11 +22,11 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param string $output Passed by reference.
-	 * @param int    $depth  Depth of menu item. Used for padding.
-	 * @param array  $args   Not used.
+	 * @param string   $output Passed by reference.
+	 * @param int      $depth  Depth of menu item. Used for padding.
+	 * @param stdClass $args   Not used.
 	 */
-	public function start_lvl( &$output, $depth = 0, $args = array() ) {}
+	public function start_lvl( &$output, $depth = 0, $args = null ) {}
 
 	/**
 	 * Ends the list of after the elements are added.
@@ -35,11 +35,11 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param string $output Passed by reference.
-	 * @param int    $depth  Depth of menu item. Used for padding.
-	 * @param array  $args   Not used.
+	 * @param string   $output Passed by reference.
+	 * @param int      $depth  Depth of menu item. Used for padding.
+	 * @param stdClass $args   Not used.
 	 */
-	public function end_lvl( &$output, $depth = 0, $args = array() ) {}
+	public function end_lvl( &$output, $depth = 0, $args = null ) {}
 
 	/**
 	 * Start the element output.
@@ -49,13 +49,13 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 	 *
 	 * @global int $_wp_nav_menu_max_depth
 	 *
-	 * @param string $output Used to append additional content (passed by reference).
-	 * @param object $item   Menu item data object.
-	 * @param int    $depth  Depth of menu item. Used for padding.
-	 * @param array  $args   Not used.
-	 * @param int    $id     Not used.
+	 * @param string   $output Used to append additional content (passed by reference).
+	 * @param WP_Post  $item   Menu item data object.
+	 * @param int      $depth  Depth of menu item. Used for padding.
+	 * @param stdClass $args   Not used.
+	 * @param int      $id     Not used.
 	 */
-	public function start_el( &$output, $item, $depth = 0, $args = array(), $id = 0 ) {
+	public function start_el( &$output, $item, $depth = 0, $args = null, $id = 0 ) {
 		global $_wp_nav_menu_max_depth;
 		$_wp_nav_menu_max_depth = $depth > $_wp_nav_menu_max_depth ? $depth : $_wp_nav_menu_max_depth;
 
@@ -227,6 +227,21 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 					</label>
 				</p>
 
+				<?php
+				/**
+				 * Fires just before the move buttons of a nav menu item in the menu editor.
+				 *
+				 * @since 5.4.0
+				 *
+				 * @param int      $item_id Menu item ID.
+				 * @param WP_Post  $item    Menu item data object.
+				 * @param int      $depth   Depth of menu item. Used for padding.
+				 * @param stdClass $args    An object of menu item arguments.
+				 * @param int      $id      Nav menu ID.
+				 */
+				do_action( 'wp_nav_menu_item_custom_fields', $item_id, $item, $depth, $args, $id );
+				?>
+
 				<fieldset class="field-move hide-if-no-js description description-wide">
 					<span class="field-move-visual-label" aria-hidden="true"><?php _e( 'Move' ); ?></span>
 					<button type="button" class="button-link menus-move menus-move-up" data-dir="up"><?php _e( 'Up one' ); ?></button>
@@ -295,4 +310,4 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 		$output .= ob_get_clean();
 	}
 
-} // Walker_Nav_Menu_Edit
+}

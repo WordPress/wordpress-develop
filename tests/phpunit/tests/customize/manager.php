@@ -55,7 +55,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 */
 	function setUp() {
 		parent::setUp();
-		require_once( ABSPATH . WPINC . '/class-wp-customize-manager.php' );
+		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$this->manager   = $this->instantiate();
 		$this->undefined = new stdClass();
 
@@ -204,7 +204,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$wp_customize = new WP_Customize_Manager(
 			array(
 				'changeset_uuid' => false, // Cause UUID to be deferred.
-				'branching'      => true, // To cause no drafted changeset to be autoloaded.
+				'branching'      => true,  // To cause no drafted changeset to be autoloaded.
 			)
 		);
 		$this->assertNotContains( $wp_customize->changeset_uuid(), array( $uuid1, $uuid2 ) );
@@ -711,7 +711,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$this->assertEquals( 'sample-page-template.php', get_page_template_slug( $posts_by_name['about'] ) );
 		$this->assertEquals( '', get_page_template_slug( $posts_by_name['blog'] ) );
 		$this->assertEquals( $posts_by_name['waffles'], get_post_thumbnail_id( $posts_by_name['custom'] ) );
-		$this->assertEquals( '', get_post_thumbnail_id( $posts_by_name['blog'] ) );
+		$this->assertEquals( 0, get_post_thumbnail_id( $posts_by_name['blog'] ) );
 		$attachment_metadata = wp_get_attachment_metadata( $posts_by_name['waffles'] );
 		$this->assertEquals( 'Waffles', get_post( $posts_by_name['waffles'] )->post_title );
 		$this->assertEquals( 'waffles', get_post_meta( $posts_by_name['waffles'], '_customize_draft_post_name', true ) );
@@ -1252,7 +1252,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 *
 	 * @param array $data    Data.
 	 * @param array $context Context.
-	 * @returns array Data.
+	 * @return array Data.
 	 */
 	function filter_customize_changeset_save_data( $data, $context ) {
 		$this->customize_changeset_save_data_call_count += 1;
@@ -2830,6 +2830,14 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 46686
+	 */
+	function test_return_url_with_deactivated_theme() {
+		$this->manager->set_return_url( admin_url( 'themes.php?page=mytheme_documentation' ) );
+		$this->assertEquals( admin_url( 'themes.php' ), $this->manager->get_return_url() );
+	}
+
+	/**
 	 * Test get_autofocus()/set_autofocus() methods.
 	 *
 	 * @see WP_Customize_Manager::get_autofocus()
@@ -3443,12 +3451,12 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$video_url = 'https://www.youtube.com/watch?v=KiS8rZBeIO0';
 
 		$whitespaces = array(
-			' ',  // space
-			"\t", // horizontal tab
-			"\n", // line feed
-			"\r", // carriage return,
-			"\f", // form feed,
-			"\v", // vertical tab
+			' ',  // Space.
+			"\t", // Horizontal tab.
+			"\n", // Line feed.
+			"\r", // Carriage return.
+			"\f", // Form feed.
+			"\v", // Vertical tab.
 		);
 
 		foreach ( $whitespaces as $whitespace ) {

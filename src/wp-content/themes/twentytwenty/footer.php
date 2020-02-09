@@ -8,7 +8,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty
- * @since 1.0.0
+ * @since Twenty Twenty 1.0
  */
 
 ?>
@@ -21,12 +21,12 @@
 						<p class="footer-copyright">&copy;
 							<?php
 							echo date_i18n(
-								/* translators: Copyright date format, see https://secure.php.net/date */
+								/* translators: Copyright date format, see https://www.php.net/date */
 								_x( 'Y', 'copyright date format', 'twentytwenty' )
 							);
 							?>
-							<a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php echo bloginfo( 'name' ); ?></a>
-						</p>
+							<a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php bloginfo( 'name' ); ?></a>
+						</p><!-- .footer-copyright -->
 
 						<p class="powered-by-wordpress">
 							<a href="<?php echo esc_url( __( 'https://wordpress.org/', 'twentytwenty' ) ); ?>">
@@ -39,13 +39,13 @@
 					<a class="to-the-top" href="#site-header">
 						<span class="to-the-top-long">
 							<?php
-							/* translators: %s: HTML character for up arrow */
+							/* translators: %s: HTML character for up arrow. */
 							printf( __( 'To the top %s', 'twentytwenty' ), '<span class="arrow" aria-hidden="true">&uarr;</span>' );
 							?>
 						</span><!-- .to-the-top-long -->
 						<span class="to-the-top-short">
 							<?php
-							/* translators: %s: HTML character for up arrow */
+							/* translators: %s: HTML character for up arrow. */
 							printf( __( 'Up %s', 'twentytwenty' ), '<span class="arrow" aria-hidden="true">&uarr;</span>' );
 							?>
 						</span><!-- .to-the-top-short -->

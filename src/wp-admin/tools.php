@@ -9,17 +9,17 @@
 if ( isset( $_GET['page'] ) && ! empty( $_POST ) ) {
 	// Ensure POST-ing to `tools.php?page=export_personal_data` and `tools.php?page=remove_personal_data`
 	// continues to work after creating the new files for exporting and erasing of personal data.
-	if ( $_GET['page'] === 'export_personal_data' ) {
-		require_once( ABSPATH . 'wp-admin/export-personal-data.php' );
+	if ( 'export_personal_data' === $_GET['page'] ) {
+		require_once ABSPATH . 'wp-admin/export-personal-data.php';
 		return;
-	} elseif ( $_GET['page'] === 'remove_personal_data' ) {
-		require_once( ABSPATH . 'wp-admin/erase-personal-data.php' );
+	} elseif ( 'remove_personal_data' === $_GET['page'] ) {
+		require_once ABSPATH . 'wp-admin/erase-personal-data.php';
 		return;
 	}
 }
 
 /** WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 // The privacy policy guide used to be outputted from here. Since WP 5.3 it is in wp-admin/privacy-policy-guide.php.
 if ( isset( $_GET['wp-privacy-policy-guide'] ) ) {
@@ -27,10 +27,10 @@ if ( isset( $_GET['wp-privacy-policy-guide'] ) ) {
 	exit;
 } elseif ( isset( $_GET['page'] ) ) {
 	// These were also moved to files in WP 5.3.
-	if ( $_GET['page'] === 'export_personal_data' ) {
+	if ( 'export_personal_data' === $_GET['page'] ) {
 		wp_redirect( admin_url( 'export-personal-data.php' ), 301 );
 		exit;
-	} elseif ( $_GET['page'] === 'remove_personal_data' ) {
+	} elseif ( 'remove_personal_data' === $_GET['page'] ) {
 		wp_redirect( admin_url( 'erase-personal-data.php' ), 301 );
 		exit;
 	}
@@ -53,7 +53,7 @@ get_current_screen()->set_help_sidebar(
 	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
-require_once( ABSPATH . 'wp-admin/admin-header.php' );
+require_once ABSPATH . 'wp-admin/admin-header.php';
 
 ?>
 <div class="wrap">
@@ -70,7 +70,7 @@ if ( current_user_can( 'import' ) ) :
 			<p>
 			<?php
 				printf(
-					/* translators: URL to Import screen. */
+					/* translators: %s: URL to Import screen. */
 					__( 'If you want to convert your categories to tags (or vice versa), use the <a href="%s">Categories and Tags Converter</a> available from the Import screen.' ),
 					'import.php'
 				);
@@ -92,4 +92,4 @@ do_action( 'tool_box' );
 </div>
 <?php
 
-include( ABSPATH . 'wp-admin/admin-footer.php' );
+require_once ABSPATH . 'wp-admin/admin-footer.php';

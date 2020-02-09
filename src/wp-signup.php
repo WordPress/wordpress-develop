@@ -1,11 +1,11 @@
 <?php
 
 /** Sets up the WordPress Environment. */
-require( dirname( __FILE__ ) . '/wp-load.php' );
+require __DIR__ . '/wp-load.php';
 
 add_action( 'wp_head', 'wp_no_robots' );
 
-require( dirname( __FILE__ ) . '/wp-blog-header.php' );
+require __DIR__ . '/wp-blog-header.php';
 
 nocache_headers();
 
@@ -39,7 +39,7 @@ if ( ! is_main_site() ) {
 	die();
 }
 
-// Fix for page title
+// Fix for page title.
 $wp_query->is_404 = false;
 
 /**
@@ -86,7 +86,7 @@ get_header( 'wp-signup' );
 do_action( 'before_signup_form' );
 ?>
 <div id="signup-content" class="widecolumn">
-<div class="mu_register wp-signup-container">
+<div class="mu_register wp-signup-container" role="main">
 <?php
 /**
  * Generates and displays the Signup and Create Site forms
@@ -139,7 +139,7 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
 		);
 	}
 
-	// Blog Title
+	// Site Title.
 	?>
 	<label for="blog_title"><?php _e( 'Site Title:' ); ?></label>
 	<?php
@@ -189,7 +189,7 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
 
 		$blog_public_on_checked  = '';
 		$blog_public_off_checked = '';
-	if ( isset( $_POST['blog_public'] ) && '0' == $_POST['blog_public'] ) {
+	if ( isset( $_POST['blog_public'] ) && '0' === $_POST['blog_public'] ) {
 		$blog_public_off_checked = 'checked="checked"';
 	} else {
 		$blog_public_on_checked = 'checked="checked"';
@@ -198,7 +198,7 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
 
 	<div id="privacy">
 		<p class="privacy-intro">
-			<label for="blog_public_on"><?php _e( 'Privacy:' ); ?></label>
+			<?php _e( 'Privacy:' ); ?>
 			<?php _e( 'Allow search engines to index this site.' ); ?>
 			<br style="clear:both" />
 			<label class="checkbox" for="blog_public_on">
@@ -253,7 +253,7 @@ function show_user_form( $user_name = '', $user_email = '', $errors = '' ) {
 		$errors = new WP_Error();
 	}
 
-	// User name
+	// Username.
 	echo '<label for="user_name">' . __( 'Username:' ) . '</label>';
 	$errmsg = $errors->get_error_message( 'user_name' );
 	if ( $errmsg ) {
@@ -457,7 +457,7 @@ function validate_another_blog_signup() {
 	 *
 	 * @param array $blog_meta_defaults An array of default blog meta variables.
 	 */
-	$meta_defaults = apply_filters( 'signup_create_blog_meta', $blog_meta_defaults );
+	$meta_defaults = apply_filters_deprecated( 'signup_create_blog_meta', array( $blog_meta_defaults ), '3.0.0', 'add_signup_meta' );
 
 	/**
 	 * Filters the new default site meta variables.
@@ -641,7 +641,7 @@ function validate_user_signup() {
 		return false;
 	}
 
-	if ( 'blog' == $_POST['signup_for'] ) {
+	if ( 'blog' === $_POST['signup_for'] ) {
 		signup_blog( $user_name, $user_email );
 		return false;
 	}
@@ -887,7 +887,7 @@ function signup_get_available_languages() {
 	return array_intersect_assoc( $languages, get_available_languages() );
 }
 
-// Main
+// Main.
 $active_signup = get_site_option( 'registration', 'none' );
 
 /**

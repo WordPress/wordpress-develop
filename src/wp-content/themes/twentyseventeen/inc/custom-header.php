@@ -6,7 +6,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Seventeen
- * @since 1.0
+ * @since Twenty Seventeen 1.0
  */
 
 /**
@@ -115,7 +115,7 @@ if ( ! function_exists( 'twentyseventeen_header_style' ) ) :
 	</style>
 		<?php
 	}
-endif; // End of twentyseventeen_header_style.
+endif; // End of twentyseventeen_header_style().
 
 /**
  * Customize video play/pause button in the custom header.

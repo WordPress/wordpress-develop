@@ -10,9 +10,9 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	function data_assertEqualSets() {
 		return array(
 			array(
-				array( 1, 2, 3 ), // test expected
-				array( 1, 2, 3 ), // test actual
-				false,             // exception expected
+				array( 1, 2, 3 ), // Test expected.
+				array( 1, 2, 3 ), // Test actual.
+				false,            // Exception expected.
 			),
 			array(
 				array( 1, 2, 3 ),
@@ -71,9 +71,9 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	function data_assertEqualSetsWithIndex() {
 		return array(
 			array(
-				array( 1, 2, 3 ), // test expected
-				array( 1, 2, 3 ), // test actual
-				false,             // exception expected
+				array( 1, 2, 3 ), // Test expected.
+				array( 1, 2, 3 ), // Test actual.
+				false,            // Exception expected.
 			),
 			array(
 				array(

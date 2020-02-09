@@ -80,7 +80,7 @@ var Frame = wp.media.View.extend(/** @lends wp.media.view.Frame.prototype */{
 	/**
 	 * Reset all states on the frame to their defaults.
 	 *
-	 * @returns {wp.media.view.Frame} Returns itself to allow chaining
+	 * @return {wp.media.view.Frame} Returns itself to allow chaining.
 	 */
 	reset: function() {
 		this.states.invoke( 'trigger', 'reset' );
@@ -114,7 +114,7 @@ var Frame = wp.media.View.extend(/** @lends wp.media.view.Frame.prototype */{
 	 * Activate a mode on the frame.
 	 *
 	 * @param string mode Mode ID.
-	 * @returns {this} Returns itself to allow chaining.
+	 * @return {this} Returns itself to allow chaining.
 	 */
 	activateMode: function( mode ) {
 		// Bail if the mode is already active.
@@ -131,7 +131,7 @@ var Frame = wp.media.View.extend(/** @lends wp.media.view.Frame.prototype */{
 	 * Deactivate a mode on the frame.
 	 *
 	 * @param string mode Mode ID.
-	 * @returns {this} Returns itself to allow chaining.
+	 * @return {this} Returns itself to allow chaining.
 	 */
 	deactivateMode: function( mode ) {
 		// Bail if the mode isn't active.

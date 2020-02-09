@@ -8,7 +8,7 @@
 class Tests_Basic extends WP_UnitTestCase {
 
 	function test_license() {
-		// This test is designed to only run on trunk/master
+		// This test is designed to only run on trunk/master.
 		$this->skipOnAutomatedBranches();
 
 		$license = file_get_contents( ABSPATH . 'license.txt' );
@@ -21,7 +21,7 @@ class Tests_Basic extends WP_UnitTestCase {
 		$package_json    = file_get_contents( dirname( ABSPATH ) . '/package.json' );
 		$package_json    = json_decode( $package_json, true );
 		list( $version ) = explode( '-', $GLOBALS['wp_version'] );
-		// package.json uses x.y.z, so fill cleaned $wp_version for .0 releases
+		// package.json uses x.y.z, so fill cleaned $wp_version for .0 releases.
 		if ( 1 === substr_count( $version, '.' ) ) {
 			$version .= '.0';
 		}
@@ -39,7 +39,7 @@ class Tests_Basic extends WP_UnitTestCase {
 		$this->assertRegExp( '~^=?\d+\.\d+\.\d+$~', $node, "package.json's node version cannot be a range." );
 	}
 
-	// test some helper utility functions
+	// Test some helper utility functions.
 
 	function test_strip_ws() {
 		$this->assertEquals( '', strip_ws( '' ) );
@@ -75,7 +75,7 @@ class Tests_Basic extends WP_UnitTestCase {
 <p>If a new user is created by WordPress, the password will be set, by default, to "changeme". Quite suggestive, eh? ;)</p>
         <ol id="authors"><form action="?import=wordpress&amp;step=2&amp;id=" method="post"><input type="hidden" name="_wpnonce" value="855ae98911" /><input type="hidden" name="_wp_http_referer" value="wp-test.php" /><li>Current author: <strong>Alex Shiels</strong><br />Create user  <input type="text" value="Alex Shiels" name="user[]" maxlength="30"> <br /> or map to existing<select name="userselect[0]">
 EOF;
-		// _wpnonce value should be replaced with 'xxx'
+		// _wpnonce value should be replaced with 'xxx'.
 		$expected = <<<EOF
 <h2>Assign Authors</h2>
 <p>To make it easier for you to edit and save the imported posts and drafts, you may want to change the name of the author of the posts. For example, you may want to import all the entries as <code>admin</code>s entries.</p>

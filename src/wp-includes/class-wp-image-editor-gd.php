@@ -23,7 +23,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 
 	public function __destruct() {
 		if ( $this->image ) {
-			// we don't need the original in memory anymore
+			// We don't need the original in memory anymore.
 			imagedestroy( $this->image );
 		}
 	}
@@ -41,7 +41,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			return false;
 		}
 
-		// On some setups GD library does not provide imagerotate() - Ticket #11536
+		// On some setups GD library does not provide imagerotate() - Ticket #11536.
 		if ( isset( $args['methods'] ) &&
 			in_array( 'rotate', $args['methods'], true ) &&
 			! function_exists( 'imagerotate' ) ) {
@@ -252,7 +252,8 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *     @type int  $height The maximum height in pixels.
 	 *     @type bool $crop   Whether to crop the image to exact dimensions.
 	 * }
-	 * @return WP_Error|array WP_Error on error, or the image data array for inclusion in the `sizes` array in the image meta.
+	 * @return array|WP_Error The image data array for inclusion in the `sizes` array in the image meta,
+	 *                        WP_Error object on error.
 	 */
 	public function make_subsize( $size_data ) {
 		if ( ! isset( $size_data['width'] ) && ! isset( $size_data['height'] ) ) {
@@ -306,8 +307,8 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @return bool|WP_Error
 	 */
 	public function crop( $src_x, $src_y, $src_w, $src_h, $dst_w = null, $dst_h = null, $src_abs = false ) {
-		// If destination width/height isn't specified, use same as
-		// width/height from source.
+		// If destination width/height isn't specified,
+		// use same as width/height from source.
 		if ( ! $dst_w ) {
 			$dst_w = $src_w;
 		}
@@ -417,7 +418,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @param resource $image
 	 * @param string|null $filename
 	 * @param string|null $mime_type
-	 * @return WP_Error|array
+	 * @return array|WP_Error
 	 */
 	protected function _save( $image, $filename = null, $mime_type = null ) {
 		list( $filename, $extension, $mime_type ) = $this->get_output_format( $filename, $mime_type );
@@ -431,7 +432,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
 			}
 		} elseif ( 'image/png' === $mime_type ) {
-			// convert from full colors to index colors, like original PNG.
+			// Convert from full colors to index colors, like original PNG.
 			if ( function_exists( 'imageistruecolor' ) && ! imageistruecolor( $image ) ) {
 				imagetruecolortopalette( $image, false, imagecolorstotal( $image ) );
 			}
@@ -447,9 +448,9 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
 		}
 
-		// Set correct file permissions
+		// Set correct file permissions.
 		$stat  = stat( dirname( $filename ) );
-		$perms = $stat['mode'] & 0000666; //same permissions as parent folder, strip off the executable bits
+		$perms = $stat['mode'] & 0000666; // Same permissions as parent folder, strip off the executable bits.
 		chmod( $filename, $perms );
 
 		/**

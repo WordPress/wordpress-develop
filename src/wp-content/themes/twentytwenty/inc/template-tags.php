@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty
- * @since 1.0.0
+ * @since Twenty Twenty 1.0
  */
 
 /**
@@ -81,7 +81,7 @@ function twentytwenty_site_logo( $args = array(), $echo = true ) {
 		return $html;
 	}
 
-	echo $html; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
 }
 
@@ -106,7 +106,7 @@ function twentytwenty_site_description( $echo = true ) {
 	/**
 	 * Filters the html for the site description.
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty 1.0
 	 *
 	 * @param string $html         The HTML to display.
 	 * @param string $description  Site description via `bloginfo()`.
@@ -118,7 +118,7 @@ function twentytwenty_site_description( $echo = true ) {
 		return $html;
 	}
 
-	echo $html; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 }
 
 /**
@@ -178,7 +178,7 @@ add_filter( 'comment_reply_link', 'twentytwenty_filter_comment_reply_link' );
  */
 function twentytwenty_the_post_meta( $post_id = null, $location = 'single-top' ) {
 
-	echo twentytwenty_get_post_meta( $post_id, $location ); //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in twentytwenty_get_post_meta().
+	echo twentytwenty_get_post_meta( $post_id, $location ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in twentytwenty_get_post_meta().
 
 }
 
@@ -237,7 +237,7 @@ function twentytwenty_get_post_meta( $post_id = null, $location = 'single-top' )
 	 *
 	 * This filter can be used to hide post meta information of post, page or custom post type registerd by child themes or plugins
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty 1.0
 	 *
 	 * @param array Array of post types
 	 */
@@ -257,16 +257,16 @@ function twentytwenty_get_post_meta( $post_id = null, $location = 'single-top' )
 		*
 		* Use this filter to hide post meta information like Author, Post date, Comments, Is sticky status
 		*
-		* @since 1.0.0
+		* @since Twenty Twenty 1.0
 		*
 		* @param array $args {
 		*  @type string 'author'
 		*  @type string 'post-date'
 		*  @type string 'comments'
-		*  @type string  'sticky'
+		*  @type string 'sticky'
 		* }
 		*/
-		$post_meta                 = apply_filters(
+		$post_meta = apply_filters(
 			'twentytwenty_post_meta_location_single_top',
 			array(
 				'author',
@@ -275,6 +275,7 @@ function twentytwenty_get_post_meta( $post_id = null, $location = 'single-top' )
 				'sticky',
 			)
 		);
+
 		$post_meta_wrapper_classes = ' post-meta-single post-meta-single-top';
 
 	} elseif ( 'single-bottom' === $location ) {
@@ -284,18 +285,19 @@ function twentytwenty_get_post_meta( $post_id = null, $location = 'single-top' )
 		*
 		* Use this filter to hide post tags
 		*
-		* @since 1.0.0
+		* @since Twenty Twenty 1.0
 		*
 		* @param array $args {
 		*   @type string 'tags'
 		* }
 		*/
-		$post_meta                 = apply_filters(
+		$post_meta = apply_filters(
 			'twentytwenty_post_meta_location_single_bottom',
 			array(
 				'tags',
 			)
 		);
+
 		$post_meta_wrapper_classes = ' post-meta-single post-meta-single-bottom';
 
 	}
@@ -325,11 +327,15 @@ function twentytwenty_get_post_meta( $post_id = null, $location = 'single-top' )
 				 *
 				 * Allow output of additional post meta info to be added by child themes and plugins.
 				 *
-				 * @since 1.0.0
+				 * @since Twenty Twenty 1.0
+				 * @since Twenty Twenty 1.1 Added the `$post_meta` and `$location` parameters.
 				 *
-				 * @param int   $post_ID Post ID.
+				 * @param int    $post_id   Post ID.
+				 * @param array  $post_meta An array of post meta information.
+				 * @param string $location  The location where the meta is shown.
+				 *                          Accepts 'single-top' or 'single-bottom'.
 				 */
-				do_action( 'twentytwenty_start_of_post_meta_list', $post_id );
+				do_action( 'twentytwenty_start_of_post_meta_list', $post_id, $post_meta, $location );
 
 				// Author.
 				if ( in_array( 'author', $post_meta, true ) ) {
@@ -344,7 +350,7 @@ function twentytwenty_get_post_meta( $post_id = null, $location = 'single-top' )
 						<span class="meta-text">
 							<?php
 							printf(
-								/* translators: %s: Author name */
+								/* translators: %s: Author name. */
 								__( 'By %s', 'twentytwenty' ),
 								'<a href="' . esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ) . '">' . esc_html( get_the_author_meta( 'display_name' ) ) . '</a>'
 							);
@@ -448,11 +454,15 @@ function twentytwenty_get_post_meta( $post_id = null, $location = 'single-top' )
 				 *
 				 * Allow output of additional post meta info to be added by child themes and plugins.
 				 *
-				 * @since 1.0.0
+				 * @since Twenty Twenty 1.0
+				 * @since Twenty Twenty 1.1 Added the `$post_meta` and `$location` parameters.
 				 *
-				 * @param int   $post_ID Post ID.
+				 * @param int    $post_id   Post ID.
+				 * @param array  $post_meta An array of post meta information.
+				 * @param string $location  The location where the meta is shown.
+				 *                          Accepts 'single-top' or 'single-bottom'.
 				 */
-				do_action( 'twentytwenty_end_of_post_meta_list', $post_id );
+				do_action( 'twentytwenty_end_of_post_meta_list', $post_id, $post_meta, $location );
 
 				?>
 
@@ -747,7 +757,7 @@ function twentytwenty_toggle_duration() {
 	/**
 	 * Filters the animation duration/speed used usually for submenu toggles.
 	 *
-	 * @since 1.0
+	 * @since Twenty Twenty 1.0
 	 *
 	 * @param integer $duration Duration in milliseconds.
 	 */

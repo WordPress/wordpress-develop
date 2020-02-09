@@ -49,17 +49,25 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		}
 
 		/*
-		 * For accessibility reasons, place the Inline Uploader before other sections.
-		 * This way, in the Media Library, it's right after the Add New button, see ticket #37188.
+		 * In the grid mode (the Media Library), place the Inline Uploader before
+		 * other sections so that the visual order and the DOM order match. This way,
+		 * the Inline Uploader in the Media Library is right after the "Add New"
+		 * button, see ticket #37188.
 		 */
-		this.createUploader();
+		if ( this.controller.isModeActive( 'grid' ) ) {
+			this.createUploader();
 
-		/*
-		 * Create a multi-purpose toolbar. Used as main toolbar in the Media Library
-		 * and also for other things, for example the "Drag and drop to reorder" and
-		 * "Suggested dimensions" info in the media modal.
-		 */
-		this.createToolbar();
+			/*
+			 * Create a multi-purpose toolbar. Used as main toolbar in the Media Library
+			 * and also for other things, for example the "Drag and drop to reorder" and
+			 * "Suggested dimensions" info in the media modal.
+			 */
+			this.createToolbar();
+		} else {
+			this.createToolbar();
+			this.createUploader();
+		}
+
 
 		// Add a heading before the attachments list.
 		this.createAttachmentsHeading();
@@ -95,7 +103,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 	 *
 	 * @since 5.3.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	announceSearchResults: _.debounce( function() {
 		var count;
@@ -123,7 +131,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 	},
 
 	/**
-	 * @returns {wp.media.view.AttachmentsBrowser} Returns itself to allow chaining
+	 * @return {wp.media.view.AttachmentsBrowser} Returns itself to allow chaining.
 	 */
 	dispose: function() {
 		this.options.selection.off( null, null, this );
@@ -194,9 +202,11 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			}
 		}
 
-		// Feels odd to bring the global media library switcher into the Attachment
-		// browser view. Is this a use case for doAction( 'add:toolbar-items:attachments-browser', this.toolbar );
-		// which the controller can tap into and add this view?
+		/*
+		 * Feels odd to bring the global media library switcher into the Attachment browser view.
+		 * Is this a use case for doAction( 'add:toolbar-items:attachments-browser', this.toolbar );
+		 * which the controller can tap into and add this view?
+		 */
 		if ( this.controller.isModeActive( 'grid' ) ) {
 			LibraryViewSwitcher = View.extend({
 				className: 'view-switch media-grid-view-switch',
@@ -222,7 +232,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 				priority: -75
 			}).render() );
 
-			// BulkSelection is a <div> with subviews, including screen reader text
+			// BulkSelection is a <div> with subviews, including screen reader text.
 			this.toolbar.set( 'selectModeToggleButton', new wp.media.view.SelectModeToggleButton({
 				text: l10n.bulkSelect,
 				controller: this.controller,
@@ -437,7 +447,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			AttachmentView: this.options.AttachmentView
 		});
 
-		// Add keydown listener to the instance of the Attachments view
+		// Add keydown listener to the instance of the Attachments view.
 		this.controller.on( 'attachment:keydown:arrow',     _.bind( this.attachments.arrowEvent, this.attachments ) );
 		this.controller.on( 'attachment:details:shift-tab', _.bind( this.attachments.restoreFocus, this.attachments ) );
 
@@ -516,7 +526,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 			}) );
 		}
 
-		// Show the sidebar on mobile
+		// Show the sidebar on mobile.
 		if ( this.model.id === 'insert' ) {
 			sidebar.$el.addClass( 'visible' );
 		}
@@ -527,7 +537,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		sidebar.unset('details');
 		sidebar.unset('compat');
 		sidebar.unset('display');
-		// Hide the sidebar on mobile
+		// Hide the sidebar on mobile.
 		sidebar.$el.removeClass( 'visible' );
 	}
 });

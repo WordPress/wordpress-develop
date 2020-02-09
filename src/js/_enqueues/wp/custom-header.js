@@ -50,7 +50,7 @@
 
 	CustomHeader.prototype = {
 		/**
-		 * Initalize the custom header.
+		 * Initialize the custom header.
 		 *
 		 * If the environment supports video, loops through registered handlers
 		 * until one is found that can handle the video.
@@ -79,7 +79,7 @@
 		 * @return {boolean}
 		 */
 		supportsVideo: function() {
-			// Don't load video on small screens. @todo: consider bandwidth and other factors.
+			// Don't load video on small screens. @todo Consider bandwidth and other factors.
 			if ( window.innerWidth < settings.minWidth || window.innerHeight < settings.minHeight ) {
 				return false;
 			}

@@ -82,22 +82,22 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 	public function data_wp_encode_emoji() {
 		return array(
 			array(
-				// Not emoji
+				// Not emoji.
 				'’',
 				'’',
 			),
 			array(
-				// Simple emoji
+				// Simple emoji.
 				'🙂',
 				'&#x1f642;',
 			),
 			array(
-				// Skin tone, gender, ZWJ, emoji selector
+				// Skin tone, gender, ZWJ, emoji selector.
 				'👮🏼‍♀️',
 				'&#x1f46e;&#x1f3fc;&#x200d;&#x2640;&#xfe0f;',
 			),
 			array(
-				// Unicode 10
+				// Unicode 10.
 				'🧚',
 				'&#x1f9da;',
 			),
@@ -115,22 +115,22 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 	public function data_wp_staticize_emoji() {
 		$data = array(
 			array(
-				// Not emoji
+				// Not emoji.
 				'’',
 				'’',
 			),
 			array(
-				// Simple emoji
+				// Simple emoji.
 				'🙂',
 				'<img src="' . $this->png_cdn . '1f642.png" alt="🙂" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
 			),
 			array(
-				// Skin tone, gender, ZWJ, emoji selector
+				// Skin tone, gender, ZWJ, emoji selector.
 				'👮🏼‍♀️',
 				'<img src="' . $this->png_cdn . '1f46e-1f3fc-200d-2640-fe0f.png" alt="👮🏼‍♀️" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
 			),
 			array(
-				// Unicode 10
+				// Unicode 10.
 				'🧚',
 				'<img src="' . $this->png_cdn . '1f9da.png" alt="🧚" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
 			),

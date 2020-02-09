@@ -9,21 +9,21 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 	public function test_last_comment() {
 		$p = self::factory()->post->create();
 
-		// page 4
+		// Page 4.
 		$comment_last = self::factory()->comment->create_post_comments( $p, 1, array( 'comment_date' => '2013-09-24 00:00:00' ) );
 		self::factory()->comment->create_post_comments( $p, 1, array( 'comment_date' => '2013-09-23 00:00:00' ) );
 
-		// page 3
+		// Page 3.
 		self::factory()->comment->create_post_comments( $p, 1, array( 'comment_date' => '2013-09-22 00:00:00' ) );
 		self::factory()->comment->create_post_comments( $p, 1, array( 'comment_date' => '2013-09-21 00:00:00' ) );
 		self::factory()->comment->create_post_comments( $p, 1, array( 'comment_date' => '2013-09-20 00:00:00' ) );
 
-		// page 2
+		// Page 2.
 		self::factory()->comment->create_post_comments( $p, 1, array( 'comment_date' => '2013-09-19 00:00:00' ) );
 		self::factory()->comment->create_post_comments( $p, 1, array( 'comment_date' => '2013-09-18 00:00:00' ) );
 		self::factory()->comment->create_post_comments( $p, 1, array( 'comment_date' => '2013-09-17 00:00:00' ) );
 
-		// page 1
+		// Page 1.
 		self::factory()->comment->create_post_comments( $p, 1, array( 'comment_date' => '2013-09-16 00:00:00' ) );
 		self::factory()->comment->create_post_comments( $p, 1, array( 'comment_date' => '2013-09-15 00:00:00' ) );
 		$comment_first = self::factory()->comment->create_post_comments( $p, 1, array( 'comment_date' => '2013-09-14 00:00:00' ) );

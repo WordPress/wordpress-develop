@@ -7,13 +7,13 @@
  * Compatibility with PHPUnit 6+
  */
 if ( class_exists( 'PHPUnit\Runner\Version' ) ) {
-	require_once dirname( __FILE__ ) . '/phpunit6/compat.php';
+	require_once __DIR__ . '/phpunit6/compat.php';
 }
 
 if ( defined( 'WP_TESTS_CONFIG_FILE_PATH' ) ) {
 	$config_file_path = WP_TESTS_CONFIG_FILE_PATH;
 } else {
-	$config_file_path = dirname( dirname( __FILE__ ) );
+	$config_file_path = dirname( __DIR__ );
 	if ( ! file_exists( $config_file_path . '/wp-tests-config.php' ) ) {
 		// Support the config file from the root of the develop repository.
 		if ( basename( $config_file_path ) === 'phpunit' && basename( dirname( $config_file_path ) ) === 'tests' ) {
@@ -30,16 +30,16 @@ if ( defined( 'WP_TESTS_CONFIG_FILE_PATH' ) ) {
 global $wpdb, $current_site, $current_blog, $wp_rewrite, $shortcode_tags, $wp, $phpmailer, $wp_theme_directories;
 
 if ( ! is_readable( $config_file_path ) ) {
-	echo "ERROR: wp-tests-config.php is missing! Please use wp-tests-config-sample.php to create a config file.\n";
+	echo "Error: wp-tests-config.php is missing! Please use wp-tests-config-sample.php to create a config file.\n";
 	exit( 1 );
 }
 
 require_once $config_file_path;
-require_once dirname( __FILE__ ) . '/functions.php';
+require_once __DIR__ . '/functions.php';
 
 if ( version_compare( tests_get_phpunit_version(), '8.0', '>=' ) ) {
 	printf(
-		"ERROR: Looks like you're using PHPUnit %s. WordPress is currently only compatible with PHPUnit up to 7.x.\n",
+		"Error: Looks like you're using PHPUnit %s. WordPress is currently only compatible with PHPUnit up to 7.x.\n",
 		tests_get_phpunit_version()
 	);
 	echo "Please use the latest PHPUnit version from the 7.x branch.\n";
@@ -47,15 +47,15 @@ if ( version_compare( tests_get_phpunit_version(), '8.0', '>=' ) ) {
 }
 
 if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && ! is_dir( ABSPATH ) ) {
-	echo "ERROR: The /build/ directory is missing! Please run `npm run build` prior to running PHPUnit.\n";
+	echo "Error: The /build/ directory is missing! Please run `npm run build` prior to running PHPUnit.\n";
 	exit( 1 );
 }
 
 tests_reset__SERVER();
 
 define( 'WP_TESTS_TABLE_PREFIX', $table_prefix );
-define( 'DIR_TESTDATA', dirname( __FILE__ ) . '/../data' );
-define( 'DIR_TESTROOT', realpath( dirname( dirname( __FILE__ ) ) ) );
+define( 'DIR_TESTDATA', __DIR__ . '/../data' );
+define( 'DIR_TESTROOT', realpath( dirname( __DIR__ ) ) );
 
 define( 'WP_LANG_DIR', DIR_TESTDATA . '/languages' );
 
@@ -83,8 +83,8 @@ $multisite = ( '1' === getenv( 'WP_MULTISITE' ) );
 $multisite = $multisite || ( defined( 'WP_TESTS_MULTISITE' ) && WP_TESTS_MULTISITE );
 $multisite = $multisite || ( defined( 'MULTISITE' ) && MULTISITE );
 
-// Override the PHPMailer
-require_once( dirname( __FILE__ ) . '/mock-mailer.php' );
+// Override the PHPMailer.
+require_once __DIR__ . '/mock-mailer.php';
 $phpmailer = new MockPHPMailer( true );
 
 if ( ! defined( 'WP_DEFAULT_THEME' ) ) {
@@ -97,7 +97,7 @@ if ( file_exists( DIR_TESTDATA . '/themedir1' ) ) {
 }
 
 if ( '1' !== getenv( 'WP_TESTS_SKIP_INSTALL' ) ) {
-	system( WP_PHP_BINARY . ' ' . escapeshellarg( dirname( __FILE__ ) . '/install.php' ) . ' ' . escapeshellarg( $config_file_path ) . ' ' . $multisite, $retval );
+	system( WP_PHP_BINARY . ' ' . escapeshellarg( __DIR__ . '/install.php' ) . ' ' . escapeshellarg( $config_file_path ) . ' ' . $multisite, $retval );
 	if ( 0 !== $retval ) {
 		exit( $retval );
 	}
@@ -114,13 +114,13 @@ if ( $multisite ) {
 unset( $multisite );
 
 $GLOBALS['_wp_die_disabled'] = false;
-// Allow tests to override wp_die
+// Allow tests to override wp_die().
 tests_add_filter( 'wp_die_handler', '_wp_die_handler_filter' );
-// Use the Spy REST Server instead of default
+// Use the Spy REST Server instead of default.
 tests_add_filter( 'wp_rest_server_class', '_wp_rest_server_class_filter' );
 
 // Preset WordPress options defined in bootstrap file.
-// Used to activate themes, plugins, as well as  other settings.
+// Used to activate themes, plugins, as well as other settings.
 if ( isset( $GLOBALS['wp_tests_options'] ) ) {
 	function wp_tests_options( $value ) {
 		$key = substr( current_filter(), strlen( 'pre_option_' ) );
@@ -132,29 +132,29 @@ if ( isset( $GLOBALS['wp_tests_options'] ) ) {
 	}
 }
 
-// Load WordPress
+// Load WordPress.
 require_once ABSPATH . '/wp-settings.php';
 
-// Delete any default posts & related data
+// Delete any default posts & related data.
 _delete_all_posts();
 
 if ( version_compare( tests_get_phpunit_version(), '7.0', '>=' ) ) {
-	require dirname( __FILE__ ) . '/phpunit7/testcase.php';
+	require __DIR__ . '/phpunit7/testcase.php';
 } else {
-	require dirname( __FILE__ ) . '/testcase.php';
+	require __DIR__ . '/testcase.php';
 }
 
-require dirname( __FILE__ ) . '/testcase-rest-api.php';
-require dirname( __FILE__ ) . '/testcase-rest-controller.php';
-require dirname( __FILE__ ) . '/testcase-rest-post-type-controller.php';
-require dirname( __FILE__ ) . '/testcase-xmlrpc.php';
-require dirname( __FILE__ ) . '/testcase-ajax.php';
-require dirname( __FILE__ ) . '/testcase-canonical.php';
-require dirname( __FILE__ ) . '/exceptions.php';
-require dirname( __FILE__ ) . '/utils.php';
-require dirname( __FILE__ ) . '/spy-rest-server.php';
-require dirname( __FILE__ ) . '/class-wp-rest-test-search-handler.php';
-require dirname( __FILE__ ) . '/class-wp-fake-block-type.php';
+require __DIR__ . '/testcase-rest-api.php';
+require __DIR__ . '/testcase-rest-controller.php';
+require __DIR__ . '/testcase-rest-post-type-controller.php';
+require __DIR__ . '/testcase-xmlrpc.php';
+require __DIR__ . '/testcase-ajax.php';
+require __DIR__ . '/testcase-canonical.php';
+require __DIR__ . '/exceptions.php';
+require __DIR__ . '/utils.php';
+require __DIR__ . '/spy-rest-server.php';
+require __DIR__ . '/class-wp-rest-test-search-handler.php';
+require __DIR__ . '/class-wp-fake-block-type.php';
 
 /**
  * A class to handle additional command line arguments passed to the script.

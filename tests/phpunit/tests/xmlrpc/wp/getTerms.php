@@ -41,7 +41,7 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 	function test_valid_terms() {
 		$this->make_user_by_role( 'editor' );
 
-		// make sure there's at least one category
+		// Make sure there's at least one category.
 		$cat = wp_insert_term( 'term_' . __FUNCTION__, 'category' );
 
 		$results = $this->myxmlrpcserver->wp_getTerms( array( 1, 'editor', 'editor', 'category' ) );
@@ -50,10 +50,11 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 		foreach ( $results as $term ) {
 			$this->assertInternalType( 'int', $term['count'] );
 
-			// Check custom term meta
+			// Check custom term meta.
 			$this->assertInternalType( 'array', $term['custom_fields'] );
 
-			// We expect all other IDs to be strings not integers so we don't return something larger than an XMLRPC integer can describe.
+			// We expect all other IDs to be strings, not integers,
+			// so we don't return something larger than an XMLRPC integer can describe.
 			$this->assertStringMatchesFormat( '%d', $term['term_id'] );
 			$this->assertStringMatchesFormat( '%d', $term['term_group'] );
 			$this->assertStringMatchesFormat( '%d', $term['term_taxonomy_id'] );
@@ -64,7 +65,7 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 	function test_custom_taxonomy() {
 		$this->make_user_by_role( 'editor' );
 
-		// create a taxonomy and some terms for it
+		// Create a taxonomy and some terms for it.
 		$tax_name  = 'wp_getTerms_custom_taxonomy';
 		$num_terms = 12;
 		register_taxonomy( $tax_name, 'post' );
@@ -72,7 +73,7 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 			wp_insert_term( "term_{$i}", $tax_name );
 		}
 
-		// test fetching all terms
+		// Test fetching all terms.
 		$results = $this->myxmlrpcserver->wp_getTerms( array( 1, 'editor', 'editor', $tax_name ) );
 		$this->assertNotIXRError( $results );
 
@@ -81,12 +82,12 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 			$this->assertEquals( $tax_name, $term['taxonomy'] );
 		}
 
-		// test paged results
+		// Test paged results.
 		$filter   = array( 'number' => 5 );
 		$results2 = $this->myxmlrpcserver->wp_getTerms( array( 1, 'editor', 'editor', $tax_name, $filter ) );
 		$this->assertNotIXRError( $results );
 		$this->assertEquals( 5, count( $results2 ) );
-		$this->assertEquals( $results[1]['term_id'], $results2[1]['term_id'] ); // check one of the terms
+		$this->assertEquals( $results[1]['term_id'], $results2[1]['term_id'] ); // Check one of the terms.
 
 		$filter['offset'] = 10;
 		$results3         = $this->myxmlrpcserver->wp_getTerms( array( 1, 'editor', 'editor', $tax_name, $filter ) );
@@ -94,7 +95,7 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 		$this->assertEquals( $num_terms - 10, count( $results3 ) );
 		$this->assertEquals( $results[11]['term_id'], $results3[1]['term_id'] );
 
-		// test hide_empty (since none have been attached to posts yet, all should be hidden
+		// Test hide_empty (since none have been attached to posts yet, all should be hidden.
 		$filter   = array( 'hide_empty' => true );
 		$results4 = $this->myxmlrpcserver->wp_getTerms( array( 1, 'editor', 'editor', $tax_name, $filter ) );
 		$this->assertNotIXRError( $results4 );
@@ -122,7 +123,7 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 
 		foreach ( $results as $term ) {
 			if ( $term['term_id'] === $cat1 ) {
-				break;  // found cat1 first as expected
+				break; // Found cat1 first as expected.
 			} elseif ( $term['term_id'] === $cat2 ) {
 				$this->assertFalse( false, 'Incorrect category ordering.' );
 			}
@@ -135,7 +136,7 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 		$name    = __FUNCTION__;
 		$name_id = wp_create_category( $name );
 
-		// search by full name
+		// Search by full name.
 		$filter  = array( 'search' => $name );
 		$results = $this->myxmlrpcserver->wp_getTerms( array( 1, 'editor', 'editor', 'category', $filter ) );
 		$this->assertNotIXRError( $results );
@@ -143,7 +144,7 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 		$this->assertEquals( $name, $results[0]['name'] );
 		$this->assertEquals( $name_id, $results[0]['term_id'] );
 
-		// search by partial name
+		// Search by partial name.
 		$filter   = array( 'search' => substr( $name, 0, 10 ) );
 		$results2 = $this->myxmlrpcserver->wp_getTerms( array( 1, 'editor', 'editor', 'category', $filter ) );
 		$this->assertNotIXRError( $results2 );

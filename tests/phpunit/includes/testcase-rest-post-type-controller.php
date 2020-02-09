@@ -5,7 +5,7 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 	protected function check_post_data( $post, $data, $context, $links ) {
 		$post_type_obj = get_post_type_object( $post->post_type );
 
-		// Standard fields
+		// Standard fields.
 		$this->assertEquals( $post->ID, $data['id'] );
 		$this->assertEquals( $post->post_name, $data['slug'] );
 		$this->assertEquals( get_permalink( $post->ID ), $data['link'] );
@@ -25,14 +25,14 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		}
 		$this->assertEquals( mysql_to_rfc3339( $post->post_modified ), $data['modified'] );
 
-		// author
+		// Author.
 		if ( post_type_supports( $post->post_type, 'author' ) ) {
 			$this->assertEquals( $post->post_author, $data['author'] );
 		} else {
 			$this->assertEmpty( $data['author'] );
 		}
 
-		// post_parent
+		// Post parent.
 		if ( $post_type_obj->hierarchical ) {
 			$this->assertArrayHasKey( 'parent', $data );
 			if ( $post->post_parent ) {
@@ -49,14 +49,14 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 			$this->assertFalse( isset( $data['parent'] ) );
 		}
 
-		// page attributes
+		// Page attributes.
 		if ( $post_type_obj->hierarchical && post_type_supports( $post->post_type, 'page-attributes' ) ) {
 			$this->assertEquals( $post->menu_order, $data['menu_order'] );
 		} else {
 			$this->assertFalse( isset( $data['menu_order'] ) );
 		}
 
-		// Comments
+		// Comments.
 		if ( post_type_supports( $post->post_type, 'comments' ) ) {
 			$this->assertEquals( $post->comment_status, $data['comment_status'] );
 			$this->assertEquals( $post->ping_status, $data['ping_status'] );
@@ -110,7 +110,7 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		}
 
 		if ( post_type_supports( $post->post_type, 'editor' ) ) {
-			// TODO: apply content filter for more accurate testing.
+			// TODO: Apply content filter for more accurate testing.
 			if ( ! $post->post_password ) {
 				$this->assertEquals( wpautop( $post->post_content ), $data['content']['rendered'] );
 			}
@@ -126,10 +126,10 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 
 		if ( post_type_supports( $post->post_type, 'excerpt' ) ) {
 			if ( empty( $post->post_password ) ) {
-				// TODO: apply excerpt filter for more accurate testing.
+				// TODO: Apply excerpt filter for more accurate testing.
 				$this->assertEquals( wpautop( $post->post_excerpt ), $data['excerpt']['rendered'] );
 			} else {
-				// TODO: better testing for excerpts for password protected posts.
+				// TODO: Better testing for excerpts for password protected posts.
 			}
 			if ( 'edit' === $context ) {
 				$this->assertEquals( $post->post_excerpt, $data['excerpt']['raw'] );
@@ -156,7 +156,7 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 			$this->assertEquals( $terms, $data[ $taxonomy->rest_base ] );
 		}
 
-		// test links
+		// Test links.
 		if ( $links ) {
 
 			$links     = test_rest_expand_compact_links( $links );
@@ -211,8 +211,8 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		$all_data = $response->get_data();
 		foreach ( $all_data as $data ) {
 			$post = get_post( $data['id'] );
-			// as the links for the post are "response_links" format in the data array we have to pull them
-			// out and parse them.
+			// As the links for the post are "response_links" format in the data array,
+			// we have to pull them out and parse them.
 			$links = $data['_links'];
 			foreach ( $links as &$links_array ) {
 				foreach ( $links_array as &$link ) {

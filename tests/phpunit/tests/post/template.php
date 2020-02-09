@@ -424,7 +424,7 @@ NO;
 		// After falling back, the 'after' argument should be set and output as '</ul>'.
 		$this->assertRegExp( '/<\/ul><\/div>/', $menu );
 
-		// After falling back, the markup should include whitespace around <li>s
+		// After falling back, the markup should include whitespace around <li>'s.
 		$this->assertRegExp( '/\s<li.*>|<\/li>\s/U', $menu );
 		$this->assertNotRegExp( '/><li.*>|<\/li></U', $menu );
 
@@ -447,7 +447,7 @@ NO;
 			)
 		);
 
-		// After falling back, the markup should not include whitespace around <li>s
+		// After falling back, the markup should not include whitespace around <li>'s.
 		$this->assertNotRegExp( '/\s<li.*>|<\/li>\s/U', $menu );
 		$this->assertRegExp( '/><li.*>|<\/li></U', $menu );
 

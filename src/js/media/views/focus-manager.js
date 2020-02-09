@@ -37,7 +37,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 *
 	 * @param {object} event jQuery event object.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	focusManagementMode: function( event ) {
 		if ( this.mode === 'constrainTabbing' ) {
@@ -54,7 +54,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 *
 	 * @since 5.3.0
 	 *
-	 * @returns {object} A jQuery collection of tabbable elements.
+	 * @return {object} A jQuery collection of tabbable elements.
 	 */
 	getTabbables: function() {
 		// Skip the file input added by Plupload.
@@ -66,7 +66,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 *
 	 * @since 3.5.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	focus: function() {
 		this.$( '.media-modal' ).focus();
@@ -79,7 +79,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 *
 	 * @param {Object} event A keydown jQuery event.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	constrainTabbing: function( event ) {
 		var tabbables;
@@ -91,7 +91,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 
 		tabbables = this.getTabbables();
 
-		// Keep tab focus within media modal while it's open
+		// Keep tab focus within media modal while it's open.
 		if ( tabbables.last()[0] === event.target && ! event.shiftKey ) {
 			tabbables.first().focus();
 			return false;
@@ -116,7 +116,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 *
 	 * @param {object} visibleElement The jQuery object representing the element that should not be hidden.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	setAriaHiddenOnBodyChildren: function( visibleElement ) {
 		var bodyChildren,
@@ -155,7 +155,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 *
 	 * @since 5.2.3
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	removeAriaHiddenFromBodyChildren: function() {
 		_.each( this.ariaHiddenElements, function( element ) {
@@ -173,7 +173,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 *
 	 * @param {object} element The DOM element that should be checked.
 	 *
-	 * @returns {boolean} Whether the element should not be hidden from assistive technologies.
+	 * @return {boolean} Whether the element should not be hidden from assistive technologies.
 	 */
 	elementShouldBeHidden: function( element ) {
 		var role = element.getAttribute( 'role' ),
@@ -220,7 +220,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 *
 	 * @param {object} event jQuery event object.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	setupAriaTabs: function() {
 		this.tabs = this.$( '[role="tab"]' );
@@ -244,7 +244,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 *
 	 * @param {object} event jQuery event object.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	tabsNavigation: function( event ) {
 		var orientation = 'horizontal',
@@ -280,7 +280,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 *
 	 * @param {object} event jQuery event object.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	switchTabs: function( event ) {
 		var key   = event.which,
@@ -331,7 +331,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 *
 	 * @param {object} tab The tab DOM element.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	activateTab: function( tab ) {
 		if ( ! tab ) {

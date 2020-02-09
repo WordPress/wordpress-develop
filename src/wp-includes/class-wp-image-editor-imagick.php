@@ -23,7 +23,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 
 	public function __destruct() {
 		if ( $this->image instanceof Imagick ) {
-			// we don't need the original in memory anymore
+			// We don't need the original in memory anymore.
 			$this->image->clear();
 			$this->image->destroy();
 		}
@@ -103,7 +103,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 
 		// setIteratorIndex is optional unless mime is an animated format.
 		// Here, we just say no if you are missing it and aren't loading a jpeg.
-		if ( ! method_exists( 'Imagick', 'setIteratorIndex' ) && $mime_type !== 'image/jpeg' ) {
+		if ( ! method_exists( 'Imagick', 'setIteratorIndex' ) && 'image/jpeg' !== $mime_type ) {
 				return false;
 		}
 
@@ -154,7 +154,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				return new WP_Error( 'invalid_image', __( 'File is not an image.' ), $this->file );
 			}
 
-			// Select the first frame to handle animated images properly
+			// Select the first frame to handle animated images properly.
 			if ( is_callable( array( $this->image, 'setIteratorIndex' ) ) ) {
 				$this->image->setIteratorIndex( 0 );
 			}
@@ -263,7 +263,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			return $this->crop( $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h );
 		}
 
-		// Execute the resize
+		// Execute the resize.
 		$thumb_result = $this->thumbnail_image( $dst_w, $dst_h );
 		if ( is_wp_error( $thumb_result ) ) {
 			return $thumb_result;
@@ -460,7 +460,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *     @type int  $height The maximum height in pixels.
 	 *     @type bool $crop   Whether to crop the image to exact dimensions.
 	 * }
-	 * @return WP_Error|array WP_Error on error, or the image data array for inclusion in the `sizes` array in the image meta.
+	 * @return array|WP_Error The image data array for inclusion in the `sizes` array in the image meta,
+	 *                        WP_Error object on error.
 	 */
 	public function make_subsize( $size_data ) {
 		if ( ! isset( $size_data['width'] ) && ! isset( $size_data['height'] ) ) {
@@ -529,8 +530,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			$this->image->setImagePage( $src_w, $src_h, 0, 0 );
 
 			if ( $dst_w || $dst_h ) {
-				// If destination width/height isn't specified, use same as
-				// width/height from source.
+				// If destination width/height isn't specified,
+				// use same as width/height from source.
 				if ( ! $dst_w ) {
 					$dst_w = $src_w;
 				}
@@ -674,21 +675,21 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		}
 
 		try {
-			// Store initial Format
+			// Store initial format.
 			$orig_format = $this->image->getImageFormat();
 
 			$this->image->setImageFormat( strtoupper( $this->get_extension( $mime_type ) ) );
 			$this->make_image( $filename, array( $image, 'writeImage' ), array( $filename ) );
 
-			// Reset original Format
+			// Reset original format.
 			$this->image->setImageFormat( $orig_format );
 		} catch ( Exception $e ) {
 			return new WP_Error( 'image_save_error', $e->getMessage(), $filename );
 		}
 
-		// Set correct file permissions
+		// Set correct file permissions.
 		$stat  = stat( dirname( $filename ) );
-		$perms = $stat['mode'] & 0000666; //same permissions as parent folder, strip off the executable bits
+		$perms = $stat['mode'] & 0000666; // Same permissions as parent folder, strip off the executable bits.
 		chmod( $filename, $perms );
 
 		return array(
@@ -713,14 +714,14 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		list( $filename, $extension, $mime_type ) = $this->get_output_format( null, $mime_type );
 
 		try {
-			// Temporarily change format for stream
+			// Temporarily change format for stream.
 			$this->image->setImageFormat( strtoupper( $extension ) );
 
-			// Output stream of image content
+			// Output stream of image content.
 			header( "Content-Type: $mime_type" );
 			print $this->image->getImageBlob();
 
-			// Reset Image to original Format
+			// Reset image to original format.
 			$this->image->setImageFormat( $this->get_extension( $this->mime_type ) );
 		} catch ( Exception $e ) {
 			return new WP_Error( 'image_stream_error', $e->getMessage() );

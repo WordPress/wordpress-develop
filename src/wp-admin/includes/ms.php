@@ -20,7 +20,7 @@ function check_upload_size( $file ) {
 		return $file;
 	}
 
-	if ( $file['error'] != '0' ) { // there's already an error
+	if ( '0' != $file['error'] ) { // There's already an error.
 		return $file;
 	}
 
@@ -45,7 +45,7 @@ function check_upload_size( $file ) {
 		$file['error'] = __( 'You have used your space quota. Please delete files before uploading.' );
 	}
 
-	if ( $file['error'] != '0' && ! isset( $_POST['html-upload'] ) && ! wp_doing_ajax() ) {
+	if ( '0' != $file['error'] && ! isset( $_POST['html-upload'] ) && ! wp_doing_ajax() ) {
 		wp_die( $file['error'] . ' <a href="javascript:history.go(-1)">' . __( 'Back' ) . '</a>' );
 	}
 
@@ -129,7 +129,7 @@ function wpmu_delete_blog( $blog_id, $drop = false ) {
  *
  * @since 3.0.0
  *
- * @todo Merge with wp_delete_user() ?
+ * @todo Merge with wp_delete_user()?
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -177,7 +177,7 @@ function wpmu_delete_user( $id ) {
 				wp_delete_post( $post_id );
 			}
 
-			// Clean links
+			// Clean links.
 			$link_ids = $wpdb->get_col( $wpdb->prepare( "SELECT link_id FROM $wpdb->links WHERE link_owner = %d", $id ) );
 
 			if ( $link_ids ) {
@@ -220,7 +220,7 @@ function upload_is_user_over_quota( $echo = true ) {
 
 	$space_allowed = get_space_allowed();
 	if ( ! is_numeric( $space_allowed ) ) {
-		$space_allowed = 10; // Default space allowed is 10 MB
+		$space_allowed = 10; // Default space allowed is 10 MB.
 	}
 	$space_used = get_space_used();
 
@@ -548,7 +548,7 @@ function format_code_lang( $code = '' ) {
  *                       if `$taxonomy` is 'category' or 'post_tag'.
  */
 function sync_category_tag_slugs( $term, $taxonomy ) {
-	if ( global_terms_enabled() && ( $taxonomy == 'category' || $taxonomy == 'post_tag' ) ) {
+	if ( global_terms_enabled() && ( 'category' === $taxonomy || 'post_tag' === $taxonomy ) ) {
 		if ( is_object( $term ) ) {
 			$term->slug = sanitize_title( $term->name );
 		} else {
@@ -644,11 +644,11 @@ function mu_dropdown_languages( $lang_files = array(), $current = '' ) {
 	foreach ( (array) $lang_files as $val ) {
 		$code_lang = basename( $val, '.mo' );
 
-		if ( $code_lang == 'en_US' ) { // American English
+		if ( 'en_US' === $code_lang ) { // American English.
 			$flag          = true;
 			$ae            = __( 'American English' );
 			$output[ $ae ] = '<option value="' . esc_attr( $code_lang ) . '"' . selected( $current, $code_lang, false ) . '> ' . $ae . '</option>';
-		} elseif ( $code_lang == 'en_GB' ) { // British English
+		} elseif ( 'en_GB' === $code_lang ) { // British English.
 			$flag          = true;
 			$be            = __( 'British English' );
 			$output[ $be ] = '<option value="' . esc_attr( $code_lang ) . '"' . selected( $current, $code_lang, false ) . '> ' . $be . '</option>';
@@ -658,11 +658,11 @@ function mu_dropdown_languages( $lang_files = array(), $current = '' ) {
 		}
 	}
 
-	if ( $flag === false ) { // WordPress english
+	if ( false === $flag ) { // WordPress English.
 		$output[] = '<option value=""' . selected( $current, '', false ) . '>' . __( 'English' ) . '</option>';
 	}
 
-	// Order by name
+	// Order by name.
 	uksort( $output, 'strnatcasecmp' );
 
 	/**
@@ -725,10 +725,10 @@ function avoid_blog_page_permalink_collision( $data, $postarr ) {
 	if ( is_subdomain_install() ) {
 		return $data;
 	}
-	if ( $data['post_type'] != 'page' ) {
+	if ( 'page' !== $data['post_type'] ) {
 		return $data;
 	}
-	if ( ! isset( $data['post_name'] ) || $data['post_name'] == '' ) {
+	if ( ! isset( $data['post_name'] ) || '' === $data['post_name'] ) {
 		return $data;
 	}
 	if ( ! is_main_site() ) {
@@ -813,7 +813,7 @@ function choose_primary_blog() {
  * @return bool True if network can be edited, otherwise false.
  */
 function can_edit_network( $network_id ) {
-	if ( $network_id == get_current_network_id() ) {
+	if ( get_current_network_id() == $network_id ) {
 		$result = true;
 	} else {
 		$result = false;
@@ -873,7 +873,7 @@ function confirm_delete_users( $users ) {
 	<?php
 	$allusers = (array) $_POST['allusers'];
 	foreach ( $allusers as $user_id ) {
-		if ( $user_id != '' && $user_id != '0' ) {
+		if ( '' != $user_id && '0' != $user_id ) {
 			$delete_user = get_userdata( $user_id );
 
 			if ( ! current_user_can( 'delete_user', $delete_user->ID ) ) {
@@ -908,7 +908,7 @@ function confirm_delete_users( $users ) {
 				<td><fieldset><p><legend>
 				<?php
 				printf(
-					/* translators: User login. */
+					/* translators: %s: User login. */
 					__( 'What should be done with content owned by %s?' ),
 					'<em>' . $delete_user->user_login . '</em>'
 				);
@@ -1067,7 +1067,7 @@ function network_edit_site_nav( $args = array() ) {
 		)
 	);
 
-	// Parse arguments
+	// Parse arguments.
 	$parsed_args = wp_parse_args(
 		$args,
 		array(
@@ -1077,36 +1077,36 @@ function network_edit_site_nav( $args = array() ) {
 		)
 	);
 
-	// Setup the links array
+	// Setup the links array.
 	$screen_links = array();
 
-	// Loop through tabs
+	// Loop through tabs.
 	foreach ( $parsed_args['links'] as $link_id => $link ) {
 
-		// Skip link if user can't access
+		// Skip link if user can't access.
 		if ( ! current_user_can( $link['cap'], $parsed_args['blog_id'] ) ) {
 			continue;
 		}
 
-		// Link classes
+		// Link classes.
 		$classes = array( 'nav-tab' );
 
 		// Aria-current attribute.
 		$aria_current = '';
 
-		// Selected is set by the parent OR assumed by the $pagenow global
+		// Selected is set by the parent OR assumed by the $pagenow global.
 		if ( $parsed_args['selected'] === $link_id || $link['url'] === $GLOBALS['pagenow'] ) {
 			$classes[]    = 'nav-tab-active';
 			$aria_current = ' aria-current="page"';
 		}
 
-		// Escape each class
+		// Escape each class.
 		$esc_classes = implode( ' ', $classes );
 
-		// Get the URL for this link
+		// Get the URL for this link.
 		$url = add_query_arg( array( 'id' => $parsed_args['blog_id'] ), network_admin_url( $link['url'] ) );
 
-		// Add link to nav links
+		// Add link to nav links.
 		$screen_links[ $link_id ] = '<a href="' . esc_url( $url ) . '" id="' . esc_attr( $link_id ) . '" class="' . $esc_classes . '"' . $aria_current . '>' . esc_html( $link['label'] ) . '</a>';
 	}
 

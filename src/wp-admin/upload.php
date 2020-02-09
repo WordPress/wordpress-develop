@@ -7,7 +7,7 @@
  */
 
 /** WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'upload_files' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to upload files.' ) );
@@ -29,7 +29,7 @@ if ( 'grid' === $mode ) {
 	remove_action( 'admin_head', 'wp_admin_canonical_url' );
 
 	$q = $_GET;
-	// let JS handle this
+	// Let JS handle this.
 	unset( $q['s'] );
 	$vars   = wp_edit_attachments_query_vars( $q );
 	$ignore = array( 'mode', 'post_type', 'post_status', 'posts_per_page' );
@@ -79,7 +79,7 @@ if ( 'grid' === $mode ) {
 	$title       = __( 'Media Library' );
 	$parent_file = 'upload.php';
 
-	require_once( ABSPATH . 'wp-admin/admin-header.php' );
+	require_once ABSPATH . 'wp-admin/admin-header.php';
 	?>
 	<div class="wrap" id="wp-media-grid" data-search="<?php _admin_search_query(); ?>">
 		<h1 class="wp-heading-inline"><?php echo esc_html( $title ); ?></h1>
@@ -107,14 +107,14 @@ if ( 'grid' === $mode ) {
 		</div>
 	</div>
 	<?php
-	include( ABSPATH . 'wp-admin/admin-footer.php' );
+	require_once ABSPATH . 'wp-admin/admin-footer.php';
 	exit;
 }
 
 $wp_list_table = _get_list_table( 'WP_Media_List_Table' );
 $pagenum       = $wp_list_table->get_pagenum();
 
-// Handle bulk actions
+// Handle bulk actions.
 $doaction = $wp_list_table->current_action();
 
 if ( $doaction ) {
@@ -198,8 +198,10 @@ if ( $doaction ) {
 			$location = add_query_arg( 'deleted', count( $post_ids ), $location );
 			break;
 		default:
-			/** This action is documented in wp-admin/edit-comments.php */
-			$location = apply_filters( 'handle_bulk_actions-' . get_current_screen()->id, $location, $doaction, $post_ids ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+			$screen = get_current_screen()->id;
+
+			/** This action is documented in wp-admin/edit.php */
+			$location = apply_filters( "handle_bulk_actions-{$screen}", $location, $doaction, $post_ids ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 	}
 
 	wp_redirect( $location );
@@ -259,7 +261,7 @@ get_current_screen()->set_screen_reader_content(
 	)
 );
 
-require_once( ABSPATH . 'wp-admin/admin-header.php' );
+require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 
 <div class="wrap">
@@ -376,4 +378,4 @@ if ( ! empty( $message ) ) {
 </div>
 
 <?php
-include( ABSPATH . 'wp-admin/admin-footer.php' );
+require_once ABSPATH . 'wp-admin/admin-footer.php';

@@ -83,7 +83,7 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 			)
 		);
 
-		// Item without menu-item-object arg
+		// Item without menu-item-object arg.
 		$post_2_insert = wp_update_nav_menu_item(
 			$this->menu_id,
 			0,
@@ -142,7 +142,7 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 	 */
 	function test_orphan_nav_menu_item() {
 
-		// Create an orphan nav menu item
+		// Create an orphan nav menu item.
 		$custom_item_id = wp_update_nav_menu_item(
 			0,
 			0,
@@ -154,11 +154,11 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 			)
 		);
 
-		// Confirm it saved properly
+		// Confirm it saved properly.
 		$custom_item = wp_setup_nav_menu_item( get_post( $custom_item_id ) );
 		$this->assertEquals( 'Wordpress.org', $custom_item->title );
 
-		// Update the orphan with an associated nav menu
+		// Update the orphan with an associated nav menu.
 		wp_update_nav_menu_item(
 			$this->menu_id,
 			$custom_item_id,
@@ -225,14 +225,14 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 	 * @ticket 29460
 	 */
 	function test_orderby_name_by_default() {
-		// We are going to create a random number of menus (min 2, max 10)
+		// We are going to create a random number of menus (min 2, max 10).
 		$menus_no = rand( 2, 10 );
 
 		for ( $i = 0; $i <= $menus_no; $i++ ) {
 			wp_create_nav_menu( rand_str() );
 		}
 
-		// This is the expected array of menu names
+		// This is the expected array of menu names.
 		$expected_nav_menus_names = wp_list_pluck(
 			get_terms(
 				'nav_menu',
@@ -244,7 +244,7 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 			'name'
 		);
 
-		// And this is what we got when calling wp_get_nav_menus()
+		// And this is what we got when calling wp_get_nav_menus().
 		$nav_menus_names = wp_list_pluck( wp_get_nav_menus(), 'name' );
 
 		$this->assertEquals( $nav_menus_names, $expected_nav_menus_names );
@@ -311,7 +311,7 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		$post_type_archive_item    = wp_setup_nav_menu_item( get_post( $post_type_archive_item_id ) );
 
 		$this->assertEquals( $post_type_slug, $post_type_archive_item->title );
-		$this->assertEquals( $post_type_description, $post_type_archive_item->description ); //fail!!!
+		$this->assertEquals( $post_type_description, $post_type_archive_item->description ); // Fail!
 	}
 
 	/**
@@ -459,11 +459,11 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 			)
 		);
 
-		// The markup should include whitespace between <li>s
+		// The markup should include whitespace between <li>'s.
 		$this->assertRegExp( '/\s<li.*>|<\/li>\s/U', $menu );
 		$this->assertNotRegExp( '/<\/li><li.*>/U', $menu );
 
-		// Whitepsace suppressed.
+		// Whitespace suppressed.
 		$menu = wp_nav_menu(
 			array(
 				'echo'         => false,
@@ -472,7 +472,7 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 			)
 		);
 
-		// The markup should not include whitespace around <li>s
+		// The markup should not include whitespace around <li>'s.
 		$this->assertNotRegExp( '/\s<li.*>|<\/li>\s/U', $menu );
 		$this->assertRegExp( '/><li.*>|<\/li></U', $menu );
 	}

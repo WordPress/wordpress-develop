@@ -15,17 +15,17 @@ if ( ! defined( 'WP_ADMIN' ) ) {
 }
 
 if ( defined( 'ABSPATH' ) ) {
-	require_once( ABSPATH . 'wp-load.php' );
+	require_once ABSPATH . 'wp-load.php';
 } else {
-	require_once( dirname( dirname( __FILE__ ) ) . '/wp-load.php' );
+	require_once dirname( __DIR__ ) . '/wp-load.php';
 }
 
-require_once( ABSPATH . 'wp-admin/admin.php' );
+require_once ABSPATH . 'wp-admin/admin.php';
 
 header( 'Content-Type: text/plain; charset=' . get_option( 'blog_charset' ) );
 
 if ( isset( $_REQUEST['action'] ) && 'upload-attachment' === $_REQUEST['action'] ) {
-	include( ABSPATH . 'wp-admin/includes/ajax-actions.php' );
+	require ABSPATH . 'wp-admin/includes/ajax-actions.php';
 
 	send_nosniff_header();
 	nocache_headers();
@@ -38,7 +38,7 @@ if ( ! current_user_can( 'upload_files' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to upload files.' ) );
 }
 
-// just fetch the detail form for that attachment
+// Just fetch the detail form for that attachment.
 if ( isset( $_REQUEST['attachment_id'] ) && intval( $_REQUEST['attachment_id'] ) && $_REQUEST['fetch'] ) {
 	$id   = intval( $_REQUEST['attachment_id'] );
 	$post = get_post( $id );
@@ -112,7 +112,7 @@ if ( $_REQUEST['short'] ) {
 	// Short form response - attachment ID only.
 	echo $id;
 } else {
-	// Long form response - big chunk of html.
+	// Long form response - big chunk of HTML.
 	$type = $_REQUEST['type'];
 
 	/**

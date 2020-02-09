@@ -61,7 +61,7 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 		add_user_meta( self::$author_id, 'user_description', 'user description' );
 		$this->assertEquals( 'user description', get_user_meta( self::$author_id, 'user_description', true ) );
 		// user_description in meta is ignored. The content of description is returned instead.
-		// See #20285
+		// See #20285.
 		$this->assertEquals( 'test_author', get_the_author_meta( 'user_description' ) );
 		$this->assertEquals( 'test_author', trim( get_the_author_meta( 'description' ) ) );
 		update_user_meta( self::$author_id, 'user_description', '' );
@@ -80,7 +80,7 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 	}
 
 	function test_get_the_author_posts() {
-		// Test with no global post, result should be 0 because no author is found
+		// Test with no global post, result should be 0 because no author is found.
 		$this->assertEquals( 0, get_the_author_posts() );
 		$GLOBALS['post'] = self::$post_id;
 		$this->assertEquals( 1, get_the_author_posts() );

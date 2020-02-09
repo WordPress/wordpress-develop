@@ -140,7 +140,7 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 		add_filter( 'wp_privacy_personal_data_erasers', array( $this, 'register_custom_personal_data_eraser' ) );
 
 		$this->_setRole( 'administrator' );
-		// erase_others_personal_data meta cap in Multisite installation is only granted to those with `manage_network` capability.
+		// `erase_others_personal_data` meta cap in Multisite installation is only granted to those with `manage_network` capability.
 		if ( is_multisite() ) {
 			grant_super_admin( get_current_user_id() );
 		}
@@ -177,7 +177,7 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 *
 	 * @param array $erasers List of data erasers.
 	 *
-	 * @return array $erasersList of data erasers.
+	 * @return array Array of data erasers.
 	 */
 	public function filter_eraser_callback_value( $erasers ) {
 		$erasers[ self::$eraser_key ]['callback'] = $this->new_callback_value;
@@ -204,7 +204,7 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 *
 	 * @param array $erasers Erasers.
 	 *
-	 * @return array $erasers Erasers.
+	 * @return array Erasers.
 	 */
 	public function filter_unset_eraser_index( $erasers ) {
 		if ( false === $this->key_to_unset ) {
@@ -236,7 +236,7 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 * @param string $email_address The requester's email address.
 	 * @param int    $page          Page number.
 	 *
-	 * @return array $return Export data.
+	 * @return array Export data.
 	 */
 	public function filter_unset_response_index( $email_address, $page = 1 ) {
 		$response = $this->callback_personal_data_eraser( $email_address, $page );
@@ -312,15 +312,11 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test requests do not succeed on multisite when the current user is not a network admin.
 	 *
-	 * @group multisite
-	 *
 	 * @ticket 43438
+	 * @group multisite
+	 * @group ms-required
 	 */
 	public function test_error_when_current_user_missing_required_capabilities_multisite() {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'This test only runs on multisite.' );
-		}
-
 		revoke_super_admin( get_current_user_id() );
 
 		$this->_make_ajax_call();
@@ -649,7 +645,7 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 * @param string $email_address The requester's email address.
 	 * @param int    $page          Page number.
 	 *
-	 * @return array $return Export data.
+	 * @return array Export data.
 	 */
 	public function filter_response_messages_invalid( $email_address, $page = 1 ) {
 		$response             = $this->callback_personal_data_eraser( $email_address, $page );
@@ -770,7 +766,7 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 *
 	 * @param array $erasers An array of personal data erasers.
 	 *
-	 * @return array $erasers An array of personal data erasers.
+	 * @return array An array of personal data erasers.
 	 */
 	public function register_custom_personal_data_eraser( $erasers ) {
 		$erasers[ self::$eraser_key ] = array(
@@ -809,7 +805,7 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Helper function for ajax handler.
+	 * Helper function for Ajax handler.
 	 *
 	 * @since 5.2.0
 	 *

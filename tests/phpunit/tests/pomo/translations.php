@@ -12,8 +12,8 @@ class Tests_POMO_Translations extends WP_UnitTestCase {
 		$po     = new Translations();
 		$po->add_entry( $entry );
 		$this->assertEquals( array( $entry->key() => $entry ), $po->entries );
-		// add the same entry more than once
-		// we do not need to test proper key generation here, see test_key()
+		// Add the same entry more than once.
+		// We do not need to test proper key generation here, see test_key().
 		$po->add_entry( $entry );
 		$po->add_entry( $entry );
 		$this->assertEquals( array( $entry->key() => $entry ), $po->entries );
@@ -25,7 +25,7 @@ class Tests_POMO_Translations extends WP_UnitTestCase {
 			),
 			$po->entries
 		);
-		// add empty entry
+		// Add empty entry.
 		$this->assertEquals( false, $po->add_entry( $empty ) );
 		$this->assertEquals(
 			array(
@@ -35,7 +35,7 @@ class Tests_POMO_Translations extends WP_UnitTestCase {
 			$po->entries
 		);
 
-		// give add_entry() the arguments and let it create the entry itself
+		// Give add_entry() the arguments and let it create the entry itself.
 		$po = new Translations();
 		$po->add_entry( array( 'singular' => 'baba' ) );
 		$entries = array_values( $po->entries );
@@ -93,12 +93,12 @@ class Tests_POMO_Translations extends WP_UnitTestCase {
 		$domain->add_entry( $entry_2 );
 		$this->assertEquals( 'other', $domain->translate_plural( 'other', 'others', 1 ) );
 		$this->assertEquals( 'others', $domain->translate_plural( 'other', 'others', 111 ) );
-		// too few translations + cont logic
+		// Too few translations + cont logic.
 		$this->assertEquals( 'babas', $domain->translate_plural( 'baba', 'babas', 2 ) );
 		$this->assertEquals( 'babas', $domain->translate_plural( 'baba', 'babas', 0 ) );
 		$this->assertEquals( 'babas', $domain->translate_plural( 'baba', 'babas', -1 ) );
 		$this->assertEquals( 'babas', $domain->translate_plural( 'baba', 'babas', 999 ) );
-		// proper
+		// Proper.
 		$this->assertEquals( 'dyadox', $domain->translate_plural( 'dyado', 'dyados', 1 ) );
 		$this->assertEquals( 'dyadoy', $domain->translate_plural( 'dyado', 'dyados', 0 ) );
 		$this->assertEquals( 'dyadoy', $domain->translate_plural( 'dyado', 'dyados', 18881 ) );

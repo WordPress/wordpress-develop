@@ -6,7 +6,7 @@
  * @subpackage Administration
  */
 /** WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'manage_options' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to manage options for this site.' ) );
@@ -32,7 +32,7 @@ get_current_screen()->set_help_sidebar(
 	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
-include( ABSPATH . 'wp-admin/admin-header.php' );
+require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 
 <div class="wrap">
@@ -204,8 +204,8 @@ printf(
 </fieldset></td>
 </tr>
 <tr>
-<th scope="row"><?php _e( 'Comment Blacklist' ); ?></th>
-<td><fieldset><legend class="screen-reader-text"><span><?php _e( 'Comment Blacklist' ); ?></span></legend>
+<th scope="row"><?php _e( 'Comment Blocklist' ); ?></th>
+<td><fieldset><legend class="screen-reader-text"><span><?php _e( 'Comment Blocklist' ); ?></span></legend>
 <p><label for="blacklist_keys"><?php _e( 'When a comment contains any of these words in its content, name, URL, email, or IP address, it will be put in the trash. One word or IP address per line. It will match inside words, so &#8220;press&#8221; will match &#8220;WordPress&#8221;.' ); ?></label></p>
 <p>
 <textarea name="blacklist_keys" rows="10" cols="50" id="blacklist_keys" class="large-text code"><?php echo esc_textarea( get_option( 'blacklist_keys' ) ); ?></textarea>
@@ -220,7 +220,7 @@ printf(
 <p><?php _e( 'An avatar is an image that follows you from weblog to weblog appearing beside your name when you comment on avatar enabled sites. Here you can enable the display of avatars for people who comment on your site.' ); ?></p>
 
 <?php
-// the above would be a good place to link to codex documentation on the gravatar functions, for putting it in themes. anything like that?
+// The above would be a good place to link to the documentation on the Gravatar functions, for putting it in themes. Anything like that?
 
 $show_avatars       = get_option( 'show_avatars' );
 $show_avatars_class = '';
@@ -294,7 +294,7 @@ $avatar_defaults = apply_filters( 'avatar_defaults', $avatar_defaults );
 $default         = get_option( 'avatar_default', 'mystery' );
 $avatar_list     = '';
 
-// Force avatars on to display these choices
+// Force avatars on to display these choices.
 add_filter( 'pre_option_show_avatars', '__return_true', 100 );
 
 foreach ( $avatar_defaults as $default_key => $default_name ) {
@@ -328,4 +328,4 @@ echo apply_filters( 'default_avatar_select', $avatar_list );
 </form>
 </div>
 
-<?php include( ABSPATH . 'wp-admin/admin-footer.php' ); ?>
+<?php require_once ABSPATH . 'wp-admin/admin-footer.php'; ?>

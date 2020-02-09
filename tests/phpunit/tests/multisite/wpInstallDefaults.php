@@ -21,7 +21,8 @@ if ( is_multisite() ) :
 			$first_comment = get_comments();
 
 			restore_current_blog();
-			wpmu_delete_blog( $blog_id, true );
+
+			wp_delete_site( $blog_id );
 
 			$this->assertNotEmpty( $first_page->post_content );
 			$this->assertNotEmpty( $first_comment[0]->comment_content );
@@ -46,7 +47,8 @@ if ( is_multisite() ) :
 			$first_comment = get_comments();
 
 			restore_current_blog();
-			wpmu_delete_blog( $blog_id, true );
+
+			wp_delete_site( $blog_id );
 
 			$this->assertNotEmpty( $first_page->post_content );
 			$this->assertNotEmpty( $first_comment[0]->comment_content );
@@ -71,7 +73,8 @@ if ( is_multisite() ) :
 			$first_comment = get_comments();
 
 			restore_current_blog();
-			wpmu_delete_blog( $blog_id, true );
+
+			wp_delete_site( $blog_id );
 
 			$this->assertEquals( 'Some page content', $first_page->post_content );
 			$this->assertEquals( 'Some comment content', $first_comment[0]->comment_content );

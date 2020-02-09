@@ -6,42 +6,42 @@
  * @subpackage Administration
  */
 
-// don't load directly
+// Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
 
-// Back compat hooks
+// Back compat hooks.
 if ( 'category' == $taxonomy ) {
 	/**
 	 * Fires before the Edit Category form.
 	 *
 	 * @since 2.1.0
-	 * @deprecated 3.0.0 Use {$taxonomy}_pre_edit_form instead.
+	 * @deprecated 3.0.0 Use {@see '{$taxonomy}_pre_edit_form'} instead.
 	 *
 	 * @param WP_Term $tag Current category term object.
 	 */
-	do_action( 'edit_category_form_pre', $tag );
+	do_action_deprecated( 'edit_category_form_pre', array( $tag ), '3.0.0', '{$taxonomy}_pre_edit_form' );
 } elseif ( 'link_category' == $taxonomy ) {
 	/**
 	 * Fires before the Edit Link Category form.
 	 *
 	 * @since 2.3.0
-	 * @deprecated 3.0.0 Use {$taxonomy}_pre_edit_form instead.
+	 * @deprecated 3.0.0 Use {@see '{$taxonomy}_pre_edit_form'} instead.
 	 *
 	 * @param WP_Term $tag Current link category term object.
 	 */
-	do_action( 'edit_link_category_form_pre', $tag );
+	do_action_deprecated( 'edit_link_category_form_pre', array( $tag ), '3.0.0', '{$taxonomy}_pre_edit_form' );
 } else {
 	/**
 	 * Fires before the Edit Tag form.
 	 *
 	 * @since 2.5.0
-	 * @deprecated 3.0.0 Use {$taxonomy}_pre_edit_form instead.
+	 * @deprecated 3.0.0 Use {@see '{$taxonomy}_pre_edit_form'} instead.
 	 *
 	 * @param WP_Term $tag Current tag term object.
 	 */
-	do_action( 'edit_tag_form_pre', $tag );
+	do_action_deprecated( 'edit_tag_form_pre', array( $tag ), '3.0.0', '{$taxonomy}_pre_edit_form' );
 }
 
 /**
@@ -52,7 +52,7 @@ wp_reset_vars( array( 'wp_http_referer' ) );
 $wp_http_referer = remove_query_arg( array( 'action', 'message', 'tag_ID' ), $wp_http_referer );
 
 /** Also used by Edit Tags */
-require_once( ABSPATH . 'wp-admin/includes/edit-tag-messages.php' );
+require_once ABSPATH . 'wp-admin/includes/edit-tag-messages.php';
 
 /**
  * Fires before the Edit Term form for all taxonomies.
@@ -191,37 +191,37 @@ if ( isset( $tag->name ) ) {
 			<p class="description"><?php _e( 'The description is not prominent by default; however, some themes may show it.' ); ?></p></td>
 		</tr>
 		<?php
-		// Back compat hooks
+		// Back compat hooks.
 		if ( 'category' == $taxonomy ) {
 			/**
 			 * Fires after the Edit Category form fields are displayed.
 			 *
 			 * @since 2.9.0
-			 * @deprecated 3.0.0 Use {$taxonomy}_edit_form_fields instead.
+			 * @deprecated 3.0.0 Use {@see '{$taxonomy}_edit_form_fields'} instead.
 			 *
 			 * @param WP_Term $tag Current category term object.
 			 */
-			do_action( 'edit_category_form_fields', $tag );
+			do_action_deprecated( 'edit_category_form_fields', array( $tag ), '3.0.0', '{$taxonomy}_edit_form_fields' );
 		} elseif ( 'link_category' == $taxonomy ) {
 			/**
 			 * Fires after the Edit Link Category form fields are displayed.
 			 *
 			 * @since 2.9.0
-			 * @deprecated 3.0.0 Use {$taxonomy}_edit_form_fields instead.
+			 * @deprecated 3.0.0 Use {@see '{$taxonomy}_edit_form_fields'} instead.
 			 *
 			 * @param WP_Term $tag Current link category term object.
 			 */
-			do_action( 'edit_link_category_form_fields', $tag );
+			do_action_deprecated( 'edit_link_category_form_fields', array( $tag ), '3.0.0', '{$taxonomy}_edit_form_fields' );
 		} else {
 			/**
 			 * Fires after the Edit Tag form fields are displayed.
 			 *
 			 * @since 2.9.0
-			 * @deprecated 3.0.0 Use {$taxonomy}_edit_form_fields instead.
+			 * @deprecated 3.0.0 Use {@see '{$taxonomy}_edit_form_fields'} instead.
 			 *
 			 * @param WP_Term $tag Current tag term object.
 			 */
-			do_action( 'edit_tag_form_fields', $tag );
+			do_action_deprecated( 'edit_tag_form_fields', array( $tag ), '3.0.0', '{$taxonomy}_edit_form_fields' );
 		}
 		/**
 		 * Fires after the Edit Term form fields are displayed.
@@ -238,23 +238,23 @@ if ( isset( $tag->name ) ) {
 		?>
 	</table>
 <?php
-// Back compat hooks
+// Back compat hooks.
 if ( 'category' == $taxonomy ) {
 	/** This action is documented in wp-admin/edit-tags.php */
-	do_action( 'edit_category_form', $tag );
+	do_action_deprecated( 'edit_category_form', array( $tag ), '3.0.0', '{$taxonomy}_add_form' );
 } elseif ( 'link_category' == $taxonomy ) {
 	/** This action is documented in wp-admin/edit-tags.php */
-	do_action( 'edit_link_category_form', $tag );
+	do_action_deprecated( 'edit_link_category_form', array( $tag ), '3.0.0', '{$taxonomy}_add_form' );
 } else {
 	/**
 	 * Fires at the end of the Edit Term form.
 	 *
 	 * @since 2.5.0
-	 * @deprecated 3.0.0 Use {$taxonomy}_edit_form instead.
+	 * @deprecated 3.0.0 Use {@see '{$taxonomy}_edit_form'} instead.
 	 *
 	 * @param WP_Term $tag Current taxonomy term object.
 	 */
-	do_action( 'edit_tag_form', $tag );
+	do_action_deprecated( 'edit_tag_form', array( $tag ), '3.0.0', '{$taxonomy}_edit_form' );
 }
 /**
  * Fires at the end of the Edit Term form for all taxonomies.

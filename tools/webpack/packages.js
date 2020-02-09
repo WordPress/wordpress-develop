@@ -2,8 +2,8 @@
  * External dependencies
  */
 const { DefinePlugin } = require( 'webpack' );
-const LiveReloadPlugin = require( 'webpack-livereload-plugin' );
 const CopyWebpackPlugin = require( 'copy-webpack-plugin' );
+const LiveReloadPlugin = require( 'webpack-livereload-plugin' );
 const postcss = require( 'postcss' );
 const UglifyJS = require( 'uglify-js' );
 
@@ -14,6 +14,7 @@ const { get } = require( 'lodash' );
  * WordPress dependencies
  */
 const CustomTemplatedPathPlugin = require( '@wordpress/custom-templated-path-webpack-plugin' );
+const DependencyExtractionPlugin = require( '@wordpress/dependency-extraction-webpack-plugin' );
 const LibraryExportDefaultPlugin = require( '@wordpress/library-export-default-webpack-plugin' );
 
 /**
@@ -62,8 +63,12 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	buildTarget = buildTarget  + '/wp-includes';
 
 	const WORDPRESS_NAMESPACE = '@wordpress/';
+	const BUNDLED_PACKAGES = [ '@wordpress/icons' ];
 	const packages = Object.keys( dependencies )
-		.filter( ( packageName ) => packageName.startsWith( WORDPRESS_NAMESPACE ) )
+		.filter( ( packageName ) =>
+ 			! BUNDLED_PACKAGES.includes( packageName ) &&
+ 			packageName.startsWith( WORDPRESS_NAMESPACE )
+ 		)
 		.map( ( packageName ) => packageName.replace( WORDPRESS_NAMESPACE, '' ) );
 
 	const vendors = {
@@ -93,35 +98,31 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'wp-polyfill-node-contains.min.js': 'polyfill-library/polyfills/Node/prototype/contains/polyfill.js',
 	};
 
+	const blockNames = [
+		'archives',
+		'block',
+		'calendar',
+		'categories',
+		'latest-comments',
+		'latest-posts',
+		'navigation',
+		'rss',
+		'search',
+		'shortcode',
+		'tag-cloud',
+	];
 	const phpFiles = {
 		'block-serialization-default-parser/parser.php': 'wp-includes/class-wp-block-parser.php',
-		'block-library/src/archives/index.php': 'wp-includes/blocks/archives.php',
-		'block-library/src/block/index.php': 'wp-includes/blocks/block.php',
-		'block-library/src/calendar/index.php': 'wp-includes/blocks/calendar.php',
-		'block-library/src/categories/index.php': 'wp-includes/blocks/categories.php',
-		'block-library/src/latest-comments/index.php': 'wp-includes/blocks/latest-comments.php',
-		'block-library/src/latest-posts/index.php': 'wp-includes/blocks/latest-posts.php',
-		'block-library/src/rss/index.php': 'wp-includes/blocks/rss.php',
-		'block-library/src/search/index.php': 'wp-includes/blocks/search.php',
-		'block-library/src/shortcode/index.php': 'wp-includes/blocks/shortcode.php',
-		'block-library/src/tag-cloud/index.php': 'wp-includes/blocks/tag-cloud.php',
+		...blockNames.reduce( ( files, blockName ) => {
+			files[ `block-library/src/${ blockName }/index.php` ] = `wp-includes/blocks/${ blockName }.php`;
+			return files;
+		} , {} ),
 	};
-
-	const externals = {
-		react: 'React',
-		'react-dom': 'ReactDOM',
-		tinymce: 'tinymce',
-		moment: 'moment',
-		jquery: 'jQuery',
-		lodash: 'lodash',
-		'lodash-es': 'lodash',
+	const blockMetadataCopies = {
+		from: join( baseDir, `node_modules/@wordpress/block-library/src/+(${ blockNames.join( '|' ) })/block.json` ),
+		test: new RegExp( `\/([^/]+)\/block\.json$` ),
+		to: join( baseDir, `${ buildTarget }/blocks/[1]/block.json` ),
 	};
-
-	packages.forEach( ( name ) => {
-		externals[ `@wordpress/${ name }` ] = {
-			this: [ 'wp', camelCaseDash( name ) ],
-		};
-	} );
 
 	const developmentCopies = mapVendorCopies( vendors, buildTarget );
 	const minifiedCopies = mapVendorCopies( minifiedVendors, buildTarget );
@@ -184,7 +185,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			},
 			libraryTarget: 'this',
 		},
-		externals,
 		resolve: {
 			modules: [
 				baseDir,
@@ -239,11 +239,15 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 					return path;
 				},
 			} ),
+			new DependencyExtractionPlugin( {
+				injectPolyfill: true,
+			} ),
 			new CopyWebpackPlugin(
 				[
 					...vendorCopies,
 					...cssCopies,
 					...phpCopies,
+					blockMetadataCopies,
 				],
 			),
 		],

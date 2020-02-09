@@ -11,8 +11,8 @@ class Tests_Attachment_Slashes extends WP_UnitTestCase {
 		$this->author_id = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( $this->author_id );
 
-		// it is important to test with both even and odd numbered slashes as
-		// kses does a strip-then-add slashes in some of its function calls
+		// It is important to test with both even and odd numbered slashes,
+		// as KSES does a strip-then-add slashes in some of its function calls.
 		$this->slash_1 = 'String with 1 slash \\';
 		$this->slash_2 = 'String with 2 slashes \\\\';
 		$this->slash_3 = 'String with 3 slashes \\\\\\';
@@ -23,7 +23,7 @@ class Tests_Attachment_Slashes extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the model function that expects slashed data
+	 * Tests the model function that expects slashed data.
 	 */
 	function test_wp_insert_attachment() {
 		$id   = wp_insert_attachment(

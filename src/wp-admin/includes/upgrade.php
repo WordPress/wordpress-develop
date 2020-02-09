@@ -10,14 +10,14 @@
 
 /** Include user installation customization script. */
 if ( file_exists( WP_CONTENT_DIR . '/install.php' ) ) {
-	require( WP_CONTENT_DIR . '/install.php' );
+	require WP_CONTENT_DIR . '/install.php';
 }
 
 /** WordPress Administration API */
-require_once( ABSPATH . 'wp-admin/includes/admin.php' );
+require_once ABSPATH . 'wp-admin/includes/admin.php';
 
 /** WordPress Schema API */
-require_once( ABSPATH . 'wp-admin/includes/schema.php' );
+require_once ABSPATH . 'wp-admin/includes/schema.php';
 
 if ( ! function_exists( 'wp_install' ) ) :
 	/**
@@ -35,7 +35,14 @@ if ( ! function_exists( 'wp_install' ) ) :
 	 * @param string $deprecated    Optional. Not used.
 	 * @param string $user_password Optional. User's chosen password. Default empty (random password).
 	 * @param string $language      Optional. Language chosen. Default empty.
-	 * @return array Array keys 'url', 'user_id', 'password', and 'password_message'.
+	 * @return array {
+	 *     Data for the newly installed site.
+	 *
+	 *     @type string $url              The URL of the site.
+	 *     @type int    $user_id          The ID of the site owner.
+	 *     @type string $password         The password of the site owner, if their user account didn't already exist.
+	 *     @type string $password_message The explanatory message regarding the password.
+	 * }
 	 */
 	function wp_install( $blog_title, $user_name, $user_email, $public, $deprecated = '', $user_password = '', $language = '' ) {
 		if ( ! empty( $deprecated ) ) {
@@ -75,22 +82,31 @@ if ( ! function_exists( 'wp_install' ) ) :
 		$user_id        = username_exists( $user_name );
 		$user_password  = trim( $user_password );
 		$email_password = false;
+		$user_created   = false;
+
 		if ( ! $user_id && empty( $user_password ) ) {
 			$user_password = wp_generate_password( 12, false );
 			$message       = __( '<strong><em>Note that password</em></strong> carefully! It is a <em>random</em> password that was generated just for you.' );
 			$user_id       = wp_create_user( $user_name, $user_password, $user_email );
 			update_user_option( $user_id, 'default_password_nag', true, true );
 			$email_password = true;
+			$user_created   = true;
 		} elseif ( ! $user_id ) {
-			// Password has been provided
-			$message = '<em>' . __( 'Your chosen password.' ) . '</em>';
-			$user_id = wp_create_user( $user_name, $user_password, $user_email );
+			// Password has been provided.
+			$message      = '<em>' . __( 'Your chosen password.' ) . '</em>';
+			$user_id      = wp_create_user( $user_name, $user_password, $user_email );
+			$user_created = true;
 		} else {
 			$message = __( 'User already exists. Password inherited.' );
 		}
 
 		$user = new WP_User( $user_id );
 		$user->set_role( 'administrator' );
+
+		if ( $user_created ) {
+			$user->user_url = $guessurl;
+			wp_update_user( $user );
+		}
 
 		wp_install_defaults( $user_id );
 
@@ -138,14 +154,14 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 	function wp_install_defaults( $user_id ) {
 		global $wpdb, $wp_rewrite, $table_prefix;
 
-		// Default category
+		// Default category.
 		$cat_name = __( 'Uncategorized' );
 		/* translators: Default category slug. */
 		$cat_slug = sanitize_title( _x( 'Uncategorized', 'Default category slug' ) );
 
 		if ( global_terms_enabled() ) {
 			$cat_id = $wpdb->get_var( $wpdb->prepare( "SELECT cat_ID FROM {$wpdb->sitecategories} WHERE category_nicename = %s", $cat_slug ) );
-			if ( $cat_id == null ) {
+			if ( null == $cat_id ) {
 				$wpdb->insert(
 					$wpdb->sitecategories,
 					array(
@@ -183,7 +199,7 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 		);
 		$cat_tt_id = $wpdb->insert_id;
 
-		// First post
+		// First post.
 		$now             = current_time( 'mysql' );
 		$now_gmt         = current_time( 'mysql', 1 );
 		$first_post_guid = get_option( 'home' ) . '/?p=1';
@@ -203,7 +219,7 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 				sprintf( '<a href="%s">%s</a>', esc_url( network_home_url() ), get_network()->site_name )
 			);
 
-			// Back-compat for pre-4.4
+			// Back-compat for pre-4.4.
 			$first_post = str_replace( 'SITE_URL', esc_url( network_home_url() ), $first_post );
 			$first_post = str_replace( 'SITE_NAME', get_network()->site_name, $first_post );
 		} else {
@@ -241,7 +257,7 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 			)
 		);
 
-		// Default comment
+		// Default comment.
 		if ( is_multisite() ) {
 			$first_comment_author = get_site_option( 'first_comment_author' );
 			$first_comment_email  = get_site_option( 'first_comment_email' );
@@ -270,7 +286,7 @@ Commenter avatars come from <a href="https://gravatar.com">Gravatar</a>.'
 			)
 		);
 
-		// First Page
+		// First page.
 		if ( is_multisite() ) {
 			$first_page = get_site_option( 'first_page' );
 		}
@@ -336,13 +352,13 @@ Commenter avatars come from <a href="https://gravatar.com">Gravatar</a>.'
 			)
 		);
 
-		// Privacy Policy page
+		// Privacy Policy page.
 		if ( is_multisite() ) {
 			// Disable by default unless the suggested content is provided.
 			$privacy_policy_content = get_site_option( 'default_privacy_policy_content' );
 		} else {
 			if ( ! class_exists( 'WP_Privacy_Policy_Content' ) ) {
-				include_once( ABSPATH . 'wp-admin/includes/class-wp-privacy-policy-content.php' );
+				include_once ABSPATH . 'wp-admin/includes/class-wp-privacy-policy-content.php';
 			}
 
 			$privacy_policy_content = WP_Privacy_Policy_Content::get_default_content();
@@ -477,8 +493,9 @@ Commenter avatars come from <a href="https://gravatar.com">Gravatar</a>.'
 			$wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->usermeta WHERE user_id != %d AND meta_key = %s", $user_id, $table_prefix . 'user_level' ) );
 			$wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->usermeta WHERE user_id != %d AND meta_key = %s", $user_id, $table_prefix . 'capabilities' ) );
 
-			// Delete any caps that snuck into the previously active blog. (Hardcoded to blog 1 for now.) TODO: Get previous_blog_id.
-			if ( ! is_super_admin( $user_id ) && $user_id != 1 ) {
+			// Delete any caps that snuck into the previously active blog. (Hardcoded to blog 1 for now.)
+			// TODO: Get previous_blog_id.
+			if ( ! is_super_admin( $user_id ) && 1 != $user_id ) {
 				$wpdb->delete(
 					$wpdb->usermeta,
 					array(
@@ -534,7 +551,7 @@ function wp_install_maybe_enable_pretty_permalinks() {
 
 		$test_url = '';
 
-		// Test against a real WordPress Post
+		// Test against a real WordPress post.
 		$first_post = get_page_by_path( sanitize_title( _x( 'hello-world', 'Default post slug' ) ), OBJECT, 'post' );
 		if ( $first_post ) {
 			$test_url = get_permalink( $first_post->ID );
@@ -549,7 +566,7 @@ function wp_install_maybe_enable_pretty_permalinks() {
 		 */
 		$response          = wp_remote_get( $test_url, array( 'timeout' => 5 ) );
 		$x_pingback_header = wp_remote_retrieve_header( $response, 'x-pingback' );
-		$pretty_permalinks = $x_pingback_header && $x_pingback_header === get_bloginfo( 'pingback_url' );
+		$pretty_permalinks = $x_pingback_header && get_bloginfo( 'pingback_url' ) === $x_pingback_header;
 
 		if ( $pretty_permalinks ) {
 			return true;
@@ -836,7 +853,7 @@ function upgrade_all() {
 function upgrade_100() {
 	global $wpdb;
 
-	// Get the title and ID of every post, post_name to check if it already has a value
+	// Get the title and ID of every post, post_name to check if it already has a value.
 	$posts = $wpdb->get_results( "SELECT ID, post_title, post_name FROM $wpdb->posts WHERE post_name = ''" );
 	if ( $posts ) {
 		foreach ( $posts as $post ) {
@@ -875,9 +892,9 @@ function upgrade_100() {
 	$allposts = $wpdb->get_results( "SELECT ID, post_category FROM $wpdb->posts WHERE post_category != '0' $catwhere" );
 	if ( $allposts ) :
 		foreach ( $allposts as $post ) {
-			// Check to see if it's already been imported
+			// Check to see if it's already been imported.
 			$cat = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->post2cat WHERE post_id = %d AND category_id = %d", $post->ID, $post->post_category ) );
-			if ( ! $cat && 0 != $post->post_category ) { // If there's no result
+			if ( ! $cat && 0 != $post->post_category ) { // If there's no result.
 				$wpdb->insert(
 					$wpdb->post2cat,
 					array(
@@ -901,7 +918,7 @@ function upgrade_100() {
 function upgrade_101() {
 	global $wpdb;
 
-	// Clean up indices, add a few
+	// Clean up indices, add a few.
 	add_clean_index( $wpdb->posts, 'post_name' );
 	add_clean_index( $wpdb->posts, 'post_status' );
 	add_clean_index( $wpdb->categories, 'category_nicename' );
@@ -938,7 +955,7 @@ function upgrade_110() {
 		}
 	}
 
-	// Get the GMT offset, we'll use that later on
+	// Get the GMT offset, we'll use that later on.
 	$all_options = get_alloptions_110();
 
 	$time_difference = $all_options->time_difference;
@@ -952,17 +969,19 @@ function upgrade_110() {
 	$diff_gmt_weblogger    = $diff_gmt_server - $diff_weblogger_server;
 	$gmt_offset            = -$diff_gmt_weblogger;
 
-	// Add a gmt_offset option, with value $gmt_offset
+	// Add a gmt_offset option, with value $gmt_offset.
 	add_option( 'gmt_offset', $gmt_offset );
 
-	// Check if we already set the GMT fields (if we did, then
-	// MAX(post_date_gmt) can't be '0000-00-00 00:00:00'
-	// <michel_v> I just slapped myself silly for not thinking about it earlier
+	/*
+	 * Check if we already set the GMT fields. If we did, then
+	 * MAX(post_date_gmt) can't be '0000-00-00 00:00:00'.
+	 * <michel_v> I just slapped myself silly for not thinking about it earlier.
+	 */
 	$got_gmt_fields = ! ( $wpdb->get_var( "SELECT MAX(post_date_gmt) FROM $wpdb->posts" ) == '0000-00-00 00:00:00' );
 
 	if ( ! $got_gmt_fields ) {
 
-		// Add or subtract time to all dates, to get GMT dates
+		// Add or subtract time to all dates, to get GMT dates.
 		$add_hours   = intval( $diff_gmt_weblogger );
 		$add_minutes = intval( 60 * ( $diff_gmt_weblogger - $add_hours ) );
 		$wpdb->query( "UPDATE $wpdb->posts SET post_date_gmt = DATE_ADD(post_date, INTERVAL '$add_hours:$add_minutes' HOUR_MINUTE)" );
@@ -1036,17 +1055,17 @@ function upgrade_130() {
 		update_option( 'active_plugins', $active_plugins );
 	}
 
-	// Obsolete tables
+	// Obsolete tables.
 	$wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'optionvalues' );
 	$wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'optiontypes' );
 	$wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'optiongroups' );
 	$wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'optiongroup_options' );
 
-	// Update comments table to use comment_type
+	// Update comments table to use comment_type.
 	$wpdb->query( "UPDATE $wpdb->comments SET comment_type='trackback', comment_content = REPLACE(comment_content, '<trackback />', '') WHERE comment_content LIKE '<trackback />%'" );
 	$wpdb->query( "UPDATE $wpdb->comments SET comment_type='pingback', comment_content = REPLACE(comment_content, '<pingback />', '') WHERE comment_content LIKE '<pingback />%'" );
 
-	// Some versions have multiple duplicate option_name rows with the same values
+	// Some versions have multiple duplicate option_name rows with the same values.
 	$options = $wpdb->get_results( "SELECT option_name, COUNT(option_name) AS dupes FROM `$wpdb->options` GROUP BY option_name" );
 	foreach ( $options as $option ) {
 		if ( 1 != $option->dupes ) { // Could this be done in the query?
@@ -1108,22 +1127,22 @@ function upgrade_160() {
 
 		if ( isset( $user->user_idmode ) ) :
 			$idmode = $user->user_idmode;
-			if ( $idmode == 'nickname' ) {
+			if ( 'nickname' === $idmode ) {
 				$id = $user->user_nickname;
 			}
-			if ( $idmode == 'login' ) {
+			if ( 'login' === $idmode ) {
 				$id = $user->user_login;
 			}
-			if ( $idmode == 'firstname' ) {
+			if ( 'firstname' === $idmode ) {
 				$id = $user->user_firstname;
 			}
-			if ( $idmode == 'lastname' ) {
+			if ( 'lastname' === $idmode ) {
 				$id = $user->user_lastname;
 			}
-			if ( $idmode == 'namefl' ) {
+			if ( 'namefl' === $idmode ) {
 				$id = $user->user_firstname . ' ' . $user->user_lastname;
 			}
-			if ( $idmode == 'namelf' ) {
+			if ( 'namelf' === $idmode ) {
 				$id = $user->user_lastname . ' ' . $user->user_firstname;
 			}
 			if ( ! $idmode ) {
@@ -1354,7 +1373,7 @@ function upgrade_230() {
 	if ( $wp_current_db_version < 3570 ) {
 		/*
 		 * Create link_category terms for link categories. Create a map of link
-		 * cat IDs to link_category terms.
+		 * category IDs to link_category terms.
 		 */
 		$link_cat_id_map  = array();
 		$default_link_cat = 0;
@@ -1395,7 +1414,7 @@ function upgrade_230() {
 			$tt_ids[ $term_id ] = (int) $wpdb->insert_id;
 		}
 
-		// Associate links to cats.
+		// Associate links to categories.
 		$links = $wpdb->get_results( "SELECT link_id, link_category FROM $wpdb->links" );
 		if ( ! empty( $links ) ) {
 			foreach ( $links as $link ) {
@@ -1444,11 +1463,11 @@ function upgrade_230() {
 	}
 
 	if ( $wp_current_db_version < 4772 ) {
-		// Obsolete linkcategories table
+		// Obsolete linkcategories table.
 		$wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'linkcategories' );
 	}
 
-	// Recalculate all counts
+	// Recalculate all counts.
 	$terms = $wpdb->get_results( "SELECT term_taxonomy_id, taxonomy FROM $wpdb->term_taxonomy" );
 	foreach ( (array) $terms as $term ) {
 		if ( ( 'post_tag' == $term->taxonomy ) || ( 'category' == $term->taxonomy ) ) {
@@ -1570,7 +1589,7 @@ function upgrade_270() {
 		populate_roles_270();
 	}
 
-	// Update post_date for unpublished posts with empty timestamp
+	// Update post_date for unpublished posts with empty timestamp.
 	if ( $wp_current_db_version < 8921 ) {
 		$wpdb->query( "UPDATE $wpdb->posts SET post_date = post_modified WHERE post_date = '0000-00-00 00:00:00'" );
 	}
@@ -1621,7 +1640,8 @@ function upgrade_290() {
 	global $wp_current_db_version;
 
 	if ( $wp_current_db_version < 11958 ) {
-		// Previously, setting depth to 1 would redundantly disable threading, but now 2 is the minimum depth to avoid confusion
+		// Previously, setting depth to 1 would redundantly disable threading,
+		// but now 2 is the minimum depth to avoid confusion.
 		if ( get_option( 'thread_comments_depth' ) == '1' ) {
 			update_option( 'thread_comments_depth', 2 );
 			update_option( 'thread_comments', 0 );
@@ -1753,7 +1773,7 @@ function upgrade_330() {
 			$sidebars_widgets                   = $_sidebars_widgets;
 			unset( $_sidebars_widgets );
 
-			// intentional fall-through to upgrade to the next version.
+			// Intentional fall-through to upgrade to the next version.
 		case 2:
 			$sidebars_widgets                  = retrieve_widgets();
 			$sidebars_widgets['array_version'] = 3;
@@ -1811,7 +1831,7 @@ function upgrade_350() {
 	global $wp_current_db_version, $wpdb;
 
 	if ( $wp_current_db_version < 22006 && $wpdb->get_var( "SELECT link_id FROM $wpdb->links LIMIT 1" ) ) {
-		update_option( 'link_manager_enabled', 1 ); // Previously set to 0 by populate_options()
+		update_option( 'link_manager_enabled', 1 ); // Previously set to 0 by populate_options().
 	}
 
 	if ( $wp_current_db_version < 21811 && wp_should_upgrade_global_tables() ) {
@@ -1955,11 +1975,10 @@ function upgrade_430() {
  * @ignore
  * @since 4.3.0
  *
- * @global int  $wp_current_db_version The old (current) database version.
- * @global wpdb $wpdb                  WordPress database abstraction object.
+ * @global wpdb $wpdb WordPress database abstraction object.
  */
 function upgrade_430_fix_comments() {
-	global $wp_current_db_version, $wpdb;
+	global $wpdb;
 
 	$content_length = $wpdb->get_col_length( $wpdb->comments, 'comment_content' );
 
@@ -2006,7 +2025,7 @@ function upgrade_430_fix_comments() {
  * @since 4.3.1
  */
 function upgrade_431() {
-	// Fix incorrect cron entries for term splitting
+	// Fix incorrect cron entries for term splitting.
 	$cron_array = _get_cron_array();
 	if ( isset( $cron_array['wp_batch_split_terms'] ) ) {
 		unset( $cron_array['wp_batch_split_terms'] );
@@ -2123,11 +2142,13 @@ function upgrade_510() {
  * @since 5.3.0
  */
 function upgrade_530() {
-	// The `admin_email_lifespan` option may have been set by an admin that just logged in,
-	// saw the verification screen, clicked on a button there, and is now upgrading the db,
-	// or by populate_options() that is called earlier in upgrade_all().
-	// In the second case `admin_email_lifespan` should be reset so the verification screen
-	// is shown next time an admin logs in.
+	/*
+	 * The `admin_email_lifespan` option may have been set by an admin that just logged in,
+	 * saw the verification screen, clicked on a button there, and is now upgrading the db,
+	 * or by populate_options() that is called earlier in upgrade_all().
+	 * In the second case `admin_email_lifespan` should be reset so the verification screen
+	 * is shown next time an admin logs in.
+	 */
 	if ( function_exists( 'current_user_can' ) && ! current_user_can( 'manage_options' ) ) {
 		update_option( 'admin_email_lifespan', 0 );
 	}
@@ -2144,10 +2165,10 @@ function upgrade_530() {
 function upgrade_network() {
 	global $wp_current_db_version, $wpdb;
 
-	// Always clear expired transients
+	// Always clear expired transients.
 	delete_expired_transients( true );
 
-	// 2.8.
+	// 2.8
 	if ( $wp_current_db_version < 11549 ) {
 		$wpmu_sitewide_plugins   = get_site_option( 'wpmu_sitewide_plugins' );
 		$active_sitewide_plugins = get_site_option( 'active_sitewide_plugins' );
@@ -2228,7 +2249,7 @@ function upgrade_network() {
 	}
 
 	// 4.2
-	if ( $wp_current_db_version < 31351 && $wpdb->charset === 'utf8mb4' ) {
+	if ( $wp_current_db_version < 31351 && 'utf8mb4' === $wpdb->charset ) {
 		if ( wp_should_upgrade_global_tables() ) {
 			$wpdb->query( "ALTER TABLE $wpdb->usermeta DROP INDEX meta_key, ADD INDEX meta_key(meta_key(191))" );
 			$wpdb->query( "ALTER TABLE $wpdb->site DROP INDEX domain, ADD INDEX domain(domain(140),path(51))" );
@@ -2286,7 +2307,7 @@ function upgrade_network() {
 }
 
 //
-// General functions we use to actually do stuff
+// General functions we use to actually do stuff.
 //
 
 /**
@@ -2313,7 +2334,7 @@ function maybe_create_table( $table_name, $create_ddl ) {
 		return true;
 	}
 
-	// Didn't find it try to create it..
+	// Didn't find it, so try to create it.
 	$wpdb->query( $create_ddl );
 
 	// We cannot directly tell that whether this succeeded!
@@ -2338,7 +2359,7 @@ function drop_index( $table, $index ) {
 	global $wpdb;
 	$wpdb->hide_errors();
 	$wpdb->query( "ALTER TABLE `$table` DROP INDEX `$index`" );
-	// Now we need to take out all the extra ones we may have created
+	// Now we need to take out all the extra ones we may have created.
 	for ( $i = 0; $i < 25; $i++ ) {
 		$wpdb->query( "ALTER TABLE `$table` DROP INDEX `{$index}_$i`" );
 	}
@@ -2384,7 +2405,7 @@ function maybe_add_column( $table_name, $column_name, $create_ddl ) {
 		}
 	}
 
-	// Didn't find it try to create it.
+	// Didn't find it, so try to create it.
 	$wpdb->query( $create_ddl );
 
 	// We cannot directly tell that whether this succeeded!
@@ -2478,21 +2499,21 @@ function get_alloptions_110() {
 function __get_option( $setting ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
 	global $wpdb;
 
-	if ( $setting == 'home' && defined( 'WP_HOME' ) ) {
+	if ( 'home' === $setting && defined( 'WP_HOME' ) ) {
 		return untrailingslashit( WP_HOME );
 	}
 
-	if ( $setting == 'siteurl' && defined( 'WP_SITEURL' ) ) {
+	if ( 'siteurl' === $setting && defined( 'WP_SITEURL' ) ) {
 		return untrailingslashit( WP_SITEURL );
 	}
 
 	$option = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name = %s", $setting ) );
 
-	if ( 'home' == $setting && '' == $option ) {
+	if ( 'home' === $setting && '' == $option ) {
 		return __get_option( 'siteurl' );
 	}
 
-	if ( 'siteurl' == $setting || 'home' == $setting || 'category_base' == $setting || 'tag_base' == $setting ) {
+	if ( 'siteurl' === $setting || 'home' === $setting || 'category_base' === $setting || 'tag_base' === $setting ) {
 		$option = untrailingslashit( $option );
 	}
 
@@ -2551,7 +2572,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 		$queries = wp_get_db_schema( $queries );
 	}
 
-	// Separate individual queries into an array
+	// Separate individual queries into an array.
 	if ( ! is_array( $queries ) ) {
 		$queries = explode( ';', $queries );
 		$queries = array_filter( $queries );
@@ -2566,11 +2587,11 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 	 */
 	$queries = apply_filters( 'dbdelta_queries', $queries );
 
-	$cqueries   = array(); // Creation Queries
-	$iqueries   = array(); // Insertion Queries
+	$cqueries   = array(); // Creation queries.
+	$iqueries   = array(); // Insertion queries.
 	$for_update = array();
 
-	// Create a tablename index for an array ($cqueries) of queries
+	// Create a tablename index for an array ($cqueries) of queries.
 	foreach ( $queries as $qry ) {
 		if ( preg_match( '|CREATE TABLE ([^ ]*)|', $qry, $matches ) ) {
 			$cqueries[ trim( $matches[1], '`' ) ] = $qry;
@@ -2582,7 +2603,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 		} elseif ( preg_match( '|UPDATE ([^ ]*)|', $qry, $matches ) ) {
 			$iqueries[] = $qry;
 		} else {
-			// Unrecognized query type
+			// Unrecognized query type.
 		}
 	}
 
@@ -2619,7 +2640,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 			continue;
 		}
 
-		// Fetch the table column structure from the database
+		// Fetch the table column structure from the database.
 		$suppress    = $wpdb->suppress_errors();
 		$tablefields = $wpdb->get_results( "DESCRIBE {$table};" );
 		$wpdb->suppress_errors( $suppress );
@@ -2767,7 +2788,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 			$tablefield_field_lowercased = strtolower( $tablefield->Field );
 			$tablefield_type_lowercased  = strtolower( $tablefield->Type );
 
-			// If the table field exists in the field array ...
+			// If the table field exists in the field array...
 			if ( array_key_exists( $tablefield_field_lowercased, $cfields ) ) {
 
 				// Get the field type from the query.
@@ -2792,7 +2813,8 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 
 					if ( $do_change ) {
 						// Add a query to change the column type.
-						$cqueries[]                                      = "ALTER TABLE {$table} CHANGE COLUMN `{$tablefield->Field}` " . $cfields[ $tablefield_field_lowercased ];
+						$cqueries[] = "ALTER TABLE {$table} CHANGE COLUMN `{$tablefield->Field}` " . $cfields[ $tablefield_field_lowercased ];
+
 						$for_update[ $table . '.' . $tablefield->Field ] = "Changed type of {$table}.{$tablefield->Field} from {$tablefield->Type} to {$fieldtype}";
 					}
 				}
@@ -2802,7 +2824,8 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 					$default_value = $matches[1];
 					if ( $tablefield->Default != $default_value ) {
 						// Add a query to change the column's default value
-						$cqueries[]                                      = "ALTER TABLE {$table} ALTER COLUMN `{$tablefield->Field}` SET DEFAULT '{$default_value}'";
+						$cqueries[] = "ALTER TABLE {$table} ALTER COLUMN `{$tablefield->Field}` SET DEFAULT '{$default_value}'";
+
 						$for_update[ $table . '.' . $tablefield->Field ] = "Changed default value of {$table}.{$tablefield->Field} from {$tablefield->Default} to {$default_value}";
 					}
 				}
@@ -2817,7 +2840,8 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 		// For every remaining field specified for the table.
 		foreach ( $cfields as $fieldname => $fielddef ) {
 			// Push a query line into $cqueries that adds the field to that table.
-			$cqueries[]                              = "ALTER TABLE {$table} ADD COLUMN $fielddef";
+			$cqueries[] = "ALTER TABLE {$table} ADD COLUMN $fielddef";
+
 			$for_update[ $table . '.' . $fieldname ] = 'Added column ' . $table . '.' . $fieldname;
 		}
 
@@ -2830,14 +2854,14 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 
 			// For every index in the table.
 			foreach ( $tableindices as $tableindex ) {
+				$keyname = strtolower( $tableindex->Key_name );
 
 				// Add the index to the index data array.
-				$keyname                             = strtolower( $tableindex->Key_name );
 				$index_ary[ $keyname ]['columns'][]  = array(
 					'fieldname' => $tableindex->Column_name,
 					'subpart'   => $tableindex->Sub_part,
 				);
-				$index_ary[ $keyname ]['unique']     = ( $tableindex->Non_unique == 0 ) ? true : false;
+				$index_ary[ $keyname ]['unique']     = ( 0 == $tableindex->Non_unique ) ? true : false;
 				$index_ary[ $keyname ]['index_type'] = $tableindex->Index_type;
 			}
 
@@ -2846,7 +2870,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 
 				// Build a create string to compare to the query.
 				$index_string = '';
-				if ( $index_name == 'primary' ) {
+				if ( 'primary' === $index_name ) {
 					$index_string .= 'PRIMARY ';
 				} elseif ( $index_data['unique'] ) {
 					$index_string .= 'UNIQUE ';
@@ -2865,7 +2889,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 
 				// For each column in the index.
 				foreach ( $index_data['columns'] as $column_data ) {
-					if ( $index_columns != '' ) {
+					if ( '' != $index_columns ) {
 						$index_columns .= ',';
 					}
 
@@ -2889,7 +2913,8 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 		// For every remaining index specified for the table.
 		foreach ( (array) $indices as $index ) {
 			// Push a query line into $cqueries that adds the index to that table.
-			$cqueries[]   = "ALTER TABLE {$table} ADD $index";
+			$cqueries[] = "ALTER TABLE {$table} ADD $index";
+
 			$for_update[] = 'Added index ' . $table . ' ' . $index;
 		}
 
@@ -2975,14 +3000,14 @@ function make_site_theme_from_oldschool( $theme_name, $template ) {
 	);
 
 	foreach ( $files as $oldfile => $newfile ) {
-		if ( $oldfile == 'index.php' ) {
+		if ( 'index.php' === $oldfile ) {
 			$oldpath = $home_path;
 		} else {
 			$oldpath = ABSPATH;
 		}
 
 		// Check to make sure it's not a new index.
-		if ( $oldfile == 'index.php' ) {
+		if ( 'index.php' === $oldfile ) {
 			$index = implode( '', file( "$oldpath/$oldfile" ) );
 			if ( strpos( $index, 'WP_USE_THEMES' ) !== false ) {
 				if ( ! copy( WP_CONTENT_DIR . '/themes/' . WP_DEFAULT_THEME . '/index.php', "$site_dir/$newfile" ) ) {
@@ -3046,14 +3071,14 @@ function make_site_theme_from_oldschool( $theme_name, $template ) {
  *
  * @param string $theme_name The name of the theme.
  * @param string $template   The directory name of the theme.
- * @return false|void
+ * @return void|false
  */
 function make_site_theme_from_default( $theme_name, $template ) {
 	$site_dir    = WP_CONTENT_DIR . "/themes/$template";
 	$default_dir = WP_CONTENT_DIR . '/themes/' . WP_DEFAULT_THEME;
 
 	// Copy files from the default theme to the site theme.
-	//$files = array('index.php', 'comments.php', 'comments-popup.php', 'footer.php', 'header.php', 'sidebar.php', 'style.css');
+	// $files = array( 'index.php', 'comments.php', 'comments-popup.php', 'footer.php', 'header.php', 'sidebar.php', 'style.css' );
 
 	$theme_dir = @opendir( $default_dir );
 	if ( $theme_dir ) {
@@ -3121,7 +3146,7 @@ function make_site_theme_from_default( $theme_name, $template ) {
  *
  * @since 1.5.0
  *
- * @return false|string
+ * @return string|false
  */
 function make_site_theme() {
 	// Name the theme after the blog.
@@ -3158,7 +3183,7 @@ function make_site_theme() {
 
 	// Make the new site theme active.
 	$current_template = __get_option( 'template' );
-	if ( $current_template == WP_DEFAULT_THEME ) {
+	if ( WP_DEFAULT_THEME == $current_template ) {
 		update_option( 'template', $template );
 		update_option( 'stylesheet', $template );
 	}
@@ -3254,7 +3279,7 @@ function maybe_disable_link_manager() {
 function pre_schema_upgrade() {
 	global $wp_current_db_version, $wpdb;
 
-	// Upgrade versions prior to 2.9
+	// Upgrade versions prior to 2.9.
 	if ( $wp_current_db_version < 11557 ) {
 		// Delete duplicate options. Keep the option with the highest option_id.
 		$wpdb->query( "DELETE o1 FROM $wpdb->options AS o1 JOIN $wpdb->options AS o2 USING (`option_name`) WHERE o2.option_id > o1.option_id" );
@@ -3269,7 +3294,7 @@ function pre_schema_upgrade() {
 	// Multisite schema upgrades.
 	if ( $wp_current_db_version < 25448 && is_multisite() && wp_should_upgrade_global_tables() ) {
 
-		// Upgrade versions prior to 3.7
+		// Upgrade versions prior to 3.7.
 		if ( $wp_current_db_version < 25179 ) {
 			// New primary key for signups.
 			$wpdb->query( "ALTER TABLE $wpdb->signups ADD signup_id BIGINT(20) NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST" );
@@ -3327,7 +3352,7 @@ CREATE TABLE $wpdb->sitecategories (
   KEY last_updated (last_updated)
 ) $charset_collate;
 ";
-		// now create tables
+		// Now create tables.
 		dbDelta( $ms_queries );
 	}
 endif;
@@ -3352,20 +3377,20 @@ endif;
  */
 function wp_should_upgrade_global_tables() {
 
-	// Return false early if explicitly not upgrading
+	// Return false early if explicitly not upgrading.
 	if ( defined( 'DO_NOT_UPGRADE_GLOBAL_TABLES' ) ) {
 		return false;
 	}
 
-	// Assume global tables should be upgraded
+	// Assume global tables should be upgraded.
 	$should_upgrade = true;
 
-	// Set to false if not on main network (does not matter if not multi-network)
+	// Set to false if not on main network (does not matter if not multi-network).
 	if ( ! is_main_network() ) {
 		$should_upgrade = false;
 	}
 
-	// Set to false if not on main site of current network (does not matter if not multi-site)
+	// Set to false if not on main site of current network (does not matter if not multi-site).
 	if ( ! is_main_site() ) {
 		$should_upgrade = false;
 	}

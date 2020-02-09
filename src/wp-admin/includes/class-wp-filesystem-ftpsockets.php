@@ -33,7 +33,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 		$this->errors = new WP_Error();
 
 		// Check if possible to use ftp functions.
-		if ( ! include_once( ABSPATH . 'wp-admin/includes/class-ftp.php' ) ) {
+		if ( ! include_once ABSPATH . 'wp-admin/includes/class-ftp.php' ) {
 			return;
 		}
 		$this->ftp = new ftp();
@@ -150,12 +150,12 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 
 			reset_mbstring_encoding();
 
-			return ''; // Blank document, File does exist, It's just blank.
+			return ''; // Blank document. File does exist, it's just blank.
 		}
 
 		reset_mbstring_encoding();
 
-		fseek( $temphandle, 0 ); // Skip back to the start of the file being written to
+		fseek( $temphandle, 0 ); // Skip back to the start of the file being written to.
 		$contents = '';
 
 		while ( ! feof( $temphandle ) ) {
@@ -198,11 +198,11 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 			return false;
 		}
 
-		// The FTP class uses string functions internally during file download/upload
+		// The FTP class uses string functions internally during file download/upload.
 		mbstring_binary_safe_encoding();
 
 		$bytes_written = fwrite( $temphandle, $contents );
-		if ( false === $bytes_written || $bytes_written != strlen( $contents ) ) {
+		if ( false === $bytes_written || strlen( $contents ) != $bytes_written ) {
 			fclose( $temphandle );
 			unlink( $temp );
 
@@ -211,7 +211,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 			return false;
 		}
 
-		fseek( $temphandle, 0 ); // Skip back to the start of the file being written to
+		fseek( $temphandle, 0 ); // Skip back to the start of the file being written to.
 
 		$ret = $this->ftp->fput( $file, $temphandle );
 
@@ -260,7 +260,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 * @param string    $file      Path to the file.
 	 * @param int|false $mode      Optional. The permissions as octal number, usually 0644 for files,
 	 *                             0755 for directories. Default false.
-	 * @param bool      $recursive Optional. If set to true, changes file group recursively.
+	 * @param bool      $recursive Optional. If set to true, changes file permissions recursively.
 	 *                             Default false.
 	 * @return bool True on success, false on failure.
 	 */
@@ -283,7 +283,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 			}
 		}
 
-		// chmod the file or directory
+		// chmod the file or directory.
 		return $this->ftp->chmod( $file, $mode );
 	}
 
@@ -373,7 +373,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 * @since 2.5.0
 	 *
 	 * @param string       $file      Path to the file or directory.
-	 * @param bool         $recursive Optional. If set to true, changes file group recursively.
+	 * @param bool         $recursive Optional. If set to true, deletes files and folders recursively.
 	 *                                Default false.
 	 * @param string|false $type      Type of resource. 'f' for file, 'd' for directory.
 	 *                                Default false.
@@ -408,7 +408,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 			return true; // File is an empty directory.
 		}
 
-		return ! empty( $list ); //empty list = no file, so invert.
+		return ! empty( $list ); // Empty list = no file, so invert.
 		// Return $this->ftp->is_exists($file); has issues with ABOR+426 responses on the ncFTPd server.
 	}
 
@@ -635,12 +635,12 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 				}
 			}
 
-			// Replace symlinks formatted as "source -> target" with just the source name
+			// Replace symlinks formatted as "source -> target" with just the source name.
 			if ( $struc['islink'] ) {
 				$struc['name'] = preg_replace( '/(\s*->\s*.*)$/', '', $struc['name'] );
 			}
 
-			// Add the Octal representation of the file permissions
+			// Add the octal representation of the file permissions.
 			$struc['permsn'] = $this->getnumchmodfromh( $struc['perms'] );
 
 			$ret[ $struc['name'] ] = $struc;

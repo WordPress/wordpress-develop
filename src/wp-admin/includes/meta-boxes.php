@@ -1,6 +1,14 @@
 <?php
+/**
+ * WordPress Administration Meta Boxes API.
+ *
+ * @package WordPress
+ * @subpackage Administration
+ */
 
-// -- Post related Meta Boxes
+//
+// Post-related Meta Boxes.
+//
 
 /**
  * Displays post submit form fields.
@@ -30,7 +38,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 
 <div id="minor-publishing">
 
-	<?php // Hidden submit button early on so that the browser chooses the right button when form is submitted with Return key ?>
+	<?php // Hidden submit button early on so that the browser chooses the right button when form is submitted with Return key. ?>
 <div style="display:none;">
 	<?php submit_button( __( 'Save' ), '', 'save' ); ?>
 </div>
@@ -71,7 +79,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 <a class="preview button" href="<?php echo $preview_link; ?>" target="wp-preview-<?php echo (int) $post->ID; ?>" id="post-preview"><?php echo $preview_button; ?></a>
 <input type="hidden" name="wp-preview" id="wp-preview" value="" />
 </div>
-<?php endif; // public post type ?>
+<?php endif; // is_post_type_viewable() ?>
 	<?php
 	/**
 	 * Fires before the post time/date setting in the Publish meta box.
@@ -149,14 +157,14 @@ function post_submit_meta_box( $post, $args = array() ) {
 	<?php _e( 'Visibility:' ); ?> <span id="post-visibility-display">
 							<?php
 
-							if ( 'private' == $post->post_status ) {
+							if ( 'private' === $post->post_status ) {
 								$post->post_password = '';
 								$visibility          = 'private';
 								$visibility_trans    = __( 'Private' );
 							} elseif ( ! empty( $post->post_password ) ) {
 								$visibility       = 'password';
 								$visibility_trans = __( 'Password protected' );
-							} elseif ( $post_type == 'post' && is_sticky( $post->ID ) ) {
+							} elseif ( 'post' === $post_type && is_sticky( $post->ID ) ) {
 								$visibility       = 'public';
 								$visibility_trans = __( 'Public, Sticky' );
 							} else {
@@ -172,12 +180,12 @@ function post_submit_meta_box( $post, $args = array() ) {
 
 <div id="post-visibility-select" class="hide-if-js">
 <input type="hidden" name="hidden_post_password" id="hidden-post-password" value="<?php echo esc_attr( $post->post_password ); ?>" />
-		<?php if ( $post_type == 'post' ) : ?>
+		<?php if ( 'post' === $post_type ) : ?>
 <input type="checkbox" style="display:none" name="hidden_post_sticky" id="hidden-post-sticky" value="sticky" <?php checked( is_sticky( $post->ID ) ); ?> />
 <?php endif; ?>
 <input type="hidden" name="hidden_post_visibility" id="hidden-post-visibility" value="<?php echo esc_attr( $visibility ); ?>" />
 <input type="radio" name="visibility" id="visibility-radio-public" value="public" <?php checked( $visibility, 'public' ); ?> /> <label for="visibility-radio-public" class="selectit"><?php _e( 'Public' ); ?></label><br />
-		<?php if ( $post_type == 'post' && current_user_can( 'edit_others_posts' ) ) : ?>
+		<?php if ( 'post' === $post_type && current_user_can( 'edit_others_posts' ) ) : ?>
 <span id="sticky-span"><input id="sticky" name="sticky" type="checkbox" value="sticky" <?php checked( is_sticky( $post->ID ) ); ?> /> <label for="sticky" class="selectit"><?php _e( 'Stick this post to the front page' ); ?></label><br /></span>
 <?php endif; ?>
 <input type="radio" name="visibility" id="visibility-radio-password" value="password" <?php checked( $visibility, 'password' ); ?> /> <label for="visibility-radio-password" class="selectit"><?php _e( 'Password protected' ); ?></label><br />
@@ -194,26 +202,26 @@ function post_submit_meta_box( $post, $args = array() ) {
 </div><!-- .misc-pub-section -->
 
 	<?php
-	/* translators: Publish box date string. 1: Date, 2: Time. See https://secure.php.net/date */
+	/* translators: Publish box date string. 1: Date, 2: Time. See https://www.php.net/date */
 	$date_string = __( '%1$s at %2$s' );
-	/* translators: Publish box date format, see https://secure.php.net/date */
+	/* translators: Publish box date format, see https://www.php.net/date */
 	$date_format = _x( 'M j, Y', 'publish box date format' );
-	/* translators: Publish box time format, see https://secure.php.net/date */
+	/* translators: Publish box time format, see https://www.php.net/date */
 	$time_format = _x( 'H:i', 'publish box time format' );
 
 	if ( 0 != $post->ID ) {
-		if ( 'future' == $post->post_status ) { // scheduled for publishing at a future date
+		if ( 'future' == $post->post_status ) { // Scheduled for publishing at a future date.
 			/* translators: Post date information. %s: Date on which the post is currently scheduled to be published. */
 			$stamp = __( 'Scheduled for: %s' );
-		} elseif ( 'publish' == $post->post_status || 'private' == $post->post_status ) { // already published
+		} elseif ( 'publish' == $post->post_status || 'private' == $post->post_status ) { // Already published.
 			/* translators: Post date information. %s: Date on which the post was published. */
 			$stamp = __( 'Published on: %s' );
-		} elseif ( '0000-00-00 00:00:00' == $post->post_date_gmt ) { // draft, 1 or more saves, no date specified
+		} elseif ( '0000-00-00 00:00:00' == $post->post_date_gmt ) { // Draft, 1 or more saves, no date specified.
 			$stamp = __( 'Publish <b>immediately</b>' );
-		} elseif ( time() < strtotime( $post->post_date_gmt . ' +0000' ) ) { // draft, 1 or more saves, future date specified
+		} elseif ( time() < strtotime( $post->post_date_gmt . ' +0000' ) ) { // Draft, 1 or more saves, future date specified.
 			/* translators: Post date information. %s: Date on which the post is to be published. */
 			$stamp = __( 'Schedule for: %s' );
-		} else { // draft, 1 or more saves, date specified
+		} else { // Draft, 1 or more saves, date specified.
 			/* translators: Post date information. %s: Date on which the post is to be published. */
 			$stamp = __( 'Publish on: %s' );
 		}
@@ -222,7 +230,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 			date_i18n( $date_format, strtotime( $post->post_date ) ),
 			date_i18n( $time_format, strtotime( $post->post_date ) )
 		);
-	} else { // draft (no saves, and thus no date specified)
+	} else { // Draft (no saves, and thus no date specified).
 		$stamp = __( 'Publish <b>immediately</b>' );
 		$date  = sprintf(
 			$date_string,
@@ -243,7 +251,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 		<?php
 endif;
 
-	if ( $can_publish ) : // Contributors don't get to choose the date of publish
+	if ( $can_publish ) : // Contributors don't get to choose the date of publish.
 		?>
 <div class="misc-pub-section curtime misc-pub-curtime">
 	<span id="timestamp">
@@ -255,7 +263,7 @@ endif;
 	</a>
 	<fieldset id="timestampdiv" class="hide-if-js">
 		<legend class="screen-reader-text"><?php _e( 'Date and time' ); ?></legend>
-		<?php touch_time( ( $action === 'edit' ), 1 ); ?>
+		<?php touch_time( ( 'edit' === $action ), 1 ); ?>
 	</fieldset>
 </div><?php // /misc-pub-section ?>
 <?php endif; ?>
@@ -371,7 +379,7 @@ function attachment_submit_meta_box( $post ) {
 
 <div id="minor-publishing">
 
-	<?php // Hidden submit button early on so that the browser chooses the right button when form is submitted with Return key ?>
+	<?php // Hidden submit button early on so that the browser chooses the right button when form is submitted with Return key. ?>
 <div style="display:none;">
 	<?php submit_button( __( 'Save' ), '', 'save' ); ?>
 </div>
@@ -382,11 +390,11 @@ function attachment_submit_meta_box( $post ) {
 		<span id="timestamp">
 			<?php
 			$uploaded_on = sprintf(
-				/* translators: Publish box date string. 1: Date, 2: Time. See https://secure.php.net/date */
+				/* translators: Publish box date string. 1: Date, 2: Time. See https://www.php.net/date */
 				__( '%1$s at %2$s' ),
-				/* translators: Publish box date format, see https://secure.php.net/date */
+				/* translators: Publish box date format, see https://www.php.net/date */
 				date_i18n( _x( 'M j, Y', 'publish box date format' ), strtotime( $post->post_date ) ),
-				/* translators: Publish box time format, see https://secure.php.net/date */
+				/* translators: Publish box time format, see https://www.php.net/date */
 				date_i18n( _x( 'H:i', 'publish box time format' ), strtotime( $post->post_date ) )
 			);
 			/* translators: Attachment information. %s: Date the attachment was uploaded. */
@@ -419,7 +427,7 @@ function attachment_submit_meta_box( $post ) {
 			echo "<a class='submitdelete deletion' href='" . get_delete_post_link( $post->ID ) . "'>" . __( 'Move to Trash' ) . '</a>';
 		} else {
 			$delete_ays = ! MEDIA_TRASH ? " onclick='return showNotice.warn();'" : '';
-			echo  "<a class='submitdelete deletion'$delete_ays href='" . get_delete_post_link( $post->ID, null, true ) . "'>" . __( 'Delete Permanently' ) . '</a>';
+			echo "<a class='submitdelete deletion'$delete_ays href='" . get_delete_post_link( $post->ID, null, true ) . "'>" . __( 'Delete Permanently' ) . '</a>';
 		}
 	}
 	?>
@@ -462,7 +470,7 @@ function post_format_meta_box( $post, $box ) {
 			if ( ! $post_format ) {
 				$post_format = '0';
 			}
-			// Add in the current one if it isn't there yet, in case the current theme doesn't support it
+			// Add in the current one if it isn't there yet, in case the current theme doesn't support it.
 			if ( $post_format && ! in_array( $post_format, $post_formats[0] ) ) {
 				$post_formats[0][] = $post_format;
 			}
@@ -590,8 +598,9 @@ function post_categories_meta_box( $post, $box ) {
 
 		<div id="<?php echo $tax_name; ?>-all" class="tabs-panel">
 			<?php
-			$name = ( $tax_name == 'category' ) ? 'post_category' : 'tax_input[' . $tax_name . ']';
-			echo "<input type='hidden' name='{$name}[]' value='0' />"; // Allows for an empty term set to be sent. 0 is an invalid Term ID and will be ignored by empty() checks.
+			$name = ( 'category' === $tax_name ) ? 'post_category' : 'tax_input[' . $tax_name . ']';
+			// Allows for an empty term set to be sent. 0 is an invalid term ID and will be ignored by empty() checks.
+			echo "<input type='hidden' name='{$name}[]' value='0' />";
 			?>
 			<ul id="<?php echo $tax_name; ?>checklist" data-wp-lists="list:<?php echo $tax_name; ?>" class="categorychecklist form-no-clear">
 				<?php
@@ -792,7 +801,7 @@ function post_comment_status_meta_box( $post ) {
 	 *
 	 * @param WP_Post $post WP_Post object of the current post.
 	 */
-	do_action( 'post_comment_status_meta_box-options', $post );  // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+	do_action( 'post_comment_status_meta_box-options', $post ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 	?>
 </p>
 	<?php
@@ -903,7 +912,9 @@ function post_revisions_meta_box( $post ) {
 	wp_list_post_revisions( $post );
 }
 
-// -- Page related Meta Boxes
+//
+// Page-related Meta Boxes.
+//
 
 /**
  * Display page attributes form fields.
@@ -941,8 +952,8 @@ function page_attributes_meta_box( $post ) {
 <p class="post-attributes-label-wrapper"><label class="post-attributes-label" for="parent_id"><?php _e( 'Parent' ); ?></label></p>
 			<?php echo $pages; ?>
 			<?php
-		endif; // end empty pages check
-	endif;  // end hierarchical check.
+		endif; // End empty pages check.
+	endif;  // End hierarchical check.
 
 	if ( count( get_page_templates( $post ) ) > 0 && get_option( 'page_for_posts' ) != $post->ID ) :
 		$template = ! empty( $post->page_template ) ? $post->page_template : false;
@@ -998,7 +1009,9 @@ function page_attributes_meta_box( $post ) {
 	endif;
 }
 
-// -- Link related Meta Boxes
+//
+// Link-related Meta Boxes.
+//
 
 /**
  * Display link create form fields.
@@ -1013,7 +1026,7 @@ function link_submit_meta_box( $link ) {
 
 <div id="minor-publishing">
 
-	<?php // Hidden submit button early on so that the browser chooses the right button when form is submitted with Return key ?>
+	<?php // Hidden submit button early on so that the browser chooses the right button when form is submitted with Return key. ?>
 <div style="display:none;">
 	<?php submit_button( __( 'Save' ), '', 'save', false ); ?>
 </div>
@@ -1135,13 +1148,13 @@ function link_target_meta_box( $link ) {
 	?>
 <fieldset><legend class="screen-reader-text"><span><?php _e( 'Target' ); ?></span></legend>
 <p><label for="link_target_blank" class="selectit">
-<input id="link_target_blank" type="radio" name="link_target" value="_blank" <?php echo ( isset( $link->link_target ) && ( $link->link_target == '_blank' ) ? 'checked="checked"' : '' ); ?> />
+<input id="link_target_blank" type="radio" name="link_target" value="_blank" <?php echo ( isset( $link->link_target ) && ( '_blank' === $link->link_target ) ? 'checked="checked"' : '' ); ?> />
 	<?php _e( '<code>_blank</code> &mdash; new window or tab.' ); ?></label></p>
 <p><label for="link_target_top" class="selectit">
-<input id="link_target_top" type="radio" name="link_target" value="_top" <?php echo ( isset( $link->link_target ) && ( $link->link_target == '_top' ) ? 'checked="checked"' : '' ); ?> />
+<input id="link_target_top" type="radio" name="link_target" value="_top" <?php echo ( isset( $link->link_target ) && ( '_top' === $link->link_target ) ? 'checked="checked"' : '' ); ?> />
 	<?php _e( '<code>_top</code> &mdash; current window or tab, with no frames.' ); ?></label></p>
 <p><label for="link_target_none" class="selectit">
-<input id="link_target_none" type="radio" name="link_target" value="" <?php echo ( isset( $link->link_target ) && ( $link->link_target == '' ) ? 'checked="checked"' : '' ); ?> />
+<input id="link_target_none" type="radio" name="link_target" value="" <?php echo ( isset( $link->link_target ) && ( '' === $link->link_target ) ? 'checked="checked"' : '' ); ?> />
 	<?php _e( '<code>_none</code> &mdash; same window or tab.' ); ?></label></p>
 </fieldset>
 <p><?php _e( 'Choose the target frame for your link.' ); ?></p>
@@ -1163,7 +1176,7 @@ function xfn_check( $class, $value = '', $deprecated = '' ) {
 	global $link;
 
 	if ( ! empty( $deprecated ) ) {
-		_deprecated_argument( __FUNCTION__, '2.5.0' ); // Never implemented
+		_deprecated_argument( __FUNCTION__, '2.5.0' ); // Never implemented.
 	}
 
 	$link_rel = isset( $link->link_rel ) ? $link->link_rel : ''; // In PHP 5.3: $link_rel = $link->link_rel ?: '';
@@ -1413,7 +1426,7 @@ function register_and_do_post_meta_boxes( $post ) {
 
 		// We should aim to show the revisions meta box only when there are revisions.
 		if ( count( $revisions ) > 1 ) {
-			reset( $revisions ); // Reset pointer for key()
+			reset( $revisions ); // Reset pointer for key().
 			$publish_callback_args = array(
 				'revisions_count'        => count( $revisions ),
 				'revision_id'            => key( $revisions ),
@@ -1440,7 +1453,7 @@ function register_and_do_post_meta_boxes( $post ) {
 		add_meta_box( 'formatdiv', _x( 'Format', 'post format' ), 'post_format_meta_box', null, 'side', 'core', array( '__back_compat_meta_box' => true ) );
 	}
 
-	// all taxonomies
+	// All taxonomies.
 	foreach ( get_object_taxonomies( $post ) as $tax_name ) {
 		$taxonomy = get_taxonomy( $tax_name );
 		if ( ! $taxonomy->show_ui || false === $taxonomy->meta_box_cb ) {
@@ -1504,11 +1517,11 @@ function register_and_do_post_meta_boxes( $post ) {
 	 * Fires in the middle of built-in meta box registration.
 	 *
 	 * @since 2.1.0
-	 * @deprecated 3.7.0 Use 'add_meta_boxes' instead.
+	 * @deprecated 3.7.0 Use {@see 'add_meta_boxes'} instead.
 	 *
 	 * @param WP_Post $post Post object.
 	 */
-	do_action( 'dbx_post_advanced', $post );
+	do_action_deprecated( 'dbx_post_advanced', array( $post ), '3.7.0', 'add_meta_boxes' );
 
 	// Allow the Discussion meta box to show up if the post type supports comments,
 	// or if comments or pings are open.
@@ -1523,8 +1536,8 @@ function register_and_do_post_meta_boxes( $post ) {
 	$stati[] = 'private';
 
 	if ( in_array( get_post_status( $post ), $stati ) ) {
-		// If the post type support comments, or the post has comments, allow the
-		// Comments meta box.
+		// If the post type support comments, or the post has comments,
+		// allow the Comments meta box.
 		if ( comments_open( $post ) || pings_open( $post ) || $post->comment_count > 0 || post_type_supports( $post_type, 'comments' ) ) {
 			add_meta_box( 'commentsdiv', __( 'Comments' ), 'post_comment_meta_box', null, 'normal', 'core', array( '__back_compat_meta_box' => true ) );
 		}

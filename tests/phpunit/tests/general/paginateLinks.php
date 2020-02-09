@@ -134,7 +134,7 @@ EXPECTED;
 	 */
 	function test_paginate_links_base_value() {
 
-		// Current page: 2
+		// Current page: 2.
 		$links = paginate_links(
 			array(
 				'current'  => 2,
@@ -159,7 +159,7 @@ EXPECTED;
 		$document                     = new DOMDocument();
 		$document->preserveWhiteSpace = false;
 
-		// The first two links should link to page 1
+		// The first two links should link to page 1.
 		foreach ( $expected_attributes as $link_idx => $attributes ) {
 
 			$document->loadHTML( $links[ $link_idx ] );
@@ -174,7 +174,7 @@ EXPECTED;
 			$this->assertEquals( $attributes['class'], $class );
 		}
 
-		// Current page: 1
+		// Current page: 1.
 		$links = paginate_links(
 			array(
 				'current'  => 1,
@@ -340,7 +340,7 @@ EXPECTED;
 	 * @ticket 31939
 	 */
 	public function test_custom_base_query_arg_should_be_stripped_from_current_url_before_generating_pag_links() {
-		// Fake the current URL: example.com?foo
+		// Fake the current URL: example.com?foo.
 		$request_uri            = $_SERVER['REQUEST_URI'];
 		$_SERVER['REQUEST_URI'] = add_query_arg( 'foo', '', $request_uri );
 

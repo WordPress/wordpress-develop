@@ -150,7 +150,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 
 		$this->make_user_by_role( 'author' );
 
-		// create attachment
+		// Create attachment.
 		$filename      = ( DIR_TESTDATA . '/images/a2-small.jpg' );
 		$attachment_id = self::factory()->attachment->create_upload_object( $filename );
 
@@ -312,7 +312,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		$cat1      = wp_create_category( $cat1_name, $parent_cat );
 		$cat2_name = 'cat2';
 
-		// first a post with valid categories; one that already exists and one to be created
+		// First a post with valid categories; one that already exists and one to be created.
 		$post   = array(
 			'post_title'  => 'Test',
 			'terms_names' => array(
@@ -321,15 +321,15 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		);
 		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post ) );
 		$this->assertNotIXRError( $result );
-		// verify that cat2 was created
+		// Verify that cat2 was created.
 		$cat2 = get_term_by( 'name', $cat2_name, 'category' );
 		$this->assertNotEmpty( $cat2 );
-		// check that both categories were set on the post
+		// Check that both categories were set on the post.
 		$post_cats = wp_get_object_terms( $result, 'category', array( 'fields' => 'ids' ) );
 		$this->assertContains( $cat1, $post_cats );
 		$this->assertContains( $cat2->term_id, $post_cats );
 
-		// create a second post attempting to use the ambiguous name
+		// Create a second post attempting to use the ambiguous name.
 		$post2   = array(
 			'post_title'  => 'Test',
 			'terms_names' => array(

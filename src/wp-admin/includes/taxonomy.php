@@ -7,7 +7,7 @@
  */
 
 //
-// Category
+// Category.
 //
 
 /**
@@ -73,7 +73,7 @@ function wp_create_category( $cat_name, $parent = 0 ) {
  *
  * @param string[] $categories Array of category names to create.
  * @param int      $post_id    Optional. The post ID. Default empty.
- * @return array List of categories to create for the given post.
+ * @return int[] Array of IDs of categories assigned to the given post.
  */
 function wp_create_categories( $categories, $post_id = '' ) {
 	$cat_ids = array();
@@ -192,7 +192,7 @@ function wp_update_category( $catarr ) {
 		return false;
 	}
 
-	// First, get all of the original fields
+	// First, get all of the original fields.
 	$category = get_term( $cat_ID, 'category', ARRAY_A );
 	_make_cat_compat( $category );
 
@@ -206,7 +206,7 @@ function wp_update_category( $catarr ) {
 }
 
 //
-// Tags
+// Tags.
 //
 
 /**

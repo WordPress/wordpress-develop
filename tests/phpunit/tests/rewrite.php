@@ -143,11 +143,11 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		// Cleanup.
 		remove_filter( 'home_url', array( $this, '_filter_http_home_url' ), 10 );
 
-		// Test the tests:
+		// Test the tests.
 		$this->assertSame( 'http', parse_url( $permalink, PHP_URL_SCHEME ) );
 		$this->assertSame( 'https', parse_url( $network_home, PHP_URL_SCHEME ) );
 
-		// Test that the url_to_postid() call matched:
+		// Test that the url_to_postid() call matched.
 		$this->assertEquals( $post_id, $url_to_postid );
 	}
 
@@ -371,7 +371,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 			)
 		);
 
-		// This url should NOT return a post ID
+		// This url should NOT return a post ID.
 		$badurl = site_url( '/example-collision' );
 		$this->assertEquals( 0, url_to_postid( $badurl ) );
 	}
@@ -392,7 +392,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 			)
 		);
 
-		// This url should NOT return a post ID
+		// This url should NOT return a post ID.
 		$badurl = network_home_url( '/example-collision' );
 		$this->assertEquals( 0, url_to_postid( $badurl ) );
 

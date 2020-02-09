@@ -21,7 +21,7 @@ jQuery( function( $ ) {
 
 		wp.updates.decrementCount( 'plugin' );
 
-		// Re-read these values
+		// Re-read these values.
 		menuItemCount  = $( '#menu-plugins' ).find( '.plugin-count' ).eq( 0 ).text();
 		screenReaderItemCount = $( '#wp-admin-bar-updates' ).find( '.screen-reader-text' ).text();
 		adminItemCount = $( '#wp-admin-bar-updates' ).find( '.ab-label' ).text();

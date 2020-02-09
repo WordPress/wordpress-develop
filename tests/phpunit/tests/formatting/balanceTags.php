@@ -80,7 +80,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 			// Examples from the spec working document.
 			array( 'math-α' ),
 			array( 'emotion-😍' ),
-			// UNICODE ranges
+			// Unicode ranges.
 			// 0x00b7
 			array( 'b-·' ),
 			// Latin characters with accents/modifiers.

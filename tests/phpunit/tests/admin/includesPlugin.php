@@ -32,7 +32,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		update_option( 'siteurl', 'http://example.com' );
 
-		// add some pages
+		// Add some pages.
 		add_options_page( 'Test Settings', 'Test Settings', 'manage_options', 'testsettings', 'mt_settings_page' );
 		add_management_page( 'Test Tools', 'Test Tools', 'manage_options', 'testtools', 'mt_tools_page' );
 		add_menu_page( 'Test Toplevel', 'Test Toplevel', 'manage_options', 'mt-top-level-handle', 'mt_toplevel_page' );
@@ -98,6 +98,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 * Tests the priority parameter for menu helper functions.
 	 *
 	 * @ticket 39776
+	 * @group ms-excluded
 	 *
 	 * @covers ::add_management_page
 	 * @covers ::add_options_page
@@ -119,11 +120,6 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	function test_submenu_helpers_priority( $priority, $expected_position ) {
 		global $submenu;
 		global $menu;
-
-		// Skip for multisite.
-		if ( is_multisite() ) {
-			return;
-		}
 
 		// Reset menus.
 		$submenu = array();
@@ -257,6 +253,67 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 			array( $menu_count, $menu_count ), // Numbers equal to the number of items are added at the end.
 			array( 123456, $menu_count ),      // Numbers higher than the number of items are added at the end.
 		);
+	}
+
+	/**
+	 * Test that when a submenu has the same slug as a parent item, that it's just appended and ignores the priority.
+	 *
+	 * @ticket 48599
+	 */
+	function test_priority_when_parent_slug_child_slug_are_the_same() {
+		global $submenu, $menu;
+
+		// Reset menus.
+		$submenu      = array();
+		$menu         = array();
+		$current_user = get_current_user_id();
+		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_user );
+		set_current_screen( 'dashboard' );
+
+		// Setup a menu with some items.
+		add_menu_page( 'Main Menu', 'Main Menu', 'manage_options', 'main_slug', 'main_page_callback' );
+		add_submenu_page( 'main_slug', 'SubMenu 1', 'SubMenu 1', 'manage_options', 'main_slug', 'submenu_callback_1', 1 );
+		add_submenu_page( 'main_slug', 'SubMenu 2', 'SubMenu 2', 'manage_options', 'submenu_page2', 'submenu_callback_2', 2 );
+		add_submenu_page( 'main_slug', 'SubMenu 3', 'SubMenu 3', 'manage_options', 'submenu_page3', 'submenu_callback_3', 3 );
+
+		// Clean up the temporary user.
+		wp_set_current_user( $current_user );
+		wp_delete_user( $admin_user );
+
+		// Verify the menu was inserted at the expected position.
+		$this->assertSame( 'main_slug', $submenu['main_slug'][0][2] );
+		$this->assertSame( 'submenu_page2', $submenu['main_slug'][1][2] );
+		$this->assertSame( 'submenu_page3', $submenu['main_slug'][2][2] );
+	}
+
+	/**
+	 * Passing a string as priority will fail.
+	 *
+	 * @ticket 48599
+	 */
+	function test_passing_string_as_priority_fires_doing_it_wrong() {
+		$this->setExpectedIncorrectUsage( 'add_submenu_page' );
+		global $submenu, $menu;
+
+		// Reset menus.
+		$submenu      = array();
+		$menu         = array();
+		$current_user = get_current_user_id();
+		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_user );
+		set_current_screen( 'dashboard' );
+
+		// Setup a menu with some items.
+		add_menu_page( 'Main Menu', 'Main Menu', 'manage_options', 'main_slug', 'main_page_callback' );
+		add_submenu_page( 'main_slug', 'SubMenu 1', 'SubMenu 1', 'manage_options', 'submenu_page_1', 'submenu_callback_1', '2' );
+
+		// Clean up the temporary user.
+		wp_set_current_user( $current_user );
+		wp_delete_user( $admin_user );
+
+		// Verify the menu was inserted at the expected position.
+		$this->assertSame( 'submenu_page_1', $submenu['main_slug'][1][2] );
 	}
 
 	function test_is_plugin_active_true() {

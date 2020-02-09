@@ -106,13 +106,13 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	public function test_context_param() {
-		// Collection
+		// Collection.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts/' . self::$post_id . '/revisions' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertEqualSets( array( 'view', 'edit', 'embed' ), $data['endpoints'][0]['args']['context']['enum'] );
-		// Single
+		// Single.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_1->ID );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
@@ -128,7 +128,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertCount( $this->total_revisions, $data );
 
-		// Reverse chron
+		// Reverse chronology.
 		$this->assertEquals( $this->revision_id3, $data[0]['id'] );
 		$this->check_get_revision_response( $data[0], $this->revision_3 );
 
@@ -281,7 +281,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_trash_not_supported', $response, 501 );
 
-		// Ensure the revision still exists
+		// Ensure the revision still exists.
 		$this->assertNotNull( get_post( $this->revision_id1 ) );
 	}
 

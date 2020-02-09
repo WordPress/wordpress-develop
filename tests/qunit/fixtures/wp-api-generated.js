@@ -322,6 +322,15 @@ mockedApiResponse.Schema = {
                                 "type": "string"
                             }
                         },
+                        "tax_relation": {
+                            "required": false,
+                            "enum": [
+                                "AND",
+                                "OR"
+                            ],
+                            "description": "Limit result set based on relationship between multiple taxonomies.",
+                            "type": "string"
+                        },
                         "categories": {
                             "required": false,
                             "default": [],
@@ -6154,7 +6163,7 @@ mockedApiResponse.UsersCollection = [
     {
         "id": 1,
         "name": "admin",
-        "url": "",
+        "url": "http://example.org",
         "description": "",
         "link": "http://example.org/?author=1",
         "slug": "admin",

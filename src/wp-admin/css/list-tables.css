@@ -638,6 +638,7 @@ th.asc a:focus span.sorting-indicator {
 	clear: both;
 	height: 30px;
 	margin: 6px 0 4px;
+	padding-top: 5px;
 	vertical-align: middle;
 }
 
@@ -647,7 +648,7 @@ th.asc a:focus span.sorting-indicator {
 
 .tablenav .tablenav-pages {
 	float: right;
-	margin: 3px 0 9px;
+	margin: 0 0 9px;
 }
 
 .tablenav .no-pages,
@@ -659,12 +660,12 @@ th.asc a:focus span.sorting-indicator {
 .tablenav .tablenav-pages .tablenav-pages-navspan {
 	display: inline-block;
 	vertical-align: baseline;
-	min-width: 28px;
-	min-height: 28px;
+	min-width: 30px;
+	min-height: 30px;
 	margin: 0;
 	padding: 0 4px;
 	font-size: 16px;
-	line-height: 1.5;
+	line-height: 1.625; /* 26px */
 	text-align: center;
 }
 
@@ -678,8 +679,7 @@ th.asc a:focus span.sorting-indicator {
 }
 
 .tablenav .actions {
-	overflow: hidden;
-	padding: 2px 8px 0 0;
+	padding: 0 8px 0 0;
 }
 
 .wp-filter .actions {
@@ -1034,11 +1034,9 @@ tr.inline-edit-row td,
 .inline-edit-row fieldset input[name=hh],
 .inline-edit-row fieldset input[name=mn],
 .inline-edit-row fieldset input[name=aa] {
-	font-size: 12px;
-	line-height: 1.16666666;
 	vertical-align: middle;
 	text-align: center;
-	padding: 6px 4px;
+	padding: 0 4px;
 }
 
 .inline-edit-row fieldset label input.inline-edit-password-input {
@@ -1321,7 +1319,7 @@ ul.cat-checklist {
 .plugins .paused .error-display code {
 	font-size: 90%;
 	font-style: italic;
-	color: rgb( 0, 0, 0, 0.7 );
+	color: rgba( 0, 0, 0, 0.7 );
 }
 
 .plugins .resume-link {
@@ -1751,10 +1749,6 @@ div.action-links,
 		display: none;
 	}
 
-	.comment-count {
-		font-size: 14px;
-	}
-
 	.wp-list-table th.column-primary ~ th,
 	.wp-list-table tr:not(.inline-edit-row):not(.no-items) td.column-primary ~ td:not(.check-column) {
 		display: none;
@@ -1767,7 +1761,10 @@ div.action-links,
 	/* Checkboxes need to show */
 	.wp-list-table tr th.check-column {
 		display: table-cell;
-		width: 35px;
+	}
+
+	.wp-list-table .check-column {
+		width: 2.5em;
 	}
 
 	.wp-list-table .column-primary .toggle-row {
@@ -1898,10 +1895,6 @@ div.action-links,
 		padding-top: 10px;
 	}
 
-	.widefat * {
-		word-wrap: normal;
-	}
-
 	/* Make row actions more easy to select on mobile */
 	body:not(.plugins-php) .row-actions {
 		display: -ms-grid;
@@ -1955,6 +1948,15 @@ div.action-links,
 		width: 100%;
 		max-width: none;
 		box-sizing: border-box;
+	}
+
+	.inline-edit-row fieldset input[name=jj],
+	.inline-edit-row fieldset input[name=hh],
+	.inline-edit-row fieldset input[name=mn],
+	.inline-edit-row fieldset input[name=aa] {
+		font-size: 16px;
+		line-height: 2;
+		padding: 3px 4px;
 	}
 
 	.inline-edit-row fieldset ul.cat-checklist label,

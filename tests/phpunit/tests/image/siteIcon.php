@@ -5,7 +5,7 @@
  * @group site_icon
  */
 
-require_once( ABSPATH . 'wp-admin/includes/class-wp-site-icon.php' );
+require_once ABSPATH . 'wp-admin/includes/class-wp-site-icon.php';
 
 class Tests_WP_Site_Icon extends WP_UnitTestCase {
 	protected $wp_site_icon;
@@ -56,7 +56,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 
 		// Remove custom size.
 		unset( $this->wp_site_icon->site_icon_sizes[ array_search( 321, $this->wp_site_icon->site_icon_sizes, true ) ] );
-		// Remove the filter we added
+		// Remove the filter we added.
 		remove_filter( 'site_icon_image_sizes', array( $this, '_custom_test_sizes' ) );
 	}
 

@@ -38,8 +38,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 			return;
 		}
 
-		// This Class uses the timeout on a per-connection basis, Others use it on a per-action basis.
-
+		// This class uses the timeout on a per-connection basis, others use it on a per-action basis.
 		if ( ! defined( 'FS_TIMEOUT' ) ) {
 			define( 'FS_TIMEOUT', 240 );
 		}
@@ -113,7 +112,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 			return false;
 		}
 
-		// Set the Connection to use Passive FTP
+		// Set the connection to use Passive FTP.
 		ftp_pasv( $this->link, true );
 		if ( @ftp_get_option( $this->link, FTP_TIMEOUT_SEC ) < FS_TIMEOUT ) {
 			@ftp_set_option( $this->link, FTP_TIMEOUT_SEC, FS_TIMEOUT );
@@ -146,7 +145,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 			return false;
 		}
 
-		fseek( $temp, 0 ); // Skip back to the start of the file being written to
+		fseek( $temp, 0 ); // Skip back to the start of the file being written to.
 		$contents = '';
 
 		while ( ! feof( $temp ) ) {
@@ -203,7 +202,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 			return false;
 		}
 
-		fseek( $temp, 0 ); // Skip back to the start of the file being written to
+		fseek( $temp, 0 ); // Skip back to the start of the file being written to.
 
 		$ret = ftp_fput( $this->link, $file, $temp, FTP_BINARY );
 
@@ -250,7 +249,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * @param string    $file      Path to the file.
 	 * @param int|false $mode      Optional. The permissions as octal number, usually 0644 for files,
 	 *                             0755 for directories. Default false.
-	 * @param bool      $recursive Optional. If set to true, changes file group recursively.
+	 * @param bool      $recursive Optional. If set to true, changes file permissions recursively.
 	 *                             Default false.
 	 * @return bool True on success, false on failure.
 	 */
@@ -273,7 +272,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 			}
 		}
 
-		// chmod the file or directory
+		// chmod the file or directory.
 		if ( ! function_exists( 'ftp_chmod' ) ) {
 			return (bool) ftp_site( $this->link, sprintf( 'CHMOD %o %s', $mode, $file ) );
 		}
@@ -364,7 +363,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * @since 2.5.0
 	 *
 	 * @param string       $file      Path to the file or directory.
-	 * @param bool         $recursive Optional. If set to true, changes file group recursively.
+	 * @param bool         $recursive Optional. If set to true, deletes files and folders recursively.
 	 *                                Default false.
 	 * @param string|false $type      Type of resource. 'f' for file, 'd' for directory.
 	 *                                Default false.
@@ -405,7 +404,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 			return true; // File is an empty directory.
 		}
 
-		return ! empty( $list ); //empty list = no file, so invert.
+		return ! empty( $list ); // Empty list = no file, so invert.
 	}
 
 	/**
@@ -573,9 +572,9 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 			if ( $lucifer[3] < 70 ) {
 				$lucifer[3] += 2000;
 			} else {
-				$lucifer[3] += 1900; // 4digit year fix
+				$lucifer[3] += 1900; // 4-digit year fix.
 			}
-			$b['isdir'] = ( $lucifer[7] == '<DIR>' );
+			$b['isdir'] = ( '<DIR>' === $lucifer[7] );
 			if ( $b['isdir'] ) {
 				$b['type'] = 'd';
 			} else {
@@ -593,14 +592,14 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 		} elseif ( ! $is_windows ) {
 			$lucifer = preg_split( '/[ ]/', $line, 9, PREG_SPLIT_NO_EMPTY );
 			if ( $lucifer ) {
-				//echo $line."\n";
+				// echo $line."\n";
 				$lcount = count( $lucifer );
 				if ( $lcount < 8 ) {
 					return '';
 				}
 				$b           = array();
-				$b['isdir']  = $lucifer[0][0] === 'd';
-				$b['islink'] = $lucifer[0][0] === 'l';
+				$b['isdir']  = 'd' === $lucifer[0][0];
+				$b['islink'] = 'l' === $lucifer[0][0];
 				if ( $b['isdir'] ) {
 					$b['type'] = 'd';
 				} elseif ( $b['islink'] ) {
@@ -614,7 +613,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 				$b['owner']  = $lucifer[2];
 				$b['group']  = $lucifer[3];
 				$b['size']   = $lucifer[4];
-				if ( $lcount == 8 ) {
+				if ( 8 == $lcount ) {
 					sscanf( $lucifer[5], '%d-%d-%d', $b['year'], $b['month'], $b['day'] );
 					sscanf( $lucifer[6], '%d:%d', $b['hour'], $b['minute'] );
 					$b['time'] = mktime( $b['hour'], $b['minute'], 0, $b['month'], $b['day'], $b['year'] );
@@ -637,7 +636,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 			}
 		}
 
-		// Replace symlinks formatted as "source -> target" with just the source name
+		// Replace symlinks formatted as "source -> target" with just the source name.
 		if ( isset( $b['islink'] ) && $b['islink'] ) {
 			$b['name'] = preg_replace( '/(\s*->\s*.*)$/', '', $b['name'] );
 		}

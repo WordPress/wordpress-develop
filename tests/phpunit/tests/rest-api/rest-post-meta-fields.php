@@ -1538,7 +1538,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			array(
 				'meta' => array(
 					'list_of_objects' => array(
-						// Meta 1
+						// Meta 1.
 						array(
 							array(
 								'version' => '5.2',
@@ -1549,7 +1549,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 								'artist'  => 'Betty',
 							),
 						),
-						// Meta 2
+						// Meta 2.
 						array(
 							array(
 								'version' => '4.9',

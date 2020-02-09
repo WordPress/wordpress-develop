@@ -69,7 +69,7 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 		this.listenTo( this.controller.states, 'attachment:compat:waiting attachment:compat:ready', this.updateSave );
 	},
 	/**
-	 * @returns {wp.media.view.Attachment} Returns itself to allow chaining
+	 * @return {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
 	dispose: function() {
 		var selection = this.options.selection;
@@ -87,7 +87,7 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 		return this;
 	},
 	/**
-	 * @returns {wp.media.view.Attachment} Returns itself to allow chaining
+	 * @return {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
 	render: function() {
 		var options = _.defaults( this.model.toJSON(), {
@@ -167,13 +167,13 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 			return;
 		}
 
-		// Catch arrow events
+		// Catch arrow events.
 		if ( 37 === event.keyCode || 38 === event.keyCode || 39 === event.keyCode || 40 === event.keyCode ) {
 			this.controller.trigger( 'attachment:keydown:arrow', event );
 			return;
 		}
 
-		// Catch enter and space events
+		// Catch enter and space events.
 		if ( 'keydown' === event.type && 13 !== event.keyCode && 32 !== event.keyCode ) {
 			return;
 		}
@@ -183,7 +183,7 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 		// In the grid view, bubble up an edit:attachment event to the controller.
 		if ( this.controller.isModeActive( 'grid' ) ) {
 			if ( this.controller.isModeActive( 'edit' ) ) {
-				// Pass the current target to restore focus when closing
+				// Pass the current target to restore focus when closing.
 				this.controller.trigger( 'edit:attachment', this.model, event.currentTarget );
 				return;
 			}
@@ -255,7 +255,7 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 			return;
 		}
 
-		// Fixes bug that loses focus when selecting a featured image
+		// Fixes bug that loses focus when selecting a featured image.
 		if ( ! method ) {
 			method = 'add';
 		}
@@ -265,14 +265,18 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 		}
 
 		if ( this.selected() ) {
-			// If the model is the single model, remove it.
-			// If it is not the same as the single model,
-			// it now becomes the single model.
+			/*
+			 * If the model is the single model, remove it.
+			 * If it is not the same as the single model,
+			 * it now becomes the single model.
+			 */
 			selection[ single === model ? 'remove' : 'single' ]( model );
 		} else {
-			// If the model is not selected, run the `method` on the
-			// selection. By default, we `reset` the selection, but the
-			// `method` can be set to `add` the model to the selection.
+			/*
+			 * If the model is not selected, run the `method` on the
+			 * selection. By default, we `reset` the selection, but the
+			 * `method` can be set to `add` the model to the selection.
+			 */
 			selection[ method ]( model );
 			selection.single( model );
 		}
@@ -282,7 +286,7 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 		this[ this.selected() ? 'select' : 'deselect' ]();
 	},
 	/**
-	 * @returns {unresolved|Boolean}
+	 * @return {unresolved|Boolean}
 	 */
 	selected: function() {
 		var selection = this.options.selection;
@@ -298,9 +302,11 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 		var selection = this.options.selection,
 			controller = this.controller;
 
-		// Check if a selection exists and if it's the collection provided.
-		// If they're not the same collection, bail; we're in another
-		// selection's event loop.
+		/*
+		 * Check if a selection exists and if it's the collection provided.
+		 * If they're not the same collection, bail; we're in another
+		 * selection's event loop.
+		 */
 		if ( ! selection || ( collection && collection !== selection ) ) {
 			return;
 		}
@@ -324,9 +330,11 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 	deselect: function( model, collection ) {
 		var selection = this.options.selection;
 
-		// Check if a selection exists and if it's the collection provided.
-		// If they're not the same collection, bail; we're in another
-		// selection's event loop.
+		/*
+		 * Check if a selection exists and if it's the collection provided.
+		 * If they're not the same collection, bail; we're in another
+		 * selection's event loop.
+		 */
 		if ( ! selection || ( collection && collection !== selection ) ) {
 			return;
 		}
@@ -350,7 +358,7 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 	},
 	/**
 	 * @param {string} size
-	 * @returns {Object}
+	 * @return {Object}
 	 */
 	imageSize: function( size ) {
 		var sizes = this.model.get('sizes'), matched = false;
@@ -434,7 +442,7 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 	},
 	/**
 	 * @param {string} status
-	 * @returns {wp.media.view.Attachment} Returns itself to allow chaining
+	 * @return {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
 	updateSave: function( status ) {
 		var save = this._save = this._save || { status: 'ready' };
@@ -478,7 +486,7 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 	 * @param {Object} event
 	 */
 	removeFromLibrary: function( event ) {
-		// Catch enter and space events
+		// Catch enter and space events.
 		if ( 'keydown' === event.type && 13 !== event.keyCode && 32 !== event.keyCode ) {
 			return;
 		}
@@ -529,7 +537,7 @@ _.each({
 	 *
 	 * @param {Backbone.Model} model
 	 * @param {string} value
-	 * @returns {wp.media.view.Attachment} Returns itself to allow chaining
+	 * @return {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
 	/**
 	 * @function _syncTitle
@@ -538,7 +546,7 @@ _.each({
 	 *
 	 * @param {Backbone.Model} model
 	 * @param {string} value
-	 * @returns {wp.media.view.Attachment} Returns itself to allow chaining
+	 * @return {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
 	/**
 	 * @function _syncArtist
@@ -547,7 +555,7 @@ _.each({
 	 *
 	 * @param {Backbone.Model} model
 	 * @param {string} value
-	 * @returns {wp.media.view.Attachment} Returns itself to allow chaining
+	 * @return {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
 	/**
 	 * @function _syncAlbum
@@ -556,7 +564,7 @@ _.each({
 	 *
 	 * @param {Backbone.Model} model
 	 * @param {string} value
-	 * @returns {wp.media.view.Attachment} Returns itself to allow chaining
+	 * @return {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
 	Attachment.prototype[ method ] = function( model, value ) {
 		var $setting = this.$('[data-setting="' + setting + '"]');
@@ -565,10 +573,12 @@ _.each({
 			return this;
 		}
 
-		// If the updated value is in sync with the value in the DOM, there
-		// is no need to re-render. If we're currently editing the value,
-		// it will automatically be in sync, suppressing the re-render for
-		// the view we're editing, while updating any others.
+		/*
+		 * If the updated value is in sync with the value in the DOM, there
+		 * is no need to re-render. If we're currently editing the value,
+		 * it will automatically be in sync, suppressing the re-render for
+		 * the view we're editing, while updating any others.
+		 */
 		if ( value === $setting.find('input, textarea, select, [value]').val() ) {
 			return this;
 		}

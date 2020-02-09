@@ -554,12 +554,12 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$this->assertNotEmpty( $query->query_vars );
 		$this->assertNotEquals( $_query_vars, $query->query_vars );
 
-		// All values get reset
+		// All values get reset.
 		$query->prepare_query( array( 'number' => 8 ) );
 		$this->assertNotEmpty( $query->query_limit );
 		$this->assertEquals( 'LIMIT 0, 8', $query->query_limit );
 
-		// All values get reset
+		// All values get reset.
 		$query->prepare_query( array( 'fields' => 'all' ) );
 		$this->assertEmpty( $query->query_limit );
 		$this->assertEquals( '', $query->query_limit );
@@ -1139,7 +1139,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 
 		$found_count    = count( $q->get_results() );
-		$expected_count = 10; // 13 total users minus 3 from query
+		$expected_count = 10; // 13 total users minus 3 from query.
 
 		$this->assertContains( "AND user_nicename NOT IN ( 'peter','paul','mary' )", $q->query_where );
 		$this->assertEquals( $expected_count, $found_count );
@@ -1240,7 +1240,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 
 		$found_count    = count( $q->get_results() );
-		$expected_count = 10; // 13 total users minus 3 from query
+		$expected_count = 10; // 13 total users minus 3 from query.
 
 		$this->assertContains( "AND user_login NOT IN ( '$user_login1','$user_login2','$user_login3' )", $q->query_where );
 		$this->assertEquals( $expected_count, $found_count );
@@ -1443,23 +1443,23 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 * @ticket 22212
 	 */
 	public function test_get_multiple_roles_with_meta() {
-		// Create administrator user + meta
+		// Create administrator user + meta.
 		update_user_meta( self::$admin_ids[0], 'mk1', 1 );
 		update_user_meta( self::$admin_ids[0], 'mk2', 1 );
 
-		// Create editor user + meta
+		// Create editor user + meta.
 		update_user_meta( self::$editor_ids[0], 'mk1', 1 );
 		update_user_meta( self::$editor_ids[0], 'mk2', 2 );
 
-		// Create subscriber user + meta
+		// Create subscriber user + meta.
 		update_user_meta( self::$sub_ids[0], 'mk1', 1 );
 		update_user_meta( self::$sub_ids[0], 'mk2', 1 );
 
-		// Create contributor user + meta
+		// Create contributor user + meta.
 		update_user_meta( self::$contrib_id, 'mk1', 1 );
 		update_user_meta( self::$contrib_id, 'mk2', 2 );
 
-		// Fetch users
+		// Fetch users.
 		$users = get_users(
 			array(
 				'role__in'   => array( 'administrator', 'editor', 'subscriber' ),
@@ -1481,7 +1481,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		// Check results
+		// Check results.
 		$this->assertEquals( 1, count( $users ) );
 		$this->assertSame( self::$editor_ids[0], (int) $users[0]->ID );
 	}
@@ -1661,7 +1661,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$ids = $q->get_results();
 
-		/* must include user that has same string in display_name */
+		// Must include user that has the same string in display_name.
 		$this->assertEquals( array( $new_user1 ), $ids );
 	}
 
@@ -1689,7 +1689,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$ids = $q->get_results();
 
-		/* must not include user that has same string in other fields */
+		// Must not include user that has the same string in other fields.
 		$this->assertEquals( array(), $ids );
 	}
 

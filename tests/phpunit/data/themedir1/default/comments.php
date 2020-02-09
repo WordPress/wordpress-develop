@@ -1,4 +1,4 @@
 <?php
 
-// Minimal comment template
+// Minimal comment template.
 wp_list_comments();

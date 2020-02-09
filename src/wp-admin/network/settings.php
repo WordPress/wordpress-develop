@@ -8,10 +8,10 @@
  */
 
 /** Load WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 /** WordPress Translation Installation API */
-require_once( ABSPATH . 'wp-admin/includes/translation-install.php' );
+require_once ABSPATH . 'wp-admin/includes/translation-install.php';
 
 if ( ! current_user_can( 'manage_network_options' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to access this page.' ), 403 );
@@ -20,7 +20,7 @@ if ( ! current_user_can( 'manage_network_options' ) ) {
 $title       = __( 'Network Settings' );
 $parent_file = 'settings.php';
 
-// Handle network admin email change requests
+// Handle network admin email change requests.
 if ( ! empty( $_GET['network_admin_hash'] ) ) {
 	$new_admin_details = get_site_option( 'network_admin_hash' );
 	$redirect          = 'settings.php?updated=false';
@@ -135,7 +135,7 @@ if ( $_POST ) {
 	exit();
 }
 
-include( ABSPATH . 'wp-admin/admin-header.php' );
+require_once ABSPATH . 'wp-admin/admin-header.php';
 
 if ( isset( $_GET['updated'] ) ) {
 	?><div id="message" class="updated notice is-dismissible"><p><?php _e( 'Settings saved.' ); ?></p></div>
@@ -161,11 +161,11 @@ if ( isset( $_GET['updated'] ) ) {
 				<td>
 					<input name="new_admin_email" type="email" id="admin_email" aria-describedby="admin-email-desc" class="regular-text" value="<?php echo esc_attr( get_site_option( 'admin_email' ) ); ?>" />
 					<p class="description" id="admin-email-desc">
-						<?php _e( 'This address is used for admin purposes. If you change this we will send you an email at your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?>
+						<?php _e( 'This address is used for admin purposes. If you change this, we will send you an email at your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?>
 					</p>
 					<?php
 					$new_admin_email = get_site_option( 'new_admin_email' );
-					if ( $new_admin_email && $new_admin_email != get_site_option( 'admin_email' ) ) :
+					if ( $new_admin_email && get_site_option( 'admin_email' ) !== $new_admin_email ) :
 						?>
 						<div class="updated inline">
 						<p>
@@ -257,7 +257,7 @@ if ( isset( $_GET['updated'] ) ) {
 					$limited_email_domains = str_replace( ' ', "\n", $limited_email_domains );
 					?>
 					<textarea name="limited_email_domains" id="limited_email_domains" aria-describedby="limited-email-domains-desc" cols="45" rows="5">
-<?php echo esc_textarea( $limited_email_domains == '' ? '' : implode( "\n", (array) $limited_email_domains ) ); ?></textarea>
+<?php echo esc_textarea( '' == $limited_email_domains ? '' : implode( "\n", (array) $limited_email_domains ) ); ?></textarea>
 					<p class="description" id="limited-email-domains-desc">
 						<?php _e( 'If you want to limit site registrations to certain domains. One domain per line.' ); ?>
 					</p>
@@ -486,4 +486,4 @@ if ( isset( $_GET['updated'] ) ) {
 	</form>
 </div>
 
-<?php include( ABSPATH . 'wp-admin/admin-footer.php' ); ?>
+<?php require_once ABSPATH . 'wp-admin/admin-footer.php'; ?>

@@ -16,7 +16,7 @@
 		 *
 		 * @since 4.4.0
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		function initialize() {
 			if ( typeof _wpmejsSettings !== 'undefined' ) {
@@ -54,12 +54,12 @@
 			 *
 			 * @param {object} media The wrapper that mimics all the native events/properties/methods for all renderers.
 			 * @param {object} node  The original HTML video, audio, or iframe tag where the media was loaded.
-			 * @returns {string}
+			 * @return {string}
 			 */
 			settings.customError = function ( media, node ) {
 				// Make sure we only fall back to a download link for flash files.
 				if ( -1 !== media.rendererName.indexOf( 'flash' ) || -1 !== media.rendererName.indexOf( 'flv' ) ) {
-					return '<a href="' + node.src + '">' + mejsL10n.strings['mejs.download-video'] + '</a>';
+					return '<a href="' + node.src + '">' + mejsL10n.strings['mejs.download-file'] + '</a>';
 				}
 			};
 

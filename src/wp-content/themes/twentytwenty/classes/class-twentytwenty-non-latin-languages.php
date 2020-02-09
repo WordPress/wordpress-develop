@@ -6,7 +6,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty
- * @since 1.0.0
+ * @since Twenty Twenty 1.0
  */
 
 if ( ! class_exists( 'TwentyTwenty_Non_Latin_Languages' ) ) {
@@ -26,7 +26,7 @@ if ( ! class_exists( 'TwentyTwenty_Non_Latin_Languages' ) ) {
 		 */
 		public static function get_non_latin_css( $type = 'front-end' ) {
 
-			// Fetch users locale.
+			// Fetch site locale.
 			$locale = get_bloginfo( 'language' );
 
 			// Define fallback fonts for non-latin languages.
@@ -45,9 +45,6 @@ if ( ! class_exists( 'TwentyTwenty_Non_Latin_Languages' ) ) {
 
 					// Chinese Simplified (China) - Noto Sans SC.
 					'zh-CN' => array( '\'PingFang SC\'', '\'Helvetica Neue\'', '\'Microsoft YaHei New\'', '\'STHeiti Light\'', 'sans-serif' ),
-
-					// Chinese Traditional (Taiwan) - Noto Sans TC.
-					'zh-TW' => array( '\'PingFang TC\'', '\'Helvetica Neue\'', '\'Microsoft YaHei New\'', '\'STHeiti Light\'', 'sans-serif' ),
 
 					// Chinese Traditional (Taiwan) - Noto Sans TC.
 					'zh-TW' => array( '\'PingFang TC\'', '\'Helvetica Neue\'', '\'Microsoft YaHei New\'', '\'STHeiti Light\'', 'sans-serif' ),

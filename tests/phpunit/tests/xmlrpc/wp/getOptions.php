@@ -39,7 +39,7 @@ class Tests_XMLRPC_wp_getOptions extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getOptions( array( 1, 'subscriber', 'subscriber' ) );
 		$this->assertInternalType( 'array', $result );
 
-		// Read Only options
+		// Read-only options.
 		$this->assertEquals( 'WordPress', $result['software_name']['value'] );
 		$this->assertTrue( $result['software_name']['readonly'] );
 
@@ -73,7 +73,7 @@ class Tests_XMLRPC_wp_getOptions extends WP_XMLRPC_UnitTestCase {
 		$this->assertEquals( current_theme_supports( 'post-thumbnails' ), $result['post_thumbnail']['value'] );
 		$this->assertTrue( $result['post_thumbnail']['readonly'] );
 
-		// Updatable options
+		// Updatable options.
 		$this->assertEquals( get_option( 'gmt_offset' ), $result['time_zone']['value'] );
 		$this->assertTrue( $result['time_zone']['readonly'] );
 
@@ -128,7 +128,7 @@ class Tests_XMLRPC_wp_getOptions extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getOptions( array( 1, 'administrator', 'administrator' ) );
 		$this->assertInternalType( 'array', $result );
 
-		// Read Only options
+		// Read-only options.
 		$this->assertEquals( 'WordPress', $result['software_name']['value'] );
 		$this->assertTrue( $result['software_name']['readonly'] );
 
@@ -162,7 +162,7 @@ class Tests_XMLRPC_wp_getOptions extends WP_XMLRPC_UnitTestCase {
 		$this->assertEquals( current_theme_supports( 'post-thumbnails' ), $result['post_thumbnail']['value'] );
 		$this->assertTrue( $result['post_thumbnail']['readonly'] );
 
-		// Updatable options
+		// Updatable options.
 		$this->assertEquals( get_option( 'gmt_offset' ), $result['time_zone']['value'] );
 		$this->assertFalse( $result['time_zone']['readonly'] );
 

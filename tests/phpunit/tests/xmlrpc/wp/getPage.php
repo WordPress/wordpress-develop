@@ -45,7 +45,7 @@ class Tests_XMLRPC_wp_getPage extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getPage( array( 1, self::$post_id, 'editor', 'editor' ) );
 		$this->assertNotIXRError( $result );
 
-		// Check data types
+		// Check data types.
 		$this->assertInternalType( 'string', $result['userid'] );
 		$this->assertInternalType( 'int', $result['page_id'] );
 		$this->assertInternalType( 'string', $result['page_status'] );
@@ -71,7 +71,7 @@ class Tests_XMLRPC_wp_getPage extends WP_XMLRPC_UnitTestCase {
 
 		$post_data = get_post( self::$post_id );
 
-		// Check expected values
+		// Check expected values.
 		$this->assertStringMatchesFormat( '%d', $result['userid'] );
 		$this->assertEquals( 'future', $result['page_status'] );
 		$this->assertEquals( $post_data->post_title, $result['title'] );

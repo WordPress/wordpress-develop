@@ -80,7 +80,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 	function test_disable_search_exclusion_prefix() {
 		$title = '-HYPHENATION_TEST';
 
-		// Create a post with a title which starts with a hyphen
+		// Create a post with a title which starts with a hyphen.
 		$post_id = self::factory()->post->create(
 			array(
 				'post_content' => $title,
@@ -88,10 +88,10 @@ class Tests_Query_Search extends WP_UnitTestCase {
 			)
 		);
 
-		// By default, we can use the hyphen prefix to exclude results
+		// By default, we can use the hyphen prefix to exclude results.
 		$this->assertEquals( array(), $this->get_search_results( $title ) );
 
-		// After we disable the feature using the filter, we should get the result
+		// After we disable the feature using the filter, we should get the result.
 		add_filter( 'wp_query_search_exclusion_prefix', '__return_false' );
 		$result = $this->get_search_results( $title );
 		$post   = array_pop( $result );

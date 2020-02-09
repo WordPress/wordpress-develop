@@ -1,11 +1,11 @@
 <?php
 /**
- * Admin ajax functions to be tested
+ * Admin Ajax functions to be tested.
  */
-require_once( ABSPATH . 'wp-admin/includes/ajax-actions.php' );
+require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 
 /**
- * Testing ajax attachment handling.
+ * Testing Ajax attachment handling.
  *
  * @group ajax
  */
@@ -14,7 +14,7 @@ class Tests_Ajax_Attachments extends WP_Ajax_UnitTestCase {
 	 * @ticket 36578
 	 */
 	public function test_wp_ajax_send_attachment_to_editor_should_return_an_image() {
-		// Become an administrator
+		// Become an administrator.
 		$post    = $_POST;
 		$user_id = self::factory()->user->create(
 			array(
@@ -32,7 +32,7 @@ class Tests_Ajax_Attachments extends WP_Ajax_UnitTestCase {
 		$upload     = wp_upload_bits( wp_basename( $filename ), null, $contents );
 		$attachment = $this->_make_attachment( $upload );
 
-		// Set up a default request
+		// Set up a default request.
 		$_POST['nonce']      = wp_create_nonce( 'media-send-to-editor' );
 		$_POST['html']       = 'Bar Baz';
 		$_POST['post_id']    = 0;
@@ -44,7 +44,7 @@ class Tests_Ajax_Attachments extends WP_Ajax_UnitTestCase {
 			'url'        => 'http://example.com/',
 		);
 
-		// Make the request
+		// Make the request.
 		try {
 			$this->_handleAjax( 'send-attachment-to-editor' );
 		} catch ( WPAjaxDieContinueException $e ) {
@@ -56,7 +56,7 @@ class Tests_Ajax_Attachments extends WP_Ajax_UnitTestCase {
 
 		$expected = get_image_send_to_editor( $attachment, '', '', 'left', 'http://example.com/', false, 'large', 'Foo bar' );
 
-		// Ensure everything is correct
+		// Ensure everything is correct.
 		$this->assertTrue( $response['success'] );
 		$this->assertEquals( $expected, $response['data'] );
 	}
@@ -65,7 +65,7 @@ class Tests_Ajax_Attachments extends WP_Ajax_UnitTestCase {
 	 * @ticket 36578
 	 */
 	public function test_wp_ajax_send_attachment_to_editor_should_return_a_link() {
-		// Become an administrator
+		// Become an administrator.
 		$post    = $_POST;
 		$user_id = self::factory()->user->create(
 			array(
@@ -83,7 +83,7 @@ class Tests_Ajax_Attachments extends WP_Ajax_UnitTestCase {
 		$upload     = wp_upload_bits( wp_basename( $filename ), null, $contents );
 		$attachment = $this->_make_attachment( $upload );
 
-		// Set up a default request
+		// Set up a default request.
 		$_POST['nonce']      = wp_create_nonce( 'media-send-to-editor' );
 		$_POST['html']       = 'Bar Baz';
 		$_POST['post_id']    = 0;
@@ -93,7 +93,7 @@ class Tests_Ajax_Attachments extends WP_Ajax_UnitTestCase {
 			'url'        => get_attachment_link( $attachment ),
 		);
 
-		// Make the request
+		// Make the request.
 		try {
 			$this->_handleAjax( 'send-attachment-to-editor' );
 		} catch ( WPAjaxDieContinueException $e ) {
@@ -109,7 +109,7 @@ class Tests_Ajax_Attachments extends WP_Ajax_UnitTestCase {
 			$attachment
 		);
 
-		// Ensure everything is correct
+		// Ensure everything is correct.
 		$this->assertTrue( $response['success'] );
 		$this->assertEquals( $expected, $response['data'] );
 	}

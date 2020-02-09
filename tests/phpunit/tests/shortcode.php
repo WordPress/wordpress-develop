@@ -293,13 +293,13 @@ class Tests_Shortcode extends WP_UnitTestCase {
 		$out = do_shortcode( '[[baztag foo="bar"]the content[/baztag]]' );
 		$this->assertEquals( '[baztag foo="bar"]the content[/baztag]', $out );
 
-		// double escaped
+		// Double escaped.
 		$out = do_shortcode( '[[[footag]]] [[[bartag foo="bar"]]]' );
 		$this->assertEquals( '[[footag]] [[bartag foo="bar"]]', $out );
 	}
 
 	function test_tag_not_escaped() {
-		// these have square brackets on either end but aren't actually escaped
+		// These have square brackets on either end but aren't actually escaped.
 		$out = do_shortcode( '[[footag] [bartag foo="bar"]]' );
 		$this->assertEquals( '[foo =  foo = bar]', $out );
 
@@ -357,7 +357,7 @@ EOF;
 	 * @ticket 6562
 	 */
 	function test_utf8_whitespace_1() {
-		// NO-BREAK SPACE: U+00A0
+		// NO-BREAK SPACE: U+00A0.
 		do_shortcode( "[test-shortcode-tag foo=\"bar\" \xC2\xA0baz=\"123\"]" );
 		$this->assertEquals(
 			array(
@@ -373,7 +373,7 @@ EOF;
 	 * @ticket 6562
 	 */
 	function test_utf8_whitespace_2() {
-		// ZERO WIDTH SPACE: U+200B
+		// ZERO WIDTH SPACE: U+200B.
 		do_shortcode( "[test-shortcode-tag foo=\"bar\" \xE2\x80\x8Babc=\"def\"]" );
 		$this->assertEquals(
 			array(
@@ -389,7 +389,7 @@ EOF;
 	 * @ticket 14050
 	 */
 	function test_shortcode_unautop() {
-		// a blank line is added at the end, so test with it already there
+		// A blank line is added at the end, so test with it already there.
 		$test_string = "[footag]\n";
 		$this->assertEquals( $test_string, shortcode_unautop( wpautop( $test_string ) ) );
 	}
@@ -434,7 +434,7 @@ EOF;
 		return array( 'gallery' );
 	}
 
-	// Store passed in shortcode_atts_{$shortcode} args
+	// Store passed in shortcode_atts_{$shortcode} args.
 	function _filter_atts( $out, $pairs, $atts ) {
 		$this->filter_atts_out   = $out;
 		$this->filter_atts_pairs = $pairs;
@@ -442,14 +442,14 @@ EOF;
 		return $out;
 	}
 
-	// Filter shortcode atts in various ways
+	// Filter shortcode atts in various ways.
 	function _filter_atts2( $out, $pairs, $atts ) {
-		// If foo attribute equals "foo1", change it to be default value
+		// If foo attribute equals "foo1", change it to be default value.
 		if ( isset( $out['foo'] ) && 'foo1' === $out['foo'] ) {
 			$out['foo'] = $pairs['foo'];
 		}
 
-		// If baz attribute is set, remove it
+		// If baz attribute is set, remove it.
 		if ( isset( $out['baz'] ) ) {
 			unset( $out['baz'] );
 		}
@@ -618,7 +618,7 @@ EOF;
 				'',
 			),
 			array(
-				'<div [gallery]>', // Shortcodes will never be stripped inside elements.
+				'<div [gallery]>',   // Shortcodes will never be stripped inside elements.
 				'<div [gallery]>',
 			),
 			array(
@@ -740,7 +740,7 @@ EOF;
 	}
 
 	function data_whole_posts() {
-		require_once( DIR_TESTDATA . '/formatting/whole-posts.php' );
+		require_once DIR_TESTDATA . '/formatting/whole-posts.php';
 		return data_whole_posts();
 	}
 
@@ -781,23 +781,23 @@ EOF;
 	 * @ticket 37906
 	 */
 	public function test_pre_do_shortcode_tag() {
-		// does nothing if no filters are set up
+		// Does nothing if no filters are set up.
 		$str = 'pre_do_shortcode_tag';
 		add_shortcode( $str, array( $this, '_shortcode_pre_do_shortcode_tag' ) );
 		$result_nofilter = do_shortcode( "[{$str}]" );
 		$this->assertSame( 'foo', $result_nofilter );
 
-		// short-circuit with filter
+		// Short-circuit with filter.
 		add_filter( 'pre_do_shortcode_tag', array( $this, '_filter_pre_do_shortcode_tag_bar' ) );
 		$result_filter = do_shortcode( "[{$str}]" );
 		$this->assertSame( 'bar', $result_filter );
 
-		// respect priority
+		// Respect priority.
 		add_filter( 'pre_do_shortcode_tag', array( $this, '_filter_pre_do_shortcode_tag_p11' ), 11 );
 		$result_priority = do_shortcode( "[{$str}]" );
 		$this->assertSame( 'p11', $result_priority );
 
-		// pass arguments
+		// Pass arguments.
 		$arr = array(
 			'return' => 'p11',
 			'key'    => $str,
@@ -851,23 +851,23 @@ EOF;
 	 * @ticket 32790
 	 */
 	public function test_do_shortcode_tag_filter() {
-		// does nothing if no filters are set up
+		// Does nothing if no filters are set up.
 		$str = 'do_shortcode_tag';
 		add_shortcode( $str, array( $this, '_shortcode_do_shortcode_tag' ) );
 		$result_nofilter = do_shortcode( "[{$str}]" );
 		$this->assertSame( 'foo', $result_nofilter );
 
-		// modify output with filter
+		// Modify output with filter.
 		add_filter( 'do_shortcode_tag', array( $this, '_filter_do_shortcode_tag_replace' ) );
 		$result_filter = do_shortcode( "[{$str}]" );
 		$this->assertSame( 'fee', $result_filter );
 
-		// respect priority
+		// Respect priority.
 		add_filter( 'do_shortcode_tag', array( $this, '_filter_do_shortcode_tag_generate' ), 11 );
 		$result_priority = do_shortcode( "[{$str}]" );
 		$this->assertSame( 'foobar', $result_priority );
 
-		// pass arguments
+		// Pass arguments.
 		$arr = array(
 			'return' => 'foobar',
 			'key'    => $str,

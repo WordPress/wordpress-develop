@@ -20,19 +20,19 @@ class Tests_Comment_DateQuery extends WP_UnitTestCase {
 	public function setUp() {
 		parent::setUp();
 
-		// Just some dummy posts to use as parents for comments
+		// Just some dummy posts to use as parents for comments.
 		for ( $i = 1; $i <= 2; $i++ ) {
 			$this->posts[ $i ] = self::factory()->post->create();
 		}
 
 		// Be careful modifying this. Tests are coded to expect this exact sample data.
-		// Format is 'datetime' => 'post number (not ID)'
+		// Format is 'datetime' => 'post number (not ID)'.
 		$comment_dates = array(
 			'2007-01-22 03:49:21' => 1,
 			'2007-05-16 17:32:22' => 1,
 			'2007-09-24 07:17:23' => 1,
 			'2008-03-29 09:04:25' => 1,
-			'2008-07-15 11:32:26' => 2, // This one should never be in the results
+			'2008-07-15 11:32:26' => 2, // This one should never be in the results.
 			'2008-12-10 13:06:27' => 1,
 			'2009-06-11 21:30:28' => 1,
 			'2009-12-18 10:42:29' => 1,
@@ -53,7 +53,7 @@ class Tests_Comment_DateQuery extends WP_UnitTestCase {
 			$args,
 			array(
 				'post_id' => $this->posts[1],
-				'orderby' => 'comment_ID',  // Same order they were created
+				'orderby' => 'comment_ID',  // Same order they were created.
 				'order'   => 'ASC',
 			)
 		);

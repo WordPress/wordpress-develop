@@ -35,7 +35,7 @@ function wp_unregister_GLOBALS() {  // phpcs:ignore WordPress.NamingConventions.
 		die( 'GLOBALS overwrite attempt detected' );
 	}
 
-	// Variables that shouldn't be unset
+	// Variables that shouldn't be unset.
 	$no_unset = array( 'GLOBALS', '_GET', '_POST', '_COOKIE', '_REQUEST', '_SERVER', '_ENV', '_FILES', 'table_prefix' );
 
 	$input = array_merge( $_GET, $_POST, $_COOKIE, $_SERVER, $_ENV, $_FILES, isset( $_SESSION ) && is_array( $_SESSION ) ? $_SESSION : array() );
@@ -65,22 +65,22 @@ function wp_fix_server_vars() {
 
 	$_SERVER = array_merge( $default_server_values, $_SERVER );
 
-	// Fix for IIS when running with PHP ISAPI
+	// Fix for IIS when running with PHP ISAPI.
 	if ( empty( $_SERVER['REQUEST_URI'] ) || ( PHP_SAPI != 'cgi-fcgi' && preg_match( '/^Microsoft-IIS\//', $_SERVER['SERVER_SOFTWARE'] ) ) ) {
 
 		if ( isset( $_SERVER['HTTP_X_ORIGINAL_URL'] ) ) {
-			// IIS Mod-Rewrite
+			// IIS Mod-Rewrite.
 			$_SERVER['REQUEST_URI'] = $_SERVER['HTTP_X_ORIGINAL_URL'];
 		} elseif ( isset( $_SERVER['HTTP_X_REWRITE_URL'] ) ) {
-			// IIS Isapi_Rewrite
+			// IIS Isapi_Rewrite.
 			$_SERVER['REQUEST_URI'] = $_SERVER['HTTP_X_REWRITE_URL'];
 		} else {
-			// Use ORIG_PATH_INFO if there is no PATH_INFO
+			// Use ORIG_PATH_INFO if there is no PATH_INFO.
 			if ( ! isset( $_SERVER['PATH_INFO'] ) && isset( $_SERVER['ORIG_PATH_INFO'] ) ) {
 				$_SERVER['PATH_INFO'] = $_SERVER['ORIG_PATH_INFO'];
 			}
 
-			// Some IIS + PHP configurations puts the script-name in the path-info (No need to append it twice)
+			// Some IIS + PHP configurations put the script-name in the path-info (no need to append it twice).
 			if ( isset( $_SERVER['PATH_INFO'] ) ) {
 				if ( $_SERVER['PATH_INFO'] == $_SERVER['SCRIPT_NAME'] ) {
 					$_SERVER['REQUEST_URI'] = $_SERVER['PATH_INFO'];
@@ -89,24 +89,24 @@ function wp_fix_server_vars() {
 				}
 			}
 
-			// Append the query string if it exists and isn't null
+			// Append the query string if it exists and isn't null.
 			if ( ! empty( $_SERVER['QUERY_STRING'] ) ) {
 				$_SERVER['REQUEST_URI'] .= '?' . $_SERVER['QUERY_STRING'];
 			}
 		}
 	}
 
-	// Fix for PHP as CGI hosts that set SCRIPT_FILENAME to something ending in php.cgi for all requests
+	// Fix for PHP as CGI hosts that set SCRIPT_FILENAME to something ending in php.cgi for all requests.
 	if ( isset( $_SERVER['SCRIPT_FILENAME'] ) && ( strpos( $_SERVER['SCRIPT_FILENAME'], 'php.cgi' ) == strlen( $_SERVER['SCRIPT_FILENAME'] ) - 7 ) ) {
 		$_SERVER['SCRIPT_FILENAME'] = $_SERVER['PATH_TRANSLATED'];
 	}
 
-	// Fix for Dreamhost and other PHP as CGI hosts
+	// Fix for Dreamhost and other PHP as CGI hosts.
 	if ( strpos( $_SERVER['SCRIPT_NAME'], 'php.cgi' ) !== false ) {
 		unset( $_SERVER['PATH_INFO'] );
 	}
 
-	// Fix empty PHP_SELF
+	// Fix empty PHP_SELF.
 	$PHP_SELF = $_SERVER['PHP_SELF'];
 	if ( empty( $PHP_SELF ) ) {
 		$_SERVER['PHP_SELF'] = preg_replace( '/(\?.*)?$/', '', $_SERVER['REQUEST_URI'] );
@@ -139,7 +139,7 @@ function wp_check_php_mysql_versions() {
 	}
 
 	if ( ! extension_loaded( 'mysql' ) && ! extension_loaded( 'mysqli' ) && ! extension_loaded( 'mysqlnd' ) && ! file_exists( WP_CONTENT_DIR . '/db.php' ) ) {
-		require_once( ABSPATH . WPINC . '/functions.php' );
+		require_once ABSPATH . WPINC . '/functions.php';
 		wp_load_translations_early();
 		$args = array(
 			'exit' => false,
@@ -160,6 +160,7 @@ function wp_check_php_mysql_versions() {
  * Instead, send the headers for a zero-length favicon and bail.
  *
  * @since 3.0.0
+ * @deprecated 5.4.0 Deprecated in favor of do_favicon().
  */
 function wp_favicon_request() {
 	if ( '/favicon.ico' == $_SERVER['REQUEST_URI'] ) {
@@ -191,7 +192,7 @@ function wp_maintenance() {
 
 	global $upgrading;
 
-	include( ABSPATH . '.maintenance' );
+	require ABSPATH . '.maintenance';
 	// If the $upgrading timestamp is older than 10 minutes, don't die.
 	if ( ( time() - $upgrading ) >= 600 ) {
 		return;
@@ -215,11 +216,11 @@ function wp_maintenance() {
 	}
 
 	if ( file_exists( WP_CONTENT_DIR . '/maintenance.php' ) ) {
-		require_once( WP_CONTENT_DIR . '/maintenance.php' );
+		require_once WP_CONTENT_DIR . '/maintenance.php';
 		die();
 	}
 
-	require_once( ABSPATH . WPINC . '/functions.php' );
+	require_once ABSPATH . WPINC . '/functions.php';
 	wp_load_translations_early();
 
 	header( 'Retry-After: 600' );
@@ -312,7 +313,7 @@ function wp_debug_mode() {
 	 *
 	 * This filter runs before it can be used by plugins. It is designed for
 	 * non-web run-times. Returning false causes the `WP_DEBUG` and related
-	 * constants to not be checked and the default php values for errors
+	 * constants to not be checked and the default PHP values for errors
 	 * will be used unless you take care to update them yourself.
 	 *
 	 * @since 4.6.0
@@ -408,9 +409,9 @@ function wp_set_lang_dir() {
 function require_wp_db() {
 	global $wpdb;
 
-	require_once( ABSPATH . WPINC . '/wp-db.php' );
+	require_once ABSPATH . WPINC . '/wp-db.php';
 	if ( file_exists( WP_CONTENT_DIR . '/db.php' ) ) {
-		require_once( WP_CONTENT_DIR . '/db.php' );
+		require_once WP_CONTENT_DIR . '/db.php';
 	}
 
 	if ( isset( $wpdb ) ) {
@@ -470,7 +471,7 @@ function wp_set_wpdb_vars() {
 		'umeta_id'         => '%d',
 		'comment_karma'    => '%d',
 		'comment_count'    => '%d',
-		// multisite:
+		// Multisite:
 		'active'           => '%d',
 		'cat_id'           => '%d',
 		'deleted'          => '%d',
@@ -488,7 +489,7 @@ function wp_set_wpdb_vars() {
 		wp_die(
 			sprintf(
 				/* translators: 1: $table_prefix, 2: wp-config.php */
-				__( '<strong>ERROR</strong>: %1$s in %2$s can only contain numbers, letters, and underscores.' ),
+				__( '<strong>Error</strong>: %1$s in %2$s can only contain numbers, letters, and underscores.' ),
 				'<code>$table_prefix</code>',
 				'<code>wp-config.php</code>'
 			)
@@ -543,12 +544,12 @@ function wp_start_object_cache() {
 			 * that an external object cache is being used.
 			 */
 			if ( file_exists( WP_CONTENT_DIR . '/object-cache.php' ) ) {
-				require_once( WP_CONTENT_DIR . '/object-cache.php' );
+				require_once WP_CONTENT_DIR . '/object-cache.php';
 				if ( function_exists( 'wp_cache_init' ) ) {
 					wp_using_ext_object_cache( true );
 				}
 
-				// Re-initialize any hooks added manually by object-cache.php
+				// Re-initialize any hooks added manually by object-cache.php.
 				if ( $wp_filter ) {
 					$wp_filter = WP_Hook::build_preinitialized_hooks( $wp_filter );
 				}
@@ -565,7 +566,7 @@ function wp_start_object_cache() {
 	}
 
 	if ( ! wp_using_ext_object_cache() ) {
-		require_once( ABSPATH . WPINC . '/cache.php' );
+		require_once ABSPATH . WPINC . '/cache.php';
 	}
 
 	/*
@@ -605,8 +606,8 @@ function wp_not_installed() {
 	} elseif ( ! is_blog_installed() && ! wp_installing() ) {
 		nocache_headers();
 
-		require( ABSPATH . WPINC . '/kses.php' );
-		require( ABSPATH . WPINC . '/pluggable.php' );
+		require ABSPATH . WPINC . '/kses.php';
+		require ABSPATH . WPINC . '/pluggable.php';
 
 		$link = wp_guess_url() . '/wp-admin/install.php';
 
@@ -625,7 +626,7 @@ function wp_not_installed() {
  * @since 3.0.0
  * @access private
  *
- * @return array Files to include.
+ * @return string[] Array of absolute paths of files to include.
  */
 function wp_get_mu_plugins() {
 	$mu_plugins = array();
@@ -665,7 +666,7 @@ function wp_get_active_and_valid_plugins() {
 	$plugins        = array();
 	$active_plugins = (array) get_option( 'active_plugins', array() );
 
-	// Check for hacks file if the option is enabled
+	// Check for hacks file if the option is enabled.
 	if ( get_option( 'hack_file' ) && file_exists( ABSPATH . 'my-hacks.php' ) ) {
 		_deprecated_file( 'my-hacks.php', '1.5.0' );
 		array_unshift( $plugins, ABSPATH . 'my-hacks.php' );
@@ -678,10 +679,10 @@ function wp_get_active_and_valid_plugins() {
 	$network_plugins = is_multisite() ? wp_get_active_network_plugins() : false;
 
 	foreach ( $active_plugins as $plugin ) {
-		if ( ! validate_file( $plugin ) // $plugin must validate as file
-			&& '.php' == substr( $plugin, -4 ) // $plugin must end with '.php'
-			&& file_exists( WP_PLUGIN_DIR . '/' . $plugin ) // $plugin must exist
-			// not already included as a network plugin
+		if ( ! validate_file( $plugin )                     // $plugin must validate as file.
+			&& '.php' == substr( $plugin, -4 )              // $plugin must end with '.php'.
+			&& file_exists( WP_PLUGIN_DIR . '/' . $plugin ) // $plugin must exist.
+			// Not already included as a network plugin.
 			&& ( ! $network_plugins || ! in_array( WP_PLUGIN_DIR . '/' . $plugin, $network_plugins ) )
 			) {
 			$plugins[] = WP_PLUGIN_DIR . '/' . $plugin;
@@ -736,7 +737,7 @@ function wp_skip_paused_plugins( array $plugins ) {
  * @since 5.1.0
  * @access private
  *
- * @return array Array of paths to theme directories.
+ * @return string[] Array of absolute paths to theme directories.
  */
 function wp_get_active_and_valid_themes() {
 	global $pagenow;
@@ -775,7 +776,7 @@ function wp_get_active_and_valid_themes() {
  * @since 5.2.0
  *
  * @param string[] $themes Array of absolute theme directory paths.
- * @return string[] Filtered array of themes, without any paused themes.
+ * @return string[] Filtered array of absolute paths to themes, without any paused themes.
  */
 function wp_skip_paused_themes( array $themes ) {
 	$paused_themes = wp_paused_themes()->get_all();
@@ -959,7 +960,7 @@ function shutdown_action_hook() {
  * @return object The cloned object.
  */
 function wp_clone( $object ) {
-	// Use parens for clone to accommodate PHP 4. See #17880
+	// Use parens for clone to accommodate PHP 4. See #17880.
 	return clone( $object );
 }
 
@@ -990,7 +991,7 @@ function is_admin() {
 }
 
 /**
- * Whether the current request is for a site's admininstrative interface.
+ * Whether the current request is for a site's administrative interface.
  *
  * e.g. `/wp-admin/`
  *
@@ -1148,16 +1149,16 @@ function wp_load_translations_early() {
 		return;
 	}
 
-	// We need $wp_local_package
+	// We need $wp_local_package.
 	require ABSPATH . WPINC . '/version.php';
 
-	// Translation and localization
+	// Translation and localization.
 	require_once ABSPATH . WPINC . '/pomo/mo.php';
 	require_once ABSPATH . WPINC . '/l10n.php';
 	require_once ABSPATH . WPINC . '/class-wp-locale.php';
 	require_once ABSPATH . WPINC . '/class-wp-locale-switcher.php';
 
-	// General libraries
+	// General libraries.
 	require_once ABSPATH . WPINC . '/plugin.php';
 
 	$locales   = array();
@@ -1279,8 +1280,8 @@ function is_ssl() {
  * @since 2.3.0
  * @since 4.6.0 Moved from media.php to load.php.
  *
- * @link https://secure.php.net/manual/en/function.ini-get.php
- * @link https://secure.php.net/manual/en/faq.using.php#faq.using.shorthandbytes
+ * @link https://www.php.net/manual/en/function.ini-get.php
+ * @link https://www.php.net/manual/en/faq.using.php#faq.using.shorthandbytes
  *
  * @param string $value A (PHP ini) byte value, either shorthand or ordinary.
  * @return int An integer byte value.
@@ -1308,7 +1309,7 @@ function wp_convert_hr_to_bytes( $value ) {
  *
  * @staticvar array $ini_all
  *
- * @link https://secure.php.net/manual/en/function.ini-get-all.php
+ * @link https://www.php.net/manual/en/function.ini-get-all.php
  *
  * @param string $setting The name of the ini setting to check.
  * @return bool True if the value is changeable at runtime. False otherwise.
@@ -1478,7 +1479,8 @@ function wp_finalize_scraping_edited_file_errors( $scrape_key ) {
  *
  * @since 5.0.0
  *
- * @return bool True if Accepts or Content-Type headers contain application/json, false otherwise.
+ * @return bool True if `Accepts` or `Content-Type` headers contain `application/json`.
+ *              False otherwise.
  */
 function wp_is_json_request() {
 
@@ -1527,7 +1529,8 @@ function wp_is_jsonp_request() {
  *
  * @since 5.2.0
  *
- * @return bool True if Accepts or Content-Type headers contain xml, false otherwise.
+ * @return bool True if `Accepts` or `Content-Type` headers contain `text/xml`
+ *              or one of the related MIME types. False otherwise.
  */
 function wp_is_xml_request() {
 	$accepted = array(

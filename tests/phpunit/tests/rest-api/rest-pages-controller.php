@@ -29,7 +29,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		parent::setUp();
 		$this->has_setup_template = false;
 		add_filter( 'theme_page_templates', array( $this, 'filter_theme_page_templates' ) );
-		// reregister the route as we now have a template available.
+		// Re-register the route as we now have a template available.
 		$GLOBALS['wp_rest_server']->override_by_default = true;
 		$controller                                     = new WP_REST_Posts_Controller( 'page' );
 		$controller->register_routes();
@@ -45,13 +45,13 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_context_param() {
-		// Collection
+		// Collection.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/pages' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
-		// Single
+		// Single.
 		$page_id  = $this->factory->post->create( array( 'post_type' => 'page' ) );
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/pages/' . $page_id );
 		$response = rest_get_server()->dispatch( $request );
@@ -125,18 +125,21 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'post_parent' => $id1,
 			)
 		);
-		// No parent
+
+		// No parent.
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 2, count( $data ) );
-		// Filter to parent
+
+		// Filter to parent.
 		$request->set_param( 'parent', $id1 );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 1, count( $data ) );
 		$this->assertEquals( $id2, $data[0]['id'] );
-		// Invalid parent should fail
+
+		// Invalid 'parent' should error.
 		$request->set_param( 'parent', 'some-slug' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
@@ -169,12 +172,14 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'post_parent' => $id3,
 			)
 		);
-		// No parent
+
+		// No parent.
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 4, count( $data ) );
-		// Filter to parents
+
+		// Filter to parents.
 		$request->set_param( 'parent', array( $id1, $id3 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
@@ -196,18 +201,21 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'post_parent' => $id1,
 			)
 		);
-		// No parent
+
+		// No parent.
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 2, count( $data ) );
-		// Filter to parent
+
+		// Filter to parent.
 		$request->set_param( 'parent_exclude', $id1 );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 1, count( $data ) );
 		$this->assertEquals( $id1, $data[0]['id'] );
-		// Invalid parent_exclude should error
+
+		// Invalid 'parent_exclude' should error.
 		$request->set_param( 'parent_exclude', 'some-slug' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
@@ -241,17 +249,20 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'menu_order'  => 1,
 			)
 		);
-		// No parent
+
+		// No parent.
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEqualSets( array( $id1, $id2, $id3, $id4 ), wp_list_pluck( $data, 'id' ) );
-		// Filter to menu_order
+
+		// Filter to 'menu_order'.
 		$request->set_param( 'menu_order', 1 );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEqualSets( array( $id4 ), wp_list_pluck( $data, 'id' ) );
-		// Order by menu order
+
+		// Order by 'menu order'.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$request->set_param( 'order', 'asc' );
 		$request->set_param( 'orderby', 'menu_order' );
@@ -261,7 +272,8 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( $id4, $data[1]['id'] );
 		$this->assertEquals( $id2, $data[2]['id'] );
 		$this->assertEquals( $id3, $data[3]['id'] );
-		// Invalid menu_order should fail
+
+		// Invalid 'menu_order' should error.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$request->set_param( 'menu_order', 'top-first' );
 		$response = rest_get_server()->dispatch( $request );
@@ -274,7 +286,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 		$data = $response->get_data();
-		// Safe format for 4.4 and 4.5 https://core.trac.wordpress.org/ticket/35028
+		// Safe format for 4.4 and 4.5. See https://core.trac.wordpress.org/ticket/35028
 		$first_error = array_shift( $data['data']['params'] );
 		$this->assertContains( 'per_page must be between 1 (inclusive) and 100 (inclusive)', $first_error );
 		$request->set_param( 'per_page', 101 );
@@ -286,7 +298,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items_private_filter_query_var() {
-		// Private query vars inaccessible to unauthorized users
+		// Private query vars inaccessible to unauthorized users.
 		wp_set_current_user( 0 );
 		$page_id  = $this->factory->post->create(
 			array(
@@ -305,7 +317,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 
-		// But they are accessible to authorized users
+		// But they are accessible to authorized users.
 		wp_set_current_user( self::$editor_id );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();

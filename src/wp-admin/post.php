@@ -9,7 +9,7 @@
  */
 
 /** WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 $parent_file  = 'edit.php';
 $submenu_file = 'edit.php';
@@ -55,8 +55,8 @@ if ( isset( $_POST['deletepost'] ) ) {
 
 $sendback = wp_get_referer();
 if ( ! $sendback ||
-	strpos( $sendback, 'post.php' ) !== false ||
-	strpos( $sendback, 'post-new.php' ) !== false ) {
+	false !== strpos( $sendback, 'post.php' ) ||
+	false !== strpos( $sendback, 'post-new.php' ) ) {
 	if ( 'attachment' == $post_type ) {
 		$sendback = admin_url( 'upload.php' );
 	} else {
@@ -71,11 +71,11 @@ if ( ! $sendback ||
 
 switch ( $action ) {
 	case 'post-quickdraft-save':
-		// Check nonce and capabilities
+		// Check nonce and capabilities.
 		$nonce     = $_REQUEST['_wpnonce'];
 		$error_msg = false;
 
-		// For output of the quickdraft dashboard widget
+		// For output of the Quick Draft dashboard widget.
 		require_once ABSPATH . 'wp-admin/includes/dashboard.php';
 
 		if ( ! wp_verify_nonce( $nonce, 'add-post' ) ) {
@@ -95,6 +95,14 @@ switch ( $action ) {
 
 		$_POST['comment_status'] = get_default_comment_status( $post->post_type );
 		$_POST['ping_status']    = get_default_comment_status( $post->post_type, 'pingback' );
+
+		// Wrap Quick Draft content in the Paragraph block.
+		if ( false === strpos( $_POST['content'], '<!-- wp:paragraph -->' ) ) {
+			$_POST['content'] = sprintf(
+				'<!-- wp:paragraph -->%s<!-- /wp:paragraph -->',
+				str_replace( array( "\r\n", "\r", "\n" ), '<br />', $_POST['content'] )
+			);
+		}
 
 		edit_post();
 		wp_dashboard_quick_press();
@@ -152,7 +160,7 @@ switch ( $action ) {
 			$submenu_file  = 'upload.php';
 			$post_new_file = 'media-new.php';
 		} else {
-			if ( isset( $post_type_object ) && $post_type_object->show_in_menu && $post_type_object->show_in_menu !== true ) {
+			if ( isset( $post_type_object ) && $post_type_object->show_in_menu && true !== $post_type_object->show_in_menu ) {
 				$parent_file = $post_type_object->show_in_menu;
 			} else {
 				$parent_file = "edit.php?post_type=$post_type";
@@ -171,12 +179,12 @@ switch ( $action ) {
 		 * @param bool    $replace Whether to replace the editor. Default false.
 		 * @param WP_Post $post    Post object.
 		 */
-		if ( apply_filters( 'replace_editor', false, $post ) === true ) {
+		if ( true === apply_filters( 'replace_editor', false, $post ) ) {
 			break;
 		}
 
 		if ( use_block_editor_for_post( $post ) ) {
-			include( ABSPATH . 'wp-admin/edit-form-blocks.php' );
+			require ABSPATH . 'wp-admin/edit-form-blocks.php';
 			break;
 		}
 
@@ -195,18 +203,18 @@ switch ( $action ) {
 			enqueue_comment_hotkeys_js();
 		}
 
-		include( ABSPATH . 'wp-admin/edit-form-advanced.php' );
+		require ABSPATH . 'wp-admin/edit-form-advanced.php';
 
 		break;
 
 	case 'editattachment':
 		check_admin_referer( 'update-post_' . $post_id );
 
-		// Don't let these be changed
+		// Don't let these be changed.
 		unset( $_POST['guid'] );
 		$_POST['post_type'] = 'attachment';
 
-		// Update the thumbnail filename
+		// Update the thumbnail filename.
 		$newmeta          = wp_get_attachment_metadata( $post_id, true );
 		$newmeta['thumb'] = wp_basename( $_POST['thumb'] );
 
@@ -218,12 +226,12 @@ switch ( $action ) {
 
 		$post_id = edit_post();
 
-		// Session cookie flag that the post was saved
+		// Session cookie flag that the post was saved.
 		if ( isset( $_COOKIE['wp-saving-post'] ) && $_COOKIE['wp-saving-post'] === $post_id . '-check' ) {
 			setcookie( 'wp-saving-post', $post_id . '-saved', time() + DAY_IN_SECONDS, ADMIN_COOKIE_PATH, COOKIE_DOMAIN, is_ssl() );
 		}
 
-		redirect_post( $post_id ); // Send user on their way while we keep working
+		redirect_post( $post_id ); // Send user on their way while we keep working.
 
 		exit();
 
@@ -301,7 +309,7 @@ switch ( $action ) {
 			wp_die( __( 'Sorry, you are not allowed to delete this item.' ) );
 		}
 
-		if ( $post->post_type == 'attachment' ) {
+		if ( 'attachment' === $post->post_type ) {
 			$force = ( ! MEDIA_TRASH );
 			if ( ! wp_delete_attachment( $post_id, $force ) ) {
 				wp_die( __( 'Error in deleting.' ) );
@@ -349,5 +357,6 @@ switch ( $action ) {
 
 		wp_redirect( admin_url( 'edit.php' ) );
 		exit();
-} // end switch
-include( ABSPATH . 'wp-admin/admin-footer.php' );
+} // End switch.
+
+require_once ABSPATH . 'wp-admin/admin-footer.php';

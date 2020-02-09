@@ -71,12 +71,12 @@ class Tests_File extends WP_UnitTestCase {
 		$fullpath = $path . DIRECTORY_SEPARATOR . $filename;
 
 		$fp = fopen( $fullpath, 'x' );
-		// file already exists?
+		// File already exists?
 		if ( ! $fp ) {
 			return false;
 		}
 
-		// write some random contents
+		// Write some random contents.
 		$c = rand_str();
 		fwrite( $fp, $c );
 		fclose( $fp );
@@ -91,7 +91,7 @@ class Tests_File extends WP_UnitTestCase {
 	}
 
 	function test_unique_filename_is_valid() {
-		// make sure it produces a valid, writable, unique filename
+		// Make sure it produces a valid, writable, unique filename.
 		$filename = wp_unique_filename( $this->dir, __FUNCTION__ . '.txt' );
 
 		$this->assertTrue( $this->is_unique_writable_file( $this->dir, $filename ) );
@@ -100,7 +100,7 @@ class Tests_File extends WP_UnitTestCase {
 	}
 
 	function test_unique_filename_is_unique() {
-		// make sure it produces two unique filenames
+		// Make sure it produces two unique filenames.
 		$name = __FUNCTION__;
 
 		$filename1 = wp_unique_filename( $this->dir, $name . '.txt' );
@@ -108,7 +108,7 @@ class Tests_File extends WP_UnitTestCase {
 		$filename2 = wp_unique_filename( $this->dir, $name . '.txt' );
 		$this->assertTrue( $this->is_unique_writable_file( $this->dir, $filename2 ) );
 
-		// the two should be different
+		// The two should be different.
 		$this->assertNotEquals( $filename1, $filename2 );
 
 		unlink( $this->dir . DIRECTORY_SEPARATOR . $filename1 );
@@ -119,7 +119,7 @@ class Tests_File extends WP_UnitTestCase {
 		$name     = __FUNCTION__;
 		$filename = wp_unique_filename( $this->dir, $name . $this->badchars . '.txt' );
 
-		// make sure the bad characters were all stripped out
+		// Make sure the bad characters were all stripped out.
 		$this->assertEquals( $name . '.txt', $filename );
 
 		$this->assertTrue( $this->is_unique_writable_file( $this->dir, $filename ) );
@@ -132,7 +132,7 @@ class Tests_File extends WP_UnitTestCase {
 		// "foo/foo.txt"
 		$filename = wp_unique_filename( $this->dir, $name . '/' . $name . '.txt' );
 
-		// the slash should be removed, i.e. "foofoo.txt"
+		// The slash should be removed, i.e. "foofoo.txt".
 		$this->assertEquals( $name . $name . '.txt', $filename );
 
 		$this->assertTrue( $this->is_unique_writable_file( $this->dir, $filename ) );
@@ -144,7 +144,7 @@ class Tests_File extends WP_UnitTestCase {
 		$name     = __FUNCTION__;
 		$filename = wp_unique_filename( $this->dir, $name . '.php.txt' );
 
-		// "foo.php.txt" becomes "foo.php_.txt"
+		// "foo.php.txt" becomes "foo.php_.txt".
 		$this->assertEquals( $name . '.php_.txt', $filename );
 
 		$this->assertTrue( $this->is_unique_writable_file( $this->dir, $filename ) );

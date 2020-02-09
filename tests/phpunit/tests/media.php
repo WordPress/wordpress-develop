@@ -272,7 +272,7 @@ EOF;
 	function data_autoembed() {
 		return array(
 
-			// Should embed
+			// Should embed.
 			array(
 				'https://w.org',
 				'[embed]',
@@ -308,7 +308,7 @@ test</p>',
 </p>',
 			),
 
-			// Should NOT embed
+			// Should NOT embed.
 			array(
 				'test https://w.org</p>',
 			),
@@ -336,7 +336,7 @@ https://w.org</a>',
 	}
 
 	function test_wp_prepare_attachment_for_js() {
-		// Attachment without media
+		// Attachment without media.
 		$id   = wp_insert_attachment(
 			array(
 				'post_status'           => 'publish',
@@ -353,18 +353,18 @@ https://w.org</a>',
 		$this->assertEquals( '', $prepped['mime'] );
 		$this->assertEquals( '', $prepped['type'] );
 		$this->assertEquals( '', $prepped['subtype'] );
-		// #21963, there will be a guid always, so there will be a URL
+		// #21963, there will be a GUID always, so there will be a URL.
 		$this->assertNotEquals( '', $prepped['url'] );
 		$this->assertEquals( site_url( 'wp-includes/images/media/default.png' ), $prepped['icon'] );
 
-		// Fake a mime
+		// Fake a mime.
 		$post->post_mime_type = 'image/jpeg';
 		$prepped              = wp_prepare_attachment_for_js( $post );
 		$this->assertEquals( 'image/jpeg', $prepped['mime'] );
 		$this->assertEquals( 'image', $prepped['type'] );
 		$this->assertEquals( 'jpeg', $prepped['subtype'] );
 
-		// Fake a mime without a slash. See #WP22532
+		// Fake a mime without a slash. See #WP22532.
 		$post->post_mime_type = 'image';
 		$prepped              = wp_prepare_attachment_for_js( $post );
 		$this->assertEquals( 'image', $prepped['mime'] );
@@ -426,7 +426,7 @@ https://w.org</a>',
 		$gb = $mb * 1024;
 		$tb = $gb * 1024;
 
-		// test if boundaries are correct
+		// Test if boundaries are correct.
 		$this->assertEquals( '1TB', wp_convert_bytes_to_hr( $tb ) );
 		$this->assertEquals( '1GB', wp_convert_bytes_to_hr( $gb ) );
 		$this->assertEquals( '1MB', wp_convert_bytes_to_hr( $mb ) );
@@ -437,7 +437,7 @@ https://w.org</a>',
 		$this->assertEquals( '1 MB', size_format( $mb ) );
 		$this->assertEquals( '1 KB', size_format( $kb ) );
 
-		// now some values around
+		// Now some values around.
 		$hr = wp_convert_bytes_to_hr( $tb + $tb / 2 + $mb );
 		$this->assertEquals( 1.50000095367, (float) str_replace( ',', '.', $hr ), 'The values should be equal', 0.0001 );
 
@@ -450,7 +450,7 @@ https://w.org</a>',
 		$hr = wp_convert_bytes_to_hr( $gb - $mb - $kb );
 		$this->assertEquals( 1022.99902344, (float) str_replace( ',', '.', $hr ), 'The values should be equal', 0.0001 );
 
-		// edge
+		// Edge.
 		$this->assertEquals( '-1B', wp_convert_bytes_to_hr( -1 ) );
 		$this->assertEquals( '0B', wp_convert_bytes_to_hr( 0 ) );
 	}
@@ -612,11 +612,11 @@ BLOB;
 
 		$galleries = get_post_galleries( $post_id_two, false );
 
-		// Set the global $post context
+		// Set the global $post context.
 		$GLOBALS['post']               = get_post( $post_id_two );
 		$galleries_with_global_context = get_post_galleries( $post_id_two, false );
 
-		// Check that the global post state doesn't affect the results
+		// Check that the global post state doesn't affect the results.
 		$this->assertSame( $galleries, $galleries_with_global_context );
 
 		$this->assertNotEmpty( $galleries[0]['src'] );
@@ -1011,7 +1011,7 @@ VIDEO;
 
 		$sizes = wp_get_additional_image_sizes();
 
-		// Clean up
+		// Clean up.
 		remove_image_size( 'test-size' );
 
 		$this->assertArrayHasKey( 'test-size', $sizes );
@@ -1036,7 +1036,7 @@ VIDEO;
 		add_image_size( 'test-size', 200, 600 );
 		$this->assertTrue( has_image_size( 'test-size' ) );
 
-		// Clean up
+		// Clean up.
 		remove_image_size( 'test-size' );
 	}
 
@@ -1058,7 +1058,10 @@ VIDEO;
 		$this->assertEquals( $attachment_id, attachment_url_to_postid( $image_url ) );
 	}
 
-	function test_attachment_url_to_postid_schemes() {
+	/**
+	 * @ticket 33109
+	 */
+	function test_attachment_url_to_postid_with_different_scheme() {
 		$image_path    = '2014/11/' . $this->img_name;
 		$attachment_id = self::factory()->attachment->create_object(
 			$image_path,
@@ -1069,11 +1072,36 @@ VIDEO;
 			)
 		);
 
-		/**
-		 * @ticket 33109 Testing protocols not matching
-		 */
 		$image_url = 'https://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $image_path;
 		$this->assertEquals( $attachment_id, attachment_url_to_postid( $image_url ) );
+	}
+
+	/**
+	 * @ticket 39768
+	 */
+	function test_attachment_url_to_postid_should_be_case_sensitive() {
+		$image_path_lower_case    = '2014/11/' . $this->img_name;
+		$attachment_id_lower_case = self::factory()->attachment->create_object(
+			$image_path_lower_case,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+
+		$image_path_upper_case    = '2014/11/' . ucfirst( $this->img_name );
+		$attachment_id_upper_case = self::factory()->attachment->create_object(
+			$image_path_upper_case,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+
+		$image_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $image_path_upper_case;
+		$this->assertEquals( $attachment_id_upper_case, attachment_url_to_postid( $image_url ) );
 	}
 
 	function test_attachment_url_to_postid_filtered() {
@@ -1113,7 +1141,7 @@ VIDEO;
 	public function test_media_handle_upload_sets_post_excerpt() {
 		$iptc_file = DIR_TESTDATA . '/images/test-image-iptc.jpg';
 
-		// Make a copy of this file as it gets moved during the file upload
+		// Make a copy of this file as it gets moved during the file upload.
 		$tmp_name = wp_tempnam( $iptc_file );
 
 		copy( $iptc_file, $tmp_name );
@@ -1152,7 +1180,7 @@ VIDEO;
 	public function test_media_handle_upload_expected_titles() {
 		$test_file = DIR_TESTDATA . '/images/test-image.jpg';
 
-		// Make a copy of this file as it gets moved during the file upload
+		// Make a copy of this file as it gets moved during the file upload.
 		$tmp_name = wp_tempnam( $test_file );
 
 		copy( $test_file, $tmp_name );
@@ -1468,7 +1496,7 @@ EOF;
 	function test_wp_calculate_image_srcset_no_date_uploads() {
 		$_wp_additional_image_sizes = wp_get_additional_image_sizes();
 
-		// Disable date organized uploads
+		// Disable date organized uploads.
 		add_filter( 'upload_dir', '_upload_dir_no_subdir' );
 
 		// Make an image.
@@ -1506,7 +1534,7 @@ EOF;
 			$this->assertSame( $expected_srcset, wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
 		}
 
-		// Remove the attachment
+		// Remove the attachment.
 		wp_delete_attachment( $id );
 		remove_filter( 'upload_dir', '_upload_dir_no_subdir' );
 	}
@@ -1526,7 +1554,7 @@ EOF;
 
 		$filename_base = wp_basename( $image_meta['file'], '.png' );
 
-		// Add the hash to the image URL
+		// Add the hash to the image URL.
 		$image_url = str_replace( $filename_base, $filename_base . '-' . $hash, $image_url );
 
 		// Replace file paths for full and medium sizes with hashed versions.
@@ -1576,7 +1604,7 @@ EOF;
 		// Add the full size width at the end.
 		$expected .= $uploads_dir_url . $image_meta['file'] . ' ' . $image_meta['width'] . 'w';
 
-		// Prepend an absolute path to simulate a pre-2.7 upload
+		// Prepend an absolute path to simulate a pre-2.7 upload.
 		$image_meta['file'] = 'H:\home\wordpress\trunk/wp-content/uploads/' . $image_meta['file'];
 
 		foreach ( $intermediates as $int ) {
@@ -1593,7 +1621,7 @@ EOF;
 	function test_wp_calculate_image_srcset_false() {
 		$sizes = wp_calculate_image_srcset( array( 400, 300 ), 'file.png', array() );
 
-		// For canola.jpg we should return
+		// For canola.jpg we should return.
 		$this->assertFalse( $sizes );
 	}
 
@@ -1748,7 +1776,7 @@ EOF;
 			1600 => 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test.png 1600w',
 		);
 
-		// No sizes array
+		// No sizes array.
 		$image_meta1 = $image_meta;
 		unset( $image_meta1['sizes'] );
 		$this->assertFalse( wp_calculate_image_srcset( $size_array, $image_src, $image_meta1 ) );
@@ -1758,12 +1786,12 @@ EOF;
 		$image_meta2['sizes'] = '';
 		$this->assertFalse( wp_calculate_image_srcset( $size_array, $image_src, $image_meta2 ) );
 
-		// File name is incorrect
+		// File name is incorrect.
 		$image_meta3         = $image_meta;
 		$image_meta3['file'] = '/';
 		$this->assertFalse( wp_calculate_image_srcset( $size_array, $image_src, $image_meta3 ) );
 
-		// File name is incorrect
+		// File name is incorrect.
 		$image_meta4 = $image_meta;
 		unset( $image_meta4['file'] );
 		$this->assertFalse( wp_calculate_image_srcset( $size_array, $image_src, $image_meta4 ) );
@@ -1827,7 +1855,7 @@ EOF;
 		$_wp_additional_image_sizes = wp_get_additional_image_sizes();
 
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
-		$size_array = array( 1600, 1200 ); // full size
+		$size_array = array( 1600, 1200 ); // Full size.
 
 		$srcset = wp_get_attachment_image_srcset( self::$large_id, $size_array, $image_meta );
 
@@ -1953,7 +1981,7 @@ EOF;
 		$img_xhtml            = str_replace( ' />', '/>', $img );
 		$img_html5            = str_replace( ' />', '>', $img );
 
-		// Manually add srcset and sizes to the markup from get_image_tag();
+		// Manually add srcset and sizes to the markup from get_image_tag().
 		$respimg                  = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img );
 		$respimg_no_size_in_class = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img_no_size_in_class );
 		$respimg_no_width_height  = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img_no_width_height );
@@ -2003,7 +2031,7 @@ EOF;
 	function test_wp_make_content_images_responsive_wrong() {
 		$image = get_image_tag( self::$large_id, '', '', '', 'medium' );
 
-		// Replace the src URL
+		// Replace the src URL.
 		$image_wrong_src = preg_replace( '|src="[^"]+"|', 'src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/foo.jpg"', $image );
 
 		$this->assertSame( $image_wrong_src, wp_make_content_images_responsive( $image_wrong_src ) );
@@ -2404,7 +2432,7 @@ EOF;
 	public function test_media_handle_upload_uses_post_parent_for_directory_date() {
 		$iptc_file = DIR_TESTDATA . '/images/test-image-iptc.jpg';
 
-		// Make a copy of this file as it gets moved during the file upload
+		// Make a copy of this file as it gets moved during the file upload.
 		$tmp_name = wp_tempnam( $iptc_file );
 
 		copy( $iptc_file, $tmp_name );
@@ -2450,7 +2478,7 @@ EOF;
 	public function test_media_handle_upload_ignores_page_parent_for_directory_date() {
 		$iptc_file = DIR_TESTDATA . '/images/test-image-iptc.jpg';
 
-		// Make a copy of this file as it gets moved during the file upload
+		// Make a copy of this file as it gets moved during the file upload.
 		$tmp_name = wp_tempnam( $iptc_file );
 
 		copy( $iptc_file, $tmp_name );

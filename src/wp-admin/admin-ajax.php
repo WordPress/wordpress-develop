@@ -19,7 +19,7 @@ if ( ! defined( 'WP_ADMIN' ) ) {
 }
 
 /** Load WordPress Bootstrap */
-require_once( dirname( dirname( __FILE__ ) ) . '/wp-load.php' );
+require_once dirname( __DIR__ ) . '/wp-load.php';
 
 /** Allow for cross-domain requests (from the front end). */
 send_origin_headers();
@@ -27,16 +27,16 @@ send_origin_headers();
 header( 'Content-Type: text/html; charset=' . get_option( 'blog_charset' ) );
 header( 'X-Robots-Tag: noindex' );
 
-// Require an action parameter
+// Require an action parameter.
 if ( empty( $_REQUEST['action'] ) ) {
 	wp_die( '0', 400 );
 }
 
 /** Load WordPress Administration APIs */
-require_once( ABSPATH . 'wp-admin/includes/admin.php' );
+require_once ABSPATH . 'wp-admin/includes/admin.php';
 
 /** Load Ajax Handlers for WordPress Core */
-require_once( ABSPATH . 'wp-admin/includes/ajax-actions.php' );
+require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 
 send_nosniff_header();
 nocache_headers();
@@ -141,7 +141,7 @@ $core_actions_post = array(
 	'health-check-get-sizes',
 );
 
-// Deprecated
+// Deprecated.
 $core_actions_post_deprecated = array( 'wp-fullscreen-save-post', 'press-this-save-post', 'press-this-add-category' );
 $core_actions_post            = array_merge( $core_actions_post, $core_actions_post_deprecated );
 
@@ -189,5 +189,5 @@ if ( is_user_logged_in() ) {
 	 */
 	do_action( "wp_ajax_nopriv_{$action}" );
 }
-// Default status
+// Default status.
 wp_die( '0' );

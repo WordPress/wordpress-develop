@@ -103,19 +103,19 @@ class Plural_Forms {
 			$next = substr( $str, $pos, 1 );
 
 			switch ( $next ) {
-				// Ignore whitespace
+				// Ignore whitespace.
 				case ' ':
 				case "\t":
 					$pos++;
 					break;
 
-				// Variable (n)
+				// Variable (n).
 				case 'n':
 					$output[] = array( 'var' );
 					$pos++;
 					break;
 
-				// Parentheses
+				// Parentheses.
 				case '(':
 					$stack[] = $next;
 					$pos++;
@@ -125,7 +125,7 @@ class Plural_Forms {
 					$found = false;
 					while ( ! empty( $stack ) ) {
 						$o2 = $stack[ count( $stack ) - 1 ];
-						if ( $o2 !== '(' ) {
+						if ( '(' !== $o2 ) {
 							$output[] = array( 'op', array_pop( $stack ) );
 							continue;
 						}
@@ -143,7 +143,7 @@ class Plural_Forms {
 					$pos++;
 					break;
 
-				// Operators
+				// Operators.
 				case '|':
 				case '&':
 				case '>':
@@ -161,8 +161,8 @@ class Plural_Forms {
 					while ( ! empty( $stack ) ) {
 						$o2 = $stack[ count( $stack ) - 1 ];
 
-						// Ternary is right-associative in C
-						if ( $operator === '?:' || $operator === '?' ) {
+						// Ternary is right-associative in C.
+						if ( '?:' === $operator || '?' === $operator ) {
 							if ( self::$op_precedence[ $operator ] >= self::$op_precedence[ $o2 ] ) {
 								break;
 							}
@@ -177,13 +177,13 @@ class Plural_Forms {
 					$pos += $end_operator;
 					break;
 
-				// Ternary "else"
+				// Ternary "else".
 				case ':':
 					$found = false;
 					$s_pos = count( $stack ) - 1;
 					while ( $s_pos >= 0 ) {
 						$o2 = $stack[ $s_pos ];
-						if ( $o2 !== '?' ) {
+						if ( '?' !== $o2 ) {
 							$output[] = array( 'op', array_pop( $stack ) );
 							$s_pos--;
 							continue;
@@ -201,7 +201,7 @@ class Plural_Forms {
 					$pos++;
 					break;
 
-				// Default - number or invalid
+				// Default - number or invalid.
 				default:
 					if ( $next >= '0' && $next <= '9' ) {
 						$span     = strspn( $str, self::NUM_CHARS, $pos );
@@ -216,7 +216,7 @@ class Plural_Forms {
 
 		while ( ! empty( $stack ) ) {
 			$o2 = array_pop( $stack );
-			if ( $o2 === '(' || $o2 === ')' ) {
+			if ( '(' === $o2 || ')' === $o2 ) {
 				throw new Exception( 'Mismatched parentheses' );
 			}
 
@@ -259,10 +259,10 @@ class Plural_Forms {
 		while ( $i < $total ) {
 			$next = $this->tokens[ $i ];
 			$i++;
-			if ( $next[0] === 'var' ) {
+			if ( 'var' === $next[0] ) {
 				$stack[] = $n;
 				continue;
-			} elseif ( $next[0] === 'value' ) {
+			} elseif ( 'value' === $next[0] ) {
 				$stack[] = $next[1];
 				continue;
 			}

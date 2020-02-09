@@ -9,19 +9,19 @@
 		<const name="WP_RUN_CORE_TESTS" value="1" />
 	</php>
 	<testsuites>
-		<!-- Default test suite to run all tests -->
+		<!-- Default test suite to run all tests. -->
 		<testsuite name="default">
 			<directory suffix=".php">tests</directory>
-			<!-- Path relative to the checkout root, for PHPUnit 3.6.x -->
+			<!-- Path relative to the checkout root, for PHPUnit 3.6.x. -->
 			<exclude>tests/phpunit/tests/rest-api/rest-autosaves-controller.php</exclude>
-			<!-- Same path relative to the configuration file, for PHPUnit 4.0.0+ -->
+			<!-- Same path relative to the configuration file, for PHPUnit 4.0.0+. -->
 			<exclude>tests/rest-api/rest-autosaves-controller.php</exclude>
 		</testsuite>
-		<!-- Sets the DOING_AUTOSAVE constant, so needs to be run last -->
+		<!-- Sets the DOING_AUTOSAVE constant, so needs to be run last. -->
 		<testsuite name="restapi-autosave">
-			<!-- Path relative to the checkout root, for PHPUnit 3.6.x -->
+			<!-- Path relative to the checkout root, for PHPUnit 3.6.x. -->
 			<file>tests/phpunit/tests/rest-api/rest-autosaves-controller.php</file>
-			<!-- Same path relative to the configuration file, for PHPUnit 4.0.0+ -->
+			<!-- Same path relative to the configuration file, for PHPUnit 4.0.0+. -->
 			<file>tests/rest-api/rest-autosaves-controller.php</file>
 		</testsuite>
 	</testsuites>

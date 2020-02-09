@@ -71,24 +71,24 @@ var State = Backbone.Model.extend(/** @lends wp.media.controller.State.prototype
 	reset: function() {},
 
 	/**
-	 * @access private
 	 * @since 3.5.0
+	 * @access private
 	 */
 	_ready: function() {
 		this._updateMenu();
 	},
 
 	/**
-	 * @access private
 	 * @since 3.5.0
+	 * @access private
 	*/
 	_preActivate: function() {
 		this.active = true;
 	},
 
 	/**
-	 * @access private
 	 * @since 3.5.0
+	 * @access private
 	 */
 	_postActivate: function() {
 		this.on( 'change:menu', this._menu, this );
@@ -106,8 +106,8 @@ var State = Backbone.Model.extend(/** @lends wp.media.controller.State.prototype
 	},
 
 	/**
-	 * @access private
 	 * @since 3.5.0
+	 * @access private
 	 */
 	_deactivate: function() {
 		this.active = false;
@@ -121,24 +121,24 @@ var State = Backbone.Model.extend(/** @lends wp.media.controller.State.prototype
 	},
 
 	/**
-	 * @access private
 	 * @since 3.5.0
+	 * @access private
 	 */
 	_title: function() {
 		this.frame.title.render( this.get('titleMode') || 'default' );
 	},
 
 	/**
-	 * @access private
 	 * @since 3.5.0
+	 * @access private
 	 */
 	_renderTitle: function( view ) {
 		view.$el.text( this.get('title') || '' );
 	},
 
 	/**
-	 * @access private
 	 * @since 3.5.0
+	 * @access private
 	 */
 	_router: function() {
 		var router = this.frame.router,
@@ -159,8 +159,8 @@ var State = Backbone.Model.extend(/** @lends wp.media.controller.State.prototype
 	},
 
 	/**
-	 * @access private
 	 * @since 3.5.0
+	 * @access private
 	 */
 	_menu: function() {
 		var menu = this.frame.menu,
@@ -181,8 +181,8 @@ var State = Backbone.Model.extend(/** @lends wp.media.controller.State.prototype
 	},
 
 	/**
-	 * @access private
 	 * @since 3.5.0
+	 * @access private
 	 */
 	_updateMenu: function() {
 		var previous = this.previous('menu'),
@@ -200,8 +200,8 @@ var State = Backbone.Model.extend(/** @lends wp.media.controller.State.prototype
 	/**
 	 * Create a view in the media menu for the state.
 	 *
-	 * @access private
 	 * @since 3.5.0
+	 * @access private
 	 *
 	 * @param {media.view.Menu} view The menu view.
 	 */

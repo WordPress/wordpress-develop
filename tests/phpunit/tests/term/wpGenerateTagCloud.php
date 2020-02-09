@@ -43,23 +43,17 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 	 */
 	function empty_tags_data_provider() {
 		return array(
-			/**
-			 * when format => array, we should be getting an empty array back
-			 */
+			// When 'format' => 'array', we should be getting an empty array back.
 			array(
 				array(),
 				array( 'format' => 'array' ),
 			),
-			/**
-			 * List format returns an empty string
-			 */
+			// List format returns an empty string.
 			array(
 				'',
 				array( 'format' => 'list' ),
 			),
-			/**
-			 * $args can be an array or ''. Either should return an empty string
-			 */
+			// $args can be an array or ''. Either should return an empty string.
 			array(
 				'',
 				array(),
@@ -302,7 +296,7 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 
 		$tags = array();
 		foreach ( $terms as $term ) {
-			//add the link
+			// Add the link.
 			$term->link = get_term_link( $term );
 			$tags[]     = $term;
 

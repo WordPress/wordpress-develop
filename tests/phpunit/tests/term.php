@@ -50,14 +50,14 @@ class Tests_Term extends WP_UnitTestCase {
 	 * @ticket 5381
 	 */
 	function test_is_term_type() {
-		// insert a term
+		// Insert a term.
 		$term = rand_str();
 		$t    = wp_insert_term( $term, $this->taxonomy );
 		$this->assertInternalType( 'array', $t );
 		$term_obj = get_term_by( 'name', $term, $this->taxonomy );
 		$this->assertEquals( $t['term_id'], term_exists( $term_obj->slug ) );
 
-		// clean up
+		// Clean up.
 		$this->assertTrue( wp_delete_term( $t['term_id'], $this->taxonomy ) );
 	}
 
@@ -66,7 +66,7 @@ class Tests_Term extends WP_UnitTestCase {
 	 */
 	function test_wp_count_terms() {
 		$count = wp_count_terms( 'category', array( 'hide_empty' => true ) );
-		// there are 5 posts, all Uncategorized
+		// There are 5 posts, all Uncategorized.
 		$this->assertEquals( 1, $count );
 	}
 
@@ -135,11 +135,11 @@ class Tests_Term extends WP_UnitTestCase {
 		$this->assertTrue( $t > 0 );
 		$this->assertEquals( $initial_count + 1, wp_count_terms( 'category' ) );
 
-		// make sure the term exists
+		// Make sure the term exists.
 		$this->assertTrue( term_exists( $term ) > 0 );
 		$this->assertTrue( term_exists( $t ) > 0 );
 
-		// now delete it
+		// Now delete it.
 		$this->assertTrue( wp_delete_category( $t ) );
 		$this->assertNull( term_exists( $term ) );
 		$this->assertNull( term_exists( $t ) );

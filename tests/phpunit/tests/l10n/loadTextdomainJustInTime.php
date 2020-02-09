@@ -90,7 +90,7 @@ class Tests_L10n_loadTextdomainJustInTime extends WP_UnitTestCase {
 
 		switch_theme( 'internationalized-theme' );
 
-		include_once get_stylesheet_directory() . '/functions.php';
+		require_once get_stylesheet_directory() . '/functions.php';
 
 		$is_textdomain_loaded_before = is_textdomain_loaded( 'internationalized-theme' );
 		$expected_output             = i18n_theme_test();
