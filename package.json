@@ -132,7 +132,7 @@
 		"lodash": "4.17.15",
 		"masonry-layout": "3.3.2",
 		"moment": "2.22.2",
-		"polyfill-library": "3.27.4",
+		"polyfill-library": "3.42.0",
 		"react": "16.9.0",
 		"react-dom": "16.9.0",
 		"twemoji": "12.1.3",
