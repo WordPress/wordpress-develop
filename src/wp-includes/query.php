@@ -1167,27 +1167,28 @@ function generate_postdata( $post ) {
  *
  * @since 5.x
  *
- * @global WP_Query $wp_query WordPress Query object.
+ * @global WP_Query                    $wp_query WordPress query object.
+ * @global WP_Post                     $post     WordPress post object.
  *
- * @param WP_Query|WP_Post[] $iterable WordPress query object or an array of posts.
- *
+ * @param WP_Query|Iterator|array|null $iterable WordPress query object or an array of posts.
  * @return Generator
  */
 function wp_loop( $iterable = null ) {
 
+	// If no iterable was passed, use the global query
 	if ( null === $iterable ) {
 		$iterable = $GLOBALS['wp_query'];
 	}
 
-	$posts = $iterable;
-
+	// If the iterable contains a posts property, use that as the iterable
 	if ( is_object( $iterable ) && property_exists( $iterable, 'posts' ) ) {
-		$posts = $iterable->posts;
+		$iterable = $iterable->posts;
 	}
 
-	if ( ! is_array( $posts ) ) {
+	// If we don't have a valid iterable, return false and trigger message
+	if ( ! is_iterable( $iterable ) ) {
 		/* translators: Data type */
-		_doing_it_wrong( __FUNCTION__, sprintf( __( 'Expected an array, received %s instead.' ), gettype( $posts ) ), '3.1.0' );
+		_doing_it_wrong( __FUNCTION__, sprintf( __( 'Expected an iterable, received %s instead.' ), gettype( $iterable ) ), '5.x' );
 
 		return false;
 	}
@@ -1198,17 +1199,19 @@ function wp_loop( $iterable = null ) {
 	$save_post = $post;
 
 	try {
-		foreach ( $posts as $post ) {
+		foreach ( $iterable as $post ) {
+
+			// Ensure that we always yield a WP_Post object
+			if ( ! ( $post instanceof WP_Post ) ) {
+				$post = get_post( $post );
+			}
 
 			setup_postdata( $post );
 			yield $post;
-
 		}
 	} finally {
-
 		wp_reset_postdata();
 		// Restore the global post object
 		$post = $save_post;
-
 	}
 }
