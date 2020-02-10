@@ -1373,6 +1373,64 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertEquals( '', rest_get_server()->sent_body );
 	}
 
+	/**
+	 * @ticket 47077
+	 */
+	public function test_http_authorization_header_substitution() {
+		$headers        = array( 'HTTP_AUTHORIZATION' => 'foo' );
+		$parsed_headers = rest_get_server()->get_headers( $headers );
+
+		$this->assertSame(
+			array( 'AUTHORIZATION' => 'foo' ),
+			$parsed_headers
+		);
+	}
+
+	/**
+	 * @ticket 47077
+	 */
+	public function test_redirect_http_authorization_header_substitution() {
+		$headers        = array( 'REDIRECT_HTTP_AUTHORIZATION' => 'foo' );
+		$parsed_headers = rest_get_server()->get_headers( $headers );
+
+		$this->assertSame(
+			array( 'AUTHORIZATION' => 'foo' ),
+			$parsed_headers
+		);
+	}
+
+	/**
+	 * @ticket 47077
+	 */
+	public function test_redirect_http_authorization_with_http_authorization_header_substitution() {
+		$headers        = array(
+			'HTTP_AUTHORIZATION'          => 'foo',
+			'REDIRECT_HTTP_AUTHORIZATION' => 'bar',
+		);
+		$parsed_headers = rest_get_server()->get_headers( $headers );
+
+		$this->assertSame(
+			array( 'AUTHORIZATION' => 'foo' ),
+			$parsed_headers
+		);
+	}
+
+	/**
+	 * @ticket 47077
+	 */
+	public function test_redirect_http_authorization_with_empty_http_authorization_header_substitution() {
+		$headers        = array(
+			'HTTP_AUTHORIZATION'          => '',
+			'REDIRECT_HTTP_AUTHORIZATION' => 'bar',
+		);
+		$parsed_headers = rest_get_server()->get_headers( $headers );
+
+		$this->assertSame(
+			array( 'AUTHORIZATION' => 'bar' ),
+			$parsed_headers
+		);
+	}
+
 	public function _validate_as_integer_123( $value, $request, $key ) {
 		if ( ! is_int( $value ) ) {
 			return new WP_Error( 'some-error', 'This is not valid!' );
