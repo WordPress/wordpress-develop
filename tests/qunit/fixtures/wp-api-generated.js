@@ -709,7 +709,7 @@ mockedApiResponse.Schema = {
                         "force": {
                             "required": false,
                             "default": false,
-                            "description": "Whether to bypass trash and force deletion.",
+                            "description": "Whether to bypass Trash and force deletion.",
                             "type": "boolean"
                         }
                     }
@@ -1536,7 +1536,7 @@ mockedApiResponse.Schema = {
                         "force": {
                             "required": false,
                             "default": false,
-                            "description": "Whether to bypass trash and force deletion.",
+                            "description": "Whether to bypass Trash and force deletion.",
                             "type": "boolean"
                         }
                     }
@@ -2306,7 +2306,7 @@ mockedApiResponse.Schema = {
                         "force": {
                             "required": false,
                             "default": false,
-                            "description": "Whether to bypass trash and force deletion.",
+                            "description": "Whether to bypass Trash and force deletion.",
                             "type": "boolean"
                         }
                     }
@@ -2658,7 +2658,7 @@ mockedApiResponse.Schema = {
                         "force": {
                             "required": false,
                             "default": false,
-                            "description": "Whether to bypass trash and force deletion.",
+                            "description": "Whether to bypass Trash and force deletion.",
                             "type": "boolean"
                         }
                     }
@@ -4312,7 +4312,7 @@ mockedApiResponse.Schema = {
                         "force": {
                             "required": false,
                             "default": false,
-                            "description": "Whether to bypass trash and force deletion.",
+                            "description": "Whether to bypass Trash and force deletion.",
                             "type": "boolean"
                         },
                         "password": {
