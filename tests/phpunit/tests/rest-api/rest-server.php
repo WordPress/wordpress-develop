@@ -1343,7 +1343,10 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 * @ticket 47077
 	 */
 	public function test_redirect_http_authorization_with_http_authorization_header_substitution() {
-		$headers        = array( 'HTTP_AUTHORIZATION' => 'foo', 'REDIRECT_HTTP_AUTHORIZATION' => 'bar' );
+		$headers        = array(
+			'HTTP_AUTHORIZATION'          => 'foo',
+			'REDIRECT_HTTP_AUTHORIZATION' => 'bar',
+		);
 		$parsed_headers = rest_get_server()->get_headers( $headers );
 
 		$this->assertSame(
@@ -1356,7 +1359,10 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 * @ticket 47077
 	 */
 	public function test_redirect_http_authorization_with_empty_http_authorization_header_substitution() {
-		$headers        = array( 'HTTP_AUTHORIZATION' => '', 'REDIRECT_HTTP_AUTHORIZATION' => 'bar' );
+		$headers        = array(
+			'HTTP_AUTHORIZATION'          => '',
+			'REDIRECT_HTTP_AUTHORIZATION' => 'bar',
+		);
 		$parsed_headers = rest_get_server()->get_headers( $headers );
 
 		$this->assertSame(

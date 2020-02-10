@@ -1374,7 +1374,7 @@ class WP_REST_Server {
 				 * In some server configurations, the authorization header is passed in this alternate location.
 				 * Since it would not be passed in in both places we do not check for both headers and resolve.
 				 */
-				$headers[ 'AUTHORIZATION' ] = $value;
+				$headers['AUTHORIZATION'] = $value;
 			} elseif ( isset( $additional[ $key ] ) ) {
 				$headers[ $key ] = $value;
 			}
