@@ -156,8 +156,8 @@ class Tests_User_WpPrivacySendRequestConfirmationNotification extends WP_UnitTes
 	 *
 	 * @since 4.9.8
 	 *
-	 * @param string          $admin_email  The email address of the notification recipient.
-	 * @param WP_User_Request $request The request that is initiating the notification.
+	 * @param string          $admin_email The email address of the notification recipient.
+	 * @param WP_User_Request $request     The request that is initiating the notification.
 	 * @return string Admin email address.
 	 */
 	public function modify_email_address( $admin_email, $request ) {
