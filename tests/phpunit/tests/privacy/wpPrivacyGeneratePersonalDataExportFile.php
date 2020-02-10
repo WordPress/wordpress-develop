@@ -258,7 +258,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		$this->assertTrue( file_exists( $report_dir . 'index.html' ) );
 
 		$report_contents = file_get_contents( $report_dir . 'index.html' );
-		$request         = wp_get_user_request_data( self::$export_request_id );
+		$request         = wp_get_user_request( self::$export_request_id );
 
 		$this->assertContains( '<h1>Personal Data Export</h1>', $report_contents );
 		$this->assertContains( '<h2>About</h2>', $report_contents );
@@ -285,7 +285,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		$zip->extractTo( $report_dir );
 		$zip->close();
 
-		$request = wp_get_user_request_data( self::$export_request_id );
+		$request = wp_get_user_request( self::$export_request_id );
 
 		$this->assertTrue( file_exists( $report_dir . 'export.json' ) );
 

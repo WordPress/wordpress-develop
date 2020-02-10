@@ -152,16 +152,16 @@ class Tests_User_WpPrivacySendRequestConfirmationNotification extends WP_UnitTes
 	}
 
 	/**
-	 * Filter callback that modifies the recipient of the data request confirmation notification.
+	 * Filter callback that modifies the recipient of the user request confirmation notification.
 	 *
 	 * @since 4.9.8
 	 *
 	 * @param string          $admin_email  The email address of the notification recipient.
-	 * @param WP_User_Request $request_data The request that is initiating the notification.
+	 * @param WP_User_Request $request The request that is initiating the notification.
 	 * @return string Admin email address.
 	 */
-	public function modify_email_address( $admin_email, $request_data ) {
-		$admin_email = $request_data->email;
+	public function modify_email_address( $admin_email, $request ) {
+		$admin_email = $request->email;
 		return $admin_email;
 	}
 
