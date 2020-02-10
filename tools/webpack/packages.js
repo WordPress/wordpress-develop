@@ -77,6 +77,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'wp-polyfill-fetch.js': 'whatwg-fetch/dist/fetch.umd.js',
 		'wp-polyfill-element-closest.js': 'element-closest/element-closest.js',
 		'wp-polyfill-node-contains.js': 'polyfill-library/polyfills/Node/prototype/contains/polyfill.js',
+		'wp-polyfill-url.js': 'polyfill-library/polyfills/URL/polyfill.js',
+		'wp-polyfill-dom-rect.js': 'polyfill-library/polyfills/DOMRect/polyfill.js',
 		'wp-polyfill-formdata.js': 'formdata-polyfill/FormData.js',
 		'moment.js': 'moment/moment.js',
 		'react.js': 'react/umd/react.development.js',
@@ -96,6 +98,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'wp-polyfill-fetch.min.js': 'whatwg-fetch/dist/fetch.umd.js',
 		'wp-polyfill-element-closest.min.js': 'element-closest/element-closest.js',
 		'wp-polyfill-node-contains.min.js': 'polyfill-library/polyfills/Node/prototype/contains/polyfill.js',
+		'wp-polyfill-url.min.js': 'polyfill-library/polyfills/URL/polyfill.js',
+		'wp-polyfill-dom-rect.min.js': 'polyfill-library/polyfills/DOMRect/polyfill.js',
 	};
 
 	const blockNames = [
