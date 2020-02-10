@@ -109,10 +109,10 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'categories',
 		'latest-comments',
 		'latest-posts',
-		'navigation',
 		'rss',
 		'search',
 		'shortcode',
+		'social-link',
 		'tag-cloud',
 	];
 	const phpFiles = {

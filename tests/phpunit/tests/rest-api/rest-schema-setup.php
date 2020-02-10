@@ -129,6 +129,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/block-renderer/(?P<name>core/rss)',
 			'/wp/v2/block-renderer/(?P<name>core/search)',
 			'/wp/v2/block-renderer/(?P<name>core/shortcode)',
+			'/wp/v2/block-renderer/(?P<name>core/social-link)',
 			'/wp/v2/block-renderer/(?P<name>core/tag-cloud)',
 			'/wp/v2/settings',
 			'/wp/v2/themes',
