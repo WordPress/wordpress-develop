@@ -1751,4 +1751,47 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertEquals( '-84.5143900', $actual['data'][1]['data'][3]['value'] );
 
 	}
+
+	/**
+	 * Testing the `wp_user_personal_data_exporter()` function
+	 * with Session Tokens data.
+	 *
+	 * @ticket 45889
+	 */
+	function test_wp_session_tokens_personal_data_exporter() {
+		$test_user = new WP_User( self::$contrib_id );
+
+		$session_tokens_data = array(
+			'yft87y56457687sfd897867545fg76ds78iyuhgjyui7865' => array(
+				'expiration' => 1580461981,
+				'ip'         => '0.0.0.0',
+				'ua'         => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.117 Safari/537.36',
+				'login'      => 1580289181,
+			),
+		);
+		update_user_option( $test_user->ID, 'session_tokens', $session_tokens_data, true );
+
+		$actual = wp_user_personal_data_exporter( $test_user->user_email );
+
+		$this->assertTrue( $actual['done'] );
+
+		// Contains Session Tokens.
+		$this->assertEquals( 'Session Tokens', $actual['data'][1]['group_label'] );
+
+		// Contains Expiration.
+		$this->assertEquals( 'Expiration', $actual['data'][1]['data'][0]['name'] );
+		$this->assertEquals( 'January 31, 2020 09:13 AM', $actual['data'][1]['data'][0]['value'] );
+
+		// Contains IP.
+		$this->assertEquals( 'IP', $actual['data'][1]['data'][1]['name'] );
+		$this->assertEquals( '0.0.0.0', $actual['data'][1]['data'][1]['value'] );
+
+		// Contains IP.
+		$this->assertEquals( 'User Agent', $actual['data'][1]['data'][2]['name'] );
+		$this->assertEquals( 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.117 Safari/537.36', $actual['data'][1]['data'][2]['value'] );
+
+		// Contains IP.
+		$this->assertEquals( 'Last Login', $actual['data'][1]['data'][3]['name'] );
+		$this->assertEquals( 'January 29, 2020 09:13 AM', $actual['data'][1]['data'][3]['value'] );
+	}
 }
