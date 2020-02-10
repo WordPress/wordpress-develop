@@ -1651,7 +1651,7 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Testing the `wp_user_personal_data_exporter_no_user` function when no user exists.
+	 * Testing the `wp_user_personal_data_exporter()` function when no user exists.
 	 *
 	 * @ticket 43547
 	 */
@@ -1667,7 +1667,7 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Testing the `wp_user_personal_data_exporter_no_user` function when the requested
+	 * Testing the `wp_user_personal_data_exporter()` function when the requested
 	 * user exists.
 	 *
 	 * @ticket 43547
@@ -1684,5 +1684,71 @@ class Tests_User extends WP_UnitTestCase {
 
 		// Number of exported user properties.
 		$this->assertSame( 11, count( $actual['data'][0]['data'] ) );
+	}
+
+	/**
+	 * Testing the `wp_user_personal_data_exporter()` function
+	 * with Community Events Location IP data.
+	 *
+	 * @ticket 43921
+	 */
+	function test_wp_community_events_location_ip_personal_data_exporter() {
+		$test_user = new WP_User( self::$contrib_id );
+
+		$location_data = array( 'ip' => '0.0.0.0' );
+		update_user_option( $test_user->ID, 'community-events-location', $location_data, true );
+
+		$actual = wp_user_personal_data_exporter( $test_user->user_email );
+
+		$this->assertTrue( $actual['done'] );
+
+		// Contains 'Community Events Location'.
+		$this->assertEquals( 'Community Events Location', $actual['data'][1]['group_label'] );
+
+		// Contains location IP.
+		$this->assertEquals( 'IP', $actual['data'][1]['data'][0]['name'] );
+		$this->assertEquals( '0.0.0.0', $actual['data'][1]['data'][0]['value'] );
+	}
+
+	/**
+	 * Testing the `wp_user_personal_data_exporter()` function
+	 * with Community Events Location city data.
+	 *
+	 * @ticket 43921
+	 */
+	function test_wp_community_events_location_city_personal_data_exporter() {
+		$test_user = new WP_User( self::$contrib_id );
+
+		$location_data = array(
+			'description' => 'Cincinnati',
+			'country'     => 'US',
+			'latitude'    => '39.1271100',
+			'longitude'   => '-84.5143900',
+		);
+		update_user_option( $test_user->ID, 'community-events-location', $location_data, true );
+
+		$actual = wp_user_personal_data_exporter( $test_user->user_email );
+
+		$this->assertTrue( $actual['done'] );
+
+		// Contains 'Community Events Location'.
+		$this->assertEquals( 'Community Events Location', $actual['data'][1]['group_label'] );
+
+		// Contains location city.
+		$this->assertEquals( 'City', $actual['data'][1]['data'][0]['name'] );
+		$this->assertEquals( 'Cincinnati', $actual['data'][1]['data'][0]['value'] );
+
+		// Contains location country.
+		$this->assertEquals( 'Country', $actual['data'][1]['data'][1]['name'] );
+		$this->assertEquals( 'US', $actual['data'][1]['data'][1]['value'] );
+
+		// Contains location latitude.
+		$this->assertEquals( 'Latitude', $actual['data'][1]['data'][2]['name'] );
+		$this->assertEquals( '39.1271100', $actual['data'][1]['data'][2]['value'] );
+
+		// Contains location longitude.
+		$this->assertEquals( 'Longitude', $actual['data'][1]['data'][3]['name'] );
+		$this->assertEquals( '-84.5143900', $actual['data'][1]['data'][3]['value'] );
+
 	}
 }
