@@ -1431,6 +1431,17 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		);
 	}
 
+	/**
+	 * @ticket 48530
+	 */
+	public function test_get_routes_respects_namespace_parameter() {
+		$routes = rest_get_server()->get_routes( 'oembed/1.0' );
+
+		foreach ( $routes as $route => $handlers ) {
+			$this->assertStringStartsWith( '/oembed/1.0', $route );
+		}
+	}
+
 	public function _validate_as_integer_123( $value, $request, $key ) {
 		if ( ! is_int( $value ) ) {
 			return new WP_Error( 'some-error', 'This is not valid!' );
