@@ -1798,6 +1798,8 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * Testing the `wp_privacy_additional_user_profile_data` filter works.
 	 *
+	 * @since 5.4.0
+	 *
 	 * @ticket 47509
 	 */
 	function test_filter_wp_privacy_additional_user_profile_data() {
@@ -1881,6 +1883,8 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * Filter callback to add additional profile data to the User Group on Export Requests.
 	 *
+	 * @since 5.4.0
+	 *
 	 * @ticket 47509
 	 *
 	 * @return array $additional_profile_data The additional user data.
@@ -1901,6 +1905,8 @@ class Tests_User extends WP_UnitTestCase {
 	 * Filter callback to add additional profile data to the User Group on Export Requests.
 	 *
 	 * This callback should generate a `_doing_it_wrong()`.
+	 *
+	 * @since 5.4.0
 	 *
 	 * @ticket 47509
 	 *
