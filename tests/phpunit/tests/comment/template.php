@@ -31,6 +31,18 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 48772
+	 */
+	function test_get_comments_number_text_with_post_id() {
+		$post_id = $this->factory->post->create();
+		$this->factory->comment->create_post_comments( $post_id, 6 );
+
+		$comments_number_text = get_comments_number_text( false, false, false, $post_id );
+
+		$this->assertEquals( sprintf( _n( '%s Comment', '%s Comments', 6 ), '6' ), $comments_number_text );
+	}
+
+	/**
 	 * @ticket 13651
 	 */
 	function test_get_comments_number_text_declension_with_default_args() {
