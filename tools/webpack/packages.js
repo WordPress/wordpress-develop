@@ -220,6 +220,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 				'token-list',
 				'server-side-render',
 				'shortcode',
+				'warning',
 			].map( camelCaseDash ) ),
 			new CustomTemplatedPathPlugin( {
 				basename( path, data ) {
