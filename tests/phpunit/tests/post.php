@@ -1118,8 +1118,8 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
-	 * If a post is sticky and is updated by a user that does not have the publish_post capability, it should _stay_
-	 * sticky.
+	 * If a post is sticky and is updated by a user that does not have the publish_post capability,
+	 * it should _stay_ sticky.
 	 *
 	 * @ticket 24153
 	 */
@@ -1156,8 +1156,8 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
-	 * If the `edit_post()` method is invoked by a user without publish_posts permission, the sticky status of the post
-	 * should not be changed.
+	 * If the `edit_post()` method is invoked by a user without publish_posts permission,
+	 * the sticky status of the post should not be changed.
 	 *
 	 * @ticket 24153
 	 */
@@ -1425,5 +1425,46 @@ class Tests_Post extends WP_UnitTestCase {
 
 		$post = get_post( $post_id );
 		self::assertEquals( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date_gmt ), 'The dates should be equal', 2 );
+	}
+
+	/**
+	 * Test ensuring that wp_update_post() does not unintentionally modify post tags
+	 * if the post has several tags with the same name but different slugs.
+	 *
+	 * Tags should only be modified if 'tags_input' parameter was explicitly provided,
+	 * and is different from the existing tags.
+	 *
+	 * @ticket 45121
+	 */
+	public function test_update_post_should_only_modify_post_tags_if_different_tags_input_was_provided() {
+		$tag_1 = wp_insert_term( 'wp_update_post_tag', 'post_tag', array( 'slug' => 'wp_update_post_tag_1' ) );
+		$tag_2 = wp_insert_term( 'wp_update_post_tag', 'post_tag', array( 'slug' => 'wp_update_post_tag_2' ) );
+		$tag_3 = wp_insert_term( 'wp_update_post_tag', 'post_tag', array( 'slug' => 'wp_update_post_tag_3' ) );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'tags_input' => array( $tag_1['term_id'], $tag_2['term_id'] ),
+			)
+		);
+
+		$post = get_post( $post_id );
+
+		$tags = wp_get_post_tags( $post->ID, array( 'fields' => 'ids' ) );
+		$this->assertEqualSets( array( $tag_1['term_id'], $tag_2['term_id'] ), $tags );
+
+		wp_update_post( $post );
+
+		$tags = wp_get_post_tags( $post->ID, array( 'fields' => 'ids' ) );
+		$this->assertEqualSets( array( $tag_1['term_id'], $tag_2['term_id'] ), $tags );
+
+		wp_update_post(
+			array(
+				'ID'         => $post->ID,
+				'tags_input' => array( $tag_2['term_id'], $tag_3['term_id'] ),
+			)
+		);
+
+		$tags = wp_get_post_tags( $post->ID, array( 'fields' => 'ids' ) );
+		$this->assertEqualSets( array( $tag_2['term_id'], $tag_3['term_id'] ), $tags );
 	}
 }
