@@ -149,7 +149,6 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$post    = get_post( $post_id );
 
 		$this->assertInternalType( 'string', $post->page_template );
-		$this->assertEmpty( $post->tags_input );
 		$template = get_post_meta( $post->ID, '_wp_page_template', true );
 		$this->assertEquals( $template, $post->page_template );
 		update_post_meta( $post_id, '_wp_page_template', 'foo.php' );
