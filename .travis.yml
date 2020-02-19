@@ -12,9 +12,9 @@ env:
     - WP_TRAVISCI=travis:phpunit
 matrix:
   include:
-  - php: 7.3
   - php: 7.1
     env: WP_TRAVISCI=travis:js
+  - php: 7.3
   - php: 5.6
     env: WP_TRAVIS_OBJECT_CACHE=true
     services: memcached
