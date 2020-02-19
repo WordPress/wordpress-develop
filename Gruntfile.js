@@ -27,7 +27,6 @@ module.exports = function(grunt) {
 			'wp-content/plugins/hello.php',
 			'wp-content/plugins/akismet/**',
 			'!wp-content/themes/twenty*/node_modules/**',
-			'!wp-config.php',
 		],
 		changedFiles = {
 			php: []
@@ -97,12 +96,14 @@ module.exports = function(grunt) {
 		clean: {
 			plugins: [BUILD_DIR + 'wp-content/plugins'],
 			themes: [BUILD_DIR + 'wp-content/themes'],
-			files: buildFiles.map( function( file ) {
+			files: buildFiles.concat( [
+				'!wp-config.php',
+			] ).map( function( file ) {
 				if ( '!' === file.charAt( 0 ) ) {
 					return '!' + BUILD_DIR + file.substring( 1 );
 				}
 				return BUILD_DIR + file;
-			}),
+			} ),
 			css: [
 				WORKING_DIR + 'wp-admin/css/*.min.css',
 				WORKING_DIR + 'wp-admin/css/*-rtl*.css',
