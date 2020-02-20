@@ -1020,6 +1020,29 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertContains( 'test/another', $namespaces );
 	}
 
+	/**
+	 * @ticket 49147
+	 */
+	public function test_get_data_for_non_variable_route_includes_links() {
+		$expected = array(
+			'self' => array(
+				array( 'href' => rest_url( 'wp/v2/posts' ) ),
+			),
+		);
+
+		$actual = rest_get_server()->get_data_for_route(
+			'/wp/v2/posts',
+			array(
+				array(
+					'methods'       => array( 'OPTIONS' => 1 ),
+					'show_in_index' => true,
+				),
+			)
+		);
+
+		$this->assertEquals( $expected, $actual['_links'] );
+	}
+
 	public function test_x_robot_tag_header_on_requests() {
 		$request = new WP_REST_Request( 'GET', '/', array() );
 
