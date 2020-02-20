@@ -343,6 +343,39 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$this->assertGreaterThan( 0, $listener->get_call_count( $method ) );
 	}
 
+	/**
+	 * @ticket 48785
+	 */
+	public function test_get_public_item_schema_with_properties() {
+		$schema = ( new WP_REST_Test_Controller() )->get_public_item_schema();
+
+		// Double-check that the public item schema set in WP_REST_Test_Controller still has properties.
+		$this->assertArrayHasKey( 'properties', $schema );
+
+		// But arg_options should be removed.
+		$this->assertArrayNotHasKey( 'arg_options', $schema['properties']['someargoptions'] );
+	}
+
+	/**
+	 * @ticket 48785
+	 */
+	public function test_get_public_item_schema_no_properties() {
+		$controller = new WP_REST_Test_Configurable_Controller(
+			array(
+				'$schema'     => 'http://json-schema.org/draft-04/schema#',
+				'title'       => 'foo',
+				'type'        => 'string',
+				'description' => 'This is my magical endpoint that just returns a string.',
+			)
+		);
+
+		// Initial check that the test class is working as expected.
+		$this->assertArrayNotHasKey( 'properties', $controller->get_public_item_schema() );
+
+		// Test that the schema lacking 'properties' is returned as expected.
+		$this->assertEqualSetsWithIndex( $controller->get_public_item_schema(), $controller->get_test_schema() );
+	}
+
 	public function test_add_additional_fields_to_object_respects_fields_param() {
 		$controller = new WP_REST_Test_Controller();
 		$request    = new WP_REST_Request( 'GET', '/wp/v2/testroute' );
