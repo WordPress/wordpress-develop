@@ -380,7 +380,7 @@ if ( isset( $_GET['updated'] ) ) {
 			<tr>
 				<th scope="row"><label for="upload_filetypes"><?php _e( 'Upload file types' ); ?></label></th>
 				<td>
-					<input name="upload_filetypes" type="text" id="upload_filetypes" aria-describedby="upload-filetypes-desc" class="large-text" value="<?php echo esc_attr( get_site_option( 'upload_filetypes', 'jpg jpeg png gif' ) ); ?>" size="45" />
+					<textarea name="upload_filetypes" id="upload_filetypes" aria-describedby="upload-filetypes-desc" cols="45" rows="5"><?php echo esc_attr( get_site_option( 'upload_filetypes', 'jpg jpeg png gif' ) ); ?></textarea>
 					<p class="description" id="upload-filetypes-desc">
 						<?php _e( 'Allowed file types. Separate types by spaces.' ); ?>
 					</p>
