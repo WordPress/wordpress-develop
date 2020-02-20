@@ -131,6 +131,32 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertEquals( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\\\fg.png' ), 'Tripple slashed not removed' );
 	}
 
+	function test_is_serialized() {
+		$cases = array(
+			serialize(null),
+			serialize(true),
+			serialize(false),
+			serialize(-25),
+			serialize(25),
+			serialize(1.1),
+			serialize('this string will be serialized'),
+			serialize("a\nb"),
+			serialize(array()),
+			serialize(array(1,1,2,3,5,8,13)),
+			serialize( (object)array('test' => true, '3', 4) )
+		);
+		foreach ( $cases as $case )
+			$this->assertTrue( is_serialized($case), "Serialized data: $case" );
+
+		$not_serialized = array(
+			'a string',
+			'garbage:a:0:garbage;',
+			's:4:test;'
+		);
+		foreach ( $not_serialized as $case )
+			$this->assertFalse( is_serialized($case), "Test data: $case" );
+	}
+
 	/**
 	 * @group add_query_arg
 	 */
