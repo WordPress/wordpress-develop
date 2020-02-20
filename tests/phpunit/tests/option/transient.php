@@ -38,9 +38,12 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	 * @ticket 22807
 	 */
 	function test_transient_data_with_timeout() {
+		if ( is_multisite() ) {
+			$this->markTestSkipped( 'Not testable in MS: wpmu_create_blog() defines WP_INSTALLING.' );
+		}
+
 		$key = rand_str();
 		$value = rand_str();
-		$value2 = rand_str();
 
 		$this->assertFalse( get_option( '_transient_timeout_' . $key ) );
 		$now = time();
@@ -60,6 +63,10 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	 * @ticket 22807
 	 */
 	function test_transient_add_timeout() {
+		if ( is_multisite() ) {
+			$this->markTestSkipped( 'Not testable in MS: wpmu_create_blog() defines WP_INSTALLING.' );
+		}
+
 		$key = rand_str();
 		$value = rand_str();
 		$value2 = rand_str();

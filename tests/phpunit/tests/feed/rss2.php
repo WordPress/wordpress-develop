@@ -110,12 +110,13 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 			$this->assertEquals(strtotime($posts[$i]->post_date), strtotime($pubdate[0]['content']));
 
 			// author
-			$creator = xml_find($items[$i]['child'], 'dc:creator');
-			$this->assertEquals($this->author->user_nicename, $creator[0]['content']);
+			$creator = xml_find( $items[$i]['child'], 'dc:creator' );
+			$user = new WP_User( $posts[$i]->post_author );
+			$this->assertEquals( $user->user_login, $creator[0]['content'] );
 
 			// categories (perhaps multiple)
 			$categories = xml_find($items[$i]['child'], 'category');
-			$cat_ids = wp_get_post_categories($post->ID);
+			$cat_ids = wp_get_post_categories($posts[$i]->ID);
 			if (empty($cat_ids))	$cat_ids = array(1);
 			// should be the same number of categories
 			$this->assertEquals(count($cat_ids), count($categories));

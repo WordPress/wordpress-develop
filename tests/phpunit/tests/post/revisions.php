@@ -59,42 +59,6 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	* @ticket 7392
 	* @ticket 9843
 	*/
-	function test_revision_dont_save_revision_if_unchanged() {
-		$post = get_default_post_to_edit( 'post', true );
-		$post_id = $post->ID;
-
-		$this->assertCount( 0, wp_get_post_revisions( $post_id ) ); // No revisions on auto-draft creation.
-
-		wp_update_post( array( 'post_status' => 'draft', 'post_title' => 'some-post', 'post_content' => 'some_content', 'ID' => $post_id ) );
-
-		$this->assertCount( 1, wp_get_post_revisions( $post_id ) ); // Just the initial revision
-
-		// First update
-		wp_update_post( array( 'post_content'	=> 'some updated content', 'ID' => $post_id ) );
-
-		$this->assertCount( 2, wp_get_post_revisions( $post_id ) ); // should be 2 revisions so far
-
-		//update the post
-		wp_update_post( array( 'post_content'	=> 'new update for some updated content', 'ID' => $post_id ) );	//2nd revision
-		$this->assertCount( 3, wp_get_post_revisions( $post_id ) ); // should be 3 revision so far
-
-		//next try to save another identical update, tests for patch that prevents storing duplicates
-		wp_update_post( array( 'post_content'	=> 'new update for some updated content', 'ID' => $post_id ) );	//content unchanged, shouldn't save
-		$this->assertCount( 3, wp_get_post_revisions( $post_id ) ); //should still be 3 revision
-
-		//next try to save another update, same content, but new ttile, should save revision
-		wp_update_post( array( 'post_title' => 'some-post-changed', 'post_content'	=> 'new update for some updated content', 'ID' => $post_id ) );
-		$this->assertCount( 4, wp_get_post_revisions( $post_id ) ); //should  be 4 revision
-
-		//next try to save another identical update
-		wp_update_post( array( 'post_title' => 'some-post-changed', 'post_content'	=> 'new update for some updated content', 'ID' => $post_id ) );	//content unchanged, shouldn't save
-		$this->assertCount( 4, wp_get_post_revisions( $post_id ) ); //should still be 4 revision
-	}
-
-	/**
-	* @ticket 7392
-	* @ticket 9843
-	*/
 	function test_revision_force_save_revision_even_if_unchanged() {
 		add_filter( 'wp_save_post_revision_check_for_changes', '__return_false' );
 
