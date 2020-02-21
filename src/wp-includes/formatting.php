@@ -5012,14 +5012,21 @@ function wp_sprintf( $pattern, ...$args ) {
 /**
  * Localize list items before the rest of the content.
  *
- * The '%l' must be at the first characters can then contain the rest of the
- * content. The list items will have ', ', ', and', and ' and ' added depending
+ * The '%l', '%l$a' or '%l$o' must be at the first characters can then contain
+ * the rest of the content.
+ *
+ * For '%l' and '%l$a' the list items will have ', ', ', and', and ' and 'added
+ * depending on the amount of list items in the $args parameter.
+ *
+ * For '%l$o' the list items will have ', ', ', or', and ' or ' added depending
  * on the amount of list items in the $args parameter.
  *
  * @since 2.5.0
+ * @since 5.4.0 Added support to '%l$o' and to '%l$a' for list delemeters.
+ *              Default '%l' is and alias of '%l$a' for backward compatibility.
  *
- * @param string $pattern Content containing '%l' at the beginning.
- * @param array  $args    List items to prepend to the content and replace '%l'.
+ * @param string $pattern Content containing '%l', '%l$a' or '%l$o' at the beginning.
+ * @param array  $args    List items to prepend to the content and replace '%l', '%l$a' or '%l$o'.
  * @return string Localized list items and rest of the content.
  */
 function wp_sprintf_l( $pattern, $args ) {
@@ -5033,6 +5040,42 @@ function wp_sprintf_l( $pattern, $args ) {
 		return '';
 	}
 
+	// Localized delimiters for 'or' type.
+	$l_or = array(
+		/* translators: Used to join items in a list with more than 2 items. */
+		'between'          => sprintf( __( '%1$s, %2$s' ), '', '' ),
+		/* translators: Used to join last two items in a list with more than 2 times. */
+		'between_last_two' => sprintf( __( '%1$s, or %2$s' ), '', '' ),
+		/* translators: Used to join items in a list with only 2 items. */
+		'between_only_two' => sprintf( __( '%1$s or %2$s' ), '', '' ),
+	);
+
+	// Localized delimiters for 'and' type.
+	$l_and = array(
+		/* translators: Used to join items in a list with more than 2 items. */
+		'between'          => sprintf( __( '%1$s, %2$s' ), '', '' ),
+		/* translators: Used to join last two items in a list with more than 2 times. */
+		'between_last_two' => sprintf( __( '%1$s, and %2$s' ), '', '' ),
+		/* translators: Used to join items in a list with only 2 items. */
+		'between_only_two' => sprintf( __( '%1$s and %2$s' ), '', '' ),
+	);
+
+	// Set the delimiters type. Defaults to 'and' type for backward compatibility.
+	switch ( substr( $pattern, 0, 4 ) ) {
+		case '%l$o':
+			$delimiters = $l_or;
+			$lenght     = 4;
+			break;
+		case '%l$a':
+			$delimiters = $l_and;
+			$lenght     = 4;
+			break;
+		default:
+			$delimiters = $l_and;
+			$lenght     = 2;
+			break;
+	}
+
 	/**
 	 * Filters the translated delimiters used by wp_sprintf_l().
 	 * Placeholders (%s) are included to assist translators and then
@@ -5041,19 +5084,13 @@ function wp_sprintf_l( $pattern, $args ) {
 	 * Please note: Ampersands and entities should be avoided here.
 	 *
 	 * @since 2.5.0
+	 * @since 5.4.0 Added optional 'or' delimiter type. Defaults to 'and' type.
 	 *
 	 * @param array $delimiters An array of translated delimiters.
 	 */
 	$l = apply_filters(
 		'wp_sprintf_l',
-		array(
-			/* translators: Used to join items in a list with more than 2 items. */
-			'between'          => sprintf( __( '%1$s, %2$s' ), '', '' ),
-			/* translators: Used to join last two items in a list with more than 2 times. */
-			'between_last_two' => sprintf( __( '%1$s, and %2$s' ), '', '' ),
-			/* translators: Used to join items in a list with only 2 items. */
-			'between_only_two' => sprintf( __( '%1$s and %2$s' ), '', '' ),
-		)
+		$delimiters
 	);
 
 	$args   = (array) $args;
@@ -5074,7 +5111,7 @@ function wp_sprintf_l( $pattern, $args ) {
 		}
 	}
 
-	return $result . substr( $pattern, 2 );
+	return $result . substr( $pattern, $lenght );
 }
 
 /**
