@@ -366,7 +366,23 @@ CONTENT;
 			'size'     => filesize( $test_file ),
 		);
 
-		$post_id = media_handle_upload( 'upload', 0, array(), array( 'action' => 'test_upload_titles', 'test_form' => false ) );
+		$post_id = media_handle_upload(
+			'upload',
+			0,
+			array(),
+			array(
+				'action'               => 'test_upload_titles',
+				'test_form'            => false,
+				/*
+				 * This test previously failed on WP < 4.0 due to is_uploaded_file()
+				 * and move_uploaded_file() usage in wp_handle_upload().
+				 *
+				 * Since successful upload is irrelevant for the purpose of this test,
+				 * discarding upload errors allows the test to proceed.
+				 */
+				'upload_error_handler' => array( $this, '_discard_upload_errors' ),
+			)
+		);
 
 		unset( $_FILES['upload'] );
 
@@ -376,6 +392,16 @@ CONTENT;
 		wp_delete_attachment( $post_id );
 
 		$this->assertEquals( 'This is a test', $post->post_title );
+	}
+
+	function _discard_upload_errors( &$file, $message ) {
+		$uploads  = wp_upload_dir();
+		$filename = wp_unique_filename( $uploads['path'], $file['name'] );
+
+		$new_file = $uploads['path'] . "/$filename";
+		$url      = $uploads['url'] . "/$filename";
+
+		return array( 'file' => $new_file, 'url' => $url, 'type' => $file['type'] );
 	}
 
 	/**

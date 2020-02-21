@@ -412,52 +412,6 @@ class Tests_Term extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 5809
-	 */
-	function test_update_shared_term() {
-		$random_tax = __FUNCTION__;
-
-		register_taxonomy( $random_tax, 'post' );
-
-		$post_id = $this->factory->post->create();
-
-		$old_name = 'Initial';
-
-		$t1 = wp_insert_term( $old_name, 'category' );
-		$t2 = wp_insert_term( $old_name, 'post_tag' );
-
-		$this->assertEquals( $t1['term_id'], $t2['term_id'] );
-
-		wp_set_post_categories( $post_id, array( $t1['term_id'] ) );
-		wp_set_post_tags( $post_id, array( (int) $t2['term_id'] ) );
-
-		$new_name = 'Updated';
-
-		// create the term in a third taxonomy, just to keep things interesting
-		$t3 = wp_insert_term( $old_name, $random_tax );
-		wp_set_post_terms( $post_id, array( (int) $t3['term_id'] ), $random_tax );
-		$this->assertPostHasTerms( $post_id, array( $t3['term_id'] ), $random_tax );
-
-		$t2_updated = wp_update_term( $t2['term_id'], 'post_tag', array(
-			'name' => $new_name
-		) );
-
-		$this->assertNotEquals( $t2_updated['term_id'], $t3['term_id'] );
-
-		// make sure the terms have split
-		$this->assertEquals( $old_name, get_term_field( 'name', $t1['term_id'], 'category' ) );
-		$this->assertEquals( $new_name, get_term_field( 'name', $t2_updated['term_id'], 'post_tag' ) );
-
-		// and that they are still assigned to the correct post
-		$this->assertPostHasTerms( $post_id, array( $t1['term_id'] ), 'category' );
-		$this->assertPostHasTerms( $post_id, array( $t2_updated['term_id'] ), 'post_tag' );
-		$this->assertPostHasTerms( $post_id, array( $t3['term_id'] ), $random_tax );
-
-		// clean up
-		unset( $GLOBALS['wp_taxonomies'][ $random_tax ] );
-	}
-
-	/**
 	 * @ticket 17646
 	 */
 	function test_get_object_terms_types() {
@@ -494,32 +448,6 @@ class Tests_Term extends WP_UnitTestCase {
 		) );
 
 		$this->assertEquals( $expected_term_ids, $assigned_term_ids );
-	}
-
-	/**
-	 * @ticket 24189
-	 */
-	function test_object_term_cache_when_term_changes() {
-		$post_id = $this->factory->post->create();
-		$tag_id = $this->factory->tag->create( array( 'description' => 'My Amazing Tag' ) );
-
-		$tt_1 = wp_set_object_terms( $post_id, $tag_id, 'post_tag' );
-
-		$terms = get_the_terms( $post_id, 'post_tag' );
-		$this->assertEquals( $tag_id, $terms[0]->term_id );
-		$this->assertEquals( 'My Amazing Tag', $terms[0]->description );
-
-		$_updated = wp_update_term( $tag_id, 'post_tag', array(
-			'description' => 'This description is even more amazing!'
-		) );
-
-		$_new_term = get_term( $tag_id, 'post_tag' );
-		$this->assertEquals( $tag_id, $_new_term->term_id );
-		$this->assertEquals( 'This description is even more amazing!', $_new_term->description );
-
-		$terms = get_the_terms( $post_id, 'post_tag' );
-		$this->assertEquals( $tag_id, $terms[0]->term_id );
-		$this->assertEquals( 'This description is even more amazing!', $terms[0]->description );
 	}
 
 	function test_wp_set_post_categories() {

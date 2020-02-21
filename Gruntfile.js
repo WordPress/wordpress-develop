@@ -359,14 +359,17 @@ module.exports = function(grunt) {
 
 	// Register tasks.
 
-	// Copy task.
-	grunt.registerTask('copy:all', ['copy:files', 'copy:version']);
-
 	// RTL task.
 	grunt.registerTask('rtl', ['cssjanus:core', 'cssjanus:colors']);
 
 	// Color schemes task.
 	grunt.registerTask('colors', ['sass:colors']);
+
+	// JSHint task.
+	grunt.registerTask('jshint:corejs', ['jshint:grunt', 'jshint:tests', 'jshint:themes', 'jshint:core']);
+
+	// Copy task.
+	grunt.registerTask('copy:all', ['copy:files', 'copy:version']);
 
 	// Build task.
 	grunt.registerTask('build', ['clean:all', 'copy:all', 'cssmin:core', 'colors', 'rtl', 'cssmin:rtl', 'cssmin:colors',
@@ -383,7 +386,12 @@ module.exports = function(grunt) {
 
 	grunt.registerTask('qunit:compiled', 'Runs QUnit tests on compiled as well as uncompiled scripts.',
 		['build', 'copy:qunit', 'qunit']);
+
 	grunt.registerTask('test', 'Runs all QUnit and PHPUnit tasks.', ['qunit:compiled', 'phpunit']);
+
+	// Travis CI tasks.
+	grunt.registerTask('travis:js', 'Runs Javascript Travis CI tasks.', [ 'jshint:corejs', 'qunit:compiled' ]);
+	grunt.registerTask('travis:phpunit', 'Runs PHPUnit Travis CI tasks.', 'phpunit');
 
 	// Default task.
 	grunt.registerTask('default', ['build']);

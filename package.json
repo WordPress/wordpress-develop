@@ -11,16 +11,16 @@
   "devDependencies": {
     "grunt": "~0.4.1",
     "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-compress": "~0.5.2",
+    "grunt-contrib-concat": "~0.3.0",
     "grunt-contrib-copy": "~0.4.1",
     "grunt-contrib-cssmin": "~0.6.1",
+    "grunt-contrib-jshint": "~0.10.0",
     "grunt-contrib-qunit": "~0.2.2",
     "grunt-contrib-uglify": "~0.2.2",
     "grunt-contrib-watch": "~0.5.1",
-    "grunt-contrib-compress": "~0.5.2",
-    "grunt-contrib-concat": "~0.3.0",
-    "grunt-contrib-jshint": "~0.7.0",
     "grunt-cssjanus": "git://github.com/yoavf/grunt-cssjanus.git#e0158f4087d1c4bb5a8d1648a63ef133338b5879",
-    "grunt-sass": "~1.0.0",
+    "grunt-sass": "~0.16.0",
     "matchdep": "~0.1.2"
   }
 }

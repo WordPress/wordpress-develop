@@ -9,10 +9,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 	function tearDown() {
 		// Remove all uploads.
-		$uploads = wp_upload_dir();
-		foreach ( scandir( $uploads['basedir'] ) as $file )
-			_rmdir( $uploads['basedir'] . '/' . $file );
-
+		$this->remove_added_uploads();
 		parent::tearDown();
 	}
 
@@ -209,26 +206,6 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$this->assertFalse( is_file($thumb['path']) );
 		$this->assertFalse( is_file($medium['path']) );
 		$this->assertFalse( is_file($original) );
-	}
-
-	/**
-	 * GUID should never be empty
-	 * @ticket 18310
-	 * @ticket 21963
-	 */
-	function test_insert_image_without_guid() {
-		// this image is smaller than the thumbnail size so it won't have one
-		$filename = ( DIR_TESTDATA.'/images/test-image.jpg' );
-		$contents = file_get_contents($filename);
-
-		$upload = wp_upload_bits(basename($filename), null, $contents);
-		$this->assertTrue( empty($upload['error']) );
-
-		$upload['url'] = '';
-		$id = $this->_make_attachment( $upload );
-
-		$guid = get_the_guid( $id );
-		$this->assertFalse( empty( $guid ) );
 	}
 
 }

@@ -9,6 +9,8 @@ abstract class WP_Image_UnitTestCase extends WP_UnitTestCase {
 	 * Set the image editor engine according to the unit test's specification
 	 */
 	public function setUp() {
+		parent::setUp();
+
 		if ( ! call_user_func( array( $this->editor_engine, 'test' ) ) ) {
 			$this->markTestSkipped( sprintf('The image editor engine %s is not supported on this system', $this->editor_engine) );
 		}
@@ -20,7 +22,10 @@ abstract class WP_Image_UnitTestCase extends WP_UnitTestCase {
 	 * Undo the image editor override
 	 */
 	public function tearDown() {
+		parent::tearDown();
+
 		remove_filter( 'wp_image_editors', array( $this, 'setEngine' ), 10, 2 );
+		parent::tearDown();
 	}
 
 	/**
@@ -33,7 +38,7 @@ abstract class WP_Image_UnitTestCase extends WP_UnitTestCase {
 
 	/**
 	 * Helper assertion for testing alpha on images
-	 * 
+	 *
 	 * @param  string $image_path
 	 * @param  array $point      array(x,y)
 	 * @param  int $alpha
