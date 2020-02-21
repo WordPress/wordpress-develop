@@ -5064,15 +5064,15 @@ function wp_sprintf_l( $pattern, $args ) {
 	switch ( substr( $pattern, 0, 4 ) ) {
 		case '%l$o':
 			$delimiters = $l_or;
-			$lenght     = 4;
+			$length     = 4;
 			break;
 		case '%l$a':
 			$delimiters = $l_and;
-			$lenght     = 4;
+			$length     = 4;
 			break;
 		default:
 			$delimiters = $l_and;
-			$lenght     = 2;
+			$length     = 2;
 			break;
 	}
 
@@ -5111,7 +5111,7 @@ function wp_sprintf_l( $pattern, $args ) {
 		}
 	}
 
-	return $result . substr( $pattern, $lenght );
+	return $result . substr( $pattern, $length );
 }
 
 /**
