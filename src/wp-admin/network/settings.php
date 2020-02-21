@@ -382,7 +382,7 @@ if ( isset( $_GET['updated'] ) ) {
 				<td>
 					<textarea name="upload_filetypes" id="upload_filetypes" aria-describedby="upload-filetypes-desc" cols="45" rows="5"><?php echo esc_attr( get_site_option( 'upload_filetypes', 'jpg jpeg png gif' ) ); ?></textarea>
 					<p class="description" id="upload-filetypes-desc">
-						<?php _e( 'Allowed file types. Separate types by spaces.' ); ?>
+						<?php _e( 'Allowed file types. Separate types by spaces or new lines.' ); ?>
 					</p>
 				</td>
 			</tr>

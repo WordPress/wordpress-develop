@@ -1830,7 +1830,8 @@ function get_most_recent_post_of_user( $user_id ) {
  * @return array
  */
 function check_upload_mimes( $mimes ) {
-	$site_exts  = explode( ' ', get_site_option( 'upload_filetypes', 'jpg jpeg png gif' ) );
+	$site_exts  = preg_split( '/[\s]+/', get_site_option( 'upload_filetypes', 'jpg jpeg png gif' ) );
++	$site_exts  = str_replace( '.', '', strtolower( $site_exts ) );
 	$site_mimes = array();
 	foreach ( $site_exts as $ext ) {
 		foreach ( $mimes as $ext_pattern => $mime ) {
