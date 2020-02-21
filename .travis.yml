@@ -93,8 +93,12 @@ before_script:
 - php -m
 - npm --version
 - node --version
-- which phpunit
-- phpunit --version
+- |
+  # Display PHPUnit information (for PHP tests only).
+  if [[ "$WP_TRAVISCI" == "travis:phpunit" ]]; then
+    which phpunit
+    phpunit --version
+  fi
 - curl --version
 - grunt --version
 - git --version
