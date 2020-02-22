@@ -1444,33 +1444,76 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 	/**
 	 * @ticket 48530
+	 *
+	 * @dataProvider _dp_dispatch
+	 *
+	 * @param string $request  Route to request.
+	 * @param array  $register The list of routes to register.
 	 */
-	public function test_get_routes_no_namespace_overriding() {
-		register_rest_route(
-			'test-ns',
-			'/test',
-			array(
-				'methods'  => array( 'GET' ),
-				'callback' => function() {
-					return new WP_REST_Response( 'data', 204 );
-				},
-			)
-		);
-		register_rest_route(
-			'test-ns/v1',
-			'/test',
-			array(
-				'methods'  => array( 'GET' ),
-				'callback' => function() {
-					return new WP_REST_Response( 'data', 204 );
-				},
-			)
-		);
+	public function test_dispatch( $request, $register ) {
+		foreach ( $register as list( $namespace, $route ) ) {
+			register_rest_route(
+				$namespace,
+				$route,
+				array(
+					'methods'  => 'GET',
+					'callback' => static function () {
+						return new WP_REST_Response();
+					},
+				)
+			);
+		}
 
-		$request  = new WP_REST_Request( 'GET', '/test-ns/v1/test' );
-		$response = rest_get_server()->dispatch( $request );
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', $request ) );
 
-		$this->assertEquals( 204, $response->get_status(), '/test-ns/v1/test' );
+		$this->assertEquals( 200, $response->get_status() );
+	}
+
+	public function _dp_dispatch() {
+		return array(
+			array(
+				'/test-ns/v1/test',
+				array(
+					array( 'test-ns', '/test' ),
+					array( 'test-ns/v1', '/test' ),
+				)
+			),
+			array(
+				'/test-ns/v11/test',
+				array(
+					array( 'test-ns/v1', '/test' ),
+					array( 'test-ns/v11', '/test' ),
+				)
+			),
+			array(
+				'/test-ns/v1/test-1',
+				array(
+					array( 'test-ns', 'v1/test-0' ),
+					array( 'test-ns/v1', '/test-1' ),
+				)
+			),
+			array(
+				'/test-2/test',
+				array(
+					array( 'test-1', '/test' ),
+					array( 'test-2', '/test' ),
+				)
+			),
+			array(
+				'/test/ns/v1/test',
+				array(
+					array( 'test/ns', '/test' ),
+					array( 'test/ns/v1', '/test' ),
+				)
+			),
+			array(
+				'/test/ns/v1/test-1',
+				array(
+					array( 'test/ns', 'v1/test-0' ),
+					array( 'test/ns/v1', '/test-1' ),
+				)
+			),
+		);
 	}
 
 	public function _validate_as_integer_123( $value, $request, $key ) {
