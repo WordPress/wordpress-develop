@@ -19,15 +19,20 @@ class Tests_Canonical extends WP_UnitTestCase {
 	var $term_ids;
 
 	function setUp() {
+		global $wp_rewrite;
+
 		parent::setUp();
 
+		update_option( 'page_comments', true );
 		update_option( 'comments_per_page', 5 );
 		update_option( 'posts_per_page', 5 );
 
-		update_option( 'permalink_structure', $this->structure );
+		$wp_rewrite->init();
+		$wp_rewrite->set_permalink_structure( $this->structure );
+
 		create_initial_taxonomies();
-		$GLOBALS['wp_rewrite']->init();
-		flush_rewrite_rules();
+
+		$wp_rewrite->flush_rules();
 
 		$this->old_current_user = get_current_user_id();
 		$this->author_id = $this->factory->user->create( array( 'user_login' => 'canonical-author' ) );
@@ -79,9 +84,10 @@ class Tests_Canonical extends WP_UnitTestCase {
 	}
 
 	function tearDown() {
+		global $wp_rewrite;
 		wp_set_current_user( $this->old_current_user );
 
-		$GLOBALS['wp_rewrite']->init();
+		$wp_rewrite->init();
 		parent::tearDown();
 	}
 
@@ -167,15 +173,11 @@ class Tests_Canonical extends WP_UnitTestCase {
 		return array(
 			// Categories
 
-			array( '?cat=%d', '/category/parent/', 15256 ),
-			array( '?cat=%d', '/category/parent/child-1/', 15256 ),
 			array( '?cat=%d', '/category/parent/child-1/child-2/' ), // no children
 			array( '/category/uncategorized/', array( 'url' => '/category/uncategorized/', 'qv' => array( 'category_name' => 'uncategorized' ) ) ),
 			array( '/category/uncategorized/page/2/', array( 'url' => '/category/uncategorized/page/2/', 'qv' => array( 'category_name' => 'uncategorized', 'paged' => 2) ) ),
 			array( '/category/uncategorized/?paged=2', array( 'url' => '/category/uncategorized/page/2/', 'qv' => array( 'category_name' => 'uncategorized', 'paged' => 2) ) ),
 			array( '/category/uncategorized/?paged=2&category_name=uncategorized', array( 'url' => '/category/uncategorized/page/2/', 'qv' => array( 'category_name' => 'uncategorized', 'paged' => 2) ), 17174 ),
-			array( '/category/child-1/', '/category/parent/child-1/', 18734 ),
-			array( '/category/foo/child-1/', '/category/parent/child-1/', 18734 ),
 
 			// Categories & Intersections with other vars
 			array( '/category/uncategorized/?tag=post-formats', array( 'url' => '/category/uncategorized/?tag=post-formats', 'qv' => array('category_name' => 'uncategorized', 'tag' => 'post-formats') ) ),
@@ -185,17 +187,10 @@ class Tests_Canonical extends WP_UnitTestCase {
 			array( '/category/cat-a/page/1/?test=one%20two', '/category/cat-a/?test=one%20two', 18086), // Extra query vars should stay encoded
 
 			// Categories with Dates
-			array( '/category/uncategorized/?paged=2&year=2008', array( 'url' => '/category/uncategorized/page/2/?year=2008', 'qv' => array( 'category_name' => 'uncategorized', 'paged' => 2, 'year' => 2008) ), 17661 ),
-//			array( '/2008/04/?cat=1', array( 'url' => '/2008/04/?cat=1', 'qv' => array('cat' => '1', 'year' => '2008', 'monthnum' => '04' ) ), 17661 ),
-			array( '/2008/04/?cat=1', array( 'url' => '/category/uncategorized/?year=2008&monthnum=04', 'qv' => array('category_name' => 'uncategorized', 'year' => '2008', 'monthnum' => '04' ) ), 17661 ),
+			array( '/2008/04/?cat=1', array( 'url' => '/2008/04/?cat=1', 'qv' => array('cat' => '1', 'year' => '2008', 'monthnum' => '04' ) ), 17661 ),
 //			array( '/2008/?category_name=cat-a', array( 'url' => '/2008/?category_name=cat-a', 'qv' => array('category_name' => 'cat-a', 'year' => '2008' ) ) ),
-			array( '/2008/?category_name=cat-a', array( 'url' => '/category/cat-a/?year=2008', 'qv' => array('category_name' => 'cat-a', 'year' => '2008' ) ), 20386 ),
-//			array( '/category/uncategorized/?year=2008', array( 'url' => '/2008/?category_name=uncategorized', 'qv' => array('category_name' => 'uncategorized', 'year' => '2008' ) ), 17661 ),
-			array( '/category/uncategorized/?year=2008', array( 'url' => '/category/uncategorized/?year=2008', 'qv' => array('category_name' => 'uncategorized', 'year' => '2008' ) ), 17661 ),
 
 			// Pages
-			array( '/sample%20page/', array( 'url' => '/sample-page/', 'qv' => array('pagename' => 'sample-page', 'page' => '' ) ), 17653 ), // Page rules always set 'page'
-			array( '/sample------page/', array( 'url' => '/sample-page/', 'qv' => array('pagename' => 'sample-page', 'page' => '' ) ), 14773 ),
 			array( '/child-page-1/', '/parent-page/child-page-1/'),
 			array( '/?page_id=144', '/parent-page/child-page-1/'),
 			array( '/abo', '/about/' ),
@@ -215,14 +210,11 @@ class Tests_Canonical extends WP_UnitTestCase {
 			array( '/post-format-test-au/', '/2008/06/02/post-format-test-audio/'),
 
 			array( '/2008/09/03/images-test/3/', array( 'url' => '/2008/09/03/images-test/3/', 'qv' => array( 'name' => 'images-test', 'year' => '2008', 'monthnum' => '09', 'day' => '03', 'page' => '/3' ) ) ), // page = /3 ?!
-			array( '/2008/09/03/images-test/8/', '/2008/09/03/images-test/4/', 11694 ), // post with 4 pages
 			array( '/2008/09/03/images-test/?page=3', '/2008/09/03/images-test/3/' ),
 			array( '/2008/09/03/images-te?page=3', '/2008/09/03/images-test/3/' ),
 
 			// Comments
-			array( '/2008/03/03/comment-test/?cpage=2', '/2008/03/03/comment-test/comment-page-2/', 20388 ),
-			array( '/2008/03/03/comment-test/comment-page-20/', '/2008/03/03/comment-test/comment-page-3/', 20388 ), // there's only 3 pages
-			array( '/2008/03/03/comment-test/?cpage=30', '/2008/03/03/comment-test/comment-page-3/', 20388 ), // there's only 3 pages
+			array( '/2008/03/03/comment-test/?cpage=2', '/2008/03/03/comment-test/comment-page-2/' ),
 
 			// Attachments
 			array( '/?attachment_id=611', '/2008/06/10/post-format-test-gallery/canola2/' ),
@@ -245,9 +237,7 @@ class Tests_Canonical extends WP_UnitTestCase {
 			// Authors
 			array( '/?author=%d', '/author/canonical-author/' ),
 //			array( '/?author=%d&year=2008', '/2008/?author=3'),
-			array( '/?author=%d&year=2008', '/author/canonical-author/?year=2008', 17661 ),
 //			array( '/author/canonical-author/?year=2008', '/2008/?author=3'), //Either or, see previous testcase.
-			array( '/author/canonical-author/?year=2008', '/author/canonical-author/?year=2008', 17661 ),
 
 			// Feeds
 			array( '/?feed=atom', '/feed/atom/' ),

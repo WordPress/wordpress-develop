@@ -30,8 +30,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		if ( extension_loaded( 'fileinfo' ) ) {
 			$finfo = new finfo();
 			$mime_type = $finfo->file( $filename, FILEINFO_MIME );
-		} elseif ( function_exists('mime_content_type') ) {
-			$mime_type = mime_content_type( $filename );
 		}
 		if ( false !== strpos( $mime_type, ';' ) ) {
 			list( $mime_type, $charset ) = explode( ';', $mime_type, 2 );
@@ -90,7 +88,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		// these are image files but aren't suitable for web pages because of compatibility or size issues
 		$files = array(
 			// 'test-image-cmyk.jpg', Allowed in r9727
-			'test-image.bmp',
+			// 'test-image.bmp', Allowed in r28589
 			// 'test-image-grayscale.jpg', Allowed in r9727
 			'test-image.pct',
 			'test-image.tga',
@@ -112,6 +110,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @ticket 6821
 	 */
 	public function test_wp_save_image_file() {
+		if ( ! extension_loaded( 'fileinfo' ) ) {
+			$this->markTestSkipped( 'The fileinfo PHP extension is not loaded.' );
+		}
+
 		include_once( ABSPATH . 'wp-admin/includes/image-edit.php' );
 
 		// Mime types
@@ -142,8 +144,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				$this->assertEquals( $mime_type, $this->get_mime_type( $ret['path'] ) );
 
 				// Clean up
-				@unlink( $file );
-				@unlink( $ret['path'] );
+				unlink( $file );
+				unlink( $ret['path'] );
 			}
 
 			// Clean up
@@ -156,6 +158,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @ticket 6821
 	 */
 	public function test_mime_overrides_filename() {
+		if ( ! extension_loaded( 'fileinfo' ) ) {
+			$this->markTestSkipped( 'The fileinfo PHP extension is not loaded.' );
+		}
 
 		// Test each image editor engine
 		$classes = array('WP_Image_Editor_GD', 'WP_Image_Editor_Imagick');
@@ -180,8 +185,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->assertEquals( $mime_type, $this->get_mime_type( $ret['path'] ) );
 
 			// Clean up
-			@unlink( $file );
-			@unlink( $ret['path'] );
+			unlink( $file );
+			unlink( $ret['path'] );
 			unset( $img );
 		}
 	}
@@ -191,6 +196,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @ticket 6821
 	 */
 	public function test_inferred_mime_types() {
+		if ( ! extension_loaded( 'fileinfo' ) ) {
+			$this->markTestSkipped( 'The fileinfo PHP extension is not loaded.' );
+		}
 
 		// Mime types
 		$mime_types = array(
@@ -223,8 +231,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				$this->assertNotEmpty( $ret );
 				$this->assertNotInstanceOf( 'WP_Error', $ret );
 				$this->assertEquals( $mime_type, $this->get_mime_type( $ret['path'] ) );
-				@unlink( $file );
-				@unlink( $ret['path'] );
+				unlink( $ret['path'] );
 			}
 
 			// Clean up
@@ -283,7 +290,11 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		if ( !function_exists( 'imagejpeg' ) )
 			$this->markTestSkipped( 'jpeg support unavailable' );
 
-		$file = wp_crop_image( 'http://asdftestblog1.files.wordpress.com/2008/04/canola.jpg',
+		if ( ! extension_loaded( 'openssl' ) ) {
+			$this->markTestSkipped( 'Tests_Image_Functions::test_wp_crop_image_url() requires openssl.' );
+		}
+
+		$file = wp_crop_image( 'https://asdftestblog1.files.wordpress.com/2008/04/canola.jpg',
 							  0, 0, 100, 100, 100, 100, false,
 							  DIR_TESTDATA . '/images/' . rand_str() . '.jpg' );
 		$this->assertNotInstanceOf( 'WP_Error', $file );
@@ -303,7 +314,11 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	}
 
 	public function test_wp_crop_image_url_not_exist() {
-		$file = wp_crop_image( 'http://asdftestblog1.files.wordpress.com/2008/04/canoladoesnotexist.jpg',
+		if ( ! extension_loaded( 'openssl' ) ) {
+			$this->markTestSkipped( 'Tests_Image_Functions::test_wp_crop_image_url_not_exist() requires openssl.' );
+		}
+
+		$file = wp_crop_image( 'https://asdftestblog1.files.wordpress.com/2008/04/canoladoesnotexist.jpg',
 							  0, 0, 100, 100, 100, 100 );
 		$this->assertInstanceOf( 'WP_Error', $file );
 	}

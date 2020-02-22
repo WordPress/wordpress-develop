@@ -64,6 +64,15 @@ module.exports = function(grunt) {
 				cwd: SOURCE_DIR,
 				dest: BUILD_DIR,
 				src: []
+			},
+			qunit: {
+				src: 'tests/qunit/index.html',
+				dest: 'tests/qunit/compiled.html',
+				options: {
+					processContent: function( src ) {
+						return src.replace( /([^\.])*\.\.\/src/ig , '/../build' );
+					}
+				}
 			}
 		},
 		cssmin: {
@@ -82,6 +91,20 @@ module.exports = function(grunt) {
 		},
 		qunit: {
 			files: ['tests/qunit/**/*.html']
+		},
+		phpunit: {
+			'default': {
+				cmd: 'phpunit',
+				args: ['-c', 'phpunit.xml.dist']
+			},
+			ajax: {
+				cmd: 'phpunit',
+				args: ['-c', 'phpunit.xml.dist', '--group', 'ajax']
+			},
+			multisite: {
+				cmd: 'phpunit',
+				args: ['-c', 'tests/phpunit/multisite.xml']
+			}
 		},
 		uglify: {
 			core: {
@@ -183,8 +206,22 @@ module.exports = function(grunt) {
 	grunt.registerTask('build', ['clean:all', 'copy:all', 'cssmin:core', 'uglify:core',
 		'uglify:tinymce', 'concat:tinymce', 'compress:tinymce', 'clean:tinymce']);
 
-	// Testing task.
-	grunt.registerTask('test', ['qunit']);
+	// Testing tasks.
+	grunt.registerMultiTask('phpunit', 'Runs PHPUnit tests, including the ajax and multisite tests.', function() {
+		grunt.util.spawn({
+			cmd: this.data.cmd,
+			args: this.data.args,
+			opts: {stdio: 'inherit'}
+		}, this.async());
+	});
+
+	grunt.registerTask('qunit:compiled', 'Runs QUnit tests on compiled as well as uncompiled scripts.',
+		['build', 'copy:qunit', 'qunit']);
+
+	grunt.registerTask('test', 'Runs all QUnit and PHPUnit tasks.', ['qunit:compiled', 'phpunit']);
+
+	// Travis CI tasks.
+	grunt.registerTask('travis:phpunit', 'Runs PHPUnit Travis CI tasks.', 'phpunit');
 
 	// Default task.
 	grunt.registerTask('default', ['build']);

@@ -6,6 +6,7 @@
  * @group media
  * @group wp-image-editor-gd
  */
+require_once( dirname( __FILE__ ) . '/base.php' );
 
 class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	public $editor_engine = 'WP_Image_Editor_GD';
@@ -13,7 +14,20 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	public function setup() {
 		require_once( ABSPATH . WPINC . '/class-wp-image-editor.php' );
 		require_once( ABSPATH . WPINC . '/class-wp-image-editor-gd.php' );
+
 		parent::setUp();
+	}
+
+	public function tearDown() {
+		$folder = DIR_TESTDATA . '/images/waffles-*.jpg';
+
+		foreach ( glob( $folder ) as $file ) {
+			unlink( $file );
+		}
+
+		$this->remove_added_uploads();
+
+		parent::tearDown();
 	}
 
 	/**
@@ -134,6 +148,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$this->assertImageAlphaAtPoint( $save_to_file, array( 0,0 ), 127 );
 
+		unlink( $save_to_file );
 	}
 	
 	/**
@@ -153,6 +168,8 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$editor->save( $save_to_file );
 
 		$this->assertImageAlphaAtPoint( $save_to_file, array( 0,0 ), 127 );
+
+		unlink( $save_to_file );
 	}
 
 }
