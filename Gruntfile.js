@@ -117,7 +117,7 @@ module.exports = function(grunt) {
 				WORKING_DIR + 'wp-includes/js/'
 			],
 			'webpack-assets': [
-				WORKING_DIR + 'wp-includes/js/**/*.asset.php'
+				WORKING_DIR + 'wp-includes/js/dist/assets.php'
 			],
 			dynamic: {
 				dot: true,
@@ -356,10 +356,16 @@ module.exports = function(grunt) {
 				]
 			},
 			'webpack-assets': {
-				expand: true,
-				cwd: WORKING_DIR + 'wp-includes/js/',
-				src: 'dist/*.asset.php',
-				dest: WORKING_DIR + 'wp-includes/assets/'
+				files: [
+					{
+						src: WORKING_DIR + 'wp-includes/js/dist/assets.php',
+						dest: SOURCE_DIR + 'wp-includes/assets/script-loader-deps.php'
+					},
+					{
+						src:  WORKING_DIR + 'wp-includes/js/dist/assets.php',
+						dest: BUILD_DIR + 'wp-includes/assets/script-loader-deps.php'
+					}
+				]
 			},
 			version: {
 				options: {

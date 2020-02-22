@@ -246,6 +246,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			} ),
 			new DependencyExtractionPlugin( {
 				injectPolyfill: true,
+				combineAssets: true,
 			} ),
 			new CopyWebpackPlugin(
 				[
