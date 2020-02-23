@@ -564,10 +564,10 @@ module.exports = function(grunt) {
 					'twenty*/**/*.js',
 					'!twenty{eleven,twelve,thirteen}/**',
 					// Third party scripts.
+					'!twenty*/node_modules/**',
 					'!twenty{fourteen,fifteen,sixteen}/js/html5.js',
 					'!twentyseventeen/assets/js/html5.js',
-					'!twentyseventeen/assets/js/jquery.scrollTo.js',
-					'!twentytwenty/node_modules/**'
+					'!twentyseventeen/assets/js/jquery.scrollTo.js'
 				]
 			},
 			media: {
