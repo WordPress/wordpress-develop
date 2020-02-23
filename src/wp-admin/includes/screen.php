@@ -10,8 +10,8 @@
  * Get the column headers for a screen
  *
  * @since 2.7.0
- *
- * @staticvar array $column_headers
+ * @since 5.4.0 Removed static var making it difficult to instantiate list
+ *              tables after the page header has been rendered.
  *
  * @param string|WP_Screen $screen The screen you want the headers for
  * @return string[] The column header labels keyed by column ID.
@@ -21,25 +21,19 @@ function get_column_headers( $screen ) {
 		$screen = convert_to_screen( $screen );
 	}
 
-	static $column_headers = array();
-
-	if ( ! isset( $column_headers[ $screen->id ] ) ) {
-		/**
-		 * Filters the column headers for a list table on a specific screen.
-		 *
-		 * The dynamic portion of the hook name, `$screen->id`, refers to the
-		 * ID of a specific screen. For example, the screen ID for the Posts
-		 * list table is edit-post, so the filter for that screen would be
-		 * manage_edit-post_columns.
-		 *
-		 * @since 3.0.0
-		 *
-		 * @param string[] $columns The column header labels keyed by column ID.
-		 */
-		$column_headers[ $screen->id ] = apply_filters( "manage_{$screen->id}_columns", array() );
-	}
-
-	return $column_headers[ $screen->id ];
+	/**
+	 * Filters the column headers for a list table on a specific screen.
+	 *
+	 * The dynamic portion of the hook name, `$screen->id`, refers to the
+	 * ID of a specific screen. For example, the screen ID for the Posts
+	 * list table is edit-post, so the filter for that screen would be
+	 * manage_edit-post_columns.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param string[] $columns The column header labels keyed by column ID.
+	 */
+	return apply_filters( "manage_{$screen->id}_columns", array() );
 }
 
 /**
