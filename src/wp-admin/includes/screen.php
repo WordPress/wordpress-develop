@@ -10,8 +10,8 @@
  * Get the column headers for a screen
  *
  * @since 2.7.0
- * @since 5.4.0 Removed static var making it difficult to instantiate list
- *              tables after the page header has been rendered.
+ * @since 5.5.0 Removed a static var that made it difficult to instantiate list
+ *              tables after the page header had been rendered.
  *
  * @param string|WP_Screen $screen The screen you want the headers for
  * @return string[] The column header labels keyed by column ID.
