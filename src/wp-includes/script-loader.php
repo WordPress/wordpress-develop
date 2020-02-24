@@ -237,22 +237,6 @@ function wp_default_packages_scripts( &$scripts ) {
 	//	'api-fetch.js' => array(...
 	$assets = include ABSPATH . WPINC . '/assets/script-loader-data.php';
 
-	// List of script handle names.
-	$package_translations = array(
-		'wp-api-fetch',
-		'wp-blocks',
-		'wp-block-directory',
-		'wp-block-editor',
-		'wp-block-library',
-		'wp-components',
-		'wp-edit-post',
-		'wp-editor',
-		'wp-format-library',
-		'wp-keycodes',
-		'wp-list-reusable-blocks',
-		'wp-nux',
-	);
-
 	foreach ( $assets as $package_name => $package_data ) {
 		$basename = basename( $package_name, '.js' );
 		$handle   = 'wp-' . $basename;
@@ -276,7 +260,7 @@ function wp_default_packages_scripts( &$scripts ) {
 
 		$scripts->add( $handle, $path, $dependencies, $package_data['version'], 1 );
 
-		if ( in_array( $handle, $package_translations, true ) ) {
+		if ( in_array( 'wp-i18n', $dependencies, true ) ) {
 			$scripts->set_translations( $handle );
 		}
 	}

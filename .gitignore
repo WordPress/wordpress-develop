@@ -24,7 +24,6 @@ wp-tests-config.php
 /src/wp-admin/css/*-rtl.css
 /src/wp-admin/css/colors/*/*.css
 /src/wp-admin/js
-/src/wp-includes/assets
 /src/wp-includes/js
 /src/wp-includes/css/dist
 /src/wp-includes/css/*.min.css
