@@ -359,11 +359,11 @@ module.exports = function(grunt) {
 				files: [
 					{
 						src: WORKING_DIR + 'wp-includes/js/dist/assets.php',
-						dest: SOURCE_DIR + 'wp-includes/assets/script-loader-deps.php'
+						dest: SOURCE_DIR + 'wp-includes/assets/script-loader-data.php'
 					},
 					{
 						src:  WORKING_DIR + 'wp-includes/js/dist/assets.php',
-						dest: BUILD_DIR + 'wp-includes/assets/script-loader-deps.php'
+						dest: BUILD_DIR + 'wp-includes/assets/script-loader-data.php'
 					}
 				]
 			},

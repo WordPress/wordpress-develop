@@ -231,32 +231,35 @@ function wp_get_script_polyfill( &$scripts, $tests ) {
 function wp_default_packages_scripts( &$scripts ) {
 	$suffix = wp_scripts_get_suffix();
 
-	// Expects an array of: `'a11y.js' => array('dependencies' => array(...), 'version' => '...'),`.
-	$assets   = include ABSPATH . WPINC . '/assets/script-loader-deps.php';
-	$packages = array_keys( $assets );
+	// Expects multidimensional array like:
+	//	'a11y.js' => array('dependencies' => array(...), 'version' => '...'),
+	//	'annotations.js' => array('dependencies' => array(...), 'version' => '...'),
+	//	'api-fetch.js' => array(...
+	$assets = include ABSPATH . WPINC . '/assets/script-loader-data.php';
 
+	// List of script handle names.
 	$package_translations = array(
-		'api-fetch',
-		'blocks',
-		'block-directory',
-		'block-editor',
-		'block-library',
-		'components',
-		'edit-post',
-		'editor',
-		'format-library',
-		'keycodes',
-		'list-reusable-blocks',
-		'nux',
+		'wp-api-fetch',
+		'wp-blocks',
+		'wp-block-directory',
+		'wp-block-editor',
+		'wp-block-library',
+		'wp-components',
+		'wp-edit-post',
+		'wp-editor',
+		'wp-format-library',
+		'wp-keycodes',
+		'wp-list-reusable-blocks',
+		'wp-nux',
 	);
 
-	foreach ( $packages as $package ) {
-		$basename = basename( $package, '.js' );
+	foreach ( $assets as $package_name => $package_data ) {
+		$basename = basename( $package_name, '.js' );
 		$handle   = 'wp-' . $basename;
-		$path     = "/wp-includes/js/dist/$basename$suffix.js";
+		$path     = "/wp-includes/js/dist/{$basename}{$suffix}.js";
 
-		if ( ! empty( $assets[ $package ]['dependencies'] ) ) {
-			$dependencies = $assets[ $package ]['dependencies'];
+		if ( ! empty( $package_data['dependencies'] ) ) {
+			$dependencies = $package_data['dependencies'];
 		} else {
 			$dependencies = array();
 		}
@@ -271,9 +274,9 @@ function wp_default_packages_scripts( &$scripts ) {
 				break;
 		}
 
-		$scripts->add( $handle, $path, $dependencies, $assets[ $package ]['version'], 1 );
+		$scripts->add( $handle, $path, $dependencies, $package_data['version'], 1 );
 
-		if ( in_array( $basename, $package_translations, true ) ) {
+		if ( in_array( $handle, $package_translations, true ) ) {
 			$scripts->set_translations( $handle );
 		}
 	}
