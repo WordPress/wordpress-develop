@@ -26,7 +26,7 @@
 	],
 	"devDependencies": {
 		"@wordpress/custom-templated-path-webpack-plugin": "1.6.0",
-		"@wordpress/dependency-extraction-webpack-plugin": "2.2.0",
+		"@wordpress/dependency-extraction-webpack-plugin": "2.3.0",
 		"@wordpress/e2e-test-utils": "4.3.0",
 		"@wordpress/library-export-default-webpack-plugin": "1.6.0",
 		"@wordpress/scripts": "6.2.0",
