@@ -281,6 +281,7 @@ function create_initial_rest_routes() {
  * @since 4.4.0
  *
  * @global WP $wp Current WordPress environment instance.
+ * @global WP_User|null   $user           Current WordPress User.
  */
 function rest_api_loaded() {
 	if ( empty( $GLOBALS['wp']->query_vars['rest_route'] ) ) {
@@ -294,6 +295,25 @@ function rest_api_loaded() {
 	 * @var bool
 	 */
 	define( 'REST_REQUEST', true );
+
+	// Populate the correct $_SERVER variables via an alternate header for fastcgi compatibility.
+	if ( isset( $_SERVER['HTTP_WP_AUTHORIZATION'] ) && preg_match( '%^Basic [a-z\d/+]*={0,2}$%i', $_SERVER['HTTP_WP_AUTHORIZATION'] ) ) {
+		// Removing `Basic ` the token would start six characters in.
+		$token = substr( $_SERVER['HTTP_WP_AUTHORIZATION'], 6 );
+		$userpass = base64_decode( $token );
+		list( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] ) = explode( ':', $userpass );
+	}
+
+	// Determine the user that the request should be run under (if any).
+	if ( isset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] ) ) {
+		// We are explicitly only accepting HTTP Basic Auth for HTTPS requests.
+		if ( ! is_ssl() ) {
+			wp_send_json_error( __( 'HTTP Basic Auth is unavailable for non-HTTPS requests.' ), 403 );
+			die();
+		}
+		$GLOBALS['user'] = wp_authenticate( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] );
+		wp_set_current_user( $GLOBALS['user']->id );
+	}
 
 	// Initialize the server.
 	$server = rest_get_server();
