@@ -311,8 +311,8 @@ function rest_api_loaded() {
 			wp_send_json_error( __( 'HTTP Basic Auth is unavailable for non-HTTPS requests.' ), 403 );
 			die();
 		}
-		$GLOBALS['user'] = wp_authenticate( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] );
-		wp_set_current_user( $GLOBALS['user']->id );
+		$user = wp_authenticate( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] );
+		wp_set_current_user( $user );
 	}
 
 	// Initialize the server.
