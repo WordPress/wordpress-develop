@@ -156,6 +156,15 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * @ticket 46723
+	 */
+	public function test_get_items_logged_out() {
+		wp_set_current_user( 0 );
+		$response = self::perform_active_theme_request();
+		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 401 );
+	}
+
+	/**
 	 * An error should be returned when the user does not have the edit_posts capability.
 	 *
 	 * @ticket 45016
@@ -164,6 +173,18 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$subscriber_id );
 		$response = self::perform_active_theme_request();
 		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 403 );
+	}
+
+	/**
+	 * @ticket 46723
+	 */
+	public function test_get_item_single_post_type_cap() {
+		$user = self::factory()->user->create_and_get();
+		$user->add_cap( 'edit_pages' );
+		wp_set_current_user( $user->ID );
+
+		$response = self::perform_active_theme_request();
+		$this->assertEquals( 200, $response->get_status() );
 	}
 
 	/**
