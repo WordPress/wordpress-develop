@@ -189,9 +189,10 @@ window.addComment = ( function( window ) {
 			parentId  = getDataAttribute( replyLink, 'commentid' ),
 			respondId = getDataAttribute( replyLink, 'respondelement'),
 			postId    = getDataAttribute( replyLink, 'postid'),
+			replyTo   = getDataAttribute( replyLink, 'replyto'),
 			follow;
 
-		if ( ! commId || ! parentId || ! respondId || ! postId ) {
+		if ( ! commId || ! parentId || ! respondId || ! postId || ! replyTo ) {
 			/*
 			 * Theme or plugin defines own link via custom `wp_list_comments()` callback
 			 * and calls `moveForm()` either directly or via a custom event hook.
@@ -203,7 +204,7 @@ window.addComment = ( function( window ) {
 		 * Third party comments systems can hook into this function via the global scope,
 		 * therefore the click event needs to reference the global scope.
 		 */
-		follow = window.addComment.moveForm(commId, parentId, respondId, postId);
+		follow = window.addComment.moveForm(commId, parentId, respondId, postId, replyTo);
 		if ( false === follow ) {
 			event.preventDefault();
 		}
@@ -292,8 +293,9 @@ window.addComment = ( function( window ) {
 	 * @param {String} commentId  Database ID of comment being replied to.
 	 * @param {String} respondId  HTML ID of 'respond' element.
 	 * @param {String} postId     Database ID of the post.
+	 * @param {String} replyTo    Form heading content.
 	 */
-	function moveForm( addBelowId, commentId, respondId, postId ) {
+	function moveForm( addBelowId, commentId, respondId, postId, replyTo ) {
 		// Get elements based on their IDs.
 		var addBelowElement = getElementById( addBelowId );
 		respondElement  = getElementById( respondId );
@@ -319,6 +321,9 @@ window.addComment = ( function( window ) {
 
 		cancelElement.style.display = '';
 		addBelowElement.parentNode.insertBefore( respondElement, addBelowElement.nextSibling );
+
+		var replyHeading = getElementById('reply-title');
+		replyHeading.innerHTML = replyHeading.innerHTML.replace(/[a-zA-Z0-9 ]*/, replyTo + ' ')
 
 		/*
 		 * This is for backward compatibility with third party commenting systems
