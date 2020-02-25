@@ -288,6 +288,13 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertTrue( rest_validate_value_from_schema( (object) array( 'a' => 1 ), $schema ) );
 	}
 
+	/**
+	 * @ticket 42961
+	 */
+	public function test_type_object_allows_empty_string() {
+		$this->assertTrue( rest_validate_value_from_schema( '', array( 'type' => 'object' ) ) );
+	}
+
 	public function test_type_unknown() {
 		$schema = array(
 			'type' => 'lalala',
