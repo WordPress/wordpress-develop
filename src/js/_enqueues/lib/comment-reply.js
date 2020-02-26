@@ -173,6 +173,8 @@ window.addComment = ( function( window ) {
 		// Move the respond form back in place of the temporary element.
 		temporaryElement.parentNode.replaceChild( respondElement ,temporaryElement );
 		cancelLink.style.display = 'none';
+		var replyHeading = getElementById('reply-title');
+		replyHeading.innerHTML = replyHeading.innerHTML.replace(/[a-zA-Z0-9 ]*/, 'Leave a Reply');
 		event.preventDefault();
 	}
 
@@ -187,12 +189,12 @@ window.addComment = ( function( window ) {
 		var replyLink = this,
 			commId    = getDataAttribute( replyLink, 'belowelement'),
 			parentId  = getDataAttribute( replyLink, 'commentid' ),
-			respondId = getDataAttribute( replyLink, 'respondelement'),
-			postId    = getDataAttribute( replyLink, 'postid'),
-			replyTo   = getDataAttribute( replyLink, 'replyto'),
+			respondId = getDataAttribute( replyLink, 'respondelement' ),
+			postId    = getDataAttribute( replyLink, 'postid' ),
+			replyTo   = getDataAttribute( replyLink, 'replyto' ) || 'Leave a Reply',
 			follow;
 
-		if ( ! commId || ! parentId || ! respondId || ! postId || ! replyTo ) {
+		if ( ! commId || ! parentId || ! respondId || ! postId ) {
 			/*
 			 * Theme or plugin defines own link via custom `wp_list_comments()` callback
 			 * and calls `moveForm()` either directly or via a custom event hook.
@@ -204,7 +206,7 @@ window.addComment = ( function( window ) {
 		 * Third party comments systems can hook into this function via the global scope,
 		 * therefore the click event needs to reference the global scope.
 		 */
-		follow = window.addComment.moveForm(commId, parentId, respondId, postId, replyTo);
+		follow = window.addComment.moveForm( commId, parentId, respondId, postId, replyTo );
 		if ( false === follow ) {
 			event.preventDefault();
 		}
@@ -310,6 +312,10 @@ window.addComment = ( function( window ) {
 			return;
 		}
 
+		if ( 'undefined' === typeof replyTo) {
+			replyTo = 'Leave a Reply';
+		}
+
 		addPlaceHolder( respondElement );
 
 		// Set the value of the post.
@@ -323,7 +329,7 @@ window.addComment = ( function( window ) {
 		addBelowElement.parentNode.insertBefore( respondElement, addBelowElement.nextSibling );
 
 		var replyHeading = getElementById('reply-title');
-		replyHeading.innerHTML = replyHeading.innerHTML.replace(/[a-zA-Z0-9 ]*/, replyTo + ' ')
+		replyHeading.innerHTML = replyHeading.innerHTML.replace( /[a-zA-Z0-9 ]*/, replyTo + ' ' );
 
 		/*
 		 * This is for backward compatibility with third party commenting systems
