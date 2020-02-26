@@ -174,7 +174,15 @@ function determine_locale() {
 function translate( $text, $domain = 'default' ) {
 	$translations = get_translations_for_domain( $domain );
 	$translation  = $translations->translate( $text );
-
+	/**
+	 * Filters text with its translation for a domain.
+	 *
+	 * @since 5.4.0
+	 *
+	 * @param string $translation  Translated text.
+	 * @param string $text         Text to translate.
+	 */
+	$translation = apply_filters( 'gettext-' . $domain, $translation, $text );
 	/**
 	 * Filters text with its translation.
 	 *
@@ -225,6 +233,16 @@ function before_last_bar( $string ) {
 function translate_with_gettext_context( $text, $context, $domain = 'default' ) {
 	$translations = get_translations_for_domain( $domain );
 	$translation  = $translations->translate( $text, $context );
+	/**
+	 * Filters text with its translation based on context information for a domain.
+	 *
+	 * @since 5.4.0
+	 *
+	 * @param string $translation  Translated text.
+	 * @param string $text         Text to translate.
+	 * @param string $context      Context information for the translators.
+	 */
+	$translation = apply_filters( 'gettext_with_context-' . $domain, $translation, $text, $context );
 	/**
 	 * Filters text with its translation based on context information.
 	 *
@@ -430,7 +448,17 @@ function esc_html_x( $text, $context, $domain = 'default' ) {
 function _n( $single, $plural, $number, $domain = 'default' ) {
 	$translations = get_translations_for_domain( $domain );
 	$translation  = $translations->translate_plural( $single, $plural, $number );
-
+	/**
+	 * Filters the singular or plural form of a string for a domain.
+	 *
+	 * @since 5.4.0
+	 *
+	 * @param string $translation Translated text.
+	 * @param string $single      The text to be used if the number is singular.
+	 * @param string $plural      The text to be used if the number is plural.
+	 * @param string $number      The number to compare against to use either the singular or plural form.
+	 */
+	$translation = apply_filters( 'ngettext-' . $domain, $translation, $single, $plural, $number );
 	/**
 	 * Filters the singular or plural form of a string.
 	 *
@@ -471,7 +499,18 @@ function _n( $single, $plural, $number, $domain = 'default' ) {
 function _nx( $single, $plural, $number, $context, $domain = 'default' ) {
 	$translations = get_translations_for_domain( $domain );
 	$translation  = $translations->translate_plural( $single, $plural, $number, $context );
-
+	/**
+	 * Filters the singular or plural form of a string with gettext context for a domain.
+	 *
+	 * @since 5.4.0
+	 *
+	 * @param string $translation Translated text.
+	 * @param string $single      The text to be used if the number is singular.
+	 * @param string $plural      The text to be used if the number is plural.
+	 * @param string $number      The number to compare against to use either the singular or plural form.
+	 * @param string $context     Context information for the translators.
+	 */
+	$translation = apply_filters( 'ngettext_with_context-' . $domain, $translation, $single, $plural, $number, $context );
 	/**
 	 * Filters the singular or plural form of a string with gettext context.
 	 *
