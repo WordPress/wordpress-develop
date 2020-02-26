@@ -75,7 +75,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		 * 'public'              Default is false
 		 * 'exclude_from_search' Default is null (opposite 'public')
 		 */
-		$args = $this->register_post_type( array( 'public' => $public = false ) );
+		$args = register_post_type( $this->post_type, array( 'public' => $public = false ) );
 
 		$this->assertNotEquals( $public, $args->exclude_from_search );
 	}
@@ -89,7 +89,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		 * 'public'             Default is false
 		 * 'publicly_queryable' Default is null ('public')
 		 */
-		$args = $this->register_post_type( array( 'public' => $public = false ) );
+		$args = register_post_type( $this->post_type, array( 'public' => $public = false ) );
 
 		$this->assertSame( $public, $args->publicly_queryable );
 	}
@@ -103,7 +103,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		 * 'public'  Default is false
 		 * 'show_ui' Default is null ('public')
 		 */
-		$args = $this->register_post_type( array( 'public' => $public = false ) );
+		$args = register_post_type( $this->post_type, array( 'public' => $public = false ) );
 
 		$this->assertSame( $public, $args->show_ui );
 	}
@@ -118,7 +118,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		 * 'show_ui'     Default is null ('public')
 		 * 'show_in_menu Default is null ('show_ui' > 'public')
 		 */
-		$args = $this->register_post_type( array( 'public' => $public = false ) );
+		$args = register_post_type( $this->post_type, array( 'public' => $public = false ) );
 
 		// Should fall back to 'show_ui'.
 		$this->assertSame( $args->show_ui, $args->show_in_menu );
@@ -136,7 +136,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		 * 'public'            Default is false
 		 * 'show_in_nav_menus' Default is null ('public')
 		 */
-		$args = $this->register_post_type( array( 'public' => $public = false ) );
+		$args = register_post_type( $this->post_type, array( 'public' => $public = false ) );
 
 		$this->assertSame( $public, $args->show_in_nav_menus );
 	}
@@ -151,7 +151,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		 * 'show_in_menu'      Default is null ('show_ui' > 'public')
 		 * 'show_in_admin_bar' Default is null ('show_in_menu' > 'show_ui' > 'public')
 		 */
-		$args = $this->register_post_type( array( 'public' => $public = false ) );
+		$args = register_post_type( $this->post_type, array( 'public' => $public = false ) );
 
 		// Should fall back to 'show_in_menu'.
 		$this->assertSame( $args->show_in_menu, $args->show_in_admin_bar );
@@ -571,20 +571,5 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 */
 	public function test_get_post_types_by_support_non_existant_feature() {
 		$this->assertEqualSets( array(), get_post_types_by_support( 'somefeature' ) );
-	}
-
-	/**
-	 * Serves as a helper to register a post type for tests.
-	 *
-	 * Uses `$this->post_type` initialized in setUp().
-	 *
-	 * @since 4.5.0
-	 *
-	 * @param array $args register_post_type() arguments.
-	 * @return WP_Post_Type Post type object for `$this->post_type`.
-	 */
-	public function register_post_type( $args = array() ) {
-		register_post_type( $this->post_type, $args );
-		return get_post_type_object( $this->post_type );
 	}
 }
