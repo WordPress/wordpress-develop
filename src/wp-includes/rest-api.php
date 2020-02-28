@@ -298,7 +298,7 @@ function rest_api_loaded() {
 	// Populate the correct $_SERVER variables via an alternate header for fastcgi compatibility.
 	if ( isset( $_SERVER['HTTP_WP_AUTHORIZATION'] ) && preg_match( '%^Basic [a-z\d/+]*={0,2}$%i', $_SERVER['HTTP_WP_AUTHORIZATION'] ) ) {
 		// Removing `Basic ` the token would start six characters in.
-		$token = substr( $_SERVER['HTTP_WP_AUTHORIZATION'], 6 );
+		$token    = substr( $_SERVER['HTTP_WP_AUTHORIZATION'], 6 );
 		$userpass = base64_decode( $token );
 		list( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] ) = explode( ':', $userpass );
 	}
