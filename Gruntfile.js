@@ -145,6 +145,7 @@ module.exports = function(grunt) {
 						expand: true,
 						cwd: SOURCE_DIR,
 						src: buildFiles.concat( [
+							'!wp-includes/assets/**', // Assets is extracted into separate copy tasks.
 							'!js/**', // JavaScript is extracted into separate copy tasks.
 							'!.{svn,git}', // Exclude version control folders.
 							'!wp-includes/version.php', // Exclude version.php.
