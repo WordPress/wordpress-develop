@@ -2262,6 +2262,10 @@ function wp_list_comments( $args = array(), $comments = null ) {
  *                                        Default: '<h3 id="reply-title" class="comment-reply-title">'.
  *     @type string $title_reply_after    HTML displayed after the comment form title.
  *                                        Default: '</h3>'.
+ *     @type string $title_reply_inner_before   HTML displayed before the comment form title.
+ *                                        Default: '<span class="comment-reply-title-inner">'.
+ *     @type string $title_reply_inner_after    HTML displayed after the comment form title.
+ *                                        Default: '</span>'.
  *     @type string $cancel_reply_before  HTML displayed before the cancel reply link.
  *     @type string $cancel_reply_after   HTML displayed after the cancel reply link.
  *     @type string $cancel_reply_link    The translatable 'cancel reply' button label. Default 'Cancel reply'.
@@ -2423,25 +2427,27 @@ function comment_form( $args = array(), $post_id = null ) {
 			),
 			( $req ? $required_text : '' )
 		),
-		'comment_notes_after'  => '',
-		'action'               => site_url( '/wp-comments-post.php' ),
-		'id_form'              => 'commentform',
-		'id_submit'            => 'submit',
-		'class_form'           => 'comment-form',
-		'class_submit'         => 'submit',
-		'name_submit'          => 'submit',
-		'title_reply'          => __( 'Leave a Reply' ),
+		'comment_notes_after'      => '',
+		'action'                   => site_url( '/wp-comments-post.php' ),
+		'id_form'                  => 'commentform',
+		'id_submit'                => 'submit',
+		'class_form'               => 'comment-form',
+		'class_submit'             => 'submit',
+		'name_submit'              => 'submit',
+		'title_reply'              => __( 'Leave a Reply' ),
 		/* translators: %s: Author of the comment being replied to. */
-		'title_reply_to'       => __( 'Leave a Reply to %s' ),
-		'title_reply_before'   => '<h3 id="reply-title" class="comment-reply-title">',
-		'title_reply_after'    => '</h3>',
-		'cancel_reply_before'  => ' <small>',
-		'cancel_reply_after'   => '</small>',
-		'cancel_reply_link'    => __( 'Cancel reply' ),
-		'label_submit'         => __( 'Post Comment' ),
-		'submit_button'        => '<input name="%1$s" type="submit" id="%2$s" class="%3$s" value="%4$s" />',
-		'submit_field'         => '<p class="form-submit">%1$s %2$s</p>',
-		'format'               => 'xhtml',
+		'title_reply_to'           => __( 'Leave a Reply to %s' ),
+		'title_reply_before'       => '<h3 id="reply-title" class="comment-reply-title">',
+		'title_reply_after'        => '</h3>',
+		'title_reply_inner_before' => '<span class="comment-reply-title-inner">',
+		'title_reply_inner_after'  => '</span>',
+		'cancel_reply_before'      => ' <small>',
+		'cancel_reply_after'       => '</small>',
+		'cancel_reply_link'        => __( 'Cancel reply' ),
+		'label_submit'             => __( 'Post Comment' ),
+		'submit_button'            => '<input name="%1$s" type="submit" id="%2$s" class="%3$s" value="%4$s" />',
+		'submit_field'             => '<p class="form-submit">%1$s %2$s</p>',
+		'format'                   => 'xhtml',
 	);
 
 	/**
@@ -2478,7 +2484,11 @@ function comment_form( $args = array(), $post_id = null ) {
 		<?php
 		echo $args['title_reply_before'];
 
+		echo $args['title_reply_inner_before'];
+
 		comment_form_title( $args['title_reply'], $args['title_reply_to'] );
+
+		echo $args['title_reply_inner_after'];
 
 		echo $args['cancel_reply_before'];
 
