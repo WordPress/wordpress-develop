@@ -162,6 +162,7 @@ window.addComment = ( function( window ) {
 		var cancelLink = this;
 		var temporaryFormId  = config.temporaryFormId;
 		var temporaryElement = getElementById( temporaryFormId );
+		var headingText = temporaryElement.textContent;
 
 		if ( ! temporaryElement || ! respondElement ) {
 			// Conditions for cancel link fail.
@@ -174,7 +175,7 @@ window.addComment = ( function( window ) {
 		temporaryElement.parentNode.replaceChild( respondElement ,temporaryElement );
 		cancelLink.style.display = 'none';
 		var replyHeading = getElementById('reply-title');
-		replyHeading.innerHTML = replyHeading.innerHTML.replace(/[a-zA-Z0-9 ]*/, 'Leave a Reply');
+		replyHeading.textContent = headingText;
 		event.preventDefault();
 	}
 
@@ -186,12 +187,13 @@ window.addComment = ( function( window ) {
 	 * @param {Event} event The calling event.
 	 */
 	function clickEvent( event ) {
+		var defaultReplyHeading = document.getElementsByClassName('comment-reply-title-inner')[0].textContent;
 		var replyLink = this,
 			commId    = getDataAttribute( replyLink, 'belowelement'),
 			parentId  = getDataAttribute( replyLink, 'commentid' ),
 			respondId = getDataAttribute( replyLink, 'respondelement' ),
 			postId    = getDataAttribute( replyLink, 'postid' ),
-			replyTo   = getDataAttribute( replyLink, 'replyto' ) || 'Leave a Reply',
+			replyTo   = getDataAttribute( replyLink, 'replyto' ) || defaultReplyHeading,
 			follow;
 
 		if ( ! commId || ! parentId || ! respondId || ! postId ) {
@@ -307,13 +309,15 @@ window.addComment = ( function( window ) {
 		var postIdField     = getElementById( config.postIdFieldId );
 		var element, cssHidden, style;
 
+		var replyHeadingText = document.getElementsByClassName('comment-reply-title-inner')[0];
+
 		if ( ! addBelowElement || ! respondElement || ! parentIdField ) {
 			// Missing key elements, fail.
 			return;
 		}
 
 		if ( 'undefined' === typeof replyTo) {
-			replyTo = 'Leave a Reply';
+			replyTo = replyHeadingText.textContent;
 		}
 
 		addPlaceHolder( respondElement );
@@ -327,9 +331,7 @@ window.addComment = ( function( window ) {
 
 		cancelElement.style.display = '';
 		addBelowElement.parentNode.insertBefore( respondElement, addBelowElement.nextSibling );
-
-		var replyHeading = getElementById('reply-title');
-		replyHeading.innerHTML = replyHeading.innerHTML.replace( /[a-zA-Z0-9 ]*/, replyTo + ' ' );
+		replyHeadingText.textContent = replyTo;
 
 		/*
 		 * This is for backward compatibility with third party commenting systems
@@ -398,6 +400,7 @@ window.addComment = ( function( window ) {
 	function addPlaceHolder( respondElement ) {
 		var temporaryFormId  = config.temporaryFormId;
 		var temporaryElement = getElementById( temporaryFormId );
+		var initialHeadingText = document.getElementsByClassName('comment-reply-title-inner')[0].textContent;
 
 		if ( temporaryElement ) {
 			// The element already exists, no need to recreate.
@@ -407,6 +410,7 @@ window.addComment = ( function( window ) {
 		temporaryElement = document.createElement( 'div' );
 		temporaryElement.id = temporaryFormId;
 		temporaryElement.style.display = 'none';
+		temporaryElement.textContent = initialHeadingText;
 		respondElement.parentNode.insertBefore( temporaryElement, respondElement );
 	}
 
