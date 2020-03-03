@@ -48,6 +48,13 @@
 				if ( height ) {
 					if ( body && body.hasClass('interim-login-success') )
 						hide();
+						// When on the Edit Post screen, speed up heartbeat
+						// after the user logs in to quickly refresh nonces.
+						if ( typeof adminpage !== 'undefined' && ( adminpage === 'post-php' || adminpage === 'post-new-php' ) &&
+							typeof wp !== 'undefined' && wp.heartbeat ) {
+
+							wp.heartbeat.connectNow();
+						}
 					else
 						parent.css( 'max-height', height + 40 + 'px' );
 				} else if ( ! body || ! body.length ) {
@@ -94,14 +101,7 @@
 	function hide() {
 		$(window).off( 'beforeunload.wp-auth-check' );
 
-		// When on the Edit Post screen, speed up heartbeat
-		// after the user logs in to quickly refresh nonces.
-		if ( typeof adminpage !== 'undefined' && ( adminpage === 'post-php' || adminpage === 'post-new-php' ) &&
-			typeof wp !== 'undefined' && wp.heartbeat ) {
 
-			$(document).off( 'heartbeat-tick.wp-auth-check' );
-			wp.heartbeat.connectNow();
-		}
 
 		wrap.fadeOut( 200, function() {
 			wrap.addClass('hidden').css('display', '');
@@ -174,6 +174,10 @@
 		wrap = $('#wp-auth-check-wrap');
 		wrap.find('.wp-auth-check-close').on( 'click', function() {
 			hide();
+			// The authentication popup was closed intentionally, slow heartbeat
+			if ( typeof wp !== 'undefined' && wp.heartbeat ) {
+				wp.heartbeat.interval(120);
+			}
 		});
 	});
 
