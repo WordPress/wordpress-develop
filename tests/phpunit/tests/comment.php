@@ -372,7 +372,8 @@ class Tests_Comment extends WP_UnitTestCase {
 		);
 
 		foreach ( $fixtures as $fixture ) {
-			$data                     = array(
+
+			$data = array(
 				'comment_post_ID'      => self::$post_id,
 				'comment_author'       => '',
 				'comment_author_url'   => '',
@@ -380,7 +381,9 @@ class Tests_Comment extends WP_UnitTestCase {
 				'comment_content'      => '',
 				'comment_type'         => '',
 			);
-			$data[$fixture['name']] = $fixture['value'];
+
+			$data[ $fixture['name'] ] = $fixture['value'];
+
 			try {
 				wp_new_comment( $data );
 				$this->fail( 'Exception an exception' );
