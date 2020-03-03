@@ -311,7 +311,7 @@ function rest_api_loaded() {
 			die();
 		}
 		$user = wp_authenticate( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] );
-		wp_set_current_user( $user );
+		wp_set_current_user( $user->ID );
 	}
 
 	// Initialize the server.
