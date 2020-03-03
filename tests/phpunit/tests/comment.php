@@ -344,23 +344,50 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 
-	public function test_comment_field_lengths() {
-		$data = array(
-			'comment_post_ID'      => self::$post_id,
-			'comment_author'       => 'Comment Author',
-			'comment_author_url'   => '',
-			'comment_author_email' => '',
-			'comment_type'         => '',
-			'comment_content'      => str_repeat( 'A', 65536 ),
-			'comment_date'         => '2011-01-01 10:00:00',
-			'comment_date_gmt'     => '2011-01-01 10:00:00',
-		);
+	/**
+	 * @ticket 38622
+	 */
+	public function test_incorrect_comment_field_lengths() {
+		$fixtures = [
+			[
+				'name'   => 'comment_author',
+				'value'  => str_repeat( 'A', 250 ),
+				'expect' => '<strong>Error</strong>: Your name is too long.',
+			],
+			[
+				'name'   => 'comment_author_url',
+				'value'  => 'http://' . str_repeat( 'A', 250 ) . '.net',
+				'expect' => '<strong>Error</strong>: Your URL is too long.',
+			],
+			[
+				'name'   => 'comment_author_email',
+				'value'  => str_repeat( 'A', 250 ) . '@somewhere.net',
+				'expect' => '<strong>Error</strong>: Your email address is too long.',
+			],
+			[
+				'name'   => 'comment_content',
+				'value'  => str_repeat( 'A', 70000 ),
+				'expect' => '<strong>Error</strong>: Your comment is too long.',
+			],
+		];
 
-		$id = wp_new_comment( $data );
-
-		$comment = get_comment( $id );
-
-		$this->assertEquals( strlen( $comment->comment_content ), 65535 );
+		foreach ( $fixtures as $fixture ) {
+			$data                     = array(
+				'comment_post_ID'      => self::$post_id,
+				'comment_author'       => '',
+				'comment_author_url'   => '',
+				'comment_author_email' => '',
+				'comment_content'      => '',
+				'comment_type'         => '',
+			);
+			$data[ $fixture['name'] ] = $fixture['value'];
+			try {
+				wp_new_comment( $data );
+				$this->fail( 'Exception an exception' );
+			} catch ( WPDieException $e ) {
+				$this->assertEquals( $e->getMessage(), $fixture['expect'] );
+			}
+		}
 	}
 
 	/**

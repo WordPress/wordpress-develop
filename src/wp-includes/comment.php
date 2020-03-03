@@ -2129,6 +2129,18 @@ function wp_new_comment( $commentdata, $avoid_die = false ) {
 		return $commentdata['comment_approved'];
 	}
 
+	$check_max_lengths = wp_check_comment_data_max_lengths( $commentdata );
+	if ( is_wp_error( $check_max_lengths ) ) {
+		if ( true === $avoid_die ) {
+			return $check_max_lengths;
+		} else {
+			if ( wp_doing_ajax() ) {
+				die( $check_max_lengths->get_error_message() );
+			}
+			wp_die( $check_max_lengths->get_error_message(), $check_max_lengths->get_error_code() );
+		}
+	}
+
 	$comment_ID = wp_insert_comment( $commentdata );
 	if ( ! $comment_ID ) {
 		$fields = array( 'comment_author', 'comment_author_email', 'comment_author_url', 'comment_content' );
