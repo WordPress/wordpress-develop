@@ -122,26 +122,34 @@ class Tests_XMLRPC_wp_newComment extends WP_XMLRPC_UnitTestCase {
 			),
 		);
 
-		add_filter( 'xmlrpc_allow_anonymous_comments', function(){return true;} );
+		add_filter(
+			'xmlrpc_allow_anonymous_comments',
+			function() {
+				return true;
+			}
+		);
 
 		//$this->make_user_by_role( 'administrator' );
 		$post = self::factory()->post->create_and_get();
 
 		foreach ( $fixtures as $fixture ) {
-			$data                     = array(
+
+			$data = array(
 				'author'       => 'author',
 				'author_url'   => '',
 				'author_email' => 'author@somewhere.net',
 				'content'      => 'required',
 			);
-			$data[$fixture['name']] = $fixture['value'];
+
+			$data[ $fixture['name'] ] = $fixture['value'];
+
 			$result = $this->myxmlrpcserver->wp_newComment(
 				array(
 					1,
 					'',
 					'',
 					$post->ID,
-					$data
+					$data,
 				)
 			);
 
@@ -150,7 +158,12 @@ class Tests_XMLRPC_wp_newComment extends WP_XMLRPC_UnitTestCase {
 	}
 
 	function test_anon_comment() {
-		add_filter( 'xmlrpc_allow_anonymous_comments', function(){return true;} );
+		add_filter(
+			'xmlrpc_allow_anonymous_comments',
+			function() {
+				return true;
+			}
+		);
 		$post = self::factory()->post->create_and_get();
 
 		$result = $this->myxmlrpcserver->wp_newComment(
@@ -163,7 +176,7 @@ class Tests_XMLRPC_wp_newComment extends WP_XMLRPC_UnitTestCase {
 					'author'       => 'author',
 					'author_url'   => '',
 					'author_email' => 'author@somewhere.net',
-					'content' => rand_str( 100 ),
+					'content'      => rand_str( 100 ),
 				),
 			)
 		);
