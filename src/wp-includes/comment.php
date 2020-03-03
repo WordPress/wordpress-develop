@@ -2122,11 +2122,29 @@ function wp_new_comment( $commentdata, $avoid_die = false ) {
 		$commentdata['comment_date_gmt'] = current_time( 'mysql', 1 );
 	}
 
+
 	$commentdata = wp_filter_comment( $commentdata );
 
 	$commentdata['comment_approved'] = wp_allow_comment( $commentdata, $avoid_die );
 	if ( is_wp_error( $commentdata['comment_approved'] ) ) {
 		return $commentdata['comment_approved'];
+	}
+
+	/**
+	 * Check lengths of comment properties (ticket 38622)
+	 *
+	 * @since Unknown
+	 */
+	$check_max_lengths = wp_check_comment_data_max_lengths( $commentdata );
+	if ( is_wp_error( $check_max_lengths ) ) {
+		if ( true === $avoid_die ) {
+			return $check_max_lengths;
+		} else {
+			if ( wp_doing_ajax() ) {
+				die( $check_max_lengths->get_error_message() );
+			}
+			wp_die( $check_max_lengths->get_error_message(), $check_max_lengths->get_error_code() );
+		}
 	}
 
 	$comment_ID = wp_insert_comment( $commentdata );
