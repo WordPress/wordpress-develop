@@ -2122,7 +2122,6 @@ function wp_new_comment( $commentdata, $avoid_die = false ) {
 		$commentdata['comment_date_gmt'] = current_time( 'mysql', 1 );
 	}
 
-
 	$commentdata = wp_filter_comment( $commentdata );
 
 	$commentdata['comment_approved'] = wp_allow_comment( $commentdata, $avoid_die );
