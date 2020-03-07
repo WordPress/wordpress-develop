@@ -675,6 +675,11 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$request->set_body( wp_json_encode( array(
 			'param_body' => 'value_body',
 		) ) );
+		$original_defaults = array(
+			'param_query'=> 'default_query_value',
+			'param_body' => 'default_body_value'
+		);
+		$request->set_default_params( $original_defaults );
 		$request->set_query_params( array(
 			'param_query' => 'value_query',
 		) );
@@ -683,5 +688,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertEquals( 'new_value', $request->get_param( 'param_query' ) );
 		$this->assertEquals( array( 'param_body' => 'value_body' ), $request->get_json_params() );
 		$this->assertEquals( array( 'param_query' => 'new_value' ), $request->get_query_params() );
+		// Verify the default wasn't overwritten.
+		$this->assertEquals($original_defaults, $request->get_default_params());
 	}
 }
