@@ -430,17 +430,17 @@ class WP_REST_Request implements ArrayAccess {
 	 * @param mixed  $value Parameter value.
 	 */
 	public function set_param( $key, $value ) {
-		$order 		= $this->get_parameter_order();
-		$found_key 	= false;
+		$order     = $this->get_parameter_order();
+		$found_key = false;
 
 		foreach ( $order as $type ) {
-			if ( $type !== 'defaults' && isset( $this->params[ $type ][ $key ] ) ) {
+			if ( 'defaults' !== $type && isset( $this->params[ $type ][ $key ] ) ) {
 				$this->params[ $type ][ $key ] = $value;
-				$found_key = true;
+				$found_key                     = true;
 			}
 		}
 
-		if ( !$found_key ) {
+		if ( ! $found_key ) {
 			$this->params[ $order[0] ][ $key ] = $value;
 		}
 	}
