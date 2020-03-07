@@ -650,4 +650,38 @@ class Tests_REST_Request extends WP_UnitTestCase {
 			$request->get_json_params()
 		);
 	}
+
+	public function test_set_param_updates_param_in_json_and_query() {
+		$request = new WP_REST_Request();
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_method( 'POST' );
+		$request->set_body( wp_json_encode( array(
+			'param' => 'value_body',
+		) ) );
+		$request->set_query_params( array(
+			'param' => 'value_query',
+		) );
+		$request->set_param( 'param', 'new_value' );
+
+		$this->assertEquals( 'new_value', $request->get_param( 'param' ) );
+		$this->assertEquals( array( 'param' => 'new_value' ), $request->get_json_params() );
+		$this->assertEquals( array( 'param' => 'new_value' ), $request->get_query_params() );
+	}
+
+	public function test_set_param_updates_param_if_already_exists_in_query() {
+		$request = new WP_REST_Request();
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_method( 'POST' );
+		$request->set_body( wp_json_encode( array(
+			'param_body' => 'value_body',
+		) ) );
+		$request->set_query_params( array(
+			'param_query' => 'value_query',
+		) );
+		$request->set_param( 'param_query', 'new_value' );
+
+		$this->assertEquals( 'new_value', $request->get_param( 'param_query' ) );
+		$this->assertEquals( array( 'param_body' => 'value_body' ), $request->get_json_params() );
+		$this->assertEquals( array( 'param_query' => 'new_value' ), $request->get_query_params() );
+	}
 }
