@@ -706,7 +706,7 @@ class WP_Site_Health {
 		$result = array(
 			'label'       => sprintf(
 				/* translators: %s: The current PHP version. */
-				__( 'Your version of PHP (%s) is up to date' ),
+				__( 'Your site is running the current version of PHP (%s)' ),
 				PHP_VERSION
 			),
 			'status'      => 'good',
@@ -741,7 +741,7 @@ class WP_Site_Health {
 		if ( $response['is_supported'] ) {
 			$result['label'] = sprintf(
 				/* translators: %s: The server PHP version. */
-				__( 'Your version of PHP (%s) is out of date' ),
+				__( 'Your site is running an older version of PHP (%s)' ),
 				PHP_VERSION
 			);
 			$result['status'] = 'recommended';
@@ -753,7 +753,7 @@ class WP_Site_Health {
 		if ( $response['is_secure'] ) {
 			$result['label'] = sprintf(
 				/* translators: %s: The server PHP version. */
-				__( 'Your version of PHP (%s) should be updated' ),
+				__( 'Your site is running an older version of PHP (%s), which should be updated' ),
 				PHP_VERSION
 			);
 			$result['status'] = 'recommended';
@@ -764,7 +764,7 @@ class WP_Site_Health {
 		// Anything no longer secure must be updated.
 		$result['label'] = sprintf(
 			/* translators: %s: The server PHP version. */
-			__( 'Your version of PHP (%s) requires an update' ),
+			__( 'Your site is running an outdated version of PHP (%s), which requires an update' ),
 			PHP_VERSION
 		);
 		$result['status']         = 'critical';
@@ -1398,7 +1398,7 @@ class WP_Site_Health {
 			if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
 				$result['label'] = __( 'Your site is set to log errors to a potentially public file.' );
 
-				$result['status'] = 'critical';
+				$result['status'] = ( 0 === strpos( ini_get( 'error_log' ), ABSPATH ) ) ? 'critical' : 'recommended';
 
 				$result['description'] .= sprintf(
 					'<p>%s</p>',
@@ -1863,10 +1863,10 @@ class WP_Site_Health {
 					'%s<br>%s',
 					__( 'The REST API request failed due to an error.' ),
 					sprintf(
-						/* translators: 1: The HTTP response code. 2: The error message returned. */
-						__( 'Error: [%1$s] %2$s' ),
-						wp_remote_retrieve_response_code( $r ),
-						$r->get_error_message()
+						/* translators: 1: The WordPress error message. 2: The WordPress error code. */
+						__( 'Error: %1$s (%2$s)' ),
+						$r->get_error_message(),
+						$r->get_error_code()
 					)
 				)
 			);
@@ -1878,7 +1878,7 @@ class WP_Site_Health {
 			$result['description'] .= sprintf(
 				'<p>%s</p>',
 				sprintf(
-					/* translators: 1: The HTTP response code returned. 2: The error message returned. */
+					/* translators: 1: The HTTP error code. 2: The HTTP error message. */
 					__( 'The REST API call gave the following unexpected result: (%1$d) %2$s.' ),
 					wp_remote_retrieve_response_code( $r ),
 					wp_remote_retrieve_body( $r )
@@ -2185,10 +2185,10 @@ class WP_Site_Health {
 					'%s<br>%s',
 					__( 'The loopback request to your site failed, this means features relying on them are not currently working as expected.' ),
 					sprintf(
-						/* translators: 1: The HTTP response code. 2: The error message returned. */
-						__( 'Error: [%1$s] %2$s' ),
-						wp_remote_retrieve_response_code( $r ),
-						$r->get_error_message()
+						/* translators: 1: The WordPress error message. 2: The WordPress error code. */
+						__( 'Error: %1$s (%2$s)' ),
+						$r->get_error_message(),
+						$r->get_error_code()
 					)
 				),
 			);

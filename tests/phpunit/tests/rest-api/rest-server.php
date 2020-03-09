@@ -845,6 +845,66 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertEquals( $self_not_filtered, $data['_links']['self'][0] );
 	}
 
+	/**
+	 * @dataProvider _dp_response_to_data_embedding
+	 */
+	public function test_response_to_data_embedding( $expected, $embed ) {
+		$response = new WP_REST_Response();
+		$response->add_link( 'author', rest_url( '404' ), array( 'embeddable' => true ) );
+		$response->add_link( 'https://api.w.org/term', rest_url( '404' ), array( 'embeddable' => true ) );
+		$response->add_link( 'https://wordpress.org', rest_url( '404' ), array( 'embeddable' => true ) );
+		$response->add_link( 'no-embed', rest_url( '404' ) );
+
+		$data = rest_get_server()->response_to_data( $response, $embed );
+
+		if ( false === $expected ) {
+			$this->assertArrayNotHasKey( '_embedded', $data );
+		} else {
+			$this->assertEqualSets( $expected, array_keys( $data['_embedded'] ) );
+		}
+	}
+
+	public function _dp_response_to_data_embedding() {
+		return array(
+			array(
+				array( 'author', 'wp:term', 'https://wordpress.org' ),
+				true,
+			),
+			array(
+				array( 'author', 'wp:term', 'https://wordpress.org' ),
+				array( 'author', 'wp:term', 'https://wordpress.org' ),
+			),
+			array(
+				array( 'author' ),
+				array( 'author' ),
+			),
+			array(
+				array( 'wp:term' ),
+				array( 'wp:term' ),
+			),
+			array(
+				array( 'https://wordpress.org' ),
+				array( 'https://wordpress.org' ),
+			),
+			array(
+				array( 'author', 'wp:term' ),
+				array( 'author', 'wp:term' ),
+			),
+			array(
+				false,
+				false,
+			),
+			array(
+				false,
+				array( 'no-embed' ),
+			),
+			array(
+				array( 'author' ),
+				array( 'author', 'no-embed' ),
+			),
+		);
+	}
+
 	public function test_get_index() {
 		$server = new WP_REST_Server();
 		$server->register_route(
@@ -958,6 +1018,29 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$namespaces = $server->get_namespaces();
 		$this->assertContains( 'test/example', $namespaces );
 		$this->assertContains( 'test/another', $namespaces );
+	}
+
+	/**
+	 * @ticket 49147
+	 */
+	public function test_get_data_for_non_variable_route_includes_links() {
+		$expected = array(
+			'self' => array(
+				array( 'href' => rest_url( 'wp/v2/posts' ) ),
+			),
+		);
+
+		$actual = rest_get_server()->get_data_for_route(
+			'/wp/v2/posts',
+			array(
+				array(
+					'methods'       => array( 'OPTIONS' => 1 ),
+					'show_in_index' => true,
+				),
+			)
+		);
+
+		$this->assertEquals( $expected, $actual['_links'] );
 	}
 
 	public function test_x_robot_tag_header_on_requests() {
@@ -1311,6 +1394,106 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$this->assertNull( $result );
 		$this->assertEquals( '', rest_get_server()->sent_body );
+	}
+
+	/**
+	 * @ticket 47077
+	 */
+	public function test_http_authorization_header_substitution() {
+		$headers        = array( 'HTTP_AUTHORIZATION' => 'foo' );
+		$parsed_headers = rest_get_server()->get_headers( $headers );
+
+		$this->assertSame(
+			array( 'AUTHORIZATION' => 'foo' ),
+			$parsed_headers
+		);
+	}
+
+	/**
+	 * @ticket 47077
+	 */
+	public function test_redirect_http_authorization_header_substitution() {
+		$headers        = array( 'REDIRECT_HTTP_AUTHORIZATION' => 'foo' );
+		$parsed_headers = rest_get_server()->get_headers( $headers );
+
+		$this->assertSame(
+			array( 'AUTHORIZATION' => 'foo' ),
+			$parsed_headers
+		);
+	}
+
+	/**
+	 * @ticket 47077
+	 */
+	public function test_redirect_http_authorization_with_http_authorization_header_substitution() {
+		$headers        = array(
+			'HTTP_AUTHORIZATION'          => 'foo',
+			'REDIRECT_HTTP_AUTHORIZATION' => 'bar',
+		);
+		$parsed_headers = rest_get_server()->get_headers( $headers );
+
+		$this->assertSame(
+			array( 'AUTHORIZATION' => 'foo' ),
+			$parsed_headers
+		);
+	}
+
+	/**
+	 * @ticket 47077
+	 */
+	public function test_redirect_http_authorization_with_empty_http_authorization_header_substitution() {
+		$headers        = array(
+			'HTTP_AUTHORIZATION'          => '',
+			'REDIRECT_HTTP_AUTHORIZATION' => 'bar',
+		);
+		$parsed_headers = rest_get_server()->get_headers( $headers );
+
+		$this->assertSame(
+			array( 'AUTHORIZATION' => 'bar' ),
+			$parsed_headers
+		);
+	}
+
+	/**
+	 * @ticket 48530
+	 */
+	public function test_get_routes_respects_namespace_parameter() {
+		$routes = rest_get_server()->get_routes( 'oembed/1.0' );
+
+		foreach ( $routes as $route => $handlers ) {
+			$this->assertStringStartsWith( '/oembed/1.0', $route );
+		}
+	}
+
+	/**
+	 * @ticket 48530
+	 */
+	public function test_get_routes_no_namespace_overriding() {
+		register_rest_route(
+			'test-ns',
+			'/test',
+			array(
+				'methods'  => array( 'GET' ),
+				'callback' => function() {
+					return new WP_REST_Response( 'data', 204 );
+				},
+			)
+		);
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				'methods'  => array( 'GET' ),
+				'callback' => function() {
+					return new WP_REST_Response( 'data', 204 );
+				},
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/test-ns/v1/test' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 204, $response->get_status(), '/test-ns/v1/test' );
 	}
 
 	public function _validate_as_integer_123( $value, $request, $key ) {

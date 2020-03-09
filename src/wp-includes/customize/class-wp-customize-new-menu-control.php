@@ -34,9 +34,13 @@ class WP_Customize_New_Menu_Control extends WP_Customize_Control {
 	 * @since 4.9.0
 	 * @deprecated 4.9.0
 	 *
-	 * @param WP_Customize_Manager $manager Manager.
-	 * @param string               $id      ID.
-	 * @param array                $args    Args.
+	 * @see WP_Customize_Control::__construct()
+	 *
+	 * @param WP_Customize_Manager $manager Customizer bootstrap instance.
+	 * @param string               $id      The control ID.
+	 * @param array                $args    Optional. Arguments to override class property defaults.
+	 *                                      See WP_Customize_Control::__construct() for information
+	 *                                      on accepted arguments. Default empty array.
 	 */
 	public function __construct( WP_Customize_Manager $manager, $id, array $args = array() ) {
 		_deprecated_function( __METHOD__, '4.9.0' );

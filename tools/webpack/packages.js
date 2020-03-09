@@ -77,6 +77,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'wp-polyfill-fetch.js': 'whatwg-fetch/dist/fetch.umd.js',
 		'wp-polyfill-element-closest.js': 'element-closest/element-closest.js',
 		'wp-polyfill-node-contains.js': 'polyfill-library/polyfills/Node/prototype/contains/polyfill.js',
+		'wp-polyfill-url.js': 'core-js-url-browser/url.js',
+		'wp-polyfill-dom-rect.js': 'polyfill-library/polyfills/DOMRect/polyfill.js',
 		'wp-polyfill-formdata.js': 'formdata-polyfill/FormData.js',
 		'moment.js': 'moment/moment.js',
 		'react.js': 'react/umd/react.development.js',
@@ -87,6 +89,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'lodash.min.js': 'lodash/lodash.min.js',
 		'wp-polyfill.min.js': '@babel/polyfill/dist/polyfill.min.js',
 		'wp-polyfill-formdata.min.js': 'formdata-polyfill/formdata.min.js',
+		'wp-polyfill-url.min.js': 'core-js-url-browser/url.min.js',
 		'moment.min.js': 'moment/min/moment.min.js',
 		'react.min.js': 'react/umd/react.production.min.js',
 		'react-dom.min.js': 'react-dom/umd/react-dom.production.min.js',
@@ -96,6 +99,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'wp-polyfill-fetch.min.js': 'whatwg-fetch/dist/fetch.umd.js',
 		'wp-polyfill-element-closest.min.js': 'element-closest/element-closest.js',
 		'wp-polyfill-node-contains.min.js': 'polyfill-library/polyfills/Node/prototype/contains/polyfill.js',
+		'wp-polyfill-dom-rect.min.js': 'polyfill-library/polyfills/DOMRect/polyfill.js',
 	};
 
 	const blockNames = [
@@ -105,10 +109,10 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'categories',
 		'latest-comments',
 		'latest-posts',
-		'navigation',
 		'rss',
 		'search',
 		'shortcode',
+		'social-link',
 		'tag-cloud',
 	];
 	const phpFiles = {
@@ -216,6 +220,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 				'token-list',
 				'server-side-render',
 				'shortcode',
+				'warning',
 			].map( camelCaseDash ) ),
 			new CustomTemplatedPathPlugin( {
 				basename( path, data ) {
@@ -241,6 +246,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			} ),
 			new DependencyExtractionPlugin( {
 				injectPolyfill: true,
+				combineAssets: true,
 			} ),
 			new CopyWebpackPlugin(
 				[

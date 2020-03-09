@@ -59,6 +59,8 @@ jQuery( document ).ready( function( $ ) {
 		var $this          = $( this ),
 			$action        = $this.parents( '.export-personal-data' ),
 			$requestRow    = $this.parents( 'tr' ),
+			$progress      = $requestRow.find( '.export-progress' ),
+			$rowActions    = $this.parents( '.row-actions' ),
 			requestID      = $action.data( 'request-id' ),
 			nonce          = $action.data( 'nonce' ),
 			exportersCount = $action.data( 'exporters-count' ),
@@ -67,8 +69,11 @@ jQuery( document ).ready( function( $ ) {
 		event.preventDefault();
 		event.stopPropagation();
 
+		$rowActions.addClass( 'processing' );
+
 		$action.blur();
 		clearResultsAfterRow( $requestRow );
+		setExportProgress( 0 );
 
 		function onExportDoneSuccess( zipUrl ) {
 			var summaryMessage = strings.emailSent;
@@ -76,13 +81,14 @@ jQuery( document ).ready( function( $ ) {
 			setActionState( $action, 'export-personal-data-success' );
 
 			appendResultsAfterRow( $requestRow, 'notice-success', summaryMessage, [] );
-			$this.hide();
-			
+
 			if ( 'undefined' !== typeof zipUrl ) {
 				window.location = zipUrl;
 			} else if ( ! sendAsEmail ) {
 				onExportFailure( strings.noExportFile );
 			}
+
+			setTimeout( function(){ $rowActions.removeClass( 'processing' ); }, 500 );
 		}
 
 		function onExportFailure( errorMessage ) {
@@ -90,6 +96,14 @@ jQuery( document ).ready( function( $ ) {
 			if ( errorMessage ) {
 				appendResultsAfterRow( $requestRow, 'notice-error', strings.exportError, [ errorMessage ] );
 			}
+
+			setTimeout( function(){ $rowActions.removeClass( 'processing' ); }, 500 );
+		}
+
+		function setExportProgress( exporterIndex ) {
+			var progress       = ( exportersCount > 0 ? exporterIndex / exportersCount : 0 );
+			var progressString = Math.round( progress * 100 ).toString() + '%';
+			$progress.html( progressString );
 		}
 
 		function doNextExport( exporterIndex, pageIndex ) {
@@ -110,25 +124,24 @@ jQuery( document ).ready( function( $ ) {
 				var responseData = response.data;
 
 				if ( ! response.success ) {
-
 					// e.g. invalid request ID.
-					onExportFailure( response.data );
+					setTimeout( function(){ onExportFailure( response.data ); }, 500 );
 					return;
 				}
 
 				if ( ! responseData.done ) {
 					setTimeout( doNextExport( exporterIndex, pageIndex + 1 ) );
 				} else {
+					setExportProgress( exporterIndex );
 					if ( exporterIndex < exportersCount ) {
 						setTimeout( doNextExport( exporterIndex + 1, 1 ) );
 					} else {
-						onExportDoneSuccess( responseData.url );
+						setTimeout( function(){ onExportDoneSuccess( responseData.url ); }, 500 );
 					}
 				}
 			}).fail( function( jqxhr, textStatus, error ) {
-
 				// e.g. Nonce failure.
-				onExportFailure( error );
+				setTimeout( function(){ onExportFailure( error ); }, 500 );
 			});
 		}
 
@@ -141,6 +154,8 @@ jQuery( document ).ready( function( $ ) {
 		var $this         = $( this ),
 			$action       = $this.parents( '.remove-personal-data' ),
 			$requestRow   = $this.parents( 'tr' ),
+			$progress     = $requestRow.find( '.erasure-progress' ),
+			$rowActions   = $this.parents( '.row-actions' ),
 			requestID     = $action.data( 'request-id' ),
 			nonce         = $action.data( 'nonce' ),
 			erasersCount  = $action.data( 'erasers-count' ),
@@ -148,10 +163,14 @@ jQuery( document ).ready( function( $ ) {
 			hasRetained   = false,
 			messages      = [];
 
+		event.preventDefault();
 		event.stopPropagation();
+
+		$rowActions.addClass( 'processing' );
 
 		$action.blur();
 		clearResultsAfterRow( $requestRow );
+		setErasureProgress( 0 );
 
 		function onErasureDoneSuccess() {
 			var summaryMessage = strings.noDataFound;
@@ -175,12 +194,21 @@ jQuery( document ).ready( function( $ ) {
 				}
 			}
 			appendResultsAfterRow( $requestRow, classes, summaryMessage, messages );
-			$this.hide();
+
+			setTimeout( function(){ $rowActions.removeClass( 'processing' ); }, 500 );
 		}
 
 		function onErasureFailure() {
 			setActionState( $action, 'remove-personal-data-failed' );
 			appendResultsAfterRow( $requestRow, 'notice-error', strings.removalError, [] );
+
+			setTimeout( function(){ $rowActions.removeClass( 'processing' ); }, 500 );
+		}
+
+		function setErasureProgress( eraserIndex ) {
+			var progress       = ( erasersCount > 0 ? eraserIndex / erasersCount : 0 );
+			var progressString = Math.round( progress * 100 ).toString() + '%';
+			$progress.html( progressString );
 		}
 
 		function doNextErasure( eraserIndex, pageIndex ) {
@@ -198,7 +226,7 @@ jQuery( document ).ready( function( $ ) {
 				var responseData = response.data;
 
 				if ( ! response.success ) {
-					onErasureFailure();
+					setTimeout( function(){ onErasureFailure(); }, 500 );
 					return;
 				}
 				if ( responseData.items_removed ) {
@@ -213,14 +241,15 @@ jQuery( document ).ready( function( $ ) {
 				if ( ! responseData.done ) {
 					setTimeout( doNextErasure( eraserIndex, pageIndex + 1 ) );
 				} else {
+					setErasureProgress( eraserIndex );
 					if ( eraserIndex < erasersCount ) {
 						setTimeout( doNextErasure( eraserIndex + 1, 1 ) );
 					} else {
-						onErasureDoneSuccess();
+						setTimeout( function(){ onErasureDoneSuccess(); }, 500 );
 					}
 				}
 			}).fail( function() {
-				onErasureFailure();
+				setTimeout( function(){ onErasureFailure(); }, 500 );
 			});
 		}
 
@@ -245,6 +274,9 @@ jQuery( document ).ready( function( $ ) {
 
 			if ( $container.length ) {
 				try {
+					var documentPosition = document.documentElement.scrollTop,
+						bodyPosition     = document.body.scrollTop;
+
 					window.getSelection().removeAllRanges();
 					range = document.createRange();
 					$container.addClass( 'hide-privacy-policy-tutorial' );
@@ -255,6 +287,12 @@ jQuery( document ).ready( function( $ ) {
 
 					$container.removeClass( 'hide-privacy-policy-tutorial' );
 					window.getSelection().removeAllRanges();
+
+					if ( documentPosition > 0 && documentPosition !== document.documentElement.scrollTop ) {
+						document.documentElement.scrollTop = documentPosition;
+					} else if ( bodyPosition > 0 && bodyPosition !== document.body.scrollTop ) {
+						document.body.scrollTop = bodyPosition;
+					}
 				} catch ( er ) {}
 			}
 		}

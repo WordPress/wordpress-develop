@@ -304,6 +304,24 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 30991
+	 */
+	function test_delete_posts_cap_without_map_meta_cap() {
+		register_post_type(
+			self::$post_type,
+			array(
+				'capability_type' => 'post',
+				'map_meta_cap'    => false,
+			)
+		);
+
+		$post_type_object = get_post_type_object( self::$post_type );
+
+		$this->assertFalse( $post_type_object->map_meta_cap );
+		$this->assertEquals( 'delete_posts', $post_type_object->cap->delete_posts );
+	}
+
 	function test_unfiltered_html_cap() {
 		if ( defined( 'DISALLOW_UNFILTERED_HTML' ) ) {
 			$this->assertFalse( DISALLOW_UNFILTERED_HTML );

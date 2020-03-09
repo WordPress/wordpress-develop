@@ -26,7 +26,7 @@ module.exports = function(grunt) {
 			'wp-content/plugins/index.php',
 			'wp-content/plugins/hello.php',
 			'wp-content/plugins/akismet/**',
-			'!wp-content/themes/twenty*/node_modules/**'
+			'!wp-content/themes/twenty*/node_modules/**',
 		],
 		changedFiles = {
 			php: []
@@ -96,9 +96,14 @@ module.exports = function(grunt) {
 		clean: {
 			plugins: [BUILD_DIR + 'wp-content/plugins'],
 			themes: [BUILD_DIR + 'wp-content/themes'],
-			files: buildFiles.map( function( file ) {
+			files: buildFiles.concat( [
+				'!wp-config.php',
+			] ).map( function( file ) {
+				if ( '!' === file.charAt( 0 ) ) {
+					return '!' + BUILD_DIR + file.substring( 1 );
+				}
 				return BUILD_DIR + file;
-			}),
+			} ),
 			css: [
 				WORKING_DIR + 'wp-admin/css/*.min.css',
 				WORKING_DIR + 'wp-admin/css/*-rtl*.css',
@@ -108,11 +113,10 @@ module.exports = function(grunt) {
 			],
 			js: [
 				WORKING_DIR + 'wp-admin/js/',
-				WORKING_DIR + 'wp-includes/assets/',
 				WORKING_DIR + 'wp-includes/js/'
 			],
 			'webpack-assets': [
-				WORKING_DIR + 'wp-includes/js/**/*.asset.php'
+				WORKING_DIR + 'wp-includes/js/dist/assets.php'
 			],
 			dynamic: {
 				dot: true,
@@ -141,7 +145,7 @@ module.exports = function(grunt) {
 						expand: true,
 						cwd: SOURCE_DIR,
 						src: buildFiles.concat( [
-							'!assets/**', // Assets is extracted into separate copy tasks.
+							'!wp-includes/assets/**', // Assets is extracted into separate copy tasks.
 							'!js/**', // JavaScript is extracted into separate copy tasks.
 							'!.{svn,git}', // Exclude version control folders.
 							'!wp-includes/version.php', // Exclude version.php.
@@ -351,10 +355,8 @@ module.exports = function(grunt) {
 				]
 			},
 			'webpack-assets': {
-				expand: true,
-				cwd: WORKING_DIR + 'wp-includes/js/',
-				src: 'dist/*.asset.php',
-				dest: WORKING_DIR + 'wp-includes/assets/'
+				src: WORKING_DIR + 'wp-includes/js/dist/assets.php',
+				dest: WORKING_DIR + 'wp-includes/assets/script-loader-packages.php'
 			},
 			version: {
 				options: {
@@ -559,10 +561,10 @@ module.exports = function(grunt) {
 					'twenty*/**/*.js',
 					'!twenty{eleven,twelve,thirteen}/**',
 					// Third party scripts.
+					'!twenty*/node_modules/**',
 					'!twenty{fourteen,fifteen,sixteen}/js/html5.js',
 					'!twentyseventeen/assets/js/html5.js',
-					'!twentyseventeen/assets/js/jquery.scrollTo.js',
-					'!twentytwenty/node_modules/**'
+					'!twentyseventeen/assets/js/jquery.scrollTo.js'
 				]
 			},
 			media: {

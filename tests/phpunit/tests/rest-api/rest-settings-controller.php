@@ -38,6 +38,14 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->endpoint = new WP_REST_Settings_Controller();
 	}
 
+	public function tearDown() {
+		parent::tearDown();
+
+		if ( isset( get_registered_settings()['mycustomarraysetting'] ) ) {
+			unregister_setting( 'somegroup', 'mycustomarraysetting' );
+		}
+	}
+
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey( '/wp/v2/settings', $routes );
@@ -648,5 +656,59 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_get_item_schema() {
+	}
+
+	/**
+	 * @ticket 42875
+	 */
+	public function test_register_setting_issues_doing_it_wrong_when_show_in_rest_is_true() {
+		$this->setExpectedIncorrectUsage( 'register_setting' );
+
+		register_setting(
+			'somegroup',
+			'mycustomarraysetting',
+			array(
+				'type'         => 'array',
+				'show_in_rest' => true,
+			)
+		);
+	}
+
+	/**
+	 * @ticket 42875
+	 */
+	public function test_register_setting_issues_doing_it_wrong_when_show_in_rest_omits_schema() {
+		$this->setExpectedIncorrectUsage( 'register_setting' );
+
+		register_setting(
+			'somegroup',
+			'mycustomarraysetting',
+			array(
+				'type'         => 'array',
+				'show_in_rest' => array(
+					'prepare_callback' => 'rest_sanitize_value_from_schema',
+				),
+			)
+		);
+	}
+
+	/**
+	 * @ticket 42875
+	 */
+	public function test_register_setting_issues_doing_it_wrong_when_show_in_rest_omits_schema_items() {
+		$this->setExpectedIncorrectUsage( 'register_setting' );
+
+		register_setting(
+			'somegroup',
+			'mycustomarraysetting',
+			array(
+				'type'         => 'array',
+				'show_in_rest' => array(
+					'schema' => array(
+						'default' => array( 'Hi!' ),
+					),
+				),
+			)
+		);
 	}
 }

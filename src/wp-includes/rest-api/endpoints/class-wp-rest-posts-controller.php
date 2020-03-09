@@ -116,7 +116,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 						'force' => array(
 							'type'        => 'boolean',
 							'default'     => false,
-							'description' => __( 'Whether to bypass trash and force deletion.' ),
+							'description' => __( 'Whether to bypass Trash and force deletion.' ),
 						),
 					),
 				),
@@ -886,7 +886,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 *
 		 * The dynamic portion of the hook name, `$this->post_type`, refers to the post type slug.
 		 *
-		 * Pass false to disable trash support for the post.
+		 * Pass false to disable Trash support for the post.
 		 *
 		 * @since 4.7.0
 		 *
@@ -937,7 +937,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 
 			// (Note that internally this falls through to `wp_delete_post()`
-			// if the trash is disabled.)
+			// if the Trash is disabled.)
 			$result   = wp_trash_post( $id );
 			$post     = get_post( $id );
 			$response = $this->prepare_item_for_response( $post, $request );
@@ -2404,6 +2404,27 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( $schema_links ) {
 			$schema['links'] = $schema_links;
+		}
+
+		// Take a snapshot of which fields are in the schema pre-filtering.
+		$schema_fields = array_keys( $schema['properties'] );
+
+		/**
+		 * Filter the post's schema.
+		 *
+		 * The dynamic portion of the filter, `$this->post_type`, refers to the
+		 * post type slug for the controller.
+		 *
+		 * @since 5.4.0
+		 *
+		 * @param array $schema Item schema data.
+		 */
+		$schema = apply_filters( "rest_{$this->post_type}_item_schema", $schema );
+
+		// Emit a _doing_it_wrong warning if user tries to add new properties using this filter.
+		$new_fields = array_diff( array_keys( $schema['properties'] ), $schema_fields );
+		if ( count( $new_fields ) > 0 ) {
+			_doing_it_wrong( __METHOD__, __( 'Please use register_rest_field to add new schema properties.' ), '5.4.0' );
 		}
 
 		$this->schema = $schema;

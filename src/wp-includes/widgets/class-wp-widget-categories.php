@@ -34,6 +34,8 @@ class WP_Widget_Categories extends WP_Widget {
 	 * Outputs the content for the current Categories widget instance.
 	 *
 	 * @since 2.8.0
+	 * @since 4.2.0 Creates a unique HTML ID for the `<select>` element
+	 *              if more than one instance is displayed on the page.
 	 *
 	 * @staticvar bool $first_dropdown
 	 *
@@ -49,9 +51,9 @@ class WP_Widget_Categories extends WP_Widget {
 		/** This filter is documented in wp-includes/widgets/class-wp-widget-pages.php */
 		$title = apply_filters( 'widget_title', $title, $instance, $this->id_base );
 
-		$c = ! empty( $instance['count'] ) ? '1' : '0';
-		$h = ! empty( $instance['hierarchical'] ) ? '1' : '0';
-		$d = ! empty( $instance['dropdown'] ) ? '1' : '0';
+		$count        = ! empty( $instance['count'] ) ? '1' : '0';
+		$hierarchical = ! empty( $instance['hierarchical'] ) ? '1' : '0';
+		$dropdown     = ! empty( $instance['dropdown'] ) ? '1' : '0';
 
 		echo $args['before_widget'];
 
@@ -61,11 +63,11 @@ class WP_Widget_Categories extends WP_Widget {
 
 		$cat_args = array(
 			'orderby'      => 'name',
-			'show_count'   => $c,
-			'hierarchical' => $h,
+			'show_count'   => $count,
+			'hierarchical' => $hierarchical,
 		);
 
-		if ( $d ) {
+		if ( $dropdown ) {
 			echo sprintf( '<form action="%s" method="get">', esc_url( home_url() ) );
 			$dropdown_id    = ( $first_dropdown ) ? 'cat' : "{$this->id_base}-dropdown-{$this->number}";
 			$first_dropdown = false;

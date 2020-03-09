@@ -41,11 +41,12 @@ function _wp_privacy_resend_request( $request_id ) {
  * @access private
  *
  * @param  int          $request_id Request ID.
- * @return int|WP_Error $result Request ID on success or WP_Error.
+ * @return int|WP_Error $result     Request ID on success or WP_Error.
  */
 function _wp_privacy_completed_request( $request_id ) {
+	// Get the request.
 	$request_id = absint( $request_id );
-	$request    = wp_get_user_request_data( $request_id );
+	$request    = wp_get_user_request( $request_id );
 
 	if ( ! $request ) {
 		return new WP_Error( 'privacy_request_error', __( 'Invalid request.' ) );
@@ -215,6 +216,7 @@ function _wp_personal_data_cleanup_requests() {
  * Generate a single group for the personal data export report.
  *
  * @since 4.9.6
+ * @since 5.4.0 Added the `$group_id` and `$groups_count` parameters.
  *
  * @param array $group_data {
  *     The group data to render.
@@ -231,10 +233,14 @@ function _wp_personal_data_cleanup_requests() {
  *         }
  *     }
  * }
- * @return string The HTML for this group and its items.
+ * @param string  $group_id     The group identifier.
+ * @param int     $groups_count The number of all groups
+ * @return string $group_html   The HTML for this group and its items.
  */
-function wp_privacy_generate_personal_data_export_group_html( $group_data ) {
-	$group_html  = '<h2>';
+function wp_privacy_generate_personal_data_export_group_html( $group_data, $group_id = '', $groups_count = 1 ) {
+	$group_id_attr = sanitize_title_with_dashes( $group_data['group_label'] . '-' . $group_id );
+
+	$group_html  = '<h2 id="' . esc_attr( $group_id_attr ) . '">';
 	$group_html .= esc_html( $group_data['group_label'] );
 
 	$items_count = count( (array) $group_data['items'] );
@@ -271,6 +277,12 @@ function wp_privacy_generate_personal_data_export_group_html( $group_data ) {
 		$group_html .= '</table>';
 	}
 
+	if ( 1 < $groups_count ) {
+		$group_html .= '<div class="return_to_top">';
+		$group_html .= '<a href="#top">' . esc_html__( '&uarr; Return to top' ) . '</a>';
+		$group_html .= '</div>';
+	}
+
 	$group_html .= '</div>';
 
 	return $group_html;
@@ -288,8 +300,8 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 		wp_send_json_error( __( 'Unable to generate export file. ZipArchive not available.' ) );
 	}
 
-	// Get the request data.
-	$request = wp_get_user_request_data( $request_id );
+	// Get the request.
+	$request = wp_get_user_request( $request_id );
 
 	if ( ! $request || 'export_personal_data' !== $request->action_name ) {
 		wp_send_json_error( __( 'Invalid request ID when generating export file.' ) );
@@ -372,6 +384,8 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	// Merge in the special about group.
 	$groups = array_merge( array( 'about' => $about_group ), $groups );
 
+	$groups_count = count( $groups );
+
 	// Convert the groups to JSON format.
 	$groups_json = wp_json_encode( $groups );
 
@@ -409,17 +423,38 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	fwrite( $file, 'th { padding: 5px; text-align: left; width: 20%; }' );
 	fwrite( $file, 'td { padding: 5px; }' );
 	fwrite( $file, 'tr:nth-child(odd) { background-color: #fafafa; }' );
+	fwrite( $file, '.return_to_top { text-align:right; }' );
 	fwrite( $file, '</style>' );
 	fwrite( $file, '<title>' );
 	fwrite( $file, esc_html( $title ) );
 	fwrite( $file, '</title>' );
 	fwrite( $file, "</head>\n" );
 	fwrite( $file, "<body>\n" );
-	fwrite( $file, '<h1>' . esc_html__( 'Personal Data Export' ) . '</h1>' );
+	fwrite( $file, '<h1 id="top">' . esc_html__( 'Personal Data Export' ) . '</h1>' );
+
+	// Create TOC.
+	if ( 1 < $groups_count ) {
+		fwrite( $file, '<div id="table_of_contents">' );
+		fwrite( $file, '<h2>' . esc_html__( 'Table of Contents' ) . '</h2>' );
+		fwrite( $file, '<ul>' );
+		foreach ( (array) $groups as $group_id => $group_data ) {
+			$group_label       = esc_html( $group_data['group_label'] );
+			$group_id_attr     = sanitize_title_with_dashes( $group_data['group_label'] . '-' . $group_id );
+			$group_items_count = count( (array) $group_data['items'] );
+			if ( $group_items_count > 1 ) {
+				$group_label .= sprintf( ' <span class="count">(%d)</span>', $group_items_count );
+			}
+			fwrite( $file, '<li>' );
+			fwrite( $file, '<a href="#' . esc_attr( $group_id_attr ) . '">' . $group_label . '</a>' );
+			fwrite( $file, '</li>' );
+		}
+		fwrite( $file, '</ul>' );
+		fwrite( $file, '</div>' );
+	}
 
 	// Now, iterate over every group in $groups and have the formatter render it in HTML.
 	foreach ( (array) $groups as $group_id => $group_data ) {
-		fwrite( $file, wp_privacy_generate_personal_data_export_group_html( $group_data ) );
+		fwrite( $file, wp_privacy_generate_personal_data_export_group_html( $group_data, $group_id, $groups_count ) );
 	}
 
 	fwrite( $file, "</body>\n" );
@@ -501,8 +536,8 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
  * @return true|WP_Error True on success or `WP_Error` on failure.
  */
 function wp_privacy_send_personal_data_export_email( $request_id ) {
-	// Get the request data.
-	$request = wp_get_user_request_data( $request_id );
+	// Get the request.
+	$request = wp_get_user_request( $request_id );
 
 	if ( ! $request || 'export_personal_data' !== $request->action_name ) {
 		return new WP_Error( 'invalid_request', __( 'Invalid request ID when sending personal data export email.' ) );
@@ -623,7 +658,34 @@ All at ###SITENAME###
 	$content = str_replace( '###SITENAME###', $site_name, $content );
 	$content = str_replace( '###SITEURL###', esc_url_raw( $site_url ), $content );
 
-	$mail_success = wp_mail( $request_email, $subject, $content );
+	$headers = '';
+
+	/**
+	 * Filters the headers of the email sent with a personal data export file.
+	 *
+	 * @since 5.4.0
+	 *
+	 * @param string|array $headers    The email headers.
+	 * @param string       $subject    The email subject.
+	 * @param string       $content    The email content.
+	 * @param int          $request_id The request ID.
+	 * @param array        $email_data {
+	 *     Data relating to the account action email.
+	 *
+	 *     @type WP_User_Request $request           User request object.
+	 *     @type int             $expiration        The time in seconds until the export file expires.
+	 *     @type string          $expiration_date   The localized date and time when the export file expires.
+	 *     @type string          $message_recipient The address that the email will be sent to. Defaults
+	 *                                              to the value of `$request->email`, but can be changed
+	 *                                              by the `wp_privacy_personal_data_email_to` filter.
+	 *     @type string          $export_file_url   The export file URL.
+	 *     @type string          $sitename          The site name sending the mail.
+	 *     @type string          $siteurl           The site URL sending the mail.
+	 * }
+	 */
+	$headers = apply_filters( 'wp_privacy_personal_data_email_headers', $headers, $subject, $content, $request_id, $email_data );
+
+	$mail_success = wp_mail( $request_email, $subject, $content, $headers );
 
 	if ( $switched_locale ) {
 		restore_previous_locale();
@@ -671,8 +733,8 @@ function wp_privacy_process_personal_data_export_page( $response, $exporter_inde
 		return $response;
 	}
 
-	// Get the request data.
-	$request = wp_get_user_request_data( $request_id );
+	// Get the request.
+	$request = wp_get_user_request( $request_id );
 
 	if ( ! $request || 'export_personal_data' !== $request->action_name ) {
 		wp_send_json_error( __( 'Invalid request ID when merging exporter data.' ) );
@@ -815,7 +877,8 @@ function wp_privacy_process_personal_data_erasure_page( $response, $eraser_index
 		return $response;
 	}
 
-	$request = wp_get_user_request_data( $request_id );
+	// Get the request.
+	$request = wp_get_user_request( $request_id );
 
 	if ( ! $request || 'remove_personal_data' !== $request->action_name ) {
 		wp_send_json_error( __( 'Invalid request ID when processing eraser data.' ) );

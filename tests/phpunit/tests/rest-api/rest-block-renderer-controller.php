@@ -373,7 +373,38 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		);
 	}
 
+	/**
+	 * Check filtering block output using the pre_render_block filter.
+	 *
+	 * @ticket 49387
+	 */
+	public function test_get_item_with_pre_render_block_filter() {
+		wp_set_current_user( self::$user_id );
 
+		$pre_render_filter = function( $output, $block ) {
+			if ( $block['blockName'] === self::$block_name ) {
+				return '<p>Alternate content.</p>';
+			}
+		};
+		add_filter( 'pre_render_block', $pre_render_filter, 10, 2 );
+
+		$attributes = array(
+			'some_int'    => '123',
+			'some_string' => 'foo',
+			'some_array'  => array( 1, '2', 3 ),
+		);
+
+		$request = new WP_REST_Request( 'GET', self::$rest_api_route . self::$block_name );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( 'attributes', $attributes );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertEquals( '<p>Alternate content.</p>', $data['rendered'] );
+
+		remove_filter( 'pre_render_block', $pre_render_filter );
+	}
 
 	/**
 	 * Check success response for getting item with layout attribute provided.

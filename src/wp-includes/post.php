@@ -1399,7 +1399,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                              ?{query_var_string}={post_slug} will be valid.
  *     @type bool        $can_export            Whether to allow this post type to be exported. Default true.
  *     @type bool        $delete_with_user      Whether to delete posts of this type when deleting a user. If true,
- *                                              posts of this type belonging to the user will be moved to trash
+ *                                              posts of this type belonging to the user will be moved to Trash
  *                                              when then user is deleted. If false, posts of this type belonging
  *                                              to the user will *not* be trashed or deleted. If not set (the default),
  *                                              posts are trashed if post_type_supports('author'). Otherwise posts
@@ -1509,7 +1509,7 @@ function unregister_post_type( $post_type ) {
  * Otherwise, an 's' will be added to the value for the plural form. After
  * registration, capability_type will always be a string of the singular value.
  *
- * By default, seven keys are accepted as part of the capabilities array:
+ * By default, eight keys are accepted as part of the capabilities array:
  *
  * - edit_post, read_post, and delete_post are meta capabilities, which are then
  *   generally mapped to corresponding primitive capabilities depending on the
@@ -1521,17 +1521,17 @@ function unregister_post_type( $post_type ) {
  * - edit_others_posts - Controls whether objects of this type owned by other users
  *   can be edited. If the post type does not support an author, then this will
  *   behave like edit_posts.
+ * - delete_posts - Controls whether objects of this post type can be deleted.
  * - publish_posts - Controls publishing objects of this post type.
  * - read_private_posts - Controls whether private objects can be read.
  *
- * These four primitive capabilities are checked in core in various locations.
- * There are also seven other primitive capabilities which are not referenced
+ * These five primitive capabilities are checked in core in various locations.
+ * There are also six other primitive capabilities which are not referenced
  * directly in core, except in map_meta_cap(), which takes the three aforementioned
  * meta capabilities and translates them into one or more primitive capabilities
  * that must then be checked against the user or role, depending on the context.
  *
  * - read - Controls whether objects of this post type can be read.
- * - delete_posts - Controls whether objects of this post type can be deleted.
  * - delete_private_posts - Controls whether private objects can be deleted.
  * - delete_published_posts - Controls whether published objects can be deleted.
  * - delete_others_posts - Controls whether objects owned by other users can be
@@ -1545,6 +1545,7 @@ function unregister_post_type( $post_type ) {
  * argument set to true (default is false).
  *
  * @since 3.0.0
+ * @since 5.4.0 'delete_posts' is included in default capabilities.
  *
  * @see register_post_type()
  * @see map_meta_cap()
@@ -1568,6 +1569,7 @@ function get_post_type_capabilities( $args ) {
 		// Primitive capabilities used outside of map_meta_cap():
 		'edit_posts'         => 'edit_' . $plural_base,
 		'edit_others_posts'  => 'edit_others_' . $plural_base,
+		'delete_posts'       => 'delete_' . $plural_base,
 		'publish_posts'      => 'publish_' . $plural_base,
 		'read_private_posts' => 'read_private_' . $plural_base,
 	);
@@ -1576,7 +1578,6 @@ function get_post_type_capabilities( $args ) {
 	if ( $args->map_meta_cap ) {
 		$default_capabilities_for_mapping = array(
 			'read'                   => 'read',
-			'delete_posts'           => 'delete_' . $plural_base,
 			'delete_private_posts'   => 'delete_private_' . $plural_base,
 			'delete_published_posts' => 'delete_published_' . $plural_base,
 			'delete_others_posts'    => 'delete_others_' . $plural_base,
@@ -1639,7 +1640,7 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * - `view_items` - Label for viewing post type archives. Default is 'View Posts' / 'View Pages'.
  * - `search_items` - Label for searching plural items. Default is 'Search Posts' / 'Search Pages'.
  * - `not_found` - Label used when no items are found. Default is 'No posts found' / 'No pages found'.
- * - `not_found_in_trash` - Label used when no items are in the trash. Default is 'No posts found in Trash' /
+ * - `not_found_in_trash` - Label used when no items are in the Trash. Default is 'No posts found in Trash' /
  *                        'No pages found in Trash'.
  * - `parent_item_colon` - Label used to prefix parents of hierarchical items. Not used on non-hierarchical
  *                       post types. Default is 'Parent Page:'.
@@ -2926,8 +2927,8 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
  * it is deleted also. This includes comments, post meta fields, and terms
  * associated with the post.
  *
- * The post or page is moved to trash instead of permanently deleted unless
- * trash is disabled, item is already in the trash, or $force_delete is true.
+ * The post or page is moved to Trash instead of permanently deleted unless
+ * Trash is disabled, item is already in the Trash, or $force_delete is true.
  *
  * @since 1.0.0
  *
@@ -2936,7 +2937,7 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
  * @see wp_trash_post()
  *
  * @param int  $postid       Optional. Post ID. Default 0.
- * @param bool $force_delete Optional. Whether to bypass trash and force deletion.
+ * @param bool $force_delete Optional. Whether to bypass Trash and force deletion.
  *                           Default false.
  * @return WP_Post|false|null Post data on success, false or null on failure.
  */
@@ -2966,7 +2967,7 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 	 *
 	 * @param bool|null $delete       Whether to go forward with deletion.
 	 * @param WP_Post   $post         Post object.
-	 * @param bool      $force_delete Whether to bypass the trash.
+	 * @param bool      $force_delete Whether to bypass the Trash.
 	 */
 	$check = apply_filters( 'pre_delete_post', null, $post, $force_delete );
 	if ( null !== $check ) {
@@ -3103,7 +3104,7 @@ function _reset_front_page_settings_for_post( $post_id ) {
 /**
  * Move a post or page to the Trash
  *
- * If trash is disabled, the post or page is permanently deleted.
+ * If Trash is disabled, the post or page is permanently deleted.
  *
  * @since 2.9.0
  *
@@ -3142,7 +3143,7 @@ function wp_trash_post( $post_id = 0 ) {
 	}
 
 	/**
-	 * Fires before a post is sent to the trash.
+	 * Fires before a post is sent to the Trash.
 	 *
 	 * @since 3.3.0
 	 *
@@ -3167,7 +3168,7 @@ function wp_trash_post( $post_id = 0 ) {
 	wp_trash_post_comments( $post_id );
 
 	/**
-	 * Fires after a post is sent to the trash.
+	 * Fires after a post is sent to the Trash.
 	 *
 	 * @since 2.9.0
 	 *
@@ -3211,7 +3212,7 @@ function wp_untrash_post( $post_id = 0 ) {
 	}
 
 	/**
-	 * Fires before a post is restored from the trash.
+	 * Fires before a post is restored from the Trash.
 	 *
 	 * @since 2.9.0
 	 *
@@ -3238,7 +3239,7 @@ function wp_untrash_post( $post_id = 0 ) {
 	wp_untrash_post_comments( $post_id );
 
 	/**
-	 * Fires after a post is restored from the trash.
+	 * Fires after a post is restored from the Trash.
 	 *
 	 * @since 2.9.0
 	 *
@@ -3250,7 +3251,7 @@ function wp_untrash_post( $post_id = 0 ) {
 }
 
 /**
- * Moves comments for a post to the trash.
+ * Moves comments for a post to the Trash.
  *
  * @since 2.9.0
  *
@@ -3270,7 +3271,7 @@ function wp_trash_post_comments( $post = null ) {
 	$post_id = $post->ID;
 
 	/**
-	 * Fires before comments are sent to the trash.
+	 * Fires before comments are sent to the Trash.
 	 *
 	 * @since 2.9.0
 	 *
@@ -3296,7 +3297,7 @@ function wp_trash_post_comments( $post = null ) {
 	clean_comment_cache( array_keys( $statuses ) );
 
 	/**
-	 * Fires after comments are sent to the trash.
+	 * Fires after comments are sent to the Trash.
 	 *
 	 * @since 2.9.0
 	 *
@@ -3309,7 +3310,7 @@ function wp_trash_post_comments( $post = null ) {
 }
 
 /**
- * Restore comments for a post from the trash.
+ * Restore comments for a post from the Trash.
  *
  * @since 2.9.0
  *
@@ -3335,7 +3336,7 @@ function wp_untrash_post_comments( $post = null ) {
 	}
 
 	/**
-	 * Fires before comments are restored for a post from the trash.
+	 * Fires before comments are restored for a post from the Trash.
 	 *
 	 * @since 2.9.0
 	 *
@@ -3363,7 +3364,7 @@ function wp_untrash_post_comments( $post = null ) {
 	delete_post_meta( $post_id, '_wp_trash_meta_comments_status' );
 
 	/**
-	 * Fires after comments are restored for a post from the trash.
+	 * Fires after comments are restored for a post from the Trash.
 	 *
 	 * @since 2.9.0
 	 *
@@ -4215,6 +4216,20 @@ function wp_update_post( $postarr = array(), $wp_error = false ) {
 
 	if ( 'attachment' === $postarr['post_type'] ) {
 		return wp_insert_attachment( $postarr, false, 0, $wp_error );
+	}
+
+	// Discard 'tags_input' parameter if it's the same as existing post tags.
+	if ( isset( $postarr['tags_input'] ) && is_object_in_taxonomy( $postarr['post_type'], 'post_tag' ) ) {
+		$tags      = get_the_terms( $postarr['ID'], 'post_tag' );
+		$tag_names = array();
+
+		if ( $tags && ! is_wp_error( $tags ) ) {
+			$tag_names = wp_list_pluck( $tags, 'name' );
+		}
+
+		if ( $postarr['tags_input'] === $tag_names ) {
+			unset( $postarr['tags_input'] );
+		}
 	}
 
 	return wp_insert_post( $postarr, $wp_error );
@@ -5574,15 +5589,15 @@ function wp_insert_attachment( $args, $file = false, $parent = 0, $wp_error = fa
  * Deletion removes all post meta fields, taxonomy, comments, etc. associated
  * with the attachment (except the main post).
  *
- * The attachment is moved to the trash instead of permanently deleted unless trash
- * for media is disabled, item is already in the trash, or $force_delete is true.
+ * The attachment is moved to the Trash instead of permanently deleted unless Trash
+ * for media is disabled, item is already in the Trash, or $force_delete is true.
  *
  * @since 2.0.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int  $post_id      Attachment ID.
- * @param bool $force_delete Optional. Whether to bypass trash and force deletion.
+ * @param bool $force_delete Optional. Whether to bypass Trash and force deletion.
  *                           Default false.
  * @return WP_Post|false|null Post data on success, false or null on failure.
  */
@@ -6072,7 +6087,7 @@ function wp_attachment_is_image( $post = null ) {
 }
 
 /**
- * Retrieve the icon for a MIME type.
+ * Retrieve the icon for a MIME type or attachment.
  *
  * @since 2.1.0
  *
@@ -7177,17 +7192,19 @@ function get_available_post_mime_types( $type = 'attachment' ) {
  * to the originally uploaded image file.
  *
  * @since 5.3.0
+ * @since 5.4.0 Added the `$unfiltered` parameter.
  *
- * @param int $attachment_id Attachment ID.
+ * @param int  $attachment_id Attachment ID.
+ * @param bool $unfiltered Optional. Passed through to `get_attached_file()`. Default false.
  * @return string|false Path to the original image file or false if the attachment is not an image.
  */
-function wp_get_original_image_path( $attachment_id ) {
+function wp_get_original_image_path( $attachment_id, $unfiltered = false ) {
 	if ( ! wp_attachment_is_image( $attachment_id ) ) {
 		return false;
 	}
 
 	$image_meta = wp_get_attachment_metadata( $attachment_id );
-	$image_file = get_attached_file( $attachment_id );
+	$image_file = get_attached_file( $attachment_id, $unfiltered );
 
 	if ( empty( $image_meta['original_image'] ) ) {
 		$original_image = $image_file;

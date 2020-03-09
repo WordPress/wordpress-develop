@@ -275,6 +275,13 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 		$this->assertEquals( array( 'a' => 1 ), rest_sanitize_value_from_schema( (object) array( 'a' => '1' ), $schema ) );
 	}
 
+	/**
+	 * @ticket 42961
+	 */
+	public function test_type_object_accepts_empty_string() {
+		$this->assertEquals( array(), rest_sanitize_value_from_schema( '', array( 'type' => 'object' ) ) );
+	}
+
 	public function test_type_unknown() {
 		$schema = array(
 			'type' => 'lalala',

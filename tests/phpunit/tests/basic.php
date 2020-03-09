@@ -17,6 +17,17 @@ class Tests_Basic extends WP_UnitTestCase {
 		$this->assertEquals( $this_year, trim( $matches[1] ), "license.txt's year needs to be updated to $this_year." );
 	}
 
+	function test_security_md() {
+		// This test is designed to only run on trunk/master.
+		$this->skipOnAutomatedBranches();
+
+		$security = file_get_contents( dirname( ABSPATH ) . '/SECURITY.md' );
+		preg_match( '#\d.\d.x#', $security, $matches );
+		$current_version = substr( $GLOBALS['wp_version'], 0, 3 );
+		$latest_stable   = sprintf( '%s.x', (float) $current_version - 0.1 );
+		$this->assertEquals( $latest_stable, trim( $matches[0] ), "SECURITY.md's version needs to be updated to $latest_stable." );
+	}
+
 	function test_package_json() {
 		$package_json    = file_get_contents( dirname( ABSPATH ) . '/package.json' );
 		$package_json    = json_decode( $package_json, true );

@@ -6,6 +6,13 @@
 	box-sizing: border-box;
 }
 
+.widget.open {
+	z-index: 99;
+}
+.widget.open:focus-within {
+	z-index: 100;
+}
+
 .widget-top {
 	font-size: 13px;
 	font-weight: 600;
@@ -133,6 +140,9 @@
 .media-widget-control .media-widget-preview img {
 	max-width: 100%;
 	vertical-align: middle;
+	background-image: linear-gradient(45deg, #c4c4c4 25%, transparent 25%, transparent 75%, #c4c4c4 75%, #c4c4c4), linear-gradient(45deg, #c4c4c4 25%, transparent 25%, transparent 75%, #c4c4c4 75%, #c4c4c4);
+	background-position: 0 0, 10px 10px;
+	background-size: 20px 20px;
 }
 .media-widget-control .media-widget-preview .wp-video-shortcode {
 	background: #000;
@@ -145,6 +155,7 @@
 .media-frame.media-widget .image-details .embed-media-settings .setting.align,
 .media-frame.media-widget .attachment-display-settings .setting.align,
 .media-frame.media-widget .embed-media-settings .setting.align,
+.media-frame.media-widget .embed-media-settings .legend-inline,
 .media-frame.media-widget .embed-link-settings .setting.link-text,
 .media-frame.media-widget .replace-attachment,
 .media-frame.media-widget .checkbox-setting.autoplay {
@@ -594,6 +605,10 @@ div#widgets-right .closed .widgets-sortables {
 
 .widget-inside {
 	background: #fff;
+}
+
+.widget-inside select {
+	max-width: 100%;
 }
 
 /* Dragging widgets over the available widget area show's a "Deactivate" message */

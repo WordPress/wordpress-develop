@@ -52,7 +52,7 @@ array('[Lorem ipsum dolor sit amet, quo id ignota repudiare, ius iracundia ratio
  Cu bonorum graecis ius. Duo id ancillae probatus. Tota latine pri an. Cum ei iudico semper. Eum in blandit voluptaria.
 
  Illud debet vitae ex vis numquam.'),
- 
+
 /* DIVIDER */
 
 // Based on https://core.trac.wordpress.org/attachment/ticket/29557/ChatTranscript.txt
@@ -445,7 +445,7 @@ BLAH!</p>
 <p class="triangle-right left">A very significant, if unsurprising update.
 “blown away”</p>
 <img class="alignleft" src="http://www.example.com/postimages/2013/aarone.jpeg" alt="" width="50" height="50" />
-<p class="triangle-right lefttwo">Blown away by the trash can.</p>
+<p class="triangle-right lefttwo">Blown away by the Trash can.</p>
 <img class="alignleft" src="http://www.example.com/postimages/2013/bobm.jpeg" alt="" width="50" height="50" />
 <p class="triangle-right left">That is one powerful fan.</p>
 <img class="alignright" src="http://www.example.com/postimages/2013/philipmetroid.jpg" alt="" width="50" height="50" />
@@ -470,11 +470,11 @@ Yup, spinning rust taps out at about 120 MB/sec.</p>
 <p class="triangle-right right">We\'ll even sell you this case that matches to put your drives into!</p>
 <img class="alignleft" src="http://www.example.com/postimages/2013/bobm.jpeg" alt="" width="50" height="50" />
 <p class="triangle-right left">For a single drive.
-Who is going to be the first to mod a real trash can with a RAID array to Thunderbolt?</p>
+Who is going to be the first to mod a real Trash can with a RAID array to Thunderbolt?</p>
 <img class="alignright" src="http://www.example.com/postimages/2013/philipmetroid.jpg" alt="" width="50" height="50" />
 <p class="triangle-right right">I can\'t wait to see the enclosures people make to go with this device.</p>
 <img class="alignleft" src="http://www.example.com/postimages/2013/aarone.jpeg" alt="" width="50" height="50" />
-<p class="triangle-right lefttwo">Row of trash cans daisy chained together.</p>
+<p class="triangle-right lefttwo">Row of Trash cans daisy chained together.</p>
 <img class="alignright" src="http://www.example.com/postimages/2013/philipmetroid.jpg" alt="" width="50" height="50" />
 <p class="triangle-right right">Packed and built for expansion.</p>
 <img class="alignleft" src="http://www.example.com/postimages/2013/aarone.jpeg" alt="" width="50" height="50" />
@@ -507,7 +507,7 @@ This is going to get expensive fast.</p>
 <p class="triangle-right left">Not terrible. However, now I need to price out the TOP OF THE LINE model and find out if it can cost more than my house.
 Should be able to do it.</p>
 <img class="alignright" src="http://www.example.com/postimages/2013/philipmetroid.jpg" alt="" width="50" height="50" />
-<p class="triangle-right right">SO RECYCLABLE that you can throw it into the trash... or use it as a trash can.</p>
+<p class="triangle-right right">SO RECYCLABLE that you can throw it into the Trash... or use it as a Trash can.</p>
 <img class="alignleft" src="http://www.example.com/postimages/2013/aarone.jpeg" alt="" width="50" height="50" />
 <p class="triangle-right lefttwo">30k</p>
 <img class="alignright" src="http://www.example.com/postimages/2013/philipmetroid.jpg" alt="" width="50" height="50" />

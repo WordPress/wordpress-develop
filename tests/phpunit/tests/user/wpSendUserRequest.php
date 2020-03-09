@@ -229,6 +229,40 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The email headers should be filterable.
+	 *
+	 * @since 5.4.0
+	 *
+	 * @ticket 44501
+	 */
+	public function test_email_headers_should_be_filterable() {
+		$request_id = wp_create_user_request( self::$test_user->user_email, 'remove_personal_data' );
+
+		add_filter( 'user_request_action_email_headers', array( $this, 'modify_email_headers' ) );
+		$result = wp_send_user_request( $request_id );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$this->assertContains( 'From: Tester <tester@example.com>', $mailer->get_sent()->header );
+	}
+
+	/**
+	 * Filter callback to modify the headers of the email sent when an account action is attempted.
+	 *
+	 * @since 5.4.0
+	 *
+	 * @param string|array $headers The email headers.
+	 * @return array       $headers The new email headers.
+	 */
+	public function modify_email_headers( $headers ) {
+		$headers = array(
+			'From: Tester <tester@example.com>',
+		);
+
+		return $headers;
+	}
+
+	/**
 	 * The function should error when the email was not sent.
 	 *
 	 * @ticket 43985

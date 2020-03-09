@@ -896,7 +896,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$previous = $this->prepare_item_for_response( $user, $request );
 
-		/** Include admin user functions to get access to wp_delete_user() */
+		// Include user admin functions to get access to wp_delete_user().
 		require_once ABSPATH . 'wp-admin/includes/user.php';
 
 		$result = wp_delete_user( $id, $reassign );
@@ -1210,8 +1210,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				);
 			}
 
-			/** Include admin functions to get access to get_editable_roles() */
-			require_once ABSPATH . 'wp-admin/includes/admin.php';
+			// Include user admin functions to get access to get_editable_roles().
+			require_once ABSPATH . 'wp-admin/includes/user.php';
 
 			// The new role must be editable by the logged-in user.
 			$editable_roles = get_editable_roles();
@@ -1235,7 +1235,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param mixed           $value   The username submitted in the request.
+	 * @param string          $value   The username submitted in the request.
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @param string          $param   The parameter name.
 	 * @return string|WP_Error The sanitized username, if valid, otherwise an error.
@@ -1272,7 +1272,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param mixed           $value   The password submitted in the request.
+	 * @param string          $value   The password submitted in the request.
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @param string          $param   The parameter name.
 	 * @return string|WP_Error The sanitized password, if valid, otherwise an error.
