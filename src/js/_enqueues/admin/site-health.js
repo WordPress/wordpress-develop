@@ -259,9 +259,11 @@ jQuery( document ).ready( function( $ ) {
 			RecalculateProgression();
 
 			if ( delay > 3000  ) {
-				// We have announced that we're waiting.
-				// Announce that we're ready after giving at least 3 seconds for the first announcement
-				// to be read out, or the two may collide.
+				/*
+				 * We have announced that we're waiting.
+				 * Announce that we're ready after giving at least 3 seconds
+				 * for the first announcement to be read out, or the two may collide.
+				 */
 				if ( delay > 6000 ) {
 					delay = 0;
 				} else {
@@ -282,17 +284,17 @@ jQuery( document ).ready( function( $ ) {
 
 	function updateDirSizes( data ) {
 		var copyButton = $( 'button.button.copy-button' );
-		var clipdoardText = copyButton.attr( 'data-clipboard-text' );
+		var clipboardText = copyButton.attr( 'data-clipboard-text' );
 
 		$.each( data, function( name, value ) {
 			var text = value.debug || value.size;
 
 			if ( typeof text !== 'undefined' ) {
-				clipdoardText = clipdoardText.replace( name + ': loading...', name + ': ' + text );
+				clipboardText = clipboardText.replace( name + ': loading...', name + ': ' + text );
 			}
 		} );
 
-		copyButton.attr( 'data-clipboard-text', clipdoardText );
+		copyButton.attr( 'data-clipboard-text', clipboardText );
 
 		pathsSizesSection.find( 'td[class]' ).each( function( i, element ) {
 			var td = $( element );

@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Admin ajax functions to be tested
+ * Admin Ajax functions to be tested.
  */
-require_once( ABSPATH . 'wp-admin/includes/ajax-actions.php' );
+require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 
 /**
- * Testing ajax tag search functionality
+ * Testing Ajax tag search functionality.
  *
  * @package    WordPress
  * @subpackage UnitTests
@@ -42,21 +42,21 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_post_tag() {
 
-		// Become an administrator
+		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
-		// Set up a default request
+		// Set up a default request.
 		$_GET['tax'] = 'post_tag';
 		$_GET['q']   = 'chat';
 
-		// Make the request
+		// Make the request.
 		try {
 			$this->_handleAjax( 'ajax-tag-search' );
 		} catch ( WPAjaxDieContinueException $e ) {
 			unset( $e );
 		}
 
-		// Ensure we found the right match
+		// Ensure we found the right match.
 		$this->assertEquals( $this->_last_response, 'chattels' );
 	}
 
@@ -65,15 +65,15 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_no_results() {
 
-		// Become an administrator
+		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
-		// Set up a default request
+		// Set up a default request.
 		$_GET['tax'] = 'post_tag';
 		$_GET['q']   = md5( uniqid() );
 
-		// Make the request
-		// No output, so we get a stop exception
+		// Make the request.
+		// No output, so we get a stop exception.
 		$this->setExpectedException( 'WPAjaxDieStopException', '' );
 		$this->_handleAjax( 'ajax-tag-search' );
 	}
@@ -83,21 +83,21 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_with_comma() {
 
-		// Become an administrator
+		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
-		// Set up a default request
+		// Set up a default request.
 		$_GET['tax'] = 'post_tag';
-		$_GET['q']   = 'some,nonsense, terms,chat'; // Only the last term in the list is searched
+		$_GET['q']   = 'some,nonsense, terms,chat'; // Only the last term in the list is searched.
 
-		// Make the request
+		// Make the request.
 		try {
 			$this->_handleAjax( 'ajax-tag-search' );
 		} catch ( WPAjaxDieContinueException $e ) {
 			unset( $e );
 		}
 
-		// Ensure we found the right match
+		// Ensure we found the right match.
 		$this->assertEquals( $this->_last_response, 'chattels' );
 	}
 
@@ -106,14 +106,14 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_logged_out() {
 
-		// Log out
+		// Log out.
 		wp_logout();
 
-		// Set up a default request
+		// Set up a default request.
 		$_GET['tax'] = 'post_tag';
 		$_GET['q']   = 'chat';
 
-		// Make the request
+		// Make the request.
 		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		$this->_handleAjax( 'ajax-tag-search' );
 	}
@@ -123,14 +123,14 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_invalid_tax() {
 
-		// Become an administrator
+		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
-		// Set up a default request
+		// Set up a default request.
 		$_GET['tax'] = 'invalid-taxonomy';
 		$_GET['q']   = 'chat';
 
-		// Make the request
+		// Make the request.
 		$this->setExpectedException( 'WPAjaxDieStopException', '0' );
 		$this->_handleAjax( 'ajax-tag-search' );
 	}
@@ -140,14 +140,14 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_unprivileged_user() {
 
-		// Become an administrator
+		// Become a subscriber.
 		$this->_setRole( 'subscriber' );
 
-		// Set up a default request
+		// Set up a default request.
 		$_GET['tax'] = 'post_tag';
 		$_GET['q']   = 'chat';
 
-		// Make the request
+		// Make the request.
 		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		$this->_handleAjax( 'ajax-tag-search' );
 	}

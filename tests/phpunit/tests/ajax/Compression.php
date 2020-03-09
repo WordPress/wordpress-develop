@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Admin ajax functions to be tested
+ * Admin Ajax functions to be tested.
  */
-require_once( ABSPATH . 'wp-admin/includes/ajax-actions.php' );
+require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 
 /**
- * Testing ajax compression test functionality
+ * Testing Ajax compression test functionality.
  *
  * @package    WordPress
  * @subpackage UnitTests
@@ -21,10 +21,10 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 	public function test_logged_out() {
 		$this->logout();
 
-		// Set up a default request
+		// Set up a default request.
 		$_GET['test'] = 1;
 
-		// Make the request
+		// Make the request.
 		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		$this->_handleAjax( 'wp-compression-test' );
 	}
@@ -34,20 +34,20 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_text() {
 
-		// Become an administrator
+		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
-		// Set up a default request
+		// Set up a default request.
 		$_GET['test'] = 1;
 
-		// Make the request
+		// Make the request.
 		try {
 			$this->_handleAjax( 'wp-compression-test' );
 		} catch ( WPAjaxDieContinueException $e ) {
 			unset( $e );
 		}
 
-		// Ensure we found the right match
+		// Ensure we found the right match.
 		$this->assertContains( 'wpCompressionTest', $this->_last_response );
 	}
 
@@ -60,21 +60,21 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 			$this->fail( 'gzdeflate function not available' );
 		}
 
-		// Become an administrator
+		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
-		// Set up a default request
+		// Set up a default request.
 		$_GET['test']                    = 2;
 		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'deflate';
 
-		// Make the request
+		// Make the request.
 		try {
 			$this->_handleAjax( 'wp-compression-test' );
 		} catch ( WPAjaxDieContinueException $e ) {
 			unset( $e );
 		}
 
-		// Ensure we found the right match
+		// Ensure we found the right match.
 		$this->assertContains( 'wpCompressionTest', gzinflate( $this->_last_response ) );
 	}
 
@@ -87,21 +87,21 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 			$this->fail( 'gzencode function not available' );
 		}
 
-		// Become an administrator
+		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
-		// Set up a default request
+		// Set up a default request.
 		$_GET['test']                    = 2;
 		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip';
 
-		// Make the request
+		// Make the request.
 		try {
 			$this->_handleAjax( 'wp-compression-test' );
 		} catch ( WPAjaxDieContinueException $e ) {
 			unset( $e );
 		}
 
-		// Ensure we found the right match
+		// Ensure we found the right match.
 		$this->assertContains( 'wpCompressionTest', $this->_gzdecode( $this->_last_response ) );
 	}
 
@@ -110,14 +110,14 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_unknown_encoding() {
 
-		// Become an administrator
+		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
-		// Set up a default request
+		// Set up a default request.
 		$_GET['test']                    = 2;
 		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'unknown';
 
-		// Make the request
+		// Make the request.
 		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		$this->_handleAjax( 'wp-compression-test' );
 	}
@@ -127,36 +127,36 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_set_yes() {
 
-		// Become an administrator
+		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
-		// Set up a default request
+		// Set up a default request.
 		$_GET['test'] = 'yes';
 
-		// Set the option to false
+		// Set the option to false.
 		update_site_option( 'can_compress_scripts', 0 );
 
-		// Make the request
+		// Make the request.
 		try {
 			$this->_handleAjax( 'wp-compression-test' );
 		} catch ( WPAjaxDieStopException $e ) {
 			unset( $e );
 		}
 
-		// Check the site option is not changed due to lack of nonce
+		// Check the site option is not changed due to lack of nonce.
 		$this->assertEquals( 0, get_site_option( 'can_compress_scripts' ) );
 
-		// Add a nonce
+		// Add a nonce.
 		$_GET['_ajax_nonce'] = wp_create_nonce( 'update_can_compress_scripts' );
 
-		// Retry the request
+		// Retry the request.
 		try {
 			$this->_handleAjax( 'wp-compression-test' );
 		} catch ( WPAjaxDieStopException $e ) {
 			unset( $e );
 		}
 
-		// Check the site option is changed
+		// Check the site option is changed.
 		$this->assertEquals( 1, get_site_option( 'can_compress_scripts' ) );
 	}
 
@@ -165,36 +165,36 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_set_no() {
 
-		// Become an administrator
+		// Become an administrator.
 		$this->_setRole( 'administrator' );
 
-		// Set up a default request
+		// Set up a default request.
 		$_GET['test'] = 'no';
 
-		// Set the option to true
+		// Set the option to true.
 		update_site_option( 'can_compress_scripts', 1 );
 
-		// Make the request
+		// Make the request.
 		try {
 			$this->_handleAjax( 'wp-compression-test' );
 		} catch ( WPAjaxDieStopException $e ) {
 			unset( $e );
 		}
 
-		// Check the site option is not changed due to lack of nonce
+		// Check the site option is not changed due to lack of nonce.
 		$this->assertEquals( 1, get_site_option( 'can_compress_scripts' ) );
 
-		// Add a nonce
+		// Add a nonce.
 		$_GET['_ajax_nonce'] = wp_create_nonce( 'update_can_compress_scripts' );
 
-		// Retry the request
+		// Retry the request.
 		try {
 			$this->_handleAjax( 'wp-compression-test' );
 		} catch ( WPAjaxDieStopException $e ) {
 			unset( $e );
 		}
 
-		// Check the site option is changed
+		// Check the site option is changed.
 		$this->assertEquals( 0, get_site_option( 'can_compress_scripts' ) );
 	}
 
@@ -206,19 +206,19 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 	 */
 	protected function _gzdecode( $encoded_data ) {
 
-		// Save the encoded data to a temp file
+		// Save the encoded data to a temp file.
 		$file = wp_tempnam( 'gzdecode' );
 		file_put_contents( $file, $encoded_data );
 
-		// Flush it to the output buffer and delete the temp file
+		// Flush it to the output buffer and delete the temp file.
 		ob_start();
 		readgzfile( $file );
 		unlink( $file );
 
-		// Save the data stop buffering
+		// Save the data stop buffering.
 		$data = ob_get_clean();
 
-		// Done
+		// Done.
 		return $data;
 	}
 }

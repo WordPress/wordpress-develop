@@ -462,7 +462,7 @@ jQuery( window ).load( function (){
 		id: sectionId,
 		content: sectionContent,
 		priority: 100,
-		active: true // @todo This should default to true
+		active: true // @todo This should default to true.
 	};
 
 	testCustomizerModel( mockSection, sectionExpectedValues );
@@ -501,7 +501,7 @@ jQuery( window ).load( function (){
 		label: controlLabel,
 		settings: { 'default': 'new_blogname' },
 		type: controlType,
-		active: true // @todo This should default to true
+		active: true // @todo This should default to true.
 	};
 
 	mockControl = new wp.customize.Control( controlId, {
@@ -566,7 +566,7 @@ jQuery( window ).load( function (){
 		content: panelContent,
 		title: panelTitle,
 		description: panelDescription,
-		active: true, // @todo This should default to true
+		active: true, // @todo This should default to true.
 		type: 'default'
 	};
 
@@ -743,7 +743,7 @@ jQuery( window ).load( function (){
 		day( '3' );
 		assert.ok( ! control.invalidDate );
 
-		// Test control.parseDateTime();
+		// Test control.parseDateTime().
 		control.params.twelveHourFormat = false;
 		dateTimeArray = control.parseDateTime( datetime );
 		assert.deepEqual( dateTimeArray, {
@@ -786,7 +786,7 @@ jQuery( window ).load( function (){
 		assert.equal( timeString, '2010-12-18' );
 		control.params.includeTime = true;
 
-		// Test control.updateDaysForMonth();.
+		// Test control.updateDaysForMonth().
 		year( 2017 );
 		month( 2 );
 		day( 28 );
@@ -810,7 +810,7 @@ jQuery( window ).load( function (){
 		control.toggleFutureDateNotification( false );
 		assert.notOk( control.notifications.has( 'not_future_date' ) );
 
-		// Test control.populateDateInputs();
+		// Test control.populateDateInputs().
 		control.setting._value = '2000-12-30 12:34:56';
 		control.populateDateInputs();
 		assert.equal( '2000', control.inputElements.year.get() );
@@ -820,7 +820,7 @@ jQuery( window ).load( function (){
 		assert.equal( '34', control.inputElements.minute.get() );
 		assert.equal( 'pm', control.inputElements.meridian.get() );
 
-		// Test control.validateInputs();
+		// Test control.validateInputs().
 		hour( 33 );
 		assert.ok( control.validateInputs() );
 		hour( 10 );
@@ -830,7 +830,7 @@ jQuery( window ).load( function (){
 		minute( 20 );
 		assert.notOk( control.validateInputs() );
 
-		// Test control.populateSetting();
+		// Test control.populateSetting().
 		day( 2 );
 		month( 11 );
 		year( 2018 );
@@ -848,7 +848,7 @@ jQuery( window ).load( function (){
 		control.populateSetting();
 		assert.equal( control.setting(), '2018-11-02 17:20:00' );
 
-		// Test control.isFutureDate();
+		// Test control.isFutureDate().
 		day( 2 );
 		month( 11 );
 		year( 2318 );
@@ -860,7 +860,7 @@ jQuery( window ).load( function (){
 		year( 2016 );
 		assert.notOk( control.isFutureDate() );
 
-		// Tear Down.
+		// Tear down.
 		wp.customize.control.remove( controlId );
 	});
 
@@ -895,7 +895,7 @@ jQuery( window ).load( function (){
 		assert.notOk( section.container.hasClass( 'open' ) ); // Ensure it does not affect other sections state.
 		assert.ok( defaultSection.expanded() );
 
-		// Tear down
+		// Tear down.
 		wp.customize.section.remove( sectionId );
 	});
 

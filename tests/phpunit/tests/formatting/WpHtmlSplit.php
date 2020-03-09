@@ -47,7 +47,7 @@ class Tests_Formatting_WpHtmlSplit extends WP_UnitTestCase {
 	}
 
 	function data_whole_posts() {
-		require_once( DIR_TESTDATA . '/formatting/whole-posts.php' );
+		require_once DIR_TESTDATA . '/formatting/whole-posts.php';
 		return data_whole_posts();
 	}
 }

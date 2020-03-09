@@ -129,7 +129,7 @@ class WP_Http_Curl {
 
 		curl_setopt( $handle, CURLOPT_URL, $url );
 		curl_setopt( $handle, CURLOPT_RETURNTRANSFER, true );
-		curl_setopt( $handle, CURLOPT_SSL_VERIFYHOST, ( $ssl_verify === true ) ? 2 : false );
+		curl_setopt( $handle, CURLOPT_SSL_VERIFYHOST, ( true === $ssl_verify ) ? 2 : false );
 		curl_setopt( $handle, CURLOPT_SSL_VERIFYPEER, $ssl_verify );
 
 		if ( $ssl_verify ) {
@@ -209,7 +209,7 @@ class WP_Http_Curl {
 			curl_setopt( $handle, CURLOPT_HTTPHEADER, $headers );
 		}
 
-		if ( $parsed_args['httpversion'] == '1.0' ) {
+		if ( '1.0' === $parsed_args['httpversion'] ) {
 			curl_setopt( $handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0 );
 		} else {
 			curl_setopt( $handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1 );
@@ -223,9 +223,9 @@ class WP_Http_Curl {
 		 *
 		 * @since 2.8.0
 		 *
-		 * @param resource $handle  The cURL handle returned by curl_init() (passed by reference).
-		 * @param array    $parsed_args       The HTTP request arguments.
-		 * @param string   $url     The request URL.
+		 * @param resource $handle      The cURL handle returned by curl_init() (passed by reference).
+		 * @param array    $parsed_args The HTTP request arguments.
+		 * @param string   $url         The request URL.
 		 */
 		do_action_ref_array( 'http_api_curl', array( &$handle, $parsed_args, $url ) );
 

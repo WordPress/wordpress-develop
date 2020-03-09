@@ -101,10 +101,10 @@ class Tests_Mail extends WP_UnitTestCase {
 
 		wp_mail( $to, $subject, $message, $headers );
 
-		// WordPress 3.2 and later correctly split the address into the two parts and send them seperately to PHPMailer
+		// WordPress 3.2 and later correctly split the address into the two parts and send them separately to PHPMailer.
 		// Earlier versions of PHPMailer were not touchy about the formatting of these arguments.
 
-		//retrieve the mailer instance
+		// Retrieve the mailer instance.
 		$mailer = tests_retrieve_phpmailer_instance();
 		$this->assertEquals( 'address@tld.com', $mailer->get_recipient( 'to' )->address );
 		$this->assertEquals( 'Name', $mailer->get_recipient( 'to' )->name );
@@ -125,7 +125,7 @@ class Tests_Mail extends WP_UnitTestCase {
 
 		wp_mail( $to, $subject, $message );
 
-		// WordPress 3.2 and later correctly split the address into the two parts and send them seperately to PHPMailer
+		// WordPress 3.2 and later correctly split the address into the two parts and send them separately to PHPMailer.
 		// Earlier versions of PHPMailer were not touchy about the formatting of these arguments.
 		$mailer = tests_retrieve_phpmailer_instance();
 		$this->assertEquals( 'address@tld.com', $mailer->get_recipient( 'to' )->address );
@@ -167,13 +167,13 @@ class Tests_Mail extends WP_UnitTestCase {
 	 * @ticket 23642
 	 */
 	function test_wp_mail_return_value() {
-		// No errors
+		// No errors.
 		$this->assertTrue( wp_mail( 'valid@address.com', 'subject', 'body' ) );
 
-		// Non-fatal errors
+		// Non-fatal errors.
 		$this->assertTrue( wp_mail( 'valid@address.com', 'subject', 'body', "Cc: invalid-address\nBcc: @invalid.address", ABSPATH . '/non-existant-file.html' ) );
 
-		// Fatal errors
+		// Fatal errors.
 		$this->assertFalse( wp_mail( 'invalid.address', 'subject', 'body', '', array() ) );
 	}
 
@@ -400,7 +400,7 @@ class Tests_Mail extends WP_UnitTestCase {
 			'phpmailer_exception_code' => 2,
 		);
 
-		//Retrieve the arguments passed to the 'wp_mail_failed' hook callbacks
+		// Retrieve the arguments passed to the 'wp_mail_failed' hook callbacks.
 		$all_args  = $ma->get_args();
 		$call_args = array_pop( $all_args );
 

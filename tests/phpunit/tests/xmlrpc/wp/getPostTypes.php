@@ -35,7 +35,7 @@ class Tests_XMLRPC_wp_getPostTypes extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $result );
 		$this->assertInternalType( 'array', $result );
 
-		// verify that pages is in the result, and post is not
+		// Verify that page is in the result, and post is not.
 		$result_names = wp_list_pluck( $result, 'name' );
 		$this->assertContains( 'page', $result_names );
 		$this->assertNotContains( 'post', $result_names );

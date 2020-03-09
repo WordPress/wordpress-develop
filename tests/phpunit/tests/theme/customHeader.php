@@ -22,7 +22,7 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 	function setUp() {
 		parent::setUp();
 
-		require_once( ABSPATH . WPINC . '/class-wp-customize-manager.php' );
+		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
 		$this->customize_manager = $GLOBALS['wp_customize'];
 

@@ -7,7 +7,7 @@
  */
 
 /** WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'switch_themes' ) && ! current_user_can( 'edit_theme_options' ) ) {
 	wp_die(
@@ -87,7 +87,7 @@ if ( current_user_can( 'switch_themes' ) && isset( $_GET['action'] ) ) {
 $title       = __( 'Manage Themes' );
 $parent_file = 'themes.php';
 
-// Help tab: Overview
+// Help tab: Overview.
 if ( current_user_can( 'switch_themes' ) ) {
 	$help_overview = '<p>' . __( 'This screen is used for managing your installed themes. Aside from the default theme(s) included with your WordPress installation, themes are designed and developed by third parties.' ) . '</p>' .
 		'<p>' . __( 'From this screen you can:' ) . '</p>' .
@@ -104,9 +104,9 @@ if ( current_user_can( 'switch_themes' ) ) {
 			'content' => $help_overview,
 		)
 	);
-} // switch_themes
+} // End if 'switch_themes'.
 
-// Help tab: Adding Themes
+// Help tab: Adding Themes.
 if ( current_user_can( 'install_themes' ) ) {
 	if ( is_multisite() ) {
 		$help_install = '<p>' . __( 'Installing themes on Multisite can only be done from the Network Admin section.' ) . '</p>';
@@ -125,9 +125,9 @@ if ( current_user_can( 'install_themes' ) ) {
 			'content' => $help_install,
 		)
 	);
-} // install_themes
+} // End if 'install_themes'.
 
-// Help tab: Previewing and Customizing
+// Help tab: Previewing and Customizing.
 if ( current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) {
 	$help_customize =
 		'<p>' . __( 'Tap or hover on any theme then click the Live Preview button to see a live preview of that theme and change theme options in a separate, full-screen view. You can also find a Live Preview button at the bottom of the theme details screen. Any installed theme can be previewed and customized in this way.' ) . '</p>' .
@@ -141,7 +141,7 @@ if ( current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' )
 			'content' => $help_customize,
 		)
 	);
-} // edit_theme_options && customize
+} // End if 'edit_theme_options' && 'customize'.
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
@@ -170,7 +170,7 @@ wp_localize_script(
 		'l10n'     => array(
 			'addNew'            => __( 'Add New Theme' ),
 			'search'            => __( 'Search Installed Themes' ),
-			'searchPlaceholder' => __( 'Search installed themes...' ), // placeholder (no ellipsis)
+			'searchPlaceholder' => __( 'Search installed themes...' ), // Placeholder (no ellipsis).
 			/* translators: %d: Number of themes. */
 			'themesFound'       => __( 'Number of Themes found: %d' ),
 			'noThemesFound'     => __( 'No themes found. Try a different search.' ),
@@ -182,7 +182,7 @@ add_thickbox();
 wp_enqueue_script( 'theme' );
 wp_enqueue_script( 'updates' );
 
-require_once( ABSPATH . 'wp-admin/admin-header.php' );
+require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 
 <div class="wrap">
@@ -191,7 +191,7 @@ require_once( ABSPATH . 'wp-admin/admin-header.php' );
 	</h1>
 
 	<?php if ( ! is_multisite() && current_user_can( 'install_themes' ) ) : ?>
-		<a href="<?php echo admin_url( 'theme-install.php' ); ?>" class="hide-if-no-js page-title-action"><?php echo esc_html_x( 'Add New', 'Add new theme' ); ?></a>
+		<a href="<?php echo admin_url( 'theme-install.php' ); ?>" class="hide-if-no-js page-title-action"><?php echo esc_html_x( 'Add New', 'theme' ); ?></a>
 	<?php endif; ?>
 
 	<form class="search-form"></form>
@@ -233,7 +233,7 @@ if ( ! validate_current_theme() || isset( $_GET['broken'] ) ) {
 $ct = wp_get_theme();
 
 if ( $ct->errors() && ( ! is_multisite() || current_user_can( 'manage_network_themes' ) ) ) {
-	echo '<div class="error"><p>' . __( 'ERROR:' ) . ' ' . $ct->errors()->get_error_message() . '</p></div>';
+	echo '<div class="error"><p>' . __( 'Error:' ) . ' ' . $ct->errors()->get_error_message() . '</p></div>';
 }
 
 /*
@@ -250,7 +250,7 @@ if ( is_array( $submenu ) && isset( $submenu['themes.php'] ) ) {
 		if ( 'themes.php' == $item[2] || 'theme-editor.php' == $item[2] || 0 === strpos( $item[2], 'customize.php' ) ) {
 			continue;
 		}
-		// 0 = name, 1 = capability, 2 = file
+		// 0 = name, 1 = capability, 2 = file.
 		if ( ( strcmp( $self, $item[2] ) == 0 && empty( $parent_file ) ) || ( $parent_file && ( $item[2] == $parent_file ) ) ) {
 			$class = ' current';
 		}
@@ -342,10 +342,7 @@ foreach ( $themes as $theme ) :
 	<div class="theme-id-container">
 		<?php if ( $theme['active'] ) { ?>
 			<h2 class="theme-name" id="<?php echo $aria_name; ?>">
-				<?php
-				/* translators: %s: Theme name. */
-				printf( __( '<span>Active:</span> %s' ), $theme['name'] );
-				?>
+				<span><?php _ex( 'Active:', 'theme' ); ?></span> <?php echo $theme['name']; ?>
 			</h2>
 		<?php } else { ?>
 			<h2 class="theme-name" id="<?php echo $aria_name; ?>"><?php echo $theme['name']; ?></h2>
@@ -509,10 +506,7 @@ if ( ! is_multisite() && current_user_can( 'edit_themes' ) && $broken_themes ) {
 	<div class="theme-id-container">
 		<# if ( data.active ) { #>
 			<h2 class="theme-name" id="{{ data.id }}-name">
-				<?php
-				/* translators: %s: Theme name. */
-				printf( __( '<span>Active:</span> %s' ), '{{{ data.name }}}' );
-				?>
+				<span><?php _ex( 'Active:', 'theme' ); ?></span> {{{ data.name }}}
 			</h2>
 		<# } else { #>
 			<h2 class="theme-name" id="{{ data.id }}-name">{{{ data.name }}}</h2>
@@ -628,4 +622,4 @@ wp_localize_script(
 	)
 );
 
-require( ABSPATH . 'wp-admin/admin-footer.php' );
+require_once ABSPATH . 'wp-admin/admin-footer.php';

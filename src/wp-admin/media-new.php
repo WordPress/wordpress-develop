@@ -10,7 +10,7 @@
  */
 
 /** Load WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'upload_files' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to upload files.' ) );
@@ -29,7 +29,7 @@ if ( isset( $_REQUEST['post_id'] ) ) {
 if ( $_POST ) {
 	if ( isset( $_POST['html-upload'] ) && ! empty( $_FILES ) ) {
 		check_admin_referer( 'media-form' );
-		// Upload File button was clicked
+		// Upload File button was clicked.
 		$upload_id = media_handle_upload( 'async-upload', $post_id );
 		if ( is_wp_error( $upload_id ) ) {
 			wp_die( $upload_id );
@@ -61,7 +61,7 @@ get_current_screen()->set_help_sidebar(
 	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
-require_once( ABSPATH . 'wp-admin/admin-header.php' );
+require_once ABSPATH . 'wp-admin/admin-header.php';
 
 $form_class = 'media-upload-form type-form validate';
 
@@ -86,4 +86,4 @@ if ( get_user_setting( 'uploader' ) || isset( $_GET['browser-uploader'] ) ) {
 </div>
 
 <?php
-include( ABSPATH . 'wp-admin/admin-footer.php' );
+require_once ABSPATH . 'wp-admin/admin-footer.php';

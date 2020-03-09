@@ -29,7 +29,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 	function test__wp_translate_postdata_cap_checks_contributor() {
 		wp_set_current_user( self::$contributor_id );
 
-		// Create New Draft Post
+		// Create new draft post.
 		$_post_data                = array();
 		$_post_data['post_author'] = self::$contributor_id;
 		$_post_data['post_type']   = 'post';
@@ -40,7 +40,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$this->assertEquals( $_post_data['post_author'], $_results['post_author'] );
 		$this->assertEquals( 'draft', $_results['post_status'] );
 
-		// Submit Post for Approval
+		// Submit post for approval.
 		$_post_data                = array();
 		$_post_data['post_author'] = self::$contributor_id;
 		$_post_data['post_type']   = 'post';
@@ -51,7 +51,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$this->assertEquals( $_post_data['post_author'], $_results['post_author'] );
 		$this->assertEquals( 'pending', $_results['post_status'] );
 
-		// Create New Draft Post for another user
+		// Create new draft post for another user.
 		$_post_data                = array();
 		$_post_data['post_author'] = self::$editor_id;
 		$_post_data['post_type']   = 'post';
@@ -62,7 +62,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$this->assertEquals( 'edit_others_posts', $_results->get_error_code() );
 		$this->assertEquals( 'Sorry, you are not allowed to create posts as this user.', $_results->get_error_message() );
 
-		// Edit Draft Post for another user
+		// Edit draft post for another user.
 		$_post_data                = array();
 		$_post_data['post_ID']     = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
 		$_post_data['post_author'] = self::$editor_id;
@@ -79,7 +79,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 	function test__wp_translate_postdata_cap_checks_editor() {
 		wp_set_current_user( self::$editor_id );
 
-		// Create New Draft Post
+		// Create new draft post.
 		$_post_data                = array();
 		$_post_data['post_author'] = self::$editor_id;
 		$_post_data['post_type']   = 'post';
@@ -90,7 +90,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$this->assertEquals( $_post_data['post_author'], $_results['post_author'] );
 		$this->assertEquals( 'draft', $_results['post_status'] );
 
-		// Publish Post
+		// Publish post.
 		$_post_data                = array();
 		$_post_data['post_author'] = self::$editor_id;
 		$_post_data['post_type']   = 'post';
@@ -101,7 +101,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$this->assertEquals( $_post_data['post_author'], $_results['post_author'] );
 		$this->assertEquals( 'publish', $_results['post_status'] );
 
-		// Create New Draft Post for another user
+		// Create new draft post for another user.
 		$_post_data                = array();
 		$_post_data['post_author'] = self::$contributor_id;
 		$_post_data['post_type']   = 'post';
@@ -112,7 +112,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$this->assertEquals( $_post_data['post_author'], $_results['post_author'] );
 		$this->assertEquals( 'draft', $_results['post_status'] );
 
-		// Edit Draft Post for another user
+		// Edit draft post for another user.
 		$_post_data                = array();
 		$_post_data['post_ID']     = self::factory()->post->create( array( 'post_author' => self::$contributor_id ) );
 		$_post_data['post_author'] = self::$contributor_id;
@@ -453,7 +453,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 
 		wp_set_current_user( self::$admin_id );
 
-		// Published posts should use published permalink
+		// Published posts should use published permalink.
 		$p = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
@@ -467,7 +467,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$this->assertContains( 'href="' . get_option( 'home' ) . '/' . $post->post_name . '/"', $found, $message );
 		$this->assertContains( '>new_slug-صورة<', $found, $message );
 
-		// Scheduled posts should use published permalink
+		// Scheduled posts should use published permalink.
 		$future_date = gmdate( 'Y-m-d H:i:s', time() + 100 );
 		$p           = self::factory()->post->create(
 			array(
@@ -483,7 +483,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$this->assertContains( 'href="' . get_option( 'home' ) . '/' . $post->post_name . '/"', $found, $message );
 		$this->assertContains( '>new_slug-صورة<', $found, $message );
 
-		// Draft posts should use preview link
+		// Draft posts should use preview link.
 		$p = self::factory()->post->create(
 			array(
 				'post_status' => 'draft',

@@ -5,8 +5,8 @@ class WP_Filesystem_MockFS extends WP_Filesystem_Base {
 	// Holds a array of objects which contain an array of objects, etc.
 	private $fs = null;
 
-	// Holds a array of /path/to/file.php and /path/to/dir/ map to an object in $fs above
-	// a fast more efficient way of determining if a path exists, and access to that node
+	// Holds a array of /path/to/file.php and /path/to/dir/ map to an object in $fs above.
+	// A fast, more efficient way of determining if a path exists, and access to that node.
 	private $fs_map = array();
 
 	public $verbose = false; // Enable to debug WP_Filesystem_Base::find_folder() / etc.
@@ -26,14 +26,15 @@ class WP_Filesystem_MockFS extends WP_Filesystem_Base {
 		}
 		$folder = $this->find_folder( $path );
 
-		// Perhaps the FTP folder is rooted at the WordPress installation, Check for wp-includes folder in root, Could have some false positives, but rare.
+		// Perhaps the FTP folder is rooted at the WordPress installation.
+		// Check for wp-includes folder in root, could have some false positives, but rare.
 		if ( ! $folder && $this->is_dir( '/wp-includes' ) ) {
 			$folder = '/';
 		}
 		return $folder;
 	}
 
-	// Mock FS specific functions:
+	// Mock FS-specific functions:
 
 	/**
 	 * Sets initial filesystem environment and/or clears the current environment.
@@ -44,7 +45,7 @@ class WP_Filesystem_MockFS extends WP_Filesystem_Base {
 		$this->fs_map = array(
 			'/' => $this->fs,
 		);
-		$this->cache  = array(); // Used by find_folder() and friends
+		$this->cache  = array(); // Used by find_folder() and friends.
 		$this->cwd    = isset( $this->fs_map[ $home_dir ] ) ? $this->fs_map[ $home_dir ] : '/';
 		$this->setfs( $paths );
 	}
@@ -60,15 +61,15 @@ class WP_Filesystem_MockFS extends WP_Filesystem_Base {
 		$paths = array_filter( array_map( 'trim', $paths ) );
 
 		foreach ( $paths as $path ) {
-			// Allow for comments
+			// Allow for comments.
 			if ( '#' === $path[0] ) {
 				continue;
 			}
 
-			// Directories
+			// Directories.
 			if ( '/' === $path[ strlen( $path ) - 1 ] ) {
 				$this->mkdir( $path );
-			} else { // Files (with dummy content for now)
+			} else { // Files (with dummy content for now).
 				$this->put_contents( $path, 'This is a test file' );
 			}
 		}
@@ -209,8 +210,8 @@ class WP_Filesystem_MockFS extends WP_Filesystem_Base {
 }
 
 class MockFS_Node {
-	public $name; // The "name" of the entry, does not include a slash (exception, root)
-	public $type; // The type of the entry 'f' for file, 'd' for Directory
+	public $name; // The "name" of the entry, does not include a slash (exception, root).
+	public $type; // The type of the entry 'f' for file, 'd' for directory.
 	public $path; // The full path to the entry.
 
 	function __construct( $path ) {
@@ -229,12 +230,12 @@ class MockFS_Node {
 
 class MockFS_Directory_Node extends MockFS_Node {
 	public $type     = 'd';
-	public $children = array(); // The child nodes of this directory
+	public $children = array(); // The child nodes of this directory.
 }
 
 class MockFS_File_Node extends MockFS_Node {
 	public $type     = 'f';
-	public $contents = ''; // The contents of the file
+	public $contents = ''; // The contents of the file.
 
 	function __construct( $path, $contents = '' ) {
 		parent::__construct( $path );

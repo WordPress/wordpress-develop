@@ -87,12 +87,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	public static function disposition_provider() {
 		return array(
-			// Types
+			// Types.
 			array( 'attachment; filename="foo.jpg"', 'foo.jpg' ),
 			array( 'inline; filename="foo.jpg"', 'foo.jpg' ),
 			array( 'form-data; filename="foo.jpg"', 'foo.jpg' ),
 
-			// Formatting
+			// Formatting.
 			array( 'attachment; filename="foo.jpg"', 'foo.jpg' ),
 			array( 'attachment; filename=foo.jpg', 'foo.jpg' ),
 			array( 'attachment;filename="foo.jpg"', 'foo.jpg' ),
@@ -103,13 +103,13 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			array( "attachment;\tfilename\t=\tfoo.jpg", 'foo.jpg' ),
 			array( 'attachment; filename = my foo picture.jpg', 'my foo picture.jpg' ),
 
-			// Extensions
+			// Extensions.
 			array( 'form-data; name="myfile"; filename="foo.jpg"', 'foo.jpg' ),
 			array( 'form-data; name="myfile"; filename="foo.jpg"; something="else"', 'foo.jpg' ),
 			array( 'form-data; name=myfile; filename=foo.jpg; something=else', 'foo.jpg' ),
 			array( 'form-data; name=myfile; filename=my foo.jpg; something=else', 'my foo.jpg' ),
 
-			// Invalid
+			// Invalid.
 			array( 'filename="foo.jpg"', null ),
 			array( 'filename-foo.jpg', null ),
 			array( 'foo.jpg', null ),
@@ -127,13 +127,13 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function test_context_param() {
-		// Collection
+		// Collection.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/media' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
-		// Single
+		// Single.
 		$attachment_id = $this->factory->attachment->create_object(
 			$this->test_file,
 			0,
@@ -329,11 +329,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( $id1, $data[0]['id'] );
-		// media_type=video
+		// 'media_type' => 'video'.
 		$request->set_param( 'media_type', 'video' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( 0, $response->get_data() );
-		// media_type=image
+		// 'media_type' => 'image'.
 		$request->set_param( 'media_type', 'image' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
@@ -352,11 +352,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( $id1, $data[0]['id'] );
-		// mime_type=image/png
+		// 'mime_type' => 'image/png'.
 		$request->set_param( 'mime_type', 'image/png' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( 0, $response->get_data() );
-		// mime_type=image/jpeg
+		// 'mime_type' => 'image/jpeg'.
 		$request->set_param( 'mime_type', 'image/jpeg' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
@@ -381,25 +381,25 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				'post_excerpt'   => 'A sample caption',
 			)
 		);
-		// all attachments
+		// All attachments.
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 2, count( $response->get_data() ) );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
-		// attachments without a parent
+		// Attachments without a parent.
 		$request->set_param( 'parent', 0 );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 1, count( $data ) );
 		$this->assertEquals( $attachment_id2, $data[0]['id'] );
-		// attachments with parent=post_id
+		// Attachments with parent=post_id.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		$request->set_param( 'parent', $post_id );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 1, count( $data ) );
 		$this->assertEquals( $attachment_id, $data[0]['id'] );
-		// attachments with invalid parent
+		// Attachments with invalid parent.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		$request->set_param( 'parent', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 		$response = rest_get_server()->dispatch( $request );
@@ -427,7 +427,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function test_get_items_private_status() {
-		// Logged out users can't make the request
+		// Logged out users can't make the request.
 		wp_set_current_user( 0 );
 		$attachment_id1 = $this->factory->attachment->create_object(
 			$this->test_file,
@@ -442,7 +442,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_param( 'status', 'private' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
-		// Properly authorized users can make the request
+		// Properly authorized users can make the request.
 		wp_set_current_user( self::$editor_id );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
@@ -451,7 +451,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function test_get_items_multiple_statuses() {
-		// Logged out users can't make the request
+		// Logged out users can't make the request.
 		wp_set_current_user( 0 );
 		$attachment_id1 = $this->factory->attachment->create_object(
 			$this->test_file,
@@ -475,7 +475,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_param( 'status', array( 'private', 'trash' ) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
-		// Properly authorized users can make the request
+		// Properly authorized users can make the request.
 		wp_set_current_user( self::$editor_id );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
@@ -968,7 +968,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function verify_attachment_roundtrip( $input = array(), $expected_output = array() ) {
-		// Create the post
+		// Create the post.
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_header( 'Content-Type', 'image/jpeg' );
 		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
@@ -981,8 +981,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertEquals( 201, $response->get_status() );
 		$actual_output = $response->get_data();
 
-		// Remove <p class="attachment"> from rendered description
-		// see https://core.trac.wordpress.org/ticket/38679
+		// Remove <p class="attachment"> from rendered description.
+		// See https://core.trac.wordpress.org/ticket/38679
 		$content = $actual_output['description']['rendered'];
 		$content = explode( "\n", trim( $content ) );
 		if ( preg_match( '/^<p class="attachment">/', $content[0] ) ) {
@@ -990,7 +990,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			$actual_output['description']['rendered'] = $content;
 		}
 
-		// Compare expected API output to actual API output
+		// Compare expected API output to actual API output.
 		$this->assertEquals( $expected_output['title']['raw'], $actual_output['title']['raw'] );
 		$this->assertEquals( $expected_output['title']['rendered'], trim( $actual_output['title']['rendered'] ) );
 		$this->assertEquals( $expected_output['description']['raw'], $actual_output['description']['raw'] );
@@ -998,13 +998,13 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertEquals( $expected_output['caption']['raw'], $actual_output['caption']['raw'] );
 		$this->assertEquals( $expected_output['caption']['rendered'], trim( $actual_output['caption']['rendered'] ) );
 
-		// Compare expected API output to WP internal values
+		// Compare expected API output to WP internal values.
 		$post = get_post( $actual_output['id'] );
 		$this->assertEquals( $expected_output['title']['raw'], $post->post_title );
 		$this->assertEquals( $expected_output['description']['raw'], $post->post_content );
 		$this->assertEquals( $expected_output['caption']['raw'], $post->post_excerpt );
 
-		// Update the post
+		// Update the post.
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/media/%d', $actual_output['id'] ) );
 		foreach ( $input as $name => $value ) {
 			$request->set_param( $name, $value );
@@ -1013,8 +1013,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertEquals( 200, $response->get_status() );
 		$actual_output = $response->get_data();
 
-		// Remove <p class="attachment"> from rendered description
-		// see https://core.trac.wordpress.org/ticket/38679
+		// Remove <p class="attachment"> from rendered description.
+		// See https://core.trac.wordpress.org/ticket/38679
 		$content = $actual_output['description']['rendered'];
 		$content = explode( "\n", trim( $content ) );
 		if ( preg_match( '/^<p class="attachment">/', $content[0] ) ) {
@@ -1022,7 +1022,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			$actual_output['description']['rendered'] = $content;
 		}
 
-		// Compare expected API output to actual API output
+		// Compare expected API output to actual API output.
 		$this->assertEquals( $expected_output['title']['raw'], $actual_output['title']['raw'] );
 		$this->assertEquals( $expected_output['title']['rendered'], trim( $actual_output['title']['rendered'] ) );
 		$this->assertEquals( $expected_output['description']['raw'], $actual_output['description']['raw'] );
@@ -1030,7 +1030,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertEquals( $expected_output['caption']['raw'], $actual_output['caption']['raw'] );
 		$this->assertEquals( $expected_output['caption']['rendered'], trim( $actual_output['caption']['rendered'] ) );
 
-		// Compare expected API output to WP internal values
+		// Compare expected API output to WP internal values.
 		$post = get_post( $actual_output['id'] );
 		$this->assertEquals( $expected_output['title']['raw'], $post->post_title );
 		$this->assertEquals( $expected_output['description']['raw'], $post->post_content );
@@ -1247,7 +1247,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			)
 		);
 
-		// Attempt trashing
+		// Attempt trashing.
 		$request  = new WP_REST_Request( 'DELETE', '/wp/v2/media/' . $attachment_id );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_trash_not_supported', $response, 501 );
@@ -1256,7 +1256,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_trash_not_supported', $response, 501 );
 
-		// Ensure the post still exists
+		// Ensure the post still exists.
 		$post = get_post( $attachment_id );
 		$this->assertNotEmpty( $post );
 	}
@@ -1451,7 +1451,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function test_search_item_by_filename() {
-		$id  = $this->factory->attachment->create_object(
+		$id1 = $this->factory->attachment->create_object(
 			$this->test_file,
 			0,
 			array(

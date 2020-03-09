@@ -7,7 +7,7 @@
  */
 
 /** WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 if ( ! $typenow ) {
 	wp_die( __( 'Invalid post type.' ) );
@@ -47,7 +47,7 @@ if ( ! current_user_can( $post_type_object->cap->edit_posts ) ) {
 $wp_list_table = _get_list_table( 'WP_Posts_List_Table' );
 $pagenum       = $wp_list_table->get_pagenum();
 
-// Back-compat for viewing comments of an entry
+// Back-compat for viewing comments of an entry.
 foreach ( array( 'p', 'attachment_id', 'page_id' ) as $_redirect ) {
 	if ( ! empty( $_REQUEST[ $_redirect ] ) ) {
 		wp_redirect( admin_url( 'edit-comments.php?p=' . absint( $_REQUEST[ $_redirect ] ) ) );
@@ -182,8 +182,24 @@ if ( $doaction ) {
 			}
 			break;
 		default:
-			/** This action is documented in wp-admin/edit-comments.php */
-			$sendback = apply_filters( 'handle_bulk_actions-' . get_current_screen()->id, $sendback, $doaction, $post_ids ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+			$screen = get_current_screen()->id;
+
+			/**
+			 * Fires when a custom bulk action should be handled.
+			 *
+			 * The redirect link should be modified with success or failure feedback
+			 * from the action to be used to display feedback to the user.
+			 *
+			 * The dynamic portion of the hook name, `$screen`, refers to the current screen ID.
+			 *
+			 * @since 4.7.0
+			 *
+			 * @param string $sendback The redirect URL.
+			 * @param string $doaction The action being taken.
+			 * @param array  $items    The items to take the action on. Accepts an array of IDs of posts,
+			 *                         comments, terms, links, plugins, attachments, or users.
+			 */
+			$sendback = apply_filters( "handle_bulk_actions-{$screen}", $sendback, $doaction, $post_ids ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 			break;
 	}
 
@@ -367,7 +383,7 @@ $bulk_messages['wp_block'] = array(
 $bulk_messages = apply_filters( 'bulk_post_updated_messages', $bulk_messages, $bulk_counts );
 $bulk_counts   = array_filter( $bulk_counts );
 
-require_once( ABSPATH . 'wp-admin/admin-header.php' );
+require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 <div class="wrap">
 <h1 class="wp-heading-inline">
@@ -445,4 +461,4 @@ if ( $wp_list_table->has_items() ) {
 </div>
 
 <?php
-include( ABSPATH . 'wp-admin/admin-footer.php' );
+require_once ABSPATH . 'wp-admin/admin-footer.php';

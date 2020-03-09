@@ -70,7 +70,7 @@ abstract class WP_REST_Meta_Fields {
 	 *
 	 * @param int             $object_id Object ID to fetch meta for.
 	 * @param WP_REST_Request $request   Full details about the request.
-	 * @return WP_Error|object Object containing the meta values by name, otherwise WP_Error object.
+	 * @return object|WP_Error Object containing the meta values by name, otherwise WP_Error object.
 	 */
 	public function get_value( $object_id, $request ) {
 		$fields   = $this->get_registered_fields();
@@ -79,15 +79,18 @@ abstract class WP_REST_Meta_Fields {
 		foreach ( $fields as $meta_key => $args ) {
 			$name       = $args['name'];
 			$all_values = get_metadata( $this->get_meta_type(), $object_id, $meta_key, false );
+
 			if ( $args['single'] ) {
 				if ( empty( $all_values ) ) {
 					$value = $args['schema']['default'];
 				} else {
 					$value = $all_values[0];
 				}
+
 				$value = $this->prepare_value_for_response( $value, $request, $args );
 			} else {
 				$value = array();
+
 				foreach ( $all_values as $row ) {
 					$value[] = $this->prepare_value_for_response( $row, $request, $args );
 				}
@@ -126,12 +129,13 @@ abstract class WP_REST_Meta_Fields {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param array           $meta      Array of meta parsed from the request.
-	 * @param int             $object_id Object ID to fetch meta for.
-	 * @return WP_Error|null WP_Error if one occurs, null on success.
+	 * @param array $meta      Array of meta parsed from the request.
+	 * @param int   $object_id Object ID to fetch meta for.
+	 * @return null|WP_Error Null on success, WP_Error object on failure.
 	 */
 	public function update_value( $meta, $object_id ) {
 		$fields = $this->get_registered_fields();
+
 		foreach ( $fields as $meta_key => $args ) {
 			$name = $args['name'];
 			if ( ! array_key_exists( $name, $meta ) ) {
@@ -210,6 +214,7 @@ abstract class WP_REST_Meta_Fields {
 	 */
 	protected function delete_meta_value( $object_id, $meta_key, $name ) {
 		$meta_type = $this->get_meta_type();
+
 		if ( ! current_user_can( "delete_{$meta_type}_meta", $object_id, $meta_key ) ) {
 			return new WP_Error(
 				'rest_cannot_delete',
@@ -251,6 +256,7 @@ abstract class WP_REST_Meta_Fields {
 	 */
 	protected function update_multi_meta_value( $object_id, $meta_key, $name, $values ) {
 		$meta_type = $this->get_meta_type();
+
 		if ( ! current_user_can( "edit_{$meta_type}_meta", $object_id, $meta_key ) ) {
 			return new WP_Error(
 				'rest_cannot_update',
@@ -286,9 +292,11 @@ abstract class WP_REST_Meta_Fields {
 			unset( $to_add[ $add_key ] );
 		}
 
-		// `delete_metadata` removes _all_ instances of the value, so only call once. Otherwise,
-		// `delete_metadata` will return false for subsequent calls of the same value.
-		// Use serialization to produce a predictable string that can be used by array_unique.
+		/*
+		 * `delete_metadata` removes _all_ instances of the value, so only call once. Otherwise,
+		 * `delete_metadata` will return false for subsequent calls of the same value.
+		 * Use serialization to produce a predictable string that can be used by array_unique.
+		 */
 		$to_remove = array_map( 'maybe_unserialize', array_unique( array_map( 'maybe_serialize', $to_remove ) ) );
 
 		foreach ( $to_remove as $value ) {
@@ -335,6 +343,7 @@ abstract class WP_REST_Meta_Fields {
 	 */
 	protected function update_meta_value( $object_id, $meta_key, $name, $value ) {
 		$meta_type = $this->get_meta_type();
+
 		if ( ! current_user_can( "edit_{$meta_type}_meta", $object_id, $meta_key ) ) {
 			return new WP_Error(
 				'rest_cannot_update',
@@ -435,7 +444,7 @@ abstract class WP_REST_Meta_Fields {
 
 			$rest_args['schema'] = $this->default_additional_properties_to_false( $rest_args['schema'] );
 
-			if ( ! in_array( $type, array( 'string', 'boolean', 'integer', 'number', 'array', 'object' ) ) ) {
+			if ( ! in_array( $type, array( 'string', 'boolean', 'integer', 'number', 'array', 'object' ), true ) ) {
 				continue;
 			}
 
@@ -494,7 +503,6 @@ abstract class WP_REST_Meta_Fields {
 	 * @return mixed Value prepared for output. If a non-JsonSerializable object, null.
 	 */
 	public static function prepare_value( $value, $request, $args ) {
-
 		if ( $args['single'] ) {
 			$schema = $args['schema'];
 		} else {
@@ -520,7 +528,7 @@ abstract class WP_REST_Meta_Fields {
 	 * @param mixed           $value   The meta value submitted in the request.
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @param string          $param   The parameter name.
-	 * @return WP_Error|string The meta array, if valid, otherwise an error.
+	 * @return array|false The meta array, if valid, false otherwise.
 	 */
 	public function check_meta_is_array( $value, $request, $param ) {
 		if ( ! is_array( $value ) ) {

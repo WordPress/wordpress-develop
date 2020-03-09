@@ -133,18 +133,26 @@ class Tests_Option_SiteOption extends WP_UnitTestCase {
 		$this->assertEquals( $value, get_site_option( $key ) );
 	}
 
-	// #15497 - ensure update_site_option will add options with false-y values
+	/**
+	 * Ensure update_site_option() will add options with false-y values.
+	 *
+	 * @ticket 15497
+	 */
 	function test_update_adds_falsey_value() {
 		$key   = __FUNCTION__;
 		$value = 0;
 
 		delete_site_option( $key );
 		$this->assertTrue( update_site_option( $key, $value ) );
-		$this->flush_cache(); // ensure we're getting the value from the DB
+		$this->flush_cache(); // Ensure we're getting the value from the DB.
 		$this->assertEquals( $value, get_site_option( $key ) );
 	}
 
-	// #18955 - ensure get_site_option doesn't cache the default value for non-existent options
+	/**
+	 * Ensure get_site_option() doesn't cache the default value for non-existent options.
+	 *
+	 * @ticket 18955
+	 */
 	function test_get_doesnt_cache_default_value() {
 		$option  = __FUNCTION__;
 		$default = 'a default';

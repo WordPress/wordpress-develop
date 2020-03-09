@@ -32,7 +32,7 @@ function is_subdomain_install() {
  * @access private
  * @since 3.1.0
  *
- * @return array Files to include.
+ * @return string[] Array of absolute paths to files to include.
  */
 function wp_get_active_network_plugins() {
 	$active_plugins = (array) get_site_option( 'active_sitewide_plugins', array() );
@@ -45,9 +45,9 @@ function wp_get_active_network_plugins() {
 	sort( $active_plugins );
 
 	foreach ( $active_plugins as $plugin ) {
-		if ( ! validate_file( $plugin ) // $plugin must validate as file
-			&& '.php' == substr( $plugin, -4 ) // $plugin must end with '.php'
-			&& file_exists( WP_PLUGIN_DIR . '/' . $plugin ) // $plugin must exist
+		if ( ! validate_file( $plugin )                     // $plugin must validate as file.
+			&& '.php' == substr( $plugin, -4 )              // $plugin must end with '.php'.
+			&& file_exists( WP_PLUGIN_DIR . '/' . $plugin ) // $plugin must exist.
 			) {
 			$plugins[] = WP_PLUGIN_DIR . '/' . $plugin;
 		}
@@ -85,7 +85,7 @@ function ms_site_check() {
 		return true;
 	}
 
-	// Allow super admins to see blocked sites
+	// Allow super admins to see blocked sites.
 	if ( is_super_admin() ) {
 		return true;
 	}
@@ -115,7 +115,7 @@ function ms_site_check() {
 		}
 	}
 
-	if ( $blog->archived == '1' || $blog->spam == '1' ) {
+	if ( '1' == $blog->archived || '1' == $blog->spam ) {
 		if ( file_exists( WP_CONTENT_DIR . '/blog-suspended.php' ) ) {
 			return WP_CONTENT_DIR . '/blog-suspended.php';
 		} else {
@@ -203,7 +203,8 @@ function get_site_by_path( $domain, $path, $segments = null ) {
 	 *
 	 * @since 3.9.0
 	 *
-	 * @param null|false|WP_Site $site     Site value to return by path.
+	 * @param null|false|WP_Site $site     Site value to return by path. Default null
+	 *                                     to continue retrieving the site.
 	 * @param string             $domain   The requested domain.
 	 * @param string             $path     The requested path, in full.
 	 * @param int|null           $segments The suggested number of paths to consult.
@@ -220,7 +221,7 @@ function get_site_by_path( $domain, $path, $segments = null ) {
 
 	/*
 	 * @todo
-	 * caching, etc. Consider alternative optimization routes,
+	 * Caching, etc. Consider alternative optimization routes,
 	 * perhaps as an opt-in for plugins, rather than using the pre_* filter.
 	 * For example: The segments filter can expand or ignore paths.
 	 * If persistent caching is enabled, we could query the DB for a path <> '/'
@@ -304,7 +305,7 @@ function ms_load_current_site_and_network( $domain, $path, $subdomain = false ) 
 		$current_site->path   = PATH_CURRENT_SITE;
 		if ( defined( 'BLOG_ID_CURRENT_SITE' ) ) {
 			$current_site->blog_id = BLOG_ID_CURRENT_SITE;
-		} elseif ( defined( 'BLOGID_CURRENT_SITE' ) ) { // deprecated.
+		} elseif ( defined( 'BLOGID_CURRENT_SITE' ) ) { // Deprecated.
 			$current_site->blog_id = BLOGID_CURRENT_SITE;
 		}
 
@@ -418,9 +419,11 @@ function ms_load_current_site_and_network( $domain, $path, $subdomain = false ) 
 			// For a "subdomain" installation, redirect to the signup form specifically.
 			$destination .= 'wp-signup.php?new=' . str_replace( '.' . $current_site->domain, '', $domain );
 		} elseif ( $subdomain ) {
-			// For a "subdomain" installation, the NOBLOGREDIRECT constant
-			// can be used to avoid a redirect to the signup form.
-			// Using the ms_site_not_found action is preferred to the constant.
+			/*
+			 * For a "subdomain" installation, the NOBLOGREDIRECT constant
+			 * can be used to avoid a redirect to the signup form.
+			 * Using the ms_site_not_found action is preferred to the constant.
+			 */
 			if ( '%siteurl%' !== NOBLOGREDIRECT ) {
 				$destination = NOBLOGREDIRECT;
 			}

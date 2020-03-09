@@ -27,8 +27,8 @@ window._wpUpdatesSettings = {
 		'themeInstalled': 'Installed!',
 		'installFailedShort': 'Install Failed!',
 		'installFailed': 'Installation failed: %s',
-		'pluginInstallingLabel': 'Installing %s...', // No ellipsis
-		'themeInstallingLabel': 'Installing %s...', // No ellipsis
+		'pluginInstallingLabel': 'Installing %s...', // No ellipsis.
+		'themeInstallingLabel': 'Installing %s...', // No ellipsis.
 		'pluginInstalledLabel': '%s installed!',
 		'themeInstalledLabel': '%s installed!',
 		'pluginInstallFailedLabel': '%s installation failed',

@@ -1,7 +1,7 @@
 <?php
 
-require_once dirname( __FILE__ ) . '/factory.php';
-require_once dirname( __FILE__ ) . '/trac.php';
+require_once __DIR__ . '/factory.php';
+require_once __DIR__ . '/trac.php';
 
 /**
  * Defines a basic fixture to run multiple tests.
@@ -180,22 +180,21 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * Allow tests to be skipped on some automated runs
+	 * Allow tests to be skipped on some automated runs.
 	 *
 	 * For test runs on Travis for something other than trunk/master
 	 * we want to skip tests that only need to run for master.
 	 */
 	public function skipOnAutomatedBranches() {
-		// gentenv can be disabled
-		if ( ! function_exists( 'getenv' ) ) {
-			return false;
-		}
-
 		// https://docs.travis-ci.com/user/environment-variables/#Default-Environment-Variables
 		$travis_branch       = getenv( 'TRAVIS_BRANCH' );
 		$travis_pull_request = getenv( 'TRAVIS_PULL_REQUEST' );
 
-		if ( false !== $travis_pull_request && 'master' !== $travis_branch ) {
+		if ( ! $travis_branch || ! $travis_pull_request ) {
+			return;
+		}
+
+		if ( 'master' !== $travis_branch || 'false' !== $travis_pull_request ) {
 			$this->markTestSkipped( 'For automated test runs, this test is only run on trunk/master' );
 		}
 	}
@@ -220,6 +219,29 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		if ( is_multisite() ) {
 			$this->markTestSkipped( 'Test does not run on Multisite' );
 		}
+	}
+
+	/**
+	 * Allow tests to be skipped if the HTTP request times out.
+	 *
+	 * @param array|WP_Error $response HTTP response.
+	 */
+	public function skipTestOnTimeout( $response ) {
+		if ( ! is_wp_error( $response ) ) {
+			return;
+		}
+		if ( 'connect() timed out!' === $response->get_error_message() ) {
+			$this->markTestSkipped( 'HTTP timeout' );
+		}
+
+		if ( false !== strpos( $response->get_error_message(), 'timed out after' ) ) {
+			$this->markTestSkipped( 'HTTP timeout' );
+		}
+
+		if ( 0 === strpos( $response->get_error_message(), 'stream_socket_client(): unable to connect to tcp://s.w.org:80' ) ) {
+			$this->markTestSkipped( 'HTTP timeout' );
+		}
+
 	}
 
 	/**
@@ -477,7 +499,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 			$errors[] = "Unexpected incorrect usage notice for $unexpected";
 		}
 
-		// Perform an assertion, but only if there are expected or unexpected deprecated calls or wrongdoings
+		// Perform an assertion, but only if there are expected or unexpected deprecated calls or wrongdoings.
 		if ( ! empty( $this->expected_deprecated ) ||
 			! empty( $this->expected_doing_it_wrong ) ||
 			! empty( $this->caught_deprecated ) ||
@@ -586,7 +608,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		}
 		$this->assertNotInstanceOf( 'WP_Error', $actual, $message );
 	}
-
 
 	/**
 	 * Asserts that the given value is an instance of IXR_Error.
@@ -706,9 +727,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	 * @param string $url The URL for the request.
 	 */
 	public function go_to( $url ) {
-		// note: the WP and WP_Query classes like to silently fetch parameters
-		// from all over the place (globals, GET, etc), which makes it tricky
-		// to run them more than once without very carefully clearing everything
+		/*
+		 * Note: the WP and WP_Query classes like to silently fetch parameters
+		 * from all over the place (globals, GET, etc), which makes it tricky
+		 * to run them more than once without very carefully clearing everything.
+		 */
 		$_GET  = array();
 		$_POST = array();
 		foreach ( array( 'query_string', 'id', 'postdata', 'authordata', 'day', 'currentmonth', 'page', 'pages', 'multipage', 'more', 'numpages', 'pagenow', 'current_screen' ) as $v ) {
@@ -721,7 +744,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 			$req = isset( $parts['path'] ) ? $parts['path'] : '';
 			if ( isset( $parts['query'] ) ) {
 				$req .= '?' . $parts['query'];
-				// parse the url query vars into $_GET
+				// Parse the URL query vars into $_GET.
 				parse_str( $parts['query'], $_GET );
 			}
 		} else {
@@ -756,8 +779,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	 *
 	 * This is a custom extension of the PHPUnit requirements handling.
 	 *
-	 * Contains legacy code for skipping tests that are associated with an open Trac ticket. Core tests no longer
-	 * support this behaviour.
+	 * Contains legacy code for skipping tests that are associated with an open Trac ticket.
+	 * Core tests no longer support this behaviour.
 	 *
 	 * @since 3.5.0
 	 */
@@ -784,7 +807,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 			}
 		}
 
-		// Core tests no longer check against open Trac tickets, but others using WP_UnitTestCase may do so.
+		// Core tests no longer check against open Trac tickets,
+		// but others using WP_UnitTestCase may do so.
 		if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
 			return;
 		}
@@ -941,6 +965,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 			'is_posts_page',
 			'is_preview',
 			'is_robots',
+			'is_favicon',
 			'is_search',
 			'is_single',
 			'is_singular',

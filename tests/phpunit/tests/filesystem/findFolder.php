@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname( __FILE__ ) . '/base.php';
+require_once __DIR__ . '/base.php';
 
 /**
  * @group filesystem
@@ -109,7 +109,7 @@ class WP_Filesystem_find_folder_UnitTestCases extends WP_Filesystem_UnitTestCase
 		$path = $fs->abspath( '/var/www/example.com/sub/' );
 		$this->assertEquals( '/example.com/sub/', $path );
 
-		// sub.example.com - Plugins
+		// sub.example.com - Plugins.
 		$path = $fs->find_folder( '/var/www/example.com/sub/wp-content/plugins/' );
 		$this->assertEquals( '/example.com/sub/wp-content/plugins/', $path );
 	}

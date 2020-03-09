@@ -10,7 +10,7 @@ class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 	function setUp() {
 		parent::setUp();
 
-		// create a super-admin
+		// Create a super admin.
 		$this->administrator_id = $this->make_user_by_role( 'administrator' );
 		if ( is_multisite() ) {
 			grant_super_admin( $this->administrator_id );
@@ -75,7 +75,7 @@ class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getUser( array( 1, 'administrator', 'administrator', $user_id ) );
 		$this->assertNotIXRError( $result );
 
-		// check data types
+		// Check data types.
 		$this->assertInternalType( 'string', $result['user_id'] );
 		$this->assertStringMatchesFormat( '%d', $result['user_id'] );
 		$this->assertInternalType( 'string', $result['username'] );
@@ -90,7 +90,7 @@ class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 		$this->assertInternalType( 'string', $result['display_name'] );
 		$this->assertInternalType( 'array', $result['roles'] );
 
-		// check expected values
+		// Check expected values.
 		$this->assertEquals( $user_id, $result['user_id'] );
 		$this->assertEquals( $user_data['user_login'], $result['username'] );
 		$this->assertEquals( $user_data['first_name'], $result['first_name'] );

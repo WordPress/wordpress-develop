@@ -138,7 +138,7 @@ _.extend( media, /** @lends wp.media */{
 	 * Scales a set of dimensions to fit within bounding dimensions.
 	 *
 	 * @param {Object} dimensions
-	 * @returns {Object}
+	 * @return {Object}
 	 */
 	fit: function( dimensions ) {
 		var width     = dimensions.width,
@@ -147,9 +147,11 @@ _.extend( media, /** @lends wp.media */{
 			maxHeight = dimensions.maxHeight,
 			constraint;
 
-		// Compare ratios between the two values to determine which
-		// max to constrain by. If a max value doesn't exist, then the
-		// opposite side is the constraint.
+		/*
+		 * Compare ratios between the two values to determine
+		 * which max to constrain by. If a max value doesn't exist,
+		 * then the opposite side is the constraint.
+		 */
 		if ( ! _.isUndefined( maxWidth ) && ! _.isUndefined( maxHeight ) ) {
 			constraint = ( width / height > maxWidth / maxHeight ) ? 'width' : 'height';
 		} else if ( _.isUndefined( maxHeight ) ) {
@@ -184,7 +186,7 @@ _.extend( media, /** @lends wp.media */{
 	 * @param {String} string
 	 * @param {Number} [length=30]
 	 * @param {String} [replacement=&hellip;]
-	 * @returns {String} The string, unless length is greater than string.length.
+	 * @return {String} The string, unless length is greater than string.length.
 	 */
 	truncate: function( string, length, replacement ) {
 		length = length || 30;
@@ -208,7 +210,7 @@ _.extend( media, /** @lends wp.media */{
  *
  * @static
  * @param {String} id A string used to identify a model.
- * @returns {wp.media.model.Attachment}
+ * @return {wp.media.model.Attachment}
  */
 media.attachment = function( id ) {
 	return Attachment.get( id );
@@ -228,7 +230,7 @@ Attachments.all = new Attachments();
  * Shorthand for creating a new Attachments Query.
  *
  * @param {object} [props]
- * @returns {wp.media.model.Attachments}
+ * @return {wp.media.model.Attachments}
  */
 media.query = function( props ) {
 	return new Attachments( null, {
@@ -236,7 +238,7 @@ media.query = function( props ) {
 	});
 };
 
-// Clean up. Prevents mobile browsers caching
+// Clean up. Prevents mobile browsers caching.
 $(window).on('unload', function(){
 	window.wp = null;
 });

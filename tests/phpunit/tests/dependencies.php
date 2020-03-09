@@ -13,7 +13,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 		$this->assertInstanceOf( '_WP_Dependency', $dep->query( 'one' ) );
 		$this->assertInstanceOf( '_WP_Dependency', $dep->query( 'two' ) );
 
-		//Cannot reuse names
+		// Cannot reuse names.
 		$this->assertFalse( $dep->add( 'one', '' ) );
 	}
 

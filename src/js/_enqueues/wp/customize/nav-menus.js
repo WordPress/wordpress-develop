@@ -203,9 +203,11 @@
 
 			_.bindAll( this, 'close' );
 
-			// If the available menu items panel is open and the customize controls are
-			// interacted with (other than an item being deleted), then close the
-			// available menu items panel. Also close on back button click.
+			/*
+			 * If the available menu items panel is open and the customize controls
+			 * are interacted with (other than an item being deleted), then close
+			 * the available menu items panel. Also close on back button click.
+			 */
 			$( '#customize-controls, .customize-section-back' ).on( 'click keydown', function( e ) {
 				var isDeleteBtn = $( e.target ).is( '.item-delete, .item-delete *' ),
 					isAddNewBtn = $( e.target ).is( '.add-new-menu-item, .add-new-menu-item *' );
@@ -252,7 +254,7 @@
 				}
 			});
 
-			// Close the panel if the URL in the preview changes
+			// Close the panel if the URL in the preview changes.
 			api.previewer.bind( 'url', this.close );
 
 			self.delegateEvents();
@@ -387,7 +389,7 @@
 		 *
 		 * @param {Array.<object>} itemTypes List of objects containing type and key.
 		 * @param {string} deprecated Formerly the object parameter.
-		 * @returns {void}
+		 * @return {void}
 		 */
 		loadItems: function( itemTypes, deprecated ) {
 			var self = this, _itemTypes, requestItemTypes = [], params, request, itemTemplate, availableMenuItemContainers = {};
@@ -496,7 +498,7 @@
 
 		// Submit handler for keypress and click on menu item.
 		_submit: function( event ) {
-			// Only proceed with keypress if it is Enter or Spacebar
+			// Only proceed with keypress if it is Enter or Spacebar.
 			if ( 'keypress' === event.type && ( 13 !== event.which && 32 !== event.which ) ) {
 				return;
 			}
@@ -595,7 +597,7 @@
 		 * @private
 		 *
 		 * @param {jQuery.Event} event Event.
-		 * @returns {void}
+		 * @return {void}
 		 */
 		_submitNew: function( event ) {
 			var container;
@@ -621,7 +623,7 @@
 		 * @private
 		 *
 		 * @param {jQuery} container
-		 * @returns {void}
+		 * @return {void}
 		 */
 		submitNew: function( container ) {
 			var panel = this,
@@ -717,7 +719,7 @@
 			this.$search.focus();
 		},
 
-		// Closes the panel
+		// Closes the panel.
 		close: function( options ) {
 			options = options || {};
 
@@ -741,7 +743,7 @@
 				isBackTab = ( 9 === event.which && event.shiftKey ),
 				isSearchFocused = $( event.target ).is( this.$search );
 
-			// If enter pressed but nothing entered, don't do anything
+			// If enter pressed but nothing entered, don't do anything.
 			if ( isEnter && ! this.$search.val() ) {
 				return;
 			}
@@ -781,7 +783,7 @@
 				}
 				event.preventDefault();
 
-				// Hide description
+				// Hide description.
 				if ( content.not( ':hidden' ) ) {
 					content.slideUp( 'fast' );
 					help.attr( 'aria-expanded', 'false' );
@@ -802,7 +804,7 @@
 				return false;
 			} );
 
-			// Help toggle
+			// Help toggle.
 			help.on( 'click keydown', function( event ) {
 				if ( api.utils.isKeydownButNotEnterEvent( event ) ) {
 					return;
@@ -843,7 +845,7 @@
 		 * @since 4.3.0
 		 * @private
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		saveManageColumnsState: _.debounce( function() {
 			var panel = this;
@@ -877,7 +879,7 @@
 		 * @since 4.3.0
 		 * @private
 		 *
-		 * @returns {Array} Fields (columns) that are hidden.
+		 * @return {Array} Fields (columns) that are hidden.
 		 */
 		hidden: function() {
 			return $( '.hide-column-tog' ).not( ':checked' ).map( function() {
@@ -973,7 +975,7 @@
 			 * Update the active field class for the content container for a given checkbox toggle.
 			 *
 			 * @this {jQuery}
-			 * @returns {void}
+			 * @return {void}
 			 */
 			handleFieldActiveToggle = function() {
 				var className = 'field-' + $( this ).val() + '-active';
@@ -1062,7 +1064,7 @@
 				menuAutoAddControl.active.set( true );
 			}
 
-			// Add the control for deleting the menu
+			// Add the control for deleting the menu.
 			menuDeleteControlId = section.id + '[delete]';
 			menuDeleteControl = api.control( menuDeleteControlId );
 			if ( ! menuDeleteControl ) {
@@ -1126,7 +1128,7 @@
 				wpNavMenu.menuList = section.contentContainer;
 				wpNavMenu.targetList = wpNavMenu.menuList;
 
-				// Add attributes needed by wpNavMenu
+				// Add attributes needed by wpNavMenu.
 				$( '#menu-to-edit' ).removeAttr( 'id' );
 				wpNavMenu.menuList.attr( 'id', 'menu-to-edit' ).addClass( 'menu' );
 
@@ -1145,7 +1147,8 @@
 						wpNavMenu.initSortables(); // Depends on menu-to-edit ID being set above.
 						section.deferred.initSortables.resolve( wpNavMenu.menuList ); // Now MenuControl can extend the sortable.
 
-						// @todo Note that wp.customize.reflowPaneContents() is debounced, so this immediate change will show a slight flicker while priorities get updated.
+						// @todo Note that wp.customize.reflowPaneContents() is debounced,
+						// so this immediate change will show a slight flicker while priorities get updated.
 						api.control( 'nav_menu[' + String( section.params.menu_id ) + ']' ).reflowMenuItems();
 					}
 					if ( _.isFunction( completeCallback ) ) {
@@ -1166,7 +1169,7 @@
 		 *
 		 * @since 4.9.0
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		highlightNewItemButton: function() {
 			api.utils.highlightButton( this.contentContainer.find( '.add-new-menu-item' ), { delay: 2000 } );
@@ -1179,7 +1182,7 @@
 	 * @since 4.9.0
 	 *
 	 * @param {string} [name=''] Nav menu name.
-	 * @returns {wp.customize.Menus.MenuSection} Added nav menu.
+	 * @return {wp.customize.Menus.MenuSection} Added nav menu.
 	 */
 	api.Menus.createNavMenu = function createNavMenu( name ) {
 		var customizeId, placeholderId, setting;
@@ -1263,7 +1266,7 @@
 			 * Get number of non-deleted nav menus.
 			 *
 			 * @since 4.9.0
-			 * @returns {number} Count.
+			 * @return {number} Count.
 			 */
 			function getNavMenuCount() {
 				var count = 0;
@@ -1279,7 +1282,7 @@
 			 * Update visibility of notice to prompt users to create menus.
 			 *
 			 * @since 4.9.0
-			 * @returns {void}
+			 * @return {void}
 			 */
 			function updateNoticeVisibility() {
 				container.find( '.add-new-menu-notice' ).prop( 'hidden', getNavMenuCount() > 0 );
@@ -1290,7 +1293,7 @@
 			 *
 			 * @since 4.9.0
 			 * @param {wp.customize.Setting} setting - Added setting.
-			 * @returns {void}
+			 * @return {void}
 			 */
 			function addChangeEventListener( setting ) {
 				if ( navMenuSettingPattern.test( setting.id ) ) {
@@ -1304,7 +1307,7 @@
 			 *
 			 * @since 4.9.0
 			 * @param {wp.customize.Setting} setting - Removed setting.
-			 * @returns {void}
+			 * @return {void}
 			 */
 			function removeChangeEventListener( setting ) {
 				if ( navMenuSettingPattern.test( setting.id ) ) {
@@ -1415,7 +1418,7 @@
 					navMenuLocationSetting = api( 'nav_menu_locations[' + checkbox.data( 'location-id' ) + ']' );
 					navMenuLocationSetting.set( menuSection.params.menu_id );
 
-					// Reset state for next new menu
+					// Reset state for next new menu.
 					checkbox.prop( 'checked', false );
 				}
 			} );
@@ -1439,7 +1442,7 @@
 		 * @since 4.9.0
 		 *
 		 * @param {string|null} locationId - The ID of the location to select. `null` clears all selections.
-		 * @returns {void}
+		 * @return {void}
 		 */
 		selectDefaultLocation: function( locationId ) {
 			var locationControl = api.control( this.id + '[locations]' ),
@@ -1698,7 +1701,8 @@
 			control.elements.classes = new api.Element( control.container.find( '.edit-menu-item-classes' ) );
 			control.elements.xfn = new api.Element( control.container.find( '.edit-menu-item-xfn' ) );
 			control.elements.description = new api.Element( control.container.find( '.edit-menu-item-description' ) );
-			// @todo allow other elements, added by plugins, to be automatically picked up here; allow additional values to be added to setting array.
+			// @todo Allow other elements, added by plugins, to be automatically picked up here;
+			// allow additional values to be added to setting array.
 
 			_.each( control.elements, function( element, property ) {
 				element.bind(function( value ) {
@@ -1790,7 +1794,7 @@
 			$removeBtn = control.container.find( '.item-delete' );
 
 			$removeBtn.on( 'click', function() {
-				// Find an adjacent element to add focus to when this menu item goes away
+				// Find an adjacent element to add focus to when this menu item goes away.
 				var addingItems = true, $adjacentFocusTarget, $next, $prev;
 
 				if ( ! $( 'body' ).hasClass( 'adding-menu-items' ) ) {
@@ -1811,7 +1815,7 @@
 				control.container.slideUp( function() {
 					control.setting.set( false );
 					wp.a11y.speak( api.Menus.data.l10n.itemDeleted );
-					$adjacentFocusTarget.focus(); // keyboard accessibility
+					$adjacentFocusTarget.focus(); // Keyboard accessibility.
 				} );
 
 				control.setting.set( false );
@@ -1870,7 +1874,7 @@
 
 		/**
 		 *
-		 * @returns {number}
+		 * @return {number}
 		 */
 		getDepth: function() {
 			var control = this, setting = control.setting(), depth = 0;
@@ -1962,7 +1966,7 @@
 		 *
 		 * @param {Boolean} expanded
 		 * @param {Object} [params]
-		 * @returns {Boolean} false if state already applied
+		 * @return {Boolean} False if state already applied.
 		 */
 		_toggleExpanded: api.Section.prototype._toggleExpanded,
 
@@ -1970,7 +1974,7 @@
 		 * @since 4.6.0
 		 *
 		 * @param {Object} [params]
-		 * @returns {Boolean} false if already expanded
+		 * @return {Boolean} False if already expanded.
 		 */
 		expand: api.Section.prototype.expand,
 
@@ -1990,7 +1994,7 @@
 		 * @since 4.6.0
 		 *
 		 * @param {Object} [params]
-		 * @returns {Boolean} false if already collapsed
+		 * @return {Boolean} False if already collapsed.
 		 */
 		collapse: api.Section.prototype.collapse,
 
@@ -2428,7 +2432,7 @@
 		 * @since 4.9.0
 		 *
 		 * @param {Object.<string,boolean>} selections - A map of location selections.
-		 * @returns {void}
+		 * @return {void}
 		 */
 		setSelections: function( selections ) {
 			this.container.find( '.menu-location' ).each( function( i, checkboxNode ) {
@@ -2778,13 +2782,13 @@
 					action = sectionTitle.find( '.customize-action' ),
 					name = displayNavMenuName( menu.name );
 
-				// Update the control title
+				// Update the control title.
 				controlTitle.text( name );
 				if ( location.length ) {
 					location.appendTo( controlTitle );
 				}
 
-				// Update the section title
+				// Update the section title.
 				sectionTitle.text( name );
 				if ( action.length ) {
 					action.prependTo( sectionTitle );
@@ -2954,7 +2958,7 @@
 		 * Add a new item to this menu.
 		 *
 		 * @param {object} item - Value for the nav_menu_item setting to be created.
-		 * @returns {wp.customize.Menus.controlConstructor.nav_menu_item} The newly-created nav_menu_item control instance.
+		 * @return {wp.customize.Menus.controlConstructor.nav_menu_item} The newly-created nav_menu_item control instance.
 		 */
 		addItemToMenu: function( item ) {
 			var menuControl = this, customizeId, settingArgs, setting, menuItemControl, placeholderId, position = 0, priority = 10;
@@ -2981,7 +2985,7 @@
 					position: position
 				}
 			);
-			delete item.id; // only used by Backbone
+			delete item.id; // Only used by Backbone.
 
 			placeholderId = api.Menus.generatePlaceholderAutoIncrementId();
 			customizeId = 'nav_menu_item[' + String( placeholderId ) + ']';
@@ -3373,7 +3377,7 @@
 	 * @alias wp.customize.Menus~displayNavMenuName
 	 *
 	 * @param {string} name
-	 * @returns {string}
+	 * @return {string}
 	 */
 	function displayNavMenuName( name ) {
 		name = name || '';

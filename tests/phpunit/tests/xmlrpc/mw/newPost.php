@@ -133,7 +133,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 
 		$this->make_user_by_role( 'author' );
 
-		// create attachment
+		// Create attachment.
 		$filename      = ( DIR_TESTDATA . '/images/a2-small.jpg' );
 		$attachment_id = self::factory()->attachment->create_upload_object( $filename );
 

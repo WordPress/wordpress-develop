@@ -7,7 +7,7 @@
  */
 
 /** Load WordPress Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 $parent_file  = 'edit-comments.php';
 $submenu_file = 'edit-comments.php';
@@ -58,7 +58,7 @@ switch ( $action ) {
 		);
 
 		wp_enqueue_script( 'comment' );
-		require_once( ABSPATH . 'wp-admin/admin-header.php' );
+		require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		$comment_id = absint( $_GET['c'] );
 
@@ -77,7 +77,7 @@ switch ( $action ) {
 
 		$comment = get_comment_to_edit( $comment_id );
 
-		include( ABSPATH . 'wp-admin/edit-form-comment.php' );
+		require ABSPATH . 'wp-admin/edit-form-comment.php';
 
 		break;
 
@@ -101,12 +101,12 @@ switch ( $action ) {
 		}
 
 		// No need to re-approve/re-trash/re-spam a comment.
-		if ( $action == str_replace( '1', 'approve', $comment->comment_approved ) ) {
+		if ( str_replace( '1', 'approve', $comment->comment_approved ) == $action ) {
 			wp_redirect( admin_url( 'edit-comments.php?same=' . $comment_id ) );
 			die();
 		}
 
-		require_once( ABSPATH . 'wp-admin/admin-header.php' );
+		require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		$formaction    = $action . 'comment';
 		$nonce_action  = 'approve' == $action ? 'approve-comment_' : 'delete-comment_';
@@ -137,7 +137,7 @@ switch ( $action ) {
 				break;
 		}
 
-		if ( $comment->comment_approved != '0' ) { // if not unapproved
+		if ( '0' != $comment->comment_approved ) { // If not unapproved.
 			$message = '';
 			switch ( $comment->comment_approved ) {
 				case '1':
@@ -207,9 +207,9 @@ switch ( $action ) {
 		$submitted = sprintf(
 			/* translators: 1: Comment date, 2: Comment time. */
 			__( '%1$s at %2$s' ),
-			/* translators: Comment date format. See https://secure.php.net/date */
+			/* translators: Comment date format. See https://www.php.net/date */
 			get_comment_date( __( 'Y/m/d' ), $comment ),
-			/* translators: Comment time format. See https://secure.php.net/date */
+			/* translators: Comment time format. See https://www.php.net/date */
 			get_comment_date( __( 'g:i a' ), $comment )
 		);
 		if ( 'approved' === wp_get_comment_status( $comment ) && ! empty( $comment->comment_post_ID ) ) {
@@ -355,6 +355,6 @@ switch ( $action ) {
 	default:
 		wp_die( __( 'Unknown action.' ) );
 
-} // end switch
+} // End switch.
 
-include( ABSPATH . 'wp-admin/admin-footer.php' );
+require_once ABSPATH . 'wp-admin/admin-footer.php';

@@ -35,7 +35,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			)
 		);
 
-		// Force an ID that resembles a year format
+		// Force an ID that resembles a year format.
 		$wpdb->update(
 			$wpdb->posts,
 			array(
@@ -65,7 +65,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			)
 		);
 
-		// Force an ID that resembles a year format
+		// Force an ID that resembles a year format.
 		$wpdb->update(
 			$wpdb->posts,
 			array(

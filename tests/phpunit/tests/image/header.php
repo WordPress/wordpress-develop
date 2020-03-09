@@ -1,5 +1,5 @@
 <?php
-require_once( ABSPATH . 'wp-admin/includes/class-custom-image-header.php' );
+require_once ABSPATH . 'wp-admin/includes/class-custom-image-header.php';
 
 /**
  * @group image
@@ -88,7 +88,7 @@ class Tests_Image_Header extends WP_UnitTestCase {
 				'height' => 1200,
 			)
 		);
-		$this->assertEquals( 1500, $dimensions['dst_width'] ); // max width
+		$this->assertEquals( 1500, $dimensions['dst_width'] ); // Max width.
 		$this->assertEquals( 230, $dimensions['dst_height'] );
 
 	}

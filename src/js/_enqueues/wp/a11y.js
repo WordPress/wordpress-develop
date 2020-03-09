@@ -21,7 +21,7 @@ window.wp = window.wp || {};
 	 * @param {String} message    The message to be announced by Assistive Technologies.
 	 * @param {String} [ariaLive] The politeness level for aria-live. Possible values:
 	 *                            polite or assertive. Default polite.
-	 * @returns {void}
+	 * @return {void}
 	 */
 	function speak( message, ariaLive ) {
 		// Clear previous messages to allow repeated strings being read out.

@@ -270,7 +270,7 @@ function user_can_edit_post($user_id, $post_id, $blog_id = 1) {
 function user_can_delete_post($user_id, $post_id, $blog_id = 1) {
 	_deprecated_function( __FUNCTION__, '2.0.0', 'current_user_can()' );
 
-	// right now if one can edit, one can delete
+	// Right now if one can edit, one can delete.
 	return user_can_edit_post($user_id, $post_id, $blog_id);
 }
 
@@ -327,7 +327,7 @@ function user_can_edit_post_date($user_id, $post_id, $blog_id = 1) {
 function user_can_edit_post_comments($user_id, $post_id, $blog_id = 1) {
 	_deprecated_function( __FUNCTION__, '2.0.0', 'current_user_can()' );
 
-	// right now if one can edit a post, one can edit comments made on it
+	// Right now if one can edit a post, one can edit comments made on it.
 	return user_can_edit_post($user_id, $post_id, $blog_id);
 }
 
@@ -346,7 +346,7 @@ function user_can_edit_post_comments($user_id, $post_id, $blog_id = 1) {
 function user_can_delete_post_comments($user_id, $post_id, $blog_id = 1) {
 	_deprecated_function( __FUNCTION__, '2.0.0', 'current_user_can()' );
 
-	// right now if one can edit comments, one can delete comments
+	// Right now if one can edit comments, one can delete comments.
 	return user_can_edit_post_comments($user_id, $post_id, $blog_id);
 }
 
@@ -610,7 +610,7 @@ function get_autotoggle($id = 0) {
  * @param string $feed_image
  * @param string $exclude
  * @param bool $hierarchical
- * @return false|null
+ * @return null|false
  */
 function list_cats($optionall = 1, $all = 'All', $sort_column = 'ID', $sort_order = 'asc', $file = '', $list = true, $optiondates = 0,
 				$optioncount = 0, $hide_empty = 1, $use_desc_for_title = 1, $children=false, $child_of=0, $categories=0,
@@ -630,7 +630,7 @@ function list_cats($optionall = 1, $all = 'All', $sort_column = 'ID', $sort_orde
  * @see wp_list_categories()
  *
  * @param string|array $args
- * @return false|null|string
+ * @return null|string|false
  */
 function wp_list_cats($args = '') {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_list_categories()' );
@@ -931,7 +931,7 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 		$orderby = substr($orderby, 1);
 	}
 
-	if ( $category == -1 ) //get_bookmarks uses '' to signify all categories
+	if ( $category == -1 ) // get_bookmarks() uses '' to signify all categories.
 		$category = '';
 
 	$results = get_bookmarks(array('category' => $category, 'orderby' => $orderby, 'order' => $order, 'show_updated' => $show_updated, 'limit' => $limit));
@@ -976,7 +976,7 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 		if ( $row->link_image != null && $show_images ) {
 			if ( strpos($row->link_image, 'http') !== false )
 				$output .= "<img src=\"$row->link_image\" $alt $title />";
-			else // If it's a relative path
+			else // If it's a relative path.
 				$output .= "<img src=\"" . get_option('siteurl') . "$row->link_image\" $alt $title />";
 		} else {
 			$output .= $name;
@@ -995,7 +995,7 @@ function get_links($category = -1, $before = '', $after = '<br />', $between = '
 		}
 
 		$output .= "$after\n";
-	} // end while
+	} // End while.
 
 	if ( !$echo )
 		return $output;
@@ -1019,7 +1019,7 @@ function get_links_list($order = 'name') {
 
 	$order = strtolower($order);
 
-	// Handle link category sorting
+	// Handle link category sorting.
 	$direction = 'ASC';
 	if ( '_' == substr($order,0,1) ) {
 		$direction = 'DESC';
@@ -1031,17 +1031,17 @@ function get_links_list($order = 'name') {
 
 	$cats = get_categories(array('type' => 'link', 'orderby' => $order, 'order' => $direction, 'hierarchical' => 0));
 
-	// Display each category
+	// Display each category.
 	if ( $cats ) {
 		foreach ( (array) $cats as $cat ) {
 			// Handle each category.
 
-			// Display the category name
+			// Display the category name.
 			echo '  <li id="linkcat-' . $cat->term_id . '" class="linkcat"><h2>' . apply_filters('link_category', $cat->name ) . "</h2>\n\t<ul>\n";
-			// Call get_links() with all the appropriate params
+			// Call get_links() with all the appropriate params.
 			get_links($cat->term_id, '<li>', "</li>", "\n", true, 'name', false);
 
-			// Close the last category
+			// Close the last category.
 			echo "\n\t</ul>\n</li>\n";
 		}
 	}
@@ -1254,7 +1254,7 @@ function get_category_children( $id, $before = '/', $after = '', $visited = arra
 		return '';
 
 	$chain = '';
-	/** TODO: consult hierarchy */
+	/** TODO: Consult hierarchy */
 	$cat_ids = get_all_category_ids();
 	foreach ( (array) $cat_ids as $cat_id ) {
 		if ( $cat_id == $id )
@@ -1286,16 +1286,13 @@ function get_category_children( $id, $before = '/', $after = '', $visited = arra
 function get_all_category_ids() {
 	_deprecated_function( __FUNCTION__, '4.0.0', 'get_terms()' );
 
-	if ( ! $cat_ids = wp_cache_get( 'all_category_ids', 'category' ) ) {
-		$cat_ids = get_terms(
-			array(
-				'taxonomy' => 'category',
-				'fields'   => 'ids',
-				'get'      => 'all',
-			)
-		);
-		wp_cache_add( 'all_category_ids', $cat_ids, 'category' );
-	}
+	$cat_ids = get_terms(
+		array(
+			'taxonomy' => 'category',
+			'fields'   => 'ids',
+			'get'      => 'all',
+		)
+	);
 
 	return $cat_ids;
 }
@@ -1880,11 +1877,11 @@ function get_attachment_icon_src( $id = 0, $fullsize = false ) {
 	$file = get_attached_file( $post->ID );
 
 	if ( !$fullsize && $src = wp_get_attachment_thumb_url( $post->ID ) ) {
-		// We have a thumbnail desired, specified and existing
+		// We have a thumbnail desired, specified and existing.
 
 		$src_file = wp_basename($src);
 	} elseif ( wp_attachment_is_image( $post->ID ) ) {
-		// We have an image without a thumbnail
+		// We have an image without a thumbnail.
 
 		$src = wp_get_attachment_url( $post->ID );
 		$src_file = & $file;
@@ -1911,7 +1908,7 @@ function get_attachment_icon_src( $id = 0, $fullsize = false ) {
  * @param int $id Optional. Post ID.
  * @param bool $fullsize Optional, default to false. Whether to have full size image.
  * @param array $max_dims Optional. Dimensions of image.
- * @return false|string HTML content.
+ * @return string|false HTML content.
  */
 function get_attachment_icon( $id = 0, $fullsize = false, $max_dims = false ) {
 	_deprecated_function( __FUNCTION__, '2.5.0', 'wp_get_attachment_image()' );
@@ -1967,7 +1964,7 @@ function get_attachment_icon( $id = 0, $fullsize = false, $max_dims = false ) {
  * @param int $id Optional. Post ID.
  * @param bool $fullsize Optional, default to false. Whether to have full size image.
  * @param array $max_dims Optional. Dimensions of image.
- * @return false|string
+ * @return string|false
  */
 function get_attachment_innerHTML($id = 0, $fullsize = false, $max_dims = false) {
 	_deprecated_function( __FUNCTION__, '2.5.0', 'wp_get_attachment_image()' );
@@ -2116,7 +2113,7 @@ function attribute_escape( $text ) {
  */
 function register_sidebar_widget($name, $output_callback, $classname = '', ...$params) {
 	_deprecated_function( __FUNCTION__, '2.8.0', 'wp_register_sidebar_widget()' );
-	// Compat
+	// Compat.
 	if ( is_array( $name ) ) {
 		if ( count( $name ) === 3 ) {
 			$name = sprintf( $name[0], $name[2] );
@@ -2170,7 +2167,7 @@ function unregister_sidebar_widget($id) {
  */
 function register_widget_control($name, $control_callback, $width = '', $height = '', ...$params) {
 	_deprecated_function( __FUNCTION__, '2.8.0', 'wp_register_widget_control()' );
-	// Compat
+	// Compat.
 	if ( is_array( $name ) ) {
 		if ( count( $name ) === 3 ) {
 			$name = sprintf( $name[0], $name[2] );
@@ -2274,7 +2271,7 @@ function get_usermeta( $user_id, $meta_key = '' ) {
 	if ( !empty($meta_key) ) {
 		$meta_key = preg_replace('|[^a-z0-9_]|i', '', $meta_key);
 		$user = wp_cache_get($user_id, 'users');
-		// Check the cached user object
+		// Check the cached user object.
 		if ( false !== $user && isset($user->$meta_key) )
 			$metas = array($user->$meta_key);
 		else
@@ -2397,7 +2394,7 @@ function automatic_feed_links( $add = true ) {
 	if ( $add )
 		add_theme_support( 'automatic-feed-links' );
 	else
-		remove_action( 'wp_head', 'feed_links_extra', 3 ); // Just do this yourself in 3.0+
+		remove_action( 'wp_head', 'feed_links_extra', 3 ); // Just do this yourself in 3.0+.
 }
 
 /**
@@ -2673,11 +2670,11 @@ function get_boundary_post_rel_link($title = '%title', $in_same_cat = false, $ex
 	_deprecated_function( __FUNCTION__, '3.3.0' );
 
 	$posts = get_boundary_post($in_same_cat, $excluded_categories, $start);
-	// If there is no post stop.
+	// If there is no post, stop.
 	if ( empty($posts) )
 		return;
 
-	// Even though we limited get_posts to return only 1 item it still returns an array of objects.
+	// Even though we limited get_posts() to return only 1 item it still returns an array of objects.
 	$post = $posts[0];
 
 	if ( empty($post->post_title) )
@@ -2831,7 +2828,7 @@ function is_blog_user( $blog_id = 0 ) {
  * @deprecated 3.4.0 Use error_log()
  * @see error_log()
  *
- * @link https://secure.php.net/manual/en/function.error-log.php
+ * @link https://www.php.net/manual/en/function.error-log.php
  *
  * @param string $filename File name.
  * @param string $mode     Type of access you required to the stream.
@@ -2849,7 +2846,7 @@ function debug_fopen( $filename, $mode ) {
  * @deprecated 3.4.0 Use error_log()
  * @see error_log()
  *
- * @link https://secure.php.net/manual/en/function.error-log.php
+ * @link https://www.php.net/manual/en/function.error-log.php
  *
  * @param mixed  $fp     Unused.
  * @param string $string Message to log.
@@ -2867,7 +2864,7 @@ function debug_fwrite( $fp, $string ) {
  * @deprecated 3.4.0 Use error_log()
  * @see error_log()
  *
- * @link https://secure.php.net/manual/en/function.error-log.php
+ * @link https://www.php.net/manual/en/function.error-log.php
  *
  * @param mixed $fp Unused.
  */
@@ -3599,7 +3596,7 @@ function wp_htmledit_pre($output) {
 	_deprecated_function( __FUNCTION__, '4.3.0', 'format_for_editor()' );
 
 	if ( !empty($output) )
-		$output = htmlspecialchars($output, ENT_NOQUOTES, get_option( 'blog_charset' ) ); // convert only < > &
+		$output = htmlspecialchars($output, ENT_NOQUOTES, get_option( 'blog_charset' ) ); // Convert only '< > &'.
 
 	/**
 	 * Filters the text before it is formatted for the HTML editor.
@@ -3676,7 +3673,7 @@ function wp_get_http( $url, $file_path = false, $red = 1 ) {
 	if ( false == $file_path )
 		return $headers;
 
-	// GET request - write it to the supplied filename
+	// GET request - write it to the supplied filename.
 	$out_fp = fopen($file_path, 'w');
 	if ( !$out_fp )
 		return $headers;
@@ -3929,7 +3926,7 @@ function get_shortcut_link() {
 function wp_ajax_press_this_save_post() {
 	_deprecated_function( __FUNCTION__, '4.9.0' );
 	if ( is_plugin_active( 'press-this/press-this-plugin.php' ) ) {
-		include( WP_PLUGIN_DIR . '/press-this/class-wp-press-this-plugin.php' );
+		include WP_PLUGIN_DIR . '/press-this/class-wp-press-this-plugin.php';
 		$wp_press_this = new WP_Press_This_Plugin();
 		$wp_press_this->save_post();
 	} else {
@@ -3946,7 +3943,7 @@ function wp_ajax_press_this_save_post() {
 function wp_ajax_press_this_add_category() {
 	_deprecated_function( __FUNCTION__, '4.9.0' );
 	if ( is_plugin_active( 'press-this/press-this-plugin.php' ) ) {
-		include( WP_PLUGIN_DIR . '/press-this/class-wp-press-this-plugin.php' );
+		include WP_PLUGIN_DIR . '/press-this/class-wp-press-this-plugin.php';
 		$wp_press_this = new WP_Press_This_Plugin();
 		$wp_press_this->add_category();
 	} else {

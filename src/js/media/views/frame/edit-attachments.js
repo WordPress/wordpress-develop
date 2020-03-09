@@ -255,11 +255,11 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 			return;
 		}
 
-		// The right arrow key
+		// The right arrow key.
 		if ( 39 === event.keyCode ) {
 			this.nextMediaItem();
 		}
-		// The left arrow key
+		// The left arrow key.
 		if ( 37 === event.keyCode ) {
 			this.previousMediaItem();
 		}

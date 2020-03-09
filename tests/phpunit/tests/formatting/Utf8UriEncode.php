@@ -6,7 +6,7 @@
 class Tests_Formatting_Utf8UriEncode extends WP_UnitTestCase {
 
 	/**
-	 * Non-ASCII UTF-8 characters should be percent encoded. Spaces etc.
+	 * Non-ASCII UTF-8 characters should be percent-encoded. Spaces etc.
 	 * are dealt with elsewhere.
 	 *
 	 * @dataProvider data

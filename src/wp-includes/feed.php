@@ -250,7 +250,6 @@ function the_permalink_rss() {
  * Outputs the link to the comments for the current post in an xml safe way
  *
  * @since 3.0.0
- * @return none
  */
 function comments_link_feed() {
 	/**
@@ -281,7 +280,7 @@ function comment_guid( $comment_id = null ) {
  * @since 2.5.0
  *
  * @param int|WP_Comment $comment_id Optional comment object or id. Defaults to global comment object.
- * @return false|string false on failure or guid for comment on success.
+ * @return string|false GUID for comment on success, false on failure.
  */
 function get_comment_guid( $comment_id = null ) {
 	$comment = get_comment( $comment_id );
@@ -472,11 +471,11 @@ function rss_enclosure() {
 	}
 
 	foreach ( (array) get_post_custom() as $key => $val ) {
-		if ( $key == 'enclosure' ) {
+		if ( 'enclosure' === $key ) {
 			foreach ( (array) $val as $enc ) {
 				$enclosure = explode( "\n", $enc );
 
-				// only get the first element, e.g. audio/mpeg from 'audio/mpeg mpga mp2 mp3'
+				// Only get the first element, e.g. 'audio/mpeg' from 'audio/mpeg mpga mp2 mp3'.
 				$t    = preg_split( '/[ \t]/', trim( $enclosure[2] ) );
 				$type = $t[0];
 
@@ -512,7 +511,7 @@ function atom_enclosure() {
 	}
 
 	foreach ( (array) get_post_custom() as $key => $val ) {
-		if ( $key == 'enclosure' ) {
+		if ( 'enclosure' === $key ) {
 			foreach ( (array) $val as $enc ) {
 				$enclosure = explode( "\n", $enc );
 				/**
@@ -649,49 +648,59 @@ function self_link() {
 }
 
 /**
- * Get the timestamp of the most recently modified post from WP_Query.
+ * Get the UTC time of the most recently modified post from WP_Query.
  *
- * If viewing a comment feed, the timestamp of the most recently modified
+ * If viewing a comment feed, the time of the most recently modified
  * comment will be returned.
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
  * @since 5.2.0
  *
- * @param string $format Format of the timestamp to return, passed to mysql2date.
- *
- * @return string The timestamp.
+ * @param string $format Date format string to return the time in.
+ * @return string|false The time in requested format, or false on failure.
  */
 function get_feed_build_date( $format ) {
 	global $wp_query;
 
-	if ( empty( $wp_query ) || ! $wp_query->have_posts() ) {
-		// Fallback to last time any post was modified or published.
-		return get_lastpostmodified( 'GMT' );
+	$datetime          = false;
+	$max_modified_time = false;
+	$utc               = new DateTimeZone( 'UTC' );
+
+	if ( ! empty( $wp_query ) && $wp_query->have_posts() ) {
+		// Extract the post modified times from the posts.
+		$modified_times = wp_list_pluck( $wp_query->posts, 'post_modified_gmt' );
+
+		// If this is a comment feed, check those objects too.
+		if ( $wp_query->is_comment_feed() && $wp_query->comment_count ) {
+			// Extract the comment modified times from the comments.
+			$comment_times = wp_list_pluck( $wp_query->comments, 'comment_date_gmt' );
+
+			// Add the comment times to the post times for comparison.
+			$modified_times = array_merge( $modified_times, $comment_times );
+		}
+
+		// Determine the maximum modified time.
+		$datetime = date_create_immutable_from_format( 'Y-m-d H:i:s', max( $modified_times ), $utc );
 	}
 
-	// Extract the post modified times from the posts.
-	$modified_times = wp_list_pluck( $wp_query->posts, 'post_modified_gmt' );
-
-	// If this is a comment feed, check those objects too.
-	if ( $wp_query->is_comment_feed() && $wp_query->comment_count ) {
-		// Extract the comment modified times from the comments.
-		$comment_times = wp_list_pluck( $wp_query->comments, 'comment_date_gmt' );
-
-		// Add the comment times to the post times for comparison.
-		$modified_times = array_merge( $modified_times, $comment_times );
+	if ( false === $datetime ) {
+		// Fall back to last time any post was modified or published.
+		$datetime = date_create_immutable_from_format( 'Y-m-d H:i:s', get_lastpostmodified( 'GMT' ), $utc );
 	}
 
-	// Determine the maximum modified time.
-	$max_modified_time = mysql2date( $format, max( $modified_times ), false );
+	if ( false !== $datetime ) {
+		$max_modified_time = $datetime->format( $format );
+	}
 
 	/**
 	 * Filters the date the last post or comment in the query was modified.
 	 *
 	 * @since 5.2.0
 	 *
-	 * @param string $max_modified_time Date the last post or comment was modified in the query.
-	 * @param string $format            The date format requested in get_feed_build_date.
+	 * @param string|false $max_modified_time Date the last post or comment was modified in the query, in UTC.
+	 *                                        False on failure.
+	 * @param string       $format            The date format requested in get_feed_build_date().
 	 */
 	return apply_filters( 'get_feed_build_date', $max_modified_time, $format );
 }
@@ -738,23 +747,23 @@ function feed_content_type( $type = '' ) {
  * using SimplePie's multifeed feature.
  * See also {@link http://simplepie.org/wiki/faq/typical_multifeed_gotchas}
  *
- * @return WP_Error|SimplePie WP_Error object on failure or SimplePie object on success
+ * @return SimplePie|WP_Error SimplePie object on success or WP_Error object on failure.
  */
 function fetch_feed( $url ) {
 	if ( ! class_exists( 'SimplePie', false ) ) {
-		require_once( ABSPATH . WPINC . '/class-simplepie.php' );
+		require_once ABSPATH . WPINC . '/class-simplepie.php';
 	}
 
-	require_once( ABSPATH . WPINC . '/class-wp-feed-cache.php' );
-	require_once( ABSPATH . WPINC . '/class-wp-feed-cache-transient.php' );
-	require_once( ABSPATH . WPINC . '/class-wp-simplepie-file.php' );
-	require_once( ABSPATH . WPINC . '/class-wp-simplepie-sanitize-kses.php' );
+	require_once ABSPATH . WPINC . '/class-wp-feed-cache.php';
+	require_once ABSPATH . WPINC . '/class-wp-feed-cache-transient.php';
+	require_once ABSPATH . WPINC . '/class-wp-simplepie-file.php';
+	require_once ABSPATH . WPINC . '/class-wp-simplepie-sanitize-kses.php';
 
 	$feed = new SimplePie();
 
 	$feed->set_sanitize_class( 'WP_SimplePie_Sanitize_KSES' );
 	// We must manually overwrite $feed->sanitize because SimplePie's
-	// constructor sets it before we have a chance to set the sanitization class
+	// constructor sets it before we have a chance to set the sanitization class.
 	$feed->sanitize = new WP_SimplePie_Sanitize_KSES();
 
 	$feed->set_cache_class( 'WP_Feed_Cache' );
@@ -768,8 +777,8 @@ function fetch_feed( $url ) {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param object $feed SimplePie feed object (passed by reference).
-	 * @param mixed  $url  URL of feed to retrieve. If an array of URLs, the feeds are merged.
+	 * @param SimplePie $feed SimplePie feed object (passed by reference).
+	 * @param mixed     $url  URL of feed to retrieve. If an array of URLs, the feeds are merged.
 	 */
 	do_action_ref_array( 'wp_feed_options', array( &$feed, $url ) );
 	$feed->init();

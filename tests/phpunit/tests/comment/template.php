@@ -109,7 +109,7 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 			array(
 				2,
 				'2 Comments<span class="screen-reader-text"> on Hello % world!</span>',
-				'2 Comments<span class="screen-reader-text"> on Hello 2 world!</span>', // See #WP37103
+				'2 Comments<span class="screen-reader-text"> on Hello 2 world!</span>', // See #WP37103.
 			),
 			array(
 				2,

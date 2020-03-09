@@ -95,7 +95,7 @@ window.addComment = ( function( window ) {
 		cancelElement.addEventListener( 'touchstart', cancelEvent );
 		cancelElement.addEventListener( 'click',      cancelEvent );
 
-		// Submit the comment form when the user types CTRL or CMD + 'Enter'.
+		// Submit the comment form when the user types [Ctrl] or [Cmd] + [Enter].
 		var submitFormHandler = function( e ) {
 			if ( ( e.metaKey || e.ctrlKey ) && e.keyCode === 13 ) {
 				commentFormElement.removeEventListener( 'keydown', submitFormHandler );
@@ -106,7 +106,9 @@ window.addComment = ( function( window ) {
 			}
 		};
 
-		commentFormElement.addEventListener( 'keydown', submitFormHandler );
+		if ( commentFormElement ) {
+			commentFormElement.addEventListener( 'keydown', submitFormHandler );
+		}
 
 		var links = replyLinks( context );
 		var element;

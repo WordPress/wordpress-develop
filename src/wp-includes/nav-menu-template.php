@@ -28,7 +28,7 @@ require_once ABSPATH . WPINC . '/class-walker-nav-menu.php';
  *     @type string             $container       Whether to wrap the ul, and what to wrap it with. Default 'div'.
  *     @type string             $container_class Class that is applied to the container. Default 'menu-{menu slug}-container'.
  *     @type string             $container_id    The ID that is applied to the container. Default empty.
- *     @type callable|bool      $fallback_cb     If the menu doesn't exists, a callback function will fire.
+ *     @type callable|bool      $fallback_cb     If the menu doesn't exist, a callback function will fire.
  *                                               Default is 'wp_page_menu'. Set to false for no fallback.
  *     @type string             $before          Text before the link markup. Default empty.
  *     @type string             $after           Text after the link markup. Default empty.
@@ -43,7 +43,8 @@ require_once ABSPATH . WPINC . '/class-walker-nav-menu.php';
  *                                               Uses printf() format with numbered placeholders.
  *     @type string             $item_spacing    Whether to preserve whitespace within the menu's HTML. Accepts 'preserve' or 'discard'. Default 'preserve'.
  * }
- * @return string|false|void Menu output if $echo is false, false if there are no items or no menu was found.
+ * @return void|string|false Void if 'echo' argument is true, menu output if 'echo' is false.
+ *                           False if there are no items or no menu was found.
  */
 function wp_nav_menu( $args = array() ) {
 	static $menu_id_slugs = array();
@@ -71,7 +72,7 @@ function wp_nav_menu( $args = array() ) {
 	$args = wp_parse_args( $args, $defaults );
 
 	if ( ! in_array( $args['item_spacing'], array( 'preserve', 'discard' ), true ) ) {
-		// invalid value, fall back to default.
+		// Invalid value, fall back to default.
 		$args['item_spacing'] = $defaults['item_spacing'];
 	}
 
@@ -112,16 +113,16 @@ function wp_nav_menu( $args = array() ) {
 		return $nav_menu;
 	}
 
-	// Get the nav menu based on the requested menu
+	// Get the nav menu based on the requested menu.
 	$menu = wp_get_nav_menu_object( $args->menu );
 
-	// Get the nav menu based on the theme_location
+	// Get the nav menu based on the theme_location.
 	$locations = get_nav_menu_locations();
 	if ( ! $menu && $args->theme_location && $locations && isset( $locations[ $args->theme_location ] ) ) {
 		$menu = wp_get_nav_menu_object( $locations[ $args->theme_location ] );
 	}
 
-	// get the first menu that has items if we still can't find a menu
+	// Get the first menu that has items if we still can't find a menu.
 	if ( ! $menu && ! $args->theme_location ) {
 		$menus = wp_get_nav_menus();
 		foreach ( $menus as $menu_maybe ) {
@@ -181,7 +182,7 @@ function wp_nav_menu( $args = array() ) {
 		}
 	}
 
-	// Set up the $menu_item variables
+	// Set up the $menu_item variables.
 	_wp_menu_item_classes_by_context( $menu_items );
 
 	$sorted_menu_items        = array();
@@ -193,7 +194,7 @@ function wp_nav_menu( $args = array() ) {
 		}
 	}
 
-	// Add the menu-item-has-children class where applicable
+	// Add the menu-item-has-children class where applicable.
 	if ( $menu_items_with_children ) {
 		foreach ( $sorted_menu_items as &$menu_item ) {
 			if ( isset( $menu_items_with_children[ $menu_item->ID ] ) ) {
@@ -217,7 +218,7 @@ function wp_nav_menu( $args = array() ) {
 	$items .= walk_nav_menu_tree( $sorted_menu_items, $args->depth, $args );
 	unset( $sorted_menu_items );
 
-	// Attributes
+	// Attributes.
 	if ( ! empty( $args->menu_id ) ) {
 		$wrap_id = $args->menu_id;
 	} else {
@@ -388,13 +389,13 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 			$classes[] = 'menu-item-privacy-policy';
 		}
 
-		// if the menu item corresponds to a taxonomy term for the currently-queried non-hierarchical post object
+		// If the menu item corresponds to a taxonomy term for the currently queried non-hierarchical post object.
 		if ( $wp_query->is_singular && 'taxonomy' == $menu_item->type && in_array( $menu_item->object_id, $possible_object_parents ) ) {
 			$active_parent_object_ids[] = (int) $menu_item->object_id;
 			$active_parent_item_ids[]   = (int) $menu_item->db_id;
 			$active_object              = $queried_object->post_type;
 
-			// if the menu item corresponds to the currently-queried post or taxonomy object
+			// If the menu item corresponds to the currently queried post or taxonomy object.
 		} elseif (
 			$menu_item->object_id == $queried_object_id &&
 			(
@@ -415,7 +416,7 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 			}
 
 			if ( 'post_type' == $menu_item->type && 'page' == $menu_item->object ) {
-				// Back compat classes for pages to match wp_page_menu()
+				// Back compat classes for pages to match wp_page_menu().
 				$classes[] = 'page_item';
 				$classes[] = 'page-item-' . $menu_item->object_id;
 				$classes[] = 'current_page_item';
@@ -425,7 +426,7 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 			$active_parent_object_ids[] = (int) $menu_item->post_parent;
 			$active_object              = $menu_item->object;
 
-			// if the menu item corresponds to the currently-queried post type archive
+			// If the menu item corresponds to the currently queried post type archive.
 		} elseif (
 			'post_type_archive' == $menu_item->type &&
 			is_post_type_archive( array( $menu_item->object ) )
@@ -443,11 +444,11 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 
 			$active_parent_item_ids[] = (int) $menu_item->menu_item_parent;
 
-			// if the menu item corresponds to the currently-requested URL
+			// If the menu item corresponds to the currently requested URL.
 		} elseif ( 'custom' == $menu_item->object && isset( $_SERVER['HTTP_HOST'] ) ) {
 			$_root_relative_current = untrailingslashit( $_SERVER['REQUEST_URI'] );
 
-			//if it is the customize page then it will strips the query var off the url before entering the comparison block.
+			// If it's the customize page then it will strip the query var off the URL before entering the comparison block.
 			if ( is_customize_preview() ) {
 				$_root_relative_current = strtok( untrailingslashit( $_SERVER['REQUEST_URI'] ), '?' );
 			}
@@ -479,14 +480,14 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 				}
 
 				if ( in_array( home_url(), array( untrailingslashit( $current_url ), untrailingslashit( $_indexless_current ) ) ) ) {
-					// Back compat for home link to match wp_page_menu()
+					// Back compat for home link to match wp_page_menu().
 					$classes[] = 'current_page_item';
 				}
 				$active_parent_item_ids[]   = (int) $menu_item->menu_item_parent;
 				$active_parent_object_ids[] = (int) $menu_item->post_parent;
 				$active_object              = $menu_item->object;
 
-				// give front page item current-menu-item class when extra query arguments involved
+				// Give front page item the 'current-menu-item' class when extra query arguments are involved.
 			} elseif ( $item_url == $front_page_url && is_front_page() ) {
 				$classes[] = 'current-menu-item';
 			}
@@ -496,7 +497,7 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 			}
 		}
 
-		// back-compat with wp_page_menu: add "current_page_parent" to static home page link for any non-page query
+		// Back-compat with wp_page_menu(): add "current_page_parent" to static home page link for any non-page query.
 		if ( ! empty( $home_page_id ) && 'post_type' == $menu_item->type && empty( $wp_query->is_page ) && $home_page_id == $menu_item->object_id ) {
 			$classes[] = 'current_page_parent';
 		}
@@ -507,7 +508,7 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 	$active_parent_item_ids   = array_filter( array_unique( $active_parent_item_ids ) );
 	$active_parent_object_ids = array_filter( array_unique( $active_parent_object_ids ) );
 
-	// set parent's class
+	// Set parent's class.
 	foreach ( (array) $menu_items as $key => $parent_item ) {
 		$classes                                   = (array) $parent_item->classes;
 		$menu_items[ $key ]->current_item_ancestor = false;
@@ -516,7 +517,7 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 		if (
 			isset( $parent_item->type ) &&
 			(
-				// ancestral post object
+				// Ancestral post object.
 				(
 					'post_type' == $parent_item->type &&
 					! empty( $queried_object->post_type ) &&
@@ -525,7 +526,7 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 					$parent_item->object != $queried_object->ID
 				) ||
 
-				// ancestral term
+				// Ancestral term.
 				(
 					'taxonomy' == $parent_item->type &&
 					isset( $possible_taxonomy_ancestors[ $parent_item->object ] ) &&
@@ -553,7 +554,7 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 		}
 
 		if ( 'post_type' == $parent_item->type && 'page' == $parent_item->object ) {
-			// Back compat classes for pages to match wp_page_menu()
+			// Back compat classes for pages to match wp_page_menu().
 			if ( in_array( 'current-menu-parent', $classes ) ) {
 				$classes[] = 'current_page_parent';
 			}

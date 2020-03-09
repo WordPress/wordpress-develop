@@ -35,7 +35,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 *
 	 * @since 4.9.6
 	 *
-	 * @return array Array of columns.
+	 * @return string[] Array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
 		$columns = array(
@@ -73,9 +73,11 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 * @return array Default sortable columns.
 	 */
 	protected function get_sortable_columns() {
-		// The initial sorting is by 'Requested' (post_date) and descending.
-		// With initial sorting, the first click on 'Requested' should be ascending.
-		// With 'Requester' sorting active, the next click on 'Requested' should be descending.
+		/*
+		 * The initial sorting is by 'Requested' (post_date) and descending.
+		 * With initial sorting, the first click on 'Requested' should be ascending.
+		 * With 'Requester' sorting active, the next click on 'Requested' should be descending.
+		 */
 		$desc_first = isset( $_GET['orderby'] );
 
 		return array(
@@ -137,7 +139,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 *
 	 * @since 4.9.6
 	 *
-	 * @return array Associative array of views in the format of $view_name => $view_markup.
+	 * @return string[] An array of HTML links keyed by their view.
 	 */
 	protected function get_views() {
 		$current_status = isset( $_REQUEST['filter-status'] ) ? sanitize_text_field( $_REQUEST['filter-status'] ) : '';
@@ -146,7 +148,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 		$counts         = $this->get_request_counts();
 		$total_requests = absint( array_sum( (array) $counts ) );
 
-		// Normalized admin URL
+		// Normalized admin URL.
 		$admin_url = $this->get_admin_url();
 
 		$current_link_attributes = empty( $current_status ) ? ' class="current" aria-current="page"' : '';
@@ -200,12 +202,12 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 *
 	 * @since 4.9.6
 	 *
-	 * @return array List of bulk actions.
+	 * @return string[] Array of bulk action labels keyed by their action.
 	 */
 	protected function get_bulk_actions() {
 		return array(
-			'delete' => __( 'Remove' ),
-			'resend' => __( 'Resend email' ),
+			'delete' => __( 'Delete Requests' ),
+			'resend' => __( 'Resend Confirmation Requests' ),
 		);
 	}
 

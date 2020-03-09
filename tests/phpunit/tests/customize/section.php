@@ -21,7 +21,7 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 
 	function setUp() {
 		parent::setUp();
-		require_once( ABSPATH . WPINC . '/class-wp-customize-manager.php' );
+		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
 		$this->manager           = $GLOBALS['wp_customize'];
 		$this->undefined         = new stdClass();

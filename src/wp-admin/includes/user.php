@@ -41,7 +41,7 @@ function edit_user( $user_id = 0 ) {
 	}
 
 	if ( ! $update && isset( $_POST['user_login'] ) ) {
-		$user->user_login = sanitize_user( $_POST['user_login'], true );
+		$user->user_login = sanitize_user( wp_unslash( $_POST['user_login'] ), true );
 	}
 
 	$pass1 = '';
@@ -70,7 +70,7 @@ function edit_user( $user_id = 0 ) {
 		 */
 		if (
 			( is_multisite() && current_user_can( 'manage_network_users' ) ) ||
-			$user_id !== get_current_user_id() ||
+			get_current_user_id() !== $user_id ||
 			( $potential_role && $potential_role->has_cap( 'promote_users' ) )
 		) {
 			$user->role = $new_role;
@@ -81,7 +81,7 @@ function edit_user( $user_id = 0 ) {
 		$user->user_email = sanitize_text_field( wp_unslash( $_POST['email'] ) );
 	}
 	if ( isset( $_POST['url'] ) ) {
-		if ( empty( $_POST['url'] ) || $_POST['url'] == 'http://' ) {
+		if ( empty( $_POST['url'] ) || 'http://' === $_POST['url'] ) {
 			$user->user_url = '';
 		} else {
 			$user->user_url = esc_url_raw( $_POST['url'] );
@@ -143,13 +143,13 @@ function edit_user( $user_id = 0 ) {
 	$errors = new WP_Error();
 
 	/* checking that username has been typed */
-	if ( $user->user_login == '' ) {
-		$errors->add( 'user_login', __( '<strong>ERROR</strong>: Please enter a username.' ) );
+	if ( '' == $user->user_login ) {
+		$errors->add( 'user_login', __( '<strong>Error</strong>: Please enter a username.' ) );
 	}
 
 	/* checking that nickname has been typed */
 	if ( $update && empty( $user->nickname ) ) {
-		$errors->add( 'nickname', __( '<strong>ERROR</strong>: Please enter a nickname.' ) );
+		$errors->add( 'nickname', __( '<strong>Error</strong>: Please enter a nickname.' ) );
 	}
 
 	/**
@@ -165,17 +165,17 @@ function edit_user( $user_id = 0 ) {
 
 	// Check for blank password when adding a user.
 	if ( ! $update && empty( $pass1 ) ) {
-		$errors->add( 'pass', __( '<strong>ERROR</strong>: Please enter a password.' ), array( 'form-field' => 'pass1' ) );
+		$errors->add( 'pass', __( '<strong>Error</strong>: Please enter a password.' ), array( 'form-field' => 'pass1' ) );
 	}
 
 	// Check for "\" in password.
 	if ( false !== strpos( wp_unslash( $pass1 ), '\\' ) ) {
-		$errors->add( 'pass', __( '<strong>ERROR</strong>: Passwords may not contain the character "\\".' ), array( 'form-field' => 'pass1' ) );
+		$errors->add( 'pass', __( '<strong>Error</strong>: Passwords may not contain the character "\\".' ), array( 'form-field' => 'pass1' ) );
 	}
 
 	// Checking the password has been typed twice the same.
 	if ( ( $update || ! empty( $pass1 ) ) && $pass1 != $pass2 ) {
-		$errors->add( 'pass', __( '<strong>ERROR</strong>: Please enter the same password in both password fields.' ), array( 'form-field' => 'pass1' ) );
+		$errors->add( 'pass', __( '<strong>Error</strong>: Please enter the same password in both password fields.' ), array( 'form-field' => 'pass1' ) );
 	}
 
 	if ( ! empty( $pass1 ) ) {
@@ -183,29 +183,29 @@ function edit_user( $user_id = 0 ) {
 	}
 
 	if ( ! $update && isset( $_POST['user_login'] ) && ! validate_username( $_POST['user_login'] ) ) {
-		$errors->add( 'user_login', __( '<strong>ERROR</strong>: This username is invalid because it uses illegal characters. Please enter a valid username.' ) );
+		$errors->add( 'user_login', __( '<strong>Error</strong>: This username is invalid because it uses illegal characters. Please enter a valid username.' ) );
 	}
 
 	if ( ! $update && username_exists( $user->user_login ) ) {
-		$errors->add( 'user_login', __( '<strong>ERROR</strong>: This username is already registered. Please choose another one.' ) );
+		$errors->add( 'user_login', __( '<strong>Error</strong>: This username is already registered. Please choose another one.' ) );
 	}
 
 	/** This filter is documented in wp-includes/user.php */
 	$illegal_logins = (array) apply_filters( 'illegal_user_logins', array() );
 
-	if ( in_array( strtolower( $user->user_login ), array_map( 'strtolower', $illegal_logins ) ) ) {
-		$errors->add( 'invalid_username', __( '<strong>ERROR</strong>: Sorry, that username is not allowed.' ) );
+	if ( in_array( strtolower( $user->user_login ), array_map( 'strtolower', $illegal_logins ), true ) ) {
+		$errors->add( 'invalid_username', __( '<strong>Error</strong>: Sorry, that username is not allowed.' ) );
 	}
 
 	/* checking email address */
 	if ( empty( $user->user_email ) ) {
-		$errors->add( 'empty_email', __( '<strong>ERROR</strong>: Please enter an email address.' ), array( 'form-field' => 'email' ) );
+		$errors->add( 'empty_email', __( '<strong>Error</strong>: Please enter an email address.' ), array( 'form-field' => 'email' ) );
 	} elseif ( ! is_email( $user->user_email ) ) {
-		$errors->add( 'invalid_email', __( '<strong>ERROR</strong>: The email address isn&#8217;t correct.' ), array( 'form-field' => 'email' ) );
+		$errors->add( 'invalid_email', __( '<strong>Error</strong>: The email address isn&#8217;t correct.' ), array( 'form-field' => 'email' ) );
 	} else {
 		$owner_id = email_exists( $user->user_email );
 		if ( $owner_id && ( ! $update || ( $owner_id != $user->ID ) ) ) {
-			$errors->add( 'email_exists', __( '<strong>ERROR</strong>: This email is already registered, please choose another one.' ), array( 'form-field' => 'email' ) );
+			$errors->add( 'email_exists', __( '<strong>Error</strong>: This email is already registered, please choose another one.' ), array( 'form-field' => 'email' ) );
 		}
 	}
 
@@ -393,7 +393,7 @@ function wp_delete_user( $id, $reassign = null ) {
 			}
 		}
 
-		// Clean links
+		// Clean links.
 		$link_ids = $wpdb->get_col( $wpdb->prepare( "SELECT link_id FROM $wpdb->links WHERE link_owner = %d", $id ) );
 
 		if ( $link_ids ) {
@@ -418,7 +418,7 @@ function wp_delete_user( $id, $reassign = null ) {
 		}
 	}
 
-	// FINALLY, delete user
+	// FINALLY, delete user.
 	if ( is_multisite() ) {
 		remove_user_from_blog( $id, get_current_blog_id() );
 	} else {
@@ -474,7 +474,7 @@ function default_password_nag_handler( $errors = false ) {
 		return;
 	}
 
-	// get_user_setting = JS saved UI setting. else no-js-fallback code.
+	// get_user_setting() = JS-saved UI setting. Else no-js-fallback code.
 	if ( 'hide' == get_user_setting( 'default_password_nag' ) || isset( $_GET['default_password_nag'] ) && '0' == $_GET['default_password_nag'] ) {
 		delete_user_setting( 'default_password_nag' );
 		update_user_option( $user_ID, 'default_password_nag', false, true );
@@ -551,7 +551,7 @@ jQuery(document).ready( function($) {
  *
  * @since 2.7.0
  *
- * @param object $user User data object.
+ * @param WP_User $user User data object.
  */
 function use_ssl_preference( $user ) {
 	?>

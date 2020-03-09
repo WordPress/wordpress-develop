@@ -5,7 +5,7 @@
  * @package WordPress
  * @subpackage Administration
  */
-// TODO route this pages via a specific iframe handler instead of the do_action below
+// TODO: Route this page via a specific iframe handler instead of the do_action below.
 if ( ! defined( 'IFRAME_REQUEST' ) && isset( $_GET['tab'] ) && ( 'plugin-information' == $_GET['tab'] ) ) {
 	define( 'IFRAME_REQUEST', true );
 }
@@ -13,7 +13,7 @@ if ( ! defined( 'IFRAME_REQUEST' ) && isset( $_GET['tab'] ) && ( 'plugin-informa
 /**
  * WordPress Administration Bootstrap.
  */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'install_plugins' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to install plugins on this site.' ) );
@@ -121,7 +121,7 @@ get_current_screen()->set_screen_reader_content(
 /**
  * WordPress Administration Template Header.
  */
-include( ABSPATH . 'wp-admin/admin-header.php' );
+require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 <div class="wrap <?php echo esc_attr( "plugin-install-tab-$tab" ); ?>">
 <h1 class="wp-heading-inline">
@@ -184,4 +184,4 @@ wp_print_admin_notice_templates();
 /**
  * WordPress Administration Template Footer.
  */
-include( ABSPATH . 'wp-admin/admin-footer.php' );
+require_once ABSPATH . 'wp-admin/admin-footer.php';

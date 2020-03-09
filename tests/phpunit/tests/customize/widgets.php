@@ -22,7 +22,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 
 	function setUp() {
 		parent::setUp();
-		require_once( ABSPATH . WPINC . '/class-wp-customize-manager.php' );
+		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 
 		add_theme_support( 'customize-selective-refresh-widgets' );
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
@@ -30,7 +30,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
 		$this->manager           = $GLOBALS['wp_customize'];
 
-		unset( $GLOBALS['_wp_sidebars_widgets'] ); // clear out cache set by wp_get_sidebars_widgets()
+		unset( $GLOBALS['_wp_sidebars_widgets'] ); // Clear out cache set by wp_get_sidebars_widgets().
 		$sidebars_widgets = wp_get_sidebars_widgets();
 		$this->assertEqualSets( array( 'wp_inactive_widgets', 'sidebar-1', 'sidebar-2' ), array_keys( wp_get_sidebars_widgets() ) );
 		$this->assertContains( 'search-2', $sidebars_widgets['sidebar-1'] );

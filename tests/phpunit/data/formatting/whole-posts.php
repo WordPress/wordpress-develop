@@ -55,7 +55,7 @@ array('[Lorem ipsum dolor sit amet, quo id ignota repudiare, ius iracundia ratio
  
 /* DIVIDER */
 
-// based on https://core.trac.wordpress.org/attachment/ticket/29557/ChatTranscript.txt
+// Based on https://core.trac.wordpress.org/attachment/ticket/29557/ChatTranscript.txt
 
 array('hello!-- world. [caption arg1="Aenean consectetur ipsum ante, vel egestas enim tincidunt quis. Pellentesque vitae congue neque, vel mattis ante. In vitae tempus nunc. Etiam adipiscing enim sed condimentum ultrices. Aenean consectetur ipsum ante, vel egestas enim tincidunt qu. In vitae tempus nunc. In vitaentbnbsdgsdsdgsdhsdhdsdhdsh Aenean consectetur ipsum ante, vel egestas enim tincidunt quis. Pellentesque vitae congue neque, vel mattis ante. In vitae tempus nunc. Etiam adipiscing enim sed condimentum ultrices. Aenean consectetur ipsum ante, vel egestas enim tincidunt qu. In vitae tempus nunc. In vitaentbnbsdgsdsdgsdhsdhdsdhdsh" /] hello world.
 

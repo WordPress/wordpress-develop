@@ -41,7 +41,7 @@ function _wp_http_get_object() {
  *
  * @param string $url  URL to retrieve.
  * @param array  $args Optional. Request arguments. Default empty array.
- * @return WP_Error|array The response or WP_Error on failure.
+ * @return array|WP_Error The response or WP_Error on failure.
  */
 function wp_safe_remote_request( $url, $args = array() ) {
 	$args['reject_unsafe_urls'] = true;
@@ -62,7 +62,7 @@ function wp_safe_remote_request( $url, $args = array() ) {
  *
  * @param string $url  URL to retrieve.
  * @param array  $args Optional. Request arguments. Default empty array.
- * @return WP_Error|array The response or WP_Error on failure.
+ * @return array|WP_Error The response or WP_Error on failure.
  */
 function wp_safe_remote_get( $url, $args = array() ) {
 	$args['reject_unsafe_urls'] = true;
@@ -83,7 +83,7 @@ function wp_safe_remote_get( $url, $args = array() ) {
  *
  * @param string $url  URL to retrieve.
  * @param array  $args Optional. Request arguments. Default empty array.
- * @return WP_Error|array The response or WP_Error on failure.
+ * @return array|WP_Error The response or WP_Error on failure.
  */
 function wp_safe_remote_post( $url, $args = array() ) {
 	$args['reject_unsafe_urls'] = true;
@@ -104,7 +104,7 @@ function wp_safe_remote_post( $url, $args = array() ) {
  *
  * @param string $url  URL to retrieve.
  * @param array  $args Optional. Request arguments. Default empty array.
- * @return WP_Error|array The response or WP_Error on failure.
+ * @return array|WP_Error The response or WP_Error on failure.
  */
 function wp_safe_remote_head( $url, $args = array() ) {
 	$args['reject_unsafe_urls'] = true;
@@ -127,7 +127,7 @@ function wp_safe_remote_head( $url, $args = array() ) {
  *
  * @param string $url  URL to retrieve.
  * @param array  $args Optional. Request arguments. Default empty array.
- * @return WP_Error|array {
+ * @return array|WP_Error {
  *     The response array or a WP_Error on failure.
  *
  *     @type string[]                       $headers       Array of response headers keyed by their name.
@@ -157,7 +157,7 @@ function wp_remote_request( $url, $args = array() ) {
  *
  * @param string $url  URL to retrieve.
  * @param array  $args Optional. Request arguments. Default empty array.
- * @return WP_Error|array The response or WP_Error on failure.
+ * @return array|WP_Error The response or WP_Error on failure.
  */
 function wp_remote_get( $url, $args = array() ) {
 	$http = _wp_http_get_object();
@@ -174,7 +174,7 @@ function wp_remote_get( $url, $args = array() ) {
  *
  * @param string $url  URL to retrieve.
  * @param array  $args Optional. Request arguments. Default empty array.
- * @return WP_Error|array The response or WP_Error on failure.
+ * @return array|WP_Error The response or WP_Error on failure.
  */
 function wp_remote_post( $url, $args = array() ) {
 	$http = _wp_http_get_object();
@@ -191,7 +191,7 @@ function wp_remote_post( $url, $args = array() ) {
  *
  * @param string $url  URL to retrieve.
  * @param array  $args Optional. Request arguments. Default empty array.
- * @return WP_Error|array The response or WP_Error on failure.
+ * @return array|WP_Error The response or WP_Error on failure.
  */
 function wp_remote_head( $url, $args = array() ) {
 	$http = _wp_http_get_object();
@@ -368,7 +368,7 @@ function wp_http_supports( $capabilities = array(), $url = null ) {
 
 	$count = count( $capabilities );
 
-	// If we have a numeric $capabilities array, spoof a wp_remote_request() associative $args array
+	// If we have a numeric $capabilities array, spoof a wp_remote_request() associative $args array.
 	if ( $count && count( array_filter( array_keys( $capabilities ), 'is_numeric' ) ) == $count ) {
 		$capabilities = array_combine( array_values( $capabilities ), array_fill( 0, $count, true ) );
 	}
@@ -417,7 +417,7 @@ function get_allowed_http_origins() {
 	$admin_origin = parse_url( admin_url() );
 	$home_origin  = parse_url( home_url() );
 
-	// @todo preserve port?
+	// @todo Preserve port?
 	$allowed_origins = array_unique(
 		array(
 			'http://' . $admin_origin['host'],
@@ -513,7 +513,7 @@ function send_origin_headers() {
  * @since 3.5.2
  *
  * @param string $url Request URL.
- * @return false|string URL or false on failure.
+ * @return string|false URL or false on failure.
  */
 function wp_http_validate_url( $url ) {
 	$original_url = $url;
@@ -549,7 +549,7 @@ function wp_http_validate_url( $url ) {
 			$ip = $host;
 		} else {
 			$ip = gethostbyname( $host );
-			if ( $ip === $host ) { // Error condition for gethostbyname()
+			if ( $ip === $host ) { // Error condition for gethostbyname().
 				return false;
 			}
 		}
@@ -632,7 +632,7 @@ function ms_allowed_http_request_hosts( $is_external, $host ) {
 	if ( $is_external ) {
 		return $is_external;
 	}
-	if ( $host === get_network()->domain ) {
+	if ( get_network()->domain === $host ) {
 		return true;
 	}
 	if ( isset( $queried[ $host ] ) ) {
@@ -660,7 +660,7 @@ function ms_allowed_http_request_hosts( $is_external, $host ) {
  * @since 4.4.0
  * @since 4.7.0 The `$component` parameter was added for parity with PHP's `parse_url()`.
  *
- * @link https://secure.php.net/manual/en/function.parse-url.php
+ * @link https://www.php.net/manual/en/function.parse-url.php
  *
  * @param string $url       The URL to parse.
  * @param int    $component The specific component to retrieve. Use one of the PHP
@@ -707,7 +707,7 @@ function wp_parse_url( $url, $component = -1 ) {
  * @since 4.7.0
  * @access private
  *
- * @link https://secure.php.net/manual/en/function.parse-url.php
+ * @link https://www.php.net/manual/en/function.parse-url.php
  *
  * @param array|false $url_parts The parsed URL. Can be false if the URL failed to parse.
  * @param int         $component The specific component to retrieve. Use one of the PHP
@@ -739,7 +739,7 @@ function _get_component_from_parsed_url_array( $url_parts, $component = -1 ) {
  * @since 4.7.0
  * @access private
  *
- * @link https://secure.php.net/manual/en/url.constants.php
+ * @link https://www.php.net/manual/en/url.constants.php
  *
  * @param int $constant PHP_URL_* constant.
  * @return string|false The named key or false.

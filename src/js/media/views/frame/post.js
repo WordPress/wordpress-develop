@@ -180,7 +180,7 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 
 		this.on( 'activate', this.activate, this );
 
-		// Only bother checking media type counts if one of the counts is zero
+		// Only bother checking media type counts if one of the counts is zero.
 		checkCounts = _.find( this.counts, function( type ) {
 			return type.count === 0;
 		} );
@@ -235,7 +235,7 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 	},
 
 	activate: function() {
-		// Hide menu items for states tied to particular media types if there are no items
+		// Hide menu items for states tied to particular media types if there are no items.
 		_.each( this.counts, function( type ) {
 			if ( type.count < 1 ) {
 				this.menuItemVisibility( type.state, 'hide' );
@@ -250,7 +250,7 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 		}
 	},
 
-	// Menus
+	// Menus.
 	/**
 	 * @param {wp.Backbone.View} view
 	 */
@@ -358,7 +358,7 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 		});
 	},
 
-	// Content
+	// Content.
 	embedContent: function() {
 		var view = new wp.media.view.Embed({
 			controller: this,
@@ -400,7 +400,7 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 		// Browse our library of attachments.
 		this.content.set( view );
 
-		// Trigger the controller to set focus
+		// Trigger the controller to set focus.
 		this.trigger( 'edit:selection', this );
 	},
 
@@ -410,12 +410,12 @@ Post = Select.extend(/** @lends wp.media.view.MediaFrame.Post.prototype */{
 
 		this.content.set( view );
 
-		// after creating the wrapper view, load the actual editor via an ajax call
+		// After creating the wrapper view, load the actual editor via an Ajax call.
 		view.loadEditor();
 
 	},
 
-	// Toolbars
+	// Toolbars.
 
 	/**
 	 * @param {wp.Backbone.View} view

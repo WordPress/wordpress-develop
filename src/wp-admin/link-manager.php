@@ -7,14 +7,14 @@
  */
 
 /** Load WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 if ( ! current_user_can( 'manage_links' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to edit the links for this site.' ) );
 }
 
 $wp_list_table = _get_list_table( 'WP_Links_List_Table' );
 
-// Handle bulk deletes
+// Handle bulk deletes.
 $doaction = $wp_list_table->current_action();
 
 if ( $doaction && isset( $_REQUEST['linkcheck'] ) ) {
@@ -32,8 +32,10 @@ if ( $doaction && isset( $_REQUEST['linkcheck'] ) ) {
 
 		$redirect_to = add_query_arg( 'deleted', count( $bulklinks ), $redirect_to );
 	} else {
-		/** This action is documented in wp-admin/edit-comments.php */
-		$redirect_to = apply_filters( 'handle_bulk_actions-' . get_current_screen()->id, $redirect_to, $doaction, $bulklinks ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+		$screen = get_current_screen()->id;
+
+		/** This action is documented in wp-admin/edit.php */
+		$redirect_to = apply_filters( "handle_bulk_actions-{$screen}", $redirect_to, $doaction, $bulklinks ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 	}
 	wp_redirect( $redirect_to );
 	exit;
@@ -83,7 +85,7 @@ get_current_screen()->set_screen_reader_content(
 	)
 );
 
-include_once( ABSPATH . 'wp-admin/admin-header.php' );
+require_once ABSPATH . 'wp-admin/admin-header.php';
 
 if ( ! current_user_can( 'manage_links' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to edit the links for this site.' ) );
@@ -132,4 +134,4 @@ if ( isset( $_REQUEST['deleted'] ) ) {
 </div>
 
 <?php
-include( ABSPATH . 'wp-admin/admin-footer.php' );
+require_once ABSPATH . 'wp-admin/admin-footer.php';

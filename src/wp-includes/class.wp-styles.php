@@ -268,7 +268,7 @@ class WP_Styles extends WP_Dependencies {
 			/** This filter is documented in wp-includes/class.wp-styles.php */
 			$rtl_tag = apply_filters( 'style_loader_tag', $rtl_tag, $handle, $rtl_href, $media );
 
-			if ( $obj->extra['rtl'] === 'replace' ) {
+			if ( 'replace' === $obj->extra['rtl'] ) {
 				$tag = $rtl_tag;
 			} else {
 				$tag .= $rtl_tag;
@@ -322,9 +322,10 @@ class WP_Styles extends WP_Dependencies {
 	 * @since 3.3.0
 	 *
 	 * @param string $handle The style's registered handle.
-	 * @param bool   $echo   Optional. Whether to echo the inline style instead of just returning it.
-	 *                       Default true.
-	 * @return string|bool False if no data exists, inline styles if `$echo` is true, true otherwise.
+	 * @param bool   $echo   Optional. Whether to echo the inline style
+	 *                       instead of just returning it. Default true.
+	 * @return string|bool False if no data exists, inline styles if `$echo` is true,
+	 *                     true otherwise.
 	 */
 	public function print_inline_style( $handle, $echo = true ) {
 		$output = $this->get_data( $handle, 'after' );
@@ -356,9 +357,11 @@ class WP_Styles extends WP_Dependencies {
 	 *
 	 * @see WP_Dependencies::all_deps()
 	 *
-	 * @param mixed     $handles   Item handle and argument (string) or item handles and arguments (array of strings).
-	 * @param bool      $recursion Internal flag that function is calling itself.
-	 * @param int|false $group     Group level: (int) level, (false) no groups.
+	 * @param string|string[] $handles   Item handle (string) or item handles (array of strings).
+	 * @param bool            $recursion Optional. Internal flag that function is calling itself.
+	 *                                   Default false.
+	 * @param int|false       $group     Optional. Group level: level (int), no groups (false).
+	 *                                   Default false.
 	 * @return bool True on success, false on failure.
 	 */
 	public function all_deps( $handles, $recursion = false, $group = false ) {
@@ -381,8 +384,8 @@ class WP_Styles extends WP_Dependencies {
 	 *
 	 * @since 2.6.0
 	 *
-	 * @param string $src The source of the enqueued style.
-	 * @param string $ver The version of the enqueued style.
+	 * @param string $src    The source of the enqueued style.
+	 * @param string $ver    The version of the enqueued style.
 	 * @param string $handle The style's registered handle.
 	 * @return string Style's fully-qualified URL.
 	 */
@@ -437,7 +440,7 @@ class WP_Styles extends WP_Dependencies {
 	 *
 	 * @see WP_Dependencies::do_items()
 	 *
-	 * @return array Handles of items that have been processed.
+	 * @return string[] Handles of items that have been processed.
 	 */
 	public function do_footer_items() {
 		$this->do_items( false, 1 );

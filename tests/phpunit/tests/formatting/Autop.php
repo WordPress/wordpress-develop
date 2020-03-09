@@ -4,7 +4,10 @@
  * @group formatting
  */
 class Tests_Formatting_Autop extends WP_UnitTestCase {
-	//From ticket https://core.trac.wordpress.org/ticket/11008
+
+	/**
+	 * @ticket 11008
+	 */
 	function test_first_post() {
 		$expected  = '<p>Welcome to WordPress!  This post contains important information.  After you read it, you can make it private to hide it from visitors but still have the information handy for future reference.</p>
 <p>First things first:</p>
@@ -56,7 +59,7 @@ Thank you for selecting WordPress.  We wish you happy publishing!
 PS.  Not yet subscribed for update notifications?  <a href="%1$s" title="Subscribe to the WordPress mailing list for Release Notifications">Do it now!</a>
 ';
 
-		// On windows environments, the EOL-style is \r\n
+		// On Windows environments, the EOL-style is \r\n.
 		$expected = str_replace( "\r\n", "\n", $expected );
 
 		$this->assertEquals( $expected, wpautop( $test_data ) );
@@ -72,18 +75,18 @@ PS.  Not yet subscribed for update notifications?  <a href="%1$s" title="Subscri
 		$code = str_replace( "\r", '', $code );
 		$code = htmlentities( $code );
 
-		// Not wrapped in <p> tags
+		// Not wrapped in <p> tags.
 		$str = "<pre>$code</pre>";
 		$this->assertEquals( $str, trim( wpautop( $str ) ) );
 
-		// Text before/after is wrapped in <p> tags
+		// Text before/after is wrapped in <p> tags.
 		$str = "Look at this code\n\n<pre>$code</pre>\n\nIsn't that cool?";
 
-		// Expected text after wpautop
+		// Expected text after wpautop().
 		$expected = '<p>Look at this code</p>' . "\n<pre>" . $code . "</pre>\n" . '<p>Isn\'t that cool?</p>';
 		$this->assertEquals( $expected, trim( wpautop( $str ) ) );
 
-		// Make sure HTML breaks are maintained if manually inserted
+		// Make sure HTML breaks are maintained if manually inserted.
 		$str      = "Look at this code\n\n<pre>Line1<br />Line2<br>Line3<br/>Line4\nActual Line 2\nActual Line 3</pre>\n\nCool, huh?";
 		$expected = "<p>Look at this code</p>\n<pre>Line1<br />Line2<br>Line3<br/>Line4\nActual Line 2\nActual Line 3</pre>\n<p>Cool, huh?</p>";
 		$this->assertEquals( $expected, trim( wpautop( $str ) ) );
@@ -142,7 +145,7 @@ PS.  Not yet subscribed for update notifications?  <a href="%1$s" title="Subscri
 			</video>' .
 			"\n\nParagraph two.";
 
-		$expected = "<p>Paragraph one.</p>\n" . // line breaks only after <p>
+		$expected = "<p>Paragraph one.</p>\n" . // Line breaks only after <p>.
 			'<p><video class="wp-video-shortcode" id="video-0-1" width="640" height="360" preload="metadata" controls="controls">' .
 			'<source type="video/mp4" src="http://domain.tld/wp-content/uploads/2013/12/xyz.mp4" />' .
 			'<!-- WebM/VP8 for Firefox4, Opera, and Chrome -->' .
@@ -157,7 +160,7 @@ PS.  Not yet subscribed for update notifications?  <a href="%1$s" title="Subscri
 			"http://domain.tld/wp-content/uploads/2013/12/xyz.mp4</a></video></p>\n" .
 			'<p>Paragraph two.</p>';
 
-		// When running the content through wpautop() from wp_richedit_pre()
+		// When running the content through wpautop() from wp_richedit_pre().
 		$shortcode_content = "Paragraph one.\n\n" .
 			'[video width="720" height="480" mp4="http://domain.tld/wp-content/uploads/2013/12/xyz.mp4"]
 			<!-- WebM/VP8 for Firefox4, Opera, and Chrome -->
@@ -171,7 +174,7 @@ PS.  Not yet subscribed for update notifications?  <a href="%1$s" title="Subscri
 			[/video]' .
 			"\n\nParagraph two.";
 
-		$shortcode_expected = "<p>Paragraph one.</p>\n" . // line breaks only after <p>
+		$shortcode_expected = "<p>Paragraph one.</p>\n" . // Line breaks only after <p>.
 			'<p>[video width="720" height="480" mp4="http://domain.tld/wp-content/uploads/2013/12/xyz.mp4"]' .
 			'<!-- WebM/VP8 for Firefox4, Opera, and Chrome --><source type="video/webm" src="myvideo.webm" />' .
 			'<!-- Ogg/Vorbis for older Firefox and Opera versions --><source type="video/ogg" src="myvideo.ogv" />' .
@@ -206,7 +209,7 @@ Paragraph one.
 
 Paragraph two.';
 
-		$expected1 = "<p>Paragraph one.</p>\n" . // line breaks only after <p>
+		$expected1 = "<p>Paragraph one.</p>\n" . // Line breaks only after <p>.
 			'<p><object width="400" height="224" classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,40,0">' .
 			'<param name="src" value="http://domain.tld/wp-content/uploads/2013/12/xyz.swf" />' .
 			'<param name="allowfullscreen" value="true" />' .
@@ -242,7 +245,7 @@ Paragraph one.
 
 Paragraph two.';
 
-		$expected2 = "<p>Paragraph one.</p>\n" . // line breaks only after block tags
+		$expected2 = "<p>Paragraph one.</p>\n" . // Line breaks only after block tags.
 			'<div class="video-player" id="x-video-0">' . "\n" .
 			'<object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="640" height="360" id="video-0" standby="Standby text">' .
 			'<param name="movie" value="http://domain.tld/wp-content/uploads/2013/12/xyz.swf" />' .
@@ -335,11 +338,11 @@ Paragraph two.';
 		}
 
 		$expected = join( "\n", $content );
-		$input    = join( "\n\n", $content ); // WS difference
+		$input    = join( "\n\n", $content ); // Whitespace difference.
 
 		$this->assertEquals( $expected, trim( wpautop( $input ) ) );
 
-		$input = join( '', $content ); // WS difference
+		$input = join( '', $content ); // Whitespace difference.
 
 		$this->assertEquals( $expected, trim( wpautop( $input ) ) );
 

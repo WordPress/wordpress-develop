@@ -7,7 +7,7 @@
  */
 
 /** Load WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 /**
  * @global string  $post_type
@@ -34,15 +34,15 @@ if ( 'post' == $post_type ) {
 	}
 } else {
 	$submenu_file = "post-new.php?post_type=$post_type";
-	if ( isset( $post_type_object ) && $post_type_object->show_in_menu && $post_type_object->show_in_menu !== true ) {
+	if ( isset( $post_type_object ) && $post_type_object->show_in_menu && true !== $post_type_object->show_in_menu ) {
 		$parent_file = $post_type_object->show_in_menu;
 		// What if there isn't a post-new.php item for this post type?
 		if ( ! isset( $_registered_pages[ get_plugin_page_hookname( "post-new.php?post_type=$post_type", $post_type_object->show_in_menu ) ] ) ) {
 			if ( isset( $_registered_pages[ get_plugin_page_hookname( "edit.php?post_type=$post_type", $post_type_object->show_in_menu ) ] ) ) {
-				// Fall back to edit.php for that post type, if it exists
+				// Fall back to edit.php for that post type, if it exists.
 				$submenu_file = "edit.php?post_type=$post_type";
 			} else {
-				// Otherwise, give up and highlight the parent
+				// Otherwise, give up and highlight the parent.
 				$submenu_file = $parent_file;
 			}
 		}
@@ -69,10 +69,10 @@ $post_ID = $post->ID;
 /** This filter is documented in wp-admin/post.php */
 if ( apply_filters( 'replace_editor', false, $post ) !== true ) {
 	if ( use_block_editor_for_post( $post ) ) {
-		include( ABSPATH . 'wp-admin/edit-form-blocks.php' );
+		require ABSPATH . 'wp-admin/edit-form-blocks.php';
 	} else {
 		wp_enqueue_script( 'autosave' );
-		include( ABSPATH . 'wp-admin/edit-form-advanced.php' );
+		require ABSPATH . 'wp-admin/edit-form-advanced.php';
 	}
 } else {
 	// Flag that we're not loading the block editor.
@@ -80,4 +80,4 @@ if ( apply_filters( 'replace_editor', false, $post ) !== true ) {
 	$current_screen->is_block_editor( false );
 }
 
-include( ABSPATH . 'wp-admin/admin-footer.php' );
+require_once ABSPATH . 'wp-admin/admin-footer.php';

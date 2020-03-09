@@ -7,13 +7,13 @@
  */
 
 /** WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 $title = __( 'Privacy' );
 
 list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
 
-include( ABSPATH . 'wp-admin/admin-header.php' );
+require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 <div class="wrap about__container">
 
@@ -25,9 +25,7 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 			</h1>
 		</div>
 
-		<div class="about__header-badge">
-			<img src="https://wordpress.org/images/core/5.4/code-is-poetry-rc.svg" alt="<?php _e( 'Code is Poetry' ); ?>" />
-		</div>
+		<div class="about__header-badge"></div>
 
 		<div class="about__header-text">
 			<p>
@@ -78,4 +76,4 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 	</div>
 
 </div>
-<?php include( ABSPATH . 'wp-admin/admin-footer.php' ); ?>
+<?php require_once ABSPATH . 'wp-admin/admin-footer.php'; ?>

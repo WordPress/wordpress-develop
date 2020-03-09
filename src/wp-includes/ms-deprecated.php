@@ -226,7 +226,7 @@ function get_most_active_blogs( $num = 10, $display = true ) {
 		$blog_list = array();
 		foreach ( (array) $blogs as $key => $details ) {
 			$most_active[ $details['blog_id'] ] = $details['postcount'];
-			$blog_list[ $details['blog_id'] ] = $details; // array_slice() removes keys!!
+			$blog_list[ $details['blog_id'] ] = $details; // array_slice() removes keys!
 		}
 		arsort( $most_active );
 		reset( $most_active );
@@ -371,10 +371,10 @@ function get_blogaddress_by_domain( $domain, $path ) {
 		if ( $domain != $_SERVER['HTTP_HOST'] ) {
 			$blogname = substr( $domain, 0, strpos( $domain, '.' ) );
 			$url = 'http://' . substr( $domain, strpos( $domain, '.' ) + 1 ) . $path;
-			// we're not installing the main blog
+			// We're not installing the main blog.
 			if ( $blogname != 'www.' )
 				$url .= $blogname . '/';
-		} else { // main blog
+		} else { // Main blog.
 			$url = 'http://' . $domain . $path;
 		}
 	}
@@ -401,14 +401,16 @@ function create_empty_blog( $domain, $path, $weblog_title, $site_id = 1 ) {
 
 	// Check if the domain has been used already. We should return an error message.
 	if ( domain_exists($domain, $path, $site_id) )
-		return __( '<strong>ERROR</strong>: Site URL already taken.' );
+		return __( '<strong>Error</strong>: Site URL already taken.' );
 
-	// Need to back up wpdb table names, and create a new wp_blogs entry for new blog.
-	// Need to get blog_id from wp_blogs, and create new table names.
-	// Must restore table names at the end of function.
+	/*
+	 * Need to back up wpdb table names, and create a new wp_blogs entry for new blog.
+	 * Need to get blog_id from wp_blogs, and create new table names.
+	 * Must restore table names at the end of function.
+	 */
 
 	if ( ! $blog_id = insert_blog($domain, $path, $site_id) )
-		return __( '<strong>ERROR</strong>: problem creating site entry.' );
+		return __( '<strong>Error</strong>: Problem creating site entry.' );
 
 	switch_to_blog($blog_id);
 	install_blog($blog_id);
@@ -472,10 +474,8 @@ function get_admin_users_for_domain( $domain = '', $path = '' ) {
  *     @type int       $limit      Number of sites to limit the query to. Default 100.
  *     @type int       $offset     Exclude the first x sites. Used in combination with the $limit parameter. Default 0.
  * }
- * @return array An empty array if the installation is considered "large" via wp_is_large_network(). Otherwise,
- *               an associative array of site data arrays, each containing the site (network) ID, blog ID,
- *               site domain and path, dates registered and modified, and the language ID. Also, boolean
- *               values for whether the site is public, archived, mature, spam, and/or deleted.
+ * @return array[] An empty array if the installation is considered "large" via wp_is_large_network(). Otherwise,
+ *                 an associative array of WP_Site data as arrays.
  */
 function wp_get_sites( $args = array() ) {
 	_deprecated_function( __FUNCTION__, '4.6.0', 'get_sites()' );
@@ -496,7 +496,7 @@ function wp_get_sites( $args = array() ) {
 
 	$args = wp_parse_args( $args, $defaults );
 
-	// Backwards compatibility
+	// Backward compatibility.
 	if( is_array( $args['network_id'] ) ){
 		$args['network__in'] = $args['network_id'];
 		$args['network_id'] = null;
@@ -607,10 +607,10 @@ function install_blog( $blog_id, $blog_title = '' ) {
 
 	_deprecated_function( __FUNCTION__, '5.1.0' );
 
-	// Cast for security
+	// Cast for security.
 	$blog_id = (int) $blog_id;
 
-	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+	require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 	$suppress = $wpdb->suppress_errors();
 	if ( $wpdb->get_results( "DESCRIBE {$wpdb->posts}" ) ) {
@@ -620,7 +620,7 @@ function install_blog( $blog_id, $blog_title = '' ) {
 
 	$url = get_blogaddress_by_id( $blog_id );
 
-	// Set everything up
+	// Set everything up.
 	make_db_current_silent( 'blog' );
 	populate_options();
 	populate_roles();
@@ -652,10 +652,10 @@ function install_blog( $blog_id, $blog_title = '' ) {
 	update_option( 'blogname', wp_unslash( $blog_title ) );
 	update_option( 'admin_email', '' );
 
-	// remove all perms
+	// Remove all permissions.
 	$table_prefix = $wpdb->get_blog_prefix();
-	delete_metadata( 'user', 0, $table_prefix . 'user_level', null, true ); // delete all
-	delete_metadata( 'user', 0, $table_prefix . 'capabilities', null, true ); // delete all
+	delete_metadata( 'user', 0, $table_prefix . 'user_level', null, true );   // Delete all.
+	delete_metadata( 'user', 0, $table_prefix . 'capabilities', null, true ); // Delete all.
 }
 
 /**
@@ -677,7 +677,7 @@ function install_blog_defaults( $blog_id, $user_id ) {
 
 	_deprecated_function( __FUNCTION__, 'MU' );
 
-	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+	require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 	$suppress = $wpdb->suppress_errors();
 

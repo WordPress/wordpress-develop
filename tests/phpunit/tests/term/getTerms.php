@@ -113,7 +113,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		$num_queries = $wpdb->num_queries;
 
-		// last_changed and num_queries should bump
+		// last_changed and num_queries should bump.
 		$terms = get_terms( 'post_tag', array( 'update_term_meta_cache' => false ) );
 		$this->assertEquals( 3, count( $terms ) );
 		$time1 = wp_cache_get( 'last_changed', 'terms' );
@@ -137,7 +137,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		$this->set_up_three_posts_and_tags();
 
-		// Prime cache
+		// Prime cache.
 		$terms       = get_terms( 'post_tag' );
 		$time1       = wp_cache_get( 'last_changed', 'terms' );
 		$num_queries = $wpdb->num_queries;
@@ -165,7 +165,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		$this->set_up_three_posts_and_tags();
 
-		// Prime cache
+		// Prime cache.
 		$terms       = get_terms( 'post_tag' );
 		$time1       = wp_cache_get( 'last_changed', 'terms' );
 		$num_queries = $wpdb->num_queries;
@@ -775,7 +775,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	 * @ticket 27123
 	 */
 	function test_get_term_children_recursion() {
-		// Assume there is a way to insert a term with the parent pointing to itself
+		// Assume there is a way to insert a term with the parent pointing to itself.
 		// See: https://core.trac.wordpress.org/changeset/15806
 		remove_filter( 'wp_update_term_parent', 'wp_check_term_hierarchy_for_loops', 10 );
 
@@ -926,7 +926,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 		$this->assertEqualSets( array( $t ), $found );
 
-		// array format.
+		// Array format.
 		$found = get_terms(
 			'wptests_tax',
 			array(
@@ -1025,7 +1025,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				Montreal
 			PEI
 		*/
-		// Level 1
+		// Level 1.
 		$canada = self::factory()->term->create(
 			array(
 				'name'     => 'Canada',
@@ -1033,7 +1033,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		// Level 2
+		// Level 2.
 		$ontario = self::factory()->term->create(
 			array(
 				'name'     => 'Ontario',
@@ -1056,7 +1056,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		// Level 3
+		// Level 3.
 		$toronto  = self::factory()->term->create(
 			array(
 				'name'     => 'Toronto',
@@ -1079,7 +1079,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		// Level 4
+		// Level 4.
 		$nepean = self::factory()->term->create(
 			array(
 				'name'     => 'Nepean',
@@ -1107,7 +1107,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$tax = 'location';
 		register_taxonomy( $tax, 'post', array( 'hierarchical' => true ) );
 
-		// Level 1
+		// Level 1.
 		$canada = self::factory()->term->create(
 			array(
 				'name'     => 'Canada',
@@ -1115,7 +1115,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		// Level 2
+		// Level 2.
 		$ontario = self::factory()->term->create(
 			array(
 				'name'     => 'Ontario',
@@ -1131,7 +1131,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		// Level 3
+		// Level 3.
 		$laval    = self::factory()->term->create(
 			array(
 				'name'     => 'Laval',
@@ -1147,7 +1147,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		// Level 4
+		// Level 4.
 		$dorval = self::factory()->term->create(
 			array(
 				'name'     => 'Dorval',
@@ -2221,7 +2221,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	public function test_hierarchical_false_with_parent() {
 		$initial_terms = $this->create_hierarchical_terms();
 
-		// Case where hierarchical is false
+		// Case where hierarchical is false.
 		$terms = get_terms(
 			'category',
 			array(
@@ -2230,7 +2230,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		// Verify that there are no children
+		// Verify that there are no children.
 		$this->assertEquals( 0, count( $terms ) );
 	}
 
@@ -2240,7 +2240,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	public function test_hierarchical_true_with_parent() {
 		$initial_terms = $this->create_hierarchical_terms();
 
-		// Case where hierarchical is true
+		// Case where hierarchical is true.
 		$terms = get_terms(
 			'category',
 			array(
@@ -2249,7 +2249,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		// Verify that the children with non-empty descendants are returned
+		// Verify that the children with non-empty descendants are returned.
 		$expected = array(
 			$initial_terms['two_term']['term_id'],
 			$initial_terms['five_term']['term_id'],
@@ -2267,7 +2267,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			'category'
 		);
 
-		// Case where hierarchical is false
+		// Case where hierarchical is false.
 		$terms = get_terms(
 			'category',
 			array(
@@ -2287,7 +2287,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	public function test_hierarchical_false_with_child_of_should_not_return_grandchildren() {
 		$initial_terms = $this->create_hierarchical_terms();
 
-		// Case where hierarchical is false
+		// Case where hierarchical is false.
 		$terms = get_terms(
 			'category',
 			array(
@@ -2296,14 +2296,14 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		// Verify that there are no children
+		// Verify that there are no children.
 		$this->assertEquals( 0, count( $terms ) );
 	}
 
 	public function test_hierarchical_true_with_child_of_should_return_grandchildren() {
 		$initial_terms = $this->create_hierarchical_terms();
 
-		// Case where hierarchical is true
+		// Case where hierarchical is true.
 		$terms = get_terms(
 			'category',
 			array(
@@ -2399,7 +2399,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	public function test_hierarchical_false_parent_should_override_child_of() {
 		$initial_terms = $this->create_hierarchical_terms();
 
-		// Case where hierarchical is false
+		// Case where hierarchical is false.
 		$terms = get_terms(
 			'category',
 			array(
@@ -2409,7 +2409,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		// hierarchical=false means that descendants are not fetched.
+		// 'hierarchical=false' means that descendants are not fetched.
 		$this->assertEquals( 0, count( $terms ) );
 	}
 
@@ -2419,7 +2419,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	public function test_hierarchical_true_parent_overrides_child_of() {
 		$initial_terms = $this->create_hierarchical_terms();
 
-		// Case where hierarchical is true
+		// Case where hierarchical is true.
 		$terms = get_terms(
 			'category',
 			array(
@@ -2429,7 +2429,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		// Verify that parent takes precedence over child_of
+		// Verify that parent takes precedence over child_of.
 		$expected = array(
 			$initial_terms['two_term']['term_id'],
 			$initial_terms['five_term']['term_id'],
@@ -2997,14 +2997,16 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	}
 
 	protected function create_hierarchical_terms() {
-		// Set up the following hierarchy:
-		// - One
-		//   - Two
-		//     - Three (1)
-		//     - Four
-		//   - Five
-		//     - Six (1)
-		//   - Seven
+		/*
+		 * Set up the following hierarchy:
+		 * - One
+		 *   - Two
+		 *     - Three (1)
+		 *     - Four
+		 *   - Five
+		 *     - Six (1)
+		 *   - Seven
+		 */
 		$one_term   = wp_insert_term(
 			'One',
 			'category'
@@ -3052,7 +3054,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		// Ensure child terms are not empty
+		// Ensure child terms are not empty.
 		$first_post_id  = self::factory()->post->create();
 		$second_post_id = self::factory()->post->create();
 		wp_set_post_terms( $first_post_id, array( $three_term['term_id'] ), 'category' );

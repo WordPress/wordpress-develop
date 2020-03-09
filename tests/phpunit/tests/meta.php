@@ -27,46 +27,46 @@ class Tests_Meta extends WP_UnitTestCase {
 	}
 
 	function test_delete_metadata_by_mid() {
-		// Let's try and delete a non-existing ID, non existing meta
+		// Let's try and delete a non-existing ID, non existing meta.
 		$this->assertFalse( delete_metadata_by_mid( 'user', 0 ) );
 		$this->assertFalse( delete_metadata_by_mid( 'non_existing_meta', $this->delete_meta_id ) );
 
-		// Now let's delete the real meta data
+		// Now let's delete the real meta data.
 		$this->assertTrue( delete_metadata_by_mid( 'user', $this->delete_meta_id ) );
 
-		// And make sure it's been deleted
+		// And make sure it's been deleted.
 		$this->assertFalse( get_metadata_by_mid( 'user', $this->delete_meta_id ) );
 
-		// Make sure the caches are cleared
+		// Make sure the caches are cleared.
 		$this->assertFalse( (bool) get_user_meta( $this->author->ID, 'delete_meta_key' ) );
 	}
 
 	function test_update_metadata_by_mid() {
-		// Setup
+		// Setup.
 		$meta = get_metadata_by_mid( 'user', $this->meta_id );
 
-		// Update the meta value
+		// Update the meta value.
 		$this->assertTrue( update_metadata_by_mid( 'user', $this->meta_id, 'meta_new_value' ) );
 		$meta = get_metadata_by_mid( 'user', $this->meta_id );
 		$this->assertEquals( 'meta_new_value', $meta->meta_value );
 
-		// Update the meta value
+		// Update the meta value.
 		$this->assertTrue( update_metadata_by_mid( 'user', $this->meta_id, 'meta_new_value', 'meta_new_key' ) );
 		$meta = get_metadata_by_mid( 'user', $this->meta_id );
 		$this->assertEquals( 'meta_new_key', $meta->meta_key );
 
-		// Update the key and value
+		// Update the key and value.
 		$this->assertTrue( update_metadata_by_mid( 'user', $this->meta_id, 'meta_value', 'meta_key' ) );
 		$meta = get_metadata_by_mid( 'user', $this->meta_id );
 		$this->assertEquals( 'meta_key', $meta->meta_key );
 		$this->assertEquals( 'meta_value', $meta->meta_value );
 
-		// Update the value that has to be serialized
+		// Update the value that has to be serialized.
 		$this->assertTrue( update_metadata_by_mid( 'user', $this->meta_id, array( 'first', 'second' ) ) );
 		$meta = get_metadata_by_mid( 'user', $this->meta_id );
 		$this->assertEquals( array( 'first', 'second' ), $meta->meta_value );
 
-		// Let's try some invalid meta data
+		// Let's try some invalid meta data.
 		$this->assertFalse( update_metadata_by_mid( 'user', 0, 'meta_value' ) );
 		$this->assertFalse( update_metadata_by_mid( 'user', $this->meta_id, 'meta_value', array( 'invalid', 'key' ) ) );
 
@@ -117,7 +117,7 @@ class Tests_Meta extends WP_UnitTestCase {
 	function test_metadata_exists_with_filter() {
 		// Let's see if it returns the correct value when adding a filter.
 		add_filter( 'get_user_metadata', '__return_zero' );
-		$this->assertFalse( metadata_exists( 'user', $this->author->ID, 'meta_key' ) ); // existing meta key
+		$this->assertFalse( metadata_exists( 'user', $this->author->ID, 'meta_key' ) ); // Existing meta key.
 		$this->assertFalse( metadata_exists( 'user', 1234567890, 'meta_key' ) );
 		remove_filter( 'get_user_metadata', '__return_zero' );
 	}
@@ -139,10 +139,10 @@ class Tests_Meta extends WP_UnitTestCase {
 
 		$this->assertEquals( 1, count( $u ) );
 
-		// User found is not locally defined author (it's the admin)
+		// User found is not locally defined author (it's the admin).
 		$this->assertNotEquals( $this->author->user_login, $u[0]->user_login );
 
-		// Test EXISTS and NOT EXISTS together, no users should be found
+		// Test EXISTS and NOT EXISTS together, no users should be found.
 		$this->assertEquals(
 			0,
 			count(
@@ -219,7 +219,7 @@ class Tests_Meta extends WP_UnitTestCase {
 		$this->assertSame( '', get_metadata( 'user', $this->author->ID, $key, true ) );
 		$this->assertFalse( metadata_exists( 'user', $this->author->ID, $key ) );
 
-		// Test overslashing
+		// Test overslashing.
 		$this->assertInternalType( 'int', add_metadata( 'user', $this->author->ID, $key, $value2 ) );
 		$this->assertEquals( $expected2, get_metadata( 'user', $this->author->ID, $key, true ) );
 		$this->assertTrue( delete_metadata( 'user', $this->author->ID, $key ) );
@@ -255,7 +255,7 @@ class Tests_Meta extends WP_UnitTestCase {
 		$this->assertEquals( array( $post_id2, $post_id1 ), $posts->posts );
 		$this->assertEquals( 2, substr_count( $posts->request, 'CAST(' ) );
 
-		// Make sure the newer meta_query syntax behaves in a consistent way
+		// Make sure the newer meta_query syntax behaves in a consistent way.
 		$posts = new WP_Query(
 			array(
 				'fields'     => 'ids',

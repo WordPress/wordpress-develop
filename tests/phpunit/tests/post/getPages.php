@@ -420,7 +420,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 			)
 		);
 
-		$pages              = get_pages(); // Defaults: hierarchical = true, parent = -1
+		$pages              = get_pages(); // Defaults: hierarchical = true, parent = -1.
 		$pages_default_args = get_pages(
 			array(
 				'hierarchical' => true,
@@ -464,7 +464,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 			)
 		);
 
-		$pages        = get_pages(); // Defaults: hierarchical = true, child_of = '', parent = -1
+		$pages        = get_pages(); // Defaults: hierarchical = true, child_of = '', parent = -1.
 		$default_args = get_pages(
 			array(
 				'hierarchical' => true,
@@ -510,7 +510,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 			)
 		);
 
-		$pages = get_pages( array( 'hierarchical' => false ) ); // child_of = '', parent = -1
+		$pages = get_pages( array( 'hierarchical' => false ) ); // child_of = '', parent = -1.
 
 		/*
 		 * Page tree:
@@ -713,13 +713,13 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 
 		$num_queries = $wpdb->num_queries;
 
-		$pages = get_pages(); // Database gets queried
+		$pages = get_pages(); // Database gets queried.
 
 		$this->assertEquals( $num_queries + 1, $wpdb->num_queries );
 
 		$num_queries = $wpdb->num_queries;
 
-		$pages = get_pages(); // Database should not get queried
+		$pages = get_pages(); // Database should not get queried.
 
 		$this->assertEquals( $num_queries, $wpdb->num_queries );
 	}

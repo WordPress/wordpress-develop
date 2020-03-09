@@ -994,11 +994,11 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 	}
 
 	/**
+	 * An empty tax query should return an empty array, not all posts.
+	 *
 	 * @ticket 20604
 	 */
 	public function test_tax_query_relation_or_both_clauses_empty_terms() {
-		// An empty tax query should return an empty array, not all posts.
-
 		self::factory()->post->create_many( 2 );
 
 		$query = new WP_Query(
@@ -1029,11 +1029,11 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 	}
 
 	/**
+	 * An empty tax query should return an empty array, not all posts.
+	 *
 	 * @ticket 20604
 	 */
 	public function test_tax_query_relation_or_one_clause_empty_terms() {
-		// An empty tax query should return an empty array, not all posts.
-
 		self::factory()->post->create_many( 2 );
 
 		$query = new WP_Query(
@@ -1301,12 +1301,12 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 		$cats = array();
 		$tags = array();
 
-		// need term_taxonomy_ids in addition to term_ids, so no factory
+		// Need term_taxonomy_ids in addition to term_ids, so no factory.
 		for ( $i = 0; $i < 5; $i++ ) {
 			$cats[ $i ] = wp_insert_term( 'category-' . $i, 'category' );
 			$tags[ $i ] = wp_insert_term( 'tag-' . $i, 'post_tag' );
 
-			// post 0 gets all terms
+			// Post 0 gets all terms.
 			wp_set_object_terms( $posts[0], array( $cats[ $i ]['term_id'] ), 'category', true );
 			wp_set_object_terms( $posts[0], array( $tags[ $i ]['term_id'] ), 'post_tag', true );
 		}
@@ -1394,13 +1394,13 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 		$q = new WP_Query(
 			array(
 				'tax_query' => array(
-					// Empty terms mean that this one should be skipped
+					// Empty terms mean that this one should be skipped.
 					array(
 						'taxonomy' => 'bar',
 						'terms'    => array(),
 					),
 
-					// Category and post tags should be skipped
+					// Category and post tags should be skipped.
 					array(
 						'taxonomy' => 'category',
 						'terms'    => array( $c ),
@@ -1518,19 +1518,19 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 		$q = new WP_Query(
 			array(
 				'tax_query' => array(
-					// Non-category should be skipped
+					// Non-category should be skipped.
 					array(
 						'taxonomy' => 'foo',
 						'terms'    => array( $t ),
 					),
 
-					// Empty terms mean that this one should be skipped
+					// Empty terms mean that this one should be skipped.
 					array(
 						'taxonomy' => 'category',
 						'terms'    => array(),
 					),
 
-					// Category and post tags should be skipped
+					// Category and post tags should be skipped.
 					array(
 						'taxonomy' => 'category',
 						'terms'    => array( $c ),
@@ -1565,19 +1565,19 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 		$q = new WP_Query(
 			array(
 				'tax_query' => array(
-					// Non-tag should be skipped
+					// Non-tag should be skipped.
 					array(
 						'taxonomy' => 'foo',
 						'terms'    => array( $t ),
 					),
 
-					// Empty terms mean that this one should be skipped
+					// Empty terms mean that this one should be skipped.
 					array(
 						'taxonomy' => 'post_tag',
 						'terms'    => array(),
 					),
 
-					// Category and post tags should be skipped
+					// Category and post tags should be skipped.
 					array(
 						'taxonomy' => 'post_tag',
 						'terms'    => array( $tag ),

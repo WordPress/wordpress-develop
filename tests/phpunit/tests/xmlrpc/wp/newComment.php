@@ -84,11 +84,11 @@ class Tests_XMLRPC_wp_newComment extends WP_XMLRPC_UnitTestCase {
 			),
 		);
 
-		// First time it's a valid comment
+		// First time it's a valid comment.
 		$result = $this->myxmlrpcserver->wp_newComment( $comment_args );
 		$this->assertNotIXRError( $result );
 
-		// Run second time for duplication error
+		// Run second time for duplication error.
 		$result = $this->myxmlrpcserver->wp_newComment( $comment_args );
 
 		$this->assertIXRError( $result );

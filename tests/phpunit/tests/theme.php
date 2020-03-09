@@ -91,7 +91,7 @@ class Tests_Theme extends WP_UnitTestCase {
 			$this->assertInstanceOf( 'WP_Theme', $theme );
 			$this->assertFalse( $theme->errors() );
 			$_theme = wp_get_theme( $theme->get_stylesheet() );
-			// This primes internal WP_Theme caches for the next assertion (headers_sanitized, textdomain_loaded)
+			// This primes internal WP_Theme caches for the next assertion (headers_sanitized, textdomain_loaded).
 			$this->assertEquals( $theme->get( 'Name' ), $_theme->get( 'Name' ) );
 			$this->assertEquals( $theme, $_theme );
 		}
@@ -102,7 +102,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 */
 	function test_get_themes_contents() {
 		$themes = get_themes();
-		// Generic tests that should hold true for any theme
+		// Generic tests that should hold true for any theme.
 		foreach ( $themes as $k => $theme ) {
 			// Don't run these checks for custom themes.
 			if ( empty( $theme['Author'] ) || false === strpos( $theme['Author'], 'WordPress' ) ) {
@@ -112,7 +112,7 @@ class Tests_Theme extends WP_UnitTestCase {
 			$this->assertEquals( $theme['Name'], $k );
 			$this->assertNotEmpty( $theme['Title'] );
 
-			// important attributes should all be set
+			// Important attributes should all be set.
 			$default_headers = array(
 				'Title'          => 'Theme Title',
 				'Version'        => 'Version',
@@ -125,7 +125,7 @@ class Tests_Theme extends WP_UnitTestCase {
 				'Description'    => 'Description',
 				'Author'         => 'Author',
 				'Tags'           => 'Tags',
-				// Introduced in WordPress 2.9
+				// Introduced in WordPress 2.9.
 				'Theme Root'     => 'Theme Root',
 				'Theme Root URI' => 'Theme Root URI',
 			);
@@ -133,17 +133,17 @@ class Tests_Theme extends WP_UnitTestCase {
 				$this->assertTrue( isset( $theme[ $name ] ) );
 			}
 
-			// Make the tests work both for WordPress 2.8.5 and WordPress 2.9-rare
+			// Make the tests work both for WordPress 2.8.5 and WordPress 2.9-rare.
 			$dir = isset( $theme['Theme Root'] ) ? '' : WP_CONTENT_DIR;
 
-			// important attributes should all not be empty as well
+			// Important attributes should all not be empty as well.
 			$this->assertNotEmpty( $theme['Description'] );
 			$this->assertNotEmpty( $theme['Author'] );
 			$this->assertTrue( version_compare( $theme['Version'], 0 ) > 0 );
 			$this->assertNotEmpty( $theme['Template'] );
 			$this->assertNotEmpty( $theme['Stylesheet'] );
 
-			// template files should all exist
+			// Template files should all exist.
 			$this->assertTrue( is_array( $theme['Template Files'] ) );
 			$this->assertTrue( count( $theme['Template Files'] ) > 0 );
 			foreach ( $theme['Template Files'] as $file ) {
@@ -151,7 +151,7 @@ class Tests_Theme extends WP_UnitTestCase {
 				$this->assertTrue( is_readable( $dir . $file ) );
 			}
 
-			// css files should all exist
+			// CSS files should all exist.
 			$this->assertTrue( is_array( $theme['Stylesheet Files'] ) );
 			$this->assertTrue( count( $theme['Stylesheet Files'] ) > 0 );
 			foreach ( $theme['Stylesheet Files'] as $file ) {
@@ -211,6 +211,33 @@ class Tests_Theme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 48566
+	 */
+	function test_year_in_readme() {
+		// This test is designed to only run on trunk/master.
+		$this->skipOnAutomatedBranches();
+
+		foreach ( $this->default_themes as $theme ) {
+			$wp_theme = wp_get_theme( $theme );
+
+			$path_to_readme_txt = $wp_theme->get_theme_root() . '/' . $wp_theme->get_stylesheet() . '/readme.txt';
+			$this->assertFileExists( $path_to_readme_txt );
+			$readme    = file_get_contents( $path_to_readme_txt );
+			$this_year = gmdate( 'Y' );
+
+			preg_match( '#Copyright (\d+) WordPress.org#', $readme, $matches );
+			if ( $matches ) {
+				$this->assertEquals( $this_year, trim( $matches[1] ), "Bundled themes readme.txt's year needs to be updated to $this_year." );
+			}
+
+			preg_match( '#Copyright 20\d\d-(\d+) WordPress.org#', $readme, $matches );
+			if ( $matches ) {
+				$this->assertEquals( $this_year, trim( $matches[1] ), "Bundled themes readme.txt's year needs to be updated to $this_year." );
+			}
+		}
+	}
+
+	/**
 	 * @ticket 20897
 	 * @expectedDeprecated get_theme_data
 	 */
@@ -243,7 +270,7 @@ class Tests_Theme extends WP_UnitTestCase {
 
 		for ( $i = 0; $i < 3; $i++ ) {
 			foreach ( $themes as $name => $theme ) {
-				// switch to this theme
+				// Switch to this theme.
 				if ( 2 === $i ) {
 					switch_theme( $theme['Template'], $theme['Stylesheet'] );
 				} else {
@@ -252,7 +279,7 @@ class Tests_Theme extends WP_UnitTestCase {
 
 				$this->assertEquals( $name, get_current_theme() );
 
-				// make sure the various get_* functions return the correct values
+				// Make sure the various get_* functions return the correct values.
 				$this->assertEquals( $theme['Template'], get_template() );
 				$this->assertEquals( $theme['Stylesheet'], get_stylesheet() );
 
@@ -265,24 +292,26 @@ class Tests_Theme extends WP_UnitTestCase {
 				$this->assertEquals( $root_fs . '/' . get_stylesheet(), get_stylesheet_directory() );
 				$this->assertEquals( $root_uri . '/' . get_stylesheet(), get_stylesheet_directory_uri() );
 				$this->assertEquals( $root_uri . '/' . get_stylesheet() . '/style.css', get_stylesheet_uri() );
-				#               $this->assertEquals($root_uri . '/' . get_stylesheet(), get_locale_stylesheet_uri());
+				// $this->assertEquals( $root_uri . '/' . get_stylesheet(), get_locale_stylesheet_uri() );
 
 				$this->assertEquals( $root_fs . '/' . get_template(), get_template_directory() );
 				$this->assertEquals( $root_uri . '/' . get_template(), get_template_directory_uri() );
 
-				//get_query_template
+				// get_query_template()
 
-				// template file that doesn't exist
+				// Template file that doesn't exist.
 				$this->assertEquals( '', get_query_template( rand_str() ) );
 
-				// template files that do exist
-				//foreach ($theme['Template Files'] as $path) {
-				//$file = basename($path, '.php');
-				// FIXME: untestable because get_query_template uses TEMPLATEPATH
-				//$this->assertEquals('', get_query_template($file));
-				//}
+				// Template files that do exist.
+				/*
+				foreach ( $theme['Template Files'] as $path ) {
+					$file = basename($path, '.php');
+					FIXME: untestable because get_query_template() uses TEMPLATEPATH.
+					$this->assertEquals('', get_query_template($file));
+				}
+				*/
 
-				// these are kind of tautologies but at least exercise the code
+				// These are kind of tautologies but at least exercise the code.
 				$this->assertEquals( get_404_template(), get_query_template( '404' ) );
 				$this->assertEquals( get_archive_template(), get_query_template( 'archive' ) );
 				$this->assertEquals( get_author_template(), get_query_template( 'author' ) );
@@ -297,14 +326,14 @@ class Tests_Theme extends WP_UnitTestCase {
 
 				$this->assertEquals( get_tag_template(), get_query_template( 'tag' ) );
 
-				// nb: this probably doesn't run because WP_INSTALLING is defined
+				// nb: This probably doesn't run because WP_INSTALLING is defined.
 				$this->assertTrue( validate_current_theme() );
 			}
 		}
 	}
 
 	function test_switch_theme_bogus() {
-		// try switching to a theme that doesn't exist
+		// Try switching to a theme that doesn't exist.
 		$template = rand_str();
 		$style    = rand_str();
 		update_option( 'template', $template );
@@ -315,7 +344,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		$this->assertNotFalse( $theme->errors() );
 		$this->assertFalse( $theme->exists() );
 
-		// these return the bogus name - perhaps not ideal behaviour?
+		// These return the bogus name - perhaps not ideal behaviour?
 		$this->assertEquals( $template, get_template() );
 		$this->assertEquals( $style, get_stylesheet() );
 	}
@@ -343,7 +372,8 @@ class Tests_Theme extends WP_UnitTestCase {
 		$wp_customize = new WP_Customize_Manager();
 		do_action( 'customize_register', $wp_customize );
 
-		// The post_date for auto-drafts is bumped to match the changeset post_date whenever it is modified to keep them from from being garbage collected by wp_delete_auto_drafts().
+		// The post_date for auto-drafts is bumped to match the changeset post_date whenever it is modified
+		// to keep them from from being garbage collected by wp_delete_auto_drafts().
 		$wp_customize->save_changeset_post(
 			array(
 				'data' => $data,

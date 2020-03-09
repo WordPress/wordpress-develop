@@ -20,6 +20,31 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 		return 'http://example.com/';
 	}
 
+	/**
+	 * @ticket 44317
+	 *
+	 * @dataProvider get_bad_status_codes
+	 * @expectedException WPDieException
+	 *
+	 * @param string $location The path or URL to redirect to.
+	 * @param int    $status   HTTP response status code to use.
+	 */
+	public function test_wp_redirect_bad_status_code( $location, $status ) {
+		wp_redirect( $location, $status );
+	}
+
+	public function get_bad_status_codes() {
+		return array(
+			// Tests for bad arguments.
+			array( '/wp-admin', 404 ),
+			array( '/wp-admin', 410 ),
+			array( '/wp-admin', 500 ),
+			// Tests for condition.
+			array( '/wp-admin', 299 ),
+			array( '/wp-admin', 400 ),
+		);
+	}
+
 	function test_wp_sanitize_redirect() {
 		$this->assertEquals( 'http://example.com/watchthelinefeedgo', wp_sanitize_redirect( 'http://example.com/watchthelinefeed%0Ago' ) );
 		$this->assertEquals( 'http://example.com/watchthelinefeedgo', wp_sanitize_redirect( 'http://example.com/watchthelinefeed%0ago' ) );
@@ -27,7 +52,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 		$this->assertEquals( 'http://example.com/watchthecarriagereturngo', wp_sanitize_redirect( 'http://example.com/watchthecarriagereturn%0dgo' ) );
 		$this->assertEquals( 'http://example.com/watchtheallowedcharacters-~+_.?#=&;,/:%!*stay', wp_sanitize_redirect( 'http://example.com/watchtheallowedcharacters-~+_.?#=&;,/:%!*stay' ) );
 		$this->assertEquals( 'http://example.com/watchtheutf8convert%F0%9D%8C%86', wp_sanitize_redirect( "http://example.com/watchtheutf8convert\xf0\x9d\x8c\x86" ) );
-		//Nesting checks
+		// Nesting checks.
 		$this->assertEquals( 'http://example.com/watchthecarriagereturngo', wp_sanitize_redirect( 'http://example.com/watchthecarriagereturn%0%0ddgo' ) );
 		$this->assertEquals( 'http://example.com/watchthecarriagereturngo', wp_sanitize_redirect( 'http://example.com/watchthecarriagereturn%0%0DDgo' ) );
 		$this->assertEquals( 'http://example.com/whyisthisintheurl/?param[1]=foo', wp_sanitize_redirect( 'http://example.com/whyisthisintheurl/?param[1]=foo' ) );
@@ -76,23 +101,23 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 
 	function invalid_url_provider() {
 		return array(
-			// parse_url() fails
+			// parse_url() fails.
 			array( '' ),
 			array( 'http://:' ),
 
-			// non-safelisted domain
+			// Non-safelisted domain.
 			array( 'http://non-safelisted.example/' ),
 
-			// non-safelisted domain (leading whitespace)
+			// Non-safelisted domain (leading whitespace).
 			array( " \t\n\r\0\x08\x0Bhttp://non-safelisted.example.com" ),
 			array( " \t\n\r\0\x08\x0B//non-safelisted.example.com" ),
 
-			// unsupported schemes
+			// Unsupported schemes.
 			array( 'data:text/plain;charset=utf-8,Hello%20World!' ),
 			array( 'file:///etc/passwd' ),
 			array( 'ftp://example.com/' ),
 
-			// malformed input
+			// Malformed input.
 			array( 'http:example.com' ),
 			array( 'http:80' ),
 			array( 'http://example.com:1234:5678/' ),

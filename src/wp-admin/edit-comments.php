@@ -7,7 +7,7 @@
  */
 
 /** WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 if ( ! current_user_can( 'edit_posts' ) ) {
 	wp_die(
 		'<h1>' . __( 'You need a higher level of permission.' ) . '</h1>' .
@@ -31,7 +31,7 @@ if ( $doaction ) {
 		$doaction       = 'delete';
 	} elseif ( isset( $_REQUEST['delete_comments'] ) ) {
 		$comment_ids = $_REQUEST['delete_comments'];
-		$doaction    = ( $_REQUEST['action'] != -1 ) ? $_REQUEST['action'] : $_REQUEST['action2'];
+		$doaction    = ( -1 != $_REQUEST['action'] ) ? $_REQUEST['action'] : $_REQUEST['action2'];
 	} elseif ( isset( $_REQUEST['ids'] ) ) {
 		$comment_ids = array_map( 'absint', explode( ',', $_REQUEST['ids'] ) );
 	} elseif ( wp_get_referer() ) {
@@ -52,7 +52,7 @@ if ( $doaction ) {
 
 	wp_defer_comment_counting( true );
 
-	foreach ( $comment_ids as $comment_id ) { // Check the permissions on each
+	foreach ( $comment_ids as $comment_id ) { // Check the permissions on each.
 		if ( ! current_user_can( 'edit_comment', $comment_id ) ) {
 			continue;
 		}
@@ -92,20 +92,7 @@ if ( $doaction ) {
 	if ( ! in_array( $doaction, array( 'approve', 'unapprove', 'spam', 'unspam', 'trash', 'delete' ), true ) ) {
 		$screen = get_current_screen()->id;
 
-		/**
-		 * Fires when a custom bulk action should be handled.
-		 *
-		 * The redirect link should be modified with success or failure feedback
-		 * from the action to be used to display feedback to the user.
-		 *
-		 * The dynamic portion of the hook name, `$screen`, refers to the current screen ID.
-		 *
-		 * @since 4.7.0
-		 *
-		 * @param string $redirect_url The redirect URL.
-		 * @param string $doaction     The action being taken.
-		 * @param array  $items        The items to take the action on.
-		 */
+		/** This action is documented in wp-admin/edit.php */
 		$redirect_to = apply_filters( "handle_bulk_actions-{$screen}", $redirect_to, $doaction, $comment_ids ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 	}
 
@@ -218,7 +205,7 @@ get_current_screen()->set_screen_reader_content(
 	)
 );
 
-require_once( ABSPATH . 'wp-admin/admin-header.php' );
+require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 
 <div class="wrap">
@@ -283,7 +270,7 @@ if ( isset( $_REQUEST['approved'] ) || isset( $_REQUEST['deleted'] ) || isset( $
 	if ( $approved > 0 || $deleted > 0 || $trashed > 0 || $untrashed > 0 || $spammed > 0 || $unspammed > 0 || $same > 0 ) {
 		if ( $approved > 0 ) {
 			/* translators: %s: Number of comments. */
-			$messages[] = sprintf( _n( '%s comment approved', '%s comments approved', $approved ), $approved );
+			$messages[] = sprintf( _n( '%s comment approved.', '%s comments approved.', $approved ), $approved );
 		}
 
 		if ( $spammed > 0 ) {
@@ -294,7 +281,7 @@ if ( isset( $_REQUEST['approved'] ) || isset( $_REQUEST['deleted'] ) || isset( $
 
 		if ( $unspammed > 0 ) {
 			/* translators: %s: Number of comments. */
-			$messages[] = sprintf( _n( '%s comment restored from the spam', '%s comments restored from the spam', $unspammed ), $unspammed );
+			$messages[] = sprintf( _n( '%s comment restored from the spam.', '%s comments restored from the spam.', $unspammed ), $unspammed );
 		}
 
 		if ( $trashed > 0 ) {
@@ -305,12 +292,12 @@ if ( isset( $_REQUEST['approved'] ) || isset( $_REQUEST['deleted'] ) || isset( $
 
 		if ( $untrashed > 0 ) {
 			/* translators: %s: Number of comments. */
-			$messages[] = sprintf( _n( '%s comment restored from the Trash', '%s comments restored from the Trash', $untrashed ), $untrashed );
+			$messages[] = sprintf( _n( '%s comment restored from the Trash.', '%s comments restored from the Trash.', $untrashed ), $untrashed );
 		}
 
 		if ( $deleted > 0 ) {
 			/* translators: %s: Number of comments. */
-			$messages[] = sprintf( _n( '%s comment permanently deleted', '%s comments permanently deleted', $deleted ), $deleted );
+			$messages[] = sprintf( _n( '%s comment permanently deleted.', '%s comments permanently deleted.', $deleted ), $deleted );
 		}
 
 		if ( $same > 0 ) {
@@ -364,4 +351,4 @@ if ( isset( $_REQUEST['approved'] ) || isset( $_REQUEST['deleted'] ) || isset( $
 <?php
 wp_comment_reply( '-1', true, 'detail' );
 wp_comment_trashnotice();
-include( ABSPATH . 'wp-admin/admin-footer.php' ); ?>
+require_once ABSPATH . 'wp-admin/admin-footer.php'; ?>

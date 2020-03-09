@@ -11,7 +11,7 @@ $multisite        = ! empty( $argv[2] );
 
 define( 'WP_INSTALLING', true );
 require_once $config_file_path;
-require_once dirname( __FILE__ ) . '/functions.php';
+require_once __DIR__ . '/functions.php';
 
 // Set the theme to our special empty theme, to avoid interference from the current Twenty* theme.
 if ( ! defined( 'WP_DEFAULT_THEME' ) ) {
@@ -31,12 +31,12 @@ require_once ABSPATH . '/wp-settings.php';
 require_once ABSPATH . '/wp-admin/includes/upgrade.php';
 require_once ABSPATH . '/wp-includes/wp-db.php';
 
-// Override the PHPMailer
+// Override the PHPMailer.
 global $phpmailer;
-require_once( dirname( __FILE__ ) . '/mock-mailer.php' );
+require_once __DIR__ . '/mock-mailer.php';
 $phpmailer = new MockPHPMailer();
 
-register_theme_directory( dirname( __FILE__ ) . '/../data/themedir1' );
+register_theme_directory( __DIR__ . '/../data/themedir1' );
 
 /*
  * default_storage_engine and storage_engine are the same option, but storage_engine

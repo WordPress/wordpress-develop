@@ -6,7 +6,7 @@
  * @subpackage Administration
  */
 
-// don't load directly
+// Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
@@ -106,9 +106,9 @@ if ( 'approved' === wp_get_comment_status( $comment ) && $comment->comment_post_
 $submitted = sprintf(
 	/* translators: 1: Comment date, 2: Comment time. */
 	__( '%1$s at %2$s' ),
-	/* translators: Publish box date format, see https://secure.php.net/date */
+	/* translators: Publish box date format, see https://www.php.net/date */
 	date_i18n( _x( 'M j, Y', 'publish box date format' ), strtotime( $comment->comment_date ) ),
-	/* translators: Publish box time format, see https://secure.php.net/date */
+	/* translators: Publish box time format, see https://www.php.net/date */
 	date_i18n( _x( 'H:i', 'publish box time format' ), strtotime( $comment->comment_date ) )
 );
 ?>
@@ -172,8 +172,8 @@ endif;
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param string $html    Output HTML to display miscellaneous action.
-	 * @param object $comment Current comment object.
+	 * @param string     $html    Output HTML to display miscellaneous action.
+	 * @param WP_Comment $comment Current comment object.
 	 */
 	echo apply_filters( 'edit_comment_misc_actions', '', $comment );
 ?>

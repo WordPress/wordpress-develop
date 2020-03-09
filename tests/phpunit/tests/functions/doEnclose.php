@@ -233,7 +233,7 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	 *
 	 * @param  array $post_links An array of enclosure links.
 	 * @param  int   $post_id    Post ID.
-	 * @return array $post_links An array of enclosure links.
+	 * @return array An array of enclosure links.
 	 */
 	public function filter_enclosure_links( $enclosure_links, $post_id ) {
 		// Replace the link host to contain the post ID, to test both filter input arguments.

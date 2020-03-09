@@ -1,6 +1,6 @@
 <?php
 /**
- * Testing ajax customize manager functionality
+ * Testing Ajax customize manager functionality.
  *
  * @package    WordPress
  * @subpackage UnitTests

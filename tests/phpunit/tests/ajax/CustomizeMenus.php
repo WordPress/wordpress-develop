@@ -1,6 +1,6 @@
 <?php
 /**
- * Testing ajax customize menus functionality
+ * Testing Ajax customize menus functionality.
  *
  * @package    WordPress
  * @subpackage UnitTests
@@ -86,8 +86,8 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 	 *
 	 * @return array {
 	 *     @type array {
-	 * @string string $role             The role that will test caps for.
-	 * @array  array  $expected_results The expected results from the ajax call.
+	 *         @string string $role             The role that will test caps for.
+	 *         @array  array  $expected_results The expected results from the Ajax call.
 	 *     }
 	 * }
 	 */
@@ -157,7 +157,7 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 	 * @return array {
 	 *     @type array {
 	 * @array array $post_args        The arguments that will merged with the $_POST array.
-	 * @array array $expected_results The expected results from the ajax call.
+	 * @array array $expected_results The expected results from the Ajax call.
 	 *     }
 	 * }
 	 */
@@ -477,7 +477,7 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 	 * @return array {
 	 *     @type array {
 	 * @string string $role             The role that will test caps for.
-	 * @array  array  $expected_results The expected results from the ajax call.
+	 * @array  array  $expected_results The expected results from the Ajax call.
 	 *     }
 	 * }
 	 */
@@ -568,8 +568,8 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 	 *
 	 * @return array {
 	 *     @type array {
-	 * @string string $post_args        The args that will be passed to ajax.
-	 * @array  array  $expected_results The expected results from the ajax call.
+	 * @string string $post_args        The args that will be passed to Ajax.
+	 * @array  array  $expected_results The expected results from the Ajax call.
 	 *     }
 	 * }
 	 */

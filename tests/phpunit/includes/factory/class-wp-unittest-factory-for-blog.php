@@ -16,27 +16,50 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 		global $current_site, $base;
 		parent::__construct( $factory );
 		$this->default_generation_definitions = array(
-			'domain'  => $current_site->domain,
-			'path'    => new WP_UnitTest_Generator_Sequence( $base . 'testpath%s' ),
-			'title'   => new WP_UnitTest_Generator_Sequence( 'Site %s' ),
-			'site_id' => $current_site->id,
+			'domain'     => $current_site->domain,
+			'path'       => new WP_UnitTest_Generator_Sequence( $base . 'testpath%s' ),
+			'title'      => new WP_UnitTest_Generator_Sequence( 'Site %s' ),
+			'network_id' => $current_site->id,
 		);
 	}
 
 	/**
-	 * Creates a blog object.
+	 * Creates a site object.
 	 *
 	 * @param array $args Arguments for the site object.
 	 *
-	 * @return int|WP_Error Returns WP_Error object on failure, the site ID on success.
+	 * @return int|WP_Error The site ID on success, WP_Error object on failure.
 	 */
 	public function create_object( $args ) {
 		global $wpdb;
-		$meta    = isset( $args['meta'] ) ? $args['meta'] : array( 'public' => 1 );
-		$user_id = isset( $args['user_id'] ) ? $args['user_id'] : get_current_user_id();
-		// temp tables will trigger db errors when we attempt to reference them as new temp tables
+
+		// Map some arguments for backward compatibility with `wpmu_create_blog()` previously used here.
+		if ( isset( $args['site_id'] ) ) {
+			$args['network_id'] = $args['site_id'];
+			unset( $args['site_id'] );
+		}
+
+		if ( isset( $args['meta'] ) ) {
+			// The `$site_data_whitelist` matches the one used in `wpmu_create_blog()`.
+			$site_data_whitelist = array( 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' );
+
+			foreach ( $args['meta'] as $key => $value ) {
+				// Promote whitelisted keys to top-level arguments, add others to the options array.
+				if ( in_array( $key, $site_data_whitelist, true ) ) {
+					$args[ $key ] = $value;
+				} else {
+					$args['options'][ $key ] = $value;
+				}
+			}
+
+			unset( $args['meta'] );
+		}
+
+		// Temporary tables will trigger DB errors when we attempt to reference them as new temporary tables.
 		$suppress = $wpdb->suppress_errors();
-		$blog     = wpmu_create_blog( $args['domain'], $args['path'], $args['title'], $user_id, $meta, $args['site_id'] );
+
+		$blog = wp_insert_site( $args );
+
 		$wpdb->suppress_errors( $suppress );
 
 		// Tell WP we're done installing.
@@ -46,9 +69,9 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 	}
 
 	/**
-	 * Updates a blog object. Not implemented.
+	 * Updates a site object. Not implemented.
 	 *
-	 * @param int   $blog_id The blog id to update.
+	 * @param int   $blog_id ID of the site to update.
 	 * @param array $fields  The fields to update.
 	 *
 	 * @return void
@@ -56,11 +79,11 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 	public function update_object( $blog_id, $fields ) {}
 
 	/**
-	 * Retrieves a site by given blog id.
+	 * Retrieves a site by a given ID.
 	 *
-	 * @param int $blog_id The blog id to retrieve.
+	 * @param int $blog_id ID of the site to retrieve.
 	 *
-	 * @return null|WP_Site The site object or null if not found.
+	 * @return WP_Site|null The site object on success, null on failure.
 	 */
 	public function get_object_by_id( $blog_id ) {
 		return get_site( $blog_id );

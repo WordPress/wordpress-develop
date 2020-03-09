@@ -27,7 +27,7 @@ jQuery(document).ready( function($) {
 	 * @listens $edittimestamp:click
 	 *
 	 * @param {Event} event The event object.
-	 * @returns {void}
+	 * @return {void}
 	 */
 	$edittimestamp.click( function( event ) {
 		if ( $timestampdiv.is( ':hidden' ) ) {
@@ -46,7 +46,7 @@ jQuery(document).ready( function($) {
 	 * @listens .cancel-timestamp:click
 	 *
 	 * @param {Event} event The event object.
-	 * @returns {void}
+	 * @return {void}
 	 */
 
 	$timestampdiv.find('.cancel-timestamp').click( function( event ) {
@@ -68,9 +68,9 @@ jQuery(document).ready( function($) {
 	 * @listens .save-timestamp:click
 	 *
 	 * @param {Event} event The event object.
-	 * @returns {void}
+	 * @return {void}
 	 */
-	$timestampdiv.find('.save-timestamp').click( function( event ) { // crazyhorse - multiple ok cancels
+	$timestampdiv.find('.save-timestamp').click( function( event ) { // Crazyhorse - multiple OK cancels.
 		var aa = $('#aa').val(), mm = $('#mm').val(), jj = $('#jj').val(), hh = $('#hh').val(), mn = $('#mn').val(),
 			newD = new Date( aa, mm - 1, jj, hh, mn );
 

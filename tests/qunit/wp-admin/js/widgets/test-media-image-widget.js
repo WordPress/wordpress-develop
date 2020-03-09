@@ -62,7 +62,7 @@
 		imageWidgetControlInstance.$el.find( '.title' ).val( 'Chicken and Ribs' ).trigger( 'input' );
 		equal( imageWidgetModelInstance.get( 'title' ), 'Chicken and Ribs', 'Changing title should update model title attribute' );
 
-		// Test mapMediaToModelProps
+		// Test mapMediaToModelProps.
 		mappedProps = imageWidgetControlInstance.mapMediaToModelProps( { link: 'file', url: testImageUrl } );
 		equal( mappedProps.link_url, testImageUrl, 'mapMediaToModelProps should set file link_url according to mediaFrameProps.link' );
 		mappedProps = imageWidgetControlInstance.mapMediaToModelProps( { link: 'post', postUrl: 'https://wordpress.org/image-2/' } );

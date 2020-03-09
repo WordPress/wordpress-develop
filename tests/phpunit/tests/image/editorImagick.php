@@ -7,15 +7,15 @@
  * @group media
  * @group wp-image-editor-imagick
  */
-require_once( dirname( __FILE__ ) . '/base.php' );
+require_once __DIR__ . '/base.php';
 
 class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 	public $editor_engine = 'WP_Image_Editor_Imagick';
 
 	public function setUp() {
-		require_once( ABSPATH . WPINC . '/class-wp-image-editor.php' );
-		require_once( ABSPATH . WPINC . '/class-wp-image-editor-imagick.php' );
+		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
+		require_once ABSPATH . WPINC . '/class-wp-image-editor-imagick.php';
 
 		parent::setUp();
 	}
@@ -93,7 +93,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		$this->assertEquals( $expected_array, $resized );
 
-		// Now, verify real dimensions are as expected
+		// Now, verify real dimensions are as expected.
 		$image_path = DIR_TESTDATA . '/images/' . $resized[0]['file'];
 		$this->assertImageDimensions(
 			$image_path,
@@ -368,7 +368,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		foreach ( $resized as $key => $image_data ) {
 			$image_path = DIR_TESTDATA . '/images/' . $image_data['file'];
 
-			// Now, verify real dimensions are as expected
+			// Now, verify real dimensions are as expected.
 			$this->assertImageDimensions(
 				$image_path,
 				$expected_array[ $key ]['width'],

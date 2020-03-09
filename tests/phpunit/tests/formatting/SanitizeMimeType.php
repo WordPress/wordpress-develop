@@ -4,7 +4,10 @@
  * @group formatting
  */
 class Tests_Formatting_SanitizeMimeType extends WP_UnitTestCase {
-	// 17855
+
+	/**
+	 * @ticket 17855
+	 */
 	function test_sanitize_valid_mime_type() {
 		$inputs = array(
 			'application/atom+xml',

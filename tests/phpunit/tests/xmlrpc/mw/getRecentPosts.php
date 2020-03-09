@@ -57,7 +57,7 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 		foreach ( $results as $result ) {
 			$post = get_post( $result['postid'] );
 
-			// Check data types
+			// Check data types.
 			$this->assertInternalType( 'string', $result['userid'] );
 			$this->assertInternalType( 'string', $result['postid'] );
 			$this->assertInternalType( 'string', $result['description'] );
@@ -79,7 +79,7 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 			$this->assertInternalType( 'array', $result['custom_fields'] );
 			$this->assertInternalType( 'string', $result['wp_post_format'] );
 
-			// Check expected values
+			// Check expected values.
 			$this->assertStringMatchesFormat( '%d', $result['userid'] );
 			$this->assertStringMatchesFormat( '%d', $result['postid'] );
 			$this->assertEquals( $post->post_title, $result['title'] );
@@ -97,7 +97,7 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 	function test_post_thumbnail() {
 		add_theme_support( 'post-thumbnails' );
 
-		// create attachment
+		// Create attachment.
 		$filename      = ( DIR_TESTDATA . '/images/a2-small.jpg' );
 		$attachment_id = self::factory()->attachment->create_upload_object( $filename, self::$post_id );
 		set_post_thumbnail( self::$post_id, $attachment_id );

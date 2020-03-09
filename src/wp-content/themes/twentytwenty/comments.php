@@ -5,7 +5,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty
- * @since 1.0.0
+ * @since Twenty Twenty 1.0
  */
 
 /*
@@ -33,11 +33,11 @@ if ( $comments ) {
 			if ( ! have_comments() ) {
 				_e( 'Leave a comment', 'twentytwenty' );
 			} elseif ( '1' === $comments_number ) {
-				/* translators: %s: post title */
-				printf( _x( 'One reply on &ldquo;%s&rdquo;', 'comments title', 'twentytwenty' ), esc_html( get_the_title() ) );
+				/* translators: %s: Post title. */
+				printf( _x( 'One reply on &ldquo;%s&rdquo;', 'comments title', 'twentytwenty' ), get_the_title() );
 			} else {
-				echo sprintf(
-					/* translators: 1: number of comments, 2: post title */
+				printf(
+					/* translators: 1: Number of comments, 2: Post title. */
 					_nx(
 						'%1$s reply on &ldquo;%2$s&rdquo;',
 						'%1$s replies on &ldquo;%2$s&rdquo;',
@@ -46,7 +46,7 @@ if ( $comments ) {
 						'twentytwenty'
 					),
 					number_format_i18n( $comments_number ),
-					esc_html( get_the_title() )
+					get_the_title()
 				);
 			}
 
@@ -85,7 +85,7 @@ if ( $comments ) {
 				}
 				?>
 
-				<nav class="comments-pagination pagination<?php echo $pagination_classes; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static output ?>" aria-label="<?php esc_attr_e( 'Comments', 'twentytwenty' ); ?>">
+				<nav class="comments-pagination pagination<?php echo $pagination_classes; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static output ?>" aria-label="<?php esc_attr_e( 'Comments', 'twentytwenty' ); ?>">
 					<?php echo wp_kses_post( $comment_pagination ); ?>
 				</nav>
 

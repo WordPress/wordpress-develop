@@ -6,7 +6,7 @@
  * @subpackage Administration
  */
 
-// don't load directly
+// Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
@@ -76,7 +76,7 @@ $post_ID = isset( $post_ID ) ? (int) $post_ID : 0;
 $user_ID = isset( $user_ID ) ? (int) $user_ID : 0;
 $action  = isset( $action ) ? $action : '';
 
-if ( $post_ID == get_option( 'page_for_posts' ) && empty( $post->post_content ) ) {
+if ( get_option( 'page_for_posts' ) == $post_ID && empty( $post->post_content ) ) {
 	add_action( 'edit_form_after_title', '_wp_posts_page_notice' );
 	remove_post_type_support( $post_type, 'editor' );
 }
@@ -95,7 +95,7 @@ if ( $thumbnail_support ) {
 	wp_enqueue_media( array( 'post' => $post_ID ) );
 }
 
-// Add the local autosave notice HTML
+// Add the local autosave notice HTML.
 add_action( 'admin_footer', '_local_storage_notice' );
 
 /*
@@ -169,9 +169,9 @@ if ( $viewable ) {
 $scheduled_date = sprintf(
 	/* translators: Publish box date string. 1: Date, 2: Time. */
 	__( '%1$s at %2$s' ),
-	/* translators: Publish box date format, see https://secure.php.net/date */
+	/* translators: Publish box date format, see https://www.php.net/date */
 	date_i18n( _x( 'M j, Y', 'publish box date format' ), strtotime( $post->post_date ) ),
-	/* translators: Publish box time format, see https://secure.php.net/date */
+	/* translators: Publish box time format, see https://www.php.net/date */
 	date_i18n( _x( 'H:i', 'publish box time format' ), strtotime( $post->post_date ) )
 );
 
@@ -242,7 +242,7 @@ $form_action  = 'editpost';
 $nonce_action = 'update-post_' . $post_ID;
 $form_extra  .= "<input type='hidden' id='post_ID' name='post_ID' value='" . esc_attr( $post_ID ) . "' />";
 
-// Detect if there exists an autosave newer than the post and if that autosave is different than the post
+// Detect if there exists an autosave newer than the post and if that autosave is different than the post.
 if ( $autosave && mysql2date( 'U', $autosave->post_modified_gmt, false ) > mysql2date( 'U', $post->post_modified_gmt, false ) ) {
 	foreach ( _wp_post_revision_fields( $post ) as $autosave_field => $_autosave_field ) {
 		if ( normalize_whitespace( $autosave->$autosave_field ) != normalize_whitespace( $post->$autosave_field ) ) {
@@ -264,7 +264,7 @@ if ( $autosave && mysql2date( 'U', $autosave->post_modified_gmt, false ) > mysql
 $post_type_object = get_post_type_object( $post_type );
 
 // All meta boxes should be defined and added before the first do_meta_boxes() call (or potentially during the do_meta_boxes action).
-require_once( ABSPATH . 'wp-admin/includes/meta-boxes.php' );
+require_once ABSPATH . 'wp-admin/includes/meta-boxes.php';
 
 register_and_do_post_meta_boxes( $post );
 
@@ -376,7 +376,7 @@ if ( 'post' == $post_type ) {
 
 	if ( current_theme_supports( 'post-thumbnails' ) && post_type_supports( 'post', 'thumbnail' ) ) {
 		$publish_box .= '<li>' . sprintf(
-			/* translators: %s: Featured Image. */
+			/* translators: %s: Featured image. */
 			__( '<strong>%s</strong> &mdash; This allows you to associate an image with your post without inserting it. This is usually useful only if your theme makes use of the image as a post thumbnail on the home page, a custom header, etc.' ),
 			esc_html( $post_type_object->labels->featured_image )
 		) . '</li>';
@@ -416,7 +416,7 @@ if ( 'post' == $post_type ) {
 	);
 }
 
-require_once( ABSPATH . 'wp-admin/admin-header.php' );
+require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 
 <div class="wrap">
@@ -534,7 +534,7 @@ do_action( 'edit_form_top', $post );
 		if ( has_filter( 'pre_get_shortlink' ) || has_filter( 'get_shortlink' ) ) {
 			$shortlink = wp_get_shortlink( $post->ID, 'post' );
 
-			if ( ! empty( $shortlink ) && $shortlink !== $permalink && $permalink !== home_url( '?page_id=' . $post->ID ) ) {
+			if ( ! empty( $shortlink ) && $shortlink !== $permalink && home_url( '?page_id=' . $post->ID ) !== $permalink ) {
 				$sample_permalink_html .= '<input id="shortlink" type="hidden" value="' . esc_attr( $shortlink ) . '" /><button type="button" class="button button-small" onclick="prompt(&#39;URL:&#39;, jQuery(\'#shortlink\').val());">' . __( 'Get Shortlink' ) . '</button>';
 			}
 		}

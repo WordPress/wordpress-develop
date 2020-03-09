@@ -78,7 +78,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|bool True if the request has read access, WP_Error object otherwise.
+	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
 		if ( 'edit' === $request['context'] ) {
@@ -89,7 +89,12 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 					return true;
 				}
 			}
-			return new WP_Error( 'rest_cannot_view', __( 'Sorry, you are not allowed to manage post statuses.' ), array( 'status' => rest_authorization_required_code() ) );
+
+			return new WP_Error(
+				'rest_cannot_view',
+				__( 'Sorry, you are not allowed to manage post statuses.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
 		}
 
 		return true;
@@ -101,7 +106,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
 		$data              = array();
@@ -128,19 +133,27 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|bool True if the request has read access for the item, WP_Error object otherwise.
+	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
 		$status = get_post_status_object( $request['status'] );
 
 		if ( empty( $status ) ) {
-			return new WP_Error( 'rest_status_invalid', __( 'Invalid status.' ), array( 'status' => 404 ) );
+			return new WP_Error(
+				'rest_status_invalid',
+				__( 'Invalid status.' ),
+				array( 'status' => 404 )
+			);
 		}
 
 		$check = $this->check_read_permission( $status );
 
 		if ( ! $check ) {
-			return new WP_Error( 'rest_cannot_read_status', __( 'Cannot view status.' ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error(
+				'rest_cannot_read_status',
+				__( 'Cannot view status.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
 		}
 
 		return true;
@@ -178,13 +191,17 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
 		$obj = get_post_status_object( $request['status'] );
 
 		if ( empty( $obj ) ) {
-			return new WP_Error( 'rest_status_invalid', __( 'Invalid status.' ), array( 'status' => 404 ) );
+			return new WP_Error(
+				'rest_status_invalid',
+				__( 'Invalid status.' ),
+				array( 'status' => 404 )
+			);
 		}
 
 		$data = $this->prepare_item_for_response( $obj, $request );
@@ -333,6 +350,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 		);
 
 		$this->schema = $schema;
+
 		return $this->add_additional_fields_schema( $this->schema );
 	}
 

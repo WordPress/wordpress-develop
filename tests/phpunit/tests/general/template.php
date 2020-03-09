@@ -6,7 +6,7 @@
  * @group site_icon
  */
 
-require_once( ABSPATH . 'wp-admin/includes/class-wp-site-icon.php' );
+require_once ABSPATH . 'wp-admin/includes/class-wp-site-icon.php';
 
 class Tests_General_Template extends WP_UnitTestCase {
 	protected $wp_site_icon;
@@ -105,7 +105,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$output = array(
 			sprintf( '<link rel="icon" href="%s" sizes="32x32" />', esc_url( get_site_icon_url( 32 ) ) ),
 			sprintf( '<link rel="icon" href="%s" sizes="192x192" />', esc_url( get_site_icon_url( 192 ) ) ),
-			sprintf( '<link rel="apple-touch-icon-precomposed" href="%s" />', esc_url( get_site_icon_url( 180 ) ) ),
+			sprintf( '<link rel="apple-touch-icon" href="%s" />', esc_url( get_site_icon_url( 180 ) ) ),
 			sprintf( '<meta name="msapplication-TileImage" content="%s" />', esc_url( get_site_icon_url( 270 ) ) ),
 			'',
 		);
@@ -126,7 +126,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$output = array(
 			sprintf( '<link rel="icon" href="%s" sizes="32x32" />', esc_url( get_site_icon_url( 32 ) ) ),
 			sprintf( '<link rel="icon" href="%s" sizes="192x192" />', esc_url( get_site_icon_url( 192 ) ) ),
-			sprintf( '<link rel="apple-touch-icon-precomposed" href="%s" />', esc_url( get_site_icon_url( 180 ) ) ),
+			sprintf( '<link rel="apple-touch-icon" href="%s" />', esc_url( get_site_icon_url( 180 ) ) ),
 			sprintf( '<meta name="msapplication-TileImage" content="%s" />', esc_url( get_site_icon_url( 270 ) ) ),
 			sprintf( '<link rel="apple-touch-icon" sizes="150x150" href="%s" />', esc_url( get_site_icon_url( 150 ) ) ),
 			'',
@@ -175,7 +175,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$output = array(
 			sprintf( '<link rel="icon" href="%s" sizes="32x32" />', esc_url( wp_get_attachment_image_url( $attachment_id, 32 ) ) ),
 			sprintf( '<link rel="icon" href="%s" sizes="192x192" />', esc_url( wp_get_attachment_image_url( $attachment_id, 192 ) ) ),
-			sprintf( '<link rel="apple-touch-icon-precomposed" href="%s" />', esc_url( wp_get_attachment_image_url( $attachment_id, 180 ) ) ),
+			sprintf( '<link rel="apple-touch-icon" href="%s" />', esc_url( wp_get_attachment_image_url( $attachment_id, 180 ) ) ),
 			sprintf( '<meta name="msapplication-TileImage" content="%s" />', esc_url( wp_get_attachment_image_url( $attachment_id, 270 ) ) ),
 			'',
 		);
@@ -234,7 +234,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$upload              = wp_upload_bits( wp_basename( $filename ), null, $contents );
 		$this->site_icon_url = $upload['url'];
 
-		// Save the data
+		// Save the data.
 		$this->site_icon_id = $this->_make_attachment( $upload );
 		return $this->site_icon_id;
 	}
@@ -445,7 +445,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @since 4.6.0
 	 */
 	function test_get_the_modified_time_failures_are_filtered() {
-		// Remove global post objet
+		// Remove global post object.
 		$GLOBALS['post'] = null;
 
 		$expected = 'filtered modified time failure result';
@@ -516,7 +516,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @since 4.6.0
 	 */
 	function test_get_the_modified_date_failures_are_filtered() {
-		// Remove global post objet
+		// Remove global post object.
 		$GLOBALS['post'] = null;
 
 		$expected = 'filtered modified date failure result';

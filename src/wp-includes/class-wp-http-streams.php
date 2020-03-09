@@ -55,9 +55,9 @@ class WP_Http_Streams {
 
 		$connect_host = $arrURL['host'];
 
-		$secure_transport = ( $arrURL['scheme'] == 'ssl' || $arrURL['scheme'] == 'https' );
+		$secure_transport = ( 'ssl' === $arrURL['scheme'] || 'https' === $arrURL['scheme'] );
 		if ( ! isset( $arrURL['port'] ) ) {
-			if ( $arrURL['scheme'] == 'ssl' || $arrURL['scheme'] == 'https' ) {
+			if ( 'ssl' === $arrURL['scheme'] || 'https' === $arrURL['scheme'] ) {
 				$arrURL['port']   = 443;
 				$secure_transport = true;
 			} else {
@@ -65,7 +65,7 @@ class WP_Http_Streams {
 			}
 		}
 
-		// Always pass a Path, defaulting to the root in cases such as http://example.com
+		// Always pass a path, defaulting to the root in cases such as http://example.com.
 		if ( ! isset( $arrURL['path'] ) ) {
 			$arrURL['path'] = '/';
 		}
@@ -114,7 +114,7 @@ class WP_Http_Streams {
 			array(
 				'ssl' => array(
 					'verify_peer'       => $ssl_verify,
-					//'CN_match' => $arrURL['host'], // This is handled by self::verify_ssl_certificate()
+					// 'CN_match' => $arrURL['host'], // This is handled by self::verify_ssl_certificate().
 					'capture_peer_cert' => $ssl_verify,
 					'SNI_enabled'       => true,
 					'cafile'            => $parsed_args['sslcertificates'],
@@ -134,7 +134,7 @@ class WP_Http_Streams {
 		$connection_error_str = null;
 
 		if ( ! WP_DEBUG ) {
-			// In the event that the SSL connection fails, silence the many PHP Warnings.
+			// In the event that the SSL connection fails, silence the many PHP warnings.
 			if ( $secure_transport ) {
 				$error_reporting = error_reporting( 0 );
 			}
@@ -176,7 +176,7 @@ class WP_Http_Streams {
 
 		stream_set_timeout( $handle, $timeout, $utimeout );
 
-		if ( $proxy->is_enabled() && $proxy->send_through_proxy( $url ) ) { //Some proxies require full URL in this field.
+		if ( $proxy->is_enabled() && $proxy->send_through_proxy( $url ) ) { // Some proxies require full URL in this field.
 			$requestPath = $url;
 		} else {
 			$requestPath = $arrURL['path'] . ( isset( $arrURL['query'] ) ? '?' . $arrURL['query'] : '' );
@@ -390,7 +390,7 @@ class WP_Http_Streams {
 			$match_against = preg_split( '/,\s*/', $cert['extensions']['subjectAltName'] );
 			foreach ( $match_against as $match ) {
 				list( $match_type, $match_host ) = explode( ':', $match );
-				if ( $host_type == strtolower( trim( $match_type ) ) ) { // IP: or DNS:
+				if ( strtolower( trim( $match_type ) ) === $host_type ) { // IP: or DNS:
 					$certificate_hostnames[] = strtolower( trim( $match_host ) );
 				}
 			}

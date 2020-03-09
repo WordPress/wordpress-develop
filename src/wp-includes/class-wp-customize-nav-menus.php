@@ -39,7 +39,7 @@ final class WP_Customize_Nav_Menus {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param object $manager An instance of the WP_Customize_Manager class.
+	 * @param WP_Customize_Manager $manager An instance of the WP_Customize_Manager class.
 	 */
 	public function __construct( $manager ) {
 		$this->manager                     = $manager;
@@ -135,7 +135,7 @@ final class WP_Customize_Nav_Menus {
 	 *                         'post_type' and 'taxonomy'. Default is 'post_type'.
 	 * @param string $object Optional. Accepts any registered taxonomy or post type name. Default is 'page'.
 	 * @param int    $page   Optional. The page number used to generate the query offset. Default is '0'.
-	 * @return WP_Error|array Returns either a WP_Error object or an array of menu items.
+	 * @return array|WP_Error An array of menu items on success, a WP_Error object on failure.
 	 */
 	public function load_available_items_query( $type = 'post_type', $object = 'page', $page = 0 ) {
 		$items = array();
@@ -1282,7 +1282,7 @@ final class WP_Customize_Nav_Menus {
 	 * @since 4.7.0
 	 *
 	 * @param array $value Post IDs.
-	 * @returns array Post IDs.
+	 * @return array Post IDs.
 	 */
 	public function sanitize_nav_menus_created_posts( $value ) {
 		$post_ids = array();

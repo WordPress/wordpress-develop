@@ -85,7 +85,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 * @global string $term
 	 */
 	public function prepare_items() {
-		include_once( ABSPATH . 'wp-admin/includes/plugin-install.php' );
+		include_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 
 		global $tabs, $tab, $paged, $type, $term;
 
@@ -95,13 +95,13 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 
 		$per_page = 36;
 
-		// These are the tabs which are shown on the page
+		// These are the tabs which are shown on the page.
 		$tabs = array();
 
 		if ( 'search' === $tab ) {
 			$tabs['search'] = __( 'Search Results' );
 		}
-		if ( $tab === 'beta' || false !== strpos( get_bloginfo( 'version' ), '-' ) ) {
+		if ( 'beta' === $tab || false !== strpos( get_bloginfo( 'version' ), '-' ) ) {
 			$tabs['beta'] = _x( 'Beta Testing', 'Plugin Installer' );
 		}
 		$tabs['featured']    = _x( 'Featured', 'Plugin Installer' );
@@ -369,7 +369,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 * @param string $which
 	 */
 	protected function display_tablenav( $which ) {
-		if ( $GLOBALS['tab'] === 'featured' ) {
+		if ( 'featured' === $GLOBALS['tab'] ) {
 			return;
 		}
 
@@ -471,7 +471,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 				$plugin = (array) $plugin;
 			}
 
-			// Display the group heading if there is one
+			// Display the group heading if there is one.
 			if ( isset( $plugin['group'] ) && $plugin['group'] != $group ) {
 				if ( isset( $this->groups[ $plugin['group'] ] ) ) {
 					$group_name = $this->groups[ $plugin['group'] ];
@@ -482,13 +482,13 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 					$group_name = $plugin['group'];
 				}
 
-				// Starting a new group, close off the divs of the last one
+				// Starting a new group, close off the divs of the last one.
 				if ( ! empty( $group ) ) {
 					echo '</div></div>';
 				}
 
 				echo '<div class="plugin-group"><h3>' . esc_html( $group_name ) . '</h3>';
-				// needs an extra wrapping div for nth-child selectors to work
+				// Needs an extra wrapping div for nth-child selectors to work.
 				echo '<div class="plugin-items">';
 
 				$group = $plugin['group'];
@@ -768,7 +768,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			<?php
 		}
 
-		// Close off the group divs of the last one
+		// Close off the group divs of the last one.
 		if ( ! empty( $group ) ) {
 			echo '</div></div>';
 		}

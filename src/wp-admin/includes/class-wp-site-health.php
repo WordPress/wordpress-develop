@@ -8,6 +8,8 @@
  */
 
 class WP_Site_Health {
+	private static $instance = null;
+
 	private $mysql_min_version_check;
 	private $mysql_rec_version_check;
 
@@ -29,7 +31,7 @@ class WP_Site_Health {
 	 * @since 5.2.0
 	 */
 	public function __construct() {
-		$this->prepare_sql_data();
+		$this->maybe_create_scheduled_event();
 
 		$this->timeout_late_cron   = 0;
 		$this->timeout_missed_cron = - 5 * MINUTE_IN_SECONDS;
@@ -42,6 +44,22 @@ class WP_Site_Health {
 		add_filter( 'admin_body_class', array( $this, 'admin_body_class' ) );
 
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+		add_action( 'wp_site_health_scheduled_check', array( $this, 'wp_cron_scheduled_check' ) );
+	}
+
+	/**
+	 * Return an instance of the WP_Site_Health class, or create one if none exist yet.
+	 *
+	 * @since 5.4.0
+	 *
+	 * @return WP_Site_Health|null
+	 */
+	public static function get_instance() {
+		if ( null === self::$instance ) {
+			self::$instance = new WP_Site_Health();
+		}
+
+		return self::$instance;
 	}
 
 	/**
@@ -51,7 +69,7 @@ class WP_Site_Health {
 	 */
 	public function enqueue_scripts() {
 		$screen = get_current_screen();
-		if ( 'site-health' !== $screen->id ) {
+		if ( 'site-health' !== $screen->id && 'dashboard' !== $screen->id ) {
 			return;
 		}
 
@@ -83,7 +101,7 @@ class WP_Site_Health {
 		if ( 'site-health' === $screen->id && ! isset( $_GET['tab'] ) ) {
 			$tests = WP_Site_Health::get_tests();
 
-			// Don't run https test on localhost
+			// Don't run https test on localhost.
 			if ( 'localhost' === preg_replace( '|https?://|', '', get_site_url() ) ) {
 				unset( $tests['direct']['https_status'] );
 			}
@@ -96,35 +114,13 @@ class WP_Site_Health {
 					);
 
 					if ( method_exists( $this, $test_function ) && is_callable( array( $this, $test_function ) ) ) {
-						/**
-						 * Filter the output of a finished Site Health test.
-						 *
-						 * @since 5.3.0
-						 *
-						 * @param array $test_result {
-						 *     An associated array of test result data.
-						 *
-						 *     @param string $label  A label describing the test, and is used as a header in the output.
-						 *     @param string $status The status of the test, which can be a value of `good`, `recommended` or `critical`.
-						 *     @param array  $badge {
-						 *         Tests are put into categories which have an associated badge shown, these can be modified and assigned here.
-						 *
-						 *         @param string $label The test label, for example `Performance`.
-						 *         @param string $color Default `blue`. A string representing a color to use for the label.
-						 *     }
-						 *     @param string $description A more descriptive explanation of what the test looks for, and why it is important for the end user.
-						 *     @param string $actions     An action to direct the user to where they can resolve the issue, if one exists.
-						 *     @param string $test        The name of the test being ran, used as a reference point.
-						 * }
-						 */
-						$health_check_js_variables['site_status']['direct'][] = apply_filters( 'site_status_test_result', call_user_func( array( $this, $test_function ) ) );
+						$health_check_js_variables['site_status']['direct'][] = $this->perform_test( array( $this, $test_function ) );
 						continue;
 					}
 				}
 
 				if ( is_callable( $test['test'] ) ) {
-					/** This filter is documented in wp-admin/includes/class-wp-site-health.php */
-					$health_check_js_variables['site_status']['direct'][] = apply_filters( 'site_status_test_result', call_user_func( $test['test'] ) );
+					$health_check_js_variables['site_status']['direct'][] = $this->perform_test( $test['test'] );
 				}
 			}
 
@@ -139,6 +135,40 @@ class WP_Site_Health {
 		}
 
 		wp_localize_script( 'site-health', 'SiteHealth', $health_check_js_variables );
+	}
+
+	/**
+	 * Run a Site Health test directly.
+	 *
+	 * @since 5.4.0
+	 *
+	 * @param $callback
+	 *
+	 * @return mixed|void
+	 */
+	private function perform_test( $callback ) {
+		/**
+		 * Filter the output of a finished Site Health test.
+		 *
+		 * @since 5.3.0
+		 *
+		 * @param array $test_result {
+		 *     An associated array of test result data.
+		 *
+		 *     @param string $label  A label describing the test, and is used as a header in the output.
+		 *     @param string $status The status of the test, which can be a value of `good`, `recommended` or `critical`.
+		 *     @param array  $badge {
+		 *         Tests are put into categories which have an associated badge shown, these can be modified and assigned here.
+		 *
+		 *         @param string $label The test label, for example `Performance`.
+		 *         @param string $color Default `blue`. A string representing a color to use for the label.
+		 *     }
+		 *     @param string $description A more descriptive explanation of what the test looks for, and why it is important for the end user.
+		 *     @param string $actions     An action to direct the user to where they can resolve the issue, if one exists.
+		 *     @param string $test        The name of the test being ran, used as a reference point.
+		 * }
+		 */
+		return apply_filters( 'site_status_test_result', call_user_func( $callback ) );
 	}
 
 	/**
@@ -1016,6 +1046,46 @@ class WP_Site_Health {
 	}
 
 	/**
+	 * Test if the PHP default timezone is set to UTC.
+	 *
+	 * @since 5.3.1
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_php_default_timezone() {
+		$result = array(
+			'label'       => __( 'PHP default timezone is valid' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Performance' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'PHP default timezone was configured by WordPress on loading. This is necessary for correct calculations of dates and times.' )
+			),
+			'test'        => 'php_default_timezone',
+		);
+
+		if ( 'UTC' !== date_default_timezone_get() ) {
+			$result['status'] = 'critical';
+
+			$result['label'] = __( 'PHP default timezone is invalid' );
+
+			$result['description'] = sprintf(
+				'<p>%s</p>',
+				sprintf(
+					/* translators: %s: date_default_timezone_set() */
+					__( 'PHP default timezone was changed after WordPress loading by a %s function call. This interferes with correct calculations of dates and times.' ),
+					'<code>date_default_timezone_set()</code>'
+				)
+			);
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Test if the SQL server is up to date.
 	 *
 	 * @since 5.2.0
@@ -1023,6 +1093,10 @@ class WP_Site_Health {
 	 * @return array The test results.
 	 */
 	public function get_test_sql_server() {
+		if ( ! $this->mysql_server_version ) {
+			$this->prepare_sql_data();
+		}
+
 		$result = array(
 			'label'       => __( 'SQL server is up to date' ),
 			'status'      => 'good',
@@ -1110,6 +1184,10 @@ class WP_Site_Health {
 	public function get_test_utf8mb4_support() {
 		global $wpdb;
 
+		if ( ! $this->mysql_server_version ) {
+			$this->prepare_sql_data();
+		}
+
 		$result = array(
 			'label'       => __( 'UTF8MB4 is supported' ),
 			'status'      => 'good',
@@ -1145,7 +1223,7 @@ class WP_Site_Health {
 					__( 'Your MySQL version supports utf8mb4.' )
 				);
 			}
-		} else { // MariaDB introduced utf8mb4 support in 5.5.0
+		} else { // MariaDB introduced utf8mb4 support in 5.5.0.
 			if ( version_compare( $this->mysql_server_version, '5.5.0', '<' ) ) {
 				$result['status'] = 'recommended';
 
@@ -1560,7 +1638,7 @@ class WP_Site_Health {
 		);
 
 		if ( ! class_exists( 'WP_Site_Health_Auto_Updates' ) ) {
-			require_once( ABSPATH . 'wp-admin/includes/class-wp-site-health-auto-updates.php' );
+			require_once ABSPATH . 'wp-admin/includes/class-wp-site-health-auto-updates.php';
 		}
 
 		// Run the auto-update tests in a separate class,
@@ -1842,51 +1920,55 @@ class WP_Site_Health {
 	public static function get_tests() {
 		$tests = array(
 			'direct' => array(
-				'wordpress_version' => array(
+				'wordpress_version'    => array(
 					'label' => __( 'WordPress Version' ),
 					'test'  => 'wordpress_version',
 				),
-				'plugin_version'    => array(
+				'plugin_version'       => array(
 					'label' => __( 'Plugin Versions' ),
 					'test'  => 'plugin_version',
 				),
-				'theme_version'     => array(
+				'theme_version'        => array(
 					'label' => __( 'Theme Versions' ),
 					'test'  => 'theme_version',
 				),
-				'php_version'       => array(
+				'php_version'          => array(
 					'label' => __( 'PHP Version' ),
 					'test'  => 'php_version',
 				),
-				'sql_server'        => array(
-					'label' => __( 'Database Server version' ),
-					'test'  => 'sql_server',
-				),
-				'php_extensions'    => array(
+				'php_extensions'       => array(
 					'label' => __( 'PHP Extensions' ),
 					'test'  => 'php_extensions',
 				),
-				'utf8mb4_support'   => array(
+				'php_default_timezone' => array(
+					'label' => __( 'PHP Default Timezone' ),
+					'test'  => 'php_default_timezone',
+				),
+				'sql_server'           => array(
+					'label' => __( 'Database Server version' ),
+					'test'  => 'sql_server',
+				),
+				'utf8mb4_support'      => array(
 					'label' => __( 'MySQL utf8mb4 support' ),
 					'test'  => 'utf8mb4_support',
 				),
-				'https_status'      => array(
+				'https_status'         => array(
 					'label' => __( 'HTTPS status' ),
 					'test'  => 'https_status',
 				),
-				'ssl_support'       => array(
+				'ssl_support'          => array(
 					'label' => __( 'Secure communication' ),
 					'test'  => 'ssl_support',
 				),
-				'scheduled_events'  => array(
+				'scheduled_events'     => array(
 					'label' => __( 'Scheduled events' ),
 					'test'  => 'scheduled_events',
 				),
-				'http_requests'     => array(
+				'http_requests'        => array(
 					'label' => __( 'HTTP Requests' ),
 					'test'  => 'http_requests',
 				),
-				'debug_enabled'     => array(
+				'debug_enabled'        => array(
 					'label' => __( 'Debugging enabled' ),
 					'test'  => 'is_in_debug_mode',
 				),
@@ -1961,6 +2043,11 @@ class WP_Site_Health {
 	 * @return string The modified body class string.
 	 */
 	public function admin_body_class( $body_class ) {
+		$screen = get_current_screen();
+		if ( 'site-health' !== $screen->id ) {
+			return $body_class;
+		}
+
 		$body_class .= ' site-health';
 
 		return $body_class;
@@ -2122,5 +2209,106 @@ class WP_Site_Health {
 			'status'  => 'good',
 			'message' => __( 'The loopback request to your site completed successfully.' ),
 		);
+	}
+
+	/**
+	 * Create a weekly cron event, if one does not already exist.
+	 *
+	 * @since 5.4.0
+	 */
+	public function maybe_create_scheduled_event() {
+		if ( ! wp_next_scheduled( 'wp_site_health_scheduled_check' ) && ! wp_installing() ) {
+			wp_schedule_event( time(), 'weekly', 'wp_site_health_scheduled_check' );
+		}
+	}
+
+	/**
+	 * Run our scheduled event to check and update the latest site health status for the website.
+	 *
+	 * @since 5.4.0
+	 */
+	public function wp_cron_scheduled_check() {
+		// Bootstrap wp-admin, as WP_Cron doesn't do this for us.
+		require_once trailingslashit( ABSPATH ) . 'wp-admin/includes/admin.php';
+
+		$tests = WP_Site_Health::get_tests();
+
+		$results = array();
+
+		$site_status = array(
+			'good'        => 0,
+			'recommended' => 0,
+			'critical'    => 0,
+		);
+
+		// Don't run https test on localhost.
+		if ( 'localhost' === preg_replace( '|https?://|', '', get_site_url() ) ) {
+			unset( $tests['direct']['https_status'] );
+		}
+
+		foreach ( $tests['direct'] as $test ) {
+
+			if ( is_string( $test['test'] ) ) {
+				$test_function = sprintf(
+					'get_test_%s',
+					$test['test']
+				);
+
+				if ( method_exists( $this, $test_function ) && is_callable( array( $this, $test_function ) ) ) {
+					$results[] = $this->perform_test( array( $this, $test_function ) );
+					continue;
+				}
+			}
+
+			if ( is_callable( $test['test'] ) ) {
+				$results[] = $this->perform_test( $test['test'] );
+			}
+		}
+
+		foreach ( $tests['async'] as $test ) {
+			if ( is_string( $test['test'] ) ) {
+				if ( isset( $test['has_rest'] ) && $test['has_rest'] ) {
+					$result_fetch = wp_remote_post(
+						rest_url( $test['test'] ),
+						array(
+							'body' => array(
+								'_wpnonce' => wp_create_nonce( 'wp_rest' ),
+							),
+						)
+					);
+				} else {
+					$result_fetch = wp_remote_post(
+						admin_url( 'admin-ajax.php' ),
+						array(
+							'body' => array(
+								'action'   => $test['test'],
+								'_wpnonce' => wp_create_nonce( 'health-check-site-status' ),
+							),
+						)
+					);
+				}
+
+				if ( ! is_wp_error( $result_fetch ) ) {
+					$results[] = json_decode( wp_remote_retrieve_body( $result_fetch ) );
+				} else {
+					$results[] = array(
+						'status' => 'recommended',
+						'label'  => __( 'A test is unavailable' ),
+					);
+				}
+			}
+		}
+
+		foreach ( $results as $result ) {
+			if ( 'critical' === $result['status'] ) {
+				$site_status['critical']++;
+			} elseif ( 'recommended' === $result['status'] ) {
+				$site_status['recommended']++;
+			} else {
+				$site_status['good']++;
+			}
+		}
+
+		set_transient( 'health-check-site-status-result', wp_json_encode( $site_status ) );
 	}
 }

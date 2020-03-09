@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Nineteen
- * @since 1.0.0
+ * @since Twenty Nineteen 1.0
  */
 
 get_header();
@@ -14,7 +14,7 @@ get_header();
 		<main id="main" class="site-main">
 
 			<?php
-				// Start the loop.
+			// Start the Loop.
 			while ( have_posts() ) :
 				the_post();
 				?>

@@ -6,7 +6,7 @@
  */
 class Tests_Menu_WpExpandNavMenuPostData extends WP_UnitTestCase {
 	public function test_unnested_data_should_expand() {
-		include_once( ABSPATH . 'wp-admin/includes/nav-menu.php' );
+		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
 
 		if ( empty( $_POST ) ) {
 			$_POST = array();
@@ -29,7 +29,7 @@ class Tests_Menu_WpExpandNavMenuPostData extends WP_UnitTestCase {
 	}
 
 	public function test_multidimensional_nested_array_should_expand() {
-		include_once( ABSPATH . 'wp-admin/includes/nav-menu.php' );
+		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
 
 		if ( empty( $_POST ) ) {
 			$_POST = array();
@@ -59,7 +59,7 @@ class Tests_Menu_WpExpandNavMenuPostData extends WP_UnitTestCase {
 	}
 
 	public function test_multidimensional_nested_array_should_expand_and_merge() {
-		include_once( ABSPATH . 'wp-admin/includes/nav-menu.php' );
+		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
 
 		if ( empty( $_POST ) ) {
 			$_POST = array();

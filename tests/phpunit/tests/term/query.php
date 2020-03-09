@@ -481,7 +481,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		wp_set_object_terms( $post_id, array( $term_ids[0], $term_ids[1] ), 'wptests_tax' );
 		$terms = get_the_terms( $post_id, 'wptests_tax' );
 		$this->assertEquals( array( $term_ids[0], $term_ids[1] ), wp_list_pluck( $terms, 'term_id' ) );
-		// Flip the order
+		// Flip the order.
 		wp_set_object_terms( $post_id, array( $term_ids[1], $term_ids[0] ), 'wptests_tax' );
 		$terms = get_the_terms( $post_id, 'wptests_tax' );
 		$this->assertEquals( array( $term_ids[1], $term_ids[0] ), wp_list_pluck( $terms, 'term_id' ) );
@@ -511,7 +511,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		wp_set_object_terms( $post_id, array( $term_ids[0], $term_ids[1] ), 'wptests_tax' );
 		$terms = wp_get_object_terms( $post_id, array( 'category', 'wptests_tax' ) );
 		$this->assertEquals( array( $term_ids[0], $term_ids[1], 1 ), wp_list_pluck( $terms, 'term_id' ) );
-		// Flip the order
+		// Flip the order.
 		wp_set_object_terms( $post_id, array( $term_ids[1], $term_ids[0] ), 'wptests_tax' );
 		$terms = wp_get_object_terms( $post_id, array( 'category', 'wptests_tax' ) );
 		$this->assertEquals( array( $term_ids[1], $term_ids[0], 1 ), wp_list_pluck( $terms, 'term_id' ) );

@@ -18,11 +18,11 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		$terms_1       = array( 'Foo', 'Bar', 'Baz' );
 		$terms_1_slugs = array( 'foo', 'bar', 'baz' );
 
-		// set the initial terms
+		// Set the initial terms.
 		$tt_1 = wp_set_object_terms( $post_id, $terms_1, $this->taxonomy );
 		$this->assertEquals( 3, count( $tt_1 ) );
 
-		// make sure they're correct
+		// Make sure they're correct.
 		$terms = wp_get_object_terms(
 			$post_id,
 			$this->taxonomy,
@@ -897,7 +897,7 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 
 	public function filter_get_object_terms( $terms ) {
 		$term_ids = wp_list_pluck( $terms, 'term_id' );
-		// all terms should still be objects
+		// All terms should still be objects.
 		return $terms;
 	}
 
@@ -941,14 +941,14 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		$terms   = array( 'foo', 'bar', 'baz' );
 		$set     = wp_set_object_terms( $post_id, $terms, $taxonomy );
 
-		// Filter for maintaining term order
+		// Filter for maintaining term order.
 		add_filter( 'wp_get_object_terms_args', array( $this, 'filter_wp_get_object_terms_args' ), 10, 3 );
 
-		// Test directly
+		// Test directly.
 		$get_object_terms = wp_get_object_terms( $post_id, $taxonomy, array( 'fields' => 'names' ) );
 		$this->assertEquals( $terms, $get_object_terms );
 
-		// Test metabox taxonomy (admin advanced edit)
+		// Test metabox taxonomy (admin advanced edit).
 		$terms_to_edit = get_terms_to_edit( $post_id, $taxonomy );
 		$this->assertEquals( implode( ',', $terms ), $terms_to_edit );
 	}

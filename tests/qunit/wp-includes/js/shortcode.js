@@ -5,7 +5,7 @@ jQuery( function() {
 	test( 'next() should find the shortcode', function() {
 		var result;
 
-		// Basic
+		// Basic.
 		result = wp.shortcode.next( 'foo', 'this has the [foo] shortcode' );
 		equal( result.index, 13, 'foo shortcode found at index 13' );
 
@@ -16,7 +16,7 @@ jQuery( function() {
 	test( 'next() should not find shortcodes that are not there', function() {
 		var result;
 
-		// Not found
+		// Not found.
 		result = wp.shortcode.next( 'bar', 'this has the [foo] shortcode' );
 		equal( result, undefined, 'bar shortcode not found' );
 
@@ -27,7 +27,7 @@ jQuery( function() {
 	test( 'next() should find the shortcode when told to start looking beyond the start of the string', function() {
 		var result;
 
-		// Starting at indices
+		// Starting at indices.
 		result = wp.shortcode.next( 'foo', 'this has the [foo] shortcode', 12 );
 		equal( result.index, 13, 'foo shortcode found before index 13' );
 
@@ -49,7 +49,7 @@ jQuery( function() {
 	test( 'next() should not find escaped shortcodes', function() {
 		var result;
 
-		// Escaped
+		// Escaped.
 		result = wp.shortcode.next( 'foo', 'this has the [[foo]] shortcode' );
 		equal( result, undefined, 'foo shortcode not found when escaped' );
 
@@ -88,7 +88,7 @@ jQuery( function() {
 	test( 'next() should not find shortcodes that are not full matches', function() {
 		var result;
 
-		// Stubs
+		// Stubs.
 		result = wp.shortcode.next( 'foo', 'this has the [foobar] shortcode' );
 		equal( result, undefined, 'stub does not trigger match' );
 
@@ -99,7 +99,7 @@ jQuery( function() {
 	test( 'replace() should replace the shortcode', function() {
 		var result;
 
-		// Basic
+		// Basic.
 		result = wp.shortcode.replace( 'foo', 'this has the [foo] shortcode', shortcodeReplaceCallback );
 		equal( result, 'this has the bar shortcode', 'foo replaced with bar' );
 
@@ -110,7 +110,7 @@ jQuery( function() {
 	test( 'replace() should not replace the shortcode when it does not match', function() {
 		var result;
 
-		// Not found
+		// Not found.
 		result = wp.shortcode.replace( 'bar', 'this has the [foo] shortcode', shortcodeReplaceCallback );
 		equal( result, 'this has the [foo] shortcode', 'bar not found' );
 
@@ -121,7 +121,7 @@ jQuery( function() {
 	test( 'replace() should replace the shortcode in all instances of its use', function() {
 		var result;
 
-		// Multiple instances
+		// Multiple instances.
 		result = wp.shortcode.replace( 'foo', 'this has the [foo] shortcode [foo] twice', shortcodeReplaceCallback );
 		equal( result, 'this has the bar shortcode bar twice', 'foo replaced with bar twice' );
 
@@ -132,7 +132,7 @@ jQuery( function() {
 	test( 'replace() should not replace the escaped shortcodes', function() {
 		var result;
 
-		// Escaped
+		// Escaped.
 		result = wp.shortcode.replace( 'foo', 'this has the [[foo]] shortcode', shortcodeReplaceCallback );
 		equal( result, 'this has the [[foo]] shortcode', 'escaped foo not replaced' );
 
@@ -156,7 +156,7 @@ jQuery( function() {
 	test( 'replace() should not replace the shortcode when it is an incomplete match', function() {
 		var result;
 
-		// Stubs
+		// Stubs.
 		result = wp.shortcode.replace( 'foo', 'this has the [foobar] shortcode', shortcodeReplaceCallback );
 		equal( result, 'this has the [foobar] shortcode', 'stub not replaced' );
 
@@ -164,7 +164,9 @@ jQuery( function() {
 		equal( result, 'this has the [foo] shortcode', 'stub not replaced' );
 	});
 
-    // A callback function for the replace tests
+	/**
+	 * A callback function for the replace tests.
+	 */
 	function shortcodeReplaceCallback( ) {
 		return 'bar';
 	}
@@ -211,5 +213,30 @@ jQuery( function() {
 		};
 
 		deepEqual( wp.shortcode.attrs('a="foo" b=\'bar\' c=baz foo "bar" \'baz\''), expected, 'attr parsed numeric attributes');
+	});
+
+	test( 'string() should accept attrs in any order', function() {
+		var expected = '[short abc123 foo="bar"]';
+		var result;
+
+		result = wp.shortcode.string({
+			tag   : 'short',
+			type  : 'single',
+			attrs : {
+				named   : { foo : 'bar' },
+				numeric : [ 'abc123' ]
+			}
+		});
+		deepEqual( result, expected, 'attributes are accepted in any order' );
+
+		result = wp.shortcode.string({
+			tag   : 'short',
+			type  : 'single',
+			attrs : {
+				numeric : [ 'abc123' ],
+				named   : { foo : 'bar' }
+			}
+		});
+		deepEqual( result, expected, 'attributes are accepted in any order' );
 	});
 });

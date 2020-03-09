@@ -5,7 +5,7 @@
 class Tests_Query_CommentCount extends WP_UnitTestCase {
 	static $post_ids = array();
 	public $q;
-	static $post_type = 'page'; // can be anything
+	static $post_type = 'page'; // Can be anything.
 
 	public function setUp() {
 		parent::setUp();

@@ -179,6 +179,28 @@ EOF;
 			}
 		}
 
+		$bad_not_normalized = array(
+			'dummy&colon;alert(1)',
+			'javascript&colon;alert(1)',
+			'javascript&CoLon;alert(1)',
+			'javascript&COLON;alert(1);',
+			'javascript&#58;alert(1);',
+			'javascript&#0058;alert(1);',
+			'javascript&#0000058alert(1);',
+			'jav	ascript&COLON;alert(1);',
+			'javascript&#58;javascript&colon;alert(1);',
+			'javascript&#58;javascript&colon;alert(1);',
+			'javascript&#0000058javascript&colon;alert(1);',
+			'javascript&#58;javascript&#0000058alert(1);',
+			'javascript&#58alert(1)',
+		);
+		foreach ( $bad_not_normalized as $k => $x ) {
+			$result = wp_kses_bad_protocol( $x, wp_allowed_protocols() );
+			if ( ! empty( $result ) && 'alert(1);' !== $result && 'alert(1)' !== $result ) {
+				$this->fail( "wp_kses_bad_protocol failed on $k, $x. Result: $result" );
+			}
+		}
+
 		$safe = array(
 			'dummy:alert(1)',
 			'HTTP://example.org/',
@@ -752,7 +774,9 @@ EOF;
 	/**
 	 * Testing the safecss_filter_attr() function.
 	 *
+	 * @ticket 37248
 	 * @ticket 42729
+	 * @ticket 48376
 	 * @dataProvider data_test_safecss_filter_attr
 	 *
 	 * @param string $css      A string of CSS rules.
@@ -878,6 +902,52 @@ EOF;
 				'css'      => 'columns: 6rem auto;column-count: 4;column-fill: balance;column-gap: 9px;column-rule: thick inset blue;column-span: none;column-width: 120px',
 				'expected' => 'columns: 6rem auto;column-count: 4;column-fill: balance;column-gap: 9px;column-rule: thick inset blue;column-span: none;column-width: 120px',
 			),
+			// Gradients introduced in 5.3.
+			array(
+				'css'      => 'background: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%)',
+				'expected' => 'background: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%)',
+			),
+			array(
+				'css'      => 'background: linear-gradient(135deg,rgba(6,147,227,1) ) (0%,rgb(155,81,224) 100%)',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'background-image: linear-gradient(red,yellow);',
+				'expected' => 'background-image: linear-gradient(red,yellow)',
+			),
+			array(
+				'css'      => 'color: linear-gradient(red,yellow);',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'background-image: linear-gradient(red,yellow); background: prop( red,yellow); width: 100px;',
+				'expected' => 'background-image: linear-gradient(red,yellow);width: 100px',
+			),
+			array(
+				'css'      => 'background: unknown-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%)',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'background: repeating-linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%)',
+				'expected' => 'background: repeating-linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%)',
+			),
+			array(
+				'css'      => 'width: 100px; height: 100px; background: linear-gradient(135deg,rgba(0,208,132,1) 0%,rgba(6,147,227,1) 100%);',
+				'expected' => 'width: 100px;height: 100px;background: linear-gradient(135deg,rgba(0,208,132,1) 0%,rgba(6,147,227,1) 100%)',
+			),
+			array(
+				'css'      => 'background: radial-gradient(#ff0, red, yellow, green, rgba(6,147,227,1), rgb(155,81,224) 90%);',
+				'expected' => 'background: radial-gradient(#ff0, red, yellow, green, rgba(6,147,227,1), rgb(155,81,224) 90%)',
+			),
+			array(
+				'css'      => 'background: radial-gradient(#ff0, red, yellow, green, rgba(6,147,227,1), rgb(155,81,224) 90%);',
+				'expected' => 'background: radial-gradient(#ff0, red, yellow, green, rgba(6,147,227,1), rgb(155,81,224) 90%)',
+			),
+			array(
+				'css'      => 'background: conic-gradient(at 0% 30%, red 10%, yellow 30%, #1e90ff 50%)',
+				'expected' => 'background: conic-gradient(at 0% 30%, red 10%, yellow 30%, #1e90ff 50%)',
+			),
+
 		);
 	}
 
@@ -964,7 +1034,7 @@ EOF;
 	 */
 	function data_wildcard_attribute_prefixes() {
 		return array(
-			// Ends correctly
+			// Ends correctly.
 			array( 'data-*', true ),
 
 			// Does not end with trialing `-`.

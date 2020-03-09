@@ -33,7 +33,7 @@ UploaderStatus = View.extend(/** @lends wp.media.view.UploaderStatus.prototype *
 		this.errors.on( 'add', this.error, this );
 	},
 	/**
-	 * @returns {wp.media.view.UploaderStatus}
+	 * @return {wp.media.view.UploaderStatus}
 	 */
 	dispose: function() {
 		wp.Uploader.queue.off( null, null, this );
@@ -102,7 +102,7 @@ UploaderStatus = View.extend(/** @lends wp.media.view.UploaderStatus.prototype *
 	},
 	/**
 	 * @param {string} filename
-	 * @returns {string}
+	 * @return {string}
 	 */
 	filename: function( filename ) {
 		return _.escape( filename );

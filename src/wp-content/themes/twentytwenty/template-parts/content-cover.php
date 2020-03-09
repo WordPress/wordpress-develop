@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty
- * @since 1.0.0
+ * @since Twenty Twenty 1.0
  */
 
 ?>
@@ -44,10 +44,10 @@
 	$color_overlay_classes .= ' opacity-' . $color_overlay_opacity;
 	?>
 
-	<div class="cover-header <?php echo $cover_header_classes; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static output ?>"<?php echo $cover_header_style; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to double check this, but for now, we want to pass PHPCS ;) ?>>
+	<div class="cover-header <?php echo $cover_header_classes; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static output ?>"<?php echo $cover_header_style; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to double check this, but for now, we want to pass PHPCS ;) ?>>
 		<div class="cover-header-inner-wrapper screen-height">
 			<div class="cover-header-inner">
-				<div class="cover-color-overlay color-accent<?php echo esc_attr( $color_overlay_classes ); ?>"<?php echo $color_overlay_style; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to double check this, but for now, we want to pass PHPCS ;) ?>></div>
+				<div class="cover-color-overlay color-accent<?php echo esc_attr( $color_overlay_classes ); ?>"<?php echo $color_overlay_style; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to double check this, but for now, we want to pass PHPCS ;) ?>></div>
 
 					<header class="entry-header has-text-align-center">
 						<div class="entry-header-inner section-inner medium">
@@ -57,7 +57,7 @@
 							/**
 							 * Allow child themes and plugins to filter the display of the categories in the article header.
 							 *
-							 * @since 1.0.0
+							 * @since Twenty Twenty 1.0
 							 *
 							 * @param bool Whether to show the categories in article header, Default true.
 							 */
@@ -123,7 +123,7 @@
 		</div><!-- .cover-header-inner-wrapper -->
 	</div><!-- .cover-header -->
 
-	<div class="post-inner section-inner thin" id="post-inner">
+	<div class="post-inner" id="post-inner">
 
 		<div class="entry-content">
 

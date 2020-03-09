@@ -7,7 +7,7 @@ class Tests_POMO_PO extends WP_UnitTestCase {
 	function setUp() {
 		parent::setUp();
 		require_once ABSPATH . '/wp-includes/pomo/po.php';
-		// not so random wordpress.pot string -- multiple lines
+		// Not so random wordpress.pot string -- multiple lines.
 		$this->mail    = 'Your new WordPress blog has been successfully set up at:
 
 %1$s
@@ -50,17 +50,17 @@ http://wordpress.org/
 
 	function test_poify() {
 		$po = new PO();
-		//simple
+		// Simple.
 		$this->assertEquals( '"baba"', $po->poify( 'baba' ) );
-		//long word
+		// Long word.
 		$this->assertEquals( $this->po_a90, $po->poify( $this->a90 ) );
-		// tab
+		// Tab.
 		$this->assertEquals( '"ba\tba"', $po->poify( "ba\tba" ) );
-		// do not add leading empty string of one-line string ending on a newline
+		// Do not add leading empty string of one-line string ending on a newline.
 		$this->assertEquals( '"\\\\a\\\\n\\n"', $po->poify( "\a\\n\n" ) );
-		// backslash
+		// Backslash.
 		$this->assertEquals( '"ba\\\\ba"', $po->poify( 'ba\\ba' ) );
-		// random wordpress.pot string
+		// Random wordpress.pot string.
 		$src = 'Categories can be selectively converted to tags using the <a href="%s">category to tag converter</a>.';
 		$this->assertEquals( '"Categories can be selectively converted to tags using the <a href=\\"%s\\">category to tag converter</a>."', $po->poify( $src ) );
 
@@ -73,7 +73,7 @@ http://wordpress.org/
 		$this->assertEquals( "baba\ngugu", $po->unpoify( '"baba\n"' . "\t\t\t\n" . '"gugu"' ) );
 		$this->assertEquals( $this->a90, $po->unpoify( $this->po_a90 ) );
 		$this->assertEquals( '\\t\\n', $po->unpoify( '"\\\\t\\\\n"' ) );
-		// wordwrapped
+		// Wordwrapped.
 		$this->assertEquals( 'babadyado', $po->unpoify( "\"\"\n\"baba\"\n\"dyado\"" ) );
 		$this->assertEqualsIgnoreEOL( $this->mail, $po->unpoify( $this->po_mail ) );
 	}
@@ -82,7 +82,7 @@ http://wordpress.org/
 		$po    = new PO();
 		$entry = new Translation_Entry( array( 'singular' => 'baba' ) );
 		$this->assertEquals( "msgid \"baba\"\nmsgstr \"\"", $po->export_entry( $entry ) );
-		// plural
+		// Plural.
 		$entry = new Translation_Entry(
 			array(
 				'singular' => 'baba',
@@ -181,7 +181,7 @@ msgstr[1] "кукуруку"
 msgstr[2] "бабаяга"',
 			$po->export_entry( $entry )
 		);
-		// context
+		// Context.
 		$entry = new Translation_Entry(
 			array(
 				'context'      => 'ctxt',
@@ -320,6 +320,6 @@ msgstr[2] "бабаяга"',
 		$this->assertEquals( 1, count( $po->entries ) );
 	}
 
-	//TODO: add tests for bad files
+	// TODO: Add tests for bad files.
 }
 

@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty
- * @since 1.0.0
+ * @since Twenty Twenty 1.0
  */
 
 $entry_header_classes = '';
@@ -23,7 +23,7 @@ if ( is_singular() ) {
 			/**
 			 * Allow child themes and plugins to filter the display of the categories in the entry header.
 			 *
-			 * @since 1.0.0
+			 * @since Twenty Twenty 1.0
 			 *
 			 * @param bool   Whether to show the categories in header, Default true.
 			 */
@@ -59,7 +59,7 @@ if ( is_singular() ) {
 		if ( has_excerpt() && is_singular() ) {
 			?>
 
-			<div class="intro-text section-inner max-percentage<?php echo $intro_text_width; //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static output ?>">
+			<div class="intro-text section-inner max-percentage<?php echo $intro_text_width; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static output ?>">
 				<?php the_excerpt(); ?>
 			</div>
 

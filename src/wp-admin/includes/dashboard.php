@@ -42,7 +42,21 @@ function wp_dashboard_setup() {
 		wp_add_dashboard_widget( 'dashboard_php_nag', __( 'PHP Update Required' ), 'wp_dashboard_php_nag' );
 	}
 
-	// Right Now
+	// Site Health.
+	if ( current_user_can( 'view_site_health_checks' ) ) {
+		if ( ! class_exists( 'WP_Site_Health' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
+		}
+
+		WP_Site_Health::get_instance();
+
+		wp_enqueue_style( 'site-health' );
+		wp_enqueue_script( 'site-health' );
+
+		wp_add_dashboard_widget( 'dashboard_site_health', __( 'Site Health Status' ), 'wp_dashboard_site_health' );
+	}
+
+	// Right Now.
 	if ( is_blog_admin() && current_user_can( 'edit_posts' ) ) {
 		wp_add_dashboard_widget( 'dashboard_right_now', __( 'At a Glance' ), 'wp_dashboard_right_now' );
 	}
@@ -51,18 +65,18 @@ function wp_dashboard_setup() {
 		wp_add_dashboard_widget( 'network_dashboard_right_now', __( 'Right Now' ), 'wp_network_dashboard_right_now' );
 	}
 
-	// Activity Widget
+	// Activity Widget.
 	if ( is_blog_admin() ) {
 		wp_add_dashboard_widget( 'dashboard_activity', __( 'Activity' ), 'wp_dashboard_site_activity' );
 	}
 
-	// QuickPress Widget
+	// QuickPress Widget.
 	if ( is_blog_admin() && current_user_can( get_post_type_object( 'post' )->cap->create_posts ) ) {
 		$quick_draft_title = sprintf( '<span class="hide-if-no-js">%1$s</span> <span class="hide-if-js">%2$s</span>', __( 'Quick Draft' ), __( 'Your Recent Drafts' ) );
 		wp_add_dashboard_widget( 'dashboard_quick_press', $quick_draft_title, 'wp_dashboard_quick_press' );
 	}
 
-	// WordPress Events and News
+	// WordPress Events and News.
 	wp_add_dashboard_widget( 'dashboard_primary', __( 'WordPress Events and News' ), 'wp_dashboard_events_news' );
 
 	if ( is_network_admin() ) {
@@ -125,7 +139,7 @@ function wp_dashboard_setup() {
 
 	if ( 'POST' == $_SERVER['REQUEST_METHOD'] && isset( $_POST['widget_id'] ) ) {
 		check_admin_referer( 'edit-dashboard-widget_' . $_POST['widget_id'], 'dashboard-widget-nonce' );
-		ob_start(); // hack - but the same hack wp-admin/widgets.php uses
+		ob_start(); // Hack - but the same hack wp-admin/widgets.php uses.
 		wp_dashboard_trigger_widget_control( $_POST['widget_id'] );
 		ob_end_clean();
 		wp_redirect( remove_query_arg( 'edit' ) );
@@ -249,7 +263,7 @@ function wp_dashboard() {
 }
 
 //
-// Dashboard Widgets
+// Dashboard Widgets.
 //
 
 /**
@@ -264,7 +278,7 @@ function wp_dashboard_right_now() {
 	<div class="main">
 	<ul>
 	<?php
-	// Posts and Pages
+	// Posts and Pages.
 	foreach ( array( 'post', 'page' ) as $post_type ) {
 		$num_posts = wp_count_posts( $post_type );
 		if ( $num_posts && $num_posts->publish ) {
@@ -284,7 +298,7 @@ function wp_dashboard_right_now() {
 			}
 		}
 	}
-	// Comments
+	// Comments.
 	$num_comm = wp_count_comments();
 	if ( $num_comm && ( $num_comm->approved || $num_comm->moderated ) ) {
 		/* translators: %s: Number of comments. */
@@ -492,21 +506,21 @@ function wp_dashboard_quick_press( $error_msg = false ) {
 	}
 
 	/* Check if a new auto-draft (= no new post_ID) is needed or if the old can be used */
-	$last_post_id = (int) get_user_option( 'dashboard_quick_press_last_post_id' ); // Get the last post_ID
+	$last_post_id = (int) get_user_option( 'dashboard_quick_press_last_post_id' ); // Get the last post_ID.
 	if ( $last_post_id ) {
 		$post = get_post( $last_post_id );
-		if ( empty( $post ) || $post->post_status != 'auto-draft' ) { // auto-draft doesn't exists anymore
+		if ( empty( $post ) || 'auto-draft' !== $post->post_status ) { // auto-draft doesn't exist anymore.
 			$post = get_default_post_to_edit( 'post', true );
-			update_user_option( get_current_user_id(), 'dashboard_quick_press_last_post_id', (int) $post->ID ); // Save post_ID
+			update_user_option( get_current_user_id(), 'dashboard_quick_press_last_post_id', (int) $post->ID ); // Save post_ID.
 		} else {
-			$post->post_title = ''; // Remove the auto draft title
+			$post->post_title = ''; // Remove the auto draft title.
 		}
 	} else {
 		$post    = get_default_post_to_edit( 'post', true );
 		$user_id = get_current_user_id();
 		// Don't create an option if this is a super admin who does not belong to this site.
 		if ( in_array( get_current_blog_id(), array_keys( get_blogs_of_user( $user_id ) ) ) ) {
-			update_user_option( $user_id, 'dashboard_quick_press_last_post_id', (int) $post->ID ); // Save post_ID
+			update_user_option( $user_id, 'dashboard_quick_press_last_post_id', (int) $post->ID ); // Save post_ID.
 		}
 	}
 
@@ -746,7 +760,7 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 			++$i;
 			( ( ( 'approve' == $action || 'unapprove' == $action ) && 2 === $i ) || 1 === $i ) ? $sep = '' : $sep = ' | ';
 
-			// Reply and quickedit need a hide-if-no-js span
+			// Reply and quickedit need a hide-if-no-js span.
 			if ( 'reply' == $action || 'quickedit' == $action ) {
 				$action .= ' hide-if-no-js';
 			}
@@ -936,10 +950,10 @@ function wp_dashboard_recent_posts( $args ) {
 			} elseif ( gmdate( 'Y-m-d', $time ) == $tomorrow ) {
 				$relative = __( 'Tomorrow' );
 			} elseif ( gmdate( 'Y', $time ) !== $year ) {
-				/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://secure.php.net/date */
+				/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/date */
 				$relative = date_i18n( __( 'M jS Y' ), $time );
 			} else {
-				/* translators: Date and time format for recent posts on the dashboard, see https://secure.php.net/date */
+				/* translators: Date and time format for recent posts on the dashboard, see https://www.php.net/date */
 				$relative = date_i18n( __( 'M jS' ), $time );
 			}
 
@@ -1059,10 +1073,10 @@ function wp_dashboard_rss_output( $widget_id ) {
  *              by adding it to the function signature.
  *
  * @param string   $widget_id  The widget ID.
- * @param callable $callback   The callback funtion used to display each feed.
- * @param array    $check_urls RSS feeds
- * @param mixed    ...$args    Optional additional parameters to pass to the callback function when it's called.
- * @return bool False on failure. True on success.
+ * @param callable $callback   The callback function used to display each feed.
+ * @param array    $check_urls RSS feeds.
+ * @param mixed    ...$args    Optional additional parameters to pass to the callback function.
+ * @return bool True on success, false on failure.
  */
 function wp_dashboard_cached_rss_widget( $widget_id, $callback, $check_urls = array(), ...$args ) {
 	$loading    = '<p class="widget-loading hide-if-no-js">' . __( 'Loading&hellip;' ) . '</p><div class="hide-if-js notice notice-error inline"><p>' . __( 'This widget requires JavaScript.' ) . '</p></div>';
@@ -1094,14 +1108,15 @@ function wp_dashboard_cached_rss_widget( $widget_id, $callback, $check_urls = ar
 		array_unshift( $args, $widget_id, $check_urls );
 		ob_start();
 		call_user_func_array( $callback, $args );
-		set_transient( $cache_key, ob_get_flush(), 12 * HOUR_IN_SECONDS ); // Default lifetime in cache of 12 hours (same as the feeds)
+		// Default lifetime in cache of 12 hours (same as the feeds).
+		set_transient( $cache_key, ob_get_flush(), 12 * HOUR_IN_SECONDS );
 	}
 
 	return true;
 }
 
 //
-// Dashboard Widgets Controls
+// Dashboard Widgets Controls.
 //
 
 /**
@@ -1149,7 +1164,8 @@ function wp_dashboard_rss_control( $widget_id, $form_inputs = array() ) {
 		$widget_options[ $widget_id ] = array();
 	}
 
-	$number                                 = 1; // Hack to use wp_widget_rss_form()
+	$number = 1; // Hack to use wp_widget_rss_form().
+
 	$widget_options[ $widget_id ]['number'] = $number;
 
 	if ( 'POST' == $_SERVER['REQUEST_METHOD'] && isset( $_POST['widget-rss'][ $number ] ) ) {
@@ -1471,7 +1487,7 @@ function wp_dashboard_primary() {
 }
 
 /**
- * Display the WordPress events and news feeds.
+ * Displays the WordPress events and news feeds.
  *
  * @since 3.8.0
  * @since 4.8.0 Removed popular plugins feed.
@@ -1489,7 +1505,7 @@ function wp_dashboard_primary_output( $widget_id, $feeds ) {
 }
 
 /**
- * Display file upload quota on dashboard.
+ * Displays file upload quota on dashboard.
  *
  * Runs on the {@see 'activity_box_end'} hook in wp_dashboard_right_now().
  *
@@ -1553,7 +1569,11 @@ function wp_dashboard_quota() {
 	<?php
 }
 
-// Display Browser Nag Meta Box
+/**
+ * Displays the browser update nag.
+ *
+ * @since 3.2.0
+ */
 function wp_dashboard_browser_nag() {
 	$notice   = '';
 	$response = wp_check_browser_version();
@@ -1607,14 +1627,16 @@ function wp_dashboard_browser_nag() {
 	 * @param string $notice   The notice content.
 	 * @param array  $response An array containing web browser information. See `wp_check_browser_version()`.
 	 */
-	echo apply_filters( 'browse-happy-notice', $notice, $response );  // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+	echo apply_filters( 'browse-happy-notice', $notice, $response ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 }
 
 /**
+ * Adds an additional class to the browser nag if the current version is insecure.
+ *
  * @since 3.2.0
  *
- * @param array $classes
- * @return array
+ * @param string[] $classes Array of meta box classes.
+ * @return string[] Modified array of meta box classes.
  */
 function dashboard_browser_nag_class( $classes ) {
 	$response = wp_check_browser_version();
@@ -1627,11 +1649,11 @@ function dashboard_browser_nag_class( $classes ) {
 }
 
 /**
- * Check if the user needs a browser update
+ * Checks if the user needs a browser update.
  *
  * @since 3.2.0
  *
- * @return array|bool False on failure, array of browser data on success.
+ * @return array|bool Array of browser data on success, false on failure.
  */
 function wp_check_browser_version() {
 	if ( empty( $_SERVER['HTTP_USER_AGENT'] ) ) {
@@ -1642,8 +1664,8 @@ function wp_check_browser_version() {
 
 	$response = get_site_transient( 'browser_' . $key );
 	if ( false === $response ) {
-		// include an unmodified $wp_version
-		include( ABSPATH . WPINC . '/version.php' );
+		// Include an unmodified $wp_version.
+		require ABSPATH . WPINC . '/version.php';
 
 		$url     = 'http://api.wordpress.org/core/browse-happy/1.1/';
 		$options = array(
@@ -1731,8 +1753,8 @@ function wp_dashboard_php_nag() {
  *
  * @since 5.1.0
  *
- * @param string[] $classes Array of metabox classes.
- * @return string[] Modified array of metabox classes.
+ * @param string[] $classes Array of meta box classes.
+ * @return string[] Modified array of meta box classes.
  */
 function dashboard_php_nag_class( $classes ) {
 	$response = wp_check_php_version();
@@ -1745,7 +1767,92 @@ function dashboard_php_nag_class( $classes ) {
 }
 
 /**
+ * Displays the Site Health Status widget.
+ *
+ * @since 5.4.0
+ */
+function wp_dashboard_site_health() {
+	$get_issues = get_transient( 'health-check-site-status-result' );
+
+	$issue_counts = array();
+
+	if ( false !== $get_issues ) {
+		$issue_counts = json_decode( $get_issues, true );
+	}
+
+	if ( ! is_array( $issue_counts ) || ! $issue_counts ) {
+		$issue_counts = array(
+			'good'        => 0,
+			'recommended' => 0,
+			'critical'    => 0,
+		);
+	}
+
+	$issues_total = $issue_counts['recommended'] + $issue_counts['critical'];
+	?>
+	<div class="health-check-title-section site-health-progress-wrapper loading hide-if-no-js">
+		<div class="site-health-progress">
+			<svg role="img" aria-hidden="true" focusable="false" width="100%" height="100%" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
+				<circle r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
+				<circle id="bar" r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
+			</svg>
+		</div>
+		<div class="site-health-progress-label">
+			<?php if ( false === $get_issues ) : ?>
+				<?php _e( 'No information yet&hellip;' ); ?>
+			<?php else : ?>
+				<?php _e( 'Results are still loading&hellip;' ); ?>
+			<?php endif; ?>
+		</div>
+	</div>
+
+	<?php if ( false === $get_issues ) : ?>
+		<p>
+			<?php _e( 'No Site Health information has been gathered yet, you can do so by visiting the Site Health screen, alternatively the checks will run periodically.' ); ?>
+		</p>
+
+		<p>
+			<?php
+			printf(
+				/* translators: %s: URL to Site Health screen. */
+				__( '<a href="%s">Visit the Site Health screen</a> to gather information on about your site.' ),
+				esc_url( admin_url( 'site-health.php' ) )
+			);
+			?>
+		</p>
+
+	<?php else : ?>
+		<p>
+			<?php if ( $issue_counts['critical'] > 0 ) : ?>
+				<?php _e( 'Your site has critical issues that should be addressed as soon as possible to improve the performance or security of your website.' ); ?>
+			<?php elseif ( $issues_total <= 0 ) : ?>
+				<?php _e( 'Great job! Your site currently passes all site health checks.' ); ?>
+			<?php else : ?>
+				<?php _e( 'Your site health is looking quite good, but there are still some things you can do to improve the performance and security of your website.' ); ?>
+			<?php endif; ?>
+		</p>
+	<?php endif; ?>
+
+	<?php if ( $issues_total > 0 && false !== $get_issues ) : ?>
+		<p>
+			<?php
+			printf(
+				/* translators: 1: Number of issues. 2: URL to Site Health screen. */
+				__( 'Take a look at the <strong>%1$d items</strong> on the <a href="%2$s">Site Health Status screen</a>.' ),
+				$issues_total,
+				esc_url( admin_url( 'site-health.php' ) )
+			);
+			?>
+		</p>
+	<?php endif; ?>
+
+	<?php
+}
+
+/**
  * Empty function usable by plugins to output empty dashboard widget (to be populated later by JS).
+ *
+ * @since 2.5.0
  */
 function wp_dashboard_empty() {}
 
@@ -1797,22 +1904,11 @@ function wp_welcome_panel() {
 	<div class="welcome-panel-column welcome-panel-last">
 		<h3><?php _e( 'More Actions' ); ?></h3>
 		<ul>
-		<?php
-		if ( current_theme_supports( 'widgets' ) || current_theme_supports( 'menus' ) ) :
-			if ( current_theme_supports( 'widgets' ) && current_theme_supports( 'menus' ) ) {
-				$widgets_menus_link = sprintf(
-					/* translators: 1: URL to Widgets screen, 2: URL to Menus screen. */
-					__( 'Manage <a href="%1$s">widgets</a> or <a href="%2$s">menus</a>' ),
-					admin_url( 'widgets.php' ),
-					admin_url( 'nav-menus.php' )
-				);
-			} elseif ( current_theme_supports( 'widgets' ) ) {
-				$widgets_menus_link = '<a href="' . admin_url( 'widgets.php' ) . '">' . __( 'Manage widgets' ) . '</a>';
-			} else {
-				$widgets_menus_link = '<a href="' . admin_url( 'nav-menus.php' ) . '">' . __( 'Manage menus' ) . '</a>';
-			}
-			?>
-			<li><div class="welcome-icon welcome-widgets-menus"><?php echo $widgets_menus_link; ?></div></li>
+		<?php if ( current_theme_supports( 'widgets' ) ) : ?>
+			<li><?php printf( '<a href="%s" class="welcome-icon welcome-widgets">' . __( 'Manage widgets' ) . '</a>', admin_url( 'widgets.php' ) ); ?></li>
+		<?php endif; ?>
+		<?php if ( current_theme_supports( 'menus' ) ) : ?>
+			<li><?php printf( '<a href="%s" class="welcome-icon welcome-menus">' . __( 'Manage menus' ) . '</a>', admin_url( 'nav-menus.php' ) ); ?></li>
 		<?php endif; ?>
 		<?php if ( current_user_can( 'manage_options' ) ) : ?>
 			<li><?php printf( '<a href="%s" class="welcome-icon welcome-comments">' . __( 'Turn comments on or off' ) . '</a>', admin_url( 'options-discussion.php' ) ); ?></li>

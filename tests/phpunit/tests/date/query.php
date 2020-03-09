@@ -321,19 +321,19 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 	public function test_build_value_compare_in() {
 		$q = new WP_Date_Query( array() );
 
-		// Single integer
+		// Single integer.
 		$found = $q->build_value( 'IN', 4 );
 		$this->assertSame( '(4)', $found );
 
-		// Single non-integer
+		// Single non-integer.
 		$found = $q->build_value( 'IN', 'foo' );
 		$this->assertFalse( $found );
 
-		// Array of integers
+		// Array of integers.
 		$found = $q->build_value( 'IN', array( 1, 4, 7 ) );
 		$this->assertSame( '(1,4,7)', $found );
 
-		// Array containing non-integers
+		// Array containing non-integers.
 		$found = $q->build_value( 'IN', array( 1, 'foo', 7 ) );
 		$this->assertSame( '(1,7)', $found );
 	}
@@ -344,19 +344,19 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 	public function test_build_value_compare_not_in() {
 		$q = new WP_Date_Query( array() );
 
-		// Single integer
+		// Single integer.
 		$found = $q->build_value( 'NOT IN', 4 );
 		$this->assertSame( '(4)', $found );
 
-		// Single non-integer
+		// Single non-integer.
 		$found = $q->build_value( 'NOT IN', 'foo' );
 		$this->assertFalse( $found );
 
-		// Array of integers
+		// Array of integers.
 		$found = $q->build_value( 'NOT IN', array( 1, 4, 7 ) );
 		$this->assertSame( '(1,4,7)', $found );
 
-		// Array containing non-integers
+		// Array containing non-integers.
 		$found = $q->build_value( 'NOT IN', array( 1, 'foo', 7 ) );
 		$this->assertSame( '(1,7)', $found );
 	}
@@ -503,7 +503,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 	public function test_build_mysql_datetime_datetime_non_array() {
 		$q = new WP_Date_Query( array() );
 
-		// This might be a fragile test if it takes longer than 1 second to run
+		// This might be a fragile test if it takes longer than 1 second to run.
 		$found    = $q->build_mysql_datetime( 'foo' );
 		$expected = gmdate( 'Y-m-d H:i:s', false );
 		$this->assertSame( $expected, $found );
@@ -607,15 +607,15 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 	public function test_build_time_query_compare_in() {
 		$q = new WP_Date_Query( array() );
 
-		// Just hour
+		// Just hour.
 		$found = $q->build_time_query( 'post_date', 'IN', array( 1, 2 ) );
 		$this->assertSame( 'HOUR( post_date ) IN (1,2)', $found );
 
-		// Skip minute
+		// Skip minute.
 		$found = $q->build_time_query( 'post_date', 'IN', array( 1, 2 ), null, 6 );
 		$this->assertSame( 'HOUR( post_date ) IN (1,2) AND SECOND( post_date ) IN (6)', $found );
 
-		// All three
+		// All three.
 		$found = $q->build_time_query( 'post_date', 'IN', array( 1, 2 ), array( 3, 4, 5 ), 6 );
 		$this->assertSame( 'HOUR( post_date ) IN (1,2) AND MINUTE( post_date ) IN (3,4,5) AND SECOND( post_date ) IN (6)', $found );
 	}
@@ -623,15 +623,15 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 	public function test_build_time_query_compare_not_in() {
 		$q = new WP_Date_Query( array() );
 
-		// Just hour
+		// Just hour.
 		$found = $q->build_time_query( 'post_date', 'NOT IN', array( 1, 2 ) );
 		$this->assertSame( 'HOUR( post_date ) NOT IN (1,2)', $found );
 
-		// Skip minute
+		// Skip minute.
 		$found = $q->build_time_query( 'post_date', 'NOT IN', array( 1, 2 ), null, 6 );
 		$this->assertSame( 'HOUR( post_date ) NOT IN (1,2) AND SECOND( post_date ) NOT IN (6)', $found );
 
-		// All three
+		// All three.
 		$found = $q->build_time_query( 'post_date', 'NOT IN', array( 1, 2 ), array( 3, 4, 5 ), 6 );
 		$this->assertSame( 'HOUR( post_date ) NOT IN (1,2) AND MINUTE( post_date ) NOT IN (3,4,5) AND SECOND( post_date ) NOT IN (6)', $found );
 	}
@@ -639,15 +639,15 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 	public function test_build_time_query_compare_between() {
 		$q = new WP_Date_Query( array() );
 
-		// Just hour
+		// Just hour.
 		$found = $q->build_time_query( 'post_date', 'BETWEEN', array( 1, 2 ) );
 		$this->assertSame( 'HOUR( post_date ) BETWEEN 1 AND 2', $found );
 
-		// Skip minute
+		// Skip minute.
 		$found = $q->build_time_query( 'post_date', 'BETWEEN', array( 1, 2 ), null, array( 6, 7 ) );
 		$this->assertSame( 'HOUR( post_date ) BETWEEN 1 AND 2 AND SECOND( post_date ) BETWEEN 6 AND 7', $found );
 
-		// All three
+		// All three.
 		$found = $q->build_time_query( 'post_date', 'BETWEEN', array( 1, 2 ), array( 3, 4 ), array( 6, 7 ) );
 		$this->assertSame( 'HOUR( post_date ) BETWEEN 1 AND 2 AND MINUTE( post_date ) BETWEEN 3 AND 4 AND SECOND( post_date ) BETWEEN 6 AND 7', $found );
 	}
@@ -655,15 +655,15 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 	public function test_build_time_query_compare_not_between() {
 		$q = new WP_Date_Query( array() );
 
-		// Just hour
+		// Just hour.
 		$found = $q->build_time_query( 'post_date', 'NOT BETWEEN', array( 1, 2 ) );
 		$this->assertSame( 'HOUR( post_date ) NOT BETWEEN 1 AND 2', $found );
 
-		// Skip minute
+		// Skip minute.
 		$found = $q->build_time_query( 'post_date', 'NOT BETWEEN', array( 1, 2 ), null, array( 6, 7 ) );
 		$this->assertSame( 'HOUR( post_date ) NOT BETWEEN 1 AND 2 AND SECOND( post_date ) NOT BETWEEN 6 AND 7', $found );
 
-		// All three
+		// All three.
 		$found = $q->build_time_query( 'post_date', 'NOT BETWEEN', array( 1, 2 ), array( 3, 4 ), array( 6, 7 ) );
 		$this->assertSame( 'HOUR( post_date ) NOT BETWEEN 1 AND 2 AND MINUTE( post_date ) NOT BETWEEN 3 AND 4 AND SECOND( post_date ) NOT BETWEEN 6 AND 7', $found );
 	}
@@ -703,7 +703,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		$found = $q->build_time_query( 'post_date', '=', 5, 15 );
 
 		// $compare value is floating point - use regex to account for
-		// varying precision on different PHP installations
+		// varying precision on different PHP installations.
 		$this->assertRegExp( "/DATE_FORMAT\( post_date, '%H\.%i' \) = 5\.150*/", $wpdb->remove_placeholder_escape( $found ) );
 	}
 
@@ -714,7 +714,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		$found = $q->build_time_query( 'post_date', '=', 5, 15, 35 );
 
 		// $compare value is floating point - use regex to account for
-		// varying precision on different PHP installations
+		// varying precision on different PHP installations.
 		$this->assertRegExp( "/DATE_FORMAT\( post_date, '%H\.%i%s' \) = 5\.15350*/", $wpdb->remove_placeholder_escape( $found ) );
 	}
 
@@ -725,7 +725,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		$found = $q->build_time_query( 'post_date', '=', null, 15, 35 );
 
 		// $compare value is floating point - use regex to account for
-		// varying precision on different PHP installations
+		// varying precision on different PHP installations.
 		$this->assertRegExp( "/DATE_FORMAT\( post_date, '0\.%i%s' \) = 0\.15350*/", $wpdb->remove_placeholder_escape( $found ) );
 	}
 

@@ -83,7 +83,7 @@ if ( is_multisite() ) :
 
 		public static function wpTearDownAfterClass() {
 			foreach ( self::$site_ids as $site_id ) {
-				wpmu_delete_blog( $site_id, true );
+				wp_delete_site( $site_id );
 			}
 		}
 

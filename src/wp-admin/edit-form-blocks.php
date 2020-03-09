@@ -8,7 +8,7 @@
  * @subpackage Administration
  */
 
-// don't load directly
+// Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
@@ -144,14 +144,16 @@ $font_sizes    = current( (array) get_theme_support( 'editor-font-sizes' ) );
  *
  * @param bool|array $allowed_block_types Array of block type slugs, or
  *                                        boolean to enable/disable all.
- * @param object $post                    The post resource data.
+ * @param WP_Post    $post                The post resource data.
  */
 $allowed_block_types = apply_filters( 'allowed_block_types', true, $post );
 
-// Get all available templates for the post/page attributes meta-box.
-// The "Default template" array element should only be added if the array is
-// not empty so we do not trigger the template select element without any options
-// besides the default value.
+/*
+ * Get all available templates for the post/page attributes meta-box.
+ * The "Default template" array element should only be added if the array is
+ * not empty so we do not trigger the template select element without any options
+ * besides the default value.
+ */
 $available_templates = wp_get_theme()->get_page_templates( get_post( $post->ID ) );
 $available_templates = ! empty( $available_templates ) ? array_merge(
 	array(
@@ -361,7 +363,7 @@ wp_enqueue_style( 'wp-format-library' );
 do_action( 'enqueue_block_editor_assets' );
 
 // In order to duplicate classic meta box behaviour, we need to run the classic meta box actions.
-require_once( ABSPATH . 'wp-admin/includes/meta-boxes.php' );
+require_once ABSPATH . 'wp-admin/includes/meta-boxes.php';
 register_and_do_post_meta_boxes( $post );
 
 // Check if the Custom Fields meta box has been removed at some point.
@@ -399,7 +401,7 @@ $script = sprintf(
 );
 wp_add_inline_script( 'wp-edit-post', $script );
 
-require_once( ABSPATH . 'wp-admin/admin-header.php' );
+require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 
 <div class="block-editor">

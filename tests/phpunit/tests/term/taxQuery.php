@@ -256,7 +256,7 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 				array(
 					'taxonomy' => 'category',
 					'terms'    => array( $t1 ),
-					'field'    => 'foo', // Anything defaults to term_id
+					'field'    => 'foo', // Anything defaults to term_id.
 				),
 			)
 		);

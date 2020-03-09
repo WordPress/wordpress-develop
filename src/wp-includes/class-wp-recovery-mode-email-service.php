@@ -3,7 +3,7 @@
  * Error Protection API: WP_Recovery_Mode_Email_Link class
  *
  * @package WordPress
- * @since   5.2.0
+ * @since 5.2.0
  */
 
 /**
@@ -306,7 +306,7 @@ When seeking help with this issue, you may be asked for some of the following in
 	 * @since 5.3.0
 	 *
 	 * @param array $extension The extension that caused the error.
-	 * @return array An associated array of debug information.
+	 * @return array An associative array of debug information.
 	 */
 	private function get_debug( $extension ) {
 		$theme      = wp_get_theme();

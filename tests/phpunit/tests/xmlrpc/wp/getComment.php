@@ -53,7 +53,7 @@ class Tests_XMLRPC_wp_getComment extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getComment( array( 1, 'editor', 'editor', self::$parent_comment_id ) );
 		$this->assertNotIXRError( $result );
 
-		// Check data types
+		// Check data types.
 		$this->assertInternalType( 'string', $result['user_id'] );
 		$this->assertInternalType( 'string', $result['comment_id'] );
 		$this->assertInstanceOf( 'IXR_Date', $result['date_created_gmt'] );
@@ -69,7 +69,7 @@ class Tests_XMLRPC_wp_getComment extends WP_XMLRPC_UnitTestCase {
 		$this->assertInternalType( 'string', $result['author_ip'] );
 		$this->assertInternalType( 'string', $result['type'] );
 
-		// Check expected values
+		// Check expected values.
 		$this->assertStringMatchesFormat( '%d', $result['user_id'] );
 		$this->assertStringMatchesFormat( '%d', $result['comment_id'] );
 		$this->assertStringMatchesFormat( '%d', $result['parent'] );

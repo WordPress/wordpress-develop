@@ -145,45 +145,45 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 
 		$this->assertEquals( '', get_post_meta( $post_id, '_thumbnail_id', true ) );
 
-		// create attachment
+		// Create attachment.
 		$filename      = ( DIR_TESTDATA . '/images/a2-small.jpg' );
 		$attachment_id = self::factory()->attachment->create_upload_object( $filename, $post_id );
 
-		// add post thumbnail to post that does not have one
+		// Add post thumbnail to post that does not have one.
 		$post2  = array( 'post_thumbnail' => $attachment_id );
 		$result = $this->myxmlrpcserver->wp_editPost( array( 1, 'author', 'author', $post_id, $post2 ) );
 		$this->assertNotIXRError( $result );
 		$this->assertEquals( $attachment_id, get_post_meta( $post_id, '_thumbnail_id', true ) );
 
-		// fetch the post to verify that it appears
+		// Fetch the post to verify that it appears.
 		$result = $this->myxmlrpcserver->wp_getPost( array( 1, 'author', 'author', $post_id ) );
 		$this->assertNotIXRError( $result );
 		$this->assertArrayHasKey( 'post_thumbnail', $result );
 		$this->assertInternalType( 'array', $result['post_thumbnail'] );
 		$this->assertEquals( $attachment_id, $result['post_thumbnail']['attachment_id'] );
 
-		// edit the post without supplying a post_thumbnail and check that it didn't change
+		// Edit the post without supplying a post_thumbnail and check that it didn't change.
 		$post3  = array( 'post_content' => 'Updated post' );
 		$result = $this->myxmlrpcserver->wp_editPost( array( 1, 'author', 'author', $post_id, $post3 ) );
 		$this->assertNotIXRError( $result );
 		$this->assertEquals( $attachment_id, get_post_meta( $post_id, '_thumbnail_id', true ) );
 
-		// create another attachment
+		// Create another attachment.
 		$attachment2_id = self::factory()->attachment->create_upload_object( $filename, $post_id );
 
-		// change the post's post_thumbnail
+		// Change the post's post_thumbnail.
 		$post4  = array( 'post_thumbnail' => $attachment2_id );
 		$result = $this->myxmlrpcserver->wp_editPost( array( 1, 'author', 'author', $post_id, $post4 ) );
 		$this->assertNotIXRError( $result );
 		$this->assertEquals( $attachment2_id, get_post_meta( $post_id, '_thumbnail_id', true ) );
 
-		// unset the post's post_thumbnail
+		// Unset the post's post_thumbnail.
 		$post5  = array( 'post_thumbnail' => '' );
 		$result = $this->myxmlrpcserver->wp_editPost( array( 1, 'author', 'author', $post_id, $post5 ) );
 		$this->assertNotIXRError( $result );
 		$this->assertEquals( '', get_post_meta( $post_id, '_thumbnail_id', true ) );
 
-		// use invalid ID
+		// Use invalid ID.
 		$post6  = array( 'post_thumbnail' => 398420983409 );
 		$result = $this->myxmlrpcserver->wp_editPost( array( 1, 'author', 'author', $post_id, $post6 ) );
 		$this->assertIXRError( $result );
@@ -249,7 +249,7 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 	}
 
 	function test_password_transition_unsticky() {
-		// when transitioning to private status or adding a post password, post should be un-stuck
+		// When transitioning to private status or adding a post password, post should be un-stuck.
 		$editor_id = $this->make_user_by_role( 'editor' );
 		$post_id   = self::factory()->post->create( array( 'post_author' => $editor_id ) );
 		stick_post( $post_id );
@@ -319,7 +319,7 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_editPost( array( 1, 'editor', 'editor', $post_id, $struct ) );
 		$this->assertNotIXRError( $result );
 
-		// Make sure that the post status is still inherit
+		// Make sure that the post status is still inherit.
 		$this->assertEquals( 'inherit', get_post( $post_id )->post_status );
 	}
 
@@ -338,7 +338,7 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_editPost( array( 1, 'editor', 'editor', $post_id, $struct ) );
 		$this->assertNotIXRError( $result );
 
-		// Make sure that the post status is still inherit
+		// Make sure that the post status is still inherit.
 		$this->assertEquals( 'draft', get_post( $post_id )->post_status );
 	}
 
@@ -404,24 +404,24 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 	 * @ticket 23219
 	 */
 	function test_add_enclosure_if_new() {
-		// Sample enclosure data
+		// Sample enclosure data.
 		$enclosure = array(
 			'url'    => 'http://example.com/sound.mp3',
 			'length' => 12345,
 			'type'   => 'audio/mpeg',
 		);
 
-		// Second sample enclosure data array
+		// Second sample enclosure data array.
 		$new_enclosure = array(
 			'url'    => 'http://example.com/sound2.mp3',
 			'length' => 12345,
 			'type'   => 'audio/mpeg',
 		);
 
-		// Create a test user
+		// Create a test user.
 		$editor_id = $this->make_user_by_role( 'editor' );
 
-		// Add a dummy post
+		// Add a dummy post.
 		$post_id = self::factory()->post->create(
 			array(
 				'post_title'   => 'Post Enclosure Test',
@@ -431,33 +431,33 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
-		// Add the enclosure as it is added in "do_enclose()"
+		// Add the enclosure as it is added in "do_enclose()".
 		$enclosure_string = "{$enclosure['url']}\n{$enclosure['length']}\n{$enclosure['type']}\n";
 		add_post_meta( $post_id, 'enclosure', $enclosure_string );
 
-		// Verify that the correct data is there
+		// Verify that the correct data is there.
 		$this->assertEquals( $enclosure_string, get_post_meta( $post_id, 'enclosure', true ) );
 
-		// Attempt to add the enclosure a second time
+		// Attempt to add the enclosure a second time.
 		$this->myxmlrpcserver->add_enclosure_if_new( $post_id, $enclosure );
 
-		// Verify that there is only a single value in the array and that a duplicate is not present
+		// Verify that there is only a single value in the array and that a duplicate is not present.
 		$this->assertEquals( 1, count( get_post_meta( $post_id, 'enclosure' ) ) );
 
-		// For good measure, check that the expected value is in the array
+		// For good measure, check that the expected value is in the array.
 		$this->assertTrue( in_array( $enclosure_string, get_post_meta( $post_id, 'enclosure' ), true ) );
 
-		// Attempt to add a brand new enclosure via XML-RPC
+		// Attempt to add a brand new enclosure via XML-RPC.
 		$this->myxmlrpcserver->add_enclosure_if_new( $post_id, $new_enclosure );
 
-		// Having added the new enclosure, 2 values are expected in the array
+		// Having added the new enclosure, 2 values are expected in the array.
 		$this->assertEquals( 2, count( get_post_meta( $post_id, 'enclosure' ) ) );
 
-		// Check that the new enclosure is in the enclosure meta
+		// Check that the new enclosure is in the enclosure meta.
 		$new_enclosure_string = "{$new_enclosure['url']}\n{$new_enclosure['length']}\n{$new_enclosure['type']}\n";
 		$this->assertTrue( in_array( $new_enclosure_string, get_post_meta( $post_id, 'enclosure' ), true ) );
 
-		// Check that the old enclosure is in the enclosure meta
+		// Check that the old enclosure is in the enclosure meta.
 		$this->assertTrue( in_array( $enclosure_string, get_post_meta( $post_id, 'enclosure' ), true ) );
 	}
 

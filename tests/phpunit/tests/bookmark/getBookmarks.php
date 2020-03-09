@@ -80,7 +80,7 @@ class Tests_Bookmark_GetBookmarks extends WP_UnitTestCase {
 			)
 		);
 
-		// equal sets != same order
+		// Equal sets != same order.
 		$this->assertEqualSets( $found1, $found2 );
 		$this->assertTrue( $num_queries < $wpdb->num_queries );
 	}
@@ -99,7 +99,7 @@ class Tests_Bookmark_GetBookmarks extends WP_UnitTestCase {
 			$found_ids[] = $bookmark->link_id;
 		}
 
-		// equal sets != same order.
+		// Equal sets != same order.
 		$this->assertEqualSets( $bookmarks, $found_ids );
 	}
 
@@ -117,7 +117,7 @@ class Tests_Bookmark_GetBookmarks extends WP_UnitTestCase {
 			$found_ids[] = $bookmark->link_id;
 		}
 
-		// equal sets != same order.
+		// Equal sets != same order.
 		$this->assertEqualSets( $bookmarks, $found_ids );
 	}
 
@@ -145,7 +145,7 @@ class Tests_Bookmark_GetBookmarks extends WP_UnitTestCase {
 			$found_ids[] = $bookmark->link_id;
 		}
 
-		// equal sets != same order.
+		// Equal sets != same order.
 		$this->assertEqualSets( $bookmarks, $found_ids );
 	}
 }

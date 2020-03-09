@@ -28,18 +28,18 @@ class WP_Embed {
 	 * Constructor
 	 */
 	public function __construct() {
-		// Hack to get the [embed] shortcode to run before wpautop()
+		// Hack to get the [embed] shortcode to run before wpautop().
 		add_filter( 'the_content', array( $this, 'run_shortcode' ), 8 );
 		add_filter( 'widget_text_content', array( $this, 'run_shortcode' ), 8 );
 
-		// Shortcode placeholder for strip_shortcodes()
+		// Shortcode placeholder for strip_shortcodes().
 		add_shortcode( 'embed', '__return_false' );
 
-		// Attempts to embed all URLs in a post
+		// Attempts to embed all URLs in a post.
 		add_filter( 'the_content', array( $this, 'autoembed' ), 8 );
 		add_filter( 'widget_text_content', array( $this, 'autoembed' ), 8 );
 
-		// After a post is saved, cache oEmbed items via Ajax
+		// After a post is saved, cache oEmbed items via Ajax.
 		add_action( 'edit_form_advanced', array( $this, 'maybe_run_ajax_cache' ) );
 		add_action( 'edit_page_form', array( $this, 'maybe_run_ajax_cache' ) );
 	}
@@ -59,16 +59,16 @@ class WP_Embed {
 	public function run_shortcode( $content ) {
 		global $shortcode_tags;
 
-		// Back up current registered shortcodes and clear them all out
+		// Back up current registered shortcodes and clear them all out.
 		$orig_shortcode_tags = $shortcode_tags;
 		remove_all_shortcodes();
 
 		add_shortcode( 'embed', array( $this, 'shortcode' ) );
 
-		// Do the shortcode (only the [embed] one is registered)
+		// Do the shortcode (only the [embed] one is registered).
 		$content = do_shortcode( $content, true );
 
-		// Put the original shortcodes back
+		// Put the original shortcodes back.
 		$shortcode_tags = $orig_shortcode_tags;
 
 		return $content;
@@ -161,11 +161,11 @@ class WP_Embed {
 
 		$this->last_attr = $attr;
 
-		// kses converts & into &amp; and we need to undo this
+		// KSES converts & into &amp; and we need to undo this.
 		// See https://core.trac.wordpress.org/ticket/11311
 		$url = str_replace( '&amp;', '&', $url );
 
-		// Look for known internal handlers
+		// Look for known internal handlers.
 		ksort( $this->handlers );
 		foreach ( $this->handlers as $priority => $handlers ) {
 			foreach ( $handlers as $id => $handler ) {
@@ -173,15 +173,15 @@ class WP_Embed {
 					$return = call_user_func( $handler['callback'], $matches, $attr, $url, $rawattr );
 					if ( false !== $return ) {
 						/**
-						 * Filters the returned embed handler.
+						 * Filters the returned embed HTML.
 						 *
 						 * @since 2.9.0
 						 *
 						 * @see WP_Embed::shortcode()
 						 *
-						 * @param mixed  $return The shortcode callback function to call.
-						 * @param string $url    The attempted embed URL.
-						 * @param array  $attr   An array of shortcode attributes.
+						 * @param string|false $return The HTML result of the shortcode, or false on failure.
+						 * @param string       $url    The embed URL.
+						 * @param array        $attr   An array of shortcode attributes.
 						 */
 						return apply_filters( 'embed_handler_html', $return, $url, $attr );
 					}
@@ -248,10 +248,10 @@ class WP_Embed {
 				 *
 				 * @see WP_Embed::shortcode()
 				 *
-				 * @param mixed  $cache   The cached HTML result, stored in post meta.
-				 * @param string $url     The attempted embed URL.
-				 * @param array  $attr    An array of shortcode attributes.
-				 * @param int    $post_ID Post ID.
+				 * @param string|false $cache   The cached HTML result, stored in post meta.
+				 * @param string       $url     The attempted embed URL.
+				 * @param array        $attr    An array of shortcode attributes.
+				 * @param int          $post_ID Post ID.
 				 */
 				return apply_filters( 'embed_oembed_html', $cache, $url, $attr, $post_ID );
 			}
@@ -339,7 +339,7 @@ class WP_Embed {
 			return apply_filters( 'embed_oembed_html', $html, $url, $attr, $post_ID );
 		}
 
-		// Still unknown
+		// Still unknown.
 		return $this->maybe_make_link( $url );
 	}
 
@@ -381,7 +381,7 @@ class WP_Embed {
 			return;
 		}
 
-		// Trigger a caching
+		// Trigger a caching.
 		if ( ! empty( $post->post_content ) ) {
 			$this->post_ID  = $post->ID;
 			$this->usecache = false;
@@ -435,7 +435,7 @@ class WP_Embed {
 	 * Conditionally makes a hyperlink based on an internal class variable.
 	 *
 	 * @param string $url URL to potentially be linked.
-	 * @return false|string Linked URL or the original URL. False if 'return_false_on_fail' is true.
+	 * @return string|false Linked URL or the original URL. False if 'return_false_on_fail' is true.
 	 */
 	public function maybe_make_link( $url ) {
 		if ( $this->return_false_on_fail ) {
@@ -486,7 +486,7 @@ class WP_Embed {
 		);
 
 		if ( ! empty( $oembed_post_query->posts ) ) {
-			// Note: 'fields'=>'ids' is not being used in order to cache the post object as it will be needed.
+			// Note: 'fields' => 'ids' is not being used in order to cache the post object as it will be needed.
 			$oembed_post_id = $oembed_post_query->posts[0]->ID;
 			wp_cache_set( $cache_key, $oembed_post_id, $cache_group );
 

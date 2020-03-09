@@ -34,9 +34,9 @@ if ( is_multisite() ) :
 
 			self::$existing_blog_id = $factory->blog->create(
 				array(
-					'domain'  => $domain,
-					'path'    => $path,
-					'site_id' => $network->id,
+					'domain'     => $domain,
+					'path'       => $path,
+					'network_id' => $network->id,
 				)
 			);
 		}
@@ -47,7 +47,7 @@ if ( is_multisite() ) :
 
 			wpmu_delete_user( self::$existing_user_id );
 
-			wpmu_delete_blog( self::$existing_blog_id, true );
+			wp_delete_site( self::$existing_blog_id );
 		}
 
 		/**

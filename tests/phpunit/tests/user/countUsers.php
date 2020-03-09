@@ -12,7 +12,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 	 * @group ms-excluded
 	 */
 	public function test_count_users_is_accurate( $strategy ) {
-		// Setup users
+		// Setup users.
 		$admin       = self::factory()->user->create(
 			array(
 				'role' => 'administrator',
@@ -49,7 +49,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			)
 		);
 
-		// Test user counts
+		// Test user counts.
 		$count = count_users( $strategy );
 
 		$this->assertEquals( 8, $count['total_users'] );
@@ -76,7 +76,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 	 * @dataProvider data_count_users_strategies
 	 */
 	public function test_count_users_multisite_is_accurate( $strategy ) {
-		// Setup users
+		// Setup users.
 		$admin       = self::factory()->user->create(
 			array(
 				'role' => 'administrator',
@@ -113,7 +113,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			)
 		);
 
-		// Setup blogs
+		// Setup blogs.
 		$blog_1 = (int) self::factory()->blog->create(
 			array(
 				'user_id' => $editor,
@@ -125,11 +125,11 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			)
 		);
 
-		// Add users to blogs
+		// Add users to blogs.
 		add_user_to_blog( $blog_1, $subscriber, 'editor' );
 		add_user_to_blog( $blog_2, $none, 'contributor' );
 
-		// Test users counts on root site
+		// Test users counts on root site.
 		$count = count_users( $strategy );
 
 		$this->assertEquals( 8, $count['total_users'] );
@@ -145,7 +145,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			$count['avail_roles']
 		);
 
-		// Test users counts on blog 1
+		// Test users counts on blog 1.
 		switch_to_blog( $blog_1 );
 		$count = count_users( $strategy );
 		restore_current_blog();
@@ -160,7 +160,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			$count['avail_roles']
 		);
 
-		// Test users counts on blog 2
+		// Test users counts on blog 2.
 		switch_to_blog( $blog_2 );
 		$count = count_users( $strategy );
 		restore_current_blog();
@@ -213,7 +213,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 	 */
 	public function test_count_users_is_accurate_with_multiple_roles( $strategy ) {
 
-		// Setup users
+		// Setup users.
 		$admin  = self::factory()->user->create(
 			array(
 				'role' => 'administrator',
@@ -235,7 +235,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			get_userdata( $editor )->roles
 		);
 
-		// Test user counts
+		// Test user counts.
 		$count = count_users( $strategy );
 
 		$this->assertEquals( 3, $count['total_users'] );

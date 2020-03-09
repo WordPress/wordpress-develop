@@ -8,8 +8,8 @@
  * @since MU (3.0.0)
  */
 
-require_once( ABSPATH . WPINC . '/ms-site.php' );
-require_once( ABSPATH . WPINC . '/ms-network.php' );
+require_once ABSPATH . WPINC . '/ms-site.php';
+require_once ABSPATH . WPINC . '/ms-network.php';
 
 /**
  * Update the last_updated field for the current site.
@@ -249,7 +249,7 @@ function get_blog_details( $fields = null, $get_all = true ) {
 	 * Filters a blog's details.
 	 *
 	 * @since MU (3.0.0)
-	 * @deprecated 4.7.0 Use site_details
+	 * @deprecated 4.7.0 Use {@see 'site_details'} instead.
 	 *
 	 * @param object $details The blog details.
 	 */
@@ -508,11 +508,14 @@ function switch_to_blog( $new_blog_id, $deprecated = null ) {
 		 * Fires when the blog is switched.
 		 *
 		 * @since MU (3.0.0)
+		 * @since 5.4.0 The `$context` parameter was added.
 		 *
-		 * @param int $new_blog_id  New blog ID.
-		 * @param int $prev_blog_id Previous blog ID.
+		 * @param int    $new_blog_id  New blog ID.
+		 * @param int    $prev_blog_id Previous blog ID.
+		 * @param string $context      Additional context. Accepts 'switch' when called from switch_to_blog()
+		 *                             or 'restore' when called from restore_current_blog().
 		 */
-		do_action( 'switch_blog', $new_blog_id, $prev_blog_id );
+		do_action( 'switch_blog', $new_blog_id, $prev_blog_id, 'switch' );
 		$GLOBALS['switched'] = true;
 		return true;
 	}
@@ -544,7 +547,7 @@ function switch_to_blog( $new_blog_id, $deprecated = null ) {
 	}
 
 	/** This filter is documented in wp-includes/ms-blogs.php */
-	do_action( 'switch_blog', $new_blog_id, $prev_blog_id );
+	do_action( 'switch_blog', $new_blog_id, $prev_blog_id, 'switch' );
 	$GLOBALS['switched'] = true;
 
 	return true;
@@ -577,8 +580,8 @@ function restore_current_blog() {
 
 	if ( $new_blog_id == $prev_blog_id ) {
 		/** This filter is documented in wp-includes/ms-blogs.php */
-		do_action( 'switch_blog', $new_blog_id, $prev_blog_id );
-		// If we still have items in the switched stack, consider ourselves still 'switched'
+		do_action( 'switch_blog', $new_blog_id, $prev_blog_id, 'restore' );
+		// If we still have items in the switched stack, consider ourselves still 'switched'.
 		$GLOBALS['switched'] = ! empty( $GLOBALS['_wp_switched_stack'] );
 		return true;
 	}
@@ -611,9 +614,9 @@ function restore_current_blog() {
 	}
 
 	/** This filter is documented in wp-includes/ms-blogs.php */
-	do_action( 'switch_blog', $new_blog_id, $prev_blog_id );
+	do_action( 'switch_blog', $new_blog_id, $prev_blog_id, 'restore' );
 
-	// If we still have items in the switched stack, consider ourselves still 'switched'
+	// If we still have items in the switched stack, consider ourselves still 'switched'.
 	$GLOBALS['switched'] = ! empty( $GLOBALS['_wp_switched_stack'] );
 
 	return true;
@@ -757,7 +760,7 @@ function get_last_updated( $deprecated = '', $start = 0, $quantity = 40 ) {
 	global $wpdb;
 
 	if ( ! empty( $deprecated ) ) {
-		_deprecated_argument( __FUNCTION__, 'MU' ); // never used
+		_deprecated_argument( __FUNCTION__, 'MU' ); // Never used.
 	}
 
 	return $wpdb->get_results( $wpdb->prepare( "SELECT blog_id, domain, path FROM $wpdb->blogs WHERE site_id = %d AND public = '1' AND archived = '0' AND mature = '0' AND spam = '0' AND deleted = '0' AND last_updated != '0000-00-00 00:00:00' ORDER BY last_updated DESC limit %d, %d", get_current_network_id(), $start, $quantity ), ARRAY_A );
@@ -769,9 +772,9 @@ function get_last_updated( $deprecated = '', $start = 0, $quantity = 40 ) {
  *
  * @since 3.3.0
  *
- * @param string $new_status The new post status
- * @param string $old_status The old post status
- * @param object $post       Post object
+ * @param string  $new_status The new post status.
+ * @param string  $old_status The old post status.
+ * @param WP_Post $post       Post object.
  */
 function _update_blog_date_on_post_publish( $new_status, $old_status, $post ) {
 	$post_type_obj = get_post_type_object( $post->post_type );
@@ -859,9 +862,17 @@ function _update_posts_count_on_transition_post_status( $new_status, $old_status
  *
  * @since 5.3.0
  *
- * @param int $network_id The network to get counts for.  Default is the current network id.
- * @return array Includes a grand total 'all' and an array of counts indexed by
- *                status strings: public, archived, mature, spam, deleted.
+ * @param int $network_id Optional. The network to get counts for. Default is the current network ID.
+ * @return int[] {
+ *     Numbers of sites grouped by site status.
+ *
+ *     @type int $all      The total number of sites.
+ *     @type int $public   The number of public sites.
+ *     @type int $archived The number of archived sites.
+ *     @type int $mature   The number of mature sites.
+ *     @type int $spam     The number of spam sites.
+ *     @type int $deleted  The number of deleted sites.
+ * }
  */
 function wp_count_sites( $network_id = null ) {
 	if ( empty( $network_id ) ) {

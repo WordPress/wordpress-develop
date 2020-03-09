@@ -428,7 +428,8 @@ function get_page_template() {
 	$pagename = get_query_var( 'pagename' );
 
 	if ( ! $pagename && $id ) {
-		// If a static page is set as the front page, $pagename will not be set. Retrieve it from the queried object
+		// If a static page is set as the front page, $pagename will not be set.
+		// Retrieve it from the queried object.
 		$post = get_queried_object();
 		if ( $post ) {
 			$pagename = $post->post_name;
@@ -719,8 +720,8 @@ function load_template( $_template_file, $require_once = true ) {
 	}
 
 	if ( $require_once ) {
-		require_once( $_template_file );
+		require_once $_template_file;
 	} else {
-		require( $_template_file );
+		require $_template_file;
 	}
 }

@@ -9,14 +9,14 @@ error_reporting( 0 );
 
 /** Set ABSPATH for execution */
 if ( ! defined( 'ABSPATH' ) ) {
-	define( 'ABSPATH', dirname( dirname( __FILE__ ) ) . '/' );
+	define( 'ABSPATH', dirname( __DIR__ ) . '/' );
 }
 
 define( 'WPINC', 'wp-includes' );
 
-require( ABSPATH . 'wp-admin/includes/noop.php' );
-require( ABSPATH . WPINC . '/script-loader.php' );
-require( ABSPATH . WPINC . '/version.php' );
+require ABSPATH . 'wp-admin/includes/noop.php';
+require ABSPATH . WPINC . '/script-loader.php';
+require ABSPATH . WPINC . '/version.php';
 
 $protocol = $_SERVER['SERVER_PROTOCOL'];
 if ( ! in_array( $protocol, array( 'HTTP/1.1', 'HTTP/2', 'HTTP/2.0' ) ) ) {
@@ -38,7 +38,7 @@ if ( empty( $load ) ) {
 }
 
 $rtl            = ( isset( $_GET['dir'] ) && 'rtl' == $_GET['dir'] );
-$expires_offset = 31536000; // 1 year
+$expires_offset = 31536000; // 1 year.
 $out            = '';
 
 $wp_styles = new WP_Styles();

@@ -8,7 +8,7 @@
  */
 
 /** Load WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'manage_sites' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to edit this site.' ) );
@@ -43,8 +43,8 @@ if ( isset( $_REQUEST['action'] ) && 'update-site' == $_REQUEST['action'] && is_
 	foreach ( (array) $_POST['option'] as $key => $val ) {
 		$key = wp_unslash( $key );
 		$val = wp_unslash( $val );
-		if ( $key === 0 || is_array( $val ) || in_array( $key, $skip_options ) ) {
-			continue; // Avoids "0 is a protected WP option and may not be modified" error when edit blog options
+		if ( 0 === $key || is_array( $val ) || in_array( $key, $skip_options ) ) {
+			continue; // Avoids "0 is a protected WP option and may not be modified" error when edit blog options.
 		}
 		update_option( $key, $val );
 	}
@@ -85,7 +85,7 @@ $title = sprintf( __( 'Edit Site: %s' ), esc_html( $details->blogname ) );
 $parent_file  = 'sites.php';
 $submenu_file = 'sites.php';
 
-require( ABSPATH . 'wp-admin/admin-header.php' );
+require_once ABSPATH . 'wp-admin/admin-header.php';
 
 ?>
 
@@ -124,7 +124,7 @@ if ( ! empty( $messages ) ) {
 		);
 		$options     = $wpdb->get_results( $query );
 		foreach ( $options as $option ) {
-			if ( $option->option_name == 'default_role' ) {
+			if ( 'default_role' === $option->option_name ) {
 				$editblog_default_role = $option->option_value;
 			}
 			$disabled = false;
@@ -157,7 +157,7 @@ if ( ! empty( $messages ) ) {
 				</tr>
 				<?php
 			}
-		} // End foreach
+		} // End foreach.
 		/**
 		 * Fires at the end of the Edit Site form, before the submit button.
 		 *
@@ -173,4 +173,4 @@ if ( ! empty( $messages ) ) {
 
 </div>
 <?php
-require( ABSPATH . 'wp-admin/admin-footer.php' );
+require_once ABSPATH . 'wp-admin/admin-footer.php';
