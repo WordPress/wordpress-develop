@@ -70,7 +70,7 @@ class PasswordHash {
 	 * @param integer $iteration_count_log2 Iteration Count Log2.
 	 * @param boolean $portable_hashes      Portable Hashes.
 	 */
-	public function __construct( int $iteration_count_log2, bool $portable_hashes ) {
+	public function __construct( $iteration_count_log2, $portable_hashes ) {
 		$this->itoa64 = './0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
 		if ( $iteration_count_log2 < 4 || $iteration_count_log2 > 31 ) {
@@ -89,7 +89,7 @@ class PasswordHash {
 	 * @param integer $iteration_count_log2 Iteration Count Log2.
 	 * @param boolean $portable_hashes      Portable Hashes.
 	 */
-	public function PasswordHash( int $iteration_count_log2, bool $portable_hashes ) {
+	public function PasswordHash( $iteration_count_log2, $portable_hashes ) {
 		self::__construct( $iteration_count_log2, $portable_hashes );
 	}
 	/**
@@ -97,7 +97,7 @@ class PasswordHash {
 	 *
 	 * @param integer $count Count.
 	 */
-	public function get_random_bytes( int $count ) {
+	public function get_random_bytes( $count ) {
 		$output = '';
 		if ( @is_readable( '/dev/urandom' ) &&
 			( $fh = @fopen( '/dev/urandom', 'rb' ) ) ) {
@@ -125,7 +125,7 @@ class PasswordHash {
 	 * @param  string  $input Input.
 	 * @param  integer $count Count.
 	 */
-	public function encode64( string $input, int $count ) {
+	public function encode64( $input, $count ) {
 		$output = '';
 		$i      = 0;
 		do {
@@ -156,7 +156,7 @@ class PasswordHash {
 	 *
 	 * @param  string $input Input.
 	 */
-	public function gensalt_private( string $input ) {
+	public function gensalt_private( $input ) {
 		$output  = '$P$';
 		$output .= $this->itoa64[ min(
 			$this->iteration_count_log2 +
@@ -174,7 +174,7 @@ class PasswordHash {
 	 * @param  string $password Password.
 	 * @param  string $setting  Setting.
 	 */
-	public function crypt_private( string $password, string $setting ) {
+	public function crypt_private( $password, $setting ) {
 		$output = '*0';
 		if ( substr( $setting, 0, 2 ) === $output ) {
 			$output = '*1';
@@ -227,7 +227,7 @@ class PasswordHash {
 	 *
 	 * @param  string $input Input.
 	 */
-	public function gensalt_extended( string $input ) {
+	public function gensalt_extended( $input ) {
 		$count_log2 = min( $this->iteration_count_log2 + 8, 24 );
 		// This should be odd to not reveal weak DES keys, and the
 		// maximum valid value is (2**24 - 1) which is odd anyway.
@@ -249,7 +249,7 @@ class PasswordHash {
 	 *
 	 * @param  string $input Input.
 	 */
-	public function gensalt_blowfish( string $input ) {
+	public function gensalt_blowfish( $input ) {
 		// This one needs to use a different order of characters and a
 		// different encoding scheme from the one in encode64() above.
 		// We care because the last character in our encoded string will
@@ -294,7 +294,7 @@ class PasswordHash {
 	 *
 	 * @param string $password Password.
 	 */
-	public function HashPassword( string $password ) {
+	public function HashPassword( $password ) {
 		if ( strlen( $password ) > 4096 ) {
 			return '*';
 		}
@@ -345,7 +345,7 @@ class PasswordHash {
 	 * @param string $password    Password.
 	 * @param string $stored_hash Stored Hash.
 	 */
-	public function CheckPassword( string $password, string $stored_hash ) {
+	public function CheckPassword( $password, $stored_hash ) {
 		if ( strlen( $password ) > 4096 ) {
 			return false;
 		}
