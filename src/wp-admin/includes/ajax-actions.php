@@ -716,7 +716,7 @@ function wp_ajax_delete_comment() {
 
 		$r = wp_untrash_comment( $comment );
 
-		// Undo trash, not in trash.
+		// Undo trash, not in Trash.
 		if ( ! isset( $_POST['comment_status'] ) || 'trash' !== $_POST['comment_status'] ) {
 			$delta = 1;
 		}
@@ -861,7 +861,7 @@ function wp_ajax_delete_post( $action ) {
 }
 
 /**
- * Ajax handler for sending a post to the trash.
+ * Ajax handler for sending a post to the Trash.
  *
  * @since 3.1.0
  *
@@ -897,7 +897,7 @@ function wp_ajax_trash_post( $action ) {
 }
 
 /**
- * Ajax handler to restore a post from the trash.
+ * Ajax handler to restore a post from the Trash.
  *
  * @since 3.1.0
  *
@@ -4710,8 +4710,8 @@ function wp_ajax_wp_privacy_export_personal_data() {
 
 	check_ajax_referer( 'wp-privacy-export-personal-data-' . $request_id, 'security' );
 
-	// Get the request data.
-	$request = wp_get_user_request_data( $request_id );
+	// Get the request.
+	$request = wp_get_user_request( $request_id );
 
 	if ( ! $request || 'export_personal_data' !== $request->action_name ) {
 		wp_send_json_error( __( 'Invalid request type.' ) );
@@ -4901,8 +4901,8 @@ function wp_ajax_wp_privacy_erase_personal_data() {
 
 	check_ajax_referer( 'wp-privacy-erase-personal-data-' . $request_id, 'security' );
 
-	// Get the request data.
-	$request = wp_get_user_request_data( $request_id );
+	// Get the request.
+	$request = wp_get_user_request( $request_id );
 
 	if ( ! $request || 'remove_personal_data' !== $request->action_name ) {
 		wp_send_json_error( __( 'Invalid request type.' ) );

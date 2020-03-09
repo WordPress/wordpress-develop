@@ -1740,6 +1740,35 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( 1, self::$rest_after_insert_attachment_count );
 	}
 
+	/**
+	 * @ticket 44567
+	 */
+	public function test_create_item_with_meta_values() {
+		register_post_meta(
+			'attachment',
+			'best_cannoli',
+			array(
+				'type'         => 'string',
+				'single'       => true,
+				'show_in_rest' => true,
+			)
+		);
+
+		wp_set_current_user( self::$author_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=cannoli.jpg' );
+		$request->set_param( 'meta', array( 'best_cannoli' => 'Chocolate-dipped, no filling' ) );
+
+		$request->set_body( file_get_contents( $this->test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertEquals( 201, $response->get_status() );
+		$this->assertEquals( 'Chocolate-dipped, no filling', get_post_meta( $response->get_data()['id'], 'best_cannoli', true ) );
+	}
+
 	public function filter_rest_insert_attachment( $attachment ) {
 		self::$rest_insert_attachment_count++;
 	}

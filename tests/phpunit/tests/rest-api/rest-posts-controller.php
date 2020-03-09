@@ -4841,6 +4841,41 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertNull( get_post_type_object( 'test' )->get_rest_controller() );
 	}
 
+	/**
+	 * @ticket 47779
+	 */
+	public function test_rest_post_type_item_schema_filter_change_property() {
+		add_filter( 'rest_post_item_schema', array( $this, 'filter_post_item_schema' ) );
+
+		// Re-initialize the controller to cache-bust schemas from prior test runs.
+		$GLOBALS['wp_rest_server']->override_by_default = true;
+		$controller                                     = new WP_REST_Posts_Controller( 'post' );
+		$controller->register_routes();
+		$GLOBALS['wp_rest_server']->override_by_default = false;
+
+		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' );
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$properties = $data['schema']['properties']['content']['properties'];
+
+		$this->assertArrayHasKey( 'new_prop', $properties );
+		$this->assertEquals( array( 'new_context' ), $properties['new_prop']['context'] );
+	}
+
+	/**
+	 * @ticket 47779
+	 */
+	public function test_rest_post_type_item_schema_filter_add_property_triggers_doing_it_wrong() {
+		add_filter( 'rest_post_item_schema', array( $this, 'filter_post_item_schema_add_property' ) );
+		$this->setExpectedIncorrectUsage( 'WP_REST_Posts_Controller::get_item_schema' );
+
+		// Re-initialize the controller to cache-bust schemas from prior test runs.
+		$GLOBALS['wp_rest_server']->override_by_default = true;
+		$controller                                     = new WP_REST_Posts_Controller( 'post' );
+		$controller->register_routes();
+		$GLOBALS['wp_rest_server']->override_by_default = false;
+	}
+
 	public function tearDown() {
 		_unregister_post_type( 'private-post' );
 		_unregister_post_type( 'youseeme' );
@@ -4867,5 +4902,23 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		return array(
 			'post-my-test-template.php' => 'My Test Template',
 		);
+	}
+
+	public function filter_post_item_schema( $schema ) {
+		$schema['properties']['content']['properties']['new_prop'] = array(
+			'description' => __( 'A new prop added with a the rest_post_item_schema filter.' ),
+			'type'        => 'string',
+			'context'     => array( 'new_context' ),
+		);
+		return $schema;
+	}
+
+	public function filter_post_item_schema_add_property( $schema ) {
+		$schema['properties']['something_entirely_new'] = array(
+			'description' => __( 'A new prop added with a the rest_post_item_schema filter.' ),
+			'type'        => 'string',
+			'context'     => array( 'new_context' ),
+		);
+		return $schema;
 	}
 }

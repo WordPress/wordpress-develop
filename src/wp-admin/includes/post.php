@@ -1829,7 +1829,7 @@ function wp_create_post_autosave( $post_data ) {
 		// If the new autosave has the same content as the post, delete the autosave.
 		$autosave_is_different = false;
 		foreach ( array_intersect( array_keys( $new_autosave ), array_keys( _wp_post_revision_fields( $post ) ) ) as $field ) {
-			if ( normalize_whitespace( $new_autosave[ $field ] ) != normalize_whitespace( $post->$field ) ) {
+			if ( normalize_whitespace( $new_autosave[ $field ] ) !== normalize_whitespace( $post->$field ) ) {
 				$autosave_is_different = true;
 				break;
 			}
@@ -1968,6 +1968,8 @@ function wp_autosave( $post_data ) {
 /**
  * Redirect to previous page.
  *
+ * @since 2.7.0
+ *
  * @param int $post_id Optional. Post ID.
  */
 function redirect_post( $post_id = '' ) {
@@ -2019,8 +2021,9 @@ function redirect_post( $post_id = '' ) {
  *
  * @since 5.1.0
  *
- * @param mixed $terms Raw term data from the 'tax_input' field.
- * @return array
+ * @param string $taxonomy The taxonomy name.
+ * @param array  $terms    Raw term data from the 'tax_input' field.
+ * @return int[] Array of sanitized term IDs.
  */
 function taxonomy_meta_box_sanitize_cb_checkboxes( $taxonomy, $terms ) {
 	return array_map( 'intval', $terms );
@@ -2031,7 +2034,8 @@ function taxonomy_meta_box_sanitize_cb_checkboxes( $taxonomy, $terms ) {
  *
  * @since 5.1.0
  *
- * @param mixed $terms Raw term data from the 'tax_input' field.
+ * @param string       $taxonomy The taxonomy name.
+ * @param array|string $terms    Raw term data from the 'tax_input' field.
  * @return array
  */
 function taxonomy_meta_box_sanitize_cb_input( $taxonomy, $terms ) {

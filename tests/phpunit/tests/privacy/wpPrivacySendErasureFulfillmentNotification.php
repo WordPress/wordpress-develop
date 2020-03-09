@@ -257,6 +257,38 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	}
 
 	/**
+	 * The email headers of the fulfillment notification should be filterable.
+	 *
+	 * @since 5.4.0
+	 *
+	 * @ticket 44501
+	 */
+	public function test_email_headers_should_be_filterable() {
+		add_filter( 'user_erasure_complete_email_headers', array( $this, 'modify_email_headers' ) );
+		_wp_privacy_send_erasure_fulfillment_notification( self::$request_id );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$this->assertContains( 'From: Tester <tester@example.com>', $mailer->get_sent()->header );
+	}
+
+	/**
+	 * Filter callback that modifies the email headers of the data erasure fulfillment notification.
+	 *
+	 * @since 5.4.0
+	 *
+	 * @param string|array $headers The email headers.
+	 * @return array       $headers The new email headers.
+	 */
+	public function modify_email_headers( $headers ) {
+		$headers = array(
+			'From: Tester <tester@example.com>',
+		);
+
+		return $headers;
+	}
+
+	/**
 	 * The function should not send an email when the request ID does not exist.
 	 *
 	 * @ticket 44234

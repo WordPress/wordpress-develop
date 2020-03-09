@@ -704,9 +704,17 @@ class WP_Debug_Data {
 			$filtered_htaccess_content = trim( preg_replace( '/\# BEGIN WordPress[\s\S]+?# END WordPress/si', '', $htaccess_content ) );
 			$filtered_htaccess_content = ! empty( $filtered_htaccess_content );
 
+			if ( $filtered_htaccess_content ) {
+				/* translators: %s: .htaccess */
+				$htaccess_rules_string = sprintf( __( 'Custom rules have been added to your %s file.' ), '.htaccess' );
+			} else {
+				/* translators: %s: .htaccess */
+				$htaccess_rules_string = sprintf( __( 'Your %s file contains only core WordPress features.' ), '.htaccess' );
+			}
+
 			$info['wp-server']['fields']['htaccess_extra_rules'] = array(
 				'label' => __( '.htaccess rules' ),
-				'value' => ( $filtered_htaccess_content ? __( 'Custom rules have been added to your .htaccess file.' ) : __( 'Your .htaccess file contains only core WordPress features.' ) ),
+				'value' => $htaccess_rules_string,
 				'debug' => $filtered_htaccess_content,
 			);
 		}
@@ -752,7 +760,7 @@ class WP_Debug_Data {
 		);
 
 		$info['wp-database']['fields']['database_user'] = array(
-			'label'   => __( 'Database user' ),
+			'label'   => __( 'Database username' ),
 			'value'   => $wpdb->dbuser,
 			'private' => true,
 		);
@@ -770,7 +778,7 @@ class WP_Debug_Data {
 		);
 
 		$info['wp-database']['fields']['database_prefix'] = array(
-			'label'   => __( 'Database prefix' ),
+			'label'   => __( 'Table prefix' ),
 			'value'   => $wpdb->prefix,
 			'private' => true,
 		);

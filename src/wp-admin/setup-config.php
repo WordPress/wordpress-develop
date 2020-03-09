@@ -87,7 +87,7 @@ $step = isset( $_GET['step'] ) ? (int) $_GET['step'] : -1;
  * @ignore
  * @since 2.3.0
  *
- * @global string    $wp_local_package
+ * @global string    $wp_local_package Locale code of the package.
  * @global WP_Locale $wp_locale        WordPress date and time locale object.
  *
  * @param string|array $body_classes
@@ -396,7 +396,7 @@ switch ( $step ) {
 	<p>
 			<?php
 			/* translators: %s: wp-config.php */
-			printf( __( 'Sorry, but I can&#8217;t write the %s file.' ), '<code>wp-config.php</code>' );
+			printf( __( 'Unable to write to %s file.' ), '<code>wp-config.php</code>' );
 			?>
 </p>
 <p>

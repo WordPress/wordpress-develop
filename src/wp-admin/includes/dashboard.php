@@ -43,7 +43,7 @@ function wp_dashboard_setup() {
 	}
 
 	// Site Health.
-	if ( current_user_can( 'view_site_health_checks' ) ) {
+	if ( current_user_can( 'view_site_health_checks' ) && ! is_network_admin() ) {
 		if ( ! class_exists( 'WP_Site_Health' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
 		}
@@ -775,11 +775,18 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 
 		<li id="comment-<?php echo $comment->comment_ID; ?>" <?php comment_class( array( 'comment-item', wp_get_comment_status( $comment ) ), $comment ); ?>>
 
-			<?php echo get_avatar( $comment, 50, 'mystery' ); ?>
+			<?php
+			$comment_row_class = '';
+
+			if ( get_option( 'show_avatars' ) ) {
+				echo get_avatar( $comment, 50, 'mystery' );
+				$comment_row_class .= ' has-avatar';
+			}
+			?>
 
 			<?php if ( ! $comment->comment_type || 'comment' == $comment->comment_type ) : ?>
 
-			<div class="dashboard-comment-wrap has-row-actions">
+			<div class="dashboard-comment-wrap has-row-actions <?php echo $comment_row_class; ?>">
 			<p class="comment-meta">
 				<?php
 				// Comments might not have a post they relate to, e.g. programmatically created ones.
@@ -1808,27 +1815,22 @@ function wp_dashboard_site_health() {
 
 	<?php if ( false === $get_issues ) : ?>
 		<p>
-			<?php _e( 'No Site Health information has been gathered yet, you can do so by visiting the Site Health screen, alternatively the checks will run periodically.' ); ?>
-		</p>
-
-		<p>
 			<?php
 			printf(
 				/* translators: %s: URL to Site Health screen. */
-				__( '<a href="%s">Visit the Site Health screen</a> to gather information on about your site.' ),
+				__( 'Site health checks will automatically run periodically to gather information about your site. You can also <a href="%s">visit the Site Health screen</a> to gather information about your site now.' ),
 				esc_url( admin_url( 'site-health.php' ) )
 			);
 			?>
 		</p>
-
 	<?php else : ?>
 		<p>
 			<?php if ( $issue_counts['critical'] > 0 ) : ?>
-				<?php _e( 'Your site has critical issues that should be addressed as soon as possible to improve the performance or security of your website.' ); ?>
+				<?php _e( 'Your site has critical issues that should be addressed as soon as possible to improve its performance and security.' ); ?>
 			<?php elseif ( $issues_total <= 0 ) : ?>
 				<?php _e( 'Great job! Your site currently passes all site health checks.' ); ?>
 			<?php else : ?>
-				<?php _e( 'Your site health is looking quite good, but there are still some things you can do to improve the performance and security of your website.' ); ?>
+				<?php _e( 'Your site&#8217;s health is looking good, but there are still some things you can do to improve its performance and security.' ); ?>
 			<?php endif; ?>
 		</p>
 	<?php endif; ?>
@@ -1838,7 +1840,11 @@ function wp_dashboard_site_health() {
 			<?php
 			printf(
 				/* translators: 1: Number of issues. 2: URL to Site Health screen. */
-				__( 'Take a look at the <strong>%1$d items</strong> on the <a href="%2$s">Site Health Status screen</a>.' ),
+				_n(
+					'Take a look at the <strong>%1$d item</strong> on the <a href="%2$s">Site Health screen</a>.',
+					'Take a look at the <strong>%1$d items</strong> on the <a href="%2$s">Site Health screen</a>.',
+					$issues_total
+				),
 				$issues_total,
 				esc_url( admin_url( 'site-health.php' ) )
 			);

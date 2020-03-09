@@ -398,7 +398,8 @@ class WP_REST_Server {
 			}
 
 			// Embed links inside the request.
-			$result = $this->response_to_data( $result, isset( $_GET['_embed'] ) );
+			$embed  = isset( $_GET['_embed'] ) ? rest_parse_embed_param( $_GET['_embed'] ) : false;
+			$result = $this->response_to_data( $result, $embed );
 
 			/**
 			 * Filters the API response.
@@ -450,9 +451,10 @@ class WP_REST_Server {
 	 * Converts a response to data to send.
 	 *
 	 * @since 4.4.0
+	 * @since 5.4.0 The $embed parameter can now contain a list of link relations to include.
 	 *
 	 * @param WP_REST_Response $response Response object.
-	 * @param bool             $embed    Whether links should be embedded.
+	 * @param bool|string[]    $embed    Whether to embed all links, a filtered list of link relations, or no links.
 	 * @return array {
 	 *     Data with sub-requests embedded.
 	 *
@@ -473,9 +475,11 @@ class WP_REST_Server {
 			$this->embed_cache = array();
 			// Determine if this is a numeric array.
 			if ( wp_is_numeric_array( $data ) ) {
-				$data = array_map( array( $this, 'embed_links' ), $data );
+				foreach ( $data as $key => $item ) {
+					$data[ $key ] = $this->embed_links( $item, $embed );
+				}
 			} else {
-				$data = $this->embed_links( $data );
+				$data = $this->embed_links( $data, $embed );
 			}
 			$this->embed_cache = array();
 		}
@@ -571,8 +575,10 @@ class WP_REST_Server {
 	 * Embeds the links from the data into the request.
 	 *
 	 * @since 4.4.0
+	 * @since 5.4.0 The $embed parameter can now contain a list of link relations to include.
 	 *
-	 * @param array $data Data from the request.
+	 * @param array         $data  Data from the request.
+	 * @param bool|string[] $embed Whether to embed all links or a filtered list of link relations.
 	 * @return array {
 	 *     Data with sub-requests embedded.
 	 *
@@ -580,7 +586,7 @@ class WP_REST_Server {
 	 *     @type array [$_embedded] Embeddeds.
 	 * }
 	 */
-	protected function embed_links( $data ) {
+	protected function embed_links( $data, $embed = true ) {
 		if ( empty( $data['_links'] ) ) {
 			return $data;
 		}
@@ -588,6 +594,11 @@ class WP_REST_Server {
 		$embedded = array();
 
 		foreach ( $data['_links'] as $rel => $links ) {
+			// If a list of relations was specified, and the link relation is not in the whitelist, don't process the link.
+			if ( is_array( $embed ) && ! in_array( $rel, $embed, true ) ) {
+				continue;
+			}
+
 			$embeds = array();
 
 			foreach ( $links as $item ) {
@@ -733,11 +744,18 @@ class WP_REST_Server {
 	 * used as the delimiter with preg_match()
 	 *
 	 * @since 4.4.0
+	 * @since 5.4.0 Add $namespace parameter.
 	 *
+	 * @param string $namespace Optionally, only return routes in the given namespace.
 	 * @return array `'/path/regex' => array( $callback, $bitmask )` or
 	 *               `'/path/regex' => array( array( $callback, $bitmask ), ...)`.
 	 */
-	public function get_routes() {
+	public function get_routes( $namespace = '' ) {
+		$endpoints = $this->endpoints;
+
+		if ( $namespace ) {
+			$endpoints = wp_list_filter( $endpoints, array( 'namespace' => $namespace ) );
+		}
 
 		/**
 		 * Filters the array of available endpoints.
@@ -749,7 +767,7 @@ class WP_REST_Server {
 		 *                         `'/path/regex' => array( $callback, $bitmask )` or
 		 *                         `'/path/regex' => array( array( $callback, $bitmask ).
 		 */
-		$endpoints = apply_filters( 'rest_endpoints', $this->endpoints );
+		$endpoints = apply_filters( 'rest_endpoints', $endpoints );
 
 		// Normalise the endpoints.
 		$defaults = array(
@@ -861,7 +879,21 @@ class WP_REST_Server {
 		$method = $request->get_method();
 		$path   = $request->get_route();
 
-		foreach ( $this->get_routes() as $route => $handlers ) {
+		$with_namespace = array();
+
+		foreach ( $this->get_namespaces() as $namespace ) {
+			if ( 0 === strpos( trailingslashit( ltrim( $path, '/' ) ), $namespace ) ) {
+				$with_namespace[] = $this->get_routes( $namespace );
+			}
+		}
+
+		if ( $with_namespace ) {
+			$routes = array_merge( ...$with_namespace );
+		} else {
+			$routes = $this->get_routes();
+		}
+
+		foreach ( $routes as $route => $handlers ) {
 			$match = preg_match( '@^' . $route . '$@i', $path, $matches );
 
 			if ( ! $match ) {
@@ -1257,7 +1289,11 @@ class WP_REST_Server {
 			// For non-variable routes, generate links.
 			if ( strpos( $route, '{' ) === false ) {
 				$data['_links'] = array(
-					'self' => rest_url( $route ),
+					'self' => array(
+						array(
+							'href' => rest_url( $route ),
+						),
+					),
 				);
 			}
 		}
@@ -1369,6 +1405,12 @@ class WP_REST_Server {
 		foreach ( $server as $key => $value ) {
 			if ( strpos( $key, 'HTTP_' ) === 0 ) {
 				$headers[ substr( $key, 5 ) ] = $value;
+			} elseif ( 'REDIRECT_HTTP_AUTHORIZATION' === $key && empty( $server['HTTP_AUTHORIZATION'] ) ) {
+				/*
+				 * In some server configurations, the authorization header is passed in this alternate location.
+				 * Since it would not be passed in in both places we do not check for both headers and resolve.
+				 */
+				$headers['AUTHORIZATION'] = $value;
 			} elseif ( isset( $additional[ $key ] ) ) {
 				$headers[ $key ] = $value;
 			}

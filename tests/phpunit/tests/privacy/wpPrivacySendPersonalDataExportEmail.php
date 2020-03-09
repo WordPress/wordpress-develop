@@ -253,6 +253,38 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	}
 
 	/**
+	 * The email headers should be filterable.
+	 *
+	 * @since 5.4.0
+	 *
+	 * @ticket 44501
+	 */
+	public function test_email_headers_should_be_filterable() {
+		add_filter( 'wp_privacy_personal_data_email_headers', array( $this, 'modify_email_headers' ) );
+		wp_privacy_send_personal_data_export_email( self::$request_id );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$this->assertContains( 'From: Tester <tester@example.com>', $mailer->get_sent()->header );
+	}
+
+	/**
+	 * Filter callback to modify the headers of the email sent with a personal data export file.
+	 *
+	 * @since 5.4.0
+	 *
+	 * @param string|array $headers The email headers.
+	 * @return array       $headers The new email headers.
+	 */
+	public function modify_email_headers( $headers ) {
+		$headers = array(
+			'From: Tester <tester@example.com>',
+		);
+
+		return $headers;
+	}
+
+	/**
 	 * The email content should be filterable using the $email_data
 	 *
 	 * @ticket 46303

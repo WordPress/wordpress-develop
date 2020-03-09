@@ -695,7 +695,7 @@ function bloginfo( $show = '' ) {
  *
  * @since 0.71
  *
- * @global string $wp_version
+ * @global string $wp_version The WordPress version string.
  *
  * @param string $show   Optional. Site info to retrieve. Default empty (site name).
  * @param string $filter Optional. How to filter what is retrieved. Default 'raw'.
@@ -823,8 +823,8 @@ function get_bloginfo( $show = '', $filter = 'raw' ) {
 			 *
 			 * @since 2.0.5
 			 *
-			 * @param mixed $output The URL returned by bloginfo().
-			 * @param mixed $show   Type of information requested.
+			 * @param string $output The URL returned by bloginfo().
+			 * @param string $show   Type of information requested.
 			 */
 			$output = apply_filters( 'bloginfo_url', $output, $show );
 		} else {
@@ -833,8 +833,8 @@ function get_bloginfo( $show = '', $filter = 'raw' ) {
 			 *
 			 * @since 0.71
 			 *
-			 * @param mixed $output The requested non-URL site information.
-			 * @param mixed $show   Type of information requested.
+			 * @param mixed  $output The requested non-URL site information.
+			 * @param string $show   Type of information requested.
 			 */
 			$output = apply_filters( 'bloginfo', $output, $show );
 		}
@@ -2143,7 +2143,7 @@ function get_calendar( $initial = true, $echo = true ) {
 
 	/* translators: Calendar caption: 1: Month name, 2: 4-digit year. */
 	$calendar_caption = _x( '%1$s %2$s', 'calendar caption' );
-	$calendar_output  = '<table id="wp-calendar">
+	$calendar_output  = '<table id="wp-calendar" class="wp-calendar-table">
 	<caption>' . sprintf(
 		$calendar_caption,
 		$wp_locale->get_month( $thismonth ),
@@ -2167,32 +2167,6 @@ function get_calendar( $initial = true, $echo = true ) {
 	$calendar_output .= '
 	</tr>
 	</thead>
-
-	<tfoot>
-	<tr>';
-
-	if ( $previous ) {
-		$calendar_output .= "\n\t\t" . '<td colspan="3" id="prev"><a href="' . get_month_link( $previous->year, $previous->month ) . '">&laquo; ' .
-			$wp_locale->get_month_abbrev( $wp_locale->get_month( $previous->month ) ) .
-		'</a></td>';
-	} else {
-		$calendar_output .= "\n\t\t" . '<td colspan="3" id="prev" class="pad">&nbsp;</td>';
-	}
-
-	$calendar_output .= "\n\t\t" . '<td class="pad">&nbsp;</td>';
-
-	if ( $next ) {
-		$calendar_output .= "\n\t\t" . '<td colspan="3" id="next"><a href="' . get_month_link( $next->year, $next->month ) . '">' .
-			$wp_locale->get_month_abbrev( $wp_locale->get_month( $next->month ) ) .
-		' &raquo;</a></td>';
-	} else {
-		$calendar_output .= "\n\t\t" . '<td colspan="3" id="next" class="pad">&nbsp;</td>';
-	}
-
-	$calendar_output .= '
-	</tr>
-	</tfoot>
-
 	<tbody>
 	<tr>';
 
@@ -2260,7 +2234,32 @@ function get_calendar( $initial = true, $echo = true ) {
 	if ( 0 != $pad && 7 != $pad ) {
 		$calendar_output .= "\n\t\t" . '<td class="pad" colspan="' . esc_attr( $pad ) . '">&nbsp;</td>';
 	}
-	$calendar_output .= "\n\t</tr>\n\t</tbody>\n\t</table>";
+	$calendar_output .= "\n\t</tr>\n\t</tbody>";
+
+	$calendar_output .= "\n\t</table>";
+
+	$calendar_output .= '<nav aria-label="' . __( 'Previous and next months' ) . '" class="wp-calendar-nav">';
+
+	if ( $previous ) {
+		$calendar_output .= "\n\t\t" . '<span class="wp-calendar-nav-prev"><a href="' . get_month_link( $previous->year, $previous->month ) . '">&laquo; ' .
+			$wp_locale->get_month_abbrev( $wp_locale->get_month( $previous->month ) ) .
+		'</a></span>';
+	} else {
+		$calendar_output .= "\n\t\t" . '<span class="wp-calendar-nav-prev">&nbsp;</span>';
+	}
+
+	$calendar_output .= "\n\t\t" . '<span class="pad">&nbsp;</span>';
+
+	if ( $next ) {
+		$calendar_output .= "\n\t\t" . '<span class="wp-calendar-nav-next"><a href="' . get_month_link( $next->year, $next->month ) . '">' .
+			$wp_locale->get_month_abbrev( $wp_locale->get_month( $next->month ) ) .
+		' &raquo;</a></span>';
+	} else {
+		$calendar_output .= "\n\t\t" . '<span class="wp-calendar-nav-next">&nbsp;</span>';
+	}
+
+	$calendar_output .= '
+	</nav>';
 
 	$cache[ $key ] = $calendar_output;
 	wp_cache_set( 'get_calendar', $cache, 'calendar' );
@@ -2345,19 +2344,19 @@ function the_date_xml() {
  * @global string $currentday  The day of the current post in the loop.
  * @global string $previousday The day of the previous post in the loop.
  *
- * @param string $d      Optional. PHP date format defaults to the date_format option if not specified.
+ * @param string $format Optional. PHP date format defaults to the date_format option if not specified.
  * @param string $before Optional. Output before the date.
  * @param string $after  Optional. Output after the date.
  * @param bool   $echo   Optional, default is display. Whether to echo the date or return it.
  * @return string|void String if retrieving.
  */
-function the_date( $d = '', $before = '', $after = '', $echo = true ) {
+function the_date( $format = '', $before = '', $after = '', $echo = true ) {
 	global $currentday, $previousday;
 
 	$the_date = '';
 
 	if ( is_new_day() ) {
-		$the_date    = $before . get_the_date( $d ) . $after;
+		$the_date    = $before . get_the_date( $format ) . $after;
 		$previousday = $currentday;
 	}
 
@@ -2367,12 +2366,12 @@ function the_date( $d = '', $before = '', $after = '', $echo = true ) {
 	 * @since 0.71
 	 *
 	 * @param string $the_date The formatted date string.
-	 * @param string $d        PHP date format. Defaults to 'date_format' option
+	 * @param string $format   PHP date format. Defaults to 'date_format' option
 	 *                         if not specified.
 	 * @param string $before   HTML output before the date.
 	 * @param string $after    HTML output after the date.
 	 */
-	$the_date = apply_filters( 'the_date', $the_date, $d, $before, $after );
+	$the_date = apply_filters( 'the_date', $the_date, $format, $before, $after );
 
 	if ( $echo ) {
 		echo $the_date;
@@ -2389,21 +2388,21 @@ function the_date( $d = '', $before = '', $after = '', $echo = true ) {
  *
  * @since 3.0.0
  *
- * @param  string      $d    Optional. PHP date format defaults to the date_format option if not specified.
- * @param  int|WP_Post $post Optional. Post ID or WP_Post object. Default current post.
+ * @param  string      $format Optional. PHP date format defaults to the date_format option if not specified.
+ * @param  int|WP_Post $post   Optional. Post ID or WP_Post object. Default current post.
  * @return string|false Date the current post was written. False on failure.
  */
-function get_the_date( $d = '', $post = null ) {
+function get_the_date( $format = '', $post = null ) {
 	$post = get_post( $post );
 
 	if ( ! $post ) {
 		return false;
 	}
 
-	if ( '' == $d ) {
+	if ( '' == $format ) {
 		$the_date = get_post_time( get_option( 'date_format' ), false, $post, true );
 	} else {
-		$the_date = get_post_time( $d, false, $post, true );
+		$the_date = get_post_time( $format, false, $post, true );
 	}
 
 	/**
@@ -2412,11 +2411,11 @@ function get_the_date( $d = '', $post = null ) {
 	 * @since 3.0.0
 	 *
 	 * @param string      $the_date The formatted date.
-	 * @param string      $d        PHP date format. Defaults to 'date_format' option
+	 * @param string      $format   PHP date format. Defaults to 'date_format' option
 	 *                              if not specified.
 	 * @param int|WP_Post $post     The post object or ID.
 	 */
-	return apply_filters( 'get_the_date', $the_date, $d, $post );
+	return apply_filters( 'get_the_date', $the_date, $format, $post );
 }
 
 /**
@@ -2424,14 +2423,14 @@ function get_the_date( $d = '', $post = null ) {
  *
  * @since 2.1.0
  *
- * @param string $d      Optional. PHP date format defaults to the date_format option if not specified.
+ * @param string $format Optional. PHP date format defaults to the date_format option if not specified.
  * @param string $before Optional. Output before the date.
  * @param string $after  Optional. Output after the date.
  * @param bool   $echo   Optional, default is display. Whether to echo the date or return it.
  * @return string|void String if retrieving.
  */
-function the_modified_date( $d = '', $before = '', $after = '', $echo = true ) {
-	$the_modified_date = $before . get_the_modified_date( $d ) . $after;
+function the_modified_date( $format = '', $before = '', $after = '', $echo = true ) {
+	$the_modified_date = $before . get_the_modified_date( $format ) . $after;
 
 	/**
 	 * Filters the date a post was last modified for display.
@@ -2439,12 +2438,12 @@ function the_modified_date( $d = '', $before = '', $after = '', $echo = true ) {
 	 * @since 2.1.0
 	 *
 	 * @param string $the_modified_date The last modified date.
-	 * @param string $d                 PHP date format. Defaults to 'date_format' option
+	 * @param string $format            PHP date format. Defaults to 'date_format' option
 	 *                                  if not specified.
 	 * @param string $before            HTML output before the date.
 	 * @param string $after             HTML output after the date.
 	 */
-	$the_modified_date = apply_filters( 'the_modified_date', $the_modified_date, $d, $before, $after );
+	$the_modified_date = apply_filters( 'the_modified_date', $the_modified_date, $format, $before, $after );
 
 	if ( $echo ) {
 		echo $the_modified_date;
@@ -2460,20 +2459,20 @@ function the_modified_date( $d = '', $before = '', $after = '', $echo = true ) {
  * @since 2.1.0
  * @since 4.6.0 Added the `$post` parameter.
  *
- * @param string      $d    Optional. PHP date format defaults to the date_format option if not specified.
- * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default current post.
+ * @param string      $format Optional. PHP date format defaults to the date_format option if not specified.
+ * @param int|WP_Post $post   Optional. Post ID or WP_Post object. Default current post.
  * @return string|false Date the current post was modified. False on failure.
  */
-function get_the_modified_date( $d = '', $post = null ) {
+function get_the_modified_date( $format = '', $post = null ) {
 	$post = get_post( $post );
 
 	if ( ! $post ) {
 		// For backward compatibility, failures go through the filter below.
 		$the_time = false;
-	} elseif ( empty( $d ) ) {
+	} elseif ( empty( $format ) ) {
 		$the_time = get_post_modified_time( get_option( 'date_format' ), false, $post, true );
 	} else {
-		$the_time = get_post_modified_time( $d, false, $post, true );
+		$the_time = get_post_modified_time( $format, false, $post, true );
 	}
 
 	/**
@@ -2483,11 +2482,11 @@ function get_the_modified_date( $d = '', $post = null ) {
 	 * @since 4.6.0 Added the `$post` parameter.
 	 *
 	 * @param string|bool  $the_time The formatted date or false if no post is found.
-	 * @param string       $d        PHP date format. Defaults to value specified in
+	 * @param string       $format   PHP date format. Defaults to value specified in
 	 *                               'date_format' option.
 	 * @param WP_Post|null $post     WP_Post object or null if no post is found.
 	 */
-	return apply_filters( 'get_the_modified_date', $the_time, $d, $post );
+	return apply_filters( 'get_the_modified_date', $the_time, $format, $post );
 }
 
 /**
@@ -2495,19 +2494,19 @@ function get_the_modified_date( $d = '', $post = null ) {
  *
  * @since 0.71
  *
- * @param string $d Either 'G', 'U', or php date format.
+ * @param string $format Either 'G', 'U', or PHP date format.
  */
-function the_time( $d = '' ) {
+function the_time( $format = '' ) {
 	/**
 	 * Filters the time a post was written for display.
 	 *
 	 * @since 0.71
 	 *
 	 * @param string $get_the_time The formatted time.
-	 * @param string $d            The time format. Accepts 'G', 'U',
-	 *                             or php date format.
+	 * @param string $format       The time format. Accepts 'G', 'U',
+	 *                             or PHP date format.
 	 */
-	echo apply_filters( 'the_time', get_the_time( $d ), $d );
+	echo apply_filters( 'the_time', get_the_time( $format ), $format );
 }
 
 /**
@@ -2515,23 +2514,24 @@ function the_time( $d = '' ) {
  *
  * @since 1.5.0
  *
- * @param string      $d    Optional. Format to use for retrieving the time the post
- *                          was written. Either 'G', 'U', or php date format defaults
- *                          to the value specified in the time_format option. Default empty.
- * @param int|WP_Post $post WP_Post object or ID. Default is global `$post` object.
- * @return string|int|false Formatted date string or Unix timestamp if `$d` is 'U' or 'G'. False on failure.
+ * @param string      $format Optional. Format to use for retrieving the time the post
+ *                            was written. Either 'G', 'U', or PHP date format defaults
+ *                            to the value specified in the time_format option. Default empty.
+ * @param int|WP_Post $post   WP_Post object or ID. Default is global `$post` object.
+ * @return string|int|false Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
+ *                          False on failure.
  */
-function get_the_time( $d = '', $post = null ) {
+function get_the_time( $format = '', $post = null ) {
 	$post = get_post( $post );
 
 	if ( ! $post ) {
 		return false;
 	}
 
-	if ( '' == $d ) {
+	if ( '' == $format ) {
 		$the_time = get_post_time( get_option( 'time_format' ), false, $post, true );
 	} else {
-		$the_time = get_post_time( $d, false, $post, true );
+		$the_time = get_post_time( $format, false, $post, true );
 	}
 
 	/**
@@ -2540,12 +2540,12 @@ function get_the_time( $d = '', $post = null ) {
 	 * @since 1.5.0
 	 *
 	 * @param string      $the_time The formatted time.
-	 * @param string      $d        Format to use for retrieving the time the post was written.
-	 *                              Accepts 'G', 'U', or php date format value specified
+	 * @param string      $format   Format to use for retrieving the time the post was written.
+	 *                              Accepts 'G', 'U', or PHP date format value specified
 	 *                              in 'time_format' option. Default empty.
 	 * @param int|WP_Post $post     WP_Post object or ID.
 	 */
-	return apply_filters( 'get_the_time', $the_time, $d, $post );
+	return apply_filters( 'get_the_time', $the_time, $format, $post );
 }
 
 /**
@@ -2553,14 +2553,15 @@ function get_the_time( $d = '', $post = null ) {
  *
  * @since 2.0.0
  *
- * @param string      $d         Optional. Format to use for retrieving the time the post
- *                               was written. Either 'G', 'U', or php date format. Default 'U'.
+ * @param string      $format    Optional. Format to use for retrieving the time the post
+ *                               was written. Either 'G', 'U', or PHP date format. Default 'U'.
  * @param bool        $gmt       Optional. Whether to retrieve the GMT time. Default false.
  * @param int|WP_Post $post      WP_Post object or ID. Default is global `$post` object.
  * @param bool        $translate Whether to translate the time string. Default false.
- * @return string|int|false Formatted date string or Unix timestamp if `$d` is 'U' or 'G'. False on failure.
+ * @return string|int|false Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
+ *                          False on failure.
  */
-function get_post_time( $d = 'U', $gmt = false, $post = null, $translate = false ) {
+function get_post_time( $format = 'U', $gmt = false, $post = null, $translate = false ) {
 	$post = get_post( $post );
 
 	if ( ! $post ) {
@@ -2574,7 +2575,7 @@ function get_post_time( $d = 'U', $gmt = false, $post = null, $translate = false
 		return false;
 	}
 
-	if ( 'U' === $d || 'G' === $d ) {
+	if ( 'U' === $format || 'G' === $format ) {
 		$time = $datetime->getTimestamp();
 
 		// Returns a sum of timestamp with timezone offset. Ideally should never be used.
@@ -2582,13 +2583,13 @@ function get_post_time( $d = 'U', $gmt = false, $post = null, $translate = false
 			$time += $datetime->getOffset();
 		}
 	} elseif ( $translate ) {
-		$time = wp_date( $d, $datetime->getTimestamp(), $gmt ? new DateTimeZone( 'UTC' ) : null );
+		$time = wp_date( $format, $datetime->getTimestamp(), $gmt ? new DateTimeZone( 'UTC' ) : null );
 	} else {
 		if ( $gmt ) {
 			$datetime = $datetime->setTimezone( new DateTimeZone( 'UTC' ) );
 		}
 
-		$time = $datetime->format( $d );
+		$time = $datetime->format( $format );
 	}
 
 	/**
@@ -2596,12 +2597,12 @@ function get_post_time( $d = 'U', $gmt = false, $post = null, $translate = false
 	 *
 	 * @since 2.6.0
 	 *
-	 * @param string $time The formatted time.
-	 * @param string $d    Format to use for retrieving the time the post was written.
-	 *                     Accepts 'G', 'U', or php date format. Default 'U'.
-	 * @param bool   $gmt  Whether to retrieve the GMT time. Default false.
+	 * @param string $time   The formatted time.
+	 * @param string $format Format to use for retrieving the time the post was written.
+	 *                       Accepts 'G', 'U', or PHP date format. Default 'U'.
+	 * @param bool   $gmt    Whether to retrieve the GMT time. Default false.
 	 */
-	return apply_filters( 'get_post_time', $time, $d, $gmt );
+	return apply_filters( 'get_post_time', $time, $format, $gmt );
 }
 
 /**
@@ -2681,20 +2682,21 @@ function get_post_timestamp( $post = null, $field = 'date' ) {
  *
  * @since 2.0.0
  *
- * @param string $d Optional Either 'G', 'U', or php date format defaults to the value specified in the time_format option.
+ * @param string $format Optional. Either 'G', 'U', or PHP date format defaults
+ *                       to the value specified in the time_format option.
  */
-function the_modified_time( $d = '' ) {
+function the_modified_time( $format = '' ) {
 	/**
 	 * Filters the localized time a post was last modified, for display.
 	 *
 	 * @since 2.0.0
 	 *
 	 * @param string $get_the_modified_time The formatted time.
-	 * @param string $d                     The time format. Accepts 'G', 'U',
-	 *                                      or php date format. Defaults to value
+	 * @param string $format                The time format. Accepts 'G', 'U',
+	 *                                      or PHP date format. Defaults to value
 	 *                                      specified in 'time_format' option.
 	 */
-	echo apply_filters( 'the_modified_time', get_the_modified_time( $d ), $d );
+	echo apply_filters( 'the_modified_time', get_the_modified_time( $format ), $format );
 }
 
 /**
@@ -2703,22 +2705,22 @@ function the_modified_time( $d = '' ) {
  * @since 2.0.0
  * @since 4.6.0 Added the `$post` parameter.
  *
- * @param string      $d     Optional. Format to use for retrieving the time the post
- *                           was modified. Either 'G', 'U', or php date format defaults
- *                           to the value specified in the time_format option. Default empty.
- * @param int|WP_Post $post  Optional. Post ID or WP_Post object. Default current post.
+ * @param string      $format Optional. Format to use for retrieving the time the post
+ *                            was modified. Either 'G', 'U', or PHP date format defaults
+ *                            to the value specified in the time_format option. Default empty.
+ * @param int|WP_Post $post   Optional. Post ID or WP_Post object. Default current post.
  * @return string|false Formatted date string or Unix timestamp. False on failure.
  */
-function get_the_modified_time( $d = '', $post = null ) {
+function get_the_modified_time( $format = '', $post = null ) {
 	$post = get_post( $post );
 
 	if ( ! $post ) {
 		// For backward compatibility, failures go through the filter below.
 		$the_time = false;
-	} elseif ( empty( $d ) ) {
+	} elseif ( empty( $format ) ) {
 		$the_time = get_post_modified_time( get_option( 'time_format' ), false, $post, true );
 	} else {
-		$the_time = get_post_modified_time( $d, false, $post, true );
+		$the_time = get_post_modified_time( $format, false, $post, true );
 	}
 
 	/**
@@ -2728,12 +2730,12 @@ function get_the_modified_time( $d = '', $post = null ) {
 	 * @since 4.6.0 Added the `$post` parameter.
 	 *
 	 * @param string|bool  $the_time The formatted time or false if no post is found.
-	 * @param string       $d        Format to use for retrieving the time the post was
-	 *                               written. Accepts 'G', 'U', or php date format. Defaults
+	 * @param string       $format   Format to use for retrieving the time the post was
+	 *                               written. Accepts 'G', 'U', or PHP date format. Defaults
 	 *                               to value specified in 'time_format' option.
 	 * @param WP_Post|null $post     WP_Post object or null if no post is found.
 	 */
-	return apply_filters( 'get_the_modified_time', $the_time, $d, $post );
+	return apply_filters( 'get_the_modified_time', $the_time, $format, $post );
 }
 
 /**
@@ -2741,14 +2743,15 @@ function get_the_modified_time( $d = '', $post = null ) {
  *
  * @since 2.0.0
  *
- * @param string      $d         Optional. Format to use for retrieving the time the post
- *                               was modified. Either 'G', 'U', or php date format. Default 'U'.
+ * @param string      $format    Optional. Format to use for retrieving the time the post
+ *                               was modified. Either 'G', 'U', or PHP date format. Default 'U'.
  * @param bool        $gmt       Optional. Whether to retrieve the GMT time. Default false.
  * @param int|WP_Post $post      WP_Post object or ID. Default is global `$post` object.
  * @param bool        $translate Whether to translate the time string. Default false.
- * @return string|int|false Formatted date string or Unix timestamp if `$d` is 'U' or 'G'. False on failure.
+ * @return string|int|false Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
+ *                          False on failure.
  */
-function get_post_modified_time( $d = 'U', $gmt = false, $post = null, $translate = false ) {
+function get_post_modified_time( $format = 'U', $gmt = false, $post = null, $translate = false ) {
 	$post = get_post( $post );
 
 	if ( ! $post ) {
@@ -2762,7 +2765,7 @@ function get_post_modified_time( $d = 'U', $gmt = false, $post = null, $translat
 		return false;
 	}
 
-	if ( 'U' === $d || 'G' === $d ) {
+	if ( 'U' === $format || 'G' === $format ) {
 		$time = $datetime->getTimestamp();
 
 		// Returns a sum of timestamp with timezone offset. Ideally should never be used.
@@ -2770,13 +2773,13 @@ function get_post_modified_time( $d = 'U', $gmt = false, $post = null, $translat
 			$time += $datetime->getOffset();
 		}
 	} elseif ( $translate ) {
-		$time = wp_date( $d, $datetime->getTimestamp(), $gmt ? new DateTimeZone( 'UTC' ) : null );
+		$time = wp_date( $format, $datetime->getTimestamp(), $gmt ? new DateTimeZone( 'UTC' ) : null );
 	} else {
 		if ( $gmt ) {
 			$datetime = $datetime->setTimezone( new DateTimeZone( 'UTC' ) );
 		}
 
-		$time = $datetime->format( $d );
+		$time = $datetime->format( $format );
 	}
 
 	/**
@@ -2784,12 +2787,12 @@ function get_post_modified_time( $d = 'U', $gmt = false, $post = null, $translat
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param string $time The formatted time.
-	 * @param string $d    Format to use for retrieving the time the post was modified.
-	 *                     Accepts 'G', 'U', or php date format. Default 'U'.
-	 * @param bool   $gmt  Whether to retrieve the GMT time. Default false.
+	 * @param string $time   The formatted time.
+	 * @param string $format Format to use for retrieving the time the post was modified.
+	 *                       Accepts 'G', 'U', or PHP date format. Default 'U'.
+	 * @param bool   $gmt    Whether to retrieve the GMT time. Default false.
 	 */
-	return apply_filters( 'get_post_modified_time', $time, $d, $gmt );
+	return apply_filters( 'get_post_modified_time', $time, $format, $gmt );
 }
 
 /**
@@ -3043,12 +3046,6 @@ function feed_links_extra( $args = array() ) {
 	} elseif ( is_search() ) {
 		$title = sprintf( $args['searchtitle'], get_bloginfo( 'name' ), $args['separator'], get_search_query( false ) );
 		$href  = get_search_feed_link();
-	} elseif ( is_post_type_archive() ) {
-		$title         = sprintf( $args['posttypetitle'], get_bloginfo( 'name' ), $args['separator'], post_type_archive_title( '', false ) );
-		$post_type_obj = get_queried_object();
-		if ( $post_type_obj ) {
-			$href = get_post_type_archive_feed_link( $post_type_obj->name );
-		}
 	}
 
 	if ( isset( $title ) && isset( $href ) ) {
@@ -3718,17 +3715,7 @@ function wp_get_code_editor_settings( $args ) {
 		}
 	}
 
-	if ( 'text/css' === $type ) {
-		$settings['codemirror'] = array_merge(
-			$settings['codemirror'],
-			array(
-				'mode'              => 'css',
-				'lint'              => true,
-				'autoCloseBrackets' => true,
-				'matchBrackets'     => true,
-			)
-		);
-	} elseif ( 'text/x-scss' === $type || 'text/x-less' === $type || 'text/x-sass' === $type ) {
+	if ( in_array( $type, array( 'text/css', 'text/x-scss', 'text/x-less', 'text/x-sass' ), true ) ) {
 		$settings['codemirror'] = array_merge(
 			$settings['codemirror'],
 			array(

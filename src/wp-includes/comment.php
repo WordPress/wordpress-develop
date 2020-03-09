@@ -213,7 +213,7 @@ function get_comment( &$comment = null, $output = OBJECT ) {
 	 *
 	 * @since 2.3.0
 	 *
-	 * @param mixed $_comment Comment data.
+	 * @param WP_Comment $_comment Comment data.
 	 */
 	$_comment = apply_filters( 'get_comment', $_comment );
 
@@ -651,7 +651,7 @@ function sanitize_comment_cookies() {
  * @param bool  $avoid_die   When true, a disallowed comment will result in the function
  *                           returning a WP_Error object, rather than executing wp_die().
  *                           Default false.
- * @return int|string|WP_Error Allowed comments return the approval status (0|1|'spam').
+ * @return int|string|WP_Error Allowed comments return the approval status (0|1|'spam'|'trash').
  *                             If `$avoid_die` is true, disallowed comments return a WP_Error.
  */
 function wp_allow_comment( $commentdata, $avoid_die = false ) {
@@ -817,14 +817,14 @@ function wp_allow_comment( $commentdata, $avoid_die = false ) {
 	 * Filters a comment's approval status before it is set.
 	 *
 	 * @since 2.1.0
-	 * @since 4.9.0 Returning a WP_Error value from the filter will shortcircuit comment insertion and
-	 *              allow skipping further processing.
+	 * @since 4.9.0 Returning a WP_Error value from the filter will shortcircuit comment insertion
+	 *              and allow skipping further processing.
 	 *
-	 * @param int|string|WP_Error $approved    The approval status. Accepts 1, 0, 'spam' or WP_Error.
+	 * @param int|string|WP_Error $approved    The approval status. Accepts 1, 0, 'spam', 'trash',
+	 *                                         or WP_Error.
 	 * @param array               $commentdata Comment data.
 	 */
-	$approved = apply_filters( 'pre_comment_approved', $approved, $commentdata );
-	return $approved;
+	return apply_filters( 'pre_comment_approved', $approved, $commentdata );
 }
 
 /**
@@ -1364,8 +1364,8 @@ function wp_count_comments( $post_id = 0 ) {
 /**
  * Trashes or deletes a comment.
  *
- * The comment is moved to trash instead of permanently deleted unless trash is
- * disabled, item is already in the trash, or $force_delete is true.
+ * The comment is moved to Trash instead of permanently deleted unless Trash is
+ * disabled, item is already in the Trash, or $force_delete is true.
  *
  * The post comment count will be updated if the comment was approved and has a
  * post ID available.
@@ -1375,7 +1375,7 @@ function wp_count_comments( $post_id = 0 ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int|WP_Comment $comment_id   Comment ID or WP_Comment object.
- * @param bool           $force_delete Whether to bypass trash and force deletion. Default is false.
+ * @param bool           $force_delete Whether to bypass Trash and force deletion. Default is false.
  * @return bool True on success, false on failure.
  */
 function wp_delete_comment( $comment_id, $force_delete = false ) {
@@ -1445,7 +1445,7 @@ function wp_delete_comment( $comment_id, $force_delete = false ) {
 /**
  * Moves a comment to the Trash
  *
- * If trash is disabled, comment is permanently deleted.
+ * If Trash is disabled, comment is permanently deleted.
  *
  * @since 2.9.0
  *
@@ -1675,12 +1675,12 @@ function wp_get_comment_status( $comment_id ) {
  *
  * Calls hooks for comment status transitions. If the new comment status is not the same
  * as the previous comment status, then two hooks will be ran, the first is
- * {@see 'transition_comment_status'} with new status, old status, and comment data. The
- * next action called is {@see comment_$old_status_to_$new_status'}. It has the
- * comment data.
+ * {@see 'transition_comment_status'} with new status, old status, and comment data.
+ * The next action called is {@see 'comment_$old_status_to_$new_status'}. It has
+ * the comment data.
  *
- * The final action will run whether or not the comment statuses are the same. The
- * action is named {@see 'comment_$new_status_$comment->comment_type'}.
+ * The final action will run whether or not the comment statuses are the same.
+ * The action is named {@see 'comment_$new_status_$comment->comment_type'}.
  *
  * @since 2.7.0
  *
