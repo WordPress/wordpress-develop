@@ -1200,8 +1200,8 @@ function generate_postdata( $post ) {
  *
  * @since 5.x
  *
- * @global WP_Query                    $wp_query WordPress query object.
  * @global WP_Post                     $post     WordPress post object.
+ * @global WP_Query                    $wp_query WordPress query object.
  *
  * @param WP_Query|Iterator|array|null $iterable WordPress query object or an array of posts.
  * @return Generator
@@ -1218,12 +1218,12 @@ function wp_loop( $iterable = null ) {
 		$iterable = $iterable->posts;
 	}
 
-	// If we don't have a valid iterable, return false and trigger message
+	// If we don't have a valid iterable, return an empty array
 	if ( ! is_iterable( $iterable ) ) {
 		/* translators: Data type */
 		_doing_it_wrong( __FUNCTION__, sprintf( __( 'Expected an iterable, received %s instead.' ), gettype( $iterable ) ), '5.x' );
 
-		return false;
+		return array();
 	}
 
 	global $post;
@@ -1234,13 +1234,20 @@ function wp_loop( $iterable = null ) {
 	try {
 		foreach ( $iterable as $post ) {
 
-			// Ensure that we always yield a WP_Post object
-			if ( ! ( $post instanceof WP_Post ) ) {
+			// Ensure that we always yield a WP_Post object.
+			if ( ! is_a( $post, WP_Post::class ) ) {
 				$post = get_post( $post );
 			}
 
-			setup_postdata( $post );
-			yield $post;
+			// If post is valid then return it, otherwise skip it.
+			if ( is_a( $post, WP_Post::class ) ) {
+				setup_postdata( $post );
+				yield $post;
+			} else {
+				/* translators: Data type */
+				_doing_it_wrong( __FUNCTION__, sprintf( __( 'Expected a WP_Post object, received %s instead.' ), gettype( $iterable ) ), '5.x' );
+			}
+
 		}
 	} finally {
 		wp_reset_postdata();
