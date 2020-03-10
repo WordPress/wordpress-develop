@@ -1247,7 +1247,6 @@ function wp_loop( $iterable = null ) {
 				/* translators: Data type */
 				_doing_it_wrong( __FUNCTION__, sprintf( __( 'Expected a WP_Post object, received %s instead.' ), gettype( $iterable ) ), '5.x' );
 			}
-
 		}
 	} finally {
 		wp_reset_postdata();

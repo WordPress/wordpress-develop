@@ -28,12 +28,15 @@ class Tests_WP_Loop extends WP_UnitTestCase {
 	public function test_global_query() {
 
 		// Ensure global query returns results in order by title.
-		add_filter( 'pre_get_posts', function ( WP_Query $query ) {
-			if ( $query->is_main_query() ) {
-				$query->set( 'orderby', 'title' );
-				$query->set( 'order', 'ASC' );
+		add_filter(
+			'pre_get_posts',
+			function ( WP_Query $query ) {
+				if ( $query->is_main_query() ) {
+					$query->set( 'orderby', 'title' );
+					$query->set( 'order', 'ASC' );
+				}
 			}
-		} );
+		);
 
 		// Required to setup global WP_Query instance
 		$this->go_to( '/' );
@@ -57,11 +60,13 @@ class Tests_WP_Loop extends WP_UnitTestCase {
 	public function test_custom_query() {
 
 		// Create query
-		$query = new WP_Query( [
-			'post_type' => 'post',
-			'order_by'  => 'title',
-			'order'     => 'ASC',
-		] );
+		$query = new WP_Query(
+			[
+				'post_type' => 'post',
+				'order_by'  => 'title',
+				'order'     => 'ASC',
+			]
+		);
 
 		$i = 0;
 		foreach ( wp_loop( $query ) as $post ) {
@@ -164,7 +169,7 @@ class Tests_WP_Loop extends WP_UnitTestCase {
 
 		// Ensure that a valid iterable skips over any invalid posts.
 		$i = 0;
-		foreach ( wp_loop( [ -1, 0 ] ) as $post ) {
+		foreach ( wp_loop( [ - 1, 0 ] ) as $post ) {
 			$i ++;
 		}
 		$this->assertEquals( 0, $i, 'Failed asserting that invalid posts were skipped.' );
