@@ -14,12 +14,13 @@ window.addComment = ( function( window ) {
 
 	// Settings.
 	var config = {
-		commentReplyClass : 'comment-reply-link',
-		cancelReplyId     : 'cancel-comment-reply-link',
-		commentFormId     : 'commentform',
-		temporaryFormId   : 'wp-temp-form-div',
-		parentIdFieldId   : 'comment_parent',
-		postIdFieldId     : 'comment_post_ID'
+		commentReplyClass           : 'comment-reply-link',
+		commentReplyTitleInnerClass : 'comment-reply-title-inner',
+		cancelReplyId               : 'cancel-comment-reply-link',
+		commentFormId               : 'commentform',
+		temporaryFormId             : 'wp-temp-form-div',
+		parentIdFieldId             : 'comment_parent',
+		postIdFieldId               : 'comment_post_ID'
 	};
 
 	// Cross browser MutationObserver.
@@ -187,7 +188,7 @@ window.addComment = ( function( window ) {
 	 * @param {Event} event The calling event.
 	 */
 	function clickEvent( event ) {
-		var defaultReplyHeading = document.getElementsByClassName('comment-reply-title-inner')[0].textContent;
+		var defaultReplyHeading = document.getElementsByClassName( config.commentReplyTitleInnerClass )[0].textContent;
 		var replyLink = this,
 			commId    = getDataAttribute( replyLink, 'belowelement'),
 			parentId  = getDataAttribute( replyLink, 'commentid' ),
@@ -309,7 +310,7 @@ window.addComment = ( function( window ) {
 		var postIdField     = getElementById( config.postIdFieldId );
 		var element, cssHidden, style;
 
-		var replyHeadingText = document.getElementsByClassName('comment-reply-title-inner')[0];
+		var replyHeadingText = document.getElementsByClassName( config.commentReplyTitleInnerClass )[0];
 
 		if ( ! addBelowElement || ! respondElement || ! parentIdField ) {
 			// Missing key elements, fail.
@@ -400,7 +401,7 @@ window.addComment = ( function( window ) {
 	function addPlaceHolder( respondElement ) {
 		var temporaryFormId  = config.temporaryFormId;
 		var temporaryElement = getElementById( temporaryFormId );
-		var initialHeadingText = document.getElementsByClassName('comment-reply-title-inner')[0].textContent;
+		var initialHeadingText = document.getElementsByClassName( config.commentReplyTitleInnerClass )[0].textContent;
 
 		if ( temporaryElement ) {
 			// The element already exists, no need to recreate.
