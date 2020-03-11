@@ -175,7 +175,7 @@ window.addComment = ( function( window ) {
 		// Move the respond form back in place of the temporary element.
 		temporaryElement.parentNode.replaceChild( respondElement ,temporaryElement );
 		cancelLink.style.display = 'none';
-		var replyHeading = getElementById('reply-title');
+		var replyHeading = document.getElementsByClassName( config.commentReplyTitleInnerClass )[0];
 		replyHeading.textContent = headingText;
 		event.preventDefault();
 	}
