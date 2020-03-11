@@ -113,11 +113,10 @@ module.exports = function(grunt) {
 			],
 			js: [
 				WORKING_DIR + 'wp-admin/js/',
-				WORKING_DIR + 'wp-includes/assets/',
 				WORKING_DIR + 'wp-includes/js/'
 			],
 			'webpack-assets': [
-				WORKING_DIR + 'wp-includes/js/**/*.asset.php'
+				WORKING_DIR + 'wp-includes/js/dist/assets.php'
 			],
 			dynamic: {
 				dot: true,
@@ -146,7 +145,7 @@ module.exports = function(grunt) {
 						expand: true,
 						cwd: SOURCE_DIR,
 						src: buildFiles.concat( [
-							'!assets/**', // Assets is extracted into separate copy tasks.
+							'!wp-includes/assets/**', // Assets is extracted into separate copy tasks.
 							'!js/**', // JavaScript is extracted into separate copy tasks.
 							'!.{svn,git}', // Exclude version control folders.
 							'!wp-includes/version.php', // Exclude version.php.
@@ -356,10 +355,8 @@ module.exports = function(grunt) {
 				]
 			},
 			'webpack-assets': {
-				expand: true,
-				cwd: WORKING_DIR + 'wp-includes/js/',
-				src: 'dist/*.asset.php',
-				dest: WORKING_DIR + 'wp-includes/assets/'
+				src: WORKING_DIR + 'wp-includes/js/dist/assets.php',
+				dest: WORKING_DIR + 'wp-includes/assets/script-loader-packages.php'
 			},
 			version: {
 				options: {

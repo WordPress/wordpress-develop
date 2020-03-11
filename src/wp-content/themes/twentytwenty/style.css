@@ -3533,17 +3533,35 @@ figure.wp-block-table.is-style-stripes {
 	letter-spacing: normal;
 }
 
+.entry-content h1,
+.entry-content h2,
+.entry-content h3,
+.entry-content h4,
+.entry-content h5,
+.entry-content h6,
 .entry-content cite,
 .entry-content figcaption,
-.entry-content .wp-caption-text {
+.entry-content table,
+.entry-content address,
+.entry-content .wp-caption-text,
+.entry-content .wp-block-file {
 	font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, sans-serif;
 }
 
 @supports ( font-variation-settings: normal ) {
 
+	.entry-content h1,
+	.entry-content h2,
+	.entry-content h3,
+	.entry-content h4,
+	.entry-content h5,
+	.entry-content h6,
 	.entry-content cite,
 	.entry-content figcaption,
-	.entry-content .wp-caption-text {
+	.entry-content table,
+	.entry-content address,
+	.entry-content .wp-caption-text,
+	.entry-content .wp-block-file {
 		font-family: "Inter var", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, sans-serif;
 	}
 }
@@ -4197,7 +4215,9 @@ div.comment:first-of-type {
 }
 
 .calendar_wrap th,
-.calendar_wrap td {
+.calendar_wrap td,
+.wp-calendar-nav span {
+	display: table-cell;
 	font-size: 1em;
 	font-weight: 500;
 	line-height: 1;
@@ -4205,19 +4225,32 @@ div.comment:first-of-type {
 	text-align: center;
 }
 
+.wp-calendar-table {
+	margin-bottom: 0;
+}
+
+.wp-calendar-nav {
+	display: table;
+	width: 100%;
+	font-size: 1.8rem;
+}
+
 .calendar_wrap tfoot td {
 	border-bottom: none;
 }
 
-.calendar_wrap tfoot a {
+.calendar_wrap tfoot a,
+.calendar_wrap .wp-calendar-nav a {
 	text-decoration: none;
 }
 
-.calendar_wrap tfoot #prev {
+.calendar_wrap tfoot #prev,
+.calendar_wrap .wp-calendar-nav-prev {
 	text-align: left;
 }
 
-.calendar_wrap tfoot #next {
+.calendar_wrap tfoot #next,
+.calendar_wrap .wp-calendar-nav-next {
 	text-align: right;
 }
 

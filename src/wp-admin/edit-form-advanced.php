@@ -245,7 +245,7 @@ $form_extra  .= "<input type='hidden' id='post_ID' name='post_ID' value='" . esc
 // Detect if there exists an autosave newer than the post and if that autosave is different than the post.
 if ( $autosave && mysql2date( 'U', $autosave->post_modified_gmt, false ) > mysql2date( 'U', $post->post_modified_gmt, false ) ) {
 	foreach ( _wp_post_revision_fields( $post ) as $autosave_field => $_autosave_field ) {
-		if ( normalize_whitespace( $autosave->$autosave_field ) != normalize_whitespace( $post->$autosave_field ) ) {
+		if ( normalize_whitespace( $autosave->$autosave_field ) !== normalize_whitespace( $post->$autosave_field ) ) {
 			$notice = sprintf(
 				/* translators: %s: URL to view the autosave. */
 				__( 'There is an autosave of this post that is more recent than the version below. <a href="%s">View the autosave</a>' ),
@@ -494,7 +494,7 @@ wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false );
 do_action( 'edit_form_top', $post );
 ?>
 
-<div class="poststuff">
+<div id="poststuff">
 <div id="post-body" class="metabox-holder columns-<?php echo 1 == get_current_screen()->get_columns() ? '1' : '2'; ?>">
 <div id="post-body-content">
 
@@ -671,7 +671,7 @@ do_meta_boxes( $post_type, 'side', $post );
 
 ?>
 </div>
-<div class="postbox-container-2 postbox-container">
+<div id="postbox-container-2" class="postbox-container">
 <?php
 
 do_meta_boxes( null, 'normal', $post );

@@ -823,8 +823,8 @@ function get_bloginfo( $show = '', $filter = 'raw' ) {
 			 *
 			 * @since 2.0.5
 			 *
-			 * @param mixed $output The URL returned by bloginfo().
-			 * @param mixed $show   Type of information requested.
+			 * @param string $output The URL returned by bloginfo().
+			 * @param string $show   Type of information requested.
 			 */
 			$output = apply_filters( 'bloginfo_url', $output, $show );
 		} else {
@@ -833,8 +833,8 @@ function get_bloginfo( $show = '', $filter = 'raw' ) {
 			 *
 			 * @since 0.71
 			 *
-			 * @param mixed $output The requested non-URL site information.
-			 * @param mixed $show   Type of information requested.
+			 * @param mixed  $output The requested non-URL site information.
+			 * @param string $show   Type of information requested.
 			 */
 			$output = apply_filters( 'bloginfo', $output, $show );
 		}
@@ -2143,7 +2143,7 @@ function get_calendar( $initial = true, $echo = true ) {
 
 	/* translators: Calendar caption: 1: Month name, 2: 4-digit year. */
 	$calendar_caption = _x( '%1$s %2$s', 'calendar caption' );
-	$calendar_output  = '<table id="wp-calendar">
+	$calendar_output  = '<table id="wp-calendar" class="wp-calendar-table">
 	<caption>' . sprintf(
 		$calendar_caption,
 		$wp_locale->get_month( $thismonth ),
@@ -2238,24 +2238,24 @@ function get_calendar( $initial = true, $echo = true ) {
 
 	$calendar_output .= "\n\t</table>";
 
-	$calendar_output .= '<nav aria-label="' . __( 'Previous and next months' ) . '">';
+	$calendar_output .= '<nav aria-label="' . __( 'Previous and next months' ) . '" class="wp-calendar-nav">';
 
 	if ( $previous ) {
-		$calendar_output .= "\n\t\t" . '<span id="prev"><a href="' . get_month_link( $previous->year, $previous->month ) . '">&laquo; ' .
+		$calendar_output .= "\n\t\t" . '<span class="wp-calendar-nav-prev"><a href="' . get_month_link( $previous->year, $previous->month ) . '">&laquo; ' .
 			$wp_locale->get_month_abbrev( $wp_locale->get_month( $previous->month ) ) .
 		'</a></span>';
 	} else {
-		$calendar_output .= "\n\t\t" . '<span id="prev">&nbsp;</span>';
+		$calendar_output .= "\n\t\t" . '<span class="wp-calendar-nav-prev">&nbsp;</span>';
 	}
 
 	$calendar_output .= "\n\t\t" . '<span class="pad">&nbsp;</span>';
 
 	if ( $next ) {
-		$calendar_output .= "\n\t\t" . '<span id="next"><a href="' . get_month_link( $next->year, $next->month ) . '">' .
+		$calendar_output .= "\n\t\t" . '<span class="wp-calendar-nav-next"><a href="' . get_month_link( $next->year, $next->month ) . '">' .
 			$wp_locale->get_month_abbrev( $wp_locale->get_month( $next->month ) ) .
 		' &raquo;</a></span>';
 	} else {
-		$calendar_output .= "\n\t\t" . '<span id="next" class="pad">&nbsp;</span>';
+		$calendar_output .= "\n\t\t" . '<span class="wp-calendar-nav-next">&nbsp;</span>';
 	}
 
 	$calendar_output .= '
@@ -3046,12 +3046,6 @@ function feed_links_extra( $args = array() ) {
 	} elseif ( is_search() ) {
 		$title = sprintf( $args['searchtitle'], get_bloginfo( 'name' ), $args['separator'], get_search_query( false ) );
 		$href  = get_search_feed_link();
-	} elseif ( is_post_type_archive() ) {
-		$title         = sprintf( $args['posttypetitle'], get_bloginfo( 'name' ), $args['separator'], post_type_archive_title( '', false ) );
-		$post_type_obj = get_queried_object();
-		if ( $post_type_obj ) {
-			$href = get_post_type_archive_feed_link( $post_type_obj->name );
-		}
 	}
 
 	if ( isset( $title ) && isset( $href ) ) {

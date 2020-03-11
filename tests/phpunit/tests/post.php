@@ -1004,9 +1004,8 @@ class Tests_Post extends WP_UnitTestCase {
 	 */
 	function test_utf8mb3_post_saves_with_emoji() {
 		global $wpdb;
-		$_wpdb = new WpdbExposedMethodsForTesting();
 
-		if ( 'utf8' !== $_wpdb->get_col_charset( $wpdb->posts, 'post_title' ) ) {
+		if ( 'utf8' !== $wpdb->get_col_charset( $wpdb->posts, 'post_title' ) ) {
 			$this->markTestSkipped( 'This test is only useful with the utf8 character set' );
 		}
 

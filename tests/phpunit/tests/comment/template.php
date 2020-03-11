@@ -40,6 +40,13 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 		$comments_number_text = get_comments_number_text( false, false, false, $post_id );
 
 		$this->assertEquals( sprintf( _n( '%s Comment', '%s Comments', 6 ), '6' ), $comments_number_text );
+
+		ob_start();
+		comments_number( false, false, false, $post_id );
+		$comments_number_text = ob_get_clean();
+
+		$this->assertEquals( sprintf( _n( '%s Comment', '%s Comments', 6 ), '6' ), $comments_number_text );
+
 	}
 
 	/**
