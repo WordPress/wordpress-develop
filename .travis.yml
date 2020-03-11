@@ -75,6 +75,10 @@ before_script:
 - node --version
 - nvm install 10.13.0
 - |
+  if [[ "$WP_TRAVISCI" != "test:e2e" ]]; then
+    npm config set puppeteer_skip_chromium_download true
+  fi
+- |
   if [[ "$NPM_INSTALL" == "true" ]]; then
     npm ci
   fi
