@@ -27,6 +27,10 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 					'somestring'  => array(
 						'type' => 'string',
 					),
+					'somehex'     => array(
+						'type'   => 'string',
+						'format' => 'hex-color',
+					),
 					'someenum'    => array(
 						'type' => 'string',
 						'enum' => array( 'a' ),
@@ -166,6 +170,21 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		);
 	}
 
+	/**
+	 * @ticket 49270
+	 */
+	public function test_validate_schema_format_hex_color() {
+
+		$this->assertTrue(
+			rest_validate_request_arg( '#000000', $this->request, 'somehex' )
+		);
+
+		$this->assertErrorResponse(
+			'rest_invalid_hex_color',
+			rest_validate_request_arg( 'wibble', $this->request, 'somehex' )
+		);
+	}
+
 	public function test_validate_schema_format_date_time() {
 
 		$this->assertTrue(
@@ -218,6 +237,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 				'someurl',
 				'somedate',
 				'someemail',
+				'somehex',
 				'someenum',
 				'someargoptions',
 				'somedefault',
@@ -247,6 +267,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 					'someurl',
 					'somedate',
 					'someemail',
+					'somehex',
 					'someenum',
 					'someargoptions',
 					'somedefault',

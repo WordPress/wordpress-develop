@@ -77,6 +77,19 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 		$this->assertEquals( '2001:DB8:0:0:8:800:200C:417A', rest_sanitize_value_from_schema( '2001:DB8:0:0:8:800:200C:417A', $schema ) );
 	}
 
+	/**
+	 * @ticket 49270
+	 */
+	public function test_format_hex_color() {
+		$schema = array(
+			'type'   => 'string',
+			'format' => 'hex-color',
+		);
+		$this->assertEquals( '#000000', rest_sanitize_value_from_schema( '#000000', $schema ) );
+		$this->assertEquals( '#FFF', rest_sanitize_value_from_schema( '#FFF', $schema ) );
+		$this->assertEquals( '', rest_sanitize_value_from_schema( 'WordPress', $schema ) );
+	}
+
 	public function test_type_array() {
 		$schema = array(
 			'type'  => 'array',
