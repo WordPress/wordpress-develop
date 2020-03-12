@@ -29,11 +29,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 		self::$_wpdb = new WpdbExposedMethodsForTesting();
 
-		if ( self::$_wpdb->use_mysqli ) {
-			self::$server_info = mysqli_get_server_info( self::$_wpdb->dbh );
-		} else {
-			self::$server_info = mysql_get_server_info( self::$_wpdb->dbh );
-		}
+		self::$server_info = self::$_wpdb->db_server_info();
 	}
 
 	/**
