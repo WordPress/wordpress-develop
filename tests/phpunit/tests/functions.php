@@ -291,6 +291,7 @@ class Tests_Functions extends WP_UnitTestCase {
 				),
 				true,
 			),
+			array( '   s:25:"this string is serialized";   ', true ),
 		);
 	}
 
