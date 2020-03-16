@@ -22,10 +22,11 @@ env:
     - WP_INSTALL: true
     - PHP_FPM_UID: "`id -u`"
     - PHP_FPM_GID: "`id -g`"
+    - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
 
 matrix:
   include:
-  - env: WP_TRAVISCI=test:e2e
+  - env: WP_TRAVISCI=test:e2e PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=
     name: E2E Tests
   - env: WP_TRAVISCI=lint:php COMPOSER_INSTALL=true NPM_INSTALL=false WP_INSTALL=false
     name: PHP Linting
@@ -74,10 +75,6 @@ before_script:
 - npm --version
 - node --version
 - nvm install 10.13.0
-- |
-  if [[ "$WP_TRAVISCI" != "test:e2e" ]]; then
-    npm config set puppeteer_skip_chromium_download true
-  fi
 - |
   if [[ "$NPM_INSTALL" == "true" ]]; then
     npm ci
