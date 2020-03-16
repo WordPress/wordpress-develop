@@ -14,13 +14,13 @@ window.addComment = ( function( window ) {
 
 	// Settings.
 	var config = {
-		commentReplyClass           : 'comment-reply-link',
-		commentReplyTitleInnerClass : 'comment-reply-title-inner',
-		cancelReplyId               : 'cancel-comment-reply-link',
-		commentFormId               : 'commentform',
-		temporaryFormId             : 'wp-temp-form-div',
-		parentIdFieldId             : 'comment_parent',
-		postIdFieldId               : 'comment_post_ID'
+		commentReplyClass   : 'comment-reply-link',
+		commentReplyTitleId : 'reply-title',
+		cancelReplyId       : 'cancel-comment-reply-link',
+		commentFormId       : 'commentform',
+		temporaryFormId     : 'wp-temp-form-div',
+		parentIdFieldId     : 'comment_parent',
+		postIdFieldId       : 'comment_post_ID'
 	};
 
 	// Cross browser MutationObserver.
@@ -163,7 +163,6 @@ window.addComment = ( function( window ) {
 		var cancelLink = this;
 		var temporaryFormId  = config.temporaryFormId;
 		var temporaryElement = getElementById( temporaryFormId );
-		var headingText = temporaryElement.textContent;
 
 		if ( ! temporaryElement || ! respondElement ) {
 			// Conditions for cancel link fail.
@@ -173,10 +172,12 @@ window.addComment = ( function( window ) {
 		getElementById( config.parentIdFieldId ).value = '0';
 
 		// Move the respond form back in place of the temporary element.
-		temporaryElement.parentNode.replaceChild( respondElement ,temporaryElement );
+		var headingText = temporaryElement.textContent;
+		temporaryElement.parentNode.replaceChild( respondElement, temporaryElement );
 		cancelLink.style.display = 'none';
-		var replyHeading = document.getElementsByClassName( config.commentReplyTitleInnerClass )[0];
-		replyHeading.textContent = headingText;
+		var replyHeadingElement = getElementById( config.commentReplyTitleId );
+		var replyHeadingTextNode = replyHeadingElement && replyHeadingElement.firstChild;
+		replyHeadingTextNode.textContent = headingText;
 		event.preventDefault();
 	}
 
@@ -188,7 +189,7 @@ window.addComment = ( function( window ) {
 	 * @param {Event} event The calling event.
 	 */
 	function clickEvent( event ) {
-		var defaultReplyHeading = document.getElementsByClassName( config.commentReplyTitleInnerClass )[0].textContent;
+		var defaultReplyHeading = getElementById( config.commentReplyTitleId ).firstChild.textContent;
 		var replyLink = this,
 			commId    = getDataAttribute( replyLink, 'belowelement'),
 			parentId  = getDataAttribute( replyLink, 'commentid' ),
@@ -310,7 +311,7 @@ window.addComment = ( function( window ) {
 		var postIdField     = getElementById( config.postIdFieldId );
 		var element, cssHidden, style;
 
-		var replyHeadingText = document.getElementsByClassName( config.commentReplyTitleInnerClass )[0];
+		var replyHeadingTextNode = getElementById( config.commentReplyTitleId ).firstChild;
 
 		if ( ! addBelowElement || ! respondElement || ! parentIdField ) {
 			// Missing key elements, fail.
@@ -318,7 +319,7 @@ window.addComment = ( function( window ) {
 		}
 
 		if ( 'undefined' === typeof replyTo) {
-			replyTo = replyHeadingText.textContent;
+			replyTo = replyHeadingTextNode.textContent;
 		}
 
 		addPlaceHolder( respondElement );
@@ -332,7 +333,7 @@ window.addComment = ( function( window ) {
 
 		cancelElement.style.display = '';
 		addBelowElement.parentNode.insertBefore( respondElement, addBelowElement.nextSibling );
-		replyHeadingText.textContent = replyTo;
+		replyHeadingTextNode.textContent = replyTo;
 
 		/*
 		 * This is for backward compatibility with third party commenting systems
@@ -401,7 +402,8 @@ window.addComment = ( function( window ) {
 	function addPlaceHolder( respondElement ) {
 		var temporaryFormId  = config.temporaryFormId;
 		var temporaryElement = getElementById( temporaryFormId );
-		var initialHeadingText = document.getElementsByClassName( config.commentReplyTitleInnerClass )[0].textContent;
+		var replyElement = getElementById( config.commentReplyTitleId );
+		var initialHeadingText = ( 'undefined' !== typeof replyElement ) ? replyElement.firstChild.textContent : '';
 
 		if ( temporaryElement ) {
 			// The element already exists, no need to recreate.
