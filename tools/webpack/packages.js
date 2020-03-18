@@ -247,6 +247,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			new DependencyExtractionPlugin( {
 				injectPolyfill: true,
 				combineAssets: true,
+				combinedOutputFile: '../../assets/script-loader-packages.php',
 			} ),
 			new CopyWebpackPlugin(
 				[

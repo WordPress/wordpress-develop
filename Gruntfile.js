@@ -116,7 +116,7 @@ module.exports = function(grunt) {
 				WORKING_DIR + 'wp-includes/js/'
 			],
 			'webpack-assets': [
-				WORKING_DIR + 'wp-includes/js/dist/assets.php'
+				WORKING_DIR + 'wp-includes/assets/'
 			],
 			dynamic: {
 				dot: true,
@@ -353,10 +353,6 @@ module.exports = function(grunt) {
 						dest: WORKING_DIR + 'wp-admin/css/wp-admin-rtl.min.css'
 					}
 				]
-			},
-			'webpack-assets': {
-				src: WORKING_DIR + 'wp-includes/js/dist/assets.php',
-				dest: WORKING_DIR + 'wp-includes/assets/script-loader-packages.php'
 			},
 			version: {
 				options: {
@@ -1366,10 +1362,9 @@ module.exports = function(grunt) {
 	] );
 
 	grunt.registerTask( 'build:webpack', [
+		'clean:webpack-assets',
 		'webpack:prod',
 		'webpack:dev',
-		'copy:webpack-assets',
-		'clean:webpack-assets',
 	] );
 
 	grunt.registerTask( 'build:js', [
