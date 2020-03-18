@@ -177,7 +177,9 @@ window.addComment = ( function( window ) {
 		cancelLink.style.display = 'none';
 		var replyHeadingElement = getElementById( config.commentReplyTitleId );
 		var replyHeadingTextNode = replyHeadingElement && replyHeadingElement.firstChild;
-		replyHeadingTextNode.textContent = headingText;
+		if ( replyHeadingTextNode && replyHeadingTextNode.nodeType === 3 && headingText ) {
+			replyHeadingTextNode.textContent = headingText;
+		}
 		event.preventDefault();
 	}
 
@@ -189,7 +191,8 @@ window.addComment = ( function( window ) {
 	 * @param {Event} event The calling event.
 	 */
 	function clickEvent( event ) {
-		var defaultReplyHeading = getElementById( config.commentReplyTitleId ).firstChild.textContent;
+		var replyNode = getElementById( config.commentReplyTitleId );
+		var defaultReplyHeading = replyNode && replyNode.firstChild.textContent;
 		var replyLink = this,
 			commId    = getDataAttribute( replyLink, 'belowelement'),
 			parentId  = getDataAttribute( replyLink, 'commentid' ),
@@ -311,7 +314,8 @@ window.addComment = ( function( window ) {
 		var postIdField     = getElementById( config.postIdFieldId );
 		var element, cssHidden, style;
 
-		var replyHeadingTextNode = getElementById( config.commentReplyTitleId ).firstChild;
+		var replyHeading = getElementById( config.commentReplyTitleId );
+		var replyHeadingTextNode = replyHeading && replyHeading.firstChild;
 
 		if ( ! addBelowElement || ! respondElement || ! parentIdField ) {
 			// Missing key elements, fail.
@@ -319,7 +323,7 @@ window.addComment = ( function( window ) {
 		}
 
 		if ( 'undefined' === typeof replyTo) {
-			replyTo = replyHeadingTextNode.textContent;
+			replyTo = replyHeadingTextNode && replyHeadingTextNode.textContent;
 		}
 
 		addPlaceHolder( respondElement );
@@ -333,8 +337,9 @@ window.addComment = ( function( window ) {
 
 		cancelElement.style.display = '';
 		addBelowElement.parentNode.insertBefore( respondElement, addBelowElement.nextSibling );
-		replyHeadingTextNode.textContent = replyTo;
-
+		if (replyHeadingTextNode.nodeType === 3) {
+			replyHeadingTextNode.textContent = replyTo;
+		}
 		/*
 		 * This is for backward compatibility with third party commenting systems
 		 * hooking into the event using older techniques.
