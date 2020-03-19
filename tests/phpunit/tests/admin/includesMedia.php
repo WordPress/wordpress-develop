@@ -2,7 +2,6 @@
 
 /**
  * @group media
- * @group k99
  * @group admin
  */
 class Tests_Admin_includesMedia extends WP_UnitTestCase {
