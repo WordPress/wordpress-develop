@@ -36,7 +36,7 @@ class WP_Embed {
 		add_shortcode( 'embed', '__return_false' );
 
 		// Attempts to embed all URLs in a post.
-		add_filter( 'the_content', array( $this, 'autoembed' ), 8 );
+		add_filter( 'the_content', array( $this, 'autoembed' ), 9 );
 		add_filter( 'widget_text_content', array( $this, 'autoembed' ), 8 );
 
 		// After a post is saved, cache oEmbed items via Ajax.
