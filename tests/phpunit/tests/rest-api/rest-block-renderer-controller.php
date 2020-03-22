@@ -457,6 +457,8 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 
 	/**
 	 * Test a POST request, with the attributes in the body.
+	 *
+	 * @ticket 49680
 	 */
 	public function test_get_item_post_request() {
 		wp_set_current_user( self::$user_id );
