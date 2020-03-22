@@ -387,14 +387,6 @@ class Tests_Term extends WP_UnitTestCase {
 			$this->assertTrue( wp_delete_term( $t['term_id'], $this->taxonomy ) );
 	}
 
-	private function assertPostHasTerms( $post_id, $expected_term_ids, $taxonomy ) {
-		$assigned_term_ids = wp_get_object_terms( $post_id, $taxonomy, array(
-			'fields' => 'ids'
-		) );
-
-		$this->assertEquals( $expected_term_ids, $assigned_term_ids );
-	}
-
 	function test_wp_set_post_categories() {
 		$post_id = $this->factory->post->create();
 		$post = get_post( $post_id );
