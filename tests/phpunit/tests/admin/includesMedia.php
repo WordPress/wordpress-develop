@@ -15,7 +15,9 @@ class Tests_Admin_includesMedia extends WP_UnitTestCase {
 		self::$different_post = $factory->post->create_and_get();
 	}
 
-	public function wpTearDownAfterClass() {
+	public static function wpTearDownAfterClass() {
+		wp_delete_post( self::$post->ID, true );
+		wp_delete_post( self::$different_post->ID, true );
 		self::$post           = null;
 		self::$different_post = null;
 	}
@@ -83,7 +85,7 @@ class Tests_Admin_includesMedia extends WP_UnitTestCase {
 		$attachment_meta_source_url = get_post_meta( $media_id, '_source_url', true );
 
 		$this->assertInternalType( 'numeric', $media_id );
-		$this->assertEquals( $attachment_meta_source_url, $image_source );
+		$this->assertEquals( $image_source, $attachment_meta_source_url );
 	}
 
 }
