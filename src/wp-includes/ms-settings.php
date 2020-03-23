@@ -60,7 +60,7 @@ if ( ! isset( $current_site ) || ! isset( $current_blog ) ) {
 		$domain = $_SERVER['SERVER_NAME'];
 	}
 
-	if ( isset( $_SERVER['HTTP_HOST'] ) {
+	if ( isset( $_SERVER['HTTP_HOST'] ) ) {
 		$domain = strtolower( stripslashes( $_SERVER['HTTP_HOST'] ) );
 		if ( substr( $domain, -3 ) == ':80' ) {
 			$domain               = substr( $domain, 0, -3 );
