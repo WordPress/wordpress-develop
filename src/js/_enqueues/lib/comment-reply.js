@@ -177,7 +177,7 @@ window.addComment = ( function( window ) {
 		cancelLink.style.display = 'none';
 		var replyHeadingElement = getElementById( config.commentReplyTitleId );
 		var replyHeadingTextNode = replyHeadingElement && replyHeadingElement.firstChild;
-		if ( replyHeadingTextNode && replyHeadingTextNode.nodeType === 3 && headingText ) {
+		if ( replyHeadingTextNode && replyHeadingTextNode.nodeType === Node.TEXT_NODE && headingText ) {
 			replyHeadingTextNode.textContent = headingText;
 		}
 		event.preventDefault();
@@ -322,7 +322,7 @@ window.addComment = ( function( window ) {
 			return;
 		}
 
-		if ( 'undefined' === typeof replyTo) {
+		if ( 'undefined' === typeof replyTo ) {
 			replyTo = replyHeadingTextNode && replyHeadingTextNode.textContent;
 		}
 
@@ -337,7 +337,7 @@ window.addComment = ( function( window ) {
 
 		cancelElement.style.display = '';
 		addBelowElement.parentNode.insertBefore( respondElement, addBelowElement.nextSibling );
-		if (replyHeadingTextNode.nodeType === 3) {
+		if ( replyHeadingTextNode.nodeType === Node.TEXT_NODE ) {
 			replyHeadingTextNode.textContent = replyTo;
 		}
 		/*
