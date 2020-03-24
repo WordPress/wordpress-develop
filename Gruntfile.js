@@ -2,6 +2,7 @@
 /* jshint esversion: 6 */
 /* globals Set */
 var webpackConfig = require( './webpack.config' );
+var installChanged = require( 'install-changed' );
 
 module.exports = function(grunt) {
 	var path = require('path'),
@@ -40,6 +41,9 @@ module.exports = function(grunt) {
 			'grunt watch:phpunit --group=multisite,mail'
 		);
 	}
+
+	// First do `npm install` if package.json has changed.
+	installChanged.watchPackage();
 
 	// Load tasks.
 	require('matchdep').filterDev(['grunt-*', '!grunt-legacy-util']).forEach( grunt.loadNpmTasks );
