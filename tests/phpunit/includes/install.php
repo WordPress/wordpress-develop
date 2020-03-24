@@ -7,7 +7,11 @@
 error_reporting( E_ALL & ~E_DEPRECATED & ~E_STRICT );
 
 $config_file_path = $argv[1];
-$multisite        = ! empty( $argv[2] );
+$multisite        = in_array( 'run_ms_tests', $argv, true );
+
+if ( ! defined( 'WP_RUN_CORE_TESTS' ) && in_array( 'run_core_tests', $argv, true ) ) {
+	define( 'WP_RUN_CORE_TESTS', true );
+}
 
 define( 'WP_INSTALLING', true );
 require_once $config_file_path;
