@@ -561,6 +561,48 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure inclusion of deeply nested fields may be controlled with request['_fields'].
+	 *
+	 * @ticket 49648
+	 */
+	public function test_rest_filter_response_fields_deeply_nested_field_filter() {
+		$response = new WP_REST_Response();
+
+		$response->set_data(
+			array(
+				'field' => array(
+					'a' => array(
+						'i'  => 'value i',
+						'ii' => 'value ii',
+					),
+					'b' => array(
+						'iii' => 'value iii',
+						'iv'  => 'value iv',
+					),
+				),
+			)
+		);
+		$request = array(
+			'_fields' => 'field.a.i,field.b.iv',
+		);
+
+		$response = rest_filter_response_fields( $response, null, $request );
+		$this->assertEquals(
+			array(
+				'field' => array(
+					'a' => array(
+						'i' => 'value i',
+					),
+					'b' => array(
+						'iv' => 'value iv',
+					),
+				),
+			),
+			$response->get_data()
+		);
+	}
+
+	/**
 	 * Ensure that specifying a single top-level key in _fields includes that field and all children.
 	 *
 	 * @ticket 48266
