@@ -880,6 +880,22 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 49685
+	 */
+	function test_wp_count_posts_status_changes_visible() {
+		self::factory()->post->create_many( 3 );
+
+		// Trigger a cache.
+		wp_count_posts();
+
+		register_post_status( 'test' );
+
+		$counts = wp_count_posts();
+		$this->assertTrue( isset( $counts->test ) );
+		$this->assertEquals( 0, $counts->test );
+	}
+
+	/**
 	 * @ticket 13771
 	 */
 	function test_get_the_date_with_id_returns_correct_time() {
