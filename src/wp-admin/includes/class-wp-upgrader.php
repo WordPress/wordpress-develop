@@ -248,21 +248,34 @@ class WP_Upgrader {
 	 * @param string $package          The URI of the package. If this is the full path to an
 	 *                                 existing local file, it will be returned untouched.
 	 * @param bool   $check_signatures Whether to validate file signatures. Default false.
+	 * * @param array $args {
+	 *     Optional. Array of arguments for downloading a package. Default empty array.
+	 *
+	 *     @type array  $hook_extra                  Extra arguments to pass to the filter hooks. Default empty array.
+	 * }
+	 *
 	 * @return string|WP_Error The full path to the downloaded package file, or a WP_Error object.
 	 */
-	public function download_package( $package, $check_signatures = false ) {
+	public function download_package( $package, $check_signatures = false, $args = array() ) {
+
+		$defaults = array(
+			'hook_extra' => array(),
+		);
+
+		$args = wp_parse_args( $args, $defaults );
 
 		/**
 		 * Filters whether to return the package.
 		 *
 		 * @since 3.7.0
 		 *
-		 * @param bool        $reply   Whether to bail without returning the package.
-		 *                             Default false.
-		 * @param string      $package The package file name.
-		 * @param WP_Upgrader $this    The WP_Upgrader instance.
+		 * @param bool        $reply      Whether to bail without returning the package.
+		 *                                Default false.
+		 * @param string      $package    The package file name.
+		 * @param WP_Upgrader $this       The WP_Upgrader instance.
+		 * @param array       $hook_extra Extra arguments passed to hooked filters.
 		 */
-		$reply = apply_filters( 'upgrader_pre_download', false, $package, $this );
+		$reply = apply_filters( 'upgrader_pre_download', false, $package, $this, $args['hook_extra'] );
 		if ( false !== $reply ) {
 			return $reply;
 		}
@@ -737,7 +750,13 @@ class WP_Upgrader {
 		 * Download the package (Note, This just returns the filename
 		 * of the file if the package is a local file)
 		 */
-		$download = $this->download_package( $options['package'], true );
+		$download = $this->download_package(
+			$options['package'],
+			true,
+			array(
+				'hook_extra' => $options['hook_extra'],
+			)
+		);
 
 		// Allow for signature soft-fail.
 		// WARNING: This may be removed in the future.
