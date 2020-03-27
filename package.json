@@ -95,7 +95,7 @@
 		"@wordpress/deprecated": "2.7.0",
 		"@wordpress/dom": "2.8.0",
 		"@wordpress/dom-ready": "2.7.0",
-		"@wordpress/edit-post": "3.13.8",
+		"@wordpress/edit-post": "3.13.9",
 		"@wordpress/editor": "9.12.7",
 		"@wordpress/element": "2.11.0",
 		"@wordpress/escape-html": "1.7.0",
