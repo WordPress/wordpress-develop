@@ -5088,7 +5088,7 @@ function get_post_by_guid( $guid, $output = OBJECT, $post_type = 'any' ) {
 	$sql_post_type = '';
 	$args          = [ $escaped_guid ];
 
-	if ( is_array( $post_types ) && count( $post_types ) > 1 ) {
+	if ( is_array( $post_types ) ) {
 		$post_types__in_string = implode( "','", $post_types );
 		$args[]                = $post_types__in_string;
 		$sql_post_type         = 'post_type IN (%s)';
