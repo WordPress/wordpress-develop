@@ -5057,6 +5057,67 @@ function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' )
 }
 
 /**
+ * Retrieve any post given its guid.
+ *
+ * @since TBD
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param string $guid Post GUID.
+ * @param string $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
+ *                                a \WP_Post object, an associative array, or a numeric array, respectively. Default OBJECT.
+ * @param string|array $post_type Optinal. The Post Type to search for.
+ * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
+ */
+function get_post_by_guid( $guid, $output = OBJECT, $post_type = 'any' ) {
+	global $wpdb;
+
+	$last_changed = wp_cache_get_last_changed( 'posts' );
+	$hash         = md5( $guid . serialize( $post_type ) );
+	$cache_key    = "get_post_by_guid:$hash:$last_changed";
+	$cached       = wp_cache_get( $cache_key, 'posts' );
+
+	if ( $cached ) {
+		return get_post( $cached, $output );
+	}
+
+	$guid         = sanitize_text_field( $guid );
+	$escaped_guid = esc_sql( $guid );
+	$post_types   = esc_sql( $post_type );
+
+	$sql_post_type = '';
+	$args          = [ $escaped_guid ];
+
+	if ( is_array( $post_types ) && count( $post_types ) > 1 ) {
+		$post_types__in_string = implode( "','", $post_types );
+		$args[]                = $post_types__in_string;
+		$sql_post_type         = 'post_type IN (%s)';
+	} elseif ( 'any' !== $post_types ) {
+		$post_types__in_string = $post_types;
+		$args[]                = $post_types__in_string;
+		$sql_post_type         = 'AND post_type = %s';
+	}
+
+	$sql = "SELECT DISTINCT ID
+		FROM {$wpdb->posts}
+		WHERE
+		guid = %s
+		{$sql_post_type}
+	";
+
+	$sql_prepared = $wpdb->prepare( $sql, $args );
+
+	$postid = $wpdb->get_var( $sql_prepared );
+
+	// We cache misses as well as hits.
+	wp_cache_set( $cache_key, $postid, 'posts' );
+
+	if ( $postid ) {
+		return get_post( $postid, $output );
+	}
+}
+
+/**
  * Identify descendants of a given page ID in a list of page objects.
  *
  * Descendants are identified from the `$pages` array passed to the function. No database queries are performed.
