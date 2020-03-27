@@ -342,7 +342,7 @@ function get_inline_data( $post ) {
 	foreach ( $taxonomy_names as $taxonomy_name ) {
 		$taxonomy = get_taxonomy( $taxonomy_name );
 
-		if ( $taxonomy->hierarchical && $taxonomy->show_ui ) {
+		if ( $taxonomy->hierarchical && $taxonomy->show_in_quick_edit ) {
 
 			$terms = get_object_term_cache( $post->ID, $taxonomy_name );
 			if ( false === $terms ) {
@@ -353,7 +353,7 @@ function get_inline_data( $post ) {
 
 			echo '<div class="post_category" id="' . $taxonomy_name . '_' . $post->ID . '">' . implode( ',', $term_ids ) . '</div>';
 
-		} elseif ( $taxonomy->show_ui ) {
+		} elseif ( $taxonomy->show_in_quick_edit ) {
 
 			$terms_to_edit = get_terms_to_edit( $post->ID, $taxonomy_name );
 			if ( ! is_string( $terms_to_edit ) ) {
