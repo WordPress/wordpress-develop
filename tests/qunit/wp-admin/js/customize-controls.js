@@ -1,4 +1,4 @@
-/* global JSON, wp, test, ok, equal, module */
+/* global JSON, wp */
 
 wp.customize.settingConstructor.abbreviation = wp.customize.Setting.extend({
 	validate: function( value ) {
@@ -6,7 +6,7 @@ wp.customize.settingConstructor.abbreviation = wp.customize.Setting.extend({
 	}
 });
 
-jQuery( window ).load( function (){
+jQuery( window ).load( function() {
 	'use strict';
 
 	var controlId, controlLabel, controlType, controlContent, controlDescription, controlData, mockControl,
@@ -19,76 +19,76 @@ jQuery( window ).load( function (){
 			throw new Error( 'Must pass value type in expectedValues.' );
 		}
 		var type = expectedValues.type;
-		test( 'Model extends proper type', function () {
-			ok( model.extended( wp.customize[ type ] ) );
+		QUnit.test( 'Model extends proper type', function( assert ) {
+			assert.ok( model.extended( wp.customize[ type ] ) );
 		} );
 
 		if ( expectedValues.hasOwnProperty( 'id' ) ) {
-			test( type + ' instance has the right id', function () {
-				equal( model.id, expectedValues.id );
+			QUnit.test( type + ' instance has the right id', function( assert ) {
+				assert.equal( model.id, expectedValues.id );
 			});
 		}
 		if ( expectedValues.hasOwnProperty( 'title') ) {
-			test( type + ' instance has the right title.', function () {
-				equal( model.params.title, expectedValues.title );
+			QUnit.test( type + ' instance has the right title.', function( assert ) {
+				assert.equal( model.params.title, expectedValues.title );
 			});
 		}
 		if ( expectedValues.hasOwnProperty( 'description' ) ) {
-			test( type + ' instance has the right description.', function () {
-				equal( model.params.description, expectedValues.description );
+			QUnit.test( type + ' instance has the right description.', function( assert ) {
+				assert.equal( model.params.description, expectedValues.description );
 			});
 		}
 		if ( expectedValues.hasOwnProperty( 'content' ) ) {
-			test( type + ' instance has the right content.', function () {
-				equal( model.params.content, expectedValues.content );
+			QUnit.test( type + ' instance has the right content.', function( assert ) {
+				assert.equal( model.params.content, expectedValues.content );
 			});
 		}
 		if ( expectedValues.hasOwnProperty( 'priority' ) ) {
-			test( type + ' instance has the right priority.', function () {
-				equal( model.priority(), expectedValues.priority );
+			QUnit.test( type + ' instance has the right priority.', function( assert ) {
+				assert.equal( model.priority(), expectedValues.priority );
 			});
 		}
 		if ( expectedValues.hasOwnProperty( 'active' ) ) {
-			test( type + ' instance has the right active state.', function () {
-				equal( model.active(), expectedValues.active );
+			QUnit.test( type + ' instance has the right active state.', function( assert ) {
+				assert.equal( model.active(), expectedValues.active );
 			});
 		}
-		test( type + ' can be deactivated', function () {
+		QUnit.test( type + ' can be deactivated', function( assert ) {
 			model.activate();
 			model.deactivate();
-			equal( model.active(), false );
+			assert.equal( model.active(), false );
 			model.activate();
-			equal( model.active(), true );
-			ok(true);
+			assert.equal( model.active(), true );
+			assert.ok(true);
 		});
 
 		if ( type === 'Panel' || type === 'Section' ) {
 			if ( expectedValues.hasOwnProperty( 'expanded' ) ) {
-				test( type + ' instance has the right expanded state.', function () {
-					equal( model.expanded(), expectedValues.expanded );
+				QUnit.test( type + ' instance has the right expanded state.', function( assert ) {
+					assert.equal( model.expanded(), expectedValues.expanded );
 				} );
 			}
 
-			test( type + ' instance is collapsed after calling .collapse()', function () {
+			QUnit.test( type + ' instance is collapsed after calling .collapse()', function( assert ) {
 				model.collapse();
-				ok( ! model.expanded() );
+				assert.ok( ! model.expanded() );
 			});
 
-			test( type + ' instance is expanded after calling .expand()', function () {
+			QUnit.test( type + ' instance is expanded after calling .expand()', function( assert ) {
 				model.expand();
-				ok( model.expanded() );
+				assert.ok( model.expanded() );
 			});
 		}
 
 	};
 
-	module( 'Customizer notifications collection' );
-	test( 'Notifications collection exists', function() {
-		ok( wp.customize.notifications );
-		equal( wp.customize.notifications.defaultConstructor, wp.customize.Notification );
+	QUnit.module( 'Customizer notifications collection' );
+	QUnit.test( 'Notifications collection exists', function( assert ) {
+		assert.ok( wp.customize.notifications );
+		assert.equal( wp.customize.notifications.defaultConstructor, wp.customize.Notification );
 	} );
 
-	test( 'Notification objects are rendered as part of notifications collection', function() {
+	QUnit.test( 'Notification objects are rendered as part of notifications collection', function( assert ) {
 		var container = jQuery( '#customize-notifications-test' ), items, collection;
 
 		collection = new wp.customize.Notifications({
@@ -97,8 +97,8 @@ jQuery( window ).load( function (){
 		collection.add( 'mycode-1', new wp.customize.Notification( 'mycode-1', { message: 'My message 1' } ) );
 		collection.render();
 		items = collection.container.find( 'li' );
-		equal( items.length, 1 );
-		equal( items.first().data( 'code' ), 'mycode-1' );
+		assert.equal( items.length, 1 );
+		assert.equal( items.first().data( 'code' ), 'mycode-1' );
 
 		collection.add( 'mycode-2', new wp.customize.Notification( 'mycode-2', {
 			message: 'My message 2',
@@ -106,69 +106,69 @@ jQuery( window ).load( function (){
 		} ) );
 		collection.render();
 		items = collection.container.find( 'li' );
-		equal( items.length, 2 );
-		equal( items.first().data( 'code' ), 'mycode-2' );
-		equal( items.last().data( 'code' ), 'mycode-1' );
+		assert.equal( items.length, 2 );
+		assert.equal( items.first().data( 'code' ), 'mycode-2' );
+		assert.equal( items.last().data( 'code' ), 'mycode-1' );
 
-		equal( items.first().find( '.notice-dismiss' ).length, 1 );
-		equal( items.last().find( '.notice-dismiss' ).length, 0 );
+		assert.equal( items.first().find( '.notice-dismiss' ).length, 1 );
+		assert.equal( items.last().find( '.notice-dismiss' ).length, 0 );
 
 		collection.remove( 'mycode-2' );
 		collection.render();
 		items = collection.container.find( 'li' );
-		equal( items.length, 1 );
-		equal( items.first().data( 'code' ), 'mycode-1' );
+		assert.equal( items.length, 1 );
+		assert.equal( items.first().data( 'code' ), 'mycode-1' );
 
 		collection.remove( 'mycode-1' );
 		collection.render();
-		ok( collection.container.is( ':hidden' ), 'Notifications area is hidden.' );
+		assert.ok( collection.container.is( ':hidden' ), 'Notifications area is hidden.' );
 	} );
 
-	module( 'Customizer Previewed Device' );
-	test( 'Previewed device defaults to desktop.', function () {
-		equal( wp.customize.previewedDevice.get(), 'desktop' );
+	QUnit.module( 'Customizer Previewed Device' );
+	QUnit.test( 'Previewed device defaults to desktop.', function( assert ) {
+		assert.equal( wp.customize.previewedDevice.get(), 'desktop' );
 	} );
 
-	module( 'Customizer Setting in Fixture' );
-	test( 'Setting has fixture value', function () {
-		equal( wp.customize( 'fixture-setting' )(), 'Lorem Ipsum' );
+	QUnit.module( 'Customizer Setting in Fixture' );
+	QUnit.test( 'Setting has fixture value', function( assert ) {
+		assert.equal( wp.customize( 'fixture-setting' )(), 'Lorem Ipsum' );
 	} );
-	test( 'Setting has notifications', function () {
+	QUnit.test( 'Setting has notifications', function( assert ) {
 		var setting = wp.customize( 'fixture-setting' );
-		ok( setting.notifications.extended( wp.customize.Values ) );
-		equal( wp.customize.Notification, setting.notifications.prototype.constructor.defaultConstructor );
+		assert.ok( setting.notifications.extended( wp.customize.Values ) );
+		assert.equal( wp.customize.Notification, setting.notifications.prototype.constructor.defaultConstructor );
 	} );
-	test( 'Setting has findControls method', function() {
+	QUnit.test( 'Setting has findControls method', function( assert ) {
 		var controls, setting = wp.customize( 'fixture-setting' );
-		equal( 'function', typeof setting.findControls );
+		assert.equal( 'function', typeof setting.findControls );
 		controls = setting.findControls();
-		equal( 1, controls.length );
-		equal( 'fixture-control', controls[0].id );
+		assert.equal( 1, controls.length );
+		assert.equal( 'fixture-control', controls[0].id );
 	} );
-	test( 'Setting constructor object exists', function( assert ) {
+	QUnit.test( 'Setting constructor object exists', function( assert ) {
 		assert.ok( _.isObject( wp.customize.settingConstructor ) );
 	} );
-	test( 'Custom setting constructor is used', function( assert ) {
+	QUnit.test( 'Custom setting constructor is used', function( assert ) {
 		var setting = wp.customize( 'fixture-setting-abbr' );
 		assert.ok( setting.extended( wp.customize.settingConstructor.abbreviation ) );
 		setting.set( 'usa' );
 		assert.equal( 'USA', setting.get() );
 	} );
 
-	module( 'Customizer Control in Fixture' );
-	test( 'Control exists', function () {
-		ok( wp.customize.control.has( 'fixture-control' ) );
+	QUnit.module( 'Customizer Control in Fixture' );
+	QUnit.test( 'Control exists', function( assert ) {
+		assert.ok( wp.customize.control.has( 'fixture-control' ) );
 	} );
-	test( 'Control has the fixture setting', function () {
+	QUnit.test( 'Control has the fixture setting', function( assert ) {
 		var control = wp.customize.control( 'fixture-control' );
-		equal( control.setting(), 'Lorem Ipsum' );
-		equal( control.setting.id, 'fixture-setting' );
+		assert.equal( control.setting(), 'Lorem Ipsum' );
+		assert.equal( control.setting.id, 'fixture-setting' );
 	} );
-	test( 'Control has the section fixture section ID', function () {
+	QUnit.test( 'Control has the section fixture section ID', function( assert ) {
 		var control = wp.customize.control( 'fixture-control' );
-		equal( control.section(), 'fixture-section' );
+		assert.equal( control.section(), 'fixture-section' );
 	} );
-	test( 'Control has notifications', function ( assert ) {
+	QUnit.test( 'Control has notifications', function ( assert ) {
 		var control = wp.customize.control( 'fixture-control' ), settingNotification, controlOnlyNotification, doneEmbedded;
 		assert.ok( control.notifications.extended( wp.customize.Values ) );
 		assert.equal( wp.customize.Notification, control.notifications.prototype.constructor.defaultConstructor );
@@ -215,8 +215,8 @@ jQuery( window ).load( function (){
 		} );
 	} );
 
-	module( 'Customizer control without associated settings' );
-	test( 'Control can be created without settings', function() {
+	QUnit.module( 'Customizer control without associated settings' );
+	QUnit.test( 'Control can be created without settings', function( assert ) {
 		var control = new wp.customize.Control( 'settingless', {
 			params: {
 				content: jQuery( '<li class="settingless">Hello World</li>' ),
@@ -224,79 +224,79 @@ jQuery( window ).load( function (){
 			}
 		} );
 		wp.customize.control.add( control.id, control );
-		equal( control.deferred.embedded.state(), 'resolved' );
-		ok( null === control.setting );
-		ok( jQuery.isEmptyObject( control.settings ) );
+		assert.equal( control.deferred.embedded.state(), 'resolved' );
+		assert.ok( null === control.setting );
+		assert.ok( jQuery.isEmptyObject( control.settings ) );
 	} );
 
 	// Begin sections.
-	module( 'Customizer Section in Fixture' );
-	test( 'Fixture section exists', function () {
-		ok( wp.customize.section.has( 'fixture-section' ) );
+	QUnit.module( 'Customizer Section in Fixture' );
+	QUnit.test( 'Fixture section exists', function( assert ) {
+		assert.ok( wp.customize.section.has( 'fixture-section' ) );
 	} );
-	test( 'Fixture section has control among controls()', function () {
+	QUnit.test( 'Fixture section has control among controls()', function( assert ) {
 		var section = wp.customize.section( 'fixture-section' );
-		ok( -1 !== _.pluck( section.controls(), 'id' ).indexOf( 'fixture-control' ) );
+		assert.ok( -1 !== _.pluck( section.controls(), 'id' ).indexOf( 'fixture-control' ) );
 	} );
-	test( 'Fixture section has has expected panel', function () {
+	QUnit.test( 'Fixture section has has expected panel', function( assert ) {
 		var section = wp.customize.section( 'fixture-section' );
-		equal( section.panel(), 'fixture-panel' );
+		assert.equal( section.panel(), 'fixture-panel' );
 	} );
 
-	module( 'Customizer Default Section with Template in Fixture' );
-	test( 'Fixture section exists', function () {
-		ok( wp.customize.section.has( 'fixture-section-default-templated' ) );
+	QUnit.module( 'Customizer Default Section with Template in Fixture' );
+	QUnit.test( 'Fixture section exists', function( assert ) {
+		assert.ok( wp.customize.section.has( 'fixture-section-default-templated' ) );
 	} );
-	test( 'Fixture section has expected content', function () {
+	QUnit.test( 'Fixture section has expected content', function( assert ) {
 		var id = 'fixture-section-default-templated', section;
 		section = wp.customize.section( id );
-		ok( ! section.params.content );
-		ok( !! section.container );
-		ok( !! section.headContainer );
-		ok( !! section.contentContainer );
-		ok( section.container.has( section.headContainer ) );
-		ok( section.container.has( section.contentContainer ) );
-		ok( section.headContainer.is( '.control-section.control-section-default' ) );
-		ok( 1 === section.headContainer.find( '> .accordion-section-title' ).length );
-		ok( section.contentContainer.is( '.accordion-section-content' ) );
-		equal( section.headContainer.attr( 'aria-owns' ), section.contentContainer.attr( 'id' ) );
+		assert.ok( ! section.params.content );
+		assert.ok( !! section.container );
+		assert.ok( !! section.headContainer );
+		assert.ok( !! section.contentContainer );
+		assert.ok( section.container.has( section.headContainer ) );
+		assert.ok( section.container.has( section.contentContainer ) );
+		assert.ok( section.headContainer.is( '.control-section.control-section-default' ) );
+		assert.ok( 1 === section.headContainer.find( '> .accordion-section-title' ).length );
+		assert.ok( section.contentContainer.is( '.accordion-section-content' ) );
+		assert.equal( section.headContainer.attr( 'aria-owns' ), section.contentContainer.attr( 'id' ) );
 	} );
 
-	module( 'Customizer Custom Type (titleless) Section with Template in Fixture' );
-	test( 'Fixture section exists', function () {
-		ok( wp.customize.section.has( 'fixture-section-titleless-templated' ) );
+	QUnit.module( 'Customizer Custom Type (titleless) Section with Template in Fixture' );
+	QUnit.test( 'Fixture section exists', function( assert ) {
+		assert.ok( wp.customize.section.has( 'fixture-section-titleless-templated' ) );
 	} );
-	test( 'Fixture section has expected content', function () {
+	QUnit.test( 'Fixture section has expected content', function( assert ) {
 		var id = 'fixture-section-titleless-templated', section;
 		section = wp.customize.section( id );
-		ok( ! section.params.content );
-		ok( !! section.container );
-		ok( !! section.headContainer );
-		ok( !! section.contentContainer );
-		ok( section.container.has( section.headContainer ) );
-		ok( section.container.has( section.contentContainer ) );
-		ok( section.container.is( '.control-section.control-section-titleless' ) );
-		ok( 0 === section.headContainer.find( '> .accordion-section-title' ).length );
-		ok( section.contentContainer.is( '.accordion-section-content' ) );
-		equal( section.headContainer.attr( 'aria-owns' ), section.contentContainer.attr( 'id' ) );
+		assert.ok( ! section.params.content );
+		assert.ok( !! section.container );
+		assert.ok( !! section.headContainer );
+		assert.ok( !! section.contentContainer );
+		assert.ok( section.container.has( section.headContainer ) );
+		assert.ok( section.container.has( section.contentContainer ) );
+		assert.ok( section.container.is( '.control-section.control-section-titleless' ) );
+		assert.ok( 0 === section.headContainer.find( '> .accordion-section-title' ).length );
+		assert.ok( section.contentContainer.is( '.accordion-section-content' ) );
+		assert.equal( section.headContainer.attr( 'aria-owns' ), section.contentContainer.attr( 'id' ) );
 	} );
-	module( 'Customizer Custom Type Section Lacking Specific Template' );
-	test( 'Fixture section has expected content', function () {
+	QUnit.module( 'Customizer Custom Type Section Lacking Specific Template' );
+	QUnit.test( 'Fixture section has expected content', function( assert ) {
 		var id = 'fixture-section-reusing-default-template', section;
 		section = wp.customize.section( id );
-		ok( ! section.params.content );
-		ok( !! section.container );
-		ok( !! section.headContainer );
-		ok( !! section.contentContainer );
-		ok( section.container.has( section.headContainer ) );
-		ok( section.container.has( section.contentContainer ) );
-		ok( section.headContainer.is( '.control-section.control-section-' + section.params.type ) );
-		ok( 1 === section.headContainer.find( '> .accordion-section-title' ).length );
-		ok( section.contentContainer.is( '.accordion-section-content' ) );
-		equal( section.headContainer.attr( 'aria-owns' ), section.contentContainer.attr( 'id' ) );
+		assert.ok( ! section.params.content );
+		assert.ok( !! section.container );
+		assert.ok( !! section.headContainer );
+		assert.ok( !! section.contentContainer );
+		assert.ok( section.container.has( section.headContainer ) );
+		assert.ok( section.container.has( section.contentContainer ) );
+		assert.ok( section.headContainer.is( '.control-section.control-section-' + section.params.type ) );
+		assert.ok( 1 === section.headContainer.find( '> .accordion-section-title' ).length );
+		assert.ok( section.contentContainer.is( '.accordion-section-content' ) );
+		assert.equal( section.headContainer.attr( 'aria-owns' ), section.contentContainer.attr( 'id' ) );
 	} );
-	module( 'Customizer Section lacking any params' );
-	test( 'Fixture section has default params supplied', function () {
+	QUnit.module( 'Customizer Section lacking any params' );
+	QUnit.test( 'Fixture section has default params supplied', function( assert ) {
 		var id = 'fixture-section-without-params', section, defaultParams;
 		section = wp.customize.section( id );
 		defaultParams = {
@@ -310,106 +310,106 @@ jQuery( window ).load( function (){
 			customizeAction: ''
 		};
 		jQuery.each( defaultParams, function ( key, value ) {
-			ok( 'undefined' !== typeof section.params[ key ] );
-			equal( value, section.params[ key ] );
+			assert.ok( 'undefined' !== typeof section.params[ key ] );
+			assert.equal( value, section.params[ key ] );
 		} );
-		ok( _.isNumber( section.params.instanceNumber ) );
+		assert.ok( _.isNumber( section.params.instanceNumber ) );
 	} );
 
 
 	// Begin panels.
-	module( 'Customizer Panel in Fixture' );
-	test( 'Fixture panel exists', function () {
-		ok( wp.customize.panel.has( 'fixture-panel' ) );
+	QUnit.module( 'Customizer Panel in Fixture' );
+	QUnit.test( 'Fixture panel exists', function( assert ) {
+		assert.ok( wp.customize.panel.has( 'fixture-panel' ) );
 	} );
-	test( 'Fixture panel has content', function () {
+	QUnit.test( 'Fixture panel has content', function( assert ) {
 		var panel = wp.customize.panel( 'fixture-panel' );
-		ok( !! panel.params.content );
-		ok( !! panel.container );
-		ok( !! panel.headContainer );
-		ok( !! panel.contentContainer );
-		ok( panel.container.has( panel.headContainer ) );
-		ok( panel.container.has( panel.contentContainer ) );
+		assert.ok( !! panel.params.content );
+		assert.ok( !! panel.container );
+		assert.ok( !! panel.headContainer );
+		assert.ok( !! panel.contentContainer );
+		assert.ok( panel.container.has( panel.headContainer ) );
+		assert.ok( panel.container.has( panel.contentContainer ) );
 	} );
-	test( 'Fixture panel has section among its sections()', function () {
+	QUnit.test( 'Fixture panel has section among its sections()', function( assert ) {
 		var panel = wp.customize.panel( 'fixture-panel' );
-		ok( -1 !== _.pluck( panel.sections(), 'id' ).indexOf( 'fixture-section' ) );
+		assert.ok( -1 !== _.pluck( panel.sections(), 'id' ).indexOf( 'fixture-section' ) );
 	} );
-	test( 'Panel is not expanded by default', function () {
+	QUnit.test( 'Panel is not expanded by default', function( assert ) {
 		var panel = wp.customize.panel( 'fixture-panel' );
-		ok( ! panel.expanded() );
+		assert.ok( ! panel.expanded() );
 	} );
-	test( 'Panel is not expanded by default', function () {
+	QUnit.test( 'Panel is not expanded by default', function( assert ) {
 		var panel = wp.customize.panel( 'fixture-panel' );
-		ok( ! panel.expanded() );
+		assert.ok( ! panel.expanded() );
 	} );
-	test( 'Focusing on a control will expand the panel and section', function () {
+	QUnit.test( 'Focusing on a control will expand the panel and section', function( assert ) {
 		var panel, section, control;
 		panel = wp.customize.panel( 'fixture-panel' );
 		section = wp.customize.section( 'fixture-section' );
 		control = wp.customize.control( 'fixture-control' );
-		ok( ! panel.expanded() );
-		ok( ! section.expanded() );
+		assert.ok( ! panel.expanded() );
+		assert.ok( ! section.expanded() );
 		control.focus();
-		ok( section.expanded() );
-		ok( panel.expanded() );
+		assert.ok( section.expanded() );
+		assert.ok( panel.expanded() );
 	} );
 
-	module( 'Customizer Default Panel with Template in Fixture' );
-	test( 'Fixture section exists', function () {
-		ok( wp.customize.panel.has( 'fixture-panel-default-templated' ) );
+	QUnit.module( 'Customizer Default Panel with Template in Fixture' );
+	QUnit.test( 'Fixture section exists', function( assert ) {
+		assert.ok( wp.customize.panel.has( 'fixture-panel-default-templated' ) );
 	} );
-	test( 'Fixture panel has expected content', function () {
+	QUnit.test( 'Fixture panel has expected content', function( assert ) {
 		var id = 'fixture-panel-default-templated', panel;
 		panel = wp.customize.panel( id );
-		ok( ! panel.params.content );
-		ok( !! panel.container );
-		ok( !! panel.headContainer );
-		ok( !! panel.contentContainer );
-		ok( panel.container.has( panel.headContainer ) );
-		ok( panel.container.has( panel.contentContainer ) );
-		ok( panel.headContainer.is( '.control-panel.control-panel-default' ) );
-		ok( 1 === panel.headContainer.find( '> .accordion-section-title' ).length );
-		ok( panel.contentContainer.is( '.control-panel-content' ) );
-		equal( panel.headContainer.attr( 'aria-owns' ), panel.contentContainer.attr( 'id' ) );
+		assert.ok( ! panel.params.content );
+		assert.ok( !! panel.container );
+		assert.ok( !! panel.headContainer );
+		assert.ok( !! panel.contentContainer );
+		assert.ok( panel.container.has( panel.headContainer ) );
+		assert.ok( panel.container.has( panel.contentContainer ) );
+		assert.ok( panel.headContainer.is( '.control-panel.control-panel-default' ) );
+		assert.ok( 1 === panel.headContainer.find( '> .accordion-section-title' ).length );
+		assert.ok( panel.contentContainer.is( '.control-panel-content' ) );
+		assert.equal( panel.headContainer.attr( 'aria-owns' ), panel.contentContainer.attr( 'id' ) );
 	} );
 
-	module( 'Customizer Custom Type Panel (titleless) with Template in Fixture' );
-	test( 'Fixture panel exists', function () {
-		ok( wp.customize.panel.has( 'fixture-panel-titleless-templated' ) );
+	QUnit.module( 'Customizer Custom Type Panel (titleless) with Template in Fixture' );
+	QUnit.test( 'Fixture panel exists', function( assert ) {
+		assert.ok( wp.customize.panel.has( 'fixture-panel-titleless-templated' ) );
 	} );
-	test( 'Fixture panel has expected content', function () {
+	QUnit.test( 'Fixture panel has expected content', function( assert ) {
 		var id = 'fixture-panel-titleless-templated', panel;
 		panel = wp.customize.panel( id );
-		ok( ! panel.params.content );
-		ok( !! panel.container );
-		ok( !! panel.headContainer );
-		ok( !! panel.contentContainer );
-		ok( panel.container.has( panel.headContainer ) );
-		ok( panel.container.has( panel.contentContainer ) );
-		ok( panel.headContainer.is( '.control-panel.control-panel-titleless' ) );
-		ok( 0 === panel.headContainer.find( '> .accordion-section-title' ).length );
-		ok( panel.contentContainer.is( '.control-panel-content' ) );
-		equal( panel.headContainer.attr( 'aria-owns' ), panel.contentContainer.attr( 'id' ) );
+		assert.ok( ! panel.params.content );
+		assert.ok( !! panel.container );
+		assert.ok( !! panel.headContainer );
+		assert.ok( !! panel.contentContainer );
+		assert.ok( panel.container.has( panel.headContainer ) );
+		assert.ok( panel.container.has( panel.contentContainer ) );
+		assert.ok( panel.headContainer.is( '.control-panel.control-panel-titleless' ) );
+		assert.ok( 0 === panel.headContainer.find( '> .accordion-section-title' ).length );
+		assert.ok( panel.contentContainer.is( '.control-panel-content' ) );
+		assert.equal( panel.headContainer.attr( 'aria-owns' ), panel.contentContainer.attr( 'id' ) );
 	} );
 
-	module( 'Customizer Custom Type Panel Lacking Specific Template' );
-	test( 'Fixture panel has expected content', function () {
+	QUnit.module( 'Customizer Custom Type Panel Lacking Specific Template' );
+	QUnit.test( 'Fixture panel has expected content', function( assert ) {
 		var id = 'fixture-panel-reusing-default-template', panel;
 		panel = wp.customize.panel( id );
-		ok( ! panel.params.content );
-		ok( !! panel.container );
-		ok( !! panel.headContainer );
-		ok( !! panel.contentContainer );
-		ok( panel.container.has( panel.headContainer ) );
-		ok( panel.container.has( panel.contentContainer ) );
-		ok( panel.headContainer.is( '.control-panel.control-panel-' + panel.params.type ) );
-		ok( 1 === panel.headContainer.find( '> .accordion-section-title' ).length );
-		ok( panel.contentContainer.is( '.control-panel-content' ) );
-		equal( panel.headContainer.attr( 'aria-owns' ), panel.contentContainer.attr( 'id' ) );
+		assert.ok( ! panel.params.content );
+		assert.ok( !! panel.container );
+		assert.ok( !! panel.headContainer );
+		assert.ok( !! panel.contentContainer );
+		assert.ok( panel.container.has( panel.headContainer ) );
+		assert.ok( panel.container.has( panel.contentContainer ) );
+		assert.ok( panel.headContainer.is( '.control-panel.control-panel-' + panel.params.type ) );
+		assert.ok( 1 === panel.headContainer.find( '> .accordion-section-title' ).length );
+		assert.ok( panel.contentContainer.is( '.control-panel-content' ) );
+		assert.equal( panel.headContainer.attr( 'aria-owns' ), panel.contentContainer.attr( 'id' ) );
 	} );
-	module( 'Customizer Panel lacking any params' );
-	test( 'Fixture panel has default params supplied', function () {
+	QUnit.module( 'Customizer Panel lacking any params' );
+	QUnit.test( 'Fixture panel has default params supplied', function( assert ) {
 		var id = 'fixture-panel-without-params', panel, defaultParams;
 		panel = wp.customize.panel( id );
 		defaultParams = {
@@ -421,17 +421,17 @@ jQuery( window ).load( function (){
 			active: true
 		};
 		jQuery.each( defaultParams, function ( key, value ) {
-			ok( 'undefined' !== typeof panel.params[ key ] );
-			equal( value, panel.params[ key ] );
+			assert.ok( 'undefined' !== typeof panel.params[ key ] );
+			assert.equal( value, panel.params[ key ] );
 		} );
-		ok( _.isNumber( panel.params.instanceNumber ) );
+		assert.ok( _.isNumber( panel.params.instanceNumber ) );
 	} );
 
-	module( 'Dynamically-created Customizer Setting Model' );
+	QUnit.module( 'Dynamically-created Customizer Setting Model' );
 	settingId = 'new_blogname';
 	settingValue = 'Hello World';
 
-	test( 'Create a new setting', function () {
+	QUnit.test( 'Create a new setting', function( assert ) {
 		mockSetting = wp.customize.create(
 			settingId,
 			settingId,
@@ -441,11 +441,11 @@ jQuery( window ).load( function (){
 				previewer: wp.customize.previewer
 			}
 		);
-		equal( mockSetting(), settingValue );
-		equal( mockSetting.id, settingId );
+		assert.equal( mockSetting(), settingValue );
+		assert.equal( mockSetting.id, settingId );
 	} );
 
-	module( 'Dynamically-created Customizer Section Model' );
+	QUnit.module( 'Dynamically-created Customizer Section Model' );
 
 	sectionId = 'mock_title_tagline';
 	sectionContent = '<li id="accordion-section-mock_title_tagline" class="accordion-section control-section control-section-default"> <h3 class="accordion-section-title" tabindex="0"> Section Fixture <span class="screen-reader-text">Press return or enter to open</span> </h3> <ul class="accordion-section-content"> <li class="customize-section-description-container"> <div class="customize-section-title"> <button class="customize-section-back" tabindex="-1"> <span class="screen-reader-text">Back</span> </button> <h3> <span class="customize-action">Customizing &#9656; Fixture Panel</span> Section Fixture </h3> </div> </li> </ul> </li>';
@@ -467,27 +467,27 @@ jQuery( window ).load( function (){
 
 	testCustomizerModel( mockSection, sectionExpectedValues );
 
-	test( 'Section has been embedded', function () {
-		equal( mockSection.deferred.embedded.state(), 'resolved' );
+	QUnit.test( 'Section has been embedded', function( assert ) {
+		assert.equal( mockSection.deferred.embedded.state(), 'resolved' );
 	} );
 
 	wp.customize.section.add( sectionId, mockSection );
 
-	test( 'Section instance added to the wp.customize.section object', function () {
-		ok( wp.customize.section.has( sectionId ) );
+	QUnit.test( 'Section instance added to the wp.customize.section object', function( assert ) {
+		assert.ok( wp.customize.section.has( sectionId ) );
 	});
 
 	sectionInstance = wp.customize.section( sectionId );
 
-	test( 'Section instance has right content when accessed from wp.customize.section()', function () {
-		equal( sectionInstance.params.content, sectionContent );
+	QUnit.test( 'Section instance has right content when accessed from wp.customize.section()', function( assert ) {
+		assert.equal( sectionInstance.params.content, sectionContent );
 	});
 
-	test( 'Section instance has no children yet', function () {
-		equal( sectionInstance.controls().length, 0 );
+	QUnit.test( 'Section instance has no children yet', function( assert ) {
+		assert.equal( sectionInstance.controls().length, 0 );
 	});
 
-	module( 'Dynamically-created Customizer Control Model' );
+	QUnit.module( 'Dynamically-created Customizer Control Model' );
 
 	controlId = 'new_blogname';
 	controlLabel = 'Site Title';
@@ -520,43 +520,43 @@ jQuery( window ).load( function (){
 
 	testCustomizerModel( mockControl, controlExpectedValues );
 
-	test( 'Control instance does not yet belong to a section.', function () {
-		equal( mockControl.section(), undefined );
+	QUnit.test( 'Control instance does not yet belong to a section.', function( assert ) {
+		assert.equal( mockControl.section(), undefined );
 	});
-	test( 'Control has not been embedded yet', function () {
-		equal( mockControl.deferred.embedded.state(), 'pending' );
+	QUnit.test( 'Control has not been embedded yet', function( assert ) {
+		assert.equal( mockControl.deferred.embedded.state(), 'pending' );
 	} );
 
-	test( 'Control instance has the right selector.', function () {
-		equal( mockControl.selector, '#customize-control-new_blogname' );
+	QUnit.test( 'Control instance has the right selector.', function( assert ) {
+		assert.equal( mockControl.selector, '#customize-control-new_blogname' );
 	});
 
 	wp.customize.control.add( controlId, mockControl );
 
-	test( 'Control instance was added to the control class.', function () {
-		ok( wp.customize.control.has( controlId ) );
+	QUnit.test( 'Control instance was added to the control class.', function( assert ) {
+		assert.ok( wp.customize.control.has( controlId ) );
 	});
 
 	mockControlInstance = wp.customize.control( controlId );
 
-	test( 'Control instance has the right id when accessed from api.control().', function () {
-		equal( mockControlInstance.id, controlId );
+	QUnit.test( 'Control instance has the right id when accessed from api.control().', function( assert ) {
+		assert.equal( mockControlInstance.id, controlId );
 	});
 
-	test( 'Control section can be set as expected', function () {
+	QUnit.test( 'Control section can be set as expected', function( assert ) {
 		mockControl.section( mockSection.id );
-		equal( mockControl.section(), mockSection.id );
+		assert.equal( mockControl.section(), mockSection.id );
 	});
-	test( 'Associating a control with a section allows it to be embedded', function () {
-		equal( mockControl.deferred.embedded.state(), 'resolved' );
-	});
-
-	test( 'Control is now available on section.controls()', function () {
-		equal( sectionInstance.controls().length, 1 );
-		equal( sectionInstance.controls()[0], mockControl );
+	QUnit.test( 'Associating a control with a section allows it to be embedded', function( assert ) {
+		assert.equal( mockControl.deferred.embedded.state(), 'resolved' );
 	});
 
-	module( 'Dynamically-created Customizer Panel Model' );
+	QUnit.test( 'Control is now available on section.controls()', function( assert ) {
+		assert.equal( sectionInstance.controls().length, 1 );
+		assert.equal( sectionInstance.controls()[0], mockControl );
+	});
+
+	QUnit.module( 'Dynamically-created Customizer Panel Model' );
 
 	panelId = 'mockPanelId';
 	panelTitle = 'Mock Panel Title';
@@ -584,49 +584,49 @@ jQuery( window ).load( function (){
 
 	testCustomizerModel( mockPanel, panelExpectedValues );
 
-	test( 'Panel instance is not contextuallyActive', function () {
-		equal( mockPanel.isContextuallyActive(), false );
+	QUnit.test( 'Panel instance is not contextuallyActive', function( assert ) {
+		assert.equal( mockPanel.isContextuallyActive(), false );
 	});
 
-	module( 'Test wp.customize.findControlsForSettings' );
-	test( 'findControlsForSettings(blogname)', function() {
+	QUnit.module( 'Test wp.customize.findControlsForSettings' );
+	QUnit.test( 'findControlsForSettings(blogname)', function( assert ) {
 		var controlsForSettings, settingId = 'fixture-setting', controlId = 'fixture-control';
-		ok( wp.customize.control.has( controlId ) );
-		ok( wp.customize.has( settingId ) );
+		assert.ok( wp.customize.control.has( controlId ) );
+		assert.ok( wp.customize.has( settingId ) );
 		controlsForSettings = wp.customize.findControlsForSettings( [ settingId ] );
-		ok( _.isObject( controlsForSettings ), 'Response is object' );
-		ok( _.isArray( controlsForSettings['fixture-setting'] ), 'Response has a fixture-setting array' );
-		equal( 1, controlsForSettings['fixture-setting'].length );
-		equal( wp.customize.control( controlId ), controlsForSettings['fixture-setting'][0] );
+		assert.ok( _.isObject( controlsForSettings ), 'Response is object' );
+		assert.ok( _.isArray( controlsForSettings['fixture-setting'] ), 'Response has a fixture-setting array' );
+		assert.equal( 1, controlsForSettings['fixture-setting'].length );
+		assert.equal( wp.customize.control( controlId ), controlsForSettings['fixture-setting'][0] );
 	} );
 
-	module( 'Customize Controls wp.customize.dirtyValues' );
-	test( 'dirtyValues() returns expected values', function() {
+	QUnit.module( 'Customize Controls wp.customize.dirtyValues' );
+	QUnit.test( 'dirtyValues() returns expected values', function( assert ) {
 		wp.customize.state( 'changesetStatus' ).set( 'auto-draft' );
 		wp.customize.each( function( setting ) {
 			setting._dirty = false;
 		} );
-		ok( _.isEmpty( wp.customize.dirtyValues() ) );
-		ok( _.isEmpty( wp.customize.dirtyValues( { unsaved: false } ) ) );
+		assert.ok( _.isEmpty( wp.customize.dirtyValues() ) );
+		assert.ok( _.isEmpty( wp.customize.dirtyValues( { unsaved: false } ) ) );
 
 		wp.customize( 'fixture-setting' )._dirty = true;
-		ok( ! _.isEmpty( wp.customize.dirtyValues() ) );
-		ok( _.isEmpty( wp.customize.dirtyValues( { unsaved: true } ) ) );
+		assert.ok( ! _.isEmpty( wp.customize.dirtyValues() ) );
+		assert.ok( _.isEmpty( wp.customize.dirtyValues( { unsaved: true } ) ) );
 
 		wp.customize( 'fixture-setting' ).set( 'Modified' );
-		ok( ! _.isEmpty( wp.customize.dirtyValues() ) );
-		ok( ! _.isEmpty( wp.customize.dirtyValues( { unsaved: true } ) ) );
-		equal( 'Modified', wp.customize.dirtyValues()['fixture-setting'] );
+		assert.ok( ! _.isEmpty( wp.customize.dirtyValues() ) );
+		assert.ok( ! _.isEmpty( wp.customize.dirtyValues( { unsaved: true } ) ) );
+		assert.equal( 'Modified', wp.customize.dirtyValues()['fixture-setting'] );
 
 		// When the changeset does not exist, all dirty settings are necessarily unsaved.
 		wp.customize.state( 'changesetStatus' ).set( '' );
 		wp.customize( 'fixture-setting' )._dirty = true;
-		ok( ! _.isEmpty( wp.customize.dirtyValues() ) );
-		ok( ! _.isEmpty( wp.customize.dirtyValues( { unsaved: true } ) ) );
+		assert.ok( ! _.isEmpty( wp.customize.dirtyValues() ) );
+		assert.ok( ! _.isEmpty( wp.customize.dirtyValues( { unsaved: true } ) ) );
 	} );
 
-	module( 'Customize Controls: wp.customize.requestChangesetUpdate()' );
-	test( 'requestChangesetUpdate makes request and returns promise', function( assert ) {
+	QUnit.module( 'Customize Controls: wp.customize.requestChangesetUpdate()' );
+	QUnit.test( 'requestChangesetUpdate makes request and returns promise', function( assert ) {
 		var request, originalBeforeSetup = jQuery.ajaxSettings.beforeSend;
 
 		jQuery.ajaxSetup( {
@@ -677,8 +677,8 @@ jQuery( window ).load( function (){
 		} );
 	} );
 
-	module( 'Customize Utils: wp.customize.utils.getRemainingTime()' );
-	test( 'utils.getRemainingTime calculates time correctly', function( assert ) {
+	QUnit.module( 'Customize Utils: wp.customize.utils.getRemainingTime()' );
+	QUnit.test( 'utils.getRemainingTime calculates time correctly', function( assert ) {
 		var datetime = '2599-08-06 12:12:13', timeRemaining, timeRemainingWithDateInstance, timeRemaingingWithTimestamp;
 
 		timeRemaining = wp.customize.utils.getRemainingTime( datetime );
@@ -692,15 +692,15 @@ jQuery( window ).load( function (){
 		assert.deepEqual( timeRemaining, timeRemaingingWithTimestamp );
 	});
 
-	module( 'Customize Utils: wp.customize.utils.getCurrentTimestamp()' );
-	test( 'utils.getCurrentTimestamp returns timestamp', function( assert ) {
+	QUnit.module( 'Customize Utils: wp.customize.utils.getCurrentTimestamp()' );
+	QUnit.test( 'utils.getCurrentTimestamp returns timestamp', function( assert ) {
 		var currentTimeStamp;
 		currentTimeStamp = wp.customize.utils.getCurrentTimestamp();
 		assert.equal( typeof currentTimeStamp, 'number' );
 	});
 
-	module( 'Customize Controls: wp.customize.DateTimeControl' );
-	test( 'Test DateTimeControl creation and its methods', function( assert ) {
+	QUnit.module( 'Customize Controls: wp.customize.DateTimeControl' );
+	QUnit.test( 'Test DateTimeControl creation and its methods', function( assert ) {
 		var control, controlId = 'date_time', section, sectionId = 'fixture-section',
 			datetime = '2599-08-06 18:12:13', dateTimeArray, dateTimeArrayInampm, timeString,
 			day, year, month, minute, meridian, hour;
@@ -864,8 +864,8 @@ jQuery( window ).load( function (){
 		wp.customize.control.remove( controlId );
 	});
 
-	module( 'Customize Sections: wp.customize.OuterSection' );
-	test( 'Test OuterSection', function( assert ) {
+	QUnit.module( 'Customize Sections: wp.customize.OuterSection' );
+	QUnit.test( 'Test OuterSection', function( assert ) {
 		var section, sectionId = 'test_outer_section', body = jQuery( 'body' ),
 			defaultSection, defaultSectionId = 'fixture-section';
 
@@ -899,8 +899,8 @@ jQuery( window ).load( function (){
 		wp.customize.section.remove( sectionId );
 	});
 
-	module( 'Customize Controls: PreviewLinkControl' );
-	test( 'Test PreviewLinkControl creation and its methods', function( assert ) {
+	QUnit.module( 'Customize Controls: PreviewLinkControl' );
+	QUnit.test( 'Test PreviewLinkControl creation and its methods', function( assert ) {
 		var section, sectionId = 'publish_settings', newLink;
 
 		section = wp.customize.section( sectionId );
