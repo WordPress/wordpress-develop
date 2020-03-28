@@ -428,13 +428,16 @@ function wp_list_authors( $args = '' ) {
 		'html'          => true,
 		'exclude'       => '',
 		'include'       => '',
+		'role'          => '',
+		'role__in'      => array(),
+		'role__not_in'  => array(),
 	);
 
 	$args = wp_parse_args( $args, $defaults );
 
 	$return = '';
 
-	$query_args           = wp_array_slice_assoc( $args, array( 'orderby', 'order', 'number', 'exclude', 'include' ) );
+	$query_args           = wp_array_slice_assoc( $args, array( 'orderby', 'order', 'number', 'exclude', 'include', 'role', 'role__in', 'role__not_in' ) );
 	$authors              = get_users( $query_args );
 
 	$author_count = array();
