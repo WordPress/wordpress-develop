@@ -5,12 +5,12 @@ class Tests_Get_Comment_Count extends WP_UnitTestCase {
 	public function test_get_comment_count() {
 		$count = get_comment_count();
 
-		$this->assertEquals( 0, $count['approved'] );
-		$this->assertEquals( 0, $count['awaiting_moderation'] );
-		$this->assertEquals( 0, $count['spam'] );
-		$this->assertEquals( 0, $count['trash'] );
-		$this->assertEquals( 0, $count['post-trashed'] );
-		$this->assertEquals( 0, $count['total_comments'] );
+		$this->assertSame( 0, $count['approved'] );
+		$this->assertSame( 0, $count['awaiting_moderation'] );
+		$this->assertSame( 0, $count['spam'] );
+		$this->assertSame( 0, $count['trash'] );
+		$this->assertSame( 0, $count['post-trashed'] );
+		$this->assertSame( 0, $count['total_comments'] );
 	}
 
 	public function test_get_comment_count_approved() {
@@ -22,12 +22,12 @@ class Tests_Get_Comment_Count extends WP_UnitTestCase {
 
 		$count = get_comment_count();
 
-		$this->assertEquals( 1, $count['approved'] );
-		$this->assertEquals( 0, $count['awaiting_moderation'] );
-		$this->assertEquals( 0, $count['spam'] );
-		$this->assertEquals( 0, $count['trash'] );
-		$this->assertEquals( 0, $count['post-trashed'] );
-		$this->assertEquals( 1, $count['total_comments'] );
+		$this->assertSame( 1, $count['approved'] );
+		$this->assertSame( 0, $count['awaiting_moderation'] );
+		$this->assertSame( 0, $count['spam'] );
+		$this->assertSame( 0, $count['trash'] );
+		$this->assertSame( 0, $count['post-trashed'] );
+		$this->assertSame( 1, $count['total_comments'] );
 	}
 
 	public function test_get_comment_count_awaiting() {
@@ -39,12 +39,12 @@ class Tests_Get_Comment_Count extends WP_UnitTestCase {
 
 		$count = get_comment_count();
 
-		$this->assertEquals( 0, $count['approved'] );
-		$this->assertEquals( 1, $count['awaiting_moderation'] );
-		$this->assertEquals( 0, $count['spam'] );
-		$this->assertEquals( 0, $count['trash'] );
-		$this->assertEquals( 0, $count['post-trashed'] );
-		$this->assertEquals( 1, $count['total_comments'] );
+		$this->assertSame( 0, $count['approved'] );
+		$this->assertSame( 1, $count['awaiting_moderation'] );
+		$this->assertSame( 0, $count['spam'] );
+		$this->assertSame( 0, $count['trash'] );
+		$this->assertSame( 0, $count['post-trashed'] );
+		$this->assertSame( 1, $count['total_comments'] );
 	}
 
 	public function test_get_comment_count_spam() {
@@ -56,12 +56,12 @@ class Tests_Get_Comment_Count extends WP_UnitTestCase {
 
 		$count = get_comment_count();
 
-		$this->assertEquals( 0, $count['approved'] );
-		$this->assertEquals( 0, $count['awaiting_moderation'] );
-		$this->assertEquals( 1, $count['spam'] );
-		$this->assertEquals( 0, $count['trash'] );
-		$this->assertEquals( 0, $count['post-trashed'] );
-		$this->assertEquals( 1, $count['total_comments'] );
+		$this->assertSame( 0, $count['approved'] );
+		$this->assertSame( 0, $count['awaiting_moderation'] );
+		$this->assertSame( 1, $count['spam'] );
+		$this->assertSame( 0, $count['trash'] );
+		$this->assertSame( 0, $count['post-trashed'] );
+		$this->assertSame( 1, $count['total_comments'] );
 	}
 
 	public function test_get_comment_count_trash() {
@@ -73,12 +73,12 @@ class Tests_Get_Comment_Count extends WP_UnitTestCase {
 
 		$count = get_comment_count();
 
-		$this->assertEquals( 0, $count['approved'] );
-		$this->assertEquals( 0, $count['awaiting_moderation'] );
-		$this->assertEquals( 0, $count['spam'] );
-		$this->assertEquals( 1, $count['trash'] );
-		$this->assertEquals( 0, $count['post-trashed'] );
-		$this->assertEquals( 0, $count['total_comments'] );
+		$this->assertSame( 0, $count['approved'] );
+		$this->assertSame( 0, $count['awaiting_moderation'] );
+		$this->assertSame( 0, $count['spam'] );
+		$this->assertSame( 1, $count['trash'] );
+		$this->assertSame( 0, $count['post-trashed'] );
+		$this->assertSame( 0, $count['total_comments'] );
 	}
 
 	public function test_get_comment_count_post_trashed() {
@@ -90,11 +90,11 @@ class Tests_Get_Comment_Count extends WP_UnitTestCase {
 
 		$count = get_comment_count();
 
-		$this->assertEquals( 0, $count['approved'] );
-		$this->assertEquals( 0, $count['awaiting_moderation'] );
-		$this->assertEquals( 0, $count['spam'] );
-		$this->assertEquals( 0, $count['trash'] );
-		$this->assertEquals( 1, $count['post-trashed'] );
-		$this->assertEquals( 0, $count['total_comments'] );
+		$this->assertSame( 0, $count['approved'] );
+		$this->assertSame( 0, $count['awaiting_moderation'] );
+		$this->assertSame( 0, $count['spam'] );
+		$this->assertSame( 0, $count['trash'] );
+		$this->assertSame( 1, $count['post-trashed'] );
+		$this->assertSame( 0, $count['total_comments'] );
 	}
 }
