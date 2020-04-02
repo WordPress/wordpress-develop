@@ -1,5 +1,5 @@
 import { get } from 'lodash';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
+import { configureToMatchImageSnapshot } from 'jest-image-snapshot';
 
 import {
 	clearLocalStorage,
@@ -34,6 +34,10 @@ const pageEvents = [];
 
 // The Jest timeout is increased because these tests are a bit slow
 jest.setTimeout( PUPPETEER_TIMEOUT || 100000 );
+
+const toMatchImageSnapshot = configureToMatchImageSnapshot({
+	dumpDiffToConsole: true,
+  });
 
 // Extend Jest's "expect" with image snapshot functionality.
 expect.extend({ toMatchImageSnapshot });
