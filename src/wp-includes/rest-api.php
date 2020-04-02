@@ -273,6 +273,11 @@ function create_initial_rest_routes() {
 	$controller = new WP_REST_Themes_Controller;
 	$controller->register_routes();
 
+	if ( is_multisite() ) {
+		// Networks.
+		$controller = new WP_REST_Networks_Controller;
+		$controller->register_routes();
+	}
 }
 
 /**

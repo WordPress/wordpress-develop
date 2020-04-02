@@ -135,6 +135,11 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/themes',
 		);
 
+		if ( is_multisite() ) {
+			$expected_routes[] = '/wp/v2/networks';
+			$expected_routes[] = '/wp/v2/networks/(?P<id>[\d]+)';
+		}
+
 		$this->assertEquals( $expected_routes, $routes );
 	}
 

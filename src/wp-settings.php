@@ -282,6 +282,11 @@ require ABSPATH . WPINC . '/blocks/shortcode.php';
 require ABSPATH . WPINC . '/blocks/social-link.php';
 require ABSPATH . WPINC . '/blocks/tag-cloud.php';
 
+if ( is_multisite() ) {
+	require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-networks-controller.php';
+	require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-network-meta-fields.php';
+}
+
 $GLOBALS['wp_embed'] = new WP_Embed();
 
 // Load multisite-specific files.
