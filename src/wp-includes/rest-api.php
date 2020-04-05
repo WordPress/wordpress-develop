@@ -180,6 +180,7 @@ function rest_api_default_filters() {
 
 	// Default serving.
 	add_filter( 'rest_pre_serve_request', 'rest_send_cors_headers' );
+	add_filter( 'rest_pre_serve_request', 'rest_add_wp_die_handler_filter' );
 	add_filter( 'rest_post_dispatch', 'rest_send_allow_header', 10, 3 );
 	add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 
@@ -648,6 +649,29 @@ function rest_handle_options_request( $response, $handler, $request ) {
 
 	$response->set_data( $data );
 	return $response;
+}
+
+/**
+ * Add the filter for the custom wp_die handler.
+ *
+ * This is hooked on rest_pre_dispatch, so any uses of wp_die in endpoints
+ * will be wrapped by our custom wp_die handler to output JSON rather than the
+ * usual HTML error page.
+ *
+ * @since 5.5.0
+ */
+function rest_add_wp_die_handler_filter() {
+	add_filter( 'wp_die_handler', 'rest_wp_die_handler_callback' );
+}
+
+/**
+ * Callback to set the wp_die handler to rest_wp_die_handler.
+ *
+ * @since 5.5.0
+ * @return string
+ */
+function rest_wp_die_handler_callback() {
+	return '_json_wp_die_handler';
 }
 
 /**
