@@ -29,9 +29,6 @@
 	<rule ref="WordPress.CodeAnalysis.EmptyStatement"/>
 
 	<!-- These rules are being set as warnings instead of errors, so we can error check the entire codebase. -->
-	<rule ref="WordPress.PHP.YodaConditions.NotYoda">
-		<type>warning</type>
-	</rule>
 	<rule ref="WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase">
 		<type>warning</type>
 	</rule>
