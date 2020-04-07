@@ -1988,6 +1988,48 @@ function is_post_type_viewable( $post_type ) {
 }
 
 /**
+ * Determines whether a post status is considered "viewable".
+ *
+ * For built-in post types, the 'public' value will be evaluated.
+ * For all others, the 'publicly_queryable' value will be used.
+ *
+ * @since x.x.x
+ *
+ * @param string|object $post_status Post status name or object.
+ * @return bool Whether the post status should be considered viewable.
+ */
+function is_post_status_viewable( $post_status ) {
+	if ( is_scalar( $post_status ) ) {
+		$post_status = get_post_status_object( $post_status );
+		if ( ! $post_status ) {
+			return false;
+		}
+	}
+
+	return $post_status->publicly_queryable || ( $post_status->_builtin && $post_status->public );
+}
+
+/**
+ * Determines whether a post is considered "viewable".
+ *
+ * For a given post determines if the post type and post status are
+ * both considered viewable. If so the post is considered viewable.
+ *
+ * @since x.x.x
+ *
+ * @param int|WP_Post|null $post Optional. Post ID or post object. Defaults to global $post.
+ * @return bool Whether the post should be considered viewable.
+ */
+function is_post_viewable( $post = null ) {
+	$post = get_post( $post );
+	if ( ! $post ) {
+		return false;
+	}
+
+	return is_post_type_viewable( $post->post_type ) && is_post_status_viewable( $post->post_status );
+}
+
+/**
  * Retrieves an array of the latest posts, or posts matching the given criteria.
  *
  * The defaults are as follows:
