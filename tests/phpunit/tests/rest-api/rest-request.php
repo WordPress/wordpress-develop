@@ -673,7 +673,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$request->set_param( 'param', 'new_value' );
 
 		$this->assertEquals( 'new_value', $request->get_param( 'param' ) );
-		$this->assertEquals( array( 'param' => 'new_value' ), $request->get_body_params() );
+		$this->assertEquals( array(), $request->get_body_params() );
 		$this->assertEquals( array( 'param' => 'new_value' ), $request->get_json_params() );
 		$this->assertEquals( array( 'param' => 'new_value' ), $request->get_query_params() );
 	}
