@@ -4,9 +4,20 @@
  * @group post
  */
 class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
+
+	/**
+	 * Remove the test status from the global when finished.
+	 *
+	 * @global $wp_post_statuses
+	 */
+	static function wpTearDownAfterClass() {
+		global $wp_post_statuses;
+		unset( $wp_post_statuses['wp_tests_ps'] );
+	}
+
 	public function test_should_return_false_for_non_publicly_queryable_types() {
 		register_post_status(
-			'wptests_ps',
+			'wp_tests_ps',
 			array(
 				'publicly_queryable' => false,
 				'_builtin'           => false,
@@ -14,12 +25,12 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertFalse( is_post_status_viewable( 'wptests_ps' ) );
+		$this->assertFalse( is_post_status_viewable( 'wp_tests_ps' ) );
 	}
 
 	public function test_should_return_true_for_publicly_queryable_types() {
 		register_post_status(
-			'wptests_ps',
+			'wp_tests_ps',
 			array(
 				'publicly_queryable' => true,
 				'_builtin'           => false,
@@ -27,12 +38,12 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( is_post_status_viewable( 'wptests_ps' ) );
+		$this->assertTrue( is_post_status_viewable( 'wp_tests_ps' ) );
 	}
 
 	public function test_should_return_false_for_builtin_nonpublic_types() {
 		register_post_status(
-			'wptests_ps',
+			'wp_tests_ps',
 			array(
 				'publicly_queryable' => false,
 				'_builtin'           => true,
@@ -40,12 +51,12 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertFalse( is_post_status_viewable( 'wptests_ps' ) );
+		$this->assertFalse( is_post_status_viewable( 'wp_tests_ps' ) );
 	}
 
 	public function test_should_return_false_for_nonbuiltin_public_types() {
 		register_post_status(
-			'wptests_ps',
+			'wp_tests_ps',
 			array(
 				'publicly_queryable' => false,
 				'_builtin'           => false,
@@ -53,12 +64,12 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertFalse( is_post_status_viewable( 'wptests_ps' ) );
+		$this->assertFalse( is_post_status_viewable( 'wp_tests_ps' ) );
 	}
 
 	public function test_should_return_true_for_builtin_public_types() {
 		register_post_status(
-			'wptests_ps',
+			'wp_tests_ps',
 			array(
 				'publicly_queryable' => false,
 				'_builtin'           => true,
@@ -66,7 +77,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( is_post_status_viewable( 'wptests_ps' ) );
+		$this->assertTrue( is_post_status_viewable( 'wp_tests_ps' ) );
 	}
 
 	public function test_published_should_be_viewable() {
@@ -75,7 +86,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 
 	public function test_should_accept_post_status_obj_and_name() {
 		register_post_status(
-			'wptests_ps',
+			'wp_tests_ps',
 			array(
 				'publicly_queryable' => true,
 				'_builtin'           => false,
@@ -83,8 +94,8 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( is_post_status_viewable( 'wptests_ps' ) );
-		$this->assertTrue( is_post_status_viewable( get_post_status_object( 'wptests_ps' ) ) );
+		$this->assertTrue( is_post_status_viewable( 'wp_tests_ps' ) );
+		$this->assertTrue( is_post_status_viewable( get_post_status_object( 'wp_tests_ps' ) ) );
 	}
 
 	public function test_should_return_false_for_bad_post_type_name() {
