@@ -1990,7 +1990,8 @@ function is_post_type_viewable( $post_type ) {
 /**
  * Determines whether a post status is considered "viewable".
  *
- * Ensures the post status is considered public.
+ * For built-in post types, the 'public' value will be evaluated.
+ * For all others, the 'publicly_queryable' value will be used.
  *
  * @since x.x.x
  *
@@ -2005,16 +2006,7 @@ function is_post_status_viewable( $post_status ) {
 		}
 	}
 
-	// These aren't mutually exclusive, checking `public` alone may not match intent.
-	$is_viewable = $post_status->public && ! $post_status->private && ! $post_status->internal && ! $post_status->protected;
-
-	/**
-	 * Whether a post status is considered "viewable".
-	 *
-	 * @param bool   $is_viewable Whether the post status is "viewable".
-	 * @param object $post_status Post status object.
-	 */
-	return apply_filters( 'post_status_viewable', $is_viewable, $post_status );
+	return $post_status->publicly_queryable || ( $post_status->_builtin && $post_status->public );
 }
 
 /**
