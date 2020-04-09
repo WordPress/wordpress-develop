@@ -223,16 +223,6 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				}
 			}
 
-			if ( is_post_viewable( $post ) ) {
-				/*
-				 * Publicly queryable posts may be viewed by anonymous users
-				 * so they do not require any capabilities be set in the $caps
-				 * array. The function returns false for unregistered post types
-				 * and statuses so the `_doing_it_wrong()` calls below still fire.
-				 */
-				break;
-			}
-
 			$post_type = get_post_type_object( $post->post_type );
 			if ( ! $post_type ) {
 				/* translators: 1: Post type, 2: Capability name. */
