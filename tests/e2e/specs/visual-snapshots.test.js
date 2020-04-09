@@ -6,9 +6,12 @@ const screenshotOptions = {
 
 async function hideDynamicElements(elements) {
 	for (let i = 0; i < elements.length; i++) {
-		await page.$eval(elements[i], el => {
-			el.style.visibility = 'hidden'
-		});
+		const elementOnPage = await page.$(elements[i]);
+		if (elementOnPage) {
+			await page.$eval(elements[i], el => {
+				el.style.visibility = 'hidden'
+			});
+		}
 	}
 }
 
