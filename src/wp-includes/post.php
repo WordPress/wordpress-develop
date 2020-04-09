@@ -2001,9 +2001,15 @@ function is_post_type_viewable( $post_type ) {
 function is_post_status_viewable( $post_status ) {
 	if ( is_scalar( $post_status ) ) {
 		$post_status = get_post_status_object( $post_status );
-		if ( ! $post_status ) {
-			return false;
-		}
+	}
+
+	if (
+		! is_object( $post_status ) ||
+		! isset( $post_status->publicly_queryable ) ||
+		! isset( $post_status->_builtin ) ||
+		! isset( $post_status->public )
+	) {
+		return false;
 	}
 
 	return $post_status->publicly_queryable || ( $post_status->_builtin && $post_status->public );
