@@ -156,11 +156,11 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 			)
 		);
 
-		// Sanitized key should pass.
+		// Sanitized key should return true.
 		$this->assertTrue( is_post_status_viewable( 'wp_tests_ps' ) );
 		$this->assertTrue( is_post_status_viewable( get_post_status_object( 'wp_tests_ps' ) ) );
 
-		// Unsanitized key should fail.
+		// Unsanitized key should return false.
 		$this->assertFalse( is_post_status_viewable( 'WP_tests_ps' ) );
 		$this->assertFalse( is_post_status_viewable( get_post_status_object( 'WP_tests_ps' ) ) );
 	}
