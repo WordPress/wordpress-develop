@@ -17,9 +17,7 @@ async function hideDynamicElements(elements) {
 
 const commonDynamicElements = [
 	'#footer-upgrade',
-	'#wp-admin-bar-updates',
-	'#wp-admin-bar-comments',
-	'#wp-admin-bar-new-content'
+	'#wp-admin-bar-root-default',
 ];
 
 describe('Admin Visual Snapshots', () => {
