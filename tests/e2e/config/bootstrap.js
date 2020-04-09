@@ -38,7 +38,7 @@ jest.setTimeout(PUPPETEER_TIMEOUT || 100000);
 const toMatchImageSnapshot = configureToMatchImageSnapshot({
 	dumpDiffToConsole: true,
 	failureThresholdType: 'percent',
-	failureThreshold: 5,
+	failureThreshold: 3,
 });
 
 // Extend Jest's "expect" with image snapshot functionality.
