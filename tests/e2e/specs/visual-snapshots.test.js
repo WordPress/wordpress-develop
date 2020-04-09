@@ -13,14 +13,22 @@ async function hideDynamicElements(elements) {
 			});
 		}
 	}
+	await new Promise((resolve) => setTimeout(resolve, 1000));
 }
 
 const commonDynamicElements = [
 	'#footer-upgrade',
 	'#wp-admin-bar-root-default',
+	'#toplevel_page_gutenberg',
 ];
 
 describe('Admin Visual Snapshots', () => {
+	beforeAll(async () => {
+		await page.setViewport({
+			width: 1000,
+			height: 750,
+		});
+	});
 
 	it('All Posts', async () => {
 		await visitAdminPage('/edit.php');
