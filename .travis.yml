@@ -135,7 +135,7 @@ after_script:
 - |
   if [[ "$WP_TEST_REPORTER" == "true" ]]; then
     git clone https://github.com/WordPress/phpunit-test-runner.git test-runner
-    docker-compose run --rm -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
+    docker-compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
   fi
 
 notifications:
