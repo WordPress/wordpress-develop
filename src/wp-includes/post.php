@@ -2012,7 +2012,17 @@ function is_post_status_viewable( $post_status ) {
 		return false;
 	}
 
-	return $post_status->publicly_queryable || ( $post_status->_builtin && $post_status->public );
+	$is_viewable = $post_status->publicly_queryable || ( $post_status->_builtin && $post_status->public );
+
+	/**
+	 * Whether a post status is considered viewable.
+	 *
+	 * @since x.x.x
+	 *
+	 * @param bool   $is_viewable Whether the post status is viewable.
+	 * @param object $post_status The post status object.
+	 */
+	return apply_filters( 'post_status_viewable', $is_viewable, $post_status );
 }
 
 /**
@@ -2032,7 +2042,17 @@ function is_post_viewable( $post = null ) {
 		return false;
 	}
 
-	return is_post_type_viewable( $post->post_type ) && is_post_status_viewable( $post->post_status );
+	$is_viewable = is_post_type_viewable( $post->post_type ) && is_post_status_viewable( $post->post_status );
+
+	/**
+	 * Whether a post is considered viewable.
+	 *
+	 * @since x.x.x
+	 *
+	 * @param bool    $is_viewable Whether the post is viewable.
+	 * @param WP_Post $post        The post object.
+	 */
+	return apply_filters( 'post_viewable', $is_viewable, $post );
 }
 
 /**
