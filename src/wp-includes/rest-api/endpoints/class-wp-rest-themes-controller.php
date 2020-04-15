@@ -115,7 +115,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		$data   = array();
 		$fields = $this->get_fields_for_response( $request );
 
-		$simple_fields = array( 'name', 'stylesheet', 'template' );
+		$simple_fields            = array( 'name', 'stylesheet', 'template' );
 		$simple_fields_to_include = array_intersect( $simple_fields, $fields );
 
 		foreach ( $simple_fields_to_include as $field_name ) {
@@ -199,17 +199,17 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			'title'      => 'theme',
 			'type'       => 'object',
 			'properties' => array(
-				'name' => array(
+				'name'           => array(
 					'description' => __( 'The theme\'s name.' ),
 					'type'        => 'string',
 					'readonly'    => true,
 				),
-				'stylesheet' => array(
+				'stylesheet'     => array(
 					'description' => __( 'The theme\'s stylesheet.' ),
 					'type'        => 'string',
 					'readonly'    => true,
 				),
-				'template' => array(
+				'template'       => array(
 					'description' => __( 'The theme\'s template name.' ),
 					'type'        => 'string',
 					'readonly'    => true,
