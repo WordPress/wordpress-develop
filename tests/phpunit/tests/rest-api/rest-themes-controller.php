@@ -150,6 +150,9 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->check_get_theme_response( $response );
 		$fields = array(
+			'name',
+			'stylesheet',
+			'template',
 			'theme_supports',
 		);
 		$this->assertEqualSets( $fields, array_keys( $data[0] ) );
@@ -207,7 +210,10 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response   = self::perform_active_theme_request( 'OPTIONS' );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 1, count( $properties ) );
+		$this->assertEquals( 4, count( $properties ) );
+		$this->assertArrayHasKey( 'name', $properties );
+		$this->assertArrayHasKey( 'stylesheet', $properties );
+		$this->assertArrayHasKey( 'template', $properties );
 		$this->assertArrayHasKey( 'theme_supports', $properties );
 		$theme_supports = $properties['theme_supports']['properties'];
 		$this->assertEquals( 20, count( $theme_supports ) );
