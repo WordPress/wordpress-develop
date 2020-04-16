@@ -150,10 +150,14 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->check_get_theme_response( $response );
 		$fields = array(
+			'author',
+			'description',
 			'name',
+			'screenshot',
 			'stylesheet',
 			'template',
 			'theme_supports',
+			'version',
 		);
 		$this->assertEqualSets( $fields, array_keys( $data[0] ) );
 	}
@@ -210,11 +214,16 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response   = self::perform_active_theme_request( 'OPTIONS' );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 4, count( $properties ) );
+		$this->assertEquals( 8, count( $properties ) );
+		$this->assertArrayHasKey( 'author', $properties );
+		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'name', $properties );
+		$this->assertArrayHasKey( 'screenshot', $properties );
 		$this->assertArrayHasKey( 'stylesheet', $properties );
 		$this->assertArrayHasKey( 'template', $properties );
 		$this->assertArrayHasKey( 'theme_supports', $properties );
+		$this->assertArrayHasKey( 'version', $properties );
+
 		$theme_supports = $properties['theme_supports']['properties'];
 		$this->assertEquals( 20, count( $theme_supports ) );
 		$this->assertArrayHasKey( 'align-wide', $theme_supports );

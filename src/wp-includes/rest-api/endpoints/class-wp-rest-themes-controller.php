@@ -115,12 +115,23 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		$data   = array();
 		$fields = $this->get_fields_for_response( $request );
 
-		$simple_fields            = array( 'name', 'stylesheet', 'template' );
+		$simple_fields            = array(
+			'author',
+			'description',
+			'name',
+			//'screenshot', // Needs different treatment to get absolute URL.
+			'stylesheet',
+			'template',
+			'version',
+		);
 		$simple_fields_to_include = array_intersect( $simple_fields, $fields );
 
 		foreach ( $simple_fields_to_include as $field_name ) {
 			$data[ $field_name ] = $theme->$field_name;
 		}
+
+		// Using $theme->get_screenshot() with no args to get absolute URL.
+		$data['screenshot'] = $theme->get_screenshot();
 
 		if ( in_array( 'theme_supports', $fields, true ) ) {
 			$item_schemas   = $this->get_item_schema();
@@ -199,8 +210,23 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			'title'      => 'theme',
 			'type'       => 'object',
 			'properties' => array(
+				'author'         => array(
+					'description' => __( 'The author of the theme.' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'description'    => array(
+					'description' => __( 'A description of the theme.' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
 				'name'           => array(
-					'description' => __( 'The theme\'s name.' ),
+					'description' => __( 'The name of the theme.' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'screenshot'     => array(
+					'description' => __( 'A theme screenshot URL.' ),
 					'type'        => 'string',
 					'readonly'    => true,
 				),
@@ -479,6 +505,11 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 							'type'        => 'boolean',
 						),
 					),
+				),
+				'version'        => array(
+					'description' => __( 'The theme\'s current version.' ),
+					'type'        => 'string',
+					'readonly'    => true,
 				),
 			),
 		);
