@@ -248,6 +248,15 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		remove_filter( 'stylesheet', array( $this, 'return_stylesheet' ) );
 	}
 
+	public function test_theme_template() {
+		add_filter( 'template', array( $this, 'return_template' ) );
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+		$this->assertArrayHasKey( 'template', $result[0] );
+		$this->assertSame( $this->return_template(), $result[0]['template'] );
+		remove_filter( 'template', array( $this, 'return_template' ) );
+	}
+
 	/**
 	 * @ticket 49037
 	 */
@@ -872,6 +881,13 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 * Return a value for the current theme's stylesheet.
 	 */
 	public function return_stylesheet() {
+		return 'twentytestingchild';
+	}
+
+	/**
+	 * Return a value for the current theme's template.
+	 */
+	public function return_template() {
 		return 'twentytesting';
 	}
 
