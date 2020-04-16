@@ -249,12 +249,14 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_theme_template() {
-		add_filter( 'template', array( $this, 'return_template' ) );
+		add_filter( 'stylesheet', array( $this, 'return_stylesheet' ) );
+		add_filter( 'template', array( $this, 'return_stylesheet' ) ); // Both need to be filtered to work for template.
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'template', $result[0] );
-		$this->assertSame( $this->return_template(), $result[0]['template'] );
-		remove_filter( 'template', array( $this, 'return_template' ) );
+		$this->assertSame( $this->return_stylesheet(), $result[0]['template'] );
+		add_filter( 'template', array( $this, 'return_stylesheet' ) );
+		remove_filter( 'stylesheet', array( $this, 'return_stylesheet' ) );
 	}
 
 	/**
@@ -882,13 +884,6 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function return_stylesheet() {
 		return 'twentytestingchild';
-	}
-
-	/**
-	 * Return a value for the current theme's template.
-	 */
-	public function return_template() {
-		return 'twentytesting';
 	}
 
 	/**
