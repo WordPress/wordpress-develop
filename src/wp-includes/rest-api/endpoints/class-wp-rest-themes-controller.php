@@ -116,7 +116,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		$fields = $this->get_fields_for_response( $request );
 
 		$field_mappings    = array(
-			'author'      => 'Author Name',
+			'author_name' => 'Author Name',
 			'description' => 'Description',
 			'name'        => 'Name',
 			'stylesheet'  => 'Stylesheet',
@@ -211,8 +211,8 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			'title'      => 'theme',
 			'type'       => 'object',
 			'properties' => array(
-				'author'         => array(
-					'description' => __( 'The author of the theme.' ),
+				'author_name'    => array(
+					'description' => __( 'The theme author\'s name.' ),
 					'type'        => 'string',
 					'readonly'    => true,
 				),

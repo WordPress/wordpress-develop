@@ -150,7 +150,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->check_get_theme_response( $response );
 		$fields = array(
-			'author',
+			'author_name',
 			'description',
 			'name',
 			'screenshot',
@@ -215,7 +215,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
 		$this->assertEquals( 8, count( $properties ) );
-		$this->assertArrayHasKey( 'author', $properties );
+		$this->assertArrayHasKey( 'author_name', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'screenshot', $properties );
@@ -248,6 +248,37 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'wp-block-styles', $theme_supports );
 	}
 
+	public function test_theme_author_name() {
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+		$this->assertArrayHasKey( 'author_name', $result[0] );
+		$this->assertSame( 'Michael Heilemann', $result[0]['author_name'] );
+	}
+
+	public function test_theme_description() {
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+		$this->assertArrayHasKey( 'description', $result[0] );
+		$this->assertSame(
+			'The default WordPress theme based on the famous <a href="http://binarybonsai.com/kubrick/">Kubrick</a>.',
+			$result[0]['description']
+		);
+	}
+
+	public function test_theme_name() {
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+		$this->assertArrayHasKey( 'name', $result[0] );
+		$this->assertSame( 'WordPress Default', $result[0]['name'] );
+	}
+
+	public function test_theme_screenshot() {
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+		$this->assertArrayHasKey( 'screenshot', $result[0] );
+		$this->assertFalse( $result[0]['screenshot'] ); // No screenshot for default theme
+	}
+
 	public function test_theme_stylesheet() {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
@@ -260,6 +291,13 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'template', $result[0] );
 		$this->assertSame( 'default', $result[0]['template'] );
+	}
+
+	public function test_theme_version() {
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+		$this->assertArrayHasKey( 'version', $result[0] );
+		$this->assertSame( '1.6', $result[0]['version'] );
 	}
 
 	/**
