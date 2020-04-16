@@ -116,11 +116,14 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		$fields = $this->get_fields_for_response( $request );
 
 		$field_mappings    = array(
+			'author'      => 'Author',
 			'author_name' => 'Author Name',
+			'author_uri'  => 'Author URI',
 			'description' => 'Description',
 			'name'        => 'Name',
 			'stylesheet'  => 'Stylesheet',
 			'template'    => 'Template',
+			'theme_uri'   => 'Theme URI',
 			'version'     => 'Version',
 		);
 		$fields_to_include = array_intersect( array_keys( $field_mappings ), $fields );
@@ -211,8 +214,18 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			'title'      => 'theme',
 			'type'       => 'object',
 			'properties' => array(
+				'author'         => array(
+					'description' => __( 'The theme author.' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
 				'author_name'    => array(
 					'description' => __( 'The theme author\'s name.' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'author_uri'     => array(
+					'description' => __( 'The website of the theme author.' ),
 					'type'        => 'string',
 					'readonly'    => true,
 				),
@@ -506,6 +519,11 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 							'type'        => 'boolean',
 						),
 					),
+				),
+				'theme_uri'      => array(
+					'description' => __( 'The URI of the theme\'s webpage.' ),
+					'type'        => 'string',
+					'readonly'    => true,
 				),
 				'version'        => array(
 					'description' => __( 'The theme\'s current version.' ),
