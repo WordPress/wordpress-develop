@@ -115,19 +115,18 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		$data   = array();
 		$fields = $this->get_fields_for_response( $request );
 
-		$simple_fields            = array(
-			'author',
-			'description',
-			'name',
-			//'screenshot', // Needs different treatment to get absolute URL.
-			'stylesheet',
-			'template',
-			'version',
+		$field_mappings    = array(
+			'author'      => 'Author Name',
+			'description' => 'Description',
+			'name'        => 'Name',
+			'stylesheet'  => 'Stylesheet',
+			'template'    => 'Template',
+			'version'     => 'Version',
 		);
-		$simple_fields_to_include = array_intersect( $simple_fields, $fields );
+		$fields_to_include = array_intersect( array_keys( $field_mappings ), $fields );
 
-		foreach ( $simple_fields_to_include as $field_name ) {
-			$data[ $field_name ] = $theme->$field_name;
+		foreach ( $fields_to_include as $field ) {
+			$data[ $field ] = $theme[ $field_mappings[ $field ] ];
 		}
 
 		if ( in_array( 'screenshot', $fields, true ) ) {
