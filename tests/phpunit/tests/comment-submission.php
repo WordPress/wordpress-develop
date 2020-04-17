@@ -742,7 +742,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 				'comment_author_email' => $user->user_email,
 				'comment_author_url'   => $user->user_url,
 				'comment_content'      => $data['comment'],
-				'comment_type'         => '',
+				'comment_type'         => 'comment',
 				'comment_parent'       => '0',
 				'user_ID'              => $user->ID,
 				'user_id'              => $user->ID,
