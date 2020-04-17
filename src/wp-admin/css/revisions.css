@@ -179,7 +179,11 @@ body.folded .revisions .loading-indicator {
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.revisions-diff h3:first-child {
+.revisions-diff .diff-field-heading {
+	margin-left: 6px;
+}
+
+.revisions-diff .diff-field-heading:first-child {
 	margin-top: 0;
 }
 
@@ -189,44 +193,44 @@ body.folded .revisions .loading-indicator {
 	vertical-align: middle;
 }
 
-table.diff tbody tr td:nth-child(2) {
-	width: 4%;
-}
-
 table.diff {
 	table-layout: fixed;
 	width: 100%;
 	white-space: pre-wrap;
+	border-collapse: collapse;
+}
+
+table.diff .diff-sub-title {
+    font-size: 12px;
 }
 
 table.diff col.content {
 	width: auto;
 }
 
-table.diff col.content.diffsplit {
-	width: 48%;
-}
-
-table.diff col.diffsplit.middle {
-	width: auto;
-}
-
-table.diff col.ltype {
-	width: 30px;
-}
-
 table.diff tr {
 	background-color: transparent;
+}
+
+table.diff td {
+  	width: auto;
 }
 
 table.diff td,
 table.diff th {
 	font-family: Consolas, Monaco, monospace;
-	font-size: 14px;
-	line-height: 1.57142857;
-	padding: 0.5em 0.5em 0.5em 2em;
-	vertical-align: top;
 	word-wrap: break-word;
+	font-size: inherit;
+ 	line-height: inherit;
+ 	padding: 0 6px 1em;
+ 	text-align: left;
+ 	vertical-align: top;
+}
+
+table.diff td {
+	line-height: 1.5714;
+	padding: 6px;
+	background-clip: padding-box;
 }
 
 table.diff td h1,
@@ -237,6 +241,22 @@ table.diff td h5,
 table.diff td h6 {
 	margin: 0;
 }
+table.diff.is-split-view th:first-child,
+table.diff.is-split-view td:first-child {
+	width: 50%;
+	border-right: 50px solid transparent;
+	padding-right: 50px;
+
+}
+
+table.diff.is-split-view th:last-child,
+table.diff.is-split-view td:last-child {
+	width: 50%;
+	border-left: 50px solid transparent;
+	padding-left: 50px;
+
+}
+
 
 table.diff .diff-deletedline del,
 table.diff .diff-addedline ins {
@@ -475,8 +495,7 @@ div.revisions-controls > .wp-slider > .ui-slider-handle {
 	touch-action: none;
 }
 
-.wp-slider .ui-slider-handle,
-.wp-slider .ui-slider-handle.focus {
+.wp-slider .ui-slider-handle {
 	background: #f7f7f7;
 	border: 1px solid #ccc;
 	box-shadow: 0 1px 0 #cccccc;
@@ -486,6 +505,15 @@ div.revisions-controls > .wp-slider > .ui-slider-handle {
 .wp-slider .ui-slider-handle.ui-state-hover {
 	background: #fafafa;
 	border-color: #999;
+}
+
+.wp-slider .ui-slider-handle:focus,
+.wp-slider .ui-slider-handle.ui-state-focus {
+	background: #fafafa;
+	border-color: #999;
+	box-shadow: 0 0 0 2px #5b9dd9;
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
 }
 
 .wp-slider .ui-slider-handle:active,
