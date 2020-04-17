@@ -1288,24 +1288,23 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		/*
 		 * @ticket 48818
 		 */
-		if ( isset( $args['properties'] ) && !empty($value) ) {
-			if ( isset ( $args['required'] ) ) { // schema version 4
+		if ( isset( $args['properties'] ) && ! empty( $value ) ) {
+			if ( isset( $args['required'] ) ) { // schema version 4
 				foreach ( $args['required'] as $name ) {
-					if ( !isset( $value[ $name ] ) ) {
+					if ( ! isset( $value[ $name ] ) ) {
 						/* translators: %s: Property of an object. */
 						return new WP_Error( 'rest_property_required', sprintf( __( '%1$s is a required property of Object.' ), $name ) );
 					}
 				}
-			}
-			else { // schema version 3
+			} else { // schema version 3
 				foreach ( $args['properties'] as $name => $property ) {
-					if ( isset( $property['required'] ) && true == $property['required'] && !isset( $value[ $name ] ) ) {
+					if ( isset( $property['required'] ) && true === (bool) $property['required'] && ! isset( $value[ $name ] ) ) {
 						/* translators: %s: Property of an object. */
 						return new WP_Error( 'rest_property_required', sprintf( __( '%1$s is a required property of Object.' ), $name ) );
 					}
 				}
 			}
-    }
+		}
 
 		foreach ( $value as $property => $v ) {
 			if ( isset( $args['properties'][ $property ] ) ) {

@@ -354,21 +354,21 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	 */
 	public function test_property_is_required() {
 		$schema = array(
-			'type'     => 'object',
+			'type'       => 'object',
 			'properties' => array(
-				'my_prop' => array(
+				'my_prop'          => array(
 					'type' => 'string',
 				),
 				'my_required_prop' => array(
-					'type' => 'string',
+					'type'     => 'string',
 					'required' => 'true',
 				),
 			),
 		);
-		$this->assertWPError( rest_validate_value_from_schema( json_decode('{"my_prop":"test"}'), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( json_decode('{"my_required_prop":"test", "my_prop":"test"}'), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( json_decode('{}'), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( json_decode('[]'), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( json_decode( '{"my_prop":"test"}' ), $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( json_decode( '{"my_required_prop":"test", "my_prop":"test"}' ), $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( json_decode( '{}' ), $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( json_decode( '[]' ), $schema ) );
 	}
 
 	/*
@@ -376,21 +376,21 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	 */
 	public function test_property_is_required_v4() {
 		$schema = array(
-			'type'     => 'object',
+			'type'       => 'object',
 			'properties' => array(
-				'my_prop' => array(
+				'my_prop'          => array(
 					'type' => 'string',
 				),
 				'my_required_prop' => array(
 					'type' => 'string',
 				),
 			),
-			'required' => array( 'my_required_prop' )
+			'required'   => array( 'my_required_prop' ),
 		);
-		$this->assertWPError( rest_validate_value_from_schema( json_decode('{"my_prop":"test"}'), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( json_decode('{"my_required_prop":"test", "my_prop":"test"}'), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( json_decode('{}'), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( json_decode('[]'), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( json_decode( '{"my_prop":"test"}' ), $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( json_decode( '{"my_required_prop":"test", "my_prop":"test"}' ), $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( json_decode( '{}' ), $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( json_decode( '[]' ), $schema ) );
 	}
 
 	/*
@@ -398,26 +398,26 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	 */
 	public function test_nested_property_is_required() {
 		$schema = array(
-			'type'     => 'object',
+			'type'       => 'object',
 			'properties' => array(
 				'my_object' => array(
-					'type'     => 'object',
+					'type'       => 'object',
 					'properties' => array(
-						'my_nested_prop' => array(
+						'my_nested_prop'          => array(
 							'type' => 'string',
 						),
 						'my_required_nested_prop' => array(
-							'type' => 'string',
+							'type'     => 'string',
 							'required' => 'true',
 						),
 					),
 				),
 			),
 		);
-		$this->assertWPError( rest_validate_value_from_schema( json_decode('{"my_object":{"my_prop":"test"}}'), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( json_decode('{"my_object":{"my_required_nested_prop":"test", "my_nested_prop":"test"}}'), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( json_decode('{}'), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( json_decode('[]'), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( json_decode( '{"my_object":{"my_prop":"test"}}' ), $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( json_decode( '{"my_object":{"my_required_nested_prop":"test", "my_nested_prop":"test"}}' ), $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( json_decode( '{}' ), $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( json_decode( '[]' ), $schema ) );
 	}
 
 	/*
@@ -425,25 +425,25 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	 */
 	public function test_nested_property_is_required_v4() {
 		$schema = array(
-			'type'     => 'object',
+			'type'       => 'object',
 			'properties' => array(
 				'my_object' => array(
-					'type'     => 'object',
+					'type'       => 'object',
 					'properties' => array(
-						'my_nested_prop' => array(
+						'my_nested_prop'          => array(
 							'type' => 'string',
 						),
 						'my_required_nested_prop' => array(
 							'type' => 'string',
 						),
 					),
-					'required' => array( 'my_required_nested_prop' ),
+					'required'   => array( 'my_required_nested_prop' ),
 				),
 			),
 		);
-		$this->assertWPError( rest_validate_value_from_schema( json_decode('{"my_object":{"my_prop":"test"}}'), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( json_decode('{"my_object":{"my_required_nested_prop":"test", "my_nested_prop":"test"}}'), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( json_decode('{}'), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( json_decode('[]'), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( json_decode( '{"my_object":{"my_prop":"test"}}' ), $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( json_decode( '{"my_object":{"my_required_nested_prop":"test", "my_nested_prop":"test"}}' ), $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( json_decode( '{}' ), $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( json_decode( '[]' ), $schema ) );
 	}
 }
