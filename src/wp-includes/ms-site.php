@@ -1118,6 +1118,71 @@ function delete_site_meta_by_key( $meta_key ) {
 }
 
 /**
+ * Retrieve site meta fields, based on site ID.
+ *
+ * The site meta fields are retrieved from the cache where possible,
+ * so the function is optimized to be called more than once.
+ *
+ * @since 5.5
+ *
+ * @param int $site_id Optional. Site ID. Default is ID of the current $site.
+ * @return array Site meta for the given site.
+ */
+function get_site_custom( $site_id = 0 ) {
+	$site_id = absint( $site_id );
+	if ( ! $site_id ) {
+		$site_id = get_current_blog_id();
+	}
+
+	return get_site_meta( $site_id );
+}
+
+/**
+ * Retrieve meta field names for a site.
+ *
+ * If there are no meta fields, then nothing (null) will be returned.
+ *
+ * @since 5.5
+ *
+ * @param int $site_id Optional. Site ID. Default is ID of the current $site.
+ * @return array|void Array of the keys, if retrieved.
+ */
+function get_site_custom_keys( $site_id = 0 ) {
+	$custom = get_site_custom( $site_id );
+
+	if ( ! is_array( $site_id ) ) {
+		return;
+	}
+
+	$keys = array_keys( $site_id );
+	if ( $keys ) {
+		return $keys;
+	}
+}
+
+/**
+ * Retrieve values for a custom site field.
+ *
+ * The parameters must not be considered optional. All of the site meta fields
+ * will be retrieved and only the meta field key values returned.
+ *
+ * @since 5.5
+ *
+ * @param string $key     Optional. Meta field key. Default empty.
+ * @param int    $site_id Optional. Site ID. Default is ID of the current $site.
+ * @return array|null Meta field values.
+ */
+function get_site_custom_values( $key = '', $site_id = 0 ) {
+	if ( ! $key ) {
+		return null;
+	}
+
+	$custom = get_site_custom( $site_id );
+
+	return isset( $custom[ $key ] ) ? $custom[ $key ] : null;
+}
+
+/**
  * Updates the count of sites for a network based on a changed site.
  *
  * @since 5.1.0
