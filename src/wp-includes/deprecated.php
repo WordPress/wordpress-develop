@@ -3983,3 +3983,15 @@ function wp_make_content_images_responsive( $content ) {
 	// This will also add the `loading` attribute to `img` tags, if enabled.
 	return wp_filter_content_tags( $content );
 }
+
+/**
+ * Turn register globals off.
+ *
+ * @since 2.1.0
+ * @access private
+ * @deprecated 5.5.0
+ */
+function wp_unregister_GLOBALS() {  // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
+	// register_globals is removed from PHP 5.4 and is no longer functional.
+	_deprecated_function( __FUNCTION__, '5.5.0' );
+}
