@@ -348,4 +348,30 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertTrue( rest_validate_value_from_schema( array( 'raw' => 'My Value' ), $schema ) );
 		$this->assertWPError( rest_validate_value_from_schema( array( 'raw' => array( 'a list' ) ), $schema ) );
 	}
+
+	public function test_string_min_length() {
+		$schema = array(
+			'type'      => 'string',
+			'minLength' => 3,
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( 'My Value', $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( 'My', $schema ) );
+
+		$schema['minLength'] = -1;
+		$this->assertWPError( rest_validate_value_from_schema( 'My Value', $schema ) );
+	}
+
+	public function test_string_max_length() {
+		$schema = array(
+			'type'      => 'string',
+			'maxLength' => 10,
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( 'My Value', $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( 'My Long Value', $schema ) );
+
+		$schema['maxLength'] = -1;
+		$this->assertWPError( rest_validate_value_from_schema( 'My Value', $schema ) );
+	}
 }
