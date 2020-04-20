@@ -1337,9 +1337,33 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'boolean' ) );
 	}
 
-	if ( 'string' === $args['type'] && ! is_string( $value ) ) {
-		/* translators: 1: Parameter, 2: Type name. */
-		return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'string' ) );
+	if ( 'string' === $args['type'] ) {
+		if ( ! is_string( $value ) ) {
+			/* translators: 1: Parameter, 2: Type name. */
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'string' ) );
+		}
+
+		if ( isset( $args['minLength'] ) ) {
+			if ( $args['minLength'] < 0 ) {
+				/* translators: 1: Parameter, 2: Type name. */
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s minLength can not be negative.' ), $param ) );
+			}
+			if ( strlen( $value ) < $args['minLength'] ) {
+				/* translators: 1: Parameter, 2: Type name. */
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s shall at least be %2$d.' ), $param, $args['minLength'] ) );
+			}
+		}
+
+		if ( isset( $args['maxLength'] ) ) {
+			if ( $args['maxLength'] < 0 ) {
+				/* translators: 1: Parameter, 2: Type name. */
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s maxLength can not be negative.' ), $param ) );
+			}
+			if ( strlen( $value ) > $args['maxLength'] ) {
+				/* translators: 1: Parameter, 2: Type name. */
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must not be longer than %2$d.' ), $param, $args['maxLength'] ) );
+			}
+		}
 	}
 
 	if ( isset( $args['format'] ) ) {
