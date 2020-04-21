@@ -102,6 +102,14 @@ if ( isset( $_REQUEST['action'] ) && 'update-site' == $_REQUEST['action'] ) {
 		update_option( 'siteurl', $new_site_url );
 	}
 
+    /**
+     * Fires immediately after the saving of default site options.
+     *
+     * @since   5.5
+     * @param   int     $id     Site ID
+     */
+    do_action( 'update_site_info', $id );
+
 	restore_current_blog();
 	wp_redirect(
 		add_query_arg(
@@ -153,6 +161,7 @@ if ( ! empty( $messages ) ) {
 <form method="post" action="site-info.php?action=update-site">
 	<?php wp_nonce_field( 'edit-site' ); ?>
 	<input type="hidden" name="id" value="<?php echo esc_attr( $id ); ?>" />
+
 	<table class="form-table" role="presentation">
 		<?php
 		// The main site of the network should not be updated on this page.
@@ -172,15 +181,23 @@ if ( ! empty( $messages ) ) {
 		</tr>
 		<?php endif; ?>
 
+        <?php do_action( 'network_site_info_after_address_field', $id, $details ); ?>
+
 		<tr class="form-field">
 			<th scope="row"><label for="blog_registered"><?php _ex( 'Registered', 'site' ); ?></label></th>
 			<td><input name="blog[registered]" type="text" id="blog_registered" value="<?php echo esc_attr( $details->registered ); ?>" /></td>
 		</tr>
+
+        <?php do_action( 'network_site_info_after_registered_field', $id, $details ); ?>
+
 		<tr class="form-field">
 			<th scope="row"><label for="blog_last_updated"><?php _e( 'Last Updated' ); ?></label></th>
 			<td><input name="blog[last_updated]" type="text" id="blog_last_updated" value="<?php echo esc_attr( $details->last_updated ); ?>" /></td>
 		</tr>
 		<?php
+
+        do_action( 'network_site_info_after_last_updated_field', $id, $details );
+
 		$attribute_fields = array( 'public' => __( 'Public' ) );
 		if ( ! $is_main_site ) {
 			$attribute_fields['archived'] = __( 'Archived' );
@@ -201,6 +218,9 @@ if ( ! empty( $messages ) ) {
 			<fieldset>
 			</td>
 		</tr>
+
+        <?php do_action( 'network_site_info_after_attributes_field', $id, $details ); ?>    
+
 	</table>
 	<?php submit_button(); ?>
 </form>
