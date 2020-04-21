@@ -1345,22 +1345,22 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 
 		if ( isset( $args['minLength'] ) ) {
 			if ( $args['minLength'] < 0 ) {
-				/* translators: 1: Parameter, 2: Type name. */
+				/* translators: 1: Parameter */
 				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s minLength can not be negative.' ), $param ) );
 			}
-			if ( strlen( $value ) < $args['minLength'] ) {
-				/* translators: 1: Parameter, 2: Type name. */
+			if ( mb_strlen( $value ) < $args['minLength'] ) {
+				/* translators: 1: Parameter, 2: number. */
 				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s shall at least be %2$d.' ), $param, $args['minLength'] ) );
 			}
 		}
 
 		if ( isset( $args['maxLength'] ) ) {
 			if ( $args['maxLength'] < 0 ) {
-				/* translators: 1: Parameter, 2: Type name. */
+				/* translators: 1: Parameter */
 				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s maxLength can not be negative.' ), $param ) );
 			}
-			if ( strlen( $value ) > $args['maxLength'] ) {
-				/* translators: 1: Parameter, 2: Type name. */
+			if ( mb_strlen( $value ) > $args['maxLength'] ) {
+				/* translators: 1: Parameter, 2: number. */
 				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must not be longer than %2$d.' ), $param, $args['maxLength'] ) );
 			}
 		}
