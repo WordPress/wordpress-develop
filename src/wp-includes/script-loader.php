@@ -64,6 +64,25 @@ function wp_register_tinymce_scripts( $scripts, $force_uncompressed = false ) {
 }
 
 /**
+ * Function responsible for printing the TinyMCE scripts.
+ *
+ * @since 5.4.0
+ */
+function wp_print_tinymce_scripts() {
+	wp_print_scripts( array( 'wp-tinymce' ) );
+
+	echo "<script type='text/javascript'>\n" . _WP_Editors::wp_mce_translation() . "</script>\n";
+}
+
+/**
+ * Executed in _WP_Editors::print_tinymce_scripts
+ * after concatenation settings have been initialized.
+ *
+ * @see _WP_Editors::print_tinymce_scripts()
+ */
+add_action( 'print_tinymce_scripts', 'wp_print_tinymce_scripts' );
+
+/**
  * Registers all the WordPress vendor scripts that are in the standardized
  * `js/dist/vendor/` location.
  *
