@@ -352,11 +352,22 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	public function test_string_min_length() {
 		$schema = array(
 			'type'      => 'string',
-			'minLength' => 3,
+			'minLength' => 2,
 		);
 
-		$this->assertTrue( rest_validate_value_from_schema( 'My Value', $schema ) );
-		$this->assertWPError( rest_validate_value_from_schema( 'My', $schema ) );
+		// longer
+		$this->assertTrue( rest_validate_value_from_schema( 'foo', $schema ) );
+		// exact
+		$this->assertTrue( rest_validate_value_from_schema( 'fo', $schema ) );
+		// non-strings does not validate
+		$this->assertWPError( rest_validate_value_from_schema( 1, $schema ) );
+		// to short
+		$this->assertWPError( rest_validate_value_from_schema( 'f', $schema ) );
+		// one supplementary Unicode code point is not long enough
+		$mb_char = mb_convert_encoding( '&#x1000;', 'UTF-8', 'HTML-ENTITIES' );
+		$this->assertWPError( rest_validate_value_from_schema( $mb_char, $schema ) );
+		// two supplementary Unicode code point is long enough
+		$this->assertTrue( rest_validate_value_from_schema( $mb_char . $mb_char, $schema ) );
 
 		$schema['minLength'] = -1;
 		$this->assertWPError( rest_validate_value_from_schema( 'My Value', $schema ) );
@@ -365,11 +376,22 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	public function test_string_max_length() {
 		$schema = array(
 			'type'      => 'string',
-			'maxLength' => 10,
+			'maxLength' => 2,
 		);
 
-		$this->assertTrue( rest_validate_value_from_schema( 'My Value', $schema ) );
-		$this->assertWPError( rest_validate_value_from_schema( 'My Long Value', $schema ) );
+		// shorter
+		$this->assertTrue( rest_validate_value_from_schema( 'f', $schema ) );
+		// exact
+		$this->assertTrue( rest_validate_value_from_schema( 'fo', $schema ) );
+		// to long
+		$this->assertWPError( rest_validate_value_from_schema( 'foo', $schema ) );
+		// non string
+		$this->assertWPError( rest_validate_value_from_schema( 100, $schema ) );
+		// two supplementary Unicode code point is long enough
+		$mb_char = mb_convert_encoding( '&#x1000;', 'UTF-8', 'HTML-ENTITIES' );
+		$this->assertTrue( rest_validate_value_from_schema( $mb_char, $schema ) );
+		// three supplementary Unicode code point is to long
+		$this->assertWPError( rest_validate_value_from_schema( $mb_char . $mb_char . $mb_char, $schema ) );
 
 		$schema['maxLength'] = -1;
 		$this->assertWPError( rest_validate_value_from_schema( 'My Value', $schema ) );
