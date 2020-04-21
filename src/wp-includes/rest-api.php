@@ -526,6 +526,8 @@ function rest_ensure_response( $response ) {
 		return $response;
 	}
 
+	// While WP_HTTP_Response is the base class of WP_REST_Response, it doesn't provide
+	// all the required methods used in WP_REST_Server::dispatch().
 	if ( $response instanceof WP_HTTP_Response ) {
 		return new WP_REST_Response(
 			$response->get_data(),
