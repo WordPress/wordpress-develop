@@ -1227,6 +1227,7 @@ function rest_get_avatar_sizes() {
  * Validate a value based on a schema.
  *
  * @since 4.7.0
+ * @since 5.5.0 Add (min|max)Length on strings
  *
  * @param mixed  $value The value to validate.
  * @param array  $args  Schema array to use for validation.
@@ -1345,6 +1346,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 
 		if ( isset( $args['minLength'] ) ) {
 			if ( $args['minLength'] < 0 ) {
+				_doing_it_wrong( 'rest_invalid_param', __( 'minLength can not be negative.' ), '5.5.0' );
 				/* translators: 1: Parameter */
 				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s minLength can not be negative.' ), $param ) );
 			}
@@ -1356,6 +1358,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 
 		if ( isset( $args['maxLength'] ) ) {
 			if ( $args['maxLength'] < 0 ) {
+				_doing_it_wrong( 'rest_invalid_param', __( 'maxLength can not be negative.' ), '5.5.0' );
 				/* translators: 1: Parameter */
 				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s maxLength can not be negative.' ), $param ) );
 			}

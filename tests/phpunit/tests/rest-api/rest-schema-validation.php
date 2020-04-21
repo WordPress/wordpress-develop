@@ -368,9 +368,6 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertWPError( rest_validate_value_from_schema( $mb_char, $schema ) );
 		// two supplementary Unicode code point is long enough
 		$this->assertTrue( rest_validate_value_from_schema( $mb_char . $mb_char, $schema ) );
-
-		$schema['minLength'] = -1;
-		$this->assertWPError( rest_validate_value_from_schema( 'My Value', $schema ) );
 	}
 
 	public function test_string_max_length() {
@@ -392,8 +389,5 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertTrue( rest_validate_value_from_schema( $mb_char, $schema ) );
 		// three supplementary Unicode code point is to long
 		$this->assertWPError( rest_validate_value_from_schema( $mb_char . $mb_char . $mb_char, $schema ) );
-
-		$schema['maxLength'] = -1;
-		$this->assertWPError( rest_validate_value_from_schema( 'My Value', $schema ) );
 	}
 }
