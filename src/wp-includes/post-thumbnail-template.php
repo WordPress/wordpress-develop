@@ -43,9 +43,10 @@ function has_post_thumbnail( $post = null ) {
  *
  * @since 2.9.0
  * @since 4.4.0 `$post` can be a post ID or WP_Post object.
+ * @since 5.5 update php_doc to reflect range of return values
  *
  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global `$post`.
- * @return int|string Post thumbnail ID or empty string if the post does not exist.
+ * @return int|string Post thumbnail ID if found, 0 if the thumbnail image is not set, or empty string if the post does not exist.
  */
 function get_post_thumbnail_id( $post = null ) {
 	$post = get_post( $post );
