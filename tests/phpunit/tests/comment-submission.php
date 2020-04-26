@@ -716,6 +716,45 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 49236
+	 */
+	public function test_submitting_comment_with_empty_type_results_in_correct_type() {
+		$data    = array(
+			'comment_post_ID' => self::$post->ID,
+			'comment'         => 'Comment',
+			'author'          => 'Comment Author',
+			'email'           => 'comment@example.org',
+			'comment_type'    => '',
+		);
+		$comment = wp_handle_comment_submission( $data );
+
+		$this->assertNotWPError( $comment );
+		$this->assertInstanceOf( 'WP_Comment', $comment );
+
+		$this->assertSame( 'comment', $comment->comment_type );
+	}
+
+	/**
+	 * @ticket 49236
+	 */
+	public function test_inserting_comment_with_empty_type_results_in_correct_type() {
+		$data       = array(
+			'comment_post_ID' => self::$post->ID,
+			'comment'         => 'Comment',
+			'author'          => 'Comment Author',
+			'email'           => 'comment@example.org',
+			'comment_type'    => '',
+		);
+		$comment_id = wp_insert_comment( $data );
+		$comment    = get_comment( $comment_id );
+
+		$this->assertNotWPError( $comment );
+		$this->assertInstanceOf( 'WP_Comment', $comment );
+
+		$this->assertSame( 'comment', $comment->comment_type );
+	}
+
+	/**
 	 * @ticket 34997
 	 */
 	public function test_comment_submission_sends_all_expected_parameters_to_preprocess_comment_filter() {
