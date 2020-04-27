@@ -590,13 +590,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		/*
 		 * Do not allow a comment to be created with missing or empty
 		 * comment_content. See wp_handle_comment_submission().
-		 * 
-		 * Comment content can be string with zero.
 		 */
-		$missing_content = empty( $prepared_comment['comment_content'] )
-			&& $prepared_comment['comment_content'] !== '0';
-		
-		if ( $missing_content ) {
+		$allow_empty_comment = apply_filters( 'rest_allow_empty_comment', false, $prepared_comment );
+		$missing_content = ! isset( $prepared_comment['comment_content'] ) || '' === $prepared_comment['comment_content']
+
+		if ( $missing_content && ! $allow_empty_comment ) {
 			return new WP_Error(
 				'rest_comment_content_invalid',
 				__( 'Invalid comment content.' ),
