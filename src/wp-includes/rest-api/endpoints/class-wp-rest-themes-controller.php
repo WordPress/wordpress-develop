@@ -226,6 +226,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 				),
 				'author_uri'     => array(
 					'description' => __( 'The website of the theme author.' ),
+					'format'      => 'uri',
 					'type'        => 'string',
 					'readonly'    => true,
 				),
@@ -524,6 +525,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'description' => __( 'The URI of the theme\'s webpage.' ),
 					'type'        => 'string',
 					'readonly'    => true,
+					'format'      => 'uri',
 				),
 				'version'        => array(
 					'description' => __( 'The theme\'s current version.' ),
