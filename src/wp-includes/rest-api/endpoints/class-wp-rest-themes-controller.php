@@ -132,8 +132,8 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 
 		if ( in_array( 'author', $fields, true ) ) {
 			$data['author'] = array(
-				'raw'      => $theme->display( 'Author', false, true ),
-				'rendered' => $theme->display( 'Author' ),
+				'raw'      => $theme['Author Name'],
+				'rendered' => $theme['Author'],
 			);
 		}
 
