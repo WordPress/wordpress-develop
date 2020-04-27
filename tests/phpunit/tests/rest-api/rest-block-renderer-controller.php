@@ -210,9 +210,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$this->assertContains( self::$block_name, $dynamic_block_names );
 
 		$routes = rest_get_server()->get_routes();
-		foreach ( $dynamic_block_names as $dynamic_block_name ) {
-			$this->assertArrayHasKey( self::$rest_api_route . "(?P<name>$dynamic_block_name)", $routes );
-		}
+		$this->assertArrayHasKey( self::$rest_api_route . '(?P<name>[a-z0-9-]+/[a-z0-9-]+)', $routes );
 	}
 
 	/**
@@ -261,7 +259,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+		$this->assertErrorResponse( 'block_invalid', $response, 404 );
 	}
 
 	/**
