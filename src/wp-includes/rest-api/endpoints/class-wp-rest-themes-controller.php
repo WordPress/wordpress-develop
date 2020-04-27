@@ -134,7 +134,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 
 		if ( in_array( 'screenshot', $fields, true ) ) {
 			// Using $theme->get_screenshot() with no args to get absolute URL.
-			$data['screenshot'] = $theme->get_screenshot();
+			$data['screenshot'] = $theme->get_screenshot() ?: '';
 		}
 
 		if ( in_array( 'theme_supports', $fields, true ) ) {

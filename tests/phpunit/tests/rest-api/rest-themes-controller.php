@@ -299,7 +299,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'screenshot', $result[0] );
-		$this->assertFalse( $result[0]['screenshot'] ); // No screenshot for default theme
+		$this->assertSame( '', $result[0]['screenshot'] ); // No screenshot for default theme
 	}
 
 	public function test_theme_stylesheet() {
