@@ -151,7 +151,6 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->check_get_theme_response( $response );
 		$fields = array(
 			'author',
-			'author_name',
 			'author_uri',
 			'description',
 			'name',
@@ -217,7 +216,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response   = self::perform_active_theme_request( 'OPTIONS' );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 11, count( $properties ) );
+		$this->assertEquals( 10, count( $properties ) );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['author']['properties'] );
 		$this->assertArrayHasKey( 'rendered', $properties['author']['properties'] );
@@ -265,13 +264,6 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'<a href="http://binarybonsai.com/">Michael Heilemann</a>',
 			$result[0]['author']['rendered']
 		);
-	}
-
-	public function test_theme_author_name() {
-		$response = self::perform_active_theme_request();
-		$result   = $response->get_data();
-		$this->assertArrayHasKey( 'author_name', $result[0] );
-		$this->assertSame( 'Michael Heilemann', $result[0]['author_name'] );
 	}
 
 	public function test_theme_author_uri() {

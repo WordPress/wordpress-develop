@@ -116,8 +116,6 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		$fields = $this->get_fields_for_response( $request );
 
 		$field_mappings    = array(
-			'author'      => 'Author',
-			'author_name' => 'Author Name',
 			'author_uri'  => 'Author URI',
 			'description' => 'Description',
 			'name'        => 'Name',
@@ -130,6 +128,13 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 
 		foreach ( $fields_to_include as $field ) {
 			$data[ $field ] = $theme[ $field_mappings[ $field ] ];
+		}
+
+		if ( in_array( 'author', $fields, true ) ) {
+			$data['author'] = array(
+				'raw'      => $theme->display( 'Author', false, true ),
+				'rendered' => $theme->display( 'Author' ),
+			);
 		}
 
 		if ( in_array( 'screenshot', $fields, true ) ) {
@@ -218,11 +223,18 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'description' => __( 'The theme author.' ),
 					'type'        => 'string',
 					'readonly'    => true,
-				),
-				'author_name'    => array(
-					'description' => __( 'The theme author\'s name.' ),
-					'type'        => 'string',
-					'readonly'    => true,
+					'properties'  => array(
+						'raw'      => array(
+							'description' => __( 'The theme author\'s name.' ),
+							'type'        => 'string',
+							'readonly'    => true,
+						),
+						'rendered' => array(
+							'description' => __( 'HTML for the theme author, transformed for display.' ),
+							'type'        => 'string',
+							'readonly'    => true,
+						),
+					),
 				),
 				'author_uri'     => array(
 					'description' => __( 'The website of the theme author.' ),
