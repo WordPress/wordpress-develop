@@ -217,18 +217,32 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
 		$this->assertEquals( 10, count( $properties ) );
+
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['author']['properties'] );
 		$this->assertArrayHasKey( 'rendered', $properties['author']['properties'] );
 
 		$this->assertArrayHasKey( 'author_uri', $properties );
+		$this->assertArrayHasKey( 'raw', $properties['author_uri']['properties'] );
+		$this->assertArrayHasKey( 'rendered', $properties['author_uri']['properties'] );
+
 		$this->assertArrayHasKey( 'description', $properties );
+		$this->assertArrayHasKey( 'raw', $properties['description']['properties'] );
+		$this->assertArrayHasKey( 'rendered', $properties['description']['properties'] );
+
 		$this->assertArrayHasKey( 'name', $properties );
+		$this->assertArrayHasKey( 'raw', $properties['name']['properties'] );
+		$this->assertArrayHasKey( 'rendered', $properties['name']['properties'] );
+
 		$this->assertArrayHasKey( 'screenshot', $properties );
 		$this->assertArrayHasKey( 'stylesheet', $properties );
 		$this->assertArrayHasKey( 'template', $properties );
 		$this->assertArrayHasKey( 'theme_supports', $properties );
+
 		$this->assertArrayHasKey( 'theme_uri', $properties );
+		$this->assertArrayHasKey( 'raw', $properties['theme_uri']['properties'] );
+		$this->assertArrayHasKey( 'rendered', $properties['theme_uri']['properties'] );
+
 		$this->assertArrayHasKey( 'version', $properties );
 
 		$theme_supports = $properties['theme_supports']['properties'];
@@ -270,7 +284,8 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'author_uri', $result[0] );
-		$this->assertSame( 'http://binarybonsai.com/', $result[0]['author_uri'] );
+		$this->assertSame( 'http://binarybonsai.com/', $result[0]['author_uri']['raw'] );
+		$this->assertSame( 'http://binarybonsai.com/', $result[0]['author_uri']['rendered'] );
 	}
 
 	public function test_theme_description() {
@@ -279,7 +294,11 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'description', $result[0] );
 		$this->assertSame(
 			'The default WordPress theme based on the famous <a href="http://binarybonsai.com/kubrick/">Kubrick</a>.',
-			$result[0]['description']
+			$result[0]['description']['raw']
+		);
+		$this->assertSame(
+			'The default WordPress theme based on the famous <a href="http://binarybonsai.com/kubrick/">Kubrick</a>.',
+			$result[0]['description']['rendered']
 		);
 	}
 
@@ -287,7 +306,8 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'name', $result[0] );
-		$this->assertSame( 'WordPress Default', $result[0]['name'] );
+		$this->assertSame( 'WordPress Default', $result[0]['name']['raw'] );
+		$this->assertSame( 'WordPress Default', $result[0]['name']['rendered'] );
 	}
 
 	public function test_theme_screenshot() {
@@ -315,8 +335,8 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'theme_uri', $result[0] );
-		$this->assertNull( $result[0]['theme_uri'] ); // Theme URI is null for default theme.
-	}
+		$this->assertSame( 'http://wordpress.org/', $result[0]['theme_uri']['raw'] );
+		$this->assertSame( 'http://wordpress.org/', $result[0]['theme_uri']['rendered'] );  }
 
 	public function test_theme_version() {
 		$response = self::perform_active_theme_request();

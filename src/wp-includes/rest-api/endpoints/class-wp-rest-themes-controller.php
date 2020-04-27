@@ -115,31 +115,38 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		$data   = array();
 		$fields = $this->get_fields_for_response( $request );
 
-		$field_mappings    = array(
-			'author_uri'  => 'Author URI',
-			'description' => 'Description',
-			'name'        => 'Name',
-			'stylesheet'  => 'Stylesheet',
-			'template'    => 'Template',
-			'theme_uri'   => 'Theme URI',
-			'version'     => 'Version',
+		$plain_field_mappings = array(
+			'stylesheet' => 'Stylesheet',
+			'template'   => 'Template',
+			'version'    => 'Version',
 		);
-		$fields_to_include = array_intersect( array_keys( $field_mappings ), $fields );
 
-		foreach ( $fields_to_include as $field ) {
-			$data[ $field ] = $theme[ $field_mappings[ $field ] ];
-		}
+		$plain_fields_to_include = array_intersect( array_keys( $plain_field_mappings ), $fields );
 
-		if ( in_array( 'author', $fields, true ) ) {
-			$data['author'] = array(
-				'raw'      => $theme['Author Name'],
-				'rendered' => $theme['Author'],
-			);
+		foreach ( $plain_fields_to_include as $field ) {
+			$data[ $field ] = $theme[ $plain_field_mappings[ $field ] ];
 		}
 
 		if ( in_array( 'screenshot', $fields, true ) ) {
 			// Using $theme->get_screenshot() with no args to get absolute URL.
 			$data['screenshot'] = $theme->get_screenshot() ?: '';
+		}
+
+		$rich_field_mappings = array(
+			'author'      => 'Author',
+			'author_uri'  => 'AuthorURI',
+			'description' => 'Description',
+			'name'        => 'Name',
+			'theme_uri'   => 'ThemeURI',
+		);
+
+		$rich_fields_to_include = array_intersect( array_keys( $rich_field_mappings ), $fields );
+
+		foreach ( $rich_fields_to_include as $field ) {
+			$data[ $field ] = array(
+				'raw'      => $theme->display( $rich_field_mappings[ $field ], false, true ),
+				'rendered' => $theme->display( $rich_field_mappings[ $field ] ),
+			);
 		}
 
 		if ( in_array( 'theme_supports', $fields, true ) ) {
@@ -225,7 +232,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 					'properties'  => array(
 						'raw'      => array(
-							'description' => __( 'The theme author\'s name.' ),
+							'description' => __( 'The theme author\'s name, as it exists in the database.' ),
 							'type'        => 'string',
 							'readonly'    => true,
 						),
@@ -241,16 +248,52 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'format'      => 'uri',
 					'type'        => 'string',
 					'readonly'    => true,
+					'properties'  => array(
+						'raw'      => array(
+							'description' => __( 'The website of the theme author, as it exists in the database.' ),
+							'type'        => 'string',
+							'readonly'    => true,
+						),
+						'rendered' => array(
+							'description' => __( 'The website of the theme author, transformed for display.' ),
+							'type'        => 'string',
+							'readonly'    => true,
+						),
+					),
 				),
 				'description'    => array(
 					'description' => __( 'A description of the theme.' ),
 					'type'        => 'string',
 					'readonly'    => true,
+					'properties'  => array(
+						'raw'      => array(
+							'description' => __( 'The theme description, as it exists in the database.' ),
+							'type'        => 'string',
+							'readonly'    => true,
+						),
+						'rendered' => array(
+							'description' => __( 'The theme description, transformed for display.' ),
+							'type'        => 'string',
+							'readonly'    => true,
+						),
+					),
 				),
 				'name'           => array(
 					'description' => __( 'The name of the theme.' ),
 					'type'        => 'string',
 					'readonly'    => true,
+					'properties'  => array(
+						'raw'      => array(
+							'description' => __( 'The theme name, as it exists in the database.' ),
+							'type'        => 'string',
+							'readonly'    => true,
+						),
+						'rendered' => array(
+							'description' => __( 'The theme name, transformed for display.' ),
+							'type'        => 'string',
+							'readonly'    => true,
+						),
+					),
 				),
 				'screenshot'     => array(
 					'description' => __( 'A theme screenshot URL.' ),
@@ -538,6 +581,18 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'readonly'    => true,
 					'format'      => 'uri',
+					'properties'  => array(
+						'raw'      => array(
+							'description' => __( 'The URI of the theme\'s webpage, as it exists in the database.' ),
+							'type'        => 'string',
+							'readonly'    => true,
+						),
+						'rendered' => array(
+							'description' => __( 'The URI of the theme\'s webpage, transformed for display.' ),
+							'type'        => 'string',
+							'readonly'    => true,
+						),
+					),
 				),
 				'version'        => array(
 					'description' => __( 'The theme\'s current version.' ),
