@@ -1052,7 +1052,7 @@ function add_meta_box( $id, $title, $callback, $screen = null, $context = 'advan
 
 	foreach ( array_keys( $wp_meta_boxes[ $page ] ) as $a_context ) {
 		foreach ( array( 'high', 'core', 'default', 'low' ) as $a_priority ) {
-			if ( ! isset( $wp_meta_boxes[ $page ][ $a_context ][ $a_priority ][ $id ] ) ) {
+			if ( empty( $wp_meta_boxes[ $page ][ $a_context ][ $a_priority ][ $id ] ) ) {
 				continue;
 			}
 
