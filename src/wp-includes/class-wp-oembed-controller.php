@@ -42,9 +42,7 @@ final class WP_oEmbed_Controller {
 						'url'      => array(
 							'required'          => true,
 							'type'              => 'string',
-							'validate_callback' => function( $value ) {
-								return is_string( $value );
-							},
+							'validate_callback' => 'rest_validate_request_arg',
 							'sanitize_callback' => 'esc_url_raw',
 						),
 						'format'   => array(
