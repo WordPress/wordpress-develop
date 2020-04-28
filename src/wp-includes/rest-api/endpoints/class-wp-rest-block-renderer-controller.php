@@ -148,8 +148,7 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 			);
 		}
 
-		// In a POST request, the attributes appear as JSON in the request body.
-		$attributes = WP_REST_Server::CREATABLE === $request->get_method() ? json_decode( $request->get_body(), true ) : $request->get_param( 'attributes' );
+		$attributes = $request->get_param( 'attributes' );
 
 		// Create an array representation simulating the output of parse_blocks.
 		$block = array(
