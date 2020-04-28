@@ -232,7 +232,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 					'properties'  => array(
 						'raw'      => array(
-							'description' => __( 'The theme author\'s name, as it exists in the database.' ),
+							'description' => __( 'The theme author\'s name, as found in the theme header.' ),
 							'type'        => 'string',
 							'readonly'    => true,
 						),
@@ -250,7 +250,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 					'properties'  => array(
 						'raw'      => array(
-							'description' => __( 'The website of the theme author, as it exists in the database.' ),
+							'description' => __( 'The website of the theme author, as found in the theme header.' ),
 							'type'        => 'string',
 							'readonly'    => true,
 						),
@@ -267,7 +267,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 					'properties'  => array(
 						'raw'      => array(
-							'description' => __( 'The theme description, as it exists in the database.' ),
+							'description' => __( 'The theme description, as found in the theme header.' ),
 							'type'        => 'string',
 							'readonly'    => true,
 						),
@@ -284,7 +284,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 					'properties'  => array(
 						'raw'      => array(
-							'description' => __( 'The theme name, as it exists in the database.' ),
+							'description' => __( 'The theme name, as found in the theme header.' ),
 							'type'        => 'string',
 							'readonly'    => true,
 						),
@@ -583,7 +583,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'format'      => 'uri',
 					'properties'  => array(
 						'raw'      => array(
-							'description' => __( 'The URI of the theme\'s webpage, as it exists in the database.' ),
+							'description' => __( 'The URI of the theme\'s webpage, as found in the theme header.' ),
 							'type'        => 'string',
 							'readonly'    => true,
 						),
