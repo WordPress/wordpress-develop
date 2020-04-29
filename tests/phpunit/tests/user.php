@@ -615,7 +615,7 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertNotContains( 'key', $metas );
 	}
 
-	function test_changing_email_invalidates_password_reset_key() {
+	public function test_changing_email_invalidates_password_reset_key() {
 		global $wpdb;
 
 		$user = $this->factory->user->create_and_get();
@@ -646,4 +646,25 @@ class Tests_User extends WP_UnitTestCase {
 		$user = get_userdata( $user->ID );
 		$this->assertEmpty( $user->user_activation_key );
 	}
+
+	public function test_changing_password_invalidates_password_reset_key() {
+		global $wpdb;
+
+		$user = $this->factory->user->create_and_get();
+		$wpdb->update( $wpdb->users, array( 'user_activation_key' => 'key' ), array( 'ID' => $user->ID ) );
+		clean_user_cache( $user );
+
+		$user = get_userdata( $user->ID );
+		$this->assertEquals( 'key', $user->user_activation_key );
+
+		$userdata = array(
+			'ID'        => $user->ID,
+			'user_pass' => 'password',
+		);
+		wp_update_user( $userdata );
+
+		$user = get_userdata( $user->ID );
+		$this->assertEmpty( $user->user_activation_key );
+	}
+
 }
