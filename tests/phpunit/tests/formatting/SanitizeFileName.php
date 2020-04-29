@@ -60,4 +60,20 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 		// Test a filenames that becomes extensionless.
 		$this->assertEquals( 'no-extension', sanitize_file_name( '_.no-extension' ) );
 	}
+
+	/**
+	 * @dataProvider data_wp_filenames
+	 */
+	function test_replaces_invalid_utf8_characters( $input, $expected ) {
+		$this->assertEquals( $expected, sanitize_file_name( $input ) );
+	}
+
+	function data_wp_filenames() {
+		return array(
+			array( urldecode( '%B1myfile.png' ), 'myfile.png' ),
+			array( urldecode( '%B1myfile' ), 'myfile' ),
+			array( 'demo bar.png', 'demo-bar.png' ),
+			array( 'demo' . json_decode( '"\u00a0"' ) . 'bar.png', 'demo-bar.png' ),
+		);
+	}
 }
