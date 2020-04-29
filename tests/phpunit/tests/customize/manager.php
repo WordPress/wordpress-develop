@@ -1377,7 +1377,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	/**
 	 * Sanitize content with Kses if the current user is not the main admin.
 	 *
-	 * @since 5.2.?
+	 * @since 5.4.1
 	 *
 	 * @param string $content Content to sanitize.
 	 * @return string Sanitized content.
@@ -1392,7 +1392,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	/**
 	 * Filter map_meta_cap to disallow unfiltered_html.
 	 *
-	 * @since 5.2.?
+	 * @since 5.4.1
 	 *
 	 * @param array  $caps User's capabilities.
 	 * @param string $cap  Requested cap.

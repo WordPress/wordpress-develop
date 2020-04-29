@@ -78,10 +78,10 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 
 	function data_wp_filenames() {
 		return array(
-			[ urldecode( '%B1myfile.png' ), 'myfile.png' ],
-			[ urldecode( '%B1myfile' ), 'myfile' ],
-			[ 'demo bar.png', 'demo-bar.png' ],
-			[ 'demo' . json_decode( '"\u00a0"' ) . 'bar.png', 'demo-bar.png' ],
+			array( urldecode( '%B1myfile.png' ), 'myfile.png' ),
+			array( urldecode( '%B1myfile' ), 'myfile' ),
+			array( 'demo bar.png', 'demo-bar.png' ),
+			array( 'demo' . json_decode( '"\u00a0"' ) . 'bar.png', 'demo-bar.png' ),
 		);
 	}
 }
