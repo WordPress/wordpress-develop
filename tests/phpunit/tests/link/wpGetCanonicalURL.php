@@ -11,7 +11,8 @@ class Tests_WpGetCanonicalURL extends WP_UnitTestCase {
 	public static function wpSetUpBeforeClass( $factory ) {
 		self::$post_id = $factory->post->create(
 			array(
-				'post_status' => 'publish',
+				'post_content' => 'Page 1 <!--nextpage--> Page 2 <!--nextpage--> Page 3',
+				'post_status'  => 'publish',
 			)
 		);
 	}

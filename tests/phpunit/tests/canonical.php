@@ -175,6 +175,9 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			array( '/2008/09/03/images-test/?page=3', '/2008/09/03/images-test/3/' ),
 			array( '/2008/09/03/images-te?page=3', '/2008/09/03/images-test/3/' ),
 
+			array( '/2008/03/03/comment-test/3/', '/2008/03/03/comment-test/' ),
+			array( '/2008/03/03/comment-test/?page=3', '/2008/03/03/comment-test/' ),
+
 			// Comments.
 			array( '/2008/03/03/comment-test/?cpage=2', '/2008/03/03/comment-test/comment-page-2/' ),
 
