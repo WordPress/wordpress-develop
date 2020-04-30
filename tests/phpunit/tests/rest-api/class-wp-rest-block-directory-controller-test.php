@@ -33,7 +33,7 @@ class WP_REST_Block_Directory_Controller_Test extends WP_UnitTestCase {
 	 * Tests that an error is returned if the block plugin slug is not provided
 	 */
 	function test_should_throw_no_slug_error() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/block-directory/install', [] );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/block-directory/install', [] );
 
 		$result = $this->controller->install_block( $request );
 		$this->assertWPError( $result, 'Returns an error when a slug isn\'t passed' );
@@ -85,7 +85,7 @@ class WP_REST_Block_Directory_Controller_Test extends WP_UnitTestCase {
 	 * Tests that the install endpoint returns WP_Error when the server is unreachable.
 	 */
 	function test_install_unreachable() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/block-directory/install' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/block-directory/install' );
 		$request->set_query_params( array( 'slug' => 'foo' ) );
 
 		$this->prevent_requests_to_host( 'api.wordpress.org' );
