@@ -153,6 +153,7 @@
 		"grunt": "grunt",
 		"env:start": "node ./tools/local-env/scripts/start.js",
 		"env:stop": "node ./tools/local-env/scripts/docker.js down",
+		"env:restart": "npm run env:stop && npm run env:start",
 		"env:clean": "node ./tools/local-env/scripts/docker.js down -v --remove-orphans",
 		"env:reset": "node ./tools/local-env/scripts/docker.js down --rmi all -v --remove-orphans",
 		"env:install": "node ./tools/local-env/scripts/install.js",
