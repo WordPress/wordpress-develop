@@ -77,7 +77,6 @@ class WP_REST_Block_Directory_Controller_Test extends WP_UnitTestCase {
 
 		$result = $this->controller->get_items( $request );
 		$this->assertWPError( $result );
-		var_dump( $result );
 		$this->assertTrue( array_key_exists( 'plugins_api_failed', $result->errors ), 'Returns the correct error key' );
 
 	}
