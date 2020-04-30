@@ -86,6 +86,7 @@ class WP_REST_Block_Directory_Controller_Test extends WP_UnitTestCase {
 	 */
 	function test_simple_search_no_perms() {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-directory/search' );
+		$request->set_query_params( array( 'term' => 'foo' ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
