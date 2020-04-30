@@ -171,7 +171,7 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 			return $filesystem_available;
 		}
 
-		$api = plugins_api(
+		$api = @plugins_api(
 			'plugin_information',
 			array(
 				'slug'   => $slug,
@@ -289,13 +289,17 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 		require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
-		$response = plugins_api(
+		$response = @plugins_api(
 			'query_plugins',
 			array(
 				'block'    => $search_string,
 				'per_page' => 3,
 			)
 		);
+
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
 
 		$result = array();
 
