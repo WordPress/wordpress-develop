@@ -82,6 +82,21 @@ class WP_REST_Block_Directory_Controller_Test extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the install endpoint returns WP_Error when the server is unreachable.
+	 */
+	function test_install_unreachable() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/block-directory/install' );
+		$request->set_query_params( array( 'slug' => 'foo' ) );
+
+		$this->prevent_requests_to_host( 'api.wordpress.org' );
+
+		$result = $this->controller->install_block( $request );
+		$this->assertWPError( $result );
+		$this->assertTrue( array_key_exists( 'plugins_api_failed', $result->errors ), 'Returns the correct error key' );
+
+	}
+
+	/**
 	 * Should fail with a permission error if requesting user is not logged in.
 	 */
 	function test_simple_search_no_perms() {
