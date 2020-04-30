@@ -135,4 +135,36 @@ class WP_REST_Block_Directory_Controller_Test extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * Should fail with a permission error if requesting user is not logged in.
+	 */
+	function test_simple_install_no_perms() {
+		$request  = new WP_REST_Request( 'POST', '/wp/v2/block-directory/install' );
+		$request->set_query_params( array( 'slug' => 'foo' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertEquals( $data['code'], 'rest_user_cannot_view' );
+	}
+
+	/**
+	 * Make sure an install with permissions correctly handles an unknown slug.
+	 */
+	function test_simple_install_with_perms_bad_slug() {
+		$user_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $user_id );
+
+		// This will hit the live API. 
+		$request  = new WP_REST_Request( 'POST', '/wp/v2/block-directory/install' );
+		$request->set_query_params( array( 'slug' => 'alex-says-this-block-definitely-doesnt-exist' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		// Is this an appropriate status?
+		$this->assertEquals( 500, $response->status );
+		$this->assertEquals( $data['code'], 'plugins_api_failed' );
+		$this->assertEquals( $data['message'], 'Plugin not found.' );
+	}
+
+
 }
