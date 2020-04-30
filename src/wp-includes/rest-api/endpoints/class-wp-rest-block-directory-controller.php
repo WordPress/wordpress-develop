@@ -20,7 +20,7 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 	 * Constructs the controller.
 	 */
 	public function __construct() {
-		$this->namespace = '__experimental';
+		$this->namespace = 'wp/v2';
 		$this->rest_base = 'block-directory';
 	}
 
