@@ -1285,20 +1285,17 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'object' ) );
 		}
 
-		/*
-		 * @ticket 48818
-		 */
-		if ( isset( $args['properties'] ) && ! empty( $value ) ) {
-			if ( isset( $args['required'] ) ) { // schema version 4
+		if ( isset( $args['properties'] ) ) {
+			if ( isset( $args['required'] ) && is_array( $args['required'] ) ) { // schema version 4
 				foreach ( $args['required'] as $name ) {
-					if ( ! isset( $value[ $name ] ) ) {
+					if ( ! array_key_exists( $name, $value ) ) {
 						/* translators: %s: Property of an object. */
 						return new WP_Error( 'rest_property_required', sprintf( __( '%1$s is a required property of Object.' ), $name ) );
 					}
 				}
 			} else { // schema version 3
 				foreach ( $args['properties'] as $name => $property ) {
-					if ( isset( $property['required'] ) && true === (bool) $property['required'] && ! isset( $value[ $name ] ) ) {
+					if ( isset( $property['required'] ) && true === $property['required'] && ! array_key_exists( $name, $value ) ) {
 						/* translators: %s: Property of an object. */
 						return new WP_Error( 'rest_property_required', sprintf( __( '%1$s is a required property of Object.' ), $name ) );
 					}
@@ -1312,9 +1309,6 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 				if ( is_wp_error( $is_valid ) ) {
 					return $is_valid;
 				}
-			} elseif ( isset( $args['properties'][ $property ]['required'] ) && $args['properties'][ $property ]['required'] ) {
-				/* translators: %s: Property of an object. */
-				return new WP_Error( 'rest_property_required', sprintf( __( '%1$s is a required property of Object.' ), $property ) );
 			} elseif ( isset( $args['additionalProperties'] ) ) {
 				if ( false === $args['additionalProperties'] ) {
 					/* translators: %s: Property of an object. */

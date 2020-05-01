@@ -349,10 +349,25 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertWPError( rest_validate_value_from_schema( array( 'raw' => array( 'a list' ) ), $schema ) );
 	}
 
-	/*
+	public function rest_property_provider() {
+		return array(
+			array(
+				(object) array(
+					'my_required_prop' => 'test',
+					'my_prop'          => 'test',
+				),
+				true,
+			),
+			array( (object) array( 'my_prop' => 'test' ), WP_Error::class ),
+			array( (object) array(), WP_Error::class ),
+		);
+	}
+
+	/**
 	 * @ticket 48818
+	 * @dataProvider rest_property_provider
 	 */
-	public function test_property_is_required() {
+	public function test_property_is_required( $data, $result ) {
 		$schema = array(
 			'type'       => 'object',
 			'properties' => array(
@@ -361,20 +376,22 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 				),
 				'my_required_prop' => array(
 					'type'     => 'string',
-					'required' => 'true',
+					'required' => true,
 				),
 			),
 		);
-		$this->assertWPError( rest_validate_value_from_schema( json_decode( '{"my_prop":"test"}' ), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( json_decode( '{"my_required_prop":"test", "my_prop":"test"}' ), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( json_decode( '{}' ), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( json_decode( '[]' ), $schema ) );
+		if ( WP_Error::class === $result ) {
+			$this->assertWPError( rest_validate_value_from_schema( $data, $schema ) );
+		} else {
+			$this->assertEquals( $result, rest_validate_value_from_schema( $data, $schema ) );
+		}
 	}
 
-	/*
+	/**
 	 * @ticket 48818
+	 * @dataProvider rest_property_provider
 	 */
-	public function test_property_is_required_v4() {
+	public function test_property_is_required_v4( $data, $result ) {
 		$schema = array(
 			'type'       => 'object',
 			'properties' => array(
@@ -387,16 +404,44 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 			),
 			'required'   => array( 'my_required_prop' ),
 		);
-		$this->assertWPError( rest_validate_value_from_schema( json_decode( '{"my_prop":"test"}' ), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( json_decode( '{"my_required_prop":"test", "my_prop":"test"}' ), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( json_decode( '{}' ), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( json_decode( '[]' ), $schema ) );
+		if ( WP_Error::class === $result ) {
+			$this->assertWPError( rest_validate_value_from_schema( $data, $schema ) );
+		} else {
+			$this->assertEquals( $result, rest_validate_value_from_schema( $data, $schema ) );
+		}
 	}
 
-	/*
+	public function rest_nested_property_provider() {
+		return array(
+			array(
+				(object) array(
+					'my_object' => (object) array(
+						'my_required_nested_prop' => 'test',
+						'my_nested_prop'          => 'test',
+					),
+				),
+				true,
+			),
+			array(
+				(object) array(
+					'my_object' => (object) array(
+						'my_nested_prop' => 'test',
+					),
+				),
+				WP_Error::class,
+			),
+			array(
+				(object) array(),
+				true,
+			),
+		);
+	}
+
+	/**
 	 * @ticket 48818
+	 * @dataProvider rest_nested_property_provider
 	 */
-	public function test_nested_property_is_required() {
+	public function test_nested_property_is_required( $data, $result ) {
 		$schema = array(
 			'type'       => 'object',
 			'properties' => array(
@@ -408,22 +453,25 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 						),
 						'my_required_nested_prop' => array(
 							'type'     => 'string',
-							'required' => 'true',
+							'required' => true,
 						),
 					),
 				),
 			),
 		);
-		$this->assertWPError( rest_validate_value_from_schema( json_decode( '{"my_object":{"my_prop":"test"}}' ), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( json_decode( '{"my_object":{"my_required_nested_prop":"test", "my_nested_prop":"test"}}' ), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( json_decode( '{}' ), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( json_decode( '[]' ), $schema ) );
+
+		if ( WP_Error::class === $result ) {
+			$this->assertWPError( rest_validate_value_from_schema( $data, $schema ) );
+		} else {
+			$this->assertEquals( $result, rest_validate_value_from_schema( $data, $schema ) );
+		}
 	}
 
-	/*
+	/**
 	 * @ticket 48818
+	 * @dataProvider rest_nested_property_provider
 	 */
-	public function test_nested_property_is_required_v4() {
+	public function test_nested_property_is_required_v4( $data, $result ) {
 		$schema = array(
 			'type'       => 'object',
 			'properties' => array(
@@ -441,9 +489,47 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 				),
 			),
 		);
-		$this->assertWPError( rest_validate_value_from_schema( json_decode( '{"my_object":{"my_prop":"test"}}' ), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( json_decode( '{"my_object":{"my_required_nested_prop":"test", "my_nested_prop":"test"}}' ), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( json_decode( '{}' ), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( json_decode( '[]' ), $schema ) );
+
+		if ( WP_Error::class === $result ) {
+			$this->assertWPError( rest_validate_value_from_schema( $data, $schema ) );
+		} else {
+			$this->assertEquals( $result, rest_validate_value_from_schema( $data, $schema ) );
+		}
+	}
+
+	/**
+	 * @ticket 48818
+	 */
+	public function test_nested_v3_required_property() {
+		$schema = array(
+			'type'       => 'object',
+			'required'   => true,
+			'properties' => array(
+				'propA' => array(
+					'type'       => 'object',
+					'required'   => true,
+					'properties' => array(
+						'propB' => array(
+							'type'       => 'object',
+							'required'   => true,
+							'properties' => array(
+								'propC' => array(
+									'type'     => 'string',
+									'required' => true,
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$value = array(
+			'propA' => array(
+				'propB' => array(),
+			),
+		);
+
+		$this->assertWPError( rest_validate_value_from_schema( $value, $schema ) );
 	}
 }
