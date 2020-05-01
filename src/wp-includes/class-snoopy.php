@@ -1233,7 +1233,7 @@ class Snoopy
 				}
 
 				reset($formfiles);
-				foreach ( $formFiles as $field_name => $file_names ) {
+				foreach ( $formfiles as $field_name => $file_names ) {
 					settype($file_names, "array");
 					foreach ( $file_names as $file_name ) {
 						if (!is_readable($file_name)) continue;
