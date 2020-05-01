@@ -149,7 +149,7 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
  * @param string $meta_key   Metadata key.
  * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
  * @param mixed  $prev_value Optional. If specified, only update existing metadata entries
- *                           with this value. Otherwise, update all entries.
+ *                           with this value. Otherwise, update all entries. Default empty.
  * @return int|bool The new meta field ID if a field with the given key didn't exist and was
  *                  therefore added, true on successful update, false on failure.
  */
@@ -662,7 +662,7 @@ function get_metadata_by_mid( $meta_type, $meta_id ) {
  * @param string $meta_type  Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
  *                           or any other object type with an associated meta table.
  * @param int    $meta_id    ID for a specific meta row.
- * @param string $meta_value Metadata value.
+ * @param string $meta_value Metadata value. Must be serializable if non-scalar.
  * @param string $meta_key   Optional. You can provide a meta key to update it. Default false.
  * @return bool True on successful update, false on failure.
  */

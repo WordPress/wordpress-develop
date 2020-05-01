@@ -57,7 +57,7 @@ Chaplin Theme is distributed under the terms of the GNU GPL version 2.0
 
 Twenty Twenty bundles the following third-party resources:
 
-Illustrations in screenshot.png by Tammie Lister
+Illustrations by Tammie Lister
 License: Creative Commons Zero (CC0), https://creativecommons.org/publicdomain/zero/1.0/  
 
 Inter Font
@@ -76,6 +76,11 @@ Copyright (c) 2013-2017 Cole Bemis
 License: MIT License, https://opensource.org/licenses/MIT
 Source: https://feathericons.com
 Used for post meta icons, and the link icon in the social menu.
+
+Flaticon Icons
+License: Creative Commons BY 3.0, http://creativecommons.org/licenses/by/3.0/
+Source: Made by Freepik (https://www.flaticon.com/authors/freepik) for Flaticon (http://www.flaticon.com)
+Used for TikTok social icon.
 
 Social Icons
 License: GNU General Public License v2 or later
