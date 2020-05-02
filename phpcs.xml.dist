@@ -143,6 +143,29 @@
 
 	<exclude-pattern>/tools/*</exclude-pattern>
 
+	<!-- Drop-in plugins. -->
+	<exclude-pattern>/src/wp-content/advanced-cache\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/blog-deleted\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/blog-inactive\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/blog-suspended\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/db-error\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/db\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/fatal-error-handler\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/install\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/maintenance\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/object-cache\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/php-error\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-content/sunrise\.php</exclude-pattern>
+
+	<!-- Must-Use plugins. -->
+	<exclude-pattern>/src/wp-content/mu-plugins/*</exclude-pattern>
+
+	<!-- Plugins. -->
+	<exclude-pattern>/src/wp-content/plugins/*</exclude-pattern>
+
+	<!-- Themes except the twenty* themes. -->
+	<exclude-pattern>/src/wp-content/themes/(?!twenty)*</exclude-pattern>
+
 	<!-- Whitelist the WP DB Class and related tests for usage of direct database access functions. -->
 	<rule ref="WordPress.DB.RestrictedFunctions">
 		<exclude-pattern>/src/wp-includes/wp-db\.php</exclude-pattern>
