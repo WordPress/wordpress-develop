@@ -4,6 +4,9 @@
 
 Welcome to the WordPress development repository! Please check out the [contributor handbook](https://make.wordpress.org/core/handbook/) for information about how to open bug reports, contribute patches, test changes, write documentation, or get involved in any way you can.
 
+* [Getting Started](#getting-started)
+* [Credentials](#credentials)
+
 ## Getting Started
 
 WordPress is a PHP, MySQL, and JavaScript based project, and uses uses Node for its JavaScript dependencies. A local development environment is available to quickly get up and running.
@@ -73,3 +76,23 @@ Restarting the environment again is a single command:
 ```
 npm run env:start
 ```
+
+## Credentials
+
+These are the default environment credentials:
+
+* Database Name: `wordpress_develop`
+* Username: `root`
+* Password: `password`
+
+To login to the site, navigate to http://localhost:8889/wp-admin.
+
+* Username: `admin`
+* Password: `password`
+
+To generate a new password (recommended):
+
+1. Go to the Dashboard
+2. Click the Users menu on the left
+3. Click the Edit link below the admin user
+4. Scroll down and click 'Generate password'. Either use this password (recommended) or change it, then click 'Update User'. If you use the generated password be sure to save it somewhere (password manager, etc).
