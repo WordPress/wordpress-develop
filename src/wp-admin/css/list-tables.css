@@ -470,7 +470,6 @@ table.media .column-title .filename {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	text-decoration: none !important;
-	color: #444;
 }
 
 .column-comments .sorting-indicator:before {
