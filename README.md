@@ -9,11 +9,19 @@ Welcome to the WordPress development repository! Please check out the [contribut
 
 ## Getting Started
 
-WordPress is a PHP, MySQL, and JavaScript based project, and uses uses Node for its JavaScript dependencies. A local development environment is available to quickly get up and running.
+WordPress is a PHP, MySQL, and JavaScript based project, and uses Node for its JavaScript dependencies. A local development environment is available to quickly get up and running.
 
 You will need a basic understanding of how to use the command line on your computer. This will allow you to set up the local development environment, to start it and stop it when necessary, and to run the tests.
 
-You will need [Docker](https://www.docker.com/products/docker-desktop) installed and running on your computer. Docker is the virtualization software that powers the local development environment.
+You will need Node and npm installed on your computer. Node is a JavaScript runtime used for developer tooling, and npm is the package manager included with Node. If you have a package manager installed for your operating system, setup can be as straightforward as:
+
+* macOS: `brew install node`
+* Windows: `choco install node`
+* Ubuntu: `apt install nodejs npm`
+
+If you are not using a package manager, see the [Node.js download page](https://nodejs.org/en/download/) for installers and binaries.
+
+You will also need [Docker](https://www.docker.com/products/docker-desktop) installed and running on your computer. Docker is the virtualization software that powers the local development environment. Docker can be installed just like any other regular application.
 
 ### Development Environment Commands
 
@@ -28,7 +36,7 @@ npm run env:start
 npm run env:install
 ```
 
-The environment will be accessible at http://localhost:8889.
+Your WordPress site will accessible at http://localhost:8889. You can see or change configurations in the `.env` file located at the root of the project directory.
 
 #### To watch for changes
 
@@ -61,6 +69,14 @@ npm run test:php
 npm run test:e2e
 ```
 
+#### To restart the development environment
+
+You may want to restart the environment if you've made changes to the configuration in the `docker-compose.yml` or `.env` files. Restart the environment with:
+
+```
+npm run env:restart
+```
+
 #### To stop the development environment
 
 You can stop the environment when you're not using it to preserve your computer's power and resources:
@@ -71,7 +87,7 @@ npm run env:stop
 
 #### To start the development environment again
 
-Restarting the environment again is a single command:
+Starting the environment again is a single command:
 
 ```
 npm run env:start
