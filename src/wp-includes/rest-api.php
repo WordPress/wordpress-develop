@@ -1395,7 +1395,8 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 				break;
 			case 'uuid':
 				if ( ! wp_is_uuid( $value ) ) {
-					return new WP_Error( 'rest_invalid_uuid', __( 'Invalid UUID' ) );
+					/* translators: %s is an invalid universally unique identifier (UUID). */
+					return new WP_Error( 'rest_invalid_uuid', sprintf( __( '%s is not a valid UUID.' ), strval( $param ) ) );
 				}
 				break;
 		}
