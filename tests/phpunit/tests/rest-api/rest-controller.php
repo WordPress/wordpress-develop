@@ -46,7 +46,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 					'someuuid'    => array(
 						'type'   => 'string',
 						'format' => 'uuid',
-					)
+					),
 				),
 			)
 		);
