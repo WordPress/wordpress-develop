@@ -69,7 +69,7 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 					'format'  => 'hex-color',
 					'context' => array( 'view' ),
 				),
-				'someuuid'        => array(
+				'someuuid'       => array(
 					'type'    => 'string',
 					'format'  => 'uuid',
 					'context' => array( 'view' ),
