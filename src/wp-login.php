@@ -464,6 +464,9 @@ function retrieve_password() {
 		return $key;
 	}
 
+	$user_locale = get_user_locale( $user_data );
+	$switched_locale = switch_to_locale( $user_locale );
+
 	if ( is_multisite() ) {
 		$site_name = get_network()->site_name;
 	} else {
@@ -513,6 +516,8 @@ function retrieve_password() {
 	 */
 	$message = apply_filters( 'retrieve_password_message', $message, $key, $user_login, $user_data );
 
+	$result = true;
+
 	if ( $message && ! wp_mail( $user_email, wp_specialchars_decode( $title ), $message ) ) {
 		$errors->add(
 			'retrieve_password_email_failure',
@@ -522,10 +527,14 @@ function retrieve_password() {
 				esc_url( __( 'https://wordpress.org/support/article/resetting-your-password/' ) )
 			)
 		);
-		return $errors;
+		$result = $errors;
 	}
 
-	return true;
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
+
+	return $result;
 }
 
 //
