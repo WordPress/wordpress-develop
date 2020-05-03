@@ -314,6 +314,13 @@ function wp_cookie_constants() {
 		 */
 		define( 'RECOVERY_MODE_COOKIE', 'wordpress_rec_' . COOKIEHASH );
 	}
+
+	/**
+	 * @since x.x.x
+	 */
+	if ( ! defined( 'LANGUAGE_COOKIE' ) ) {
+		define( 'LANGUAGE_COOKIE', 'wordpress_lang_' . COOKIEHASH );
+	}
 }
 
 /**

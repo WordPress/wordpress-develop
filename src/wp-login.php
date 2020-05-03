@@ -296,6 +296,65 @@ function login_footer( $input_id = '' ) {
 		</a></p>
 		<?php
 
+		$languages = get_available_languages();
+
+		if ( ! empty( $languages ) ) {
+			?>
+			<form id="language-switcher" action="" method="GET">
+				<label for="language-switcher-locales">
+					<span class="screen-reader-text"><?php _e( 'Language' ); ?></span>
+					<span aria-hidden="true" class="dashicons dashicons-translation"></span>
+				</label>
+
+				<?php if ( $interim_login ) { ?>
+					<input type="hidden" name="interim-login" value="1" />
+				<?php } ?>
+
+				<?php
+				$query_vars = array(
+					'action',
+					'checkemail',
+					'error',
+					'redirect_to',
+				);
+
+				foreach ( $query_vars as $query_var ) {
+					if ( isset( $_GET[ $query_var ] ) && '' !== $_GET[ $query_var ] ) {
+						printf(
+							'<input type="hidden" name="%1$s" value="%2$s" />',
+							esc_attr( $query_var ),
+							esc_attr( sanitize_text_field( $_GET[ $query_var ] ) )
+						);
+					}
+				}
+
+				$args = array(
+					'id'                          => 'language-switcher-locales',
+					'name'                        => 'wp_lang',
+					'selected'                    => determine_locale(),
+					'show_available_translations' => false,
+					'explicit_option_en_us'       => true,
+					'languages'                   => $languages,
+				);
+
+				/**
+				 * Filters the arguments for the Language selector on the login screen.
+				 *
+				 * @since x.x.x
+				 *
+				 * @param Array $args Arguments for the Language selector on the login screen.
+				 */
+				wp_dropdown_languages( apply_filters( 'wp_login_language_switcher_args', $args ) );
+				?>
+			</form>
+			<script>
+				document.getElementById( 'language-switcher-locales' ).addEventListener( 'change', function() {
+					document.getElementById( 'language-switcher' ).submit()
+				} );
+			</script>
+			<?php
+		}
+
 		the_privacy_policy_link( '<div class="privacy-policy-page-link">', '</div>' );
 	}
 
@@ -521,6 +580,10 @@ setcookie( TEST_COOKIE, 'WP Cookie check', 0, COOKIEPATH, COOKIE_DOMAIN, $secure
 
 if ( SITECOOKIEPATH !== COOKIEPATH ) {
 	setcookie( TEST_COOKIE, 'WP Cookie check', 0, SITECOOKIEPATH, COOKIE_DOMAIN, $secure );
+}
+
+if ( isset( $_GET['wp_lang'] ) ) {
+	setcookie( LANGUAGE_COOKIE, wp_unslash( $_GET['wp_lang'] ), 0, COOKIEPATH, COOKIE_DOMAIN, $secure );
 }
 
 /**

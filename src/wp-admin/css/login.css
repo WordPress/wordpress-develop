@@ -261,6 +261,7 @@ p {
 	margin: auto;
 }
 
+#language-switcher
 .login #nav,
 .login #backtoblog {
 	font-size: 13px;
@@ -378,6 +379,40 @@ body.interim-login {
 /* Hide the Edge "reveal password" native button */
 input::-ms-reveal {
 	display: none;
+}
+
+#language-switcher {
+	background: none;
+	border: none;
+	box-shadow: none;
+	padding: 0 0 0 24px;
+	margin: 0;
+}
+
+#language-switcher select {
+	height: 30px;
+}
+
+#language-switcher label {
+	margin-right: .5em;
+}
+
+#language-switcher .dashicons {
+	line-height: 25px;
+}
+
+.screen-reader-text {
+	border: 0;
+	clip: rect(1px, 1px, 1px, 1px);
+	-webkit-clip-path: inset(50%);
+	clip-path: inset(50%);
+	height: 1px;
+	margin: -1px;
+	overflow: hidden;
+	padding: 0;
+	position: absolute;
+	width: 1px;
+	word-wrap: normal !important;
 }
 
 @-ms-viewport {
