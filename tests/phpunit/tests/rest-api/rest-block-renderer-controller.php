@@ -456,6 +456,25 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	}
 
 	/**
+	 * Test a POST request, with the attributes in the body.
+	 *
+	 * @ticket 49680
+	 */
+	public function test_get_item_post_request() {
+		wp_set_current_user( self::$user_id );
+		$string_attribute = 'Lorem ipsum dolor';
+		$attributes       = array( 'some_string' => $string_attribute );
+		$request          = new WP_REST_Request( 'POST', self::$rest_api_route . self::$block_name );
+		$request->set_param( 'context', 'edit' );
+		$request->set_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( compact( 'attributes' ) ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertContains( $string_attribute, $response->get_data()['rendered'] );
+	}
+
+	/**
 	 * Test getting item with invalid post ID.
 	 *
 	 * @ticket 45098
@@ -503,7 +522,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEqualSets( array( 'GET' ), $data['endpoints'][0]['methods'] );
+		$this->assertEqualSets( array( 'GET', 'POST' ), $data['endpoints'][0]['methods'] );
 		$this->assertEqualSets(
 			array( 'name', 'context', 'attributes', 'post_id' ),
 			array_keys( $data['endpoints'][0]['args'] )
