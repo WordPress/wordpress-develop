@@ -43,6 +43,10 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 						'type'   => 'string',
 						'format' => 'email',
 					),
+					'someuuid'    => array(
+						'type'   => 'string',
+						'format' => 'uuid',
+					)
 				),
 			)
 		);
@@ -204,6 +208,20 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		);
 	}
 
+	/**
+	 * @ticket 50053
+	 */
+	public function test_validate_schema_format_uuid() {
+		$this->assertTrue(
+			rest_validate_request_arg( '123e4567-e89b-12d3-a456-426655440000', $this->request, 'someuuid' )
+		);
+
+		$this->assertErrorResponse(
+			'rest_invalid_uuid',
+			rest_validate_request_arg( '123e4567-e89b-12d3-a456-426655440000X', $this->request, 'someuuid' )
+		);
+	}
+
 	public function test_get_endpoint_args_for_item_schema_description() {
 		$controller = new WP_REST_Test_Controller();
 		$args       = $controller->get_endpoint_args_for_item_schema();
@@ -245,6 +263,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 				'somedate',
 				'someemail',
 				'somehex',
+				'someuuid',
 				'someenum',
 				'someargoptions',
 				'somedefault',
@@ -275,6 +294,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 					'somedate',
 					'someemail',
 					'somehex',
+					'someuuid',
 					'someenum',
 					'someargoptions',
 					'somedefault',

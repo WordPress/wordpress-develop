@@ -85,6 +85,19 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertWPError( rest_validate_value_from_schema( 'WordPress', $schema ) );
 	}
 
+	/**
+	 * @ticket 50053
+	 */
+	public function test_format_uuid() {
+		$schema = array(
+			'type'   => 'string',
+			'format' => 'uuid',
+		);
+		$this->assertTrue( rest_validate_value_from_schema( '123e4567-e89b-12d3-a456-426655440000', $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( '123e4567-e89b-12d3-a456-426655440000X', $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( '123e4567-e89b-?2d3-a456-426655440000', $schema ) );
+	}
+
 	public function test_format_date_time() {
 		$schema = array(
 			'type'   => 'string',
