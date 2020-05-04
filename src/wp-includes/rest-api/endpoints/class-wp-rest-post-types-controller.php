@@ -120,6 +120,9 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 			$data[ $type->name ] = $this->prepare_response_for_collection( $post_type );
 		}
 
+		// Fields were already filtered in the nested objects. No further filtering needed.
+		$request->set_param( '_fields', null );
+
 		return rest_ensure_response( $data );
 	}
 

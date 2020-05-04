@@ -8,7 +8,6 @@
 
 /**
  * @group restapi
- * @group my-test
  */
 class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcase {
 

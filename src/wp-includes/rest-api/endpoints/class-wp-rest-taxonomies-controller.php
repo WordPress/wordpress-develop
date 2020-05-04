@@ -140,6 +140,9 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 			$data = (object) $data;
 		}
 
+		// Fields were already filtered in the nested objects. No further filtering needed.
+		$request->set_param( '_fields', null );
+
 		return rest_ensure_response( $data );
 	}
 
