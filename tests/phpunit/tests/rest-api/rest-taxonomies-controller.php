@@ -8,6 +8,7 @@
 
 /**
  * @group restapi
+ * @group my-test
  */
 class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcase {
 
@@ -60,6 +61,20 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertEquals( 'post_tag', $data['post_tag']['slug'] );
 		$this->assertEquals( false, $data['post_tag']['hierarchical'] );
 		$this->assertEquals( 'tags', $data['post_tag']['rest_base'] );
+	}
+
+	/**
+	 * @ticket 50012
+	 */
+	public function test_get_items_with_filtered_fields() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies' );
+		$request->set_param( '_fields', 'name,hierarchical' );
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+
+		$this->assertArrayHasKey( 'name', $data['category'] );
+		$this->assertArrayHasKey( 'hierarchical', $data['category'] );
+		$this->assertFalse( array_key_exists( 'slug', $data['category'] ) );
 	}
 
 	public function test_get_items_context_edit() {
