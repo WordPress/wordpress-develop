@@ -50,10 +50,10 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 	 * @ticket 50012
 	 */
 	public function test_get_items_with_filtered_fields() {
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/types' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/types' );
 		$request->set_param( '_fields', 'rest_base,description' );
-		$response   = rest_get_server()->dispatch( $request );
-		$data       = $response->get_data();
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
 
 		$this->assertArrayHasKey( 'rest_base', $data['post'] );
 		$this->assertArrayHasKey( 'description', $data['post'] );

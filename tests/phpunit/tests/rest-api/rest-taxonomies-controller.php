@@ -68,8 +68,8 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 	public function test_get_items_with_filtered_fields() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies' );
 		$request->set_param( '_fields', 'name,hierarchical' );
-		$response   = rest_get_server()->dispatch( $request );
-		$data       = $response->get_data();
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
 
 		$this->assertArrayHasKey( 'name', $data['category'] );
 		$this->assertArrayHasKey( 'hierarchical', $data['category'] );
