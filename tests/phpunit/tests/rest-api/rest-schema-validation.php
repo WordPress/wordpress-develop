@@ -400,14 +400,14 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	public function rest_property_provider() {
 		return array(
 			array(
-				(object) array(
+				array(
 					'my_required_prop' => 'test',
 					'my_prop'          => 'test',
 				),
 				true,
 			),
-			array( (object) array( 'my_prop' => 'test' ), WP_Error::class ),
-			array( (object) array(), WP_Error::class ),
+			array( array( 'my_prop' => 'test' ), WP_Error::class ),
+			array( array(), WP_Error::class ),
 		);
 	}
 
@@ -462,7 +462,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	public function rest_nested_property_provider() {
 		return array(
 			array(
-				(object) array(
+				array(
 					'my_object' => (object) array(
 						'my_required_nested_prop' => 'test',
 						'my_nested_prop'          => 'test',
@@ -471,7 +471,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 				true,
 			),
 			array(
-				(object) array(
+				array(
 					'my_object' => (object) array(
 						'my_nested_prop' => 'test',
 					),
@@ -479,7 +479,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 				WP_Error::class,
 			),
 			array(
-				(object) array(),
+				array(),
 				true,
 			),
 		);
