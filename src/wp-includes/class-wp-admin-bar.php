@@ -434,11 +434,7 @@ class WP_Admin_Bar {
 		// We have to do this here since admin bar shows on the front end.
 		$class = 'nojq nojs';
 		if ( $is_IE ) {
-			if ( strpos( $_SERVER['HTTP_USER_AGENT'], 'MSIE 7' ) ) {
-				$class .= ' ie7';
-			} elseif ( strpos( $_SERVER['HTTP_USER_AGENT'], 'MSIE 8' ) ) {
-				$class .= ' ie8';
-			} elseif ( strpos( $_SERVER['HTTP_USER_AGENT'], 'MSIE 9' ) ) {
+			if ( strpos( $_SERVER['HTTP_USER_AGENT'], 'MSIE 9' ) ) {
 				$class .= ' ie9';
 			}
 		} elseif ( wp_is_mobile() ) {

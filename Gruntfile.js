@@ -413,7 +413,7 @@ module.exports = function(grunt) {
 		},
 		cssmin: {
 			options: {
-				compatibility: 'ie7'
+				compatibility: 'ie9'
 			},
 			core: {
 				expand: true,

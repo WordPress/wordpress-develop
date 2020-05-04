@@ -158,9 +158,6 @@ function wp_underscore_video_template() {
 function wp_print_media_templates() {
 	global $is_IE;
 	$class = 'media-modal wp-core-ui';
-	if ( $is_IE && strpos( $_SERVER['HTTP_USER_AGENT'], 'MSIE 7' ) !== false ) {
-		$class .= ' ie7';
-	}
 
 	$alt_text_description = sprintf(
 		/* translators: 1: Link to tutorial, 2: Additional link attributes, 3: Accessibility text. */
