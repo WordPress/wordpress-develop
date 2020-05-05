@@ -402,20 +402,6 @@ div.wp-menu-image:before {
 	height: 34px;
 }
 
-/* No @font-face support */
-.no-font-face #adminmenu .wp-menu-image {
-	display: none;
-}
-
-.no-font-face #adminmenu div.wp-menu-name {
-	padding: 8px 12px;
-}
-
-.no-font-face.auto-fold #adminmenu .wp-menu-name {
-	margin-left: 0;
-}
-/* End no @font-face support */
-
 /* Sticky admin menu */
 .sticky-menu #adminmenuwrap {
 	position: fixed;
