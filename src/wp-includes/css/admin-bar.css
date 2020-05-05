@@ -708,22 +708,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 	box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.6);
 }
 
-/**
- * IE 6-targeted rules
- */
-* html #wpadminbar {
-	overflow: hidden;
-	position: absolute;
-}
-
-* html #wpadminbar .quicklinks ul li a {
-	float: left;
-}
-
-* html #wpadminbar .menupop a span {
-	background-image: none;
-}
-
 @media screen and (max-width: 782px) {
 	/* Toolbar Touchification*/
 	html #wpadminbar {
