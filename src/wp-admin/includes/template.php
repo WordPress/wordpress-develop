@@ -2447,7 +2447,7 @@ function _wp_admin_html_begin() {
 	/** This action is documented in wp-admin/includes/template.php */
 	do_action( 'admin_xml_ns' );
 
-		language_attributes();
+	language_attributes();
 	?>
 >
 <head>
