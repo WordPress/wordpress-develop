@@ -152,11 +152,8 @@ function wp_underscore_video_template() {
  * Prints the templates used in the media manager.
  *
  * @since 3.5.0
- *
- * @global bool $is_IE
  */
 function wp_print_media_templates() {
-	global $is_IE;
 	$class = 'media-modal wp-core-ui';
 
 	$alt_text_description = sprintf(
