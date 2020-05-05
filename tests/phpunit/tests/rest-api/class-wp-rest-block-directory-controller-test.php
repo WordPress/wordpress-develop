@@ -166,5 +166,26 @@ class WP_REST_Block_Directory_Controller_Test extends WP_UnitTestCase {
 		$this->assertEquals( $data['message'], 'Plugin not found.' );
 	}
 
+	/**
+	 * Make sure the search schema is available and correct.
+	 */
+	function test_search_schema() {
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/block-directory/search' );
+		$request->set_query_params( array( 'term' => 'foo' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+      	// Check endpoints
+		$this->assertEquals( [ 'GET' ], $data['endpoints'][0]['methods'] );
+		$this->assertEquals( [ 'term' => [ 'required' => true ] ], $data['endpoints'][0]['args'] );
+
+		// Check schema
+		$this->assertEquals( [
+			'description' => __( "The block name, in namespace/block-name format." ),
+			'type'        => [ 'string' ],
+			'context'     => [ 'view' ],
+		], $data['schema']['properties']['name'] );
+		// TODO: ..etc..
+	}
 
 }
