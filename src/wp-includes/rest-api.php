@@ -1227,6 +1227,8 @@ function rest_get_avatar_sizes() {
  * Validate a value based on a schema.
  *
  * @since 4.7.0
+ * @since 5.5.0 Add (min|max)Length on strings
+ * @since 5.5.0 Add array validation minItems, maxItems and uniqueItems
  *
  * @param mixed  $value The value to validate.
  * @param array  $args  Schema array to use for validation.
@@ -1258,10 +1260,46 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'array' ) );
 		}
 
+		if ( isset( $args['minItems'] ) ) {
+			if ( $args['minItems'] < 0 ) {
+				_doing_it_wrong( 'rest_invalid_param', __( 'minItems can not be negative.' ), '5.5.0' );
+				/* translators: 1: Parameter */
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s minItems can not be negative.' ), $param ) );
+			}
+			if ( count( $value ) < $args['minItems'] ) {
+				/* translators: 1: Parameter, 2: number. */
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s shall at least be %2$d.' ), $param, $args['minItems'] ) );
+			}
+		}
+
+		if ( isset( $args['maxItems'] ) ) {
+			if ( $args['maxItems'] < 0 ) {
+				_doing_it_wrong( 'rest_invalid_param', __( 'maxItems can not be negative.' ), '5.5.0' );
+				/* translators: 1: Parameter */
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s maxItems can not be negative.' ), $param ) );
+			}
+			if ( count( $value ) > $args['maxItems'] ) {
+				/* translators: 1: Parameter, 2: number. */
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s shall at least be %2$d.' ), $param, $args['maxItems'] ) );
+			}
+		}
+
 		foreach ( $value as $index => $v ) {
 			$is_valid = rest_validate_value_from_schema( $v, $args['items'], $param . '[' . $index . ']' );
 			if ( is_wp_error( $is_valid ) ) {
 				return $is_valid;
+			}
+		}
+
+		if ( isset( $args['uniqueItems'] ) ) {
+			if ( ! rest_is_boolean( $args['uniqueItems'] ) ) {
+				_doing_it_wrong( 'rest_invalid_param', __( 'uniqueItems must be a boolean.' ), '5.5.0' );
+				/* translators: 1: Parameter */
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s uniqueItems must be a boolean.' ), $param ) );
+			}
+			if ( count( $value ) !== count( array_unique( $value, SORT_REGULAR ) ) ) {
+				/* translators: 1: Parameter */
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s has duplicate items.' ), $param ) );
 			}
 		}
 	}

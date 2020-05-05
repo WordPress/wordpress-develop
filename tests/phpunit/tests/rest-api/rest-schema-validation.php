@@ -409,4 +409,198 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		// three supplementary Unicode code point is to long
 		$this->assertWPError( rest_validate_value_from_schema( $mb_char . $mb_char . $mb_char, $schema ) );
 	}
+
+	/**
+	 * @ticket 48821
+	 */
+	public function test_array_min_items() {
+		$schema = array(
+			'type'     => 'array',
+			'minItems' => 1,
+			'items'    => array(
+				'type' => 'number',
+			),
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( array( 1, 2 ), $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( array( 1 ), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( array(), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( '', $schema ) );
+	}
+
+	/**
+	 * @ticket 48821
+	 */
+	public function test_array_max_items() {
+		$schema = array(
+			'type'     => 'array',
+			'maxItems' => 2,
+			'items'    => array(
+				'type' => 'number',
+			),
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( array( 1 ), $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( array( 1, 2 ), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( array( 1, 2, 3 ), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( 'foobar', $schema ) );
+	}
+
+	/**
+	 * @ticket 48821
+	 */
+	public function test_array_unique_numbers() {
+		$schema = array(
+			'type'        => 'array',
+			'uniqueItems' => true,
+			'items'       => array(
+				'type' => 'number',
+			),
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( array( 1, 2 ), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( array( 1, 1 ), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( array( 1.0, 1.00, 1 ), $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( array(), $schema ) );
+	}
+
+	/**
+	 * @ticket 48821
+	 */
+	public function test_array_unique_strings() {
+		$schema = array(
+			'type'        => 'array',
+			'uniqueItems' => true,
+			'items'       => array(
+				'type' => 'string',
+			),
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( array( 'a', 'b' ), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( array( 'a', 'a' ), $schema ) );
+	}
+
+	/**
+	 * @ticket 48821
+	 */
+	public function test_array_unique_objects() {
+		$schema = array(
+			'type'        => 'array',
+			'uniqueItems' => true,
+			'items'       => array(
+				'type' => 'object',
+			),
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( array( array( 'foo' => 'bar' ), array( 'foo' => 'baz' ) ), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( array( array( 'foo' => 'bar' ), array( 'foo' => 'bar' ) ), $schema ) );
+
+		$this->assertTrue(
+			rest_validate_value_from_schema(
+				array(
+					array( 'foo' => array( 'bar' => array( 'baz' => true ) ) ),
+					array( 'foo' => array( 'bar' => array( 'baz' => false ) ) ),
+				),
+				$schema
+			)
+		);
+		$this->assertWPError(
+			rest_validate_value_from_schema(
+				array(
+					array( 'foo' => array( 'bar' => array( 'baz' => true ) ) ),
+					array( 'foo' => array( 'bar' => array( 'baz' => true ) ) ),
+				),
+				$schema
+			)
+		);
+	}
+
+	/**
+	 * @ticket 48821
+	 */
+	public function test_array_unique_objects_with_additionalproperties() {
+		$schema = array(
+			'type'        => 'array',
+			'uniqueItems' => true,
+			'items'       => array(
+				'type'                 => 'object',
+				'properties'           => array(
+					'foo' => array( 'type' => 'string' ),
+					'bar' => array( 'type' => 'number' ),
+				),
+				'additionalProperties' => array( 'type' => 'string' ),
+			),
+		);
+
+		$this->assertTrue(
+			rest_validate_value_from_schema(
+				array(
+					array(
+						'foo'  => 'x',
+						'bar'  => 1,
+						'xtra' => 'a',
+					),
+					array(
+						'foo'  => 'y',
+						'bar'  => 2,
+						'xtra' => 'b',
+					),
+				),
+				$schema
+			)
+		);
+
+		$this->assertWPError(
+			rest_validate_value_from_schema(
+				array(
+					array(
+						'foo'  => 'x',
+						'bar'  => 1,
+						'xtra' => 'a',
+					),
+					array(
+						'foo'  => 'x',
+						'bar'  => 1,
+						'xtra' => 'a',
+					),
+				),
+				$schema
+			)
+		);
+	}
+
+	/**
+	 * @ticket 48821
+	 */
+	public function test_array_unique_arrays() {
+		$schema = array(
+			'type'        => 'array',
+			'uniqueItems' => true,
+			'items'       => array(
+				'type'  => 'array',
+				'items' => array(
+					'type' => 'string',
+				),
+			),
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( array( array( 'foo' ), array( 'bar' ) ), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( array( array( 'foo' ), array( 'foo' ) ), $schema ) );
+	}
+
+	/**
+	 * @ticket 48821
+	 */
+	public function test_array_unique_item_types() {
+		$schema = array(
+			'type'        => 'array',
+			'uniqueItems' => true,
+			'items'       => array(
+				'type' => array( 'boolean', 'boolean' ),
+			),
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( array( false, true ), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( array( false, false ), $schema ) );
+	}
 }
