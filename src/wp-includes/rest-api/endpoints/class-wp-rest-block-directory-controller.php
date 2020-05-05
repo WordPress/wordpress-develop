@@ -391,4 +391,128 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 
 		return $block;
 	}
+
+	/**
+	 * Retrieves the theme's schema, conforming to JSON Schema.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @return array Item schema data.
+	 */
+	public function get_item_schema() {
+		$schema = array(
+			'$schema'    => 'http://json-schema.org/draft-04/schema#',
+			'title'      => 'block',
+			'type'       => 'object',
+			'properties' => array(
+				'name'                => array(
+					'description'       => __( "The block name, in namespace/block-name format." ),
+					'type'              => 'string',
+					'context'           => array( 'view' ),
+				),
+				'title'               => array(
+					'description'       => __( "The block title, in human readable format." ),
+					'type'              => 'string',
+					'context'           => array( 'view' ),
+				),
+				'description'         => array(
+					'description'       => __( "A short description of the block, in human readable format." ),
+					'type'              => 'string',
+					'context'           => array( 'view' ),
+				),
+				'id'                  => array(
+					'description'       => __( "The block slug." ),
+					'type'              => 'string',
+					'context'           => array( 'view' ),
+				),
+				'rating'              => array(
+					'description'       => __( "The star rating of the block." ),
+					'type'              => 'integer',
+					'context'           => array( 'view' ),
+				),
+				'rating_count'        => array(
+					'description'       => __( "The number of ratings." ),
+					'type'              => 'integer',
+					'context'           => array( 'view' ),
+				),
+				'active_installs'     => array(
+					'description'       => __( "The number sites that have activated this block." ),
+					'type'              => 'integer',
+					'context'           => array( 'view' ),
+				),
+				'author_block_rating' => array(
+					'description'       => __( "The average rating of blocks published by the same author." ),
+					'type'              => 'integer',
+					'context'           => array( 'view' ),
+				),
+				'author_block_count'  => array(
+					'description'       => __( "The number of blocks published by the same author." ),
+					'type'              => 'integer',
+					'context'           => array( 'view' ),
+				),
+				'author'              => array(
+					'description'       => __( "The WordPress.org username of the block author." ),
+					'type'              => 'integer',
+					'context'           => array( 'view' ),
+				),
+				'icon' => array(
+					'description'     => __( "The WordPress.org username of the block author." ),
+					'type'              => 'string',
+					'format'            => 'uri',
+					'context'           => array( 'view' ),
+				),
+				'humanized_updated'   => array(
+					'description'       => __( "The date when the block was last updated, in fuzzy human readable format." ),
+					'type'              => 'string',
+					'context'           => array( 'view' ),
+				),
+				'assets'              => array(
+					'description'       => __( 'An object representing the block CSS and JavaScript assets.' ),
+					'type'              => 'array',
+					'context'           => array( 'view' ),
+					'readonly'          => true,
+					'items'             => array(
+						'type'            => 'string',
+						'format'          => 'uri',
+					),
+
+				),
+
+			),
+		);
+
+		return $schema;
+	}
+
+
+	/**
+	 * Retrieves the search params for the blocks collection.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @return array Collection parameters.
+	 */
+	public function get_collection_params() {
+		$query_params = parent::get_collection_params();
+
+		$query_params['term'] = array(
+			'description'       => __( 'Limit result set to blocks matching the search term.' ),
+			'type'              => 'array',
+			'term'             => array(
+				'type' => 'string',
+			),
+			'required'          => true,
+			'sanitize_callback' => array( $this, 'sanitize_text_field' ),
+		);
+
+		/**
+		 * Filter collection parameters for the block directory controller.
+		 *
+		 * @since 5.0.0
+		 *
+		 * @param array $query_params JSON Schema-formatted collection parameters.
+		 */
+		return apply_filters( 'rest_block_directory_collection_params', $query_params );
+	}
+
 }

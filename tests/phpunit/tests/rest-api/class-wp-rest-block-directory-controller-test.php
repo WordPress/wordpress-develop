@@ -170,6 +170,9 @@ class WP_REST_Block_Directory_Controller_Test extends WP_UnitTestCase {
 	 * Make sure the search schema is available and correct.
 	 */
 	function test_search_schema() {
+		$user_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $user_id );
+
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/block-directory/search' );
 		$request->set_query_params( array( 'term' => 'foo' ) );
 		$response = rest_get_server()->dispatch( $request );
