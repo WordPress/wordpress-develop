@@ -3316,6 +3316,7 @@ function wp_customize_url( $stylesheet = '' ) {
  * to the body tag by default.
  *
  * @since 3.4.0
+ * @since 4.7.0 Support for IE8 and below is explicitly removed via conditional comments.
  * @since 5.5.0 IE8 and older are no longer supported.
  */
 function wp_customize_support_script() {
