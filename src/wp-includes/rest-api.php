@@ -1258,8 +1258,6 @@ function rest_get_avatar_sizes() {
  *              Support the "minLength", "maxLength" and "pattern" keywords for strings.
  *              Validate required properties.
  *              Support the "minItems" and "maxItems" keywords for arrays.
- * @since 5.5.0 Add (min|max)Length on strings
- * @since 5.5.0 Add array validation minItems, maxItems and uniqueItems
  *
  * @param mixed  $value The value to validate.
  * @param array  $args  Schema array to use for validation.
