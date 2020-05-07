@@ -504,12 +504,234 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		$this->assertSame( 'even', $subtype_for_4 );
 	}
 
+	/**
+	 * @ticket 43941
+	 * @dataProvider data_get_default_data
+	 */
+	public function test_get_default_value( $args, $single, $expected ) {
+
+		$object_type = 'post';
+		$meta_key    = 'registered_key1';
+		register_meta(
+			$object_type,
+			$meta_key,
+			$args
+		);
+
+		$object_property_name = $object_type . '_id';
+		$object_id            = self::$$object_property_name;
+		$default_value        = get_metadata_default( $object_type, $meta_key, $single, $object_id );
+		$this->assertSame( $default_value, $expected );
+
+		// Check for default value.
+		$value = get_metadata( $object_type, $object_id, $meta_key, $single );
+		$this->assertSame( $value, $expected );
+
+		// Set value to check default is not being returned by mistake.
+		$meta_value = 'dibble';
+		update_metadata( $object_type, $object_id, $meta_key, $meta_value );
+		$value = get_metadata( $object_type, $object_id, $meta_key, true );
+		$this->assertSame( $value, $meta_value );
+
+		// Delete meta, make sure the default is returned.
+		delete_metadata( $object_type, $object_id, $meta_key );
+		$value = get_metadata( $object_type, $object_id, $meta_key, $single );
+		$this->assertSame( $value, $expected );
+
+		// Set other meta key, to make sure other keys are not effects.
+		$meta_value = 'hibble';
+		$meta_key   = 'unregistered_key1';
+		$value      = get_metadata( $object_type, $object_id, $meta_key, true );
+		$this->assertSame( $value, '' );
+		update_metadata( $object_type, $object_id, $meta_key, $meta_value );
+		$value = get_metadata( $object_type, $object_id, $meta_key, true );
+		$this->assertSame( $value, $meta_value );
+
+	}
+
 	public function filter_get_object_subtype_for_customtype( $subtype, $object_id ) {
 		if ( 1 === ( $object_id % 2 ) ) {
 			return 'odd';
 		}
 
 		return 'even';
+	}
+
+	public function data_get_default_data() {
+		return array(
+			array(
+				array(
+					'single'  => true,
+					'default' => 'wibble',
+				),
+				true,
+				'wibble',
+			),
+			array(
+				array(
+					'single'  => true,
+					'default' => 'wibble',
+				),
+				false,
+				array( 'wibble' ),
+			),
+			array(
+				array(
+					'single'  => true,
+					'default' => array( 'wibble' ),
+				),
+				true,
+				array( 'wibble' ),
+			),
+			array(
+				array(
+					'single'  => true,
+					'default' => array( 'wibble' ),
+				),
+				false,
+				array( 'wibble' ),
+			),
+			array(
+				array(
+					'single'  => false,
+					'default' => 'wibble',
+				),
+				true,
+				'wibble',
+			),
+			array(
+				array(
+					'single'  => false,
+					'default' => 'wibble',
+				),
+				false,
+				array( 'wibble' ),
+			),
+			array(
+				array(
+					'single'  => false,
+					'default' => array( 'wibble' ),
+				),
+				true,
+				'wibble',
+			),
+			array(
+				array(
+					'single'  => false,
+					'default' => array( 'wibble' ),
+				),
+				false,
+				array( 'wibble' ),
+			),
+			array(
+				array(
+					'single'         => true,
+					'object_subtype' => 'page',
+					'default'        => 'wibble',
+				),
+				true,
+				'wibble',
+			),
+			array(
+				array(
+					'single'         => true,
+					'object_subtype' => 'page',
+					'default'        => 'wibble',
+				),
+				false,
+				array( 'wibble' ),
+			),
+			array(
+				array(
+					'single'         => true,
+					'object_subtype' => 'page',
+					'default'        => array( 'wibble' ),
+				),
+				true,
+				array( 'wibble' ),
+			),
+			array(
+				array(
+					'single'         => true,
+					'object_subtype' => 'page',
+					'default'        => array( 'wibble' ),
+				),
+				false,
+				array( 'wibble' ),
+			),
+			array(
+				array(
+					'single'         => true,
+					'object_subtype' => 'post',
+					'default'        => 'wibble',
+				),
+				true,
+				'',
+			),
+			array(
+				array(
+					'single'         => true,
+					'object_subtype' => 'post',
+					'default'        => 'wibble',
+				),
+				false,
+				array(),
+			),
+			array(
+				array(
+					'single'         => true,
+					'object_subtype' => 'post',
+					'default'        => array( 'wibble' ),
+				),
+				true,
+				'',
+			),
+			array(
+				array(
+					'single'         => true,
+					'object_subtype' => 'post',
+					'default'        => array( 'wibble' ),
+				),
+				false,
+				array(),
+			),
+			array(
+				array(
+					'single'  => true,
+					'default' => array( 'wibble' => 'dibble' ),
+				),
+				true,
+				array( 'wibble' => 'dibble' ),
+			),
+			array(
+				array(
+					'single'  => true,
+					'default' => array( 'wibble' => 'dibble' ),
+				),
+				false,
+				array(
+					array( 'wibble' => 'dibble' ),
+				),
+			),
+			array(
+				array(
+					'single'  => false,
+					'default' => array( 'wibble' => 'dibble' ),
+				),
+				true,
+				array( 'wibble' => 'dibble' ),
+			),
+			array(
+				array(
+					'single'  => false,
+					'default' => array( 'wibble' => 'dibble' ),
+				),
+				false,
+				array(
+					array( 'wibble' => 'dibble' ),
+				),
+			),
+		);
 	}
 
 	public function data_get_types_and_subtypes() {

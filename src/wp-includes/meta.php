@@ -205,7 +205,7 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 
 	// Compare existing value to new value if no prev value given and the key exists only once.
 	if ( empty( $prev_value ) ) {
-		$old_value = get_metadata( $meta_type, $object_id, $meta_key );
+		$old_value = get_metadata( $meta_type, $object_id, $meta_key, false, true );
 		if ( count( $old_value ) == 1 ) {
 			if ( $old_value[0] === $meta_value ) {
 				return false;
@@ -476,6 +476,7 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
  * Retrieves metadata for the specified object.
  *
  * @since 2.9.0
+ * @since 5.5.0 Added the `$unfiltered` parameter.
  *
  * @param string $meta_type Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
  *                          or any other object type with an associated meta table.
@@ -484,9 +485,10 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
  *                          the specified object. Default empty.
  * @param bool   $single    Optional. If true, return only the first value of the specified meta_key.
  *                          This parameter has no effect if meta_key is not specified. Default false.
+ * @param bool  $unfiltered Optional. Whether to apply filters. Default false.
  * @return mixed Single metadata value, or array of values
  */
-function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false ) {
+function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false, $unfiltered = false ) {
 	if ( ! $meta_type || ! is_numeric( $object_id ) ) {
 		return false;
 	}
@@ -543,11 +545,58 @@ function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false )
 		}
 	}
 
-	if ( $single ) {
-		return '';
-	} else {
-		return array();
+	if ( $unfiltered ) {
+		if ( $single ) {
+			return '';
+		} else {
+			return array();
+		}
 	}
+
+	return get_metadata_default( $meta_type, $meta_key, $single, $object_id );
+}
+
+/**
+ * Retrieve metadata data default for the specified object.
+ *
+ * @since 5.5.0
+ *
+ * @param string $meta_type Type of object metadata is for (e.g., comment, post, term, or user).
+ * @param string $meta_key  Optional. Metadata key. If not specified, retrieve all metadata for
+ *                          the specified object.
+ * @param bool   $single    Optional, default is false.
+ *                          If true, return only the first value of the specified meta_key.
+ *                          This parameter has no effect if meta_key is not specified.
+ * @param int    $object_id Optional, default is 0.
+ *                          ID of the object metadata is for
+ * @return mixed Single metadata value, or array of values
+ */
+function get_metadata_default( $meta_type, $meta_key, $single = false, $object_id = 0 ) {
+	if ( $single ) {
+		$value = '';
+	} else {
+		$value = array();
+	}
+
+	/**
+	 * Filter the default value a specified object.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param array|string      $value     The value should return - a single metadata value,
+	 *                                     or an array of values.
+	 * @param string            $meta_type Type of object metadata is for (e.g., comment, post, term, or user).
+	 * @param string            $meta_key  Meta key.
+	 * @param bool              $single    Whether to return only the first value of the specified $meta_key.
+	 * @param int               $object_id Object ID.
+	 */
+	$value = apply_filters( "default_{$meta_type}_metadata", $value, $meta_type, $meta_key, $single, $object_id );
+
+	if ( ! $single && ! wp_is_numeric_array( $value ) ) {
+		$value = array( $value );
+	}
+
+	return $value;
 }
 
 /**
@@ -1165,6 +1214,7 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 		'object_subtype'    => '',
 		'type'              => 'string',
 		'description'       => '',
+		'default'           => '',
 		'single'            => false,
 		'sanitize_callback' => null,
 		'auth_callback'     => null,
@@ -1202,6 +1252,7 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 	 * @param string $meta_key    Meta key.
 	 */
 	$args = apply_filters( 'register_meta_args', $args, $defaults, $object_type, $meta_key );
+	unset( $defaults['default'] );
 	$args = wp_parse_args( $args, $defaults );
 
 	// Require an item schema when registering array meta.
@@ -1239,6 +1290,13 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 		} else {
 			add_filter( "auth_{$object_type}_meta_{$meta_key}", $args['auth_callback'], 10, 6 );
 		}
+	}
+
+	if ( array_key_exists( 'default', $args ) ) {
+		if ( false === $args['single'] && ! wp_is_numeric_array( $args['default'] ) ) {
+			$args['default'] = array( $args['default'] );
+		}
+		add_filter( "default_{$object_type}_metadata", 'filter_default_metadata', 10, 5 );
 	}
 
 	// Global registry only contains meta keys registered with the array of arguments added in 4.6.0.
@@ -1472,4 +1530,49 @@ function get_object_subtype( $object_type, $object_id ) {
 	 * @param int    $object_id      ID of the object to get the subtype for.
 	 */
 	return apply_filters( "get_object_subtype_{$object_type}", $object_subtype, $object_id );
+}
+
+/**
+ * Filter into default_{$object_type}_metadata and add in default value.
+ *
+ * @since 5.5.0
+ *
+ * @param mixed  $value     Current value passed to filter.
+ * @param string $meta_type Type of object metadata is for (e.g., comment, post, term, or user).
+
+ * @param string $meta_key  Optional. Metadata key. If not specified, retrieve all metadata for
+ *                          the specified object.
+ * @param bool   $single    Optional, default is false.
+ *                          If true, return only the first value of the specified meta_key.
+ *                          This parameter has no effect if meta_key is not specified.
+ * @param int    $object_id ID of the object metadata is for
+ *
+ * @return mixed Single metadata default, or array of defaults
+ */
+function filter_default_metadata( $value, $meta_type, $meta_key, $single, $object_id ) {
+	if ( wp_installing() ) {
+		return $value;
+	}
+
+	$metadata = get_registered_meta_keys( $meta_type );
+
+	if ( ! isset( $metadata[ $meta_key ] ) ) {
+		$sub_type = get_object_subtype( $meta_type, $object_id );
+		$metadata = get_registered_meta_keys( $meta_type, $sub_type );
+		if ( ! isset( $metadata[ $meta_key ] ) ) {
+			return $value;
+		}
+	}
+
+	if ( $single ) {
+		if ( $metadata[ $meta_key ]['single'] ) {
+			$value = $metadata[ $meta_key ]['default'];
+		} else {
+			$value = $metadata[ $meta_key ]['default'][0];
+		}
+	} else {
+		$value = $metadata[ $meta_key ]['default'];
+	}
+
+	return $value;
 }
