@@ -1089,7 +1089,7 @@ function load_script_translations( $file, $handle, $domain ) {
 	 */
 	$file = apply_filters( 'load_script_translation_file', $file, $handle, $domain );
 
-	if ( ! $file || ! is_readable( $file ) ) {
+	if ( ! $file || ! is_readable( $file ) || is_dir( $file ) ) {
 		return false;
 	}
 
