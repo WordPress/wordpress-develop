@@ -110,10 +110,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		// Attaching media to a post requires ability to edit said post.
 		if ( ! empty( $request['post'] ) ) {
-			$parent           = get_post( (int) $request['post'] );
-			$post_parent_type = get_post_type_object( $parent->post_type );
+			$parent = get_post( (int) $request['post'] );
 
-			if ( ! current_user_can( $post_parent_type->cap->edit_post, $request['post'] ) ) {
+			if ( ! current_user_can( 'edit_post', $request['post'] ) ) {
 				return new WP_Error(
 					'rest_cannot_edit',
 					__( 'Sorry, you are not allowed to upload media to this post.' ),

@@ -29,7 +29,7 @@ global $wp_scripts, $wp_customize;
 if ( $wp_customize->changeset_post_id() ) {
 	$changeset_post = get_post( $wp_customize->changeset_post_id() );
 
-	if ( ! current_user_can( get_post_type_object( 'customize_changeset' )->cap->edit_post, $changeset_post->ID ) ) {
+	if ( ! current_user_can( 'edit_post', $changeset_post->ID ) ) {
 		wp_die(
 			'<h1>' . __( 'You need a higher level of permission.' ) . '</h1>' .
 			'<p>' . __( 'Sorry, you are not allowed to edit this changeset.' ) . '</p>',
