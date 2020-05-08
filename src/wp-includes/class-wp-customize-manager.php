@@ -2419,7 +2419,7 @@ final class WP_Customize_Manager {
 				wp_send_json_error( 'cannot_create_changeset_post' );
 			}
 		} else {
-			if ( ! current_user_can( 'edit_post', $changeset_post_id ) ) {
+			if ( ! current_user_can( get_post_type_object( 'customize_changeset' )->cap->edit_post, $changeset_post_id ) ) {
 				wp_send_json_error( 'cannot_edit_changeset_post' );
 			}
 		}
@@ -3132,7 +3132,7 @@ final class WP_Customize_Manager {
 			return;
 		}
 
-		if ( $changeset_post_id && ! current_user_can( 'delete_post', $changeset_post_id ) ) {
+		if ( $changeset_post_id && ! current_user_can( get_post_type_object( 'customize_changeset' )->cap->delete_post, $changeset_post_id ) ) {
 			wp_send_json_error(
 				array(
 					'code'    => 'changeset_trash_unauthorized',
@@ -3305,7 +3305,7 @@ final class WP_Customize_Manager {
 			array_key_exists( 'check_changeset_lock', $data )
 			&& 'customize' === $screen_id
 			&& $changeset_post_id
-			&& current_user_can( 'edit_post', $changeset_post_id )
+			&& current_user_can( get_post_type_object( 'customize_changeset' )->cap->edit_post, $changeset_post_id )
 		) {
 			$lock_user_id = wp_check_post_lock( $changeset_post_id );
 
@@ -3351,7 +3351,7 @@ final class WP_Customize_Manager {
 			);
 		}
 
-		if ( ! current_user_can( 'edit_post', $changeset_post_id ) ) {
+		if ( ! current_user_can( get_post_type_object( 'customize_changeset' )->cap->edit_post, $changeset_post_id ) ) {
 			wp_send_json_error(
 				array(
 					'code'    => 'cannot_remove_changeset_lock',
@@ -3659,7 +3659,7 @@ final class WP_Customize_Manager {
 			if ( empty( $changeset_post_id ) && ! $dismiss_autosave ) {
 				wp_send_json_error( 'no_changeset_to_dismiss_lock', 404 );
 			}
-			if ( ! current_user_can( 'edit_post', $changeset_post_id ) && ! $dismiss_autosave ) {
+			if ( ! current_user_can( get_post_type_object( 'customize_changeset' )->cap->edit_post, $changeset_post_id ) && ! $dismiss_autosave ) {
 				wp_send_json_error( 'cannot_remove_changeset_lock', 403 );
 			}
 
@@ -3682,7 +3682,7 @@ final class WP_Customize_Manager {
 				$revision = wp_get_post_autosave( $changeset_post_id, get_current_user_id() );
 
 				if ( $revision ) {
-					if ( ! current_user_can( 'delete_post', $changeset_post_id ) ) {
+					if ( ! current_user_can( get_post_type_object( 'customize_changeset' )->cap->delete_post, $changeset_post_id ) ) {
 						wp_send_json_error( 'cannot_delete_autosave_revision', 403 );
 					}
 
