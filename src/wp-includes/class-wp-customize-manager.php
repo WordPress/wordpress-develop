@@ -3132,7 +3132,7 @@ final class WP_Customize_Manager {
 			return;
 		}
 
-		if ( $changeset_post_id && ! current_user_can( get_post_type_object( 'customize_changeset' )->cap->delete_post, $changeset_post_id ) ) {
+		if ( $changeset_post_id && ! current_user_can( 'delete_post', $changeset_post_id ) ) {
 			wp_send_json_error(
 				array(
 					'code'    => 'changeset_trash_unauthorized',
@@ -3682,7 +3682,7 @@ final class WP_Customize_Manager {
 				$revision = wp_get_post_autosave( $changeset_post_id, get_current_user_id() );
 
 				if ( $revision ) {
-					if ( ! current_user_can( get_post_type_object( 'customize_changeset' )->cap->delete_post, $changeset_post_id ) ) {
+					if ( ! current_user_can( 'delete_post', $changeset_post_id ) ) {
 						wp_send_json_error( 'cannot_delete_autosave_revision', 403 );
 					}
 
