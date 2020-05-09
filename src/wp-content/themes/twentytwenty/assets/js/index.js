@@ -138,13 +138,12 @@ twentytwenty.coverModals = {
 			var modal = document.querySelector('.cover-modal.active');
 
 			// if target onclick is <a> with # within the href attribute
-			if (event.target.tagName.toLowerCase() === 'a' && event.target.hash.includes('#')) {
+			if (event.target.tagName.toLowerCase() === 'a' && event.target.hash.includes('#') && modal !== null) {
 				// untoggle the modal
 				this.untoggleModal(modal);
 				// wait 550 and scroll to the anchor
 				setTimeout(function () {
 					var anchor = document.getElementById(event.target.hash.slice(1));
-					// console.log(anchor);
 					anchor.scrollIntoView();
 				}, 550);
 			}
@@ -154,7 +153,6 @@ twentytwenty.coverModals = {
 			}
 		}.bind(this));
 	},
-	// https://wordpress.org/support/topic/mobile-menu-doesnt-work-for-anchor-links/#post-12487136
 
 	// Close modal on escape key press.
 	closeOnEscape: function () {
