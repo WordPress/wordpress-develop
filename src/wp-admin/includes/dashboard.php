@@ -1563,7 +1563,7 @@ function wp_dashboard_wp_tv_output( $widget_id, $feeds ) {
 	 * Check if there is a cached version of the RSS Feed and output it
 	 */
 	$locale    = get_user_locale();
-	$cache_key = 'wp_tv_dash' . md5( $widget_id . '_' . $locale );
+	$cache_key = 'wp_tv_dash_' . md5( $widget_id . '_' . $locale );
 	$rss_output    = get_transient( $cache_key );
 	if ( false !== $rss_output ) {
 		return $rss_output;
@@ -1578,7 +1578,7 @@ function wp_dashboard_wp_tv_output( $widget_id, $feeds ) {
 		wp_widget_rss_output( $args['url'], $args );
 		echo '</div>';
 	}
-	$rss_output = ob_get_flush();
+	$rss_output = ob_get_clean();
 	/**
 	 * Set up the cached version to expire in 12 hours and output the content
 	 */
