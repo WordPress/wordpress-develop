@@ -1537,8 +1537,8 @@ function wp_dashboard_wp_tv() {
 function wp_dashboard_wp_tv_render() {
 	$feeds = array(
 			'news' => array(
-					'link'         => apply_filters( 'wp_tv_dashboard_primary_link', __( 'http://wordpress.tv/feed' ) ),
-					'url'          => apply_filters( 'wp_tv_dashboard_secondary_feed', __( 'http://wordpress.tv/feed' ) ),
+					'link'         => apply_filters( 'wp_tv_dashboard_primary_link', __( 'https://wordpress.tv/feed' ) ),
+					'url'          => apply_filters( 'wp_tv_dashboard_secondary_feed', __( 'https://wordpress.tv/feed' ) ),
 					'title'        => apply_filters( 'wp_tv_dashboard_primary_title', __( 'WordPress.tv' ) ),
 					'items'        => 8,
 					'show_summary' => 0,
