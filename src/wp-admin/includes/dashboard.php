@@ -79,6 +79,9 @@ function wp_dashboard_setup() {
 	// WordPress Events and News.
 	wp_add_dashboard_widget( 'dashboard_primary', __( 'WordPress Events and News' ), 'wp_dashboard_events_news' );
 
+	// WordPress.tv.
+	wp_add_dashboard_widget( 'dashboard_wp_tv', __( 'Latest videos from WordPress.tv' ), 'wp_dashboard_wp_tv' );
+
 	if ( is_network_admin() ) {
 
 		/**
@@ -1508,6 +1511,79 @@ function wp_dashboard_primary_output( $widget_id, $feeds ) {
 			wp_widget_rss_output( $args['url'], $args );
 		echo '</div>';
 	}
+}
+
+
+/**
+ * 'WordPress.tv' dashboard widget.
+ *
+ * @since 5.4.1
+ */
+function wp_dashboard_wp_tv() {
+	?>
+	<div class="wordpress-tv hide-if-no-js">
+		<?php echo wp_dashboard_wp_tv_render(); ?>
+	</div>
+	<?php
+}
+
+/**
+ * Render 'WordPress.tv' dashboard widget
+ *
+ * @since 5.4.1
+ *
+ * @return string
+ */
+function wp_dashboard_wp_tv_render() {
+	$feeds = array(
+			'news' => array(
+					'link'         => apply_filters( 'wp_tv_dashboard_primary_link', __( 'http://wordpress.tv/feed' ) ),
+					'url'          => apply_filters( 'wp_tv_dashboard_secondary_feed', __( 'http://wordpress.tv/feed' ) ),
+					'title'        => apply_filters( 'wp_tv_dashboard_primary_title', __( 'WordPress.tv' ) ),
+					'items'        => 8,
+					'show_summary' => 0,
+					'show_author'  => 0,
+					'show_date'    => 0,
+			),
+	);
+
+	return wp_dashboard_wp_tv_output( 'dashboard_wp_tv', $feeds );
+}
+
+/**
+ * Generate the dashboard widget content
+ *
+ * @param $widget_id
+ * @param $feeds
+ *
+ * @return string the RSS feed output
+ */
+function wp_dashboard_wp_tv_output( $widget_id, $feeds ) {
+	/**
+	 * Check if there is a cached version of the RSS Feed and output it
+	 */
+	$locale    = get_user_locale();
+	$cache_key = 'wp_tv_dash' . md5( $widget_id . '_' . $locale );
+	$rss_output    = get_transient( $cache_key );
+	if ( false !== $rss_output ) {
+		return $rss_output;
+	}
+	/**
+	 * Get the RSS Feed contents
+	 */
+	ob_start();
+	foreach ( $feeds as $type => $args ) {
+		$args['type'] = $type;
+		echo '<div class="rss-widget">';
+		wp_widget_rss_output( $args['url'], $args );
+		echo '</div>';
+	}
+	$rss_output = ob_get_flush();
+	/**
+	 * Set up the cached version to expire in 12 hours and output the content
+	 */
+	set_transient( $cache_key, $rss_output, 12 * HOUR_IN_SECONDS );
+	return $rss_output;
 }
 
 /**
