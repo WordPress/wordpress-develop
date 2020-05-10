@@ -5,7 +5,7 @@
  *
  * @group functions.php
  */
-class Tests_Functions_WP_Auth_Check extends WP_UnitTestCase {
+class Tests_Functions_wpAuthCheck extends WP_UnitTestCase {
 
 	/**
 	 * Run with user not logged in.

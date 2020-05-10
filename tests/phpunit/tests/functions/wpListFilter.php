@@ -5,7 +5,7 @@
  *
  * @group functions.php
  */
-class Tests_Functions_ListFilter extends WP_UnitTestCase {
+class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 	var $object_list = array();
 	var $array_list  = array();
 

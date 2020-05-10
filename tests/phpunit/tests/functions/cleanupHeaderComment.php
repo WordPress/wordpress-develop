@@ -6,7 +6,7 @@
  * @ticket 8497
  * @ticket 38101
  */
-class Tests_Cleanup_Header_Comment extends WP_UnitTestCase {
+class Tests_Functions_CleanupHeaderComment extends WP_UnitTestCase {
 	/**
 	 * Test cleanup header of header comment.
 	 *

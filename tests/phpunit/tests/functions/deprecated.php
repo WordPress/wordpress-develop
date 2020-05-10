@@ -5,10 +5,10 @@
  *
  * @package    WordPress
  * @subpackage Unit Tests
- * @since      3.5
+ * @since      3.5.0
  * @group      deprecated
  */
-class Test_Functions_Deprecated extends WP_UnitTestCase {
+class Tests_Functions_Deprecated extends WP_UnitTestCase {
 
 	/**
 	 * List of functions that have been passed through _deprecated_function()

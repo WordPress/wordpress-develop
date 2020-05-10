@@ -6,7 +6,7 @@
  * @group functions.php
  * @ticket 36635
  */
-class Tests_Functions_Size_Format extends WP_UnitTestCase {
+class Tests_Functions_SizeFormat extends WP_UnitTestCase {
 	public function _data_size_format() {
 		return array(
 			array( array(), 0, false ),
