@@ -1517,7 +1517,7 @@ function wp_dashboard_primary_output( $widget_id, $feeds ) {
 /**
  * 'WordPress.tv' dashboard widget.
  *
- * @since 5.4.1
+ * @since 5.4.2
  */
 function wp_dashboard_wp_tv() {
 	?>
@@ -1530,7 +1530,7 @@ function wp_dashboard_wp_tv() {
 /**
  * Render 'WordPress.tv' dashboard widget
  *
- * @since 5.4.1
+ * @since 5.4.2
  *
  * @return string
  */
@@ -1552,6 +1552,8 @@ function wp_dashboard_wp_tv_render() {
 
 /**
  * Generate the dashboard widget content
+ *
+ * @since 5.4.2
  *
  * @param $widget_id
  * @param $feeds
