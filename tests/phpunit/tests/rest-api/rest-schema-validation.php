@@ -409,4 +409,43 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		// three supplementary Unicode code point is to long
 		$this->assertWPError( rest_validate_value_from_schema( $mb_char . $mb_char . $mb_char, $schema ) );
 	}
+
+	/**
+	 * @ticket 44949
+	 */
+	public function test_string_pattern() {
+		$schema = array(
+			'type'    => 'string',
+			'pattern' => '^a*$',
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( 'a', $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( 'b', $schema ) );
+	}
+
+	/**
+	 * @ticket 44949
+	 */
+	public function test_string_pattern_with_escaped_delimiter() {
+		$schema = array(
+			'type'    => 'string',
+			'pattern' => '#[0-9]+',
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( '#123', $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( '#abc', $schema ) );
+	}
+
+	/**
+	 * @ticket 44949
+	 */
+	public function test_string_pattern_with_utf8() {
+		$schema = array(
+			'type'    => 'string',
+			'pattern' => '^â{1}$',
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( 'â', $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( 'ââ', $schema ) );
+	}
 }
