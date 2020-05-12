@@ -22,10 +22,11 @@ env:
     - WP_INSTALL: true
     - PHP_FPM_UID: "`id -u`"
     - PHP_FPM_GID: "`id -g`"
+    - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
 
 matrix:
   include:
-  - env: WP_TRAVISCI=test:e2e
+  - env: WP_TRAVISCI=test:e2e PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=
     name: E2E Tests
   - env: WP_TRAVISCI=lint:php COMPOSER_INSTALL=true NPM_INSTALL=false WP_INSTALL=false
     name: PHP Linting
@@ -121,7 +122,6 @@ script:
       # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
       LOCAL_PHP_XDEBUG=true npm run test:php -- -v --group xdebug --exclude-group __fakegroup__
     elif [[ "$WP_TRAVISCI" == "lint:php" ]]; then
-      docker-compose run --rm php composer format &&
       docker-compose run --rm php composer lint:errors &&
       docker-compose run --rm php composer lint tests
     elif [[ "$WP_TRAVISCI" == "test:compat" ]]; then
@@ -134,7 +134,7 @@ after_script:
 - |
   if [[ "$WP_TEST_REPORTER" == "true" ]]; then
     git clone https://github.com/WordPress/phpunit-test-runner.git test-runner
-    docker-compose run --rm -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
+    docker-compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
   fi
 
 notifications:

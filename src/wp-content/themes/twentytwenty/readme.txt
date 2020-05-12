@@ -1,7 +1,7 @@
 === Twenty Twenty ===
 Contributors: the WordPress team
 Tested up to: 5.3
-Stable tag: 1.1
+Stable tag: 1.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,10 +22,15 @@ you pick, ensuring a high, accessible color contrast for your visitors.
 
 == Changelog ==
 
+= 1.2 =
+* Released: March 31, 2020
+
+https://wordpress.org/support/article/twenty-twenty-changelog/#Version_1.2
+
 = 1.1 =
 * Released: December 12, 2019
 
-https://wordpress.org/support/article/twenty-twenty-changelog/
+https://wordpress.org/support/article/twenty-twenty-changelog/#Version_1.1
 
 = 1.0 =
 * Released: November 12, 2019
@@ -52,7 +57,7 @@ Chaplin Theme is distributed under the terms of the GNU GPL version 2.0
 
 Twenty Twenty bundles the following third-party resources:
 
-Illustrations in screenshot.png by Tammie Lister
+Illustrations by Tammie Lister
 License: Creative Commons Zero (CC0), https://creativecommons.org/publicdomain/zero/1.0/  
 
 Inter Font
@@ -71,6 +76,11 @@ Copyright (c) 2013-2017 Cole Bemis
 License: MIT License, https://opensource.org/licenses/MIT
 Source: https://feathericons.com
 Used for post meta icons, and the link icon in the social menu.
+
+Flaticon Icons
+License: Creative Commons BY 3.0, http://creativecommons.org/licenses/by/3.0/
+Source: Made by Freepik (https://www.flaticon.com/authors/freepik) for Flaticon (http://www.flaticon.com)
+Used for TikTok social icon.
 
 Social Icons
 License: GNU General Public License v2 or later

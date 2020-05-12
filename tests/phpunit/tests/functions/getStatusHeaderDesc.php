@@ -7,7 +7,7 @@
  *
  * @group functions.php
  */
-class Tests_Functions_get_status_header_desc extends WP_UnitTestCase {
+class Tests_Functions_GetStatusHeaderDesc extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider _status_strings

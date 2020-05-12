@@ -27,6 +27,10 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 					'somestring'  => array(
 						'type' => 'string',
 					),
+					'somehex'     => array(
+						'type'   => 'string',
+						'format' => 'hex-color',
+					),
 					'someenum'    => array(
 						'type' => 'string',
 						'enum' => array( 'a' ),
@@ -39,9 +43,20 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 						'type'   => 'string',
 						'format' => 'email',
 					),
+					'someuuid'    => array(
+						'type'   => 'string',
+						'format' => 'uuid',
+					),
 				),
 			)
 		);
+	}
+
+	public function tearDown() {
+		parent::tearDown();
+
+		global $wp_rest_additional_fields;
+		$wp_rest_additional_fields = array();
 	}
 
 	public function test_validate_schema_type_integer() {
@@ -166,6 +181,21 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		);
 	}
 
+	/**
+	 * @ticket 49270
+	 */
+	public function test_validate_schema_format_hex_color() {
+
+		$this->assertTrue(
+			rest_validate_request_arg( '#000000', $this->request, 'somehex' )
+		);
+
+		$this->assertErrorResponse(
+			'rest_invalid_hex_color',
+			rest_validate_request_arg( 'wibble', $this->request, 'somehex' )
+		);
+	}
+
 	public function test_validate_schema_format_date_time() {
 
 		$this->assertTrue(
@@ -175,6 +205,20 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$this->assertErrorResponse(
 			'rest_invalid_date',
 			rest_validate_request_arg( '2010-18-18T12:00:00', $this->request, 'somedate' )
+		);
+	}
+
+	/**
+	 * @ticket 50053
+	 */
+	public function test_validate_schema_format_uuid() {
+		$this->assertTrue(
+			rest_validate_request_arg( '123e4567-e89b-12d3-a456-426655440000', $this->request, 'someuuid' )
+		);
+
+		$this->assertErrorResponse(
+			'rest_invalid_uuid',
+			rest_validate_request_arg( '123e4567-e89b-12d3-a456-426655440000X', $this->request, 'someuuid' )
 		);
 	}
 
@@ -218,6 +262,8 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 				'someurl',
 				'somedate',
 				'someemail',
+				'somehex',
+				'someuuid',
 				'someenum',
 				'someargoptions',
 				'somedefault',
@@ -247,6 +293,8 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 					'someurl',
 					'somedate',
 					'someemail',
+					'somehex',
+					'someuuid',
 					'someenum',
 					'someargoptions',
 					'somedefault',
@@ -415,5 +463,126 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$controller->prepare_item_for_response( $item, $request );
 
 		$this->assertTrue( $listener->get_call_count( $method ) > $first_call_count );
+	}
+
+	/**
+	 * @dataProvider data_filter_nested_registered_rest_fields
+	 * @ticket 49648
+	 */
+	public function test_filter_nested_registered_rest_fields( $filter, $expected ) {
+		$controller = new WP_REST_Test_Controller();
+
+		register_rest_field(
+			'type',
+			'field',
+			array(
+				'schema'       => array(
+					'type'        => 'object',
+					'description' => 'A complex object',
+					'context'     => array( 'view', 'edit' ),
+					'properties'  => array(
+						'a' => array(
+							'i'  => 'string',
+							'ii' => 'string',
+						),
+						'b' => array(
+							'iii' => 'string',
+							'iv'  => 'string',
+						),
+					),
+				),
+				'get_callback' => array( $this, 'register_nested_rest_field_get_callback' ),
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/testroute' );
+		$request->set_param( '_fields', $filter );
+
+		$response = $controller->prepare_item_for_response( array(), $request );
+		$response = rest_filter_response_fields( $response, rest_get_server(), $request );
+
+		$this->assertEquals( $expected, $response->get_data() );
+	}
+
+	public function register_nested_rest_field_get_callback() {
+		return array(
+			'a' => array(
+				'i'  => 'value i',
+				'ii' => 'value ii',
+			),
+			'b' => array(
+				'iii' => 'value iii',
+				'iv'  => 'value iv',
+			),
+		);
+	}
+
+	public function data_filter_nested_registered_rest_fields() {
+		return array(
+			array(
+				'field',
+				array(
+					'field' => array(
+						'a' => array(
+							'i'  => 'value i',
+							'ii' => 'value ii',
+						),
+						'b' => array(
+							'iii' => 'value iii',
+							'iv'  => 'value iv',
+						),
+					),
+				),
+			),
+			array(
+				'field.a',
+				array(
+					'field' => array(
+						'a' => array(
+							'i'  => 'value i',
+							'ii' => 'value ii',
+						),
+					),
+				),
+			),
+			array(
+				'field.b',
+				array(
+					'field' => array(
+						'b' => array(
+							'iii' => 'value iii',
+							'iv'  => 'value iv',
+						),
+					),
+				),
+			),
+			array(
+				'field.a.i,field.b.iv',
+				array(
+					'field' => array(
+						'a' => array(
+							'i' => 'value i',
+						),
+						'b' => array(
+							'iv' => 'value iv',
+						),
+					),
+				),
+			),
+			array(
+				'field.a,field.b.iii',
+				array(
+					'field' => array(
+						'a' => array(
+							'i'  => 'value i',
+							'ii' => 'value ii',
+						),
+						'b' => array(
+							'iii' => 'value iii',
+						),
+					),
+				),
+			),
+		);
 	}
 }

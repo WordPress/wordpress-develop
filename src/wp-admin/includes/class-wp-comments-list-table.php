@@ -55,6 +55,15 @@ class WP_Comments_List_Table extends WP_List_Table {
 		);
 	}
 
+	/**
+	 * Adds avatars to comment author names.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @param string $name       Comment author name.
+	 * @param int    $comment_ID Comment ID.
+	 * @return string Avatar with the user name.
+	 */
 	public function floated_admin_avatar( $name, $comment_ID ) {
 		$comment = get_comment( $comment_ID );
 		$avatar  = get_avatar( $comment, 32, 'mystery' );
@@ -78,7 +87,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 		global $post_id, $comment_status, $search, $comment_type;
 
 		$comment_status = isset( $_REQUEST['comment_status'] ) ? $_REQUEST['comment_status'] : 'all';
-		if ( ! in_array( $comment_status, array( 'all', 'mine', 'moderated', 'approved', 'spam', 'trash' ) ) ) {
+		if ( ! in_array( $comment_status, array( 'all', 'mine', 'moderated', 'approved', 'spam', 'trash' ), true ) ) {
 			$comment_status = 'all';
 		}
 
@@ -335,13 +344,13 @@ class WP_Comments_List_Table extends WP_List_Table {
 		global $comment_status;
 
 		$actions = array();
-		if ( in_array( $comment_status, array( 'all', 'approved' ) ) ) {
+		if ( in_array( $comment_status, array( 'all', 'approved' ), true ) ) {
 			$actions['unapprove'] = __( 'Unapprove' );
 		}
-		if ( in_array( $comment_status, array( 'all', 'moderated' ) ) ) {
+		if ( in_array( $comment_status, array( 'all', 'moderated' ), true ) ) {
 			$actions['approve'] = __( 'Approve' );
 		}
-		if ( in_array( $comment_status, array( 'all', 'moderated', 'approved', 'trash' ) ) ) {
+		if ( in_array( $comment_status, array( 'all', 'moderated', 'approved', 'trash' ), true ) ) {
 			$actions['spam'] = _x( 'Mark as Spam', 'comment' );
 		}
 
@@ -351,7 +360,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 			$actions['unspam'] = _x( 'Not Spam', 'comment' );
 		}
 
-		if ( in_array( $comment_status, array( 'trash', 'spam' ) ) || ! EMPTY_TRASH_DAYS ) {
+		if ( in_array( $comment_status, array( 'trash', 'spam' ), true ) || ! EMPTY_TRASH_DAYS ) {
 			$actions['delete'] = __( 'Delete Permanently' );
 		} else {
 			$actions['trash'] = __( 'Move to Trash' );

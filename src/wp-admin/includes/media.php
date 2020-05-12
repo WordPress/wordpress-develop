@@ -526,7 +526,6 @@ function wp_iframe( $content_func, ...$args ) {
 	) {
 		wp_enqueue_style( 'deprecated-media' );
 	}
-	wp_enqueue_style( 'ie' );
 
 	?>
 	<script type="text/javascript">
@@ -950,7 +949,7 @@ function wp_media_upload_handler() {
 	if ( isset( $_GET['tab'] ) && 'type_url' === $_GET['tab'] ) {
 		$type = 'image';
 
-		if ( isset( $_GET['type'] ) && in_array( $_GET['type'], array( 'video', 'audio', 'file' ) ) ) {
+		if ( isset( $_GET['type'] ) && in_array( $_GET['type'], array( 'video', 'audio', 'file' ), true ) ) {
 			$type = $_GET['type'];
 		}
 

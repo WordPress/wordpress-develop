@@ -23,6 +23,9 @@ class WP_Debug_Data {
 	 * Static function for generating site debug data when required.
 	 *
 	 * @since 5.2.0
+	 * @since 5.3.0 Added database charset, database collation,
+	 *              and timezone information.
+	 * @since 5.5.0 Added pretty permalinks support information.
 	 *
 	 * @throws ImagickException
 	 * @global wpdb $wpdb WordPress database abstraction object.
@@ -644,19 +647,32 @@ class WP_Debug_Data {
 				'label' => __( 'PHP time limit' ),
 				'value' => ini_get( 'max_execution_time' ),
 			);
-			$info['wp-server']['fields']['memory_limit']        = array(
-				'label' => __( 'PHP memory limit' ),
-				'value' => ini_get( 'memory_limit' ),
-			);
-			$info['wp-server']['fields']['max_input_time']      = array(
+
+			if ( WP_Site_Health::get_instance()->php_memory_limit !== ini_get( 'memory_limit' ) ) {
+				$info['wp-server']['fields']['memory_limit']       = array(
+					'label' => __( 'PHP memory limit' ),
+					'value' => WP_Site_Health::get_instance()->php_memory_limit,
+				);
+				$info['wp-server']['fields']['admin_memory_limit'] = array(
+					'label' => __( 'PHP memory limit (only for admin screens)' ),
+					'value' => ini_get( 'memory_limit' ),
+				);
+			} else {
+				$info['wp-server']['fields']['memory_limit'] = array(
+					'label' => __( 'PHP memory limit' ),
+					'value' => ini_get( 'memory_limit' ),
+				);
+			}
+
+			$info['wp-server']['fields']['max_input_time']    = array(
 				'label' => __( 'Max input time' ),
 				'value' => ini_get( 'max_input_time' ),
 			);
-			$info['wp-server']['fields']['upload_max_size']     = array(
+			$info['wp-server']['fields']['upload_max_size']   = array(
 				'label' => __( 'Upload max filesize' ),
 				'value' => ini_get( 'upload_max_filesize' ),
 			);
-			$info['wp-server']['fields']['php_post_max_size']   = array(
+			$info['wp-server']['fields']['php_post_max_size'] = array(
 				'label' => __( 'PHP post max size' ),
 				'value' => ini_get( 'post_max_size' ),
 			);
@@ -693,6 +709,15 @@ class WP_Debug_Data {
 			'label' => __( 'Is the Imagick library available?' ),
 			'value' => ( $imagick_loaded ? __( 'Yes' ) : __( 'No' ) ),
 			'debug' => $imagick_loaded,
+		);
+
+		// Pretty permalinks.
+		$pretty_permalinks_supported = got_url_rewrite();
+
+		$info['wp-server']['fields']['pretty_permalinks'] = array(
+			'label' => __( 'Are pretty permalinks supported?' ),
+			'value' => ( $pretty_permalinks_supported ? __( 'Yes' ) : __( 'No' ) ),
+			'debug' => $pretty_permalinks_supported,
 		);
 
 		// Check if a .htaccess file exists.

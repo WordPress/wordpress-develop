@@ -90,7 +90,7 @@ class WP {
 	 * @param string $qv Query variable name.
 	 */
 	public function add_query_var( $qv ) {
-		if ( ! in_array( $qv, $this->public_query_vars ) ) {
+		if ( ! in_array( $qv, $this->public_query_vars, true ) ) {
 			$this->public_query_vars[] = $qv;
 		}
 	}
@@ -348,7 +348,7 @@ class WP {
 		if ( isset( $this->query_vars['post_type'] ) ) {
 			$queryable_post_types = get_post_types( array( 'publicly_queryable' => true ) );
 			if ( ! is_array( $this->query_vars['post_type'] ) ) {
-				if ( ! in_array( $this->query_vars['post_type'], $queryable_post_types ) ) {
+				if ( ! in_array( $this->query_vars['post_type'], $queryable_post_types, true ) ) {
 					unset( $this->query_vars['post_type'] );
 				}
 			} else {
@@ -412,7 +412,7 @@ class WP {
 					$headers = array_merge( $headers, wp_get_nocache_headers() );
 				}
 				$headers['Content-Type'] = get_option( 'html_type' ) . '; charset=' . get_option( 'blog_charset' );
-			} elseif ( in_array( $status, array( 403, 500, 502, 503 ) ) ) {
+			} elseif ( in_array( $status, array( 403, 500, 502, 503 ), true ) ) {
 				$exit_required = true;
 			}
 		} elseif ( empty( $this->query_vars['feed'] ) ) {
@@ -623,13 +623,13 @@ class WP {
 	/**
 	 * Set the Headers for 404, if nothing is found for requested URL.
 	 *
-	 * Issue a 404 if a request doesn't match any posts and doesn't match
-	 * any object (e.g. an existing-but-empty category, tag, author) and a 404 was not already
-	 * issued, and if the request was not a search or the homepage.
+	 * Issue a 404 if a request doesn't match any posts and doesn't match any object
+	 * (e.g. an existing-but-empty category, tag, author) and a 404 was not already issued,
+	 * and if the request was not a search or the homepage.
 	 *
 	 * Otherwise, issue a 200.
 	 *
-	 * This sets headers after posts have been queried. handle_404() really means "handle status."
+	 * This sets headers after posts have been queried. handle_404() really means "handle status".
 	 * By inspecting the result of querying posts, seemingly successful requests can be switched to
 	 * a 404 so that canonical redirection logic can kick in.
 	 *
@@ -660,63 +660,69 @@ class WP {
 			return;
 		}
 
-		// Never 404 for the admin, robots, favicon, or if we found posts.
-		if ( is_admin() || is_robots() || is_favicon() || $wp_query->posts ) {
+		$set_404 = true;
 
-			$success = true;
+		// Never 404 for the admin, robots, or favicon.
+		if ( is_admin() || is_robots() || is_favicon() ) {
+			$set_404 = false;
+
+			// If posts were found, check for paged content.
+		} elseif ( $wp_query->posts ) {
+			$content_found = true;
+
 			if ( is_singular() ) {
-				$p = false;
-
-				if ( $wp_query->post instanceof WP_Post ) {
-					$p = clone $wp_query->post;
-				}
+				$post = isset( $wp_query->post ) ? $wp_query->post : null;
 
 				// Only set X-Pingback for single posts that allow pings.
-				if ( $p && pings_open( $p ) && ! headers_sent() ) {
+				if ( $post && pings_open( $post ) && ! headers_sent() ) {
 					header( 'X-Pingback: ' . get_bloginfo( 'pingback_url', 'display' ) );
 				}
 
 				// Check for paged content that exceeds the max number of pages.
 				$next = '<!--nextpage-->';
-				if ( $p && false !== strpos( $p->post_content, $next ) && ! empty( $this->query_vars['page'] ) ) {
-					$page    = trim( $this->query_vars['page'], '/' );
-					$success = (int) $page <= ( substr_count( $p->post_content, $next ) + 1 );
+				if ( $post && ! empty( $this->query_vars['page'] ) ) {
+					// Check if content is actually intended to be paged.
+					if ( false !== strpos( $post->post_content, $next ) ) {
+						$page          = trim( $this->query_vars['page'], '/' );
+						$content_found = (int) $page <= ( substr_count( $post->post_content, $next ) + 1 );
+					} else {
+						$content_found = false;
+					}
 				}
 			}
 
-			if ( $success ) {
-				status_header( 200 );
-				return;
+			// The posts page does not support the <!--nextpage--> pagination.
+			if ( $wp_query->is_posts_page && ! empty( $this->query_vars['page'] ) ) {
+				$content_found = false;
 			}
-		}
 
-		// We will 404 for paged queries, as no posts were found.
-		if ( ! is_paged() ) {
+			if ( $content_found ) {
+				$set_404 = false;
+			}
+
+			// We will 404 for paged queries, as no posts were found.
+		} elseif ( ! is_paged() ) {
+			$author = get_query_var( 'author' );
 
 			// Don't 404 for authors without posts as long as they matched an author on this site.
-			$author = get_query_var( 'author' );
-			if ( is_author() && is_numeric( $author ) && $author > 0 && is_user_member_of_blog( $author ) ) {
-				status_header( 200 );
-				return;
-			}
-
-			// Don't 404 for these queries if they matched an object.
-			if ( ( is_tag() || is_category() || is_tax() || is_post_type_archive() ) && get_queried_object() ) {
-				status_header( 200 );
-				return;
-			}
-
-			// Don't 404 for these queries either.
-			if ( is_home() || is_search() || is_feed() ) {
-				status_header( 200 );
-				return;
+			if ( is_author() && is_numeric( $author ) && $author > 0 && is_user_member_of_blog( $author )
+				// Don't 404 for these queries if they matched an object.
+				|| ( is_tag() || is_category() || is_tax() || is_post_type_archive() ) && get_queried_object()
+				// Don't 404 for these queries either.
+				|| is_home() || is_search() || is_feed()
+			) {
+				$set_404 = false;
 			}
 		}
 
-		// Guess it's time to 404.
-		$wp_query->set_404();
-		status_header( 404 );
-		nocache_headers();
+		if ( $set_404 ) {
+			// Guess it's time to 404.
+			$wp_query->set_404();
+			status_header( 404 );
+			nocache_headers();
+		} else {
+			status_header( 200 );
+		}
 	}
 
 	/**

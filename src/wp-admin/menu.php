@@ -135,7 +135,7 @@ foreach ( array_merge( $builtin, $types ) as $ptype ) {
 		} else {
 			$menu_icon = esc_url( $ptype_obj->menu_icon );
 		}
-	} elseif ( in_array( $ptype, $builtin ) ) {
+	} elseif ( in_array( $ptype, $builtin, true ) ) {
 		$menu_icon = 'dashicons-admin-' . $ptype;
 	}
 
@@ -152,7 +152,7 @@ foreach ( array_merge( $builtin, $types ) as $ptype ) {
 		$edit_tags_file = "edit-tags.php?taxonomy=%s&amp;post_type=$ptype";
 	}
 
-	if ( in_array( $ptype, $builtin ) ) {
+	if ( in_array( $ptype, $builtin, true ) ) {
 		$ptype_menu_id = 'menu-' . $ptype_for_id . 's';
 	} else {
 		$ptype_menu_id = 'menu-posts-' . $ptype_for_id;
@@ -162,7 +162,7 @@ foreach ( array_merge( $builtin, $types ) as $ptype ) {
 	 * by a hard-coded value below, increment the position.
 	 */
 	$core_menu_positions = array( 59, 60, 65, 70, 75, 80, 85, 99 );
-	while ( isset( $menu[ $ptype_menu_position ] ) || in_array( $ptype_menu_position, $core_menu_positions ) ) {
+	while ( isset( $menu[ $ptype_menu_position ] ) || in_array( $ptype_menu_position, $core_menu_positions, true ) ) {
 		$ptype_menu_position++;
 	}
 
@@ -264,10 +264,10 @@ if ( current_user_can( 'list_users' ) ) {
 		$submenu['users.php'][10] = array( _x( 'Add New', 'user' ), 'promote_users', 'user-new.php' );
 	}
 
-	$submenu['users.php'][15] = array( __( 'Your Profile' ), 'read', 'profile.php' );
+	$submenu['users.php'][15] = array( __( 'Profile' ), 'read', 'profile.php' );
 } else {
 	$_wp_real_parent_file['users.php'] = 'profile.php';
-	$submenu['profile.php'][5]         = array( __( 'Your Profile' ), 'read', 'profile.php' );
+	$submenu['profile.php'][5]         = array( __( 'Profile' ), 'read', 'profile.php' );
 	if ( current_user_can( 'create_users' ) ) {
 		$submenu['profile.php'][10] = array( __( 'Add New User' ), 'create_users', 'user-new.php' );
 	} elseif ( is_multisite() ) {

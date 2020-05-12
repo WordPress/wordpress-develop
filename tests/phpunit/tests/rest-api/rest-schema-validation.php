@@ -72,6 +72,32 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertWPError( rest_validate_value_from_schema( 'email', $schema ) );
 	}
 
+	/**
+	 * @ticket 49270
+	 */
+	public function test_format_hex_color() {
+		$schema = array(
+			'type'   => 'string',
+			'format' => 'hex-color',
+		);
+		$this->assertTrue( rest_validate_value_from_schema( '#000000', $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( '#FFF', $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( 'WordPress', $schema ) );
+	}
+
+	/**
+	 * @ticket 50053
+	 */
+	public function test_format_uuid() {
+		$schema = array(
+			'type'   => 'string',
+			'format' => 'uuid',
+		);
+		$this->assertTrue( rest_validate_value_from_schema( '123e4567-e89b-12d3-a456-426655440000', $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( '123e4567-e89b-12d3-a456-426655440000X', $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( '123e4567-e89b-?2d3-a456-426655440000', $schema ) );
+	}
+
 	public function test_format_date_time() {
 		$schema = array(
 			'type'   => 'string',
@@ -334,5 +360,53 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertTrue( rest_validate_value_from_schema( 'My Value', $schema ) );
 		$this->assertTrue( rest_validate_value_from_schema( array( 'raw' => 'My Value' ), $schema ) );
 		$this->assertWPError( rest_validate_value_from_schema( array( 'raw' => array( 'a list' ) ), $schema ) );
+	}
+
+	/**
+	 * @ticket 48820
+	 */
+	public function test_string_min_length() {
+		$schema = array(
+			'type'      => 'string',
+			'minLength' => 2,
+		);
+
+		// longer
+		$this->assertTrue( rest_validate_value_from_schema( 'foo', $schema ) );
+		// exact
+		$this->assertTrue( rest_validate_value_from_schema( 'fo', $schema ) );
+		// non-strings does not validate
+		$this->assertWPError( rest_validate_value_from_schema( 1, $schema ) );
+		// to short
+		$this->assertWPError( rest_validate_value_from_schema( 'f', $schema ) );
+		// one supplementary Unicode code point is not long enough
+		$mb_char = mb_convert_encoding( '&#x1000;', 'UTF-8', 'HTML-ENTITIES' );
+		$this->assertWPError( rest_validate_value_from_schema( $mb_char, $schema ) );
+		// two supplementary Unicode code point is long enough
+		$this->assertTrue( rest_validate_value_from_schema( $mb_char . $mb_char, $schema ) );
+	}
+
+	/**
+	 * @ticket 48820
+	 */
+	public function test_string_max_length() {
+		$schema = array(
+			'type'      => 'string',
+			'maxLength' => 2,
+		);
+
+		// shorter
+		$this->assertTrue( rest_validate_value_from_schema( 'f', $schema ) );
+		// exact
+		$this->assertTrue( rest_validate_value_from_schema( 'fo', $schema ) );
+		// to long
+		$this->assertWPError( rest_validate_value_from_schema( 'foo', $schema ) );
+		// non string
+		$this->assertWPError( rest_validate_value_from_schema( 100, $schema ) );
+		// two supplementary Unicode code point is long enough
+		$mb_char = mb_convert_encoding( '&#x1000;', 'UTF-8', 'HTML-ENTITIES' );
+		$this->assertTrue( rest_validate_value_from_schema( $mb_char, $schema ) );
+		// three supplementary Unicode code point is to long
+		$this->assertWPError( rest_validate_value_from_schema( $mb_char . $mb_char . $mb_char, $schema ) );
 	}
 }

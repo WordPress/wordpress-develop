@@ -971,6 +971,23 @@ function rest_parse_date( $date, $force_utc = false ) {
 }
 
 /**
+ * Parses a 3 or 6 digit hex color (with #).
+ *
+ * @since 5.4.0
+ *
+ * @param string $color 3 or 6 digit hex color (with #).
+ * @return string|false
+ */
+function rest_parse_hex_color( $color ) {
+	$regex = '|^#([A-Fa-f0-9]{3}){1,2}$|';
+	if ( ! preg_match( $regex, $color, $matches ) ) {
+		return false;
+	}
+
+	return $color;
+}
+
+/**
  * Parses a date into both its local and UTC equivalent, in MySQL datetime format.
  *
  * @since 4.4.0
@@ -1305,7 +1322,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		}
 	}
 
-	if ( in_array( $args['type'], array( 'integer', 'number' ) ) && ! is_numeric( $value ) ) {
+	if ( in_array( $args['type'], array( 'integer', 'number' ), true ) && ! is_numeric( $value ) ) {
 		/* translators: 1: Parameter, 2: Type name. */
 		return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, $args['type'] ) );
 	}
@@ -1320,13 +1337,45 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'boolean' ) );
 	}
 
-	if ( 'string' === $args['type'] && ! is_string( $value ) ) {
-		/* translators: 1: Parameter, 2: Type name. */
-		return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'string' ) );
+	if ( 'string' === $args['type'] ) {
+		if ( ! is_string( $value ) ) {
+			/* translators: 1: Parameter, 2: Type name. */
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'string' ) );
+		}
+
+		if ( isset( $args['minLength'] ) && mb_strlen( $value ) < $args['minLength'] ) {
+			return new WP_Error(
+				'rest_invalid_param',
+				sprintf(
+					/* translators: 1: Parameter, 2: Number of characters. */
+					_n( '%1$s must be at least %2$s character long.', '%1$s must be at least %2$s characters long.', $args['minLength'] ),
+					$param,
+					number_format_i18n( $args['minLength'] )
+				)
+			);
+		}
+
+		if ( isset( $args['maxLength'] ) && mb_strlen( $value ) > $args['maxLength'] ) {
+			return new WP_Error(
+				'rest_invalid_param',
+				sprintf(
+					/* translators: 1: Parameter, 2: Number of characters. */
+					_n( '%1$s must be at most %2$s character long.', '%1$s must be at most %2$s characters long.', $args['maxLength'] ),
+					$param,
+					number_format_i18n( $args['maxLength'] )
+				)
+			);
+		}
 	}
 
 	if ( isset( $args['format'] ) ) {
 		switch ( $args['format'] ) {
+			case 'hex-color':
+				if ( ! rest_parse_hex_color( $value ) ) {
+					return new WP_Error( 'rest_invalid_hex_color', __( 'Invalid hex color.' ) );
+				}
+				break;
+
 			case 'date-time':
 				if ( ! rest_parse_date( $value ) ) {
 					return new WP_Error( 'rest_invalid_date', __( 'Invalid date.' ) );
@@ -1342,6 +1391,12 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 				if ( ! rest_is_ip_address( $value ) ) {
 					/* translators: %s: IP address. */
 					return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not a valid IP address.' ), $param ) );
+				}
+				break;
+			case 'uuid':
+				if ( ! wp_is_uuid( $value ) ) {
+					/* translators: %s is the name of a JSON field expecting a valid uuid. */
+					return new WP_Error( 'rest_invalid_uuid', sprintf( __( '%s is not a valid UUID.' ), $param ) );
 				}
 				break;
 		}
@@ -1485,6 +1540,9 @@ function rest_sanitize_value_from_schema( $value, $args ) {
 
 	if ( isset( $args['format'] ) ) {
 		switch ( $args['format'] ) {
+			case 'hex-color':
+				return (string) sanitize_hex_color( $value );
+
 			case 'date-time':
 				return sanitize_text_field( $value );
 
@@ -1496,6 +1554,9 @@ function rest_sanitize_value_from_schema( $value, $args ) {
 				return esc_url_raw( $value );
 
 			case 'ip':
+				return sanitize_text_field( $value );
+
+			case 'uuid':
 				return sanitize_text_field( $value );
 		}
 	}
@@ -1596,4 +1657,64 @@ function rest_parse_embed_param( $embed ) {
 	}
 
 	return $rels;
+}
+
+/**
+ * Filters the response to remove any fields not available in the given context.
+ *
+ * @since 5.5.0
+ *
+ * @param array|object $data    The response data to modify.
+ * @param array        $schema  The schema for the endpoint used to filter the response.
+ * @param string       $context The requested context.
+ * @return array|object The filtered response data.
+ */
+function rest_filter_response_by_context( $data, $schema, $context ) {
+	if ( ! is_array( $data ) && ! is_object( $data ) ) {
+		return $data;
+	}
+
+	if ( isset( $schema['type'] ) ) {
+		$type = $schema['type'];
+	} elseif ( isset( $schema['properties'] ) ) {
+		$type = 'object'; // Back compat if a developer accidentally omitted the type.
+	} else {
+		return $data;
+	}
+
+	foreach ( $data as $key => $value ) {
+		$check = array();
+
+		if ( 'array' === $type || ( is_array( $type ) && in_array( 'array', $type, true ) ) ) {
+			$check = isset( $schema['items'] ) ? $schema['items'] : array();
+		} elseif ( 'object' === $type || ( is_array( $type ) && in_array( 'object', $type, true ) ) ) {
+			if ( isset( $schema['properties'][ $key ] ) ) {
+				$check = $schema['properties'][ $key ];
+			} elseif ( isset( $schema['additionalProperties'] ) && is_array( $schema['additionalProperties'] ) ) {
+				$check = $schema['additionalProperties'];
+			}
+		}
+
+		if ( ! isset( $check['context'] ) ) {
+			continue;
+		}
+
+		if ( ! in_array( $context, $check['context'], true ) ) {
+			if ( is_object( $data ) ) {
+				unset( $data->$key );
+			} else {
+				unset( $data[ $key ] );
+			}
+		} elseif ( is_array( $value ) || is_object( $value ) ) {
+			$new_value = rest_filter_response_by_context( $value, $check, $context );
+
+			if ( is_object( $data ) ) {
+				$data->$key = $new_value;
+			} else {
+				$data[ $key ] = $new_value;
+			}
+		}
+	}
+
+	return $data;
 }

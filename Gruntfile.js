@@ -2,6 +2,7 @@
 /* jshint esversion: 6 */
 /* globals Set */
 var webpackConfig = require( './webpack.config' );
+var installChanged = require( 'install-changed' );
 
 module.exports = function(grunt) {
 	var path = require('path'),
@@ -40,6 +41,9 @@ module.exports = function(grunt) {
 			'grunt watch:phpunit --group=multisite,mail'
 		);
 	}
+
+	// First do `npm install` if package.json has changed.
+	installChanged.watchPackage();
 
 	// Load tasks.
 	require('matchdep').filterDev(['grunt-*', '!grunt-legacy-util']).forEach( grunt.loadNpmTasks );
@@ -116,7 +120,7 @@ module.exports = function(grunt) {
 				WORKING_DIR + 'wp-includes/js/'
 			],
 			'webpack-assets': [
-				WORKING_DIR + 'wp-includes/js/dist/assets.php'
+				WORKING_DIR + 'wp-includes/assets/'
 			],
 			dynamic: {
 				dot: true,
@@ -354,10 +358,6 @@ module.exports = function(grunt) {
 					}
 				]
 			},
-			'webpack-assets': {
-				src: WORKING_DIR + 'wp-includes/js/dist/assets.php',
-				dest: WORKING_DIR + 'wp-includes/assets/script-loader-packages.php'
-			},
 			version: {
 				options: {
 					processContent: function( src ) {
@@ -413,7 +413,7 @@ module.exports = function(grunt) {
 		},
 		cssmin: {
 			options: {
-				compatibility: 'ie7'
+				compatibility: 'ie11'
 			},
 			core: {
 				expand: true,
@@ -1366,10 +1366,9 @@ module.exports = function(grunt) {
 	] );
 
 	grunt.registerTask( 'build:webpack', [
+		'clean:webpack-assets',
 		'webpack:prod',
 		'webpack:dev',
-		'copy:webpack-assets',
-		'clean:webpack-assets',
 	] );
 
 	grunt.registerTask( 'build:js', [

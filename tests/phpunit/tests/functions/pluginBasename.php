@@ -6,7 +6,7 @@
  * @group functions.php
  * @group plugins
  */
-class Tests_Plugin_Basename extends WP_UnitTestCase {
+class Tests_Functions_PluginBasename extends WP_UnitTestCase {
 
 	/**
 	 * @var array

@@ -176,8 +176,8 @@ function add_user_to_blog( $blog_id, $user_id, $role ) {
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param bool|WP_Error $retval  True if the user should be added to the site, false
-	 *                               or error object otherwise.
+	 * @param true|WP_Error $retval  True if the user should be added to the site, error
+	 *                               object otherwise.
 	 * @param int           $user_id User ID.
 	 * @param string        $role    User role.
 	 * @param int           $blog_id Site ID.
@@ -488,7 +488,7 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 		$illegal_names = array( 'www', 'web', 'root', 'admin', 'main', 'invite', 'administrator' );
 		add_site_option( 'illegal_names', $illegal_names );
 	}
-	if ( in_array( $user_name, $illegal_names ) ) {
+	if ( in_array( $user_name, $illegal_names, true ) ) {
 		$errors->add( 'user_name', __( 'Sorry, that username is not allowed.' ) );
 	}
 
@@ -653,7 +653,7 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 		$errors->add( 'blogname', __( 'Site names can only contain lowercase letters (a-z) and numbers.' ) );
 	}
 
-	if ( in_array( $blogname, $illegal_names ) ) {
+	if ( in_array( $blogname, $illegal_names, true ) ) {
 		$errors->add( 'blogname', __( 'That name is not allowed.' ) );
 	}
 

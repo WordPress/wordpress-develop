@@ -63,7 +63,8 @@ if ( file_exists( ABSPATH . 'wp-config.php' ) ) {
 			__( 'The file %1$s already exists. If you need to reset any of the configuration items in this file, please delete it first. You may try <a href="%2$s">installing now</a>.' ),
 			'<code>wp-config.php</code>',
 			'install.php'
-		) . '</p>'
+		) . '</p>',
+		409
 	);
 }
 
@@ -75,7 +76,8 @@ if ( @file_exists( ABSPATH . '../wp-config.php' ) && ! @file_exists( ABSPATH . '
 			__( 'The file %1$s already exists one level above your WordPress installation. If you need to reset any of the configuration items in this file, please delete it first. You may try <a href="%2$s">installing now</a>.' ),
 			'<code>wp-config.php</code>',
 			'install.php'
-		) . '</p>'
+		) . '</p>',
+		409
 	);
 }
 
@@ -113,7 +115,7 @@ function setup_config_display_header( $body_classes = array() ) {
 	<?php wp_admin_css( 'install', true ); ?>
 </head>
 <body class="<?php echo implode( ' ', $body_classes ); ?>">
-<p id="logo"><a href="<?php echo esc_url( __( 'https://wordpress.org/' ) ); ?>"><?php _e( 'WordPress' ); ?></a></p>
+<p id="logo"><?php _e( 'WordPress' ); ?></p>
 	<?php
 } // End function setup_config_display_header();
 

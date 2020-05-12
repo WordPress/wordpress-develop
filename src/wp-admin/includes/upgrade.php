@@ -283,6 +283,7 @@ Commenter avatars come from <a href="https://gravatar.com">Gravatar</a>.'
 				'comment_date'         => $now,
 				'comment_date_gmt'     => $now_gmt,
 				'comment_content'      => $first_comment,
+				'comment_type'         => 'comment',
 			)
 		);
 
@@ -832,6 +833,10 @@ function upgrade_all() {
 
 	if ( $wp_current_db_version < 45744 ) {
 		upgrade_530();
+	}
+
+	if ( $wp_current_db_version < 47597 ) {
+		upgrade_550();
 	}
 
 	maybe_disable_link_manager();
@@ -1913,7 +1918,7 @@ function upgrade_400() {
 	global $wp_current_db_version;
 	if ( $wp_current_db_version < 29630 ) {
 		if ( ! is_multisite() && false === get_option( 'WPLANG' ) ) {
-			if ( defined( 'WPLANG' ) && ( '' !== WPLANG ) && in_array( WPLANG, get_available_languages() ) ) {
+			if ( defined( 'WPLANG' ) && ( '' !== WPLANG ) && in_array( WPLANG, get_available_languages(), true ) ) {
 				update_option( 'WPLANG', WPLANG );
 			} else {
 				update_option( 'WPLANG', '' );
@@ -2152,6 +2157,17 @@ function upgrade_530() {
 	if ( function_exists( 'current_user_can' ) && ! current_user_can( 'manage_options' ) ) {
 		update_option( 'admin_email_lifespan', 0 );
 	}
+}
+
+/**
+ * Executes changes made in WordPress 5.5.0.
+ *
+ * @ignore
+ * @since 5.5.0
+ */
+function upgrade_550() {
+	update_option( 'finished_updating_comment_type', 0 );
+	wp_schedule_single_event( time() + ( 1 * MINUTE_IN_SECONDS ), 'wp_update_comment_type_batch' );
 }
 
 /**
@@ -2635,7 +2651,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 	$global_tables = $wpdb->tables( 'global' );
 	foreach ( $cqueries as $table => $qry ) {
 		// Upgrade global tables only for the main site. Don't upgrade at all if conditions are not optimal.
-		if ( in_array( $table, $global_tables ) && ! wp_should_upgrade_global_tables() ) {
+		if ( in_array( $table, $global_tables, true ) && ! wp_should_upgrade_global_tables() ) {
 			unset( $cqueries[ $table ], $for_update[ $table ] );
 			continue;
 		}
@@ -2799,14 +2815,14 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 				// Is actual field type different from the field type in query?
 				if ( $tablefield->Type != $fieldtype ) {
 					$do_change = true;
-					if ( in_array( $fieldtype_lowercased, $text_fields ) && in_array( $tablefield_type_lowercased, $text_fields ) ) {
-						if ( array_search( $fieldtype_lowercased, $text_fields ) < array_search( $tablefield_type_lowercased, $text_fields ) ) {
+					if ( in_array( $fieldtype_lowercased, $text_fields, true ) && in_array( $tablefield_type_lowercased, $text_fields, true ) ) {
+						if ( array_search( $fieldtype_lowercased, $text_fields, true ) < array_search( $tablefield_type_lowercased, $text_fields, true ) ) {
 							$do_change = false;
 						}
 					}
 
-					if ( in_array( $fieldtype_lowercased, $blob_fields ) && in_array( $tablefield_type_lowercased, $blob_fields ) ) {
-						if ( array_search( $fieldtype_lowercased, $blob_fields ) < array_search( $tablefield_type_lowercased, $blob_fields ) ) {
+					if ( in_array( $fieldtype_lowercased, $blob_fields, true ) && in_array( $tablefield_type_lowercased, $blob_fields, true ) ) {
+						if ( array_search( $fieldtype_lowercased, $blob_fields, true ) < array_search( $tablefield_type_lowercased, $blob_fields, true ) ) {
 							$do_change = false;
 						}
 					}
@@ -2901,7 +2917,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 				$index_string .= " ($index_columns)";
 
 				// Check if the index definition exists, ignoring subparts.
-				$aindex = array_search( $index_string, $indices_without_subparts );
+				$aindex = array_search( $index_string, $indices_without_subparts, true );
 				if ( false !== $aindex ) {
 					// If the index already exists (even with different subparts), we don't need to create it.
 					unset( $indices_without_subparts[ $aindex ] );
@@ -3245,7 +3261,7 @@ function maybe_disable_automattic_widgets() {
 
 	foreach ( (array) $plugins as $plugin ) {
 		if ( basename( $plugin ) == 'widgets.php' ) {
-			array_splice( $plugins, array_search( $plugin, $plugins ), 1 );
+			array_splice( $plugins, array_search( $plugin, $plugins, true ), 1 );
 			update_option( 'active_plugins', $plugins );
 			break;
 		}

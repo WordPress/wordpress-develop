@@ -269,7 +269,7 @@ class WP_Http {
 			}
 		}
 
-		$arrURL = @parse_url( $url );
+		$arrURL = parse_url( $url );
 
 		if ( empty( $url ) || empty( $arrURL['scheme'] ) ) {
 			$response = new WP_Error( 'http_request_failed', __( 'A valid URL was not provided.' ) );
@@ -532,7 +532,7 @@ class WP_Http {
 
 		// Loop over each transport on each HTTP request looking for one which will serve this request's needs.
 		foreach ( $request_order as $transport ) {
-			if ( in_array( $transport, $transports ) ) {
+			if ( in_array( $transport, $transports, true ) ) {
 				$transport = ucfirst( $transport );
 			}
 			$class = 'WP_Http_' . $transport;
@@ -904,7 +904,7 @@ class WP_Http {
 		if ( ! empty( $wildcard_regex ) ) {
 			return ! preg_match( $wildcard_regex, $check['host'] );
 		} else {
-			return ! in_array( $check['host'], $accessible_hosts ); // Inverse logic, if it's in the array, then don't block it.
+			return ! in_array( $check['host'], $accessible_hosts, true ); // Inverse logic, if it's in the array, then don't block it.
 		}
 
 	}
@@ -1041,7 +1041,7 @@ class WP_Http {
 
 		// POST requests should not POST to a redirected location.
 		if ( 'POST' == $args['method'] ) {
-			if ( in_array( $response['response']['code'], array( 302, 303 ) ) ) {
+			if ( in_array( $response['response']['code'], array( 302, 303 ), true ) ) {
 				$args['method'] = 'GET';
 			}
 		}

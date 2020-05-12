@@ -424,7 +424,7 @@ function _wptexturize_pushpop_element( $text, &$stack, $disabled_elements ) {
 	$tag = substr( $text, $name_offset, $space );
 
 	// Handle disabled tags.
-	if ( in_array( $tag, $disabled_elements ) ) {
+	if ( in_array( $tag, $disabled_elements, true ) ) {
 		if ( $opening_tag ) {
 			/*
 			 * This disables texturize until we find a closing tag of our type
@@ -978,7 +978,7 @@ function _wp_specialchars( $string, $quote_style = ENT_NOQUOTES, $charset = fals
 		$charset = $_charset;
 	}
 
-	if ( in_array( $charset, array( 'utf8', 'utf-8', 'UTF8' ) ) ) {
+	if ( in_array( $charset, array( 'utf8', 'utf-8', 'UTF8' ), true ) ) {
 		$charset = 'UTF-8';
 	}
 
@@ -1123,7 +1123,7 @@ function wp_check_invalid_utf8( $string, $strip = false ) {
 	// Store the site charset as a static to avoid multiple calls to get_option().
 	static $is_utf8 = null;
 	if ( ! isset( $is_utf8 ) ) {
-		$is_utf8 = in_array( get_option( 'blog_charset' ), array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ) );
+		$is_utf8 = in_array( get_option( 'blog_charset' ), array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ), true );
 	}
 	if ( ! $is_utf8 ) {
 		return $string;
@@ -2005,6 +2005,24 @@ function remove_accents( $string ) {
 function sanitize_file_name( $filename ) {
 	$filename_raw  = $filename;
 	$special_chars = array( '?', '[', ']', '/', '\\', '=', '<', '>', ':', ';', ',', "'", '"', '&', '$', '#', '*', '(', ')', '|', '~', '`', '!', '{', '}', '%', '+', chr( 0 ) );
+
+	// Check for support for utf8 in the installed PCRE library once and store the result in a static.
+	static $utf8_pcre = null;
+	if ( ! isset( $utf8_pcre ) ) {
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		$utf8_pcre = @preg_match( '/^./u', 'a' );
+	}
+
+	if ( ! seems_utf8( $filename ) ) {
+		$_ext     = pathinfo( $filename, PATHINFO_EXTENSION );
+		$_name    = pathinfo( $filename, PATHINFO_FILENAME );
+		$filename = sanitize_title_with_dashes( $_name ) . '.' . $_ext;
+	}
+
+	if ( $utf8_pcre ) {
+		$filename = preg_replace( "#\x{00a0}#siu", ' ', $filename );
+	}
+
 	/**
 	 * Filters the list of characters to remove from a filename.
 	 *
@@ -2014,7 +2032,6 @@ function sanitize_file_name( $filename ) {
 	 * @param string   $filename_raw  The original filename to be sanitized.
 	 */
 	$special_chars = apply_filters( 'sanitize_file_name_chars', $special_chars, $filename_raw );
-	$filename      = preg_replace( "#\x{00a0}#siu", ' ', $filename );
 	$filename      = str_replace( $special_chars, '', $filename );
 	$filename      = str_replace( array( '%20', '+' ), '-', $filename );
 	$filename      = preg_replace( '/[\r\n\t -]+/', '-', $filename );
@@ -2876,8 +2893,9 @@ function _make_web_ftp_clickable_cb( $matches ) {
 	$dest = 'http://' . $dest;
 
 	// Removed trailing [.,;:)] from URL.
-	if ( in_array( substr( $dest, -1 ), array( '.', ',', ';', ':', ')' ) ) === true ) {
-		$ret  = substr( $dest, -1 );
+	$last_char = substr( $dest, -1 );
+	if ( in_array( $last_char, array( '.', ',', ';', ':', ')' ), true ) === true ) {
+		$ret  = $last_char;
 		$dest = substr( $dest, 0, strlen( $dest ) - 1 );
 	}
 
@@ -3305,7 +3323,7 @@ function translate_smiley( $matches ) {
 	$image_exts = array( 'jpg', 'jpeg', 'jpe', 'gif', 'png' );
 
 	// Don't convert smilies that aren't images - they're probably emoji.
-	if ( ! in_array( $ext, $image_exts ) ) {
+	if ( ! in_array( $ext, $image_exts, true ) ) {
 		return $img;
 	}
 
@@ -3499,7 +3517,7 @@ function _wp_iso_convert( $match ) {
 }
 
 /**
- * Given a date in the timezone of the site, returns that date in UTC timezone.
+ * Given a date in the timezone of the site, returns that date in UTC.
  *
  * Requires and returns a date in the Y-m-d H:i:s format.
  * Return format can be overridden using the $format parameter.
@@ -3508,7 +3526,7 @@ function _wp_iso_convert( $match ) {
  *
  * @param string $string The date to be converted, in the timezone of the site.
  * @param string $format The format string for the returned date. Default 'Y-m-d H:i:s'.
- * @return string Formatted version of the date, in UTC timezone.
+ * @return string Formatted version of the date, in UTC.
  */
 function get_gmt_from_date( $string, $format = 'Y-m-d H:i:s' ) {
 	$datetime = date_create( $string, wp_timezone() );
@@ -3521,14 +3539,14 @@ function get_gmt_from_date( $string, $format = 'Y-m-d H:i:s' ) {
 }
 
 /**
- * Given a date in UTC timezone, returns that date in the timezone of the site.
+ * Given a date in UTC or GMT timezone, returns that date in the timezone of the site.
  *
  * Requires and returns a date in the Y-m-d H:i:s format.
  * Return format can be overridden using the $format parameter.
  *
  * @since 1.2.0
  *
- * @param string $string The date to be converted, in UTC timezone.
+ * @param string $string The date to be converted, in UTC or GMT timezone.
  * @param string $format The format string for the returned date. Default 'Y-m-d H:i:s'.
  * @return string Formatted version of the date, in the site's timezone.
  */
@@ -3543,7 +3561,7 @@ function get_date_from_gmt( $string, $format = 'Y-m-d H:i:s' ) {
 }
 
 /**
- * Computes an offset in seconds from an iso8601 timezone.
+ * Given an ISO 8601 timezone, returns its UTC offset in seconds.
  *
  * @since 1.5.0
  *
@@ -3564,7 +3582,7 @@ function iso8601_timezone_to_offset( $timezone ) {
 }
 
 /**
- * Converts an iso8601 (Ymd\TH:i:sO) date to MySQL DateTime (Y-m-d H:i:s) format used by post_date[_gmt].
+ * Given an ISO 8601 (Ymd\TH:i:sO) date, returns a MySQL DateTime (Y-m-d H:i:s) format used by post_date[_gmt].
  *
  * @since 1.5.0
  *
@@ -4282,9 +4300,9 @@ function esc_sql( $data ) {
  *
  * @param string   $url       The URL to be cleaned.
  * @param string[] $protocols Optional. An array of acceptable protocols.
- *                            Defaults to return value of wp_allowed_protocols()
+ *                            Defaults to return value of wp_allowed_protocols().
  * @param string   $_context  Private. Use esc_url_raw() for database usage.
- * @return string The cleaned $url after the {@see 'clean_url'} filter is applied.
+ * @return string The cleaned URL after the {@see 'clean_url'} filter is applied.
  */
 function esc_url( $url, $protocols = null, $_context = 'display' ) {
 	$original_url = $url;
@@ -4311,7 +4329,7 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
 	 * it needs http:// prepended (unless it's a relative link
 	 * starting with /, # or ?, or a PHP file).
 	 */
-	if ( strpos( $url, ':' ) === false && ! in_array( $url[0], array( '/', '#', '?' ) ) &&
+	if ( strpos( $url, ':' ) === false && ! in_array( $url[0], array( '/', '#', '?' ), true ) &&
 		! preg_match( '/^[a-z0-9-]+?\.php/i', $url ) ) {
 		$url = 'http://' . $url;
 	}
@@ -4390,7 +4408,8 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
  * @since 2.8.0
  *
  * @param string   $url       The URL to be cleaned.
- * @param string[] $protocols An array of acceptable protocols.
+ * @param string[] $protocols Optional. An array of acceptable protocols.
+ *                            Defaults to return value of wp_allowed_protocols().
  * @return string The cleaned URL.
  */
 function esc_url_raw( $url, $protocols = null ) {
@@ -4715,7 +4734,7 @@ function sanitize_option( $option, $value ) {
 			if ( ! is_multisite() && defined( 'WPLANG' ) && '' !== WPLANG && 'en_US' !== WPLANG ) {
 				$allowed[] = WPLANG;
 			}
-			if ( ! in_array( $value, $allowed ) && ! empty( $value ) ) {
+			if ( ! in_array( $value, $allowed, true ) && ! empty( $value ) ) {
 				$value = get_option( $option );
 			}
 			break;
@@ -4763,7 +4782,7 @@ function sanitize_option( $option, $value ) {
 
 		case 'timezone_string':
 			$allowed_zones = timezone_identifiers_list();
-			if ( ! in_array( $value, $allowed_zones ) && ! empty( $value ) ) {
+			if ( ! in_array( $value, $allowed_zones, true ) && ! empty( $value ) ) {
 				$error = __( 'The timezone you have entered is not valid. Please select a valid timezone.' );
 			}
 			break;
@@ -5145,7 +5164,7 @@ function _links_add_base( $m ) {
 	global $_links_add_base;
 	// 1 = attribute name  2 = quotation mark  3 = URL.
 	return $m[1] . '=' . $m[2] .
-		( preg_match( '#^(\w{1,20}):#', $m[3], $protocol ) && in_array( $protocol[1], wp_allowed_protocols() ) ?
+		( preg_match( '#^(\w{1,20}):#', $m[3], $protocol ) && in_array( $protocol[1], wp_allowed_protocols(), true ) ?
 			$m[3] :
 			WP_Http::make_absolute_url( $m[3], $_links_add_base )
 		)

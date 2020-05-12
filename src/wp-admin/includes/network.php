@@ -135,7 +135,7 @@ function network_step1( $errors = false ) {
 
 	$hostname  = get_clean_basedomain();
 	$has_ports = strstr( $hostname, ':' );
-	if ( ( false !== $has_ports && ! in_array( $has_ports, array( ':80', ':443' ) ) ) ) {
+	if ( ( false !== $has_ports && ! in_array( $has_ports, array( ':80', ':443' ), true ) ) ) {
 		echo '<div class="error"><p><strong>' . __( 'Error:' ) . '</strong> ' . __( 'You cannot install a network of sites with your server address.' ) . '</p></div>';
 		echo '<p>' . sprintf(
 			/* translators: %s: Port number. */
@@ -162,14 +162,14 @@ function network_step1( $errors = false ) {
 		$error_codes = $errors->get_error_codes();
 	}
 
-	if ( ! empty( $_POST['sitename'] ) && ! in_array( 'empty_sitename', $error_codes ) ) {
+	if ( ! empty( $_POST['sitename'] ) && ! in_array( 'empty_sitename', $error_codes, true ) ) {
 		$site_name = $_POST['sitename'];
 	} else {
 		/* translators: %s: Default network title. */
 		$site_name = sprintf( __( '%s Sites' ), get_option( 'blogname' ) );
 	}
 
-	if ( ! empty( $_POST['email'] ) && ! in_array( 'invalid_email', $error_codes ) ) {
+	if ( ! empty( $_POST['email'] ) && ! in_array( 'invalid_email', $error_codes, true ) ) {
 		$admin_email = $_POST['email'];
 	} else {
 		$admin_email = get_option( 'admin_email' );
@@ -378,12 +378,13 @@ function network_step1( $errors = false ) {
  *
  * @since 3.0.0
  *
- * @global wpdb $wpdb WordPress database abstraction object.
+ * @global wpdb $wpdb     WordPress database abstraction object.
+ * @global bool $is_nginx Whether the server software is Nginx or something else.
  *
  * @param WP_Error $errors
  */
 function network_step2( $errors = false ) {
-	global $wpdb;
+	global $wpdb, $is_nginx;
 
 	$hostname          = get_clean_basedomain();
 	$slashed_home      = trailingslashit( get_option( 'home' ) );
@@ -616,7 +617,17 @@ define('BLOG_ID_CURRENT_SITE', 1);
 	</ol>
 
 		<?php
-	else : // End iis7_supports_permalinks(). Construct an .htaccess file instead:
+	elseif ( $is_nginx ) : // End iis7_supports_permalinks(). Link to Nginx documentation instead:
+
+		echo '<li><p>';
+		printf(
+			/* translators: %s: Documentation URL. */
+			__( 'It seems your network is running with Nginx web server. <a href="%s">Learn more about further configuration</a>.' ),
+			__( 'https://wordpress.org/support/article/nginx/' )
+		);
+		echo '</p></li>';
+
+	else : // End $is_nginx. Construct an .htaccess file instead:
 
 		$ms_files_rewriting = '';
 		if ( is_multisite() && get_site_option( 'ms_files_rewriting' ) ) {
@@ -658,7 +669,7 @@ EOF;
 	</ol>
 
 		<?php
-	endif; // End IIS/Apache code branches.
+	endif; // End IIS/Nginx/Apache code branches.
 
 	if ( ! is_multisite() ) {
 		?>

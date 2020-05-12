@@ -25,13 +25,11 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 	<div class="about__header">
 		<div class="about__header-title">
-			<h1>
-				<span><?php echo $display_version; ?></span>
+			<p>
 				<?php _e( 'WordPress' ); ?>
-			</h1>
+				<span><?php echo $display_version; ?></span>
+			</p>
 		</div>
-
-		<div class="about__header-badge"></div>
 
 		<div class="about__header-text">
 			<p>
@@ -48,7 +46,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	</div>
 
 	<div class="about__section has-subtle-background-color is-feature">
-		<h2><?php _e( 'Freedoms' ); ?></h2>
+		<h1><?php _e( 'Freedoms' ); ?></h1>
 
 		<p class="about-description">
 		<?php
@@ -66,25 +64,27 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<div class="about__section has-4-columns">
 		<div class="column">
 			<div class="freedoms-image"></div>
-			<h3><?php _e( 'The 1st Freedom' ); ?></h3>
+			<h2 class="is-smaller-heading"><?php _e( 'The 1st Freedom' ); ?></h2>
 			<p><?php _e( 'To run the program for any purpose.' ); ?></p>
 		</div>
 		<div class="column">
 			<div class="freedoms-image"></div>
-			<h3><?php _e( 'The 2nd Freedom' ); ?></h3>
+			<h2 class="is-smaller-heading"><?php _e( 'The 2nd Freedom' ); ?></h2>
 			<p><?php _e( 'To study how the program works and change it to make it do what you wish.' ); ?></p>
 		</div>
 		<div class="column">
 			<div class="freedoms-image"></div>
-			<h3><?php _e( 'The 3rd Freedom' ); ?></h3>
+			<h2 class="is-smaller-heading"><?php _e( 'The 3rd Freedom' ); ?></h2>
 			<p><?php _e( 'To redistribute.' ); ?></p>
 		</div>
 		<div class="column">
 			<div class="freedoms-image"></div>
-			<h3><?php _e( 'The 4th Freedom' ); ?></h3>
+			<h2 class="is-smaller-heading"><?php _e( 'The 4th Freedom' ); ?></h2>
 			<p><?php _e( 'To distribute copies of your modified versions to others.' ); ?></p>
 		</div>
 	</div>
+
+	<hr />
 
 	<div class="about__section">
 		<div class="column">

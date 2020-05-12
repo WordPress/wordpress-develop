@@ -138,6 +138,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	function test_wp_normalize_path( $path, $expected ) {
 		$this->assertEquals( $expected, wp_normalize_path( $path ) );
 	}
+
 	function data_wp_normalize_path() {
 		return array(
 			// Windows paths.
@@ -220,54 +221,119 @@ class Tests_Functions extends WP_UnitTestCase {
 		return $upload_dir;
 	}
 
-	function test_is_serialized() {
-		$cases = array(
-			serialize( null ),
-			serialize( true ),
-			serialize( false ),
-			serialize( -25 ),
-			serialize( 25 ),
-			serialize( 1.1 ),
-			serialize( 'this string will be serialized' ),
-			serialize( "a\nb" ),
-			serialize( array() ),
-			serialize( array( 1, 1, 2, 3, 5, 8, 13 ) ),
-			serialize(
-				(object) array(
-					'test' => true,
-					'3',
-					4,
-				)
-			),
-		);
-
-		foreach ( $cases as $case ) {
-			$this->assertTrue( is_serialized( $case ), "Serialized data: $case" );
+	/**
+	 * @dataProvider data_is_not_serialized
+	 */
+	function test_maybe_serialize( $value ) {
+		if ( is_array( $value ) || is_object( $value ) ) {
+			$expected = serialize( $value );
+		} else {
+			$expected = $value;
 		}
 
-		$not_serialized = array(
-			'a string',
-			'garbage:a:0:garbage;',
-			's:4:test;',
-		);
+		$this->assertSame( $expected, maybe_serialize( $value ) );
+	}
 
-		foreach ( $not_serialized as $case ) {
-			$this->assertFalse( is_serialized( $case ), "Test data: $case" );
+	/**
+	 * @dataProvider data_is_serialized
+	 */
+	function test_maybe_serialize_with_double_serialization( $value ) {
+		$expected = serialize( $value );
+
+		$this->assertSame( $expected, maybe_serialize( $value ) );
+	}
+
+	/**
+	 * @dataProvider data_is_serialized
+	 * @dataProvider data_is_not_serialized
+	 */
+	function test_maybe_unserialize( $value, $is_serialized ) {
+		if ( $is_serialized ) {
+			$expected = unserialize( trim( $value ) );
+		} else {
+			$expected = $value;
+		}
+
+		if ( is_object( $expected ) ) {
+			$this->assertEquals( $expected, maybe_unserialize( $value ) );
+		} else {
+			$this->assertSame( $expected, maybe_unserialize( $value ) );
 		}
 	}
 
 	/**
-	 * @ticket 46570
+	 * @dataProvider data_is_serialized
+	 * @dataProvider data_is_not_serialized
 	 */
-	function test_is_serialized_should_return_true_for_large_floats() {
-		$cases = array(
-			serialize( 1.7976931348623157E+308 ),
-			serialize( array( 1.7976931348623157E+308, 1.23e50 ) ),
-		);
+	function test_is_serialized( $value, $expected ) {
+		$this->assertSame( $expected, is_serialized( $value ) );
+	}
 
-		foreach ( $cases as $case ) {
-			$this->assertTrue( is_serialized( $case ), "Serialized data: $case" );
-		}
+	function data_is_serialized() {
+		return array(
+			array( serialize( null ), true ),
+			array( serialize( true ), true ),
+			array( serialize( false ), true ),
+			array( serialize( -25 ), true ),
+			array( serialize( 25 ), true ),
+			array( serialize( 1.1 ), true ),
+			array( serialize( 'this string will be serialized' ), true ),
+			array( serialize( "a\nb" ), true ),
+			array( serialize( array() ), true ),
+			array( serialize( array( 1, 1, 2, 3, 5, 8, 13 ) ), true ),
+			array(
+				serialize(
+					(object) array(
+						'test' => true,
+						'3',
+						4,
+					)
+				),
+				true,
+			),
+			array( '   s:25:"this string is serialized";   ', true ),
+		);
+	}
+
+	function data_is_not_serialized() {
+		return array(
+			array( null, false ),
+			array( true, false ),
+			array( false, false ),
+			array( -25, false ),
+			array( 25, false ),
+			array( 1.1, false ),
+			array( 'this string will be serialized', false ),
+			array( "a\nb", false ),
+			array( array(), false ),
+			array( array( 1, 1, 2, 3, 5, 8, 13 ), false ),
+			array(
+				(object) array(
+					'test' => true,
+					'3',
+					4,
+				),
+				false,
+			),
+			array( 'a string', false ),
+			array( 'garbage:a:0:garbage;', false ),
+			array( 's:4:test;', false ),
+		);
+	}
+
+	/**
+	 * @ticket 46570
+	 * @dataProvider data_is_serialized_should_return_true_for_large_floats
+	 */
+	function test_is_serialized_should_return_true_for_large_floats( $value ) {
+		$this->assertTrue( is_serialized( $value ) );
+	}
+
+	function data_is_serialized_should_return_true_for_large_floats() {
+		return array(
+			array( serialize( 1.7976931348623157E+308 ) ),
+			array( serialize( array( 1.7976931348623157E+308, 1.23e50 ) ) ),
+		);
 	}
 
 	/**
@@ -276,7 +342,6 @@ class Tests_Functions extends WP_UnitTestCase {
 	function test_no_new_serializable_types() {
 		$this->assertFalse( is_serialized( 'C:16:"Serialized_Class":6:{a:0:{}}' ) );
 	}
-
 
 	/**
 	 * @group add_query_arg

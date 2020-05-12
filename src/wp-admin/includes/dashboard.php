@@ -195,7 +195,7 @@ function wp_add_dashboard_widget( $widget_id, $widget_name, $callback, $control_
 	$side_widgets = array( 'dashboard_quick_press', 'dashboard_primary' );
 
 	$location = 'normal';
-	if ( in_array( $widget_id, $side_widgets ) ) {
+	if ( in_array( $widget_id, $side_widgets, true ) ) {
 		$location = 'side';
 	}
 
@@ -519,7 +519,7 @@ function wp_dashboard_quick_press( $error_msg = false ) {
 		$post    = get_default_post_to_edit( 'post', true );
 		$user_id = get_current_user_id();
 		// Don't create an option if this is a super admin who does not belong to this site.
-		if ( in_array( get_current_blog_id(), array_keys( get_blogs_of_user( $user_id ) ) ) ) {
+		if ( in_array( get_current_blog_id(), array_keys( get_blogs_of_user( $user_id ) ), true ) ) {
 			update_user_option( $user_id, 'dashboard_quick_press_last_post_id', (int) $post->ID ); // Save post_ID.
 		}
 	}
@@ -890,7 +890,6 @@ function wp_dashboard_site_activity() {
 
 	if ( ! $future_posts && ! $recent_posts && ! $recent_comments ) {
 		echo '<div class="no-activity">';
-		echo '<p class="smiley" aria-hidden="true"></p>';
 		echo '<p>' . __( 'No activity yet!' ) . '</p>';
 		echo '</div>';
 	}

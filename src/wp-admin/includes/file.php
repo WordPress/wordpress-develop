@@ -550,6 +550,13 @@ function wp_edit_theme_plugin_file( $args ) {
 		} else {
 			$url = admin_url();
 		}
+
+		if ( PHP_SESSION_ACTIVE === session_status() ) {
+			// Close any active session to prevent HTTP requests from timing out
+			// when attempting to connect back to the site.
+			session_write_close();
+		}
+
 		$url                    = add_query_arg( $scrape_params, $url );
 		$r                      = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
 		$body                   = wp_remote_retrieve_body( $r );
@@ -1208,7 +1215,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 	}
 
 	// Check we can process signatures.
-	if ( ! function_exists( 'sodium_crypto_sign_verify_detached' ) || ! in_array( 'sha384', array_map( 'strtolower', hash_algos() ) ) ) {
+	if ( ! function_exists( 'sodium_crypto_sign_verify_detached' ) || ! in_array( 'sha384', array_map( 'strtolower', hash_algos() ), true ) ) {
 		return new WP_Error(
 			'signature_verification_unsupported',
 			sprintf(
@@ -1533,7 +1540,7 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 		}
 
 		$parent_folder = dirname( $dir );
-		while ( ! empty( $parent_folder ) && untrailingslashit( $to ) != $parent_folder && ! in_array( $parent_folder, $needed_dirs ) ) {
+		while ( ! empty( $parent_folder ) && untrailingslashit( $to ) != $parent_folder && ! in_array( $parent_folder, $needed_dirs, true ) ) {
 			$needed_dirs[] = $parent_folder;
 			$parent_folder = dirname( $parent_folder );
 		}
@@ -1659,7 +1666,7 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 		}
 
 		$parent_folder = dirname( $dir );
-		while ( ! empty( $parent_folder ) && untrailingslashit( $to ) != $parent_folder && ! in_array( $parent_folder, $needed_dirs ) ) {
+		while ( ! empty( $parent_folder ) && untrailingslashit( $to ) != $parent_folder && ! in_array( $parent_folder, $needed_dirs, true ) ) {
 			$needed_dirs[] = $parent_folder;
 			$parent_folder = dirname( $parent_folder );
 		}
@@ -1917,7 +1924,7 @@ function get_filesystem_method( $args = array(), $context = '', $allow_relaxed_f
 		}
 	}
 
-	if ( ! $method && isset( $args['connection_type'] ) && 'ssh' == $args['connection_type'] && extension_loaded( 'ssh2' ) && function_exists( 'stream_get_contents' ) ) {
+	if ( ! $method && isset( $args['connection_type'] ) && 'ssh' == $args['connection_type'] && extension_loaded( 'ssh2' ) ) {
 		$method = 'ssh2';
 	}
 	if ( ! $method && extension_loaded( 'ftp' ) ) {
@@ -2087,7 +2094,7 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 	$connection_type = isset( $credentials['connection_type'] ) ? $credentials['connection_type'] : '';
 
 	if ( $error ) {
-		$error_string = __( '<strong>Error</strong>: There was an error connecting to the server, Please verify the settings are correct.' );
+		$error_string = __( '<strong>Error</strong>: There was an error connecting to the server. Please verify the settings are correct.' );
 		if ( is_wp_error( $error ) ) {
 			$error_string = esc_html( $error->get_error_message() );
 		}
@@ -2101,7 +2108,7 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 	if ( extension_loaded( 'ftp' ) ) { // Only this supports FTPS.
 		$types['ftps'] = __( 'FTPS (SSL)' );
 	}
-	if ( extension_loaded( 'ssh2' ) && function_exists( 'stream_get_contents' ) ) {
+	if ( extension_loaded( 'ssh2' ) ) {
 		$types['ssh'] = __( 'SSH2' );
 	}
 

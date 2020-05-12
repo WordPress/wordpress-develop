@@ -28,6 +28,7 @@ wp-tests-config.php
 /src/wp-includes/css/dist
 /src/wp-includes/css/*.min.css
 /src/wp-includes/css/*-rtl.css
+/packagehash.txt
 
 # Files and folders that get created in wp-content
 /src/wp-content/blogs.dir

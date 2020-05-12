@@ -371,7 +371,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 				's'       => 'cat',
 			)
 		);
-		$this->assertEquals( 1, count( $results ) );
+		$this->assertCount( 2, $results ); // Category terms Cats Drool and Uncategorized.
 		$count = $this->filter_count_customize_nav_menu_searched_items;
 		add_filter( 'customize_nav_menu_searched_items', array( $this, 'filter_search' ), 10, 2 );
 		$results = $menus->search_available_items_query(
@@ -382,7 +382,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		);
 		$this->assertEquals( $count + 1, $this->filter_count_customize_nav_menu_searched_items );
 		$this->assertInternalType( 'array', $results );
-		$this->assertEquals( 2, count( $results ) );
+		$this->assertCount( 3, $results );
 		remove_filter( 'customize_nav_menu_searched_items', array( $this, 'filter_search' ), 10 );
 
 		// Test home.
@@ -396,6 +396,53 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		$this->assertCount( 1, $results );
 		$this->assertEquals( 'home', $results[0]['id'] );
 		$this->assertEquals( 'custom', $results[0]['type'] );
+	}
+
+	/*
+	 * Tests that the search_available_items_query method should return term items
+	 * not assigned to any posts.
+	 *
+	 * @ticket 45298
+	 */
+	public function test_search_available_items_query_should_return_unassigned_term_items() {
+		$menus = new WP_Customize_Nav_Menus( $this->wp_customize );
+
+		register_taxonomy(
+			'wptests_tax',
+			'post',
+			array(
+				'labels' => array(
+					'name' => 'Tests Taxonomy',
+				),
+			)
+		);
+
+		$term_id = $this->factory->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'foobar',
+			)
+		);
+
+		// Expected menu item array.
+		$expected = array(
+			'title'      => 'foobar',
+			'id'         => "term-{$term_id}",
+			'type'       => 'taxonomy',
+			'type_label' => 'Tests Taxonomy',
+			'object'     => 'wptests_tax',
+			'object_id'  => intval( $term_id ),
+			'url'        => get_term_link( intval( $term_id ), '' ),
+		);
+
+		$results = $menus->search_available_items_query(
+			array(
+				'pagenum' => 1,
+				's'       => 'foo',
+			)
+		);
+
+		$this->assertEqualSets( $expected, $results[0] );
 	}
 
 	/**

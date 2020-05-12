@@ -561,6 +561,48 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure inclusion of deeply nested fields may be controlled with request['_fields'].
+	 *
+	 * @ticket 49648
+	 */
+	public function test_rest_filter_response_fields_deeply_nested_field_filter() {
+		$response = new WP_REST_Response();
+
+		$response->set_data(
+			array(
+				'field' => array(
+					'a' => array(
+						'i'  => 'value i',
+						'ii' => 'value ii',
+					),
+					'b' => array(
+						'iii' => 'value iii',
+						'iv'  => 'value iv',
+					),
+				),
+			)
+		);
+		$request = array(
+			'_fields' => 'field.a.i,field.b.iv',
+		);
+
+		$response = rest_filter_response_fields( $response, null, $request );
+		$this->assertEquals(
+			array(
+				'field' => array(
+					'a' => array(
+						'i' => 'value i',
+					),
+					'b' => array(
+						'iv' => 'value iv',
+					),
+				),
+			),
+			$response->get_data()
+		);
+	}
+
+	/**
 	 * Ensure that specifying a single top-level key in _fields includes that field and all children.
 	 *
 	 * @ticket 48266
@@ -931,6 +973,326 @@ class Tests_REST_API extends WP_UnitTestCase {
 			array( array( 'https://api.w.org/term' ), 'https://api.w.org/term' ),
 			array( array( 'https://api.w.org/term', 'https://api.w.org/attachment' ), 'https://api.w.org/term,https://api.w.org/attachment' ),
 			array( array( 'https://api.w.org/term', 'https://api.w.org/attachment' ), array( 'https://api.w.org/term', 'https://api.w.org/attachment' ) ),
+		);
+	}
+
+	/**
+	 * @ticket 48819
+	 *
+	 * @dataProvider _dp_rest_filter_response_by_context
+	 */
+	public function test_rest_filter_response_by_context( $schema, $data, $expected ) {
+		$this->assertEquals( $expected, rest_filter_response_by_context( $data, $schema, 'view' ) );
+	}
+
+	public function _dp_rest_filter_response_by_context() {
+		return array(
+			'default'                => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'first'  => array(
+							'type'    => 'string',
+							'context' => array( 'view', 'edit' ),
+						),
+						'second' => array(
+							'type'    => 'string',
+							'context' => array( 'edit' ),
+						),
+					),
+				),
+				array(
+					'first'  => 'a',
+					'second' => 'b',
+				),
+				array( 'first' => 'a' ),
+			),
+			'keeps missing context'  => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'first'  => array(
+							'type'    => 'string',
+							'context' => array( 'view', 'edit' ),
+						),
+						'second' => array(
+							'type' => 'string',
+						),
+					),
+				),
+				array(
+					'first'  => 'a',
+					'second' => 'b',
+				),
+				array(
+					'first'  => 'a',
+					'second' => 'b',
+				),
+			),
+			'removes empty context'  => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'first'  => array(
+							'type'    => 'string',
+							'context' => array( 'view', 'edit' ),
+						),
+						'second' => array(
+							'type'    => 'string',
+							'context' => array(),
+						),
+					),
+				),
+				array(
+					'first'  => 'a',
+					'second' => 'b',
+				),
+				array( 'first' => 'a' ),
+			),
+			'nested properties'      => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'parent' => array(
+							'type'       => 'object',
+							'context'    => array( 'view', 'edit' ),
+							'properties' => array(
+								'child'  => array(
+									'type'    => 'string',
+									'context' => array( 'view', 'edit' ),
+								),
+								'hidden' => array(
+									'type'    => 'string',
+									'context' => array( 'edit' ),
+								),
+							),
+						),
+					),
+				),
+				array(
+					'parent' => array(
+						'child'  => 'hi',
+						'hidden' => 'there',
+					),
+				),
+				array( 'parent' => array( 'child' => 'hi' ) ),
+			),
+			'grand child properties' => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'parent' => array(
+							'type'       => 'object',
+							'context'    => array( 'view', 'edit' ),
+							'properties' => array(
+								'child' => array(
+									'type'       => 'object',
+									'context'    => array( 'view', 'edit' ),
+									'properties' => array(
+										'grand'  => array(
+											'type'    => 'string',
+											'context' => array( 'view', 'edit' ),
+										),
+										'hidden' => array(
+											'type'    => 'string',
+											'context' => array( 'edit' ),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+				array(
+					'parent' => array(
+						'child' => array(
+							'grand' => 'hi',
+						),
+					),
+				),
+				array( 'parent' => array( 'child' => array( 'grand' => 'hi' ) ) ),
+			),
+			'array'                  => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'arr' => array(
+							'type'    => 'array',
+							'context' => array( 'view', 'edit' ),
+							'items'   => array(
+								'type'       => 'object',
+								'context'    => array( 'view', 'edit' ),
+								'properties' => array(
+									'visible' => array(
+										'type'    => 'string',
+										'context' => array( 'view', 'edit' ),
+									),
+									'hidden'  => array(
+										'type'    => 'string',
+										'context' => array( 'edit' ),
+									),
+								),
+							),
+						),
+					),
+				),
+				array(
+					'arr' => array(
+						array(
+							'visible' => 'hi',
+							'hidden'  => 'there',
+						),
+					),
+				),
+				array( 'arr' => array( array( 'visible' => 'hi' ) ) ),
+			),
+			'additional properties'  => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'additional' => array(
+							'type'                 => 'object',
+							'context'              => array( 'view', 'edit' ),
+							'properties'           => array(
+								'a' => array(
+									'type'    => 'string',
+									'context' => array( 'view', 'edit' ),
+								),
+								'b' => array(
+									'type'    => 'string',
+									'context' => array( 'edit' ),
+								),
+							),
+							'additionalProperties' => array(
+								'type'    => 'string',
+								'context' => array( 'edit' ),
+							),
+						),
+					),
+				),
+				array(
+					'additional' => array(
+						'a' => '1',
+						'b' => '2',
+						'c' => '3',
+					),
+				),
+				array( 'additional' => array( 'a' => '1' ) ),
+			),
+			'multiple types object'  => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'multi' => array(
+							'type'       => array( 'object', 'string' ),
+							'context'    => array( 'view', 'edit' ),
+							'properties' => array(
+								'a' => array(
+									'type'    => 'string',
+									'context' => array( 'view', 'edit' ),
+								),
+								'b' => array(
+									'type'    => 'string',
+									'context' => array( 'edit' ),
+								),
+							),
+						),
+					),
+				),
+				array(
+					'multi' => array(
+						'a' => '1',
+						'b' => '2',
+					),
+				),
+				array( 'multi' => array( 'a' => '1' ) ),
+			),
+			'multiple types array'   => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'multi' => array(
+							'type'    => array( 'array', 'string' ),
+							'context' => array( 'view', 'edit' ),
+							'items'   => array(
+								'type'       => 'object',
+								'context'    => array( 'view', 'edit' ),
+								'properties' => array(
+									'visible' => array(
+										'type'    => 'string',
+										'context' => array( 'view', 'edit' ),
+									),
+									'hidden'  => array(
+										'type'    => 'string',
+										'context' => array( 'edit' ),
+									),
+								),
+							),
+						),
+					),
+				),
+				array(
+					'multi' => array(
+						array(
+							'visible' => '1',
+							'hidden'  => '2',
+						),
+					),
+				),
+				array( 'multi' => array( array( 'visible' => '1' ) ) ),
+			),
+			'grand child properties does not traverses missing context' => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'parent' => array(
+							'type'       => 'object',
+							'context'    => array( 'view', 'edit' ),
+							'properties' => array(
+								'child' => array(
+									'type'       => 'object',
+									'properties' => array(
+										'grand'  => array(
+											'type'    => 'string',
+											'context' => array( 'view', 'edit' ),
+										),
+										'hidden' => array(
+											'type'    => 'string',
+											'context' => array( 'edit' ),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+				array(
+					'parent' => array(
+						'child' => array(
+							'grand'  => 'hi',
+							'hidden' => 'there',
+						),
+					),
+				),
+				array(
+					'parent' => array(
+						'child' => array(
+							'grand'  => 'hi',
+							'hidden' => 'there',
+						),
+					),
+				),
+			),
 		);
 	}
 }

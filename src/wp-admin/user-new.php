@@ -427,7 +427,7 @@ if ( is_multisite() && current_user_can( 'promote_users' ) ) {
 			<label for="adduser-noconfirmation"><?php _e( 'Add the user without sending an email that requires their confirmation.' ); ?></label>
 		</td>
 	</tr>
-<?php } ?>
+	<?php } ?>
 </table>
 	<?php
 	/**
@@ -498,6 +498,33 @@ if ( current_user_can( 'create_users' ) ) {
 		<th scope="row"><label for="url"><?php _e( 'Website' ); ?></label></th>
 		<td><input name="url" type="url" id="url" class="code" value="<?php echo esc_attr( $new_user_uri ); ?>" /></td>
 	</tr>
+		<?php
+		$languages = get_available_languages();
+		if ( $languages ) :
+			?>
+		<tr class="form-field user-language-wrap">
+			<th scope="row">
+				<label for="locale">
+					<?php /* translators: The user language selection field label. */ ?>
+					<?php _e( 'Language' ); ?><span class="dashicons dashicons-translation" aria-hidden="true"></span>
+				</label>
+			</th>
+			<td>
+				<?php
+				wp_dropdown_languages(
+					array(
+						'name'                        => 'locale',
+						'id'                          => 'locale',
+						'selected'                    => 'site-default',
+						'languages'                   => $languages,
+						'show_available_translations' => false,
+						'show_option_site_default'    => true,
+					)
+				);
+				?>
+			</td>
+		</tr>
+		<?php endif; ?>
 	<tr class="form-field form-required user-pass1-wrap">
 		<th scope="row">
 			<label for="pass1">
@@ -547,7 +574,7 @@ if ( current_user_can( 'create_users' ) ) {
 			<label for="send_user_notification"><?php _e( 'Send the new user an email about their account.' ); ?></label>
 		</td>
 	</tr>
-<?php } // End if ! is_multisite(). ?>
+	<?php } // End if ! is_multisite(). ?>
 	<tr class="form-field">
 		<th scope="row"><label for="role"><?php _e( 'Role' ); ?></label></th>
 		<td><select name="role" id="role">

@@ -67,18 +67,9 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 		);
 
 		add_theme_support( 'post-thumbnails' );
-		$this->assertTrue( current_theme_supports( 'post-thumbnails', 'book' ) );
+		$this->assertTrue( current_theme_supports( 'post-thumbnails', 'any-type' ) );
 
 		// Reset post-thumbnails theme support.
-		remove_theme_support( 'post-thumbnails' );
-		$this->assertFalse( current_theme_supports( 'post-thumbnails' ) );
-	}
-
-	public function test_post_thumbnails_types_true() {
-		// array of arguments, with the key of 'types' holding the post types.
-		add_theme_support( 'post-thumbnails', array( 'types' => true ) );
-		$this->assertTrue( current_theme_supports( 'post-thumbnails' ) );
-		$this->assertTrue( current_theme_supports( 'post-thumbnails', rand_str() ) ); // Any type.
 		remove_theme_support( 'post-thumbnails' );
 		$this->assertFalse( current_theme_supports( 'post-thumbnails' ) );
 	}

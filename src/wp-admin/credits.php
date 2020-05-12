@@ -22,13 +22,11 @@ $credits = wp_credits();
 
 	<div class="about__header">
 		<div class="about__header-title">
-			<h1>
-				<span><?php echo $display_version; ?></span>
+			<p>
 				<?php _e( 'WordPress' ); ?>
-			</h1>
+				<span><?php echo $display_version; ?></span>
+			</p>
 		</div>
-
-		<div class="about__header-badge"></div>
 
 		<div class="about__header-text">
 			<p>
@@ -44,32 +42,43 @@ $credits = wp_credits();
 		</nav>
 	</div>
 
-	<div class="about__section">
+	<div class="about__section is-feature">
 		<div class="column">
-			<h2><?php _e( 'WordPress is created by a worldwide team of passionate individuals.' ); ?></h2>
+			<h1><?php _e( 'Credits' ); ?></h1>
+
+			<?php if ( ! $credits ) : ?>
 
 			<p>
 				<?php
-				if ( ! $credits ) {
-					printf(
-						/* translators: 1: https://wordpress.org/about/, 2: https://make.wordpress.org/ */
-						__( 'WordPress is created by a <a href="%1$s">worldwide team</a> of passionate individuals. <a href="%2$s">Get involved in WordPress</a>.' ),
-						__( 'https://wordpress.org/about/' ),
-						__( 'https://make.wordpress.org/' )
-					);
-				} else {
-					printf(
-						/* translators: %s: https://make.wordpress.org/ */
-						__( 'Want to see your name in lights on this page? <a href="%s">Get involved in WordPress</a>.' ),
-						__( 'https://make.wordpress.org/' )
-					);
-				}
+				printf(
+					/* translators: 1: https://wordpress.org/about/, 2: https://make.wordpress.org/ */
+					__( 'WordPress is created by a <a href="%1$s">worldwide team</a> of passionate individuals. <a href="%2$s">Get involved in WordPress</a>.' ),
+					__( 'https://wordpress.org/about/' ),
+					__( 'https://make.wordpress.org/' )
+				);
 				?>
 			</p>
+
+			<?php else : ?>
+
+			<p>
+				<?php _e( 'WordPress is created by a worldwide team of passionate individuals.' ); ?>
+			</p>
+			<p>
+				<?php
+				printf(
+					/* translators: %s: https://make.wordpress.org/ */
+					__( 'Want to see your name in lights on this page? <a href="%s">Get involved in WordPress</a>.' ),
+					__( 'https://make.wordpress.org/' )
+				);
+				?>
+			</p>
+
+			<?php endif; ?>
 		</div>
 
 		<div class="about__image aligncenter">
-			<img src="data:image/svg+xml;charset=utf8,%3Csvg width='1320' height='350' viewbox='0 0 1320 350' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='72' height='220' transform='matrix(1 0 0 -1 61 220)' fill='%23321017'/%3E%3Crect width='72' height='250' transform='matrix(1 0 0 -1 166 300)' fill='%23BD3854'/%3E%3Crect width='72' height='220' transform='matrix(1 0 0 -1 272 220)' fill='%23321017'/%3E%3Crect width='71' height='220' transform='matrix(1 0 0 -1 378 220)' fill='%235F1B29'/%3E%3Crect width='71' height='220' transform='matrix(1 0 0 -1 483 220)' fill='%23321017'/%3E%3Crect width='71' height='220' transform='matrix(1 0 0 -1 587 220)' fill='%235F1B29'/%3E%3Crect width='71.28' height='250' transform='matrix(1 0 0 -1 689 300)' fill='%23BD3854'/%3E%3Crect width='72' height='220' transform='matrix(1 0 0 -1 884 220)' fill='%235F1B29'/%3E%3Crect width='72' height='220' transform='matrix(1 0 0 -1 789 220)' fill='%23321017'/%3E%3Crect width='71' height='220' transform='matrix(1 0 0 -1 985 220)' fill='%23321017'/%3E%3Crect width='72' height='220' transform='matrix(1 0 0 -1 1084 220)' fill='%235F1B29'/%3E%3Crect width='72' height='220' transform='matrix(1 0 0 -1 1179 220)' fill='%233D0F19'/%3E%3C/svg%3E%0A" alt="" />
+			<img src="data:image/svg+xml;charset=utf8,%3Csvg width='1000' height='300' viewbox='0 0 1000 300' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23F3F4F5' d='M0 0h1000v300H0z'/%3E%3Cpath style='mix-blend-mode:multiply' d='M39.6 140.22l931.1 3.36.8 76.5-929.5 6.6-2.4-86.46z' fill='%23216DD2'/%3E%3Cpath style='mix-blend-mode:multiply' d='M963.7 275.14s-.9-59.58-1-64.14c-.1-4.2-932.3 1.74-932.3 1.74L29 268.48v8.4' fill='%237FCDE6'/%3E%3Cpath style='mix-blend-mode:multiply' d='M958 73.32L47.8 70.26l1.2 78.66 907.3 4.26 1.7-79.86z' fill='%23072CF0'/%3E%3Cpath style='mix-blend-mode:multiply' d='M34 91.32l910.4-2.16L939.2 21 33.3 23.82l.7 67.5z' fill='%230188D9'/%3E%3C/svg%3E" alt="" />
 		</div>
 	</div>
 

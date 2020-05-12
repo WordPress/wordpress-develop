@@ -1097,7 +1097,7 @@ endif;
 			return;
 		}
 
-		if ( in_array( $choice, array( 'remove-header', 'random-default-image', 'random-uploaded-image' ) ) ) {
+		if ( in_array( $choice, array( 'remove-header', 'random-default-image', 'random-uploaded-image' ), true ) ) {
 			set_theme_mod( 'header_image', $choice );
 			remove_theme_mod( 'header_image_data' );
 			return;
@@ -1244,7 +1244,7 @@ endif;
 	 * @since 3.9.0
 	 *
 	 * @param array  $object  Attachment object.
-	 * @param string $cropped Cropped image URL.
+	 * @param string $cropped File path to cropped image.
 	 * @return int Attachment ID.
 	 */
 	final public function insert_attachment( $object, $cropped ) {

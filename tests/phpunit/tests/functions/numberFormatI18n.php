@@ -6,7 +6,7 @@
  * @group functions.php
  * @group i18n
  */
-class Tests_Functions_Number_Format_I18n extends WP_UnitTestCase {
+class Tests_Functions_NumberFormatI18n extends WP_UnitTestCase {
 	public function test_should_fall_back_to_number_format_when_wp_locale_is_not_set() {
 		$locale               = clone $GLOBALS['wp_locale'];
 		$GLOBALS['wp_locale'] = null;

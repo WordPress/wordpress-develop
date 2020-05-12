@@ -161,7 +161,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		} else {
 			$post_counts = (array) wp_count_posts( $post_type, 'readable' );
 
-			if ( isset( $_REQUEST['post_status'] ) && in_array( $_REQUEST['post_status'], $avail_post_stati ) ) {
+			if ( isset( $_REQUEST['post_status'] ) && in_array( $_REQUEST['post_status'], $avail_post_stati, true ) ) {
 				$total_items = $post_counts[ $_REQUEST['post_status'] ];
 			} elseif ( isset( $_REQUEST['show_sticky'] ) && $_REQUEST['show_sticky'] ) {
 				$total_items = $this->sticky_posts_count;
@@ -346,7 +346,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 			$status_name = $status->name;
 
-			if ( ! in_array( $status_name, $avail_post_stati ) || empty( $num_posts->$status_name ) ) {
+			if ( ! in_array( $status_name, $avail_post_stati, true ) || empty( $num_posts->$status_name ) ) {
 				continue;
 			}
 
@@ -391,7 +391,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			);
 
 			// Sticky comes after Publish, or if not listed, after All.
-			$split        = 1 + array_search( ( isset( $status_links['publish'] ) ? 'publish' : 'all' ), array_keys( $status_links ) );
+			$split        = 1 + array_search( ( isset( $status_links['publish'] ) ? 'publish' : 'all' ), array_keys( $status_links ), true );
 			$status_links = array_merge( array_slice( $status_links, 0, $split ), $sticky_link, array_slice( $status_links, $split ) );
 		}
 
@@ -469,17 +469,19 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @since 5.2.0
 	 * @access protected
 	 *
-	 * @param string $post_type Post type key.
+	 * @param string $post_type Post type slug.
 	 */
 	protected function formats_dropdown( $post_type ) {
 		/**
 		 * Filters whether to remove the 'Formats' drop-down from the post list table.
 		 *
 		 * @since 5.2.0
+		 * @since 5.5.0 The `$post_type` parameter was added.
 		 *
-		 * @param bool $disable Whether to disable the drop-down. Default false.
+		 * @param bool   $disable   Whether to disable the drop-down. Default false.
+		 * @param string $post_type Post type slug.
 		 */
-		if ( apply_filters( 'disable_formats_dropdown', false ) ) {
+		if ( apply_filters( 'disable_formats_dropdown', false, $post_type ) ) {
 			return;
 		}
 
@@ -644,7 +646,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		}
 
 		$post_status = ! empty( $_REQUEST['post_status'] ) ? $_REQUEST['post_status'] : 'all';
-		if ( post_type_supports( $post_type, 'comments' ) && ! in_array( $post_status, array( 'pending', 'draft', 'future' ) ) ) {
+		if ( post_type_supports( $post_type, 'comments' ) && ! in_array( $post_status, array( 'pending', 'draft', 'future' ), true ) ) {
 			$posts_columns['comments'] = '<span class="vers comment-grey-bubble" title="' . esc_attr__( 'Comments' ) . '"><span class="screen-reader-text">' . __( 'Comments' ) . '</span></span>';
 		}
 
@@ -1382,7 +1384,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		}
 
 		if ( is_post_type_viewable( $post_type_object ) ) {
-			if ( in_array( $post->post_status, array( 'pending', 'draft', 'future' ) ) ) {
+			if ( in_array( $post->post_status, array( 'pending', 'draft', 'future' ), true ) ) {
 				if ( $can_edit_post ) {
 					$preview_link    = get_preview_post_link( $post );
 					$actions['view'] = sprintf(

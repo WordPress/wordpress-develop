@@ -792,6 +792,11 @@ $_old_files = array(
 	// 5.4
 	'wp-admin/js/wp-fullscreen-stub.js',
 	'wp-admin/js/wp-fullscreen-stub.min.js',
+	// 5.5
+	'wp-admin/css/ie.css',
+	'wp-admin/css/ie.min.css',
+	'wp-admin/css/ie-rtl.css',
+	'wp-admin/css/ie-rtl.min.css',
 );
 
 /**
@@ -1045,7 +1050,7 @@ function update_core( $from, $to ) {
 				if ( ! file_exists( $working_dir_local . $file ) ) {
 					continue;
 				}
-				if ( '.' === dirname( $file ) && in_array( pathinfo( $file, PATHINFO_EXTENSION ), array( 'html', 'txt' ) ) ) {
+				if ( '.' === dirname( $file ) && in_array( pathinfo( $file, PATHINFO_EXTENSION ), array( 'html', 'txt' ), true ) ) {
 					continue;
 				}
 				if ( md5_file( ABSPATH . $file ) === $checksum ) {
@@ -1115,7 +1120,7 @@ function update_core( $from, $to ) {
 			if ( ! file_exists( $working_dir_local . $file ) ) {
 				continue;
 			}
-			if ( '.' === dirname( $file ) && in_array( pathinfo( $file, PATHINFO_EXTENSION ), array( 'html', 'txt' ) ) ) {
+			if ( '.' === dirname( $file ) && in_array( pathinfo( $file, PATHINFO_EXTENSION ), array( 'html', 'txt' ), true ) ) {
 				$skip[] = $file;
 				continue;
 			}

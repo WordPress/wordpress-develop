@@ -116,7 +116,7 @@ class WP_Upgrader {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param WP_Upgrader_Skin $skin The upgrader skin to use. Default is a WP_Upgrader_Skin.
+	 * @param WP_Upgrader_Skin $skin The upgrader skin to use. Default is a WP_Upgrader_Skin
 	 *                               instance.
 	 */
 	public function __construct( $skin = null ) {
@@ -545,7 +545,7 @@ class WP_Upgrader {
 			$protected_directories = array_merge( $protected_directories, $wp_theme_directories );
 		}
 
-		if ( in_array( $destination, $protected_directories ) ) {
+		if ( in_array( $destination, $protected_directories, true ) ) {
 			$remote_destination = trailingslashit( $remote_destination ) . trailingslashit( basename( $source ) );
 			$destination        = trailingslashit( $destination ) . trailingslashit( basename( $source ) );
 		}

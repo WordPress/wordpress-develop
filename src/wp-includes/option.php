@@ -132,7 +132,7 @@ function get_option( $option, $default = false ) {
 		return get_option( 'siteurl' );
 	}
 
-	if ( in_array( $option, array( 'siteurl', 'home', 'category_base', 'tag_base' ) ) ) {
+	if ( in_array( $option, array( 'siteurl', 'home', 'category_base', 'tag_base' ), true ) ) {
 		$value = untrailingslashit( $value );
 	}
 
@@ -452,7 +452,8 @@ function update_option( $option, $value, $autoload = null ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string         $option      Name of option to add. Expected to not be SQL-escaped.
- * @param mixed          $value       Optional. Option value. Must be serializable if non-scalar. Expected to not be SQL-escaped.
+ * @param mixed          $value       Optional. Option value. Must be serializable if non-scalar.
+ *                                    Expected to not be SQL-escaped.
  * @param string         $deprecated  Optional. Description. Not used anymore.
  * @param string|bool    $autoload    Optional. Whether to load the option when WordPress starts up.
  *                                    Default is enabled. Accepts 'no' to disable for legacy reasons.
@@ -747,8 +748,8 @@ function get_transient( $transient ) {
  *
  * @since 2.8.0
  *
- * @param string $transient  Transient name. Expected to not be SQL-escaped. Must be
- *                           172 characters or fewer in length.
+ * @param string $transient  Transient name. Expected to not be SQL-escaped.
+ *                           Must be 172 characters or fewer in length.
  * @param mixed  $value      Transient value. Must be serializable if non-scalar.
  *                           Expected to not be SQL-escaped.
  * @param int    $expiration Optional. Time until expiration in seconds. Default 0 (no expiration).
@@ -1772,7 +1773,7 @@ function get_site_transient( $transient ) {
 		// Core transients that do not have a timeout. Listed here so querying timeouts can be avoided.
 		$no_timeout       = array( 'update_core', 'update_plugins', 'update_themes' );
 		$transient_option = '_site_transient_' . $transient;
-		if ( ! in_array( $transient, $no_timeout ) ) {
+		if ( ! in_array( $transient, $no_timeout, true ) ) {
 			$transient_timeout = '_site_transient_timeout_' . $transient;
 			$timeout           = get_site_option( $transient_timeout );
 			if ( false !== $timeout && $timeout < time() ) {
@@ -2232,7 +2233,7 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
 		$option_group = 'reading';
 	}
 
-	$pos = array_search( $option_name, (array) $new_whitelist_options[ $option_group ] );
+	$pos = array_search( $option_name, (array) $new_whitelist_options[ $option_group ], true );
 	if ( false !== $pos ) {
 		unset( $new_whitelist_options[ $option_group ][ $pos ] );
 	}

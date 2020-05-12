@@ -127,7 +127,7 @@ switch ( $action ) {
 
 		if ( IS_PROFILE_PAGE ) {
 			/**
-			 * Fires before the page loads on the 'Your Profile' editing screen.
+			 * Fires before the page loads on the 'Profile' editing screen.
 			 *
 			 * The action only fires if the current user is editing their own profile.
 			 *
@@ -386,7 +386,7 @@ endif;
 		<?php
 		if ( IS_PROFILE_PAGE ) {
 			/**
-			 * Fires after the 'Personal Options' settings table on the 'Your Profile' editing screen.
+			 * Fires after the 'Personal Options' settings table on the 'Profile' editing screen.
 			 *
 			 * The action only fires if the current user is editing their own profile.
 			 *
@@ -477,7 +477,7 @@ endif;
 			$public_display['display_lastfirst'] = $profileuser->last_name . ' ' . $profileuser->first_name;
 		}
 
-		if ( ! in_array( $profileuser->display_name, $public_display ) ) { // Only add this if it isn't duplicated elsewhere.
+		if ( ! in_array( $profileuser->display_name, $public_display, true ) ) { // Only add this if it isn't duplicated elsewhere.
 			$public_display = array( 'display_displayname' => $profileuser->display_name ) + $public_display;
 		}
 
@@ -705,7 +705,7 @@ endif;
 		<?php
 		if ( IS_PROFILE_PAGE ) {
 			/**
-			 * Fires after the 'About Yourself' settings table on the 'Your Profile' editing screen.
+			 * Fires after the 'About Yourself' settings table on the 'Profile' editing screen.
 			 *
 			 * The action only fires if the current user is editing their own profile.
 			 *

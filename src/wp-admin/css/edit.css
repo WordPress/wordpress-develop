@@ -448,7 +448,7 @@ form#tags-filter {
 #post-body #visibility:before,
 .curtime #timestamp:before,
 #post-body .misc-pub-revisions:before,
-#post-body .misc-pub-response-to:before, 
+#post-body .misc-pub-response-to:before,
 #post-body .misc-pub-comment-status:before {
 	color: #82878c;
 }
@@ -457,7 +457,7 @@ form#tags-filter {
 #post-body #visibility:before,
 .curtime #timestamp:before,
 #post-body .misc-pub-revisions:before,
-#post-body .misc-pub-response-to:before, 
+#post-body .misc-pub-response-to:before,
 #post-body .misc-pub-comment-status:before {
 	font: normal 20px/1 dashicons;
 	speak: none;
@@ -469,7 +469,7 @@ form#tags-filter {
 	-moz-osx-font-smoothing: grayscale;
 }
 
-#post-body .misc-pub-post-status:before, 
+#post-body .misc-pub-post-status:before,
 #post-body .misc-pub-comment-status:before {
 	content: "\f173";
 }
@@ -635,11 +635,6 @@ form#tags-filter {
 	max-width: 100%;
 }
 
-.ie8 #poststuff .inside #parent_id,
-.ie8 #poststuff .inside #page_template {
-	width: 250px;
-}
-
 .post-attributes-label-wrapper {
 	margin-bottom: 0.5em;
 }
@@ -728,6 +723,18 @@ form#tags-filter {
 	padding-bottom: 6px;
 }
 
+.privacy-text-actions .success {
+	display: none;
+	color: #40860a;
+	float: right;
+	padding-right: 1em;
+}
+
+.privacy-text-actions .success.visible {
+	display: inline-block;
+	height: 32px;
+}
+
 .wp-privacy-policy-guide .policy-text h2 {
 	margin: 1.2em 0 1em;
 	padding: 0;
@@ -756,19 +763,30 @@ form#tags-filter {
 	margin-bottom: 1em;
 }
 
-.policy-text p:not(.privacy-policy-tutorial):not(.wp-policy-help) {
+.policy-text > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help),
+.policy-text div > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help) {
 	background-color: #fff;
 	margin: 0;
 	padding: 1em;
 }
 
-.policy-text p:not(.privacy-policy-tutorial):not(.wp-policy-help) + p:not(.privacy-policy-tutorial):not(.wp-policy-help) {
+.policy-text > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help) + *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help),
+.policy-text div > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help) + *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help) {
 	padding-top: 0;
 }
 
-.hide-privacy-policy-tutorial p:not(.privacy-policy-tutorial):not(.wp-policy-help) {
+.hide-privacy-policy-tutorial > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help) {
 	margin: 1em 0;
 	padding: 0;
+}
+
+.policy-text ul li,
+.policy-text ol li {
+	margin-left: 2em;
+}
+
+.policy-text ul {
+	list-style: disc;
 }
 
 strong.wp-policy-help, /* For back-compat, see #49282 */
@@ -1738,6 +1756,8 @@ table.links-table {
 		float: none;
 		width: auto;
 		height: 100%;
+		display: flex;
+		flex-direction: column;
 	}
 
 	.privacy-text-section a.return-to-top {
