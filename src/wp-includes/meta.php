@@ -1188,6 +1188,7 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  *     @type string     $type              The type of data associated with this meta key.
  *                                         Valid values are 'string', 'boolean', 'integer', 'number', 'array', and 'object'.
  *     @type string     $description       A description of the data attached to this meta key.
+ *     @type mixed      $default           Default value when calling `get_metadata()`.
  *     @type bool       $single            Whether the meta key has one value per object, or an array of values per object.
  *     @type string     $sanitize_callback A function or method to call when sanitizing `$meta_key` data.
  *     @type string     $auth_callback     Optional. A function or method to call when performing edit_post_meta,
