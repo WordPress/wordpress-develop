@@ -58,15 +58,27 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
 	 */
 	public function get_items_permissions_check( $request ) {
-		if ( current_user_can( 'edit_posts' ) ) {
+		$registered = $this->get_collection_params();
+		if ( isset( $registered['status'], $request['status'] ) && in_array( 'active', $request['status'], true ) ) {
+			if ( current_user_can( 'edit_posts' ) ) {
+				return true;
+			}
+
+			foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
+				if ( current_user_can( $post_type->cap->edit_posts ) ) {
+					return true;
+				}
+			}
+		}
+
+		if ( 'site' === $request['allowed'] && current_user_can( 'switch_themes' ) ) {
 			return true;
 		}
 
-		foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
-			if ( current_user_can( $post_type->cap->edit_posts ) ) {
-				return true;
-			}
+		if ( is_multisite() && 'network' === $request['allowed'] && current_user_can( 'manage_network_themes' ) ) {
+			return true;
 		}
+
 
 		return new WP_Error(
 			'rest_user_cannot_view',
@@ -92,6 +104,12 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			$active_theme = wp_get_theme();
 			$active_theme = $this->prepare_item_for_response( $active_theme, $request );
 			$themes[]     = $this->prepare_response_for_collection( $active_theme );
+		} else{
+			$active_themes = wp_get_themes( array( 'allowed' => $request['allowed'] ) );
+			foreach( $active_themes as $theme_name => $theme ){
+				$active_theme = $this->prepare_item_for_response( $theme, $request );
+				$themes[]     = $this->prepare_response_for_collection( $active_theme );
+			}
 		}
 
 		$response = rest_ensure_response( $themes );
@@ -114,8 +132,8 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	public function prepare_item_for_response( $theme, $request ) {
 		$data   = array();
 		$fields = $this->get_fields_for_response( $request );
-
-		if ( in_array( 'theme_supports', $fields, true ) ) {
+		$current_theme = wp_get_theme();
+		if ( (string) $theme === (string) $current_theme && in_array( 'theme_supports', $fields, true ) ) {
 			$item_schemas   = $this->get_item_schema();
 			$theme_supports = $item_schemas['properties']['theme_supports']['properties'];
 			foreach ( $theme_supports as $name => $schema ) {
@@ -157,6 +175,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 
 			$data['theme_supports']['formats'] = $formats;
 		}
+		$data['name'] = $theme->get('Name');
 
 		$data = $this->add_additional_fields_to_object( $data, $request );
 
@@ -483,8 +502,14 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 				'enum' => array( 'active' ),
 				'type' => 'string',
 			),
-			'required'          => true,
 			'sanitize_callback' => array( $this, 'sanitize_theme_status' ),
+		);
+
+		$query_params['allowed'] = array(
+			'description'       => __( 'Allowed.' ),
+			'type'              => 'string',
+			'enum'              => array( 'network', 'site' ),
+			'default'           => 'site',
 		);
 
 		/**
