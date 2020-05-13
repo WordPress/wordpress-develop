@@ -598,7 +598,7 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 			)
 		);
 		$output = ob_get_clean();
-		$this->assertContains( 'style="width: 300px"', $output );
+		$this->assertContains( 'style="width: 310px"', $output );
 		$this->assertContains( '<p class="wp-caption-text">Caption for an image with custom size</p>', $output );
 	}
 
