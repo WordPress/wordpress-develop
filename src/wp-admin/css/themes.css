@@ -1032,10 +1032,6 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 	text-align: center;
 }
 
-.upload-plugin-wrap {
-	display: none;
-}
-
 .show-upload-view .upload-theme,
 .show-upload-view .upload-plugin,
 .show-upload-view .upload-plugin-wrap,
@@ -1097,7 +1093,6 @@ p.no-themes-local {
 	.upload-theme .install-help {
 		font-size: 15px;
 		padding: 20px 0 0;
-		text-align: left;
 	}
 }
 
