@@ -1496,6 +1496,32 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertEquals( 204, $response->get_status(), '/test-ns/v1/test' );
 	}
 
+	/**
+	 * @ticket 50075
+	 */
+	public function test_misspelled_permission_callback() {
+		$result = register_rest_route(
+			'test-ns',
+			'/test',
+			array(
+				'methods'             => array( 'GET' ),
+				'permission_callback' => '__return_true',
+			)
+		);
+		$this->assertTrue( $result );
+
+		$this->setExpectedIncorrectUsage( 'register_rest_route' );
+		$result = register_rest_route(
+			'test-ns',
+			'/test',
+			array(
+				'methods'              => array( 'GET' ),
+				'permissions_callback' => '__return_true',
+			)
+		);
+		$this->assertFalse( $result );
+	}
+
 	public function _validate_as_integer_123( $value, $request, $key ) {
 		if ( ! is_int( $value ) ) {
 			return new WP_Error( 'some-error', 'This is not valid!' );

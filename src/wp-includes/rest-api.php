@@ -21,6 +21,7 @@ define( 'REST_API_VERSION', '2.0' );
  *
  * @since 4.4.0
  * @since 5.1.0 Added a _doing_it_wrong() notice when not called on or after the rest_api_init hook.
+ * @since 5.5.0 Added a _doing_it_wrong() notice when permission_callback is misspelled.
  *
  * @param string $namespace The first URL segment after core prefix. Should be unique to your package/plugin.
  * @param string $route     The base URL for route you are adding.
@@ -54,6 +55,11 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 			),
 			'5.1.0'
 		);
+	}
+
+	if ( isset( $args['permissions_callback'] ) ) {
+		_doing_it_wrong( 'register_rest_route', __( 'You have misspelled the permission_callback option.' ), '5.5.0' );
+		return false;
 	}
 
 	if ( isset( $args['args'] ) ) {
