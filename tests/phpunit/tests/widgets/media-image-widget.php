@@ -594,7 +594,7 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 				'size'          => 'custom',
 				'width'         => '300',
 				'height'        => '200',
-				'caption'       => 'Caption for an image with custom size'
+				'caption'       => 'Caption for an image with custom size',
 			)
 		);
 		$output = ob_get_clean();
