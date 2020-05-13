@@ -1029,6 +1029,7 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 	overflow: hidden;
 	position: relative;
 	top: 10px;
+	text-align: center;
 }
 
 .upload-plugin-wrap {
@@ -1048,10 +1049,14 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 	border: 1px solid #ccd0d4;
 	padding: 30px;
 	margin: 30px auto;
-	max-width: 380px;
-	display: flex;
+	display: inline-flex;
 	justify-content: space-between;
 	align-items: center;
+}
+
+.upload-theme .wp-upload-form .button,
+.upload-plugin .wp-upload-form .button {
+	margin-left: 10px;
 }
 
 .upload-theme .install-help,
