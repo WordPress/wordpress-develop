@@ -679,11 +679,12 @@ class WP {
 				}
 
 				// Check for paged content that exceeds the max number of pages.
-				$next = '<!--nextpage-->';
-				if ( $post && ! empty( $this->query_vars['page'] ) ) {
+				$next    = '<!--nextpage-->';
+				$page_qv = is_front_page() ? 'paged' : 'page';
+				if ( $post && ! empty( $this->query_vars[ $page_qv ] ) ) {
 					// Check if content is actually intended to be paged.
 					if ( false !== strpos( $post->post_content, $next ) ) {
-						$page          = trim( $this->query_vars['page'], '/' );
+						$page          = trim( $this->query_vars[ $page_qv ], '/' );
 						$content_found = (int) $page <= ( substr_count( $post->post_content, $next ) + 1 );
 					} else {
 						$content_found = false;
