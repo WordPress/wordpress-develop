@@ -144,7 +144,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 			 *
 			 * @since 5.5.0
 			 *
-			 * @param string  $package  		The package file.
+			 * @param string  $package          The package file.
 			 * @param array   $new_plugin_data  The new plugin data.
 			 */
 			do_action( 'upgrader_overwrited_package', $package, $this->new_plugin_data );

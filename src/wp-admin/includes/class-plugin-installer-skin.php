@@ -167,7 +167,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			return '';
 		}
 
-		$folder = $this->result->get_error_data( 'folder_exists' );
+		$folder    = $this->result->get_error_data( 'folder_exists' );
 		$directory = ltrim( substr( $folder, strlen( WP_PLUGIN_DIR ) ), '/' );
 
 		$current_plugin_data = false;
@@ -194,7 +194,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 		$current_plugin_data = array_filter( $current_plugin_data );
 		$new_plugin_data     = array_filter( $this->upgrader->new_plugin_data );
 
-		$table = '<table class="compare-plugins-table"><tbody>';
+		$table  = '<table class="compare-plugins-table"><tbody>';
 		$table .= '<tr><th><th/><th>' . esc_html( __( 'Current' ) ) . '<th/><th>' . esc_html( __( 'Uploaded' ) ) . '</th></tr>';
 
 		foreach ( $rows as $field => $label ) {
