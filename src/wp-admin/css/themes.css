@@ -1050,9 +1050,9 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 	align-items: center;
 }
 
-.upload-theme .wp-upload-form .button,
-.upload-plugin .wp-upload-form .button {
-	margin-left: 10px;
+.upload-theme .wp-upload-form input[type="file"],
+.upload-plugin .wp-upload-form input[type="file"] {
+	margin-right: 10px;
 }
 
 .upload-theme .install-help,
@@ -1113,6 +1113,29 @@ p.no-themes-local {
 .theme-details .no-rating {
 	display: block;
 	line-height: 1.9;
+}
+
+.compare-themes-table,
+.compare-plugins-table {
+	text-align: left;
+	margin: 1em 0 2em;
+}
+
+.compare-themes-table th,
+.compare-plugins-table th {
+	font-weight: bold;
+	padding: 3px 10px;
+}
+
+.compare-themes-table td,
+.compare-plugins-table td {
+	padding: 3px 10px;
+}
+
+.ovewrite-uploaded-theme,
+.ovewrite-uploaded-plugin {
+	color: #a00;
+	margin-left: 10px;
 }
 
 /*------------------------------------------------------------------------------

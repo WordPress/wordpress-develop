@@ -163,7 +163,12 @@ if ( isset( $_GET['action'] ) ) {
 		$type  = 'upload'; // Install plugin type, From Web or an Upload.
 
 		$upgrader = new Plugin_Upgrader( new Plugin_Installer_Skin( compact( 'type', 'title', 'nonce', 'url' ) ) );
-		$result   = $upgrader->install( $file_upload->package );
+
+		$args = array(
+			'overwrite_package' => ! empty( $_GET['overwrite'] ),
+		);
+
+		$result = $upgrader->install( $file_upload->package, $args );
 
 		if ( $result || is_wp_error( $result ) ) {
 			$file_upload->cleanup();

@@ -39,6 +39,16 @@ class Plugin_Upgrader extends WP_Upgrader {
 	public $bulk = false;
 
 	/**
+	 * New plugin info.
+	 *
+	 * @since 5.5.0
+	 * @var array $new_plugin_data
+	 *
+	 * @see Plugin_Upgrader::check_package()
+	 */
+	public $new_plugin_data = [];
+
+	/**
 	 * Initialize the upgrade strings.
 	 *
 	 * @since 2.8.0
@@ -67,6 +77,8 @@ class Plugin_Upgrader extends WP_Upgrader {
 		$this->strings['downloading_package'] = sprintf( __( 'Downloading installation package from %s&#8230;' ), '<span class="code">%s</span>' );
 		$this->strings['unpack_package']      = __( 'Unpacking the package&#8230;' );
 		$this->strings['installing_package']  = __( 'Installing the plugin&#8230;' );
+		$this->strings['remove_old']          = __( 'Removing the current plugin&#8230;' );
+		$this->strings['remove_old_failed']   = __( 'Could not remove the current plugin.' );
 		$this->strings['no_files']            = __( 'The plugin contains no files.' );
 		$this->strings['process_failed']      = __( 'Plugin installation failed.' );
 		$this->strings['process_success']     = __( 'Plugin installed successfully.' );
@@ -88,9 +100,9 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 * @return bool|WP_Error True if the installation was successful, false or a WP_Error otherwise.
 	 */
 	public function install( $package, $args = array() ) {
-
 		$defaults    = array(
 			'clear_update_cache' => true,
+			'overwrite_package'  => false, // Do not overwrite files.
 		);
 		$parsed_args = wp_parse_args( $args, $defaults );
 
@@ -107,7 +119,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 			array(
 				'package'           => $package,
 				'destination'       => WP_PLUGIN_DIR,
-				'clear_destination' => false, // Do not overwrite files.
+				'clear_destination' => $args['overwrite_package'],
 				'clear_working'     => true,
 				'hook_extra'        => array(
 					'type'   => 'plugin',
@@ -125,6 +137,18 @@ class Plugin_Upgrader extends WP_Upgrader {
 
 		// Force refresh of plugin update information.
 		wp_clean_plugins_cache( $parsed_args['clear_update_cache'] );
+
+		if ( $parsed_args['overwrite_package'] ) {
+			/**
+			 * Fires when the upgrader process a install forcing a package overwrite.
+			 *
+			 * @since 5.5.0
+			 *
+			 * @param string  $package  		The package file.
+			 * @param array   $new_plugin_data  The new plugin data.
+			 */
+			do_action( 'upgrader_overwrited_package', $package, $this->new_plugin_data );
+		}
 
 		return true;
 	}
@@ -359,19 +383,19 @@ class Plugin_Upgrader extends WP_Upgrader {
 		}
 
 		// Check that the folder contains at least 1 valid plugin.
-		$plugins_found = false;
-		$files         = glob( $working_directory . '*.php' );
+		$this->new_plugin_data = [];
+		$files                 = glob( $working_directory . '*.php' );
 		if ( $files ) {
 			foreach ( $files as $file ) {
 				$info = get_plugin_data( $file, false, false );
 				if ( ! empty( $info['Name'] ) ) {
-					$plugins_found = true;
+					$this->new_plugin_data = $info;
 					break;
 				}
 			}
 		}
 
-		if ( ! $plugins_found ) {
+		if ( empty( $this->new_plugin_data ) ) {
 			return new WP_Error( 'incompatible_archive_no_plugins', $this->strings['incompatible_archive'], __( 'No valid plugins were found.' ) );
 		}
 

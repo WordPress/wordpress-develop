@@ -18,6 +18,7 @@
 class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	public $api;
 	public $type;
+	public $url;
 
 	/**
 	 * @param array $args
@@ -33,6 +34,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 		$args     = wp_parse_args( $args, $defaults );
 
 		$this->type = $args['type'];
+		$this->url  = $args['url'];
 		$this->api  = isset( $args['api'] ) ? $args['api'] : array();
 
 		parent::__construct( $args );
@@ -54,11 +56,14 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	/**
 	 */
 	public function after() {
+		$compare_table = $this->compare_table();
+
 		$plugin_file = $this->upgrader->plugin_info();
 
 		$install_actions = array();
 
-		$from = isset( $_GET['from'] ) ? wp_unslash( $_GET['from'] ) : 'plugins';
+		$from           = isset( $_GET['from'] ) ? wp_unslash( $_GET['from'] ) : 'plugins';
+		$is_overwriting = ! empty( $_GET['overwrite'] );
 
 		if ( 'import' == $from ) {
 			$install_actions['activate_plugin'] = sprintf(
@@ -105,7 +110,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			$install_actions['plugins_page'] = sprintf(
 				'<a href="%s">%s</a>',
 				self_admin_url( 'plugin-install.php' ),
-				__( 'Return to Plugin Installer' )
+				$compare_table ? __( 'Cancel and go back' ) : __( 'Return to Plugin Installer' )
 			);
 		} else {
 			$install_actions['plugins_page'] = sprintf(
@@ -115,9 +120,20 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			);
 		}
 
+		if ( $compare_table ) {
+			$this->feedback( __( 'More details:' ) );
+			echo $compare_table;
+
+			$install_actions['ovewrite_plugin'] = sprintf(
+				'<a class="ovewrite-uploaded-plugin" href="%s" target="_parent">%s</a>',
+				wp_nonce_url( add_query_arg( 'overwrite', '1', $this->url ), 'plugin-upload' ),
+				__( 'Overwrite with uploaded' )
+			);
+		}
+
 		if ( ! $this->result || is_wp_error( $this->result ) ) {
 			unset( $install_actions['activate_plugin'], $install_actions['network_activate'] );
-		} elseif ( ! current_user_can( 'activate_plugin', $plugin_file ) ) {
+		} elseif ( $is_overwriting || ! current_user_can( 'activate_plugin', $plugin_file ) ) {
 			unset( $install_actions['activate_plugin'] );
 		}
 
@@ -137,5 +153,68 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 		if ( ! empty( $install_actions ) ) {
 			$this->feedback( implode( ' ', (array) $install_actions ) );
 		}
+	}
+
+	/**
+	 * Create the compare table to show user information about overwrite plugin on upload.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @return string   $table   The table output.
+	 */
+	private function compare_table() {
+		if ( 'upload' !== $this->type || ! is_wp_error( $this->result ) || $this->result->get_error_code() !== 'folder_exists' ) {
+			return '';
+		}
+
+		$folder = $this->result->get_error_data( 'folder_exists' );
+		$directory = ltrim( substr( $folder, strlen( WP_PLUGIN_DIR ) ), '/' );
+
+		$current_plugin_data = false;
+		foreach ( get_plugins() as $plugin => $plugin_data ) {
+			if ( strrpos( $plugin, $directory ) !== 0 ) {
+				continue;
+			}
+
+			$current_plugin_data = $plugin_data;
+		}
+
+		if ( empty( $current_plugin_data ) || empty( $this->upgrader->new_plugin_data ) ) {
+			return '';
+		}
+
+		$rows = array(
+			'Name'        => __( 'Plugin Name' ),
+			'Version'     => __( 'Version' ),
+			'Author'      => __( 'Author' ),
+			'RequiresWP'  => __( 'Requires at least' ),
+			'RequiresPHP' => __( 'Requires PHP' ),
+		);
+
+		$current_plugin_data = array_filter( $current_plugin_data );
+		$new_plugin_data     = array_filter( $this->upgrader->new_plugin_data );
+
+		$table = '<table class="compare-plugins-table"><tbody>';
+		$table .= '<tr><th><th/><th>' . esc_html( __( 'Current' ) ) . '<th/><th>' . esc_html( __( 'Uploaded' ) ) . '</th></tr>';
+
+		foreach ( $rows as $field => $label ) {
+			$old_value = ! empty( $current_plugin_data[ $field ] ) ? $current_plugin_data[ $field ] : '-';
+			$new_value = ! empty( $new_plugin_data[ $field ] ) ? $new_plugin_data[ $field ] : '-';
+
+			$table .= '<tr><td>' . $label . '<td/><td>' . esc_html( $old_value ) . '<td/><td>' . esc_html( $new_value ) . '</td></tr>';
+		}
+
+		$table .= '</tbody></table>';
+
+		/**
+		 * Filters the compare table output for overwrite a plugin package on upload.
+		 *
+		 * @since 5.5
+		 *
+		 * @param string   $table                The output table with Name, Version, Author, RequiresWP and RequiresPHP info.
+		 * @param array    $current_plugin_data  Array with current plugin data.
+		 * @param array    $new_plugin_data      Array with uploaded plugin data.
+		 */
+		return apply_filters( 'install_plugin_compare_table_ovewrite', $table, $current_plugin_data, $new_plugin_data );
 	}
 }
