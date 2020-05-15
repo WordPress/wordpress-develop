@@ -1953,6 +1953,40 @@ class WP_Site_Health {
 	}
 
 	/**
+	 * Test if 'file_uploads' directive in PHP.ini is turned off
+	 *
+	 * @since 5.5.0
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_file_uploads() {
+		$result = array(
+			'label'       => __( 'File uploads is on in PHP ini' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Media' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'The <code>file_uploads</code> directive in <code>php.ini</code> determines if uploading to is allowed in your WordPress.' )
+			),
+			'actions'     => '',
+			'test'        => 'file_uploads',
+		);
+
+		if ( empty( ini_get( 'file_uploads' ) ) ) {
+			$result['status']       = 'critical';
+			$result['description'] .= sprintf(
+				'<p>%s</p>',
+				__( '<code>file_uploads</code> is set to <code>0</code>. You won\'t be able to upload files in your WordPress.' )
+			);
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Return a set of tests that belong to the site status page.
 	 *
 	 * Each site status test is defined here, they may be `direct` tests, that run on page load, or `async` tests
@@ -2021,6 +2055,10 @@ class WP_Site_Health {
 				'debug_enabled'        => array(
 					'label' => __( 'Debugging enabled' ),
 					'test'  => 'is_in_debug_mode',
+				),
+				'file_uploads'         => array(
+					'label' => __( 'File uploads' ),
+					'test'  => 'file_uploads',
 				),
 			),
 			'async'  => array(
