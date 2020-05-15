@@ -203,7 +203,17 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			$old_value = ! empty( $current_plugin_data[ $field ] ) ? $current_plugin_data[ $field ] : '-';
 			$new_value = ! empty( $new_plugin_data[ $field ] ) ? $new_plugin_data[ $field ] : '-';
 
-			$table .= '<tr><td>' . $label . '</td><td>' . esc_html( $old_value ) . '</td><td>' . esc_html( $new_value ) . '</td></tr>';
+			$warning = false;
+			if ( $field === 'Name' && $old_value !== $new_value ) {
+				$warning = true;
+			}
+
+			if ( $field === 'Version' && ( $new_value === '-' || version_compare( $old_value, $new_value, '>' ) ) ) {
+				$warning = true;
+			}
+
+			$table .= $warning ? '<tr class="warning">' : '<tr>';
+			$table .= '<td>' . $label . '</td><td>' . esc_html( $old_value ) . '</td><td>' . esc_html( $new_value ) . '</td></tr>';
 		}
 
 		$table .= '</tbody></table>';

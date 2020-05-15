@@ -1119,6 +1119,7 @@ p.no-themes-local {
 .compare-plugins-table {
 	text-align: left;
 	margin: 1em 0 2em;
+	border-collapse: collapse;
 }
 
 .compare-themes-table th,
@@ -1130,6 +1131,12 @@ p.no-themes-local {
 .compare-themes-table td,
 .compare-plugins-table td {
 	padding: 3px 10px;
+}
+
+.compare-themes-table tr.warning,
+.compare-plugins-table tr.warning {
+	background-color: #a00;
+	color: #fff;
 }
 
 .ovewrite-uploaded-theme,
