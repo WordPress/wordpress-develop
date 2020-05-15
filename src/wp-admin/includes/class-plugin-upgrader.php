@@ -74,19 +74,28 @@ class Plugin_Upgrader extends WP_Upgrader {
 	public function install_strings() {
 		$this->strings['no_package'] = __( 'Installation package not available.' );
 		/* translators: %s: Package URL. */
-		$this->strings['downloading_package'] = sprintf( __( 'Downloading installation package from %s&#8230;' ), '<span class="code">%s</span>' );
-		$this->strings['unpack_package']      = __( 'Unpacking the package&#8230;' );
-		$this->strings['installing_package']  = __( 'Installing the plugin&#8230;' );
-		$this->strings['remove_old']          = __( 'Removing the current plugin&#8230;' );
-		$this->strings['remove_old_failed']   = __( 'Could not remove the current plugin.' );
-		$this->strings['no_files']            = __( 'The plugin contains no files.' );
-		$this->strings['process_failed']      = __( 'Plugin installation failed.' );
-		$this->strings['process_success']     = __( 'Plugin installed successfully.' );
+		$this->strings['downloading_package']    = sprintf( __( 'Downloading installation package from %s&#8230;' ), '<span class="code">%s</span>' );
+		$this->strings['unpack_package']         = __( 'Unpacking the package&#8230;' );
+		$this->strings['installing_package']     = __( 'Installing the plugin&#8230;' );
+		$this->strings['remove_old']             = __( 'Removing the current plugin&#8230;' );
+		$this->strings['remove_old_failed']      = __( 'Could not remove the current plugin.' );
+		$this->strings['no_files']               = __( 'The plugin contains no files.' );
+		$this->strings['process_failed']         = __( 'Plugin installation failed.' );
+		$this->strings['process_success']        = __( 'Plugin installed successfully.' );
 
-		if ( ! empty( $this->skin->overwrite ) ) {
-			$this->strings['installing_package']  = __( 'Updating the plugin&#8230;' );
-			$this->strings['process_failed']      = __( 'Plugin update failed.' );
-			$this->strings['process_success']     = __( 'Plugin updated successfully.' );
+		$this->strings['reuploading_plugin']       = __( 'Seems like you are trying to upload a plugin already installed.' );
+		$this->strings['compare_before_overwrite'] = __( 'Compare before retry:' );
+
+		if ( $this->skin->overwrite === 'update-plugin' ) {
+			$this->strings['installing_package'] = __( 'Updating the plugin&#8230;' );
+			$this->strings['process_failed']     = __( 'Plugin update failed.' );
+			$this->strings['process_success']    = __( 'Plugin updated successfully.' );
+		}
+
+		if ( $this->skin->overwrite === 'downgrade-plugin' ) {
+			$this->strings['installing_package'] = __( 'Downgrading the plugin&#8230;' );
+			$this->strings['process_failed']     = __( 'Plugin downgrade failed.' );
+			$this->strings['process_success']    = __( 'Plugin downgraded successfully.' );
 		}
 	}
 

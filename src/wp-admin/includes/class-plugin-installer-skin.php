@@ -21,6 +21,8 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	public $url;
 	public $overwrite;
 
+	private $is_downgrading = false;
+
 	/**
 	 * @param array $args
 	 */
@@ -31,7 +33,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			'plugin'    => '',
 			'nonce'     => '',
 			'title'     => '',
-			'overwrite' => false,
+			'overwrite' => '',
 		);
 		$args     = wp_parse_args( $args, $defaults );
 
@@ -123,13 +125,16 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 		}
 
 		if ( $compare_table ) {
-			$this->feedback( __( 'More details:' ) );
+			$this->feedback( 'compare_before_overwrite' );
 			echo $compare_table;
+
+			$overwrite = $this->is_downgrading ? 'downgrade-plugin' : 'update-plugin';
+			$label     = $this->is_downgrading ? __( 'Remove current and install the old version' ) : __( 'Remove current and install the uploaded version' );
 
 			$install_actions['ovewrite_plugin'] = sprintf(
 				'<a class="ovewrite-uploaded-plugin" href="%s" target="_parent">%s</a>',
-				wp_nonce_url( add_query_arg( 'overwrite', 'uploaded-plugin', $this->url ), 'plugin-upload' ),
-				__( 'Overwrite with uploaded' )
+				wp_nonce_url( add_query_arg( 'overwrite', $overwrite, $this->url ), 'plugin-upload' ),
+				$label
 			);
 		}
 
@@ -185,6 +190,8 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			return '';
 		}
 
+		$this->is_downgrading = version_compare( $current_plugin_data['Version'], $this->upgrader->new_plugin_data['Version'], '>' );
+
 		$rows = array(
 			'Name'        => __( 'Plugin Name' ),
 			'Version'     => __( 'Version' ),
@@ -193,30 +200,28 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			'RequiresPHP' => __( 'Requires PHP' ),
 		);
 
-		$current_plugin_data = array_filter( $current_plugin_data );
-		$new_plugin_data     = array_filter( $this->upgrader->new_plugin_data );
-
 		$table  = '<table class="compare-plugins-table"><tbody>';
 		$table .= '<tr><th></th><th>' . esc_html( __( 'Current' ) ) . '</th><th>' . esc_html( __( 'Uploaded' ) ) . '</th></tr>';
 
+		$is_same_plugin = true; // Let's consider only these rows
 		foreach ( $rows as $field => $label ) {
 			$old_value = ! empty( $current_plugin_data[ $field ] ) ? $current_plugin_data[ $field ] : '-';
-			$new_value = ! empty( $new_plugin_data[ $field ] ) ? $new_plugin_data[ $field ] : '-';
+			$new_value = ! empty( $this->upgrader->new_plugin_data[ $field ] ) ? $this->upgrader->new_plugin_data[ $field ] : '-';
 
-			$warning = false;
-			if ( $field === 'Name' && $old_value !== $new_value ) {
-				$warning = true;
-			}
+			$is_same_plugin = $is_same_plugin && ( $old_value === $new_value );
 
-			if ( $field === 'Version' && ( $new_value === '-' || version_compare( $old_value, $new_value, '>' ) ) ) {
-				$warning = true;
-			}
+			$diff_field   = ( $field !== 'Version' && $new_value !== $old_value );
+			$diff_version = ( $field === 'Version' && $this->is_downgrading );
 
-			$table .= $warning ? '<tr class="warning">' : '<tr>';
+			$table .= ( $diff_field || $diff_version ) ? '<tr class="warning">' : '<tr>';
 			$table .= '<td>' . $label . '</td><td>' . esc_html( $old_value ) . '</td><td>' . esc_html( $new_value ) . '</td></tr>';
 		}
 
 		$table .= '</tbody></table>';
+
+		if ( $is_same_plugin ) {
+			$this->feedback( 'reuploading_plugin' );
+		}
 
 		/**
 		 * Filters the compare table output for overwrite a plugin package on upload.
@@ -227,6 +232,6 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 		 * @param array    $current_plugin_data  Array with current plugin data.
 		 * @param array    $new_plugin_data      Array with uploaded plugin data.
 		 */
-		return apply_filters( 'install_plugin_compare_table_ovewrite', $table, $current_plugin_data, $new_plugin_data );
+		return apply_filters( 'install_plugin_compare_table_ovewrite', $table, $current_plugin_data, $this->upgrader->new_plugin_data );
 	}
 }
