@@ -195,13 +195,13 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 		$new_plugin_data     = array_filter( $this->upgrader->new_plugin_data );
 
 		$table  = '<table class="compare-plugins-table"><tbody>';
-		$table .= '<tr><th><th/><th>' . esc_html( __( 'Current' ) ) . '<th/><th>' . esc_html( __( 'Uploaded' ) ) . '</th></tr>';
+		$table .= '<tr><th></th><th>' . esc_html( __( 'Current' ) ) . '</th><th>' . esc_html( __( 'Uploaded' ) ) . '</th></tr>';
 
 		foreach ( $rows as $field => $label ) {
 			$old_value = ! empty( $current_plugin_data[ $field ] ) ? $current_plugin_data[ $field ] : '-';
 			$new_value = ! empty( $new_plugin_data[ $field ] ) ? $new_plugin_data[ $field ] : '-';
 
-			$table .= '<tr><td>' . $label . '<td/><td>' . esc_html( $old_value ) . '<td/><td>' . esc_html( $new_value ) . '</td></tr>';
+			$table .= '<tr><td>' . $label . '</td><td>' . esc_html( $old_value ) . '</td><td>' . esc_html( $new_value ) . '</td></tr>';
 		}
 
 		$table .= '</tbody></table>';
