@@ -19,23 +19,26 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	public $api;
 	public $type;
 	public $url;
+	public $overwrite;
 
 	/**
 	 * @param array $args
 	 */
 	public function __construct( $args = array() ) {
 		$defaults = array(
-			'type'   => 'web',
-			'url'    => '',
-			'plugin' => '',
-			'nonce'  => '',
-			'title'  => '',
+			'type'      => 'web',
+			'url'       => '',
+			'plugin'    => '',
+			'nonce'     => '',
+			'title'     => '',
+			'overwrite' => false,
 		);
 		$args     = wp_parse_args( $args, $defaults );
 
-		$this->type = $args['type'];
-		$this->url  = $args['url'];
-		$this->api  = isset( $args['api'] ) ? $args['api'] : array();
+		$this->type      = $args['type'];
+		$this->url       = $args['url'];
+		$this->api       = isset( $args['api'] ) ? $args['api'] : array();
+		$this->overwrite = $args['overwrite'];
 
 		parent::__construct( $args );
 	}
@@ -62,8 +65,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 
 		$install_actions = array();
 
-		$from           = isset( $_GET['from'] ) ? wp_unslash( $_GET['from'] ) : 'plugins';
-		$is_overwriting = ! empty( $_GET['overwrite'] );
+		$from = isset( $_GET['from'] ) ? wp_unslash( $_GET['from'] ) : 'plugins';
 
 		if ( 'import' == $from ) {
 			$install_actions['activate_plugin'] = sprintf(
@@ -126,14 +128,14 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 
 			$install_actions['ovewrite_plugin'] = sprintf(
 				'<a class="ovewrite-uploaded-plugin" href="%s" target="_parent">%s</a>',
-				wp_nonce_url( add_query_arg( 'overwrite', '1', $this->url ), 'plugin-upload' ),
+				wp_nonce_url( add_query_arg( 'overwrite', 'uploaded-plugin', $this->url ), 'plugin-upload' ),
 				__( 'Overwrite with uploaded' )
 			);
 		}
 
 		if ( ! $this->result || is_wp_error( $this->result ) ) {
 			unset( $install_actions['activate_plugin'], $install_actions['network_activate'] );
-		} elseif ( $is_overwriting || ! current_user_can( 'activate_plugin', $plugin_file ) ) {
+		} elseif ( $this->overwrite || ! current_user_can( 'activate_plugin', $plugin_file ) ) {
 			unset( $install_actions['activate_plugin'] );
 		}
 

@@ -82,6 +82,12 @@ class Plugin_Upgrader extends WP_Upgrader {
 		$this->strings['no_files']            = __( 'The plugin contains no files.' );
 		$this->strings['process_failed']      = __( 'Plugin installation failed.' );
 		$this->strings['process_success']     = __( 'Plugin installed successfully.' );
+
+		if ( ! empty( $this->skin->overwrite ) ) {
+			$this->strings['installing_package']  = __( 'Updating the plugin&#8230;' );
+			$this->strings['process_failed']      = __( 'Plugin update failed.' );
+			$this->strings['process_success']     = __( 'Plugin updated successfully.' );
+		}
 	}
 
 	/**

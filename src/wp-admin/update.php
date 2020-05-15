@@ -162,13 +162,11 @@ if ( isset( $_GET['action'] ) ) {
 		$url   = add_query_arg( array( 'package' => $file_upload->id ), 'update.php?action=upload-plugin' );
 		$type  = 'upload'; // Install plugin type, From Web or an Upload.
 
-		$upgrader = new Plugin_Upgrader( new Plugin_Installer_Skin( compact( 'type', 'title', 'nonce', 'url' ) ) );
+		$overwrite = isset( $_GET['overwrite'] ) ? sanitize_text_field( $_GET['overwrite'] ) : '';
+		$overwrite = $overwrite === 'uploaded-plugin';
 
-		$args = array(
-			'overwrite_package' => ! empty( $_GET['overwrite'] ),
-		);
-
-		$result = $upgrader->install( $file_upload->package, $args );
+		$upgrader = new Plugin_Upgrader( new Plugin_Installer_Skin( compact( 'type', 'title', 'nonce', 'url', 'overwrite' ) ) );
+		$result   = $upgrader->install( $file_upload->package, [ 'overwrite_package' => $overwrite ] );
 
 		if ( $result || is_wp_error( $result ) ) {
 			$file_upload->cleanup();
