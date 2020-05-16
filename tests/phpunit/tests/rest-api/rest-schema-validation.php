@@ -2,7 +2,7 @@
 /**
  * Unit tests covering schema validation and sanitization functionality.
  *
- * @package WordPress
+ * @package    WordPress
  * @subpackage REST API
  */
 
@@ -408,5 +408,323 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertTrue( rest_validate_value_from_schema( $mb_char, $schema ) );
 		// three supplementary Unicode code point is to long
 		$this->assertWPError( rest_validate_value_from_schema( $mb_char . $mb_char . $mb_char, $schema ) );
+	}
+
+	/**
+	 * @ticket       48818
+	 * @dataProvider data_required_property
+	 */
+	public function test_property_is_required( $data, $expected ) {
+		$schema = array(
+			'type'       => 'object',
+			'properties' => array(
+				'my_prop'          => array(
+					'type' => 'string',
+				),
+				'my_required_prop' => array(
+					'type'     => 'string',
+					'required' => true,
+				),
+			),
+		);
+
+		$valid = rest_validate_value_from_schema( $data, $schema );
+
+		if ( $expected ) {
+			$this->assertTrue( $valid );
+		} else {
+			$this->assertWPError( $valid );
+		}
+	}
+
+	/**
+	 * @ticket       48818
+	 * @dataProvider data_required_property
+	 */
+	public function test_property_is_required_v4( $data, $expected ) {
+		$schema = array(
+			'type'       => 'object',
+			'properties' => array(
+				'my_prop'          => array(
+					'type' => 'string',
+				),
+				'my_required_prop' => array(
+					'type' => 'string',
+				),
+			),
+			'required'   => array( 'my_required_prop' ),
+		);
+
+		$valid = rest_validate_value_from_schema( $data, $schema );
+
+		if ( $expected ) {
+			$this->assertTrue( $valid );
+		} else {
+			$this->assertWPError( $valid );
+		}
+	}
+
+	public function data_required_property() {
+		return array(
+			array(
+				array(
+					'my_required_prop' => 'test',
+					'my_prop'          => 'test',
+				),
+				true,
+			),
+			array( array( 'my_prop' => 'test' ), false ),
+			array( array(), false ),
+		);
+	}
+
+	/**
+	 * @ticket       48818
+	 * @dataProvider data_required_nested_property
+	 */
+	public function test_nested_property_is_required( $data, $expected ) {
+		$schema = array(
+			'type'       => 'object',
+			'properties' => array(
+				'my_object' => array(
+					'type'       => 'object',
+					'properties' => array(
+						'my_nested_prop'          => array(
+							'type' => 'string',
+						),
+						'my_required_nested_prop' => array(
+							'type'     => 'string',
+							'required' => true,
+						),
+					),
+				),
+			),
+		);
+
+		$valid = rest_validate_value_from_schema( $data, $schema );
+
+		if ( $expected ) {
+			$this->assertTrue( $valid );
+		} else {
+			$this->assertWPError( $valid );
+		}
+	}
+
+	/**
+	 * @ticket       48818
+	 * @dataProvider data_required_nested_property
+	 */
+	public function test_nested_property_is_required_v4( $data, $expected ) {
+		$schema = array(
+			'type'       => 'object',
+			'properties' => array(
+				'my_object' => array(
+					'type'       => 'object',
+					'properties' => array(
+						'my_nested_prop'          => array(
+							'type' => 'string',
+						),
+						'my_required_nested_prop' => array(
+							'type' => 'string',
+						),
+					),
+					'required'   => array( 'my_required_nested_prop' ),
+				),
+			),
+		);
+
+		$valid = rest_validate_value_from_schema( $data, $schema );
+
+		if ( $expected ) {
+			$this->assertTrue( $valid );
+		} else {
+			$this->assertWPError( $valid );
+		}
+	}
+
+	public function data_required_nested_property() {
+		return array(
+			array(
+				array(
+					'my_object' => array(
+						'my_required_nested_prop' => 'test',
+						'my_nested_prop'          => 'test',
+					),
+				),
+				true,
+			),
+			array(
+				array(
+					'my_object' => array(
+						'my_nested_prop' => 'test',
+					),
+				),
+				false,
+			),
+			array(
+				array(),
+				true,
+			),
+		);
+	}
+
+	/**
+	 * @ticket       48818
+	 * @dataProvider data_required_deeply_nested_property
+	 */
+	public function test_deeply_nested_v3_required_property( $value, $expected ) {
+		$schema = array(
+			'type'       => 'object',
+			'properties' => array(
+				'propA' => array(
+					'type'       => 'object',
+					'required'   => true,
+					'properties' => array(
+						'propB' => array(
+							'type'       => 'object',
+							'required'   => true,
+							'properties' => array(
+								'propC' => array(
+									'type'     => 'string',
+									'required' => true,
+								),
+								'propD' => array(
+									'type' => 'string',
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$valid = rest_validate_value_from_schema( $value, $schema );
+
+		if ( $expected ) {
+			$this->assertTrue( $valid );
+		} else {
+			$this->assertWPError( $valid );
+		}
+	}
+
+	/**
+	 * @ticket       48818
+	 * @dataProvider data_required_deeply_nested_property
+	 */
+	public function test_deeply_nested_v4_required_property( $value, $expected ) {
+		$schema = array(
+			'type'       => 'object',
+			'required'   => array( 'propA' ),
+			'properties' => array(
+				'propA' => array(
+					'type'       => 'object',
+					'required'   => array( 'propB' ),
+					'properties' => array(
+						'propB' => array(
+							'type'       => 'object',
+							'required'   => array( 'propC' ),
+							'properties' => array(
+								'propC' => array(
+									'type' => 'string',
+								),
+								'propD' => array(
+									'type' => 'string',
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$valid = rest_validate_value_from_schema( $value, $schema );
+
+		if ( $expected ) {
+			$this->assertTrue( $valid );
+		} else {
+			$this->assertWPError( $valid );
+		}
+	}
+
+	/**
+	 * @ticket       48818
+	 * @dataProvider data_required_deeply_nested_property
+	 */
+	public function test_deeply_nested_mixed_version_required_property( $value, $expected ) {
+		$schema = array(
+			'type'       => 'object',
+			'required'   => array( 'propA' ),
+			'properties' => array(
+				'propA' => array(
+					'type'       => 'object',
+					'required'   => array( 'propB' ),
+					'properties' => array(
+						'propB' => array(
+							'type'       => 'object',
+							'properties' => array(
+								'propC' => array(
+									'type'     => 'string',
+									'required' => true,
+								),
+								'propD' => array(
+									'type' => 'string',
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$valid = rest_validate_value_from_schema( $value, $schema );
+
+		if ( $expected ) {
+			$this->assertTrue( $valid );
+		} else {
+			$this->assertWPError( $valid );
+		}
+	}
+
+	public function data_required_deeply_nested_property() {
+		return array(
+			array(
+				array(),
+				false,
+			),
+			array(
+				array(
+					'propA' => array(),
+				),
+				false,
+			),
+			array(
+				array(
+					'propA' => array(
+						'propB' => array(),
+					),
+				),
+				false,
+			),
+			array(
+				array(
+					'propA' => array(
+						'propB' => array(
+							'propD' => 'd',
+						),
+					),
+				),
+				false,
+			),
+			array(
+				array(
+					'propA' => array(
+						'propB' => array(
+							'propC' => 'c',
+						),
+					),
+				),
+				true,
+			),
+		);
 	}
 }
