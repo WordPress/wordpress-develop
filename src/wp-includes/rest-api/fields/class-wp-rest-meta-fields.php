@@ -276,12 +276,14 @@ abstract class WP_REST_Meta_Fields {
 		$to_add    = $values;
 
 		foreach ( $to_add as $add_key => $value ) {
-			$remove_keys = array_keys( array_filter(
-				$current_values,
-				function ( $stored_value ) use ( $meta_key, $subtype, $value ) {
-					return $this->is_meta_value_same_as_stored_value( $meta_key, $subtype, $stored_value, $value );
-				}
-			) );
+			$remove_keys = array_keys(
+				array_filter(
+					$current_values,
+					function ( $stored_value ) use ( $meta_key, $subtype, $value ) {
+						return $this->is_meta_value_same_as_stored_value( $meta_key, $subtype, $stored_value, $value );
+					}
+				)
+			);
 
 			if ( empty( $remove_keys ) ) {
 				continue;
