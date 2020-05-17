@@ -2026,36 +2026,6 @@ function is_post_status_viewable( $post_status ) {
 }
 
 /**
- * Determines whether a post is considered "viewable".
- *
- * For a given post determines if the post type and post status are
- * both considered viewable. If so the post is considered viewable.
- *
- * @since x.x.x
- *
- * @param int|WP_Post|null $post Optional. Post ID or post object. Defaults to global $post.
- * @return bool Whether the post should be considered viewable.
- */
-function is_post_viewable( $post = null ) {
-	$post = get_post( $post );
-	if ( ! $post ) {
-		return false;
-	}
-
-	$is_viewable = is_post_type_viewable( $post->post_type ) && is_post_status_viewable( $post->post_status );
-
-	/**
-	 * Whether a post is considered viewable.
-	 *
-	 * @since x.x.x
-	 *
-	 * @param bool    $is_viewable Whether the post is viewable.
-	 * @param WP_Post $post        The post object.
-	 */
-	return apply_filters( 'post_viewable', $is_viewable, $post );
-}
-
-/**
  * Retrieves an array of the latest posts, or posts matching the given criteria.
  *
  * The defaults are as follows:
