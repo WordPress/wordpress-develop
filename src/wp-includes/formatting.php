@@ -4327,12 +4327,13 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
 	$url = str_replace( ';//', '://', $url );
 	/*
 	 * If the URL doesn't appear to contain a scheme, we presume
-	 * it needs http:// prepended (unless it's a relative link
+	 * it needs https:// prepended (unless it's a relative link
 	 * starting with /, # or ?, or a PHP file).
 	 */
 	if ( strpos( $url, ':' ) === false && ! in_array( $url[0], array( '/', '#', '?' ), true ) &&
 		! preg_match( '/^[a-z0-9-]+?\.php/i', $url ) ) {
-		$url = 'http://' . $url;
+		$scheme = apply_filters( 'default_scheme', 'https://' );
+		$url = $scheme . $url;
 	}
 
 	// Replace ampersands and single quotes only when displaying.
