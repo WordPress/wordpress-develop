@@ -159,12 +159,13 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			array( '/2010/post-format-test-au/', '/2008/06/02/post-format-test-audio/' ), // A year the post is not in.
 			array( '/post-format-test-au/', '/2008/06/02/post-format-test-audio/' ),
 
+			// Pagination.
 			array(
-				'/2008/09/03/images-test/3/',
+				'/2008/09/03/multipage-post-test/3/',
 				array(
-					'url' => '/2008/09/03/images-test/3/',
+					'url' => '/2008/09/03/multipage-post-test/3/',
 					'qv'  => array(
-						'name'     => 'images-test',
+						'name'     => 'multipage-post-test',
 						'year'     => '2008',
 						'monthnum' => '09',
 						'day'      => '03',
@@ -172,8 +173,11 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 					),
 				),
 			),
-			array( '/2008/09/03/images-test/?page=3', '/2008/09/03/images-test/3/' ),
-			array( '/2008/09/03/images-te?page=3', '/2008/09/03/images-test/3/' ),
+			array( '/2008/09/03/multipage-post-test/?page=3', '/2008/09/03/multipage-post-test/3/' ),
+			array( '/2008/09/03/multipage-post-te?page=3', '/2008/09/03/multipage-post-test/3/' ),
+
+			array( '/2008/09/03/non-paged-post-test/3/', '/2008/09/03/non-paged-post-test/' ),
+			array( '/2008/09/03/non-paged-post-test/?page=3', '/2008/09/03/non-paged-post-test/' ),
 
 			// Comments.
 			array( '/2008/03/03/comment-test/?cpage=2', '/2008/03/03/comment-test/comment-page-2/' ),

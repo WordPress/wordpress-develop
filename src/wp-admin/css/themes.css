@@ -61,11 +61,6 @@ body.js .theme-browser.search-loading {
 	box-sizing: border-box;
 }
 
-.ie8 .theme-browser .theme {
-	width: 30%;
-	margin: 0 3% 4% 0;
-}
-
 .theme-browser .theme:nth-child(3n) {
 	margin-right: 0;
 }
@@ -504,10 +499,6 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 	border-top: 1px solid #eee;
 }
 
-.ie8 .theme-overlay .theme-actions {
-	border: 1px solid #eee;
-}
-
 .theme-overlay .theme-actions a {
 	margin-right: 5px;
 	margin-bottom: 5px;
@@ -896,7 +887,7 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 	.theme-browser .theme:nth-child(3n) {
 		margin-right: 0;
 	}
-	
+
 	.theme-overlay .theme-about {
 		bottom: 105px;
 	}
@@ -1059,11 +1050,8 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 	margin: 30px auto;
 	max-width: 380px;
 	display: flex;
-}
-
-.upload-theme .wp-upload-form > input[type="file"],
-.upload-plugin .wp-upload-form > input[type="file"] {
-	padding: 5px 1em 0 0;
+	justify-content: space-between;
+	align-items: center;
 }
 
 .upload-theme .install-help,
@@ -1921,6 +1909,11 @@ body.full-overlay-active {
 	.theme-browser .theme .theme-actions {
 		padding-top: 4px;
 		padding-bottom: 4px;
+	}
+
+	.upload-theme .wp-upload-form,
+	.upload-plugin .wp-upload-form {
+		display: block;
 	}
 }
 

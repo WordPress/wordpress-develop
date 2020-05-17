@@ -256,6 +256,30 @@ function get_theme_update_available( $theme ) {
  * Retrieve list of WordPress theme features (aka theme tags).
  *
  * @since 3.1.0
+ * @since 3.2.0 Added 'Gray' color and 'Featured Image Header', 'Featured Images',
+ *              'Full Width Template', and 'Post Formats' features.
+ * @since 3.5.0 Added 'Flexible Header' feature.
+ * @since 3.8.0 Renamed 'Width' filter to 'Layout'.
+ * @since 3.8.0 Renamed 'Fixed Width' and 'Flexible Width' options
+ *              to 'Fixed Layout' and 'Fluid Layout'.
+ * @since 3.8.0 Added 'Accessibility Ready' feature and 'Responsive Layout' option.
+ * @since 3.9.0 Combined 'Layout' and 'Columns' filters.
+ * @since 4.6.0 Removed 'Colors' filter.
+ * @since 4.6.0 Added 'Grid Layout' option.
+ *              Removed 'Fixed Layout', 'Fluid Layout', and 'Responsive Layout' options.
+ * @since 4.6.0 Added 'Custom Logo' and 'Footer Widgets' features.
+ *              Removed 'Blavatar' feature.
+ * @since 4.6.0 Added 'Blog', 'E-Commerce', 'Education', 'Entertainment', 'Food & Drink',
+ *              'Holiday', 'News', 'Photography', and 'Portfolio' subjects.
+ *              Removed 'Photoblogging' and 'Seasonal' subjects.
+ * @since 4.9.0 Reordered the filters from 'Layout', 'Features', 'Subject'
+ *              to 'Subject', 'Features', 'Layout'.
+ * @since 4.9.0 Removed 'BuddyPress', 'Custom Menu', 'Flexible Header',
+ *              'Front Page Posting', 'Microformats', 'RTL Language Support',
+ *              'Threaded Comments', and 'Translation Ready' features.
+ * @since 5.5.0 Added 'Block Editor Patterns', 'Block Editor Styles',
+ *              and 'Full Site Editing' features.
+ * @since 5.5.0 Added 'Wide Blocks' layout option.
  *
  * @param bool $api Optional. Whether try to fetch tags from the WordPress.org API. Defaults to true.
  * @return array Array of features keyed by category with translations keyed by slug.
@@ -278,6 +302,8 @@ function get_theme_feature_list( $api = true ) {
 
 		__( 'Features' ) => array(
 			'accessibility-ready'   => __( 'Accessibility Ready' ),
+			'block-patterns'        => __( 'Block Editor Patterns' ),
+			'block-styles'          => __( 'Block Editor Styles' ),
 			'custom-background'     => __( 'Custom Background' ),
 			'custom-colors'         => __( 'Custom Colors' ),
 			'custom-header'         => __( 'Custom Header' ),
@@ -286,6 +312,7 @@ function get_theme_feature_list( $api = true ) {
 			'featured-image-header' => __( 'Featured Image Header' ),
 			'featured-images'       => __( 'Featured Images' ),
 			'footer-widgets'        => __( 'Footer Widgets' ),
+			'full-site-editing'     => __( 'Full Site Editing' ),
 			'full-width-template'   => __( 'Full Width Template' ),
 			'post-formats'          => __( 'Post Formats' ),
 			'sticky-post'           => __( 'Sticky Post' ),
@@ -300,6 +327,7 @@ function get_theme_feature_list( $api = true ) {
 			'four-columns'  => __( 'Four Columns' ),
 			'left-sidebar'  => __( 'Left Sidebar' ),
 			'right-sidebar' => __( 'Right Sidebar' ),
+			'wide-blocks'   => __( 'Wide Blocks' ),
 		),
 
 	);
@@ -332,12 +360,14 @@ function get_theme_feature_list( $api = true ) {
 		'Subject'  => __( 'Subject' ),
 	);
 
-	// Loop over the wp.org canonical list and apply translations.
 	$wporg_features = array();
+
+	// Loop over the wp.org canonical list and apply translations.
 	foreach ( (array) $feature_list as $feature_category => $feature_items ) {
 		if ( isset( $category_translations[ $feature_category ] ) ) {
 			$feature_category = $category_translations[ $feature_category ];
 		}
+
 		$wporg_features[ $feature_category ] = array();
 
 		foreach ( $feature_items as $feature ) {
@@ -441,7 +471,7 @@ function themes_api( $action, $args = array() ) {
 		$args = (object) $args;
 	}
 
-	if ( 'query_themes' == $action ) {
+	if ( 'query_themes' === $action ) {
 		if ( ! isset( $args->per_page ) ) {
 			$args->per_page = 24;
 		}
@@ -553,13 +583,13 @@ function themes_api( $action, $args = array() ) {
 		}
 
 		// Back-compat for info/1.2 API, upgrade the theme objects in query_themes to objects.
-		if ( 'query_themes' == $action ) {
+		if ( 'query_themes' === $action ) {
 			foreach ( $res->themes as $i => $theme ) {
 				$res->themes[ $i ] = (object) $theme;
 			}
 		}
 		// Back-compat for info/1.2 API, downgrade the feature_list result back to an array.
-		if ( 'feature_list' == $action ) {
+		if ( 'feature_list' === $action ) {
 			$res = (array) $res;
 		}
 	}

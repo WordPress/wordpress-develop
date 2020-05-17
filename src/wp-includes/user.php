@@ -786,8 +786,9 @@ function is_user_member_of_blog( $user_id = 0, $blog_id = 0 ) {
  *
  * @param int    $user_id    User ID.
  * @param string $meta_key   Metadata name.
- * @param mixed  $meta_value Metadata value.
- * @param bool   $unique     Optional. Whether the same key should not be added. Default false.
+ * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
+ * @param bool   $unique     Optional. Whether the same key should not be added.
+ *                           Default false.
  * @return int|false Meta ID on success, false on failure.
  */
 function add_user_meta( $user_id, $meta_key, $meta_value, $unique = false ) {
@@ -806,7 +807,9 @@ function add_user_meta( $user_id, $meta_key, $meta_value, $unique = false ) {
  *
  * @param int    $user_id    User ID
  * @param string $meta_key   Metadata name.
- * @param mixed  $meta_value Optional. Metadata value.
+ * @param mixed  $meta_value Optional. Metadata value. If provided,
+ *                           rows will only be removed that match the value.
+ *                           Must be serializable if non-scalar. Default empty.
  * @return bool True on success, false on failure.
  */
 function delete_user_meta( $user_id, $meta_key, $meta_value = '' ) {
@@ -820,9 +823,13 @@ function delete_user_meta( $user_id, $meta_key, $meta_value = '' ) {
  * @link https://developer.wordpress.org/reference/functions/get_user_meta/
  *
  * @param int    $user_id User ID.
- * @param string $key     Optional. The meta key to retrieve. By default, returns data for all keys.
- * @param bool   $single  Whether to return a single value.
- * @return mixed Will be an array if $single is false. Will be value of meta data field if $single is true.
+ * @param string $key     Optional. The meta key to retrieve. By default,
+ *                        returns data for all keys.
+ * @param bool   $single  Optional. Whether to return a single value.
+ *                        This parameter has no effect if $key is not specified.
+ *                        Default false.
+ * @return mixed An array if $single is false. The value of meta data field
+ *               if $single is true.
  */
 function get_user_meta( $user_id, $key = '', $single = false ) {
 	return get_metadata( 'user', $user_id, $key, $single );
@@ -841,9 +848,11 @@ function get_user_meta( $user_id, $key = '', $single = false ) {
  *
  * @param int    $user_id    User ID.
  * @param string $meta_key   Metadata key.
- * @param mixed  $meta_value Metadata value.
- * @param mixed  $prev_value Optional. Previous value to check before removing.
- * @return int|bool Meta ID if the key didn't exist, true on successful update, false on failure.
+ * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
+ * @param mixed  $prev_value Optional. Previous value to check before updating.
+ *                           Default empty.
+ * @return int|bool Meta ID if the key didn't exist, true on successful update,
+ *                  false on failure.
  */
 function update_user_meta( $user_id, $meta_key, $meta_value, $prev_value = '' ) {
 	return update_metadata( 'user', $user_id, $meta_key, $meta_value, $prev_value );
@@ -901,7 +910,7 @@ function count_users( $strategy = 'time', $site_id = null ) {
 	$blog_prefix = $wpdb->get_blog_prefix( $site_id );
 	$result      = array();
 
-	if ( 'time' == $strategy ) {
+	if ( 'time' === $strategy ) {
 		if ( is_multisite() && get_current_blog_id() != $site_id ) {
 			switch_to_blog( $site_id );
 			$avail_roles = wp_roles()->get_names();
@@ -1242,7 +1251,7 @@ function sanitize_user_field( $field, $value, $user_id, $context ) {
 		$value = (int) $value;
 	}
 
-	if ( 'raw' == $context ) {
+	if ( 'raw' === $context ) {
 		return $value;
 	}
 
@@ -1252,7 +1261,7 @@ function sanitize_user_field( $field, $value, $user_id, $context ) {
 
 	$prefixed = false !== strpos( $field, 'user_' );
 
-	if ( 'edit' == $context ) {
+	if ( 'edit' === $context ) {
 		if ( $prefixed ) {
 
 			/** This filter is documented in wp-includes/post.php */
@@ -1273,12 +1282,12 @@ function sanitize_user_field( $field, $value, $user_id, $context ) {
 			$value = apply_filters( "edit_user_{$field}", $value, $user_id );
 		}
 
-		if ( 'description' == $field ) {
+		if ( 'description' === $field ) {
 			$value = esc_html( $value ); // textarea_escaped?
 		} else {
 			$value = esc_attr( $value );
 		}
-	} elseif ( 'db' == $context ) {
+	} elseif ( 'db' === $context ) {
 		if ( $prefixed ) {
 			/** This filter is documented in wp-includes/post.php */
 			$value = apply_filters( "pre_{$field}", $value );
@@ -1320,13 +1329,13 @@ function sanitize_user_field( $field, $value, $user_id, $context ) {
 		}
 	}
 
-	if ( 'user_url' == $field ) {
+	if ( 'user_url' === $field ) {
 		$value = esc_url( $value );
 	}
 
-	if ( 'attribute' == $context ) {
+	if ( 'attribute' === $context ) {
 		$value = esc_attr( $value );
-	} elseif ( 'js' == $context ) {
+	} elseif ( 'js' === $context ) {
 		$value = esc_js( $value );
 	}
 	return $value;
@@ -1803,7 +1812,7 @@ function wp_insert_user( $userdata ) {
 	}
 
 	if ( $update ) {
-		if ( $user_email !== $old_user_data->user_email ) {
+		if ( $user_email !== $old_user_data->user_email || $user_pass !== $old_user_data->user_pass ) {
 			$data['user_activation_key'] = '';
 		}
 		$wpdb->update( $wpdb->users, $data, compact( 'ID' ) );
@@ -2497,7 +2506,7 @@ function register_new_user( $user_login, $user_email ) {
 	$user_email = apply_filters( 'user_registration_email', $user_email );
 
 	// Check the username.
-	if ( '' == $sanitized_user_login ) {
+	if ( '' === $sanitized_user_login ) {
 		$errors->add( 'empty_username', __( '<strong>Error</strong>: Please enter a username.' ) );
 	} elseif ( ! validate_username( $user_login ) ) {
 		$errors->add( 'invalid_username', __( '<strong>Error</strong>: This username is invalid because it uses illegal characters. Please enter a valid username.' ) );
@@ -2514,7 +2523,7 @@ function register_new_user( $user_login, $user_email ) {
 	}
 
 	// Check the email address.
-	if ( '' == $user_email ) {
+	if ( '' === $user_email ) {
 		$errors->add( 'empty_email', __( '<strong>Error</strong>: Please type your email address.' ) );
 	} elseif ( ! is_email( $user_email ) ) {
 		$errors->add( 'invalid_email', __( '<strong>Error</strong>: The email address isn&#8217;t correct.' ) );

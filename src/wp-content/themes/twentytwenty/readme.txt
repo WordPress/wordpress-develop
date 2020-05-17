@@ -22,6 +22,11 @@ you pick, ensuring a high, accessible color contrast for your visitors.
 
 == Changelog ==
 
+= 1.3 =
+* Released: May 14, 2020
+
+https://wordpress.org/support/article/twenty-twenty-changelog/#Version_1.3
+
 = 1.2 =
 * Released: March 31, 2020
 
@@ -57,7 +62,7 @@ Chaplin Theme is distributed under the terms of the GNU GPL version 2.0
 
 Twenty Twenty bundles the following third-party resources:
 
-Illustrations in screenshot.png by Tammie Lister
+Illustrations by Tammie Lister
 License: Creative Commons Zero (CC0), https://creativecommons.org/publicdomain/zero/1.0/  
 
 Inter Font
@@ -76,6 +81,11 @@ Copyright (c) 2013-2017 Cole Bemis
 License: MIT License, https://opensource.org/licenses/MIT
 Source: https://feathericons.com
 Used for post meta icons, and the link icon in the social menu.
+
+TikTok Icon
+License: GPLv2
+Source: Émilie Lebrun - @Emlebrun
+Used for TikTok social icon.
 
 Social Icons
 License: GNU General Public License v2 or later

@@ -91,7 +91,7 @@ function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
 		_deprecated_argument( __FUNCTION__, '3.0.0', sprintf( __( 'The %1$s plugin header is deprecated. Use %2$s instead.' ), '<code>Site Wide Only: true</code>', '<code>Network: true</code>' ) );
 		$plugin_data['Network'] = $plugin_data['_sitewide'];
 	}
-	$plugin_data['Network'] = ( 'true' == strtolower( $plugin_data['Network'] ) );
+	$plugin_data['Network'] = ( 'true' === strtolower( $plugin_data['Network'] ) );
 	unset( $plugin_data['_sitewide'] );
 
 	// If no text domain is defined fall back to the plugin slug.
@@ -156,7 +156,7 @@ function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup 
 					load_plugin_textdomain( $textdomain, false, dirname( $plugin_file ) );
 				}
 			}
-		} elseif ( 'hello.php' == basename( $plugin_file ) ) {
+		} elseif ( 'hello.php' === basename( $plugin_file ) ) {
 			$textdomain = 'default';
 		}
 		if ( $textdomain ) {
@@ -295,30 +295,36 @@ function get_plugins( $plugin_folder = '' ) {
 	// Files in wp-content/plugins directory.
 	$plugins_dir  = @ opendir( $plugin_root );
 	$plugin_files = array();
+
 	if ( $plugins_dir ) {
 		while ( ( $file = readdir( $plugins_dir ) ) !== false ) {
-			if ( substr( $file, 0, 1 ) == '.' ) {
+			if ( '.' === substr( $file, 0, 1 ) ) {
 				continue;
 			}
+
 			if ( is_dir( $plugin_root . '/' . $file ) ) {
 				$plugins_subdir = @ opendir( $plugin_root . '/' . $file );
+
 				if ( $plugins_subdir ) {
 					while ( ( $subfile = readdir( $plugins_subdir ) ) !== false ) {
-						if ( substr( $subfile, 0, 1 ) == '.' ) {
+						if ( '.' === substr( $subfile, 0, 1 ) ) {
 							continue;
 						}
-						if ( substr( $subfile, -4 ) == '.php' ) {
+
+						if ( '.php' === substr( $subfile, -4 ) ) {
 							$plugin_files[] = "$file/$subfile";
 						}
 					}
+
 					closedir( $plugins_subdir );
 				}
 			} else {
-				if ( substr( $file, -4 ) == '.php' ) {
+				if ( '.php' === substr( $file, -4 ) ) {
 					$plugin_files[] = $file;
 				}
 			}
 		}
+
 		closedir( $plugins_dir );
 	}
 
@@ -369,7 +375,7 @@ function get_mu_plugins() {
 	$plugins_dir = @opendir( WPMU_PLUGIN_DIR );
 	if ( $plugins_dir ) {
 		while ( ( $file = readdir( $plugins_dir ) ) !== false ) {
-			if ( substr( $file, -4 ) == '.php' ) {
+			if ( '.php' === substr( $file, -4 ) ) {
 				$plugin_files[] = $file;
 			}
 		}
@@ -1100,22 +1106,33 @@ function validate_plugin( $plugin ) {
 }
 
 /**
- * Validate the plugin requirements for WP version and PHP version.
+ * Validates the plugin requirements for WordPress version and PHP version.
+ *
+ * Uses the information from `Requires at least` and `Requires PHP` headers
+ * defined in the plugin's main PHP file.
+ *
+ * If the headers are not present in the plugin's main PHP file,
+ * `readme.txt` is also checked as a fallback.
  *
  * @since 5.2.0
+ * @since 5.3.0 Added support for reading the headers from the plugin's
+ *              main PHP file, with `readme.txt` as a fallback.
  *
  * @param string $plugin Path to the plugin file relative to the plugins directory.
  * @return true|WP_Error True if requirements are met, WP_Error on failure.
  */
 function validate_plugin_requirements( $plugin ) {
-	$readme_file = WP_PLUGIN_DIR . '/' . dirname( $plugin ) . '/readme.txt';
-	$plugin_data = array(
-		'requires'     => '',
-		'requires_php' => '',
+	$plugin_headers = get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin );
+
+	$requirements = array(
+		'requires'     => ! empty( $plugin_headers['RequiresWP'] ) ? $plugin_headers['RequiresWP'] : '',
+		'requires_php' => ! empty( $plugin_headers['RequiresPHP'] ) ? $plugin_headers['RequiresPHP'] : '',
 	);
 
+	$readme_file = WP_PLUGIN_DIR . '/' . dirname( $plugin ) . '/readme.txt';
+
 	if ( file_exists( $readme_file ) ) {
-		$plugin_data = get_file_data(
+		$readme_headers = get_file_data(
 			$readme_file,
 			array(
 				'requires'     => 'Requires at least',
@@ -1123,42 +1140,38 @@ function validate_plugin_requirements( $plugin ) {
 			),
 			'plugin'
 		);
+
+		$requirements = array_merge( $readme_headers, $requirements );
 	}
 
-	$plugin_data = array_merge( $plugin_data, get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin ) );
+	$compatible_wp  = is_wp_version_compatible( $requirements['requires'] );
+	$compatible_php = is_php_version_compatible( $requirements['requires_php'] );
 
-	// Check for headers in the plugin's PHP file, give precedence to the plugin headers.
-	$plugin_data['requires']     = ! empty( $plugin_data['RequiresWP'] ) ? $plugin_data['RequiresWP'] : $plugin_data['requires'];
-	$plugin_data['requires_php'] = ! empty( $plugin_data['RequiresPHP'] ) ? $plugin_data['RequiresPHP'] : $plugin_data['requires_php'];
-
-	$plugin_data['wp_compatible']  = is_wp_version_compatible( $plugin_data['requires'] );
-	$plugin_data['php_compatible'] = is_php_version_compatible( $plugin_data['requires_php'] );
-
-	if ( ! $plugin_data['wp_compatible'] && ! $plugin_data['php_compatible'] ) {
+	if ( ! $compatible_wp && ! $compatible_php ) {
 		return new WP_Error(
 			'plugin_wp_php_incompatible',
 			sprintf(
 				/* translators: %s: Plugin name. */
-				__( '<strong>Error:</strong> Current WordPress and PHP versions do not meet minimum requirements for %s.' ),
-				$plugin_data['Name']
+				_x( '<strong>Error:</strong> Current WordPress and PHP versions do not meet minimum requirements for %s.', 'plugin' ),
+				$plugin_headers['Name']
 			)
 		);
-	} elseif ( ! $plugin_data['php_compatible'] ) {
+	} elseif ( ! $compatible_php ) {
 		return new WP_Error(
 			'plugin_php_incompatible',
 			sprintf(
 				/* translators: %s: Plugin name. */
-				__( '<strong>Error:</strong> Current PHP version does not meet minimum requirements for %s.' ),
-				$plugin_data['Name']
+				_x( '<strong>Error:</strong> Current PHP version does not meet minimum requirements for %s.', 'plugin' ),
+				$plugin_headers['Name']
 			)
 		);
-	} elseif ( ! $plugin_data['wp_compatible'] ) {
+	} elseif ( ! $compatible_wp ) {
 		return new WP_Error(
 			'plugin_wp_incompatible',
 			sprintf(
 				/* translators: %s: Plugin name. */
-				__( '<strong>Error:</strong> Current WordPress version does not meet minimum requirements for %s.' ),
-				$plugin_data['Name']
+				_x( '<strong>Error:</strong> Current WordPress version does not meet minimum requirements for %s.', 'plugin' ),
+				$plugin_headers['Name']
 			)
 		);
 	}
@@ -1437,7 +1450,7 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 	 * Backward-compatibility for plugins using add_management_page().
 	 * See wp-admin/admin.php for redirect from edit.php to tools.php.
 	 */
-	if ( 'tools.php' == $parent_slug ) {
+	if ( 'tools.php' === $parent_slug ) {
 		$_registered_pages[ get_plugin_page_hookname( $menu_slug, 'edit.php' ) ] = true;
 	}
 
@@ -1829,7 +1842,7 @@ function get_admin_page_parent( $parent = '' ) {
 	global $parent_file, $menu, $submenu, $pagenow, $typenow,
 		$plugin_page, $_wp_real_parent_file, $_wp_menu_nopriv, $_wp_submenu_nopriv;
 
-	if ( ! empty( $parent ) && 'admin.php' != $parent ) {
+	if ( ! empty( $parent ) && 'admin.php' !== $parent ) {
 		if ( isset( $_wp_real_parent_file[ $parent ] ) ) {
 			$parent = $_wp_real_parent_file[ $parent ];
 		}
@@ -2011,7 +2024,7 @@ function get_plugin_page_hookname( $plugin_page, $parent_page ) {
 	$parent = get_admin_page_parent( $parent_page );
 
 	$page_type = 'admin';
-	if ( empty( $parent_page ) || 'admin.php' == $parent_page || isset( $admin_page_hooks[ $plugin_page ] ) ) {
+	if ( empty( $parent_page ) || 'admin.php' === $parent_page || isset( $admin_page_hooks[ $plugin_page ] ) ) {
 		if ( isset( $admin_page_hooks[ $plugin_page ] ) ) {
 			$page_type = 'toplevel';
 		} elseif ( isset( $admin_page_hooks[ $parent ] ) ) {
@@ -2158,7 +2171,7 @@ function option_update_filter( $options ) {
  * @return array
  */
 function add_option_whitelist( $new_options, $options = '' ) {
-	if ( '' == $options ) {
+	if ( '' === $options ) {
 		global $whitelist_options;
 	} else {
 		$whitelist_options = $options;
@@ -2170,7 +2183,7 @@ function add_option_whitelist( $new_options, $options = '' ) {
 				$whitelist_options[ $page ]   = array();
 				$whitelist_options[ $page ][] = $key;
 			} else {
-				$pos = array_search( $key, $whitelist_options[ $page ] );
+				$pos = array_search( $key, $whitelist_options[ $page ], true );
 				if ( false === $pos ) {
 					$whitelist_options[ $page ][] = $key;
 				}
@@ -2193,7 +2206,7 @@ function add_option_whitelist( $new_options, $options = '' ) {
  * @return array
  */
 function remove_option_whitelist( $del_options, $options = '' ) {
-	if ( '' == $options ) {
+	if ( '' === $options ) {
 		global $whitelist_options;
 	} else {
 		$whitelist_options = $options;
@@ -2202,7 +2215,7 @@ function remove_option_whitelist( $del_options, $options = '' ) {
 	foreach ( $del_options as $page => $keys ) {
 		foreach ( $keys as $key ) {
 			if ( isset( $whitelist_options[ $page ] ) && is_array( $whitelist_options[ $page ] ) ) {
-				$pos = array_search( $key, $whitelist_options[ $page ] );
+				$pos = array_search( $key, $whitelist_options[ $page ], true );
 				if ( false !== $pos ) {
 					unset( $whitelist_options[ $page ][ $pos ] );
 				}

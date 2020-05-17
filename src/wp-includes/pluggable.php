@@ -329,7 +329,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		if ( ! isset( $from_email ) ) {
 			// Get the site domain and get rid of www.
 			$sitename = strtolower( $_SERVER['SERVER_NAME'] );
-			if ( substr( $sitename, 0, 4 ) == 'www.' ) {
+			if ( 'www.' === substr( $sitename, 0, 4 ) ) {
 				$sitename = substr( $sitename, 4 );
 			}
 
@@ -432,7 +432,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		$phpmailer->ContentType = $content_type;
 
 		// Set whether it's plaintext, depending on $content_type.
-		if ( 'text/html' == $content_type ) {
+		if ( 'text/html' === $content_type ) {
 			$phpmailer->isHTML( true );
 		}
 
@@ -573,16 +573,21 @@ if ( ! function_exists( 'wp_logout' ) ) :
 	 * @since 2.5.0
 	 */
 	function wp_logout() {
+		$user_id = get_current_user_id();
+
 		wp_destroy_current_session();
 		wp_clear_auth_cookie();
 		wp_set_current_user( 0 );
 
 		/**
-		 * Fires after a user is logged-out.
+		 * Fires after a user is logged out.
 		 *
 		 * @since 1.5.0
+		 * @since 5.5.0 Added the `$user_id` parameter.
+		 *
+		 * @param int $user_id ID of the user that was logged out.
 		 */
-		do_action( 'wp_logout' );
+		do_action( 'wp_logout', $user_id );
 	}
 endif;
 
@@ -628,7 +633,7 @@ if ( ! function_exists( 'wp_validate_auth_cookie' ) ) :
 		$expiration = $cookie_elements['expiration'];
 
 		// Allow a grace period for POST and Ajax requests.
-		if ( wp_doing_ajax() || 'POST' == $_SERVER['REQUEST_METHOD'] ) {
+		if ( wp_doing_ajax() || 'POST' === $_SERVER['REQUEST_METHOD'] ) {
 			$expired += HOUR_IN_SECONDS;
 		}
 
@@ -1261,7 +1266,7 @@ if ( ! function_exists( 'wp_redirect' ) ) :
 
 		$location = wp_sanitize_redirect( $location );
 
-		if ( ! $is_IIS && PHP_SAPI != 'cgi-fcgi' ) {
+		if ( ! $is_IIS && 'cgi-fcgi' !== PHP_SAPI ) {
 			status_header( $status ); // This causes problems on IIS and some FastCGI setups.
 		}
 
@@ -1409,7 +1414,7 @@ if ( ! function_exists( 'wp_validate_redirect' ) ) :
 	function wp_validate_redirect( $location, $default = '' ) {
 		$location = trim( $location, " \t\n\r\0\x08\x0B" );
 		// Browsers will assume 'http' is your protocol, and will obey a redirect to a URL starting with '//'.
-		if ( substr( $location, 0, 2 ) == '//' ) {
+		if ( '//' === substr( $location, 0, 2 ) ) {
 			$location = 'http:' . $location;
 		}
 
@@ -1418,8 +1423,7 @@ if ( ! function_exists( 'wp_validate_redirect' ) ) :
 		$cut  = strpos( $location, '?' );
 		$test = $cut ? substr( $location, 0, $cut ) : $location;
 
-		// @-operator is used to prevent possible warnings in PHP < 5.3.3.
-		$lp = @parse_url( $test );
+		$lp = parse_url( $test );
 
 		// Give up if malformed URL.
 		if ( false === $lp ) {
@@ -1427,7 +1431,7 @@ if ( ! function_exists( 'wp_validate_redirect' ) ) :
 		}
 
 		// Allow only 'http' and 'https' schemes. No 'data:', etc.
-		if ( isset( $lp['scheme'] ) && ! ( 'http' == $lp['scheme'] || 'https' == $lp['scheme'] ) ) {
+		if ( isset( $lp['scheme'] ) && ! ( 'http' === $lp['scheme'] || 'https' === $lp['scheme'] ) ) {
 			return $default;
 		}
 
@@ -1642,14 +1646,14 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 
 		$wp_email = 'wordpress@' . preg_replace( '#^www\.#', '', strtolower( $_SERVER['SERVER_NAME'] ) );
 
-		if ( '' == $comment->comment_author ) {
+		if ( '' === $comment->comment_author ) {
 			$from = "From: \"$blogname\" <$wp_email>";
-			if ( '' != $comment->comment_author_email ) {
+			if ( '' !== $comment->comment_author_email ) {
 				$reply_to = "Reply-To: $comment->comment_author_email";
 			}
 		} else {
 			$from = "From: \"$comment->comment_author\" <$wp_email>";
-			if ( '' != $comment->comment_author_email ) {
+			if ( '' !== $comment->comment_author_email ) {
 				$reply_to = "Reply-To: \"$comment->comment_author_email\" <$comment->comment_author_email>";
 			}
 		}
@@ -2267,7 +2271,7 @@ if ( ! function_exists( 'wp_salt' ) ) :
 		if ( defined( 'SECRET_KEY' ) && SECRET_KEY && empty( $duplicated_keys[ SECRET_KEY ] ) ) {
 			$values['key'] = SECRET_KEY;
 		}
-		if ( 'auth' == $scheme && defined( 'SECRET_SALT' ) && SECRET_SALT && empty( $duplicated_keys[ SECRET_SALT ] ) ) {
+		if ( 'auth' === $scheme && defined( 'SECRET_SALT' ) && SECRET_SALT && empty( $duplicated_keys[ SECRET_SALT ] ) ) {
 			$values['salt'] = SECRET_SALT;
 		}
 
@@ -2601,6 +2605,8 @@ if ( ! function_exists( 'get_avatar' ) ) :
 	 *                                       Default null.
 	 *     @type bool         $force_display Whether to always show the avatar - ignores the show_avatars option.
 	 *                                       Default false.
+	 *     @type string       $loading       Value for the `loading` attribute.
+	 *                                       Default null.
 	 *     @type string       $extra_attr    HTML attributes to insert in the IMG element. Is not sanitized. Default empty.
 	 * }
 	 * @return string|false `<img>` tag for the user's avatar. False on failure.
@@ -2618,8 +2624,13 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			'alt'           => '',
 			'class'         => null,
 			'force_display' => false,
+			'loading'       => null,
 			'extra_attr'    => '',
 		);
+
+		if ( wp_lazy_loading_enabled( 'img', 'get_avatar' ) ) {
+			$defaults['loading'] = 'lazy';
+		}
 
 		if ( empty( $args ) ) {
 			$args = array();
@@ -2690,6 +2701,18 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			}
 		}
 
+		// Add `loading` attribute.
+		$extra_attr = $args['extra_attr'];
+		$loading    = $args['loading'];
+
+		if ( in_array( $loading, array( 'lazy', 'eager' ), true ) && ! preg_match( '/\bloading\s*=/', $extra_attr ) ) {
+			if ( ! empty( $extra_attr ) ) {
+				$extra_attr .= ' ';
+			}
+
+			$extra_attr .= "loading='{$loading}'";
+		}
+
 		$avatar = sprintf(
 			"<img alt='%s' src='%s' srcset='%s' class='%s' height='%d' width='%d' %s/>",
 			esc_attr( $args['alt'] ),
@@ -2698,7 +2721,7 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			esc_attr( join( ' ', $class ) ),
 			(int) $args['height'],
 			(int) $args['width'],
-			$args['extra_attr']
+			$extra_attr
 		);
 
 		/**

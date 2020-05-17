@@ -7,7 +7,7 @@ $defaults = array(
 	'echo' => 1, 'order' => 'DESC',
 );
 */
-class Tests_Get_Archives extends WP_UnitTestCase {
+class Tests_Functions_wpGetArchives extends WP_UnitTestCase {
 	protected static $post_ids;
 	protected $month_url;
 	protected $year_url;

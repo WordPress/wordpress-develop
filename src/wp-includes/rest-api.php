@@ -1227,6 +1227,13 @@ function rest_get_avatar_sizes() {
  * Validate a value based on a schema.
  *
  * @since 4.7.0
+ * @since 4.9.0 Support the "object" type.
+ * @since 5.2.0 Support validating "additionalProperties" against a schema.
+ * @since 5.3.0 Support multiple types.
+ * @since 5.4.0 Convert an empty string to an empty object.
+ * @since 5.5.0 Add the "uuid" and "hex-color" formats.
+ *              Support the "minLength", "maxLength" and "pattern" keywords for strings.
+ *              Validate required properties.
  *
  * @param mixed  $value The value to validate.
  * @param array  $args  Schema array to use for validation.
@@ -1284,6 +1291,22 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'object' ) );
 		}
 
+		if ( isset( $args['required'] ) && is_array( $args['required'] ) ) { // schema version 4
+			foreach ( $args['required'] as $name ) {
+				if ( ! array_key_exists( $name, $value ) ) {
+					/* translators: 1: Property of an object, 2: Parameter. */
+					return new WP_Error( 'rest_property_required', sprintf( __( '%1$s is a required property of %2$s.' ), $name, $param ) );
+				}
+			}
+		} elseif ( isset( $args['properties'] ) ) { // schema version 3
+			foreach ( $args['properties'] as $name => $property ) {
+				if ( isset( $property['required'] ) && true === $property['required'] && ! array_key_exists( $name, $value ) ) {
+					/* translators: 1: Property of an object, 2: Parameter. */
+					return new WP_Error( 'rest_property_required', sprintf( __( '%1$s is a required property of %2$s.' ), $name, $param ) );
+				}
+			}
+		}
+
 		foreach ( $value as $property => $v ) {
 			if ( isset( $args['properties'][ $property ] ) ) {
 				$is_valid = rest_validate_value_from_schema( $v, $args['properties'][ $property ], $param . '[' . $property . ']' );
@@ -1337,9 +1360,43 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'boolean' ) );
 	}
 
-	if ( 'string' === $args['type'] && ! is_string( $value ) ) {
-		/* translators: 1: Parameter, 2: Type name. */
-		return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'string' ) );
+	if ( 'string' === $args['type'] ) {
+		if ( ! is_string( $value ) ) {
+			/* translators: 1: Parameter, 2: Type name. */
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'string' ) );
+		}
+
+		if ( isset( $args['minLength'] ) && mb_strlen( $value ) < $args['minLength'] ) {
+			return new WP_Error(
+				'rest_invalid_param',
+				sprintf(
+					/* translators: 1: Parameter, 2: Number of characters. */
+					_n( '%1$s must be at least %2$s character long.', '%1$s must be at least %2$s characters long.', $args['minLength'] ),
+					$param,
+					number_format_i18n( $args['minLength'] )
+				)
+			);
+		}
+
+		if ( isset( $args['maxLength'] ) && mb_strlen( $value ) > $args['maxLength'] ) {
+			return new WP_Error(
+				'rest_invalid_param',
+				sprintf(
+					/* translators: 1: Parameter, 2: Number of characters. */
+					_n( '%1$s must be at most %2$s character long.', '%1$s must be at most %2$s characters long.', $args['maxLength'] ),
+					$param,
+					number_format_i18n( $args['maxLength'] )
+				)
+			);
+		}
+
+		if ( isset( $args['pattern'] ) ) {
+			$pattern = str_replace( '#', '\\#', $args['pattern'] );
+			if ( ! preg_match( '#' . $pattern . '#u', $value ) ) {
+				/* translators: 1: Parameter, 2: Pattern. */
+				return new WP_Error( 'rest_invalid_pattern', sprintf( __( '%1$s does not match pattern %2$s.' ), $param, $args['pattern'] ) );
+			}
+		}
 	}
 
 	if ( isset( $args['format'] ) ) {
@@ -1365,6 +1422,12 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 				if ( ! rest_is_ip_address( $value ) ) {
 					/* translators: %s: IP address. */
 					return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not a valid IP address.' ), $param ) );
+				}
+				break;
+			case 'uuid':
+				if ( ! wp_is_uuid( $value ) ) {
+					/* translators: %s is the name of a JSON field expecting a valid uuid. */
+					return new WP_Error( 'rest_invalid_uuid', sprintf( __( '%s is not a valid UUID.' ), $param ) );
 				}
 				break;
 		}
@@ -1523,6 +1586,9 @@ function rest_sanitize_value_from_schema( $value, $args ) {
 
 			case 'ip':
 				return sanitize_text_field( $value );
+
+			case 'uuid':
+				return sanitize_text_field( $value );
 		}
 	}
 
@@ -1622,4 +1688,64 @@ function rest_parse_embed_param( $embed ) {
 	}
 
 	return $rels;
+}
+
+/**
+ * Filters the response to remove any fields not available in the given context.
+ *
+ * @since 5.5.0
+ *
+ * @param array|object $data    The response data to modify.
+ * @param array        $schema  The schema for the endpoint used to filter the response.
+ * @param string       $context The requested context.
+ * @return array|object The filtered response data.
+ */
+function rest_filter_response_by_context( $data, $schema, $context ) {
+	if ( ! is_array( $data ) && ! is_object( $data ) ) {
+		return $data;
+	}
+
+	if ( isset( $schema['type'] ) ) {
+		$type = $schema['type'];
+	} elseif ( isset( $schema['properties'] ) ) {
+		$type = 'object'; // Back compat if a developer accidentally omitted the type.
+	} else {
+		return $data;
+	}
+
+	foreach ( $data as $key => $value ) {
+		$check = array();
+
+		if ( 'array' === $type || ( is_array( $type ) && in_array( 'array', $type, true ) ) ) {
+			$check = isset( $schema['items'] ) ? $schema['items'] : array();
+		} elseif ( 'object' === $type || ( is_array( $type ) && in_array( 'object', $type, true ) ) ) {
+			if ( isset( $schema['properties'][ $key ] ) ) {
+				$check = $schema['properties'][ $key ];
+			} elseif ( isset( $schema['additionalProperties'] ) && is_array( $schema['additionalProperties'] ) ) {
+				$check = $schema['additionalProperties'];
+			}
+		}
+
+		if ( ! isset( $check['context'] ) ) {
+			continue;
+		}
+
+		if ( ! in_array( $context, $check['context'], true ) ) {
+			if ( is_object( $data ) ) {
+				unset( $data->$key );
+			} else {
+				unset( $data[ $key ] );
+			}
+		} elseif ( is_array( $value ) || is_object( $value ) ) {
+			$new_value = rest_filter_response_by_context( $value, $check, $context );
+
+			if ( is_object( $data ) ) {
+				$data->$key = $new_value;
+			} else {
+				$data[ $key ] = $new_value;
+			}
+		}
+	}
+
+	return $data;
 }
