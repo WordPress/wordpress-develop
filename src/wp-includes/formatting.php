@@ -4332,7 +4332,16 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
 	 */
 	if ( strpos( $url, ':' ) === false && ! in_array( $url[0], array( '/', '#', '?' ), true ) &&
 		! preg_match( '/^[a-z0-9-]+?\.php/i', $url ) ) {
-		$scheme = apply_filters( 'default_scheme', 'https://' );
+		/**
+		 * Default scheme for schemeless links.
+		 *
+		 * @since TODO
+		 *
+		 * @param string $scheme The default scheme to use, https here.
+		 * @param string $url    The url escaped.
+		 */
+
+		$scheme = apply_filters( 'default_scheme', 'https://', $url );
 		$url = $scheme . $url;
 	}
 
