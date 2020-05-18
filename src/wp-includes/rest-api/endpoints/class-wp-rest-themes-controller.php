@@ -228,7 +228,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			'properties' => array(
 				'author'         => array(
 					'description' => __( 'The theme author.' ),
-					'type'        => 'string',
+					'type'        => 'object',
 					'readonly'    => true,
 					'properties'  => array(
 						'raw'      => array(
