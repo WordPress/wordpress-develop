@@ -759,7 +759,7 @@ function get_extended( $post ) {
  *                            When $output is OBJECT, a `WP_Post` instance is returned.
  */
 function get_post( $post = null, $output = OBJECT, $filter = 'raw' ) {
-	if ( empty( $post ) && isset( $GLOBALS['post'] ) ) {
+	if ( 0 !== $post && empty( $post ) && isset( $GLOBALS['post'] ) ) {
 		$post = $GLOBALS['post'];
 	}
 
