@@ -2537,7 +2537,7 @@
 				_ajax_nonce: settings.ajax_nonce,
 				state: action,
 				type: type,
-				asset: asset,
+				asset: asset
 			};
 
 			$.post( window.ajaxurl, data )
@@ -2565,8 +2565,8 @@
 					if ( 'themes' !== pagenow ) {
 						$enabled       = $( '.auto-update-enabled span' );
 						$disabled      = $( '.auto-update-disabled span' );
-						enabledNumber  = parseInt( $enabled.text().replace( /[^\d]+/g, '' ) ) || 0;
-						disabledNumber = parseInt( $disabled.text().replace( /[^\d]+/g, '' ) ) || 0;
+						enabledNumber  = parseInt( $enabled.text().replace( /[^\d]+/g, '', 10 ) ) || 0;
+						disabledNumber = parseInt( $disabled.text().replace( /[^\d]+/g, '', 10 ) ) || 0;
 
 						switch ( action ) {
 							case 'enable':
@@ -2590,7 +2590,7 @@
 						href = href.replace( 'action=enable-auto-update', 'action=disable-auto-update' );
 						$anchor.attr( {
 							'data-wp-action': 'disable',
-							href: href,
+							href: href
 						} );
 
 						$label.text( wp.updates.l10n.autoUpdatesDisable );
@@ -2600,7 +2600,7 @@
 						href = href.replace( 'action=disable-auto-update', 'action=enable-auto-update' );
 						$anchor.attr( {
 							'data-wp-action': 'enable',
-							href: href,
+							href: href
 						} );
 
 						$label.text( wp.updates.l10n.autoUpdatesEnable );
