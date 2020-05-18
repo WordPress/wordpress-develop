@@ -162,7 +162,7 @@ class WP_Automatic_Updater {
 			$update = false;
 			if ( wp_is_auto_update_enabled_for_type( $type ) ) {
 				$auto_updates = (array) get_site_option( "auto_update_{$type}s", array() );
-				$update      = in_array( $item->{$type}, $auto_updates, true ) || ! empty( $item->autoupdate );
+				$update       = in_array( $item->{$type}, $auto_updates, true ) || ! empty( $item->autoupdate );
 			}
 		} else {
 			$update = ! empty( $item->autoupdate );
@@ -960,7 +960,7 @@ class WP_Automatic_Updater {
 			case 'mixed':
 				/* translators: %s: Site title. */
 				$subject = __( '[%s] Some plugins or themes were automatically updated' );
-				$body[] = sprintf(
+				$body[]  = sprintf(
 					/* translators: %s: Home URL. */
 					__( 'Howdy! Failures occurred when attempting to update plugins/themes on your site at %s.' ),
 					home_url()

@@ -437,7 +437,7 @@ if ( $action ) {
 			$auto_updates[] = $plugin;
 			$auto_updates   = array_unique( $auto_updates );
 			// Remove plugins that have been deleted since the site option was last updated.
-			$auto_updates   = array_intersect( $auto_updates, array_keys( $all_items ) );
+			$auto_updates = array_intersect( $auto_updates, array_keys( $all_items ) );
 
 			update_site_option( 'auto_update_plugins', $auto_updates );
 
@@ -486,7 +486,7 @@ if ( $action ) {
 
 			$plugins = isset( $_POST['checked'] ) ? (array) wp_unslash( $_POST['checked'] ) : array();
 
-			$auto_updates     = (array) get_site_option( 'auto_update_plugins', array() );
+			$auto_updates = (array) get_site_option( 'auto_update_plugins', array() );
 
 			$new_auto_updates = array_merge( $auto_updates, $plugins );
 			$new_auto_updates = array_unique( $new_auto_updates );
@@ -499,7 +499,7 @@ if ( $action ) {
 			}
 
 			/** This filter is documented in wp-admin/includes/class-wp-plugins-list-table.php */
-			$all_items    = apply_filters( 'all_plugins', get_plugins() );
+			$all_items = apply_filters( 'all_plugins', get_plugins() );
 			// Remove plugins that have been deleted since the site option was last updated.
 			$auto_updates = array_intersect( $new_auto_updates, array_keys( $all_items ) );
 
@@ -532,7 +532,7 @@ if ( $action ) {
 			}
 
 			/** This filter is documented in wp-admin/includes/class-wp-plugins-list-table.php */
-			$all_items    = apply_filters( 'all_plugins', get_plugins() );
+			$all_items = apply_filters( 'all_plugins', get_plugins() );
 			// Remove plugins that have been deleted since the site option was last updated.
 			$auto_updates = array_intersect( $new_auto_updates, array_keys( $all_items ) );
 

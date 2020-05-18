@@ -116,7 +116,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			'paused'             => array(),
 		);
 		if ( $this->show_autoupdates ) {
-			$auto_updates                    = (array) get_site_option( 'auto_update_plugins', array() );
+			$auto_updates = (array) get_site_option( 'auto_update_plugins', array() );
 
 			$plugins['auto-update-enabled']  = array();
 			$plugins['auto-update-disabled'] = array();
@@ -254,9 +254,9 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 			if ( $this->show_autoupdates ) {
 				if ( in_array( $plugin_file, $auto_updates, true ) ) {
-					$plugins['auto-update-enabled'][ $plugin_file]  = $plugins['all'][ $plugin_file ];
+					$plugins['auto-update-enabled'][ $plugin_file ] = $plugins['all'][ $plugin_file ];
 				} else {
-					$plugins['auto-update-disabled'][ $plugin_file] = $plugins['all'][ $plugin_file ];
+					$plugins['auto-update-disabled'][ $plugin_file ] = $plugins['all'][ $plugin_file ];
 				}
 			}
 		}
@@ -583,7 +583,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 			if ( $this->show_autoupdates ) {
 				if ( 'auto-update-enabled' !== $status ) {
-					$actions['enable-auto-update-selected']  = __( 'Enable Auto-updates' );
+					$actions['enable-auto-update-selected'] = __( 'Enable Auto-updates' );
 				}
 				if ( 'auto-update-disabled' !== $status ) {
 					$actions['disable-auto-update-selected'] = __( 'Disable Auto-updates' );

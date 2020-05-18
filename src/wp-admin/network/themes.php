@@ -215,13 +215,13 @@ if ( $action ) {
 
 			check_admin_referer( 'updates' );
 
-			$all_items      = wp_get_themes();
-			$auto_updates   = (array) get_site_option( 'auto_update_themes', array() );
+			$all_items    = wp_get_themes();
+			$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
 
 			$auto_updates[] = $_GET['theme'];
 			$auto_updates   = array_unique( $auto_updates );
 			// Remove themes that have been deleted since the site option was last updated.
-			$auto_updates   = array_intersect( $auto_updates, array_keys( $all_items ) );
+			$auto_updates = array_intersect( $auto_updates, array_keys( $all_items ) );
 
 			update_site_option( 'auto_update_themes', $auto_updates );
 
@@ -254,8 +254,8 @@ if ( $action ) {
 
 			$themes = isset( $_POST['checked'] ) ? (array) wp_unslash( $_POST['checked'] ) : array();
 
-			$all_items        = wp_get_themes();
-			$auto_updates     = (array) get_site_option( 'auto_update_themes', array() );
+			$all_items    = wp_get_themes();
+			$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
 
 			$new_auto_updates = array_merge( $auto_updates, $themes );
 			$new_auto_updates = array_unique( $new_auto_updates );
@@ -275,8 +275,8 @@ if ( $action ) {
 
 			$themes = isset( $_POST['checked'] ) ? (array) wp_unslash( $_POST['checked'] ) : array();
 
-			$all_items        = wp_get_themes();
-			$auto_updates     = (array) get_site_option( 'auto_update_themes', array() );
+			$all_items    = wp_get_themes();
+			$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
 
 			$new_auto_updates = array_diff( $auto_updates, $themes );
 

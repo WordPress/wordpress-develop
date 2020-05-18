@@ -490,7 +490,7 @@ function list_theme_updates() {
 	<?php
 	$auto_updates = array();
 	if ( wp_is_auto_update_enabled_for_type( 'theme' ) ) {
-		$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
+		$auto_updates       = (array) get_site_option( 'auto_update_themes', array() );
 		$auto_update_notice = ' | ' . wp_get_auto_update_message();
 	}
 

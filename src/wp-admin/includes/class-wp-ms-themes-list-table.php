@@ -119,7 +119,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 			'broken'   => $this->is_site_themes ? array() : wp_get_themes( array( 'errors' => true ) ),
 		);
 		if ( $this->show_autoupdates ) {
-			$auto_updates                   = (array) get_site_option( 'auto_update_themes', array() );
+			$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
 
 			$themes['auto-update-enabled']  = array();
 			$themes['auto-update-disabled'] = array();
@@ -152,7 +152,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 
 			if ( $this->show_autoupdates ) {
 				if ( in_array( $key, $auto_updates, true ) ) {
-					$themes['auto-update-enabled'][ $key ]  = $themes['all'][ $key ];
+					$themes['auto-update-enabled'][ $key ] = $themes['all'][ $key ];
 				} else {
 					$themes['auto-update-disabled'][ $key ] = $themes['all'][ $key ];
 				}
@@ -436,7 +436,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		}
 		if ( $this->show_autoupdates ) {
 			if ( 'auto-update-enabled' !== $status ) {
-				$actions['enable-auto-update-selected']  = __( 'Enable Auto-updates' );
+				$actions['enable-auto-update-selected'] = __( 'Enable Auto-updates' );
 			}
 			if ( 'auto-update-disabled' !== $status ) {
 				$actions['disable-auto-update-selected'] = __( 'Disable Auto-updates' );

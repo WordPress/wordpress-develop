@@ -94,11 +94,11 @@ if ( current_user_can( 'switch_themes' ) && isset( $_GET['action'] ) ) {
 		$auto_updates[] = $_GET['stylesheet'];
 		$auto_updates   = array_unique( $auto_updates );
 		// Remove themes that have been deleted since the site option was last updated.
-		$auto_updates   = array_intersect( $auto_updates, array_keys( $all_items ) );
+		$auto_updates = array_intersect( $auto_updates, array_keys( $all_items ) );
 
 		update_site_option( 'auto_update_themes', $auto_updates );
 
-		wp_redirect( admin_url( "themes.php?enabled-auto-update=true" ) );
+		wp_redirect( admin_url( 'themes.php?enabled-auto-update=true' ) );
 
 		exit;
 	} elseif ( 'disable-auto-update' === $_GET['action'] ) {
@@ -117,7 +117,7 @@ if ( current_user_can( 'switch_themes' ) && isset( $_GET['action'] ) ) {
 
 		update_site_option( 'auto_update_themes', $auto_updates );
 
-		wp_redirect( admin_url( "themes.php?disabled-auto-update=true" ) );
+		wp_redirect( admin_url( 'themes.php?disabled-auto-update=true' ) );
 
 		exit;
 	}
@@ -633,19 +633,19 @@ if ( ! is_multisite() && $broken_themes ) {
 				<# if ( data.autoupdate ) { #>
 					<a href="{{{ data.actions.autoupdate }}}" class="toggle-auto-update" data-slug="{{ data.id }}" data-wp-action="disable">
 						<span class="dashicons dashicons-update spin hidden"></span>
-						<span class="label"><?php _e( 'Disable auto-updates' ) ?></span>
+						<span class="label"><?php _e( 'Disable auto-updates' ); ?></span>
 					</a>
 				<# } else { #>
 					<a href="{{{ data.actions.autoupdate }}}" class="toggle-auto-update" data-slug="{{ data.id }}" data-wp-action="enable">
 						<span class="dashicons dashicons-update spin hidden"></span>
-						<span class="label"><?php _e( 'Enable auto-updates' ) ?></span>
+						<span class="label"><?php _e( 'Enable auto-updates' ); ?></span>
 					</a>
 				<# } #>
 				<# if ( data.hasUpdate ) { #>
 					<# if ( data.autoupdate) { #>
-					<span class="auto-update-time"><br /><?php echo wp_get_auto_update_message() ?></span>
+					<span class="auto-update-time"><br /><?php echo wp_get_auto_update_message(); ?></span>
 					<# } else { #>
-					<span class="auto-update-time hidden"><br /><?php echo wp_get_auto_update_message() ?></span>
+					<span class="auto-update-time hidden"><br /><?php echo wp_get_auto_update_message(); ?></span>
 					<# } #>
 				<# } #>
 					<span class="auto-updates-error hidden"><p></p></span>
