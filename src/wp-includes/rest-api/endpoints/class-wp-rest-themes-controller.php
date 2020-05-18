@@ -251,7 +251,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'properties'  => array(
 						'raw'      => array(
 							'description' => __( 'The website of the theme author, as found in the theme header.' ),
-							'type'        => 'string',
+							'type'        => 'uri',
 							'readonly'    => true,
 						),
 						'rendered' => array(
@@ -584,7 +584,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'properties'  => array(
 						'raw'      => array(
 							'description' => __( 'The URI of the theme\'s webpage, as found in the theme header.' ),
-							'type'        => 'string',
+							'type'        => 'uri',
 							'readonly'    => true,
 						),
 						'rendered' => array(
