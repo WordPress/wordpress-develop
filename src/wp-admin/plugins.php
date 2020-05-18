@@ -22,7 +22,7 @@ $plugin = isset( $_REQUEST['plugin'] ) ? wp_unslash( $_REQUEST['plugin'] ) : '';
 $s      = isset( $_REQUEST['s'] ) ? urlencode( wp_unslash( $_REQUEST['s'] ) ) : '';
 
 // Clean up request URI from temporary args for screen options/paging uri's to work as expected.
-$_SERVER['REQUEST_URI'] = remove_query_arg( array( 'error', 'deleted', 'activate', 'activate-multi', 'deactivate', 'deactivate-multi', '_error_nonce' ), $_SERVER['REQUEST_URI'] );
+$_SERVER['REQUEST_URI'] = remove_query_arg( array( 'error', 'deleted', 'activate', 'activate-multi', 'deactivate', 'deactivate-multi', 'enable-auto-update', 'disable-auto-update', 'enable-auto-update-multi', 'disable-auto-update-multi', '_error_nonce' ), $_SERVER['REQUEST_URI'] );
 
 wp_enqueue_script( 'updates' );
 
@@ -414,6 +414,132 @@ if ( $action ) {
 			wp_redirect( self_admin_url( "plugins.php?resume=true&plugin_status=$status&paged=$page&s=$s" ) );
 			exit;
 
+		case 'enable-auto-update':
+			if ( ! current_user_can( 'update_plugins' ) || ! wp_is_auto_update_enabled_for_type( 'plugin' ) ) {
+				wp_die( __( 'Sorry, you are not allowed to enable plugins automatic updates.' ) );
+			}
+
+			if ( is_multisite() && ! is_network_admin() ) {
+				wp_die( __( 'Please connect to your network admin to manage plugins automatic updates.' ) );
+			}
+
+			check_admin_referer( 'updates' );
+
+			if ( empty( $plugin ) ) {
+				wp_redirect( self_admin_url( "plugins.php?plugin_status=$status&paged=$page&s=$s" ) );
+				exit;
+			}
+
+			/** This filter is documented in wp-admin/includes/class-wp-plugins-list-table.php */
+			$all_items    = apply_filters( 'all_plugins', get_plugins() );
+			$auto_updates = (array) get_site_option( 'auto_update_plugins', array() );
+
+			$auto_updates[] = $plugin;
+			$auto_updates   = array_unique( $auto_updates );
+			// Remove plugins that have been deleted since the site option was last updated.
+			$auto_updates   = array_intersect( $auto_updates, array_keys( $all_items ) );
+
+			update_site_option( 'auto_update_plugins', $auto_updates );
+
+			wp_redirect( self_admin_url( "plugins.php?enable-auto-update=true&plugin_status=$status&paged=$page&s=$s" ) );
+			exit;
+
+		case 'disable-auto-update':
+			if ( ! current_user_can( 'update_plugins' ) || ! wp_is_auto_update_enabled_for_type( 'plugin' ) ) {
+				wp_die( __( 'Sorry, you are not allowed to disable plugins automatic updates.' ) );
+			}
+
+			if ( is_multisite() && ! is_network_admin() ) {
+				wp_die( __( 'Please connect to your network admin to manage plugins automatic updates.' ) );
+			}
+
+			check_admin_referer( 'updates' );
+
+			if ( empty( $plugin ) ) {
+				wp_redirect( self_admin_url( "plugins.php?plugin_status=$status&paged=$page&s=$s" ) );
+				exit;
+			}
+
+			/** This filter is documented in wp-admin/includes/class-wp-plugins-list-table.php */
+			$all_items    = apply_filters( 'all_plugins', get_plugins() );
+			$auto_updates = (array) get_site_option( 'auto_update_plugins', array() );
+
+			$auto_updates = array_diff( $auto_updates, array( $plugin ) );
+			// Remove plugins that have been deleted since the site option was last updated.
+			$auto_updates = array_intersect( $auto_updates, array_keys( $all_items ) );
+
+			update_site_option( 'auto_update_plugins', $auto_updates );
+
+			wp_redirect( self_admin_url( "plugins.php?disable-auto-update=true&plugin_status=$status&paged=$page&s=$s" ) );
+			exit;
+
+		case 'enable-auto-update-selected':
+			if ( ! ( current_user_can( 'update_plugins' ) && wp_is_auto_update_enabled_for_type( 'plugin' ) ) ) {
+				wp_die( __( 'Sorry, you are not allowed to enable plugins automatic updates.' ) );
+			}
+
+			if ( is_multisite() && ! is_network_admin() ) {
+				wp_die( __( 'Please connect to your network admin to manage plugins automatic updates.' ) );
+			}
+
+			check_admin_referer( 'bulk-plugins' );
+
+			$plugins = isset( $_POST['checked'] ) ? (array) wp_unslash( $_POST['checked'] ) : array();
+
+			$auto_updates     = (array) get_site_option( 'auto_update_plugins', array() );
+
+			$new_auto_updates = array_merge( $auto_updates, $plugins );
+			$new_auto_updates = array_unique( $new_auto_updates );
+
+			// Return early if all selected plugins already have auto-updates enabled.
+			// Must use non-strict comparison, so that array order is not treated as significant.
+			if ( $new_auto_updates == $auto_updates ) {
+				wp_redirect( self_admin_url( "plugins.php?plugin_status=$status&paged=$page&s=$s" ) );
+				exit;
+			}
+
+			/** This filter is documented in wp-admin/includes/class-wp-plugins-list-table.php */
+			$all_items    = apply_filters( 'all_plugins', get_plugins() );
+			// Remove plugins that have been deleted since the site option was last updated.
+			$auto_updates = array_intersect( $new_auto_updates, array_keys( $all_items ) );
+
+			update_site_option( 'auto_update_plugins', $new_auto_updates );
+
+			wp_redirect( self_admin_url( "plugins.php?enable-auto-update-multi=true&plugin_status=$status&paged=$page&s=$s" ) );
+			exit;
+		case 'disable-auto-update-selected':
+			if ( ! ( current_user_can( 'update_plugins' ) && wp_is_auto_update_enabled_for_type( 'plugin' ) ) ) {
+				wp_die( __( 'Sorry, you are not allowed to disable plugins automatic updates.' ) );
+			}
+
+			if ( is_multisite() && ! is_network_admin() ) {
+				wp_die( __( 'Please connect to your network admin to manage plugins automatic updates.' ) );
+			}
+
+			check_admin_referer( 'bulk-plugins' );
+
+			$plugins = isset( $_POST['checked'] ) ? (array) wp_unslash( $_POST['checked'] ) : array();
+
+			$auto_updates     = (array) get_site_option( 'auto_update_plugins', array() );
+			$new_auto_updates = array_diff( $auto_updates, $plugins );
+			$new_auto_updates = array_unique( $new_auto_updates );
+
+			// Return early if all selected plugins already have auto-updates enabled.
+			// Must use non-strict comparison, so that array order is not treated as significant.
+			if ( $new_auto_updates == $auto_updates ) {
+				wp_redirect( self_admin_url( "plugins.php?plugin_status=$status&paged=$page&s=$s" ) );
+				exit;
+			}
+
+			/** This filter is documented in wp-admin/includes/class-wp-plugins-list-table.php */
+			$all_items    = apply_filters( 'all_plugins', get_plugins() );
+			// Remove plugins that have been deleted since the site option was last updated.
+			$auto_updates = array_intersect( $new_auto_updates, array_keys( $all_items ) );
+
+			update_site_option( 'auto_update_plugins', $new_auto_updates );
+
+			wp_redirect( self_admin_url( "plugins.php?disable-auto-update-multi=true&plugin_status=$status&paged=$page&s=$s" ) );
+			exit;
 		default:
 			if ( isset( $_POST['checked'] ) ) {
 				check_admin_referer( 'bulk-plugins' );
@@ -583,6 +709,14 @@ elseif ( isset( $_GET['deleted'] ) ) :
 	<div id="message" class="updated notice is-dismissible"><p><?php _e( 'All selected plugins are up to date.' ); ?></p></div>
 <?php elseif ( isset( $_GET['resume'] ) ) : ?>
 	<div id="message" class="updated notice is-dismissible"><p><?php _e( 'Plugin resumed.' ); ?></p></div>
+<?php elseif ( isset( $_GET['enable-auto-update'] ) ) : ?>
+	<div id="message" class="updated notice is-dismissible"><p><?php _e( 'Plugin will be auto-updated.' ); ?></p></div>
+<?php elseif ( isset( $_GET['disable-auto-update'] ) ) : ?>
+	<div id="message" class="updated notice is-dismissible"><p><?php _e( 'Plugin will no longer be auto-updated.' ); ?></p></div>
+<?php elseif ( isset( $_GET['enable-auto-update-multi'] ) ) : ?>
+	<div id="message" class="updated notice is-dismissible"><p><?php _e( 'Selected plugins will be auto-updated.' ); ?></p></div>
+<?php elseif ( isset( $_GET['disable-auto-update-multi'] ) ) : ?>
+	<div id="message" class="updated notice is-dismissible"><p><?php _e( 'Selected plugins will no longer be auto-updated.' ); ?></p></div>
 <?php endif; ?>
 
 <div class="wrap">

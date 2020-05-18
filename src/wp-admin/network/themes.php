@@ -22,7 +22,7 @@ $action = $wp_list_table->current_action();
 $s = isset( $_REQUEST['s'] ) ? $_REQUEST['s'] : '';
 
 // Clean up request URI from temporary args for screen options/paging uri's to work as expected.
-$temp_args              = array( 'enabled', 'disabled', 'deleted', 'error' );
+$temp_args              = array( 'enabled', 'disabled', 'deleted', 'error', 'enabled-auto-update', 'disabled-auto-update' );
 $_SERVER['REQUEST_URI'] = remove_query_arg( $temp_args, $_SERVER['REQUEST_URI'] );
 $referer                = remove_query_arg( $temp_args, wp_get_referer() );
 
@@ -208,6 +208,94 @@ if ( $action ) {
 				)
 			);
 			exit;
+		case 'enable-auto-update':
+			if ( ! ( current_user_can( 'update_themes' ) && wp_is_auto_update_enabled_for_type( 'theme' ) ) ) {
+				wp_die( __( 'Sorry, you are not allowed to enable themes automatic updates.' ) );
+			}
+
+			check_admin_referer( 'updates' );
+
+			$all_items      = wp_get_themes();
+			$auto_updates   = (array) get_site_option( 'auto_update_themes', array() );
+
+			$auto_updates[] = $_GET['theme'];
+			$auto_updates   = array_unique( $auto_updates );
+			// Remove themes that have been deleted since the site option was last updated.
+			$auto_updates   = array_intersect( $auto_updates, array_keys( $all_items ) );
+
+			update_site_option( 'auto_update_themes', $auto_updates );
+
+			wp_safe_redirect( add_query_arg( 'enabled-auto-update', 1, $referer ) );
+			exit;
+		case 'disable-auto-update':
+			if ( ! ( current_user_can( 'update_themes' ) && wp_is_auto_update_enabled_for_type( 'theme' ) ) ) {
+				wp_die( __( 'Sorry, you are not allowed to disable themes automatic updates.' ) );
+			}
+
+			check_admin_referer( 'updates' );
+
+			$all_items    = wp_get_themes();
+			$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
+
+			$auto_updates = array_diff( $auto_updates, array( $_GET['theme'] ) );
+			// Remove themes that have been deleted since the site option was last updated.
+			$auto_updates = array_intersect( $auto_updates, array_keys( $all_items ) );
+
+			update_site_option( 'auto_update_themes', $auto_updates );
+
+			wp_safe_redirect( add_query_arg( 'disabled-auto-update', 1, $referer ) );
+			exit;
+		case 'enable-auto-update-selected':
+			if ( ! ( current_user_can( 'update_themes' ) && wp_is_auto_update_enabled_for_type( 'theme' ) ) ) {
+				wp_die( __( 'Sorry, you are not allowed to enable themes automatic updates.' ) );
+			}
+
+			check_admin_referer( 'bulk-themes' );
+
+			$themes = isset( $_POST['checked'] ) ? (array) wp_unslash( $_POST['checked'] ) : array();
+
+			$all_items        = wp_get_themes();
+			$auto_updates     = (array) get_site_option( 'auto_update_themes', array() );
+
+			$new_auto_updates = array_merge( $auto_updates, $themes );
+			$new_auto_updates = array_unique( $new_auto_updates );
+			// Remove themes that have been deleted since the site option was last updated.
+			$new_auto_updates = array_intersect( $new_auto_updates, array_keys( $all_items ) );
+
+			update_site_option( 'auto_update_themes', $new_auto_updates );
+
+			wp_safe_redirect( add_query_arg( 'enabled-auto-update', count( $themes ), $referer ) );
+			exit;
+		case 'disable-auto-update-selected':
+			if ( ! ( current_user_can( 'update_themes' ) && wp_is_auto_update_enabled_for_type( 'theme' ) ) ) {
+				wp_die( __( 'Sorry, you are not allowed to disable themes automatic updates.' ) );
+			}
+
+			check_admin_referer( 'bulk-themes' );
+
+			$themes = isset( $_POST['checked'] ) ? (array) wp_unslash( $_POST['checked'] ) : array();
+
+			$all_items        = wp_get_themes();
+			$auto_updates     = (array) get_site_option( 'auto_update_themes', array() );
+
+			$new_auto_updates = array_diff( $auto_updates, $themes );
+
+			if ( $new_auto_updates == $auto_updates ) {
+				if ( false === strpos( $referer, '/network/themes.php' ) ) {
+					wp_redirect( network_admin_url( 'themes.php?disabled-auto-update=1' ) );
+				} else {
+					wp_safe_redirect( $referer );
+				}
+				exit;
+			}
+
+			// Remove themes that have been deleted since the site option was last updated.
+			$new_auto_updates = array_intersect( $new_auto_updates, array_keys( $all_items ) );
+
+			update_site_option( 'auto_update_themes', $new_auto_updates );
+
+			wp_safe_redirect( add_query_arg( 'disabled-auto-update', count( $themes ), $referer ) );
+			exit;
 		default:
 			$themes = isset( $_POST['checked'] ) ? (array) $_POST['checked'] : array();
 			if ( empty( $themes ) ) {
@@ -309,10 +397,36 @@ if ( isset( $_GET['enabled'] ) ) {
 		$message = _n( '%s theme deleted.', '%s themes deleted.', $deleted );
 	}
 	echo '<div id="message" class="updated notice is-dismissible"><p>' . sprintf( $message, number_format_i18n( $deleted ) ) . '</p></div>';
+} elseif ( isset( $_GET['enabled-auto-update'] ) ) {
+	$enabled = absint( $_GET['enabled-auto-update'] );
+	if ( 1 == $enabled ) {
+		$message = __( 'Theme will be auto-updated.' );
+	} else {
+		/* translators: %s: Number of themes. */
+		$message = _n( '%s theme will be auto-updated.', '%s themes will be auto-updated.', $enabled );
+	}
+	echo '<div id="message" class="updated notice is-dismissible"><p>' . sprintf( $message, number_format_i18n( $enabled ) ) . '</p></div>';
+} elseif ( isset( $_GET['disabled-auto-update'] ) ) {
+	$disabled = absint( $_GET['disabled-auto-update'] );
+	if ( 1 == $disabled ) {
+		$message = __( 'Theme will no longer be auto-updated.' );
+	} else {
+		/* translators: %s: Number of themes. */
+		$message = _n( '%s theme will no longer be auto-updated.', '%s themes will no longer be auto-updated.', $disabled );
+	}
+	echo '<div id="message" class="updated notice is-dismissible"><p>' . sprintf( $message, number_format_i18n( $disabled ) ) . '</p></div>';
 } elseif ( isset( $_GET['error'] ) && 'none' == $_GET['error'] ) {
 	echo '<div id="message" class="error notice is-dismissible"><p>' . __( 'No theme selected.' ) . '</p></div>';
 } elseif ( isset( $_GET['error'] ) && 'main' == $_GET['error'] ) {
 	echo '<div class="error notice is-dismissible"><p>' . __( 'You cannot delete a theme while it is active on the main site.' ) . '</p></div>';
+} elseif ( isset( $_GET['error'] ) && 'none' == $_GET['error'] ) {
+	echo '<div id="message" class="error notice is-dismissible"><p>' . __( 'No theme selected.' ) . '</p></div>';
+} elseif ( isset( $_GET['disable-auto-update'] ) ) {
+	echo '<div id="message" class="updated notice is-dismissible"><p>' . __( 'Theme will no longer be auto-updated.' ) . '</p></div>';
+} elseif ( isset( $_GET['enable-autoupdate-multi'] ) ) {
+	echo '<div id="message" class="updated notice is-dismissible"><p>' . __( 'Themes will be auto-updated.' ) . '</p></div>';
+} elseif ( isset( $_GET['disable-autoupdate-multi'] ) ) {
+	echo '<div id="message" class="updated notice is-dismissible"><p>' . __( 'Themes will no longer be auto-updated.' ) . '</p></div>';
 }
 
 ?>

@@ -856,8 +856,13 @@ class WP_Debug_Data {
 		}
 
 		// List all available plugins.
-		$plugins        = get_plugins();
-		$plugin_updates = get_plugin_updates();
+		$plugins              = get_plugins();
+		$plugin_updates       = get_plugin_updates();
+		$auto_updates         = array();
+		$auto_updates_enabled = wp_is_auto_update_enabled_for_type( 'plugin' );
+		if ( $auto_updates_enabled ) {
+			$auto_updates = (array) get_site_option( 'auto_update_plugins', array() );
+		}
 
 		foreach ( $plugins as $plugin_path => $plugin ) {
 			$plugin_part = ( is_plugin_active( $plugin_path ) ) ? 'wp-plugins-active' : 'wp-plugins-inactive';
@@ -892,6 +897,16 @@ class WP_Debug_Data {
 				$plugin_version_string_debug .= sprintf( ' (latest version: %s)', $plugin_updates[ $plugin_path ]->update->new_version );
 			}
 
+			if ( $auto_updates_enabled ) {
+				if ( in_array( $plugin_path, $auto_updates, true ) ) {
+					$plugin_version_string       .= ' | ' . __( 'Auto-updates enabled' );
+					$plugin_version_string_debug .= ', ' . __( 'Auto-updates enabled' );
+				} else {
+					$plugin_version_string       .= ' | ' . __( 'Auto-updates disabled' );
+					$plugin_version_string_debug .= ', ' . __( 'Auto-updates disabled' );
+				}
+			}
+
 			$info[ $plugin_part ]['fields'][ sanitize_text_field( $plugin['Name'] ) ] = array(
 				'label' => $plugin['Name'],
 				'value' => $plugin_version_string,
@@ -914,6 +929,12 @@ class WP_Debug_Data {
 
 		$active_theme_version       = $active_theme->version;
 		$active_theme_version_debug = $active_theme_version;
+
+		$auto_updates         = array();
+		$auto_updates_enabled = wp_is_auto_update_enabled_for_type( 'theme' );
+		if ( $auto_updates_enabled ) {
+			$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
+		}
 
 		if ( array_key_exists( $active_theme->stylesheet, $theme_updates ) ) {
 			$theme_update_new_version = $theme_updates[ $active_theme->stylesheet ]->update['new_version'];
@@ -980,7 +1001,19 @@ class WP_Debug_Data {
 				'value' => get_stylesheet_directory(),
 			),
 		);
+		if ( $auto_updates_enabled ) {
+			if ( in_array( $active_theme->stylesheet, $auto_updates ) ) {
+				$theme_auto_update_string = __( 'Enabled' );
+			} else {
+				$theme_auto_update_string = __( 'Disabled' );
+			}
 
+			$info['wp-active-theme']['fields']['auto_update'] = array(
+				'label' => __( 'Auto-update' ),
+				'value' => $theme_auto_update_string,
+				'debug' => $theme_auto_update_string,
+			);
+		}
 		$parent_theme = $active_theme->parent();
 
 		if ( $parent_theme ) {
@@ -1026,6 +1059,19 @@ class WP_Debug_Data {
 					'value' => get_template_directory(),
 				),
 			);
+			if ( $auto_updates_enabled ) {
+				if ( in_array( $parent_theme->stylesheet, $auto_updates ) ) {
+					$parent_theme_auto_update_string = __( 'Enabled' );
+				} else {
+					$parent_theme_auto_update_string = __( 'Disabled' );
+				}
+
+				$info['wp-parent-theme']['fields']['auto_update'] = array(
+					'label' => __( 'Auto-update' ),
+					'value' => $parent_theme_auto_update_string,
+					'debug' => $parent_theme_auto_update_string,
+				);
+			}
 		}
 
 		// Populate a list of all themes available in the install.
@@ -1073,6 +1119,16 @@ class WP_Debug_Data {
 				/* translators: %s: Latest theme version number. */
 				$theme_version_string       .= ' ' . sprintf( __( '(Latest version: %s)' ), $theme_updates[ $theme_slug ]->update['new_version'] );
 				$theme_version_string_debug .= sprintf( ' (latest version: %s)', $theme_updates[ $theme_slug ]->update['new_version'] );
+			}
+
+			if ( $auto_updates_enabled ) {
+				if ( in_array( $theme_slug, $auto_updates ) ) {
+					$theme_version_string       .= ' | ' . __( 'Auto-updates enabled' );
+					$theme_version_string_debug .= ',' . __( 'Auto-updates enabled' );
+				} else {
+					$theme_version_string       .= ' | ' . __( 'Auto-updates disabled' );
+					$theme_version_string_debug .= ', ' . __( 'Auto-updates disabled' );
+				}
 			}
 
 			$info['wp-themes-inactive']['fields'][ sanitize_text_field( $theme->name ) ] = array(
