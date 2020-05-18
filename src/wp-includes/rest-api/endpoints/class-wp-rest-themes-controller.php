@@ -280,7 +280,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 				),
 				'name'           => array(
 					'description' => __( 'The name of the theme.' ),
-					'type'        => 'string',
+					'type'        => 'object',
 					'readonly'    => true,
 					'properties'  => array(
 						'raw'      => array(
