@@ -463,7 +463,7 @@ function size_format( $bytes, $decimals = 0 ) {
 	);
 
 	if ( 0 === $bytes ) {
-		/* translators: File size in bytes. */
+		/* translators: File size in bytes when 0 bytes. */
 		return number_format_i18n( 0, $decimals ) . __( ' B' );
 	}
 
