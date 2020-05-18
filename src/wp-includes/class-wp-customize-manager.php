@@ -5856,8 +5856,8 @@ final class WP_Customize_Manager {
 				$theme->id            = $theme->slug;
 				$theme->screenshot    = array( $theme->screenshot_url );
 				$theme->authorAndUri  = wp_kses( $theme->author['display_name'], $themes_allowedtags );
-				$theme->compatibleWP  = is_wp_version_compatible( $theme->requires );
-				$theme->compatiblePHP = is_php_version_compatible( $theme->requires_php );
+				$theme->compatibleWP  = is_wp_version_compatible( $theme->requires ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				$theme->compatiblePHP = is_php_version_compatible( $theme->requires_php ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 
 				if ( isset( $theme->parent ) ) {
 					$theme->parent = $theme->parent['slug'];
