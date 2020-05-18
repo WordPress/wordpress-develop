@@ -578,7 +578,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 				),
 				'theme_uri'      => array(
 					'description' => __( 'The URI of the theme\'s webpage.' ),
-					'type'        => 'string',
+					'type'        => 'object',
 					'readonly'    => true,
 					'format'      => 'uri',
 					'properties'  => array(
