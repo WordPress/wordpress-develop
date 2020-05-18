@@ -256,7 +256,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 						),
 						'rendered' => array(
 							'description' => __( 'The website of the theme author, transformed for display.' ),
-							'type'        => 'string',
+							'type'        => 'uri',
 							'readonly'    => true,
 						),
 					),
@@ -589,7 +589,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 						),
 						'rendered' => array(
 							'description' => __( 'The URI of the theme\'s webpage, transformed for display.' ),
-							'type'        => 'string',
+							'type'        => 'uri',
 							'readonly'    => true,
 						),
 					),
