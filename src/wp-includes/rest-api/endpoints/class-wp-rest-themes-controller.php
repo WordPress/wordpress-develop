@@ -246,7 +246,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 				'author_uri'     => array(
 					'description' => __( 'The website of the theme author.' ),
 					'format'      => 'uri',
-					'type'        => 'string',
+					'type'        => 'object',
 					'readonly'    => true,
 					'properties'  => array(
 						'raw'      => array(
