@@ -3341,16 +3341,16 @@ function wp_convert_bytes_to_hr( $bytes ) {
 	_deprecated_function( __FUNCTION__, '3.6.0', 'size_format()' );
 
 	$units = array(
-		/* translators: File size in bytes. */
-		0 => __( 'B' ),
-		/* translators: File size in kilobytes. */
-		1 => __( 'KB' ),
-		/* translators: File size in megabytes. */
-		2 => __( 'MB' ),
-		/* translators: File size in gigabytes. */
-		3 => __( 'GB' ),
-		/* translators: File size in terabytes. */
-		4 => __( 'TB' ),
+		/* translators: Unit symbol for byte. */
+		0 => _x( 'B', 'unit symbol' ),
+		/* translators: Unit symbol for kilobyte. */
+		1 => _x( 'KB', 'unit symbol' ),
+		/* translators: Unit symbol for megabyte. */
+		2 => _x( 'MB', 'unit symbol' ),
+		/* translators: Unit symbol for gigabyte. */
+		3 => _x( 'GB', 'unit symbol' ),
+		/* translators: Unit symbol for terabyte. */
+		4 => _x( 'TB', 'unit symbol' ),
 	);
 	$log   = log( $bytes, KB_IN_BYTES );
 	$power = (int) $log;
