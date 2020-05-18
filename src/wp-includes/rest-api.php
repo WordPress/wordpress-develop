@@ -1267,10 +1267,43 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'array' ) );
 		}
 
+		if ( isset( $args['minItems'] ) ) {
+			if ( count( $value ) < $args['minItems'] ) {
+				/* translators: 1: Parameter, 2: number. */
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s shall at least be %2$d.' ), $param, $args['minItems'] ) );
+			}
+		}
+
+		if ( isset( $args['maxItems'] ) ) {
+			if ( count( $value ) > $args['maxItems'] ) {
+				/* translators: 1: Parameter, 2: number. */
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s shall at least be %2$d.' ), $param, $args['maxItems'] ) );
+			}
+		}
+
 		foreach ( $value as $index => $v ) {
 			$is_valid = rest_validate_value_from_schema( $v, $args['items'], $param . '[' . $index . ']' );
 			if ( is_wp_error( $is_valid ) ) {
 				return $is_valid;
+			}
+		}
+
+		if ( isset( $args['uniqueItems'] ) ) {
+			$sort_flag = SORT_LOCALE_STRING;
+			if ( isset( $args['items']['type'] ) && 'number' === $args['items']['type'] ) {
+				$sort_flag = SORT_NUMERIC;
+				$unique    = $value;
+			} else {
+				$unique = array_map(
+					function( $e ) {
+						return var_export( $e, true );
+					},
+					$value
+				);
+			}
+			if ( count( $value ) !== count( array_unique( $unique, $sort_flag ) ) ) {
+				/* translators: 1: Parameter */
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s has duplicate items.' ), $param ) );
 			}
 		}
 	}
