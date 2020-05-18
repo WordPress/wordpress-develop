@@ -949,7 +949,9 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		);
 
 		$this->assertTrue( rest_validate_value_from_schema( array( array( 'foo' ), array( 'bar' ) ), $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( array( array( 'a', 'b' ), array( 'b', 'a' ) ), $schema ) );
 		$this->assertWPError( rest_validate_value_from_schema( array( array( 'foo' ), array( 'foo' ) ), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( array( array( 'a', 'b' ), array( 'a', 'b' ) ), $schema ) );
 	}
 
 	/**
