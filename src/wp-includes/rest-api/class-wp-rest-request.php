@@ -336,7 +336,7 @@ class WP_REST_Request implements ArrayAccess {
 		$order = array();
 
 		$content_type = $this->get_content_type();
-		if ( isset( $content_type['value'] ) && 'application/json' === $content_type['value'] ) {
+		if ( isset( $content_type['value'] ) && ( false !== stripos( $content_type['value'], 'json' ) ) ) {
 			$order[] = 'JSON';
 		}
 
@@ -661,7 +661,7 @@ class WP_REST_Request implements ArrayAccess {
 		// Check that we actually got JSON.
 		$content_type = $this->get_content_type();
 
-		if ( empty( $content_type ) || 'application/json' !== $content_type['value'] ) {
+		if ( empty( $content_type ) || ! preg_match( '/^application\/([\w!#\$&-\^\.\+]+\+)?json(\+oembed)?$/i', $content_type['value'] ) ) {
 			return true;
 		}
 

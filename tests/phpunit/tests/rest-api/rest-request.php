@@ -178,6 +178,36 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertEmpty( $this->request->get_param( 'has_json_params' ) );
 	}
 
+	public static function alternate_json_content_type_provider() {
+		return array(
+			array( 'application/ld+json', 'json', true ),
+			array( 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"', 'json', true ),
+			array( 'application/activity+json', 'json', true ),
+			array( 'application/json+oembed', 'json', true ),
+			array( 'application/nojson', 'body', false ),
+			array( 'application/no.json', 'body', false ),
+		);
+	}
+
+	/**
+	 * @dataProvider alternate_json_content_type_provider
+	 *
+	 * @param string  $content_type The content-type
+	 * @param string  $source The source value.
+	 * @param boolean $accept_json The accept_json value.
+	 */
+	public function test_alternate_json_content_type( $content_type, $source, $accept_json ) {
+		$this->request_with_parameters();
+
+		$this->request->set_method( 'POST' );
+		$this->request->set_header( 'Content-Type', $content_type );
+		$this->request->set_attributes( array( 'accept_json' => true ) );
+
+		// Check that JSON takes precedence.
+		$this->assertEquals( $source, $this->request->get_param( 'source' ) );
+		$this->assertEquals( $accept_json, $this->request->get_param( 'has_json_params' ) );
+	}
+
 	public function test_parameter_order_json() {
 		$this->request_with_parameters();
 
