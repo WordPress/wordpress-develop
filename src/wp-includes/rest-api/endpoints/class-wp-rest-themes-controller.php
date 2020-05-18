@@ -263,7 +263,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 				),
 				'description'    => array(
 					'description' => __( 'A description of the theme.' ),
-					'type'        => 'string',
+					'type'        => 'object',
 					'readonly'    => true,
 					'properties'  => array(
 						'raw'      => array(
