@@ -206,7 +206,7 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 	// Compare existing value to new value if no prev value given and the key exists only once.
 	if ( empty( $prev_value ) ) {
 		$old_value = get_metadata_raw( $meta_type, $object_id, $meta_key );
-		if ( count( $old_value ) == 1 ) {
+		if ( is_countable( $old_value ) && count( $old_value ) == 1 ) {
 			if ( $old_value[0] === $meta_value ) {
 				return false;
 			}
@@ -1311,7 +1311,9 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 		if ( false === $args['single'] && ! wp_is_numeric_array( $args['default'] ) ) {
 			$args['default'] = array( $args['default'] );
 		}
-		add_filter( "default_{$object_type}_metadata", 'filter_default_metadata', 10, 5 );
+		if ( ! has_filter( "default_{$object_type}_metadata", 'filter_default_metadata' ) ) {
+			add_filter( "default_{$object_type}_metadata", 'filter_default_metadata', 10, 5 );
+		}
 	}
 
 	// Global registry only contains meta keys registered with the array of arguments added in 4.6.0.
