@@ -93,7 +93,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			 */
 			$install_actions = apply_filters( 'install_plugin_ovewrite_actions', $install_actions, $this->api, $this->upgrader->new_plugin_data );
 			if ( ! empty( $install_actions ) ) {
-				$this->feedback( implode( ' | ', (array) $install_actions ) );
+				$this->feedback( implode( ' ', (array) $install_actions ) );
 			}
 
 			return;
@@ -162,7 +162,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 
 		if ( ! $this->result || is_wp_error( $this->result ) ) {
 			unset( $install_actions['activate_plugin'], $install_actions['network_activate'] );
-		} elseif ( ! current_user_can( 'activate_plugin', $plugin_file ) ) {
+		} elseif ( ! current_user_can( 'activate_plugin', $plugin_file ) || is_plugin_active( $plugin_file ) ) {
 			unset( $install_actions['activate_plugin'] );
 		}
 
@@ -180,7 +180,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 		$install_actions = apply_filters( 'install_plugin_complete_actions', $install_actions, $this->api, $plugin_file );
 
 		if ( ! empty( $install_actions ) ) {
-			$this->feedback( implode( ' | ', (array) $install_actions ) );
+			$this->feedback( implode( ' ', (array) $install_actions ) );
 		}
 	}
 

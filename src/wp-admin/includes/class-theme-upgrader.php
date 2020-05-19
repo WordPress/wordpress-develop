@@ -92,8 +92,9 @@ class Theme_Upgrader extends WP_Upgrader {
 		/* translators: %s: Theme name. */
 		$this->strings['parent_theme_not_found'] = sprintf( __( '<strong>The parent theme could not be found.</strong> You will need to install the parent theme, %s, before you can use this child theme.' ), '<strong>%s</strong>' );
 
-		$this->strings['reuploading_plugin']       = __( 'Seems like you are trying to upload a template already installed.' );
-		$this->strings['compare_before_overwrite'] = __( 'Compare before retry:' );
+		$this->strings['compare_before_overwrite']             = __( 'Compare before retry:' );
+		$this->strings['reuploading_theme']                    = __( 'Seems like you are trying to upload a theme already installed.' );
+		$this->strings['current_theme_has_errors']             = __( 'The current theme has the follow error: "%s".' );
 
 		if ( $this->skin->overwrite === 'update-theme' ) {
 			$this->strings['installing_package'] = __( 'Updating the theme&#8230;' );
@@ -686,7 +687,6 @@ class Theme_Upgrader extends WP_Upgrader {
 	 *                        and the last result isn't set.
 	 */
 	public function theme_info( $theme = null ) {
-
 		if ( empty( $theme ) ) {
 			if ( ! empty( $this->result['destination_name'] ) ) {
 				$theme = $this->result['destination_name'];
@@ -694,7 +694,11 @@ class Theme_Upgrader extends WP_Upgrader {
 				return false;
 			}
 		}
-		return wp_get_theme( $theme );
+
+		$theme = wp_get_theme( $theme );
+		$theme->cache_delete();
+
+		return $theme;
 	}
 
 }

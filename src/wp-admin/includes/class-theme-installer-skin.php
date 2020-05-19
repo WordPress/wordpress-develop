@@ -176,6 +176,8 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 
 		if ( ! $this->result || is_wp_error( $this->result ) || is_network_admin() || ! current_user_can( 'switch_themes' ) ) {
 			unset( $install_actions['activate'], $install_actions['preview'] );
+		} elseif ( $stylesheet == get_option( 'template' ) ) {
+			unset( $install_actions['activate'] );
 		}
 
 		/**
@@ -210,7 +212,8 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 		$folder = rtrim( $folder, '/' );
 
 		$current_theme_data = false;
-		foreach ( wp_get_themes() as $theme ) {
+		$all_themes = wp_get_themes( [ 'errors' => null ] );
+		foreach ( $all_themes as $theme ) {
 			if ( $folder !== rtrim( $theme->get_stylesheet_directory(), '/' ) ) {
 				continue;
 			}
@@ -223,6 +226,11 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 		}
 
 		$this->is_downgrading = version_compare( $current_theme_data['Version'], $this->upgrader->new_theme_data['Version'], '>' );
+
+		$is_invalid_parent = false;
+		if ( ! empty( $this->upgrader->new_theme_data['Template'] ) ) {
+			$is_invalid_parent = ! in_array( $this->upgrader->new_theme_data['Template'], array_keys( $all_themes ), true );
+		}
 
 		$rows = array(
 			'Name'        => __( 'Theme Name' ),
@@ -249,10 +257,16 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 
 			$is_same_theme = $is_same_theme && ( $old_value === $new_value );
 
-			$diff_field   = ( $field !== 'Version' && $new_value !== $old_value );
-			$diff_version = ( $field === 'Version' && $this->is_downgrading );
+			$diff_field     = ( $field !== 'Version' && $new_value !== $old_value );
+			$diff_version   = ( $field === 'Version' && $this->is_downgrading );
+			$invalid_parent = false;
 
-			$table .= ( $diff_field || $diff_version ) ? '<tr class="warning">' : '<tr>';
+			if ( $field === 'Template' && $is_invalid_parent ) {
+				$invalid_parent = true;
+				$new_value .= ' ' . __( '(not found)' );
+			}
+
+			$table .= ( $diff_field || $diff_version || $invalid_parent ) ? '<tr class="warning">' : '<tr>';
 			$table .= '<td>' . $label . '</td><td>' . esc_html( $old_value ) . '</td><td>' . esc_html( $new_value ) . '</td></tr>';
 		}
 
@@ -260,6 +274,11 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 
 		if ( $is_same_theme ) {
 			$this->feedback( 'reuploading_theme' );
+		}
+
+		// Check errors for current theme
+		if ( is_wp_error( $current_theme_data->errors() ) ) {
+			$this->feedback( 'current_theme_has_errors', $current_theme_data->errors()->get_error_message() );
 		}
 
 		/**
