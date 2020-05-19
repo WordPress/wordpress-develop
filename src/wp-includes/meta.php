@@ -205,7 +205,7 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 
 	// Compare existing value to new value if no prev value given and the key exists only once.
 	if ( empty( $prev_value ) ) {
-		$old_value = get_metadata( $meta_type, $object_id, $meta_key, false, true );
+		$old_value = get_metadata_raw( $meta_type, $object_id, $meta_key );
 		if ( count( $old_value ) == 1 ) {
 			if ( $old_value[0] === $meta_value ) {
 				return false;
@@ -473,10 +473,9 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
 }
 
 /**
- * Retrieves metadata for the specified object.
+ * Retrieves raw metadata for the specified object.
  *
- * @since 2.9.0
- * @since 5.5.0 Added the `$unfiltered` parameter.
+ * @since 5.5.0
  *
  * @param string $meta_type Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
  *                          or any other object type with an associated meta table.
@@ -485,10 +484,9 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
  *                          the specified object. Default empty.
  * @param bool   $single    Optional. If true, return only the first value of the specified meta_key.
  *                          This parameter has no effect if meta_key is not specified. Default false.
- * @param bool  $unfiltered Optional. Whether to apply filters. Default false.
  * @return mixed Single metadata value, or array of values
  */
-function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false, $unfiltered = false ) {
+function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = false ) {
 	if ( ! $meta_type || ! is_numeric( $object_id ) ) {
 		return false;
 	}
@@ -545,12 +543,28 @@ function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false, 
 		}
 	}
 
-	if ( $unfiltered ) {
-		if ( $single ) {
-			return '';
-		} else {
-			return array();
-		}
+	return null;
+}
+
+/**
+ * Retrieves raw metadata for the specified object.
+ *
+ * @since 2.9.0
+ * @uses get_metadata_raw()
+ *
+ * @param string $meta_type Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
+ *                          or any other object type with an associated meta table.
+ * @param int    $object_id ID of the object metadata is for.
+ * @param string $meta_key  Optional. Metadata key. If not specified, retrieve all metadata for
+ *                          the specified object. Default empty.
+ * @param bool   $single    Optional. If true, return only the first value of the specified meta_key.
+ *                          This parameter has no effect if meta_key is not specified. Default false.
+ * @return mixed Single metadata value, or array of values
+ */
+function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false ) {
+	$value = get_metadata_raw( $meta_type, $object_id, $meta_key, $single );
+	if ( ! is_null( $value ) ) {
+		return $value;
 	}
 
 	return get_metadata_default( $meta_type, $meta_key, $single, $object_id );
