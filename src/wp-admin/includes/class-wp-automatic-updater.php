@@ -978,8 +978,7 @@ class WP_Automatic_Updater {
 			$body[] = __( 'The following plugins failed to update:' );
 			// List failed updates.
 			foreach ( $failed_updates['plugin'] as $item ) {
-				/* translators: %s: Name of the related plugin. */
-				$body[] = ' ' . sprintf( __( '- %s' ), $item->name );
+				$body[] = "- {$item->name}";
 			}
 			$body[] = "\n";
 		}
@@ -988,8 +987,7 @@ class WP_Automatic_Updater {
 			$body[] = __( 'The following themes failed to update:' );
 			// List failed updates.
 			foreach ( $failed_updates['theme'] as $item ) {
-				/* translators: %s: Name of the related plugin. */
-				$body[] = ' ' . sprintf( __( '- %s' ), $item->name );
+				$body[] = "- {$item->name}";
 			}
 			$body[] = "\n";
 		}
@@ -998,8 +996,7 @@ class WP_Automatic_Updater {
 			$body[] = __( 'The following plugins were successfully updated:' );
 			// List successful updates.
 			foreach ( $successful_updates['plugin'] as $item ) {
-				/* translators: %s: Name of the related plugin. */
-				$body[] = ' ' . sprintf( __( '- %s' ), $item->name );
+				$body[] = "- {$item->name}";
 			}
 			$body[] = "\n";
 		}
@@ -1008,8 +1005,7 @@ class WP_Automatic_Updater {
 			$body[] = __( 'The following themes were successfully updated:' );
 			// List successful updates.
 			foreach ( $successful_updates['theme'] as $item ) {
-				/* translators: %s: Name of the related plugin. */
-				$body[] = ' ' . sprintf( __( '- %s' ), $item->name );
+				$body[] = "- {$item->name}";
 			}
 			$body[] = "\n";
 		}
