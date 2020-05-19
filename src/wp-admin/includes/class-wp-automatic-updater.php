@@ -158,7 +158,7 @@ class WP_Automatic_Updater {
 		// Next up, is this an item we can update?
 		if ( 'core' === $type ) {
 			$update = Core_Upgrader::should_update_to_version( $item->current );
-		} else {
+		} elseif ( 'plugin' === $type || 'theme' === $type ) {
 			$update = ! empty( $item->autoupdate );
 
 			if ( ! $update && wp_is_auto_update_enabled_for_type( $type ) ) {
@@ -166,6 +166,8 @@ class WP_Automatic_Updater {
 				$auto_updates = (array) get_site_option( "auto_update_{$type}s", array() );
 				$update       = in_array( $item->{$type}, $auto_updates, true );
 			}
+		} else {
+			$update = ! empty( $item->autoupdate );
 		}
 
 		/**
