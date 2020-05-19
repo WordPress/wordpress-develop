@@ -66,8 +66,16 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			$this->feedback( 'compare_before_overwrite' );
 			echo $compare_table;
 
-			$overwrite = $this->is_downgrading ? 'downgrade-plugin' : 'update-plugin';
-			$label     = $this->is_downgrading ? __( 'Remove current and install the old version' ) : __( 'Remove current and install the uploaded version' );
+			$overwrite = 'update-plugin';
+			$label     = __( 'Remove current and install the uploaded version' );
+
+			if ( $this->is_downgrading ) {
+				$overwrite = 'downgrade-plugin';
+
+				if ( isset( $this->upgrader->new_plugin_data['Version'] ) ) {
+					$label = sprintf( __( 'Remove current and install version %s' ), $this->upgrader->new_plugin_data['Version'] );
+				}
+			}
 
 			$install_actions = array(
 				'plugins_page'    => sprintf(

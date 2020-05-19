@@ -66,8 +66,17 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 			$this->feedback( 'compare_before_overwrite' );
 			echo $compare_table;
 
-			$overwrite = $this->is_downgrading ? 'downgrade-theme' : 'update-theme';
-			$label     = $this->is_downgrading ? __( 'Remove current and install the old version' ) : __( 'Remove current and install the uploaded version' );
+
+			$overwrite = 'update-theme';
+			$label     = __( 'Remove current and install the uploaded version' );
+
+			if ( $this->is_downgrading ) {
+				$overwrite = 'downgrade-theme';
+
+				if ( isset( $this->upgrader->new_theme_data['Version'] ) ) {
+					$label = sprintf( __( 'Remove current and install version %s' ), $this->upgrader->new_theme_data['Version'] );
+				}
+			}
 
 			$install_actions = array(
 				'themes_page'    => sprintf(
