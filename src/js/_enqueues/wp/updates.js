@@ -2470,18 +2470,13 @@
 		 * @since 4.2.0
 		 */
 		$( window ).on( 'beforeunload', wp.updates.beforeunload );
-	} );
 
-	/**
-	 * Click handler for enabling and disabling plugin and theme auto-updates.
-	 *
-	 * @since 5.5.0
-	 *
-	 * TODO: this needs to be refactored to be like the remainder of the handlers
-	 *       in this file.
-	 */
-	$( document ).ready( function() {
-		$( $document ).on( 'click', '.column-auto-updates a.toggle-auto-update, .theme-overlay a.toggle-auto-update', function( event ) {
+		/**
+		 * Click handler for enabling and disabling plugin and theme auto-updates.
+		 *
+		 * @since 5.5.0
+		 */
+		$document.on( 'click', '.column-auto-updates a.toggle-auto-update, .theme-overlay a.toggle-auto-update', function( event ) {
 			var data, asset, type, $parent;
 			var $anchor = $( this ),
 				action = $anchor.attr( 'data-wp-action' ),
@@ -2522,14 +2517,12 @@
 			$parent.find( '.notice.error' ).addClass( 'hidden' );
 
 			// Show loading status.
-			// TODO: make it readable when network is fast, or possibly remove the interim text change.
 			if ( 'enable' === action ) {
 				$label.text( wp.updates.l10n.autoUpdatesEnabling );
 			} else {
 				$label.text( wp.updates.l10n.autoUpdatesDisabling );
 			}
 
-			// TODO: Needs design review - the link text jumps under the mouse (part may get selected).
 			$anchor.find( '.dashicons-update' ).removeClass( 'hidden' );
 
 			data = {
@@ -2546,9 +2539,8 @@
 					var href = $anchor.attr( 'href' );
 
 					if ( ! response.success ) {
-						// if WP returns 0 for response (which can happen in a few cases
-						// that aren't quite failures), output the general error message,
-						// since we won't have response.data.error.
+						// if WP returns 0 for response (which can happen in a few cases),
+						// output the general error message since we won't have response.data.error.
 						if ( response.data && response.data.error ) {
 							errorMessage = response.data.error;
 						} else {
