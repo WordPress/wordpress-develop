@@ -158,14 +158,14 @@ class WP_Automatic_Updater {
 		// Next up, is this an item we can update?
 		if ( 'core' === $type ) {
 			$update = Core_Upgrader::should_update_to_version( $item->current );
-		} elseif ( 'plugin' === $type || 'theme' === $type ) {
-			$update = false;
-			if ( wp_is_auto_update_enabled_for_type( $type ) ) {
-				$auto_updates = (array) get_site_option( "auto_update_{$type}s", array() );
-				$update       = in_array( $item->{$type}, $auto_updates, true ) || ! empty( $item->autoupdate );
-			}
 		} else {
 			$update = ! empty( $item->autoupdate );
+
+			if ( ! $update && wp_is_auto_update_enabled_for_type( $type ) ) {
+				// Check if the site admin has enabled auto-updates by default for the specific item.
+				$auto_updates = (array) get_site_option( "auto_update_{$type}s", array() );
+				$update       = in_array( $item->{$type}, $auto_updates, true );
+			}
 		}
 
 		/**
