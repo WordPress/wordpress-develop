@@ -66,7 +66,6 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 			$this->feedback( 'compare_before_overwrite' );
 			echo $compare_table;
 
-
 			$overwrite = 'update-theme';
 			$label     = __( 'Remove current and install the uploaded version' );
 
@@ -213,7 +212,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 	 * @return string   $table   The table output.
 	 */
 	private function compare_table() {
-		if ( 'upload' !== $this->type || ! is_wp_error( $this->result ) || $this->result->get_error_code() !== 'folder_exists' ) {
+		if ( 'upload' !== $this->type || ! is_wp_error( $this->result ) || 'folder_exists' !== $this->result->get_error_code() ) {
 			return '';
 		}
 
@@ -223,7 +222,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 		$current_theme_data = false;
 		$all_themes         = wp_get_themes( [ 'errors' => null ] );
 		foreach ( $all_themes as $theme ) {
-			if ( $folder !== rtrim( $theme->get_stylesheet_directory(), '/' ) ) {
+			if ( rtrim( $theme->get_stylesheet_directory(), '/' ) !== $folder ) {
 				continue;
 			}
 
@@ -260,18 +259,17 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 
 			$new_value = ! empty( $this->upgrader->new_theme_data[ $field ] ) ? $this->upgrader->new_theme_data[ $field ] : '-';
 
-
-			if ( $old_value === $new_value && $new_value === '-' && $field === 'Template' ) {
+			if ( $old_value === $new_value && '-' === $new_value && 'Template' === $field ) {
 				continue;
 			}
 
 			$is_same_theme = $is_same_theme && ( $old_value === $new_value );
 
-			$diff_field     = ( $field !== 'Version' && $new_value !== $old_value );
-			$diff_version   = ( $field === 'Version' && $this->is_downgrading );
+			$diff_field     = ( 'Version' !== $field && $new_value !== $old_value );
+			$diff_version   = ( 'Version' === $field && $this->is_downgrading );
 			$invalid_parent = false;
 
-			if ( $field === 'Template' && $is_invalid_parent ) {
+			if ( 'Template' === $field && $is_invalid_parent ) {
 				$invalid_parent = true;
 				$new_value     .= ' ' . __( '(not found)' );
 			}
