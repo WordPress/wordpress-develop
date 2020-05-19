@@ -285,8 +285,11 @@ if ( isset( $_GET['action'] ) ) {
 		$url   = add_query_arg( array( 'package' => $file_upload->id ), 'update.php?action=upload-theme' );
 		$type  = 'upload'; // Install theme type, From Web or an Upload.
 
-		$upgrader = new Theme_Upgrader( new Theme_Installer_Skin( compact( 'type', 'title', 'nonce', 'url' ) ) );
-		$result   = $upgrader->install( $file_upload->package );
+		$overwrite = isset( $_GET['overwrite'] ) ? sanitize_text_field( $_GET['overwrite'] ) : '';
+        $overwrite = in_array( $overwrite, [ 'update-theme', 'downgrade-theme' ], true ) ? $overwrite : '';
+
+		$upgrader = new Theme_Upgrader( new Theme_Installer_Skin( compact( 'type', 'title', 'nonce', 'url', 'overwrite' ) ) );
+		$result   = $upgrader->install( $file_upload->package, [ 'overwrite_package' => $overwrite ] );
 
 		if ( $result || is_wp_error( $result ) ) {
 			$file_upload->cleanup();

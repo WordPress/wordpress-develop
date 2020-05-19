@@ -1139,10 +1139,14 @@ p.no-themes-local {
 	color: #fff;
 }
 
-.ovewrite-uploaded-theme,
-.ovewrite-uploaded-plugin {
+a.ovewrite-uploaded-theme,
+a.ovewrite-uploaded-plugin {
 	color: #a00;
-	margin-left: 10px;
+}
+
+a.ovewrite-uploaded-theme:hover,
+a.ovewrite-uploaded-plugin:hover {
+	color: #d80707;
 }
 
 /*------------------------------------------------------------------------------

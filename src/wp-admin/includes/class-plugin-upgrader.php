@@ -44,7 +44,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 * @since 5.5.0
 	 * @var array $new_plugin_data
 	 *
-	 * @see Plugin_Upgrader::check_package()
+	 * @see check_package()
 	 */
 	public $new_plugin_data = [];
 
@@ -64,6 +64,9 @@ class Plugin_Upgrader extends WP_Upgrader {
 		$this->strings['process_failed']       = __( 'Plugin update failed.' );
 		$this->strings['process_success']      = __( 'Plugin updated successfully.' );
 		$this->strings['process_bulk_success'] = __( 'Plugins updated successfully.' );
+
+		/* translators: 1: Plugin name, 2: Plugin version. */
+		$this->strings['process_success_specific'] = __( 'Successfully installed the plugin <strong>%1$s %2$s</strong>.' );
 	}
 
 	/**
@@ -161,8 +164,9 @@ class Plugin_Upgrader extends WP_Upgrader {
 			 *
 			 * @param string  $package          The package file.
 			 * @param array   $new_plugin_data  The new plugin data.
+			 * @param string  $package_type     The package type (plugin or theme).
 			 */
-			do_action( 'upgrader_overwrited_package', $package, $this->new_plugin_data );
+			do_action( 'upgrader_overwrited_package', $package, $this->new_plugin_data, 'plugin' );
 		}
 
 		return true;
@@ -184,7 +188,6 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 * @return bool|WP_Error True if the upgrade was successful, false or a WP_Error object otherwise.
 	 */
 	public function upgrade( $plugin, $args = array() ) {
-
 		$defaults    = array(
 			'clear_update_cache' => true,
 		);
@@ -262,7 +265,6 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 * @return array|false An array of results indexed by plugin file, or false if unable to connect to the filesystem.
 	 */
 	public function bulk_upgrade( $plugins, $args = array() ) {
-
 		$defaults    = array(
 			'clear_update_cache' => true,
 		);
@@ -388,6 +390,8 @@ class Plugin_Upgrader extends WP_Upgrader {
 	public function check_package( $source ) {
 		global $wp_filesystem;
 
+		$this->new_plugin_data = [];
+
 		if ( is_wp_error( $source ) ) {
 			return $source;
 		}
@@ -398,8 +402,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 		}
 
 		// Check that the folder contains at least 1 valid plugin.
-		$this->new_plugin_data = [];
-		$files                 = glob( $working_directory . '*.php' );
+		$files = glob( $working_directory . '*.php' );
 		if ( $files ) {
 			foreach ( $files as $file ) {
 				$info = get_plugin_data( $file, false, false );

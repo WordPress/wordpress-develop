@@ -50,8 +50,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	public function before() {
 		if ( ! empty( $this->api ) ) {
 			$this->upgrader->strings['process_success'] = sprintf(
-				/* translators: 1: Plugin name, 2: Plugin version. */
-				__( 'Successfully installed the plugin <strong>%1$s %2$s</strong>.' ),
+				$this->upgrader->strings['process_success_specific'],
 				$this->api->name,
 				$this->api->version
 			);
@@ -62,6 +61,43 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	 */
 	public function after() {
 		$compare_table = $this->compare_table();
+
+		if ( $compare_table ) {
+			$this->feedback( 'compare_before_overwrite' );
+			echo $compare_table;
+
+			$overwrite = $this->is_downgrading ? 'downgrade-plugin' : 'update-plugin';
+			$label     = $this->is_downgrading ? __( 'Remove current and install the old version' ) : __( 'Remove current and install the uploaded version' );
+
+			$install_actions = array(
+				'plugins_page'    => sprintf(
+					'<a href="%s">%s</a>',
+					self_admin_url( 'plugin-install.php' ),
+					__( 'Cancel and go back' )
+				),
+				'ovewrite_plugin' => sprintf(
+					'<a class="ovewrite-uploaded-plugin" href="%s" target="_parent">%s</a>',
+					wp_nonce_url( add_query_arg( 'overwrite', $overwrite, $this->url ), 'plugin-upload' ),
+					$label
+				),
+			);
+
+			/**
+			 * Filters the list of action links available following a single plugin installation failed but ovewrite is allowed.
+			 *
+			 * @since 5.5.0
+			 *
+			 * @param string[] $install_actions Array of plugin action links.
+			 * @param object   $api             Object containing WordPress.org API plugin data.
+			 * @param array    $new_plugin_data Array with uploaded plugin data.
+			 */
+			$install_actions = apply_filters( 'install_plugin_ovewrite_actions', $install_actions, $this->api, $this->upgrader->new_plugin_data );
+			if ( ! empty( $install_actions ) ) {
+				$this->feedback( implode( ' | ', (array) $install_actions ) );
+			}
+
+			return;
+		}
 
 		$plugin_file = $this->upgrader->plugin_info();
 
@@ -114,7 +150,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			$install_actions['plugins_page'] = sprintf(
 				'<a href="%s">%s</a>',
 				self_admin_url( 'plugin-install.php' ),
-				$compare_table ? __( 'Cancel and go back' ) : __( 'Return to Plugin Installer' )
+				__( 'Return to Plugin Installer' )
 			);
 		} else {
 			$install_actions['plugins_page'] = sprintf(
@@ -124,23 +160,9 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			);
 		}
 
-		if ( $compare_table ) {
-			$this->feedback( 'compare_before_overwrite' );
-			echo $compare_table;
-
-			$overwrite = $this->is_downgrading ? 'downgrade-plugin' : 'update-plugin';
-			$label     = $this->is_downgrading ? __( 'Remove current and install the old version' ) : __( 'Remove current and install the uploaded version' );
-
-			$install_actions['ovewrite_plugin'] = sprintf(
-				'<a class="ovewrite-uploaded-plugin" href="%s" target="_parent">%s</a>',
-				wp_nonce_url( add_query_arg( 'overwrite', $overwrite, $this->url ), 'plugin-upload' ),
-				$label
-			);
-		}
-
 		if ( ! $this->result || is_wp_error( $this->result ) ) {
 			unset( $install_actions['activate_plugin'], $install_actions['network_activate'] );
-		} elseif ( $this->overwrite || ! current_user_can( 'activate_plugin', $plugin_file ) ) {
+		} elseif ( ! current_user_can( 'activate_plugin', $plugin_file ) ) {
 			unset( $install_actions['activate_plugin'] );
 		}
 
@@ -158,7 +180,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 		$install_actions = apply_filters( 'install_plugin_complete_actions', $install_actions, $this->api, $plugin_file );
 
 		if ( ! empty( $install_actions ) ) {
-			$this->feedback( implode( ' ', (array) $install_actions ) );
+			$this->feedback( implode( ' | ', (array) $install_actions ) );
 		}
 	}
 
@@ -174,12 +196,12 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			return '';
 		}
 
-		$folder    = $this->result->get_error_data( 'folder_exists' );
-		$directory = ltrim( substr( $folder, strlen( WP_PLUGIN_DIR ) ), '/' );
+		$folder = $this->result->get_error_data( 'folder_exists' );
+		$folder = ltrim( substr( $folder, strlen( WP_PLUGIN_DIR ) ), '/' );
 
 		$current_plugin_data = false;
 		foreach ( get_plugins() as $plugin => $plugin_data ) {
-			if ( strrpos( $plugin, $directory ) !== 0 ) {
+			if ( strrpos( $plugin, $folder ) !== 0 ) {
 				continue;
 			}
 
@@ -226,7 +248,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 		/**
 		 * Filters the compare table output for overwrite a plugin package on upload.
 		 *
-		 * @since 5.5
+		 * @since 5.5.0
 		 *
 		 * @param string   $table                The output table with Name, Version, Author, RequiresWP and RequiresPHP info.
 		 * @param array    $current_plugin_data  Array with current plugin data.
