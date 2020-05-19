@@ -2600,7 +2600,7 @@
 						href = href.replace( 'action=disable-auto-update', 'action=enable-auto-update' );
 						$anchor.attr( {
 							'data-wp-action': 'enable',
-							href: href,
+							href: href
 						} );
 
 						$label.text( wp.updates.l10n.autoUpdatesEnable );
