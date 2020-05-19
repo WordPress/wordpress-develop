@@ -176,7 +176,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 
 		if ( ! $this->result || is_wp_error( $this->result ) || is_network_admin() || ! current_user_can( 'switch_themes' ) ) {
 			unset( $install_actions['activate'], $install_actions['preview'] );
-		} elseif ( $stylesheet == get_option( 'template' ) ) {
+		} elseif ( get_option( 'template' ) === $stylesheet ) {
 			unset( $install_actions['activate'] );
 		}
 
@@ -251,6 +251,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 
 			$new_value = ! empty( $this->upgrader->new_theme_data[ $field ] ) ? $this->upgrader->new_theme_data[ $field ] : '-';
 
+
 			if ( $old_value === $new_value && $new_value === '-' && $field === 'Template' ) {
 				continue;
 			}
@@ -292,4 +293,5 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 		 */
 		return apply_filters( 'install_theme_compare_table_ovewrite', $table, $current_theme_data, $this->upgrader->new_theme_data );
 	}
+
 }

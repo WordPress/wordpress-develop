@@ -192,7 +192,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	 * @return string   $table   The table output.
 	 */
 	private function compare_table() {
-		if ( 'upload' !== $this->type || ! is_wp_error( $this->result ) || $this->result->get_error_code() !== 'folder_exists' ) {
+		if ( 'upload' !== $this->type || ! is_wp_error( $this->result ) || 'folder_exists' !== $this->result->get_error_code() ) {
 			return '';
 		}
 
@@ -232,8 +232,8 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 
 			$is_same_plugin = $is_same_plugin && ( $old_value === $new_value );
 
-			$diff_field   = ( $field !== 'Version' && $new_value !== $old_value );
-			$diff_version = ( $field === 'Version' && $this->is_downgrading );
+			$diff_field   = ( 'Version' !== $field && $new_value !== $old_value );
+			$diff_version = ( 'Version' === $field && $this->is_downgrading );
 
 			$table .= ( $diff_field || $diff_version ) ? '<tr class="warning">' : '<tr>';
 			$table .= '<td>' . $label . '</td><td>' . esc_html( $old_value ) . '</td><td>' . esc_html( $new_value ) . '</td></tr>';

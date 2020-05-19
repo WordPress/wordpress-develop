@@ -89,13 +89,13 @@ class Plugin_Upgrader extends WP_Upgrader {
 		$this->strings['reuploading_plugin']       = __( 'Seems like you are trying to upload a plugin already installed.' );
 		$this->strings['compare_before_overwrite'] = __( 'Compare before retry:' );
 
-		if ( $this->skin->overwrite === 'update-plugin' ) {
+		if ( 'update-plugin' === $this->skin->overwrite ) {
 			$this->strings['installing_package'] = __( 'Updating the plugin&#8230;' );
 			$this->strings['process_failed']     = __( 'Plugin update failed.' );
 			$this->strings['process_success']    = __( 'Plugin updated successfully.' );
 		}
 
-		if ( $this->skin->overwrite === 'downgrade-plugin' ) {
+		if ( 'downgrade-plugin' === $this->skin->overwrite ) {
 			$this->strings['installing_package'] = __( 'Downgrading the plugin&#8230;' );
 			$this->strings['process_failed']     = __( 'Plugin downgrade failed.' );
 			$this->strings['process_success']    = __( 'Plugin downgraded successfully.' );

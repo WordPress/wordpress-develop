@@ -96,13 +96,13 @@ class Theme_Upgrader extends WP_Upgrader {
 		$this->strings['reuploading_theme']        = __( 'Seems like you are trying to upload a theme already installed.' );
 		$this->strings['current_theme_has_errors'] = __( 'The current theme has the follow error: "%s".' );
 
-		if ( $this->skin->overwrite === 'update-theme' ) {
+		if ( 'update-theme' === $this->skin->overwrite ) {
 			$this->strings['installing_package'] = __( 'Updating the theme&#8230;' );
 			$this->strings['process_failed']     = __( 'Theme update failed.' );
 			$this->strings['process_success']    = __( 'Theme updated successfully.' );
 		}
 
-		if ( $this->skin->overwrite === 'downgrade-theme' ) {
+		if ( 'downgrade-theme' === $this->skin->overwrite ) {
 			$this->strings['installing_package'] = __( 'Downgrading the theme&#8230;' );
 			$this->strings['process_failed']     = __( 'Theme downgrade failed.' );
 			$this->strings['process_success']    = __( 'Theme downgraded successfully.' );
