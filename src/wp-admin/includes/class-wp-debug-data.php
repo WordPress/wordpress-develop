@@ -856,10 +856,14 @@ class WP_Debug_Data {
 		}
 
 		// List all available plugins.
-		$plugins              = get_plugins();
-		$plugin_updates       = get_plugin_updates();
-		$auto_updates         = array();
-		$auto_updates_enabled = wp_is_auto_update_enabled_for_type( 'plugin' );
+		$plugins        = get_plugins();
+		$plugin_updates = get_plugin_updates();
+		$auto_updates   = array();
+
+		$auto_updates_enabled      = wp_is_auto_update_enabled_for_type( 'plugin' );
+		$auto_updates_enabled_str  = __( 'Auto-updates enabled' );
+		$auto_updates_disabled_str = __( 'Auto-updates disabled' );
+
 		if ( $auto_updates_enabled ) {
 			$auto_updates = (array) get_site_option( 'auto_update_plugins', array() );
 		}
@@ -899,11 +903,11 @@ class WP_Debug_Data {
 
 			if ( $auto_updates_enabled ) {
 				if ( in_array( $plugin_path, $auto_updates, true ) ) {
-					$plugin_version_string       .= ' | ' . __( 'Auto-updates enabled' );
-					$plugin_version_string_debug .= ', ' . __( 'Auto-updates enabled' );
+					$plugin_version_string       .= ' | ' . $auto_updates_enabled_str;
+					$plugin_version_string_debug .= ', ' . $auto_updates_enabled_str;
 				} else {
-					$plugin_version_string       .= ' | ' . __( 'Auto-updates disabled' );
-					$plugin_version_string_debug .= ', ' . __( 'Auto-updates disabled' );
+					$plugin_version_string       .= ' | ' . $auto_updates_disabled_str;
+					$plugin_version_string_debug .= ', ' . $auto_updates_disabled_str;
 				}
 			}
 
@@ -1123,11 +1127,11 @@ class WP_Debug_Data {
 
 			if ( $auto_updates_enabled ) {
 				if ( in_array( $theme_slug, $auto_updates ) ) {
-					$theme_version_string       .= ' | ' . __( 'Auto-updates enabled' );
-					$theme_version_string_debug .= ',' . __( 'Auto-updates enabled' );
+					$theme_version_string       .= ' | ' . $auto_updates_enabled_str;
+					$theme_version_string_debug .= ',' . $auto_updates_enabled_str;
 				} else {
-					$theme_version_string       .= ' | ' . __( 'Auto-updates disabled' );
-					$theme_version_string_debug .= ', ' . __( 'Auto-updates disabled' );
+					$theme_version_string       .= ' | ' . $auto_updates_disabled_str;
+					$theme_version_string_debug .= ', ' . $auto_updates_disabled_str;
 				}
 			}
 

@@ -718,27 +718,39 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		$stylesheet = $theme->get_stylesheet();
 
 		if ( in_array( $stylesheet, $auto_updates, true ) ) {
-			$text                   = __( 'Disable auto-updates', 'wp-autoupdates' );
-			$auto_update_time_class = '';
-			$action                 = 'disable';
+			$text       = __( 'Disable auto-updates' );
+			$action     = 'disable';
+			$time_class = '';
 		} else {
-			$text                   = __( 'Enable auto-updates', 'wp-autoupdates' );
-			$action                 = 'enable';
-			$auto_update_time_class = ' hidden';
+			$text       = __( 'Enable auto-updates' );
+			$action     = 'enable';
+			$time_class = ' hidden';
 		}
 
-		printf(
-			'<a href="%s" class="toggle-auto-update" data-wp-action="%s"><span class="dashicons dashicons-update spin hidden"></span><span class="label">%s</span></a>',
-			wp_nonce_url( 'themes.php?action=' . $action . '-auto-update&amp;theme=' . urlencode( $stylesheet ) . '&amp;paged=' . $page . '&amp;theme_status=' . $status, 'updates' ),
-			$action,
-			$text
+		$query_args = array(
+			'action'       => "{$action}-auto-update",
+			'theme'        => $stylesheet,
+			'paged'        => $page,
+			'theme_status' => $status,
 		);
+
+		$url = add_query_arg( $query_args, 'themes.php' );
+
+		printf(
+			'<a href="%s" class="toggle-auto-update" data-wp-action="%s">',
+			wp_nonce_url( $url, 'updates' ),
+			$action
+		);
+
+		echo '<span class="dashicons dashicons-update spin hidden"></span>';
+		echo '<span class="label">' . $text . '</span>';
+		echo '</a>';
 
 		$available_updates = get_site_transient( 'update_themes' );
 		if ( isset( $available_updates->response[ $stylesheet ] ) ) {
 			printf(
 				'<div class="auto-update-time%s">%s</div>',
-				$auto_update_time_class,
+				$time_class,
 				wp_get_auto_update_message()
 			);
 		}

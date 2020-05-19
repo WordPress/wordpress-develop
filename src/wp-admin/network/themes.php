@@ -22,7 +22,15 @@ $action = $wp_list_table->current_action();
 $s = isset( $_REQUEST['s'] ) ? $_REQUEST['s'] : '';
 
 // Clean up request URI from temporary args for screen options/paging uri's to work as expected.
-$temp_args              = array( 'enabled', 'disabled', 'deleted', 'error', 'enabled-auto-update', 'disabled-auto-update' );
+$temp_args = array(
+	'enabled',
+	'disabled',
+	'deleted',
+	'error',
+	'enabled-auto-update',
+	'disabled-auto-update',
+);
+
 $_SERVER['REQUEST_URI'] = remove_query_arg( $temp_args, $_SERVER['REQUEST_URI'] );
 $referer                = remove_query_arg( $temp_args, wp_get_referer() );
 

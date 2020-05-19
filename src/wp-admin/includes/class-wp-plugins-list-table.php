@@ -1041,27 +1041,39 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					echo "<td class='column-auto-updates{$extra_classes}'>";
 
 					if ( in_array( $plugin_file, $auto_updates, true ) ) {
-						$text                   = __( 'Disable auto-updates', 'wp-autoupdates' );
-						$action                 = 'disable';
-						$auto_update_time_class = '';
+						$text       = __( 'Disable auto-updates' );
+						$action     = 'disable';
+						$time_class = '';
 					} else {
-						$text                   = __( 'Enable auto-updates', 'wp-autoupdates' );
-						$action                 = 'enable';
-						$auto_update_time_class = ' hidden';
+						$text       = __( 'Enable auto-updates' );
+						$action     = 'enable';
+						$time_class = ' hidden';
 					}
 
-					printf(
-						'<a href="%s" class="toggle-auto-update" data-wp-action="%s"><span class="dashicons dashicons-update spin hidden"></span><span class="label">%s</span></a>',
-						wp_nonce_url( 'plugins.php?action=' . $action . '-auto-update&amp;plugin=' . urlencode( $plugin_file ) . '&amp;paged=' . $page . '&amp;plugin_status=' . $status, 'updates' ),
-						$action,
-						$text
+					$query_args = array(
+						'action'        => "{$action}-auto-update",
+						'plugin'        => $plugin_file,
+						'paged'         => $page,
+						'plugin_status' => $status,
 					);
+
+					$url = add_query_arg( $query_args, 'plugins.php' );
+
+					printf(
+						'<a href="%s" class="toggle-auto-update" data-wp-action="%s">',
+						wp_nonce_url( $url, 'updates' ),
+						$action
+					);
+
+					echo '<span class="dashicons dashicons-update spin hidden"></span>';
+					echo '<span class="label">' . $text . '</span>';
+					echo '</a>';
 
 					$available_updates = get_site_transient( 'update_plugins' );
 					if ( isset( $available_updates->response[ $plugin_file ] ) ) {
 						printf(
 							'<div class="auto-update-time%s">%s</div>',
-							$auto_update_time_class,
+							$time_class,
 							wp_get_auto_update_message()
 						);
 					}
