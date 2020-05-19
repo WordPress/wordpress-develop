@@ -92,9 +92,9 @@ class Theme_Upgrader extends WP_Upgrader {
 		/* translators: %s: Theme name. */
 		$this->strings['parent_theme_not_found'] = sprintf( __( '<strong>The parent theme could not be found.</strong> You will need to install the parent theme, %s, before you can use this child theme.' ), '<strong>%s</strong>' );
 
-		$this->strings['compare_before_overwrite']             = __( 'Compare before retry:' );
-		$this->strings['reuploading_theme']                    = __( 'Seems like you are trying to upload a theme already installed.' );
-		$this->strings['current_theme_has_errors']             = __( 'The current theme has the follow error: "%s".' );
+		$this->strings['compare_before_overwrite'] = __( 'Compare before retry:' );
+		$this->strings['reuploading_theme']        = __( 'Seems like you are trying to upload a theme already installed.' );
+		$this->strings['current_theme_has_errors'] = __( 'The current theme has the follow error: "%s".' );
 
 		if ( $this->skin->overwrite === 'update-theme' ) {
 			$this->strings['installing_package'] = __( 'Updating the theme&#8230;' );

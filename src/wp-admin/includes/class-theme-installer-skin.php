@@ -212,7 +212,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 		$folder = rtrim( $folder, '/' );
 
 		$current_theme_data = false;
-		$all_themes = wp_get_themes( [ 'errors' => null ] );
+		$all_themes         = wp_get_themes( [ 'errors' => null ] );
 		foreach ( $all_themes as $theme ) {
 			if ( $folder !== rtrim( $theme->get_stylesheet_directory(), '/' ) ) {
 				continue;
@@ -263,7 +263,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 
 			if ( $field === 'Template' && $is_invalid_parent ) {
 				$invalid_parent = true;
-				$new_value .= ' ' . __( '(not found)' );
+				$new_value     .= ' ' . __( '(not found)' );
 			}
 
 			$table .= ( $diff_field || $diff_version || $invalid_parent ) ? '<tr class="warning">' : '<tr>';
