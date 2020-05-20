@@ -2303,12 +2303,14 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		if ( $found ) {
 
 			/**
-			 * Filters the list of characters not allowed in CSS rules.
+			 * Filters the regex limiting the list of characters not allowed in CSS rules.
 			 *
-			 * Default behaviour is removing any inline css containing \ ( & } = or comments, except for url() usage checked above.
+			 * Default behaviour is to remove any css containing \ ( & } = or comments, except for url() usage.
 			 *
-			 * @param string Regex pattern of disallowed characters in CSS rules.
-			 * @param string CSS value to test.
+			 * @since 5.5.0
+			 *
+			 * @param string $regex           Regex pattern of disallowed characters in CSS rules.
+			 * @param string $css_test_string CSS value to test.
 			 */
 			$disallowed_chars = apply_filters( 'safe_style_disallowed_chars', '%[\\\(&=}]|/\*%', $css_test_string );
 			if ( ! preg_match( $disallowed_chars, $css_test_string ) ) {
