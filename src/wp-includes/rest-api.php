@@ -1449,7 +1449,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		}
 	}
 
-	if ( isset( $args['format'] ) ) {
+	if ( 'string' === $args['type' ] && isset( $args['format'] ) ) {
 		switch ( $args['format'] ) {
 			case 'hex-color':
 				if ( ! rest_parse_hex_color( $value ) ) {
@@ -1619,7 +1619,7 @@ function rest_sanitize_value_from_schema( $value, $args ) {
 		return rest_sanitize_boolean( $value );
 	}
 
-	if ( isset( $args['format'] ) ) {
+	if ( 'string' === $args['type' ] && isset( $args['format'] ) ) {
 		switch ( $args['format'] ) {
 			case 'hex-color':
 				return (string) sanitize_hex_color( $value );
