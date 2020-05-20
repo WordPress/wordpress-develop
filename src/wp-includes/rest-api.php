@@ -90,7 +90,7 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 		$arg_group['args'] = array_merge( $common_args, $arg_group['args'] );
 	}
 
-	$full_route = '/' . trim( $clean_namespace, '/' ) . '/' . trim( $route, '/' );
+	$full_route = '/' . $clean_namespace . '/' . trim( $route, '/' );
 	rest_get_server()->register_route( $clean_namespace, $full_route, $args, $override );
 	return true;
 }
