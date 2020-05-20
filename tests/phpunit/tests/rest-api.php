@@ -1295,4 +1295,24 @@ class Tests_REST_API extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @ticket 49749
+	 */
+	public function test_register_route_with_invalid_namespace() {
+		$this->setExpectedIncorrectUsage( 'register_rest_route' );
+
+		register_rest_route(
+			'/my-namespace/v1/',
+			'/my-route',
+			array(
+				'callback' => '__return_true',
+			)
+		);
+
+		$routes = rest_get_server()->get_routes( 'my-namespace/v1' );
+		$this->assertCount( 2, $routes );
+
+		$this->assertTrue( rest_do_request( '/my-namespace/v1/my-route' )->get_data() );
+	}
 }
