@@ -5465,6 +5465,7 @@ function sanitize_trackback_urls( $to_ping ) {
  * This should not be used to escape data going directly into an SQL query.
  *
  * @since 3.6.0
+ * @since 5.5.0 Leave non-string value untouched.
  *
  * @param string|array $value String or array of strings to slash.
  * @return string|array Slashed $value
@@ -5472,14 +5473,12 @@ function sanitize_trackback_urls( $to_ping ) {
 function wp_slash( $value ) {
 	if ( is_array( $value ) ) {
 		foreach ( $value as $k => $v ) {
-			if ( is_array( $v ) ) {
-				$value[ $k ] = wp_slash( $v );
-			} else {
-				$value[ $k ] = addslashes( $v );
-			}
+			$value[ $k ] = wp_slash( $v );
 		}
-	} else {
-		$value = addslashes( $value );
+	}
+
+	if ( is_string( $value ) ) {
+		return addslashes( $value );
 	}
 
 	return $value;
