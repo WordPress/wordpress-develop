@@ -131,8 +131,8 @@ if ( $action ) {
 				require_once ABSPATH . 'wp-admin/admin-header.php';
 				$themes_to_delete = count( $themes );
 				?>
-			<div class="wrap">
-				<?php if ( 1 == $themes_to_delete ) : ?>
+				<div class="wrap">
+				<?php if ( 1 === $themes_to_delete ) : ?>
 					<h1><?php _e( 'Delete Theme' ); ?></h1>
 					<div class="error"><p><strong><?php _e( 'Caution:' ); ?></strong> <?php _e( 'This theme may be active on other sites in the network.' ); ?></p></div>
 					<p><?php _e( 'You are about to remove the following theme:' ); ?></p>
@@ -153,7 +153,7 @@ if ( $action ) {
 					}
 					?>
 					</ul>
-				<?php if ( 1 == $themes_to_delete ) : ?>
+				<?php if ( 1 === $themes_to_delete ) : ?>
 					<p><?php _e( 'Are you sure you want to delete this theme?' ); ?></p>
 				<?php else : ?>
 					<p><?php _e( 'Are you sure you want to delete these themes?' ); ?></p>
@@ -162,27 +162,28 @@ if ( $action ) {
 					<input type="hidden" name="verify-delete" value="1" />
 					<input type="hidden" name="action" value="delete-selected" />
 					<?php
+
 					foreach ( (array) $themes as $theme ) {
 						echo '<input type="hidden" name="checked[]" value="' . esc_attr( $theme ) . '" />';
 					}
 
-						wp_nonce_field( 'bulk-themes' );
+					wp_nonce_field( 'bulk-themes' );
 
-					if ( 1 == $themes_to_delete ) {
+					if ( 1 === $themes_to_delete ) {
 						submit_button( __( 'Yes, delete this theme' ), '', 'submit', false );
 					} else {
 						submit_button( __( 'Yes, delete these themes' ), '', 'submit', false );
 					}
+
 					?>
 				</form>
-				<?php
-				$referer = wp_get_referer();
-				?>
+				<?php $referer = wp_get_referer(); ?>
 				<form method="post" action="<?php echo $referer ? esc_url( $referer ) : ''; ?>" style="display:inline;">
 					<?php submit_button( __( 'No, return me to the theme list' ), '', 'submit', false ); ?>
 				</form>
-			</div>
+				</div>
 				<?php
+
 				require_once ABSPATH . 'wp-admin/admin-footer.php';
 				exit;
 			} // End if verify-delete.
@@ -241,10 +242,10 @@ if ( $action ) {
 			if ( 'enable-auto-update' === $action ) {
 				$auto_updates[] = $_GET['theme'];
 				$auto_updates   = array_unique( $auto_updates );
-				$referer = add_query_arg( 'enabled-auto-update', 1, $referer );
+				$referer        = add_query_arg( 'enabled-auto-update', 1, $referer );
 			} elseif ( 'disable-auto-update' === $action ) {
 				$auto_updates = array_diff( $auto_updates, array( $_GET['theme'] ) );
-				$referer = add_query_arg( 'disabled-auto-update', 1, $referer );
+				$referer      = add_query_arg( 'disabled-auto-update', 1, $referer );
 			} else {
 				// Bulk enable/disable.
 				$themes = (array) wp_unslash( $_POST['checked'] );
@@ -252,10 +253,10 @@ if ( $action ) {
 				if ( 'enable-auto-update-selected' === $action ) {
 					$auto_updates = array_merge( $auto_updates, $themes );
 					$auto_updates = array_unique( $auto_updates );
-					$referer = add_query_arg( 'enabled-auto-update', count( $themes ), $referer );
+					$referer      = add_query_arg( 'enabled-auto-update', count( $themes ), $referer );
 				} else {
 					$auto_updates = array_diff( $auto_updates, $themes );
-					$referer = add_query_arg( 'disabled-auto-update', count( $themes ), $referer );
+					$referer      = add_query_arg( 'disabled-auto-update', count( $themes ), $referer );
 				}
 			}
 
@@ -402,7 +403,7 @@ if ( isset( $_GET['enabled'] ) ) {
 <?php
 $wp_list_table->views();
 
-if ( 'broken' == $status ) {
+if ( 'broken' === $status ) {
 	echo '<p class="clear">' . __( 'The following themes are installed but incomplete.' ) . '</p>';
 }
 ?>

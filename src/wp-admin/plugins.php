@@ -35,6 +35,7 @@ $query_args_to_remove = array(
 	'disabled-auto-update-multi',
 	'_error_nonce',
 );
+
 $_SERVER['REQUEST_URI'] = remove_query_arg( $query_args_to_remove, $_SERVER['REQUEST_URI'] );
 
 wp_enqueue_script( 'updates' );
@@ -297,11 +298,14 @@ if ( $action ) {
 			if ( ! isset( $_REQUEST['verify-delete'] ) ) {
 				wp_enqueue_script( 'jquery' );
 				require_once ABSPATH . 'wp-admin/admin-header.php';
+
 				?>
-			<div class="wrap">
+				<div class="wrap">
 				<?php
-					$plugin_info              = array();
-					$have_non_network_plugins = false;
+
+				$plugin_info              = array();
+				$have_non_network_plugins = false;
+
 				foreach ( (array) $plugins as $plugin ) {
 					$plugin_slug = dirname( $plugin );
 
@@ -328,9 +332,11 @@ if ( $action ) {
 						}
 					}
 				}
-					$plugins_to_delete = count( $plugin_info );
+
+				$plugins_to_delete = count( $plugin_info );
+
 				?>
-				<?php if ( 1 == $plugins_to_delete ) : ?>
+				<?php if ( 1 === $plugins_to_delete ) : ?>
 					<h1><?php _e( 'Delete Plugin' ); ?></h1>
 					<?php if ( $have_non_network_plugins && is_network_admin() ) : ?>
 						<div class="error"><p><strong><?php _e( 'Caution:' ); ?></strong> <?php _e( 'This plugin may be active on other sites in the network.' ); ?></p></div>
@@ -345,7 +351,9 @@ if ( $action ) {
 				<?php endif; ?>
 					<ul class="ul-disc">
 						<?php
+
 						$data_to_delete = false;
+
 						foreach ( $plugin_info as $plugin ) {
 							if ( $plugin['is_uninstallable'] ) {
 								/* translators: 1: Plugin name, 2: Plugin author. */
@@ -356,36 +364,44 @@ if ( $action ) {
 								echo '<li>', sprintf( _x( '%1$s by %2$s', 'plugin' ), '<strong>' . $plugin['Name'] . '</strong>', '<em>' . $plugin['AuthorName'] ) . '</em>', '</li>';
 							}
 						}
+
 						?>
 					</ul>
 				<p>
 				<?php
+
 				if ( $data_to_delete ) {
 					_e( 'Are you sure you want to delete these files and data?' );
 				} else {
 					_e( 'Are you sure you want to delete these files?' );
 				}
+
 				?>
 				</p>
 				<form method="post" action="<?php echo esc_url( $_SERVER['REQUEST_URI'] ); ?>" style="display:inline;">
 					<input type="hidden" name="verify-delete" value="1" />
 					<input type="hidden" name="action" value="delete-selected" />
 					<?php
+
 					foreach ( (array) $plugins as $plugin ) {
 						echo '<input type="hidden" name="checked[]" value="' . esc_attr( $plugin ) . '" />';
 					}
+
 					?>
 					<?php wp_nonce_field( 'bulk-plugins' ); ?>
 					<?php submit_button( $data_to_delete ? __( 'Yes, delete these files and data' ) : __( 'Yes, delete these files' ), '', 'submit', false ); ?>
 				</form>
 				<?php
+
 				$referer = wp_get_referer();
+
 				?>
 				<form method="post" action="<?php echo $referer ? esc_url( $referer ) : ''; ?>" style="display:inline;">
 					<?php submit_button( __( 'No, return me to the plugin list' ), '', 'submit', false ); ?>
 				</form>
-			</div>
+				</div>
 				<?php
+
 				require_once ABSPATH . 'wp-admin/admin-footer.php';
 				exit;
 			} else {
@@ -398,15 +414,14 @@ if ( $action ) {
 			set_transient( 'plugins_delete_result_' . $user_ID, $delete_result );
 			wp_redirect( self_admin_url( "plugins.php?deleted=$plugins_to_delete&plugin_status=$status&paged=$page&s=$s" ) );
 			exit;
-
 		case 'clear-recent-list':
 			if ( ! is_network_admin() ) {
 				update_option( 'recently_activated', array() );
 			} else {
 				update_site_option( 'recently_activated', array() );
 			}
-			break;
 
+			break;
 		case 'resume':
 			if ( is_multisite() ) {
 				return;
@@ -426,7 +441,6 @@ if ( $action ) {
 
 			wp_redirect( self_admin_url( "plugins.php?resume=true&plugin_status=$status&paged=$page&s=$s" ) );
 			exit;
-
 		case 'enable-auto-update':
 		case 'disable-auto-update':
 		case 'enable-auto-update-selected':
@@ -462,25 +476,25 @@ if ( $action ) {
 			if ( 'enable-auto-update' === $action ) {
 				$auto_updates[] = $plugin;
 				$auto_updates   = array_unique( $auto_updates );
-				$redirect = add_query_arg( array( 'enabled-auto-update' => 'true' ), $redirect );
+				$redirect       = add_query_arg( array( 'enabled-auto-update' => 'true' ), $redirect );
 			} elseif ( 'disable-auto-update' === $action ) {
 				$auto_updates = array_diff( $auto_updates, array( $plugin ) );
-				$redirect = add_query_arg( array( 'disabled-auto-update' => 'true' ), $redirect );
+				$redirect     = add_query_arg( array( 'disabled-auto-update' => 'true' ), $redirect );
 			} else {
 				$plugins = (array) wp_unslash( $_POST['checked'] );
 
 				if ( 'enable-auto-update-selected' === $action ) {
 					$new_auto_updates = array_merge( $auto_updates, $plugins );
 					$new_auto_updates = array_unique( $new_auto_updates );
-					$query_args = array( 'enabled-auto-update-multi' => 'true' );
+					$query_args       = array( 'enabled-auto-update-multi' => 'true' );
 				} else {
 					$new_auto_updates = array_diff( $auto_updates, $plugins );
-					$query_args = array( 'disabled-auto-update-multi' => 'true' );
+					$query_args       = array( 'disabled-auto-update-multi' => 'true' );
 				}
 
 				// Return early if all selected plugins already have auto-updates enabled or disabled.
 				// Must use non-strict comparison, so that array order is not treated as significant.
-				if ( $new_auto_updates == $auto_updates ) {
+				if ( $new_auto_updates == $auto_updates ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 					wp_redirect( $redirect );
 					exit;
 				}
@@ -490,7 +504,7 @@ if ( $action ) {
 			}
 
 			/** This filter is documented in wp-admin/includes/class-wp-plugins-list-table.php */
-			$all_items    = apply_filters( 'all_plugins', get_plugins() );
+			$all_items = apply_filters( 'all_plugins', get_plugins() );
 
 			// Remove plugins that don't exist or have been deleted since the option was last updated.
 			$auto_updates = array_intersect( $auto_updates, array_keys( $all_items ) );
@@ -583,9 +597,7 @@ if ( ! empty( $invalid ) ) {
 		echo '</p></div>';
 	}
 }
-?>
 
-<?php
 if ( isset( $_GET['error'] ) ) :
 
 	if ( isset( $_GET['main'] ) ) {
@@ -606,9 +618,11 @@ if ( isset( $_GET['error'] ) ) :
 	} else {
 		$errmsg = __( 'Plugin could not be activated because it triggered a <strong>fatal error</strong>.' );
 	}
+
 	?>
 	<div id="message" class="error"><p><?php echo $errmsg; ?></p>
 	<?php
+
 	if ( ! isset( $_GET['main'] ) && ! isset( $_GET['charsout'] ) && wp_verify_nonce( $_GET['_error_nonce'], 'plugin-activation-error_' . $plugin ) ) {
 		$iframe_url = add_query_arg(
 			array(
@@ -618,17 +632,19 @@ if ( isset( $_GET['error'] ) ) :
 			),
 			admin_url( 'plugins.php' )
 		);
+
 		?>
-	<iframe style="border:0" width="100%" height="70px" src="<?php echo esc_url( $iframe_url ); ?>"></iframe>
+		<iframe style="border:0" width="100%" height="70px" src="<?php echo esc_url( $iframe_url ); ?>"></iframe>
 		<?php
 	}
+
 	?>
 	</div>
 	<?php
 elseif ( isset( $_GET['deleted'] ) ) :
-		$delete_result = get_transient( 'plugins_delete_result_' . $user_ID );
-		// Delete it once we're done.
-		delete_transient( 'plugins_delete_result_' . $user_ID );
+	$delete_result = get_transient( 'plugins_delete_result_' . $user_ID );
+	// Delete it once we're done.
+	delete_transient( 'plugins_delete_result_' . $user_ID );
 
 	if ( is_wp_error( $delete_result ) ) :
 		?>
@@ -647,7 +663,7 @@ elseif ( isset( $_GET['deleted'] ) ) :
 		<div id="message" class="updated notice is-dismissible">
 			<p>
 				<?php
-				if ( 1 == (int) $_GET['deleted'] ) {
+				if ( 1 === (int) $_GET['deleted'] ) {
 					_e( 'The selected plugin has been deleted.' );
 				} else {
 					_e( 'The selected plugins have been deleted.' );
@@ -655,7 +671,7 @@ elseif ( isset( $_GET['deleted'] ) ) :
 				?>
 			</p>
 		</div>
-		<?php endif; ?>
+	<?php endif; ?>
 <?php elseif ( isset( $_GET['activate'] ) ) : ?>
 	<div id="message" class="updated notice is-dismissible"><p><?php _e( 'Plugin activated.' ); ?></p></div>
 <?php elseif ( isset( $_GET['activate-multi'] ) ) : ?>
