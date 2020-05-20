@@ -253,8 +253,9 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				 * All users can read public posts, including logged out users.
 				 *
 				 * Posts with both a public status and post type can be read by anonymous (logged out users)
-				 * so no specific capabilities are required to read the post.
+				 * so no reading specific capabilities are required to read the post.
 				 */
+				$caps[] = 'exist';
 				break;
 			}
 
