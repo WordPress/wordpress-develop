@@ -340,6 +340,41 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 		$this->assertNull( rest_sanitize_value_from_schema( 'lalala', $schema ) );
 	}
 
+	/**
+	 * @ticket 50189
+	 */
+	public function test_sanitization_will_be_skipped() {
+		$schema = array(
+			'type'   => 'str',
+			'format' => 'email',
+		);
+		$this->assertEquals( '<ab>c', rest_sanitize_value_from_schema( '<ab>c', $schema ) );
+
+		$schema = array(
+			'type'   => 'strin',
+			'format' => 'hex-color',
+		);
+		$this->assertEquals( 'WordPress', rest_sanitize_value_from_schema( 'WordPress', $schema ) );
+
+		$schema = array(
+			'type'   => '',
+			'format' => 'uuid',
+		);
+		$this->assertEquals( '<hello>', rest_sanitize_value_from_schema( '<hello>', $schema ) );
+
+		$schema = array(
+			'type'   => 'strig',
+			'format' => 'date-time',
+		);
+		$this->assertEquals( 'lalala', rest_sanitize_value_from_schema( 'lalala', $schema ) );
+
+		$schema = array(
+			'type'   => 'String',
+			'format' => 'ip',
+		);
+		$this->assertEquals( '	', rest_sanitize_value_from_schema( '	', $schema ) );
+	}
+
 	public function test_object_or_string() {
 		$schema = array(
 			'type'       => array( 'object', 'string' ),

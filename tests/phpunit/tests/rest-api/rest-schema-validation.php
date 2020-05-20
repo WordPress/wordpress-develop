@@ -137,6 +137,52 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertWPError( rest_validate_value_from_schema( 'FF01::101::2', $schema ) ); // Multicast, compressed.
 	}
 
+	/**
+	 * @ticket 50189
+	 */
+	public function test_format_validation_will_be_skipped() {
+		$schema = array(
+			'type'   => 'str',
+			'format' => 'email',
+		);
+		$this->assertTrue( rest_validate_value_from_schema( 'email@example.com', $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( 'email', $schema ) );
+
+		$schema = array(
+			'type'   => 'strin',
+			'format' => 'hex-color',
+		);
+		$this->assertTrue( rest_validate_value_from_schema( '#000000', $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( 'WordPress', $schema ) );
+
+		$schema = array(
+			'type'   => '',
+			'format' => 'uuid',
+		);
+		$this->assertTrue( rest_validate_value_from_schema( '123e4567-e89b-12d3-a456-426655440000', $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( '123e4567-e89b-12d3-a456-426655440000X', $schema ) );
+
+		$schema = array(
+			'type'   => 'strig',
+			'format' => 'date-time',
+		);
+		$this->assertTrue( rest_validate_value_from_schema( '2016-06-30T05:43:21', $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( '2016-06-30T05:43:21Z', $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( '2016-06-30T05:43:21+00:00', $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( '20161027T163355Z', $schema ) );
+
+		$schema = array(
+			'type'   => 'String',
+			'format' => 'ip',
+		);
+		// IPv4.
+		$this->assertTrue( rest_validate_value_from_schema( '127.0.0.1', $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( '3333.3333.3333.3333', $schema ) );
+		// IPv6.
+		$this->assertTrue( rest_validate_value_from_schema( 'fe80::217:f2ff:fe07:ed62', $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( '', $schema ) ); // Empty string.
+	}
+
 	public function test_type_array() {
 		$schema = array(
 			'type'  => 'array',
