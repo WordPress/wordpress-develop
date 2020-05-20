@@ -2309,7 +2309,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			 *
 			 * @since 5.5.0
 			 *
-			 * @param string $regex           Regex pattern of disallowed characters in CSS rules.
+			 * @param string $regex           Regex pattern of disallowed characters in CSS rules. Default is '%[\\\(&=}]|/\*%'.
 			 * @param string $css_test_string CSS value to test.
 			 */
 			$disallowed_chars = apply_filters( 'safe_style_disallowed_chars', '%[\\\(&=}]|/\*%', $css_test_string );
