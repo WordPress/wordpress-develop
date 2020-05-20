@@ -1207,6 +1207,9 @@ EOF;
 		);
 	}
 
+	/**
+	 * Filter for disallowed characters never matches thus allowing all characters.
+	 */
 	function _safe_style_disallowed_chars_filter( $regex ) {
 		return '%a^%'; // Regex with no matches.
 
@@ -1227,7 +1230,7 @@ EOF;
 	}
 
 	/**
-	 * Data Provider for test_safecss_filter_attr().
+	 * Data Provider for test_safecss_filter_attr_filtered().
 	 *
 	 * @return array {
 	 *     @type array {
