@@ -409,6 +409,13 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			}
 
 			$redirect['query'] = remove_query_arg( 'page', $redirect['query'] );
+		} elseif ( is_singular() && empty( get_query_var( 'name' ) ) && $post_id ) {
+			$redirect_url      = get_permalink( $post_id );
+			$redirect['query'] = _remove_qs_args_if_not_in_url(
+				$redirect['query'],
+				array( 'p', 'page_id', 'attachment_id', 'pagename', 'name', 'post_type' ),
+				$redirect_url
+			);
 		}
 
 		// Paging and feeds.
