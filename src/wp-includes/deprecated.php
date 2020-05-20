@@ -3340,18 +3340,7 @@ function gd_edit_image_support($mime_type) {
 function wp_convert_bytes_to_hr( $bytes ) {
 	_deprecated_function( __FUNCTION__, '3.6.0', 'size_format()' );
 
-	$units = array(
-		/* translators: Unit symbol for byte. */
-		0 => _x( 'B', 'unit symbol' ),
-		/* translators: Unit symbol for kilobyte. */
-		1 => _x( 'KB', 'unit symbol' ),
-		/* translators: Unit symbol for megabyte. */
-		2 => _x( 'MB', 'unit symbol' ),
-		/* translators: Unit symbol for gigabyte. */
-		3 => _x( 'GB', 'unit symbol' ),
-		/* translators: Unit symbol for terabyte. */
-		4 => _x( 'TB', 'unit symbol' ),
-	);
+	$units = array( 0 => 'B', 1 => 'KB', 2 => 'MB', 3 => 'GB', 4 => 'TB' );
 	$log   = log( $bytes, KB_IN_BYTES );
 	$power = (int) $log;
 	$size  = KB_IN_BYTES ** ( $log - $power );
