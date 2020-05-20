@@ -47,7 +47,7 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 	$clean_namespace = trim( $namespace, '/' );
 
 	if ( $clean_namespace !== $namespace ) {
-		_doing_it_wrong( __FUNCTION__, __( 'Namespace must not start or begin with a slash.' ), '5.4.2' );
+		_doing_it_wrong( __FUNCTION__, __( 'Namespace must not start or end with a slash.' ), '5.4.2' );
 	}
 
 	if ( ! did_action( 'rest_api_init' ) ) {
