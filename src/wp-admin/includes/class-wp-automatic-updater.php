@@ -159,10 +159,12 @@ class WP_Automatic_Updater {
 		if ( 'core' === $type ) {
 			$update = Core_Upgrader::should_update_to_version( $item->current );
 		} elseif ( 'plugin' === $type || 'theme' === $type ) {
-			$update = false;
-			if ( wp_is_auto_update_enabled_for_type( $type ) ) {
+			$update = ! empty( $item->autoupdate );
+
+			if ( ! $update && wp_is_auto_update_enabled_for_type( $type ) ) {
+				// Check if the site admin has enabled auto-updates by default for the specific item.
 				$auto_updates = (array) get_site_option( "auto_update_{$type}s", array() );
-				$update       = in_array( $item->{$type}, $auto_updates, true ) || ! empty( $item->autoupdate );
+				$update       = in_array( $item->{$type}, $auto_updates, true );
 			}
 		} else {
 			$update = ! empty( $item->autoupdate );
@@ -976,8 +978,7 @@ class WP_Automatic_Updater {
 			$body[] = __( 'The following plugins failed to update:' );
 			// List failed updates.
 			foreach ( $failed_updates['plugin'] as $item ) {
-				/* translators: %s: Name of the related plugin. */
-				$body[] = ' ' . sprintf( __( '- %s' ), $item->name );
+				$body[] = "- {$item->name}";
 			}
 			$body[] = "\n";
 		}
@@ -986,8 +987,7 @@ class WP_Automatic_Updater {
 			$body[] = __( 'The following themes failed to update:' );
 			// List failed updates.
 			foreach ( $failed_updates['theme'] as $item ) {
-				/* translators: %s: Name of the related plugin. */
-				$body[] = ' ' . sprintf( __( '- %s' ), $item->name );
+				$body[] = "- {$item->name}";
 			}
 			$body[] = "\n";
 		}
@@ -996,8 +996,7 @@ class WP_Automatic_Updater {
 			$body[] = __( 'The following plugins were successfully updated:' );
 			// List successful updates.
 			foreach ( $successful_updates['plugin'] as $item ) {
-				/* translators: %s: Name of the related plugin. */
-				$body[] = ' ' . sprintf( __( '- %s' ), $item->name );
+				$body[] = "- {$item->name}";
 			}
 			$body[] = "\n";
 		}
@@ -1006,8 +1005,7 @@ class WP_Automatic_Updater {
 			$body[] = __( 'The following themes were successfully updated:' );
 			// List successful updates.
 			foreach ( $successful_updates['theme'] as $item ) {
-				/* translators: %s: Name of the related plugin. */
-				$body[] = ' ' . sprintf( __( '- %s' ), $item->name );
+				$body[] = "- {$item->name}";
 			}
 			$body[] = "\n";
 		}
@@ -1028,6 +1026,8 @@ class WP_Automatic_Updater {
 		/**
 		 * Filters the email sent following an automatic background plugin update.
 		 *
+		 * @since 5.5.0
+		 *
 		 * @param array $email {
 		 *     Array of email arguments that will be passed to wp_mail().
 		 *
@@ -1043,6 +1043,7 @@ class WP_Automatic_Updater {
 		 * @param object $failed_updates     The updates that failed.
 		 */
 		$email = apply_filters( 'auto_plugin_theme_update_email', $email, $type, $successful_updates, $failed_updates );
+
 		wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
 	}
 

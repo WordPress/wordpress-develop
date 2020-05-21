@@ -430,6 +430,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			'name'        => __( 'Plugin' ),
 			'description' => __( 'Description' ),
 		);
+
 		if ( $this->show_autoupdates ) {
 			$columns['auto-updates'] = __( 'Automatic Updates' );
 		}
@@ -1070,6 +1071,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					echo '</a>';
 
 					$available_updates = get_site_transient( 'update_plugins' );
+
 					if ( isset( $available_updates->response[ $plugin_file ] ) ) {
 						printf(
 							'<div class="auto-update-time%s">%s</div>',
@@ -1077,8 +1079,10 @@ class WP_Plugins_List_Table extends WP_List_Table {
 							wp_get_auto_update_message()
 						);
 					}
+
 					echo '<div class="inline notice error hidden"><p></p></div>';
 					echo '</td>';
+
 					break;
 				default:
 					$classes = "$column_name column-$column_name $class";

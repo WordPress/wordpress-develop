@@ -2470,6 +2470,145 @@
 		 * @since 4.2.0
 		 */
 		$( window ).on( 'beforeunload', wp.updates.beforeunload );
+
+		/**
+		 * Click handler for enabling and disabling plugin and theme auto-updates.
+		 *
+		 * @since 5.5.0
+		 */
+		$document.on( 'click', '.column-auto-updates a.toggle-auto-update, .theme-overlay a.toggle-auto-update', function( event ) {
+			var data, asset, type, $parent;
+			var $anchor = $( this ),
+				action = $anchor.attr( 'data-wp-action' ),
+				$label = $anchor.find( '.label' );
+
+			if ( 'themes' !== pagenow ) {
+				$parent = $anchor.closest( '.column-auto-updates' );
+			} else {
+				$parent = $anchor.closest( '.theme-autoupdate' );
+			}
+
+			event.preventDefault();
+
+			// Prevent multiple simultaneous requests.
+			if ( $anchor.attr( 'data-doing-ajax' ) === 'yes' ) {
+				return;
+			}
+
+			$anchor.attr( 'data-doing-ajax', 'yes' );
+
+			switch ( pagenow ) {
+				case 'plugins':
+				case 'plugins-network':
+					type = 'plugin';
+					asset = $anchor.closest( 'tr' ).attr( 'data-plugin' );
+					break;
+				case 'themes-network':
+					type = 'theme';
+					asset = $anchor.closest( 'tr' ).attr( 'data-slug' );
+					break;
+				case 'themes':
+					type = 'theme';
+					asset = $anchor.attr( 'data-slug' );
+					break;
+			}
+
+			// Clear any previous errors.
+			$parent.find( '.notice.error' ).addClass( 'hidden' );
+
+			// Show loading status.
+			if ( 'enable' === action ) {
+				$label.text( wp.updates.l10n.autoUpdatesEnabling );
+			} else {
+				$label.text( wp.updates.l10n.autoUpdatesDisabling );
+			}
+
+			$anchor.find( '.dashicons-update' ).removeClass( 'hidden' );
+
+			data = {
+				action: 'toggle-auto-updates',
+				_ajax_nonce: settings.ajax_nonce,
+				state: action,
+				type: type,
+				asset: asset
+			};
+
+			$.post( window.ajaxurl, data )
+				.done( function( response ) {
+					var $enabled, $disabled, enabledNumber, disabledNumber, errorMessage;
+					var href = $anchor.attr( 'href' );
+
+					if ( ! response.success ) {
+						// if WP returns 0 for response (which can happen in a few cases),
+						// output the general error message since we won't have response.data.error.
+						if ( response.data && response.data.error ) {
+							errorMessage = response.data.error;
+						} else {
+							errorMessage = wp.updates.l10n.autoUpdatesError;
+						}
+
+						$parent.find( '.notice.error' ).removeClass( 'hidden' ).find( 'p' ).text( errorMessage );
+						wp.a11y.speak( errorMessage, 'polite' );
+						return;
+					}
+
+					// Update the counts in the enabled/disabled views if on a screen
+					// with a list table.
+					if ( 'themes' !== pagenow ) {
+						$enabled       = $( '.auto-update-enabled span' );
+						$disabled      = $( '.auto-update-disabled span' );
+						enabledNumber  = parseInt( $enabled.text().replace( /[^\d]+/g, '' ), 10 ) || 0;
+						disabledNumber = parseInt( $disabled.text().replace( /[^\d]+/g, '' ), 10 ) || 0;
+
+						switch ( action ) {
+							case 'enable':
+								++enabledNumber;
+								--disabledNumber;
+								break;
+							case 'disable':
+								--enabledNumber;
+								++disabledNumber;
+								break;
+						}
+
+						enabledNumber = Math.max( 0, enabledNumber );
+						disabledNumber = Math.max( 0, disabledNumber );
+
+						$enabled.text( '(' + enabledNumber + ')' );
+						$disabled.text( '(' + disabledNumber + ')' );
+					}
+
+					if ( 'enable' === action ) {
+						href = href.replace( 'action=enable-auto-update', 'action=disable-auto-update' );
+						$anchor.attr( {
+							'data-wp-action': 'disable',
+							href: href
+						} );
+
+						$label.text( wp.updates.l10n.autoUpdatesDisable );
+						$parent.find( '.auto-update-time' ).removeClass( 'hidden' );
+						wp.a11y.speak( wp.updates.l10n.autoUpdatesEnabled, 'polite' );
+					} else {
+						href = href.replace( 'action=disable-auto-update', 'action=enable-auto-update' );
+						$anchor.attr( {
+							'data-wp-action': 'enable',
+							href: href
+						} );
+
+						$label.text( wp.updates.l10n.autoUpdatesEnable );
+						$parent.find( '.auto-update-time' ).addClass( 'hidden' );
+						wp.a11y.speak( wp.updates.l10n.autoUpdatesDisabled, 'polite' );
+					}
+				} )
+				.fail( function() {
+					$parent.find( '.notice.error' ).removeClass( 'hidden' ).find( 'p' ).text( wp.updates.l10n.autoUpdatesError );
+					wp.a11y.speak( wp.updates.l10n.autoUpdatesError, 'polite' );
+				} )
+				.always( function() {
+					$anchor.removeAttr( 'data-doing-ajax' ).find( '.dashicons-update' ).addClass( 'hidden' );
+				} );
+			}
+		);
 	} );
 
 	/**
