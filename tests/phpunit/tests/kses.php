@@ -67,6 +67,7 @@ class Tests_Kses extends WP_UnitTestCase {
 	 * Test video tag.
 	 *
 	 * @ticket 50167
+	 * @ticket 29826
 	 * @dataProvider data_wp_kses_video
 	 *
 	 * @param string $source   Source HTML.
