@@ -92,13 +92,13 @@ class Tests_Kses extends WP_UnitTestCase {
 		return array(
 			// Set 0: Valid post object params in post context.
 			array(
-				'<video src="movie.mov" autoplay controls height=9 loop muted poster="still.mov" playsinline preload width=16 />',
+				'<video src="movie.mov" autoplay controls height=9 loop muted poster="still.gif" playsinline preload width=16 />',
 				'post',
-				'<video src="movie.mov" autoplay controls height="9" loop muted poster="still.mov" playsinline preload width="16" />',
+				'<video src="movie.mov" autoplay controls height="9" loop muted poster="still.gif" playsinline preload width="16" />',
 			),
 			// Set 1: Valid post object params in data context.
 			array(
-				'<video src="movie.mov" autoplay controls height=9 loop muted poster="still.mov" playsinline preload width=16 />',
+				'<video src="movie.mov" autoplay controls height=9 loop muted poster="still.gif" playsinline preload width=16 />',
 				'data',
 				'',
 			),
