@@ -1323,7 +1323,6 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider rest_ensure_response_data_provider
-	 * @group test1
 	 *
 	 * @param mixed $response      The response passed to rest_ensure_response().
 	 * @param mixed $expected_data The expected data a response should include.
