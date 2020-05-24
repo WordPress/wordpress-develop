@@ -175,7 +175,7 @@ if ( ! function_exists( 'twentynineteen_setup' ) ) :
 		// Add support for responsive embedded content.
 		add_theme_support( 'responsive-embeds' );
 
-		// Get primary color, saturation and lightness
+		// convert hex to rgb.
 		function hex2rgb( $color ) {
 			$color = trim( $color, '#' );
 		  
@@ -198,9 +198,8 @@ if ( ! function_exists( 'twentynineteen_setup' ) ) :
 			);
 		  };
 
-		  $primary_gradient = hex2rgb(twentynineteen_hsl_hex( 'default' === get_theme_mod( 'primary_color' ) ? 199 : get_theme_mod( 'primary_color_hue', 199 ), 100, 33 ));
-
-		// Add gradient presets for Blocks
+		// Add gradient presets for Blocks.
+		$primary_gradient = hex2rgb(twentynineteen_hsl_hex( 'default' === get_theme_mod( 'primary_color' ) ? 199 : get_theme_mod( 'primary_color_hue', 199 ), 100, 33 ));
 		add_theme_support(
 			'editor-gradient-presets',
 			array(
