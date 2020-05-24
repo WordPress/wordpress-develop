@@ -174,6 +174,28 @@ if ( ! function_exists( 'twentynineteen_setup' ) ) :
 
 		// Add support for responsive embedded content.
 		add_theme_support( 'responsive-embeds' );
+
+		// Add gradient presets
+		add_theme_support(
+			'editor-gradient-presets',
+			array(
+				array(
+					'name'  => __( 'Primary color to lighter primary color', 'themeLangDomain' ),
+					'slug'  => 'primary-color-to-lighter-primary',
+					'gradient' => 'linear-gradient(135deg,rgb(14,0,168) 0%,rgba(14,0,168,0.8) 100%)',
+				),
+				array(
+					'name'     => __( 'Vivid cyan blue to vivid purple', 'themeLangDomain' ),
+					'gradient' => 'linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%)',
+					'slug'     => 'vivid-cyan-blue-to-vivid-purple'
+				),
+				array(
+					'name'     => __( 'Vivid green cyan to vivid cyan blue', 'themeLangDomain' ),
+					'gradient' => 'linear-gradient(135deg,rgba(0,208,132,1) 0%,rgba(6,147,227,1) 100%)',
+					'slug'     =>  'vivid-green-cyan-to-vivid-cyan-blue',
+				),
+			)
+		);
 	}
 endif;
 add_action( 'after_setup_theme', 'twentynineteen_setup' );

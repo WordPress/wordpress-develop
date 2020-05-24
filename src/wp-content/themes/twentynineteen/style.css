@@ -6565,3 +6565,7 @@ svg {
 .gallery-item > div > a:focus {
   box-shadow: 0 0 0 2px #0073aa;
 }
+
+.has-primary-color-to-lighter-primary-background {
+  background: linear-gradient(135deg,rgb(14,0,168) 0%,rgba(14,0,168,0.5) 100%);
+}
