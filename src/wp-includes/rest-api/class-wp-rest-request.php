@@ -128,6 +128,21 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
+	 * Checks if Content-Type is JSON
+	 *
+	 * @return boolean
+	 */
+	public function is_json_content_type() {
+		$content_type = $this->get_content_type();
+
+		if ( ! empty( $content_type ) && preg_match( '/^application\/([\w!#\$&-\^\.\+]+\+)?json(\+oembed)?$/i', $content_type['value'] ) ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Retrieves the HTTP method for the request.
 	 *
 	 * @since 4.4.0
@@ -335,8 +350,7 @@ class WP_REST_Request implements ArrayAccess {
 	protected function get_parameter_order() {
 		$order = array();
 
-		$content_type = $this->get_content_type();
-		if ( isset( $content_type['value'] ) && ( false !== stripos( $content_type['value'], 'json' ) ) ) {
+		if ( $this->is_json_content_type() ) {
 			$order[] = 'JSON';
 		}
 
@@ -659,9 +673,7 @@ class WP_REST_Request implements ArrayAccess {
 		$this->parsed_json = true;
 
 		// Check that we actually got JSON.
-		$content_type = $this->get_content_type();
-
-		if ( empty( $content_type ) || ! preg_match( '/^application\/([\w!#\$&-\^\.\+]+\+)?json(\+oembed)?$/i', $content_type['value'] ) ) {
+		if ( ! $this->is_json_content_type() ) {
 			return true;
 		}
 
