@@ -208,6 +208,32 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertEquals( $accept_json, $this->request->get_param( 'has_json_params' ) );
 	}
 
+	public static function is_json_content_type_provider() {
+		return array(
+			array( 'application/ld+json', true ),
+			array( 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"', true ),
+			array( 'application/activity+json', true ),
+			array( 'application/json+oembed', true ),
+			array( 'application/nojson', false ),
+			array( 'application/no.json', false ),
+		);
+	}
+
+	/**
+	 * @dataProvider is_json_content_type_provider
+	 *
+	 * @param string  $content_type The content-type
+	 * @param boolean $is_json The is_json value.
+	 */
+	public function test_is_json_content_type( $content_type, $is_json ) {
+		$this->request_with_parameters();
+
+		$this->request->set_header( 'Content-Type', $content_type );
+
+		// Check for JSON content-type.
+		$this->assertEquals( $is_json, $this->request->is_json_content_type( $content_type ) );
+	}
+
 	public function test_parameter_order_json() {
 		$this->request_with_parameters();
 
