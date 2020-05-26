@@ -83,6 +83,14 @@ class WP_REST_Request implements ArrayAccess {
 	protected $attributes = array();
 
 	/**
+	 * Used to determine if the Content-Type is JSON.
+	 *
+	 * @since @todo
+	 * @var boolean
+	 */
+	protected $is_json_content_type;
+
+	/**
 	 * Used to determine if the JSON data has been parsed yet.
 	 *
 	 * Allows lazy-parsing of JSON data where possible.
@@ -128,18 +136,26 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Checks if Content-Type is JSON
+	 * Checks if Content-Type is JSON.
+	 *
+	 * @since @todo
 	 *
 	 * @return boolean
 	 */
 	public function is_json_content_type() {
+		if ( is_bool( $this->is_json_content_type ) ) {
+			return $this->is_json_content_type;
+		}
+
 		$content_type = $this->get_content_type();
 
 		if ( ! empty( $content_type ) && preg_match( '/^application\/([\w!#\$&-\^\.\+]+\+)?json(\+oembed)?$/i', $content_type['value'] ) ) {
-			return true;
+			$this->is_json_content_type = true;
+		} else {
+			$this->is_json_content_type = false;
 		}
 
-		return false;
+		return $this->is_json_content_type;
 	}
 
 	/**
