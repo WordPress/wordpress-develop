@@ -268,6 +268,11 @@ class WP_REST_Request implements ArrayAccess {
 		$key   = $this->canonicalize_header_name( $key );
 		$value = (array) $value;
 
+		// Reset `is_json_content_type` if Content-Type changes.
+		if ( 'content_type' === $key ) {
+			$this->is_json_content_type = null;
+		}
+
 		$this->headers[ $key ] = $value;
 	}
 
