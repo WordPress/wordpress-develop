@@ -1567,28 +1567,47 @@ function get_object_subtype( $object_type, $object_id ) {
  * @return mixed Single metadata default, or array of defaults
  */
 function filter_default_metadata( $value, $meta_type, $meta_key, $single, $object_id ) {
+	global $wp_meta_keys;
+
 	if ( wp_installing() ) {
 		return $value;
 	}
 
-	$metadata = get_registered_meta_keys( $meta_type );
+	if ( ! is_array( $wp_meta_keys ) || ! isset( $wp_meta_keys[ $meta_type ] ) ) {
+		return $value;
+	}
 
-	if ( ! isset( $metadata[ $meta_key ] ) ) {
-		$sub_type = get_object_subtype( $meta_type, $object_id );
-		$metadata = get_registered_meta_keys( $meta_type, $sub_type );
-		if ( ! isset( $metadata[ $meta_key ] ) ) {
-			return $value;
+	$defaults = array();
+	foreach ( $wp_meta_keys[ $meta_type ] as $sub_type => $meta_data ) {
+		foreach ( $meta_data as $_meta_key => $args ) {
+			if ( $_meta_key === $meta_key && isset( $args['default'] ) ) {
+				$defaults[ $sub_type ] = $args;
+			}
 		}
 	}
 
+	if ( ! $defaults ) {
+		return $value;
+	}
+
+	if ( isset( $defaults[''] ) ) {
+		$metadata = $defaults[''];
+	} else {
+		$sub_type = get_object_subtype( $meta_type, $object_id );
+		if ( ! isset( $defaults[ $sub_type ] ) ) {
+			return $value;
+		}
+		$metadata = $defaults[ $sub_type ];
+	}
+
 	if ( $single ) {
-		if ( $metadata[ $meta_key ]['single'] ) {
-			$value = $metadata[ $meta_key ]['default'];
+		if ( $metadata['single'] ) {
+			$value = $metadata['default'];
 		} else {
-			$value = $metadata[ $meta_key ]['default'][0];
+			$value = $metadata['default'][0];
 		}
 	} else {
-		$value = $metadata[ $meta_key ]['default'];
+		$value = $metadata['default'];
 	}
 
 	return $value;
