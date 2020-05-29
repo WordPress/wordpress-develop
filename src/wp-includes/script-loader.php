@@ -1520,6 +1520,13 @@ function wp_default_scripts( $scripts ) {
 					/* translators: %s: Number of plugins. */
 					'pluginsFound'             => __( 'Number of plugins found: %d' ),
 					'noPluginsFound'           => __( 'No plugins found. Try a different search.' ),
+					'autoUpdatesEnable'        => __( 'Enable auto-updates' ),
+					'autoUpdatesEnabling'      => __( 'Enabling...' ),
+					'autoUpdatesEnabled'       => __( 'Auto-updates enabled' ),
+					'autoUpdatesDisable'       => __( 'Disable auto-updates' ),
+					'autoUpdatesDisabling'     => __( 'Disabling...' ),
+					'autoUpdatesDisabled'      => __( 'Auto-updates disabled' ),
+					'autoUpdatesError'         => __( 'The request could not be completed.' ),
 				),
 			)
 		);
@@ -1691,12 +1698,9 @@ function wp_default_styles( $styles ) {
 	$styles->add( 'login', "/wp-admin/css/login$suffix.css", array( 'dashicons', 'buttons', 'forms', 'l10n' ) );
 	$styles->add( 'install', "/wp-admin/css/install$suffix.css", array( 'dashicons', 'buttons', 'forms', 'l10n' ) );
 	$styles->add( 'wp-color-picker', "/wp-admin/css/color-picker$suffix.css" );
-	$styles->add( 'customize-controls', "/wp-admin/css/customize-controls$suffix.css", array( 'wp-admin', 'colors', 'ie', 'imgareaselect' ) );
+	$styles->add( 'customize-controls', "/wp-admin/css/customize-controls$suffix.css", array( 'wp-admin', 'colors', 'imgareaselect' ) );
 	$styles->add( 'customize-widgets', "/wp-admin/css/customize-widgets$suffix.css", array( 'wp-admin', 'colors' ) );
 	$styles->add( 'customize-nav-menus', "/wp-admin/css/customize-nav-menus$suffix.css", array( 'wp-admin', 'colors' ) );
-
-	$styles->add( 'ie', "/wp-admin/css/ie$suffix.css" );
-	$styles->add_data( 'ie', 'conditional', 'lte IE 7' );
 
 	// Common dependencies.
 	$styles->add( 'buttons', "/wp-includes/css/buttons$suffix.css" );
@@ -1810,7 +1814,6 @@ function wp_default_styles( $styles ) {
 		'customize-widgets',
 		'customize-nav-menus',
 		'customize-preview',
-		'ie',
 		'login',
 		'site-health',
 		// Includes CSS.

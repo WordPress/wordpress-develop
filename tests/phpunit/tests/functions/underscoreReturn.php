@@ -6,7 +6,7 @@
  *
  * @group functions.php
  */
-class Tests_Functions_Underscore_Return extends WP_UnitTestCase {
+class Tests_Functions_UnderscoreReturn extends WP_UnitTestCase {
 
 	public function test__return_true() {
 		$this->assertTrue( __return_true() );

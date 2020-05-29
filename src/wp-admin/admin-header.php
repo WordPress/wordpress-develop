@@ -44,7 +44,7 @@ if ( is_network_admin() ) {
 	$admin_title = get_bloginfo( 'name' );
 }
 
-if ( $admin_title == $title ) {
+if ( $admin_title === $title ) {
 	/* translators: Admin screen title. %s: Admin screen name. */
 	$admin_title = sprintf( __( '%s &#8212; WordPress' ), $title );
 } else {
@@ -75,7 +75,6 @@ _wp_admin_html_begin();
 <?php
 
 wp_enqueue_style( 'colors' );
-wp_enqueue_style( 'ie' );
 wp_enqueue_script( 'utils' );
 wp_enqueue_script( 'svg-painter' );
 
@@ -148,7 +147,7 @@ do_action( "admin_head-{$hook_suffix}" ); // phpcs:ignore WordPress.NamingConven
  */
 do_action( 'admin_head' );
 
-if ( get_user_setting( 'mfold' ) == 'f' ) {
+if ( 'f' === get_user_setting( 'mfold' ) ) {
 	$admin_body_class .= ' folded';
 }
 
@@ -198,6 +197,11 @@ if ( $current_screen->is_block_editor() ) {
 	if ( current_theme_supports( 'editor-styles' ) && current_theme_supports( 'dark-editor-style' ) ) {
 		$admin_body_class .= ' is-dark-theme';
 	}
+}
+
+// Print a CSS class to make PHP errors visible.
+if ( error_get_last() && WP_DEBUG && WP_DEBUG_DISPLAY && ini_get( 'display_errors' ) ) {
+	$admin_body_class .= ' php-error';
 }
 
 ?>

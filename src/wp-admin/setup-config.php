@@ -115,7 +115,7 @@ function setup_config_display_header( $body_classes = array() ) {
 	<?php wp_admin_css( 'install', true ); ?>
 </head>
 <body class="<?php echo implode( ' ', $body_classes ); ?>">
-<p id="logo"><a href="<?php echo esc_url( __( 'https://wordpress.org/' ) ); ?>"><?php _e( 'WordPress' ); ?></a></p>
+<p id="logo"><?php _e( 'WordPress' ); ?></p>
 	<?php
 } // End function setup_config_display_header();
 
@@ -354,7 +354,7 @@ switch ( $step ) {
 
 		$key = 0;
 		foreach ( $config_file as $line_num => $line ) {
-			if ( '$table_prefix =' == substr( $line, 0, 15 ) ) {
+			if ( '$table_prefix =' === substr( $line, 0, 15 ) ) {
 				$config_file[ $line_num ] = '$table_prefix = \'' . addcslashes( $prefix, "\\'" ) . "';\r\n";
 				continue;
 			}

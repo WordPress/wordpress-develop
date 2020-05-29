@@ -22,6 +22,11 @@ you pick, ensuring a high, accessible color contrast for your visitors.
 
 == Changelog ==
 
+= 1.3 =
+* Released: May 14, 2020
+
+https://wordpress.org/support/article/twenty-twenty-changelog/#Version_1.3
+
 = 1.2 =
 * Released: March 31, 2020
 
@@ -77,9 +82,9 @@ License: MIT License, https://opensource.org/licenses/MIT
 Source: https://feathericons.com
 Used for post meta icons, and the link icon in the social menu.
 
-Flaticon Icons
-License: Creative Commons BY 3.0, http://creativecommons.org/licenses/by/3.0/
-Source: Made by Freepik (https://www.flaticon.com/authors/freepik) for Flaticon (http://www.flaticon.com)
+TikTok Icon
+License: GPLv2
+Source: Émilie Lebrun - @Emlebrun
 Used for TikTok social icon.
 
 Social Icons
