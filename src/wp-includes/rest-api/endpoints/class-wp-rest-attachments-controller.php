@@ -666,18 +666,18 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @return bool|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
-
 		$query_args = array(
 			'post_status' => 'any',
 			'post_type' => 'any',
 			'meta_key'   => '_thumbnail_id',
-			'meta_value' => $request['id']
+			'meta_value' => $request['id'],
+			'no_found_rows' => true,
+			'posts_per_page',
 		);
 
 		$posts_query  = new WP_Query();
 		$query_result = $posts_query->query( $query_args );
 
-		$has_permission = false;
 		$wp_error = false;
 
 		foreach ( $query_result as $post ) {
@@ -685,6 +685,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			if ( is_wp_error( $post ) ) {
 				continue;
 			}
+
 
 			if ( 'edit' === $request['context'] && $post && ! $this->check_update_permission( $post ) ) {
 				$wp_error = WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => rest_authorization_required_code() ) );
@@ -702,12 +703,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				add_filter( 'post_password_required', '__return_false' );
 			}
 
-
-			if ( $post ) {
-				$has_permission = $this->check_read_permission( $post );
-			}
-
-			if( $has_permission ) {
+			if ( $post && $this->check_read_permission( $post ) ) {
 				return true;
 			}
 		}
