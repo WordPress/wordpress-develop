@@ -39,7 +39,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 		$term1 = wp_insert_term( 'Foo', 'category', array( 'slug' => 'foo' ) );
 		$term2 = get_term_by( 'ID', $term1['term_id'], 'category' );
 		$this->assertEquals( get_term( $term1['term_id'], 'category' ), $term2 );
-	}	
+	}
 
 	/**
 	 * @ticket 21651
