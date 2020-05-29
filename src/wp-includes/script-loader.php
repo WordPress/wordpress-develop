@@ -1088,6 +1088,7 @@ function wp_default_scripts( $scripts ) {
 		)
 	);
 
+	$user_id = isset( $_GET['user_id'] ) ? (int) $_GET['user_id'] : 0;
 	$scripts->add( 'user-profile', "/wp-admin/js/user-profile$suffix.js", array( 'jquery', 'password-strength-meter', 'wp-util' ), false, 1 );
 	did_action( 'init' ) && $scripts->localize(
 		'user-profile',
@@ -1100,6 +1101,8 @@ function wp_default_scripts( $scripts ) {
 			'cancel'   => __( 'Cancel' ),
 			'ariaShow' => esc_attr__( 'Show password' ),
 			'ariaHide' => esc_attr__( 'Hide password' ),
+			'user_id'  => $user_id,
+			'nonce'    => wp_create_nonce( 'reset-password-for-' . $user_id ),
 		)
 	);
 

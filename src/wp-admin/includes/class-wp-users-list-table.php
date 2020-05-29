@@ -274,6 +274,12 @@ class WP_Users_List_Table extends WP_List_Table {
 			}
 		}
 
+		// Add a password reset link to the bulk actions dropdown.
+		if ( current_user_can( 'edit_users' ) ) {
+			$actions['resetpassword'] = __( 'Send password reset' );
+		}
+
+
 		return $actions;
 	}
 
@@ -469,6 +475,12 @@ class WP_Users_List_Table extends WP_List_Table {
 					__( 'View' )
 				);
 			}
+
+			// Add a link to send the user a reset password link by email.
+			if ( get_current_user_id() != $user_object->ID && current_user_can( 'edit_user', $user_object->ID ) ) {
+				$actions['resetpassword'] = "<a class='resetpassword' href='" . wp_nonce_url( "users.php?action=resetpassword&amp;users=$user_object->ID", 'bulk-users' ) . "'>" . __( 'Send password reset' ) . "</a>";
+			}
+
 
 			/**
 			 * Filters the action links displayed under each user in the Users list table.
