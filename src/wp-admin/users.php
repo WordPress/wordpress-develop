@@ -214,7 +214,7 @@ switch ( $wp_list_table->current_action() ) {
 		exit;
 
 	case 'resetpassword':
-		check_admin_referer('bulk-users');
+		check_admin_referer( 'bulk-users' );
 		if ( ! current_user_can( 'edit_users' ) ) {
 			$errors = new WP_Error( 'edit_users', __( 'You can&#8217;t edit users.' ) );
 		}
@@ -230,7 +230,7 @@ switch ( $wp_list_table->current_action() ) {
 
 		foreach ( $userids as $id ) {
 			if ( ! current_user_can( 'edit_user', $id ) ) {
-				wp_die(__( 'You can&#8217;t edit that user.' ) );
+				wp_die( __( 'You can&#8217;t edit that user.' ) );
 			}
 
 			if ( $id == $current_user->ID ) {
@@ -243,14 +243,14 @@ switch ( $wp_list_table->current_action() ) {
 			if ( retrieve_password( $user->user_login ) ) {
 				++$reset_count;
 			}
-
 		}
 
 		$redirect = add_query_arg(
 			array(
 				'reset_count' => $reset_count,
-				'update' => 'resetpassword',
-			), $redirect
+				'update'      => 'resetpassword',
+			),
+			$redirect
 		);
 		wp_redirect( $redirect );
 		exit();

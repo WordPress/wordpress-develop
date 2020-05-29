@@ -7630,7 +7630,7 @@ function retrieve_password( $user_login = null ) {
 	$errors = new WP_Error();
 
 	// Use the passed $user_login if available, otherwise use $_POST['user_login'].
-	if ( !$user_login && !empty( $_POST['user_login'] ) ) {
+	if ( ! $user_login && ! empty( $_POST['user_login'] ) ) {
 			$user_login = $_POST['user_login'];
 	}
 
@@ -7685,7 +7685,6 @@ function retrieve_password( $user_login = null ) {
 		 */
 		$site_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 	}
-
 
 	$message = __( 'Someone has requested a password be reset for the following account:' ) . "\r\n\r\n";
 	/* translators: %s: Site name. */

@@ -605,10 +605,10 @@ endif;
 	</td>
 </tr>
 <?php endif; ?>
-<?php
-// Allow admins to send reset password link
-if ( ! IS_PROFILE_PAGE ) :
-?>
+		<?php
+		// Allow admins to send reset password link
+		if ( ! IS_PROFILE_PAGE ) :
+			?>
 	<tr class="user-sessions-wrap hide-if-no-js">
 		<th><?php _e( 'Password Reset' ); ?></th>
 		<td>
@@ -625,7 +625,7 @@ if ( ! IS_PROFILE_PAGE ) :
 			</p>
 		</td>
 	</tr>
-<?php endif; ?>
+		<?php endif; ?>
 
 		<?php
 		/**
