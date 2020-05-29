@@ -18,6 +18,8 @@ class WP_Site_Health {
 	private $health_check_mysql_required_version = '5.5';
 	private $health_check_mysql_rec_version      = '';
 
+	public $php_memory_limit;
+
 	public $schedules;
 	public $crons;
 	public $last_missed_cron     = null;
@@ -32,6 +34,9 @@ class WP_Site_Health {
 	 */
 	public function __construct() {
 		$this->maybe_create_scheduled_event();
+
+		// Save memory limit before it's affected by wp_raise_memory_limit( 'admin' ).
+		$this->php_memory_limit = ini_get( 'memory_limit' );
 
 		$this->timeout_late_cron   = 0;
 		$this->timeout_missed_cron = - 5 * MINUTE_IN_SECONDS;
@@ -591,7 +596,7 @@ class WP_Site_Health {
 		if ( $has_unused_themes && $show_unused_themes && ! is_multisite() ) {
 
 			// This is a child theme, so we want to be a bit more explicit in our messages.
-			if ( is_child_theme() ) {
+			if ( $active_theme->parent() ) {
 				// Recommend removing inactive themes, except a default theme, your current one, and the parent theme.
 				$result['status'] = 'recommended';
 

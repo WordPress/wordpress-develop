@@ -18,7 +18,7 @@ if ( ! current_user_can( 'switch_themes' ) && ! current_user_can( 'edit_theme_op
 }
 
 if ( current_user_can( 'switch_themes' ) && isset( $_GET['action'] ) ) {
-	if ( 'activate' == $_GET['action'] ) {
+	if ( 'activate' === $_GET['action'] ) {
 		check_admin_referer( 'switch-theme_' . $_GET['stylesheet'] );
 		$theme = wp_get_theme( $_GET['stylesheet'] );
 
@@ -53,7 +53,7 @@ if ( current_user_can( 'switch_themes' ) && isset( $_GET['action'] ) ) {
 
 		wp_redirect( admin_url( 'themes.php?resumed=true' ) );
 		exit;
-	} elseif ( 'delete' == $_GET['action'] ) {
+	} elseif ( 'delete' === $_GET['action'] ) {
 		check_admin_referer( 'delete-theme_' . $_GET['stylesheet'] );
 		$theme = wp_get_theme( $_GET['stylesheet'] );
 
@@ -80,6 +80,45 @@ if ( current_user_can( 'switch_themes' ) && isset( $_GET['action'] ) ) {
 			delete_theme( $_GET['stylesheet'] );
 			wp_redirect( admin_url( 'themes.php?deleted=true' ) );
 		}
+		exit;
+	} elseif ( 'enable-auto-update' === $_GET['action'] ) {
+		if ( ! ( current_user_can( 'update_themes' ) && wp_is_auto_update_enabled_for_type( 'theme' ) ) ) {
+			wp_die( __( 'Sorry, you are not allowed to enable themes automatic updates.' ) );
+		}
+
+		check_admin_referer( 'updates' );
+
+		$all_items    = wp_get_themes();
+		$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
+
+		$auto_updates[] = $_GET['stylesheet'];
+		$auto_updates   = array_unique( $auto_updates );
+		// Remove themes that have been deleted since the site option was last updated.
+		$auto_updates = array_intersect( $auto_updates, array_keys( $all_items ) );
+
+		update_site_option( 'auto_update_themes', $auto_updates );
+
+		wp_redirect( admin_url( 'themes.php?enabled-auto-update=true' ) );
+
+		exit;
+	} elseif ( 'disable-auto-update' === $_GET['action'] ) {
+		if ( ! ( current_user_can( 'update_themes' ) && wp_is_auto_update_enabled_for_type( 'theme' ) ) ) {
+			wp_die( __( 'Sorry, you are not allowed to disable themes automatic updates.' ) );
+		}
+
+		check_admin_referer( 'updates' );
+
+		$all_items    = wp_get_themes();
+		$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
+
+		$auto_updates = array_diff( $auto_updates, array( $_GET['stylesheet'] ) );
+		// Remove themes that have been deleted since the site option was last updated.
+		$auto_updates = array_intersect( $auto_updates, array_keys( $all_items ) );
+
+		update_site_option( 'auto_update_themes', $auto_updates );
+
+		wp_redirect( admin_url( 'themes.php?disabled-auto-update=true' ) );
+
 		exit;
 	}
 }
@@ -228,6 +267,14 @@ if ( ! validate_current_theme() || isset( $_GET['broken'] ) ) {
 	?>
 	<div id="message6" class="error"><p><?php _e( 'Theme could not be resumed because it triggered a <strong>fatal error</strong>.' ); ?></p></div>
 	<?php
+} elseif ( isset( $_GET['enabled-auto-update'] ) ) {
+	?>
+	<div id="message7" class="updated notice is-dismissible"><p><?php _e( 'Theme will be auto-updated.' ); ?></p></div>
+	<?php
+} elseif ( isset( $_GET['disabled-auto-update'] ) ) {
+	?>
+	<div id="message8" class="updated notice is-dismissible"><p><?php _e( 'Theme will no longer be auto-updated.' ); ?></p></div>
+	<?php
 }
 
 $ct = wp_get_theme();
@@ -238,7 +285,7 @@ if ( $ct->errors() && ( ! is_multisite() || current_user_can( 'manage_network_th
 
 /*
 // Certain error codes are less fatal than others. We can still display theme information in most cases.
-if ( ! $ct->errors() || ( 1 == count( $ct->errors()->get_error_codes() )
+if ( ! $ct->errors() || ( 1 === count( $ct->errors()->get_error_codes() )
 	&& in_array( $ct->errors()->get_error_code(), array( 'theme_no_parent', 'theme_parent_invalid', 'theme_no_index' ) ) ) ) : ?>
 */
 
@@ -247,7 +294,7 @@ if ( ! $ct->errors() || ( 1 == count( $ct->errors()->get_error_codes() )
 if ( is_array( $submenu ) && isset( $submenu['themes.php'] ) ) {
 	foreach ( (array) $submenu['themes.php'] as $item ) {
 		$class = '';
-		if ( 'themes.php' == $item[2] || 'theme-editor.php' == $item[2] || 0 === strpos( $item[2], 'customize.php' ) ) {
+		if ( 'themes.php' === $item[2] || 'theme-editor.php' === $item[2] || 0 === strpos( $item[2], 'customize.php' ) ) {
 			continue;
 		}
 		// 0 = name, 1 = capability, 2 = file.
@@ -353,7 +400,7 @@ foreach ( $themes as $theme ) :
 			<?php if ( $theme['actions']['customize'] && current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) { ?>
 				<a class="button button-primary customize load-customize hide-if-no-customize" href="<?php echo $theme['actions']['customize']; ?>"><?php _e( 'Customize' ); ?></a>
 			<?php } ?>
-		<?php } else { ?>
+		<?php } elseif ( $theme['compatibleWP'] && $theme['compatiblePHP'] ) { ?>
 			<?php
 			/* translators: %s: Theme name. */
 			$aria_label = sprintf( _x( 'Activate %s', 'theme' ), '{{ data.name }}' );
@@ -361,6 +408,15 @@ foreach ( $themes as $theme ) :
 			<a class="button activate" href="<?php echo $theme['actions']['activate']; ?>" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Activate' ); ?></a>
 			<?php if ( current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) { ?>
 				<a class="button button-primary load-customize hide-if-no-customize" href="<?php echo $theme['actions']['customize']; ?>"><?php _e( 'Live Preview' ); ?></a>
+			<?php } ?>
+		<?php } else { ?>
+			<?php
+			/* translators: %s: Theme name. */
+			$aria_label = sprintf( _x( 'Cannot Activate %s', 'theme' ), '{{ data.name }}' );
+			?>
+			<a class="button disabled" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _ex( 'Cannot Activate', 'theme' ); ?></a>
+			<?php if ( current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) { ?>
+				<a class="button button-primary hide-if-no-customize disabled"><?php _e( 'Live Preview' ); ?></a>
 			<?php } ?>
 		<?php } ?>
 
@@ -518,12 +574,21 @@ if ( ! is_multisite() && $broken_themes ) {
 					<a class="button button-primary customize load-customize hide-if-no-customize" href="{{{ data.actions.customize }}}"><?php _e( 'Customize' ); ?></a>
 				<# } #>
 			<# } else { #>
-				<?php
-				/* translators: %s: Theme name. */
-				$aria_label = sprintf( _x( 'Activate %s', 'theme' ), '{{ data.name }}' );
-				?>
-				<a class="button activate" href="{{{ data.actions.activate }}}" aria-label="<?php echo $aria_label; ?>"><?php _e( 'Activate' ); ?></a>
-				<a class="button button-primary load-customize hide-if-no-customize" href="{{{ data.actions.customize }}}"><?php _e( 'Live Preview' ); ?></a>
+				<# if ( data.compatibleWP && data.compatiblePHP ) { #>
+					<?php
+					/* translators: %s: Theme name. */
+					$aria_label = sprintf( _x( 'Activate %s', 'theme' ), '{{ data.name }}' );
+					?>
+					<a class="button activate" href="{{{ data.actions.activate }}}" aria-label="<?php echo $aria_label; ?>"><?php _e( 'Activate' ); ?></a>
+					<a class="button button-primary load-customize hide-if-no-customize" href="{{{ data.actions.customize }}}"><?php _e( 'Live Preview' ); ?></a>
+				<# } else { #>
+					<?php
+					/* translators: %s: Theme name. */
+					$aria_label = sprintf( _x( 'Cannot Activate %s', 'theme' ), '{{ data.name }}' );
+					?>
+					<a class="button disabled" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _ex( 'Cannot Activate', 'theme' ); ?></a>
+					<a class="button button-primary hide-if-no-customize disabled"><?php _e( 'Live Preview' ); ?></a>
+				<# } #>
 			<# } #>
 		</div>
 	</div>
@@ -563,6 +628,30 @@ if ( ! is_multisite() && $broken_themes ) {
 					?>
 				</p>
 
+				<# if ( data.actions.autoupdate ) { #>
+				<p class="theme-autoupdate">
+				<# if ( data.autoupdate ) { #>
+					<a href="{{{ data.actions.autoupdate }}}" class="toggle-auto-update" data-slug="{{ data.id }}" data-wp-action="disable">
+						<span class="dashicons dashicons-update spin hidden"></span>
+						<span class="label"><?php _e( 'Disable auto-updates' ); ?></span>
+					</a>
+				<# } else { #>
+					<a href="{{{ data.actions.autoupdate }}}" class="toggle-auto-update" data-slug="{{ data.id }}" data-wp-action="enable">
+						<span class="dashicons dashicons-update spin hidden"></span>
+						<span class="label"><?php _e( 'Enable auto-updates' ); ?></span>
+					</a>
+				<# } #>
+				<# if ( data.hasUpdate ) { #>
+					<# if ( data.autoupdate) { #>
+					<span class="auto-update-time"><br /><?php echo wp_get_auto_update_message(); ?></span>
+					<# } else { #>
+					<span class="auto-update-time hidden"><br /><?php echo wp_get_auto_update_message(); ?></span>
+					<# } #>
+				<# } #>
+					<span class="auto-updates-error hidden"><p></p></span>
+				</p>
+				<# } #>
+
 				<# if ( data.hasUpdate ) { #>
 				<div class="notice notice-warning notice-alt notice-large">
 					<h3 class="notice-title"><?php _e( 'Update Available' ); ?></h3>
@@ -592,14 +681,25 @@ if ( ! is_multisite() && $broken_themes ) {
 				<?php echo implode( ' ', $current_theme_actions ); ?>
 			</div>
 			<div class="inactive-theme">
-				<?php
-				/* translators: %s: Theme name. */
-				$aria_label = sprintf( _x( 'Activate %s', 'theme' ), '{{ data.name }}' );
-				?>
-				<# if ( data.actions.activate ) { #>
-					<a href="{{{ data.actions.activate }}}" class="button activate" aria-label="<?php echo $aria_label; ?>"><?php _e( 'Activate' ); ?></a>
+				<# if ( data.compatibleWP && data.compatiblePHP ) { #>
+					<?php
+					/* translators: %s: Theme name. */
+					$aria_label = sprintf( _x( 'Activate %s', 'theme' ), '{{ data.name }}' );
+					?>
+					<# if ( data.actions.activate ) { #>
+						<a href="{{{ data.actions.activate }}}" class="button activate" aria-label="<?php echo $aria_label; ?>"><?php _e( 'Activate' ); ?></a>
+					<# } #>
+					<a href="{{{ data.actions.customize }}}" class="button button-primary load-customize hide-if-no-customize"><?php _e( 'Live Preview' ); ?></a>
+				<# } else { #>
+					<?php
+					/* translators: %s: Theme name. */
+					$aria_label = sprintf( _x( 'Cannot Activate %s', 'theme' ), '{{ data.name }}' );
+					?>
+					<# if ( data.actions.activate ) { #>
+						<a class="button disabled" aria-label="<?php echo $aria_label; ?>"><?php _ex( 'Cannot Activate', 'theme' ); ?></a>
+					<# } #>
+					<a class="button button-primary hide-if-no-customize disabled"><?php _e( 'Live Preview' ); ?></a>
 				<# } #>
-				<a href="{{{ data.actions.customize }}}" class="button button-primary load-customize hide-if-no-customize"><?php _e( 'Live Preview' ); ?></a>
 			</div>
 
 			<# if ( ! data.active && data.actions['delete'] ) { #>

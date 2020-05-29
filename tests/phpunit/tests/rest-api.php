@@ -942,7 +942,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * @ticket 40614
 	 */
-	function test_rest_ensure_response_accepts_path_string() {
+	function test_rest_ensure_request_accepts_path_string() {
 		$request = rest_ensure_request( '/wp/v2/posts' );
 		$this->assertInstanceOf( 'WP_REST_Request', $request );
 		$this->assertEquals( '/wp/v2/posts', $request->get_route() );
@@ -973,6 +973,380 @@ class Tests_REST_API extends WP_UnitTestCase {
 			array( array( 'https://api.w.org/term' ), 'https://api.w.org/term' ),
 			array( array( 'https://api.w.org/term', 'https://api.w.org/attachment' ), 'https://api.w.org/term,https://api.w.org/attachment' ),
 			array( array( 'https://api.w.org/term', 'https://api.w.org/attachment' ), array( 'https://api.w.org/term', 'https://api.w.org/attachment' ) ),
+		);
+	}
+
+	/**
+	 * @ticket 48819
+	 *
+	 * @dataProvider _dp_rest_filter_response_by_context
+	 */
+	public function test_rest_filter_response_by_context( $schema, $data, $expected ) {
+		$this->assertEquals( $expected, rest_filter_response_by_context( $data, $schema, 'view' ) );
+	}
+
+	/**
+	 * @ticket 49749
+	 */
+	public function test_register_route_with_invalid_namespace() {
+		$this->setExpectedIncorrectUsage( 'register_rest_route' );
+
+		register_rest_route(
+			'/my-namespace/v1/',
+			'/my-route',
+			array(
+				'callback' => '__return_true',
+			)
+		);
+
+		$routes = rest_get_server()->get_routes( 'my-namespace/v1' );
+		$this->assertCount( 2, $routes );
+
+		$this->assertTrue( rest_do_request( '/my-namespace/v1/my-route' )->get_data() );
+	}
+
+	public function _dp_rest_filter_response_by_context() {
+		return array(
+			'default'                => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'first'  => array(
+							'type'    => 'string',
+							'context' => array( 'view', 'edit' ),
+						),
+						'second' => array(
+							'type'    => 'string',
+							'context' => array( 'edit' ),
+						),
+					),
+				),
+				array(
+					'first'  => 'a',
+					'second' => 'b',
+				),
+				array( 'first' => 'a' ),
+			),
+			'keeps missing context'  => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'first'  => array(
+							'type'    => 'string',
+							'context' => array( 'view', 'edit' ),
+						),
+						'second' => array(
+							'type' => 'string',
+						),
+					),
+				),
+				array(
+					'first'  => 'a',
+					'second' => 'b',
+				),
+				array(
+					'first'  => 'a',
+					'second' => 'b',
+				),
+			),
+			'removes empty context'  => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'first'  => array(
+							'type'    => 'string',
+							'context' => array( 'view', 'edit' ),
+						),
+						'second' => array(
+							'type'    => 'string',
+							'context' => array(),
+						),
+					),
+				),
+				array(
+					'first'  => 'a',
+					'second' => 'b',
+				),
+				array( 'first' => 'a' ),
+			),
+			'nested properties'      => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'parent' => array(
+							'type'       => 'object',
+							'context'    => array( 'view', 'edit' ),
+							'properties' => array(
+								'child'  => array(
+									'type'    => 'string',
+									'context' => array( 'view', 'edit' ),
+								),
+								'hidden' => array(
+									'type'    => 'string',
+									'context' => array( 'edit' ),
+								),
+							),
+						),
+					),
+				),
+				array(
+					'parent' => array(
+						'child'  => 'hi',
+						'hidden' => 'there',
+					),
+				),
+				array( 'parent' => array( 'child' => 'hi' ) ),
+			),
+			'grand child properties' => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'parent' => array(
+							'type'       => 'object',
+							'context'    => array( 'view', 'edit' ),
+							'properties' => array(
+								'child' => array(
+									'type'       => 'object',
+									'context'    => array( 'view', 'edit' ),
+									'properties' => array(
+										'grand'  => array(
+											'type'    => 'string',
+											'context' => array( 'view', 'edit' ),
+										),
+										'hidden' => array(
+											'type'    => 'string',
+											'context' => array( 'edit' ),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+				array(
+					'parent' => array(
+						'child' => array(
+							'grand' => 'hi',
+						),
+					),
+				),
+				array( 'parent' => array( 'child' => array( 'grand' => 'hi' ) ) ),
+			),
+			'array'                  => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'arr' => array(
+							'type'    => 'array',
+							'context' => array( 'view', 'edit' ),
+							'items'   => array(
+								'type'       => 'object',
+								'context'    => array( 'view', 'edit' ),
+								'properties' => array(
+									'visible' => array(
+										'type'    => 'string',
+										'context' => array( 'view', 'edit' ),
+									),
+									'hidden'  => array(
+										'type'    => 'string',
+										'context' => array( 'edit' ),
+									),
+								),
+							),
+						),
+					),
+				),
+				array(
+					'arr' => array(
+						array(
+							'visible' => 'hi',
+							'hidden'  => 'there',
+						),
+					),
+				),
+				array( 'arr' => array( array( 'visible' => 'hi' ) ) ),
+			),
+			'additional properties'  => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'additional' => array(
+							'type'                 => 'object',
+							'context'              => array( 'view', 'edit' ),
+							'properties'           => array(
+								'a' => array(
+									'type'    => 'string',
+									'context' => array( 'view', 'edit' ),
+								),
+								'b' => array(
+									'type'    => 'string',
+									'context' => array( 'edit' ),
+								),
+							),
+							'additionalProperties' => array(
+								'type'    => 'string',
+								'context' => array( 'edit' ),
+							),
+						),
+					),
+				),
+				array(
+					'additional' => array(
+						'a' => '1',
+						'b' => '2',
+						'c' => '3',
+					),
+				),
+				array( 'additional' => array( 'a' => '1' ) ),
+			),
+			'multiple types object'  => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'multi' => array(
+							'type'       => array( 'object', 'string' ),
+							'context'    => array( 'view', 'edit' ),
+							'properties' => array(
+								'a' => array(
+									'type'    => 'string',
+									'context' => array( 'view', 'edit' ),
+								),
+								'b' => array(
+									'type'    => 'string',
+									'context' => array( 'edit' ),
+								),
+							),
+						),
+					),
+				),
+				array(
+					'multi' => array(
+						'a' => '1',
+						'b' => '2',
+					),
+				),
+				array( 'multi' => array( 'a' => '1' ) ),
+			),
+			'multiple types array'   => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'multi' => array(
+							'type'    => array( 'array', 'string' ),
+							'context' => array( 'view', 'edit' ),
+							'items'   => array(
+								'type'       => 'object',
+								'context'    => array( 'view', 'edit' ),
+								'properties' => array(
+									'visible' => array(
+										'type'    => 'string',
+										'context' => array( 'view', 'edit' ),
+									),
+									'hidden'  => array(
+										'type'    => 'string',
+										'context' => array( 'edit' ),
+									),
+								),
+							),
+						),
+					),
+				),
+				array(
+					'multi' => array(
+						array(
+							'visible' => '1',
+							'hidden'  => '2',
+						),
+					),
+				),
+				array( 'multi' => array( array( 'visible' => '1' ) ) ),
+			),
+			'grand child properties does not traverses missing context' => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'parent' => array(
+							'type'       => 'object',
+							'context'    => array( 'view', 'edit' ),
+							'properties' => array(
+								'child' => array(
+									'type'       => 'object',
+									'properties' => array(
+										'grand'  => array(
+											'type'    => 'string',
+											'context' => array( 'view', 'edit' ),
+										),
+										'hidden' => array(
+											'type'    => 'string',
+											'context' => array( 'edit' ),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+				array(
+					'parent' => array(
+						'child' => array(
+							'grand'  => 'hi',
+							'hidden' => 'there',
+						),
+					),
+				),
+				array(
+					'parent' => array(
+						'child' => array(
+							'grand'  => 'hi',
+							'hidden' => 'there',
+						),
+					),
+				),
+			),
+		);
+	}
+
+	function test_rest_ensure_response_accepts_wp_error_and_returns_wp_error() {
+		$response = rest_ensure_response( new WP_Error() );
+		$this->assertInstanceOf( 'WP_Error', $response );
+	}
+
+	/**
+	 * @dataProvider rest_ensure_response_data_provider
+	 *
+	 * @param mixed $response      The response passed to rest_ensure_response().
+	 * @param mixed $expected_data The expected data a response should include.
+	 */
+	function test_rest_ensure_response_returns_instance_of_wp_rest_response( $response, $expected_data ) {
+		$response_object = rest_ensure_response( $response );
+		$this->assertInstanceOf( 'WP_REST_Response', $response_object );
+		$this->assertSame( $expected_data, $response_object->get_data() );
+	}
+
+	/**
+	 * Data provider for test_rest_ensure_response_returns_instance_of_wp_rest_response().
+	 *
+	 * @return array
+	 */
+	function rest_ensure_response_data_provider() {
+		return array(
+			array( null, null ),
+			array( array( 'chocolate' => 'cookies' ), array( 'chocolate' => 'cookies' ) ),
+			array( 123, 123 ),
+			array( true, true ),
+			array( 'chocolate', 'chocolate' ),
+			array( new WP_HTTP_Response( 'http' ), 'http' ),
+			array( new WP_REST_Response( 'rest' ), 'rest' ),
 		);
 	}
 }

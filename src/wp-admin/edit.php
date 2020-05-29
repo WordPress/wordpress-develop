@@ -206,7 +206,7 @@ if ( $doaction ) {
 	$sendback = remove_query_arg( array( 'action', 'action2', 'tags_input', 'post_author', 'comment_status', 'ping_status', '_status', 'post', 'bulk_edit', 'post_view' ), $sendback );
 
 	wp_redirect( $sendback );
-	exit();
+	exit;
 } elseif ( ! empty( $_REQUEST['_wp_http_referer'] ) ) {
 	wp_redirect( remove_query_arg( array( '_wp_http_referer', '_wpnonce' ), wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
 	exit;
@@ -332,7 +332,7 @@ $bulk_messages             = array();
 $bulk_messages['post']     = array(
 	/* translators: %s: Number of posts. */
 	'updated'   => _n( '%s post updated.', '%s posts updated.', $bulk_counts['updated'] ),
-	'locked'    => ( 1 == $bulk_counts['locked'] ) ? __( '1 post not updated, somebody is editing it.' ) :
+	'locked'    => ( 1 === $bulk_counts['locked'] ) ? __( '1 post not updated, somebody is editing it.' ) :
 					/* translators: %s: Number of posts. */
 					_n( '%s post not updated, somebody is editing it.', '%s posts not updated, somebody is editing them.', $bulk_counts['locked'] ),
 	/* translators: %s: Number of posts. */
@@ -345,7 +345,7 @@ $bulk_messages['post']     = array(
 $bulk_messages['page']     = array(
 	/* translators: %s: Number of pages. */
 	'updated'   => _n( '%s page updated.', '%s pages updated.', $bulk_counts['updated'] ),
-	'locked'    => ( 1 == $bulk_counts['locked'] ) ? __( '1 page not updated, somebody is editing it.' ) :
+	'locked'    => ( 1 === $bulk_counts['locked'] ) ? __( '1 page not updated, somebody is editing it.' ) :
 					/* translators: %s: Number of pages. */
 					_n( '%s page not updated, somebody is editing it.', '%s pages not updated, somebody is editing them.', $bulk_counts['locked'] ),
 	/* translators: %s: Number of pages. */
@@ -358,7 +358,7 @@ $bulk_messages['page']     = array(
 $bulk_messages['wp_block'] = array(
 	/* translators: %s: Number of blocks. */
 	'updated'   => _n( '%s block updated.', '%s blocks updated.', $bulk_counts['updated'] ),
-	'locked'    => ( 1 == $bulk_counts['locked'] ) ? __( '1 block not updated, somebody is editing it.' ) :
+	'locked'    => ( 1 === $bulk_counts['locked'] ) ? __( '1 block not updated, somebody is editing it.' ) :
 					/* translators: %s: Number of blocks. */
 					_n( '%s block not updated, somebody is editing it.', '%s blocks not updated, somebody is editing them.', $bulk_counts['locked'] ),
 	/* translators: %s: Number of blocks. */

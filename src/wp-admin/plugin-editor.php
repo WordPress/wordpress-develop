@@ -11,7 +11,7 @@ require_once __DIR__ . '/admin.php';
 
 if ( is_multisite() && ! is_network_admin() ) {
 	wp_redirect( network_admin_url( 'plugin-editor.php' ) );
-	exit();
+	exit;
 }
 
 if ( ! current_user_can( 'edit_plugins' ) ) {
@@ -161,7 +161,7 @@ if ( ! empty( $posted_content ) ) {
 	$content = file_get_contents( $real_file );
 }
 
-if ( '.php' == substr( $real_file, strrpos( $real_file, '.' ) ) ) {
+if ( '.php' === substr( $real_file, strrpos( $real_file, '.' ) ) ) {
 	$functions = wp_doc_link_parse( $content );
 
 	if ( ! empty( $functions ) ) {
@@ -221,7 +221,7 @@ $content = esc_textarea( $content );
 		<?php
 		foreach ( $plugins as $plugin_key => $a_plugin ) {
 			$plugin_name = $a_plugin['Name'];
-			if ( $plugin_key == $plugin ) {
+			if ( $plugin_key === $plugin ) {
 				$selected = " selected='selected'";
 			} else {
 				$selected = '';
