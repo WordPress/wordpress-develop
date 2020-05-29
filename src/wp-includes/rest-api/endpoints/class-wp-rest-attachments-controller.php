@@ -672,7 +672,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'meta_key'   => '_thumbnail_id',
 			'meta_value' => $request['id'],
 			'no_found_rows' => true,
-			'posts_per_page',
+			'posts_per_page' => 100, // Set a reasonable maximum number of results.
 		);
 
 		$posts_query  = new WP_Query();
