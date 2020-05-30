@@ -29,7 +29,7 @@
 		"@wordpress/dependency-extraction-webpack-plugin": "2.4.0",
 		"@wordpress/e2e-test-utils": "4.3.1",
 		"@wordpress/library-export-default-webpack-plugin": "1.6.0",
-		"@wordpress/scripts": "6.2.0",
+		"@wordpress/scripts": "10.0.0",
 		"autoprefixer": "9.6.2",
 		"check-node-version": "4.0.1",
 		"copy-webpack-plugin": "^5.1.1",
@@ -62,7 +62,7 @@
 		"install-changed": "1.1.0",
 		"jquery-migrate": "1.4.1",
 		"matchdep": "~2.0.0",
-		"node-sass": "~4.13.1",
+		"node-sass": "4.14.1",
 		"qunit": "~2.9.0",
 		"sinon": "~9.0.0",
 		"sinon-test": "~3.0.0",
@@ -71,7 +71,7 @@
 		"uglifyjs-webpack-plugin": "2.2.0",
 		"wait-on": "3.3.0",
 		"webpack": "4.41.0",
-		"webpack-dev-server": "3.8.2",
+		"webpack-dev-server": "3.11.0",
 		"webpack-livereload-plugin": "2.2.0"
 	},
 	"dependencies": {
