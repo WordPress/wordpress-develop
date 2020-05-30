@@ -30,7 +30,7 @@ matrix:
     name: E2E Tests
   - env: WP_TRAVISCI=lint:php COMPOSER_INSTALL=true NPM_INSTALL=false WP_INSTALL=false
     name: PHP Linting
-  - env: WP_TRAVISCI=travis:js WP_INSTALL=false
+  - env: WP_TRAVISCI=travis:js WP_INSTALL=false PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=
     name: JS Tests
   - env: WP_TRAVISCI=test:compat COMPOSER_INSTALL=true NPM_INSTALL=false WP_INSTALL=false
     name: "PHP Compatibility Check"
