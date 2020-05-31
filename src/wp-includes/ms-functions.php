@@ -1856,7 +1856,7 @@ function check_upload_mimes( $mimes ) {
 	$site_mimes = array();
 	foreach ( $site_exts as $ext ) {
 		foreach ( $mimes as $ext_pattern => $mime ) {
-			if ( '' !== $ext && preg_match( '!^(' . $ext_pattern . ')$!i', $ext ) ) {
+			if ( '' !== $ext && preg_match( '/^(' . $ext_pattern . ')$/i', $ext ) ) {
 				$site_mimes[ $ext_pattern ] = $mime;
 			}
 		}
