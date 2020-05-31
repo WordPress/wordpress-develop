@@ -62,7 +62,7 @@
 		"install-changed": "1.1.0",
 		"jquery-migrate": "1.4.1",
 		"matchdep": "~2.0.0",
-		"node-sass": "~4.13.1",
+		"node-sass": "~4.14.1",
 		"qunit": "~2.9.0",
 		"sinon": "~9.0.0",
 		"sinon-test": "~3.0.0",
@@ -71,7 +71,7 @@
 		"uglifyjs-webpack-plugin": "2.2.0",
 		"wait-on": "3.3.0",
 		"webpack": "4.41.0",
-		"webpack-dev-server": "3.8.2",
+		"webpack-dev-server": "3.11.0",
 		"webpack-livereload-plugin": "2.2.0"
 	},
 	"dependencies": {
