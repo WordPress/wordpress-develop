@@ -10,8 +10,7 @@ function tests_get_phpunit_version() {
 	if ( class_exists( 'PHPUnit_Runner_Version' ) ) {
 		$version = PHPUnit_Runner_Version::id();
 	} elseif ( class_exists( 'PHPUnit\Runner\Version' ) ) {
-		// Must be parsable by PHP 5.2.x.
-		$version = call_user_func( 'PHPUnit\Runner\Version::id' );
+		$version = PHPUnit\Runner\Version::id();
 	} else {
 		$version = 0;
 	}
