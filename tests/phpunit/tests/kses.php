@@ -64,6 +64,61 @@ class Tests_Kses extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test video tag.
+	 *
+	 * @ticket 50167
+	 * @ticket 29826
+	 * @dataProvider data_wp_kses_video
+	 *
+	 * @param string $source   Source HTML.
+	 * @param string $context  Context to use for parsing source.
+	 * @param string $expected Expected output following KSES parsing.
+	 * @return void
+	 */
+	function test_wp_kses_video( $source, $context, $expected ) {
+		$actual = wp_kses( $source, $context );
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider for test_wp_kses_video
+	 *
+	 * @return array[] Array containing test data {
+	 *     @type string $source   Source HTML.
+	 *     @type string $context  Context to use for parsing source.
+	 *     @type string $expected Expected output following KSES parsing.
+	 * }
+	 */
+	function data_wp_kses_video() {
+		return array(
+			// Set 0: Valid post object params in post context.
+			array(
+				'<video src="movie.mov" autoplay controls height=9 loop muted poster="still.gif" playsinline preload width=16 />',
+				'post',
+				'<video src="movie.mov" autoplay controls height="9" loop muted poster="still.gif" playsinline preload width="16" />',
+			),
+			// Set 1: Valid post object params in data context.
+			array(
+				'<video src="movie.mov" autoplay controls height=9 loop muted poster="still.gif" playsinline preload width=16 />',
+				'data',
+				'',
+			),
+			// Set 2: Disallowed urls in post context.
+			array(
+				'<video src="bad://w.org/movie.mov" poster="bad://w.org/movie.jpg" />',
+				'post',
+				'<video src="//w.org/movie.mov" poster="//w.org/movie.jpg" />',
+			),
+			// Set 3: Disallowed attributes in post context.
+			array(
+				'<video onload="alert(1);" src="https://videos.files.wordpress.com/DZEMDKxc/video-0f9c363010.mp4" />',
+				'post',
+				'<video src="https://videos.files.wordpress.com/DZEMDKxc/video-0f9c363010.mp4" />',
+			),
+		);
+	}
+
+	/**
 	 * @ticket 20210
 	 */
 	function test_wp_filter_post_kses_abbr() {

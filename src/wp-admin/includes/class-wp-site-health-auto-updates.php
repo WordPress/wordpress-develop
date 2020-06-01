@@ -65,7 +65,7 @@ class WP_Site_Health_Auto_Updates {
 	 * @return array The test results.
 	 */
 	public function test_constants( $constant, $value ) {
-		if ( defined( $constant ) && constant( $constant ) != $value ) {
+		if ( defined( $constant ) && constant( $constant ) !== $value ) {
 			return array(
 				'description' => sprintf(
 					/* translators: %s: Name of the constant used. */
@@ -245,7 +245,7 @@ class WP_Site_Health_Auto_Updates {
 				$check_dirs[] = $context_dir;
 
 				// Once we've hit '/' or 'C:\', we need to stop. dirname will keep returning the input here.
-				if ( dirname( $context_dir ) == $context_dir ) {
+				if ( dirname( $context_dir ) === $context_dir ) {
 					break;
 				}
 
@@ -347,7 +347,7 @@ class WP_Site_Health_Auto_Updates {
 
 		WP_Filesystem();
 
-		if ( 'direct' != $wp_filesystem->method ) {
+		if ( 'direct' !== $wp_filesystem->method ) {
 			return false;
 		}
 
@@ -378,7 +378,7 @@ class WP_Site_Health_Auto_Updates {
 
 		$unwritable_files = array();
 		foreach ( array_keys( $checksums ) as $file ) {
-			if ( 'wp-content' == substr( $file, 0, 10 ) ) {
+			if ( 'wp-content' === substr( $file, 0, 10 ) ) {
 				continue;
 			}
 			if ( ! file_exists( ABSPATH . $file ) ) {
