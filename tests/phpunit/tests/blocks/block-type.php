@@ -353,16 +353,19 @@ class WP_Test_Block_Type extends WP_UnitTestCase {
 	 * @ticket 48529
 	 */
 	public function test_register_block() {
-		$block_type = new WP_Block_Type( 'core/fake', array(
-			'title'       => 'Test title',
-			'category'    => 'Test category',
-			'parent'      => array( 'core/third-party' ),
-			'icon'        => 'icon.png',
-			'description' => 'test description',
-			'keywords'    => array( 'test keyword' ),
-			'textdomain'  => 'test_domain',
-			'supports'    => array( 'alignment' => true ),
-		) );
+		$block_type = new WP_Block_Type(
+			'core/fake',
+			array(
+				'title'       => 'Test title',
+				'category'    => 'Test category',
+				'parent'      => array( 'core/third-party' ),
+				'icon'        => 'icon.png',
+				'description' => 'test description',
+				'keywords'    => array( 'test keyword' ),
+				'textdomain'  => 'test_domain',
+				'supports'    => array( 'alignment' => true ),
+			)
+		);
 
 		$this->assertSame( 'Test title', $block_type->title );
 		$this->assertSame( 'Test category', $block_type->category );

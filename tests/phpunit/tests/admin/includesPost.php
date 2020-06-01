@@ -837,15 +837,18 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		unregister_block_type( $name );
 
 		$this->assertArrayHasKey( $name, $blocks );
-		$this->assertEquals( array(
-			'title'       => '',
-			'description' => '',
-			'category'    => 'common',
-			'icon'        => 'text',
-			'keywords'    => array(),
-			'supports'    => array(),
-			'styles'      => array(),
-		), $blocks[ $name ] );
+		$this->assertEquals(
+			array(
+				'title'       => '',
+				'description' => '',
+				'category'    => 'common',
+				'icon'        => 'text',
+				'keywords'    => array(),
+				'supports'    => array(),
+				'styles'      => array(),
+			),
+			$blocks[ $name ]
+		);
 	}
 
 	/**
