@@ -37,9 +37,9 @@ if ( ! is_readable( $config_file_path ) ) {
 require_once $config_file_path;
 require_once __DIR__ . '/functions.php';
 
-if ( version_compare( tests_get_phpunit_version(), '8.0', '>=' ) ) {
+if ( version_compare( tests_get_phpunit_version(), '5.7', '<' ) || version_compare( tests_get_phpunit_version(), '8.0', '>=' ) ) {
 	printf(
-		"Error: Looks like you're using PHPUnit %s. WordPress is currently only compatible with PHPUnit up to 7.x.\n",
+		"Error: Looks like you're using PHPUnit %s. WordPress requires at least PHPUnit 5.7.x and is currently only compatible with PHPUnit up to 7.x.\n",
 		tests_get_phpunit_version()
 	);
 	echo "Please use the latest PHPUnit version from the 7.x branch.\n";
