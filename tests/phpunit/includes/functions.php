@@ -205,8 +205,12 @@ function _wp_die_handler_filter_exit() {
  */
 function _wp_die_handler_txt( $message, $title, $args ) {
 	echo "\nwp_die called\n";
-	echo "Message : $message\n";
-	echo "Title : $title\n";
+	echo "Message: $message\n";
+
+	if ( ! empty( $title ) ) {
+		echo "Title: $title\n";
+	}
+
 	if ( ! empty( $args ) ) {
 		echo "Args: \n";
 		foreach ( $args as $k => $v ) {
@@ -224,8 +228,12 @@ function _wp_die_handler_txt( $message, $title, $args ) {
  */
 function _wp_die_handler_exit( $message, $title, $args ) {
 	echo "\nwp_die called\n";
-	echo "Message : $message\n";
-	echo "Title : $title\n";
+	echo "Message: $message\n";
+
+	if ( ! empty( $title ) ) {
+		echo "Title: $title\n";
+	}
+
 	if ( ! empty( $args ) ) {
 		echo "Args: \n";
 		foreach ( $args as $k => $v ) {
