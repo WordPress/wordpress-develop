@@ -667,11 +667,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 */
 	public function get_item_permissions_check( $request ) {
 		$query_args = array(
-			'post_status' => 'any',
-			'post_type' => 'any',
-			'meta_key'   => '_thumbnail_id',
-			'meta_value' => $request['id'],
-			'no_found_rows' => true,
+			'post_status'    => 'any',
+			'post_type'      => 'any',
+			'meta_key'       => '_thumbnail_id',
+			'meta_value'     => $request['id'],
+			'no_found_rows'  => true,
 			'posts_per_page' => 100, // Set a reasonable maximum number of results.
 		);
 
@@ -685,7 +685,6 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			if ( is_wp_error( $post ) ) {
 				continue;
 			}
-
 
 			if ( 'edit' === $request['context'] && $post && ! $this->check_update_permission( $post ) ) {
 				$wp_error = WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => rest_authorization_required_code() ) );
@@ -708,7 +707,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			}
 		}
 
-		if( $wp_error ) {
+		if ( $wp_error ) {
 			return $wp_error;
 		}
 
