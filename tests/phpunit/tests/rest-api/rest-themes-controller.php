@@ -350,7 +350,8 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'theme_uri', $result[0] );
 		$this->assertSame( 'http://wordpress.org/', $result[0]['theme_uri']['raw'] );
-		$this->assertSame( 'http://wordpress.org/', $result[0]['theme_uri']['rendered'] );  }
+		$this->assertSame( 'http://wordpress.org/', $result[0]['theme_uri']['rendered'] );
+	}
 
 	public function test_theme_version() {
 		$response = self::perform_active_theme_request();
