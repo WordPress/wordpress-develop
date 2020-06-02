@@ -1204,16 +1204,20 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			)
 		);
 
-		$_SERVER['HTTP_CONTENT_TYPE']  = 'application/json';
-		$GLOBALS['HTTP_RAW_POST_DATA'] = json_encode(
-			array(
-				'data' => 'data\\with\\slashes',
-			)
-		);
+		$_SERVER['HTTP_CONTENT_TYPE'] = 'application/json';
+
+		// Mock php://input.
+		require_once DIR_TESTROOT . '/includes/class-mock-php-stream.php';
+
+		stream_wrapper_unregister( 'php' );
+		stream_wrapper_register( 'php', 'Mock_Php_Stream' );
+		file_put_contents( 'php://input', json_encode( array( 'data' => 'data\\with\\slashes' ) ) );
 
 		$result      = rest_get_server()->serve_request( '/test' );
 		$json_params = rest_get_server()->last_request->get_json_params();
 		$this->assertEquals( 'data\\with\\slashes', $json_params['data'] );
+
+		stream_wrapper_restore( 'php' );
 	}
 
 	public function test_serve_request_file_params_are_unslashed() {
