@@ -2,7 +2,7 @@
 /**
  * Unit tests covering WP_REST_Controller functionality
  *
- * @package WordPress
+ * @package    WordPress
  * @subpackage REST API
  */
 
@@ -15,6 +15,7 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 	 *
 	 * @param mixed           $item    WordPress representation of the item.
 	 * @param WP_REST_Request $request Request object.
+	 *
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function prepare_item_for_response( $item, $request ) {
@@ -22,6 +23,7 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 		$item     = $this->add_additional_fields_to_object( $item, $request );
 		$item     = $this->filter_response_by_context( $item, $context );
 		$response = rest_ensure_response( $item );
+
 		return $response;
 	}
 
@@ -39,11 +41,18 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 				'somestring'     => array(
 					'type'        => 'string',
 					'description' => 'A pretty string.',
+					'minLength'   => 3,
+					'maxLength'   => 3,
+					'pattern'     => '[a-zA-Z]+',
 					'context'     => array( 'view' ),
 				),
 				'someinteger'    => array(
-					'type'    => 'integer',
-					'context' => array( 'view' ),
+					'type'             => 'integer',
+					'minimum'          => 100,
+					'maximum'          => 200,
+					'exclusiveMinimum' => true,
+					'exclusiveMaximum' => true,
+					'context'          => array( 'view' ),
 				),
 				'someboolean'    => array(
 					'type'    => 'boolean',
@@ -92,6 +101,26 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 					'enum'    => array( 'a', 'b', 'c' ),
 					'context' => array( 'view' ),
 					'default' => 'a',
+				),
+				'somearray'      => array(
+					'type'    => 'array',
+					'items'   => array(
+						'type' => 'string',
+					),
+					'context' => array( 'view' ),
+				),
+				'someobject'     => array(
+					'type'                 => 'object',
+					'additionalProperties' => array(
+						'type' => 'string',
+					),
+					'properties'           => array(
+						'object_id' => array(
+							'type' => 'integer',
+						),
+					),
+					'ignored_prop'         => 'ignored_prop',
+					'context'              => array( 'view' ),
 				),
 			),
 		);
