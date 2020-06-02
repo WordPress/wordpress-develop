@@ -1282,6 +1282,7 @@ EOF;
 	public function test_safecss_filter_attr_filtered( $css, $expected ) {
 		add_filter( 'safe_style_disallowed_chars', array( $this, '_safe_style_disallowed_chars_filter' ) );
 		$this->assertSame( $expected, safecss_filter_attr( $css ) );
+		remove_filter( 'safe_style_disallowed_chars', array( $this, '_safe_style_disallowed_chars_filter' ) );
 	}
 
 	/**

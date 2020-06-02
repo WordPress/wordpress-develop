@@ -2302,10 +2302,6 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		}
 
 		if ( $found ) {
-			if ( '' !== $css ) {
-				$css .= ';';
-			}
-
 			/**
 			 * Filters the regex limiting the list of characters not allowed in CSS rules.
 			 *
