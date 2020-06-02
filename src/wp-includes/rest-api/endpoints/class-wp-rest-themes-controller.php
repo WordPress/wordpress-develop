@@ -137,6 +137,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			'author_uri'  => 'AuthorURI',
 			'description' => 'Description',
 			'name'        => 'Name',
+			'tags'        => 'Tags',
 			'theme_uri'   => 'ThemeURI',
 		);
 
@@ -304,6 +305,23 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'description' => __( 'The theme\'s stylesheet.' ),
 					'type'        => 'string',
 					'readonly'    => true,
+				),
+				'tags'           => array(
+					'description' => __( 'Tags indicating styles and features of the theme.' ),
+					'type'        => 'object',
+					'readonly'    => true,
+					'properties'  => array(
+						'raw'      => array(
+							'description' => __( 'Theme tags, as found in the theme header.' ),
+							'type'        => 'array',
+							'readonly'    => true,
+						),
+						'rendered' => array(
+							'description' => __( 'Theme tags, transformed for display.' ),
+							'type'        => 'string',
+							'readonly'    => true,
+						),
+					),
 				),
 				'template'       => array(
 					'description' => __( 'The theme\'s template name.' ),

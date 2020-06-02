@@ -156,6 +156,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'name',
 			'screenshot',
 			'stylesheet',
+			'tags',
 			'template',
 			'theme_supports',
 			'theme_uri',
@@ -216,7 +217,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response   = self::perform_active_theme_request( 'OPTIONS' );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 10, count( $properties ) );
+		$this->assertEquals( 11, count( $properties ) );
 
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['author']['properties'] );
@@ -236,6 +237,11 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertArrayHasKey( 'screenshot', $properties );
 		$this->assertArrayHasKey( 'stylesheet', $properties );
+
+		$this->assertArrayHasKey( 'tags', $properties );
+		$this->assertArrayHasKey( 'raw', $properties['tags']['properties'] );
+		$this->assertArrayHasKey( 'rendered', $properties['tags']['properties'] );
+
 		$this->assertArrayHasKey( 'template', $properties );
 		$this->assertArrayHasKey( 'theme_supports', $properties );
 
@@ -322,6 +328,14 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'stylesheet', $result[0] );
 		$this->assertSame( 'default', $result[0]['stylesheet'] );
+	}
+
+	public function test_theme_tags() {
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+		$this->assertArrayHasKey( 'tags', $result[0] );
+		$this->assertSame( array(), $result[0]['tags']['raw'] );
+		$this->assertSame( '', $result[0]['tags']['rendered'] );
 	}
 
 	public function test_theme_template() {
