@@ -686,20 +686,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				continue;
 			}
 
-			if ( 'edit' === $request['context'] && $post && ! $this->check_update_permission( $post ) ) {
+			if ( 'edit' === $request['context'] && ( ! $post || ! $this->check_update_permission( $post ) ) ) {
 				$wp_error = WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => rest_authorization_required_code() ) );
 			}
 
-			if ( $post && ! empty( $request['password'] ) ) {
+			if ( $post && ! empty( $post->post_password ) && 'edit' !== $request['context'] ) {
 				// Check post password, and return error if invalid.
-				if ( ! hash_equals( $post->post_password, $request['password'] ) ) {
+				if ( ! isset( $request['password'] ) || ! hash_equals( $post->post_password, $request['password'] ) ) {
 					$wp_error = WP_Error( 'rest_post_incorrect_password', __( 'Incorrect post password.' ), array( 'status' => 403 ) );
 				}
-			}
-
-			// Allow access to all password protected posts if the context is edit.
-			if ( 'edit' === $request['context'] ) {
-				add_filter( 'post_password_required', '__return_false' );
 			}
 
 			if ( $post && $this->check_read_permission( $post ) ) {
@@ -709,6 +704,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		if ( $wp_error ) {
 			return $wp_error;
+		}
+
+		// Allow access to all password protected posts if the context is edit.
+		if ( 'edit' === $request['context'] ) {
+			add_filter( 'post_password_required', '__return_false' );
 		}
 
 		return parent::get_item_permissions_check( $request );
