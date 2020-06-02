@@ -825,6 +825,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 	function test_get_block_editor_server_block_settings() {
 		$name     = 'core/test';
 		$settings = array(
+			'category'        => 'common',
 			'icon'            => 'text',
 			'render_callback' => 'foo',
 		);
@@ -836,7 +837,18 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		unregister_block_type( $name );
 
 		$this->assertArrayHasKey( $name, $blocks );
-		$this->assertSame( array( 'icon' => 'text' ), $blocks[ $name ] );
+		$this->assertEquals(
+			array(
+				'title'       => '',
+				'description' => '',
+				'category'    => 'common',
+				'icon'        => 'text',
+				'keywords'    => array(),
+				'supports'    => array(),
+				'styles'      => array(),
+			),
+			$blocks[ $name ]
+		);
 	}
 
 	/**
