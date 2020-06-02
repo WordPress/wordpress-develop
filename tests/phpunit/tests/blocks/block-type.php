@@ -350,6 +350,34 @@ class WP_Test_Block_Type extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 48529
+	 */
+	public function test_register_block() {
+		$block_type = new WP_Block_Type(
+			'core/fake',
+			array(
+				'title'       => 'Test title',
+				'category'    => 'Test category',
+				'parent'      => array( 'core/third-party' ),
+				'icon'        => 'icon.png',
+				'description' => 'test description',
+				'keywords'    => array( 'test keyword' ),
+				'textdomain'  => 'test_domain',
+				'supports'    => array( 'alignment' => true ),
+			)
+		);
+
+		$this->assertSame( 'Test title', $block_type->title );
+		$this->assertSame( 'Test category', $block_type->category );
+		$this->assertEqualSets( array( 'core/third-party' ), $block_type->parent );
+		$this->assertSame( 'icon.png', $block_type->icon );
+		$this->assertSame( 'test description', $block_type->description );
+		$this->assertEqualSets( array( 'test keyword' ), $block_type->keywords );
+		$this->assertSame( 'test_domain', $block_type->textdomain );
+		$this->assertEqualSets( array( 'alignment' => true ), $block_type->supports );
+	}
+
+	/**
 	 * Testing the block version.
 	 *
 	 * @ticket 43887

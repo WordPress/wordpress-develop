@@ -7,8 +7,8 @@
 		"url": "https://develop.svn.wordpress.org/trunk"
 	},
 	"engines": {
-		"node": "10.13.0",
-		"npm": "6.1.0"
+		"node": "12.16.0",
+		"npm": "6.14.0"
 	},
 	"author": "The WordPress Contributors",
 	"license": "GPL-2.0-or-later",
@@ -36,15 +36,15 @@
 		"cssnano": "4.1.10",
 		"dotenv": "8.1.0",
 		"dotenv-expand": "5.1.0",
-		"grunt": "~1.0.4",
+		"grunt": "~1.1.0",
 		"grunt-banner": "^0.6.0",
 		"grunt-contrib-clean": "~2.0.0",
 		"grunt-contrib-concat": "1.0.1",
 		"grunt-contrib-copy": "~1.0.0",
 		"grunt-contrib-cssmin": "~3.0.0",
-		"grunt-contrib-imagemin": "~3.1.0",
+		"grunt-contrib-imagemin": "~4.0.0",
 		"grunt-contrib-jshint": "2.1.0",
-		"grunt-contrib-qunit": "^1.2.0",
+		"grunt-contrib-qunit": "^3.1.0",
 		"grunt-contrib-uglify": "~4.0.1",
 		"grunt-contrib-watch": "~1.1.0",
 		"grunt-file-append": "0.0.7",
@@ -62,7 +62,7 @@
 		"install-changed": "1.1.0",
 		"jquery-migrate": "1.4.1",
 		"matchdep": "~2.0.0",
-		"node-sass": "~4.13.1",
+		"node-sass": "~4.14.1",
 		"qunit": "~2.9.0",
 		"sinon": "~9.0.0",
 		"sinon-test": "~3.0.0",
@@ -71,7 +71,7 @@
 		"uglifyjs-webpack-plugin": "2.2.0",
 		"wait-on": "3.3.0",
 		"webpack": "4.41.0",
-		"webpack-dev-server": "3.8.2",
+		"webpack-dev-server": "3.11.0",
 		"webpack-livereload-plugin": "2.2.0"
 	},
 	"dependencies": {
