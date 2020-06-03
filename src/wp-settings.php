@@ -413,9 +413,6 @@ do_action( 'plugins_loaded' );
 // Define constants which affect functionality if not already defined.
 wp_functionality_constants();
 
-// Define sitemaps-related cconstants.
-wp_sitemaps_constants();
-
 // Add magic quotes and set up $_REQUEST ( $_GET + $_POST ).
 wp_magic_quotes();
 
