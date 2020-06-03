@@ -91,6 +91,14 @@ class WP_REST_Request implements ArrayAccess {
 	protected $is_json_content_type;
 
 	/**
+	 * Used to track Content-Type changes.
+	 *
+	 * @since @todo
+	 * @var string
+	 */
+	protected $content_type_cache;
+
+	/**
 	 * Used to determine if the JSON data has been parsed yet.
 	 *
 	 * Allows lazy-parsing of JSON data where possible.
@@ -143,16 +151,22 @@ class WP_REST_Request implements ArrayAccess {
 	 * @return boolean
 	 */
 	public function is_json_content_type() {
+		$content_type = $this->get_content_type();
+
+		if ( $this->content_type_cache !== $content_type ) {
+			$this->is_json_content_type = null;
+		}
+
 		if ( is_bool( $this->is_json_content_type ) ) {
 			return $this->is_json_content_type;
 		}
 
-		$content_type = $this->get_content_type();
-
 		if ( ! empty( $content_type ) && preg_match( '/^application\/([\w!#\$&-\^\.\+]+\+)?json(\+oembed)?$/i', $content_type['value'] ) ) {
 			$this->is_json_content_type = true;
+			$this->content_type_cache   = $content_type;
 		} else {
 			$this->is_json_content_type = false;
+			$this->content_type_cache   = $content_type;
 		}
 
 		return $this->is_json_content_type;
@@ -267,11 +281,6 @@ class WP_REST_Request implements ArrayAccess {
 	public function set_header( $key, $value ) {
 		$key   = $this->canonicalize_header_name( $key );
 		$value = (array) $value;
-
-		// Reset `is_json_content_type` if Content-Type changes.
-		if ( 'content_type' === $key ) {
-			$this->is_json_content_type = null;
-		}
 
 		$this->headers[ $key ] = $value;
 	}
