@@ -7,6 +7,12 @@
  * @group sitemaps
  */
 class Tests_Canonical_Sitemaps extends WP_Canonical_UnitTestCase {
+	public function setUp() {
+		parent::setUp();
+		$wp_sitemaps = new WP_Sitemaps();
+		$wp_sitemaps->init();
+	}
+
 	public function test_remove_trailing_slashes_for_sitemap_index_requests() {
 		$this->set_permalink_structure( '/%postname%/' );
 		$this->assertCanonical( '/wp-sitemap.xml', '/wp-sitemap.xml' );

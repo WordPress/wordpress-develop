@@ -509,6 +509,11 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 				$redirect['path'] = trailingslashit( $redirect['path'] ) . $addl_path;
 			}
 
+			// Remove trailing slash for sitemaps requests.
+			if ( ! empty( get_query_var( 'sitemap' ) ) ) {
+				$redirect['path'] = untrailingslashit( $redirect['path'] );
+			}
+
 			$redirect_url = $redirect['scheme'] . '://' . $redirect['host'] . $redirect['path'];
 		}
 
@@ -651,6 +656,11 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		$redirect['path'] = trailingslashit( $redirect['path'] );
 	}
 
+	// Remove trailing slash for sitemaps requests.
+	if ( ! empty( get_query_var( 'sitemap' ) ) || ! empty( get_query_var( 'sitemap-stylesheet' ) ) ) {
+		$redirect['path'] = untrailingslashit( $redirect['path'] );
+	}
+
 	// Strip multiple slashes out of the URL.
 	if ( strpos( $redirect['path'], '//' ) > -1 ) {
 		$redirect['path'] = preg_replace( '|/+|', '/', $redirect['path'] );
@@ -671,11 +681,6 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			&& 'www.' . $redirect_host_low !== $original_host_low )
 	) {
 		$redirect['host'] = $original['host'];
-	}
-
-	// Remove trailing slash for sitemaps requests.
-	if ( get_query_var( 'sitemap' ) || get_query_var( 'sitemap-stylesheet' ) ) {
-		$redirect['path'] = untrailingslashit( $redirect['path'] );
 	}
 
 	$compare_original = array( $original['host'], $original['path'] );
