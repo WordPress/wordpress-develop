@@ -240,6 +240,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertArrayHasKey( 'tags', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['tags']['properties'] );
+		$this->assertArrayHasKey( 'items', $properties['tags']['properties']['raw'] );
 		$this->assertArrayHasKey( 'rendered', $properties['tags']['properties'] );
 
 		$this->assertArrayHasKey( 'template', $properties );

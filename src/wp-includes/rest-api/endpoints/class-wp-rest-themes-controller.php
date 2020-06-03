@@ -315,6 +315,9 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 							'description' => __( 'Theme tags, as found in the theme header.' ),
 							'type'        => 'array',
 							'readonly'    => true,
+							'items'       => array(
+								'type' => 'string',
+							),
 						),
 						'rendered' => array(
 							'description' => __( 'Theme tags, transformed for display.' ),
