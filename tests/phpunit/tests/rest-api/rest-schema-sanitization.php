@@ -90,6 +90,22 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 		$this->assertEquals( '', rest_sanitize_value_from_schema( 'WordPress', $schema ) );
 	}
 
+	/**
+	 * @ticket 50053
+	 */
+	public function test_format_uuid() {
+		$schema = array(
+			'type'   => 'string',
+			'format' => 'uuid',
+		);
+		$this->assertEquals( '44', rest_sanitize_value_from_schema( 44, $schema ) );
+		$this->assertEquals( 'hello', rest_sanitize_value_from_schema( 'hello', $schema ) );
+		$this->assertEquals(
+			'123e4567-e89b-12d3-a456-426655440000',
+			rest_sanitize_value_from_schema( '123e4567-e89b-12d3-a456-426655440000', $schema )
+		);
+	}
+
 	public function test_type_array() {
 		$schema = array(
 			'type'  => 'array',

@@ -696,7 +696,7 @@ function site_admin_notice() {
 		return false;
 	}
 
-	if ( 'upgrade.php' == $pagenow ) {
+	if ( 'upgrade.php' === $pagenow ) {
 		return;
 	}
 
@@ -856,7 +856,7 @@ function confirm_delete_users( $users ) {
 	?>
 	<h1><?php esc_html_e( 'Users' ); ?></h1>
 
-	<?php if ( 1 == count( $users ) ) : ?>
+	<?php if ( 1 === count( $users ) ) : ?>
 		<p><?php _e( 'You have chosen to delete the user from all networks and sites.' ); ?></p>
 	<?php else : ?>
 		<p><?php _e( 'You have chosen to delete the following users from all networks and sites.' ); ?></p>
@@ -873,7 +873,7 @@ function confirm_delete_users( $users ) {
 	<?php
 	$allusers = (array) $_POST['allusers'];
 	foreach ( $allusers as $user_id ) {
-		if ( '' != $user_id && '0' != $user_id ) {
+		if ( '' !== $user_id && '0' != $user_id ) {
 			$delete_user = get_userdata( $user_id );
 
 			if ( ! current_user_can( 'delete_user', $delete_user->ID ) ) {
@@ -935,7 +935,7 @@ function confirm_delete_users( $users ) {
 							}
 						}
 
-						if ( '' == $user_list ) {
+						if ( '' === $user_list ) {
 							$user_list = $admin_out;
 						}
 
@@ -974,7 +974,7 @@ function confirm_delete_users( $users ) {
 	/** This action is documented in wp-admin/users.php */
 	do_action( 'delete_user_form', $current_user, $allusers );
 
-	if ( 1 == count( $users ) ) :
+	if ( 1 === count( $users ) ) :
 		?>
 		<p><?php _e( 'Once you hit &#8220;Confirm Deletion&#8221;, the user will be permanently removed.' ); ?></p>
 	<?php else : ?>

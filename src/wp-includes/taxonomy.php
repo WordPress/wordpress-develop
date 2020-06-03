@@ -913,11 +913,12 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
  * @since 2.3.0
  * @since 4.4.0 `$taxonomy` is optional if `$field` is 'term_taxonomy_id'. Converted to return
  *              a WP_Term object if `$output` is `OBJECT`.
+ * @since 5.5.0 Added 'ID' as an alias of 'id' for the `$field` parameter.
  *
  * @see sanitize_term_field() The $context param lists the available values for get_term_by() $filter param.
  *
- * @param string     $field    Either 'slug', 'name', 'id' (term_id), or 'term_taxonomy_id'
- * @param string|int $value    Search for this term value
+ * @param string     $field    Either 'slug', 'name', 'id' or 'ID' (term_id), or 'term_taxonomy_id'.
+ * @param string|int $value    Search for this term value.
  * @param string     $taxonomy Taxonomy name. Optional, if `$field` is 'term_taxonomy_id'.
  * @param string     $output   Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
  *                             a WP_Term object, an associative array, or a numeric array, respectively. Default OBJECT.
@@ -941,7 +942,7 @@ function get_term_by( $field, $value, $taxonomy = '', $output = OBJECT, $filter 
 		}
 	}
 
-	if ( 'id' === $field || 'term_id' === $field ) {
+	if ( 'id' === $field || 'ID' === $field || 'term_id' === $field ) {
 		$term = get_term( (int) $value, $taxonomy, $output, $filter );
 		if ( is_wp_error( $term ) || null === $term ) {
 			$term = false;
@@ -1211,11 +1212,11 @@ function get_terms( $args = array(), $deprecated = '' ) {
  *
  * @param int    $term_id    Term ID.
  * @param string $meta_key   Metadata name.
- * @param mixed  $meta_value Metadata value.
- * @param bool   $unique     Optional. Whether to bail if an entry with the same key is found for the term.
+ * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
+ * @param bool   $unique     Optional. Whether the same key should not be added.
  *                           Default false.
- * @return int|WP_Error|bool Meta ID on success. WP_Error when term_id is ambiguous between taxonomies.
- *                           False on failure.
+ * @return int|false|WP_Error Meta ID on success, false on failure.
+ *                            WP_Error when term_id is ambiguous between taxonomies.
  */
 function add_term_meta( $term_id, $meta_key, $meta_value, $unique = false ) {
 	if ( wp_term_is_shared( $term_id ) ) {
@@ -1232,7 +1233,9 @@ function add_term_meta( $term_id, $meta_key, $meta_value, $unique = false ) {
  *
  * @param int    $term_id    Term ID.
  * @param string $meta_key   Metadata name.
- * @param mixed  $meta_value Optional. Metadata value. If provided, rows will only be removed that match the value.
+ * @param mixed  $meta_value Optional. Metadata value. If provided,
+ *                           rows will only be removed that match the value.
+ *                           Must be serializable if non-scalar. Default empty.
  * @return bool True on success, false on failure.
  */
 function delete_term_meta( $term_id, $meta_key, $meta_value = '' ) {
@@ -1245,10 +1248,13 @@ function delete_term_meta( $term_id, $meta_key, $meta_value = '' ) {
  * @since 4.4.0
  *
  * @param int    $term_id Term ID.
- * @param string $key     Optional. The meta key to retrieve. If no key is provided, fetches all metadata for the term.
- * @param bool   $single  Whether to return a single value. If false, an array of all values matching the
- *                        `$term_id`/`$key` pair will be returned. Default: false.
- * @return mixed If `$single` is false, an array of metadata values. If `$single` is true, a single metadata value.
+ * @param string $key     Optional. The meta key to retrieve. By default,
+ *                        returns data for all keys. Default empty.
+ * @param bool   $single  Optional. Whether to return a single value.
+ *                        This parameter has no effect if $key is not specified.
+ *                        Default false.
+ * @return mixed An array if $single is false. The value of the meta field
+ *               if $single is true.
  */
 function get_term_meta( $term_id, $key = '', $single = false ) {
 	return get_metadata( 'term', $term_id, $key, $single );
@@ -1265,10 +1271,12 @@ function get_term_meta( $term_id, $key = '', $single = false ) {
  *
  * @param int    $term_id    Term ID.
  * @param string $meta_key   Metadata key.
- * @param mixed  $meta_value Metadata value.
- * @param mixed  $prev_value Optional. Previous value to check before removing.
- * @return int|WP_Error|bool Meta ID if the key didn't previously exist. True on successful update.
- *                           WP_Error when term_id is ambiguous between taxonomies. False on failure.
+ * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
+ * @param mixed  $prev_value Optional. Previous value to check before updating.
+ *                           Default empty.
+ * @return int|bool|WP_Error Meta ID if the key didn't exist. true on successful update,
+ *                           false on failure. WP_Error when term_id is ambiguous
+ *                           between taxonomies.
  */
 function update_term_meta( $term_id, $meta_key, $meta_value, $prev_value = '' ) {
 	if ( wp_term_is_shared( $term_id ) ) {
@@ -1287,7 +1295,7 @@ function update_term_meta( $term_id, $meta_key, $meta_value, $prev_value = '' ) 
  * @since 4.4.0
  *
  * @param array $term_ids List of term IDs.
- * @return array|false Returns false if there is nothing to update. Returns an array of metadata on success.
+ * @return array|false An array of metadata on success, false if there is nothing to update.
  */
 function update_termmeta_cache( $term_ids ) {
 	return update_meta_cache( 'term', $term_ids );

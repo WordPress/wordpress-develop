@@ -2211,7 +2211,7 @@ function unregister_widget_control($id) {
  *
  * @param int $user_id User ID.
  * @param string $meta_key Metadata key.
- * @param mixed $meta_value Metadata value.
+ * @param mixed $meta_value Optional. Metadata value. Default empty.
  * @return bool True deletion completed and false if user_id is not a number.
  */
 function delete_usermeta( $user_id, $meta_key, $meta_value = '' ) {
@@ -2257,7 +2257,7 @@ function delete_usermeta( $user_id, $meta_key, $meta_value = '' ) {
  * @see get_user_meta()
  *
  * @param int $user_id User ID
- * @param string $meta_key Optional. Metadata key.
+ * @param string $meta_key Optional. Metadata key. Default empty.
  * @return mixed
  */
 function get_usermeta( $user_id, $meta_key = '' ) {
@@ -3982,4 +3982,16 @@ function wp_make_content_images_responsive( $content ) {
 
 	// This will also add the `loading` attribute to `img` tags, if enabled.
 	return wp_filter_content_tags( $content );
+}
+
+/**
+ * Turn register globals off.
+ *
+ * @since 2.1.0
+ * @access private
+ * @deprecated 5.5.0
+ */
+function wp_unregister_GLOBALS() {  // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
+	// register_globals was deprecated in PHP 5.3 and removed entirely in PHP 5.4.
+	_deprecated_function( __FUNCTION__, '5.5.0' );
 }

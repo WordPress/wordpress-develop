@@ -19,7 +19,7 @@
 			<h1 class="entry-title"><a href="<?php the_permalink(); ?>" rel="bookmark"><?php the_title(); ?></a></h1>
 			<?php endif; ?>
 
-			<?php if ( 'post' == get_post_type() ) : ?>
+			<?php if ( 'post' === get_post_type() ) : ?>
 			<div class="entry-meta">
 				<?php twentyeleven_posted_on(); ?>
 			</div><!-- .entry-meta -->
@@ -52,10 +52,12 @@
 
 		<footer class="entry-meta">
 			<?php $show_sep = false; ?>
+
 			<?php if ( is_object_in_taxonomy( get_post_type(), 'category' ) ) : // Hide category text when not supported. ?>
 				<?php
 				/* translators: Used between list items, there is a space after the comma. */
 				$categories_list = get_the_category_list( __( ', ', 'twentyeleven' ) );
+
 				if ( $categories_list ) :
 					?>
 			<span class="cat-links">
@@ -67,11 +69,13 @@
 			</span>
 				<?php endif; // End if categories. ?>
 			<?php endif; // End if is_object_in_taxonomy( get_post_type(), 'category' ). ?>
+
 			<?php if ( is_object_in_taxonomy( get_post_type(), 'post_tag' ) ) : // Hide tag text when not supported. ?>
 				<?php
 				/* translators: Used between list items, there is a space after the comma. */
 				$tags_list = get_the_tag_list( '', __( ', ', 'twentyeleven' ) );
-				if ( $tags_list ) :
+
+				if ( $tags_list && ! is_wp_error( $tags_list ) ) :
 					if ( $show_sep ) :
 						?>
 			<span class="sep"> | </span>

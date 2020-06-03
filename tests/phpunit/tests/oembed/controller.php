@@ -336,7 +336,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 
 		$this->assertEquals( '1.0', $data['version'] );
 		$this->assertEquals( get_bloginfo( 'name' ), $data['provider_name'] );
-		$this->assertEquals( get_home_url(), $data['provider_url'] );
+		$this->assertEquals( home_url(), $data['provider_url'] );
 		$this->assertEquals( $user->display_name, $data['author_name'] );
 		$this->assertEquals( get_author_posts_url( $user->ID, $user->user_nicename ), $data['author_url'] );
 		$this->assertEquals( $post->post_title, $data['title'] );
@@ -379,9 +379,9 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 
 		$this->assertEquals( '1.0', $data['version'] );
 		$this->assertEquals( get_bloginfo( 'name' ), $data['provider_name'] );
-		$this->assertEquals( get_home_url(), $data['provider_url'] );
+		$this->assertEquals( home_url(), $data['provider_url'] );
 		$this->assertEquals( get_bloginfo( 'name' ), $data['author_name'] );
-		$this->assertEquals( get_home_url(), $data['author_url'] );
+		$this->assertEquals( home_url(), $data['author_url'] );
 		$this->assertEquals( $post->post_title, $data['title'] );
 		$this->assertEquals( 'rich', $data['type'] );
 		$this->assertTrue( $data['width'] <= $request['maxwidth'] );
@@ -424,7 +424,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 
 		$this->assertEquals( '1.0', $data['version'] );
 		$this->assertEquals( get_bloginfo( 'name' ), $data['provider_name'] );
-		$this->assertEquals( get_home_url(), $data['provider_url'] );
+		$this->assertEquals( home_url(), $data['provider_url'] );
 		$this->assertEquals( $user->display_name, $data['author_name'] );
 		$this->assertEquals( get_author_posts_url( $user->ID, $user->user_nicename ), $data['author_url'] );
 		$this->assertEquals( $post->post_title, $data['title'] );
@@ -685,7 +685,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 
 		$this->assertEquals( '1.0', $data['version'] );
 		$this->assertEquals( get_bloginfo( 'name' ), $data['provider_name'] );
-		$this->assertEquals( get_home_url(), $data['provider_url'] );
+		$this->assertEquals( home_url(), $data['provider_url'] );
 		$this->assertEquals( $user->display_name, $data['author_name'] );
 		$this->assertEquals( get_author_posts_url( $user->ID, $user->user_nicename ), $data['author_url'] );
 		$this->assertEquals( $post->post_title, $data['title'] );
@@ -734,9 +734,9 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 
 		$this->assertEquals( '1.0', $data['version'] );
 		$this->assertEquals( get_bloginfo( 'name' ), $data['provider_name'] );
-		$this->assertEquals( get_home_url(), $data['provider_url'] );
+		$this->assertEquals( home_url(), $data['provider_url'] );
 		$this->assertEquals( get_bloginfo( 'name' ), $data['author_name'] );
-		$this->assertEquals( get_home_url(), $data['author_url'] );
+		$this->assertEquals( home_url(), $data['author_url'] );
 		$this->assertEquals( $post->post_title, $data['title'] );
 		$this->assertEquals( 'rich', $data['type'] );
 		$this->assertTrue( $data['width'] <= $request['maxwidth'] );
