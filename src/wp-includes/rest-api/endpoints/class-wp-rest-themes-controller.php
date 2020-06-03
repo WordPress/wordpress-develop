@@ -117,6 +117,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 
 		$plain_field_mappings = array(
 			'stylesheet' => 'Stylesheet',
+			'textdomain' => 'TextDomain',
 			'version'    => 'Version',
 		);
 
@@ -339,6 +340,11 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 				),
 				'template'       => array(
 					'description' => __( 'The theme\'s template name.' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'textdomain'     => array(
+					'description' => __( 'The theme\'s textdomain.' ),
 					'type'        => 'string',
 					'readonly'    => true,
 				),
