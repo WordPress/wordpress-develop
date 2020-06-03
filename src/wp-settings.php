@@ -263,6 +263,16 @@ require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-term-meta-fields.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-user-meta-fields.php';
 require ABSPATH . WPINC . '/rest-api/search/class-wp-rest-search-handler.php';
 require ABSPATH . WPINC . '/rest-api/search/class-wp-rest-post-search-handler.php';
+require ABSPATH . WPINC . '/sitemaps.php';
+require ABSPATH . WPINC . '/sitemaps/class-wp-sitemaps.php';
+require ABSPATH . WPINC . '/sitemaps/class-wp-sitemaps-index.php';
+require ABSPATH . WPINC . '/sitemaps/class-wp-sitemaps-provider.php';
+require ABSPATH . WPINC . '/sitemaps/class-wp-sitemaps-registry.php';
+require ABSPATH . WPINC . '/sitemaps/class-wp-sitemaps-renderer.php';
+require ABSPATH . WPINC . '/sitemaps/class-wp-sitemaps-stylesheet.php';
+require ABSPATH . WPINC . '/sitemaps/providers/class-wp-sitemaps-posts.php';
+require ABSPATH . WPINC . '/sitemaps/providers/class-wp-sitemaps-taxonomies.php';
+require ABSPATH . WPINC . '/sitemaps/providers/class-wp-sitemaps-users.php';
 require ABSPATH . WPINC . '/class-wp-block-type.php';
 require ABSPATH . WPINC . '/class-wp-block-styles-registry.php';
 require ABSPATH . WPINC . '/class-wp-block-type-registry.php';
@@ -402,6 +412,9 @@ do_action( 'plugins_loaded' );
 
 // Define constants which affect functionality if not already defined.
 wp_functionality_constants();
+
+// Define sitemaps-related cconstants.
+wp_sitemaps_constants();
 
 // Add magic quotes and set up $_REQUEST ( $_GET + $_POST ).
 wp_magic_quotes();

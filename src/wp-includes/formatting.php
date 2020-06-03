@@ -4537,6 +4537,87 @@ function esc_textarea( $text ) {
 }
 
 /**
+ * Escaping for XML blocks.
+ *
+ * @since 5.5.0
+ *
+ * @param string $text Text to escape.
+ * @return string
+ */
+function esc_xml( $text ) {
+	$safe_text = wp_check_invalid_utf8( $text );
+
+	$cdata_regex = '\<\!\[CDATA\[.*?\]\]\>';
+	$regex       = <<<EOF
+/
+	(?=.*?{$cdata_regex})                 # lookahead that will match anything followed by a CDATA Section
+	(?<non_cdata_followed_by_cdata>(.*?)) # the "anything" matched by the lookahead
+	(?<cdata>({$cdata_regex}))            # the CDATA Section matched by the lookahead
+
+|	                                      # alternative
+
+	(?<non_cdata>(.*))                    # non-CDATA Section
+/sx 
+EOF;
+	$safe_text = (string) preg_replace_callback(
+		$regex,
+		function( $matches ) {
+			if ( ! $matches[0] ) {
+				return '';
+			} elseif ( ! empty( $matches['non_cdata'] ) ) {
+				// escape HTML entities in the non-CDATA Section.
+				return _esc_xml_non_cdata_section( $matches['non_cdata'] );
+			}
+
+			// Return the CDATA Section unchanged, escape HTML entities in the rest.
+			return _esc_xml_non_cdata_section( $matches['non_cdata_followed_by_cdata'] ) . $matches['cdata'];
+		},
+		$safe_text
+	);
+
+	/**
+	 * Filters a string cleaned and escaped for output in XML.
+	 *
+	 * Text passed to esc_xml() is stripped of invalid or special characters
+	 * before output. HTML named character references are converted to their
+	 * equivalent code points.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param string $safe_text The text after it has been escaped.
+	 * @param string $text      The text prior to being escaped.
+	 */
+	return apply_filters( 'esc_xml', $safe_text, $text );
+}
+
+/**
+ * Escaping for non-CDATA Section XML blocks.
+ *
+ * @access private
+ * @since 5.5.0
+ *
+ * @param string $text Text to escape.
+ * @return string
+ */
+function _esc_xml_non_cdata_section( $text ) {
+	global $allowedentitynames;
+
+	$safe_text = _wp_specialchars( $text, ENT_QUOTES );
+	// Replace HTML entities with their Unicode codepoints,
+	// without doing the same for the 5 XML entities.
+	$html_only_entities = array_diff( $allowedentitynames, array( 'amp', 'lt', 'gt', 'apos', 'quot' ) );
+	$safe_text          = (string) preg_replace_callback(
+		'/&(' . implode( '|', $html_only_entities ) . ');/',
+		function( $matches ) {
+			return html_entity_decode( $matches[0], ENT_HTML5 );
+		},
+		$safe_text
+	);
+
+	return $safe_text;
+}
+
+/**
  * Escape an HTML tag name.
  *
  * @since 2.5.0

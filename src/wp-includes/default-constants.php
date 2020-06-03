@@ -408,3 +408,19 @@ function wp_templating_constants() {
 	}
 
 }
+
+/**
+ * Defines sitemaps-related WordPress constants.
+ *
+ * @since 5.5.0
+ */
+function wp_sitemaps_constants() {
+	/**
+	 * Maximum number of URLs included in a sitemap.
+	 *
+	 * @sine 5.5.0
+	 */
+	if ( ! defined( 'WP_SITEMAPS_MAX_URLS' ) ) {
+		define( 'WP_SITEMAPS_MAX_URLS', 2000 );
+	}
+}

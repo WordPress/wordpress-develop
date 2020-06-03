@@ -337,6 +337,59 @@ function esc_html_e( $text, $domain = 'default' ) {
 }
 
 /**
+ * Retrieve the translation of $text and escapes it for safe use in XML output.
+ *
+ * If there is no translation, or the text domain isn't loaded, the original text
+ * is escaped and returned.
+ *
+ * @since 5.5.0
+ *
+ * @param string $text   Text to translate.
+ * @param string $domain Optional. Text domain. Unique identifier for retrieving translated strings.
+ *                       Default 'default'.
+ * @return string Translated text.
+ */
+function esc_xml__( $text, $domain = 'default' ) {
+	return esc_xml( translate( $text, $domain ) );
+}
+
+/**
+ * Display translated text that has been escaped for safe use in XML output.
+ *
+ * If there is no translation, or the text domain isn't loaded, the original text
+ * is escaped and displayed.
+ *
+ * If you need the value for use in PHP, use esc_xml__().
+ *
+ * @since 5.5.0
+ *
+ * @param string $text   Text to translate.
+ * @param string $domain Optional. Text domain. Unique identifier for retrieving translated strings.
+ *                       Default 'default'.
+ */
+function esc_xml_e( $text, $domain = 'default' ) {
+	echo esc_xml( translate( $text, $domain ) );
+}
+
+/**
+ * Translate string with gettext context, and escapes it for safe use in XML output.
+ *
+ * If there is no translation, or the text domain isn't loaded, the original text
+ * is escaped and returned.
+ *
+ * @since 5.5.0
+ *
+ * @param string $text    Text to translate.
+ * @param string $context Context information for the translators.
+ * @param string $domain  Optional. Text domain. Unique identifier for retrieving translated strings.
+ *                        Default 'default'.
+ * @return string Translated text.
+ */
+function esc_xml_x( $text, $context, $domain = 'default' ) {
+	return esc_xml( translate_with_gettext_context( $text, $context, $domain ) );
+}
+
+/**
  * Retrieve translated string with gettext context.
  *
  * Quite a few times, there will be collisions with similar translatable text
