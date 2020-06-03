@@ -117,19 +117,30 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 
 		$plain_field_mappings = array(
 			'stylesheet' => 'Stylesheet',
-			'template'   => 'Template',
 			'version'    => 'Version',
 		);
 
 		$plain_fields_to_include = array_intersect( array_keys( $plain_field_mappings ), $fields );
 
 		foreach ( $plain_fields_to_include as $field ) {
-			$data[ $field ] = $theme[ $plain_field_mappings[ $field ] ];
+			$data[ $field ] = $theme->get( $plain_field_mappings[ $field ] );
 		}
 
 		if ( in_array( 'screenshot', $fields, true ) ) {
 			// Using $theme->get_screenshot() with no args to get absolute URL.
 			$data['screenshot'] = $theme->get_screenshot() ?: '';
+		}
+
+		if ( in_array( 'template', $fields, true ) ) {
+			/**
+			 * @see WP_Theme::get()
+			 *
+			 * Use the get_template() method, not the 'Template' header, for finding the template.
+			 * The 'Template' header is only good for what was written in the style.css, while
+			 * get_template() takes into account where WordPress actually located the theme and
+			 * whether it is actually valid.
+			 */
+			$data['template'] = $theme->get_template();
 		}
 
 		$rich_field_mappings = array(

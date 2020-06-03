@@ -328,7 +328,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'stylesheet', $result[0] );
-		$this->assertSame( 'default', $result[0]['stylesheet'] );
+		$this->assertFalse( $result[0]['stylesheet'] );
 	}
 
 	public function test_theme_tags() {
