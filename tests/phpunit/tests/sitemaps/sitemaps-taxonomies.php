@@ -173,8 +173,8 @@ class Test_WP_Sitemaps_Taxonomies extends WP_UnitTestCase {
 		unregister_taxonomy_for_object_type( 'public_taxonomy', 'post' );
 		unregister_taxonomy_for_object_type( 'private_taxonomy', 'post' );
 
-		$this->assertContains( 'http://' . WP_TESTS_DOMAIN . '/?sitemap=taxonomies&sitemap-sub-type=public_taxonomy&paged=1', $entries, 'Public Taxonomies are not in the index.' );
-		$this->assertNotContains( 'http://' . WP_TESTS_DOMAIN . '/?sitemap=taxonomies&sitemap-sub-type=private_taxonomy&paged=1', $entries, 'Private Taxonomies are visible in the index.' );
+		$this->assertContains( 'http://' . WP_TESTS_DOMAIN . '/?sitemap=taxonomies&sitemap-subtype=public_taxonomy&paged=1', $entries, 'Public Taxonomies are not in the index.' );
+		$this->assertNotContains( 'http://' . WP_TESTS_DOMAIN . '/?sitemap=taxonomies&sitemap-subtype=private_taxonomy&paged=1', $entries, 'Private Taxonomies are visible in the index.' );
 	}
 
 	/**

@@ -113,7 +113,7 @@ class WP_Sitemaps {
 	public function register_rewrites() {
 		// Add rewrite tags.
 		add_rewrite_tag( '%sitemap%', '([^?]+)' );
-		add_rewrite_tag( '%sitemap-sub-type%', '([^?]+)' );
+		add_rewrite_tag( '%sitemap-subtype%', '([^?]+)' );
 
 		// Register index route.
 		add_rewrite_rule( '^wp-sitemap\.xml$', 'index.php?sitemap=index', 'top' );
@@ -126,7 +126,7 @@ class WP_Sitemaps {
 		// Register routes for providers.
 		add_rewrite_rule(
 			'^wp-sitemap-([a-z]+?)-([a-z\d_-]+?)-(\d+?)\.xml$',
-			'index.php?sitemap=$matches[1]&sitemap-sub-type=$matches[2]&paged=$matches[3]',
+			'index.php?sitemap=$matches[1]&sitemap-subtype=$matches[2]&paged=$matches[3]',
 			'top'
 		);
 		add_rewrite_rule(
@@ -145,7 +145,7 @@ class WP_Sitemaps {
 		global $wp_query;
 
 		$sitemap         = sanitize_text_field( get_query_var( 'sitemap' ) );
-		$object_subtype  = sanitize_text_field( get_query_var( 'sitemap-sub-type' ) );
+		$object_subtype  = sanitize_text_field( get_query_var( 'sitemap-subtype' ) );
 		$stylesheet_type = sanitize_text_field( get_query_var( 'sitemap-stylesheet' ) );
 		$paged           = absint( get_query_var( 'paged' ) );
 

@@ -136,9 +136,9 @@ abstract class WP_Sitemaps_Provider {
 				// Accounts for cases where name is not included, ex: sitemaps-users-1.xml.
 				array_filter(
 					array(
-						'sitemap'          => $this->name,
-						'sitemap-sub-type' => $name,
-						'paged'            => $page,
+						'sitemap'         => $this->name,
+						'sitemap-subtype' => $name,
+						'paged'           => $page,
 					)
 				),
 				home_url( '/' )
