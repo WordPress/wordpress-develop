@@ -154,6 +154,8 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'author_uri',
 			'description',
 			'name',
+			'requires_php',
+			'requires_wp',
 			'screenshot',
 			'stylesheet',
 			'tags',
@@ -218,7 +220,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response   = self::perform_active_theme_request( 'OPTIONS' );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 12, count( $properties ) );
+		$this->assertEquals( 14, count( $properties ) );
 
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['author']['properties'] );
@@ -236,6 +238,8 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'raw', $properties['name']['properties'] );
 		$this->assertArrayHasKey( 'rendered', $properties['name']['properties'] );
 
+		$this->assertArrayHasKey( 'requires_php', $properties );
+		$this->assertArrayHasKey( 'requires_wp', $properties );
 		$this->assertArrayHasKey( 'screenshot', $properties );
 		$this->assertArrayHasKey( 'stylesheet', $properties );
 
@@ -309,6 +313,20 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'The default WordPress theme based on the famous <a href="http://binarybonsai.com/kubrick/">Kubrick</a>.',
 			$result[0]['description']['rendered']
 		);
+	}
+
+	public function test_theme_requires_php() {
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+		$this->assertArrayHasKey( 'requires_php', $result[0] );
+		$this->assertSame( '', $result[0]['requires_php'] );
+	}
+
+	public function test_theme_requires_wp() {
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+		$this->assertArrayHasKey( 'requires_wp', $result[0] );
+		$this->assertSame( '', $result[0]['requires_wp'] );
 	}
 
 	public function test_theme_name() {

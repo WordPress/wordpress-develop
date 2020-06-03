@@ -116,9 +116,11 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		$fields = $this->get_fields_for_response( $request );
 
 		$plain_field_mappings = array(
-			'stylesheet' => 'Stylesheet',
-			'textdomain' => 'TextDomain',
-			'version'    => 'Version',
+			'requires_php' => 'RequiresPHP',
+			'requires_wp'  => 'RequiresWP',
+			'stylesheet'   => 'Stylesheet',
+			'textdomain'   => 'TextDomain',
+			'version'      => 'Version',
 		);
 
 		$plain_fields_to_include = array_intersect( array_keys( $plain_field_mappings ), $fields );
@@ -307,6 +309,16 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 							'readonly'    => true,
 						),
 					),
+				),
+				'requires_php'   => array(
+					'description' => __( 'The minimum PHP version required for the theme to work.' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'requires_wp'    => array(
+					'description' => __( 'The minimum WordPress version required for the theme to work.' ),
+					'type'        => 'string',
+					'readonly'    => true,
 				),
 				'screenshot'     => array(
 					'description' => __( 'A theme screenshot URL.' ),
