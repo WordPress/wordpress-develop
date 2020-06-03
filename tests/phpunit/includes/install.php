@@ -92,6 +92,11 @@ if ( $multisite ) {
 	$subdomain_install = false;
 
 	install_network();
-	populate_network( 1, WP_TESTS_DOMAIN, WP_TESTS_EMAIL, $title, '/', $subdomain_install );
+	$error = populate_network( 1, WP_TESTS_DOMAIN, WP_TESTS_EMAIL, $title, '/', $subdomain_install );
+
+	if ( is_wp_error( $error ) ) {
+		wp_die( $error );
+	}
+
 	$wp_rewrite->set_permalink_structure( '' );
 }
