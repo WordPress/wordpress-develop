@@ -1,28 +1,18 @@
 <?php
 
 /**
- * Class Core_Sitemaps_Empty_Provider.
+ * Class WP_Sitemaps_Empty_Test_Provider.
  *
  * Provides test data for additional registered providers.
  */
-class Core_WP_Empty_Test_Provider extends WP_Sitemaps_Provider {
+class WP_Sitemaps_Empty_Test_Provider extends WP_Sitemaps_Provider {
 	/**
-	 * Core_Sitemaps_Posts constructor.
+	 * WP_Sitemaps_Empty_Test_Provider constructor.
 	 *
 	 * @param string $object_type Optional. Object type name to use. Default 'test'.
 	 */
 	public function __construct( $object_type = 'test' ) {
 		$this->object_type = $object_type;
-	}
-
-	/**
-	 * Return the public post types, which excludes nav_items and similar types.
-	 * Attachments are also excluded. This includes custom post types with public = true
-	 *
-	 * @return array Map of object subtype objects (WP_Post_Type) keyed by their name.
-	 */
-	public function get_object_subtypes() {
-		return array();
 	}
 
 	/**

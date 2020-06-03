@@ -13,7 +13,7 @@ class Tests_Formatting_EscXml extends WP_UnitTestCase {
 	 * @param string $expected The expected escaped value of `$source`.
 	 */
 	public function test_esc_xml_basics( $source, $expected ) {
-		$actual   = esc_xml( $source );
+		$actual = esc_xml( $source );
 		$this->assertEquals( $expected, $actual );
 	}
 
@@ -67,7 +67,7 @@ class Tests_Formatting_EscXml extends WP_UnitTestCase {
 	}
 
 	public function test_ignores_existing_entities() {
-		$source   = '&#038; &#x00A3; &#x22; &amp;';
+		$source = '&#038; &#x00A3; &#x22; &amp;';
 		// note that _wp_specialchars() strips leading 0's from numeric character references.
 		$expected = '&#038; &#xA3; &#x22; &amp;';
 		$actual   = esc_xml( $source );

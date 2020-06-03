@@ -74,20 +74,20 @@ class Test_Sitemaps extends WP_UnitTestCase {
 	public static function wpSetUpBeforeClass( $factory ) {
 		self::$users     = $factory->user->create_many( 10 );
 		self::$post_tags = $factory->term->create_many( 10 );
-		self::$cats      = $factory->term->create_many( 10, array( 'taxonomy'  => 'category' ) );
+		self::$cats      = $factory->term->create_many( 10, array( 'taxonomy' => 'category' ) );
 		self::$pages     = $factory->post->create_many( 10, array( 'post_type' => 'page' ) );
 
 		// Create a set of posts pre-assigned to tags and authors.
 		self::$posts = $factory->post->create_many(
 			10,
 			array(
-				'tags_input' => self::$post_tags,
+				'tags_input'  => self::$post_tags,
 				'post_author' => reset( self::$users ),
 			)
 		);
 
 		// Create a user with an editor role to complete some tests.
-		self::$editor_id  = $factory->user->create( array( 'role' => 'editor' ) );
+		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
 
 		self::$test_provider = new WP_Sitemaps_Test_Provider();
 	}
@@ -234,7 +234,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 		array_unshift(
 			$expected,
 			array(
-				'loc'     => home_url(),
+				'loc' => home_url(),
 			)
 		);
 
@@ -327,7 +327,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 		return array_map(
 			static function ( $post ) {
 				return array(
-					'loc'     => get_permalink( $post ),
+					'loc' => get_permalink( $post ),
 				);
 			},
 			$posts
@@ -350,7 +350,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 	 */
 	public function test_robots_text() {
 		// Get the text added to the default robots text output.
-		$robots_text = apply_filters( 'robots_txt', '', true );
+		$robots_text    = apply_filters( 'robots_txt', '', true );
 		$sitemap_string = 'Sitemap: http://' . WP_TESTS_DOMAIN . '/?sitemap=index';
 
 		$this->assertContains( $sitemap_string, $robots_text, 'Sitemap URL not included in robots text.' );
@@ -360,7 +360,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 	 * Test robots.txt output for a private site.
 	 */
 	public function test_robots_text_private_site() {
-		$robots_text = apply_filters( 'robots_txt', '', false );
+		$robots_text    = apply_filters( 'robots_txt', '', false );
 		$sitemap_string = 'Sitemap: http://' . WP_TESTS_DOMAIN . '/?sitemap=index';
 
 		$this->assertNotContains( $sitemap_string, $robots_text );
@@ -374,7 +374,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 		$this->set_permalink_structure( '/%year%/%postname%/' );
 
 		// Get the text added to the default robots text output.
-		$robots_text = apply_filters( 'robots_txt', '', true );
+		$robots_text    = apply_filters( 'robots_txt', '', true );
 		$sitemap_string = 'Sitemap: http://' . WP_TESTS_DOMAIN . '/wp-sitemap.xml';
 
 		// Clean up permalinks.
@@ -388,7 +388,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 	 */
 	public function test_robots_text_prefixed_with_line_feed() {
 		// Get the text added to the default robots text output.
-		$robots_text = apply_filters( 'robots_txt', '', true );
+		$robots_text    = apply_filters( 'robots_txt', '', true );
 		$sitemap_string = "\nSitemap: ";
 
 		$this->assertContains( $sitemap_string, $robots_text, 'Sitemap URL not prefixed with "\n".' );

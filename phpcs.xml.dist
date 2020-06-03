@@ -247,6 +247,7 @@
 				<element value="WP_Tests_Image_Resize_UnitTestCase"/>
 				<element value="WP_Import_UnitTestCase"/>
 				<element value="Tests_Query_Conditionals"/>
+				<element value="WP_Test_XML_TestCase"/>
 
 				<!-- Mock classes. -->
 				<element value="Spy_REST_Server"/>

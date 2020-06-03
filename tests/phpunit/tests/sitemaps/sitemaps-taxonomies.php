@@ -31,9 +31,9 @@ class Test_WP_Sitemaps_Taxonomies extends WP_UnitTestCase {
 	 * @param WP_UnitTest_Factory $factory A WP_UnitTest_Factory object.
 	 */
 	public static function wpSetUpBeforeClass( $factory ) {
-		self::$cats      = $factory->term->create_many( 10, array( 'taxonomy'  => 'category' ) );
+		self::$cats      = $factory->term->create_many( 10, array( 'taxonomy' => 'category' ) );
 		self::$post_tags = $factory->term->create_many( 10 );
-		self::$editor_id  = $factory->user->create( array( 'role' => 'editor' ) );
+		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
 	}
 
 	/**
@@ -47,19 +47,19 @@ class Test_WP_Sitemaps_Taxonomies extends WP_UnitTestCase {
 		// Create a test post to calculate update times.
 		$post = self::factory()->post->create_and_get(
 			array(
-				'tags_input' => self::$post_tags,
+				'tags_input'    => self::$post_tags,
 				'post_category' => $categories,
 			)
 		);
 
 		$tax_provider = new WP_Sitemaps_Taxonomies();
 
-		$cat_list  = $tax_provider->get_url_list( 1, 'category' );
+		$cat_list = $tax_provider->get_url_list( 1, 'category' );
 
 		$expected_cats = array_map(
 			static function ( $id ) use ( $post ) {
 				return array(
-					'loc'     => get_term_link( $id, 'category' ),
+					'loc' => get_term_link( $id, 'category' ),
 				);
 			},
 			$categories
@@ -72,7 +72,7 @@ class Test_WP_Sitemaps_Taxonomies extends WP_UnitTestCase {
 		$expected_tags = array_map(
 			static function ( $id ) use ( $post ) {
 				return array(
-					'loc'     => get_term_link( $id, 'post_tag' ),
+					'loc' => get_term_link( $id, 'post_tag' ),
 				);
 			},
 			self::$post_tags
@@ -93,7 +93,7 @@ class Test_WP_Sitemaps_Taxonomies extends WP_UnitTestCase {
 		register_taxonomy( $taxonomy, 'post' );
 
 		// Create test terms in the custom taxonomy.
-		$terms = self::factory()->term->create_many( 10, array( 'taxonomy'  => $taxonomy ) );
+		$terms = self::factory()->term->create_many( 10, array( 'taxonomy' => $taxonomy ) );
 
 		// Create a test post applied to all test terms.
 		$post = self::factory()->post->create_and_get( array( 'tax_input' => array( $taxonomy => $terms ) ) );
@@ -101,7 +101,7 @@ class Test_WP_Sitemaps_Taxonomies extends WP_UnitTestCase {
 		$expected = array_map(
 			static function ( $id ) use ( $taxonomy, $post ) {
 				return array(
-					'loc'     => get_term_link( $id, $taxonomy ),
+					'loc' => get_term_link( $id, $taxonomy ),
 				);
 			},
 			$terms
@@ -127,7 +127,7 @@ class Test_WP_Sitemaps_Taxonomies extends WP_UnitTestCase {
 		register_taxonomy( $taxonomy, 'post', array( 'public' => false ) );
 
 		// Create test terms in the custom taxonomy.
-		$terms = self::factory()->term->create_many( 10, array( 'taxonomy'  => $taxonomy ) );
+		$terms = self::factory()->term->create_many( 10, array( 'taxonomy' => $taxonomy ) );
 
 		// Create a test post applied to all test terms.
 		self::factory()->post->create( array( 'tax_input' => array( $taxonomy => $terms ) ) );
@@ -153,8 +153,8 @@ class Test_WP_Sitemaps_Taxonomies extends WP_UnitTestCase {
 		register_taxonomy( 'private_taxonomy', 'post', array( 'public' => false ) );
 
 		// Create test terms in the custom taxonomy.
-		$public_term  = self::factory()->term->create( array( 'taxonomy'  => 'public_taxonomy' ) );
-		$private_term = self::factory()->term->create( array( 'taxonomy'  => 'private_taxonomy' ) );
+		$public_term  = self::factory()->term->create( array( 'taxonomy' => 'public_taxonomy' ) );
+		$private_term = self::factory()->term->create( array( 'taxonomy' => 'private_taxonomy' ) );
 
 		// Create a test post applied to all test terms.
 		self::factory()->post->create_and_get(
@@ -167,7 +167,7 @@ class Test_WP_Sitemaps_Taxonomies extends WP_UnitTestCase {
 		);
 
 		$tax_provider = new WP_Sitemaps_Taxonomies();
-		$entries = wp_list_pluck( $tax_provider->get_sitemap_entries(), 'loc' );
+		$entries      = wp_list_pluck( $tax_provider->get_sitemap_entries(), 'loc' );
 
 		// Clean up.
 		unregister_taxonomy_for_object_type( 'public_taxonomy', 'post' );

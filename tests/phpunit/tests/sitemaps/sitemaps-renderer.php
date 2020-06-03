@@ -88,7 +88,7 @@ class Test_WP_Sitemaps_Renderer extends WP_Test_XML_TestCase {
 	public function test_get_sitemap_index_xml_without_stylsheet() {
 		$entries = array(
 			array(
-				'loc'     => 'http://' . WP_TESTS_DOMAIN . '/wp-sitemap-posts-post-1.xml',
+				'loc' => 'http://' . WP_TESTS_DOMAIN . '/wp-sitemap-posts-post-1.xml',
 			),
 		);
 
@@ -96,8 +96,8 @@ class Test_WP_Sitemaps_Renderer extends WP_Test_XML_TestCase {
 
 		$renderer = new WP_Sitemaps_Renderer();
 
-		$xml_dom   = $this->loadXML( $renderer->get_sitemap_index_xml( $entries ) );
-		$xpath    = new DOMXPath( $xml_dom );
+		$xml_dom = $this->loadXML( $renderer->get_sitemap_index_xml( $entries ) );
+		$xpath   = new DOMXPath( $xml_dom );
 
 		$this->assertSame(
 			0,
@@ -112,19 +112,19 @@ class Test_WP_Sitemaps_Renderer extends WP_Test_XML_TestCase {
 	public function test_get_sitemap_xml() {
 		$url_list = array(
 			array(
-				'loc'     => 'http://' . WP_TESTS_DOMAIN . '/2019/10/post-1',
+				'loc' => 'http://' . WP_TESTS_DOMAIN . '/2019/10/post-1',
 			),
 			array(
-				'loc'     => 'http://' . WP_TESTS_DOMAIN . '/2019/10/post-2',
+				'loc' => 'http://' . WP_TESTS_DOMAIN . '/2019/10/post-2',
 			),
 			array(
-				'loc'     => 'http://' . WP_TESTS_DOMAIN . '/2019/10/post-3',
+				'loc' => 'http://' . WP_TESTS_DOMAIN . '/2019/10/post-3',
 			),
 			array(
-				'loc'     => 'http://' . WP_TESTS_DOMAIN . '/2019/10/post-4',
+				'loc' => 'http://' . WP_TESTS_DOMAIN . '/2019/10/post-4',
 			),
 			array(
-				'loc'     => 'http://' . WP_TESTS_DOMAIN . '/2019/10/post-5',
+				'loc' => 'http://' . WP_TESTS_DOMAIN . '/2019/10/post-5',
 			),
 		);
 
@@ -150,7 +150,7 @@ class Test_WP_Sitemaps_Renderer extends WP_Test_XML_TestCase {
 	public function test_get_sitemap_xml_without_stylsheet() {
 		$url_list = array(
 			array(
-				'loc'     => 'http://' . WP_TESTS_DOMAIN . '/2019/10/post-1',
+				'loc' => 'http://' . WP_TESTS_DOMAIN . '/2019/10/post-1',
 			),
 		);
 
@@ -158,8 +158,8 @@ class Test_WP_Sitemaps_Renderer extends WP_Test_XML_TestCase {
 
 		$renderer = new WP_Sitemaps_Renderer();
 
-		$xml_dom   = $this->loadXML( $renderer->get_sitemap_xml( $url_list ) );
-		$xpath    = new DOMXPath( $xml_dom );
+		$xml_dom = $this->loadXML( $renderer->get_sitemap_xml( $url_list ) );
+		$xpath   = new DOMXPath( $xml_dom );
 
 		$this->assertSame(
 			0,
@@ -180,14 +180,14 @@ class Test_WP_Sitemaps_Renderer extends WP_Test_XML_TestCase {
 	public function test_get_sitemap_xml_extra_elements() {
 		$url_list = array(
 			array(
-				'loc'     => 'http://' . WP_TESTS_DOMAIN . '/2019/10/post-1',
-				'string'  => 'value',
-				'number'  => 200,
+				'loc'    => 'http://' . WP_TESTS_DOMAIN . '/2019/10/post-1',
+				'string' => 'value',
+				'number' => 200,
 			),
 			array(
-				'loc'     => 'http://' . WP_TESTS_DOMAIN . '/2019/10/post-2',
-				'string'  => 'another value',
-				'number'  => 300,
+				'loc'    => 'http://' . WP_TESTS_DOMAIN . '/2019/10/post-2',
+				'string' => 'another value',
+				'number' => 300,
 			),
 		);
 

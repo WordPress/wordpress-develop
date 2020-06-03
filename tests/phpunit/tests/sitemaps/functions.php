@@ -11,9 +11,9 @@ class Test_Sitemaps_Functions extends WP_UnitTestCase {
 		// Apply a filter to test filterable values.
 		add_filter( 'wp_sitemaps_max_urls', array( $this, '_filter_max_url_value' ), 10, 2 );
 
-		$expected_posts = wp_sitemaps_get_max_urls( 'post' );
+		$expected_posts      = wp_sitemaps_get_max_urls( 'post' );
 		$expected_taxonomies = wp_sitemaps_get_max_urls( 'term' );
-		$expected_users = wp_sitemaps_get_max_urls( 'user' );
+		$expected_users      = wp_sitemaps_get_max_urls( 'user' );
 
 		$this->assertEquals( $expected_posts, 300, 'Can not confirm max URL number for posts.' );
 		$this->assertEquals( $expected_taxonomies, 50, 'Can not confirm max URL number for taxonomies.' );

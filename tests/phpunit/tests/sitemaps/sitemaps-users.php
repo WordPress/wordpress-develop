@@ -24,7 +24,7 @@ class Test_WP_Sitemaps_Users extends WP_UnitTestCase {
 	 * @param WP_UnitTest_Factory $factory A WP_UnitTest_Factory object.
 	 */
 	public static function wpSetUpBeforeClass( $factory ) {
-		self::$users = $factory->user->create_many( 10, array( 'role' => 'editor' ) );
+		self::$users     = $factory->user->create_many( 10, array( 'role' => 'editor' ) );
 		self::$editor_id = self::$users[0];
 	}
 
@@ -42,7 +42,7 @@ class Test_WP_Sitemaps_Users extends WP_UnitTestCase {
 				$post = self::factory()->post->create_and_get( array( 'post_author' => $user_id ) );
 
 				return array(
-					'loc'      => get_author_posts_url( $user_id ),
+					'loc' => get_author_posts_url( $user_id ),
 				);
 			},
 			self::$users

@@ -408,4 +408,3 @@ function wp_templating_constants() {
 	}
 
 }
-
