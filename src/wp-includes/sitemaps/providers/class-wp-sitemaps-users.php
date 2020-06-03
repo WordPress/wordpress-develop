@@ -58,16 +58,16 @@ class WP_Sitemaps_Users extends WP_Sitemaps_Provider {
 			return $url_list;
 		}
 
-		$args = $this->get_users_query_args();
+		$args          = $this->get_users_query_args();
 		$args['paged'] = $page_num;
 
-		$query = new WP_User_Query( $args );
+		$query    = new WP_User_Query( $args );
 		$users    = $query->get_results();
 		$url_list = array();
 
 		foreach ( $users as $user ) {
 			$sitemap_entry = array(
-				'loc'     => get_author_posts_url( $user->ID ),
+				'loc' => get_author_posts_url( $user->ID ),
 			);
 
 			/**
@@ -79,7 +79,7 @@ class WP_Sitemaps_Users extends WP_Sitemaps_Provider {
 			 * @param WP_User $user          User object.
 			 */
 			$sitemap_entry = apply_filters( 'wp_sitemaps_users_entry', $sitemap_entry, $user );
-			$url_list[] = $sitemap_entry;
+			$url_list[]    = $sitemap_entry;
 		}
 
 		return $url_list;
@@ -114,7 +114,7 @@ class WP_Sitemaps_Users extends WP_Sitemaps_Provider {
 			return $max_num_pages;
 		}
 
-		$args = $this->get_users_query_args();
+		$args  = $this->get_users_query_args();
 		$query = new WP_User_Query( $args );
 
 		$total_users = $query->get_total();

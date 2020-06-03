@@ -150,7 +150,25 @@ class WP_Sitemaps_Renderer {
 
 		foreach ( $sitemaps as $entry ) {
 			$sitemap = $sitemap_index->addChild( 'sitemap' );
-			$sitemap->addChild( 'loc', esc_url( $entry['loc'] ) );
+
+			// Add each element as a child node to the <sitemap> entry.
+			foreach ( $entry as $name => $value ) {
+				if ( 'loc' === $name ) {
+					$sitemap->addChild( $name, esc_url( $value ) );
+				} elseif ( 'lastmod' === $name ) {
+					$sitemap->addChild( $name, esc_attr( $value ) );
+				} else {
+					_doing_it_wrong(
+						__METHOD__,
+						/* translators: %s: list of element names */
+						sprintf(
+							__( 'Fields other than %s are not currently supported for the sitemap index.' ),
+							implode( ',', array( 'loc', 'lastmod' ) )
+						),
+						'5.5.0'
+					);
+				}
+			}
 		}
 
 		return $sitemap_index->asXML();
@@ -198,7 +216,7 @@ class WP_Sitemaps_Renderer {
 		foreach ( $url_list as $url_item ) {
 			$url = $urlset->addChild( 'url' );
 
-			// Add each element as a child node to the URL entry.
+			// Add each element as a child node to the <url> entry.
 			foreach ( $url_item as $name => $value ) {
 				if ( 'loc' === $name ) {
 					$url->addChild( $name, esc_url( $value ) );

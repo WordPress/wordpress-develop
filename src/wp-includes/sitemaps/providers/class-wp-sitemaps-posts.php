@@ -87,7 +87,7 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 			return $url_list;
 		}
 
-		$args = $this->get_posts_query_args( $post_type );
+		$args          = $this->get_posts_query_args( $post_type );
 		$args['paged'] = $page_num;
 
 		$query = new WP_Query( $args );
@@ -127,7 +127,7 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 			 * @param string  $post_type     Name of the post_type.
 			 */
 			$sitemap_entry = apply_filters( 'wp_sitemaps_posts_entry', $sitemap_entry, $post, $post_type );
-			$url_list[] = $sitemap_entry;
+			$url_list[]    = $sitemap_entry;
 		}
 
 		return $url_list;
@@ -163,8 +163,8 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 			return $max_num_pages;
 		}
 
-		$args = $this->get_posts_query_args( $post_type );
-		$args['fields'] = 'ids';
+		$args                  = $this->get_posts_query_args( $post_type );
+		$args['fields']        = 'ids';
 		$args['no_found_rows'] = false;
 
 		$query = new WP_Query( $args );

@@ -81,7 +81,7 @@ class WP_Sitemaps {
 		 * @since 5.5.0
 		 *
 		 * @param array $providers {
-		 *     Array of WP_Sitemap_Provider objects keyed by their name.
+		 *     Array of WP_Sitemaps_Provider objects keyed by their name.
 		 *
 		 *     @type object $posts      The WP_Sitemaps_Posts object.
 		 *     @type object $taxonomies The WP_Sitemaps_Taxonomies object.

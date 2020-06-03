@@ -90,7 +90,7 @@ class WP_Sitemaps_Taxonomies extends WP_Sitemaps_Provider {
 		// Offset by how many terms should be included in previous pages.
 		$offset = ( $page_num - 1 ) * wp_sitemaps_get_max_urls( $this->object_type );
 
-		$args = $this->get_taxonomies_query_args( $taxonomy );
+		$args           = $this->get_taxonomies_query_args( $taxonomy );
 		$args['offset'] = $offset;
 
 		$taxonomy_terms = new WP_Term_Query( $args );
@@ -111,7 +111,7 @@ class WP_Sitemaps_Taxonomies extends WP_Sitemaps_Provider {
 				 * @param string  $taxonomy      Taxonomy name.
 				 */
 				$sitemap_entry = apply_filters( 'wp_sitemaps_taxonomies_entry', $sitemap_entry, $term, $taxonomy );
-				$url_list[] = $sitemap_entry;
+				$url_list[]    = $sitemap_entry;
 			}
 		}
 

@@ -109,9 +109,24 @@ abstract class WP_Sitemaps_Provider {
 		foreach ( $sitemap_types as $type ) {
 			for ( $page = 1; $page <= $type['pages']; $page ++ ) {
 				$loc        = $this->get_sitemap_url( $type['name'], $page );
-				$sitemaps[] = array(
-					'loc' => $loc,
+				$sitemap_entry = array(
+					'loc' => $this->get_sitemap_url( $type['name'], $page ),
 				);
+
+				/**
+				 * Filters the sitemap entry for the sitemap index.
+				 *
+				 * @since 5.5.0
+				 *
+				 * @param array  $sitemap_entry  Sitemap entry for the post.
+				 * @param string $object_type    Object empty name.
+				 * @param string $object_subtype Object subtype name.
+				 *                               Empty string if the object type does not support subtypes.
+				 * @param string $page           Page of results.
+				 */
+				$sitemap_entry = apply_filters( 'wp_sitemaps_index_entry', $sitemap_entry, $this->object_type, $type['name'], $page );
+
+				$sitemaps[] = $sitemap_entry;
 			}
 		}
 

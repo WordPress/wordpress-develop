@@ -163,6 +163,7 @@ XSL;
 		);
 		$lang        = get_language_attributes( 'html' );
 		$url         = esc_html__( 'URL' );
+		$lastmod     = esc_html__( 'Last Modified' );
 
 		$xsl_content = <<<XSL
 <?xml version="1.0" encoding="UTF-8"?>
@@ -174,6 +175,12 @@ XSL;
 		>
 
 	<xsl:output method="html" encoding="UTF-8" indent="yes" />
+	
+	<!--
+	  Set variables for whether lastmod occurs for any sitemap in the index.
+	  We do this up front because it can be expensive in a large sitemap.
+	  -->
+	<xsl:variable name="has-lastmod"    select="count( /sitemap:sitemapindex/sitemap:sitemap/sitemap:lastmod )" />
 
 	<xsl:template match="/">
 		<html {$lang}>
@@ -192,12 +199,18 @@ XSL;
 						<thead>
 							<tr>
 								<th class="loc">{$url}</th>
+								<xsl:if test="\$has-lastmod">
+									<th class="lastmod">{$lastmod}</th>
+								</xsl:if>
 							</tr>
 						</thead>
 						<tbody>
 							<xsl:for-each select="sitemap:sitemapindex/sitemap:sitemap">
 								<tr>
 									<td class="loc"><a href="{sitemap:loc}"><xsl:value-of select="sitemap:loc" /></a></td>
+									<xsl:if test="\$has-lastmod">
+										<td class="lastmod"><xsl:value-of select="sitemap:lastmod" /></td>
+									</xsl:if>
 								</tr>
 							</xsl:for-each>
 						</tbody>
