@@ -60,14 +60,13 @@ class WP_Sitemaps {
 	 */
 	public function init() {
 		// These will all fire on the init hook.
+		$this->register_rewrites();
 		$this->register_sitemaps();
 
 		// Add additional action callbacks.
-		add_action( 'wp_sitemaps_init', array( $this, 'register_rewrites' ) );
 		add_action( 'template_redirect', array( $this, 'render_sitemaps' ) );
 		add_filter( 'pre_handle_404', array( $this, 'redirect_sitemapxml' ), 10, 2 );
 		add_filter( 'robots_txt', array( $this, 'add_robots' ), 0, 2 );
-		add_filter( 'redirect_canonical', array( $this, 'redirect_canonical' ) );
 	}
 
 	/**
@@ -232,21 +231,5 @@ class WP_Sitemaps {
 		}
 
 		return $output;
-	}
-
-	/**
-	 * Prevent trailing slashes.
-	 *
-	 * @since 5.5.0
-	 *
-	 * @param string $redirect The redirect URL currently determined.
-	 * @return bool|string $redirect The canonical redirect URL.
-	 */
-	public function redirect_canonical( $redirect ) {
-		if ( get_query_var( 'sitemap' ) || get_query_var( 'sitemap-stylesheet' ) ) {
-			return false;
-		}
-
-		return $redirect;
 	}
 }

@@ -673,6 +673,11 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		$redirect['host'] = $original['host'];
 	}
 
+	// Remove trailing slash for sitemaps requests.
+	if ( get_query_var( 'sitemap' ) || get_query_var( 'sitemap-stylesheet' ) ) {
+		$redirect['path'] = untrailingslashit( $redirect['path'] );
+	}
+
 	$compare_original = array( $original['host'], $original['path'] );
 
 	if ( ! empty( $original['port'] ) ) {
