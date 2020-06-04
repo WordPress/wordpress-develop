@@ -26,6 +26,9 @@ env:
     - PHP_FPM_UID: "`id -u`"
     - PHP_FPM_GID: "`id -g`"
     - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+    - GITHUB_USERNAME: swissspidy
+    # GITHUB_TOKEN
+    - secure: RorHhmE4oo4x80H/+xWChcFxrUY4t1CiE8KrSUZZoxVUWP2FMClb7WFGli4rkAYjw127QV71nE4bWFAvMpACHK17WhrD6fGpx/GJPXCmQlKt6ROB0rECwfqhHN3GCBEdpceFZ06+HK4Ligcumbee/swmLxGNozvI5qzzpzJCHlv+GOEpsd83Eu1lZUwJO6DNULlcZYzwifMBlhA0clzwb5qBOJrUtWlLAGdVM58LJxgdIvIUqwavowLZfGidPs1NPAEFFWOzPS5Jzg8SCt41qDyirTCAHZKpBm47p12P65XAfN84pjXdGtYdMfEz8rBdFPO/lxS2cqNTYV/tikLJa7U6sR1YxbtLvymM+KnBDnjywdO70+tWE9+NHULAzVkt6KIs1+ma9C5iBdXG7rKzal7DcfHVmun9PYmh9joVtKiW8RAuai8UKCmNJz/HeNZvZFh0QKecrSVV3e1SPpscbbohICPLWK/MZypqeGuwUBDWl5JxdQE6DYrcFC+0QKgl5tozWfPGW/tA1gJvt4IeNXo4NRRrfOuT9Yx5BxM6WJeq4Cv7g8hctde5/SypcrZ3Iv6yoyoUq8G1fQw84rBDNbLkzztogjJFWU4Gj/g24N0E5XwWdP8VTsn+SGopMtPeB5XC9M0mYpiCfyYKybVnGct2DAGPAE8nV8sVJRICsPg=
 
 jobs:
   include:
@@ -58,6 +61,7 @@ jobs:
   fast_finish: true
 
 before_install:
+- echo "$GITHUB_TOKEN" | docker login docker.pkg.github.com -u "$GITHUB_USERNAME" --password-stdin
 - |
   if [[ "$WP_TRAVISCI" == "test:php" ]]; then
       travis_retry svn checkout -r 2170172 https://plugins.svn.wordpress.org/wordpress-importer/trunk/ tests/phpunit/data/plugins/wordpress-importer
