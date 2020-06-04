@@ -1371,6 +1371,7 @@ class WP_REST_Server {
 	 * @return string Raw request data.
 	 */
 	public static function get_raw_data() {
+		// phpcs:disable PHPCompatibility.Variables.RemovedPredefinedGlobalVariables.http_raw_post_dataDeprecatedRemoved
 		global $HTTP_RAW_POST_DATA;
 
 		/*
@@ -1382,6 +1383,7 @@ class WP_REST_Server {
 		}
 
 		return $HTTP_RAW_POST_DATA;
+		// phpcs:enable
 	}
 
 	/**
