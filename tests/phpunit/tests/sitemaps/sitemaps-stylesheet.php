@@ -19,10 +19,10 @@ class Test_WP_Sitemaps_Stylesheet extends WP_UnitTestCase {
 	/**
 	 * Test that sitemap index stylesheet content can be filtered.
 	 */
-	public function test_filter_sitemaps_index_stylesheet_content() {
+	public function test_filter_sitemaps_stylesheet_index_content() {
 		$stylesheet = new WP_Sitemaps_Stylesheet();
 
-		add_filter( 'wp_sitemaps_index_stylesheet_content', '__return_empty_string' );
+		add_filter( 'wp_sitemaps_stylesheet_index_content', '__return_empty_string' );
 		$content = $stylesheet->get_sitemap_index_stylesheet();
 
 		$this->assertSame( '', $content, 'Could not filter sitemap index stylesheet content' );

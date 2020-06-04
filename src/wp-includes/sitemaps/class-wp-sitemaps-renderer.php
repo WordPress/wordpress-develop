@@ -156,7 +156,7 @@ class WP_Sitemaps_Renderer {
 				if ( 'loc' === $name ) {
 					$sitemap->addChild( $name, esc_url( $value ) );
 				} elseif ( 'lastmod' === $name ) {
-					$sitemap->addChild( $name, esc_attr( $value ) );
+					$sitemap->addChild( $name, esc_xml( $value ) );
 				} else {
 					_doing_it_wrong(
 						__METHOD__,
@@ -221,7 +221,7 @@ class WP_Sitemaps_Renderer {
 				if ( 'loc' === $name ) {
 					$url->addChild( $name, esc_url( $value ) );
 				} elseif ( in_array( $name, array( 'lastmod', 'changefreq', 'priority' ), true ) ) {
-					$url->addChild( $name, esc_attr( $value ) );
+					$url->addChild( $name, esc_xml( $value ) );
 				} else {
 					_doing_it_wrong(
 						__METHOD__,
@@ -255,7 +255,7 @@ class WP_Sitemaps_Renderer {
 
 			wp_die(
 				sprintf(
-				/* translators: %s: SimpleXML */
+					/* translators: %s: SimpleXML */
 					__( 'Could not generate XML sitemap due to missing %s extension' ),
 					'SimpleXML'
 				),

@@ -30,15 +30,4 @@ class Test_WP_Sitemaps_Registry extends WP_UnitTestCase {
 		$this->assertCount( 1, $sitemaps );
 		$this->assertSame( $sitemaps['foo'], $provider1, 'Can not confirm sitemap registration is working.' );
 	}
-
-	public function test_add_sitemap_invalid_type() {
-		$provider = null;
-		$registry = new WP_Sitemaps_Registry();
-
-		$actual   = $registry->add_sitemap( 'foo', $provider );
-		$sitemaps = $registry->get_sitemaps();
-
-		$this->assertFalse( $actual );
-		$this->assertCount( 0, $sitemaps );
-	}
 }
