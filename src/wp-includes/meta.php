@@ -1580,7 +1580,7 @@ function filter_default_metadata( $value, $meta_type, $meta_key, $single, $objec
 	$defaults = array();
 	foreach ( $wp_meta_keys[ $meta_type ] as $sub_type => $meta_data ) {
 		foreach ( $meta_data as $_meta_key => $args ) {
-			if ( $_meta_key === $meta_key && isset( $args['default'] ) ) {
+			if ( $_meta_key === $meta_key && array_key_exists( 'default', $args ) ) {
 				$defaults[ $sub_type ] = $args;
 			}
 		}
