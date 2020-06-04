@@ -2312,7 +2312,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		 * By default, the value will be true if the part contains \ ( & } = or comments. Return true to allow the part to
 		 * be included in the output.
 		 */
-		$unsafe_css_found = apply_filters( 'safecss_unsafe_css_found', $unsafe_css_found, $css_test_string );
+		$unsafe_css_found = apply_filters( 'safe_style_css_has_disallowed_chars', $unsafe_css_found, $css_test_string );
 
 		 // Only add the css part if it passes the regex check.
 		if ( $found && ! $unsafe_css_found ) {
