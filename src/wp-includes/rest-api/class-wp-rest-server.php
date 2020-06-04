@@ -1371,17 +1371,21 @@ class WP_REST_Server {
 	 * @return string Raw request data.
 	 */
 	public static function get_raw_data() {
+		// phpcs:disable PHPCompatibility.Variables.RemovedPredefinedGlobalVariables.http_raw_post_dataDeprecatedRemoved
 		global $HTTP_RAW_POST_DATA;
 
-		/*
-		 * A bug in PHP < 5.2.2 makes $HTTP_RAW_POST_DATA not set by default,
-		 * but we can do it ourself.
-		 */
-		if ( ! isset( $HTTP_RAW_POST_DATA ) ) {
+		if ( isset( $HTTP_RAW_POST_DATA ) ) {
+			_doing_it_wrong( __FUNCTION__, __( '`$HTTP_RAW_POST_DATA` is deprecated in PHP 5.6 and will be removed in 7.0. Use `php://input` instead.' ), '5.5.0' );
+		} else {
+			/*
+			 * A bug in PHP < 5.2.2 makes $HTTP_RAW_POST_DATA not set by default,
+			 * but we can do it ourself.
+			 */
 			$HTTP_RAW_POST_DATA = file_get_contents( 'php://input' );
 		}
 
 		return $HTTP_RAW_POST_DATA;
+		// phpcs:enable
 	}
 
 	/**

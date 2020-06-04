@@ -15,16 +15,18 @@ define( 'XMLRPC_REQUEST', true );
 // Some browser-embedded clients send cookies. We don't want them.
 $_COOKIE = array();
 
-// A bug in PHP < 5.2.2 makes $HTTP_RAW_POST_DATA not set by default,
-// but we can do it ourself.
-if ( ! isset( $HTTP_RAW_POST_DATA ) ) {
-	$HTTP_RAW_POST_DATA = file_get_contents( 'php://input' );
-}
-
-// Fix for mozBlog and other cases where '<?xml' isn't on the very first line.
+// phpcs:disable PHPCompatibility.Variables.RemovedPredefinedGlobalVariables.http_raw_post_dataDeprecatedRemoved
 if ( isset( $HTTP_RAW_POST_DATA ) ) {
+	_doing_it_wrong( __FUNCTION__, __( '`$HTTP_RAW_POST_DATA` is deprecated in PHP 5.6 and will be removed in 7.0. Use `php://input` instead.' ), '5.5.0' );
+
+	// Fix for mozBlog and other cases where '<?xml' isn't on the very first line.
 	$HTTP_RAW_POST_DATA = trim( $HTTP_RAW_POST_DATA );
+} else {
+	// A bug in PHP < 5.2.2 makes $HTTP_RAW_POST_DATA not set by default,
+	// but we can do it ourself.
+	$HTTP_RAW_POST_DATA = trim( file_get_contents( 'php://input' ) );
 }
+// phpcs:enable
 
 /** Include the bootstrap for setting up WordPress environment */
 require_once __DIR__ . '/wp-load.php';
