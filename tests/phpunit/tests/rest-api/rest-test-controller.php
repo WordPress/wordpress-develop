@@ -39,11 +39,18 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 				'somestring'     => array(
 					'type'        => 'string',
 					'description' => 'A pretty string.',
+					'minLength'   => 3,
+					'maxLength'   => 3,
+					'pattern'     => '[a-zA-Z]+',
 					'context'     => array( 'view' ),
 				),
 				'someinteger'    => array(
-					'type'    => 'integer',
-					'context' => array( 'view' ),
+					'type'             => 'integer',
+					'minimum'          => 100,
+					'maximum'          => 200,
+					'exclusiveMinimum' => true,
+					'exclusiveMaximum' => true,
+					'context'          => array( 'view' ),
 				),
 				'someboolean'    => array(
 					'type'    => 'boolean',
@@ -92,6 +99,26 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 					'enum'    => array( 'a', 'b', 'c' ),
 					'context' => array( 'view' ),
 					'default' => 'a',
+				),
+				'somearray'      => array(
+					'type'    => 'array',
+					'items'   => array(
+						'type' => 'string',
+					),
+					'context' => array( 'view' ),
+				),
+				'someobject'     => array(
+					'type'                 => 'object',
+					'additionalProperties' => array(
+						'type' => 'string',
+					),
+					'properties'           => array(
+						'object_id' => array(
+							'type' => 'integer',
+						),
+					),
+					'ignored_prop'         => 'ignored_prop',
+					'context'              => array( 'view' ),
 				),
 			),
 		);
