@@ -79,11 +79,11 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 			array(
 				'args'   => array(
 					'name'      => array(
-						'description' => __( 'Block name', 'gutenberg' ),
+						'description' => __( 'Block name' ),
 						'type'        => 'string',
 					),
 					'namespace' => array(
-						'description' => __( 'Block namespace', 'gutenberg' ),
+						'description' => __( 'Block namespace' ),
 						'type'        => 'string',
 					),
 				),
@@ -180,7 +180,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 			}
 		}
 
-		return new WP_Error( 'rest_block_type_cannot_view', __( 'Sorry, you are not allowed to manage block types.', 'gutenberg' ), array( 'status' => rest_authorization_required_code() ) );
+		return new WP_Error( 'rest_block_type_cannot_view', __( 'Sorry, you are not allowed to manage block types.' ), array( 'status' => rest_authorization_required_code() ) );
 	}
 
 	/**
@@ -192,7 +192,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	protected function get_block( $name ) {
 		$block_type = $this->block_registry->get_registered( $name );
 		if ( empty( $block_type ) ) {
-			return new WP_Error( 'rest_block_type_invalid', __( 'Invalid block type.', 'gutenberg' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_block_type_invalid', __( 'Invalid block type.' ), array( 'status' => 404 ) );
 		}
 
 		return $block_type;
@@ -338,35 +338,35 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 			'type'       => 'object',
 			'properties' => array(
 				'title'         => array(
-					'description' => __( 'Title of block type.', 'gutenberg' ),
+					'description' => __( 'Title of block type.' ),
 					'type'        => 'string',
 					'default'     => '',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'name'          => array(
-					'description' => __( 'Unique name identifying the block type.', 'gutenberg' ),
+					'description' => __( 'Unique name identifying the block type.' ),
 					'type'        => 'string',
 					'default'     => '',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'description'   => array(
-					'description' => __( 'Description of block type.', 'gutenberg' ),
+					'description' => __( 'Description of block type.' ),
 					'type'        => 'string',
 					'default'     => '',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'icon'          => array(
-					'description' => __( 'Icon of block type.', 'gutenberg' ),
+					'description' => __( 'Icon of block type.' ),
 					'type'        => array( 'string', 'null' ),
 					'default'     => null,
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'attributes'    => array(
-					'description'          => __( 'Block attributes.', 'gutenberg' ),
+					'description'          => __( 'Block attributes.' ),
 					'type'                 => array( 'object', 'null' ),
 					'properties'           => array(),
 					'default'              => null,
@@ -377,7 +377,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'readonly'             => true,
 				),
 				'supports'      => array(
-					'description' => __( 'Block supports.', 'gutenberg' ),
+					'description' => __( 'Block supports.' ),
 					'type'        => 'object',
 					'default'     => array(),
 					'properties'  => array(),
@@ -385,49 +385,49 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 				),
 				'category'      => array(
-					'description' => __( 'Block category.', 'gutenberg' ),
+					'description' => __( 'Block category.' ),
 					'type'        => array( 'string', null ),
 					'default'     => null,
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'is_dynamic'    => array(
-					'description' => __( 'Is the block dynamically rendered.', 'gutenberg' ),
+					'description' => __( 'Is the block dynamically rendered.' ),
 					'type'        => 'boolean',
 					'default'     => false,
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'editor_script' => array(
-					'description' => __( 'Editor script handle.', 'gutenberg' ),
+					'description' => __( 'Editor script handle.' ),
 					'type'        => array( 'string', null ),
 					'default'     => null,
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'script'        => array(
-					'description' => __( 'Public facing script handle.', 'gutenberg' ),
+					'description' => __( 'Public facing script handle.' ),
 					'type'        => array( 'string', null ),
 					'default'     => null,
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'editor_style'  => array(
-					'description' => __( 'Editor style handle.', 'gutenberg' ),
+					'description' => __( 'Editor style handle.' ),
 					'type'        => array( 'string', null ),
 					'default'     => null,
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'style'         => array(
-					'description' => __( 'Public facing style handle.', 'gutenberg' ),
+					'description' => __( 'Public facing style handle.' ),
 					'type'        => array( 'string', null ),
 					'default'     => null,
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'styles'        => array(
-					'description'          => __( 'Block style variations.', 'gutenberg' ),
+					'description'          => __( 'Block style variations.' ),
 					'type'                 => 'array',
 					'properties'           => array(),
 					'additionalProperties' => array(
@@ -438,14 +438,14 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'readonly'             => true,
 				),
 				'textdomain'    => array(
-					'description' => __( 'Public text domain.', 'gutenberg' ),
+					'description' => __( 'Public text domain.' ),
 					'type'        => array( 'string', 'null' ),
 					'default'     => null,
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'parent'        => array(
-					'description' => __( 'Parent blocks.', 'gutenberg' ),
+					'description' => __( 'Parent blocks.' ),
 					'type'        => array( 'array', 'null' ),
 					'items'       => array(
 						'type' => 'string',
@@ -455,7 +455,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 				),
 				'keywords'      => array(
-					'description' => __( 'Block keywords.', 'gutenberg' ),
+					'description' => __( 'Block keywords.' ),
 					'type'        => 'array',
 					'items'       => array(
 						'type' => 'string',
@@ -465,7 +465,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 				),
 				'example'       => array(
-					'description'          => __( 'Block example.', 'gutenberg' ),
+					'description'          => __( 'Block example.' ),
 					'type'                 => array( 'object', 'null' ),
 					'default'              => null,
 					'properties'           => array(),
@@ -492,7 +492,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 		$new_params              = array();
 		$new_params['context']   = $this->get_context_param( array( 'default' => 'view' ) );
 		$new_params['namespace'] = array(
-			'description' => __( 'Block namespace.', 'gutenberg' ),
+			'description' => __( 'Block namespace.' ),
 			'type'        => 'string',
 		);
 		return $new_params;
