@@ -42,12 +42,8 @@ class WP_Sitemaps_Registry {
 	 * @param WP_Sitemaps_Provider $provider Instance of a WP_Sitemaps_Provider.
 	 * @return bool True if the sitemap was added, false if it is already registered.
 	 */
-	public function add_sitemap( $name, $provider ) {
+	public function add_sitemap( $name, WP_Sitemaps_Provider $provider ) {
 		if ( isset( $this->sitemaps[ $name ] ) ) {
-			return false;
-		}
-
-		if ( ! $provider instanceof WP_Sitemaps_Provider ) {
 			return false;
 		}
 

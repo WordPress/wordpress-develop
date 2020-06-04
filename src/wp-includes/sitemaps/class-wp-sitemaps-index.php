@@ -32,7 +32,7 @@ class WP_Sitemaps_Index {
 	 *
 	 * @param WP_Sitemaps_Registry $registry Sitemap provider registry.
 	 */
-	public function __construct( $registry ) {
+	public function __construct( WP_Sitemaps_Registry $registry ) {
 		$this->registry = $registry;
 	}
 
