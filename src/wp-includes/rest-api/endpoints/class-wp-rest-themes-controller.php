@@ -260,18 +260,20 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 				),
 				'author_uri'     => array(
 					'description' => __( 'The website of the theme author.' ),
-					'format'      => 'uri',
 					'type'        => 'object',
+					'format'      => 'uri',
 					'readonly'    => true,
 					'properties'  => array(
 						'raw'      => array(
 							'description' => __( 'The website of the theme author, as found in the theme header.' ),
-							'type'        => 'uri',
+							'type'        => 'string',
+							'format'      => 'uri',
 							'readonly'    => true,
 						),
 						'rendered' => array(
 							'description' => __( 'The website of the theme author, transformed for display.' ),
-							'type'        => 'uri',
+							'type'        => 'string',
+							'format'      => 'uri',
 							'readonly'    => true,
 						),
 					),
@@ -629,17 +631,19 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 				'theme_uri'      => array(
 					'description' => __( 'The URI of the theme\'s webpage.' ),
 					'type'        => 'object',
-					'readonly'    => true,
 					'format'      => 'uri',
+					'readonly'    => true,
 					'properties'  => array(
 						'raw'      => array(
 							'description' => __( 'The URI of the theme\'s webpage, as found in the theme header.' ),
-							'type'        => 'uri',
+							'type'        => 'string',
+							'format'      => 'uri',
 							'readonly'    => true,
 						),
 						'rendered' => array(
 							'description' => __( 'The URI of the theme\'s webpage, transformed for display.' ),
-							'type'        => 'uri',
+							'type'        => 'string',
+							'format'      => 'uri',
 							'readonly'    => true,
 						),
 					),
