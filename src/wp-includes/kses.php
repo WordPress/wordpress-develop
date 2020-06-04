@@ -2302,17 +2302,20 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		}
 
 		// Check for any CSS containing \ ( & } = or comments, except for url() usage checked above.
-		$unsafe_css_found = preg_match( '%[\\\(&=}]|/\*%', $css_test_string );
+		$unsafe_css_found = (bool) preg_match( '%[\\\(&=}]|/\*%', $css_test_string );
 
 		/**
-		 * Filter the check for unsafe CSS in `safecss_filter_attr`.
+		 * Filters the check for unsafe CSS in `safecss_filter_attr`.
 		 *
 		 * Enables developers to filter the value that determines whether a section of CSS part disallowed characters.
 		 *
 		 * By default, the value will be true if the part contains \ ( & } = or comments. Return true to allow the part to
 		 * be included in the output.
+		 *
+		 * @param bool   $unsafe_css_found Whether unsafe CSS is found in the test string.
+		 * @param string $css_test_string  The css string to test.
 		 */
-		$unsafe_css_found = apply_filters( 'safe_style_css_has_disallowed_chars', $unsafe_css_found, $css_test_string );
+		$unsafe_css_found = apply_filters( 'safe_style_css_has_unsafe_css', $unsafe_css_found, $css_test_string );
 
 		 // Only add the css part if it passes the regex check.
 		if ( $found && ! $unsafe_css_found ) {
