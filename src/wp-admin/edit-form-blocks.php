@@ -159,7 +159,7 @@ $available_templates = wp_get_theme()->get_page_templates( get_post( $post->ID )
 $available_templates = ! empty( $available_templates ) ? array_merge(
 	array(
 		/** This filter is documented in wp-admin/includes/meta-boxes.php */
-		'' => apply_filters( 'default_page_template_title', __( 'Default template' ), 'rest-api' ),
+		'default' => apply_filters( 'default_page_template_title', __( 'Default template' ), 'rest-api' ),
 	),
 	$available_templates
 ) : $available_templates;
