@@ -15,7 +15,6 @@
  * @since 5.5.0
  */
 abstract class WP_Sitemaps_Provider {
-
 	/**
 	 * Provider name.
 	 *

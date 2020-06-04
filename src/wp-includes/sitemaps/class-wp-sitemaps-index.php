@@ -16,7 +16,6 @@
  * @since 5.5.0
  */
 class WP_Sitemaps_Index {
-
 	/**
 	 * The main registry of supported sitemaps.
 	 *
