@@ -100,6 +100,10 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/media',
 			'/wp/v2/media/(?P<id>[\\d]+)',
 			'/wp/v2/media/(?P<id>[\\d]+)/post-process',
+			'/wp/v2/menu-items',
+			'/wp/v2/menu-items/(?P<id>[\d]+)',
+			'/wp/v2/menu-items/(?P<id>[\d]+)/autosaves',
+			'/wp/v2/menu-items/(?P<parent>[\d]+)/autosaves/(?P<id>[\d]+)',
 			'/wp/v2/blocks',
 			'/wp/v2/blocks/(?P<id>[\d]+)',
 			'/wp/v2/blocks/(?P<id>[\d]+)/autosaves',
@@ -114,6 +118,8 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/categories/(?P<id>[\\d]+)',
 			'/wp/v2/tags',
 			'/wp/v2/tags/(?P<id>[\\d]+)',
+			'/wp/v2/menus',
+			'/wp/v2/menus/(?P<id>[\d]+)',
 			'/wp/v2/users',
 			'/wp/v2/users/(?P<id>[\\d]+)',
 			'/wp/v2/users/me',
@@ -133,6 +139,8 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/block-renderer/(?P<name>core/tag-cloud)',
 			'/wp/v2/settings',
 			'/wp/v2/themes',
+			'/wp/v2/menu-locations',
+			'/wp/v2/menu-locations/(?P<location>[\w-]+)',
 		);
 
 		$this->assertEquals( $expected_routes, $routes );
