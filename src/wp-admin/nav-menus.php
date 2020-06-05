@@ -353,7 +353,7 @@ switch ( $action ) {
 					}
 
 					wp_redirect( admin_url( 'nav-menus.php?menu=' . $_nav_menu_selected_id ) );
-					exit();
+					exit;
 				}
 			} else {
 				$messages[] = '<div id="message" class="error notice is-dismissible"><p>' . __( 'Please enter a valid menu name.' ) . '</p></div>';
@@ -388,7 +388,7 @@ switch ( $action ) {
 				// If the menu ID changed, redirect to the new URL.
 				if ( $nav_menu_selected_id != $_nav_menu_selected_id ) {
 					wp_redirect( admin_url( 'nav-menus.php?menu=' . intval( $_nav_menu_selected_id ) ) );
-					exit();
+					exit;
 				}
 			}
 		}
@@ -396,7 +396,7 @@ switch ( $action ) {
 	case 'locations':
 		if ( ! $num_locations ) {
 			wp_redirect( admin_url( 'nav-menus.php' ) );
-			exit();
+			exit;
 		}
 
 		add_filter( 'screen_options_show_screen', '__return_false' );
@@ -423,12 +423,19 @@ $add_new_screen = ( isset( $_GET['menu'] ) && 0 == $_GET['menu'] ) ? true : fals
 
 $locations_screen = ( isset( $_GET['action'] ) && 'locations' === $_GET['action'] ) ? true : false;
 
+$page_count = wp_count_posts( 'page' );
+
 /*
  * If we have one theme location, and zero menus, we take them right
  * into editing their first menu.
  */
-$page_count                  = wp_count_posts( 'page' );
-$one_theme_location_no_menus = ( 1 == count( get_registered_nav_menus() ) && ! $add_new_screen && empty( $nav_menus ) && ! empty( $page_count->publish ) ) ? true : false;
+if ( 1 === count( get_registered_nav_menus() ) && ! $add_new_screen
+	&& empty( $nav_menus ) && ! empty( $page_count->publish )
+) {
+	$one_theme_location_no_menus = true;
+} else {
+	$one_theme_location_no_menus = false;
+}
 
 $nav_menus_l10n = array(
 	'oneThemeLocationNoMenus' => $one_theme_location_no_menus,
@@ -928,7 +935,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 								<?php
 								$hide_style = '';
-								if ( isset( $menu_items ) && 0 == count( $menu_items ) ) {
+								if ( isset( $menu_items ) && 0 === count( $menu_items ) ) {
 									$hide_style = 'style="display: none;"';
 								}
 

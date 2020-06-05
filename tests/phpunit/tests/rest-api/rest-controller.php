@@ -248,7 +248,34 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @dataProvider data_get_fields_for_response,
+	 * @ticket 50301
+	 */
+	public function test_get_endpoint_args_for_item_schema_arg_properties() {
+
+		$controller = new WP_REST_Test_Controller();
+		$args       = $controller->get_endpoint_args_for_item_schema();
+
+		foreach ( array( 'minLength', 'maxLength', 'pattern' ) as $property ) {
+			$this->assertArrayHasKey( $property, $args['somestring'] );
+		}
+
+		foreach ( array( 'minimum', 'maximum', 'exclusiveMinimum', 'exclusiveMaximum' ) as $property ) {
+			$this->assertArrayHasKey( $property, $args['someinteger'] );
+		}
+
+		$this->assertArrayHasKey( 'items', $args['somearray'] );
+
+		foreach ( array( 'properties', 'additionalProperties' ) as $property ) {
+			$this->assertArrayHasKey( $property, $args['someobject'] );
+		}
+
+		// Ignored properties.
+		$this->assertArrayNotHasKey( 'ignored_prop', $args['someobject'] );
+
+	}
+
+	/**
+	 * @dataProvider data_get_fields_for_response
 	 */
 	public function test_get_fields_for_response( $param, $expected ) {
 		$controller = new WP_REST_Test_Controller();
@@ -267,6 +294,8 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 				'someenum',
 				'someargoptions',
 				'somedefault',
+				'somearray',
+				'someobject',
 			),
 			$fields
 		);
@@ -298,6 +327,8 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 					'someenum',
 					'someargoptions',
 					'somedefault',
+					'somearray',
+					'someobject',
 				),
 			),
 		);

@@ -276,7 +276,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		if ( $this->has_items ) {
 			_e( 'No themes found.' );
 		} else {
-			_e( 'You do not appear to have any themes available at this time.' );
+			_e( 'No themes are currently available.' );
 		}
 	}
 
@@ -748,7 +748,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 			$action
 		);
 
-		echo '<span class="dashicons dashicons-update spin hidden"></span>';
+		echo '<span class="dashicons dashicons-update spin hidden" aria-hidden="true"></span>';
 		echo '<span class="label">' . $text . '</span>';
 		echo '</a>';
 

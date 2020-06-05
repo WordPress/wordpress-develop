@@ -44,6 +44,12 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 		return false;
 	}
 
+	$clean_namespace = trim( $namespace, '/' );
+
+	if ( $clean_namespace !== $namespace ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Namespace must not start or end with a slash.' ), '5.4.2' );
+	}
+
 	if ( ! did_action( 'rest_api_init' ) ) {
 		_doing_it_wrong(
 			'register_rest_route',
@@ -84,8 +90,8 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 		$arg_group['args'] = array_merge( $common_args, $arg_group['args'] );
 	}
 
-	$full_route = '/' . trim( $namespace, '/' ) . '/' . trim( $route, '/' );
-	rest_get_server()->register_route( $namespace, $full_route, $args, $override );
+	$full_route = '/' . $clean_namespace . '/' . trim( $route, '/' );
+	rest_get_server()->register_route( $clean_namespace, $full_route, $args, $override );
 	return true;
 }
 
@@ -500,24 +506,34 @@ function rest_ensure_request( $request ) {
 /**
  * Ensures a REST response is a response object (for consistency).
  *
- * This implements WP_HTTP_Response, allowing usage of `set_status`/`header`/etc
+ * This implements WP_REST_Response, allowing usage of `set_status`/`header`/etc
  * without needing to double-check the object. Will also allow WP_Error to indicate error
  * responses, so users should immediately check for this value.
  *
  * @since 4.4.0
  *
- * @param WP_HTTP_Response|WP_Error|mixed $response Response to check.
- * @return WP_REST_Response|mixed If response generated an error, WP_Error, if response
- *                                is already an instance, WP_HTTP_Response, otherwise
- *                                returns a new WP_REST_Response instance.
+ * @param WP_REST_Response|WP_Error|WP_HTTP_Response|mixed $response Response to check.
+ * @return WP_REST_Response|WP_Error If response generated an error, WP_Error, if response
+ *                                   is already an instance, WP_REST_Response, otherwise
+ *                                   returns a new WP_REST_Response instance.
  */
 function rest_ensure_response( $response ) {
 	if ( is_wp_error( $response ) ) {
 		return $response;
 	}
 
-	if ( $response instanceof WP_HTTP_Response ) {
+	if ( $response instanceof WP_REST_Response ) {
 		return $response;
+	}
+
+	// While WP_HTTP_Response is the base class of WP_REST_Response, it doesn't provide
+	// all the required methods used in WP_REST_Server::dispatch().
+	if ( $response instanceof WP_HTTP_Response ) {
+		return new WP_REST_Response(
+			$response->get_data(),
+			$response->get_status(),
+			$response->get_headers()
+		);
 	}
 
 	return new WP_REST_Response( $response );

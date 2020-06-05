@@ -942,7 +942,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * @ticket 40614
 	 */
-	function test_rest_ensure_response_accepts_path_string() {
+	function test_rest_ensure_request_accepts_path_string() {
 		$request = rest_ensure_request( '/wp/v2/posts' );
 		$this->assertInstanceOf( 'WP_REST_Request', $request );
 		$this->assertEquals( '/wp/v2/posts', $request->get_route() );
@@ -983,6 +983,26 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 */
 	public function test_rest_filter_response_by_context( $schema, $data, $expected ) {
 		$this->assertEquals( $expected, rest_filter_response_by_context( $data, $schema, 'view' ) );
+	}
+
+	/**
+	 * @ticket 49749
+	 */
+	public function test_register_route_with_invalid_namespace() {
+		$this->setExpectedIncorrectUsage( 'register_rest_route' );
+
+		register_rest_route(
+			'/my-namespace/v1/',
+			'/my-route',
+			array(
+				'callback' => '__return_true',
+			)
+		);
+
+		$routes = rest_get_server()->get_routes( 'my-namespace/v1' );
+		$this->assertCount( 2, $routes );
+
+		$this->assertTrue( rest_do_request( '/my-namespace/v1/my-route' )->get_data() );
 	}
 
 	public function _dp_rest_filter_response_by_context() {
@@ -1293,6 +1313,40 @@ class Tests_REST_API extends WP_UnitTestCase {
 					),
 				),
 			),
+		);
+	}
+
+	function test_rest_ensure_response_accepts_wp_error_and_returns_wp_error() {
+		$response = rest_ensure_response( new WP_Error() );
+		$this->assertInstanceOf( 'WP_Error', $response );
+	}
+
+	/**
+	 * @dataProvider rest_ensure_response_data_provider
+	 *
+	 * @param mixed $response      The response passed to rest_ensure_response().
+	 * @param mixed $expected_data The expected data a response should include.
+	 */
+	function test_rest_ensure_response_returns_instance_of_wp_rest_response( $response, $expected_data ) {
+		$response_object = rest_ensure_response( $response );
+		$this->assertInstanceOf( 'WP_REST_Response', $response_object );
+		$this->assertSame( $expected_data, $response_object->get_data() );
+	}
+
+	/**
+	 * Data provider for test_rest_ensure_response_returns_instance_of_wp_rest_response().
+	 *
+	 * @return array
+	 */
+	function rest_ensure_response_data_provider() {
+		return array(
+			array( null, null ),
+			array( array( 'chocolate' => 'cookies' ), array( 'chocolate' => 'cookies' ) ),
+			array( 123, 123 ),
+			array( true, true ),
+			array( 'chocolate', 'chocolate' ),
+			array( new WP_HTTP_Response( 'http' ), 'http' ),
+			array( new WP_REST_Response( 'rest' ), 'rest' ),
 		);
 	}
 }

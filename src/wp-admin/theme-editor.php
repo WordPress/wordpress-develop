@@ -11,7 +11,7 @@ require_once __DIR__ . '/admin.php';
 
 if ( is_multisite() && ! is_network_admin() ) {
 	wp_redirect( network_admin_url( 'theme-editor.php' ) );
-	exit();
+	exit;
 }
 
 if ( ! current_user_can( 'edit_themes' ) ) {
@@ -75,7 +75,6 @@ if ( $theme->errors() && 'theme_no_stylesheet' === $theme->errors()->get_error_c
 
 $allowed_files = array();
 $style_files   = array();
-$has_templates = false;
 
 $file_types = wp_get_theme_file_editable_extensions( $theme );
 
@@ -83,7 +82,6 @@ foreach ( $file_types as $type ) {
 	switch ( $type ) {
 		case 'php':
 			$allowed_files += $theme->get_files( 'php', -1 );
-			$has_templates  = ! empty( $allowed_files );
 			break;
 		case 'css':
 			$style_files                = $theme->get_files( 'css', -1 );
@@ -179,7 +177,7 @@ if ( ! empty( $posted_content ) ) {
 $file_description = get_file_description( $relative_file );
 $file_show        = array_search( $file, array_filter( $allowed_files ), true );
 $description      = esc_html( $file_description );
-if ( $file_description != $file_show ) {
+if ( $file_description !== $file_show ) {
 	$description .= ' <span>(' . esc_html( $file_show ) . ')</span>';
 }
 ?>
@@ -232,7 +230,7 @@ if ( $file_description != $file_show ) {
 				continue;
 			}
 
-			$selected = $a_stylesheet == $stylesheet ? ' selected="selected"' : '';
+			$selected = ( $a_stylesheet === $stylesheet ) ? ' selected="selected"' : '';
 			echo "\n\t" . '<option value="' . esc_attr( $a_stylesheet ) . '"' . $selected . '>' . $a_theme->display( 'Name' ) . '</option>';
 		}
 		?>
@@ -252,7 +250,7 @@ if ( $theme->errors() ) {
 <div id="templateside">
 	<h2 id="theme-files-label"><?php _e( 'Theme Files' ); ?></h2>
 	<ul role="tree" aria-labelledby="theme-files-label">
-		<?php if ( ( $has_templates || $theme->parent() ) && $theme->parent() ) : ?>
+		<?php if ( $theme->parent() ) : ?>
 			<li class="howto">
 				<?php
 				printf(
@@ -300,7 +298,7 @@ else :
 
 		<div>
 			<div class="editor-notices">
-				<?php if ( is_child_theme() && $theme->get_stylesheet() == get_template() ) : ?>
+				<?php if ( is_child_theme() && $theme->get_stylesheet() === get_template() ) : ?>
 					<div class="notice notice-warning inline">
 						<p>
 							<?php if ( is_writeable( $file ) ) : ?>

@@ -21,7 +21,7 @@ services:
       - ./tools/local-env/default.template:/etc/nginx/conf.d/default.template
       - ./:/var/www
 
-    # Load our config file, substituning environment variables into the config.
+    # Load our config file, substituting environment variables into the config.
     command: /bin/sh -c "envsubst '$$LOCAL_DIR' < /etc/nginx/conf.d/default.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
 
     depends_on:

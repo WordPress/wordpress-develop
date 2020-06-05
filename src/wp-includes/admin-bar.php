@@ -692,23 +692,30 @@ function wp_admin_bar_shortlink_menu( $wp_admin_bar ) {
  * @global WP_Query $wp_the_query WordPress Query object.
  * @global int      $user_id      The ID of the user being edited. Not to be confused with the
  *                                global $user_ID, which contains the ID of the current user.
+ * @global int      $post_id      The ID of the post when editing comments for a single post.
  *
  * @param WP_Admin_Bar $wp_admin_bar
  */
 function wp_admin_bar_edit_menu( $wp_admin_bar ) {
-	global $tag, $wp_the_query, $user_id;
+	global $tag, $wp_the_query, $user_id, $post_id;
 
 	if ( is_admin() ) {
-		$current_screen = get_current_screen();
-		$post           = get_post();
+		$current_screen   = get_current_screen();
+		$post             = get_post();
+		$post_type_object = null;
 
 		if ( 'post' === $current_screen->base ) {
 			$post_type_object = get_post_type_object( $post->post_type );
 		} elseif ( 'edit' === $current_screen->base ) {
 			$post_type_object = get_post_type_object( $current_screen->post_type );
+		} elseif ( 'edit-comments' === $current_screen->base && $post_id ) {
+			$post = get_post( $post_id );
+			if ( $post ) {
+				$post_type_object = get_post_type_object( $post->post_type );
+			}
 		}
 
-		if ( 'post' === $current_screen->base
+		if ( ( 'post' === $current_screen->base || 'edit-comments' === $current_screen->base )
 			&& 'add' !== $current_screen->action
 			&& ( $post_type_object )
 			&& current_user_can( 'read_post', $post->ID )

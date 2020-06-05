@@ -752,7 +752,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		// Protect against chained redirects.
 		if ( ! redirect_canonical( $redirect_url, false ) ) {
 			wp_redirect( $redirect_url, 301 );
-			exit();
+			exit;
 		} else {
 			// Debug.
 			// die("1: $redirect_url<br />2: " . redirect_canonical( $redirect_url, false ) );
@@ -824,7 +824,7 @@ function strip_fragment_from_url( $url ) {
 }
 
 /**
- * Attempts to guess the correct URL based on query vars
+ * Attempts to guess the correct URL based on query vars.
  *
  * @since 2.3.0
  *
@@ -835,8 +835,55 @@ function strip_fragment_from_url( $url ) {
 function redirect_guess_404_permalink() {
 	global $wpdb;
 
+	/**
+	 * Filters whether to do redirect guess of 404 requests.
+	 *
+	 * Passing a false value to the filter will disable the URL guessing
+	 * and return early.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param bool $do_redirect_guess Whether to do redirect guess 404 permalink.
+	 *                                Default true.
+	 */
+	if ( false === apply_filters( 'do_redirect_guess_404_permalink', true ) ) {
+		return false;
+	}
+
+	/**
+	 * Filters whether to short-circuit redirect guess of 404 requests.
+	 *
+	 * Passing a non-null value to the filter will effectively short-circuit
+	 * the URL guessing, returning the passed value instead.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param null|string $pre Whether to short-circuit redirect guess 404 permalink.
+	 *                         Default null to continue with the URL guessing.
+	 */
+	$pre = apply_filters( 'pre_redirect_guess_404_permalink', null );
+	if ( null !== $pre ) {
+		return $pre;
+	}
+
 	if ( get_query_var( 'name' ) ) {
-		$where = $wpdb->prepare( 'post_name LIKE %s', $wpdb->esc_like( get_query_var( 'name' ) ) . '%' );
+
+		/**
+		 * Filters whether to do a strict or loose guess.
+		 *
+		 * Passing a truthy value to the filter will redirect only exact post_name matches.
+		 *
+		 * @since 5.5.0
+		 *
+		 * @param bool $strict_guess Whether to do a strict/exact guess. Default false.
+		 */
+		$strict_guess = apply_filters( 'strict_redirect_guess_404_permalink', false );
+
+		if ( $strict_guess ) {
+			$where = $wpdb->prepare( 'post_name = %s', get_query_var( 'name' ) );
+		} else {
+			$where = $wpdb->prepare( 'post_name LIKE %s', $wpdb->esc_like( get_query_var( 'name' ) ) . '%' );
+		}
 
 		// If any of post_type, year, monthnum, or day are set, use them to refine the query.
 		if ( get_query_var( 'post_type' ) ) {

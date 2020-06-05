@@ -285,7 +285,7 @@ if ( $ct->errors() && ( ! is_multisite() || current_user_can( 'manage_network_th
 
 /*
 // Certain error codes are less fatal than others. We can still display theme information in most cases.
-if ( ! $ct->errors() || ( 1 == count( $ct->errors()->get_error_codes() )
+if ( ! $ct->errors() || ( 1 === count( $ct->errors()->get_error_codes() )
 	&& in_array( $ct->errors()->get_error_code(), array( 'theme_no_parent', 'theme_parent_invalid', 'theme_no_index' ) ) ) ) : ?>
 */
 
@@ -632,12 +632,12 @@ if ( ! is_multisite() && $broken_themes ) {
 				<p class="theme-autoupdate">
 				<# if ( data.autoupdate ) { #>
 					<a href="{{{ data.actions.autoupdate }}}" class="toggle-auto-update" data-slug="{{ data.id }}" data-wp-action="disable">
-						<span class="dashicons dashicons-update spin hidden"></span>
+						<span class="dashicons dashicons-update spin hidden" aria-hidden="true"></span>
 						<span class="label"><?php _e( 'Disable auto-updates' ); ?></span>
 					</a>
 				<# } else { #>
 					<a href="{{{ data.actions.autoupdate }}}" class="toggle-auto-update" data-slug="{{ data.id }}" data-wp-action="enable">
-						<span class="dashicons dashicons-update spin hidden"></span>
+						<span class="dashicons dashicons-update spin hidden" aria-hidden="true"></span>
 						<span class="label"><?php _e( 'Enable auto-updates' ); ?></span>
 					</a>
 				<# } #>

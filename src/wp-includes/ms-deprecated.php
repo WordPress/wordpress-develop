@@ -165,7 +165,7 @@ function is_main_blog() {
  *
  * @param string $email        Email address to verify.
  * @param bool   $check_domain Deprecated.
- * @return string|bool Either false or the valid email address.
+ * @return string|false Valid email address on success, false on failure.
  */
 function validate_email( $email, $check_domain = true) {
 	_deprecated_function( __FUNCTION__, '3.0.0', 'is_email()' );
@@ -282,11 +282,11 @@ function wpmu_admin_do_redirect( $url = '' ) {
 	if ( $ref ) {
 		$ref = wpmu_admin_redirect_add_updated_param( $ref );
 		wp_redirect( $ref );
-		exit();
+		exit;
 	}
 	if ( ! empty( $_SERVER['HTTP_REFERER'] ) ) {
 		wp_redirect( $_SERVER['HTTP_REFERER'] );
-		exit();
+		exit;
 	}
 
 	$url = wpmu_admin_redirect_add_updated_param( $url );
@@ -299,7 +299,7 @@ function wpmu_admin_do_redirect( $url = '' ) {
 		$url = wpmu_admin_redirect_add_updated_param( $_POST['redirect'] );
 	}
 	wp_redirect( $url );
-	exit();
+	exit;
 }
 
 /**

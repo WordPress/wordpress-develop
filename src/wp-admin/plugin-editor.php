@@ -11,7 +11,7 @@ require_once __DIR__ . '/admin.php';
 
 if ( is_multisite() && ! is_network_admin() ) {
 	wp_redirect( network_admin_url( 'plugin-editor.php' ) );
-	exit();
+	exit;
 }
 
 if ( ! current_user_can( 'edit_plugins' ) ) {
@@ -28,7 +28,7 @@ if ( empty( $plugins ) ) {
 	?>
 	<div class="wrap">
 		<h1><?php echo esc_html( $title ); ?></h1>
-		<div id="message" class="error"><p><?php _e( 'You do not appear to have any plugins available at this time.' ); ?></p></div>
+		<div id="message" class="error"><p><?php _e( 'No plugins are currently available.' ); ?></p></div>
 	</div>
 	<?php
 	require_once ABSPATH . 'wp-admin/admin-footer.php';
@@ -221,7 +221,7 @@ $content = esc_textarea( $content );
 		<?php
 		foreach ( $plugins as $plugin_key => $a_plugin ) {
 			$plugin_name = $a_plugin['Name'];
-			if ( $plugin_key == $plugin ) {
+			if ( $plugin_key === $plugin ) {
 				$selected = " selected='selected'";
 			} else {
 				$selected = '';

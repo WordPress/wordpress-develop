@@ -392,7 +392,7 @@ function get_blog_id_from_url( $domain, $path = '/' ) {
  * @since MU (3.0.0)
  *
  * @param string $user_email The email provided by the user at registration.
- * @return bool Returns true when the email address is banned.
+ * @return bool True when the email address is banned, false otherwise.
  */
 function is_email_address_unsafe( $user_email ) {
 	$banned_names = get_site_option( 'banned_email_domains' );
@@ -2099,12 +2099,14 @@ function maybe_redirect_404() {
 		 * @param string $no_blog_redirect The redirect URL defined in NOBLOGREDIRECT.
 		 */
 		$destination = apply_filters( 'blog_redirect_404', NOBLOGREDIRECT );
+
 		if ( $destination ) {
 			if ( '%siteurl%' === $destination ) {
 				$destination = network_home_url();
 			}
+
 			wp_redirect( $destination );
-			exit();
+			exit;
 		}
 	}
 }
@@ -2162,7 +2164,12 @@ function maybe_add_existing_user_to_blog() {
  *
  * @since MU (3.0.0)
  *
- * @param array $details User details.
+ * @param array $details {
+ *     User details. Must at least contain values for the keys listed below.
+ *
+ *     @type int    $user_id The ID of the user being added to the current blog.
+ *     @type string $role    The role to be assigned to the user.
+ * }
  * @return true|WP_Error|void True on success or a WP_Error object if the user doesn't exist
  *                            or could not be added. Void if $details array was not provided.
  */
