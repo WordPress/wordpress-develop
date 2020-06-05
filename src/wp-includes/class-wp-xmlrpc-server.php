@@ -621,6 +621,21 @@ class wp_xmlrpc_server extends IXR_Server {
 				'readonly' => false,
 				'option'   => 'default_ping_status',
 			),
+			'show_on_front'     => array(
+				'desc'     => __( 'What to show on the front page.' ),
+				'readonly' => false,
+				'option'   => 'show_on_front',
+			),
+			'page_on_front'     => array(
+				'desc'     => __( 'The ID of the page that should be displayed on the front page.' ),
+				'readonly' => false,
+				'option'   => 'page_on_front',
+			),
+			'page_for_posts'     => array(
+				'desc'     => __( 'The ID of the page that displays posts.' ),
+				'readonly' => false,
+				'option'   => 'page_for_posts',
+			),
 		);
 
 		/**
