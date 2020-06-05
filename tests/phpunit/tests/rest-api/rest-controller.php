@@ -269,13 +269,13 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 			$this->assertArrayHasKey( $property, $args['someobject'] );
 		}
 
-		// ignored properties
+		// Ignored properties.
 		$this->assertArrayNotHasKey( 'ignored_prop', $args['someobject'] );
 
 	}
 
 	/**
-	 * @dataProvider data_get_fields_for_response,
+	 * @dataProvider data_get_fields_for_response
 	 */
 	public function test_get_fields_for_response( $param, $expected ) {
 		$controller = new WP_REST_Test_Controller();
