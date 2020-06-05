@@ -127,6 +127,7 @@ class Tests_Ajax_Delete_Plugin extends WP_Ajax_UnitTestCase {
 	}
 
 	public function test_delete_plugin() {
+		$this->skipWithMultisite();
 		$this->_setRole( 'administrator' );
 
 		$_POST['_ajax_nonce'] = wp_create_nonce( 'updates' );

@@ -119,6 +119,7 @@ script:
       npm run test:php -- --verbose -c phpunit.xml.dist &&
       npm run test:php -- --verbose -c phpunit.xml.dist --group ajax &&
       npm run test:php -- --verbose -c tests/phpunit/multisite.xml &&
+      npm run test:php -- --verbose -c tests/phpunit/multisite.xml --group ajax &&
       npm run test:php -- --verbose -c tests/phpunit/multisite.xml --group ms-files &&
       npm run test:php -- --verbose -c phpunit.xml.dist --group external-http &&
       npm run test:php -- --verbose -c phpunit.xml.dist --group restapi-jsclient &&
