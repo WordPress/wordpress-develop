@@ -13,6 +13,50 @@ if ( ! current_user_can( 'erase_others_personal_data' ) || ! current_user_can( '
 	wp_die( __( 'Sorry, you are not allowed to erase data on this site.' ) );
 }
 
+// Contextual help - choose Help on the top right of admin panel to preview this.
+
+get_current_screen()->add_help_tab(
+	array(
+		'id'      => 'overview',
+		'title'   => __( 'Overview' ),
+		'content' => '<p>' . __( 'This screen allows you to manage requests to erase or delete personal data.' ) . '</p>' .
+			'<p>' . __( 'Deleting, anonymizing, or forgetting all data that a business or website has collected about an individual is a requirement of many Privacy Laws around the world, and is sometimes referred to as the "Right To Be Forgotten".' ) . '</p>'.
+						'<p>' . __( 'The tool associates data stored in WordPress by a supplied email address, including profile data and comments.' ) . '</p>' .
+            '<p>' . __( '<strong>Note: As this tool ONLY gathers data from WordPress and participating plugins, you may need to do more to comply with erasure requests. You should also delete any data collected by or stored with any 3rd party services used by your business or site.</strong>' ) . '</p>', 
+	)
+);
+
+
+get_current_screen()->add_help_tab(
+	array(
+		'id'      => 'default-data',
+		'title'   => __( 'Default Data' ),
+		'content' => '<p>' . __( 'Personal data that is collected by WordPress and that is deleted or anonymized include:' ) . '</p>' .
+		'<p>' . __( '<strong>Profile Information</strong> - user email address, username, display name, nickname, first name, last name, description/bio, and registration date.' ) . '</p>' .
+		'<p>' . __( '<strong>Community Events Location</strong> - The IP Address of the user which is used for the Upcoming Community Events shown in the dashboard widget.' ) . '</p>' .
+		'<p>' . __( '<strong>Session Tokens</strong> - User login information, IP Addresses, Expiration Date, User Agent (Browser/OS), and Last Login.' ) . '</p>' .
+		'<p>' . __( '<strong>Comments</strong> - Comments are not deleted, but user data is anonymized, including Email Address, IP Address, and User Agent (Browser/OS).' ) . '</p>' .
+			'<p>' . __( '<strong>Media</strong> - A list of URLs for all media file uploads made by the user.' ) . '</p>',
+	)
+);
+
+get_current_screen()->add_help_tab(
+	array(
+		'id'      => 'plugin-data',
+		'title'   => __( 'Plugin Data' ),
+		'content' => '<p>' . __( 'Many plugins may collect or store personal data either in the WordPress database or remotely. Any Erase Personal Data request should delete data from plugins as well.' ) . '</p>' .
+		'<p>' . __( 'Plugin authors can <a href="https://developer.wordpress.org/plugins/privacy/adding-the-personal-data-eraser-to-your-plugin/" target=_blank"> learn more about how to add support for the Personal Data Eraser to a plugin here</a>.' ) . '</p>' .
+		'<p>' . __( 'If you are not sure, check plugin documentation or with the plugin author to see if the plugin collects data and if it supports the Data Eraser tool. This information may be available in your site <a href="/privacy-policy-guide.php">Privacy Policy Guide</a>.' ) . '</p>',
+	)
+);
+
+
+get_current_screen()->set_help_sidebar(
+	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/article/tools-erase-personal-data-screen/">Documentation on Erase Personal Data</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+);
+
 // Handle list table actions.
 _wp_personal_data_handle_actions();
 
@@ -52,6 +96,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 <div class="wrap nosubsub">
 	<h1><?php esc_html_e( 'Erase Personal Data' ); ?></h1>
+	<p><?php _e( 'This tool helps site owners comply with local laws and regulations by deleting or anonymizing known data for a given user.' ); ?></p>  
 	<hr class="wp-header-end" />
 
 	<?php settings_errors(); ?>
