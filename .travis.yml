@@ -137,6 +137,7 @@ script:
       docker-compose run --rm php composer compat
     elif [[ "$WP_TRAVISCI" == "travis:gitstatus" ]]; then
       if [ -z "$(git status --porcelain -- ':(exclude)package-lock.json')" ]; then
+        echo "Built files are up to date."
         exit;
       fi
       echo "Built files have not been committed."
