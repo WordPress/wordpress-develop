@@ -2658,26 +2658,26 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	/**
 	 * @ticket 49339
 	 */
-	public function test_update_multi_meta_value_handles_non_string_types() {
+	public function test_update_multi_meta_value_handles_integer_types() {
 		$this->grant_write_permission();
 
 		register_post_meta(
 			'post',
-			'integer',
+			'multi_integer',
 			array(
 				'type'         => 'integer',
 				'show_in_rest' => true,
 			)
 		);
 
-		$mid1 = add_post_meta( self::$post_id, 'integer', 1 );
-		$mid2 = add_post_meta( self::$post_id, 'integer', 2 );
+		$mid1 = add_post_meta( self::$post_id, 'multi_integer', 1 );
+		$mid2 = add_post_meta( self::$post_id, 'multi_integer', 2 );
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 		$request->set_body_params(
 			array(
 				'meta' => array(
-					'integer' => array( 2, 3 ),
+					'multi_integer' => array( 2, 3 ),
 				),
 			)
 		);
@@ -2685,7 +2685,98 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( array( 2, 3 ), $response->get_data()['meta']['integer'] );
+		$this->assertEquals( array( 2, 3 ), $response->get_data()['meta']['multi_integer'] );
+
+		$this->assertFalse( get_metadata_by_mid( 'post', $mid1 ) );
+		$this->assertNotFalse( get_metadata_by_mid( 'post', $mid2 ) );
+	}
+
+	/**
+	 * @ticket 49339
+	 */
+	public function test_update_multi_meta_value_handles_boolean_types() {
+		$this->grant_write_permission();
+
+		register_post_meta(
+			'post',
+			'multi_boolean',
+			array(
+				'type'              => 'boolean',
+				'sanitize_callback' => 'absint',
+				'show_in_rest'      => true,
+			)
+		);
+
+		$mid1 = add_post_meta( self::$post_id, 'multi_boolean', 1 );
+		$mid2 = add_post_meta( self::$post_id, 'multi_boolean', 0 );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'multi_boolean' => array( 0 ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEquals( array( 0 ), $response->get_data()['meta']['multi_boolean'] );
+
+		$this->assertFalse( get_metadata_by_mid( 'post', $mid1 ) );
+		$this->assertNotFalse( get_metadata_by_mid( 'post', $mid2 ) );
+	}
+
+	/**
+	 * @ticket 49339
+	 */
+	public function test_update_multi_meta_value_handles_object_types() {
+		$this->grant_write_permission();
+
+		register_post_meta(
+			'post',
+			'multi_object',
+			array(
+				'type'         => 'object',
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'a' => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$mid1 = add_post_meta( self::$post_id, 'multi_object', array( 'a' => 'ant' ) );
+		$mid2 = add_post_meta( self::$post_id, 'multi_object', array( 'a' => 'anaconda' ) );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params(
+			array(
+				'meta' => array(
+					'multi_object' => array(
+						array( 'a' => 'anaconda' ),
+						array( 'a' => 'alpaca' ),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEquals(
+			array(
+				array( 'a' => 'anaconda' ),
+				array( 'a' => 'alpaca' ),
+			),
+			$response->get_data()['meta']['multi_object']
+		);
 
 		$this->assertFalse( get_metadata_by_mid( 'post', $mid1 ) );
 		$this->assertNotFalse( get_metadata_by_mid( 'post', $mid2 ) );
