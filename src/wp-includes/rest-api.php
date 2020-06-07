@@ -986,6 +986,50 @@ function rest_cookie_collect_status() {
 }
 
 /**
+ * Retrieves the avatar urls in various sizes.
+ *
+ * @since 4.7.0
+ *
+ * @see get_avatar_url()
+ *
+ * @param mixed $id_or_email The Gravatar to retrieve a URL for. Accepts a user_id, gravatar md5 hash,
+ *                           user email, WP_User object, WP_Post object, or WP_Comment object.
+ * @return array Avatar URLs keyed by size. Each value can be a URL string or boolean false.
+ */
+function rest_get_avatar_urls( $id_or_email ) {
+	$avatar_sizes = rest_get_avatar_sizes();
+
+	$urls = array();
+	foreach ( $avatar_sizes as $size ) {
+		$urls[ $size ] = get_avatar_url( $id_or_email, array( 'size' => $size ) );
+	}
+
+	return $urls;
+}
+
+/**
+ * Retrieves the pixel sizes for avatars.
+ *
+ * @since 4.7.0
+ *
+ * @return int[] List of pixel sizes for avatars. Default `[ 24, 48, 96 ]`.
+ */
+function rest_get_avatar_sizes() {
+	/**
+	 * Filters the REST avatar sizes.
+	 *
+	 * Use this filter to adjust the array of sizes returned by the
+	 * `rest_get_avatar_sizes` function.
+	 *
+	 * @since 4.4.0
+	 *
+	 * @param int[] $sizes An array of int values that are the pixel sizes for avatars.
+	 *                     Default `[ 24, 48, 96 ]`.
+	 */
+	return apply_filters( 'rest_avatar_sizes', array( 24, 48, 96 ) );
+}
+
+/**
  * Parses an RFC3339 time into a Unix timestamp.
  *
  * @since 4.4.0
@@ -1219,47 +1263,139 @@ function rest_is_boolean( $maybe_bool ) {
 }
 
 /**
- * Retrieves the avatar urls in various sizes.
+ * Determines if a given value is integer-like.
  *
- * @since 4.7.0
+ * @since 5.5.0
  *
- * @see get_avatar_url()
- *
- * @param mixed $id_or_email The Gravatar to retrieve a URL for. Accepts a user_id, gravatar md5 hash,
- *                           user email, WP_User object, WP_Post object, or WP_Comment object.
- * @return array Avatar URLs keyed by size. Each value can be a URL string or boolean false.
+ * @param mixed $maybe_integer The value being evaluated.
+ * @return bool True if an integer, otherwise false.
  */
-function rest_get_avatar_urls( $id_or_email ) {
-	$avatar_sizes = rest_get_avatar_sizes();
-
-	$urls = array();
-	foreach ( $avatar_sizes as $size ) {
-		$urls[ $size ] = get_avatar_url( $id_or_email, array( 'size' => $size ) );
-	}
-
-	return $urls;
+function rest_is_integer( $maybe_integer ) {
+	return round( floatval( $maybe_integer ) ) === floatval( $maybe_integer );
 }
 
 /**
- * Retrieves the pixel sizes for avatars.
+ * Determines if a given value is array-like.
  *
- * @since 4.7.0
+ * @since 5.5.0
  *
- * @return int[] List of pixel sizes for avatars. Default `[ 24, 48, 96 ]`.
+ * @param mixed $maybe_array The value being evaluated.
+ * @return bool
  */
-function rest_get_avatar_sizes() {
-	/**
-	 * Filters the REST avatar sizes.
-	 *
-	 * Use this filter to adjust the array of sizes returned by the
-	 * `rest_get_avatar_sizes` function.
-	 *
-	 * @since 4.4.0
-	 *
-	 * @param int[] $sizes An array of int values that are the pixel sizes for avatars.
-	 *                     Default `[ 24, 48, 96 ]`.
-	 */
-	return apply_filters( 'rest_avatar_sizes', array( 24, 48, 96 ) );
+function rest_is_array( $maybe_array ) {
+	if ( ! is_null( $maybe_array ) ) {
+		$maybe_array = wp_parse_list( $maybe_array );
+	}
+
+	return wp_is_numeric_array( $maybe_array );
+}
+
+/**
+ * Converts an array-like value to an array.
+ *
+ * @since 5.5.0
+ *
+ * @param mixed $maybe_array The value being evaluated.
+ * @return array Returns the array extracted from the value.
+ */
+function rest_sanitize_array( $maybe_array ) {
+	if ( is_scalar( $maybe_array ) ) {
+		return wp_parse_list( $maybe_array );
+	}
+
+	if ( ! is_array( $maybe_array ) ) {
+		return array();
+	}
+
+	// Normalize to numeric array so nothing unexpected is in the keys.
+	return array_values( $maybe_array );
+}
+
+/**
+ * Determines if a given value is object-like.
+ *
+ * @since 5.5.0
+ *
+ * @param mixed $maybe_object The value being evaluated.
+ * @return bool True if object like, otherwise false.
+ */
+function rest_is_object( $maybe_object ) {
+	if ( '' === $maybe_object ) {
+		return true;
+	}
+
+	if ( $maybe_object instanceof stdClass ) {
+		return true;
+	}
+
+	if ( $maybe_object instanceof JsonSerializable ) {
+		$maybe_object = $maybe_object->jsonSerialize();
+	}
+
+	return is_array( $maybe_object );
+}
+
+/**
+ * Converts an object-like value to an object.
+ *
+ * @since 5.5.0
+ *
+ * @param mixed $maybe_object The value being evaluated.
+ * @return array Returns the object extracted from the value.
+ */
+function rest_sanitize_object( $maybe_object ) {
+	if ( '' === $maybe_object ) {
+		return array();
+	}
+
+	if ( $maybe_object instanceof stdClass ) {
+		return (array) $maybe_object;
+	}
+
+	if ( $maybe_object instanceof JsonSerializable ) {
+		$maybe_object = $maybe_object->jsonSerialize();
+	}
+
+	if ( ! is_array( $maybe_object ) ) {
+		return array();
+	}
+
+	return $maybe_object;
+}
+
+/**
+ * Gets the best type for a value.
+ *
+ * @since 5.5.0
+ *
+ * @param mixed $value The value to check.
+ * @param array $types The list of possible types.
+ * @return string The best matching type, an empty string if no types match.
+ */
+function rest_get_best_type_for_value( $value, $types ) {
+	static $checks = array(
+		'array'   => 'rest_is_array',
+		'object'  => 'rest_is_object',
+		'integer' => 'rest_is_integer',
+		'number'  => 'is_numeric',
+		'boolean' => 'rest_is_boolean',
+		'string'  => 'is_string',
+		'null'    => 'is_null',
+	);
+
+	// Both arrays and objects allow empty strings to be converted to their types.
+	// But the best answer for this type is a string.
+	if ( '' === $value && in_array( 'string', $types, true ) ) {
+		return 'string';
+	}
+
+	foreach ( $types as $type ) {
+		if ( isset( $checks[ $type ] ) && $checks[ $type ]( $value ) ) {
+			return $type;
+		}
+	}
+
+	return '';
 }
 
 /**
@@ -1288,17 +1424,14 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 	}
 
 	if ( is_array( $args['type'] ) ) {
-		foreach ( $args['type'] as $type ) {
-			$type_args         = $args;
-			$type_args['type'] = $type;
+		$best_type = rest_get_best_type_for_value( $value, $args['type'] );
 
-			if ( true === rest_validate_value_from_schema( $value, $type_args, $param ) ) {
-				return true;
-			}
+		if ( ! $best_type ) {
+			/* translators: 1: Parameter, 2: List of types. */
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, implode( ',', $args['type'] ) ) );
 		}
 
-		/* translators: 1: Parameter, 2: List of types. */
-		return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, implode( ',', $args['type'] ) ) );
+		$args['type'] = $best_type;
 	}
 
 	if ( ! in_array( $args['type'], $allowed_types, true ) ) {
@@ -1311,14 +1444,12 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 	}
 
 	if ( 'array' === $args['type'] ) {
-		if ( ! is_null( $value ) ) {
-			$value = wp_parse_list( $value );
-		}
-
-		if ( ! wp_is_numeric_array( $value ) ) {
+		if ( ! rest_is_array( $value ) ) {
 			/* translators: 1: Parameter, 2: Type name. */
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'array' ) );
 		}
+
+		$value = rest_sanitize_array( $value );
 
 		foreach ( $value as $index => $v ) {
 			$is_valid = rest_validate_value_from_schema( $v, $args['items'], $param . '[' . $index . ']' );
@@ -1339,22 +1470,12 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 	}
 
 	if ( 'object' === $args['type'] ) {
-		if ( '' === $value ) {
-			$value = array();
-		}
-
-		if ( $value instanceof stdClass ) {
-			$value = (array) $value;
-		}
-
-		if ( $value instanceof JsonSerializable ) {
-			$value = $value->jsonSerialize();
-		}
-
-		if ( ! is_array( $value ) ) {
+		if ( ! rest_is_object( $value ) ) {
 			/* translators: 1: Parameter, 2: Type name. */
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'object' ) );
 		}
+
+		$value = rest_sanitize_object( $value );
 
 		if ( isset( $args['required'] ) && is_array( $args['required'] ) ) { // schema version 4
 			foreach ( $args['required'] as $name ) {
@@ -1415,7 +1536,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, $args['type'] ) );
 	}
 
-	if ( 'integer' === $args['type'] && round( floatval( $value ) ) !== floatval( $value ) ) {
+	if ( 'integer' === $args['type'] && ! rest_is_integer( $value ) ) {
 		/* translators: 1: Parameter, 2: Type name. */
 		return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'integer' ) );
 	}
@@ -1562,25 +1683,13 @@ function rest_sanitize_value_from_schema( $value, $args ) {
 	}
 
 	if ( is_array( $args['type'] ) ) {
-		// Determine which type the value was validated against,
-		// and use that type when performing sanitization.
-		$validated_type = '';
+		$best_type = rest_get_best_type_for_value( $value, $args['type'] );
 
-		foreach ( $args['type'] as $type ) {
-			$type_args         = $args;
-			$type_args['type'] = $type;
-
-			if ( ! is_wp_error( rest_validate_value_from_schema( $value, $type_args ) ) ) {
-				$validated_type = $type;
-				break;
-			}
-		}
-
-		if ( ! $validated_type ) {
+		if ( ! $best_type ) {
 			return null;
 		}
 
-		$args['type'] = $validated_type;
+		$args['type'] = $best_type;
 	}
 
 	if ( ! in_array( $args['type'], $allowed_types, true ) ) {
@@ -1593,32 +1702,21 @@ function rest_sanitize_value_from_schema( $value, $args ) {
 	}
 
 	if ( 'array' === $args['type'] ) {
+		$value = rest_sanitize_array( $value );
+
 		if ( empty( $args['items'] ) ) {
-			return (array) $value;
+			return $value;
 		}
 
-		$value = wp_parse_list( $value );
 		foreach ( $value as $index => $v ) {
 			$value[ $index ] = rest_sanitize_value_from_schema( $v, $args['items'] );
 		}
 
-		// Normalize to numeric array so nothing unexpected is in the keys.
-		$value = array_values( $value );
 		return $value;
 	}
 
 	if ( 'object' === $args['type'] ) {
-		if ( $value instanceof stdClass ) {
-			$value = (array) $value;
-		}
-
-		if ( $value instanceof JsonSerializable ) {
-			$value = $value->jsonSerialize();
-		}
-
-		if ( ! is_array( $value ) ) {
-			return array();
-		}
+		$value = rest_sanitize_object( $value );
 
 		foreach ( $value as $property => $v ) {
 			if ( isset( $args['properties'][ $property ] ) ) {

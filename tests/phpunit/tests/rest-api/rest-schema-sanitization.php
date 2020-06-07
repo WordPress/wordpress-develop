@@ -341,7 +341,7 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 
 		$this->assertNull( rest_sanitize_value_from_schema( null, $schema ) );
 		$this->assertEquals( '2019-09-19T18:00:00', rest_sanitize_value_from_schema( '2019-09-19T18:00:00', $schema ) );
-		$this->assertNull( rest_sanitize_value_from_schema( 'lalala', $schema ) );
+		$this->assertEquals( 'lalala', rest_sanitize_value_from_schema( 'lalala', $schema ) );
 	}
 
 	/**
@@ -394,7 +394,7 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 
 		$this->assertEquals( 'My Value', rest_sanitize_value_from_schema( 'My Value', $schema ) );
 		$this->assertEquals( array( 'raw' => 'My Value' ), rest_sanitize_value_from_schema( array( 'raw' => 'My Value' ), $schema ) );
-		$this->assertNull( rest_sanitize_value_from_schema( array( 'raw' => 1 ), $schema ) );
+		$this->assertEquals( array( 'raw' => '1' ), rest_sanitize_value_from_schema( array( 'raw' => 1 ), $schema ) );
 	}
 
 	public function test_object_or_bool() {
@@ -423,6 +423,6 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 		$this->assertEquals( array( 'raw' => false ), rest_sanitize_value_from_schema( array( 'raw' => '0' ), $schema ) );
 		$this->assertEquals( array( 'raw' => false ), rest_sanitize_value_from_schema( array( 'raw' => 0 ), $schema ) );
 
-		$this->assertNull( rest_sanitize_value_from_schema( array( 'raw' => 'something non boolean' ), $schema ) );
+		$this->assertEquals( array( 'raw' => true ), rest_sanitize_value_from_schema( array( 'raw' => 'something non boolean' ), $schema ) );
 	}
 }
