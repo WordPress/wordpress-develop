@@ -123,18 +123,18 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			'version'      => 'Version',
 		);
 
-		$plain_fields_to_include = array_intersect( array_keys( $plain_field_mappings ), $fields );
-
-		foreach ( $plain_fields_to_include as $field ) {
-			$data[ $field ] = $theme->get( $plain_field_mappings[ $field ] );
+		foreach ( $plain_field_mappings as $field => $header ) {
+			if ( rest_is_field_included( $field, $fields ) ) {
+				$data[ $field ] = $theme->get( $header );
+			}
 		}
 
-		if ( in_array( 'screenshot', $fields, true ) ) {
+		if ( rest_is_field_included( 'screenshot', $fields ) ) {
 			// Using $theme->get_screenshot() with no args to get absolute URL.
 			$data['screenshot'] = $theme->get_screenshot() ?: '';
 		}
 
-		if ( in_array( 'template', $fields, true ) ) {
+		if ( rest_is_field_included( 'template', $fields ) ) {
 			/**
 			 * @see WP_Theme::get()
 			 *
@@ -157,17 +157,24 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 
 		$rich_fields_to_include = array_intersect( array_keys( $rich_field_mappings ), $fields );
 
-		foreach ( $rich_fields_to_include as $field ) {
-			$data[ $field ] = array(
-				'raw'      => $theme->display( $rich_field_mappings[ $field ], false, true ),
-				'rendered' => $theme->display( $rich_field_mappings[ $field ] ),
-			);
+		foreach ( $rich_field_mappings as $field => $header ) {
+			if ( rest_is_field_included( "{$field}.raw", $fields ) ) {
+				$data[ $field ]['raw'] = $theme->display( $header, false, true );
+			}
+
+			if ( rest_is_field_included( "{$field}.rendered", $fields ) ) {
+				$data[ $field ]['rendered'] = $theme->display( $header );
+			}
 		}
 
-		if ( in_array( 'theme_supports', $fields, true ) ) {
+		if ( rest_is_field_included( 'theme_supports', $fields ) ) {
 			$item_schemas   = $this->get_item_schema();
 			$theme_supports = $item_schemas['properties']['theme_supports']['properties'];
 			foreach ( $theme_supports as $name => $schema ) {
+				if ( ! rest_is_field_included( "theme_supports.{$name}", $fields ) ) {
+					continue;
+				}
+
 				if ( 'formats' === $name ) {
 					continue;
 				}
