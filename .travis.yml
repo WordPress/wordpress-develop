@@ -136,11 +136,11 @@ script:
     elif [[ "$WP_TRAVISCI" == "test:compat" ]]; then
       docker-compose run --rm php composer compat
     elif [[ "$WP_TRAVISCI" == "travis:gitstatus" ]]; then
-      if [ -z "$(git status --porcelain)" ]; then
+      if [ -z "$(git status --porcelain -- ':(exclude)package-lock.json')" ]; then
         exit;
       fi
       echo "Built files have not been committed."
-      git status
+      git status -- ':(exclude)package-lock.json')
       exit 1
     else
       npm run grunt $WP_TRAVISCI
