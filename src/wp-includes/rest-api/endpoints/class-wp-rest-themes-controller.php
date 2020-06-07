@@ -115,10 +115,23 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		$data   = array();
 		$fields = $this->get_fields_for_response( $request );
 
+		if ( rest_is_field_included( 'stylesheet', $fields ) ) {
+			$data['stylesheet'] = $theme->get_stylesheet();
+		}
+
+		if ( rest_is_field_included( 'template', $fields ) ) {
+			/**
+			 * Use the get_template() method, not the 'Template' header, for finding the template.
+			 * The 'Template' header is only good for what was written in the style.css, while
+			 * get_template() takes into account where WordPress actually located the theme and
+			 * whether it is actually valid.
+			 */
+			$data['template'] = $theme->get_template();
+		}
+
 		$plain_field_mappings = array(
 			'requires_php' => 'RequiresPHP',
 			'requires_wp'  => 'RequiresWP',
-			'stylesheet'   => 'Stylesheet',
 			'textdomain'   => 'TextDomain',
 			'version'      => 'Version',
 		);
@@ -132,18 +145,6 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		if ( rest_is_field_included( 'screenshot', $fields ) ) {
 			// Using $theme->get_screenshot() with no args to get absolute URL.
 			$data['screenshot'] = $theme->get_screenshot() ?: '';
-		}
-
-		if ( rest_is_field_included( 'template', $fields ) ) {
-			/**
-			 * @see WP_Theme::get()
-			 *
-			 * Use the get_template() method, not the 'Template' header, for finding the template.
-			 * The 'Template' header is only good for what was written in the style.css, while
-			 * get_template() takes into account where WordPress actually located the theme and
-			 * whether it is actually valid.
-			 */
-			$data['template'] = $theme->get_template();
 		}
 
 		$rich_field_mappings = array(
@@ -251,6 +252,11 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'readonly'    => true,
 				),
+				'template'       => array(
+					'description' => __( 'The theme\'s template. If this is a child theme, this refers to the parent theme, otherwise this is the same as the theme\'s stylesheet.' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
 				'author'         => array(
 					'description' => __( 'The theme author.' ),
 					'type'        => 'object',
@@ -346,11 +352,6 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 							'type'        => 'string',
 						),
 					),
-				),
-				'template'       => array(
-					'description' => __( 'The theme\'s template name.' ),
-					'type'        => 'string',
-					'readonly'    => true,
 				),
 				'textdomain'     => array(
 					'description' => __( 'The theme\'s textdomain.' ),

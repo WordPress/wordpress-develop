@@ -125,6 +125,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		parent::setUp();
 
 		wp_set_current_user( self::$contributor_id );
+		switch_theme( 'rest-api' );
 	}
 
 	/**
@@ -282,61 +283,82 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'wp-block-styles', $theme_supports );
 	}
 
+	/**
+	 * @ticket 49906
+	 */
 	public function test_theme_author() {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'author', $result[0] );
 		$this->assertSame( 'Michael Heilemann', $result[0]['author']['raw'] );
 		$this->assertSame(
-			'<a href="http://binarybonsai.com/">Michael Heilemann</a>',
+			'<a href="http://binarybonsai.com/?search=1&#038;term=2">Michael Heilemann</a>',
 			$result[0]['author']['rendered']
 		);
 	}
 
+	/**
+	 * @ticket 49906
+	 */
 	public function test_theme_author_uri() {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'author_uri', $result[0] );
-		$this->assertSame( 'http://binarybonsai.com/', $result[0]['author_uri']['raw'] );
-		$this->assertSame( 'http://binarybonsai.com/', $result[0]['author_uri']['rendered'] );
+		$this->assertSame( 'http://binarybonsai.com/?search=1&term=2', $result[0]['author_uri']['raw'] );
+		$this->assertSame( 'http://binarybonsai.com/?search=1&#038;term=2', $result[0]['author_uri']['rendered'] );
 	}
 
+	/**
+	 * @ticket 49906
+	 */
 	public function test_theme_description() {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'description', $result[0] );
 		$this->assertSame(
-			'The default WordPress theme based on the famous <a href="http://binarybonsai.com/kubrick/">Kubrick</a>.',
+			'The 9\' foot tall theme.',
 			$result[0]['description']['raw']
 		);
 		$this->assertSame(
-			'The default WordPress theme based on the famous <a href="http://binarybonsai.com/kubrick/">Kubrick</a>.',
+			'The 9&#8242; foot tall theme.',
 			$result[0]['description']['rendered']
 		);
 	}
 
+	/**
+	 * @ticket 49906
+	 */
 	public function test_theme_requires_php() {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'requires_php', $result[0] );
-		$this->assertSame( '', $result[0]['requires_php'] );
+		$this->assertSame( '7.4', $result[0]['requires_php'] );
 	}
 
+	/**
+	 * @ticket 49906
+	 */
 	public function test_theme_requires_wp() {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'requires_wp', $result[0] );
-		$this->assertSame( '', $result[0]['requires_wp'] );
+		$this->assertSame( '5.3', $result[0]['requires_wp'] );
 	}
 
+	/**
+	 * @ticket 49906
+	 */
 	public function test_theme_name() {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'name', $result[0] );
-		$this->assertSame( 'WordPress Default', $result[0]['name']['raw'] );
-		$this->assertSame( 'WordPress Default', $result[0]['name']['rendered'] );
+		$this->assertSame( 'REST Theme', $result[0]['name']['raw'] );
+		$this->assertSame( 'REST Theme', $result[0]['name']['rendered'] );
 	}
 
+	/**
+	 * @ticket 49906
+	 */
 	public function test_theme_screenshot() {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
@@ -344,21 +366,30 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( '', $result[0]['screenshot'] ); // No screenshot for default theme
 	}
 
+	/**
+	 * @ticket 49906
+	 */
 	public function test_theme_stylesheet() {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'stylesheet', $result[0] );
-		$this->assertFalse( $result[0]['stylesheet'] );
+		$this->assertSame( 'rest-api', $result[0]['stylesheet'] );
 	}
 
+	/**
+	 * @ticket 49906
+	 */
 	public function test_theme_tags() {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'tags', $result[0] );
-		$this->assertSame( array(), $result[0]['tags']['raw'] );
-		$this->assertSame( '', $result[0]['tags']['rendered'] );
+		$this->assertSame( array( 'holiday', 'custom-menu' ), $result[0]['tags']['raw'] );
+		$this->assertSame( 'holiday, custom-menu', $result[0]['tags']['rendered'] );
 	}
 
+	/**
+	 * @ticket 49906
+	 */
 	public function test_theme_template() {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
@@ -366,21 +397,27 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( 'default', $result[0]['template'] );
 	}
 
+	/**
+	 * @ticket 49906
+	 */
 	public function test_theme_textdomain() {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'textdomain', $result[0] );
-		$this->assertSame( '', $result[0]['textdomain'] );
+		$this->assertSame( 'rest-api', $result[0]['textdomain'] );
 	}
 
 	public function test_theme_theme_uri() {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'theme_uri', $result[0] );
-		$this->assertSame( 'http://wordpress.org/', $result[0]['theme_uri']['raw'] );
-		$this->assertSame( 'http://wordpress.org/', $result[0]['theme_uri']['rendered'] );
+		$this->assertSame( 'http://wordpress.org/?search=1&term=2', $result[0]['theme_uri']['raw'] );
+		$this->assertSame( 'http://wordpress.org/?search=1&#038;term=2', $result[0]['theme_uri']['rendered'] );
 	}
 
+	/**
+	 * @ticket 49906
+	 */
 	public function test_theme_version() {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
