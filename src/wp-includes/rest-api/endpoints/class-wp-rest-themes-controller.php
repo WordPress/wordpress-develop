@@ -155,8 +155,6 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			'theme_uri'   => 'ThemeURI',
 		);
 
-		$rich_fields_to_include = array_intersect( array_keys( $rich_field_mappings ), $fields );
-
 		foreach ( $rich_field_mappings as $field => $header ) {
 			if ( rest_is_field_included( "{$field}.raw", $fields ) ) {
 				$data[ $field ]['raw'] = $theme->display( $header, false, true );
@@ -248,6 +246,11 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			'title'      => 'theme',
 			'type'       => 'object',
 			'properties' => array(
+				'stylesheet'     => array(
+					'description' => __( 'The theme\'s stylesheet. This uniquely identifies the theme.' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
 				'author'         => array(
 					'description' => __( 'The theme author.' ),
 					'type'        => 'object',
@@ -256,32 +259,27 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 						'raw'      => array(
 							'description' => __( 'The theme author\'s name, as found in the theme header.' ),
 							'type'        => 'string',
-							'readonly'    => true,
 						),
 						'rendered' => array(
 							'description' => __( 'HTML for the theme author, transformed for display.' ),
 							'type'        => 'string',
-							'readonly'    => true,
 						),
 					),
 				),
 				'author_uri'     => array(
 					'description' => __( 'The website of the theme author.' ),
 					'type'        => 'object',
-					'format'      => 'uri',
 					'readonly'    => true,
 					'properties'  => array(
 						'raw'      => array(
 							'description' => __( 'The website of the theme author, as found in the theme header.' ),
 							'type'        => 'string',
 							'format'      => 'uri',
-							'readonly'    => true,
 						),
 						'rendered' => array(
 							'description' => __( 'The website of the theme author, transformed for display.' ),
 							'type'        => 'string',
 							'format'      => 'uri',
-							'readonly'    => true,
 						),
 					),
 				),
@@ -293,12 +291,10 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 						'raw'      => array(
 							'description' => __( 'The theme description, as found in the theme header.' ),
 							'type'        => 'string',
-							'readonly'    => true,
 						),
 						'rendered' => array(
 							'description' => __( 'The theme description, transformed for display.' ),
 							'type'        => 'string',
-							'readonly'    => true,
 						),
 					),
 				),
@@ -310,12 +306,10 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 						'raw'      => array(
 							'description' => __( 'The theme name, as found in the theme header.' ),
 							'type'        => 'string',
-							'readonly'    => true,
 						),
 						'rendered' => array(
 							'description' => __( 'The theme name, transformed for display.' ),
 							'type'        => 'string',
-							'readonly'    => true,
 						),
 					),
 				),
@@ -330,13 +324,9 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 				),
 				'screenshot'     => array(
-					'description' => __( 'A theme screenshot URL.' ),
+					'description' => __( 'The theme\'s screenshot URL.' ),
 					'type'        => 'string',
-					'readonly'    => true,
-				),
-				'stylesheet'     => array(
-					'description' => __( 'The theme\'s stylesheet.' ),
-					'type'        => 'string',
+					'format'      => 'uri',
 					'readonly'    => true,
 				),
 				'tags'           => array(
@@ -345,17 +335,15 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 					'properties'  => array(
 						'raw'      => array(
-							'description' => __( 'Theme tags, as found in the theme header.' ),
+							'description' => __( 'The theme tags, as found in the theme header.' ),
 							'type'        => 'array',
-							'readonly'    => true,
 							'items'       => array(
 								'type' => 'string',
 							),
 						),
 						'rendered' => array(
-							'description' => __( 'Theme tags, transformed for display.' ),
+							'description' => __( 'The theme tags, transformed for display.' ),
 							'type'        => 'string',
-							'readonly'    => true,
 						),
 					),
 				),
@@ -638,20 +626,17 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 				'theme_uri'      => array(
 					'description' => __( 'The URI of the theme\'s webpage.' ),
 					'type'        => 'object',
-					'format'      => 'uri',
 					'readonly'    => true,
 					'properties'  => array(
 						'raw'      => array(
 							'description' => __( 'The URI of the theme\'s webpage, as found in the theme header.' ),
 							'type'        => 'string',
 							'format'      => 'uri',
-							'readonly'    => true,
 						),
 						'rendered' => array(
 							'description' => __( 'The URI of the theme\'s webpage, transformed for display.' ),
 							'type'        => 'string',
 							'format'      => 'uri',
-							'readonly'    => true,
 						),
 					),
 				),
