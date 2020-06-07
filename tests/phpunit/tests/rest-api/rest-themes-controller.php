@@ -332,7 +332,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'requires_php', $result[0] );
-		$this->assertSame( '7.4', $result[0]['requires_php'] );
+		$this->assertSame( '5.6', $result[0]['requires_php'] );
 	}
 
 	/**
