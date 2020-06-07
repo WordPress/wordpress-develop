@@ -140,7 +140,7 @@ script:
         exit;
       fi
       echo "Built files have not been committed."
-      git status -- ':(exclude)package-lock.json')
+      git status -- ':(exclude)package-lock.json'
       exit 1
     else
       npm run grunt $WP_TRAVISCI
