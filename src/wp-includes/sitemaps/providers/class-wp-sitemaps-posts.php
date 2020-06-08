@@ -107,9 +107,19 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 		 */
 		if ( 'page' === $post_type && 1 === $page_num && 'posts' === get_option( 'show_on_front' ) ) {
 			// Extract the data needed for home URL to add to the array.
-			$url_list[] = array(
+			$sitemap_entry = array(
 				'loc' => home_url(),
 			);
+
+			/**
+			 * Filters the sitemap entry for the home page when the 'show_on_front' option equals 'posts'.
+			 *
+			 * @since 5.5.0
+			 *
+			 * @param array $sitemap_entry Sitemap entry for the home page.
+			 */
+			$sitemap_entry = apply_filters( 'wp_sitemaps_posts_show_on_front_entry', $sitemap_entry );
+			$url_list[]    = $sitemap_entry;
 		}
 
 		foreach ( $posts as $post ) {
