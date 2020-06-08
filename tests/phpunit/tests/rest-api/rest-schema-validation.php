@@ -766,4 +766,40 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertTrue( rest_validate_value_from_schema( 'â', $schema ) );
 		$this->assertWPError( rest_validate_value_from_schema( 'ââ', $schema ) );
 	}
+
+	/**
+	 * @ticket 48821
+	 */
+	public function test_array_min_items() {
+		$schema = array(
+			'type'     => 'array',
+			'minItems' => 1,
+			'items'    => array(
+				'type' => 'number',
+			),
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( array( 1, 2 ), $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( array( 1 ), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( array(), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( '', $schema ) );
+	}
+
+	/**
+	 * @ticket 48821
+	 */
+	public function test_array_max_items() {
+		$schema = array(
+			'type'     => 'array',
+			'maxItems' => 2,
+			'items'    => array(
+				'type' => 'number',
+			),
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( array( 1 ), $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( array( 1, 2 ), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( array( 1, 2, 3 ), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( 'foobar', $schema ) );
+	}
 }
