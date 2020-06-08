@@ -456,12 +456,16 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			foreach ( (array) $headers as $name => $content ) {
 				// Only add custom headers not added automatically by PHPMailer.
 				if ( ! in_array( $name, array( 'MIME-Version', 'X-Mailer' ), true ) ) {
-					$phpmailer->addCustomHeader( sprintf( '%1$s: %2$s', $name, $content ) );
+					try {
+						$phpmailer->addCustomHeader( sprintf( '%1$s: %2$s', $name, $content ) );
+					} catch ( PHPMailer\PHPMailer\Exception $e ) {
+						continue;
+					}
 				}
 			}
 
 			if ( false !== stripos( $content_type, 'multipart' ) && ! empty( $boundary ) ) {
-				$phpmailer->addCustomHeader( sprintf( "Content-Type: %s;\n\t boundary=\"%s\"", $content_type, $boundary ) );
+				$phpmailer->addCustomHeader( sprintf( 'Content-Type: %s; boundary="%s"', $content_type, $boundary ) );
 			}
 		}
 
