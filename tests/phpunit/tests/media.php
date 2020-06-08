@@ -1332,7 +1332,7 @@ EOF;
 	 */
 	function test_wp_get_attachment_image_defaults() {
 		$image    = image_downsize( self::$large_id, 'thumbnail' );
-		$expected = sprintf( '<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="" />', $image[1], $image[2], $image[0] );
+		$expected = sprintf( '<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="" loading="lazy" />', $image[1], $image[2], $image[0] );
 
 		$this->assertEquals( $expected, wp_get_attachment_image( self::$large_id ) );
 	}
@@ -1347,7 +1347,7 @@ EOF;
 		update_post_meta( self::$large_id, '_wp_attachment_image_alt', 'Some very clever alt text', true );
 
 		$image    = image_downsize( self::$large_id, 'thumbnail' );
-		$expected = sprintf( '<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="Some very clever alt text" />', $image[1], $image[2], $image[0] );
+		$expected = sprintf( '<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="Some very clever alt text" loading="lazy" />', $image[1], $image[2], $image[0] );
 
 		$this->assertEquals( $expected, wp_get_attachment_image( self::$large_id ) );
 
@@ -1964,7 +1964,7 @@ EOF;
 	/**
 	 * @ticket 33641
 	 */
-	function test_wp_make_content_images_responsive() {
+	function test_wp_filter_content_tags() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
 		$size_array = $this->_get_image_size_array_from_meta( $image_meta, 'medium' );
 
@@ -1973,6 +1973,7 @@ EOF;
 
 		// Function used to build HTML for the editor.
 		$img                  = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$img                  = wp_img_tag_add_loading_attr( $img, 'test' );
 		$img_no_size_in_class = str_replace( 'size-', '', $img );
 		$img_no_width_height  = str_replace( ' width="' . $size_array[0] . '"', '', $img );
 		$img_no_width_height  = str_replace( ' height="' . $size_array[1] . '"', '', $img_no_width_height );
@@ -2014,7 +2015,7 @@ EOF;
 		$content_unfiltered = sprintf( $content, $img, $img_no_size_in_class, $img_no_width_height, $img_no_size_id, $img_with_sizes_attr, $img_xhtml, $img_html5 );
 		$content_filtered   = sprintf( $content, $respimg, $respimg_no_size_in_class, $respimg_no_width_height, $img_no_size_id, $respimg_with_sizes_attr, $respimg_xhtml, $respimg_html5 );
 
-		$this->assertSame( $content_filtered, wp_make_content_images_responsive( $content_unfiltered ) );
+		$this->assertSame( $content_filtered, wp_filter_content_tags( $content_unfiltered ) );
 	}
 
 	/**
@@ -2028,25 +2029,27 @@ EOF;
 	 * @ticket 34898
 	 * @ticket 33641
 	 */
-	function test_wp_make_content_images_responsive_wrong() {
-		$image = get_image_tag( self::$large_id, '', '', '', 'medium' );
+	function test_wp_filter_content_tags_wrong() {
+		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$img = wp_img_tag_add_loading_attr( $img, 'test' );
 
 		// Replace the src URL.
-		$image_wrong_src = preg_replace( '|src="[^"]+"|', 'src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/foo.jpg"', $image );
+		$image_wrong_src = preg_replace( '|src="[^"]+"|', 'src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/foo.jpg"', $img );
 
-		$this->assertSame( $image_wrong_src, wp_make_content_images_responsive( $image_wrong_src ) );
+		$this->assertSame( $image_wrong_src, wp_filter_content_tags( $image_wrong_src ) );
 	}
 
 	/**
 	 * @ticket 33641
 	 */
-	function test_wp_make_content_images_responsive_with_preexisting_srcset() {
+	function test_wp_filter_content_tags_with_preexisting_srcset() {
 		// Generate HTML and add a dummy srcset attribute.
-		$image_html = get_image_tag( self::$large_id, '', '', '', 'medium' );
-		$image_html = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . 'srcset="image2x.jpg 2x" />', $image_html );
+		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$img = wp_img_tag_add_loading_attr( $img, 'test' );
+		$img = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . 'srcset="image2x.jpg 2x" />', $img );
 
 		// The content filter should return the image unchanged.
-		$this->assertSame( $image_html, wp_make_content_images_responsive( $image_html ) );
+		$this->assertSame( $img, wp_filter_content_tags( $img ) );
 	}
 
 	/**
@@ -2097,7 +2100,7 @@ EOF;
 	 * @ticket 35045
 	 * @ticket 33641
 	 */
-	function test_wp_make_content_images_responsive_schemes() {
+	function test_wp_filter_content_tags_schemes() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
 		$size_array = $this->_get_image_size_array_from_meta( $image_meta, 'medium' );
 
@@ -2106,6 +2109,7 @@ EOF;
 
 		// Build HTML for the editor.
 		$img          = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$img          = wp_img_tag_add_loading_attr( $img, 'test' );
 		$img_https    = str_replace( 'http://', 'https://', $img );
 		$img_relative = str_replace( 'http://', '//', $img );
 
@@ -2126,7 +2130,7 @@ EOF;
 
 		$unfiltered = sprintf( $content, $img, $img_https, $img_relative );
 		$expected   = sprintf( $content, $respimg, $respimg_https, $respimg_relative );
-		$actual     = wp_make_content_images_responsive( $unfiltered );
+		$actual     = wp_filter_content_tags( $unfiltered );
 
 		$this->assertSame( $expected, $actual );
 	}
@@ -2260,7 +2264,7 @@ EOF;
 		$month  = gmdate( 'm' );
 
 		$expected = '<img width="999" height="999" src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $year . '/' . $month . '/test-image-testsize-999x999.png"' .
-			' class="attachment-testsize size-testsize" alt=""' .
+			' class="attachment-testsize size-testsize" alt="" loading="lazy"' .
 			' srcset="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $year . '/' . $month . '/test-image-testsize-999x999.png 999w,' .
 				' http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $year . '/' . $month . '/test-image-large-150x150.png 150w"' .
 				' sizes="(max-width: 999px) 100vw, 999px" />';
@@ -2522,6 +2526,102 @@ EOF;
 		wp_delete_post( $parent_id );
 
 		$this->assertSame( $expected, $url );
+	}
+
+	/**
+	 * @ticket 44427
+	 */
+	function test_wp_lazy_load_content_media() {
+		$img       = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$img_xhtml = str_replace( ' />', '/>', $img );
+		$img_html5 = str_replace( ' />', '>', $img );
+		$iframe    = '<iframe src="https://www.example.com"></iframe>';
+
+		$lazy_img       = wp_img_tag_add_loading_attr( $img, 'test' );
+		$lazy_img_xhtml = wp_img_tag_add_loading_attr( $img_xhtml, 'test' );
+		$lazy_img_html5 = wp_img_tag_add_loading_attr( $img_html5, 'test' );
+
+		// The following should not be modified because there already is a 'loading' attribute.
+		$img_eager = str_replace( ' />', ' loading="eager" />', $img );
+
+		$content = '
+			<p>Image, standard.</p>
+			%1$s
+			<p>Image, XHTML 1.0 style (no space before the closing slash).</p>
+			%2$s
+			<p>Image, HTML 5.0 style.</p>
+			%3$s
+			<p>Image, with pre-existing "loading" attribute.</p>
+			%5$s
+			<p>Iframe, standard. Should not be modified.</p>
+			%4$s';
+
+		$content_unfiltered = sprintf( $content, $img, $img_xhtml, $img_html5, $iframe, $img_eager );
+		$content_filtered   = sprintf( $content, $lazy_img, $lazy_img_xhtml, $lazy_img_html5, $iframe, $img_eager );
+
+		// Do not add srcset and sizes.
+		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+
+		$this->assertSame( $content_filtered, wp_filter_content_tags( $content_unfiltered ) );
+
+		remove_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+	}
+
+	/**
+	 * @ticket 44427
+	 */
+	function test_wp_lazy_load_content_media_opted_in() {
+		$img      = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$lazy_img = wp_img_tag_add_loading_attr( $img, 'test' );
+
+		$content = '
+			<p>Image, standard.</p>
+			%1$s';
+
+		$content_unfiltered = sprintf( $content, $img );
+		$content_filtered   = sprintf( $content, $lazy_img );
+
+		// Do not add srcset and sizes while testing.
+		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+
+		// Enable globally for all tags.
+		add_filter( 'wp_lazy_loading_enabled', '__return_true' );
+
+		$this->assertSame( $content_filtered, wp_filter_content_tags( $content_unfiltered ) );
+		remove_filter( 'wp_lazy_loading_enabled', '__return_true' );
+		remove_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+	}
+
+	/**
+	 * @ticket 44427
+	 */
+	function test_wp_lazy_load_content_media_opted_out() {
+		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
+
+		$content = '
+			<p>Image, standard.</p>
+			%1$s';
+		$content = sprintf( $content, $img );
+
+		// Do not add srcset and sizes while testing.
+		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+
+		// Disable globally for all tags.
+		add_filter( 'wp_lazy_loading_enabled', '__return_false' );
+
+		$this->assertSame( $content, wp_filter_content_tags( $content ) );
+		remove_filter( 'wp_lazy_loading_enabled', '__return_false' );
+		remove_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+	}
+
+	/**
+	 * @ticket 44427
+	 */
+	function test_wp_img_tag_add_loading_attr_single_quote() {
+		$img = "<img src='example.png' alt='' width='300' height='225' />";
+		$img = wp_img_tag_add_loading_attr( $img, 'test' );
+
+		$this->assertContains( " loading='lazy'", $img );
 	}
 }
 

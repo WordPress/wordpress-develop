@@ -696,7 +696,7 @@ function site_admin_notice() {
 		return false;
 	}
 
-	if ( 'upgrade.php' == $pagenow ) {
+	if ( 'upgrade.php' === $pagenow ) {
 		return;
 	}
 
@@ -856,7 +856,7 @@ function confirm_delete_users( $users ) {
 	?>
 	<h1><?php esc_html_e( 'Users' ); ?></h1>
 
-	<?php if ( 1 == count( $users ) ) : ?>
+	<?php if ( 1 === count( $users ) ) : ?>
 		<p><?php _e( 'You have chosen to delete the user from all networks and sites.' ); ?></p>
 	<?php else : ?>
 		<p><?php _e( 'You have chosen to delete the following users from all networks and sites.' ); ?></p>
@@ -873,7 +873,7 @@ function confirm_delete_users( $users ) {
 	<?php
 	$allusers = (array) $_POST['allusers'];
 	foreach ( $allusers as $user_id ) {
-		if ( '' != $user_id && '0' != $user_id ) {
+		if ( '' !== $user_id && '0' != $user_id ) {
 			$delete_user = get_userdata( $user_id );
 
 			if ( ! current_user_can( 'delete_user', $delete_user->ID ) ) {
@@ -886,7 +886,7 @@ function confirm_delete_users( $users ) {
 				);
 			}
 
-			if ( in_array( $delete_user->user_login, $site_admins ) ) {
+			if ( in_array( $delete_user->user_login, $site_admins, true ) ) {
 				wp_die(
 					sprintf(
 						/* translators: %s: User login. */
@@ -922,19 +922,23 @@ function confirm_delete_users( $users ) {
 							'fields'  => array( 'ID', 'user_login' ),
 						)
 					);
+
 					if ( is_array( $blog_users ) && ! empty( $blog_users ) ) {
 						$user_site      = "<a href='" . esc_url( get_home_url( $details->userblog_id ) ) . "'>{$details->blogname}</a>";
 						$user_dropdown  = '<label for="reassign_user" class="screen-reader-text">' . __( 'Select a user' ) . '</label>';
 						$user_dropdown .= "<select name='blog[$user_id][$key]' id='reassign_user'>";
 						$user_list      = '';
+
 						foreach ( $blog_users as $user ) {
-							if ( ! in_array( $user->ID, $allusers ) ) {
+							if ( ! in_array( (int) $user->ID, $allusers, true ) ) {
 								$user_list .= "<option value='{$user->ID}'>{$user->user_login}</option>";
 							}
 						}
-						if ( '' == $user_list ) {
+
+						if ( '' === $user_list ) {
 							$user_list = $admin_out;
 						}
+
 						$user_dropdown .= $user_list;
 						$user_dropdown .= "</select>\n";
 						?>
@@ -970,7 +974,7 @@ function confirm_delete_users( $users ) {
 	/** This action is documented in wp-admin/users.php */
 	do_action( 'delete_user_form', $current_user, $allusers );
 
-	if ( 1 == count( $users ) ) :
+	if ( 1 === count( $users ) ) :
 		?>
 		<p><?php _e( 'Once you hit &#8220;Confirm Deletion&#8221;, the user will be permanently removed.' ); ?></p>
 	<?php else : ?>

@@ -48,7 +48,7 @@ function wp_get_themes( $args = array() ) {
 		$current_theme = get_stylesheet();
 		if ( isset( $theme_directories[ $current_theme ] ) ) {
 			$root_of_current_theme = get_raw_theme_root( $current_theme );
-			if ( ! in_array( $root_of_current_theme, $wp_theme_directories ) ) {
+			if ( ! in_array( $root_of_current_theme, $wp_theme_directories, true ) ) {
 				$root_of_current_theme = WP_CONTENT_DIR . $root_of_current_theme;
 			}
 			$theme_directories[ $current_theme ]['theme_root'] = $root_of_current_theme;
@@ -119,7 +119,7 @@ function wp_get_theme( $stylesheet = '', $theme_root = '' ) {
 		$theme_root = get_raw_theme_root( $stylesheet );
 		if ( false === $theme_root ) {
 			$theme_root = WP_CONTENT_DIR . '/themes';
-		} elseif ( ! in_array( $theme_root, (array) $wp_theme_directories ) ) {
+		} elseif ( ! in_array( $theme_root, (array) $wp_theme_directories, true ) ) {
 			$theme_root = WP_CONTENT_DIR . $theme_root;
 		}
 	}
@@ -411,7 +411,7 @@ function register_theme_directory( $directory ) {
 	}
 
 	$untrailed = untrailingslashit( $directory );
-	if ( ! empty( $untrailed ) && ! in_array( $untrailed, $wp_theme_directories ) ) {
+	if ( ! empty( $untrailed ) && ! in_array( $untrailed, $wp_theme_directories, true ) ) {
 		$wp_theme_directories[] = $untrailed;
 	}
 
@@ -583,7 +583,7 @@ function get_theme_root( $stylesheet_or_template = '' ) {
 		if ( $theme_root ) {
 			// Always prepend WP_CONTENT_DIR unless the root currently registered as a theme directory.
 			// This gives relative theme roots the benefit of the doubt when things go haywire.
-			if ( ! in_array( $theme_root, (array) $wp_theme_directories ) ) {
+			if ( ! in_array( $theme_root, (array) $wp_theme_directories, true ) ) {
 				$theme_root = WP_CONTENT_DIR . $theme_root;
 			}
 		}
@@ -626,7 +626,7 @@ function get_theme_root_uri( $stylesheet_or_template = '', $theme_root = '' ) {
 	}
 
 	if ( $stylesheet_or_template && $theme_root ) {
-		if ( in_array( $theme_root, (array) $wp_theme_directories ) ) {
+		if ( in_array( $theme_root, (array) $wp_theme_directories, true ) ) {
 			// Absolute path. Make an educated guess. YMMV -- but note the filter below.
 			if ( 0 === strpos( $theme_root, WP_CONTENT_DIR ) ) {
 				$theme_root_uri = content_url( str_replace( WP_CONTENT_DIR, '', $theme_root ) );
@@ -732,6 +732,11 @@ function locale_stylesheet() {
  */
 function switch_theme( $stylesheet ) {
 	global $wp_theme_directories, $wp_customize, $sidebars_widgets;
+
+	$requirements = validate_theme_requirements( $stylesheet );
+	if ( is_wp_error( $requirements ) ) {
+		wp_die( $requirements );
+	}
 
 	$_sidebars_widgets = null;
 	if ( 'wp_ajax_customize_save' === current_action() ) {
@@ -878,6 +883,78 @@ function validate_current_theme() {
 
 	switch_theme( $default->get_stylesheet() );
 	return false;
+}
+
+/**
+ * Validates the theme requirements for WordPress version and PHP version.
+ *
+ * Uses the information from `Requires at least` and `Requires PHP` headers
+ * defined in the theme's `style.css` file.
+ *
+ * If the headers are not present in the theme's stylesheet file,
+ * `readme.txt` is also checked as a fallback.
+ *
+ * @since 5.5.0
+ *
+ * @param string $stylesheet Directory name for the theme.
+ * @return true|WP_Error True if requirements are met, WP_Error on failure.
+ */
+function validate_theme_requirements( $stylesheet ) {
+	$theme = wp_get_theme( $stylesheet );
+
+	$requirements = array(
+		'requires'     => ! empty( $theme->get( 'RequiresWP' ) ) ? $theme->get( 'RequiresWP' ) : '',
+		'requires_php' => ! empty( $theme->get( 'RequiresPHP' ) ) ? $theme->get( 'RequiresPHP' ) : '',
+	);
+
+	$readme_file = $theme->theme_root . '/' . $stylesheet . '/readme.txt';
+
+	if ( file_exists( $readme_file ) ) {
+		$readme_headers = get_file_data(
+			$readme_file,
+			array(
+				'requires'     => 'Requires at least',
+				'requires_php' => 'Requires PHP',
+			),
+			'theme'
+		);
+
+		$requirements = array_merge( $readme_headers, $requirements );
+	}
+
+	$compatible_wp  = is_wp_version_compatible( $requirements['requires'] );
+	$compatible_php = is_php_version_compatible( $requirements['requires_php'] );
+
+	if ( ! $compatible_wp && ! $compatible_php ) {
+		return new WP_Error(
+			'theme_wp_php_incompatible',
+			sprintf(
+				/* translators: %s: Theme name. */
+				_x( '<strong>Error:</strong> Current WordPress and PHP versions do not meet minimum requirements for %s.', 'theme' ),
+				$theme->display( 'Name' )
+			)
+		);
+	} elseif ( ! $compatible_php ) {
+		return new WP_Error(
+			'theme_php_incompatible',
+			sprintf(
+				/* translators: %s: Theme name. */
+				_x( '<strong>Error:</strong> Current PHP version does not meet minimum requirements for %s.', 'theme' ),
+				$theme->display( 'Name' )
+			)
+		);
+	} elseif ( ! $compatible_wp ) {
+		return new WP_Error(
+			'theme_wp_incompatible',
+			sprintf(
+				/* translators: %s: Theme name. */
+				_x( '<strong>Error:</strong> Current WordPress version does not meet minimum requirements for %s.', 'theme' ),
+				$theme->display( 'Name' )
+			)
+		);
+	}
+
+	return true;
 }
 
 /**
@@ -1079,7 +1156,7 @@ function has_header_image() {
 function get_header_image() {
 	$url = get_theme_mod( 'header_image', get_theme_support( 'custom-header', 'default-image' ) );
 
-	if ( 'remove-header' == $url ) {
+	if ( 'remove-header' === $url ) {
 		return false;
 	}
 
@@ -1188,10 +1265,10 @@ function _get_random_header_data() {
 		$header_image_mod = get_theme_mod( 'header_image', '' );
 		$headers          = array();
 
-		if ( 'random-uploaded-image' == $header_image_mod ) {
+		if ( 'random-uploaded-image' === $header_image_mod ) {
 			$headers = get_uploaded_header_images();
 		} elseif ( ! empty( $_wp_default_headers ) ) {
-			if ( 'random-default-image' == $header_image_mod ) {
+			if ( 'random-default-image' === $header_image_mod ) {
 				$headers = $_wp_default_headers;
 			} else {
 				if ( current_theme_supports( 'custom-header', 'random-default' ) ) {
@@ -1209,6 +1286,7 @@ function _get_random_header_data() {
 		$_wp_random_header->url           = sprintf( $_wp_random_header->url, get_template_directory_uri(), get_stylesheet_directory_uri() );
 		$_wp_random_header->thumbnail_url = sprintf( $_wp_random_header->thumbnail_url, get_template_directory_uri(), get_stylesheet_directory_uri() );
 	}
+
 	return $_wp_random_header;
 }
 
@@ -1221,9 +1299,11 @@ function _get_random_header_data() {
  */
 function get_random_header_image() {
 	$random_image = _get_random_header_data();
+
 	if ( empty( $random_image->url ) ) {
 		return '';
 	}
+
 	return $random_image->url;
 }
 
@@ -1242,14 +1322,17 @@ function get_random_header_image() {
 function is_random_header_image( $type = 'any' ) {
 	$header_image_mod = get_theme_mod( 'header_image', get_theme_support( 'custom-header', 'default-image' ) );
 
-	if ( 'any' == $type ) {
-		if ( 'random-default-image' == $header_image_mod || 'random-uploaded-image' == $header_image_mod || ( '' != get_random_header_image() && empty( $header_image_mod ) ) ) {
+	if ( 'any' === $type ) {
+		if ( 'random-default-image' === $header_image_mod
+			|| 'random-uploaded-image' === $header_image_mod
+			|| ( '' !== get_random_header_image() && empty( $header_image_mod ) )
+		) {
 			return true;
 		}
 	} else {
-		if ( "random-$type-image" == $header_image_mod ) {
+		if ( "random-$type-image" === $header_image_mod ) {
 			return true;
-		} elseif ( 'default' == $type && empty( $header_image_mod ) && '' != get_random_header_image() ) {
+		} elseif ( 'default' === $type && empty( $header_image_mod ) && '' !== get_random_header_image() ) {
 			return true;
 		}
 	}
@@ -1264,6 +1347,7 @@ function is_random_header_image( $type = 'any' ) {
  */
 function header_image() {
 	$image = get_header_image();
+
 	if ( $image ) {
 		echo esc_url( $image );
 	}
@@ -1459,6 +1543,7 @@ function get_header_video_url() {
  */
 function the_header_video_url() {
 	$video = get_header_video_url();
+
 	if ( $video ) {
 		echo esc_url( $video );
 	}
@@ -2738,7 +2823,7 @@ function get_theme_support( $feature, ...$args ) {
  */
 function remove_theme_support( $feature ) {
 	// Blacklist: for internal registrations not used directly by themes.
-	if ( in_array( $feature, array( 'editor-style', 'widgets', 'menus' ) ) ) {
+	if ( in_array( $feature, array( 'editor-style', 'widgets', 'menus' ), true ) ) {
 		return false;
 	}
 
@@ -2826,7 +2911,7 @@ function _remove_theme_support( $feature ) {
 function current_theme_supports( $feature, ...$args ) {
 	global $_wp_theme_features;
 
-	if ( 'custom-header-uploads' == $feature ) {
+	if ( 'custom-header-uploads' === $feature ) {
 		return current_theme_supports( 'custom-header', 'uploads' );
 	}
 
@@ -2846,11 +2931,11 @@ function current_theme_supports( $feature, ...$args ) {
 			 * by passing an array of types to add_theme_support().
 			 * If no array was passed, then any type is accepted.
 			 */
-			if ( true === $_wp_theme_features[ $feature ] ) {  // Registered for all types
+			if ( true === $_wp_theme_features[ $feature ] ) {  // Registered for all types.
 				return true;
 			}
 			$content_type = $args[0];
-			return in_array( $content_type, $_wp_theme_features[ $feature ][0] );
+			return in_array( $content_type, $_wp_theme_features[ $feature ][0], true );
 
 		case 'html5':
 		case 'post-formats':
@@ -2861,7 +2946,7 @@ function current_theme_supports( $feature, ...$args ) {
 			 * Specific areas of HTML5 support *must* be passed via an array to add_theme_support().
 			 */
 			$type = $args[0];
-			return in_array( $type, $_wp_theme_features[ $feature ][0] );
+			return in_array( $type, $_wp_theme_features[ $feature ][0], true );
 
 		case 'custom-logo':
 		case 'custom-header':
@@ -2997,11 +3082,11 @@ function check_theme_switched() {
  */
 function _wp_customize_include() {
 
-	$is_customize_admin_page = ( is_admin() && 'customize.php' == basename( $_SERVER['PHP_SELF'] ) );
+	$is_customize_admin_page = ( is_admin() && 'customize.php' === basename( $_SERVER['PHP_SELF'] ) );
 	$should_include          = (
 		$is_customize_admin_page
 		||
-		( isset( $_REQUEST['wp_customize'] ) && 'on' == $_REQUEST['wp_customize'] )
+		( isset( $_REQUEST['wp_customize'] ) && 'on' === $_REQUEST['wp_customize'] )
 		||
 		( ! empty( $_GET['customize_changeset_uuid'] ) || ! empty( $_POST['customize_changeset_uuid'] ) )
 	);
@@ -3240,6 +3325,7 @@ function wp_customize_url( $stylesheet = '' ) {
  *
  * @since 3.4.0
  * @since 4.7.0 Support for IE8 and below is explicitly removed via conditional comments.
+ * @since 5.5.0 IE8 and older are no longer supported.
  */
 function wp_customize_support_script() {
 	$admin_origin = parse_url( admin_url() );
@@ -3247,28 +3333,21 @@ function wp_customize_support_script() {
 	$cross_domain = ( strtolower( $admin_origin['host'] ) != strtolower( $home_origin['host'] ) );
 	$type_attr    = current_theme_supports( 'html5', 'script' ) ? '' : ' type="text/javascript"';
 	?>
-	<!--[if lte IE 8]>
-		<script<?php echo $type_attr; ?>>
-			document.body.className = document.body.className.replace( /(^|\s)(no-)?customize-support(?=\s|$)/, '' ) + ' no-customize-support';
-		</script>
-	<![endif]-->
-	<!--[if gte IE 9]><!-->
-		<script<?php echo $type_attr; ?>>
-			(function() {
-				var request, b = document.body, c = 'className', cs = 'customize-support', rcs = new RegExp('(^|\\s+)(no-)?'+cs+'(\\s+|$)');
+	<script<?php echo $type_attr; ?>>
+		(function() {
+			var request, b = document.body, c = 'className', cs = 'customize-support', rcs = new RegExp('(^|\\s+)(no-)?'+cs+'(\\s+|$)');
 
-		<?php	if ( $cross_domain ) : ?>
-				request = (function(){ var xhr = new XMLHttpRequest(); return ('withCredentials' in xhr); })();
-		<?php	else : ?>
-				request = true;
-		<?php	endif; ?>
+	<?php	if ( $cross_domain ) : ?>
+			request = (function(){ var xhr = new XMLHttpRequest(); return ('withCredentials' in xhr); })();
+	<?php	else : ?>
+			request = true;
+	<?php	endif; ?>
 
-				b[c] = b[c].replace( rcs, ' ' );
-				// The customizer requires postMessage and CORS (if the site is cross domain).
-				b[c] += ( window.postMessage && request ? ' ' : ' no-' ) + cs;
-			}());
-		</script>
-	<!--<![endif]-->
+			b[c] = b[c].replace( rcs, ' ' );
+			// The customizer requires postMessage and CORS (if the site is cross domain).
+			b[c] += ( window.postMessage && request ? ' ' : ' no-' ) + cs;
+		}());
+	</script>
 	<?php
 }
 

@@ -235,7 +235,7 @@ class WP_oEmbed {
 	 * @return mixed|bool Return value of the callback, false otherwise.
 	 */
 	public function __call( $name, $arguments ) {
-		if ( in_array( $name, $this->compat_methods ) ) {
+		if ( in_array( $name, $this->compat_methods, true ) ) {
 			return $this->$name( ...$arguments );
 		}
 		return false;
@@ -487,7 +487,7 @@ class WP_oEmbed {
 						$providers[ $linktypes[ $atts['type'] ] ] = htmlspecialchars_decode( $atts['href'] );
 
 						// Stop here if it's JSON (that's all we need).
-						if ( 'json' == $linktypes[ $atts['type'] ] ) {
+						if ( 'json' === $linktypes[ $atts['type'] ] ) {
 							break;
 						}
 					}
@@ -537,7 +537,7 @@ class WP_oEmbed {
 
 		foreach ( array( 'json', 'xml' ) as $format ) {
 			$result = $this->_fetch_with_format( $provider, $format );
-			if ( is_wp_error( $result ) && 'not-implemented' == $result->get_error_code() ) {
+			if ( is_wp_error( $result ) && 'not-implemented' === $result->get_error_code() ) {
 				continue;
 			}
 			return ( $result && ! is_wp_error( $result ) ) ? $result : false;

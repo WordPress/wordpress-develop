@@ -37,9 +37,9 @@ if ( ! is_readable( $config_file_path ) ) {
 require_once $config_file_path;
 require_once __DIR__ . '/functions.php';
 
-if ( version_compare( tests_get_phpunit_version(), '8.0', '>=' ) ) {
+if ( version_compare( tests_get_phpunit_version(), '5.4', '<' ) || version_compare( tests_get_phpunit_version(), '8.0', '>=' ) ) {
 	printf(
-		"Error: Looks like you're using PHPUnit %s. WordPress is currently only compatible with PHPUnit up to 7.x.\n",
+		"Error: Looks like you're using PHPUnit %s. WordPress requires at least PHPUnit 5.4 and is currently only compatible with PHPUnit up to 7.x.\n",
 		tests_get_phpunit_version()
 	);
 	echo "Please use the latest PHPUnit version from the 7.x branch.\n";
@@ -97,7 +97,10 @@ if ( file_exists( DIR_TESTDATA . '/themedir1' ) ) {
 }
 
 if ( '1' !== getenv( 'WP_TESTS_SKIP_INSTALL' ) ) {
-	system( WP_PHP_BINARY . ' ' . escapeshellarg( __DIR__ . '/install.php' ) . ' ' . escapeshellarg( $config_file_path ) . ' ' . $multisite, $retval );
+	$core_tests = ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) ? 'run_core_tests' : 'no_core_tests';
+	$ms_tests   = $multisite ? 'run_ms_tests' : 'no_ms_tests';
+
+	system( WP_PHP_BINARY . ' ' . escapeshellarg( __DIR__ . '/install.php' ) . ' ' . escapeshellarg( $config_file_path ) . ' ' . $ms_tests . ' ' . $core_tests, $retval );
 	if ( 0 !== $retval ) {
 		exit( $retval );
 	}

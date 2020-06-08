@@ -78,7 +78,9 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "url": {
-                            "required": true
+                            "required": true,
+                            "description": "The URL of the resource for which to fetch oEmbed data.",
+                            "type": "string"
                         },
                         "format": {
                             "required": false,
@@ -4395,12 +4397,14 @@ mockedApiResponse.Schema = {
         "/wp/v2/block-renderer/(?P<name>core/archives)": {
             "namespace": "wp/v2",
             "methods": [
-                "GET"
+                "GET",
+                "POST"
             ],
             "endpoints": [
                 {
                     "methods": [
-                        "GET"
+                        "GET",
+                        "POST"
                     ],
                     "args": {
                         "name": {
@@ -4435,12 +4439,14 @@ mockedApiResponse.Schema = {
         "/wp/v2/block-renderer/(?P<name>core/block)": {
             "namespace": "wp/v2",
             "methods": [
-                "GET"
+                "GET",
+                "POST"
             ],
             "endpoints": [
                 {
                     "methods": [
-                        "GET"
+                        "GET",
+                        "POST"
                     ],
                     "args": {
                         "name": {
@@ -4475,12 +4481,14 @@ mockedApiResponse.Schema = {
         "/wp/v2/block-renderer/(?P<name>core/calendar)": {
             "namespace": "wp/v2",
             "methods": [
-                "GET"
+                "GET",
+                "POST"
             ],
             "endpoints": [
                 {
                     "methods": [
-                        "GET"
+                        "GET",
+                        "POST"
                     ],
                     "args": {
                         "name": {
@@ -4515,12 +4523,14 @@ mockedApiResponse.Schema = {
         "/wp/v2/block-renderer/(?P<name>core/categories)": {
             "namespace": "wp/v2",
             "methods": [
-                "GET"
+                "GET",
+                "POST"
             ],
             "endpoints": [
                 {
                     "methods": [
-                        "GET"
+                        "GET",
+                        "POST"
                     ],
                     "args": {
                         "name": {
@@ -4555,12 +4565,14 @@ mockedApiResponse.Schema = {
         "/wp/v2/block-renderer/(?P<name>core/latest-comments)": {
             "namespace": "wp/v2",
             "methods": [
-                "GET"
+                "GET",
+                "POST"
             ],
             "endpoints": [
                 {
                     "methods": [
-                        "GET"
+                        "GET",
+                        "POST"
                     ],
                     "args": {
                         "name": {
@@ -4595,12 +4607,14 @@ mockedApiResponse.Schema = {
         "/wp/v2/block-renderer/(?P<name>core/latest-posts)": {
             "namespace": "wp/v2",
             "methods": [
-                "GET"
+                "GET",
+                "POST"
             ],
             "endpoints": [
                 {
                     "methods": [
-                        "GET"
+                        "GET",
+                        "POST"
                     ],
                     "args": {
                         "name": {
@@ -4635,12 +4649,14 @@ mockedApiResponse.Schema = {
         "/wp/v2/block-renderer/(?P<name>core/rss)": {
             "namespace": "wp/v2",
             "methods": [
-                "GET"
+                "GET",
+                "POST"
             ],
             "endpoints": [
                 {
                     "methods": [
-                        "GET"
+                        "GET",
+                        "POST"
                     ],
                     "args": {
                         "name": {
@@ -4675,12 +4691,14 @@ mockedApiResponse.Schema = {
         "/wp/v2/block-renderer/(?P<name>core/search)": {
             "namespace": "wp/v2",
             "methods": [
-                "GET"
+                "GET",
+                "POST"
             ],
             "endpoints": [
                 {
                     "methods": [
-                        "GET"
+                        "GET",
+                        "POST"
                     ],
                     "args": {
                         "name": {
@@ -4715,12 +4733,14 @@ mockedApiResponse.Schema = {
         "/wp/v2/block-renderer/(?P<name>core/shortcode)": {
             "namespace": "wp/v2",
             "methods": [
-                "GET"
+                "GET",
+                "POST"
             ],
             "endpoints": [
                 {
                     "methods": [
-                        "GET"
+                        "GET",
+                        "POST"
                     ],
                     "args": {
                         "name": {
@@ -4755,12 +4775,14 @@ mockedApiResponse.Schema = {
         "/wp/v2/block-renderer/(?P<name>core/social-link)": {
             "namespace": "wp/v2",
             "methods": [
-                "GET"
+                "GET",
+                "POST"
             ],
             "endpoints": [
                 {
                     "methods": [
-                        "GET"
+                        "GET",
+                        "POST"
                     ],
                     "args": {
                         "name": {
@@ -4795,12 +4817,14 @@ mockedApiResponse.Schema = {
         "/wp/v2/block-renderer/(?P<name>core/tag-cloud)": {
             "namespace": "wp/v2",
             "methods": [
-                "GET"
+                "GET",
+                "POST"
             ],
             "endpoints": [
                 {
                     "methods": [
-                        "GET"
+                        "GET",
+                        "POST"
                     ],
                     "args": {
                         "name": {
@@ -5039,7 +5063,9 @@ mockedApiResponse.oembed = {
                     ],
                     "args": {
                         "url": {
-                            "required": true
+                            "required": true,
+                            "description": "The URL of the resource for which to fetch oEmbed data.",
+                            "type": "string"
                         },
                         "format": {
                             "required": false,

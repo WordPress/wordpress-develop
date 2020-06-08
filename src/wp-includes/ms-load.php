@@ -20,7 +20,7 @@ function is_subdomain_install() {
 		return SUBDOMAIN_INSTALL;
 	}
 
-	return ( defined( 'VHOST' ) && VHOST == 'yes' );
+	return ( defined( 'VHOST' ) && 'yes' === VHOST );
 }
 
 /**
@@ -46,7 +46,7 @@ function wp_get_active_network_plugins() {
 
 	foreach ( $active_plugins as $plugin ) {
 		if ( ! validate_file( $plugin )                     // $plugin must validate as file.
-			&& '.php' == substr( $plugin, -4 )              // $plugin must end with '.php'.
+			&& '.php' === substr( $plugin, -4 )             // $plugin must end with '.php'.
 			&& file_exists( WP_PLUGIN_DIR . '/' . $plugin ) // $plugin must exist.
 			) {
 			$plugins[] = WP_PLUGIN_DIR . '/' . $plugin;
@@ -494,12 +494,12 @@ function ms_not_installed( $domain, $path ) {
 	$msg .= '<p><strong>' . __( 'What do I do now?' ) . '</strong> ';
 	$msg .= sprintf(
 		/* translators: %s: Documentation URL. */
-		__( 'Read the <a href="%s" target="_blank">bug report</a> page. Some of the guidelines there may help you figure out what went wrong.' ),
+		__( 'Read the <a href="%s" target="_blank">Debugging a WordPress Network</a> article. Some of the suggestions there may help you figure out what went wrong.' ),
 		__( 'https://wordpress.org/support/article/debugging-a-wordpress-network/' )
 	);
 	$msg .= ' ' . __( 'If you&#8217;re still stuck with this message, then check that your database contains the following tables:' ) . '</p><ul>';
 	foreach ( $wpdb->tables( 'global' ) as $t => $table ) {
-		if ( 'sitecategories' == $t ) {
+		if ( 'sitecategories' === $t ) {
 			continue;
 		}
 		$msg .= '<li>' . $table . '</li>';

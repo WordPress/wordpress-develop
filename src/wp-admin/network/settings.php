@@ -32,7 +32,7 @@ if ( ! empty( $_GET['network_admin_hash'] ) ) {
 	}
 	wp_redirect( network_admin_url( $redirect ) );
 	exit;
-} elseif ( ! empty( $_GET['dismiss'] ) && 'new_network_admin_email' == $_GET['dismiss'] ) {
+} elseif ( ! empty( $_GET['dismiss'] ) && 'new_network_admin_email' === $_GET['dismiss'] ) {
 	check_admin_referer( 'dismiss_new_network_admin_email' );
 	delete_site_option( 'network_admin_hash' );
 	delete_site_option( 'new_admin_email' );
@@ -132,7 +132,7 @@ if ( $_POST ) {
 	do_action( 'update_wpmu_options' );
 
 	wp_redirect( add_query_arg( 'updated', 'true', network_admin_url( 'settings.php' ) ) );
-	exit();
+	exit;
 }
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
@@ -255,9 +255,13 @@ if ( isset( $_GET['updated'] ) ) {
 					<?php
 					$limited_email_domains = get_site_option( 'limited_email_domains' );
 					$limited_email_domains = str_replace( ' ', "\n", $limited_email_domains );
+
+					if ( $limited_email_domains ) {
+						$limited_email_domains = implode( "\n", (array) $limited_email_domains );
+					}
 					?>
 					<textarea name="limited_email_domains" id="limited_email_domains" aria-describedby="limited-email-domains-desc" cols="45" rows="5">
-<?php echo esc_textarea( '' == $limited_email_domains ? '' : implode( "\n", (array) $limited_email_domains ) ); ?></textarea>
+<?php echo esc_textarea( $limited_email_domains ); ?></textarea>
 					<p class="description" id="limited-email-domains-desc">
 						<?php _e( 'If you want to limit site registrations to certain domains. One domain per line.' ); ?>
 					</p>
@@ -267,8 +271,15 @@ if ( isset( $_GET['updated'] ) ) {
 			<tr>
 				<th scope="row"><label for="banned_email_domains"><?php _e( 'Banned Email Domains' ); ?></label></th>
 				<td>
+					<?php
+					$banned_email_domains = get_site_option( 'banned_email_domains' );
+
+					if ( $banned_email_domains ) {
+						$banned_email_domains = implode( "\n", (array) $banned_email_domains );
+					}
+					?>
 					<textarea name="banned_email_domains" id="banned_email_domains" aria-describedby="banned-email-domains-desc" cols="45" rows="5">
-<?php echo esc_textarea( get_site_option( 'banned_email_domains' ) == '' ? '' : implode( "\n", (array) get_site_option( 'banned_email_domains' ) ) ); ?></textarea>
+<?php echo esc_textarea( $banned_email_domains ); ?></textarea>
 					<p class="description" id="banned-email-domains-desc">
 						<?php _e( 'If you want to ban domains from site registrations. One domain per line.' ); ?>
 					</p>
@@ -416,7 +427,7 @@ if ( isset( $_GET['updated'] ) ) {
 					<td>
 						<?php
 						$lang = get_site_option( 'WPLANG' );
-						if ( ! in_array( $lang, $languages ) ) {
+						if ( ! in_array( $lang, $languages, true ) ) {
 							$lang = '';
 						}
 
@@ -438,41 +449,47 @@ if ( isset( $_GET['updated'] ) ) {
 		}
 		?>
 
-		<h2><?php _e( 'Menu Settings' ); ?></h2>
-		<table id="menu" class="form-table">
-			<tr>
-				<th scope="row"><?php _e( 'Enable administration menus' ); ?></th>
-				<td>
-			<?php
-			$menu_perms = get_site_option( 'menu_items' );
-			/**
-			 * Filters available network-wide administration menu options.
-			 *
-			 * Options returned to this filter are output as individual checkboxes that, when selected,
-			 * enable site administrator access to the specified administration menu in certain contexts.
-			 *
-			 * Adding options for specific menus here hinges on the appropriate checks and capabilities
-			 * being in place in the site dashboard on the other side. For instance, when the single
-			 * default option, 'plugins' is enabled, site administrators are granted access to the Plugins
-			 * screen in their individual sites' dashboards.
-			 *
-			 * @since MU (3.0.0)
-			 *
-			 * @param string[] $admin_menus Associative array of the menu items available.
-			 */
-			$menu_items = apply_filters( 'mu_menu_items', array( 'plugins' => __( 'Plugins' ) ) );
+		<?php
+		$menu_perms = get_site_option( 'menu_items' );
+		/**
+		 * Filters available network-wide administration menu options.
+		 *
+		 * Options returned to this filter are output as individual checkboxes that, when selected,
+		 * enable site administrator access to the specified administration menu in certain contexts.
+		 *
+		 * Adding options for specific menus here hinges on the appropriate checks and capabilities
+		 * being in place in the site dashboard on the other side. For instance, when the single
+		 * default option, 'plugins' is enabled, site administrators are granted access to the Plugins
+		 * screen in their individual sites' dashboards.
+		 *
+		 * @since MU (3.0.0)
+		 *
+		 * @param string[] $admin_menus Associative array of the menu items available.
+		 */
+		$menu_items = apply_filters( 'mu_menu_items', array( 'plugins' => __( 'Plugins' ) ) );
 
-			echo '<fieldset><legend class="screen-reader-text">' . __( 'Enable menus' ) . '</legend>';
-
-			foreach ( (array) $menu_items as $key => $val ) {
-				echo "<label><input type='checkbox' name='menu_items[" . $key . "]' value='1'" . ( isset( $menu_perms[ $key ] ) ? checked( $menu_perms[ $key ], '1', false ) : '' ) . ' /> ' . esc_html( $val ) . '</label><br/>';
-			}
-
-			echo '</fieldset>';
+		if ( $menu_items ) :
 			?>
-				</td>
-			</tr>
-		</table>
+			<h2><?php _e( 'Menu Settings' ); ?></h2>
+			<table id="menu" class="form-table">
+				<tr>
+					<th scope="row"><?php _e( 'Enable administration menus' ); ?></th>
+					<td>
+						<?php
+						echo '<fieldset><legend class="screen-reader-text">' . __( 'Enable menus' ) . '</legend>';
+
+						foreach ( (array) $menu_items as $key => $val ) {
+							echo "<label><input type='checkbox' name='menu_items[" . $key . "]' value='1'" . ( isset( $menu_perms[ $key ] ) ? checked( $menu_perms[ $key ], '1', false ) : '' ) . ' /> ' . esc_html( $val ) . '</label><br/>';
+						}
+
+						echo '</fieldset>';
+						?>
+					</td>
+				</tr>
+			</table>
+			<?php
+		endif;
+		?>
 
 		<?php
 		/**

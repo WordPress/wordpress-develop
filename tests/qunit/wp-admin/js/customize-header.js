@@ -1,48 +1,48 @@
 /* global wp, sinon */
 
 jQuery( function() {
-	module('Custom Header: ChoiceList', {
-		setup: function() {
+	QUnit.module('Custom Header: ChoiceList', {
+		beforeEach: function() {
 			wp.customize.HeaderTool.currentHeader = new wp.customize.HeaderTool.ImageModel();
 			this.apiStub = sinon.stub(wp.customize, 'get').returns('foo');
 			this.choiceList = new wp.customize.HeaderTool.ChoiceList();
 		},
-		teardown: function() {
+		afterEach: function() {
 			this.apiStub.restore();
 		}
 	});
 
-	test('should parse _wpCustomizeHeader.uploads into itself', function() {
-		equal(this.choiceList.length, 4);
+	QUnit.test('should parse _wpCustomizeHeader.uploads into itself', function( assert ) {
+		assert.equal(this.choiceList.length, 4);
 	});
 
-	test('should sort by newest first', function() {
-		equal(this.choiceList.at(2).get('header').attachment_id, 1);
-		equal(this.choiceList.first().get('header').attachment_id, 3);
+	QUnit.test('should sort by newest first', function( assert ) {
+		assert.equal(this.choiceList.at(2).get('header').attachment_id, 1);
+		assert.equal(this.choiceList.first().get('header').attachment_id, 3);
 	});
 
-	module('Custom Header: DefaultsList', {
-		setup: function() {
+	QUnit.module('Custom Header: DefaultsList', {
+		beforeEach: function() {
 			wp.customize.HeaderTool.currentHeader = new wp.customize.HeaderTool.ImageModel();
 			this.apiStub = sinon.stub(wp.customize, 'get').returns('foo');
 			this.choiceList = new wp.customize.HeaderTool.DefaultsList();
 		},
-		teardown: function() {
+		afterEach: function() {
 			this.apiStub.restore();
 		}
 	});
 
-	test('it should parse _wpCustomizeHeader.defaults into itself', function() {
-		equal(this.choiceList.length, 4);
+	QUnit.test('it should parse _wpCustomizeHeader.defaults into itself', function( assert ) {
+		assert.equal(this.choiceList.length, 4);
 	});
 
-	test('it parses the default image names', function() {
-		equal(this.choiceList.first().get('header').defaultName, 'circle');
-		equal(this.choiceList.at(2).get('header').defaultName, 'star');
+	QUnit.test('it parses the default image names', function( assert ) {
+		assert.equal(this.choiceList.first().get('header').defaultName, 'circle');
+		assert.equal(this.choiceList.at(2).get('header').defaultName, 'star');
 	});
 
-	module('Custom Header: HeaderImage shouldBeCropped()', {
-		setup: function() {
+	QUnit.module('Custom Header: HeaderImage shouldBeCropped()', {
+		beforeEach: function() {
 			wp.customize.HeaderTool.currentHeader = new wp.customize.HeaderTool.ImageModel();
 			this.model = new wp.customize.HeaderTool.ImageModel();
 			this.model.set({
@@ -52,7 +52,7 @@ jQuery( function() {
 		}
 	});
 
-	test('should not be cropped when the theme does not support flex width or height and the image has the same dimensions of the theme image', function() {
+	QUnit.test('should not be cropped when the theme does not support flex width or height and the image has the same dimensions of the theme image', function( assert ) {
 		this.model.set({
 			themeFlexWidth: false,
 			themeFlexHeight: false,
@@ -60,10 +60,10 @@ jQuery( function() {
 			imageHeight: 200
 		});
 
-		equal(this.model.shouldBeCropped(), false);
+		assert.equal(this.model.shouldBeCropped(), false);
 	});
 
-	test('should be cropped when the image has the same dimensions of the theme image', function() {
+	QUnit.test('should be cropped when the image has the same dimensions of the theme image', function( assert ) {
 		this.model.set({
 			themeFlexWidth: false,
 			themeFlexHeight: false,
@@ -71,10 +71,10 @@ jQuery( function() {
 			imageHeight: 400
 		});
 
-		equal(this.model.shouldBeCropped(), true);
+		assert.equal(this.model.shouldBeCropped(), true);
 	});
 
-	test('should not be cropped when the theme only supports flex width and the image has the same height as the theme image', function() {
+	QUnit.test('should not be cropped when the theme only supports flex width and the image has the same height as the theme image', function( assert ) {
 		this.model.set({
 			themeFlexWidth: true,
 			themeFlexHeight: false,
@@ -82,10 +82,10 @@ jQuery( function() {
 			imageHeight: 200
 		});
 
-		equal(this.model.shouldBeCropped(), false);
+		assert.equal(this.model.shouldBeCropped(), false);
 	});
 
-	test('should not be cropped when the theme only supports flex height and the image has the same width as the theme image', function() {
+	QUnit.test('should not be cropped when the theme only supports flex height and the image has the same width as the theme image', function( assert ) {
 		this.model.set({
 			themeFlexWidth: false,
 			themeFlexHeight: true,
@@ -93,10 +93,10 @@ jQuery( function() {
 			imageHeight: 600
 		});
 
-		equal(this.model.shouldBeCropped(), false);
+		assert.equal(this.model.shouldBeCropped(), false);
 	});
 
-	test('should not be cropped when the theme supports flex height AND width', function() {
+	QUnit.test('should not be cropped when the theme supports flex height AND width', function( assert ) {
 		this.model.set({
 			themeFlexWidth: true,
 			themeFlexHeight: true,
@@ -104,10 +104,10 @@ jQuery( function() {
 			imageHeight: 8600
 		});
 
-		equal(this.model.shouldBeCropped(), false);
+		assert.equal(this.model.shouldBeCropped(), false);
 	});
 
-	test('should not be cropped when the image width is smaller than or equal to theme width', function() {
+	QUnit.test('should not be cropped when the image width is smaller than or equal to theme width', function( assert ) {
 		this.model.set({
 			themeFlexWidth: false,
 			themeFlexHeight: false,
@@ -115,10 +115,10 @@ jQuery( function() {
 			imageHeight: 100
 		});
 
-		equal(this.model.shouldBeCropped(), false);
+		assert.equal(this.model.shouldBeCropped(), false);
 	});
 
-	test('should not be cropped when the image width is smaller than or equal to theme width, theme supports flex height and width', function() {
+	QUnit.test('should not be cropped when the image width is smaller than or equal to theme width, theme supports flex height and width', function( assert ) {
 		this.model.set({
 			themeFlexWidth: true,
 			themeFlexHeight: true,
@@ -126,6 +126,6 @@ jQuery( function() {
 			imageHeight: 100
 		});
 
-		equal(this.model.shouldBeCropped(), false);
+		assert.equal(this.model.shouldBeCropped(), false);
 	});
 });

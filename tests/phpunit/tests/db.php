@@ -89,10 +89,10 @@ class Tests_DB extends WP_UnitTestCase {
 		// Save the current locale settings.
 		$current_locales = explode( ';', setlocale( LC_ALL, 0 ) );
 
-		// Switch to Russian.
+		// Switch to a locale using comma as a decimal point separator.
 		$flag = setlocale( LC_ALL, 'ru_RU.utf8', 'rus', 'fr_FR.utf8', 'fr_FR', 'de_DE.utf8', 'de_DE', 'es_ES.utf8', 'es_ES', 'ja_JP.utf8', 'ja_JP' );
 		if ( false === $flag ) {
-			$this->markTestSkipped( 'No European languages available for testing' );
+			$this->markTestSkipped( 'No European locales available for testing' );
 		}
 
 		// Try an update query.

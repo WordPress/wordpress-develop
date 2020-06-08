@@ -192,7 +192,7 @@ class WP_User {
 			$field = 'id';
 		}
 
-		if ( 'id' == $field ) {
+		if ( 'id' === $field ) {
 			// Make sure the value is numeric to avoid casting objects, for example,
 			// to int 1.
 			if ( ! is_numeric( $value ) ) {
@@ -263,7 +263,7 @@ class WP_User {
 	 * @return bool Whether the given user meta key is set.
 	 */
 	public function __isset( $key ) {
-		if ( 'id' == $key ) {
+		if ( 'id' === $key ) {
 			_deprecated_argument(
 				'WP_User->id',
 				'2.1.0',
@@ -296,7 +296,7 @@ class WP_User {
 	 * @return mixed Value of the given user meta key (if set). If `$key` is 'id', the user ID.
 	 */
 	public function __get( $key ) {
-		if ( 'id' == $key ) {
+		if ( 'id' === $key ) {
 			_deprecated_argument(
 				'WP_User->id',
 				'2.1.0',
@@ -337,7 +337,7 @@ class WP_User {
 	 * @param mixed  $value User meta value.
 	 */
 	public function __set( $key, $value ) {
-		if ( 'id' == $key ) {
+		if ( 'id' === $key ) {
 			_deprecated_argument(
 				'WP_User->id',
 				'2.1.0',
@@ -362,7 +362,7 @@ class WP_User {
 	 * @param string $key User meta key to unset.
 	 */
 	public function __unset( $key ) {
-		if ( 'id' == $key ) {
+		if ( 'id' === $key ) {
 			_deprecated_argument(
 				'WP_User->id',
 				'2.1.0',
@@ -559,7 +559,7 @@ class WP_User {
 	 * @param string $role Role name.
 	 */
 	public function remove_role( $role ) {
-		if ( ! in_array( $role, $this->roles ) ) {
+		if ( ! in_array( $role, $this->roles, true ) ) {
 			return;
 		}
 		unset( $this->caps[ $role ] );
@@ -590,7 +590,7 @@ class WP_User {
 	 * @param string $role Role name.
 	 */
 	public function set_role( $role ) {
-		if ( 1 == count( $this->roles ) && current( $this->roles ) == $role ) {
+		if ( 1 === count( $this->roles ) && current( $this->roles ) == $role ) {
 			return;
 		}
 
@@ -750,7 +750,7 @@ class WP_User {
 
 		// Multisite super admin has all caps by definition, Unless specifically denied.
 		if ( is_multisite() && is_super_admin( $this->ID ) ) {
-			if ( in_array( 'do_not_allow', $caps ) ) {
+			if ( in_array( 'do_not_allow', $caps, true ) ) {
 				return false;
 			}
 			return true;

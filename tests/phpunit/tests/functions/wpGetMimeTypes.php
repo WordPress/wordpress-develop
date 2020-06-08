@@ -5,7 +5,7 @@
  *
  * @group functions.php
  */
-class Tests_wp_get_mime_types extends WP_UnitTestCase {
+class Tests_Functions_wpGetMimeTypes extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47701

@@ -379,7 +379,7 @@ function wptexturize_primes( $haystack, $needle, $prime, $open_quote, $close_quo
 			$sentence = preg_replace( $prime_pattern, $prime, $sentence );
 			$sentence = preg_replace( $quote_pattern, $close_quote, $sentence );
 		}
-		if ( '"' == $needle && false !== strpos( $sentence, '"' ) ) {
+		if ( '"' === $needle && false !== strpos( $sentence, '"' ) ) {
 			$sentence = str_replace( '"', $close_quote, $sentence );
 		}
 	}
@@ -406,7 +406,7 @@ function _wptexturize_pushpop_element( $text, &$stack, $disabled_elements ) {
 	if ( isset( $text[1] ) && '/' !== $text[1] ) {
 		$opening_tag = true;
 		$name_offset = 1;
-	} elseif ( 0 == count( $stack ) ) {
+	} elseif ( 0 === count( $stack ) ) {
 		// Stack is empty. Just stop.
 		return;
 	} else {
@@ -424,7 +424,7 @@ function _wptexturize_pushpop_element( $text, &$stack, $disabled_elements ) {
 	$tag = substr( $text, $name_offset, $space );
 
 	// Handle disabled tags.
-	if ( in_array( $tag, $disabled_elements ) ) {
+	if ( in_array( $tag, $disabled_elements, true ) ) {
 		if ( $opening_tag ) {
 			/*
 			 * This disables texturize until we find a closing tag of our type
@@ -978,7 +978,7 @@ function _wp_specialchars( $string, $quote_style = ENT_NOQUOTES, $charset = fals
 		$charset = $_charset;
 	}
 
-	if ( in_array( $charset, array( 'utf8', 'utf-8', 'UTF8' ) ) ) {
+	if ( in_array( $charset, array( 'utf8', 'utf-8', 'UTF8' ), true ) ) {
 		$charset = 'UTF-8';
 	}
 
@@ -1123,7 +1123,7 @@ function wp_check_invalid_utf8( $string, $strip = false ) {
 	// Store the site charset as a static to avoid multiple calls to get_option().
 	static $is_utf8 = null;
 	if ( ! isset( $is_utf8 ) ) {
-		$is_utf8 = in_array( get_option( 'blog_charset' ), array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ) );
+		$is_utf8 = in_array( get_option( 'blog_charset' ), array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ), true );
 	}
 	if ( ! $is_utf8 ) {
 		return $string;
@@ -1938,7 +1938,7 @@ function remove_accents( $string ) {
 		// Used for locale-specific rules.
 		$locale = get_locale();
 
-		if ( 'de_DE' == $locale || 'de_DE_formal' == $locale || 'de_CH' == $locale || 'de_CH_informal' == $locale ) {
+		if ( in_array( $locale, array( 'de_DE', 'de_DE_formal', 'de_CH', 'de_CH_informal' ), true ) ) {
 			$chars['Ä'] = 'Ae';
 			$chars['ä'] = 'ae';
 			$chars['Ö'] = 'Oe';
@@ -2005,6 +2005,24 @@ function remove_accents( $string ) {
 function sanitize_file_name( $filename ) {
 	$filename_raw  = $filename;
 	$special_chars = array( '?', '[', ']', '/', '\\', '=', '<', '>', ':', ';', ',', "'", '"', '&', '$', '#', '*', '(', ')', '|', '~', '`', '!', '{', '}', '%', '+', chr( 0 ) );
+
+	// Check for support for utf8 in the installed PCRE library once and store the result in a static.
+	static $utf8_pcre = null;
+	if ( ! isset( $utf8_pcre ) ) {
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		$utf8_pcre = @preg_match( '/^./u', 'a' );
+	}
+
+	if ( ! seems_utf8( $filename ) ) {
+		$_ext     = pathinfo( $filename, PATHINFO_EXTENSION );
+		$_name    = pathinfo( $filename, PATHINFO_FILENAME );
+		$filename = sanitize_title_with_dashes( $_name ) . '.' . $_ext;
+	}
+
+	if ( $utf8_pcre ) {
+		$filename = preg_replace( "#\x{00a0}#siu", ' ', $filename );
+	}
+
 	/**
 	 * Filters the list of characters to remove from a filename.
 	 *
@@ -2014,7 +2032,6 @@ function sanitize_file_name( $filename ) {
 	 * @param string   $filename_raw  The original filename to be sanitized.
 	 */
 	$special_chars = apply_filters( 'sanitize_file_name_chars', $special_chars, $filename_raw );
-	$filename      = preg_replace( "#\x{00a0}#siu", ' ', $filename );
 	$filename      = str_replace( $special_chars, '', $filename );
 	$filename      = str_replace( array( '%20', '+' ), '-', $filename );
 	$filename      = preg_replace( '/[\r\n\t -]+/', '-', $filename );
@@ -2162,7 +2179,7 @@ function sanitize_key( $key ) {
 function sanitize_title( $title, $fallback_title = '', $context = 'save' ) {
 	$raw_title = $title;
 
-	if ( 'save' == $context ) {
+	if ( 'save' === $context ) {
 		$title = remove_accents( $title );
 	}
 
@@ -2229,7 +2246,7 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 
 	$title = strtolower( $title );
 
-	if ( 'save' == $context ) {
+	if ( 'save' === $context ) {
 		// Convert &nbsp, &ndash, and &mdash to hyphens.
 		$title = str_replace( array( '%c2%a0', '%e2%80%93', '%e2%80%94' ), '-', $title );
 		// Convert &nbsp, &ndash, and &mdash HTML entities to hyphens.
@@ -2337,7 +2354,7 @@ function sanitize_html_class( $class, $fallback = '' ) {
 	// Limit to A-Z, a-z, 0-9, '_', '-'.
 	$sanitized = preg_replace( '/[^A-Za-z0-9_-]/', '', $sanitized );
 
-	if ( '' == $sanitized && $fallback ) {
+	if ( '' === $sanitized && $fallback ) {
 		return sanitize_html_class( $fallback );
 	}
 	/**
@@ -2819,7 +2836,7 @@ function antispambot( $email_address, $hex_encoding = 0 ) {
 function _make_url_clickable_cb( $matches ) {
 	$url = $matches[2];
 
-	if ( ')' == $matches[3] && strpos( $url, '(' ) ) {
+	if ( ')' === $matches[3] && strpos( $url, '(' ) ) {
 		// If the trailing character is a closing parethesis, and the URL has an opening parenthesis in it,
 		// add the closing parenthesis to the URL. Then we can let the parenthesis balancer do its thing below.
 		$url   .= $matches[3];
@@ -2876,8 +2893,9 @@ function _make_web_ftp_clickable_cb( $matches ) {
 	$dest = 'http://' . $dest;
 
 	// Removed trailing [.,;:)] from URL.
-	if ( in_array( substr( $dest, -1 ), array( '.', ',', ';', ':', ')' ) ) === true ) {
-		$ret  = substr( $dest, -1 );
+	$last_char = substr( $dest, -1 );
+	if ( in_array( $last_char, array( '.', ',', ';', ':', ')' ), true ) === true ) {
+		$ret  = $last_char;
 		$dest = substr( $dest, 0, strlen( $dest ) - 1 );
 	}
 
@@ -3305,7 +3323,7 @@ function translate_smiley( $matches ) {
 	$image_exts = array( 'jpg', 'jpeg', 'jpe', 'gif', 'png' );
 
 	// Don't convert smilies that aren't images - they're probably emoji.
-	if ( ! in_array( $ext, $image_exts ) ) {
+	if ( ! in_array( $ext, $image_exts, true ) ) {
 		return $img;
 	}
 
@@ -3352,17 +3370,17 @@ function convert_smilies( $text ) {
 			$content = $textarr[ $i ];
 
 			// If we're in an ignore block, wait until we find its closing tag.
-			if ( '' == $ignore_block_element && preg_match( '/^<(' . $tags_to_ignore . ')[^>]*>/', $content, $matches ) ) {
+			if ( '' === $ignore_block_element && preg_match( '/^<(' . $tags_to_ignore . ')[^>]*>/', $content, $matches ) ) {
 				$ignore_block_element = $matches[1];
 			}
 
 			// If it's not a tag and not in ignore block.
-			if ( '' == $ignore_block_element && strlen( $content ) > 0 && '<' != $content[0] ) {
+			if ( '' === $ignore_block_element && strlen( $content ) > 0 && '<' !== $content[0] ) {
 				$content = preg_replace_callback( $wp_smiliessearch, 'translate_smiley', $content );
 			}
 
 			// Did we exit ignore block?
-			if ( '' != $ignore_block_element && '</' . $ignore_block_element . '>' == $content ) {
+			if ( '' !== $ignore_block_element && '</' . $ignore_block_element . '>' === $content ) {
 				$ignore_block_element = '';
 			}
 
@@ -3555,7 +3573,7 @@ function iso8601_timezone_to_offset( $timezone ) {
 	if ( 'Z' === $timezone ) {
 		$offset = 0;
 	} else {
-		$sign    = ( substr( $timezone, 0, 1 ) == '+' ) ? 1 : -1;
+		$sign    = ( '+' === substr( $timezone, 0, 1 ) ) ? 1 : -1;
 		$hours   = intval( substr( $timezone, 1, 2 ) );
 		$minutes = intval( substr( $timezone, 3, 4 ) ) / 60;
 		$offset  = $sign * HOUR_IN_SECONDS * ( $hours + $minutes );
@@ -3795,7 +3813,8 @@ function human_time_diff( $from, $to = 0 ) {
  */
 function wp_trim_excerpt( $text = '', $post = null ) {
 	$raw_excerpt = $text;
-	if ( '' == $text ) {
+
+	if ( '' === $text ) {
 		$post = get_post( $post );
 		$text = get_the_content( '', false, $post );
 
@@ -4282,14 +4301,14 @@ function esc_sql( $data ) {
  *
  * @param string   $url       The URL to be cleaned.
  * @param string[] $protocols Optional. An array of acceptable protocols.
- *                            Defaults to return value of wp_allowed_protocols()
+ *                            Defaults to return value of wp_allowed_protocols().
  * @param string   $_context  Private. Use esc_url_raw() for database usage.
- * @return string The cleaned $url after the {@see 'clean_url'} filter is applied.
+ * @return string The cleaned URL after the {@see 'clean_url'} filter is applied.
  */
 function esc_url( $url, $protocols = null, $_context = 'display' ) {
 	$original_url = $url;
 
-	if ( '' == $url ) {
+	if ( '' === $url ) {
 		return $url;
 	}
 
@@ -4311,13 +4330,13 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
 	 * it needs http:// prepended (unless it's a relative link
 	 * starting with /, # or ?, or a PHP file).
 	 */
-	if ( strpos( $url, ':' ) === false && ! in_array( $url[0], array( '/', '#', '?' ) ) &&
+	if ( strpos( $url, ':' ) === false && ! in_array( $url[0], array( '/', '#', '?' ), true ) &&
 		! preg_match( '/^[a-z0-9-]+?\.php/i', $url ) ) {
 		$url = 'http://' . $url;
 	}
 
 	// Replace ampersands and single quotes only when displaying.
-	if ( 'display' == $_context ) {
+	if ( 'display' === $_context ) {
 		$url = wp_kses_normalize_entities( $url );
 		$url = str_replace( '&amp;', '&#038;', $url );
 		$url = str_replace( "'", '&#039;', $url );
@@ -4390,7 +4409,8 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
  * @since 2.8.0
  *
  * @param string   $url       The URL to be cleaned.
- * @param string[] $protocols An array of acceptable protocols.
+ * @param string[] $protocols Optional. An array of acceptable protocols.
+ *                            Defaults to return value of wp_allowed_protocols().
  * @return string The cleaned URL.
  */
 function esc_url_raw( $url, $protocols = null ) {
@@ -4626,7 +4646,7 @@ function sanitize_option( $option, $value ) {
 		case 'default_ping_status':
 		case 'default_comment_status':
 			// Options that if not there have 0 value but need to be something like "closed".
-			if ( '0' == $value || '' == $value ) {
+			if ( '0' == $value || '' === $value ) {
 				$value = 'closed';
 			}
 			break;
@@ -4715,7 +4735,7 @@ function sanitize_option( $option, $value ) {
 			if ( ! is_multisite() && defined( 'WPLANG' ) && '' !== WPLANG && 'en_US' !== WPLANG ) {
 				$allowed[] = WPLANG;
 			}
-			if ( ! in_array( $value, $allowed ) && ! empty( $value ) ) {
+			if ( ! in_array( $value, $allowed, true ) && ! empty( $value ) ) {
 				$value = get_option( $option );
 			}
 			break;
@@ -4763,7 +4783,7 @@ function sanitize_option( $option, $value ) {
 
 		case 'timezone_string':
 			$allowed_zones = timezone_identifiers_list();
-			if ( ! in_array( $value, $allowed_zones ) && ! empty( $value ) ) {
+			if ( ! in_array( $value, $allowed_zones, true ) && ! empty( $value ) ) {
 				$error = __( 'The timezone you have entered is not valid. Please select a valid timezone.' );
 			}
 			break;
@@ -4958,7 +4978,7 @@ function wp_sprintf( $pattern, ...$args ) {
 		}
 
 		// Literal %: append and continue.
-		if ( substr( $pattern, $start, 2 ) == '%%' ) {
+		if ( '%%' === substr( $pattern, $start, 2 ) ) {
 			$start  += 2;
 			$result .= '%';
 			continue;
@@ -5024,7 +5044,7 @@ function wp_sprintf( $pattern, ...$args ) {
  */
 function wp_sprintf_l( $pattern, $args ) {
 	// Not a match.
-	if ( substr( $pattern, 0, 2 ) != '%l' ) {
+	if ( '%l' !== substr( $pattern, 0, 2 ) ) {
 		return $pattern;
 	}
 
@@ -5145,7 +5165,7 @@ function _links_add_base( $m ) {
 	global $_links_add_base;
 	// 1 = attribute name  2 = quotation mark  3 = URL.
 	return $m[1] . '=' . $m[2] .
-		( preg_match( '#^(\w{1,20}):#', $m[3], $protocol ) && in_array( $protocol[1], wp_allowed_protocols() ) ?
+		( preg_match( '#^(\w{1,20}):#', $m[3], $protocol ) && in_array( $protocol[1], wp_allowed_protocols(), true ) ?
 			$m[3] :
 			WP_Http::make_absolute_url( $m[3], $_links_add_base )
 		)
@@ -5787,12 +5807,12 @@ function wp_staticize_emoji( $text ) {
 		$content = $textarr[ $i ];
 
 		// If we're in an ignore block, wait until we find its closing tag.
-		if ( '' == $ignore_block_element && preg_match( '/^<(' . $tags_to_ignore . ')>/', $content, $matches ) ) {
+		if ( '' === $ignore_block_element && preg_match( '/^<(' . $tags_to_ignore . ')>/', $content, $matches ) ) {
 			$ignore_block_element = $matches[1];
 		}
 
 		// If it's not a tag and not in ignore block.
-		if ( '' == $ignore_block_element && strlen( $content ) > 0 && '<' != $content[0] && false !== strpos( $content, '&#x' ) ) {
+		if ( '' === $ignore_block_element && strlen( $content ) > 0 && '<' !== $content[0] && false !== strpos( $content, '&#x' ) ) {
 			foreach ( $possible_emoji as $emojum => $emoji_char ) {
 				if ( false === strpos( $content, $emojum ) ) {
 					continue;
@@ -5808,7 +5828,7 @@ function wp_staticize_emoji( $text ) {
 		}
 
 		// Did we exit ignore block?
-		if ( '' != $ignore_block_element && '</' . $ignore_block_element . '>' == $content ) {
+		if ( '' !== $ignore_block_element && '</' . $ignore_block_element . '>' === $content ) {
 			$ignore_block_element = '';
 		}
 

@@ -56,11 +56,19 @@
 		<script src="../../build/wp-includes/js/mce-view.js"></script>
 
 		<!-- QUnit -->
-		<link rel="stylesheet" href="vendor/qunit.css" type="text/css" media="screen" />
-		<script src="vendor/qunit.js"></script>
-		<script src="vendor/sinon.js"></script>
-		<script src="vendor/sinon-qunit.js"></script>
-		<script>QUnit.config.hidepassed = false;</script>
+		<link rel="stylesheet" href="../../node_modules/qunit/qunit/qunit.css" type="text/css" media="screen" />
+		<script src="../../node_modules/qunit/qunit/qunit.js"></script>
+		<script src="../../node_modules/sinon/pkg/sinon.js"></script>
+		<script src="../../node_modules/sinon-test/dist/sinon-test.js"></script>
+		<script>
+			var qTest = QUnit.test, sTest = sinonTest( sinon );
+
+			QUnit.config.hidepassed = false;
+
+			QUnit.test = function( testName, callback ) {
+				return qTest( testName, sTest(callback) );
+			};
+		</script>
 	</head>
 	<body>
 		<div id="qunit"></div>

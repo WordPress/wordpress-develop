@@ -1,14 +1,14 @@
-/* global wp, test, ok, equal, module */
+/* global wp */
 
 jQuery( function( $ ) {
 	var FooSuperClass, BarSubClass, foo, bar, ConstructorTestClass, newConstructor, constructorTest, $mockElement, mockString,
 	firstInitialValue, firstValueInstance, valuesInstance, wasCallbackFired, mockValueCallback;
 
-	module( 'Customize Base: Class' );
+	QUnit.module( 'Customize Base: Class' );
 
 	FooSuperClass = wp.customize.Class.extend(
 		{
-			initialize: function ( instanceProps ) {
+			initialize: function( instanceProps ) {
 				$.extend( this, instanceProps || {} );
 			},
 			protoProp: 'protoPropValue'
@@ -17,40 +17,40 @@ jQuery( function( $ ) {
 			staticProp: 'staticPropValue'
 		}
 	);
-	test( 'FooSuperClass is a function ', function () {
-		equal( typeof FooSuperClass, 'function' );
+	QUnit.test( 'FooSuperClass is a function', function( assert ) {
+		assert.equal( typeof FooSuperClass, 'function' );
 	});
-	test( 'FooSuperClass prototype has protoProp', function () {
-		equal( FooSuperClass.prototype.protoProp, 'protoPropValue' );
+	QUnit.test( 'FooSuperClass prototype has protoProp', function( assert ) {
+		assert.equal( FooSuperClass.prototype.protoProp, 'protoPropValue' );
 	});
-	test( 'FooSuperClass does not have protoProp', function () {
-		equal( typeof FooSuperClass.protoProp, 'undefined' );
+	QUnit.test( 'FooSuperClass does not have protoProp', function( assert ) {
+		assert.equal( typeof FooSuperClass.protoProp, 'undefined' );
 	});
-	test( 'FooSuperClass has staticProp', function () {
-		equal( FooSuperClass.staticProp, 'staticPropValue' );
+	QUnit.test( 'FooSuperClass has staticProp', function( assert ) {
+		assert.equal( FooSuperClass.staticProp, 'staticPropValue' );
 	});
-	test( 'FooSuperClass prototype does not have staticProp', function () {
-		equal( typeof FooSuperClass.prototype.staticProp, 'undefined' );
+	QUnit.test( 'FooSuperClass prototype does not have staticProp', function( assert ) {
+		assert.equal( typeof FooSuperClass.prototype.staticProp, 'undefined' );
 	});
 
 	foo = new FooSuperClass( { instanceProp: 'instancePropValue' } );
-	test( 'FooSuperClass instance foo extended Class', function () {
-		equal( foo.extended( wp.customize.Class ), true );
+	QUnit.test( 'FooSuperClass instance foo extended Class', function( assert ) {
+		assert.equal( foo.extended( wp.customize.Class ), true );
 	});
-	test( 'foo instance has protoProp', function () {
-		equal( foo.protoProp, 'protoPropValue' );
+	QUnit.test( 'foo instance has protoProp', function( assert ) {
+		assert.equal( foo.protoProp, 'protoPropValue' );
 	});
-	test( 'foo instance does not have staticProp', function () {
-		equal( typeof foo.staticProp, 'undefined' );
+	QUnit.test( 'foo instance does not have staticProp', function( assert ) {
+		assert.equal( typeof foo.staticProp, 'undefined' );
 	});
-	test( 'FooSuperClass instance foo ran initialize() and has supplied instanceProp', function () {
-		equal( foo.instanceProp, 'instancePropValue' );
+	QUnit.test( 'FooSuperClass instance foo ran initialize() and has supplied instanceProp', function( assert ) {
+		assert.equal( foo.instanceProp, 'instancePropValue' );
 	});
 
 	// @todo Test Class.applicator?
 	// @todo Do we test object.instance?
 
-	module( 'Customize Base: Subclass' );
+	QUnit.module( 'Customize Base: Subclass' );
 
 	BarSubClass = FooSuperClass.extend(
 		{
@@ -64,26 +64,26 @@ jQuery( function( $ ) {
 			subStaticProp: 'subStaticPropValue'
 		}
 	);
-	test( 'BarSubClass prototype has subProtoProp', function () {
-		equal( BarSubClass.prototype.subProtoProp, 'subProtoPropValue' );
+	QUnit.test( 'BarSubClass prototype has subProtoProp', function( assert ) {
+		assert.equal( BarSubClass.prototype.subProtoProp, 'subProtoPropValue' );
 	});
-	test( 'BarSubClass prototype has parent FooSuperClass protoProp', function () {
-		equal( BarSubClass.prototype.protoProp, 'protoPropValue' );
+	QUnit.test( 'BarSubClass prototype has parent FooSuperClass protoProp', function( assert ) {
+		assert.equal( BarSubClass.prototype.protoProp, 'protoPropValue' );
 	});
 
 	bar = new BarSubClass( { instanceProp: 'instancePropValue' } );
-	test( 'BarSubClass instance bar its initialize() and parent initialize() run', function () {
-		equal( bar.instanceProp, 'instancePropValue' );
-		equal( bar.subInstanceProp, 'subInstancePropValue' );
+	QUnit.test( 'BarSubClass instance bar its initialize() and parent initialize() run', function( assert ) {
+		assert.equal( bar.instanceProp, 'instancePropValue' );
+		assert.equal( bar.subInstanceProp, 'subInstancePropValue' );
 	});
 
-	test( 'BarSubClass instance bar extended FooSuperClass', function () {
-		equal( bar.extended( FooSuperClass ), true );
+	QUnit.test( 'BarSubClass instance bar extended FooSuperClass', function( assert ) {
+		assert.equal( bar.extended( FooSuperClass ), true );
 	});
 
 
 	// Implements todo: Test Class.constructor() manipulation.
-	module( 'Customize Base: Constructor Manipulation' );
+	QUnit.module( 'Customize Base: Constructor Manipulation' );
 
 	newConstructor = function ( instanceProps ) {
 			$.extend( this , instanceProps || {} );
@@ -99,71 +99,71 @@ jQuery( function( $ ) {
 		}
 	);
 
-	test( 'New constructor added to class' , function () {
-		equal( ConstructorTestClass.prototype.constructor , newConstructor );
+	QUnit.test( 'New constructor added to class', function( assert ) {
+		assert.equal( ConstructorTestClass.prototype.constructor , newConstructor );
 	});
-	test( 'Class with new constructor has protoPropValue' , function () {
-		equal( ConstructorTestClass.prototype.protoProp , 'protoPropValue' );
+	QUnit.test( 'Class with new constructor has protoPropValue', function( assert ) {
+		assert.equal( ConstructorTestClass.prototype.protoProp , 'protoPropValue' );
 	});
 
 	constructorTest = new ConstructorTestClass( { instanceProp: 'instancePropValue' } );
-		test( 'ConstructorTestClass instance constructorTest has the new constructor', function () {
-		equal( constructorTest.constructor, newConstructor );
+		QUnit.test( 'ConstructorTestClass instance constructorTest has the new constructor', function( assert ) {
+		assert.equal( constructorTest.constructor, newConstructor );
 	});
 
-	test( 'ConstructorTestClass instance constructorTest extended Class', function () {
-		equal( constructorTest.extended( wp.customize.Class ), true );
+	QUnit.test( 'ConstructorTestClass instance constructorTest extended Class', function( assert ) {
+		assert.equal( constructorTest.extended( wp.customize.Class ), true );
 	});
 
-	test( 'ConstructorTestClass instance constructorTest has the added instance property', function () {
-		equal( constructorTest.instanceProp , 'instancePropValue' );
+	QUnit.test( 'ConstructorTestClass instance constructorTest has the added instance property', function( assert ) {
+		assert.equal( constructorTest.instanceProp , 'instancePropValue' );
 	});
 
 
-	module( 'Customize Base: wp.customizer.ensure' );
+	QUnit.module( 'Customize Base: wp.customizer.ensure' );
 
 	$mockElement = $( '<div id="mockElement"></div>' );
 
-	test( 'Handles jQuery argument' , function() {
-		equal( wp.customize.ensure( $mockElement ) , $mockElement );
+	QUnit.test( 'Handles jQuery argument', function( assert ) {
+		assert.equal( wp.customize.ensure( $mockElement ) , $mockElement );
 	});
 
 	mockString = '<div class="mockString"></div>';
 
-	test( 'Handles string argument' , function() {
-		ok( wp.customize.ensure( mockString ) instanceof jQuery );
+	QUnit.test( 'Handles string argument', function( assert ) {
+		assert.ok( wp.customize.ensure( mockString ) instanceof jQuery );
 	});
 
 
-	module( 'Customize Base: Value Class' );
+	QUnit.module( 'Customize Base: Value Class' );
 
 	firstInitialValue = true;
 	firstValueInstance = new wp.customize.Value( firstInitialValue );
 
-	test( 'Initialized with the right value' , function() {
-		equal( firstValueInstance.get() , firstInitialValue );
+	QUnit.test( 'Initialized with the right value', function( assert ) {
+		assert.equal( firstValueInstance.get() , firstInitialValue );
 	});
 
-	test( '.set() works' , function() {
+	QUnit.test( '.set() works', function( assert ) {
 		firstValueInstance.set( false );
-		equal( firstValueInstance.get() , false );
+		assert.equal( firstValueInstance.get() , false );
 	});
 
-	test( '.bind() adds new callback that fires on set()' , function() {
+	QUnit.test( '.bind() adds new callback that fires on set()', function( assert ) {
 		wasCallbackFired = false;
 		mockValueCallback = function() {
 			wasCallbackFired = true;
 		};
 		firstValueInstance.bind( mockValueCallback );
 		firstValueInstance.set( 'newValue' );
-		ok( wasCallbackFired );
+		assert.ok( wasCallbackFired );
 	});
 
-	module( 'Customize Base: Values Class' );
+	QUnit.module( 'Customize Base: Values Class' );
 
 	valuesInstance = new wp.customize.Values();
 
-	test( 'Correct events are triggered when adding to or removing from Values collection', function() {
+	QUnit.test( 'Correct events are triggered when adding to or removing from Values collection', function( assert ) {
 		var hasFooOnAdd = false,
 			hasFooOnRemove = false,
 			hasFooOnRemoved = true,
@@ -179,8 +179,8 @@ jQuery( function( $ ) {
 			valuePassedToAdd = value;
 		} );
 		valuesInstance.add( 'foo', fooValue );
-		ok( hasFooOnAdd );
-		equal( valuePassedToAdd.get(), fooValue.get() );
+		assert.ok( hasFooOnAdd );
+		assert.equal( valuePassedToAdd.get(), fooValue.get() );
 
 		// Test events when removing the value.
 		valuesInstance.bind( 'remove', function( value ) {
@@ -194,19 +194,19 @@ jQuery( function( $ ) {
 			wasEventFiredOnRemoval = true;
 		} );
 		valuesInstance.remove( 'foo' );
-		ok( hasFooOnRemove );
-		equal( valuePassedToRemove.get(), fooValue.get() );
-		ok( ! hasFooOnRemoved );
-		equal( valuePassedToRemoved.get(), fooValue.get() );
+		assert.ok( hasFooOnRemove );
+		assert.equal( valuePassedToRemove.get(), fooValue.get() );
+		assert.ok( ! hasFooOnRemoved );
+		assert.equal( valuePassedToRemoved.get(), fooValue.get() );
 
 		// Confirm no events are fired when nonexistent value is removed.
 		wasEventFiredOnRemoval = false;
 		valuesInstance.remove( 'bar' );
-		ok( ! wasEventFiredOnRemoval );
+		assert.ok( ! wasEventFiredOnRemoval );
 	});
 
-	module( 'Customize Base: Notification' );
-	test( 'Notification object exists and has expected properties', function ( assert ) {
+	QUnit.module( 'Customize Base: Notification' );
+	QUnit.test( 'Notification object exists and has expected properties', function ( assert ) {
 		var notification = new wp.customize.Notification( 'mycode', {
 			'message': 'Hello World',
 			'type': 'update',
@@ -231,8 +231,8 @@ jQuery( function( $ ) {
 		assert.equal( null, notification.data );
 	} );
 
-	module( 'Customize Base: utils.parseQueryString' );
-	test( 'wp.customize.utils.parseQueryString works', function( assert ) {
+	QUnit.module( 'Customize Base: utils.parseQueryString' );
+	QUnit.test( 'wp.customize.utils.parseQueryString works', function( assert ) {
 		var queryParams;
 		queryParams = wp.customize.utils.parseQueryString( 'a=1&b=2' );
 		assert.ok( _.isEqual( queryParams, { a: '1', b: '2' } ) );

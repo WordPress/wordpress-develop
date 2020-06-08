@@ -240,7 +240,7 @@ abstract class WP_Image_Editor {
 			 */
 			$quality = apply_filters( 'wp_editor_set_quality', $this->default_quality, $this->mime_type );
 
-			if ( 'image/jpeg' == $this->mime_type ) {
+			if ( 'image/jpeg' === $this->mime_type ) {
 				/**
 				 * Filters the JPEG compression quality for backward-compatibility.
 				 *
@@ -545,7 +545,7 @@ abstract class WP_Image_Editor {
 	 * @return string|false
 	 */
 	protected static function get_extension( $mime_type = null ) {
-		$extensions = explode( '|', array_search( $mime_type, wp_get_mime_types() ) );
+		$extensions = explode( '|', array_search( $mime_type, wp_get_mime_types(), true ) );
 
 		if ( empty( $extensions[0] ) ) {
 			return false;

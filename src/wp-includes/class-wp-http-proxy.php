@@ -167,11 +167,7 @@ class WP_HTTP_Proxy {
 	 * @return bool True, to send through the proxy and false if, the proxy should not be used.
 	 */
 	public function send_through_proxy( $uri ) {
-		/*
-		 * parse_url() only handles http, https type URLs, and will emit E_WARNING on failure.
-		 * This will be displayed on sites, which is not reasonable.
-		 */
-		$check = @parse_url( $uri );
+		$check = parse_url( $uri );
 
 		// Malformed URL, can not process, but this could mean ssl, so let through anyway.
 		if ( false === $check ) {
@@ -198,7 +194,7 @@ class WP_HTTP_Proxy {
 			return $result;
 		}
 
-		if ( 'localhost' == $check['host'] || ( isset( $home['host'] ) && $home['host'] == $check['host'] ) ) {
+		if ( 'localhost' === $check['host'] || ( isset( $home['host'] ) && $home['host'] === $check['host'] ) ) {
 			return false;
 		}
 
@@ -223,7 +219,7 @@ class WP_HTTP_Proxy {
 		if ( ! empty( $wildcard_regex ) ) {
 			return ! preg_match( $wildcard_regex, $check['host'] );
 		} else {
-			return ! in_array( $check['host'], $bypass_hosts );
+			return ! in_array( $check['host'], $bypass_hosts, true );
 		}
 	}
 }

@@ -388,7 +388,7 @@ class WP_Comment_Query {
 		 *
 		 * The expected return type from this filter depends on the value passed in the request query_vars.
 		 * When `$this->query_vars['count']` is set, the filter should return the comment count as an int.
-		 * When `'ids' == $this->query_vars['fields']`, the filter should return an array of comment ids.
+		 * When `'ids' === $this->query_vars['fields']`, the filter should return an array of comment ids.
 		 * Otherwise the filter should return an array of WP_Comment objects.
 		 *
 		 * @since 5.3.0
@@ -444,7 +444,7 @@ class WP_Comment_Query {
 
 		$comment_ids = array_map( 'intval', $comment_ids );
 
-		if ( 'ids' == $this->query_vars['fields'] ) {
+		if ( 'ids' === $this->query_vars['fields'] ) {
 			$this->comments = $comment_ids;
 			return $this->comments;
 		}
@@ -516,7 +516,7 @@ class WP_Comment_Query {
 		}
 
 		// 'any' overrides other statuses.
-		if ( ! in_array( 'any', $statuses ) ) {
+		if ( ! in_array( 'any', $statuses, true ) ) {
 			foreach ( $statuses as $status ) {
 				switch ( $status ) {
 					case 'hold':
@@ -553,10 +553,15 @@ class WP_Comment_Query {
 				// Numeric values are assumed to be user ids.
 				if ( is_numeric( $unapproved_identifier ) ) {
 					$approved_clauses[] = $wpdb->prepare( "( user_id = %d AND comment_approved = '0' )", $unapproved_identifier );
-
-					// Otherwise we match against email addresses.
 				} else {
-					$approved_clauses[] = $wpdb->prepare( "( comment_author_email = %s AND comment_approved = '0' )", $unapproved_identifier );
+					// Otherwise we match against email addresses.
+					if ( ! empty( $_GET['unapproved'] ) && ! empty( $_GET['moderation-hash'] ) ) {
+						// Only include requested comment.
+						$approved_clauses[] = $wpdb->prepare( "( comment_author_email = %s AND comment_approved = '0' AND comment_ID = %d )", $unapproved_identifier, (int) $_GET['unapproved'] );
+					} else {
+						// Include all of the author's unapproved comments.
+						$approved_clauses[] = $wpdb->prepare( "( comment_author_email = %s AND comment_approved = '0' )", $unapproved_identifier );
+					}
 				}
 			}
 		}
@@ -570,7 +575,7 @@ class WP_Comment_Query {
 			}
 		}
 
-		$order = ( 'ASC' == strtoupper( $this->query_vars['order'] ) ) ? 'ASC' : 'DESC';
+		$order = ( 'ASC' === strtoupper( $this->query_vars['order'] ) ) ? 'ASC' : 'DESC';
 
 		// Disable ORDER BY with 'none', an empty array, or boolean false.
 		if ( in_array( $this->query_vars['orderby'], array( 'none', array(), false ), true ) ) {
@@ -595,7 +600,7 @@ class WP_Comment_Query {
 					$_order   = $_value;
 				}
 
-				if ( ! $found_orderby_comment_id && in_array( $_orderby, array( 'comment_ID', 'comment__in' ) ) ) {
+				if ( ! $found_orderby_comment_id && in_array( $_orderby, array( 'comment_ID', 'comment__in' ), true ) ) {
 					$found_orderby_comment_id = true;
 				}
 
@@ -742,6 +747,7 @@ class WP_Comment_Query {
 					case 'comment':
 					case 'comments':
 						$comment_types[ $operator ][] = "''";
+						$comment_types[ $operator ][] = "'comment'";
 						break;
 
 					case 'pings':
@@ -1145,7 +1151,7 @@ class WP_Comment_Query {
 		} elseif ( 'comment__in' === $orderby ) {
 			$comment__in = implode( ',', array_map( 'absint', $this->query_vars['comment__in'] ) );
 			$parsed      = "FIELD( {$wpdb->comments}.comment_ID, $comment__in )";
-		} elseif ( in_array( $orderby, $allowed_keys ) ) {
+		} elseif ( in_array( $orderby, $allowed_keys, true ) ) {
 
 			if ( isset( $meta_query_clauses[ $orderby ] ) ) {
 				$meta_clause = $meta_query_clauses[ $orderby ];

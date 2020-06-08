@@ -6,7 +6,7 @@
 		eventsFired = 0;
 
 	// Fail if we don't see the expected number of events triggered in 3 seconds.
-	setTimeout( function() {
+	setTimeout( function( assert ) {
 		// QUnit may load this file without running it, in which case `assert`
 		// will never be set to `assertPassed` below.
 		assert && assert.equal(

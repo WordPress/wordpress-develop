@@ -1417,7 +1417,7 @@ function wp_default_scripts( $scripts ) {
 		$scripts->add( 'site-health', "/wp-admin/js/site-health$suffix.js", array( 'clipboard', 'jquery', 'wp-util', 'wp-a11y', 'wp-i18n' ), false, 1 );
 		$scripts->set_translations( 'site-health' );
 
-		$scripts->add( 'privacy-tools', "/wp-admin/js/privacy-tools$suffix.js", array( 'jquery' ), false, 1 );
+		$scripts->add( 'privacy-tools', "/wp-admin/js/privacy-tools$suffix.js", array( 'jquery', 'wp-a11y', 'wp-i18n' ), false, 1 );
 		did_action( 'init' ) && $scripts->localize(
 			'privacy-tools',
 			'privacyToolsL10n',
@@ -1434,93 +1434,12 @@ function wp_default_scripts( $scripts ) {
 		);
 
 		$scripts->add( 'updates', "/wp-admin/js/updates$suffix.js", array( 'jquery', 'wp-util', 'wp-a11y', 'wp-sanitize' ), false, 1 );
+		$scripts->set_translations( 'updates' );
 		did_action( 'init' ) && $scripts->localize(
 			'updates',
 			'_wpUpdatesSettings',
 			array(
 				'ajax_nonce' => wp_create_nonce( 'updates' ),
-				'l10n'       => array(
-					/* translators: %s: Search query. */
-					'searchResults'            => __( 'Search results for &#8220;%s&#8221;' ),
-					'searchResultsLabel'       => __( 'Search Results' ),
-					'noPlugins'                => __( 'You do not appear to have any plugins available at this time.' ),
-					'noItemsSelected'          => __( 'Please select at least one item to perform this action on.' ),
-					'updating'                 => __( 'Updating...' ), // No ellipsis.
-					'pluginUpdated'            => _x( 'Updated!', 'plugin' ),
-					'themeUpdated'             => _x( 'Updated!', 'theme' ),
-					'update'                   => __( 'Update' ),
-					'updateNow'                => __( 'Update Now' ),
-					/* translators: %s: Plugin name and version. */
-					'pluginUpdateNowLabel'     => _x( 'Update %s now', 'plugin' ),
-					'updateFailedShort'        => __( 'Update Failed!' ),
-					/* translators: %s: Error string for a failed update. */
-					'updateFailed'             => __( 'Update Failed: %s' ),
-					/* translators: %s: Plugin name and version. */
-					'pluginUpdatingLabel'      => _x( 'Updating %s...', 'plugin' ), // No ellipsis.
-					/* translators: %s: Plugin name and version. */
-					'pluginUpdatedLabel'       => _x( '%s updated!', 'plugin' ),
-					/* translators: %s: Plugin name and version. */
-					'pluginUpdateFailedLabel'  => _x( '%s update failed', 'plugin' ),
-					/* translators: Accessibility text. */
-					'updatingMsg'              => __( 'Updating... please wait.' ), // No ellipsis.
-					/* translators: Accessibility text. */
-					'updatedMsg'               => __( 'Update completed successfully.' ),
-					/* translators: Accessibility text. */
-					'updateCancel'             => __( 'Update canceled.' ),
-					'beforeunload'             => __( 'Updates may not complete if you navigate away from this page.' ),
-					'installNow'               => __( 'Install Now' ),
-					/* translators: %s: Plugin name. */
-					'pluginInstallNowLabel'    => _x( 'Install %s now', 'plugin' ),
-					'installing'               => __( 'Installing...' ),
-					'pluginInstalled'          => _x( 'Installed!', 'plugin' ),
-					'themeInstalled'           => _x( 'Installed!', 'theme' ),
-					'installFailedShort'       => __( 'Installation Failed!' ),
-					/* translators: %s: Error string for a failed installation. */
-					'installFailed'            => __( 'Installation failed: %s' ),
-					/* translators: %s: Plugin name and version. */
-					'pluginInstallingLabel'    => _x( 'Installing %s...', 'plugin' ), // No ellipsis.
-					/* translators: %s: Theme name and version. */
-					'themeInstallingLabel'     => _x( 'Installing %s...', 'theme' ), // No ellipsis.
-					/* translators: %s: Plugin name and version. */
-					'pluginInstalledLabel'     => _x( '%s installed!', 'plugin' ),
-					/* translators: %s: Theme name and version. */
-					'themeInstalledLabel'      => _x( '%s installed!', 'theme' ),
-					/* translators: %s: Plugin name and version. */
-					'pluginInstallFailedLabel' => _x( '%s installation failed', 'plugin' ),
-					/* translators: %s: Theme name and version. */
-					'themeInstallFailedLabel'  => _x( '%s installation failed', 'theme' ),
-					'installingMsg'            => __( 'Installing... please wait.' ),
-					'installedMsg'             => __( 'Installation completed successfully.' ),
-					/* translators: %s: Activation URL. */
-					'importerInstalledMsg'     => __( 'Importer installed successfully. <a href="%s">Run importer</a>' ),
-					/* translators: %s: Theme name. */
-					'aysDelete'                => __( 'Are you sure you want to delete %s?' ),
-					/* translators: %s: Plugin name. */
-					'aysDeleteUninstall'       => __( 'Are you sure you want to delete %s and its data?' ),
-					'aysBulkDelete'            => __( 'Are you sure you want to delete the selected plugins and their data?' ),
-					'aysBulkDeleteThemes'      => __( 'Caution: These themes may be active on other sites in the network. Are you sure you want to proceed?' ),
-					'deleting'                 => __( 'Deleting...' ),
-					/* translators: %s: Error string for a failed deletion. */
-					'deleteFailed'             => __( 'Deletion failed: %s' ),
-					'pluginDeleted'            => _x( 'Deleted!', 'plugin' ),
-					'themeDeleted'             => _x( 'Deleted!', 'theme' ),
-					'livePreview'              => __( 'Live Preview' ),
-					'activatePlugin'           => is_network_admin() ? __( 'Network Activate' ) : __( 'Activate' ),
-					'activateTheme'            => is_network_admin() ? __( 'Network Enable' ) : __( 'Activate' ),
-					/* translators: %s: Plugin name. */
-					'activatePluginLabel'      => is_network_admin() ? _x( 'Network Activate %s', 'plugin' ) : _x( 'Activate %s', 'plugin' ),
-					/* translators: %s: Theme name. */
-					'activateThemeLabel'       => is_network_admin() ? _x( 'Network Activate %s', 'theme' ) : _x( 'Activate %s', 'theme' ),
-					'activateImporter'         => __( 'Run Importer' ),
-					/* translators: %s: Importer name. */
-					'activateImporterLabel'    => __( 'Run %s' ),
-					'unknownError'             => __( 'Something went wrong.' ),
-					'connectionError'          => __( 'Connection lost or the server is busy. Please try again later.' ),
-					'nonceError'               => __( 'An error has occurred. Please reload the page and try again.' ),
-					/* translators: %s: Number of plugins. */
-					'pluginsFound'             => __( 'Number of plugins found: %d' ),
-					'noPluginsFound'           => __( 'No plugins found. Try a different search.' ),
-				),
 			)
 		);
 
@@ -1691,12 +1610,9 @@ function wp_default_styles( $styles ) {
 	$styles->add( 'login', "/wp-admin/css/login$suffix.css", array( 'dashicons', 'buttons', 'forms', 'l10n' ) );
 	$styles->add( 'install', "/wp-admin/css/install$suffix.css", array( 'dashicons', 'buttons', 'forms', 'l10n' ) );
 	$styles->add( 'wp-color-picker', "/wp-admin/css/color-picker$suffix.css" );
-	$styles->add( 'customize-controls', "/wp-admin/css/customize-controls$suffix.css", array( 'wp-admin', 'colors', 'ie', 'imgareaselect' ) );
+	$styles->add( 'customize-controls', "/wp-admin/css/customize-controls$suffix.css", array( 'wp-admin', 'colors', 'imgareaselect' ) );
 	$styles->add( 'customize-widgets', "/wp-admin/css/customize-widgets$suffix.css", array( 'wp-admin', 'colors' ) );
 	$styles->add( 'customize-nav-menus', "/wp-admin/css/customize-nav-menus$suffix.css", array( 'wp-admin', 'colors' ) );
-
-	$styles->add( 'ie', "/wp-admin/css/ie$suffix.css" );
-	$styles->add_data( 'ie', 'conditional', 'lte IE 7' );
 
 	// Common dependencies.
 	$styles->add( 'buttons', "/wp-includes/css/buttons$suffix.css" );
@@ -1810,7 +1726,6 @@ function wp_default_styles( $styles ) {
 		'customize-widgets',
 		'customize-nav-menus',
 		'customize-preview',
-		'ie',
 		'login',
 		'site-health',
 		// Includes CSS.

@@ -279,9 +279,9 @@ function get_bookmarks( $args = '' ) {
 			foreach ( explode( ',', $orderby ) as $ordparam ) {
 				$ordparam = trim( $ordparam );
 
-				if ( in_array( 'link_' . $ordparam, $keys ) ) {
+				if ( in_array( 'link_' . $ordparam, $keys, true ) ) {
 					$orderparams[] = 'link_' . $ordparam;
-				} elseif ( in_array( $ordparam, $keys ) ) {
+				} elseif ( in_array( $ordparam, $keys, true ) ) {
 					$orderparams[] = $ordparam;
 				}
 			}
@@ -293,7 +293,7 @@ function get_bookmarks( $args = '' ) {
 	}
 
 	$order = strtoupper( $parsed_args['order'] );
-	if ( '' !== $order && ! in_array( $order, array( 'ASC', 'DESC' ) ) ) {
+	if ( '' !== $order && ! in_array( $order, array( 'ASC', 'DESC' ), true ) ) {
 		$order = 'ASC';
 	}
 
@@ -412,35 +412,35 @@ function sanitize_bookmark_field( $field, $value, $bookmark_id, $context ) {
 			break;
 		case 'link_target': // "enum"
 			$targets = array( '_top', '_blank' );
-			if ( ! in_array( $value, $targets ) ) {
+			if ( ! in_array( $value, $targets, true ) ) {
 				$value = '';
 			}
 			break;
 	}
 
-	if ( 'raw' == $context ) {
+	if ( 'raw' === $context ) {
 		return $value;
 	}
 
-	if ( 'edit' == $context ) {
+	if ( 'edit' === $context ) {
 		/** This filter is documented in wp-includes/post.php */
 		$value = apply_filters( "edit_{$field}", $value, $bookmark_id );
 
-		if ( 'link_notes' == $field ) {
+		if ( 'link_notes' === $field ) {
 			$value = esc_html( $value ); // textarea_escaped
 		} else {
 			$value = esc_attr( $value );
 		}
-	} elseif ( 'db' == $context ) {
+	} elseif ( 'db' === $context ) {
 		/** This filter is documented in wp-includes/post.php */
 		$value = apply_filters( "pre_{$field}", $value );
 	} else {
 		/** This filter is documented in wp-includes/post.php */
 		$value = apply_filters( "{$field}", $value, $bookmark_id, $context );
 
-		if ( 'attribute' == $context ) {
+		if ( 'attribute' === $context ) {
 			$value = esc_attr( $value );
-		} elseif ( 'js' == $context ) {
+		} elseif ( 'js' === $context ) {
 			$value = esc_js( $value );
 		}
 	}

@@ -137,7 +137,7 @@ function get_blog_details( $fields = null, $get_all = true ) {
 			if ( false !== $blog ) {
 				return $blog;
 			}
-			if ( substr( $fields['domain'], 0, 4 ) == 'www.' ) {
+			if ( 'www.' === substr( $fields['domain'], 0, 4 ) ) {
 				$nowww = substr( $fields['domain'], 4 );
 				$blog  = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain IN (%s,%s) AND path = %s ORDER BY CHAR_LENGTH(domain) DESC", $nowww, $fields['domain'], $fields['path'] ) );
 			} else {
@@ -155,7 +155,7 @@ function get_blog_details( $fields = null, $get_all = true ) {
 			if ( false !== $blog ) {
 				return $blog;
 			}
-			if ( substr( $fields['domain'], 0, 4 ) == 'www.' ) {
+			if ( 'www.' === substr( $fields['domain'], 0, 4 ) ) {
 				$nowww = substr( $fields['domain'], 4 );
 				$blog  = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain IN (%s,%s) ORDER BY CHAR_LENGTH(domain) DESC", $nowww, $fields['domain'] ) );
 			} else {
@@ -703,7 +703,9 @@ function update_blog_status( $blog_id, $pref, $value, $deprecated = null ) {
 		_deprecated_argument( __FUNCTION__, '3.1.0' );
 	}
 
-	if ( ! in_array( $pref, array( 'site_id', 'domain', 'path', 'registered', 'last_updated', 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' ) ) ) {
+	$pref_whitelist = array( 'site_id', 'domain', 'path', 'registered', 'last_updated', 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' );
+
+	if ( ! in_array( $pref, $pref_whitelist, true ) ) {
 		return $value;
 	}
 
@@ -782,7 +784,7 @@ function _update_blog_date_on_post_publish( $new_status, $old_status, $post ) {
 		return;
 	}
 
-	if ( 'publish' != $new_status && 'publish' != $old_status ) {
+	if ( 'publish' !== $new_status && 'publish' !== $old_status ) {
 		return;
 	}
 
@@ -807,7 +809,7 @@ function _update_blog_date_on_post_delete( $post_id ) {
 		return;
 	}
 
-	if ( 'publish' != $post->post_status ) {
+	if ( 'publish' !== $post->post_status ) {
 		return;
 	}
 

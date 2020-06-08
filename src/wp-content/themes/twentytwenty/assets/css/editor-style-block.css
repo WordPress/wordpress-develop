@@ -30,12 +30,6 @@
 	font-size: inherit;
 }
 
-.block-editor-block-list__empty-block-inserter .block-editor-inserter__toggle:not(:hover):not(:focus),
-.block-editor-default-block-appender .block-editor-inserter .block-editor-inserter__toggle:not(:hover):not(:focus) {
-	color: inherit;
-}
-
-
 /* Fonts ------------------------------------- */
 
 /*
@@ -908,7 +902,8 @@ hr.wp-block-separator.is-style-dots::before {
 
 /* BUTTON STYLE: OUTLINE */
 
-.editor-styles-wrapper .is-style-outline .wp-block-button__link {
+.editor-styles-wrapper .is-style-outline .wp-block-button__link,
+.editor-styles-wrapper .is-style-outline.wp-block-button__link {
 	background: none;
 	border-color: currentColor;
 	color: #cd2653;
@@ -917,7 +912,8 @@ hr.wp-block-separator.is-style-dots::before {
 
 /* BUTTON STYLE: SQUARED */
 
-.editor-styles-wrapper .is-style-squared .wp-block-button__link {
+.editor-styles-wrapper .is-style-squared .wp-block-button__link,
+.editor-styles-wrapper .is-style-squared.wp-block-button__link {
 	border-radius: 0;
 }
 
@@ -1058,11 +1054,6 @@ hr.wp-block-separator.is-style-dots::before {
 .editor-styles-wrapper .wp-block-image {
 	margin-bottom: 30px;
 	margin-top: 30px;
-}
-
-.editor-styles-wrapper .wp-block-image.is-resized {
-	margin-left: auto;
-	margin-right: auto;
 }
 
 /* Block: Group ------------------------------ */

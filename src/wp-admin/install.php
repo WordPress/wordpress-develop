@@ -74,7 +74,7 @@ function display_header( $body_classes = '' ) {
 	<?php wp_admin_css( 'install', true ); ?>
 </head>
 <body class="wp-core-ui<?php echo $body_classes; ?>">
-<p id="logo"><a href="<?php echo esc_url( __( 'https://wordpress.org/' ) ); ?>"><?php _e( 'WordPress' ); ?></a></p>
+<p id="logo"><?php _e( 'WordPress' ); ?></p>
 
 	<?php
 } // End display_header().
@@ -91,8 +91,7 @@ function display_header( $body_classes = '' ) {
 function display_setup_form( $error = null ) {
 	global $wpdb;
 
-	$sql        = $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $wpdb->users ) );
-	$user_table = ( $wpdb->get_var( $sql ) != null );
+	$user_table = ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $wpdb->users ) ) ) !== null );
 
 	// Ensure that sites appear in search engines by default.
 	$blog_public = 1;
@@ -180,10 +179,10 @@ function display_setup_form( $error = null ) {
 			<p><?php _e( 'Double-check your email address before continuing.' ); ?></p></td>
 		</tr>
 		<tr>
-			<th scope="row"><?php has_action( 'blog_privacy_selector' ) ? _e( 'Site Visibility' ) : _e( 'Search Engine Visibility' ); ?></th>
+			<th scope="row"><?php has_action( 'blog_privacy_selector' ) ? _e( 'Site visibility' ) : _e( 'Search engine visibility' ); ?></th>
 			<td>
 				<fieldset>
-					<legend class="screen-reader-text"><span><?php has_action( 'blog_privacy_selector' ) ? _e( 'Site Visibility' ) : _e( 'Search Engine Visibility' ); ?> </span></legend>
+					<legend class="screen-reader-text"><span><?php has_action( 'blog_privacy_selector' ) ? _e( 'Site visibility' ) : _e( 'Search engine visibility' ); ?> </span></legend>
 					<?php
 					if ( has_action( 'blog_privacy_selector' ) ) {
 						?>
@@ -369,10 +368,10 @@ switch ( $step ) {
 			// TODO: Poka-yoke.
 			display_setup_form( __( 'Please provide a valid username.' ) );
 			$error = true;
-		} elseif ( sanitize_user( $user_name, true ) != $user_name ) {
+		} elseif ( sanitize_user( $user_name, true ) !== $user_name ) {
 			display_setup_form( __( 'The username you provided has invalid characters.' ) );
 			$error = true;
-		} elseif ( $admin_password != $admin_password_check ) {
+		} elseif ( $admin_password !== $admin_password_check ) {
 			// TODO: Poka-yoke.
 			display_setup_form( __( 'Your passwords do not match. Please try again.' ) );
 			$error = true;

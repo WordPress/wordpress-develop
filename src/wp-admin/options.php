@@ -64,7 +64,7 @@ if ( ! empty( $_GET['adminhash'] ) ) {
 	}
 	wp_redirect( admin_url( $redirect ) );
 	exit;
-} elseif ( ! empty( $_GET['dismiss'] ) && 'new_admin_email' == $_GET['dismiss'] ) {
+} elseif ( ! empty( $_GET['dismiss'] ) && 'new_admin_email' === $_GET['dismiss'] ) {
 	check_admin_referer( 'dismiss-' . get_current_blog_id() . '-new_admin_email' );
 	delete_option( 'adminhash' );
 	delete_option( 'new_admin_email' );
@@ -152,7 +152,7 @@ $whitelist_options['privacy'] = array();
 
 $mail_options = array( 'mailserver_url', 'mailserver_port', 'mailserver_login', 'mailserver_pass' );
 
-if ( ! in_array( get_option( 'blog_charset' ), array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ) ) ) {
+if ( ! in_array( get_option( 'blog_charset' ), array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ), true ) ) {
 	$whitelist_options['reading'][] = 'blog_charset';
 }
 
@@ -177,7 +177,11 @@ if ( ! is_multisite() ) {
 
 	$whitelist_options['media'][] = 'uploads_use_yearmonth_folders';
 
-	// If upload_url_path and upload_path are both default values, they're locked.
+	/*
+	 * If upload_url_path is not the default (empty),
+	 * or upload_path is not the default ('wp-content/uploads' or empty),
+	 * they can be edited, otherwise they're locked.
+	 */
 	if ( get_option( 'upload_url_path' ) || ( get_option( 'upload_path' ) != 'wp-content/uploads' && get_option( 'upload_path' ) ) ) {
 		$whitelist_options['media'][] = 'upload_path';
 		$whitelist_options['media'][] = 'upload_url_path';
@@ -204,8 +208,8 @@ if ( ! is_multisite() ) {
  */
 $whitelist_options = apply_filters( 'whitelist_options', $whitelist_options );
 
-if ( 'update' == $action ) { // We are saving settings sent from a settings page.
-	if ( 'options' == $option_page && ! isset( $_POST['option_page'] ) ) { // This is for back compat and will eventually be removed.
+if ( 'update' === $action ) { // We are saving settings sent from a settings page.
+	if ( 'options' === $option_page && ! isset( $_POST['option_page'] ) ) { // This is for back compat and will eventually be removed.
 		$unregistered = true;
 		check_admin_referer( 'update-options' );
 	} else {
@@ -223,7 +227,7 @@ if ( 'update' == $action ) { // We are saving settings sent from a settings page
 		);
 	}
 
-	if ( 'options' == $option_page ) {
+	if ( 'options' === $option_page ) {
 		if ( is_multisite() && ! current_user_can( 'manage_network_options' ) ) {
 			wp_die( __( 'Sorry, you are not allowed to modify unregistered settings for this site.' ) );
 		}
@@ -232,14 +236,20 @@ if ( 'update' == $action ) { // We are saving settings sent from a settings page
 		$options = $whitelist_options[ $option_page ];
 	}
 
-	if ( 'general' == $option_page ) {
+	if ( 'general' === $option_page ) {
 		// Handle custom date/time formats.
-		if ( ! empty( $_POST['date_format'] ) && isset( $_POST['date_format_custom'] ) && '\c\u\s\t\o\m' == wp_unslash( $_POST['date_format'] ) ) {
+		if ( ! empty( $_POST['date_format'] ) && isset( $_POST['date_format_custom'] )
+			&& '\c\u\s\t\o\m' === wp_unslash( $_POST['date_format'] )
+		) {
 			$_POST['date_format'] = $_POST['date_format_custom'];
 		}
-		if ( ! empty( $_POST['time_format'] ) && isset( $_POST['time_format_custom'] ) && '\c\u\s\t\o\m' == wp_unslash( $_POST['time_format'] ) ) {
+
+		if ( ! empty( $_POST['time_format'] ) && isset( $_POST['time_format_custom'] )
+			&& '\c\u\s\t\o\m' === wp_unslash( $_POST['time_format'] )
+		) {
 			$_POST['time_format'] = $_POST['time_format_custom'];
 		}
+
 		// Map UTC+- timezones to gmt_offsets and set timezone_string to empty.
 		if ( ! empty( $_POST['timezone_string'] ) && preg_match( '/^UTC[+-]/', $_POST['timezone_string'] ) ) {
 			$_POST['gmt_offset']      = $_POST['timezone_string'];
@@ -335,9 +345,11 @@ $options = $wpdb->get_results( "SELECT * FROM $wpdb->options ORDER BY option_nam
 
 foreach ( (array) $options as $option ) :
 	$disabled = false;
-	if ( '' == $option->option_name ) {
+
+	if ( '' === $option->option_name ) {
 		continue;
 	}
+
 	if ( is_serialized( $option->option_value ) ) {
 		if ( is_serialized_string( $option->option_value ) ) {
 			// This is a serialized string, so we should display it.
@@ -354,6 +366,7 @@ foreach ( (array) $options as $option ) :
 		$options_to_update[] = $option->option_name;
 		$class               = 'all-options';
 	}
+
 	$name = esc_attr( $option->option_name );
 	?>
 <tr>

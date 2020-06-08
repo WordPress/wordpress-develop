@@ -181,12 +181,12 @@ function get_pending_comments_num( $post_id ) {
 }
 
 /**
- * Add avatars to relevant places in admin, or try to.
+ * Adds avatars to relevant places in admin.
  *
  * @since 2.5.0
  *
  * @param string $name User name.
- * @return string Avatar with Admin name.
+ * @return string Avatar with the user name.
  */
 function floated_admin_avatar( $name ) {
 	$avatar = get_avatar( get_comment(), 32, 'mystery' );
@@ -197,7 +197,7 @@ function floated_admin_avatar( $name ) {
  * @since 2.7.0
  */
 function enqueue_comment_hotkeys_js() {
-	if ( 'true' == get_user_option( 'comment_shortcuts' ) ) {
+	if ( 'true' === get_user_option( 'comment_shortcuts' ) ) {
 		wp_enqueue_script( 'jquery-table-hotkeys' );
 	}
 }

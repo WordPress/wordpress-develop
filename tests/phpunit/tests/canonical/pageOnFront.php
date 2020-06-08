@@ -58,8 +58,13 @@ class Tests_Canonical_PageOnFront extends WP_Canonical_UnitTestCase {
 
 			// The page designated as the front page should redirect to the front of the site.
 			array( '/front-page/', '/' ),
+			// The front page supports the <!--nextpage--> pagination.
 			array( '/front-page/2/', '/page/2/' ),
 			array( '/front-page/?page=2', '/page/2/' ),
+			// The posts page does not support the <!--nextpage--> pagination.
+			array( '/blog-page/2/', '/blog-page/' ),
+			array( '/blog-page/?page=2', '/blog-page/' ),
+			// The posts page supports regular pagination.
 			array( '/blog-page/?paged=2', '/blog-page/page/2/' ),
 		);
 	}

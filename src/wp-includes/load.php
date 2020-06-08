@@ -14,36 +14,10 @@
  */
 function wp_get_server_protocol() {
 	$protocol = isset( $_SERVER['SERVER_PROTOCOL'] ) ? $_SERVER['SERVER_PROTOCOL'] : '';
-	if ( ! in_array( $protocol, array( 'HTTP/1.1', 'HTTP/2', 'HTTP/2.0' ) ) ) {
+	if ( ! in_array( $protocol, array( 'HTTP/1.1', 'HTTP/2', 'HTTP/2.0' ), true ) ) {
 		$protocol = 'HTTP/1.0';
 	}
 	return $protocol;
-}
-
-/**
- * Turn register globals off.
- *
- * @since 2.1.0
- * @access private
- */
-function wp_unregister_GLOBALS() {  // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
-	if ( ! ini_get( 'register_globals' ) ) {
-		return;
-	}
-
-	if ( isset( $_REQUEST['GLOBALS'] ) ) {
-		die( 'GLOBALS overwrite attempt detected' );
-	}
-
-	// Variables that shouldn't be unset.
-	$no_unset = array( 'GLOBALS', '_GET', '_POST', '_COOKIE', '_REQUEST', '_SERVER', '_ENV', '_FILES', 'table_prefix' );
-
-	$input = array_merge( $_GET, $_POST, $_COOKIE, $_SERVER, $_ENV, $_FILES, isset( $_SESSION ) && is_array( $_SESSION ) ? $_SESSION : array() );
-	foreach ( $input as $k => $v ) {
-		if ( ! in_array( $k, $no_unset ) && isset( $GLOBALS[ $k ] ) ) {
-			unset( $GLOBALS[ $k ] );
-		}
-	}
 }
 
 /**
@@ -66,7 +40,7 @@ function wp_fix_server_vars() {
 	$_SERVER = array_merge( $default_server_values, $_SERVER );
 
 	// Fix for IIS when running with PHP ISAPI.
-	if ( empty( $_SERVER['REQUEST_URI'] ) || ( PHP_SAPI != 'cgi-fcgi' && preg_match( '/^Microsoft-IIS\//', $_SERVER['SERVER_SOFTWARE'] ) ) ) {
+	if ( empty( $_SERVER['REQUEST_URI'] ) || ( 'cgi-fcgi' !== PHP_SAPI && preg_match( '/^Microsoft-IIS\//', $_SERVER['SERVER_SOFTWARE'] ) ) ) {
 
 		if ( isset( $_SERVER['HTTP_X_ORIGINAL_URL'] ) ) {
 			// IIS Mod-Rewrite.
@@ -155,6 +129,75 @@ function wp_check_php_mysql_versions() {
 }
 
 /**
+ * Retrieves the current environment type.
+ *
+ * The type can be set via the `WP_ENVIRONMENT_TYPE` global system variable,
+ * a constant of the same name, or the {@see 'wp_get_environment_type'} filter.
+ *
+ * Possible values include 'development', 'stage', 'production'. If not set,
+ * the type defaults to 'production'.
+ *
+ * @since 5.5.0
+ *
+ * @return string The current environment type.
+ */
+function wp_get_environment_type() {
+	$approved_environments = array(
+		'development',
+		'stage',
+		'production',
+	);
+
+	/**
+	 * Filters the list of approved environment types.
+	 *
+	 * This filter runs before it can be used by plugins. It is designed for non-web runtimes.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param string $approved_environments The list of approved environment types. Possible values
+	 *                                      include 'development', 'stage', 'production'.
+	 */
+	$approved_environments = apply_filters( 'wp_approved_environment_types', $approved_environments );
+
+	$current_env = '';
+
+	// Check if a environment variable has been set for max flexibility, if `getenv` is available on the system.
+	if ( function_exists( 'getenv' ) ) {
+		$has_env = getenv( 'WP_ENVIRONMENT_TYPE' );
+		if ( false !== $has_env ) {
+			$current_env = $has_env;
+		}
+	}
+
+	// Fetch the environment from a constant, this overrides the global system variable.
+	if ( defined( 'WP_ENVIRONMENT_TYPE' ) ) {
+		$current_env = WP_ENVIRONMENT_TYPE;
+	}
+
+	/**
+	 * Filters the current environment type.
+	 *
+	 * This filter runs before it can be used by plugins. It is designed for
+	 * non-web runtimes. The value returned by this filter has a priority over both
+	 * the `WP_ENVIRONMENT_TYPE` system variable and a constant of the same name.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param string $current_env The current environment type. Possible values
+	 *                            include 'development', 'stage', 'production'.
+	 */
+	$current_env = apply_filters( 'wp_get_environment_type', $current_env );
+
+	// Make sure the environment is an allowed one, and not accidentally set to an invalid value.
+	if ( ! in_array( $current_env, $approved_environments, true ) ) {
+		$current_env = 'production';
+	}
+
+	return $current_env;
+}
+
+/**
  * Don't load all of WordPress when handling a favicon.ico request.
  *
  * Instead, send the headers for a zero-length favicon and bail.
@@ -163,7 +206,7 @@ function wp_check_php_mysql_versions() {
  * @deprecated 5.4.0 Deprecated in favor of do_favicon().
  */
 function wp_favicon_request() {
-	if ( '/favicon.ico' == $_SERVER['REQUEST_URI'] ) {
+	if ( '/favicon.ico' === $_SERVER['REQUEST_URI'] ) {
 		header( 'Content-Type: image/vnd.microsoft.icon' );
 		exit;
 	}
@@ -172,46 +215,15 @@ function wp_favicon_request() {
 /**
  * Die with a maintenance message when conditions are met.
  *
- * Checks for a file in the WordPress root directory named ".maintenance".
- * This file will contain the variable $upgrading, set to the time the file
- * was created. If the file was created less than 10 minutes ago, WordPress
- * enters maintenance mode and displays a message.
- *
  * The default message can be replaced by using a drop-in (maintenance.php in
  * the wp-content directory).
  *
  * @since 3.0.0
  * @access private
- *
- * @global int $upgrading the unix timestamp marking when upgrading WordPress began.
  */
 function wp_maintenance() {
-	if ( ! file_exists( ABSPATH . '.maintenance' ) || wp_installing() ) {
-		return;
-	}
-
-	global $upgrading;
-
-	require ABSPATH . '.maintenance';
-	// If the $upgrading timestamp is older than 10 minutes, don't die.
-	if ( ( time() - $upgrading ) >= 600 ) {
-		return;
-	}
-
-	/**
-	 * Filters whether to enable maintenance mode.
-	 *
-	 * This filter runs before it can be used by plugins. It is designed for
-	 * non-web runtimes. If this filter returns true, maintenance mode will be
-	 * active and the request will end. If false, the request will be allowed to
-	 * continue processing even if maintenance mode should be active.
-	 *
-	 * @since 4.6.0
-	 *
-	 * @param bool $enable_checks Whether to enable maintenance mode. Default true.
-	 * @param int  $upgrading     The timestamp set in the .maintenance file.
-	 */
-	if ( ! apply_filters( 'enable_maintenance_mode', true, $upgrading ) ) {
+	// Return if maintenance mode is disabled.
+	if ( ! wp_is_maintenance_mode() ) {
 		return;
 	}
 
@@ -230,6 +242,53 @@ function wp_maintenance() {
 		__( 'Maintenance' ),
 		503
 	);
+}
+
+/**
+ * Check if maintenance mode is enabled.
+ *
+ * Checks for a file in the WordPress root directory named ".maintenance".
+ * This file will contain the variable $upgrading, set to the time the file
+ * was created. If the file was created less than 10 minutes ago, WordPress
+ * is in maintenance mode.
+ *
+ * @since 5.5.0
+ *
+ * @global int $upgrading The Unix timestamp marking when upgrading WordPress began.
+ *
+ * @return bool True if maintenance mode is enabled, false otherwise.
+ */
+function wp_is_maintenance_mode() {
+	global $upgrading;
+
+	if ( ! file_exists( ABSPATH . '.maintenance' ) || wp_installing() ) {
+		return false;
+	}
+
+	require ABSPATH . '.maintenance';
+	// If the $upgrading timestamp is older than 10 minutes, consider maintenance over.
+	if ( ( time() - $upgrading ) >= 600 ) {
+		return false;
+	}
+
+	/**
+	 * Filters whether to enable maintenance mode.
+	 *
+	 * This filter runs before it can be used by plugins. It is designed for
+	 * non-web runtimes. If this filter returns true, maintenance mode will be
+	 * active and the request will end. If false, the request will be allowed to
+	 * continue processing even if maintenance mode should be active.
+	 *
+	 * @since 4.6.0
+	 *
+	 * @param bool $enable_checks Whether to enable maintenance mode. Default true.
+	 * @param int  $upgrading     The timestamp set in the .maintenance file.
+	 */
+	if ( ! apply_filters( 'enable_maintenance_mode', true, $upgrading ) ) {
+		return false;
+	}
+
+	return true;
 }
 
 /**
@@ -638,7 +697,7 @@ function wp_get_mu_plugins() {
 		return $mu_plugins;
 	}
 	while ( ( $plugin = readdir( $dh ) ) !== false ) {
-		if ( substr( $plugin, -4 ) == '.php' ) {
+		if ( '.php' === substr( $plugin, -4 ) ) {
 			$mu_plugins[] = WPMU_PLUGIN_DIR . '/' . $plugin;
 		}
 	}
@@ -680,10 +739,10 @@ function wp_get_active_and_valid_plugins() {
 
 	foreach ( $active_plugins as $plugin ) {
 		if ( ! validate_file( $plugin )                     // $plugin must validate as file.
-			&& '.php' == substr( $plugin, -4 )              // $plugin must end with '.php'.
+			&& '.php' === substr( $plugin, -4 )             // $plugin must end with '.php'.
 			&& file_exists( WP_PLUGIN_DIR . '/' . $plugin ) // $plugin must exist.
 			// Not already included as a network plugin.
-			&& ( ! $network_plugins || ! in_array( WP_PLUGIN_DIR . '/' . $plugin, $network_plugins ) )
+			&& ( ! $network_plugins || ! in_array( WP_PLUGIN_DIR . '/' . $plugin, $network_plugins, true ) )
 			) {
 			$plugins[] = WP_PLUGIN_DIR . '/' . $plugin;
 		}
@@ -1178,7 +1237,7 @@ function wp_load_translations_early() {
 
 	while ( true ) {
 		if ( defined( 'WPLANG' ) ) {
-			if ( '' == WPLANG ) {
+			if ( '' === WPLANG ) {
 				break;
 			}
 			$locales[] = WPLANG;
@@ -1273,7 +1332,7 @@ function wp_installing( $is_installing = null ) {
  */
 function is_ssl() {
 	if ( isset( $_SERVER['HTTPS'] ) ) {
-		if ( 'on' == strtolower( $_SERVER['HTTPS'] ) ) {
+		if ( 'on' === strtolower( $_SERVER['HTTPS'] ) ) {
 			return true;
 		}
 

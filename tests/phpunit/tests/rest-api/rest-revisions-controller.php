@@ -242,6 +242,18 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
+	 * @ticket 49645
+	 */
+	public function test_delete_item_parent_check() {
+		wp_set_current_user( self::$contributor_id );
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
+		$request->set_param( 'force', true );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_delete', $response, 403 );
+		$this->assertNotNull( get_post( $this->revision_id1 ) );
+	}
+
+	/**
 	 * @ticket 43709
 	 */
 	public function test_delete_item_remove_do_not_allow() {
@@ -289,7 +301,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		wp_set_current_user( self::$contributor_id );
 		$request  = new WP_REST_Request( 'DELETE', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_delete', $response, 403 );
 	}
 
 	public function test_prepare_item() {
