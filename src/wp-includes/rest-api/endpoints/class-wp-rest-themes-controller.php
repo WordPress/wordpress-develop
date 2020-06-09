@@ -79,7 +79,6 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			return true;
 		}
 
-
 		return new WP_Error(
 			'rest_user_cannot_view',
 			__( 'Sorry, you are not allowed to view themes.' ),
@@ -100,15 +99,26 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		$registered = $this->get_collection_params();
 		$themes     = array();
 
-		if ( isset( $registered['status'], $request['status'] ) && in_array( 'active', $request['status'], true ) ) {
+		if ( isset( $registered['status'], $request['status'] ) ) {
 			$active_theme = wp_get_theme();
-			$active_theme = $this->prepare_item_for_response( $active_theme, $request );
-			$themes[]     = $this->prepare_response_for_collection( $active_theme );
-		} else{
-			$active_themes = wp_get_themes( array( 'allowed' => $request['allowed'] ) );
-			foreach( $active_themes as $theme_name => $theme ){
-				$active_theme = $this->prepare_item_for_response( $theme, $request );
+			if ( in_array( 'active', $request['status'], true ) ) {
+				$active_theme = $this->prepare_item_for_response( $active_theme, $request );
 				$themes[]     = $this->prepare_response_for_collection( $active_theme );
+			} else {
+				$active_themes = wp_get_themes( array( 'allowed' => $request['allowed'] ) );
+				foreach ( $active_themes as $theme_name => $theme ) {
+					if ( $this->is_current_theme( $theme, $active_theme ) ) {
+						continue;
+					}
+					$_theme   = $this->prepare_item_for_response( $theme, $request );
+					$themes[] = $this->prepare_response_for_collection( $_theme );
+				}
+			}
+		} else {
+			$active_themes = wp_get_themes( array( 'allowed' => $request['allowed'] ) );
+			foreach ( $active_themes as $theme_name => $theme ) {
+				$_theme   = $this->prepare_item_for_response( $theme, $request );
+				$themes[] = $this->prepare_response_for_collection( $_theme );
 			}
 		}
 
@@ -183,9 +193,12 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 				$data[ $field ]['rendered'] = $theme->display( $header );
 			}
 		}
-    $current_theme = wp_get_theme();
-		if ( (string) $theme === (string) $current_theme && in_array( 'theme_supports', $fields, true ) ) {
-		if ( rest_is_field_included( 'theme_supports', $fields ) ) {
+		$current_theme = wp_get_theme();
+		if ( rest_is_field_included( 'status', $fields ) ) {
+			$data['status'] = ( $this->is_current_theme( $theme, $current_theme ) ) ? 'active' : 'inactive';
+		}
+
+		if ( rest_is_field_included( 'theme_supports', $fields ) && $this->is_current_theme( $theme, $current_theme ) ) {
 
 			$item_schemas   = $this->get_item_schema();
 			$theme_supports = $item_schemas['properties']['theme_supports']['properties'];
@@ -232,7 +245,6 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 
 			$data['theme_supports']['formats'] = $formats;
 		}
-    }
 
 		$data = $this->add_additional_fields_to_object( $data, $request );
 
@@ -249,6 +261,18 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		 * @param WP_REST_Request  $request  Request object.
 		 */
 		return apply_filters( 'rest_prepare_theme', $response, $theme, $request );
+	}
+
+	/**
+	 * Helper function to compare theme to current theme.
+	 *
+	 * @param WP_Theme $theme  Theme to compare to active theme.
+	 * @param WP_Theme $current_theme Current active theme.
+	 *
+	 * @return bool
+	 */
+	protected function is_current_theme( $theme, $current_theme ) {
+		return (string) $theme === (string) $current_theme;
 	}
 
 	/**
@@ -667,6 +691,11 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'readonly'    => true,
 				),
+				'status'         => array(
+					'description' => __( 'A named status for the theme.' ),
+					'type'        => 'string',
+					'enum'        => array( 'inactive', 'active' ),
+				),
 			),
 		);
 
@@ -689,17 +718,17 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			'description'       => __( 'Limit result set to themes assigned one or more statuses.' ),
 			'type'              => 'array',
 			'items'             => array(
-				'enum' => array( 'active' ),
+				'enum' => array( 'active', 'inactive' ),
 				'type' => 'string',
 			),
 			'sanitize_callback' => array( $this, 'sanitize_theme_status' ),
 		);
 
 		$query_params['allowed'] = array(
-			'description'       => __( 'Allowed.' ),
-			'type'              => 'string',
-			'enum'              => array( 'network', 'site' ),
-			'default'           => 'site',
+			'description' => __( 'Allowed.' ),
+			'type'        => 'string',
+			'enum'        => array( 'network', 'site' ),
+			'default'     => 'site',
 		);
 
 		/**
