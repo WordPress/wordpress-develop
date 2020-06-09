@@ -28,9 +28,14 @@ themes.Model = Backbone.Model.extend({
 	initialize: function() {
 		var description;
 
-		// If theme is already installed, set an attribute.
+		// If the theme is already installed, set an attribute.
 		if ( _.indexOf( themes.data.installedThemes, this.get( 'slug' ) ) !== -1 ) {
 			this.set({ installed: true });
+		}
+
+		// If the theme is active, set an attribute.
+		if ( themes.data.activeTheme === this.get( 'slug' ) ) {
+			this.set({ active: true });
 		}
 
 		// Set the attributes.
@@ -666,7 +671,8 @@ themes.view.Details = wp.Backbone.View.extend({
 		'click .delete-theme': 'deleteTheme',
 		'click .left': 'previousTheme',
 		'click .right': 'nextTheme',
-		'click #update-theme': 'updateTheme'
+		'click #update-theme': 'updateTheme',
+		'click .toggle-auto-update': 'autoupdateState'
 	},
 
 	// The HTML template for the theme overlay.
@@ -785,6 +791,23 @@ themes.view.Details = wp.Backbone.View.extend({
 		this.remove();
 		this.unbind();
 		this.trigger( 'theme:collapse' );
+	},
+
+	// Set state of the auto-update settings link after it has been changed and saved.
+	autoupdateState: function() {
+		var callback,
+			_this = this;
+
+		// Support concurrent clicks in different Theme Details overlays.
+		callback = function( event, data ) {
+			if ( _this.model.get( 'id' ) === data.asset ) {
+				_this.model.set( { autoupdate: 'enable' === data.state } );
+				$( document ).off( 'wp-auto-update-setting-changed', callback );
+			}
+		};
+
+		// Triggered in updates.js
+		$( document ).on( 'wp-auto-update-setting-changed', callback );
 	},
 
 	updateTheme: function( event ) {

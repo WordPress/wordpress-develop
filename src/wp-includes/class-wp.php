@@ -404,6 +404,10 @@ class WP {
 
 		if ( is_user_logged_in() ) {
 			$headers = array_merge( $headers, wp_get_nocache_headers() );
+		} elseif ( ! empty( $_GET['unapproved'] ) && ! empty( $_GET['moderation-hash'] ) ) {
+			// Unmoderated comments are only visible for one minute via the moderation hash.
+			$headers['Expires']       = gmdate( 'D, d M Y H:i:s', time() + MINUTE_IN_SECONDS );
+			$headers['Cache-Control'] = 'max-age=60, must-revalidate';
 		}
 		if ( ! empty( $this->query_vars['error'] ) ) {
 			$status = (int) $this->query_vars['error'];
@@ -420,7 +424,7 @@ class WP {
 		} else {
 			// Set the correct content type for feeds.
 			$type = $this->query_vars['feed'];
-			if ( 'feed' == $this->query_vars['feed'] ) {
+			if ( 'feed' === $this->query_vars['feed'] ) {
 				$type = get_default_feed();
 			}
 			$headers['Content-Type'] = feed_content_type( $type ) . '; charset=' . get_option( 'blog_charset' );
@@ -505,7 +509,7 @@ class WP {
 		}
 
 		if ( $exit_required ) {
-			exit();
+			exit;
 		}
 
 		/**

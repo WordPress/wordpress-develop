@@ -913,11 +913,12 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
  * @since 2.3.0
  * @since 4.4.0 `$taxonomy` is optional if `$field` is 'term_taxonomy_id'. Converted to return
  *              a WP_Term object if `$output` is `OBJECT`.
+ * @since 5.5.0 Added 'ID' as an alias of 'id' for the `$field` parameter.
  *
  * @see sanitize_term_field() The $context param lists the available values for get_term_by() $filter param.
  *
- * @param string     $field    Either 'slug', 'name', 'id' (term_id), or 'term_taxonomy_id'
- * @param string|int $value    Search for this term value
+ * @param string     $field    Either 'slug', 'name', 'id' or 'ID' (term_id), or 'term_taxonomy_id'.
+ * @param string|int $value    Search for this term value.
  * @param string     $taxonomy Taxonomy name. Optional, if `$field` is 'term_taxonomy_id'.
  * @param string     $output   Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
  *                             a WP_Term object, an associative array, or a numeric array, respectively. Default OBJECT.
@@ -941,7 +942,7 @@ function get_term_by( $field, $value, $taxonomy = '', $output = OBJECT, $filter 
 		}
 	}
 
-	if ( 'id' === $field || 'term_id' === $field ) {
+	if ( 'id' === $field || 'ID' === $field || 'term_id' === $field ) {
 		$term = get_term( (int) $value, $taxonomy, $output, $filter );
 		if ( is_wp_error( $term ) || null === $term ) {
 			$term = false;
@@ -1132,11 +1133,11 @@ function get_term_to_edit( $id, $taxonomy ) {
  *
  * @param array|string $args       Optional. Array or string of arguments. See WP_Term_Query::__construct()
  *                                 for information on accepted arguments. Default empty.
- * @param array|string $deprecated Argument array, when using the legacy function parameter format. If present, this
- *                                 parameter will be interpreted as `$args`, and the first function parameter will
- *                                 be parsed as a taxonomy or array of taxonomies.
- * @return WP_Term[]|int|WP_Error List of WP_Term instances and their children. Will return WP_Error, if any of taxonomies
- *                                do not exist.
+ * @param array|string $deprecated Argument array, when using the legacy function parameter format. If present,
+ *                                 this parameter will be interpreted as `$args`, and the first function parameter
+ *                                 will be parsed as a taxonomy or array of taxonomies.
+ * @return WP_Term[]|int|WP_Error Array of WP_Term instances, a count thereof,
+ *                                or WP_Error if any of the taxonomies do not exist.
  */
 function get_terms( $args = array(), $deprecated = '' ) {
 	$term_query = new WP_Term_Query();

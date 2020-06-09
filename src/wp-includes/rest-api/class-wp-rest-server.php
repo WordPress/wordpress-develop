@@ -969,9 +969,9 @@ class WP_REST_Server {
 				 *
 				 * @since 4.7.0
 				 *
-				 * @param WP_HTTP_Response|WP_Error $response Result to send to the client. Usually a WP_REST_Response or WP_Error.
-				 * @param array                     $handler  Route handler used for the request.
-				 * @param WP_REST_Request           $request  Request used to generate the response.
+				 * @param WP_REST_Response|WP_HTTP_Response|WP_Error|mixed $response Result to send to the client. Usually a WP_REST_Response or WP_Error.
+				 * @param array                                            $handler  Route handler used for the request.
+				 * @param WP_REST_Request                                  $request  Request used to generate the response.
 				 */
 				$response = apply_filters( 'rest_request_before_callbacks', $response, $handler, $request );
 
@@ -1032,9 +1032,9 @@ class WP_REST_Server {
 				 *
 				 * @since 4.7.0
 				 *
-				 * @param WP_HTTP_Response|WP_Error $response Result to send to the client. Usually a WP_REST_Response or WP_Error.
-				 * @param array                     $handler  Route handler used for the request.
-				 * @param WP_REST_Request           $request  Request used to generate the response.
+				 * @param WP_REST_Response|WP_HTTP_Response|WP_Error|mixed $response Result to send to the client. Usually a WP_REST_Response or WP_Error.
+				 * @param array                                            $handler  Route handler used for the request.
+				 * @param WP_REST_Request                                  $request  Request used to generate the response.
 				 */
 				$response = apply_filters( 'rest_request_after_callbacks', $response, $handler, $request );
 
@@ -1371,17 +1371,16 @@ class WP_REST_Server {
 	 * @return string Raw request data.
 	 */
 	public static function get_raw_data() {
+		// phpcs:disable PHPCompatibility.Variables.RemovedPredefinedGlobalVariables.http_raw_post_dataDeprecatedRemoved
 		global $HTTP_RAW_POST_DATA;
 
-		/*
-		 * A bug in PHP < 5.2.2 makes $HTTP_RAW_POST_DATA not set by default,
-		 * but we can do it ourself.
-		 */
+		// $HTTP_RAW_POST_DATA was deprecated in PHP 5.6 and removed in PHP 7.0.
 		if ( ! isset( $HTTP_RAW_POST_DATA ) ) {
 			$HTTP_RAW_POST_DATA = file_get_contents( 'php://input' );
 		}
 
 		return $HTTP_RAW_POST_DATA;
+		// phpcs:enable
 	}
 
 	/**

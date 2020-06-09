@@ -62,7 +62,7 @@ while ( have_posts() ) :
 
 	<?php /* How to display posts of the Gallery format. The gallery category is the old way. */ ?>
 
-	<?php if ( ( function_exists( 'get_post_format' ) && 'gallery' == get_post_format( $post->ID ) ) || in_category( _x( 'gallery', 'gallery category slug', 'twentyten' ) ) ) : ?>
+	<?php if ( ( function_exists( 'get_post_format' ) && 'gallery' === get_post_format( $post->ID ) ) || in_category( _x( 'gallery', 'gallery category slug', 'twentyten' ) ) ) : ?>
 		<div id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 			<h2 class="entry-title"><a href="<?php the_permalink(); ?>" rel="bookmark"><?php the_title(); ?></a></h2>
 
@@ -102,7 +102,7 @@ while ( have_posts() ) :
 			<div class="entry-utility">
 			<?php
 			$gallery = get_term_by( 'slug', _x( 'gallery', 'gallery category slug', 'twentyten' ), 'category' );
-			if ( function_exists( 'get_post_format' ) && 'gallery' == get_post_format( $post->ID ) ) :
+			if ( function_exists( 'get_post_format' ) && 'gallery' === get_post_format( $post->ID ) ) :
 				?>
 				<a href="<?php echo esc_url( get_post_format_link( 'gallery' ) ); ?>" title="<?php esc_attr_e( 'View Galleries', 'twentyten' ); ?>"><?php _e( 'More Galleries', 'twentyten' ); ?></a>
 				<span class="meta-sep">|</span>
@@ -117,7 +117,7 @@ while ( have_posts() ) :
 
 		<?php /* How to display posts of the Aside format. The asides category is the old way. */ ?>
 
-	<?php elseif ( ( function_exists( 'get_post_format' ) && 'aside' == get_post_format( $post->ID ) ) || in_category( _x( 'asides', 'asides category slug', 'twentyten' ) ) ) : ?>
+	<?php elseif ( ( function_exists( 'get_post_format' ) && 'aside' === get_post_format( $post->ID ) ) || in_category( _x( 'asides', 'asides category slug', 'twentyten' ) ) ) : ?>
 		<div id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 
 		<?php if ( is_archive() || is_search() ) : // Display excerpts for archives and search. ?>
@@ -176,9 +176,10 @@ while ( have_posts() ) :
 					</span>
 					<span class="meta-sep">|</span>
 				<?php endif; ?>
+
 				<?php
-					$tags_list = get_the_tag_list( '', ', ' );
-				if ( $tags_list ) :
+				$tags_list = get_the_tag_list( '', ', ' );
+				if ( $tags_list && ! is_wp_error( $tags_list ) ) :
 					?>
 				<span class="tag-links">
 					<?php
@@ -188,7 +189,9 @@ while ( have_posts() ) :
 				</span>
 				<span class="meta-sep">|</span>
 				<?php endif; ?>
+
 				<span class="comments-link"><?php comments_popup_link( __( 'Leave a comment', 'twentyten' ), __( '1 Comment', 'twentyten' ), __( '% Comments', 'twentyten' ) ); ?></span>
+
 				<?php edit_post_link( __( 'Edit', 'twentyten' ), '<span class="meta-sep">|</span> <span class="edit-link">', '</span>' ); ?>
 			</div><!-- .entry-utility -->
 		</div><!-- #post-<?php the_ID(); ?> -->
