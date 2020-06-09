@@ -324,7 +324,7 @@ class Tests_Cache extends WP_UnitTestCase {
 		wp_cache_set( 'foo2', 'bar', 'group1' );
 		wp_cache_set( 'foo1', 'bar', 'group2' );
 
-		$found = wp_cache_get_multiple( array( 'foo1', 'foo2', 'foo3', ), 'group1' );
+		$found = wp_cache_get_multiple( array( 'foo1', 'foo2', 'foo3' ), 'group1' );
 
 		$expected = array(
 			'foo1' => 'bar',
