@@ -33,7 +33,7 @@ class WP_Test_REST_Nav_Menus_Controller extends WP_Test_REST_Controller_Testcase
 	protected static $subscriber_id;
 
 	/**
-	 *
+	 * @var string
 	 */
 	const TAXONOMY = 'nav_menu';
 
@@ -61,7 +61,7 @@ class WP_Test_REST_Nav_Menus_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function setUp() {
 		parent::setUp();
@@ -103,7 +103,7 @@ class WP_Test_REST_Nav_Menus_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
@@ -112,7 +112,7 @@ class WP_Test_REST_Nav_Menus_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_context_param() {
 		// Collection.
@@ -131,7 +131,7 @@ class WP_Test_REST_Nav_Menus_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_registered_query_params() {
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/menus' );
@@ -159,7 +159,7 @@ class WP_Test_REST_Nav_Menus_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_get_items() {
 		wp_set_current_user( self::$admin_id );
@@ -177,7 +177,7 @@ class WP_Test_REST_Nav_Menus_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_get_item() {
 		wp_set_current_user( self::$admin_id );
@@ -194,7 +194,7 @@ class WP_Test_REST_Nav_Menus_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_create_item() {
 		wp_set_current_user( self::$admin_id );
@@ -213,7 +213,7 @@ class WP_Test_REST_Nav_Menus_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_update_item() {
 		wp_set_current_user( self::$admin_id );
@@ -238,7 +238,7 @@ class WP_Test_REST_Nav_Menus_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_delete_item() {
 		wp_set_current_user( self::$admin_id );
@@ -263,7 +263,7 @@ class WP_Test_REST_Nav_Menus_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_prepare_item() {
 		$nav_menu_id = wp_update_nav_menu_object(
@@ -284,7 +284,7 @@ class WP_Test_REST_Nav_Menus_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_get_item_schema() {
 		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/menus' );
@@ -301,7 +301,7 @@ class WP_Test_REST_Nav_Menus_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_create_item_with_location_permission_correct() {
 		$this->register_nav_menu_locations( array( 'primary', 'secondary' ) );
@@ -319,7 +319,7 @@ class WP_Test_REST_Nav_Menus_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_create_item_with_location_permission_incorrect() {
 		wp_set_current_user( self::$subscriber_id );
@@ -333,7 +333,7 @@ class WP_Test_REST_Nav_Menus_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_create_item_with_location_permission_no_location() {
 		wp_set_current_user( self::$admin_id );
@@ -347,7 +347,7 @@ class WP_Test_REST_Nav_Menus_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_update_item_with_no_location() {
 		$this->register_nav_menu_locations( array( 'primary', 'secondary' ) );
@@ -363,7 +363,7 @@ class WP_Test_REST_Nav_Menus_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_update_item_with_location_permission_correct() {
 		$this->register_nav_menu_locations( array( 'primary', 'secondary' ) );
@@ -380,7 +380,7 @@ class WP_Test_REST_Nav_Menus_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_update_item_with_location_permission_incorrect() {
 		$this->register_nav_menu_locations( array( 'primary', 'secondary' ) );
@@ -395,7 +395,7 @@ class WP_Test_REST_Nav_Menus_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_get_item_links() {
 		wp_set_current_user( self::$admin_id );
@@ -423,7 +423,7 @@ class WP_Test_REST_Nav_Menus_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_change_menu_location() {
 		$this->register_nav_menu_locations( array( 'primary', 'secondary' ) );
@@ -460,7 +460,7 @@ class WP_Test_REST_Nav_Menus_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_get_items_no_permission() {
 		wp_set_current_user( 0 );
@@ -470,7 +470,7 @@ class WP_Test_REST_Nav_Menus_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_get_item_no_permission() {
 		wp_set_current_user( 0 );
@@ -480,7 +480,7 @@ class WP_Test_REST_Nav_Menus_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_get_items_wrong_permission() {
 		wp_set_current_user( self::$subscriber_id );
@@ -490,7 +490,7 @@ class WP_Test_REST_Nav_Menus_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_get_item_wrong_permission() {
 		wp_set_current_user( self::$subscriber_id );

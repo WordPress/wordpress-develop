@@ -9,12 +9,16 @@
 /**
  * Core class to access nav items via the REST API.
  *
+ * @since 5.5.0
+ *
  * @see WP_REST_Posts_Controller
  */
 class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 
 	/**
 	 * Get the post, if the ID is valid.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @param int $id Supplied ID.
 	 *
@@ -26,6 +30,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 
 	/**
 	 * Get the nav menu item, if the ID is valid.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @param int $id Supplied ID.
 	 *
@@ -43,6 +49,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 
 	/**
 	 * Checks if a given request has access to read a menu item if they have access to edit them.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return bool|WP_Error True if the request has read access for the item, WP_Error object otherwise.
@@ -62,6 +70,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	/**
 	 * Checks if a given request has access to read menu items if they have access to edit them.
 	 *
+	 * @since 5.5.0
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
@@ -78,6 +88,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 
 	/**
 	 * Creates a single post.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 *
@@ -167,6 +179,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	/**
 	 * Updates a single nav menu item.
 	 *
+	 * @since 5.5.0
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 *
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
@@ -237,6 +251,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	/**
 	 * Deletes a single menu item.
 	 *
+	 * @since 5.5.0
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True on success, or WP_Error object on failure.
 	 */
@@ -275,6 +291,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		 *
 		 * They dynamic portion of the hook name, `$this->post_type`, refers to the post type slug.
 		 *
+		 * @since 5.5.0
+		 *
 		 * @param Object          $menu_item  The deleted or trashed menu item.
 		 * @param WP_REST_Response $response The response data.
 		 * @param WP_REST_Request  $request  The request sent to the API.
@@ -286,6 +304,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 
 	/**
 	 * Prepares a single post for create or update.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @param WP_REST_Request $request Request object.
 	 *
@@ -513,6 +533,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		 *
 		 * The dynamic portion of the hook name, `$this->post_type`, refers to the post type slug.
 		 *
+		 * @since 5.5.0
+		 *
 		 * @param stdClass        $prepared_post An object representing a single post prepared
 		 *                                       for inserting or updating the database.
 		 * @param WP_REST_Request $request       Request object.
@@ -522,6 +544,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 
 	/**
 	 * Prepares a single post output for response.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @param object          $post    Post object.
 	 * @param WP_REST_Request $request Request object.
@@ -652,6 +676,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		 *
 		 * The dynamic portion of the hook name, `$this->post_type`, refers to the post type slug.
 		 *
+		 * @since 5.5.0
+		 *
 		 * @param WP_REST_Response $response The response object.
 		 * @param object           $post     Post object.
 		 * @param WP_REST_Request  $request  Request object.
@@ -661,6 +687,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 
 	/**
 	 * Prepares links for the request.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @param object $menu_item Menu object.
 	 *
@@ -699,6 +727,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	/**
 	 * Retrieve Link Description Objects that should be added to the Schema for the posts collection.
 	 *
+	 * @since 5.5.0
+	 *
 	 * @return array
 	 */
 	protected function get_schema_links() {
@@ -723,6 +753,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 
 	/**
 	 * Retrieves the term's schema, conforming to JSON Schema.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @return array Item schema data.
 	 */
@@ -930,6 +962,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	/**
 	 * Retrieves the query params for the posts collection.
 	 *
+	 * @since 5.5.0
+	 *
 	 * @return array Collection parameters.
 	 */
 	public function get_collection_params() {
@@ -975,6 +1009,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * Determines the allowed query_vars for a get_items() response and prepares
 	 * them for WP_Query.
 	 *
+	 * @since 5.5.0
+	 *
 	 * @param array           $prepared_args Optional. Prepared WP_Query arguments. Default empty array.
 	 * @param WP_REST_Request $request       Optional. Full details about the request.
 	 *
@@ -1003,6 +1039,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 
 	/**
 	 * Checks whether current user can assign all terms sent with the current request.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @param WP_REST_Request $request The request object with post and terms data.
 	 *
@@ -1038,6 +1076,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 
 	/**
 	 * Get menu id of current menu item.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @param int $menu_item_id Menu item id.
 	 *

@@ -60,7 +60,7 @@ class WP_Test_REST_Nav_Menu_Locations_Controller extends WP_Test_REST_Controller
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
@@ -71,7 +71,7 @@ class WP_Test_REST_Nav_Menu_Locations_Controller extends WP_Test_REST_Controller
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_context_param() {
 		// Collection.
@@ -90,7 +90,7 @@ class WP_Test_REST_Nav_Menu_Locations_Controller extends WP_Test_REST_Controller
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_get_items() {
 		$menus = array( 'primary', 'secondary' );
@@ -109,7 +109,7 @@ class WP_Test_REST_Nav_Menu_Locations_Controller extends WP_Test_REST_Controller
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_get_item() {
 		$menu = 'primary';
@@ -143,7 +143,7 @@ class WP_Test_REST_Nav_Menu_Locations_Controller extends WP_Test_REST_Controller
 	public function test_prepare_item() {}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_get_item_schema() {
 		wp_set_current_user( self::$admin_id );
@@ -159,7 +159,7 @@ class WP_Test_REST_Nav_Menu_Locations_Controller extends WP_Test_REST_Controller
 
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_get_item_menu_location_context_without_permission() {
 		wp_set_current_user( 0 );
@@ -170,7 +170,7 @@ class WP_Test_REST_Nav_Menu_Locations_Controller extends WP_Test_REST_Controller
 	}
 
 	/**
-	 *
+	 * @ticket 40878
 	 */
 	public function test_get_items_menu_location_context_without_permission() {
 		$menu = 'primary';

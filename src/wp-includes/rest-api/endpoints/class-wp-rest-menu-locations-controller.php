@@ -9,12 +9,16 @@
 /**
  * Core class used to access menu locations via the REST API.
  *
+ * @since 5.5.0
+ *
  * @see   WP_REST_Controller
  */
 class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 
 	/**
 	 * Constructor.
+	 *
+	 * @since 5.5.0
 	 */
 	public function __construct() {
 		$this->namespace = 'wp/v2';
@@ -23,6 +27,8 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 
 	/**
 	 * Registers the routes for the objects of the controller.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @see   register_rest_route()
 	 */
@@ -67,6 +73,8 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	/**
 	 * Checks whether a given request has permission to read menu locations.
 	 *
+	 * @since 5.5.0
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 *
 	 * @return WP_Error|bool True if the request has read access, WP_Error object otherwise.
@@ -81,6 +89,8 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 
 	/**
 	 * Retrieves all menu locations, depending on user context.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 *
@@ -104,6 +114,8 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	/**
 	 * Checks if a given request has access to read a menu location.
 	 *
+	 * @since 5.5.0
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 *
 	 * @return WP_Error|bool True if the request has read access for the item, WP_Error object otherwise.
@@ -121,6 +133,8 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 
 	/**
 	 * Retrieves a specific menu location.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 *
@@ -143,6 +157,8 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 
 	/**
 	 * Prepares a menu location object for serialization.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @param stdClass        $location Post status data.
 	 * @param WP_REST_Request $request  Full details about the request.
@@ -172,6 +188,8 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 		 * Allows modification of the menu location data right before it is
 		 * returned.
 		 *
+		 * @since 5.5.0
+		 *
 		 * @param WP_REST_Response $response The response object.
 		 * @param object           $location The original status object.
 		 * @param WP_REST_Request  $request  Request used to generate the response.
@@ -181,6 +199,8 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 
 	/**
 	 * Retrieves the menu location's schema, conforming to JSON Schema.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @return array Item schema data.
 	 */
@@ -217,6 +237,8 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves the query params for collections.
 	 *
+	 * @since 5.5.0
+	 *
 	 * @return array Collection parameters.
 	 */
 	public function get_collection_params() {
@@ -227,6 +249,8 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 
 	/**
 	 * Prepares links for the request.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @param stdClass $location Menu location.
 	 *
