@@ -290,6 +290,11 @@ class Tests_Pluggable extends WP_UnitTestCase {
 						'force' => false,
 						'found' => null,
 					),
+					'wp_cache_get_multiple'              => array(
+						'keys',
+						'group' => '',
+						'force' => false,
+					),
 					'wp_cache_incr'                      => array(
 						'key',
 						'offset' => 1,
