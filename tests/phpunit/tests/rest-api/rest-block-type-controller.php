@@ -65,7 +65,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 *
+	 * @ticket 47620
 	 */
 	public static function wpTearDownAfterClass() {
 		self::delete_user( self::$admin_id );
@@ -74,7 +74,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 *
+	 * @ticket 47620
 	 */
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
@@ -87,7 +87,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 *
+	 * @ticket 47620
 	 */
 	public function test_context_param() {
 		// Collection.
@@ -105,7 +105,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 *
+	 * @ticket 47620
 	 */
 	public function test_get_items() {
 		$block_name = 'fake/test';
@@ -119,7 +119,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 *
+	 * @ticket 47620
 	 */
 	public function test_get_item() {
 		$block_name = 'fake/test';
@@ -131,7 +131,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 *
+	 * @ticket 47620
 	 */
 	public function test_get_item_with_styles() {
 		$block_name   = 'fake/styles';
@@ -151,7 +151,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 *
+	 * @ticket 47620
 	 */
 	public function test_get_item_with_styles_merge() {
 		$block_name   = 'fake/styles2';
@@ -191,6 +191,9 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	}
 
+	/**
+	 * @ticket 47620
+	 */
 	public function test_get_block_invalid_name() {
 		$block_type = 'fake/block';
 		wp_set_current_user( self::$admin_id );
@@ -201,7 +204,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 *
+	 * @ticket 47620
 	 */
 	public function test_get_item_invalid() {
 		$block_type = 'fake/invalid';
@@ -226,7 +229,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 *
+	 * @ticket 47620
 	 */
 	public function test_get_item_schema() {
 		wp_set_current_user( self::$admin_id );
@@ -255,7 +258,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 *
+	 * @ticket 47620
 	 */
 	public function test_get_items_wrong_permission() {
 		wp_set_current_user( self::$subscriber_id );
@@ -265,7 +268,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 *
+	 * @ticket 47620
 	 */
 	public function test_get_item_wrong_permission() {
 		wp_set_current_user( self::$subscriber_id );
@@ -275,7 +278,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 *
+	 * @ticket 47620
 	 */
 	public function test_get_items_no_permission() {
 		wp_set_current_user( 0 );
@@ -285,7 +288,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 *
+	 * @ticket 47620
 	 */
 	public function test_get_item_no_permission() {
 		wp_set_current_user( 0 );
@@ -295,7 +298,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 *
+	 * @ticket 47620
 	 */
 	public function test_prepare_item() {
 		$registry = new WP_Block_Type_Registry;
@@ -313,7 +316,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 *
+	 * @ticket 47620
 	 */
 	public function test_prepare_item_limit_fields() {
 		$registry = new WP_Block_Type_Registry;

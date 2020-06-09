@@ -17,6 +17,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	/**
 	 * Instance of WP_Block_Type_Registry.
 	 *
+	 * @since 5.5.0
 	 * @var WP_Block_Type_Registry
 	 */
 	protected $block_registry;
@@ -24,12 +25,15 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	/**
 	 * Instance of WP_Block_Styles_Registry.
 	 *
+	 * @since 5.5.0
 	 * @var WP_Block_Styles_Registry
 	 */
 	protected $style_registry;
 
 	/**
 	 * Constructor.
+	 *
+	 * @since 5.5.0
 	 */
 	public function __construct() {
 		$this->namespace      = 'wp/v2';
@@ -40,6 +44,8 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 
 	/**
 	 * Registers the routes for the objects of the controller.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @see   register_rest_route()
 	 */
@@ -103,6 +109,8 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	/**
 	 * Checks whether a given request has permission to read post block types.
 	 *
+	 * @since 5.5.0
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 *
 	 * @return WP_Error|bool True if the request has read access, WP_Error object otherwise.
@@ -113,6 +121,8 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 
 	/**
 	 * Retrieves all post block types, depending on user context.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 *
@@ -147,6 +157,8 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	/**
 	 * Checks if a given request has access to read a block type.
 	 *
+	 * @since 5.5.0
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 *
 	 * @return WP_Error|bool True if the request has read access for the item, WP_Error object otherwise.
@@ -168,6 +180,8 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	/**
 	 * Checks whether a given block type should be visible.
 	 *
+	 * @since 5.5.0
+	 *
 	 * @return WP_Error|bool True if the block type is visible, otherwise false.
 	 */
 	protected function check_read_permission() {
@@ -186,6 +200,8 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	/**
 	 * Get the block, if the name is valid.
 	 *
+	 * @since 5.5.0
+	 *
 	 * @param string $name Block name.
 	 * @return WP_Block_Type|WP_Error Block type object if name is valid, WP_Error otherwise.
 	 */
@@ -200,6 +216,8 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 
 	/**
 	 * Retrieves a specific block type.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 *
@@ -218,6 +236,8 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 
 	/**
 	 * Prepares a block type object for serialization.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @param WP_Block_Type   $block_type block type data.
 	 * @param WP_REST_Request $request    Full details about the request.
@@ -287,6 +307,8 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 		 *
 		 * Allows modification of the block type data right before it is returned.
 		 *
+		 * @since 5.5.0
+		 *
 		 * @param WP_REST_Response $response   The response object.
 		 * @param object           $block_type The original block type object.
 		 * @param WP_REST_Request  $request    Request used to generate the response.
@@ -296,6 +318,8 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 
 	/**
 	 * Prepares links for the request.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @param WP_Block_Type $block_type block type data.
 	 * @return array Links for the given block type.
@@ -324,6 +348,8 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 
 	/**
 	 * Retrieves the block type' schema, conforming to JSON Schema.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @return array Item schema data.
 	 */
@@ -485,6 +511,8 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 
 	/**
 	 * Retrieves the query params for collections.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @return array Collection parameters.
 	 */
