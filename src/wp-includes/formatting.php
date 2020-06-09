@@ -935,6 +935,7 @@ function seems_utf8( $str ) {
  * &quot;, or ENT_QUOTES to do both. Default is ENT_NOQUOTES where no quotes are encoded.
  *
  * @since 1.2.2
+ * @since 5.5.0 `$quote_style` also accepts '`ENT_XML1`.
  * @access private
  *
  * @staticvar string $_charset
@@ -942,7 +943,10 @@ function seems_utf8( $str ) {
  * @param string       $string        The text which is to be encoded.
  * @param int|string   $quote_style   Optional. Converts double quotes if set to ENT_COMPAT,
  *                                    both single and double if set to ENT_QUOTES or none if set to ENT_NOQUOTES.
- *                                    Also compatible with old values; converting single quotes if set to 'single',
+ *                                    Converts single and double quotes, as well as converting HTML
+ *                                    named entities (that are not also XML named entities) to their
+ *                                    code points if set to ENT_XML1. Also compatible with old values;
+ *                                    converting single quotes if set to 'single',
  *                                    double if set to 'double' or both if otherwise set.
  *                                    Default is ENT_NOQUOTES.
  * @param false|string $charset       Optional. The character encoding of the string. Default is false.
@@ -964,7 +968,9 @@ function _wp_specialchars( $string, $quote_style = ENT_NOQUOTES, $charset = fals
 	// Account for the previous behaviour of the function when the $quote_style is not an accepted value.
 	if ( empty( $quote_style ) ) {
 		$quote_style = ENT_NOQUOTES;
-	} elseif ( ! in_array( $quote_style, array( 0, 2, 3, 'single', 'double' ), true ) ) {
+	} elseif ( ENT_XML1 === $quote_style ) {
+		$quote_style = ENT_QUOTES | ENT_XML1;
+	} elseif ( ! in_array( $quote_style, array( ENT_NOQUOTES, ENT_COMPAT, ENT_QUOTES, 'single', 'double' ), true ) ) {
 		$quote_style = ENT_QUOTES;
 	}
 
@@ -994,7 +1000,7 @@ function _wp_specialchars( $string, $quote_style = ENT_NOQUOTES, $charset = fals
 	if ( ! $double_encode ) {
 		// Guarantee every &entity; is valid, convert &garbage; into &amp;garbage;
 		// This is required for PHP < 5.4.0 because ENT_HTML401 flag is unavailable.
-		$string = wp_kses_normalize_entities( $string );
+		$string = wp_kses_normalize_entities( $string, ( $quote_style & ENT_XML1 ) ? 'xml' : 'html' );
 	}
 
 	$string = htmlspecialchars( $string, $quote_style, $charset, $double_encode );
@@ -4557,20 +4563,23 @@ function esc_xml( $text ) {
 |	                                      # alternative
 
 	(?<non_cdata>(.*))                    # non-CDATA Section
-/sx 
+/sx
 EOF;
+
 	$safe_text = (string) preg_replace_callback(
 		$regex,
-		function( $matches ) {
+		static function( $matches ) {
 			if ( ! $matches[0] ) {
 				return '';
-			} elseif ( ! empty( $matches['non_cdata'] ) ) {
+			}
+
+			if ( ! empty( $matches['non_cdata'] ) ) {
 				// escape HTML entities in the non-CDATA Section.
-				return _esc_xml_non_cdata_section( $matches['non_cdata'] );
+				return _wp_specialchars( $matches['non_cdata'], ENT_XML1 );
 			}
 
 			// Return the CDATA Section unchanged, escape HTML entities in the rest.
-			return _esc_xml_non_cdata_section( $matches['non_cdata_followed_by_cdata'] ) . $matches['cdata'];
+			return _wp_specialchars( $matches['non_cdata_followed_by_cdata'], ENT_XML1 ) . $matches['cdata'];
 		},
 		$safe_text
 	);
@@ -4588,33 +4597,6 @@ EOF;
 	 * @param string $text      The text prior to being escaped.
 	 */
 	return apply_filters( 'esc_xml', $safe_text, $text );
-}
-
-/**
- * Escaping for non-CDATA Section XML blocks.
- *
- * @access private
- * @since 5.5.0
- *
- * @param string $text Text to escape.
- * @return string
- */
-function _esc_xml_non_cdata_section( $text ) {
-	global $allowedentitynames;
-
-	$safe_text = _wp_specialchars( $text, ENT_QUOTES );
-	// Replace HTML entities with their Unicode codepoints,
-	// without doing the same for the 5 XML entities.
-	$html_only_entities = array_diff( $allowedentitynames, array( 'amp', 'lt', 'gt', 'apos', 'quot' ) );
-	$safe_text          = (string) preg_replace_callback(
-		'/&(' . implode( '|', $html_only_entities ) . ');/',
-		function( $matches ) {
-			return html_entity_decode( $matches[0], ENT_HTML5 );
-		},
-		$safe_text
-	);
-
-	return $safe_text;
 }
 
 /**
