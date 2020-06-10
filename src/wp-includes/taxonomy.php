@@ -3409,14 +3409,9 @@ function update_object_term_cache( $object_ids, $object_type ) {
 
 	$taxonomies = get_object_taxonomies( $object_type );
 
-	$ids    = array();
-	$groups = array();
+	$ids = array();
 	foreach ( $taxonomies as $taxonomy ) {
-		$groups[] = "{$taxonomy}_relationships";
-	}
-
-	foreach ( $groups as $group ) {
-		$cache_values = wp_cache_get_multiple( $object_ids, $group );
+		$cache_values = wp_cache_get_multiple( (array) $object_ids, "{$taxonomy}_relationships" );
 		foreach ( $cache_values as $key => $value ) {
 			if ( false === $value ) {
 				$ids[] = $key;
