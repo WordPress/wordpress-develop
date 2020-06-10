@@ -73,12 +73,10 @@ class WP_Sitemaps_Index {
 		/* @var WP_Rewrite $wp_rewrite */
 		global $wp_rewrite;
 
-		$url = home_url( '/wp-sitemap.xml' );
-
 		if ( ! $wp_rewrite->using_permalinks() ) {
-			$url = add_query_arg( 'sitemap', 'index', home_url( '/' ) );
+			return add_query_arg( 'sitemap', 'index', home_url( '/' ) );
 		}
 
-		return $url;
+		return home_url( '/wp-sitemap.xml' );
 	}
 }
