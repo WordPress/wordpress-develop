@@ -1860,7 +1860,7 @@ function rest_get_route_for_post( $post ) {
 	$controller = $post_type->get_rest_controller();
 
 	// The only two controllers that we can detect are the Attachments and Posts controllers.
-	if ( in_array( $controller, array( 'WP_REST_Attachments_Controller', 'WP_REST_Posts_Controller' ), true ) ) {
+	if ( in_array( $controller::class, array( 'WP_REST_Attachments_Controller', 'WP_REST_Posts_Controller' ), true ) ) {
 		$namespace = 'wp/v2';
 		$rest_base = ! empty( $post_type->rest_base ) ? $post_type->rest_base : $post_type->name;
 		$route = sprintf( '%s/%s/%d', $namespace, $rest_base, $post->ID );
@@ -1898,7 +1898,7 @@ function rest_get_route_for_term( $term ) {
 	$route = '';
 	$controller = $taxonomy->get_rest_controller();
 	// The only controller that works is the Terms controller.
-	if ( 'WP_REST_Terms_Controller' === $controller ) {
+	if ( 'WP_REST_Terms_Controller' === $controller::class ) {
 		$namespace = 'wp/v2';
 		$rest_base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxnomomy->name;
 		$route = sprintf( '%s/%s/%d', $namespace, $rest_base, $term->term_id );
