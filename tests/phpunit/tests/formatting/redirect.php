@@ -27,6 +27,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 		//Nesting checks
 		$this->assertEquals('http://example.com/watchthecarriagereturngo', wp_sanitize_redirect('http://example.com/watchthecarriagereturn%0%0ddgo'));
 		$this->assertEquals('http://example.com/watchthecarriagereturngo', wp_sanitize_redirect('http://example.com/watchthecarriagereturn%0%0DDgo'));
+		$this->assertEquals('http://example.com/@username', wp_sanitize_redirect('http://example.com/@username'));
 	}
 
 	/**
