@@ -202,12 +202,22 @@ final class WP_Taxonomy {
 	/**
 	 * The controller for this taxonomy's REST API endpoints.
 	 *
-	 * Custom controllers must extend WP_REST_Controller. Should be accessed using {@see WP_Taxonomy::get_rest_controller()}.
+	 * Custom controllers must extend WP_REST_Controller.
 	 *
 	 * @since 4.7.4
 	 * @var string|bool $rest_controller_class
 	 */
 	public $rest_controller_class;
+
+	/**
+	 * The controller instance for this post type's REST API endpoints.
+	 *
+	 * Lazily computed. Should be accessed using {@see WP_Taxonomy::get_rest_controller()}.
+	 *
+	 * @since 5.5.0
+	 * @var WP_REST_Controller $rest_controller
+	 */
+	public $rest_controller;
 
 	/**
 	 * Whether it is a built-in taxonomy.
