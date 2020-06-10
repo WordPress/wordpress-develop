@@ -1923,11 +1923,17 @@ function rest_get_route_for_term( $term ) {
 function rest_get_current_resource_link() {
 	if ( is_singular() ) {
 		return rest_url( rest_get_route_for_post( get_post() ) );
-	} elseif ( is_category() || is_tag() || is_tax() ) {
+	}
+
+	if ( is_category() || is_tag() || is_tax() ) {
 		return rest_url( rest_get_route_for_term( get_queried_object() );
-	} elseif ( is_author() ) {
+	}
+
+	if ( is_author() ) {
 		return rest_url( 'wp/v2/users/' . get_the_author_meta( 'ID' ) );
 	}
+
+	return '';
 }
 
 /**
