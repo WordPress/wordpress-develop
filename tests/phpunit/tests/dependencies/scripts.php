@@ -1391,4 +1391,106 @@ JS;
 			$this->assertSame( $found, 0, "sourceMappingURL found in $js_file" );
 		}
 	}
+
+	function test_get_url_returns_full_url_with_version() {
+		$wp_scripts           = new WP_Scripts();
+		$wp_scripts->base_url = 'https://example.org/blog';
+
+		$handle   = 'foo-handle';
+		$src      = 'js/foo.js';
+		$version  = '112421';
+		$expected = $wp_scripts->base_url . $src . '?ver=' . $version;
+
+		$wp_scripts->add( $handle, $src, array(), $version );
+
+		$result = $wp_scripts->get_url( $handle );
+
+		$this->assertSame( $result, $expected );
+	}
+
+	function test_get_url_returns_no_version_if_dependency_does_not_have_one() {
+		$wp_scripts           = new WP_Scripts();
+		$wp_scripts->base_url = 'https://example.org/blog';
+
+		$handle  = 'foo-handle';
+		$src     = 'js/foo.js';
+		$version = null;
+
+		// no version query param
+		$expected = $wp_scripts->base_url . $src;
+
+		$wp_scripts->add( $handle, $src, array(), $version );
+
+		$result = $wp_scripts->get_url( $handle );
+
+		$this->assertSame( $result, $expected );
+	}
+
+	function test_get_url_preserves_src_properties_that_are_already_full_urls_no_ssl() {
+		$wp_scripts = new WP_Scripts();
+
+		$handle   = 'foo-handle';
+		$src      = 'http://insecure.cdn.example.org/js/foo.js';
+		$version  = '112421';
+		$expected = $src . '?ver=' . $version;
+
+		$wp_scripts->add( $handle, $src, array(), $version );
+
+		$result = $wp_scripts->get_url( $handle );
+
+		$this->assertSame( $result, $expected );
+	}
+
+	function test_get_url_preserves_src_properties_that_are_already_full_urls_ssl() {
+		$wp_scripts = new WP_Scripts();
+
+		$handle   = 'foo-handle';
+		$src      = 'https://cdn.example.org/js/foo.js';
+		$version  = '112421';
+		$expected = $src . '?ver=' . $version;
+
+		$wp_scripts->add( $handle, $src, array(), $version );
+
+		$result = $wp_scripts->get_url( $handle );
+
+		$this->assertSame( $result, $expected );
+	}
+
+	function test_get_url_returns_null_for_aliases() {
+		$wp_scripts = new WP_Scripts();
+
+		$handle = 'foo-handle';
+		$deps   = array( 'bar-handle' );
+		$src    = false;
+
+		$wp_scripts->add( $handle, $src, $deps );
+
+		$result = $wp_scripts->get_url( $handle );
+
+		$this->assertNull( $result );
+	}
+
+	function test_get_url_applies_script_loader_src_filters_and_escapes_url() {
+		// space between bangs will result in %20 when escaped
+		$unescaped_expected = 'http://example.org/filtered! !';
+		$handle             = 'foo-handle';
+		$src                = 'https://cdn.example.org/js/foo.js';
+
+		$filter_fn = function( $passed_src, $passed_handle ) use ( $src, $handle, $unescaped_expected ) {
+			$this->assertSame( $passed_src, $src );
+			$this->assertSame( $passed_handle, $handle );
+			return $unescaped_expected;
+		};
+
+		add_filter( 'script_loader_src', $filter_fn, 10, 2 );
+
+		$wp_scripts = new WP_Scripts();
+
+		$wp_scripts->add( $handle, $src );
+
+		$result = $wp_scripts->get_url( $handle );
+
+		$escaped_expected = esc_url( $unescaped_expected );
+		$this->assertSame( $result, $escaped_expected );
+	}
 }
