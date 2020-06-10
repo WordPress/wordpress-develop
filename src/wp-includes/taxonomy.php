@@ -3409,11 +3409,17 @@ function update_object_term_cache( $object_ids, $object_type ) {
 
 	$taxonomies = get_object_taxonomies( $object_type );
 
-	$ids = array();
-	foreach ( (array) $object_ids as $id ) {
-		foreach ( $taxonomies as $taxonomy ) {
-			if ( false === wp_cache_get( $id, "{$taxonomy}_relationships" ) ) {
-				$ids[] = $id;
+	$ids    = array();
+	$groups = array();
+	foreach ( $taxonomies as $taxonomy ) {
+		$groups[] = "{$taxonomy}_relationships";
+	}
+
+	foreach ( $groups as $group ) {
+		$cache_values = wp_cache_get_multiple( $object_ids, $group );
+		foreach ( $cache_values as $key => $value ) {
+			if ( false === $value ) {
+				$ids[] = $key;
 				break;
 			}
 		}
