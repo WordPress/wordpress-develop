@@ -1823,3 +1823,119 @@ function rest_default_additional_properties_to_false( $schema ) {
 
 	return $schema;
 }
+
+
+/**
+ * Outputs a header link to a REST resource
+ *
+ * @since 5.5.0
+ *
+ * @param string       $url URL.
+ */
+function rest_head_link( $url ) {
+	if ( ! empty( $url ) ) {
+		printf( '<link rel="alternate" type="application/json" href="%s" />', esc_url( $url ) );
+	}
+}
+
+/**
+ * Return the rest route for a post.
+ *
+ * @since 5.5.0
+ *
+ * @param WP_Post       $post Post Object.
+ * @return string           Route.
+ */
+function rest_get_route_for_post( $post ) {
+	if ( ! $post instanceof WP_Post ) {
+		return '';
+	}
+
+	$post_type = get_post_type_object( $post->post_type );
+	if ( ! $post_type ) {
+		return '';
+	}
+
+	$route = '';
+	$controller = $post_type->get_rest_controller();
+
+	// The only two controllers that we can detect are the Attachments and Posts controllers.
+	if ( ! empty( $controller )  && in_array( $controller, array( 'WP_REST_Attachments_Controller', 'WP_REST_Posts_Controller' ), true ) ) {
+		$namespace = 'wp/v2';
+		$rest_base = ! empty( $post_type->rest_base ) ? $post_type->rest_base : $post_type->name;
+		$route = sprintf( '%s/%s/%d', $namespace, $rest_base, $post->ID );
+	}
+
+	/**
+	 * Filters the route based on information in the post object.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param string $route Route.
+	 * @param WP_Post $post Post Object.
+	 */
+	return apply_filters( 'rest_route_for_post', $route, $post );
+}
+
+/**
+ * Return the rest route for a term.
+ *
+ * @since 5.5.0
+ *
+ * @param WP_Term       $term Term.
+ * @return string           Route.
+ */
+function rest_get_route_for_term( $term ) {
+	if ( ! $term instanceof WP_Term ) {
+		return '';
+	}
+
+	$taxonomy = get_taxonomy( $term->taxonomy );
+	if ( ! $taxonomy ) {
+		return '';
+	}
+
+	$route = '';
+	$controller = $taxonomy->get_rest_controller();
+	// The only controller that works is the Terms controller.
+	if ( ! empty( $controller ) && 'WP_REST_Terms_Controller' === $controller ) {
+		$namespace = 'wp/v2';
+		$rest_base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxnomomy->name;
+		$route = sprintf( '%s/%s/%d', $namespace, $rest_base, $term->term_id );
+	}
+
+	/**
+	 * Filters the route based on information in the term object.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param string $route Route.
+	 * @param WP_Term $term Term Object.
+	 */
+	return apply_filters( 'rest_route_for_term', $route, $term );
+}
+
+/**
+ * Get a REST URL for the current object.
+ *
+ * @param string URL.
+ */
+function rest_get_current_resource_link() {
+	if ( is_singular() ) {
+		return rest_url( rest_get_route_for_post( get_post() ) );
+	} elseif ( is_category() || is_tag() || is_tax() ) {
+		return rest_url( rest_get_route_for_term( get_queried_object() );
+	} elseif ( is_author() ) {
+		return rest_url( 'wp/v2/users/' . get_the_author_meta( 'ID' ) );
+	}
+}
+
+/**
+ * Add a link to the current REST API resource.
+ *
+ * @since 5.5.0
+ *
+ */
+function rest_add_resource_link() {
+	rest_head_link( rest_get_current_resource_link() );
+}

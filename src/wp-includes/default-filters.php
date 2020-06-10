@@ -284,6 +284,7 @@ add_action( 'wp_head', 'wp_enqueue_scripts', 1 );
 add_action( 'wp_head', 'wp_resource_hints', 2 );
 add_action( 'wp_head', 'feed_links', 2 );
 add_action( 'wp_head', 'feed_links_extra', 3 );
+add_action( 'wp_head', 'rest_add_resource_link', 4 );
 add_action( 'wp_head', 'rsd_link' );
 add_action( 'wp_head', 'wlwmanifest_link' );
 add_action( 'wp_head', 'adjacent_posts_rel_link_wp_head', 10, 0 );
