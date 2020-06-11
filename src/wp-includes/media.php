@@ -1495,6 +1495,7 @@ function wp_calculate_image_sizes( $size, $image_src = null, $image_meta = null,
  * Adds 'srcset' and 'sizes' attributes to an existing 'img' element.
  *
  * @since 4.4.0
+ * @since 5.5.0 `width` and `height` are now added if not already present.
  *
  * @see wp_calculate_image_srcset()
  * @see wp_calculate_image_sizes()
@@ -1547,10 +1548,13 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
 				}
 			}
 		}
-	}
 
-	if ( ! $width || ! $height ) {
-		return $image;
+		if ( ! $width || ! $height ) {
+			return $image;
+		}
+
+		// Dimensions will be added to the img tag.
+		$hwstring = ' ' . trim( image_hwstring( $width, $height ) );
 	}
 
 	$size_array = array( $width, $height );
@@ -1565,19 +1569,28 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
 		}
 	}
 
+	$attr = '';
+
+	if ( $hwstring ) {
+		// Add width and height if not present.
+		$attr .= $hwstring;
+	}
+
 	if ( $srcset && $sizes ) {
 		// Format the 'srcset' and 'sizes' string and escape attributes.
-		$attr = sprintf( ' srcset="%s"', esc_attr( $srcset ) );
+		$attr .= sprintf( ' srcset="%s"', esc_attr( $srcset ) );
 
 		if ( is_string( $sizes ) ) {
 			$attr .= sprintf( ' sizes="%s"', esc_attr( $sizes ) );
 		}
-
-		// Add 'srcset' and 'sizes' attributes to the image markup.
-		$image = preg_replace( '/<img ([^>]+?)[\/ ]*>/', '<img $1' . $attr . ' />', $image );
 	}
 
-	return $image;
+	if ( empty( $attr ) ) {
+		return $image;
+	}
+
+	// Add extra attributes to the image markup.
+	return preg_replace( '/<img ([^>]+?)[\/ ]*>/', '<img $1' . $attr . ' />', $image );
 }
 
 /**
