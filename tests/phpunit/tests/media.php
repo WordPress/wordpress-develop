@@ -1983,7 +1983,7 @@ EOF;
 		$img_xhtml            = str_replace( ' />', '/>', $img );
 		$img_html5            = str_replace( ' />', '>', $img );
 
-		$hwstring = 'width="' . $size_array[0] . '" height="' . $size_array[1] . '"';
+		$hwstring = image_hwstring( $size_array[0], $size_array[1] );
 
 		// Manually add srcset and sizes to the markup from get_image_tag().
 		$respimg                  = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img );
