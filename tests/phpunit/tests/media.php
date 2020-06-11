@@ -2538,12 +2538,12 @@ EOF;
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
 		$size_array = $this->_get_image_size_array_from_meta( $image_meta, 'medium' );
 
-		$img                  = get_image_tag( self::$large_id, '', '', '', 'medium' );
-		$img_xhtml            = str_replace( ' />', '/>', $img );
-		$img_html5            = str_replace( ' />', '>', $img );
-		$img_no_width_height  = str_replace( ' width="' . $size_array[0] . '"', '', $img );
-		$img_no_width_height  = str_replace( ' height="' . $size_array[1] . '"', '', $img_no_width_height );
-		$iframe               = '<iframe src="https://www.example.com"></iframe>';
+		$img                 = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$img_xhtml           = str_replace( ' />', '/>', $img );
+		$img_html5           = str_replace( ' />', '>', $img );
+		$img_no_width_height = str_replace( ' width="' . $size_array[0] . '"', '', $img );
+		$img_no_width_height = str_replace( ' height="' . $size_array[1] . '"', '', $img_no_width_height );
+		$iframe              = '<iframe src="https://www.example.com"></iframe>';
 
 		$lazy_img       = wp_img_tag_add_loading_attr( $img, 'test' );
 		$lazy_img_xhtml = wp_img_tag_add_loading_attr( $img_xhtml, 'test' );
