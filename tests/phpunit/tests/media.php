@@ -1983,10 +1983,12 @@ EOF;
 		$img_xhtml            = str_replace( ' />', '/>', $img );
 		$img_html5            = str_replace( ' />', '>', $img );
 
+		$hwstring = ' width="' . $size_array[0] . '" height="' . $size_array[1] . '"';
+
 		// Manually add srcset and sizes to the markup from get_image_tag().
 		$respimg                  = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img );
 		$respimg_no_size_in_class = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img_no_size_in_class );
-		$respimg_no_width_height  = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img );
+		$respimg_no_width_height  = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $hwstring . $srcset . ' ' . $sizes . ' />', $img_no_width_height );
 		$respimg_with_sizes_attr  = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $srcset . ' />', $img_with_sizes_attr );
 		$respimg_xhtml            = preg_replace( '|<img ([^>]+)/>|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img_xhtml );
 		$respimg_html5            = preg_replace( '|<img ([^>]+)>|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img_html5 );
