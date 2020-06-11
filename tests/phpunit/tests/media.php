@@ -1963,6 +1963,7 @@ EOF;
 
 	/**
 	 * @ticket 33641
+	 * @ticket 50367
 	 */
 	function test_wp_filter_content_tags() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
@@ -1985,7 +1986,7 @@ EOF;
 		// Manually add srcset and sizes to the markup from get_image_tag().
 		$respimg                  = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img );
 		$respimg_no_size_in_class = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img_no_size_in_class );
-		$respimg_no_width_height  = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img_no_width_height );
+		$respimg_no_width_height  = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img );
 		$respimg_with_sizes_attr  = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $srcset . ' />', $img_with_sizes_attr );
 		$respimg_xhtml            = preg_replace( '|<img ([^>]+)/>|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img_xhtml );
 		$respimg_html5            = preg_replace( '|<img ([^>]+)>|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img_html5 );
@@ -1997,7 +1998,7 @@ EOF;
 			<p>Image, no size class. Should have srcset and sizes.</p>
 			%2$s
 
-			<p>Image, no width and height attributes. Should have srcset and sizes (from matching the file name).</p>
+			<p>Image, no width and height attributes. Should have width, height, srcset and sizes (from matching the file name).</p>
 			%3$s
 
 			<p>Image, no attachment ID class. Should NOT have srcset and sizes.</p>

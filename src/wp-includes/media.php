@@ -1526,6 +1526,8 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
 		return $image;
 	}
 
+	$attr = '';
+
 	$width  = preg_match( '/ width="([0-9]+)"/', $image, $match_width ) ? (int) $match_width[1] : 0;
 	$height = preg_match( '/ height="([0-9]+)"/', $image, $match_height ) ? (int) $match_height[1] : 0;
 
@@ -1553,8 +1555,8 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
 			return $image;
 		}
 
-		// Dimensions will be added to the img tag.
-		$hwstring = ' ' . trim( image_hwstring( $width, $height ) );
+		// Add width and height if not present.
+		$attr .= ' ' . trim( image_hwstring( $width, $height ) );
 	}
 
 	$size_array = array( $width, $height );
@@ -1567,13 +1569,6 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
 		if ( ! $sizes ) {
 			$sizes = wp_calculate_image_sizes( $size_array, $image_src, $image_meta, $attachment_id );
 		}
-	}
-
-	$attr = '';
-
-	if ( $hwstring ) {
-		// Add width and height if not present.
-		$attr .= $hwstring;
 	}
 
 	if ( $srcset && $sizes ) {
