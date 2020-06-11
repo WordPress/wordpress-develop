@@ -349,6 +349,16 @@ if ( $is_new_post && ! isset( $editor_settings['template'] ) && 'post' === $post
 	}
 }
 
+// In order to duplicate classic meta box behaviour, we need to run the classic meta box actions.
+require_once ABSPATH . 'wp-admin/includes/meta-boxes.php';
+register_and_do_post_meta_boxes( $post );
+
+// Check if the Custom Fields meta box has been removed at some point.
+$core_meta_boxes = $wp_meta_boxes[ $current_screen->id ]['normal']['core'];
+if ( ! isset( $core_meta_boxes['postcustom'] ) || ! $core_meta_boxes['postcustom'] ) {
+	unset( $editor_settings['enableCustomFields'] );
+}
+
 /**
  * Scripts
  */
@@ -377,16 +387,6 @@ wp_enqueue_style( 'wp-format-library' );
  * @since 5.0.0
  */
 do_action( 'enqueue_block_editor_assets' );
-
-// In order to duplicate classic meta box behaviour, we need to run the classic meta box actions.
-require_once ABSPATH . 'wp-admin/includes/meta-boxes.php';
-register_and_do_post_meta_boxes( $post );
-
-// Check if the Custom Fields meta box has been removed at some point.
-$core_meta_boxes = $wp_meta_boxes[ $current_screen->id ]['normal']['core'];
-if ( ! isset( $core_meta_boxes['postcustom'] ) || ! $core_meta_boxes['postcustom'] ) {
-	unset( $editor_settings['enableCustomFields'] );
-}
 
 /**
  * Filters the settings to pass to the block editor.
