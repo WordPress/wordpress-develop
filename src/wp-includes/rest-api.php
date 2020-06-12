@@ -1896,6 +1896,10 @@ function rest_get_route_for_term( $term ) {
 
 	$route = '';
 	$controller = $taxonomy->get_rest_controller();
+	if ( ! $controller ) {
+		return '';
+	}
+
 	// The only controller that works is the Terms controller.
 	if ( 'WP_REST_Terms_Controller' === $controller::class ) {
 		$namespace = 'wp/v2';
