@@ -112,11 +112,12 @@
 	<exclude-pattern>/src/wp-includes/class-IXR\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-json\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-phpass\.php</exclude-pattern>
-	<exclude-pattern>/src/wp-includes/class-phpmailer\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-pop3\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-requests\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-simplepie\.php</exclude-pattern>
-	<exclude-pattern>/src/wp-includes/class-smtp\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/PHPMailer/Exception\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/PHPMailer/PHPMailer\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/PHPMailer/SMTP\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-snoopy\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-wp-block-parser\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/deprecated\.php</exclude-pattern>
