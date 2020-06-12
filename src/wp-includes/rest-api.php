@@ -1854,7 +1854,10 @@ function rest_get_route_for_post( $post ) {
 
 	$route = '';
 	$controller = $post_type->get_rest_controller();
-
+	if ( ! $controller ) {
+		return '';
+	}
+        
 	// The only two controllers that we can detect are the Attachments and Posts controllers.
 	if ( in_array( get_class( $controller ), array( 'WP_REST_Attachments_Controller', 'WP_REST_Posts_Controller' ), true ) ) {
 		$namespace = 'wp/v2';
