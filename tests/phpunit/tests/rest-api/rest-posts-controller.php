@@ -17,6 +17,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	protected static $author_id;
 	protected static $contributor_id;
 	protected static $private_reader_id;
+	protected static $custom_author_id;
 
 	protected static $supported_formats;
 	protected static $post_ids    = array();
@@ -54,6 +55,12 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		self::$private_reader_id = $factory->user->create(
 			array(
 				'role' => 'private_reader',
+			)
+		);
+
+		self::$custom_author_id = $factory->user->create(
+			array(
+				'role' => 'custom_author',
 			)
 		);
 
@@ -110,6 +117,11 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		add_role( 'private_reader', 'Private Reader' );
 		$role = get_role( 'private_reader' );
 		$role->add_cap( 'read_private_posts' );
+
+		add_role( 'custom_author', 'Custom Author' );
+		$role = get_role( 'custom_author' );
+		$role->add_cap( 'edit_posts' );
+		$role->add_cap( 'edit_published_posts' );
 
 		add_filter( 'rest_pre_dispatch', array( $this, 'wpSetUpBeforeRequest' ), 10, 3 );
 		add_filter( 'posts_clauses', array( $this, 'save_posts_clauses' ), 10, 2 );
@@ -4384,6 +4396,35 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertArrayNotHasKey( 'https://api.w.org/action-sticky', $links );
 	}
 
+	public function test_delete_action_link_exists_for_author() {
+		wp_set_current_user( self::$author_id );
+
+		$post = self::factory()->post->create( array( 'post_author' => self::$author_id ) );
+		$this->assertGreaterThan( 0, $post );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post}" );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayHasKey( 'https://api.w.org/action-delete', $links );
+	}
+
+	public function test_delete_action_link_does_not_exist_for_custom_author() {
+		wp_set_current_user( self::$custom_author_id );
+
+		$post = self::factory()->post->create( array( 'post_author' => self::$custom_author_id ) );
+		$this->assertGreaterThan( 0, $post );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post}" );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-delete', $links );
+	}
 
 	public function test_assign_author_action_exists_for_editor() {
 		wp_set_current_user( self::$editor_id );
