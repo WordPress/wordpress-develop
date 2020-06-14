@@ -2467,6 +2467,20 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$links[] = array(
+			'rel'          => 'https://api.w.org/action-delete',
+			'title'        => __( 'The current user can delete this post.' ),
+			'href'         => $href,
+			'targetSchema' => array(
+				'type'       => 'object',
+				'properties' => array(
+					'delete' => array(
+						'type' => 'boolean',
+					),
+				),
+			),
+		);
+
+		$links[] = array(
 			'rel'          => 'https://api.w.org/action-unfiltered-html',
 			'title'        => __( 'The current user can post unfiltered HTML markup and JavaScript.' ),
 			'href'         => $href,
