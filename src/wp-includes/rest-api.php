@@ -1929,7 +1929,7 @@ function rest_get_current_resource_link() {
 	}
 
 	if ( is_category() || is_tag() || is_tax() ) {
-		return rest_url( rest_get_route_for_term( get_queried_object() );
+		return rest_url( rest_get_route_for_term( get_queried_object() ) );
 	}
 
 	if ( is_author() ) {
