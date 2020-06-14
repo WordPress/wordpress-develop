@@ -81,6 +81,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 
 		$expected_routes = array(
 			'/',
+			'/batch/v1',
 			'/oembed/1.0',
 			'/oembed/1.0/embed',
 			'/oembed/1.0/proxy',
@@ -139,6 +140,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 	private function is_builtin_route( $route ) {
 		return (
 			'/' === $route ||
+			0 === strpos( $route, '/batch/' ) ||
 			preg_match( '#^/oembed/1\.0(/.+)?$#', $route ) ||
 			preg_match( '#^/wp/v2(/.+)?$#', $route )
 		);

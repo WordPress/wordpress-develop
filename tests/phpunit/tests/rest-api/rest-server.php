@@ -10,6 +10,40 @@
  * @group restapi
  */
 class Tests_REST_Server extends WP_Test_REST_TestCase {
+
+	/**
+	 * Administrator user ID.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @var int
+	 */
+	protected static $administrator_id;
+
+	/**
+	 * Create test data before the tests run.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param WP_UnitTest_Factory $factory Helper that lets us create fake data.
+	 */
+	public static function wpSetUpBeforeClass( $factory ) {
+		self::$administrator_id = $factory->user->create(
+			array(
+				'role' => 'administrator',
+			)
+		);
+	}
+
+	/**
+	 * Delete test data after our tests run.
+	 *
+	 * @since 5.5.0
+	 */
+	public static function wpTearDownAfterClass() {
+		self::delete_user( self::$administrator_id );
+	}
+
 	public function setUp() {
 		parent::setUp();
 
@@ -1511,6 +1545,85 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 204, $response->get_status(), '/test-ns/v1/test' );
+	}
+
+	/**
+	 * @ticket 50244
+	 */
+	public function test_pre_validation() {
+		wp_set_current_user( self::$administrator_id );
+
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
+		$request->set_body_params(
+			array(
+				'validation' => 'pre',
+				'requests'   => array(
+					array(
+						'path' => '/wp/v2/posts',
+						'body' => array(
+							'title'   => 'Hello World',
+							'content' => 'From the moon.',
+						),
+					),
+					array(
+						'path' => '/wp/v2/posts',
+						'body' => array(
+							'title'   => 'Hello Moon',
+							'content' => 'From the world.',
+							'status'  => 'garbage',
+						),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertEquals( 207, $response->get_status() );
+		$this->assertArrayHasKey( 'pre-validation', $data );
+		$this->assertCount( 2, $data['pre-validation'] );
+		$this->assertTrue( $data['pre-validation'][0]['body'] );
+		$this->assertEquals( 400, $data['pre-validation'][1]['status'] );
+	}
+
+	/**
+	 * @ticket 50244
+	 */
+	public function test_batch_create() {
+		wp_set_current_user( self::$administrator_id );
+
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
+		$request->set_body_params(
+			array(
+				'requests' => array(
+					array(
+						'path' => '/wp/v2/posts',
+						'body' => array(
+							'title'   => 'Hello World',
+							'content' => 'From the moon.',
+						),
+					),
+					array(
+						'path' => '/wp/v2/posts',
+						'body' => array(
+							'title'   => 'Hello Moon',
+							'status'  => 'draft',
+							'content' => 'From the world.',
+						),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertEquals( 207, $response->get_status() );
+		$this->assertArrayHasKey( 'responses', $data );
+		$this->assertCount( 2, $data['responses'] );
+		$this->assertEquals( 'Hello World', $data['responses'][0]['body']['title']['rendered'] );
+		$this->assertEquals( 'Hello Moon', $data['responses'][1]['body']['title']['rendered'] );
 	}
 
 	public function _validate_as_integer_123( $value, $request, $key ) {

@@ -40,6 +40,74 @@ mockedApiResponse.Schema = {
                 "self": "http://example.org/index.php?rest_route=/"
             }
         },
+        "/batch/v1": {
+            "namespace": "",
+            "methods": [
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "POST",
+                        "PUT",
+                        "PATCH",
+                        "DELETE"
+                    ],
+                    "args": {
+                        "validation": {
+                            "required": false,
+                            "default": "normal",
+                            "enum": [
+                                "pre",
+                                "normal"
+                            ],
+                            "type": "string"
+                        },
+                        "requests": {
+                            "required": true,
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "path": {
+                                        "type": "string",
+                                        "required": true
+                                    },
+                                    "body": {
+                                        "type": "object",
+                                        "properties": [],
+                                        "additionalProperties": true
+                                    },
+                                    "headers": {
+                                        "type": "object",
+                                        "properties": [],
+                                        "additionalProperties": {
+                                            "type": [
+                                                "string",
+                                                "array"
+                                            ],
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/batch/v1"
+                    }
+                ]
+            }
+        },
         "/oembed/1.0": {
             "namespace": "oembed/1.0",
             "methods": [
@@ -4955,74 +5023,6 @@ mockedApiResponse.Schema = {
                 "self": [
                     {
                         "href": "http://example.org/index.php?rest_route=/wp/v2/block-directory/search"
-                    }
-                ]
-            }
-        },
-        "/wp/v2/batch": {
-            "namespace": "wp/v2",
-            "methods": [
-                "POST",
-                "PUT",
-                "PATCH",
-                "DELETE"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "POST",
-                        "PUT",
-                        "PATCH",
-                        "DELETE"
-                    ],
-                    "args": {
-                        "validation": {
-                            "required": false,
-                            "default": "normal",
-                            "enum": [
-                                "pre",
-                                "normal"
-                            ],
-                            "type": "string"
-                        },
-                        "requests": {
-                            "required": true,
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "path": {
-                                        "type": "string",
-                                        "required": true
-                                    },
-                                    "body": {
-                                        "type": "object",
-                                        "properties": [],
-                                        "additionalProperties": true
-                                    },
-                                    "headers": {
-                                        "type": "object",
-                                        "properties": [],
-                                        "additionalProperties": {
-                                            "type": [
-                                                "string",
-                                                "array"
-                                            ],
-                                            "items": {
-                                                "type": "string"
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            ],
-            "_links": {
-                "self": [
-                    {
-                        "href": "http://example.org/index.php?rest_route=/wp/v2/batch"
                     }
                 ]
             }
