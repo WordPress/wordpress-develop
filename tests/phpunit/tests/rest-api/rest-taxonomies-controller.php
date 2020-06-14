@@ -301,7 +301,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 	public function test_get_for_taxonomy_returns_terms_controller_if_custom_class_not_specified() {
 		register_taxonomy(
 			'test',
-			'post'
+			'post',
 			array(
 				'show_in_rest' => true,
 			)
