@@ -210,7 +210,7 @@ final class WP_Taxonomy {
 	public $rest_controller_class;
 
 	/**
-	 * The controller instance for this post type's REST API endpoints.
+	 * The controller instance for this taxonomy's REST API endpoints.
 	 *
 	 * Lazily computed. Should be accessed using {@see WP_Taxonomy::get_rest_controller()}.
 	 *
