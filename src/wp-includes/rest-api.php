@@ -1852,17 +1852,17 @@ function rest_get_route_for_post( $post ) {
 		return '';
 	}
 
-	$route = '';
+	$route      = '';
 	$controller = $post_type->get_rest_controller();
 	if ( ! $controller ) {
 		return '';
 	}
-        
+
 	// The only two controllers that we can detect are the Attachments and Posts controllers.
 	if ( in_array( get_class( $controller ), array( 'WP_REST_Attachments_Controller', 'WP_REST_Posts_Controller' ), true ) ) {
 		$namespace = 'wp/v2';
 		$rest_base = ! empty( $post_type->rest_base ) ? $post_type->rest_base : $post_type->name;
-		$route = sprintf( '%s/%s/%d', $namespace, $rest_base, $post->ID );
+		$route     = sprintf( '%s/%s/%d', $namespace, $rest_base, $post->ID );
 	}
 
 	/**
@@ -1894,7 +1894,7 @@ function rest_get_route_for_term( $term ) {
 		return '';
 	}
 
-	$route = '';
+	$route      = '';
 	$controller = $taxonomy->get_rest_controller();
 	if ( ! $controller ) {
 		return '';
@@ -1904,7 +1904,7 @@ function rest_get_route_for_term( $term ) {
 	if ( 'WP_REST_Terms_Controller' === get_class( $controller ) ) {
 		$namespace = 'wp/v2';
 		$rest_base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxnomomy->name;
-		$route = sprintf( '%s/%s/%d', $namespace, $rest_base, $term->term_id );
+		$route     = sprintf( '%s/%s/%d', $namespace, $rest_base, $term->term_id );
 	}
 
 	/**
