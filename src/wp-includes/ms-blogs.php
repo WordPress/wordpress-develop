@@ -238,12 +238,21 @@ function get_blog_details( $fields = null, $get_all = true ) {
 		return $details;
 	}
 
-	switch_to_blog( $blog_id );
+	 $switched_blog = false;
+
+	 if ( get_current_blog_id() !== $blog_id ) {
+		switch_to_blog( $blog_id );
+		$switched_blog = true;
+	 }
+
 	$details->blogname   = get_option( 'blogname' );
 	$details->siteurl    = get_option( 'siteurl' );
 	$details->post_count = get_option( 'post_count' );
 	$details->home       = get_option( 'home' );
-	restore_current_blog();
+
+	if ( $switched_blog ) {
+		restore_current_blog();
+	}
 
 	/**
 	 * Filters a blog's details.
