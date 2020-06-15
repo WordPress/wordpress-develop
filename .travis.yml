@@ -35,6 +35,8 @@ jobs:
     name: PHP Linting
   - env: WP_TRAVISCI=travis:js WP_INSTALL=false PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=
     name: JS Tests
+  - env: WP_TRAVISCI=travis:gitstatus WP_INSTALL=false PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=
+    name: Build updated
   - env: WP_TRAVISCI=test:compat COMPOSER_INSTALL=true NPM_INSTALL=false WP_INSTALL=false
     name: "PHP Compatibility Check"
   - env: LOCAL_PHP=7.4-fpm WP_TRAVISCI=test:php
@@ -83,6 +85,10 @@ before_script:
     npm ci
   fi
 - |
+  if [[ "$WP_TRAVISCI" == "travis:gitstatus" ]]; then
+    npm run build:dev
+  fi
+- |
   if [[ "$WP_TRAVISCI" == "test:e2e" ]] || [[ "$WP_TRAVISCI" == "test:php" ]]; then
     npm run env:start
     npm run build
@@ -129,6 +135,14 @@ script:
       docker-compose run --rm php composer lint tests
     elif [[ "$WP_TRAVISCI" == "test:compat" ]]; then
       docker-compose run --rm php composer compat
+    elif [[ "$WP_TRAVISCI" == "travis:gitstatus" ]]; then
+      if [ -z "$(git status --porcelain -- ':(exclude)package-lock.json')" ]; then
+        echo "Built files are up to date."
+        exit;
+      fi
+      echo "Built files have not been committed."
+      git status -- ':(exclude)package-lock.json'
+      exit 1
     else
       npm run grunt $WP_TRAVISCI
     fi
