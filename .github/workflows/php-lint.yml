@@ -1,0 +1,56 @@
+on:
+  - pull_request
+  - push
+
+name: PHP Linting
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+        php:
+          - "5.6"
+          - "7.0"
+          - "7.1"
+          - "7.2"
+          - "7.3"
+          - "7.4"
+          - "8.0"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install PHP with extensions
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, opcache
+          coverage: none
+
+      - name: Install composer dependencies ignoring platform requirements
+        if: matrix.php == '8.0'
+        run: composer install --no-ansi --no-interaction --no-progress --ignore-platform-reqs
+
+      - name: Install composer dependencies
+        if: matrix.php != '8.0'
+        run: composer update --no-ansi --no-interaction --no-progress
+
+      - name: Version Informaton
+        run: |
+          git --version
+          php --version
+          php -i
+
+      - name: Lint source
+        run: composer lint:errors && composer lint tests
+        env:
+          COMPOSER_PROCESS_TIMEOUT: 600
+
+      - name: Lint tests
+        run: composer lint tests
