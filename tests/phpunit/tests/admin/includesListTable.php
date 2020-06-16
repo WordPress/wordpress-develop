@@ -293,4 +293,26 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 
 		$this->assertNotContains( 'id="delete_all"', $output );
 	}
+
+	/**
+	 * Test that can a list can display with no dependency on core screen context.
+	 *
+	 * @ticket 15386
+	 */
+	public function test_table_list_renders() {
+		$table = _get_list_table( 'WP_Comments_List_Table', array( 'screen' => 'my-plugin-page' ) );
+
+		// At least one comment needed.
+		$this->factory->comment->create_many( 10 );
+
+		ob_start();
+
+		$table->views();
+		$table->prepare_items();
+		$table->display();
+		$output = ob_get_clean();
+
+		// CSS class only exists if the table has at least one comment.
+		$this->assertContains( 'class="submitted-on"', $output );
+	}
 }
