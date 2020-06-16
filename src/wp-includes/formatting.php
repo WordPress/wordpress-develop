@@ -4548,7 +4548,7 @@ function esc_textarea( $text ) {
  * @since 5.5.0
  *
  * @param string $text Text to escape.
- * @return string
+ * @return string Escaped text.
  */
 function esc_xml( $text ) {
 	$safe_text = wp_check_invalid_utf8( $text );
