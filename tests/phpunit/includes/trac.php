@@ -54,7 +54,7 @@ class TracTickets {
 	// phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
 	public static function forcingKnownBugs() {
 		echo PHP_EOL . "\x1b[0m\x1b[37;41m\x1b[2K";
-		echo "Error: Trac was inaccessible, so known bugs weren't able to be skipped." . PHP_EOL;
+		echo "Trac was inaccessible, so known bugs weren't able to be skipped." . PHP_EOL;
 		echo "\x1b[0m\x1b[2K";
 	}
 }
