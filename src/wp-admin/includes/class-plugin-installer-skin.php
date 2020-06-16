@@ -104,6 +104,9 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 				$this->feedback( implode( ' ', (array) $install_actions ) );
 			}
 
+			$backup_warning = '<em>' . __( '<strong>Important:</strong> Before proceed, please <a href="https://wordpress.org/support/article/wordpress-backups/">back up your database and files</a>.' ) . '</em>';
+			$this->feedback( $backup_warning );
+
 			return;
 		}
 

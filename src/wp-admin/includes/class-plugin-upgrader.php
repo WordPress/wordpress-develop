@@ -87,7 +87,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 		$this->strings['process_success']     = __( 'Plugin installed successfully.' );
 
 		$this->strings['reuploading_plugin']       = __( 'Seems like you are trying to upload a plugin already installed.' );
-		$this->strings['compare_before_overwrite'] = __( 'Compare before retry:' );
+		$this->strings['compare_before_overwrite'] = __( 'You can check both plugins info and retry:' );
 
 		if ( 'update-plugin' === $this->skin->overwrite ) {
 			$this->strings['installing_package'] = __( 'Updating the plugin&#8230;' );
