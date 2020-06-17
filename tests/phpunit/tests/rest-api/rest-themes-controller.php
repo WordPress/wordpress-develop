@@ -30,6 +30,15 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	protected static $contributor_id;
 
 	/**
+	 * Admin user ID.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @var int $admin_id
+	 */
+	protected static $admin_id;
+
+	/**
 	 * The current theme object.
 	 *
 	 * @since 5.0.0
@@ -92,6 +101,11 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 * @param WP_UnitTest_Factory $factory WordPress unit test factory.
 	 */
 	public static function wpSetUpBeforeClass( $factory ) {
+		self::$admin_id      = $factory->user->create(
+			array(
+				'role' => 'administrator',
+			)
+		);
 		self::$subscriber_id  = $factory->user->create(
 			array(
 				'role' => 'subscriber',
@@ -115,6 +129,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	public static function wpTearDownAfterClass() {
 		self::delete_user( self::$subscriber_id );
 		self::delete_user( self::$contributor_id );
+		self::delete_user( self::$admin_id );
 	}
 
 	/**
@@ -177,6 +192,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 50152
 	 */
 	public function test_get_items_inactive() {
+		wp_set_current_user( self::$admin_id );
 		$request = new WP_REST_Request( 'GET', self::$themes_route );
 		$request->set_param( 'status', 'inactive' );
 
@@ -199,7 +215,6 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'tags',
 			'template',
 			'textdomain',
-			'theme_supports',
 			'theme_uri',
 			'version',
 		);
