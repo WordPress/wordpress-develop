@@ -153,12 +153,15 @@ require __DIR__ . '/testcase-rest-post-type-controller.php';
 require __DIR__ . '/testcase-xmlrpc.php';
 require __DIR__ . '/testcase-ajax.php';
 require __DIR__ . '/testcase-canonical.php';
+require __DIR__ . '/testcase-xml.php';
 require __DIR__ . '/exceptions.php';
 require __DIR__ . '/utils.php';
 require __DIR__ . '/spy-rest-server.php';
 require __DIR__ . '/class-wp-rest-test-search-handler.php';
 require __DIR__ . '/class-wp-rest-test-configurable-controller.php';
 require __DIR__ . '/class-wp-fake-block-type.php';
+require __DIR__ . '/class-wp-sitemaps-test-provider.php';
+require __DIR__ . '/class-wp-sitemaps-empty-test-provider.php';
 
 /**
  * A class to handle additional command line arguments passed to the script.
