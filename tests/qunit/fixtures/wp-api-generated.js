@@ -61,7 +61,7 @@ mockedApiResponse.Schema = {
                             "required": false,
                             "default": "normal",
                             "enum": [
-                                "pre",
+                                "require-all-validate",
                                 "normal"
                             ],
                             "type": "string"

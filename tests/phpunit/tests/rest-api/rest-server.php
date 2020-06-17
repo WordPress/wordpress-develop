@@ -1550,13 +1550,45 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	/**
 	 * @ticket 50244
 	 */
-	public function test_pre_validation() {
+	public function test_batch_requires_allow_batch_opt_in() {
+		register_rest_route(
+			'test-ns/v1',
+			'test',
+			array(
+				'methods'  => 'POST',
+				'callback' => static function () {
+					return new WP_REST_Response( 'data' );
+				},
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
+		$request->set_body_params(
+			array(
+				'requests' => array(
+					array(
+						'path' => '/test-ns/v1/test',
+					),
+				),
+			)
+		);
+
+		$response = rest_do_request( $request );
+
+		$this->assertEquals( 207, $response->get_status() );
+		$this->assertEquals( 'rest_batch_not_allowed', $response->get_data()['responses'][0]['body']['code'] );
+	}
+
+	/**
+	 * @ticket 50244
+	 */
+	public function test_batch_pre_validation() {
 		wp_set_current_user( self::$administrator_id );
 
 		$request = new WP_REST_Request( 'POST', '/batch/v1' );
 		$request->set_body_params(
 			array(
-				'validation' => 'pre',
+				'validation' => 'require-all-validate',
 				'requests'   => array(
 					array(
 						'path' => '/wp/v2/posts',
@@ -1581,10 +1613,11 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$data     = $response->get_data();
 
 		$this->assertEquals( 207, $response->get_status() );
-		$this->assertArrayHasKey( 'pre-validation', $data );
-		$this->assertCount( 2, $data['pre-validation'] );
-		$this->assertTrue( $data['pre-validation'][0]['body'] );
-		$this->assertEquals( 400, $data['pre-validation'][1]['status'] );
+		$this->assertArrayHasKey( 'failed', $data );
+		$this->assertEquals( 'validation', $data['failed'] );
+		$this->assertCount( 2, $data['responses'] );
+		$this->assertNull( $data['responses'][0] );
+		$this->assertEquals( 400, $data['responses'][1]['status'] );
 	}
 
 	/**

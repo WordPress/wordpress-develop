@@ -2,9 +2,9 @@
 /**
  * REST API: WP_REST_Server class
  *
- * @package WordPress
+ * @package    WordPress
  * @subpackage REST_API
- * @since 4.4.0
+ * @since      4.4.0
  */
 
 /**
@@ -109,7 +109,7 @@ class WP_REST_Server {
 				'args'     => array(
 					'validation' => array(
 						'type'    => 'string',
-						'enum'    => array( 'pre', 'normal' ),
+						'enum'    => array( 'require-all-validate', 'normal' ),
 						'default' => 'normal',
 					),
 					'requests'   => array(
@@ -951,8 +951,8 @@ class WP_REST_Server {
 			return $result;
 		}
 
-		$response = null;
-		$matched  = $this->match_request_to_handler( $request );
+		$error   = null;
+		$matched = $this->match_request_to_handler( $request );
 
 		if ( is_wp_error( $matched ) ) {
 			return $this->error_to_response( $matched );
@@ -961,25 +961,123 @@ class WP_REST_Server {
 		list( $route, $handler ) = $matched;
 
 		if ( ! is_callable( $handler['callback'] ) ) {
-			$response = new WP_Error(
+			$error = new WP_Error(
 				'rest_invalid_handler',
 				__( 'The handler for the route is invalid' ),
 				array( 'status' => 500 )
 			);
 		}
 
-		if ( ! is_wp_error( $response ) ) {
+		if ( ! is_wp_error( $error ) ) {
 			$check_required = $request->has_valid_params();
 			if ( is_wp_error( $check_required ) ) {
-				$response = $check_required;
+				$error = $check_required;
 			} else {
 				$check_sanitized = $request->sanitize_params();
 				if ( is_wp_error( $check_sanitized ) ) {
-					$response = $check_sanitized;
+					$error = $check_sanitized;
 				}
 			}
 		}
 
+		return $this->respond_to_request( $request, $route, $handler, $error );
+	}
+
+	/**
+	 * Matches a request object to it's handler.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param WP_REST_Request $request The request object.
+	 * @return array|WP_Error The route and request handler on success or a WP_Error instance if no handler was found.
+	 */
+	protected function match_request_to_handler( $request ) {
+		$method = $request->get_method();
+		$path   = $request->get_route();
+
+		$with_namespace = array();
+
+		foreach ( $this->get_namespaces() as $namespace ) {
+			if ( 0 === strpos( trailingslashit( ltrim( $path, '/' ) ), $namespace ) ) {
+				$with_namespace[] = $this->get_routes( $namespace );
+			}
+		}
+
+		if ( $with_namespace ) {
+			$routes = array_merge( ...$with_namespace );
+		} else {
+			$routes = $this->get_routes();
+		}
+
+		foreach ( $routes as $route => $handlers ) {
+			$match = preg_match( '@^' . $route . '$@i', $path, $matches );
+
+			if ( ! $match ) {
+				continue;
+			}
+
+			$args = array();
+
+			foreach ( $matches as $param => $value ) {
+				if ( ! is_int( $param ) ) {
+					$args[ $param ] = $value;
+				}
+			}
+
+			foreach ( $handlers as $handler ) {
+				$callback = $handler['callback'];
+				$response = null;
+
+				// Fallback to GET method if no HEAD method is registered.
+				$checked_method = $method;
+				if ( 'HEAD' === $method && empty( $handler['methods']['HEAD'] ) ) {
+					$checked_method = 'GET';
+				}
+				if ( empty( $handler['methods'][ $checked_method ] ) ) {
+					continue;
+				}
+
+				if ( ! is_callable( $callback ) ) {
+					return array( $route, $handler );
+				}
+
+				$request->set_url_params( $args );
+				$request->set_attributes( $handler );
+
+				$defaults = array();
+
+				foreach ( $handler['args'] as $arg => $options ) {
+					if ( isset( $options['default'] ) ) {
+						$defaults[ $arg ] = $options['default'];
+					}
+				}
+
+				$request->set_default_params( $defaults );
+
+				return array( $route, $handler );
+			}
+		}
+
+		return new WP_Error(
+			'rest_no_route',
+			__( 'No route was found matching the URL and request method' ),
+			array( 'status' => 404 )
+		);
+	}
+
+	/**
+	 * Dispatches the request to the callback handler.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param WP_REST_Request $request  The request object.
+	 * @param array           $handler  The matched route handler.
+	 * @param string          $route    The matched route regex.
+	 * @param WP_Error|null   $response The current error object if any.
+	 *
+	 * @return WP_REST_Response
+	 */
+	protected function respond_to_request( $request, $route, $handler, $response ) {
 		/**
 		 * Filters the response before executing any REST API callbacks.
 		 *
@@ -1069,88 +1167,6 @@ class WP_REST_Server {
 		$response->set_matched_handler( $handler );
 
 		return $response;
-	}
-
-	/**
-	 * Matches a request object to it's handler.
-	 *
-	 * @since 5.5.0
-	 *
-	 * @param WP_REST_Request $request  The request object.
-	 * @return array|WP_Error The route and request handler on success or a WP_Error instance if no handler was found.
-	 */
-	protected function match_request_to_handler( WP_REST_Request $request ) {
-		$method = $request->get_method();
-		$path   = $request->get_route();
-
-		$with_namespace = array();
-
-		foreach ( $this->get_namespaces() as $namespace ) {
-			if ( 0 === strpos( trailingslashit( ltrim( $path, '/' ) ), $namespace ) ) {
-				$with_namespace[] = $this->get_routes( $namespace );
-			}
-		}
-
-		if ( $with_namespace ) {
-			$routes = array_merge( ...$with_namespace );
-		} else {
-			$routes = $this->get_routes();
-		}
-
-		foreach ( $routes as $route => $handlers ) {
-			$match = preg_match( '@^' . $route . '$@i', $path, $matches );
-
-			if ( ! $match ) {
-				continue;
-			}
-
-			$args = array();
-
-			foreach ( $matches as $param => $value ) {
-				if ( ! is_int( $param ) ) {
-					$args[ $param ] = $value;
-				}
-			}
-
-			foreach ( $handlers as $handler ) {
-				$callback = $handler['callback'];
-				$response = null;
-
-				// Fallback to GET method if no HEAD method is registered.
-				$checked_method = $method;
-				if ( 'HEAD' === $method && empty( $handler['methods']['HEAD'] ) ) {
-					$checked_method = 'GET';
-				}
-				if ( empty( $handler['methods'][ $checked_method ] ) ) {
-					continue;
-				}
-
-				if ( ! is_callable( $callback ) ) {
-					return array( $route, $handler );
-				}
-
-				$request->set_url_params( $args );
-				$request->set_attributes( $handler );
-
-				$defaults = array();
-
-				foreach ( $handler['args'] as $arg => $options ) {
-					if ( isset( $options['default'] ) ) {
-						$defaults[ $arg ] = $options['default'];
-					}
-				}
-
-				$request->set_default_params( $defaults );
-
-				return array( $route, $handler );
-			}
-		}
-
-		return new WP_Error(
-			'rest_no_route',
-			__( 'No route was found matching the URL and request method' ),
-			array( 'status' => 404 )
-		);
 	}
 
 	/**
@@ -1404,13 +1420,13 @@ class WP_REST_Server {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param WP_REST_Request $batch
+	 * @param WP_REST_Request $batch_request The batch request object.
 	 * @return WP_REST_Response
 	 */
-	public function serve_batch_request( WP_REST_Request $batch ) {
+	public function serve_batch_request( WP_REST_Request $batch_request ) {
 		$requests = array();
 
-		foreach ( $batch['requests'] as $args ) {
+		foreach ( $batch_request['requests'] as $args ) {
 			$parsed_url = wp_parse_url( $args['path'] );
 
 			if ( false === $parsed_url ) {
@@ -1419,66 +1435,129 @@ class WP_REST_Server {
 				continue;
 			}
 
-			$request_object = new WP_REST_Request( $batch->get_method(), $parsed_url['path'] );
+			$single_request = new WP_REST_Request( $batch_request->get_method(), $parsed_url['path'] );
 
 			if ( ! empty( $parsed_url['query'] ) ) {
 				wp_parse_str( $parsed_url['query'], $query_args );
-				$request_object->set_query_params( $query_args );
+				$single_request->set_query_params( $query_args );
 			}
 
 			if ( ! empty( $args['body'] ) ) {
-				$request_object->set_body_params( $args['body'] );
+				$single_request->set_body_params( $args['body'] );
 			}
 
-			$requests[] = $request_object;
+			$requests[] = $single_request;
 		}
 
-		if ( 'pre' === $batch['validation'] ) {
-			$validation = array();
-			$has_error  = false;
+		$matches    = array();
+		$validation = array();
+		$has_error  = false;
 
-			foreach ( $requests as $request ) {
-				$match = $this->match_request_to_handler( $request );
-				$error = null;
+		foreach ( $requests as $single_request ) {
+			$match     = $this->match_request_to_handler( $single_request );
+			$matches[] = $match;
+			$error     = null;
 
-				if ( is_wp_error( $match ) ) {
-					$error = $match;
-				}
-
-				if ( ! $error ) {
-					$check_required = $request->has_valid_params();
-					if ( is_wp_error( $check_required ) ) {
-						$error = $check_required;
-					}
-				}
-
-				if ( ! $error ) {
-					$check_sanitized = $request->sanitize_params();
-					if ( is_wp_error( $check_sanitized ) ) {
-						$error = $check_sanitized;
-					}
-				}
-
-				if ( $error ) {
-					$has_error = true;
-					$response  = $this->error_to_response( $error );
-				} else {
-					$response = rest_ensure_response( true );
-				}
-
-				$validation[] = $this->envelope_response( $response, false )->get_data();
+			if ( is_wp_error( $match ) ) {
+				$error = $match;
 			}
 
-			if ( $has_error ) {
-				return new WP_REST_Response( array( 'pre-validation' => $validation ), WP_Http::MULTI_STATUS );
+			if ( ! $error ) {
+				list( $route, $handler ) = $match;
+
+				if ( isset( $handler['allow_batch'] ) ) {
+					$allow_batch = $handler['allow_batch'];
+				} else {
+					$allow_batch = ! empty( $this->route_options[ $route ]['allow_batch'] );
+				}
+
+				if ( ! $allow_batch ) {
+					$error = new WP_Error(
+						'rest_batch_not_allowed',
+						__( 'The requested route does not support batch requests.' ),
+						array( 'status' => 400 )
+					);
+				}
+			}
+
+			if ( ! $error ) {
+				$check_required = $single_request->has_valid_params();
+				if ( is_wp_error( $check_required ) ) {
+					$error = $check_required;
+				}
+			}
+
+			if ( ! $error ) {
+				$check_sanitized = $single_request->sanitize_params();
+				if ( is_wp_error( $check_sanitized ) ) {
+					$error = $check_sanitized;
+				}
+			}
+
+			if ( $error ) {
+				$has_error    = true;
+				$validation[] = $error;
+			} else {
+				$validation[] = true;
 			}
 		}
 
 		$responses = array();
 
-		foreach ( $requests as $request ) {
-			$result = $this->dispatch( $request );
-			$result = apply_filters( 'rest_post_dispatch', rest_ensure_response( $result ), $this, $request );
+		if ( $has_error && 'require-all-validate' === $batch_request['validation'] ) {
+			foreach ( $validation as $valid ) {
+				if ( is_wp_error( $valid ) ) {
+					$responses[] = $this->envelope_response( $this->error_to_response( $valid ), false )->get_data();
+				} else {
+					$responses[] = null;
+				}
+			}
+
+			return new WP_REST_Response(
+				array(
+					'failed'    => 'validation',
+					'responses' => $responses,
+				),
+				WP_Http::MULTI_STATUS
+			);
+		}
+
+		foreach ( $requests as $i => $batch_request ) {
+			$clean_request = clone $batch_request;
+			$clean_request->set_url_params( array() );
+			$clean_request->set_attributes( array() );
+			$clean_request->set_default_params( array() );
+
+			/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
+			$result = apply_filters( 'rest_pre_dispatch', null, $this, $clean_request );
+
+			if ( empty( $result ) ) {
+				$match = $matches[ $i ];
+				$error = null;
+
+				if ( is_wp_error( $validation[ $i ] ) ) {
+					$error = $validation[ $i ];
+				}
+
+				if ( is_wp_error( $match ) ) {
+					$result = $this->error_to_response( $match );
+				} else {
+					list( $route, $handler ) = $match;
+
+					if ( ! $error && ! is_callable( $handler['callback'] ) ) {
+						$error = new WP_Error(
+							'rest_invalid_handler',
+							__( 'The handler for the route is invalid' ),
+							array( 'status' => 500 )
+						);
+					}
+
+					$result = $this->respond_to_request( $batch_request, $route, $handler, $error );
+				}
+			}
+
+			/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
+			$result = apply_filters( 'rest_post_dispatch', rest_ensure_response( $result ), $this, $batch_request );
 
 			$responses[] = $this->envelope_response( $result, false )->get_data();
 		}

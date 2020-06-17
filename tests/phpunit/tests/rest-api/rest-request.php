@@ -830,7 +830,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$request = new WP_REST_Request();
 		$request->set_query_params( array( 'test' => 'value' ) );
 
-		$callback = $this->createPartialMock( 'stdClass', [ '__invoke' ] );
+		$callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
 		$callback->expects( self::never() )->method( '__invoke' );
 		$request->set_attributes(
 			array(
