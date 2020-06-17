@@ -75,7 +75,8 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 			return $term;
 		}
 
-		$nav_term = wp_get_nav_menu_object( $term );
+		$nav_term           = wp_get_nav_menu_object( $term );
+		$nav_term->auto_add = $this->get_menu_auto_add( $nav_term->term_id );
 
 		return $nav_term;
 	}
@@ -92,6 +93,11 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 */
 	public function create_item_permissions_check( $request ) {
 		$check = $this->check_assign_locations_permission( $request );
+		if ( is_wp_error( $check ) ) {
+			return $check;
+		}
+
+		$check = $this->check_set_auto_add_permission( $request );
 		if ( is_wp_error( $check ) ) {
 			return $check;
 		}
@@ -114,6 +120,11 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 			return $check;
 		}
 
+		$check = $this->check_set_auto_add_permission( $request );
+		if ( is_wp_error( $check ) ) {
+			return $check;
+		}
+
 		return parent::update_item_permissions_check( $request );
 	}
 
@@ -124,7 +135,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 *
 	 * @param WP_REST_Request $request The request object with post and locations data.
 	 *
-	 * @return bool Whether the current user can assign the provided terms.
+	 * @return true|WP_Error Whether the current user can assign the provided terms.
 	 */
 	protected function check_assign_locations_permission( $request ) {
 		if ( ! isset( $request['locations'] ) ) {
@@ -152,6 +163,27 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	}
 
 	/**
+	 * Checks whether current user can set auto add pages.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param WP_REST_Request $request The request object with post and locations data.
+	 *
+	 * @return true|WP_Error Whether the current user can assign the provided terms.
+	 */
+	protected function check_set_auto_add_permission( $request ) {
+		if ( ! isset( $request['auto_add'] ) ) {
+			return true;
+		}
+
+		if ( ! current_user_can( 'edit_theme_options' ) ) {
+			return new WP_Error( 'rest_cannot_set_auto_add', __( 'Sorry, you are not allowed to set auto add pages.', 'gutenberg' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
+		return true;
+	}
+
+	/**
 	 * Prepares a single term output for response.
 	 *
 	 * @since 5.5.0
@@ -163,8 +195,25 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 */
 	public function prepare_item_for_response( $term, $request ) {
 		$nav_menu = wp_get_nav_menu_object( $term );
+		$response = parent::prepare_item_for_response( $nav_menu, $request );
 
-		return parent::prepare_item_for_response( $nav_menu, $request );
+		$fields = $this->get_fields_for_response( $request );
+		$data   = $response->get_data();
+
+		if ( in_array( 'auto_add', $fields, true ) ) {
+			$auto_add         = $this->get_menu_auto_add( $nav_menu->term_id );
+			$data['auto_add'] = $auto_add;
+		}
+
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$data    = $this->add_additional_fields_to_object( $data, $request );
+		$data    = $this->filter_response_by_context( $data, $context );
+
+		$response = rest_ensure_response( $data );
+		$response->add_links( $this->prepare_links( $term ) );
+
+		/** This action is documented in wp-includes/rest-api/endpoints/class-wp-rest-terms-controller.php */
+		return apply_filters( "rest_prepare_{$this->taxonomy}", $response, $term, $request );
 	}
 
 	/**
@@ -297,6 +346,8 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 			return $fields_update;
 		}
 
+		$this->handle_auto_add( $term->term_id, $request );
+
 		$request->set_param( 'context', 'view' );
 
 		/**
@@ -385,6 +436,8 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 			return $fields_update;
 		}
 
+		$this->handle_auto_add( $term->term_id, $request );
+
 		$request->set_param( 'context', 'view' );
 
 		/** This action is documented in wp-includes/rest-api/endpoints/class-wp-rest-terms-controller.php */
@@ -450,6 +503,62 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 		return $response;
 	}
 
+
+	/**
+	 * Returns the value of a menu's auto_add
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param int $menu_id The menu id to update the location form.
+	 *
+	 * @return bool The value of auto_add.
+	 */
+	function get_menu_auto_add( $menu_id ) {
+		$nav_menu_option = (array) get_option( 'nav_menu_options', array( 'auto_add' => array() ) );
+		$check           = in_array( $menu_id, $nav_menu_option['auto_add'], true );
+
+		return $check;
+	}
+
+	/**
+	 * Updates the menu's auto add from a REST request.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param int             $menu_id The menu id to update the location form.
+	 * @param WP_REST_Request $request The request object with menu and locations data.
+	 *
+	 * @return bool True if the auto update was successfully updated.
+	 */
+	function handle_auto_add( $menu_id, $request ) {
+		if ( ! isset( $request['auto_add'] ) ) {
+			return true;
+		}
+
+		$nav_menu_option = (array) get_option( 'nav_menu_options', array( 'auto_add' => array() ) );
+
+		if ( ! isset( $nav_menu_option['auto_add'] ) ) {
+			$nav_menu_option['auto_add'] = array();
+		}
+
+		$auto_add = $request['auto_add'];
+
+		$i = array_search( $menu_id, $nav_menu_option['auto_add'], true );
+
+		if ( $auto_add && false === $i ) {
+			$nav_menu_option['auto_add'][] = $menu_id;
+		} elseif ( ! $auto_add && false !== $i ) {
+			array_splice( $nav_menu_option['auto_add'], $i, 1 );
+		}
+
+		$update = update_option( 'nav_menu_options', $nav_menu_option );
+
+		/** This action is documented in wp-includes/nav-menu.php */
+		do_action( 'wp_update_nav_menu', $menu_id );
+
+		return $update;
+	}
+
 	/**
 	 * Updates the menu's locations from a REST request.
 	 *
@@ -506,6 +615,12 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 				'type' => 'string',
 			),
 			'context'     => array( 'view', 'edit' ),
+		);
+
+		$schema['properties']['auto_add'] = array(
+			'description' => __( 'Whether to automatically add top level pages to this menu.' ),
+			'context'     => array( 'view', 'edit' ),
+			'type'        => 'boolean',
 		);
 
 		return $schema;
