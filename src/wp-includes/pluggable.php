@@ -17,6 +17,7 @@ if ( ! function_exists( 'wp_set_current_user' ) ) :
 	 * actions on users who aren't signed in.
 	 *
 	 * @since 2.0.3
+	 *
 	 * @global WP_User $current_user The current user object which holds the user data.
 	 *
 	 * @param int    $id   User ID
@@ -158,7 +159,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 	 *
 	 * @since 1.2.1
 	 *
-	 * @global PHPMailer $phpmailer
+	 * @global PHPMailer\PHPMailer\PHPMailer $phpmailer
 	 *
 	 * @param string|array $to          Array or comma-separated list of email addresses to send message.
 	 * @param string       $subject     Email subject
@@ -210,10 +211,11 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		global $phpmailer;
 
 		// (Re)create it, if it's gone missing.
-		if ( ! ( $phpmailer instanceof PHPMailer ) ) {
-			require_once ABSPATH . WPINC . '/class-phpmailer.php';
-			require_once ABSPATH . WPINC . '/class-smtp.php';
-			$phpmailer = new PHPMailer( true );
+		if ( ! ( $phpmailer instanceof PHPMailer\PHPMailer\PHPMailer ) ) {
+			require_once ABSPATH . WPINC . '/PHPMailer/PHPMailer.php';
+			require_once ABSPATH . WPINC . '/PHPMailer/SMTP.php';
+			require_once ABSPATH . WPINC . '/PHPMailer/Exception.php';
+			$phpmailer = new PHPMailer\PHPMailer\PHPMailer( true );
 		}
 
 		// Headers.
@@ -356,7 +358,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 
 		try {
 			$phpmailer->setFrom( $from_email, $from_name, false );
-		} catch ( phpmailerException $e ) {
+		} catch ( PHPMailer\PHPMailer\Exception $e ) {
 			$mail_error_data                             = compact( 'to', 'subject', 'message', 'headers', 'attachments' );
 			$mail_error_data['phpmailer_exception_code'] = $e->getCode();
 
@@ -404,7 +406,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 							$phpmailer->addReplyTo( $address, $recipient_name );
 							break;
 					}
-				} catch ( phpmailerException $e ) {
+				} catch ( PHPMailer\PHPMailer\Exception $e ) {
 					continue;
 				}
 			}
@@ -455,12 +457,16 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			foreach ( (array) $headers as $name => $content ) {
 				// Only add custom headers not added automatically by PHPMailer.
 				if ( ! in_array( $name, array( 'MIME-Version', 'X-Mailer' ), true ) ) {
-					$phpmailer->addCustomHeader( sprintf( '%1$s: %2$s', $name, $content ) );
+					try {
+						$phpmailer->addCustomHeader( sprintf( '%1$s: %2$s', $name, $content ) );
+					} catch ( PHPMailer\PHPMailer\Exception $e ) {
+						continue;
+					}
 				}
 			}
 
 			if ( false !== stripos( $content_type, 'multipart' ) && ! empty( $boundary ) ) {
-				$phpmailer->addCustomHeader( sprintf( "Content-Type: %s;\n\t boundary=\"%s\"", $content_type, $boundary ) );
+				$phpmailer->addCustomHeader( sprintf( 'Content-Type: %s; boundary="%s"', $content_type, $boundary ) );
 			}
 		}
 
@@ -468,7 +474,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			foreach ( $attachments as $attachment ) {
 				try {
 					$phpmailer->addAttachment( $attachment );
-				} catch ( phpmailerException $e ) {
+				} catch ( PHPMailer\PHPMailer\Exception $e ) {
 					continue;
 				}
 			}
@@ -486,17 +492,17 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		// Send!
 		try {
 			return $phpmailer->send();
-		} catch ( phpmailerException $e ) {
+		} catch ( PHPMailer\PHPMailer\Exception $e ) {
 
 			$mail_error_data                             = compact( 'to', 'subject', 'message', 'headers', 'attachments' );
 			$mail_error_data['phpmailer_exception_code'] = $e->getCode();
 
 			/**
-			 * Fires after a phpmailerException is caught.
+			 * Fires after a PHPMailer\PHPMailer\Exception is caught.
 			 *
 			 * @since 4.4.0
 			 *
-			 * @param WP_Error $error A WP_Error object with the phpmailerException message, and an array
+			 * @param WP_Error $error A WP_Error object with the PHPMailer\PHPMailer\Exception message, and an array
 			 *                        containing the mail recipient, subject, message, headers, and attachments.
 			 */
 			do_action( 'wp_mail_failed', new WP_Error( 'wp_mail_failed', $e->getMessage(), $mail_error_data ) );
@@ -541,7 +547,7 @@ if ( ! function_exists( 'wp_authenticate' ) ) :
 		if ( null == $user ) {
 			// TODO: What should the error message be? (Or would these even happen?)
 			// Only needed if all authentication handlers fail to return anything.
-			$user = new WP_Error( 'authentication_failed', __( '<strong>Error</strong>: Invalid username, email address or incorrect password.' ) );
+			$user = new WP_Error( 'authentication_failed', __( 'Invalid username, email address or incorrect password.' ) );
 		}
 
 		$ignore_codes = array( 'empty_username', 'empty_password' );
@@ -1412,7 +1418,7 @@ if ( ! function_exists( 'wp_validate_redirect' ) ) :
 	 * @return string redirect-sanitized URL
 	 */
 	function wp_validate_redirect( $location, $default = '' ) {
-		$location = trim( $location, " \t\n\r\0\x08\x0B" );
+		$location = wp_sanitize_redirect( trim( $location, " \t\n\r\0\x08\x0B" ) );
 		// Browsers will assume 'http' is your protocol, and will obey a redirect to a URL starting with '//'.
 		if ( '//' === substr( $location, 0, 2 ) ) {
 			$location = 'http:' . $location;
@@ -2365,7 +2371,7 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 	 * @since 2.5.0
 	 *
 	 * @global PasswordHash $wp_hasher PHPass object used for checking the password
-	 *  against the $hash + $password
+	 *                                 against the $hash + $password
 	 * @uses PasswordHash::CheckPassword
 	 *
 	 * @param string     $password Plaintext user's password

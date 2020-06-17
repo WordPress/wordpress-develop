@@ -548,7 +548,7 @@ function wp_set_wpdb_vars() {
 		wp_die(
 			sprintf(
 				/* translators: 1: $table_prefix, 2: wp-config.php */
-				__( '<strong>Error</strong>: %1$s in %2$s can only contain numbers, letters, and underscores.' ),
+				__( '%1$s in %2$s can only contain numbers, letters, and underscores.' ),
 				'<code>$table_prefix</code>',
 				'<code>wp-config.php</code>'
 			)
@@ -628,7 +628,7 @@ function wp_start_object_cache() {
 		require_once ABSPATH . WPINC . '/cache.php';
 	}
 
-	require_once( ABSPATH . WPINC . '/cache-compat.php' );
+	require_once ABSPATH . WPINC . '/cache-compat.php';
 
 	/*
 	 * If cache supports reset, reset instead of init if already

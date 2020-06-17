@@ -409,17 +409,6 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			}
 
 			$redirect['query'] = remove_query_arg( 'page', $redirect['query'] );
-		} elseif ( is_singular() && empty( get_query_var( 'name' ) ) && $post_id ) {
-			/*
-			 * Redirect example.org/%post_id%/ to canonical url.
-			 * @ticket 12456
-			 */
-			$redirect_url      = get_permalink( $post_id );
-			$redirect['query'] = _remove_qs_args_if_not_in_url(
-				$redirect['query'],
-				array( 'p', 'page_id', 'attachment_id', 'pagename', 'name', 'post_type' ),
-				$redirect_url
-			);
 		}
 
 		// Paging and feeds.
@@ -518,6 +507,11 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 
 			if ( ! empty( $addl_path ) ) {
 				$redirect['path'] = trailingslashit( $redirect['path'] ) . $addl_path;
+			}
+
+			// Remove trailing slash for sitemaps requests.
+			if ( ! empty( get_query_var( 'sitemap' ) ) ) {
+				$redirect['path'] = untrailingslashit( $redirect['path'] );
 			}
 
 			$redirect_url = $redirect['scheme'] . '://' . $redirect['host'] . $redirect['path'];
@@ -660,6 +654,11 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		$redirect['path'] = user_trailingslashit( $redirect['path'], $user_ts_type );
 	} elseif ( is_front_page() ) {
 		$redirect['path'] = trailingslashit( $redirect['path'] );
+	}
+
+	// Remove trailing slash for sitemaps requests.
+	if ( ! empty( get_query_var( 'sitemap' ) ) || ! empty( get_query_var( 'sitemap-stylesheet' ) ) ) {
+		$redirect['path'] = untrailingslashit( $redirect['path'] );
 	}
 
 	// Strip multiple slashes out of the URL.
