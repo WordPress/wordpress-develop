@@ -788,7 +788,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$request->set_query_params( array( 'test' => 'value' ) );
 
 		$error    = new WP_Error( 'error_code', __( 'Error Message' ), array( 'status' => 400 ) );
-		$callback = $this->createPartialMock( 'stdClass', [ '__invoke' ] );
+		$callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
 		$callback->expects( self::once() )->method( '__invoke' )->with( self::identicalTo( $request ) )->willReturn( $error );
 		$request->set_attributes(
 			array(
@@ -812,7 +812,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$request->set_query_params( array( 'test' => 'value' ) );
 
 		$error    = new WP_Error( 'error_code', __( 'Error Message' ), array( 'status' => 400 ) );
-		$callback = $this->createPartialMock( 'stdClass', [ '__invoke' ] );
+		$callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
 		$callback->expects( self::once() )->method( '__invoke' )->with( self::identicalTo( $request ) )->willReturn( $error );
 		$request->set_attributes(
 			array(
