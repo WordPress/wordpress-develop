@@ -68,8 +68,9 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 * @since 5.0.0
 	 *
 	 * @param WP_REST_Response $response Current REST API response.
+	 * @param int $count Count of themes, default 1.
 	 */
-	protected function check_get_theme_response( $response ) {
+	protected function check_get_theme_response( $response, $count = 1 ) {
 		if ( $response instanceof WP_REST_Response ) {
 			$headers  = $response->get_headers();
 			$response = $response->get_data();
@@ -78,7 +79,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		}
 
 		$this->assertArrayHasKey( 'X-WP-Total', $headers );
-		$this->assertEquals( 1, $headers['X-WP-Total'] );
+		$this->assertEquals( $count, $headers['X-WP-Total'] );
 		$this->assertArrayHasKey( 'X-WP-TotalPages', $headers );
 		$this->assertEquals( 1, $headers['X-WP-TotalPages'] );
 	}
@@ -158,6 +159,42 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'requires_php',
 			'requires_wp',
 			'screenshot',
+			'status',
+			'stylesheet',
+			'tags',
+			'template',
+			'textdomain',
+			'theme_supports',
+			'theme_uri',
+			'version',
+		);
+		$this->assertEqualSets( $fields, array_keys( $data[0] ) );
+	}
+
+	/**
+	 * Test retrieving a collection of inactive themes.
+	 *
+	 * @ticket 50152
+	 */
+	public function test_get_items_inactive() {
+		$request = new WP_REST_Request( 'GET', self::$themes_route );
+		$request->set_param( 'status', 'inactive' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$this->check_get_theme_response( $response, 9 );
+		$fields = array(
+			'author',
+			'author_uri',
+			'description',
+			'name',
+			'requires_php',
+			'requires_wp',
+			'screenshot',
+			'status',
 			'stylesheet',
 			'tags',
 			'template',
@@ -221,7 +258,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response   = self::perform_active_theme_request( 'OPTIONS' );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 14, count( $properties ) );
+		$this->assertEquals( 15, count( $properties ) );
 
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['author']['properties'] );
@@ -242,6 +279,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'requires_php', $properties );
 		$this->assertArrayHasKey( 'requires_wp', $properties );
 		$this->assertArrayHasKey( 'screenshot', $properties );
+		$this->assertArrayHasKey( 'status', $properties );
 		$this->assertArrayHasKey( 'stylesheet', $properties );
 
 		$this->assertArrayHasKey( 'tags', $properties );
