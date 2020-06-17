@@ -77,9 +77,8 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 * @since 5.0.0
 	 *
 	 * @param WP_REST_Response $response Current REST API response.
-	 * @param int $count Count of themes, default 1.
 	 */
-	protected function check_get_theme_response( $response, $count = 1 ) {
+	protected function check_get_theme_response( $response ) {
 		if ( $response instanceof WP_REST_Response ) {
 			$headers  = $response->get_headers();
 			$response = $response->get_data();
@@ -88,7 +87,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		}
 
 		$this->assertArrayHasKey( 'X-WP-Total', $headers );
-		$this->assertEquals( $count, $headers['X-WP-Total'] );
+		$this->assertEquals( 1, $headers['X-WP-Total'] );
 		$this->assertArrayHasKey( 'X-WP-TotalPages', $headers );
 		$this->assertEquals( 1, $headers['X-WP-TotalPages'] );
 	}
@@ -101,7 +100,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 * @param WP_UnitTest_Factory $factory WordPress unit test factory.
 	 */
 	public static function wpSetUpBeforeClass( $factory ) {
-		self::$admin_id      = $factory->user->create(
+		self::$admin_id       = $factory->user->create(
 			array(
 				'role' => 'administrator',
 			)
@@ -201,7 +200,6 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 
-		$this->check_get_theme_response( $response, 9 );
 		$fields = array(
 			'author',
 			'author_uri',
