@@ -748,6 +748,10 @@ module.exports = function(grunt) {
 				src: WORKING_DIR + 'wp-includes/js/jquery/jquery.form.js',
 				dest: WORKING_DIR + 'wp-includes/js/jquery/jquery.form.min.js'
 			},
+			moment: {
+				src: WORKING_DIR + 'wp-includes/js/dist/vendor/moment.js',
+				dest: WORKING_DIR + 'wp-includes/js/dist/vendor/moment.min.js'
+			},
 			dynamic: {
 				expand: true,
 				cwd: WORKING_DIR,
@@ -1222,6 +1226,7 @@ module.exports = function(grunt) {
 		'jshint:corejs',
 		'uglify:imgareaselect',
 		'uglify:jqueryform',
+		'uglify:moment',
 		'qunit:compiled'
 	] );
 
@@ -1362,7 +1367,8 @@ module.exports = function(grunt) {
 		'uglify:embed',
 		'uglify:jqueryui',
 		'uglify:imgareaselect',
-		'uglify:jqueryform'
+		'uglify:jqueryform',
+		'uglify:moment'
 	] );
 
 	grunt.registerTask( 'build:webpack', [
