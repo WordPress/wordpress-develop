@@ -126,7 +126,7 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 	 * as well as whether there are any moderation keywords (if set) present in the author
 	 * email address. If both checks pass, return true. Otherwise, return false.
 	 */
-	if ( 1 == get_option( 'comment_whitelist' ) ) {
+	if ( 1 == get_option( 'comment_allowedlist' ) ) {
 		if ( 'trackback' !== $comment_type && 'pingback' !== $comment_type && '' !== $author && '' !== $email ) {
 			$comment_user = get_user_by( 'email', wp_unslash( $email ) );
 			if ( ! empty( $comment_user->ID ) ) {
@@ -1288,7 +1288,7 @@ function wp_blocklist_check( $author, $email, $url, $comment, $user_ip, $user_ag
 	 * @param string $user_ip    Comment author's IP address.
 	 * @param string $user_agent Comment author's browser user agent.
 	 */
-	do_action_deprecated( 'wp_blacklist_check', array( $author, $email, $url, $comment, $user_ip, $user_agent ), '5.5.0', 'wp_blocklist_check', 'Please join us in writing more inclusive code.' );
+	do_action_deprecated( 'wp_blacklist_check', array( $author, $email, $url, $comment, $user_ip, $user_agent ), '5.5.0', 'wp_blocklist_check', __( 'Please join us in writing more inclusive code.' ) );
 
 	/**
 	 * Fires before the comment is tested for blocklisted characters or words.

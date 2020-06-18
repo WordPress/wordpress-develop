@@ -1396,9 +1396,9 @@ function get_registered_metadata( $object_type, $object_id, $meta_key = '' ) {
 }
 
 /**
- * Filters out `register_meta()` args based on a whitelist.
+ * Filters out `register_meta()` args based on an allowed list.
  *
- * `register_meta()` args may change over time, so requiring the whitelist
+ * `register_meta()` args may change over time, so requiring the allowed list
  * to be explicitly turned off is a warranty seal of sorts.
  *
  * @access private

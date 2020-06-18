@@ -446,7 +446,6 @@ function populate_options( array $options = array() ) {
 		'recently_edited'                 => '',
 		'template'                        => $template,
 		'stylesheet'                      => $stylesheet,
-		'comment_whitelist'               => 1,
 		'comment_registration'            => 0,
 		'html_type'                       => 'text/html',
 
@@ -534,6 +533,7 @@ function populate_options( array $options = array() ) {
 
 		// 5.5.0
 		'blocklist_keys'                  => '',
+		'comment_allowedlist'             => 1,
 	);
 
 	// 3.3.0

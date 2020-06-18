@@ -181,7 +181,7 @@ printf( __( 'Comments should be displayed with the %s comments at the top of eac
 <input name="comment_moderation" type="checkbox" id="comment_moderation" value="1" <?php checked( '1', get_option( 'comment_moderation' ) ); ?> />
 <?php _e( 'Comment must be manually approved' ); ?> </label>
 <br />
-<label for="comment_whitelist"><input type="checkbox" name="comment_whitelist" id="comment_whitelist" value="1" <?php checked( '1', get_option( 'comment_whitelist' ) ); ?> /> <?php _e( 'Comment author must have a previously approved comment' ); ?></label>
+<label for="comment_allowedlist"><input type="checkbox" name="comment_allowedlist" id="comment_allowedlist" value="1" <?php checked( '1', get_option( 'comment_allowedlist' ) ); ?> /> <?php _e( 'Comment author must have a previously approved comment' ); ?></label>
 </fieldset></td>
 </tr>
 <tr>

@@ -1835,8 +1835,8 @@ class WP_Site_Health {
 			$result['description'] .= sprintf(
 				'<p>%s</p>',
 				sprintf(
-					/* translators: 1: Name of the constant used. 2: List of hostnames whitelisted. */
-					__( 'HTTP requests have been blocked by the %1$s constant, with some hosts whitelisted: %2$s.' ),
+					/* translators: 1: Name of the constant used. 2: List of hostnames allowed. */
+					__( 'HTTP requests have been blocked by the %1$s constant, with some hosts allowed: %2$s.' ),
 					'<code>WP_HTTP_BLOCK_EXTERNAL</code>',
 					implode( ',', $hosts )
 				)
