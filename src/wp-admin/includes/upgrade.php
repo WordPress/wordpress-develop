@@ -2171,7 +2171,10 @@ function upgrade_550() {
 	update_option( 'finished_updating_comment_type', 0 );
 	wp_schedule_single_event( time() + ( 1 * MINUTE_IN_SECONDS ), 'wp_update_comment_type_batch' );
 
-	$wpdb->query( "UPDATE $wpdb->options SET option_name = 'blocklist_keys' WHERE option_name = 'blacklist_keys'" );
+	// Use more clear and inclusive language for block lists.
+	$blocklist = get_option( 'blacklist_keys', '' );
+	update_option( 'blocklist_keys', $blocklist );
+	delete_option( 'blacklist_keys' );
 }
 
 /**
