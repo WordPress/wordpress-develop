@@ -93,7 +93,7 @@ jQuery( function() {
 	});
 
 	QUnit.test( 'user input blocklist array should contain expected words', function( assert ) {
-		var blocklist = wp.passwordStrength.userInputBlacklist();
+		var blocklist = wp.passwordStrength.userInputBlocklist();
 
 		assert.ok( jQuery.isArray( blocklist ), 'blocklist is an array' );
 		assert.ok( jQuery.inArray( 'WordPress', blocklist ) > -1, 'blocklist contains "WordPress" from page title' );
