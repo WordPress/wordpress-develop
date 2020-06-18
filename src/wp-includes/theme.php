@@ -2825,7 +2825,7 @@ function get_theme_support( $feature, ...$args ) {
  * @return bool|void Whether feature was removed.
  */
 function remove_theme_support( $feature ) {
-	// Blacklist: for internal registrations not used directly by themes.
+	// Blocklist: for internal registrations not used directly by themes.
 	if ( in_array( $feature, array( 'editor-style', 'widgets', 'menus' ), true ) ) {
 		return false;
 	}
@@ -2834,7 +2834,7 @@ function remove_theme_support( $feature ) {
 }
 
 /**
- * Do not use. Removes theme support internally, ignorant of the blacklist.
+ * Do not use. Removes theme support internally, ignorant of the blocklist.
  *
  * @access private
  * @since 3.1.0

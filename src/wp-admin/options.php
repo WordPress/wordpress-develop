@@ -103,7 +103,7 @@ $whitelist_options            = array(
 		'comment_whitelist',
 		'comment_max_links',
 		'moderation_keys',
-		'blacklist_keys',
+		'blocklist_keys',
 		'show_avatars',
 		'avatar_rating',
 		'avatar_default',

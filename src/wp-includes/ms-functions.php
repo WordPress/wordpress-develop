@@ -441,7 +441,7 @@ function is_email_address_unsafe( $user_email ) {
  * Sanitize and validate data required for a user sign-up.
  *
  * Verifies the validity and uniqueness of user names and user email addresses,
- * and checks email addresses against admin-provided domain whitelists and blacklists.
+ * and checks email addresses against admin-provided domain allowlists and blocklists.
  *
  * The {@see 'wpmu_validate_user_signup'} hook provides an easy way to modify the sign-up
  * process. The value $result, which is passed to the hook, contains both the user-provided
