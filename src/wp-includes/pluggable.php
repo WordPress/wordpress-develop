@@ -1096,8 +1096,6 @@ if ( ! function_exists( 'auth_redirect' ) ) :
 		}
 
 		// The cookie is no good, so force login.
-		nocache_headers();
-
 		$redirect = ( strpos( $_SERVER['REQUEST_URI'], '/options.php' ) && wp_get_referer() ) ? wp_get_referer() : set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 
 		$login_url = wp_login_url( $redirect, true );
@@ -1291,6 +1289,8 @@ if ( ! function_exists( 'wp_redirect' ) ) :
 		if ( is_string( $x_redirect_by ) ) {
 			header( "X-Redirect-By: $x_redirect_by" );
 		}
+
+		nocache_headers(); // Prevent browser caching of page with the redirect header (browser should still honor the redirect status code)
 
 		header( "Location: $location", true, $status );
 
