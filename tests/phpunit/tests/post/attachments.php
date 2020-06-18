@@ -493,11 +493,11 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 		$this->assertFalse( $upload['error'] );
 
-		add_filter( 'upload_mimes', array( $this, 'blacklist_jpg_mime_type' ) );
+		add_filter( 'upload_mimes', array( $this, 'disallow_jpg_mime_type' ) );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
 
-		remove_filter( 'upload_mimes', array( $this, 'blacklist_jpg_mime_type' ) );
+		remove_filter( 'upload_mimes', array( $this, 'disallow_jpg_mime_type' ) );
 
 		$this->assertNotEmpty( $upload['error'] );
 	}
@@ -507,7 +507,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		return $mimes;
 	}
 
-	public function blacklist_jpg_mime_type( $mimes ) {
+	public function disallow_jpg_mime_type( $mimes ) {
 		unset( $mimes['jpg|jpeg|jpe'] );
 		return $mimes;
 	}

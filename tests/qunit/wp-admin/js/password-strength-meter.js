@@ -80,23 +80,23 @@ jQuery( function() {
 		}
 	});
 
-	QUnit.test( 'blacklisted words in password should be penalized', function( assert ) {
+	QUnit.test( 'blocklisted words in password should be penalized', function( assert ) {
 		var allowedPasswordScore, penalizedPasswordScore,
 			allowedPassword   = 'a[janedoefoe]4',
 			penalizedPassword = 'a[johndoefoe]4',
-			blacklist         = [ 'extra', 'johndoefoe', 'superfluous' ];
+			blocklist         = [ 'extra', 'johndoefoe', 'superfluous' ];
 
-		allowedPasswordScore = passwordStrength( allowedPassword, blacklist, allowedPassword );
-		penalizedPasswordScore = passwordStrength( penalizedPassword, blacklist, penalizedPassword );
+		allowedPasswordScore = passwordStrength( allowedPassword, blocklist, allowedPassword );
+		penalizedPasswordScore = passwordStrength( penalizedPassword, blocklist, penalizedPassword );
 
 		assert.ok( penalizedPasswordScore < allowedPasswordScore, 'Penalized password scored ' + penalizedPasswordScore + '; allowed password scored: ' + allowedPasswordScore );
 	});
 
-	QUnit.test( 'user input blacklist array should contain expected words', function( assert ) {
-		var blacklist = wp.passwordStrength.userInputBlacklist();
+	QUnit.test( 'user input blocklist array should contain expected words', function( assert ) {
+		var blocklist = wp.passwordStrength.userInputBlacklist();
 
-		assert.ok( jQuery.isArray( blacklist ), 'blacklist is an array' );
-		assert.ok( jQuery.inArray( 'WordPress', blacklist ) > -1, 'blacklist contains "WordPress" from page title' );
-		assert.ok( jQuery.inArray( 'tests', blacklist ) > -1, 'blacklist contains "tests" from site URL' );
+		assert.ok( jQuery.isArray( blocklist ), 'blocklist is an array' );
+		assert.ok( jQuery.inArray( 'WordPress', blocklist ) > -1, 'blocklist contains "WordPress" from page title' );
+		assert.ok( jQuery.inArray( 'tests', blocklist ) > -1, 'blocklist contains "tests" from site URL' );
 	});
 });
