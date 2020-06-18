@@ -91,37 +91,25 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
-		// Retrieve the list of registered collection query parameters.
-		$registered = $this->get_collection_params();
-		$themes     = array();
+		$themes = array();
 
-		if ( isset( $registered['status'], $request['status'] ) ) {
-			$active_theme = wp_get_theme();
-			if ( in_array( 'active', $request['status'], true ) ) {
-				$active_theme = $this->prepare_item_for_response( $active_theme, $request );
-				$themes[]     = $this->prepare_response_for_collection( $active_theme );
-			} else {
-				$active_themes = wp_get_themes();
-				foreach ( $active_themes as $theme_name => $theme ) {
-					if ( $this->is_current_theme( $theme, $active_theme ) ) {
-						continue;
-					}
-					$_theme   = $this->prepare_item_for_response( $theme, $request );
-					$themes[] = $this->prepare_response_for_collection( $_theme );
-				}
+		$active_themes = wp_get_themes();
+		$current_theme = wp_get_theme();
+		$status        = $request['status'];
+
+		foreach ( $active_themes as $theme_name => $theme ) {
+			$theme_status = ( $this->is_current_theme( $theme, $current_theme ) ) ? 'active' : 'inactive';
+			if ( is_array( $status ) && ! in_array( $theme_status, $status, true ) ) {
+				continue;
 			}
-		} else {
-			$active_themes = wp_get_themes();
-			foreach ( $active_themes as $theme_name => $theme ) {
-				$_theme   = $this->prepare_item_for_response( $theme, $request );
-				$themes[] = $this->prepare_response_for_collection( $_theme );
-			}
+			$_theme   = $this->prepare_item_for_response( $theme, $request );
+			$themes[] = $this->prepare_response_for_collection( $_theme );
 		}
 
 		$response = rest_ensure_response( $themes );
 
 		$response->header( 'X-WP-Total', count( $themes ) );
-		$response->header( 'X-WP-TotalPages', count( $themes ) );
+		$response->header( 'X-WP-TotalPages', 1 );
 
 		return $response;
 	}
