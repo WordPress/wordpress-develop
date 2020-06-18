@@ -835,7 +835,7 @@ function upgrade_all() {
 		upgrade_530();
 	}
 
-	if ( $wp_current_db_version < 47597 ) {
+	if ( $wp_current_db_version < 48082 ) {
 		upgrade_550();
 	}
 
@@ -2166,8 +2166,12 @@ function upgrade_530() {
  * @since 5.5.0
  */
 function upgrade_550() {
+	global $wpdb;
+
 	update_option( 'finished_updating_comment_type', 0 );
 	wp_schedule_single_event( time() + ( 1 * MINUTE_IN_SECONDS ), 'wp_update_comment_type_batch' );
+
+	$wpdb->query( "UPDATE $wpdb->options SET option_name = 'blocklist' WHERE option_name = 'blacklist'" );
 }
 
 /**
