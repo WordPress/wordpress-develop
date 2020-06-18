@@ -49,12 +49,12 @@ window.wp = window.wp || {};
 		 * Builds an array of words that should be penalized.
 		 *
 		 * Certain words need to be penalized because it would lower the entropy of a
-		 * password if they were used. The blacklist is based on user input fields such
+		 * password if they were used. The blocklist is based on user input fields such
 		 * as username, first name, email etc.
 		 *
 		 * @since 3.7.0
 		 *
-		 * @return {string[]} The array of words to be blacklisted.
+		 * @return {string[]} The array of words to be blocklisted.
 		 */
 		userInputBlocklist : function() {
 			var i, userInputFieldsLength, rawValuesLength, currentField,
@@ -62,7 +62,7 @@ window.wp = window.wp || {};
 				blocklist       = [],
 				userInputFields = [ 'user_login', 'first_name', 'last_name', 'nickname', 'display_name', 'email', 'url', 'description', 'weblog_title', 'admin_email' ];
 
-			// Collect all the strings we want to blacklist.
+			// Collect all the strings we want to blocklist.
 			rawValues.push( document.title );
 			rawValues.push( document.URL );
 
