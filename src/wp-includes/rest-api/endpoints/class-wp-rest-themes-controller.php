@@ -71,11 +71,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( 'site' === $request['allowed'] && current_user_can( 'switch_themes' ) ) {
-			return true;
-		}
-
-		if ( is_multisite() && 'network' === $request['allowed'] && current_user_can( 'manage_network_themes' ) ) {
+		if ( current_user_can( 'switch_themes' ) || current_user_can( 'manage_network_themes' ) ) {
 			return true;
 		}
 
@@ -105,7 +101,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 				$active_theme = $this->prepare_item_for_response( $active_theme, $request );
 				$themes[]     = $this->prepare_response_for_collection( $active_theme );
 			} else {
-				$active_themes = wp_get_themes( array( 'allowed' => $request['allowed'] ) );
+				$active_themes = wp_get_themes();
 				foreach ( $active_themes as $theme_name => $theme ) {
 					if ( $this->is_current_theme( $theme, $active_theme ) ) {
 						continue;
@@ -115,7 +111,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 				}
 			}
 		} else {
-			$active_themes = wp_get_themes( array( 'allowed' => $request['allowed'] ) );
+			$active_themes = wp_get_themes();
 			foreach ( $active_themes as $theme_name => $theme ) {
 				$_theme   = $this->prepare_item_for_response( $theme, $request );
 				$themes[] = $this->prepare_response_for_collection( $_theme );
@@ -722,13 +718,6 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 				'type' => 'string',
 			),
 			'sanitize_callback' => array( $this, 'sanitize_theme_status' ),
-		);
-
-		$query_params['allowed'] = array(
-			'description' => __( 'Allowed.' ),
-			'type'        => 'string',
-			'enum'        => array( 'network', 'site' ),
-			'default'     => 'site',
 		);
 
 		/**
