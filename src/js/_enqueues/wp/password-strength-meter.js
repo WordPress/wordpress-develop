@@ -58,7 +58,7 @@ window.wp = window.wp || {};
 		 * @return {string[]} The array of words to be disallowed.
 		 */
 		userInputBlacklist : function() {
-			return wp.passwordStrength.userInputBlockList();
+			return wp.passwordStrength.userInputBlocklist();
 		},
 
 		/**
