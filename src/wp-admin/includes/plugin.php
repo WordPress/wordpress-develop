@@ -2165,7 +2165,7 @@ function option_update_filter( $options ) {
  *
  * @since 2.7.0
  *
- * @global array $whitelist_options
+ * @global array $allowed_options
  *
  * @param array        $new_options
  * @param string|array $options
@@ -2173,26 +2173,26 @@ function option_update_filter( $options ) {
  */
 function add_option_allow_list( $new_options, $options = '' ) {
 	if ( '' === $options ) {
-		global $whitelist_options;
+		global $allowed_options;
 	} else {
-		$whitelist_options = $options;
+		$allowed_options = $options;
 	}
 
 	foreach ( $new_options as $page => $keys ) {
 		foreach ( $keys as $key ) {
-			if ( ! isset( $whitelist_options[ $page ] ) || ! is_array( $whitelist_options[ $page ] ) ) {
-				$whitelist_options[ $page ]   = array();
-				$whitelist_options[ $page ][] = $key;
+			if ( ! isset( $allowed_options[ $page ] ) || ! is_array( $allowed_options[ $page ] ) ) {
+				$allowed_options[ $page ]   = array();
+				$allowed_options[ $page ][] = $key;
 			} else {
-				$pos = array_search( $key, $whitelist_options[ $page ], true );
+				$pos = array_search( $key, $allowed_options[ $page ], true );
 				if ( false === $pos ) {
-					$whitelist_options[ $page ][] = $key;
+					$allowed_options[ $page ][] = $key;
 				}
 			}
 		}
 	}
 
-	return $whitelist_options;
+	return $allowed_options;
 }
 
 /**
@@ -2200,7 +2200,7 @@ function add_option_allow_list( $new_options, $options = '' ) {
  *
  * @since 5.5.0
  *
- * @global array $whitelist_options
+ * @global array $allowed_options
  *
  * @param array        $del_options
  * @param string|array $options
@@ -2208,23 +2208,23 @@ function add_option_allow_list( $new_options, $options = '' ) {
  */
 function remove_option_allow_list( $del_options, $options = '' ) {
 	if ( '' === $options ) {
-		global $whitelist_options;
+		global $allowed_options;
 	} else {
-		$whitelist_options = $options;
+		$allowed_options = $options;
 	}
 
 	foreach ( $del_options as $page => $keys ) {
 		foreach ( $keys as $key ) {
-			if ( isset( $whitelist_options[ $page ] ) && is_array( $whitelist_options[ $page ] ) ) {
-				$pos = array_search( $key, $whitelist_options[ $page ], true );
+			if ( isset( $allowed_options[ $page ] ) && is_array( $allowed_options[ $page ] ) ) {
+				$pos = array_search( $key, $allowed_options[ $page ], true );
 				if ( false !== $pos ) {
-					unset( $whitelist_options[ $page ][ $pos ] );
+					unset( $allowed_options[ $page ][ $pos ] );
 				}
 			}
 		}
 	}
 
-	return $whitelist_options;
+	return $allowed_options;
 }
 
 /**

@@ -2461,14 +2461,14 @@ if ( is_multisite() ) :
 
 		public function data_wpmu_new_blog_action_backward_commpatible() {
 			return array(
-				'default values'  => array(
+				'default values' => array(
 					array(),
 					array(
 						'public' => 0, // `public` is one of the default metas in `wpmu_create_blog()' function prior to WordPress 5.1.0.
 						'WPLANG' => 'en_US', // WPLANG is another default meta in `wpmu_create_blog()` function prior to WordPress 5.1.0.
 					),
 				),
-				'public site'     => array(
+				'public site'    => array(
 					array(
 						'public' => 1,
 					),
@@ -2477,7 +2477,7 @@ if ( is_multisite() ) :
 						'WPLANG' => 'en_US',
 					),
 				),
-				'allowed_keys' => array(
+				'allowed_keys'   => array(
 					array(
 						'public'   => -1,
 						'archived' => 0,
@@ -2497,7 +2497,7 @@ if ( is_multisite() ) :
 						'lang_id'  => 11,
 					),
 				),
-				'extra meta key'  => array(
+				'extra meta key' => array(
 					array(
 						'foo' => 'bar',
 					),

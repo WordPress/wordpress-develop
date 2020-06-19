@@ -493,7 +493,7 @@ function wp_prepare_site_data( $data, $defaults, $old_site = null ) {
 	$data = apply_filters( 'wp_normalize_site_data', $data );
 
 	$allowed_data_fields = array( 'domain', 'path', 'network_id', 'registered', 'last_updated', 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' );
-	$data      = array_intersect_key( wp_parse_args( $data, $defaults ), array_flip( $allowed_data_fields ) );
+	$data                = array_intersect_key( wp_parse_args( $data, $defaults ), array_flip( $allowed_data_fields ) );
 
 	$errors = new WP_Error();
 
