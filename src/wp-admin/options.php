@@ -100,7 +100,7 @@ $allowed_options            = array(
 		'moderation_notify',
 		'comment_moderation',
 		'require_name_email',
-		'comment_allowedlist',
+		'comment_previously_approved',
 		'comment_max_links',
 		'moderation_keys',
 		'blocklist_keys',

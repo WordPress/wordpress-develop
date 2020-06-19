@@ -2074,7 +2074,7 @@ function sanitize_file_name( $filename ) {
 
 	/*
 	 * Loop over any intermediate extensions. Postfix them with a trailing underscore
-	 * if they are a 2 - 5 character long alpha string not in the extension whitelist.
+	 * if they are a 2 - 5 character long alpha string not in the allowed extension list.
 	 */
 	foreach ( (array) $parts as $part ) {
 		$filename .= '.' . $part;

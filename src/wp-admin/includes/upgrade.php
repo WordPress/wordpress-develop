@@ -2176,8 +2176,8 @@ function upgrade_550() {
 	update_option( 'blocklist_keys', $blocklist );
 	delete_option( 'blacklist_keys' );
 
-	$comment_allowedlist = get_option( 'comment_whitelist', '' );
-	update_option( 'comment_allowedlist', $comment_allowedlist );
+	$comment_previously_approved = get_option( 'comment_whitelist', '' );
+	update_option( 'comment_previously_approved', $comment_previously_approved );
 	delete_option( 'comment_whitelist' );
 }
 

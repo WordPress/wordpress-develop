@@ -3997,7 +3997,7 @@ function wp_unregister_GLOBALS() {  // phpcs:ignore WordPress.NamingConventions.
 }
 
 /**
- * Does comment contain blocklisted characters or words.
+ * Does comment contain disallowed characters or words.
  *
  * @since 1.5.0
  * @deprecated 5.5.0
@@ -4008,7 +4008,7 @@ function wp_unregister_GLOBALS() {  // phpcs:ignore WordPress.NamingConventions.
  * @param string $comment The comment content
  * @param string $user_ip The comment author's IP address
  * @param string $user_agent The author's browser user agent
- * @return bool True if comment contains blocklisted content, false if comment does not
+ * @return bool True if comment contains disallowed content, false if comment does not
  */
 function wp_blacklist_check( $author, $email, $url, $comment, $user_ip, $user_agent ) {
 	_deprecated_function( __FUNCTION__, '5.5.0', 'wp_blocklist_check()' );

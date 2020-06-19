@@ -22,16 +22,16 @@ window.wp = window.wp || {};
 		 *
 		 * @since 3.7.0
 		 *
-		 * @param {string} password1 The subject password.
-		 * @param {Array}  blocklist An array of words that will lower the entropy of
-		 *                           the password.
-		 * @param {string} password2 The password confirmation.
+		 * @param {string} password1       The subject password.
+		 * @param {Array}  disallowed_list An array of words that will lower the entropy of
+		 *                                 the password.
+		 * @param {string} password2       The password confirmation.
 		 *
 		 * @return {number} The password strength score.
 		 */
-		meter : function( password1, blocklist, password2 ) {
-			if ( ! $.isArray( blocklist ) )
-				blocklist = [ blocklist.toString() ];
+		meter : function( password1, disallowed_list, password2 ) {
+			if ( ! $.isArray( disallowed_list ) )
+				disallowed_list = [ disallowed_list.toString() ];
 
 			if (password1 != password2 && password2 && password2.length > 0)
 				return 5;
@@ -41,7 +41,7 @@ window.wp = window.wp || {};
 				return -1;
 			}
 
-			var result = zxcvbn( password1, blocklist );
+			var result = zxcvbn( password1, disallowed_list );
 			return result.score;
 		},
 
@@ -49,20 +49,36 @@ window.wp = window.wp || {};
 		 * Builds an array of words that should be penalized.
 		 *
 		 * Certain words need to be penalized because it would lower the entropy of a
-		 * password if they were used. The blocklist is based on user input fields such
+		 * password if they were used. The disallowed_list is based on user input fields such
 		 * as username, first name, email etc.
 		 *
 		 * @since 3.7.0
+		 * @deprecated 5.5.0 Use {@see 'userInputBlockList()'} instead.
 		 *
-		 * @return {string[]} The array of words to be blocklisted.
+		 * @return {string[]} The array of words to be disallowed.
+		 */
+		userInputBlacklist : function() {
+			return wp.passwordStrength.userInputBlockList();
+		},
+
+		/**
+		 * Builds an array of words that should be penalized.
+		 *
+		 * Certain words need to be penalized because it would lower the entropy of a
+		 * password if they were used. The disallowed list is based on user input fields such
+		 * as username, first name, email etc.
+		 *
+		 * @since 5.5.0
+		 *
+		 * @return {string[]} The array of words to be disallowed.
 		 */
 		userInputBlocklist : function() {
 			var i, userInputFieldsLength, rawValuesLength, currentField,
 				rawValues       = [],
-				blocklist       = [],
+				disallowed_list = [],
 				userInputFields = [ 'user_login', 'first_name', 'last_name', 'nickname', 'display_name', 'email', 'url', 'description', 'weblog_title', 'admin_email' ];
 
-			// Collect all the strings we want to blocklist.
+			// Collect all the strings we want to disallow.
 			rawValues.push( document.title );
 			rawValues.push( document.URL );
 
@@ -85,7 +101,7 @@ window.wp = window.wp || {};
 			rawValuesLength = rawValues.length;
 			for ( i = 0; i < rawValuesLength; i++ ) {
 				if ( rawValues[ i ] ) {
-					blocklist = blocklist.concat( rawValues[ i ].replace( /\W/g, ' ' ).split( ' ' ) );
+					disallowed_list = disallowed_list.concat( rawValues[ i ].replace( /\W/g, ' ' ).split( ' ' ) );
 				}
 			}
 
@@ -93,15 +109,15 @@ window.wp = window.wp || {};
 			 * Remove empty values, short words and duplicates. Short words are likely to
 			 * cause many false positives.
 			 */
-			blocklist = $.grep( blocklist, function( value, key ) {
+			disallowed_list = $.grep( disallowed_list, function( value, key ) {
 				if ( '' === value || 4 > value.length ) {
 					return false;
 				}
 
-				return $.inArray( value, blocklist ) === key;
+				return $.inArray( value, disallowed_list ) === key;
 			});
 
-			return blocklist;
+			return disallowed_list;
 		}
 	};
 

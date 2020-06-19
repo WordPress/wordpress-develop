@@ -594,7 +594,7 @@ class WP_REST_Server {
 		$embedded = array();
 
 		foreach ( $data['_links'] as $rel => $links ) {
-			// If a list of relations was specified, and the link relation is not in the allowed list, don't process the link.
+			// If a list of relations was specified, and the link relation is not in the list of allowed relations, don't process the link.
 			if ( is_array( $embed ) && ! in_array( $rel, $embed, true ) ) {
 				continue;
 			}

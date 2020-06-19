@@ -1461,18 +1461,18 @@ function wp_map_sidebars_widgets( $existing_sidebars_widgets ) {
  *
  * @since 4.9.0
  *
- * @param array $sidebars_widgets List of sidebars and their widget instance IDs.
- * @param array $allowedlist      Optional. List of widget IDs to compare against. Default: Registered widgets.
+ * @param array $sidebars_widgets  List of sidebars and their widget instance IDs.
+ * @param array $allowed_wiget_ids Optional. List of widget IDs to compare against. Default: Registered widgets.
  * @return array Sidebars with allowed widgets.
  */
-function _wp_remove_unregistered_widgets( $sidebars_widgets, $allowedlist = array() ) {
-	if ( empty( $allowedlist ) ) {
-		$allowedlist = array_keys( $GLOBALS['wp_registered_widgets'] );
+function _wp_remove_unregistered_widgets( $sidebars_widgets, $allowed_wiget_ids = array() ) {
+	if ( empty( $allowed_wiget_ids ) ) {
+		$allowed_wiget_ids = array_keys( $GLOBALS['wp_registered_widgets'] );
 	}
 
 	foreach ( $sidebars_widgets as $sidebar => $widgets ) {
 		if ( is_array( $widgets ) ) {
-			$sidebars_widgets[ $sidebar ] = array_intersect( $widgets, $allowedlist );
+			$sidebars_widgets[ $sidebar ] = array_intersect( $widgets, $allowed_wiget_ids );
 		}
 	}
 

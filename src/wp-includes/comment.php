@@ -10,15 +10,15 @@
  * Check whether a comment passes internal checks to be allowed to add.
  *
  * If manual comment moderation is set in the administration, then all checks,
- * regardless of their type and whitelist, will fail and the function will
+ * regardless of their type and substance, will fail and the function will
  * return false.
  *
  * If the number of links exceeds the amount in the administration, then the
- * check fails. If any of the parameter contents match the blocklist of words,
+ * check fails. If any of the parameter contents contain any disallowed words,
  * then the check fails.
  *
  * If the comment author was approved before, then the comment is automatically
- * whitelisted.
+ * approved.
  *
  * If all checks pass, the function will return true.
  *
@@ -126,7 +126,7 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 	 * as well as whether there are any moderation keywords (if set) present in the author
 	 * email address. If both checks pass, return true. Otherwise, return false.
 	 */
-	if ( 1 == get_option( 'comment_allowedlist' ) ) {
+	if ( 1 == get_option( 'comment_previously_approved' ) ) {
 		if ( 'trackback' !== $comment_type && 'pingback' !== $comment_type && '' !== $author && '' !== $email ) {
 			$comment_user = get_user_by( 'email', wp_unslash( $email ) );
 			if ( ! empty( $comment_user->ID ) ) {
@@ -1262,7 +1262,7 @@ function wp_check_comment_data_max_lengths( $comment_data ) {
 }
 
 /**
- * Checks if a comment contains blocklisted characters or words.
+ * Checks if a comment contains disallowed characters or words.
  *
  * @since 5.5.0
  *
@@ -1272,11 +1272,11 @@ function wp_check_comment_data_max_lengths( $comment_data ) {
  * @param string $comment The comment content
  * @param string $user_ip The comment author's IP address
  * @param string $user_agent The author's browser user agent
- * @return bool True if comment contains blocklisted content, false if comment does not
+ * @return bool True if comment contains disallowed content, false if comment does not
  */
 function wp_blocklist_check( $author, $email, $url, $comment, $user_ip, $user_agent ) {
 	/**
-	 * Fires before the comment is tested for blocklisted characters or words.
+	 * Fires before the comment is tested for disallowed characters or words.
 	 *
 	 * @since 1.5.0
 	 * @deprecated 5.5.0 Use {@see 'wp_blocklist_check'} instead.
@@ -1291,7 +1291,7 @@ function wp_blocklist_check( $author, $email, $url, $comment, $user_ip, $user_ag
 	do_action_deprecated( 'wp_blacklist_check', array( $author, $email, $url, $comment, $user_ip, $user_agent ), '5.5.0', 'wp_blocklist_check', __( 'Please join us in writing more inclusive code.' ) );
 
 	/**
-	 * Fires before the comment is tested for blocklisted characters or words.
+	 * Fires before the comment is tested for disallowed characters or words.
 	 *
 	 * @since 5.5.0
 	 *
@@ -1309,7 +1309,7 @@ function wp_blocklist_check( $author, $email, $url, $comment, $user_ip, $user_ag
 		return false; // If moderation keys are empty.
 	}
 
-	// Ensure HTML tags are not being used to bypass the blocklist.
+	// Ensure HTML tags are not being used to bypass the list of disallowed characters and words.
 	$comment_without_html = wp_strip_all_tags( $comment );
 
 	$words = explode( "\n", $mod_keys );

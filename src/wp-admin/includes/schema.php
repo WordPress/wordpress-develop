@@ -533,7 +533,7 @@ function populate_options( array $options = array() ) {
 
 		// 5.5.0
 		'blocklist_keys'                  => '',
-		'comment_allowedlist'             => 1,
+		'comment_previously_approved'     => 1,
 	);
 
 	// 3.3.0
