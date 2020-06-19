@@ -5927,6 +5927,10 @@ a.to-the-top > * {
 		/*rtl:ignore*/
 		margin-left: 0;
 	}
+  
+    .wp-block-image .aligncenter figcaption {
+        text-align: center;
+    }
 
     .wp-block-image .aligncenter figcaption {
         text-align: center;
