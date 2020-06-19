@@ -1461,7 +1461,7 @@ function wp_map_sidebars_widgets( $existing_sidebars_widgets ) {
  *
  * @since 4.9.0
  *
- * @param array $sidebars_widgets  List of sidebars and their widget instance IDs.
+ * @param array $sidebars_widgets   List of sidebars and their widget instance IDs.
  * @param array $allowed_widget_ids Optional. List of widget IDs to compare against. Default: Registered widgets.
  * @return array Sidebars with allowed widgets.
  */

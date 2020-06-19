@@ -460,7 +460,7 @@ function is_email_address_unsafe( $user_email ) {
  *     @type string   $user_email    User email address.
  *     @type WP_Error $errors        WP_Error object containing any errors found.
  * }
- *@global wpdb $wpdb WordPress database abstraction object.
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @since MU (3.0.0)
  *

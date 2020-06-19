@@ -469,10 +469,10 @@ class WP_Date_Query {
 	 * prepended. Prefixed column names (such as 'wp_posts.post_date') bypass this allowed
 	 * check, and are only sanitized to remove illegal characters.
 	 *
-	 * @param string $column The user-supplied column name.
-	 * @return string A validated column name value.
 	 * @since 3.7.0
 	 *
+	 * @param string $column The user-supplied column name.
+	 * @return string A validated column name value.
 	 */
 	public function validate_column( $column ) {
 		global $wpdb;

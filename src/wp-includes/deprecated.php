@@ -4071,7 +4071,7 @@ function add_option_whitelist( $new_options, $options = '' ) {
  * @return array
  */
 function remove_option_whitelist( $del_options, $options = '' ) {
-	_deprecated_function( __FUNCTION__, '5.5.0', 'add_option_allowed_list()' );
+	_deprecated_function( __FUNCTION__, '5.5.0', 'remove_option_allowed_list()' );
 
 	return remove_option_allowed_list( $del_options, $options );
 }

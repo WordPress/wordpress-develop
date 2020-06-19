@@ -1724,12 +1724,12 @@ function wp_kses_bad_protocol_once( $string, $allowed_protocols, $count = 1 ) {
  * on the answer.
  *
  * @access private
+ * @ignore
+ * @since 1.0.0
+ *
  * @param string   $string            URI scheme to check against the list of allowed protocols.
  * @param string[] $allowed_protocols Array of allowed URL protocols.
  * @return string Sanitized content.
- *@since 1.0.0
- *
- * @ignore
  */
 function wp_kses_bad_protocol_once2( $string, $allowed_protocols ) {
 	$string2 = wp_kses_decode_entities( $string );
