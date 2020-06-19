@@ -1,17 +1,11 @@
 <?php
 
-/**
- * Deprecated. Use WP_HTTP (http.php) instead.
- */
-_deprecated_file( basename( __FILE__ ), '3.0.0', WPINC . '/http.php' );
-
-if ( ! class_exists( 'Snoopy', false ) ) :
 /*************************************************
 
 Snoopy - the PHP net client
 Author: Monte Ohrt <monte@ispi.net>
-Copyright (c): 1999-2008 New Digital Group, all rights reserved
-Version: 1.2.4
+Copyright (c): 1999-2000 ispi, all rights reserved
+Version: 1.01
 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -28,13 +22,20 @@ Version: 1.2.4
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 You may contact the author of Snoopy by e-mail at:
-monte@ohrt.com
+monte@ispi.net
+
+Or, write to:
+Monte Ohrt
+CTO, ispi
+237 S. 70th suite 220
+Lincoln, NE 68510
 
 The latest version of Snoopy can be obtained from:
 http://snoopy.sourceforge.net/
 
 *************************************************/
 
+if ( !in_array('Snoopy', get_declared_classes() ) ) :
 class Snoopy
 {
 	/**** Public variables ****/
@@ -48,7 +49,7 @@ class Snoopy
 	var $proxy_user		=	"";					// proxy user to use
 	var $proxy_pass		=	"";					// proxy password to use
 
-	var $agent			=	"Snoopy v1.2.4";	// agent we masquerade as
+	var $agent			=	"Snoopy v1.2.3";	// agent we masquerade as
 	var	$referer		=	"";					// referer info to pass
 	var $cookies		=	array();			// array of cookies to pass
 												// $cookies["username"]="joe";
@@ -183,7 +184,7 @@ class Snoopy
 						$frameurls = $this->_frameurls;
 						$this->_frameurls = array();
 
-						foreach ( $frameurls as $frameurl )
+						while(list(,$frameurl) = each($frameurls))
 						{
 							if($this->_framedepth < $this->maxframes)
 							{
@@ -243,7 +244,7 @@ class Snoopy
 					$frameurls = $this->_frameurls;
 					$this->_frameurls = array();
 
-					foreach ( $frameurls as $frameurl )
+					while(list(,$frameurl) = each($frameurls))
 					{
 						if($this->_framedepth < $this->maxframes)
 						{
@@ -341,7 +342,7 @@ class Snoopy
 						$frameurls = $this->_frameurls;
 						$this->_frameurls = array();
 
-						foreach ( $frameurls as $frameurl )
+						while(list(,$frameurl) = each($frameurls))
 						{
 							if($this->_framedepth < $this->maxframes)
 							{
@@ -408,7 +409,7 @@ class Snoopy
 					$frameurls = $this->_frameurls;
 					$this->_frameurls = array();
 
-					foreach ( $frameurls as $frameurl )
+					while(list(,$frameurl) = each($frameurls))
 					{
 						if($this->_framedepth < $this->maxframes)
 						{
@@ -629,13 +630,13 @@ class Snoopy
 
 		// catenate the non-empty matches from the conditional subpattern
 
-		foreach ( $links[2] as $key => $val )
+		while(list($key,$val) = each($links[2]))
 		{
 			if(!empty($val))
 				$match[] = $val;
 		}
 
-		foreach ( $links[3] as $key => $val )
+		while(list($key,$val) = each($links[3]))
 		{
 			if(!empty($val))
 				$match[] = $val;
@@ -719,13 +720,13 @@ class Snoopy
 							chr(176),
 							chr(39),
 							chr(128),
-							chr(0xE4), // ANSI &auml;
-							chr(0xF6), // ANSI &ouml;
-							chr(0xFC), // ANSI &uuml;
-							chr(0xC4), // ANSI &Auml;
-							chr(0xD6), // ANSI &Ouml;
-							chr(0xDC), // ANSI &Uuml;
-							chr(0xDF), // ANSI &szlig;
+							"ä",
+							"ö",
+							"ü",
+							"Ä",
+							"Ö",
+							"Ü",
+							"ß",
 						);
 
 		$text = preg_replace($search,$replace,$document);
@@ -795,7 +796,7 @@ class Snoopy
 			$headers .= "User-Agent: ".$this->agent."\r\n";
 		if(!empty($this->host) && !isset($this->rawheaders['Host'])) {
 			$headers .= "Host: ".$this->host;
-			if(!empty($this->port) && $this->port != 80)
+			if(!empty($this->port))
 				$headers .= ":".$this->port;
 			$headers .= "\r\n";
 		}
@@ -815,13 +816,13 @@ class Snoopy
 				$cookie_headers .= $cookieKey."=".urlencode($cookieVal)."; ";
 				}
 				$headers .= substr($cookie_headers,0,-2) . "\r\n";
-			}
+			} 
 		}
 		if(!empty($this->rawheaders))
 		{
 			if(!is_array($this->rawheaders))
 				$this->rawheaders = (array)$this->rawheaders;
-			foreach ( $this->rawheaders as $headerKey => $headerVal )
+			while(list($headerKey,$headerVal) = each($this->rawheaders))
 				$headers .= $headerKey.": ".$headerVal."\r\n";
 		}
 		if(!empty($content_type)) {
@@ -910,7 +911,7 @@ class Snoopy
 			return false;
 		}
 
-		// check if there is a redirect meta tag
+		// check if there is a a redirect meta tag
 
 		if(preg_match("'<meta[\s]*http-equiv[^>]*?content[\s]*=[\s]*[\"\']?\d+;[\s]*URL[\s]*=[\s]*([^\"\']*?)[\"\']?>'i",$results,$match))
 
@@ -985,7 +986,7 @@ class Snoopy
 		{
 			if(!is_array($this->rawheaders))
 				$this->rawheaders = (array)$this->rawheaders;
-			foreach ( $this->rawheaders as $headerKey => $headerVal )
+			while(list($headerKey,$headerVal) = each($this->rawheaders))
 				$headers[] = $headerKey.": ".$headerVal;
 		}
 		if(!empty($content_type)) {
@@ -999,23 +1000,21 @@ class Snoopy
 		if(!empty($this->user) || !empty($this->pass))
 			$headers[] = "Authorization: BASIC ".base64_encode($this->user.":".$this->pass);
 
-		$headerfile = tempnam( $this->temp_dir, "sno" );
-		$cmdline_params = '-k -D ' . escapeshellarg( $headerfile );
-
-		foreach ( $headers as $header ) {
-			$cmdline_params .= ' -H ' . escapeshellarg( $header );
+		for($curr_header = 0; $curr_header < count($headers); $curr_header++) {
+			$safer_header = strtr( $headers[$curr_header], "\"", " " );
+			$cmdline_params .= " -H \"".$safer_header."\"";
 		}
 
-		if ( ! empty( $body ) ) {
-			$cmdline_params .= ' -d ' . escapeshellarg( $body );
-		}
+		if(!empty($body))
+			$cmdline_params .= " -d \"$body\"";
 
-		if ( $this->read_timeout > 0 ) {
-			$cmdline_params .= ' -m ' . escapeshellarg( $this->read_timeout );
-		}
+		if($this->read_timeout > 0)
+			$cmdline_params .= " -m ".$this->read_timeout;
 
+		$headerfile = tempnam($temp_dir, "sno");
 
-		exec( $this->curl_path . ' ' . $cmdline_params . ' ' . escapeshellarg( $URI ), $results, $return );
+		$safer_URI = strtr( $URI, "\"", " " ); // strip quotes from the URI to avoid shell access
+		exec(escapeshellcmd($this->curl_path." -D \"$headerfile\"".$cmdline_params." \"".$safer_URI."\""),$results,$return);
 
 		if($return)
 		{
@@ -1060,7 +1059,7 @@ class Snoopy
 			$this->headers[] = $result_headers[$currentHeader];
 		}
 
-		// check if there is a redirect meta tag
+		// check if there is a a redirect meta tag
 
 		if(preg_match("'<meta[\s]*http-equiv[^>]*?content[\s]*=[\s]*[\"\']?\d+;[\s]*URL[\s]*=[\s]*([^\"\']*?)[\"\']?>'i",$results,$match))
 		{
@@ -1204,9 +1203,9 @@ class Snoopy
 		switch ($this->_submit_type) {
 			case "application/x-www-form-urlencoded":
 				reset($formvars);
-				foreach ( $formvars as $key => $val ) {
+				while(list($key,$val) = each($formvars)) {
 					if (is_array($val) || is_object($val)) {
-						foreach ( $val as $cur_key => $cur_val ) {
+						while (list($cur_key, $cur_val) = each($val)) {
 							$postdata .= urlencode($key)."[]=".urlencode($cur_val)."&";
 						}
 					} else
@@ -1218,9 +1217,9 @@ class Snoopy
 				$this->_mime_boundary = "Snoopy".md5(uniqid(microtime()));
 
 				reset($formvars);
-				foreach ( $formvars as $key => $val ) {
+				while(list($key,$val) = each($formvars)) {
 					if (is_array($val) || is_object($val)) {
-						foreach ( $val as $cur_key => $cur_val ) {
+						while (list($cur_key, $cur_val) = each($val)) {
 							$postdata .= "--".$this->_mime_boundary."\r\n";
 							$postdata .= "Content-Disposition: form-data; name=\"$key\[\]\"\r\n\r\n";
 							$postdata .= "$cur_val\r\n";
@@ -1233,9 +1232,9 @@ class Snoopy
 				}
 
 				reset($formfiles);
-				foreach ( $formfiles as $field_name => $file_names ) {
+				while (list($field_name, $file_names) = each($formfiles)) {
 					settype($file_names, "array");
-					foreach ( $file_names as $file_name ) {
+					while (list(, $file_name) = each($file_names)) {
 						if (!is_readable($file_name)) continue;
 
 						$fp = fopen($file_name, "r");
@@ -1256,4 +1255,5 @@ class Snoopy
 	}
 }
 endif;
+
 ?>
