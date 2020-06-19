@@ -136,11 +136,11 @@
 		"jquery-ui": "https://github.com/jquery/jquery-ui/archive/1.11.4.tar.gz",
 		"lodash": "4.17.15",
 		"masonry-layout": "4.2.2",
-		"moment": "2.22.2",
+		"moment": "2.26.0",
 		"polyfill-library": "3.42.0",
 		"react": "16.9.0",
 		"react-dom": "16.9.0",
-		"twemoji": "12.1.3",
+		"twemoji": "13.0.0",
 		"underscore": "1.8.3",
 		"whatwg-fetch": "3.0.0"
 	},

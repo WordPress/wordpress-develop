@@ -974,6 +974,17 @@ function get_custom_logo( $blog_id = 0 ) {
 			$custom_logo_attr['alt'] = get_bloginfo( 'name', 'display' );
 		}
 
+		/**
+		 * Filters the list of custom logo image attributes.
+		 *
+		 * @since 5.5.0
+		 *
+		 * @param array $custom_logo_attr Custom logo image attributes.
+		 * @param int   $custom_logo_id   Custom logo attachment ID.
+		 * @param int   $blog_id          ID of the blog to get the custom logo for.
+		 */
+		$custom_logo_attr = apply_filters( 'get_custom_logo_image_attributes', $custom_logo_attr, $custom_logo_id, $blog_id );
+
 		/*
 		 * If the alt attribute is not empty, there's no need to explicitly pass it
 		 * because wp_get_attachment_image() already adds the alt attribute.
@@ -3212,7 +3223,7 @@ function wp_resource_hints() {
 	 * The path is removed in the foreach loop below.
 	 */
 	/** This filter is documented in wp-includes/formatting.php */
-	$hints['dns-prefetch'][] = apply_filters( 'emoji_svg_url', 'https://s.w.org/images/core/emoji/12.0.0-1/svg/' );
+	$hints['dns-prefetch'][] = apply_filters( 'emoji_svg_url', 'https://s.w.org/images/core/emoji/13.0.0/svg/' );
 
 	foreach ( $hints as $relation_type => $urls ) {
 		$unique_urls = array();

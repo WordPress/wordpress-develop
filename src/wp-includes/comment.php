@@ -445,6 +445,7 @@ function get_comment_count( $post_id = 0 ) {
  * Add meta data field to a comment.
  *
  * @since 2.9.0
+ *
  * @link https://developer.wordpress.org/reference/functions/add_comment_meta/
  *
  * @param int    $comment_id Comment ID.
@@ -466,6 +467,7 @@ function add_comment_meta( $comment_id, $meta_key, $meta_value, $unique = false 
  * allows removing all metadata matching key, if needed.
  *
  * @since 2.9.0
+ *
  * @link https://developer.wordpress.org/reference/functions/delete_comment_meta/
  *
  * @param int    $comment_id Comment ID.
@@ -483,6 +485,7 @@ function delete_comment_meta( $comment_id, $meta_key, $meta_value = '' ) {
  * Retrieve comment meta field for a comment.
  *
  * @since 2.9.0
+ *
  * @link https://developer.wordpress.org/reference/functions/get_comment_meta/
  *
  * @param int    $comment_id Comment ID.
@@ -507,6 +510,7 @@ function get_comment_meta( $comment_id, $key = '', $single = false ) {
  * If the meta field for the comment does not exist, it will be added.
  *
  * @since 2.9.0
+ *
  * @link https://developer.wordpress.org/reference/functions/update_comment_meta/
  *
  * @param int    $comment_id Comment ID.
@@ -1239,19 +1243,19 @@ function wp_check_comment_data_max_lengths( $comment_data ) {
 	$max_lengths = wp_get_comment_fields_max_lengths();
 
 	if ( isset( $comment_data['comment_author'] ) && mb_strlen( $comment_data['comment_author'], '8bit' ) > $max_lengths['comment_author'] ) {
-		return new WP_Error( 'comment_author_column_length', __( '<strong>Error</strong>: Your name is too long.' ), 200 );
+		return new WP_Error( 'comment_author_column_length', __( 'Your name is too long.' ), 200 );
 	}
 
 	if ( isset( $comment_data['comment_author_email'] ) && strlen( $comment_data['comment_author_email'] ) > $max_lengths['comment_author_email'] ) {
-		return new WP_Error( 'comment_author_email_column_length', __( '<strong>Error</strong>: Your email address is too long.' ), 200 );
+		return new WP_Error( 'comment_author_email_column_length', __( 'Your email address is too long.' ), 200 );
 	}
 
 	if ( isset( $comment_data['comment_author_url'] ) && strlen( $comment_data['comment_author_url'] ) > $max_lengths['comment_author_url'] ) {
-		return new WP_Error( 'comment_author_url_column_length', __( '<strong>Error</strong>: Your URL is too long.' ), 200 );
+		return new WP_Error( 'comment_author_url_column_length', __( 'Your URL is too long.' ), 200 );
 	}
 
 	if ( isset( $comment_data['comment_content'] ) && mb_strlen( $comment_data['comment_content'], '8bit' ) > $max_lengths['comment_content'] ) {
-		return new WP_Error( 'comment_content_column_length', __( '<strong>Error</strong>: Your comment is too long.' ), 200 );
+		return new WP_Error( 'comment_content_column_length', __( 'Your comment is too long.' ), 200 );
 	}
 
 	return true;
@@ -2449,6 +2453,7 @@ function wp_update_comment( $commentarr ) {
  * updated without having to call wp_update_comment_count() after.
  *
  * @since 2.5.0
+ *
  * @staticvar bool $_defer
  *
  * @param bool $defer
@@ -2480,6 +2485,7 @@ function wp_defer_comment_counting( $defer = null ) {
  * IDs will be updated along with the current $post_id.
  *
  * @since 2.1.0
+ *
  * @see wp_update_comment_count_now() For what could cause a false return value
  *
  * @staticvar array $_deferred
@@ -3013,6 +3019,7 @@ function weblog_ping( $server = '', $path = '' ) {
  * Default filter attached to pingback_ping_source_uri to validate the pingback's Source URI
  *
  * @since 3.5.1
+ *
  * @see wp_http_validate_url()
  *
  * @param string $source_uri
@@ -3029,6 +3036,7 @@ function pingback_ping_source_uri( $source_uri ) {
  * which reports that the pingback is already registered.
  *
  * @since 3.5.1
+ *
  * @link https://www.hixie.ch/specs/pingback/pingback#TOC3
  *
  * @param IXR_Error $ixr_error
@@ -3127,8 +3135,8 @@ function _prime_comment_caches( $comment_ids, $update_meta_cache = true ) {
 /**
  * Close comments on old posts on the fly, without any extra DB queries. Hooked to the_posts.
  *
- * @access private
  * @since 2.7.0
+ * @access private
  *
  * @param WP_Post  $posts Post data object.
  * @param WP_Query $query Query object.
@@ -3167,8 +3175,8 @@ function _close_comments_for_old_posts( $posts, $query ) {
 /**
  * Close comments on an old post. Hooked to comments_open and pings_open.
  *
- * @access private
  * @since 2.7.0
+ * @access private
  *
  * @param bool $open Comments open or closed
  * @param int $post_id Post ID
@@ -3382,9 +3390,9 @@ function wp_handle_comment_submission( $comment_data ) {
 
 	if ( get_option( 'require_name_email' ) && ! $user->exists() ) {
 		if ( '' == $comment_author_email || '' == $comment_author ) {
-			return new WP_Error( 'require_name_email', __( '<strong>Error</strong>: Please fill the required fields (name, email).' ), 200 );
+			return new WP_Error( 'require_name_email', __( 'Please fill the required fields (name, email).' ), 200 );
 		} elseif ( ! is_email( $comment_author_email ) ) {
-			return new WP_Error( 'require_valid_email', __( '<strong>Error</strong>: Please enter a valid email address.' ), 200 );
+			return new WP_Error( 'require_valid_email', __( 'Please enter a valid email address.' ), 200 );
 		}
 	}
 
@@ -3409,7 +3417,7 @@ function wp_handle_comment_submission( $comment_data ) {
 	 */
 	$allow_empty_comment = apply_filters( 'allow_empty_comment', false, $commentdata );
 	if ( '' === $comment_content && ! $allow_empty_comment ) {
-		return new WP_Error( 'require_valid_comment', __( '<strong>Error</strong>: Please type a comment.' ), 200 );
+		return new WP_Error( 'require_valid_comment', __( 'Please type your comment text.' ), 200 );
 	}
 
 	$check_max_lengths = wp_check_comment_data_max_lengths( $commentdata );
@@ -3423,7 +3431,7 @@ function wp_handle_comment_submission( $comment_data ) {
 	}
 
 	if ( ! $comment_id ) {
-		return new WP_Error( 'comment_save_error', __( '<strong>Error</strong>: The comment could not be saved. Please try again later.' ), 500 );
+		return new WP_Error( 'comment_save_error', __( 'The comment could not be saved. Please try again later.' ), 500 );
 	}
 
 	return get_comment( $comment_id );
