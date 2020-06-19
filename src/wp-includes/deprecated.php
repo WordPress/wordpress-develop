@@ -4042,7 +4042,7 @@ function _wp_register_meta_args_whitelist( $args, $default_args ) {
  * Adds an array of options to the list of allowed options.
  *
  * @since 2.7.0
- * @deprecated 5.5.0 Use add_option_allow_list() instead.
+ * @deprecated 5.5.0 Use add_option_allowed_list() instead.
  *                   Please join us in writing more inclusive code.
  *
  * @global array $allowed_options
@@ -4052,16 +4052,16 @@ function _wp_register_meta_args_whitelist( $args, $default_args ) {
  * @return array
  */
 function add_option_whitelist( $new_options, $options = '' ) {
-	_deprecated_function( __FUNCTION__, '5.5.0', 'add_option_allow_list()' );
+	_deprecated_function( __FUNCTION__, '5.5.0', 'add_option_allowed_list()' );
 
-	return add_option_allow_list( $new_options, $options );
+	return add_option_allowed_list( $new_options, $options );
 }
 
 /**
  * Removes a list of options from the allowed options list.
  *
  * @since 2.7.0
- * @deprecated 5.5.0 Use remove_option_allow_list() instead.
+ * @deprecated 5.5.0 Use remove_option_allowed_list() instead.
  *                   Please join us in writing more inclusive code.
  *
  * @global array $allowed_options
@@ -4071,7 +4071,7 @@ function add_option_whitelist( $new_options, $options = '' ) {
  * @return array
  */
 function remove_option_whitelist( $del_options, $options = '' ) {
-	_deprecated_function( __FUNCTION__, '5.5.0', 'add_option_allow_list()' );
+	_deprecated_function( __FUNCTION__, '5.5.0', 'add_option_allowed_list()' );
 
-	return remove_option_allow_list( $del_options, $options );
+	return remove_option_allowed_list( $del_options, $options );
 }

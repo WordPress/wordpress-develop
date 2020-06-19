@@ -44,7 +44,7 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 			$allowed_data_fields = array( 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' );
 
 			foreach ( $args['meta'] as $key => $value ) {
-				// Promote whitelisted keys to top-level arguments, add others to the options array.
+				// Promote allowed keys to top-level arguments, add others to the options array.
 				if ( in_array( $key, $allowed_data_fields, true ) ) {
 					$args[ $key ] = $value;
 				} else {

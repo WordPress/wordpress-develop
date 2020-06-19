@@ -54,7 +54,7 @@ if ( is_multisite() ) :
 			remove_filter( 'is_email', '__return_false' );
 		}
 
-		public function test_should_fail_for_emails_from_non_whitelisted_domains() {
+		public function test_should_fail_for_emails_from_disallowed_domains() {
 			$domains = array( 'foo.com', 'bar.org' );
 			update_site_option( 'limited_email_domains', $domains );
 
@@ -62,7 +62,7 @@ if ( is_multisite() ) :
 			$this->assertContains( 'user_email', $v['errors']->get_error_codes() );
 		}
 
-		public function test_should_not_fail_for_emails_from_whitelisted_domains_with_mixed_case() {
+		public function test_should_not_fail_for_emails_from_allowed_domains_with_mixed_case() {
 			$domains = array( 'foo.com', 'bar.org' );
 			update_site_option( 'limited_email_domains', $domains );
 

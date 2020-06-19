@@ -4,7 +4,7 @@
  * @group comment
  */
 class Tests_Comment_CheckComment extends WP_UnitTestCase {
-	public function test_should_return_true_when_comment_whitelist_is_disabled() {
+	public function test_should_return_true_when_comment_previously_approved_is_disabled() {
 		$author       = 'BobtheBuilder';
 		$author_email = 'bob@example.com';
 		$author_url   = 'http://example.com';
@@ -18,7 +18,7 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 		$this->assertTrue( $results );
 	}
 
-	public function test_should_return_false_when_comment_whitelist_is_enabled_and_author_does_not_have_approved_comment() {
+	public function test_should_return_false_when_comment_previously_approved_is_enabled_and_author_does_not_have_approved_comment() {
 		$author       = 'BobtheBuilder';
 		$author_email = 'bob@example.com';
 		$author_url   = 'http://example.com';
@@ -33,7 +33,7 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 
 	}
 
-	public function test_should_return_true_when_comment_whitelist_is_enabled_and_author_has_approved_comment() {
+	public function test_should_return_true_when_comment_previously_approved_is_enabled_and_author_has_approved_comment() {
 		$post_id         = self::factory()->post->create();
 		$prev_args       = array(
 			'comment_post_ID'      => $post_id,
@@ -135,7 +135,7 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 	/**
 	 * @ticket 28603
 	 */
-	public function test_should_return_true_when_comment_whitelist_is_enabled_and_user_has_previously_approved_comments_with_different_email() {
+	public function test_should_return_true_when_comment_previously_approved_is_enabled_and_user_has_previously_approved_comments_with_different_email() {
 		$subscriber_id = $this->factory()->user->create(
 			array(
 				'role'  => 'subscriber',
@@ -167,7 +167,7 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 	/**
 	 * @ticket 28603
 	 */
-	public function test_should_return_false_when_comment_whitelist_is_enabled_and_user_does_not_have_a_previously_approved_comment_with_any_email() {
+	public function test_should_return_false_when_comment_previously_approved_is_enabled_and_user_does_not_have_a_previously_approved_comment_with_any_email() {
 		$subscriber_id = $this->factory()->user->create(
 			array(
 				'role'  => 'subscriber',

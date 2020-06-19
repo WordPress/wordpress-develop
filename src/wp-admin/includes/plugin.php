@@ -2136,7 +2136,7 @@ function user_can_access_admin_page() {
 	return true;
 }
 
-/* Whitelist functions */
+/* Allowed list functions */
 
 /**
  * Refreshes the value of the allowed options list available via the 'allowed_options' hook.
@@ -2154,7 +2154,7 @@ function option_update_filter( $options ) {
 	global $new_whitelist_options;
 
 	if ( is_array( $new_whitelist_options ) ) {
-		$options = add_option_whitelist( $new_whitelist_options, $options );
+		$options = add_option_allowed_list( $new_whitelist_options, $options );
 	}
 
 	return $options;
@@ -2171,7 +2171,7 @@ function option_update_filter( $options ) {
  * @param string|array $options
  * @return array
  */
-function add_option_allow_list( $new_options, $options = '' ) {
+function add_option_allowed_list( $new_options, $options = '' ) {
 	if ( '' === $options ) {
 		global $allowed_options;
 	} else {
@@ -2206,7 +2206,7 @@ function add_option_allow_list( $new_options, $options = '' ) {
  * @param string|array $options
  * @return array
  */
-function remove_option_allow_list( $del_options, $options = '' ) {
+function remove_option_allowed_list( $del_options, $options = '' ) {
 	if ( '' === $options ) {
 		global $allowed_options;
 	} else {
