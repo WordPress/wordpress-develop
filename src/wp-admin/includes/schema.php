@@ -1142,7 +1142,7 @@ function populate_network_meta( $network_id, array $meta = array() ) {
 		$allowed_themes[ WP_DEFAULT_THEME ] = true;
 	}
 
-	// If WP_DEFAULT_THEME doesn't exist, also whitelist the latest core default theme.
+	// If WP_DEFAULT_THEME doesn't exist, also include the latest core default theme.
 	if ( ! wp_get_theme( WP_DEFAULT_THEME )->exists() ) {
 		$core_default = WP_Theme::get_core_default_theme();
 		if ( $core_default ) {

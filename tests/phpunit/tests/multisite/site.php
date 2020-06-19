@@ -2477,7 +2477,7 @@ if ( is_multisite() ) :
 						'WPLANG' => 'en_US',
 					),
 				),
-				'all whitelisted' => array(
+				'allowed_keys' => array(
 					array(
 						'public'   => -1,
 						'archived' => 0,

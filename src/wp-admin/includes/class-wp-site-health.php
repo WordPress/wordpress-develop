@@ -1778,8 +1778,9 @@ class WP_Site_Health {
 	/**
 	 * Test if HTTP requests are blocked.
 	 *
-	 * It's possible to block all outgoing communication (with the possibility of whitelisting hosts) via the
-	 * HTTP API. This may create problems for users as many features are running as services these days.
+	 * It's possible to block all outgoing communication (with the possibility of allowing certain
+	 * hosts) via the HTTP API. This may create problems for users as many features are running as
+	 * services these days.
 	 *
 	 * @since 5.2.0
 	 *

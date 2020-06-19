@@ -1402,13 +1402,13 @@ function get_registered_metadata( $object_type, $object_id, $meta_key = '' ) {
  * to be explicitly turned off is a warranty seal of sorts.
  *
  * @access private
- * @since 4.6.0
+ * @since 5.5.0
  *
  * @param array $args         Arguments from `register_meta()`.
  * @param array $default_args Default arguments for `register_meta()`.
  * @return array Filtered arguments.
  */
-function _wp_register_meta_args_whitelist( $args, $default_args ) {
+function _wp_register_meta_args_allowed_list( $args, $default_args ) {
 	return array_intersect_key( $args, $default_args );
 }
 

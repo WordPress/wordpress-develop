@@ -464,15 +464,15 @@ class WP_Date_Query {
 	/**
 	 * Validates a column name parameter.
 	 *
-	 * Column names without a table prefix (like 'post_date') are checked against a whitelist of
-	 * known tables, and then, if found, have a table prefix (such as 'wp_posts.') prepended.
-	 * Prefixed column names (such as 'wp_posts.post_date') bypass this whitelist check,
-	 * and are only sanitized to remove illegal characters.
-	 *
-	 * @since 3.7.0
+	 * Column names without a table prefix (like 'post_date') are checked against a list of
+	 * allowed and known tables, and then, if found, have a table prefix (such as 'wp_posts.')
+	 * prepended. Prefixed column names (such as 'wp_posts.post_date') bypass this allowed
+	 * check, and are only sanitized to remove illegal characters.
 	 *
 	 * @param string $column The user-supplied column name.
 	 * @return string A validated column name value.
+	 * @since 3.7.0
+	 *
 	 */
 	public function validate_column( $column ) {
 		global $wpdb;
