@@ -34,7 +34,7 @@ class WP_Sitemaps_Users extends WP_Sitemaps_Provider {
 	 * @param string $object_subtype Optional. Not applicable for Users but
 	 *                               required for compatibility with the parent
 	 *                               provider class. Default empty.
-	 * @return array $url_list Array of URLs for a sitemap.
+	 * @return array Array of URLs for a sitemap.
 	 */
 	public function get_url_list( $page_num, $object_subtype = '' ) {
 		/**
@@ -127,7 +127,7 @@ class WP_Sitemaps_Users extends WP_Sitemaps_Provider {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @return array $args Array of WP_User_Query arguments.
+	 * @return array Array of WP_User_Query arguments.
 	 */
 	protected function get_users_query_args() {
 		$public_post_types = get_post_types(

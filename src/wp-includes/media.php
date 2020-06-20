@@ -747,7 +747,7 @@ function wp_image_matches_ratio( $source_width, $source_height, $target_width, $
  * @param array|string $size    Optional. Image size. Accepts any valid image size, or an array
  *                              of width and height values in pixels (in that order).
  *                              Default 'thumbnail'.
- * @return array|false $data {
+ * @return array|false {
  *     Array of file relative path, width, and height on success. Additionally includes absolute
  *     path and URL if registered size is passed to $size parameter. False on failure.
  *
@@ -1586,7 +1586,7 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
  * @since 5.5.0
  *
  * @param string $tag_name The tag name.
- * @param string $context Additional context, like the current filter name or the function name from where this was called.
+ * @param string $context  Additional context, like the current filter name or the function name from where this was called.
  * @return bool Whether to add the attribute.
  */
 function wp_lazy_loading_enabled( $tag_name, $context ) {
@@ -1599,9 +1599,9 @@ function wp_lazy_loading_enabled( $tag_name, $context ) {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param bool   $default Default value.
+	 * @param bool   $default  Default value.
 	 * @param string $tag_name The tag name.
-	 * @param string $context Additional context, like the current filter name or the function name from where this was called.
+	 * @param string $context  Additional context, like the current filter name or the function name from where this was called.
 	 */
 	return (bool) apply_filters( 'wp_lazy_loading_enabled', $default, $tag_name, $context );
 }
@@ -4549,7 +4549,7 @@ function wp_register_media_personal_data_exporter( $exporters ) {
  *
  * @param  string $email_address The attachment owner email address.
  * @param  int    $page          Attachment page.
- * @return array  $return        An array of personal data.
+ * @return array An array of personal data.
  */
 function wp_media_personal_data_exporter( $email_address, $page = 1 ) {
 	// Limit us to 50 attachments at a time to avoid timing out.
