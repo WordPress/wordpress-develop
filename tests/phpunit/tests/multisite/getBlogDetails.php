@@ -143,6 +143,16 @@ if ( is_multisite() ) :
 		}
 
 		/**
+		 * @ticket 50391
+		 */
+		public function test_get_blog_details_does_not_switch_to_current_blog() {
+			$count = did_action( 'switch_blog' );
+
+			get_blog_details();
+			$this->assertSame( $count, did_action( 'switch_blog' ) );
+		}
+
+		/**
 		 * @dataProvider data_get_all
 		 *
 		 * @ticket 40228

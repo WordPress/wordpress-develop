@@ -1387,6 +1387,32 @@ if ( is_multisite() ) :
 		}
 
 		/**
+		 * @ticket 50324
+		 */
+		public function test_wp_insert_site_with_clean_site_cache() {
+			remove_action( 'wp_initialize_site', 'wp_initialize_site', 10 );
+
+			add_action( 'clean_site_cache', array( $this, 'action_database_insert_on_clean_site_cache' ) );
+
+			$site_id = wp_insert_site(
+				array(
+					'domain'     => 'valid-domain.com',
+					'path'       => '/valid-path/',
+					'network_id' => 1,
+				)
+			);
+
+			remove_action( 'clean_site_cache', array( $this, 'action_database_insert_on_clean_site_cache' ) );
+
+			$this->assertInternalType( 'integer', $site_id );
+
+		}
+
+		public function action_database_insert_on_clean_site_cache() {
+			update_site_option( 'database_write_test.' . time(), true );
+		}
+
+		/**
 		 * @ticket 40364
 		 */
 		public function test_wp_insert_site_empty_domain() {

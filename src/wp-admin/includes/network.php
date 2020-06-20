@@ -52,13 +52,15 @@ function allow_subdomain_install() {
  */
 function allow_subdirectory_install() {
 	global $wpdb;
-		/**
-		 * Filters whether to enable the subdirectory installation feature in Multisite.
-		 *
-		 * @since 3.0.0
-		 *
-		 * @param bool $allow Whether to enable the subdirectory installation feature in Multisite. Default is false.
-		 */
+
+	/**
+	 * Filters whether to enable the subdirectory installation feature in Multisite.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param bool $allow Whether to enable the subdirectory installation feature in Multisite.
+	 *                    Default false.
+	 */
 	if ( apply_filters( 'allow_subdirectory_install', false ) ) {
 		return true;
 	}
@@ -97,8 +99,9 @@ function get_clean_basedomain() {
 /**
  * Prints step 1 for Network installation process.
  *
- * @todo Realistically, step 1 should be a welcome screen explaining what a Network is and such. Navigating to Tools > Network
- *  should not be a sudden "Welcome to a new install process! Fill this out and click here." See also contextual help todo.
+ * @todo Realistically, step 1 should be a welcome screen explaining what a Network is and such.
+ *       Navigating to Tools > Network should not be a sudden "Welcome to a new install process!
+ *       Fill this out and click here." See also contextual help todo.
  *
  * @since 3.0.0
  *
@@ -110,7 +113,7 @@ function network_step1( $errors = false ) {
 	global $is_apache;
 
 	if ( defined( 'DO_NOT_UPGRADE_GLOBAL_TABLES' ) ) {
-		echo '<div class="error"><p><strong>' . __( 'Error:' ) . '</strong> ' . sprintf(
+		echo '<div class="error"><p>' . sprintf(
 			/* translators: %s: DO_NOT_UPGRADE_GLOBAL_TABLES */
 			__( 'The constant %s cannot be defined when creating a network.' ),
 			'<code>DO_NOT_UPGRADE_GLOBAL_TABLES</code>'
@@ -136,7 +139,7 @@ function network_step1( $errors = false ) {
 	$hostname  = get_clean_basedomain();
 	$has_ports = strstr( $hostname, ':' );
 	if ( ( false !== $has_ports && ! in_array( $has_ports, array( ':80', ':443' ), true ) ) ) {
-		echo '<div class="error"><p><strong>' . __( 'Error:' ) . '</strong> ' . __( 'You cannot install a network of sites with your server address.' ) . '</p></div>';
+		echo '<div class="error"><p><strong>' . __( 'You cannot install a network of sites with your server address.' ) . '</p></div>';
 		echo '<p>' . sprintf(
 			/* translators: %s: Port number. */
 			__( 'You cannot use port numbers such as %s.' ),
@@ -154,7 +157,7 @@ function network_step1( $errors = false ) {
 
 	$error_codes = array();
 	if ( is_wp_error( $errors ) ) {
-		echo '<div class="error"><p><strong>' . __( 'Error: The network could not be created.' ) . '</strong></p>';
+		echo '<div class="error"><p><strong>' . __( 'The network could not be created.' ) . '</strong></p>';
 		foreach ( $errors->get_error_messages() as $error ) {
 			echo "<p>$error</p>";
 		}

@@ -167,7 +167,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * @since 4.9.6
 	 *
 	 * @param int $expiration The expiration age of the export, in seconds.
-	 * @return int $expiration The expiration age of the export, in seconds.
+	 * @return int The expiration age of the export, in seconds.
 	 */
 	public function modify_export_expiration( $expiration ) {
 		// Set date to always be "Mon, 18 Dec 2017 21:30:00 GMT", so can assert a fixed date.
@@ -194,7 +194,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * @since 5.3.0
 	 *
 	 * @param  string $user_email The email address of the notification recipient.
-	 * @return string $user_email The modified email address of the notification recipient.
+	 * @return string The modified email address of the notification recipient.
 	 */
 	public function filter_email_address( $user_email ) {
 		return 'modified-' . $user_email;
@@ -220,7 +220,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * @since 5.3.0
 	 *
 	 * @param string $subject The email subject.
-	 * @return string $subject The email subject.
+	 * @return string The email subject.
 	 */
 	public function filter_email_subject( $subject ) {
 		return 'Modified subject';
@@ -246,7 +246,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 *
 	 * @param string $email_text Text in the email.
 	 * @param int    $request_id The request ID for this personal data export.
-	 * @return string $email_text Text in the email.
+	 * @return string Text in the email.
 	 */
 	public function modify_email_content( $email_text, $request_id ) {
 		return 'Custom content for request ID: ' . $request_id;
@@ -274,7 +274,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * @since 5.4.0
 	 *
 	 * @param string|array $headers The email headers.
-	 * @return array       $headers The new email headers.
+	 * @return array The new email headers.
 	 */
 	public function modify_email_headers( $headers ) {
 		$headers = array(
@@ -319,7 +319,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 *     @type string          $siteurl           The site URL sending the mail.
 	 * }
 	 *
-	 * @return string $email_text Text in the email.
+	 * @return string Text in the email.
 	 */
 	public function modify_email_content_with_email_data( $email_text, $request_id, $email_data ) {
 		return 'Custom content using the $site_url of $email_data: ' . $email_data['siteurl'];

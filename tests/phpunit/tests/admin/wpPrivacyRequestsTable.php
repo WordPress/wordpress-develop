@@ -21,7 +21,7 @@ class Tests_Admin_WpPrivacyRequestsTable extends WP_UnitTestCase {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @return PHPUnit_Framework_MockObject_MockObject|WP_Privacy_Requests_Table $instance Mocked class instance.
+	 * @return PHPUnit_Framework_MockObject_MockObject|WP_Privacy_Requests_Table Mocked class instance.
 	 */
 	public function get_mocked_class_instance() {
 		$args = array(
@@ -91,7 +91,7 @@ class Tests_Admin_WpPrivacyRequestsTable extends WP_UnitTestCase {
 	 * @since 5.1.0
 	 *
 	 * @param string $request The complete SQL query.
-	 * @return string $request The complete SQL query.
+	 * @return string The complete SQL query.
 	 */
 	public function filter_posts_request( $request ) {
 		$this->sql = $request;

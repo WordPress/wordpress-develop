@@ -47,6 +47,15 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	protected static $context_block_name = 'core/context-test-block';
 
 	/**
+	 * Non-dynamic block name.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @var string
+	 */
+	protected static $non_dynamic_block_name = 'core/non-dynamic';
+
+	/**
 	 * Test API user's ID.
 	 *
 	 * @since 5.0.0
@@ -117,6 +126,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	public function setUp() {
 		$this->register_test_block();
 		$this->register_post_context_test_block();
+		$this->register_non_dynamic_block();
 		parent::setUp();
 	}
 
@@ -128,6 +138,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	public function tearDown() {
 		WP_Block_Type_Registry::get_instance()->unregister( self::$block_name );
 		WP_Block_Type_Registry::get_instance()->unregister( self::$context_block_name );
+		WP_Block_Type_Registry::get_instance()->unregister( self::$non_dynamic_block_name );
 		parent::tearDown();
 	}
 
@@ -176,6 +187,15 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	}
 
 	/**
+	 * Registers the non-dynamic block name.
+	 *
+	 * @since 5.5.0
+	 */
+	protected function register_non_dynamic_block() {
+		register_block_type( self::$non_dynamic_block_name );
+	}
+
+	/**
 	 * Test render callback.
 	 *
 	 * @since 5.0.0
@@ -210,9 +230,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$this->assertContains( self::$block_name, $dynamic_block_names );
 
 		$routes = rest_get_server()->get_routes();
-		foreach ( $dynamic_block_names as $dynamic_block_name ) {
-			$this->assertArrayHasKey( self::$rest_api_route . "(?P<name>$dynamic_block_name)", $routes );
-		}
+		$this->assertArrayHasKey( self::$rest_api_route . '(?P<name>[a-z0-9-]+/[a-z0-9-]+)', $routes );
 	}
 
 	/**
@@ -261,7 +279,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+		$this->assertErrorResponse( 'block_invalid', $response, 404 );
 	}
 
 	/**
@@ -508,6 +526,19 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'block_cannot_read', $response, 403 );
+	}
+
+	/**
+	 * @ticket 48079
+	 */
+	public function test_get_item_non_dynamic_block() {
+		wp_set_current_user( self::$user_id );
+		$request = new WP_REST_Request( 'GET', self::$rest_api_route . self::$non_dynamic_block_name );
+
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'block_invalid', $response, 404 );
 	}
 
 	/**

@@ -420,8 +420,8 @@ function display_plugins_table() {
  *
  * @since 3.0.0
  *
- * @param  array|object $api  Data about the plugin retrieved from the API.
- * @param  bool         $loop Optional. Disable further loops. Default false.
+ * @param array|object $api  Data about the plugin retrieved from the API.
+ * @param bool         $loop Optional. Disable further loops. Default false.
  * @return array {
  *     Plugin installation status data.
  *
@@ -801,7 +801,7 @@ function install_plugin_information() {
 
 	if ( ! $compatible_php ) {
 		echo '<div class="notice notice-error notice-alt"><p>';
-		_e( '<strong>Error:</strong> This plugin <strong>requires a newer version of PHP</strong>.' );
+		_e( 'This plugin <strong>requires a newer version of PHP</strong>.' );
 		if ( current_user_can( 'update_php' ) ) {
 			printf(
 				/* translators: %s: URL to Update PHP page. */
@@ -822,7 +822,7 @@ function install_plugin_information() {
 		echo '</p></div>';
 	} elseif ( ! $compatible_wp ) {
 		echo '<div class="notice notice-error notice-alt"><p>';
-		_e( '<strong>Error:</strong> This plugin <strong>requires a newer version of WordPress</strong>.' );
+		_e( 'This plugin <strong>requires a newer version of WordPress</strong>.' );
 		if ( current_user_can( 'update_core' ) ) {
 			printf(
 				/* translators: %s: URL to WordPress Updates screen. */
