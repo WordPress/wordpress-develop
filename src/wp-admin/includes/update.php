@@ -987,12 +987,6 @@ function wp_get_auto_update_message() {
 		return __( 'There may be a problem with WP-Cron. Automatic update not scheduled.' );
 	}
 
-	// See if cron is disabled
-	$cron_disabled = defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON;
-	if ( $cron_disabled ) {
-		return __( 'WP-Cron is disabled. Automatic updates not available.' );
-	}
-
 	$time_to_next_update = human_time_diff( intval( $next_update_time ) );
 
 	// See if cron is overdue.
