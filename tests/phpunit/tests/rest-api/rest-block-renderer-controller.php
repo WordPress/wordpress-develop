@@ -47,7 +47,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	protected static $context_block_name = 'core/context-test-block';
 
 	/**
-	 * Non dynamic block name.
+	 * Non-dynamic block name.
 	 *
 	 * @since 5.5.0
 	 *
