@@ -49,7 +49,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @see   register_rest_route()
+	 * @see register_rest_route()
 	 */
 	public function register_routes() {
 
