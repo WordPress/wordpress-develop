@@ -59,7 +59,8 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 */
 	public function get_items_permissions_check( $request ) {
 		$registered = $this->get_collection_params();
-		if ( isset( $registered['status'], $request['status'] ) && in_array( 'active', $request['status'], true ) ) {
+
+		if ( isset( $registered['status'], $request['status'] ) && is_array( $request['status'] ) && array( 'active' ) === $request['status'] ) {
 			if ( current_user_can( 'edit_posts' ) ) {
 				return true;
 			}

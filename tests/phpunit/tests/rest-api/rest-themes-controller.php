@@ -221,10 +221,15 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 46723
+	 * @ticket 50152
+	 * @dataProvider data_theme_status
 	 */
-	public function test_get_items_logged_out() {
+	public function test_get_items_logged_out( $status ) {
 		wp_set_current_user( 0 );
-		$response = self::perform_active_theme_request();
+		$request = new WP_REST_Request( 'GET', self::$themes_route );
+		$request->set_param( 'status', $status );
+
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 401 );
 	}
 
@@ -232,10 +237,15 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 * An error should be returned when the user does not have the edit_posts capability.
 	 *
 	 * @ticket 45016
+	 * @ticket 50152
+	 * @dataProvider data_theme_status
 	 */
-	public function test_get_items_no_permission() {
+	public function test_get_items_no_permission( $status ) {
 		wp_set_current_user( self::$subscriber_id );
-		$response = self::perform_active_theme_request();
+		$request = new WP_REST_Request( 'GET', self::$themes_route );
+		$request->set_param( 'status', $status );
+
+		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 403 );
 	}
 
@@ -1120,4 +1130,14 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 * Context is not supported for themes.
 	 */
 	public function test_context_param() {}
+
+
+	public function data_theme_status(){
+		return array(
+			array('active'),
+			array('active, inactive'),
+			array( 'inactive' ),
+			array( '' ),
+		);
+	}
 }
