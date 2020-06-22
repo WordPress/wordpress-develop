@@ -309,7 +309,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 		 * @since 5.5.0
 		 *
 		 * @param WP_REST_Response $response   The response object.
-		 * @param object           $block_type The original block type object.
+		 * @param WP_Block_Type    $block_type The original block type object.
 		 * @param WP_REST_Request  $request    Request used to generate the response.
 		 */
 		return apply_filters( 'rest_prepare_block_type', $response, $block_type, $request );
