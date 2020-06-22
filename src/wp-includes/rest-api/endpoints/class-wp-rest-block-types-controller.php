@@ -219,7 +219,6 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 * @since 5.5.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 *
 	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
