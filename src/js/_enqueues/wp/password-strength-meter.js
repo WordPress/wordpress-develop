@@ -58,7 +58,14 @@ window.wp = window.wp || {};
 		 * @return {string[]} The array of words to be disallowed.
 		 */
 		userInputBlacklist : function() {
-			return wp.passwordStrength.userInputBlocklist();
+			wp.deprecated( 'wp.passwordStrength.userInputBlacklist()', {
+				version: '5.5.0',
+				alternative: 'wp.passwordStrength.userInputDisallowedList()',
+				plugin: 'WordPress',
+				hint: wp.i18n.__( 'Please consider writing more inclusive code.' )
+			} );
+
+			return wp.passwordStrength.userInputDisallowedList();
 		},
 
 		/**
@@ -72,7 +79,7 @@ window.wp = window.wp || {};
 		 *
 		 * @return {string[]} The array of words to be disallowed.
 		 */
-		userInputBlocklist : function() {
+		userInputDisallowedList : function() {
 			var i, userInputFieldsLength, rawValuesLength, currentField,
 				rawValues       = [],
 				disallowedList  = [],
