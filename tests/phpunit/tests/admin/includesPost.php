@@ -844,7 +844,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 				'category'    => 'common',
 				'icon'        => 'text',
 				'keywords'    => array(),
-				'supports'    => array(),
+				'usesContext' => array(),
 				'styles'      => array(),
 			),
 			$blocks[ $name ]
