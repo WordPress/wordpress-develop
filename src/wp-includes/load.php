@@ -548,7 +548,7 @@ function wp_set_wpdb_vars() {
 		wp_die(
 			sprintf(
 				/* translators: 1: $table_prefix, 2: wp-config.php */
-				__( '%1$s in %2$s can only contain numbers, letters, and underscores.' ),
+				__( '<strong>Error</strong>: %1$s in %2$s can only contain numbers, letters, and underscores.' ),
 				'<code>$table_prefix</code>',
 				'<code>wp-config.php</code>'
 			)
@@ -721,7 +721,7 @@ function wp_get_mu_plugins() {
  * @since 3.0.0
  * @access private
  *
- * @return string[] $plugin_file Array of paths to plugin files relative to the plugins directory.
+ * @return string[] Array of paths to plugin files relative to the plugins directory.
  */
 function wp_get_active_and_valid_plugins() {
 	$plugins        = array();
@@ -1206,8 +1206,6 @@ function get_current_network_id() {
  * @access private
  *
  * @global WP_Locale $wp_locale WordPress date and time locale object.
- *
- * @staticvar bool $loaded
  */
 function wp_load_translations_early() {
 	global $wp_locale;
@@ -1300,8 +1298,6 @@ function wp_load_translations_early() {
  *
  * @since 4.4.0
  *
- * @staticvar bool $installing
- *
  * @param bool $is_installing Optional. True to set WP into Installing mode, false to turn Installing mode off.
  *                            Omit this parameter if you only want to fetch the current status.
  * @return bool True if WP is installing, otherwise false. When a `$is_installing` is passed, the function will
@@ -1379,8 +1375,6 @@ function wp_convert_hr_to_bytes( $value ) {
  * Determines whether a PHP ini value is changeable at runtime.
  *
  * @since 4.6.0
- *
- * @staticvar array $ini_all
  *
  * @link https://www.php.net/manual/en/function.ini-get-all.php
  *

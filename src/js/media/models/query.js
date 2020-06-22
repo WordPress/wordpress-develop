@@ -94,7 +94,7 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	/**
 	 * Fetch more attachments from the server for the collection.
 	 *
-	 * @param   {object}  [options={}]
+	 * @param {object} [options={}]
 	 * @return {Promise}
 	 */
 	more: function( options ) {

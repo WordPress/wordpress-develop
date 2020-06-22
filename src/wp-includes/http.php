@@ -15,8 +15,6 @@
  * @since 2.7.0
  * @access private
  *
- * @staticvar WP_Http $http
- *
  * @return WP_Http HTTP Transport object.
  */
 function _wp_http_get_object() {
@@ -621,7 +619,6 @@ function allowed_http_request_hosts( $is_external, $host ) {
  * @since 3.6.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
- * @staticvar array $queried
  *
  * @param bool   $is_external
  * @param string $host

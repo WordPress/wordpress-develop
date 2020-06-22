@@ -30,7 +30,7 @@ if ( defined( 'WP_TESTS_CONFIG_FILE_PATH' ) ) {
 global $wpdb, $current_site, $current_blog, $wp_rewrite, $shortcode_tags, $wp, $phpmailer, $wp_theme_directories;
 
 if ( ! is_readable( $config_file_path ) ) {
-	echo "wp-tests-config.php is missing! Please use wp-tests-config-sample.php to create a config file.\n";
+	echo "Error: wp-tests-config.php is missing! Please use wp-tests-config-sample.php to create a config file.\n";
 	exit( 1 );
 }
 
@@ -39,7 +39,7 @@ require_once __DIR__ . '/functions.php';
 
 if ( version_compare( tests_get_phpunit_version(), '5.4', '<' ) || version_compare( tests_get_phpunit_version(), '8.0', '>=' ) ) {
 	printf(
-		"Looks like you're using PHPUnit %s. WordPress requires at least PHPUnit 5.4 and is currently only compatible with PHPUnit up to 7.x.\n",
+		"Error: Looks like you're using PHPUnit %s. WordPress requires at least PHPUnit 5.4 and is currently only compatible with PHPUnit up to 7.x.\n",
 		tests_get_phpunit_version()
 	);
 	echo "Please use the latest PHPUnit version from the 7.x branch.\n";
@@ -47,7 +47,7 @@ if ( version_compare( tests_get_phpunit_version(), '5.4', '<' ) || version_compa
 }
 
 if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && ! is_dir( ABSPATH ) ) {
-	echo "The /build/ directory is missing! Please run `npm run build` prior to running PHPUnit.\n";
+	echo "Error: The /build/ directory is missing! Please run `npm run build` prior to running PHPUnit.\n";
 	exit( 1 );
 }
 

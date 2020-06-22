@@ -154,10 +154,10 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
  * @since 2.0.0
  * @since 4.1.0 Refactored to leverage WP_Comment_Query over a direct query.
  *
- * @param  int   $post_id The ID of the post.
- * @param  array $args    Optional. See WP_Comment_Query::__construct() for information on accepted arguments.
- * @return int|array $comments The approved comments, or number of comments if `$count`
- *                             argument is true.
+ * @param int   $post_id The ID of the post.
+ * @param array $args    Optional. See WP_Comment_Query::__construct() for information on accepted arguments.
+ * @return int|array The approved comments, or number of comments if `$count`
+ *                   argument is true.
  */
 function get_approved_comments( $post_id, $args = array() ) {
 	if ( ! $post_id ) {
@@ -1243,19 +1243,19 @@ function wp_check_comment_data_max_lengths( $comment_data ) {
 	$max_lengths = wp_get_comment_fields_max_lengths();
 
 	if ( isset( $comment_data['comment_author'] ) && mb_strlen( $comment_data['comment_author'], '8bit' ) > $max_lengths['comment_author'] ) {
-		return new WP_Error( 'comment_author_column_length', __( 'Your name is too long.' ), 200 );
+		return new WP_Error( 'comment_author_column_length', __( '<strong>Error</strong>: Your name is too long.' ), 200 );
 	}
 
 	if ( isset( $comment_data['comment_author_email'] ) && strlen( $comment_data['comment_author_email'] ) > $max_lengths['comment_author_email'] ) {
-		return new WP_Error( 'comment_author_email_column_length', __( 'Your email address is too long.' ), 200 );
+		return new WP_Error( 'comment_author_email_column_length', __( '<strong>Error</strong>: Your email address is too long.' ), 200 );
 	}
 
 	if ( isset( $comment_data['comment_author_url'] ) && strlen( $comment_data['comment_author_url'] ) > $max_lengths['comment_author_url'] ) {
-		return new WP_Error( 'comment_author_url_column_length', __( 'Your URL is too long.' ), 200 );
+		return new WP_Error( 'comment_author_url_column_length', __( '<strong>Error</strong>: Your URL is too long.' ), 200 );
 	}
 
 	if ( isset( $comment_data['comment_content'] ) && mb_strlen( $comment_data['comment_content'], '8bit' ) > $max_lengths['comment_content'] ) {
-		return new WP_Error( 'comment_content_column_length', __( 'Your comment is too long.' ), 200 );
+		return new WP_Error( 'comment_content_column_length', __( '<strong>Error</strong>: Your comment is too long.' ), 200 );
 	}
 
 	return true;
@@ -1409,7 +1409,7 @@ function wp_count_comments( $post_id = 0 ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int|WP_Comment $comment_id   Comment ID or WP_Comment object.
- * @param bool           $force_delete Whether to bypass Trash and force deletion. Default is false.
+ * @param bool           $force_delete Whether to bypass Trash and force deletion. Default false.
  * @return bool True on success, false on failure.
  */
 function wp_delete_comment( $comment_id, $force_delete = false ) {
@@ -1473,6 +1473,7 @@ function wp_delete_comment( $comment_id, $force_delete = false ) {
 	do_action( 'wp_set_comment_status', $comment->comment_ID, 'delete' );
 
 	wp_transition_comment_status( 'delete', $comment->comment_approved, $comment );
+
 	return true;
 }
 
@@ -1523,6 +1524,7 @@ function wp_trash_comment( $comment_id ) {
 		 * @param WP_Comment $comment    The trashed comment.
 		 */
 		do_action( 'trashed_comment', $comment->comment_ID, $comment );
+
 		return true;
 	}
 
@@ -1562,6 +1564,7 @@ function wp_untrash_comment( $comment_id ) {
 	if ( wp_set_comment_status( $comment, $status ) ) {
 		delete_comment_meta( $comment->comment_ID, '_wp_trash_meta_time' );
 		delete_comment_meta( $comment->comment_ID, '_wp_trash_meta_status' );
+
 		/**
 		 * Fires immediately after a comment is restored from the Trash.
 		 *
@@ -1572,6 +1575,7 @@ function wp_untrash_comment( $comment_id ) {
 		 * @param WP_Comment $comment    The untrashed comment.
 		 */
 		do_action( 'untrashed_comment', $comment->comment_ID, $comment );
+
 		return true;
 	}
 
@@ -1608,6 +1612,7 @@ function wp_spam_comment( $comment_id ) {
 		delete_comment_meta( $comment->comment_ID, '_wp_trash_meta_time' );
 		add_comment_meta( $comment->comment_ID, '_wp_trash_meta_status', $comment->comment_approved );
 		add_comment_meta( $comment->comment_ID, '_wp_trash_meta_time', time() );
+
 		/**
 		 * Fires immediately after a comment is marked as Spam.
 		 *
@@ -1618,6 +1623,7 @@ function wp_spam_comment( $comment_id ) {
 		 * @param WP_Comment $comment    The comment marked as spam.
 		 */
 		do_action( 'spammed_comment', $comment->comment_ID, $comment );
+
 		return true;
 	}
 
@@ -1657,6 +1663,7 @@ function wp_unspam_comment( $comment_id ) {
 	if ( wp_set_comment_status( $comment, $status ) ) {
 		delete_comment_meta( $comment->comment_ID, '_wp_trash_meta_status' );
 		delete_comment_meta( $comment->comment_ID, '_wp_trash_meta_time' );
+
 		/**
 		 * Fires immediately after a comment is unmarked as Spam.
 		 *
@@ -1667,6 +1674,7 @@ function wp_unspam_comment( $comment_id ) {
 		 * @param WP_Comment $comment    The comment unmarked as spam.
 		 */
 		do_action( 'unspammed_comment', $comment->comment_ID, $comment );
+
 		return true;
 	}
 
@@ -2000,7 +2008,7 @@ function wp_insert_comment( $commentdata ) {
 function wp_filter_comment( $commentdata ) {
 	if ( isset( $commentdata['user_ID'] ) ) {
 		/**
-		 * Filters the comment author's user id before it is set.
+		 * Filters the comment author's user ID before it is set.
 		 *
 		 * The first time this filter is evaluated, 'user_ID' is checked
 		 * (for back-compat), followed by the standard 'user_id' value.
@@ -2294,7 +2302,7 @@ function wp_new_comment_notify_postauthor( $comment_ID ) {
  *
  * @param int|WP_Comment $comment_id     Comment ID or WP_Comment object.
  * @param string         $comment_status New comment status, either 'hold', 'approve', 'spam', or 'trash'.
- * @param bool           $wp_error       Whether to return a WP_Error object if there is a failure. Default is false.
+ * @param bool           $wp_error       Whether to return a WP_Error object if there is a failure. Default false.
  * @return bool|WP_Error True on success, false or WP_Error on failure.
  */
 function wp_set_comment_status( $comment_id, $comment_status, $wp_error = false ) {
@@ -2442,6 +2450,7 @@ function wp_update_comment( $commentarr ) {
 
 	clean_comment_cache( $comment_ID );
 	wp_update_comment_count( $comment_post_ID );
+
 	/**
 	 * Fires immediately after a comment is updated in the database.
 	 *
@@ -2454,8 +2463,11 @@ function wp_update_comment( $commentarr ) {
 	 * @param array $data       Comment data.
 	 */
 	do_action( 'edit_comment', $comment_ID, $data );
+
 	$comment = get_comment( $comment_ID );
+
 	wp_transition_comment_status( $comment->comment_approved, $old_status, $comment );
+
 	return $rval;
 }
 
@@ -2468,8 +2480,6 @@ function wp_update_comment( $commentarr ) {
  * updated without having to call wp_update_comment_count() after.
  *
  * @since 2.5.0
- *
- * @staticvar bool $_defer
  *
  * @param bool $defer
  * @return bool
@@ -2502,8 +2512,6 @@ function wp_defer_comment_counting( $defer = null ) {
  * @since 2.1.0
  *
  * @see wp_update_comment_count_now() For what could cause a false return value
- *
- * @staticvar array $_deferred
  *
  * @param int|null $post_id     Post ID.
  * @param bool     $do_deferred Optional. Whether to process previously deferred
@@ -3405,9 +3413,9 @@ function wp_handle_comment_submission( $comment_data ) {
 
 	if ( get_option( 'require_name_email' ) && ! $user->exists() ) {
 		if ( '' == $comment_author_email || '' == $comment_author ) {
-			return new WP_Error( 'require_name_email', __( 'Please fill the required fields (name, email).' ), 200 );
+			return new WP_Error( 'require_name_email', __( '<strong>Error</strong>: Please fill the required fields (name, email).' ), 200 );
 		} elseif ( ! is_email( $comment_author_email ) ) {
-			return new WP_Error( 'require_valid_email', __( 'Please enter a valid email address.' ), 200 );
+			return new WP_Error( 'require_valid_email', __( '<strong>Error</strong>: Please enter a valid email address.' ), 200 );
 		}
 	}
 
@@ -3432,7 +3440,7 @@ function wp_handle_comment_submission( $comment_data ) {
 	 */
 	$allow_empty_comment = apply_filters( 'allow_empty_comment', false, $commentdata );
 	if ( '' === $comment_content && ! $allow_empty_comment ) {
-		return new WP_Error( 'require_valid_comment', __( 'Please type your comment text.' ), 200 );
+		return new WP_Error( 'require_valid_comment', __( '<strong>Error</strong>: Please type your comment text.' ), 200 );
 	}
 
 	$check_max_lengths = wp_check_comment_data_max_lengths( $commentdata );
@@ -3446,7 +3454,7 @@ function wp_handle_comment_submission( $comment_data ) {
 	}
 
 	if ( ! $comment_id ) {
-		return new WP_Error( 'comment_save_error', __( 'The comment could not be saved. Please try again later.' ), 500 );
+		return new WP_Error( 'comment_save_error', __( '<strong>Error</strong>: The comment could not be saved. Please try again later.' ), 500 );
 	}
 
 	return get_comment( $comment_id );
@@ -3567,7 +3575,7 @@ function wp_comments_personal_data_exporter( $email_address, $page = 1 ) {
  *
  * @since 4.9.6
  *
- * @param  array $erasers An array of personal data erasers.
+ * @param array $erasers An array of personal data erasers.
  * @return array An array of personal data erasers.
  */
 function wp_register_comment_personal_data_eraser( $erasers ) {
@@ -3584,8 +3592,8 @@ function wp_register_comment_personal_data_eraser( $erasers ) {
  *
  * @since 4.9.6
  *
- * @param  string $email_address The comment author email address.
- * @param  int    $page          Comment page.
+ * @param string $email_address The comment author email address.
+ * @param int    $page          Comment page.
  * @return array
  */
 function wp_comments_personal_data_eraser( $email_address, $page = 1 ) {

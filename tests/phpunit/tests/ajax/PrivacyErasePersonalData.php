@@ -784,7 +784,7 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 * @param  string $email_address The comment author email address.
 	 * @param  int    $page          Page number.
 	 *
-	 * @return array  $return Erase data.
+	 * @return array Erase data.
 	 */
 	public function callback_personal_data_eraser( $email_address, $page = 1 ) {
 		if ( 1 === $page ) {

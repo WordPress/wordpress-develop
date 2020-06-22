@@ -983,7 +983,7 @@ function update_meta_cache( $meta_type, $object_ids ) {
  *
  * @since 4.5.0
  *
- * @return WP_Metadata_Lazyloader $lazyloader Metadata lazyloader queue.
+ * @return WP_Metadata_Lazyloader Metadata lazyloader queue.
  */
 function wp_metadata_lazyloader() {
 	static $wp_metadata_lazyloader;
@@ -1464,7 +1464,7 @@ function get_object_subtype( $object_type, $object_id ) {
 	}
 
 	/**
-	 * Filters the object subtype identifier for a non standard object type.
+	 * Filters the object subtype identifier for a non-standard object type.
 	 *
 	 * The dynamic portion of the hook, `$object_type`, refers to the object
 	 * type (post, comment, term, or user).

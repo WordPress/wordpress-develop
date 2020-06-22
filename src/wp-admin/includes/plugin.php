@@ -677,7 +677,7 @@ function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silen
 			 *
 			 * @param string $plugin       Path to the plugin file relative to the plugins directory.
 			 * @param bool   $network_wide Whether to enable the plugin for all sites in the network
-			 *                             or just the current site. Multisite only. Default is false.
+			 *                             or just the current site. Multisite only. Default false.
 			 */
 			do_action( 'activate_plugin', $plugin, $network_wide );
 
@@ -692,7 +692,7 @@ function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silen
 			 * @since 2.0.0
 			 *
 			 * @param bool $network_wide Whether to enable the plugin for all sites in the network
-			 *                           or just the current site. Multisite only. Default is false.
+			 *                           or just the current site. Multisite only. Default false.
 			 */
 			do_action( "activate_{$plugin}", $network_wide );
 		}
@@ -719,7 +719,7 @@ function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silen
 			 *
 			 * @param string $plugin       Path to the plugin file relative to the plugins directory.
 			 * @param bool   $network_wide Whether to enable the plugin for all sites in the network
-			 *                             or just the current site. Multisite only. Default is false.
+			 *                             or just the current site. Multisite only. Default false.
 			 */
 			do_action( 'activated_plugin', $plugin, $network_wide );
 		}
@@ -1153,7 +1153,7 @@ function validate_plugin_requirements( $plugin ) {
 			'plugin_wp_php_incompatible',
 			sprintf(
 				/* translators: %s: Plugin name. */
-				_x( 'Current WordPress and PHP versions do not meet minimum requirements for %s.', 'plugin' ),
+				_x( '<strong>Error:</strong> Current WordPress and PHP versions do not meet minimum requirements for %s.', 'plugin' ),
 				$plugin_headers['Name']
 			)
 		);
@@ -1162,7 +1162,7 @@ function validate_plugin_requirements( $plugin ) {
 			'plugin_php_incompatible',
 			sprintf(
 				/* translators: %s: Plugin name. */
-				_x( 'Current PHP version does not meet minimum requirements for %s.', 'plugin' ),
+				_x( '<strong>Error:</strong> Current PHP version does not meet minimum requirements for %s.', 'plugin' ),
 				$plugin_headers['Name']
 			)
 		);
@@ -1171,7 +1171,7 @@ function validate_plugin_requirements( $plugin ) {
 			'plugin_wp_incompatible',
 			sprintf(
 				/* translators: %s: Plugin name. */
-				_x( 'Current WordPress version does not meet minimum requirements for %s.', 'plugin' ),
+				_x( '<strong>Error:</strong> Current WordPress version does not meet minimum requirements for %s.', 'plugin' ),
 				$plugin_headers['Name']
 			)
 		);

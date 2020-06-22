@@ -47,7 +47,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	protected static $context_block_name = 'core/context-test-block';
 
 	/**
-	 * Non dynamic block name.
+	 * Non-dynamic block name.
 	 *
 	 * @since 5.5.0
 	 *
@@ -422,25 +422,6 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$this->assertEquals( '<p>Alternate content.</p>', $data['rendered'] );
 
 		remove_filter( 'pre_render_block', $pre_render_filter );
-	}
-
-	/**
-	 * Check success response for getting item with layout attribute provided.
-	 *
-	 * @ticket 45098
-	 */
-	public function test_get_item_with_layout() {
-		wp_set_current_user( self::$user_id );
-
-		$attributes = array(
-			'layout' => 'foo',
-		);
-
-		$request = new WP_REST_Request( 'GET', self::$rest_api_route . self::$block_name );
-		$request->set_param( 'context', 'edit' );
-		$request->set_param( 'attributes', $attributes );
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
 	}
 
 	/**
