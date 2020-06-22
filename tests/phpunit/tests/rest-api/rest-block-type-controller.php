@@ -208,24 +208,25 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_get_item_invalid() {
 		$block_type = 'fake/invalid';
-		$settings = array(
-			'title'            => array( 'invalid_title' ),
-			'description'      => array( 'invalid_description' ),
-			'icon'             => array( 'invalid_icon' ),
+		$settings   = array(
+			'title'            => true,
+			'description'      => true,
+			'icon'             => true,
 			'attributes'       => 'invalid_attributes',
 			'provides_context' => 'invalid_provides_context',
 			'uses_context'     => 'invalid_uses_context',
-			'category'         => false,
-			'editor_script'    => array( 'invalid_editor_script' ),
-			'script'           => array( 'invalid_script' ),
-			'editor_style'     => array( 'invalid_editor_style' ),
-			'style'            => array( 'invalid_style' ),
+			'category'         => true,
+			'editor_script'    => true,
+			'script'           => true,
+			'editor_style'     => true,
+			'style'            => true,
 			'keywords'         => 'invalid_keywords',
+			'example'          => 'invalid_example',
 			'parent'           => 'invalid_parent',
 			'supports'         => 'invalid_supports',
 			'styles'           => 'invalid_styles',
 			'render_callback'  => 'invalid_callback',
-			'textdomain'       => array( 'invalid_textdomain' ),
+			'textdomain'       => true,
 		);
 		register_block_type( $block_type, $settings );
 		wp_set_current_user( self::$admin_id );
@@ -233,20 +234,72 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( $block_type, $data['name'] );
-		$this->assertEquals( 'invalid_title', $data['title'] );
-		$this->assertEquals( 'invalid_description', $data['description'] );
-		$this->assertEquals( 'invalid_icon', $data['icon'] );
-		$this->assertEquals( 'editor_script', $data['invalid_editor_script'] );
-		$this->assertEquals( 'script', $data['invalid_script'] );
-		$this->assertEquals( 'editor_style', $data['invalid_editor_style'] );
-		$this->assertEquals( 'style', $data['invalid_style'] );
+		$this->assertEquals( '1', $data['title'] );
+		$this->assertEquals( '1', $data['description'] );
+		$this->assertEquals( '1', $data['icon'] );
+		$this->assertEquals( '1', $data['editor_script'] );
+		$this->assertEquals( '1', $data['script'] );
+		$this->assertEquals( '1', $data['editor_style'] );
+		$this->assertEquals( '1', $data['style'] );
 		$this->assertEqualSets( array( 'invalid_provides_context' ), $data['provides_context'] );
 		$this->assertEqualSets( array( 'invalid_uses_context' ), $data['uses_context'] );
 		$this->assertEqualSets( array( 'invalid_keywords' ), $data['keywords'] );
+		$this->assertEqualSets( array( 'invalid_example' ), $data['example'] );
 		$this->assertEqualSets( array( 'invalid_parent' ), $data['parent'] );
 		$this->assertEqualSets( array(), $data['supports'] );
 		$this->assertEqualSets( array(), $data['styles'] );
+		$this->assertEquals( '1', $data['category'] );
+		$this->assertEquals( null, $data['textdomain'] );
+		$this->assertFalse( false, $data['is_dynamic'] );
+	}
+
+	/**
+	 * @ticket 47620
+	 */
+	public function test_get_item_defaults() {
+		$block_type = 'fake/false';
+		$settings   = array(
+			'title'            => false,
+			'description'      => false,
+			'icon'             => false,
+			'attributes'       => false,
+			'provides_context' => false,
+			'uses_context'     => false,
+			'category'         => false,
+			'editor_script'    => false,
+			'script'           => false,
+			'editor_style'     => false,
+			'style'            => false,
+			'keywords'         => false,
+			'parent'           => false,
+			'supports'         => false,
+			'styles'           => false,
+			'render_callback'  => false,
+			'textdomain'       => false,
+			'example'          => false,
+		);
+		register_block_type( $block_type, $settings );
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertEquals( $block_type, $data['name'] );
+		$this->assertEquals( '', $data['title'] );
+		$this->assertEquals( '', $data['description'] );
+		$this->assertEquals( null, $data['icon'] );
+		$this->assertEquals( null, $data['editor_script'] );
+		$this->assertEquals( null, $data['script'] );
+		$this->assertEquals( null, $data['editor_style'] );
+		$this->assertEquals( null, $data['style'] );
+		$this->assertEqualSets( array(), $data['provides_context'] );
+		$this->assertEqualSets( array(), $data['uses_context'] );
+		$this->assertEqualSets( array(), $data['keywords'] );
+		$this->assertEqualSets( array(), $data['parent'] );
+		$this->assertEqualSets( array(), $data['example'] );
+		$this->assertEqualSets( array(), $data['supports'] );
+		$this->assertEqualSets( array(), $data['styles'] );
 		$this->assertEquals( null, $data['category'] );
+		$this->assertEquals( null, $data['example'] );
 		$this->assertEquals( null, $data['textdomain'] );
 		$this->assertFalse( false, $data['is_dynamic'] );
 	}
