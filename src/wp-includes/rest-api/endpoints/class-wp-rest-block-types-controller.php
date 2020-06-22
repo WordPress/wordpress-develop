@@ -537,13 +537,13 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 * @return array Collection parameters.
 	 */
 	public function get_collection_params() {
-		$new_params              = array();
-		$new_params['context']   = $this->get_context_param( array( 'default' => 'view' ) );
-		$new_params['namespace'] = array(
-			'description' => __( 'Block namespace.' ),
-			'type'        => 'string',
+		return array(
+			'context'        => $this->get_context_param( array( 'default' => 'view' ) ),
+			'namespace' => array(
+				'description' => __( 'Block namespace.' ),
+				'type'        => 'string',
+			),
 		);
-		return $new_params;
 	}
 
 }
