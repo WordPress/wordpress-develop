@@ -137,7 +137,7 @@ mockedApiResponse.Schema = {
                         "discover": {
                             "required": false,
                             "default": true,
-                            "description": "Whether to perform an oEmbed discovery request for non-whitelisted providers.",
+                            "description": "Whether to perform an oEmbed discovery request for unsanctioned providers.",
                             "type": "boolean"
                         }
                     }
@@ -4702,7 +4702,7 @@ mockedApiResponse.oembed = {
                         "discover": {
                             "required": false,
                             "default": true,
-                            "description": "Whether to perform an oEmbed discovery request for non-whitelisted providers.",
+                            "description": "Whether to perform an oEmbed discovery request for unsanctioned providers.",
                             "type": "boolean"
                         }
                     }
