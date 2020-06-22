@@ -160,7 +160,6 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 * @since 5.5.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 *
 	 * @return WP_Error|bool True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
