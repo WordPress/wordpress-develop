@@ -323,7 +323,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param WP_Block_Type $block_type block type data.
+	 * @param WP_Block_Type $block_type Block type data.
 	 * @return array Links for the given block type.
 	 */
 	protected function prepare_links( $block_type ) {
