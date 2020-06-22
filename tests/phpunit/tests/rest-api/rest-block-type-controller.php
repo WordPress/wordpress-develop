@@ -208,12 +208,24 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_get_item_invalid() {
 		$block_type = 'fake/invalid';
-		$settings   = array(
-			'keywords'        => 'invalid_keywords',
-			'parent'          => 'invalid_parent',
-			'supports'        => 'invalid_supports',
-			'styleVariations' => 'invalid_styles',
-			'render_callback' => 'invalid_callback',
+		$settings = array(
+			'title'            => array( 'invalid_title' ),
+			'description'      => array( 'invalid_description' ),
+			'icon'             => array( 'invalid_icon' ),
+			'attributes'       => 'invalid_attributes',
+			'provides_context' => 'invalid_provides_context',
+			'uses_context'     => 'invalid_uses_context',
+			'category'         => false,
+			'editor_script'    => array( 'invalid_editor_script' ),
+			'script'           => array( 'invalid_script' ),
+			'editor_style'     => array( 'invalid_editor_style' ),
+			'style'            => array( 'invalid_style' ),
+			'keywords'         => 'invalid_keywords',
+			'parent'           => 'invalid_parent',
+			'supports'         => 'invalid_supports',
+			'styles'           => 'invalid_styles',
+			'render_callback'  => 'invalid_callback',
+			'textdomain'       => array( 'invalid_textdomain' ),
 		);
 		register_block_type( $block_type, $settings );
 		wp_set_current_user( self::$admin_id );
@@ -221,11 +233,22 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( $block_type, $data['name'] );
+		$this->assertEquals( 'invalid_title', $data['title'] );
+		$this->assertEquals( 'invalid_description', $data['description'] );
+		$this->assertEquals( 'invalid_icon', $data['icon'] );
+		$this->assertEquals( 'editor_script', $data['invalid_editor_script'] );
+		$this->assertEquals( 'script', $data['invalid_script'] );
+		$this->assertEquals( 'editor_style', $data['invalid_editor_style'] );
+		$this->assertEquals( 'style', $data['invalid_style'] );
+		$this->assertEqualSets( array( 'invalid_provides_context' ), $data['provides_context'] );
+		$this->assertEqualSets( array( 'invalid_uses_context' ), $data['uses_context'] );
 		$this->assertEqualSets( array( 'invalid_keywords' ), $data['keywords'] );
 		$this->assertEqualSets( array( 'invalid_parent' ), $data['parent'] );
 		$this->assertEqualSets( array(), $data['supports'] );
 		$this->assertEqualSets( array(), $data['styles'] );
-		$this->assertEquals( false, $data['is_dynamic'] );
+		$this->assertEquals( null, $data['category'] );
+		$this->assertEquals( null, $data['textdomain'] );
+		$this->assertFalse( false, $data['is_dynamic'] );
 	}
 
 	/**
