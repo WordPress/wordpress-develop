@@ -1132,10 +1132,10 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_context_param() {}
 
 
-	public function data_theme_status(){
+	public function data_theme_status() {
 		return array(
-			array('active'),
-			array('active, inactive'),
+			array( 'active' ),
+			array( 'active, inactive' ),
 			array( 'inactive' ),
 			array( '' ),
 		);
