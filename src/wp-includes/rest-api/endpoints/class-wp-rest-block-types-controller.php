@@ -116,7 +116,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_Error|bool True if the request has read access, WP_Error object otherwise.
 	 */
-	public function get_items_permissions_check( $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+	public function get_items_permissions_check( $request ) {
 		return $this->check_read_permission();
 	}
 
@@ -339,7 +339,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 		);
 
 		if ( $block_type->is_dynamic() ) {
-			$links['https://api.w.org/render-block']['href'] = add_query_arg( 'context', 'edit', rest_url( sprintf( '%s/%s/%s', 'wp/v2', 'block-renderer', $block_type->name ) ) );
+			$links['https://api.w.org/render-block']['href'][] = add_query_arg( 'context', 'edit', rest_url( sprintf( '%s/%s/%s', 'wp/v2', 'block-renderer', $block_type->name ) ) );
 		}
 
 		return $links;
@@ -432,7 +432,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 				),
 				'category'         => array(
 					'description' => __( 'Block category.' ),
-					'type'        => array( 'string', null ),
+					'type'        => array( 'string', 'null' ),
 					'default'     => null,
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
@@ -446,28 +446,28 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 				),
 				'editor_script'    => array(
 					'description' => __( 'Editor script handle.' ),
-					'type'        => array( 'string', null ),
+					'type'        => array( 'string', 'null' ),
 					'default'     => null,
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'script'           => array(
 					'description' => __( 'Public facing script handle.' ),
-					'type'        => array( 'string', null ),
+					'type'        => array( 'string', 'null' ),
 					'default'     => null,
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'editor_style'     => array(
 					'description' => __( 'Editor style handle.' ),
-					'type'        => array( 'string', null ),
+					'type'        => array( 'string', 'null' ),
 					'default'     => null,
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'style'            => array(
 					'description' => __( 'Public facing style handle.' ),
-					'type'        => array( 'string', null ),
+					'type'        => array( 'string', 'null' ),
 					'default'     => null,
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
@@ -538,7 +538,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 */
 	public function get_collection_params() {
 		return array(
-			'context'        => $this->get_context_param( array( 'default' => 'view' ) ),
+			'context'   => $this->get_context_param( array( 'default' => 'view' ) ),
 			'namespace' => array(
 				'description' => __( 'Block namespace.' ),
 				'type'        => 'string',
