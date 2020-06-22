@@ -38,8 +38,7 @@ final class WP_Block_Patterns_Registry {
 	 */
 	public function register( $pattern_name, $pattern_properties ) {
 		if ( ! isset( $pattern_name ) || ! is_string( $pattern_name ) ) {
-			$message = __( 'Pattern name must be a string.' );
-			_doing_it_wrong( __METHOD__, $message, '5.5.0' );
+			_doing_it_wrong( __METHOD__, s__( 'Pattern name must be a string.' ), '5.5.0' );
 			return false;
 		}
 
@@ -56,7 +55,7 @@ final class WP_Block_Patterns_Registry {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param string $pattern_name     Pattern name including namespace.
+	 * @param string $pattern_name Pattern name including namespace.
 	 * @return boolean True if the pattern was unregistered with success and false otherwise.
 	 */
 	public function unregister( $pattern_name ) {
@@ -77,7 +76,7 @@ final class WP_Block_Patterns_Registry {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param string $pattern_name       Pattern name including namespace.
+	 * @param string $pattern_name Pattern name including namespace.
 	 * @return array Registered pattern properties.
 	 */
 	public function get_registered( $pattern_name ) {
@@ -105,7 +104,7 @@ final class WP_Block_Patterns_Registry {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param string $pattern_name       Pattern name including namespace.
+	 * @param string $pattern_name Pattern name including namespace.
 	 * @return bool True if the pattern is registered, false otherwise.
 	 */
 	public function is_registered( $pattern_name ) {
@@ -137,7 +136,6 @@ final class WP_Block_Patterns_Registry {
  *
  * @param string $pattern_name       Pattern name including namespace.
  * @param array  $pattern_properties Array containing the properties of the pattern.
- *
  * @return boolean True if the pattern was registered with success and false otherwise.
  */
 function register_block_pattern( $pattern_name, $pattern_properties ) {
@@ -150,7 +148,6 @@ function register_block_pattern( $pattern_name, $pattern_properties ) {
  * @since 5.5.0
  *
  * @param string $pattern_name       Pattern name including namespace.
- *
  * @return boolean True if the pattern was unregistered with success and false otherwise.
  */
 function unregister_block_pattern( $pattern_name ) {
