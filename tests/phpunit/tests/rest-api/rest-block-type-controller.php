@@ -236,7 +236,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( $block_type, $data['name'] );
 		$this->assertEquals( '1', $data['title'] );
 		$this->assertEquals( '1', $data['description'] );
-		$this->assertEquals( '1', $data['icon'] );
+		$this->assertEquals( null, $data['icon'] );
 		$this->assertEquals( '1', $data['editor_script'] );
 		$this->assertEquals( '1', $data['script'] );
 		$this->assertEquals( '1', $data['editor_style'] );
@@ -295,9 +295,9 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertEqualSets( array(), $data['uses_context'] );
 		$this->assertEqualSets( array(), $data['keywords'] );
 		$this->assertEqualSets( array(), $data['parent'] );
-		$this->assertEqualSets( array(), $data['example'] );
 		$this->assertEqualSets( array(), $data['supports'] );
 		$this->assertEqualSets( array(), $data['styles'] );
+		$this->assertEquals( null, $data['example'] );
 		$this->assertEquals( null, $data['category'] );
 		$this->assertEquals( null, $data['example'] );
 		$this->assertEquals( null, $data['textdomain'] );
