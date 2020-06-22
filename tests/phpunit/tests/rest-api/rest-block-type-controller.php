@@ -237,10 +237,10 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( '1', $data['title'] );
 		$this->assertEquals( '1', $data['description'] );
 		$this->assertEquals( null, $data['icon'] );
-		$this->assertEquals( '1', $data['editor_script'] );
-		$this->assertEquals( '1', $data['script'] );
-		$this->assertEquals( '1', $data['editor_style'] );
-		$this->assertEquals( '1', $data['style'] );
+		$this->assertEquals( null, $data['editor_script'] );
+		$this->assertEquals( null, $data['script'] );
+		$this->assertEquals( null, $data['editor_style'] );
+		$this->assertEquals( null, $data['style'] );
 		$this->assertEqualSets( array( 'invalid_provides_context' ), $data['provides_context'] );
 		$this->assertEqualSets( array( 'invalid_uses_context' ), $data['uses_context'] );
 		$this->assertEqualSets( array( 'invalid_keywords' ), $data['keywords'] );
@@ -248,7 +248,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertEqualSets( array( 'invalid_parent' ), $data['parent'] );
 		$this->assertEqualSets( array(), $data['supports'] );
 		$this->assertEqualSets( array(), $data['styles'] );
-		$this->assertEquals( '1', $data['category'] );
+		$this->assertEquals( null, $data['category'] );
 		$this->assertEquals( null, $data['textdomain'] );
 		$this->assertFalse( false, $data['is_dynamic'] );
 	}
