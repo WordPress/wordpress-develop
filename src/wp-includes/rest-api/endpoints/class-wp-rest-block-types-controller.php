@@ -10,7 +10,9 @@
 /**
  * Core class used to access block types via the REST API.
  *
- * @see   WP_REST_Controller
+ * @since 5.0.0
+ *
+ * @see WP_REST_Controller
  */
 class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 
