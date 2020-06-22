@@ -241,13 +241,21 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( null, $data['script'] );
 		$this->assertEquals( null, $data['editor_style'] );
 		$this->assertEquals( null, $data['style'] );
-		$this->assertEqualSets( array( 'invalid_provides_context' ), $data['provides_context'] );
+		$this->assertEqualSets( array(), $data['provides_context'] );
+		$this->assertEqualSets(
+			array(
+				'layout' => array(
+					'type' => 'string',
+				),
+			),
+			$data['attributes']
+		);
 		$this->assertEqualSets( array( 'invalid_uses_context' ), $data['uses_context'] );
 		$this->assertEqualSets( array( 'invalid_keywords' ), $data['keywords'] );
-		$this->assertEqualSets( array( 'invalid_example' ), $data['example'] );
 		$this->assertEqualSets( array( 'invalid_parent' ), $data['parent'] );
 		$this->assertEqualSets( array(), $data['supports'] );
-		$this->assertEqualSets( array(), $data['styles'] );
+		$this->assertEqualSets( array( 'invalid_styles' ), $data['styles'] );
+		$this->assertEquals( null, $data['example'] );
 		$this->assertEquals( null, $data['category'] );
 		$this->assertEquals( null, $data['textdomain'] );
 		$this->assertFalse( false, $data['is_dynamic'] );
@@ -291,6 +299,14 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( null, $data['script'] );
 		$this->assertEquals( null, $data['editor_style'] );
 		$this->assertEquals( null, $data['style'] );
+		$this->assertEqualSets(
+			array(
+				'layout' => array(
+					'type' => 'string',
+				),
+			),
+			$data['attributes']
+		);
 		$this->assertEqualSets( array(), $data['provides_context'] );
 		$this->assertEqualSets( array(), $data['uses_context'] );
 		$this->assertEqualSets( array(), $data['keywords'] );
