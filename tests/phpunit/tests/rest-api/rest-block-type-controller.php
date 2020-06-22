@@ -237,7 +237,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 17, $properties );
+		$this->assertCount( 19, $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'icon', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
@@ -255,6 +255,8 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'style', $properties );
 		$this->assertArrayHasKey( 'parent', $properties );
 		$this->assertArrayHasKey( 'example', $properties );
+		$this->assertArrayHasKey( 'uses_context', $properties );
+		$this->assertArrayHasKey( 'provides_context', $properties );
 	}
 
 	/**
@@ -352,21 +354,23 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( $data['is_dynamic'], $block_type->is_dynamic() );
 
 		$extra_fields = array(
-			'name'          => 'name',
-			'category'      => 'category',
-			'editor_script' => 'editor_script',
-			'script'        => 'script',
-			'editor_style'  => 'editor_style',
-			'style'         => 'style',
-			'supports'      => 'supports',
-			'title'         => 'title',
-			'icon'          => 'icon',
-			'description'   => 'description',
-			'keywords'      => 'keywords',
-			'parent'        => 'parent',
-			'styles'        => 'styles',
-			'textdomain'    => 'textdomain',
-			'example'       => 'example',
+			'name'             => 'name',
+			'category'         => 'category',
+			'editor_script'    => 'editor_script',
+			'script'           => 'script',
+			'editor_style'     => 'editor_style',
+			'style'            => 'style',
+			'title'            => 'title',
+			'icon'             => 'icon',
+			'description'      => 'description',
+			'keywords'         => 'keywords',
+			'parent'           => 'parent',
+			'provides_context' => 'provides_context',
+			'uses_context'     => 'uses_context',
+			'supports'         => 'supports',
+			'styles'           => 'styles',
+			'textdomain'       => 'textdomain',
+			'example'          => 'example',
 		);
 
 		foreach ( $extra_fields as $key => $extra_field ) {
