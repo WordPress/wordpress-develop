@@ -4001,7 +4001,7 @@ function wp_unregister_GLOBALS() {  // phpcs:ignore WordPress.NamingConventions.
  *
  * @since 1.5.0
  * @deprecated 5.5.0 Use wp_blocklist_check() instead.
- *                   Please join us in writing more inclusive code.
+ *                   Please consider writing more inclusive code.
  *
  * @param string $author The author of the comment
  * @param string $email The email of the comment
@@ -4026,7 +4026,7 @@ function wp_blacklist_check( $author, $email, $url, $comment, $user_ip, $user_ag
  * @access private
  * @since 4.6.0
  * @deprecated 5.5.0 Use _wp_register_meta_args_allowed_list() instead.
- *                   Please join us in writing more inclusive code.
+ *                   Please consider writing more inclusive code.
  *
  * @param array $args         Arguments from `register_meta()`.
  * @param array $default_args Default arguments for `register_meta()`.
@@ -4043,7 +4043,7 @@ function _wp_register_meta_args_whitelist( $args, $default_args ) {
  *
  * @since 2.7.0
  * @deprecated 5.5.0 Use add_option_allowed_list() instead.
- *                   Please join us in writing more inclusive code.
+ *                   Please consider writing more inclusive code.
  *
  * @global array $allowed_options
  *
@@ -4062,7 +4062,7 @@ function add_option_whitelist( $new_options, $options = '' ) {
  *
  * @since 2.7.0
  * @deprecated 5.5.0 Use remove_option_allowed_list() instead.
- *                   Please join us in writing more inclusive code.
+ *                   Please consider writing more inclusive code.
  *
  * @global array $allowed_options
  *

@@ -450,6 +450,10 @@ function is_email_address_unsafe( $user_email ) {
  * allows you to process the data in any way you'd like, and unset the relevant errors if
  * necessary.
  *
+ * @since MU (3.0.0)
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
  * @param string $user_name  The login name provided by the user.
  * @param string $user_email The email provided by the user.
  * @return array {
@@ -460,10 +464,6 @@ function is_email_address_unsafe( $user_email ) {
  *     @type string   $user_email    User email address.
  *     @type WP_Error $errors        WP_Error object containing any errors found.
  * }
- * @global wpdb $wpdb WordPress database abstraction object.
- *
- * @since MU (3.0.0)
- *
  */
 function wpmu_validate_user_signup( $user_name, $user_email ) {
 	global $wpdb;

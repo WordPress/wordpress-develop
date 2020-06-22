@@ -93,7 +93,7 @@ jQuery( function() {
 	});
 
 	QUnit.test( 'user input disallowed list array should contain expected words', function( assert ) {
-		var disallowedList = wp.passwordStrength.userInputBlocklist();
+		var disallowedList = wp.passwordStrength.userInputDisallowedList();
 
 		assert.ok( jQuery.isArray( disallowedList ), 'disallowed list is an array' );
 		assert.ok( jQuery.inArray( 'WordPress', disallowedList ) > -1, 'disallowed list contains "WordPress" from page title' );
