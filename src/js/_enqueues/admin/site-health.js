@@ -46,6 +46,60 @@ jQuery( document ).ready( function( $ ) {
 		goodIssuesWrapper.toggleClass( 'hidden' );
 		$( this ).attr( 'aria-expanded', ! goodIssuesWrapper.hasClass( 'hidden' ) );
 	} );
+	
+	/*
+	 * Object.entries polyfill.
+	 *
+	 * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries
+	 */
+	if ( ! Object.entries ) {
+		Object.entries = function( obj ){
+			var ownProps = Object.keys( obj ),
+				ownValues = Object.values(obj),
+				i = ownProps.length,
+				resArray = new Array(i); // preallocate the Array
+			while (i--)
+				resArray[i] = [ownProps[i], ownValues[i]];
+
+			return resArray;
+		};
+	}
+
+	/**
+	 * Validate the Site Health test result format.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param {object} issue
+	 *
+	 * @returns {boolean}
+	 */
+	function SiteHealthValidateData( issue ) {
+		// Expected minimum format of a valid SiteHealth test response.
+		var minimumExpected = {
+			test: 'string',
+			label: 'string',
+			description: 'string'
+		};
+		var passed = true;
+
+		// Loop over expected data and match the data types.
+		Object.entries( minimumExpected ).forEach( ( [ key, value ] ) => {
+			if ( 'object' === typeof( value ) ) {
+				Object.entries( value ).forEach( ( [ subKey, subValue ] ) => {
+					if ( 'undefined' === typeof( issue[ key ] ) || 'undefined' === typeof( issue[ key ][ subKey ] ) || subValue !== typeof( issue[ key ][ subKey ] ) ) {
+						passed = false;
+					}
+				} );
+			} else {
+				if ( 'undefined' === typeof( issue[ key ] ) || value !== typeof( issue[ key ] ) ) {
+					passed = false;
+				}
+			}
+		} );
+
+		return passed;
+	}
 
 	/**
 	 * Append a new issue to the issue list.
@@ -59,6 +113,14 @@ jQuery( document ).ready( function( $ ) {
 			issueWrapper = $( '#health-check-issues-' + issue.status ),
 			heading,
 			count;
+		
+		/*
+		 * Validate the issue data format before using it.
+		 * If the output is invalid, discard it.
+		 */
+		if ( ! SiteHealthValidateData( issue ) ) {
+			return false;
+		}
 
 		SiteHealth.site_status.issues[ issue.status ]++;
 
