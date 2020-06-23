@@ -138,6 +138,11 @@ html:lang(he-il) .rtl #wpadminbar * {
 	padding: 0 8px 0 7px;
 }
 
+#wpadminbar .quicklinks > ul > li,
+#wpadminbar .quicklinks .ab-item {
+	max-width: 100px; /* Improve spacing and prevent Site Title from eating WP Logo */
+}
+
 #wpadminbar .menupop .ab-sub-wrapper,
 #wpadminbar .shortlink-input {
 	margin: 0;
@@ -706,6 +711,51 @@ html:lang(he-il) .rtl #wpadminbar * {
 	line-height: normal;
 	text-decoration: none;
 	box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.6);
+}
+
+@media only screen and (min-width: 1061px) {
+	/* Reset the spacing */
+	#wpadminbar .quicklinks > ul > li,
+	#wpadminbar .quicklinks .ab-item {
+		max-width: initial;
+		text-overflow: clip;
+	}
+}
+
+@media screen and (min-width: 782px) {
+	/* Prevent wrapping of admin bar that has more items than admin bar area (mobile-friendly toolbar doesn't need this) */
+	#wpadminbar .quicklinks {
+		justify-content: space-between;
+	}
+	#wpadminbar .quicklinks > ul > li {
+		float: none !important;
+	}
+	#wpadminbar .quicklinks > ul > li,
+	#wpadminbar .quicklinks .ab-item {
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		min-width: 0 !important;
+	}
+	#wpadminbar .quicklinks .ab-item {
+		overflow: hidden;
+	}
+	#wpadminbar .quicklinks .ab-item .ab-label,
+	#wpadminbar .quicklinks .ab-item .display-name {
+		float: none;
+		display: inline;
+	}
+	#wpadminbar .quicklinks,
+	#wpadminbar .quicklinks > ul {
+		display: -ms-flexbox;
+		display: flex;
+		flex-wrap: nowrap;
+		-ms-flex-wrap: nowrap;
+		min-width: 0 !important;
+	}
+	#wpadminbar #wp-admin-bar-top-secondary {
+		flex-direction: row-reverse;
+		-ms-flex-direction: row-reverse;
+	}
 }
 
 @media screen and (max-width: 782px) {
