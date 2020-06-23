@@ -46,7 +46,6 @@ function unregister_block_type( $name ) {
  * @since 5.5.0
  *
  * @param string $asset_handle_or_path Asset handle or prefixed path.
- *
  * @return string Path without the prefix or the original value.
  */
 function remove_block_asset_path_prefix( $asset_handle_or_path ) {
@@ -93,7 +92,7 @@ function generate_block_asset_handle( $block_name, $field_name ) {
  * @param array  $metadata   Block metadata.
  * @param string $field_name Field name to pick from metadata.
  * @return string|bool Script handle provided directly or created through
- *     script's registration, or false on failure.
+ *                     script's registration, or false on failure.
  */
 function register_block_script_handle( $metadata, $field_name ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
@@ -140,7 +139,7 @@ function register_block_script_handle( $metadata, $field_name ) {
  * @param array  $metadata Block metadata.
  * @param string $field_name Field name to pick from metadata.
  * @return string|boolean Style handle provided directly or created through
- *     style's registration, or false on failure.
+ *                        style's registration, or false on failure.
  */
 function register_block_style_handle( $metadata, $field_name ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
