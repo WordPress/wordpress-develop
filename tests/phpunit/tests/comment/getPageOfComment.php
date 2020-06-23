@@ -439,4 +439,111 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 
 		$this->assertEquals( 2, get_page_of_comment( $c3 ) );
 	}
+
+	/**
+	 * @ticket 8973
+	 */
+	public function test_page_number_when_unapproved_comments_are_included_for_current_commenter() {
+		$post         = self::factory()->post->create();
+		$comment_args = array(
+			'comment_post_ID'      => $post,
+			'comment_approved'     => 0,
+			'comment_author_email' => 'foo@bar.test',
+			'comment_author'       => 'Foo',
+			'comment_author_url'   => 'https://bar.test',
+		);
+
+		for ( $i = 1; $i < 4; $i++ ) {
+			self::factory()->comment->create(
+				array_merge(
+					$comment_args,
+					array(
+						'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', time() - ( $i * 1000 ) ),
+					)
+				)
+			);
+		}
+
+		$new_unapproved = self::factory()->comment->create(
+			$comment_args
+		);
+
+		add_filter( 'wp_get_current_commenter', array( $this, 'get_current_commenter' ) );
+
+		$page     = get_page_of_comment( $new_unapproved, array( 'per_page' => 3 ) );
+		$comments = get_comments(
+			array(
+				'number'             => 3,
+				'paged'              => $page,
+				'post_id'            => $post,
+				'status'             => 'approve',
+				'include_unapproved' => array( 'foo@bar.test' ),
+				'orderby'            => 'comment_date_gmt',
+				'order'              => 'ASC',
+			)
+		);
+
+		remove_filter( 'wp_get_current_commenter', array( $this, 'get_current_commenter' ) );
+
+		$this->assertContains( $new_unapproved, wp_list_pluck( $comments, 'comment_ID' ) );
+	}
+
+	/**
+	 * @ticket 8973
+	 */
+	public function test_page_number_when_unapproved_comments_are_included_for_current_user() {
+		$current_user = get_current_user_id();
+		$post         = self::factory()->post->create();
+		$user         = self::factory()->user->create_and_get();
+		$comment_args = array(
+			'comment_post_ID'      => $post,
+			'comment_approved'     => 0,
+			'comment_author_email' => $user->user_email,
+			'comment_author'       => $user->display_name,
+			'comment_author_url'   => $user->user_url,
+			'user_id'              => $user->ID,
+		);
+
+		for ( $i = 1; $i < 4; $i++ ) {
+			self::factory()->comment->create(
+				array_merge(
+					$comment_args,
+					array(
+						'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', time() - ( $i * 1000 ) ),
+					)
+				)
+			);
+		}
+
+		$new_unapproved = self::factory()->comment->create(
+			$comment_args
+		);
+
+		wp_set_current_user( $user->ID );
+
+		$page     = get_page_of_comment( $new_unapproved, array( 'per_page' => 3 ) );
+		$comments = get_comments(
+			array(
+				'number'             => 3,
+				'paged'              => $page,
+				'post_id'            => $post,
+				'status'             => 'approve',
+				'include_unapproved' => array( $user->ID ),
+				'orderby'            => 'comment_date_gmt',
+				'order'              => 'ASC',
+			)
+		);
+
+		$this->assertContains( $new_unapproved, wp_list_pluck( $comments, 'comment_ID' ) );
+
+		wp_set_current_user( $current_user );
+	}
+
+	public function get_current_commenter() {
+		return array(
+			'comment_author_email' => 'foo@bar.test',
+			'comment_author'       => 'Foo',
+			'comment_author_url'   => 'https://bar.test',
+		);
+	}
 }
