@@ -35,7 +35,7 @@ require_once dirname( __DIR__ ) . '/wp-load.php';
 
 nocache_headers();
 
-if ( get_option( 'db_upgraded' ) ) {
+if ( ! wp_doing_ajax() && get_option( 'db_upgraded' ) ) {
 
 	flush_rewrite_rules();
 	update_option( 'db_upgraded', false );
@@ -47,7 +47,7 @@ if ( get_option( 'db_upgraded' ) ) {
 	 */
 	do_action( 'after_db_upgrade' );
 
-} elseif ( (int) get_option( 'db_version' ) !== $wp_db_version && empty( $_POST ) ) {
+} elseif ( ! wp_doing_ajax() && (int) get_option( 'db_version' ) !== $wp_db_version && empty( $_POST ) ) {
 
 	if ( ! is_multisite() ) {
 		wp_redirect( admin_url( 'upgrade.php?_wp_http_referer=' . urlencode( wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) );
