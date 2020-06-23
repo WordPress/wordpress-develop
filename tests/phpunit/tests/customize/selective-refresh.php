@@ -204,7 +204,7 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 *
 	 * @param false|array $partial_args The arguments to the WP_Customize_Partial constructor.
 	 * @param string      $partial_id   ID for dynamic partial.
-	 * @return false|array $args Dynamic partial args.
+	 * @return false|array Dynamic partial args.
 	 */
 	function filter_customize_dynamic_partial_args( $partial_args, $partial_id ) {
 		$this->assertTrue( false === $partial_args || is_array( $partial_args ) );

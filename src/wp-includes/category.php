@@ -13,6 +13,7 @@
  * will be returned instead.
  *
  * @since 2.1.0
+ *
  * @see get_terms() Type of arguments that can be changed.
  *
  * @param string|array $args {
@@ -286,8 +287,8 @@ function sanitize_category_field( $field, $value, $cat_id, $context ) {
  *
  *     @type string $taxonomy Taxonomy to retrieve terms for. Default 'post_tag'.
  * }
- * @return WP_Term[]|int|WP_Error $tags Array of 'post_tag' term objects, a count thereof,
- *                                      or WP_Error if any of the taxonomies do not exist.
+ * @return WP_Term[]|int|WP_Error Array of 'post_tag' term objects, a count thereof,
+ *                                or WP_Error if any of the taxonomies do not exist.
  */
 function get_tags( $args = '' ) {
 	$defaults = array( 'taxonomy' => 'post_tag' );

@@ -97,7 +97,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->request_count += 1;
 
 		// Mock request to YouTube Embed.
-		if ( ! empty( $query_params['url'] ) && false !== strpos( $query_params['url'], self::YOUTUBE_VIDEO_ID ) ) {
+		if ( ! empty( $query_params['url'] ) && false !== strpos( $query_params['url'], '?v=' . self::YOUTUBE_VIDEO_ID ) ) {
 			return array(
 				'response' => array(
 					'code' => 200,
@@ -609,13 +609,38 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertEquals( $data->height, $request['maxheight'] );
 	}
 
+	/**
+	 * @ticket 45447
+	 *
+	 * @see wp_maybe_load_embeds()
+	 */
+	public function test_proxy_with_classic_embed_provider() {
+		wp_set_current_user( self::$editor );
+		$request = new WP_REST_Request( 'GET', '/oembed/1.0/proxy' );
+		$request->set_param( 'url', 'https://www.youtube.com/embed/' . self::YOUTUBE_VIDEO_ID );
+		$request->set_param( 'maxwidth', 456 );
+		$request->set_param( 'maxheight', 789 );
+		$request->set_param( '_wpnonce', wp_create_nonce( 'wp_rest' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEquals( 2, $this->request_count );
+
+		// Test data object.
+		$data = $response->get_data();
+
+		$this->assertNotEmpty( $data );
+		$this->assertInternalType( 'object', $data );
+		$this->assertInternalType( 'string', $data->html );
+		$this->assertInternalType( 'array', $data->scripts );
+	}
+
 	public function test_proxy_with_invalid_oembed_provider_no_discovery() {
 		wp_set_current_user( self::$editor );
 
-		// If discover is false for an unkown provider, no discovery request should take place.
+		// If discover is false for an unknown provider, no discovery request should take place.
 		$request = new WP_REST_Request( 'GET', '/oembed/1.0/proxy' );
 		$request->set_param( 'url', self::INVALID_OEMBED_URL );
-		$request->set_param( 'discover', 0 );
+		$request->set_param( 'discover', false );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 404, $response->get_status() );
 		$this->assertEquals( 0, $this->request_count );
@@ -624,7 +649,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	public function test_proxy_with_invalid_oembed_provider_with_default_discover_param() {
 		wp_set_current_user( self::$editor );
 
-		// For an unkown provider, a discovery request should happen.
+		// For an unknown provider, a discovery request should happen.
 		$request = new WP_REST_Request( 'GET', '/oembed/1.0/proxy' );
 		$request->set_param( 'url', self::INVALID_OEMBED_URL );
 		$response = rest_get_server()->dispatch( $request );

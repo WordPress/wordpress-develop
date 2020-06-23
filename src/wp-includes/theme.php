@@ -15,7 +15,6 @@
  * @since 3.4.0
  *
  * @global array $wp_theme_directories
- * @staticvar array $_themes
  *
  * @param array $args {
  *     Optional. The search arguments.
@@ -155,7 +154,7 @@ function is_child_theme() {
 }
 
 /**
- * Retrieve name of the current stylesheet.
+ * Retrieves name of the current stylesheet.
  *
  * The theme name that the administrator has currently set the front end theme
  * as.
@@ -179,11 +178,11 @@ function get_stylesheet() {
 }
 
 /**
- * Retrieve stylesheet directory path for current theme.
+ * Retrieves stylesheet directory path for current theme.
  *
  * @since 1.5.0
  *
- * @return string Path to current theme directory.
+ * @return string Path to current theme's stylesheet directory.
  */
 function get_stylesheet_directory() {
 	$stylesheet     = get_stylesheet();
@@ -203,11 +202,11 @@ function get_stylesheet_directory() {
 }
 
 /**
- * Retrieve stylesheet directory URI.
+ * Retrieves stylesheet directory URI for current theme.
  *
  * @since 1.5.0
  *
- * @return string
+ * @return string URI to current theme's stylesheet directory.
  */
 function get_stylesheet_directory_uri() {
 	$stylesheet         = str_replace( '%2F', '/', rawurlencode( get_stylesheet() ) );
@@ -227,14 +226,14 @@ function get_stylesheet_directory_uri() {
 }
 
 /**
- * Retrieves the URI of current theme stylesheet.
+ * Retrieves stylesheet URI for current theme.
  *
  * The stylesheet file name is 'style.css' which is appended to the stylesheet directory URI path.
  * See get_stylesheet_directory_uri().
  *
  * @since 1.5.0
  *
- * @return string
+ * @return string URI to current theme's stylesheet.
  */
 function get_stylesheet_uri() {
 	$stylesheet_dir_uri = get_stylesheet_directory_uri();
@@ -269,7 +268,7 @@ function get_stylesheet_uri() {
  *
  * @global WP_Locale $wp_locale WordPress date and time locale object.
  *
- * @return string
+ * @return string URI to current theme's localized stylesheet.
  */
 function get_locale_stylesheet_uri() {
 	global $wp_locale;
@@ -295,7 +294,7 @@ function get_locale_stylesheet_uri() {
 }
 
 /**
- * Retrieve name of the current theme.
+ * Retrieves name of the current theme.
  *
  * @since 1.5.0
  *
@@ -313,11 +312,11 @@ function get_template() {
 }
 
 /**
- * Retrieve current theme directory.
+ * Retrieves template directory path for current theme.
  *
  * @since 1.5.0
  *
- * @return string Template directory path.
+ * @return string Path to current theme's template directory.
  */
 function get_template_directory() {
 	$template     = get_template();
@@ -329,7 +328,7 @@ function get_template_directory() {
 	 *
 	 * @since 1.5.0
 	 *
-	 * @param string $template_dir The URI of the current theme directory.
+	 * @param string $template_dir The path of the current theme directory.
 	 * @param string $template     Directory name of the current theme.
 	 * @param string $theme_root   Absolute path to the themes directory.
 	 */
@@ -337,11 +336,11 @@ function get_template_directory() {
 }
 
 /**
- * Retrieve theme directory URI.
+ * Retrieves template directory URI for current theme.
  *
  * @since 1.5.0
  *
- * @return string Template directory URI.
+ * @return string URI to current theme's template directory.
  */
 function get_template_directory_uri() {
 	$template         = str_replace( '%2F', '/', rawurlencode( get_template() ) );
@@ -424,7 +423,6 @@ function register_theme_directory( $directory ) {
  * @since 2.9.0
  *
  * @global array $wp_theme_directories
- * @staticvar array $found_themes
  *
  * @param bool $force Optional. Whether to force a new directory scan. Defaults to false.
  * @return array|false Valid themes found
@@ -824,7 +822,7 @@ function switch_theme( $stylesheet ) {
 }
 
 /**
- * Checks that current theme files 'index.php' and 'style.css' exists.
+ * Checks that the current theme has 'index.php' and 'style.css' files.
  *
  * Does not initially check the default theme, which is the fallback and should always exist.
  * But if it doesn't exist, it'll fall back to the latest core default theme that does exist.
@@ -834,6 +832,7 @@ function switch_theme( $stylesheet ) {
  * disable this functionality.
  *
  * @since 1.5.0
+ *
  * @see WP_DEFAULT_THEME
  *
  * @return bool
@@ -1253,7 +1252,6 @@ function the_header_image_tag( $attr = array() ) {
  * @access private
  *
  * @global array  $_wp_default_headers
- * @staticvar object $_wp_random_header
  *
  * @return object
  */
@@ -1453,7 +1451,8 @@ function get_custom_header() {
  *
  * @global array $_wp_default_headers
  *
- * @param array $headers Array of headers keyed by a string id. The ids point to arrays containing 'url', 'thumbnail_url', and 'description' keys.
+ * @param array $headers Array of headers keyed by a string ID. The IDs point to arrays
+ *                       containing 'url', 'thumbnail_url', and 'description' keys.
  */
 function register_default_headers( $headers ) {
 	global $_wp_default_headers;
@@ -2817,12 +2816,14 @@ function get_theme_support( $feature, ...$args ) {
  * be used for child themes to override support from the parent theme.
  *
  * @since 3.0.0
+ *
  * @see add_theme_support()
+ *
  * @param string $feature The feature being removed.
  * @return bool|void Whether feature was removed.
  */
 function remove_theme_support( $feature ) {
-	// Blacklist: for internal registrations not used directly by themes.
+	// Do not remove internal registrations that are not used directly by themes.
 	if ( in_array( $feature, array( 'editor-style', 'widgets', 'menus' ), true ) ) {
 		return false;
 	}
@@ -2831,16 +2832,17 @@ function remove_theme_support( $feature ) {
 }
 
 /**
- * Do not use. Removes theme support internally, ignorant of the blacklist.
+ * Do not use. Removes theme support internally without knowledge of those not used by
+ * themes directly.
  *
  * @access private
  * @since 3.1.0
- *
  * @global array               $_wp_theme_features
  * @global Custom_Image_Header $custom_image_header
  * @global Custom_Background   $custom_background
  *
  * @param string $feature
+ * @return bool True if support was removed, false if the feature was not registered.
  */
 function _remove_theme_support( $feature ) {
 	global $_wp_theme_features;
@@ -2887,6 +2889,7 @@ function _remove_theme_support( $feature ) {
 	}
 
 	unset( $_wp_theme_features[ $feature ] );
+
 	return true;
 }
 
@@ -3000,7 +3003,7 @@ function require_if_theme_supports( $feature, $include ) {
  * @since 4.3.0 Also removes `header_image_data`.
  * @since 4.5.0 Also removes custom logo theme mods.
  *
- * @param int $id The attachment id.
+ * @param int $id The attachment ID.
  */
 function _delete_attachment_theme_mod( $id ) {
 	$attachment_image = wp_get_attachment_url( $id );
@@ -3240,6 +3243,7 @@ function _wp_customize_publish_changeset( $new_status, $old_status, $changeset_p
  * transitioned into pending status by a contributor.
  *
  * @since 4.7.0
+ *
  * @see wp_insert_post()
  *
  * @param array $post_data          An array of slashed post data.

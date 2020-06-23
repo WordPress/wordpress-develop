@@ -112,11 +112,9 @@
 	<exclude-pattern>/src/wp-includes/class-IXR\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-json\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-phpass\.php</exclude-pattern>
-	<exclude-pattern>/src/wp-includes/class-phpmailer\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-pop3\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-requests\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-simplepie\.php</exclude-pattern>
-	<exclude-pattern>/src/wp-includes/class-smtp\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-snoopy\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-wp-block-parser\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/deprecated\.php</exclude-pattern>
@@ -129,11 +127,12 @@
 	<exclude-pattern>/src/wp-includes/ID3/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/IXR/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/js/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/PHPMailer/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/random_compat/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/Requests/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/SimplePie/*</exclude-pattern>
-	<exclude-pattern>/src/wp-includes/Text/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/sodium_compat/*</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/Text/*</exclude-pattern>
 
 	<exclude-pattern>/tests/phpunit/includes/speed-trap-listener\.php</exclude-pattern>
 
@@ -248,6 +247,7 @@
 				<element value="WP_Tests_Image_Resize_UnitTestCase"/>
 				<element value="WP_Import_UnitTestCase"/>
 				<element value="Tests_Query_Conditionals"/>
+				<element value="WP_Test_XML_TestCase"/>
 
 				<!-- Mock classes. -->
 				<element value="Spy_REST_Server"/>

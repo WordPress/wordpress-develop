@@ -473,7 +473,7 @@ class WP_List_Table {
 
 		echo "</select>\n";
 
-		submit_button( __( 'Apply' ), 'action', '', false, array( 'id' => "doaction$two" ) );
+		submit_button( __( 'Apply' ), 'action', "doaction$two", false, array( 'id' => "doaction$two" ) );
 		echo "\n";
 	}
 
@@ -489,12 +489,12 @@ class WP_List_Table {
 			return false;
 		}
 
-		if ( isset( $_REQUEST['action'] ) && -1 != $_REQUEST['action'] ) {
-			return $_REQUEST['action'];
+		if ( isset( $_REQUEST['doaction2'] ) && isset( $_REQUEST['action2'] ) && -1 != $_REQUEST['action2'] ) {
+			return $_REQUEST['action2'];
 		}
 
-		if ( isset( $_REQUEST['action2'] ) && -1 != $_REQUEST['action2'] ) {
-			return $_REQUEST['action2'];
+		if ( isset( $_REQUEST['action'] ) && -1 != $_REQUEST['action'] ) {
+			return $_REQUEST['action'];
 		}
 
 		return false;
@@ -682,14 +682,21 @@ class WP_List_Table {
 			$pending_comments_number
 		);
 
-		// No comments at all.
 		if ( ! $approved_comments && ! $pending_comments ) {
+			// No comments at all.
 			printf(
 				'<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">%s</span>',
 				__( 'No comments' )
 			);
-			// Approved comments have different display depending on some conditions.
+		} elseif ( $approved_comments && 'trash' === get_post_status( $post_id ) ) {
+			// Don't link the comment bubble for a trashed post.
+			printf(
+				'<span class="post-com-count post-com-count-approved"><span class="comment-count-approved" aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></span>',
+				$approved_comments_number,
+				$pending_comments ? $approved_phrase : $approved_only_phrase
+			);
 		} elseif ( $approved_comments ) {
+			// Link the comment bubble to approved comments.
 			printf(
 				'<a href="%s" class="post-com-count post-com-count-approved"><span class="comment-count-approved" aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></a>',
 				esc_url(
@@ -705,6 +712,7 @@ class WP_List_Table {
 				$pending_comments ? $approved_phrase : $approved_only_phrase
 			);
 		} else {
+			// Don't link the comment bubble when there are no approved comments.
 			printf(
 				'<span class="post-com-count post-com-count-no-comments"><span class="comment-count comment-count-no-comments" aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></span>',
 				$approved_comments_number,
@@ -1101,9 +1109,7 @@ class WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @staticvar int $cb_counter
-	 *
-	 * @param bool $with_id Whether to set the id attribute or not
+	 * @param bool $with_id Whether to set the ID attribute or not
 	 */
 	public function print_column_headers( $with_id = true ) {
 		list( $columns, $hidden, $sortable, $primary ) = $this->get_column_info();

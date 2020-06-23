@@ -629,6 +629,26 @@ EOF;
 				"array[1]='z'z'z'z",
 				false,
 			),
+			// Using a digit in attribute name should work.
+			array(
+				'href="https://example.com/[shortcode attr=\'value\']" data-op3-timer-seconds="0"',
+				array( 'href="https://example.com/[shortcode attr=\'value\']" ', 'data-op3-timer-seconds="0"' ),
+			),
+			// Using an underscore in attribute name should work.
+			array(
+				'href="https://example.com/[shortcode attr=\'value\']" data-op_timer-seconds="0"',
+				array( 'href="https://example.com/[shortcode attr=\'value\']" ', 'data-op_timer-seconds="0"' ),
+			),
+			// Using a period in attribute name should work.
+			array(
+				'href="https://example.com/[shortcode attr=\'value\']" data-op.timer-seconds="0"',
+				array( 'href="https://example.com/[shortcode attr=\'value\']" ', 'data-op.timer-seconds="0"' ),
+			),
+			// Using a digit at the beginning of attribute name should return false.
+			array(
+				'href="https://example.com/[shortcode attr=\'value\']" 3data-op-timer-seconds="0"',
+				false,
+			),
 		);
 	}
 
@@ -1263,14 +1283,7 @@ EOF;
 	}
 
 	/**
-	 * Filter for disallowed characters never matches thus allowing all characters.
-	 */
-	function _safe_style_disallowed_chars_filter( $regex ) {
-		return '%a^%'; // Regex with no matches.
-
-	}
-	/**
-	 * Testing the safecss_filter_attr() function with the safe_style_disallowed_chars filter.
+	 * Testing the safecss_filter_attr() function with the safecss_filter_attr_allow_css filter.
 	 *
 	 * @ticket 37134
 	 *
@@ -1280,9 +1293,9 @@ EOF;
 	 * @param string $expected Expected string of CSS rules.
 	 */
 	public function test_safecss_filter_attr_filtered( $css, $expected ) {
-		add_filter( 'safe_style_disallowed_chars', array( $this, '_safe_style_disallowed_chars_filter' ) );
+		add_filter( 'safecss_filter_attr_allow_css', '__return_true' );
 		$this->assertSame( $expected, safecss_filter_attr( $css ) );
-		remove_filter( 'safe_style_disallowed_chars', array( $this, '_safe_style_disallowed_chars_filter' ) );
+		remove_filter( 'safecss_filter_attr_allow_css', '__return_true' );
 	}
 
 	/**
@@ -1303,37 +1316,37 @@ EOF;
 				'css'      => 'margin-top: 2px',
 				'expected' => 'margin-top: 2px',
 			),
-			// Backslash \ can be allowed with the 'safe_style_disallowed_chars' filter.
+			// Backslash \ can be allowed with the 'safecss_filter_attr_allow_css' filter.
 			array(
 				'css'      => 'margin-top: \2px',
 				'expected' => 'margin-top: \2px',
 			),
-			// Curly bracket } can be allowed with the 'safe_style_disallowed_chars' filter.
+			// Curly bracket } can be allowed with the 'safecss_filter_attr_allow_css' filter.
 			array(
 				'css'      => 'margin-bottom: 2px}',
 				'expected' => 'margin-bottom: 2px}',
 			),
-			// Parenthesis ) can be allowed with the 'safe_style_disallowed_chars' filter.
+			// Parenthesis ) can be allowed with the 'safecss_filter_attr_allow_css' filter.
 			array(
 				'css'      => 'margin-bottom: 2px)',
 				'expected' => 'margin-bottom: 2px)',
 			),
-			// Ampersand & can be allowed with the 'safe_style_disallowed_chars' filter.
+			// Ampersand & can be allowed with the 'safecss_filter_attr_allow_css' filter.
 			array(
 				'css'      => 'margin-bottom: 2px&',
 				'expected' => 'margin-bottom: 2px&',
 			),
-			// Expressions can be allowed with the 'safe_style_disallowed_chars' filter.
+			// Expressions can be allowed with the 'safecss_filter_attr_allow_css' filter.
 			array(
 				'css'      => 'height: expression( body.scrollTop + 50 + "px" )',
 				'expected' => 'height: expression( body.scrollTop + 50 + "px" )',
 			),
-			// RGB color values can be allowed with the 'safe_style_disallowed_chars' filter.
+			// RGB color values can be allowed with the 'safecss_filter_attr_allow_css' filter.
 			array(
 				'css'      => 'color: rgb( 100, 100, 100 )',
 				'expected' => 'color: rgb( 100, 100, 100 )',
 			),
-			// RGBA color values can be allowed with the 'safe_style_disallowed_chars' filter.
+			// RGBA color values can be allowed with the 'safecss_filter_attr_allow_css' filter.
 			array(
 				'css'      => 'color: rgb( 100, 100, 100, .4 )',
 				'expected' => 'color: rgb( 100, 100, 100, .4 )',

@@ -96,7 +96,7 @@ add_filter( 'pre_post_mime_type', 'sanitize_mime_type' );
 add_filter( 'post_mime_type', 'sanitize_mime_type' );
 
 // Meta.
-add_filter( 'register_meta_args', '_wp_register_meta_args_whitelist', 10, 2 );
+add_filter( 'register_meta_args', '_wp_register_meta_args_allowed_list', 10, 2 );
 
 // Post meta.
 add_action( 'added_post_meta', 'wp_cache_set_posts_last_changed' );
@@ -455,6 +455,9 @@ add_action( 'rest_api_init', 'rest_api_default_filters', 10, 1 );
 add_action( 'rest_api_init', 'register_initial_settings', 10 );
 add_action( 'rest_api_init', 'create_initial_rest_routes', 99 );
 add_action( 'parse_request', 'rest_api_loaded' );
+
+// Sitemaps actions.
+add_action( 'init', 'wp_sitemaps_get_server' );
 
 /**
  * Filters formerly mixed into wp-includes.
