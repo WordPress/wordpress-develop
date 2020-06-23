@@ -50,7 +50,7 @@ function unregister_block_type( $name ) {
  */
 function remove_block_asset_path_prefix( $asset_handle_or_path ) {
 	$path_prefix = 'file:';
-	if ( strpos( $asset_handle_or_path, $path_prefix ) !== 0 ) {
+	if ( 0 !== strpos( $asset_handle_or_path, $path_prefix ) ) {
 		return $asset_handle_or_path;
 	}
 	return substr(
@@ -119,7 +119,7 @@ function register_block_script_handle( $metadata, $field_name ) {
 		_doing_it_wrong( __FUNCTION__, $message, '5.5.0' );
 		return false;
 	}
-	$script_asset = require( $script_asset_path );
+	$script_asset = require $script_asset_path;
 	$result       = wp_register_script(
 		$script_handle,
 		plugins_url( $script_path, $metadata['file'] ),
