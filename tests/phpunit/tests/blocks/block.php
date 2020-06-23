@@ -45,6 +45,9 @@ class WP_Block_Test extends WP_UnitTestCase {
 		return 'Original: "' . $content . '", from block "' . $parsed_block['blockName'] . '"';
 	}
 
+	/**
+	 * @ticket 49927
+	 */
 	function test_constructor_assigns_properties_from_parsed_block() {
 		$this->registry->register( 'core/example', array() );
 
@@ -60,6 +63,9 @@ class WP_Block_Test extends WP_UnitTestCase {
 		$this->assertEquals( $parsed_block['innerHTML'], $block->inner_html );
 	}
 
+	/**
+	 * @ticket 49927
+	 */
 	function test_constructor_assigns_block_type_from_registry() {
 		$block_type_settings = array(
 			'attributes' => array(
@@ -82,6 +88,9 @@ class WP_Block_Test extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 49927
+	 */
 	function test_lazily_assigns_attributes_with_defaults() {
 		$this->registry->register(
 			'core/example',
@@ -113,6 +122,9 @@ class WP_Block_Test extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 49927
+	 */
 	function test_lazily_assigns_attributes_with_only_defaults() {
 		$this->registry->register(
 			'core/example',
@@ -138,6 +150,9 @@ class WP_Block_Test extends WP_UnitTestCase {
 		$this->assertEquals( array( 'defaulted' => 10 ), $block->attributes );
 	}
 
+	/**
+	 * @ticket 49927
+	 */
 	function test_constructor_assigns_context_from_block_type() {
 		$this->registry->register(
 			'core/example',
@@ -156,6 +171,9 @@ class WP_Block_Test extends WP_UnitTestCase {
 		$this->assertEquals( array( 'requested' => 'included' ), $block->context );
 	}
 
+	/**
+	 * @ticket 49927
+	 */
 	function test_constructor_maps_inner_blocks() {
 		$this->registry->register( 'core/example', array() );
 
@@ -169,6 +187,9 @@ class WP_Block_Test extends WP_UnitTestCase {
 		$this->assertEquals( 'core/example', $block->inner_blocks[0]->name );
 	}
 
+	/**
+	 * @ticket 49927
+	 */
 	function test_constructor_prepares_context_for_inner_blocks() {
 		$this->registry->register(
 			'core/outer',
@@ -202,6 +223,9 @@ class WP_Block_Test extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 49927
+	 */
 	function test_constructor_assigns_merged_context() {
 		$this->registry->register(
 			'core/example',
@@ -243,6 +267,9 @@ class WP_Block_Test extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 49927
+	 */
 	function test_render_static_block_type_returns_own_content() {
 		$this->registry->register( 'core/static', array() );
 		$this->registry->register(
@@ -262,6 +289,9 @@ class WP_Block_Test extends WP_UnitTestCase {
 		$this->assertSame( 'abc', $block->render() );
 	}
 
+	/**
+	 * @ticket 49927
+	 */
 	function test_render_passes_block_for_render_callback() {
 		$this->registry->register(
 			'core/greeting',
@@ -280,6 +310,9 @@ class WP_Block_Test extends WP_UnitTestCase {
 		$this->assertSame( 'Hello from core/greeting', $block->render() );
 	}
 
+	/**
+	 * @ticket 49927
+	 */
 	function test_render_applies_render_block_filter() {
 		$this->registry->register( 'core/example', array() );
 
@@ -298,6 +331,9 @@ class WP_Block_Test extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @ticket 49927
+	 */
 	function test_passes_attributes_to_render_callback() {
 		$this->registry->register(
 			'core/greeting',
@@ -329,6 +365,9 @@ class WP_Block_Test extends WP_UnitTestCase {
 		$this->assertSame( 'Hello world!', $block->render() );
 	}
 
+	/**
+	 * @ticket 49927
+	 */
 	function test_passes_content_to_render_callback() {
 		$this->registry->register(
 			'core/outer',

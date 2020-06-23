@@ -148,7 +148,6 @@ class WP_Block {
 	 * value is returned.
 	 *
 	 * @param string $name Property name.
-	 *
 	 * @return array|null Prepared attributes, or null.
 	 */
 	public function __get( $name ) {
@@ -175,7 +174,6 @@ class WP_Block {
 	 *
 	 *   @type bool $dynamic Defaults to 'true'. Optionally set to false to avoid using the block's render_callback.
 	 * }
-	 *
 	 * @return string Rendered block output.
 	 */
 	public function render( $options = array() ) {
