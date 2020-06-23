@@ -68,7 +68,6 @@ function remove_block_asset_path_prefix( $asset_handle_or_path ) {
  *
  * @param string $block_name Name of the block.
  * @param string $field_name Name of the metadata field.
- *
  * @return string Generated asset name for the block's field.
  */
 function generate_block_asset_handle( $block_name, $field_name ) {
@@ -93,7 +92,6 @@ function generate_block_asset_handle( $block_name, $field_name ) {
  *
  * @param array  $metadata   Block metadata.
  * @param string $field_name Field name to pick from metadata.
- *
  * @return string|bool Script handle provided directly or created through
  *     script's registration, or false on failure.
  */
@@ -141,7 +139,6 @@ function register_block_script_handle( $metadata, $field_name ) {
  *
  * @param array  $metadata Block metadata.
  * @param string $field_name Field name to pick from metadata.
- *
  * @return string|boolean Style handle provided directly or created through
  *     style's registration, or false on failure.
  */
