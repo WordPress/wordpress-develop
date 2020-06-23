@@ -91,10 +91,10 @@ function generate_block_asset_handle( $block_name, $field_name ) {
  *
  * @since 5.5.0
  *
- * @param array  $metadata Block metadata.
+ * @param array  $metadata   Block metadata.
  * @param string $field_name Field name to pick from metadata.
  *
- * @return string|boolean Script handle provided directly or created through
+ * @return string|bool Script handle provided directly or created through
  *     script's registration, or false on failure.
  */
 function register_block_script_handle( $metadata, $field_name ) {
@@ -172,7 +172,7 @@ function register_block_style_handle( $metadata, $field_name ) {
  * @since 5.5.0
  *
  * @param string $file_or_folder Path to the JSON file with metadata definition for
- *     the block or path to the folder where the `block.json` file is located.
+ *                               the block or path to the folder where the `block.json` file is located.
  * @param array  $args {
  *     Optional. Array of block type arguments. Any arguments may be defined, however the
  *     ones described below are supported by default. Default empty array.
