@@ -2533,6 +2533,7 @@ EOF;
 
 	/**
 	 * @ticket 44427
+	 * @ticket 50367
 	 */
 	function test_wp_lazy_load_content_media() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
