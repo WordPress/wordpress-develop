@@ -14,10 +14,10 @@
 class WP_Block_List implements Iterator, ArrayAccess, Countable {
 
 	/**
-	 * Original array of parsed block data.
+	 * Original array of parsed block data, or block instances.
 	 *
 	 * @since 5.5.0
-	 * @var array|WP_Block[]
+	 * @var array[]|WP_Block[]
 	 * @access protected
 	 */
 	protected $blocks;
@@ -47,7 +47,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param array|WP_Block[]       $blocks            Array of parsed block data, or block instances.
+	 * @param array[]|WP_Block[]     $blocks            Array of parsed block data, or block instances.
 	 * @param array                  $available_context Optional array of ancestry context values.
 	 * @param WP_Block_Type_Registry $registry          Optional block type registry.
 	 */
