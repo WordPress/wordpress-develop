@@ -1048,6 +1048,12 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 
 		$attr = wp_parse_args( $attr, $default_attr );
 
+		// If `loading` attribute default of `lazy` is overridden for this
+		// image to omit the attribute, ensure it is not included.
+		if ( array_key_exists( 'loading', $attr ) && ! $attr['loading'] ) {
+			unset( $attr['loading'] );
+		}
+
 		// Generate 'srcset' and 'sizes' if not already present.
 		if ( empty( $attr['srcset'] ) ) {
 			$image_meta = wp_get_attachment_metadata( $attachment_id );
@@ -1590,9 +1596,11 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
  * @return bool Whether to add the attribute.
  */
 function wp_lazy_loading_enabled( $tag_name, $context ) {
-	// By default add to all 'img' tags.
+	// By default add to all 'img' tags, except those rendered in templates
+	// via `wp_get_attachment_image()`, since they could be included anywhere
+	// in the page.
 	// See https://html.spec.whatwg.org/multipage/embedded-content.html#attr-img-loading
-	$default = ( 'img' === $tag_name );
+	$default = ( 'img' === $tag_name && 'wp_get_attachment_image' !== $context );
 
 	/**
 	 * Filters whether to add the `loading` attribute to the specified tag in the specified context.
@@ -1703,9 +1711,10 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param string $value   The `loading` attribute value, defaults to `lazy`.
-	 * @param string $image   The HTML `img` tag to be filtered.
-	 * @param string $context Additional context about how the function was called or where the img tag is.
+	 * @param string|bool $value   The `loading` attribute value. Returning a false-y value will result in the
+	 *                             attribute being omitted for the image. Default is `lazy`.
+	 * @param string      $image   The HTML `img` tag to be filtered.
+	 * @param string      $context Additional context about how the function was called or where the img tag is.
 	 */
 	$value = apply_filters( 'wp_img_tag_add_loading_attr', 'lazy', $image, $context );
 
