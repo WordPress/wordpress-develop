@@ -8,6 +8,8 @@
 
 /**
  * Class representing a list of block instances.
+ *
+ * @since 5.5.0
  */
 class WP_Block_List implements Iterator, ArrayAccess, Countable {
 
@@ -50,7 +52,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 * @param WP_Block_Type_Registry $registry          Optional block type registry.
 	 */
 	public function __construct( $blocks, $available_context = array(), $registry = null ) {
-		if ( ! $registry instanced WP_Block_Type_Registry ) {
+		if ( ! $registry instanceof WP_Block_Type_Registry ) {
 			$registry = WP_Block_Type_Registry::get_instance();
 		}
 
@@ -184,10 +186,6 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	public function valid() {
 		return null !== key( $this->blocks );
 	}
-
-	/*
-	 * Countable interface methods.
-	 */
 
 	/**
 	 * Returns the count of blocks in the list.

@@ -9,6 +9,7 @@
 /**
  * Class representing a parsed instance of a block.
  *
+ * @since 5.5.0
  * @property array $attributes
  */
 class WP_Block {
@@ -16,6 +17,7 @@ class WP_Block {
 	/**
 	 * Original parsed array representation of block.
 	 *
+	 * @since 5.5.0
 	 * @var array
 	 */
 	public $parsed_block;
@@ -25,6 +27,7 @@ class WP_Block {
 	 *
 	 * @example "core/paragraph"
 	 *
+	 * @since 5.5.0
 	 * @var string
 	 */
 	public $name;
@@ -32,6 +35,7 @@ class WP_Block {
 	/**
 	 * Block type associated with the instance.
 	 *
+	 * @since 5.5.0
 	 * @var WP_Block_Type
 	 */
 	public $block_type;
@@ -39,6 +43,7 @@ class WP_Block {
 	/**
 	 * Block context values.
 	 *
+	 * @since 5.5.0
 	 * @var array
 	 */
 	public $context = array();
@@ -46,6 +51,7 @@ class WP_Block {
 	/**
 	 * All available context of the current hierarchy.
 	 *
+	 * @since 5.5.0
 	 * @var array
 	 * @access protected
 	 */
@@ -54,6 +60,7 @@ class WP_Block {
 	/**
 	 * List of inner blocks (of this same class)
 	 *
+	 * @since 5.5.0
 	 * @var WP_Block[]
 	 */
 	public $inner_blocks = array();
@@ -64,6 +71,7 @@ class WP_Block {
 	 *
 	 * @example "...Just <!-- wp:test /--> testing..." -> "Just testing..."
 	 *
+	 * @since 5.5.0
 	 * @var string
 	 */
 	public $inner_html = '';
@@ -77,6 +85,7 @@ class WP_Block {
 	 *   'inner_content' => array( 'Before', null, 'Inner', null, 'After' ),
 	 * )
 	 *
+	 * @since 5.5.0
 	 * @var array
 	 */
 	public $inner_content = array();
@@ -91,6 +100,8 @@ class WP_Block {
 	 * the block's ancestry. This is assigned to the private `available_context`
 	 * property. Only values which are configured to consumed by the block via
 	 * its registered type will be assigned to the block's `context` property.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @param array                  $block             Array of parsed block properties.
 	 * @param array                  $available_context Optional array of ancestry context values.
@@ -147,6 +158,8 @@ class WP_Block {
 	 * the property is accessed. For all other inaccessible properties, a `null`
 	 * value is returned.
 	 *
+	 * @since 5.5.0
+	 *
 	 * @param string $name Property name.
 	 * @return array|null Prepared attributes, or null.
 	 */
@@ -169,6 +182,8 @@ class WP_Block {
 	/**
 	 * Generates the render output for the block.
 	 *
+	 * @since 5.5.0
+	 *
 	 * @param array $options {
 	 *   Optional options object.
 	 *
@@ -178,11 +193,11 @@ class WP_Block {
 	 */
 	public function render( $options = array() ) {
 		global $post;
-		$options = array_replace(
+		$options = wp_parse_args(
+			$options,
 			array(
 				'dynamic' => true,
 			),
-			$options
 		);
 
 		$is_dynamic    = $options['dynamic'] && $this->name && null !== $this->block_type && $this->block_type->is_dynamic();
