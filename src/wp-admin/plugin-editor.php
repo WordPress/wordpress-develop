@@ -219,6 +219,8 @@ $content = esc_textarea( $content );
 		<strong><label for="plugin"><?php _e( 'Select plugin to edit:' ); ?> </label></strong>
 		<select name="plugin" id="plugin">
 		<?php
+		$active_plugin   = '';
+		$inactive_plugin = '';
 		foreach ( $plugins as $plugin_key => $a_plugin ) {
 			$plugin_name = $a_plugin['Name'];
 			if ( $plugin_key === $plugin ) {
@@ -228,9 +230,31 @@ $content = esc_textarea( $content );
 			}
 			$plugin_name = esc_attr( $plugin_name );
 			$plugin_key  = esc_attr( $plugin_key );
-			echo "\n\t<option value=\"$plugin_key\" $selected>$plugin_name</option>";
+					
+			if( is_plugin_active( $plugin_key ) )
+				$active_plugin   .= "\n\t<option value=\"$plugin_key\" $selected>$plugin_name</option>";
+			else
+				$inactive_plugin .= "\n\t<option value=\"$plugin_key\" $selected>$plugin_name</option>";
 		}
+		
+		/* Active Plugins Group */
+		if( !empty( $active_plugin ) ){ 
 		?>
+        <optgroup label="<?php _e( 'Active Plugins' ); ?>">
+        <?php echo $active_plugin; ?>
+        </optgroup>
+        
+        <?php }
+		
+		/* Inactive Plugins Group */
+		if( !empty( $inactive_plugin ) ){ ?>
+        
+        <optgroup label="<?php _e( 'Inactive Plugins' ); ?>">
+        <?php echo $inactive_plugin; ?>
+        </optgroup>
+        
+         <?php } ?>
+         
 		</select>
 		<?php submit_button( __( 'Select' ), '', 'Submit', false ); ?>
 	</form>
