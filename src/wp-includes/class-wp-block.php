@@ -197,7 +197,7 @@ class WP_Block {
 			$options,
 			array(
 				'dynamic' => true,
-			),
+			)
 		);
 
 		$is_dynamic    = $options['dynamic'] && $this->name && null !== $this->block_type && $this->block_type->is_dynamic();
