@@ -45,7 +45,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 * @param WP_Block_Type_Registry $registry          Optional block type registry.
 	 */
 	public function __construct( $blocks, $available_context = array(), $registry = null ) {
-		if ( is_null( $registry ) ) {
+		if ( ! $registry instanced WP_Block_Type_Registry ) {
 			$registry = WP_Block_Type_Registry::get_instance();
 		}
 
