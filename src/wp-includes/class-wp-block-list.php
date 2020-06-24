@@ -14,6 +14,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	/**
 	 * Original array of parsed block data.
 	 *
+	 * @since 5.5.0
 	 * @var array|WP_Block[]
 	 * @access protected
 	 */
@@ -22,6 +23,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	/**
 	 * All available context of the current hierarchy.
 	 *
+	 * @since 5.5.0
 	 * @var array
 	 * @access protected
 	 */
@@ -30,6 +32,7 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	/**
 	 * Block type registry to use in constructing block instances.
 	 *
+	 * @since 5.5.0
 	 * @var WP_Block_Type_Registry
 	 * @access protected
 	 */
@@ -39,6 +42,8 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 * Constructor.
 	 *
 	 * Populates object properties from the provided block instance argument.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @param array|WP_Block[]       $blocks            Array of parsed block data, or block instances.
 	 * @param array                  $available_context Optional array of ancestry context values.
@@ -54,13 +59,11 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 		$this->registry          = $registry;
 	}
 
-	/*
-	 * ArrayAccess interface methods.
-	 */
-
 	/**
 	 * Returns true if a block exists by the specified block index, or false
 	 * otherwise.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @link https://www.php.net/manual/en/arrayaccess.offsetexists.php
 	 *
@@ -73,6 +76,8 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 
 	/**
 	 * Returns the value by the specified block index.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @link https://www.php.net/manual/en/arrayaccess.offsetget.php
 	 *
@@ -93,6 +98,8 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	/**
 	 * Assign a block value by the specified block index.
 	 *
+	 * @since 5.5.0
+	 *
 	 * @link https://www.php.net/manual/en/arrayaccess.offsetset.php
 	 *
 	 * @param string $index Index of block value to set.
@@ -109,6 +116,8 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	/**
 	 * Unset a block.
 	 *
+	 * @since 5.5.0
+	 *
 	 * @link https://www.php.net/manual/en/arrayaccess.offsetunset.php
 	 *
 	 * @param string $index Index of block value to unset.
@@ -117,12 +126,10 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 		unset( $this->blocks[ $index ] );
 	}
 
-	/*
-	 * Iterator interface methods.
-	 */
-
 	/**
 	 * Rewinds back to the first element of the Iterator.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @link https://www.php.net/manual/en/iterator.rewind.php
 	 */
@@ -132,6 +139,8 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 
 	/**
 	 * Returns the current element of the block list.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @link https://www.php.net/manual/en/iterator.current.php
 	 *
@@ -144,6 +153,8 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	/**
 	 * Returns the key of the current element of the block list.
 	 *
+	 * @since 5.5.0
+	 *
 	 * @link https://www.php.net/manual/en/iterator.key.php
 	 *
 	 * @return mixed Key of the current element.
@@ -155,6 +166,8 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	/**
 	 * Moves the current position of the block list to the next element.
 	 *
+	 * @since 5.5.0
+	 *
 	 * @link https://www.php.net/manual/en/iterator.next.php
 	 */
 	public function next() {
@@ -163,6 +176,8 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 
 	/**
 	 * Checks if current position is valid.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @link https://www.php.net/manual/en/iterator.valid.php
 	 */
@@ -176,6 +191,8 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 
 	/**
 	 * Returns the count of blocks in the list.
+	 *
+	 * @since 5.5.0
 	 *
 	 * @link https://www.php.net/manual/en/countable.count.php
 	 *
