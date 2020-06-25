@@ -525,7 +525,7 @@ class Tests_Theme extends WP_UnitTestCase {
 						'items'   => array(
 							'type' => 'string',
 						),
-						'default' => [ 'standard' ],
+						'default' => array( 'standard' ),
 					),
 				),
 			)
