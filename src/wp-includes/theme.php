@@ -3611,7 +3611,7 @@ function _wp_keep_alive_customize_changeset_dependent_auto_drafts( $new_status, 
 /**
  * Creates the initial theme features when the 'setup_theme' action is fired.
  *
- * See {@see 'setup_theme'}
+ * See {@see 'setup_theme'}.
  *
  * @since 5.5.0
  */
