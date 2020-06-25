@@ -303,7 +303,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$override_sortable_columns = array(
 			'author'   => array( 'comment_author', true ),
 			'response' => 'comment_post_ID',
-			'date'     => array( 'comment_date', 'dEsC' ), // The ordering support should be case insensitive.
+			'date'     => array( 'comment_date', 'dEsC' ), // The ordering support should be case-insensitive.
 		);
 
 		// Stub the get_sortable_columns() method.
@@ -324,8 +324,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$this->assertContains( '?orderby=comment_post_ID&#038;order=asc', $output, 'Mismatch of the default link ordering for comment response column. Should be asc.' );
 		$this->assertContains( 'column-response sortable desc', $output, 'Mismatch of CSS classes for the comment post ID column.' );
 
-		$this->assertContains( '?orderby=comment_date&#038;order=asc', $output, 'Mismatch of the default link ordering for comment author column. Should be asc.' );
-		$this->assertContains( 'column-date sortable desc', $output, 'Mismatch of CSS classes for the comment date column.' );
+		$this->assertContains( '?orderby=comment_date&#038;order=desc', $output, 'Mismatch of the default link ordering for comment date column. Should be asc.' );
+		$this->assertContains( 'column-date sortable asc', $output, 'Mismatch of CSS classes for the comment date column.' );
 	}
 
 	/**
