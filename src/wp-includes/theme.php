@@ -2992,7 +2992,7 @@ function require_if_theme_supports( $feature, $include ) {
 /**
  * Registers a theme feature for use in {@see add_theme_support}.
  *
- * This does not indicate that the current theme supports the feature, it only describes the feature's contents.
+ * This does not indicate that the current theme supports the feature, it only describes the feature's supported options.
  *
  * @since 5.5.0
  *
