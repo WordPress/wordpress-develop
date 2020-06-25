@@ -64,9 +64,6 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		register_block_type( $name, $settings );
 	}
 
-	/**
-	 * @ticket 47620
-	 */
 	public static function wpTearDownAfterClass() {
 		self::delete_user( self::$admin_id );
 		self::delete_user( self::$subscriber_id );
@@ -422,11 +419,13 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * Util check block type object against.
 	 *
+	 * @since 5.5.0
+	 *
 	 * @param WP_Block_Type $block_type Sample block type.
 	 * @param array         $data Data to compare against.
 	 * @param array         $links Links to compare again.
 	 */
-	public function check_block_type_object( $block_type, $data, $links ) {
+	protected function check_block_type_object( $block_type, $data, $links ) {
 		// Test data.
 		$this->assertEquals( $data['attributes'], $block_type->get_attributes() );
 		$this->assertEquals( $data['is_dynamic'], $block_type->is_dynamic() );
