@@ -3913,7 +3913,7 @@ function create_initial_theme_features() {
 		'html5',
 		array(
 			'type'         => 'array',
-			'description'  => __( 'Allows use of html5 markup for search forms, comment forms, comment lists, gallery, and caption.' ),
+			'description'  => __( 'Allows use of HTML5 markup for search forms, comment forms, comment lists, gallery, and caption.' ),
 			'show_in_rest' => array(
 				'schema' => array(
 					'items' => array(
