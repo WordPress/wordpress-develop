@@ -432,28 +432,28 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( $data['is_dynamic'], $block_type->is_dynamic() );
 
 		$extra_fields = array(
-			'name'             => 'name',
-			'category'         => 'category',
-			'editor_script'    => 'editor_script',
-			'script'           => 'script',
-			'editor_style'     => 'editor_style',
-			'style'            => 'style',
-			'title'            => 'title',
-			'icon'             => 'icon',
-			'description'      => 'description',
-			'keywords'         => 'keywords',
-			'parent'           => 'parent',
-			'provides_context' => 'provides_context',
-			'uses_context'     => 'uses_context',
-			'supports'         => 'supports',
-			'styles'           => 'styles',
-			'textdomain'       => 'textdomain',
-			'example'          => 'example',
+			'name',
+			'category',
+			'editor_script',
+			'script',
+			'editor_style',
+			'style',
+			'title',
+			'icon',
+			'description',
+			'keywords',
+			'parent',
+			'provides_context',
+			'uses_context',
+			'supports',
+			'styles',
+			'textdomain',
+			'example',
 		);
 
-		foreach ( $extra_fields as $key => $extra_field ) {
+		foreach ( $extra_fields as $extra_field ) {
 			if ( isset( $block_type->$extra_field ) ) {
-				$this->assertEquals( $data[ $key ], $block_type->$extra_field );
+				$this->assertEquals( $data[ $extra_field ], $block_type->$extra_field );
 			}
 		}
 
