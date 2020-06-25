@@ -476,15 +476,34 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 				),
 				'styles'           => array(
-					'description'          => __( 'Block style variations.' ),
-					'type'                 => 'array',
-					'properties'           => array(),
-					'additionalProperties' => array(
-						'type' => 'object',
+					'description' => __( 'Block style variations.' ),
+					'type'        => 'array',
+					'items'       => array(
+						'type'                 => 'object',
+						'properties'           => array(
+							'name'         => array(
+								'description' => __( 'Unique name identifying the style.' ),
+								'type'        => 'string',
+								'required'    => true,
+							),
+							'label'        => array(
+								'description' => __( 'The human-readable label for the style.' ),
+								'type'        => 'string',
+							),
+							'inline_style' => array(
+								'description' => __( 'Inline CSS code that registers the CSS class required for the style.' ),
+								'type'        => 'string',
+							),
+							'style_handle' => array(
+								'description' => __( 'Contains the handle that defines the block style.' ),
+								'type'        => 'string',
+							),
+						),
+						'additionalProperties' => true,
 					),
-					'default'              => array(),
-					'context'              => array( 'embed', 'view', 'edit' ),
-					'readonly'             => true,
+					'default'     => array(),
+					'context'     => array( 'embed', 'view', 'edit' ),
+					'readonly'    => true,
 				),
 				'textdomain'       => array(
 					'description' => __( 'Public text domain.' ),
