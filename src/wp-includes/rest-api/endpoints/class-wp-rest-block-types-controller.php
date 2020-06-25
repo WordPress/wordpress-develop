@@ -256,34 +256,34 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 
 		$schema       = $this->get_item_schema();
 		$extra_fields = array(
-			'name'             => 'name',
-			'title'            => 'title',
-			'description'      => 'description',
-			'icon'             => 'icon',
-			'category'         => 'category',
-			'keywords'         => 'keywords',
-			'parent'           => 'parent',
-			'provides_context' => 'provides_context',
-			'uses_context'     => 'uses_context',
-			'supports'         => 'supports',
-			'styles'           => 'styles',
-			'textdomain'       => 'textdomain',
-			'example'          => 'example',
-			'editor_script'    => 'editor_script',
-			'script'           => 'script',
-			'editor_style'     => 'editor_style',
-			'style'            => 'style',
+			'name',
+			'title',
+			'description',
+			'icon',
+			'category',
+			'keywords',
+			'parent',
+			'provides_context',
+			'uses_context',
+			'supports',
+			'styles',
+			'textdomain',
+			'example',
+			'editor_script',
+			'script',
+			'editor_style',
+			'style',
 		);
-		foreach ( $extra_fields as $key => $extra_field ) {
-			if ( rest_is_field_included( $key, $fields ) ) {
+		foreach ( $extra_fields as $extra_field ) {
+			if ( rest_is_field_included( $extra_field, $fields ) ) {
 				if ( isset( $block_type->$extra_field ) ) {
 					$field = $block_type->$extra_field;
-				} elseif ( array_key_exists( 'default', $schema['properties'][ $key ] ) ) {
-					$field = $schema['properties'][ $key ]['default'];
+				} elseif ( array_key_exists( 'default', $schema['properties'][ $extra_field ] ) ) {
+					$field = $schema['properties'][ $extra_field ]['default'];
 				} else {
 					$field = '';
 				}
-				$data[ $key ] = rest_sanitize_value_from_schema( $field, $schema['properties'][ $key ] );
+				$data[ $extra_field ] = rest_sanitize_value_from_schema( $field, $schema['properties'][ $extra_field ] );
 			}
 		}
 
