@@ -10,7 +10,7 @@
 /**
  * Core class used to access block types via the REST API.
  *
- * @since 5.0.0
+ * @since 5.5.0
  *
  * @see WP_REST_Controller
  */
