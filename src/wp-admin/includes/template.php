@@ -536,7 +536,7 @@ function wp_comment_trashnotice() {
 <div class="hidden" id="trash-undo-holder">
 	<div class="trash-undo-inside">
 		<?php
-		/* translators: %s: Comment author, filled by AJAX. */
+		/* translators: %s: Comment author, filled by Ajax. */
 		printf( __( 'Comment by %s moved to the Trash.' ), '<strong></strong>' );
 		?>
 		<span class="undo untrash"><a href="#"><?php _e( 'Undo' ); ?></a></span>
@@ -545,7 +545,7 @@ function wp_comment_trashnotice() {
 <div class="hidden" id="spam-undo-holder">
 	<div class="spam-undo-inside">
 		<?php
-		/* translators: %s: Comment author, filled by AJAX. */
+		/* translators: %s: Comment author, filled by Ajax. */
 		printf( __( 'Comment by %s marked as spam.' ), '<strong></strong>' );
 		?>
 		<span class="undo unspam"><a href="#"><?php _e( 'Undo' ); ?></a></span>
@@ -2200,6 +2200,8 @@ function get_post_states( $post ) {
  * @return string Media states string.
  */
 function _media_states( $post ) {
+	static $header_images;
+
 	$media_states = array();
 	$stylesheet   = get_option( 'stylesheet' );
 
@@ -2207,7 +2209,9 @@ function _media_states( $post ) {
 		$meta_header = get_post_meta( $post->ID, '_wp_attachment_is_custom_header', true );
 
 		if ( is_random_header_image() ) {
-			$header_images = wp_list_pluck( get_uploaded_header_images(), 'attachment_id' );
+			if ( ! isset( $header_images ) ) {
+				$header_images = wp_list_pluck( get_uploaded_header_images(), 'attachment_id' );
+			}
 
 			if ( $meta_header === $stylesheet && in_array( $post->ID, $header_images, true ) ) {
 				$media_states[] = __( 'Header Image' );

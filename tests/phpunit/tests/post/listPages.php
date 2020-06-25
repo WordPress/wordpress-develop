@@ -5,6 +5,13 @@
  */
 class Tests_List_Pages extends WP_UnitTestCase {
 	/**
+	 * Editor user id.
+	 *
+	 * @var int
+	 */
+	public static $editor;
+
+	/**
 	 * Author user id.
 	 *
 	 * @var int
@@ -51,15 +58,17 @@ class Tests_List_Pages extends WP_UnitTestCase {
 
 		$post_date = gmdate( 'Y-m-d H:i:s', self::$time );
 
+		self::$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
+		self::$author = self::factory()->user->create( array( 'role' => 'author' ) );
+
 		self::$parent_1 = self::factory()->post->create(
 			array(
-				'post_type'  => 'page',
-				'post_title' => 'Parent 1',
-				'post_date'  => $post_date,
+				'post_author' => self::$editor,
+				'post_type'   => 'page',
+				'post_title'  => 'Parent 1',
+				'post_date'   => $post_date,
 			)
 		);
-
-		self::$author = self::factory()->user->create( array( 'role' => 'author' ) );
 
 		self::$parent_2 = self::factory()->post->create(
 			array(
