@@ -1531,7 +1531,7 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
 	$width  = preg_match( '/ width="([0-9]+)"/', $image, $match_width ) ? (int) $match_width[1] : 0;
 	$height = preg_match( '/ height="([0-9]+)"/', $image, $match_height ) ? (int) $match_height[1] : 0;
 
-	if ( ! $width || ! $height ) {
+	if ( ! $width && ! $height ) {
 		/*
 		 * If attempts to parse the size value failed, attempt to use the image meta data to match
 		 * the image file name from 'src' against the available sizes for an attachment.
@@ -1551,12 +1551,21 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
 			}
 		}
 
-		if ( ! $width || ! $height ) {
-			return $image;
+		/*
+		 * If size could be determined, add 'width' and 'height' attributes since these
+		 * should always be present.
+		 */
+		if ( $width && $height ) {
+			$attr .= ' ' . trim( image_hwstring( $width, $height ) );
 		}
+	}
 
-		// Add width and height if not present.
-		$attr .= ' ' . trim( image_hwstring( $width, $height ) );
+	if ( ! $width || ! $height ) {
+		/*
+		 * If only one of 'width' and 'height' is specified, we cannot make assumptions
+		 * for the other dimension.
+		 */
+		return $image;
 	}
 
 	$size_array = array( $width, $height );

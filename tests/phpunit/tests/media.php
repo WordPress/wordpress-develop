@@ -1978,6 +1978,8 @@ EOF;
 		$img_no_size_in_class = str_replace( 'size-', '', $img );
 		$img_no_width_height  = str_replace( ' width="' . $size_array[0] . '"', '', $img );
 		$img_no_width_height  = str_replace( ' height="' . $size_array[1] . '"', '', $img_no_width_height );
+		$img_no_width         = str_replace( ' width="' . $size_array[0] . '"', '', $img );
+		$img_no_height        = str_replace( ' height="' . $size_array[1] . '"', '', $img );
 		$img_no_size_id       = str_replace( 'wp-image-', 'id-', $img );
 		$img_with_sizes_attr  = str_replace( '<img ', '<img sizes="99vw" ', $img );
 		$img_xhtml            = str_replace( ' />', '/>', $img );
@@ -2003,20 +2005,26 @@ EOF;
 			<p>Image, no width and height attributes. Should have width, height, srcset and sizes (from matching the file name).</p>
 			%3$s
 
-			<p>Image, no attachment ID class. Should NOT have srcset and sizes.</p>
+			<p>Image, no width but height attribute. Should NOT be modified.</p>
 			%4$s
 
-			<p>Image, with sizes attribute. Should NOT have two sizes attributes.</p>
+			<p>Image, no height but width attribute. Should NOT be modified.</p>
 			%5$s
 
-			<p>Image, XHTML 1.0 style (no space before the closing slash). Should have srcset and sizes.</p>
+			<p>Image, no attachment ID class. Should NOT have srcset and sizes.</p>
 			%6$s
 
-			<p>Image, HTML 5.0 style. Should have srcset and sizes.</p>
-			%7$s';
+			<p>Image, with sizes attribute. Should NOT have two sizes attributes.</p>
+			%7$s
 
-		$content_unfiltered = sprintf( $content, $img, $img_no_size_in_class, $img_no_width_height, $img_no_size_id, $img_with_sizes_attr, $img_xhtml, $img_html5 );
-		$content_filtered   = sprintf( $content, $respimg, $respimg_no_size_in_class, $respimg_no_width_height, $img_no_size_id, $respimg_with_sizes_attr, $respimg_xhtml, $respimg_html5 );
+			<p>Image, XHTML 1.0 style (no space before the closing slash). Should have srcset and sizes.</p>
+			%8$s
+
+			<p>Image, HTML 5.0 style. Should have srcset and sizes.</p>
+			%9$s';
+
+		$content_unfiltered = sprintf( $content, $img, $img_no_size_in_class, $img_no_width_height, $img_no_width, $img_no_height, $img_no_size_id, $img_with_sizes_attr, $img_xhtml, $img_html5 );
+		$content_filtered   = sprintf( $content, $respimg, $respimg_no_size_in_class, $respimg_no_width_height, $img_no_width, $img_no_height, $img_no_size_id, $respimg_with_sizes_attr, $respimg_xhtml, $respimg_html5 );
 
 		$this->assertSame( $content_filtered, wp_filter_content_tags( $content_unfiltered ) );
 	}
