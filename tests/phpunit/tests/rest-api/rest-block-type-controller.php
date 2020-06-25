@@ -247,7 +247,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertEqualSets( array( 'invalid_keywords' ), $data['keywords'] );
 		$this->assertEqualSets( array( 'invalid_parent' ), $data['parent'] );
 		$this->assertEqualSets( array(), $data['supports'] );
-		$this->assertEqualSets( array( 'invalid_styles' ), $data['styles'] );
+		$this->assertEqualSets( array(), $data['styles'] );
 		$this->assertEquals( null, $data['example'] );
 		$this->assertEquals( null, $data['category'] );
 		$this->assertEquals( null, $data['textdomain'] );
