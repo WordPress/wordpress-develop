@@ -4338,6 +4338,18 @@ function register_admin_color_schemes() {
 	}
 
 	wp_admin_css_color(
+		'modern',
+		_x( 'Modern', 'admin color scheme' ),
+		admin_url( "css/colors/modern/colors$suffix.css" ),
+		array( '#1e1e1e', '#3858e9', '#e26f56' ),
+		array(
+			'base'    => '#1e1e1e',
+			'focus'   => '#3858e9',
+			'current' => '#e26f56',
+		)
+	);
+
+	wp_admin_css_color(
 		'light',
 		_x( 'Light', 'admin color scheme' ),
 		admin_url( "css/colors/light/colors$suffix.css" ),

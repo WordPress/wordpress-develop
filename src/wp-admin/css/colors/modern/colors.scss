@@ -1,0 +1,17 @@
+$base-color: #1e1e1e;
+$highlight-color: #3858e9;
+$notification-color: #e26f56;
+$menu-submenu-focus-text: #33f078;
+
+@import "../_admin.scss";
+
+// Customize block editor colors.
+:root {
+	--wp-admin-theme-color: #3858e9;
+	--wp-admin-theme-color-darker-10: #1D35B4;
+	--wp-admin-theme-color-darker-20: #152A9C;
+}
+
+#adminmenu .wp-submenu, #adminmenu .wp-has-current-submenu .wp-submenu, #adminmenu .wp-has-current-submenu.opensub .wp-submenu, .folded #adminmenu .wp-has-current-submenu .wp-submenu, #adminmenu a.wp-has-current-submenu:focus + .wp-submenu {
+	padding-bottom: 12px;
+}
