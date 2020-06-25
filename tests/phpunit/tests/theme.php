@@ -415,4 +415,288 @@ class Tests_Theme extends WP_UnitTestCase {
 		$this->assertEquals( 'trash', get_post_status( $nav_created_post_ids[0] ) );
 		$this->assertEquals( 'private', get_post_status( $nav_created_post_ids[1] ) );
 	}
+
+	/**
+	 * @ticket 49406
+	 */
+	public function test_register_theme_support_defaults() {
+		$registered = register_theme_feature( 'test-feature' );
+		$this->assertTrue( $registered );
+
+		$expected = array(
+			'type'         => 'boolean',
+			'variadic'     => false,
+			'description'  => '',
+			'show_in_rest' => false,
+		);
+		$this->assertEqualSets( $expected, get_registered_theme_feature( 'test-feature' ) );
+	}
+
+	/**
+	 * @ticket 49406
+	 */
+	public function test_register_theme_support_explicit() {
+		$args = array(
+			'type'         => 'array',
+			'variadic'     => true,
+			'description'  => 'My Feature',
+			'show_in_rest' => array(
+				'schema' => array(
+					'items' => array(
+						'type' => 'string',
+					),
+				),
+			),
+		);
+
+		register_theme_feature( 'test-feature', $args );
+		$actual = get_registered_theme_feature( 'test-feature' );
+
+		$this->assertEquals( 'array', $actual['type'] );
+		$this->assertTrue( $actual['variadic'] );
+		$this->assertEquals( 'My Feature', $actual['description'] );
+		$this->assertEquals( array( 'type' => 'string' ), $actual['show_in_rest']['schema']['items'] );
+	}
+
+	/**
+	 * @ticket 49406
+	 */
+	public function test_register_theme_support_upgrades_show_in_rest() {
+		register_theme_feature( 'test-feature', array( 'show_in_rest' => true ) );
+
+		$expected = array(
+			'schema'           => array(
+				'type'        => 'boolean',
+				'description' => '',
+				'default'     => false,
+			),
+			'name'             => 'test-feature',
+			'prepare_callback' => null,
+		);
+		$actual   = get_registered_theme_feature( 'test-feature' )['show_in_rest'];
+
+		$this->assertEqualSets( $expected, $actual );
+	}
+
+	/**
+	 * @ticket 49406
+	 */
+	public function test_register_theme_support_fills_schema() {
+		register_theme_feature(
+			'test-feature',
+			array(
+				'type'         => 'array',
+				'description'  => 'Cool Feature',
+				'show_in_rest' => array(
+					'schema' => array(
+						'items'    => array(
+							'type' => 'string',
+						),
+						'minItems' => 1,
+					),
+				),
+			)
+		);
+
+		$expected = array(
+			'description' => 'Cool Feature',
+			'type'        => array( 'boolean', 'array' ),
+			'items'       => array(
+				'type' => 'string',
+			),
+			'minItems'    => 1,
+			'default'     => false,
+		);
+		$actual   = get_registered_theme_feature( 'test-feature' )['show_in_rest']['schema'];
+
+		$this->assertEqualSets( $expected, $actual );
+	}
+
+	/**
+	 * @ticket 49406
+	 */
+	public function test_register_theme_support_does_not_add_boolean_type_if_non_bool_default() {
+		register_theme_feature(
+			'test-feature',
+			array(
+				'type'         => 'array',
+				'show_in_rest' => array(
+					'schema' => array(
+						'items'   => array(
+							'type' => 'string',
+						),
+						'default' => array( 'standard' ),
+					),
+				),
+			)
+		);
+
+		$actual = get_registered_theme_feature( 'test-feature' )['show_in_rest']['schema']['type'];
+		$this->assertEquals( 'array', $actual );
+	}
+
+	/**
+	 * @ticket 49406
+	 */
+	public function test_register_theme_support_defaults_additional_properties_to_false() {
+		register_theme_feature(
+			'test-feature',
+			array(
+				'type'         => 'object',
+				'description'  => 'Cool Feature',
+				'show_in_rest' => array(
+					'schema' => array(
+						'properties' => array(
+							'a' => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$actual = get_registered_theme_feature( 'test-feature' )['show_in_rest']['schema'];
+
+		$this->assertArrayHasKey( 'additionalProperties', $actual );
+		$this->assertFalse( $actual['additionalProperties'] );
+	}
+
+	/**
+	 * @ticket 49406
+	 */
+	public function test_register_theme_support_with_additional_properties() {
+		register_theme_feature(
+			'test-feature',
+			array(
+				'type'         => 'object',
+				'description'  => 'Cool Feature',
+				'show_in_rest' => array(
+					'schema' => array(
+						'properties'           => array(),
+						'additionalProperties' => array(
+							'type' => 'string',
+						),
+					),
+				),
+			)
+		);
+
+		$expected = array(
+			'type' => 'string',
+		);
+		$actual   = get_registered_theme_feature( 'test-feature' )['show_in_rest']['schema']['additionalProperties'];
+
+		$this->assertEqualSets( $expected, $actual );
+	}
+
+	/**
+	 * @ticket 49406
+	 */
+	public function test_register_theme_support_defaults_additional_properties_to_false_in_array() {
+		register_theme_feature(
+			'test-feature',
+			array(
+				'type'         => 'array',
+				'description'  => 'Cool Feature',
+				'show_in_rest' => array(
+					'schema' => array(
+						'items' => array(
+							'type'       => 'object',
+							'properties' => array(
+								'a' => array(
+									'type' => 'string',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$actual = get_registered_theme_feature( 'test-feature' )['show_in_rest']['schema']['items'];
+
+		$this->assertArrayHasKey( 'additionalProperties', $actual );
+		$this->assertFalse( $actual['additionalProperties'] );
+	}
+
+	/**
+	 * @ticket       49406
+	 * @dataProvider _dp_register_theme_support_validation
+	 * @param string $error_code The error code expected.
+	 * @param array  $args       The args to register.
+	 */
+	public function test_register_theme_support_validation( $error_code, $args ) {
+		$registered = register_theme_feature( 'test-feature', $args );
+
+		$this->assertWPError( $registered );
+		$this->assertEquals( $error_code, $registered->get_error_code() );
+	}
+
+	public function _dp_register_theme_support_validation() {
+		return array(
+			array(
+				'invalid_type',
+				array(
+					'type' => 'float',
+				),
+			),
+			array(
+				'invalid_type',
+				array(
+					'type' => array( 'string' ),
+				),
+			),
+			array(
+				'variadic_must_be_array',
+				array(
+					'variadic' => true,
+				),
+			),
+			array(
+				'missing_schema',
+				array(
+					'type'         => 'object',
+					'show_in_rest' => true,
+				),
+			),
+			array(
+				'missing_schema',
+				array(
+					'type'         => 'array',
+					'show_in_rest' => true,
+				),
+			),
+			array(
+				'missing_schema_items',
+				array(
+					'type'         => 'array',
+					'show_in_rest' => array(
+						'schema' => array(
+							'type' => 'array',
+						),
+					),
+				),
+			),
+			array(
+				'missing_schema_properties',
+				array(
+					'type'         => 'object',
+					'show_in_rest' => array(
+						'schema' => array(
+							'type' => 'object',
+						),
+					),
+				),
+			),
+			array(
+				'invalid_rest_prepare_callback',
+				array(
+					'show_in_rest' => array(
+						'prepare_callback' => 'this is not a valid function',
+					),
+				),
+			),
+		);
+	}
 }
