@@ -239,7 +239,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_Block_Type   $block_type Block type data.
 	 * @param WP_REST_Request $request    Full details about the request.
-	 * @return WP_REST_Response block type data.
+	 * @return WP_REST_Response Block type data.
 	 */
 	public function prepare_item_for_response( $block_type, $request ) {
 
