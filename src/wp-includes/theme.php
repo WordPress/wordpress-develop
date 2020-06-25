@@ -3631,50 +3631,6 @@ function create_initial_theme_features() {
 		)
 	);
 	register_theme_feature(
-		'custom-header',
-		array(
-			'description'  => __( 'Custom header if defined by the theme.' ),
-			'type'         => 'object',
-			'show_in_rest' => array(
-				'schema' => array(
-					'properties' => array(
-						'default-image'      => array(
-							'type'   => 'string',
-							'format' => 'uri',
-						),
-						'random-default'     => array(
-							'type' => 'boolean',
-						),
-						'width'              => array(
-							'type' => 'integer',
-						),
-						'height'             => array(
-							'type' => 'integer',
-						),
-						'flex-height'        => array(
-							'type' => 'boolean',
-						),
-						'flex-width'         => array(
-							'type' => 'boolean',
-						),
-						'default-text-color' => array(
-							'type' => 'string',
-						),
-						'header-text'        => array(
-							'type' => 'boolean',
-						),
-						'uploads'            => array(
-							'type' => 'boolean',
-						),
-						'video'              => array(
-							'type' => 'boolean',
-						),
-					),
-				),
-			),
-		)
-	);
-	register_theme_feature(
 		'custom-background',
 		array(
 			'description'  => __( 'Custom background if defined by the theme.' ),
@@ -3738,6 +3694,50 @@ function create_initial_theme_features() {
 						),
 						'default-color'      => array(
 							'type' => 'string',
+						),
+					),
+				),
+			),
+		)
+	);
+	register_theme_feature(
+		'custom-header',
+		array(
+			'description'  => __( 'Custom header if defined by the theme.' ),
+			'type'         => 'object',
+			'show_in_rest' => array(
+				'schema' => array(
+					'properties' => array(
+						'default-image'      => array(
+							'type'   => 'string',
+							'format' => 'uri',
+						),
+						'random-default'     => array(
+							'type' => 'boolean',
+						),
+						'width'              => array(
+							'type' => 'integer',
+						),
+						'height'             => array(
+							'type' => 'integer',
+						),
+						'flex-height'        => array(
+							'type' => 'boolean',
+						),
+						'flex-width'         => array(
+							'type' => 'boolean',
+						),
+						'default-text-color' => array(
+							'type' => 'string',
+						),
+						'header-text'        => array(
+							'type' => 'boolean',
+						),
+						'uploads'            => array(
+							'type' => 'boolean',
+						),
+						'video'              => array(
+							'type' => 'boolean',
 						),
 					),
 				),
@@ -3893,29 +3893,6 @@ function create_initial_theme_features() {
 		)
 	);
 	register_theme_feature(
-		'post-formats',
-		array(
-			'type'         => 'array',
-			'description'  => __( 'Post formats supported.' ),
-			'show_in_rest' => array(
-				'name'             => 'formats',
-				'schema'           => array(
-					'items'   => array(
-						'type' => 'string',
-						'enum' => get_post_format_slugs(),
-					),
-					'default' => array( 'standard' ),
-				),
-				'prepare_callback' => static function ( $formats ) {
-					$formats = is_array( $formats ) ? array_values( $formats[0] ) : array();
-					$formats = array_merge( array( 'standard' ), $formats );
-
-					return $formats;
-				},
-			),
-		)
-	);
-	register_theme_feature(
 		'html5',
 		array(
 			'type'         => 'array',
@@ -3935,6 +3912,29 @@ function create_initial_theme_features() {
 						),
 					),
 				),
+			),
+		)
+	);
+	register_theme_feature(
+		'post-formats',
+		array(
+			'type'         => 'array',
+			'description'  => __( 'Post formats supported.' ),
+			'show_in_rest' => array(
+				'name'             => 'formats',
+				'schema'           => array(
+					'items'   => array(
+						'type' => 'string',
+						'enum' => get_post_format_slugs(),
+					),
+					'default' => array( 'standard' ),
+				),
+				'prepare_callback' => static function ( $formats ) {
+					$formats = is_array( $formats ) ? array_values( $formats[0] ) : array();
+					$formats = array_merge( array( 'standard' ), $formats );
+
+					return $formats;
+				},
 			),
 		)
 	);
