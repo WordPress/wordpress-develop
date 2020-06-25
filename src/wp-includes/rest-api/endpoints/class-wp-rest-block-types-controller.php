@@ -141,8 +141,8 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 
 		foreach ( $block_types as $slug => $obj ) {
 			if ( $namespace ) {
-				$pieces          = explode( '/', $obj->name );
-				$block_namespace = $pieces[0];
+				list ( $block_namespace ) = explode( '/', $obj->name );
+
 				if ( $namespace !== $block_namespace ) {
 					continue;
 				}
@@ -325,9 +325,9 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 * @return array Links for the given block type.
 	 */
 	protected function prepare_links( $block_type ) {
-		$pieces    = explode( '/', $block_type->name );
-		$namespace = $pieces[0];
-		$links     = array(
+		list( $namespace ) = explode( '/', $block_type->name );
+
+		$links = array(
 			'collection' => array(
 				'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
 			),
