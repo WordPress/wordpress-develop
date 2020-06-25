@@ -2996,6 +2996,8 @@ function require_if_theme_supports( $feature, $include ) {
  *
  * @since 5.5.0
  *
+ * @global $_wp_registered_theme_features
+ *
  * @param string $feature The name uniquely identifying the feature.
  * @param array $args {
  *      Data used to describe the theme
@@ -3103,6 +3105,8 @@ function register_theme_feature( $feature, $args = array() ) {
  *
  * @since 5.5.0
  *
+ * @global $_wp_registered_theme_features
+ *
  * @return array[] List of theme features, keyed by their name.
  */
 function get_registered_theme_features() {
@@ -3119,6 +3123,8 @@ function get_registered_theme_features() {
  * Gets the registration config for a theme feature.
  *
  * @since 5.5.0
+ *
+ * @global $_wp_registered_theme_features
  *
  * @param string $feature The feature name.
  * @return array|null The registration args, or null if the feature was not registered.
