@@ -31,6 +31,7 @@
 		"@wordpress/library-export-default-webpack-plugin": "1.7.0",
 		"@wordpress/scripts": "12.1.0",
 		"autoprefixer": "9.6.2",
+		"chalk": "4.1.0",
 		"check-node-version": "4.0.1",
 		"copy-webpack-plugin": "^5.1.1",
 		"cssnano": "4.1.10",

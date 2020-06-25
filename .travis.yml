@@ -30,6 +30,8 @@ jobs:
   include:
   - env: WP_TRAVISCI=test:e2e
     name: E2E Tests
+  - env: WP_TRAVISCI=test:gutenberg-e2e
+    name: Gutenberg E2E Tests
   - env: WP_TRAVISCI=lint:php COMPOSER_INSTALL=true NPM_INSTALL=false WP_INSTALL=false
     name: PHP Linting
   - env: WP_TRAVISCI=test:compat COMPOSER_INSTALL=true NPM_INSTALL=false WP_INSTALL=false
@@ -113,6 +115,8 @@ script:
   - |
     if [[ "$WP_TRAVISCI" == "test:e2e" ]]; then
       npm run test:e2e
+    elif [[ "$WP_TRAVISCI" == "test:gutenberg-e2e" ]]; then
+      ./bin/tests/gutenberg/run.js
     elif [[ "$WP_TRAVISCI" == "test:php" ]]; then
       npm run test:php -- --verbose -c phpunit.xml.dist &&
       npm run test:php -- --verbose -c phpunit.xml.dist --group ajax &&
