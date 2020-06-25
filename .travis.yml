@@ -76,7 +76,7 @@ before_script:
   fi
 - npm --version
 - node --version
-- nvm install 10.13.0
+- nvm install --latest-npm
 - |
   if [[ "$NPM_INSTALL" == "true" ]]; then
     npm ci
