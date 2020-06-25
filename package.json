@@ -72,6 +72,7 @@
 		"source-map-loader": "^0.2.4",
 		"uglify-js": "^3.6.0",
 		"uglifyjs-webpack-plugin": "2.2.0",
+		"uuid": "8.2.0",
 		"wait-on": "3.3.0",
 		"webpack": "4.43.0",
 		"webpack-dev-server": "3.11.0",
