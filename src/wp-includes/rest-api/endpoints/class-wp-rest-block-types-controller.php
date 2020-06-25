@@ -479,8 +479,8 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'description' => __( 'Block style variations.' ),
 					'type'        => 'array',
 					'items'       => array(
-						'type'                 => 'object',
-						'properties'           => array(
+						'type'       => 'object',
+						'properties' => array(
 							'name'         => array(
 								'description' => __( 'Unique name identifying the style.' ),
 								'type'        => 'string',
@@ -499,7 +499,6 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 								'type'        => 'string',
 							),
 						),
-						'additionalProperties' => true,
 					),
 					'default'     => array(),
 					'context'     => array( 'embed', 'view', 'edit' ),
@@ -533,15 +532,32 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 				),
 				'example'          => array(
-					'description'          => __( 'Block example.' ),
-					'type'                 => array( 'object', 'null' ),
-					'default'              => null,
-					'properties'           => array(),
-					'additionalProperties' => array(
-						'type' => 'object',
+					'description' => __( 'Block example.' ),
+					'type'        => array( 'object', 'null' ),
+					'default'     => null,
+					'properties'  => array(
+						'attributes'  => array(
+							'description' => __( 'The attributes used in the example.' ),
+							'type'        => 'object',
+						),
+						'innerBlocks' => array(
+							'description' => __( 'The list of inner blocks used in the example.' ),
+							'type'        => 'array',
+							'items'       => array(
+								'type'       => 'object',
+								'properties' => array(
+									'name'       => array(
+										'type' => 'string',
+									),
+									'attributes' => array(
+										'type' => 'object',
+									),
+								),
+							),
+						),
 					),
-					'context'              => array( 'embed', 'view', 'edit' ),
-					'readonly'             => true,
+					'context'     => array( 'embed', 'view', 'edit' ),
+					'readonly'    => true,
 				),
 			),
 		);
