@@ -842,7 +842,7 @@ JS;
 			array(
 				'default',
 				'test-example',
-				file_get_contents( DIR_TESTDATA . '/languages/en_US-813e104eb47e13dd4cc5af844c618754.json' ),	
+				file_get_contents( DIR_TESTDATA . '/languages/en_US-813e104eb47e13dd4cc5af844c618754.json' ),
 			),
 			$this->wp_scripts_print_translations_output
 		);
