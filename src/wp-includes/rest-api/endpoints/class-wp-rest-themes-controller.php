@@ -146,7 +146,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
-		$wp_theme = wp_get_theme($request['name']);
+		$wp_theme = wp_get_theme( $request['name'] );
 		$data     = $this->prepare_item_for_response( $wp_theme, $request );
 
 		return rest_ensure_response( $data );
@@ -335,10 +335,10 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 */
 	protected function is_current_theme( $theme, $current_theme ) {
 		return (string) $theme === (string) $current_theme;
-  }
+	}
 
-  /**
-   *
+	/**
+	 *
 	 * Prepares the theme support value for inclusion in the REST API response.
 	 *
 	 * @since 5.5.0
