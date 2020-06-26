@@ -350,7 +350,7 @@ function is_tax( $taxonomy = '', $term = '' ) {
  */
 function is_post_format_archive( $format = '' ) {
 	global $wp_query;
-	
+
 	if ( ! isset( $wp_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1.0' );
 		return false;

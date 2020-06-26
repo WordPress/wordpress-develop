@@ -3841,7 +3841,7 @@ class WP_Query {
 
 		if ( ! empty( $format ) ) {
 			$format = (array) $format;
-	
+
 			foreach ( $format as &$value ) {
 				$value = 'post-format-' . $value;
 			}
