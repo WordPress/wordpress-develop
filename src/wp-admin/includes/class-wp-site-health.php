@@ -1999,7 +1999,7 @@ class WP_Site_Health {
 
 		if ( $this->parse_ini_size( ini_get( 'post_max_size' ) ) !== $this->parse_ini_size( ini_get( 'upload_max_filesize' ) ) ) {
 			$result['label']       = __( 'Mismatched "post_max_size" and "upload_max_filesize" values.' );
-			$result['status']      = 'critical';
+			$result['status']      = 'recommended';
 			$result['description'] = sprintf(
 				'<p>%s</p>',
 				__( 'Mismatched values for PHP INI directives <code>post_max_size</code> and <code>upload_max_filesize</code> may cause problems. These values are in PHP INI.' )
