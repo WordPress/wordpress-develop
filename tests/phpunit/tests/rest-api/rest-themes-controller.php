@@ -1177,12 +1177,12 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * Check permission for single theme.
-	 * 
+	 *
 	 * @ticket 50152
 	 */
 	public function test_get_item_no_permission() {
 		wp_set_current_user( self::$subscriber_id );
-		$request = new WP_REST_Request( 'GET', self::$themes_route . '/twentytwenty' );
+		$request  = new WP_REST_Request( 'GET', self::$themes_route . '/twentytwenty' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 403 );
 	}
@@ -1194,7 +1194,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_get_item_invalid() {
 		wp_set_current_user( self::$admin_id );
-		$request = new WP_REST_Request( 'GET', self::$themes_route . '/invalid' );
+		$request  = new WP_REST_Request( 'GET', self::$themes_route . '/invalid' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_theme_invalid_slug', $response, 404 );
 	}
