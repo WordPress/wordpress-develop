@@ -1618,4 +1618,64 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		$this->assertQueryTrue( 'is_page', 'is_singular', 'is_privacy_policy' );
 	}
 
+	public function test_is_post_format_archive_with_string_parameter() {
+
+		$post_id = self::factory()->post->create();
+		$post_2 = self::factory()->post->create();
+
+		
+		set_post_format( $post_id, 'aside' );
+		set_post_format( $post_2, 'quote' );
+		
+		$this->assertFalse( is_post_format_archive() );
+
+		$this->go_to( get_term_link( 'post-format-aside', 'post_format' ) );
+		$query = $GLOBALS['wp_query'];
+
+		$this->assertTrue( is_post_format_archive() );
+		$this->assertTrue( is_post_format_archive( 'aside' ) );
+		$this->assertFalse( is_post_format_archive( 'quote' ) );
+
+		$this->assertTrue( $query->is_post_format_archive() );
+		$this->assertTrue( $query->is_post_format_archive( 'aside' ) );
+		$this->assertFalse( $query->is_post_format_archive( 'quote' ) );
+
+		$this->go_to( get_term_link( 'post-format-quote', 'post_format' ) );
+		$query = $GLOBALS['wp_query'];
+
+		$this->assertTrue( is_post_format_archive( 'quote' ) );
+		$this->assertFalse( is_post_format_archive( 'aside' ) );
+
+		$this->assertTrue( $query->is_post_format_archive( 'quote' ) );
+		$this->assertFalse( $query->is_post_format_archive( 'aside' ) );
+
+	}
+
+	public function test_is_post_format_archive_with_array_parameter() {
+
+		$post_id = self::factory()->post->create();
+
+		set_post_format( $post_id, 'aside' );
+
+		$query = $GLOBALS['wp_query'];
+
+		$this->assertFalse( is_post_format_archive() );
+		$this->assertFalse( is_post_format_archive( array( 'aside', 'quote' ) ) );
+
+		$this->assertFalse( $query->is_post_format_archive() );
+		$this->assertFalse( $query->is_post_format_archive( array( 'aside', 'quote' ) ) );
+
+		$this->go_to( get_term_link( 'post-format-aside', 'post_format' ) );
+		$query = $GLOBALS['wp_query'];
+
+		$this->assertTrue( is_post_format_archive( array( 'aside', 'quote' ) ) );
+
+		$this->assertFalse( is_post_format_archive( array( 'image', 'quote' ) ) );
+
+		$this->assertTrue( $query->is_post_format_archive( array( 'aside', 'quote' ) ) );
+
+		$this->assertFalse( $query->is_post_format_archive( array( 'image', 'quote' ) ) );
+
+	}
+
 }

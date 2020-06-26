@@ -3828,6 +3828,29 @@ class WP_Query {
 	}
 
 	/**
+	 * Is the query for a post format archive page?
+	 *
+	 * If the $format parameter is specified, this function will check
+	 * if the query is for one of the formats specified.
+	 *
+	 * @param mixed $format Optional. Format slug or array of format slugs, without the post-format prefix.
+	 *
+	 * @return bool
+	 */
+	public function is_post_format_archive( $format = '' ) {
+
+		if ( ! empty( $format ) ) {
+			$format = (array) $format;
+	
+			foreach ( $format as &$value ) {
+				$value = 'post-format-' . $value;
+			}
+		}
+
+		return $this->is_tax( 'post_format', $format );
+	}
+
+	/**
 	 * Whether the current URL is within the comments popup window.
 	 *
 	 * @since 3.1.0
