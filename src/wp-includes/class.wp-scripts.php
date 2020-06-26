@@ -385,7 +385,7 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		$tag  = $translations . $cond_before . $before_handle;
-		$tag .= sprintf( "<script%s src='%s'></script>\n", $this->type_attr, $src );
+		$tag .= sprintf( "<script%s src='%s' data-handle='%s'></script>\n", $this->type_attr, $src, esc_attr( $handle ) );
 		$tag .= $after_handle . $cond_after;
 
 		/**
