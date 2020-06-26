@@ -249,7 +249,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 	/**
 	 * @group sidebar
 	 */
-	function test_register_sidebar_with_after_and_before_sidebar() {
+	public function test_register_sidebar_with_after_and_before_sidebar() {
 		global $wp_registered_sidebars;
 
 		$sidebar_id = 'test-sidebar';
@@ -266,24 +266,12 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertContains( '<div id="%1$s" class="before-sidebar %2$s">', $wp_registered_sidebars[ $sidebar_id ]['before_sidebar'] );
 		$this->assertContains( '</div> <!-- .before-sidebar -->', $wp_registered_sidebars[ $sidebar_id ]['after_sidebar'] );
 
-		// Adding widget to the test-sidebar.
-		$sidebars_widgets                  = get_option( 'sidebars_widgets' );
-		$sidebars_widgets[ $sidebar_id ][] = 'test-1';
-		update_option( 'sidebars_widgets', $sidebars_widgets );
-
-		ob_start();
-		dynamic_sidebar( $sidebar_id );
-		$output = ob_get_clean();
-
-		$this->assertContains( '<div id="test-sidebar" class="before-sidebar test-sidebar">', $output );
-		$this->assertContains( '</div> <!-- .before-sidebar -->', $output );
-
 	}
 
 	/**
 	 * @group sidebar
 	 */
-	function test_register_sidebar_without_after_and_before_sidebar() {
+	public function test_register_sidebar_without_after_and_before_sidebar() {
 		global $wp_registered_sidebars;
 
 		$sidebar_id = 'test-sidebar-2';
@@ -296,18 +284,6 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertArrayHasKey( $sidebar_id, $wp_registered_sidebars );
 		$this->assertContains( '', $wp_registered_sidebars[ $sidebar_id ]['before_sidebar'] );
 		$this->assertContains( '', $wp_registered_sidebars[ $sidebar_id ]['after_sidebar'] );
-
-		// Adding widget to the test-sidebar.
-		$sidebars_widgets                  = get_option( 'sidebars_widgets' );
-		$sidebars_widgets[ $sidebar_id ][] = 'test-1';
-		update_option( 'sidebars_widgets', $sidebars_widgets );
-
-		ob_start();
-		dynamic_sidebar( $sidebar_id );
-		$output = ob_get_clean();
-
-		$this->assertNotContains( '<div id="test-sidebar" class="before-sidebar test-sidebar">', $output );
-		$this->assertNotContains( '</div> <!-- .before-sidebar -->', $output );
 
 	}
 
