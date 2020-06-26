@@ -699,7 +699,7 @@ function dynamic_sidebar( $index = 1 ) {
 		return apply_filters( 'dynamic_sidebar_has_widgets', false, $index );
 	}
 
-	$sidebar                   = $wp_registered_sidebars[$index];
+	$sidebar                   = $wp_registered_sidebars[ $index ];
 	$sidebar['before_sidebar'] = sprintf( $sidebar['before_sidebar'], $sidebar['id'], $sidebar['class'] );
 
 	/**

@@ -267,9 +267,9 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertContains( '</div> <!-- .before-sidebar -->', $wp_registered_sidebars[ $sidebar_id ]['after_sidebar'] );
 
 		// Adding widget to the test-sidebar.
-		$sidebars_widgets = get_option( 'sidebars_widgets' );
-		$sidebars_widgets[ $sidebar_id ][] = 'test-1' ;
-		update_option('sidebars_widgets', $sidebars_widgets);
+		$sidebars_widgets                  = get_option( 'sidebars_widgets' );
+		$sidebars_widgets[ $sidebar_id ][] = 'test-1';
+		update_option( 'sidebars_widgets', $sidebars_widgets );
 
 		ob_start();
 		dynamic_sidebar( $sidebar_id );
@@ -298,9 +298,9 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertContains( '', $wp_registered_sidebars[ $sidebar_id ]['after_sidebar'] );
 
 		// Adding widget to the test-sidebar.
-		$sidebars_widgets = get_option( 'sidebars_widgets' );
-		$sidebars_widgets[ $sidebar_id ][] = 'test-1' ;
-		update_option('sidebars_widgets', $sidebars_widgets);
+		$sidebars_widgets                  = get_option( 'sidebars_widgets' );
+		$sidebars_widgets[ $sidebar_id ][] = 'test-1';
+		update_option( 'sidebars_widgets', $sidebars_widgets );
 
 		ob_start();
 		dynamic_sidebar( $sidebar_id );
