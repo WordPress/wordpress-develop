@@ -546,11 +546,17 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 							'items'       => array(
 								'type'       => 'object',
 								'properties' => array(
-									'name'       => array(
-										'type' => 'string',
+									'name'        => array(
+										'description' => __( 'The name of the inner block.' ),
+										'type'        => 'string',
 									),
-									'attributes' => array(
-										'type' => 'object',
+									'attributes'  => array(
+										'description' => __( 'The attributes of the inner block.' ),
+										'type'        => 'object',
+									),
+									'innerBlocks' => array(
+										'description' => __( "A list of the inner block's own inner blocks. This is a recursive definition following the parent innerBlocks schema." ),
+										'type'        => 'array',
 									),
 								),
 							),
