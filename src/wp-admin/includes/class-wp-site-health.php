@@ -2445,7 +2445,7 @@ class WP_Site_Health {
 	 * @param  string $size_string Shorthand byte string
 	 * @return int                 `$size_string` converted to bytes.
 	 */
-	private function parse_ini_size( $size_string ) {
+	public static function parse_ini_size( $size_string ) {
 		$size_string = trim( $size_string );
 		$last        = strtolower( substr( $size_string, - 1 ) );
 		$value       = intval( $size_string );

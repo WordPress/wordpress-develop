@@ -534,7 +534,7 @@ class WP_Debug_Data {
 			$post_max_size    = ini_get( 'post_max_size' );
 			$upload_max_size  = ini_get( 'upload_max_filesize' );
 			$max_file_uploads = ini_get( 'max_file_uploads' );
-			$effective        = min( $post_max_size, $upload_max_size );
+			$effective        = min( WP_Site_Health::parse_ini_size( $post_max_size ), WP_Site_Health::parse_ini_size( $upload_max_size ) );
 			// Add info in Media section.
 			$info['wp-media']['fields']['file_uploads']        = array(
 				'label' => __( 'File uploads' ),
@@ -551,11 +551,11 @@ class WP_Debug_Data {
 			);
 			$info['wp-media']['fields']['upload_max']          = array(
 				'label' => __( 'Max effective file size' ),
-				'value' => $effective,
+				'value' => size_format( $effective ),
 			);
 			$info['wp-media']['fields']['max_file_uploads']    = array(
 				'label' => __( 'Max number of files allowed' ),
-				'value' => $max_file_uploads,
+				'value' => number_format( $max_file_uploads ),
 			);
 		}
 
