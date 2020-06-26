@@ -747,7 +747,7 @@ function wp_image_matches_ratio( $source_width, $source_height, $target_width, $
  * @param array|string $size    Optional. Image size. Accepts any valid image size, or an array
  *                              of width and height values in pixels (in that order).
  *                              Default 'thumbnail'.
- * @return array|false $data {
+ * @return array|false {
  *     Array of file relative path, width, and height on success. Additionally includes absolute
  *     path and URL if registered size is passed to $size parameter. False on failure.
  *
@@ -1495,6 +1495,7 @@ function wp_calculate_image_sizes( $size, $image_src = null, $image_meta = null,
  * Adds 'srcset' and 'sizes' attributes to an existing 'img' element.
  *
  * @since 4.4.0
+ * @since 5.5.0 `width` and `height` are now added if not already present.
  *
  * @see wp_calculate_image_srcset()
  * @see wp_calculate_image_sizes()
@@ -1525,6 +1526,8 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
 		return $image;
 	}
 
+	$attr = '';
+
 	$width  = preg_match( '/ width="([0-9]+)"/', $image, $match_width ) ? (int) $match_width[1] : 0;
 	$height = preg_match( '/ height="([0-9]+)"/', $image, $match_height ) ? (int) $match_height[1] : 0;
 
@@ -1547,10 +1550,13 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
 				}
 			}
 		}
-	}
 
-	if ( ! $width || ! $height ) {
-		return $image;
+		if ( ! $width || ! $height ) {
+			return $image;
+		}
+
+		// Add width and height if not present.
+		$attr .= ' ' . trim( image_hwstring( $width, $height ) );
 	}
 
 	$size_array = array( $width, $height );
@@ -1567,17 +1573,19 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
 
 	if ( $srcset && $sizes ) {
 		// Format the 'srcset' and 'sizes' string and escape attributes.
-		$attr = sprintf( ' srcset="%s"', esc_attr( $srcset ) );
+		$attr .= sprintf( ' srcset="%s"', esc_attr( $srcset ) );
 
 		if ( is_string( $sizes ) ) {
 			$attr .= sprintf( ' sizes="%s"', esc_attr( $sizes ) );
 		}
-
-		// Add 'srcset' and 'sizes' attributes to the image markup.
-		$image = preg_replace( '/<img ([^>]+?)[\/ ]*>/', '<img $1' . $attr . ' />', $image );
 	}
 
-	return $image;
+	if ( empty( $attr ) ) {
+		return $image;
+	}
+
+	// Add extra attributes to the image markup.
+	return preg_replace( '/<img ([^>]+?)[\/ ]*>/', '<img $1' . $attr . ' />', $image );
 }
 
 /**
@@ -1586,7 +1594,7 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
  * @since 5.5.0
  *
  * @param string $tag_name The tag name.
- * @param string $context Additional context, like the current filter name or the function name from where this was called.
+ * @param string $context  Additional context, like the current filter name or the function name from where this was called.
  * @return bool Whether to add the attribute.
  */
 function wp_lazy_loading_enabled( $tag_name, $context ) {
@@ -1599,9 +1607,9 @@ function wp_lazy_loading_enabled( $tag_name, $context ) {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param bool   $default Default value.
+	 * @param bool   $default  Default value.
 	 * @param string $tag_name The tag name.
-	 * @param string $context Additional context, like the current filter name or the function name from where this was called.
+	 * @param string $context  Additional context, like the current filter name or the function name from where this was called.
 	 */
 	return (bool) apply_filters( 'wp_lazy_loading_enabled', $default, $tag_name, $context );
 }
@@ -1712,6 +1720,12 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
 	if ( $value ) {
 		if ( ! in_array( $value, array( 'lazy', 'eager' ), true ) ) {
 			$value = 'lazy';
+		}
+
+		// Images should have dimension attributes for the `loading` attribute
+		// to be added.
+		if ( false === strpos( $image, ' width=' ) || false === strpos( $image, ' height=' ) ) {
+			return $image;
 		}
 
 		$quote = null;
@@ -1981,8 +1995,6 @@ add_shortcode( 'gallery', 'gallery_shortcode' );
  * WordPress images on a post.
  *
  * @since 2.5.0
- *
- * @staticvar int $instance
  *
  * @param array $attr {
  *     Attributes of the gallery shortcode.
@@ -2312,7 +2324,6 @@ function wp_playlist_scripts( $type ) {
  * @since 3.9.0
  *
  * @global int $content_width
- * @staticvar int $instance
  *
  * @param array $attr {
  *     Array of default playlist attributes.
@@ -2646,8 +2657,6 @@ function wp_get_attachment_id3_keys( $attachment, $context = 'display' ) {
  *
  * @since 3.6.0
  *
- * @staticvar int $instance
- *
  * @param array  $attr {
  *     Attributes of the audio shortcode.
  *
@@ -2860,7 +2869,6 @@ function wp_get_video_extensions() {
  * @since 3.6.0
  *
  * @global int $content_width
- * @staticvar int $instance
  *
  * @param array  $attr {
  *     Attributes of the shortcode.
@@ -4329,7 +4337,7 @@ function get_post_galleries( $post, $html = true ) {
 					$shortcode_attrs = array();
 				}
 
-				// Specify the post id of the gallery we're viewing if the shortcode doesn't reference another post already.
+				// Specify the post ID of the gallery we're viewing if the shortcode doesn't reference another post already.
 				if ( ! isset( $shortcode_attrs['id'] ) ) {
 					$shortcode[3] .= ' id="' . intval( $post->ID ) . '"';
 				}
@@ -4502,7 +4510,7 @@ function attachment_url_to_postid( $url ) {
 	}
 
 	/**
-	 * Filters an attachment id found by URL.
+	 * Filters an attachment ID found by URL.
 	 *
 	 * @since 4.2.0
 	 *
@@ -4547,9 +4555,9 @@ function wp_register_media_personal_data_exporter( $exporters ) {
  *
  * @since 4.9.6
  *
- * @param  string $email_address The attachment owner email address.
- * @param  int    $page          Attachment page.
- * @return array  $return        An array of personal data.
+ * @param string $email_address The attachment owner email address.
+ * @param int    $page          Attachment page.
+ * @return array An array of personal data.
  */
 function wp_media_personal_data_exporter( $email_address, $page = 1 ) {
 	// Limit us to 50 attachments at a time to avoid timing out.

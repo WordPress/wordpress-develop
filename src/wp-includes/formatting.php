@@ -29,23 +29,6 @@
  *
  * @global array $wp_cockneyreplace Array of formatted entities for certain common phrases.
  * @global array $shortcode_tags
- * @staticvar array  $static_characters
- * @staticvar array  $static_replacements
- * @staticvar array  $dynamic_characters
- * @staticvar array  $dynamic_replacements
- * @staticvar array  $default_no_texturize_tags
- * @staticvar array  $default_no_texturize_shortcodes
- * @staticvar bool   $run_texturize
- * @staticvar string $apos
- * @staticvar string $prime
- * @staticvar string $double_prime
- * @staticvar string $opening_quote
- * @staticvar string $closing_quote
- * @staticvar string $opening_single_quote
- * @staticvar string $closing_single_quote
- * @staticvar string $open_q_flag
- * @staticvar string $open_sq_flag
- * @staticvar string $apos_flag
  *
  * @param string $text  The text to be formatted.
  * @param bool   $reset Set to true for unit testing. Translated patterns will reset.
@@ -442,17 +425,18 @@ function _wptexturize_pushpop_element( $text, &$stack, $disabled_elements ) {
 }
 
 /**
- * Replaces double line-breaks with paragraph elements.
+ * Replaces double line breaks with paragraph elements.
  *
  * A group of regex replaces used to identify text formatted with newlines and
- * replace double line-breaks with HTML paragraph tags. The remaining line-breaks
+ * replace double line breaks with HTML paragraph tags. The remaining line breaks
  * after conversion become <<br />> tags, unless $br is set to '0' or 'false'.
  *
  * @since 0.71
  *
  * @param string $pee The text which has to be formatted.
- * @param bool   $br  Optional. If set, this will convert all remaining line-breaks
- *                    after paragraphing. Default true.
+ * @param bool   $br  Optional. If set, this will convert all remaining line breaks
+ *                    after paragraphing. Line breaks within `<script>`, `<style>`,
+ *                    and `<svg>` tags are not affected. Default true.
  * @return string Text which has been converted into correct paragraph tags.
  */
 function wpautop( $pee, $br = true ) {
@@ -633,8 +617,6 @@ function wp_html_split( $input ) {
  *
  * @since 4.4.0
  *
- * @staticvar string $regex
- *
  * @return string The regular expression
  */
 function get_html_split_regex() {
@@ -693,8 +675,6 @@ function get_html_split_regex() {
  * @ignore
  * @internal This function will be removed in 4.5.0 per Shortcode API Roadmap.
  * @since 4.4.0
- *
- * @staticvar string $html_regex
  *
  * @param string $shortcode_regex The result from _get_wptexturize_shortcode_regex(). Optional.
  * @return string The regular expression
@@ -935,10 +915,8 @@ function seems_utf8( $str ) {
  * &quot;, or ENT_QUOTES to do both. Default is ENT_NOQUOTES where no quotes are encoded.
  *
  * @since 1.2.2
- * @since 5.5.0 `$quote_style` also accepts '`ENT_XML1`.
+ * @since 5.5.0 `$quote_style` also accepts `ENT_XML1`.
  * @access private
- *
- * @staticvar string $_charset
  *
  * @param string       $string        The text which is to be encoded.
  * @param int|string   $quote_style   Optional. Converts double quotes if set to ENT_COMPAT,
@@ -949,8 +927,8 @@ function seems_utf8( $str ) {
  *                                    converting single quotes if set to 'single',
  *                                    double if set to 'double' or both if otherwise set.
  *                                    Default is ENT_NOQUOTES.
- * @param false|string $charset       Optional. The character encoding of the string. Default is false.
- * @param bool         $double_encode Optional. Whether to encode existing html entities. Default is false.
+ * @param false|string $charset       Optional. The character encoding of the string. Default false.
+ * @param bool         $double_encode Optional. Whether to encode existing html entities. Default false.
  * @return string The encoded text with HTML entities.
  */
 function _wp_specialchars( $string, $quote_style = ENT_NOQUOTES, $charset = false, $double_encode = false ) {
@@ -1112,11 +1090,8 @@ function wp_specialchars_decode( $string, $quote_style = ENT_NOQUOTES ) {
  *
  * @since 2.8.0
  *
- * @staticvar bool $is_utf8
- * @staticvar bool $utf8_pcre
- *
  * @param string  $string The text which is to be checked.
- * @param bool    $strip Optional. Whether to attempt to strip out invalid UTF8. Default is false.
+ * @param bool    $strip  Optional. Whether to attempt to strip out invalid UTF8. Default false.
  * @return string The checked text.
  */
 function wp_check_invalid_utf8( $string, $strip = false ) {
@@ -2074,7 +2049,7 @@ function sanitize_file_name( $filename ) {
 
 	/*
 	 * Loop over any intermediate extensions. Postfix them with a trailing underscore
-	 * if they are a 2 - 5 character long alpha string not in the extension whitelist.
+	 * if they are a 2 - 5 character long alpha string not in the allowed extension list.
 	 */
 	foreach ( (array) $parts as $part ) {
 		$filename .= '.' . $part;
@@ -2761,7 +2736,7 @@ function stripslashes_deep( $value ) {
  * @since 4.4.0
  *
  * @param mixed $value The array or string to be stripped.
- * @return mixed $value The stripped value.
+ * @return mixed The stripped value.
  */
 function stripslashes_from_strings_only( $value ) {
 	return is_string( $value ) ? stripslashes( $value ) : $value;
@@ -2773,7 +2748,7 @@ function stripslashes_from_strings_only( $value ) {
  * @since 2.2.0
  *
  * @param mixed $value The array or string to be encoded.
- * @return mixed $value The encoded value.
+ * @return mixed The encoded value.
  */
 function urlencode_deep( $value ) {
 	return map_deep( $value, 'urlencode' );
@@ -2785,7 +2760,7 @@ function urlencode_deep( $value ) {
  * @since 3.4.0
  *
  * @param mixed $value The array or string to be encoded.
- * @return mixed $value The encoded value.
+ * @return mixed The encoded value.
  */
 function rawurlencode_deep( $value ) {
 	return map_deep( $value, 'rawurlencode' );
@@ -2797,7 +2772,7 @@ function rawurlencode_deep( $value ) {
  * @since 4.4.0
  *
  * @param mixed $value The array or string to be decoded.
- * @return mixed $value The decoded value.
+ * @return mixed The decoded value.
  */
 function urldecode_deep( $value ) {
 	return map_deep( $value, 'urldecode' );
@@ -3814,7 +3789,7 @@ function human_time_diff( $from, $to = 0 ) {
  * @since 5.2.0 Added the `$post` parameter.
  *
  * @param string             $text Optional. The excerpt. If set to empty, an excerpt is generated.
- * @param WP_Post|object|int $post Optional. WP_Post instance or Post ID/object. Default is null.
+ * @param WP_Post|object|int $post Optional. WP_Post instance or Post ID/object. Default null.
  * @return string The excerpt.
  */
 function wp_trim_excerpt( $text = '', $post = null ) {
@@ -4878,7 +4853,7 @@ function sanitize_option( $option, $value ) {
 			break;
 
 		case 'moderation_keys':
-		case 'blacklist_keys':
+		case 'blocklist_keys':
 			$value = $wpdb->strip_invalid_text_for_column( $wpdb->options, 'option_value', $value );
 			if ( is_wp_error( $value ) ) {
 				$error = $value->get_error_message();
@@ -5445,8 +5420,6 @@ function wp_basename( $path, $suffix = '' ) {
  *
  * @since 3.0.0
  *
- * @staticvar string|false $dblq
- *
  * @param string $text The text to be modified.
  * @return string The modified text.
  */
@@ -5619,8 +5592,6 @@ function get_url_in_content( $content ) {
  *
  * @since 4.0.0
  *
- * @staticvar string $spaces
- *
  * @return string The spaces regexp.
  */
 function wp_spaces_regexp() {
@@ -5649,8 +5620,6 @@ function wp_spaces_regexp() {
  * Print the important emoji-related styles.
  *
  * @since 4.2.0
- *
- * @staticvar bool $printed
  */
 function print_emoji_styles() {
 	static $printed = false;
@@ -5684,7 +5653,6 @@ img.emoji {
  * Print the inline Emoji detection script if it is not already printed.
  *
  * @since 4.2.0
- * @staticvar bool $printed
  */
 function print_emoji_detection_script() {
 	static $printed = false;

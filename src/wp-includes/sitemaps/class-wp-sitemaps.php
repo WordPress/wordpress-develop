@@ -83,9 +83,9 @@ class WP_Sitemaps {
 		 * @param array $providers {
 		 *     Array of WP_Sitemaps_Provider objects keyed by their name.
 		 *
-		 *     @type object $posts      The WP_Sitemaps_Posts object.
-		 *     @type object $taxonomies The WP_Sitemaps_Taxonomies object.
-		 *     @type object $users      The WP_Sitemaps_Users object.
+		 *     @type WP_Sitemaps_Posts      $posts      The WP_Sitemaps_Posts object.
+		 *     @type WP_Sitemaps_Taxonomies $taxonomies The WP_Sitemaps_Taxonomies object.
+		 *     @type WP_Sitemaps_Users      $users      The WP_Sitemaps_Users object.
 		 * }
 		 */
 		$providers = apply_filters(
@@ -139,6 +139,8 @@ class WP_Sitemaps {
 	 * Renders sitemap templates based on rewrite rules.
 	 *
 	 * @since 5.5.0
+	 *
+	 * @global WP_Query $wp_query WordPress Query object.
 	 */
 	public function render_sitemaps() {
 		global $wp_query;
@@ -207,8 +209,9 @@ class WP_Sitemaps {
 		}
 
 		// 'pagename' is for most permalink types, name is for when the %postname% is used as a top-level field.
-		if ( 'sitemap-xml' === $query->get( 'pagename' ) ||
-			 'sitemap-xml' === $query->get( 'name' ) ) {
+		if ( 'sitemap-xml' === $query->get( 'pagename' )
+			|| 'sitemap-xml' === $query->get( 'name' )
+		) {
 			wp_safe_redirect( $this->index->get_index_url() );
 			exit();
 		}

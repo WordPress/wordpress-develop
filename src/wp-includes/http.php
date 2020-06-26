@@ -15,8 +15,6 @@
  * @since 2.7.0
  * @access private
  *
- * @staticvar WP_Http $http
- *
  * @return WP_Http HTTP Transport object.
  */
 function _wp_http_get_object() {
@@ -595,7 +593,7 @@ function wp_http_validate_url( $url ) {
 }
 
 /**
- * Whitelists allowed redirect hosts for safe HTTP requests as well.
+ * Mark allowed redirect hosts safe for HTTP requests as well.
  *
  * Attached to the {@see 'http_request_host_is_external'} filter.
  *
@@ -613,14 +611,14 @@ function allowed_http_request_hosts( $is_external, $host ) {
 }
 
 /**
- * Whitelists any domain in a multisite installation for safe HTTP requests.
+ * Adds any domain in a multisite installation for safe HTTP requests to the
+ * allowed list.
  *
  * Attached to the {@see 'http_request_host_is_external'} filter.
  *
  * @since 3.6.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
- * @staticvar array $queried
  *
  * @param bool   $is_external
  * @param string $host

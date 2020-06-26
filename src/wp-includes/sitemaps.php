@@ -15,16 +15,11 @@
  *
  * @since 5.5.0
  *
+ * @global WP_Sitemaps $wp_sitemaps Global Core Sitemaps instance.
+ *
  * @return WP_Sitemaps|null Sitemaps instance, or null if sitemaps are disabled.
  */
 function wp_sitemaps_get_server() {
-	/**
-	 * Global Core Sitemaps instance.
-	 *
-	 * @since 5.5.0
-	 *
-	 * @var WP_Sitemaps $wp_sitemaps
-	 */
 	global $wp_sitemaps;
 
 	$is_enabled = (bool) get_option( 'blog_public' );
@@ -36,7 +31,7 @@ function wp_sitemaps_get_server() {
 	 *
 	 * @param bool $is_enabled Whether XML Sitemaps are enabled or not. Defaults to true for public sites.
 	 */
-	$is_enabled = (bool) apply_filters( 'wp_sitemaps_is_enabled', $is_enabled );
+	$is_enabled = (bool) apply_filters( 'wp_sitemaps_enabled', $is_enabled );
 
 	if ( ! $is_enabled ) {
 		return null;
@@ -54,7 +49,7 @@ function wp_sitemaps_get_server() {
 		 *
 		 * @since 5.5.0
 		 *
-		 * @param WP_Sitemaps $sitemaps Server object.
+		 * @param WP_Sitemaps $wp_sitemaps Sitemaps object.
 		 */
 		do_action( 'wp_sitemaps_init', $wp_sitemaps );
 	}
@@ -63,11 +58,11 @@ function wp_sitemaps_get_server() {
 }
 
 /**
- * Gets a list of sitemap providers.
+ * Gets an array of sitemap providers.
  *
  * @since 5.5.0
  *
- * @return array $sitemaps A list of registered sitemap providers.
+ * @return WP_Sitemaps_Provider[] Array of sitemap providers.
  */
 function wp_get_sitemaps() {
 	$sitemaps = wp_sitemaps_get_server();

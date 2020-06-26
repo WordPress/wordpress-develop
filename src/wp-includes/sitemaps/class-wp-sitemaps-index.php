@@ -40,7 +40,7 @@ class WP_Sitemaps_Index {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @return array List of all sitemaps.
+	 * @return array[] Array of all sitemaps.
 	 */
 	public function get_sitemap_list() {
 		$sitemaps = array();
@@ -67,10 +67,11 @@ class WP_Sitemaps_Index {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @return string The sitemap index url.
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+	 *
+	 * @return string The sitemap index URL.
 	 */
 	public function get_index_url() {
-		/* @var WP_Rewrite $wp_rewrite */
 		global $wp_rewrite;
 
 		if ( ! $wp_rewrite->using_permalinks() ) {

@@ -677,7 +677,7 @@ function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silen
 			 *
 			 * @param string $plugin       Path to the plugin file relative to the plugins directory.
 			 * @param bool   $network_wide Whether to enable the plugin for all sites in the network
-			 *                             or just the current site. Multisite only. Default is false.
+			 *                             or just the current site. Multisite only. Default false.
 			 */
 			do_action( 'activate_plugin', $plugin, $network_wide );
 
@@ -692,7 +692,7 @@ function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silen
 			 * @since 2.0.0
 			 *
 			 * @param bool $network_wide Whether to enable the plugin for all sites in the network
-			 *                           or just the current site. Multisite only. Default is false.
+			 *                           or just the current site. Multisite only. Default false.
 			 */
 			do_action( "activate_{$plugin}", $network_wide );
 		}
@@ -719,7 +719,7 @@ function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silen
 			 *
 			 * @param string $plugin       Path to the plugin file relative to the plugins directory.
 			 * @param bool   $network_wide Whether to enable the plugin for all sites in the network
-			 *                             or just the current site. Multisite only. Default is false.
+			 *                             or just the current site. Multisite only. Default false.
 			 */
 			do_action( 'activated_plugin', $plugin, $network_wide );
 		}
@@ -1148,32 +1148,52 @@ function validate_plugin_requirements( $plugin ) {
 	$compatible_wp  = is_wp_version_compatible( $requirements['requires'] );
 	$compatible_php = is_php_version_compatible( $requirements['requires_php'] );
 
+	/* translators: %s: URL to Update PHP page. */
+	$php_update_message = '</p><p>' . sprintf(
+		__( '<a href="%s">Learn more about updating PHP</a>.' ),
+		esc_url( wp_get_update_php_url() )
+	);
+
+	$annotation = wp_get_update_php_annotation();
+
+	if ( $annotation ) {
+		$php_update_message .= '</p><p><em>' . $annotation . '</em>';
+	}
+
 	if ( ! $compatible_wp && ! $compatible_php ) {
 		return new WP_Error(
 			'plugin_wp_php_incompatible',
-			sprintf(
-				/* translators: %s: Plugin name. */
-				_x( 'Current WordPress and PHP versions do not meet minimum requirements for %s.', 'plugin' ),
-				$plugin_headers['Name']
-			)
+			'<p>' . sprintf(
+				/* translators: 1: Current WordPress version, 2: Current PHP version, 3: Plugin name, 4: Required WordPress version, 5: Required PHP version. */
+				_x( '<strong>Error:</strong> Current versions of WordPress (%1$s) and PHP (%2$s) do not meet minimum requirements for %3$s. The plugin requires WordPress %4$s and PHP %5$s.', 'plugin' ),
+				get_bloginfo( 'version' ),
+				phpversion(),
+				$plugin_headers['Name'],
+				$requirements['requires'],
+				$requirements['requires_php']
+			) . $php_update_message . '</p>'
 		);
 	} elseif ( ! $compatible_php ) {
 		return new WP_Error(
 			'plugin_php_incompatible',
-			sprintf(
-				/* translators: %s: Plugin name. */
-				_x( 'Current PHP version does not meet minimum requirements for %s.', 'plugin' ),
-				$plugin_headers['Name']
-			)
+			'<p>' . sprintf(
+				/* translators: 1: Current PHP version, 2: Plugin name, 3: Required PHP version. */
+				_x( '<strong>Error:</strong> Current PHP version (%1$s) does not meet minimum requirements for %2$s. The plugin requires PHP %3$s.', 'plugin' ),
+				phpversion(),
+				$plugin_headers['Name'],
+				$requirements['requires_php']
+			) . $php_update_message . '</p>'
 		);
 	} elseif ( ! $compatible_wp ) {
 		return new WP_Error(
 			'plugin_wp_incompatible',
-			sprintf(
-				/* translators: %s: Plugin name. */
-				_x( 'Current WordPress version does not meet minimum requirements for %s.', 'plugin' ),
-				$plugin_headers['Name']
-			)
+			'<p>' . sprintf(
+				/* translators: 1: Current WordPress version, 2: Plugin name, 3: Required WordPress version. */
+				_x( '<strong>Error:</strong> Current WordPress version (%1$s) does not meet minimum requirements for %2$s. The plugin requires WordPress %3$s.', 'plugin' ),
+				get_bloginfo( 'version' ),
+				$plugin_headers['Name'],
+				$requirements['requires']
+			) . '</p>'
 		);
 	}
 
@@ -2136,12 +2156,12 @@ function user_can_access_admin_page() {
 	return true;
 }
 
-/* Whitelist functions */
+/* Allowed list functions */
 
 /**
- * Refreshes the value of the options whitelist available via the 'whitelist_options' hook.
+ * Refreshes the value of the allowed options list available via the 'allowed_options' hook.
  *
- * See the {@see 'whitelist_options'} filter.
+ * See the {@see 'allowed_options'} filter.
  *
  * @since 2.7.0
  *
@@ -2154,77 +2174,77 @@ function option_update_filter( $options ) {
 	global $new_whitelist_options;
 
 	if ( is_array( $new_whitelist_options ) ) {
-		$options = add_option_whitelist( $new_whitelist_options, $options );
+		$options = add_allowed_options( $new_whitelist_options, $options );
 	}
 
 	return $options;
 }
 
 /**
- * Adds an array of options to the options whitelist.
+ * Adds an array of options to the list of allowed options.
  *
  * @since 2.7.0
  *
- * @global array $whitelist_options
+ * @global array $allowed_options
  *
  * @param array        $new_options
  * @param string|array $options
  * @return array
  */
-function add_option_whitelist( $new_options, $options = '' ) {
+function add_allowed_options( $new_options, $options = '' ) {
 	if ( '' === $options ) {
-		global $whitelist_options;
+		global $allowed_options;
 	} else {
-		$whitelist_options = $options;
+		$allowed_options = $options;
 	}
 
 	foreach ( $new_options as $page => $keys ) {
 		foreach ( $keys as $key ) {
-			if ( ! isset( $whitelist_options[ $page ] ) || ! is_array( $whitelist_options[ $page ] ) ) {
-				$whitelist_options[ $page ]   = array();
-				$whitelist_options[ $page ][] = $key;
+			if ( ! isset( $allowed_options[ $page ] ) || ! is_array( $allowed_options[ $page ] ) ) {
+				$allowed_options[ $page ]   = array();
+				$allowed_options[ $page ][] = $key;
 			} else {
-				$pos = array_search( $key, $whitelist_options[ $page ], true );
+				$pos = array_search( $key, $allowed_options[ $page ], true );
 				if ( false === $pos ) {
-					$whitelist_options[ $page ][] = $key;
+					$allowed_options[ $page ][] = $key;
 				}
 			}
 		}
 	}
 
-	return $whitelist_options;
+	return $allowed_options;
 }
 
 /**
- * Removes a list of options from the options whitelist.
+ * Removes a list of options from the allowed options list.
  *
- * @since 2.7.0
+ * @since 5.5.0
  *
- * @global array $whitelist_options
+ * @global array $allowed_options
  *
  * @param array        $del_options
  * @param string|array $options
  * @return array
  */
-function remove_option_whitelist( $del_options, $options = '' ) {
+function remove_option_allowed_list( $del_options, $options = '' ) {
 	if ( '' === $options ) {
-		global $whitelist_options;
+		global $allowed_options;
 	} else {
-		$whitelist_options = $options;
+		$allowed_options = $options;
 	}
 
 	foreach ( $del_options as $page => $keys ) {
 		foreach ( $keys as $key ) {
-			if ( isset( $whitelist_options[ $page ] ) && is_array( $whitelist_options[ $page ] ) ) {
-				$pos = array_search( $key, $whitelist_options[ $page ], true );
+			if ( isset( $allowed_options[ $page ] ) && is_array( $allowed_options[ $page ] ) ) {
+				$pos = array_search( $key, $allowed_options[ $page ], true );
 				if ( false !== $pos ) {
-					unset( $whitelist_options[ $page ][ $pos ] );
+					unset( $allowed_options[ $page ][ $pos ] );
 				}
 			}
 		}
 	}
 
-	return $whitelist_options;
+	return $allowed_options;
 }
 
 /**

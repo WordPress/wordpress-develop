@@ -547,7 +547,7 @@ if ( ! function_exists( 'wp_authenticate' ) ) :
 		if ( null == $user ) {
 			// TODO: What should the error message be? (Or would these even happen?)
 			// Only needed if all authentication handlers fail to return anything.
-			$user = new WP_Error( 'authentication_failed', __( 'Invalid username, email address or incorrect password.' ) );
+			$user = new WP_Error( 'authentication_failed', __( '<strong>Error</strong>: Invalid username, email address or incorrect password.' ) );
 		}
 
 		$ignore_codes = array( 'empty_username', 'empty_password' );
@@ -1380,7 +1380,7 @@ if ( ! function_exists( 'wp_safe_redirect' ) ) :
 	 * @param string $location      The path or URL to redirect to.
 	 * @param int    $status        Optional. HTTP response status code to use. Default '302' (Moved Temporarily).
 	 * @param string $x_redirect_by Optional. The application doing the redirect. Default 'WordPress'.
-	 * @return bool  $redirect False if the redirect was cancelled, true otherwise.
+	 * @return bool False if the redirect was cancelled, true otherwise.
 	 */
 	function wp_safe_redirect( $location, $status = 302, $x_redirect_by = 'WordPress' ) {
 
@@ -1466,7 +1466,7 @@ if ( ! function_exists( 'wp_validate_redirect' ) ) :
 		$wpp = parse_url( home_url() );
 
 		/**
-		 * Filters the whitelist of hosts to redirect to.
+		 * Filters the list of allowed hosts to redirect to.
 		 *
 		 * @since 2.3.0
 		 *
@@ -2235,9 +2235,6 @@ if ( ! function_exists( 'wp_salt' ) ) :
 	 *
 	 * @link https://api.wordpress.org/secret-key/1.1/salt/ Create secrets for wp-config.php
 	 *
-	 * @staticvar array $cached_salts
-	 * @staticvar array $duplicated_keys
-	 *
 	 * @param string $scheme Authentication scheme (auth, secure_auth, logged_in, nonce)
 	 * @return string Salt value
 	 */
@@ -2472,8 +2469,6 @@ if ( ! function_exists( 'wp_rand' ) ) :
 	 * @since 4.4.0 Uses PHP7 random_int() or the random_compat library if available.
 	 *
 	 * @global string $rnd_value
-	 * @staticvar string $seed
-	 * @staticvar bool $use_random_int_functionality
 	 *
 	 * @param int $min Lower limit for the generated number
 	 * @param int $max Upper limit for the generated number

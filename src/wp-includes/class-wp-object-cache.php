@@ -308,7 +308,7 @@ class WP_Object_Cache {
 	 * @since 5.5.0
 	 *
 	 * @param array  $keys  Array of keys under which the cache contents are stored.
-	 * @param string $group Optional. Where the cache contents are grouped. Default empty.
+	 * @param string $group Optional. Where the cache contents are grouped. Default 'default'.
 	 * @param bool   $force Optional. Whether to force an update of the local cache
 	 *                      from the persistent cache. Default false.
 	 * @return array Array of values organized into groups.
@@ -414,7 +414,7 @@ class WP_Object_Cache {
 	 * Sets the data contents into the cache.
 	 *
 	 * The cache contents are grouped by the $group parameter followed by the
-	 * $key. This allows for duplicate ids in unique groups. Therefore, naming of
+	 * $key. This allows for duplicate IDs in unique groups. Therefore, naming of
 	 * the group should be used with care and should follow normal function
 	 * naming guidelines outside of core WordPress usage.
 	 *

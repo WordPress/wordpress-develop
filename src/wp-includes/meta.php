@@ -983,7 +983,7 @@ function update_meta_cache( $meta_type, $object_ids ) {
  *
  * @since 4.5.0
  *
- * @return WP_Metadata_Lazyloader $lazyloader Metadata lazyloader queue.
+ * @return WP_Metadata_Lazyloader Metadata lazyloader queue.
  */
 function wp_metadata_lazyloader() {
 	static $wp_metadata_lazyloader;
@@ -1396,19 +1396,19 @@ function get_registered_metadata( $object_type, $object_id, $meta_key = '' ) {
 }
 
 /**
- * Filters out `register_meta()` args based on a whitelist.
+ * Filters out `register_meta()` args based on an allowed list.
  *
- * `register_meta()` args may change over time, so requiring the whitelist
+ * `register_meta()` args may change over time, so requiring the allowed list
  * to be explicitly turned off is a warranty seal of sorts.
  *
  * @access private
- * @since 4.6.0
+ * @since 5.5.0
  *
  * @param array $args         Arguments from `register_meta()`.
  * @param array $default_args Default arguments for `register_meta()`.
  * @return array Filtered arguments.
  */
-function _wp_register_meta_args_whitelist( $args, $default_args ) {
+function _wp_register_meta_args_allowed_list( $args, $default_args ) {
 	return array_intersect_key( $args, $default_args );
 }
 
@@ -1464,7 +1464,7 @@ function get_object_subtype( $object_type, $object_id ) {
 	}
 
 	/**
-	 * Filters the object subtype identifier for a non standard object type.
+	 * Filters the object subtype identifier for a non-standard object type.
 	 *
 	 * The dynamic portion of the hook, `$object_type`, refers to the object
 	 * type (post, comment, term, or user).

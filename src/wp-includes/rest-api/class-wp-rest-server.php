@@ -243,7 +243,18 @@ class WP_REST_Server {
 		 * https://miki.it/blog/2014/7/8/abusing-jsonp-with-rosetta-flash/
 		 */
 		$this->send_header( 'X-Content-Type-Options', 'nosniff' );
-		$this->send_header( 'Access-Control-Expose-Headers', 'X-WP-Total, X-WP-TotalPages' );
+		$expose_headers = array( 'X-WP-Total', 'X-WP-TotalPages', 'Link' );
+
+		/**
+		 * Filters the list of response headers that are exposed to CORS requests.
+		 *
+		 * @since 5.5.0
+		 *
+		 * @param string[] $expose_headers The list of headers to expose.
+		 */
+		$expose_headers = apply_filters( 'rest_exposed_cors_headers', $expose_headers );
+
+		$this->send_header( 'Access-Control-Expose-Headers', implode( ', ', $expose_headers ) );
 		$this->send_header( 'Access-Control-Allow-Headers', 'Authorization, Content-Type' );
 
 		/**
@@ -594,7 +605,7 @@ class WP_REST_Server {
 		$embedded = array();
 
 		foreach ( $data['_links'] as $rel => $links ) {
-			// If a list of relations was specified, and the link relation is not in the whitelist, don't process the link.
+			// If a list of relations was specified, and the link relation is not in the list of allowed relations, don't process the link.
 			if ( is_array( $embed ) && ! in_array( $rel, $embed, true ) ) {
 				continue;
 			}

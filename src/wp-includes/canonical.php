@@ -57,8 +57,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		}
 	}
 
-	if ( is_admin() || is_search() || is_preview() || is_trackback()
-		|| is_robots() || is_favicon()
+	if ( is_admin() || is_search() || is_preview() || is_trackback() || is_favicon()
 		|| ( $is_IIS && ! iis7_supports_permalinks() )
 	) {
 		return;
@@ -656,8 +655,10 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		$redirect['path'] = trailingslashit( $redirect['path'] );
 	}
 
-	// Remove trailing slash for sitemaps requests.
-	if ( ! empty( get_query_var( 'sitemap' ) ) || ! empty( get_query_var( 'sitemap-stylesheet' ) ) ) {
+	// Remove trailing slash for robots.txt or sitemap requests.
+	if ( is_robots()
+		|| ! empty( get_query_var( 'sitemap' ) ) || ! empty( get_query_var( 'sitemap-stylesheet' ) )
+	) {
 		$redirect['path'] = untrailingslashit( $redirect['path'] );
 	}
 

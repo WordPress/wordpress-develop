@@ -86,7 +86,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	$login_title = apply_filters( 'login_title', $login_title, $title );
 
 	?><!DOCTYPE html>
-	<html xmlns="http://www.w3.org/1999/xhtml" <?php language_attributes(); ?>>
+	<html <?php language_attributes(); ?>>
 	<head>
 	<meta http-equiv="Content-Type" content="<?php bloginfo( 'html_type' ); ?>; charset=<?php bloginfo( 'charset' ); ?>" />
 	<title><?php echo $login_title; ?></title>
@@ -358,11 +358,11 @@ function retrieve_password() {
 	$user_data = false;
 
 	if ( empty( $_POST['user_login'] ) || ! is_string( $_POST['user_login'] ) ) {
-		$errors->add( 'empty_username', __( 'Please enter a username or email address.' ) );
+		$errors->add( 'empty_username', __( '<strong>Error</strong>: Please enter a username or email address.' ) );
 	} elseif ( strpos( $_POST['user_login'], '@' ) ) {
 		$user_data = get_user_by( 'email', trim( wp_unslash( $_POST['user_login'] ) ) );
 		if ( empty( $user_data ) ) {
-			$errors->add( 'invalid_email', __( 'There is no account with that username or email address.' ) );
+			$errors->add( 'invalid_email', __( '<strong>Error</strong>: There is no account with that username or email address.' ) );
 		}
 	} else {
 		$login     = trim( wp_unslash( $_POST['user_login'] ) );
@@ -376,18 +376,35 @@ function retrieve_password() {
 	 * @since 4.4.0 Added the `$errors` parameter.
 	 * @since 5.4.0 Added the `$user_data` parameter.
 	 *
-	 * @param WP_Error $errors A WP_Error object containing any errors generated
-	 *                         by using invalid credentials.
-	 * @param WP_User|false    WP_User object if found, false if the user does not exist.
+	 * @param WP_Error      $errors    A WP_Error object containing any errors generated
+	 *                                 by using invalid credentials.
+	 * @param WP_User|false $user_data WP_User object if found, false if the user does not exist.
 	 */
 	do_action( 'lostpassword_post', $errors, $user_data );
+
+	/**
+	 * Filters the errors encountered on a password reset request.
+	 *
+	 * The filtered WP_Error object may, for example, contain errors for an invalid
+	 * username or email address. A WP_Error object should always be returned,
+	 * but may or may not contain errors.
+	 *
+	 * If any errors are present in $errors, this will abort the password reset request.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param WP_Error      $errors    A WP_Error object containing any errors generated
+	 *                                 by using invalid credentials.
+	 * @param WP_User|false $user_data WP_User object if found, false if the user does not exist.
+	 */
+	$errors = apply_filters( 'lostpassword_errors', $errors, $user_data );
 
 	if ( $errors->has_errors() ) {
 		return $errors;
 	}
 
 	if ( ! $user_data ) {
-		$errors->add( 'invalidcombo', __( 'There is no account with that username or email address.' ) );
+		$errors->add( 'invalidcombo', __( '<strong>Error</strong>: There is no account with that username or email address.' ) );
 		return $errors;
 	}
 
@@ -454,7 +471,7 @@ function retrieve_password() {
 			'retrieve_password_email_failure',
 			sprintf(
 				/* translators: %s: Documentation URL. */
-				__( 'The email could not be sent. Your site may not be correctly configured to send emails. <a href="%s">Get support for resetting your password</a>.' ),
+				__( '<strong>Error</strong>: The email could not be sent. Your site may not be correctly configured to send emails. <a href="%s">Get support for resetting your password</a>.' ),
 				esc_url( __( 'https://wordpress.org/support/article/resetting-your-password/' ) )
 			)
 		);
@@ -1197,7 +1214,7 @@ switch ( $action ) {
 					'test_cookie',
 					sprintf(
 						/* translators: 1: Browser cookie documentation URL, 2: Support forums URL. */
-						__( 'Cookies are blocked due to unexpected output. For help, please see <a href="%1$s">this documentation</a> or try the <a href="%2$s">support forums</a>.' ),
+						__( '<strong>Error</strong>: Cookies are blocked due to unexpected output. For help, please see <a href="%1$s">this documentation</a> or try the <a href="%2$s">support forums</a>.' ),
 						__( 'https://wordpress.org/support/article/cookies/' ),
 						__( 'https://wordpress.org/support/forums/' )
 					)
@@ -1208,7 +1225,7 @@ switch ( $action ) {
 					'test_cookie',
 					sprintf(
 						/* translators: %s: Browser cookie documentation URL. */
-						__( 'Cookies are blocked or not supported by your browser. You must <a href="%s">enable cookies</a> to use WordPress.' ),
+						__( '<strong>Error</strong>: Cookies are blocked or not supported by your browser. You must <a href="%s">enable cookies</a> to use WordPress.' ),
 						__( 'https://wordpress.org/support/article/cookies/#enable-cookies-in-your-browser' )
 					)
 				);

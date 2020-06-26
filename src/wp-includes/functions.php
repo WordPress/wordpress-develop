@@ -1003,14 +1003,13 @@ function build_query( $data ) {
  *
  * @see https://www.php.net/manual/en/function.http-build-query.php
  *
- * @param array|object  $data       An array or object of data. Converted to array.
- * @param string        $prefix     Optional. Numeric index. If set, start parameter numbering with it.
- *                                  Default null.
- * @param string        $sep        Optional. Argument separator; defaults to 'arg_separator.output'.
- *                                  Default null.
- * @param string        $key        Optional. Used to prefix key name. Default empty.
- * @param bool          $urlencode  Optional. Whether to use urlencode() in the result. Default true.
- *
+ * @param array|object $data      An array or object of data. Converted to array.
+ * @param string       $prefix    Optional. Numeric index. If set, start parameter numbering with it.
+ *                                Default null.
+ * @param string       $sep       Optional. Argument separator; defaults to 'arg_separator.output'.
+ *                                Default null.
+ * @param string       $key       Optional. Used to prefix key name. Default empty.
+ * @param bool         $urlencode Optional. Whether to use urlencode() in the result. Default true.
  * @return string The query string.
  */
 function _http_build_query( $data, $prefix = null, $sep = null, $key = '', $urlencode = true ) {
@@ -1551,7 +1550,7 @@ function do_feed() {
 	}
 
 	if ( ! has_action( "do_feed_{$feed}" ) ) {
-		wp_die( __( 'This is not a valid feed template.' ), '', array( 'response' => 404 ) );
+		wp_die( __( 'Error: This is not a valid feed template.' ), '', array( 'response' => 404 ) );
 	}
 
 	/**
@@ -2126,8 +2125,6 @@ function wp_normalize_path( $path ) {
  *
  * @since 2.5.0
  *
- * @staticvar string $temp
- *
  * @return string Writable temporary directory.
  */
 function get_temp_dir() {
@@ -2260,9 +2257,6 @@ function wp_get_upload_dir() {
  *
  * @since 2.0.0
  * @uses _wp_upload_dir()
- *
- * @staticvar array $cache
- * @staticvar array $tested_paths
  *
  * @param string $time Optional. Time formatted in 'yyyy/mm'. Default null.
  * @param bool   $create_dir Optional. Whether to check and create the uploads directory.
@@ -2838,7 +2832,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 			 *
 			 * @since 3.0.0
 			 *
-			 * @param  array $mime_to_ext Array of image mime types and their matching extensions.
+			 * @param array $mime_to_ext Array of image mime types and their matching extensions.
 			 */
 			$mime_to_ext = apply_filters(
 				'getimagesize_mimes_to_exts',
@@ -3432,7 +3426,7 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 		}
 		?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" <?php echo $dir_attr; ?>>
+<html <?php echo $dir_attr; ?>>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=<?php echo $parsed_args['charset']; ?>" />
 	<meta name="viewport" content="width=device-width">
@@ -3581,7 +3575,7 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
  * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
  */
 function _ajax_wp_die_handler( $message, $title = '', $args = array() ) {
-	// Set default 'response' to 200 for AJAX requests.
+	// Set default 'response' to 200 for Ajax requests.
 	$args = wp_parse_args(
 		$args,
 		array( 'response' => 200 )
@@ -3986,8 +3980,6 @@ function _wp_json_sanity_check( $data, $depth ) {
  *
  * @see _wp_json_sanity_check()
  *
- * @staticvar bool $use_mb
- *
  * @param string $string The string which is to be converted.
  * @return string The checked string.
  */
@@ -4018,7 +4010,7 @@ function _wp_json_convert_string( $string ) {
  * @since 4.4.0
  * @deprecated 5.3.0 This function is no longer needed as support for PHP 5.2-5.3
  *                   has been dropped.
- * @access     private
+ * @access private
  *
  * @param mixed $data Native representation.
  * @return bool|int|float|null|string|array Data ready for `json_encode()`.
@@ -4411,7 +4403,7 @@ function wp_parse_list( $list ) {
  *
  * @since 3.0.0
  *
- * @param array|string $list List of ids.
+ * @param array|string $list List of IDs.
  * @return int[] Sanitized array of IDs.
  */
 function wp_parse_id_list( $list ) {
@@ -4425,7 +4417,7 @@ function wp_parse_id_list( $list ) {
  *
  * @since 4.7.0
  *
- * @param  array|string $list List of slugs.
+ * @param array|string $list List of slugs.
  * @return string[] Sanitized array of slugs.
  */
 function wp_parse_slug_list( $list ) {
@@ -5350,8 +5342,6 @@ function validate_file( $file, $allowed_files = array() ) {
  *
  * @since 2.6.0
  *
- * @staticvar bool $forced
- *
  * @param string|bool $force Optional. Whether to force SSL in admin screens. Default null.
  * @return bool True if forced, false if not forced.
  */
@@ -5427,8 +5417,6 @@ function wp_guess_url() {
  * function again if you wish to re-enable cache adds earlier.
  *
  * @since 3.3.0
- *
- * @staticvar bool $_suspend
  *
  * @param bool $suspend Optional. Suspends additions if true, re-enables them if false.
  * @return bool The current suspend setting
@@ -5579,8 +5567,6 @@ function get_main_network_id() {
  *
  * @since 3.0.0
  *
- * @staticvar bool $global_terms
- *
  * @return bool True if multisite and global terms enabled.
  */
 function global_terms_enabled() {
@@ -5719,9 +5705,6 @@ function _wp_timezone_choice_usort_callback( $a, $b ) {
  *
  * @since 2.9.0
  * @since 4.7.0 Added the `$locale` parameter.
- *
- * @staticvar bool $mo_loaded
- * @staticvar string $locale_loaded
  *
  * @param string $selected_zone Selected timezone.
  * @param string $locale        Optional. Locale to load the timezones in. Default current site locale.
@@ -6259,8 +6242,6 @@ function send_frame_options_header() {
  * @see wp_kses()
  * @see esc_url()
  *
- * @staticvar array $protocols
- *
  * @return string[] Array of allowed protocols. Defaults to an array containing 'http', 'https',
  *                  'ftp', 'ftps', 'mailto', 'news', 'irc', 'gopher', 'nntp', 'feed', 'telnet',
  *                  'mms', 'rtsp', 'sms', 'svn', 'tel', 'fax', 'xmpp', 'webcal', and 'urn'.
@@ -6295,8 +6276,6 @@ function wp_allowed_protocols() {
  * @since 3.4.0
  *
  * @see https://core.trac.wordpress.org/ticket/19589
- *
- * @staticvar array $truncate_paths Array of paths to truncate.
  *
  * @param string $ignore_class Optional. A class to ignore all function calls within - useful
  *                             when you want to just give info about the callee. Default null.
@@ -6424,10 +6403,10 @@ function wp_is_stream( $path ) {
  *
  * @link https://www.php.net/manual/en/function.checkdate.php
  *
- * @param  int    $month       Month number.
- * @param  int    $day         Day number.
- * @param  int    $year        Year number.
- * @param  string $source_date The date to filter.
+ * @param int    $month       Month number.
+ * @param int    $day         Day number.
+ * @param int    $year        Year number.
+ * @param string $source_date The date to filter.
  * @return bool True if valid date, false if not valid date.
  */
 function wp_checkdate( $month, $day, $year, $source_date ) {
@@ -6623,9 +6602,6 @@ function _canonical_charset( $charset ) {
  * @since 3.7.0
  *
  * @see reset_mbstring_encoding()
- *
- * @staticvar array $encodings
- * @staticvar bool  $overloaded
  *
  * @param bool $reset Optional. Whether to reset the encoding back to a previously-set encoding.
  *                    Default false.
@@ -6955,7 +6931,7 @@ function wp_is_uuid( $uuid, $version = null ) {
 }
 
 /**
- * Get unique ID.
+ * Gets unique ID.
  *
  * This is a PHP implementation of Underscore's uniqueId method. A static variable
  * contains an integer that is incremented with each call. This number is returned
@@ -6963,8 +6939,6 @@ function wp_is_uuid( $uuid, $version = null ) {
  * but it is unique across the life of the PHP process.
  *
  * @since 5.0.3
- *
- * @staticvar int $id_counter
  *
  * @param string $prefix Prefix for the returned ID.
  * @return string Unique ID.
@@ -6975,13 +6949,12 @@ function wp_unique_id( $prefix = '' ) {
 }
 
 /**
- * Get last changed date for the specified cache group.
+ * Gets last changed date for the specified cache group.
  *
  * @since 4.7.0
  *
  * @param string $group Where the cache contents are grouped.
- *
- * @return string $last_changed UNIX timestamp with microseconds representing when the group was last changed.
+ * @return string UNIX timestamp with microseconds representing when the group was last changed.
  */
 function wp_cache_get_last_changed( $group ) {
 	$last_changed = wp_cache_get( 'last_changed', $group );
@@ -7096,9 +7069,9 @@ All at ###SITENAME###
  *
  * @since 4.9.6 Abstracted from `WP_Community_Events::get_unsafe_client_ip()`.
  *
- * @param  string $ip_addr        The IPv4 or IPv6 address to be anonymized.
- * @param  bool   $ipv6_fallback  Optional. Whether to return the original IPv6 address if the needed functions
- *                                to anonymize it are not present. Default false, return `::` (unspecified address).
+ * @param string $ip_addr       The IPv4 or IPv6 address to be anonymized.
+ * @param bool   $ipv6_fallback Optional. Whether to return the original IPv6 address if the needed functions
+ *                              to anonymize it are not present. Default false, return `::` (unspecified address).
  * @return string  The anonymized IP address.
  */
 function wp_privacy_anonymize_ip( $ip_addr, $ipv6_fallback = false ) {
@@ -7166,8 +7139,8 @@ function wp_privacy_anonymize_ip( $ip_addr, $ipv6_fallback = false ) {
  *
  * @since 4.9.6
  *
- * @param  string $type The type of data to be anonymized.
- * @param  string $data Optional The data to be anonymized.
+ * @param string $type The type of data to be anonymized.
+ * @param string $data Optional The data to be anonymized.
  * @return string The anonymous data for the requested type.
  */
 function wp_privacy_anonymize_data( $type, $data = '' ) {
@@ -7395,7 +7368,7 @@ function wp_update_php_annotation( $before = '<p class="description">', $after =
  *
  * @since 5.2.0
  *
- * @return string $message Update PHP page annotation. An empty string if no custom URLs are provided.
+ * @return string Update PHP page annotation. An empty string if no custom URLs are provided.
  */
 function wp_get_update_php_annotation() {
 	$update_url  = wp_get_update_php_url();

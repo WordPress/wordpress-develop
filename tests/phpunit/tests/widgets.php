@@ -1054,9 +1054,9 @@ class Tests_Widgets extends WP_UnitTestCase {
 			'array_version'       => 3,
 		);
 
-		$whitelist = array( 'tag_cloud-1', 'text-1' );
+		$allowed_widgets = array( 'tag_cloud-1', 'text-1' );
 
-		$filtered_widgets = _wp_remove_unregistered_widgets( $widgets, $whitelist );
+		$filtered_widgets = _wp_remove_unregistered_widgets( $widgets, $allowed_widgets );
 
 		$this->assertInternalType( 'array', $filtered_widgets );
 		$this->assertArrayHasKey( 'fantasy', $filtered_widgets );

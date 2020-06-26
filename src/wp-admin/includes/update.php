@@ -944,14 +944,14 @@ function wp_recovery_mode_nag() {
  *
  * @since 5.5.0
  *
- * @param string $type    The type of update being checked: 'theme' or 'plugin'.
+ * @param string $type The type of update being checked: 'theme' or 'plugin'.
  * @return bool True if auto-updates are enabled for `$type`, false otherwise.
  */
 function wp_is_auto_update_enabled_for_type( $type ) {
 	switch ( $type ) {
 		case 'plugin':
 			/**
-			 * Filters whether plugins manual auto-update is enabled.
+			 * Filters whether plugins auto-update is enabled.
 			 *
 			 * @since 5.5.0
 			 *
@@ -960,11 +960,11 @@ function wp_is_auto_update_enabled_for_type( $type ) {
 			return apply_filters( 'plugins_auto_update_enabled', true );
 		case 'theme':
 			/**
-			 * Filters whether plugins manual auto-update is enabled.
+			 * Filters whether themes auto-update is enabled.
 			 *
 			 * @since 5.5.0
 			 *
-			 * @param bool True if themes auto-update is enabled, false otherwise.
+			 * @param bool $enabled True if themes auto-update is enabled, false otherwise.
 			 */
 			return apply_filters( 'themes_auto_update_enabled', true );
 	}
@@ -973,7 +973,7 @@ function wp_is_auto_update_enabled_for_type( $type ) {
 }
 
 /**
- * Determines the appropriate update message to be displayed.
+ * Determines the appropriate auto-update message to be displayed.
  *
  * @since 5.5.0
  *
@@ -982,32 +982,29 @@ function wp_is_auto_update_enabled_for_type( $type ) {
 function wp_get_auto_update_message() {
 	$next_update_time = wp_next_scheduled( 'wp_version_check' );
 
-	// Check if event exists.
+	// Check if the event exists.
 	if ( false === $next_update_time ) {
-		return __( 'There may be a problem with WP-Cron. Automatic update not scheduled.' );
-	}
-
-	// See if cron is disabled
-	$cron_disabled = defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON;
-	if ( $cron_disabled ) {
-		return __( 'WP-Cron is disabled. Automatic updates not available.' );
-	}
-
-	$time_to_next_update = human_time_diff( intval( $next_update_time ) );
-
-	// See if cron is overdue.
-	$overdue = ( time() - $next_update_time ) > 0;
-	if ( $overdue ) {
-		return sprintf(
-			/* translators: Duration that WP-Cron has been overdue. */
-			__( 'There may be a problem with WP-Cron. Automatic update overdue by %s.' ),
-			$time_to_next_update
-		);
+		$message = __( 'Auto-update update not scheduled. There may be a problem with WP-Cron.' );
 	} else {
-		return sprintf(
-			/* translators: Time until the next update. */
-			__( 'Auto-update scheduled in %s.' ),
-			$time_to_next_update
-		);
+		$time_to_next_update = human_time_diff( intval( $next_update_time ) );
+
+		// See if cron is overdue.
+		$overdue = ( time() - $next_update_time ) > 0;
+
+		if ( $overdue ) {
+			$message = sprintf(
+				/* translators: %s: Duration that WP-Cron has been overdue. */
+				__( 'Auto-update update overdue by %s. There may be a problem with WP-Cron.' ),
+				$time_to_next_update
+			);
+		} else {
+			$message = sprintf(
+				/* translators: %s: Time until the next update. */
+				__( 'Auto-update update scheduled in %s.' ),
+				$time_to_next_update
+			);
+		}
 	}
+
+	return $message;
 }

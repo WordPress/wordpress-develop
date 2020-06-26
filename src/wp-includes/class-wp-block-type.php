@@ -74,9 +74,9 @@ class WP_Block_Type {
 
 	/**
 	 * @since 5.5.0
-	 * @var array
+	 * @var array|null
 	 */
-	public $supports = array();
+	public $supports = null;
 
 	/**
 	 * @since 5.5.0
@@ -99,6 +99,22 @@ class WP_Block_Type {
 	 * @var array|null
 	 */
 	public $attributes = null;
+
+	/**
+	 * Context values inherited by blocks of this type.
+	 *
+	 * @since 5.5.0
+	 * @var array
+	 */
+	public $uses_context = array();
+
+	/**
+	 * Context provided by blocks of this type.
+	 *
+	 * @since 5.5.0
+	 * @var array|null
+	 */
+	public $provides_context = null;
 
 	/**
 	 * Block type editor script handle.
@@ -188,8 +204,8 @@ class WP_Block_Type {
 	 *
 	 * @since 5.0.0
 	 *
-	 * @param  array $attributes Original block attributes.
-	 * @return array             Prepared block attributes.
+	 * @param array $attributes Original block attributes.
+	 * @return array Prepared block attributes.
 	 */
 	public function prepare_attributes_for_render( $attributes ) {
 		// If there are no attribute definitions for the block type, skip
@@ -260,18 +276,7 @@ class WP_Block_Type {
 	 */
 	public function get_attributes() {
 		return is_array( $this->attributes ) ?
-			array_merge(
-				$this->attributes,
-				array(
-					'layout' => array(
-						'type' => 'string',
-					),
-				)
-			) :
-			array(
-				'layout' => array(
-					'type' => 'string',
-				),
-			);
+			$this->attributes :
+			array();
 	}
 }

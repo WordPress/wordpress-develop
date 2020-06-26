@@ -42,7 +42,7 @@ abstract class WP_Sitemaps_Provider {
 	 *
 	 * @param int    $page_num       Page of results.
 	 * @param string $object_subtype Optional. Object subtype name. Default empty.
-	 * @return array $url_list Array of URLs for a sitemap.
+	 * @return array Array of URLs for a sitemap.
 	 */
 	abstract public function get_url_list( $page_num, $object_subtype = '' );
 
@@ -61,7 +61,7 @@ abstract class WP_Sitemaps_Provider {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @return array List of sitemap types including object subtype name and number of pages.
+	 * @return array[] Array of sitemap types including object subtype name and number of pages.
 	 */
 	public function get_sitemap_type_data() {
 		$sitemap_data = array();
@@ -98,7 +98,7 @@ abstract class WP_Sitemaps_Provider {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @return array List of sitemaps.
+	 * @return array[] Array of sitemap entries.
 	 */
 	public function get_sitemap_entries() {
 		$sitemaps = array();
@@ -107,7 +107,6 @@ abstract class WP_Sitemaps_Provider {
 
 		foreach ( $sitemap_types as $type ) {
 			for ( $page = 1; $page <= $type['pages']; $page ++ ) {
-				$loc        = $this->get_sitemap_url( $type['name'], $page );
 				$sitemap_entry = array(
 					'loc' => $this->get_sitemap_url( $type['name'], $page ),
 				);
@@ -121,7 +120,7 @@ abstract class WP_Sitemaps_Provider {
 				 * @param string $object_type    Object empty name.
 				 * @param string $object_subtype Object subtype name.
 				 *                               Empty string if the object type does not support subtypes.
-				 * @param string $page           Page of results.
+				 * @param int    $page           Page number of results.
 				 */
 				$sitemap_entry = apply_filters( 'wp_sitemaps_index_entry', $sitemap_entry, $this->object_type, $type['name'], $page );
 
@@ -137,12 +136,13 @@ abstract class WP_Sitemaps_Provider {
 	 *
 	 * @since 5.5.0
 	 *
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+	 *
 	 * @param string $name The name of the sitemap.
 	 * @param int    $page The page of the sitemap.
 	 * @return string The composed URL for a sitemap entry.
 	 */
 	public function get_sitemap_url( $name, $page ) {
-		/* @var WP_Rewrite $wp_rewrite */
 		global $wp_rewrite;
 
 		if ( ! $wp_rewrite->using_permalinks() ) {

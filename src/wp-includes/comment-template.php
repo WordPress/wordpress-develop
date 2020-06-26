@@ -530,7 +530,7 @@ function get_comment_class( $class = '', $comment_id = null, $post_id = null ) {
 	 *
 	 * @param string[]    $classes    An array of comment classes.
 	 * @param string      $class      A comma-separated list of additional classes added to the list.
-	 * @param int         $comment_id The comment id.
+	 * @param int         $comment_id The comment ID.
 	 * @param WP_Comment  $comment    The comment object.
 	 * @param int|WP_Post $post_id    The post ID or WP_Post object.
 	 */
@@ -657,7 +657,7 @@ function comment_excerpt( $comment_ID = 0 ) {
 }
 
 /**
- * Retrieves the comment id of the current comment.
+ * Retrieves the comment ID of the current comment.
  *
  * @since 1.5.0
  *
@@ -679,7 +679,7 @@ function get_comment_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFun
 }
 
 /**
- * Displays the comment id of the current comment.
+ * Displays the comment ID of the current comment.
  *
  * @since 0.71
  */
@@ -1337,7 +1337,6 @@ function wp_comment_form_unfiltered_html_nonce() {
  * @global int        $id
  * @global WP_Comment $comment          Global comment object.
  * @global string     $user_login
- * @global int        $user_ID
  * @global string     $user_identity
  * @global bool       $overridden_cpage
  * @global bool       $withcomments
@@ -1347,7 +1346,7 @@ function wp_comment_form_unfiltered_html_nonce() {
  *                                  Default false.
  */
 function comments_template( $file = '/comments.php', $separate_comments = false ) {
-	global $wp_query, $withcomments, $post, $wpdb, $id, $comment, $user_login, $user_ID, $user_identity, $overridden_cpage;
+	global $wp_query, $withcomments, $post, $wpdb, $id, $comment, $user_login, $user_identity, $overridden_cpage;
 
 	if ( ! ( is_single() || is_page() || $withcomments ) || empty( $post ) ) {
 		return;
@@ -1396,8 +1395,8 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 		$comment_args['hierarchical'] = false;
 	}
 
-	if ( $user_ID ) {
-		$comment_args['include_unapproved'] = array( $user_ID );
+	if ( is_user_logged_in() ) {
+		$comment_args['include_unapproved'] = array( get_current_user_id() );
 	} else {
 		$unapproved_email = wp_get_unapproved_comment_author_email();
 
@@ -1922,7 +1921,7 @@ function get_comment_id_fields( $id = 0 ) {
 	$result   .= "<input type='hidden' name='comment_parent' id='comment_parent' value='$replytoid' />\n";
 
 	/**
-	 * Filters the returned comment id fields.
+	 * Filters the returned comment ID fields.
 	 *
 	 * @since 3.0.0
 	 *
@@ -2102,7 +2101,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 				);
 
 				if ( is_user_logged_in() ) {
-					$comment_args['include_unapproved'] = get_current_user_id();
+					$comment_args['include_unapproved'] = array( get_current_user_id() );
 				} else {
 					$unapproved_email = wp_get_unapproved_comment_author_email();
 

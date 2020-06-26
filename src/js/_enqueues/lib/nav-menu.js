@@ -429,7 +429,7 @@
 		 * Refreshes advanced accessibility buttons for one menu item.
 		 * Shows or hides buttons based on the location of the menu item.
 		 *
-		 * @param  {object} itemToRefresh The menu item that might need its advanced accessibility buttons refreshed
+		 * @param {object} itemToRefresh The menu item that might need its advanced accessibility buttons refreshed
 		 */
 		refreshAdvancedAccessibilityOfItem : function( itemToRefresh ) {
 
@@ -920,7 +920,7 @@
 				q = input.val();
 
 			/*
-			 * Minimum characters for a search. Also avoid a new AJAX search when
+			 * Minimum characters for a search. Also avoid a new Ajax search when
 			 * the pressed key (e.g. arrows) doesn't change the searched term.
 			 */
 			if ( q.length < minSearchLength || api.lastSearch == q ) {
@@ -1292,7 +1292,8 @@
 
 		/**
 		 * Remove a menu item.
-		 * @param  {object} el The element to be removed as a jQuery object.
+		 *
+		 * @param {object} el The element to be removed as a jQuery object.
 		 *
 		 * @fires document#menu-removing-item Passes the element to be removed.
 		 */

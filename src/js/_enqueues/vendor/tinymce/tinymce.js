@@ -1,4 +1,4 @@
-// 4.9.6 (2019-09-02)
+// 4.9.10 (2020-04-23)
 (function () {
 (function (domGlobals) {
     'use strict';
@@ -53,8 +53,6 @@
     var never = constant(false);
     var always = constant(true);
 
-    var never$1 = never;
-    var always$1 = always;
     var none = function () {
       return NONE;
     };
@@ -68,37 +66,27 @@
       var id = function (n) {
         return n;
       };
-      var noop = function () {
-      };
-      var nul = function () {
-        return null;
-      };
-      var undef = function () {
-        return undefined;
-      };
       var me = {
         fold: function (n, s) {
           return n();
         },
-        is: never$1,
-        isSome: never$1,
-        isNone: always$1,
+        is: never,
+        isSome: never,
+        isNone: always,
         getOr: id,
         getOrThunk: call,
         getOrDie: function (msg) {
           throw new Error(msg || 'error: getOrDie called on none.');
         },
-        getOrNull: nul,
-        getOrUndefined: undef,
+        getOrNull: constant(null),
+        getOrUndefined: constant(undefined),
         or: id,
         orThunk: call,
         map: none,
-        ap: none,
         each: noop,
         bind: none,
-        flatten: none,
-        exists: never$1,
-        forall: always$1,
+        exists: never,
+        forall: always,
         filter: none,
         equals: eq,
         equals_: eq,
@@ -113,14 +101,9 @@
       return me;
     }();
     var some = function (a) {
-      var constant_a = function () {
-        return a;
-      };
+      var constant_a = constant(a);
       var self = function () {
         return me;
-      };
-      var map = function (f) {
-        return some(f(a));
       };
       var bind = function (f) {
         return f(a);
@@ -132,8 +115,8 @@
         is: function (v) {
           return a === v;
         },
-        isSome: always$1,
-        isNone: never$1,
+        isSome: always,
+        isNone: never,
         getOr: constant_a,
         getOrThunk: constant_a,
         getOrDie: constant_a,
@@ -141,35 +124,31 @@
         getOrUndefined: constant_a,
         or: self,
         orThunk: self,
-        map: map,
-        ap: function (optfab) {
-          return optfab.fold(none, function (fab) {
-            return some(fab(a));
-          });
+        map: function (f) {
+          return some(f(a));
         },
         each: function (f) {
           f(a);
         },
         bind: bind,
-        flatten: constant_a,
         exists: bind,
         forall: bind,
         filter: function (f) {
           return f(a) ? me : NONE;
-        },
-        equals: function (o) {
-          return o.is(a);
-        },
-        equals_: function (o, elementEq) {
-          return o.fold(never$1, function (b) {
-            return elementEq(a, b);
-          });
         },
         toArray: function () {
           return [a];
         },
         toString: function () {
           return 'some(' + a + ')';
+        },
+        equals: function (o) {
+          return o.is(a);
+        },
+        equals_: function (o, elementEq) {
+          return o.fold(never, function (b) {
+            return elementEq(a, b);
+          });
         }
       };
       return me;
@@ -209,17 +188,12 @@
     var isFunction = isType('function');
     var isNumber = isType('number');
 
-    var slice = Array.prototype.slice;
-    var rawIndexOf = function () {
-      var pIndexOf = Array.prototype.indexOf;
-      var fastIndex = function (xs, x) {
-        return pIndexOf.call(xs, x);
-      };
-      var slowIndex = function (xs, x) {
-        return slowIndexOf(xs, x);
-      };
-      return pIndexOf === undefined ? slowIndex : fastIndex;
-    }();
+    var nativeSlice = Array.prototype.slice;
+    var nativeIndexOf = Array.prototype.indexOf;
+    var nativePush = Array.prototype.push;
+    var rawIndexOf = function (ts, t) {
+      return nativeIndexOf.call(ts, t);
+    };
     var indexOf = function (xs, x) {
       var r = rawIndexOf(xs, x);
       return r === -1 ? Option.none() : Option.some(r);
@@ -228,27 +202,33 @@
       return rawIndexOf(xs, x) > -1;
     };
     var exists = function (xs, pred) {
-      return findIndex(xs, pred).isSome();
+      for (var i = 0, len = xs.length; i < len; i++) {
+        var x = xs[i];
+        if (pred(x, i)) {
+          return true;
+        }
+      }
+      return false;
     };
     var map = function (xs, f) {
       var len = xs.length;
       var r = new Array(len);
       for (var i = 0; i < len; i++) {
         var x = xs[i];
-        r[i] = f(x, i, xs);
+        r[i] = f(x, i);
       }
       return r;
     };
     var each = function (xs, f) {
       for (var i = 0, len = xs.length; i < len; i++) {
         var x = xs[i];
-        f(x, i, xs);
+        f(x, i);
       }
     };
     var eachr = function (xs, f) {
       for (var i = xs.length - 1; i >= 0; i--) {
         var x = xs[i];
-        f(x, i, xs);
+        f(x, i);
       }
     };
     var partition = function (xs, pred) {
@@ -256,7 +236,7 @@
       var fail = [];
       for (var i = 0, len = xs.length; i < len; i++) {
         var x = xs[i];
-        var arr = pred(x, i, xs) ? pass : fail;
+        var arr = pred(x, i) ? pass : fail;
         arr.push(x);
       }
       return {
@@ -268,7 +248,7 @@
       var r = [];
       for (var i = 0, len = xs.length; i < len; i++) {
         var x = xs[i];
-        if (pred(x, i, xs)) {
+        if (pred(x, i)) {
           r.push(x);
         }
       }
@@ -289,7 +269,7 @@
     var find = function (xs, pred) {
       for (var i = 0, len = xs.length; i < len; i++) {
         var x = xs[i];
-        if (pred(x, i, xs)) {
+        if (pred(x, i)) {
           return Option.some(x);
         }
       }
@@ -298,28 +278,19 @@
     var findIndex = function (xs, pred) {
       for (var i = 0, len = xs.length; i < len; i++) {
         var x = xs[i];
-        if (pred(x, i, xs)) {
+        if (pred(x, i)) {
           return Option.some(i);
         }
       }
       return Option.none();
     };
-    var slowIndexOf = function (xs, x) {
-      for (var i = 0, len = xs.length; i < len; ++i) {
-        if (xs[i] === x) {
-          return i;
-        }
-      }
-      return -1;
-    };
-    var push = Array.prototype.push;
     var flatten = function (xs) {
       var r = [];
       for (var i = 0, len = xs.length; i < len; ++i) {
         if (!isArray(xs[i])) {
           throw new Error('Arr.flatten item ' + i + ' was not an array, input: ' + xs);
         }
-        push.apply(r, xs[i]);
+        nativePush.apply(r, xs[i]);
       }
       return r;
     };
@@ -330,14 +301,14 @@
     var forall = function (xs, pred) {
       for (var i = 0, len = xs.length; i < len; ++i) {
         var x = xs[i];
-        if (pred(x, i, xs) !== true) {
+        if (pred(x, i) !== true) {
           return false;
         }
       }
       return true;
     };
     var reverse = function (xs) {
-      var r = slice.call(xs, 0);
+      var r = nativeSlice.call(xs, 0);
       r.reverse();
       return r;
     };
@@ -355,7 +326,7 @@
       return r;
     };
     var sort = function (xs, comparator) {
-      var copy = slice.call(xs, 0);
+      var copy = nativeSlice.call(xs, 0);
       copy.sort(comparator);
       return copy;
     };
@@ -366,7 +337,7 @@
       return xs.length === 0 ? Option.none() : Option.some(xs[xs.length - 1]);
     };
     var from$1 = isFunction(Array.from) ? Array.from : function (x) {
-      return slice.call(x);
+      return nativeSlice.call(x);
     };
 
     var Global = typeof domGlobals.window !== 'undefined' ? domGlobals.window : Function('return this;')();
@@ -1094,7 +1065,7 @@
           hasDuplicate = true;
         }
         return 0;
-      }, strundefined = typeof undefined, MAX_NEGATIVE = 1 << 31, hasOwn = {}.hasOwnProperty, arr = [], pop = arr.pop, push_native = arr.push, push$1 = arr.push, slice$1 = arr.slice, indexOf$1 = arr.indexOf || function (elem) {
+      }, strundefined = typeof undefined, MAX_NEGATIVE = 1 << 31, hasOwn = {}.hasOwnProperty, arr = [], pop = arr.pop, push_native = arr.push, push = arr.push, slice = arr.slice, indexOf$1 = arr.indexOf || function (elem) {
         var i = 0, len = this.length;
         for (; i < len; i++) {
           if (this[i] === elem) {
@@ -1116,12 +1087,12 @@
         return high !== high || escapedWhitespace ? escaped : high < 0 ? String.fromCharCode(high + 65536) : String.fromCharCode(high >> 10 | 55296, high & 1023 | 56320);
       };
     try {
-      push$1.apply(arr = slice$1.call(preferredDoc.childNodes), preferredDoc.childNodes);
+      push.apply(arr = slice.call(preferredDoc.childNodes), preferredDoc.childNodes);
       arr[preferredDoc.childNodes.length].nodeType;
     } catch (e) {
-      push$1 = {
+      push = {
         apply: arr.length ? function (target, els) {
-          push_native.apply(target, slice$1.call(els));
+          push_native.apply(target, slice.call(els));
         } : function (target, els) {
           var j = target.length, i = 0;
           while (target[j++] = els[i++]) {
@@ -1163,10 +1134,10 @@
               }
             }
           } else if (match[2]) {
-            push$1.apply(results, context.getElementsByTagName(selector));
+            push.apply(results, context.getElementsByTagName(selector));
             return results;
           } else if ((m = match[3]) && support.getElementsByClassName) {
-            push$1.apply(results, context.getElementsByClassName(m));
+            push.apply(results, context.getElementsByClassName(m));
             return results;
           }
         }
@@ -1191,7 +1162,7 @@
           }
           if (newSelector) {
             try {
-              push$1.apply(results, newContext.querySelectorAll(newSelector));
+              push.apply(results, newContext.querySelectorAll(newSelector));
               return results;
             } catch (qsaError) {
             } finally {
@@ -1947,7 +1918,7 @@
           if (postFinder) {
             postFinder(null, results, matcherOut, xml);
           } else {
-            push$1.apply(results, matcherOut);
+            push.apply(results, matcherOut);
           }
         }
       });
@@ -2023,7 +1994,7 @@
               }
               setMatched = condense(setMatched);
             }
-            push$1.apply(results, setMatched);
+            push.apply(results, setMatched);
             if (outermost && !seed && setMatched.length > 0 && matchedCount + setMatchers.length > 1) {
               Sizzle.uniqueSort(results);
             }
@@ -2081,7 +2052,7 @@
               tokens.splice(i, 1);
               selector = seed.length && toSelector(tokens);
               if (!selector) {
-                push$1.apply(results, seed);
+                push.apply(results, seed);
                 return results;
               }
               break;
@@ -2381,7 +2352,7 @@
       _addCacheSuffix: _addCacheSuffix
     };
 
-    var doc = domGlobals.document, push$2 = Array.prototype.push, slice$2 = Array.prototype.slice;
+    var doc = domGlobals.document, push$1 = Array.prototype.push, slice$1 = Array.prototype.slice;
     var rquickExpr$1 = /^(?:[^#<]*(<[\w\W]+>)[^>]*$|#([\w\-]*)$)/;
     var Event = EventUtils.Event;
     var skipUniques = Tools.makeMap('children,contents,next,prev');
@@ -2559,7 +2530,7 @@
             if (match[1]) {
               node = createFragment(selector, getElementDocument(context)).firstChild;
               while (node) {
-                push$2.call(self, node);
+                push$1.call(self, node);
                 node = node.nextSibling;
               }
             } else {
@@ -2597,7 +2568,7 @@
             self[i] = nodes[i];
           }
         } else {
-          push$2.apply(self, DomQuery.makeArray(items));
+          push$1.apply(self, DomQuery.makeArray(items));
         }
         return self;
       },
@@ -2914,7 +2885,7 @@
         return this.css('display', 'none');
       },
       slice: function () {
-        return new DomQuery(slice$2.apply(this, arguments));
+        return new DomQuery(slice$1.apply(this, arguments));
       },
       eq: function (index) {
         return index === -1 ? this.slice(index) : this.slice(index, +index + 1);
@@ -2981,7 +2952,7 @@
         }
         return this.css(offset);
       },
-      push: push$2,
+      push: push$1,
       sort: [].sort,
       splice: [].splice
     };
@@ -3645,21 +3616,21 @@
       for (var k = 0, len = props.length; k < len; k++) {
         var i = props[k];
         var x = obj[i];
-        f(x, i, obj);
+        f(x, i);
       }
     };
     var map$2 = function (obj, f) {
-      return tupleMap(obj, function (x, i, obj) {
+      return tupleMap(obj, function (x, i) {
         return {
           k: i,
-          v: f(x, i, obj)
+          v: f(x, i)
         };
       });
     };
     var tupleMap = function (obj, f) {
       var r = {};
       each$3(obj, function (x, i) {
-        var tuple = f(x, i, obj);
+        var tuple = f(x, i);
         r[tuple.k] = tuple.v;
       });
       return r;
@@ -3749,6 +3720,17 @@
       return Option.from(raw).filter(function (r) {
         return r.length > 0;
       });
+    };
+    var getAllRaw = function (element) {
+      var css = {};
+      var dom = element.dom();
+      if (isSupported(dom)) {
+        for (var i = 0; i < dom.style.length; i++) {
+          var ruleName = dom.style.item(i);
+          css[ruleName] = dom.style[ruleName];
+        }
+      }
+      return css;
     };
 
     var Immutable = function () {
@@ -6682,12 +6664,14 @@
         var node;
         var container = doc.createElement('div');
         var frag = doc.createDocumentFragment();
+        frag.appendChild(container);
         if (html) {
           container.innerHTML = html;
         }
         while (node = container.firstChild) {
           frag.appendChild(node);
         }
+        frag.removeChild(container);
         return frag;
       };
       var remove = function (node, keepChildren) {
@@ -7819,6 +7803,18 @@
       };
     };
 
+    var __assign = function () {
+      __assign = Object.assign || function __assign(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+          s = arguments[i];
+          for (var p in s)
+            if (Object.prototype.hasOwnProperty.call(s, p))
+              t[p] = s[p];
+        }
+        return t;
+      };
+      return __assign.apply(this, arguments);
+    };
     function __rest(s, e) {
       var t = {};
       for (var p in s)
@@ -7830,6 +7826,14 @@
             t[p[i]] = s[p[i]];
         }
       return t;
+    }
+    function __spreadArrays() {
+      for (var s = 0, i = 0, il = arguments.length; i < il; i++)
+        s += arguments[i].length;
+      for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+          r[k] = a[j];
+      return r;
     }
 
     var unique = 0;
@@ -8162,26 +8166,20 @@
       return typeof ch === 'string' && ch.charCodeAt(0) >= 768 && extendingChars.test(ch);
     };
 
-    var liftN = function (arr, f) {
-      var r = [];
-      for (var i = 0; i < arr.length; i++) {
-        var x = arr[i];
-        if (x.isSome()) {
-          r.push(x.getOrDie());
-        } else {
-          return Option.none();
-        }
-      }
-      return Option.some(f.apply(null, r));
+    var lift2 = function (oa, ob, f) {
+      return oa.isSome() && ob.isSome() ? Option.some(f(oa.getOrDie(), ob.getOrDie())) : Option.none();
+    };
+    var lift3 = function (oa, ob, oc, f) {
+      return oa.isSome() && ob.isSome() && oc.isSome() ? Option.some(f(oa.getOrDie(), ob.getOrDie(), oc.getOrDie())) : Option.none();
     };
 
-    var slice$3 = [].slice;
+    var slice$2 = [].slice;
     var or = function () {
       var x = [];
       for (var _i = 0; _i < arguments.length; _i++) {
         x[_i] = arguments[_i];
       }
-      var args = slice$3.call(arguments);
+      var args = slice$2.call(arguments);
       return function (x) {
         for (var i = 0; i < args.length; i++) {
           if (args[i](x)) {
@@ -8196,7 +8194,7 @@
       for (var _i = 0; _i < arguments.length; _i++) {
         x[_i] = arguments[_i];
       }
-      var args = slice$3.call(arguments);
+      var args = slice$2.call(arguments);
       return function (x) {
         for (var i = 0; i < args.length; i++) {
           if (!args[i](x)) {
@@ -8433,16 +8431,10 @@
         return CaretPosition(node.parentNode, nodeIndex(node));
       };
       CaretPosition.isAbove = function (pos1, pos2) {
-        return liftN([
-          head(pos2.getClientRects()),
-          last(pos1.getClientRects())
-        ], isAbove).getOr(false);
+        return lift2(head(pos2.getClientRects()), last(pos1.getClientRects()), isAbove).getOr(false);
       };
       CaretPosition.isBelow = function (pos1, pos2) {
-        return liftN([
-          last(pos2.getClientRects()),
-          head(pos1.getClientRects())
-        ], isBelow).getOr(false);
+        return lift2(last(pos2.getClientRects()), head(pos1.getClientRects()), isBelow).getOr(false);
       };
       CaretPosition.isAtStart = function (pos) {
         return pos ? pos.isAtStart() : false;
@@ -9556,7 +9548,7 @@
     };
 
     var addBogus = function (dom, node) {
-      if (dom.isBlock(node) && !node.innerHTML && !Env.ie) {
+      if (NodeType.isElement(node) && dom.isBlock(node) && !node.innerHTML && !Env.ie) {
         node.innerHTML = '<br data-mce-bogus="1" />';
       }
       return node;
@@ -9719,10 +9711,7 @@
     var resolveId = function (dom, bookmark) {
       var startPos = restoreEndPoint(dom, 'start', bookmark);
       var endPos = restoreEndPoint(dom, 'end', bookmark);
-      return liftN([
-        startPos,
-        alt(endPos, startPos)
-      ], function (spos, epos) {
+      return lift2(startPos, alt(endPos, startPos), function (spos, epos) {
         var rng = dom.createRng();
         rng.setStart(addBogus(dom, spos.container()), spos.offset());
         rng.setEnd(addBogus(dom, epos.container()), epos.offset());
@@ -11368,10 +11357,7 @@
       }
     };
     var willDeleteLastPositionInElement = function (forward, fromPos, elm) {
-      return liftN([
-        CaretFinder.firstPositionIn(elm),
-        CaretFinder.lastPositionIn(elm)
-      ], function (firstPos, lastPos) {
+      return lift2(CaretFinder.firstPositionIn(elm), CaretFinder.lastPositionIn(elm), function (firstPos, lastPos) {
         var normalizedFirstPos = InlineUtils.normalizePosition(true, firstPos);
         var normalizedLastPos = InlineUtils.normalizePosition(false, lastPos);
         var normalizedFromPos = InlineUtils.normalizePosition(false, fromPos);
@@ -11470,7 +11456,7 @@
       }).isSome();
     };
     var isEditable = function (blockBoundary) {
-      return NodeType.isContentEditableFalse(blockBoundary.from().block()) === false && NodeType.isContentEditableFalse(blockBoundary.to().block()) === false;
+      return NodeType.isContentEditableFalse(blockBoundary.from().block().dom()) === false && NodeType.isContentEditableFalse(blockBoundary.to().block().dom()) === false;
     };
     var skipLastBr = function (rootNode, forward, blockPosition) {
       if (NodeType.isBr(blockPosition.position().getNode()) && Empty.isEmpty(blockPosition.block()) === false) {
@@ -11496,10 +11482,7 @@
           });
         });
       });
-      return liftN([
-        fromBlockPos,
-        toBlockPos
-      ], BlockBoundary).filter(function (blockBoundary) {
+      return lift2(fromBlockPos, toBlockPos, BlockBoundary).filter(function (blockBoundary) {
         return isDifferentBlocks(blockBoundary) && hasSameParent(blockBoundary) && isEditable(blockBoundary);
       });
     };
@@ -11621,10 +11604,7 @@
 
     var deleteRangeMergeBlocks = function (rootNode, selection) {
       var rng = selection.getRng();
-      return liftN([
-        DeleteUtils.getParentBlock(rootNode, Element.fromDom(rng.startContainer)),
-        DeleteUtils.getParentBlock(rootNode, Element.fromDom(rng.endContainer))
-      ], function (block1, block2) {
+      return lift2(DeleteUtils.getParentBlock(rootNode, Element.fromDom(rng.startContainer)), DeleteUtils.getParentBlock(rootNode, Element.fromDom(rng.endContainer)), function (block1, block2) {
         if (eq(block1, block2) === false) {
           rng.deleteContents();
           MergeBlocks.mergeBlocks(rootNode, true, block1, block2).each(function (pos) {
@@ -12035,11 +12015,7 @@
       var prevTextOpt = prevSibling(elm).filter(isText);
       var nextTextOpt = nextSibling(elm).filter(isText);
       remove$1(elm);
-      return liftN([
-        prevTextOpt,
-        nextTextOpt,
-        afterDeletePosOpt
-      ], function (prev, next, pos) {
+      return lift3(prevTextOpt, nextTextOpt, afterDeletePosOpt, function (prev, next, pos) {
         var prevNode = prev.dom(), nextNode = next.dom();
         var offset = prevNode.data.length;
         mergeTextNodes(prevNode, nextNode, normalizeWhitespace);
@@ -12356,10 +12332,7 @@
       return getName(location1) === getName(location2) && getElement(location1) === getElement(location2);
     };
     var betweenInlines = function (forward, isInlineTarget, rootNode, from, to, location) {
-      return liftN([
-        InlineUtils.findRootInline(isInlineTarget, rootNode, from),
-        InlineUtils.findRootInline(isInlineTarget, rootNode, to)
-      ], function (fromInline, toInline) {
+      return lift2(InlineUtils.findRootInline(isInlineTarget, rootNode, from), InlineUtils.findRootInline(isInlineTarget, rootNode, to), function (fromInline, toInline) {
         if (fromInline !== toInline && InlineUtils.hasSameParentBlock(rootNode, fromInline, toInline)) {
           return Location.after(forward ? fromInline : toInline);
         } else {
@@ -12532,10 +12505,7 @@
       return range;
     };
     var hasOnlyTwoOrLessPositionsLeft = function (elm) {
-      return liftN([
-        CaretFinder.firstPositionIn(elm),
-        CaretFinder.lastPositionIn(elm)
-      ], function (firstPos, lastPos) {
+      return lift2(CaretFinder.firstPositionIn(elm), CaretFinder.lastPositionIn(elm), function (firstPos, lastPos) {
         var normalizedFirstPos = InlineUtils.normalizePosition(true, firstPos);
         var normalizedLastPos = InlineUtils.normalizePosition(false, lastPos);
         return CaretFinder.nextPosition(elm, normalizedFirstPos).map(function (pos) {
@@ -12650,10 +12620,7 @@
     var partialSelection = function (isRoot, rng) {
       var startCell = getClosestCell(rng.startContainer, isRoot);
       var endCell = getClosestCell(rng.endContainer, isRoot);
-      return rng.collapsed ? Option.none() : liftN([
-        startCell,
-        endCell
-      ], tableCellRng).fold(function () {
+      return rng.collapsed ? Option.none() : lift2(startCell, endCell, tableCellRng).fold(function () {
         return startCell.fold(function () {
           return endCell.bind(function (endCell) {
             return getClosestTable(endCell, isRoot).bind(function (table) {
@@ -12679,10 +12646,7 @@
     var getCellRng = function (rng, isRoot) {
       var startCell = getClosestCell(rng.startContainer, isRoot);
       var endCell = getClosestCell(rng.endContainer, isRoot);
-      return liftN([
-        startCell,
-        endCell
-      ], tableCellRng).filter(isExpandedCellRng).filter(function (cellRng) {
+      return lift2(startCell, endCell, tableCellRng).filter(isExpandedCellRng).filter(function (cellRng) {
         return isWithinSameTable(isRoot, cellRng);
       }).orThunk(function () {
         return partialSelection(isRoot, rng);
@@ -12705,10 +12669,7 @@
       });
     };
     var getSelectedCells = function (tableSelection) {
-      return liftN([
-        getCellIndex(tableSelection.cells(), tableSelection.rng().start()),
-        getCellIndex(tableSelection.cells(), tableSelection.rng().end())
-      ], function (startIndex, endIndex) {
+      return lift2(getCellIndex(tableSelection.cells(), tableSelection.rng().start()), getCellIndex(tableSelection.cells(), tableSelection.rng().end()), function (startIndex, endIndex) {
         return tableSelection.cells().slice(startIndex, endIndex + 1);
       });
     };
@@ -16508,10 +16469,7 @@
       });
     };
     var hasAllContentsSelected = function (elm, rng) {
-      return liftN([
-        getStartNode(rng),
-        getEndNode(rng)
-      ], function (startNode, endNode) {
+      return lift2(getStartNode(rng), getEndNode(rng), function (startNode, endNode) {
         var start = find(getFirstChildren(elm), curry(eq, startNode));
         var end = find(getLastChildren$1(elm), curry(eq, endNode));
         return start.isSome() && end.isSome();
@@ -16645,271 +16603,25 @@
       };
     }
 
-    var getAbsolutePosition = function (elm) {
-      var doc, docElem, win, clientRect;
-      clientRect = elm.getBoundingClientRect();
-      doc = elm.ownerDocument;
-      docElem = doc.documentElement;
-      win = doc.defaultView;
-      return {
-        top: clientRect.top + win.pageYOffset - docElem.clientTop,
-        left: clientRect.left + win.pageXOffset - docElem.clientLeft
-      };
-    };
-    var getBodyPosition = function (editor) {
-      return editor.inline ? getAbsolutePosition(editor.getBody()) : {
-        left: 0,
-        top: 0
-      };
-    };
-    var getScrollPosition = function (editor) {
-      var body = editor.getBody();
-      return editor.inline ? {
-        left: body.scrollLeft,
-        top: body.scrollTop
-      } : {
-        left: 0,
-        top: 0
-      };
-    };
-    var getBodyScroll = function (editor) {
-      var body = editor.getBody(), docElm = editor.getDoc().documentElement;
-      var inlineScroll = {
-        left: body.scrollLeft,
-        top: body.scrollTop
-      };
-      var iframeScroll = {
-        left: body.scrollLeft || docElm.scrollLeft,
-        top: body.scrollTop || docElm.scrollTop
-      };
-      return editor.inline ? inlineScroll : iframeScroll;
-    };
-    var getMousePosition = function (editor, event) {
-      if (event.target.ownerDocument !== editor.getDoc()) {
-        var iframePosition = getAbsolutePosition(editor.getContentAreaContainer());
-        var scrollPosition = getBodyScroll(editor);
-        return {
-          left: event.pageX - iframePosition.left + scrollPosition.left,
-          top: event.pageY - iframePosition.top + scrollPosition.top
-        };
-      }
-      return {
-        left: event.pageX,
-        top: event.pageY
-      };
-    };
-    var calculatePosition = function (bodyPosition, scrollPosition, mousePosition) {
-      return {
-        pageX: mousePosition.left - bodyPosition.left + scrollPosition.left,
-        pageY: mousePosition.top - bodyPosition.top + scrollPosition.top
-      };
-    };
-    var calc = function (editor, event) {
-      return calculatePosition(getBodyPosition(editor), getScrollPosition(editor), getMousePosition(editor, event));
-    };
-    var MousePosition = { calc: calc };
-
-    var isContentEditableFalse$7 = NodeType.isContentEditableFalse, isContentEditableTrue$3 = NodeType.isContentEditableTrue;
-    var isDraggable = function (rootElm, elm) {
-      return isContentEditableFalse$7(elm) && elm !== rootElm;
-    };
-    var isValidDropTarget = function (editor, targetElement, dragElement) {
-      if (targetElement === dragElement || editor.dom.isChildOf(targetElement, dragElement)) {
-        return false;
-      }
-      if (isContentEditableFalse$7(targetElement)) {
-        return false;
-      }
-      return true;
-    };
-    var cloneElement = function (elm) {
-      var cloneElm = elm.cloneNode(true);
-      cloneElm.removeAttribute('data-mce-selected');
-      return cloneElm;
-    };
-    var createGhost = function (editor, elm, width, height) {
-      var clonedElm = elm.cloneNode(true);
-      editor.dom.setStyles(clonedElm, {
-        width: width,
-        height: height
-      });
-      editor.dom.setAttrib(clonedElm, 'data-mce-selected', null);
-      var ghostElm = editor.dom.create('div', {
-        'class': 'mce-drag-container',
-        'data-mce-bogus': 'all',
-        'unselectable': 'on',
-        'contenteditable': 'false'
-      });
-      editor.dom.setStyles(ghostElm, {
-        position: 'absolute',
-        opacity: 0.5,
-        overflow: 'hidden',
-        border: 0,
-        padding: 0,
-        margin: 0,
-        width: width,
-        height: height
-      });
-      editor.dom.setStyles(clonedElm, {
-        margin: 0,
-        boxSizing: 'border-box'
-      });
-      ghostElm.appendChild(clonedElm);
-      return ghostElm;
-    };
-    var appendGhostToBody = function (ghostElm, bodyElm) {
-      if (ghostElm.parentNode !== bodyElm) {
-        bodyElm.appendChild(ghostElm);
+    var VK = {
+      BACKSPACE: 8,
+      DELETE: 46,
+      DOWN: 40,
+      ENTER: 13,
+      LEFT: 37,
+      RIGHT: 39,
+      SPACEBAR: 32,
+      TAB: 9,
+      UP: 38,
+      END: 35,
+      HOME: 36,
+      modifierPressed: function (e) {
+        return e.shiftKey || e.ctrlKey || e.altKey || this.metaKeyPressed(e);
+      },
+      metaKeyPressed: function (e) {
+        return Env.mac ? e.metaKey : e.ctrlKey && !e.altKey;
       }
     };
-    var moveGhost = function (ghostElm, position, width, height, maxX, maxY) {
-      var overflowX = 0, overflowY = 0;
-      ghostElm.style.left = position.pageX + 'px';
-      ghostElm.style.top = position.pageY + 'px';
-      if (position.pageX + width > maxX) {
-        overflowX = position.pageX + width - maxX;
-      }
-      if (position.pageY + height > maxY) {
-        overflowY = position.pageY + height - maxY;
-      }
-      ghostElm.style.width = width - overflowX + 'px';
-      ghostElm.style.height = height - overflowY + 'px';
-    };
-    var removeElement = function (elm) {
-      if (elm && elm.parentNode) {
-        elm.parentNode.removeChild(elm);
-      }
-    };
-    var isLeftMouseButtonPressed = function (e) {
-      return e.button === 0;
-    };
-    var hasDraggableElement = function (state) {
-      return state.element;
-    };
-    var applyRelPos = function (state, position) {
-      return {
-        pageX: position.pageX - state.relX,
-        pageY: position.pageY + 5
-      };
-    };
-    var start$1 = function (state, editor) {
-      return function (e) {
-        if (isLeftMouseButtonPressed(e)) {
-          var ceElm = find(editor.dom.getParents(e.target), Predicate.or(isContentEditableFalse$7, isContentEditableTrue$3)).getOr(null);
-          if (isDraggable(editor.getBody(), ceElm)) {
-            var elmPos = editor.dom.getPos(ceElm);
-            var bodyElm = editor.getBody();
-            var docElm = editor.getDoc().documentElement;
-            state.element = ceElm;
-            state.screenX = e.screenX;
-            state.screenY = e.screenY;
-            state.maxX = (editor.inline ? bodyElm.scrollWidth : docElm.offsetWidth) - 2;
-            state.maxY = (editor.inline ? bodyElm.scrollHeight : docElm.offsetHeight) - 2;
-            state.relX = e.pageX - elmPos.x;
-            state.relY = e.pageY - elmPos.y;
-            state.width = ceElm.offsetWidth;
-            state.height = ceElm.offsetHeight;
-            state.ghost = createGhost(editor, ceElm, state.width, state.height);
-          }
-        }
-      };
-    };
-    var move$1 = function (state, editor) {
-      var throttledPlaceCaretAt = Delay.throttle(function (clientX, clientY) {
-        editor._selectionOverrides.hideFakeCaret();
-        editor.selection.placeCaretAt(clientX, clientY);
-      }, 0);
-      return function (e) {
-        var movement = Math.max(Math.abs(e.screenX - state.screenX), Math.abs(e.screenY - state.screenY));
-        if (hasDraggableElement(state) && !state.dragging && movement > 10) {
-          var args = editor.fire('dragstart', { target: state.element });
-          if (args.isDefaultPrevented()) {
-            return;
-          }
-          state.dragging = true;
-          editor.focus();
-        }
-        if (state.dragging) {
-          var targetPos = applyRelPos(state, MousePosition.calc(editor, e));
-          appendGhostToBody(state.ghost, editor.getBody());
-          moveGhost(state.ghost, targetPos, state.width, state.height, state.maxX, state.maxY);
-          throttledPlaceCaretAt(e.clientX, e.clientY);
-        }
-      };
-    };
-    var getRawTarget = function (selection) {
-      var rng = selection.getSel().getRangeAt(0);
-      var startContainer = rng.startContainer;
-      return startContainer.nodeType === 3 ? startContainer.parentNode : startContainer;
-    };
-    var drop = function (state, editor) {
-      return function (e) {
-        if (state.dragging) {
-          if (isValidDropTarget(editor, getRawTarget(editor.selection), state.element)) {
-            var targetClone_1 = cloneElement(state.element);
-            var args = editor.fire('drop', {
-              targetClone: targetClone_1,
-              clientX: e.clientX,
-              clientY: e.clientY
-            });
-            if (!args.isDefaultPrevented()) {
-              targetClone_1 = args.targetClone;
-              editor.undoManager.transact(function () {
-                removeElement(state.element);
-                editor.insertContent(editor.dom.getOuterHTML(targetClone_1));
-                editor._selectionOverrides.hideFakeCaret();
-              });
-            }
-          }
-        }
-        removeDragState(state);
-      };
-    };
-    var stop = function (state, editor) {
-      return function () {
-        if (state.dragging) {
-          editor.fire('dragend');
-        }
-        removeDragState(state);
-      };
-    };
-    var removeDragState = function (state) {
-      state.dragging = false;
-      state.element = null;
-      removeElement(state.ghost);
-    };
-    var bindFakeDragEvents = function (editor) {
-      var state = {};
-      var pageDom, dragStartHandler, dragHandler, dropHandler, dragEndHandler, rootDocument;
-      pageDom = DOMUtils$1.DOM;
-      rootDocument = domGlobals.document;
-      dragStartHandler = start$1(state, editor);
-      dragHandler = move$1(state, editor);
-      dropHandler = drop(state, editor);
-      dragEndHandler = stop(state, editor);
-      editor.on('mousedown', dragStartHandler);
-      editor.on('mousemove', dragHandler);
-      editor.on('mouseup', dropHandler);
-      pageDom.bind(rootDocument, 'mousemove', dragHandler);
-      pageDom.bind(rootDocument, 'mouseup', dragEndHandler);
-      editor.on('remove', function () {
-        pageDom.unbind(rootDocument, 'mousemove', dragHandler);
-        pageDom.unbind(rootDocument, 'mouseup', dragEndHandler);
-      });
-    };
-    var blockIeDrop = function (editor) {
-      editor.on('drop', function (e) {
-        var realTarget = typeof e.clientX !== 'undefined' ? editor.getDoc().elementFromPoint(e.clientX, e.clientY) : null;
-        if (isContentEditableFalse$7(realTarget) || isContentEditableFalse$7(editor.dom.getContentEditableParent(realTarget))) {
-          e.preventDefault();
-        }
-      });
-    };
-    var init = function (editor) {
-      bindFakeDragEvents(editor);
-      blockIeDrop(editor);
-    };
-    var DragDropOverrides = { init: init };
 
     var getNodeClientRects = function (node) {
       var toArrayWithNode = function (clientRects) {
@@ -17044,7 +16756,7 @@
       };
     };
 
-    var isContentEditableFalse$8 = NodeType.isContentEditableFalse;
+    var isContentEditableFalse$7 = NodeType.isContentEditableFalse;
     var findNode$1 = findNode;
     var distanceToRectLeft = function (clientRect, clientX) {
       return Math.abs(clientRect.left - clientX);
@@ -17066,7 +16778,7 @@
         if (isInside(clientX, oldClientRect)) {
           return oldClientRect;
         }
-        if (newDistance === oldDistance && isContentEditableFalse$8(clientRect.node)) {
+        if (newDistance === oldDistance && isContentEditableFalse$7(clientRect.node)) {
           return clientRect;
         }
         if (newDistance < oldDistance) {
@@ -17140,6 +16852,272 @@
     };
     var RangePoint = { isXYWithinRange: isXYWithinRange };
 
+    var getAbsolutePosition = function (elm) {
+      var doc, docElem, win, clientRect;
+      clientRect = elm.getBoundingClientRect();
+      doc = elm.ownerDocument;
+      docElem = doc.documentElement;
+      win = doc.defaultView;
+      return {
+        top: clientRect.top + win.pageYOffset - docElem.clientTop,
+        left: clientRect.left + win.pageXOffset - docElem.clientLeft
+      };
+    };
+    var getBodyPosition = function (editor) {
+      return editor.inline ? getAbsolutePosition(editor.getBody()) : {
+        left: 0,
+        top: 0
+      };
+    };
+    var getScrollPosition = function (editor) {
+      var body = editor.getBody();
+      return editor.inline ? {
+        left: body.scrollLeft,
+        top: body.scrollTop
+      } : {
+        left: 0,
+        top: 0
+      };
+    };
+    var getBodyScroll = function (editor) {
+      var body = editor.getBody(), docElm = editor.getDoc().documentElement;
+      var inlineScroll = {
+        left: body.scrollLeft,
+        top: body.scrollTop
+      };
+      var iframeScroll = {
+        left: body.scrollLeft || docElm.scrollLeft,
+        top: body.scrollTop || docElm.scrollTop
+      };
+      return editor.inline ? inlineScroll : iframeScroll;
+    };
+    var getMousePosition = function (editor, event) {
+      if (event.target.ownerDocument !== editor.getDoc()) {
+        var iframePosition = getAbsolutePosition(editor.getContentAreaContainer());
+        var scrollPosition = getBodyScroll(editor);
+        return {
+          left: event.pageX - iframePosition.left + scrollPosition.left,
+          top: event.pageY - iframePosition.top + scrollPosition.top
+        };
+      }
+      return {
+        left: event.pageX,
+        top: event.pageY
+      };
+    };
+    var calculatePosition = function (bodyPosition, scrollPosition, mousePosition) {
+      return {
+        pageX: mousePosition.left - bodyPosition.left + scrollPosition.left,
+        pageY: mousePosition.top - bodyPosition.top + scrollPosition.top
+      };
+    };
+    var calc = function (editor, event) {
+      return calculatePosition(getBodyPosition(editor), getScrollPosition(editor), getMousePosition(editor, event));
+    };
+    var MousePosition = { calc: calc };
+
+    var isContentEditableFalse$8 = NodeType.isContentEditableFalse, isContentEditableTrue$3 = NodeType.isContentEditableTrue;
+    var isDraggable = function (rootElm, elm) {
+      return isContentEditableFalse$8(elm) && elm !== rootElm;
+    };
+    var isValidDropTarget = function (editor, targetElement, dragElement) {
+      if (targetElement === dragElement || editor.dom.isChildOf(targetElement, dragElement)) {
+        return false;
+      }
+      if (isContentEditableFalse$8(targetElement)) {
+        return false;
+      }
+      return true;
+    };
+    var cloneElement = function (elm) {
+      var cloneElm = elm.cloneNode(true);
+      cloneElm.removeAttribute('data-mce-selected');
+      return cloneElm;
+    };
+    var createGhost = function (editor, elm, width, height) {
+      var clonedElm = elm.cloneNode(true);
+      editor.dom.setStyles(clonedElm, {
+        width: width,
+        height: height
+      });
+      editor.dom.setAttrib(clonedElm, 'data-mce-selected', null);
+      var ghostElm = editor.dom.create('div', {
+        'class': 'mce-drag-container',
+        'data-mce-bogus': 'all',
+        'unselectable': 'on',
+        'contenteditable': 'false'
+      });
+      editor.dom.setStyles(ghostElm, {
+        position: 'absolute',
+        opacity: 0.5,
+        overflow: 'hidden',
+        border: 0,
+        padding: 0,
+        margin: 0,
+        width: width,
+        height: height
+      });
+      editor.dom.setStyles(clonedElm, {
+        margin: 0,
+        boxSizing: 'border-box'
+      });
+      ghostElm.appendChild(clonedElm);
+      return ghostElm;
+    };
+    var appendGhostToBody = function (ghostElm, bodyElm) {
+      if (ghostElm.parentNode !== bodyElm) {
+        bodyElm.appendChild(ghostElm);
+      }
+    };
+    var moveGhost = function (ghostElm, position, width, height, maxX, maxY) {
+      var overflowX = 0, overflowY = 0;
+      ghostElm.style.left = position.pageX + 'px';
+      ghostElm.style.top = position.pageY + 'px';
+      if (position.pageX + width > maxX) {
+        overflowX = position.pageX + width - maxX;
+      }
+      if (position.pageY + height > maxY) {
+        overflowY = position.pageY + height - maxY;
+      }
+      ghostElm.style.width = width - overflowX + 'px';
+      ghostElm.style.height = height - overflowY + 'px';
+    };
+    var removeElement = function (elm) {
+      if (elm && elm.parentNode) {
+        elm.parentNode.removeChild(elm);
+      }
+    };
+    var isLeftMouseButtonPressed = function (e) {
+      return e.button === 0;
+    };
+    var hasDraggableElement = function (state) {
+      return state.element;
+    };
+    var applyRelPos = function (state, position) {
+      return {
+        pageX: position.pageX - state.relX,
+        pageY: position.pageY + 5
+      };
+    };
+    var start$1 = function (state, editor) {
+      return function (e) {
+        if (isLeftMouseButtonPressed(e)) {
+          var ceElm = find(editor.dom.getParents(e.target), Predicate.or(isContentEditableFalse$8, isContentEditableTrue$3)).getOr(null);
+          if (isDraggable(editor.getBody(), ceElm)) {
+            var elmPos = editor.dom.getPos(ceElm);
+            var bodyElm = editor.getBody();
+            var docElm = editor.getDoc().documentElement;
+            state.element = ceElm;
+            state.screenX = e.screenX;
+            state.screenY = e.screenY;
+            state.maxX = (editor.inline ? bodyElm.scrollWidth : docElm.offsetWidth) - 2;
+            state.maxY = (editor.inline ? bodyElm.scrollHeight : docElm.offsetHeight) - 2;
+            state.relX = e.pageX - elmPos.x;
+            state.relY = e.pageY - elmPos.y;
+            state.width = ceElm.offsetWidth;
+            state.height = ceElm.offsetHeight;
+            state.ghost = createGhost(editor, ceElm, state.width, state.height);
+          }
+        }
+      };
+    };
+    var move$1 = function (state, editor) {
+      var throttledPlaceCaretAt = Delay.throttle(function (clientX, clientY) {
+        editor._selectionOverrides.hideFakeCaret();
+        editor.selection.placeCaretAt(clientX, clientY);
+      }, 0);
+      return function (e) {
+        var movement = Math.max(Math.abs(e.screenX - state.screenX), Math.abs(e.screenY - state.screenY));
+        if (hasDraggableElement(state) && !state.dragging && movement > 10) {
+          var args = editor.fire('dragstart', { target: state.element });
+          if (args.isDefaultPrevented()) {
+            return;
+          }
+          state.dragging = true;
+          editor.focus();
+        }
+        if (state.dragging) {
+          var targetPos = applyRelPos(state, MousePosition.calc(editor, e));
+          appendGhostToBody(state.ghost, editor.getBody());
+          moveGhost(state.ghost, targetPos, state.width, state.height, state.maxX, state.maxY);
+          throttledPlaceCaretAt(e.clientX, e.clientY);
+        }
+      };
+    };
+    var getRawTarget = function (selection) {
+      var rng = selection.getSel().getRangeAt(0);
+      var startContainer = rng.startContainer;
+      return startContainer.nodeType === 3 ? startContainer.parentNode : startContainer;
+    };
+    var drop = function (state, editor) {
+      return function (e) {
+        if (state.dragging) {
+          if (isValidDropTarget(editor, getRawTarget(editor.selection), state.element)) {
+            var targetClone_1 = cloneElement(state.element);
+            var args = editor.fire('drop', {
+              targetClone: targetClone_1,
+              clientX: e.clientX,
+              clientY: e.clientY
+            });
+            if (!args.isDefaultPrevented()) {
+              targetClone_1 = args.targetClone;
+              editor.undoManager.transact(function () {
+                removeElement(state.element);
+                editor.insertContent(editor.dom.getOuterHTML(targetClone_1));
+                editor._selectionOverrides.hideFakeCaret();
+              });
+            }
+          }
+        }
+        removeDragState(state);
+      };
+    };
+    var stop = function (state, editor) {
+      return function () {
+        if (state.dragging) {
+          editor.fire('dragend');
+        }
+        removeDragState(state);
+      };
+    };
+    var removeDragState = function (state) {
+      state.dragging = false;
+      state.element = null;
+      removeElement(state.ghost);
+    };
+    var bindFakeDragEvents = function (editor) {
+      var state = {};
+      var pageDom, dragStartHandler, dragHandler, dropHandler, dragEndHandler, rootDocument;
+      pageDom = DOMUtils$1.DOM;
+      rootDocument = domGlobals.document;
+      dragStartHandler = start$1(state, editor);
+      dragHandler = move$1(state, editor);
+      dropHandler = drop(state, editor);
+      dragEndHandler = stop(state, editor);
+      editor.on('mousedown', dragStartHandler);
+      editor.on('mousemove', dragHandler);
+      editor.on('mouseup', dropHandler);
+      pageDom.bind(rootDocument, 'mousemove', dragHandler);
+      pageDom.bind(rootDocument, 'mouseup', dragEndHandler);
+      editor.on('remove', function () {
+        pageDom.unbind(rootDocument, 'mousemove', dragHandler);
+        pageDom.unbind(rootDocument, 'mouseup', dragEndHandler);
+      });
+    };
+    var blockIeDrop = function (editor) {
+      editor.on('drop', function (e) {
+        var realTarget = typeof e.clientX !== 'undefined' ? editor.getDoc().elementFromPoint(e.clientX, e.clientY) : null;
+        if (isContentEditableFalse$8(realTarget) || isContentEditableFalse$8(editor.dom.getContentEditableParent(realTarget))) {
+          e.preventDefault();
+        }
+      });
+    };
+    var init = function (editor) {
+      bindFakeDragEvents(editor);
+      blockIeDrop(editor);
+    };
+    var DragDropOverrides = { init: init };
+
     var setup$4 = function (editor) {
       var renderFocusCaret = first(function () {
         if (!editor.removed) {
@@ -17158,26 +17136,6 @@
       });
     };
     var CefFocus = { setup: setup$4 };
-
-    var VK = {
-      BACKSPACE: 8,
-      DELETE: 46,
-      DOWN: 40,
-      ENTER: 13,
-      LEFT: 37,
-      RIGHT: 39,
-      SPACEBAR: 32,
-      TAB: 9,
-      UP: 38,
-      END: 35,
-      HOME: 36,
-      modifierPressed: function (e) {
-        return e.shiftKey || e.ctrlKey || e.altKey || this.metaKeyPressed(e);
-      },
-      metaKeyPressed: function (e) {
-        return Env.mac ? e.metaKey : e.ctrlKey && !e.altKey;
-      }
-    };
 
     var isContentEditableTrue$4 = NodeType.isContentEditableTrue;
     var isContentEditableFalse$9 = NodeType.isContentEditableFalse;
@@ -17377,8 +17335,8 @@
           }
         });
         editor.on('setSelectionRange', function (e) {
-          var rng;
-          rng = setContentEditableSelection(e.range, e.forward);
+          e.range = normalizeShortEndedElementSelection(e.range);
+          var rng = setContentEditableSelection(e.range, e.forward);
           if (rng) {
             e.range = rng;
           }
@@ -17420,6 +17378,33 @@
       };
       var isRangeInCaretContainer = function (rng) {
         return isWithinCaretContainer(rng.startContainer) || isWithinCaretContainer(rng.endContainer);
+      };
+      var normalizeShortEndedElementSelection = function (rng) {
+        var shortEndedElements = editor.schema.getShortEndedElements();
+        var newRng = editor.dom.createRng();
+        var startContainer = rng.startContainer;
+        var startOffset = rng.startOffset;
+        var endContainer = rng.endContainer;
+        var endOffset = rng.endOffset;
+        if (has(shortEndedElements, startContainer.nodeName.toLowerCase())) {
+          if (startOffset === 0) {
+            newRng.setStartBefore(startContainer);
+          } else {
+            newRng.setStartAfter(startContainer);
+          }
+        } else {
+          newRng.setStart(startContainer, startOffset);
+        }
+        if (has(shortEndedElements, endContainer.nodeName.toLowerCase())) {
+          if (endOffset === 0) {
+            newRng.setEndBefore(endContainer);
+          } else {
+            newRng.setEndAfter(endContainer);
+          }
+        } else {
+          newRng.setEnd(endContainer, endOffset);
+        }
+        return newRng;
       };
       var setContentEditableSelection = function (range, forward) {
         var node;
@@ -17541,7 +17526,11 @@
       return name.indexOf('data-') === 0 || name.indexOf('aria-') === 0;
     };
     var trimComments = function (text) {
-      return text.replace(/<!--|-->/g, '');
+      var sanitizedText = text;
+      while (/<!--|--!?>/g.test(sanitizedText)) {
+        sanitizedText = sanitizedText.replace(/<!--|--!?>/g, '');
+      }
+      return sanitizedText;
     };
     var isInvalidUri = function (settings, uri) {
       if (settings.allow_html_data_urls) {
@@ -17679,7 +17668,7 @@
             value: value
           });
         };
-        tokenRegExp = new RegExp('<(?:' + '(?:!--([\\w\\W]*?)-->)|' + '(?:!\\[CDATA\\[([\\w\\W]*?)\\]\\]>)|' + '(?:!DOCTYPE([\\w\\W]*?)>)|' + '(?:\\?([^\\s\\/<>]+) ?([\\w\\W]*?)[?/]>)|' + '(?:\\/([A-Za-z][A-Za-z0-9\\-_\\:\\.]*)>)|' + '(?:([A-Za-z][A-Za-z0-9\\-_\\:\\.]*)((?:\\s+[^"\'>]+(?:(?:"[^"]*")|(?:\'[^\']*\')|[^>]*))*|\\/|\\s+)>)' + ')', 'g');
+        tokenRegExp = new RegExp('<(?:' + '(?:!--([\\w\\W]*?)--!?>)|' + '(?:!\\[CDATA\\[([\\w\\W]*?)\\]\\]>)|' + '(?:!DOCTYPE([\\w\\W]*?)>)|' + '(?:\\?([^\\s\\/<>]+) ?([\\w\\W]*?)[?/]>)|' + '(?:\\/([A-Za-z][A-Za-z0-9\\-_\\:\\.]*)>)|' + '(?:([A-Za-z][A-Za-z0-9\\-_\\:\\.]*)((?:\\s+[^"\'>]+(?:(?:"[^"]*")|(?:\'[^\']*\')|[^>]*))*|\\/|\\s+)>)' + ')', 'g');
         attrRegExp = /([\w:\-]+)(?:\s*=\s*(?:(?:\"((?:[^\"])*)\")|(?:\'((?:[^\'])*)\')|([^>\s]+)))?/g;
         shortEndedElements = schema.getShortEndedElements();
         selfClosing = settings.self_closing_elements || schema.getSelfClosingElements();
@@ -22479,10 +22468,7 @@
         return acc.fold(function () {
           return Option.some(newPos);
         }, function (lastPos) {
-          return liftN([
-            head(lastPos.getClientRects()),
-            head(newPos.getClientRects())
-          ], function (lastRect, newRect) {
+          return lift2(head(lastPos.getClientRects()), head(newPos.getClientRects()), function (lastRect, newRect) {
             var lastDist = Math.abs(x - lastRect.left);
             var newDist = Math.abs(x - newRect.left);
             return newDist <= lastDist ? newPos : lastPos;
@@ -23430,10 +23416,41 @@
       }
       return parent !== root ? editableRoot : root;
     };
+    var applyAttributes = function (editor, node, forcedRootBlockAttrs) {
+      Option.from(forcedRootBlockAttrs.style).map(editor.dom.parseStyle).each(function (attrStyles) {
+        var currentStyles = getAllRaw(Element.fromDom(node));
+        var newStyles = __assign(__assign({}, currentStyles), attrStyles);
+        editor.dom.setStyles(node, newStyles);
+      });
+      var attrClassesOpt = Option.from(forcedRootBlockAttrs.class).map(function (attrClasses) {
+        return attrClasses.split(/\s+/);
+      });
+      var currentClassesOpt = Option.from(node.className).map(function (currentClasses) {
+        return filter(currentClasses.split(/\s+/), function (clazz) {
+          return clazz !== '';
+        });
+      });
+      lift2(attrClassesOpt, currentClassesOpt, function (attrClasses, currentClasses) {
+        var filteredClasses = filter(currentClasses, function (clazz) {
+          return !contains(attrClasses, clazz);
+        });
+        var newClasses = __spreadArrays(attrClasses, filteredClasses);
+        editor.dom.setAttrib(node, 'class', newClasses.join(' '));
+      });
+      var appliedAttrs = [
+        'style',
+        'class'
+      ];
+      var remainingAttrs = bifilter(forcedRootBlockAttrs, function (_, attrs) {
+        return !contains(appliedAttrs, attrs);
+      }).t;
+      editor.dom.setAttribs(node, remainingAttrs);
+    };
     var setForcedBlockAttrs = function (editor, node) {
       var forcedRootBlockName = Settings.getForcedRootBlock(editor);
       if (forcedRootBlockName && forcedRootBlockName.toLowerCase() === node.tagName.toLowerCase()) {
-        editor.dom.setAttribs(node, Settings.getForcedRootBlockAttrs(editor));
+        var forcedRootBlockAttrs = Settings.getForcedRootBlockAttrs(editor);
+        applyAttributes(editor, node, forcedRootBlockAttrs);
       }
     };
     var wrapSelfAndSiblingsInDefaultBlock = function (editor, newBlockName, rng, container, offset) {
@@ -23499,7 +23516,6 @@
         var textInlineElements = schema.getTextInlineElements();
         if (name || parentBlockName === 'TABLE' || parentBlockName === 'HR') {
           block = dom.create(name || newBlockName);
-          setForcedBlockAttrs(editor, block);
         } else {
           block = parentBlock.cloneNode(false);
         }
@@ -23525,6 +23541,7 @@
             }
           } while ((node = node.parentNode) && node !== editableRoot);
         }
+        setForcedBlockAttrs(editor, block);
         emptyBlock(caretNode);
         return block;
       };
@@ -23631,6 +23648,7 @@
         if (dom.isEmpty(parentBlock)) {
           emptyBlock(parentBlock);
         }
+        setForcedBlockAttrs(editor, newBlock);
         NewLineUtils.moveToCaretPosition(editor, newBlock);
       } else if (isCaretAtStartOrEndOfBlock()) {
         insertNewBlockAfter();
@@ -23655,6 +23673,7 @@
           dom.remove(newBlock);
           insertNewBlockAfter();
         } else {
+          setForcedBlockAttrs(editor, newBlock);
           NewLineUtils.moveToCaretPosition(editor, newBlock);
         }
       }
@@ -23953,7 +23972,8 @@
       return NodeType.isText(container) && contains$2(container.data, nbsp);
     };
     var normalizeNbspMiddle = function (text) {
-      return map(text.split(''), function (chr, i, chars) {
+      var chars = text.split('');
+      return map(chars, function (chr, i) {
         if (isNbsp(chr) && i > 0 && i < chars.length - 1 && isContent$1(chars[i - 1]) && isContent$1(chars[i + 1])) {
           return ' ';
         } else {
@@ -26344,15 +26364,15 @@
       defaultSettings: {},
       $: DomQuery,
       majorVersion: '4',
-      minorVersion: '9.6',
-      releaseDate: '2019-09-02',
+      minorVersion: '9.10',
+      releaseDate: '2020-04-23',
       editors: legacyEditors,
       i18n: I18n,
       activeEditor: null,
       settings: {},
       setup: function () {
         var self = this;
-        var baseURL, documentBaseURL, suffix = '', preInit, src;
+        var baseURL, documentBaseURL, suffix = '';
         documentBaseURL = URI.getDocumentBaseUrl(domGlobals.document.location);
         if (/^[^:]+:\/\/\/?[^\/]+\//.test(documentBaseURL)) {
           documentBaseURL = documentBaseURL.replace(/[\?#].*$/, '').replace(/[\/\\][^\/]+$/, '');
@@ -26360,14 +26380,17 @@
             documentBaseURL += '/';
           }
         }
-        preInit = window.tinymce || window.tinyMCEPreInit;
+        var preInit = window.tinymce || window.tinyMCEPreInit;
         if (preInit) {
           baseURL = preInit.base || preInit.baseURL;
           suffix = preInit.suffix;
         } else {
           var scripts = domGlobals.document.getElementsByTagName('script');
           for (var i = 0; i < scripts.length; i++) {
-            src = scripts[i].src;
+            var src = scripts[i].src || '';
+            if (src === '') {
+              continue;
+            }
             var srcScript = src.substring(src.lastIndexOf('/'));
             if (/tinymce(\.full|\.jquery|)(\.min|\.dev|)\.js/.test(src)) {
               if (srcScript.indexOf('.min') !== -1) {
@@ -26378,7 +26401,7 @@
             }
           }
           if (!baseURL && domGlobals.document.currentScript) {
-            src = domGlobals.document.currentScript.src;
+            var src = domGlobals.document.currentScript.src;
             if (src.indexOf('.min') !== -1) {
               suffix = '.min';
             }

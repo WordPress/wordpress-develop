@@ -548,7 +548,7 @@ function wp_set_wpdb_vars() {
 		wp_die(
 			sprintf(
 				/* translators: 1: $table_prefix, 2: wp-config.php */
-				__( '%1$s in %2$s can only contain numbers, letters, and underscores.' ),
+				__( '<strong>Error</strong>: %1$s in %2$s can only contain numbers, letters, and underscores.' ),
 				'<code>$table_prefix</code>',
 				'<code>wp-config.php</code>'
 			)
@@ -721,7 +721,7 @@ function wp_get_mu_plugins() {
  * @since 3.0.0
  * @access private
  *
- * @return string[] $plugin_file Array of paths to plugin files relative to the plugins directory.
+ * @return string[] Array of paths to plugin files relative to the plugins directory.
  */
 function wp_get_active_and_valid_plugins() {
 	$plugins        = array();
@@ -891,7 +891,7 @@ function is_protected_endpoint() {
 		return true;
 	}
 
-	// Protect AJAX actions that could help resolve a fatal error should be available.
+	// Protect Ajax actions that could help resolve a fatal error should be available.
 	if ( is_protected_ajax_action() ) {
 		return true;
 	}
@@ -901,21 +901,22 @@ function is_protected_endpoint() {
 	 *
 	 * This filter is only fired when an endpoint is requested which is not already protected by
 	 * WordPress core. As such, it exclusively allows providing further protected endpoints in
-	 * addition to the admin backend, login pages and protected AJAX actions.
+	 * addition to the admin backend, login pages and protected Ajax actions.
 	 *
 	 * @since 5.2.0
 	 *
-	 * @param bool $is_protected_endpoint Whether the currently requested endpoint is protected. Default false.
+	 * @param bool $is_protected_endpoint Whether the currently requested endpoint is protected.
+	 *                                    Default false.
 	 */
 	return (bool) apply_filters( 'is_protected_endpoint', false );
 }
 
 /**
- * Determines whether we are currently handling an AJAX action that should be protected against WSODs.
+ * Determines whether we are currently handling an Ajax action that should be protected against WSODs.
  *
  * @since 5.2.0
  *
- * @return bool True if the current AJAX action should be protected.
+ * @return bool True if the current Ajax action should be protected.
  */
 function is_protected_ajax_action() {
 	if ( ! wp_doing_ajax() ) {
@@ -938,13 +939,13 @@ function is_protected_ajax_action() {
 	);
 
 	/**
-	 * Filters the array of protected AJAX actions.
+	 * Filters the array of protected Ajax actions.
 	 *
-	 * This filter is only fired when doing AJAX and the AJAX request has an 'action' property.
+	 * This filter is only fired when doing Ajax and the Ajax request has an 'action' property.
 	 *
 	 * @since 5.2.0
 	 *
-	 * @param string[] $actions_to_protect Array of strings with AJAX actions to protect.
+	 * @param string[] $actions_to_protect Array of strings with Ajax actions to protect.
 	 */
 	$actions_to_protect = (array) apply_filters( 'wp_protected_ajax_actions', $actions_to_protect );
 
@@ -1206,8 +1207,6 @@ function get_current_network_id() {
  * @access private
  *
  * @global WP_Locale $wp_locale WordPress date and time locale object.
- *
- * @staticvar bool $loaded
  */
 function wp_load_translations_early() {
 	global $wp_locale;
@@ -1300,8 +1299,6 @@ function wp_load_translations_early() {
  *
  * @since 4.4.0
  *
- * @staticvar bool $installing
- *
  * @param bool $is_installing Optional. True to set WP into Installing mode, false to turn Installing mode off.
  *                            Omit this parameter if you only want to fetch the current status.
  * @return bool True if WP is installing, otherwise false. When a `$is_installing` is passed, the function will
@@ -1379,8 +1376,6 @@ function wp_convert_hr_to_bytes( $value ) {
  * Determines whether a PHP ini value is changeable at runtime.
  *
  * @since 4.6.0
- *
- * @staticvar array $ini_all
  *
  * @link https://www.php.net/manual/en/function.ini-get-all.php
  *

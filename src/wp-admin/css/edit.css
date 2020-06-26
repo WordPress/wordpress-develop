@@ -712,7 +712,6 @@ form#tags-filter {
 }
 
 .text-removed .policy-text {
-	font-style: italic;
 	color: #666;
 	font-weight: 600;
 }
@@ -1098,7 +1097,6 @@ p.description,
 span.description,
 .form-wrap p {
 	font-size: 13px;
-	font-style: italic;
 }
 
 p.description code {

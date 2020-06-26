@@ -331,7 +331,7 @@ function wp_ajax_autocomplete_user() {
 }
 
 /**
- * Handles AJAX requests for community events
+ * Handles Ajax requests for community events
  *
  * @since 4.8.0
  */
@@ -1272,7 +1272,7 @@ function wp_ajax_replyto_comment( $action ) {
 	if ( empty( $post->post_status ) ) {
 		wp_die( 1 );
 	} elseif ( in_array( $post->post_status, array( 'draft', 'pending', 'trash' ), true ) ) {
-		wp_die( __( 'You can&#8217;t reply to a comment on a draft post.' ) );
+		wp_die( __( 'Error: You can&#8217;t reply to a comment on a draft post.' ) );
 	}
 
 	$user = wp_get_current_user();
@@ -1302,7 +1302,7 @@ function wp_ajax_replyto_comment( $action ) {
 	}
 
 	if ( '' === $comment_content ) {
-		wp_die( __( 'Please type your comment text.' ) );
+		wp_die( __( 'Error: Please type your comment text.' ) );
 	}
 
 	$comment_parent = 0;
@@ -1404,13 +1404,17 @@ function wp_ajax_edit_comment() {
 	}
 
 	if ( '' === $_POST['content'] ) {
-		wp_die( __( 'Please type your comment text.' ) );
+		wp_die( __( 'Error: Please type your comment text.' ) );
 	}
 
 	if ( isset( $_POST['status'] ) ) {
 		$_POST['comment_status'] = $_POST['status'];
 	}
-	edit_comment();
+
+	$updated = edit_comment();
+	if ( is_wp_error( $updated ) ) {
+		wp_die( $updated->get_error_message() );
+	}
 
 	$position      = ( isset( $_POST['position'] ) && (int) $_POST['position'] ) ? (int) $_POST['position'] : '-1';
 	$checkbox      = ( isset( $_POST['checkbox'] ) && true == $_POST['checkbox'] ) ? 1 : 0;

@@ -1261,11 +1261,11 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 
 		switch ( $mode ) {
 			case 0:
-				if ( preg_match( '/^([-a-zA-Z:]+)/', $attr, $match ) ) {
+				if ( preg_match( '/^([_a-zA-Z][-_a-zA-Z0-9:.]*)/', $attr, $match ) ) {
 					$attrname = $match[1];
 					$working  = 1;
 					$mode     = 1;
-					$attr     = preg_replace( '/^[-a-zA-Z:]+/', '', $attr );
+					$attr     = preg_replace( '/^[_a-zA-Z][-_a-zA-Z0-9:.]*/', '', $attr );
 				}
 
 				break;
@@ -1451,25 +1451,25 @@ function wp_kses_hair_parse( $attr ) {
 
 	// phpcs:disable Squiz.Strings.ConcatenationSpacing.PaddingFound -- don't remove regex indentation
 	$regex =
-	'(?:'
-	.     '[-a-zA-Z:]+'   // Attribute name.
-	. '|'
-	.     '\[\[?[^\[\]]+\]\]?' // Shortcode in the name position implies unfiltered_html.
-	. ')'
-	. '(?:'               // Attribute value.
-	.     '\s*=\s*'       // All values begin with '='.
-	.     '(?:'
-	.         '"[^"]*"'   // Double-quoted.
-	.     '|'
-	.         "'[^']*'"   // Single-quoted.
-	.     '|'
-	.         '[^\s"\']+' // Non-quoted.
-	.         '(?:\s|$)'  // Must have a space.
-	.     ')'
-	. '|'
-	.     '(?:\s|$)'      // If attribute has no value, space is required.
-	. ')'
-	. '\s*';              // Trailing space is optional except as mentioned above.
+		'(?:'
+		.     '[_a-zA-Z][-_a-zA-Z0-9:.]*' // Attribute name.
+		. '|'
+		.     '\[\[?[^\[\]]+\]\]?'        // Shortcode in the name position implies unfiltered_html.
+		. ')'
+		. '(?:'               // Attribute value.
+		.     '\s*=\s*'       // All values begin with '='.
+		.     '(?:'
+		.         '"[^"]*"'   // Double-quoted.
+		.     '|'
+		.         "'[^']*'"   // Single-quoted.
+		.     '|'
+		.         '[^\s"\']+' // Non-quoted.
+		.         '(?:\s|$)'  // Must have a space.
+		.     ')'
+		. '|'
+		.     '(?:\s|$)'      // If attribute has no value, space is required.
+		. ')'
+		. '\s*';              // Trailing space is optional except as mentioned above.
 	// phpcs:enable
 
 	// Although it is possible to reduce this procedure to a single regexp,
@@ -1720,13 +1720,14 @@ function wp_kses_bad_protocol_once( $string, $allowed_protocols, $count = 1 ) {
  * Callback for `wp_kses_bad_protocol_once()` regular expression.
  *
  * This function processes URL protocols, checks to see if they're in the
- * whitelist or not, and returns different data depending on the answer.
+ * list of allowed protocols or not, and returns different data depending
+ * on the answer.
  *
  * @access private
  * @ignore
  * @since 1.0.0
  *
- * @param string   $string            URI scheme to check against the whitelist.
+ * @param string   $string            URI scheme to check against the list of allowed protocols.
  * @param string[] $allowed_protocols Array of allowed URL protocols.
  * @return string Sanitized content.
  */
@@ -1772,7 +1773,7 @@ function wp_kses_normalize_entities( $string, $context = 'html' ) {
 	// Disarm all entities by converting & to &amp;
 	$string = str_replace( '&', '&amp;', $string );
 
-	// Change back the allowed entities in our entity whitelist.
+	// Change back the allowed entities in our list of allowed entities.
 	if ( 'xml' === $context ) {
 		$string = preg_replace_callback( '/&amp;([A-Za-z]{2,8}[0-9]{0,2});/', 'wp_kses_xml_named_entities', $string );
 	} else {
@@ -1912,7 +1913,7 @@ function valid_unicode( $i ) {
  *
  * This function decodes numeric HTML entities (`&#65;` and `&#x41;`).
  * It doesn't do anything with named entities like `&auml;`, but we don't
- * need them in the URL protocol whitelisting system anyway.
+ * need them in the allowed URL protocols system anyway.
  *
  * @since 1.0.0
  *
@@ -2357,23 +2358,29 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		}
 
 		if ( $found ) {
+			// Check for any CSS containing \ ( & } = or comments, except for url() usage checked above.
+			$allow_css = ! preg_match( '%[\\\(&=}]|/\*%', $css_test_string );
+
 			/**
-			 * Filters the regex limiting the list of characters not allowed in CSS rules.
+			 * Filters the check for unsafe CSS in `safecss_filter_attr`.
 			 *
-			 * Default behaviour is to remove any CSS containing \ ( & } = or comments,
-			 * except for url() usage.
+			 * Enables developers to determine whether a section of CSS should be allowed or discarded.
+			 * By default, the value will be false if the part contains \ ( & } = or comments.
+			 * Return true to allow the CSS part to be included in the output.
 			 *
 			 * @since 5.5.0
 			 *
-			 * @param string $regex           Regex pattern of disallowed characters in CSS rules.
-			 *                                Default is '%[\\\(&=}]|/\*%'.
-			 * @param string $css_test_string CSS value to test.
+			 * @param bool   $allow_css       Whether the CSS in the test string is considered safe.
+			 * @param string $css_test_string The CSS string to test.
 			 */
-			$disallowed_chars = apply_filters( 'safe_style_disallowed_chars', '%[\\\(&=}]|/\*%', $css_test_string );
-			if ( ! preg_match( $disallowed_chars, $css_test_string ) ) {
+			$allow_css = apply_filters( 'safecss_filter_attr_allow_css', $allow_css, $css_test_string );
+
+			 // Only add the CSS part if it passes the regex check.
+			if ( $allow_css ) {
 				if ( '' !== $css ) {
 					$css .= ';';
 				}
+
 				$css .= $css_item;
 			}
 		}

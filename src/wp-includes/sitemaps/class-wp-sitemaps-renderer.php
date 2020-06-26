@@ -40,10 +40,13 @@ class WP_Sitemaps_Renderer {
 	 */
 	public function __construct() {
 		$stylesheet_url = $this->get_sitemap_stylesheet_url();
+
 		if ( $stylesheet_url ) {
 			$this->stylesheet = '<?xml-stylesheet type="text/xsl" href="' . esc_url( $stylesheet_url ) . '" ?>';
 		}
-		$stylesheet_index_url   = $this->get_sitemap_index_stylesheet_url();
+
+		$stylesheet_index_url = $this->get_sitemap_index_stylesheet_url();
+
 		if ( $stylesheet_index_url ) {
 			$this->stylesheet_index = '<?xml-stylesheet type="text/xsl" href="' . esc_url( $stylesheet_index_url ) . '" ?>';
 		}
@@ -54,10 +57,11 @@ class WP_Sitemaps_Renderer {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @return string The sitemap stylesheet url.
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+	 *
+	 * @return string The sitemap stylesheet URL.
 	 */
 	public function get_sitemap_stylesheet_url() {
-		/* @var WP_Rewrite $wp_rewrite */
 		global $wp_rewrite;
 
 		$sitemap_url = home_url( '/wp-sitemap.xsl' );
@@ -69,12 +73,12 @@ class WP_Sitemaps_Renderer {
 		/**
 		 * Filters the URL for the sitemap stylesheet.
 		 *
-		 * If a falsy value is returned, no stylesheet will be used and
+		 * If a falsey value is returned, no stylesheet will be used and
 		 * the "raw" XML of the sitemap will be displayed.
 		 *
 		 * @since 5.5.0
 		 *
-		 * @param string $sitemap_url Full URL for the sitemaps xsl file.
+		 * @param string $sitemap_url Full URL for the sitemaps XSL file.
 		 */
 		return apply_filters( 'wp_sitemaps_stylesheet_url', $sitemap_url );
 	}
@@ -84,10 +88,11 @@ class WP_Sitemaps_Renderer {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @return string The sitemap index stylesheet url.
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+	 *
+	 * @return string The sitemap index stylesheet URL.
 	 */
 	public function get_sitemap_index_stylesheet_url() {
-		/* @var WP_Rewrite $wp_rewrite */
 		global $wp_rewrite;
 
 		$sitemap_url = home_url( '/wp-sitemap-index.xsl' );
@@ -99,12 +104,12 @@ class WP_Sitemaps_Renderer {
 		/**
 		 * Filters the URL for the sitemap index stylesheet.
 		 *
-		 * If a falsy value is returned, no stylesheet will be used and
+		 * If a falsey value is returned, no stylesheet will be used and
 		 * the "raw" XML of the sitemap index will be displayed.
 		 *
 		 * @since 5.5.0
 		 *
-		 * @param string $sitemap_url Full URL for the sitemaps index xsl file.
+		 * @param string $sitemap_url Full URL for the sitemaps index XSL file.
 		 */
 		return apply_filters( 'wp_sitemaps_stylesheet_index_url', $sitemap_url );
 	}
@@ -160,8 +165,8 @@ class WP_Sitemaps_Renderer {
 				} else {
 					_doing_it_wrong(
 						__METHOD__,
-						/* translators: %s: list of element names */
 						sprintf(
+							/* translators: %s: List of element names. */
 							__( 'Fields other than %s are not currently supported for the sitemap index.' ),
 							implode( ',', array( 'loc', 'lastmod' ) )
 						),
@@ -225,8 +230,8 @@ class WP_Sitemaps_Renderer {
 				} else {
 					_doing_it_wrong(
 						__METHOD__,
-						/* translators: %s: list of element names */
 						sprintf(
+							/* translators: %s: List of element names. */
 							__( 'Fields other than %s are not currently supported for sitemaps.' ),
 							implode( ',', array( 'loc', 'lastmod', 'changefreq', 'priority' ) )
 						),
