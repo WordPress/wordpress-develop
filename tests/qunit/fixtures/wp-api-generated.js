@@ -137,7 +137,7 @@ mockedApiResponse.Schema = {
                         "discover": {
                             "required": false,
                             "default": true,
-                            "description": "Whether to perform an oEmbed discovery request for non-whitelisted providers.",
+                            "description": "Whether to perform an oEmbed discovery request for unsanctioned providers.",
                             "type": "boolean"
                         }
                     }
@@ -4436,6 +4436,111 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/block-types": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "required": false,
+                            "default": "view",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
+                        },
+                        "namespace": {
+                            "required": false,
+                            "description": "Block namespace.",
+                            "type": "string"
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/block-types"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/block-types/(?P<namespace>[a-zA-Z0-9_-]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "required": false,
+                            "default": "view",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
+                        },
+                        "namespace": {
+                            "required": false,
+                            "description": "Block namespace.",
+                            "type": "string"
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/block-types/(?P<namespace>[a-zA-Z0-9_-]+)/(?P<name>[a-zA-Z0-9_-]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "name": {
+                            "required": false,
+                            "description": "Block name",
+                            "type": "string"
+                        },
+                        "namespace": {
+                            "required": false,
+                            "description": "Block namespace",
+                            "type": "string"
+                        },
+                        "context": {
+                            "required": false,
+                            "default": "view",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/settings": {
             "namespace": "wp/v2",
             "methods": [
@@ -4702,7 +4807,7 @@ mockedApiResponse.oembed = {
                         "discover": {
                             "required": false,
                             "default": true,
-                            "description": "Whether to perform an oEmbed discovery request for non-whitelisted providers.",
+                            "description": "Whether to perform an oEmbed discovery request for unsanctioned providers.",
                             "type": "boolean"
                         }
                     }

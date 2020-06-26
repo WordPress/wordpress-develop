@@ -547,7 +547,7 @@ if ( ! function_exists( 'wp_authenticate' ) ) :
 		if ( null == $user ) {
 			// TODO: What should the error message be? (Or would these even happen?)
 			// Only needed if all authentication handlers fail to return anything.
-			$user = new WP_Error( 'authentication_failed', __( 'Invalid username, email address or incorrect password.' ) );
+			$user = new WP_Error( 'authentication_failed', __( '<strong>Error</strong>: Invalid username, email address or incorrect password.' ) );
 		}
 
 		$ignore_codes = array( 'empty_username', 'empty_password' );
@@ -1466,7 +1466,7 @@ if ( ! function_exists( 'wp_validate_redirect' ) ) :
 		$wpp = parse_url( home_url() );
 
 		/**
-		 * Filters the whitelist of hosts to redirect to.
+		 * Filters the list of allowed hosts to redirect to.
 		 *
 		 * @since 2.3.0
 		 *

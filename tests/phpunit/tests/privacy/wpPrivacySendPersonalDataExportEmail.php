@@ -104,8 +104,10 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * The function should send an export link to the requester when the user request is confirmed.
 	 */
 	public function test_function_should_send_export_link_to_requester() {
-		$archive_url = wp_privacy_exports_url() . 'wp-personal-data-file-Wv0RfMnGIkl4CFEDEEkSeIdfLmaUrLsl.zip';
-		update_post_meta( self::$request_id, '_export_file_url', $archive_url );
+		$archive_url       = wp_privacy_exports_url();
+		$archive_file_name = 'wp-personal-data-file-Wv0RfMnGIkl4CFEDEEkSeIdfLmaUrLsl.zip';
+		$archive_file_url  = $archive_url . $archive_file_name;
+		update_post_meta( self::$request_id, '_export_file_name', $archive_file_name );
 
 		$email_sent = wp_privacy_send_personal_data_export_email( self::$request_id );
 		$mailer     = tests_retrieve_phpmailer_instance();
@@ -113,7 +115,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 		$this->assertSame( 'request-confirmed', get_post_status( self::$request_id ) );
 		$this->assertSame( self::$requester_email, $mailer->get_recipient( 'to' )->address );
 		$this->assertContains( 'Personal Data Export', $mailer->get_sent()->subject );
-		$this->assertContains( $archive_url, $mailer->get_sent()->body );
+		$this->assertContains( $archive_file_url, $mailer->get_sent()->body );
 		$this->assertContains( 'please download it', $mailer->get_sent()->body );
 		$this->assertTrue( $email_sent );
 	}

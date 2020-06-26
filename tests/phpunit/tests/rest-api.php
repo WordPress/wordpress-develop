@@ -378,7 +378,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that result fields are not whitelisted if no request['_fields'] is present.
+	 * Ensure that result fields are not allowed if no request['_fields'] is present.
 	 */
 	public function test_rest_filter_response_fields_no_request_filter() {
 		$response = new WP_REST_Response();
@@ -390,7 +390,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that result fields are whitelisted if request['_fields'] is present.
+	 * Ensure that result fields are allowed if request['_fields'] is present.
 	 */
 	public function test_rest_filter_response_fields_single_field_filter() {
 		$response = new WP_REST_Response();
@@ -410,7 +410,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that multiple comma-separated fields may be whitelisted with request['_fields'].
+	 * Ensure that multiple comma-separated fields may be allowed with request['_fields'].
 	 */
 	public function test_rest_filter_response_fields_multi_field_filter() {
 		$response = new WP_REST_Response();
@@ -440,7 +440,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that multiple comma-separated fields may be whitelisted
+	 * Ensure that multiple comma-separated fields may be allowed
 	 * with request['_fields'] using query parameter array syntax.
 	 */
 	public function test_rest_filter_response_fields_multi_field_filter_array() {
@@ -472,7 +472,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that request['_fields'] whitelists apply to items in response collections.
+	 * Ensure that request['_fields'] allowed list apply to items in response collections.
 	 */
 	public function test_rest_filter_response_fields_numeric_array() {
 		$response = new WP_REST_Response();
@@ -520,7 +520,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that nested fields may be whitelisted with request['_fields'].
+	 * Ensure that nested fields may be allowed with request['_fields'].
 	 *
 	 * @ticket 42094
 	 */

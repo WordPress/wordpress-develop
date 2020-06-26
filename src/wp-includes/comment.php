@@ -10,15 +10,15 @@
  * Check whether a comment passes internal checks to be allowed to add.
  *
  * If manual comment moderation is set in the administration, then all checks,
- * regardless of their type and whitelist, will fail and the function will
+ * regardless of their type and substance, will fail and the function will
  * return false.
  *
  * If the number of links exceeds the amount in the administration, then the
- * check fails. If any of the parameter contents match the blacklist of words,
+ * check fails. If any of the parameter contents contain any disallowed words,
  * then the check fails.
  *
  * If the comment author was approved before, then the comment is automatically
- * whitelisted.
+ * approved.
  *
  * If all checks pass, the function will return true.
  *
@@ -126,7 +126,7 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 	 * as well as whether there are any moderation keywords (if set) present in the author
 	 * email address. If both checks pass, return true. Otherwise, return false.
 	 */
-	if ( 1 == get_option( 'comment_whitelist' ) ) {
+	if ( 1 == get_option( 'comment_previously_approved' ) ) {
 		if ( 'trackback' !== $comment_type && 'pingback' !== $comment_type && '' !== $author && '' !== $email ) {
 			$comment_user = get_user_by( 'email', wp_unslash( $email ) );
 			if ( ! empty( $comment_user->ID ) ) {
@@ -815,7 +815,7 @@ function wp_allow_comment( $commentdata, $avoid_die = false ) {
 			$approved = 0;
 		}
 
-		if ( wp_blacklist_check(
+		if ( wp_blocklist_check(
 			$commentdata['comment_author'],
 			$commentdata['comment_author_email'],
 			$commentdata['comment_author_url'],
@@ -831,7 +831,7 @@ function wp_allow_comment( $commentdata, $avoid_die = false ) {
 	 * Filters a comment's approval status before it is set.
 	 *
 	 * @since 2.1.0
-	 * @since 4.9.0 Returning a WP_Error value from the filter will shortcircuit comment insertion
+	 * @since 4.9.0 Returning a WP_Error value from the filter will short-circuit comment insertion
 	 *              and allow skipping further processing.
 	 *
 	 * @param int|string|WP_Error $approved    The approval status. Accepts 1, 0, 'spam', 'trash',
@@ -1054,13 +1054,14 @@ function get_comment_pages_count( $comments = null, $per_page = null, $threaded 
  * @param int   $comment_ID Comment ID.
  * @param array $args {
  *      Array of optional arguments.
- *      @type string     $type      Limit paginated comments to those matching a given type. Accepts 'comment',
- *                                  'trackback', 'pingback', 'pings' (trackbacks and pingbacks), or 'all'.
- *                                  Default is 'all'.
- *      @type int        $per_page  Per-page count to use when calculating pagination. Defaults to the value of the
- *                                  'comments_per_page' option.
- *      @type int|string $max_depth If greater than 1, comment page will be determined for the top-level parent of
- *                                  `$comment_ID`. Defaults to the value of the 'thread_comments_depth' option.
+ *      @type string     $type      Limit paginated comments to those matching a given type.
+ *                                  Accepts 'comment', 'trackback', 'pingback', 'pings'
+ *                                  (trackbacks and pingbacks), or 'all'. Default 'all'.
+ *      @type int        $per_page  Per-page count to use when calculating pagination.
+ *                                  Defaults to the value of the 'comments_per_page' option.
+ *      @type int|string $max_depth If greater than 1, comment page will be determined
+ *                                  for the top-level parent `$comment_ID`.
+ *                                  Defaults to the value of the 'thread_comments_depth' option.
  * } *
  * @return int|null Comment page number or null on error.
  */
@@ -1131,6 +1132,42 @@ function get_page_of_comment( $comment_ID, $args = array() ) {
 				),
 			),
 		);
+
+		if ( is_user_logged_in() ) {
+			$comment_args['include_unapproved'] = array( get_current_user_id() );
+		} else {
+			$unapproved_email = wp_get_unapproved_comment_author_email();
+
+			if ( $unapproved_email ) {
+				$comment_args['include_unapproved'] = array( $unapproved_email );
+			}
+		}
+
+		/**
+		 * Filters the arguments used to query comments in get_page_of_comment().
+		 *
+		 * @since 5.5.0
+		 *
+		 * @see WP_Comment_Query::__construct()
+		 *
+		 * @param array $comment_args {
+		 *     Array of WP_Comment_Query arguments.
+		 *
+		 *     @type string $type               Limit paginated comments to those matching a given type.
+		 *                                      Accepts 'comment', 'trackback', 'pingback', 'pings'
+		 *                                      (trackbacks and pingbacks), or 'all'. Default 'all'.
+		 *     @type int    $post_id            ID of the post.
+		 *     @type string $fields             Comment fields to return.
+		 *     @type bool   $count              Whether to return a comment count (true) or array
+		 *                                      of comment objects (false).
+		 *     @type string $status             Comment status.
+		 *     @type int    $parent             Parent ID of comment to retrieve children of.
+		 *     @type array  $date_query         Date query clauses to limit comments by. See WP_Date_Query.
+		 *     @type array  $include_unapproved Array of IDs or email addresses whose unapproved comments
+		 *                                      will be included in paginated comments.
+		 * }
+		 */
+		$comment_args = apply_filters( 'get_page_of_comment_query_args', $comment_args );
 
 		$comment_query       = new WP_Comment_Query();
 		$older_comment_count = $comment_query->query( $comment_args );
@@ -1243,28 +1280,28 @@ function wp_check_comment_data_max_lengths( $comment_data ) {
 	$max_lengths = wp_get_comment_fields_max_lengths();
 
 	if ( isset( $comment_data['comment_author'] ) && mb_strlen( $comment_data['comment_author'], '8bit' ) > $max_lengths['comment_author'] ) {
-		return new WP_Error( 'comment_author_column_length', __( 'Your name is too long.' ), 200 );
+		return new WP_Error( 'comment_author_column_length', __( '<strong>Error</strong>: Your name is too long.' ), 200 );
 	}
 
 	if ( isset( $comment_data['comment_author_email'] ) && strlen( $comment_data['comment_author_email'] ) > $max_lengths['comment_author_email'] ) {
-		return new WP_Error( 'comment_author_email_column_length', __( 'Your email address is too long.' ), 200 );
+		return new WP_Error( 'comment_author_email_column_length', __( '<strong>Error</strong>: Your email address is too long.' ), 200 );
 	}
 
 	if ( isset( $comment_data['comment_author_url'] ) && strlen( $comment_data['comment_author_url'] ) > $max_lengths['comment_author_url'] ) {
-		return new WP_Error( 'comment_author_url_column_length', __( 'Your URL is too long.' ), 200 );
+		return new WP_Error( 'comment_author_url_column_length', __( '<strong>Error</strong>: Your URL is too long.' ), 200 );
 	}
 
 	if ( isset( $comment_data['comment_content'] ) && mb_strlen( $comment_data['comment_content'], '8bit' ) > $max_lengths['comment_content'] ) {
-		return new WP_Error( 'comment_content_column_length', __( 'Your comment is too long.' ), 200 );
+		return new WP_Error( 'comment_content_column_length', __( '<strong>Error</strong>: Your comment is too long.' ), 200 );
 	}
 
 	return true;
 }
 
 /**
- * Does comment contain blacklisted characters or words.
+ * Checks if a comment contains disallowed characters or words.
  *
- * @since 1.5.0
+ * @since 5.5.0
  *
  * @param string $author The author of the comment
  * @param string $email The email of the comment
@@ -1272,13 +1309,14 @@ function wp_check_comment_data_max_lengths( $comment_data ) {
  * @param string $comment The comment content
  * @param string $user_ip The comment author's IP address
  * @param string $user_agent The author's browser user agent
- * @return bool True if comment contains blacklisted content, false if comment does not
+ * @return bool True if comment contains disallowed content, false if comment does not
  */
-function wp_blacklist_check( $author, $email, $url, $comment, $user_ip, $user_agent ) {
+function wp_blocklist_check( $author, $email, $url, $comment, $user_ip, $user_agent ) {
 	/**
-	 * Fires before the comment is tested for blacklisted characters or words.
+	 * Fires before the comment is tested for disallowed characters or words.
 	 *
 	 * @since 1.5.0
+	 * @deprecated 5.5.0 Use {@see 'wp_blocklist_check'} instead.
 	 *
 	 * @param string $author     Comment author.
 	 * @param string $email      Comment author's email.
@@ -1287,14 +1325,34 @@ function wp_blacklist_check( $author, $email, $url, $comment, $user_ip, $user_ag
 	 * @param string $user_ip    Comment author's IP address.
 	 * @param string $user_agent Comment author's browser user agent.
 	 */
-	do_action( 'wp_blacklist_check', $author, $email, $url, $comment, $user_ip, $user_agent );
+	do_action_deprecated(
+		'wp_blacklist_check',
+		array( $author, $email, $url, $comment, $user_ip, $user_agent ),
+		'5.5.0',
+		'wp_blocklist_check',
+		__( 'Please consider writing more inclusive code.' )
+	);
 
-	$mod_keys = trim( get_option( 'blacklist_keys' ) );
+	/**
+	 * Fires before the comment is tested for disallowed characters or words.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param string $author     Comment author.
+	 * @param string $email      Comment author's email.
+	 * @param string $url        Comment author's URL.
+	 * @param string $comment    Comment content.
+	 * @param string $user_ip    Comment author's IP address.
+	 * @param string $user_agent Comment author's browser user agent.
+	 */
+	do_action( 'wp_blocklist_check', $author, $email, $url, $comment, $user_ip, $user_agent );
+
+	$mod_keys = trim( get_option( 'blocklist_keys' ) );
 	if ( '' === $mod_keys ) {
 		return false; // If moderation keys are empty.
 	}
 
-	// Ensure HTML tags are not being used to bypass the blacklist.
+	// Ensure HTML tags are not being used to bypass the list of disallowed characters and words.
 	$comment_without_html = wp_strip_all_tags( $comment );
 
 	$words = explode( "\n", $mod_keys );
@@ -2353,24 +2411,35 @@ function wp_set_comment_status( $comment_id, $comment_status, $wp_error = false 
  *
  * @since 2.0.0
  * @since 4.9.0 Add updating comment meta during comment update.
+ * @since 5.5.0 Allow returning a WP_Error object on failure.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param array $commentarr Contains information on the comment.
- * @return int The value 1 if the comment was updated, 0 if not updated.
+ * @param bool  $wp_error   Optional. Whether to return a WP_Error on failure. Default false.
+ * @return int|bool|WP_Error Comment was updated if value is 1, or was not updated if value is 0,
+ *                           false, or a WP_Error object.
  */
-function wp_update_comment( $commentarr ) {
+function wp_update_comment( $commentarr, $wp_error = false ) {
 	global $wpdb;
 
 	// First, get all of the original fields.
 	$comment = get_comment( $commentarr['comment_ID'], ARRAY_A );
 	if ( empty( $comment ) ) {
-		return 0;
+		if ( ! $wp_error ) {
+			return 0;
+		}
+
+		return new WP_Error( 'invalid_comment_id', __( 'Invalid comment ID.' ) );
 	}
 
 	// Make sure that the comment post ID is valid (if specified).
 	if ( ! empty( $commentarr['comment_post_ID'] ) && ! get_post( $commentarr['comment_post_ID'] ) ) {
-		return 0;
+		if ( ! $wp_error ) {
+			return 0;
+		}
+
+		return new WP_Error( 'invalid_post_id', __( 'Invalid post ID.' ) );
 	}
 
 	// Escape data pulled from DB.
@@ -2411,15 +2480,24 @@ function wp_update_comment( $commentarr ) {
 	/**
 	 * Filters the comment data immediately before it is updated in the database.
 	 *
-	 * Note: data being passed to the filter is already unslashed.
+	 * Note: data being passed to the filter is already unslashed. Returning 0 or a
+	 * WP_Error object is preventing the comment to be updated.
 	 *
 	 * @since 4.7.0
+	 * @since 5.5.0 Allow returning a WP_Error object on failure.
 	 *
 	 * @param array $data       The new, processed comment data.
 	 * @param array $comment    The old, unslashed comment data.
 	 * @param array $commentarr The new, raw comment data.
+	 * @param bool  $wp_error   Optional. Whether to return a WP_Error on failure.
+	 *                          Default false.
 	 */
-	$data = apply_filters( 'wp_update_comment_data', $data, $comment, $commentarr );
+	$data = apply_filters( 'wp_update_comment_data', $data, $comment, $commentarr, $wp_error );
+
+	// Do not carry on on failure.
+	if ( is_wp_error( $data ) || 0 === $data ) {
+		return $data;
+	}
 
 	$keys = array( 'comment_post_ID', 'comment_content', 'comment_author', 'comment_author_email', 'comment_approved', 'comment_karma', 'comment_author_url', 'comment_date', 'comment_date_gmt', 'comment_type', 'comment_parent', 'user_id', 'comment_agent', 'comment_author_IP' );
 	$data = wp_array_slice_assoc( $data, $keys );
@@ -3398,9 +3476,9 @@ function wp_handle_comment_submission( $comment_data ) {
 
 	if ( get_option( 'require_name_email' ) && ! $user->exists() ) {
 		if ( '' == $comment_author_email || '' == $comment_author ) {
-			return new WP_Error( 'require_name_email', __( 'Please fill the required fields (name, email).' ), 200 );
+			return new WP_Error( 'require_name_email', __( '<strong>Error</strong>: Please fill the required fields (name, email).' ), 200 );
 		} elseif ( ! is_email( $comment_author_email ) ) {
-			return new WP_Error( 'require_valid_email', __( 'Please enter a valid email address.' ), 200 );
+			return new WP_Error( 'require_valid_email', __( '<strong>Error</strong>: Please enter a valid email address.' ), 200 );
 		}
 	}
 
@@ -3425,7 +3503,7 @@ function wp_handle_comment_submission( $comment_data ) {
 	 */
 	$allow_empty_comment = apply_filters( 'allow_empty_comment', false, $commentdata );
 	if ( '' === $comment_content && ! $allow_empty_comment ) {
-		return new WP_Error( 'require_valid_comment', __( 'Please type your comment text.' ), 200 );
+		return new WP_Error( 'require_valid_comment', __( '<strong>Error</strong>: Please type your comment text.' ), 200 );
 	}
 
 	$check_max_lengths = wp_check_comment_data_max_lengths( $commentdata );
@@ -3439,7 +3517,7 @@ function wp_handle_comment_submission( $comment_data ) {
 	}
 
 	if ( ! $comment_id ) {
-		return new WP_Error( 'comment_save_error', __( 'The comment could not be saved. Please try again later.' ), 500 );
+		return new WP_Error( 'comment_save_error', __( '<strong>Error</strong>: The comment could not be saved. Please try again later.' ), 500 );
 	}
 
 	return get_comment( $comment_id );

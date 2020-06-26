@@ -1077,6 +1077,7 @@ function wp_default_scripts( $scripts ) {
 			'mismatch' => _x( 'Mismatch', 'password mismatch' ),
 		)
 	);
+	$scripts->set_translations( 'password-strength-meter' );
 
 	$scripts->add( 'user-profile', "/wp-admin/js/user-profile$suffix.js", array( 'jquery', 'password-strength-meter', 'wp-util' ), false, 1 );
 	did_action( 'init' ) && $scripts->localize(

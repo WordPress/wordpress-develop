@@ -64,8 +64,8 @@ function wptexturize( $text, $reset = false ) {
 		/**
 		 * Filters whether to skip running wptexturize().
 		 *
-		 * Passing false to the filter will effectively short-circuit wptexturize().
-		 * returning the original text passed to the function instead.
+		 * Returning false from the filter will effectively short-circuit wptexturize()
+		 * and return the original text passed to the function instead.
 		 *
 		 * The filter runs only once, the first time wptexturize() is called.
 		 *
@@ -425,17 +425,18 @@ function _wptexturize_pushpop_element( $text, &$stack, $disabled_elements ) {
 }
 
 /**
- * Replaces double line-breaks with paragraph elements.
+ * Replaces double line breaks with paragraph elements.
  *
  * A group of regex replaces used to identify text formatted with newlines and
- * replace double line-breaks with HTML paragraph tags. The remaining line-breaks
+ * replace double line breaks with HTML paragraph tags. The remaining line breaks
  * after conversion become <<br />> tags, unless $br is set to '0' or 'false'.
  *
  * @since 0.71
  *
  * @param string $pee The text which has to be formatted.
- * @param bool   $br  Optional. If set, this will convert all remaining line-breaks
- *                    after paragraphing. Default true.
+ * @param bool   $br  Optional. If set, this will convert all remaining line breaks
+ *                    after paragraphing. Line breaks within `<script>`, `<style>`,
+ *                    and `<svg>` tags are not affected. Default true.
  * @return string Text which has been converted into correct paragraph tags.
  */
 function wpautop( $pee, $br = true ) {
@@ -926,8 +927,8 @@ function seems_utf8( $str ) {
  *                                    converting single quotes if set to 'single',
  *                                    double if set to 'double' or both if otherwise set.
  *                                    Default is ENT_NOQUOTES.
- * @param false|string $charset       Optional. The character encoding of the string. Default is false.
- * @param bool         $double_encode Optional. Whether to encode existing html entities. Default is false.
+ * @param false|string $charset       Optional. The character encoding of the string. Default false.
+ * @param bool         $double_encode Optional. Whether to encode existing html entities. Default false.
  * @return string The encoded text with HTML entities.
  */
 function _wp_specialchars( $string, $quote_style = ENT_NOQUOTES, $charset = false, $double_encode = false ) {
@@ -1090,7 +1091,7 @@ function wp_specialchars_decode( $string, $quote_style = ENT_NOQUOTES ) {
  * @since 2.8.0
  *
  * @param string  $string The text which is to be checked.
- * @param bool    $strip Optional. Whether to attempt to strip out invalid UTF8. Default is false.
+ * @param bool    $strip  Optional. Whether to attempt to strip out invalid UTF8. Default false.
  * @return string The checked text.
  */
 function wp_check_invalid_utf8( $string, $strip = false ) {
@@ -2048,7 +2049,7 @@ function sanitize_file_name( $filename ) {
 
 	/*
 	 * Loop over any intermediate extensions. Postfix them with a trailing underscore
-	 * if they are a 2 - 5 character long alpha string not in the extension whitelist.
+	 * if they are a 2 - 5 character long alpha string not in the allowed extension list.
 	 */
 	foreach ( (array) $parts as $part ) {
 		$filename .= '.' . $part;
@@ -3788,7 +3789,7 @@ function human_time_diff( $from, $to = 0 ) {
  * @since 5.2.0 Added the `$post` parameter.
  *
  * @param string             $text Optional. The excerpt. If set to empty, an excerpt is generated.
- * @param WP_Post|object|int $post Optional. WP_Post instance or Post ID/object. Default is null.
+ * @param WP_Post|object|int $post Optional. WP_Post instance or Post ID/object. Default null.
  * @return string The excerpt.
  */
 function wp_trim_excerpt( $text = '', $post = null ) {
@@ -4852,7 +4853,7 @@ function sanitize_option( $option, $value ) {
 			break;
 
 		case 'moderation_keys':
-		case 'blacklist_keys':
+		case 'blocklist_keys':
 			$value = $wpdb->strip_invalid_text_for_column( $wpdb->options, 'option_value', $value );
 			if ( is_wp_error( $value ) ) {
 				$error = $value->get_error_message();

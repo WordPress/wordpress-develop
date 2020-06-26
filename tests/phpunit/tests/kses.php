@@ -629,6 +629,26 @@ EOF;
 				"array[1]='z'z'z'z",
 				false,
 			),
+			// Using a digit in attribute name should work.
+			array(
+				'href="https://example.com/[shortcode attr=\'value\']" data-op3-timer-seconds="0"',
+				array( 'href="https://example.com/[shortcode attr=\'value\']" ', 'data-op3-timer-seconds="0"' ),
+			),
+			// Using an underscore in attribute name should work.
+			array(
+				'href="https://example.com/[shortcode attr=\'value\']" data-op_timer-seconds="0"',
+				array( 'href="https://example.com/[shortcode attr=\'value\']" ', 'data-op_timer-seconds="0"' ),
+			),
+			// Using a period in attribute name should work.
+			array(
+				'href="https://example.com/[shortcode attr=\'value\']" data-op.timer-seconds="0"',
+				array( 'href="https://example.com/[shortcode attr=\'value\']" ', 'data-op.timer-seconds="0"' ),
+			),
+			// Using a digit at the beginning of attribute name should return false.
+			array(
+				'href="https://example.com/[shortcode attr=\'value\']" 3data-op-timer-seconds="0"',
+				false,
+			),
 		);
 	}
 

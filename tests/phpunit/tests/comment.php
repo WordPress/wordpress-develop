@@ -142,6 +142,31 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertEquals( $updated_comment_text, $comment->comment_content );
 	}
 
+	/**
+	 * @ticket 39732
+	 */
+	public function test_wp_update_comment_is_wp_error() {
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+
+		add_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ), 10, 3 );
+		$result = wp_update_comment(
+			array(
+				'comment_ID'   => $comment_id,
+				'comment_type' => 'pingback',
+			),
+			true
+		);
+		$this->assertWPError( $result );
+		remove_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ), 10, 3 );
+	}
+
+	/**
+	 * Block comments from being updated by returning WP_Error
+	 */
+	public function _wp_update_comment_data_filter( $data, $comment, $commentarr ) {
+		return new WP_Error( 'comment_wrong', __( 'wp_update_comment_data filter fails for this comment.' ), 500 );
+	}
+
 	public function test_get_approved_comments() {
 		$ca1 = self::factory()->comment->create(
 			array(

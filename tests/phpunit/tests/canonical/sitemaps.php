@@ -7,6 +7,7 @@
  * @group sitemaps
  */
 class Tests_Canonical_Sitemaps extends WP_Canonical_UnitTestCase {
+
 	public function setUp() {
 		parent::setUp();
 		$wp_sitemaps = new WP_Sitemaps();
@@ -38,4 +39,5 @@ class Tests_Canonical_Sitemaps extends WP_Canonical_UnitTestCase {
 		$this->assertCanonical( '/wp-sitemap.xsl', '/wp-sitemap.xsl' );
 		$this->assertCanonical( '/wp-sitemap.xsl/', '/wp-sitemap.xsl' );
 	}
+
 }

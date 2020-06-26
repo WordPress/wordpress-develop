@@ -96,7 +96,7 @@ add_filter( 'pre_post_mime_type', 'sanitize_mime_type' );
 add_filter( 'post_mime_type', 'sanitize_mime_type' );
 
 // Meta.
-add_filter( 'register_meta_args', '_wp_register_meta_args_whitelist', 10, 2 );
+add_filter( 'register_meta_args', '_wp_register_meta_args_allowed_list', 10, 2 );
 
 // Post meta.
 add_action( 'added_post_meta', 'wp_cache_set_posts_last_changed' );
@@ -470,6 +470,7 @@ add_action( 'transition_post_status', '_wp_customize_publish_changeset', 10, 3 )
 add_action( 'admin_enqueue_scripts', '_wp_customize_loader_settings' );
 add_action( 'delete_attachment', '_delete_attachment_theme_mod' );
 add_action( 'transition_post_status', '_wp_keep_alive_customize_changeset_dependent_auto_drafts', 20, 3 );
+add_action( 'setup_theme', 'create_initial_theme_features', 0 );
 
 // Calendar widget cache.
 add_action( 'save_post', 'delete_get_calendar_cache' );

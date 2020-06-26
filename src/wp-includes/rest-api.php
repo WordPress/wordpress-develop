@@ -178,11 +178,13 @@ function rest_api_register_rewrites() {
  * @since 4.4.0
  */
 function rest_api_default_filters() {
-	// Deprecated reporting.
-	add_action( 'deprecated_function_run', 'rest_handle_deprecated_function', 10, 3 );
-	add_filter( 'deprecated_function_trigger_error', '__return_false' );
-	add_action( 'deprecated_argument_run', 'rest_handle_deprecated_argument', 10, 3 );
-	add_filter( 'deprecated_argument_trigger_error', '__return_false' );
+	if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+		// Deprecated reporting.
+		add_action( 'deprecated_function_run', 'rest_handle_deprecated_function', 10, 3 );
+		add_filter( 'deprecated_function_trigger_error', '__return_false' );
+		add_action( 'deprecated_argument_run', 'rest_handle_deprecated_argument', 10, 3 );
+		add_filter( 'deprecated_argument_trigger_error', '__return_false' );
+	}
 
 	// Default serving.
 	add_filter( 'rest_pre_serve_request', 'rest_send_cors_headers' );
@@ -269,6 +271,10 @@ function create_initial_rest_routes() {
 
 	// Block Renderer.
 	$controller = new WP_REST_Block_Renderer_Controller;
+	$controller->register_routes();
+
+	// Block Types.
+	$controller = new WP_REST_Block_Types_Controller();
 	$controller->register_routes();
 
 	// Settings.
@@ -1776,4 +1782,36 @@ function rest_filter_response_by_context( $data, $schema, $context ) {
 	}
 
 	return $data;
+}
+
+/**
+ * Sets the "additionalProperties" to false by default for all object definitions in the schema.
+ *
+ * @since 5.5.0
+ *
+ * @param array $schema The schema to modify.
+ * @return array The modified schema.
+ */
+function rest_default_additional_properties_to_false( $schema ) {
+	$type = (array) $schema['type'];
+
+	if ( in_array( 'object', $type, true ) ) {
+		if ( isset( $schema['properties'] ) ) {
+			foreach ( $schema['properties'] as $key => $child_schema ) {
+				$schema['properties'][ $key ] = rest_default_additional_properties_to_false( $child_schema );
+			}
+		}
+
+		if ( ! isset( $schema['additionalProperties'] ) ) {
+			$schema['additionalProperties'] = false;
+		}
+	}
+
+	if ( in_array( 'array', $type, true ) ) {
+		if ( isset( $schema['items'] ) ) {
+			$schema['items'] = rest_default_additional_properties_to_false( $schema['items'] );
+		}
+	}
+
+	return $schema;
 }

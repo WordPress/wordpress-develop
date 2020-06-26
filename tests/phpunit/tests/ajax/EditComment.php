@@ -32,6 +32,11 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 		$this->_comment_post = get_post( $post_id );
 	}
 
+	public function tearDown() {
+		remove_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ), 10, 3 );
+		parent::tearDown();
+	}
+
 	/**
 	 * Get comments as a privilged user (administrator)
 	 * Expects test to pass
@@ -124,6 +129,41 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 
 		// And supplemental is empty.
 		$this->assertEmpty( (string) $xml->response[0]->edit_comment[0]->supplemental );
+	}
+
+	/**
+	 * @ticket 39732
+	 */
+	public function test_wp_update_comment_data_is_wp_error() {
+		// Become an administrator
+		$this->_setRole( 'administrator' );
+
+		// Get a comment
+		$comments = get_comments(
+			array(
+				'post_id' => $this->_comment_post->ID,
+			)
+		);
+		$comment  = array_pop( $comments );
+
+		// Set up a default request
+		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
+		$_POST['comment_ID']                  = $comment->comment_ID;
+		$_POST['content']                     = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
+
+		// Simulate filter check error
+		add_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ), 10, 3 );
+
+		// Make the request
+		$this->setExpectedException( 'WPAjaxDieStopException', 'wp_update_comment_data filter fails for this comment.' );
+		$this->_handleAjax( 'edit-comment' );
+	}
+
+	/**
+	 * Block comments from being updated by returning WP_Error
+	 */
+	public function _wp_update_comment_data_filter( $data, $comment, $commentarr ) {
+		return new WP_Error( 'comment_wrong', __( 'wp_update_comment_data filter fails for this comment.' ), 500 );
 	}
 
 	/**

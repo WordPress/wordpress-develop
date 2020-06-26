@@ -114,10 +114,10 @@ function wp_insert_site( array $data ) {
 			$meta['WPLANG'] = get_network_option( $new_site->network_id, 'WPLANG' );
 		}
 
-		// Rebuild the data expected by the `wpmu_new_blog` hook prior to 5.1.0 using whitelisted keys.
-		// The `$site_data_whitelist` matches the one used in `wpmu_create_blog()`.
-		$site_data_whitelist = array( 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' );
-		$meta                = array_merge( array_intersect_key( $data, array_flip( $site_data_whitelist ) ), $meta );
+		// Rebuild the data expected by the `wpmu_new_blog` hook prior to 5.1.0 using allowed keys.
+		// The `$allowed_data_fields` matches the one used in `wpmu_create_blog()`.
+		$allowed_data_fields = array( 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' );
+		$meta                = array_merge( array_intersect_key( $data, array_flip( $allowed_data_fields ) ), $meta );
 
 		/**
 		 * Fires immediately after a new site is created.
@@ -132,7 +132,12 @@ function wp_insert_site( array $data ) {
 		 * @param int    $network_id Network ID. Only relevant on multi-network installations.
 		 * @param array  $meta       Meta data. Used to set initial site options.
 		 */
-		do_action_deprecated( 'wpmu_new_blog', array( $new_site->id, $user_id, $new_site->domain, $new_site->path, $new_site->network_id, $meta ), '5.1.0', 'wp_insert_site' );
+		do_action_deprecated(
+			'wpmu_new_blog',
+			array( $new_site->id, $user_id, $new_site->domain, $new_site->path, $new_site->network_id, $meta ),
+			'5.1.0',
+			'wp_insert_site'
+		);
 	}
 
 	return (int) $new_site->id;
@@ -492,8 +497,8 @@ function wp_prepare_site_data( $data, $defaults, $old_site = null ) {
 	 */
 	$data = apply_filters( 'wp_normalize_site_data', $data );
 
-	$whitelist = array( 'domain', 'path', 'network_id', 'registered', 'last_updated', 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' );
-	$data      = array_intersect_key( wp_parse_args( $data, $defaults ), array_flip( $whitelist ) );
+	$allowed_data_fields = array( 'domain', 'path', 'network_id', 'registered', 'last_updated', 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' );
+	$data                = array_intersect_key( wp_parse_args( $data, $defaults ), array_flip( $allowed_data_fields ) );
 
 	$errors = new WP_Error();
 

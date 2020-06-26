@@ -1550,7 +1550,7 @@ function do_feed() {
 	}
 
 	if ( ! has_action( "do_feed_{$feed}" ) ) {
-		wp_die( __( 'This is not a valid feed template.' ), '', array( 'response' => 404 ) );
+		wp_die( __( 'Error: This is not a valid feed template.' ), '', array( 'response' => 404 ) );
 	}
 
 	/**
@@ -2654,8 +2654,8 @@ function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 	/**
 	 * Filters whether to treat the upload bits as an error.
 	 *
-	 * Returning a non-array from the filter will effectively short-circuit preparing the upload
-	 * bits, returning that value instead. An error message should be returned as a string.
+	 * Returning a non-array from the filter will effectively short-circuit preparing the upload bits
+	 * and return that value instead. An error message should be returned as a string.
 	 *
 	 * @since 3.0.0
 	 *
@@ -3426,7 +3426,7 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 		}
 		?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" <?php echo $dir_attr; ?>>
+<html <?php echo $dir_attr; ?>>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=<?php echo $parsed_args['charset']; ?>" />
 	<meta name="viewport" content="width=device-width">
@@ -3575,7 +3575,7 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
  * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
  */
 function _ajax_wp_die_handler( $message, $title = '', $args = array() ) {
-	// Set default 'response' to 200 for AJAX requests.
+	// Set default 'response' to 200 for Ajax requests.
 	$args = wp_parse_args(
 		$args,
 		array( 'response' => 200 )
@@ -4578,7 +4578,7 @@ function wp_maybe_load_widgets() {
 	/**
 	 * Filters whether to load the Widgets library.
 	 *
-	 * Passing a falsey value to the filter will effectively short-circuit
+	 * Returning a falsey value from the filter will effectively short-circuit
 	 * the Widgets library from loading.
 	 *
 	 * @since 2.8.0
@@ -5580,8 +5580,8 @@ function global_terms_enabled() {
 		/**
 		 * Filters whether global terms are enabled.
 		 *
-		 * Passing a non-null value to the filter will effectively short-circuit the function,
-		 * returning the value of the 'global_terms_enabled' site option instead.
+		 * Returning a non-null value from the filter will effectively short-circuit the function
+		 * and return the value of the 'global_terms_enabled' site option instead.
 		 *
 		 * @since 3.0.0
 		 *
@@ -6448,7 +6448,7 @@ function wp_auth_check_load() {
 	/**
 	 * Filters whether to load the authentication check.
 	 *
-	 * Passing a falsey value to the filter will effectively short-circuit
+	 * Returning a falsey value from the filter will effectively short-circuit
 	 * loading the authentication check.
 	 *
 	 * @since 3.6.0
