@@ -1621,12 +1621,11 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	public function test_is_post_format_archive_with_string_parameter() {
 
 		$post_id = self::factory()->post->create();
-		$post_2 = self::factory()->post->create();
+		$post_2  = self::factory()->post->create();
 
-		
 		set_post_format( $post_id, 'aside' );
 		set_post_format( $post_2, 'quote' );
-		
+
 		$this->assertFalse( is_post_format_archive() );
 
 		$this->go_to( get_term_link( 'post-format-aside', 'post_format' ) );
