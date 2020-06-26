@@ -180,7 +180,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request->set_query_params( array( 'status' => array( 'inactive', 'active' ) ) );
 		$response = rest_do_request( $request );
 
-		$this->assertGreaterThan( 1, count( wp_list_filter( $response->get_data(), array( 'plugin' => self::PLUGIN ), 'NOT' ) ) );
+		$this->assertGreaterThan( 0, count( wp_list_filter( $response->get_data(), array( 'plugin' => self::PLUGIN ), 'NOT' ) ) );
 		$this->assertCount( 1, wp_list_filter( $response->get_data(), array( 'plugin' => self::PLUGIN ) ) );
 	}
 
