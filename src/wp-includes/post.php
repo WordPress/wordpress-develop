@@ -4055,7 +4055,13 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 
 	if ( ! empty( $postarr['meta_input'] ) ) {
 		foreach ( $postarr['meta_input'] as $field => $value ) {
-			update_post_meta( $post_ID, $field, $value );
+			if ( ! is_array( $value ) ) {
+				update_post_meta( $post_ID, $field, $value );
+			} else {
+				foreach ( $value as $meta_input_value ) {
+					add_post_meta( $post_ID, $field, $meta_input_value );
+				}
+			}
 		}
 	}
 
