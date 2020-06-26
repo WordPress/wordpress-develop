@@ -174,7 +174,7 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 		$data     = $response->get_data();
 
 		// Check endpoints
-		$this->assertEquals( [ 'GET' ], $data['endpoints'][0]['methods'] );
+		$this->assertEquals( array( 'GET' ), $data['endpoints'][0]['methods'] );
 		$this->assertTrue( $data['endpoints'][0]['args']['term']['required'] );
 
 		$properties = $data['schema']['properties'];

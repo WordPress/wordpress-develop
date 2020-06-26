@@ -365,35 +365,37 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 50321
 	 */
 	public function test_create_item() {
-		if ( isset( get_plugins()['hello-dolly/hello.php'] ) ) {
-			delete_plugins( array( 'hello-dolly/hello.php' ) );
+		if ( isset( get_plugins()['link-manager/link-manager.php'] ) ) {
+			delete_plugins( array( 'link-manager/link-manager.php' ) );
 		}
 
 		wp_set_current_user( self::$super_admin );
+		$this->setup_plugin_download();
 
 		$request = new WP_REST_Request( 'POST', self::BASE );
-		$request->set_body_params( array( 'slug' => 'hello-dolly' ) );
+		$request->set_body_params( array( 'slug' => 'link-manager' ) );
 
 		$response = rest_do_request( $request );
 		$this->assertNotWPError( $response->as_error() );
 		$this->assertEquals( 201, $response->get_status() );
-		$this->assertEquals( 'Hello Dolly', $response->get_data()['name'] );
+		$this->assertEquals( 'Link Manager', $response->get_data()['name'] );
 	}
 
 	/**
 	 * @ticket 50321
 	 */
 	public function test_create_item_and_activate() {
-		if ( isset( get_plugins()['hello-dolly/hello.php'] ) ) {
-			delete_plugins( array( 'hello-dolly/hello.php' ) );
+		if ( isset( get_plugins()['link-manager/link-manager.php'] ) ) {
+			delete_plugins( array( 'link-manager/link-manager.php' ) );
 		}
 
 		wp_set_current_user( self::$super_admin );
+		$this->setup_plugin_download();
 
 		$request = new WP_REST_Request( 'POST', self::BASE );
 		$request->set_body_params(
 			array(
-				'slug'   => 'hello-dolly',
+				'slug'   => 'link-manager',
 				'status' => 'active',
 			)
 		);
@@ -401,32 +403,33 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$response = rest_do_request( $request );
 		$this->assertNotWPError( $response->as_error() );
 		$this->assertEquals( 201, $response->get_status() );
-		$this->assertEquals( 'Hello Dolly', $response->get_data()['name'] );
-		$this->assertTrue( is_plugin_active( 'hello-dolly/hello.php' ) );
+		$this->assertEquals( 'Link Manager', $response->get_data()['name'] );
+		$this->assertTrue( is_plugin_active( 'link-manager/link-manager.php' ) );
 	}
 
 	/**
 	 * @ticket 50321
 	 */
 	public function test_create_item_and_activate_errors_if_no_permission_to_activate_plugin() {
-		if ( isset( get_plugins()['hello-dolly/hello.php'] ) ) {
-			delete_plugins( array( 'hello-dolly/hello.php' ) );
+		if ( isset( get_plugins()['link-manager/link-manager.php'] ) ) {
+			delete_plugins( array( 'link-manager/link-manager.php' ) );
 		}
 
 		wp_set_current_user( self::$super_admin );
-		$this->disable_activate_permission( 'hello-dolly/hello.php' );
+		$this->setup_plugin_download();
+		$this->disable_activate_permission( 'link-manager/link-manager.php' );
 
 		$request = new WP_REST_Request( 'POST', self::BASE );
 		$request->set_body_params(
 			array(
-				'slug'   => 'hello-dolly',
+				'slug'   => 'link-manager',
 				'status' => 'active',
 			)
 		);
 
 		$response = rest_do_request( $request );
 		$this->assertErrorResponse( 'rest_cannot_activate_plugin', $response );
-		$this->assertFalse( is_plugin_active( 'hello-dolly/hello.php' ) );
+		$this->assertFalse( is_plugin_active( 'link-manager/link-manager.php' ) );
 	}
 
 	/**
@@ -434,8 +437,8 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 50321
 	 */
 	public function test_create_item_and_network_activate_rejected_if_not_multisite() {
-		if ( isset( get_plugins()['hello-dolly/hello.php'] ) ) {
-			delete_plugins( array( 'hello-dolly/hello.php' ) );
+		if ( isset( get_plugins()['link-manager/link-manager.php'] ) ) {
+			delete_plugins( array( 'link-manager/link-manager.php' ) );
 		}
 
 		wp_set_current_user( self::$super_admin );
@@ -443,7 +446,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'POST', self::BASE );
 		$request->set_body_params(
 			array(
-				'slug'   => 'hello-dolly',
+				'slug'   => 'link-manager',
 				'status' => 'network-active',
 			)
 		);
@@ -457,8 +460,8 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 50321
 	 */
 	public function test_create_item_and_network_activate() {
-		if ( isset( get_plugins()['hello-dolly/hello.php'] ) ) {
-			delete_plugins( array( 'hello-dolly/hello.php' ) );
+		if ( isset( get_plugins()['link-manager/link-manager.php'] ) ) {
+			delete_plugins( array( 'link-manager/link-manager.php' ) );
 		}
 
 		wp_set_current_user( self::$super_admin );
@@ -466,7 +469,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'POST', self::BASE );
 		$request->set_body_params(
 			array(
-				'slug'   => 'hello-dolly',
+				'slug'   => 'link-manager',
 				'status' => 'network-active',
 			)
 		);
@@ -474,8 +477,8 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$response = rest_do_request( $request );
 		$this->assertNotWPError( $response->as_error() );
 		$this->assertEquals( 201, $response->get_status() );
-		$this->assertEquals( 'Hello Dolly', $response->get_data()['name'] );
-		$this->assertTrue( is_plugin_active_for_network( 'hello-dolly/hello.php' ) );
+		$this->assertEquals( 'Link Manager', $response->get_data()['name'] );
+		$this->assertTrue( is_plugin_active_for_network( 'link-manager/link-manager.php' ) );
 	}
 
 	/**
@@ -483,7 +486,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_create_item_logged_out() {
 		$request = new WP_REST_Request( 'POST', self::BASE );
-		$request->set_body_params( array( 'slug' => 'hello-dolly' ) );
+		$request->set_body_params( array( 'slug' => 'link-manager' ) );
 
 		$response = rest_do_request( $request );
 		$this->assertEquals( 401, $response->get_status() );
@@ -495,7 +498,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	public function test_create_item_insufficient_permissions() {
 		wp_set_current_user( self::$subscriber_id );
 		$request = new WP_REST_Request( 'POST', self::BASE );
-		$request->set_body_params( array( 'slug' => 'hello-dolly' ) );
+		$request->set_body_params( array( 'slug' => 'link-manager' ) );
 
 		$response = rest_do_request( $request );
 		$this->assertEquals( 403, $response->get_status() );
@@ -510,7 +513,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$admin );
 
 		$request = new WP_REST_Request( 'POST', self::BASE );
-		$request->set_body_params( array( 'slug' => 'hello-dolly' ) );
+		$request->set_body_params( array( 'slug' => 'link-manager' ) );
 		$response = rest_do_request( $request );
 
 		$this->assertErrorResponse( 'rest_cannot_install_plugin', $response->as_error(), 403 );
@@ -998,6 +1001,21 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( '5.6.0', $data['requires_php'] );
 		$this->assertEquals( '5.4.0', $data['requires_wp'] );
 		$this->assertEquals( 'test-plugin', $data['text_domain'] );
+	}
+
+	/**
+	 * Sets up the plugin download to come locally instead of downloading it from .org
+	 *
+	 * @since 5.5.0
+	 */
+	protected function setup_plugin_download() {
+		copy( DIR_TESTDATA . '/plugins/link-manager.zip', DIR_TESTDATA . '/link-manager.zip' );
+		add_filter(
+			'upgrader_pre_download',
+			function () {
+				return DIR_TESTDATA . '/link-manager.zip';
+			}
+		);
 	}
 
 	/**
