@@ -724,7 +724,7 @@ JS;
 		$expected .= "<script type='text/javascript'>\n";
 		$expected .= "( function( domain, translations ) {\n";
 		$expected .= "	var localeData = translations.locale_data[ domain ] || translations.locale_data.messages;\n";
-		$expected .= "	localeData[""].domain = domain;\n";
+		$expected .= "	localeData[\"\"].domain = domain;\n";
 		$expected .= "	wp.i18n.setLocaleData( localeData, domain );\n";
 		$expected .= "} )( \"default\", { \"locale_data\": { \"messages\": { \"\": {} } } } );\n";
 		$expected .= "</script>\n";
