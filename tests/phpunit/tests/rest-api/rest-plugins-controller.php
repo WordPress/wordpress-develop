@@ -79,6 +79,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	public static function wpTearDownAfterClass() {
 		self::delete_user( self::$subscriber_id );
 		self::delete_user( self::$super_admin );
+		self::delete_user( self::$admin );
 	}
 
 	public function tearDown() {
