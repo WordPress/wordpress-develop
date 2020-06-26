@@ -47,6 +47,28 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 				'schema' => array( $this, 'get_item_schema' ),
 			)
 		);
+
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<name>[\w-]+)',
+			array(
+				'args'   => array(
+					'name' => array(
+						'description' => __( 'Slug name of the theme.' ),
+						'type'        => 'string',
+					),
+				),
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_item' ),
+					'permission_callback' => array( $this, 'get_item_permissions_check' ),
+					'args'                => array(
+						'context' => $this->get_context_param( array( 'default' => 'view' ) ),
+					),
+				),
+				'schema' => array( $this, 'get_public_item_schema' ),
+			)
+		);
 	}
 
 	/**
@@ -81,6 +103,53 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			__( 'Sorry, you are not allowed to view themes.' ),
 			array( 'status' => rest_authorization_required_code() )
 		);
+	}
+
+	/**
+	 * Checks if a given request has access to read the theme.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
+	 */
+	public function get_item_permissions_check( $request ) {
+		$active_themes = wp_get_themes();
+		$active_themes = array_keys( $active_themes );
+
+		if ( ! in_array( $request['name'], $active_themes, true ) ) {
+			return new WP_Error(
+				'rest_theme_invalid_slug',
+				__( 'Invalid theme slug.' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		if ( current_user_can( 'switch_themes' ) || current_user_can( 'manage_network_themes' ) ) {
+			return true;
+		}
+
+		return new WP_Error(
+			'rest_user_cannot_view',
+			__( 'Sorry, you are not allowed to view themes.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
+	}
+
+
+	/**
+	 * Retrieves a single theme.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+	 */
+	public function get_item( $request ) {
+		$wp_theme = wp_get_theme($request['name']);
+		$data     = $this->prepare_item_for_response( $wp_theme, $request );
+
+		return rest_ensure_response( $data );
 	}
 
 	/**
@@ -184,8 +253,6 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		}
 
 		if ( rest_is_field_included( 'theme_supports', $fields ) && $this->is_current_theme( $theme, $current_theme ) ) {
-
-		if ( rest_is_field_included( 'theme_supports', $fields ) ) {
 			foreach ( get_registered_theme_features() as $feature => $config ) {
 				if ( ! is_array( $config['show_in_rest'] ) ) {
 					continue;
@@ -225,6 +292,8 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
 
+		$response->add_links( $this->prepare_links( $theme ) );
+
 		/**
 		 * Filters theme data returned from the REST API.
 		 *
@@ -238,6 +307,25 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Prepares links for the request.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param WP_Theme $theme Theme data.
+	 * @return array Links for the given block type.
+	 */
+	protected function prepare_links( $theme ) {
+		return array(
+			'collection' => array(
+				'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
+			),
+			'self'       => array(
+				'href' => rest_url( sprintf( '%s/%s/%s', $this->namespace, $this->rest_base, $theme->get_template() ) ),
+			),
+		);
+	}
+
+	/**
 	 * Helper function to compare theme to current theme.
 	 *
 	 * @param WP_Theme $theme  Theme to compare to active theme.
@@ -248,9 +336,9 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	protected function is_current_theme( $theme, $current_theme ) {
 		return (string) $theme === (string) $current_theme;
   }
-   
-  /**     
-   *     
+
+  /**
+   *
 	 * Prepares the theme support value for inclusion in the REST API response.
 	 *
 	 * @since 5.5.0
