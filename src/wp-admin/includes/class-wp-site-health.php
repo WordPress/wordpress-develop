@@ -1956,6 +1956,61 @@ class WP_Site_Health {
 	}
 
 	/**
+	 * Test if 'file_uploads' directive in PHP.ini is turned off
+	 *
+	 * @since 5.5.0
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_file_uploads() {
+		$result = array(
+			'label'       => __( 'File uploads is on in PHP ini' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Media' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'The <code>file_uploads</code> directive in <code>php.ini</code> determines if uploading to is allowed in your WordPress.' )
+			),
+			'actions'     => '',
+			'test'        => 'file_uploads',
+		);
+
+		if ( ! function_exists( 'ini_get' ) ) {
+			$result['status']       = 'critical';
+			$result['description'] .= sprintf(
+				/* translators: %s: ini_get() */
+				__( 'Unable to determine some settings, as the %s function has been disabled.' ),
+				'ini_get()'
+			);
+			return $result;
+		}
+
+		if ( empty( ini_get( 'file_uploads' ) ) ) {
+			$result['status']       = 'critical';
+			$result['description'] .= sprintf(
+				'<p>%s</p>',
+				__( '<code>file_uploads</code> is set to <code>0</code>. You won\'t be able to upload files in your WordPress.' )
+			);
+			return $result;
+		}
+
+		if ( $this->parse_ini_size( ini_get( 'post_max_size' ) ) !== $this->parse_ini_size( ini_get( 'upload_max_filesize' ) ) ) {
+			$result['label']       = __( 'Mismatched "post_max_size" and "upload_max_filesize" values.' );
+			$result['status']      = 'critical';
+			$result['description'] = sprintf(
+				'<p>%s</p>',
+				__( 'Mismatched values for PHP INI directives <code>post_max_size</code> and <code>upload_max_filesize</code> may cause problems. These values are in PHP INI.' )
+			);
+			return $result;
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Return a set of tests that belong to the site status page.
 	 *
 	 * Each site status test is defined here, they may be `direct` tests, that run on page load, or `async` tests
@@ -2024,6 +2079,10 @@ class WP_Site_Health {
 				'debug_enabled'        => array(
 					'label' => __( 'Debugging enabled' ),
 					'test'  => 'is_in_debug_mode',
+				),
+				'file_uploads'         => array(
+					'label' => __( 'File uploads' ),
+					'test'  => 'file_uploads',
 				),
 			),
 			'async'  => array(
@@ -2371,5 +2430,35 @@ class WP_Site_Health {
 		}
 
 		set_transient( 'health-check-site-status-result', wp_json_encode( $site_status ) );
+	}
+
+	/**
+	 * Convert shorthand byte string to int byte
+	 *
+	 * E.g.
+	 *  "1G" (1 Gigabyte) = 1073741824
+	 *  "10M" (10 Megabytes) = 10485760
+	 *  "1K" (1 Kilobyte) = 1024
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param  string $size_string Shorthand byte string
+	 * @return int                 `$size_string` converted to bytes.
+	 */
+	private function parse_ini_size( $size_string ) {
+		$size_string = trim( $size_string );
+		$last        = strtolower( substr( $size_string, - 1 ) );
+		$value       = intval( $size_string );
+
+		switch ( $last ) {
+			case 'g':
+				return (int) $value * GB_IN_BYTES;
+			case 'm':
+				return (int) $value * MB_IN_BYTES;
+			case 'k':
+				return (int) $value * KB_IN_BYTES;
+			default:
+				return (int) $value;
+		}
 	}
 }
