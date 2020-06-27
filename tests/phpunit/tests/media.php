@@ -862,7 +862,7 @@ VIDEO;
 	}
 
 	/**
-	 * @ticket  35367
+	 * @ticket 35367
 	 * @depends test_video_shortcode_body
 	 */
 	function test_wp_video_shortcode_with_empty_params() {
@@ -870,7 +870,7 @@ VIDEO;
 	}
 
 	/**
-	 * @ticket  35367
+	 * @ticket 35367
 	 * @depends test_video_shortcode_body
 	 */
 	function test_wp_video_shortcode_with_bad_attr() {
@@ -885,7 +885,7 @@ VIDEO;
 	}
 
 	/**
-	 * @ticket  35367
+	 * @ticket 35367
 	 * @depends test_video_shortcode_body
 	 */
 	function test_wp_video_shortcode_attributes() {
