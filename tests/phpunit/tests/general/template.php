@@ -631,15 +631,51 @@ class Tests_General_Template extends WP_UnitTestCase {
 	/**
 	 * @ticket 40969
 	 */
-	function test_get_template_part_returns_nothing() {
-		ob_start();
+	function test_get_header_returns_nothing_on_success() {
+		$this->expectOutputRegex( '/Header/' );
+
+		// The `get_header()` function must not return anything
+		// due to themes in the wild that may echo its return value.
+		$this->assertNull( get_header() );
+	}
+
+	/**
+	 * @ticket 40969
+	 */
+	function test_get_footer_returns_nothing_on_success() {
+		$this->expectOutputRegex( '/Footer/' );
+
+		// The `get_footer()` function must not return anything
+		// due to themes in the wild that may echo its return value.
+		$this->assertNull( get_footer() );
+	}
+
+	/**
+	 * @ticket 40969
+	 */
+	function test_get_sidebar_returns_nothing_on_success() {
+		$this->expectOutputRegex( '/Sidebar/' );
+
+		// The `get_sidebar()` function must not return anything
+		// due to themes in the wild that may echo its return value.
+		$this->assertNull( get_sidebar() );
+	}
+
+	/**
+	 * @ticket 40969
+	 */
+	function test_get_template_part_returns_nothing_on_success() {
+		$this->expectOutputRegex( '/Template Part/' );
 
 		// The `get_template_part()` function must not return anything
 		// due to themes in the wild that echo its return value.
-		$part   = get_template_part( 'template', 'part' );
-		$output = ob_get_clean();
+		$this->assertNull( get_template_part( 'template', 'part' ) );
+	}
 
-		self::assertSame( 'Template Part', trim( $output ) );
-		self::assertSame( null, $part );
+	/**
+	 * @ticket 40969
+	 */
+	function test_get_template_part_returns_false_on_failure() {
+		$this->assertFalse( get_template_part( 'non-existing-template' ) );
 	}
 }
