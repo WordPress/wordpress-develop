@@ -166,6 +166,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->check_get_theme_response( $response );
 		$fields = array(
+			'_links',
 			'author',
 			'author_uri',
 			'description',
@@ -201,6 +202,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$data = $response->get_data();
 
 		$fields = array(
+			'_links',
 			'author',
 			'author_uri',
 			'description',
@@ -1149,14 +1151,15 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_get_item() {
 		wp_set_current_user( self::$admin_id );
-		$request = new WP_REST_Request( 'GET', self::$themes_route . '/twentytwenty' );
-
+		$wp_theme = wp_get_theme();
+		$route    = sprintf( '%s/%s', self::$themes_route, $wp_theme->get_template() );
+		$request  = new WP_REST_Request( 'GET', $route );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertEquals( 200, $response->get_status() );
-		$data = $response->get_data();
-
-		$fields = array(
+		$data         = $response->get_data();
+		$links        = $response->get_links();
+		$fields       = array(
 			'author',
 			'author_uri',
 			'description',
@@ -1172,7 +1175,10 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'theme_uri',
 			'version',
 		);
-		$this->assertEqualSets( $fields, array_keys( $data[0] ) );
+		$fields_links = array( 'collection', 'self' );
+
+		$this->assertEqualSets( $fields, array_keys( $data ) );
+		$this->assertEqualSets( $fields_links, array_keys( $links ) );
 	}
 
 	/**

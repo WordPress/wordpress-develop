@@ -126,6 +126,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/block-types/(?P<namespace>[a-zA-Z0-9_-]+)/(?P<name>[a-zA-Z0-9_-]+)',
 			'/wp/v2/settings',
 			'/wp/v2/themes',
+			'/wp/v2/themes/(?P<name>[\w-]+)',
 		);
 
 		$this->assertEquals( $expected_routes, $routes );
