@@ -412,7 +412,6 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 48818
-	 *
 	 * @dataProvider data_required_property
 	 */
 	public function test_property_is_required( $data, $expected ) {
@@ -439,8 +438,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 48818
-	 *
+	 * @ticket       48818
 	 * @dataProvider data_required_property
 	 */
 	public function test_property_is_required_v4( $data, $expected ) {
@@ -481,8 +479,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 48818
-	 *
+	 * @ticket       48818
 	 * @dataProvider data_required_nested_property
 	 */
 	public function test_nested_property_is_required( $data, $expected ) {
@@ -514,8 +511,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 48818
-	 *
+	 * @ticket       48818
 	 * @dataProvider data_required_nested_property
 	 */
 	public function test_nested_property_is_required_v4( $data, $expected ) {
@@ -573,8 +569,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 48818
-	 *
+	 * @ticket       48818
 	 * @dataProvider data_required_deeply_nested_property
 	 */
 	public function test_deeply_nested_v3_required_property( $value, $expected ) {
@@ -613,8 +608,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 48818
-	 *
+	 * @ticket       48818
 	 * @dataProvider data_required_deeply_nested_property
 	 */
 	public function test_deeply_nested_v4_required_property( $value, $expected ) {
@@ -653,8 +647,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 48818
-	 *
+	 * @ticket       48818
 	 * @dataProvider data_required_deeply_nested_property
 	 */
 	public function test_deeply_nested_mixed_version_required_property( $value, $expected ) {
