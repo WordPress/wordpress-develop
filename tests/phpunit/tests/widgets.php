@@ -282,8 +282,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 		);
 
 		$this->assertArrayHasKey( $sidebar_id, $wp_registered_sidebars );
-		$this->assertContains( '', $wp_registered_sidebars[ $sidebar_id ]['before_sidebar'] );
-		$this->assertContains( '', $wp_registered_sidebars[ $sidebar_id ]['after_sidebar'] );
+		$this->assertEmpty( $wp_registered_sidebars[ $sidebar_id ]['before_sidebar'] );
+		$this->assertEmpty( $wp_registered_sidebars[ $sidebar_id ]['after_sidebar'] );
 
 	}
 
