@@ -63,6 +63,7 @@
 		"jquery-migrate": "1.4.1",
 		"matchdep": "~2.0.0",
 		"node-sass": "~4.14.1",
+		"prettier": "npm:wp-prettier@2.0.5",
 		"puppeteer": "npm:puppeteer-core@3.0.0",
 		"qunit": "~2.9.0",
 		"sinon": "~9.0.0",
@@ -71,12 +72,12 @@
 		"uglify-js": "^3.6.0",
 		"uglifyjs-webpack-plugin": "2.2.0",
 		"wait-on": "3.3.0",
-		"webpack": "4.41.0",
+		"webpack": "4.43.0",
 		"webpack-dev-server": "3.11.0",
-		"webpack-livereload-plugin": "2.2.0"
+		"webpack-livereload-plugin": "2.3.0"
 	},
 	"dependencies": {
-		"@babel/polyfill": "7.4.4",
+		"@babel/polyfill": "7.10.1",
 		"@wordpress/a11y": "2.11.0",
 		"@wordpress/annotations": "1.19.0",
 		"@wordpress/api-fetch": "3.18.0",
