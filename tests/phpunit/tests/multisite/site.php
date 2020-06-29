@@ -924,7 +924,7 @@ if ( is_multisite() ) :
 		}
 
 		/**
-		 * Tests returning an address for a given valid id.
+		 * Tests returning an address for a given valid ID.
 		 */
 		function test_get_blogaddress_by_id_with_valid_id() {
 			$blogaddress = get_blogaddress_by_id( 1 );
@@ -1384,6 +1384,32 @@ if ( is_multisite() ) :
 					),
 				),
 			);
+		}
+
+		/**
+		 * @ticket 50324
+		 */
+		public function test_wp_insert_site_with_clean_site_cache() {
+			remove_action( 'wp_initialize_site', 'wp_initialize_site', 10 );
+
+			add_action( 'clean_site_cache', array( $this, 'action_database_insert_on_clean_site_cache' ) );
+
+			$site_id = wp_insert_site(
+				array(
+					'domain'     => 'valid-domain.com',
+					'path'       => '/valid-path/',
+					'network_id' => 1,
+				)
+			);
+
+			remove_action( 'clean_site_cache', array( $this, 'action_database_insert_on_clean_site_cache' ) );
+
+			$this->assertInternalType( 'integer', $site_id );
+
+		}
+
+		public function action_database_insert_on_clean_site_cache() {
+			update_site_option( 'database_write_test.' . time(), true );
 		}
 
 		/**
@@ -2435,14 +2461,14 @@ if ( is_multisite() ) :
 
 		public function data_wpmu_new_blog_action_backward_commpatible() {
 			return array(
-				'default values'  => array(
+				'default values' => array(
 					array(),
 					array(
 						'public' => 0, // `public` is one of the default metas in `wpmu_create_blog()' function prior to WordPress 5.1.0.
 						'WPLANG' => 'en_US', // WPLANG is another default meta in `wpmu_create_blog()` function prior to WordPress 5.1.0.
 					),
 				),
-				'public site'     => array(
+				'public site'    => array(
 					array(
 						'public' => 1,
 					),
@@ -2451,7 +2477,7 @@ if ( is_multisite() ) :
 						'WPLANG' => 'en_US',
 					),
 				),
-				'all whitelisted' => array(
+				'allowed_keys'   => array(
 					array(
 						'public'   => -1,
 						'archived' => 0,
@@ -2471,7 +2497,7 @@ if ( is_multisite() ) :
 						'lang_id'  => 11,
 					),
 				),
-				'extra meta key'  => array(
+				'extra meta key' => array(
 					array(
 						'foo' => 'bar',
 					),

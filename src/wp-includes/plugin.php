@@ -231,7 +231,7 @@ function apply_filters_ref_array( $tag, $args ) {
 	// Do 'all' actions first.
 	if ( isset( $wp_filter['all'] ) ) {
 		$wp_current_filter[] = $tag;
-		$all_args            = func_get_args();
+		$all_args            = func_get_args(); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection
 		_wp_call_all_hook( $all_args );
 	}
 
@@ -453,7 +453,7 @@ function do_action( $tag, ...$arg ) {
 	// Do 'all' actions first.
 	if ( isset( $wp_filter['all'] ) ) {
 		$wp_current_filter[] = $tag;
-		$all_args            = func_get_args();
+		$all_args            = func_get_args(); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection
 		_wp_call_all_hook( $all_args );
 	}
 
@@ -526,7 +526,7 @@ function do_action_ref_array( $tag, $args ) {
 	// Do 'all' actions first.
 	if ( isset( $wp_filter['all'] ) ) {
 		$wp_current_filter[] = $tag;
-		$all_args            = func_get_args();
+		$all_args            = func_get_args(); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection
 		_wp_call_all_hook( $all_args );
 	}
 
@@ -708,9 +708,6 @@ function plugin_basename( $file ) {
  * @see wp_normalize_path()
  *
  * @global array $wp_plugin_paths
- *
- * @staticvar string $wp_plugin_path
- * @staticvar string $wpmu_plugin_path
  *
  * @param string $file Known path to the file.
  * @return bool Whether the path was able to be registered.

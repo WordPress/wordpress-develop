@@ -100,7 +100,6 @@ function permalink_anchor( $mode = 'id' ) {
  *
  * @param int|WP_Post $post      Optional. Post ID or post object. Default is the global `$post`.
  * @param bool        $leavename Optional. Whether to keep post name or page name. Default false.
- *
  * @return string|false The permalink URL or false if post does not exist.
  */
 function get_the_permalink( $post = 0, $leavename = false ) {
@@ -131,7 +130,7 @@ function get_permalink( $post = 0, $leavename = false ) {
 		$leavename ? '' : '%pagename%',
 	);
 
-	if ( is_object( $post ) && isset( $post->filter ) && 'sample' == $post->filter ) {
+	if ( is_object( $post ) && isset( $post->filter ) && 'sample' === $post->filter ) {
 		$sample = true;
 	} else {
 		$post   = get_post( $post );
@@ -165,7 +164,7 @@ function get_permalink( $post = 0, $leavename = false ) {
 	 */
 	$permalink = apply_filters( 'pre_post_link', $permalink, $post, $leavename );
 
-	if ( '' != $permalink && ! in_array( $post->post_status, array( 'draft', 'pending', 'auto-draft', 'future' ), true ) ) {
+	if ( $permalink && ! in_array( $post->post_status, array( 'draft', 'pending', 'auto-draft', 'future' ), true ) ) {
 
 		$category = '';
 		if ( strpos( $permalink, '%category%' ) !== false ) {
@@ -258,8 +257,8 @@ function get_permalink( $post = 0, $leavename = false ) {
  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param int|WP_Post $id        Optional. Post ID or post object. Default is the global `$post`.
- * @param bool        $leavename Optional, defaults to false. Whether to keep post name. Default false.
- * @param bool        $sample    Optional, defaults to false. Is it a sample permalink. Default false.
+ * @param bool        $leavename Optional. Whether to keep post name. Default false.
+ * @param bool        $sample    Optional. Is it a sample permalink. Default false.
  * @return string|WP_Error The post permalink.
  */
 function get_post_permalink( $id = 0, $leavename = false, $sample = false ) {
@@ -620,7 +619,8 @@ function get_feed_link( $feed = '' ) {
 	global $wp_rewrite;
 
 	$permalink = $wp_rewrite->get_feed_permastruct();
-	if ( '' != $permalink ) {
+
+	if ( '' !== $permalink ) {
 		if ( false !== strpos( $feed, 'comments_' ) ) {
 			$feed      = str_replace( 'comments_', '', $feed );
 			$permalink = $wp_rewrite->get_comment_feed_permastruct();
@@ -681,7 +681,7 @@ function get_post_comments_feed_link( $post_id = 0, $feed = '' ) {
 	$post       = get_post( $post_id );
 	$unattached = 'attachment' === $post->post_type && 0 === (int) $post->post_parent;
 
-	if ( '' != get_option( 'permalink_structure' ) ) {
+	if ( get_option( 'permalink_structure' ) ) {
 		if ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' ) == $post_id ) {
 			$url = _get_page_link( $post_id );
 		} else {
@@ -794,7 +794,7 @@ function get_author_feed_link( $author_id, $feed = '' ) {
 		$feed = get_default_feed();
 	}
 
-	if ( '' == $permalink_structure ) {
+	if ( ! $permalink_structure ) {
 		$link = home_url( "?feed=$feed&amp;author=" . $author_id );
 	} else {
 		$link = get_author_posts_url( $author_id );
@@ -866,10 +866,10 @@ function get_term_feed_link( $term_id, $taxonomy = 'category', $feed = '' ) {
 
 	$permalink_structure = get_option( 'permalink_structure' );
 
-	if ( '' == $permalink_structure ) {
-		if ( 'category' == $taxonomy ) {
+	if ( ! $permalink_structure ) {
+		if ( 'category' === $taxonomy ) {
 			$link = home_url( "?feed=$feed&amp;cat=$term_id" );
-		} elseif ( 'post_tag' == $taxonomy ) {
+		} elseif ( 'post_tag' === $taxonomy ) {
 			$link = home_url( "?feed=$feed&amp;tag=$term->slug" );
 		} else {
 			$t    = get_taxonomy( $taxonomy );
@@ -886,7 +886,7 @@ function get_term_feed_link( $term_id, $taxonomy = 'category', $feed = '' ) {
 		$link = trailingslashit( $link ) . user_trailingslashit( $feed_link, 'feed' );
 	}
 
-	if ( 'category' == $taxonomy ) {
+	if ( 'category' === $taxonomy ) {
 		/**
 		 * Filters the category feed link.
 		 *
@@ -896,7 +896,7 @@ function get_term_feed_link( $term_id, $taxonomy = 'category', $feed = '' ) {
 		 * @param string $feed Feed type. Possible values include 'rss2', 'atom'.
 		 */
 		$link = apply_filters( 'category_feed_link', $link, $feed );
-	} elseif ( 'post_tag' == $taxonomy ) {
+	} elseif ( 'post_tag' === $taxonomy ) {
 		/**
 		 * Filters the post tag feed link.
 		 *
@@ -1364,7 +1364,7 @@ function get_edit_post_link( $id = 0, $context = 'display' ) {
 
 	if ( 'revision' === $post->post_type ) {
 		$action = '';
-	} elseif ( 'display' == $context ) {
+	} elseif ( 'display' === $context ) {
 		$action = '&amp;action=edit';
 	} else {
 		$action = '&action=edit';
@@ -1552,7 +1552,7 @@ function edit_comment_link( $text = null, $before = '', $after = '' ) {
  *
  * @since 2.7.0
  *
- * @param int|stdClass $link Optional. Bookmark ID. Default is the id of the current bookmark.
+ * @param int|stdClass $link Optional. Bookmark ID. Default is the ID of the current bookmark.
  * @return string|void The edit bookmark link URL.
  */
 function get_edit_bookmark_link( $link = 0 ) {
@@ -2122,6 +2122,7 @@ function get_next_post_link( $format = '%link &raquo;', $link = '%title', $in_sa
  * Displays the next post link that is adjacent to the current post.
  *
  * @since 1.5.0
+ *
  * @see get_next_post_link()
  *
  * @param string       $format         Optional. Link anchor format. Default '&laquo; %link'.
@@ -2268,7 +2269,7 @@ function get_pagenum_link( $pagenum = 1, $escape = true ) {
 
 		$base = trailingslashit( get_bloginfo( 'url' ) );
 
-		if ( $wp_rewrite->using_index_permalinks() && ( $pagenum > 1 || '' != $request ) ) {
+		if ( $wp_rewrite->using_index_permalinks() && ( $pagenum > 1 || '' !== $request ) ) {
 			$base .= $wp_rewrite->index . '/';
 		}
 
@@ -2728,7 +2729,7 @@ function get_the_posts_pagination( $args = array() ) {
 		);
 
 		// Make sure we get a string back. Plain is the next best thing.
-		if ( isset( $args['type'] ) && 'array' == $args['type'] ) {
+		if ( isset( $args['type'] ) && 'array' === $args['type'] ) {
 			$args['type'] = 'plain';
 		}
 
@@ -2823,7 +2824,7 @@ function get_comments_pagenum_link( $pagenum = 1, $max_page = 0 ) {
 
 	$result = get_permalink();
 
-	if ( 'newest' == get_option( 'default_comments_page' ) ) {
+	if ( 'newest' === get_option( 'default_comments_page' ) ) {
 		if ( $pagenum != $max_page ) {
 			if ( $wp_rewrite->using_permalinks() ) {
 				$result = user_trailingslashit( trailingslashit( $result ) . $wp_rewrite->comments_pagination_base . '-' . $pagenum, 'commentpaged' );
@@ -3110,7 +3111,7 @@ function get_the_comments_pagination( $args = array() ) {
 	$args['echo'] = false;
 
 	// Make sure we get a string back. Plain is the next best thing.
-	if ( isset( $args['type'] ) && 'array' == $args['type'] ) {
+	if ( isset( $args['type'] ) && 'array' === $args['type'] ) {
 		$args['type'] = 'plain';
 	}
 
@@ -3143,9 +3144,9 @@ function the_comments_pagination( $args = array() ) {
  *
  * @since 3.0.0
  *
- * @param  string      $path   Optional. Path relative to the home URL. Default empty.
- * @param  string|null $scheme Optional. Scheme to give the home URL context. Accepts
- *                             'http', 'https', 'relative', 'rest', or null. Default null.
+ * @param string      $path   Optional. Path relative to the home URL. Default empty.
+ * @param string|null $scheme Optional. Scheme to give the home URL context. Accepts
+ *                            'http', 'https', 'relative', 'rest', or null. Default null.
  * @return string Home URL link with optional path appended.
  */
 function home_url( $path = '', $scheme = null ) {
@@ -3163,10 +3164,10 @@ function home_url( $path = '', $scheme = null ) {
  *
  * @global string $pagenow
  *
- * @param  int         $blog_id Optional. Site ID. Default null (current site).
- * @param  string      $path    Optional. Path relative to the home URL. Default empty.
- * @param  string|null $scheme  Optional. Scheme to give the home URL context. Accepts
- *                              'http', 'https', 'relative', 'rest', or null. Default null.
+ * @param int         $blog_id Optional. Site ID. Default null (current site).
+ * @param string      $path    Optional. Path relative to the home URL. Default empty.
+ * @param string|null $scheme  Optional. Scheme to give the home URL context. Accepts
+ *                             'http', 'https', 'relative', 'rest', or null. Default null.
  * @return string Home URL link with optional path appended.
  */
 function get_home_url( $blog_id = null, $path = '', $scheme = null ) {
@@ -3382,11 +3383,11 @@ function content_url( $path = '' ) {
  *
  * @since 2.6.0
  *
- * @param  string $path   Optional. Extra path appended to the end of the URL, including
- *                        the relative directory if $plugin is supplied. Default empty.
- * @param  string $plugin Optional. A full path to a file inside a plugin or mu-plugin.
- *                        The URL will be relative to its directory. Default empty.
- *                        Typically this is done by passing `__FILE__` as the argument.
+ * @param string $path   Optional. Extra path appended to the end of the URL, including
+ *                       the relative directory if $plugin is supplied. Default empty.
+ * @param string $plugin Optional. A full path to a file inside a plugin or mu-plugin.
+ *                       The URL will be relative to its directory. Default empty.
+ *                       Typically this is done by passing `__FILE__` as the argument.
  * @return string Plugins URL link with optional paths appended.
  */
 function plugins_url( $path = '', $plugin = '' ) {
@@ -3405,7 +3406,7 @@ function plugins_url( $path = '', $plugin = '' ) {
 
 	if ( ! empty( $plugin ) && is_string( $plugin ) ) {
 		$folder = dirname( plugin_basename( $plugin ) );
-		if ( '.' != $folder ) {
+		if ( '.' !== $folder ) {
 			$url .= '/' . ltrim( $folder, '/' );
 		}
 	}
@@ -3451,7 +3452,7 @@ function network_site_url( $path = '', $scheme = null ) {
 
 	$current_network = get_network();
 
-	if ( 'relative' == $scheme ) {
+	if ( 'relative' === $scheme ) {
 		$url = $current_network->path;
 	} else {
 		$url = set_url_scheme( 'http://' . $current_network->domain . $current_network->path, $scheme );
@@ -3484,9 +3485,9 @@ function network_site_url( $path = '', $scheme = null ) {
  *
  * @since 3.0.0
  *
- * @param  string $path   Optional. Path relative to the home URL. Default empty.
- * @param  string $scheme Optional. Scheme to give the home URL context. Accepts
- *                        'http', 'https', or 'relative'. Default null.
+ * @param string $path   Optional. Path relative to the home URL. Default empty.
+ * @param string $scheme Optional. Scheme to give the home URL context. Accepts
+ *                       'http', 'https', or 'relative'. Default null.
  * @return string Home URL link with optional path appended.
  */
 function network_home_url( $path = '', $scheme = null ) {
@@ -3501,7 +3502,7 @@ function network_home_url( $path = '', $scheme = null ) {
 		$scheme = is_ssl() && ! is_admin() ? 'https' : 'http';
 	}
 
-	if ( 'relative' == $scheme ) {
+	if ( 'relative' === $scheme ) {
 		$url = $current_network->path;
 	} else {
 		$url = set_url_scheme( 'http://' . $current_network->domain . $current_network->path, $scheme );
@@ -3627,7 +3628,7 @@ function self_admin_url( $path = '', $scheme = 'admin' ) {
  * @param string      $url    Absolute URL that includes a scheme
  * @param string|null $scheme Optional. Scheme to give $url. Currently 'http', 'https', 'login',
  *                            'login_post', 'admin', 'relative', 'rest', 'rpc', or null. Default null.
- * @return string $url URL with chosen scheme.
+ * @return string URL with chosen scheme.
  */
 function set_url_scheme( $url, $scheme = null ) {
 	$orig_scheme = $scheme;
@@ -3645,7 +3646,7 @@ function set_url_scheme( $url, $scheme = null ) {
 		$url = 'http:' . $url;
 	}
 
-	if ( 'relative' == $scheme ) {
+	if ( 'relative' === $scheme ) {
 		$url = ltrim( preg_replace( '#^\w+://[^/]*#', '', $url ) );
 		if ( '' !== $url && '/' === $url[0] ) {
 			$url = '/' . ltrim( $url, "/ \t\n\r\0\x0B" );
@@ -3784,7 +3785,7 @@ function wp_get_canonical_url( $post = null ) {
 	if ( get_queried_object_id() === $post->ID ) {
 		$page = get_query_var( 'page', 0 );
 		if ( $page >= 2 ) {
-			if ( '' == get_option( 'permalink_structure' ) ) {
+			if ( ! get_option( 'permalink_structure' ) ) {
 				$canonical_url = add_query_arg( 'page', $page, $canonical_url );
 			} else {
 				$canonical_url = trailingslashit( $canonical_url ) . user_trailingslashit( $page, 'single_paged' );
@@ -3843,10 +3844,10 @@ function rel_canonical() {
  *
  * @since 3.0.0
  *
- * @param int    $id          Optional. A post or site id. Default is 0, which means the current post or site.
- * @param string $context     Optional. Whether the id is a 'site' id, 'post' id, or 'media' id. If 'post',
+ * @param int    $id          Optional. A post or site ID. Default is 0, which means the current post or site.
+ * @param string $context     Optional. Whether the ID is a 'site' id, 'post' id, or 'media' id. If 'post',
  *                            the post_type of the post is consulted. If 'query', the current query is consulted
- *                            to determine the id and context. Default 'post'.
+ *                            to determine the ID and context. Default 'post'.
  * @param bool   $allow_slugs Optional. Whether to allow post slugs in the shortlink. It is up to the plugin how
  *                            and whether to honor this. Default true.
  * @return string A shortlink or an empty string if no shortlink exists for the requested resource or if shortlinks
@@ -3856,15 +3857,15 @@ function wp_get_shortlink( $id = 0, $context = 'post', $allow_slugs = true ) {
 	/**
 	 * Filters whether to preempt generating a shortlink for the given post.
 	 *
-	 * Passing a truthy value to the filter will effectively short-circuit the
-	 * shortlink-generation process, returning that value instead.
+	 * Returning a truthy value from the filter will effectively short-circuit
+	 * the shortlink generation process, returning that value instead.
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param bool|string $return      Short-circuit return value. Either false or a URL string.
-	 * @param int         $id          Post ID, or 0 for the current post.
-	 * @param string      $context     The context for the link. One of 'post' or 'query',
-	 * @param bool        $allow_slugs Whether to allow post slugs in the shortlink.
+	 * @param false|string $return      Short-circuit return value. Either false or a URL string.
+	 * @param int          $id          Post ID, or 0 for the current post.
+	 * @param string       $context     The context for the link. One of 'post' or 'query',
+	 * @param bool         $allow_slugs Whether to allow post slugs in the shortlink.
 	 */
 	$shortlink = apply_filters( 'pre_get_shortlink', false, $id, $context, $allow_slugs );
 
@@ -3873,10 +3874,10 @@ function wp_get_shortlink( $id = 0, $context = 'post', $allow_slugs = true ) {
 	}
 
 	$post_id = 0;
-	if ( 'query' == $context && is_singular() ) {
+	if ( 'query' === $context && is_singular() ) {
 		$post_id = get_queried_object_id();
 		$post    = get_post( $post_id );
-	} elseif ( 'post' == $context ) {
+	} elseif ( 'post' === $context ) {
 		$post = get_post( $id );
 		if ( ! empty( $post->ID ) ) {
 			$post_id = $post->ID;
@@ -4435,7 +4436,6 @@ function the_privacy_policy_link( $before = '', $after = '' ) {
  *
  * @param string $before Optional. Display before privacy policy link. Default empty.
  * @param string $after  Optional. Display after privacy policy link. Default empty.
- *
  * @return string Markup for the link and surrounding elements. Empty string if it
  *                doesn't exist.
  */

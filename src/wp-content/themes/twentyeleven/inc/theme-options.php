@@ -418,7 +418,7 @@ function twentyeleven_enqueue_color_scheme() {
 	$options      = twentyeleven_get_theme_options();
 	$color_scheme = $options['color_scheme'];
 
-	if ( 'dark' == $color_scheme ) {
+	if ( 'dark' === $color_scheme ) {
 		wp_enqueue_style( 'dark', get_template_directory_uri() . '/colors/dark.css', array(), '20190404' );
 	}
 
@@ -499,9 +499,9 @@ function twentyeleven_layout_classes( $existing_classes ) {
 		$classes = array( 'one-column' );
 	}
 
-	if ( 'content-sidebar' == $current_layout ) {
+	if ( 'content-sidebar' === $current_layout ) {
 		$classes[] = 'right-sidebar';
-	} elseif ( 'sidebar-content' == $current_layout ) {
+	} elseif ( 'sidebar-content' === $current_layout ) {
 		$classes[] = 'left-sidebar';
 	} else {
 		$classes[] = $current_layout;
@@ -644,6 +644,7 @@ add_action( 'customize_register', 'twentyeleven_customize_register' );
  * Render the site title for the selective refresh partial.
  *
  * @since Twenty Eleven 2.4
+ *
  * @see twentyeleven_customize_register()
  *
  * @return void
@@ -656,6 +657,7 @@ function twentyeleven_customize_partial_blogname() {
  * Render the site tagline for the selective refresh partial.
  *
  * @since Twenty Eleven 2.4
+ *
  * @see twentyeleven_customize_register()
  *
  * @return void

@@ -602,7 +602,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 			$this->assertTrue( $widget->is_legacy_instance( $instance ), 'Legacy when not-wpautop and there is HTML that is not liable to be mutated.' );
 		}
 
-		// Check text examples that will migrate to TinyMCE, where elements and attributes are not in whitelist.
+		// Check text examples that will migrate to TinyMCE, where elements and attributes are not in the allowed list.
 		$migratable_text_examples = array(
 			'Check out <a href="http://example.com">Example</a>',
 			'<img src="http://example.com/img.jpg" alt="Img">',

@@ -57,8 +57,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		}
 	}
 
-	if ( is_admin() || is_search() || is_preview() || is_trackback()
-		|| is_robots() || is_favicon()
+	if ( is_admin() || is_search() || is_preview() || is_trackback() || is_favicon()
 		|| ( $is_IIS && ! iis7_supports_permalinks() )
 	) {
 		return;
@@ -509,6 +508,11 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 				$redirect['path'] = trailingslashit( $redirect['path'] ) . $addl_path;
 			}
 
+			// Remove trailing slash for sitemaps requests.
+			if ( ! empty( get_query_var( 'sitemap' ) ) ) {
+				$redirect['path'] = untrailingslashit( $redirect['path'] );
+			}
+
 			$redirect_url = $redirect['scheme'] . '://' . $redirect['host'] . $redirect['path'];
 		}
 
@@ -651,6 +655,13 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		$redirect['path'] = trailingslashit( $redirect['path'] );
 	}
 
+	// Remove trailing slash for robots.txt or sitemap requests.
+	if ( is_robots()
+		|| ! empty( get_query_var( 'sitemap' ) ) || ! empty( get_query_var( 'sitemap-stylesheet' ) )
+	) {
+		$redirect['path'] = untrailingslashit( $redirect['path'] );
+	}
+
 	// Strip multiple slashes out of the URL.
 	if ( strpos( $redirect['path'], '//' ) > -1 ) {
 		$redirect['path'] = preg_replace( '|/+|', '/', $redirect['path'] );
@@ -752,7 +763,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		// Protect against chained redirects.
 		if ( ! redirect_canonical( $redirect_url, false ) ) {
 			wp_redirect( $redirect_url, 301 );
-			exit();
+			exit;
 		} else {
 			// Debug.
 			// die("1: $redirect_url<br />2: " . redirect_canonical( $redirect_url, false ) );
@@ -824,7 +835,7 @@ function strip_fragment_from_url( $url ) {
 }
 
 /**
- * Attempts to guess the correct URL based on query vars
+ * Attempts to guess the correct URL for a 404 request based on query vars.
  *
  * @since 2.3.0
  *
@@ -835,8 +846,54 @@ function strip_fragment_from_url( $url ) {
 function redirect_guess_404_permalink() {
 	global $wpdb;
 
+	/**
+	 * Filters whether to attempt to guess a redirect URL for a 404 request.
+	 *
+	 * Returning a false value from the filter will disable the URL guessing
+	 * and return early without performing a redirect.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param bool $do_redirect_guess Whether to attempt to guess a redirect URL
+	 *                                for a 404 request. Default true.
+	 */
+	if ( false === apply_filters( 'do_redirect_guess_404_permalink', true ) ) {
+		return false;
+	}
+
+	/**
+	 * Short-circuits the redirect URL guessing for 404 requests.
+	 *
+	 * Returning a non-null value from the filter will effectively short-circuit
+	 * the URL guessing, returning the passed value instead.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param null|string|false $pre Whether to short-circuit guessing the redirect for a 404.
+	 *                               Default null to continue with the URL guessing.
+	 */
+	$pre = apply_filters( 'pre_redirect_guess_404_permalink', null );
+	if ( null !== $pre ) {
+		return $pre;
+	}
+
 	if ( get_query_var( 'name' ) ) {
-		$where = $wpdb->prepare( 'post_name LIKE %s', $wpdb->esc_like( get_query_var( 'name' ) ) . '%' );
+		/**
+		 * Filters whether to perform a strict guess for a 404 redirect.
+		 *
+		 * Returning a truthy value from the filter will redirect only exact post_name matches.
+		 *
+		 * @since 5.5.0
+		 *
+		 * @param bool $strict_guess Whether to perform a strict guess. Default false (loose guess).
+		 */
+		$strict_guess = apply_filters( 'strict_redirect_guess_404_permalink', false );
+
+		if ( $strict_guess ) {
+			$where = $wpdb->prepare( 'post_name = %s', get_query_var( 'name' ) );
+		} else {
+			$where = $wpdb->prepare( 'post_name LIKE %s', $wpdb->esc_like( get_query_var( 'name' ) ) . '%' );
+		}
 
 		// If any of post_type, year, monthnum, or day are set, use them to refine the query.
 		if ( get_query_var( 'post_type' ) ) {

@@ -388,7 +388,7 @@ class WP_Comment_Query {
 		 *
 		 * The expected return type from this filter depends on the value passed in the request query_vars.
 		 * When `$this->query_vars['count']` is set, the filter should return the comment count as an int.
-		 * When `'ids' == $this->query_vars['fields']`, the filter should return an array of comment ids.
+		 * When `'ids' === $this->query_vars['fields']`, the filter should return an array of comment IDs.
 		 * Otherwise the filter should return an array of WP_Comment objects.
 		 *
 		 * @since 5.3.0
@@ -444,7 +444,7 @@ class WP_Comment_Query {
 
 		$comment_ids = array_map( 'intval', $comment_ids );
 
-		if ( 'ids' == $this->query_vars['fields'] ) {
+		if ( 'ids' === $this->query_vars['fields'] ) {
 			$this->comments = $comment_ids;
 			return $this->comments;
 		}
@@ -550,13 +550,18 @@ class WP_Comment_Query {
 			$unapproved_ids    = array();
 			$unapproved_emails = array();
 			foreach ( $include_unapproved as $unapproved_identifier ) {
-				// Numeric values are assumed to be user ids.
+				// Numeric values are assumed to be user IDs.
 				if ( is_numeric( $unapproved_identifier ) ) {
 					$approved_clauses[] = $wpdb->prepare( "( user_id = %d AND comment_approved = '0' )", $unapproved_identifier );
-
-					// Otherwise we match against email addresses.
 				} else {
-					$approved_clauses[] = $wpdb->prepare( "( comment_author_email = %s AND comment_approved = '0' )", $unapproved_identifier );
+					// Otherwise we match against email addresses.
+					if ( ! empty( $_GET['unapproved'] ) && ! empty( $_GET['moderation-hash'] ) ) {
+						// Only include requested comment.
+						$approved_clauses[] = $wpdb->prepare( "( comment_author_email = %s AND comment_approved = '0' AND comment_ID = %d )", $unapproved_identifier, (int) $_GET['unapproved'] );
+					} else {
+						// Include all of the author's unapproved comments.
+						$approved_clauses[] = $wpdb->prepare( "( comment_author_email = %s AND comment_approved = '0' )", $unapproved_identifier );
+					}
 				}
 			}
 		}
@@ -570,7 +575,7 @@ class WP_Comment_Query {
 			}
 		}
 
-		$order = ( 'ASC' == strtoupper( $this->query_vars['order'] ) ) ? 'ASC' : 'DESC';
+		$order = ( 'ASC' === strtoupper( $this->query_vars['order'] ) ) ? 'ASC' : 'DESC';
 
 		// Disable ORDER BY with 'none', an empty array, or boolean false.
 		if ( in_array( $this->query_vars['orderby'], array( 'none', array(), false ), true ) ) {

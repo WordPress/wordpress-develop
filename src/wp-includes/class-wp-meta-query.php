@@ -138,7 +138,7 @@ class WP_Meta_Query {
 			return;
 		}
 
-		if ( isset( $meta_query['relation'] ) && strtoupper( $meta_query['relation'] ) == 'OR' ) {
+		if ( isset( $meta_query['relation'] ) && 'OR' === strtoupper( $meta_query['relation'] ) ) {
 			$this->relation = 'OR';
 		} else {
 			$this->relation = 'AND';
@@ -295,7 +295,7 @@ class WP_Meta_Query {
 			return 'CHAR';
 		}
 
-		if ( 'NUMERIC' == $meta_type ) {
+		if ( 'NUMERIC' === $meta_type ) {
 			$meta_type = 'SIGNED';
 		}
 
@@ -780,9 +780,9 @@ class WP_Meta_Query {
 	 *
 	 * @since 4.1.0
 	 *
-	 * @param  array       $clause       Query clause.
-	 * @param  array       $parent_query Parent query of $clause.
-	 * @return string|bool Table alias if found, otherwise false.
+	 * @param array $clause       Query clause.
+	 * @param array $parent_query Parent query of $clause.
+	 * @return string|false Table alias if found, otherwise false.
 	 */
 	protected function find_compatible_table_alias( $clause, $parent_query ) {
 		$alias = false;

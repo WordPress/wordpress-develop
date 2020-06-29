@@ -37,9 +37,9 @@ if ( ! is_readable( $config_file_path ) ) {
 require_once $config_file_path;
 require_once __DIR__ . '/functions.php';
 
-if ( version_compare( tests_get_phpunit_version(), '8.0', '>=' ) ) {
+if ( version_compare( tests_get_phpunit_version(), '5.4', '<' ) || version_compare( tests_get_phpunit_version(), '8.0', '>=' ) ) {
 	printf(
-		"Error: Looks like you're using PHPUnit %s. WordPress is currently only compatible with PHPUnit up to 7.x.\n",
+		"Error: Looks like you're using PHPUnit %s. WordPress requires at least PHPUnit 5.4 and is currently only compatible with PHPUnit up to 7.x.\n",
 		tests_get_phpunit_version()
 	);
 	echo "Please use the latest PHPUnit version from the 7.x branch.\n";
@@ -153,12 +153,15 @@ require __DIR__ . '/testcase-rest-post-type-controller.php';
 require __DIR__ . '/testcase-xmlrpc.php';
 require __DIR__ . '/testcase-ajax.php';
 require __DIR__ . '/testcase-canonical.php';
+require __DIR__ . '/testcase-xml.php';
 require __DIR__ . '/exceptions.php';
 require __DIR__ . '/utils.php';
 require __DIR__ . '/spy-rest-server.php';
 require __DIR__ . '/class-wp-rest-test-search-handler.php';
 require __DIR__ . '/class-wp-rest-test-configurable-controller.php';
 require __DIR__ . '/class-wp-fake-block-type.php';
+require __DIR__ . '/class-wp-sitemaps-test-provider.php';
+require __DIR__ . '/class-wp-sitemaps-empty-test-provider.php';
 
 /**
  * A class to handle additional command line arguments passed to the script.

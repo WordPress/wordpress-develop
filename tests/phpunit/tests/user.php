@@ -1907,7 +1907,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *
 	 * @ticket 47509
 	 *
-	 * @return array $additional_profile_data The additional user data.
+	 * @return array The additional user data.
 	 */
 	public function export_additional_user_profile_data() {
 		$additional_profile_data = array(
@@ -1930,7 +1930,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *
 	 * @ticket 47509
 	 *
-	 * @return array $additional_profile_data The additional user data.
+	 * @return array The additional user data.
 	 */
 	public function export_additional_user_profile_data_with_dup_name() {
 		$additional_profile_data = array(

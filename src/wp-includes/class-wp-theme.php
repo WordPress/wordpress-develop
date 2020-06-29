@@ -340,7 +340,8 @@ final class WP_Theme implements ArrayAccess {
 			// wp-content/themes/directory-of-themes/*
 			$parent_dir  = dirname( $this->stylesheet );
 			$directories = search_theme_directories();
-			if ( '.' != $parent_dir && file_exists( $this->theme_root . '/' . $parent_dir . '/' . $this->template . '/index.php' ) ) {
+
+			if ( '.' !== $parent_dir && file_exists( $this->theme_root . '/' . $parent_dir . '/' . $this->template . '/index.php' ) ) {
 				$this->template = $parent_dir . '/' . $this->template;
 			} elseif ( $directories && isset( $directories[ $this->template ] ) ) {
 				// Look for the template in the search_theme_directories() results, in case it is in another theme root.
@@ -452,8 +453,6 @@ final class WP_Theme implements ArrayAccess {
 	/**
 	 * __isset() magic method for properties formerly returned by current_theme_info()
 	 *
-	 * @staticvar array $properties
-	 *
 	 * @since 3.4.0
 	 *
 	 * @param string $offset Property to check if set.
@@ -545,8 +544,6 @@ final class WP_Theme implements ArrayAccess {
 
 	/**
 	 * Method to implement ArrayAccess for keys formerly returned by get_themes()
-	 *
-	 * @staticvar array $keys
 	 *
 	 * @since 3.4.0
 	 *
@@ -809,9 +806,6 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 3.4.0
 	 * @since 5.4.0 Added support for `Requires at least` and `Requires PHP` headers.
 	 *
-	 * @staticvar array $header_tags
-	 * @staticvar array $header_tags_with_a
-	 *
 	 * @param string $header Theme header. Accepts 'Name', 'Description', 'Author', 'Version',
 	 *                       'ThemeURI', 'AuthorURI', 'Status', 'Tags', 'RequiresWP', 'RequiresPHP'.
 	 * @param string $value  Value to sanitize.
@@ -875,8 +869,6 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @staticvar string $comma
-	 *
 	 * @param string       $header    Theme header. Name, Description, Author, Version, ThemeURI, AuthorURI, Status, Tags.
 	 * @param string|array $value     Value to mark up. An array for Tags header, string otherwise.
 	 * @param string       $translate Whether the header has been translated.
@@ -921,8 +913,6 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @staticvar array $tags_list
-	 *
 	 * @param string       $header Theme header. Name, Description, Author, Version, ThemeURI, AuthorURI, Status, Tags.
 	 * @param string|array $value  Value to translate. An array for Tags header, string otherwise.
 	 * @return string|array Translated value. An array for Tags header, string otherwise.
@@ -934,8 +924,10 @@ final class WP_Theme implements ArrayAccess {
 				if ( isset( $this->name_translated ) ) {
 					return $this->name_translated;
 				}
+
 				// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
 				$this->name_translated = translate( $value, $this->get( 'TextDomain' ) );
+
 				return $this->name_translated;
 			case 'Tags':
 				if ( empty( $value ) || ! function_exists( 'get_theme_feature_list' ) ) {
@@ -970,6 +962,7 @@ final class WP_Theme implements ArrayAccess {
 					);
 
 					$feature_list = get_theme_feature_list( false ); // No API.
+
 					foreach ( $feature_list as $tags ) {
 						$tags_list += $tags;
 					}
@@ -1139,7 +1132,7 @@ final class WP_Theme implements ArrayAccess {
 	public function get_screenshot( $uri = 'uri' ) {
 		$screenshot = $this->cache_get( 'screenshot' );
 		if ( $screenshot ) {
-			if ( 'relative' == $uri ) {
+			if ( 'relative' === $uri ) {
 				return $screenshot;
 			}
 			return $this->get_stylesheet_directory_uri() . '/' . $screenshot;
@@ -1150,7 +1143,7 @@ final class WP_Theme implements ArrayAccess {
 		foreach ( array( 'png', 'gif', 'jpg', 'jpeg' ) as $ext ) {
 			if ( file_exists( $this->get_stylesheet_directory() . "/screenshot.$ext" ) ) {
 				$this->cache_add( 'screenshot', 'screenshot.' . $ext );
-				if ( 'relative' == $uri ) {
+				if ( 'relative' === $uri ) {
 					return 'screenshot.' . $ext;
 				}
 				return $this->get_stylesheet_directory_uri() . '/' . 'screenshot.' . $ext;
@@ -1316,7 +1309,7 @@ final class WP_Theme implements ArrayAccess {
 		}
 
 		$relative_path = trailingslashit( $relative_path );
-		if ( '/' == $relative_path ) {
+		if ( '/' === $relative_path ) {
 			$relative_path = '';
 		}
 
@@ -1333,7 +1326,7 @@ final class WP_Theme implements ArrayAccess {
 		$exclusions = (array) apply_filters( 'theme_scandir_exclusions', array( 'CVS', 'node_modules', 'vendor', 'bower_components' ) );
 
 		foreach ( $results as $result ) {
-			if ( '.' == $result[0] || in_array( $result, $exclusions, true ) ) {
+			if ( '.' === $result[0] || in_array( $result, $exclusions, true ) ) {
 				continue;
 			}
 			if ( is_dir( $path . '/' . $result ) ) {
@@ -1404,14 +1397,14 @@ final class WP_Theme implements ArrayAccess {
 			return true;
 		}
 
-		if ( 'both' == $check || 'network' == $check ) {
+		if ( 'both' === $check || 'network' === $check ) {
 			$allowed = self::get_allowed_on_network();
 			if ( ! empty( $allowed[ $this->get_stylesheet() ] ) ) {
 				return true;
 			}
 		}
 
-		if ( 'both' == $check || 'site' == $check ) {
+		if ( 'both' === $check || 'site' === $check ) {
 			$allowed = self::get_allowed_on_site( $blog_id );
 			if ( ! empty( $allowed[ $this->get_stylesheet() ] ) ) {
 				return true;
@@ -1469,8 +1462,6 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @staticvar array $allowed_themes
-	 *
 	 * @return string[] Array of stylesheet names.
 	 */
 	public static function get_allowed_on_network() {
@@ -1495,8 +1486,6 @@ final class WP_Theme implements ArrayAccess {
 	 * Returns array of stylesheet names of themes allowed on the site.
 	 *
 	 * @since 3.4.0
-	 *
-	 * @staticvar array $allowed_themes
 	 *
 	 * @param int $blog_id Optional. ID of the site. Defaults to the current site.
 	 * @return string[] Array of stylesheet names.

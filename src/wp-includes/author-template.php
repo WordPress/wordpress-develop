@@ -49,6 +49,7 @@ function get_the_author( $deprecated = '' ) {
  * return it. However, backward compatibility has to be maintained.
  *
  * @since 0.71
+ *
  * @see get_the_author()
  * @link https://developer.wordpress.org/reference/functions/the_author/
  *
@@ -349,7 +350,7 @@ function get_author_posts_url( $author_id, $author_nicename = '' ) {
 		$file = home_url( '/' );
 		$link = $file . '?author=' . $auth_ID;
 	} else {
-		if ( '' == $author_nicename ) {
+		if ( '' === $author_nicename ) {
 			$user = get_userdata( $author_id );
 			if ( ! empty( $user->user_nicename ) ) {
 				$author_nicename = $user->user_nicename;
@@ -365,7 +366,7 @@ function get_author_posts_url( $author_id, $author_nicename = '' ) {
 	 * @since 2.1.0
 	 *
 	 * @param string $link            The URL to the author's page.
-	 * @param int    $author_id       The author's id.
+	 * @param int    $author_id       The author's ID.
 	 * @param string $author_nicename The author's nice name.
 	 */
 	$link = apply_filters( 'author_link', $link, $author_id, $author_nicename );
@@ -467,7 +468,7 @@ function wp_list_authors( $args = '' ) {
 			continue; // No need to go further to process HTML.
 		}
 
-		if ( 'list' == $args['style'] ) {
+		if ( 'list' === $args['style'] ) {
 			$return .= '<li>';
 		}
 
@@ -513,7 +514,7 @@ function wp_list_authors( $args = '' ) {
 		}
 
 		$return .= $link;
-		$return .= ( 'list' == $args['style'] ) ? '</li>' : ', ';
+		$return .= ( 'list' === $args['style'] ) ? '</li>' : ', ';
 	}
 
 	$return = rtrim( $return, ', ' );

@@ -21,7 +21,6 @@
  * @param string $comment_author Author of the comment.
  * @param string $comment_date   Date of the comment.
  * @param string $timezone       Timezone. Accepts 'blog' or 'gmt'. Default 'blog'.
- *
  * @return mixed Comment post ID on success.
  */
 function comment_exists( $comment_author, $comment_date, $timezone = 'blog' ) {
@@ -93,7 +92,7 @@ function edit_comment() {
 		$_POST['comment_date'] = "$aa-$mm-$jj $hh:$mn:$ss";
 	}
 
-	wp_update_comment( $_POST );
+	return wp_update_comment( $_POST, true );
 }
 
 /**
@@ -197,7 +196,7 @@ function floated_admin_avatar( $name ) {
  * @since 2.7.0
  */
 function enqueue_comment_hotkeys_js() {
-	if ( 'true' == get_user_option( 'comment_shortcuts' ) ) {
+	if ( 'true' === get_user_option( 'comment_shortcuts' ) ) {
 		wp_enqueue_script( 'jquery-table-hotkeys' );
 	}
 }

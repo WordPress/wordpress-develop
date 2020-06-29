@@ -64,6 +64,61 @@ class Tests_Kses extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test video tag.
+	 *
+	 * @ticket 50167
+	 * @ticket 29826
+	 * @dataProvider data_wp_kses_video
+	 *
+	 * @param string $source   Source HTML.
+	 * @param string $context  Context to use for parsing source.
+	 * @param string $expected Expected output following KSES parsing.
+	 * @return void
+	 */
+	function test_wp_kses_video( $source, $context, $expected ) {
+		$actual = wp_kses( $source, $context );
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider for test_wp_kses_video
+	 *
+	 * @return array[] Array containing test data {
+	 *     @type string $source   Source HTML.
+	 *     @type string $context  Context to use for parsing source.
+	 *     @type string $expected Expected output following KSES parsing.
+	 * }
+	 */
+	function data_wp_kses_video() {
+		return array(
+			// Set 0: Valid post object params in post context.
+			array(
+				'<video src="movie.mov" autoplay controls height=9 loop muted poster="still.gif" playsinline preload width=16 />',
+				'post',
+				'<video src="movie.mov" autoplay controls height="9" loop muted poster="still.gif" playsinline preload width="16" />',
+			),
+			// Set 1: Valid post object params in data context.
+			array(
+				'<video src="movie.mov" autoplay controls height=9 loop muted poster="still.gif" playsinline preload width=16 />',
+				'data',
+				'',
+			),
+			// Set 2: Disallowed urls in post context.
+			array(
+				'<video src="bad://w.org/movie.mov" poster="bad://w.org/movie.jpg" />',
+				'post',
+				'<video src="//w.org/movie.mov" poster="//w.org/movie.jpg" />',
+			),
+			// Set 3: Disallowed attributes in post context.
+			array(
+				'<video onload="alert(1);" src="https://videos.files.wordpress.com/DZEMDKxc/video-0f9c363010.mp4" />',
+				'post',
+				'<video src="https://videos.files.wordpress.com/DZEMDKxc/video-0f9c363010.mp4" />',
+			),
+		);
+	}
+
+	/**
 	 * @ticket 20210
 	 */
 	function test_wp_filter_post_kses_abbr() {
@@ -574,6 +629,26 @@ EOF;
 				"array[1]='z'z'z'z",
 				false,
 			),
+			// Using a digit in attribute name should work.
+			array(
+				'href="https://example.com/[shortcode attr=\'value\']" data-op3-timer-seconds="0"',
+				array( 'href="https://example.com/[shortcode attr=\'value\']" ', 'data-op3-timer-seconds="0"' ),
+			),
+			// Using an underscore in attribute name should work.
+			array(
+				'href="https://example.com/[shortcode attr=\'value\']" data-op_timer-seconds="0"',
+				array( 'href="https://example.com/[shortcode attr=\'value\']" ', 'data-op_timer-seconds="0"' ),
+			),
+			// Using a period in attribute name should work.
+			array(
+				'href="https://example.com/[shortcode attr=\'value\']" data-op.timer-seconds="0"',
+				array( 'href="https://example.com/[shortcode attr=\'value\']" ', 'data-op.timer-seconds="0"' ),
+			),
+			// Using a digit at the beginning of attribute name should return false.
+			array(
+				'href="https://example.com/[shortcode attr=\'value\']" 3data-op-timer-seconds="0"',
+				false,
+			),
 		);
 	}
 
@@ -947,7 +1022,21 @@ EOF;
 				'css'      => 'background: conic-gradient(at 0% 30%, red 10%, yellow 30%, #1e90ff 50%)',
 				'expected' => 'background: conic-gradient(at 0% 30%, red 10%, yellow 30%, #1e90ff 50%)',
 			),
-
+			// Expressions are not allowed.
+			array(
+				'css'      => 'height: expression( body.scrollTop + 50 + "px" )',
+				'expected' => '',
+			),
+			// RGB color values are not allowed.
+			array(
+				'css'      => 'color: rgb( 100, 100, 100 )',
+				'expected' => '',
+			),
+			// RGBA color values are not allowed.
+			array(
+				'css'      => 'color: rgb( 100, 100, 100, .4 )',
+				'expected' => '',
+			),
 		);
 	}
 
@@ -1189,6 +1278,78 @@ EOF;
 			array(
 				'background-image: url( "http://example.com );',
 				'',
+			),
+		);
+	}
+
+	/**
+	 * Testing the safecss_filter_attr() function with the safecss_filter_attr_allow_css filter.
+	 *
+	 * @ticket 37134
+	 *
+	 * @dataProvider data_test_safecss_filter_attr_filtered
+	 *
+	 * @param string $css      A string of CSS rules.
+	 * @param string $expected Expected string of CSS rules.
+	 */
+	public function test_safecss_filter_attr_filtered( $css, $expected ) {
+		add_filter( 'safecss_filter_attr_allow_css', '__return_true' );
+		$this->assertSame( $expected, safecss_filter_attr( $css ) );
+		remove_filter( 'safecss_filter_attr_allow_css', '__return_true' );
+	}
+
+	/**
+	 * Data Provider for test_safecss_filter_attr_filtered().
+	 *
+	 * @return array {
+	 *     @type array {
+	 *         @string string $css      A string of CSS rules.
+	 *         @string string $expected Expected string of CSS rules.
+	 *     }
+	 * }
+	 */
+	public function data_test_safecss_filter_attr_filtered() {
+		return array(
+
+			// A single attribute name, with a single value.
+			array(
+				'css'      => 'margin-top: 2px',
+				'expected' => 'margin-top: 2px',
+			),
+			// Backslash \ can be allowed with the 'safecss_filter_attr_allow_css' filter.
+			array(
+				'css'      => 'margin-top: \2px',
+				'expected' => 'margin-top: \2px',
+			),
+			// Curly bracket } can be allowed with the 'safecss_filter_attr_allow_css' filter.
+			array(
+				'css'      => 'margin-bottom: 2px}',
+				'expected' => 'margin-bottom: 2px}',
+			),
+			// Parenthesis ) can be allowed with the 'safecss_filter_attr_allow_css' filter.
+			array(
+				'css'      => 'margin-bottom: 2px)',
+				'expected' => 'margin-bottom: 2px)',
+			),
+			// Ampersand & can be allowed with the 'safecss_filter_attr_allow_css' filter.
+			array(
+				'css'      => 'margin-bottom: 2px&',
+				'expected' => 'margin-bottom: 2px&',
+			),
+			// Expressions can be allowed with the 'safecss_filter_attr_allow_css' filter.
+			array(
+				'css'      => 'height: expression( body.scrollTop + 50 + "px" )',
+				'expected' => 'height: expression( body.scrollTop + 50 + "px" )',
+			),
+			// RGB color values can be allowed with the 'safecss_filter_attr_allow_css' filter.
+			array(
+				'css'      => 'color: rgb( 100, 100, 100 )',
+				'expected' => 'color: rgb( 100, 100, 100 )',
+			),
+			// RGBA color values can be allowed with the 'safecss_filter_attr_allow_css' filter.
+			array(
+				'css'      => 'color: rgb( 100, 100, 100, .4 )',
+				'expected' => 'color: rgb( 100, 100, 100, .4 )',
 			),
 		);
 	}

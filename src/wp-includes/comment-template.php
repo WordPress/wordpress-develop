@@ -193,7 +193,7 @@ function get_comment_author_email_link( $linktext = '', $before = '', $after = '
 	$email = apply_filters( 'comment_email', $comment->comment_author_email, $comment );
 
 	if ( ( ! empty( $email ) ) && ( '@' !== $email ) ) {
-		$display = ( '' != $linktext ) ? $linktext : $email;
+		$display = ( '' !== $linktext ) ? $linktext : $email;
 		$return  = $before;
 		$return .= sprintf( '<a href="%1$s">%2$s</a>', esc_url( 'mailto:' . $email ), esc_html( $display ) );
 		$return .= $after;
@@ -221,7 +221,7 @@ function get_comment_author_link( $comment_ID = 0 ) {
 	$url     = get_comment_author_url( $comment );
 	$author  = get_comment_author( $comment );
 
-	if ( empty( $url ) || 'http://' == $url ) {
+	if ( empty( $url ) || 'http://' === $url ) {
 		$return = $author;
 	} else {
 		$return = "<a href='$url' rel='external nofollow ugc' class='url'>$author</a>";
@@ -308,7 +308,7 @@ function get_comment_author_url( $comment_ID = 0 ) {
 	$url     = '';
 	$id      = 0;
 	if ( ! empty( $comment ) ) {
-		$author_url = ( 'http://' == $comment->comment_author_url ) ? '' : $comment->comment_author_url;
+		$author_url = ( 'http://' === $comment->comment_author_url ) ? '' : $comment->comment_author_url;
 		$url        = esc_url( $author_url, array( 'http', 'https' ) );
 		$id         = $comment->comment_ID;
 	}
@@ -376,11 +376,11 @@ function comment_author_url( $comment_ID = 0 ) {
  */
 function get_comment_author_url_link( $linktext = '', $before = '', $after = '', $comment = 0 ) {
 	$url     = get_comment_author_url( $comment );
-	$display = ( '' != $linktext ) ? $linktext : $url;
+	$display = ( '' !== $linktext ) ? $linktext : $url;
 	$display = str_replace( 'http://www.', '', $display );
 	$display = str_replace( 'http://', '', $display );
 
-	if ( '/' == substr( $display, -1 ) ) {
+	if ( '/' === substr( $display, -1 ) ) {
 		$display = substr( $display, 0, -1 );
 	}
 
@@ -530,7 +530,7 @@ function get_comment_class( $class = '', $comment_id = null, $post_id = null ) {
 	 *
 	 * @param string[]    $classes    An array of comment classes.
 	 * @param string      $class      A comma-separated list of additional classes added to the list.
-	 * @param int         $comment_id The comment id.
+	 * @param int         $comment_id The comment ID.
 	 * @param WP_Comment  $comment    The comment object.
 	 * @param int|WP_Post $post_id    The post ID or WP_Post object.
 	 */
@@ -550,11 +550,13 @@ function get_comment_class( $class = '', $comment_id = null, $post_id = null ) {
  */
 function get_comment_date( $format = '', $comment_ID = 0 ) {
 	$comment = get_comment( $comment_ID );
-	if ( '' == $format ) {
+
+	if ( '' === $format ) {
 		$date = mysql2date( get_option( 'date_format' ), $comment->comment_date );
 	} else {
 		$date = mysql2date( $format, $comment->comment_date );
 	}
+
 	/**
 	 * Filters the returned comment date.
 	 *
@@ -594,8 +596,13 @@ function comment_date( $format = '', $comment_ID = 0 ) {
  * @return string The possibly truncated comment excerpt.
  */
 function get_comment_excerpt( $comment_ID = 0 ) {
-	$comment      = get_comment( $comment_ID );
-	$comment_text = strip_tags( str_replace( array( "\n", "\r" ), ' ', $comment->comment_content ) );
+	$comment = get_comment( $comment_ID );
+
+	if ( ! post_password_required( $comment->comment_post_ID ) ) {
+		$comment_text = strip_tags( str_replace( array( "\n", "\r" ), ' ', $comment->comment_content ) );
+	} else {
+		$comment_text = __( 'Password protected' );
+	}
 
 	/* translators: Maximum number of words used in a comment excerpt. */
 	$comment_excerpt_length = intval( _x( '20', 'comment_excerpt_length' ) );
@@ -650,7 +657,7 @@ function comment_excerpt( $comment_ID = 0 ) {
 }
 
 /**
- * Retrieves the comment id of the current comment.
+ * Retrieves the comment ID of the current comment.
  *
  * @since 1.5.0
  *
@@ -672,7 +679,7 @@ function get_comment_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFun
 }
 
 /**
- * Displays the comment id of the current comment.
+ * Displays the comment ID of the current comment.
  *
  * @since 0.71
  */
@@ -1016,7 +1023,7 @@ function comment_text( $comment_ID = 0, $args = array() ) {
 	 * @see Walker_Comment::comment()
 	 *
 	 * @param string          $comment_text Text of the current comment.
-	 * @param WP_Comment|null $comment      The comment object.
+	 * @param WP_Comment|null $comment      The comment object. Null if not found.
 	 * @param array           $args         An array of arguments.
 	 */
 	echo apply_filters( 'comment_text', $comment_text, $comment, $args );
@@ -1037,7 +1044,8 @@ function get_comment_time( $format = '', $gmt = false, $translate = true ) {
 	$comment = get_comment();
 
 	$comment_date = $gmt ? $comment->comment_date_gmt : $comment->comment_date;
-	if ( '' == $format ) {
+
+	if ( '' === $format ) {
 		$date = mysql2date( get_option( 'time_format' ), $comment_date, $translate );
 	} else {
 		$date = mysql2date( $format, $comment_date, $translate );
@@ -1080,7 +1088,8 @@ function comment_time( $format = '' ) {
  */
 function get_comment_type( $comment_ID = 0 ) {
 	$comment = get_comment( $comment_ID );
-	if ( '' == $comment->comment_type ) {
+
+	if ( '' === $comment->comment_type ) {
 		$comment->comment_type = 'comment';
 	}
 
@@ -1141,7 +1150,7 @@ function comment_type( $commenttxt = false, $trackbacktxt = false, $pingbacktxt 
  * @return string The trackback URL after being filtered.
  */
 function get_trackback_url() {
-	if ( '' != get_option( 'permalink_structure' ) ) {
+	if ( get_option( 'permalink_structure' ) ) {
 		$tb_url = trailingslashit( get_permalink() ) . user_trailingslashit( 'trackback', 'single_trackback' );
 	} else {
 		$tb_url = get_option( 'siteurl' ) . '/wp-trackback.php?p=' . get_the_ID();
@@ -1235,7 +1244,7 @@ function comments_open( $post_id = null ) {
 	$_post = get_post( $post_id );
 
 	$post_id = $_post ? $_post->ID : 0;
-	$open    = ( 'open' == $_post->comment_status );
+	$open    = ( 'open' === $_post->comment_status );
 
 	/**
 	 * Filters whether the current post is open for comments.
@@ -1265,7 +1274,7 @@ function pings_open( $post_id = null ) {
 	$_post = get_post( $post_id );
 
 	$post_id = $_post ? $_post->ID : 0;
-	$open    = ( 'open' == $_post->ping_status );
+	$open    = ( 'open' === $_post->ping_status );
 
 	/**
 	 * Filters whether the current post is open for pings.
@@ -1328,7 +1337,6 @@ function wp_comment_form_unfiltered_html_nonce() {
  * @global int        $id
  * @global WP_Comment $comment          Global comment object.
  * @global string     $user_login
- * @global int        $user_ID
  * @global string     $user_identity
  * @global bool       $overridden_cpage
  * @global bool       $withcomments
@@ -1338,7 +1346,7 @@ function wp_comment_form_unfiltered_html_nonce() {
  *                                  Default false.
  */
 function comments_template( $file = '/comments.php', $separate_comments = false ) {
-	global $wp_query, $withcomments, $post, $wpdb, $id, $comment, $user_login, $user_ID, $user_identity, $overridden_cpage;
+	global $wp_query, $withcomments, $post, $wpdb, $id, $comment, $user_login, $user_identity, $overridden_cpage;
 
 	if ( ! ( is_single() || is_page() || $withcomments ) || empty( $post ) ) {
 		return;
@@ -1387,8 +1395,8 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 		$comment_args['hierarchical'] = false;
 	}
 
-	if ( $user_ID ) {
-		$comment_args['include_unapproved'] = array( $user_ID );
+	if ( is_user_logged_in() ) {
+		$comment_args['include_unapproved'] = array( get_current_user_id() );
 	} else {
 		$unapproved_email = wp_get_unapproved_comment_author_email();
 
@@ -1505,8 +1513,9 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 	}
 
 	$overridden_cpage = false;
+
 	if ( '' == get_query_var( 'cpage' ) && $wp_query->max_num_comment_pages > 1 ) {
-		set_query_var( 'cpage', 'newest' == get_option( 'default_comments_page' ) ? get_comment_pages_count() : 1 );
+		set_query_var( 'cpage', 'newest' === get_option( 'default_comments_page' ) ? get_comment_pages_count() : 1 );
 		$overridden_cpage = true;
 	}
 
@@ -1515,6 +1524,7 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 	}
 
 	$theme_template = STYLESHEETPATH . $file;
+
 	/**
 	 * Filters the path to the theme template file used for the comments template.
 	 *
@@ -1523,6 +1533,7 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 	 * @param string $theme_template The path to the theme template file.
 	 */
 	$include = apply_filters( 'comments_template', $theme_template );
+
 	if ( file_exists( $include ) ) {
 		require $include;
 	} elseif ( file_exists( TEMPLATEPATH . $file ) ) {
@@ -1910,7 +1921,7 @@ function get_comment_id_fields( $id = 0 ) {
 	$result   .= "<input type='hidden' name='comment_parent' id='comment_parent' value='$replytoid' />\n";
 
 	/**
-	 * Filters the returned comment id fields.
+	 * Filters the returned comment ID fields.
 	 *
 	 * @since 3.0.0
 	 *
@@ -2060,7 +2071,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 		if ( empty( $comments ) ) {
 			return;
 		}
-		if ( 'all' != $parsed_args['type'] ) {
+		if ( 'all' !== $parsed_args['type'] ) {
 			$comments_by_type = separate_comments( $comments );
 			if ( empty( $comments_by_type[ $parsed_args['type'] ] ) ) {
 				return;
@@ -2090,7 +2101,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 				);
 
 				if ( is_user_logged_in() ) {
-					$comment_args['include_unapproved'] = get_current_user_id();
+					$comment_args['include_unapproved'] = array( get_current_user_id() );
 				} else {
 					$unapproved_email = wp_get_unapproved_comment_author_email();
 
@@ -2101,7 +2112,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 
 				$comments = get_comments( $comment_args );
 
-				if ( 'all' != $parsed_args['type'] ) {
+				if ( 'all' !== $parsed_args['type'] ) {
 					$comments_by_type = separate_comments( $comments );
 					if ( empty( $comments_by_type[ $parsed_args['type'] ] ) ) {
 						return;
@@ -2118,7 +2129,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 			if ( empty( $wp_query->comments ) ) {
 				return;
 			}
-			if ( 'all' != $parsed_args['type'] ) {
+			if ( 'all' !== $parsed_args['type'] ) {
 				if ( empty( $wp_query->comments_by_type ) ) {
 					$wp_query->comments_by_type = separate_comments( $wp_query->comments );
 				}
@@ -2174,7 +2185,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 			$parsed_args['page'] = get_query_var( 'cpage' );
 		} else {
 			$threaded            = ( -1 != $parsed_args['max_depth'] );
-			$parsed_args['page'] = ( 'newest' == get_option( 'default_comments_page' ) ) ? get_comment_pages_count( $_comments, $parsed_args['per_page'], $threaded ) : 1;
+			$parsed_args['page'] = ( 'newest' === get_option( 'default_comments_page' ) ) ? get_comment_pages_count( $_comments, $parsed_args['per_page'], $threaded ) : 1;
 			set_query_var( 'cpage', $parsed_args['page'] );
 		}
 	}
@@ -2185,7 +2196,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 	}
 
 	if ( null === $parsed_args['reverse_top_level'] ) {
-		$parsed_args['reverse_top_level'] = ( 'desc' == get_option( 'comment_order' ) );
+		$parsed_args['reverse_top_level'] = ( 'desc' === get_option( 'comment_order' ) );
 	}
 
 	wp_queue_comments_for_comment_meta_lazyload( $_comments );

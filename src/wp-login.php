@@ -15,10 +15,10 @@ require __DIR__ . '/wp-load.php';
 if ( force_ssl_admin() && ! is_ssl() ) {
 	if ( 0 === strpos( $_SERVER['REQUEST_URI'], 'http' ) ) {
 		wp_safe_redirect( set_url_scheme( $_SERVER['REQUEST_URI'], 'https' ) );
-		exit();
+		exit;
 	} else {
 		wp_safe_redirect( 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
-		exit();
+		exit;
 	}
 }
 
@@ -86,7 +86,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	$login_title = apply_filters( 'login_title', $login_title, $title );
 
 	?><!DOCTYPE html>
-	<html xmlns="http://www.w3.org/1999/xhtml" <?php language_attributes(); ?>>
+	<html <?php language_attributes(); ?>>
 	<head>
 	<meta http-equiv="Content-Type" content="<?php bloginfo( 'html_type' ); ?>; charset=<?php bloginfo( 'charset' ); ?>" />
 	<title><?php echo $login_title; ?></title>
@@ -358,7 +358,7 @@ function retrieve_password() {
 	$user_data = false;
 
 	if ( empty( $_POST['user_login'] ) || ! is_string( $_POST['user_login'] ) ) {
-		$errors->add( 'empty_username', __( '<strong>Error</strong>: Enter a username or email address.' ) );
+		$errors->add( 'empty_username', __( '<strong>Error</strong>: Please enter a username or email address.' ) );
 	} elseif ( strpos( $_POST['user_login'], '@' ) ) {
 		$user_data = get_user_by( 'email', trim( wp_unslash( $_POST['user_login'] ) ) );
 		if ( empty( $user_data ) ) {
@@ -376,11 +376,28 @@ function retrieve_password() {
 	 * @since 4.4.0 Added the `$errors` parameter.
 	 * @since 5.4.0 Added the `$user_data` parameter.
 	 *
-	 * @param WP_Error $errors A WP_Error object containing any errors generated
-	 *                         by using invalid credentials.
-	 * @param WP_User|false    WP_User object if found, false if the user does not exist.
+	 * @param WP_Error      $errors    A WP_Error object containing any errors generated
+	 *                                 by using invalid credentials.
+	 * @param WP_User|false $user_data WP_User object if found, false if the user does not exist.
 	 */
 	do_action( 'lostpassword_post', $errors, $user_data );
+
+	/**
+	 * Filters the errors encountered on a password reset request.
+	 *
+	 * The filtered WP_Error object may, for example, contain errors for an invalid
+	 * username or email address. A WP_Error object should always be returned,
+	 * but may or may not contain errors.
+	 *
+	 * If any errors are present in $errors, this will abort the password reset request.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param WP_Error      $errors    A WP_Error object containing any errors generated
+	 *                                 by using invalid credentials.
+	 * @param WP_User|false $user_data WP_User object if found, false if the user does not exist.
+	 */
+	$errors = apply_filters( 'lostpassword_errors', $errors, $user_data );
 
 	if ( $errors->has_errors() ) {
 		return $errors;
@@ -756,7 +773,7 @@ switch ( $action ) {
 		setcookie( 'wp-postpass_' . COOKIEHASH, $hasher->HashPassword( wp_unslash( $_POST['post_password'] ) ), $expire, COOKIEPATH, COOKIE_DOMAIN, $secure );
 
 		wp_safe_redirect( wp_get_referer() );
-		exit();
+		exit;
 
 	case 'logout':
 		check_admin_referer( 'log-out' );
@@ -792,7 +809,7 @@ switch ( $action ) {
 		$redirect_to = apply_filters( 'logout_redirect', $redirect_to, $requested_redirect_to, $user );
 
 		wp_safe_redirect( $redirect_to );
-		exit();
+		exit;
 
 	case 'lostpassword':
 	case 'retrievepassword':
@@ -802,7 +819,7 @@ switch ( $action ) {
 			if ( ! is_wp_error( $errors ) ) {
 				$redirect_to = ! empty( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : 'wp-login.php?checkemail=confirm';
 				wp_safe_redirect( $redirect_to );
-				exit();
+				exit;
 			}
 		}
 
@@ -1036,7 +1053,7 @@ switch ( $action ) {
 
 		if ( ! get_option( 'users_can_register' ) ) {
 			wp_redirect( site_url( 'wp-login.php?registration=disabled' ) );
-			exit();
+			exit;
 		}
 
 		$user_login = '';
@@ -1056,7 +1073,7 @@ switch ( $action ) {
 			if ( ! is_wp_error( $errors ) ) {
 				$redirect_to = ! empty( $_POST['redirect_to'] ) ? $_POST['redirect_to'] : 'wp-login.php?checkemail=registered';
 				wp_safe_redirect( $redirect_to );
-				exit();
+				exit;
 			}
 		}
 

@@ -75,17 +75,17 @@
 	border-right: 5px solid transparent;
 }
 
-.column-response .post-com-count-approved:hover .comment-count-approved,
-.column-response .post-com-count-approved:focus .comment-count-approved,
-.column-comments .post-com-count-approved:hover .comment-count-approved,
-.column-comments .post-com-count-approved:focus .comment-count-approved {
+.column-response a.post-com-count-approved:hover .comment-count-approved,
+.column-response a.post-com-count-approved:focus .comment-count-approved,
+.column-comments a.post-com-count-approved:hover .comment-count-approved,
+.column-comments a.post-com-count-approved:focus .comment-count-approved {
 	background: #0073aa;
 }
 
-.column-response .post-com-count-approved:hover:after,
-.column-response .post-com-count-approved:focus:after,
-.column-comments .post-com-count-approved:hover:after,
-.column-comments .post-com-count-approved:focus:after {
+.column-response a.post-com-count-approved:hover:after,
+.column-response a.post-com-count-approved:focus:after,
+.column-comments a.post-com-count-approved:hover:after,
+.column-comments a.post-com-count-approved:focus:after {
 	border-top-color: #0073aa;
 }
 
@@ -295,12 +295,15 @@ table.fixed {
 }
 
 .fixed .column-posts,
-.fixed .column-date,
 .fixed .column-parent,
 .fixed .column-links,
 .fixed .column-author,
 .fixed .column-format {
 	width: 10%;
+}
+
+.fixed .column-date {
+	width: 14%;
 }
 
 .column-date span[title] {
@@ -388,10 +391,6 @@ table.media .column-title .filename {
 
 #comments-form .fixed .column-author {
 	width: 20%;
-}
-
-#comments-form .fixed .column-date {
-	width: 14%;
 }
 
 #commentsdiv.postbox .inside {
@@ -1236,6 +1235,10 @@ ul.cat-checklist {
 	width: 85px;
 }
 
+.plugins .column-auto-updates {
+	width: 14.2em;
+}
+
 .plugins .inactive .plugin-title strong {
 	font-weight: 400;
 }
@@ -1445,7 +1448,7 @@ div.action-links,
 .plugin-card .name,
 .plugin-card .desc {
 	margin-left: 148px; /* icon + margin */
-	margin-right: 120px; /* action links */
+	margin-right: 128px; /* action links + margin */
 }
 
 .plugin-card .action-links {
@@ -1458,7 +1461,6 @@ div.action-links,
 .plugin-action-buttons {
 	clear: right;
 	float: right;
-	margin-left: 2em;
 	margin-bottom: 1em;
 	text-align: right;
 }
@@ -1629,10 +1631,6 @@ div.action-links,
 
 	.plugin-card .desc p:first-of-type {
 		margin-top: 0;
-	}
-
-	.fixed .column-date {
-		width: 14%;
 	}
 }
 

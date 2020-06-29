@@ -485,6 +485,11 @@ class WP_Posts_List_Table extends WP_List_Table {
 			return;
 		}
 
+		// Return if the post type doesn't have post formats or if we're in the Trash.
+		if ( ! is_object_in_taxonomy( $post_type, 'post_format' ) || $this->is_trash ) {
+			return;
+		}
+
 		// Make sure the dropdown shows only formats with a post count greater than 0.
 		$used_post_formats = get_terms(
 			array(
@@ -493,11 +498,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 			)
 		);
 
-		/*
-		 * Return if the post type doesn't have post formats, or there are no posts using formats,
-		 * or if we're in the Trash.
-		 */
-		if ( ! is_object_in_taxonomy( $post_type, 'post_format' ) || ! $used_post_formats || $this->is_trash ) {
+		// Return if there are no posts using formats.
+		if ( ! $used_post_formats ) {
 			return;
 		}
 
@@ -1065,19 +1067,19 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		if ( '0000-00-00 00:00:00' === $post->post_date ) {
 			$t_time    = __( 'Unpublished' );
-			$h_time    = $t_time;
 			$time_diff = 0;
 		} else {
-			$t_time    = get_the_time( __( 'Y/m/d g:i:s a' ), $post );
+			$t_time = sprintf(
+				/* translators: 1: Post date, 2: Post time. */
+				__( '%1$s at %2$s' ),
+				/* translators: Post date format. See https://www.php.net/date */
+				get_the_time( __( 'Y/m/d' ), $post ),
+				/* translators: Post time format. See https://www.php.net/date */
+				get_the_time( __( 'g:i a' ), $post )
+			);
+
 			$time      = get_post_timestamp( $post );
 			$time_diff = time() - $time;
-
-			if ( $time && $time_diff > 0 && $time_diff < DAY_IN_SECONDS ) {
-				/* translators: %s: Human-readable time difference. */
-				$h_time = sprintf( __( '%s ago' ), human_time_diff( $time ) );
-			} else {
-				$h_time = get_the_time( __( 'Y/m/d' ), $post );
-			}
 		}
 
 		if ( 'publish' === $post->post_status ) {
@@ -1108,27 +1110,20 @@ class WP_Posts_List_Table extends WP_List_Table {
 			echo $status . '<br />';
 		}
 
-		if ( 'excerpt' === $mode ) {
-			/**
-			 * Filters the published time of the post.
-			 *
-			 * If `$mode` equals 'excerpt', the published time and date are both displayed.
-			 * If `$mode` equals 'list' (default), the publish date is displayed, with the
-			 * time and date together available as an abbreviation definition.
-			 *
-			 * @since 2.5.1
-			 *
-			 * @param string  $t_time      The published time.
-			 * @param WP_Post $post        Post object.
-			 * @param string  $column_name The column name.
-			 * @param string  $mode        The list display mode ('excerpt' or 'list').
-			 */
-			echo apply_filters( 'post_date_column_time', $t_time, $post, 'date', $mode );
-		} else {
-
-			/** This filter is documented in wp-admin/includes/class-wp-posts-list-table.php */
-			echo '<span title="' . $t_time . '">' . apply_filters( 'post_date_column_time', $h_time, $post, 'date', $mode ) . '</span>';
-		}
+		/**
+		 * Filters the published time of the post.
+		 *
+		 * @since 2.5.1
+		 * @since 5.5.0 Removed the difference between 'excerpt' and 'list' modes.
+		 *              The published time and date are both displayed now,
+		 *              which is equivalent to the previous 'excerpt' mode.
+		 *
+		 * @param string  $t_time      The published time.
+		 * @param WP_Post $post        Post object.
+		 * @param string  $column_name The column name.
+		 * @param string  $mode        The list display mode ('excerpt' or 'list').
+		 */
+		echo apply_filters( 'post_date_column_time', $t_time, $post, 'date', $mode );
 	}
 
 	/**
@@ -1190,7 +1185,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				$term_links = array();
 				foreach ( $terms as $t ) {
 					$posts_in_term_qv = array();
-					if ( 'post' != $post->post_type ) {
+					if ( 'post' !== $post->post_type ) {
 						$posts_in_term_qv['post_type'] = $post->post_type;
 					}
 					if ( $taxonomy_object->query_var ) {
@@ -1335,7 +1330,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$actions          = array();
 		$title            = _draft_or_post_title();
 
-		if ( $can_edit_post && 'trash' != $post->post_status ) {
+		if ( $can_edit_post && 'trash' !== $post->post_status ) {
 			$actions['edit'] = sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
 				get_edit_post_link( $post->ID ),
@@ -1395,7 +1390,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 						__( 'Preview' )
 					);
 				}
-			} elseif ( 'trash' != $post->post_status ) {
+			} elseif ( 'trash' !== $post->post_status ) {
 				$actions['view'] = sprintf(
 					'<a href="%s" rel="bookmark" aria-label="%s">%s</a>',
 					get_permalink( $post->ID ),

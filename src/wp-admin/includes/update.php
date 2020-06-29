@@ -95,7 +95,7 @@ function find_core_auto_update() {
 	$auto_update = false;
 	$upgrader    = new WP_Automatic_Updater;
 	foreach ( $updates->updates as $update ) {
-		if ( 'autoupdate' != $update->response ) {
+		if ( 'autoupdate' !== $update->response ) {
 			continue;
 		}
 
@@ -285,7 +285,7 @@ function update_nag() {
 
 	global $pagenow;
 
-	if ( 'update-core.php' == $pagenow ) {
+	if ( 'update-core.php' === $pagenow ) {
 		return;
 	}
 
@@ -435,7 +435,12 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 	$details_url = self_admin_url( 'plugin-install.php?tab=plugin-information&plugin=' . $response->slug . '&section=changelog&TB_iframe=true&width=600&height=800' );
 
 	/** @var WP_Plugins_List_Table $wp_list_table */
-	$wp_list_table = _get_list_table( 'WP_Plugins_List_Table' );
+	$wp_list_table = _get_list_table(
+		'WP_Plugins_List_Table',
+		array(
+			'screen' => get_current_screen(),
+		)
+	);
 
 	if ( is_network_admin() || ! is_multisite() ) {
 		if ( is_network_admin() ) {
@@ -932,4 +937,74 @@ function wp_recovery_mode_nag() {
 		</p>
 	</div>
 	<?php
+}
+
+/**
+ * Checks whether auto-updates are enabled.
+ *
+ * @since 5.5.0
+ *
+ * @param string $type The type of update being checked: 'theme' or 'plugin'.
+ * @return bool True if auto-updates are enabled for `$type`, false otherwise.
+ */
+function wp_is_auto_update_enabled_for_type( $type ) {
+	switch ( $type ) {
+		case 'plugin':
+			/**
+			 * Filters whether plugins auto-update is enabled.
+			 *
+			 * @since 5.5.0
+			 *
+			 * @param bool $enabled True if plugins auto-update is enabled, false otherwise.
+			 */
+			return apply_filters( 'plugins_auto_update_enabled', true );
+		case 'theme':
+			/**
+			 * Filters whether themes auto-update is enabled.
+			 *
+			 * @since 5.5.0
+			 *
+			 * @param bool $enabled True if themes auto-update is enabled, false otherwise.
+			 */
+			return apply_filters( 'themes_auto_update_enabled', true );
+	}
+
+	return false;
+}
+
+/**
+ * Determines the appropriate auto-update message to be displayed.
+ *
+ * @since 5.5.0
+ *
+ * @return string The update message to be shown.
+ */
+function wp_get_auto_update_message() {
+	$next_update_time = wp_next_scheduled( 'wp_version_check' );
+
+	// Check if the event exists.
+	if ( false === $next_update_time ) {
+		$message = __( 'Automatic update not scheduled. There may be a problem with WP-Cron.' );
+	} else {
+		$time_to_next_update = human_time_diff( intval( $next_update_time ) );
+
+		// See if cron is overdue.
+		$overdue = ( time() - $next_update_time ) > 0;
+
+		if ( $overdue ) {
+			$message = sprintf(
+				/* translators: %s: Duration that WP-Cron has been overdue. */
+				__( 'Automatic update overdue by %s. There may be a problem with WP-Cron.' ),
+				$time_to_next_update
+			);
+		} else {
+			$message = sprintf(
+				/* translators: %s: Time until the next update. */
+				__( 'Automatic update scheduled in %s.' ),
+				$time_to_next_update
+			);
+		}
+	}
+
+	return $message;
 }

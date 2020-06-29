@@ -107,7 +107,7 @@ function plugins_api( $action, $args = array() ) {
 		$args = (object) $args;
 	}
 
-	if ( 'query_plugins' == $action ) {
+	if ( 'query_plugins' === $action ) {
 		if ( ! isset( $args->per_page ) ) {
 			$args->per_page = 24;
 		}
@@ -420,8 +420,8 @@ function display_plugins_table() {
  *
  * @since 3.0.0
  *
- * @param  array|object $api  Data about the plugin retrieved from the API.
- * @param  bool         $loop Optional. Disable further loops. Default false.
+ * @param array|object $api  Data about the plugin retrieved from the API.
+ * @param bool         $loop Optional. Disable further loops. Default false.
  * @return array {
  *     Plugin installation status data.
  *
@@ -462,7 +462,7 @@ function install_plugin_install_status( $api, $loop = false ) {
 		}
 	}
 
-	if ( 'install' == $status ) {
+	if ( 'install' === $status ) {
 		if ( is_dir( WP_PLUGIN_DIR . '/' . $api->slug ) ) {
 			$installed_plugin = get_plugins( '/' . $api->slug );
 			if ( empty( $installed_plugin ) ) {

@@ -131,10 +131,10 @@ class WP_oEmbed {
 		self::$early_providers = array();
 
 		/**
-		 * Filters the list of whitelisted oEmbed providers.
+		 * Filters the list of sanctioned oEmbed providers.
 		 *
 		 * Since WordPress 4.4, oEmbed discovery is enabled for all users and allows embedding of sanitized
-		 * iframes. The providers in this list are whitelisted, meaning they are trusted and allowed to
+		 * iframes. The providers in this list are sanctioned, meaning they are trusted and allowed to
 		 * embed any content, such as iframes, videos, JavaScript, and arbitrary HTML.
 		 *
 		 * Supported providers:
@@ -381,8 +381,8 @@ class WP_oEmbed {
 		 * This allows one to short-circuit the default logic, perhaps by
 		 * replacing it with a routine that is more optimal for your setup.
 		 *
-		 * Passing a non-null value to the filter will effectively short-circuit retrieval,
-		 * returning the passed value instead.
+		 * Returning a non-null value from the filter will effectively short-circuit retrieval
+		 * and return the passed value instead.
 		 *
 		 * @since 4.5.3
 		 *
@@ -487,7 +487,7 @@ class WP_oEmbed {
 						$providers[ $linktypes[ $atts['type'] ] ] = htmlspecialchars_decode( $atts['href'] );
 
 						// Stop here if it's JSON (that's all we need).
-						if ( 'json' == $linktypes[ $atts['type'] ] ) {
+						if ( 'json' === $linktypes[ $atts['type'] ] ) {
 							break;
 						}
 					}
@@ -537,7 +537,7 @@ class WP_oEmbed {
 
 		foreach ( array( 'json', 'xml' ) as $format ) {
 			$result = $this->_fetch_with_format( $provider, $format );
-			if ( is_wp_error( $result ) && 'not-implemented' == $result->get_error_code() ) {
+			if ( is_wp_error( $result ) && 'not-implemented' === $result->get_error_code() ) {
 				continue;
 			}
 			return ( $result && ! is_wp_error( $result ) ) ? $result : false;

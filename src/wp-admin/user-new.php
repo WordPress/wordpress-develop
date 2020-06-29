@@ -29,7 +29,7 @@ if ( is_multisite() ) {
 	add_filter( 'wpmu_signup_user_notification_email', 'admin_created_user_email' );
 }
 
-if ( isset( $_REQUEST['action'] ) && 'adduser' == $_REQUEST['action'] ) {
+if ( isset( $_REQUEST['action'] ) && 'adduser' === $_REQUEST['action'] ) {
 	check_admin_referer( 'add-user', '_wpnonce_add-user' );
 
 	$user_details = null;
@@ -148,7 +148,7 @@ Please click the following link to confirm the invite:
 	}
 	wp_redirect( $redirect );
 	die();
-} elseif ( isset( $_REQUEST['action'] ) && 'createuser' == $_REQUEST['action'] ) {
+} elseif ( isset( $_REQUEST['action'] ) && 'createuser' === $_REQUEST['action'] ) {
 	check_admin_referer( 'create-user', '_wpnonce_create-user' );
 
 	if ( ! current_user_can( 'create_users' ) ) {
@@ -331,7 +331,7 @@ if ( isset( $_GET['update'] ) ) {
 				break;
 		}
 	} else {
-		if ( 'add' == $_GET['update'] ) {
+		if ( 'add' === $_GET['update'] ) {
 			$messages[] = __( 'User added.' );
 		}
 	}
@@ -575,6 +575,7 @@ if ( current_user_can( 'create_users' ) ) {
 		</td>
 	</tr>
 	<?php } // End if ! is_multisite(). ?>
+	<?php if ( current_user_can( 'promote_users' ) ) { ?>
 	<tr class="form-field">
 		<th scope="row"><label for="role"><?php _e( 'Role' ); ?></label></th>
 		<td><select name="role" id="role">
@@ -587,6 +588,7 @@ if ( current_user_can( 'create_users' ) ) {
 			</select>
 		</td>
 	</tr>
+	<?php } ?>
 	<?php if ( is_multisite() && current_user_can( 'manage_network_users' ) ) { ?>
 	<tr>
 		<th scope="row"><?php _e( 'Skip Confirmation Email' ); ?></th>

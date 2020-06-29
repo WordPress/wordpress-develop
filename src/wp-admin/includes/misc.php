@@ -597,7 +597,7 @@ function wp_doc_link_parse( $content ) {
 			continue;
 		}
 
-		if ( T_STRING == $tokens[ $t ][0] && ( '(' == $tokens[ $t + 1 ] || '(' == $tokens[ $t + 2 ] ) ) {
+		if ( T_STRING == $tokens[ $t ][0] && ( '(' === $tokens[ $t + 1 ] || '(' === $tokens[ $t + 2 ] ) ) {
 			// If it's a function or class defined locally, there's not going to be any docs available.
 			if ( ( isset( $tokens[ $t - 2 ][1] ) && in_array( $tokens[ $t - 2 ][1], array( 'function', 'class' ), true ) )
 				|| ( isset( $tokens[ $t - 2 ][0] ) && T_OBJECT_OPERATOR == $tokens[ $t - 1 ][0] )
@@ -688,23 +688,46 @@ function set_screen_options() {
 				}
 				break;
 			default:
+				if ( '_page' === substr( $option, -5 ) || 'layout_columns' === $option ) {
+					/**
+					 * Filters a screen option value before it is set.
+					 *
+					 * The filter can also be used to modify non-standard [items]_per_page
+					 * settings. See the parent function for a full list of standard options.
+					 *
+					 * Returning false from the filter will skip saving the current option.
+					 *
+					 * @since 2.8.0
+					 * @since 5.4.2 Only applied to options ending with '_page',
+					 *              or the 'layout_columns' option.
+					 *
+					 * @see set_screen_options()
+					 *
+					 * @param bool   $keep   Whether to save or skip saving the screen option value.
+					 *                       Default false.
+					 * @param string $option The option name.
+					 * @param int    $value  The number of rows to use.
+					 */
+					$value = apply_filters( 'set-screen-option', false, $option, $value ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+				}
+
 				/**
 				 * Filters a screen option value before it is set.
 				 *
-				 * The filter can also be used to modify non-standard [items]_per_page
-				 * settings. See the parent function for a full list of standard options.
+				 * The dynamic portion of the hook, `$option`, refers to the option name.
 				 *
-				 * Returning false to the filter will skip saving the current option.
+				 * Returning false from the filter will skip saving the current option.
 				 *
-				 * @since 2.8.0
+				 * @since 5.4.2
 				 *
 				 * @see set_screen_options()
 				 *
-				 * @param bool     $keep   Whether to save or skip saving the screen option value. Default false.
-				 * @param string   $option The option name.
-				 * @param int      $value  The number of rows to use.
+				 * @param bool   $keep   Whether to save or skip saving the screen option value.
+				 *                       Default false.
+				 * @param string $option The option name.
+				 * @param int    $value  The number of rows to use.
 				 */
-				$value = apply_filters( 'set-screen-option', false, $option, $value ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+				$value = apply_filters( "set_screen_option_{$option}", false, $option, $value );
 
 				if ( false === $value ) {
 					return;
@@ -1005,7 +1028,7 @@ function _ipad_meta() {
  *
  * @param array  $response  The Heartbeat response.
  * @param array  $data      The $_POST data sent.
- * @param string $screen_id The screen id.
+ * @param string $screen_id The screen ID.
  * @return array The Heartbeat response.
  */
 function wp_check_locked_posts( $response, $data, $screen_id ) {
@@ -1052,7 +1075,7 @@ function wp_check_locked_posts( $response, $data, $screen_id ) {
  *
  * @param array  $response  The Heartbeat response.
  * @param array  $data      The $_POST data sent.
- * @param string $screen_id The screen id.
+ * @param string $screen_id The screen ID.
  * @return array The Heartbeat response.
  */
 function wp_refresh_post_lock( $response, $data, $screen_id ) {
@@ -1105,7 +1128,7 @@ function wp_refresh_post_lock( $response, $data, $screen_id ) {
  *
  * @param array  $response  The Heartbeat response.
  * @param array  $data      The $_POST data sent.
- * @param string $screen_id The screen id.
+ * @param string $screen_id The screen ID.
  * @return array The Heartbeat response.
  */
 function wp_refresh_post_nonces( $response, $data, $screen_id ) {
@@ -1378,7 +1401,6 @@ All at ###SITENAME###
  *
  * @param string  $title Page title.
  * @param WP_Post $page  Page data object.
- *
  * @return string Page title.
  */
 function _wp_privacy_settings_filter_draft_page_titles( $title, $page ) {
@@ -1396,7 +1418,7 @@ function _wp_privacy_settings_filter_draft_page_titles( $title, $page ) {
  * @since 5.1.0
  * @since 5.1.1 Added the {@see 'wp_is_php_version_acceptable'} filter.
  *
- * @return array|false $response Array of PHP version data. False on failure.
+ * @return array|false Array of PHP version data. False on failure.
  */
 function wp_check_php_version() {
 	$version = phpversion();

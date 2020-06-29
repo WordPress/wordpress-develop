@@ -11,6 +11,7 @@
  * Stores files to be deleted.
  *
  * @since 2.7.0
+ *
  * @global array $_old_files
  * @var array
  * @name $_old_files
@@ -960,12 +961,17 @@ function update_core( $from, $to ) {
 	}
 
 	$php_update_message = '';
+
 	if ( function_exists( 'wp_get_update_php_url' ) ) {
 		/* translators: %s: URL to Update PHP page. */
-		$php_update_message = '</p><p>' . sprintf( __( '<a href="%s">Learn more about updating PHP</a>.' ), esc_url( wp_get_update_php_url() ) );
+		$php_update_message = '</p><p>' . sprintf(
+			__( '<a href="%s">Learn more about updating PHP</a>.' ),
+			esc_url( wp_get_update_php_url() )
+		);
 
 		if ( function_exists( 'wp_get_update_php_annotation' ) ) {
 			$annotation = wp_get_update_php_annotation();
+
 			if ( $annotation ) {
 				$php_update_message .= '</p><p><em>' . $annotation . '</em>';
 			}
@@ -1041,7 +1047,7 @@ function update_core( $from, $to ) {
 		}
 		if ( is_array( $checksums ) ) {
 			foreach ( $checksums as $file => $checksum ) {
-				if ( 'wp-content' == substr( $file, 0, 10 ) ) {
+				if ( 'wp-content' === substr( $file, 0, 10 ) ) {
 					continue;
 				}
 				if ( ! file_exists( ABSPATH . $file ) ) {
@@ -1114,7 +1120,7 @@ function update_core( $from, $to ) {
 	$failed = array();
 	if ( isset( $checksums ) && is_array( $checksums ) ) {
 		foreach ( $checksums as $file => $checksum ) {
-			if ( 'wp-content' == substr( $file, 0, 10 ) ) {
+			if ( 'wp-content' === substr( $file, 0, 10 ) ) {
 				continue;
 			}
 			if ( ! file_exists( $working_dir_local . $file ) ) {
@@ -1187,7 +1193,7 @@ function update_core( $from, $to ) {
 	$wp_filesystem->delete( $maintenance_file );
 
 	// 3.5 -> 3.5+ - an empty twentytwelve directory was created upon upgrade to 3.5 for some users, preventing installation of Twenty Twelve.
-	if ( '3.5' == $old_wp_version ) {
+	if ( '3.5' === $old_wp_version ) {
 		if ( is_dir( WP_CONTENT_DIR . '/themes/twentytwelve' ) && ! file_exists( WP_CONTENT_DIR . '/themes/twentytwelve/style.css' ) ) {
 			$wp_filesystem->delete( $wp_filesystem->wp_themes_dir() . 'twentytwelve/' );
 		}
@@ -1203,17 +1209,18 @@ function update_core( $from, $to ) {
 		foreach ( (array) $_new_bundled_files as $file => $introduced_version ) {
 			// If a $development_build or if $introduced version is greater than what the site was previously running.
 			if ( $development_build || version_compare( $introduced_version, $old_wp_version, '>' ) ) {
-				$directory             = ( '/' == $file[ strlen( $file ) - 1 ] );
-				list($type, $filename) = explode( '/', $file, 2 );
+				$directory = ( '/' === $file[ strlen( $file ) - 1 ] );
+
+				list( $type, $filename ) = explode( '/', $file, 2 );
 
 				// Check to see if the bundled items exist before attempting to copy them.
 				if ( ! $wp_filesystem->exists( $from . $distro . 'wp-content/' . $file ) ) {
 					continue;
 				}
 
-				if ( 'plugins' == $type ) {
+				if ( 'plugins' === $type ) {
 					$dest = $wp_filesystem->wp_plugins_dir();
-				} elseif ( 'themes' == $type ) {
+				} elseif ( 'themes' === $type ) {
 					// Back-compat, ::wp_themes_dir() did not return trailingslash'd pre-3.2.
 					$dest = trailingslashit( $wp_filesystem->wp_themes_dir() );
 				} else {
@@ -1313,15 +1320,21 @@ function update_core( $from, $to ) {
 
 /**
  * Copies a directory from one location to another via the WordPress Filesystem Abstraction.
+ *
  * Assumes that WP_Filesystem() has already been called and setup.
  *
- * This is a temporary function for the 3.1 -> 3.2 upgrade, as well as for those upgrading to
- * 3.7+
+ * This is a standalone copy of the `copy_dir()` function that is used to
+ * upgrade the core files. It is placed here so that the version of this
+ * function from the *new* WordPress version will be called.
+ *
+ * It was initially added for the 3.1 -> 3.2 upgrade.
  *
  * @ignore
  * @since 3.2.0
- * @since 3.7.0 Updated not to use a regular expression for the skip list
+ * @since 3.7.0 Updated not to use a regular expression for the skip list.
+ *
  * @see copy_dir()
+ * @link https://core.trac.wordpress.org/ticket/17173
  *
  * @global WP_Filesystem_Base $wp_filesystem
  *
@@ -1343,7 +1356,7 @@ function _copy_dir( $from, $to, $skip_list = array() ) {
 			continue;
 		}
 
-		if ( 'f' == $fileinfo['type'] ) {
+		if ( 'f' === $fileinfo['type'] ) {
 			if ( ! $wp_filesystem->copy( $from . $filename, $to . $filename, true, FS_CHMOD_FILE ) ) {
 				// If copy failed, chmod file to 0644 and try again.
 				$wp_filesystem->chmod( $to . $filename, FS_CHMOD_FILE );
@@ -1351,7 +1364,12 @@ function _copy_dir( $from, $to, $skip_list = array() ) {
 					return new WP_Error( 'copy_failed__copy_dir', __( 'Could not copy file.' ), $to . $filename );
 				}
 			}
-		} elseif ( 'd' == $fileinfo['type'] ) {
+
+			// `wp_opcache_invalidate()` only exists in WordPress 5.5, so don't run it when upgrading to 5.5.
+			if ( function_exists( 'wp_opcache_invalidate' ) ) {
+				wp_opcache_invalidate( $to . $filename );
+			}
+		} elseif ( 'd' === $fileinfo['type'] ) {
 			if ( ! $wp_filesystem->is_dir( $to . $filename ) ) {
 				if ( ! $wp_filesystem->mkdir( $to . $filename, FS_CHMOD_DIR ) ) {
 					return new WP_Error( 'mkdir_failed__copy_dir', __( 'Could not create directory.' ), $to . $filename );
@@ -1399,11 +1417,11 @@ function _redirect_to_about_wordpress( $new_version ) {
 	}
 
 	// Ensure we only run this on the update-core.php page. The Core_Upgrader may be used in other contexts.
-	if ( 'update-core.php' != $pagenow ) {
+	if ( 'update-core.php' !== $pagenow ) {
 		return;
 	}
 
-	if ( 'do-core-upgrade' != $action && 'do-core-reinstall' != $action ) {
+	if ( 'do-core-upgrade' !== $action && 'do-core-reinstall' !== $action ) {
 		return;
 	}
 
@@ -1439,7 +1457,7 @@ window.location = 'about.php?updated';
 
 	// Include admin-footer.php and exit.
 	require_once ABSPATH . 'wp-admin/admin-footer.php';
-	exit();
+	exit;
 }
 
 /**

@@ -23,6 +23,15 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	private $has_items;
 
 	/**
+	 * Whether to show the auto-updates UI.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @var bool True if auto-updates UI is to be shown, false otherwise.
+	 */
+	protected $show_autoupdates = true;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 3.1.0
@@ -45,7 +54,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		);
 
 		$status = isset( $_REQUEST['theme_status'] ) ? $_REQUEST['theme_status'] : 'all';
-		if ( ! in_array( $status, array( 'all', 'enabled', 'disabled', 'upgrade', 'search', 'broken' ), true ) ) {
+		if ( ! in_array( $status, array( 'all', 'enabled', 'disabled', 'upgrade', 'search', 'broken', 'auto-update-enabled', 'auto-update-disabled' ), true ) ) {
 			$status = 'all';
 		}
 
@@ -56,6 +65,9 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		if ( $this->is_site_themes ) {
 			$this->site_id = isset( $_REQUEST['id'] ) ? intval( $_REQUEST['id'] ) : 0;
 		}
+
+		$this->show_autoupdates = wp_is_auto_update_enabled_for_type( 'theme' ) &&
+			! $this->is_site_themes && current_user_can( 'update_themes' );
 	}
 
 	/**
@@ -107,6 +119,13 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 			'broken'   => $this->is_site_themes ? array() : wp_get_themes( array( 'errors' => true ) ),
 		);
 
+		if ( $this->show_autoupdates ) {
+			$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
+
+			$themes['auto-update-enabled']  = array();
+			$themes['auto-update-disabled'] = array();
+		}
+
 		if ( $this->is_site_themes ) {
 			$themes_per_page = $this->get_items_per_page( 'site_themes_network_per_page' );
 			$allowed_where   = 'site';
@@ -131,6 +150,14 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 
 			$filter                    = $theme->is_allowed( $allowed_where, $this->site_id ) ? 'enabled' : 'disabled';
 			$themes[ $filter ][ $key ] = $themes['all'][ $key ];
+
+			if ( $this->show_autoupdates ) {
+				if ( in_array( $key, $auto_updates, true ) ) {
+					$themes['auto-update-enabled'][ $key ] = $themes['all'][ $key ];
+				} else {
+					$themes['auto-update-disabled'][ $key ] = $themes['all'][ $key ];
+				}
+			}
 		}
 
 		if ( $s ) {
@@ -190,7 +217,6 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @staticvar string $term
 	 * @param WP_Theme $theme
 	 * @return bool
 	 */
@@ -249,7 +275,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		if ( $this->has_items ) {
 			_e( 'No themes found.' );
 		} else {
-			_e( 'You do not appear to have any themes available at this time.' );
+			_e( 'No themes are currently available.' );
 		}
 	}
 
@@ -257,11 +283,17 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 * @return array
 	 */
 	public function get_columns() {
-		return array(
+		$columns = array(
 			'cb'          => '<input type="checkbox" />',
 			'name'        => __( 'Theme' ),
 			'description' => __( 'Description' ),
 		);
+
+		if ( $this->show_autoupdates ) {
+			$columns['auto-updates'] = __( 'Automatic Updates' );
+		}
+
+		return $columns;
 	}
 
 	/**
@@ -344,6 +376,22 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 						'themes'
 					);
 					break;
+				case 'auto-update-enabled':
+					/* translators: %s: Number of themes. */
+					$text = _n(
+						'Auto-updates Enabled <span class="count">(%s)</span>',
+						'Auto-updates Enabled <span class="count">(%s)</span>',
+						$count
+					);
+					break;
+				case 'auto-update-disabled':
+					/* translators: %s: Number of themes. */
+					$text = _n(
+						'Auto-updates Disabled <span class="count">(%s)</span>',
+						'Auto-updates Disabled <span class="count">(%s)</span>',
+						$count
+					);
+					break;
 			}
 
 			if ( $this->is_site_themes ) {
@@ -352,7 +400,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 				$url = 'themes.php';
 			}
 
-			if ( 'search' != $type ) {
+			if ( 'search' !== $type ) {
 				$status_links[ $type ] = sprintf(
 					"<a href='%s'%s>%s</a>",
 					esc_url( add_query_arg( 'theme_status', $type, $url ) ),
@@ -374,10 +422,10 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		global $status;
 
 		$actions = array();
-		if ( 'enabled' != $status ) {
+		if ( 'enabled' !== $status ) {
 			$actions['enable-selected'] = $this->is_site_themes ? __( 'Enable' ) : __( 'Network Enable' );
 		}
-		if ( 'disabled' != $status ) {
+		if ( 'disabled' !== $status ) {
 			$actions['disable-selected'] = $this->is_site_themes ? __( 'Disable' ) : __( 'Network Disable' );
 		}
 		if ( ! $this->is_site_themes ) {
@@ -388,6 +436,17 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 				$actions['delete-selected'] = __( 'Delete' );
 			}
 		}
+
+		if ( $this->show_autoupdates ) {
+			if ( 'auto-update-enabled' !== $status ) {
+				$actions['enable-auto-update-selected'] = __( 'Enable Auto-updates' );
+			}
+
+			if ( 'auto-update-disabled' !== $status ) {
+				$actions['disable-auto-update-selected'] = __( 'Disable Auto-updates' );
+			}
+		}
+
 		return $actions;
 	}
 
@@ -579,6 +638,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 */
 	public function column_description( $theme ) {
 		global $status, $totals;
+
 		if ( $theme->errors() ) {
 			$pre = 'broken' === $status ? __( 'Broken Theme:' ) . ' ' : '';
 			echo '<p><strong class="error-message">' . $pre . $theme->errors()->get_error_message() . '</strong></p>';
@@ -620,23 +680,103 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 				__( 'Visit Theme Site' )
 			);
 		}
+
 		/**
 		 * Filters the array of row meta for each theme in the Multisite themes
 		 * list table.
 		 *
 		 * @since 3.1.0
 		 *
-		 * @param string[] $theme_meta An array of the theme's metadata,
-		 *                             including the version, author, and
-		 *                             theme URI.
+		 * @param string[] $theme_meta An array of the theme's metadata, including
+		 *                             the version, author, and theme URI.
 		 * @param string   $stylesheet Directory name of the theme.
 		 * @param WP_Theme $theme      WP_Theme object.
 		 * @param string   $status     Status of the theme.
 		 */
 		$theme_meta = apply_filters( 'theme_row_meta', $theme_meta, $stylesheet, $theme, $status );
+
 		echo implode( ' | ', $theme_meta );
 
 		echo '</div>';
+	}
+
+	/**
+	 * Handles the auto-updates column output.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @global string $status
+	 * @global int  $page
+	 *
+	 * @param WP_Theme $theme The current WP_Theme object.
+	 */
+	public function column_autoupdates( $theme ) {
+		global $status, $page;
+
+		static $auto_updates, $available_updates;
+
+		if ( ! $auto_updates ) {
+			$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
+		}
+		if ( ! $available_updates ) {
+			$available_updates = get_site_transient( 'update_themes' );
+		}
+
+		$stylesheet = $theme->get_stylesheet();
+
+		if ( in_array( $stylesheet, $auto_updates, true ) ) {
+			$text       = __( 'Disable auto-updates' );
+			$action     = 'disable';
+			$time_class = '';
+		} else {
+			$text       = __( 'Enable auto-updates' );
+			$action     = 'enable';
+			$time_class = ' hidden';
+		}
+
+		$query_args = array(
+			'action'       => "{$action}-auto-update",
+			'theme'        => $stylesheet,
+			'paged'        => $page,
+			'theme_status' => $status,
+		);
+
+		$url = add_query_arg( $query_args, 'themes.php' );
+
+		$html[] = sprintf(
+			'<a href="%s" class="toggle-auto-update" data-wp-action="%s">',
+			wp_nonce_url( $url, 'updates' ),
+			$action
+		);
+
+		$html[] = '<span class="dashicons dashicons-update spin hidden" aria-hidden="true"></span>';
+		$html[] = '<span class="label">' . $text . '</span>';
+		$html[] = '</a>';
+
+		$available_updates = get_site_transient( 'update_themes' );
+		if ( isset( $available_updates->response[ $stylesheet ] ) ) {
+			$html[] = sprintf(
+				'<div class="auto-update-time%s">%s</div>',
+				$time_class,
+				wp_get_auto_update_message()
+			);
+		}
+
+		$html = implode( '', $html );
+
+		/**
+		 * Filters the HTML of the auto-updates setting for each theme in the Themes list table.
+		 *
+		 * @since 5.5.0
+		 *
+		 * @param string   $html       The HTML for theme's auto-update setting, including
+		 *                             toggle auto-update action link and time to next update.
+		 * @param string   $stylesheet Directory name of the theme.
+		 * @param WP_Theme $theme      WP_Theme object.
+		 */
+		echo apply_filters( 'theme_auto_update_setting_html', $html, $stylesheet, $theme );
+
+		echo '<div class="notice notice-error notice-alt inline hidden"><p></p></div>';
 	}
 
 	/**
@@ -721,6 +861,13 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 					echo '</td>';
 					break;
 
+				case 'auto-updates':
+					echo "<td class='column-auto-updates{$extra_classes}'>";
+
+					$this->column_autoupdates( $item );
+
+					echo '</td>';
+					break;
 				default:
 					echo "<td class='$column_name column-$column_name{$extra_classes}'>";
 

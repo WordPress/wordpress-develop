@@ -378,7 +378,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that result fields are not whitelisted if no request['_fields'] is present.
+	 * Ensure that result fields are not allowed if no request['_fields'] is present.
 	 */
 	public function test_rest_filter_response_fields_no_request_filter() {
 		$response = new WP_REST_Response();
@@ -390,7 +390,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that result fields are whitelisted if request['_fields'] is present.
+	 * Ensure that result fields are allowed if request['_fields'] is present.
 	 */
 	public function test_rest_filter_response_fields_single_field_filter() {
 		$response = new WP_REST_Response();
@@ -410,7 +410,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that multiple comma-separated fields may be whitelisted with request['_fields'].
+	 * Ensure that multiple comma-separated fields may be allowed with request['_fields'].
 	 */
 	public function test_rest_filter_response_fields_multi_field_filter() {
 		$response = new WP_REST_Response();
@@ -440,7 +440,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that multiple comma-separated fields may be whitelisted
+	 * Ensure that multiple comma-separated fields may be allowed
 	 * with request['_fields'] using query parameter array syntax.
 	 */
 	public function test_rest_filter_response_fields_multi_field_filter_array() {
@@ -472,7 +472,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that request['_fields'] whitelists apply to items in response collections.
+	 * Ensure that request['_fields'] allowed list apply to items in response collections.
 	 */
 	public function test_rest_filter_response_fields_numeric_array() {
 		$response = new WP_REST_Response();
@@ -520,7 +520,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that nested fields may be whitelisted with request['_fields'].
+	 * Ensure that nested fields may be allowed with request['_fields'].
 	 *
 	 * @ticket 42094
 	 */
@@ -942,7 +942,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * @ticket 40614
 	 */
-	function test_rest_ensure_response_accepts_path_string() {
+	function test_rest_ensure_request_accepts_path_string() {
 		$request = rest_ensure_request( '/wp/v2/posts' );
 		$this->assertInstanceOf( 'WP_REST_Request', $request );
 		$this->assertEquals( '/wp/v2/posts', $request->get_route() );
@@ -983,6 +983,26 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 */
 	public function test_rest_filter_response_by_context( $schema, $data, $expected ) {
 		$this->assertEquals( $expected, rest_filter_response_by_context( $data, $schema, 'view' ) );
+	}
+
+	/**
+	 * @ticket 49749
+	 */
+	public function test_register_route_with_invalid_namespace() {
+		$this->setExpectedIncorrectUsage( 'register_rest_route' );
+
+		register_rest_route(
+			'/my-namespace/v1/',
+			'/my-route',
+			array(
+				'callback' => '__return_true',
+			)
+		);
+
+		$routes = rest_get_server()->get_routes( 'my-namespace/v1' );
+		$this->assertCount( 2, $routes );
+
+		$this->assertTrue( rest_do_request( '/my-namespace/v1/my-route' )->get_data() );
 	}
 
 	public function _dp_rest_filter_response_by_context() {
@@ -1293,6 +1313,40 @@ class Tests_REST_API extends WP_UnitTestCase {
 					),
 				),
 			),
+		);
+	}
+
+	function test_rest_ensure_response_accepts_wp_error_and_returns_wp_error() {
+		$response = rest_ensure_response( new WP_Error() );
+		$this->assertInstanceOf( 'WP_Error', $response );
+	}
+
+	/**
+	 * @dataProvider rest_ensure_response_data_provider
+	 *
+	 * @param mixed $response      The response passed to rest_ensure_response().
+	 * @param mixed $expected_data The expected data a response should include.
+	 */
+	function test_rest_ensure_response_returns_instance_of_wp_rest_response( $response, $expected_data ) {
+		$response_object = rest_ensure_response( $response );
+		$this->assertInstanceOf( 'WP_REST_Response', $response_object );
+		$this->assertSame( $expected_data, $response_object->get_data() );
+	}
+
+	/**
+	 * Data provider for test_rest_ensure_response_returns_instance_of_wp_rest_response().
+	 *
+	 * @return array
+	 */
+	function rest_ensure_response_data_provider() {
+		return array(
+			array( null, null ),
+			array( array( 'chocolate' => 'cookies' ), array( 'chocolate' => 'cookies' ) ),
+			array( 123, 123 ),
+			array( true, true ),
+			array( 'chocolate', 'chocolate' ),
+			array( new WP_HTTP_Response( 'http' ), 'http' ),
+			array( new WP_REST_Response( 'rest' ), 'rest' ),
 		);
 	}
 }

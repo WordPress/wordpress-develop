@@ -11,6 +11,7 @@
  * Retrieves category link URL.
  *
  * @since 1.0.0
+ *
  * @see get_term_link()
  *
  * @param int|object $category Category ID or object.
@@ -36,11 +37,11 @@ function get_category_link( $category ) {
  * @since 1.2.0
  * @since 4.8.0 The `$visited` parameter was deprecated and renamed to `$deprecated`.
  *
- * @param int $id Category ID.
- * @param bool $link Optional, default is false. Whether to format with link.
- * @param string $separator Optional, default is '/'. How to separate categories.
- * @param bool $nicename Optional, default is false. Whether to use nice name for display.
- * @param array $deprecated Not used.
+ * @param int    $id         Category ID.
+ * @param bool   $link       Optional. Whether to format with link. Default false.
+ * @param string $separator  Optional. How to separate categories. Default '/'.
+ * @param bool   $nicename   Optional. Whether to use nice name for display. Default false.
+ * @param array  $deprecated Not used.
  * @return string|WP_Error A list of category parents on success, WP_Error on failure.
  */
 function get_category_parents( $id, $link = false, $separator = '/', $nicename = false, $deprecated = array() ) {
@@ -63,14 +64,14 @@ function get_category_parents( $id, $link = false, $separator = '/', $nicename =
 /**
  * Retrieves post categories.
  *
- * This tag may be used outside The Loop by passing a post id as the parameter.
+ * This tag may be used outside The Loop by passing a post ID as the parameter.
  *
  * Note: This function only returns results from the default "category" taxonomy.
  * For custom taxonomies use get_the_terms().
  *
  * @since 0.71
  *
- * @param int $id Optional, default to current post ID. The post ID.
+ * @param int $id Optional. The post ID. Defaults to current post ID.
  * @return WP_Term[] Array of WP_Term objects, one for each category assigned to the post.
  */
 function get_the_category( $id = false ) {
@@ -155,7 +156,7 @@ function get_the_category_list( $separator = '', $parents = '', $post_id = false
 	$rel = ( is_object( $wp_rewrite ) && $wp_rewrite->using_permalinks() ) ? 'rel="category tag"' : 'rel="category"';
 
 	$thelist = '';
-	if ( '' == $separator ) {
+	if ( '' === $separator ) {
 		$thelist .= '<ul class="post-categories">';
 		foreach ( $categories as $category ) {
 			$thelist .= "\n\t<li>";
@@ -351,7 +352,7 @@ function wp_dropdown_categories( $args = '' ) {
 	$defaults['selected'] = ( is_category() ) ? get_query_var( 'cat' ) : 0;
 
 	// Back compat.
-	if ( isset( $args['type'] ) && 'link' == $args['type'] ) {
+	if ( isset( $args['type'] ) && 'link' === $args['type'] ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'3.0.0',
@@ -559,7 +560,7 @@ function wp_list_categories( $args = '' ) {
 	}
 
 	if ( ! isset( $parsed_args['class'] ) ) {
-		$parsed_args['class'] = ( 'category' == $parsed_args['taxonomy'] ) ? 'categories' : $parsed_args['taxonomy'];
+		$parsed_args['class'] = ( 'category' === $parsed_args['taxonomy'] ) ? 'categories' : $parsed_args['taxonomy'];
 	}
 
 	if ( ! taxonomy_exists( $parsed_args['taxonomy'] ) ) {
@@ -572,12 +573,16 @@ function wp_list_categories( $args = '' ) {
 	$categories = get_categories( $parsed_args );
 
 	$output = '';
-	if ( $parsed_args['title_li'] && 'list' == $parsed_args['style'] && ( ! empty( $categories ) || ! $parsed_args['hide_title_if_empty'] ) ) {
+
+	if ( $parsed_args['title_li'] && 'list' === $parsed_args['style']
+		&& ( ! empty( $categories ) || ! $parsed_args['hide_title_if_empty'] )
+	) {
 		$output = '<li class="' . esc_attr( $parsed_args['class'] ) . '">' . $parsed_args['title_li'] . '<ul>';
 	}
+
 	if ( empty( $categories ) ) {
 		if ( ! empty( $show_option_none ) ) {
-			if ( 'list' == $parsed_args['style'] ) {
+			if ( 'list' === $parsed_args['style'] ) {
 				$output .= '<li class="cat-item-none">' . $show_option_none . '</li>';
 			} else {
 				$output .= $show_option_none;
@@ -604,7 +609,7 @@ function wp_list_categories( $args = '' ) {
 
 			// Fallback for the 'All' link is the posts page.
 			if ( ! $posts_page ) {
-				if ( 'page' == get_option( 'show_on_front' ) && get_option( 'page_for_posts' ) ) {
+				if ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_for_posts' ) ) {
 					$posts_page = get_permalink( get_option( 'page_for_posts' ) );
 				} else {
 					$posts_page = home_url( '/' );
@@ -612,7 +617,7 @@ function wp_list_categories( $args = '' ) {
 			}
 
 			$posts_page = esc_url( $posts_page );
-			if ( 'list' == $parsed_args['style'] ) {
+			if ( 'list' === $parsed_args['style'] ) {
 				$output .= "<li class='cat-item-all'><a href='$posts_page'>$show_option_all</a></li>";
 			} else {
 				$output .= "<a href='$posts_page'>$show_option_all</a>";
@@ -634,7 +639,9 @@ function wp_list_categories( $args = '' ) {
 		$output .= walk_category_tree( $categories, $depth, $parsed_args );
 	}
 
-	if ( $parsed_args['title_li'] && 'list' == $parsed_args['style'] && ( ! empty( $categories ) || ! $parsed_args['hide_title_if_empty'] ) ) {
+	if ( $parsed_args['title_li'] && 'list' === $parsed_args['style']
+		&& ( ! empty( $categories ) || ! $parsed_args['hide_title_if_empty'] )
+	) {
 		$output .= '</ul></li>';
 	}
 
@@ -713,7 +720,7 @@ function wp_tag_cloud( $args = '' ) {
 	}
 
 	foreach ( $tags as $key => $tag ) {
-		if ( 'edit' == $args['link'] ) {
+		if ( 'edit' === $args['link'] ) {
 			$link = get_edit_term_link( $tag->term_id, $tag->taxonomy, $args['post_type'] );
 		} else {
 			$link = get_term_link( intval( $tag->term_id ), $tag->taxonomy );
@@ -740,7 +747,7 @@ function wp_tag_cloud( $args = '' ) {
 	 */
 	$return = apply_filters( 'wp_tag_cloud', $return, $args );
 
-	if ( 'array' == $args['format'] || empty( $args['echo'] ) ) {
+	if ( 'array' === $args['format'] || empty( $args['echo'] ) ) {
 		return $return;
 	}
 
@@ -939,8 +946,8 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 
 		$tags_data[] = array(
 			'id'              => $tag_id,
-			'url'             => '#' != $tag->link ? $tag->link : '#',
-			'role'            => '#' != $tag->link ? '' : ' role="button"',
+			'url'             => ( '#' !== $tag->link ) ? $tag->link : '#',
+			'role'            => ( '#' !== $tag->link ) ? '' : ' role="button"',
 			'name'            => $tag->name,
 			'formatted_count' => $formatted_count,
 			'slug'            => $tag->slug,
@@ -1111,6 +1118,7 @@ function walk_category_dropdown_tree( ...$args ) {
  * Retrieves the link to the tag.
  *
  * @since 2.3.0
+ *
  * @see get_term_link()
  *
  * @param int|object $tag Tag ID or object.

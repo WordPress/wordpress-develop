@@ -20,14 +20,14 @@ $wp_version = '5.5-alpha-47426-src';
  *
  * @global int $wp_db_version
  */
-$wp_db_version = 47597;
+$wp_db_version = 48121;
 
 /**
  * Holds the TinyMCE version.
  *
  * @global string $tinymce_version
  */
-$tinymce_version = '4960-20190918';
+$tinymce_version = '49100-20200624';
 
 /**
  * Holds the required PHP version.

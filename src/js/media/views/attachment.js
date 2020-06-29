@@ -501,8 +501,8 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 	 * Add the model if it isn't in the selection, if it is in the selection,
 	 * remove it.
 	 *
-	 * @param  {[type]} event [description]
-	 * @return {[type]}       [description]
+	 * @param {[type]} event [description]
+	 * @return {[type]} [description]
 	 */
 	checkClickHandler: function ( event ) {
 		var selection = this.options.selection;
