@@ -142,29 +142,37 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 	public function test_prepare_item() {
 		wp_set_current_user( self::$admin_id );
 
-		// This will hit the live API. We're searching for `block` which should definitely return at least one result.
+		$controller = new WP_REST_Block_Directory_Controller();
+
+		$plugin  = $this->get_mock_plugin();
 		$request = new WP_REST_Request( 'GET', '/wp/v2/block-directory/search' );
 		$request->set_query_params( array( 'term' => 'block' ) );
-		$response = rest_do_request( $request );
-		$data     = $response->get_data();
 
-		$this->assertEquals( 200, $response->status );
-		// At least one result
-		$this->assertGreaterThanOrEqual( 1, count( $data ) );
-		// Each result should be an object with important attributes set
-		foreach ( $data as $plugin ) {
-			$this->assertArrayHasKey( 'name', $plugin );
-			$this->assertArrayHasKey( 'title', $plugin );
-			$this->assertArrayHasKey( 'id', $plugin );
-			$this->assertArrayHasKey( 'author_block_rating', $plugin );
-			$this->assertArrayHasKey( 'assets', $plugin );
-			$this->assertArrayHasKey( 'humanized_updated', $plugin );
+		$response = $controller->prepare_item_for_response( $plugin, $request );
 
-			// Assets should be fully qualified https URLs
-			foreach ( $plugin['assets'] as $asset ) {
-				$this->assertEquals( 'https', wp_parse_url( $asset, PHP_URL_SCHEME ) );
-			}
-		}
+		$expected = array(
+			'name'                => 'sortabrilliant/guidepost',
+			'title'               => 'Guidepost',
+			'description'         => 'A guidepost gives you directions. It lets you know where you’re going. It gives you a preview of what’s to come. How does it work? Guideposts are magic, no they...',
+			'id'                  => 'guidepost',
+			'rating'              => 4.3,
+			'rating_count'        => 90,
+			'active_installs'     => 100,
+			'author_block_rating' => 0,
+			'author_block_count'  => 1,
+			'author'              => 'sorta brilliant',
+			'icon'                => 'https://ps.w.org/guidepost/assets/icon-128x128.jpg?rev=2235512',
+			'assets'              => array(
+				'https://ps.w.org/guidepost/tags/1.2.1/build/index.js?v=1584940380',
+				'https://ps.w.org/guidepost/tags/1.2.1/build/guidepost-editor.css?v=1584940380',
+				'https://ps.w.org/guidepost/tags/1.2.1/build/guidepost-style.css?v=1584940380',
+				'https://ps.w.org/guidepost/tags/1.2.1/build/guidepost-theme.js?v=1584940380',
+			),
+			'last_updated'        => '2020-03-23T05:13:00',
+			'humanized_updated'   => '3 months ago',
+		);
+
+		$this->assertEquals( $expected, $response->get_data() );
 	}
 
 	/**
@@ -184,7 +192,7 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 
 		$properties = $data['schema']['properties'];
 
-		$this->assertCount( 13, $properties );
+		$this->assertCount( 14, $properties );
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
@@ -196,6 +204,7 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 		$this->assertArrayHasKey( 'author_block_count', $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'icon', $properties );
+		$this->assertArrayHasKey( 'last_updated', $properties );
 		$this->assertArrayHasKey( 'humanized_updated', $properties );
 		$this->assertArrayHasKey( 'assets', $properties );
 	}
@@ -220,6 +229,69 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 			},
 			10,
 			3
+		);
+	}
+
+	/**
+	 * Gets an example of the data returned from the {@see plugins_api()} for a block.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @return array
+	 */
+	private function get_mock_plugin() {
+		return array(
+			'name'                     => 'Guidepost',
+			'slug'                     => 'guidepost',
+			'version'                  => '1.2.1',
+			'author'                   => '<a href="https://sortabrilliant.com">sorta brilliant</a>',
+			'author_profile'           => 'https://profiles.wordpress.org/sortabrilliant',
+			'requires'                 => '5.0',
+			'tested'                   => '5.4.0',
+			'requires_php'             => '5.6',
+			'rating'                   => 86,
+			'ratings'                  => array(
+				5 => 50,
+				4 => 25,
+				3 => 7,
+				2 => 5,
+				1 => 3,
+			),
+			'num_ratings'              => 90,
+			'support_threads'          => 1,
+			'support_threads_resolved' => 0,
+			'active_installs'          => 100,
+			'downloaded'               => 1112,
+			'last_updated'             => '2020-03-23 5:13am GMT',
+			'added'                    => '2020-01-29',
+			'homepage'                 => 'https://sortabrilliant.com/guidepost/',
+			'description'              => '<p>A guidepost gives you directions. It lets you know where you’re going. It gives you a preview of what’s to come. How does it work? Guideposts are magic, no they really are.</p>',
+			'short_description'        => 'A guidepost gives you directions. It lets you know where you’re going. It gives you a preview of what’s to come.',
+			'download_link'            => 'https://downloads.wordpress.org/plugin/guidepost.1.2.1.zip',
+			'tags'                     => array(
+				'block'   => 'block',
+				'heading' => 'heading',
+				'style'   => 'style',
+			),
+			'donate_link'              => '',
+			'icons'                    => array(
+				'1x' => 'https://ps.w.org/guidepost/assets/icon-128x128.jpg?rev=2235512',
+				'2x' => 'https://ps.w.org/guidepost/assets/icon-256x256.jpg?rev=2235512',
+			),
+			'blocks'                   => array(
+				'sortabrilliant/guidepost' => array(
+					'name'  => 'sortabrilliant/guidepost',
+					'title' => 'Guidepost',
+				),
+			),
+			'block_assets'             => array(
+				0 => '/tags/1.2.1/build/index.js',
+				1 => '/tags/1.2.1/build/guidepost-editor.css',
+				2 => '/tags/1.2.1/build/guidepost-style.css',
+				3 => '/tags/1.2.1/build/guidepost-theme.js',
+			),
+			'author_block_count'       => 1,
+			'author_block_rating'      => 0,
 		);
 	}
 }

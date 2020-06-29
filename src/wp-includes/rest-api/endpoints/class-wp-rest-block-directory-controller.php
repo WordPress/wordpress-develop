@@ -134,7 +134,7 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 			'author'              => wp_strip_all_tags( $plugin['author'] ),
 			'icon'                => ( isset( $plugin['icons']['1x'] ) ? $plugin['icons']['1x'] : 'block-default' ),
 			'assets'              => array(),
-			'last_updated'        => $plugin['last_updated'],
+			'last_updated'        => date( 'Y-m-d\TH:i:s', strtotime( $plugin['last_updated'] ) ),
 			'humanized_updated'   => sprintf(
 				/* translators: %s: Human-readable time difference. */
 				__( '%s ago' ),
@@ -289,6 +289,12 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 					'format'      => 'uri',
 					'context'     => array( 'view' ),
 				),
+				'last_updated'        => array(
+					'description' => __( 'The date when the block was last updated, in fuzzy human readable format.' ),
+					'type'        => 'string',
+					'format'      => 'date-time',
+					'context'     => array( 'view' ),
+				),
 				'humanized_updated'   => array(
 					'description' => __( 'The date when the block was last updated, in fuzzy human readable format.' ),
 					'type'        => 'string',
@@ -303,9 +309,7 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 						'type'   => 'string',
 						'format' => 'uri',
 					),
-
 				),
-
 			),
 		);
 
