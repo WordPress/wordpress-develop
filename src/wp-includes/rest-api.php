@@ -1275,7 +1275,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 			}
 		}
 
-		/* translators: 1: Parameter, 2: List of types. */
+		/* translators: 1: Parameter, 2: List of current_type. */
 		return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, implode( ',', $args['type'] ) ) );
 	}
 
@@ -1289,21 +1289,60 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'array' ) );
 		}
 
+		if ( isset( $args['minItems'] ) ) {
+			if ( count( $value ) < $args['minItems'] ) {
+				/* translators: 1: Parameter, 2: number. */
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s shall at least be %2$d.' ), $param, $args['minItems'] ) );
+			}
+		}
+
+		if ( isset( $args['maxItems'] ) ) {
+			if ( count( $value ) > $args['maxItems'] ) {
+				/* translators: 1: Parameter, 2: number. */
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s shall at least be %2$d.' ), $param, $args['maxItems'] ) );
+			}
+		}
+
 		foreach ( $value as $index => $v ) {
-			$is_valid = rest_validate_value_from_schema( $v, $args['items'], $param . '[' . $index . ']' );
+			$current_type = $args['items'];
+			if ( isset( $current_type['type'] ) && is_array( $current_type['type'] ) ) {
+				if ( isset( $current_type['type'][ $index ] ) ) {
+					$current_type['type'] = $current_type['type'][ $index ];
+				} else {
+					$current_type['type'] = '';
+					if ( isset( $args['additionalItems'] ) ) {
+						if ( is_bool( $args['additionalItems'] ) ) {
+							if ( false === $args['additionalItems'] ) {
+								return new WP_Error( 'rest_invalid_param', sprintf( __( 'Additional items is not allowed.' ) ) );
+							}
+						} else {
+							$current_type['type'] = $args['additionalItems'];
+						}
+					}
+				}
+			}
+			$is_valid = rest_validate_value_from_schema( $v, $current_type, $param . '[' . $index . ']' );
 			if ( is_wp_error( $is_valid ) ) {
 				return $is_valid;
 			}
 		}
 
-		if ( isset( $args['minItems'] ) && count( $value ) < $args['minItems'] ) {
-			/* translators: 1: Parameter, 2: Number. */
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must contain at least %2$s items.' ), $param, number_format_i18n( $args['minItems'] ) ) );
-		}
-
-		if ( isset( $args['maxItems'] ) && count( $value ) > $args['maxItems'] ) {
-			/* translators: 1: Parameter, 2: Number. */
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must contain at most %2$s items.' ), $param, number_format_i18n( $args['maxItems'] ) ) );
+		if ( isset( $args['uniqueItems'] ) && $args['uniqueItems'] ) {
+			foreach ($value as $index => $object) {
+				if (is_array($object)) {
+					ksort($object);
+				}
+			}
+			$unique = array_map(
+				function ($e) {
+					return var_export($e, true);
+				},
+				$value
+			);
+			if (count($value) !== count(array_unique($unique))) {
+				/* translators: 1: Parameter */
+				return new WP_Error('rest_invalid_param', sprintf(__('%1$s has duplicate items.'), $param));
+			}
 		}
 	}
 
@@ -1782,36 +1821,4 @@ function rest_filter_response_by_context( $data, $schema, $context ) {
 	}
 
 	return $data;
-}
-
-/**
- * Sets the "additionalProperties" to false by default for all object definitions in the schema.
- *
- * @since 5.5.0
- *
- * @param array $schema The schema to modify.
- * @return array The modified schema.
- */
-function rest_default_additional_properties_to_false( $schema ) {
-	$type = (array) $schema['type'];
-
-	if ( in_array( 'object', $type, true ) ) {
-		if ( isset( $schema['properties'] ) ) {
-			foreach ( $schema['properties'] as $key => $child_schema ) {
-				$schema['properties'][ $key ] = rest_default_additional_properties_to_false( $child_schema );
-			}
-		}
-
-		if ( ! isset( $schema['additionalProperties'] ) ) {
-			$schema['additionalProperties'] = false;
-		}
-	}
-
-	if ( in_array( 'array', $type, true ) ) {
-		if ( isset( $schema['items'] ) ) {
-			$schema['items'] = rest_default_additional_properties_to_false( $schema['items'] );
-		}
-	}
-
-	return $schema;
 }
