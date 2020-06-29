@@ -1618,6 +1618,9 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		$this->assertQueryTrue( 'is_page', 'is_singular', 'is_privacy_policy' );
 	}
 
+	/**
+	 * @ticket 23749
+	 */
 	public function test_is_post_format_archive_with_string_parameter() {
 
 		$post_id = self::factory()->post->create();
@@ -1650,6 +1653,9 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @ticket 23749
+	 */
 	public function test_is_post_format_archive_with_array_parameter() {
 
 		$post_id = self::factory()->post->create();
