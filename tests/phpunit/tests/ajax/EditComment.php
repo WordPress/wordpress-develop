@@ -163,7 +163,7 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 	 * Block comments from being updated by returning WP_Error
 	 */
 	public function _wp_update_comment_data_filter( $data, $comment, $commentarr ) {
-		return new WP_Error( 'comment_wrong', __( 'wp_update_comment_data filter fails for this comment.' ), 500 );
+		return new WP_Error( 'comment_wrong', 'wp_update_comment_data filter fails for this comment.', 500 );
 	}
 
 	/**
