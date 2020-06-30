@@ -16,14 +16,14 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 
 	/**
-	 * A post with at least one comment
+	 * A post with at least one comment.
 	 *
 	 * @var mixed
 	 */
 	protected $_comment_post = null;
 
 	/**
-	 * Set up the test fixture
+	 * Sets up the test fixture.
 	 */
 	public function setUp() {
 		parent::setUp();
@@ -38,10 +38,9 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Get comments as a privilged user (administrator)
-	 * Expects test to pass
+	 * Gets comments as a privileged user (administrator).
 	 *
-	 * @return void
+	 * Expects test to pass.
 	 */
 	public function test_as_admin() {
 
@@ -132,45 +131,9 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 39732
-	 */
-	public function test_wp_update_comment_data_is_wp_error() {
-		// Become an administrator
-		$this->_setRole( 'administrator' );
-
-		// Get a comment
-		$comments = get_comments(
-			array(
-				'post_id' => $this->_comment_post->ID,
-			)
-		);
-		$comment  = array_pop( $comments );
-
-		// Set up a default request
-		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
-		$_POST['comment_ID']                  = $comment->comment_ID;
-		$_POST['content']                     = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
-
-		// Simulate filter check error
-		add_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ), 10, 3 );
-
-		// Make the request
-		$this->setExpectedException( 'WPAjaxDieStopException', 'wp_update_comment_data filter fails for this comment.' );
-		$this->_handleAjax( 'edit-comment' );
-	}
-
-	/**
-	 * Block comments from being updated by returning WP_Error
-	 */
-	public function _wp_update_comment_data_filter( $data, $comment, $commentarr ) {
-		return new WP_Error( 'comment_wrong', 'wp_update_comment_data filter fails for this comment.', 500 );
-	}
-
-	/**
-	 * Get comments as a non-privileged user (subscriber)
-	 * Expects test to fail
+	 * Gets comments as a non-privileged user (subscriber).
 	 *
-	 * @return void
+	 * Expects test to fail.
 	 */
 	public function test_as_subscriber() {
 
@@ -196,10 +159,9 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Get comments with a bad nonce
-	 * Expects test to fail
+	 * Gets comments with a bad nonce.
 	 *
-	 * @return void
+	 * Expects test to fail.
 	 */
 	public function test_bad_nonce() {
 
@@ -225,10 +187,9 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Get comments for an invalid post
-	 * This should return valid XML
+	 * Gets comments for an invalid post.
 	 *
-	 * @return void
+	 * This should return valid XML.
 	 */
 	public function test_invalid_comment() {
 
@@ -243,5 +204,40 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 		// Make the request.
 		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		$this->_handleAjax( 'edit-comment' );
+	}
+
+	/**
+	 * @ticket 39732
+	 */
+	public function test_wp_update_comment_data_is_wp_error() {
+		// Become an administrator.
+		$this->_setRole( 'administrator' );
+
+		// Get a comment.
+		$comments = get_comments(
+			array(
+				'post_id' => $this->_comment_post->ID,
+			)
+		);
+		$comment  = array_pop( $comments );
+
+		// Set up a default request.
+		$_POST['_ajax_nonce-replyto-comment'] = wp_create_nonce( 'replyto-comment' );
+		$_POST['comment_ID']                  = $comment->comment_ID;
+		$_POST['content']                     = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
+
+		// Simulate filter check error.
+		add_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ), 10, 3 );
+
+		// Make the request.
+		$this->setExpectedException( 'WPAjaxDieStopException', 'wp_update_comment_data filter fails for this comment.' );
+		$this->_handleAjax( 'edit-comment' );
+	}
+
+	/**
+	 * Blocks comments from being updated by returning WP_Error.
+	 */
+	public function _wp_update_comment_data_filter( $data, $comment, $commentarr ) {
+		return new WP_Error( 'comment_wrong', 'wp_update_comment_data filter fails for this comment.', 500 );
 	}
 }
