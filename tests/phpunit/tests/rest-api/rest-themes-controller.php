@@ -260,7 +260,6 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'version', $properties );
 
 		$theme_supports = $properties['theme_supports']['properties'];
-		$this->assertEquals( 20, count( $theme_supports ) );
 		$this->assertArrayHasKey( 'align-wide', $theme_supports );
 		$this->assertArrayHasKey( 'automatic-feed-links', $theme_supports );
 		$this->assertArrayHasKey( 'custom-header', $theme_supports );
@@ -281,6 +280,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'responsive-embeds', $theme_supports );
 		$this->assertArrayHasKey( 'title-tag', $theme_supports );
 		$this->assertArrayHasKey( 'wp-block-styles', $theme_supports );
+		$this->assertCount( 20, $theme_supports );
 	}
 
 	/**
@@ -995,6 +995,32 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$result   = $response->get_data();
 		$this->assertTrue( isset( $result[0]['theme_supports'] ) );
 		$this->assertEquals( array( 'post' ), $result[0]['theme_supports']['post-thumbnails'] );
+	}
+
+	/**
+	 * @ticket 49406
+	 */
+	public function test_variadic_theme_support() {
+		register_theme_feature(
+			'test-feature',
+			array(
+				'type'         => 'array',
+				'variadic'     => true,
+				'show_in_rest' => array(
+					'schema' => array(
+						'items' => array(
+							'type' => 'string',
+						),
+					),
+				),
+			)
+		);
+		add_theme_support( 'test-feature', 'a', 'b', 'c' );
+
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+		$this->assertTrue( isset( $result[0]['theme_supports'] ) );
+		$this->assertEquals( array( 'a', 'b', 'c' ), $result[0]['theme_supports']['test-feature'] );
 	}
 
 	/**

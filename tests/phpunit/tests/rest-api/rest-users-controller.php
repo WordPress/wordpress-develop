@@ -1220,7 +1220,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertInternalType( 'array', $data['data']['params'] );
 			$errors = $data['data']['params'];
 			$this->assertInternalType( 'string', $errors['username'] );
-			$this->assertEquals( 'Username contains invalid characters.', $errors['username'] );
+			$this->assertEquals( 'This username is invalid because it uses illegal characters. Please enter a valid username.', $errors['username'] );
 		}
 	}
 

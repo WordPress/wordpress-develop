@@ -272,7 +272,7 @@ function comments_link_feed() {
  *
  * @since 2.5.0
  *
- * @param int|WP_Comment $comment_id Optional comment object or id. Defaults to global comment object.
+ * @param int|WP_Comment $comment_id Optional comment object or ID. Defaults to global comment object.
  */
 function comment_guid( $comment_id = null ) {
 	echo esc_url( get_comment_guid( $comment_id ) );
@@ -283,7 +283,7 @@ function comment_guid( $comment_id = null ) {
  *
  * @since 2.5.0
  *
- * @param int|WP_Comment $comment_id Optional comment object or id. Defaults to global comment object.
+ * @param int|WP_Comment $comment_id Optional comment object or ID. Defaults to global comment object.
  * @return string|false GUID for comment on success, false on failure.
  */
 function get_comment_guid( $comment_id = null ) {
@@ -302,7 +302,7 @@ function get_comment_guid( $comment_id = null ) {
  * @since 1.5.0
  * @since 4.4.0 Introduced the `$comment` argument.
  *
- * @param int|WP_Comment $comment Optional. Comment object or id. Defaults to global comment object.
+ * @param int|WP_Comment $comment Optional. Comment object or ID. Defaults to global comment object.
  */
 function comment_link( $comment = null ) {
 	/**
@@ -535,12 +535,12 @@ function atom_enclosure() {
 /**
  * Determine the type of a string of data with the data formatted.
  *
- * Tell whether the type is text, html, or xhtml, per RFC 4287 section 3.1.
+ * Tell whether the type is text, HTML, or XHTML, per RFC 4287 section 3.1.
  *
  * In the case of WordPress, text is defined as containing no markup,
- * xhtml is defined as "well formed", and html as tag soup (i.e., the rest).
+ * XHTML is defined as "well formed", and HTML as tag soup (i.e., the rest).
  *
- * Container div tags are added to xhtml values, per section 3.1.1.3.
+ * Container div tags are added to XHTML values, per section 3.1.1.3.
  *
  * @link http://www.atomenabled.org/developers/syndication/atom-format-spec.php#rfc.section.3.1
  *

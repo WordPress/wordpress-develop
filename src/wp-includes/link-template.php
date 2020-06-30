@@ -257,8 +257,8 @@ function get_permalink( $post = 0, $leavename = false ) {
  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param int|WP_Post $id        Optional. Post ID or post object. Default is the global `$post`.
- * @param bool        $leavename Optional, defaults to false. Whether to keep post name. Default false.
- * @param bool        $sample    Optional, defaults to false. Is it a sample permalink. Default false.
+ * @param bool        $leavename Optional. Whether to keep post name. Default false.
+ * @param bool        $sample    Optional. Is it a sample permalink. Default false.
  * @return string|WP_Error The post permalink.
  */
 function get_post_permalink( $id = 0, $leavename = false, $sample = false ) {
@@ -3857,8 +3857,8 @@ function wp_get_shortlink( $id = 0, $context = 'post', $allow_slugs = true ) {
 	/**
 	 * Filters whether to preempt generating a shortlink for the given post.
 	 *
-	 * Passing a truthy value to the filter will effectively short-circuit the
-	 * shortlink-generation process, returning that value instead.
+	 * Returning a truthy value from the filter will effectively short-circuit
+	 * the shortlink generation process, returning that value instead.
 	 *
 	 * @since 3.0.0
 	 *

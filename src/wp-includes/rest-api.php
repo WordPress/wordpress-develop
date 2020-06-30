@@ -273,6 +273,10 @@ function create_initial_rest_routes() {
 	$controller = new WP_REST_Block_Renderer_Controller;
 	$controller->register_routes();
 
+	// Block Types.
+	$controller = new WP_REST_Block_Types_Controller();
+	$controller->register_routes();
+
 	// Settings.
 	$controller = new WP_REST_Settings_Controller;
 	$controller->register_routes();
@@ -1293,12 +1297,12 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		}
 
 		if ( isset( $args['minItems'] ) && count( $value ) < $args['minItems'] ) {
-			/* translators: 1: Parameter, 2: number. */
+			/* translators: 1: Parameter, 2: Number. */
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must contain at least %2$s items.' ), $param, number_format_i18n( $args['minItems'] ) ) );
 		}
 
 		if ( isset( $args['maxItems'] ) && count( $value ) > $args['maxItems'] ) {
-			/* translators: 1: Parameter, 2: number. */
+			/* translators: 1: Parameter, 2: Number. */
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must contain at most %2$s items.' ), $param, number_format_i18n( $args['maxItems'] ) ) );
 		}
 	}
@@ -1778,4 +1782,36 @@ function rest_filter_response_by_context( $data, $schema, $context ) {
 	}
 
 	return $data;
+}
+
+/**
+ * Sets the "additionalProperties" to false by default for all object definitions in the schema.
+ *
+ * @since 5.5.0
+ *
+ * @param array $schema The schema to modify.
+ * @return array The modified schema.
+ */
+function rest_default_additional_properties_to_false( $schema ) {
+	$type = (array) $schema['type'];
+
+	if ( in_array( 'object', $type, true ) ) {
+		if ( isset( $schema['properties'] ) ) {
+			foreach ( $schema['properties'] as $key => $child_schema ) {
+				$schema['properties'][ $key ] = rest_default_additional_properties_to_false( $child_schema );
+			}
+		}
+
+		if ( ! isset( $schema['additionalProperties'] ) ) {
+			$schema['additionalProperties'] = false;
+		}
+	}
+
+	if ( in_array( 'array', $type, true ) ) {
+		if ( isset( $schema['items'] ) ) {
+			$schema['items'] = rest_default_additional_properties_to_false( $schema['items'] );
+		}
+	}
+
+	return $schema;
 }

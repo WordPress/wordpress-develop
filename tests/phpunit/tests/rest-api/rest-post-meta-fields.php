@@ -1176,7 +1176,8 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket       38323
+	 * @ticket 38323
+	 *
 	 * @dataProvider data_get_subtype_meta_value
 	 */
 	public function test_get_subtype_meta_value( $post_type, $meta_key, $single, $in_post_type ) {
@@ -1228,7 +1229,8 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket       38323
+	 * @ticket 38323
+	 *
 	 * @dataProvider data_set_subtype_meta_value
 	 */
 	public function test_set_subtype_meta_value( $post_type, $meta_key, $single, $in_post_type, $can_write ) {
@@ -1299,7 +1301,8 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket       42069
+	 * @ticket 42069
+	 *
 	 * @dataProvider data_update_value_return_success_with_same_value
 	 */
 	public function test_update_value_return_success_with_same_value( $meta_key, $meta_value ) {
