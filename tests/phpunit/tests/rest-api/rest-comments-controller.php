@@ -2814,10 +2814,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * Block comments from being updated by returning WP_Error
+	 * Blocks comments from being updated by returning WP_Error.
 	 */
 	public function _wp_update_comment_data_filter( $data, $comment, $commentarr ) {
-		return new WP_Error( 'comment_wrong', __( 'wp_update_comment_data filter fails for this comment.' ), array( 'status' => 500 ) );
+		return new WP_Error( 'comment_wrong', 'wp_update_comment_data filter fails for this comment.', array( 'status' => 500 ) );
 	}
 
 	public function verify_comment_roundtrip( $input = array(), $expected_output = array() ) {
