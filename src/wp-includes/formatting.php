@@ -2982,7 +2982,7 @@ function make_clickable( $text ) {
 	}
 
 	// Cleanup of accidental links within links.
-	return preg_replace( '#(<a([ \r\n\t]+[^>]+?>|>))<a [^>]+?>([^>]+?)</a></a>#i', '$1$3</a>', $r );
+	return preg_replace( '#(<a([ \r\n\t]+[^>]+?>|>))(.+)?<a [^>]+?>([^>]+?)</a>(.+)?</a>#is', '$1$3$4$5</a>', $r );
 }
 
 /**
