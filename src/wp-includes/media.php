@@ -1594,7 +1594,7 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
 			$attr .= sprintf( ' sizes="%s"', esc_attr( $sizes ) );
 		}
 
-		// Add extra attributes to the image markup.
+		// Add the srcset and sizes attributes to the image markup.
 		return preg_replace( '/<img ([^>]+?)[\/ ]*>/', '<img $1' . $attr . ' />', $image );
 	}
 
