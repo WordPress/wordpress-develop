@@ -463,6 +463,7 @@ add_action( 'init', 'wp_sitemaps_get_server' );
  * Filters formerly mixed into wp-includes.
  */
 // Theme.
+add_action( 'setup_theme', 'create_initial_theme_features', 0 );
 add_action( 'wp_loaded', '_custom_header_background_just_in_time' );
 add_action( 'wp_head', '_custom_logo_header_styles' );
 add_action( 'plugins_loaded', '_wp_customize_include' );

@@ -835,7 +835,7 @@ function strip_fragment_from_url( $url ) {
 }
 
 /**
- * Attempts to guess the correct URL based on query vars.
+ * Attempts to guess the correct URL for a 404 request based on query vars.
  *
  * @since 2.3.0
  *
@@ -847,30 +847,30 @@ function redirect_guess_404_permalink() {
 	global $wpdb;
 
 	/**
-	 * Filters whether to do redirect guess of 404 requests.
+	 * Filters whether to attempt to guess a redirect URL for a 404 request.
 	 *
-	 * Passing a false value to the filter will disable the URL guessing
-	 * and return early.
+	 * Returning a false value from the filter will disable the URL guessing
+	 * and return early without performing a redirect.
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param bool $do_redirect_guess Whether to do redirect guess 404 permalink.
-	 *                                Default true.
+	 * @param bool $do_redirect_guess Whether to attempt to guess a redirect URL
+	 *                                for a 404 request. Default true.
 	 */
 	if ( false === apply_filters( 'do_redirect_guess_404_permalink', true ) ) {
 		return false;
 	}
 
 	/**
-	 * Filters whether to short-circuit redirect guess of 404 requests.
+	 * Short-circuits the redirect URL guessing for 404 requests.
 	 *
-	 * Passing a non-null value to the filter will effectively short-circuit
+	 * Returning a non-null value from the filter will effectively short-circuit
 	 * the URL guessing, returning the passed value instead.
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param null|string $pre Whether to short-circuit redirect guess 404 permalink.
-	 *                         Default null to continue with the URL guessing.
+	 * @param null|string|false $pre Whether to short-circuit guessing the redirect for a 404.
+	 *                               Default null to continue with the URL guessing.
 	 */
 	$pre = apply_filters( 'pre_redirect_guess_404_permalink', null );
 	if ( null !== $pre ) {
@@ -878,15 +878,14 @@ function redirect_guess_404_permalink() {
 	}
 
 	if ( get_query_var( 'name' ) ) {
-
 		/**
-		 * Filters whether to do a strict or loose guess.
+		 * Filters whether to perform a strict guess for a 404 redirect.
 		 *
-		 * Passing a truthy value to the filter will redirect only exact post_name matches.
+		 * Returning a truthy value from the filter will redirect only exact post_name matches.
 		 *
 		 * @since 5.5.0
 		 *
-		 * @param bool $strict_guess Whether to do a strict/exact guess. Default false.
+		 * @param bool $strict_guess Whether to perform a strict guess. Default false (loose guess).
 		 */
 		$strict_guess = apply_filters( 'strict_redirect_guess_404_permalink', false );
 

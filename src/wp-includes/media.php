@@ -541,7 +541,7 @@ function image_resize_dimensions( $orig_w, $orig_h, $dest_w, $dest_h, $crop = fa
 	/**
 	 * Filters whether to preempt calculating the image resize dimensions.
 	 *
-	 * Passing a non-null value to the filter will effectively short-circuit
+	 * Returning a non-null value from the filter will effectively short-circuit
 	 * image_resize_dimensions(), returning that value instead.
 	 *
 	 * @since 3.4.0
@@ -1632,7 +1632,8 @@ function wp_lazy_loading_enabled( $tag_name, $context ) {
  * @see wp_img_tag_add_srcset_and_sizes_attr()
  *
  * @param string $content The HTML content to be filtered.
- * @param string $context Optional. Additional context to pass to the filters. Defaults to `current_filter()` when not set.
+ * @param string $context Optional. Additional context to pass to the filters.
+ *                        Defaults to `current_filter()` when not set.
  * @return string Converted content with images modified.
  */
 function wp_filter_content_tags( $content, $context = null ) {
@@ -1734,8 +1735,7 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
 			$value = 'lazy';
 		}
 
-		// Images should have dimension attributes for the `loading` attribute
-		// to be added.
+		// Images should have dimension attributes for the `loading` attribute to be added.
 		if ( false === strpos( $image, ' width=' ) || false === strpos( $image, ' height=' ) ) {
 			return $image;
 		}
@@ -2425,7 +2425,7 @@ function wp_playlist_shortcode( $attr ) {
 	/**
 	 * Filters the playlist output.
 	 *
-	 * Passing a non-empty value to the filter will short-circuit generation
+	 * Returning a non-empty value from the filter will short-circuit generation
 	 * of the default playlist output, returning the passed value instead.
 	 *
 	 * @since 3.9.0
