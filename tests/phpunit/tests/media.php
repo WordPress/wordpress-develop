@@ -2698,12 +2698,22 @@ EOF;
 
 	/**
 	 * @ticket 44427
+	 * @ticket 50367
+	 */
+	function test_wp_img_tag_add_loading_attr_with_single_quotes() {
+		$img = "<img src='example.png' alt=' width='300' height='225' />";
+		$img = wp_img_tag_add_loading_attr( $img, 'test' );
+
+		$this->assertNotContains( ' loading="lazy"', $img );
+	}
+
+	/**
+	 * @ticket 44427
 	 * @ticket 50425
 	 */
 	function test_wp_img_tag_add_loading_attr_opt_out() {
 		$img = '<img src="example.png" alt=" width="300" height="225" />';
 		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
-		$img = wp_img_tag_add_loading_attr( $img, 'test' );
 
 		$this->assertNotContains( ' loading="lazy"', $img );
 	}

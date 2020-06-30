@@ -1746,7 +1746,7 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
 		}
 
 		// Images should have source and dimension attributes for the `loading` attribute to be added.
-		if ( false === strpos( $image, ' src=' ) || false === strpos( $image, ' width=' ) || false === strpos( $image, ' height=' ) ) {
+		if ( false === strpos( $image, ' src="' ) || false === strpos( $image, ' width="' ) || false === strpos( $image, ' height="' ) ) {
 			return $image;
 		}
 
