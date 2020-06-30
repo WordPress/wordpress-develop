@@ -31,28 +31,32 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	public function test_wp_update_comment() {
-		$post     = self::factory()->post->create_and_get(
+		$post  = self::factory()->post->create_and_get(
 			array(
 				'post_title' => 'some-post',
 				'post_type'  => 'post',
 			)
 		);
-		$post2    = self::factory()->post->create_and_get(
+		$post2 = self::factory()->post->create_and_get(
 			array(
 				'post_title' => 'some-post-2',
 				'post_type'  => 'post',
 			)
 		);
+
 		$comments = self::factory()->comment->create_post_comments( $post->ID, 5 );
-		$result   = wp_update_comment(
+
+		$result = wp_update_comment(
 			array(
 				'comment_ID'     => $comments[0],
 				'comment_parent' => $comments[1],
 			)
 		);
 		$this->assertEquals( 1, $result );
+
 		$comment = get_comment( $comments[0] );
 		$this->assertEquals( $comments[1], $comment->comment_parent );
+
 		$result = wp_update_comment(
 			array(
 				'comment_ID'     => $comments[0],
@@ -60,12 +64,14 @@ class Tests_Comment extends WP_UnitTestCase {
 			)
 		);
 		$this->assertEquals( 0, $result );
-		$result  = wp_update_comment(
+
+		$result = wp_update_comment(
 			array(
 				'comment_ID'      => $comments[0],
 				'comment_post_ID' => $post2->ID,
 			)
 		);
+
 		$comment = get_comment( $comments[0] );
 		$this->assertEquals( $post2->ID, $comment->comment_post_ID );
 	}
@@ -92,6 +98,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 */
 	public function test_wp_update_comment_updates_comment_meta() {
 		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+
 		wp_update_comment(
 			array(
 				'comment_ID'   => $comment_id,
@@ -101,6 +108,7 @@ class Tests_Comment extends WP_UnitTestCase {
 				),
 			)
 		);
+
 		$this->assertEquals( 'fire', get_comment_meta( $comment_id, 'sauce', true ) );
 	}
 
@@ -140,6 +148,29 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$comment = get_comment( $comment_id );
 		$this->assertEquals( $updated_comment_text, $comment->comment_content );
+	}
+
+	/**
+	 * @ticket 39732
+	 */
+	public function test_wp_update_comment_returns_false_for_invalid_comment_or_post_id() {
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+
+		$update = wp_update_comment(
+			array(
+				'comment_ID'      => -1,
+				'comment_post_ID' => self::$post_id,
+			)
+		);
+		$this->assertSame( false, $update );
+
+		$update = wp_update_comment(
+			array(
+				'comment_ID'      => $comment_id,
+				'comment_post_ID' => -1,
+			)
+		);
+		$this->assertSame( false, $update );
 	}
 
 	/**
