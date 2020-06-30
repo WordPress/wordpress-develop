@@ -685,7 +685,7 @@ function render_block( $parsed_block ) {
 
 	$context = array();
 
-	if ( ! empty( $post ) ) {
+	if ( $post instanceof WP_Post ) {
 		$context['postId'] = $post->ID;
 
 		/*
