@@ -32,11 +32,6 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 		$this->_comment_post = get_post( $post_id );
 	}
 
-	public function tearDown() {
-		remove_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ), 10, 3 );
-		parent::tearDown();
-	}
-
 	/**
 	 * Gets comments as a privileged user (administrator).
 	 *
