@@ -1628,8 +1628,9 @@ function wp_lazy_loading_enabled( $tag_name, $context ) {
  *
  * @since 5.5.0
  *
- * @see wp_img_tag_add_loading_attr()
+ * @see wp_img_tag_add_width_and_height_attr()
  * @see wp_img_tag_add_srcset_and_sizes_attr()
+ * @see wp_img_tag_add_loading_attr()
  *
  * @param string $content The HTML content to be filtered.
  * @param string $context Optional. Additional context to pass to the filters.
@@ -1735,26 +1736,12 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
 			$value = 'lazy';
 		}
 
-		// Images should have dimension attributes for the `loading` attribute to be added.
-		if ( false === strpos( $image, ' width=' ) || false === strpos( $image, ' height=' ) ) {
+		// Images should have source and dimension attributes for the `loading` attribute to be added.
+		if ( false === strpos( $image, ' src=' ) || false === strpos( $image, ' width=' ) || false === strpos( $image, ' height=' ) ) {
 			return $image;
 		}
 
-		$quote = null;
-
-		// Check if the img tag is valid (has `src` attribute) and get the quote character.
-		// In almost all cases it will have src and a double quote.
-		if ( false !== strpos( $image, ' src="' ) ) {
-			$quote = '"';
-		} elseif ( preg_match( '/\ssrc\s*=(["\'])/', $image, $matches ) ) {
-			$quote = $matches[1];
-		}
-
-		if ( $quote ) {
-			$loading = "loading={$quote}{$value}{$quote}";
-
-			return str_replace( '<img', "<img {$loading}", $image );
-		}
+		return str_replace( '<img', '<img loading="' . esc_attr( $value ) . '"', $image );
 	}
 
 	return $image;

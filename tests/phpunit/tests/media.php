@@ -2675,13 +2675,13 @@ EOF;
 	}
 
 	/**
-	 * @ticket 44427
+	 * @ticket 50367
 	 */
-	function test_wp_img_tag_add_loading_attr_single_quote() {
-		$img = "<img src='example.png' alt='' width='300' height='225' />";
+	function test_wp_img_tag_add_loading_attr_without_src() {
+		$img = '<img alt=" width="300" height="225" />';
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
 
-		$this->assertContains( " loading='lazy'", $img );
+		$this->assertNotContains( ' loading="lazy"', $img );
 	}
 }
 
