@@ -1784,8 +1784,10 @@ function wp_img_tag_add_width_and_height_attr( $image, $context, $attachment_id 
 		$image_meta = wp_get_attachment_metadata( $attachment_id );
 		$size_array = wp_image_src_get_dimensions( $image_src, $image_meta );
 
-		$hw = trim( image_hwstring( $size_array[0], $size_array[1] ) );
-		return str_replace( '<img', "<img {$hw}", $image );
+		if ( $size_array ) {
+			$hw = trim( image_hwstring( $size_array[0], $size_array[1] ) );
+			return str_replace( '<img', "<img {$hw}", $image );
+		}
 	}
 
 	return $image;
