@@ -2808,9 +2808,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_comment_failed_edit', $response, 500 );
-
 		remove_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ), 10, 3 );
+
+		$this->assertErrorResponse( 'rest_comment_failed_edit', $response, 500 );
 	}
 
 	/**

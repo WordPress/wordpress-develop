@@ -149,6 +149,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
 
 		add_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ), 10, 3 );
+
 		$result = wp_update_comment(
 			array(
 				'comment_ID'   => $comment_id,
@@ -156,8 +157,10 @@ class Tests_Comment extends WP_UnitTestCase {
 			),
 			true
 		);
-		$this->assertWPError( $result );
+
 		remove_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ), 10, 3 );
+
+		$this->assertWPError( $result );
 	}
 
 	/**
