@@ -1963,9 +1963,8 @@ EOF;
 
 	/**
 	 * @ticket 33641
-	 * @ticket 50367
 	 */
-	function test_wp_filter_content_tags() {
+	function test_wp_filter_content_tags_srcset_sizes() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
 		$size_array = $this->_get_image_size_array_from_meta( $image_meta, 'medium' );
 
@@ -1974,7 +1973,6 @@ EOF;
 
 		// Function used to build HTML for the editor.
 		$img                  = get_image_tag( self::$large_id, '', '', '', 'medium' );
-		$img                  = wp_img_tag_add_loading_attr( $img, 'test' );
 		$img_no_size_in_class = str_replace( 'size-', '', $img );
 		$img_no_width_height  = str_replace( ' width="' . $size_array[0] . '"', '', $img );
 		$img_no_width_height  = str_replace( ' height="' . $size_array[1] . '"', '', $img_no_width_height );
@@ -1983,12 +1981,10 @@ EOF;
 		$img_xhtml            = str_replace( ' />', '/>', $img );
 		$img_html5            = str_replace( ' />', '>', $img );
 
-		$hwstring = image_hwstring( $size_array[0], $size_array[1] );
-
 		// Manually add srcset and sizes to the markup from get_image_tag().
 		$respimg                  = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img );
 		$respimg_no_size_in_class = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img_no_size_in_class );
-		$respimg_no_width_height  = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $hwstring . $srcset . ' ' . $sizes . ' />', $img_no_width_height );
+		$respimg_no_width_height  = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img_no_width_height );
 		$respimg_with_sizes_attr  = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $srcset . ' />', $img_with_sizes_attr );
 		$respimg_xhtml            = preg_replace( '|<img ([^>]+)/>|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img_xhtml );
 		$respimg_html5            = preg_replace( '|<img ([^>]+)>|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img_html5 );
@@ -2000,7 +1996,7 @@ EOF;
 			<p>Image, no size class. Should have srcset and sizes.</p>
 			%2$s
 
-			<p>Image, no width and height attributes. Should have width, height, srcset and sizes (from matching the file name).</p>
+			<p>Image, no width and height attributes. Should have srcset and sizes (from matching the file name).</p>
 			%3$s
 
 			<p>Image, no attachment ID class. Should NOT have srcset and sizes.</p>
@@ -2018,7 +2014,14 @@ EOF;
 		$content_unfiltered = sprintf( $content, $img, $img_no_size_in_class, $img_no_width_height, $img_no_size_id, $img_with_sizes_attr, $img_xhtml, $img_html5 );
 		$content_filtered   = sprintf( $content, $respimg, $respimg_no_size_in_class, $respimg_no_width_height, $img_no_size_id, $respimg_with_sizes_attr, $respimg_xhtml, $respimg_html5 );
 
+		// Do not add width, height, and loading.
+		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
+		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
+
 		$this->assertSame( $content_filtered, wp_filter_content_tags( $content_unfiltered ) );
+
+		remove_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
+		remove_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
 	}
 
 	/**
@@ -2032,7 +2035,7 @@ EOF;
 	 * @ticket 34898
 	 * @ticket 33641
 	 */
-	function test_wp_filter_content_tags_wrong() {
+	function test_wp_filter_content_tags_srcset_sizes_wrong() {
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
 
@@ -2045,7 +2048,7 @@ EOF;
 	/**
 	 * @ticket 33641
 	 */
-	function test_wp_filter_content_tags_with_preexisting_srcset() {
+	function test_wp_filter_content_tags_srcset_sizes_with_preexisting_srcset() {
 		// Generate HTML and add a dummy srcset attribute.
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
@@ -2532,10 +2535,54 @@ EOF;
 	}
 
 	/**
+	 * @ticket 50367
+	 */
+	function test_wp_filter_content_tags_width_height() {
+		$image_meta = wp_get_attachment_metadata( self::$large_id );
+		$size_array = $this->_get_image_size_array_from_meta( $image_meta, 'medium' );
+
+		$img                 = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$img_no_width_height = str_replace( ' width="' . $size_array[0] . '"', '', $img );
+		$img_no_width_height = str_replace( ' height="' . $size_array[1] . '"', '', $img_no_width_height );
+		$img_no_width        = str_replace( ' width="' . $size_array[0] . '"', '', $img );
+		$img_no_height       = str_replace( ' height="' . $size_array[1] . '"', '', $img );
+
+		$hwstring = image_hwstring( $size_array[0], $size_array[1] );
+
+		// Manually add width and height to the markup from get_image_tag().
+		$respimg_no_width_height = str_replace( '<img ', '<img ' . $hwstring, $img_no_width_height );
+
+		$content = '
+			<p>Image, with width and height. Should NOT be modified.</p>
+			%1$s
+
+			<p>Image, no width and height attributes. Should have width, height, srcset and sizes (from matching the file name).</p>
+			%2$s
+
+			<p>Image, no width but height attribute. Should NOT be modified.</p>
+			%3$s
+
+			<p>Image, no height but width attribute. Should NOT be modified.</p>
+			%4$s';
+
+		$content_unfiltered = sprintf( $content, $img, $img_no_width_height, $img_no_width, $img_no_height );
+		$content_filtered   = sprintf( $content, $img, $respimg_no_width_height, $img_no_width, $img_no_height );
+
+		// Do not add loading, srcset, and sizes.
+		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
+		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+
+		$this->assertSame( $content_filtered, wp_filter_content_tags( $content_unfiltered ) );
+
+		remove_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
+		remove_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+	}
+
+	/**
 	 * @ticket 44427
 	 * @ticket 50367
 	 */
-	function test_wp_lazy_load_content_media() {
+	function test_wp_filter_content_tags_loading_lazy() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
 		$size_array = $this->_get_image_size_array_from_meta( $image_meta, 'medium' );
 
@@ -2570,18 +2617,20 @@ EOF;
 		$content_unfiltered = sprintf( $content, $img, $img_xhtml, $img_html5, $img_eager, $img_no_width_height, $iframe );
 		$content_filtered   = sprintf( $content, $lazy_img, $lazy_img_xhtml, $lazy_img_html5, $img_eager, $img_no_width_height, $iframe );
 
-		// Do not add srcset and sizes.
+		// Do not add width, height, srcset, and sizes.
+		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
 
 		$this->assertSame( $content_filtered, wp_filter_content_tags( $content_unfiltered ) );
 
+		remove_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
 		remove_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
 	}
 
 	/**
 	 * @ticket 44427
 	 */
-	function test_wp_lazy_load_content_media_opted_in() {
+	function test_wp_filter_content_tags_loading_lazy_opted_in() {
 		$img      = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$lazy_img = wp_img_tag_add_loading_attr( $img, 'test' );
 
@@ -2606,7 +2655,7 @@ EOF;
 	/**
 	 * @ticket 44427
 	 */
-	function test_wp_lazy_load_content_media_opted_out() {
+	function test_wp_filter_content_tags_loading_lazy_opted_out() {
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
 
 		$content = '
@@ -2626,13 +2675,13 @@ EOF;
 	}
 
 	/**
-	 * @ticket 44427
+	 * @ticket 50367
 	 */
-	function test_wp_img_tag_add_loading_attr_single_quote() {
-		$img = "<img src='example.png' alt='' width='300' height='225' />";
+	function test_wp_img_tag_add_loading_attr_without_src() {
+		$img = '<img alt=" width="300" height="225" />';
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
 
-		$this->assertContains( " loading='lazy'", $img );
+		$this->assertNotContains( ' loading="lazy"', $img );
 	}
 }
 
