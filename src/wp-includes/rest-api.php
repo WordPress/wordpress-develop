@@ -1493,7 +1493,24 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		$value = rest_sanitize_array( $value );
 
 		foreach ( $value as $index => $v ) {
-			$is_valid = rest_validate_value_from_schema( $v, $args['items'], $param . '[' . $index . ']' );
+			$current_type = $args['items'];
+			if ( isset( $current_type['type'] ) && is_array( $current_type['type'] ) ) {
+				if ( isset( $current_type['type'][ $index ] ) ) {
+					$current_type['type'] = $current_type['type'][ $index ];
+				} else {
+					$current_type['type'] = '';
+					if ( isset( $args['additionalItems'] ) ) {
+						if ( is_bool( $args['additionalItems'] ) ) {
+							if ( false === $args['additionalItems'] ) {
+								return new WP_Error( 'rest_invalid_param', sprintf( __( 'Additional items is not allowed.' ) ) );
+							}
+						} else {
+							$current_type['type'] = $args['additionalItems'];
+						}
+					}
+				}
+			}
+			$is_valid = rest_validate_value_from_schema( $v, $current_type, $param . '[' . $index . ']' );
 			if ( is_wp_error( $is_valid ) ) {
 				return $is_valid;
 			}
@@ -1508,7 +1525,26 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 			/* translators: 1: Parameter, 2: Number. */
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must contain at most %2$s items.' ), $param, number_format_i18n( $args['maxItems'] ) ) );
 		}
+
+		if ( isset( $args['uniqueItems'] ) && $args['uniqueItems'] ) {
+			foreach ( $value as $index => &$object ) {
+				if ( is_array( $object ) ) {
+					ksort( $object );
+				}
+			}
+			$unique = array_map(
+				function ( $e ) {
+					return var_export( $e, true );
+				},
+				$value
+			);
+			if ( count( $value ) !== count( array_unique( $unique ) ) ) {
+				/* translators: 1: Parameter */
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s has duplicate items.' ), $param ) );
+			}
+		}
 	}
+
 
 	if ( 'object' === $args['type'] ) {
 		if ( ! rest_is_object( $value ) ) {

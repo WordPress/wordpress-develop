@@ -905,4 +905,50 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertWPError( rest_validate_value_from_schema( array( 1, 2, 3 ), $schema ) );
 		$this->assertWPError( rest_validate_value_from_schema( 'foobar', $schema ) );
 	}
+
+	/**
+	 * Data providor for uniqueitems tests
+	 * @return Generator
+	 */
+	public function data_uniqueitems() {
+		$suites = json_decode( file_get_contents( __DIR__ . '/json_schema_test_suite/uniqueitems.json' ), true );
+		foreach ( $suites as $suite ) {
+			// type is required for our implementation
+			if ( ! isset( $suite['schema']['type'] ) ) {
+				$suite['schema']['type'] = 'array';
+			}
+			// items is required for our implementation
+			if ( ! isset( $suite['schema']['items'] ) ) {
+				$suite['schema']['items'] = array( 'type' => '' );
+			}
+			// type for items is required for our implementation
+			if ( ! isset( $suite['schema']['items']['type'] ) && isset( $suite['schema']['items'] ) ) {
+				$types = array();
+				foreach ( $suite['schema']['items'] as $type ) {
+					$types[] = $type['type'];
+				}
+				array_splice( $suite['schema']['items'], 0 );
+				$suite['schema']['items']['type'] = $types;
+			}
+
+			foreach ( $suite['tests'] as $test ) {
+				yield array( $test, $suite );
+			}
+		}
+	}
+
+	/**
+	 * @ticket 48821
+	 *
+	 * @dataProvider data_uniqueitems
+	 */
+	public function test_uniqueitems( $test, $suite ) {
+		$test_description = $suite['description'] . ': ' . $test['description'];
+		$message          = $test_description . ': ' . var_export( $test['data'], true );
+		if ( $test['valid'] ) {
+			$this->assertTrue( rest_validate_value_from_schema( $test['data'], $suite['schema'] ), $message );
+		} else {
+			$this->assertWPError( rest_validate_value_from_schema( $test['data'], $suite['schema'] ), $message );
+		}
+	}
 }
