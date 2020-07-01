@@ -869,7 +869,13 @@ function rest_output_link_wp_head() {
 		return;
 	}
 
-	echo "<link rel='https://api.w.org/' href='" . esc_url( $api_root ) . "' />\n";
+	printf( '<link rel="https://api.w.org/" href="%s" />', esc_url( $api_root ) );
+
+	$resource = rest_get_current_resource_link();
+
+	if ( $resource ) {
+		printf( '<link rel="alternate" type="application/json" href="%s" />', esc_url( $resource ) );
+	}
 }
 
 /**
@@ -888,7 +894,13 @@ function rest_output_link_header() {
 		return;
 	}
 
-	header( 'Link: <' . esc_url_raw( $api_root ) . '>; rel="https://api.w.org/"', false );
+	header( sprintf( 'Link: <%s>; rel="https://api.w.org/"', esc_url_raw( $api_root ) ), false );
+
+	$resource = rest_get_current_resource_link();
+
+	if ( $resource ) {
+		header( sprintf( 'Link: <%s>; rel="alternate"; type="application/json"', esc_url_raw( $resource ) ), false );
+	}
 }
 
 /**
@@ -1820,20 +1832,6 @@ function rest_default_additional_properties_to_false( $schema ) {
 	return $schema;
 }
 
-
-/**
- * Outputs a header link to a REST resource.
- *
- * @since 5.5.0
- *
- * @param string $url The URL to print.
- */
-function rest_head_link( $url ) {
-	if ( ! empty( $url ) ) {
-		printf( '<link rel="alternate" type="application/json" href="%s" />', esc_url( $url ) );
-	}
-}
-
 /**
  * Gets the REST API route for a post.
  *
@@ -1941,13 +1939,4 @@ function rest_get_current_resource_link() {
 	}
 
 	return '';
-}
-
-/**
- * Adds a link to the current REST API resource in the <head> of the page.
- *
- * @since 5.5.0
- */
-function rest_add_resource_link() {
-	rest_head_link( rest_get_current_resource_link() );
 }
