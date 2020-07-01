@@ -517,9 +517,11 @@ function get_comment_meta( $comment_id, $key = '', $single = false ) {
  * @param string $meta_key   Metadata key.
  * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
  * @param mixed  $prev_value Optional. Previous value to check before updating.
- *                           Default empty.
+ *                           If specified, only update existing metadata entries with
+ *                           this value. Otherwise, update all entries. Default empty.
  * @return int|bool Meta ID if the key didn't exist, true on successful update,
- *                  false on failure.
+ *                  false on failure or if the value passed to the function
+ *                  is the same as the one that is already in the database.
  */
 function update_comment_meta( $comment_id, $meta_key, $meta_value, $prev_value = '' ) {
 	return update_metadata( 'comment', $comment_id, $meta_key, $meta_value, $prev_value );
@@ -2420,13 +2422,15 @@ function wp_set_comment_status( $comment_id, $comment_status, $wp_error = false 
  * @since 2.0.0
  * @since 4.9.0 Add updating comment meta during comment update.
  * @since 5.5.0 The `$wp_error` parameter was added.
+ * @since 5.5.0 The return values for an invalid comment or post ID
+ *              were changed to false instead of 0.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param array $commentarr Contains information on the comment.
  * @param bool  $wp_error   Optional. Whether to return a WP_Error on failure. Default false.
- * @return int|bool|WP_Error Comment was updated if value is 1, or was not updated if value is 0,
- *                           false, or a WP_Error object.
+ * @return int|false|WP_Error The value 1 if the comment was updated, 0 if not updated.
+ *                            False or a WP_Error object on failure.
  */
 function wp_update_comment( $commentarr, $wp_error = false ) {
 	global $wpdb;
@@ -2434,20 +2438,20 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 	// First, get all of the original fields.
 	$comment = get_comment( $commentarr['comment_ID'], ARRAY_A );
 	if ( empty( $comment ) ) {
-		if ( ! $wp_error ) {
-			return 0;
+		if ( $wp_error ) {
+			return new WP_Error( 'invalid_comment_id', __( 'Invalid comment ID.' ) );
+		} else {
+			return false;
 		}
-
-		return new WP_Error( 'invalid_comment_id', __( 'Invalid comment ID.' ) );
 	}
 
 	// Make sure that the comment post ID is valid (if specified).
 	if ( ! empty( $commentarr['comment_post_ID'] ) && ! get_post( $commentarr['comment_post_ID'] ) ) {
-		if ( ! $wp_error ) {
-			return 0;
+		if ( $wp_error ) {
+			return new WP_Error( 'invalid_post_id', __( 'Invalid post ID.' ) );
+		} else {
+			return false;
 		}
-
-		return new WP_Error( 'invalid_post_id', __( 'Invalid post ID.' ) );
 	}
 
 	// Escape data pulled from DB.
@@ -2488,29 +2492,39 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 	/**
 	 * Filters the comment data immediately before it is updated in the database.
 	 *
-	 * Note: data being passed to the filter is already unslashed. Returning 0 or a
-	 * WP_Error object is preventing the comment to be updated.
+	 * Note: data being passed to the filter is already unslashed.
 	 *
 	 * @since 4.7.0
-	 * @since 5.5.0 The `$wp_error` parameter was added.
+	 * @since 5.5.0 Returning a WP_Error value from the filter will short-circuit comment update
+	 *              and allow skipping further processing.
 	 *
-	 * @param array $data       The new, processed comment data.
-	 * @param array $comment    The old, unslashed comment data.
-	 * @param array $commentarr The new, raw comment data.
-	 * @param bool  $wp_error   Optional. Whether to return a WP_Error on failure.
-	 *                          Default false.
+	 * @param array|WP_Error $data       The new, processed comment data, or WP_Error.
+	 * @param array          $comment    The old, unslashed comment data.
+	 * @param array          $commentarr The new, raw comment data.
 	 */
-	$data = apply_filters( 'wp_update_comment_data', $data, $comment, $commentarr, $wp_error );
+	$data = apply_filters( 'wp_update_comment_data', $data, $comment, $commentarr );
 
 	// Do not carry on on failure.
-	if ( is_wp_error( $data ) || 0 === $data ) {
-		return $data;
+	if ( is_wp_error( $data ) ) {
+		if ( $wp_error ) {
+			return $data;
+		} else {
+			return false;
+		}
 	}
 
 	$keys = array( 'comment_post_ID', 'comment_content', 'comment_author', 'comment_author_email', 'comment_approved', 'comment_karma', 'comment_author_url', 'comment_date', 'comment_date_gmt', 'comment_type', 'comment_parent', 'user_id', 'comment_agent', 'comment_author_IP' );
 	$data = wp_array_slice_assoc( $data, $keys );
 
 	$rval = $wpdb->update( $wpdb->comments, $data, compact( 'comment_ID' ) );
+
+	if ( false === $rval ) {
+		if ( $wp_error ) {
+			return new WP_Error( 'db_update_error', __( 'Could not update comment in the database.' ), $wpdb->last_error );
+		} else {
+			return false;
+		}
+	}
 
 	// If metadata is provided, store it.
 	if ( isset( $commentarr['comment_meta'] ) && is_array( $commentarr['comment_meta'] ) ) {
@@ -3814,13 +3828,25 @@ function _wp_batch_update_comment_type() {
 	// Empty comment type found? We'll need to run this script again.
 	wp_schedule_single_event( time() + ( 2 * MINUTE_IN_SECONDS ), 'wp_update_comment_type_batch' );
 
-	// Update the `comment_type` field value to be `comment` for the next 100 rows of comments.
+	/**
+	 * Filters the comment batch size for updating the comment type.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param int $comment_batch_size The comment batch size. Default 100.
+	 */
+	$comment_batch_size = (int) apply_filters( 'wp_update_comment_type_batch_size', 100 );
+
+	// Update the `comment_type` field value to be `comment` for the next batch of comments.
 	$wpdb->query(
-		"UPDATE {$wpdb->comments}
-		SET comment_type = 'comment'
-		WHERE comment_type = ''
-		ORDER BY comment_ID DESC
-		LIMIT 100"
+		$wpdb->prepare(
+			"UPDATE {$wpdb->comments}
+			SET comment_type = 'comment'
+			WHERE comment_type = ''
+			ORDER BY comment_ID DESC
+			LIMIT %d",
+			$comment_batch_size
+		)
 	);
 
 	delete_option( $lock_name );
