@@ -911,8 +911,18 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	 * @return Generator
 	 */
 	public function data_uniqueitems() {
+		// the following test suites is not supported at the moment
+		$skip   = array(
+			'uniqueItems with an array of items',
+			'uniqueItems with an array of items and additionalItems=false',
+			'uniqueItems=false with an array of items',
+			'uniqueItems=false with an array of items and additionalItems=false',
+		);
 		$suites = json_decode( file_get_contents( __DIR__ . '/json_schema_test_suite/uniqueitems.json' ), true );
 		foreach ( $suites as $suite ) {
+			if ( in_array( $suite['description'], $skip, true ) ) {
+				continue;
+			}
 			// type is required for our implementation
 			if ( ! isset( $suite['schema']['type'] ) ) {
 				$suite['schema']['type'] = 'array';
@@ -921,16 +931,6 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 			if ( ! isset( $suite['schema']['items'] ) ) {
 				$suite['schema']['items'] = array( 'type' => '' );
 			}
-			// type for items is required for our implementation
-			if ( ! isset( $suite['schema']['items']['type'] ) && isset( $suite['schema']['items'] ) ) {
-				$types = array();
-				foreach ( $suite['schema']['items'] as $type ) {
-					$types[] = $type['type'];
-				}
-				array_splice( $suite['schema']['items'], 0 );
-				$suite['schema']['items']['type'] = $types;
-			}
-
 			foreach ( $suite['tests'] as $test ) {
 				yield array( $test, $suite );
 			}
