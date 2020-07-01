@@ -1852,11 +1852,12 @@ function rest_get_route_for_post( $post ) {
 		return '';
 	}
 
-	$route      = '';
 	$controller = $post_type->get_rest_controller();
 	if ( ! $controller ) {
 		return '';
 	}
+
+	$route = '';
 
 	// The only two controllers that we can detect are the Attachments and Posts controllers.
 	if ( in_array( get_class( $controller ), array( 'WP_REST_Attachments_Controller', 'WP_REST_Posts_Controller' ), true ) ) {
@@ -1894,11 +1895,12 @@ function rest_get_route_for_term( $term ) {
 		return '';
 	}
 
-	$route      = '';
 	$controller = $taxonomy->get_rest_controller();
 	if ( ! $controller ) {
 		return '';
 	}
+
+	$route = '';
 
 	// The only controller that works is the Terms controller.
 	if ( 'WP_REST_Terms_Controller' === get_class( $controller ) ) {
