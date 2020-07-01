@@ -379,7 +379,7 @@ class WP_Comment_Query {
 			$this->meta_query_clauses = $this->meta_query->get_sql( 'comment', $wpdb->comments, 'comment_ID', $this );
 		}
 
-		$this->comments = null;
+		$comment_data = null;
 
 		/**
 		 * Filter the comments data before the query takes place.
@@ -388,19 +388,20 @@ class WP_Comment_Query {
 		 *
 		 * The expected return type from this filter depends on the value passed in the request query_vars.
 		 * When `$this->query_vars['count']` is set, the filter should return the comment count as an int.
-		 * When `'ids' == $this->query_vars['fields']`, the filter should return an array of comment ids.
+		 * When `'ids' === $this->query_vars['fields']`, the filter should return an array of comment IDs.
 		 * Otherwise the filter should return an array of WP_Comment objects.
 		 *
 		 * @since 5.3.0
 		 *
-		 * @param array|int|null   $comments Return an array of comment data to short-circuit WP's comment query,
-		 *                                   the comment count as an integer if `$this->query_vars['count']` is set,
-		 *                                   or null to allow WP to run its normal queries.
-		 * @param WP_Comment_Query $this     The WP_Comment_Query instance, passed by reference.
+		 * @param array|int|null   $comment_data Return an array of comment data to short-circuit WP's comment query,
+		 *                                       the comment count as an integer if `$this->query_vars['count']` is set,
+		 *                                       or null to allow WP to run its normal queries.
+		 * @param WP_Comment_Query $this         The WP_Comment_Query instance, passed by reference.
 		 */
-		$this->comments = apply_filters_ref_array( 'comments_pre_query', array( $this->comments, &$this ) );
+		$comment_data = apply_filters_ref_array( 'comments_pre_query', array( $comment_data, &$this ) );
 
-		if ( null !== $this->comments ) {
+		if ( null !== $comment_data ) {
+			$this->comments = $comment_data;
 			return $this->comments;
 		}
 
