@@ -102,7 +102,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'wp-polyfill-dom-rect.min.js': 'polyfill-library/polyfills/DOMRect/polyfill.js',
 	};
 
-	const blockNames = [
+	const dynamicBlockFolders = [
 		'archives',
 		'block',
 		'calendar',
@@ -115,17 +115,51 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'social-link',
 		'tag-cloud',
 	];
+	const blockFolders = [
+		'audio',
+		'button',
+		'buttons',
+		'classic',
+		'code',
+		'column',
+		'columns',
+		'file',
+		'gallery',
+		'group',
+		'heading',
+		'html',
+		'image',
+		'list',
+		'media-text',
+		'missing',
+		'more',
+		'nextpage',
+		'paragraph',
+		'preformatted',
+		'pullquote',
+		'quote',
+		'separator',
+		'social-links',
+		'spacer',
+		'subhead',
+		'table',
+		'text-columns',
+		'verse',
+		'video',
+		...dynamicBlockFolders,
+	];
 	const phpFiles = {
 		'block-serialization-default-parser/parser.php': 'wp-includes/class-wp-block-parser.php',
-		...blockNames.reduce( ( files, blockName ) => {
+		...dynamicBlockFolders.reduce( ( files, blockName ) => {
 			files[ `block-library/src/${ blockName }/index.php` ] = `wp-includes/blocks/${ blockName }.php`;
 			return files;
 		} , {} ),
 	};
-	const blockMetadataCopies = {
-		from: join( baseDir, `node_modules/@wordpress/block-library/src/+(${ blockNames.join( '|' ) })/block.json` ),
-		test: new RegExp( `\/([^/]+)\/block\.json$` ),
-		to: join( baseDir, `${ buildTarget }/blocks/[1]/block.json` ),
+	const blockMetadataFiles = {
+		...blockFolders.reduce( ( files, blockName ) => {
+			files[ `block-library/src/${ blockName }/block.json` ] = `wp-includes/blocks/${ blockName }/block.json`;
+			return files;
+		} , {} ),
 	};
 
 	const developmentCopies = mapVendorCopies( vendors, buildTarget );
@@ -170,6 +204,11 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	const phpCopies = Object.keys( phpFiles ).map( ( filename ) => ( {
 		from: join( baseDir, `node_modules/@wordpress/${ filename }` ),
 		to: join( baseDir, `src/${ phpFiles[ filename ] }` ),
+	} ) );
+
+	const blockMetadataCopies = Object.keys( blockMetadataFiles ).map( ( filename ) => ( {
+		from: join( baseDir, `node_modules/@wordpress/${ filename }` ),
+		to: join( baseDir, `src/${ blockMetadataFiles[ filename ] }` ),
 	} ) );
 
 	const config = {
@@ -254,7 +293,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 					...vendorCopies,
 					...cssCopies,
 					...phpCopies,
-					blockMetadataCopies,
+					...blockMetadataCopies,
 				],
 			),
 		],

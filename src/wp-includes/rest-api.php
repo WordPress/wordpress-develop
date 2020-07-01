@@ -285,6 +285,14 @@ function create_initial_rest_routes() {
 	$controller = new WP_REST_Themes_Controller;
 	$controller->register_routes();
 
+	// Plugins.
+	$controller = new WP_REST_Plugins_Controller();
+	$controller->register_routes();
+
+	// Block Directory.
+	$controller = new WP_REST_Block_Directory_Controller();
+	$controller->register_routes();
+
 }
 
 /**
@@ -1297,12 +1305,12 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		}
 
 		if ( isset( $args['minItems'] ) && count( $value ) < $args['minItems'] ) {
-			/* translators: 1: Parameter, 2: number. */
+			/* translators: 1: Parameter, 2: Number. */
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must contain at least %2$s items.' ), $param, number_format_i18n( $args['minItems'] ) ) );
 		}
 
 		if ( isset( $args['maxItems'] ) && count( $value ) > $args['maxItems'] ) {
-			/* translators: 1: Parameter, 2: number. */
+			/* translators: 1: Parameter, 2: Number. */
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must contain at most %2$s items.' ), $param, number_format_i18n( $args['maxItems'] ) ) );
 		}
 	}

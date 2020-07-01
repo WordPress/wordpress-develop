@@ -688,6 +688,8 @@ function set_screen_options() {
 				}
 				break;
 			default:
+				$screen_option = false;
+
 				if ( '_page' === substr( $option, -5 ) || 'layout_columns' === $option ) {
 					/**
 					 * Filters a screen option value before it is set.
@@ -695,7 +697,7 @@ function set_screen_options() {
 					 * The filter can also be used to modify non-standard [items]_per_page
 					 * settings. See the parent function for a full list of standard options.
 					 *
-					 * Returning false to the filter will skip saving the current option.
+					 * Returning false from the filter will skip saving the current option.
 					 *
 					 * @since 2.8.0
 					 * @since 5.4.2 Only applied to options ending with '_page',
@@ -703,12 +705,12 @@ function set_screen_options() {
 					 *
 					 * @see set_screen_options()
 					 *
-					 * @param bool   $keep   Whether to save or skip saving the screen option value.
-					 *                       Default false.
-					 * @param string $option The option name.
-					 * @param int    $value  The number of rows to use.
+					 * @param mixed  $screen_option The value to save instead of the option value.
+					 *                              Default false (to skip saving the current option).
+					 * @param string $option        The option name.
+					 * @param int    $value         The option value.
 					 */
-					$value = apply_filters( 'set-screen-option', false, $option, $value ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+					$screen_option = apply_filters( 'set-screen-option', $screen_option, $option, $value ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 				}
 
 				/**
@@ -716,18 +718,18 @@ function set_screen_options() {
 				 *
 				 * The dynamic portion of the hook, `$option`, refers to the option name.
 				 *
-				 * Returning false to the filter will skip saving the current option.
+				 * Returning false from the filter will skip saving the current option.
 				 *
 				 * @since 5.4.2
 				 *
 				 * @see set_screen_options()
 				 *
-				 * @param bool   $keep   Whether to save or skip saving the screen option value.
-				 *                       Default false.
-				 * @param string $option The option name.
-				 * @param int    $value  The number of rows to use.
+				 * @param mixed   $screen_option The value to save instead of the option value.
+				 *                               Default false (to skip saving the current option).
+				 * @param string  $option        The option name.
+				 * @param int     $value         The option value.
 				 */
-				$value = apply_filters( "set_screen_option_{$option}", false, $option, $value );
+				$value = apply_filters( "set_screen_option_{$option}", $screen_option, $option, $value );
 
 				if ( false === $value ) {
 					return;
@@ -1028,7 +1030,7 @@ function _ipad_meta() {
  *
  * @param array  $response  The Heartbeat response.
  * @param array  $data      The $_POST data sent.
- * @param string $screen_id The screen id.
+ * @param string $screen_id The screen ID.
  * @return array The Heartbeat response.
  */
 function wp_check_locked_posts( $response, $data, $screen_id ) {
@@ -1075,7 +1077,7 @@ function wp_check_locked_posts( $response, $data, $screen_id ) {
  *
  * @param array  $response  The Heartbeat response.
  * @param array  $data      The $_POST data sent.
- * @param string $screen_id The screen id.
+ * @param string $screen_id The screen ID.
  * @return array The Heartbeat response.
  */
 function wp_refresh_post_lock( $response, $data, $screen_id ) {
@@ -1128,7 +1130,7 @@ function wp_refresh_post_lock( $response, $data, $screen_id ) {
  *
  * @param array  $response  The Heartbeat response.
  * @param array  $data      The $_POST data sent.
- * @param string $screen_id The screen id.
+ * @param string $screen_id The screen ID.
  * @return array The Heartbeat response.
  */
 function wp_refresh_post_nonces( $response, $data, $screen_id ) {

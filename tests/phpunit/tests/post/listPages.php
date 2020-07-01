@@ -5,42 +5,42 @@
  */
 class Tests_List_Pages extends WP_UnitTestCase {
 	/**
-	 * Editor user id.
+	 * Editor user ID.
 	 *
 	 * @var int
 	 */
 	public static $editor;
 
 	/**
-	 * Author user id.
+	 * Author user ID.
 	 *
 	 * @var int
 	 */
 	public static $author;
 
 	/**
-	 * Parent page id.
+	 * Parent page ID.
 	 *
 	 * @var int
 	 */
 	public static $parent_1;
 
 	/**
-	 * Parent page id.
+	 * Parent page ID.
 	 *
 	 * @var int
 	 */
 	public static $parent_2;
 
 	/**
-	 * Parent page id.
+	 * Parent page ID.
 	 *
 	 * @var int
 	 */
 	public static $parent_3;
 
 	/**
-	 * Child page ids.
+	 * Child page IDs.
 	 *
 	 * @var array
 	 */

@@ -379,18 +379,23 @@ function user_can_edit_user($user_id, $other_user) {
  * @deprecated 2.1.0 Use get_bookmarks()
  * @see get_bookmarks()
  *
- * @param string $cat_name Optional. The category name to use. If no match is found uses all.
- * @param string $before Optional. The html to output before the link.
- * @param string $after Optional. The html to output after the link.
- * @param string $between Optional. The html to output between the link/image and its description. Not used if no image or $show_images is true.
- * @param bool $show_images Optional. Whether to show images (if defined).
- * @param string $orderby Optional. The order to output the links. E.g. 'id', 'name', 'url', 'description' or 'rating'. Or maybe owner.
- *		If you start the name with an underscore the order will be reversed. You can also specify 'rand' as the order which will return links in a
- *		random order.
- * @param bool $show_description Optional. Whether to show the description if show_images=false/not defined.
- * @param bool $show_rating Optional. Show rating stars/chars.
- * @param int $limit		Optional. Limit to X entries. If not specified, all entries are shown.
- * @param int $show_updated Optional. Whether to show last updated timestamp
+ * @param string $cat_name         Optional. The category name to use. If no match is found, uses all.
+ *                                 Default 'noname'.
+ * @param string $before           Optional. The HTML to output before the link. Default empty.
+ * @param string $after            Optional. The HTML to output after the link. Default '<br />'.
+ * @param string $between          Optional. The HTML to output between the link/image and its description.
+ *                                 Not used if no image or $show_images is true. Default ' '.
+ * @param bool   $show_images      Optional. Whether to show images (if defined). Default true.
+ * @param string $orderby          Optional. The order to output the links. E.g. 'id', 'name', 'url',
+ *                                 'description', 'rating', or 'owner'. Default 'id'.
+ *                                 If you start the name with an underscore, the order will be reversed.
+ *                                 Specifying 'rand' as the order will return links in a random order.
+ * @param bool   $show_description Optional. Whether to show the description if show_images=false/not defined.
+ *                                 Default true.
+ * @param bool   $show_rating      Optional. Show rating stars/chars. Default false.
+ * @param int    $limit            Optional. Limit to X entries. If not specified, all entries are shown.
+ *                                 Default -1.
+ * @param int    $show_updated     Optional. Whether to show last updated timestamp. Default 0.
  */
 function get_linksbyname($cat_name = "noname", $before = '', $after = '<br />', $between = " ", $show_images = true, $orderby = 'id',
 						$show_description = true, $show_rating = false,
@@ -447,11 +452,14 @@ function wp_get_linksbyname($category, $args = '') {
  * @deprecated 2.1.0 Use get_bookmarks()
  * @see get_bookmarks()
  *
- * @param string $cat_name The category name to use. If no match is found uses all.
- * @param string $orderby The order to output the links. E.g. 'id', 'name', 'url', 'description', or 'rating'.
- *		Or maybe owner. If you start the name with an underscore the order will be reversed. You can also
- *		specify 'rand' as the order which will return links in a random order.
- * @param int $limit Limit to X entries. If not specified, all entries are shown.
+ * @param string $cat_name Optional. The category name to use. If no match is found, uses all.
+ *                         Default 'noname'.
+ * @param string $orderby  Optional. The order to output the links. E.g. 'id', 'name', 'url',
+ *                         'description', 'rating', or 'owner'. Default 'name'.
+ *                         If you start the name with an underscore, the order will be reversed.
+ *                         Specifying 'rand' as the order will return links in a random order.
+ * @param int    $limit    Optional. Limit to X entries. If not specified, all entries are shown.
+ *                         Default -1.
  * @return array
  */
 function get_linkobjectsbyname($cat_name = "noname" , $orderby = 'name', $limit = -1) {
@@ -497,12 +505,14 @@ function get_linkobjectsbyname($cat_name = "noname" , $orderby = 'name', $limit 
  * @deprecated 2.1.0 Use get_bookmarks()
  * @see get_bookmarks()
  *
- * @param int $category The category to use. If no category supplied uses all
- * @param string $orderby the order to output the links. E.g. 'id', 'name', 'url',
- *		'description', or 'rating'. Or maybe owner. If you start the name with an
- *		underscore the order will be reversed. You can also specify 'rand' as the
- *		order which will return links in a random order.
- * @param int $limit Limit to X entries. If not specified, all entries are shown.
+ * @param int    $category Optional. The category to use. If no category supplied, uses all.
+ *                         Default 0.
+ * @param string $orderby  Optional. The order to output the links. E.g. 'id', 'name', 'url',
+ *                         'description', 'rating', or 'owner'. Default 'name'.
+ *                         If you start the name with an underscore, the order will be reversed.
+ *                         Specifying 'rand' as the order will return links in a random order.
+ * @param int    $limit    Optional. Limit to X entries. If not specified, all entries are shown.
+ *                         Default 0.
  * @return array
  */
 function get_linkobjects($category = 0, $orderby = 'name', $limit = 0) {
@@ -524,18 +534,22 @@ function get_linkobjects($category = 0, $orderby = 'name', $limit = 0) {
  * @deprecated 2.1.0 Use get_bookmarks()
  * @see get_bookmarks()
  *
- * @param string $cat_name The category name to use. If no match is found uses all
- * @param string $before The html to output before the link
- * @param string $after The html to output after the link
- * @param string $between The html to output between the link/image and its description. Not used if no image or show_images is true
- * @param bool $show_images Whether to show images (if defined).
- * @param string $orderby the order to output the links. E.g. 'id', 'name', 'url',
- *		'description', or 'rating'. Or maybe owner. If you start the name with an
- *		underscore the order will be reversed. You can also specify 'rand' as the
- *		order which will return links in a random order.
- * @param bool $show_description Whether to show the description if show_images=false/not defined
- * @param int $limit Limit to X entries. If not specified, all entries are shown.
- * @param int $show_updated Whether to show last updated timestamp
+ * @param string $cat_name         Optional. The category name to use. If no match is found, uses all.
+ *                                 Default 'noname'.
+ * @param string $before           Optional. The HTML to output before the link. Default empty.
+ * @param string $after            Optional. The HTML to output after the link. Default '<br />'.
+ * @param string $between          Optional. The HTML to output between the link/image and its description.
+ *                                 Not used if no image or $show_images is true. Default ' '.
+ * @param bool   $show_images      Optional. Whether to show images (if defined). Default true.
+ * @param string $orderby          Optional. The order to output the links. E.g. 'id', 'name', 'url',
+ *                                 'description', 'rating', or 'owner'. Default 'id'.
+ *                                 If you start the name with an underscore, the order will be reversed.
+ *                                 Specifying 'rand' as the order will return links in a random order.
+ * @param bool   $show_description Optional. Whether to show the description if show_images=false/not defined.
+ *                                 Default true.
+ * @param int    $limit		       Optional. Limit to X entries. If not specified, all entries are shown.
+ *                                 Default -1.
+ * @param int    $show_updated     Optional. Whether to show last updated timestamp. Default 0.
  */
 function get_linksbyname_withrating($cat_name = "noname", $before = '', $after = '<br />', $between = " ",
 									$show_images = true, $orderby = 'id', $show_description = true, $limit = -1, $show_updated = 0) {
@@ -551,18 +565,22 @@ function get_linksbyname_withrating($cat_name = "noname", $before = '', $after =
  * @deprecated 2.1.0 Use get_bookmarks()
  * @see get_bookmarks()
  *
- * @param int $category The category to use. If no category supplied uses all
- * @param string $before The html to output before the link
- * @param string $after The html to output after the link
- * @param string $between The html to output between the link/image and its description. Not used if no image or show_images == true
- * @param bool $show_images Whether to show images (if defined).
- * @param string $orderby The order to output the links. E.g. 'id', 'name', 'url',
- *		'description', or 'rating'. Or maybe owner. If you start the name with an
- *		underscore the order will be reversed. You can also specify 'rand' as the
- *		order which will return links in a random order.
- * @param bool $show_description Whether to show the description if show_images=false/not defined.
- * @param int $limit Limit to X entries. If not specified, all entries are shown.
- * @param int $show_updated Whether to show last updated timestamp
+ * @param int    $category         Optional. The category to use. If no category supplied, uses all.
+ *                                 Default 0.
+ * @param string $before           Optional. The HTML to output before the link. Default empty.
+ * @param string $after            Optional. The HTML to output after the link. Default '<br />'.
+ * @param string $between          Optional. The HTML to output between the link/image and its description.
+ *                                 Not used if no image or $show_images is true. Default ' '.
+ * @param bool   $show_images      Optional. Whether to show images (if defined). Default true.
+ * @param string $orderby          Optional. The order to output the links. E.g. 'id', 'name', 'url',
+ *                                 'description', 'rating', or 'owner'. Default 'id'.
+ *                                 If you start the name with an underscore, the order will be reversed.
+ *                                 Specifying 'rand' as the order will return links in a random order.
+ * @param bool   $show_description Optional. Whether to show the description if show_images=false/not defined.
+ *                                 Default true.
+ * @param int    $limit		       Optional. Limit to X entries. If not specified, all entries are shown.
+ *                                 Default -1.
+ * @param int    $show_updated     Optional. Whether to show last updated timestamp. Default 0.
  */
 function get_links_withrating($category = -1, $before = '', $after = '<br />', $between = " ", $show_images = true,
 							$orderby = 'id', $show_description = true, $limit = -1, $show_updated = 0) {
@@ -898,27 +916,30 @@ function wp_get_links($args = '') {
 }
 
 /**
- * Gets the links associated with category by id.
+ * Gets the links associated with category by ID.
  *
  * @since 0.71
  * @deprecated 2.1.0 Use get_bookmarks()
  * @see get_bookmarks()
  *
- * @param int $category The category to use. If no category supplied uses all
- * @param string $before the html to output before the link
- * @param string $after the html to output after the link
- * @param string $between the html to output between the link/image and its description.
- *		Not used if no image or show_images == true
- * @param bool $show_images whether to show images (if defined).
- * @param string $orderby the order to output the links. E.g. 'id', 'name', 'url',
- *		'description', or 'rating'. Or maybe owner. If you start the name with an
- *		underscore the order will be reversed. You can also specify 'rand' as the order
- *		which will return links in a random order.
- * @param bool $show_description whether to show the description if show_images=false/not defined.
- * @param bool $show_rating show rating stars/chars
- * @param int $limit Limit to X entries. If not specified, all entries are shown.
- * @param int $show_updated whether to show last updated timestamp
- * @param bool $echo whether to echo the results, or return them instead
+ * @param int    $category         Optional. The category to use. If no category supplied uses all.
+ *                                 Default 0.
+ * @param string $before           Optional. The HTML to output before the link. Default empty.
+ * @param string $after            Optional. The HTML to output after the link. Default '<br />'.
+ * @param string $between          Optional. The HTML to output between the link/image and its description.
+ *                                 Not used if no image or $show_images is true. Default ' '.
+ * @param bool   $show_images      Optional. Whether to show images (if defined). Default true.
+ * @param string $orderby          Optional. The order to output the links. E.g. 'id', 'name', 'url',
+ *                                 'description', 'rating', or 'owner'. Default 'name'.
+ *                                 If you start the name with an underscore, the order will be reversed.
+ *                                 Specifying 'rand' as the order will return links in a random order.
+ * @param bool   $show_description Optional. Whether to show the description if show_images=false/not defined.
+ *                                 Default true.
+ * @param bool   $show_rating      Optional. Show rating stars/chars. Default false.
+ * @param int    $limit            Optional. Limit to X entries. If not specified, all entries are shown.
+ *                                 Default -1.
+ * @param int    $show_updated     Optional. Whether to show last updated timestamp. Default 1.
+ * @param bool   $echo             Whether to echo the results, or return them instead.
  * @return null|string
  */
 function get_links($category = -1, $before = '', $after = '<br />', $between = ' ', $show_images = true, $orderby = 'name',
@@ -1079,7 +1100,7 @@ function get_linkrating( $link ) {
 }
 
 /**
- * Gets the name of category by id.
+ * Gets the name of category by ID.
  *
  * @since 0.71
  * @deprecated 2.1.0 Use get_category()
@@ -1242,10 +1263,11 @@ function get_catname( $cat_ID ) {
  * @deprecated 2.8.0 Use get_term_children()
  * @see get_term_children()
  *
- * @param int $id Category ID to retrieve children.
- * @param string $before Optional. Prepend before category term ID.
- * @param string $after Optional, default is empty string. Append after category term ID.
- * @param array $visited Optional. Category Term IDs that have already been added.
+ * @param int    $id      Category ID to retrieve children.
+ * @param string $before  Optional. Prepend before category term ID. Default '/'.
+ * @param string $after   Optional. Append after category term ID. Default empty string.
+ * @param array  $visited Optional. Category Term IDs that have already been added.
+ *                        Default empty array.
  * @return string
  */
 function get_category_children( $id, $before = '/', $after = '', $visited = array() ) {
@@ -1627,30 +1649,31 @@ function the_author_ID() {
 /**
  * Display the post content for the feed.
  *
- * For encoding the html or the $encode_html parameter, there are three possible
- * values. '0' will make urls footnotes and use make_url_footnote(). '1' will
- * encode special characters and automatically display all of the content. The
- * value of '2' will strip all HTML tags from the content.
+ * For encoding the HTML or the $encode_html parameter, there are three possible values:
+ * - '0' will make urls footnotes and use make_url_footnote().
+ * - '1' will encode special characters and automatically display all of the content.
+ * - '2' will strip all HTML tags from the content.
  *
- * Also note that you cannot set the amount of words and not set the html
- * encoding. If that is the case, then the html encoding will default to 2,
- * which will strip all HTML tags.
+ * Also note that you cannot set the amount of words and not set the HTML encoding.
+ * If that is the case, then the HTML encoding will default to 2, which will strip
+ * all HTML tags.
  *
- * To restrict the amount of words of the content, you can use the cut
- * parameter. If the content is less than the amount, then there won't be any
- * dots added to the end. If there is content left over, then dots will be added
- * and the rest of the content will be removed.
+ * To restrict the amount of words of the content, you can use the cut parameter.
+ * If the content is less than the amount, then there won't be any dots added to the end.
+ * If there is content left over, then dots will be added and the rest of the content
+ * will be removed.
  *
  * @since 0.71
  *
  * @deprecated 2.9.0 Use the_content_feed()
  * @see the_content_feed()
  *
- * @param string $more_link_text Optional. Text to display when more content is available but not displayed.
- * @param int $stripteaser Optional. Default is 0.
- * @param string $more_file Optional.
- * @param int $cut Optional. Amount of words to keep for the content.
- * @param int $encode_html Optional. How to encode the content.
+ * @param string $more_link_text Optional. Text to display when more content is available
+ *                               but not displayed. Default '(more...)'.
+ * @param int    $stripteaser    Optional. Default 0.
+ * @param string $more_file      Optional.
+ * @param int    $cut            Optional. Amount of words to keep for the content.
+ * @param int    $encode_html    Optional. How to encode the content.
  */
 function the_content_rss($more_link_text='(more...)', $stripteaser=0, $more_file='', $cut = 0, $encode_html = 0) {
 	_deprecated_function( __FUNCTION__, '2.9.0', 'the_content_feed()' );
@@ -1703,7 +1726,7 @@ function the_content_rss($more_link_text='(more...)', $stripteaser=0, $more_file
  * @since 0.71
  * @deprecated 2.9.0
  *
- * @param string $content Content to get links
+ * @param string $content Content to get links.
  * @return string HTML stripped out of content with links at the bottom.
  */
 function make_url_footnote( $content ) {
@@ -1741,9 +1764,9 @@ function make_url_footnote( $content ) {
  * @deprecated 2.9.0 Use _x()
  * @see _x()
  *
- * @param string $text Text to translate
- * @param string $domain Optional. Domain to retrieve the translated text
- * @return string Translated context string without pipe
+ * @param string $text Text to translate.
+ * @param string $domain Optional. Domain to retrieve the translated text.
+ * @return string Translated context string without pipe.
  */
 function _c( $text, $domain = 'default' ) {
 	_deprecated_function( __FUNCTION__, '2.9.0', '_x()' );
@@ -1758,9 +1781,9 @@ function _c( $text, $domain = 'default' ) {
  * @deprecated 3.0.0 Use _x()
  * @see _x()
  *
- * @param string $text Text to translate
- * @param string $domain Domain to retrieve the translated text
- * @return string Translated text
+ * @param string $text Text to translate.
+ * @param string $domain Domain to retrieve the translated text.
+ * @return string Translated text.
  */
 function translate_with_context( $text, $domain = 'default' ) {
 	_deprecated_function( __FUNCTION__, '2.9.0', '_x()' );
@@ -1834,10 +1857,10 @@ function get_alloptions() {
  * @deprecated 2.5.0 Use wp_get_attachment_link()
  * @see wp_get_attachment_link()
  *
- * @param int $id Optional. Post ID.
- * @param bool $fullsize Optional, default is false. Whether to use full size image.
+ * @param int   $id       Optional. Post ID.
+ * @param bool  $fullsize Optional. Whether to use full size image. Default false.
  * @param array $max_dims Optional. Max image dimensions.
- * @param bool $permalink Optional, default is false. Whether to include permalink to image.
+ * @param bool $permalink Optional. Whether to include permalink to image. Default false.
  * @return string
  */
 function get_the_attachment_link($id = 0, $fullsize = false, $max_dims = false, $permalink = false) {
@@ -1864,8 +1887,8 @@ function get_the_attachment_link($id = 0, $fullsize = false, $max_dims = false, 
  * @deprecated 2.5.0 Use wp_get_attachment_image_src()
  * @see wp_get_attachment_image_src()
  *
- * @param int $id Optional. Post ID.
- * @param bool $fullsize Optional, default to false. Whether to have full image.
+ * @param int  $id       Optional. Post ID.
+ * @param bool $fullsize Optional. Whether to have full image. Default false.
  * @return array Icon URL and full path to file, respectively.
  */
 function get_attachment_icon_src( $id = 0, $fullsize = false ) {
@@ -1905,8 +1928,8 @@ function get_attachment_icon_src( $id = 0, $fullsize = false ) {
  * @deprecated 2.5.0 Use wp_get_attachment_image()
  * @see wp_get_attachment_image()
  *
- * @param int $id Optional. Post ID.
- * @param bool $fullsize Optional, default to false. Whether to have full size image.
+ * @param int   $id       Optional. Post ID.
+ * @param bool  $fullsize Optional. Whether to have full size image. Default false.
  * @param array $max_dims Optional. Dimensions of image.
  * @return string|false HTML content.
  */
@@ -1961,8 +1984,8 @@ function get_attachment_icon( $id = 0, $fullsize = false, $max_dims = false ) {
  * @deprecated 2.5.0 Use wp_get_attachment_image()
  * @see wp_get_attachment_image()
  *
- * @param int $id Optional. Post ID.
- * @param bool $fullsize Optional, default to false. Whether to have full size image.
+ * @param int   $id       Optional. Post ID.
+ * @param bool  $fullsize Optional. Whether to have full size image. Default false.
  * @param array $max_dims Optional. Dimensions of image.
  * @return string|false
  */
@@ -2386,7 +2409,7 @@ function get_users_of_blog( $id = '' ) {
  * @deprecated 3.0.0 Use add_theme_support()
  * @see add_theme_support()
  *
- * @param bool $add Optional, default is true. Add or remove links. Defaults to true.
+ * @param bool $add Optional. Add or remove links. Default true.
  */
 function automatic_feed_links( $add = true ) {
 	_deprecated_function( __FUNCTION__, '3.0.0', "add_theme_support( 'automatic-feed-links' )" );
@@ -2405,7 +2428,7 @@ function automatic_feed_links( $add = true ) {
  * @see get_the_author_meta()
  *
  * @param string    $field User meta field.
- * @param false|int $user Optional. User ID to retrieve the field for. Default false (current user).
+ * @param false|int $user  Optional. User ID to retrieve the field for. Default false (current user).
  * @return string The author's field from the current author's DB object.
  */
 function get_profile( $field, $user = false ) {
@@ -2623,9 +2646,9 @@ function get_user_metavalues($ids) {
  * @since 2.3.0
  * @deprecated 3.3.0
  *
- * @param object|array $user The User Object or Array
- * @param string $context Optional, default is 'display'. How to sanitize user fields.
- * @return object|array The now sanitized User Object or Array (will be the same type as $user)
+ * @param object|array $user    The user object or array.
+ * @param string       $context Optional. How to sanitize user fields. Default 'display'.
+ * @return object|array The now sanitized user object or array (will be the same type as $user).
  */
 function sanitize_user_object($user, $context = 'display') {
 	_deprecated_function( __FUNCTION__, '3.3.0' );
@@ -2660,10 +2683,12 @@ function sanitize_user_object($user, $context = 'display') {
  * @since 2.8.0
  * @deprecated 3.3.0
  *
- * @param string $title Optional. Link title format.
- * @param bool $in_same_cat Optional. Whether link should be in a same category.
- * @param string $excluded_categories Optional. Excluded categories IDs.
- * @param bool $start Optional, default is true. Whether to display link to first or last post.
+ * @param string $title               Optional. Link title format. Default '%title'.
+ * @param bool   $in_same_cat         Optional. Whether link should be in a same category.
+ *                                    Default false.
+ * @param string $excluded_categories Optional. Excluded categories IDs. Default empty.
+ * @param bool   $start               Optional. Whether to display link to first or last post.
+ *                                    Default true.
  * @return string
  */
 function get_boundary_post_rel_link($title = '%title', $in_same_cat = false, $excluded_categories = '', $start = true) {
@@ -3215,13 +3240,13 @@ function wp_load_image( $file ) {
  * @deprecated 3.5.0 Use wp_get_image_editor()
  * @see wp_get_image_editor()
  *
- * @param string $file Image file path.
- * @param int $max_w Maximum width to resize to.
- * @param int $max_h Maximum height to resize to.
- * @param bool $crop Optional. Whether to crop image or resize.
- * @param string $suffix Optional. File suffix.
- * @param string $dest_path Optional. New image file path.
- * @param int $jpeg_quality Optional, default is 90. Image quality percentage.
+ * @param string $file         Image file path.
+ * @param int    $max_w        Maximum width to resize to.
+ * @param int    $max_h        Maximum height to resize to.
+ * @param bool   $crop         Optional. Whether to crop image or resize. Default false.
+ * @param string $suffix       Optional. File suffix. Default null.
+ * @param string $dest_path    Optional. New image file path. Default null.
+ * @param int    $jpeg_quality Optional. Image quality percentage. Default 90.
  * @return mixed WP_Error on failure. String with new destination path.
  */
 function image_resize( $file, $max_w, $max_h, $crop = false, $suffix = null, $dest_path = null, $jpeg_quality = 90 ) {

@@ -380,4 +380,22 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		$content = file_get_contents( DIR_TESTDATA . '/blocks/do-blocks-expected.html' );
 		$this->assertFalse( has_blocks( $content ) );
 	}
+
+	/**
+	 * @ticket 49615
+	 */
+	public function test_filter_block_registration() {
+		$filter_registration = function( $args, $name ) {
+			$args['attributes'] = array( $name => array( 'type' => 'boolean' ) );
+			return $args;
+		};
+
+		add_filter( 'register_block_type_args', $filter_registration, 10, 2 );
+		register_block_type( 'core/test-filtered', array() );
+		remove_filter( 'register_block_type_args', $filter_registration );
+
+		$registry   = WP_Block_Type_Registry::get_instance();
+		$block_type = $registry->get_registered( 'core/test-filtered' );
+		$this->assertEquals( 'boolean', $block_type->attributes['core/test-filtered']['type'] );
+	}
 }

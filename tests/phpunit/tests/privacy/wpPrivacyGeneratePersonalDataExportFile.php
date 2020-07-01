@@ -320,7 +320,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		$request         = wp_get_user_request( self::$export_request_id );
 
 		$this->assertNotContains( '<div id="table_of_contents">', $report_contents );
-		$this->assertNotContains( '<div class="return_to_top">', $report_contents );
+		$this->assertNotContains( '<div class="return-to-top">', $report_contents );
 		$this->assertContains( $request->email, $report_contents );
 	}
 
@@ -396,7 +396,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 
 		$this->assertContains( '<div id="table_of_contents">', $report_contents );
 		$this->assertContains( '<h2 id="user-user">User</h2>', $report_contents );
-		$this->assertContains( '<div class="return_to_top">', $report_contents );
+		$this->assertContains( '<div class="return-to-top">', $report_contents );
 		$this->assertContains( $request->email, $report_contents );
 	}
 
