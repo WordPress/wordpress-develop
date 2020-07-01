@@ -1022,36 +1022,32 @@ class WP_Automatic_Updater {
 				foreach ( $failed_updates['plugin'] as $item ) {
 					$body[] = "- {$item->name}";
                     
-                    /*
-					 * Failed Plugin list to store into the database
-					 */ 
-					$failed_plugin = array( 'name' => $item->name, 'failure_time' => time(), 'file_name' => $item->item->plugin );
-					if( isset( $failed_update_plugins_themes['plugin'] ) && !empty( $failed_update_plugins_themes['plugin'] ) ){
-						if( array_search($item->item->plugin, array_column($failed_update_plugins_themes['plugin'], 'file_name')) === false ) {
-							$failed_update_plugins_themes['plugin'][] = $failed_plugin;	
-						}	
-					}else{
-						$failed_update_plugins_themes['plugin'][] = $failed_plugin;
-					}
+                // Failed Plugin list to store into the database 
+                $failed_plugin = array( 'name' => $item->name, 'failure_time' => time(), 'file_name' => $item->item->plugin );
+                if( isset( $failed_update_plugins_themes['plugin'] ) && ! empty( $failed_update_plugins_themes['plugin'] ) ) {
+                    if( array_search( $item->item->plugin, array_column( $failed_update_plugins_themes['plugin'], 'file_name' ) ) === false ) {
+                        $failed_update_plugins_themes['plugin'][] = $failed_plugin;	
+                    }	
+                } else {
+                    $failed_update_plugins_themes['plugin'][] = $failed_plugin;
+                }
                     
 				}
 				$body[] = "\n";
 			}
             
             
-            /*
-			 * Check for 3 days passed or not
-			 */
-			if( isset( $failed_update_plugins_themes['plugin'] ) && !empty( $failed_update_plugins_themes['plugin'] ) ){
-				foreach( $failed_update_plugins_themes['plugin'] as $key => $failed_plugin ){
-					if( isset( $failed_plugin ) && !empty( $failed_plugin['failure_time'] ) ){
+            // Check for 3 days passed or not
+			if( isset( $failed_update_plugins_themes['plugin'] ) && ! empty( $failed_update_plugins_themes['plugin'] ) ) {
+				foreach( $failed_update_plugins_themes['plugin'] as $key => $failed_plugin ) {
+					if( isset( $failed_plugin ) && ! empty( $failed_plugin['failure_time'] ) ) {
 						$current_time 	= time(); 
 						$lastcheck  	= $failed_plugin['failure_time'];
 						$datediff   	= $current_time - $lastcheck;
 						
-						$days_check = round($datediff / (60 * 60 * 24));
-						if( $days_check >= 3 ){
-							unset($failed_update_plugins_themes['plugin'][$key]);
+						$days_check = round( $datediff / ( 60 * 60 * 24 ) );
+						if( $days_check >= 3 ) {
+							unset( $failed_update_plugins_themes['plugin'][$key] );
 							$body[] = $failed_plugin['name'];
 						}			
 					}	
@@ -1065,15 +1061,13 @@ class WP_Automatic_Updater {
 				foreach ( $failed_updates['theme'] as $item ) {
 					$body[] = "- {$item->name}";
                     
-                    /*
-					 * Failed Plugin list store in database
-					 */ 
+				    // Failed Plugin list store in database
 					$failed_theme = array( 'name' => $item->name, 'failure_time' => time(), 'file_name' => $item->item->theme );
-					if( isset( $failed_update_plugins_themes['plugin'] ) && !empty( $failed_update_plugins_themes['theme'] ) ){
-						if( array_search($item->item->theme, array_column($failed_update_plugins_themes['theme'], 'file_name')) === false ) {
+					if( isset( $failed_update_plugins_themes['plugin'] ) && ! empty( $failed_update_plugins_themes['theme'] ) ) {
+						if( array_search($item->item->theme, array_column( $failed_update_plugins_themes['theme'], 'file_name')) === false ) {
 							$failed_update_plugins_themes['theme'][] = $failed_theme;	
 						}	
-					}else{
+					} else {
 						$failed_update_plugins_themes['theme'][] = $failed_theme;
 					}
                     
@@ -1081,22 +1075,19 @@ class WP_Automatic_Updater {
 				$body[] = "\n";
 			}
             
-            /*
-			 * Check for 3 days passed or not
-			 */
-			if( isset( $failed_update_plugins_themes['theme'] ) && !empty( $failed_update_plugins_themes['theme'] ) ){
+            // Check for 3 days passed or not
+			if( isset( $failed_update_plugins_themes['theme'] ) && ! empty( $failed_update_plugins_themes['theme'] ) ) {
 				$body[] = "\n";
-				foreach( $failed_update_plugins_themes['theme'] as $key => $failed_theme ){
+				foreach( $failed_update_plugins_themes['theme'] as $key => $failed_theme ) {
 					
-					if( isset( $failed_theme ) && !empty( $failed_theme['failure_time'] ) ){
-						
+					if( isset( $failed_theme ) && ! empty( $failed_theme['failure_time'] ) ) {
 						$current_time 	= time(); 
 						$lastcheck  	= $failed_theme['failure_time'];
 						$datediff   	= $current_time - $lastcheck;
 						
-						$days_check = round($datediff / (60 * 60 * 24));
-						if( $days_check >= 3 ){
-							unset($failed_update_plugins_themes['theme'][$key]);
+						$days_check = round( $datediff / ( 60 * 60 * 24 ) );
+						if( $days_check >= 3 ) {
+							unset( $failed_update_plugins_themes['theme'][$key] );
 							$body[] = $failed_theme['name'];
 						}		
 							
