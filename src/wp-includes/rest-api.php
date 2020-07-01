@@ -1838,7 +1838,7 @@ function rest_default_additional_properties_to_false( $schema ) {
  * @since 5.5.0
  *
  * @param WP_Post $post The post object.
- * @return string The route path for the given post, or an empty string if there is not a route.
+ * @return string The route path with a leading slash for the given post, or an empty string if there is not a route.
  */
 function rest_get_route_for_post( $post ) {
 	if ( ! $post instanceof WP_Post ) {
@@ -1861,7 +1861,7 @@ function rest_get_route_for_post( $post ) {
 	if ( in_array( get_class( $controller ), array( 'WP_REST_Attachments_Controller', 'WP_REST_Posts_Controller' ), true ) ) {
 		$namespace = 'wp/v2';
 		$rest_base = ! empty( $post_type->rest_base ) ? $post_type->rest_base : $post_type->name;
-		$route     = sprintf( '%s/%s/%d', $namespace, $rest_base, $post->ID );
+		$route     = sprintf( '/%s/%s/%d', $namespace, $rest_base, $post->ID );
 	}
 
 	/**
@@ -1881,7 +1881,7 @@ function rest_get_route_for_post( $post ) {
  * @since 5.5.0
  *
  * @param WP_Term $term The term object.
- * @return string The route path for the given term, or an empty string if there is not a route.
+ * @return string The route path with a leading slash for the given term, or an empty string if there is not a route.
  */
 function rest_get_route_for_term( $term ) {
 	if ( ! $term instanceof WP_Term ) {
@@ -1904,7 +1904,7 @@ function rest_get_route_for_term( $term ) {
 	if ( 'WP_REST_Terms_Controller' === get_class( $controller ) ) {
 		$namespace = 'wp/v2';
 		$rest_base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
-		$route     = sprintf( '%s/%s/%d', $namespace, $rest_base, $term->term_id );
+		$route     = sprintf( '/%s/%s/%d', $namespace, $rest_base, $term->term_id );
 	}
 
 	/**
@@ -1935,7 +1935,7 @@ function rest_get_current_resource_link() {
 	}
 
 	if ( is_author() ) {
-		return rest_url( 'wp/v2/users/' . get_the_author_meta( 'ID' ) );
+		return rest_url( '/wp/v2/users/' . get_the_author_meta( 'ID' ) );
 	}
 
 	return '';

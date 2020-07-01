@@ -291,6 +291,9 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertEquals( count( $taxonomies ), count( $data ) );
 	}
 
+	/**
+	 * @ticket 49116
+	 */
 	public function test_get_for_taxonomy_reuses_same_instance() {
 		$this->assertSame(
 			get_taxonomy( 'category' )->get_rest_controller(),
@@ -298,6 +301,9 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		);
 	}
 
+	/**
+	 * @ticket 49116
+	 */
 	public function test_get_for_taxonomy_returns_terms_controller_if_custom_class_not_specified() {
 		register_taxonomy(
 			'test',

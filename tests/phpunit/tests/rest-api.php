@@ -1349,4 +1349,95 @@ class Tests_REST_API extends WP_UnitTestCase {
 			array( new WP_REST_Response( 'rest' ), 'rest' ),
 		);
 	}
+
+	/**
+	 * @ticket 49116
+	 * @dataProvider _dp_rest_get_route_for_post
+	 * @param string $expected
+	 * @param mixed $post
+	 */
+	public function test_rest_get_route_for_post( $expected, $post ) {
+		$this->assertEquals( $expected, rest_get_route_for_post( $post ) );
+	}
+
+	public function _dp_rest_get_route_for_post() {
+		$post = self::factory()->post->create_and_get();
+
+		$invalid_post_type            = clone $post;
+		$invalid_post_type->post_type = 'invalid_cpt';
+
+		$non_rest = self::factory()->post->create_and_get( array( 'post_type' => 'custom_css' ) );
+		$block    = self::factory()->post->create_and_get( array( 'post_type' => 'wp_block' ) );
+		$media    = self::factory()->attachment->create_and_get();
+
+		return array(
+			'non post'          => array(
+				'',
+				1,
+			),
+			'no post type'      => array(
+				'',
+				$invalid_post_type,
+			),
+			'not rest'          => array(
+				'',
+				$non_rest,
+			),
+			'custom controller' => array(
+				'',
+				$block,
+			),
+			'post'              => array(
+				'/wp/v2/posts/' . $post->ID,
+				$post,
+			),
+			'media'             => array(
+				'/wp/v2/media/' . $media->ID,
+				$media,
+			),
+		);
+	}
+
+	/**
+	 * @ticket 49116
+	 * @dataProvider _dp_rest_get_route_for_term
+	 * @param string $expected
+	 * @param mixed $term
+	 */
+	public function test_rest_get_route_for_term( $expected, $term ) {
+		$this->assertEquals( $expected, rest_get_route_for_term( $term ) );
+	}
+
+	public function _dp_rest_get_route_for_term() {
+		$term = self::factory()->term->create_and_get();
+
+		$invalid_taxonomy           = clone $term;
+		$invalid_taxonomy->taxonomy = 'invalid_tax';
+
+		$non_rest = self::factory()->term->create_and_get( array( 'taxonomy' => 'post_format' ) );
+		$cat      = self::factory()->term->create_and_get( array( 'taxonomy' => 'category' ) );
+
+		return array(
+			'non term'    => array(
+				'',
+				1,
+			),
+			'no taxonomy' => array(
+				'',
+				$invalid_taxonomy,
+			),
+			'not rest'    => array(
+				'',
+				$non_rest,
+			),
+			'tag'         => array(
+				'/wp/v2/tags/' . $term->term_id,
+				$term,
+			),
+			'category'    => array(
+				'/wp/v2/categories/' . $cat->term_id,
+				$cat,
+			),
+		);
+	}
 }
