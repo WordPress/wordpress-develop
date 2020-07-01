@@ -1822,11 +1822,11 @@ function rest_default_additional_properties_to_false( $schema ) {
 
 
 /**
- * Outputs a header link to a REST resource
+ * Outputs a header link to a REST resource.
  *
  * @since 5.5.0
  *
- * @param string       $url URL.
+ * @param string $url The URL to print.
  */
 function rest_head_link( $url ) {
 	if ( ! empty( $url ) ) {
@@ -1835,12 +1835,12 @@ function rest_head_link( $url ) {
 }
 
 /**
- * Return the rest route for a post.
+ * Gets the REST API route for a post.
  *
  * @since 5.5.0
  *
- * @param WP_Post       $post Post Object.
- * @return string           Route.
+ * @param WP_Post $post The post object.
+ * @return string The route path for the given post, or an empty string if there is not a route.
  */
 function rest_get_route_for_post( $post ) {
 	if ( ! $post instanceof WP_Post ) {
@@ -1867,23 +1867,23 @@ function rest_get_route_for_post( $post ) {
 	}
 
 	/**
-	 * Filters the route based on information in the post object.
+	 * Filters the REST API route for a post.
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param string $route Route.
-	 * @param WP_Post $post Post Object.
+	 * @param string  $route The route path.
+	 * @param WP_Post $post  The post object.
 	 */
 	return apply_filters( 'rest_route_for_post', $route, $post );
 }
 
 /**
- * Return the rest route for a term.
+ * Gets the REST API route for a term.
  *
  * @since 5.5.0
  *
- * @param WP_Term       $term Term.
- * @return string           Route.
+ * @param WP_Term $term The term object.
+ * @return string The route path for the given term, or an empty string if there is not a route.
  */
 function rest_get_route_for_term( $term ) {
 	if ( ! $term instanceof WP_Term ) {
@@ -1905,25 +1905,27 @@ function rest_get_route_for_term( $term ) {
 	// The only controller that works is the Terms controller.
 	if ( 'WP_REST_Terms_Controller' === get_class( $controller ) ) {
 		$namespace = 'wp/v2';
-		$rest_base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxnomomy->name;
+		$rest_base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
 		$route     = sprintf( '%s/%s/%d', $namespace, $rest_base, $term->term_id );
 	}
 
 	/**
-	 * Filters the route based on information in the term object.
+	 * Filters the REST API route for a term.
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param string $route Route.
-	 * @param WP_Term $term Term Object.
+	 * @param string  $route The route path.
+	 * @param WP_Term $term  The term object.
 	 */
 	return apply_filters( 'rest_route_for_term', $route, $term );
 }
 
 /**
- * Get a REST URL for the current object.
+ * Gets the REST URL for the currently queried object.
  *
- * @param string URL.
+ * @since 5.5.0
+ *
+ * @return string The REST URL of the resource, or an empty string if no resource identified.
  */
 function rest_get_current_resource_link() {
 	if ( is_singular() ) {
@@ -1942,10 +1944,9 @@ function rest_get_current_resource_link() {
 }
 
 /**
- * Add a link to the current REST API resource.
+ * Adds a link to the current REST API resource in the <head> of the page.
  *
  * @since 5.5.0
- *
  */
 function rest_add_resource_link() {
 	rest_head_link( rest_get_current_resource_link() );
