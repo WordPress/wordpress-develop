@@ -2675,23 +2675,138 @@ EOF;
 	}
 
 	/**
+	 * @ticket 44427
+	 * @ticket 50367
+	 */
+	function test_wp_img_tag_add_loading_attr() {
+		$img = '<img src="example.png" alt=" width="300" height="225" />';
+		$img = wp_img_tag_add_loading_attr( $img, 'test' );
+
+		$this->assertContains( ' loading="lazy"', $img );
+	}
+
+	/**
+	 * @ticket 44427
 	 * @ticket 50367
 	 */
 	function test_wp_img_tag_add_loading_attr_without_src() {
 		$img = '<img alt=" width="300" height="225" />';
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
 
-		$this->assertNotContains( ' loading="lazy"', $img );
+		$this->assertNotContains( ' loading=', $img );
 	}
 
 	/**
+	 * @ticket 44427
 	 * @ticket 50367
 	 */
 	function test_wp_img_tag_add_loading_attr_with_single_quotes() {
 		$img = "<img src='example.png' alt=' width='300' height='225' />";
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
 
+		$this->assertNotContains( ' loading=', $img );
+
+		// Test specifically that the attribute is not there with double-quotes,
+		// to avoid regressions.
 		$this->assertNotContains( ' loading="lazy"', $img );
+	}
+
+	/**
+	 * @ticket 44427
+	 * @ticket 50425
+	 */
+	function test_wp_img_tag_add_loading_attr_opt_out() {
+		$img = '<img src="example.png" alt=" width="300" height="225" />';
+		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
+
+		$this->assertNotContains( ' loading=', $img );
+	}
+
+	/**
+	 * @ticket 44427
+	 * @ticket 50425
+	 */
+	function test_wp_get_attachment_image_loading() {
+		$img = wp_get_attachment_image( self::$large_id );
+
+		$this->assertContains( ' loading="lazy"', $img );
+	}
+
+	/**
+	 * @ticket 44427
+	 * @ticket 50425
+	 */
+	function test_wp_get_attachment_image_loading_opt_out() {
+		add_filter( 'wp_lazy_loading_enabled', '__return_false' );
+		$img = wp_get_attachment_image( self::$large_id );
+
+		// There should not be any loading attribute in this case.
+		$this->assertNotContains( ' loading=', $img );
+	}
+
+	/**
+	 * @ticket 44427
+	 * @ticket 50425
+	 */
+	function test_wp_get_attachment_image_loading_opt_out_individual() {
+		// The default is already tested above, the filter below ensures that
+		// lazy-loading is definitely enabled globally for images.
+		add_filter( 'wp_lazy_loading_enabled', '__return_true' );
+
+		$img = wp_get_attachment_image( self::$large_id, 'thumbnail', false, array( 'loading' => false ) );
+
+		// There should not be any loading attribute in this case.
+		$this->assertNotContains( ' loading=', $img );
+	}
+
+	/**
+	 * @ticket 44427
+	 * @ticket 50425
+	 * @dataProvider data_wp_lazy_loading_enabled_tag_name_defaults
+	 *
+	 * @param string $tag_name  Function context.
+	 * @param bool   $expected Expected return value.
+	 */
+	function test_wp_lazy_loading_enabled_tag_name_defaults( $tag_name, $expected ) {
+		if ( $expected ) {
+			$this->assertTrue( wp_lazy_loading_enabled( $tag_name, 'the_content' ) );
+		} else {
+			$this->assertFalse( wp_lazy_loading_enabled( $tag_name, 'the_content' ) );
+		}
+	}
+
+	function data_wp_lazy_loading_enabled_tag_name_defaults() {
+		return array(
+			'img => true'            => array( 'img', true ),
+			'iframe => false'        => array( 'iframe', false ),
+			'arbitrary tag => false' => array( 'blink', false ),
+		);
+	}
+
+	/**
+	 * @ticket 50425
+	 * @dataProvider data_wp_lazy_loading_enabled_context_defaults
+	 *
+	 * @param string $context  Function context.
+	 * @param bool   $expected Expected return value.
+	 */
+	function test_wp_lazy_loading_enabled_context_defaults( $context, $expected ) {
+		if ( $expected ) {
+			$this->assertTrue( wp_lazy_loading_enabled( 'img', $context ) );
+		} else {
+			$this->assertFalse( wp_lazy_loading_enabled( 'img', $context ) );
+		}
+	}
+
+	function data_wp_lazy_loading_enabled_context_defaults() {
+		return array(
+			'wp_get_attachment_image => true' => array( 'wp_get_attachment_image', true ),
+			'the_content => true'             => array( 'the_content', true ),
+			'the_excerpt => true'             => array( 'the_excerpt', true ),
+			'widget_text_content => true'     => array( 'widget_text_content', true ),
+			'get_avatar => true'              => array( 'get_avatar', true ),
+			'arbitrary context => true'       => array( 'something_completely_arbitrary', true ),
+		);
 	}
 }
 
