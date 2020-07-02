@@ -1837,10 +1837,12 @@ function rest_default_additional_properties_to_false( $schema ) {
  *
  * @since 5.5.0
  *
- * @param WP_Post $post The post object.
+ * @param int|WP_Post $post Post ID or post object.
  * @return string The route path with a leading slash for the given post, or an empty string if there is not a route.
  */
 function rest_get_route_for_post( $post ) {
+	$post = get_post( $post );
+
 	if ( ! $post instanceof WP_Post ) {
 		return '';
 	}
@@ -1880,10 +1882,12 @@ function rest_get_route_for_post( $post ) {
  *
  * @since 5.5.0
  *
- * @param WP_Term $term The term object.
+ * @param int|WP_Term $term Term ID or term object.
  * @return string The route path with a leading slash for the given term, or an empty string if there is not a route.
  */
 function rest_get_route_for_term( $term ) {
+	$term = get_term( $term );
+
 	if ( ! $term instanceof WP_Term ) {
 		return '';
 	}
