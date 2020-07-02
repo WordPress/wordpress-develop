@@ -608,16 +608,7 @@ function wp_default_scripts( $scripts ) {
 	);
 
 	$scripts->add( 'common', "/wp-admin/js/common$suffix.js", array( 'jquery', 'hoverIntent', 'utils' ), false, 1 );
-	did_action( 'init' ) && $scripts->localize(
-		'common',
-		'commonL10n',
-		array(
-			'warnDelete'   => __( "You are about to permanently delete these items from your site.\nThis action cannot be undone.\n 'Cancel' to stop, 'OK' to delete." ),
-			'dismiss'      => __( 'Dismiss this notice.' ),
-			'collapseMenu' => __( 'Collapse Main menu' ),
-			'expandMenu'   => __( 'Expand Main menu' ),
-		)
-	);
+	$scripts->set_translations( 'common' );
 
 	$scripts->add( 'wp-sanitize', "/wp-includes/js/wp-sanitize$suffix.js", array(), false, 1 );
 
@@ -688,14 +679,8 @@ function wp_default_scripts( $scripts ) {
 		)
 	);
 
-	$scripts->add( 'wp-pointer', "/wp-includes/js/wp-pointer$suffix.js", array( 'jquery-ui-widget', 'jquery-ui-position' ), '20111129a', 1 );
-	did_action( 'init' ) && $scripts->localize(
-		'wp-pointer',
-		'wpPointerL10n',
-		array(
-			'dismiss' => __( 'Dismiss' ),
-		)
-	);
+	$scripts->add( 'wp-pointer', "/wp-includes/js/wp-pointer$suffix.js", array( 'jquery-ui-widget', 'jquery-ui-position' ), false, 1 );
+	$scripts->set_translations( 'wp-pointer' );
 
 	$scripts->add( 'autosave', "/wp-includes/js/autosave$suffix.js", array( 'heartbeat' ), false, 1 );
 
@@ -815,8 +800,8 @@ function wp_default_scripts( $scripts ) {
 
 	// Masonry v2 depended on jQuery. v3 does not. The older jquery-masonry handle is a shiv.
 	// It sets jQuery as a dependency, as the theme may have been implicitly loading it this way.
-	$scripts->add( 'imagesloaded', '/wp-includes/js/imagesloaded.min.js', array(), '4.1.4', 1 );
-	$scripts->add( 'masonry', '/wp-includes/js/masonry.min.js', array( 'imagesloaded' ), '4.2.2', 1 );
+	$scripts->add( 'imagesloaded', '/wp-includes/js/imagesloaded.min.js', array(), '3.2.0', 1 );
+	$scripts->add( 'masonry', '/wp-includes/js/masonry.min.js', array( 'imagesloaded' ), '3.3.2', 1 );
 	$scripts->add( 'jquery-masonry', "/wp-includes/js/jquery/jquery.masonry$dev_suffix.js", array( 'jquery', 'masonry' ), '3.1.2b', 1 );
 
 	$scripts->add( 'thickbox', '/wp-includes/js/thickbox/thickbox.js', array( 'jquery' ), '3.1-20121105', 1 );
@@ -1080,19 +1065,7 @@ function wp_default_scripts( $scripts ) {
 	$scripts->set_translations( 'password-strength-meter' );
 
 	$scripts->add( 'user-profile', "/wp-admin/js/user-profile$suffix.js", array( 'jquery', 'password-strength-meter', 'wp-util' ), false, 1 );
-	did_action( 'init' ) && $scripts->localize(
-		'user-profile',
-		'userProfileL10n',
-		array(
-			'warn'     => __( 'Your new password has not been saved.' ),
-			'warnWeak' => __( 'Confirm use of weak password' ),
-			'show'     => __( 'Show' ),
-			'hide'     => __( 'Hide' ),
-			'cancel'   => __( 'Cancel' ),
-			'ariaShow' => esc_attr__( 'Show password' ),
-			'ariaHide' => esc_attr__( 'Hide password' ),
-		)
-	);
+	$scripts->set_translations( 'user-profile' );
 
 	$scripts->add( 'language-chooser', "/wp-admin/js/language-chooser$suffix.js", array( 'jquery' ), false, 1 );
 
@@ -1294,7 +1267,8 @@ function wp_default_scripts( $scripts ) {
 			)
 		);
 
-		$scripts->add( 'post', "/wp-admin/js/post$suffix.js", array( 'suggest', 'wp-lists', 'postbox', 'tags-box', 'underscore', 'word-count', 'wp-a11y', 'wp-sanitize', 'clipboard', 'wp-i18n' ), false, 1 );
+		$scripts->add( 'post', "/wp-admin/js/post$suffix.js", array( 'suggest', 'wp-lists', 'postbox', 'tags-box', 'underscore', 'word-count', 'wp-a11y', 'wp-sanitize', 'clipboard' ), false, 1 );
+		$scripts->set_translations( 'post' );
 		did_action( 'init' ) && $scripts->localize(
 			'post',
 			'postL10n',
@@ -1465,7 +1439,7 @@ function wp_default_scripts( $scripts ) {
 			)
 		);
 
-		$scripts->add( 'image-edit', "/wp-admin/js/image-edit$suffix.js", array( 'jquery', 'json2', 'imgareaselect' ), false, 1 );
+		$scripts->add( 'image-edit', "/wp-admin/js/image-edit$suffix.js", array( 'jquery', 'jquery-ui-core', 'json2', 'imgareaselect' ), false, 1 );
 		did_action( 'init' ) && $scripts->localize(
 			'image-edit',
 			'imageEditL10n',
