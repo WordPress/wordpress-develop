@@ -62,21 +62,21 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param string   $tag             The name of the filter to hook the $function_to_add callback to.
-	 * @param callable $function_to_add The callback to be run when the filter is applied.
+	 * @param string   $hook            The name of the hook to add the callback to.
+	 * @param callable $filter          The callback to be run when the filter is applied.
 	 * @param int      $priority        The order in which the functions associated with a particular action
 	 *                                  are executed. Lower numbers correspond with earlier execution,
 	 *                                  and functions with the same priority are executed in the order
 	 *                                  in which they were added to the action.
 	 * @param int      $accepted_args   The number of arguments the function accepts.
 	 */
-	public function add_filter( $tag, $function_to_add, $priority, $accepted_args ) {
-		$idx = _wp_filter_build_unique_id( $tag, $function_to_add, $priority );
+	public function add_filter( $hook, $filter, $priority, $accepted_args ) {
+		$idx = _wp_filter_build_unique_id( $hook, $filter, $priority );
 
 		$priority_existed = isset( $this->callbacks[ $priority ] );
 
 		$this->callbacks[ $priority ][ $idx ] = array(
-			'function'      => $function_to_add,
+			'function'      => $filter,
 			'accepted_args' => $accepted_args,
 		);
 
@@ -163,13 +163,13 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param string   $tag                The filter hook to which the function to be removed is hooked.
-	 * @param callable $function_to_remove The callback to be removed from running when the filter is applied.
+	 * @param string   $hook               The filter hook to which the function to be removed is hooked.
+	 * @param callable $filter             The callback to be removed from running when the filter is applied.
 	 * @param int      $priority           The exact priority used when adding the original filter callback.
 	 * @return bool Whether the callback existed before it was removed.
 	 */
-	public function remove_filter( $tag, $function_to_remove, $priority ) {
-		$function_key = _wp_filter_build_unique_id( $tag, $function_to_remove, $priority );
+	public function remove_filter( $hook, $filter, $priority ) {
+		$function_key = _wp_filter_build_unique_id( $hook, $filter, $priority );
 
 		$exists = isset( $this->callbacks[ $priority ][ $function_key ] );
 		if ( $exists ) {
@@ -189,16 +189,16 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param string        $tag               Optional. The name of the filter hook. Default empty.
-	 * @param callable|bool $function_to_check Optional. The callback to check for. Default false.
+	 * @param string        $hook   Optional. The name of the filter hook. Default empty.
+	 * @param callable|bool $filter Optional. The callback to check for. Default false.
 	 * @return bool|int The priority of that hook is returned, or false if the function is not attached.
 	 */
-	public function has_filter( $tag = '', $function_to_check = false ) {
-		if ( false === $function_to_check ) {
+	public function has_filter( $hook = '', $filter = false ) {
+		if ( false === $filter ) {
 			return $this->has_filters();
 		}
 
-		$function_key = _wp_filter_build_unique_id( $tag, $function_to_check, false );
+		$function_key = _wp_filter_build_unique_id( $hook, $filter, false );
 		if ( ! $function_key ) {
 			return false;
 		}
