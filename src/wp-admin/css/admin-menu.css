@@ -346,7 +346,7 @@
 }
 
 #adminmenu div.wp-menu-name {
-	padding: 8px 0;
+	padding: 10px;
 }
 
 #adminmenu div.wp-menu-image {
@@ -355,6 +355,7 @@
 	height: 34px;
 	margin: 0;
 	text-align: center;
+	display: none;
 }
 
 #adminmenu div.wp-menu-image.svg {
@@ -392,6 +393,7 @@ div.wp-menu-image:before {
 }
 
 .folded #adminmenu div.wp-menu-image {
+	display: block;
 	width: 35px;
 	height: 30px;
 	position: absolute;
@@ -675,6 +677,7 @@ li#wp-admin-bar-menu-toggle {
 	}
 
 	.auto-fold #adminmenu div.wp-menu-image {
+		display: block;
 		height: 30px;
 		width: 34px;
 		position: absolute;
@@ -731,6 +734,10 @@ li#wp-admin-bar-menu-toggle {
 }
 
 @media screen and (max-width: 782px) {
+	.auto-fold #adminmenu div.wp-menu-image {
+		display: none;
+	}
+
 	.auto-fold #wpcontent {
 		position: relative;
 		margin-left: 0;
@@ -783,7 +790,6 @@ li#wp-admin-bar-menu-toggle {
 	/* Restore the menu names */
 	.auto-fold #adminmenu .wp-menu-name {
 		position: static;
-		margin-left: 35px;
 	}
 
 	/* Switch the arrow side */
