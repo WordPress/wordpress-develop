@@ -1151,8 +1151,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_get_item() {
 		wp_set_current_user( self::$admin_id );
-		$wp_theme = wp_get_theme();
-		$route    = sprintf( '%s/%s', self::$themes_route, $wp_theme->get_template() );
+		$route    = sprintf( '%s/%s', self::$themes_route, WP_DEFAULT_THEME );
 		$request  = new WP_REST_Request( 'GET', $route );
 		$response = rest_get_server()->dispatch( $request );
 
@@ -1188,7 +1187,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_get_item_no_permission() {
 		wp_set_current_user( self::$subscriber_id );
-		$request  = new WP_REST_Request( 'GET', self::$themes_route . '/twentytwenty' );
+		$request  = new WP_REST_Request( 'GET', self::$themes_route . '/' . WP_DEFAULT_THEME );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 403 );
 	}

@@ -83,15 +83,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		$registered = $this->get_collection_params();
 
 		if ( isset( $registered['status'], $request['status'] ) && is_array( $request['status'] ) && array( 'active' ) === $request['status'] ) {
-			if ( current_user_can( 'edit_posts' ) ) {
-				return true;
-			}
-
-			foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
-				if ( current_user_can( $post_type->cap->edit_posts ) ) {
-					return true;
-				}
-			}
+			return $this->check_read_permission();
 		}
 
 		if ( current_user_can( 'switch_themes' ) || current_user_can( 'manage_network_themes' ) ) {
@@ -125,6 +117,12 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			);
 		}
 
+		$wp_theme      = wp_get_theme( $request['name'] );
+		$current_theme = wp_get_theme();
+		if ( $this->is_current_theme( $wp_theme, $current_theme ) && $this->check_read_permission() ) {
+			return true;
+		}
+
 		if ( current_user_can( 'switch_themes' ) || current_user_can( 'manage_network_themes' ) ) {
 			return true;
 		}
@@ -136,6 +134,26 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		);
 	}
 
+	/**
+	 * Checks if a theme can be read.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @return bool Whether the theme can be read.
+	 */
+	public function check_read_permission() {
+		if ( current_user_can( 'edit_posts' ) ) {
+			return true;
+		}
+
+		foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
+			if ( current_user_can( $post_type->cap->edit_posts ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 
 	/**
 	 * Retrieves a single theme.
