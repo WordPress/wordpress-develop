@@ -871,10 +871,10 @@ function rest_output_link_wp_head() {
 
 	printf( '<link rel="https://api.w.org/" href="%s" />', esc_url( $api_root ) );
 
-	$resource = rest_get_current_resource_url();
+	$resource = rest_get_current_resource_route();
 
 	if ( $resource ) {
-		printf( '<link rel="alternate" type="application/json" href="%s" />', esc_url( $resource ) );
+		printf( '<link rel="alternate" type="application/json" href="%s" />', esc_url( rest_url( $resource ) ) );
 	}
 }
 
@@ -896,10 +896,10 @@ function rest_output_link_header() {
 
 	header( sprintf( 'Link: <%s>; rel="https://api.w.org/"', esc_url_raw( $api_root ) ), false );
 
-	$resource = rest_get_current_resource_url();
+	$resource = rest_get_current_resource_route();
 
 	if ( $resource ) {
-		header( sprintf( 'Link: <%s>; rel="alternate"; type="application/json"', esc_url_raw( $resource ) ), false );
+		header( sprintf( 'Link: <%s>; rel="alternate"; type="application/json"', esc_url_raw( rest_url( $resource ) ) ), false );
 	}
 }
 
@@ -1923,29 +1923,29 @@ function rest_get_route_for_term( $term ) {
 }
 
 /**
- * Gets the REST URL for the currently queried object.
+ * Gets the REST route for the currently queried object.
  *
  * @since 5.5.0
  *
- * @return string The REST URL of the resource, or an empty string if no resource identified.
+ * @return string The REST route of the resource, or an empty string if no resource identified.
  */
-function rest_get_current_resource_url() {
+function rest_get_current_resource_route() {
 	if ( is_singular() ) {
-		$link = rest_url( rest_get_route_for_post( get_post() ) );
+		$route = rest_get_route_for_post( get_post() );
 	} elseif ( is_category() || is_tag() || is_tax() ) {
-		$link = rest_url( rest_get_route_for_term( get_queried_object() ) );
+		$route = rest_get_route_for_term( get_queried_object() );
 	} elseif ( is_author() ) {
-		$link = rest_url( '/wp/v2/users/' . get_the_author_meta( 'ID' ) );
+		$route = '/wp/v2/users/' . get_the_author_meta( 'ID' );
 	} else {
-		$link = '';
+		$route = '';
 	}
 
 	/**
-	 * Filters the REST URL for the currently queried object.
+	 * Filters the REST route for the currently queried object.
 	 *
 	 * @since 5.5.0
 	 *
 	 * @param string $link The URL or an empty string.
 	 */
-	return apply_filters( 'rest_current_resource_url', $link );
+	return apply_filters( 'rest_current_resource_route', $route );
 }
