@@ -1,7 +1,7 @@
 $base-color: #1e1e1e;
 $highlight-color: #3858e9;
 $menu-submenu-focus-text: #33f078;
-$notification-color: #e26f56;
+$notification-color: $highlight-color;
 
 $link: $highlight-color;
 $link-focus: darken($highlight-color, 10%);
