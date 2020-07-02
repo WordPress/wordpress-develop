@@ -3910,7 +3910,8 @@ function wp_get_code_editor_settings( $args ) {
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param array $settings The array of settings passed to the code editor. A falsey value disables the editor.
+	 * @param array $settings The array of settings passed to the code editor.
+	 *                        A falsey value disables the editor.
 	 * @param array $args {
 	 *     Args passed when calling `get_code_editor_settings()`.
 	 *
@@ -4362,6 +4363,18 @@ function register_admin_color_schemes() {
 			'base'    => '#999',
 			'focus'   => '#ccc',
 			'current' => '#ccc',
+		)
+	);
+
+	wp_admin_css_color(
+		'modern',
+		_x( 'Modern', 'admin color scheme' ),
+		admin_url( "css/colors/modern/colors$suffix.css" ),
+		array( '#1e1e1e', '#3858e9', '#e26f56' ),
+		array(
+			'base'    => '#1e1e1e',
+			'focus'   => '#3858e9',
+			'current' => '#e26f56',
 		)
 	);
 

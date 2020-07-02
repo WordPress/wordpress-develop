@@ -1349,4 +1349,112 @@ class Tests_REST_API extends WP_UnitTestCase {
 			array( new WP_REST_Response( 'rest' ), 'rest' ),
 		);
 	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_post_non_post() {
+		$this->assertEquals( '', rest_get_route_for_post( 'garbage' ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_post_invalid_post_type() {
+		register_post_type( 'invalid' );
+		$post = self::factory()->post->create_and_get( array( 'post_type' => 'invalid' ) );
+		unregister_post_type( 'invalid' );
+
+		$this->assertEquals( '', rest_get_route_for_post( $post ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_post_non_rest() {
+		$post = self::factory()->post->create_and_get( array( 'post_type' => 'custom_css' ) );
+		$this->assertEquals( '', rest_get_route_for_post( $post ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_post_custom_controller() {
+		$post = self::factory()->post->create_and_get( array( 'post_type' => 'wp_block' ) );
+		$this->assertEquals( '', rest_get_route_for_post( $post ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_post() {
+		$post = self::factory()->post->create_and_get();
+		$this->assertEquals( '/wp/v2/posts/' . $post->ID, rest_get_route_for_post( $post ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_media() {
+		$post = self::factory()->attachment->create_and_get();
+		$this->assertEquals( '/wp/v2/media/' . $post->ID, rest_get_route_for_post( $post ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_post_id() {
+		$post = self::factory()->post->create_and_get();
+		$this->assertEquals( '/wp/v2/posts/' . $post->ID, rest_get_route_for_post( $post->ID ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_term_non_term() {
+		$this->assertEquals( '', rest_get_route_for_term( 'garbage' ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_term_invalid_term_type() {
+		register_taxonomy( 'invalid', 'post' );
+		$term = self::factory()->term->create_and_get( array( 'taxonomy' => 'invalid' ) );
+		unregister_taxonomy( 'invalid' );
+
+		$this->assertEquals( '', rest_get_route_for_term( $term ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_term_non_rest() {
+		$term = self::factory()->term->create_and_get( array( 'taxonomy' => 'post_format' ) );
+		$this->assertEquals( '', rest_get_route_for_term( $term ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_term() {
+		$term = self::factory()->term->create_and_get();
+		$this->assertEquals( '/wp/v2/tags/' . $term->term_id, rest_get_route_for_term( $term ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_category() {
+		$term = self::factory()->category->create_and_get();
+		$this->assertEquals( '/wp/v2/categories/' . $term->term_id, rest_get_route_for_term( $term ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_term_id() {
+		$term = self::factory()->term->create_and_get();
+		$this->assertEquals( '/wp/v2/tags/' . $term->term_id, rest_get_route_for_term( $term->term_id ) );
+	}
 }
