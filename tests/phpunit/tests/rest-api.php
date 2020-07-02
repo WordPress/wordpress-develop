@@ -1354,7 +1354,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * @ticket 49116
 	 * @dataProvider _dp_rest_get_route_for_post
 	 * @param string $expected
-	 * @param mixed $post
+	 * @param mixed  $post
 	 */
 	public function test_rest_get_route_for_post( $expected, $post ) {
 		$this->assertEquals( $expected, rest_get_route_for_post( $post ) );
@@ -1373,7 +1373,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		return array(
 			'non post'          => array(
 				'',
-				1,
+				'garbage',
 			),
 			'no post type'      => array(
 				'',
@@ -1395,6 +1395,10 @@ class Tests_REST_API extends WP_UnitTestCase {
 				'/wp/v2/media/' . $media->ID,
 				$media,
 			),
+			'post id'           => array(
+				'/wp/v2/posts/' . $post->ID,
+				$post->ID,
+			),
 		);
 	}
 
@@ -1402,7 +1406,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * @ticket 49116
 	 * @dataProvider _dp_rest_get_route_for_term
 	 * @param string $expected
-	 * @param mixed $term
+	 * @param mixed  $term
 	 */
 	public function test_rest_get_route_for_term( $expected, $term ) {
 		$this->assertEquals( $expected, rest_get_route_for_term( $term ) );
@@ -1420,7 +1424,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		return array(
 			'non term'    => array(
 				'',
-				1,
+				'garbage',
 			),
 			'no taxonomy' => array(
 				'',
@@ -1437,6 +1441,10 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'category'    => array(
 				'/wp/v2/categories/' . $cat->term_id,
 				$cat,
+			),
+			'tag id'      => array(
+				'/wp/v2/tags/' . $term->term_id,
+				$term->term_id,
 			),
 		);
 	}
