@@ -296,11 +296,12 @@ class Tests_List_Pages extends WP_UnitTestCase {
 
 	function test_wp_list_pages_number() {
 		$args = array(
-			'echo'   => false,
-			'number' => 1,
+			'echo'        => false,
+			'number'      => 1,
+			'sort_column' => 'ID',
 		);
 
-		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$children[ self::$parent_1 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][0] ) . '">Child 1</a></li>
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_1 . '"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1</a></li>
 </ul></li>';
 
 		$this->assertEqualsIgnoreEOL( $expected, wp_list_pages( $args ) );
@@ -309,31 +310,14 @@ class Tests_List_Pages extends WP_UnitTestCase {
 	function test_wp_list_pages_sort_column() {
 		$args = array(
 			'echo'        => false,
+			'depth'       => 1,
 			'sort_column' => 'post_author',
 			'sort_order'  => 'DESC',
 		);
 
-		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_3 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3</a>
-<ul class=\'children\'>
-	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][0] ) . '">Child 1</a></li>
-	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][1] ) . '">Child 2</a></li>
-	<li class="page_item page-item-' . self::$children[ self::$parent_3 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][2] ) . '">Child 3</a></li>
-</ul>
-</li>
-<li class="page_item page-item-' . self::$parent_1 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1</a>
-<ul class=\'children\'>
-	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][0] ) . '">Child 1</a></li>
-	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][1] ) . '">Child 2</a></li>
-	<li class="page_item page-item-' . self::$children[ self::$parent_1 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][2] ) . '">Child 3</a></li>
-</ul>
-</li>
-<li class="page_item page-item-' . self::$parent_2 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_2 ) . '">Parent 2</a>
-<ul class=\'children\'>
-	<li class="page_item page-item-' . self::$children[ self::$parent_2 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][0] ) . '">Child 1</a></li>
-	<li class="page_item page-item-' . self::$children[ self::$parent_2 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][1] ) . '">Child 2</a></li>
-	<li class="page_item page-item-' . self::$children[ self::$parent_2 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][2] ) . '">Child 3</a></li>
-</ul>
-</li>
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_3 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3</a></li>
+<li class="page_item page-item-' . self::$parent_1 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1</a></li>
+<li class="page_item page-item-' . self::$parent_2 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_2 ) . '">Parent 2</a></li>
 </ul></li>';
 
 		$this->assertEqualsIgnoreEOL( $expected, wp_list_pages( $args ) );
