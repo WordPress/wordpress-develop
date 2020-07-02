@@ -463,7 +463,6 @@ final class WP_Taxonomy {
 		remove_filter( 'wp_ajax_add-' . $this->name, '_wp_ajax_add_hierarchical_term' );
 	}
 
-
 	/**
 	 * Gets the REST API controller for this taxonomy.
 	 *
