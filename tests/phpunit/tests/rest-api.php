@@ -1396,8 +1396,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 				$media,
 			),
 			'post id'           => array(
-				'/wp/v2/posts/' . $post->ID,
-				$post->ID,
+				'/wp/v2/posts/1',
+				1,
 			),
 		);
 	}
@@ -1442,9 +1442,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 				'/wp/v2/categories/' . $cat->term_id,
 				$cat,
 			),
-			'tag id'      => array(
-				'/wp/v2/tags/' . $term->term_id,
-				$term->term_id,
+			'category id' => array(
+				'/wp/v2/categories/1',
+				1,
 			),
 		);
 	}
