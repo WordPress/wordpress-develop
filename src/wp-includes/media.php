@@ -1611,11 +1611,9 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
  * @return bool Whether to add the attribute.
  */
 function wp_lazy_loading_enabled( $tag_name, $context ) {
-	// By default add to all 'img' tags, except those rendered in templates
-	// via `wp_get_attachment_image()`, since they could be included anywhere
-	// in the page.
+	// By default add to all 'img' tags.
 	// See https://html.spec.whatwg.org/multipage/embedded-content.html#attr-img-loading
-	$default = ( 'img' === $tag_name && 'wp_get_attachment_image' !== $context );
+	$default = ( 'img' === $tag_name );
 
 	/**
 	 * Filters whether to add the `loading` attribute to the specified tag in the specified context.

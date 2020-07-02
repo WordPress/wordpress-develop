@@ -1332,7 +1332,7 @@ EOF;
 	 */
 	function test_wp_get_attachment_image_defaults() {
 		$image    = image_downsize( self::$large_id, 'thumbnail' );
-		$expected = sprintf( '<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="" />', $image[1], $image[2], $image[0] );
+		$expected = sprintf( '<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="" loading="lazy" />', $image[1], $image[2], $image[0] );
 
 		$this->assertEquals( $expected, wp_get_attachment_image( self::$large_id ) );
 	}
@@ -1347,7 +1347,7 @@ EOF;
 		update_post_meta( self::$large_id, '_wp_attachment_image_alt', 'Some very clever alt text', true );
 
 		$image    = image_downsize( self::$large_id, 'thumbnail' );
-		$expected = sprintf( '<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="Some very clever alt text" />', $image[1], $image[2], $image[0] );
+		$expected = sprintf( '<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="Some very clever alt text" loading="lazy" />', $image[1], $image[2], $image[0] );
 
 		$this->assertEquals( $expected, wp_get_attachment_image( self::$large_id ) );
 
@@ -2270,7 +2270,7 @@ EOF;
 		$month  = gmdate( 'm' );
 
 		$expected = '<img width="999" height="999" src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $year . '/' . $month . '/test-image-testsize-999x999.png"' .
-			' class="attachment-testsize size-testsize" alt=""' .
+			' class="attachment-testsize size-testsize" alt="" loading="lazy"' .
 			' srcset="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $year . '/' . $month . '/test-image-testsize-999x999.png 999w,' .
 				' http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $year . '/' . $month . '/test-image-large-150x150.png 150w"' .
 				' sizes="(max-width: 999px) 100vw, 999px" />';
@@ -2693,7 +2693,7 @@ EOF;
 		$img = '<img alt=" width="300" height="225" />';
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
 
-		$this->assertNotContains( ' loading="lazy"', $img );
+		$this->assertNotContains( ' loading=', $img );
 	}
 
 	/**
@@ -2704,6 +2704,10 @@ EOF;
 		$img = "<img src='example.png' alt=' width='300' height='225' />";
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
 
+		$this->assertNotContains( ' loading=', $img );
+
+		// Test specifically that the attribute is not there with double-quotes,
+		// to avoid regressions.
 		$this->assertNotContains( ' loading="lazy"', $img );
 	}
 
@@ -2715,7 +2719,7 @@ EOF;
 		$img = '<img src="example.png" alt=" width="300" height="225" />';
 		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
 
-		$this->assertNotContains( ' loading="lazy"', $img );
+		$this->assertNotContains( ' loading=', $img );
 	}
 
 	/**
@@ -2723,6 +2727,17 @@ EOF;
 	 * @ticket 50425
 	 */
 	function test_wp_get_attachment_image_loading() {
+		$img = wp_get_attachment_image( self::$large_id );
+
+		$this->assertContains( ' loading="lazy"', $img );
+	}
+
+	/**
+	 * @ticket 44427
+	 * @ticket 50425
+	 */
+	function test_wp_get_attachment_image_loading_opt_out() {
+		add_filter( 'wp_lazy_loading_enabled', '__return_false' );
 		$img = wp_get_attachment_image( self::$large_id );
 
 		// There should not be any loading attribute in this case.
@@ -2733,19 +2748,11 @@ EOF;
 	 * @ticket 44427
 	 * @ticket 50425
 	 */
-	function test_wp_get_attachment_image_loading_opt_in() {
+	function test_wp_get_attachment_image_loading_opt_out_individual() {
+		// The default is already tested above, the filter below ensures that
+		// lazy-loading is definitely enabled globally for images.
 		add_filter( 'wp_lazy_loading_enabled', '__return_true' );
-		$img = wp_get_attachment_image( self::$large_id );
 
-		$this->assertContains( ' loading="lazy"', $img );
-	}
-
-	/**
-	 * @ticket 44427
-	 * @ticket 50425
-	 */
-	function test_wp_get_attachment_image_loading_opt_in_overridden() {
-		add_filter( 'wp_lazy_loading_enabled', '__return_true' );
 		$img = wp_get_attachment_image( self::$large_id, 'thumbnail', false, array( 'loading' => false ) );
 
 		// There should not be any loading attribute in this case.
@@ -2793,12 +2800,12 @@ EOF;
 
 	function data_wp_lazy_loading_enabled_context_defaults() {
 		return array(
-			'wp_get_attachment_image => false' => array( 'wp_get_attachment_image', false ),
-			'the_content => true'              => array( 'the_content', true ),
-			'the_excerpt => true'              => array( 'the_excerpt', true ),
-			'widget_text_content => true'      => array( 'widget_text_content', true ),
-			'get_avatar => true'               => array( 'get_avatar', true ),
-			'arbitrary context => true'        => array( 'something_completely_arbitrary', true ),
+			'wp_get_attachment_image => true' => array( 'wp_get_attachment_image', true ),
+			'the_content => true'             => array( 'the_content', true ),
+			'the_excerpt => true'             => array( 'the_excerpt', true ),
+			'widget_text_content => true'     => array( 'widget_text_content', true ),
+			'get_avatar => true'              => array( 'get_avatar', true ),
+			'arbitrary context => true'       => array( 'something_completely_arbitrary', true ),
 		);
 	}
 }
