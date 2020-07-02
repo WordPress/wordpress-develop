@@ -941,6 +941,38 @@ class WP_Automatic_Updater {
 			return;
 		}
 
+		$unique_failures = false;
+		$failure_emails  = get_option( 'failed_plugin_theme_update_emails', array() );
+
+		// When only failures have occurred, an email should only be sent if there are either new failures,
+		// or failures that have not sent out an email recently.
+		if ( 'fail' === $type ) {
+			$unique_failures = false;
+
+			/**
+			 *
+			 */
+			$failure_email_interval = apply_filters( 'auto_plugin_theme_update_fail_email_interval', DAY_IN_SECONDS * 3 );
+
+			foreach ( $failed_updates as $update_type => $failures ) {
+				foreach ( $failures as $failed_update ) {
+					if ( ! isset( $failure_emails[ $failed_update->item->{$update_type} ] ) ) {
+						$unique_failures = true;
+						continue;
+					}
+
+					// Enough time has passed to make this failure warrant an email.
+					if ( time() - $failure_emails[ $failed_update->item->{$update_type} ] > $failure_email_interval ) {
+						$unique_failures = true;
+					}
+				}
+			}
+
+			if ( ! $unique_failures ) {
+				return;
+			}
+		}
+
 		$body               = array();
 		$successful_plugins = ( ! empty( $successful_updates['plugin'] ) );
 		$successful_themes  = ( ! empty( $successful_updates['theme'] ) );
@@ -1011,47 +1043,16 @@ class WP_Automatic_Updater {
 			$body[] = "\n";
 			$body[] = __( 'Please check your site now. It’s possible that everything is working. If there are updates available, you should update.' );
 			$body[] = "\n";
-            
-            // Check for failed themes and plugins listing with failed_update_plugins_themes option_name
-			$failed_update_plugins_themes = (array) get_site_option( 'failed_update_plugins_themes', array() );
-			
+
 			// List failed plugin updates.
 			if ( ! empty( $failed_updates['plugin'] ) ) {
 				$body[] = __( 'These plugins failed to update:' );
 
 				foreach ( $failed_updates['plugin'] as $item ) {
-					$body[] = "- {$item->name}";
-                    
-                // Failed Plugin list to store into the database 
-                $failed_plugin = array( 'name' => $item->name, 'failure_time' => time(), 'file_name' => $item->item->plugin );
-                if( isset( $failed_update_plugins_themes['plugin'] ) && ! empty( $failed_update_plugins_themes['plugin'] ) ) {
-                    if( array_search( $item->item->plugin, array_column( $failed_update_plugins_themes['plugin'], 'file_name' ) ) === false ) {
-                        $failed_update_plugins_themes['plugin'][] = $failed_plugin;	
-                    }	
-                } else {
-                    $failed_update_plugins_themes['plugin'][] = $failed_plugin;
-                }
-                    
+					$body[]                                = "- {$item->name}";
+					$failure_emails[ $item->item->plugin ] = time();
 				}
 				$body[] = "\n";
-			}
-            
-            
-            // Check for 3 days passed or not
-			if( isset( $failed_update_plugins_themes['plugin'] ) && ! empty( $failed_update_plugins_themes['plugin'] ) ) {
-				foreach( $failed_update_plugins_themes['plugin'] as $key => $failed_plugin ) {
-					if( isset( $failed_plugin ) && ! empty( $failed_plugin['failure_time'] ) ) {
-						$current_time 	= time(); 
-						$lastcheck  	= $failed_plugin['failure_time'];
-						$datediff   	= $current_time - $lastcheck;
-						
-						$days_check = round( $datediff / ( 60 * 60 * 24 ) );
-						if( $days_check >= 3 ) {
-							unset( $failed_update_plugins_themes['plugin'][$key] );
-							$body[] = $failed_plugin['name'];
-						}			
-					}	
-				}	
 			}
 
 			// List failed theme updates.
@@ -1059,42 +1060,11 @@ class WP_Automatic_Updater {
 				$body[] = __( 'These themes failed to update:' );
 
 				foreach ( $failed_updates['theme'] as $item ) {
-					$body[] = "- {$item->name}";
-                    
-				    // Failed Plugin list store in database
-					$failed_theme = array( 'name' => $item->name, 'failure_time' => time(), 'file_name' => $item->item->theme );
-					if( isset( $failed_update_plugins_themes['plugin'] ) && ! empty( $failed_update_plugins_themes['theme'] ) ) {
-						if( array_search($item->item->theme, array_column( $failed_update_plugins_themes['theme'], 'file_name')) === false ) {
-							$failed_update_plugins_themes['theme'][] = $failed_theme;	
-						}	
-					} else {
-						$failed_update_plugins_themes['theme'][] = $failed_theme;
-					}
-                    
+					$body[]                               = "- {$item->name}";
+					$failure_emails[ $item->item->theme ] = time();
 				}
 				$body[] = "\n";
 			}
-            
-            // Check for 3 days passed or not
-			if( isset( $failed_update_plugins_themes['theme'] ) && ! empty( $failed_update_plugins_themes['theme'] ) ) {
-				$body[] = "\n";
-				foreach( $failed_update_plugins_themes['theme'] as $key => $failed_theme ) {
-					
-					if( isset( $failed_theme ) && ! empty( $failed_theme['failure_time'] ) ) {
-						$current_time 	= time(); 
-						$lastcheck  	= $failed_theme['failure_time'];
-						$datediff   	= $current_time - $lastcheck;
-						
-						$days_check = round( $datediff / ( 60 * 60 * 24 ) );
-						if( $days_check >= 3 ) {
-							unset( $failed_update_plugins_themes['theme'][$key] );
-							$body[] = $failed_theme['name'];
-						}		
-							
-					}	
-				}	
-			}    
-            update_site_option( 'failed_update_plugins_themes', $failed_update_plugins_themes );
 		}
 
 		// List successful updates.
@@ -1107,6 +1077,7 @@ class WP_Automatic_Updater {
 
 				foreach ( $successful_updates['plugin'] as $item ) {
 					$body[] = "- {$item->name}";
+					unset( $failure_emails[ $item->item->plugin ] );
 				}
 				$body[] = "\n";
 			}
@@ -1117,6 +1088,7 @@ class WP_Automatic_Updater {
 				// List successful updates.
 				foreach ( $successful_updates['theme'] as $item ) {
 					$body[] = "- {$item->name}";
+					unset( $failure_emails[ $item->item->theme ] );
 				}
 				$body[] = "\n";
 			}
@@ -1172,7 +1144,11 @@ class WP_Automatic_Updater {
 		 */
 		$email = apply_filters( 'auto_plugin_theme_update_email', $email, $type, $successful_updates, $failed_updates );
 
-		wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
+		$result = wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
+
+		if ( $result ) {
+			update_option( 'failed_plugin_theme_update_emails', $failure_emails );
+		}
 	}
 
 	/**
