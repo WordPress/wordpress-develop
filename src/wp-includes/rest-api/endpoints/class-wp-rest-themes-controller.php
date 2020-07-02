@@ -77,17 +77,16 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * @since 5.0.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
+	 * @return bool|WP_Error True if the request has read access for the item, otherwise WP_Error object.
 	 */
 	public function get_items_permissions_check( $request ) {
-		$registered = $this->get_collection_params();
-
-		if ( isset( $registered['status'], $request['status'] ) && is_array( $request['status'] ) && array( 'active' ) === $request['status'] ) {
-			return $this->check_read_permission();
-		}
-
 		if ( current_user_can( 'switch_themes' ) || current_user_can( 'manage_network_themes' ) ) {
 			return true;
+		}
+
+		$registered = $this->get_collection_params();
+		if ( isset( $registered['status'], $request['status'] ) && is_array( $request['status'] ) && array( 'active' ) === $request['status'] ) {
+			return $this->check_read_permission();
 		}
 
 		return new WP_Error(
@@ -103,28 +102,27 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * @since 5.5.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
+	 * @return bool|WP_Error True if the request has read access for the item, otherwise WP_Error object.
 	 */
 	public function get_item_permissions_check( $request ) {
+		if ( current_user_can( 'switch_themes' ) || current_user_can( 'manage_network_themes' ) ) {
+			return true;
+		}
+
+		$wp_theme      = wp_get_theme( $request['name'] );
+		$current_theme = wp_get_theme();
+		if ( $this->is_current_theme( $wp_theme, $current_theme ) ) {
+			return $this->check_read_permission();
+		}
+
 		$active_themes = wp_get_themes();
 		$active_themes = array_keys( $active_themes );
-
 		if ( ! in_array( $request['name'], $active_themes, true ) ) {
 			return new WP_Error(
 				'rest_theme_invalid_slug',
 				__( 'Invalid theme slug.' ),
 				array( 'status' => 404 )
 			);
-		}
-
-		$wp_theme      = wp_get_theme( $request['name'] );
-		$current_theme = wp_get_theme();
-		if ( $this->is_current_theme( $wp_theme, $current_theme ) && $this->check_read_permission() ) {
-			return true;
-		}
-
-		if ( current_user_can( 'switch_themes' ) || current_user_can( 'manage_network_themes' ) ) {
-			return true;
 		}
 
 		return new WP_Error(
