@@ -3596,8 +3596,6 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
  *     @type array  $tags_input            Array of tag names, slugs, or IDs. Default empty.
  *     @type array  $tax_input             Array of taxonomy terms keyed by their taxonomy name. Default empty.
  *     @type array  $meta_input            Array of post meta values keyed by their post meta key. Default empty.
- *     @type bool   $meta_single           Whether the meta_input treats an array as multiple rows per key or
- *                                         a single meta key as an array. Default true.
  * }
  * @param bool  $wp_error Optional. Whether to return a WP_Error on failure. Default false.
  * @return int|WP_Error The post ID on success. The value 0 or WP_Error on failure.
@@ -3628,7 +3626,6 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 		'guid'                  => '',
 		'import_id'             => 0,
 		'context'               => '',
-		'meta_single'           => true,
 	);
 
 	$postarr = wp_parse_args( $postarr, $defaults );
@@ -3837,7 +3834,6 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	$to_ping               = isset( $postarr['to_ping'] ) ? sanitize_trackback_urls( $postarr['to_ping'] ) : '';
 	$pinged                = isset( $postarr['pinged'] ) ? $postarr['pinged'] : '';
 	$import_id             = isset( $postarr['import_id'] ) ? $postarr['import_id'] : 0;
-	$meta_single           = $postarr['meta_single'];
 
 	/*
 	 * The 'wp_insert_post_parent' filter expects all variables to be present.
@@ -4058,12 +4054,13 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	}
 
 	if ( ! empty( $postarr['meta_input'] ) ) {
-		foreach ( $postarr['meta_input'] as $field => $value ) {
-			if ( ! is_array( $value ) || is_array( $value ) && $postarr['meta_single'] ) {
-				update_post_meta( $post_ID, $field, $value );
+
+		foreach ( $postarr['meta_input'] as $meta_field => $meta_item ) {
+			if ( ! is_array( $meta_item ) || is_array( $meta_item ) && isset( $meta_item['single'] ) && $meta_item['single'] || is_array( $meta_item ) && ! isset( $meta_item['single'] ) ) {
+				update_post_meta( $post_ID, $meta_field, $meta_item );
 			} else {
-				foreach ( $value as $meta_input_value ) {
-					add_post_meta( $post_ID, $field, $meta_input_value );
+				foreach ( $meta_item as $meta_item_value ) {
+					add_post_meta( $post_ID, $meta_field, $meta_item_value );
 				}
 			}
 		}
