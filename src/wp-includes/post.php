@@ -4059,7 +4059,10 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 			if ( ! is_array( $meta_item ) || is_array( $meta_item ) && isset( $meta_item['single'] ) && $meta_item['single'] || is_array( $meta_item ) && ! isset( $meta_item['single'] ) ) {
 				update_post_meta( $post_ID, $meta_field, $meta_item );
 			} else {
-				foreach ( $meta_item as $meta_item_value ) {
+				foreach ( $meta_item as $meta_item_key => $meta_item_value ) {
+					if ( 'single' === $meta_item_key && is_bool( $meta_item_key ) ) {
+						continue;
+					}
 					add_post_meta( $post_ID, $meta_field, $meta_item_value );
 				}
 			}
