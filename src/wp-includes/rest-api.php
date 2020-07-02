@@ -871,7 +871,7 @@ function rest_output_link_wp_head() {
 
 	printf( '<link rel="https://api.w.org/" href="%s" />', esc_url( $api_root ) );
 
-	$resource = rest_get_current_resource_route();
+	$resource = rest_get_queried_resource_route();
 
 	if ( $resource ) {
 		printf( '<link rel="alternate" type="application/json" href="%s" />', esc_url( rest_url( $resource ) ) );
@@ -896,7 +896,7 @@ function rest_output_link_header() {
 
 	header( sprintf( 'Link: <%s>; rel="https://api.w.org/"', esc_url_raw( $api_root ) ), false );
 
-	$resource = rest_get_current_resource_route();
+	$resource = rest_get_queried_resource_route();
 
 	if ( $resource ) {
 		header( sprintf( 'Link: <%s>; rel="alternate"; type="application/json"', esc_url_raw( rest_url( $resource ) ) ), false );
@@ -1929,13 +1929,13 @@ function rest_get_route_for_term( $term ) {
  *
  * @return string The REST route of the resource, or an empty string if no resource identified.
  */
-function rest_get_current_resource_route() {
+function rest_get_queried_resource_route() {
 	if ( is_singular() ) {
-		$route = rest_get_route_for_post( get_post() );
+		$route = rest_get_route_for_post( get_queried_object() );
 	} elseif ( is_category() || is_tag() || is_tax() ) {
 		$route = rest_get_route_for_term( get_queried_object() );
 	} elseif ( is_author() ) {
-		$route = '/wp/v2/users/' . get_the_author_meta( 'ID' );
+		$route = '/wp/v2/users/' . get_queried_object_id();
 	} else {
 		$route = '';
 	}
@@ -1945,7 +1945,7 @@ function rest_get_current_resource_route() {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param string $link The URL or an empty string.
+	 * @param string $link The route with a leading slash, or an empty string.
 	 */
-	return apply_filters( 'rest_current_resource_route', $route );
+	return apply_filters( 'rest_queried_resource_route', $route );
 }
