@@ -111,18 +111,8 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 
 		$wp_theme      = wp_get_theme( $request['name'] );
 		$current_theme = wp_get_theme();
-		if ( $this->is_current_theme( $wp_theme, $current_theme ) ) {
-			return $this->check_read_permission();
-		}
-
-		$active_themes = wp_get_themes();
-		$active_themes = array_keys( $active_themes );
-		if ( ! in_array( $request['name'], $active_themes, true ) ) {
-			return new WP_Error(
-				'rest_theme_invalid_slug',
-				__( 'Invalid theme slug.' ),
-				array( 'status' => 404 )
-			);
+		if ( $this->is_current_theme( $wp_theme, $current_theme ) && $this->check_read_permission() ) {
+			return true;
 		}
 
 		return new WP_Error(
@@ -163,7 +153,14 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 */
 	public function get_item( $request ) {
 		$wp_theme = wp_get_theme( $request['name'] );
-		$data     = $this->prepare_item_for_response( $wp_theme, $request );
+		if ( ! $wp_theme->exists() ) {
+			return new WP_Error(
+				'rest_theme_invalid_slug',
+				__( 'Invalid theme slug.' ),
+				array( 'status' => 404 )
+			);
+		}
+		$data = $this->prepare_item_for_response( $wp_theme, $request );
 
 		return rest_ensure_response( $data );
 	}

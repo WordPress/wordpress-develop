@@ -226,13 +226,13 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 50152
 	 * @dataProvider data_theme_status
 	 */
-	public function test_get_items_logged_out( $status ) {
+	public function test_get_items_logged_out( $status, $error_code ) {
 		wp_set_current_user( 0 );
 		$request = new WP_REST_Request( 'GET', self::$themes_route );
 		$request->set_param( 'status', $status );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 401 );
+		$this->assertErrorResponse( $error_code, $response, 401 );
 	}
 
 	/**
@@ -242,13 +242,13 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 50152
 	 * @dataProvider data_theme_status
 	 */
-	public function test_get_items_no_permission( $status ) {
+	public function test_get_items_no_permission( $status, $error_code ) {
 		wp_set_current_user( self::$subscriber_id );
 		$request = new WP_REST_Request( 'GET', self::$themes_route );
 		$request->set_param( 'status', $status );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 403 );
+		$this->assertErrorResponse( $error_code, $response, 403 );
 	}
 
 	/**
@@ -1218,10 +1218,10 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 
 	public function data_theme_status() {
 		return array(
-			array( 'active' ),
-			array( 'active, inactive' ),
-			array( 'inactive' ),
-			array( '' ),
+			array( 'active', 'rest_forbidden' ),
+			array( 'active, inactive', 'rest_user_cannot_view' ),
+			array( 'inactive', 'rest_user_cannot_view' ),
+			array( '', 'rest_user_cannot_view' ),
 		);
 	}
 }
