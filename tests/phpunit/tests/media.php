@@ -2764,7 +2764,7 @@ EOF;
 	 * @ticket 50425
 	 * @dataProvider data_wp_lazy_loading_enabled_tag_name_defaults
 	 *
-	 * @param string $tag_name  Function context.
+	 * @param string $tag_name Tag name.
 	 * @param bool   $expected Expected return value.
 	 */
 	function test_wp_lazy_loading_enabled_tag_name_defaults( $tag_name, $expected ) {

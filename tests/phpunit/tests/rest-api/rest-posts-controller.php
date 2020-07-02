@@ -2495,7 +2495,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( 'testing', $data['password'] );
 	}
 
-	public function test_create_post_with_falsy_password() {
+	public function test_create_post_with_falsey_password() {
 		wp_set_current_user( self::$editor_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
