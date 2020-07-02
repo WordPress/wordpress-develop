@@ -390,6 +390,8 @@ class WP_Comment_Query {
 		 * When `$this->query_vars['count']` is set, the filter should return the comment count as an int.
 		 * When `'ids' === $this->query_vars['fields']`, the filter should return an array of comment IDs.
 		 * Otherwise the filter should return an array of WP_Comment objects.
+		 * Note that if the filter return an array, that array will be assigned to the comments property of
+		 * the current WP_Comment_Query instance.
 		 *
 		 * @since 5.3.0
 		 *
@@ -401,8 +403,10 @@ class WP_Comment_Query {
 		$comment_data = apply_filters_ref_array( 'comments_pre_query', array( $comment_data, &$this ) );
 
 		if ( null !== $comment_data ) {
-			$this->comments = $comment_data;
-			return $this->comments;
+			if ( is_array( $comment_data ) ) {
+				$this->comments = $comment_data;
+			}
+			return $comment_data;
 		}
 
 		/*
