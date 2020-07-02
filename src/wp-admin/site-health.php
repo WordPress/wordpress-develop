@@ -23,15 +23,6 @@ if ( ! current_user_can( 'view_site_health_checks' ) ) {
 wp_enqueue_style( 'site-health' );
 wp_enqueue_script( 'site-health' );
 
-if ( ! class_exists( 'WP_Site_Health' ) ) {
-	require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
-}
-
-$health_check_site_status = WP_Site_Health::get_instance();
-
-// Start by checking if this is a special request checking for the existence of certain filters.
-$health_check_site_status->check_wp_version_check_exists();
-
 require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 <div class="health-check-header">

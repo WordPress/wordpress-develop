@@ -78,7 +78,7 @@ jQuery( document ).ready( function( $ ) {
 			issueWrapper = $( '#health-check-issues-' + issue.status ),
 			heading,
 			count;
-		
+
 		SiteHealth.site_status.issues[ issue.status ]++;
 
 		count = SiteHealth.site_status.issues[ issue.status ];
@@ -193,10 +193,18 @@ jQuery( document ).ready( function( $ ) {
 
 		if ( 1 <= SiteHealth.site_status.async.length ) {
 			$.each( SiteHealth.site_status.async, function() {
+				var url = ajaxurl;
 				var data = {
 					'action': 'health-check-' + this.test.replace( '_', '-' ),
 					'_wpnonce': SiteHealth.nonce.site_status
 				};
+
+				if ( "undefined" !== typeof( this.has_rest ) && this.has_rest ) {
+					url = this.test;
+					data = {
+						'_wpnonce': SiteHealth.nonce.rest_api
+					};
+				}
 
 				if ( this.completed ) {
 					return true;
@@ -207,14 +215,36 @@ jQuery( document ).ready( function( $ ) {
 				this.completed = true;
 
 				$.post(
-					ajaxurl,
-					data,
-					function( response ) {
-						/** This filter is documented in wp-admin/includes/class-wp-site-health.php */
-						appendIssue( wp.hooks.applyFilters( 'site_status_test_result', response.data ) );
-						maybeRunNextAsyncTest();
+					url,
+					data
+				).done( function( response ) {
+					/** This filter is documented in wp-admin/includes/class-wp-site-health.php */
+					AppendIssue( wp.hooks.applyFilters( 'site_status_test_result', response.data ) );
+				} ).fail( function( response ) {
+					var description, issue;
+
+					if ( "undefined" !== typeof( response.responseJSON ) && "undefined" !== typeof( response.responseJSON.message ) ) {
+						description = response.responseJSON.message;
+					} else {
+						description = __( 'No details available' );
 					}
-				);
+
+					issue = {
+						'status': 'recommended',
+						'label': __( 'A test is unavailable' ),
+						'badge': {
+							'color': 'red',
+							'label': __( 'Unavailable' )
+						},
+						'description': '<p>' + this.url + '</p><p>' + description + '</p>',
+						'actions': ''
+					};
+
+					/** This filter is documented in wp-admin/includes/class-wp-site-health.php */
+					AppendIssue( wp.hooks.applyFilters( 'site_status_test_result', issue ) );
+				} ).always( function() {
+					maybeRunNextAsyncTest();
+				} );
 
 				return false;
 			} );
@@ -243,21 +273,7 @@ jQuery( document ).ready( function( $ ) {
 		}
 
 		if ( 0 < SiteHealth.site_status.async.length ) {
-			data = {
-				'action': 'health-check-' + SiteHealth.site_status.async[0].test.replace( '_', '-' ),
-				'_wpnonce': SiteHealth.nonce.site_status
-			};
-
-			SiteHealth.site_status.async[0].completed = true;
-
-			$.post(
-				ajaxurl,
-				data,
-				function( response ) {
-					appendIssue( response.data );
-					maybeRunNextAsyncTest();
-				}
-			);
+			maybeRunNextAsyncTest();
 		} else {
 			recalculateProgression();
 		}
@@ -265,8 +281,7 @@ jQuery( document ).ready( function( $ ) {
 
 	function getDirectorySizes() {
 		var data = {
-			action: 'health-check-get-sizes',
-			_wpnonce: SiteHealth.nonce.site_status_result
+			_wpnonce: SiteHealth.nonce.rest_api
 		};
 
 		var timestamp = ( new Date().getTime() );
@@ -277,12 +292,11 @@ jQuery( document ).ready( function( $ ) {
 		}, 3000 );
 
 		$.post( {
-			type: 'POST',
-			url: ajaxurl,
+			url: SiteHealth.rest_base + 'wp-site-health/v1/get/directory-sizes',
 			data: data,
 			dataType: 'json'
 		} ).done( function( response ) {
-			updateDirSizes( response.data || {} );
+			updateDirSizes( response || {} );
 		} ).always( function() {
 			var delay = ( new Date().getTime() ) - timestamp;
 

@@ -80,7 +80,9 @@ class WP_Site_Health {
 
 		$health_check_js_variables = array(
 			'screen'      => $screen->id,
+			'rest_base'   => rest_url( '/' ),
 			'nonce'       => array(
+				'rest_api'           => wp_create_nonce( 'wp_rest' ),
 				'site_status'        => wp_create_nonce( 'health-check-site-status' ),
 				'site_status_result' => wp_create_nonce( 'health-check-site-status-result' ),
 			),
@@ -141,6 +143,7 @@ class WP_Site_Health {
 				if ( is_string( $test['test'] ) ) {
 					$health_check_js_variables['site_status']['async'][] = array(
 						'test'      => $test['test'],
+						'has_rest'  => ( isset( $test['has_rest'] ) ? $test['has_rest'] : false ),
 						'completed' => false,
 					);
 				}
@@ -2088,6 +2091,7 @@ class WP_Site_Health {
 	 * experiences.
 	 *
 	 * @since 5.2.0
+	 * @since 5.5.0 Added support for `has_rest` and `permissions`.
 	 *
 	 * @return array The list of tests to run.
 	 */
@@ -2161,27 +2165,22 @@ class WP_Site_Health {
 			),
 			'async'  => array(
 				'dotorg_communication' => array(
-					'label' => __( 'Communication with WordPress.org' ),
-					'test'  => 'dotorg_communication',
+					'label'    => __( 'Communication with WordPress.org' ),
+					'test'     => rest_url( 'wp-site-health/v1/test/dotorg-communication' ),
+					'has_rest' => true,
 				),
 				'background_updates'   => array(
-					'label' => __( 'Background updates' ),
-					'test'  => 'background_updates',
+					'label'    => __( 'Background updates' ),
+					'test'     => rest_url( 'wp-site-health/v1/test/background-updates' ),
+					'has_rest' => true,
 				),
 				'loopback_requests'    => array(
-					'label' => __( 'Loopback request' ),
-					'test'  => 'loopback_requests',
+					'label'    => __( 'Loopback request' ),
+					'test'     => rest_url( 'wp-site-health/v1/test/loopback-requests' ),
+					'has_rest' => true,
 				),
 			),
 		);
-
-		// Conditionally include REST rules if the function for it exists.
-		if ( function_exists( 'rest_url' ) ) {
-			$tests['direct']['rest_availability'] = array(
-				'label' => __( 'REST API availability' ),
-				'test'  => 'rest_availability',
-			);
-		}
 
 		/**
 		 * Add or modify which site status tests are run on a site.
@@ -2207,9 +2206,10 @@ class WP_Site_Health {
 		 *         Plugins and themes are encouraged to prefix test identifiers with their slug
 		 *         to avoid any collisions between tests.
 		 *
-		 *         @type string $label A friendly label for your test to identify it by.
-		 *         @type mixed  $test  A callable to perform a direct test, or a string Ajax action to be called
-		 *                             to perform an async test.
+		 *         @type string  $label       A friendly label for your test to identify it by.
+		 *         @type mixed   $test        A callable to perform a direct test, or a string AJAX action to be
+		 *                                    called to perform an async test.
+		 *         @type boolean $has_rest    Optional. Denote if `$test` has a REST API endpoint.
 		 *     }
 		 * }
 		 */

@@ -316,6 +316,11 @@ function create_initial_rest_routes() {
 	// Block Directory.
 	$controller = new WP_REST_Block_Directory_Controller();
 	$controller->register_routes();
+
+	// Site Health
+	$controller = new WP_REST_Site_Health_Controller;
+	$controller->register_routes();
+
 }
 
 /**

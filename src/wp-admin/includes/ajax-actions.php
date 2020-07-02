@@ -5142,8 +5142,21 @@ function wp_ajax_wp_privacy_erase_personal_data() {
  * Ajax handler for site health checks on server communication.
  *
  * @since 5.2.0
+ * @deprecated 5.4.0 Use WP_REST_Site_Health_Controller::test_dotorg_communication()
+ * @see WP_REST_Site_Health_Controller::test_dotorg_communication()
  */
 function wp_ajax_health_check_dotorg_communication() {
+	_doing_it_wrong(
+		'wp_ajax_health_check_dotorg_communication',
+		sprintf(
+			// translators: 1: The Site Health action that is no longer used by core. 2: The new function taht replaces it.
+			__( 'The Site Health check for %1$s has been replaced with %2$s.' ),
+			'wp_ajax_health_check_dotorg_communication',
+			'WP_REST_Site_Health_Controller::test_dotorg_communication'
+		),
+		'5.4.0'
+	);
+
 	check_ajax_referer( 'health-check-site-status' );
 
 	if ( ! current_user_can( 'view_site_health_checks' ) ) {
@@ -5159,11 +5172,60 @@ function wp_ajax_health_check_dotorg_communication() {
 }
 
 /**
+<<<<<<< HEAD
+=======
+ * Ajax handler for site health checks on debug mode.
+ *
+ * @since 5.2.0
+ * @deprecated 5.4.0 Use WP_REST_Site_Health_Controller::test_is_in_debug_mode()
+ * @see WP_REST_Site_Health_Controller::test_is_in_debug_mode()
+ */
+function wp_ajax_health_check_is_in_debug_mode() {
+	_doing_it_wrong(
+		'wp_ajax_health_check_is_in_debug_mode',
+		sprintf(
+			// translators: 1: The Site Health action that is no longer used by core. 2: The new function taht replaces it.
+			__( 'The Site Health check for %1$s has been replaced with %2$s.' ),
+			'wp_ajax_health_check_is_in_debug_mode',
+			'WP_REST_Site_Health_Controller::test_is_in_debug_mode'
+		),
+		'5.4.0'
+	);
+
+	wp_verify_nonce( 'health-check-site-status' );
+
+	if ( ! current_user_can( 'view_site_health_checks' ) ) {
+		wp_send_json_error();
+	}
+
+	if ( ! class_exists( 'WP_Site_Health' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
+	}
+
+	$site_health = WP_Site_Health::get_instance();
+	wp_send_json_success( $site_health->get_test_is_in_debug_mode() );
+}
+
+/**
+>>>>>>> Import patch from trac
  * Ajax handler for site health checks on background updates.
  *
  * @since 5.2.0
+ * @deprecated 5.4.0 Use WP_REST_Site_Health_Controller::test_background_updates()
+ * @see WP_REST_Site_Health_Controller::test_background_updates()
  */
 function wp_ajax_health_check_background_updates() {
+	_doing_it_wrong(
+		'wp_ajax_health_check_background_updates',
+		sprintf(
+		// translators: 1: The Site Health action that is no longer used by core. 2: The new function taht replaces it.
+			__( 'The Site Health check for %1$s has been replaced with %2$s.' ),
+			'wp_ajax_health_check_background_updates',
+			'WP_REST_Site_Health_Controller::test_background_updates'
+		),
+		'5.4.0'
+	);
+
 	check_ajax_referer( 'health-check-site-status' );
 
 	if ( ! current_user_can( 'view_site_health_checks' ) ) {
@@ -5182,8 +5244,21 @@ function wp_ajax_health_check_background_updates() {
  * Ajax handler for site health checks on loopback requests.
  *
  * @since 5.2.0
+ * @deprecated 5.4.0 Use WP_REST_Site_Health_Controller::test_loopback_requests()
+ * @see WP_REST_Site_Health_Controller::test_loopback_requests()
  */
 function wp_ajax_health_check_loopback_requests() {
+	_doing_it_wrong(
+		'wp_ajax_health_check_loopback_requests',
+		sprintf(
+		// translators: 1: The Site Health action that is no longer used by core. 2: The new function taht replaces it.
+			__( 'The Site Health check for %1$s has been replaced with %2$s.' ),
+			'wp_ajax_health_check_loopback_requests',
+			'WP_REST_Site_Health_Controller::test_loopback_requests'
+		),
+		'5.4.0'
+	);
+
 	check_ajax_referer( 'health-check-site-status' );
 
 	if ( ! current_user_can( 'view_site_health_checks' ) ) {
@@ -5219,8 +5294,21 @@ function wp_ajax_health_check_site_status_result() {
  * Ajax handler for site health check to get directories and database sizes.
  *
  * @since 5.2.0
+ * @deprecated 5.6.0 Use WP_REST_Site_Health_Controller::get_directory_sizes()
+ * @see WP_REST_Site_Health_Controller::get_directory_sizes()
  */
 function wp_ajax_health_check_get_sizes() {
+	_doing_it_wrong(
+		'wp_ajax_health_check_get_sizes',
+		sprintf(
+			// translators: 1: The Site Health action that is no longer used by core. 2: The new function taht replaces it.
+			__( 'The Site Health check for %1$s has been replaced with %2$s.' ),
+			'wp_ajax_health_check_get_sizes',
+			'WP_REST_Site_Health_Controller::get_directory_sizes'
+		),
+		'5.6.0'
+	);
+
 	check_ajax_referer( 'health-check-site-status-result' );
 
 	if ( ! current_user_can( 'view_site_health_checks' ) || is_multisite() ) {
