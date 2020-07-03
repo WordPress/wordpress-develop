@@ -86,7 +86,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 
 		$registered = $this->get_collection_params();
 		if ( isset( $registered['status'], $request['status'] ) && is_array( $request['status'] ) && array( 'active' ) === $request['status'] ) {
-			return $this->check_read_permission();
+			return $this->check_read_active_theme_permission();
 		}
 
 		return new WP_Error(
@@ -111,7 +111,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 
 		$wp_theme      = wp_get_theme( $request['name'] );
 		$current_theme = wp_get_theme();
-		if ( $this->is_current_theme( $wp_theme, $current_theme ) && $this->check_read_permission() ) {
+		if ( $this->is_current_theme( $wp_theme, $current_theme ) && $this->check_read_active_theme_permission() ) {
 			return true;
 		}
 
@@ -129,7 +129,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 *
 	 * @return bool Whether the theme can be read.
 	 */
-	public function check_read_permission() {
+	protected function check_read_active_theme_permission() {
 		if ( current_user_can( 'edit_posts' ) ) {
 			return true;
 		}
