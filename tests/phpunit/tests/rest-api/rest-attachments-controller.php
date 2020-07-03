@@ -19,6 +19,16 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	protected static $rest_after_insert_attachment_count;
 	protected static $rest_insert_attachment_count;
 
+	/**
+	 * @var string The path to a test file.
+	 */
+	private $test_file;
+
+	/**
+	 * @var string The path to a second test file.
+	 */
+	private $test_file2;
+
 	public static function wpSetUpBeforeClass( $factory ) {
 		self::$superadmin_id  = $factory->user->create(
 			array(
@@ -75,6 +85,28 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$orig_file2       = DIR_TESTDATA . '/images/codeispoetry.png';
 		$this->test_file2 = '/tmp/codeispoetry.png';
 		copy( $orig_file2, $this->test_file2 );
+	}
+
+	public function tearDown() {
+		parent::tearDown();
+
+		if ( file_exists( $this->test_file ) ) {
+			unlink( $this->test_file );
+		}
+		if ( file_exists( $this->test_file2 ) ) {
+			unlink( $this->test_file2 );
+		}
+
+		remove_action( 'rest_insert_attachment', array( $this, 'filter_rest_insert_attachment' ) );
+		remove_action( 'rest_after_insert_attachment', array( $this, 'filter_rest_after_insert_attachment' ) );
+
+		$this->remove_added_uploads();
+
+		if ( class_exists( WP_Image_Editor_Mock::class ) ) {
+			WP_Image_Editor_Mock::$spy         = array();
+			WP_Image_Editor_Mock::$edit_return = array();
+			WP_Image_Editor_Mock::$size_return = null;
+		}
 	}
 
 	public function test_register_routes() {
@@ -1537,21 +1569,6 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertArrayNotHasKey( 'https://api.w.org/action-publish', $links );
 	}
 
-	public function tearDown() {
-		parent::tearDown();
-		if ( file_exists( $this->test_file ) ) {
-			unlink( $this->test_file );
-		}
-		if ( file_exists( $this->test_file2 ) ) {
-			unlink( $this->test_file2 );
-		}
-
-		remove_action( 'rest_insert_attachment', array( $this, 'filter_rest_insert_attachment' ) );
-		remove_action( 'rest_after_insert_attachment', array( $this, 'filter_rest_after_insert_attachment' ) );
-
-		$this->remove_added_uploads();
-	}
-
 	protected function check_post_data( $attachment, $data, $context = 'view', $links ) {
 		parent::check_post_data( $attachment, $data, $context, $links );
 
@@ -1775,5 +1792,176 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	public function filter_rest_after_insert_attachment( $attachment ) {
 		self::$rest_after_insert_attachment_count++;
+	}
+
+	/**
+	 * @ticket 44405
+	 */
+	public function test_edit_image_returns_error_if_logged_out() {
+		$attachment = self::factory()->attachment->create();
+
+		$request  = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_cannot_edit_image', $response, 401 );
+	}
+
+	/**
+	 * @ticket 44405
+	 */
+	public function test_edit_image_returns_error_if_cannot_upload() {
+		$user = self::factory()->user->create_and_get( array( 'role' => 'editor' ) );
+		$user->add_cap( 'upload_files', false );
+
+		wp_set_current_user( $user->ID );
+		$attachment = self::factory()->attachment->create( array( 'post_author' => $user->ID ) );
+
+		$request  = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_cannot_edit_image', $response, 403 );
+	}
+
+	/**
+	 * @ticket 44405
+	 */
+	public function test_edit_image_returns_error_if_cannot_edit() {
+		wp_set_current_user( self::$uploader_id );
+		$attachment = self::factory()->attachment->create();
+
+		$request  = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	/**
+	 * @ticket 44405
+	 */
+	public function test_edit_image_returns_error_if_no_attachment() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create();
+
+		$request  = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_unknown_attachment', $response, 404 );
+	}
+
+	/**
+	 * @ticket 44405
+	 */
+	public function test_edit_image_returns_error_if_unsupported_mime_type() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( $this->test_file );
+		wp_update_post(
+			array(
+				'ID' => $attachment,
+				'post_mime_type' => 'image/invalid',
+			)
+		);
+
+		$request  = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_cannot_edit_file_type', $response, 400 );
+	}
+
+	/**
+	 * @ticket 44405
+	 */
+	public function test_edit_image_returns_error_if_no_edits() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( $this->test_file );
+
+		$request  = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_image_not_edited', $response, 400 );
+	}
+
+	/**
+	 * @ticket 44405
+	 */
+	public function test_edit_image_rotate() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( $this->test_file );
+
+		$this->setup_mock_editor();
+		WP_Image_Editor_Mock::$edit_return['rotate'] = new WP_Error();
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params( array( 'rotation' => 60 ) );
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_image_rotation_failed', $response, 500 );
+
+		$this->assertCount( 1, WP_Image_Editor_Mock::$spy['rotate'] );
+		$this->assertEquals( array( -60 ), WP_Image_Editor_Mock::$spy['rotate'][0] );
+	}
+
+	/**
+	 * @ticket 44405
+	 */
+	public function test_edit_image_crop() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( $this->test_file );
+
+		$this->setup_mock_editor();
+		WP_Image_Editor_Mock::$size_return = array(
+			'width'  => 640,
+			'height' => 480,
+		);
+
+		WP_Image_Editor_Mock::$edit_return['crop'] = new WP_Error();
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params(
+			array(
+				'x'      => 50,
+				'y'      => 10,
+				'width'  => 10,
+				'height' => 5,
+			)
+		);
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_image_crop_failed', $response, 500 );
+
+		$this->assertCount( 1, WP_Image_Editor_Mock::$spy['crop'] );
+		$this->assertEquals(
+			array( 320.0, 48.0, 64.0, 24.0 ),
+			WP_Image_Editor_Mock::$spy['crop'][0]
+		);
+	}
+
+	/**
+	 * @ticket 44405
+	 */
+	public function test_edit_image() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( $this->test_file );
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params( array( 'rotation' => 60 ) );
+		$response = rest_do_request( $request );
+		$item     = $response->get_data();
+
+		$this->assertEquals( 201, $response->get_status() );
+		$this->assertEquals( rest_url( '/wp/v2/media/' . $item['id'] ), $response->get_headers()['Location'] );
+
+		$this->assertStringEndsWith( '-edited.jpg', $item['media_details']['file'] );
+		$this->assertArrayHasKey( 'parent_image', $item['media_details'] );
+		$this->assertEquals( $attachment, $item['media_details']['parent_image']['attachment_id'] );
+		$this->assertContains( 'canola', $item['media_details']['parent_image']['file'] );
+	}
+
+	/**
+	 * Sets up the mock image editor.
+	 *
+	 * @since 5.5.0
+	 */
+	protected function setup_mock_editor() {
+		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
+		require_once DIR_TESTDATA . '/../includes/mock-image-editor.php';
+
+		add_filter(
+			'wp_image_editors',
+			static function () {
+				return array( 'WP_Image_Editor_Mock' );
+			}
+		);
 	}
 }
