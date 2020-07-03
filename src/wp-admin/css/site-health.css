@@ -109,7 +109,7 @@
 		stroke: #adc5d2;
 	}
 	50% {
-		stroke: #00a0d2;
+		stroke: var(--wp-admin-theme-color-lighter-20);
 	}
 	100% {
 		stroke: #adc5d2;
@@ -150,7 +150,7 @@
 }
 
 .health-check-tab.active {
-	box-shadow: inset 0 -3px #007cba;
+	box-shadow: inset 0 -3px var(--wp-admin-theme-color);
 	font-weight: 600;
 }
 
@@ -189,7 +189,7 @@
 
 .health-check-body .info::before {
 	content: "\f348";
-	color: #00a0d2;
+	color: var(--wp-admin-theme-color-lighter-20);
 }
 
 .health-check-body .fail::before,
@@ -320,7 +320,7 @@
 	border: none;
 	box-shadow: none;
 	outline-offset: -1px;
-	outline: 2px solid #0071a1;
+	outline: 2px solid var(--wp-admin-theme-color);
 	background-color: #f8f9f9;
 }
 

@@ -165,7 +165,7 @@ p.wp-embed-heading {
 
 .wp-embed-meta a:hover {
 	text-decoration: none;
-	color: #0073aa;
+	color: var(--wp-admin-theme-color);
 }
 
 .wp-embed-comments a {
@@ -216,7 +216,7 @@ p.wp-embed-heading {
 
 .wp-embed-share-dialog-open:focus .dashicons,
 .wp-embed-share-dialog-close:focus .dashicons {
-	box-shadow: 0 0 0 1px #5b9dd9, 0 0 2px 1px rgba(30, 140, 190, 0.8);
+	box-shadow: 0 0 0 1px var(--wp-admin-theme-color-lighter-40), 0 0 2px 1px var(--wp-admin-theme-color);
 	border-radius: 100%;
 }
 

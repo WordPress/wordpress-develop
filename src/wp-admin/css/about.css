@@ -693,7 +693,7 @@
 /* WordPress Version Badge */
 
 .wp-badge {
-	background: #0073aa url(../images/w-logo-white.png?ver=20160308) no-repeat;
+	background: var(--wp-admin-theme-color) url(../images/w-logo-white.png?ver=20160308) no-repeat;
 	background-position: center 25px;
 	background-size: 80px 80px;
 	color: #fff;

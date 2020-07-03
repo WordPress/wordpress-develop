@@ -13,6 +13,7 @@ module.exports = function(grunt) {
 		WORKING_DIR = grunt.option( 'dev' ) ? SOURCE_DIR : BUILD_DIR,
  		BANNER_TEXT = '/*! This file is auto-generated */',
 		autoprefixer = require( 'autoprefixer' ),
+		postcssCustomProperties = require( 'postcss-custom-properties' ),
 		nodesass = require( 'node-sass' ),
 		phpUnitWatchGroup = grunt.option( 'group' ),
 		buildFiles = [
@@ -57,10 +58,30 @@ module.exports = function(grunt) {
 				processors: [
 					autoprefixer({
 						cascade: false
-					})
+					}),
 				]
 			},
 			core: {
+				options: {
+					processors: [
+						autoprefixer({
+							cascade: false
+						}),
+						postcssCustomProperties({
+							importFrom: [
+								{
+								  customProperties: {
+									  '--wp-admin-theme-color': '#0073aa',
+									  '--wp-admin-theme-color-darker-10': '#006290',
+									  '--wp-admin-theme-color-darker-20': '#005077',
+									  '--wp-admin-theme-color-lighter-20': '#0095dd',
+									  '--wp-admin-theme-color-lighter-40': '#11b2ff',
+								}
+								},
+							  ]
+						}),
+					]
+				},
 				expand: true,
 				cwd: SOURCE_DIR,
 				dest: SOURCE_DIR,

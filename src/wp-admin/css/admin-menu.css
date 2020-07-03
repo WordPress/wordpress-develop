@@ -264,7 +264,7 @@
 #adminmenu .wp-menu-arrow,
 #adminmenu .wp-has-current-submenu .wp-submenu .wp-submenu-head,
 #adminmenu .wp-menu-arrow div {
-	background: #0073aa;
+	background: var(--wp-admin-theme-color);
 	color: #fff;
 }
 

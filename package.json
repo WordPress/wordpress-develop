@@ -64,6 +64,7 @@
 		"jquery-migrate": "1.4.1",
 		"matchdep": "~2.0.0",
 		"node-sass": "~4.14.1",
+		"postcss-custom-properties": "~9.1.1",
 		"prettier": "npm:wp-prettier@2.0.5",
 		"puppeteer": "npm:puppeteer-core@3.0.0",
 		"qunit": "~2.9.0",

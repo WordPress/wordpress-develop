@@ -115,7 +115,7 @@
 .media-widget-control .attachment-media-view .button-add-media:focus {
 	background-color: #fbfbfc;
 	border-style: solid;
-	border-color: #5b9dd9;
+	border-color: var(--wp-admin-theme-color-lighter-40);
 	box-shadow: 0 0 3px rgba( 0, 115, 170, .8 );
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
@@ -339,8 +339,8 @@
 
 .sidebar-name .handlediv:focus .toggle-indicator:before {
 	box-shadow:
-		0 0 0 1px #5b9dd9,
-		0 0 2px 1px rgba(30, 140, 190, 0.8);
+		0 0 0 1px var(--wp-admin-theme-color-lighter-40),
+		0 0 2px 1px var(--wp-admin-theme-color);
 }
 
 .sidebar-name h2,
@@ -622,7 +622,7 @@ div#widgets-right .closed .widgets-sortables {
 }
 
 .js #removing-widget {
-	color: #00a0d2;
+	color: var(--wp-admin-theme-color-lighter-20);
 }
 
 .widget-control-noform,
@@ -723,7 +723,7 @@ div#widgets-right .widget-top:hover,
 }
 
 .widgets-chooser .widgets-chooser-selected .widgets-chooser-button {
-	background: #0073aa;
+	background: var(--wp-admin-theme-color);
 	color: #fff;
 }
 

@@ -103,7 +103,7 @@
 
 #wp-auth-check-wrap .wp-auth-check-close:hover,
 #wp-auth-check-wrap .wp-auth-check-close:focus {
-	color: #0073aa;
+	color: var(--wp-admin-theme-color);
 }
 
 #wp-auth-check-wrap .wp-auth-fallback-expired {

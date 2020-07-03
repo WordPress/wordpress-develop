@@ -113,7 +113,7 @@
 	font-weight: 600;
 	padding: 15px 23px 14px;
 	background: #f1f1f1;
-	color: #0073aa;
+	color: var(--wp-admin-theme-color);
 	z-index: 100000;
 	line-height: normal;
 	box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.6);
@@ -212,7 +212,7 @@ td {
 
 /* Any change to the default link style must be applied to button-link too. */
 a {
-	color: #0073aa;
+	color: var(--wp-admin-theme-color);
 	transition-property: border, background, color;
 	transition-duration: .05s;
 	transition-timing-function: ease-in-out;
@@ -225,16 +225,16 @@ div {
 
 a:hover,
 a:active {
-	color: #006799;
+	color: var(--wp-admin-theme-color-darker-10);
 }
 
 a:focus,
 a:focus .media-icon img,
 .wp-person a:focus .gravatar {
-	color: #124964;
+	color: var(--wp-admin-theme-darker-20);
 	box-shadow:
-		0 0 0 1px #5b9dd9,
-		0 0 2px 1px rgba(30, 140, 190, 0.8);
+		0 0 0 1px var(--wp-admin-theme-color-lighter-40),
+		0 0 2px 1px var(--wp-admin-theme-color);
 		/* Only visible in Windows High Contrast mode */
 		outline: 1px solid transparent;
 }
@@ -574,13 +574,13 @@ code {
 	position: relative;
 	top: -3px;
 	text-decoration: none;
-	border: 1px solid #0071a1;
+	border: 1px solid var(--wp-admin-theme-color);
 	border-radius: 2px;
 	text-shadow: none;
 	font-weight: 600;
 	font-size: 13px;
 	line-height: normal; /* IE8-IE11 need this for buttons */
-	color: #0071a1; /* use the standard color used for buttons */
+	color: var(--wp-admin-theme-color); /* use the standard color used for buttons */
 	background: #f3f5f6;
 	cursor: pointer;
 }
@@ -592,13 +592,13 @@ code {
 .wrap .add-new-h2:hover, /* deprecated */
 .wrap .page-title-action:hover {
 	background: #f1f1f1;
-	border-color: #016087;
-	color: #016087;
+	border-color: var(--wp-admin-theme-color-darker-10);
+	color: var(--wp-admin-theme-color-darker-10);
 }
 
 /* lower specificity: color needs to be overridden by :hover and :active */
 .page-title-action:focus {
-	color: #016087;
+	color: var(--wp-admin-theme-color-darker-10);
 }
 
 /* Dashicon for language options on General Settings and Profile screens */
@@ -608,8 +608,8 @@ code {
 }
 
 .wrap .page-title-action:focus {
-	border-color: #007cba;
-	box-shadow: 0 0 0 1px #007cba;
+	border-color: var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 1px var(--wp-admin-theme-color);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -770,7 +770,7 @@ img.emoji {
 .tagchecklist .ntdelbutton .remove-tag-icon:before {
 	margin-left: 2px;
 	border-radius: 50%;
-	color: #0073aa;
+	color: var(--wp-admin-theme-color);
 	/* vertically center the icon cross browsers */
 	line-height: 1.28;
 }
@@ -790,8 +790,8 @@ img.emoji {
 
 .tagchecklist .ntdelbutton:focus .remove-tag-icon:before {
 	box-shadow:
-		0 0 0 1px #5b9dd9,
-		0 0 2px 1px rgba(30, 140, 190, 0.8);
+		0 0 0 1px var(--wp-admin-theme-color-lighter-40),
+		0 0 2px 1px var(--wp-admin-theme-color);
 }
 
 .key-labels label {
@@ -1027,7 +1027,7 @@ th.action-links {
 .filter-links li > a:focus,
 .show-filters .filter-links a.current:hover,
 .show-filters .filter-links a.current:focus {
-	color: #006799;
+	color: var(--wp-admin-theme-color-darker-10);
 }
 
 .wp-filter .search-form {
@@ -1090,7 +1090,7 @@ th.action-links {
 .wp-filter .button.drawer-toggle:focus,
 .wp-filter .drawer-toggle:focus:before {
 	background-color: transparent;
-	color: #006799;
+	color: var(--wp-admin-theme-color-darker-10);
 }
 
 .wp-filter .button.drawer-toggle:hover,
@@ -1099,7 +1099,7 @@ th.action-links {
 }
 
 .wp-filter .button.drawer-toggle:focus {
-	border-color: #5b9dd9;
+	border-color: var(--wp-admin-theme-color-lighter-40);
 }
 
 .wp-filter .button.drawer-toggle:active {
@@ -1402,8 +1402,8 @@ div.error p,
 .notice-dismiss:focus {
 	outline: none;
 	box-shadow:
-		0 0 0 1px #5b9dd9,
-		0 0 2px 1px rgba(30, 140, 190, 0.8);
+		0 0 0 1px var(--wp-admin-theme-color-lighter-40),
+		0 0 2px 1px var(--wp-admin-theme-color);
 }
 
 .notice-success,
@@ -1433,7 +1433,7 @@ div.error {
 }
 
 .notice-info {
-	border-left-color: #00a0d2;
+	border-left-color: var(--wp-admin-theme-color-lighter-20);
 }
 
 .notice-info.notice-alt {
@@ -1580,7 +1580,7 @@ form.upgrade .hint {
 }
 
 .button-primary.updated-message:before {
-	color: #66c6e4;
+	color: var(--wp-admin-theme-color-lighter-40);
 }
 
 .button.updated-message {
@@ -1673,7 +1673,7 @@ form.upgrade .hint {
 }
 
 #screen-meta-links .show-settings:focus {
-	border-color: #5b9dd9;
+	border-color: var(--wp-admin-theme-color-lighter-40);
 	box-shadow: 0 0 3px rgba(0, 115, 170, 0.8);
 }
 
@@ -1845,7 +1845,7 @@ form.upgrade .hint {
 .contextual-help-tabs .active {
 	padding: 0;
 	margin: 0 -1px 0 0;
-	border-left: 2px solid #00a0d2;
+	border-left: 2px solid var(--wp-admin-theme-color-lighter-20);
 	background: #f6fbfd;
 	box-shadow: 0 2px 0 rgba(0, 0, 0, 0.02), 0 1px 0 rgba(0, 0, 0, 0.02);
 }
@@ -2944,7 +2944,7 @@ div.action-links {
 
 .plugin-details-modal #TB_closeWindowButton:hover,
 .plugin-details-modal #TB_closeWindowButton:focus {
-	color: #006799;
+	color: var(--wp-admin-theme-color-darker-10);
 	outline: none;
 	box-shadow: none;
 }
@@ -3040,8 +3040,8 @@ img {
 .postbox .handle-order-lower:focus .order-lower-indicator::before,
 .postbox .handlediv:focus .toggle-indicator::before {
 	box-shadow:
-		0 0 0 1px #5b9dd9,
-		0 0 2px 1px rgba(30, 140, 190, 0.8);
+		0 0 0 1px var(--wp-admin-theme-color-lighter-40),
+		0 0 2px 1px var(--wp-admin-theme-color);
 	/* Only visible in Windows High Contrast mode */
 	outline: 1px solid transparent;
 }
@@ -3137,10 +3137,10 @@ img {
 	outline: 0;
 }
 [role="treeitem"] .folder-label.focus {
-	color: #124964;
+	color: var(--wp-admin-theme-darker-20);
 	box-shadow:
-		0 0 0 1px #5b9dd9,
-		0 0 2px 1px rgba(30, 140, 190, 0.8);
+		0 0 0 1px var(--wp-admin-theme-color-lighter-40),
+		0 0 2px 1px var(--wp-admin-theme-color);
 }
 [role="treeitem"].hover,
 [role="treeitem"] .folder-label.hover {
@@ -3370,8 +3370,8 @@ img {
 
 .widget-top .widget-action:focus .toggle-indicator:before {
 	box-shadow:
-		0 0 0 1px #5b9dd9,
-		0 0 2px 1px rgba(30, 140, 190, 0.8);
+		0 0 0 1px var(--wp-admin-theme-color-lighter-40),
+		0 0 2px 1px var(--wp-admin-theme-color);
 }
 
 .control-section .accordion-section-title:after,

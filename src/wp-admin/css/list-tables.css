@@ -79,14 +79,14 @@
 .column-response a.post-com-count-approved:focus .comment-count-approved,
 .column-comments a.post-com-count-approved:hover .comment-count-approved,
 .column-comments a.post-com-count-approved:focus .comment-count-approved {
-	background: #0073aa;
+	background: var(--wp-admin-theme-color);
 }
 
 .column-response a.post-com-count-approved:hover:after,
 .column-response a.post-com-count-approved:focus:after,
 .column-comments a.post-com-count-approved:hover:after,
 .column-comments a.post-com-count-approved:focus:after {
-	border-top-color: #0073aa;
+	border-top-color: var(--wp-admin-theme-color);
 }
 
 /* @todo: consider to use a single rule for these counters and the admin menu counters. */
@@ -501,8 +501,8 @@ th.asc a:focus span.sorting-indicator:before {
 
 .wp-list-table .toggle-row:focus:before {
 	box-shadow:
-		0 0 0 1px #5b9dd9,
-		0 0 2px 1px rgba(30, 140, 190, 0.8);
+		0 0 0 1px var(--wp-admin-theme-color-lighter-40),
+		0 0 2px 1px var(--wp-admin-theme-color);
 }
 
 .wp-list-table .toggle-row:active {
@@ -721,7 +721,7 @@ th.asc a:focus span.sorting-indicator {
 }
 
 .view-switch a.current:before {
-	color: #0073aa;
+	color: var(--wp-admin-theme-color);
 }
 
 .view-switch .view-list:before {
@@ -1205,7 +1205,7 @@ ul.cat-checklist {
 
 .plugins .active th.check-column,
 .plugin-update-tr.active td {
-	border-left: 4px solid #00a0d2;
+	border-left: 4px solid var(--wp-admin-theme-color-lighter-20);
 }
 
 .wp-list-table.plugins .plugin-title,
@@ -2081,7 +2081,7 @@ div.action-links,
 
 	.plugins .active.update + .plugin-update-tr:before {
 		background-color: #f7fcfe;
-		border-left: 4px solid #00a0d2;
+		border-left: 4px solid var(--wp-admin-theme-color-lighter-20);
 	}
 
 	.plugins .plugin-update-tr .update-message {

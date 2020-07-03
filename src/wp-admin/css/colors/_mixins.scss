@@ -35,3 +35,12 @@
 		box-shadow: inset 0 2px 5px -3px darken( $button-color, 50% );
 	}
 }
+
+@mixin admin-scheme($color-primary) {
+	--wp-admin-theme-color: #{$color-primary};
+
+	// Darker shades.
+	--wp-admin-theme-color-darker-10: #{darken($color-primary, 5%)};
+	--wp-admin-theme-color-lighter-20: #{darken($color-primary, 10%)};
+	--wp-admin-theme-color-lighter-40: #{darken($color-primary, 20%)};
+}

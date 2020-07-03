@@ -101,8 +101,8 @@ input[type="checkbox"]:focus,
 input[type="radio"]:focus,
 select:focus,
 textarea:focus {
-	border-color: #007cba;
-	box-shadow: 0 0 0 1px #007cba;
+	border-color: var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 1px var(--wp-admin-theme-color);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -142,7 +142,7 @@ input[type="radio"]:checked + label:before {
 
 .wp-core-ui input[type="reset"]:hover,
 .wp-core-ui input[type="reset"]:active {
-	color: #006799;
+	color: var(--wp-admin-theme-color-darker-10);
 }
 
 td > input[type="checkbox"],
@@ -327,13 +327,13 @@ input[type="radio"].disabled:checked:before {
 }
 
 .wp-core-ui select:hover {
-	color: #007cba;
+	color: var(--wp-admin-theme-color);
 }
 
 .wp-core-ui select:focus {
-	border-color: #007cba;
-	color: #016087;
-	box-shadow: 0 0 0 1px #007cba;
+	border-color: var(--wp-admin-theme-color);
+	color: var(--wp-admin-theme-color-darker-10);
+	box-shadow: 0 0 0 1px var(--wp-admin-theme-color);
 }
 
 .wp-core-ui select:active {
@@ -358,7 +358,7 @@ input[type="radio"].disabled:checked:before {
 /* This ruleset overrides the color change on :focus thus needs to be after select:focus. */
 .wp-core-ui select:-moz-focusring {
 	color: transparent;
-	text-shadow: 0 0 0 #016087;
+	text-shadow: 0 0 0 var(--wp-admin-theme-color-darker-10);
 }
 
 /* Remove background focus style from IE11 while keeping focus style available on option elements. */
@@ -368,11 +368,11 @@ input[type="radio"].disabled:checked:before {
 }
 
 .wp-core-ui select:hover::-ms-value {
-	color: #007cba;
+	color: var(--wp-admin-theme-color);
 }
 
 .wp-core-ui select:focus::-ms-value {
-	color: #016087;
+	color: var(--wp-admin-theme-color-darker-10);
 }
 
 .wp-core-ui select.disabled::-ms-value,
@@ -661,8 +661,8 @@ ul#add-to-blog-users {
 	list-style: none;
 	position: absolute;
 	z-index: 10000;
-	border: 1px solid #5b9dd9;
-	box-shadow: 0 1px 2px rgba(30, 140, 190, 0.8);
+	border: 1px solid var(--wp-admin-theme-color-lighter-40);
+	box-shadow: 0 1px 2px var(--wp-admin-theme-color);
 	background-color: #fff;
 }
 
@@ -681,7 +681,7 @@ ul#add-to-blog-users {
 
 /* Colors for the tags autocomplete. */
 .wp-tags-autocomplete .ui-state-focus {
-	background-color: #0073aa;
+	background-color: var(--wp-admin-theme-color);
 	color: #fff;
 }
 
@@ -1235,7 +1235,7 @@ table.form-table td .updated p {
 .privacy_requests .status-request-confirmed th,
 .privacy_requests .status-request-confirmed td {
 	background-color: #f7fcfe;
-	border-left-color: #00a0d2;
+	border-left-color: var(--wp-admin-theme-color-lighter-20);
 }
 
 .privacy_requests .status-request-failed th,

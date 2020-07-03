@@ -46,7 +46,7 @@
 }
 
 .wp-color-result:focus {
-	border-color: #5b9dd9;
+	border-color: var(--wp-admin-theme-color-lighter-40);
 	box-shadow: 0 0 3px rgba(0, 115, 170, 0.8);
 }
 
@@ -122,14 +122,14 @@
 
 .iris-picker .ui-square-handle:focus,
 .iris-picker .iris-strip .ui-slider-handle:focus {
-	border-color: #007cba;
+	border-color: var(--wp-admin-theme-color);
 	border-style: solid;
-	box-shadow: 0 0 0 1px #007cba;
+	box-shadow: 0 0 0 1px var(--wp-admin-theme-color);
 	outline: 2px solid transparent;
 }
 
 .iris-picker .iris-palette:focus {
-	box-shadow: 0 0 0 2px #007cba;
+	box-shadow: 0 0 0 2px var(--wp-admin-theme-color);
 }
 
 @media screen and (max-width: 782px) {

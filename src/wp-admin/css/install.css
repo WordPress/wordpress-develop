@@ -15,19 +15,19 @@ body {
 }
 
 a {
-	color: #0073aa;
+	color: var(--wp-admin-theme-color);
 }
 
 a:hover,
 a:active {
-	color: #006799;
+	color: var(--wp-admin-theme-color-darker-10);
 }
 
 a:focus {
-	color: #124964;
+	color: var(--wp-admin-theme-darker-20);
 	box-shadow:
-		0 0 0 1px #5b9dd9,
-		0 0 2px 1px rgba(30, 140, 190, 0.8);
+		0 0 0 1px var(--wp-admin-theme-color-lighter-40),
+		0 0 2px 1px var(--wp-admin-theme-color);
 }
 
 h1, h2 {
@@ -323,7 +323,7 @@ body.language-chooser {
 
 .language-chooser select option:hover,
 .language-chooser select option:focus {
-	color: #016087;
+	color: var(--wp-admin-theme-color-darker-10);
 }
 
 .language-chooser p {
