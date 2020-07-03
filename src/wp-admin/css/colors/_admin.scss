@@ -128,14 +128,6 @@ textarea:focus {
 		border-color: $highlight-color;
 	}
 
-	.button-primary {
-		@include button( $button-color );
-
-		&:hover {
-			color: #fff;
-		}
-	}
-
 	.button.hover,
 	.button:hover,
 	.button-secondary:hover{
@@ -149,6 +141,14 @@ textarea:focus {
 		border-color: lighten($highlight-color, 10);
 		color: darken($highlight-color, 20);;
 		box-shadow: 0 0 0 1px lighten($highlight-color, 10);
+	}
+
+	.button-primary {
+		@include button( $button-color );
+
+		&:hover {
+			color: #fff;
+		}
 	}
 
 	.button-group > .button.active {
