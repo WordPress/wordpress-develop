@@ -2342,6 +2342,50 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/media/(?P<id>[\\d]+)/edit": {
+            "namespace": "wp/v2",
+            "methods": [
+                "POST",
+                "PUT",
+                "PATCH"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "POST",
+                        "PUT",
+                        "PATCH"
+                    ],
+                    "args": {
+                        "rotation": {
+                            "required": false,
+                            "description": "The amount to rotate the image clockwise in degrees.",
+                            "type": "integer"
+                        },
+                        "x": {
+                            "required": false,
+                            "description": "As a percentage of the original image, the x position to start the crop from.",
+                            "type": "number"
+                        },
+                        "y": {
+                            "required": false,
+                            "description": "As a percentage of the original image, the y position to start the crop from.",
+                            "type": "number"
+                        },
+                        "width": {
+                            "required": false,
+                            "description": "As a percentage of the original image, the width to crop the image to.",
+                            "type": "number"
+                        },
+                        "height": {
+                            "required": false,
+                            "description": "As a percentage of the original image, the height to crop the image to.",
+                            "type": "number"
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/blocks": {
             "namespace": "wp/v2",
             "methods": [
