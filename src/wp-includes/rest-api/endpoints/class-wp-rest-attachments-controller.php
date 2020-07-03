@@ -49,7 +49,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$this->namespace,
 			'/' . $this->rest_base . '/(?P<id>[\d]+)/edit',
 			array(
-				'methods'             => WP_REST_Server::EDITABLE,
+				'methods'             => WP_REST_Server::CREATABLE,
 				'callback'            => array( $this, 'edit_media_item' ),
 				'permission_callback' => array( $this, 'edit_media_item_permissions_check' ),
 				'args'                => $this->get_edit_media_item_args(),
