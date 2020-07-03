@@ -1683,10 +1683,11 @@ function get_the_archive_title() {
 	 * Filters the archive title.
 	 *
 	 * @since 4.1.0
+	 * @since 5.5.0 Added the `$prefix` parameter.
 	 *
 	 * @param string $title Archive title to be displayed.
 	 */
-	return apply_filters( 'get_the_archive_title', $title );
+	return apply_filters( 'get_the_archive_title', $title, $prefix );
 }
 
 /**
