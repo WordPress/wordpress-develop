@@ -1852,7 +1852,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$attachment = self::factory()->attachment->create_upload_object( $this->test_file );
 		wp_update_post(
 			array(
-				'ID' => $attachment,
+				'ID'             => $attachment,
 				'post_mime_type' => 'image/invalid',
 			)
 		);
