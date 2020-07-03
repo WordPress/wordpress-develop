@@ -294,10 +294,16 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		$this->assertEqualSets( array( 'alert', 'message' ), $result->keywords );
 		$this->assertEquals(
 			array(
-				'message' => array(
+				'message'   => array(
 					'type'     => 'string',
 					'source'   => 'html',
 					'selector' => '.message',
+				),
+				'align'     => array(
+					'type' => 'string',
+				),
+				'className' => array(
+					'type' => 'string',
 				),
 			),
 			$result->attributes
@@ -398,4 +404,42 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		$block_type = $registry->get_registered( 'core/test-filtered' );
 		$this->assertEquals( 'boolean', $block_type->attributes['core/test-filtered']['type'] );
 	}
+
+	/**
+	 * @ticket 49615
+	 */
+	function test_register_add_default_attributes_filter() {
+		$block_name = 'core/test-attributes';
+		register_block_type(
+			$block_name,
+			array(
+				'attributes' => array(),
+				'supports'   => array(
+					'align'  => true,
+					'anchor' => true,
+				),
+			)
+		);
+
+		$registry   = WP_Block_Type_Registry::get_instance();
+		$block_type = $registry->get_registered( $block_name );
+		$this->assertEquals(
+			array(
+				'align'     => array(
+					'type' => 'string',
+				),
+				'anchor'    => array(
+					'type'      => 'string',
+					'source'    => 'attribute',
+					'attribute' => 'id',
+					'selector'  => '*',
+				),
+				'className' => array(
+					'type' => 'string',
+				),
+			),
+			$block_type->attributes
+		);
+	}
+
 }

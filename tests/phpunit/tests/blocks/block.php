@@ -74,6 +74,9 @@ class WP_Block_Test extends WP_UnitTestCase {
 					'default' => 10,
 				),
 			),
+			'supports'   => array(
+				'customClassName' => false,
+			),
 		);
 		$this->registry->register( 'core/example', $block_type_settings );
 
