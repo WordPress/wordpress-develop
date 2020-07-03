@@ -4380,9 +4380,9 @@ function register_admin_color_schemes() {
 		admin_url( "css/colors/modern/colors$suffix.css" ),
 		array( '#1e1e1e', '#3858e9', '#e26f56' ),
 		array(
-			'base'    => '#1e1e1e',
-			'focus'   => '#3858e9',
-			'current' => '#e26f56',
+			'base'    => '#f3f1f1',
+			'focus'   => '#fff',
+			'current' => '#fff',
 		)
 	);
 
