@@ -1248,8 +1248,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	protected function get_edit_media_item_args() {
 		return array(
 			'rotation' => array(
-				'description' => __( 'The amount to rotate the image clockwise in degrees.' ),
-				'type'        => 'integer',
+				'description'      => __( 'The amount to rotate the image clockwise in degrees.' ),
+				'type'             => 'integer',
+				'minimum'          => 0,
+				'exclusiveMinimum' => true,
+				'maximum'          => 360,
+				'exclusiveMaximum' => true,
 			),
 			'x'        => array(
 				'description' => __( 'As a percentage of the image, the x position to start the crop from.' ),
