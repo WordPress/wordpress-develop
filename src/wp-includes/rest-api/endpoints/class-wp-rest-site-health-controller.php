@@ -16,19 +16,24 @@
  */
 class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 
+	/**
+	 * An instance of the site health class.
+	 *
+	 * @var WP_Site_Health
+	 */
 	private $site_health;
 
 	/**
 	 * Constructor.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param WP_Site_Health $site_health An instance of the site health class.
 	 */
-	public function __construct() {
-		if ( ! class_exists( 'WP_Site_Health' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
-		}
-
+	public function __construct( $site_health ) {
 		$this->namespace = 'wp-site-health/v1';
 
-		$this->site_health = WP_Site_Health::get_instance();
+		$this->site_health = $site_health;
 	}
 
 	/**
@@ -43,7 +48,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 			$this->namespace,
 			sprintf(
 				'/%s/%s',
-				'test',
+				'tests',
 				'background-updates'
 			),
 			array(
@@ -59,7 +64,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 			$this->namespace,
 			sprintf(
 				'/%s/%s',
-				'test',
+				'tests',
 				'loopback-requests'
 			),
 			array(
@@ -75,7 +80,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 			$this->namespace,
 			sprintf(
 				'/%s/%s',
-				'test',
+				'tests',
 				'dotorg-communication'
 			),
 			array(
@@ -91,7 +96,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 			$this->namespace,
 			sprintf(
 				'/%s/%s',
-				'test',
+				'tests',
 				'debug_enabled'
 			),
 			array(
@@ -106,12 +111,11 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 		register_rest_route(
 			$this->namespace,
 			sprintf(
-				'/%s/%s',
-				'get',
+				'/%s',
 				'directory-sizes'
 			),
 			array(
-				'methods'             => 'POST',
+				'methods'             => 'GET',
 				'callback'            => array( $this, 'get_directory_sizes' ),
 				'permission_callback' => function() {
 					return $this->validate_request_permission( 'debug_enabled' ) && ! is_multisite();
@@ -123,11 +127,12 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	/**
 	 * Validate if the current user can request this REST endpoint.
 	 *
-	 * @param string $check The endpoint check being ran.
+	 * @since 5.5.0
 	 *
+	 * @param string $check The endpoint check being ran.
 	 * @return bool
 	 */
-	public function validate_request_permission( $check ) {
+	protected function validate_request_permission( $check ) {
 		$default_capability = 'view_site_health_checks';
 
 		/**
@@ -152,7 +157,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	 */
 	public function test_background_updates() {
 		return array(
-			'data' => $this->site_health->get_test_background_updates()
+			'data' => $this->site_health->get_test_background_updates(),
 		);
 	}
 
@@ -165,7 +170,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	 */
 	public function test_dotorg_communication() {
 		return array(
-			'data' => $this->site_health->get_test_dotorg_communication()
+			'data' => $this->site_health->get_test_dotorg_communication(),
 		);
 	}
 
@@ -178,7 +183,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	 */
 	public function test_loopback_requests() {
 		return array(
-			'data' => $this->site_health->get_test_loopback_requests()
+			'data' => $this->site_health->get_test_loopback_requests(),
 		);
 	}
 
@@ -191,7 +196,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	 */
 	public function test_is_in_debug_mode() {
 		return array(
-			'data' => $this->site_health->get_test_is_in_debug_mode()
+			'data' => $this->site_health->get_test_is_in_debug_mode(),
 		);
 	}
 
@@ -199,6 +204,8 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	 * Get the current directory sizes for this install.
 	 *
 	 * @since 5.5.0
+	 *
+	 * @return array|WP_Error
 	 */
 	public function get_directory_sizes() {
 		if ( ! class_exists( 'WP_Debug_Data' ) ) {
@@ -236,7 +243,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 		}
 
 		if ( isset( $all_sizes['total_size']['debug'] ) && 'not available' === $all_sizes['total_size']['debug'] ) {
-			return new WP_Error( 'not_available', 'not_available', $all_sizes );
+			return new WP_Error( 'not_available', __( 'Directory sizes could not be returned.' ), $all_sizes );
 		}
 
 		return $all_sizes;

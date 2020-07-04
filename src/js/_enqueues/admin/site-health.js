@@ -291,8 +291,8 @@ jQuery( document ).ready( function( $ ) {
 			wp.a11y.speak( __( 'Please wait...' ) );
 		}, 3000 );
 
-		$.post( {
-			url: SiteHealth.rest_base + 'wp-site-health/v1/get/directory-sizes',
+		$.get( {
+			url: SiteHealth.rest_base + 'wp-site-health/v1/directory-sizes',
 			data: data,
 			dataType: 'json'
 		} ).done( function( response ) {
@@ -303,7 +303,7 @@ jQuery( document ).ready( function( $ ) {
 			$( '.health-check-wp-paths-sizes.spinner' ).css( 'visibility', 'hidden' );
 			recalculateProgression();
 
-			if ( delay > 3000  ) {
+			if ( delay > 3000 ) {
 				/*
 				 * We have announced that we're waiting.
 				 * Announce that we're ready after giving at least 3 seconds

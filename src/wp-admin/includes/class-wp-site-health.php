@@ -2166,17 +2166,17 @@ class WP_Site_Health {
 			'async'  => array(
 				'dotorg_communication' => array(
 					'label'    => __( 'Communication with WordPress.org' ),
-					'test'     => rest_url( 'wp-site-health/v1/test/dotorg-communication' ),
+					'test'     => rest_url( 'wp-site-health/v1/tests/dotorg-communication' ),
 					'has_rest' => true,
 				),
 				'background_updates'   => array(
 					'label'    => __( 'Background updates' ),
-					'test'     => rest_url( 'wp-site-health/v1/test/background-updates' ),
+					'test'     => rest_url( 'wp-site-health/v1/tests/background-updates' ),
 					'has_rest' => true,
 				),
 				'loopback_requests'    => array(
 					'label'    => __( 'Loopback request' ),
-					'test'     => rest_url( 'wp-site-health/v1/test/loopback-requests' ),
+					'test'     => rest_url( 'wp-site-health/v1/tests/loopback-requests' ),
 					'has_rest' => true,
 				),
 			),
