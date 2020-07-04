@@ -721,7 +721,7 @@ JS;
 		$expected .= "</script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/dom-ready.min.js' id='wp-dom-ready-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/i18n.min.js' id='wp-i18n-js'></script>\n";
-		$expected .= "<script type='text/javascript' id='wp-i18n-js-translations'>\n";
+		$expected .= "<script type='text/javascript' id='wp-a11y-js-translations'>\n";
 		$expected .= "( function( domain, translations ) {\n";
 		$expected .= "	var localeData = translations.locale_data[ domain ] || translations.locale_data.messages;\n";
 		$expected .= "	localeData[\"\"].domain = domain;\n";
