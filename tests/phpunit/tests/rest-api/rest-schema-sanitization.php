@@ -312,6 +312,8 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 	}
 
 	public function test_type_unknown() {
+		$this->setExpectedIncorrectUsage( 'rest_sanitize_value_from_schema' );
+
 		$schema = array(
 			'type' => 'lalala',
 		);
@@ -321,6 +323,8 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 	}
 
 	public function test_no_type() {
+		$this->setExpectedIncorrectUsage( 'rest_sanitize_value_from_schema' );
+
 		$schema = array(
 			'type' => null,
 		);
@@ -338,6 +342,44 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 		$this->assertNull( rest_sanitize_value_from_schema( null, $schema ) );
 		$this->assertEquals( '2019-09-19T18:00:00', rest_sanitize_value_from_schema( '2019-09-19T18:00:00', $schema ) );
 		$this->assertNull( rest_sanitize_value_from_schema( 'lalala', $schema ) );
+	}
+
+	/**
+	 * @ticket 50189
+	 */
+	public function test_format_validation_is_skipped_if_non_string_type() {
+		$schema = array(
+			'type'   => 'array',
+			'format' => 'hex-color',
+		);
+		$this->assertEquals( array( '#fff' ), rest_sanitize_value_from_schema( '#fff', $schema ) );
+		$this->assertEquals( array( '#qrst' ), rest_sanitize_value_from_schema( '#qrst', $schema ) );
+	}
+
+	/**
+	 * @ticket 50189
+	 */
+	public function test_format_validation_is_applied_if_missing_type() {
+		$this->expectException( 'PHPUnit_Framework_Error_Notice' ); // For the undefined index.
+		$this->setExpectedIncorrectUsage( 'rest_sanitize_value_from_schema' );
+
+		$schema = array( 'format' => 'hex-color' );
+		$this->assertEquals( '#abc', rest_sanitize_value_from_schema( '#abc', $schema ) );
+		$this->assertEquals( '', rest_sanitize_value_from_schema( '#jkl', $schema ) );
+	}
+
+	/**
+	 * @ticket 50189
+	 */
+	public function test_format_validation_is_applied_if_unknown_type() {
+		$this->setExpectedIncorrectUsage( 'rest_sanitize_value_from_schema' );
+
+		$schema = array(
+			'format' => 'hex-color',
+			'type'   => 'str',
+		);
+		$this->assertEquals( '#abc', rest_sanitize_value_from_schema( '#abc', $schema ) );
+		$this->assertEquals( '', rest_sanitize_value_from_schema( '#jkl', $schema ) );
 	}
 
 	public function test_object_or_string() {

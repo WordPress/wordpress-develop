@@ -137,6 +137,47 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertWPError( rest_validate_value_from_schema( 'FF01::101::2', $schema ) ); // Multicast, compressed.
 	}
 
+	/**
+	 * @ticket 50189
+	 */
+	public function test_format_validation_is_skipped_if_non_string_type() {
+		$schema = array(
+			'type'   => 'array',
+			'items'  => array(
+				'type' => 'string',
+			),
+			'format' => 'email',
+		);
+		$this->assertTrue( rest_validate_value_from_schema( 'email@example.com', $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( 'email', $schema ) );
+	}
+
+	/**
+	 * @ticket 50189
+	 */
+	public function test_format_validation_is_applied_if_missing_type() {
+		$this->expectException( 'PHPUnit_Framework_Error_Notice' ); // For the undefined index.
+		$this->setExpectedIncorrectUsage( 'rest_validate_value_from_schema' );
+
+		$schema = array( 'format' => 'email' );
+		$this->assertTrue( rest_validate_value_from_schema( 'email@example.com', $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( 'email', $schema ) );
+	}
+
+	/**
+	 * @ticket 50189
+	 */
+	public function test_format_validation_is_applied_if_unknown_type() {
+		$this->setExpectedIncorrectUsage( 'rest_validate_value_from_schema' );
+
+		$schema = array(
+			'format' => 'email',
+			'type'   => 'str',
+		);
+		$this->assertTrue( rest_validate_value_from_schema( 'email@example.com', $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( 'email', $schema ) );
+	}
+
 	public function test_type_array() {
 		$schema = array(
 			'type'  => 'array',
@@ -322,6 +363,8 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	public function test_type_unknown() {
+		$this->setExpectedIncorrectUsage( 'rest_validate_value_from_schema' );
+
 		$schema = array(
 			'type' => 'lalala',
 		);
