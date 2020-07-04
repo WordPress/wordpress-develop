@@ -16,8 +16,10 @@
  * "special".
  *
  * @since 1.5.0
+ * @since 5.5.0 A return value was added.
  *
  * @param string $name The name of the specialised header.
+ * @return void|false Void on success, false if the template does not exist.
  */
 function get_header( $name = null ) {
 	/**
@@ -38,7 +40,9 @@ function get_header( $name = null ) {
 
 	$templates[] = 'header.php';
 
-	locate_template( $templates, true );
+	if ( ! locate_template( $templates, true ) ) {
+		return false;
+	}
 }
 
 /**
@@ -51,8 +55,10 @@ function get_header( $name = null ) {
  * "special".
  *
  * @since 1.5.0
+ * @since 5.5.0 A return value was added.
  *
  * @param string $name The name of the specialised footer.
+ * @return void|false Void on success, false if the template does not exist.
  */
 function get_footer( $name = null ) {
 	/**
@@ -73,7 +79,9 @@ function get_footer( $name = null ) {
 
 	$templates[] = 'footer.php';
 
-	locate_template( $templates, true );
+	if ( ! locate_template( $templates, true ) ) {
+		return false;
+	}
 }
 
 /**
@@ -86,8 +94,10 @@ function get_footer( $name = null ) {
  * "special".
  *
  * @since 1.5.0
+ * @since 5.5.0 A return value was added.
  *
  * @param string $name The name of the specialised sidebar.
+ * @return void|false Void on success, false if the template does not exist.
  */
 function get_sidebar( $name = null ) {
 	/**
@@ -108,7 +118,9 @@ function get_sidebar( $name = null ) {
 
 	$templates[] = 'sidebar.php';
 
-	locate_template( $templates, true );
+	if ( ! locate_template( $templates, true ) ) {
+		return false;
+	}
 }
 
 /**
@@ -128,9 +140,11 @@ function get_sidebar( $name = null ) {
  * "special".
  *
  * @since 3.0.0
+ * @since 5.5.0 A return value was added.
  *
  * @param string $slug The slug name for the generic template.
  * @param string $name The name of the specialised template.
+ * @return void|false Void on success, false if the template does not exist.
  */
 function get_template_part( $slug, $name = null ) {
 	/**
@@ -165,7 +179,9 @@ function get_template_part( $slug, $name = null ) {
 	 */
 	do_action( 'get_template_part', $slug, $name, $templates );
 
-	locate_template( $templates, true, false );
+	if ( ! locate_template( $templates, true, false ) ) {
+		return false;
+	}
 }
 
 /**
@@ -965,13 +981,21 @@ function get_custom_logo( $blog_id = 0 ) {
 			'class' => 'custom-logo',
 		);
 
-		/*
-		 * If the logo alt attribute is empty, get the site title and explicitly pass it
-		 * to the attributes used by wp_get_attachment_image().
-		 */
-		$image_alt = get_post_meta( $custom_logo_id, '_wp_attachment_image_alt', true );
-		if ( empty( $image_alt ) ) {
-			$custom_logo_attr['alt'] = get_bloginfo( 'name', 'display' );
+		if ( is_front_page() ) {
+			/*
+			 * If on the home page, set the logo alt attribute to an empty string,
+			 * as the image is decorative and doesn't need its purpose to be described.
+			 */
+			$custom_logo_attr['alt'] = '';
+		} else {
+			/*
+			 * If the logo alt attribute is empty, get the site title and explicitly pass it
+			 * to the attributes used by wp_get_attachment_image().
+			 */
+			$image_alt = get_post_meta( $custom_logo_id, '_wp_attachment_image_alt', true );
+			if ( empty( $image_alt ) ) {
+				$custom_logo_attr['alt'] = get_bloginfo( 'name', 'display' );
+			}
 		}
 
 		/**
@@ -1202,9 +1226,9 @@ function _wp_render_title_tag() {
  *
  * @global WP_Locale $wp_locale WordPress date and time locale object.
  *
- * @param string $sep         Optional, default is '&raquo;'. How to separate the various items
- *                            within the page title.
- * @param bool   $display     Optional, default is true. Whether to display or retrieve title.
+ * @param string $sep         Optional. How to separate the various items within the page title.
+ *                            Default '&raquo;'.
+ * @param bool   $display     Optional. Whether to display or retrieve title. Default true.
  * @param string $seplocation Optional. Location of the separator ('left' or 'right').
  * @return string|null String on retrieve, null when displaying.
  */
@@ -1348,7 +1372,7 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
  * @since 0.71
  *
  * @param string $prefix  Optional. What to display before the title.
- * @param bool   $display Optional, default is true. Whether to display or retrieve title.
+ * @param bool   $display Optional. Whether to display or retrieve title. Default true.
  * @return string|void Title when retrieving.
  */
 function single_post_title( $prefix = '', $display = true ) {
@@ -1383,7 +1407,7 @@ function single_post_title( $prefix = '', $display = true ) {
  * @since 3.1.0
  *
  * @param string $prefix  Optional. What to display before the title.
- * @param bool   $display Optional, default is true. Whether to display or retrieve title.
+ * @param bool   $display Optional. Whether to display or retrieve title. Default true.
  * @return string|void Title when retrieving, null when displaying or failure.
  */
 function post_type_archive_title( $prefix = '', $display = true ) {
@@ -1425,7 +1449,7 @@ function post_type_archive_title( $prefix = '', $display = true ) {
  * @since 0.71
  *
  * @param string $prefix  Optional. What to display before the title.
- * @param bool   $display Optional, default is true. Whether to display or retrieve title.
+ * @param bool   $display Optional. Whether to display or retrieve title. Default true.
  * @return string|void Title when retrieving.
  */
 function single_cat_title( $prefix = '', $display = true ) {
@@ -1442,7 +1466,7 @@ function single_cat_title( $prefix = '', $display = true ) {
  * @since 2.3.0
  *
  * @param string $prefix  Optional. What to display before the title.
- * @param bool   $display Optional, default is true. Whether to display or retrieve title.
+ * @param bool   $display Optional. Whether to display or retrieve title. Default true.
  * @return string|void Title when retrieving.
  */
 function single_tag_title( $prefix = '', $display = true ) {
@@ -1459,7 +1483,7 @@ function single_tag_title( $prefix = '', $display = true ) {
  * @since 3.1.0
  *
  * @param string $prefix  Optional. What to display before the title.
- * @param bool   $display Optional, default is true. Whether to display or retrieve title.
+ * @param bool   $display Optional. Whether to display or retrieve title. Default true.
  * @return string|void Title when retrieving.
  */
 function single_term_title( $prefix = '', $display = true ) {
@@ -1524,7 +1548,7 @@ function single_term_title( $prefix = '', $display = true ) {
  * @global WP_Locale $wp_locale WordPress date and time locale object.
  *
  * @param string $prefix  Optional. What to display before the title.
- * @param bool   $display Optional, default is true. Whether to display or retrieve title.
+ * @param bool   $display Optional. Whether to display or retrieve title. Default true.
  * @return string|void Title when retrieving.
  */
 function single_month_title( $prefix = '', $display = true ) {
@@ -1752,7 +1776,7 @@ function get_the_post_type_description() {
  *
  * @param string $url      URL to archive.
  * @param string $text     Archive text description.
- * @param string $format   Optional, default is 'html'. Can be 'link', 'option', 'html', or custom.
+ * @param string $format   Optional. Can be 'link', 'option', 'html', or custom. Default 'html'.
  * @param string $before   Optional. Content to prepend to the description. Default empty.
  * @param string $after    Optional. Content to append to the description. Default empty.
  * @param bool   $selected Optional. Set to true if the current page is the selected archive page.
@@ -2080,8 +2104,8 @@ function calendar_week_mod( $num ) {
  * @global WP_Locale $wp_locale WordPress date and time locale object.
  * @global array     $posts
  *
- * @param bool $initial Optional, default is true. Use initial calendar names.
- * @param bool $echo    Optional, default is true. Set to false for return.
+ * @param bool $initial Optional. Whether to use initial calendar names. Default true.
+ * @param bool $display Optional. Whether to display or return the calendar. Default true.
  * @return void|string Void if `$echo` argument is true, calendar HTML if `$echo` is false.
  */
 function get_calendar( $initial = true, $echo = true ) {
@@ -2374,7 +2398,7 @@ function the_date_xml() {
  * @param string $format Optional. PHP date format defaults to the date_format option if not specified.
  * @param string $before Optional. Output before the date.
  * @param string $after  Optional. Output after the date.
- * @param bool   $echo   Optional, default is display. Whether to echo the date or return it.
+ * @param bool   $echo   Optional. Whether to echo the date or return it. Default true.
  * @return string|void String if retrieving.
  */
 function the_date( $format = '', $before = '', $after = '', $echo = true ) {
@@ -2453,7 +2477,7 @@ function get_the_date( $format = '', $post = null ) {
  * @param string $format Optional. PHP date format defaults to the date_format option if not specified.
  * @param string $before Optional. Output before the date.
  * @param string $after  Optional. Output after the date.
- * @param bool   $echo   Optional, default is display. Whether to echo the date or return it.
+ * @param bool   $echo   Optional. Whether to echo the date or return it. Default true.
  * @return string|void String if retrieving.
  */
 function the_modified_date( $format = '', $before = '', $after = '', $echo = true ) {
@@ -3894,7 +3918,8 @@ function wp_get_code_editor_settings( $args ) {
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param array $settings The array of settings passed to the code editor. A falsey value disables the editor.
+	 * @param array $settings The array of settings passed to the code editor.
+	 *                        A falsey value disables the editor.
 	 * @param array $args {
 	 *     Args passed when calling `get_code_editor_settings()`.
 	 *
@@ -3915,7 +3940,7 @@ function wp_get_code_editor_settings( $args ) {
  * Retrieves the contents of the search WordPress query variable.
  *
  * The search query string is passed through esc_attr() to ensure that it is safe
- * for placing in an html attribute.
+ * for placing in an HTML attribute.
  *
  * @since 2.3.0
  *
@@ -3943,7 +3968,7 @@ function get_search_query( $escaped = true ) {
  * Displays the contents of the search query variable.
  *
  * The search query string is passed through esc_attr() to ensure that it is safe
- * for placing in an html attribute.
+ * for placing in an HTML attribute.
  *
  * @since 2.1.0
  */
@@ -3959,14 +3984,14 @@ function the_search_query() {
 }
 
 /**
- * Gets the language attributes for the html tag.
+ * Gets the language attributes for the 'html' tag.
  *
- * Builds up a set of html attributes containing the text direction and language
+ * Builds up a set of HTML attributes containing the text direction and language
  * information for the page.
  *
  * @since 4.3.0
  *
- * @param string $doctype Optional. The type of html document. Accepts 'xhtml' or 'html'. Default 'html'.
+ * @param string $doctype Optional. The type of HTML document. Accepts 'xhtml' or 'html'. Default 'html'.
  */
 function get_language_attributes( $doctype = 'html' ) {
 	$attributes = array();
@@ -3989,27 +4014,27 @@ function get_language_attributes( $doctype = 'html' ) {
 	$output = implode( ' ', $attributes );
 
 	/**
-	 * Filters the language attributes for display in the html tag.
+	 * Filters the language attributes for display in the 'html' tag.
 	 *
 	 * @since 2.5.0
 	 * @since 4.3.0 Added the `$doctype` parameter.
 	 *
 	 * @param string $output A space-separated list of language attributes.
-	 * @param string $doctype The type of html document (xhtml|html).
+	 * @param string $doctype The type of HTML document (xhtml|html).
 	 */
 	return apply_filters( 'language_attributes', $output, $doctype );
 }
 
 /**
- * Displays the language attributes for the html tag.
+ * Displays the language attributes for the 'html' tag.
  *
- * Builds up a set of html attributes containing the text direction and language
+ * Builds up a set of HTML attributes containing the text direction and language
  * information for the page.
  *
  * @since 2.1.0
  * @since 4.3.0 Converted into a wrapper for get_language_attributes().
  *
- * @param string $doctype Optional. The type of html document. Accepts 'xhtml' or 'html'. Default 'html'.
+ * @param string $doctype Optional. The type of HTML document. Accepts 'xhtml' or 'html'. Default 'html'.
  */
 function language_attributes( $doctype = 'html' ) {
 	echo get_language_attributes( $doctype );
@@ -4350,6 +4375,18 @@ function register_admin_color_schemes() {
 	);
 
 	wp_admin_css_color(
+		'modern',
+		_x( 'Modern', 'admin color scheme' ),
+		admin_url( "css/colors/modern/colors$suffix.css" ),
+		array( '#1e1e1e', '#3858e9', '#e26f56' ),
+		array(
+			'base'    => '#1e1e1e',
+			'focus'   => '#3858e9',
+			'current' => '#e26f56',
+		)
+	);
+
+	wp_admin_css_color(
 		'blue',
 		_x( 'Blue', 'admin color scheme' ),
 		admin_url( "css/colors/blue/colors$suffix.css" ),
@@ -4654,7 +4691,7 @@ function get_the_generator( $type = '' ) {
 }
 
 /**
- * Outputs the html checked attribute.
+ * Outputs the HTML checked attribute.
  *
  * Compares the first two arguments and if identical marks as checked
  *
@@ -4663,14 +4700,14 @@ function get_the_generator( $type = '' ) {
  * @param mixed $checked One of the values to compare
  * @param mixed $current (true) The other value to compare if not just true
  * @param bool  $echo    Whether to echo or just return the string
- * @return string html attribute or empty string
+ * @return string HTML attribute or empty string
  */
 function checked( $checked, $current = true, $echo = true ) {
 	return __checked_selected_helper( $checked, $current, $echo, 'checked' );
 }
 
 /**
- * Outputs the html selected attribute.
+ * Outputs the HTML selected attribute.
  *
  * Compares the first two arguments and if identical marks as selected
  *
@@ -4679,14 +4716,14 @@ function checked( $checked, $current = true, $echo = true ) {
  * @param mixed $selected One of the values to compare
  * @param mixed $current  (true) The other value to compare if not just true
  * @param bool  $echo     Whether to echo or just return the string
- * @return string html attribute or empty string
+ * @return string HTML attribute or empty string
  */
 function selected( $selected, $current = true, $echo = true ) {
 	return __checked_selected_helper( $selected, $current, $echo, 'selected' );
 }
 
 /**
- * Outputs the html disabled attribute.
+ * Outputs the HTML disabled attribute.
  *
  * Compares the first two arguments and if identical marks as disabled
  *
@@ -4695,14 +4732,14 @@ function selected( $selected, $current = true, $echo = true ) {
  * @param mixed $disabled One of the values to compare
  * @param mixed $current  (true) The other value to compare if not just true
  * @param bool  $echo     Whether to echo or just return the string
- * @return string html attribute or empty string
+ * @return string HTML attribute or empty string
  */
 function disabled( $disabled, $current = true, $echo = true ) {
 	return __checked_selected_helper( $disabled, $current, $echo, 'disabled' );
 }
 
 /**
- * Outputs the html readonly attribute.
+ * Outputs the HTML readonly attribute.
  *
  * Compares the first two arguments and if identical marks as readonly
  *
@@ -4711,7 +4748,7 @@ function disabled( $disabled, $current = true, $echo = true ) {
  * @param mixed $readonly One of the values to compare
  * @param mixed $current  (true) The other value to compare if not just true
  * @param bool  $echo     Whether to echo or just return the string
- * @return string html attribute or empty string
+ * @return string HTML attribute or empty string
  */
 function readonly( $readonly, $current = true, $echo = true ) {
 	return __checked_selected_helper( $readonly, $current, $echo, 'readonly' );
@@ -4729,7 +4766,7 @@ function readonly( $readonly, $current = true, $echo = true ) {
  * @param mixed  $current (true) The other value to compare if not just true
  * @param bool   $echo    Whether to echo or just return the string
  * @param string $type    The type of checked|selected|disabled|readonly we are doing
- * @return string html attribute or empty string
+ * @return string HTML attribute or empty string
  */
 function __checked_selected_helper( $helper, $current, $echo, $type ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
 	if ( (string) $helper === (string) $current ) {

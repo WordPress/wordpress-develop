@@ -73,7 +73,6 @@ class Tests_Kses extends WP_UnitTestCase {
 	 * @param string $source   Source HTML.
 	 * @param string $context  Context to use for parsing source.
 	 * @param string $expected Expected output following KSES parsing.
-	 * @return void
 	 */
 	function test_wp_kses_video( $source, $context, $expected ) {
 		$actual = wp_kses( $source, $context );

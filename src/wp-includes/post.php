@@ -2140,9 +2140,11 @@ function get_post_meta( $post_id, $key = '', $single = false ) {
  * @param string $meta_key   Metadata key.
  * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
  * @param mixed  $prev_value Optional. Previous value to check before updating.
- *                           Default empty.
+ *                           If specified, only update existing metadata entries with
+ *                           this value. Otherwise, update all entries. Default empty.
  * @return int|bool Meta ID if the key didn't exist, true on successful update,
- *                  false on failure.
+ *                  false on failure or if the value passed to the function
+ *                  is the same as the one that is already in the database.
  */
 function update_post_meta( $post_id, $meta_key, $meta_value, $prev_value = '' ) {
 	// Make sure meta is added to the post, not a revision.
@@ -3685,8 +3687,8 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	 * 1. The post type supports the title, editor, and excerpt fields
 	 * 2. The title, editor, and excerpt fields are all empty
 	 *
-	 * Passing a truthy value to the filter will effectively short-circuit
-	 * the new post being inserted, returning 0. If $wp_error is true, a WP_Error
+	 * Returning a truthy value from the filter will effectively short-circuit
+	 * the new post being inserted and return 0. If $wp_error is true, a WP_Error
 	 * will be returned instead.
 	 *
 	 * @since 3.3.0
@@ -5898,13 +5900,22 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 }
 
 /**
- * Retrieve attachment meta field for attachment ID.
+ * Retrieves attachment metadata for attachment ID.
  *
  * @since 2.1.0
  *
  * @param int  $attachment_id Attachment post ID. Defaults to global $post.
  * @param bool $unfiltered    Optional. If true, filters are not run. Default false.
- * @return mixed Attachment meta field. False on failure.
+ * @return array|false {
+ *     Attachment metadata. False on failure.
+ *
+ *     @type int    $width      The width of the attachment.
+ *     @type int    $height     The height of the attachment.
+ *     @type string $file       The file path relative to `wp-content/uploads`.
+ *     @type array  $sizes      Keys are size slugs, each value is an array containing
+ *                              'file', 'width', 'height', and 'mime-type'.
+ *     @type array  $image_meta Image metadata.
+ * }
  */
 function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
 	$attachment_id = (int) $attachment_id;
@@ -5933,7 +5944,7 @@ function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
 }
 
 /**
- * Update metadata for an attachment.
+ * Updates metadata for an attachment.
  *
  * @since 2.1.0
  *

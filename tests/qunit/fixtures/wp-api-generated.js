@@ -2342,6 +2342,46 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/media/(?P<id>[\\d]+)/edit": {
+            "namespace": "wp/v2",
+            "methods": [
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "rotation": {
+                            "required": false,
+                            "description": "The amount to rotate the image clockwise in degrees.",
+                            "type": "integer"
+                        },
+                        "x": {
+                            "required": false,
+                            "description": "As a percentage of the image, the x position to start the crop from.",
+                            "type": "number"
+                        },
+                        "y": {
+                            "required": false,
+                            "description": "As a percentage of the image, the y position to start the crop from.",
+                            "type": "number"
+                        },
+                        "width": {
+                            "required": false,
+                            "description": "As a percentage of the image, the width to crop the image to.",
+                            "type": "number"
+                        },
+                        "height": {
+                            "required": false,
+                            "description": "As a percentage of the image, the height to crop the image to.",
+                            "type": "number"
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/blocks": {
             "namespace": "wp/v2",
             "methods": [
@@ -4702,6 +4742,216 @@ mockedApiResponse.Schema = {
             ],
             "_links": {
                 "self": "http://example.org/index.php?rest_route=/wp/v2/themes"
+            }
+        },
+        "/wp/v2/plugins": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "required": false,
+                            "default": "view",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
+                        },
+                        "search": {
+                            "required": false,
+                            "description": "Limit results to those matching a string.",
+                            "type": "string"
+                        },
+                        "status": {
+                            "required": false,
+                            "description": "Limits results to plugins with the given status.",
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "inactive",
+                                    "active"
+                                ]
+                            }
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "slug": {
+                            "required": true,
+                            "description": "WordPress.org plugin directory slug.",
+                            "type": "string"
+                        },
+                        "status": {
+                            "required": false,
+                            "default": "inactive",
+                            "enum": [
+                                "inactive",
+                                "active"
+                            ],
+                            "description": "The plugin activation status.",
+                            "type": "string"
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/plugins"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/plugins/(?P<plugin>[^.\\/]+(?:\\/[^.\\/]+)?)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "required": false,
+                            "default": "view",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
+                        },
+                        "plugin": {
+                            "required": false,
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST",
+                        "PUT",
+                        "PATCH"
+                    ],
+                    "args": {
+                        "context": {
+                            "required": false,
+                            "default": "view",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
+                        },
+                        "plugin": {
+                            "required": false,
+                            "type": "string"
+                        },
+                        "status": {
+                            "required": false,
+                            "enum": [
+                                "inactive",
+                                "active"
+                            ],
+                            "description": "The plugin activation status.",
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "DELETE"
+                    ],
+                    "args": {
+                        "context": {
+                            "required": false,
+                            "default": "view",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
+                        },
+                        "plugin": {
+                            "required": false,
+                            "type": "string"
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/block-directory/search": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "required": false,
+                            "default": "view",
+                            "enum": [
+                                "view"
+                            ],
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
+                        },
+                        "page": {
+                            "required": false,
+                            "default": 1,
+                            "description": "Current page of the collection.",
+                            "type": "integer"
+                        },
+                        "per_page": {
+                            "required": false,
+                            "default": 10,
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer"
+                        },
+                        "term": {
+                            "required": true,
+                            "description": "Limit result set to blocks matching the search term.",
+                            "type": "string"
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/block-directory/search"
+                    }
+                ]
             }
         }
     }
