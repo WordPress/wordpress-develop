@@ -243,7 +243,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 		}
 
 		if ( isset( $all_sizes['total_size']['debug'] ) && 'not available' === $all_sizes['total_size']['debug'] ) {
-			return new WP_Error( 'not_available', __( 'Directory sizes could not be returned.' ), [ 'status' => 500 ] );
+			return new WP_Error( 'not_available', __( 'Directory sizes could not be returned.' ), array( 'status' => 500 ) );
 		}
 
 		return $all_sizes;

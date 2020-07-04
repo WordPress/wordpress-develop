@@ -11,7 +11,6 @@ jQuery( document ).ready( function( $ ) {
 	var __ = wp.i18n.__,
 		_n = wp.i18n._n,
 		sprintf = wp.i18n.sprintf,
-		data,
 		clipboard = new ClipboardJS( '.site-health-copy-buttons .copy-button' ),
 		isDebugTab = $( '.health-check-body.health-check-debug-tab' ).length,
 		pathsSizesSection = $( '#health-check-accordion-block-wp-paths-sizes' ),
