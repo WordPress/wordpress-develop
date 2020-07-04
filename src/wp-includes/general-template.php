@@ -1614,7 +1614,7 @@ function get_the_archive_title() {
 		$title  = single_tag_title( '', false );
 		$prefix = _x( 'Tag:', 'tag archive title prefix' );
 	} elseif ( is_author() ) {
-		$title  = '<span class="vcard">' . get_the_author() . '</span>';
+		$title  = get_the_author();
 		$prefix = _x( 'Author:', 'author archive title prefix' );
 	} elseif ( is_year() ) {
 		$title  = get_the_date( _x( 'Y', 'yearly archives date format' ) );
@@ -1661,6 +1661,8 @@ function get_the_archive_title() {
 		}
 	}
 
+	$original_title = $title;
+
 	/**
 	 * Filters the archive title prefix.
 	 *
@@ -1669,7 +1671,6 @@ function get_the_archive_title() {
 	 * @param string $prefix Archive title prefix.
 	 */
 	$prefix = apply_filters( 'get_the_archive_title_prefix', $prefix );
-
 	if ( $prefix ) {
 		$title = sprintf(
 			/* translators: 1: Title prefix. 2: Title. */
@@ -1683,12 +1684,13 @@ function get_the_archive_title() {
 	 * Filters the archive title.
 	 *
 	 * @since 4.1.0
-	 * @since 5.5.0 Added the `$prefix` parameter.
+	 * @since 5.5.0 Added the `$prefix` and `$original_title` parameters.
 	 *
-	 * @param string $title  Archive title to be displayed.
-	 * @param string $prefix Archive title prefix.
+	 * @param string $title          Archive title to be displayed.
+	 * @param string $original_title Archive title without prefix.
+	 * @param string $prefix         Archive title prefix.
 	 */
-	return apply_filters( 'get_the_archive_title', $title, $prefix );
+	return apply_filters( 'get_the_archive_title', $title, $original_title, $prefix );
 }
 
 /**
