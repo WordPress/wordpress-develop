@@ -1608,23 +1608,29 @@ function get_the_archive_title() {
 	$prefix = '';
 
 	if ( is_category() ) {
-		$title  = single_cat_title( '', false );
-		$prefix = _x( 'Category:', 'category archive title prefix' );
+		$title = single_cat_title( '', false );
+		/* translators: Used in archive title as a prefix, followed by a colon and the title. */
+		$prefix = _x( 'Category', 'category archive title prefix' );
 	} elseif ( is_tag() ) {
-		$title  = single_tag_title( '', false );
-		$prefix = _x( 'Tag:', 'tag archive title prefix' );
+		$title = single_tag_title( '', false );
+		/* translators: Used in archive title as a prefix, followed by a colon and the title. */
+		$prefix = _x( 'Tag', 'tag archive title prefix' );
 	} elseif ( is_author() ) {
-		$title  = '<span class="vcard">' . get_the_author() . '</span>';
-		$prefix = _x( 'Author:', 'author archive title prefix' );
+		$title = get_the_author();
+		/* translators: Used in archive title as a prefix, followed by a colon and the title. */
+		$prefix = _x( 'Author', 'author archive title prefix' );
 	} elseif ( is_year() ) {
-		$title  = get_the_date( _x( 'Y', 'yearly archives date format' ) );
-		$prefix = _x( 'Year:', 'date archive title prefix' );
+		$title = get_the_date( _x( 'Y', 'yearly archives date format' ) );
+		/* translators: Used in archive title as a prefix, followed by a colon and the title. */
+		$prefix = _x( 'Year', 'date archive title prefix' );
 	} elseif ( is_month() ) {
-		$title  = get_the_date( _x( 'F Y', 'monthly archives date format' ) );
-		$prefix = _x( 'Month:', 'date archive title prefix' );
+		$title = get_the_date( _x( 'F Y', 'monthly archives date format' ) );
+		/* translators: Used in archive title as a prefix, followed by a colon and the title. */
+		$prefix = _x( 'Month', 'date archive title prefix' );
 	} elseif ( is_day() ) {
-		$title  = get_the_date( _x( 'F j, Y', 'daily archives date format' ) );
-		$prefix = _x( 'Day:', 'date archive title prefix' );
+		$title = get_the_date( _x( 'F j, Y', 'daily archives date format' ) );
+		/* translators: Used in archive title as a prefix, followed by a colon and the title. */
+		$prefix = _x( 'Day', 'date archive title prefix' );
 	} elseif ( is_tax( 'post_format' ) ) {
 		if ( is_tax( 'post_format', 'post-format-aside' ) ) {
 			$title = _x( 'Asides', 'post format archive title' );
@@ -1646,18 +1652,15 @@ function get_the_archive_title() {
 			$title = _x( 'Chats', 'post format archive title' );
 		}
 	} elseif ( is_post_type_archive() ) {
-		$title  = post_type_archive_title( '', false );
-		$prefix = _x( 'Archives:', 'post type archive title prefix' );
+		$title = post_type_archive_title( '', false );
+		/* translators: Used in archive title as a prefix, followed by a colon and the title. */
+		$prefix = _x( 'Archives', 'post type archive title prefix' );
 	} elseif ( is_tax() ) {
 		$queried_object = get_queried_object();
 		if ( $queried_object ) {
 			$tax    = get_taxonomy( $queried_object->taxonomy );
 			$title  = single_term_title( '', false );
-			$prefix = sprintf(
-				/* translators: %s: Taxonomy singular name. */
-				_x( '%s:', 'taxonomy term archive title prefix' ),
-				$tax->labels->singular_name
-			);
+			$prefix = $tax->labels->singular_name;
 		}
 	}
 
@@ -1673,7 +1676,7 @@ function get_the_archive_title() {
 	if ( $prefix ) {
 		$title = sprintf(
 			/* translators: 1: Title prefix. 2: Title. */
-			_x( '%1$s %2$s', 'archive title' ),
+			_x( '%1$s: %2$s', 'archive title' ),
 			$prefix,
 			'<span>' . $title . '</span>'
 		);
