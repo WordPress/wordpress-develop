@@ -1685,7 +1685,8 @@ function get_the_archive_title() {
 	 * @since 4.1.0
 	 * @since 5.5.0 Added the `$prefix` parameter.
 	 *
-	 * @param string $title Archive title to be displayed.
+	 * @param string $title  Archive title to be displayed.
+	 * @param string $prefix Archive title prefix.
 	 */
 	return apply_filters( 'get_the_archive_title', $title, $prefix );
 }
