@@ -1283,7 +1283,7 @@ function rest_is_integer( $maybe_integer ) {
  * @return bool
  */
 function rest_is_array( $maybe_array ) {
-	if ( ! is_null( $maybe_array ) ) {
+	if ( is_scalar( $maybe_array ) ) {
 		$maybe_array = wp_parse_list( $maybe_array );
 	}
 
@@ -1424,11 +1424,26 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 	}
 
 	if ( is_array( $args['type'] ) ) {
-		$best_type = rest_get_best_type_for_value( $value, $args['type'] );
+		$valid_given_types = array_intersect( $args['type'], $allowed_types );
 
-		if ( ! $best_type ) {
-			/* translators: 1: Parameter, 2: List of types. */
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, implode( ',', $args['type'] ) ) );
+		if ( count( $valid_given_types ) !== count( $args['type'] ) ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				/* translators: 1. The list of allowed types. */
+				wp_sprintf( __( 'The "type" schema keyword can only contain the built-in types: %l.' ), $allowed_types ),
+				'5.5.0'
+			);
+		}
+
+		if ( $valid_given_types ) {
+			$best_type = rest_get_best_type_for_value( $value, $args['type'] );
+
+			if ( ! $best_type ) {
+				/* translators: 1: Parameter, 2: List of types. */
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, implode( ',', $args['type'] ) ) );
+			}
+		} else {
+			$best_type = isset( $args['type'][0] ) ? $args['type'][0] : '';
 		}
 
 		$args['type'] = $best_type;
@@ -1683,10 +1698,25 @@ function rest_sanitize_value_from_schema( $value, $args ) {
 	}
 
 	if ( is_array( $args['type'] ) ) {
-		$best_type = rest_get_best_type_for_value( $value, $args['type'] );
+		$valid_given_types = array_intersect( $args['type'], $allowed_types );
 
-		if ( ! $best_type ) {
-			return null;
+		if ( count( $valid_given_types ) !== count( $args['type'] ) ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				/* translators: 1. The list of allowed types. */
+				wp_sprintf( __( 'The "type" schema keyword can only contain the built-in types: %l.' ), $allowed_types ),
+				'5.5.0'
+			);
+		}
+
+		if ( $valid_given_types ) {
+			$best_type = rest_get_best_type_for_value( $value, $args['type'] );
+
+			if ( ! $best_type ) {
+				return null;
+			}
+		} else {
+			$best_type = isset( $args['type'][0] ) ? $args['type'][0] : '';
 		}
 
 		$args['type'] = $best_type;

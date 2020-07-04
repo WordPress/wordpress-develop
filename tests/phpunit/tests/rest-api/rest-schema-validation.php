@@ -406,6 +406,19 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 50300
+	 */
+	public function test_multi_type_with_no_known_types() {
+		$this->setExpectedIncorrectUsage( 'rest_validate_value_from_schema' );
+
+		$schema = array(
+			'type' => array( 'invalid', 'type' ),
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( 'My Value', $schema ) );
+	}
+
+	/**
 	 * @ticket 48820
 	 */
 	public function test_string_min_length() {

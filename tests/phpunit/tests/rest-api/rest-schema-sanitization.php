@@ -425,4 +425,28 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 
 		$this->assertEquals( array( 'raw' => true ), rest_sanitize_value_from_schema( array( 'raw' => 'something non boolean' ), $schema ) );
 	}
+
+	/**
+	 * @ticket 50300
+	 */
+	public function test_multi_type_with_no_known_types() {
+		$this->setExpectedIncorrectUsage( 'rest_sanitize_value_from_schema' );
+
+		$schema = array(
+			'type' => array( 'invalid', 'type' ),
+		);
+
+		$this->assertEquals( 'My Value', rest_sanitize_value_from_schema( 'My Value', $schema ) );
+	}
+
+	/**
+	 * @ticket 50300
+	 */
+	public function test_multi_type_returns_null_if_no_valid_type() {
+		$schema = array(
+			'type' => array( 'number', 'string' ),
+		);
+
+		$this->assertNull( rest_sanitize_value_from_schema( array( 'Hello!' ), $schema ) );
+	}
 }
