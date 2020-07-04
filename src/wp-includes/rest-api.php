@@ -1160,7 +1160,7 @@ function rest_sanitize_request_arg( $value, $request, $param ) {
 	}
 	$args = $attributes['args'][ $param ];
 
-	return rest_sanitize_value_from_schema( $value, $args );
+	return rest_sanitize_value_from_schema( $value, $args, $param );
 }
 
 /**
@@ -1399,6 +1399,46 @@ function rest_get_best_type_for_value( $value, $types ) {
 }
 
 /**
+ * Handles getting the best type for a multi-type schema.
+ *
+ * This is a wrapper for {@see rest_get_best_type_for_value()} that handles
+ * backward compatibility for schemas that use invalid types.
+ *
+ * @since 5.5.0
+ *
+ * @param mixed  $value The value to check.
+ * @param array  $args  The schema array to use.
+ * @param string $param The parameter name, used in error messages.
+ * @return string
+ */
+function rest_handle_multi_type_schema( $value, $args, $param = '' ) {
+	$allowed_types = array( 'array', 'object', 'string', 'number', 'integer', 'boolean', 'null' );
+	$invalid_types = array_diff( $args['type'], $allowed_types );
+
+	if ( $invalid_types ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			/* translators: 1. Parameter. 2. List of allowed types. */
+			wp_sprintf( __( 'The "type" schema keyword for %1$s can only contain the built-in types: %2$l.' ), $param, $allowed_types ),
+			'5.5.0'
+		);
+	}
+
+	$best_type = rest_get_best_type_for_value( $value, $args['type'] );
+
+	if ( ! $best_type ) {
+		if ( ! $invalid_types ) {
+			return '';
+		}
+
+		// Backward compatibility for previous behavior which allowed the value if there was an invalid type used.
+		$best_type = reset( $invalid_types );
+	}
+
+	return $best_type;
+}
+
+/**
  * Validate a value based on a schema.
  *
  * @since 4.7.0
@@ -1420,30 +1460,16 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 	$allowed_types = array( 'array', 'object', 'string', 'number', 'integer', 'boolean', 'null' );
 
 	if ( ! isset( $args['type'] ) ) {
-		_doing_it_wrong( __FUNCTION__, __( 'The "type" schema keyword is required.' ), '5.5.0' );
+		/* translators: 1. Parameter */
+		_doing_it_wrong( __FUNCTION__, sprintf( __( 'The "type" schema keyword for %s is required.' ), $param ), '5.5.0' );
 	}
 
 	if ( is_array( $args['type'] ) ) {
-		$valid_given_types = array_intersect( $args['type'], $allowed_types );
+		$best_type = rest_handle_multi_type_schema( $value, $args, $param );
 
-		if ( count( $valid_given_types ) !== count( $args['type'] ) ) {
-			_doing_it_wrong(
-				__FUNCTION__,
-				/* translators: 1. The list of allowed types. */
-				wp_sprintf( __( 'The "type" schema keyword can only contain the built-in types: %l.' ), $allowed_types ),
-				'5.5.0'
-			);
-		}
-
-		if ( $valid_given_types ) {
-			$best_type = rest_get_best_type_for_value( $value, $args['type'] );
-
-			if ( ! $best_type ) {
-				/* translators: 1: Parameter, 2: List of types. */
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, implode( ',', $args['type'] ) ) );
-			}
-		} else {
-			$best_type = isset( $args['type'][0] ) ? $args['type'][0] : '';
+		if ( ! $best_type ) {
+			/* translators: 1: Parameter, 2: List of types. */
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, implode( ',', $args['type'] ) ) );
 		}
 
 		$args['type'] = $best_type;
@@ -1452,8 +1478,8 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 	if ( ! in_array( $args['type'], $allowed_types, true ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
-			/* translators: 1. The list of allowed types. */
-			wp_sprintf( __( 'The "type" schema keyword can only be on of the built-in types: %l.' ), $allowed_types ),
+			/* translators: 1. Parameter 2. The list of allowed types. */
+			wp_sprintf( __( 'The "type" schema keyword for %1$s can only be on of the built-in types: %2$l.' ), $param, $allowed_types ),
 			'5.5.0'
 		);
 	}
@@ -1685,38 +1711,26 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
  * Sanitize a value based on a schema.
  *
  * @since 4.7.0
+ * @since 5.5.0 Added the `$param` parameter.
  *
- * @param mixed $value The value to sanitize.
- * @param array $args  Schema array to use for sanitization.
+ * @param mixed  $value The value to sanitize.
+ * @param array  $args  Schema array to use for sanitization.
+ * @param string $param The parameter name, used in error messages.
  * @return true|WP_Error
  */
-function rest_sanitize_value_from_schema( $value, $args ) {
+function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 	$allowed_types = array( 'array', 'object', 'string', 'number', 'integer', 'boolean', 'null' );
 
 	if ( ! isset( $args['type'] ) ) {
-		_doing_it_wrong( __FUNCTION__, __( 'The "type" schema keyword is required.' ), '5.5.0' );
+		/* translators: 1. Parameter */
+		_doing_it_wrong( __FUNCTION__, sprintf( __( 'The "type" schema keyword for %s is required.' ), $param ), '5.5.0' );
 	}
 
 	if ( is_array( $args['type'] ) ) {
-		$valid_given_types = array_intersect( $args['type'], $allowed_types );
+		$best_type = rest_handle_multi_type_schema( $value, $args, $param );
 
-		if ( count( $valid_given_types ) !== count( $args['type'] ) ) {
-			_doing_it_wrong(
-				__FUNCTION__,
-				/* translators: 1. The list of allowed types. */
-				wp_sprintf( __( 'The "type" schema keyword can only contain the built-in types: %l.' ), $allowed_types ),
-				'5.5.0'
-			);
-		}
-
-		if ( $valid_given_types ) {
-			$best_type = rest_get_best_type_for_value( $value, $args['type'] );
-
-			if ( ! $best_type ) {
-				return null;
-			}
-		} else {
-			$best_type = isset( $args['type'][0] ) ? $args['type'][0] : '';
+		if ( ! $best_type ) {
+			return null;
 		}
 
 		$args['type'] = $best_type;
@@ -1725,8 +1739,8 @@ function rest_sanitize_value_from_schema( $value, $args ) {
 	if ( ! in_array( $args['type'], $allowed_types, true ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
-			/* translators: 1. The list of allowed types. */
-			wp_sprintf( __( 'The "type" schema keyword can only be on of the built-in types: %l.' ), $allowed_types ),
+			/* translators: 1. Parameter. 2. The list of allowed types. */
+			wp_sprintf( __( 'The "type" schema keyword for %1$s can only be on of the built-in types: %2$l.' ), $param, $allowed_types ),
 			'5.5.0'
 		);
 	}
@@ -1739,7 +1753,7 @@ function rest_sanitize_value_from_schema( $value, $args ) {
 		}
 
 		foreach ( $value as $index => $v ) {
-			$value[ $index ] = rest_sanitize_value_from_schema( $v, $args['items'] );
+			$value[ $index ] = rest_sanitize_value_from_schema( $v, $args['items'], $param . '[' . $index . ']' );
 		}
 
 		return $value;
@@ -1750,12 +1764,12 @@ function rest_sanitize_value_from_schema( $value, $args ) {
 
 		foreach ( $value as $property => $v ) {
 			if ( isset( $args['properties'][ $property ] ) ) {
-				$value[ $property ] = rest_sanitize_value_from_schema( $v, $args['properties'][ $property ] );
+				$value[ $property ] = rest_sanitize_value_from_schema( $v, $args['properties'][ $property ], $param . '[' . $property . ']' );
 			} elseif ( isset( $args['additionalProperties'] ) ) {
 				if ( false === $args['additionalProperties'] ) {
 					unset( $value[ $property ] );
 				} elseif ( is_array( $args['additionalProperties'] ) ) {
-					$value[ $property ] = rest_sanitize_value_from_schema( $v, $args['additionalProperties'] );
+					$value[ $property ] = rest_sanitize_value_from_schema( $v, $args['additionalProperties'], $param . '[' . $property . ']' );
 				}
 			}
 		}

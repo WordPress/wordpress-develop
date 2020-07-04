@@ -430,10 +430,25 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 	 * @ticket 50300
 	 */
 	public function test_multi_type_with_no_known_types() {
+		$this->setExpectedIncorrectUsage( 'rest_handle_multi_type_schema' );
 		$this->setExpectedIncorrectUsage( 'rest_sanitize_value_from_schema' );
 
 		$schema = array(
 			'type' => array( 'invalid', 'type' ),
+		);
+
+		$this->assertEquals( 'My Value', rest_sanitize_value_from_schema( 'My Value', $schema ) );
+	}
+
+	/**
+	 * @ticket 50300
+	 */
+	public function test_multi_type_with_some_unknown_types() {
+		$this->setExpectedIncorrectUsage( 'rest_handle_multi_type_schema' );
+		$this->setExpectedIncorrectUsage( 'rest_sanitize_value_from_schema' );
+
+		$schema = array(
+			'type' => array( 'object', 'type' ),
 		);
 
 		$this->assertEquals( 'My Value', rest_sanitize_value_from_schema( 'My Value', $schema ) );

@@ -409,10 +409,25 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	 * @ticket 50300
 	 */
 	public function test_multi_type_with_no_known_types() {
+		$this->setExpectedIncorrectUsage( 'rest_handle_multi_type_schema' );
 		$this->setExpectedIncorrectUsage( 'rest_validate_value_from_schema' );
 
 		$schema = array(
 			'type' => array( 'invalid', 'type' ),
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( 'My Value', $schema ) );
+	}
+
+	/**
+	 * @ticket 50300
+	 */
+	public function test_multi_type_with_some_unknown_types() {
+		$this->setExpectedIncorrectUsage( 'rest_handle_multi_type_schema' );
+		$this->setExpectedIncorrectUsage( 'rest_validate_value_from_schema' );
+
+		$schema = array(
+			'type' => array( 'object', 'type' ),
 		);
 
 		$this->assertTrue( rest_validate_value_from_schema( 'My Value', $schema ) );
