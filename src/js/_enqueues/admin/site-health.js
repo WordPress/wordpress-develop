@@ -199,7 +199,7 @@ jQuery( document ).ready( function( $ ) {
 					'_wpnonce': SiteHealth.nonce.site_status
 				};
 
-				if ( "undefined" !== typeof( this.has_rest ) && this.has_rest ) {
+				if ( 'undefined' !== typeof( this.has_rest ) && this.has_rest ) {
 					url = this.test;
 					data = {
 						'_wpnonce': SiteHealth.nonce.rest_api
@@ -223,7 +223,7 @@ jQuery( document ).ready( function( $ ) {
 				} ).fail( function( response ) {
 					var description, issue;
 
-					if ( "undefined" !== typeof( response.responseJSON ) && "undefined" !== typeof( response.responseJSON.message ) ) {
+					if ( 'undefined' !== typeof( response.responseJSON ) && 'undefined' !== typeof( response.responseJSON.message ) ) {
 						description = response.responseJSON.message;
 					} else {
 						description = __( 'No details available' );
