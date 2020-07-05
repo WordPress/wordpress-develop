@@ -23,7 +23,7 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 		$this->assertInstanceOf( '_WP_Dependency', $object );
 
 		// As of 5.5 jQuery 1.12.4 is loaded without Migrate 1.4.1.
-		// Disable, but keep the followint test for 5.6 when jQuery would be updated to 3.5.1+ and
+		// Disable, but keep the following test for 5.6 when jQuery would be updated to 3.5.1+ and
 		// the latest Migrate will be used.
 		/*
 		$this->assertEqualSets( $object->deps, array_keys( $jquery_scripts ) );
@@ -119,8 +119,8 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 			$scripts->add_data( $dep, 'group', 1 );
 		}
 
-		// Match only one script tag fopr 5.5, revert to `{2}` for 5.6.
-		$this->expectOutputRegex( '/^(?:<script[^>]+><\/script>\\n)$/' );
+		// Match only one script tag for 5.5, revert to `{2}` for 5.6.
+		$this->expectOutputRegex( '/^(?:<script[^>]+><\/script>\\n){1}$/' );
 
 		$scripts->do_items( false, 0 );
 		$this->assertNotContains( 'jquery', $scripts->done );
