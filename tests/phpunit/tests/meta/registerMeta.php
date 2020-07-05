@@ -549,6 +549,28 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @ticket 43941
+	 * @dataProvider data_get_invalid_default_data
+	 */
+	public function test_get_invalid_default_value( $args, $single, $expected ) {
+		$this->setExpectedIncorrectUsage( 'register_meta' );
+		$object_type = 'post';
+		$meta_key    = 'registered_key1';
+		$register    = register_meta(
+			$object_type,
+			$meta_key,
+			$args
+		);
+
+		$this->assertFalse( $register );
+
+		$object_property_name = $object_type . '_id';
+		$object_id            = self::$$object_property_name;
+		$default_value        = get_metadata_default( $object_type, $meta_key, $single, $object_id );
+		$this->assertSame( $default_value, $expected );
+	}
+
 	public function filter_get_object_subtype_for_customtype( $subtype, $object_id ) {
 		if ( 1 === ( $object_id % 2 ) ) {
 			return 'odd';
@@ -577,22 +599,6 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 			),
 			array(
 				array(
-					'single'  => true,
-					'default' => array( 'wibble' ),
-				),
-				true,
-				array( 'wibble' ),
-			),
-			array(
-				array(
-					'single'  => true,
-					'default' => array( 'wibble' ),
-				),
-				false,
-				array( 'wibble' ),
-			),
-			array(
-				array(
 					'single'  => false,
 					'default' => 'wibble',
 				),
@@ -609,16 +615,17 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 			),
 			array(
 				array(
-					'single'  => false,
-					'default' => array( 'wibble' ),
-				),
-				true,
-				'wibble',
-			),
-			array(
-				array(
-					'single'  => false,
-					'default' => array( 'wibble' ),
+					'single'       => true,
+					'type'         => 'array',
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type' => 'string',
+							),
+						),
+					),
+					'default'      => array( 'wibble' ),
 				),
 				false,
 				array( 'wibble' ),
@@ -645,91 +652,318 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				array(
 					'single'         => true,
 					'object_subtype' => 'page',
+					'show_in_rest'   => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type' => 'string',
+							),
+						),
+					),
 					'default'        => array( 'wibble' ),
 				),
-				true,
+				false,
 				array( 'wibble' ),
 			),
+
+			// types
 			array(
 				array(
-					'single'         => true,
-					'object_subtype' => 'page',
-					'default'        => array( 'wibble' ),
-				),
-				false,
-				array( 'wibble' ),
-			),
-			array(
-				array(
-					'single'         => true,
-					'object_subtype' => 'post',
-					'default'        => 'wibble',
-				),
-				true,
-				'',
-			),
-			array(
-				array(
-					'single'         => true,
-					'object_subtype' => 'post',
-					'default'        => 'wibble',
-				),
-				false,
-				array(),
-			),
-			array(
-				array(
-					'single'         => true,
-					'object_subtype' => 'post',
-					'default'        => array( 'wibble' ),
-				),
-				true,
-				'',
-			),
-			array(
-				array(
-					'single'         => true,
-					'object_subtype' => 'post',
-					'default'        => array( 'wibble' ),
-				),
-				false,
-				array(),
-			),
-			array(
-				array(
-					'single'  => true,
-					'default' => array( 'wibble' => 'dibble' ),
+					'single'       => true,
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'       => 'object',
+							'properties' => array(
+								'wibble' => array(
+									'type' => 'string',
+								),
+							),
+						),
+					),
+					'type'         => 'object',
+					'default'      => array( 'wibble' => 'dibble' ),
 				),
 				true,
 				array( 'wibble' => 'dibble' ),
 			),
 			array(
 				array(
-					'single'  => true,
-					'default' => array( 'wibble' => 'dibble' ),
+					'single'       => true,
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'       => 'object',
+							'properties' => array(
+								'wibble' => array(
+									'type' => 'string',
+								),
+							),
+						),
+					),
+					'type'         => 'object',
+					'default'      => array( 'wibble' => 'dibble' ),
 				),
 				false,
-				array(
-					array( 'wibble' => 'dibble' ),
-				),
+				array( array( 'wibble' => 'dibble' ) ),
 			),
 			array(
 				array(
-					'single'  => false,
-					'default' => array( 'wibble' => 'dibble' ),
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'       => 'object',
+							'properties' => array(
+								'wibble' => array(
+									'type' => 'string',
+								),
+							),
+						),
+					),
+					'type'         => 'object',
+					'single'       => false,
+					'default'      => array( 'wibble' => 'dibble' ),
 				),
 				true,
 				array( 'wibble' => 'dibble' ),
 			),
 			array(
 				array(
-					'single'  => false,
-					'default' => array( 'wibble' => 'dibble' ),
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'       => 'object',
+							'properties' => array(
+								'wibble' => array(
+									'type' => 'string',
+								),
+							),
+						),
+					),
+					'type'         => 'object',
+					'single'       => false,
+					'default'      => array( 'wibble' => 'dibble' ),
 				),
 				false,
+				array( array( 'wibble' => 'dibble' ) ),
+			),
+
+			array(
 				array(
-					array( 'wibble' => 'dibble' ),
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type' => 'string',
+							),
+						),
+					),
+					'single'       => true,
+					'type'         => 'array',
+					'default'      => array( 'dibble' ),
 				),
+				false,
+				array( 'dibble' ),
+			),
+			array(
+				array(
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type' => 'string',
+							),
+						),
+					),
+					'single'       => false,
+					'type'         => 'array',
+					'default'      => array( 'dibble' ),
+				),
+				false,
+				array( 'dibble' ),
+			),
+			array(
+				array(
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type' => 'string',
+							),
+						),
+					),
+					'single'       => true,
+					'type'         => 'array',
+					'default'      => array( 'dibble' ),
+				),
+				true,
+				array( 'dibble' ),
+			),
+			array(
+				array(
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type' => 'string',
+							),
+						),
+					),
+					'single'       => false,
+					'type'         => 'array',
+					'default'      => array( 'dibble' ),
+				),
+				true,
+				'dibble',
+			),
+
+			array(
+				array(
+					'single'  => true,
+					'type'    => 'boolean',
+					'default' => true,
+				),
+				true,
+				true,
+			),
+			array(
+				array(
+					'single'  => false,
+					'type'    => 'boolean',
+					'default' => true,
+				),
+				true,
+				true,
+			),
+			array(
+				array(
+					'single'  => true,
+					'type'    => 'boolean',
+					'default' => true,
+				),
+				false,
+				array( true ),
+			),
+			array(
+				array(
+					'single'  => false,
+					'type'    => 'boolean',
+					'default' => true,
+				),
+				false,
+				array( true ),
+			),
+
+			array(
+				array(
+					'single'  => true,
+					'type'    => 'integer',
+					'default' => 123,
+				),
+				true,
+				123,
+			),
+			array(
+				array(
+					'single'  => false,
+					'type'    => 'integer',
+					'default' => 123,
+				),
+				true,
+				123,
+			),
+			array(
+				array(
+					'single'  => true,
+					'type'    => 'integer',
+					'default' => 123,
+				),
+				false,
+				array( 123 ),
+			),
+			array(
+				array(
+					'single'  => false,
+					'type'    => 'integer',
+					'default' => 123,
+				),
+				false,
+				array( 123 ),
+			),
+
+		);
+	}
+
+	public function data_get_invalid_default_data() {
+		return array(
+			array(
+				array(
+					'single'  => true,
+					'type'    => 'boolean',
+					'default' => 123,
+				),
+				true,
+				'',
+			),
+			array(
+				array(
+					'single'  => false,
+					'type'    => 'boolean',
+					'default' => 123,
+				),
+				true,
+				'',
+			),
+			array(
+				array(
+					'single'  => true,
+					'type'    => 'boolean',
+					'default' => 123,
+				),
+				false,
+				array(),
+			),
+			array(
+				array(
+					'single'  => false,
+					'type'    => 'boolean',
+					'default' => 123,
+				),
+				false,
+				array(),
+			),
+
+			array(
+				array(
+					'single'  => true,
+					'type'    => 'integer',
+					'default' => 'wibble',
+				),
+				true,
+				'',
+			),
+			array(
+				array(
+					'single'  => false,
+					'type'    => 'integer',
+					'default' => 'wibble',
+				),
+				true,
+				'',
+			),
+			array(
+				array(
+					'single'  => true,
+					'type'    => 'integer',
+					'default' => 'wibble',
+				),
+				false,
+				array(),
+			),
+			array(
+				array(
+					'single'  => false,
+					'type'    => 'integer',
+					'default' => 'wibble',
+				),
+				false,
+				array(),
 			),
 		);
 	}

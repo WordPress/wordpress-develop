@@ -2789,7 +2789,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	 * @ticket 43941
 	 * @dataProvider data_get_default_data
 	 */
-	public function test_get_default_value( $args, $single, $expected ) {
+	public function test_get_default_value( $args, $expected ) {
 		$object_type = 'post';
 		$meta_key    = 'registered_key1';
 		register_meta(
@@ -2797,11 +2797,6 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			$meta_key,
 			$args
 		);
-
-		$object_property_name = $object_type . '_id';
-		$object_id            = self::$$object_property_name;
-		$default_value        = get_metadata_default( $object_type, $meta_key, $single, $object_id );
-		$this->assertSame( $default_value, $expected );
 
 		// Check for default value.
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
@@ -2814,7 +2809,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 		$meta = (array) $data['meta'];
 		$this->assertArrayHasKey( $meta_key, $meta );
-		$this->assertEquals( $default_value, $meta[ $meta_key ] );
+		$this->assertEquals( $expected, $meta[ $meta_key ] );
 	}
 
 	/**
@@ -2843,175 +2838,106 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		return array(
 			array(
 				array(
-					'single'  => true,
-					'default' => 'wibble',
+					'show_in_rest' => true,
+					'single'       => true,
+					'default'      => 'wibble',
 				),
-				true,
 				'wibble',
 			),
 			array(
 				array(
-					'single'  => true,
-					'default' => 'wibble',
+					'show_in_rest' => true,
+					'single'       => false,
+					'default'      => 'wibble',
 				),
-				false,
 				array( 'wibble' ),
 			),
 			array(
 				array(
-					'single'  => true,
-					'default' => array( 'wibble' ),
+					'show_in_rest'   => true,
+					'single'         => true,
+					'object_subtype' => 'post',
+					'default'        => 'wibble',
 				),
-				true,
-				array( 'wibble' ),
-			),
-			array(
-				array(
-					'single'  => true,
-					'default' => array( 'wibble' ),
-				),
-				false,
-				array( 'wibble' ),
-			),
-			array(
-				array(
-					'single'  => false,
-					'default' => 'wibble',
-				),
-				true,
 				'wibble',
 			),
 			array(
 				array(
-					'single'  => false,
-					'default' => 'wibble',
-				),
-				false,
-				array( 'wibble' ),
-			),
-			array(
-				array(
-					'single'  => false,
-					'default' => array( 'wibble' ),
-				),
-				true,
-				'wibble',
-			),
-			array(
-				array(
-					'single'  => false,
-					'default' => array( 'wibble' ),
-				),
-				false,
-				array( 'wibble' ),
-			),
-			array(
-				array(
-					'single'         => true,
-					'object_subtype' => 'page',
-					'default'        => 'wibble',
-				),
-				true,
-				'wibble',
-			),
-			array(
-				array(
-					'single'         => true,
-					'object_subtype' => 'page',
-					'default'        => 'wibble',
-				),
-				false,
-				array( 'wibble' ),
-			),
-			array(
-				array(
-					'single'         => true,
-					'object_subtype' => 'page',
-					'default'        => array( 'wibble' ),
-				),
-				true,
-				array( 'wibble' ),
-			),
-			array(
-				array(
-					'single'         => true,
-					'object_subtype' => 'page',
-					'default'        => array( 'wibble' ),
-				),
-				false,
-				array( 'wibble' ),
-			),
-			array(
-				array(
-					'single'         => true,
+					'show_in_rest'   => true,
+					'single'         => false,
 					'object_subtype' => 'post',
 					'default'        => 'wibble',
 				),
-				true,
-				'',
+				array( 'wibble' ),
 			),
 			array(
 				array(
-					'single'         => true,
-					'object_subtype' => 'post',
-					'default'        => 'wibble',
+					'single'       => true,
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'       => 'object',
+							'properties' => array(
+								'wibble' => array(
+									'type' => 'string',
+								),
+							),
+						),
+					),
+					'type'         => 'object',
+					'default'      => array( 'wibble' => 'dibble' ),
 				),
-				false,
-				array(),
-			),
-			array(
-				array(
-					'single'         => true,
-					'object_subtype' => 'post',
-					'default'        => array( 'wibble' ),
-				),
-				true,
-				'',
-			),
-			array(
-				array(
-					'single'         => true,
-					'object_subtype' => 'post',
-					'default'        => array( 'wibble' ),
-				),
-				false,
-				array(),
-			),
-			array(
-				array(
-					'single'  => true,
-					'default' => array( 'wibble' => 'dibble' ),
-				),
-				true,
 				array( 'wibble' => 'dibble' ),
 			),
 			array(
 				array(
-					'single'  => true,
-					'default' => array( 'wibble' => 'dibble' ),
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'       => 'object',
+							'properties' => array(
+								'wibble' => array(
+									'type' => 'string',
+								),
+							),
+						),
+					),
+					'type'         => 'object',
+					'single'       => false,
+					'default'      => array( 'wibble' => 'dibble' ),
 				),
-				false,
+				array( array( 'wibble' => 'dibble' ) ),
+			),
+
+			array(
 				array(
-					array( 'wibble' => 'dibble' ),
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type' => 'string',
+							),
+						),
+					),
+					'single'       => true,
+					'type'         => 'array',
+					'default'      => array( 'dibble' ),
 				),
+				array( 'dibble' ),
 			),
 			array(
 				array(
-					'single'  => false,
-					'default' => array( 'wibble' => 'dibble' ),
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type' => 'string',
+							),
+						),
+					),
+					'single'       => false,
+					'type'         => 'array',
+					'default'      => array( 'dibble' ),
 				),
-				true,
-				array( 'wibble' => 'dibble' ),
-			),
-			array(
-				array(
-					'single'  => false,
-					'default' => array( 'wibble' => 'dibble' ),
-				),
-				false,
-				array(
-					array( 'wibble' => 'dibble' ),
-				),
+				array( array( 'dibble' ) ),
 			),
 		);
 	}
