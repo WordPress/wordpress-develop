@@ -2786,6 +2786,38 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @ticket 43941
+	 * @dataProvider data_get_default_data
+	 */
+	public function test_get_default_value( $args, $single, $expected ) {
+		$object_type = 'post';
+		$meta_key    = 'registered_key1';
+		register_meta(
+			$object_type,
+			$meta_key,
+			$args
+		);
+
+		$object_property_name = $object_type . '_id';
+		$object_id            = self::$$object_property_name;
+		$default_value        = get_metadata_default( $object_type, $meta_key, $single, $object_id );
+		$this->assertSame( $default_value, $expected );
+
+		// Check for default value.
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'meta', $data );
+
+		$meta = (array) $data['meta'];
+		$this->assertArrayHasKey( $meta_key, $meta );
+		$this->assertEquals( $default_value, $meta[ $meta_key ] );
+	}
+
+	/**
 	 * Internal function used to disable an insert query which
 	 * will trigger a wpdb error for testing purposes.
 	 */
@@ -2805,5 +2837,182 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			$query = '],';
 		}
 		return $query;
+	}
+
+	public function data_get_default_data() {
+		return array(
+			array(
+				array(
+					'single'  => true,
+					'default' => 'wibble',
+				),
+				true,
+				'wibble',
+			),
+			array(
+				array(
+					'single'  => true,
+					'default' => 'wibble',
+				),
+				false,
+				array( 'wibble' ),
+			),
+			array(
+				array(
+					'single'  => true,
+					'default' => array( 'wibble' ),
+				),
+				true,
+				array( 'wibble' ),
+			),
+			array(
+				array(
+					'single'  => true,
+					'default' => array( 'wibble' ),
+				),
+				false,
+				array( 'wibble' ),
+			),
+			array(
+				array(
+					'single'  => false,
+					'default' => 'wibble',
+				),
+				true,
+				'wibble',
+			),
+			array(
+				array(
+					'single'  => false,
+					'default' => 'wibble',
+				),
+				false,
+				array( 'wibble' ),
+			),
+			array(
+				array(
+					'single'  => false,
+					'default' => array( 'wibble' ),
+				),
+				true,
+				'wibble',
+			),
+			array(
+				array(
+					'single'  => false,
+					'default' => array( 'wibble' ),
+				),
+				false,
+				array( 'wibble' ),
+			),
+			array(
+				array(
+					'single'         => true,
+					'object_subtype' => 'page',
+					'default'        => 'wibble',
+				),
+				true,
+				'wibble',
+			),
+			array(
+				array(
+					'single'         => true,
+					'object_subtype' => 'page',
+					'default'        => 'wibble',
+				),
+				false,
+				array( 'wibble' ),
+			),
+			array(
+				array(
+					'single'         => true,
+					'object_subtype' => 'page',
+					'default'        => array( 'wibble' ),
+				),
+				true,
+				array( 'wibble' ),
+			),
+			array(
+				array(
+					'single'         => true,
+					'object_subtype' => 'page',
+					'default'        => array( 'wibble' ),
+				),
+				false,
+				array( 'wibble' ),
+			),
+			array(
+				array(
+					'single'         => true,
+					'object_subtype' => 'post',
+					'default'        => 'wibble',
+				),
+				true,
+				'',
+			),
+			array(
+				array(
+					'single'         => true,
+					'object_subtype' => 'post',
+					'default'        => 'wibble',
+				),
+				false,
+				array(),
+			),
+			array(
+				array(
+					'single'         => true,
+					'object_subtype' => 'post',
+					'default'        => array( 'wibble' ),
+				),
+				true,
+				'',
+			),
+			array(
+				array(
+					'single'         => true,
+					'object_subtype' => 'post',
+					'default'        => array( 'wibble' ),
+				),
+				false,
+				array(),
+			),
+			array(
+				array(
+					'single'  => true,
+					'default' => array( 'wibble' => 'dibble' ),
+				),
+				true,
+				array( 'wibble' => 'dibble' ),
+			),
+			array(
+				array(
+					'single'  => true,
+					'default' => array( 'wibble' => 'dibble' ),
+				),
+				false,
+				array(
+					array( 'wibble' => 'dibble' ),
+				),
+			),
+			array(
+				array(
+					'single'  => false,
+					'default' => array( 'wibble' => 'dibble' ),
+				),
+				true,
+				array( 'wibble' => 'dibble' ),
+			),
+			array(
+				array(
+					'single'  => false,
+					'default' => array( 'wibble' => 'dibble' ),
+				),
+				false,
+				array(
+					array( 'wibble' => 'dibble' ),
+				),
+			),
+		);
 	}
 }
