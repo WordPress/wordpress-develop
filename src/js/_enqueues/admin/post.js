@@ -8,7 +8,7 @@
  /* global theList:true, theExtraList:true, getUserSetting, setUserSetting, commentReply, commentsBox */
  /* global WPSetThumbnailHTML, wptitlehint */
 
-// Backwards compatibility: prevent fatal errors.
+// Backward compatibility: prevent fatal errors.
 window.makeSlugeditClickable = window.editPermalink = function(){};
 
 // Make sure the wp object exists.
@@ -1228,7 +1228,7 @@ jQuery(document).ready( function($) {
 	 *
 	 * @param {MouseEvent} event A click event.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	copyAttachmentURLClipboard.on( 'success', function( event ) {
 		var triggerElement = $( event.trigger ),
