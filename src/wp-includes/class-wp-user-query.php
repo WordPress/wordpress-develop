@@ -248,10 +248,6 @@ class WP_User_Query {
 			$this->query_fields = "$wpdb->users.ID";
 		}
 
-		if ( isset( $qv['count_total'] ) && $qv['count_total'] ) {
-			$this->query_fields = 'SQL_CALC_FOUND_ROWS ' . $this->query_fields;
-		}
-
 		$this->query_from  = "FROM $wpdb->users";
 		$this->query_where = 'WHERE 1=1';
 
@@ -621,8 +617,12 @@ class WP_User_Query {
 			}
 
 			if ( isset( $qv['count_total'] ) && $qv['count_total'] ) {
+
 				/**
-				 * Filters SELECT FOUND_ROWS() query for the current WP_User_Query instance.
+				 * Return a total count of users.
+				 * Historically this ran SELECT FOUND_ROWS() after issuing the main query,
+				 * but since SQL_CALC_FOUND_ROWS is now deprecated from MySQL, it instead repeats
+				 * the same query with COUNT(*) instead of $this->query_fields.
 				 *
 				 * @since 3.2.0
 				 * @since 5.1.0 Added the `$this` parameter.
@@ -632,8 +632,7 @@ class WP_User_Query {
 				 * @param string $sql         The SELECT FOUND_ROWS() query for the current WP_User_Query.
 				 * @param WP_User_Query $this The current WP_User_Query instance.
 				 */
-				$found_users_query = apply_filters( 'found_users_query', 'SELECT FOUND_ROWS()', $this );
-
+				$found_users_query = apply_filters( 'found_users_query', "SELECT COUNT(*) $this->query_from $this->query_where", $this );
 				$this->total_users = (int) $wpdb->get_var( $found_users_query );
 			}
 		}

@@ -84,6 +84,14 @@ class WP_Query {
 	public $request;
 
 	/**
+	 * Get post database count query
+	 *
+	 * @since xxx
+	 * @var string
+	 */
+	public $request_count;
+
+	/**
 	 * List of posts.
 	 *
 	 * @since 1.5.0
@@ -2910,13 +2918,9 @@ class WP_Query {
 			$orderby = 'ORDER BY ' . $orderby;
 		}
 
-		$found_rows = '';
-		if ( ! $q['no_found_rows'] && ! empty( $limits ) ) {
-			$found_rows = 'SQL_CALC_FOUND_ROWS';
-		}
-
-		$old_request   = "SELECT $found_rows $distinct $fields FROM {$wpdb->posts} $join WHERE 1=1 $where $groupby $orderby $limits";
+		$old_request   = "SELECT $distinct $fields FROM {$wpdb->posts} $join WHERE 1=1 $where $groupby $orderby $limits";
 		$this->request = $old_request;
+		$this->request_count = "SELECT COUNT($distinct {$wpdb->posts}.ID) FROM {$wpdb->posts} $join WHERE 1=1 $where $groupby";
 
 		if ( ! $q['suppress_filters'] ) {
 			/**
@@ -2999,7 +3003,7 @@ class WP_Query {
 			if ( $split_the_query ) {
 				// First get the IDs and then fill in the objects.
 
-				$this->request = "SELECT $found_rows $distinct {$wpdb->posts}.ID FROM {$wpdb->posts} $join WHERE 1=1 $where $groupby $orderby $limits";
+				$this->request = "SELECT $distinct {$wpdb->posts}.ID FROM {$wpdb->posts} $join WHERE 1=1 $where $groupby $orderby $limits";
 
 				/**
 				 * Filters the Post IDs SQL request before sending.
@@ -3238,7 +3242,7 @@ class WP_Query {
 			 * @param string   $found_posts The query to run to find the found posts.
 			 * @param WP_Query $this        The WP_Query instance (passed by reference).
 			 */
-			$this->found_posts = $wpdb->get_var( apply_filters_ref_array( 'found_posts_query', array( 'SELECT FOUND_ROWS()', &$this ) ) );
+			$this->found_posts = $wpdb->get_var( apply_filters_ref_array( 'found_posts_query', array( $this->request_count, &$this ) ) );
 		} else {
 			if ( is_array( $this->posts ) ) {
 				$this->found_posts = count( $this->posts );
