@@ -54,7 +54,7 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 		_doing_it_wrong(
 			'register_rest_route',
 			sprintf(
-				/* translators: %s: rest_api_init */
+			/* translators: %s: rest_api_init */
 				__( 'REST API routes must be registered on the %s action.' ),
 				'<code>rest_api_init</code>'
 			),
@@ -1439,6 +1439,63 @@ function rest_handle_multi_type_schema( $value, $args, $param = '' ) {
 }
 
 /**
+ * Checks if an array is made up of unique items.
+ *
+ * @since 5.5.0
+ *
+ * @param array $array The array to check.
+ * @return bool True if the array contains unique items, false otherwise.
+ */
+function rest_validate_array_contains_unique_items( $array ) {
+	$seen = array();
+
+	foreach ( $array as $item ) {
+		$stabilized = rest_stabilize_value( $item );
+		$key        = serialize( $stabilized );
+
+		if ( ! isset( $seen[ $key ] ) ) {
+			$seen[ $key ] = 1;
+
+			continue;
+		}
+
+		return false;
+	}
+
+	return true;
+}
+
+/**
+ * Stabilizes a value following JSON Schema semantics.
+ *
+ * For lists, order is preserved. For objects, properties are reordered alphabetically.
+ *
+ * @since 5.5.0
+ *
+ * @param mixed $value The value to stabilize. Must already be sanitized. Objects should have been converted to arrays.
+ * @return mixed The stabilized value.
+ */
+function rest_stabilize_value( $value ) {
+	if ( is_scalar( $value ) || is_null( $value ) ) {
+		return $value;
+	}
+
+	if ( is_object( $value ) ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Cannot stabilize objects. Convert the object to an array first.' ), '5.5.0' );
+
+		return $value;
+	}
+
+	ksort( $value );
+
+	foreach ( $value as $k => $v ) {
+		$value[ $k ] = rest_stabilize_value( $v );
+	}
+
+	return $value;
+}
+
+/**
  * Validate a value based on a schema.
  *
  * @since 4.7.0
@@ -1492,10 +1549,12 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 
 		$value = rest_sanitize_array( $value );
 
-		foreach ( $value as $index => $v ) {
-			$is_valid = rest_validate_value_from_schema( $v, $args['items'], $param . '[' . $index . ']' );
-			if ( is_wp_error( $is_valid ) ) {
-				return $is_valid;
+		if ( isset( $args['items'] ) ) {
+			foreach ( $value as $index => $v ) {
+				$is_valid = rest_validate_value_from_schema( $v, $args['items'], $param . '[' . $index . ']' );
+				if ( is_wp_error( $is_valid ) ) {
+					return $is_valid;
+				}
 			}
 		}
 
@@ -1509,22 +1568,9 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must contain at most %2$s items.' ), $param, number_format_i18n( $args['maxItems'] ) ) );
 		}
 
-		if ( isset( $args['uniqueItems'] ) && $args['uniqueItems'] ) {
-			foreach ( $value as $index => &$object ) {
-				if ( is_array( $object ) ) {
-					ksort( $object );
-				}
-			}
-			$unique = array_map(
-				function ( $e ) {
-					return var_export( $e, true );
-				},
-				$value
-			);
-			if ( count( $value ) !== count( array_unique( $unique ) ) ) {
-				/* translators: 1: Parameter */
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s has duplicate items.' ), $param ) );
-			}
+		if ( ! empty( $args['uniqueItems'] ) && ! rest_validate_array_contains_unique_items( $value ) ) {
+			/* translators: 1: Parameter */
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s has duplicate items.' ), $param ) );
 		}
 	}
 
@@ -1615,7 +1661,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 			return new WP_Error(
 				'rest_invalid_param',
 				sprintf(
-					/* translators: 1: Parameter, 2: Number of characters. */
+				/* translators: 1: Parameter, 2: Number of characters. */
 					_n( '%1$s must be at least %2$s character long.', '%1$s must be at least %2$s characters long.', $args['minLength'] ),
 					$param,
 					number_format_i18n( $args['minLength'] )
@@ -1627,7 +1673,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 			return new WP_Error(
 				'rest_invalid_param',
 				sprintf(
-					/* translators: 1: Parameter, 2: Number of characters. */
+				/* translators: 1: Parameter, 2: Number of characters. */
 					_n( '%1$s must be at most %2$s character long.', '%1$s must be at most %2$s characters long.', $args['maxLength'] ),
 					$param,
 					number_format_i18n( $args['maxLength'] )
@@ -1647,7 +1693,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 	// The "format" keyword should only be applied to strings. However, for backward compatibility,
 	// we allow the "format" keyword if the type keyword was not specified, or was set to an invalid value.
 	if ( isset( $args['format'] )
-		&& ( ! isset( $args['type'] ) || 'string' === $args['type'] || ! in_array( $args['type'], $allowed_types, true ) )
+		 && ( ! isset( $args['type'] ) || 'string' === $args['type'] || ! in_array( $args['type'], $allowed_types, true ) )
 	) {
 		switch ( $args['format'] ) {
 			case 'hex-color':
@@ -1815,7 +1861,7 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 
 	// This behavior matches rest_validate_value_from_schema().
 	if ( isset( $args['format'] )
-		&& ( ! isset( $args['type'] ) || 'string' === $args['type'] || ! in_array( $args['type'], $allowed_types, true ) )
+		 && ( ! isset( $args['type'] ) || 'string' === $args['type'] || ! in_array( $args['type'], $allowed_types, true ) )
 	) {
 		switch ( $args['format'] ) {
 			case 'hex-color':

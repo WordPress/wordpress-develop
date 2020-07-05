@@ -906,11 +906,9 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertWPError( rest_validate_value_from_schema( 'foobar', $schema ) );
 	}
 
-	/**
-	 * Data providor for uniqueitems tests
-	 * @return Generator
-	 */
-	public function data_uniqueitems() {
+	public function data_unique_items() {
+		$all_types = array( 'object', 'array', 'null', 'number', 'integer', 'boolean', 'string' );
+
 		// the following test suites is not supported at the moment
 		$skip   = array(
 			'uniqueItems with an array of items',
@@ -919,6 +917,9 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 			'uniqueItems=false with an array of items and additionalItems=false',
 		);
 		$suites = json_decode( file_get_contents( __DIR__ . '/json_schema_test_suite/uniqueitems.json' ), true );
+
+		$tests = array();
+
 		foreach ( $suites as $suite ) {
 			if ( in_array( $suite['description'], $skip, true ) ) {
 				continue;
@@ -929,26 +930,36 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 			}
 			// items is required for our implementation
 			if ( ! isset( $suite['schema']['items'] ) ) {
-				$suite['schema']['items'] = array( 'type' => '' );
+				$suite['schema']['items'] = array(
+					'type'  => $all_types,
+					'items' => array(
+						'type' => $all_types,
+					),
+				);
 			}
 			foreach ( $suite['tests'] as $test ) {
-				yield array( $test, $suite );
+				$tests[] = array( $test, $suite );
 			}
 		}
+
+		return $tests;
 	}
 
 	/**
 	 * @ticket 48821
 	 *
-	 * @dataProvider data_uniqueitems
+	 * @dataProvider data_unique_items
 	 */
-	public function test_uniqueitems( $test, $suite ) {
+	public function test_unique_items( $test, $suite ) {
 		$test_description = $suite['description'] . ': ' . $test['description'];
 		$message          = $test_description . ': ' . var_export( $test['data'], true );
+
+		$valid = rest_validate_value_from_schema( $test['data'], $suite['schema'] );
+
 		if ( $test['valid'] ) {
-			$this->assertTrue( rest_validate_value_from_schema( $test['data'], $suite['schema'] ), $message );
+			$this->assertTrue( $valid, $message );
 		} else {
-			$this->assertWPError( rest_validate_value_from_schema( $test['data'], $suite['schema'] ), $message );
+			$this->assertWPError( $valid, $message );
 		}
 	}
 }
