@@ -387,7 +387,10 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 
 		$this->assertTrue( rest_validate_value_from_schema( null, $schema ) );
 		$this->assertTrue( rest_validate_value_from_schema( '2019-09-19T18:00:00', $schema ) );
-		$this->assertWPError( rest_validate_value_from_schema( 'some random string', $schema ) );
+
+		$error = rest_validate_value_from_schema( 'some random string', $schema );
+		$this->assertWPError( $error );
+		$this->assertEquals( 'Invalid date.', $error->get_error_message() );
 	}
 
 	public function test_object_or_string() {
@@ -402,7 +405,57 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 
 		$this->assertTrue( rest_validate_value_from_schema( 'My Value', $schema ) );
 		$this->assertTrue( rest_validate_value_from_schema( array( 'raw' => 'My Value' ), $schema ) );
-		$this->assertWPError( rest_validate_value_from_schema( array( 'raw' => array( 'a list' ) ), $schema ) );
+
+		$error = rest_validate_value_from_schema( array( 'raw' => array( 'a list' ) ), $schema );
+		$this->assertWPError( $error );
+		$this->assertEquals( '[raw] is not of type string.', $error->get_error_message() );
+	}
+
+	/**
+	 * @ticket 50300
+	 */
+	public function test_null_or_integer() {
+		$schema = array(
+			'type'    => array( 'null', 'integer' ),
+			'minimum' => 10,
+			'maximum' => 20,
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( null, $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( 15, $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( '15', $schema ) );
+
+		$error = rest_validate_value_from_schema( 30, $schema, 'param' );
+		$this->assertWPError( $error );
+		$this->assertEquals( 'param must be between 10 (inclusive) and 20 (inclusive)', $error->get_error_message() );
+	}
+
+	/**
+	 * @ticket 50300
+	 */
+	public function test_multi_type_with_no_known_types() {
+		$this->setExpectedIncorrectUsage( 'rest_handle_multi_type_schema' );
+		$this->setExpectedIncorrectUsage( 'rest_validate_value_from_schema' );
+
+		$schema = array(
+			'type' => array( 'invalid', 'type' ),
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( 'My Value', $schema ) );
+	}
+
+	/**
+	 * @ticket 50300
+	 */
+	public function test_multi_type_with_some_unknown_types() {
+		$this->setExpectedIncorrectUsage( 'rest_handle_multi_type_schema' );
+		$this->setExpectedIncorrectUsage( 'rest_validate_value_from_schema' );
+
+		$schema = array(
+			'type' => array( 'object', 'type' ),
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( 'My Value', $schema ) );
 	}
 
 	/**
