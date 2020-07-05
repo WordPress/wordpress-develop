@@ -688,6 +688,8 @@ function set_screen_options() {
 				}
 				break;
 			default:
+				$screen_option = false;
+
 				if ( '_page' === substr( $option, -5 ) || 'layout_columns' === $option ) {
 					/**
 					 * Filters a screen option value before it is set.
@@ -703,12 +705,12 @@ function set_screen_options() {
 					 *
 					 * @see set_screen_options()
 					 *
-					 * @param bool   $keep   Whether to save or skip saving the screen option value.
-					 *                       Default false.
-					 * @param string $option The option name.
-					 * @param int    $value  The number of rows to use.
+					 * @param mixed  $screen_option The value to save instead of the option value.
+					 *                              Default false (to skip saving the current option).
+					 * @param string $option        The option name.
+					 * @param int    $value         The option value.
 					 */
-					$value = apply_filters( 'set-screen-option', false, $option, $value ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+					$screen_option = apply_filters( 'set-screen-option', $screen_option, $option, $value ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 				}
 
 				/**
@@ -722,12 +724,12 @@ function set_screen_options() {
 				 *
 				 * @see set_screen_options()
 				 *
-				 * @param bool   $keep   Whether to save or skip saving the screen option value.
-				 *                       Default false.
-				 * @param string $option The option name.
-				 * @param int    $value  The number of rows to use.
+				 * @param mixed   $screen_option The value to save instead of the option value.
+				 *                               Default false (to skip saving the current option).
+				 * @param string  $option        The option name.
+				 * @param int     $value         The option value.
 				 */
-				$value = apply_filters( "set_screen_option_{$option}", false, $option, $value );
+				$value = apply_filters( "set_screen_option_{$option}", $screen_option, $option, $value );
 
 				if ( false === $value ) {
 					return;
@@ -932,6 +934,7 @@ function admin_color_scheme_picker( $user_id ) {
 				array(
 					'fresh' => '',
 					'light' => '',
+					'modern' => '',
 				),
 				$_wp_admin_css_colors
 			)
@@ -1050,9 +1053,9 @@ function wp_check_locked_posts( $response, $data, $screen_id ) {
 						'text' => sprintf( __( '%s is currently editing' ), $user->display_name ),
 					);
 
-					$avatar = get_avatar( $user->ID, 18 );
-					if ( $avatar && preg_match( "|src='([^']+)'|", $avatar, $matches ) ) {
-						$send['avatar_src'] = $matches[1];
+					if ( get_option( 'show_avatars' ) ) {
+						$send['avatar_src']    = get_avatar_url( $user->ID, array( 'size' => 18 ) );
+						$send['avatar_src_2x'] = get_avatar_url( $user->ID, array( 'size' => 36 ) );
 					}
 
 					$checked[ $key ] = $send;
@@ -1100,11 +1103,9 @@ function wp_refresh_post_lock( $response, $data, $screen_id ) {
 				'text' => sprintf( __( '%s has taken over and is currently editing.' ), $user->display_name ),
 			);
 
-			$avatar = get_avatar( $user->ID, 64 );
-			if ( $avatar ) {
-				if ( preg_match( "|src='([^']+)'|", $avatar, $matches ) ) {
-					$error['avatar_src'] = $matches[1];
-				}
+			if ( get_option( 'show_avatars' ) ) {
+				$error['avatar_src']    = get_avatar_url( $user->ID, array( 'size' => 64 ) );
+				$error['avatar_src_2x'] = get_avatar_url( $user->ID, array( 'size' => 128 ) );
 			}
 
 			$send['lock_error'] = $error;

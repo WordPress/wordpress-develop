@@ -278,8 +278,8 @@ function wp_privacy_generate_personal_data_export_group_html( $group_data, $grou
 	}
 
 	if ( 1 < $groups_count ) {
-		$group_html .= '<div class="return_to_top">';
-		$group_html .= '<a href="#top">' . esc_html__( '&uarr; Return to top' ) . '</a>';
+		$group_html .= '<div class="return-to-top">';
+		$group_html .= '<a href="#top"><span aria-hidden="true">&uarr; </span> ' . esc_html__( 'Return to top' ) . '</a>';
 		$group_html .= '</div>';
 	}
 
@@ -423,7 +423,7 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	fwrite( $file, 'th { padding: 5px; text-align: left; width: 20%; }' );
 	fwrite( $file, 'td { padding: 5px; }' );
 	fwrite( $file, 'tr:nth-child(odd) { background-color: #fafafa; }' );
-	fwrite( $file, '.return_to_top { text-align:right; }' );
+	fwrite( $file, '.return-to-top { text-align: right; }' );
 	fwrite( $file, '</style>' );
 	fwrite( $file, '<title>' );
 	fwrite( $file, esc_html( $title ) );
@@ -473,7 +473,7 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	// This postmeta is used from version 5.4.
 	$archive_filename = get_post_meta( $request_id, '_export_file_name', true );
 
-	// These are used for backwards compatibility.
+	// These are used for backward compatibility.
 	$archive_url      = get_post_meta( $request_id, '_export_file_url', true );
 	$archive_pathname = get_post_meta( $request_id, '_export_file_path', true );
 

@@ -2808,16 +2808,16 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_comment_failed_edit', $response, 500 );
-
 		remove_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ), 10, 3 );
+
+		$this->assertErrorResponse( 'rest_comment_failed_edit', $response, 500 );
 	}
 
 	/**
-	 * Block comments from being updated by returning WP_Error
+	 * Blocks comments from being updated by returning WP_Error.
 	 */
 	public function _wp_update_comment_data_filter( $data, $comment, $commentarr ) {
-		return new WP_Error( 'comment_wrong', __( 'wp_update_comment_data filter fails for this comment.' ), array( 'status' => 500 ) );
+		return new WP_Error( 'comment_wrong', 'wp_update_comment_data filter fails for this comment.', array( 'status' => 500 ) );
 	}
 
 	public function verify_comment_roundtrip( $input = array(), $expected_output = array() ) {

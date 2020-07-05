@@ -1274,10 +1274,12 @@ function get_term_meta( $term_id, $key = '', $single = false ) {
  * @param string $meta_key   Metadata key.
  * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
  * @param mixed  $prev_value Optional. Previous value to check before updating.
- *                           Default empty.
+ *                           If specified, only update existing metadata entries with
+ *                           this value. Otherwise, update all entries. Default empty.
  * @return int|bool|WP_Error Meta ID if the key didn't exist. true on successful update,
- *                           false on failure. WP_Error when term_id is ambiguous
- *                           between taxonomies.
+ *                           false on failure or if the value passed to the function
+ *                           is the same as the one that is already in the database.
+ *                           WP_Error when term_id is ambiguous between taxonomies.
  */
 function update_term_meta( $term_id, $meta_key, $meta_value, $prev_value = '' ) {
 	if ( wp_term_is_shared( $term_id ) ) {
@@ -2412,6 +2414,32 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	 */
 	do_action( "created_{$taxonomy}", $term_id, $tt_id );
 
+	/**
+	 * Fires after a term has been saved, and the term cache has been cleared.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param int    $term_id  Term ID.
+	 * @param int    $tt_id    Term taxonomy ID.
+	 * @param string $taxonomy Taxonomy slug.
+	 * @param bool   $update   Whether this is an existing term being updated.
+	 */
+	do_action( 'saved_term', $term_id, $tt_id, $taxonomy, false );
+
+	/**
+	 * Fires after a term in a specific taxonomy has been saved, and the term
+	 * cache has been cleared.
+	 *
+	 * The dynamic portion of the hook name, `$taxonomy`, refers to the taxonomy slug.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param int  $term_id Term ID.
+	 * @param int  $tt_id   Term taxonomy ID.
+	 * @param bool $update  Whether this is an existing term being updated.
+	 */
+	do_action( "saved_{$taxonomy}", $term_id, $tt_id, false );
+
 	return array(
 		'term_id'          => $term_id,
 		'term_taxonomy_id' => $tt_id,
@@ -3075,6 +3103,12 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 	 * @param int $tt_id   Term taxonomy ID.
 	 */
 	do_action( "edited_{$taxonomy}", $term_id, $tt_id );
+
+	/** This action is documented in wp-includes/taxonomy.php */
+	do_action( 'saved_term', $term_id, $tt_id, $taxonomy, true );
+
+	/** This action is documented in wp-includes/taxonomy.php */
+	do_action( "saved_{$taxonomy}", $term_id, $tt_id, true );
 
 	return array(
 		'term_id'          => $term_id,

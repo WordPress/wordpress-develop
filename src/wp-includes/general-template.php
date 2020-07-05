@@ -981,13 +981,21 @@ function get_custom_logo( $blog_id = 0 ) {
 			'class' => 'custom-logo',
 		);
 
-		/*
-		 * If the logo alt attribute is empty, get the site title and explicitly pass it
-		 * to the attributes used by wp_get_attachment_image().
-		 */
-		$image_alt = get_post_meta( $custom_logo_id, '_wp_attachment_image_alt', true );
-		if ( empty( $image_alt ) ) {
-			$custom_logo_attr['alt'] = get_bloginfo( 'name', 'display' );
+		if ( is_front_page() ) {
+			/*
+			 * If on the home page, set the logo alt attribute to an empty string,
+			 * as the image is decorative and doesn't need its purpose to be described.
+			 */
+			$custom_logo_attr['alt'] = '';
+		} else {
+			/*
+			 * If the logo alt attribute is empty, get the site title and explicitly pass it
+			 * to the attributes used by wp_get_attachment_image().
+			 */
+			$image_alt = get_post_meta( $custom_logo_id, '_wp_attachment_image_alt', true );
+			if ( empty( $image_alt ) ) {
+				$custom_logo_attr['alt'] = get_bloginfo( 'name', 'display' );
+			}
 		}
 
 		/**
@@ -1596,26 +1604,27 @@ function the_archive_title( $before = '', $after = '' ) {
  * @return string Archive title.
  */
 function get_the_archive_title() {
-	$title = __( 'Archives' );
+	$title  = __( 'Archives' );
+	$prefix = '';
 
 	if ( is_category() ) {
-		/* translators: Category archive title. %s: Category name. */
-		$title = sprintf( __( 'Category: %s' ), single_cat_title( '', false ) );
+		$title  = single_cat_title( '', false );
+		$prefix = _x( 'Category:', 'category archive title prefix' );
 	} elseif ( is_tag() ) {
-		/* translators: Tag archive title. %s: Tag name. */
-		$title = sprintf( __( 'Tag: %s' ), single_tag_title( '', false ) );
+		$title  = single_tag_title( '', false );
+		$prefix = _x( 'Tag:', 'tag archive title prefix' );
 	} elseif ( is_author() ) {
-		/* translators: Author archive title. %s: Author name. */
-		$title = sprintf( __( 'Author: %s' ), '<span class="vcard">' . get_the_author() . '</span>' );
+		$title  = get_the_author();
+		$prefix = _x( 'Author:', 'author archive title prefix' );
 	} elseif ( is_year() ) {
-		/* translators: Yearly archive title. %s: Year. */
-		$title = sprintf( __( 'Year: %s' ), get_the_date( _x( 'Y', 'yearly archives date format' ) ) );
+		$title  = get_the_date( _x( 'Y', 'yearly archives date format' ) );
+		$prefix = _x( 'Year:', 'date archive title prefix' );
 	} elseif ( is_month() ) {
-		/* translators: Monthly archive title. %s: Month name and year. */
-		$title = sprintf( __( 'Month: %s' ), get_the_date( _x( 'F Y', 'monthly archives date format' ) ) );
+		$title  = get_the_date( _x( 'F Y', 'monthly archives date format' ) );
+		$prefix = _x( 'Month:', 'date archive title prefix' );
 	} elseif ( is_day() ) {
-		/* translators: Daily archive title. %s: Date. */
-		$title = sprintf( __( 'Day: %s' ), get_the_date( _x( 'F j, Y', 'daily archives date format' ) ) );
+		$title  = get_the_date( _x( 'F j, Y', 'daily archives date format' ) );
+		$prefix = _x( 'Day:', 'date archive title prefix' );
 	} elseif ( is_tax( 'post_format' ) ) {
 		if ( is_tax( 'post_format', 'post-format-aside' ) ) {
 			$title = _x( 'Asides', 'post format archive title' );
@@ -1637,25 +1646,51 @@ function get_the_archive_title() {
 			$title = _x( 'Chats', 'post format archive title' );
 		}
 	} elseif ( is_post_type_archive() ) {
-		/* translators: Post type archive title. %s: Post type name. */
-		$title = sprintf( __( 'Archives: %s' ), post_type_archive_title( '', false ) );
+		$title  = post_type_archive_title( '', false );
+		$prefix = _x( 'Archives:', 'post type archive title prefix' );
 	} elseif ( is_tax() ) {
 		$queried_object = get_queried_object();
 		if ( $queried_object ) {
-			$tax = get_taxonomy( $queried_object->taxonomy );
-			/* translators: Taxonomy term archive title. 1: Taxonomy singular name, 2: Current taxonomy term. */
-			$title = sprintf( __( '%1$s: %2$s' ), $tax->labels->singular_name, single_term_title( '', false ) );
+			$tax    = get_taxonomy( $queried_object->taxonomy );
+			$title  = single_term_title( '', false );
+			$prefix = sprintf(
+				/* translators: %s: Taxonomy singular name. */
+				_x( '%s:', 'taxonomy term archive title prefix' ),
+				$tax->labels->singular_name
+			);
 		}
+	}
+
+	$original_title = $title;
+
+	/**
+	 * Filters the archive title prefix.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param string $prefix Archive title prefix.
+	 */
+	$prefix = apply_filters( 'get_the_archive_title_prefix', $prefix );
+	if ( $prefix ) {
+		$title = sprintf(
+			/* translators: 1: Title prefix. 2: Title. */
+			_x( '%1$s %2$s', 'archive title' ),
+			$prefix,
+			'<span>' . $title . '</span>'
+		);
 	}
 
 	/**
 	 * Filters the archive title.
 	 *
 	 * @since 4.1.0
+	 * @since 5.5.0 Added the `$prefix` and `$original_title` parameters.
 	 *
-	 * @param string $title Archive title to be displayed.
+	 * @param string $title          Archive title to be displayed.
+	 * @param string $original_title Archive title without prefix.
+	 * @param string $prefix         Archive title prefix.
 	 */
-	return apply_filters( 'get_the_archive_title', $title );
+	return apply_filters( 'get_the_archive_title', $title, $original_title, $prefix );
 }
 
 /**
@@ -3910,7 +3945,8 @@ function wp_get_code_editor_settings( $args ) {
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param array $settings The array of settings passed to the code editor. A falsey value disables the editor.
+	 * @param array $settings The array of settings passed to the code editor.
+	 *                        A falsey value disables the editor.
 	 * @param array $args {
 	 *     Args passed when calling `get_code_editor_settings()`.
 	 *
@@ -4348,11 +4384,6 @@ function register_admin_color_schemes() {
 		)
 	);
 
-	// Other color schemes are not available when running out of src.
-	if ( false !== strpos( get_bloginfo( 'version' ), '-src' ) ) {
-		return;
-	}
-
 	wp_admin_css_color(
 		'light',
 		_x( 'Light', 'admin color scheme' ),
@@ -4362,6 +4393,18 @@ function register_admin_color_schemes() {
 			'base'    => '#999',
 			'focus'   => '#ccc',
 			'current' => '#ccc',
+		)
+	);
+
+	wp_admin_css_color(
+		'modern',
+		_x( 'Modern', 'admin color scheme' ),
+		admin_url( "css/colors/modern/colors$suffix.css" ),
+		array( '#1e1e1e', '#3858e9', '#e26f56' ),
+		array(
+			'base'    => '#1e1e1e',
+			'focus'   => '#3858e9',
+			'current' => '#e26f56',
 		)
 	);
 

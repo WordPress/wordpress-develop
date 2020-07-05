@@ -100,6 +100,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/media',
 			'/wp/v2/media/(?P<id>[\\d]+)',
 			'/wp/v2/media/(?P<id>[\\d]+)/post-process',
+			'/wp/v2/media/(?P<id>[\\d]+)/edit',
 			'/wp/v2/blocks',
 			'/wp/v2/blocks/(?P<id>[\d]+)',
 			'/wp/v2/blocks/(?P<id>[\d]+)/autosaves',
@@ -126,6 +127,9 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/block-types/(?P<namespace>[a-zA-Z0-9_-]+)/(?P<name>[a-zA-Z0-9_-]+)',
 			'/wp/v2/settings',
 			'/wp/v2/themes',
+			'/wp/v2/plugins',
+			'/wp/v2/plugins/(?P<plugin>[^.\/]+(?:\/[^.\/]+)?)',
+			'/wp/v2/block-directory/search',
 		);
 
 		$this->assertEquals( $expected_routes, $routes );
