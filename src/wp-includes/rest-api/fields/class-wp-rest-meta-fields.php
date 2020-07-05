@@ -80,19 +80,22 @@ abstract class WP_REST_Meta_Fields {
 			$name       = $args['name'];
 			$all_values = get_metadata( $this->get_meta_type(), $object_id, $meta_key, false );
 			if ( $args['single'] ) {
-				if ( ! empty( $all_values ) ) {
-					$value             = $all_values[0];
-					$value             = $this->prepare_value_for_response( $value, $request, $args );
-					$response[ $name ] = $value;
+				if ( empty( $all_values ) ) {
+					$value = '';
+				} else {
+					$value = $all_values[0];
 				}
+
+				$value = $this->prepare_value_for_response( $value, $request, $args );
 			} else {
 				$value = array();
 
 				foreach ( $all_values as $row ) {
 					$value[] = $this->prepare_value_for_response( $row, $request, $args );
 				}
-				$response[ $name ] = $value;
 			}
+
+			$response[ $name ] = $value;
 		}
 
 		return $response;
