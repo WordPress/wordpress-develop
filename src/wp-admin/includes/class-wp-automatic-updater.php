@@ -978,40 +978,6 @@ class WP_Automatic_Updater {
 		$successful_themes  = ( ! empty( $successful_updates['theme'] ) );
 		$failed_plugins     = ( ! empty( $failed_updates['plugin'] ) );
 		$failed_themes      = ( ! empty( $failed_updates['theme'] ) );
-		
-		// remove from the failed_plugin_theme_update_emails list if plugin or theme version was update manually or removed by admin
-		if( $successful_plugins || $successful_themes || $failed_plugins || $failed_themes )
-		{
-			$temp_merge_all = array();
-			
-			if( $successful_plugins ) {
-				foreach ( $successful_updates['plugin'] as $item ) {
-					// set key for the intersect
-					$temp_merge_all[ $item->item->plugin ] = $item->name; 
-				}
-			}
-			if( $successful_themes ) {
-				foreach ( $successful_updates['theme'] as $item ) {
-					// set key for the intersect
-					$temp_merge_all[ $item->item->theme ] = $item->name; 
-				}
-			}
-			if( $failed_plugins ) {
-				foreach ( $failed_updates['plugin'] as $item ) {
-					// set key for the intersect
-					$temp_merge_all[ $item->item->plugin ] = $item->name;  
-				}
-			}
-			if( $failed_themes ) {
-				foreach ( $failed_updates['theme'] as $item ) {
-					// set key for the intersect
-					$temp_merge_all[ $item->item->theme ] = $item->name; 
-				}
-			}
-			
-			$failure_emails = array_intersect_key( $failure_emails, $temp_merge_all );
-		}
-		
 
 		switch ( $type ) {
 			case 'success':
@@ -1084,15 +1050,7 @@ class WP_Automatic_Updater {
 
 				foreach ( $failed_updates['plugin'] as $item ) {
 					$body[]                                = "- {$item->name}";
-					
-					// reset the plugin time if time has been passed
-					if ( isset($failure_emails[ $item->item->plugin ] ) ) {
-						if ( time() - $failure_emails[ $item->item->plugin ] > $failure_email_interval ) {
-							$failure_emails[ $item->item->plugin ] = time();
-						}
-					} else {
-						$failure_emails[ $item->item->plugin ] = time();
-					}
+					$failure_emails[ $item->item->plugin ] = time();
 				}
 				$body[] = "\n";
 			}
@@ -1103,15 +1061,7 @@ class WP_Automatic_Updater {
 
 				foreach ( $failed_updates['theme'] as $item ) {
 					$body[]                               = "- {$item->name}";
-					
-					// reset the plugin time if time has been passed
-					if ( isset($failure_emails[ $item->item->theme ] ) ) {
-						if ( time() - $failure_emails[ $item->item->theme ] > $failure_email_interval ) {
-							$failure_emails[ $item->item->theme ] = time();
-						}
-					} else {
-						$failure_emails[ $item->item->theme ] = time();
-					}
+					$failure_emails[ $item->item->theme ] = time();
 				}
 				$body[] = "\n";
 			}
@@ -1277,10 +1227,13 @@ class WP_Automatic_Updater {
 				__(
 					"BETA TESTING?
 =============
+
 This debugging email is sent when you are using a development version of WordPress.
+
 If you think these failures might be due to a bug in WordPress, could you report it?
  * Open a thread in the support forums: https://wordpress.org/support/forum/alphabeta
  * Or, if you're comfortable writing a bug report: https://core.trac.wordpress.org/
+
 Thanks! -- The WordPress Team"
 				)
 			);
