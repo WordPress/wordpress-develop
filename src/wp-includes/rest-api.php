@@ -1661,7 +1661,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 			return new WP_Error(
 				'rest_invalid_param',
 				sprintf(
-				/* translators: 1: Parameter, 2: Number of characters. */
+					/* translators: 1: Parameter, 2: Number of characters. */
 					_n( '%1$s must be at least %2$s character long.', '%1$s must be at least %2$s characters long.', $args['minLength'] ),
 					$param,
 					number_format_i18n( $args['minLength'] )
@@ -1673,7 +1673,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 			return new WP_Error(
 				'rest_invalid_param',
 				sprintf(
-				/* translators: 1: Parameter, 2: Number of characters. */
+					/* translators: 1: Parameter, 2: Number of characters. */
 					_n( '%1$s must be at most %2$s character long.', '%1$s must be at most %2$s characters long.', $args['maxLength'] ),
 					$param,
 					number_format_i18n( $args['maxLength'] )
@@ -1693,7 +1693,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 	// The "format" keyword should only be applied to strings. However, for backward compatibility,
 	// we allow the "format" keyword if the type keyword was not specified, or was set to an invalid value.
 	if ( isset( $args['format'] )
-		 && ( ! isset( $args['type'] ) || 'string' === $args['type'] || ! in_array( $args['type'], $allowed_types, true ) )
+		&& ( ! isset( $args['type'] ) || 'string' === $args['type'] || ! in_array( $args['type'], $allowed_types, true ) )
 	) {
 		switch ( $args['format'] ) {
 			case 'hex-color':
@@ -1861,7 +1861,7 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 
 	// This behavior matches rest_validate_value_from_schema().
 	if ( isset( $args['format'] )
-		 && ( ! isset( $args['type'] ) || 'string' === $args['type'] || ! in_array( $args['type'], $allowed_types, true ) )
+		&& ( ! isset( $args['type'] ) || 'string' === $args['type'] || ! in_array( $args['type'], $allowed_types, true ) )
 	) {
 		switch ( $args['format'] ) {
 			case 'hex-color':
