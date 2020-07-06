@@ -1183,6 +1183,7 @@ function wp_removable_query_args() {
 		'activated',
 		'approved',
 		'deactivate',
+		'delete_count',
 		'deleted',
 		'disabled',
 		'doing_wp_cron',
@@ -3046,6 +3047,7 @@ function wp_get_mime_types() {
 			'bmp'                          => 'image/bmp',
 			'tiff|tif'                     => 'image/tiff',
 			'ico'                          => 'image/x-icon',
+			'heic'                         => 'image/heic',
 			// Video formats.
 			'asf|asx'                      => 'video/x-ms-asf',
 			'wmv'                          => 'video/x-ms-wmv',
@@ -3165,7 +3167,7 @@ function wp_get_ext_types() {
 	return apply_filters(
 		'ext2type',
 		array(
-			'image'       => array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'bmp', 'tif', 'tiff', 'ico' ),
+			'image'       => array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'bmp', 'tif', 'tiff', 'ico', 'heic' ),
 			'audio'       => array( 'aac', 'ac3', 'aif', 'aiff', 'flac', 'm3a', 'm4a', 'm4b', 'mka', 'mp1', 'mp2', 'mp3', 'ogg', 'oga', 'ram', 'wav', 'wma' ),
 			'video'       => array( '3g2', '3gp', '3gpp', 'asf', 'avi', 'divx', 'dv', 'flv', 'm4v', 'mkv', 'mov', 'mp4', 'mpeg', 'mpg', 'mpv', 'ogm', 'ogv', 'qt', 'rm', 'vob', 'wmv' ),
 			'document'    => array( 'doc', 'docx', 'docm', 'dotm', 'odt', 'pages', 'pdf', 'xps', 'oxps', 'rtf', 'wp', 'wpd', 'psd', 'xcf' ),
@@ -4698,9 +4700,9 @@ function absint( $maybeint ) {
  *
  * @param string $function    The function that was called.
  * @param string $version     The version of WordPress that deprecated the function.
- * @param string $replacement Optional. The function that should have been called. Default null.
+ * @param string $replacement Optional. The function that should have been called. Default empty.
  */
-function _deprecated_function( $function, $version, $replacement = null ) {
+function _deprecated_function( $function, $version, $replacement = '' ) {
 
 	/**
 	 * Fires when a deprecated function is called.
@@ -4722,7 +4724,7 @@ function _deprecated_function( $function, $version, $replacement = null ) {
 	 */
 	if ( WP_DEBUG && apply_filters( 'deprecated_function_trigger_error', true ) ) {
 		if ( function_exists( '__' ) ) {
-			if ( ! is_null( $replacement ) ) {
+			if ( $replacement ) {
 				trigger_error(
 					sprintf(
 						/* translators: 1: PHP function name, 2: Version number, 3: Alternative function name. */
@@ -4745,7 +4747,7 @@ function _deprecated_function( $function, $version, $replacement = null ) {
 				);
 			}
 		} else {
-			if ( ! is_null( $replacement ) ) {
+			if ( $replacement ) {
 				trigger_error(
 					sprintf(
 						'%1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
@@ -4814,7 +4816,7 @@ function _deprecated_constructor( $class, $version, $parent_class = '' ) {
 	 */
 	if ( WP_DEBUG && apply_filters( 'deprecated_constructor_trigger_error', true ) ) {
 		if ( function_exists( '__' ) ) {
-			if ( ! empty( $parent_class ) ) {
+			if ( $parent_class ) {
 				trigger_error(
 					sprintf(
 						/* translators: 1: PHP class name, 2: PHP parent class name, 3: Version number, 4: __construct() method. */
@@ -4839,7 +4841,7 @@ function _deprecated_constructor( $class, $version, $parent_class = '' ) {
 				);
 			}
 		} else {
-			if ( ! empty( $parent_class ) ) {
+			if ( $parent_class ) {
 				trigger_error(
 					sprintf(
 						'The called constructor method for %1$s in %2$s is <strong>deprecated</strong> since version %3$s! Use %4$s instead.',
@@ -4884,10 +4886,10 @@ function _deprecated_constructor( $class, $version, $parent_class = '' ) {
  * @param string $file        The file that was included.
  * @param string $version     The version of WordPress that deprecated the file.
  * @param string $replacement Optional. The file that should have been included based on ABSPATH.
- *                            Default null.
+ *                            Default empty.
  * @param string $message     Optional. A message regarding the change. Default empty.
  */
-function _deprecated_file( $file, $version, $replacement = null, $message = '' ) {
+function _deprecated_file( $file, $version, $replacement = '', $message = '' ) {
 
 	/**
 	 * Fires when a deprecated file is called.
@@ -4912,7 +4914,7 @@ function _deprecated_file( $file, $version, $replacement = null, $message = '' )
 		$message = empty( $message ) ? '' : ' ' . $message;
 
 		if ( function_exists( '__' ) ) {
-			if ( ! is_null( $replacement ) ) {
+			if ( $replacement ) {
 				trigger_error(
 					sprintf(
 						/* translators: 1: PHP file name, 2: Version number, 3: Alternative file name. */
@@ -4935,7 +4937,7 @@ function _deprecated_file( $file, $version, $replacement = null, $message = '' )
 				);
 			}
 		} else {
-			if ( ! is_null( $replacement ) ) {
+			if ( $replacement ) {
 				trigger_error(
 					sprintf(
 						'%1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
@@ -4982,9 +4984,9 @@ function _deprecated_file( $file, $version, $replacement = null, $message = '' )
  *
  * @param string $function The function that was called.
  * @param string $version  The version of WordPress that deprecated the argument used.
- * @param string $message  Optional. A message regarding the change. Default null.
+ * @param string $message  Optional. A message regarding the change. Default empty.
  */
-function _deprecated_argument( $function, $version, $message = null ) {
+function _deprecated_argument( $function, $version, $message = '' ) {
 
 	/**
 	 * Fires when a deprecated argument is called.
@@ -5006,7 +5008,7 @@ function _deprecated_argument( $function, $version, $message = null ) {
 	 */
 	if ( WP_DEBUG && apply_filters( 'deprecated_argument_trigger_error', true ) ) {
 		if ( function_exists( '__' ) ) {
-			if ( ! is_null( $message ) ) {
+			if ( $message ) {
 				trigger_error(
 					sprintf(
 						/* translators: 1: PHP function name, 2: Version number, 3: Optional message regarding the change. */
@@ -5029,7 +5031,7 @@ function _deprecated_argument( $function, $version, $message = null ) {
 				);
 			}
 		} else {
-			if ( ! is_null( $message ) ) {
+			if ( $message ) {
 				trigger_error(
 					sprintf(
 						'%1$s was called with an argument that is <strong>deprecated</strong> since version %2$s! %3$s',
@@ -5070,10 +5072,10 @@ function _deprecated_argument( $function, $version, $message = null ) {
  *
  * @param string $hook        The hook that was used.
  * @param string $version     The version of WordPress that deprecated the hook.
- * @param string $replacement Optional. The hook that should have been used. Default null.
- * @param string $message     Optional. A message regarding the change. Default null.
+ * @param string $replacement Optional. The hook that should have been used. Default empty.
+ * @param string $message     Optional. A message regarding the change. Default empty.
  */
-function _deprecated_hook( $hook, $version, $replacement = null, $message = null ) {
+function _deprecated_hook( $hook, $version, $replacement = '', $message = '' ) {
 	/**
 	 * Fires when a deprecated hook is called.
 	 *
@@ -5097,7 +5099,7 @@ function _deprecated_hook( $hook, $version, $replacement = null, $message = null
 	if ( WP_DEBUG && apply_filters( 'deprecated_hook_trigger_error', true ) ) {
 		$message = empty( $message ) ? '' : ' ' . $message;
 
-		if ( ! is_null( $replacement ) ) {
+		if ( $replacement ) {
 			trigger_error(
 				sprintf(
 					/* translators: 1: WordPress hook name, 2: Version number, 3: Alternative hook name. */
@@ -5164,9 +5166,7 @@ function _doing_it_wrong( $function, $message, $version ) {
 	 */
 	if ( WP_DEBUG && apply_filters( 'doing_it_wrong_trigger_error', true, $function, $message, $version ) ) {
 		if ( function_exists( '__' ) ) {
-			if ( is_null( $version ) ) {
-				$version = '';
-			} else {
+			if ( $version ) {
 				/* translators: %s: Version number. */
 				$version = sprintf( __( '(This message was added in version %s.)' ), $version );
 			}
@@ -5188,9 +5188,7 @@ function _doing_it_wrong( $function, $message, $version ) {
 				E_USER_NOTICE
 			);
 		} else {
-			if ( is_null( $version ) ) {
-				$version = '';
-			} else {
+			if ( $version ) {
 				$version = sprintf( '(This message was added in version %s.)', $version );
 			}
 

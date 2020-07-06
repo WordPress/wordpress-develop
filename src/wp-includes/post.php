@@ -4207,7 +4207,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	 *
 	 * @param int     $post_ID Post ID.
 	 * @param WP_Post $post    Post object.
-	 * @param bool    $update  Whether this is an existing post being updated or not.
+	 * @param bool    $update  Whether this is an existing post being updated.
 	 */
 	do_action( "save_post_{$post->post_type}", $post_ID, $post, $update );
 
@@ -4218,7 +4218,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	 *
 	 * @param int     $post_ID Post ID.
 	 * @param WP_Post $post    Post object.
-	 * @param bool    $update  Whether this is an existing post being updated or not.
+	 * @param bool    $update  Whether this is an existing post being updated.
 	 */
 	do_action( 'save_post', $post_ID, $post, $update );
 
@@ -4229,7 +4229,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	 *
 	 * @param int     $post_ID Post ID.
 	 * @param WP_Post $post    Post object.
-	 * @param bool    $update  Whether this is an existing post being updated or not.
+	 * @param bool    $update  Whether this is an existing post being updated.
 	 */
 	do_action( 'wp_insert_post', $post_ID, $post, $update );
 
@@ -7014,7 +7014,8 @@ function _publish_post_hook( $post_id ) {
  * @since 3.1.0
  *
  * @param int|WP_Post $post Post ID or post object. Defaults to global $post.
- * @return int|false Post parent ID (which can be 0 if there is no parent), or false if the post does not exist.
+ * @return int|false Post parent ID (which can be 0 if there is no parent),
+ *                   or false if the post does not exist.
  */
 function wp_get_post_parent_id( $post ) {
 	$post = get_post( $post );

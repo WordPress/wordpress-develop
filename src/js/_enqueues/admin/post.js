@@ -8,7 +8,7 @@
  /* global theList:true, theExtraList:true, getUserSetting, setUserSetting, commentReply, commentsBox */
  /* global WPSetThumbnailHTML, wptitlehint */
 
-// Backwards compatibility: prevent fatal errors.
+// Backward compatibility: prevent fatal errors.
 window.makeSlugeditClickable = window.editPermalink = function(){};
 
 // Make sure the wp object exists.
@@ -200,7 +200,14 @@ window.wp = window.wp || {};
 					}
 
 					if ( received.lock_error.avatar_src ) {
-						avatar = $( '<img class="avatar avatar-64 photo" width="64" height="64" alt="" />' ).attr( 'src', received.lock_error.avatar_src.replace( /&amp;/g, '&' ) );
+						avatar = $( '<img />', {
+							'class': 'avatar avatar-64 photo',
+							width: 64,
+							height: 64,
+							alt: '',
+							src: received.lock_error.avatar_src,
+							srcset: received.lock_error.avatar_src_2x ? received.lock_error.avatar_src_2x + ' 2x' : undefined
+						} );
 						wrap.find('div.post-locked-avatar').empty().append( avatar );
 					}
 
@@ -1228,7 +1235,7 @@ jQuery(document).ready( function($) {
 	 *
 	 * @param {MouseEvent} event A click event.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	copyAttachmentURLClipboard.on( 'success', function( event ) {
 		var triggerElement = $( event.trigger ),
