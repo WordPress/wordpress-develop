@@ -6,29 +6,25 @@
  * @since 5.5.0
  */
 
-/**
- * Loads a Core block pattern.
- *
- * @since 5.5.0
- * @access private
- *
- * @param string $name Block pattern name.
- * @return array Block pattern settings.
- */
-function _load_block_pattern( $name ) {
-	return require( __DIR__ . '/block-patterns/' . $name . '.php' );
-}
+$core_block_patterns = array(
+	'text-two-columns',
+	'two-buttons',
+	'two-images',
+	'text-two-columns-with-images',
+	'text-three-columns-buttons',
+	'large-header',
+	'large-header-paragraph',
+	'three-buttons',
+	'quote',
+	'testimonials',
+);
 
-register_block_pattern( 'core/text-two-columns', _load_block_pattern( 'text-two-columns' ) );
-register_block_pattern( 'core/two-buttons', _load_block_pattern( 'two-buttons' ) );
-register_block_pattern( 'core/two-images', _load_block_pattern( 'two-images' ) );
-register_block_pattern( 'core/text-two-columns-with-images', _load_block_pattern( 'text-two-columns-with-images' ) );
-register_block_pattern( 'core/text-three-columns-buttons', _load_block_pattern( 'text-three-columns-buttons' ) );
-register_block_pattern( 'core/large-header', _load_block_pattern( 'large-header' ) );
-register_block_pattern( 'core/large-header-paragraph', _load_block_pattern( 'large-header-paragraph' ) );
-register_block_pattern( 'core/three-buttons', _load_block_pattern( 'three-buttons' ) );
-register_block_pattern( 'core/quote', _load_block_pattern( 'quote' ) );
-register_block_pattern( 'core/testimonials', _load_block_pattern( 'testimonials' ) );
+foreach ( $core_block_patterns as $core_block_pattern ) {
+	register_block_pattern(
+		'core/' . $core_block_pattern,
+		require( __DIR__ . '/block-patterns/' . $core_block_pattern . '.php' )
+	);
+}
 
 register_block_pattern_category( 'buttons', array( 'label' => _x( 'Buttons', 'Block pattern category', 'gutenberg' ) ) );
 register_block_pattern_category( 'columns', array( 'label' => _x( 'Columns', 'Block pattern category', 'gutenberg' ) ) );
