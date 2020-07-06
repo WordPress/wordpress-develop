@@ -54,7 +54,7 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 		_doing_it_wrong(
 			'register_rest_route',
 			sprintf(
-			/* translators: %s: rest_api_init */
+				/* translators: %s: rest_api_init */
 				__( 'REST API routes must be registered on the %s action.' ),
 				'<code>rest_api_init</code>'
 			),
