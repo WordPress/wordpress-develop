@@ -832,7 +832,7 @@ class WP_Debug_Data {
 		foreach ( $mu_plugins as $plugin_path => $plugin ) {
 			$plugin_version = $plugin['Version'];
 			$plugin_author  = $plugin['Author'];
-			$plugin_slug = explode( '/', $plugin_path );
+			$plugin_info = self::get_plugin_information( $plugin_path );
 
 			$plugin_version_string       = __( 'No version or author information is available.' );
 			$plugin_version_string_debug = 'author: (undefined), version: (undefined)';
@@ -853,6 +853,12 @@ class WP_Debug_Data {
 					$plugin_version_string       = sprintf( __( 'Version %s' ), $plugin_version );
 					$plugin_version_string_debug = sprintf( 'author: (undefined), version: %s', $plugin_version );
 				}
+			}
+
+			if ( isset( $plugin_info->last_updated ) && ! array_key_exists( $plugin_path, $plugin_updates ) ) {
+				/* translators: %s: Plugin last updated time. */
+				$plugin_version_string          .= sprintf( __( ' | Last update: %s ago' ), human_time_diff( strtotime( $plugin_info->last_updated ), current_time( 'timestamp' ) ) );
+				$plugin_version_string_debug    .= sprintf( __( ', last update: %s ago' ), human_time_diff( strtotime( $plugin_info->last_updated ), current_time( 'timestamp' ) ) );
 			}
 
 			$info['wp-mu-plugins']['fields'][ sanitize_text_field( $plugin['Name'] ) ] = array(
@@ -903,10 +909,6 @@ class WP_Debug_Data {
 				}
 			}
 
-			if ( isset( $plugin_info->last_updated ) && ! array_key_exists( $plugin_path, $plugin_updates ) ) {
-				$plugin_version_string          .= sprintf( __( ' | Last update: %s ago' ), human_time_diff( strtotime( $plugin_info->last_updated ), current_time( 'timestamp' ) ) );
-			}
-
 			if ( array_key_exists( $plugin_path, $plugin_updates ) ) {
 				/* translators: %s: Latest plugin version number. */
 				$plugin_version_string       .= ' ' . sprintf( __( '(Latest version: %s)' ), $plugin_updates[ $plugin_path ]->update->new_version );
@@ -921,6 +923,12 @@ class WP_Debug_Data {
 					$plugin_version_string       .= ' | ' . $auto_updates_disabled_str;
 					$plugin_version_string_debug .= ', ' . $auto_updates_disabled_str;
 				}
+			}
+
+			if ( isset( $plugin_info->last_updated ) && ! array_key_exists( $plugin_path, $plugin_updates ) ) {
+				/* translators: %s: Plugin last updated time. */
+				$plugin_version_string          .= sprintf( __( ' | Last update: %s ago' ), human_time_diff( strtotime( $plugin_info->last_updated ), current_time( 'timestamp' ) ) );
+				$plugin_version_string_debug    .= sprintf( __( ', last update: %s ago' ), human_time_diff( strtotime( $plugin_info->last_updated ), current_time( 'timestamp' ) ) );
 			}
 
 			$info[ $plugin_part ]['fields'][ sanitize_text_field( $plugin['Name'] ) ] = array(
@@ -1433,6 +1441,11 @@ class WP_Debug_Data {
 		return $all_sizes;
 	}
 
+	/**
+	 * Get Plugin Information from the Plugin Information API.
+	 * @param $plugin_path
+	 * @return mixed|object|WP_Error
+	 */
 	static function get_plugin_information( $plugin_path ) {
 		$plugin_slug = explode( '/', $plugin_path );
 		$plugin_info_arguments = (object) array();
