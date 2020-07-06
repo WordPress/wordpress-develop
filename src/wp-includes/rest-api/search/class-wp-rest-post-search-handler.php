@@ -190,7 +190,7 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 	 */
 	protected function detect_rest_item_route( $post ) {
 
-		_deprecated_function( __FUNCTION__, '5.5.0', 'wp_set_current_user()' );
+		_deprecated_function( __METHOD__, '5.5.0', 'rest_get_route_for_post()' );
 		return rest_get_route_for_post( $post );
 	}
 
