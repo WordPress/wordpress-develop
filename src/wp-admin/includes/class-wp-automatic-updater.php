@@ -942,7 +942,7 @@ class WP_Automatic_Updater {
 		}
 
 		$unique_failures = false;
-		$failure_emails  = get_option( 'failed_plugin_theme_update_emails', array() );
+		$failure_emails  = get_option( 'auto_plugin_theme_update_emails', array() );
 
 		// When only failures have occurred, an email should only be sent if there are either new failures,
 		// or failures that have not sent out an email recently.
@@ -950,9 +950,15 @@ class WP_Automatic_Updater {
 			$unique_failures = false;
 
 			/**
+			 * Filters the time interval between failure emails for a plugin.
 			 *
+			 * This prevents a site owner from receiving an email notice every time
+			 * the auto-update routine runs (every 12 hours by default).
+			 *
+			 * @param int $time Time interval in seconds between failure notifications.
+			 *                  Default is 259,200 (3 days).
 			 */
-			$failure_email_interval = apply_filters( 'auto_plugin_theme_update_fail_email_interval', DAY_IN_SECONDS * 3 );
+			$failure_email_interval = apply_filters( 'auto_plugin_theme_update_email_fail_interval', DAY_IN_SECONDS * 3 );
 
 			foreach ( $failed_updates as $update_type => $failures ) {
 				foreach ( $failures as $failed_update ) {
@@ -1147,7 +1153,7 @@ class WP_Automatic_Updater {
 		$result = wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
 
 		if ( $result ) {
-			update_option( 'failed_plugin_theme_update_emails', $failure_emails );
+			update_option( 'auto_plugin_theme_update_emails', $failure_emails );
 		}
 	}
 
