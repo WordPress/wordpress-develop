@@ -832,6 +832,7 @@ class WP_Debug_Data {
 		foreach ( $mu_plugins as $plugin_path => $plugin ) {
 			$plugin_version = $plugin['Version'];
 			$plugin_author  = $plugin['Author'];
+			$plugin_slug = explode( '/', $plugin_path );
 
 			$plugin_version_string       = __( 'No version or author information is available.' );
 			$plugin_version_string_debug = 'author: (undefined), version: (undefined)';
@@ -880,6 +881,7 @@ class WP_Debug_Data {
 			$plugin_version = $plugin['Version'];
 			$plugin_author  = $plugin['Author'];
 
+			$plugin_info = self::get_plugin_information( $plugin_path );
 			$plugin_version_string       = __( 'No version or author information is available.' );
 			$plugin_version_string_debug = 'author: (undefined), version: (undefined)';
 
@@ -899,6 +901,10 @@ class WP_Debug_Data {
 					$plugin_version_string       = sprintf( __( 'Version %s' ), $plugin_version );
 					$plugin_version_string_debug = sprintf( 'author: (undefined), version: %s', $plugin_version );
 				}
+			}
+
+			if ( isset( $plugin_info->last_updated ) && ! array_key_exists( $plugin_path, $plugin_updates ) ) {
+				$plugin_version_string          .= sprintf( __( ' | Last update: %s ago' ), human_time_diff( strtotime( $plugin_info->last_updated ), current_time( 'timestamp' ) ) );
 			}
 
 			if ( array_key_exists( $plugin_path, $plugin_updates ) ) {
@@ -1426,4 +1432,85 @@ class WP_Debug_Data {
 
 		return $all_sizes;
 	}
+
+	static function get_plugin_information( $plugin_path ) {
+		$plugin_slug = explode( '/', $plugin_path );
+		$plugin_info_arguments = (object) array();
+		$plugin_info_arguments->slug = ( isset( $plugin_slug[0] ) ) ? $plugin_slug[0] : $plugin_slug;
+
+		$res = apply_filters( 'plugins_api', false, 'plugin_information', $plugin_info_arguments );
+
+		if ( false === $res ) {
+
+			$url = 'http://api.wordpress.org/plugins/info/1.2/';
+			$url = add_query_arg(
+				array(
+					'action'  => 'plugin_information',
+					'request' => $plugin_info_arguments,
+				),
+				$url
+			);
+
+			$http_url = $url;
+			$ssl      = wp_http_supports( array( 'ssl' ) );
+			if ( $ssl ) {
+				$url = set_url_scheme( $url, 'https' );
+			}
+
+			$http_args = array(
+				'timeout'    => 15,
+				'user-agent' => 'WordPress/' . get_bloginfo( 'version' ) . '; ' . home_url( '/' ),
+			);
+			$request   = wp_remote_get( $url, $http_args );
+
+			if ( $ssl && is_wp_error( $request ) ) {
+				trigger_error(
+					sprintf(
+					/* translators: %s: Support forums URL. */
+						__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+						__( 'https://wordpress.org/support/forums/' )
+					) . ' ' . __( '(WordPress could not establish a secure connection to WordPress.org. Please contact your server administrator.)' ),
+					headers_sent() || WP_DEBUG ? E_USER_WARNING : E_USER_NOTICE
+				);
+				$request = wp_remote_get( $http_url, $http_args );
+			}
+
+			if ( is_wp_error( $request ) ) {
+				$res = new WP_Error(
+					'plugins_api_failed',
+					sprintf(
+					/* translators: %s: Support forums URL. */
+						__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+						__( 'https://wordpress.org/support/forums/' )
+					),
+					$request->get_error_message()
+				);
+			} else {
+				$res = json_decode( wp_remote_retrieve_body( $request ), true );
+				if ( is_array( $res ) ) {
+					// Object casting is required in order to match the info/1.0 format.
+					$res = (object) $res;
+				} elseif ( null === $res ) {
+					$res = new WP_Error(
+						'plugins_api_failed',
+						sprintf(
+						/* translators: %s: Support forums URL. */
+							__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+							__( 'https://wordpress.org/support/forums/' )
+						),
+						wp_remote_retrieve_body( $request )
+					);
+				}
+
+				if ( isset( $res->error ) ) {
+					$res = new WP_Error( 'plugins_api_failed', $res->error );
+				}
+			}
+		} elseif ( ! is_wp_error( $res ) ) {
+			$res->external = true;
+		}
+
+		return $res;
+	}
+
 }
