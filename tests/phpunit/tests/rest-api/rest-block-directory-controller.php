@@ -168,8 +168,8 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 				'https://ps.w.org/guidepost/tags/1.2.1/build/guidepost-style.css?v=1584940380',
 				'https://ps.w.org/guidepost/tags/1.2.1/build/guidepost-theme.js?v=1584940380',
 			),
-			'last_updated'        => '2020-03-23T05:13:00',
-			'humanized_updated'   => '3 months ago',
+			'last_updated'        => gmdate( 'Y-m-d\TH:i:s', strtotime( $plugin['last_updated'] ) ),
+			'humanized_updated'   => sprintf( '%s ago', human_time_diff( strtotime( $plugin['last_updated'] ) ) ),
 		);
 
 		$this->assertEquals( $expected, $response->get_data() );
