@@ -44,13 +44,13 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	protected static $response_last_page;
 
 	/**
-	 * Export Url.
+	 * Exports URL.
 	 *
 	 * @since 5.5.0
 	 *
-	 * @var string $export_url
+	 * @var string $exports_url
 	 */
-	protected static $export_url;
+	protected static $exports_url;
 
 	/**
 	 * Export File Name.
@@ -149,9 +149,9 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 */
 	public static function wpSetUpBeforeClass( $factory ) {
 		self::$requester_email      = 'requester@example.com';
-		self::$export_url           = wp_privacy_exports_url();
+		self::$exports_url          = wp_privacy_exports_url();
 		self::$export_file_name     = 'wp-personal-data-file-Wv0RfMnGIkl4CFEDEEkSeIdfLmaUrLsl.zip';
-		self::$export_file_url      = self::$export_url . self::$export_file_name;
+		self::$export_file_url      = self::$exports_url . self::$export_file_name;
 		self::$request_id           = wp_create_user_request( self::$requester_email, 'export_personal_data' );
 		self::$page_index_first     = 1;
 		self::$page_index_last      = 2;

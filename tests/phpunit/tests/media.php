@@ -2808,6 +2808,49 @@ EOF;
 			'arbitrary context => true'       => array( 'something_completely_arbitrary', true ),
 		);
 	}
+
+	/**
+	 * @ticket 50543
+	 */
+	function test_wp_image_file_matches_image_meta() {
+		$image_meta       = wp_get_attachment_metadata( self::$large_id );
+		$image_src_full   = wp_get_attachment_image_url( self::$large_id, 'full' );
+		$image_src_medium = wp_get_attachment_image_url( self::$large_id, 'medium' );
+
+		$this->assertTrue( wp_image_file_matches_image_meta( $image_src_full, $image_meta ) );
+		$this->assertTrue( wp_image_file_matches_image_meta( $image_src_medium, $image_meta ) );
+	}
+
+	/**
+	 * @ticket 50543
+	 */
+	function test_wp_image_file_matches_image_meta_no_subsizes() {
+		$image_meta = wp_get_attachment_metadata( self::$large_id );
+		$image_src  = wp_get_attachment_image_url( self::$large_id, 'full' );
+		$image_meta['sizes'] = array();
+
+		$this->assertTrue( wp_image_file_matches_image_meta( $image_src, $image_meta ) );
+	}
+
+	/**
+	 * @ticket 50543
+	 */
+	function test_wp_image_file_matches_image_meta_invalid_meta() {
+		$image_meta = ''; // Attachment is not an image.
+		$image_src  = $this->img_url;
+
+		$this->assertFalse( wp_image_file_matches_image_meta( $image_src, $image_meta ) );
+	}
+
+	/**
+	 * @ticket 50543
+	 */
+	function test_wp_image_file_matches_image_meta_different_meta() {
+		$image_meta = wp_get_attachment_metadata( self::$large_id );
+		$image_src  = $this->img_url; // Different image.
+
+		$this->assertFalse( wp_image_file_matches_image_meta( $image_src, $image_meta ) );
+	}
 }
 
 /**
