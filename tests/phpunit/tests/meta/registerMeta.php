@@ -743,7 +743,6 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				false,
 				array( array( 'wibble' => 'dibble' ) ),
 			),
-
 			array(
 				array(
 					'show_in_rest' => array(
@@ -886,7 +885,42 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				false,
 				array( 123 ),
 			),
-
+			array(
+				array(
+					'single'  => false,
+					'type'    => 'integer',
+					'default' => array( 123, 456 ),
+				),
+				false,
+				array( 123, 456 ),
+			),
+			array(
+				array(
+					'single'  => false,
+					'type'    => 'integer',
+					'default' => array( 123 ),
+				),
+				false,
+				array( 123 ),
+			),
+			array(
+				array(
+					'single'  => false,
+					'type'    => 'integer',
+					'default' => array( 123, 456 ),
+				),
+				true,
+				123,
+			),
+			array(
+				array(
+					'single'  => false,
+					'type'    => 'integer',
+					'default' => array( 123 ),
+				),
+				true,
+				123,
+			),
 		);
 	}
 
@@ -964,6 +998,81 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				),
 				false,
 				array(),
+			),
+			array(
+				array(
+					'single'  => false,
+					'type'    => 'integer',
+					'default' => array( 123, 'wibble' ),
+				),
+				false,
+				array(),
+			),
+			array(
+				array(
+					'single'  => false,
+					'type'    => 'integer',
+					'default' => array( 123, array() ),
+				),
+				false,
+				array(),
+			),
+			array(
+				array(
+					'single'       => false,
+					'type'         => 'array',
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type' => 'string',
+							),
+						),
+					),
+					'default'      => array( array( 123, 456 ), array( 'string' ) ),
+				),
+				false,
+				array(),
+			),
+			array(
+				array(
+					'single'       => true,
+					'type'         => 'array',
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type' => 'string',
+							),
+						),
+					),
+					'default'      => array( array( 123, 456 ), array( 'string' ) ),
+				),
+				true,
+				'',
+			),
+			array(
+				array(
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'       => 'object',
+							'properties' => array(
+								'my_prop'          => array(
+									'type' => 'string',
+								),
+								'my_required_prop' => array(
+									'type' => 'string',
+								),
+							),
+							'required'   => array( 'my_required_prop' ),
+						),
+					),
+					'type'         => 'object',
+					'single'       => true,
+					'default'      => array( 'my_prop' => 'hibble' ),
+				),
+				true,
+				'',
 			),
 		);
 	}

@@ -1331,12 +1331,27 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 	}
 
 	if ( array_key_exists( 'default', $args ) ) {
+		if ( false === $args['single'] && ! wp_is_numeric_array( $args['default'] ) ) {
+			$args['default'] = array( $args['default'] );
+		}
 		$schema = $args;
 		if ( is_array( $args['show_in_rest'] ) && isset( $args['show_in_rest']['schema'] ) ) {
 			$schema = $args['show_in_rest']['schema'];
 		}
-		if ( true !== rest_validate_value_from_schema( $args['default'], $schema ) ) {
-			_doing_it_wrong( __FUNCTION__, __( 'When registering an "default", the data must match the type provided.' ), '5.5.0' );
+		if ( false === $args['single'] ) {
+			$check = false;
+			foreach ( $args['default'] as $default ) {
+				$check = rest_validate_value_from_schema( $default, $schema );
+				if ( is_wp_error( $check ) ) {
+					break;
+				}
+			}
+		} else {
+			$check = rest_validate_value_from_schema( $args['default'], $schema );
+		}
+
+		if ( is_wp_error( $check ) ) {
+			_doing_it_wrong( __FUNCTION__, __( 'When registering a default meta value the data must match the type provided.' ), '5.5.0' );
 
 			return false;
 		}
