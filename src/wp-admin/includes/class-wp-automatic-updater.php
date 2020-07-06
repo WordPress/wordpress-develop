@@ -947,8 +947,6 @@ class WP_Automatic_Updater {
 		// When only failures have occurred, an email should only be sent if there are either new failures,
 		// or failures that have not sent out an email recently.
 		if ( 'fail' === $type ) {
-			$unique_failures = false;
-
 			/**
 			 * Filters the time interval between failure emails for a plugin.
 			 *
