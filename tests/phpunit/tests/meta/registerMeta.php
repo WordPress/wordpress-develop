@@ -628,7 +628,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 					'default'      => array( 'wibble' ),
 				),
 				false,
-				array( 'wibble' ),
+				array( array( 'wibble' ) ),
 			),
 			array(
 				array(
@@ -663,7 +663,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 					'default'        => array( 'wibble' ),
 				),
 				false,
-				array( 'wibble' ),
+				array( array( 'wibble' ) ),
 			),
 
 			// types
@@ -758,7 +758,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 					'default'      => array( 'dibble' ),
 				),
 				false,
-				array( 'dibble' ),
+				array( array( 'dibble' ) ),
 			),
 			array(
 				array(
@@ -775,7 +775,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 					'default'      => array( 'dibble' ),
 				),
 				false,
-				array( 'dibble' ),
+				array( array( 'dibble' ) ),
 			),
 			array(
 				array(
@@ -809,7 +809,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 					'default'      => array( 'dibble' ),
 				),
 				true,
-				'dibble',
+				array( 'dibble' ),
 			),
 
 			array(
@@ -884,42 +884,6 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				),
 				false,
 				array( 123 ),
-			),
-			array(
-				array(
-					'single'  => false,
-					'type'    => 'integer',
-					'default' => array( 123, 456 ),
-				),
-				false,
-				array( 123, 456 ),
-			),
-			array(
-				array(
-					'single'  => false,
-					'type'    => 'integer',
-					'default' => array( 123 ),
-				),
-				false,
-				array( 123 ),
-			),
-			array(
-				array(
-					'single'  => false,
-					'type'    => 'integer',
-					'default' => array( 123, 456 ),
-				),
-				true,
-				123,
-			),
-			array(
-				array(
-					'single'  => false,
-					'type'    => 'integer',
-					'default' => array( 123 ),
-				),
-				true,
-				123,
 			),
 		);
 	}

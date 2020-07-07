@@ -1331,7 +1331,7 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 	}
 
 	if ( array_key_exists( 'default', $args ) ) {
-		if ( false === $args['single'] && ! wp_is_numeric_array( $args['default'] ) ) {
+		if ( false === $args['single'] ) {
 			$args['default'] = array( $args['default'] );
 		}
 		$schema = $args;
@@ -1648,13 +1648,15 @@ function filter_default_metadata( $value, $meta_type, $meta_key, $single, $objec
 	if ( $single ) {
 		if ( $metadata['single'] ) {
 			$value = $metadata['default'];
-		} elseif ( wp_is_numeric_array( $metadata['default'] ) ) {
+		} else {
 			$value = $metadata['default'][0];
+		}
+	} else {
+		if ( $metadata['single'] ) {
+			$value = array( $metadata['default'] );
 		} else {
 			$value = $metadata['default'];
 		}
-	} else {
-		$value = $metadata['default'];
 	}
 
 	return $value;
