@@ -148,7 +148,7 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 
 		$links = array();
 
-		$item_route = $this->detect_rest_item_route( $post );
+		$item_route = rest_get_route_for_post( $post );
 		if ( ! empty( $item_route ) ) {
 			$links['self'] = array(
 				'href'       => rest_url( $item_route ),
@@ -189,8 +189,8 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 	 * @return string REST route relative to the REST base URI, or empty string if unknown.
 	 */
 	protected function detect_rest_item_route( $post ) {
-
 		_deprecated_function( __METHOD__, '5.5.0', 'rest_get_route_for_post()' );
+
 		return rest_get_route_for_post( $post );
 	}
 
