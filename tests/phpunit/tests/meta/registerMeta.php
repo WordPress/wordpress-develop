@@ -886,6 +886,38 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				false,
 				array( 123 ),
 			),
+			'single array of objects with multiple ask'   => array(
+				array(
+					'type'         => 'array',
+					'single'       => true,
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type'       => 'object',
+								'properties' => array(
+									'name' => array(
+										'type' => 'string',
+									),
+								),
+							),
+						),
+					),
+					'default'      => array(
+						array(
+							'name' => 'Kirk',
+						),
+					),
+				),
+				false,
+				array(
+					array(
+						array(
+							'name' => 'Kirk',
+						),
+					),
+				),
+			),
 		);
 	}
 
