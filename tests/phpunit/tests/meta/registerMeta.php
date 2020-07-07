@@ -507,6 +507,10 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 	/**
 	 * @ticket 43941
 	 * @dataProvider data_get_default_data
+	 *
+	 * @param array $args     The register meta args.
+	 * @param bool  $single   Whether to fetch the value as a single meta key.
+	 * @param mixed $expected The expected value.
 	 */
 	public function test_get_default_value( $args, $single, $expected ) {
 
@@ -521,32 +525,31 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		$object_property_name = $object_type . '_id';
 		$object_id            = self::$$object_property_name;
 		$default_value        = get_metadata_default( $object_type, $meta_key, $single, $object_id );
-		$this->assertSame( $default_value, $expected );
+		$this->assertSame( $expected, $default_value );
 
 		// Check for default value.
 		$value = get_metadata( $object_type, $object_id, $meta_key, $single );
-		$this->assertSame( $value, $expected );
+		$this->assertSame( $expected, $value );
 
 		// Set value to check default is not being returned by mistake.
 		$meta_value = 'dibble';
 		update_metadata( $object_type, $object_id, $meta_key, $meta_value );
 		$value = get_metadata( $object_type, $object_id, $meta_key, true );
-		$this->assertSame( $value, $meta_value );
+		$this->assertSame( $meta_value, $value );
 
 		// Delete meta, make sure the default is returned.
 		delete_metadata( $object_type, $object_id, $meta_key );
 		$value = get_metadata( $object_type, $object_id, $meta_key, $single );
-		$this->assertSame( $value, $expected );
+		$this->assertSame( $expected, $value );
 
 		// Set other meta key, to make sure other keys are not effects.
 		$meta_value = 'hibble';
 		$meta_key   = 'unregistered_key1';
 		$value      = get_metadata( $object_type, $object_id, $meta_key, true );
-		$this->assertSame( $value, '' );
+		$this->assertSame( '', $value );
 		update_metadata( $object_type, $object_id, $meta_key, $meta_value );
 		$value = get_metadata( $object_type, $object_id, $meta_key, true );
-		$this->assertSame( $value, $meta_value );
-
+		$this->assertSame( $meta_value, $value );
 	}
 
 	/**
@@ -568,7 +571,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		$object_property_name = $object_type . '_id';
 		$object_id            = self::$$object_property_name;
 		$default_value        = get_metadata_default( $object_type, $meta_key, $single, $object_id );
-		$this->assertSame( $default_value, $expected );
+		$this->assertSame( $expected, $default_value );
 	}
 
 	public function filter_get_object_subtype_for_customtype( $subtype, $object_id ) {

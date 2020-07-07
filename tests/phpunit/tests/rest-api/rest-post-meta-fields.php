@@ -2803,11 +2803,13 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	public function test_get_default_value( $args, $expected ) {
 		$object_type = 'post';
 		$meta_key    = 'registered_key1';
-		register_meta(
+		$registered  = register_meta(
 			$object_type,
 			$meta_key,
 			$args
 		);
+
+		$this->assertTrue( $registered );
 
 		// Check for default value.
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
