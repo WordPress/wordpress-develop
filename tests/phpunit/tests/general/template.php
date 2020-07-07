@@ -678,4 +678,13 @@ class Tests_General_Template extends WP_UnitTestCase {
 	function test_get_template_part_returns_false_on_failure() {
 		$this->assertFalse( get_template_part( 'non-existing-template' ) );
 	}
+
+	/**
+	 * @ticket 21676
+	 */
+	function test_get_template_part_passes_arguments_to_template() {
+		$this->expectOutputRegex( '/{"foo":"baz"}/' );
+
+		get_template_part( 'template', 'part', array( 'foo' => 'baz' ) );
+	}
 }
