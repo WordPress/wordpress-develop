@@ -234,6 +234,17 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			)
 		);
 
+		register_post_meta(
+			'post',
+			'with_default',
+			array(
+				'type'         => 'string',
+				'single'       => true,
+				'show_in_rest' => true,
+				'default'      => 'Goodnight Moon',
+			)
+		);
+
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = new Spy_REST_Server;
@@ -2792,11 +2803,13 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	public function test_get_default_value( $args, $expected ) {
 		$object_type = 'post';
 		$meta_key    = 'registered_key1';
-		register_meta(
+		$registered  = register_meta(
 			$object_type,
 			$meta_key,
 			$args
 		);
+
+		$this->assertTrue( $registered );
 
 		// Check for default value.
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
@@ -2810,28 +2823,6 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$meta = (array) $data['meta'];
 		$this->assertArrayHasKey( $meta_key, $meta );
 		$this->assertEquals( $expected, $meta[ $meta_key ] );
-	}
-
-	/**
-	 * Internal function used to disable an insert query which
-	 * will trigger a wpdb error for testing purposes.
-	 */
-	public function error_insert_query( $query ) {
-		if ( strpos( $query, 'INSERT' ) === 0 ) {
-			$query = '],';
-		}
-		return $query;
-	}
-
-	/**
-	 * Internal function used to disable an insert query which
-	 * will trigger a wpdb error for testing purposes.
-	 */
-	public function error_delete_query( $query ) {
-		if ( strpos( $query, 'DELETE' ) === 0 ) {
-			$query = '],';
-		}
-		return $query;
 	}
 
 	public function data_get_default_data() {
@@ -2939,6 +2930,91 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 				),
 				array( array( 'dibble' ) ),
 			),
+			'array of objects' => array(
+				array(
+					'type'         => 'array',
+					'single'       => true,
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type'       => 'object',
+								'properties' => array(
+									'name' => array(
+										'type' => 'string',
+									),
+								),
+							),
+						),
+					),
+					'default'      => array(
+						array(
+							'name' => 'Kirk',
+						),
+					),
+				),
+				array(
+					array(
+						'name' => 'Kirk',
+					),
+				),
+			),
 		);
+	}
+
+	/**
+	 * @ticket 43941
+	 */
+	public function test_set_default_in_schema() {
+		register_post_meta(
+			'post',
+			'greeting',
+			array(
+				'type'         => 'string',
+				'single'       => true,
+				'show_in_rest' => array(
+					'schema' => array(
+						'default' => 'Hello World',
+					),
+				),
+			)
+		);
+
+		$response = rest_do_request( '/wp/v2/posts/' . self::$post_id );
+		$this->assertEquals( 'Hello World', $response->get_data()['meta']['greeting'] );
+	}
+
+	/**
+	 * @ticket 43941
+	 */
+	public function test_default_is_added_to_schema() {
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' );
+		$response = rest_do_request( $request );
+
+		$schema = $response->get_data()['schema']['properties']['meta']['properties']['with_default'];
+		$this->assertArrayHasKey( 'default', $schema );
+		$this->assertEquals( 'Goodnight Moon', $schema['default'] );
+	}
+
+	/**
+	 * Internal function used to disable an insert query which
+	 * will trigger a wpdb error for testing purposes.
+	 */
+	public function error_insert_query( $query ) {
+		if ( strpos( $query, 'INSERT' ) === 0 ) {
+			$query = '],';
+		}
+		return $query;
+	}
+
+	/**
+	 * Internal function used to disable an insert query which
+	 * will trigger a wpdb error for testing purposes.
+	 */
+	public function error_delete_query( $query ) {
+		if ( strpos( $query, 'DELETE' ) === 0 ) {
+			$query = '],';
+		}
+		return $query;
 	}
 }

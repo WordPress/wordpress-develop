@@ -1225,8 +1225,9 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  *     @type string     $type              The type of data associated with this meta key.
  *                                         Valid values are 'string', 'boolean', 'integer', 'number', 'array', and 'object'.
  *     @type string     $description       A description of the data attached to this meta key.
- *     @type mixed      $default           Default value when calling `get_metadata()`.
  *     @type bool       $single            Whether the meta key has one value per object, or an array of values per object.
+ *     @type mixed      $default           The default value returned from {@see get_metadata()} if no value has been set yet.
+ *                                         When using a non-single meta key, this should be an array of values.
  *     @type string     $sanitize_callback A function or method to call when sanitizing `$meta_key` data.
  *     @type string     $auth_callback     Optional. A function or method to call when performing edit_post_meta,
  *                                         add_post_meta, and delete_post_meta capability checks.
@@ -1336,7 +1337,7 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 		}
 		$schema = $args;
 		if ( is_array( $args['show_in_rest'] ) && isset( $args['show_in_rest']['schema'] ) ) {
-			$schema = $args['show_in_rest']['schema'];
+			$schema = array_merge( $schema, $args['show_in_rest']['schema'] );
 		}
 		if ( false === $args['single'] ) {
 			$check = false;
@@ -1635,6 +1636,7 @@ function filter_default_metadata( $value, $meta_type, $meta_key, $single, $objec
 		return $value;
 	}
 
+	// If this meta type does not have sub types, then the default is keyed as an empty string.
 	if ( isset( $defaults[''] ) ) {
 		$metadata = $defaults[''];
 	} else {
