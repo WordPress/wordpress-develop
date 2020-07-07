@@ -1454,7 +1454,7 @@ function rest_validate_array_contains_unique_items( $array ) {
 		$key        = serialize( $stabilized );
 
 		if ( ! isset( $seen[ $key ] ) ) {
-			$seen[ $key ] = 1;
+			$seen[ $key ] = true;
 
 			continue;
 		}
@@ -1782,7 +1782,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
  * @param mixed  $value The value to sanitize.
  * @param array  $args  Schema array to use for sanitization.
  * @param string $param The parameter name, used in error messages.
- * @return mixed The sanitized value.
+ * @return mixed|WP_Error The sanitized value or a WP_Error instance if the value cannot be safely sanitized.
  */
 function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 	$allowed_types = array( 'array', 'object', 'string', 'number', 'integer', 'boolean', 'null' );
@@ -1814,12 +1814,15 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 	if ( 'array' === $args['type'] ) {
 		$value = rest_sanitize_array( $value );
 
-		if ( empty( $args['items'] ) ) {
-			return $value;
+		if ( ! empty( $args['items'] ) ) {
+			foreach ( $value as $index => $v ) {
+				$value[ $index ] = rest_sanitize_value_from_schema( $v, $args['items'], $param . '[' . $index . ']' );
+			}
 		}
 
-		foreach ( $value as $index => $v ) {
-			$value[ $index ] = rest_sanitize_value_from_schema( $v, $args['items'], $param . '[' . $index . ']' );
+		if ( ! empty( $args['uniqueItems'] ) && ! rest_validate_array_contains_unique_items( $value ) ) {
+			/* translators: 1: Parameter */
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s has duplicate items.' ), $param ) );
 		}
 
 		return $value;

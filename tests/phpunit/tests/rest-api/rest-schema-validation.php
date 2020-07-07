@@ -906,6 +906,24 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertWPError( rest_validate_value_from_schema( 'foobar', $schema ) );
 	}
 
+	/**
+	 * @ticket 48821
+	 *
+	 * @dataProvider data_unique_items
+	 */
+	public function test_unique_items( $test, $suite ) {
+		$test_description = $suite['description'] . ': ' . $test['description'];
+		$message          = $test_description . ': ' . var_export( $test['data'], true );
+
+		$valid = rest_validate_value_from_schema( $test['data'], $suite['schema'] );
+
+		if ( $test['valid'] ) {
+			$this->assertTrue( $valid, $message );
+		} else {
+			$this->assertWPError( $valid, $message );
+		}
+	}
+
 	public function data_unique_items() {
 		$all_types = array( 'object', 'array', 'null', 'number', 'integer', 'boolean', 'string' );
 
@@ -947,19 +965,78 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 48821
+	 * @dataProvider _dp_unique_items_deep_objects
 	 *
-	 * @dataProvider data_unique_items
+	 * @param bool  $is_unique
+	 * @param array $data
 	 */
-	public function test_unique_items( $test, $suite ) {
-		$test_description = $suite['description'] . ': ' . $test['description'];
-		$message          = $test_description . ': ' . var_export( $test['data'], true );
+	public function test_unique_items_deep_objects( $is_unique, $data ) {
+		$schema = array(
+			'type'        => 'array',
+			'uniqueItems' => true,
+			'items'       => array(
+				'type'       => 'object',
+				'properties' => array(
+					'release' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'name'    => array(
+								'type' => 'string',
+							),
+							'version' => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+			),
+		);
 
-		$valid = rest_validate_value_from_schema( $test['data'], $suite['schema'] );
+		$validated = rest_validate_value_from_schema( $data, $schema );
 
-		if ( $test['valid'] ) {
-			$this->assertTrue( $valid, $message );
+		if ( $is_unique ) {
+			$this->assertTrue( $validated );
 		} else {
-			$this->assertWPError( $valid, $message );
+			$this->assertWPError( $validated );
 		}
+	}
+
+	public function _dp_unique_items_deep_objects() {
+		return array(
+			array(
+				false,
+				array(
+					array(
+						'release' => array(
+							'name'    => 'Kirk',
+							'version' => '5.3',
+						),
+					),
+					array(
+						'release' => array(
+							'version' => '5.3',
+							'name'    => 'Kirk',
+						),
+					),
+				),
+			),
+			array(
+				true,
+				array(
+					array(
+						'release' => array(
+							'name'    => 'Kirk',
+							'version' => '5.3',
+						),
+					),
+					array(
+						'release' => array(
+							'version' => '5.4',
+							'name'    => 'Kirk',
+						),
+					),
+				),
+			),
+		);
 	}
 }
