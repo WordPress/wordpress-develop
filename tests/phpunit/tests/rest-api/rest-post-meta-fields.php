@@ -234,6 +234,17 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			)
 		);
 
+		register_post_meta(
+			'post',
+			'with_default',
+			array(
+				'type'         => 'string',
+				'single'       => true,
+				'show_in_rest' => true,
+				'default'      => 'Goodnight Moon',
+			)
+		);
+
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = new Spy_REST_Server;
@@ -2783,6 +2794,206 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 		$this->assertFalse( get_metadata_by_mid( 'post', $mid1 ) );
 		$this->assertNotFalse( get_metadata_by_mid( 'post', $mid2 ) );
+	}
+
+	/**
+	 * @ticket 43941
+	 * @dataProvider data_get_default_data
+	 */
+	public function test_get_default_value( $args, $expected ) {
+		$object_type = 'post';
+		$meta_key    = 'registered_key1';
+		$registered  = register_meta(
+			$object_type,
+			$meta_key,
+			$args
+		);
+
+		$this->assertTrue( $registered );
+
+		// Check for default value.
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'meta', $data );
+
+		$meta = (array) $data['meta'];
+		$this->assertArrayHasKey( $meta_key, $meta );
+		$this->assertEquals( $expected, $meta[ $meta_key ] );
+	}
+
+	public function data_get_default_data() {
+		return array(
+			array(
+				array(
+					'show_in_rest' => true,
+					'single'       => true,
+					'default'      => 'wibble',
+				),
+				'wibble',
+			),
+			array(
+				array(
+					'show_in_rest' => true,
+					'single'       => false,
+					'default'      => 'wibble',
+				),
+				array( 'wibble' ),
+			),
+			array(
+				array(
+					'show_in_rest'   => true,
+					'single'         => true,
+					'object_subtype' => 'post',
+					'default'        => 'wibble',
+				),
+				'wibble',
+			),
+			array(
+				array(
+					'show_in_rest'   => true,
+					'single'         => false,
+					'object_subtype' => 'post',
+					'default'        => 'wibble',
+				),
+				array( 'wibble' ),
+			),
+			array(
+				array(
+					'single'       => true,
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'       => 'object',
+							'properties' => array(
+								'wibble' => array(
+									'type' => 'string',
+								),
+							),
+						),
+					),
+					'type'         => 'object',
+					'default'      => array( 'wibble' => 'dibble' ),
+				),
+				array( 'wibble' => 'dibble' ),
+			),
+			array(
+				array(
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'       => 'object',
+							'properties' => array(
+								'wibble' => array(
+									'type' => 'string',
+								),
+							),
+						),
+					),
+					'type'         => 'object',
+					'single'       => false,
+					'default'      => array( 'wibble' => 'dibble' ),
+				),
+				array( array( 'wibble' => 'dibble' ) ),
+			),
+
+			array(
+				array(
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type' => 'string',
+							),
+						),
+					),
+					'single'       => true,
+					'type'         => 'array',
+					'default'      => array( 'dibble' ),
+				),
+				array( 'dibble' ),
+			),
+			array(
+				array(
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type' => 'string',
+							),
+						),
+					),
+					'single'       => false,
+					'type'         => 'array',
+					'default'      => array( 'dibble' ),
+				),
+				array( array( 'dibble' ) ),
+			),
+			'array of objects' => array(
+				array(
+					'type'         => 'array',
+					'single'       => true,
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type'       => 'object',
+								'properties' => array(
+									'name' => array(
+										'type' => 'string',
+									),
+								),
+							),
+						),
+					),
+					'default'      => array(
+						array(
+							'name' => 'Kirk',
+						),
+					),
+				),
+				array(
+					array(
+						'name' => 'Kirk',
+					),
+				),
+			),
+		);
+	}
+
+	/**
+	 * @ticket 43941
+	 */
+	public function test_set_default_in_schema() {
+		register_post_meta(
+			'post',
+			'greeting',
+			array(
+				'type'         => 'string',
+				'single'       => true,
+				'show_in_rest' => array(
+					'schema' => array(
+						'default' => 'Hello World',
+					),
+				),
+			)
+		);
+
+		$response = rest_do_request( '/wp/v2/posts/' . self::$post_id );
+		$this->assertEquals( 'Hello World', $response->get_data()['meta']['greeting'] );
+	}
+
+	/**
+	 * @ticket 43941
+	 */
+	public function test_default_is_added_to_schema() {
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' );
+		$response = rest_do_request( $request );
+
+		$schema = $response->get_data()['schema']['properties']['meta']['properties']['with_default'];
+		$this->assertArrayHasKey( 'default', $schema );
+		$this->assertEquals( 'Goodnight Moon', $schema['default'] );
 	}
 
 	/**

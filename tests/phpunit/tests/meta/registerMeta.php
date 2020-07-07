@@ -504,12 +504,574 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		$this->assertSame( 'even', $subtype_for_4 );
 	}
 
+	/**
+	 * @ticket 43941
+	 * @dataProvider data_get_default_data
+	 */
+	public function test_get_default_value( $args, $single, $expected ) {
+
+		$object_type = 'post';
+		$meta_key    = 'registered_key1';
+		register_meta(
+			$object_type,
+			$meta_key,
+			$args
+		);
+
+		$object_property_name = $object_type . '_id';
+		$object_id            = self::$$object_property_name;
+		$default_value        = get_metadata_default( $object_type, $meta_key, $single, $object_id );
+		$this->assertSame( $default_value, $expected );
+
+		// Check for default value.
+		$value = get_metadata( $object_type, $object_id, $meta_key, $single );
+		$this->assertSame( $value, $expected );
+
+		// Set value to check default is not being returned by mistake.
+		$meta_value = 'dibble';
+		update_metadata( $object_type, $object_id, $meta_key, $meta_value );
+		$value = get_metadata( $object_type, $object_id, $meta_key, true );
+		$this->assertSame( $value, $meta_value );
+
+		// Delete meta, make sure the default is returned.
+		delete_metadata( $object_type, $object_id, $meta_key );
+		$value = get_metadata( $object_type, $object_id, $meta_key, $single );
+		$this->assertSame( $value, $expected );
+
+		// Set other meta key, to make sure other keys are not effects.
+		$meta_value = 'hibble';
+		$meta_key   = 'unregistered_key1';
+		$value      = get_metadata( $object_type, $object_id, $meta_key, true );
+		$this->assertSame( $value, '' );
+		update_metadata( $object_type, $object_id, $meta_key, $meta_value );
+		$value = get_metadata( $object_type, $object_id, $meta_key, true );
+		$this->assertSame( $value, $meta_value );
+
+	}
+
+	/**
+	 * @ticket 43941
+	 * @dataProvider data_get_invalid_default_data
+	 */
+	public function test_get_invalid_default_value( $args, $single, $expected ) {
+		$this->setExpectedIncorrectUsage( 'register_meta' );
+		$object_type = 'post';
+		$meta_key    = 'registered_key1';
+		$register    = register_meta(
+			$object_type,
+			$meta_key,
+			$args
+		);
+
+		$this->assertFalse( $register );
+
+		$object_property_name = $object_type . '_id';
+		$object_id            = self::$$object_property_name;
+		$default_value        = get_metadata_default( $object_type, $meta_key, $single, $object_id );
+		$this->assertSame( $default_value, $expected );
+	}
+
 	public function filter_get_object_subtype_for_customtype( $subtype, $object_id ) {
 		if ( 1 === ( $object_id % 2 ) ) {
 			return 'odd';
 		}
 
 		return 'even';
+	}
+
+	public function data_get_default_data() {
+		return array(
+			'single string key with single ask '          => array(
+				array(
+					'single'  => true,
+					'default' => 'wibble',
+				),
+				true,
+				'wibble',
+			),
+			'single string key with multiple ask'         => array(
+				array(
+					'single'  => true,
+					'default' => 'wibble',
+				),
+				false,
+				array( 'wibble' ),
+			),
+			'multiple string key with single ask'         => array(
+				array(
+					'single'  => false,
+					'default' => 'wibble',
+				),
+				true,
+				'wibble',
+			),
+			'multiple string key with multiple ask'       => array(
+				array(
+					'single'  => false,
+					'default' => 'wibble',
+				),
+				false,
+				array( 'wibble' ),
+			),
+			'single array key with multiple ask'          => array(
+				array(
+					'single'       => true,
+					'type'         => 'array',
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type' => 'string',
+							),
+						),
+					),
+					'default'      => array( 'wibble' ),
+				),
+				false,
+				array( array( 'wibble' ) ),
+			),
+			'single string key with single ask for sub type' => array(
+				array(
+					'single'         => true,
+					'object_subtype' => 'page',
+					'default'        => 'wibble',
+				),
+				true,
+				'wibble',
+			),
+			'single string key with multiple ask for sub type' => array(
+				array(
+					'single'         => true,
+					'object_subtype' => 'page',
+					'default'        => 'wibble',
+				),
+				false,
+				array( 'wibble' ),
+			),
+			'single array key with multiple ask for sub type' => array(
+				array(
+					'single'         => true,
+					'object_subtype' => 'page',
+					'show_in_rest'   => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type' => 'string',
+							),
+						),
+					),
+					'default'        => array( 'wibble' ),
+				),
+				false,
+				array( array( 'wibble' ) ),
+			),
+
+			// types
+			'single object key with single ask'           => array(
+				array(
+					'single'       => true,
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'       => 'object',
+							'properties' => array(
+								'wibble' => array(
+									'type' => 'string',
+								),
+							),
+						),
+					),
+					'type'         => 'object',
+					'default'      => array( 'wibble' => 'dibble' ),
+				),
+				true,
+				array( 'wibble' => 'dibble' ),
+			),
+			'single object key with multiple ask'         => array(
+				array(
+					'single'       => true,
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'       => 'object',
+							'properties' => array(
+								'wibble' => array(
+									'type' => 'string',
+								),
+							),
+						),
+					),
+					'type'         => 'object',
+					'default'      => array( 'wibble' => 'dibble' ),
+				),
+				false,
+				array( array( 'wibble' => 'dibble' ) ),
+			),
+			'multiple object key with single ask'         => array(
+				array(
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'       => 'object',
+							'properties' => array(
+								'wibble' => array(
+									'type' => 'string',
+								),
+							),
+						),
+					),
+					'type'         => 'object',
+					'single'       => false,
+					'default'      => array( 'wibble' => 'dibble' ),
+				),
+				true,
+				array( 'wibble' => 'dibble' ),
+			),
+			'multiple object key with multiple ask'       => array(
+				array(
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'       => 'object',
+							'properties' => array(
+								'wibble' => array(
+									'type' => 'string',
+								),
+							),
+						),
+					),
+					'type'         => 'object',
+					'single'       => false,
+					'default'      => array( 'wibble' => 'dibble' ),
+				),
+				false,
+				array( array( 'wibble' => 'dibble' ) ),
+			),
+			'single array key with multiple ask part two' => array(
+				array(
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type' => 'string',
+							),
+						),
+					),
+					'single'       => true,
+					'type'         => 'array',
+					'default'      => array( 'dibble' ),
+				),
+				false,
+				array( array( 'dibble' ) ),
+			),
+			'multiple array with multiple ask'            => array(
+				array(
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type' => 'string',
+							),
+						),
+					),
+					'single'       => false,
+					'type'         => 'array',
+					'default'      => array( 'dibble' ),
+				),
+				false,
+				array( array( 'dibble' ) ),
+			),
+			'single array with single ask'                => array(
+				array(
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type' => 'string',
+							),
+						),
+					),
+					'single'       => true,
+					'type'         => 'array',
+					'default'      => array( 'dibble' ),
+				),
+				true,
+				array( 'dibble' ),
+			),
+
+			'multiple array with single ask'              => array(
+				array(
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type' => 'string',
+							),
+						),
+					),
+					'single'       => false,
+					'type'         => 'array',
+					'default'      => array( 'dibble' ),
+				),
+				true,
+				array( 'dibble' ),
+			),
+
+			'single boolean with single ask'              => array(
+				array(
+					'single'  => true,
+					'type'    => 'boolean',
+					'default' => true,
+				),
+				true,
+				true,
+			),
+			'multiple boolean with single ask'            => array(
+				array(
+					'single'  => false,
+					'type'    => 'boolean',
+					'default' => true,
+				),
+				true,
+				true,
+			),
+			'single boolean with multiple ask'            => array(
+				array(
+					'single'  => true,
+					'type'    => 'boolean',
+					'default' => true,
+				),
+				false,
+				array( true ),
+			),
+			'multiple boolean with multiple ask'          => array(
+				array(
+					'single'  => false,
+					'type'    => 'boolean',
+					'default' => true,
+				),
+				false,
+				array( true ),
+			),
+
+			'single integer with single ask'              => array(
+				array(
+					'single'  => true,
+					'type'    => 'integer',
+					'default' => 123,
+				),
+				true,
+				123,
+			),
+			'multiple integer with single ask'            => array(
+				array(
+					'single'  => false,
+					'type'    => 'integer',
+					'default' => 123,
+				),
+				true,
+				123,
+			),
+			'single integer with multiple ask'            => array(
+				array(
+					'single'  => true,
+					'type'    => 'integer',
+					'default' => 123,
+				),
+				false,
+				array( 123 ),
+			),
+			'multiple integer with multiple ask'          => array(
+				array(
+					'single'  => false,
+					'type'    => 'integer',
+					'default' => 123,
+				),
+				false,
+				array( 123 ),
+			),
+			'single array of objects with multiple ask'   => array(
+				array(
+					'type'         => 'array',
+					'single'       => true,
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type'       => 'object',
+								'properties' => array(
+									'name' => array(
+										'type' => 'string',
+									),
+								),
+							),
+						),
+					),
+					'default'      => array(
+						array(
+							'name' => 'Kirk',
+						),
+					),
+				),
+				false,
+				array(
+					array(
+						array(
+							'name' => 'Kirk',
+						),
+					),
+				),
+			),
+		);
+	}
+
+	public function data_get_invalid_default_data() {
+		return array(
+			array(
+				array(
+					'single'  => true,
+					'type'    => 'boolean',
+					'default' => 123,
+				),
+				true,
+				'',
+			),
+			array(
+				array(
+					'single'  => false,
+					'type'    => 'boolean',
+					'default' => 123,
+				),
+				true,
+				'',
+			),
+			array(
+				array(
+					'single'  => true,
+					'type'    => 'boolean',
+					'default' => 123,
+				),
+				false,
+				array(),
+			),
+			array(
+				array(
+					'single'  => false,
+					'type'    => 'boolean',
+					'default' => 123,
+				),
+				false,
+				array(),
+			),
+
+			array(
+				array(
+					'single'  => true,
+					'type'    => 'integer',
+					'default' => 'wibble',
+				),
+				true,
+				'',
+			),
+			array(
+				array(
+					'single'  => false,
+					'type'    => 'integer',
+					'default' => 'wibble',
+				),
+				true,
+				'',
+			),
+			array(
+				array(
+					'single'  => true,
+					'type'    => 'integer',
+					'default' => 'wibble',
+				),
+				false,
+				array(),
+			),
+			array(
+				array(
+					'single'  => false,
+					'type'    => 'integer',
+					'default' => 'wibble',
+				),
+				false,
+				array(),
+			),
+			array(
+				array(
+					'single'  => false,
+					'type'    => 'integer',
+					'default' => array( 123, 'wibble' ),
+				),
+				false,
+				array(),
+			),
+			array(
+				array(
+					'single'  => false,
+					'type'    => 'integer',
+					'default' => array( 123, array() ),
+				),
+				false,
+				array(),
+			),
+			array(
+				array(
+					'single'       => false,
+					'type'         => 'array',
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type' => 'string',
+							),
+						),
+					),
+					'default'      => array( array( 123, 456 ), array( 'string' ) ),
+				),
+				false,
+				array(),
+			),
+			array(
+				array(
+					'single'       => true,
+					'type'         => 'array',
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type' => 'string',
+							),
+						),
+					),
+					'default'      => array( array( 123, 456 ), array( 'string' ) ),
+				),
+				true,
+				'',
+			),
+			array(
+				array(
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'       => 'object',
+							'properties' => array(
+								'my_prop'          => array(
+									'type' => 'string',
+								),
+								'my_required_prop' => array(
+									'type' => 'string',
+								),
+							),
+							'required'   => array( 'my_required_prop' ),
+						),
+					),
+					'type'         => 'object',
+					'single'       => true,
+					'default'      => array( 'my_prop' => 'hibble' ),
+				),
+				true,
+				'',
+			),
+		);
 	}
 
 	public function data_get_types_and_subtypes() {
