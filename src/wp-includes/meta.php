@@ -1227,7 +1227,9 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  *     @type string     $description       A description of the data attached to this meta key.
  *     @type bool       $single            Whether the meta key has one value per object, or an array of values per object.
  *     @type mixed      $default           The default value returned from {@see get_metadata()} if no value has been set yet.
- *                                         When using a non-single meta key, this should be an array of values.
+ *                                         When using a non-single meta key, the default value is for the first entry. In other
+ *                                         words, when calling {@see get_metadata()} with `$single` set to `false`, the default
+ *                                         value given here will be wrapped in an array.
  *     @type string     $sanitize_callback A function or method to call when sanitizing `$meta_key` data.
  *     @type string     $auth_callback     Optional. A function or method to call when performing edit_post_meta,
  *                                         add_post_meta, and delete_post_meta capability checks.
