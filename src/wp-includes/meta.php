@@ -1332,25 +1332,12 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 	}
 
 	if ( array_key_exists( 'default', $args ) ) {
-		if ( false === $args['single'] ) {
-			$args['default'] = array( $args['default'] );
-		}
 		$schema = $args;
 		if ( is_array( $args['show_in_rest'] ) && isset( $args['show_in_rest']['schema'] ) ) {
 			$schema = array_merge( $schema, $args['show_in_rest']['schema'] );
 		}
-		if ( false === $args['single'] ) {
-			$check = false;
-			foreach ( $args['default'] as $default ) {
-				$check = rest_validate_value_from_schema( $default, $schema );
-				if ( is_wp_error( $check ) ) {
-					break;
-				}
-			}
-		} else {
-			$check = rest_validate_value_from_schema( $args['default'], $schema );
-		}
 
+		$check = rest_validate_value_from_schema( $args['default'], $schema );
 		if ( is_wp_error( $check ) ) {
 			_doing_it_wrong( __FUNCTION__, __( 'When registering a default meta value the data must match the type provided.' ), '5.5.0' );
 
@@ -1648,17 +1635,9 @@ function filter_default_metadata( $value, $meta_type, $meta_key, $single, $objec
 	}
 
 	if ( $single ) {
-		if ( $metadata['single'] ) {
-			$value = $metadata['default'];
-		} else {
-			$value = $metadata['default'][0];
-		}
+		$value = $metadata['default'];
 	} else {
-		if ( $metadata['single'] ) {
-			$value = array( $metadata['default'] );
-		} else {
-			$value = $metadata['default'];
-		}
+		$value = array( $metadata['default'] );
 	}
 
 	return $value;
