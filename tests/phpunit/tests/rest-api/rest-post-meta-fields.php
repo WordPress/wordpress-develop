@@ -2823,28 +2823,6 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$this->assertEquals( $expected, $meta[ $meta_key ] );
 	}
 
-	/**
-	 * Internal function used to disable an insert query which
-	 * will trigger a wpdb error for testing purposes.
-	 */
-	public function error_insert_query( $query ) {
-		if ( strpos( $query, 'INSERT' ) === 0 ) {
-			$query = '],';
-		}
-		return $query;
-	}
-
-	/**
-	 * Internal function used to disable an insert query which
-	 * will trigger a wpdb error for testing purposes.
-	 */
-	public function error_delete_query( $query ) {
-		if ( strpos( $query, 'DELETE' ) === 0 ) {
-			$query = '],';
-		}
-		return $query;
-	}
-
 	public function data_get_default_data() {
 		return array(
 			array(
@@ -2985,5 +2963,27 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$schema = $response->get_data()['schema']['properties']['meta']['properties']['with_default'];
 		$this->assertArrayHasKey( 'default', $schema );
 		$this->assertEquals( 'Goodnight Moon', $schema['default'] );
+	}
+
+	/**
+	 * Internal function used to disable an insert query which
+	 * will trigger a wpdb error for testing purposes.
+	 */
+	public function error_insert_query( $query ) {
+		if ( strpos( $query, 'INSERT' ) === 0 ) {
+			$query = '],';
+		}
+		return $query;
+	}
+
+	/**
+	 * Internal function used to disable an insert query which
+	 * will trigger a wpdb error for testing purposes.
+	 */
+	public function error_delete_query( $query ) {
+		if ( strpos( $query, 'DELETE' ) === 0 ) {
+			$query = '],';
+		}
+		return $query;
 	}
 }

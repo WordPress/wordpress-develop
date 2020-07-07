@@ -1257,15 +1257,18 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 
 	/**
 	 * @ticket 43941
-	 * @dataProvider data_get_default_data
 	 */
-	public function test_get_default_value( $args, $expected ) {
-		$object_type = 'term';
-		$meta_key    = 'registered_key1';
-		register_meta(
-			$object_type,
+	public function test_get_default_value() {
+		$meta_key = 'registered_key1';
+		register_term_meta(
+			'category',
 			$meta_key,
-			$args
+			array(
+				'single'       => true,
+				'type'         => 'string',
+				'default'      => 'Goodbye',
+				'show_in_rest' => true,
+			)
 		);
 
 		// Check for default value.
@@ -1279,7 +1282,7 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 
 		$meta = (array) $data['meta'];
 		$this->assertArrayHasKey( $meta_key, $meta );
-		$this->assertSame( $expected, $meta[ $meta_key ] );
+		$this->assertSame( 'Goodbye', $meta[ $meta_key ] );
 	}
 
 	/**
@@ -1302,113 +1305,5 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 			$query = '],';
 		}
 		return $query;
-	}
-
-	public function data_get_default_data() {
-		return array(
-			array(
-				array(
-					'show_in_rest' => true,
-					'single'       => true,
-					'default'      => 'wibble',
-				),
-				'wibble',
-			),
-			array(
-				array(
-					'show_in_rest' => true,
-					'single'       => false,
-					'default'      => 'wibble',
-				),
-				array( 'wibble' ),
-			),
-			array(
-				array(
-					'show_in_rest'   => true,
-					'single'         => true,
-					'object_subtype' => 'category',
-					'default'        => 'wibble',
-				),
-				'wibble',
-			),
-			array(
-				array(
-					'show_in_rest'   => true,
-					'single'         => false,
-					'object_subtype' => 'category',
-					'default'        => 'wibble',
-				),
-				array( 'wibble' ),
-			),
-			array(
-				array(
-					'single'       => true,
-					'show_in_rest' => array(
-						'schema' => array(
-							'type'       => 'object',
-							'properties' => array(
-								'wibble' => array(
-									'type' => 'string',
-								),
-							),
-						),
-					),
-					'type'         => 'object',
-					'default'      => array( 'wibble' => 'dibble' ),
-				),
-				array( 'wibble' => 'dibble' ),
-			),
-			array(
-				array(
-					'show_in_rest' => array(
-						'schema' => array(
-							'type'       => 'object',
-							'properties' => array(
-								'wibble' => array(
-									'type' => 'string',
-								),
-							),
-						),
-					),
-					'type'         => 'object',
-					'single'       => false,
-					'default'      => array( 'wibble' => 'dibble' ),
-				),
-				array( array( 'wibble' => 'dibble' ) ),
-			),
-
-			array(
-				array(
-					'show_in_rest' => array(
-						'schema' => array(
-							'type'  => 'array',
-							'items' => array(
-								'type' => 'string',
-							),
-						),
-					),
-					'single'       => true,
-					'type'         => 'array',
-					'default'      => array( 'dibble' ),
-				),
-				array( 'dibble' ),
-			),
-			array(
-				array(
-					'show_in_rest' => array(
-						'schema' => array(
-							'type'  => 'array',
-							'items' => array(
-								'type' => 'string',
-							),
-						),
-					),
-					'single'       => false,
-					'type'         => 'array',
-					'default'      => array( 'dibble' ),
-				),
-				array( array( 'dibble' ) ),
-			),
-		);
 	}
 }
