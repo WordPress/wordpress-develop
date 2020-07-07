@@ -2140,9 +2140,11 @@ function get_post_meta( $post_id, $key = '', $single = false ) {
  * @param string $meta_key   Metadata key.
  * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
  * @param mixed  $prev_value Optional. Previous value to check before updating.
- *                           Default empty.
+ *                           If specified, only update existing metadata entries with
+ *                           this value. Otherwise, update all entries. Default empty.
  * @return int|bool Meta ID if the key didn't exist, true on successful update,
- *                  false on failure.
+ *                  false on failure or if the value passed to the function
+ *                  is the same as the one that is already in the database.
  */
 function update_post_meta( $post_id, $meta_key, $meta_value, $prev_value = '' ) {
 	// Make sure meta is added to the post, not a revision.
@@ -4031,6 +4033,15 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 		wp_set_post_tags( $post_ID, $postarr['tags_input'] );
 	}
 
+	// Add default term for all associated custom taxonomies.
+	if ( 'auto-draft' !== $post_status ) {
+		foreach ( get_object_taxonomies( $post_type, 'object' ) as $taxonomy => $tax_object ) {
+			if ( ! empty( $tax_object->default_term ) && ( empty( $postarr['tax_input'] ) || ! isset( $postarr['tax_input'][ $taxonomy ] ) ) ) {
+				$postarr['tax_input'][ $taxonomy ] = array();
+			}
+		}
+	}
+
 	// New-style support for all custom taxonomies.
 	if ( ! empty( $postarr['tax_input'] ) ) {
 		foreach ( $postarr['tax_input'] as $taxonomy => $tags ) {
@@ -4205,7 +4216,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	 *
 	 * @param int     $post_ID Post ID.
 	 * @param WP_Post $post    Post object.
-	 * @param bool    $update  Whether this is an existing post being updated or not.
+	 * @param bool    $update  Whether this is an existing post being updated.
 	 */
 	do_action( "save_post_{$post->post_type}", $post_ID, $post, $update );
 
@@ -4216,7 +4227,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	 *
 	 * @param int     $post_ID Post ID.
 	 * @param WP_Post $post    Post object.
-	 * @param bool    $update  Whether this is an existing post being updated or not.
+	 * @param bool    $update  Whether this is an existing post being updated.
 	 */
 	do_action( 'save_post', $post_ID, $post, $update );
 
@@ -4227,7 +4238,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	 *
 	 * @param int     $post_ID Post ID.
 	 * @param WP_Post $post    Post object.
-	 * @param bool    $update  Whether this is an existing post being updated or not.
+	 * @param bool    $update  Whether this is an existing post being updated.
 	 */
 	do_action( 'wp_insert_post', $post_ID, $post, $update );
 
@@ -5898,13 +5909,22 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 }
 
 /**
- * Retrieve attachment meta field for attachment ID.
+ * Retrieves attachment metadata for attachment ID.
  *
  * @since 2.1.0
  *
  * @param int  $attachment_id Attachment post ID. Defaults to global $post.
  * @param bool $unfiltered    Optional. If true, filters are not run. Default false.
- * @return mixed Attachment meta field. False on failure.
+ * @return array|false {
+ *     Attachment metadata. False on failure.
+ *
+ *     @type int    $width      The width of the attachment.
+ *     @type int    $height     The height of the attachment.
+ *     @type string $file       The file path relative to `wp-content/uploads`.
+ *     @type array  $sizes      Keys are size slugs, each value is an array containing
+ *                              'file', 'width', 'height', and 'mime-type'.
+ *     @type array  $image_meta Image metadata.
+ * }
  */
 function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
 	$attachment_id = (int) $attachment_id;
@@ -5933,7 +5953,7 @@ function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
 }
 
 /**
- * Update metadata for an attachment.
+ * Updates metadata for an attachment.
  *
  * @since 2.1.0
  *
@@ -7003,7 +7023,8 @@ function _publish_post_hook( $post_id ) {
  * @since 3.1.0
  *
  * @param int|WP_Post $post Post ID or post object. Defaults to global $post.
- * @return int|false Post parent ID (which can be 0 if there is no parent), or false if the post does not exist.
+ * @return int|false Post parent ID (which can be 0 if there is no parent),
+ *                   or false if the post does not exist.
  */
 function wp_get_post_parent_id( $post ) {
 	$post = get_post( $post );

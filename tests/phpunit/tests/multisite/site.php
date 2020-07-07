@@ -924,7 +924,7 @@ if ( is_multisite() ) :
 		}
 
 		/**
-		 * Tests returning an address for a given valid id.
+		 * Tests returning an address for a given valid ID.
 		 */
 		function test_get_blogaddress_by_id_with_valid_id() {
 			$blogaddress = get_blogaddress_by_id( 1 );

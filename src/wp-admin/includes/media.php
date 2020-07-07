@@ -169,7 +169,7 @@ function get_image_send_to_editor( $id, $caption, $title, $align, $url = '', $re
 }
 
 /**
- * Adds image shortcode with caption to editor
+ * Adds image shortcode with caption to editor.
  *
  * @since 2.6.0
  *
@@ -248,7 +248,7 @@ function image_add_caption( $html, $id, $caption, $title, $align, $url, $size, $
 }
 
 /**
- * Private preg_replace callback used in image_add_caption()
+ * Private preg_replace callback used in image_add_caption().
  *
  * @access private
  * @since 3.4.0
@@ -259,7 +259,7 @@ function _cleanup_image_add_caption( $matches ) {
 }
 
 /**
- * Adds image html to editor
+ * Adds image HTML to editor.
  *
  * @since 2.5.0
  *
@@ -276,15 +276,15 @@ function media_send_to_editor( $html ) {
 }
 
 /**
- * Save a file submitted from a POST request and create an attachment post for it.
+ * Saves a file submitted from a POST request and create an attachment post for it.
  *
  * @since 2.5.0
  *
  * @param string $file_id   Index of the `$_FILES` array that the file was sent. Required.
  * @param int    $post_id   The post ID of a post to attach the media item to. Required, but can
  *                          be set to 0, creating a media item that has no relationship to a post.
- * @param array  $post_data Overwrite some of the attachment. Optional.
- * @param array  $overrides Override the wp_handle_upload() behavior. Optional.
+ * @param array  $post_data Optional. Overwrite some of the attachment.
+ * @param array  $overrides Optional. Override the wp_handle_upload() behavior.
  * @return int|WP_Error ID of the attachment or a WP_Error object on failure.
  */
 function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrides = array( 'test_form' => false ) ) {
@@ -3268,6 +3268,10 @@ function attachment_submitbox_metadata() {
 	<div class="misc-pub-section misc-pub-attachment">
 		<label for="attachment_url"><?php _e( 'File URL:' ); ?></label>
 		<input type="text" class="widefat urlfield" readonly="readonly" name="attachment_url" id="attachment_url" value="<?php echo esc_attr( $att_url ); ?>" />
+		<span class="copy-to-clipboard-container">
+			<button type="button" class="button copy-attachment-url edit-media" data-clipboard-target="#attachment_url"><?php _e( 'Copy URL' ); ?></button>
+			<span class="success hidden" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
+		</span>
 	</div>
 	<div class="misc-pub-section misc-pub-filename">
 		<?php _e( 'File name:' ); ?> <strong><?php echo $filename; ?></strong>

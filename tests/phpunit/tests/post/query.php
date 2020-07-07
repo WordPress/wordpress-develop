@@ -652,12 +652,14 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		}
 
 		add_filter( 'split_the_query', '__return_true' );
+
 		$q = new WP_Query(
 			array(
 				'post_type'      => 'wptests_pt',
 				'posts_per_page' => 1,
 			)
 		);
+
 		remove_filter( 'split_the_query', '__return_true' );
 
 		$this->assertEquals( 2, $q->found_posts );
@@ -677,12 +679,14 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		// ! $split_the_query
 		add_filter( 'split_the_query', '__return_false' );
+
 		$q = new WP_Query(
 			array(
 				'post_type'      => 'wptests_pt',
 				'posts_per_page' => 1,
 			)
 		);
+
 		remove_filter( 'split_the_query', '__return_false' );
 
 		$this->assertEquals( 2, $q->found_posts );
@@ -721,4 +725,37 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertEquals( $expected, $q->found_posts );
 	}
 
+	/**
+	 * @ticket 42469
+	 */
+	public function test_found_posts_should_be_integer_not_string() {
+		$this->post_id = self::factory()->post->create();
+
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => 1,
+			)
+		);
+
+		$this->assertInternalType( 'int', $q->found_posts );
+	}
+
+	/**
+	 * @ticket 42469
+	 */
+	public function test_found_posts_should_be_integer_even_if_found_posts_filter_returns_string_value() {
+		$this->post_id = self::factory()->post->create();
+
+		add_filter( 'found_posts', '__return_empty_string' );
+
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => 1,
+			)
+		);
+
+		remove_filter( 'found_posts', '__return_empty_string' );
+
+		$this->assertInternalType( 'int', $q->found_posts );
+	}
 }

@@ -514,6 +514,16 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 		$this->assertEquals( 'changeset_trash_unauthorized', $this->_last_response_parsed['data']['code'] );
 		remove_filter( 'map_meta_cap', array( $this, 'return_do_not_allow' ) );
 
+		$lock_user_id  = static::factory()->user->create( array( 'role' => 'administrator' ) );
+		$previous_user = get_current_user_id();
+		wp_set_current_user( $lock_user_id );
+		$wp_customize->set_changeset_lock( $wp_customize->changeset_post_id() );
+		wp_set_current_user( $previous_user );
+		$this->make_ajax_call( 'customize_trash' );
+		$this->assertFalse( $this->_last_response_parsed['success'] );
+		$this->assertEquals( 'changeset_locked', $this->_last_response_parsed['data']['code'] );
+		delete_post_meta( $wp_customize->changeset_post_id(), '_edit_lock' );
+
 		wp_update_post(
 			array(
 				'ID'          => $wp_customize->changeset_post_id(),

@@ -142,7 +142,7 @@ input[type="radio"]:checked + label:before {
 
 .wp-core-ui input[type="reset"]:hover,
 .wp-core-ui input[type="reset"]:active {
-	color: #00a0d2;
+	color: #006799;
 }
 
 td > input[type="checkbox"],
@@ -324,7 +324,7 @@ input[type="radio"].disabled:checked:before {
 	background-size: 16px 16px;
 	cursor: pointer;
 	vertical-align: middle;
-}e
+}
 
 .wp-core-ui select:hover {
 	color: #007cba;

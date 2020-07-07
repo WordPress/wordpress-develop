@@ -500,8 +500,12 @@ function wp_print_media_templates() {
 					</span>
 				<# } #>
 				<span class="setting" data-setting="url">
-					<label for="attachment-details-two-column-copy-link" class="name"><?php _e( 'Copy Link' ); ?></label>
-					<input type="text" id="attachment-details-two-column-copy-link" value="{{ data.url }}" readonly />
+					<label for="attachment-details-two-column-copy-link" class="name"><?php _e( 'File URL:' ); ?></label>
+					<input type="text" class="attachment-details-copy-link" id="attachment-details-two-column-copy-link" value="{{ data.url }}" readonly />
+					<span class="copy-to-clipboard-container">
+						<button type="button" class="button button-small copy-attachment-url" data-clipboard-target="#attachment-details-two-column-copy-link"><?php _e( 'Copy URL' ); ?></button>
+						<span class="success hidden" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
+					</span>
 				</span>
 				<div class="attachment-compat"></div>
 			</div>
@@ -514,12 +518,12 @@ function wp_print_media_templates() {
 				<# if ( ! data.uploading && data.can.remove ) { #> |
 					<?php if ( MEDIA_TRASH ) : ?>
 						<# if ( 'trash' === data.status ) { #>
-							<button type="button" class="button-link untrash-attachment"><?php _e( 'Restore from Trash' ); ?></button>
+							<button type="button" class="button-link untrash-attachment"><?php _e( 'Restore from trash' ); ?></button>
 						<# } else { #>
-							<button type="button" class="button-link trash-attachment"><?php _e( 'Move to Trash' ); ?></button>
+							<button type="button" class="button-link trash-attachment"><?php _e( 'Move to trash' ); ?></button>
 						<# } #>
 					<?php else : ?>
-						<button type="button" class="button-link delete-attachment"><?php _e( 'Delete Permanently' ); ?></button>
+						<button type="button" class="button-link delete-attachment"><?php _e( 'Delete permanently' ); ?></button>
 					<?php endif; ?>
 				<# } #>
 			</div>
@@ -635,12 +639,12 @@ function wp_print_media_templates() {
 				<# if ( ! data.uploading && data.can.remove ) { #>
 					<?php if ( MEDIA_TRASH ) : ?>
 					<# if ( 'trash' === data.status ) { #>
-						<button type="button" class="button-link untrash-attachment"><?php _e( 'Restore from Trash' ); ?></button>
+						<button type="button" class="button-link untrash-attachment"><?php _e( 'Restore from trash' ); ?></button>
 					<# } else { #>
-						<button type="button" class="button-link trash-attachment"><?php _e( 'Move to Trash' ); ?></button>
+						<button type="button" class="button-link trash-attachment"><?php _e( 'Move to trash' ); ?></button>
 					<# } #>
 					<?php else : ?>
-						<button type="button" class="button-link delete-attachment"><?php _e( 'Delete Permanently' ); ?></button>
+						<button type="button" class="button-link delete-attachment"><?php _e( 'Delete permanently' ); ?></button>
 					<?php endif; ?>
 				<# } #>
 
@@ -687,8 +691,12 @@ function wp_print_media_templates() {
 			<textarea id="attachment-details-description" {{ maybeReadOnly }}>{{ data.description }}</textarea>
 		</span>
 		<span class="setting" data-setting="url">
-			<label for="attachment-details-copy-link" class="name"><?php _e( 'Copy Link' ); ?></label>
-			<input type="text" id="attachment-details-copy-link" value="{{ data.url }}" readonly />
+			<label for="attachment-details-copy-link" class="name"><?php _e( 'File URL:' ); ?></label>
+			<input type="text" class="attachment-details-copy-link" id="attachment-details-copy-link" value="{{ data.url }}" readonly />
+			<div class="copy-to-clipboard-container">
+				<button type="button" class="button button-small copy-attachment-url" data-clipboard-target="#attachment-details-copy-link"><?php _e( 'Copy URL' ); ?></button>
+				<span class="success hidden" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
+			</div>
 		</span>
 	</script>
 

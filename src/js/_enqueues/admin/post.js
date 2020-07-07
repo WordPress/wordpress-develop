@@ -4,11 +4,11 @@
  * @output wp-admin/js/post.js
  */
 
- /* global postL10n, ajaxurl, wpAjax, setPostThumbnailL10n, postboxes, pagenow, tinymce, alert, deleteUserSetting */
+ /* global postL10n, ajaxurl, wpAjax, setPostThumbnailL10n, postboxes, pagenow, tinymce, alert, deleteUserSetting, ClipboardJS */
  /* global theList:true, theExtraList:true, getUserSetting, setUserSetting, commentReply, commentsBox */
  /* global WPSetThumbnailHTML, wptitlehint */
 
-// Backwards compatibility: prevent fatal errors.
+// Backward compatibility: prevent fatal errors.
 window.makeSlugeditClickable = window.editPermalink = function(){};
 
 // Make sure the wp object exists.
@@ -200,7 +200,14 @@ window.wp = window.wp || {};
 					}
 
 					if ( received.lock_error.avatar_src ) {
-						avatar = $( '<img class="avatar avatar-64 photo" width="64" height="64" alt="" />' ).attr( 'src', received.lock_error.avatar_src.replace( /&amp;/g, '&' ) );
+						avatar = $( '<img />', {
+							'class': 'avatar avatar-64 photo',
+							width: 64,
+							height: 64,
+							alt: '',
+							src: received.lock_error.avatar_src,
+							srcset: received.lock_error.avatar_src_2x ? received.lock_error.avatar_src_2x + ' 2x' : undefined
+						} );
 						wrap.find('div.post-locked-avatar').empty().append( avatar );
 					}
 
@@ -297,7 +304,10 @@ jQuery(document).ready( function($) {
 		$postVisibilitySelect = $('#post-visibility-select'),
 		$timestampdiv = $('#timestampdiv'),
 		$postStatusSelect = $('#post-status-select'),
-		isMac = window.navigator.platform ? window.navigator.platform.indexOf( 'Mac' ) !== -1 : false;
+		isMac = window.navigator.platform ? window.navigator.platform.indexOf( 'Mac' ) !== -1 : false,
+		copyAttachmentURLClipboard = new ClipboardJS( '.copy-attachment-url.edit-media' ),
+		copyAttachmentURLSuccessTimeout,
+		__ = wp.i18n.__;
 
 	postboxes.add_postbox_toggles(pagenow);
 
@@ -1217,7 +1227,38 @@ jQuery(document).ready( function($) {
 			window.history.replaceState( null, null, location );
 		});
 	}
-});
+
+	/**
+	 * Copies the attachment URL in the Edit Media page to the clipboard.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param {MouseEvent} event A click event.
+	 *
+	 * @return {void}
+	 */
+	copyAttachmentURLClipboard.on( 'success', function( event ) {
+		var triggerElement = $( event.trigger ),
+			successElement = $( '.success', triggerElement.closest( '.copy-to-clipboard-container' ) );
+
+		// Clear the selection and move focus back to the trigger.
+		event.clearSelection();
+		// Handle ClipboardJS focus bug, see https://github.com/zenorocha/clipboard.js/issues/680
+		triggerElement.focus();
+
+		// Show success visual feedback.
+		clearTimeout( copyAttachmentURLSuccessTimeout );
+		successElement.removeClass( 'hidden' );
+
+		// Hide success visual feedback after 3 seconds since last success.
+		copyAttachmentURLSuccessTimeout = setTimeout( function() {
+			successElement.addClass( 'hidden' );
+		}, 3000 );
+
+		// Handle success audible feedback.
+		wp.a11y.speak( __( 'The file URL has been copied to your clipboard' ) );
+	} );
+} );
 
 /**
  * TinyMCE word count display

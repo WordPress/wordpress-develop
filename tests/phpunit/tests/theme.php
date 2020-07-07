@@ -621,8 +621,10 @@ class Tests_Theme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket       49406
+	 * @ticket 49406
+	 *
 	 * @dataProvider _dp_register_theme_support_validation
+	 *
 	 * @param string $error_code The error code expected.
 	 * @param array  $args       The args to register.
 	 */

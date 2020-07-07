@@ -52,7 +52,6 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$this->assertEquals( wp_basename( $upload['file'] ), wp_basename( $downsize[0] ) );
 		$this->assertEquals( 50, $downsize[1] );
 		$this->assertEquals( 50, $downsize[2] );
-
 	}
 
 	function test_insert_image_thumb_only() {
@@ -105,7 +104,6 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$this->assertEquals( 'a2-small.jpg', wp_basename( $downsize[0] ) );
 		$this->assertEquals( 400, $downsize[1] );
 		$this->assertEquals( 300, $downsize[2] );
-
 	}
 
 	function test_insert_image_medium_sizes() {

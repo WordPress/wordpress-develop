@@ -31,7 +31,7 @@ function wpmu_update_blogs_date() {
 }
 
 /**
- * Get a full blog URL, given a blog id.
+ * Get a full blog URL, given a blog ID.
  *
  * @since MU (3.0.0)
  *
@@ -289,7 +289,7 @@ function refresh_blog_details( $blog_id = 0 ) {
 }
 
 /**
- * Update the details for a blog. Updates the blogs table for a given blog id.
+ * Update the details for a blog. Updates the blogs table for a given blog ID.
  *
  * @since MU (3.0.0)
  *
@@ -382,7 +382,7 @@ function get_blog_option( $id, $option, $default = false ) {
 }
 
 /**
- * Add a new option for a given blog id.
+ * Add a new option for a given blog ID.
  *
  * You do not need to serialize values. If the value needs to be serialized, then
  * it will be serialized before it is inserted into the database. Remember,
@@ -398,7 +398,7 @@ function get_blog_option( $id, $option, $default = false ) {
  * @param int    $id     A blog ID. Can be null to refer to the current blog.
  * @param string $option Name of option to add. Expected to not be SQL-escaped.
  * @param mixed  $value  Optional. Option value, can be anything. Expected to not be SQL-escaped.
- * @return bool False if option was not added and true if option was added.
+ * @return bool True if the option was added, false otherwise.
  */
 function add_blog_option( $id, $option, $value ) {
 	$id = (int) $id;
@@ -419,13 +419,13 @@ function add_blog_option( $id, $option, $value ) {
 }
 
 /**
- * Removes option by name for a given blog id. Prevents removal of protected WordPress options.
+ * Removes option by name for a given blog ID. Prevents removal of protected WordPress options.
  *
  * @since MU (3.0.0)
  *
  * @param int    $id     A blog ID. Can be null to refer to the current blog.
  * @param string $option Name of option to remove. Expected to not be SQL-escaped.
- * @return bool True, if option is successfully deleted. False on failure.
+ * @return bool True if the option was deleted, false otherwise.
  */
 function delete_blog_option( $id, $option ) {
 	$id = (int) $id;
@@ -450,11 +450,11 @@ function delete_blog_option( $id, $option ) {
  *
  * @since MU (3.0.0)
  *
- * @param int    $id         The blog id.
+ * @param int    $id         The blog ID.
  * @param string $option     The option key.
  * @param mixed  $value      The option value.
  * @param mixed  $deprecated Not used.
- * @return bool True on success, false on failure.
+ * @return bool True if the value was updated, false otherwise.
  */
 function update_blog_option( $id, $option, $value, $deprecated = null ) {
 	$id = (int) $id;

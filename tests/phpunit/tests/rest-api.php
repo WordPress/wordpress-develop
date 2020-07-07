@@ -8,6 +8,7 @@
 
 require_once ABSPATH . 'wp-admin/includes/admin.php';
 require_once ABSPATH . WPINC . '/rest-api.php';
+require_once __DIR__ . '/../includes/class-jsonserializable-object.php';
 
 /**
  * @group restapi
@@ -1347,6 +1348,479 @@ class Tests_REST_API extends WP_UnitTestCase {
 			array( 'chocolate', 'chocolate' ),
 			array( new WP_HTTP_Response( 'http' ), 'http' ),
 			array( new WP_REST_Response( 'rest' ), 'rest' ),
+		);
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_post_non_post() {
+		$this->assertEquals( '', rest_get_route_for_post( 'garbage' ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_post_invalid_post_type() {
+		register_post_type( 'invalid' );
+		$post = self::factory()->post->create_and_get( array( 'post_type' => 'invalid' ) );
+		unregister_post_type( 'invalid' );
+
+		$this->assertEquals( '', rest_get_route_for_post( $post ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_post_non_rest() {
+		$post = self::factory()->post->create_and_get( array( 'post_type' => 'custom_css' ) );
+		$this->assertEquals( '', rest_get_route_for_post( $post ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_post_custom_controller() {
+		$post = self::factory()->post->create_and_get( array( 'post_type' => 'wp_block' ) );
+		$this->assertEquals( '', rest_get_route_for_post( $post ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_post() {
+		$post = self::factory()->post->create_and_get();
+		$this->assertEquals( '/wp/v2/posts/' . $post->ID, rest_get_route_for_post( $post ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_media() {
+		$post = self::factory()->attachment->create_and_get();
+		$this->assertEquals( '/wp/v2/media/' . $post->ID, rest_get_route_for_post( $post ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_post_id() {
+		$post = self::factory()->post->create_and_get();
+		$this->assertEquals( '/wp/v2/posts/' . $post->ID, rest_get_route_for_post( $post->ID ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_term_non_term() {
+		$this->assertEquals( '', rest_get_route_for_term( 'garbage' ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_term_invalid_term_type() {
+		register_taxonomy( 'invalid', 'post' );
+		$term = self::factory()->term->create_and_get( array( 'taxonomy' => 'invalid' ) );
+		unregister_taxonomy( 'invalid' );
+
+		$this->assertEquals( '', rest_get_route_for_term( $term ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_term_non_rest() {
+		$term = self::factory()->term->create_and_get( array( 'taxonomy' => 'post_format' ) );
+		$this->assertEquals( '', rest_get_route_for_term( $term ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_term() {
+		$term = self::factory()->term->create_and_get();
+		$this->assertEquals( '/wp/v2/tags/' . $term->term_id, rest_get_route_for_term( $term ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_category() {
+		$term = self::factory()->category->create_and_get();
+		$this->assertEquals( '/wp/v2/categories/' . $term->term_id, rest_get_route_for_term( $term ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_term_id() {
+		$term = self::factory()->term->create_and_get();
+		$this->assertEquals( '/wp/v2/tags/' . $term->term_id, rest_get_route_for_term( $term->term_id ) );
+	}
+
+	/**
+	 * @ticket 50300
+	 *
+	 * @dataProvider _dp_rest_is_object
+	 *
+	 * @param bool  $expected Expected result of the check.
+	 * @param mixed $value    The value to check.
+	 */
+	public function test_rest_is_object( $expected, $value ) {
+		$is_object = rest_is_object( $value );
+
+		if ( $expected ) {
+			$this->assertTrue( $is_object );
+		} else {
+			$this->assertFalse( $is_object );
+		}
+	}
+
+	public function _dp_rest_is_object() {
+		return array(
+			array(
+				true,
+				'',
+			),
+			array(
+				true,
+				new stdClass(),
+			),
+			array(
+				true,
+				new JsonSerializable_Object( array( 'hi' => 'there' ) ),
+			),
+			array(
+				true,
+				array( 'hi' => 'there' ),
+			),
+			array(
+				true,
+				array(),
+			),
+			array(
+				true,
+				array( 'a', 'b' ),
+			),
+			array(
+				false,
+				new Basic_Object(),
+			),
+			array(
+				false,
+				new JsonSerializable_Object( 'str' ),
+			),
+			array(
+				false,
+				'str',
+			),
+			array(
+				false,
+				5,
+			),
+		);
+	}
+
+	/**
+	 * @ticket 50300
+	 *
+	 * @dataProvider _dp_rest_sanitize_object
+	 *
+	 * @param array $expected Expected sanitized version.
+	 * @param mixed $value    The value to sanitize.
+	 */
+	public function test_rest_sanitize_object( $expected, $value ) {
+		$sanitized = rest_sanitize_object( $value );
+		$this->assertEquals( $expected, $sanitized );
+	}
+
+	public function _dp_rest_sanitize_object() {
+		return array(
+			array(
+				array(),
+				'',
+			),
+			array(
+				array( 'a' => '1' ),
+				(object) array( 'a' => '1' ),
+			),
+			array(
+				array( 'hi' => 'there' ),
+				new JsonSerializable_Object( array( 'hi' => 'there' ) ),
+			),
+			array(
+				array( 'hi' => 'there' ),
+				array( 'hi' => 'there' ),
+			),
+			array(
+				array(),
+				array(),
+			),
+			array(
+				array( 'a', 'b' ),
+				array( 'a', 'b' ),
+			),
+			array(
+				array(),
+				new Basic_Object(),
+			),
+			array(
+				array(),
+				new JsonSerializable_Object( 'str' ),
+			),
+			array(
+				array(),
+				'str',
+			),
+			array(
+				array(),
+				5,
+			),
+		);
+	}
+
+	/**
+	 * @ticket 50300
+	 *
+	 * @dataProvider _dp_rest_is_array
+	 *
+	 * @param bool  $expected Expected result of the check.
+	 * @param mixed $value    The value to check.
+	 */
+	public function test_rest_is_array( $expected, $value ) {
+		$is_array = rest_is_array( $value );
+
+		if ( $expected ) {
+			$this->assertTrue( $is_array );
+		} else {
+			$this->assertFalse( $is_array );
+		}
+	}
+
+	public function _dp_rest_is_array() {
+		return array(
+			array(
+				true,
+				'',
+			),
+			array(
+				true,
+				array( 'a', 'b' ),
+			),
+			array(
+				true,
+				array(),
+			),
+			array(
+				true,
+				'a,b,c',
+			),
+			array(
+				true,
+				'a',
+			),
+			array(
+				true,
+				5,
+			),
+			array(
+				false,
+				new stdClass(),
+			),
+			array(
+				false,
+				new JsonSerializable_Object( array( 'hi' => 'there' ) ),
+			),
+			array(
+				false,
+				array( 'hi' => 'there' ),
+			),
+			array(
+				false,
+				new Basic_Object(),
+			),
+			array(
+				false,
+				new JsonSerializable_Object( 'str' ),
+			),
+			array(
+				false,
+				null,
+			),
+		);
+	}
+
+	/**
+	 * @ticket 50300
+	 *
+	 * @dataProvider _dp_rest_sanitize_array
+	 *
+	 * @param array $expected Expected sanitized version.
+	 * @param mixed $value    The value to sanitize.
+	 */
+	public function test_rest_sanitize_array( $expected, $value ) {
+		$sanitized = rest_sanitize_array( $value );
+		$this->assertEquals( $expected, $sanitized );
+	}
+
+	public function _dp_rest_sanitize_array() {
+		return array(
+			array(
+				array(),
+				'',
+			),
+			array(
+				array( 'a', 'b' ),
+				array( 'a', 'b' ),
+			),
+			array(
+				array(),
+				array(),
+			),
+			array(
+				array( 'a', 'b', 'c' ),
+				'a,b,c',
+			),
+			array(
+				array( 'a' ),
+				'a',
+			),
+			array(
+				array( 'a', 'b' ),
+				'a,b,',
+			),
+			array(
+				array( '5' ),
+				5,
+			),
+			array(
+				array(),
+				new stdClass(),
+			),
+			array(
+				array(),
+				new JsonSerializable_Object( array( 'hi' => 'there' ) ),
+			),
+			array(
+				array( 'there' ),
+				array( 'hi' => 'there' ),
+			),
+			array(
+				array(),
+				new Basic_Object(),
+			),
+			array(
+				array(),
+				new JsonSerializable_Object( 'str' ),
+			),
+			array(
+				array(),
+				null,
+			),
+		);
+	}
+
+	/**
+	 * @ticket 50300
+	 *
+	 * @dataProvider _dp_get_best_type_for_value
+	 *
+	 * @param string $expected The expected best type.
+	 * @param mixed  $value    The value to test.
+	 * @param array  $types    The list of available types.
+	 */
+	public function test_get_best_type_for_value( $expected, $value, $types ) {
+		$this->assertEquals( $expected, rest_get_best_type_for_value( $value, $types ) );
+	}
+
+	public function _dp_get_best_type_for_value() {
+		return array(
+			array(
+				'array',
+				array( 'hi' ),
+				array( 'array' ),
+			),
+			array(
+				'object',
+				array( 'hi' => 'there' ),
+				array( 'object' ),
+			),
+			array(
+				'integer',
+				5,
+				array( 'integer' ),
+			),
+			array(
+				'number',
+				4.0,
+				array( 'number' ),
+			),
+			array(
+				'boolean',
+				true,
+				array( 'boolean' ),
+			),
+			array(
+				'string',
+				'str',
+				array( 'string' ),
+			),
+			array(
+				'null',
+				null,
+				array( 'null' ),
+			),
+			array(
+				'string',
+				'',
+				array( 'array', 'string' ),
+			),
+			array(
+				'string',
+				'',
+				array( 'object', 'string' ),
+			),
+			array(
+				'string',
+				'Hello',
+				array( 'object', 'string' ),
+			),
+			array(
+				'object',
+				array( 'hello' => 'world' ),
+				array( 'object', 'string' ),
+			),
+			array(
+				'number',
+				'5.0',
+				array( 'number', 'string' ),
+			),
+			array(
+				'string',
+				'5.0',
+				array( 'string', 'number' ),
+			),
+			array(
+				'boolean',
+				'false',
+				array( 'boolean', 'string' ),
+			),
+			array(
+				'string',
+				'false',
+				array( 'string', 'boolean' ),
+			),
+			array(
+				'string',
+				'a,b',
+				array( 'string', 'array' ),
+			),
+			array(
+				'array',
+				'a,b',
+				array( 'array', 'string' ),
+			),
 		);
 	}
 }

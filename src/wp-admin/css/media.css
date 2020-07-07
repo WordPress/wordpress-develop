@@ -306,7 +306,7 @@
 
 #find-posts-close:hover,
 #find-posts-close:focus {
-	color: #00a0d2;
+	color: #006799;
 }
 
 #find-posts-close:focus {
@@ -797,6 +797,16 @@ border color while dragging a file over the uploader drop area */
 	text-decoration: none;
 }
 
+.copy-to-clipboard-container {
+	display: flex;
+	align-items: center;
+	margin-top: 8px;
+	clear: both;
+}
+
+.copy-to-clipboard-container .success {
+	margin-left: 8px;
+}
 
 /*------------------------------------------------------------------------------
   14.2 - Image Editor
@@ -1214,6 +1224,11 @@ audio, video {
 		float: none;
 		width: auto;
 		max-width: none;
+		padding-bottom: 16px;
+	}
+
+	.copy-to-clipboard-container .success {
+		font-size: 14px;
 	}
 }
 
