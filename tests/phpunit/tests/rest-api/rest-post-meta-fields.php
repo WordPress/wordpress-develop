@@ -234,6 +234,17 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			)
 		);
 
+		register_post_meta(
+			'post',
+			'with_default',
+			array(
+				'type'         => 'string',
+				'single'       => true,
+				'show_in_rest' => true,
+				'default'      => 'Goodnight Moon',
+			)
+		);
+
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = new Spy_REST_Server;
@@ -2940,5 +2951,39 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 				array( array( 'dibble' ) ),
 			),
 		);
+	}
+
+	/**
+	 * @ticket 43941
+	 */
+	public function test_set_default_in_schema() {
+		register_post_meta(
+			'post',
+			'greeting',
+			array(
+				'type'         => 'string',
+				'single'       => true,
+				'show_in_rest' => array(
+					'schema' => array(
+						'default' => 'Hello World',
+					),
+				),
+			)
+		);
+
+		$response = rest_do_request( '/wp/v2/posts/' . self::$post_id );
+		$this->assertEquals( 'Hello World', $response->get_data()['meta']['greeting'] );
+	}
+
+	/**
+	 * @ticket 43941
+	 */
+	public function test_default_is_added_to_schema() {
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' );
+		$response = rest_do_request( $request );
+
+		$schema = $response->get_data()['schema']['properties']['meta']['properties']['with_default'];
+		$this->assertArrayHasKey( 'default', $schema );
+		$this->assertEquals( 'Goodnight Moon', $schema['default'] );
 	}
 }

@@ -1635,6 +1635,7 @@ function filter_default_metadata( $value, $meta_type, $meta_key, $single, $objec
 		return $value;
 	}
 
+	// If this meta type does not have sub types, then the default is keyed as an empty string.
 	if ( isset( $defaults[''] ) ) {
 		$metadata = $defaults[''];
 	} else {
