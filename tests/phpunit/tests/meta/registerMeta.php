@@ -584,7 +584,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 
 	public function data_get_default_data() {
 		return array(
-			array(
+			'single string key with single ask '          => array(
 				array(
 					'single'  => true,
 					'default' => 'wibble',
@@ -592,7 +592,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				true,
 				'wibble',
 			),
-			array(
+			'single string key with multiple ask'         => array(
 				array(
 					'single'  => true,
 					'default' => 'wibble',
@@ -600,7 +600,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				false,
 				array( 'wibble' ),
 			),
-			array(
+			'multiple string key with single ask'         => array(
 				array(
 					'single'  => false,
 					'default' => 'wibble',
@@ -608,7 +608,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				true,
 				'wibble',
 			),
-			array(
+			'multiple string key with multiple ask'       => array(
 				array(
 					'single'  => false,
 					'default' => 'wibble',
@@ -616,7 +616,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				false,
 				array( 'wibble' ),
 			),
-			array(
+			'single array key with multiple ask'          => array(
 				array(
 					'single'       => true,
 					'type'         => 'array',
@@ -631,9 +631,9 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 					'default'      => array( 'wibble' ),
 				),
 				false,
-				array( 'wibble' ),
+				array( array( 'wibble' ) ),
 			),
-			array(
+			'single string key with single ask for sub type' => array(
 				array(
 					'single'         => true,
 					'object_subtype' => 'page',
@@ -642,7 +642,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				true,
 				'wibble',
 			),
-			array(
+			'single string key with multiple ask for sub type' => array(
 				array(
 					'single'         => true,
 					'object_subtype' => 'page',
@@ -651,7 +651,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				false,
 				array( 'wibble' ),
 			),
-			array(
+			'single array key with multiple ask for sub type' => array(
 				array(
 					'single'         => true,
 					'object_subtype' => 'page',
@@ -666,11 +666,9 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 					'default'        => array( 'wibble' ),
 				),
 				false,
-				array( 'wibble' ),
+				array( array( 'wibble' ) ),
 			),
-
-			// types
-			array(
+			'single object key with single ask'           => array(
 				array(
 					'single'       => true,
 					'show_in_rest' => array(
@@ -689,7 +687,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				true,
 				array( 'wibble' => 'dibble' ),
 			),
-			array(
+			'single object key with multiple ask'         => array(
 				array(
 					'single'       => true,
 					'show_in_rest' => array(
@@ -708,7 +706,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				false,
 				array( array( 'wibble' => 'dibble' ) ),
 			),
-			array(
+			'multiple object key with single ask'         => array(
 				array(
 					'show_in_rest' => array(
 						'schema' => array(
@@ -727,7 +725,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				true,
 				array( 'wibble' => 'dibble' ),
 			),
-			array(
+			'multiple object key with multiple ask'       => array(
 				array(
 					'show_in_rest' => array(
 						'schema' => array(
@@ -746,7 +744,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				false,
 				array( array( 'wibble' => 'dibble' ) ),
 			),
-			array(
+			'single array key with multiple ask part two' => array(
 				array(
 					'show_in_rest' => array(
 						'schema' => array(
@@ -761,9 +759,9 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 					'default'      => array( 'dibble' ),
 				),
 				false,
-				array( 'dibble' ),
+				array( array( 'dibble' ) ),
 			),
-			array(
+			'multiple array with multiple ask'            => array(
 				array(
 					'show_in_rest' => array(
 						'schema' => array(
@@ -775,12 +773,14 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 					),
 					'single'       => false,
 					'type'         => 'array',
-					'default'      => array( 'dibble' ),
+					'default'      => array(
+						array( 'dibble' ),
+					),
 				),
 				false,
-				array( 'dibble' ),
+				array( array( 'dibble' ) ),
 			),
-			array(
+			'single array with single ask'                => array(
 				array(
 					'show_in_rest' => array(
 						'schema' => array(
@@ -797,7 +797,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				true,
 				array( 'dibble' ),
 			),
-			array(
+			'multiple array with single ask'              => array(
 				array(
 					'show_in_rest' => array(
 						'schema' => array(
@@ -809,13 +809,14 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 					),
 					'single'       => false,
 					'type'         => 'array',
-					'default'      => array( 'dibble' ),
+					'default'      => array(
+						array( 'dibble' ),
+					),
 				),
 				true,
-				'dibble',
+				array( 'dibble' ),
 			),
-
-			array(
+			'single boolean with single ask'              => array(
 				array(
 					'single'  => true,
 					'type'    => 'boolean',
@@ -824,7 +825,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				true,
 				true,
 			),
-			array(
+			'multiple boolean with single ask'            => array(
 				array(
 					'single'  => false,
 					'type'    => 'boolean',
@@ -833,7 +834,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				true,
 				true,
 			),
-			array(
+			'single boolean with multiple ask'            => array(
 				array(
 					'single'  => true,
 					'type'    => 'boolean',
@@ -842,7 +843,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				false,
 				array( true ),
 			),
-			array(
+			'multiple boolean with multiple ask'          => array(
 				array(
 					'single'  => false,
 					'type'    => 'boolean',
@@ -851,8 +852,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				false,
 				array( true ),
 			),
-
-			array(
+			'single integer with single ask'              => array(
 				array(
 					'single'  => true,
 					'type'    => 'integer',
@@ -861,7 +861,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				true,
 				123,
 			),
-			array(
+			'multiple integer with single ask'            => array(
 				array(
 					'single'  => false,
 					'type'    => 'integer',
@@ -870,7 +870,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				true,
 				123,
 			),
-			array(
+			'single integer with multiple ask'            => array(
 				array(
 					'single'  => true,
 					'type'    => 'integer',
@@ -879,7 +879,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				false,
 				array( 123 ),
 			),
-			array(
+			'multiple integer with multiple ask'          => array(
 				array(
 					'single'  => false,
 					'type'    => 'integer',
@@ -888,7 +888,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				false,
 				array( 123 ),
 			),
-			array(
+			'multiple integer with multiple ask many defaults' => array(
 				array(
 					'single'  => false,
 					'type'    => 'integer',
@@ -897,7 +897,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				false,
 				array( 123, 456 ),
 			),
-			array(
+			'multiple integer with multiple ask default array' => array(
 				array(
 					'single'  => false,
 					'type'    => 'integer',
@@ -906,7 +906,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				false,
 				array( 123 ),
 			),
-			array(
+			'multiple integer with single ask many defaults' => array(
 				array(
 					'single'  => false,
 					'type'    => 'integer',
@@ -915,7 +915,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				true,
 				123,
 			),
-			array(
+			'multiple integer with single ask default array' => array(
 				array(
 					'single'  => false,
 					'type'    => 'integer',
@@ -924,7 +924,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				true,
 				123,
 			),
-			'merges schema' => array(
+			'merges schema'                               => array(
 				array(
 					'single'       => true,
 					'type'         => 'string',
@@ -937,6 +937,38 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				),
 				true,
 				'https://wordpress.org/',
+			),
+			'single array of objects with multiple ask'   => array(
+				array(
+					'type'         => 'array',
+					'single'       => true,
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type'       => 'object',
+								'properties' => array(
+									'name' => array(
+										'type' => 'string',
+									),
+								),
+							),
+						),
+					),
+					'default'      => array(
+						array(
+							'name' => 'Kirk',
+						),
+					),
+				),
+				false,
+				array(
+					array(
+						array(
+							'name' => 'Kirk',
+						),
+					),
+				),
 			),
 		);
 	}

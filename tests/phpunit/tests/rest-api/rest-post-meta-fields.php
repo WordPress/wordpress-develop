@@ -2930,6 +2930,35 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 				),
 				array( array( 'dibble' ) ),
 			),
+			'array of objects' => array(
+				array(
+					'type'         => 'array',
+					'single'       => true,
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type'       => 'object',
+								'properties' => array(
+									'name' => array(
+										'type' => 'string',
+									),
+								),
+							),
+						),
+					),
+					'default'      => array(
+						array(
+							'name' => 'Kirk',
+						),
+					),
+				),
+				array(
+					array(
+						'name' => 'Kirk',
+					),
+				),
+			),
 		);
 	}
 
