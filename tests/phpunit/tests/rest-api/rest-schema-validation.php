@@ -507,7 +507,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 48818
+	 * @ticket       48818
 	 *
 	 * @dataProvider data_required_property
 	 */
@@ -535,7 +535,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 48818
+	 * @ticket       48818
 	 *
 	 * @dataProvider data_required_property
 	 */
@@ -577,7 +577,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 48818
+	 * @ticket       48818
 	 *
 	 * @dataProvider data_required_nested_property
 	 */
@@ -610,7 +610,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 48818
+	 * @ticket       48818
 	 *
 	 * @dataProvider data_required_nested_property
 	 */
@@ -669,7 +669,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 48818
+	 * @ticket       48818
 	 *
 	 * @dataProvider data_required_deeply_nested_property
 	 */
@@ -709,7 +709,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 48818
+	 * @ticket       48818
 	 *
 	 * @dataProvider data_required_deeply_nested_property
 	 */
@@ -749,7 +749,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 48818
+	 * @ticket       48818
 	 *
 	 * @dataProvider data_required_deeply_nested_property
 	 */
@@ -907,7 +907,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 48821
+	 * @ticket       48821
 	 *
 	 * @dataProvider data_unique_items
 	 */
@@ -965,12 +965,8 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 48821
-	 * @dataProvider _dp_unique_items_deep_objects
-	 *
-	 * @param bool  $is_unique
-	 * @param array $data
 	 */
-	public function test_unique_items_deep_objects( $is_unique, $data ) {
+	public function test_unique_items_deep_objects() {
 		$schema = array(
 			'type'        => 'array',
 			'uniqueItems' => true,
@@ -992,51 +988,56 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 			),
 		);
 
-		$validated = rest_validate_value_from_schema( $data, $schema );
-
-		if ( $is_unique ) {
-			$this->assertTrue( $validated );
-		} else {
-			$this->assertWPError( $validated );
-		}
-	}
-
-	public function _dp_unique_items_deep_objects() {
-		return array(
+		$data = array(
 			array(
-				false,
-				array(
-					array(
-						'release' => array(
-							'name'    => 'Kirk',
-							'version' => '5.3',
-						),
-					),
-					array(
-						'release' => array(
-							'version' => '5.3',
-							'name'    => 'Kirk',
-						),
-					),
+				'release' => array(
+					'name'    => 'Kirk',
+					'version' => '5.3',
 				),
 			),
 			array(
-				true,
-				array(
-					array(
-						'release' => array(
-							'name'    => 'Kirk',
-							'version' => '5.3',
-						),
-					),
-					array(
-						'release' => array(
-							'version' => '5.4',
-							'name'    => 'Kirk',
-						),
-					),
+				'release' => array(
+					'version' => '5.3',
+					'name'    => 'Kirk',
 				),
 			),
 		);
+
+		$this->assertWPError( rest_validate_value_from_schema( $data, $schema ) );
+
+		$data[0]['release']['version'] = '5.3.0';
+		$this->assertTrue( rest_validate_value_from_schema( $data, $schema ) );
+	}
+
+	/**
+	 * @ticket 48821
+	 */
+	public function test_unique_items_deep_arrays() {
+		$schema = array(
+			'type'        => 'array',
+			'uniqueItems' => true,
+			'items'       => array(
+				'type'  => 'array',
+				'items' => array(
+					'type' => 'string',
+				),
+			),
+		);
+
+		$data = array(
+			array(
+				'Kirk',
+				'Jaco',
+			),
+			array(
+				'Kirk',
+				'Jaco',
+			),
+		);
+
+		$this->assertWPError( rest_validate_value_from_schema( $data, $schema ) );
+
+		$data[1] = array_reverse( $data[1] );
+		$this->assertTrue( rest_validate_value_from_schema( $data, $schema ) );
 	}
 }
