@@ -268,7 +268,8 @@ class Theme_Upgrader extends WP_Upgrader {
 
 		if ( $parsed_args['overwrite_package'] ) {
 			/**
-			 * Fires when the upgrader overwrites a currently installed plugin or theme with an uploaded zip package.
+			 * Fires when the upgrader has successfully overwritten a currently installed
+			 * plugin or theme with an uploaded zip package.
 			 *
 			 * @since 5.5.0
 			 *
@@ -276,7 +277,7 @@ class Theme_Upgrader extends WP_Upgrader {
 			 * @param array   $new_plugin_data  The new theme data.
 			 * @param string  $package_type     The package type (theme or theme).
 			 */
-			do_action( 'upgrader_overwrited_package', $package, $this->new_theme_data, 'theme' );
+			do_action( 'upgrader_overwrote_package', $package, $this->new_theme_data, 'theme' );
 		}
 
 		return true;
