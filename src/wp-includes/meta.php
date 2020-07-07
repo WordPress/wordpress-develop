@@ -1336,7 +1336,7 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 		}
 		$schema = $args;
 		if ( is_array( $args['show_in_rest'] ) && isset( $args['show_in_rest']['schema'] ) ) {
-			$schema = $args['show_in_rest']['schema'];
+			$schema = array_merge( $args['show_in_rest']['schema'], $schema );
 		}
 		if ( false === $args['single'] ) {
 			$check = false;

@@ -921,6 +921,20 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				true,
 				123,
 			),
+			'merges schema' => array(
+				array(
+					'single'       => true,
+					'type'         => 'string',
+					'default'      => 'https://wordpress.org/',
+					'show_in_rest' => array(
+						'schema' => array(
+							'format' => 'uri',
+						),
+					),
+				),
+				true,
+				'https://wordpress.org/',
+			),
 		);
 	}
 
