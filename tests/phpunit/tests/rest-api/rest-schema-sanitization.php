@@ -464,4 +464,26 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 
 		$this->assertNull( rest_sanitize_value_from_schema( array( 'Hello!' ), $schema ) );
 	}
+
+	/**
+	 * @ticket 48821
+	 */
+	public function test_unique_items_after_sanitization() {
+		$schema = array(
+			'type'        => 'array',
+			'uniqueItems' => true,
+			'items'       => array(
+				'type'   => 'string',
+				'format' => 'uri',
+			),
+		);
+
+		$data = array(
+			'https://example.org/hello%20world',
+			'https://example.org/hello world',
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( $data, $schema ) );
+		$this->assertWPError( rest_sanitize_value_from_schema( $data, $schema ) );
+	}
 }

@@ -1013,25 +1013,7 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'htmlhint-kses', '/wp-includes/js/codemirror/htmlhint-kses.js', array( 'htmlhint' ) );
 	$scripts->add( 'code-editor', "/wp-admin/js/code-editor$suffix.js", array( 'jquery', 'wp-codemirror', 'underscore' ) );
 	$scripts->add( 'wp-theme-plugin-editor', "/wp-admin/js/theme-plugin-editor$suffix.js", array( 'wp-util', 'wp-sanitize', 'jquery', 'jquery-ui-core', 'wp-a11y', 'underscore' ) );
-	did_action( 'init' ) && $scripts->add_inline_script(
-		'wp-theme-plugin-editor',
-		sprintf(
-			'wp.themePluginEditor.l10n = %s;',
-			wp_json_encode(
-				array(
-					'saveAlert' => __( 'The changes you made will be lost if you navigate away from this page.' ),
-					'saveError' => __( 'Something went wrong. Your change may not have been saved. Please try again. There is also a chance that you may need to manually fix and upload the file over FTP.' ),
-					'lintError' => array(
-						/* translators: %d: Error count. */
-						'singular' => _n( 'There is %d error which must be fixed before you can update this file.', 'There are %d errors which must be fixed before you can update this file.', 1 ),
-						/* translators: %d: Error count. */
-						'plural'   => _n( 'There is %d error which must be fixed before you can update this file.', 'There are %d errors which must be fixed before you can update this file.', 2 ),
-						// @todo This is lacking, as some languages have a dedicated dual form. For proper handling of plurals in JS, see #20491.
-					),
-				)
-			)
-		)
-	);
+	$scripts->set_translations( 'wp-theme-plugin-editor' );
 
 	$scripts->add( 'wp-playlist', "/wp-includes/js/mediaelement/wp-playlist$suffix.js", array( 'wp-util', 'backbone', 'mediaelement' ), false, 1 );
 
@@ -1211,57 +1193,29 @@ function wp_default_scripts( $scripts ) {
 
 	if ( is_admin() ) {
 		$scripts->add( 'admin-tags', "/wp-admin/js/tags$suffix.js", array( 'jquery', 'wp-ajax-response' ), false, 1 );
-		did_action( 'init' ) && $scripts->localize(
-			'admin-tags',
-			'tagsl10n',
-			array(
-				'noPerm' => __( 'Sorry, you are not allowed to do that.' ),
-				'broken' => __( 'Something went wrong.' ),
-			)
-		);
+		$scripts->set_translations( 'admin-tags' );
 
 		$scripts->add( 'admin-comments', "/wp-admin/js/edit-comments$suffix.js", array( 'wp-lists', 'quicktags', 'jquery-query' ), false, 1 );
+		$scripts->set_translations( 'admin-comments' );
 		did_action( 'init' ) && $scripts->localize(
 			'admin-comments',
-			'adminCommentsL10n',
+			'adminCommentsSettings',
 			array(
 				'hotkeys_highlight_first' => isset( $_GET['hotkeys_highlight_first'] ),
 				'hotkeys_highlight_last'  => isset( $_GET['hotkeys_highlight_last'] ),
-				'replyApprove'            => __( 'Approve and Reply' ),
-				'reply'                   => __( 'Reply' ),
-				'warnQuickEdit'           => __( "Are you sure you want to edit this comment?\nThe changes you made will be lost." ),
-				'warnCommentChanges'      => __( "Are you sure you want to do this?\nThe comment changes you made will be lost." ),
-				'docTitleComments'        => __( 'Comments' ),
-				/* translators: %s: Comments count. */
-				'docTitleCommentsCount'   => __( 'Comments (%s)' ),
 			)
 		);
 
 		$scripts->add( 'xfn', "/wp-admin/js/xfn$suffix.js", array( 'jquery' ), false, 1 );
 
 		$scripts->add( 'postbox', "/wp-admin/js/postbox$suffix.js", array( 'jquery-ui-sortable' ), false, 1 );
-		did_action( 'init' ) && $scripts->localize(
-			'postbox',
-			'postBoxL10n',
-			array(
-				'postBoxEmptyString' => __( 'Drag boxes here' ),
-			)
-		);
+		$scripts->set_translations( 'postbox' );
 
 		$scripts->add( 'tags-box', "/wp-admin/js/tags-box$suffix.js", array( 'jquery', 'tags-suggest' ), false, 1 );
+		$scripts->set_translations( 'tags-box' );
 
 		$scripts->add( 'tags-suggest', "/wp-admin/js/tags-suggest$suffix.js", array( 'jquery-ui-autocomplete', 'wp-a11y' ), false, 1 );
-		did_action( 'init' ) && $scripts->localize(
-			'tags-suggest',
-			'tagsSuggestL10n',
-			array(
-				'tagDelimiter' => _x( ',', 'tag delimiter' ),
-				'removeTerm'   => __( 'Remove term:' ),
-				'termSelected' => __( 'Term selected.' ),
-				'termAdded'    => __( 'Term added.' ),
-				'termRemoved'  => __( 'Term removed.' ),
-			)
-		);
+		$scripts->set_translations( 'tags-suggest' );
 
 		$scripts->add( 'post', "/wp-admin/js/post$suffix.js", array( 'suggest', 'wp-lists', 'postbox', 'tags-box', 'underscore', 'word-count', 'wp-a11y', 'wp-sanitize', 'clipboard' ), false, 1 );
 		$scripts->set_translations( 'post' );

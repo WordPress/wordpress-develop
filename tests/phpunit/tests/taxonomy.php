@@ -965,4 +965,57 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 		$this->assertEquals( $problematic_term, $term_name );
 	}
+
+	/**
+	 * Test default term for custom taxonomy.
+	 *
+	 * @ticket 43517
+	 */
+	function test_default_term_for_custom_taxonomy() {
+
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+
+		$tax = 'custom-tax';
+
+		// Create custom taxonomy to test with.
+		register_taxonomy(
+			$tax,
+			'post',
+			array(
+				'hierarchical' => true,
+				'public'       => true,
+				'default_term' => array(
+					'name' => 'Default category',
+					'slug' => 'default-category',
+				),
+			)
+		);
+
+		// Add post.
+		$post_id = wp_insert_post(
+			array(
+				'post_title' => 'Foo',
+				'post_type'  => 'post',
+			)
+		);
+
+		$term = wp_get_post_terms( $post_id, $tax );
+		$this->assertSame( get_option( 'default_taxonomy_' . $tax ), $term[0]->term_id );
+
+		// Add custom post type.
+		register_post_type(
+			'post-custom-tax',
+			array(
+				'taxonomies' => array( $tax ),
+			)
+		);
+		$post_id = wp_insert_post(
+			array(
+				'post_title' => 'Foo',
+				'post_type'  => 'post-custom-tax',
+			)
+		);
+		$term    = wp_get_post_terms( $post_id, $tax );
+		$this->assertSame( get_option( 'default_taxonomy_' . $tax ), $term[0]->term_id );
+	}
 }
