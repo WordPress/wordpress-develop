@@ -507,7 +507,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket       48818
+	 * @ticket 48818
 	 *
 	 * @dataProvider data_required_property
 	 */
@@ -535,7 +535,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket       48818
+	 * @ticket 48818
 	 *
 	 * @dataProvider data_required_property
 	 */
@@ -577,7 +577,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket       48818
+	 * @ticket 48818
 	 *
 	 * @dataProvider data_required_nested_property
 	 */
@@ -610,7 +610,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket       48818
+	 * @ticket 48818
 	 *
 	 * @dataProvider data_required_nested_property
 	 */
@@ -669,7 +669,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket       48818
+	 * @ticket 48818
 	 *
 	 * @dataProvider data_required_deeply_nested_property
 	 */
@@ -709,7 +709,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket       48818
+	 * @ticket 48818
 	 *
 	 * @dataProvider data_required_deeply_nested_property
 	 */
@@ -749,7 +749,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket       48818
+	 * @ticket 48818
 	 *
 	 * @dataProvider data_required_deeply_nested_property
 	 */
@@ -907,7 +907,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket       48821
+	 * @ticket 48821
 	 *
 	 * @dataProvider data_unique_items
 	 */

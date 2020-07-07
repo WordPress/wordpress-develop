@@ -1460,8 +1460,10 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider _dp_rest_is_object
 	 * @ticket 50300
+	 *
+	 * @dataProvider _dp_rest_is_object
+	 *
 	 * @param bool  $expected Expected result of the check.
 	 * @param mixed $value    The value to check.
 	 */
@@ -1521,8 +1523,10 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 50300
+	 *
 	 * @dataProvider _dp_rest_sanitize_object
-	 * @ticket       50300
+	 *
 	 * @param array $expected Expected sanitized version.
 	 * @param mixed $value    The value to sanitize.
 	 */
@@ -1577,8 +1581,10 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider _dp_rest_is_array
 	 * @ticket 50300
+	 *
+	 * @dataProvider _dp_rest_is_array
+	 *
 	 * @param bool  $expected Expected result of the check.
 	 * @param mixed $value    The value to check.
 	 */
@@ -1646,8 +1652,10 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 50300
+	 *
 	 * @dataProvider _dp_rest_sanitize_array
-	 * @ticket       50300
+	 *
 	 * @param array $expected Expected sanitized version.
 	 * @param mixed $value    The value to sanitize.
 	 */
@@ -1714,8 +1722,10 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider _dp_get_best_type_for_value
 	 * @ticket 50300
+	 *
+	 * @dataProvider _dp_get_best_type_for_value
+	 *
 	 * @param string $expected The expected best type.
 	 * @param mixed  $value    The value to test.
 	 * @param array  $types    The list of available types.
