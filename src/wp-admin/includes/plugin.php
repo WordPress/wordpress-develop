@@ -2167,6 +2167,8 @@ function user_can_access_admin_page() {
  * See the {@see 'allowed_options'} filter.
  *
  * @since 2.7.0
+ * @since 5.5.0 `$new_whiltelist_options` was renamed to `$new_allowed_options`.
+ *              Please consider writing more inclusive code.
  *
  * @global array $new_allowed_options
  *

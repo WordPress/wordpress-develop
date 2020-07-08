@@ -2123,6 +2123,8 @@ function register_initial_settings() {
  *
  * @since 2.7.0
  * @since 4.7.0 `$args` can be passed to set flags on the setting, similar to `register_meta()`.
+ * @since 5.5.0 `$new_whiltelist_options` was renamed to `$new_allowed_options`.
+ *              Please consider writing more inclusive code.
  *
  * @global array $new_allowed_options
  * @global array $wp_registered_settings
@@ -2148,10 +2150,10 @@ function register_setting( $option_group, $option_name, $args = array() ) {
 	global $new_allowed_options, $wp_registered_settings;
 
 	/**
-	 * In 5.5.0, the `$new_whitelist_options` global variable has been renamed to `$new_allowlist_options`.
+	 * In 5.5.0, the `$new_whitelist_options` global variable has been renamed to `$new_allowed_options`.
 	 * Please consider writing more inclusive code.
 	 */
-	$GLOBALS['new_whitelist_options'] = &$new_allowlist_options;
+	$GLOBALS['new_whitelist_options'] = &$new_allowed_options;
 
 	$defaults = array(
 		'type'              => 'string',
@@ -2245,6 +2247,8 @@ function register_setting( $option_group, $option_name, $args = array() ) {
  *
  * @since 2.7.0
  * @since 4.7.0 `$sanitize_callback` was deprecated. The callback from `register_setting()` is now used instead.
+ * @since 5.5.0 `$new_whiltelist_options` was renamed to `$new_allowed_options`.
+ *              Please consider writing more inclusive code.
  *
  * @global array $new_allowed_options
  * @global array $wp_registered_settings
@@ -2254,13 +2258,13 @@ function register_setting( $option_group, $option_name, $args = array() ) {
  * @param callable $deprecated   Deprecated.
  */
 function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
-	global $new_allowlist_options, $wp_registered_settings;
+	global $new_allowed_options, $wp_registered_settings;
 
 	/**
-	 * In 5.5.0, the `$new_whitelist_options` global variable has been renamed to `$new_allowlist_options`.
+	 * In 5.5.0, the `$new_whitelist_options` global variable has been renamed to `$new_allowed_options`.
 	 * Please consider writing more inclusive code.
 	 */
-	$GLOBALS['new_whitelist_options'] = &$new_allowlist_options;
+	$GLOBALS['new_whitelist_options'] = &$new_allowed_options;
 
 	if ( 'misc' === $option_group ) {
 		_deprecated_argument(
@@ -2291,7 +2295,7 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
 	$pos = array_search( $option_name, (array) $new_allowed_options[ $option_group ], true );
 
 	if ( false !== $pos ) {
-		unset( $new_allowlist_options[ $option_group ][ $pos ] );
+		unset( $new_allowed_options[ $option_group ][ $pos ] );
 	}
 
 	if ( '' !== $deprecated ) {
