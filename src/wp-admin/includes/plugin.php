@@ -2168,16 +2168,16 @@ function user_can_access_admin_page() {
  *
  * @since 2.7.0
  *
- * @global array $new_whitelist_options
+ * @global array $new_allowed_options
  *
  * @param array $options
  * @return array
  */
 function option_update_filter( $options ) {
-	global $new_whitelist_options;
+	global $new_allowed_options;
 
-	if ( is_array( $new_whitelist_options ) ) {
-		$options = add_allowed_options( $new_whitelist_options, $options );
+	if ( is_array( $new_allowed_options ) ) {
+		$options = add_allowed_options( $new_allowed_options, $options );
 	}
 
 	return $options;
