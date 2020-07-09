@@ -915,13 +915,13 @@ function is_main_query() {
  */
 
 /**
- * Whether current WordPress query has results to loop over.
+ * Determines whether current WordPress query has posts to loop over.
  *
  * @since 1.5.0
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
- * @return bool
+ * @return bool True if posts are available, false if end of the loop.
  */
 function have_posts() {
 	global $wp_query;
@@ -975,13 +975,13 @@ function the_post() {
  */
 
 /**
- * Whether there are comments to loop over.
+ * Determines whether current WordPress query has comments to loop over.
  *
  * @since 2.2.0
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
- * @return bool
+ * @return bool True if comments are available, false if no more comments.
  */
 function have_comments() {
 	global $wp_query;
@@ -1090,7 +1090,7 @@ function wp_old_slug_redirect() {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $post_type The current post type based on the query vars.
- * @return int $id The Post ID.
+ * @return int The Post ID.
  */
 function _find_post_by_old_slug( $post_type ) {
 	global $wpdb;
@@ -1125,7 +1125,7 @@ function _find_post_by_old_slug( $post_type ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $post_type The current post type based on the query vars.
- * @return int $id The Post ID.
+ * @return int The Post ID.
  */
 function _find_post_by_old_date( $post_type ) {
 	global $wpdb;

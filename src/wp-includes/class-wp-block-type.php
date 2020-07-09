@@ -32,9 +32,9 @@ class WP_Block_Type {
 
 	/**
 	 * @since 5.5.0
-	 * @var string
+	 * @var string|null
 	 */
-	public $category = '';
+	public $category = null;
 
 	/**
 	 * @since 5.5.0
@@ -44,9 +44,9 @@ class WP_Block_Type {
 
 	/**
 	 * @since 5.5.0
-	 * @var string
+	 * @var string|null
 	 */
-	public $icon = '';
+	public $icon = null;
 
 	/**
 	 * @since 5.5.0
@@ -74,9 +74,9 @@ class WP_Block_Type {
 
 	/**
 	 * @since 5.5.0
-	 * @var array
+	 * @var array|null
 	 */
-	public $supports = array();
+	public $supports = null;
 
 	/**
 	 * @since 5.5.0
@@ -101,36 +101,52 @@ class WP_Block_Type {
 	public $attributes = null;
 
 	/**
+	 * Context values inherited by blocks of this type.
+	 *
+	 * @since 5.5.0
+	 * @var array
+	 */
+	public $uses_context = array();
+
+	/**
+	 * Context provided by blocks of this type.
+	 *
+	 * @since 5.5.0
+	 * @var array|null
+	 */
+	public $provides_context = null;
+
+	/**
 	 * Block type editor script handle.
 	 *
 	 * @since 5.0.0
-	 * @var string
+	 * @var string|null
 	 */
-	public $editor_script = '';
+	public $editor_script = null;
 
 	/**
 	 * Block type front end script handle.
 	 *
 	 * @since 5.0.0
-	 * @var string
+	 * @var string|null
 	 */
-	public $script = '';
+	public $script = null;
 
 	/**
 	 * Block type editor style handle.
 	 *
 	 * @since 5.0.0
-	 * @var string
+	 * @var string|null
 	 */
-	public $editor_style = '';
+	public $editor_style = null;
 
 	/**
 	 * Block type front end style handle.
 	 *
 	 * @since 5.0.0
-	 * @var string
+	 * @var string|null
 	 */
-	public $style = '';
+	public $style = null;
 
 	/**
 	 * Constructor.
@@ -188,8 +204,8 @@ class WP_Block_Type {
 	 *
 	 * @since 5.0.0
 	 *
-	 * @param  array $attributes Original block attributes.
-	 * @return array             Prepared block attributes.
+	 * @param array $attributes Original block attributes.
+	 * @return array Prepared block attributes.
 	 */
 	public function prepare_attributes_for_render( $attributes ) {
 		// If there are no attribute definitions for the block type, skip
@@ -246,6 +262,16 @@ class WP_Block_Type {
 
 		$args['name'] = $this->name;
 
+		/**
+		 * Filters the arguments for registering a block type.
+		 *
+		 * @since 5.5.0
+		 *
+		 * @param array  $args       Array of arguments for registering a block type.
+		 * @param string $block_type Block type name including namespace.
+		 */
+		$args = apply_filters( 'register_block_type_args', $args, $this->name );
+
 		foreach ( $args as $property_name => $property_value ) {
 			$this->$property_name = $property_value;
 		}
@@ -260,18 +286,7 @@ class WP_Block_Type {
 	 */
 	public function get_attributes() {
 		return is_array( $this->attributes ) ?
-			array_merge(
-				$this->attributes,
-				array(
-					'layout' => array(
-						'type' => 'string',
-					),
-				)
-			) :
-			array(
-				'layout' => array(
-					'type' => 'string',
-				),
-			);
+			$this->attributes :
+			array();
 	}
 }

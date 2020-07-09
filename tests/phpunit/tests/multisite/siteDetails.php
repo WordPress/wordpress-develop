@@ -9,101 +9,101 @@ if ( is_multisite() ) :
 	 */
 	class Tests_Multisite_Site_Details extends WP_UnitTestCase {
 		/**
-		 * @dataProvider data_whitelisted_options
+		 * @dataProvider data_allowed_options
 		 *
 		 * @ticket 40063
 		 */
-		public function test_update_whitelisted_option_deletes_site_details_cache( $whitelisted_option, $temporary_value ) {
+		public function test_update_allowed_option_deletes_site_details_cache( $allowed_option, $temporary_value ) {
 			$site = get_site();
 
-			$original_value = $site->$whitelisted_option;
-			update_option( $whitelisted_option, $temporary_value );
+			$original_value = $site->$allowed_option;
+			update_option( $allowed_option, $temporary_value );
 
 			$cached_result = wp_cache_get( $site->id, 'site-details' );
 
 			/* Reset to original value. */
-			update_option( $whitelisted_option, $original_value );
+			update_option( $allowed_option, $original_value );
 
 			$this->assertFalse( $cached_result );
 		}
 
 		/**
-		 * @dataProvider data_whitelisted_options
+		 * @dataProvider data_allowed_options
 		 *
 		 * @ticket 40063
 		 */
-		public function test_update_whitelisted_option_deletes_blog_details_cache( $whitelisted_option, $temporary_value ) {
+		public function test_update_allowed_option_deletes_blog_details_cache( $allowed_option, $temporary_value ) {
 			$blog_details = get_blog_details();
 
-			$original_value = $blog_details->$whitelisted_option;
-			update_option( $whitelisted_option, $temporary_value );
+			$original_value = $blog_details->$allowed_option;
+			update_option( $allowed_option, $temporary_value );
 
 			$cached_result = wp_cache_get( $blog_details->id, 'blog-details' );
 
 			/* Reset to original value. */
-			update_option( $whitelisted_option, $original_value );
+			update_option( $allowed_option, $original_value );
 
 			$this->assertFalse( $cached_result );
 		}
 
 		/**
-		 * @dataProvider data_whitelisted_options
+		 * @dataProvider data_allowed_options
 		 *
 		 * @ticket 40063
 		 */
-		public function test_update_whitelisted_option_does_not_delete_site_cache( $whitelisted_option, $temporary_value ) {
+		public function test_update_allowed_option_does_not_delete_site_cache( $allowed_option, $temporary_value ) {
 			$site = get_site();
 
-			$original_value = $site->$whitelisted_option;
-			update_option( $whitelisted_option, $temporary_value );
+			$original_value = $site->$allowed_option;
+			update_option( $allowed_option, $temporary_value );
 
 			$cached_result = wp_cache_get( $site->id, 'sites' );
 
 			/* Reset to original value. */
-			update_option( $whitelisted_option, $original_value );
+			update_option( $allowed_option, $original_value );
 
 			$this->assertNotFalse( $cached_result );
 		}
 
 		/**
-		 * @dataProvider data_whitelisted_options
+		 * @dataProvider data_allowed_options
 		 *
 		 * @ticket 40063
 		 */
-		public function test_update_whitelisted_option_does_not_delete_short_blog_details_cache( $whitelisted_option, $temporary_value ) {
+		public function test_update_allowed_option_does_not_delete_short_blog_details_cache( $allowed_option, $temporary_value ) {
 			$blog_details = get_blog_details( null, false );
 
-			$original_value = get_option( $whitelisted_option );
-			update_option( $whitelisted_option, $temporary_value );
+			$original_value = get_option( $allowed_option );
+			update_option( $allowed_option, $temporary_value );
 
 			$cached_result = wp_cache_get( $blog_details->id . 'short', 'blog-details' );
 
 			/* Reset to original value. */
-			update_option( $whitelisted_option, $original_value );
+			update_option( $allowed_option, $original_value );
 
 			$this->assertNotFalse( $cached_result );
 		}
 
 		/**
-		 * @dataProvider data_whitelisted_options
+		 * @dataProvider data_allowed_options
 		 *
 		 * @ticket 40063
 		 */
-		public function test_update_whitelisted_option_does_not_update_sites_last_changed( $whitelisted_option, $temporary_value ) {
+		public function test_update_allowed_option_does_not_update_sites_last_changed( $allowed_option, $temporary_value ) {
 			$last_changed = wp_cache_get_last_changed( 'sites' );
 
-			$original_value = get_option( $whitelisted_option );
-			update_option( $whitelisted_option, $temporary_value );
+			$original_value = get_option( $allowed_option );
+			update_option( $allowed_option, $temporary_value );
 
 			$new_last_changed = wp_cache_get_last_changed( 'sites' );
 
 			/* Reset to original value. */
-			update_option( $whitelisted_option, $original_value );
+			update_option( $allowed_option, $original_value );
 
 			$this->assertSame( $new_last_changed, $last_changed );
 		}
 
-		public function data_whitelisted_options() {
+		public function data_allowed_options() {
 			return array(
 				array( 'blogname', 'Custom Site' ),
 				array( 'home', 'http://custom-site-url.org' ),

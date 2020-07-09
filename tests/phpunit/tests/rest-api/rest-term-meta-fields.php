@@ -1256,6 +1256,36 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @ticket 43941
+	 */
+	public function test_get_default_value() {
+		$meta_key = 'registered_key1';
+		register_term_meta(
+			'category',
+			$meta_key,
+			array(
+				'single'       => true,
+				'type'         => 'string',
+				'default'      => 'Goodbye',
+				'show_in_rest' => true,
+			)
+		);
+
+		// Check for default value.
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/categories/%d', self::$category_id ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'meta', $data );
+
+		$meta = (array) $data['meta'];
+		$this->assertArrayHasKey( $meta_key, $meta );
+		$this->assertSame( 'Goodbye', $meta[ $meta_key ] );
+	}
+
+	/**
 	 * Internal function used to disable an insert query which
 	 * will trigger a wpdb error for testing purposes.
 	 */

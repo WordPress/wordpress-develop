@@ -1228,7 +1228,8 @@ class WP_Rewrite {
 	 * @see WP_Rewrite::generate_rewrite_rules() See for long description and rest of parameters.
 	 *
 	 * @param string $permalink_structure The permalink structure to generate rules.
-	 * @param bool   $walk_dirs           Optional, default is false. Whether to create list of directories to walk over.
+	 * @param bool   $walk_dirs           Optional. Whether to create list of directories to walk over.
+	 *                                    Default false.
 	 * @return array
 	 */
 	public function generate_rewrite_rule( $permalink_structure, $walk_dirs = false ) {
@@ -1785,8 +1786,6 @@ class WP_Rewrite {
 	 * If the function named 'save_mod_rewrite_rules' exists, it will be called.
 	 *
 	 * @since 2.0.1
-	 *
-	 * @staticvar bool $do_hard_later
 	 *
 	 * @param bool $hard Whether to update .htaccess (hard flush) or just update rewrite_rules option (soft flush). Default is true (hard).
 	 */

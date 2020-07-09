@@ -31,6 +31,7 @@ add_action( 'network_site_new_created_user', 'wp_send_new_user_notifications' );
 add_action( 'network_site_users_created_user', 'wp_send_new_user_notifications' );
 add_action( 'network_user_new_created_user', 'wp_send_new_user_notifications' );
 add_filter( 'sanitize_user', 'strtolower' );
+add_action( 'deleted_user', 'wp_delete_signup_on_user_delete', 10, 3 );
 
 // Roles.
 add_action( 'switch_blog', 'wp_switch_roles_and_user', 1, 2 );
@@ -124,5 +125,5 @@ add_action( 'update_option_home', 'clean_site_details_cache', 10, 0 );
 // If the network upgrade hasn't run yet, assume ms-files.php rewriting is used.
 add_filter( 'default_site_option_ms_files_rewriting', '__return_true' );
 
-// Whitelist multisite domains for HTTP requests.
+// Allow multisite domains for HTTP requests.
 add_filter( 'http_request_host_is_external', 'ms_allowed_http_request_hosts', 20, 2 );

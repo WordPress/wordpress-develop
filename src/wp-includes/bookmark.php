@@ -16,7 +16,7 @@
  * @param int|stdClass $bookmark
  * @param string $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
  *                       an stdClass object, an associative array, or a numeric array, respectively. Default OBJECT.
- * @param string $filter Optional, default is 'raw'.
+ * @param string $filter Optional. How to sanitize bookmark fields. Default 'raw'.
  * @return array|object|null Type returned depends on $output value.
  */
 function get_bookmark( $bookmark, $output = OBJECT, $filter = 'raw' ) {
@@ -116,7 +116,7 @@ function get_bookmark_field( $field, $bookmark, $context = 'display' ) {
  *                                    Accepts 'ASC' (ascending) or 'DESC' (descending). Default 'ASC'.
  *     @type int      $limit          Amount of bookmarks to display. Accepts any positive number or
  *                                    -1 for all.  Default -1.
- *     @type string   $category       Comma-separated list of category ids to include links from.
+ *     @type string   $category       Comma-separated list of category IDs to include links from.
  *                                    Default empty.
  *     @type string   $category_name  Category to retrieve links for by name. Default empty.
  *     @type int|bool $hide_invisible Whether to show or hide links marked as 'invisible'. Accepts
@@ -321,13 +321,12 @@ function get_bookmarks( $args = '' ) {
 }
 
 /**
- * Sanitizes all bookmark fields
+ * Sanitizes all bookmark fields.
  *
  * @since 2.3.0
  *
- * @param stdClass|array $bookmark Bookmark row
- * @param string $context Optional, default is 'display'. How to filter the
- *      fields
+ * @param stdClass|array $bookmark Bookmark row.
+ * @param string         $context  Optional. How to filter the fields. Default 'display'.
  * @return stdClass|array Same type as $bookmark but with fields sanitized.
  */
 function sanitize_bookmark( $bookmark, $context = 'display' ) {

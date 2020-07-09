@@ -265,7 +265,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$total_terms = wp_count_terms( $this->taxonomy, $count_args );
 
-		// wp_count_terms() can return a falsy value when the term has no children.
+		// wp_count_terms() can return a falsey value when the term has no children.
 		if ( ! $total_terms ) {
 			$total_terms = 0;
 		}
@@ -719,7 +719,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Request object.
-	 * @return object $prepared_term Term object.
+	 * @return object Term object.
 	 */
 	public function prepare_item_for_database( $request ) {
 		$prepared_term = new stdClass;
@@ -776,7 +776,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_Term         $item    Term object.
 	 * @param WP_REST_Request $request Request object.
-	 * @return WP_REST_Response $response Response object.
+	 * @return WP_REST_Response Response object.
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 

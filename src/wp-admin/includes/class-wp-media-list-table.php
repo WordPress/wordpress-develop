@@ -149,12 +149,12 @@ class WP_Media_List_Table extends WP_List_Table {
 		if ( MEDIA_TRASH ) {
 			if ( $this->is_trash ) {
 				$actions['untrash'] = __( 'Restore' );
-				$actions['delete']  = __( 'Delete Permanently' );
+				$actions['delete']  = __( 'Delete permanently' );
 			} else {
-				$actions['trash'] = __( 'Move to Trash' );
+				$actions['trash'] = __( 'Move to trash' );
 			}
 		} else {
-			$actions['delete'] = __( 'Delete Permanently' );
+			$actions['delete'] = __( 'Delete permanently' );
 		}
 
 		if ( $this->detached ) {
@@ -174,16 +174,14 @@ class WP_Media_List_Table extends WP_List_Table {
 		?>
 		<div class="actions">
 		<?php
-		if ( ! is_singular() ) {
-			if ( ! $this->is_trash ) {
-				$this->months_dropdown( 'attachment' );
-			}
-
-			/** This action is documented in wp-admin/includes/class-wp-posts-list-table.php */
-			do_action( 'restrict_manage_posts', $this->screen->post_type, $which );
-
-			submit_button( __( 'Filter' ), '', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
+		if ( ! $this->is_trash ) {
+			$this->months_dropdown( 'attachment' );
 		}
+
+		/** This action is documented in wp-admin/includes/class-wp-posts-list-table.php */
+		do_action( 'restrict_manage_posts', $this->screen->post_type, $which );
+
+		submit_button( __( 'Filter' ), '', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
 
 		if ( $this->is_trash && current_user_can( 'edit_others_posts' ) && $this->has_items() ) {
 			submit_button( __( 'Empty Trash' ), 'apply', 'delete_all', false );
@@ -658,7 +656,6 @@ class WP_Media_List_Table extends WP_List_Table {
 	/**
 	 * @param WP_Post $post
 	 * @param string  $att_title
-	 *
 	 * @return array
 	 */
 	private function _get_row_actions( $post, $att_title ) {

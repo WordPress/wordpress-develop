@@ -1220,7 +1220,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertInternalType( 'array', $data['data']['params'] );
 			$errors = $data['data']['params'];
 			$this->assertInternalType( 'string', $errors['username'] );
-			$this->assertEquals( 'Username contains invalid characters.', $errors['username'] );
+			$this->assertEquals( 'This username is invalid because it uses illegal characters. Please enter a valid username.', $errors['username'] );
 		}
 	}
 
@@ -2888,6 +2888,125 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'reassign', false );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_user_invalid_id', $response, 404 );
+	}
+
+	/**
+	 * @ticket 43941
+	 * @dataProvider data_get_default_data
+	 */
+	public function test_get_default_value( $args, $expected ) {
+		wp_set_current_user( self::$user );
+
+		$object_type = 'user';
+		$meta_key    = 'registered_key1';
+		register_meta(
+			$object_type,
+			$meta_key,
+			$args
+		);
+
+		// Check for default value.
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', self::$user ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'meta', $data );
+
+		$meta = (array) $data['meta'];
+		$this->assertArrayHasKey( $meta_key, $meta );
+		$this->assertEquals( $expected, $meta[ $meta_key ] );
+	}
+
+	public function data_get_default_data() {
+		return array(
+			array(
+				array(
+					'show_in_rest' => true,
+					'single'       => true,
+					'default'      => 'wibble',
+				),
+				'wibble',
+			),
+			array(
+				array(
+					'show_in_rest' => true,
+					'single'       => false,
+					'default'      => 'wibble',
+				),
+				array( 'wibble' ),
+			),
+			array(
+				array(
+					'single'       => true,
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'       => 'object',
+							'properties' => array(
+								'wibble' => array(
+									'type' => 'string',
+								),
+							),
+						),
+					),
+					'type'         => 'object',
+					'default'      => array( 'wibble' => 'dibble' ),
+				),
+				array( 'wibble' => 'dibble' ),
+			),
+			array(
+				array(
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'       => 'object',
+							'properties' => array(
+								'wibble' => array(
+									'type' => 'string',
+								),
+							),
+						),
+					),
+					'type'         => 'object',
+					'single'       => false,
+					'default'      => array( 'wibble' => 'dibble' ),
+				),
+				array( array( 'wibble' => 'dibble' ) ),
+			),
+
+			array(
+				array(
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type' => 'string',
+							),
+						),
+					),
+					'single'       => true,
+					'type'         => 'array',
+					'default'      => array( 'dibble' ),
+				),
+				array( 'dibble' ),
+			),
+			array(
+				array(
+					'show_in_rest' => array(
+						'schema' => array(
+							'type'  => 'array',
+							'items' => array(
+								'type' => 'string',
+							),
+						),
+					),
+					'single'       => false,
+					'type'         => 'array',
+					'default'      => array( 'dibble' ),
+				),
+				array( array( 'dibble' ) ),
+			),
+		);
 	}
 
 	public function additional_field_get_callback( $object ) {

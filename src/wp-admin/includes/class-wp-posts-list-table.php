@@ -178,7 +178,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		}
 
 		if ( ! empty( $_REQUEST['mode'] ) ) {
-			$mode = 'excerpt' === $_REQUEST['mode'] ? 'excerpt' : 'list';
+			$mode = 'extended' === $_REQUEST['mode'] ? 'extended' : 'list';
 			set_user_setting( 'posts_list_mode', $mode );
 		} else {
 			$mode = get_user_setting( 'posts_list_mode', 'list' );
@@ -415,9 +415,9 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		if ( current_user_can( $post_type_obj->cap->delete_posts ) ) {
 			if ( $this->is_trash || ! EMPTY_TRASH_DAYS ) {
-				$actions['delete'] = __( 'Delete Permanently' );
+				$actions['delete'] = __( 'Delete permanently' );
 			} else {
-				$actions['trash'] = __( 'Move to Trash' );
+				$actions['trash'] = __( 'Move to trash' );
 			}
 		}
 
@@ -485,6 +485,11 @@ class WP_Posts_List_Table extends WP_List_Table {
 			return;
 		}
 
+		// Return if the post type doesn't have post formats or if we're in the Trash.
+		if ( ! is_object_in_taxonomy( $post_type, 'post_format' ) || $this->is_trash ) {
+			return;
+		}
+
 		// Make sure the dropdown shows only formats with a post count greater than 0.
 		$used_post_formats = get_terms(
 			array(
@@ -493,11 +498,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 			)
 		);
 
-		/*
-		 * Return if the post type doesn't have post formats, or there are no posts using formats,
-		 * or if we're in the Trash.
-		 */
-		if ( ! is_object_in_taxonomy( $post_type, 'post_format' ) || ! $used_post_formats || $this->is_trash ) {
+		// Return if there are no posts using formats.
+		if ( ! $used_post_formats ) {
 			return;
 		}
 
@@ -532,7 +534,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		?>
 		<div class="alignleft actions">
 		<?php
-		if ( 'top' === $which && ! is_singular() ) {
+		if ( 'top' === $which ) {
 			ob_start();
 
 			$this->months_dropdown( $this->screen->post_type );
@@ -596,7 +598,22 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @return array
 	 */
 	protected function get_table_classes() {
-		return array( 'widefat', 'fixed', 'striped', is_post_type_hierarchical( $this->screen->post_type ) ? 'pages' : 'posts' );
+		$mode       = get_user_setting( 'posts_list_mode', 'list' );
+		$mode_class = 'extended' === $mode ? 'table-view-extended' : 'table-view-list';
+		$mode = get_user_setting( 'posts_list_mode', 'list' );
+		/**
+		 * Filters the current view mode.
+		 *
+		 * @since 5.5.0
+		 *
+		 * @param string $mode The current selected mode. Default value of
+		 *                     posts_list_mode user setting.
+		 */
+		$mode = apply_filters( 'table_view_mode', $mode );
+
+		$mode_class = 'extended' === $mode ? 'table-view-extended' : 'table-view-' . $mode;
+
+		return array( 'widefat', 'fixed', 'striped', $mode_class, is_post_type_hierarchical( $this->screen->post_type ) ? 'pages' : 'posts' );
 	}
 
 	/**
@@ -1040,7 +1057,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		}
 		echo "</strong>\n";
 
-		if ( ! is_post_type_hierarchical( $this->screen->post_type ) && 'excerpt' === $mode && current_user_can( 'read_post', $post->ID ) ) {
+		if ( ! is_post_type_hierarchical( $this->screen->post_type ) && 'extended' === $mode && current_user_can( 'read_post', $post->ID ) ) {
 			if ( post_password_required( $post ) ) {
 				echo '<span class="protected-post-excerpt">' . esc_html( get_the_excerpt() ) . '</span>';
 			} else {
@@ -1100,7 +1117,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		 * @param string  $status      The status text.
 		 * @param WP_Post $post        Post object.
 		 * @param string  $column_name The column name.
-		 * @param string  $mode        The list display mode ('excerpt' or 'list').
+		 * @param string  $mode        The list display mode ('extended' or 'list').
 		 */
 		$status = apply_filters( 'post_date_column_status', $status, $post, 'date', $mode );
 
@@ -1119,7 +1136,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		 * @param string  $t_time      The published time.
 		 * @param WP_Post $post        Post object.
 		 * @param string  $column_name The column name.
-		 * @param string  $mode        The list display mode ('excerpt' or 'list').
+		 * @param string  $mode        The list display mode ('extended' or 'list').
 		 */
 		echo apply_filters( 'post_date_column_time', $t_time, $post, 'date', $mode );
 	}
@@ -1489,7 +1506,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			}
 		}
 
-		$m            = ( isset( $mode ) && 'excerpt' === $mode ) ? 'excerpt' : 'list';
+		$m            = ( isset( $mode ) && 'extended' === $mode ) ? 'extended' : 'list';
 		$can_publish  = current_user_can( $post_type_object->cap->publish_posts );
 		$core_columns = array(
 			'cb'         => true,

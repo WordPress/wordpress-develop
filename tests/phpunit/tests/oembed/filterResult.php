@@ -93,6 +93,40 @@ EOD;
 		$this->assertEquals( '<blockquote class="wp-embedded-content"><a href=""></a></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; clip: rect(1px, 1px, 1px, 1px);"></iframe>', $actual );
 	}
 
+	public function _data_oembed_test_strings() {
+		return array(
+			array(
+				'<blockquote></blockquote><iframe title=""></iframe>',
+				'<blockquote class="wp-embedded-content"></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; clip: rect(1px, 1px, 1px, 1px);" title="Hola"></iframe>',
+			),
+			array(
+				'<blockquote class="foo" id="bar"><strong><a href="" target=""></a></strong></blockquote><iframe width=123></iframe>',
+				'<blockquote class="wp-embedded-content"><a href=""></a></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; clip: rect(1px, 1px, 1px, 1px);" title="Hola" width="123"></iframe>',
+			),
+			array(
+				'<blockquote><iframe width="100"></iframe></blockquote><iframe stitle="aaaa"></iframe>',
+				'<blockquote class="wp-embedded-content"><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; clip: rect(1px, 1px, 1px, 1px);" title="Hola" width="100"></iframe></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; clip: rect(1px, 1px, 1px, 1px);" title="Hola"></iframe>',
+			),
+			array(
+				"<blockquote><iframe title=' width=\"'></iframe></blockquote><iframe title='' height=' title=' width=\"'' heigt='123'\"></iframe>",
+				'<blockquote class="wp-embedded-content"><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; clip: rect(1px, 1px, 1px, 1px);" title=" width=&quot;"></iframe></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; clip: rect(1px, 1px, 1px, 1px);" title=" width=&quot;" height=\' title=\' width="\'\' heigt=\'123\'"></iframe>',
+			),
+		);
+	}
+
+	/**
+	 * @dataProvider _data_oembed_test_strings
+	 */
+	public function test_wp_filter_pre_oembed_custom_result( $html, $expected ) {
+		$data   = (object) array(
+			'type'  => 'rich',
+			'title' => 'Hola',
+			'html'  => $html,
+		);
+		$actual = _wp_oembed_get_object()->data2html( $data, 'https://untrusted.localhost' );
+		$this->assertEquals( $expected, $actual );
+	}
+
 	/**
 	 * @group feed
 	 */

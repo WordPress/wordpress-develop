@@ -235,8 +235,8 @@ wpList = {
 	 * data[3] - 66cc66
 	 * data[4] - unspam=1
 	 *
-	 * @param  {HTMLElement} element The DOM element.
-	 * @param  {string}      type    The type of data to look for: 'list', 'add', 'delete', or 'dim'.
+	 * @param {HTMLElement} element The DOM element.
+	 * @param {string}      type    The type of data to look for: 'list', 'add', 'delete', or 'dim'.
 	 * @return {Array} Extracted list item data.
 	 */
 	parseData: function( element, type ) {
@@ -294,7 +294,7 @@ wpList = {
 	},
 
 	/**
-	 * Adds an item to the list via AJAX.
+	 * Adds an item to the list via Ajax.
 	 *
 	 * @param {HTMLElement} element  The DOM element.
 	 * @param {object}      settings Settings for this list.
@@ -396,7 +396,7 @@ wpList = {
 	},
 
 	/**
-	 * Delete an item in the list via AJAX.
+	 * Delete an item in the list via Ajax.
 	 *
 	 * @param {HTMLElement} element  A DOM element containing item data.
 	 * @param {object}      settings Settings for this list.
@@ -483,7 +483,7 @@ wpList = {
 	},
 
 	/**
-	 * Dim an item in the list via AJAX.
+	 * Dim an item in the list via Ajax.
 	 *
 	 * @param {HTMLElement} element  A DOM element containing item data.
 	 * @param {object}      settings Settings for this list.

@@ -130,9 +130,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	}
 
 	/**
-	 * wp_read_image_metadata() should false if the image file doesn't exist
-	 *
-	 * @return void
+	 * wp_read_image_metadata() should return false if the image file doesn't exist.
 	 */
 	public function test_missing_image_file() {
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/404_image.png' );

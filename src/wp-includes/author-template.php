@@ -49,6 +49,7 @@ function get_the_author( $deprecated = '' ) {
  * return it. However, backward compatibility has to be maintained.
  *
  * @since 0.71
+ *
  * @see get_the_author()
  * @link https://developer.wordpress.org/reference/functions/the_author/
  *
@@ -365,7 +366,7 @@ function get_author_posts_url( $author_id, $author_nicename = '' ) {
 	 * @since 2.1.0
 	 *
 	 * @param string $link            The URL to the author's page.
-	 * @param int    $author_id       The author's id.
+	 * @param int    $author_id       The author's ID.
 	 * @param string $author_nicename The author's nice name.
 	 */
 	$link = apply_filters( 'author_link', $link, $author_id, $author_nicename );

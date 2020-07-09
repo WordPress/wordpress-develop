@@ -41,7 +41,7 @@
 
 .media-frame a:hover,
 .media-frame a:active {
-	color: #00a0d2;
+	color: #006799;
 }
 
 .media-frame a:focus {
@@ -236,11 +236,11 @@
 
 .media-modal-close:hover,
 .media-modal-close:active {
-	color: #00a0d2;
+	color: #006799;
 }
 
 .media-modal-close:focus {
-	color: #00a0d2;
+	color: #006799;
 	border-color: #5b9dd9;
 	box-shadow: 0 0 3px rgba(0, 115, 170, 0.8);
 	/* Only visible in Windows High Contrast mode */
@@ -455,6 +455,26 @@
 
 .media-sidebar .checkbox-label-inline {
 	font-size: 12px;
+}
+
+.media-sidebar .copy-to-clipboard-container,
+.attachment-details .copy-to-clipboard-container {
+	flex-wrap: wrap;
+	margin-top: 10px;
+	margin-left: calc( 35% - 1px );
+	padding-top: 10px;
+}
+
+/* Needs high specificity. */
+.attachment-details .attachment-info .copy-to-clipboard-container {
+	float: none;
+}
+
+.media-sidebar .copy-to-clipboard-container .success,
+.attachment-details .copy-to-clipboard-container .success {
+	padding: 0;
+	min-height: 0;
+	text-align: left;
 }
 
 .compat-item label span {
@@ -1577,7 +1597,7 @@
 
 .media-selection .button-link:hover,
 .media-selection .button-link:focus {
-	color: #00a0d2;
+	color: #006799;
 }
 
 .media-selection .button-link:last-child {
@@ -1978,7 +1998,8 @@
 	display: block;
 }
 
-.media-modal .imgedit-wrap div.updated {
+.media-modal .imgedit-wrap div.updated, /* Back-compat for pre-5.5 */
+.media-modal .imgedit-wrap .notice {
 	margin: 0;
 	margin-bottom: 16px;
 }
@@ -2539,6 +2560,18 @@
 		padding: 8px 2px 2px;
 	}
 
+	/* Needs high specificity. */
+	.media-sidebar .setting .copy-to-clipboard-container,
+	.attachment-details .attachment-info .copy-to-clipboard-container {
+		margin-left: 0;
+		padding-top: 0;
+	}
+
+	.media-sidebar .setting .copy-attachment-url,
+	.attachment-details .attachment-info .copy-attachment-url {
+		margin: 0 1px;
+	}
+
 	.media-sidebar .setting .value,
 	.attachment-details .setting .value {
 		float: none;
@@ -2712,11 +2745,15 @@
 	.media-frame-toolbar .media-toolbar {
 		bottom: -54px;
 	}
-}
 
-@media screen and (max-width: 782px) {
 	.mode-grid .attachments-browser .media-toolbar-primary {
 		display: block;
+	}
+
+	.media-sidebar .copy-to-clipboard-container .success,
+	.attachment-details .copy-to-clipboard-container .success {
+		font-size: 14px;
+		line-height: 2.71428571;
 	}
 }
 

@@ -11,7 +11,7 @@
  * @param {jQuery}  $                                   jQuery object.
  * @param {object}  wp                                  WP object.
  * @param {object}  settings                            WP Updates settings.
- * @param {string}  settings.ajax_nonce                 AJAX nonce.
+ * @param {string}  settings.ajax_nonce                 Ajax nonce.
  * @param {object=} settings.plugins                    Base names of plugins in their different states.
  * @param {Array}   settings.plugins.all                Base names of all plugins.
  * @param {Array}   settings.plugins.active             Base names of active plugins.
@@ -1531,9 +1531,9 @@
 	 * @since 4.6.0
 	 * @private
 	 *
-	 * @param {object} data   AJAX payload.
+	 * @param {object} data   Ajax payload.
 	 * @param {string} action The type of request to perform.
-	 * @return {object} The AJAX payload with the appropriate callbacks.
+	 * @return {object} The Ajax payload with the appropriate callbacks.
 	 */
 	wp.updates._addCallbacks = function( data, action ) {
 		if ( 'import' === pagenow && 'install-plugin' === action ) {
@@ -1769,7 +1769,7 @@
 	};
 
 	/**
-	 * Validates an AJAX response to ensure it's a proper object.
+	 * Validates an Ajax response to ensure it's a proper object.
 	 *
 	 * If the response deems to be invalid, an admin notice is being displayed.
 	 *
@@ -2719,7 +2719,7 @@
 			}
 
 			// Clear any previous errors.
-			$parent.find( '.notice.error' ).addClass( 'hidden' );
+			$parent.find( '.notice.notice-error' ).addClass( 'hidden' );
 
 			// Show loading status.
 			if ( 'enable' === action ) {
@@ -2752,7 +2752,7 @@
 							errorMessage = __( 'The request could not be completed.' );
 						}
 
-						$parent.find( '.notice.error' ).removeClass( 'hidden' ).find( 'p' ).text( errorMessage );
+						$parent.find( '.notice.notice-error' ).removeClass( 'hidden' ).find( 'p' ).text( errorMessage );
 						wp.a11y.speak( errorMessage, 'polite' );
 						return;
 					}
@@ -2808,7 +2808,7 @@
 					$document.trigger( 'wp-auto-update-setting-changed', { state: action, type: type, asset: asset } );
 				} )
 				.fail( function() {
-					$parent.find( '.notice.error' )
+					$parent.find( '.notice.notice-error' )
 						.removeClass( 'hidden' )
 						.find( 'p' )
 						.text( __( 'The request could not be completed.' ) );

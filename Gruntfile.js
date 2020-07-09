@@ -748,6 +748,10 @@ module.exports = function(grunt) {
 				src: WORKING_DIR + 'wp-includes/js/jquery/jquery.form.js',
 				dest: WORKING_DIR + 'wp-includes/js/jquery/jquery.form.min.js'
 			},
+			moment: {
+				src: WORKING_DIR + 'wp-includes/js/dist/vendor/moment.js',
+				dest: WORKING_DIR + 'wp-includes/js/dist/vendor/moment.min.js'
+			},
 			dynamic: {
 				expand: true,
 				cwd: WORKING_DIR,
@@ -1027,7 +1031,7 @@ module.exports = function(grunt) {
 					patterns: [
 						{
 							match: /\/\/ START: emoji arrays[\S\s]*\/\/ END: emoji arrays/g,
-							replacement: function () {
+							replacement: function() {
 								var regex, files,
 									partials, partialsSet,
 									entities, emojiArray;
@@ -1053,7 +1057,7 @@ module.exports = function(grunt) {
 								entities = entities.replace( /-/g, '' );
 
 								// Sort the entities list by length, so the longest emoji will be found first.
-								emojiArray = entities.split( '\n' ).sort( function ( a, b ) {
+								emojiArray = entities.split( '\n' ).sort( function( a, b ) {
 									return b.length - a.length;
 								} );
 
@@ -1091,6 +1095,26 @@ module.exports = function(grunt) {
 							SOURCE_DIR + 'wp-includes/formatting.php'
 						],
 						dest: SOURCE_DIR + 'wp-includes/'
+					}
+				]
+			},
+			emojiBannerText: {
+				options: {
+					patterns: [
+						{
+							match: new RegExp( '\\s*' + BANNER_TEXT.replace( /[\/\*\!]/g, '\\$&' ) ),
+							replacement: ''
+						}
+					]
+				},
+				files: [
+					{
+						expand: true,
+						flatten: true,
+						src: [
+							BUILD_DIR + 'wp-includes/formatting.php'
+						],
+						dest: BUILD_DIR + 'wp-includes/'
 					}
 				]
 			}
@@ -1222,6 +1246,7 @@ module.exports = function(grunt) {
 		'jshint:corejs',
 		'uglify:imgareaselect',
 		'uglify:jqueryform',
+		'uglify:moment',
 		'qunit:compiled'
 	] );
 
@@ -1362,7 +1387,8 @@ module.exports = function(grunt) {
 		'uglify:embed',
 		'uglify:jqueryui',
 		'uglify:imgareaselect',
-		'uglify:jqueryform'
+		'uglify:jqueryform',
+		'uglify:moment'
 	] );
 
 	grunt.registerTask( 'build:webpack', [
@@ -1413,6 +1439,7 @@ module.exports = function(grunt) {
 				'build:css',
 				'includes:emoji',
 				'includes:embed',
+				'replace:emojiBannerText'
 			] );
 		}
 	} );

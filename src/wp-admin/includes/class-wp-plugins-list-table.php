@@ -47,10 +47,10 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			)
 		);
 
-		$status_whitelist = array( 'active', 'inactive', 'recently_activated', 'upgrade', 'mustuse', 'dropins', 'search', 'paused', 'auto-update-enabled', 'auto-update-disabled' );
+		$allowed_statuses = array( 'active', 'inactive', 'recently_activated', 'upgrade', 'mustuse', 'dropins', 'search', 'paused', 'auto-update-enabled', 'auto-update-disabled' );
 
 		$status = 'all';
-		if ( isset( $_REQUEST['plugin_status'] ) && in_array( $_REQUEST['plugin_status'], $status_whitelist, true ) ) {
+		if ( isset( $_REQUEST['plugin_status'] ) && in_array( $_REQUEST['plugin_status'], $allowed_statuses, true ) ) {
 			$status = $_REQUEST['plugin_status'];
 		}
 
@@ -60,9 +60,10 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 		$page = $this->get_pagenum();
 
-		$this->show_autoupdates = wp_is_auto_update_enabled_for_type( 'plugin' ) &&
-			current_user_can( 'update_plugins' ) &&
-			( ! is_multisite() || $this->screen->in_admin( 'network' ) );
+		$this->show_autoupdates = wp_is_auto_update_enabled_for_type( 'plugin' )
+			&& current_user_can( 'update_plugins' )
+			&& ( ! is_multisite() || $this->screen->in_admin( 'network' ) )
+			&& ! in_array( $status, array( 'mustuse', 'dropins' ), true );
 	}
 
 	/**
@@ -676,10 +677,21 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 */
 	public function single_row( $item ) {
 		global $status, $page, $s, $totals;
+		static $plugin_id_attrs = array();
 
 		list( $plugin_file, $plugin_data ) = $item;
 
-		$plugin_slug = isset( $plugin_data['slug'] ) ? $plugin_data['slug'] : sanitize_title( $plugin_data['Name'] );
+		$plugin_slug    = isset( $plugin_data['slug'] ) ? $plugin_data['slug'] : sanitize_title( $plugin_data['Name'] );
+		$plugin_id_attr = $plugin_slug;
+
+		// Ensure the ID attribute is unique.
+		$suffix = 2;
+		while ( in_array( $plugin_id_attr, $plugin_id_attrs, true ) ) {
+			$plugin_id_attr = "$plugin_slug-$suffix";
+			$suffix++;
+		}
+
+		$plugin_id_attrs[] = $plugin_id_attr;
 
 		$context = $status;
 		$screen  = $this->screen;
@@ -738,7 +750,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						$actions['deactivate'] = sprintf(
 							'<a href="%s" id="deactivate-%s" aria-label="%s">%s</a>',
 							wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'deactivate-plugin_' . $plugin_file ),
-							esc_attr( $plugin_slug ),
+							esc_attr( $plugin_id_attr ),
 							/* translators: %s: Plugin name. */
 							esc_attr( sprintf( _x( 'Network Deactivate %s', 'plugin' ), $plugin_data['Name'] ) ),
 							__( 'Network Deactivate' )
@@ -749,7 +761,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						$actions['activate'] = sprintf(
 							'<a href="%s" id="activate-%s" class="edit" aria-label="%s">%s</a>',
 							wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'activate-plugin_' . $plugin_file ),
-							esc_attr( $plugin_slug ),
+							esc_attr( $plugin_id_attr ),
 							/* translators: %s: Plugin name. */
 							esc_attr( sprintf( _x( 'Network Activate %s', 'plugin' ), $plugin_data['Name'] ) ),
 							__( 'Network Activate' )
@@ -760,7 +772,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						$actions['delete'] = sprintf(
 							'<a href="%s" id="delete-%s" class="delete" aria-label="%s">%s</a>',
 							wp_nonce_url( 'plugins.php?action=delete-selected&amp;checked[]=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'bulk-plugins' ),
-							esc_attr( $plugin_slug ),
+							esc_attr( $plugin_id_attr ),
 							/* translators: %s: Plugin name. */
 							esc_attr( sprintf( _x( 'Delete %s', 'plugin' ), $plugin_data['Name'] ) ),
 							__( 'Delete' )
@@ -781,7 +793,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						$actions['deactivate'] = sprintf(
 							'<a href="%s" id="deactivate-%s" aria-label="%s">%s</a>',
 							wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'deactivate-plugin_' . $plugin_file ),
-							esc_attr( $plugin_slug ),
+							esc_attr( $plugin_id_attr ),
 							/* translators: %s: Plugin name. */
 							esc_attr( sprintf( _x( 'Deactivate %s', 'plugin' ), $plugin_data['Name'] ) ),
 							__( 'Deactivate' )
@@ -792,7 +804,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						$actions['resume'] = sprintf(
 							'<a href="%s" id="resume-%s" class="resume-link" aria-label="%s">%s</a>',
 							wp_nonce_url( 'plugins.php?action=resume&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'resume-plugin_' . $plugin_file ),
-							esc_attr( $plugin_slug ),
+							esc_attr( $plugin_id_attr ),
 							/* translators: %s: Plugin name. */
 							esc_attr( sprintf( _x( 'Resume %s', 'plugin' ), $plugin_data['Name'] ) ),
 							__( 'Resume' )
@@ -803,7 +815,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						$actions['activate'] = sprintf(
 							'<a href="%s" id="activate-%s" class="edit" aria-label="%s">%s</a>',
 							wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'activate-plugin_' . $plugin_file ),
-							esc_attr( $plugin_slug ),
+							esc_attr( $plugin_id_attr ),
 							/* translators: %s: Plugin name. */
 							esc_attr( sprintf( _x( 'Activate %s', 'plugin' ), $plugin_data['Name'] ) ),
 							__( 'Activate' )
@@ -814,7 +826,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						$actions['delete'] = sprintf(
 							'<a href="%s" id="delete-%s" class="delete" aria-label="%s">%s</a>',
 							wp_nonce_url( 'plugins.php?action=delete-selected&amp;checked[]=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'bulk-plugins' ),
-							esc_attr( $plugin_slug ),
+							esc_attr( $plugin_id_attr ),
 							/* translators: %s: Plugin name. */
 							esc_attr( sprintf( _x( 'Delete %s', 'plugin' ), $plugin_data['Name'] ) ),
 							__( 'Delete' )
@@ -1006,16 +1018,17 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					 *
 					 * @since 2.8.0
 					 *
-					 * @param string[] $plugin_meta An array of the plugin's metadata,
-					 *                              including the version, author,
-					 *                              author URI, and plugin URI.
+					 * @param string[] $plugin_meta An array of the plugin's metadata, including
+					 *                              the version, author, author URI, and plugin URI.
 					 * @param string   $plugin_file Path to the plugin file relative to the plugins directory.
 					 * @param array    $plugin_data An array of plugin data.
-					 * @param string   $status      Status of the plugin. Defaults are 'All', 'Active',
-					 *                              'Inactive', 'Recently Activated', 'Upgrade', 'Must-Use',
-					 *                              'Drop-ins', 'Search', 'Paused'.
+					 * @param string   $status      Status filter currently applied to the plugin list. Possible
+					 *                              values are: 'all', 'active', 'inactive', 'recently_activated',
+					 *                              'upgrade', 'mustuse', 'dropins', 'search', 'paused',
+					 *                              'auto-update-enabled', 'auto-update-disabled'.
 					 */
 					$plugin_meta = apply_filters( 'plugin_row_meta', $plugin_meta, $plugin_file, $plugin_data, $status );
+
 					echo implode( ' | ', $plugin_meta );
 
 					echo '</div>';
@@ -1041,6 +1054,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 					echo "<td class='column-auto-updates{$extra_classes}'>";
 
+					$html = array();
+
 					if ( in_array( $plugin_file, $auto_updates, true ) ) {
 						$text       = __( 'Disable auto-updates' );
 						$action     = 'disable';
@@ -1060,27 +1075,41 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 					$url = add_query_arg( $query_args, 'plugins.php' );
 
-					printf(
+					$html[] = sprintf(
 						'<a href="%s" class="toggle-auto-update" data-wp-action="%s">',
 						wp_nonce_url( $url, 'updates' ),
 						$action
 					);
 
-					echo '<span class="dashicons dashicons-update spin hidden"></span>';
-					echo '<span class="label">' . $text . '</span>';
-					echo '</a>';
+					$html[] = '<span class="dashicons dashicons-update spin hidden" aria-hidden="true"></span>';
+					$html[] = '<span class="label">' . $text . '</span>';
+					$html[] = '</a>';
 
 					$available_updates = get_site_transient( 'update_plugins' );
 
 					if ( isset( $available_updates->response[ $plugin_file ] ) ) {
-						printf(
+						$html[] = sprintf(
 							'<div class="auto-update-time%s">%s</div>',
 							$time_class,
 							wp_get_auto_update_message()
 						);
 					}
 
-					echo '<div class="inline notice error hidden"><p></p></div>';
+					$html = implode( '', $html );
+
+					/**
+					 * Filters the HTML of the auto-updates setting for each plugin in the Plugins list table.
+					 *
+					 * @since 5.5.0
+					 *
+					 * @param string $html        The HTML of the plugin's auto-update column content, including
+					 *                            toggle auto-update action links and time to next update.
+					 * @param string $plugin_file Path to the plugin file relative to the plugins directory.
+					 * @param array  $plugin_data An array of plugin data.
+					 */
+					echo apply_filters( 'plugin_auto_update_setting_html', $html, $plugin_file, $plugin_data );
+
+					echo '<div class="notice notice-error notice-alt inline hidden"><p></p></div>';
 					echo '</td>';
 
 					break;
@@ -1110,14 +1139,14 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		 * Fires after each row in the Plugins list table.
 		 *
 		 * @since 2.3.0
-		 * @since 5.5.0 Added 'Auto-updates Enabled' and 'Auto-updates Disabled' `$status`.
+		 * @since 5.5.0 Added 'auto-update-enabled' and 'auto-update-disabled' to possible values for `$status`.
 		 *
 		 * @param string $plugin_file Path to the plugin file relative to the plugins directory.
 		 * @param array  $plugin_data An array of plugin data.
-		 * @param string $status      Status of the plugin. Defaults are 'All', 'Active',
-		 *                            'Inactive', 'Recently Activated', 'Upgrade', 'Must-Use',
-		 *                            'Drop-ins', 'Search', 'Paused', 'Auto-updates Enabled',
-		 *                            'Auto-updates Disabled'.
+		 * @param string $status      Status filter currently applied to the plugin list. Possible
+		 *                            values are: 'all', 'active', 'inactive', 'recently_activated',
+		 *                            'upgrade', 'mustuse', 'dropins', 'search', 'paused',
+		 *                            'auto-update-enabled', 'auto-update-disabled'.
 		 */
 		do_action( 'after_plugin_row', $plugin_file, $plugin_data, $status );
 
@@ -1128,14 +1157,14 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		 * to the plugin file, relative to the plugins directory.
 		 *
 		 * @since 2.7.0
-		 * @since 5.5.0 Added 'Auto-updates Enabled' and 'Auto-updates Disabled' `$status`.
+		 * @since 5.5.0 Added 'auto-update-enabled' and 'auto-update-disabled' to possible values for `$status`.
 		 *
 		 * @param string $plugin_file Path to the plugin file relative to the plugins directory.
 		 * @param array  $plugin_data An array of plugin data.
-		 * @param string $status      Status of the plugin. Defaults are 'All', 'Active',
-		 *                            'Inactive', 'Recently Activated', 'Upgrade', 'Must-Use',
-		 *                            'Drop-ins', 'Search', 'Paused', 'Auto-updates Enabled',
-		 *                            'Auto-updates Disabled'.
+		 * @param string $status      Status filter currently applied to the plugin list. Possible
+		 *                            values are: 'all', 'active', 'inactive', 'recently_activated',
+		 *                            'upgrade', 'mustuse', 'dropins', 'search', 'paused',
+		 *                            'auto-update-enabled', 'auto-update-disabled'.
 		 */
 		do_action( "after_plugin_row_{$plugin_file}", $plugin_file, $plugin_data, $status );
 	}

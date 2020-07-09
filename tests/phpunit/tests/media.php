@@ -862,7 +862,7 @@ VIDEO;
 	}
 
 	/**
-	 * @ticket  35367
+	 * @ticket 35367
 	 * @depends test_video_shortcode_body
 	 */
 	function test_wp_video_shortcode_with_empty_params() {
@@ -870,7 +870,7 @@ VIDEO;
 	}
 
 	/**
-	 * @ticket  35367
+	 * @ticket 35367
 	 * @depends test_video_shortcode_body
 	 */
 	function test_wp_video_shortcode_with_bad_attr() {
@@ -885,7 +885,7 @@ VIDEO;
 	}
 
 	/**
-	 * @ticket  35367
+	 * @ticket 35367
 	 * @depends test_video_shortcode_body
 	 */
 	function test_wp_video_shortcode_attributes() {
@@ -1473,7 +1473,7 @@ EOF;
 		$expected = '';
 
 		foreach ( $image_meta['sizes'] as $name => $size ) {
-			// Whitelist the sizes that should be included so we pick up 'medium_large' in 4.4.
+			// Allow the sizes that should be included so we pick up 'medium_large' in 4.4.
 			if ( in_array( $name, $intermediates, true ) ) {
 				$expected .= $uploads_dir_url . $year_month . '/' . $size['file'] . ' ' . $size['width'] . 'w, ';
 			}
@@ -1518,7 +1518,7 @@ EOF;
 		$expected = '';
 
 		foreach ( $image_meta['sizes'] as $name => $size ) {
-			// Whitelist the sizes that should be included so we pick up 'medium_large' in 4.4.
+			// Allow the sizes that should be included so we pick up 'medium_large' in 4.4.
 			if ( in_array( $name, $intermediates, true ) ) {
 				$expected .= $uploads_dir_url . $size['file'] . ' ' . $size['width'] . 'w, ';
 			}
@@ -1595,7 +1595,7 @@ EOF;
 		$expected = '';
 
 		foreach ( $image_meta['sizes'] as $name => $size ) {
-			// Whitelist the sizes that should be included so we pick up 'medium_large' in 4.4.
+			// Allow the sizes that should be included so we pick up 'medium_large' in 4.4.
 			if ( in_array( $name, $intermediates, true ) ) {
 				$expected .= $uploads_dir_url . $year_month . '/' . $size['file'] . ' ' . $size['width'] . 'w, ';
 			}
@@ -1874,7 +1874,7 @@ EOF;
 		$expected = '';
 
 		foreach ( $image_meta['sizes'] as $name => $size ) {
-			// Whitelist the sizes that should be included so we pick up 'medium_large' in 4.4.
+			// Allow the sizes that should be included so we pick up 'medium_large' in 4.4.
 			if ( in_array( $name, $intermediates, true ) ) {
 				$expected .= $uploads_dir . $year_month . '/' . $size['file'] . ' ' . $size['width'] . 'w, ';
 			}
@@ -1964,7 +1964,7 @@ EOF;
 	/**
 	 * @ticket 33641
 	 */
-	function test_wp_filter_content_tags() {
+	function test_wp_filter_content_tags_srcset_sizes() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
 		$size_array = $this->_get_image_size_array_from_meta( $image_meta, 'medium' );
 
@@ -1973,7 +1973,6 @@ EOF;
 
 		// Function used to build HTML for the editor.
 		$img                  = get_image_tag( self::$large_id, '', '', '', 'medium' );
-		$img                  = wp_img_tag_add_loading_attr( $img, 'test' );
 		$img_no_size_in_class = str_replace( 'size-', '', $img );
 		$img_no_width_height  = str_replace( ' width="' . $size_array[0] . '"', '', $img );
 		$img_no_width_height  = str_replace( ' height="' . $size_array[1] . '"', '', $img_no_width_height );
@@ -2015,7 +2014,14 @@ EOF;
 		$content_unfiltered = sprintf( $content, $img, $img_no_size_in_class, $img_no_width_height, $img_no_size_id, $img_with_sizes_attr, $img_xhtml, $img_html5 );
 		$content_filtered   = sprintf( $content, $respimg, $respimg_no_size_in_class, $respimg_no_width_height, $img_no_size_id, $respimg_with_sizes_attr, $respimg_xhtml, $respimg_html5 );
 
+		// Do not add width, height, and loading.
+		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
+		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
+
 		$this->assertSame( $content_filtered, wp_filter_content_tags( $content_unfiltered ) );
+
+		remove_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
+		remove_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
 	}
 
 	/**
@@ -2029,7 +2035,7 @@ EOF;
 	 * @ticket 34898
 	 * @ticket 33641
 	 */
-	function test_wp_filter_content_tags_wrong() {
+	function test_wp_filter_content_tags_srcset_sizes_wrong() {
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
 
@@ -2042,7 +2048,7 @@ EOF;
 	/**
 	 * @ticket 33641
 	 */
-	function test_wp_filter_content_tags_with_preexisting_srcset() {
+	function test_wp_filter_content_tags_srcset_sizes_with_preexisting_srcset() {
 		// Generate HTML and add a dummy srcset attribute.
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
@@ -2529,13 +2535,63 @@ EOF;
 	}
 
 	/**
-	 * @ticket 44427
+	 * @ticket 50367
 	 */
-	function test_wp_lazy_load_content_media() {
-		$img       = get_image_tag( self::$large_id, '', '', '', 'medium' );
-		$img_xhtml = str_replace( ' />', '/>', $img );
-		$img_html5 = str_replace( ' />', '>', $img );
-		$iframe    = '<iframe src="https://www.example.com"></iframe>';
+	function test_wp_filter_content_tags_width_height() {
+		$image_meta = wp_get_attachment_metadata( self::$large_id );
+		$size_array = $this->_get_image_size_array_from_meta( $image_meta, 'medium' );
+
+		$img                 = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$img_no_width_height = str_replace( ' width="' . $size_array[0] . '"', '', $img );
+		$img_no_width_height = str_replace( ' height="' . $size_array[1] . '"', '', $img_no_width_height );
+		$img_no_width        = str_replace( ' width="' . $size_array[0] . '"', '', $img );
+		$img_no_height       = str_replace( ' height="' . $size_array[1] . '"', '', $img );
+
+		$hwstring = image_hwstring( $size_array[0], $size_array[1] );
+
+		// Manually add width and height to the markup from get_image_tag().
+		$respimg_no_width_height = str_replace( '<img ', '<img ' . $hwstring, $img_no_width_height );
+
+		$content = '
+			<p>Image, with width and height. Should NOT be modified.</p>
+			%1$s
+
+			<p>Image, no width and height attributes. Should have width, height, srcset and sizes (from matching the file name).</p>
+			%2$s
+
+			<p>Image, no width but height attribute. Should NOT be modified.</p>
+			%3$s
+
+			<p>Image, no height but width attribute. Should NOT be modified.</p>
+			%4$s';
+
+		$content_unfiltered = sprintf( $content, $img, $img_no_width_height, $img_no_width, $img_no_height );
+		$content_filtered   = sprintf( $content, $img, $respimg_no_width_height, $img_no_width, $img_no_height );
+
+		// Do not add loading, srcset, and sizes.
+		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
+		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+
+		$this->assertSame( $content_filtered, wp_filter_content_tags( $content_unfiltered ) );
+
+		remove_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
+		remove_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
+	}
+
+	/**
+	 * @ticket 44427
+	 * @ticket 50367
+	 */
+	function test_wp_filter_content_tags_loading_lazy() {
+		$image_meta = wp_get_attachment_metadata( self::$large_id );
+		$size_array = $this->_get_image_size_array_from_meta( $image_meta, 'medium' );
+
+		$img                 = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$img_xhtml           = str_replace( ' />', '/>', $img );
+		$img_html5           = str_replace( ' />', '>', $img );
+		$img_no_width_height = str_replace( ' width="' . $size_array[0] . '"', '', $img );
+		$img_no_width_height = str_replace( ' height="' . $size_array[1] . '"', '', $img_no_width_height );
+		$iframe              = '<iframe src="https://www.example.com"></iframe>';
 
 		$lazy_img       = wp_img_tag_add_loading_attr( $img, 'test' );
 		$lazy_img_xhtml = wp_img_tag_add_loading_attr( $img_xhtml, 'test' );
@@ -2551,26 +2607,30 @@ EOF;
 			%2$s
 			<p>Image, HTML 5.0 style.</p>
 			%3$s
-			<p>Image, with pre-existing "loading" attribute.</p>
+			<p>Image, with pre-existing "loading" attribute. Should not be modified.</p>
+			%4$s
+			<p>Image, without dimension attributes. Should not be modified.</p>
 			%5$s
 			<p>Iframe, standard. Should not be modified.</p>
-			%4$s';
+			%6$s';
 
-		$content_unfiltered = sprintf( $content, $img, $img_xhtml, $img_html5, $iframe, $img_eager );
-		$content_filtered   = sprintf( $content, $lazy_img, $lazy_img_xhtml, $lazy_img_html5, $iframe, $img_eager );
+		$content_unfiltered = sprintf( $content, $img, $img_xhtml, $img_html5, $img_eager, $img_no_width_height, $iframe );
+		$content_filtered   = sprintf( $content, $lazy_img, $lazy_img_xhtml, $lazy_img_html5, $img_eager, $img_no_width_height, $iframe );
 
-		// Do not add srcset and sizes.
+		// Do not add width, height, srcset, and sizes.
+		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
 
 		$this->assertSame( $content_filtered, wp_filter_content_tags( $content_unfiltered ) );
 
+		remove_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
 		remove_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
 	}
 
 	/**
 	 * @ticket 44427
 	 */
-	function test_wp_lazy_load_content_media_opted_in() {
+	function test_wp_filter_content_tags_loading_lazy_opted_in() {
 		$img      = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$lazy_img = wp_img_tag_add_loading_attr( $img, 'test' );
 
@@ -2595,7 +2655,7 @@ EOF;
 	/**
 	 * @ticket 44427
 	 */
-	function test_wp_lazy_load_content_media_opted_out() {
+	function test_wp_filter_content_tags_loading_lazy_opted_out() {
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
 
 		$content = '
@@ -2616,12 +2676,181 @@ EOF;
 
 	/**
 	 * @ticket 44427
+	 * @ticket 50367
 	 */
-	function test_wp_img_tag_add_loading_attr_single_quote() {
-		$img = "<img src='example.png' alt='' width='300' height='225' />";
+	function test_wp_img_tag_add_loading_attr() {
+		$img = '<img src="example.png" alt=" width="300" height="225" />';
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
 
-		$this->assertContains( " loading='lazy'", $img );
+		$this->assertContains( ' loading="lazy"', $img );
+	}
+
+	/**
+	 * @ticket 44427
+	 * @ticket 50367
+	 */
+	function test_wp_img_tag_add_loading_attr_without_src() {
+		$img = '<img alt=" width="300" height="225" />';
+		$img = wp_img_tag_add_loading_attr( $img, 'test' );
+
+		$this->assertNotContains( ' loading=', $img );
+	}
+
+	/**
+	 * @ticket 44427
+	 * @ticket 50367
+	 */
+	function test_wp_img_tag_add_loading_attr_with_single_quotes() {
+		$img = "<img src='example.png' alt=' width='300' height='225' />";
+		$img = wp_img_tag_add_loading_attr( $img, 'test' );
+
+		$this->assertNotContains( ' loading=', $img );
+
+		// Test specifically that the attribute is not there with double-quotes,
+		// to avoid regressions.
+		$this->assertNotContains( ' loading="lazy"', $img );
+	}
+
+	/**
+	 * @ticket 44427
+	 * @ticket 50425
+	 */
+	function test_wp_img_tag_add_loading_attr_opt_out() {
+		$img = '<img src="example.png" alt=" width="300" height="225" />';
+		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
+
+		$this->assertNotContains( ' loading=', $img );
+	}
+
+	/**
+	 * @ticket 44427
+	 * @ticket 50425
+	 */
+	function test_wp_get_attachment_image_loading() {
+		$img = wp_get_attachment_image( self::$large_id );
+
+		$this->assertContains( ' loading="lazy"', $img );
+	}
+
+	/**
+	 * @ticket 44427
+	 * @ticket 50425
+	 */
+	function test_wp_get_attachment_image_loading_opt_out() {
+		add_filter( 'wp_lazy_loading_enabled', '__return_false' );
+		$img = wp_get_attachment_image( self::$large_id );
+
+		// There should not be any loading attribute in this case.
+		$this->assertNotContains( ' loading=', $img );
+	}
+
+	/**
+	 * @ticket 44427
+	 * @ticket 50425
+	 */
+	function test_wp_get_attachment_image_loading_opt_out_individual() {
+		// The default is already tested above, the filter below ensures that
+		// lazy-loading is definitely enabled globally for images.
+		add_filter( 'wp_lazy_loading_enabled', '__return_true' );
+
+		$img = wp_get_attachment_image( self::$large_id, 'thumbnail', false, array( 'loading' => false ) );
+
+		// There should not be any loading attribute in this case.
+		$this->assertNotContains( ' loading=', $img );
+	}
+
+	/**
+	 * @ticket 44427
+	 * @ticket 50425
+	 * @dataProvider data_wp_lazy_loading_enabled_tag_name_defaults
+	 *
+	 * @param string $tag_name Tag name.
+	 * @param bool   $expected Expected return value.
+	 */
+	function test_wp_lazy_loading_enabled_tag_name_defaults( $tag_name, $expected ) {
+		if ( $expected ) {
+			$this->assertTrue( wp_lazy_loading_enabled( $tag_name, 'the_content' ) );
+		} else {
+			$this->assertFalse( wp_lazy_loading_enabled( $tag_name, 'the_content' ) );
+		}
+	}
+
+	function data_wp_lazy_loading_enabled_tag_name_defaults() {
+		return array(
+			'img => true'            => array( 'img', true ),
+			'iframe => false'        => array( 'iframe', false ),
+			'arbitrary tag => false' => array( 'blink', false ),
+		);
+	}
+
+	/**
+	 * @ticket 50425
+	 * @dataProvider data_wp_lazy_loading_enabled_context_defaults
+	 *
+	 * @param string $context  Function context.
+	 * @param bool   $expected Expected return value.
+	 */
+	function test_wp_lazy_loading_enabled_context_defaults( $context, $expected ) {
+		if ( $expected ) {
+			$this->assertTrue( wp_lazy_loading_enabled( 'img', $context ) );
+		} else {
+			$this->assertFalse( wp_lazy_loading_enabled( 'img', $context ) );
+		}
+	}
+
+	function data_wp_lazy_loading_enabled_context_defaults() {
+		return array(
+			'wp_get_attachment_image => true' => array( 'wp_get_attachment_image', true ),
+			'the_content => true'             => array( 'the_content', true ),
+			'the_excerpt => true'             => array( 'the_excerpt', true ),
+			'widget_text_content => true'     => array( 'widget_text_content', true ),
+			'get_avatar => true'              => array( 'get_avatar', true ),
+			'arbitrary context => true'       => array( 'something_completely_arbitrary', true ),
+		);
+	}
+
+	/**
+	 * @ticket 50543
+	 */
+	function test_wp_image_file_matches_image_meta() {
+		$image_meta       = wp_get_attachment_metadata( self::$large_id );
+		$image_src_full   = wp_get_attachment_image_url( self::$large_id, 'full' );
+		$image_src_medium = wp_get_attachment_image_url( self::$large_id, 'medium' );
+
+		$this->assertTrue( wp_image_file_matches_image_meta( $image_src_full, $image_meta ) );
+		$this->assertTrue( wp_image_file_matches_image_meta( $image_src_medium, $image_meta ) );
+	}
+
+	/**
+	 * @ticket 50543
+	 */
+	function test_wp_image_file_matches_image_meta_no_subsizes() {
+		$image_meta = wp_get_attachment_metadata( self::$large_id );
+		$image_src  = wp_get_attachment_image_url( self::$large_id, 'full' );
+
+		$image_meta['sizes'] = array();
+
+		$this->assertTrue( wp_image_file_matches_image_meta( $image_src, $image_meta ) );
+	}
+
+	/**
+	 * @ticket 50543
+	 */
+	function test_wp_image_file_matches_image_meta_invalid_meta() {
+		$image_meta = ''; // Attachment is not an image.
+		$image_src  = $this->img_url;
+
+		$this->assertFalse( wp_image_file_matches_image_meta( $image_src, $image_meta ) );
+	}
+
+	/**
+	 * @ticket 50543
+	 */
+	function test_wp_image_file_matches_image_meta_different_meta() {
+		$image_meta = wp_get_attachment_metadata( self::$large_id );
+		$image_src  = $this->img_url; // Different image.
+
+		$this->assertFalse( wp_image_file_matches_image_meta( $image_src, $image_meta ) );
 	}
 }
 

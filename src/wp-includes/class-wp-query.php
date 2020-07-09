@@ -718,9 +718,9 @@ class WP_Query {
 	 *     @type bool         $sentence                Whether to search by phrase. Default false.
 	 *     @type bool         $suppress_filters        Whether to suppress filters. Default false.
 	 *     @type string       $tag                     Tag slug. Comma-separated (either), Plus-separated (all).
-	 *     @type array        $tag__and                An array of tag ids (AND in).
-	 *     @type array        $tag__in                 An array of tag ids (OR in).
-	 *     @type array        $tag__not_in             An array of tag ids (NOT in).
+	 *     @type array        $tag__and                An array of tag IDs (AND in).
+	 *     @type array        $tag__in                 An array of tag IDs (OR in).
+	 *     @type array        $tag__not_in             An array of tag IDs (NOT in).
 	 *     @type int          $tag_id                  Tag id or comma-separated list of IDs.
 	 *     @type array        $tag_slug__and           An array of tag slugs (AND in).
 	 *     @type array        $tag_slug__in            An array of tag slugs (OR in). unless 'ignore_sticky_posts' is
@@ -965,7 +965,7 @@ class WP_Query {
 		}
 
 		if ( ! ( $this->is_singular || $this->is_archive || $this->is_search || $this->is_feed
-				|| ( defined( 'REST_REQUEST' ) && REST_REQUEST )
+				|| ( defined( 'REST_REQUEST' ) && REST_REQUEST && $this->is_main_query() )
 				|| $this->is_trackback || $this->is_404 || $this->is_admin || $this->is_robots || $this->is_favicon ) ) {
 			$this->is_home = true;
 		}
@@ -3235,10 +3235,12 @@ class WP_Query {
 			 *
 			 * @since 2.1.0
 			 *
-			 * @param string   $found_posts The query to run to find the found posts.
-			 * @param WP_Query $this        The WP_Query instance (passed by reference).
+			 * @param string   $found_posts_query The query to run to find the found posts.
+			 * @param WP_Query $this              The WP_Query instance (passed by reference).
 			 */
-			$this->found_posts = $wpdb->get_var( apply_filters_ref_array( 'found_posts_query', array( 'SELECT FOUND_ROWS()', &$this ) ) );
+			$found_posts_query = apply_filters_ref_array( 'found_posts_query', array( 'SELECT FOUND_ROWS()', &$this ) );
+
+			$this->found_posts = (int) $wpdb->get_var( $found_posts_query );
 		} else {
 			if ( is_array( $this->posts ) ) {
 				$this->found_posts = count( $this->posts );
@@ -3259,7 +3261,7 @@ class WP_Query {
 		 * @param int      $found_posts The number of posts found.
 		 * @param WP_Query $this        The WP_Query instance (passed by reference).
 		 */
-		$this->found_posts = apply_filters_ref_array( 'found_posts', array( $this->found_posts, &$this ) );
+		$this->found_posts = (int) apply_filters_ref_array( 'found_posts', array( $this->found_posts, &$this ) );
 
 		if ( ! empty( $limits ) ) {
 			$this->max_num_pages = ceil( $this->found_posts / $q['posts_per_page'] );
@@ -3317,7 +3319,7 @@ class WP_Query {
 	 *
 	 * @since 1.5.0
 	 *
-	 * @return bool True if posts are available, false if end of loop.
+	 * @return bool True if posts are available, false if end of the loop.
 	 */
 	public function have_posts() {
 		if ( $this->current_post + 1 < $this->post_count ) {
@@ -3378,6 +3380,7 @@ class WP_Query {
 	 * Sets up the current comment.
 	 *
 	 * @since 2.2.0
+	 *
 	 * @global WP_Comment $comment Global comment object.
 	 */
 	public function the_comment() {
@@ -3402,7 +3405,7 @@ class WP_Query {
 	 *
 	 * @since 2.2.0
 	 *
-	 * @return bool True, if more comments. False, if no more posts.
+	 * @return bool True if comments are available, false if no more comments.
 	 */
 	public function have_comments() {
 		if ( $this->current_comment + 1 < $this->comment_count ) {
@@ -4274,7 +4277,7 @@ class WP_Query {
 		$numpages     = $elements['numpages'];
 
 		/**
-		 * Fires once the post data has been setup.
+		 * Fires once the post data has been set up.
 		 *
 		 * @since 2.8.0
 		 * @since 4.1.0 Introduced `$this` parameter.
@@ -4293,7 +4296,7 @@ class WP_Query {
 	 * @since 5.2.0
 	 *
 	 * @param WP_Post|object|int $post WP_Post instance or Post ID/object.
-	 * @return array|bool $elements Elements of post or false on failure.
+	 * @return array|bool Elements of post or false on failure.
 	 */
 	public function generate_postdata( $post ) {
 

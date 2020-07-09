@@ -129,6 +129,92 @@ function wp_check_php_mysql_versions() {
 }
 
 /**
+ * Retrieves the current environment type.
+ *
+ * The type can be set via the `WP_ENVIRONMENT_TYPE` global system variable,
+ * a constant of the same name, or the {@see 'wp_get_environment_type'} filter.
+ *
+ * Possible values include 'development', 'staging', 'production'. If not set,
+ * the type defaults to 'production'.
+ *
+ * @since 5.5.0
+ *
+ * @return string The current environment type.
+ */
+function wp_get_environment_type() {
+	static $current_env = '';
+
+	if ( $current_env ) {
+		return $current_env;
+	}
+
+	$wp_environments = array(
+		'development',
+		'staging',
+		'production',
+	);
+
+	// Check if the environment variable has been set, if `getenv` is available on the system.
+	if ( function_exists( 'getenv' ) ) {
+		$has_env = getenv( 'WP_ENVIRONMENT_TYPES' );
+		if ( false !== $has_env ) {
+			$wp_environments = explode( ',', $has_env );
+		}
+	}
+
+	// Fetch the environment types from a constant, this overrides the global system variable.
+	if ( defined( 'WP_ENVIRONMENT_TYPES' ) ) {
+		$wp_environments = WP_ENVIRONMENT_TYPES;
+	}
+
+	/**
+	 * Filters the list of supported environment types.
+	 *
+	 * This filter runs before it can be used by plugins. It is designed for non-web runtimes.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param array $wp_environments The list of environment types. Possible values
+	 *                               include 'development', 'staging', 'production'.
+	 */
+	$wp_environments = apply_filters( 'wp_environment_types', $wp_environments );
+
+	// Check if the environment variable has been set, if `getenv` is available on the system.
+	if ( function_exists( 'getenv' ) ) {
+		$has_env = getenv( 'WP_ENVIRONMENT_TYPE' );
+		if ( false !== $has_env ) {
+			$current_env = $has_env;
+		}
+	}
+
+	// Fetch the environment from a constant, this overrides the global system variable.
+	if ( defined( 'WP_ENVIRONMENT_TYPE' ) ) {
+		$current_env = WP_ENVIRONMENT_TYPE;
+	}
+
+	/**
+	 * Filters the current environment type.
+	 *
+	 * This filter runs before it can be used by plugins. It is designed for
+	 * non-web runtimes. The value returned by this filter has a priority over both
+	 * the `WP_ENVIRONMENT_TYPE` system variable and a constant of the same name.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param string $current_env The current environment type. Possible values
+	 *                            include 'development', 'staging', 'production'.
+	 */
+	$current_env = apply_filters( 'wp_get_environment_type', $current_env );
+
+	// Make sure the environment is an allowed one, and not accidentally set to an invalid value.
+	if ( ! in_array( $current_env, $wp_environments, true ) ) {
+		$current_env = 'production';
+	}
+
+	return $current_env;
+}
+
+/**
  * Don't load all of WordPress when handling a favicon.ico request.
  *
  * Instead, send the headers for a zero-length favicon and bail.
@@ -198,7 +284,7 @@ function wp_is_maintenance_mode() {
 
 	require ABSPATH . '.maintenance';
 	// If the $upgrading timestamp is older than 10 minutes, consider maintenance over.
-	if ( ( time() - $upgrading ) >= 600 ) {
+	if ( ( time() - $upgrading ) >= 10 * MINUTE_IN_SECONDS ) {
 		return false;
 	}
 
@@ -559,6 +645,8 @@ function wp_start_object_cache() {
 		require_once ABSPATH . WPINC . '/cache.php';
 	}
 
+	require_once ABSPATH . WPINC . '/cache-compat.php';
+
 	/*
 	 * If cache supports reset, reset instead of init if already
 	 * initialized. Reset signals to the cache that global IDs
@@ -650,7 +738,7 @@ function wp_get_mu_plugins() {
  * @since 3.0.0
  * @access private
  *
- * @return string[] $plugin_file Array of paths to plugin files relative to the plugins directory.
+ * @return string[] Array of paths to plugin files relative to the plugins directory.
  */
 function wp_get_active_and_valid_plugins() {
 	$plugins        = array();
@@ -820,7 +908,7 @@ function is_protected_endpoint() {
 		return true;
 	}
 
-	// Protect AJAX actions that could help resolve a fatal error should be available.
+	// Protect Ajax actions that could help resolve a fatal error should be available.
 	if ( is_protected_ajax_action() ) {
 		return true;
 	}
@@ -830,21 +918,22 @@ function is_protected_endpoint() {
 	 *
 	 * This filter is only fired when an endpoint is requested which is not already protected by
 	 * WordPress core. As such, it exclusively allows providing further protected endpoints in
-	 * addition to the admin backend, login pages and protected AJAX actions.
+	 * addition to the admin backend, login pages and protected Ajax actions.
 	 *
 	 * @since 5.2.0
 	 *
-	 * @param bool $is_protected_endpoint Whether the currently requested endpoint is protected. Default false.
+	 * @param bool $is_protected_endpoint Whether the currently requested endpoint is protected.
+	 *                                    Default false.
 	 */
 	return (bool) apply_filters( 'is_protected_endpoint', false );
 }
 
 /**
- * Determines whether we are currently handling an AJAX action that should be protected against WSODs.
+ * Determines whether we are currently handling an Ajax action that should be protected against WSODs.
  *
  * @since 5.2.0
  *
- * @return bool True if the current AJAX action should be protected.
+ * @return bool True if the current Ajax action should be protected.
  */
 function is_protected_ajax_action() {
 	if ( ! wp_doing_ajax() ) {
@@ -867,13 +956,13 @@ function is_protected_ajax_action() {
 	);
 
 	/**
-	 * Filters the array of protected AJAX actions.
+	 * Filters the array of protected Ajax actions.
 	 *
-	 * This filter is only fired when doing AJAX and the AJAX request has an 'action' property.
+	 * This filter is only fired when doing Ajax and the Ajax request has an 'action' property.
 	 *
 	 * @since 5.2.0
 	 *
-	 * @param string[] $actions_to_protect Array of strings with AJAX actions to protect.
+	 * @param string[] $actions_to_protect Array of strings with Ajax actions to protect.
 	 */
 	$actions_to_protect = (array) apply_filters( 'wp_protected_ajax_actions', $actions_to_protect );
 
@@ -918,18 +1007,6 @@ function wp_magic_quotes() {
 	$_POST   = add_magic_quotes( $_POST );
 	$_COOKIE = add_magic_quotes( $_COOKIE );
 	$_SERVER = add_magic_quotes( $_SERVER );
-
-	/*
-	 * Revert the type change to string for two indexes which should retain their proper type.
-	 * Among other things, this preserves compatibility of WP with PHPUnit Code Coverage generation.
-	 */
-	if ( isset( $_SERVER['REQUEST_TIME'] ) ) {
-		$_SERVER['REQUEST_TIME'] = (int) $_SERVER['REQUEST_TIME'];
-	}
-
-	if ( isset( $_SERVER['REQUEST_TIME_FLOAT'] ) ) {
-		$_SERVER['REQUEST_TIME_FLOAT'] = (float) $_SERVER['REQUEST_TIME_FLOAT'];
-	}
 
 	// Force REQUEST to be GET + POST.
 	$_REQUEST = array_merge( $_GET, $_POST );
@@ -1135,8 +1212,6 @@ function get_current_network_id() {
  * @access private
  *
  * @global WP_Locale $wp_locale WordPress date and time locale object.
- *
- * @staticvar bool $loaded
  */
 function wp_load_translations_early() {
 	global $wp_locale;
@@ -1229,8 +1304,6 @@ function wp_load_translations_early() {
  *
  * @since 4.4.0
  *
- * @staticvar bool $installing
- *
  * @param bool $is_installing Optional. True to set WP into Installing mode, false to turn Installing mode off.
  *                            Omit this parameter if you only want to fetch the current status.
  * @return bool True if WP is installing, otherwise false. When a `$is_installing` is passed, the function will
@@ -1308,8 +1381,6 @@ function wp_convert_hr_to_bytes( $value ) {
  * Determines whether a PHP ini value is changeable at runtime.
  *
  * @since 4.6.0
- *
- * @staticvar array $ini_all
  *
  * @link https://www.php.net/manual/en/function.ini-get-all.php
  *

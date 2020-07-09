@@ -159,7 +159,7 @@ class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 					'use_quicktags' => '1',
 				),
 				array(
-					// This option is on a blacklist and should never exist.
+					// This option is disallowed and should never exist.
 					'use_quicktags' => false,
 				),
 			),
