@@ -1444,7 +1444,7 @@ function register_and_do_post_meta_boxes( $post ) {
 			reset( $revisions ); // Reset pointer for key().
 			$publish_callback_args = array(
 				'revisions_count'        => count( $revisions ),
-				'revision_id'            => key( $revisions ),
+				'revision_id'            => array_shift( $revisions ),
 				'__back_compat_meta_box' => true,
 			);
 			add_meta_box( 'revisionsdiv', __( 'Revisions' ), 'post_revisions_meta_box', null, 'normal', 'core', array( '__back_compat_meta_box' => true ) );
