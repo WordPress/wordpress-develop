@@ -68,17 +68,15 @@ module.exports = function(grunt) {
 							cascade: false
 						}),
 						postcssCustomProperties({
-							importFrom: [
-								{
-								  customProperties: {
-									  '--wp-admin-theme-color': '#0073aa',
-									  '--wp-admin-theme-color-darker-10': '#006290',
-									  '--wp-admin-theme-color-darker-20': '#005077',
-									  '--wp-admin-theme-color-lighter-20': '#0095dd',
-									  '--wp-admin-theme-color-lighter-40': '#11b2ff',
+							importFrom: [ {
+								customProperties: {
+									'--wp-admin-theme-color': '#0073aa',
+									'--wp-admin-theme-color-darker-10': '#006290',
+									'--wp-admin-theme-color-darker-20': '#005077',
+									'--wp-admin-theme-color-lighter-20': '#0095dd',
+									'--wp-admin-theme-color-lighter-40': '#11b2ff',
 								}
-								},
-							  ]
+							} ],
 						}),
 					]
 				},

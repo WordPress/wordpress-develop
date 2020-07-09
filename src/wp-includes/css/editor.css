@@ -495,8 +495,8 @@ div.mce-path {
 .mce-toolbar .mce-btn-group .mce-btn.mce-primary {
 	min-width: 0;
 	background: #0085ba;
-	border-color: var(--wp-admin-theme-color) #006799 #006799;
-	box-shadow: 0 1px 0 #006799;
+	border-color: var(--wp-admin-theme-color) var(--wp-admin-theme-color-darker-10) var(--wp-admin-theme-color-darker-10);
+	box-shadow: 0 1px 0 var(--wp-admin-theme-color-darker-10);
 	color: #fff;
 	text-decoration: none;
 	text-shadow: none;
@@ -514,7 +514,7 @@ div.mce-path {
 .mce-toolbar .mce-btn-group .mce-btn.mce-primary:hover,
 .mce-toolbar .mce-btn-group .mce-btn.mce-primary:focus {
 	background: var(--wp-admin-theme-color-lighter-20);
-	border-color: #006799;
+	border-color: var(--wp-admin-theme-color-darker-10);
 	color: #fff;
 }
 
@@ -524,8 +524,8 @@ div.mce-path {
 
 .mce-toolbar .mce-btn-group .mce-btn.mce-primary:active {
 	background: var(--wp-admin-theme-color);
-	border-color: #006799;
-	box-shadow: inset 0 2px 0 #006799;
+	border-color: var(--wp-admin-theme-color-darker-10);
+	box-shadow: inset 0 2px 0 var(--wp-admin-theme-color-darker-10);
 }
 
 /* mce listbox */
@@ -733,20 +733,20 @@ div.mce-menu .mce-menu-item-sep,
 
 .mce-window .mce-btn.mce-primary {
 	background: #0085ba;
-	border-color: var(--wp-admin-theme-color) #006799 #006799;
-	box-shadow: 0 1px 0 #006799;
+	border-color: var(--wp-admin-theme-color) var(--wp-admin-theme-color-darker-10) var(--wp-admin-theme-color-darker-10);
+	box-shadow: 0 1px 0 var(--wp-admin-theme-color-darker-10);
 	color: #fff;
 	text-decoration: none;
-	text-shadow: 0 -1px 1px #006799,
-		1px 0 1px #006799,
-		0 1px 1px #006799,
-		-1px 0 1px #006799;
+	text-shadow: 0 -1px 1px var(--wp-admin-theme-color-darker-10),
+		1px 0 1px var(--wp-admin-theme-color-darker-10),
+		0 1px 1px var(--wp-admin-theme-color-darker-10),
+		-1px 0 1px var(--wp-admin-theme-color-darker-10);
 }
 
 .mce-window .mce-btn.mce-primary:hover,
 .mce-window .mce-btn.mce-primary:focus {
 	background: var(--wp-admin-theme-color-lighter-20);
-	border-color: #006799;
+	border-color: var(--wp-admin-theme-color-darker-10);
 	color: #fff;
 }
 
@@ -757,8 +757,8 @@ div.mce-menu .mce-menu-item-sep,
 
 .mce-window .mce-btn.mce-primary:active {
 	background: var(--wp-admin-theme-color);
-	border-color: #006799;
-	box-shadow: inset 0 2px 0 #006799;
+	border-color: var(--wp-admin-theme-color-darker-10);
+	box-shadow: inset 0 2px 0 var(--wp-admin-theme-color-darker-10);
 	vertical-align: top;
 }
 

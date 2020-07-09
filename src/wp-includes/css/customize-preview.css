@@ -57,10 +57,10 @@
 	opacity: 0;
 	pointer-events: none;
 	text-shadow:
-		0 -1px 1px #006799,
-		1px 0 1px #006799,
-		0 1px 1px #006799,
-		-1px 0 1px #006799;
+		0 -1px 1px var(--wp-admin-theme-color-darker-10),
+		1px 0 1px var(--wp-admin-theme-color-darker-10),
+		0 1px 1px var(--wp-admin-theme-color-darker-10),
+		-1px 0 1px var(--wp-admin-theme-color-darker-10);
 }
 .wp-custom-header .customize-partial-edit-shortcut button {
 	left: 2px
