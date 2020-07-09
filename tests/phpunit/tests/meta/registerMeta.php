@@ -666,7 +666,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				array( array( 'wibble' ) ),
 			),
 
-			// types
+			// Types.
 			'single object key with single ask'           => array(
 				array(
 					'single'       => true,
