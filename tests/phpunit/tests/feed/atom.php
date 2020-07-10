@@ -267,7 +267,7 @@ class Tests_Feeds_Atom extends WP_UnitTestCase {
 			$links = xml_find( $entries[ $key ]['child'], 'link' );
 			$i     = 0;
 			foreach ( (array) $links as $link ) {
-				if ( 'enclosure' == $link['attributes']['rel'] ) {
+				if ( 'enclosure' === $link['attributes']['rel'] ) {
 					$this->assertEquals( $enclosures[ $i ]['expected']['href'], $link['attributes']['href'] );
 					$this->assertEquals( $enclosures[ $i ]['expected']['length'], $link['attributes']['length'] );
 					$this->assertEquals( $enclosures[ $i ]['expected']['type'], $link['attributes']['type'] );
