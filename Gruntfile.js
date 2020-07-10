@@ -64,25 +64,24 @@ module.exports = function(grunt) {
 			core: {
 				options: {
 					processors: [
-						autoprefixer({
-							cascade: false
-						}),
-						postcssCustomProperties({
-							importFrom: [ {
-								customProperties: {
-									'--wp-admin-theme-color': '#0073aa',
-									'--wp-admin-theme-color-darker-10': '#006290',
-									'--wp-admin-theme-color-darker-20': '#005077',
-									'--wp-admin-theme-color-lighter-20': '#0095dd',
-									'--wp-admin-theme-color-lighter-40': '#11b2ff',
-								}
-							} ],
-						}),
+						( ...args ) => {
+							return postcssCustomProperties({
+								importFrom: [ {
+									customProperties: {
+										'--wp-admin-theme-color': '#0073aa',
+										'--wp-admin-theme-color-darker-10': '#006290',
+										'--wp-admin-theme-color-darker-20': '#005077',
+										'--wp-admin-theme-color-lighter-20': '#0095dd',
+										'--wp-admin-theme-color-lighter-40': '#11b2ff',
+									}
+								} ],
+							})(...args)
+						},
 					]
 				},
 				expand: true,
-				cwd: SOURCE_DIR,
-				dest: SOURCE_DIR,
+				cwd: WORKING_DIR,
+				dest: WORKING_DIR,
 				src: [
 					'wp-admin/css/*.css',
 					'wp-includes/css/*.css'
@@ -1269,10 +1268,6 @@ module.exports = function(grunt) {
 		'qunit:compiled'
 	] );
 
-	grunt.registerTask( 'precommit:css', [
-		'postcss:core'
-	] );
-
 	grunt.registerTask( 'precommit:php', [
 		'phpunit'
 	] );
@@ -1312,7 +1307,6 @@ module.exports = function(grunt) {
 			grunt.task.run([
 				'format:php',
 				'precommit:js',
-				'precommit:css',
 				'precommit:image',
 				'precommit:emoji',
 				'precommit:php'
@@ -1432,6 +1426,7 @@ module.exports = function(grunt) {
 		'copy:wp-admin-css-compat-rtl',
 		'copy:wp-admin-css-compat-min',
 		'cssmin:core',
+		'postcss:core',
 		'colors',
 		'rtl',
 		'cssmin:rtl',
@@ -1467,7 +1462,6 @@ module.exports = function(grunt) {
 		'format:php:error',
 		'precommit:php',
 		'precommit:js',
-		'precommit:css',
 		'precommit:image'
 	] );
 
