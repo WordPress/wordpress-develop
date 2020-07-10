@@ -231,7 +231,7 @@ a:active {
 a:focus,
 a:focus .media-icon img,
 .wp-person a:focus .gravatar {
-	color: var(--wp-admin-theme-darker-20);
+	color: var(--wp-admin-theme-color-darker-20);
 	box-shadow:
 		0 0 0 1px var(--wp-admin-theme-color-lighter-40),
 		0 0 2px 1px var(--wp-admin-theme-color);
@@ -3137,7 +3137,7 @@ img {
 	outline: 0;
 }
 [role="treeitem"] .folder-label.focus {
-	color: var(--wp-admin-theme-darker-20);
+	color: var(--wp-admin-theme-color-darker-20);
 	box-shadow:
 		0 0 0 1px var(--wp-admin-theme-color-lighter-40),
 		0 0 2px 1px var(--wp-admin-theme-color);
