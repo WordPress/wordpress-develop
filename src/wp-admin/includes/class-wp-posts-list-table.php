@@ -135,13 +135,20 @@ class WP_Posts_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * @global string   $mode             List table view mode.
 	 * @global array    $avail_post_stati
 	 * @global WP_Query $wp_query         WordPress Query object.
 	 * @global int      $per_page
-	 * @global string   $mode
 	 */
 	public function prepare_items() {
-		global $avail_post_stati, $wp_query, $per_page, $mode;
+		global $mode, $avail_post_stati, $wp_query, $per_page;
+
+		if ( ! empty( $_REQUEST['mode'] ) ) {
+			$mode = 'extended' === $_REQUEST['mode'] ? 'extended' : 'list';
+			set_user_setting( 'posts_list_mode', $mode );
+		} else {
+			$mode = get_user_setting( 'posts_list_mode', 'list' );
+		}
 
 		// Is going to call wp().
 		$avail_post_stati = wp_edit_posts_query();
@@ -175,13 +182,6 @@ class WP_Posts_List_Table extends WP_List_Table {
 					$total_items -= $post_counts[ $state ];
 				}
 			}
-		}
-
-		if ( ! empty( $_REQUEST['mode'] ) ) {
-			$mode = 'excerpt' === $_REQUEST['mode'] ? 'excerpt' : 'list';
-			set_user_setting( 'posts_list_mode', $mode );
-		} else {
-			$mode = get_user_setting( 'posts_list_mode', 'list' );
 		}
 
 		$this->is_trash = isset( $_REQUEST['post_status'] ) && 'trash' === $_REQUEST['post_status'];
@@ -595,10 +595,19 @@ class WP_Posts_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * @global string $mode List table view mode.
+	 *
 	 * @return array
 	 */
 	protected function get_table_classes() {
-		return array( 'widefat', 'fixed', 'striped', is_post_type_hierarchical( $this->screen->post_type ) ? 'pages' : 'posts' );
+		global $mode;
+
+		/** This filter is documented in wp-admin/includes/class-wp-screen.php */
+		$mode = apply_filters( 'table_view_mode', $mode );
+
+		$mode_class = esc_attr( 'table-view-' . $mode );
+
+		return array( 'widefat', 'fixed', 'striped', $mode_class, is_post_type_hierarchical( $this->screen->post_type ) ? 'pages' : 'posts' );
 	}
 
 	/**
@@ -1042,7 +1051,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		}
 		echo "</strong>\n";
 
-		if ( ! is_post_type_hierarchical( $this->screen->post_type ) && 'excerpt' === $mode && current_user_can( 'read_post', $post->ID ) ) {
+		if ( ! is_post_type_hierarchical( $this->screen->post_type ) && 'extended' === $mode && current_user_can( 'read_post', $post->ID ) ) {
 			if ( post_password_required( $post ) ) {
 				echo '<span class="protected-post-excerpt">' . esc_html( get_the_excerpt() ) . '</span>';
 			} else {
@@ -1102,7 +1111,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		 * @param string  $status      The status text.
 		 * @param WP_Post $post        Post object.
 		 * @param string  $column_name The column name.
-		 * @param string  $mode        The list display mode ('excerpt' or 'list').
+		 * @param string  $mode        The list display mode ('extended' or 'list').
 		 */
 		$status = apply_filters( 'post_date_column_status', $status, $post, 'date', $mode );
 
@@ -1121,7 +1130,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		 * @param string  $t_time      The published time.
 		 * @param WP_Post $post        Post object.
 		 * @param string  $column_name The column name.
-		 * @param string  $mode        The list display mode ('excerpt' or 'list').
+		 * @param string  $mode        The list display mode ('extended' or 'list').
 		 */
 		echo apply_filters( 'post_date_column_time', $t_time, $post, 'date', $mode );
 	}
@@ -1491,7 +1500,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			}
 		}
 
-		$m            = ( isset( $mode ) && 'excerpt' === $mode ) ? 'excerpt' : 'list';
+		$m            = ( isset( $mode ) && 'extended' === $mode ) ? 'extended' : 'list';
 		$can_publish  = current_user_can( $post_type_object->cap->publish_posts );
 		$core_columns = array(
 			'cb'         => true,

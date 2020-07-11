@@ -1186,6 +1186,7 @@ function wp_default_scripts( $scripts ) {
 	$scripts->set_translations( 'media-views' );
 
 	$scripts->add( 'media-editor', "/wp-includes/js/media-editor$suffix.js", array( 'shortcode', 'media-views' ), false, 1 );
+	$scripts->set_translations( 'media-editor' );
 	$scripts->add( 'media-audiovideo', "/wp-includes/js/media-audiovideo$suffix.js", array( 'media-editor' ), false, 1 );
 	$scripts->add( 'mce-view', "/wp-includes/js/mce-view$suffix.js", array( 'shortcode', 'jquery', 'media-views', 'media-audiovideo' ), false, 1 );
 
@@ -1219,69 +1220,18 @@ function wp_default_scripts( $scripts ) {
 
 		$scripts->add( 'post', "/wp-admin/js/post$suffix.js", array( 'suggest', 'wp-lists', 'postbox', 'tags-box', 'underscore', 'word-count', 'wp-a11y', 'wp-sanitize', 'clipboard' ), false, 1 );
 		$scripts->set_translations( 'post' );
-		did_action( 'init' ) && $scripts->localize(
-			'post',
-			'postL10n',
-			array(
-				'ok'                 => __( 'OK' ),
-				'cancel'             => __( 'Cancel' ),
-				'publishOn'          => __( 'Publish on:' ),
-				'publishOnFuture'    => __( 'Schedule for:' ),
-				'publishOnPast'      => __( 'Published on:' ),
-				/* translators: 1: Month, 2: Day, 3: Year, 4: Hour, 5: Minute. */
-				'dateFormat'         => __( '%1$s %2$s, %3$s at %4$s:%5$s' ),
-				'showcomm'           => __( 'Show more comments' ),
-				'endcomm'            => __( 'No more comments found.' ),
-				'publish'            => __( 'Publish' ),
-				'schedule'           => _x( 'Schedule', 'post action/button label' ),
-				'update'             => __( 'Update' ),
-				'savePending'        => __( 'Save as Pending' ),
-				'saveDraft'          => __( 'Save Draft' ),
-				'private'            => __( 'Private' ),
-				'public'             => __( 'Public' ),
-				'publicSticky'       => __( 'Public, Sticky' ),
-				'password'           => __( 'Password Protected' ),
-				'privatelyPublished' => __( 'Privately Published' ),
-				'published'          => __( 'Published' ),
-				'saveAlert'          => __( 'The changes you made will be lost if you navigate away from this page.' ),
-				'savingText'         => __( 'Saving Draft&#8230;' ),
-				'permalinkSaved'     => __( 'Permalink saved' ),
-			)
-		);
 
 		$scripts->add( 'editor-expand', "/wp-admin/js/editor-expand$suffix.js", array( 'jquery', 'underscore' ), false, 1 );
 
 		$scripts->add( 'link', "/wp-admin/js/link$suffix.js", array( 'wp-lists', 'postbox' ), false, 1 );
 
-		$scripts->add( 'comment', "/wp-admin/js/comment$suffix.js", array( 'jquery', 'postbox' ) );
-		$scripts->add_data( 'comment', 'group', 1 );
-		did_action( 'init' ) && $scripts->localize(
-			'comment',
-			'commentL10n',
-			array(
-				'submittedOn' => __( 'Submitted on:' ),
-				/* translators: 1: Month, 2: Day, 3: Year, 4: Hour, 5: Minute. */
-				'dateFormat'  => __( '%1$s %2$s, %3$s at %4$s:%5$s' ),
-			)
-		);
+		$scripts->add( 'comment', "/wp-admin/js/comment$suffix.js", array( 'jquery', 'postbox' ), false, 1 );
+		$scripts->set_translations( 'comment' );
 
 		$scripts->add( 'admin-gallery', "/wp-admin/js/gallery$suffix.js", array( 'jquery-ui-sortable' ) );
 
 		$scripts->add( 'admin-widgets', "/wp-admin/js/widgets$suffix.js", array( 'jquery-ui-sortable', 'jquery-ui-draggable', 'jquery-ui-droppable', 'wp-a11y' ), false, 1 );
-		did_action( 'init' ) && $scripts->add_inline_script(
-			'admin-widgets',
-			sprintf(
-				'wpWidgets.l10n = %s;',
-				wp_json_encode(
-					array(
-						'save'        => __( 'Save' ),
-						'saved'       => __( 'Saved' ),
-						'saveAlert'   => __( 'The changes you made will be lost if you navigate away from this page.' ),
-						'widgetAdded' => __( 'Widget has been added to the selected sidebar' ),
-					)
-				)
-			)
-		);
+		$scripts->set_translations( 'admin-widgets' );
 
 		$scripts->add( 'media-widgets', "/wp-admin/js/widgets/media-widgets$suffix.js", array( 'jquery', 'media-models', 'media-views', 'wp-api-request' ) );
 		$scripts->add_inline_script( 'media-widgets', 'wp.mediaWidgets.init();', 'after' );
@@ -1296,38 +1246,13 @@ function wp_default_scripts( $scripts ) {
 		$scripts->add( 'theme', "/wp-admin/js/theme$suffix.js", array( 'wp-backbone', 'wp-a11y', 'customize-base' ), false, 1 );
 
 		$scripts->add( 'inline-edit-post', "/wp-admin/js/inline-edit-post$suffix.js", array( 'jquery', 'tags-suggest', 'wp-a11y' ), false, 1 );
-		did_action( 'init' ) && $scripts->localize(
-			'inline-edit-post',
-			'inlineEditL10n',
-			array(
-				'error'      => __( 'Error while saving the changes.' ),
-				'ntdeltitle' => __( 'Remove From Bulk Edit' ),
-				'notitle'    => __( '(no title)' ),
-				'comma'      => trim( _x( ',', 'tag delimiter' ) ),
-				'saved'      => __( 'Changes saved.' ),
-			)
-		);
+		$scripts->set_translations( 'inline-edit-post' );
 
 		$scripts->add( 'inline-edit-tax', "/wp-admin/js/inline-edit-tax$suffix.js", array( 'jquery', 'wp-a11y' ), false, 1 );
-		did_action( 'init' ) && $scripts->localize(
-			'inline-edit-tax',
-			'inlineEditL10n',
-			array(
-				'error' => __( 'Error while saving the changes.' ),
-				'saved' => __( 'Changes saved.' ),
-			)
-		);
+		$scripts->set_translations( 'inline-edit-tax' );
 
 		$scripts->add( 'plugin-install', "/wp-admin/js/plugin-install$suffix.js", array( 'jquery', 'jquery-ui-core', 'thickbox' ), false, 1 );
-		did_action( 'init' ) && $scripts->localize(
-			'plugin-install',
-			'plugininstallL10n',
-			array(
-				'plugin_information' => __( 'Plugin:' ),
-				'plugin_modal_label' => __( 'Plugin details' ),
-				'ays'                => __( 'Are you sure you want to install this plugin?' ),
-			)
-		);
+		$scripts->set_translations( 'plugin-install' );
 
 		$scripts->add( 'site-health', "/wp-admin/js/site-health$suffix.js", array( 'clipboard', 'jquery', 'wp-util', 'wp-a11y' ), false, 1 );
 		$scripts->set_translations( 'site-health' );
@@ -1363,32 +1288,14 @@ function wp_default_scripts( $scripts ) {
 		$scripts->set_translations( 'image-edit' );
 
 		$scripts->add( 'set-post-thumbnail', "/wp-admin/js/set-post-thumbnail$suffix.js", array( 'jquery' ), false, 1 );
-		did_action( 'init' ) && $scripts->localize(
-			'set-post-thumbnail',
-			'setPostThumbnailL10n',
-			array(
-				'setThumbnail' => __( 'Use as featured image' ),
-				'saving'       => __( 'Saving...' ), // No ellipsis.
-				'error'        => __( 'Could not set that as the thumbnail image. Try a different attachment.' ),
-				'done'         => __( 'Done' ),
-			)
-		);
+		$scripts->set_translations( 'set-post-thumbnail' );
 
 		/*
 		 * Navigation Menus: Adding underscore as a dependency to utilize _.debounce
 		 * see https://core.trac.wordpress.org/ticket/42321
 		 */
 		$scripts->add( 'nav-menu', "/wp-admin/js/nav-menu$suffix.js", array( 'jquery-ui-sortable', 'jquery-ui-draggable', 'jquery-ui-droppable', 'wp-lists', 'postbox', 'json2', 'underscore' ) );
-		did_action( 'init' ) && $scripts->localize(
-			'nav-menu',
-			'navMenuL10n',
-			array(
-				'noResultsFound' => __( 'No results found.' ),
-				'warnDeleteMenu' => __( "You are about to permanently delete this menu. \n 'Cancel' to stop, 'OK' to delete." ),
-				'saveAlert'      => __( 'The changes you made will be lost if you navigate away from this page.' ),
-				'untitled'       => _x( '(no label)', 'missing menu item navigation label' ),
-			)
-		);
+		$scripts->set_translations( 'nav-menu' );
 
 		$scripts->add( 'custom-header', '/wp-admin/js/custom-header.js', array( 'jquery-masonry' ), false, 1 );
 		$scripts->add( 'custom-background', "/wp-admin/js/custom-background$suffix.js", array( 'wp-color-picker', 'media-views' ), false, 1 );

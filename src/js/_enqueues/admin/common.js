@@ -1606,6 +1606,41 @@ $document.ready( function() {
 	});
 });
 
+/**
+ * Hides the update button for expired plugin or theme uploads.
+ *
+ * On the "Update plugin/theme from uploaded zip" screen, once the upload has expired,
+ * hides the "Replace current with uploaded" button and displays a warning.
+ *
+ * @since 5.5.0
+ */
+$document.ready( function( $ ) {
+	var $overwrite, $warning;
+
+	if ( ! $body.hasClass( 'update-php' ) ) {
+		return;
+	}
+
+	$overwrite = $( 'a.update-from-upload-overwrite' );
+	$warning   = $( '.update-from-upload-expired' );
+
+	if ( ! $overwrite.length || ! $warning.length ) {
+		return;
+	}
+
+	window.setTimeout(
+		function() {
+			$overwrite.hide();
+			$warning.removeClass( 'hidden' );
+
+			if ( window.wp && window.wp.a11y ) {
+				window.wp.a11y.speak( $warning.text() );
+			}
+		},
+		7140000 // 119 minutes. The uploaded file is deleted after 2 hours.
+	);
+} );
+
 // Fire a custom jQuery event at the end of window resize.
 ( function() {
 	var timeout;

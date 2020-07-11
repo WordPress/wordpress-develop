@@ -956,4 +956,49 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Tests `wp_update_nav_menu_item()` with special characters in a category name.
+	 *
+	 * When inserting a category as a nav item, the `$args['menu-item-title']` should
+	 * always be empty as it should get the title from the category object itself.
+	 *
+	 * @ticket 48011
+	 */
+	function test_wp_update_nav_menu_item_with_special_character_in_categories() {
+
+		$category_name = 'Test Cat - \"Pre-Slashed\" Cat Name & >';
+
+		$cat = self::factory()->category->create_and_get(
+			array(
+				'name' => $category_name,
+			)
+		);
+
+		add_action( 'wp_update_nav_menu_item', array( $this, 'callback_wp_update_nav_menu_item_48011' ), 10, 3 );
+
+		wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'taxonomy',
+				'menu-item-object'    => 'category',
+				'menu-item-object-id' => $cat->term_id,
+				'menu-item-status'    => 'publish',
+				/**
+				 * Interestingly enough, if we use `$cat->name` for the menu item title,
+				 * we won't be able to replicate the bug because it's in htmlentities form.
+				 */
+				'menu-item-title'     => $category_name,
+			)
+		);
+	}
+
+	/**
+	 * Callback for the `wp_update_nav_menu_item` action.
+	 *
+	 * @since 5.5.0
+	 */
+	function callback_wp_update_nav_menu_item_48011( $menu_id, $menu_item_db_id, $args ) {
+		$this->assertEmpty( $args['menu-item-title'] );
+	}
 }

@@ -86,7 +86,9 @@ class WP_Sitemaps_Stylesheet {
 		<html {$lang}>
 			<head>
 				<title>{$title}</title>
-				<style>{$css}</style>
+				<style>
+					{$css}
+				</style>
 			</head>
 			<body>
 				<div id="sitemap__header">
@@ -192,7 +194,9 @@ XSL;
 		<html {$lang}>
 			<head>
 				<title>{$title}</title>
-				<style>{$css}</style>
+				<style>
+					{$css}
+				</style>
 			</head>
 			<body>
 				<div id="sitemap__header">
@@ -248,33 +252,47 @@ XSL;
 	 * @return string The CSS.
 	 */
 	public function get_stylesheet_css() {
-		$css = '
-			body {
-				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-				color: #444;
-			}
+		$text_align = is_rtl() ? 'right' : 'left';
 
-			#sitemap__table {
-				border: solid 1px #ccc;
-				border-collapse: collapse;
-			}
+		$css = <<<EOF
 
-			#sitemap__table tr th {
-				text-align: left;
-			}
+					body {
+						font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+						color: #444;
+					}
 
-			#sitemap__table tr td,
-			#sitemap__table tr th {
-				padding: 10px;
-			}
+					#sitemap__table {
+						border: solid 1px #ccc;
+						border-collapse: collapse;
+					}
 
-			#sitemap__table tr:nth-child(odd) td {
-				background-color: #eee;
-			}
+			 		#sitemap__table tr td.loc {
+						/*
+						 * URLs should always be LTR.
+						 * See https://core.trac.wordpress.org/ticket/16834
+						 * and https://core.trac.wordpress.org/ticket/49949
+						 */
+						direction: ltr;
+					}
 
-			a:hover {
-				text-decoration: none;
-			}';
+					#sitemap__table tr th {
+						text-align: {$text_align};
+					}
+
+					#sitemap__table tr td,
+					#sitemap__table tr th {
+						padding: 10px;
+					}
+
+					#sitemap__table tr:nth-child(odd) td {
+						background-color: #eee;
+					}
+
+					a:hover {
+						text-decoration: none;
+					}
+
+EOF;
 
 		/**
 		 * Filters the CSS only for the sitemap stylesheet.

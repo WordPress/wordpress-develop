@@ -56,14 +56,7 @@ class WP_Widget_Meta extends WP_Widget {
 
 		$format = current_theme_supports( 'html5', 'navigation-widgets' ) ? 'html5' : 'xhtml';
 
-		/**
-		 * Filters the HTML format of widgets with navigation links.
-		 *
-		 * @since 5.5.0
-		 *
-		 * @param string $format The type of markup to use in widgets with navigation links.
-		 *                       Accepts 'html5', 'xhtml'.
-		 */
+		/** This filter is documented in wp-includes/widgets/class-wp-nav-menu-widget.php */
 		$format = apply_filters( 'navigation_widgets_format', $format );
 
 		if ( 'html5' === $format ) {
@@ -73,7 +66,6 @@ class WP_Widget_Meta extends WP_Widget {
 			echo '<nav role="navigation" aria-label="' . esc_attr( $aria_label ) . '">';
 		}
 		?>
-
 
 		<ul>
 			<?php wp_register(); ?>
@@ -106,11 +98,11 @@ class WP_Widget_Meta extends WP_Widget {
 
 		</ul>
 
-		<?php if ( 'html5' === $format ) : ?>
-			</nav>
-		<?php endif; ?>
-
 		<?php
+		if ( 'html5' === $format ) {
+			echo '</nav>';
+		}
+
 		echo $args['after_widget'];
 	}
 

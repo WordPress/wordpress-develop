@@ -138,7 +138,7 @@
 		"jquery-form": "4.2.1",
 		"jquery-hoverintent": "1.8.3",
 		"jquery-ui": "https://github.com/jquery/jquery-ui/archive/1.11.4.tar.gz",
-		"lodash": "4.17.15",
+		"lodash": "4.17.19",
 		"masonry-layout": "4.2.2",
 		"moment": "2.27.0",
 		"polyfill-library": "3.42.0",

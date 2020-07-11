@@ -2144,10 +2144,11 @@ function sanitize_key( $key ) {
 }
 
 /**
- * Sanitizes a title, or returns a fallback title.
+ * Sanitizes a string into a slug, which can be used in places such as URLs or HTML attributes.
  *
- * Specifically, HTML and PHP tags are stripped. Further actions can be added
- * via the plugin API. If $title is empty and $fallback_title is set, the latter
+ * In a save context, converts accents to ASCII characters. By default, output is
+ * further limited to alphanumeric characters, underscore (_) and dash (-) through the
+ * 'sanitize_title' filter. If $title is empty and $fallback_title is set, the latter
  * will be used.
  *
  * @since 1.0.0
@@ -5495,27 +5496,24 @@ function sanitize_trackback_urls( $to_ping ) {
 }
 
 /**
- * Add slashes to a string or array of strings.
+ * Add slashes to a string or array of strings, in a recursive manner.
  *
  * This should be used when preparing data for core API that expects slashed data.
  * This should not be used to escape data going directly into an SQL query.
  *
  * @since 3.6.0
+ * @since 5.5.0 Leave a non-string value untouched.
  *
  * @param string|array $value String or array of strings to slash.
  * @return string|array Slashed $value
  */
 function wp_slash( $value ) {
 	if ( is_array( $value ) ) {
-		foreach ( $value as $k => $v ) {
-			if ( is_array( $v ) ) {
-				$value[ $k ] = wp_slash( $v );
-			} else {
-				$value[ $k ] = addslashes( $v );
-			}
-		}
-	} else {
-		$value = addslashes( $value );
+		$value = array_map( 'wp_slash', $value );
+	}
+
+	if ( is_string( $value ) ) {
+		return addslashes( $value );
 	}
 
 	return $value;
