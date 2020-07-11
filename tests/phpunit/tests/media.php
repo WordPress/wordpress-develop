@@ -7,12 +7,13 @@
 class Tests_Media extends WP_UnitTestCase {
 	protected static $large_id;
 	protected static $_sizes;
+	protected static $large_filename = 'test-image-large.jpg';
 
 	public static function wpSetUpBeforeClass( $factory ) {
 		self::$_sizes                          = wp_get_additional_image_sizes();
 		$GLOBALS['_wp_additional_image_sizes'] = array();
 
-		$filename       = DIR_TESTDATA . '/images/test-image-large.png';
+		$filename       = DIR_TESTDATA . '/images/' . self::$large_filename;
 		self::$large_id = $factory->attachment->create_upload_object( $filename );
 	}
 
@@ -1479,12 +1480,17 @@ EOF;
 			}
 		}
 
-		// Add the full size width at the end.
-		$expected .= $uploads_dir_url . $image_meta['file'] . ' ' . $image_meta['width'] . 'w';
+		$expected = trim( $expected, ' ,' );
 
 		foreach ( $intermediates as $int ) {
-			$image_url       = wp_get_attachment_image_url( self::$large_id, $int );
-			$size_array      = $this->_get_image_size_array_from_meta( $image_meta, $int );
+			$image_url  = wp_get_attachment_image_url( self::$large_id, $int );
+			$size_array = $this->_get_image_size_array_from_meta( $image_meta, $int );
+
+			if ( 'full' === $int ) {
+				// Add the full size image.
+				$expected = $uploads_dir_url . $image_meta['file'] . ' ' . $image_meta['width'] . 'w, ' . $expected;
+			}
+
 			$expected_srcset = $this->_src_first( $expected, $image_url, $size_array[0] );
 			$this->assertSame( $expected_srcset, wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
 		}
@@ -1500,7 +1506,7 @@ EOF;
 		add_filter( 'upload_dir', '_upload_dir_no_subdir' );
 
 		// Make an image.
-		$filename = DIR_TESTDATA . '/images/test-image-large.png';
+		$filename = DIR_TESTDATA . '/images/' . self::$large_filename;
 		$id       = self::factory()->attachment->create_upload_object( $filename );
 
 		$image_meta      = wp_get_attachment_metadata( $id );
@@ -1524,12 +1530,17 @@ EOF;
 			}
 		}
 
-		// Add the full size width at the end.
-		$expected .= $uploads_dir_url . $image_meta['file'] . ' ' . $image_meta['width'] . 'w';
+		$expected = trim( $expected, ' ,' );
 
 		foreach ( $intermediates as $int ) {
-			$size_array      = $this->_get_image_size_array_from_meta( $image_meta, $int );
-			$image_url       = wp_get_attachment_image_url( $id, $int );
+			$size_array = $this->_get_image_size_array_from_meta( $image_meta, $int );
+			$image_url  = wp_get_attachment_image_url( $id, $int );
+
+			if ( 'full' === $int ) {
+				// Add the full size image.
+				$expected = $uploads_dir_url . $image_meta['file'] . ' ' . $image_meta['width'] . 'w, ' . $expected;
+			}
+
 			$expected_srcset = $this->_src_first( $expected, $image_url, $size_array[0] );
 			$this->assertSame( $expected_srcset, wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
 		}
@@ -1552,13 +1563,12 @@ EOF;
 		// Copy hash generation method used in wp_save_image().
 		$hash = 'e' . time() . rand( 100, 999 );
 
-		$filename_base = wp_basename( $image_meta['file'], '.png' );
+		$filename_base = wp_basename( $image_meta['file'], '-scaled.jpg' );
 
 		// Add the hash to the image URL.
 		$image_url = str_replace( $filename_base, $filename_base . '-' . $hash, $image_url );
 
 		// Replace file paths for full and medium sizes with hashed versions.
-		$image_meta['file']                          = str_replace( $filename_base, $filename_base . '-' . $hash, $image_meta['file'] );
 		$image_meta['sizes']['medium']['file']       = str_replace( $filename_base, $filename_base . '-' . $hash, $image_meta['sizes']['medium']['file'] );
 		$image_meta['sizes']['medium_large']['file'] = str_replace( $filename_base, $filename_base . '-' . $hash, $image_meta['sizes']['medium_large']['file'] );
 		$image_meta['sizes']['large']['file']        = str_replace( $filename_base, $filename_base . '-' . $hash, $image_meta['sizes']['large']['file'] );
@@ -1601,15 +1611,21 @@ EOF;
 			}
 		}
 
-		// Add the full size width at the end.
-		$expected .= $uploads_dir_url . $image_meta['file'] . ' ' . $image_meta['width'] . 'w';
+		$expected       = trim( $expected, ' ,' );
+		$full_size_file = $image_meta['file'];
 
 		// Prepend an absolute path to simulate a pre-2.7 upload.
 		$image_meta['file'] = 'H:\home\wordpress\trunk/wp-content/uploads/' . $image_meta['file'];
 
 		foreach ( $intermediates as $int ) {
-			$image_url       = wp_get_attachment_image_url( self::$large_id, $int );
-			$size_array      = $this->_get_image_size_array_from_meta( $image_meta, $int );
+			$image_url  = wp_get_attachment_image_url( self::$large_id, $int );
+			$size_array = $this->_get_image_size_array_from_meta( $image_meta, $int );
+
+			if ( 'full' === $int ) {
+				// Add the full size image.
+				$expected = $uploads_dir_url . $full_size_file . ' ' . $image_meta['width'] . 'w, ' . $expected;
+			}
+
 			$expected_srcset = $this->_src_first( $expected, $image_url, $size_array[0] );
 			$this->assertSame( $expected_srcset, wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
 		}
@@ -1855,7 +1871,7 @@ EOF;
 		$_wp_additional_image_sizes = wp_get_additional_image_sizes();
 
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
-		$size_array = array( 1600, 1200 ); // Full size.
+		$size_array = array( $image_meta['width'], $image_meta['height'] ); // Full size.
 
 		$srcset = wp_get_attachment_image_srcset( self::$large_id, $size_array, $image_meta );
 
@@ -2272,7 +2288,7 @@ EOF;
 		$expected = '<img width="999" height="999" src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $year . '/' . $month . '/test-image-testsize-999x999.png"' .
 			' class="attachment-testsize size-testsize" alt="" loading="lazy"' .
 			' srcset="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $year . '/' . $month . '/test-image-testsize-999x999.png 999w,' .
-				' http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $year . '/' . $month . '/test-image-large-150x150.png 150w"' .
+				' http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $year . '/' . $month . '/test-image-large-150x150.jpg 150w"' .
 				' sizes="(max-width: 999px) 100vw, 999px" />';
 
 		remove_filter( 'wp_get_attachment_metadata', array( $this, '_filter_36246' ) );
@@ -2851,6 +2867,16 @@ EOF;
 		$image_src  = $this->img_url; // Different image.
 
 		$this->assertFalse( wp_image_file_matches_image_meta( $image_src, $image_meta ) );
+	}
+
+	/**
+	 * @ticket 50543
+	 */
+	function test_wp_image_file_matches_image_meta_original_image() {
+		$image_meta = wp_get_attachment_metadata( self::$large_id );
+		$image_src  = wp_get_original_image_url( self::$large_id );
+
+		$this->assertTrue( wp_image_file_matches_image_meta( $image_src, $image_meta ) );
 	}
 }
 
