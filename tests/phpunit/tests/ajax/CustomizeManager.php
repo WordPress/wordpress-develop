@@ -472,7 +472,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 		$this->assertTrue( $this->_last_response_parsed['success'] );
 		$this->assertEquals( 'draft', $this->_last_response_parsed['data']['changeset_status'] );
 		$autosave_revision = wp_get_post_autosave( $post_id );
-		$this->assertInstanceOf( 'stdClass', $autosave_revision );
+		$this->assertInstanceOf( 'WP_Post', $autosave_revision );
 
 		$this->assertContains( 'New Site Title', get_post( $post_id )->post_content );
 		$this->assertContains( 'Autosaved Site Title', $autosave_revision->post_content );
@@ -699,7 +699,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 		);
 		$this->assertNotWPError( $r );
 		$autosave_revision = wp_get_post_autosave( $wp_customize->changeset_post_id() );
-		$this->assertInstanceOf( 'stdClass', $autosave_revision );
+		$this->assertInstanceOf( 'WP_Post', $autosave_revision );
 		$this->assertContains( 'Foo', get_post( $wp_customize->changeset_post_id() )->post_content );
 		$this->assertContains( 'Bar', $autosave_revision->post_content );
 
