@@ -6,14 +6,14 @@
 class Tests_Formatting_WPSlash extends WP_UnitTestCase {
 
 	/**
-	 * @dataProvider data_wp_slash
-	 *
 	 * @ticket 42195
+	 *
+	 * @dataProvider data_wp_slash
 	 *
 	 * @param string $value
 	 * @param string $expected
 	 */
-	public function test_wp_slash_with( $value, $expected ) {
+	public function test_wp_slash( $value, $expected ) {
 		$this->assertSame( $expected, wp_slash( $value ) );
 	}
 
@@ -59,8 +59,8 @@ class Tests_Formatting_WPSlash extends WP_UnitTestCase {
 		$new = "I can\'t see, isn\'t that it?";
 		$this->assertEquals( $new, wp_slash( $old ) );
 		$this->assertEquals( "I can\\\\\'t see, isn\\\\\'t that it?", wp_slash( $new ) );
-		$this->assertEquals( array( 'a' => $new ), wp_slash( array( 'a' => $old ) ) ); // Keyed array
-		$this->assertEquals( array( $new ), wp_slash( array( $old ) ) ); // Non-keyed
+		$this->assertEquals( array( 'a' => $new ), wp_slash( array( 'a' => $old ) ) ); // Keyed array.
+		$this->assertEquals( array( $new ), wp_slash( array( $old ) ) ); // Non-keyed.
 	}
 
 	/**
@@ -78,9 +78,9 @@ class Tests_Formatting_WPSlash extends WP_UnitTestCase {
 			'c' => 4,
 			'd' => 'foo',
 		);
-		$arr['e'] = $arr; // Add a sub-array
-		$this->assertEquals( $arr, wp_slash( $arr ) ); // Keyed array
-		$this->assertEquals( array_values( $arr ), wp_slash( array_values( $arr ) ) ); // Non-keyed
+		$arr['e'] = $arr; // Add a sub-array.
+		$this->assertEquals( $arr, wp_slash( $arr ) ); // Keyed array.
+		$this->assertEquals( array_values( $arr ), wp_slash( array_values( $arr ) ) ); // Non-keyed.
 
 		$obj = new stdClass;
 		foreach ( $arr as $k => $v ) {
@@ -96,8 +96,8 @@ class Tests_Formatting_WPSlash extends WP_UnitTestCase {
 		$old = 'single\\slash double\\\\slash triple\\\\\\slash';
 		$new = 'single\\\\slash double\\\\\\\\slash triple\\\\\\\\\\\\slash';
 		$this->assertEquals( $new, wp_slash( $old ) );
-		$this->assertEquals( array( 'a' => $new ), wp_slash( array( 'a' => $old ) ) ); // Keyed array
-		$this->assertEquals( array( $new ), wp_slash( array( $old ) ) ); // Non-keyed
+		$this->assertEquals( array( 'a' => $new ), wp_slash( array( 'a' => $old ) ) ); // Keyed array.
+		$this->assertEquals( array( $new ), wp_slash( array( $old ) ) ); // Non-keyed.
 	}
 
 }
