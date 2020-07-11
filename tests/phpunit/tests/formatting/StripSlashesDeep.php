@@ -2,6 +2,7 @@
 
 /**
  * @group formatting
+ * @group slashes
  */
 class Tests_Formatting_StripSlashesDeep extends WP_UnitTestCase {
 	/**
