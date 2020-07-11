@@ -574,4 +574,26 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		unlink( $ret['path'] );
 	}
 
+	/**
+	 * Test that images can be loaded and written over streams
+	 */
+	public function test_streams() {
+		$file = 'file://' . DIR_TESTDATA . '/images/waffles.jpg';
+
+		$imagick_image_editor = new WP_Image_Editor_Imagick( $file );
+		$imagick_image_editor->load();
+		$this->assertNotWPError( $imagick_image_editor );
+
+		$temp_file = 'file://' . get_temp_dir() . 'waffles.jpg';
+
+		$ret = $imagick_image_editor->save( $temp_file );
+		$this->assertNotWPError( $ret );
+
+		$this->assertSame( $temp_file, $ret['path'] );
+
+		if ( $temp_file !== $ret['path'] ) {
+			unlink( $ret['path'] );
+		}
+		unlink( $temp_file );
+	}
 }

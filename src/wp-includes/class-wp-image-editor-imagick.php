@@ -71,6 +71,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			'flipimage',
 			'flopimage',
 			'readimage',
+			'readimageblob',
 		);
 
 		// Now, test for deep requirements within Imagick.
@@ -148,7 +149,12 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 					return $pdf_loaded;
 				}
 			} else {
-				$this->image->readImage( $this->file );
+				if ( wp_is_stream( $this->file ) ) {
+					// Imagick::readImageFile doesn't properly support streams.
+					$this->image->readImageBlob( file_get_contents( $this->file ), $this->file );
+				} else {
+					$this->image->readImage( $this->file );
+				}
 			}
 
 			if ( ! $this->image->valid() ) {
@@ -682,7 +688,13 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			$orig_format = $this->image->getImageFormat();
 
 			$this->image->setImageFormat( strtoupper( $this->get_extension( $mime_type ) ) );
-			$this->make_image( $filename, array( $image, 'writeImage' ), array( $filename ) );
+
+			if ( wp_is_stream( $filename ) ) {
+				// Imagick::writeImageFile doesn't support streams properly, so copy the blob.
+				file_put_contents( $filename, $image->getImageBlob() );
+			} else {
+				$this->make_image( $filename, array( $image, 'writeImage' ), array( $filename ) );
+			}
 
 			// Reset original format.
 			$this->image->setImageFormat( $orig_format );
