@@ -345,6 +345,11 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			false,
 			DIR_TESTDATA . '/images/' . __FUNCTION__ . '.jpg'
 		);
+
+		if ( is_wp_error( $file ) && $file->get_error_code() === 'invalid_image' ) {
+			$this->markTestSkipped( 'Tests_Image_Functions::test_wp_crop_image_url() cannot access remote image.' );
+		}
+
 		$this->assertNotWPError( $file );
 		$this->assertFileExists( $file );
 		$image = wp_get_image_editor( $file );
