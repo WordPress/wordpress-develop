@@ -56,6 +56,15 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	protected static $non_dynamic_block_name = 'core/non-dynamic';
 
 	/**
+	 * Dynamic block with boolean attributes block name.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @var string
+	 */
+	protected static $dynamic_block_with_boolean_attributes_block_name = 'core/dynamic-block-with-boolean-attributes';
+
+	/**
 	 * Test API user's ID.
 	 *
 	 * @since 5.0.0
@@ -127,6 +136,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$this->register_test_block();
 		$this->register_post_context_test_block();
 		$this->register_non_dynamic_block();
+		$this->register_dynamic_block_with_boolean_attributes();
 		parent::setUp();
 	}
 
@@ -139,6 +149,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		WP_Block_Type_Registry::get_instance()->unregister( self::$block_name );
 		WP_Block_Type_Registry::get_instance()->unregister( self::$context_block_name );
 		WP_Block_Type_Registry::get_instance()->unregister( self::$non_dynamic_block_name );
+		WP_Block_Type_Registry::get_instance()->unregister( self::$dynamic_block_with_boolean_attributes_block_name );
 		parent::tearDown();
 	}
 
@@ -193,6 +204,30 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 */
 	protected function register_non_dynamic_block() {
 		register_block_type( self::$non_dynamic_block_name );
+	}
+
+	/**
+	 * Registers the dynamic with boolean attributes block name.
+	 *
+	 * @since 5.5.0
+	 */
+	protected function register_dynamic_block_with_boolean_attributes() {
+		register_block_type(
+			self::$dynamic_block_with_boolean_attributes_block_name,
+			array(
+				'attributes'      => array(
+					'boolean_true_attribute'  => array(
+						'type'    => 'boolean',
+						'default' => true,
+					),
+					'boolean_false_attribute' => array(
+						'type'    => 'boolean',
+						'default' => false,
+					),
+				),
+				'render_callback' => array( $this, 'render_test_block' ),
+			)
+		);
 	}
 
 	/**
@@ -520,6 +555,33 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'block_invalid', $response, 404 );
+	}
+
+	/**
+	 * @ticket 50620
+	 */
+	public function test_get_sanitized_attributes_for_dynamic_block_with_boolean_attributes() {
+		wp_set_current_user( self::$user_id );
+
+		$request = new WP_REST_Request( 'GET', self::$rest_api_route . self::$dynamic_block_with_boolean_attributes_block_name );
+
+		$attributes = array(
+			'boolean_true_attribute'  => 'true',
+			'boolean_false_attribute' => 'false',
+		);
+
+		$expected = array(
+			'boolean_true_attribute'  => true,
+			'boolean_false_attribute' => false,
+		);
+
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( 'attributes', $attributes );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$this->assertSame( $expected, json_decode( $data['rendered'], true ) );
 	}
 
 	/**
