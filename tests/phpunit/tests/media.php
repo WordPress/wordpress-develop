@@ -7,12 +7,13 @@
 class Tests_Media extends WP_UnitTestCase {
 	protected static $large_id;
 	protected static $_sizes;
+	protected static $large_filename = 'test-image-large.jpg';
 
 	public static function wpSetUpBeforeClass( $factory ) {
 		self::$_sizes                          = wp_get_additional_image_sizes();
 		$GLOBALS['_wp_additional_image_sizes'] = array();
 
-		$filename       = DIR_TESTDATA . '/images/test-image-large.png';
+		$filename       = DIR_TESTDATA . '/images/' . self::$large_filename;
 		self::$large_id = $factory->attachment->create_upload_object( $filename );
 	}
 
@@ -1332,7 +1333,12 @@ EOF;
 	 */
 	function test_wp_get_attachment_image_defaults() {
 		$image    = image_downsize( self::$large_id, 'thumbnail' );
-		$expected = sprintf( '<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="" loading="lazy" />', $image[1], $image[2], $image[0] );
+		$expected = sprintf(
+			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="" loading="lazy" />',
+			$image[1],
+			$image[2],
+			$image[0]
+		);
 
 		$this->assertEquals( $expected, wp_get_attachment_image( self::$large_id ) );
 	}
@@ -1347,7 +1353,12 @@ EOF;
 		update_post_meta( self::$large_id, '_wp_attachment_image_alt', 'Some very clever alt text', true );
 
 		$image    = image_downsize( self::$large_id, 'thumbnail' );
-		$expected = sprintf( '<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="Some very clever alt text" loading="lazy" />', $image[1], $image[2], $image[0] );
+		$expected = sprintf(
+			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="Some very clever alt text" loading="lazy" />',
+			$image[1],
+			$image[2],
+			$image[0]
+		);
 
 		$this->assertEquals( $expected, wp_get_attachment_image( self::$large_id ) );
 
@@ -1479,13 +1490,20 @@ EOF;
 			}
 		}
 
-		// Add the full size width at the end.
-		$expected .= $uploads_dir_url . $image_meta['file'] . ' ' . $image_meta['width'] . 'w';
+		$expected = trim( $expected, ' ,' );
 
 		foreach ( $intermediates as $int ) {
-			$image_url       = wp_get_attachment_image_url( self::$large_id, $int );
-			$size_array      = $this->_get_image_size_array_from_meta( $image_meta, $int );
-			$expected_srcset = $this->_src_first( $expected, $image_url, $size_array[0] );
+			$image_url  = wp_get_attachment_image_url( self::$large_id, $int );
+			$size_array = $this->_get_image_size_array_from_meta( $image_meta, $int );
+
+			if ( 'full' === $int ) {
+				// Add the full size image. Expected to be in the srcset when the full size image is used as src.
+				$_expected = $uploads_dir_url . $image_meta['file'] . ' ' . $image_meta['width'] . 'w, ' . $expected;
+			} else {
+				$_expected = $expected;
+			}
+
+			$expected_srcset = $this->_src_first( $_expected, $image_url, $size_array[0] );
 			$this->assertSame( $expected_srcset, wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
 		}
 	}
@@ -1500,7 +1518,7 @@ EOF;
 		add_filter( 'upload_dir', '_upload_dir_no_subdir' );
 
 		// Make an image.
-		$filename = DIR_TESTDATA . '/images/test-image-large.png';
+		$filename = DIR_TESTDATA . '/images/' . self::$large_filename;
 		$id       = self::factory()->attachment->create_upload_object( $filename );
 
 		$image_meta      = wp_get_attachment_metadata( $id );
@@ -1524,13 +1542,20 @@ EOF;
 			}
 		}
 
-		// Add the full size width at the end.
-		$expected .= $uploads_dir_url . $image_meta['file'] . ' ' . $image_meta['width'] . 'w';
+		$expected = trim( $expected, ' ,' );
 
 		foreach ( $intermediates as $int ) {
-			$size_array      = $this->_get_image_size_array_from_meta( $image_meta, $int );
-			$image_url       = wp_get_attachment_image_url( $id, $int );
-			$expected_srcset = $this->_src_first( $expected, $image_url, $size_array[0] );
+			$size_array = $this->_get_image_size_array_from_meta( $image_meta, $int );
+			$image_url  = wp_get_attachment_image_url( $id, $int );
+
+			if ( 'full' === $int ) {
+				// Add the full size image. Expected to be in the srcset when the full size image is used as src.
+				$_expected = $uploads_dir_url . $image_meta['file'] . ' ' . $image_meta['width'] . 'w, ' . $expected;
+			} else {
+				$_expected = $expected;
+			}
+
+			$expected_srcset = $this->_src_first( $_expected, $image_url, $size_array[0] );
 			$this->assertSame( $expected_srcset, wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
 		}
 
@@ -1552,16 +1577,16 @@ EOF;
 		// Copy hash generation method used in wp_save_image().
 		$hash = 'e' . time() . rand( 100, 999 );
 
-		$filename_base = wp_basename( $image_meta['file'], '.png' );
+		$filename_base = wp_basename( self::$large_filename, '.jpg' );
+		$filename_hash = "{$filename_base}-{$hash}";
 
 		// Add the hash to the image URL.
-		$image_url = str_replace( $filename_base, $filename_base . '-' . $hash, $image_url );
+		$image_url = str_replace( $filename_base, $filename_hash, $image_url );
 
 		// Replace file paths for full and medium sizes with hashed versions.
-		$image_meta['file']                          = str_replace( $filename_base, $filename_base . '-' . $hash, $image_meta['file'] );
-		$image_meta['sizes']['medium']['file']       = str_replace( $filename_base, $filename_base . '-' . $hash, $image_meta['sizes']['medium']['file'] );
-		$image_meta['sizes']['medium_large']['file'] = str_replace( $filename_base, $filename_base . '-' . $hash, $image_meta['sizes']['medium_large']['file'] );
-		$image_meta['sizes']['large']['file']        = str_replace( $filename_base, $filename_base . '-' . $hash, $image_meta['sizes']['large']['file'] );
+		$image_meta['sizes']['medium']['file']       = str_replace( $filename_base, $filename_hash, $image_meta['sizes']['medium']['file'] );
+		$image_meta['sizes']['medium_large']['file'] = str_replace( $filename_base, $filename_hash, $image_meta['sizes']['medium_large']['file'] );
+		$image_meta['sizes']['large']['file']        = str_replace( $filename_base, $filename_hash, $image_meta['sizes']['large']['file'] );
 
 		// Calculate a srcset array.
 		$sizes = explode( ', ', wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
@@ -1601,16 +1626,24 @@ EOF;
 			}
 		}
 
-		// Add the full size width at the end.
-		$expected .= $uploads_dir_url . $image_meta['file'] . ' ' . $image_meta['width'] . 'w';
+		$expected       = trim( $expected, ' ,' );
+		$full_size_file = $image_meta['file'];
 
 		// Prepend an absolute path to simulate a pre-2.7 upload.
 		$image_meta['file'] = 'H:\home\wordpress\trunk/wp-content/uploads/' . $image_meta['file'];
 
 		foreach ( $intermediates as $int ) {
-			$image_url       = wp_get_attachment_image_url( self::$large_id, $int );
-			$size_array      = $this->_get_image_size_array_from_meta( $image_meta, $int );
-			$expected_srcset = $this->_src_first( $expected, $image_url, $size_array[0] );
+			$image_url  = wp_get_attachment_image_url( self::$large_id, $int );
+			$size_array = $this->_get_image_size_array_from_meta( $image_meta, $int );
+
+			if ( 'full' === $int ) {
+				// Add the full size image. Expected to be in the srcset when the full size image is used as src.
+				$_expected = $uploads_dir_url . $full_size_file . ' ' . $image_meta['width'] . 'w, ' . $expected;
+			} else {
+				$_expected = $expected;
+			}
+
+			$expected_srcset = $this->_src_first( $_expected, $image_url, $size_array[0] );
 			$this->assertSame( $expected_srcset, wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
 		}
 	}
@@ -1681,7 +1714,11 @@ EOF;
 			),
 		);
 
-		$expected_srcset = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test-768x1055-218x300.png 218w, http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test-768x1055-600x824.png 600w, http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test-768x1055.png 768w';
+		$uploads_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/';
+
+		$expected_srcset = $uploads_url . 'test-768x1055-218x300.png 218w, ' .
+			$uploads_url . 'test-768x1055-600x824.png 600w, ' .
+			$uploads_url . 'test-768x1055.png 768w';
 
 		$this->assertSame( $expected_srcset, wp_calculate_image_srcset( $size_array, $image_src, $image_meta ) );
 	}
@@ -1726,7 +1763,12 @@ EOF;
 			),
 		);
 
-		$expected_srcset = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test.png 2000w, http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test-300x150.png 300w, http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test-768x384.png 768w, http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test-1024x512.png 1024w';
+		$uploads_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/';
+
+		$expected_srcset = $uploads_url . 'test.png 2000w, ' .
+			$uploads_url . 'test-300x150.png 300w, ' .
+			$uploads_url . 'test-768x384.png 768w, ' .
+			$uploads_url . 'test-1024x512.png 1024w';
 
 		$this->assertSame( $expected_srcset, wp_calculate_image_srcset( $size_array, $image_src, $image_meta ) );
 	}
@@ -1843,7 +1885,11 @@ EOF;
 			),
 		);
 
-		$expected_srcset = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test%20image-300x150.png 300w, http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test%20image-768x384.png 768w, http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test%20image-1024x512.png 1024w';
+		$uploads_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/';
+
+		$expected_srcset = $uploads_url . 'test%20image-300x150.png 300w, ' .
+			$uploads_url . 'test%20image-768x384.png 768w, ' .
+			$uploads_url . 'test%20image-1024x512.png 1024w';
 
 		$this->assertSame( $expected_srcset, wp_calculate_image_srcset( array( 300, 150 ), $image_src, $image_meta ) );
 	}
@@ -1855,7 +1901,7 @@ EOF;
 		$_wp_additional_image_sizes = wp_get_additional_image_sizes();
 
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
-		$size_array = array( 1600, 1200 ); // Full size.
+		$size_array = array( $image_meta['width'], $image_meta['height'] ); // Full size.
 
 		$srcset = wp_get_attachment_image_srcset( self::$large_id, $size_array, $image_meta );
 
@@ -2011,8 +2057,27 @@ EOF;
 			<p>Image, HTML 5.0 style. Should have srcset and sizes.</p>
 			%7$s';
 
-		$content_unfiltered = sprintf( $content, $img, $img_no_size_in_class, $img_no_width_height, $img_no_size_id, $img_with_sizes_attr, $img_xhtml, $img_html5 );
-		$content_filtered   = sprintf( $content, $respimg, $respimg_no_size_in_class, $respimg_no_width_height, $img_no_size_id, $respimg_with_sizes_attr, $respimg_xhtml, $respimg_html5 );
+		$content_unfiltered = sprintf(
+			$content,
+			$img,
+			$img_no_size_in_class,
+			$img_no_width_height,
+			$img_no_size_id,
+			$img_with_sizes_attr,
+			$img_xhtml,
+			$img_html5
+		);
+
+		$content_filtered = sprintf(
+			$content,
+			$respimg,
+			$respimg_no_size_in_class,
+			$respimg_no_width_height,
+			$img_no_size_id,
+			$respimg_with_sizes_attr,
+			$respimg_xhtml,
+			$respimg_html5
+		);
 
 		// Do not add width, height, and loading.
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
@@ -2134,9 +2199,21 @@ EOF;
 			<p>Image, protocol-relative. Should have srcset and sizes.</p>
 			%3$s';
 
-		$unfiltered = sprintf( $content, $img, $img_https, $img_relative );
-		$expected   = sprintf( $content, $respimg, $respimg_https, $respimg_relative );
-		$actual     = wp_filter_content_tags( $unfiltered );
+		$unfiltered = sprintf(
+			$content,
+			$img,
+			$img_https,
+			$img_relative
+		);
+
+		$expected = sprintf(
+			$content,
+			$respimg,
+			$respimg_https,
+			$respimg_relative
+		);
+
+		$actual = wp_filter_content_tags( $unfiltered );
 
 		$this->assertSame( $expected, $actual );
 	}
@@ -2176,8 +2253,13 @@ EOF;
 
 		$_SERVER['HTTPS'] = 'on';
 
-		$expected = 'https://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test-1024x512.jpg 1024w, https://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test-300x150.jpg 300w, https://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg 1200w';
-		$actual   = wp_calculate_image_srcset( $size_array, $image_url, $image_meta );
+		$uploads_url = 'https://' . WP_TESTS_DOMAIN . '/wp-content/uploads/';
+
+		$expected = $uploads_url . 'test-1024x512.jpg 1024w, ' .
+			$uploads_url . 'test-300x150.jpg 300w, ' .
+			$uploads_url . 'test.jpg 1200w';
+
+		$actual = wp_calculate_image_srcset( $size_array, $image_url, $image_meta );
 
 		$this->assertSame( $expected, $actual );
 	}
@@ -2265,15 +2347,17 @@ EOF;
 
 		remove_all_filters( 'wp_calculate_image_sizes' );
 
-		$actual = wp_get_attachment_image( self::$large_id, 'testsize' );
-		$year   = gmdate( 'Y' );
-		$month  = gmdate( 'm' );
+		$basename    = wp_basename( self::$large_filename, '.jpg' );
+		$year_month  = gmdate( 'Y/m' );
+		$uploads_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $year_month . '/';
 
-		$expected = '<img width="999" height="999" src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $year . '/' . $month . '/test-image-testsize-999x999.png"' .
-			' class="attachment-testsize size-testsize" alt="" loading="lazy"' .
-			' srcset="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $year . '/' . $month . '/test-image-testsize-999x999.png 999w,' .
-				' http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $year . '/' . $month . '/test-image-large-150x150.png 150w"' .
-				' sizes="(max-width: 999px) 100vw, 999px" />';
+		$expected = '<img width="999" height="999" ' .
+			'src="' . $uploads_url . 'test-image-testsize-999x999.jpg" ' .
+			'class="attachment-testsize size-testsize" alt="" loading="lazy" ' .
+			'srcset="' . $uploads_url . 'test-image-testsize-999x999.jpg 999w, ' . $uploads_url . $basename . '-150x150.jpg 150w" ' .
+			'sizes="(max-width: 999px) 100vw, 999px" />';
+
+		$actual = wp_get_attachment_image( self::$large_id, 'testsize' );
 
 		remove_filter( 'wp_get_attachment_metadata', array( $this, '_filter_36246' ) );
 
@@ -2282,10 +2366,10 @@ EOF;
 
 	function _filter_36246( $data, $attachment_id ) {
 		$data['sizes']['testsize'] = array(
-			'file'      => 'test-image-testsize-999x999.png',
+			'file'      => 'test-image-testsize-999x999.jpg',
 			'width'     => 999,
 			'height'    => 999,
-			'mime-type' => 'image/png',
+			'mime-type' => 'image/jpg',
 		);
 		return $data;
 	}
@@ -2851,6 +2935,16 @@ EOF;
 		$image_src  = $this->img_url; // Different image.
 
 		$this->assertFalse( wp_image_file_matches_image_meta( $image_src, $image_meta ) );
+	}
+
+	/**
+	 * @ticket 50543
+	 */
+	function test_wp_image_file_matches_image_meta_original_image() {
+		$image_meta = wp_get_attachment_metadata( self::$large_id );
+		$image_src  = wp_get_original_image_url( self::$large_id );
+
+		$this->assertTrue( wp_image_file_matches_image_meta( $image_src, $image_meta ) );
 	}
 }
 
