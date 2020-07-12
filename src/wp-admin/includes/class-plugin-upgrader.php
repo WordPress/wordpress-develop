@@ -441,6 +441,28 @@ class Plugin_Upgrader extends WP_Upgrader {
 			return new WP_Error( 'incompatible_archive_no_plugins', $this->strings['incompatible_archive'], __( 'No valid plugins were found.' ) );
 		}
 
+		if ( ! empty( $this->new_plugin_data['RequiresPHP'] ) && ! is_php_version_compatible( $this->new_plugin_data['RequiresPHP'] ) ) {
+			$error = sprintf(
+				/* translators: 1: Current PHP version, 2: Version required by the uploaded plugin. */
+				__( 'The PHP version on your server is %1$s, however the uploaded plugin requires %2$s.' ),
+				phpversion(),
+				$this->new_plugin_data['RequiresPHP']
+			);
+
+			return new WP_Error( 'incompatible_php_required_version', $this->strings['incompatible_archive'], $error );
+		}
+
+		if ( ! empty( $this->new_plugin_data['RequiresWP'] ) && ! is_wp_version_compatible( $this->new_plugin_data['RequiresWP'] ) ) {
+			$error = sprintf(
+				/* translators: 1: Current WordPress version, 2: Version required by the uploaded plugin. */
+				__( 'Your WordPress version is %1$s, however the uploaded plugin requires %2$s.' ),
+				$GLOBALS['wp_version'],
+				$this->new_plugin_data['RequiresWP']
+			);
+
+			return new WP_Error( 'incompatible_wp_required_version', $this->strings['incompatible_archive'], $error );
+		}
+
 		return $source;
 	}
 
