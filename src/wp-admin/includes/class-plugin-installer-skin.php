@@ -214,31 +214,32 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 		$table .= '<tr><th></th><th>' . esc_html( __( 'Current' ) ) . '</th>';
 		$table .= '<th>' . esc_html( __( 'Uploaded' ) ) . '</th></tr>';
 
-		$is_same_plugin = true; // Let's consider only these rows
+		$is_same_plugin = true; // Let's consider only these rows.
+
 		foreach ( $rows as $field => $label ) {
-			$old_value = ! empty( $current_plugin_data[ $field ] ) ? $current_plugin_data[ $field ] : '-';
-			$new_value = ! empty( $this->upgrader->new_plugin_data[ $field ] ) ? $this->upgrader->new_plugin_data[ $field ] : '-';
+			$old_value = ! empty( $current_plugin_data[ $field ] ) ? (string) $current_plugin_data[ $field ] : '-';
+			$new_value = ! empty( $this->upgrader->new_plugin_data[ $field ] ) ? (string) $this->upgrader->new_plugin_data[ $field ] : '-';
 
 			$is_same_plugin = $is_same_plugin && ( $old_value === $new_value );
 
 			$diff_field   = ( 'Version' !== $field && $new_value !== $old_value );
 			$diff_version = ( 'Version' === $field && $this->is_downgrading );
 
-			$table .= '<tr><td class="name-label">' . $label . '</td><td>' . esc_html( $old_value ) . '</td>';
+			$table .= '<tr><td class="name-label">' . $label . '</td><td>' . wp_strip_all_tags( $old_value ) . '</td>';
 			$table .= ( $diff_field || $diff_version ) ? '<td class="warning">' : '<td>';
-			$table .= esc_html( $new_value ) . '</td></tr>';
+			$table .= wp_strip_all_tags( $new_value ) . '</td></tr>';
 		}
 
 		$table .= '</tbody></table>';
 
 		/**
-		 * Filters the compare table output for overwrite a plugin package on upload.
+		 * Filters the compare table output for overwriting a plugin package on upload.
 		 *
 		 * @since 5.5.0
 		 *
-		 * @param string   $table                The output table with Name, Version, Author, RequiresWP and RequiresPHP info.
-		 * @param array    $current_plugin_data  Array with current plugin data.
-		 * @param array    $new_plugin_data      Array with uploaded plugin data.
+		 * @param string $table               The output table with Name, Version, Author, RequiresWP, and RequiresPHP info.
+		 * @param array  $current_plugin_data Array with current plugin data.
+		 * @param array  $new_plugin_data     Array with uploaded plugin data.
 		 */
 		echo apply_filters( 'install_plugin_ovewrite_comparison', $table, $current_plugin_data, $this->upgrader->new_plugin_data );
 
@@ -248,9 +249,8 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 		$blocked_message  = '<p>' . esc_html( __( 'The plugin cannot be updated due to the following:' ) ) . '</p>';
 		$blocked_message .= '<ul class="ul-disc">';
 
-		if (
-			! empty( $this->upgrader->new_plugin_data['RequiresPHP'] ) &&
-			version_compare( phpversion(), $this->upgrader->new_plugin_data['RequiresPHP'], '<' )
+		if ( ! empty( $this->upgrader->new_plugin_data['RequiresPHP'] )
+			&& ! is_php_version_compatible( $this->upgrader->new_plugin_data['RequiresPHP'] )
 		) {
 			$error = sprintf(
 				/* translators: 1: Current PHP version, 2: Version required by the uploaded plugin. */
@@ -263,9 +263,8 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			$can_update       = false;
 		}
 
-		if (
-			! empty( $this->upgrader->new_plugin_data['RequiresWP'] ) &&
-			version_compare( $GLOBALS['wp_version'], $this->upgrader->new_plugin_data['RequiresWP'], '<' )
+		if ( ! empty( $this->upgrader->new_plugin_data['RequiresWP'] )
+			&& ! is_wp_version_compatible( $this->upgrader->new_plugin_data['RequiresWP'] )
 		) {
 			$error = sprintf(
 				/* translators: 1: Current WordPress version, 2: Version required by the uploaded plugin. */
@@ -282,9 +281,17 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 
 		if ( $can_update ) {
 			if ( $this->is_downgrading ) {
-				$warning = __( 'You are uploading an older version of a current plugin. You can continue to install the older version, but be sure to <a href="https://wordpress.org/support/article/wordpress-backups/">backup your database and files</a> first.' );
+				$warning = sprintf(
+					/* translators: %s: Documentation URL. */
+					__( 'You are uploading an older version of a current plugin. You can continue to install the older version, but be sure to <a href="%s">back up your database and files</a> first.' ),
+					__( 'https://wordpress.org/support/article/wordpress-backups/' )
+				);
 			} else {
-				$warning = __( 'You are updating a plugin. Be sure to <a href="https://wordpress.org/support/article/wordpress-backups/">backup your database and files</a> first.' );
+				$warning = sprintf(
+					/* translators: %s: Documentation URL. */
+					__( 'You are updating a plugin. Be sure to <a href="%s">back up your database and files</a> first.' ),
+					__( 'https://wordpress.org/support/article/wordpress-backups/' )
+				);
 			}
 
 			echo '<p class="update-from-upload-notice">' . $warning . '</p>';

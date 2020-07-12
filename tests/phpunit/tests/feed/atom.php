@@ -207,12 +207,13 @@ class Tests_Feeds_Atom extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @test 33591
+	 * @ticket 33591
 	 */
 	function test_atom_enclosure_with_extended_url_length_type_parsing() {
 		$enclosures = array(
 			array(
-				'actual'   => "https://wordpress.dev/wp-content/uploads/2017/09/movie.mp4\n318465\nvideo/mp4",     // url length type
+				// URL, length, type.
+				'actual'   => "https://wordpress.dev/wp-content/uploads/2017/09/movie.mp4\n318465\nvideo/mp4",
 				'expected' => array(
 					'href'   => 'https://wordpress.dev/wp-content/uploads/2017/09/movie.mp4',
 					'length' => 318465,
@@ -220,7 +221,8 @@ class Tests_Feeds_Atom extends WP_UnitTestCase {
 				),
 			),
 			array(
-				'actual'   => "https://wordpress.dev/wp-content/uploads/2017/09/movie.mp4\nvideo/mp4\n318465",     // url type length
+				// URL, type, length.
+				'actual'   => "https://wordpress.dev/wp-content/uploads/2017/09/movie.mp4\nvideo/mp4\n318465",
 				'expected' => array(
 					'href'   => 'https://wordpress.dev/wp-content/uploads/2017/09/movie.mp4',
 					'length' => 318465,
@@ -228,7 +230,8 @@ class Tests_Feeds_Atom extends WP_UnitTestCase {
 				),
 			),
 			array(
-				'actual'   => "https://wordpress.dev/wp-content/uploads/2017/09/movie.mp4\n318465",                // url length
+				// URL, length.
+				'actual'   => "https://wordpress.dev/wp-content/uploads/2017/09/movie.mp4\n318465",
 				'expected' => array(
 					'href'   => 'https://wordpress.dev/wp-content/uploads/2017/09/movie.mp4',
 					'length' => 318465,
@@ -236,7 +239,8 @@ class Tests_Feeds_Atom extends WP_UnitTestCase {
 				),
 			),
 			array(
-				'actual'   => "https://wordpress.dev/wp-content/uploads/2017/01/audio.mp3\n\naudio/mpeg",          // url type
+				// URL, type.
+				'actual'   => "https://wordpress.dev/wp-content/uploads/2017/01/audio.mp3\n\naudio/mpeg",
 				'expected' => array(
 					'href'   => 'https://wordpress.dev/wp-content/uploads/2017/01/audio.mp3',
 					'length' => 0,
@@ -244,7 +248,8 @@ class Tests_Feeds_Atom extends WP_UnitTestCase {
 				),
 			),
 			array(
-				'actual'   => 'https://wordpress.dev/wp-content/uploads/2016/01/test.mp4',                         // url
+				// URL.
+				'actual'   => 'https://wordpress.dev/wp-content/uploads/2016/01/test.mp4',
 				'expected' => array(
 					'href'   => 'https://wordpress.dev/wp-content/uploads/2016/01/test.mp4',
 					'length' => 0,
