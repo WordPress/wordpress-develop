@@ -441,23 +441,26 @@ class Plugin_Upgrader extends WP_Upgrader {
 			return new WP_Error( 'incompatible_archive_no_plugins', $this->strings['incompatible_archive'], __( 'No valid plugins were found.' ) );
 		}
 
-		if ( ! empty( $this->new_plugin_data['RequiresPHP'] ) && ! is_php_version_compatible( $this->new_plugin_data['RequiresPHP'] ) ) {
+		$requires_php = isset( $this->new_plugin_data['RequiresPHP'] ) ? $this->new_plugin_data['RequiresPHP'] : null;
+		$requires_wp  = isset( $this->new_plugin_data['RequiresWP'] ) ? $this->new_plugin_data['RequiresWP'] : null;
+
+		if ( ! is_php_version_compatible( $requires_php ) ) {
 			$error = sprintf(
 				/* translators: 1: Current PHP version, 2: Version required by the uploaded plugin. */
-				__( 'The PHP version on your server is %1$s, however the uploaded plugin requires %2$s.' ),
+				__( 'The PHP version on your server is %1$s, however the uploaded plugin requires %2$s. ' ),
 				phpversion(),
-				$this->new_plugin_data['RequiresPHP']
+				$requires_php
 			);
 
 			return new WP_Error( 'incompatible_php_required_version', $this->strings['incompatible_archive'], $error );
 		}
 
-		if ( ! empty( $this->new_plugin_data['RequiresWP'] ) && ! is_wp_version_compatible( $this->new_plugin_data['RequiresWP'] ) ) {
+		if ( ! is_wp_version_compatible( $requires_wp ) ) {
 			$error = sprintf(
 				/* translators: 1: Current WordPress version, 2: Version required by the uploaded plugin. */
 				__( 'Your WordPress version is %1$s, however the uploaded plugin requires %2$s.' ),
 				$GLOBALS['wp_version'],
-				$this->new_plugin_data['RequiresWP']
+				$requires_wp
 			);
 
 			return new WP_Error( 'incompatible_wp_required_version', $this->strings['incompatible_archive'], $error );
