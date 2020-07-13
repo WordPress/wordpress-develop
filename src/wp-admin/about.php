@@ -38,8 +38,24 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		</div>
 
 		<div class="about__section is-feature has-accent-background-color">
-			<h1><?php _e( 'In WordPress 5.5, your site gets new power in three major areas: Speed. Search. And Security.' ); ?></h1>
-
+			<h1>
+				<?php
+				printf(
+					/* translators: %s: The current WordPress version number. */
+					__( 'Welcome to WordPress %s.' ),
+					$display_version
+				);
+				?>
+			</h1>
+			<p>
+				<?php
+				printf(
+					/* translators: %s: The current WordPress version number. */
+					__( 'In WordPress %s, your site gets new power in three major areas: Speed. Search. And Security.' ),
+					$display_version
+				);
+				?>
+			</p>
 			<p><?php _e( 'And by installing this version of WordPress, you’ve already done the work.' ); ?></p>
 		</div>
 
@@ -57,14 +73,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p><?php _e( 'We’ve all been there. That maddening, crazy-making time it takes for a page to load a piece of information we need RIGHT NOW … only, it wouldn’t load a single pixel until it’s loaded six images that go with sections farther down the screen …' ); ?></p>
 				<p><?php _e( 'Well, never again.' ); ?></p>
 				<p><?php _e( 'Because WordPress 5.5 makes those images wait until just before you scroll down to see them—and loads the text you want to read first.' ); ?></p>
-				<p><?php _e( 'The technical term is <strong>*lazy-loading.*</strong> It makes every page feel faster for you and your users, getting them the information they came for and keeping more of them on your site longer. Which, in turn, builds their engagement with your content and community. Boosts the odds they’ll join your community, bump your authority scores and buy your products.' ); ?></p>
+				<p><?php _e( 'The technical term is <strong>lazy-loading.</strong> It makes every page feel faster for you and your users, getting them the information they came for and keeping more of them on your site longer. Which, in turn, builds their engagement with your content and community. Boosts the odds they’ll join your community, bump your authority scores and buy your products.' ); ?></p>
 				<p><?php _e( 'And rank higher in search, because the engines love speed as much your users do.' ); ?></p>
 			</div>
 		</div>
 
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center">
-				<h2><?php _e( 'XML sitemaps are here and on by default.' ); ?></h2>
+				<h2><?php _e( 'Search' ); ?></h2>
+				<p><?php _e( 'XML sitemaps are here and on by default.' ); ?></p>
 				<p><?php _e( 'There’s more to search than speed.' ); ?></p>
 				<p><?php _e( 'One of the best things you can do is install an XML sitemap. Because that’s the most efficient way for search engines to crawl your site, and the benefits to your rankings are real.' ); ?></p>
 				<p><?php _e( 'So you decide one morning that it’s time to get serious about a sitemap. You look at plugins. You read articles. You ask for advice. And by lunchtime, you’re almost ready to make a decision … and life hauls you back to the real world. So long, sitemaps.' ); ?></p>
@@ -86,7 +103,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center">
-				<h2><?php _e( 'Security.' ); ?></h2>
+				<h2><?php _e( 'Security' ); ?></h2>
 				<p><?php _e( 'You hear it twice a day: The absolute best thing you can do to keep your site secure is to keep your themes and plugins (and WordPress itself!) up to date.' ); ?></p>
 				<p><?php _e( 'Have you ever had a few days go by where you thought maybe that was your whole job?' ); ?></p>
 				<p><?php _e( 'If so, you’re not alone. And you’re finally done.' ); ?></p>
@@ -111,27 +128,24 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<hr />
 
 		<div class="about__section ">
-			<div class="column has-subtle-background-color">
-				<h2 class="is-section-header"><?php _e( 'Highlights from the block editor' ); ?></h2>
-			</div>
-		</div>
-
-		<div class="about__section">
+			<h2 class="is-section-header"><?php _e( 'Highlights from the block editor' ); ?></h2>
 			<div class="column">
 				<p><?php _e( 'Check out these favorites of the Gutenberg squad, and see if you agree:' ); ?></p>
 				<ul>
-					<li><p><?php _e( '<strong>Inline image editing</strong> - Crop, rotate, and zoom your photos right from the image block. If you do a lot of work with images, this alone could save you hours every week!' ); ?></li>
+					<li><?php _e( '<strong>Inline image editing</strong> - Crop, rotate, and zoom your photos right from the image block. If you do a lot of work with images, this alone could save you hours every week!' ); ?></li>
 					<li><?php _e( '<strong>Block patterns</strong> - Now building elaborate pages is a breeze, with new content templates that have the blocks you need, right where you need them.' ); ?>
-					<ul>
-						<li><?php _e( '<strong>Sets of columns.</strong></li><li>	Combinations of columns with images.' ); ?></li>
-						<li><?php _e( 'Sets of two buttons.' ); ?></li>
-						<li><?php _e( 'And many, many more – all together, all in a single dropdown. Even if they’re from a variety of different plugins!' ); ?></li>
-					</ul>
+						<ul>
+							<li><?php _e( 'Sets of columns.' ); ?></li>
+							<li><?php _e( 'Combinations of columns with images.' ); ?></li>
+							<li><?php _e( 'Sets of two buttons.' ); ?></li>
+							<li><?php _e( 'And many, many more – all together, all in a single dropdown. Even if they’re from a variety of different plugins!' ); ?></li>
+						</ul>
+					</li>
 				</li>
 				<li><?php _e( '<strong>Device previews</strong> - Is there a bigger pain in the neck than having to move from device to device to check what your page design looks like before you can move on to the next section? What a way to break your train of thought! Well, forget that nonsense. Because now, in 5.5, you can preview screen sizes on the fly.' ); ?></li>
 				<li><?php _e( '<strong>End block overwhelm forever</strong>. The new block inserter panel shows you streamlined categories and collections. Plus, it supports patterns and integrates with the block directory right out of the box.' ); ?></li>
 				<li><?php _e( '<strong>Discover, install, and insert third-party blocks</strong> right from your editor, thanks to the new block directory. (It’s that list! No searching!)' ); ?></li>
-				<li><?php _e( 'A better, <strong>smoother editing experience</strong>with (to name a few):' ); ?>
+				<li><?php _e( 'A better, <strong>smoother editing experience</strong> with (to name a few):' ); ?>
 					<ul>
 						<li><?php _e( 'refined drag-and-drop' ); ?></li>
 						<li><?php _e( 'Block movers you can see and grab. For real!' ); ?></li>
@@ -142,7 +156,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						<li><?php _e( 'And always, better performance. Because who wants to wait for a redraw?' ); ?></li>
 					</ul>
 				</li>
-				<li><strong><?php _e( 'More design tools, for better control.</strong> For starters:' ); ?>
+				<li><?php _e( '<strong>More design tools, for better control.</strong> For starters:' ); ?>
 					<ul>
 						<li><?php _e( 'Inline image editing' ); ?></li>
 						<li><?php _e( 'Theme support for link color' ); ?></li>
@@ -154,19 +168,31 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<li><?php _e( 'And <strong>use the units of measure you want</strong> -- not just pixels. Choose ems, rems, percentages, vh, vw, and more! Plus, adjust line heights as you type, turning writing and typesetting into the seamless act it always should have been.' ); ?></li>
 			</ul>
 			<p><?php _e( 'In all, WordPress 5.5 brings more than 1,500 useful improvements to the editor experience.' ); ?></p>
-			<p><?php _e( 'To see all of the features for each release in detail check out these release posts: <a href="https://github.com/WordPress/gutenberg/releases/tag/v7.5.0">7.5</a> ,  <a href="https://github.com/WordPress/gutenberg/releases/tag/v7.6.0">7.6</a> ,  <a href="https://github.com/WordPress/gutenberg/releases/tag/v7.7.0">7.7</a> ,  <a href="https://github.com/WordPress/gutenberg/releases/tag/v7.8.0">7.8</a> ,  <a href="https://github.com/WordPress/gutenberg/releases/tag/v7.9.0">7.9</a> ,  <a href="https://github.com/WordPress/gutenberg/releases/tag/v8.0.0">8.0</a> ,  <a href="https://github.com/WordPress/gutenberg/releases/tag/v8.1.0">8.1</a> ,  <a href="https://github.com/WordPress/gutenberg/releases/tag/v8.2.0">8.2</a> ,  <a href="https://github.com/WordPress/gutenberg/releases/tag/v8.3.0">8.3</a> , and  <a href="https://github.com/WordPress/gutenberg/releases/tag/v8.4.0">8.4</a>.' ); ?></p>
+			<p>
+				<?php
+				printf(
+					/* translators: All %s are links to Gutenberg releases. */
+					__( 'To see all of the features for each release in detail check out these release posts: <a href="%1$s">7.5</a>, <a href="%2$s">7.6</a>, <a href="%3$s">7.7</a>, <a href="%4$s">7.8</a>, <a href="%5$s">7.9</a>, <a href="%6$s">8.0</a>, <a href="%7$s">8.1</a>, <a href="%8$s">8.2</a>, <a href="%9$s">8.3</a>, and <a href="%10$s">8.4</a>.' ),
+					'https://github.com/WordPress/gutenberg/releases/tag/v7.5.0',
+					'https://github.com/WordPress/gutenberg/releases/tag/v7.6.0',
+					'https://github.com/WordPress/gutenberg/releases/tag/v7.7.0',
+					'https://github.com/WordPress/gutenberg/releases/tag/v7.8.0',
+					'https://github.com/WordPress/gutenberg/releases/tag/v7.9.0',
+					'https://github.com/WordPress/gutenberg/releases/tag/v8.0.0',
+					'https://github.com/WordPress/gutenberg/releases/tag/v8.1.0',
+					'https://github.com/WordPress/gutenberg/releases/tag/v8.2.0',
+					'https://github.com/WordPress/gutenberg/releases/tag/v8.3.0',
+					'https://github.com/WordPress/gutenberg/releases/tag/v8.4.0'
+				);
+				?>
+			</p>
 			</div>
 		</div>
 
 		<hr class="is-small" />
 
-		<div class="about__section ">
-			<div class="column has-subtle-background-color">
-				<h2 class="is-section-header"><?php _e( 'Wait! There’s more!' ); ?></h2>
-			</div>
-		</div>
-
 		<div class="about__section">
+			<h2 class="is-section-header"><?php _e( 'Wait! There’s more!' ); ?></h2>
 			<div class="column">
 				<h3><?php _e( 'Better accessibility' ); ?></h3>
 				<p><?php _e( 'With every release, WordPress works hard to improve accessibility. Version 5.5 is no different and packs a parcel of accessibility fixes and enhancements.' ); ?></p>
@@ -175,39 +201,79 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<li><?php _e( 'Now WP List Tables come with alternate view modes, and they’re extensible.' ); ?></li>
 					<li><?php _e( 'Ever wanted to switch link-list Widgets to HTML5 navigation blocks? Now you can.' ); ?></li>
 					<li><?php _e( 'Copy links in media screens and modal dialogs by hitting a button – so much easier!' ); ?></li>
-					<li><?php _e( 'Buttons that <i>are</i> disabled now <i>look</i> disabled.' ); ?></li>
+					<li><?php _e( 'Buttons that <em>are</em> disabled now <em>look</em> disabled.' ); ?></li>
 					<li><?php _e( 'Move meta boxes with the keyboard, and never drop one again.' ); ?></li>
 					<li><?php _e( 'A custom logo on the front page doesn’t need to link to the front page. And now it doesn’t.' ); ?></li>
 					<li><?php _e( 'Assistive devices can see status messages in the Image Editor. So if you’re using such a device, now you can also use the Image Editor.' ); ?></li>
-					<li><?php _e( 'That shake animation that indicates a login failure? Now it respects your choice if you enabled the <code>prefers-reduced-motion</code> media query.' ); ?></li>
+					<li>
+						<?php
+						printf(
+							/* translators: %s: 'prefers-reduced-motion' media query name. */
+							__( 'That shake animation that indicates a login failure? Now it respects your choice if you enabled the %s media query.' ),
+							'<code>prefers-reduced-motion</code>'
+						);
+						?>
+					</li>
 					<li><?php _e( 'And that redundant <code>Error:</code> prefix in error notices? Gone.' ); ?></li>
 				</ul>
 			</div>
 		</div>
 
+		<hr />
+
+		<div class="about__section has-subtle-background-color">
+			<div class="column">
+				<h2><?php _e( 'Just for developers' ); ?></h2>
+				<p><?php _e( '5.5 also brings a big box of changes just for developers.' ); ?></p>
+			</div>
+		</div>
+
 		<hr class="is-small" />
+
+		<div class="about__section has-2-columns">
+			<div class="column">
+				<h3><?php _e( 'Lazy-loading images' ); ?></h3>
+				<p><?php _e( 'You saw the description. Now, here are the details: It works courtesy of a new loading attribute on image tags, which delays loading until the image scrolls into the user’s viewport.' ); ?></p>
+			</div>
+			<div class="column">
+				<h3><?php _e( 'PHPMailer' ); ?></h3>
+				<p><?php _e( 'Now that the minimum PHP version is 5.6.20, PHPMailer is newly updated to the 6.x library,' ); ?></p>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: Link to the External Library Updates developer notes. */
+						__( 'Note: that changes where the file lives and how you’ll call the class. The new setup maintains backward compatibility, but loading the files from the old location will generate a notice. <a href="%s">Please read the full notice for more details</a>.' ),
+						'https://make.wordpress.org/core/2020/07/01/external-library-updates-in-wordpress-5-5-call-for-testing/'
+					);
+					?>
+				</p>
+			</div>
+		</div>
 
 		<div class="about__section">
 			<div class="column">
-				<h3><?php _e( 'For developers' ); ?></h3>
-				<p><?php _e( '5.5 also brings a big box of changes just for developers.' ); ?></p>
-				<p><strong><?php _e( 'Lazy-loading images:' ); ?></strong></p>
-				<p><?php _e( 'You saw the description. Now, here are the details: It works courtesy of a new loading attribute on image tags, which delays loading until the image scrolls into the user’s viewport.' ); ?></p>
-				<p><?php _e( '<strong>PHPMailer:</strong>' ); ?></p>
-				<p><?php _e( 'Now that the minimum PHP version is 5.6.20, PHPMailer is newly updated to the 6.x library,' ); ?></p>
-				<p><?php _e( 'Note: that changes where the file lives and how you’ll call the class. The new setup maintains backward compatibility, but loading the files from the old location will generate a notice. <a href="https://make.wordpress.org/core/2020/07/01/external-library-updates-in-wordpress-5-5-call-for-testing/">Please read the full notice for more details</a>.' ); ?></p>
-				<p><?php _e( '<strong>Other changes for developers</strong>' ); ?></p>
+				<h3><?php _e( 'Other changes for developers' ); ?></h3>
 				<ul>
-					<li><?php _e( '<a href="https://make.wordpress.org/core/2020/06/26/wordpress-5-5-better-fine-grained-control-of-redirect_guess_404_permalink/">Fine-grained control of redirect_guess_404_permalink()</a>.' ); ?></li>
+					<li><a href="https://make.wordpress.org/core/2020/06/26/wordpress-5-5-better-fine-grained-control-of-redirect_guess_404_permalink/">
+						<?php
+						printf(
+							/* translators: %s: 'redirect_guess_404_permalink' function name. */
+							__( 'Fine-grained control of %s.' ),
+							'redirect_guess_404_permalink()'
+						);
+						?>
+					</a></li>
 					<li><?php _e( 'Plus, now that the WordPress project supports only PHP 5.6.2 and later, you’ll find updates to these bundled libraries:' ); ?>
-					<li><?php _e( '<a href="https://make.wordpress.org/core/2020/07/01/external-library-updates-in-wordpress-5-5-call-for-testing/">SimplePie is now at 1.5.5</a>.' ); ?></li>
-					<li><?php _e( '<a href="https://core.trac.wordpress.org/ticket/50148">Twemoji is now at v13.0</a>.' ); ?></li>
-					<li><?php _e( '<a href="https://make.wordpress.org/core/tag/dev-notes/">The Masonry library, formerly at version v3.3.2 to 4.2.2, and the related imagesLoaded library has been updated from v3.2.0 to v4.1.4</a>.' ); ?></li>
-					<li><?php _e( 'The getID3 library has been updated from version <a href="https://core.trac.wordpress.org/ticket/49945">v1.9.18 to v1.9.20</a>.' ); ?></li>
-					<li><?php _e( 'The Moment.js library has been updated from version <a href="https://core.trac.wordpress.org/ticket/50408">2.22.2 to 2.27.0</a>.' ); ?></li>
-					<li><?php _e( 'The clipboard.js library has been updated from version  <a href="https://core.trac.wordpress.org/ticket/50306">v2.0.4 to v2.0.6</a>.' ); ?></li>
+						<ul>
+							<li><a href="https://make.wordpress.org/core/2020/07/01/external-library-updates-in-wordpress-5-5-call-for-testing/"><?php _e( 'SimplePie is now at 1.5.5.' ); ?></a></li>
+							<li><a href="https://core.trac.wordpress.org/ticket/50148"><?php _e( 'Twemoji is now at v13.0.' ); ?></a></li>
+							<li><a href="https://make.wordpress.org/core/tag/dev-notes/"><?php _e( 'The Masonry library, formerly at version v3.3.2 to 4.2.2, and the related imagesLoaded library has been updated from v3.2.0 to v4.1.4.' ); ?></a></li>
+							<li><a href="https://core.trac.wordpress.org/ticket/49945"><?php _e( 'The getID3 library has been updated from version v1.9.18 to v1.9.20.' ); ?></a></li>
+							<li><a href="https://core.trac.wordpress.org/ticket/50408"><?php _e( 'The Moment.js library has been updated from version 2.22.2 to 2.27.0.' ); ?></a></li>
+							<li><a href="https://core.trac.wordpress.org/ticket/50306"><?php _e( 'The clipboard.js library has been updated from version v2.0.4 to v2.0.6.' ); ?></a></li>
+						</ul>
+					</li>
 				</ul>
-				<p><?php _e( 'For all the details, check out the WordPress 5.5 Field Guide, a compendium of all the dev notes you’ll need (and then some!) to keep your sites running smoothly and your clients and colleagues happy with all the great things packed into WordPress 5.5!' ); ?></p>
 			</div>
 		</div>
 
@@ -218,8 +284,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
-						/* translators: %s: WordPress 5.4 Field Guide link. */
-						__( 'There&#8217;s lots more for developers to love in WordPress 5.5. To discover more and learn how to make these changes shine on your sites, themes, plugins and more, check the <a href="%s">WordPress 5.5 Field Guide</a>.' ),
+						/* translators: %s: WordPress 5.5 Field Guide link. */
+						__( 'For all the details, check out the <a href="%s">WordPress 5.5 Field Guide</a>, a compendium of all the dev notes you&#8217;ll need (and then some!) to keep your sites running smoothly and your clients and colleagues happy with all the great things packed into WordPress 5.5!' ),
 						'https://make.wordpress.org/core/wordpress-5-5-field-guide/'
 					);
 					?>
