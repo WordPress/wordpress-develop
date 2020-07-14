@@ -192,6 +192,29 @@ class Test_Sitemaps extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test sitemap index entries with public and private custom post types.
+	 *
+	 * @ticket 50607
+	 */
+	public function test_get_sitemap_entries_not_publicly_queryable_post_types() {
+		register_post_type(
+			'non_queryable_cpt',
+			array(
+				'public'             => true,
+				'publicly_queryable' => false,
+			)
+		);
+		self::factory()->post->create( array( 'post_type' => 'non_queryable_cpt' ) );
+
+		$entries = wp_list_pluck( $this->_get_sitemap_entries(), 'loc' );
+
+		// Clean up.
+		unregister_post_type( 'non_queryable_cpt' );
+
+		$this->assertNotContains( 'http://' . WP_TESTS_DOMAIN . '/?sitemap=posts&sitemap-subtype=non_queryable_cpt&paged=1', $entries, 'Non-publicly queryable CPTs are visible in the index.' );
+	}
+
+	/**
 	 * Tests getting a URL list for post type post.
 	 */
 	public function test_get_url_list_post() {
@@ -305,6 +328,34 @@ class Test_Sitemaps extends WP_UnitTestCase {
 		unregister_post_type( $post_type );
 
 		$this->assertEmpty( $post_list, 'Private post types may be returned by the post provider.' );
+	}
+
+	/**
+	 * Tests getting a URL list for a private custom post type.
+	 *
+	 * @ticket 50607
+	 */
+	public function test_get_url_list_cpt_not_publicly_queryable() {
+		$post_type = 'non_queryable_cpt';
+
+		register_post_type(
+			$post_type,
+			array(
+				'public'             => true,
+				'publicly_queryable' => false,
+			)
+		);
+
+		self::factory()->post->create_many( 10, array( 'post_type' => $post_type ) );
+
+		$providers = wp_get_sitemaps();
+
+		$post_list = $providers['posts']->get_url_list( 1, $post_type );
+
+		// Clean up.
+		unregister_post_type( $post_type );
+
+		$this->assertEmpty( $post_list, 'Non-publicly queryable post types may be returned by the post provider.' );
 	}
 
 	/**
