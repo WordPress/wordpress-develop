@@ -999,8 +999,12 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 			)
 		);
 
+		// Test default category.
 		$term = wp_get_post_terms( $post_id, $tax );
 		$this->assertSame( get_option( 'default_taxonomy_' . $tax ), $term[0]->term_id );
+
+		// Test default term deletion.
+		$this->assertSame( wp_delete_term( $term[0]->term_id, $tax ), 0 );
 
 		// Add custom post type.
 		register_post_type(
@@ -1017,5 +1021,13 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		);
 		$term    = wp_get_post_terms( $post_id, $tax );
 		$this->assertSame( get_option( 'default_taxonomy_' . $tax ), $term[0]->term_id );
+
+		// wp_set_object_terms shouldn't assign default category.
+		wp_set_object_terms( $post_id, array(), $tax );
+		$term = wp_get_post_terms( $post_id, $tax );
+		$this->assertSame( array(), $term );
+
+		unregister_taxonomy( $tax );
+		$this->assertSame( get_option( 'default_taxonomy_' . $tax ), false );
 	}
 }
