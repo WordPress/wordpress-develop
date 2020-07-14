@@ -58,7 +58,7 @@ class Test_WP_Widget_Media_Gallery extends WP_UnitTestCase {
 
 		$attachments = array();
 		foreach ( array( 'canola.jpg', 'waffles.jpg' ) as $filename ) {
-			$test_image = '/tmp/' . $filename;
+			$test_image = get_temp_dir() . $filename;
 			copy( DIR_TESTDATA . '/images/canola.jpg', $test_image );
 			$attachment_id = self::factory()->attachment->create_object(
 				array(

@@ -80,10 +80,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$role->add_cap( 'level_0' );
 
 		$orig_file       = DIR_TESTDATA . '/images/canola.jpg';
-		$this->test_file = '/tmp/canola.jpg';
+		$this->test_file = get_temp_dir() . 'canola.jpg';
 		copy( $orig_file, $this->test_file );
 		$orig_file2       = DIR_TESTDATA . '/images/codeispoetry.png';
-		$this->test_file2 = '/tmp/codeispoetry.png';
+		$this->test_file2 = get_temp_dir() . 'codeispoetry.png';
 		copy( $orig_file2, $this->test_file2 );
 	}
 

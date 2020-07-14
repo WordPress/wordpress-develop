@@ -46,7 +46,7 @@ class Tests_Upload extends WP_UnitTestCase {
 	 * @ticket 5953
 	 */
 	function test_upload_dir_absolute() {
-		$path = '/tmp/wp-unit-test';
+		$path = get_temp_dir() . 'wp-unit-test';
 
 		// wp_upload_dir() with an absolute upload path.
 		update_option( 'upload_path', $path );

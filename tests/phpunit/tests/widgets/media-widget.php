@@ -138,7 +138,7 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 	 */
 	function test_is_attachment_with_mime_type() {
 
-		$test_image = '/tmp/canola.jpg';
+		$test_image = get_temp_dir() . 'canola.jpg';
 		copy( DIR_TESTDATA . '/images/canola.jpg', $test_image );
 		$attachment_id = self::factory()->attachment->create_object(
 			array(

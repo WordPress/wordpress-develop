@@ -226,7 +226,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		);
 
 		$media_id = $this->factory->attachment->create_object(
-			'/tmp/canola.jpg',
+			get_temp_dir() . 'canola.jpg',
 			0,
 			array(
 				'post_mime_type' => 'image/jpeg',
