@@ -5,6 +5,29 @@
  */
 class Test_WP_Sitemaps_Posts extends WP_UnitTestCase {
 	/**
+	 * Tests getting sitemap entries for post type page with 'posts' homepage.
+	 *
+	 * Ensures that an entry is added even if there are no pages.
+	 *
+	 * @ticket 50571
+	 */
+	public function test_get_sitemap_entries_homepage() {
+		update_option( 'show_on_front', 'posts' );
+
+		$posts_provider = new WP_Sitemaps_Posts();
+
+		$post_list = $posts_provider->get_sitemap_entries();
+
+		$expected = array(
+			array(
+				'loc' => home_url( '/?sitemap=posts&sitemap-subtype=page&paged=1' ),
+			),
+		);
+
+		$this->assertEquals( $expected, $post_list );
+	}
+
+	/**
 	 * Test ability to filter object subtypes.
 	 */
 	public function test_filter_sitemaps_post_types() {
