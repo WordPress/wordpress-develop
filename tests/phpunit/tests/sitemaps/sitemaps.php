@@ -234,7 +234,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 		array_unshift(
 			$expected,
 			array(
-				'loc' => home_url(),
+				'loc' => home_url( '/' ),
 			)
 		);
 
