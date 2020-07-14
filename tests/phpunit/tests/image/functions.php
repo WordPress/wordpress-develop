@@ -371,6 +371,11 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$test_file = '/tmp/wordpress-gsoc-flyer.pdf';
 		copy( $orig_file, $test_file );
 
+		$editor = wp_get_image_editor( $test_file );
+		if ( is_wp_error( $editor ) ) {
+			$this->markTestSkipped( $editor->get_error_message() );
+		}
+
 		$attachment_id = $this->factory->attachment->create_object( $test_file, 0, array(
 			'post_mime_type' => 'application/pdf',
 		) );
@@ -427,6 +432,11 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$test_file = '/tmp/wordpress-gsoc-flyer.pdf';
 		copy( $orig_file, $test_file );
 
+		$editor = wp_get_image_editor( $test_file );
+		if ( is_wp_error( $editor ) ) {
+			$this->markTestSkipped( $editor->get_error_message() );
+		}
+
 		$attachment_id = $this->factory->attachment->create_object( $test_file, 0, array(
 			'post_mime_type' => 'application/pdf',
 		) );
@@ -481,6 +491,11 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		// PDF with same name as JPEG.
 		$pdf_path = '/tmp/test.pdf';
 		copy( DIR_TESTDATA . '/images/wordpress-gsoc-flyer.pdf', $pdf_path );
+
+		$editor = wp_get_image_editor( $test_file );
+		if ( is_wp_error( $editor ) ) {
+			$this->markTestSkipped( $editor->get_error_message() );
+		}
 
 		$attachment_id = $this->factory->attachment->create_object( $pdf_path, 0, array(
 			'post_mime_type' => 'application/pdf',
