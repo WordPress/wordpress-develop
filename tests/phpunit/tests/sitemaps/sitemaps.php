@@ -444,4 +444,22 @@ class Test_Sitemaps extends WP_UnitTestCase {
 
 		$this->assertContains( $sitemap_string, $robots_text, 'Sitemap URL not prefixed with "\n".' );
 	}
+
+	/**
+	 * @ticket 50643
+	 */
+	public function test_disable_sitemap_should_return_404() {
+		// Disable sitemap.
+		add_filter( 'wp_sitemaps_enabled', '__return_false' );
+
+		// Setup $wp_query vars.
+		$this->set_permalink_structure( '/%postname%/' );
+		$this->go_to( home_url( '/wp-sitemap.xml' ) );
+
+		// Trigger 'template_redirect' action to invoke WP_Sitemaps::render_sitemaps().
+		do_action( 'template_redirect' );
+
+		// Disabling the sitemap should return to 404.
+		$this->assertTrue( is_404() );
+	}
 }
