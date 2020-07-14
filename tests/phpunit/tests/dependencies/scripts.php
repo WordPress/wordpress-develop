@@ -752,7 +752,7 @@ JS;
 			$print_scripts         // Printed scripts.
 		);
 
-		$this->assertEquals( $expected, $print_scripts );
+		$this->assertEqualsIgnoreEOL( $expected, $print_scripts );
 	}
 
 	/**

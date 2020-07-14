@@ -17,7 +17,7 @@ class Tests_Functions_CleanupHeaderComment extends WP_UnitTestCase {
 	 * @param string $expected
 	 */
 	public function test_cleanup_header_comment( $test_string, $expected ) {
-		$this->assertEquals( $expected, _cleanup_header_comment( $test_string ) );
+		$this->assertEqualsIgnoreEOL( $expected, _cleanup_header_comment( $test_string ) );
 	}
 
 	/**
