@@ -35,22 +35,19 @@ final class WP_Block_Patterns_Registry {
 	 * @param string $pattern_name       Pattern name including namespace.
 	 * @param array  $pattern_properties Array containing the properties of the pattern: title,
 	 *                                   content, description, viewportWidth, categories, keywords.
-	 * @return bool True if the pattern was registered with success and false otherwise.
+	 * @return bool|WP_Error True if the pattern was registered with success and WP_Error otherwise.
 	 */
 	public function register( $pattern_name, $pattern_properties ) {
 		if ( ! isset( $pattern_name ) || ! is_string( $pattern_name ) ) {
-			_doing_it_wrong( __METHOD__, __( 'Pattern name must be a string.' ), '5.5.0' );
-			return false;
+			return new WP_Error( 'block_patterns_registry_' . __METHOD__, __( 'Pattern name must be a string.' ) );
 		}
 
 		if ( ! isset( $pattern_properties['title'] ) || ! is_string( $pattern_properties['title'] ) ) {
-			_doing_it_wrong( __METHOD__, __( 'Pattern title must be a string.' ), '5.5.0' );
-			return false;
+			return new WP_Error( 'block_patterns_registry_' . __METHOD__, __( 'Pattern title must be a string.' ) );
 		}
 
 		if ( ! isset( $pattern_properties['content'] ) || ! is_string( $pattern_properties['content'] ) ) {
-			_doing_it_wrong( __METHOD__, __( 'Pattern content must be a string.' ), '5.5.0' );
-			return false;
+			return new WP_Error( 'block_patterns_registry_' . __METHOD__, __( 'Pattern content must be a string.' ) );
 		}
 
 		$this->registered_patterns[ $pattern_name ] = array_merge(
@@ -67,14 +64,13 @@ final class WP_Block_Patterns_Registry {
 	 * @since 5.5.0
 	 *
 	 * @param string $pattern_name Pattern name including namespace.
-	 * @return bool True if the pattern was unregistered with success and false otherwise.
+	 * @return bool|WP_Error True if the pattern was unregistered with success and WP_Error otherwise.
 	 */
 	public function unregister( $pattern_name ) {
 		if ( ! $this->is_registered( $pattern_name ) ) {
 			/* translators: 1: Pattern name. */
 			$message = sprintf( __( 'Pattern "%1$s" not found.' ), $pattern_name );
-			_doing_it_wrong( __METHOD__, $message, '5.5.0' );
-			return false;
+			return new WP_Error( 'block_patterns_registry_' . __METHOD__, $message );
 		}
 
 		unset( $this->registered_patterns[ $pattern_name ] );
