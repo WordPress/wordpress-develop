@@ -1463,6 +1463,7 @@ function wp_default_styles( $styles ) {
 			'wp-editor-font',
 		),
 		'block-library'        => array(),
+		'block-directory'      => array(),
 		'components'           => array(),
 		'edit-post'            => array(
 			'wp-components',
@@ -1470,6 +1471,7 @@ function wp_default_styles( $styles ) {
 			'wp-editor',
 			'wp-edit-blocks',
 			'wp-block-library',
+			'wp-block-directory',
 			'wp-nux',
 		),
 		'editor'               => array(
@@ -1527,6 +1529,7 @@ function wp_default_styles( $styles ) {
 		'wp-edit-blocks',
 		'wp-block-editor',
 		'wp-block-library',
+		'wp-block-directory',
 		'wp-components',
 		'wp-edit-post',
 		'wp-editor',
