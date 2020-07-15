@@ -6,6 +6,7 @@
  * @since 5.5.0
  */
 
+add_theme_support( 'core-block-patterns' );
 
 /**
  * Registers the core block patterns and categories.
@@ -14,9 +15,9 @@
  * @private
  */
 function _register_core_block_patterns_and_categories() {
-	$should_disable_core_patterns = get_theme_support( 'disable-core-block-patterns' );
+	$should_register_core_patterns = get_theme_support( 'core-block-patterns' );
 
-	if ( ! $should_disable_core_patterns ) {
+	if ( ! $should_register_core_patterns ) {
 		$core_block_patterns = array(
 			'text-two-columns',
 			'two-buttons',
