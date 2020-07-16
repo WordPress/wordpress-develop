@@ -37,25 +37,27 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 		 * and namespace indexes. If you really need to register a
 		 * non-namespaced route, call `WP_REST_Server::register_route` directly.
 		 */
-		_doing_it_wrong( 'register_rest_route', __( 'Routes must be namespaced with plugin or theme name and version.' ), '4.4.0' );
+		_doing_it_wrong( 'register_rest_route', __( 'Routes must be namespaced with plugin or theme name and version.' ) . ' [Namespace = "' . $namespace . '", Route = "' . $route . '"]', '4.4.0' );
 		return false;
 	} elseif ( empty( $route ) ) {
-		_doing_it_wrong( 'register_rest_route', __( 'Route must be specified.' ), '4.4.0' );
+		_doing_it_wrong( 'register_rest_route', __( 'Route must be specified.' ) . ' [Namespace = "' . $namespace . '", Route = "' . $route . '"]', '4.4.0' );
 		return false;
 	}
 
 	$clean_namespace = trim( $namespace, '/' );
 
 	if ( $clean_namespace !== $namespace ) {
-		_doing_it_wrong( __FUNCTION__, __( 'Namespace must not start or end with a slash.' ), '5.4.2' );
+		_doing_it_wrong( 
+			__FUNCTION__, 
+			__( 'Namespace must not start or end with a slash.' ) . ' [Namespace = "' . $namespace . '", Route = "' . $route . '"]', '5.4.2' );
 	}
-
+	
 	if ( ! did_action( 'rest_api_init' ) ) {
 		_doing_it_wrong(
-			'register_rest_route',
+			__FUNCTION__,
 			sprintf(
 				/* translators: %s: rest_api_init */
-				__( 'REST API routes must be registered on the %s action.' ),
+				__( 'REST API routes must be registered on the %s action.' ) . ' [Namespace = "' . $namespace . '", Route = "' . $route . '"]',
 				'<code>rest_api_init</code>'
 			),
 			'5.1.0'
@@ -1835,7 +1837,7 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			/* translators: 1. Parameter. 2. The list of allowed types. */
-			wp_sprintf( __( 'The "type" schema keyword for %1$s can only be on of the built-in types: %2$l.' ), $param, $allowed_types ),
+			wp_sprintf( __( 'The "type" schema keyword for %1$s can only be one of the built-in types: %2$l.' ), $param, $allowed_types ),
 			'5.5.0'
 		);
 	}
