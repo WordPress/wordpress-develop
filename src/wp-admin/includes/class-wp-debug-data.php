@@ -826,13 +826,14 @@ class WP_Debug_Data {
 			'private' => true,
 		);
 
+		include_once ABSPATH . 'wp-admin/includes/plugin-install.php'; // For plugins_api().
+
 		// List must use plugins if there are any.
 		$mu_plugins = get_mu_plugins();
 
 		foreach ( $mu_plugins as $plugin_path => $plugin ) {
 			$plugin_version = $plugin['Version'];
 			$plugin_author  = $plugin['Author'];
-			$plugin_info = self::get_plugin_information( $plugin_path );
 
 			$plugin_version_string       = __( 'No version or author information is available.' );
 			$plugin_version_string_debug = 'author: (undefined), version: (undefined)';
@@ -853,12 +854,6 @@ class WP_Debug_Data {
 					$plugin_version_string       = sprintf( __( 'Version %s' ), $plugin_version );
 					$plugin_version_string_debug = sprintf( 'author: (undefined), version: %s', $plugin_version );
 				}
-			}
-
-			if ( isset( $plugin_info->last_updated ) && ! array_key_exists( $plugin_path, $plugin_updates ) ) {
-				/* translators: %s: Plugin last updated time. */
-				$plugin_version_string          .= sprintf( __( ' | Last update: %s ago' ), human_time_diff( strtotime( $plugin_info->last_updated ), current_time( 'timestamp' ) ) );
-				$plugin_version_string_debug    .= sprintf( __( ', last update: %s ago' ), human_time_diff( strtotime( $plugin_info->last_updated ), current_time( 'timestamp' ) ) );
 			}
 
 			$info['wp-mu-plugins']['fields'][ sanitize_text_field( $plugin['Name'] ) ] = array(
@@ -887,7 +882,16 @@ class WP_Debug_Data {
 			$plugin_version = $plugin['Version'];
 			$plugin_author  = $plugin['Author'];
 
-			$plugin_info = self::get_plugin_information( $plugin_path );
+			$plugin_slug                 = explode( '/', $plugin_path );
+			$plugin_info                 = plugins_api(
+				'plugin_information',
+				array(
+					'slug'   => $plugin_slug[0],
+					'fields' => array(
+						'last_updated',
+					),
+				)
+			);
 			$plugin_version_string       = __( 'No version or author information is available.' );
 			$plugin_version_string_debug = 'author: (undefined), version: (undefined)';
 
@@ -925,10 +929,10 @@ class WP_Debug_Data {
 				}
 			}
 
-			if ( isset( $plugin_info->last_updated ) && ! array_key_exists( $plugin_path, $plugin_updates ) ) {
-				/* translators: %s: Plugin last updated time. */
-				$plugin_version_string          .= sprintf( __( ' | Last update: %s ago' ), human_time_diff( strtotime( $plugin_info->last_updated ), current_time( 'timestamp' ) ) );
-				$plugin_version_string_debug    .= sprintf( __( ', last update: %s ago' ), human_time_diff( strtotime( $plugin_info->last_updated ), current_time( 'timestamp' ) ) );
+			if ( isset( $plugin_info->last_updated ) ) {
+				/* translators: %s: Plugin last released time. */
+				$plugin_version_string       .= sprintf( __( ' | Last Plugin release: %s ago' ), human_time_diff( strtotime( $plugin_info->last_updated ), current_time( 'timestamp' ) ) );
+				$plugin_version_string_debug .= sprintf( __( ', last plugin release: %s ago' ), human_time_diff( strtotime( $plugin_info->last_updated ), current_time( 'timestamp' ) ) );
 			}
 
 			$info[ $plugin_part ]['fields'][ sanitize_text_field( $plugin['Name'] ) ] = array(
@@ -937,6 +941,8 @@ class WP_Debug_Data {
 				'debug' => $plugin_version_string_debug,
 			);
 		}
+
+		include_once ABSPATH . 'wp-admin/includes/theme.php'; // For themes_api().
 
 		// Populate the section for the currently active theme.
 		global $_wp_theme_features;
@@ -959,6 +965,14 @@ class WP_Debug_Data {
 		if ( $auto_updates_enabled ) {
 			$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
 		}
+
+		$active_theme_info = themes_api(
+			'theme_information',
+			array(
+				'slug'   => $active_theme->template,
+				'fields' => 'last_updated',
+			)
+		);
 
 		if ( array_key_exists( $active_theme->stylesheet, $theme_updates ) ) {
 			$theme_update_new_version = $theme_updates[ $active_theme->stylesheet ]->update['new_version'];
@@ -1038,6 +1052,15 @@ class WP_Debug_Data {
 				'debug' => $theme_auto_update_string,
 			);
 		}
+
+		if ( isset( $active_theme->last_updated ) ) {
+			$info['wp-active-theme']['fields']['last_release'] = array(
+				'label' => __( 'Last Theme Release' ),
+				'value' => sprintf( __( '%s ago' ), human_time_diff( strtotime( $active_theme_info->last_updated ), current_time( 'timestamp' ) ) ),
+				'debug' => sprintf( __( '%s ago' ), human_time_diff( strtotime( $active_theme_info->last_updated ), current_time( 'timestamp' ) ) ),
+			);
+		}
+
 		$parent_theme = $active_theme->parent();
 
 		if ( $parent_theme ) {
@@ -1121,6 +1144,14 @@ class WP_Debug_Data {
 			$theme_version_string       = __( 'No version or author information is available.' );
 			$theme_version_string_debug = 'undefined';
 
+			$theme_info = themes_api(
+				'theme_information',
+				array(
+					'slug'   => $theme_slug,
+					'fields' => 'last_updated',
+				)
+			);
+
 			if ( ! empty( $theme_version ) && ! empty( $theme_author ) ) {
 				/* translators: 1: Theme version number. 2: Theme author name. */
 				$theme_version_string       = sprintf( __( 'Version %1$s by %2$s' ), $theme_version, $theme_author );
@@ -1153,6 +1184,12 @@ class WP_Debug_Data {
 					$theme_version_string       .= ' | ' . $auto_updates_disabled_str;
 					$theme_version_string_debug .= ', ' . $auto_updates_disabled_str;
 				}
+			}
+
+			if ( isset( $theme_info->last_updated ) ) {
+				/* translators: %s: Theme last released time. */
+				$theme_version_string       .= sprintf( __( ' | Last Theme release: %s ago' ), human_time_diff( strtotime( $theme_info->last_updated ), current_time( 'timestamp' ) ) );
+				$theme_version_string_debug .= sprintf( __( ', last theme release: %s ago' ), human_time_diff( strtotime( $theme_info->last_updated ), current_time( 'timestamp' ) ) );
 			}
 
 			$info['wp-themes-inactive']['fields'][ sanitize_text_field( $theme->name ) ] = array(
@@ -1439,91 +1476,6 @@ class WP_Debug_Data {
 		}
 
 		return $all_sizes;
-	}
-
-	/**
-	 * Get Plugin Information from the Plugin Information API.
-	 * @param $plugin_path
-	 * @return mixed|object|WP_Error
-	 */
-	static function get_plugin_information( $plugin_path ) {
-		$plugin_slug = explode( '/', $plugin_path );
-		$plugin_info_arguments = (object) array();
-		$plugin_info_arguments->slug = ( isset( $plugin_slug[0] ) ) ? $plugin_slug[0] : $plugin_slug;
-
-		$res = apply_filters( 'plugins_api', false, 'plugin_information', $plugin_info_arguments );
-
-		if ( false === $res ) {
-
-			$url = 'http://api.wordpress.org/plugins/info/1.2/';
-			$url = add_query_arg(
-				array(
-					'action'  => 'plugin_information',
-					'request' => $plugin_info_arguments,
-				),
-				$url
-			);
-
-			$http_url = $url;
-			$ssl      = wp_http_supports( array( 'ssl' ) );
-			if ( $ssl ) {
-				$url = set_url_scheme( $url, 'https' );
-			}
-
-			$http_args = array(
-				'timeout'    => 15,
-				'user-agent' => 'WordPress/' . get_bloginfo( 'version' ) . '; ' . home_url( '/' ),
-			);
-			$request   = wp_remote_get( $url, $http_args );
-
-			if ( $ssl && is_wp_error( $request ) ) {
-				trigger_error(
-					sprintf(
-					/* translators: %s: Support forums URL. */
-						__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
-						__( 'https://wordpress.org/support/forums/' )
-					) . ' ' . __( '(WordPress could not establish a secure connection to WordPress.org. Please contact your server administrator.)' ),
-					headers_sent() || WP_DEBUG ? E_USER_WARNING : E_USER_NOTICE
-				);
-				$request = wp_remote_get( $http_url, $http_args );
-			}
-
-			if ( is_wp_error( $request ) ) {
-				$res = new WP_Error(
-					'plugins_api_failed',
-					sprintf(
-					/* translators: %s: Support forums URL. */
-						__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
-						__( 'https://wordpress.org/support/forums/' )
-					),
-					$request->get_error_message()
-				);
-			} else {
-				$res = json_decode( wp_remote_retrieve_body( $request ), true );
-				if ( is_array( $res ) ) {
-					// Object casting is required in order to match the info/1.0 format.
-					$res = (object) $res;
-				} elseif ( null === $res ) {
-					$res = new WP_Error(
-						'plugins_api_failed',
-						sprintf(
-						/* translators: %s: Support forums URL. */
-							__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
-							__( 'https://wordpress.org/support/forums/' )
-						),
-						wp_remote_retrieve_body( $request )
-					);
-				}
-
-				if ( isset( $res->error ) ) {
-					$res = new WP_Error( 'plugins_api_failed', $res->error );
-				}
-			}
-		} elseif ( ! is_wp_error( $res ) ) {
-			$res->external = true;
-		}
-
-		return $res;
 	}
 
 }
