@@ -1800,7 +1800,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	public function test_edit_image_returns_error_if_logged_out() {
 		$attachment = self::factory()->attachment->create_upload_object( $this->test_file );
 
-		$request  = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
 		$request->set_body_params( array( 'src' => wp_get_attachment_image_url( $attachment, 'full' ) ) );
 		$response = rest_do_request( $request );
 		$this->assertErrorResponse( 'rest_cannot_edit_image', $response, 401 );
@@ -1816,7 +1816,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		wp_set_current_user( $user->ID );
 		$attachment = self::factory()->attachment->create_upload_object( $this->test_file );
 
-		$request  = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
 		$request->set_body_params( array( 'src' => wp_get_attachment_image_url( $attachment, 'full' ) ) );
 		$response = rest_do_request( $request );
 		$this->assertErrorResponse( 'rest_cannot_edit_image', $response, 403 );
@@ -1829,7 +1829,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		wp_set_current_user( self::$uploader_id );
 		$attachment = self::factory()->attachment->create_upload_object( $this->test_file );
 
-		$request  = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
 		$request->set_body_params( array( 'src' => wp_get_attachment_image_url( $attachment, 'full' ) ) );
 		$response = rest_do_request( $request );
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
@@ -1842,7 +1842,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		wp_set_current_user( self::$superadmin_id );
 		$attachment = self::factory()->attachment->create();
 
-		$request  = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
 		$request->set_body_params( array( 'src' => '/wp-content/uploads/2020/07/canola.jpg' ) );
 		$response = rest_do_request( $request );
 		$this->assertErrorResponse( 'rest_unknown_attachment', $response, 404 );
@@ -1861,7 +1861,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			)
 		);
 
-		$request  = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
 		$request->set_body_params( array( 'src' => wp_get_attachment_image_url( $attachment, 'full' ) ) );
 		$response = rest_do_request( $request );
 		$this->assertErrorResponse( 'rest_cannot_edit_file_type', $response, 400 );
@@ -1874,7 +1874,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		wp_set_current_user( self::$superadmin_id );
 		$attachment = self::factory()->attachment->create_upload_object( $this->test_file );
 
-		$request  = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
 		$request->set_body_params( array( 'src' => wp_get_attachment_image_url( $attachment, 'full' ) ) );
 		$response = rest_do_request( $request );
 		$this->assertErrorResponse( 'rest_image_not_edited', $response, 400 );
@@ -1979,21 +1979,21 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$image_src = wp_get_attachment_image_url( $attachment_id_image1, 'large' );
 
 		// Test: attachment ID points to a different, non-image attachment.
-		$request_1  = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id_file}/edit" );
+		$request_1 = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id_file}/edit" );
 		$request_1->set_body_params( array( 'src' => $image_src ) );
 
 		$response_1 = rest_do_request( $request_1 );
 		$this->assertErrorResponse( 'rest_unknown_attachment', $response_1, 404 );
 
 		// Test: attachment ID points to a different image attachment.
-		$request_2  = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id_image2}/edit" );
+		$request_2 = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id_image2}/edit" );
 		$request_2->set_body_params( array( 'src' => $image_src ) );
 
 		$response_2 = rest_do_request( $request_2 );
 		$this->assertErrorResponse( 'rest_unknown_attachment', $response_2, 404 );
 
 		// Test: attachment src points to a sub-size of the image.
-		$request_3  = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id_image1}/edit" );
+		$request_3 = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id_image1}/edit" );
 		$request_3->set_body_params( array( 'src' => wp_get_attachment_image_url( $attachment_id_image1, 'medium' ) ) );
 
 		$response_3 = rest_do_request( $request_3 );
