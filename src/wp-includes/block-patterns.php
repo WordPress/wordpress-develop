@@ -17,7 +17,7 @@ add_theme_support( 'core-block-patterns' );
 function _register_core_block_patterns_and_categories() {
 	$should_register_core_patterns = get_theme_support( 'core-block-patterns' );
 
-	if ( ! $should_register_core_patterns ) {
+	if ( $should_register_core_patterns ) {
 		$core_block_patterns = array(
 			'text-two-columns',
 			'two-buttons',
