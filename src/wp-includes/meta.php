@@ -508,7 +508,7 @@ function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false )
 		return $value;
 	}
 
-	return get_metadata_default( $meta_type, $meta_key, $single, $object_id );
+	return get_metadata_default( $meta_type, $object_id, $meta_key, $single );
 }
 
 /**
