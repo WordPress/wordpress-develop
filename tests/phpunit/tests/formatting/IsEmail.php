@@ -4,6 +4,10 @@
  * @group formatting
  */
 class Tests_Formatting_IsEmail extends WP_UnitTestCase {
+	function test_returns_false_if_length_is_less_than_six() {
+		$this->assertFalse( is_email( 'a@b.c' ) );
+	}
+
 	function test_returns_the_email_address_if_it_is_valid() {
 		$data = array(
 			'bob@example.com',
