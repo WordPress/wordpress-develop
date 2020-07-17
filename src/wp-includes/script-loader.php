@@ -1471,7 +1471,6 @@ function wp_default_styles( $styles ) {
 			'wp-editor',
 			'wp-edit-blocks',
 			'wp-block-library',
-			'wp-block-directory',
 			'wp-nux',
 		),
 		'editor'               => array(
@@ -2271,4 +2270,14 @@ function enqueue_editor_block_styles_assets() {
 	wp_register_script( 'wp-block-styles', false, array( 'wp-blocks' ), true, true );
 	wp_add_inline_script( 'wp-block-styles', $inline_script );
 	wp_enqueue_script( 'wp-block-styles' );
+}
+
+/**
+ * Handles enqueuing the block directory script & style.
+ *
+ * @since 5.5.0
+ */
+function wp_enqueue_block_editor_assets_block_directory() {
+	wp_enqueue_script( 'wp-block-directory' );
+	wp_enqueue_style( 'wp-block-directory' );
 }
