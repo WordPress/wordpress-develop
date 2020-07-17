@@ -27,6 +27,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 
 			<div class="about__header-text">
+				<?php _e( 'Speed. Search. And Security.' ); ?>
 			</div>
 
 			<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
