@@ -19,15 +19,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<div class="wrap about__container">
 
 		<div class="about__header">
+			<div class="about__header-text">
+				<?php _e( 'Speed. Search. Security.' ); ?>
+			</div>
+
 			<div class="about__header-title">
 				<p>
 					<?php _e( 'WordPress' ); ?>
 					<span><?php echo $display_version; ?></span>
 				</p>
-			</div>
-
-			<div class="about__header-text">
-				<?php _e( 'Speed. Search. And Security.' ); ?>
 			</div>
 
 			<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
@@ -38,7 +38,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</nav>
 		</div>
 
-		<div class="about__section is-feature has-accent-background-color">
+		<div class="about__section is-feature has-subtle-background-color">
 			<h1>
 				<?php
 				printf(
@@ -52,228 +52,151 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<?php
 				printf(
 					/* translators: %s: The current WordPress version number. */
-					__( 'In WordPress %s, your site gets new power in three major areas: Speed. Search. And Security.' ),
+					__( 'In WordPress %s, your site gets new power in three major areas: speed, search, and security.' ),
 					$display_version
 				);
 				?>
 			</p>
-			<p><?php _e( 'And by installing this version of WordPress, you’ve already done the work.' ); ?></p>
 		</div>
 
 		<hr />
-
-		<div class="about__section has-2-columns">
-			<div class="column is-edge-to-edge">
-				<div class="about__image aligncenter">
-					<img src="data:image/svg+xml;charset=utf8,%3Csvg width='500' height='500' viewbox='0 0 500 500' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23F3F4F5' d='M0 0h500v500H0z'/%3E%3Cpath d='M346.7 37.645s100.5-2.8 102.6 0c2.1 2.8 0 124.999 0 124.999l-106.9 2.8 4.3-127.8z' fill='%232CA8EB'/%3E%3Cpath d='M343.5 185.844s100.5-1.9 102.6 0c2.1 1.9 1.1 125.9 4.3 127.8 3.2 1.9-100.5 1.9-104.8 2.8-4.3.9-2.1-130.6-2.1-130.6z' fill='%237CAED2'/%3E%3Cpath d='M195.6 186.744s102.7 2.8 106.9 2.8c4.2 0 7.4 120.4 4.2 122.2-3.2 1.9-106.9 2.8-106.9 2.8s2.1-126.9-4.2-127.8z' fill='%2381A4D4'/%3E%3Cpath d='M152.8 192.344s2.1 124.1 4.3 126.9c2.1 2.7-109.1 1.8-109.1 1.8v-128.7h104.8z' fill='%235DC3D8'/%3E%3Cpath d='M152 464.544H56v-119.8l101-1.7s-8.9 118-5 121.5z' fill='%230574E2'/%3E%3Cpath d='M195 35.844h101.6s-8.6 119.4 0 125c8.6 5.6-101.6 3.7-101.6 3.7v-128.7z' fill='%23216BCE'/%3E%3Cpath d='M302.3 463.844s-102.9 2.8-105.1 0c-2.2-2.8 0-125 0-125l109.5-2.8-4.4 127.8z' fill='%231C99D1'/%3E%3Cpath d='M346.2 464.544s-2.1-124.1-4.3-126.9c-2.1-2.8 109.1-1.9 109.1-1.9v128.7H346.2v.1z' fill='%231B44DD'/%3E%3Cpath d='M50.2 35.844s100.5-1.9 102.6 0c2.1 1.9 1.1 125.9 4.3 127.8 3.2 1.9-100.5 1.9-104.8 2.8-4.3.9-2.1-130.6-2.1-130.6z' fill='%231B36BC'/%3E%3C/svg%3E" alt="" />
-				</div>
-			</div>
-			<div class="column is-vertically-aligned-center">
-				<h2><?php _e( 'Speed' ); ?></h2>
-				<p><?php _e( 'Posts and pages feel wildly faster, thanks to lazy-loaded images.' ); ?></p>
-				<p><?php _e( 'We’ve all been there. That maddening, crazy-making time it takes for a page to load a piece of information we need RIGHT NOW … only, it wouldn’t load a single pixel until it’s loaded six images that go with sections farther down the screen …' ); ?></p>
-				<p><?php _e( 'Well, never again.' ); ?></p>
-				<p><?php _e( 'Because WordPress 5.5 makes those images wait until just before you scroll down to see them—and loads the text you want to read first.' ); ?></p>
-				<p><?php _e( 'The technical term is <strong>lazy-loading.</strong> It makes every page feel faster for you and your users, getting them the information they came for and keeping more of them on your site longer. Which, in turn, builds their engagement with your content and community. Boosts the odds they’ll join your community, bump your authority scores and buy your products.' ); ?></p>
-				<p><?php _e( 'And rank higher in search, because the engines love speed as much your users do.' ); ?></p>
-			</div>
-		</div>
-
-		<div class="about__section has-2-columns">
-			<div class="column is-vertically-aligned-center">
-				<h2><?php _e( 'Search' ); ?></h2>
-				<p><?php _e( 'XML sitemaps are here and on by default.' ); ?></p>
-				<p><?php _e( 'There’s more to search than speed.' ); ?></p>
-				<p><?php _e( 'One of the best things you can do is install an XML sitemap. Because that’s the most efficient way for search engines to crawl your site, and the benefits to your rankings are real.' ); ?></p>
-				<p><?php _e( 'So you decide one morning that it’s time to get serious about a sitemap. You look at plugins. You read articles. You ask for advice. And by lunchtime, you’re almost ready to make a decision … and life hauls you back to the real world. So long, sitemaps.' ); ?></p>
-				<p><?php _e( 'Until today.' ); ?></p>
-				<p><?php _e( 'Because when you upgraded to WordPress 5.5 a couple of minutes ago, you also installed an XML sitemap, and it’s turned on by default.' ); ?></p>
-				<p><?php _e( 'Should you finish your research into plugins and best practices? Absolutely! Just know that until then, WordPress has your back, and your most important pages and posts are ready for the search engines to index them exactly as every SEO expert in the community would advise. (And you didn’t have to lift a finger.)' ); ?></p>
-			</div>
-			<div class="column is-edge-to-edge">
-				<div class="about__image aligncenter">
-					<img src="data:image/svg+xml;charset=utf8,%3Csvg width='500' height='500' viewbox='0 0 500 500' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23F3F4F5' d='M0 0h500v500H0z'/%3E%3Cg clip-path='url(%23clip0)'%3E%3Cpath d='M169.6 171.55l-.3 72.3 330.7-1v-72.6l-330.4 1.3z' fill='%230740B3'/%3E%3Cpath d='M291.2 97.85l-1.3-14.8-63.4-.7v76c0 3.6 176.7 4.1 273.5 4.1v-64.5H291.2v-.1z' fill='%230285D7'/%3E%3Cpath d='M500 27.75l-215.5-5.9 5.4 61.2 210.1 2.5v-57.8z' fill='%231730E5'/%3E%3Cpath d='M500 97.85v-12.3l-210.1-2.5 1.3 14.8H500z' fill='%230285D7'/%3E%3Cpath d='M500 97.85v-12.3l-210.1-2.5 1.3 14.8H500z' fill='%231730E5' style='mix-blend-mode:multiply'/%3E%3Cpath d='M255.2 379.75l-1-49.2-229.2.3-2 69.7 477-1.3v-24.3l-244.8 4.8z' fill='%230285D7'/%3E%3Cpath d='M500 424.35v-15l-430.8 1.2-4 51.5 134.6-.5v-34.4c.1-2.8 214.4-2.9 300.2-2.8z' fill='%230878FF'/%3E%3Cpath d='M500 290.05l-246.4 4.3.6 36.2 245.8-.3v-40.2z' fill='%23072CF0'/%3E%3Cpath d='M500 374.95v-44.7l-245.8.3 1 49.2 244.8-4.8z' fill='%230285D7'/%3E%3Cpath d='M500 374.95v-44.7l-245.8.3 1 49.2 244.8-4.8z' fill='%23072CF0' style='mix-blend-mode:multiply'/%3E%3Cpath d='M199.9 461.55v17.6l300.1-2.4v-16.3l-300.1 1.1z' fill='%230285D7'/%3E%3Cpath d='M500 424.35c-85.8-.1-300.1 0-300.1 2.8v34.4l300.1-1.1v-36.1z' fill='%230878FF'/%3E%3Cpath d='M500 424.35c-85.8-.1-300.1 0-300.1 2.8v34.4l300.1-1.1v-36.1z' fill='%230285D7' style='mix-blend-mode:multiply'/%3E%3C/g%3E%3Cdefs%3E%3CclipPath id='clip0'%3E%3Cpath transform='rotate(-90 23 479.15)' fill='%23fff' d='M23 479.15h457.3v477H23z'/%3E%3C/clipPath%3E%3C/defs%3E%3C/svg%3E" alt="">
-				</div>
-			</div>
-		</div>
-
-		<div class="about__section has-2-columns">
-			<div class="column is-edge-to-edge">
-				<div class="about__image aligncenter">
-					<img src="data:image/svg+xml;charset=utf8,%3Csvg width='500' height='500' viewbox='0 0 500 500' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23F3F4F5' d='M0 0h500v500H0z'/%3E%3Cpath d='M31.3 284.4c-2-.1 12.2-250.6 12.2-250.6s94.8 4.4 99.7 5.2c.3 21.8 4.1 250.1 4.1 250.1l-116-4.7z' fill='%231730E5'/%3E%3Cpath d='M346.8 467.4l-11.7-305.9 138.2 2.4-3 304.1-123.5-.6z' fill='%230840B3'/%3E%3Cpath d='M287.7 34.9c2.3 0 5.9 398.5 5.9 398.5s-109.6-2.2-115 .6c-5.4 2.8 10.6-400.5 10.6-400.5l98.5 1.4z' fill='%23018BDE'/%3E%3Cpath d='M372.3 138c32.585 0 59-26.415 59-59s-26.415-59-59-59-59 26.415-59 59 26.415 59 59 59z' fill='%23062EF7'/%3E%3Cpath d='M35.8 315c-12.8 0-24.9 2.9-35.8 8.1v148.7c10.8 5.2 22.9 8.1 35.8 8.1 45.6 0 82.5-36.9 82.5-82.5S81.3 315 35.8 315z' fill='%231C87C0'/%3E%3C/svg%3E" alt="" />
-				</div>
-			</div>
-			<div class="column is-vertically-aligned-center">
-				<h2><?php _e( 'Security' ); ?></h2>
-				<p><?php _e( 'You hear it twice a day: The absolute best thing you can do to keep your site secure is to keep your themes and plugins (and WordPress itself!) up to date.' ); ?></p>
-				<p><?php _e( 'Have you ever had a few days go by where you thought maybe that was your whole job?' ); ?></p>
-				<p><?php _e( 'If so, you’re not alone. And you’re finally done.' ); ?></p>
-				<p><?php _e( 'Because now you can update all your themes and plugins automatically in two clicks — one for themes and one for plugins. And if you choose, you never have to think about either one again.' ); ?></p>
-				<p><?php _e( 'Of course, life is rarely that simple. So if you have some plugins or themes you need to keep an eye on, you can enable or disable automatic updating for each one. It’s a few more clicks, but you still do it all from just two pages — one for plugins and one for themes.' ); ?></p>
-			</div>
-		</div>
-
-		<hr />
-
-		<div class="about__section has-2-columns has-subtle-background-color">
-			<h2 class="is-section-header"><?php _e( 'Speed. Search. Security. The power of three big improvements, all packed into WordPress 5.5.' ); ?></h2>
-			<div class="column">
-				<p><?php _e( 'They’ve been a long time coming, and they represent a huge step forward for WordPress.' ); ?></p>
-				<p><?php _e( 'But that’s not the whole story of this release.' ); ?></p>
-			</div>
-			<div class="column">
-				<p><?php _e( 'As we’ve all seen with every release in the last two years, WordPress 5.5 brings a basketful of improvements, refinements and a few things reimagined to the way more than 52 million people tell their stories every day.' ); ?></p>
-			</div>
-		</div>
-
-		<hr />
-
-		<div class="about__section ">
-			<h2 class="is-section-header"><?php _e( 'Highlights from the block editor' ); ?></h2>
-			<div class="column">
-				<p><?php _e( 'Check out these favorites of the Gutenberg squad, and see if you agree:' ); ?></p>
-				<ul>
-					<li><?php _e( '<strong>Inline image editing</strong> - Crop, rotate, and zoom your photos right from the image block. If you do a lot of work with images, this alone could save you hours every week!' ); ?></li>
-					<li><?php _e( '<strong>Block patterns</strong> - Now building elaborate pages is a breeze, with new content templates that have the blocks you need, right where you need them.' ); ?>
-						<ul>
-							<li><?php _e( 'Sets of columns.' ); ?></li>
-							<li><?php _e( 'Combinations of columns with images.' ); ?></li>
-							<li><?php _e( 'Sets of two buttons.' ); ?></li>
-							<li><?php _e( 'And many, many more – all together, all in a single dropdown. Even if they’re from a variety of different plugins!' ); ?></li>
-						</ul>
-					</li>
-				</li>
-				<li><?php _e( '<strong>Device previews</strong> - Is there a bigger pain in the neck than having to move from device to device to check what your page design looks like before you can move on to the next section? What a way to break your train of thought! Well, forget that nonsense. Because now, in 5.5, you can preview screen sizes on the fly.' ); ?></li>
-				<li><?php _e( '<strong>End block overwhelm forever</strong>. The new block inserter panel shows you streamlined categories and collections. Plus, it supports patterns and integrates with the block directory right out of the box.' ); ?></li>
-				<li><?php _e( '<strong>Discover, install, and insert third-party blocks</strong> right from your editor, thanks to the new block directory. (It’s that list! No searching!)' ); ?></li>
-				<li><?php _e( 'A better, <strong>smoother editing experience</strong> with (to name a few):' ); ?>
-					<ul>
-						<li><?php _e( 'refined drag-and-drop' ); ?></li>
-						<li><?php _e( 'Block movers you can see and grab. For real!' ); ?></li>
-						<li><?php _e( 'Finally. You can select a parent block, and keep it selected as long as you need it!' ); ?></li>
-						<li><?php _e( 'Highlighting that follows what you’re doing and flows with the context.' ); ?></li>
-						<li><?php _e( 'Select a bunch of blocks, change a bunch of blocks. All at once!' ); ?></li>
-						<li><?php _e( 'With every iteration, it keeps getting easier to copy blocks and move them where you need them to go.' ); ?></li>
-						<li><?php _e( 'And always, better performance. Because who wants to wait for a redraw?' ); ?></li>
-					</ul>
-				</li>
-				<li><?php _e( '<strong>More design tools, for better control.</strong> For starters:' ); ?>
-					<ul>
-						<li><?php _e( 'Inline image editing' ); ?></li>
-						<li><?php _e( 'Theme support for link color' ); ?></li>
-						<li><?php _e( 'A full set of alignment options' ); ?></li>
-						<li><?php _e( '(Finally!) padding in the cover block you can actually control' ); ?></li>
-					</ul>
-				</li>
-				<li><?php _e( 'Now <strong>add backgrounds and gradients</strong> to more kinds of blocks, like groups, columns, media & text' ); ?></li>
-				<li><?php _e( 'And <strong>use the units of measure you want</strong> -- not just pixels. Choose ems, rems, percentages, vh, vw, and more! Plus, adjust line heights as you type, turning writing and typesetting into the seamless act it always should have been.' ); ?></li>
-			</ul>
-			<p><?php _e( 'In all, WordPress 5.5 brings more than 1,500 useful improvements to the editor experience.' ); ?></p>
-			<p>
-				<?php
-				printf(
-					/* translators: All %s are links to Gutenberg releases. */
-					__( 'To see all of the features for each release in detail check out these release posts: <a href="%1$s">7.5</a>, <a href="%2$s">7.6</a>, <a href="%3$s">7.7</a>, <a href="%4$s">7.8</a>, <a href="%5$s">7.9</a>, <a href="%6$s">8.0</a>, <a href="%7$s">8.1</a>, <a href="%8$s">8.2</a>, <a href="%9$s">8.3</a>, and <a href="%10$s">8.4</a>.' ),
-					'https://github.com/WordPress/gutenberg/releases/tag/v7.5.0',
-					'https://github.com/WordPress/gutenberg/releases/tag/v7.6.0',
-					'https://github.com/WordPress/gutenberg/releases/tag/v7.7.0',
-					'https://github.com/WordPress/gutenberg/releases/tag/v7.8.0',
-					'https://github.com/WordPress/gutenberg/releases/tag/v7.9.0',
-					'https://github.com/WordPress/gutenberg/releases/tag/v8.0.0',
-					'https://github.com/WordPress/gutenberg/releases/tag/v8.1.0',
-					'https://github.com/WordPress/gutenberg/releases/tag/v8.2.0',
-					'https://github.com/WordPress/gutenberg/releases/tag/v8.3.0',
-					'https://github.com/WordPress/gutenberg/releases/tag/v8.4.0'
-				);
-				?>
-			</p>
-			</div>
-		</div>
-
-		<hr class="is-small" />
 
 		<div class="about__section">
-			<h2 class="is-section-header"><?php _e( 'Wait! There’s more!' ); ?></h2>
 			<div class="column">
-				<h3><?php _e( 'Better accessibility' ); ?></h3>
-				<p><?php _e( 'With every release, WordPress works hard to improve accessibility. Version 5.5 is no different and packs a parcel of accessibility fixes and enhancements.' ); ?></p>
-				<p><?php _e( 'Take a look:' ); ?></p>
-				<ul>
-					<li><?php _e( 'Now WP List Tables come with alternate view modes, and they’re extensible.' ); ?></li>
-					<li><?php _e( 'Ever wanted to switch link-list Widgets to HTML5 navigation blocks? Now you can.' ); ?></li>
-					<li><?php _e( 'Copy links in media screens and modal dialogs by hitting a button – so much easier!' ); ?></li>
-					<li><?php _e( 'Buttons that <em>are</em> disabled now <em>look</em> disabled.' ); ?></li>
-					<li><?php _e( 'Move meta boxes with the keyboard, and never drop one again.' ); ?></li>
-					<li><?php _e( 'A custom logo on the front page doesn’t need to link to the front page. And now it doesn’t.' ); ?></li>
-					<li><?php _e( 'Assistive devices can see status messages in the Image Editor. So if you’re using such a device, now you can also use the Image Editor.' ); ?></li>
-					<li>
-						<?php
-						printf(
-							/* translators: %s: 'prefers-reduced-motion' media query name. */
-							__( 'That shake animation that indicates a login failure? Now it respects your choice if you enabled the %s media query.' ),
-							'<code>prefers-reduced-motion</code>'
-						);
-						?>
-					</li>
-					<li><?php _e( 'And that redundant <code>Error:</code> prefix in error notices? Gone.' ); ?></li>
-				</ul>
+				<h2><?php _e( 'Speed' ); ?></h2>
+				<p><strong><?php _e( 'Posts and pages feel faster, thanks to lazy-loaded images.' ); ?></strong></p>
+				<p><?php _e( 'Images give your story a lot of impact, but they can sometimes make your site seem slow.' ); ?></p>
+				<p><?php _e( 'In WordPress 5.5, images wait to load until they’re just about to scroll into view. The technical term is ‘lazy loading.’' ); ?></p>
+				<p><?php _e( 'On mobile, lazy loading can also keep browsers from loading files meant for other devices. That can save your readers money on data — and help preserve battery life.' ); ?></p>
+			</div>
+		</div>
+
+		<div class="about__section">
+			<div class="column">
+				<h2><?php _e( 'Search' ); ?></h2>
+				<p><strong><?php _e( 'Say hello to your new sitemap.' ); ?></strong></p>
+				<p><?php _e( 'WordPress sites work well with search engines. ' ); ?></p>
+				<p><?php _e( 'Now, by default, WordPress 5.5 includes an XML sitemap that helps search engines discover your most important pages from the very minute you go live.' ); ?></p>
+				<p><?php _e( 'So more people will find your site sooner, giving you more time to engage, retain and convert them to subscribers, customers or whatever fits your definition of success.' ); ?></p>
+			</div>
+		</div>
+
+		<div class="about__section">
+			<div class="column">
+				<h2><?php _e( 'Security' ); ?></h2>
+				<p><strong><?php _e( 'Auto-updates for Plugins and Themes' ); ?></strong></p>
+				<p><?php _e( 'Now you can set plugins and themes to update automatically — or not! — in the WordPress admin. So you always know your site is running the latest code available.' ); ?></p>
+				<p><?php _e( 'You can also turn auto-updates on or off for each plugin or theme you have installed — all on the same screens you’ve always used.' ); ?></p>
+				<p><strong><?php _e( 'Update by uploading ZIP files' ); ?></strong></p>
+				<p><?php _e( 'If updating plugins and themes manually is your thing, now that’s easier too — just upload a ZIP file.' ); ?></p>
 			</div>
 		</div>
 
 		<hr />
 
-		<div class="about__section has-subtle-background-color">
+		<div class="about__section has-2-columns">
+			<header class="is-section-header">
+				<h2><?php _e( 'Highlights from the block editor' ); ?></h2>
+				<p><?php _e( 'Once again, the latest WordPress release packs a long list of exciting new features for the block editor. For example:' ); ?></p>
+			</header>
 			<div class="column">
-				<h2><?php _e( 'Just for developers' ); ?></h2>
-				<p><?php _e( '5.5 also brings a big box of changes just for developers.' ); ?></p>
+				<h3><?php _e('Inline image editing' ); ?></h3>
+				<p><?php _e( 'Crop, rotate, and zoom your photos right from the image block. If you spend a lot of time on images, this could save you hours!' ); ?></p>
+				<h3><?php _e('Block patterns' ); ?></h3>
+				<p><?php _e( 'New block patterns make it simple and fun to create complex, beautiful layouts, using combinations of text and media that you can mix and match to fit your story.' ); ?></p>
+				<p><?php _e( 'You will also find block patterns in a wide variety of plugins and themes, with more added all the time. Pick any of them from a single dropdown — just click and go!' ); ?></p>
+			</div>
+			<div class="column">
+				<h3><?php _e('The New Block Directory' ); ?></h3>
+				<p><?php _e( 'Now it’s easier than ever to find the block you need. The new block directory is built right into the block editor, so you can install new block types to your site without ever leaving the editor.' ); ?></p>
+
+				<h3><?php _e('And so much more.' ); ?></h3>
+				<p><?php _e( 'The highlights above are a tiny fraction of the new block-editor features you’ve just installed. Open the block editor and enjoy!' ); ?></p>
 			</div>
 		</div>
 
-		<hr class="is-small" />
+		<hr />
 
-		<div class="about__section has-2-columns">
+		<div class="about__section">
 			<div class="column">
-				<h3><?php _e( 'Lazy-loading images' ); ?></h3>
-				<p><?php _e( 'You saw the description. Now, here are the details: It works courtesy of a new loading attribute on image tags, which delays loading until the image scrolls into the user’s viewport.' ); ?></p>
+				<h2><?php _e('Accessibility'); ?></h2>
+				<p><?php _e( 'Every release adds improvements to the accessible publishing experience, and that remains true for WordPress 5.5. ' ); ?></p>
+				<p><?php _e( 'Now you can copy links in media screens and modal dialogs with a button, instead of trying to highlight a line of text.' ); ?></p>
+				<p><?php _e( 'You can also move meta boxes with the keyboard, and edit images in WordPress with your assistive device, as it can read you the instructions in the image editor.' ); ?></p>
+			</div>
+		</div>
+
+		<hr />
+
+		<div class="about__section has-subtle-background-color has-2-columns">
+			<header class="is-section-header">
+				<h2><?php _e( 'For developers' ); ?></h2>
+				<p><?php _e( '5.5 also brings a big box of changes just for developers.' ); ?></p>
+			</header>
+			<div class="column">
+				<h3><?php _e( 'Server-side registered blocks in the REST API' ); ?></h3>
+				<p><?php _e( 'The addition of block types endpoints means that JavaScript apps (like the block editor) can retrieve definitions for any blocks registered on the server.' ); ?></p>
 			</div>
 			<div class="column">
-				<h3><?php _e( 'PHPMailer' ); ?></h3>
-				<p><?php _e( 'Now that the minimum PHP version is 5.6.20, PHPMailer is newly updated to the 6.x library,' ); ?></p>
+				<h3><?php _e( 'Dashicons' ); ?></h3>
+				<p><?php _e( 'The Dashicons library has received its final update in 5.5. It adds 39 block-editor icons along with 26 others.' ); ?></p>
+			</div>
+		</div>
+
+		<div class="about__section has-subtle-background-color has-2-columns">
+			<div class="column">
+				<h3><?php _e( 'Defining environments' ); ?></h3>
 				<p>
 					<?php
 					printf(
-						/* translators: %s: Link to the External Library Updates developer notes. */
-						__( 'Note: that changes where the file lives and how you’ll call the class. The new setup maintains backward compatibility, but loading the files from the old location will generate a notice. <a href="%s">Please read the full notice for more details</a>.' ),
-						'https://make.wordpress.org/core/2020/07/01/external-library-updates-in-wordpress-5-5-call-for-testing/'
+						/* translators: %s: 'wp_get_environment_type' function name. */
+						__( 'WordPress now has a standardized way to define a site’s environment type (staging, production, etc). Retrieve that type with %s and execute only the appropriate code.' ),
+						'<code>wp_get_environment_type()</code>'
+					);
+					?>
+				</p>
+			</div>
+			<div class="column">
+				<h3><?php _e( 'Passing data to template files' ); ?></h3>
+				<p>
+					<?php
+					printf(
+						/* translators: %1$s: 'get_header' function name, %2$s: 'get_template_part' function name, %3$s: '$args' variable name. */
+						__( 'The template loading functions (%1$s, %2$s, etc.) have a new %3$s argument. So now you can pass an entire array’s worth of data to those templates.' ),
+						'<code>get_header()</code>',
+						'<code>get_template_part()</code>',
+						'<code>$args</code>'
 					);
 					?>
 				</p>
 			</div>
 		</div>
 
-		<div class="about__section">
+		<div class="about__section has-subtle-background-color">
 			<div class="column">
-				<h3><?php _e( 'Other changes for developers' ); ?></h3>
+				<h3><?php _e( 'More changes for developers' ); ?></h3>
 				<ul>
-					<li><a href="https://make.wordpress.org/core/2020/06/26/wordpress-5-5-better-fine-grained-control-of-redirect_guess_404_permalink/">
+					<li><?php _e( 'The PHPMailer library just got a major update, going from version 5.2.27 to 6.1.6.' ); ?></li>
+					<li>
 						<?php
 						printf(
 							/* translators: %s: 'redirect_guess_404_permalink' function name. */
-							__( 'Fine-grained control of %s.' ),
-							'redirect_guess_404_permalink()'
+							__( 'Now get more fine-grained control of %s.' ),
+							'<code>redirect_guess_404_permalink()</code>'
 						);
 						?>
-					</a></li>
-					<li><?php _e( 'Plus, now that the WordPress project supports only PHP 5.6.2 and later, you’ll find updates to these bundled libraries:' ); ?>
-						<ul>
-							<li><a href="https://make.wordpress.org/core/2020/07/01/external-library-updates-in-wordpress-5-5-call-for-testing/"><?php _e( 'SimplePie is now at 1.5.5.' ); ?></a></li>
-							<li><a href="https://core.trac.wordpress.org/ticket/50148"><?php _e( 'Twemoji is now at v13.0.' ); ?></a></li>
-							<li><a href="https://make.wordpress.org/core/tag/dev-notes/"><?php _e( 'The Masonry library, formerly at version v3.3.2 to 4.2.2, and the related imagesLoaded library has been updated from v3.2.0 to v4.1.4.' ); ?></a></li>
-							<li><a href="https://core.trac.wordpress.org/ticket/49945"><?php _e( 'The getID3 library has been updated from version v1.9.18 to v1.9.20.' ); ?></a></li>
-							<li><a href="https://core.trac.wordpress.org/ticket/50408"><?php _e( 'The Moment.js library has been updated from version 2.22.2 to 2.27.0.' ); ?></a></li>
-							<li><a href="https://core.trac.wordpress.org/ticket/50306"><?php _e( 'The clipboard.js library has been updated from version v2.0.4 to v2.0.6.' ); ?></a></li>
-						</ul>
 					</li>
+					<li>
+						<?php
+						printf(
+							/* translators: %s: 'wp_opcache_invalidate' function name. */
+							__( 'Sites that use PHP’s OPcache will see more reliable cache invalidation, thanks to the new %s function during updates (including to plugins and themes).' ),
+							'<code>wp_opcache_invalidate()</code>'
+						);
+						?>
+					</li>
+					<li><?php _e( 'New filters let custom post types associated with the category taxonomy have a default term beyond “Uncategorized.”' ); ?></li>
+					<li><?php _e( 'You will find updated versions of these bundled libraries: SimplePie, Twemoji, Masonry, imagesLoaded, getID3, Moment.js, and clipboard.js.' ); ?></li>
 				</ul>
 			</div>
 		</div>
@@ -281,12 +204,19 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<hr class="is-small" />
 
 		<div class="about__section">
+
+		</div>
+
+		<hr class="is-small" />
+
+		<div class="about__section">
 			<div class="column">
+				<h3><?php _e( 'Check the Field Guide for more!' ); ?></h3>
 				<p>
 					<?php
 					printf(
 						/* translators: %s: WordPress 5.5 Field Guide link. */
-						__( 'For all the details, check out the <a href="%s">WordPress 5.5 Field Guide</a>, a compendium of all the dev notes you&#8217;ll need (and then some!) to keep your sites running smoothly and your clients and colleagues happy with all the great things packed into WordPress 5.5!' ),
+						__( 'There’s a lot more for developers to love in WordPress 5.5. To discover more and learn how to make these changes shine on your sites, themes, plugins and more, check the <a href="%s">WordPress 5.5 Field Guide.</a>' ),
 						'https://make.wordpress.org/core/wordpress-5-5-field-guide/'
 					);
 					?>
