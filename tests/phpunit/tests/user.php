@@ -645,6 +645,31 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 37818
+	 */
+	function test_insert_user_with_import_id() {
+		$user_1 = wp_insert_user(
+			array(
+				'import_id'  => 72,
+				'user_login' => 'user_log_1',
+				'user_pass'  => 'user_pass_1',
+				'user_email' => 'user1@pass.com',
+			)
+		);
+		$this->assertEquals( $user_1, 72 );
+
+		$user_2 = wp_insert_user(
+			array(
+				'import_id'  => 88,
+				'user_login' => 'user_log_2',
+				'user_pass'  => 'user_pass_2',
+				'user_email' => 'user2@pass.com',
+			)
+		);
+		$this->assertEquals( $user_2, 88 );
+	}
+
+	/**
 	 * @ticket 30647
 	 */
 	function test_user_update_email_error() {

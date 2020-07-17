@@ -1492,6 +1492,7 @@ function validate_username( $username ) {
  * @since 4.7.0 The user's locale can be passed to `$userdata`.
  * @since 5.3.0 The `user_activation_key` field can be passed to `$userdata`.
  * @since 5.3.0 The `spam` field can be passed to `$userdata` (Multisite only).
+ * @since 5.5.0 Add `import_id`.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -1536,6 +1537,7 @@ function validate_username( $username ) {
  *                                        as a string literal, not boolean. Default 'true'.
  *     @type string $role                 User's role.
  *     @type string $locale               User's locale. Default empty.
+ *     @type int    $import_id            Suggested Uer ID, use it if not already present.
  * }
  * @return int|WP_Error The newly created user's ID or a WP_Error object if the user could not
  *                      be created.
@@ -1632,6 +1634,8 @@ function wp_insert_user( $userdata ) {
 	$user_nicename = apply_filters( 'pre_user_nicename', $user_nicename );
 
 	$user_nicename_check = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->users WHERE user_nicename = %s AND user_login != %s LIMIT 1", $user_nicename, $user_login ) );
+
+	$import_id = empty( $userdata['import_id'] ) ? 0 : absint( $userdata['import_id'] );
 
 	if ( $user_nicename_check ) {
 		$suffix = 2;
@@ -1823,6 +1827,12 @@ function wp_insert_user( $userdata ) {
 		$wpdb->update( $wpdb->users, $data, compact( 'ID' ) );
 		$user_id = (int) $ID;
 	} else {
+		// If there is a suggested ID, use it if not already present.
+        if ( ! empty( $import_id ) ) {
+            if ( ! $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->users WHERE ID = %d", $import_id ) ) ) {
+				$data['ID'] = $import_id;
+			}
+        }
 		$wpdb->insert( $wpdb->users, $data );
 		$user_id = (int) $wpdb->insert_id;
 	}
