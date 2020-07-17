@@ -251,13 +251,11 @@ function wp_load_alloptions( $force_cache = false ) {
  *
  * @since 3.0.0
  *
- * @global wpdb $wpdb WordPress database abstraction object.
+ * @since 5.6.0 Uses update_meta_cache
  *
  * @param int $network_id Optional site ID for which to query the options. Defaults to the current site.
  */
 function wp_load_core_site_options( $network_id = null ) {
-	global $wpdb;
-
 	if ( ! is_multisite() || wp_using_ext_object_cache() || wp_installing() ) {
 		return;
 	}
@@ -266,18 +264,7 @@ function wp_load_core_site_options( $network_id = null ) {
 		$network_id = get_current_network_id();
 	}
 
-	$core_options = array( 'site_name', 'siteurl', 'active_sitewide_plugins', '_site_transient_timeout_theme_roots', '_site_transient_theme_roots', 'site_admins', 'can_compress_scripts', 'global_terms_enabled', 'ms_files_rewriting' );
-
-	$core_options_in = "'" . implode( "', '", $core_options ) . "'";
-	$options         = $wpdb->get_results( $wpdb->prepare( "SELECT meta_key, meta_value FROM $wpdb->sitemeta WHERE meta_key IN ($core_options_in) AND site_id = %d", $network_id ) );
-
-	foreach ( $options as $option ) {
-		$key                = $option->meta_key;
-		$cache_key          = "{$network_id}:$key";
-		$option->meta_value = maybe_unserialize( $option->meta_value );
-
-		wp_cache_set( $cache_key, $option->meta_value, 'site-options' );
-	}
+	update_meta_cache( 'site', $network_id );
 }
 
 /**
@@ -1229,10 +1216,10 @@ function update_site_option( $option, $value ) {
  * Retrieves a network's option value based on the option name.
  *
  * @since 4.4.0
+ * @since 5.6.0 Uses get_metadata_raw
  *
  * @see get_option()
- *
- * @global wpdb $wpdb WordPress database abstraction object.
+ * @see get_metadata_raw()
  *
  * @param int      $network_id ID of the network. Can be null to default to the current network ID.
  * @param string   $option     Name of the option to retrieve. Expected to not be SQL-escaped.
@@ -1240,8 +1227,6 @@ function update_site_option( $option, $value ) {
  * @return mixed Value set for the option.
  */
 function get_network_option( $network_id, $option, $default = false ) {
-	global $wpdb;
-
 	if ( $network_id && ! is_numeric( $network_id ) ) {
 		return false;
 	}
@@ -1282,62 +1267,34 @@ function get_network_option( $network_id, $option, $default = false ) {
 		return $pre;
 	}
 
-	// Prevent non-existent options from triggering multiple queries.
-	$notoptions_key = "$network_id:notoptions";
-	$notoptions     = wp_cache_get( $notoptions_key, 'site-options' );
-
-	if ( is_array( $notoptions ) && isset( $notoptions[ $option ] ) ) {
-
-		/**
-		 * Filters a specific default network option.
-		 *
-		 * The dynamic portion of the hook name, `$option`, refers to the option name.
-		 *
-		 * @since 3.4.0
-		 * @since 4.4.0 The `$option` parameter was added.
-		 * @since 4.7.0 The `$network_id` parameter was added.
-		 *
-		 * @param mixed  $default    The value to return if the site option does not exist
-		 *                           in the database.
-		 * @param string $option     Option name.
-		 * @param int    $network_id ID of the network.
-		 */
-		return apply_filters( "default_site_option_{$option}", $default, $option, $network_id );
-	}
-
 	if ( ! is_multisite() ) {
 		/** This filter is documented in wp-includes/option.php */
 		$default = apply_filters( 'default_site_option_' . $option, $default, $option, $network_id );
 		$value   = get_option( $option, $default );
 	} else {
-		$cache_key = "$network_id:$option";
-		$value     = wp_cache_get( $cache_key, 'site-options' );
-
-		if ( ! isset( $value ) || false === $value ) {
-			$row = $wpdb->get_row( $wpdb->prepare( "SELECT meta_value FROM $wpdb->sitemeta WHERE meta_key = %s AND site_id = %d", $option, $network_id ) );
-
-			// Has to be get_row() instead of get_var() because of funkiness with 0, false, null values.
-			if ( is_object( $row ) ) {
-				$value = $row->meta_value;
-				$value = maybe_unserialize( $value );
-				wp_cache_set( $cache_key, $value, 'site-options' );
-			} else {
-				if ( ! is_array( $notoptions ) ) {
-					$notoptions = array();
-				}
-
-				$notoptions[ $option ] = true;
-				wp_cache_set( $notoptions_key, $notoptions, 'site-options' );
-
-				/** This filter is documented in wp-includes/option.php */
-				$value = apply_filters( 'default_site_option_' . $option, $default, $option, $network_id );
-			}
+		$meta_type = 'site';
+		$value     = get_metadata_raw( $meta_type, $network_id, $option, true );
+		if ( ! is_null( $value ) ) {
+			$value = maybe_unserialize( $value );
+		} else {
+			/**
+			* Filters a specific default network option.
+			*
+			* The dynamic portion of the hook name, `$option`, refers to the option name.
+			*
+			* @since 3.4.0
+			* @since 4.4.0 The `$option` parameter was added.
+			* @since 4.7.0 The `$network_id` parameter was added.
+			*
+			* @param mixed $default The value to return if the site option does not exist
+			*                           in the database.
+			* @param string $option Option name.
+			* @param int $network_id ID of the network.
+			*/
+			$value = apply_filters( 'default_site_option_' . $option, $default, $option );
+			/** This filter is documented in wp-includes/meta.php */
+			$value = apply_filters( "default_{$meta_type}_metadata", $value, $meta_type, $option, true, $network_id );
 		}
-	}
-
-	if ( ! is_array( $notoptions ) ) {
-		$notoptions = array();
-		wp_cache_set( $notoptions_key, $notoptions, 'site-options' );
 	}
 
 	/**
@@ -1365,8 +1322,7 @@ function get_network_option( $network_id, $option, $default = false ) {
  * @since 4.4.0
  *
  * @see add_option()
- *
- * @global wpdb $wpdb WordPress database abstraction object.
+ * @since 5.6.0 Uses add_metadata
  *
  * @param int    $network_id ID of the network. Can be null to default to the current network ID.
  * @param string $option     Name of the option to add. Expected to not be SQL-escaped.
@@ -1374,8 +1330,6 @@ function get_network_option( $network_id, $option, $default = false ) {
  * @return bool True if the option was added, false otherwise.
  */
 function add_network_option( $network_id, $option, $value ) {
-	global $wpdb;
-
 	if ( $network_id && ! is_numeric( $network_id ) ) {
 		return false;
 	}
@@ -1405,48 +1359,12 @@ function add_network_option( $network_id, $option, $value ) {
 	 */
 	$value = apply_filters( "pre_add_site_option_{$option}", $value, $option, $network_id );
 
-	$notoptions_key = "$network_id:notoptions";
-
 	if ( ! is_multisite() ) {
 		$result = add_option( $option, $value, '', 'no' );
 	} else {
-		$cache_key = "$network_id:$option";
-
-		// Make sure the option doesn't already exist.
-		// We can check the 'notoptions' cache before we ask for a DB query.
-		$notoptions = wp_cache_get( $notoptions_key, 'site-options' );
-
-		if ( ! is_array( $notoptions ) || ! isset( $notoptions[ $option ] ) ) {
-			if ( false !== get_network_option( $network_id, $option, false ) ) {
-				return false;
-			}
-		}
-
-		$value = sanitize_option( $option, $value );
-
-		$serialized_value = maybe_serialize( $value );
-		$result           = $wpdb->insert(
-			$wpdb->sitemeta,
-			array(
-				'site_id'    => $network_id,
-				'meta_key'   => $option,
-				'meta_value' => $serialized_value,
-			)
-		);
-
-		if ( ! $result ) {
-			return false;
-		}
-
-		wp_cache_set( $cache_key, $value, 'site-options' );
-
-		// This option exists now.
-		$notoptions = wp_cache_get( $notoptions_key, 'site-options' ); // Yes, again... we need it to be fresh.
-
-		if ( is_array( $notoptions ) && isset( $notoptions[ $option ] ) ) {
-			unset( $notoptions[ $option ] );
-			wp_cache_set( $notoptions_key, $notoptions, 'site-options' );
-		}
+		$value  = sanitize_option( $option, $value );
+		$value  = maybe_serialize( $value );
+		$result = add_metadata( 'site', $network_id, $option, $value, true );
 	}
 
 	if ( $result ) {
@@ -1488,18 +1406,16 @@ function add_network_option( $network_id, $option, $value ) {
  * Removes a network option by name.
  *
  * @since 4.4.0
+ * @since 5.6.0 Uses delete_metadata
  *
  * @see delete_option()
- *
- * @global wpdb $wpdb WordPress database abstraction object.
+ * @see delete_metadata()
  *
  * @param int    $network_id ID of the network. Can be null to default to the current network ID.
  * @param string $option     Name of the option to delete. Expected to not be SQL-escaped.
  * @return bool True if the option was deleted, false otherwise.
  */
 function delete_network_option( $network_id, $option ) {
-	global $wpdb;
-
 	if ( $network_id && ! is_numeric( $network_id ) ) {
 		return false;
 	}
@@ -1528,20 +1444,7 @@ function delete_network_option( $network_id, $option ) {
 	if ( ! is_multisite() ) {
 		$result = delete_option( $option );
 	} else {
-		$row = $wpdb->get_row( $wpdb->prepare( "SELECT meta_id FROM {$wpdb->sitemeta} WHERE meta_key = %s AND site_id = %d", $option, $network_id ) );
-		if ( is_null( $row ) || ! $row->meta_id ) {
-			return false;
-		}
-		$cache_key = "$network_id:$option";
-		wp_cache_delete( $cache_key, 'site-options' );
-
-		$result = $wpdb->delete(
-			$wpdb->sitemeta,
-			array(
-				'meta_key' => $option,
-				'site_id'  => $network_id,
-			)
-		);
+		$result = delete_metadata( 'site', $network_id, $option, '' );
 	}
 
 	if ( $result ) {
@@ -1581,10 +1484,10 @@ function delete_network_option( $network_id, $option ) {
  * Updates the value of a network option that was already added.
  *
  * @since 4.4.0
+ * @since 5.6.0 Uses update_metadata
  *
  * @see update_option()
- *
- * @global wpdb $wpdb WordPress database abstraction object.
+ * @see update_metadata()
  *
  * @param int      $network_id ID of the network. Can be null to default to the current network ID.
  * @param string   $option     Name of the option. Expected to not be SQL-escaped.
@@ -1592,8 +1495,6 @@ function delete_network_option( $network_id, $option ) {
  * @return bool True if the value was updated, false otherwise.
  */
 function update_network_option( $network_id, $option, $value ) {
-	global $wpdb;
-
 	if ( $network_id && ! is_numeric( $network_id ) ) {
 		return false;
 	}
@@ -1643,33 +1544,12 @@ function update_network_option( $network_id, $option, $value ) {
 		return add_network_option( $network_id, $option, $value );
 	}
 
-	$notoptions_key = "$network_id:notoptions";
-	$notoptions     = wp_cache_get( $notoptions_key, 'site-options' );
-
-	if ( is_array( $notoptions ) && isset( $notoptions[ $option ] ) ) {
-		unset( $notoptions[ $option ] );
-		wp_cache_set( $notoptions_key, $notoptions, 'site-options' );
-	}
-
 	if ( ! is_multisite() ) {
 		$result = update_option( $option, $value, 'no' );
 	} else {
-		$value = sanitize_option( $option, $value );
-
-		$serialized_value = maybe_serialize( $value );
-		$result           = $wpdb->update(
-			$wpdb->sitemeta,
-			array( 'meta_value' => $serialized_value ),
-			array(
-				'site_id'  => $network_id,
-				'meta_key' => $option,
-			)
-		);
-
-		if ( $result ) {
-			$cache_key = "$network_id:$option";
-			wp_cache_set( $cache_key, $value, 'site-options' );
-		}
+		$value  = sanitize_option( $option, $value );
+		$value  = maybe_serialize( $value );
+		$result = update_metadata( 'site', $network_id, $option, $value );
 	}
 
 	if ( $result ) {

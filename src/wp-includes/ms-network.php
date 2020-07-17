@@ -84,6 +84,7 @@ function clean_network_cache( $ids ) {
 
 	foreach ( (array) $ids as $id ) {
 		wp_cache_delete( $id, 'networks' );
+		wp_cache_delete( $id, 'site_meta' );
 
 		/**
 		 * Fires immediately after a network has been removed from the object cache.
@@ -106,12 +107,19 @@ function clean_network_cache( $ids ) {
  * cache using the network group with the key using the ID of the networks.
  *
  * @since 4.6.0
+ * @since 5.6.0 Introduced the `$update_meta_cache` parameter.
  *
  * @param array $networks Array of network row objects.
+ * @param bool  $update_meta_cache Whether to update sitemeta cache. Default true.
  */
-function update_network_cache( $networks ) {
+function update_network_cache( $networks, $update_meta_cache = true ) {
+	$network_ids = array();
 	foreach ( (array) $networks as $network ) {
+		$network_ids[] = $network->id;
 		wp_cache_add( $network->id, $network, 'networks' );
+	}
+	if ( $update_meta_cache ) {
+		update_meta_cache( 'site', $network_ids );
 	}
 }
 
@@ -119,20 +127,22 @@ function update_network_cache( $networks ) {
  * Adds any networks from the given IDs to the cache that do not already exist in cache.
  *
  * @since 4.6.0
+ * @since 5.6.0 Introduced the `$update_meta_cache` parameter.
  * @access private
  *
  * @see update_network_cache()
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param array $network_ids Array of network IDs.
+ * @param bool  $update_meta_cache Whether to update sitemeta cache. Default true.
  */
-function _prime_network_caches( $network_ids ) {
+function _prime_network_caches( $network_ids, $update_meta_cache = true ) {
 	global $wpdb;
 
 	$non_cached_ids = _get_non_cached_ids( $network_ids, 'networks' );
 	if ( ! empty( $non_cached_ids ) ) {
 		$fresh_networks = $wpdb->get_results( sprintf( "SELECT $wpdb->site.* FROM $wpdb->site WHERE id IN (%s)", join( ',', array_map( 'intval', $non_cached_ids ) ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
-		update_network_cache( $fresh_networks );
+		update_network_cache( $fresh_networks, $update_meta_cache );
 	}
 }

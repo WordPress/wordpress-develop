@@ -111,27 +111,30 @@ class WP_Network_Query {
 	 *     @type array        $path__not_in         Array of paths to exclude affiliated networks for. Default empty.
 	 *     @type string       $search               Search term(s) to retrieve matching networks for. Default empty.
 	 *     @type bool         $update_network_cache Whether to prime the cache for found networks. Default true.
+	 *     @type bool         $update_network_meta_cache  Whether to prime the metadata (option) cache for found networks.
+	 *                                                    Default true.
 	 * }
 	 */
 	public function __construct( $query = '' ) {
 		$this->query_var_defaults = array(
-			'network__in'          => '',
-			'network__not_in'      => '',
-			'count'                => false,
-			'fields'               => '',
-			'number'               => '',
-			'offset'               => '',
-			'no_found_rows'        => true,
-			'orderby'              => 'id',
-			'order'                => 'ASC',
-			'domain'               => '',
-			'domain__in'           => '',
-			'domain__not_in'       => '',
-			'path'                 => '',
-			'path__in'             => '',
-			'path__not_in'         => '',
-			'search'               => '',
-			'update_network_cache' => true,
+			'network__in'               => '',
+			'network__not_in'           => '',
+			'count'                     => false,
+			'fields'                    => '',
+			'number'                    => '',
+			'offset'                    => '',
+			'no_found_rows'             => true,
+			'orderby'                   => 'id',
+			'order'                     => 'ASC',
+			'domain'                    => '',
+			'domain__in'                => '',
+			'domain__not_in'            => '',
+			'path'                      => '',
+			'path__in'                  => '',
+			'path__not_in'              => '',
+			'search'                    => '',
+			'update_network_cache'      => true,
+			'update_network_meta_cache' => true,
 		);
 
 		if ( ! empty( $query ) ) {
@@ -268,7 +271,7 @@ class WP_Network_Query {
 		}
 
 		if ( $this->query_vars['update_network_cache'] ) {
-			_prime_network_caches( $network_ids );
+			_prime_network_caches( $network_ids, $this->query_vars['update_network_meta_cache'] );
 		}
 
 		// Fetch full network objects from the primed cache.
