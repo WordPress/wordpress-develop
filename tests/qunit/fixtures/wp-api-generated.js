@@ -2377,6 +2377,11 @@ mockedApiResponse.Schema = {
                             "required": false,
                             "description": "As a percentage of the image, the height to crop the image to.",
                             "type": "number"
+                        },
+                        "src": {
+                            "required": true,
+                            "description": "URL to the edited image file.",
+                            "type": "string"
                         }
                     }
                 }

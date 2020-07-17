@@ -520,7 +520,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 
 		$object_property_name = $object_type . '_id';
 		$object_id            = self::$$object_property_name;
-		$default_value        = get_metadata_default( $object_type, $meta_key, $single, $object_id );
+		$default_value        = get_metadata_default( $object_type, $object_id, $meta_key, $single );
 		$this->assertSame( $default_value, $expected );
 
 		// Check for default value.
@@ -567,7 +567,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 
 		$object_property_name = $object_type . '_id';
 		$object_id            = self::$$object_property_name;
-		$default_value        = get_metadata_default( $object_type, $meta_key, $single, $object_id );
+		$default_value        = get_metadata_default( $object_type, $object_id, $meta_key, $single );
 		$this->assertSame( $default_value, $expected );
 	}
 

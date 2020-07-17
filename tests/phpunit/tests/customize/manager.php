@@ -60,10 +60,10 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$this->undefined = new stdClass();
 
 		$orig_file       = DIR_TESTDATA . '/images/canola.jpg';
-		$this->test_file = '/tmp/canola.jpg';
+		$this->test_file = get_temp_dir() . 'canola.jpg';
 		copy( $orig_file, $this->test_file );
 		$orig_file2       = DIR_TESTDATA . '/images/waffles.jpg';
-		$this->test_file2 = '/tmp/waffles.jpg';
+		$this->test_file2 = get_temp_dir() . 'waffles.jpg';
 		copy( $orig_file2, $this->test_file2 );
 	}
 

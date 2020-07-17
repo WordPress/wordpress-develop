@@ -2946,6 +2946,41 @@ EOF;
 
 		$this->assertTrue( wp_image_file_matches_image_meta( $image_src, $image_meta ) );
 	}
+
+		/**
+		 * @ticket 22101
+		 */
+	function test_gallery_shortcode_when_is_feed_true() {
+
+		$this->go_to( '/?feed=rss2' );
+
+		// Default: Links to image attachment page url
+		$actual = gallery_shortcode(
+			array(
+				'ids' => self::$large_id,
+			)
+		);
+		$this->assertContains( '?attachment_id=', $actual );
+
+		// File: Links to image file url
+		$actual = gallery_shortcode(
+			array(
+				'ids'  => self::$large_id,
+				'link' => 'file',
+			)
+		);
+		$this->assertTrue( 2 === substr_count( $actual, '.jpg' ) );
+
+		// None: Does not link
+		$actual = gallery_shortcode(
+			array(
+				'ids'  => self::$large_id,
+				'link' => 'none',
+			)
+		);
+		$this->assertFalse( strpos( $actual, '<a ' ) );
+	}
+
 }
 
 /**

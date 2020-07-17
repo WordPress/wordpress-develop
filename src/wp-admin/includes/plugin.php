@@ -1956,7 +1956,7 @@ function get_admin_page_title() {
 				if ( $menu_array[2] == $pagenow ) {
 					$title = $menu_array[3];
 					return $menu_array[3];
-				} elseif ( isset( $plugin_page ) && ( $plugin_page == $menu_array[2] ) && ( $hook == $menu_array[3] ) ) {
+				} elseif ( isset( $plugin_page ) && ( $plugin_page == $menu_array[2] ) && ( $hook == $menu_array[5] ) ) {
 					$title = $menu_array[3];
 					return $menu_array[3];
 				}
@@ -2167,17 +2167,19 @@ function user_can_access_admin_page() {
  * See the {@see 'allowed_options'} filter.
  *
  * @since 2.7.0
+ * @since 5.5.0 `$new_whitelist_options` was renamed to `$new_allowed_options`.
+ *              Please consider writing more inclusive code.
  *
- * @global array $new_whitelist_options
+ * @global array $new_allowed_options
  *
  * @param array $options
  * @return array
  */
 function option_update_filter( $options ) {
-	global $new_whitelist_options;
+	global $new_allowed_options;
 
-	if ( is_array( $new_whitelist_options ) ) {
-		$options = add_allowed_options( $new_whitelist_options, $options );
+	if ( is_array( $new_allowed_options ) ) {
+		$options = add_allowed_options( $new_allowed_options, $options );
 	}
 
 	return $options;

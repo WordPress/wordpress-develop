@@ -4775,14 +4775,14 @@ function wp_ajax_wp_privacy_export_personal_data() {
 	 * @param array $args {
 	 *     An array of callable exporters of personal data. Default empty array.
 	 *
-	 *     @type array {
+	 *     @type array ...$0 {
 	 *         Array of personal data exporters.
 	 *
-	 *         @type string $callback               Callable exporter function that accepts an
-	 *                                              email address and a page and returns an array
-	 *                                              of name => value pairs of personal data.
-	 *         @type string $exporter_friendly_name Translated user facing friendly name for the
-	 *                                              exporter.
+	 *         @type callable $callback               Callable exporter function that accepts an
+	 *                                                email address and a page and returns an array
+	 *                                                of name => value pairs of personal data.
+	 *         @type string   $exporter_friendly_name Translated user facing friendly name for the
+	 *                                                exporter.
 	 *     }
 	 * }
 	 */
@@ -4965,15 +4965,15 @@ function wp_ajax_wp_privacy_erase_personal_data() {
 	 * @param array $args {
 	 *     An array of callable erasers of personal data. Default empty array.
 	 *
-	 *     @type array {
+	 *     @type array ...$0 {
 	 *         Array of personal data exporters.
 	 *
-	 *         @type string $callback               Callable eraser that accepts an email address and
-	 *                                              a page and returns an array with boolean values for
-	 *                                              whether items were removed or retained and any messages
-	 *                                              from the eraser, as well as if additional pages are
-	 *                                              available.
-	 *         @type string $exporter_friendly_name Translated user facing friendly name for the eraser.
+	 *         @type callable $callback               Callable eraser that accepts an email address and
+	 *                                                a page and returns an array with boolean values for
+	 *                                                whether items were removed or retained and any messages
+	 *                                                from the eraser, as well as if additional pages are
+	 *                                                available.
+	 *         @type string   $exporter_friendly_name Translated user facing friendly name for the eraser.
 	 *     }
 	 * }
 	 */

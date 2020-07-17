@@ -94,16 +94,18 @@ class Theme_Upgrader extends WP_Upgrader {
 		/* translators: %s: Theme error. */
 		$this->strings['current_theme_has_errors'] = __( 'The current theme has the following error: "%s".' );
 
-		if ( 'update-theme' === $this->skin->overwrite ) {
-			$this->strings['installing_package'] = __( 'Updating the theme&#8230;' );
-			$this->strings['process_failed']     = __( 'Theme update failed.' );
-			$this->strings['process_success']    = __( 'Theme updated successfully.' );
-		}
+		if ( ! empty( $this->skin->overwrite ) ) {
+			if ( 'update-theme' === $this->skin->overwrite ) {
+				$this->strings['installing_package'] = __( 'Updating the theme&#8230;' );
+				$this->strings['process_failed']     = __( 'Theme update failed.' );
+				$this->strings['process_success']    = __( 'Theme updated successfully.' );
+			}
 
-		if ( 'downgrade-theme' === $this->skin->overwrite ) {
-			$this->strings['installing_package'] = __( 'Downgrading the theme&#8230;' );
-			$this->strings['process_failed']     = __( 'Theme downgrade failed.' );
-			$this->strings['process_success']    = __( 'Theme downgraded successfully.' );
+			if ( 'downgrade-theme' === $this->skin->overwrite ) {
+				$this->strings['installing_package'] = __( 'Downgrading the theme&#8230;' );
+				$this->strings['process_failed']     = __( 'Theme downgrade failed.' );
+				$this->strings['process_success']    = __( 'Theme downgraded successfully.' );
+			}
 		}
 	}
 
@@ -273,9 +275,9 @@ class Theme_Upgrader extends WP_Upgrader {
 			 *
 			 * @since 5.5.0
 			 *
-			 * @param string  $package          The package file.
-			 * @param array   $new_plugin_data  The new theme data.
-			 * @param string  $package_type     The package type (plugin or theme).
+			 * @param string  $package        The package file.
+			 * @param array   $new_theme_data The new theme data.
+			 * @param string  $package_type   The package type (plugin or theme).
 			 */
 			do_action( 'upgrader_overwrote_package', $package, $this->new_theme_data, 'theme' );
 		}

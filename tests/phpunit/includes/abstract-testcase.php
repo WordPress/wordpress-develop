@@ -913,16 +913,20 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	public function temp_filename() {
 		$tmp_dir = '';
 		$dirs    = array( 'TMP', 'TMPDIR', 'TEMP' );
+
 		foreach ( $dirs as $dir ) {
 			if ( isset( $_ENV[ $dir ] ) && ! empty( $_ENV[ $dir ] ) ) {
 				$tmp_dir = $dir;
 				break;
 			}
 		}
+
 		if ( empty( $tmp_dir ) ) {
-			$tmp_dir = '/tmp';
+			$tmp_dir = get_temp_dir();
 		}
+
 		$tmp_dir = realpath( $tmp_dir );
+
 		return tempnam( $tmp_dir, 'wpunit' );
 	}
 
