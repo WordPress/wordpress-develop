@@ -37,10 +37,28 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 		 * and namespace indexes. If you really need to register a
 		 * non-namespaced route, call `WP_REST_Server::register_route` directly.
 		 */
-		_doing_it_wrong( 'register_rest_route', __( 'Routes must be namespaced with plugin or theme name and version.' ) . ' [Namespace = "' . $namespace . '", Route = "' . $route . '"]', '4.4.0' );
+		_doing_it_wrong( 
+			__FUNCTION__, 
+			sprintf(
+				/* translators: %1$s: string value of the route, %2$s: string value of the namespace */
+				__( 'Routes must be namespaced with plugin or theme name and version. Instead route %1$s seems to have empty namespace %2$s.' ),
+				'<code>'.$namespace.'</code>',
+				'<code>'.$route.'</code>'
+			), 
+			'4.4.0'
+		);
 		return false;
 	} elseif ( empty( $route ) ) {
-		_doing_it_wrong( 'register_rest_route', __( 'Route must be specified.' ) . ' [Namespace = "' . $namespace . '", Route = "' . $route . '"]', '4.4.0' );
+		_doing_it_wrong( 
+			__FUNCTION__, 
+			sprintf(
+				/* translators: %1$s: string value of the route, %2$s: string value of the namespace */
+				__( 'Route must be specified. Instead there seems to be an empty route %1$s for the namespace %2$s.' ),
+				'<code>'.$namespace.'</code>',
+				'<code>'.$route.'</code>'
+			), 
+			'4.4.0' 
+		);
 		return false;
 	}
 
@@ -49,16 +67,25 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 	if ( $clean_namespace !== $namespace ) {
 		_doing_it_wrong( 
 			__FUNCTION__, 
-			__( 'Namespace must not start or end with a slash.' ) . ' [Namespace = "' . $namespace . '", Route = "' . $route . '"]', '5.4.2' );
+			sprintf(
+				/* translators: %1$s: string value of the route, %2$s: string value of the namespace */
+				__( 'Namespace must not start or end with a slash. Instead route %1$s has namespace %2$s.' ),
+				'<code>'.$namespace.'</code>',
+				'<code>'.$route.'</code>'
+			),
+			'5.4.2'
+		);
 	}
 	
 	if ( ! did_action( 'rest_api_init' ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
-				/* translators: %s: rest_api_init */
-				__( 'REST API routes must be registered on the %s action.' ) . ' [Namespace = "' . $namespace . '", Route = "' . $route . '"]',
-				'<code>rest_api_init</code>'
+				/* translators: %1$s: rest_api_init, %2$s: string value of the route, %3$s: string value of the namespace */
+				__( 'REST API routes must be registered on the %1$s action. Instead route %2$s with namespace %3$s was not registered on this action.' ),
+				'<code>rest_api_init</code>',
+				'<code>'.$namespace.'</code>',
+				'<code>'.$route.'</code>'
 			),
 			'5.1.0'
 		);
