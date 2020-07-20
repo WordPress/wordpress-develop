@@ -137,7 +137,7 @@ $color_palette    = current( (array) get_theme_support( 'editor-color-palette' )
 $font_sizes       = current( (array) get_theme_support( 'editor-font-sizes' ) );
 $gradient_presets = current( (array) get_theme_support( 'editor-gradient-presets' ) );
 
-$registered_blocks = WP_Block_Type_Registry::get_instance()->get_all_registered();
+$registered_block_types = WP_Block_Type_Registry::get_instance()->get_all_registered();
 
 /**
  * Filters the allowed block types for the editor, defaulting to true (all
@@ -149,7 +149,7 @@ $registered_blocks = WP_Block_Type_Registry::get_instance()->get_all_registered(
  *                                        boolean to enable/disable all.
  * @param WP_Post    $post                The post resource data.
  */
-$allowed_block_types = apply_filters( 'allowed_block_types', $registered_blocks, $post );
+$allowed_block_types = apply_filters( 'allowed_block_types', $registered_block_types, $post );
 
 /*
  * Get all available templates for the post/page attributes meta-box.
