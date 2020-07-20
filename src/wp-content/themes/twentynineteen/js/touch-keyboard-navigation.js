@@ -70,7 +70,7 @@
 	 * @param {Object} el
 	 * @param {string} cls
 	 *
-	 * @returns {boolean} Has class
+	 * @return {boolean} Has class
 	 */
 	function hasClass(el, cls) {
 
@@ -155,8 +155,8 @@
 	 * Find first ancestor of an element by selector.
 	 *
 	 * @param {Object} child
-	 * @param {String} selector
-	 * @param {String} stopSelector
+	 * @param {string} selector
+	 * @param {string} stopSelector
 	 */
 	function getCurrentParent( child, selector, stopSelector ) {
 

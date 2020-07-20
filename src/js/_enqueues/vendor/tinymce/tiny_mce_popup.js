@@ -107,9 +107,9 @@ var tinyMCEPopup = {
    * Returns a window argument/parameter by name.
    *
    * @method getWindowArg
-   * @param {String} name Name of the window argument to retrieve.
-   * @param {String} defaultValue Optional default value to return.
-   * @return {String} Argument value or default value if it wasn't found.
+   * @param {string} name Name of the window argument to retrieve.
+   * @param {string} defaultValue Optional default value to return.
+   * @return {string} Argument value or default value if it wasn't found.
    */
   getWindowArg: function (name, defaultValue) {
     var value = this.params[name];
@@ -121,9 +121,9 @@ var tinyMCEPopup = {
    * Returns a editor parameter/config option value.
    *
    * @method getParam
-   * @param {String} name Name of the editor config option to retrieve.
-   * @param {String} defaultValue Optional default value to return.
-   * @return {String} Parameter value or default value if it wasn't found.
+   * @param {string} name Name of the editor config option to retrieve.
+   * @param {string} defaultValue Optional default value to return.
+   * @return {string} Parameter value or default value if it wasn't found.
    */
   getParam: function (name, defaultValue) {
     return this.editor.getParam(name, defaultValue);
@@ -133,9 +133,9 @@ var tinyMCEPopup = {
    * Returns a language item by key.
    *
    * @method getLang
-   * @param {String} name Language item like mydialog.something.
-   * @param {String} defaultValue Optional default value to return.
-   * @return {String} Language value for the item like "my string" or the default value if it wasn't found.
+   * @param {string} name Language item like mydialog.something.
+   * @param {string} defaultValue Optional default value to return.
+   * @return {string} Language value for the item like "my string" or the default value if it wasn't found.
    */
   getLang: function (name, defaultValue) {
     return this.editor.getLang(name, defaultValue);
@@ -145,8 +145,8 @@ var tinyMCEPopup = {
    * Executed a command on editor that opened the dialog/popup.
    *
    * @method execCommand
-   * @param {String} cmd Command to execute.
-   * @param {Boolean} ui Optional boolean value if the UI for the command should be presented or not.
+   * @param {string} cmd Command to execute.
+   * @param {boolean} ui Optional boolean value if the UI for the command should be presented or not.
    * @param {Object} val Optional value to pass with the comman like an URL.
    * @param {Object} a Optional arguments object.
    */
@@ -185,7 +185,7 @@ var tinyMCEPopup = {
    * was added for compatibility with the 2.x branch.
    *
    * @method executeOnLoad
-   * @param {String} evil String to evalutate on init.
+   * @param {string} evil String to evalutate on init.
    */
   executeOnLoad: function (evil) {
     this.onInit.add(function () {
@@ -285,7 +285,7 @@ var tinyMCEPopup = {
    * native version use the callback method instead then it can be extended.
    *
    * @method confirm
-   * @param {String} t Title for the new confirm dialog.
+   * @param {string} t Title for the new confirm dialog.
    * @param {function} cb Callback function to be executed after the user has selected ok or cancel.
    * @param {Object} s Optional scope to execute the callback in.
    */
@@ -298,7 +298,7 @@ var tinyMCEPopup = {
    * native version use the callback method instead then it can be extended.
    *
    * @method alert
-   * @param {String} tx Title for the new alert dialog.
+   * @param {string} tx Title for the new alert dialog.
    * @param {function} cb Callback function to be executed after the user has selected ok.
    * @param {Object} s Optional scope to execute the callback in.
    */

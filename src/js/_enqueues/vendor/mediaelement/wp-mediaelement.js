@@ -52,8 +52,8 @@
 			 *
 			 * @since 4.9.3
 			 *
-			 * @param {object} media The wrapper that mimics all the native events/properties/methods for all renderers.
-			 * @param {object} node  The original HTML video, audio, or iframe tag where the media was loaded.
+			 * @param {Object} media The wrapper that mimics all the native events/properties/methods for all renderers.
+			 * @param {Object} node  The original HTML video, audio, or iframe tag where the media was loaded.
 			 * @return {string}
 			 */
 			settings.customError = function ( media, node ) {

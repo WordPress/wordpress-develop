@@ -311,7 +311,7 @@ var plupload = {
 	 * Get array of DOM Elements by their ids.
 	 * 
 	 * @method get
-	 * @param {String} id Identifier of the DOM Element
+	 * @param {string} id Identifier of the DOM Element
 	 * @return {Array}
 	*/
 	getAll : function get(ids) {
@@ -378,8 +378,8 @@ var plupload = {
 	 *
 	 * @method xmlEncode
 	 * @static
-	 * @param {String} s String to encode.
-	 * @return {String} Encoded string.
+	 * @param {string} s String to encode.
+	 * @return {string} Encoded string.
 	 */
 	xmlEncode : function(str) {
 		var xmlEncodeChars = {'<' : 'lt', '>' : 'gt', '&' : 'amp', '"' : 'quot', '\'' : '#39'}, xmlEncodeRegExp = /[<>&\"\']/g;
@@ -520,8 +520,8 @@ var plupload = {
 	 *
 	 * @method cleanName
 	 * @static
-	 * @param {String} s String to clean up.
-	 * @return {String} Cleaned string.
+	 * @param {string} s String to clean up.
+	 * @return {string} Cleaned string.
 	 */
 	cleanName : function(name) {
 		var i, lookup;
@@ -555,9 +555,9 @@ var plupload = {
 	 *
 	 * @method buildUrl
 	 * @static
-	 * @param {String} url Base URL to append query string items to.
+	 * @param {string} url Base URL to append query string items to.
 	 * @param {Object} items Name/value object to serialize as a querystring.
-	 * @return {String} String with url + serialized query string items.
+	 * @return {string} String with url + serialized query string items.
 	 */
 	buildUrl : function(url, items) {
 		var query = '';
@@ -578,8 +578,8 @@ var plupload = {
 	 *
 	 * @method formatSize
 	 * @static
-	 * @param {Number} size Size to format as string.
-	 * @return {String} Formatted size string.
+	 * @param {number} size Size to format as string.
+	 * @return {string} Formatted size string.
 	 */
 	formatSize : function(size) {
 
@@ -634,9 +634,9 @@ var plupload = {
 	 *
 	 * @method predictRuntime
 	 * @static
-	 * @param {Object|String} config Plupload settings to check
-	 * @param {String} [runtimes] Comma-separated list of runtimes to check against
-	 * @return {String} Type of compatible runtime
+	 * @param {Object|string} config Plupload settings to check
+	 * @param {string} [runtimes] Comma-separated list of runtimes to check against
+	 * @return {string} Type of compatible runtime
 	 */
 	predictRuntime : function(config, runtimes) {
 		var up, runtime;
@@ -656,8 +656,8 @@ var plupload = {
 	 *
 	 * @method addFileFilter
 	 * @static
-	 * @param {String} name Name of the filter by which it can be referenced in settings.filters
-	 * @param {String} cb Callback - the actual routine that every added file must pass
+	 * @param {string} name Name of the filter by which it can be referenced in settings.filters
+	 * @param {string} cb Callback - the actual routine that every added file must pass
 	 */
 	addFileFilter: function(name, cb) {
 		fileFilters[name] = cb;
@@ -723,33 +723,33 @@ plupload.addFileFilter('prevent_duplicates', function(value, file, cb) {
 @constructor
 
 @param {Object} settings For detailed information about each option check documentation.
-	@param {String|DOMElement} settings.browse_button id of the DOM element or DOM element itself to use as file dialog trigger.
-	@param {String} settings.url URL of the server-side upload handler.
+	@param {string|DOMElement} settings.browse_button id of the DOM element or DOM element itself to use as file dialog trigger.
+	@param {string} settings.url URL of the server-side upload handler.
 	@param {Number|String} [settings.chunk_size=0] Chunk size in bytes to slice the file into. Shorcuts with b, kb, mb, gb, tb suffixes also supported. `e.g. 204800 or "204800b" or "200kb"`. By default - disabled.
-	@param {Boolean} [settings.send_chunk_number=true] Whether to send chunks and chunk numbers, or total and offset bytes.
+	@param {boolean} [settings.send_chunk_number=true] Whether to send chunks and chunk numbers, or total and offset bytes.
 	@param {String|DOMElement} [settings.container] id of the DOM element or DOM element itself that will be used to wrap uploader structures. Defaults to immediate parent of the `browse_button` element.
 	@param {String|DOMElement} [settings.drop_element] id of the DOM element or DOM element itself to use as a drop zone for Drag-n-Drop.
-	@param {String} [settings.file_data_name="file"] Name for the file field in Multipart formated message.
+	@param {string} [settings.file_data_name="file"] Name for the file field in Multipart formated message.
 	@param {Object} [settings.filters={}] Set of file type filters.
 		@param {Array} [settings.filters.mime_types=[]] List of file types to accept, each one defined by title and list of extensions. `e.g. {title : "Image files", extensions : "jpg,jpeg,gif,png"}`. Dispatches `plupload.FILE_EXTENSION_ERROR`
 		@param {String|Number} [settings.filters.max_file_size=0] Maximum file size that the user can pick, in bytes. Optionally supports b, kb, mb, gb, tb suffixes. `e.g. "10mb" or "1gb"`. By default - not set. Dispatches `plupload.FILE_SIZE_ERROR`.
-		@param {Boolean} [settings.filters.prevent_duplicates=false] Do not let duplicates into the queue. Dispatches `plupload.FILE_DUPLICATE_ERROR`.
-	@param {String} [settings.flash_swf_url] URL of the Flash swf. (Not used in WordPress)
+		@param {boolean} [settings.filters.prevent_duplicates=false] Do not let duplicates into the queue. Dispatches `plupload.FILE_DUPLICATE_ERROR`.
+	@param {string} [settings.flash_swf_url] URL of the Flash swf. (Not used in WordPress)
 	@param {Object} [settings.headers] Custom headers to send with the upload. Hash of name/value pairs.
-	@param {Number} [settings.max_retries=0] How many times to retry the chunk or file, before triggering Error event.
-	@param {Boolean} [settings.multipart=true] Whether to send file and additional parameters as Multipart formated message.
+	@param {number} [settings.max_retries=0] How many times to retry the chunk or file, before triggering Error event.
+	@param {boolean} [settings.multipart=true] Whether to send file and additional parameters as Multipart formated message.
 	@param {Object} [settings.multipart_params] Hash of key/value pairs to send with every file upload.
-	@param {Boolean} [settings.multi_selection=true] Enable ability to select multiple files at once in file dialog.
+	@param {boolean} [settings.multi_selection=true] Enable ability to select multiple files at once in file dialog.
 	@param {String|Object} [settings.required_features] Either comma-separated list or hash of required features that chosen runtime should absolutely possess.
 	@param {Object} [settings.resize] Enable resizng of images on client-side. Applies to `image/jpeg` and `image/png` only. `e.g. {width : 200, height : 200, quality : 90, crop: true}`
-		@param {Number} [settings.resize.width] If image is bigger, it will be resized.
-		@param {Number} [settings.resize.height] If image is bigger, it will be resized.
-		@param {Number} [settings.resize.quality=90] Compression quality for jpegs (1-100).
-		@param {Boolean} [settings.resize.crop=false] Whether to crop images to exact dimensions. By default they will be resized proportionally.
-	@param {String} [settings.runtimes="html5,html4"] Comma separated list of runtimes, that Plupload will try in turn, moving to the next if previous fails.
-	@param {String} [settings.silverlight_xap_url] URL of the Silverlight xap. (Not used in WordPress)
-	@param {Boolean} [settings.unique_names=false] If true will generate unique filenames for uploaded files.
-	@param {Boolean} [settings.send_file_name=true] Whether to send file name as additional argument - 'name' (required for chunked uploads and some other cases where file name cannot be sent via normal ways).
+		@param {number} [settings.resize.width] If image is bigger, it will be resized.
+		@param {number} [settings.resize.height] If image is bigger, it will be resized.
+		@param {number} [settings.resize.quality=90] Compression quality for jpegs (1-100).
+		@param {boolean} [settings.resize.crop=false] Whether to crop images to exact dimensions. By default they will be resized proportionally.
+	@param {string} [settings.runtimes="html5,html4"] Comma separated list of runtimes, that Plupload will try in turn, moving to the next if previous fails.
+	@param {string} [settings.silverlight_xap_url] URL of the Silverlight xap. (Not used in WordPress)
+	@param {boolean} [settings.unique_names=false] If true will generate unique filenames for uploaded files.
+	@param {boolean} [settings.send_file_name=true] Whether to send file name as additional argument - 'name' (required for chunked uploads and some other cases where file name cannot be sent via normal ways).
 */
 plupload.Uploader = function(options) {
 	/**
@@ -1815,7 +1815,7 @@ plupload.Uploader = function(options) {
 		 *
 		 * @method setOption
 		 * @since 2.1
-		 * @param {String|Object} option Name of the option to change or the set of key/value pairs
+		 * @param {string|Object} option Name of the option to change or the set of key/value pairs
 		 * @param {Mixed} [value] Value for the option (is ignored, if first argument is object)
 		 */
 		setOption: function(option, value) {
@@ -1827,7 +1827,7 @@ plupload.Uploader = function(options) {
 		 * 
 		 * @method getOption
 		 * @since 2.1
-		 * @param {String} [option] Name of the option to get
+		 * @param {string} [option] Name of the option to get
 		 * @return {Mixed} Value for the option or the whole set
 		 */
 		getOption: function(option) {
@@ -1884,7 +1884,7 @@ plupload.Uploader = function(options) {
 		 * Disables/enables browse button on request.
 		 *
 		 * @method disableBrowse
-		 * @param {Boolean} disable Whether to disable or enable (default: true)
+		 * @param {boolean} disable Whether to disable or enable (default: true)
 		 */
 		disableBrowse : function() {
 			disabled = arguments[0] !== undef ? arguments[0] : true;
@@ -1902,7 +1902,7 @@ plupload.Uploader = function(options) {
 		 * Returns the specified file object by id.
 		 *
 		 * @method getFile
-		 * @param {String} id File id to look for.
+		 * @param {string} id File id to look for.
 		 * @return {plupload.File} File object or undefined if it wasn't found;
 		 */
 		getFile : function(id) {
@@ -1922,7 +1922,7 @@ plupload.Uploader = function(options) {
 		 * @method addFile
 		 * @since 2.0
 		 * @param {plupload.File|mOxie.File|File|Node|Array} file File or files to add to the queue.
-		 * @param {String} [fileName] If specified, will be used as a name for the file
+		 * @param {string} [fileName] If specified, will be used as a name for the file
 		 */
 		addFile : function(file, fileName) {
 			var self = this
@@ -2024,7 +2024,7 @@ plupload.Uploader = function(options) {
 		 * Removes a specific file.
 		 *
 		 * @method removeFile
-		 * @param {plupload.File|String} file File to remove from queue.
+		 * @param {plupload.File|string} file File to remove from queue.
 		 */
 		removeFile : function(file) {
 			var id = typeof(file) === 'string' ? file : file.id;
@@ -2040,8 +2040,8 @@ plupload.Uploader = function(options) {
 		 * Removes part of the queue and returns the files removed. This will also trigger the FilesRemoved and QueueChanged events.
 		 *
 		 * @method splice
-		 * @param {Number} start (Optional) Start index to remove from.
-		 * @param {Number} length (Optional) Lengh of items to remove.
+		 * @param {number} start (Optional) Start index to remove from.
+		 * @param {number} length (Optional) Lengh of items to remove.
 		 * @return {Array} Array of files that was removed.
 		 */
 		splice : function(start, length) {
@@ -2124,10 +2124,10 @@ plupload.Uploader = function(options) {
 		Adds an event listener by name.
 
 		@method bind
-		@param {String} name Event name to listen for.
+		@param {string} name Event name to listen for.
 		@param {function} fn Function to call ones the event gets fired.
 		@param {Object} [scope] Optional scope to execute the specified function in.
-		@param {Number} [priority=0] Priority of the event handler - handlers with higher priorities will be called first
+		@param {number} [priority=0] Priority of the event handler - handlers with higher priorities will be called first
 		*/
 		bind: function(name, fn, scope, priority) {
 			// adapt moxie EventTarget style to Plupload-like

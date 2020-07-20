@@ -61,8 +61,8 @@
    * Creates a style sheet with the given CSS text and adds it to the document.
    * @private
    * @param {Document} ownerDocument The document.
-   * @param {String} cssText The CSS text.
-   * @returns {StyleSheet} The style element.
+   * @param {string} cssText The CSS text.
+   * @return {StyleSheet} The style element.
    */
   function addStyleSheet(ownerDocument, cssText) {
     var p = ownerDocument.createElement('p'),
@@ -75,7 +75,7 @@
   /**
    * Returns the value of `html5.elements` as an array.
    * @private
-   * @returns {Array} An array of shived element node names.
+   * @return {Array} An array of shived element node names.
    */
   function getElements() {
     var elements = html5.elements;
@@ -85,7 +85,7 @@
   /**
    * Extends the built-in list of html5 elements
    * @memberOf html5
-   * @param {String|Array} newElements whitespace separated list or array of new element names to shiv
+   * @param {string|Array} newElements whitespace separated list or array of new element names to shiv
    * @param {Document} ownerDocument The context document.
    */
   function addElements(newElements, ownerDocument) {
@@ -104,7 +104,7 @@
    * Returns the data associated to the given document
    * @private
    * @param {Document} ownerDocument The document.
-   * @returns {Object} An object of data.
+   * @return {Object} An object of data.
    */
   function getExpandoData(ownerDocument) {
     var data = expandoData[ownerDocument[expando]];
@@ -120,9 +120,9 @@
   /**
    * returns a shived element for the given nodeName and document
    * @memberOf html5
-   * @param {String} nodeName name of the element
+   * @param {string} nodeName name of the element
    * @param {Document|DocumentFragment} ownerDocument The context document.
-   * @returns {Object} The shived element.
+   * @return {Object} The shived element.
    */
   function createElement(nodeName, ownerDocument, data){
     if (!ownerDocument) {
@@ -158,7 +158,7 @@
    * returns a shived DocumentFragment for the given document
    * @memberOf html5
    * @param {Document} ownerDocument The context document.
-   * @returns {Object} The shived DocumentFragment.
+   * @return {Object} The shived DocumentFragment.
    */
   function createDocumentFragment(ownerDocument, data){
     if (!ownerDocument) {
@@ -220,7 +220,7 @@
    * Shivs the given document.
    * @memberOf html5
    * @param {Document} ownerDocument The document to shiv.
-   * @returns {Document} The shived document.
+   * @return {Document} The shived document.
    */
   function shivDocument(ownerDocument) {
     if (!ownerDocument) {

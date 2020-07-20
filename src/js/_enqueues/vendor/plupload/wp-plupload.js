@@ -23,12 +23,12 @@ window.wp = window.wp || {};
 	 * @memberOf wp
 	 * @alias wp.Uploader
 	 *
-	 * @param {object} options           The options passed to the new plupload instance.
-	 * @param {object} options.container The id of uploader container.
-	 * @param {object} options.browser   The id of button to trigger the file select.
-	 * @param {object} options.dropzone  The id of file drop target.
-	 * @param {object} options.plupload  An object of parameters to pass to the plupload instance.
-	 * @param {object} options.params    An object of parameters to pass to $_POST when uploading the file.
+	 * @param {Object} options           The options passed to the new plupload instance.
+	 * @param {Object} options.container The id of uploader container.
+	 * @param {Object} options.browser   The id of button to trigger the file select.
+	 * @param {Object} options.dropzone  The id of file drop target.
+	 * @param {Object} options.plupload  An object of parameters to pass to the plupload instance.
+	 * @param {Object} options.params    An object of parameters to pass to $_POST when uploading the file.
 	 *                                   Extends this.plupload.multipart_params under the hood.
 	 */
 	Uploader = function( options ) {
@@ -116,7 +116,7 @@ window.wp = window.wp || {};
 		 * @since 5.3.0
 		 *
 		 * @param {string}        message Error message.
-		 * @param {object}        data    Error data from Plupload.
+		 * @param {Object}        data    Error data from Plupload.
 		 * @param {plupload.File} file    File that was uploaded.
 		 */
 		tryAgain = function( message, data, file ) {
@@ -204,7 +204,7 @@ window.wp = window.wp || {};
 		 * and display errors. @see wp.Uploader.errors.
 		 *
 		 * @param {string}        message Error message.
-		 * @param {object}        data    Error data from Plupload.
+		 * @param {Object}        data    Error data from Plupload.
 		 * @param {plupload.File} file    File that was uploaded.
 		 * @param {string}        retry   Whether to try again to create image sub-sizes. Passing 'no-retry' will prevent it.
 		 */

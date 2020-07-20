@@ -286,7 +286,7 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 		this[ this.selected() ? 'select' : 'deselect' ]();
 	},
 	/**
-	 * @return {unresolved|Boolean}
+	 * @return {unresolved|boolean}
 	 */
 	selected: function() {
 		var selection = this.options.selection;

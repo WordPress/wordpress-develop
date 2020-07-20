@@ -252,11 +252,11 @@ var Parser = require("./Parser");
  * Represents a selector combinator (whitespace, +, >).
  * @namespace parserlib.css
  * @class Combinator
- * @extends parserlib.util.SyntaxUnit
+ * @augments parserlib.util.SyntaxUnit
  * @constructor
- * @param {String} text The text representation of the unit.
- * @param {int} line The line of text on which the unit resides.
- * @param {int} col The column of text on which the unit resides.
+ * @param {string} text The text representation of the unit.
+ * @param {number} line The line of text on which the unit resides.
+ * @param {number} col The column of text on which the unit resides.
  */
 function Combinator(text, line, col) {
 
@@ -656,7 +656,7 @@ var Parser = require("./Parser");
  * Represents a media feature, such as max-width:500.
  * @namespace parserlib.css
  * @class MediaFeature
- * @extends parserlib.util.SyntaxUnit
+ * @augments parserlib.util.SyntaxUnit
  * @constructor
  * @param {SyntaxUnit} name The name of the feature.
  * @param {SyntaxUnit} value The value of the feature or null if none.
@@ -697,13 +697,13 @@ var Parser = require("./Parser");
  * Represents an individual media query.
  * @namespace parserlib.css
  * @class MediaQuery
- * @extends parserlib.util.SyntaxUnit
+ * @augments parserlib.util.SyntaxUnit
  * @constructor
- * @param {String} modifier The modifier "not" or "only" (or null).
- * @param {String} mediaType The type of media (i.e., "print").
+ * @param {string} modifier The modifier "not" or "only" (or null).
+ * @param {string} mediaType The type of media (i.e., "print").
  * @param {Array} parts Array of selectors parts making up this selector.
- * @param {int} line The line of text on which the unit resides.
- * @param {int} col The column of text on which the unit resides.
+ * @param {number} line The line of text on which the unit resides.
+ * @param {number} col The column of text on which the unit resides.
  */
 function MediaQuery(modifier, mediaType, features, line, col) {
 
@@ -3023,9 +3023,9 @@ Parser.prototype = function() {
              * Not part of CSS grammar, but this pattern occurs frequently
              * in the official CSS grammar. Split out here to eliminate
              * duplicate code.
-             * @param {Boolean} checkStart Indicates if the rule should check
+             * @param {boolean} checkStart Indicates if the rule should check
              *      for the left brace at the beginning.
-             * @param {Boolean} readMargins Indicates if the rule should check
+             * @param {boolean} readMargins Indicates if the rule should check
              *      for margin patterns.
              * @return {void}
              * @method _readDeclarations
@@ -3113,7 +3113,7 @@ Parser.prototype = function() {
              * white space, this function is used to match as much white space
              * as necessary.
              * @method _readWhitespace
-             * @return {String} The white space if found, empty string if not.
+             * @return {string} The white space if found, empty string if not.
              * @private
              */
             _readWhitespace: function() {
@@ -3210,8 +3210,8 @@ Parser.prototype = function() {
             /**
              * Parses a complete CSS rule, including selectors and
              * properties.
-             * @param {String} input The text to parser.
-             * @return {Boolean} True if the parse completed successfully, false if not.
+             * @param {string} input The text to parser.
+             * @return {boolean} True if the parse completed successfully, false if not.
              * @method parseRule
              */
             parseRule: function(input) {
@@ -3234,7 +3234,7 @@ Parser.prototype = function() {
 
             /**
              * Parses a single CSS selector (no comma)
-             * @param {String} input The text to parse as a CSS selector.
+             * @param {string} input The text to parse as a CSS selector.
              * @return {Selector} An object representing the selector.
              * @throws parserlib.util.SyntaxError If an unexpected token is found.
              * @method parseSelector
@@ -3261,7 +3261,7 @@ Parser.prototype = function() {
             /**
              * Parses an HTML style attribute: a set of CSS declarations
              * separated by semicolons.
-             * @param {String} input The text to parse as a style attribute
+             * @param {string} input The text to parse as a style attribute
              * @return {void}
              * @method parseStyleAttribute
              */
@@ -3797,12 +3797,12 @@ var Parser = require("./Parser");
  * Represents a selector combinator (whitespace, +, >).
  * @namespace parserlib.css
  * @class PropertyName
- * @extends parserlib.util.SyntaxUnit
+ * @augments parserlib.util.SyntaxUnit
  * @constructor
- * @param {String} text The text representation of the unit.
- * @param {String} hack The type of IE hack applied ("*", "_", or null).
- * @param {int} line The line of text on which the unit resides.
- * @param {int} col The column of text on which the unit resides.
+ * @param {string} text The text representation of the unit.
+ * @param {string} hack The type of IE hack applied ("*", "_", or null).
+ * @param {number} line The line of text on which the unit resides.
+ * @param {number} col The column of text on which the unit resides.
  */
 function PropertyName(text, hack, line, col) {
 
@@ -3836,12 +3836,12 @@ var Parser = require("./Parser");
  * Represents a single part of a CSS property value, meaning that it represents
  * just everything single part between ":" and ";". If there are multiple values
  * separated by commas, this type represents just one of the values.
- * @param {String[]} parts An array of value parts making up this value.
- * @param {int} line The line of text on which the unit resides.
- * @param {int} col The column of text on which the unit resides.
+ * @param {string[]} parts An array of value parts making up this value.
+ * @param {number} line The line of text on which the unit resides.
+ * @param {number} col The column of text on which the unit resides.
  * @namespace parserlib.css
  * @class PropertyValue
- * @extends parserlib.util.SyntaxUnit
+ * @augments parserlib.util.SyntaxUnit
  * @constructor
  */
 function PropertyValue(parts, line, col) {
@@ -3911,7 +3911,7 @@ function PropertyValueIterator(value) {
 
 /**
  * Returns the total number of parts in the value.
- * @return {int} The total number of parts in the value.
+ * @return {number} The total number of parts in the value.
  * @method count
  */
 PropertyValueIterator.prototype.count = function() {
@@ -3920,7 +3920,7 @@ PropertyValueIterator.prototype.count = function() {
 
 /**
  * Indicates if the iterator is positioned at the first item.
- * @return {Boolean} True if positioned at first item, false if not.
+ * @return {boolean} True if positioned at first item, false if not.
  * @method isFirst
  */
 PropertyValueIterator.prototype.isFirst = function() {
@@ -3929,7 +3929,7 @@ PropertyValueIterator.prototype.isFirst = function() {
 
 /**
  * Indicates if there are more parts of the property value.
- * @return {Boolean} True if there are more parts, false if not.
+ * @return {boolean} True if there are more parts, false if not.
  * @method hasNext
  */
 PropertyValueIterator.prototype.hasNext = function() {
@@ -4013,12 +4013,12 @@ var Tokens = require("./Tokens");
 /**
  * Represents a single part of a CSS property value, meaning that it represents
  * just one part of the data between ":" and ";".
- * @param {String} text The text representation of the unit.
- * @param {int} line The line of text on which the unit resides.
- * @param {int} col The column of text on which the unit resides.
+ * @param {string} text The text representation of the unit.
+ * @param {number} line The line of text on which the unit resides.
+ * @param {number} col The column of text on which the unit resides.
  * @namespace parserlib.css
  * @class PropertyValuePart
- * @extends parserlib.util.SyntaxUnit
+ * @augments parserlib.util.SyntaxUnit
  * @constructor
  */
 function PropertyValuePart(text, line, col, optionalHint) {
@@ -4281,11 +4281,11 @@ var Specificity = require("./Specificity");
  * including multiple selectors (those separated by commas).
  * @namespace parserlib.css
  * @class Selector
- * @extends parserlib.util.SyntaxUnit
+ * @augments parserlib.util.SyntaxUnit
  * @constructor
  * @param {Array} parts Array of selectors parts making up this selector.
- * @param {int} line The line of text on which the unit resides.
- * @param {int} col The column of text on which the unit resides.
+ * @param {number} line The line of text on which the unit resides.
+ * @param {number} col The column of text on which the unit resides.
  */
 function Selector(parts, line, col) {
 
@@ -4326,15 +4326,15 @@ var Parser = require("./Parser");
  * spaces, +, >, etc.
  * @namespace parserlib.css
  * @class SelectorPart
- * @extends parserlib.util.SyntaxUnit
+ * @augments parserlib.util.SyntaxUnit
  * @constructor
- * @param {String} elementName The element name in the selector or null
+ * @param {string} elementName The element name in the selector or null
  *      if there is no element name.
  * @param {Array} modifiers Array of individual modifiers for the element.
  *      May be empty if there are none.
- * @param {String} text The text representation of the unit.
- * @param {int} line The line of text on which the unit resides.
- * @param {int} col The column of text on which the unit resides.
+ * @param {string} text The text representation of the unit.
+ * @param {number} line The line of text on which the unit resides.
+ * @param {number} col The column of text on which the unit resides.
  */
 function SelectorPart(elementName, modifiers, text, line, col) {
 
@@ -4376,12 +4376,12 @@ var Parser = require("./Parser");
  * element ID, pseudo rule, etc.
  * @namespace parserlib.css
  * @class SelectorSubPart
- * @extends parserlib.util.SyntaxUnit
+ * @augments parserlib.util.SyntaxUnit
  * @constructor
- * @param {String} text The text representation of the unit.
- * @param {String} type The type of selector modifier.
- * @param {int} line The line of text on which the unit resides.
- * @param {int} col The column of text on which the unit resides.
+ * @param {string} text The text representation of the unit.
+ * @param {string} type The type of selector modifier.
+ * @param {number} line The line of text on which the unit resides.
+ * @param {number} col The column of text on which the unit resides.
  */
 function SelectorSubPart(text, type, line, col) {
 
@@ -4420,10 +4420,10 @@ var SelectorPart = require("./SelectorPart");
  * @namespace parserlib.css
  * @class Specificity
  * @constructor
- * @param {int} a Should be 1 for inline styles, zero for stylesheet styles
- * @param {int} b Number of ID selectors
- * @param {int} c Number of classes and pseudo classes
- * @param {int} d Number of element names and pseudo elements
+ * @param {number} a Should be 1 for inline styles, zero for stylesheet styles
+ * @param {number} b Number of ID selectors
+ * @param {number} c Number of classes and pseudo classes
+ * @param {number} d Number of element names and pseudo elements
  */
 function Specificity(a, b, c, d) {
     this.a = a;
@@ -4438,7 +4438,7 @@ Specificity.prototype = {
     /**
      * Compare this specificity to another.
      * @param {Specificity} other The other specificity to compare to.
-     * @return {int} -1 if the other specificity is larger, 1 if smaller, 0 if equal.
+     * @return {number} -1 if the other specificity is larger, 1 if smaller, 0 if equal.
      * @method compare
      */
     compare: function(other) {
@@ -4458,7 +4458,7 @@ Specificity.prototype = {
 
     /**
      * Creates a numeric value for the specificity.
-     * @return {int} The numeric value for the specificity.
+     * @return {number} The numeric value for the specificity.
      * @method valueOf
      */
     valueOf: function() {
@@ -4467,7 +4467,7 @@ Specificity.prototype = {
 
     /**
      * Returns a string representation for specificity.
-     * @return {String} The string representation of specificity.
+     * @return {string} The string representation of specificity.
      * @method toString
      */
     toString: function() {
@@ -4602,7 +4602,7 @@ function mix(receiver, supplier) {
 
 /**
  * A token stream that produces CSS tokens.
- * @param {String|Reader} input The source of text to tokenize.
+ * @param {string|Reader} input The source of text to tokenize.
  * @constructor
  * @class TokenStream
  * @namespace parserlib.css
@@ -4848,10 +4848,10 @@ TokenStream.prototype = mix(new TokenStreamBase(), {
      * Produces a token based on available data and the current
      * reader position information. This method is called by other
      * private methods to create tokens and is never called directly.
-     * @param {int} tt The token type.
-     * @param {String} value The text value of the token.
-     * @param {int} startLine The beginning line for the character.
-     * @param {int} startCol The beginning column for the character.
+     * @param {number} tt The token type.
+     * @param {string} value The text value of the token.
+     * @param {number} startLine The beginning line for the character.
+     * @param {number} startCol The beginning column for the character.
      * @param {Object} options (Optional) Specifies a channel property
      *      to indicate that a different channel should be scanned
      *      and/or a hide property indicating that the token should
@@ -4883,9 +4883,9 @@ TokenStream.prototype = mix(new TokenStreamBase(), {
     /**
      * Produces a token for any at-rule. If the at-rule is unknown, then
      * the token is for a single "@" character.
-     * @param {String} first The first character for the token.
-     * @param {int} startLine The beginning line for the character.
-     * @param {int} startCol The beginning column for the character.
+     * @param {string} first The first character for the token.
+     * @param {number} startLine The beginning line for the character.
+     * @param {number} startCol The beginning column for the character.
      * @return {Object} A token object.
      * @method atRuleToken
      */
@@ -4927,9 +4927,9 @@ TokenStream.prototype = mix(new TokenStreamBase(), {
      * Produces a character token based on the given character
      * and location in the stream. If there's a special (non-standard)
      * token name, this is used; otherwise CHAR is used.
-     * @param {String} c The character for the token.
-     * @param {int} startLine The beginning line for the character.
-     * @param {int} startCol The beginning column for the character.
+     * @param {string} c The character for the token.
+     * @param {number} startLine The beginning line for the character.
+     * @param {number} startCol The beginning column for the character.
      * @return {Object} A token object.
      * @method charToken
      */
@@ -4950,9 +4950,9 @@ TokenStream.prototype = mix(new TokenStreamBase(), {
      * Produces a character token based on the given character
      * and location in the stream. If there's a special (non-standard)
      * token name, this is used; otherwise CHAR is used.
-     * @param {String} first The first character for the token.
-     * @param {int} startLine The beginning line for the character.
-     * @param {int} startCol The beginning column for the character.
+     * @param {string} first The first character for the token.
+     * @param {number} startLine The beginning line for the character.
+     * @param {number} startCol The beginning column for the character.
      * @return {Object} A token object.
      * @method commentToken
      */
@@ -4966,9 +4966,9 @@ TokenStream.prototype = mix(new TokenStreamBase(), {
      * Produces a comparison token based on the given character
      * and location in the stream. The next character must be
      * read and is already known to be an equals sign.
-     * @param {String} c The character for the token.
-     * @param {int} startLine The beginning line for the character.
-     * @param {int} startCol The beginning column for the character.
+     * @param {string} c The character for the token.
+     * @param {number} startLine The beginning line for the character.
+     * @param {number} startCol The beginning column for the character.
      * @return {Object} A token object.
      * @method comparisonToken
      */
@@ -4984,9 +4984,9 @@ TokenStream.prototype = mix(new TokenStreamBase(), {
      * Produces a hash token based on the specified information. The
      * first character provided is the pound sign (#) and then this
      * method reads a name afterward.
-     * @param {String} first The first character (#) in the hash name.
-     * @param {int} startLine The beginning line for the character.
-     * @param {int} startCol The beginning column for the character.
+     * @param {string} first The first character (#) in the hash name.
+     * @param {number} startLine The beginning line for the character.
+     * @param {number} startCol The beginning column for the character.
      * @return {Object} A token object.
      * @method hashToken
      */
@@ -5000,9 +5000,9 @@ TokenStream.prototype = mix(new TokenStreamBase(), {
      * Produces a CDO or CHAR token based on the specified information. The
      * first character is provided and the rest is read by the function to determine
      * the correct token to create.
-     * @param {String} first The first character in the token.
-     * @param {int} startLine The beginning line for the character.
-     * @param {int} startCol The beginning column for the character.
+     * @param {string} first The first character in the token.
+     * @param {number} startLine The beginning line for the character.
+     * @param {number} startCol The beginning column for the character.
      * @return {Object} A token object.
      * @method htmlCommentStartToken
      */
@@ -5025,9 +5025,9 @@ TokenStream.prototype = mix(new TokenStreamBase(), {
      * Produces a CDC or CHAR token based on the specified information. The
      * first character is provided and the rest is read by the function to determine
      * the correct token to create.
-     * @param {String} first The first character in the token.
-     * @param {int} startLine The beginning line for the character.
-     * @param {int} startCol The beginning column for the character.
+     * @param {string} first The first character in the token.
+     * @param {number} startLine The beginning line for the character.
+     * @param {number} startCol The beginning column for the character.
      * @return {Object} A token object.
      * @method htmlCommentEndToken
      */
@@ -5050,9 +5050,9 @@ TokenStream.prototype = mix(new TokenStreamBase(), {
      * Produces an IDENT or FUNCTION token based on the specified information. The
      * first character is provided and the rest is read by the function to determine
      * the correct token to create.
-     * @param {String} first The first character in the identifier.
-     * @param {int} startLine The beginning line for the character.
-     * @param {int} startCol The beginning column for the character.
+     * @param {string} first The first character in the identifier.
+     * @param {number} startLine The beginning line for the character.
+     * @param {number} startCol The beginning column for the character.
      * @return {Object} A token object.
      * @method identOrFunctionToken
      */
@@ -5096,9 +5096,9 @@ TokenStream.prototype = mix(new TokenStreamBase(), {
      * Produces an IMPORTANT_SYM or CHAR token based on the specified information. The
      * first character is provided and the rest is read by the function to determine
      * the correct token to create.
-     * @param {String} first The first character in the token.
-     * @param {int} startLine The beginning line for the character.
-     * @param {int} startCol The beginning column for the character.
+     * @param {string} first The first character in the token.
+     * @param {number} startLine The beginning line for the character.
+     * @param {number} startCol The beginning column for the character.
      * @return {Object} A token object.
      * @method importantToken
      */
@@ -5157,9 +5157,9 @@ TokenStream.prototype = mix(new TokenStreamBase(), {
      * Produces a NOT or CHAR token based on the specified information. The
      * first character is provided and the rest is read by the function to determine
      * the correct token to create.
-     * @param {String} first The first character in the token.
-     * @param {int} startLine The beginning line for the character.
-     * @param {int} startCol The beginning column for the character.
+     * @param {string} first The first character in the token.
+     * @param {number} startLine The beginning line for the character.
+     * @param {number} startCol The beginning column for the character.
      * @return {Object} A token object.
      * @method notToken
      */
@@ -5183,9 +5183,9 @@ TokenStream.prototype = mix(new TokenStreamBase(), {
      * and location in the stream. This may return a token of
      * NUMBER, EMS, EXS, LENGTH, ANGLE, TIME, FREQ, DIMENSION,
      * or PERCENTAGE.
-     * @param {String} first The first character for the token.
-     * @param {int} startLine The beginning line for the character.
-     * @param {int} startCol The beginning column for the character.
+     * @param {string} first The first character for the token.
+     * @param {number} startLine The beginning line for the character.
+     * @param {number} startCol The beginning column for the character.
      * @return {Object} A token object.
      * @method numberToken
      */
@@ -5229,9 +5229,9 @@ TokenStream.prototype = mix(new TokenStreamBase(), {
      * and ending quotes results in an INVALID token being generated.
      * The first character in the string is passed in and then
      * the rest are read up to and including the final quotation mark.
-     * @param {String} first The first character in the string.
-     * @param {int} startLine The beginning line for the character.
-     * @param {int} startCol The beginning column for the character.
+     * @param {string} first The first character in the string.
+     * @param {number} startLine The beginning line for the character.
+     * @param {number} startCol The beginning column for the character.
      * @return {Object} A token object.
      * @method stringToken
      */
@@ -5336,9 +5336,9 @@ TokenStream.prototype = mix(new TokenStreamBase(), {
      * Produces a S token based on the specified information. Since whitespace
      * may have multiple characters, this consumes all whitespace characters
      * into a single token.
-     * @param {String} first The first character in the token.
-     * @param {int} startLine The beginning line for the character.
-     * @param {int} startCol The beginning column for the character.
+     * @param {string} first The first character in the token.
+     * @param {number} startLine The beginning line for the character.
+     * @param {number} startCol The beginning column for the character.
      * @return {Object} A token object.
      * @method whitespaceToken
      */
@@ -5876,9 +5876,9 @@ module.exports = ValidationError;
  * @class ValidationError
  * @namespace parserlib.util
  * @constructor
- * @param {String} message The error message.
- * @param {int} line The line at which the error occurred.
- * @param {int} col The column at which the error occurred.
+ * @param {string} message The error message.
+ * @param {number} line The line at which the error occurred.
+ * @param {number} col The column at which the error occurred.
  */
 function ValidationError(message, line, col) {
 
@@ -6438,7 +6438,7 @@ EventTarget.prototype = {
 
     /**
      * Adds a listener for a given event type.
-     * @param {String} type The type of event to add a listener for.
+     * @param {string} type The type of event to add a listener for.
      * @param {Function} listener The function to call when the event occurs.
      * @return {void}
      * @method addListener
@@ -6453,7 +6453,7 @@ EventTarget.prototype = {
 
     /**
      * Fires an event based on the passed-in object.
-     * @param {Object|String} event An object with at least a 'type' attribute
+     * @param {Object|string} event An object with at least a 'type' attribute
      *      or a string indicating the event name.
      * @return {void}
      * @method fire
@@ -6482,7 +6482,7 @@ EventTarget.prototype = {
 
     /**
      * Removes a listener for a given event type.
-     * @param {String} type The type of event to remove a listener from.
+     * @param {string} type The type of event to remove a listener from.
      * @param {Function} listener The function to remove from the event.
      * @return {void}
      * @method removeListener
@@ -6512,7 +6512,7 @@ module.exports = StringReader;
  * @namespace parserlib.util
  * @class StringReader
  * @constructor
- * @param {String} text The text to read.
+ * @param {string} text The text to read.
  */
 function StringReader(text) {
 
@@ -6562,7 +6562,7 @@ StringReader.prototype = {
 
     /**
      * Returns the column of the character to be read next.
-     * @return {int} The column of the character to be read next.
+     * @return {number} The column of the character to be read next.
      * @method getCol
      */
     getCol: function() {
@@ -6571,7 +6571,7 @@ StringReader.prototype = {
 
     /**
      * Returns the row of the character to be read next.
-     * @return {int} The row of the character to be read next.
+     * @return {number} The row of the character to be read next.
      * @method getLine
      */
     getLine: function() {
@@ -6580,7 +6580,7 @@ StringReader.prototype = {
 
     /**
      * Determines if you're at the end of the input.
-     * @return {Boolean} True if there's no more input, false otherwise.
+     * @return {boolean} True if there's no more input, false otherwise.
      * @method eof
      */
     eof: function() {
@@ -6593,8 +6593,8 @@ StringReader.prototype = {
 
     /**
      * Reads the next character without advancing the cursor.
-     * @param {int} count How many characters to look ahead (default is 1).
-     * @return {String} The next character or null if there is no next character.
+     * @param {number} count How many characters to look ahead (default is 1).
+     * @return {string} The next character or null if there is no next character.
      * @method peek
      */
     peek: function(count) {
@@ -6614,7 +6614,7 @@ StringReader.prototype = {
     /**
      * Reads the next character from the input and adjusts the row and column
      * accordingly.
-     * @return {String} The next character or null if there is no next character.
+     * @return {string} The next character or null if there is no next character.
      * @method read
      */
     read: function() {
@@ -6672,8 +6672,8 @@ StringReader.prototype = {
     /**
      * Reads up to and including the given string. Throws an error if that
      * string is not found.
-     * @param {String} pattern The string to read.
-     * @return {String} The string when it is found.
+     * @param {string} pattern The string to read.
+     * @return {string} The string when it is found.
      * @throws Error when the string pattern is not found.
      * @method readTo
      */
@@ -6706,7 +6706,7 @@ StringReader.prototype = {
      * in each character and either returns true to continue
      * reading or false to stop.
      * @param {Function} filter The function to read on each character.
-     * @return {String} The string made up of all characters that passed the
+     * @return {string} The string made up of all characters that passed the
      *      filter check.
      * @method readWhile
      */
@@ -6729,10 +6729,10 @@ StringReader.prototype = {
      * returns those characters. If a match is found, the row and column
      * are adjusted; if no match is found, the reader's state is unchanged.
      * reading or false to stop.
-     * @param {String|RegExp} matcher If a string, then the literal string
+     * @param {string|RegExp} matcher If a string, then the literal string
      *      value is searched for. If a regular expression, then any string
      *      matching the pattern is search for.
-     * @return {String} The string made up of all characters that matched or
+     * @return {string} The string made up of all characters that matched or
      *      null if there was no match.
      * @method readMatch
      */
@@ -6759,8 +6759,8 @@ StringReader.prototype = {
     /**
      * Reads a given number of characters. If the end of the input is reached,
      * it reads only the remaining characters and does not throw an error.
-     * @param {int} count The number of characters to read.
-     * @return {String} The string made up the read characters.
+     * @param {number} count The number of characters to read.
+     * @return {string} The string made up the read characters.
      * @method readCount
      */
     readCount: function(count) {
@@ -6785,9 +6785,9 @@ module.exports = SyntaxError;
  * @class SyntaxError
  * @namespace parserlib.util
  * @constructor
- * @param {String} message The error message.
- * @param {int} line The line at which the error occurred.
- * @param {int} col The column at which the error occurred.
+ * @param {string} message The error message.
+ * @param {number} line The line at which the error occurred.
+ * @param {number} col The column at which the error occurred.
  */
 function SyntaxError(message, line, col) {
     Error.call(this);
@@ -6830,9 +6830,9 @@ module.exports = SyntaxUnit;
  * @class SyntaxUnit
  * @namespace parserlib.util
  * @constructor
- * @param {String} text The text of the unit.
- * @param {int} line The line of text on which the unit resides.
- * @param {int} col The column of text on which the unit resides.
+ * @param {string} text The text of the unit.
+ * @param {number} line The line of text on which the unit resides.
+ * @param {number} col The column of text on which the unit resides.
  */
 function SyntaxUnit(text, line, col, type) {
 
@@ -6886,7 +6886,7 @@ SyntaxUnit.prototype = {
 
     /**
      * Returns the text representation of the unit.
-     * @return {String} The text representation of the unit.
+     * @return {string} The text representation of the unit.
      * @method valueOf
      */
     valueOf: function() {
@@ -6895,7 +6895,7 @@ SyntaxUnit.prototype = {
 
     /**
      * Returns the text representation of the unit.
-     * @return {String} The text representation of the unit.
+     * @return {string} The text representation of the unit.
      * @method toString
      */
     toString: function() {
@@ -6917,7 +6917,7 @@ var SyntaxError = require("./SyntaxError");
  * @class TokenStreamBase
  * @namespace parserlib.util
  * @constructor
- * @param {String|StringReader} input The text to tokenize or a reader from
+ * @param {string|StringReader} input The text to tokenize or a reader from
  *      which to read the input.
  */
 function TokenStreamBase(input, tokenData) {
@@ -7019,12 +7019,12 @@ TokenStreamBase.prototype = {
      * back onto the token stream. You can pass in any number of
      * token types and this will return true if any of the token
      * types is found.
-     * @param {int|int[]} tokenTypes Either a single token type or an array of
+     * @param {number|number[]} tokenTypes Either a single token type or an array of
      *      token types that the next token might be. If an array is passed,
      *      it's assumed that the token can be any of these.
      * @param {variant} channel (Optional) The channel to read from. If not
      *      provided, reads from the default (unnamed) channel.
-     * @return {Boolean} True if the token type matches, false if not.
+     * @return {boolean} True if the token type matches, false if not.
      * @method match
      */
     match: function(tokenTypes, channel) {
@@ -7052,7 +7052,7 @@ TokenStreamBase.prototype = {
     /**
      * Determines if the next token matches the given token type.
      * If so, that token is consumed; if not, an error is thrown.
-     * @param {int|int[]} tokenTypes Either a single token type or an array of
+     * @param {number|number[]} tokenTypes Either a single token type or an array of
      *      token types that the next token should be. If an array is passed,
      *      it's assumed that the token must be one of these.
      * @return {void}
@@ -7081,7 +7081,7 @@ TokenStreamBase.prototype = {
     /**
      * Keeps reading from the token stream until either one of the specified
      * token types is found or until the end of the input is reached.
-     * @param {int|int[]} tokenTypes Either a single token type or an array of
+     * @param {number|number[]} tokenTypes Either a single token type or an array of
      *      token types that the next token should be. If an array is passed,
      *      it's assumed that the token must be one of these.
      * @param {variant} channel (Optional) The channel to read from. If not
@@ -7100,7 +7100,7 @@ TokenStreamBase.prototype = {
 
     /**
      * Consumes the next token from the token stream.
-     * @return {int} The token type of the token that was just consumed.
+     * @return {number} The token type of the token that was just consumed.
      * @method get
      */
     get: function(channel) {
@@ -7184,9 +7184,9 @@ TokenStreamBase.prototype = {
      * that position. This will throw an error if you lookahead past the
      * end of input, past the size of the lookahead buffer, or back past
      * the first token in the lookahead buffer.
-     * @param {int} The index of the token type to retrieve. 0 for the
+     * @param {number} The index of the token type to retrieve. 0 for the
      *      current token, 1 for the next, -1 for the previous, etc.
-     * @return {int} The token type of the token in the given position.
+     * @return {number} The token type of the token in the given position.
      * @method LA
      */
     LA: function(index) {
@@ -7230,7 +7230,7 @@ TokenStreamBase.prototype = {
      * that position. This will throw an error if you lookahead past the
      * end of input, past the size of the lookahead buffer, or back past
      * the first token in the lookahead buffer.
-     * @param {int} The index of the token type to retrieve. 0 for the
+     * @param {number} The index of the token type to retrieve. 0 for the
      *      current token, 1 for the next, -1 for the previous, etc.
      * @return {Object} The token of the token in the given position.
      * @method LA
@@ -7247,7 +7247,7 @@ TokenStreamBase.prototype = {
     /**
      * Returns the token type for the next token in the stream without
      * consuming it.
-     * @return {int} The token type of the next token in the stream.
+     * @return {number} The token type of the next token in the stream.
      * @method peek
      */
     peek: function() {
@@ -7265,8 +7265,8 @@ TokenStreamBase.prototype = {
 
     /**
      * Returns the name of the token for the given token type.
-     * @param {int} tokenType The type of token to get the name of.
-     * @return {String} The name of the token or "UNKNOWN_TOKEN" for any
+     * @param {number} tokenType The type of token to get the name of.
+     * @return {string} The name of the token or "UNKNOWN_TOKEN" for any
      *      invalid token type.
      * @method tokenName
      */
@@ -7280,8 +7280,8 @@ TokenStreamBase.prototype = {
 
     /**
      * Returns the token type value for the given token name.
-     * @param {String} tokenName The name of the token whose value should be returned.
-     * @return {int} The token type value for the given token name or -1
+     * @param {string} tokenName The name of the token whose value should be returned.
+     * @return {number} The token type value for the given token name or -1
      *      for an unknown token.
      * @method tokenName
      */
@@ -7659,7 +7659,7 @@ var CSSLint = (function() {
 
     /**
      * Returns a ruleset object based on embedded rules.
-     * @param {String} text A string of css containing embedded rules.
+     * @param {string} text A string of css containing embedded rules.
      * @param {Object} ruleset A ruleset object to modify.
      * @return {Object} A ruleset object.
      * @method getEmbeddedRuleset
@@ -7708,7 +7708,7 @@ var CSSLint = (function() {
 
     /**
      * Retrieves a formatter for use.
-     * @param {String} formatId The name of the format to retrieve.
+     * @param {string} formatId The name of the format to retrieve.
      * @return {Object} The formatter or undefined.
      * @method getFormatter
      */
@@ -7719,10 +7719,10 @@ var CSSLint = (function() {
     /**
      * Formats the results in a particular format for a single file.
      * @param {Object} result The results returned from CSSLint.verify().
-     * @param {String} filename The filename for which the results apply.
-     * @param {String} formatId The name of the formatter to use.
+     * @param {string} filename The filename for which the results apply.
+     * @param {string} formatId The name of the formatter to use.
      * @param {Object} options (Optional) for special output handling.
-     * @return {String} A formatted string for the results.
+     * @return {string} A formatted string for the results.
      * @method format
      */
     api.format = function(results, filename, formatId, options) {
@@ -7740,8 +7740,8 @@ var CSSLint = (function() {
 
     /**
      * Indicates if the given format is supported.
-     * @param {String} formatId The ID of the format to check.
-     * @return {Boolean} True if the format exists, false if not.
+     * @param {string} formatId The ID of the format to check.
+     * @return {boolean} True if the format exists, false if not.
      * @method hasFormat
      */
     api.hasFormat = function(formatId) {
@@ -7754,7 +7754,7 @@ var CSSLint = (function() {
 
     /**
      * Starts the verification process for the given CSS text.
-     * @param {String} text The CSS text to verify.
+     * @param {string} text The CSS text to verify.
      * @param {Object} ruleset (Optional) List of rules to apply. If null, then
      *      all rules are used. If a rule has a value of 1 then it's a warning,
      *      a value of 2 means it's an error.
@@ -7882,7 +7882,7 @@ var CSSLint = (function() {
  * verification back to the main API.
  * @class Reporter
  * @constructor
- * @param {String[]} lines The text lines of the source.
+ * @param {string[]} lines The text lines of the source.
  * @param {Object} ruleset The set of rules to work with, including if
  *      they are errors or warnings.
  * @param {Object} explicitly allowed lines
@@ -7949,9 +7949,9 @@ Reporter.prototype = {
 
     /**
      * Report an error.
-     * @param {String} message The message to store.
-     * @param {int} line The line number.
-     * @param {int} col The column number.
+     * @param {string} message The message to store.
+     * @param {number} line The line number.
+     * @param {number} col The column number.
      * @param {Object} rule The rule this message relates to.
      * @method error
      */
@@ -7969,9 +7969,9 @@ Reporter.prototype = {
 
     /**
      * Report an warning.
-     * @param {String} message The message to store.
-     * @param {int} line The line number.
-     * @param {int} col The column number.
+     * @param {string} message The message to store.
+     * @param {number} line The line number.
+     * @param {number} col The column number.
      * @param {Object} rule The rule this message relates to.
      * @method warn
      * @deprecated Use report instead.
@@ -7983,9 +7983,9 @@ Reporter.prototype = {
 
     /**
      * Report an issue.
-     * @param {String} message The message to store.
-     * @param {int} line The line number.
-     * @param {int} col The column number.
+     * @param {string} message The message to store.
+     * @param {number} line The line number.
+     * @param {number} col The column number.
      * @param {Object} rule The rule this message relates to.
      * @method report
      */
@@ -8019,9 +8019,9 @@ Reporter.prototype = {
 
     /**
      * Report some informational text.
-     * @param {String} message The message to store.
-     * @param {int} line The line number.
-     * @param {int} col The column number.
+     * @param {string} message The message to store.
+     * @param {number} line The line number.
+     * @param {number} col The column number.
      * @param {Object} rule The rule this message relates to.
      * @method info
      */
@@ -8039,7 +8039,7 @@ Reporter.prototype = {
 
     /**
      * Report some rollup error information.
-     * @param {String} message The message to store.
+     * @param {string} message The message to store.
      * @param {Object} rule The rule this message relates to.
      * @method rollupError
      */
@@ -8055,7 +8055,7 @@ Reporter.prototype = {
 
     /**
      * Report some rollup warning information.
-     * @param {String} message The message to store.
+     * @param {string} message The message to store.
      * @param {Object} rule The rule this message relates to.
      * @method rollupWarn
      */
@@ -8071,7 +8071,7 @@ Reporter.prototype = {
 
     /**
      * Report a statistic.
-     * @param {String} name The name of the stat to store.
+     * @param {string} name The name of the stat to store.
      * @param {Variant} value The value of the stat.
      * @method stat
      */
@@ -10314,7 +10314,7 @@ CSSLint.addRule({
      *  - &lt; is the escape sequence for <
      *  - &gt; is the escape sequence for >
      *
-     * @param {String} message to escape
+     * @param {string} message to escape
      * @return escaped message as {String}
      */
     var xmlEscape = function(str) {
@@ -10343,7 +10343,7 @@ CSSLint.addRule({
 
         /**
          * Return opening root XML tag.
-         * @return {String} to prepend before all results
+         * @return {string} to prepend before all results
          */
         startFormat: function() {
             return "<?xml version=\"1.0\" encoding=\"utf-8\"?><checkstyle>";
@@ -10351,7 +10351,7 @@ CSSLint.addRule({
 
         /**
          * Return closing root XML tag.
-         * @return {String} to append after all results
+         * @return {string} to append after all results
          */
         endFormat: function() {
             return "</checkstyle>";
@@ -10359,9 +10359,9 @@ CSSLint.addRule({
 
         /**
          * Returns message when there is a file read error.
-         * @param {String} filename The name of the file that caused the error.
-         * @param {String} message The error message
-         * @return {String} The error message.
+         * @param {string} filename The name of the file that caused the error.
+         * @param {string} message The error message
+         * @return {string} The error message.
          */
         readError: function(filename, message) {
             return "<file name=\"" + xmlEscape(filename) + "\"><error line=\"0\" column=\"0\" severty=\"error\" message=\"" + xmlEscape(message) + "\"></error></file>";
@@ -10372,7 +10372,7 @@ CSSLint.addRule({
          * @param results {Object} with error and warning messages
          * @param filename {String} relative file path
          * @param options {Object} (UNUSED for now) specifies special handling of output
-         * @return {String} output for results
+         * @return {string} output for results
          */
         formatResults: function(results, filename/*, options*/) {
             var messages = results.messages,
@@ -10418,7 +10418,7 @@ CSSLint.addFormatter({
 
     /**
      * Return content to be printed before all file results.
-     * @return {String} to prepend before all results
+     * @return {string} to prepend before all results
      */
     startFormat: function() {
         "use strict";
@@ -10427,7 +10427,7 @@ CSSLint.addFormatter({
 
     /**
      * Return content to be printed after all file results.
-     * @return {String} to append after all results
+     * @return {string} to append after all results
      */
     endFormat: function() {
         "use strict";
@@ -10439,7 +10439,7 @@ CSSLint.addFormatter({
      * @param results {Object} with error and warning messages
      * @param filename {String} relative file path
      * @param options {Object} (Optional) specifies special handling of output
-     * @return {String} output for results
+     * @return {string} output for results
      */
     formatResults: function(results, filename, options) {
         "use strict";
@@ -10450,7 +10450,7 @@ CSSLint.addFormatter({
         /**
          * Capitalize and return given string.
          * @param str {String} to capitalize
-         * @return {String} capitalized
+         * @return {string} capitalized
          */
         var capitalize = function(str) {
             return str.charAt(0).toUpperCase() + str.slice(1);
@@ -10480,7 +10480,7 @@ CSSLint.addFormatter({
 
     /**
      * Return opening root XML tag.
-     * @return {String} to prepend before all results
+     * @return {string} to prepend before all results
      */
     startFormat: function() {
         "use strict";
@@ -10489,7 +10489,7 @@ CSSLint.addFormatter({
 
     /**
      * Return closing root XML tag.
-     * @return {String} to append after all results
+     * @return {string} to append after all results
      */
     endFormat: function() {
         "use strict";
@@ -10501,7 +10501,7 @@ CSSLint.addFormatter({
      * @param results {Object} with error and warning messages
      * @param filename {String} relative file path
      * @param options {Object} (UNUSED for now) specifies special handling of output
-     * @return {String} output for results
+     * @return {string} output for results
      */
     formatResults: function(results, filename/*, options*/) {
         "use strict";
@@ -10517,7 +10517,7 @@ CSSLint.addFormatter({
          *  - &lt; is the escape sequence for <
          *  - &gt; is the escape sequence for >
          *
-         * @param {String} message to escape
+         * @param {string} message to escape
          * @return escaped message as {String}
          */
         var escapeSpecialCharacters = function(str) {
@@ -10553,7 +10553,7 @@ CSSLint.addFormatter({
 
     /**
      * Return content to be printed before all file results.
-     * @return {String} to prepend before all results
+     * @return {string} to prepend before all results
      */
     startFormat: function() {
         "use strict";
@@ -10563,7 +10563,7 @@ CSSLint.addFormatter({
 
     /**
      * Return content to be printed after all file results.
-     * @return {String} to append after all results
+     * @return {string} to append after all results
      */
     endFormat: function() {
         "use strict";
@@ -10582,7 +10582,7 @@ CSSLint.addFormatter({
      * Given CSS Lint results for a file, return output for this format.
      * @param results {Object} with error and warning messages
      * @param filename {String} relative file path (Unused)
-     * @return {String} output for results
+     * @return {string} output for results
      */
     formatResults: function(results, filename, options) {
         "use strict";
@@ -10604,7 +10604,7 @@ CSSLint.addFormatter({
 
     /**
      * Return opening root XML tag.
-     * @return {String} to prepend before all results
+     * @return {string} to prepend before all results
      */
     startFormat: function() {
         "use strict";
@@ -10613,7 +10613,7 @@ CSSLint.addFormatter({
 
     /**
      * Return closing root XML tag.
-     * @return {String} to append after all results
+     * @return {string} to append after all results
      */
     endFormat: function() {
         "use strict";
@@ -10625,7 +10625,7 @@ CSSLint.addFormatter({
      * @param results {Object} with error and warning messages
      * @param filename {String} relative file path
      * @param options {Object} (UNUSED for now) specifies special handling of output
-     * @return {String} output for results
+     * @return {string} output for results
      */
     formatResults: function(results, filename/*, options*/) {
         "use strict";
@@ -10659,7 +10659,7 @@ CSSLint.addFormatter({
          *  - &lt; is the escape sequence for <
          *  - &gt; is the escape sequence for >
          *
-         * @param {String} message to escape
+         * @param {string} message to escape
          * @return escaped message as {String}
          */
         var escapeSpecialCharacters = function(str) {
@@ -10712,7 +10712,7 @@ CSSLint.addFormatter({
 
     /**
      * Return opening root XML tag.
-     * @return {String} to prepend before all results
+     * @return {string} to prepend before all results
      */
     startFormat: function() {
         "use strict";
@@ -10721,7 +10721,7 @@ CSSLint.addFormatter({
 
     /**
      * Return closing root XML tag.
-     * @return {String} to append after all results
+     * @return {string} to append after all results
      */
     endFormat: function() {
         "use strict";
@@ -10733,7 +10733,7 @@ CSSLint.addFormatter({
      * @param results {Object} with error and warning messages
      * @param filename {String} relative file path
      * @param options {Object} (UNUSED for now) specifies special handling of output
-     * @return {String} output for results
+     * @return {string} output for results
      */
     formatResults: function(results, filename/*, options*/) {
         "use strict";
@@ -10749,7 +10749,7 @@ CSSLint.addFormatter({
          *  - &lt; is the escape sequence for <
          *  - &gt; is the escape sequence for >
          *
-         * @param {String} message to escape
+         * @param {string} message to escape
          * @return escaped message as {String}
          */
         var escapeSpecialCharacters = function(str) {
@@ -10788,7 +10788,7 @@ CSSLint.addFormatter({
 
     /**
      * Return content to be printed before all file results.
-     * @return {String} to prepend before all results
+     * @return {string} to prepend before all results
      */
     startFormat: function() {
         "use strict";
@@ -10797,7 +10797,7 @@ CSSLint.addFormatter({
 
     /**
      * Return content to be printed after all file results.
-     * @return {String} to append after all results
+     * @return {string} to append after all results
      */
     endFormat: function() {
         "use strict";
@@ -10809,7 +10809,7 @@ CSSLint.addFormatter({
      * @param results {Object} with error and warning messages
      * @param filename {String} relative file path
      * @param options {Object} (Optional) specifies special handling of output
-     * @return {String} output for results
+     * @return {string} output for results
      */
     formatResults: function(results, filename, options) {
         "use strict";

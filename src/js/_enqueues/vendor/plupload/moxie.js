@@ -119,7 +119,7 @@ define('moxie/core/utils/Basic', [], function() {
 	@for Utils
 	@static
 	@param {Object} o Object to check.
-	@return {String} Object [[Class]]
+	@return {string} Object [[Class]]
 	*/
 	var typeOf = function(o) {
 		var undef;
@@ -203,7 +203,7 @@ define('moxie/core/utils/Basic', [], function() {
 	@method isEmptyObj
 	@static
 	@param {Object} o Object to check.
-	@return {Boolean}
+	@return {boolean}
 	*/
 	var isEmptyObj = function(obj) {
 		var prop;
@@ -322,7 +322,7 @@ define('moxie/core/utils/Basic', [], function() {
 	@method arrayDiff
 	@param {Array} needles
 	@param {Array} array
-	@return {Array|Boolean}
+	@return {Array|boolean}
 	*/
 	var arrayDiff = function(needles, array) {
 		var diff = [];
@@ -415,8 +415,8 @@ define('moxie/core/utils/Basic', [], function() {
 	
 	@method trim
 	@static
-	@param {String} str
-	@return {String}
+	@param {string} str
+	@return {string}
 	*/
 	var trim = function(str) {
 		if (!str) {
@@ -432,7 +432,7 @@ define('moxie/core/utils/Basic', [], function() {
 	@method parseSizeStr
 	@static
 	@param {String/Number} size String to parse or number to just pass through.
-	@return {Number} Size in bytes.
+	@return {number} Size in bytes.
 	*/
 	var parseSizeStr = function(size) {
 		if (typeof(size) !== 'string') {
@@ -462,8 +462,8 @@ define('moxie/core/utils/Basic', [], function() {
 	/**
 	 * Pseudo sprintf implementation - simple way to replace tokens with specified values.
 	 *
-	 * @param {String} str String with tokens
-	 * @return {String} String with replaced tokens
+	 * @param {string} str String with tokens
+	 * @return {string} String with replaced tokens
 	 */
 	var sprintf = function(str) {
 		var args = [].slice.call(arguments, 1);
@@ -1229,8 +1229,8 @@ define("moxie/core/I18n", [
 		/**
 		 * Translates the specified string by checking for the english string in the language pack lookup.
 		 *
-		 * @param {String} str String to look for.
-		 * @return {String} Translated string or the input string if it wasn't found.
+		 * @param {string} str String to look for.
+		 * @return {string} Translated string or the input string if it wasn't found.
 		 */
 		translate: function(str) {
 			return i18n[str] || str;
@@ -1239,8 +1239,8 @@ define("moxie/core/I18n", [
 		/**
 		 * Shortcut for translate function
 		 *
-		 * @param {String} str String to look for.
-		 * @return {String} Translated string or the input string if it wasn't found.
+		 * @param {string} str String to look for.
+		 * @return {string} Translated string or the input string if it wasn't found.
 		 */
 		_: function(str) {
 			return this.translate(str);
@@ -1249,8 +1249,8 @@ define("moxie/core/I18n", [
 		/**
 		 * Pseudo sprintf implementation - simple way to replace tokens with specified values.
 		 *
-		 * @param {String} str String with tokens
-		 * @return {String} String with replaced tokens
+		 * @param {string} str String with tokens
+		 * @return {string} String with replaced tokens
 		 */
 		sprintf: function(str) {
 			var args = [].slice.call(arguments, 1);
@@ -1477,7 +1477,7 @@ define('moxie/core/utils/Dom', ['moxie/core/utils/Env'], function(Env) {
 
 	@method get
 	@for Utils
-	@param {String} id Identifier of the DOM Element
+	@param {string} id Identifier of the DOM Element
 	@return {DOMElement}
 	*/
 	var get = function(id) {
@@ -1493,7 +1493,7 @@ define('moxie/core/utils/Dom', ['moxie/core/utils/Env'], function(Env) {
 	@method hasClass
 	@static
 	@param {Object} obj DOM element like object to add handler to.
-	@param {String} name Class name
+	@param {string} name Class name
 	*/
 	var hasClass = function(obj, name) {
 		if (!obj.className) {
@@ -1510,7 +1510,7 @@ define('moxie/core/utils/Dom', ['moxie/core/utils/Env'], function(Env) {
 	@method addClass
 	@static
 	@param {Object} obj DOM element like object to add handler to.
-	@param {String} name Class name
+	@param {string} name Class name
 	*/
 	var addClass = function(obj, name) {
 		if (!hasClass(obj, name)) {
@@ -1524,7 +1524,7 @@ define('moxie/core/utils/Dom', ['moxie/core/utils/Env'], function(Env) {
 	@method removeClass
 	@static
 	@param {Object} obj DOM element like object to add handler to.
-	@param {String} name Class name
+	@param {string} name Class name
 	*/
 	var removeClass = function(obj, name) {
 		if (obj.className) {
@@ -1541,7 +1541,7 @@ define('moxie/core/utils/Dom', ['moxie/core/utils/Env'], function(Env) {
 	@method getStyle
 	@static
 	@param {Object} obj DOM element like object.
-	@param {String} name Style you want to get from the DOM element
+	@param {string} name Style you want to get from the DOM element
 	*/
 	var getStyle = function(obj, name) {
 		if (obj.currentStyle) {
@@ -1559,7 +1559,7 @@ define('moxie/core/utils/Dom', ['moxie/core/utils/Env'], function(Env) {
 	@static
 	@param {Element} node HTML element or element id to get x, y position from.
 	@param {Element} root Optional root element to stop calculations at.
-	@return {object} Absolute position of the specified element object with x, y fields.
+	@return {Object} Absolute position of the specified element object with x, y fields.
 	*/
 	var getPos = function(node, root) {
 		var x = 0, y = 0, parent, doc = document, nodeRect, rootRect;
@@ -1852,9 +1852,9 @@ define('moxie/core/EventTarget', [
 			Register a handler to a specific event dispatched by the object
 
 			@method addEventListener
-			@param {String} type Type or basically a name of the event to subscribe to
+			@param {string} type Type or basically a name of the event to subscribe to
 			@param {Function} fn Callback function that will be called when event happens
-			@param {Number} [priority=0] Priority of the event handler - handlers with higher priorities will be called first
+			@param {number} [priority=0] Priority of the event handler - handlers with higher priorities will be called first
 			@param {Object} [scope=this] A scope to invoke event handler in
 			*/
 			addEventListener: function(type, fn, priority, scope) {
@@ -1891,7 +1891,7 @@ define('moxie/core/EventTarget', [
 			Check if any handlers were registered to the specified event
 
 			@method hasEventListener
-			@param {String} type Type or basically a name of the event to check
+			@param {string} type Type or basically a name of the event to check
 			@return {Mixed} Returns a handler if it was found and false, if - not
 			*/
 			hasEventListener: function(type) {
@@ -1903,7 +1903,7 @@ define('moxie/core/EventTarget', [
 			Unregister the handler from the event, or if former was not specified - unregister all handlers
 
 			@method removeEventListener
-			@param {String} type Type or basically a name of the event
+			@param {string} type Type or basically a name of the event
 			@param {Function} [fn] Handler to unregister
 			*/
 			removeEventListener: function(type, fn) {
@@ -1952,7 +1952,7 @@ define('moxie/core/EventTarget', [
 			@method dispatchEvent
 			@param {String/Object} Type of event or event object to dispatch
 			@param {Mixed} [...] Variable number of arguments to be passed to a handlers
-			@return {Boolean} true by default and false if any handler returned false
+			@return {boolean} true by default and false if any handler returned false
 			*/
 			dispatchEvent: function(type) {
 				var uid, list, args, tmpEvt, evt = {}, result = true, undef;
@@ -2130,10 +2130,10 @@ define('moxie/runtime/Runtime', [
 	@class Runtime
 
 	@param {Object} options
-	@param {String} type Sanitized name of the runtime
+	@param {string} type Sanitized name of the runtime
 	@param {Object} [caps] Set of capabilities that differentiate specified runtime
 	@param {Object} [modeCaps] Set of capabilities that do require specific operational mode
-	@param {String} [preferredMode='browser'] Preferred operational mode to choose if no required capabilities were requested
+	@param {string} [preferredMode='browser'] Preferred operational mode to choose if no required capabilities were requested
 	*/
 	function Runtime(options, type, caps, modeCaps, preferredMode) {
 		/**
@@ -2330,10 +2330,10 @@ define('moxie/runtime/Runtime', [
 			Checks if the runtime has specific capability
 
 			@method can
-			@param {String} cap Name of capability to check
+			@param {string} cap Name of capability to check
 			@param {Mixed} [value] If passed, capability should somehow correlate to the value
 			@param {Object} [refCaps] Set of capabilities to check the specified cap against (defaults to internal set)
-			@return {Boolean} true if runtime has such capability and false, if - not
+			@return {boolean} true if runtime has such capability and false, if - not
 			*/
 			can: function(cap, value) {
 				var refCaps = arguments[2] || caps;
@@ -2484,8 +2484,8 @@ define('moxie/runtime/Runtime', [
 	@method getRuntime
 	@private
 	@static
-	@param {String} uid Unique identifier of the runtime
-	@return {Runtime|Boolean} Returns runtime, if it exists and false, if - not
+	@param {string} uid Unique identifier of the runtime
+	@return {Runtime|boolean} Returns runtime, if it exists and false, if - not
 	*/
 	Runtime.getRuntime = function(uid) {
 		return runtimes[uid] ? runtimes[uid] : false;
@@ -2497,7 +2497,7 @@ define('moxie/runtime/Runtime', [
 
 	@method addConstructor
 	@static
-	@param {String} type Runtime type (e.g. flash, html5, etc)
+	@param {string} type Runtime type (e.g. flash, html5, etc)
 	@param {Function} construct Constructor for the Runtime type
 	*/
 	Runtime.addConstructor = function(type, constructor) {
@@ -2511,7 +2511,7 @@ define('moxie/runtime/Runtime', [
 
 	method getConstructor
 	@static
-	@param {String} type Runtime type (e.g. flash, html5, etc)
+	@param {string} type Runtime type (e.g. flash, html5, etc)
 	@return {Function} Constructor for the Runtime type
 	*/
 	Runtime.getConstructor = function(type) {
@@ -2524,7 +2524,7 @@ define('moxie/runtime/Runtime', [
 
 	@method getInfo
 	@static
-	@param {String} uid Unique identifier of the runtime
+	@param {string} uid Unique identifier of the runtime
 	@return {Mixed} Info object or null if runtime doesn't exist
 	*/
 	Runtime.getInfo = function(uid) {
@@ -2549,7 +2549,7 @@ define('moxie/runtime/Runtime', [
 
 	@method parseCaps
 	@static
-	@param {String} capStr Comma-separated list of capabilities
+	@param {string} capStr Comma-separated list of capabilities
 	@return {Object}
 	*/
 	Runtime.parseCaps = function(capStr) {
@@ -2571,9 +2571,9 @@ define('moxie/runtime/Runtime', [
 
 	@method can
 	@static
-	@param {String} type Runtime type (e.g. flash, html5, etc)
-	@param {String|Object} caps Set of capabilities to check
-	@return {Boolean} Result of the test
+	@param {string} type Runtime type (e.g. flash, html5, etc)
+	@param {string|Object} caps Set of capabilities to check
+	@return {boolean} Result of the test
 	*/
 	Runtime.can = function(type, caps) {
 		var runtime
@@ -2597,9 +2597,9 @@ define('moxie/runtime/Runtime', [
 
 	@method thatCan
 	@static
-	@param {String|Object} caps Set of capabilities to check
-	@param {String} [runtimeOrder] Comma-separated list of runtimes to check against
-	@return {String} Usable runtime identifier or null
+	@param {string|Object} caps Set of capabilities to check
+	@param {string} [runtimeOrder] Comma-separated list of runtimes to check against
+	@return {string} Usable runtime identifier or null
 	*/
 	Runtime.thatCan = function(caps, runtimeOrder) {
 		var types = (runtimeOrder || Runtime.order).split(/\s*,\s*/);
@@ -2620,7 +2620,7 @@ define('moxie/runtime/Runtime', [
 	@param {Object} modeCaps Set of capabilities that depend on particular runtime mode
 	@param {Object} [requiredCaps] Supplied set of capabilities to find operational mode for
 	@param {String|Boolean} [defaultMode='browser'] Default mode to use 
-	@return {String|Boolean} Compatible operational mode
+	@return {string|boolean} Compatible operational mode
 	*/
 	Runtime.getMode = function(modeCaps, requiredCaps, defaultMode) {
 		var mode = null;
@@ -3160,7 +3160,7 @@ define('moxie/file/FileInput', [
 			Disables file-picker element, so that it doesn't react to mouse clicks.
 
 			@method disable
-			@param {Boolean} [state=true] Disable component if - true, enable if - false
+			@param {boolean} [state=true] Disable component if - true, enable if - false
 			*/
 			disable: function(state) {
 				var runtime = this.getRuntime();
@@ -3232,8 +3232,8 @@ define('moxie/core/utils/Encode', [], function() {
 	@method utf8_encode
 	@for Utils
 	@static
-	@param {String} str String to encode
-	@return {String} UTF-8 encoded string
+	@param {string} str String to encode
+	@return {string} UTF-8 encoded string
 	*/
 	var utf8_encode = function(str) {
 		return unescape(encodeURIComponent(str));
@@ -3244,8 +3244,8 @@ define('moxie/core/utils/Encode', [], function() {
 
 	@method utf8_decode
 	@static
-	@param {String} str String to decode
-	@return {String} Decoded string
+	@param {string} str String to decode
+	@return {string} Decoded string
 	*/
 	var utf8_decode = function(str_data) {
 		return decodeURIComponent(escape(str_data));
@@ -3257,8 +3257,8 @@ define('moxie/core/utils/Encode', [], function() {
 
 	@method atob
 	@static
-	@param {String} data String to decode
-	@return {String} Decoded string
+	@param {string} data String to decode
+	@return {string} Decoded string
 	*/
 	var atob = function(data, utf8) {
 		if (typeof(window.atob) === 'function') {
@@ -3326,8 +3326,8 @@ define('moxie/core/utils/Encode', [], function() {
 
 	@method btoa
 	@static
-	@param {String} data String to encode
-	@return {String} Base64 encoded string
+	@param {string} data String to encode
+	@return {string} Base64 encoded string
 	*/
 	var btoa = function(data, utf8) {
 		if (utf8) {
@@ -3415,7 +3415,7 @@ define('moxie/file/Blob', [
 	/**
 	@class Blob
 	@constructor
-	@param {String} ruid Unique id of the runtime, to which this blob belongs to
+	@param {string} ruid Unique id of the runtime, to which this blob belongs to
 	@param {Object} blob Object "Native" blob object, as it is represented in the runtime
 	*/
 	function Blob(ruid, blob) {
@@ -3487,7 +3487,7 @@ define('moxie/file/Blob', [
 			
 			/**
 			@method slice
-			@param {Number} [start=0]
+			@param {number} [start=0]
 			*/
 			slice: function(start, end, type) {		
 				if (this.isDetached()) {
@@ -3542,7 +3542,7 @@ define('moxie/file/Blob', [
 			
 			@method isDetached
 			@protected
-			@return {Boolean}
+			@return {boolean}
 			*/
 			isDetached: function() {
 				return !this.ruid && Basic.typeOf(blobpool[this.uid]) === 'string';
@@ -3589,9 +3589,9 @@ define('moxie/file/File', [
 ], function(Basic, Mime, Blob) {
 	/**
 	@class File
-	@extends Blob
+	@augments Blob
 	@constructor
-	@param {String} ruid Unique id of the runtime, to which this blob belongs to
+	@param {string} ruid Unique id of the runtime, to which this blob belongs to
 	@param {Object} file Object "Native" file object, as it is represented in the runtime
 	*/
 	function File(ruid, file) {
@@ -4126,7 +4126,7 @@ define('moxie/core/utils/Url', [], function() {
 	@method parseUrl
 	@for Utils
 	@static
-	@param {String} url Url to parse (defaults to empty string if undefined)
+	@param {string} url Url to parse (defaults to empty string if undefined)
 	@return {Object} Hash containing extracted uri components
 	*/
 	var parseUrl = function(url, currentUrl) {
@@ -4193,8 +4193,8 @@ define('moxie/core/utils/Url', [], function() {
 
 	@method resolveUrl
 	@static
-	@param {String|Object} url Either absolute or relative, or a result of parseUrl call
-	@return {String} Resolved, absolute url
+	@param {string|Object} url Either absolute or relative, or a result of parseUrl call
+	@return {string} Resolved, absolute url
 	*/
 	var resolveUrl = function(url) {
 		var ports = { // we ignore default ports
@@ -4211,8 +4211,8 @@ define('moxie/core/utils/Url', [], function() {
 	Check if specified url has the same origin as the current document
 
 	@method hasSameOrigin
-	@param {String|Object} url
-	@return {Boolean}
+	@param {string|Object} url
+	@return {boolean}
 	*/
 	var hasSameOrigin = function(url) {
 		function origin(url) {
@@ -4257,7 +4257,7 @@ define('moxie/runtime/RuntimeTarget', [
 	@class RuntimeTarget
 	@constructor
 	@protected
-	@extends EventTarget
+	@augments EventTarget
 	*/
 	function RuntimeTarget() {
 		this.uid = Basic.guid('uid_');
@@ -4379,8 +4379,8 @@ define("moxie/xhr/FormData", [
 			Append another key-value pair to the FormData object
 
 			@method append
-			@param {String} name Name for the new field
-			@param {String|Blob|Array|Object} value Value for the field
+			@param {string} name Name for the new field
+			@param {string|Blob|Array|Object} value Value for the field
 			*/
 			append: function(name, value) {
 				var self = this, valueType = Basic.typeOf(value);
@@ -4415,7 +4415,7 @@ define("moxie/xhr/FormData", [
 			Checks if FormData contains Blob.
 
 			@method hasBlob
-			@return {Boolean}
+			@return {boolean}
 			*/
 			hasBlob: function() {
 				return !!this.getBlob();
@@ -4435,7 +4435,7 @@ define("moxie/xhr/FormData", [
 			Retrieves blob field name.
 
 			@method getBlobName
-			@return {String} Either Blob field name or null
+			@return {string} Either Blob field name or null
 			*/
 			getBlobName: function() {
 				return _blob && _blob.name || null;
@@ -4754,11 +4754,11 @@ define("moxie/xhr/XMLHttpRequest", [
 
 
 			@method open
-			@param {String} method HTTP method to use on request
-			@param {String} url URL to request
-			@param {Boolean} [async=true] If false request will be done in synchronous manner. Asynchronous by default.
-			@param {String} [user] Username to use in HTTP authentication process on server-side
-			@param {String} [password] Password to use in HTTP authentication process on server-side
+			@param {string} method HTTP method to use on request
+			@param {string} url URL to request
+			@param {boolean} [async=true] If false request will be done in synchronous manner. Asynchronous by default.
+			@param {string} [user] Username to use in HTTP authentication process on server-side
+			@param {string} [password] Password to use in HTTP authentication process on server-side
 			*/
 			open: function(method, url, async, user, password) {
 				var urlp;
@@ -4836,8 +4836,8 @@ define("moxie/xhr/XMLHttpRequest", [
 			is not a valid HTTP header field value.
 			
 			@method setRequestHeader
-			@param {String} header
-			@param {String|Number} value
+			@param {string} header
+			@param {string|number} value
 			*/
 			setRequestHeader: function(header, value) {
 				var uaHeaders = [ // these headers are controlled by the user agent
@@ -4904,7 +4904,7 @@ define("moxie/xhr/XMLHttpRequest", [
 			Returns all headers from the response, with the exception of those whose field name is Set-Cookie or Set-Cookie2.
 
 			@method getAllResponseHeaders
-			@return {String} reponse headers or empty string
+			@return {string} reponse headers or empty string
 			*/
 			getAllResponseHeaders: function() {
 				return _responseHeaders || '';
@@ -4915,8 +4915,8 @@ define("moxie/xhr/XMLHttpRequest", [
 			unless the field name is Set-Cookie or Set-Cookie2.
 
 			@method getResponseHeader
-			@param {String} header
-			@return {String} value(s) for the specified header or null
+			@param {string} header
+			@return {string} value(s) for the specified header or null
 			*/
 			getResponseHeader: function(header) {
 				header = header.toLowerCase();
@@ -5720,7 +5720,7 @@ define("moxie/image/Image", [
 
 			@method clone
 			@param {Image} src Source for the image
-			@param {Boolean} [exact=false] Whether to activate in-depth clone mode
+			@param {boolean} [exact=false] Whether to activate in-depth clone mode
 			*/
 			clone: function() {
 				this.load.apply(this, arguments);
@@ -5750,7 +5750,7 @@ define("moxie/image/Image", [
 			
 
 			@method load
-			@param {Image|Blob|File|String} src Source for the image
+			@param {Image|Blob|File|string} src Source for the image
 			@param {Boolean|Object} [mixed]
 			*/
 			load: function() {
@@ -5762,11 +5762,11 @@ define("moxie/image/Image", [
 
 			@method downsize
 			@param {Object} opts
-				@param {Number} opts.width Resulting width
-				@param {Number} [opts.height=width] Resulting height (optional, if not supplied will default to width)
-				@param {Boolean} [opts.crop=false] Whether to crop the image to exact dimensions
-				@param {Boolean} [opts.preserveHeaders=true] Whether to preserve meta headers (on JPEGs after resize)
-				@param {String} [opts.resample=false] Resampling algorithm to use for resizing
+				@param {number} opts.width Resulting width
+				@param {number} [opts.height=width] Resulting height (optional, if not supplied will default to width)
+				@param {boolean} [opts.crop=false] Whether to crop the image to exact dimensions
+				@param {boolean} [opts.preserveHeaders=true] Whether to preserve meta headers (on JPEGs after resize)
+				@param {string} [opts.resample=false] Resampling algorithm to use for resizing
 			*/
 			downsize: function(opts) {
 				var defaults = {
@@ -5812,9 +5812,9 @@ define("moxie/image/Image", [
 			Alias for downsize(width, height, true). (see downsize)
 			
 			@method crop
-			@param {Number} width Resulting width
-			@param {Number} [height=width] Resulting height (optional, if not supplied will default to width)
-			@param {Boolean} [preserveHeaders=true] Whether to preserve meta headers (on JPEGs after resize)
+			@param {number} width Resulting width
+			@param {number} [height=width] Resulting height (optional, if not supplied will default to width)
+			@param {boolean} [preserveHeaders=true] Whether to preserve meta headers (on JPEGs after resize)
 			*/
 			crop: function(width, height, preserveHeaders) {
 				this.downsize(width, height, true, preserveHeaders);
@@ -5834,8 +5834,8 @@ define("moxie/image/Image", [
 			DOMException.INVALID_STATE_ERR).
 
 			@method getAsBlob
-			@param {String} [type="image/jpeg"] Mime type of resulting blob. Can either be image/jpeg or image/png
-			@param {Number} [quality=90] Applicable only together with mime type image/jpeg
+			@param {string} [type="image/jpeg"] Mime type of resulting blob. Can either be image/jpeg or image/png
+			@param {number} [quality=90] Applicable only together with mime type image/jpeg
 			@return {Blob} Image as Blob
 			*/
 			getAsBlob: function(type, quality) {
@@ -5850,9 +5850,9 @@ define("moxie/image/Image", [
 			DOMException.INVALID_STATE_ERR).
 
 			@method getAsDataURL
-			@param {String} [type="image/jpeg"] Mime type of resulting blob. Can either be image/jpeg or image/png
-			@param {Number} [quality=90] Applicable only together with mime type image/jpeg
-			@return {String} Image as dataURL string
+			@param {string} [type="image/jpeg"] Mime type of resulting blob. Can either be image/jpeg or image/png
+			@param {number} [quality=90] Applicable only together with mime type image/jpeg
+			@return {string} Image as dataURL string
 			*/
 			getAsDataURL: function(type, quality) {
 				if (!this.size) {
@@ -5866,9 +5866,9 @@ define("moxie/image/Image", [
 			DOMException.INVALID_STATE_ERR).
 
 			@method getAsBinaryString
-			@param {String} [type="image/jpeg"] Mime type of resulting blob. Can either be image/jpeg or image/png
-			@param {Number} [quality=90] Applicable only together with mime type image/jpeg
-			@return {String} Image as binary string
+			@param {string} [type="image/jpeg"] Mime type of resulting blob. Can either be image/jpeg or image/png
+			@param {number} [quality=90] Applicable only together with mime type image/jpeg
+			@return {string} Image as binary string
 			*/
 			getAsBinaryString: function(type, quality) {
 				var dataUrl = this.getAsDataURL(type, quality);
@@ -5883,11 +5883,11 @@ define("moxie/image/Image", [
 			@method embed
 			@param {DOMElement} el DOM element to insert the image object into
 			@param {Object} [opts]
-				@param {Number} [opts.width] The width of an embed (defaults to the image width)
-				@param {Number} [opts.height] The height of an embed (defaults to the image height)
-				@param {String} [type="image/jpeg"] Mime type
-				@param {Number} [quality=90] Quality of an embed, if mime type is image/jpeg
-				@param {Boolean} [crop=false] Whether to crop an embed to the specified dimensions
+				@param {number} [opts.width] The width of an embed (defaults to the image width)
+				@param {number} [opts.height] The height of an embed (defaults to the image height)
+				@param {string} [type="image/jpeg"] Mime type
+				@param {number} [quality=90] Quality of an embed, if mime type is image/jpeg
+				@param {boolean} [crop=false] Whether to crop an embed to the specified dimensions
 			*/
 			embed: function(el, opts) {
 				var self = this
@@ -6333,9 +6333,9 @@ define('moxie/core/utils/Events', [
 	@for Utils
 	@static
 	@param {Object} obj DOM element like object to add handler to.
-	@param {String} name Name to add event listener to.
+	@param {string} name Name to add event listener to.
 	@param {Function} callback Function to call when event occurs.
-	@param {String} [key] that might be used to add specifity to the event record.
+	@param {string} [key] that might be used to add specifity to the event record.
 	*/
 	var addEvent = function(obj, name, callback, key) {
 		var func, events;
@@ -6394,7 +6394,7 @@ define('moxie/core/utils/Events', [
 	@method removeEvent
 	@static
 	@param {Object} obj DOM element to remove event listener(s) from.
-	@param {String} name Name of event listener to remove.
+	@param {string} name Name of event listener to remove.
 	@param {Function|String} [callback] might be a callback or unique key to match.
 	*/
 	var removeEvent = function(obj, name, callback) {
@@ -6453,7 +6453,7 @@ define('moxie/core/utils/Events', [
 	@method removeAllEvents
 	@static
 	@param {Object} obj DOM element to remove event listeners from.
-	@param {String} [key] unique key to match, when removing events.
+	@param {string} [key] unique key to match, when removing events.
 	*/
 	var removeAllEvents = function(obj, key) {		
 		if (!obj || !obj[uid]) {
@@ -8507,7 +8507,7 @@ define("moxie/runtime/html5/image/ImageInfo", [
 
 	@class ImageInfo
 	@constructor
-	@param {String} data Image source as binary string
+	@param {string} data Image source as binary string
 	*/
 	return function(data) {
 		var _cs = [JPEG, PNG], _img;
@@ -8565,7 +8565,7 @@ define("moxie/runtime/html5/image/ImageInfo", [
 			Sets Exif tag. Currently applicable only for width and height tags. Obviously works only with JPEGs.
 
 			@method setExif
-			@param {String} tag Tag to set
+			@param {string} tag Tag to set
 			@param {Mixed} value Value to assign to the tag
 			*/
 			setExif: function() {},
@@ -8574,8 +8574,8 @@ define("moxie/runtime/html5/image/ImageInfo", [
 			Restores headers to the source.
 
 			@method writeHeaders
-			@param {String} data Image source as binary string
-			@return {String} Updated binary string
+			@param {string} data Image source as binary string
+			@return {string} Updated binary string
 			*/
 			writeHeaders: function(data) {
 				return data;
@@ -8585,8 +8585,8 @@ define("moxie/runtime/html5/image/ImageInfo", [
 			Strip all headers from the source.
 
 			@method stripHeaders
-			@param {String} data Image source as binary string
-			@return {String} Updated binary string
+			@param {string} data Image source as binary string
+			@return {string} Updated binary string
 			*/
 			stripHeaders: function(data) {
 				return data;

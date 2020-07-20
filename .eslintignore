@@ -9,3 +9,9 @@
 
 # Excluded files and folders based on `jsdoc.conf.json` exclusions
 /src/js/_enqueue/vendor
+
+# Webpack built files
+/src/wp-includes/js/media-*
+
+# Themes
+src/wp-content/themes/

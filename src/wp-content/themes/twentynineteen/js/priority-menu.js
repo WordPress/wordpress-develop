@@ -75,7 +75,7 @@
 	/**
 	 * Returns the currently available space in the menu container.
 	 *
-	 * @returns {number} Available space
+	 * @return {number} Available space
 	 */
 	function getAvailableSpace( button, container ) {
 		return container.offsetWidth - button.offsetWidth - 22;
@@ -84,7 +84,7 @@
 	/**
 	 * Returns whether the current menu is overflowing or not.
 	 *
-	 * @returns {boolean} Is overflowing
+	 * @return {boolean} Is overflowing
 	 */
 	function isOverflowingNavivation( list, button, container ) {
 		return list.offsetWidth > getAvailableSpace( button, container );
