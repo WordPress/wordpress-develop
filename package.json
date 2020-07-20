@@ -155,6 +155,8 @@
 		"test": "grunt test",
 		"watch": "grunt watch",
 		"grunt": "grunt",
+		"lint:jsdoc": "wp-scripts lint-js",
+		"lint:jsdoc:fix": "wp-scripts lint-js --fix",
 		"env:start": "node ./tools/local-env/scripts/start.js",
 		"env:stop": "node ./tools/local-env/scripts/docker.js down",
 		"env:restart": "npm run env:stop && npm run env:start",
