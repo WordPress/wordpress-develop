@@ -100,7 +100,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 	public function _get_sitemap_entries() {
 		$entries = array();
 
-		$providers = wp_get_sitemaps_providers();
+		$providers = wp_get_sitemap_providers();
 
 		foreach ( $providers as $provider ) {
 			// Using `array_push` is more efficient than `array_merge` in the loop.
@@ -218,7 +218,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 	 * Tests getting a URL list for post type post.
 	 */
 	public function test_get_url_list_post() {
-		$providers = wp_get_sitemaps_providers();
+		$providers = wp_get_sitemap_providers();
 
 		$post_list = $providers['posts']->get_url_list( 1, 'post' );
 
@@ -234,7 +234,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 		// Short circuit the show on front option.
 		add_filter( 'pre_option_show_on_front', '__return_true' );
 
-		$providers = wp_get_sitemaps_providers();
+		$providers = wp_get_sitemap_providers();
 
 		$post_list = $providers['posts']->get_url_list( 1, 'page' );
 
@@ -247,7 +247,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 	 * Tests getting a URL list for post type page with included home page.
 	 */
 	public function test_get_url_list_page_with_home() {
-		$providers = wp_get_sitemaps_providers();
+		$providers = wp_get_sitemap_providers();
 
 		$post_list = $providers['posts']->get_url_list( 1, 'page' );
 
@@ -270,7 +270,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 	public function test_get_url_list_private_post() {
 		wp_set_current_user( self::$editor_id );
 
-		$providers = wp_get_sitemaps_providers();
+		$providers = wp_get_sitemap_providers();
 
 		$post_list_before = $providers['posts']->get_url_list( 1, 'post' );
 
@@ -297,7 +297,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 
 		$ids = self::factory()->post->create_many( 10, array( 'post_type' => $post_type ) );
 
-		$providers = wp_get_sitemaps_providers();
+		$providers = wp_get_sitemap_providers();
 
 		$post_list = $providers['posts']->get_url_list( 1, $post_type );
 
@@ -320,7 +320,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 
 		self::factory()->post->create_many( 10, array( 'post_type' => $post_type ) );
 
-		$providers = wp_get_sitemaps_providers();
+		$providers = wp_get_sitemap_providers();
 
 		$post_list = $providers['posts']->get_url_list( 1, $post_type );
 
@@ -348,7 +348,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 
 		self::factory()->post->create_many( 10, array( 'post_type' => $post_type ) );
 
-		$providers = wp_get_sitemaps_providers();
+		$providers = wp_get_sitemap_providers();
 
 		$post_list = $providers['posts']->get_url_list( 1, $post_type );
 
@@ -391,7 +391,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 	public function test_register_sitemap_provider() {
 		wp_register_sitemap( 'test_sitemap', self::$test_provider );
 
-		$sitemaps = wp_get_sitemaps_providers();
+		$sitemaps = wp_get_sitemap_providers();
 
 		$this->assertEquals( $sitemaps['test_sitemap'], self::$test_provider, 'Can not confirm sitemap registration is working.' );
 	}
