@@ -1085,7 +1085,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 	public function _dp_rest_filter_response_by_context() {
 		return array(
-			'default'                => array(
+			'default'                             => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1106,7 +1106,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'first' => 'a' ),
 			),
-			'keeps missing context'  => array(
+			'keeps missing context'               => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1129,7 +1129,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'second' => 'b',
 				),
 			),
-			'removes empty context'  => array(
+			'removes empty context'               => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1150,7 +1150,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'first' => 'a' ),
 			),
-			'nested properties'      => array(
+			'nested properties'                   => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1179,7 +1179,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'parent' => array( 'child' => 'hi' ) ),
 			),
-			'grand child properties' => array(
+			'grand child properties'              => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1215,7 +1215,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'parent' => array( 'child' => array( 'grand' => 'hi' ) ) ),
 			),
-			'array'                  => array(
+			'array'                               => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1250,7 +1250,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'arr' => array( array( 'visible' => 'hi' ) ) ),
 			),
-			'additional properties'  => array(
+			'additional properties'               => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1284,7 +1284,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'additional' => array( 'a' => '1' ) ),
 			),
-			'multiple types object'  => array(
+			'multiple types object'               => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1313,7 +1313,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'multi' => array( 'a' => '1' ) ),
 			),
-			'multiple types array'   => array(
+			'multiple types array'                => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1348,7 +1348,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'multi' => array( array( 'visible' => '1' ) ) ),
 			),
-			'grand child properties does not traverses missing context' => array(
+			'does not traverse missing context'   => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1391,7 +1391,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 					),
 				),
 			),
-			'object with no matching properties' => array(
+			'object with no matching properties'  => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1412,15 +1412,15 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array(),
 			),
-			'array whose type does not match' => array(
+			'array whose type does not match'     => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
 					'properties' => array(
 						'arr' => array(
-							'type'  => 'array',
+							'type'    => 'array',
 							'context' => array( 'view' ),
-							'items' => array(
+							'items'   => array(
 								'type'    => 'string',
 								'context' => array( 'edit' ),
 							),
@@ -1470,7 +1470,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'b' => 'bar',
 				),
 			),
-			'array and object type passed array' => array(
+			'array and object type passed array'  => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => array( 'array', 'object' ),
