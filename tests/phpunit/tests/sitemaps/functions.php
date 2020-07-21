@@ -43,8 +43,8 @@ class Test_Sitemaps_Functions extends WP_UnitTestCase {
 	/**
 	 * Test wp_get_sitemaps default functionality
 	 */
-	public function test_wp_get_sitemaps() {
-		$sitemaps = wp_get_sitemaps();
+	public function test_wp_get_sitemaps_providers() {
+		$sitemaps = wp_get_sitemaps_providers();
 
 		$expected = array(
 			'posts'      => 'WP_Sitemaps_Posts',
