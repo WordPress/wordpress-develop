@@ -41,7 +41,7 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 			__FUNCTION__, 
 			sprintf(
 				/* translators: %1$s: string value of the namespace, %2$s: string value of the route */
-				__( 'Routes must be namespaced with plugin or theme name and version. Instead route %2$s seems to have empty namespace %1$s.' ),
+				__( 'Routes must be namespaced with plugin or theme name and version. Instead there seems to be an empty namespace \'%1$s\' for route \'%2$s\'.' ),
 				'<code>'.$namespace.'</code>',
 				'<code>'.$route.'</code>'
 			), 
@@ -53,7 +53,7 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 			__FUNCTION__, 
 			sprintf(
 				/* translators: %1$s: string value of the namespace, %2$s: string value of the route */
-				__( 'Route must be specified. Instead there seems to be an empty route %2$s for the namespace %1$s.' ),
+				__( 'Route must be specified. Instead within the namespace \'%1$s\', there seems to be an empty route \'%2$s\'.' ),
 				'<code>'.$namespace.'</code>',
 				'<code>'.$route.'</code>'
 			), 
@@ -69,7 +69,7 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 			__FUNCTION__, 
 			sprintf(
 				/* translators: %1$s: string value of the namespace, %2$s: string value of the route */
-				__( 'Namespace must not start or end with a slash. Instead route %2$s has namespace %1$s.' ),
+				__( 'Namespace must not start or end with a slash. Instead namespace \'%1$s\' for route \'%2$s\' seems to contain a slash.' ),
 				'<code>'.$namespace.'</code>',
 				'<code>'.$route.'</code>'
 			),
@@ -82,7 +82,7 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 			__FUNCTION__,
 			sprintf(
 				/* translators: %1$s: rest_api_init, %2$s: string value of the namespace, %3$s: string value of the route */
-				__( 'REST API routes must be registered on the %1$s action. Instead route %3$s with namespace %2$s was not registered on this action.' ),
+				__( 'REST API routes must be registered on the %1$s action. Instead route \'%3$s\' with namespace \'%2$s\' was not registered on this action.' ),
 				'<code>rest_api_init</code>',
 				'<code>'.$namespace.'</code>',
 				'<code>'.$route.'</code>'
