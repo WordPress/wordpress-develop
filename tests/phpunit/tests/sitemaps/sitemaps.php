@@ -444,4 +444,49 @@ class Test_Sitemaps extends WP_UnitTestCase {
 
 		$this->assertContains( $sitemap_string, $robots_text, 'Sitemap URL not prefixed with "\n".' );
 	}
+
+	/**
+	 * @ticket 50643
+	 */
+	public function test_sitemaps_enabled() {
+		$before = wp_sitemaps_get_server()->sitemaps_enabled();
+		add_filter( 'wp_sitemaps_enabled', '__return_false' );
+		$after = wp_sitemaps_get_server()->sitemaps_enabled();
+		remove_filter( 'wp_sitemaps_enabled', '__return_false' );
+
+		$this->assertTrue( $before );
+		$this->assertFalse( $after );
+	}
+
+	/**
+	 * @ticket 50643
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_disable_sitemap_should_return_404() {
+		add_filter( 'wp_sitemaps_enabled', '__return_false' );
+
+		$this->go_to( home_url( '/?sitemap=index' ) );
+
+		wp_sitemaps_get_server()->render_sitemaps();
+
+		remove_filter( 'wp_sitemaps_enabled', '__return_false' );
+
+		$this->assertTrue( is_404() );
+	}
+
+	/**
+	 * @ticket 50643
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_empty_url_list_should_return_404() {
+		wp_register_sitemap( 'foo', new WP_Sitemaps_Empty_Test_Provider( 'foo' ) );
+
+		$this->go_to( home_url( '/?sitemap=foo' ) );
+
+		wp_sitemaps_get_server()->render_sitemaps();
+
+		$this->assertTrue( is_404() );
+	}
 }
