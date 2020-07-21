@@ -2083,14 +2083,16 @@ function rest_filter_response_by_context( $data, $schema, $context ) {
 		}
 
 		if ( ! in_array( $context, $check['context'], true ) ) {
-			if ( is_object( $data ) ) {
-				unset( $data->$key );
-			} elseif ( $is_object_type ) {
-				unset( $data[ $key ] );
-			} else {
+			if ( $is_array_type ) {
 				// All array items share schema, so there's no need to check each one.
 				$data = array();
 				break;
+			}
+
+			if ( is_object( $data ) ) {
+				unset( $data->$key );
+			} else {
+				unset( $data[ $key ] );
 			}
 		} elseif ( is_array( $value ) || is_object( $value ) ) {
 			$new_value = rest_filter_response_by_context( $value, $check, $context );
