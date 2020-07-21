@@ -2197,7 +2197,7 @@ final class WP_Customize_Manager {
 						printf(
 							"v[%s] = %s;\n",
 							wp_json_encode( $id ),
-							wp_json_encode( $setting->js_value() )
+							wp_json_encode( $this->widgets->sanitize_widget_js_instance( $setting->js_value() ) )
 						);
 					}
 				}
