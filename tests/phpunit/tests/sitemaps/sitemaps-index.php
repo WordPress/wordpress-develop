@@ -20,6 +20,29 @@ class Test_WP_Sitemaps_Index extends WP_UnitTestCase {
 		$this->assertCount( 24, $sitemap_index->get_sitemap_list() );
 	}
 
+	/**
+	 * Test that a sitemap index won't contain more than 50000 sitemaps.
+	 *
+	 * @ticket 50666
+	 */
+	public function test_get_sitemap_list_limit() {
+		$registry = new WP_Sitemaps_Registry();
+
+		// add 3 providers, which combined produce more than the maximum 50000 sitemaps in the index.
+		$registry->add_sitemap( 'provider_1', new WP_Sitemaps_Large_Test_Provider( 25000 ) );
+		$registry->add_sitemap( 'provider_2', new WP_Sitemaps_Large_Test_Provider( 25000 ) );
+		$registry->add_sitemap( 'provider_3', new WP_Sitemaps_Large_Test_Provider( 25000 ) );
+
+		$count = 0;
+		foreach ( $registry->get_sitemaps() as $provider ) {
+			$count += count( $provider->get_url_list( 1 ) );
+		}
+		$this->assertGreaterThan( 50000, $count );
+
+		$sitemap_index = new WP_Sitemaps_Index( $registry );
+		$this->assertCount( 50000, $sitemap_index->get_sitemap_list() );
+	}
+
 	public function test_get_sitemap_list_no_entries() {
 		$registry = new WP_Sitemaps_Registry();
 
