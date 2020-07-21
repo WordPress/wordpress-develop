@@ -389,7 +389,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 	 * Test functionality that adds a new sitemap provider to the registry.
 	 */
 	public function test_register_sitemap_provider() {
-		wp_register_sitemap( 'test_sitemap', self::$test_provider );
+		wp_register_sitemap_provider( 'test_sitemap', self::$test_provider );
 
 		$sitemaps = wp_get_sitemap_providers();
 
@@ -481,7 +481,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 	 * @preserveGlobalState disabled
 	 */
 	public function test_empty_url_list_should_return_404() {
-		wp_register_sitemap( 'foo', new WP_Sitemaps_Empty_Test_Provider( 'foo' ) );
+		wp_register_sitemap_provider( 'foo', new WP_Sitemaps_Empty_Test_Provider( 'foo' ) );
 
 		$this->go_to( home_url( '/?sitemap=foo' ) );
 
