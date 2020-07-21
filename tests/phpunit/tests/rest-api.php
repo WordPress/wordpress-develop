@@ -84,8 +84,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'test-ns',
 			'/test',
 			array(
-				'methods'  => array( 'GET' ),
-				'callback' => '__return_null',
+				'methods'             => array( 'GET' ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
 			)
 		);
 
@@ -120,12 +121,14 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'/test',
 			array(
 				array(
-					'methods'  => array( 'GET' ),
-					'callback' => '__return_null',
+					'methods'             => array( 'GET' ),
+					'callback'            => '__return_null',
+					'permission_callback' => '__return_true',
 				),
 				array(
-					'methods'  => array( 'POST' ),
-					'callback' => '__return_null',
+					'methods'             => array( 'POST' ),
+					'callback'            => '__return_null',
+					'permission_callback' => '__return_true',
 				),
 			)
 		);
@@ -160,16 +163,18 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'test-ns',
 			'/test',
 			array(
-				'methods'  => array( 'GET' ),
-				'callback' => '__return_null',
+				'methods'             => array( 'GET' ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
 			)
 		);
 		register_rest_route(
 			'test-ns',
 			'/test',
 			array(
-				'methods'  => array( 'POST' ),
-				'callback' => '__return_null',
+				'methods'             => array( 'POST' ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
 			)
 		);
 
@@ -187,18 +192,20 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'test-ns',
 			'/test',
 			array(
-				'methods'      => array( 'GET' ),
-				'callback'     => '__return_null',
-				'should_exist' => false,
+				'methods'             => array( 'GET' ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
+				'should_exist'        => false,
 			)
 		);
 		register_rest_route(
 			'test-ns',
 			'/test',
 			array(
-				'methods'      => array( 'POST' ),
-				'callback'     => '__return_null',
-				'should_exist' => true,
+				'methods'             => array( 'POST' ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
+				'should_exist'        => true,
 			),
 			true
 		);
@@ -223,8 +230,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'',
 			'/test-empty-namespace',
 			array(
-				'methods'  => array( 'POST' ),
-				'callback' => '__return_null',
+				'methods'             => array( 'POST' ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
 			),
 			true
 		);
@@ -242,8 +250,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'/test-empty-route',
 			'',
 			array(
-				'methods'  => array( 'POST' ),
-				'callback' => '__return_null',
+				'methods'             => array( 'POST' ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
 			),
 			true
 		);
@@ -264,8 +273,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'test-ns',
 			'/test',
 			array(
-				'methods'  => array( 'GET' ),
-				'callback' => '__return_null',
+				'methods'             => array( 'GET' ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
 			)
 		);
 
@@ -282,8 +292,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'test-ns',
 			'/test',
 			array(
-				'methods'  => 'GET',
-				'callback' => '__return_null',
+				'methods'             => 'GET',
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
 			)
 		);
 
@@ -300,8 +311,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'test-ns',
 			'/test',
 			array(
-				'methods'  => array( 'GET', 'POST' ),
-				'callback' => '__return_null',
+				'methods'             => array( 'GET', 'POST' ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
 			)
 		);
 
@@ -324,8 +336,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'test-ns',
 			'/test',
 			array(
-				'methods'  => 'GET,POST',
-				'callback' => '__return_null',
+				'methods'             => 'GET,POST',
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
 			)
 		);
 
@@ -345,8 +358,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'test-ns',
 			'/test',
 			array(
-				'methods'  => 'GET,POST',
-				'callback' => '__return_null',
+				'methods'             => 'GET,POST',
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
 			)
 		);
 
@@ -367,8 +381,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'test-ns',
 			'/test',
 			array(
-				'methods'  => 'GET,POST',
-				'callback' => '__return_true',
+				'methods'             => 'GET,POST',
+				'callback'            => '__return_true',
+				'permission_callback' => '__return_true',
 			)
 		);
 
@@ -910,8 +925,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'test-ns',
 			'/test',
 			array(
-				'methods'  => array( 'GET' ),
-				'callback' => '__return_null',
+				'methods'             => array( 'GET' ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
 			)
 		);
 
@@ -996,7 +1012,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'/my-namespace/v1/',
 			'/my-route',
 			array(
-				'callback' => '__return_true',
+				'callback'            => '__return_true',
+				'permission_callback' => '__return_true',
 			)
 		);
 
@@ -1004,6 +1021,66 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertCount( 2, $routes );
 
 		$this->assertTrue( rest_do_request( '/my-namespace/v1/my-route' )->get_data() );
+	}
+
+	/**
+	 * @ticket 50075
+	 */
+	public function test_register_route_with_missing_permission_callback_top_level_route() {
+		$this->setExpectedIncorrectUsage( 'register_rest_route' );
+
+		$registered = register_rest_route(
+			'my-ns/v1',
+			'/my-route',
+			array(
+				'callback' => '__return_true',
+			)
+		);
+
+		$this->assertTrue( $registered );
+	}
+
+	/**
+	 * @ticket 50075
+	 */
+	public function test_register_route_with_missing_permission_callback_single_wrapped_route() {
+		$this->setExpectedIncorrectUsage( 'register_rest_route' );
+
+		$registered = register_rest_route(
+			'my-ns/v1',
+			'/my-route',
+			array(
+				array(
+					'callback' => '__return_true',
+				),
+			)
+		);
+
+		$this->assertTrue( $registered );
+	}
+
+
+	/**
+	 * @ticket 50075
+	 */
+	public function test_register_route_with_missing_permission_callback_multiple_wrapped_route() {
+		$this->setExpectedIncorrectUsage( 'register_rest_route' );
+
+		$registered = register_rest_route(
+			'my-ns/v1',
+			'/my-route',
+			array(
+				array(
+					'callback' => '__return_true',
+				),
+				array(
+					'callback'            => '__return_true',
+					'permission_callback' => '__return_true',
+				),
+			)
+		);
+
+		$this->assertTrue( $registered );
 	}
 
 	public function _dp_rest_filter_response_by_context() {
