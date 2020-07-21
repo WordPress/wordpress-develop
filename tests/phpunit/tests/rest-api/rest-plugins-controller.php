@@ -1013,9 +1013,15 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		copy( DIR_TESTDATA . '/plugins/link-manager.zip', DIR_TESTDATA . '/link-manager.zip' );
 		add_filter(
 			'upgrader_pre_download',
-			function () {
-				return DIR_TESTDATA . '/link-manager.zip';
-			}
+			static function ( $reply, $package, $upgrader ) {
+				if ( $upgrader instanceof Plugin_Upgrader ) {
+					$reply = DIR_TESTDATA . '/link-manager.zip';
+				}
+
+				return $reply;
+			},
+			10,
+			3
 		);
 	}
 
