@@ -1391,6 +1391,126 @@ class Tests_REST_API extends WP_UnitTestCase {
 					),
 				),
 			),
+			'object with no matching properties' => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'a' => array(
+							'type'    => 'string',
+							'context' => array( 'edit' ),
+						),
+						'b' => array(
+							'type'    => 'string',
+							'context' => array( 'edit' ),
+						),
+					),
+				),
+				array(
+					'a' => 'hi',
+					'b' => 'hello',
+				),
+				array(),
+			),
+			'array whose type does not match' => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'arr' => array(
+							'type'  => 'array',
+							'context' => array( 'view' ),
+							'items' => array(
+								'type'    => 'string',
+								'context' => array( 'edit' ),
+							),
+						),
+					),
+				),
+				array(
+					'arr' => array( 'foo', 'bar', 'baz' ),
+				),
+				array( 'arr' => array() ),
+			),
+			'array and object type passed object' => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => array( 'array', 'object' ),
+					'properties' => array(
+						'a' => array(
+							'type'    => 'string',
+							'context' => array( 'view' ),
+						),
+						'b' => array(
+							'type'    => 'string',
+							'context' => array( 'view' ),
+						),
+					),
+					'items'      => array(
+						'type'       => 'object',
+						'context'    => array( 'edit' ),
+						'properties' => array(
+							'a' => array(
+								'type'    => 'string',
+								'context' => array( 'view' ),
+							),
+							'b' => array(
+								'type'    => 'string',
+								'context' => array( 'view' ),
+							),
+						),
+					),
+				),
+				array(
+					'a' => 'foo',
+					'b' => 'bar',
+				),
+				array(
+					'a' => 'foo',
+					'b' => 'bar',
+				),
+			),
+			'array and object type passed array' => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => array( 'array', 'object' ),
+					'properties' => array(
+						'a' => array(
+							'type'    => 'string',
+							'context' => array( 'view' ),
+						),
+						'b' => array(
+							'type'    => 'string',
+							'context' => array( 'view' ),
+						),
+					),
+					'items'      => array(
+						'type'       => 'object',
+						'context'    => array( 'edit' ),
+						'properties' => array(
+							'a' => array(
+								'type'    => 'string',
+								'context' => array( 'view' ),
+							),
+							'b' => array(
+								'type'    => 'string',
+								'context' => array( 'view' ),
+							),
+						),
+					),
+				),
+				array(
+					array(
+						'a' => 'foo',
+						'b' => 'bar',
+					),
+					array(
+						'a' => 'foo',
+						'b' => 'bar',
+					),
+				),
+				array(),
+			),
 		);
 	}
 
