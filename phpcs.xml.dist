@@ -26,8 +26,11 @@
 	<file>.</file>
 
 	<rule ref="WordPress-Core"/>
-	<rule ref="WordPress-Docs"/>
 	<rule ref="WordPress.CodeAnalysis.EmptyStatement"/>
+
+	<rule ref="WordPress-Docs">
+		<exclude-pattern>/tests*</exclude-pattern>
+	</rule>
 
 	<!-- These rules are being set as warnings instead of errors, so we can error check the entire codebase. -->
 	<rule ref="WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase">
