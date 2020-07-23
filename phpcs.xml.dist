@@ -26,6 +26,7 @@
 	<file>.</file>
 
 	<rule ref="WordPress-Core"/>
+	<rule ref="WordPress-Docs"/>
 	<rule ref="WordPress.CodeAnalysis.EmptyStatement"/>
 
 	<!-- These rules are being set as warnings instead of errors, so we can error check the entire codebase. -->
