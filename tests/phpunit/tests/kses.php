@@ -767,6 +767,11 @@ EOF;
 			),
 			array(
 				'img',
+				'loading="lazy"',
+				'loading="lazy"',
+			),
+			array(
+				'img',
 				'onerror=alert(1)',
 				'',
 			),
@@ -1351,5 +1356,27 @@ EOF;
 				'expected' => 'color: rgb( 100, 100, 100, .4 )',
 			),
 		);
+	}
+
+	/**
+	 * Test filtering a standard img tag.
+	 *
+	 * @ticket 50731
+	 */
+	function test_wp_kses_img_tag_standard_attributes() {
+		$html = array(
+			'<img',
+			'loading="lazy"',
+			'src="https://example.com/img.jpg"',
+			'width="1000"',
+			'height="1000"',
+			'alt=""',
+			'class="wp-image-1000"',
+			'/>',
+		);
+
+		$html = implode( ' ', $html );
+
+		$this->assertSame( $html, wp_kses_post( $html ) );
 	}
 }
