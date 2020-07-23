@@ -29,6 +29,7 @@
 	<rule ref="WordPress.CodeAnalysis.EmptyStatement"/>
 
 	<rule ref="WordPress-Docs">
+		<exclude-pattern>/src/wp-content/themes*</exclude-pattern>
 		<exclude-pattern>/tests*</exclude-pattern>
 	</rule>
 
