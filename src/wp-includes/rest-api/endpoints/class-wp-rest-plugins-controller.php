@@ -285,7 +285,8 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 			array(
 				'slug'   => $slug,
 				'fields' => array(
-					'sections' => false,
+					'sections'      => false,
+					'language_pack' => true,
 				),
 			)
 		);
@@ -353,6 +354,14 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 			if ( is_wp_error( $changed_status ) ) {
 				return $changed_status;
 			}
+		}
+
+		// Install translations.
+		if ( ! empty( $api->language_pack ) ) {
+			$lp_upgrader = new Language_Pack_Upgrader( $skin );
+
+			// Assume a singular language pack was returned.
+			$lp_upgrader->upgrade( (object) $api->language_pack[0] );
 		}
 
 		$path          = WP_PLUGIN_DIR . '/' . $file;
