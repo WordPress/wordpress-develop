@@ -15,7 +15,7 @@ class Tests_WP_Blocklist_Check extends WP_UnitTestCase {
 
 		update_option( 'disallowed_keys', "well\nfoo" );
 
-		$result = wp_disallowed_list_check( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
+		$result = wp_check_comment_disallowed_list( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
 
 		$this->assertTrue( $result );
 	}
@@ -33,7 +33,7 @@ class Tests_WP_Blocklist_Check extends WP_UnitTestCase {
 
 		update_option( 'disallowed_keys', "halfway\nfoo" );
 
-		$result = wp_disallowed_list_check( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
+		$result = wp_check_comment_disallowed_list( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
 
 		$this->assertTrue( $result );
 	}
@@ -48,7 +48,7 @@ class Tests_WP_Blocklist_Check extends WP_UnitTestCase {
 
 		update_option( 'disallowed_keys', "sideshow\nfoo" );
 
-		$result = wp_disallowed_list_check( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
+		$result = wp_check_comment_disallowed_list( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
 
 		$this->assertTrue( $result );
 	}
@@ -63,7 +63,7 @@ class Tests_WP_Blocklist_Check extends WP_UnitTestCase {
 
 		update_option( 'disallowed_keys', "example\nfoo" );
 
-		$result = wp_disallowed_list_check( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
+		$result = wp_check_comment_disallowed_list( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
 
 		$this->assertTrue( $result );
 	}
@@ -81,7 +81,7 @@ class Tests_WP_Blocklist_Check extends WP_UnitTestCase {
 
 		update_option( 'disallowed_keys', '/spam/' );
 
-		$result = wp_disallowed_list_check( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
+		$result = wp_check_comment_disallowed_list( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
 
 		$this->assertTrue( $result );
 	}
@@ -96,7 +96,7 @@ class Tests_WP_Blocklist_Check extends WP_UnitTestCase {
 
 		update_option( 'disallowed_keys', "sideshow\nfoobar" );
 
-		$result = wp_disallowed_list_check( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
+		$result = wp_check_comment_disallowed_list( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
 
 		$this->assertFalse( $result );
 	}
