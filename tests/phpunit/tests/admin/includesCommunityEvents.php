@@ -152,7 +152,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test: With a valid response, get_events() should return an associated array containing a location array and
+	 * Test: With a valid response, get_events() should return an associative array containing a location array and
 	 * an events array with individual events that have formatted time and date.
 	 *
 	 * @since 4.8.0

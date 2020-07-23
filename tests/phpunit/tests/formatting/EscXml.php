@@ -21,8 +21,8 @@ class Tests_Formatting_EscXml extends WP_UnitTestCase {
 	 * Data provider for `test_esc_xml_basics()`.
 	 *
 	 * @return array {
-	 *    @type string $source   The source string to be escaped.
-	 *    @type string $expected The expected escaped value of `$source`.
+	 *     @type string $source   The source string to be escaped.
+	 *     @type string $expected The expected escaped value of `$source`.
 	 * }
 	 */
 	public function _test_esc_xml_basics_dataprovider() {
@@ -91,8 +91,8 @@ class Tests_Formatting_EscXml extends WP_UnitTestCase {
 	 * Data provider for `test_ignores_cdata_sections()`.
 	 *
 	 * @return array {
-	 *    @type string $source   The source string to be escaped.
-	 *    @type string $expected The expected escaped value of `$source`.
+	 *     @type string $source   The source string to be escaped.
+	 *     @type string $expected The expected escaped value of `$source`.
 	 * }
 	 */
 	public function _test_ignores_cdata_sections_dataprovider() {
