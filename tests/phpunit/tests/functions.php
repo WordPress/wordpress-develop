@@ -176,10 +176,10 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertFileNotExists( $testdir . 'test-image-1.png' );
 
 		// Check special chars.
-		$this->assertEquals( 'testtést-imagé.png', wp_unique_filename( $testdir, 'testtést-imagé.png' ), 'Filename with special chars failed' );
+		$this->assertEquals( 'testtest-image.png', wp_unique_filename( $testdir, 'testtést-imagé.png' ), 'Filename with special chars failed' );
 
 		// Check special chars with potential conflicting name.
-		$this->assertEquals( 'tést-imagé.png', wp_unique_filename( $testdir, 'tést-imagé.png' ), 'Filename with special chars failed' );
+		$this->assertEquals( 'test-image-1.png', wp_unique_filename( $testdir, 'tést-imagé.png' ), 'Filename with special chars failed' );
 
 		// Check with single quotes in name (somehow).
 		$this->assertEquals( 'abcdefgh.png', wp_unique_filename( $testdir, "abcdefg'h.png" ), 'File with quote failed' );
