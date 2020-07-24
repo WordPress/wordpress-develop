@@ -263,7 +263,7 @@ function create_initial_post_types() {
 				'singular_name'            => _x( 'Reusable Block', 'post type singular name' ),
 				'menu_name'                => _x( 'Reusable Blocks', 'admin menu' ),
 				'name_admin_bar'           => _x( 'Reusable Block', 'add new on admin bar' ),
-				'add_new'                  => _x( 'Add New', 'Block' ),
+				'add_new'                  => _x( 'Add New', 'Reusable Block' ),
 				'add_new_item'             => __( 'Add New Reusable Block' ),
 				'new_item'                 => __( 'New Reusable Block' ),
 				'edit_item'                => __( 'Edit Reusable Block' ),
