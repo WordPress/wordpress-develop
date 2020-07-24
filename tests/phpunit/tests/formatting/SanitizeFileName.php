@@ -21,11 +21,20 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 22363
+	 */
+	function test_removes_accents() {
+		$in  = 'àáâãäåæçèéêëìíîïñòóôõöøùúûüýÿ';
+		$out = 'aaaaaaaeceeeeiiiinoooooouuuuyy';
+		$this->assertEquals( $out, sanitize_file_name( $in ) );
+	}
+
+	/**
 	 * Test that spaces are correctly replaced with dashes.
 	 *
 	 * @ticket 16330
 	 */
-	function test_replace_spaces() {
+	function test_replaces_spaces() {
 		$urls = array(
 			'unencoded space.png'  => 'unencoded-space.png',
 			'encoded-space.jpg'    => 'encoded-space.jpg',
@@ -58,13 +67,13 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 		$this->assertEquals( 'a22b.jpg', sanitize_file_name( 'a%22b.jpg' ) );
 	}
 
-	function test_replaces_unnammed_file_extensions() {
+	function test_replaces_unnamed_file_extensions() {
 		// Test filenames with both supported and unsupported extensions.
 		$this->assertEquals( 'unnamed-file.exe', sanitize_file_name( '_.exe' ) );
 		$this->assertEquals( 'unnamed-file.jpg', sanitize_file_name( '_.jpg' ) );
 	}
 
-	function test_replaces_unnammed_file_extensionless() {
+	function test_replaces_unnamed_file_extensionless() {
 		// Test a filenames that becomes extensionless.
 		$this->assertEquals( 'no-extension', sanitize_file_name( '_.no-extension' ) );
 	}
