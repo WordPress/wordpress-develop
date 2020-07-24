@@ -101,6 +101,13 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 		$this->assertEquals( 'hey-its-curly-joe', sanitize_title_with_dashes( 'Hey its „Curly Joe‟', '', 'save' ) );
 	}
 
+	/**
+	 * @ticket 49791
+	 */
+	function test_replaces_bullet() {
+		$this->assertEquals( 'fancy-title-amazing', sanitize_title_with_dashes( 'Fancy Title • Amazing', '', 'save' ) );
+	}
+
 	function test_replaces_copy_reg_deg_trade() {
 		$this->assertEquals( 'just-a-slug', sanitize_title_with_dashes( 'Just © a Slug', '', 'save' ) );
 		$this->assertEquals( 'just-a-slug', sanitize_title_with_dashes( '® Just a Slug', '', 'save' ) );
