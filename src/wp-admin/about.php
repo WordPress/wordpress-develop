@@ -61,7 +61,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<hr />
 
-		<div class="about__section">
+		<div class="about__section has-2-columns is-wider-left">
 			<div class="column">
 				<h2><?php _e( 'Speed' ); ?></h2>
 				<p><strong><?php _e( 'Posts and pages feel faster, thanks to lazy-loaded images.' ); ?></strong></p>
@@ -69,9 +69,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p><?php _e( 'In WordPress 5.5, images wait to load until they’re just about to scroll into view. The technical term is ‘lazy loading.’' ); ?></p>
 				<p><?php _e( 'On mobile, lazy loading can also keep browsers from loading files meant for other devices. That can save your readers money on data — and help preserve battery life.' ); ?></p>
 			</div>
+			<div class="column is-edge-to-edge" style="background-color:skyblue;">
+			</div>
 		</div>
 
-		<div class="about__section">
+		<hr class="is-small" />
+
+		<div class="about__section has-2-columns is-wider-right">
+			<div class="column is-edge-to-edge" style="background-color:skyblue;">
+			</div>
 			<div class="column">
 				<h2><?php _e( 'Search' ); ?></h2>
 				<p><strong><?php _e( 'Say hello to your new sitemap.' ); ?></strong></p>
@@ -81,7 +87,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 		</div>
 
-		<div class="about__section">
+		<hr class="is-small" />
+
+		<div class="about__section has-2-columns is-wider-left">
 			<div class="column">
 				<h2><?php _e( 'Security' ); ?></h2>
 				<p><strong><?php _e( 'Auto-updates for Plugins and Themes' ); ?></strong></p>
@@ -90,15 +98,21 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p><strong><?php _e( 'Update by uploading ZIP files' ); ?></strong></p>
 				<p><?php _e( 'If updating plugins and themes manually is your thing, now that’s easier too — just upload a ZIP file.' ); ?></p>
 			</div>
+			<div class="column is-edge-to-edge" style="background-color:skyblue;">
+			</div>
 		</div>
 
 		<hr />
 
-		<div class="about__section has-2-columns">
-			<header class="is-section-header">
+		<div class="about__section">
+			<div class="column is-edge-to-edge" style="height:200px;background-color:skyblue;">
+			</div>
+			<div class="column">
 				<h2><?php _e( 'Highlights from the block editor' ); ?></h2>
 				<p><?php _e( 'Once again, the latest WordPress release packs a long list of exciting new features for the block editor. For example:' ); ?></p>
-			</header>
+			</div>
+		</div>
+		<div class="about__section has-2-columns">
 			<div class="column">
 				<h3><?php _e('Inline image editing' ); ?></h3>
 				<p><?php _e( 'Crop, rotate, and zoom your photos right from the image block. If you spend a lot of time on images, this could save you hours!' ); ?></p>
@@ -117,12 +131,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<hr />
 
-		<div class="about__section">
+		<div class="about__section has-2-columns">
 			<div class="column">
 				<h2><?php _e('Accessibility'); ?></h2>
 				<p><?php _e( 'Every release adds improvements to the accessible publishing experience, and that remains true for WordPress 5.5. ' ); ?></p>
 				<p><?php _e( 'Now you can copy links in media screens and modal dialogs with a button, instead of trying to highlight a line of text.' ); ?></p>
 				<p><?php _e( 'You can also move meta boxes with the keyboard, and edit images in WordPress with your assistive device, as it can read you the instructions in the image editor.' ); ?></p>
+			</div>
+			<div class="column is-edge-to-edge" style="background-color:skyblue;">
 			</div>
 		</div>
 
