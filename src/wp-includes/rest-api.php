@@ -37,27 +37,27 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 		 * and namespace indexes. If you really need to register a
 		 * non-namespaced route, call `WP_REST_Server::register_route` directly.
 		 */
-		_doing_it_wrong( 
-			__FUNCTION__, 
+		_doing_it_wrong(
+			__FUNCTION__,
 			sprintf(
 				/* translators: 1: string value of the namespace, 2: string value of the route */
 				__( 'Routes must be namespaced with plugin or theme name and version. Instead there seems to be an empty namespace \'%1$s\' for route \'%2$s\'.' ),
 				'<code>'.$namespace.'</code>',
 				'<code>'.$route.'</code>'
-			), 
+			),
 			'4.4.0'
 		);
 		return false;
 	} elseif ( empty( $route ) ) {
-		_doing_it_wrong( 
-			__FUNCTION__, 
+		_doing_it_wrong(
+			__FUNCTION__,
 			sprintf(
 				/* translators: 1: string value of the namespace, 2: string value of the route */
 				__( 'Route must be specified. Instead within the namespace \'%1$s\', there seems to be an empty route \'%2$s\'.' ),
 				'<code>'.$namespace.'</code>',
 				'<code>'.$route.'</code>'
-			), 
-			'4.4.0' 
+			),
+			'4.4.0'
 		);
 		return false;
 	}
@@ -65,8 +65,8 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 	$clean_namespace = trim( $namespace, '/' );
 
 	if ( $clean_namespace !== $namespace ) {
-		_doing_it_wrong( 
-			__FUNCTION__, 
+		_doing_it_wrong(
+			__FUNCTION__,
 			sprintf(
 				/* translators: 1: string value of the namespace, 2: string value of the route */
 				__( 'Namespace must not start or end with a slash. Instead namespace \'%1$s\' for route \'%2$s\' seems to contain a slash.' ),
@@ -76,7 +76,7 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 			'5.4.2'
 		);
 	}
-	
+
 	if ( ! did_action( 'rest_api_init' ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
