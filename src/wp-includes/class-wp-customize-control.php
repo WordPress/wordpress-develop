@@ -551,8 +551,17 @@ class WP_Customize_Control {
 
 				<select id="<?php echo esc_attr( $input_id ); ?>" <?php echo $describedby_attr; ?> <?php $this->link(); ?>>
 					<?php
-					foreach ( $this->choices as $value => $label ) {
-						echo '<option value="' . esc_attr( $value ) . '"' . selected( $this->value(), $value, false ) . '>' . $label . '</option>';
+					foreach ( $this->choices as $value => $data ) {
+						if ( is_array( $data ) && ! empty( $data ) ) {
+							echo '<optgroup label="' . esc_attr( $value ) . '">';
+							foreach ( $data as $optgroup_val => $optgroup_label ) {
+								echo '<option value="' . esc_attr( $optgroup_val ) . '"' . selected( $this->value(), $value, false ) . '>' . $optgroup_label . '</option>';
+							}
+							echo '</optgroup>';
+						}
+						else{
+							echo '<option value="' . esc_attr( $value ) . '"' . selected( $this->value(), $value, false ) . '>' . $data . '</option>';
+						}
 					}
 					?>
 				</select>
