@@ -363,7 +363,7 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 
 		$language_packs = array_map(
 			function( $item ) {
-					return (object) $item;
+				return (object) $item;
 			},
 			$api->language_packs
 		);
