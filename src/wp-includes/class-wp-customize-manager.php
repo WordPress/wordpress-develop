@@ -4230,14 +4230,53 @@ final class WP_Customize_Manager {
 								<#
 								var value, text;
 								if ( _.isObject( val ) ) {
-									value = val.value;
-									text = val.text;
+									if(val.hasOwnProperty('value') && val.hasOwnProperty('text') ){
+										value = val.value;
+										text = val.text;
+										#>
+										<option value="{{ value }}">{{ text }}</option>
+										<#
+									}
+									else{
+										//if val is an object but doesn't directly have "value" or "text" properties, we are probably dealing with an optgroup
+										text = key;
+										value = val;
+										#>
+										<optgroup label="{{ text }}">                                                                           
+										<#
+										var optgroupvalue, optgrouptext;
+										if( _.isArray( value ) ){
+											_.each( value, function( val, key ) {
+												if( _.isObject( val ) && val.hasOwnProperty('value') && val.hasOwnProperty('text') ){
+													optgroupvalue = val.value;
+													optgrouptext = val.text;
+													#>
+													<option value="{{ optgroupvalue }}">{{ optgrouptext }}</option>
+													<#
+												}
+											} );
+										}
+										else{
+											_.each( value, function( val, key ) {
+												optgroupvalue = key;
+												optgrouptext = val;
+												#>
+												<option value="{{ optgroupvalue }}">{{ optgrouptext }}</option>
+												<#
+											} );
+										}
+										#>
+										</optgroup>
+										<#
+									}
 								} else {
 									value = key;
 									text = val;
+									#>
+									<option value="{{ value }}">{{ text }}</option>
+									<#
 								}
 								#>
-								<option value="{{ value }}">{{ text }}</option>
 							<# } ); #>
 						</select>
 					<# } else { #>
