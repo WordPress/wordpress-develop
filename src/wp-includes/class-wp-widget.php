@@ -160,7 +160,7 @@ class WP_Widget {
 	 *                                information on accepted arguments. Default empty array.
 	 */
 	public function __construct( $id_base, $name, $widget_options = array(), $control_options = array() ) {
-		$this->id_base         = empty( $id_base ) ? preg_replace( '/(wp_)?widget_/', '', strtolower( get_class( $this ) ) ) : strtolower( $id_base );
+		$this->id_base         = empty( $id_base ) ? end( explode( '\\', preg_replace( '/(wp_)?widget_/', '', strtolower( get_class( $this ) ) ) ) ) : strtolower( $id_base );
 		$this->name            = $name;
 		$this->option_name     = 'widget_' . $this->id_base;
 		$this->widget_options  = wp_parse_args(
