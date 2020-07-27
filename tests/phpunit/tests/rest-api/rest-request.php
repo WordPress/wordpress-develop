@@ -765,4 +765,18 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertEquals( array( 'param' => 'new_value' ), $request->get_json_params() );
 		$this->assertEquals( array( 'param' => 'new_value' ), $request->get_query_params() );
 	}
+
+	/**
+	 * @ticket 50786
+	 */
+	public function test_set_param_with_invalid_json() {
+		$request = new WP_REST_Request();
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_method( 'POST' );
+		$request->set_body( '' );
+		$request->set_param( 'param', 'value' );
+
+		$this->assertTrue( $request->has_param( 'param' ) );
+		$this->assertEquals( 'value', $request->get_param( 'param' ) );
+	}
 }
