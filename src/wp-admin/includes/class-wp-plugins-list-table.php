@@ -203,19 +203,17 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		foreach ( (array) $plugins['all'] as $plugin_file => $plugin_data ) {
 			// Extra info if known. array_merge() ensures $plugin_data has precedence if keys collide.
 			if ( isset( $plugin_info->response[ $plugin_file ] ) ) {
-				$plugin_data                    = array_merge( (array) $plugin_info->response[ $plugin_file ], $plugin_data );
-				$plugins['all'][ $plugin_file ] = $plugin_data;
-				// Make sure that $plugins['upgrade'] also receives the extra info since it is used on ?plugin_status=upgrade.
-				if ( isset( $plugins['upgrade'][ $plugin_file ] ) ) {
-					$plugins['upgrade'][ $plugin_file ] = $plugin_data;
-				}
+				$plugin_data = array_merge( (array) $plugin_info->response[ $plugin_file ], array( 'auto-update-supported' => true ), $plugin_data );
 			} elseif ( isset( $plugin_info->no_update[ $plugin_file ] ) ) {
-				$plugin_data                    = array_merge( (array) $plugin_info->no_update[ $plugin_file ], $plugin_data );
-				$plugins['all'][ $plugin_file ] = $plugin_data;
-				// Make sure that $plugins['upgrade'] also receives the extra info since it is used on ?plugin_status=upgrade.
-				if ( isset( $plugins['upgrade'][ $plugin_file ] ) ) {
-					$plugins['upgrade'][ $plugin_file ] = $plugin_data;
-				}
+				$plugin_data = array_merge( (array) $plugin_info->no_update[ $plugin_file ], array( 'auto-update-supported' => true ), $plugin_data );
+			} elseif ( empty( $plugin_data['auto-update-supported'] ) ) {
+				$plugin_data['auto-update-supported'] = false;
+			}
+
+			$plugins['all'][ $plugin_file ] = $plugin_data;
+			// Make sure that $plugins['upgrade'] also receives the extra info since it is used on ?plugin_status=upgrade.
+			if ( isset( $plugins['upgrade'][ $plugin_file ] ) ) {
+				$plugins['upgrade'][ $plugin_file ] = $plugin_data;
 			}
 
 			// Filter into individual sections.
@@ -1060,7 +1058,11 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 					$html = array();
 
-					if ( in_array( $plugin_file, $auto_updates, true ) ) {
+					if ( ! $plugin_data['auto-update-supported'] ) {
+						$text       = __( 'Not available' );
+						$action     = 'unavailable';
+						$time_class = ' hidden';
+					} elseif ( in_array( $plugin_file, $auto_updates, true ) ) {
 						$text       = __( 'Disable auto-updates' );
 						$action     = 'disable';
 						$time_class = '';
@@ -1079,15 +1081,20 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 					$url = add_query_arg( $query_args, 'plugins.php' );
 
-					$html[] = sprintf(
-						'<a href="%s" class="toggle-auto-update aria-button-if-js" data-wp-action="%s">',
-						wp_nonce_url( $url, 'updates' ),
-						$action
-					);
+					if ( 'unavailable' == $action ) {
+						$html[] = '<span class="dashicons dashicons-warning" aria-hidden="true"></span>';
+						$html[] = '<span class="label">' . $text . '</span>';
+					} else {
+						$html[] = sprintf(
+							'<a href="%s" class="toggle-auto-update aria-button-if-js" data-wp-action="%s">',
+							wp_nonce_url( $url, 'updates' ),
+							$action
+						);
 
-					$html[] = '<span class="dashicons dashicons-update spin hidden" aria-hidden="true"></span>';
-					$html[] = '<span class="label">' . $text . '</span>';
-					$html[] = '</a>';
+						$html[] = '<span class="dashicons dashicons-update spin hidden" aria-hidden="true"></span>';
+						$html[] = '<span class="label">' . $text . '</span>';
+						$html[] = '</a>';
+					}
 
 					$available_updates = get_site_transient( 'update_plugins' );
 
