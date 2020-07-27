@@ -1096,9 +1096,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						$html[] = '</a>';
 					}
 
-					$available_updates = get_site_transient( 'update_plugins' );
-
-					if ( isset( $available_updates->response[ $plugin_file ] ) ) {
+					if ( ! empty( $plugin_data['update'] ) ) {
 						$html[] = sprintf(
 							'<div class="auto-update-time%s">%s</div>',
 							$time_class,
