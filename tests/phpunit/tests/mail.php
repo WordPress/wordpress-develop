@@ -407,4 +407,12 @@ class Tests_Mail extends WP_UnitTestCase {
 		$this->assertEquals( 'wp_mail_failed', $call_args[0]->get_error_code() );
 		$this->assertEquals( $expected_error_data, $call_args[0]->get_error_data() );
 	}
+
+	/**
+	 * @ticket 50720
+	 */
+	function test_phpmailer_validator() {
+		$phpmailer = $GLOBALS['phpmailer'];
+		$this->assertTrue( $phpmailer->validateAddress( 'foo@192.168.1.1' ), 'Assert PHPMailer accepts IP address email addresses' );
+	}
 }
