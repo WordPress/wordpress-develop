@@ -558,8 +558,7 @@ class WP_Customize_Control {
 								echo '<option value="' . esc_attr( $optgroup_val ) . '"' . selected( $this->value(), $value, false ) . '>' . $optgroup_label . '</option>';
 							}
 							echo '</optgroup>';
-						}
-						else{
+						} else {
 							echo '<option value="' . esc_attr( $value ) . '"' . selected( $this->value(), $value, false ) . '>' . $data . '</option>';
 						}
 					}
