@@ -1174,7 +1174,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		);
 		$this->assertEquals( $expected_sidebars, $new_next_theme_sidebars );
 	}
-	
+
 	/**
 	 * @ticket 44098
 	 */
