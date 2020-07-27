@@ -162,8 +162,9 @@ function get_image_send_to_editor( $id, $caption, $title, $align, $url = '', $re
 	 * @param string|array $size    Size of image. Image size or array of width and height values
 	 *                              (in that order). Default 'medium'.
 	 * @param string       $alt     The image alternative, or alt, text.
+	 * @param string       $rel     The image rel attribute.
 	 */
-	$html = apply_filters( 'image_send_to_editor', $html, $id, $caption, $title, $align, $url, $size, $alt );
+	$html = apply_filters( 'image_send_to_editor', $html, $id, $caption, $title, $align, $url, $size, $alt, $rel );
 
 	return $html;
 }
