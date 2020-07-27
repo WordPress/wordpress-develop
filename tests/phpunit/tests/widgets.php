@@ -1174,4 +1174,14 @@ class Tests_Widgets extends WP_UnitTestCase {
 		);
 		$this->assertEquals( $expected_sidebars, $new_next_theme_sidebars );
 	}
+	
+	/**
+	 * @ticket 44098
+	 */
+	public function test_widget_with_namespace_without_id_base() {
+		global $wp_widget_factory, $wp_registered_widgets;
+		register_widget( 'Namespace\Sub\Sub\Class' );
+		$this->assertEquals( 'Class', $wp_widget_factory->widgets[0]->id_base );
+
+	}
 }
