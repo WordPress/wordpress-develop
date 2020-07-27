@@ -1182,6 +1182,5 @@ class Tests_Widgets extends WP_UnitTestCase {
 		global $wp_widget_factory, $wp_registered_widgets;
 		register_widget( 'Namespace\Sub\Sub\Class' );
 		$this->assertEquals( 'Class', $wp_widget_factory->widgets[0]->id_base );
-
 	}
 }
