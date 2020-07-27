@@ -148,14 +148,21 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		if ( $redirect_post ) {
 			$post_type_obj = get_post_type_object( $redirect_post->post_type );
 
-			if ( $post_type_obj->public && ! in_array( $redirect_post->post_status, array( 'auto-draft', 'private' ), true ) ) {
-				$redirect_url = get_permalink( $redirect_post );
+			if ( $post_type_obj->public && 'auto-draft' !== $redirect_post->post_status ) {
+				$get_redirect_url = true;
+				if ( 'private' === $redirect_post->post_status && ! current_user_can( 'read_private_posts' ) ) {
+					$get_redirect_url = false;
+				}
 
-				$redirect['query'] = _remove_qs_args_if_not_in_url(
-					$redirect['query'],
-					array( 'p', 'page_id', 'attachment_id', 'pagename', 'name', 'post_type' ),
-					$redirect_url
-				);
+				if ( $get_redirect_url ) {
+					$redirect_url = get_permalink( $redirect_post );
+
+					$redirect['query'] = _remove_qs_args_if_not_in_url(
+						$redirect['query'],
+						array( 'p', 'page_id', 'attachment_id', 'pagename', 'name', 'post_type' ),
+						$redirect_url
+					);
+				}
 			}
 		}
 
