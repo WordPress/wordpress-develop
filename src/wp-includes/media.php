@@ -1096,7 +1096,7 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		$html .= ' />';
 	}
 
-	return $html;
+	return apply_filters( 'wp_get_attachment_image', $html, $attachment );
 }
 
 /**
