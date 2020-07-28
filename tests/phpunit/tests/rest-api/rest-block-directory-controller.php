@@ -162,12 +162,6 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 			'author_block_count'  => 1,
 			'author'              => 'sorta brilliant',
 			'icon'                => 'https://ps.w.org/guidepost/assets/icon-128x128.jpg?rev=2235512',
-			'assets'              => array(
-				'https://ps.w.org/guidepost/tags/1.2.1/build/index.js?v=1584940380',
-				'https://ps.w.org/guidepost/tags/1.2.1/build/guidepost-editor.css?v=1584940380',
-				'https://ps.w.org/guidepost/tags/1.2.1/build/guidepost-style.css?v=1584940380',
-				'https://ps.w.org/guidepost/tags/1.2.1/build/guidepost-theme.js?v=1584940380',
-			),
 			'last_updated'        => gmdate( 'Y-m-d\TH:i:s', strtotime( $plugin['last_updated'] ) ),
 			'humanized_updated'   => sprintf( '%s ago', human_time_diff( strtotime( $plugin['last_updated'] ) ) ),
 		);
@@ -192,7 +186,7 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 
 		$properties = $data['schema']['properties'];
 
-		$this->assertCount( 14, $properties );
+		$this->assertCount( 13, $properties );
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
@@ -206,7 +200,6 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 		$this->assertArrayHasKey( 'icon', $properties );
 		$this->assertArrayHasKey( 'last_updated', $properties );
 		$this->assertArrayHasKey( 'humanized_updated', $properties );
-		$this->assertArrayHasKey( 'assets', $properties );
 	}
 
 	/**
