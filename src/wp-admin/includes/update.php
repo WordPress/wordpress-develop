@@ -949,6 +949,15 @@ function wp_recovery_mode_nag() {
  * @return bool True if auto-updates are enabled for `$type`, false otherwise.
  */
 function wp_is_auto_update_enabled_for_type( $type ) {
+	if ( ! class_exists( 'WP_Automatic_Updater' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/class-wp-automatic-updater.php';
+	}
+
+	$updater = new WP_Automatic_Updater();
+	if ( $updater->is_disabled() ) {
+		return false;
+	}
+
 	switch ( $type ) {
 		case 'plugin':
 			/**
