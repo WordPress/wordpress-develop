@@ -954,9 +954,7 @@ function wp_is_auto_update_enabled_for_type( $type ) {
 	}
 
 	$updater = new WP_Automatic_Updater();
-	if ( $updater->is_disabled() ) {
-		return false;
-	}
+	$enabled = ! $updater->is_disabled();
 
 	switch ( $type ) {
 		case 'plugin':
@@ -967,7 +965,7 @@ function wp_is_auto_update_enabled_for_type( $type ) {
 			 *
 			 * @param bool $enabled True if plugins auto-update is enabled, false otherwise.
 			 */
-			return apply_filters( 'plugins_auto_update_enabled', true );
+			return apply_filters( 'plugins_auto_update_enabled', $enabled );
 		case 'theme':
 			/**
 			 * Filters whether themes auto-update is enabled.
@@ -976,7 +974,7 @@ function wp_is_auto_update_enabled_for_type( $type ) {
 			 *
 			 * @param bool $enabled True if themes auto-update is enabled, false otherwise.
 			 */
-			return apply_filters( 'themes_auto_update_enabled', true );
+			return apply_filters( 'themes_auto_update_enabled', $enabled );
 	}
 
 	return false;
