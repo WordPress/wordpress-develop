@@ -1082,7 +1082,6 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					$url = add_query_arg( $query_args, 'plugins.php' );
 
 					if ( 'unavailable' == $action ) {
-						$html[] = '<span class="dashicons dashicons-warning" aria-hidden="true"></span>';
 						$html[] = '<span class="label">' . $text . '</span>';
 					} else {
 						$html[] = sprintf(
