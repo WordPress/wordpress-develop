@@ -210,17 +210,29 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				$plugin_data['auto-update-supported'] = false;
 			}
 
-			// TODO: The slug isn't set for non-update-enabled plugins, but must be set for the filter.
-			if ( ! isset( $plugin_data['slug'] ) ) {
-				if ( '.' === dirname( $plugin_file ) ) {
-					$plugin_data['slug'] = basename( $plugin_file );
-				} else {
-					$plugin_data['slug'] = dirname( $plugin_file );
-				}
-			}
+			/*
+			 * Create the payload that's used for the auto_update_plugin filter.
+			 * This is the same data contained within $plugin_info->(response|no_update) however
+			 * not all plugins will be contained in those keys, this avoids unexpected warnings.
+			 */
+			$filter_payload = array(
+				'id'            => $plugin_file,
+				'slug'          => '',
+				'plugin'        => $plugin_file,
+				'new_version'   => '',
+				'url'           => '',
+				'package'       => '',
+				'icons'         => array(),
+				'banners'       => array(),
+				'banners_rtl'   => array(),
+				'tested'        => '',
+				'requires_php'  => '',
+				'compatibility' => new stdClass(),
+			);
+			$filter_payload = (object) array_merge( $filter_payload, array_intersect_key( $plugin_data, $filter_payload ) );
 
-			// TODO: Document, make sure we're passing the right data as $plugin_data.
-			$auto_update_forced = apply_filters( 'auto_update_plugin', null, (object) $plugin_data );
+			/** This action is documented in wp-admin/includes/class-wp-automatic-updater.php */
+			$auto_update_forced = apply_filters( 'auto_update_plugin', null, $filter_payload );
 			if ( ! is_null( $auto_update_forced ) ) {
 				$plugin_data['auto-update-forced'] = $auto_update_forced;
 			}
