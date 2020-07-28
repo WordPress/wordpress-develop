@@ -210,6 +210,21 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				$plugin_data['auto-update-supported'] = false;
 			}
 
+			// TODO: The slug isn't set for non-update-enabled plugins, but must be set for the filter.
+			if ( ! isset( $plugin_data['slug'] ) ) {
+				if ( '.' === dirname( $plugin_file ) ) {
+					$plugin_data['slug'] = basename( $plugin_file );
+				} else {
+					$plugin_data['slug'] = dirname( $plugin_file );
+				}
+			}
+
+			// TODO: Document, make sure we're passing the right data as $plugin_data.
+			$auto_update_forced = apply_filters( 'auto_update_plugin', null, (object) $plugin_data );
+			if ( ! is_null( $auto_update_forced ) ) {
+				$plugin_data['auto-update-forced'] = $auto_update_forced;
+			}
+
 			$plugins['all'][ $plugin_file ] = $plugin_data;
 			// Make sure that $plugins['upgrade'] also receives the extra info since it is used on ?plugin_status=upgrade.
 			if ( isset( $plugins['upgrade'][ $plugin_file ] ) ) {
@@ -1058,8 +1073,17 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 					$html = array();
 
-					if ( ! $plugin_data['auto-update-supported'] ) {
-						$text       = __( 'Not available' );
+					if ( isset( $plugin_data['auto-update-forced'] ) ) {
+						if ( $plugin_data['auto-update-forced'] ) {
+							// Forced on
+							$text = __( 'Automatic Updates Enabled' );
+						} else {
+							$text = __( 'Automatic Updates Disabled' );
+						}
+						$action     = 'unavailable';
+						$time_class = ' hidden';
+					} elseif ( ! $plugin_data['auto-update-supported'] ) {
+						$text       = ''; // __( 'Not available' );
 						$action     = 'unavailable';
 						$time_class = ' hidden';
 					} elseif ( in_array( $plugin_file, $auto_updates, true ) ) {
