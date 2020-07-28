@@ -1088,22 +1088,22 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					if ( isset( $plugin_data['auto-update-forced'] ) ) {
 						if ( $plugin_data['auto-update-forced'] ) {
 							// Forced on
-							$text = __( 'Automatic updates enabled' );
+							$text = __( 'Auto-updates enabled' );
 						} else {
-							$text = __( 'Automatic updates disabled' );
+							$text = __( 'Auto-updates disabled' );
 						}
 						$action     = 'unavailable';
 						$time_class = ' hidden';
 					} elseif ( ! $plugin_data['auto-update-supported'] ) {
-						$text       = ''; // __( 'Not available' );
+						$text       = '';
 						$action     = 'unavailable';
 						$time_class = ' hidden';
 					} elseif ( in_array( $plugin_file, $auto_updates, true ) ) {
-						$text       = __( 'Disable automatic updates' );
+						$text       = __( 'Disable auto-updates' );
 						$action     = 'disable';
 						$time_class = '';
 					} else {
-						$text       = __( 'Enable automatic updates' );
+						$text       = __( 'Enable auto-updates' );
 						$action     = 'enable';
 						$time_class = ' hidden';
 					}
