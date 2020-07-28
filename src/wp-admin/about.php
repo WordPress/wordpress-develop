@@ -65,7 +65,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<div class="column">
 				<h2><?php _e( 'Speed' ); ?></h2>
 				<p><strong><?php _e( 'Posts and pages feel faster, thanks to lazy-loaded images.' ); ?></strong></p>
-				<p><?php _e( 'Images give your story a lot of impact, but they can sometimes make your site seem slow.' ); ?></p>
+				<p><?php _e( 'Images give your story a lot of impacts, but they can sometimes make your site seem slow.' ); ?></p>
 				<p><?php _e( 'In WordPress 5.5, images wait to load until they’re just about to scroll into view. The technical term is ‘lazy loading.’' ); ?></p>
 				<p><?php _e( 'On mobile, lazy loading can also keep browsers from loading files meant for other devices. That can save your readers money on data — and help preserve battery life.' ); ?></p>
 			</div>
