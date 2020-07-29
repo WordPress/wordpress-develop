@@ -61,7 +61,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<hr />
 
-		<div class="about__section has-2-columns is-wider-left">
+		<div class="about__section is-narrow">
 			<div class="column">
 				<h2><?php _e( 'Speed' ); ?></h2>
 				<p><strong><?php _e( 'Posts and pages feel faster, thanks to lazy-loaded images.' ); ?></strong></p>
@@ -69,15 +69,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p><?php _e( 'In WordPress 5.5, images wait to load until they’re just about to scroll into view. The technical term is ‘lazy loading.’' ); ?></p>
 				<p><?php _e( 'On mobile, lazy loading can also keep browsers from loading files meant for other devices. That can save your readers money on data — and help preserve battery life.' ); ?></p>
 			</div>
-			<div class="column is-edge-to-edge" style="background-color:skyblue;">
-			</div>
 		</div>
 
-		<hr class="is-small" />
-
-		<div class="about__section has-2-columns is-wider-right">
-			<div class="column is-edge-to-edge" style="background-color:skyblue;">
-			</div>
+		<div class="about__section is-narrow">
 			<div class="column">
 				<h2><?php _ex( 'Search', 'sitemap' ); ?></h2>
 				<p><strong><?php _e( 'Say hello to your new sitemap.' ); ?></strong></p>
@@ -87,40 +81,84 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 		</div>
 
-		<hr class="is-small" />
+		<hr />
 
-		<div class="about__section has-2-columns is-wider-left">
+		<div class="about__section has-2-columns is-wider-right">
 			<div class="column">
 				<h2><?php _e( 'Security' ); ?></h2>
 				<p><strong><?php _e( 'Auto-updates for Plugins and Themes' ); ?></strong></p>
 				<p><?php _e( 'Now you can set plugins and themes to update automatically — or not! — in the WordPress admin. So you always know your site is running the latest code available.' ); ?></p>
 				<p><?php _e( 'You can also turn auto-updates on or off for each plugin or theme you have installed — all on the same screens you’ve always used.' ); ?></p>
+			</div>
+			<div class="about__section has-2-columns has-accent-background-color is-vertically-aligned-center">
+				<div class="column about__image is-vertically-aligned-center">
+					<img src="http://trunk.wordpress.test/wp-content/uploads/2020/07/helphub-update-plugins-enable-1.png" alt="" />
+				</div>
+				<div class="column about__image is-vertically-aligned-center">
+					<img src="http://trunk.wordpress.test/wp-content/uploads/2020/07/helphub-update-theme-enable.png" alt="" />
+				</div>
+			</div>
+		</div>
+
+		<hr class="is-small" />
+
+		<div class="about__section has-2-columns is-wider-left">
+			<div class="column about__image aligncenter has-accent-background-color">
+				<?php
+				echo wp_video_shortcode( array(
+					'mp4'      => 'http://trunk.wordpress.test/wp-content/uploads/2020/07/helphub-update-bulk-plugins.mp4',
+					// 'poster'   => '',
+					'width'    => 640,
+					'height'   => 277,
+				) );
+				?>
+			</div>
+			<div class="column">
 				<p><strong><?php _e( 'Update by uploading ZIP files' ); ?></strong></p>
 				<p><?php _e( 'If updating plugins and themes manually is your thing, now that’s easier too — just upload a ZIP file.' ); ?></p>
-			</div>
-			<div class="column is-edge-to-edge" style="background-color:skyblue;">
 			</div>
 		</div>
 
 		<hr />
 
-		<div class="about__section">
-			<div class="column is-edge-to-edge" style="height:200px;background-color:skyblue;">
-			</div>
+		<div class="about__section has-subtle-background-color">
 			<div class="column">
 				<h2><?php _e( 'Highlights from the block editor' ); ?></h2>
 				<p><?php _e( 'Once again, the latest WordPress release packs a long list of exciting new features for the block editor. For example:' ); ?></p>
 			</div>
 		</div>
-		<div class="about__section has-2-columns">
+		<div class="about__section has-2-columns  has-subtle-background-color">
 			<div class="column">
-				<h3><?php _e( 'Inline image editing' ); ?></h3>
-				<p><?php _e( 'Crop, rotate, and zoom your photos right from the image block. If you spend a lot of time on images, this could save you hours!' ); ?></p>
+				<div class="about__image has-accent-background-color">
+					<?php
+					echo wp_video_shortcode( array(
+						'mp4'      => 'http://trunk.wordpress.test/wp-content/uploads/2020/07/block-patterns.mp4',
+						'poster'   => 'http://trunk.wordpress.test/wp-content/uploads/2020/07/block-pattern-poster.png',
+						'width'    => 420,
+						'height'   => 494,
+						'autoplay' => false,
+					) );
+					?>
+				</div>
 				<h3><?php _e( 'Block patterns' ); ?></h3>
 				<p><?php _e( 'New block patterns make it simple and fun to create complex, beautiful layouts, using combinations of text and media that you can mix and match to fit your story.' ); ?></p>
 				<p><?php _e( 'You will also find block patterns in a wide variety of plugins and themes, with more added all the time. Pick any of them from a single dropdown — just click and go!' ); ?></p>
 			</div>
 			<div class="column">
+				<div class="about__image has-accent-background-color">
+					<?php
+					echo wp_video_shortcode( array(
+						'mp4'      => 'http://trunk.wordpress.test/wp-content/uploads/2020/07/image-editor.mp4',
+						'poster'   => 'http://trunk.wordpress.test/wp-content/uploads/2020/07/image-editor-poster.png',
+						'width'    => 420,
+						'height'   => 236,
+						'autoplay' => false,
+					) );
+					?>
+				</div>
+				<h3><?php _e( 'Inline image editing' ); ?></h3>
+				<p><?php _e( 'Crop, rotate, and zoom your photos right from the image block. If you spend a lot of time on images, this could save you hours!' ); ?></p>
+
 				<h3><?php _e( 'The New Block Directory' ); ?></h3>
 				<p><?php _e( 'Now it’s easier than ever to find the block you need. The new block directory is built right into the block editor, so you can install new block types to your site without ever leaving the editor.' ); ?></p>
 
@@ -131,14 +169,12 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<hr />
 
-		<div class="about__section has-2-columns">
+		<div class="about__section is-narrow">
 			<div class="column">
 				<h2><?php _e( 'Accessibility' ); ?></h2>
 				<p><?php _e( 'Every release adds improvements to the accessible publishing experience, and that remains true for WordPress 5.5. ' ); ?></p>
 				<p><?php _e( 'Now you can copy links in media screens and modal dialogs with a button, instead of trying to highlight a line of text.' ); ?></p>
 				<p><?php _e( 'You can also move meta boxes with the keyboard, and edit images in WordPress with your assistive device, as it can read you the instructions in the image editor.' ); ?></p>
-			</div>
-			<div class="column is-edge-to-edge" style="background-color:skyblue;">
 			</div>
 		</div>
 
@@ -215,12 +251,6 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<li><?php _e( 'You will find updated versions of these bundled libraries: SimplePie, Twemoji, Masonry, imagesLoaded, getID3, Moment.js, and clipboard.js.' ); ?></li>
 				</ul>
 			</div>
-		</div>
-
-		<hr class="is-small" />
-
-		<div class="about__section">
-
 		</div>
 
 		<hr class="is-small" />
