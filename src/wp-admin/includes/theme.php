@@ -740,7 +740,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 			'hasPackage'     => isset( $updates[ $slug ] ) && ! empty( $updates[ $slug ]['package'] ),
 			'update'         => get_theme_update_available( $theme ),
 			'autoupdate'     => array(
-				'enabled'   => $auto_update,
+				'enabled'   => $auto_update || $auto_update_forced,
 				'supported' => $auto_update_supported,
 				'forced'    => $auto_update_forced,
 			),

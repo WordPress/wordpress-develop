@@ -678,7 +678,7 @@ function wp_theme_auto_update_setting_template() {
 			<# if ( data.autoupdate.supported ) { #>
 				<# if ( data.autoupdate.forced === false ) { #>
 					' . __( 'Auto-updates disabled' ) . '
-				<# } else if ( data.autoupdate.forced === true ) { #>
+				<# } else if ( data.autoupdate.forced ) { #>
 					' . __( 'Auto-updates enabled' ) . '
 				<# } else if ( data.autoupdate.enabled ) { #>
 					<button type="button" class="toggle-auto-update button-link" data-slug="{{ data.id }}" data-wp-action="disable">
@@ -691,7 +691,7 @@ function wp_theme_auto_update_setting_template() {
 				<# } #>
 			<# } #>
 			<# if ( data.hasUpdate ) { #>
-				<# if ( data.autoupdate.supported && ( data.autoupdate.enabled || data.autoupdate.forced === true ) ) { #>
+				<# if ( data.autoupdate.enabled ) { #>
 					<span class="auto-update-time">
 				<# } else { #>
 					<span class="auto-update-time hidden">
