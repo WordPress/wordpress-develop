@@ -702,13 +702,17 @@ function wp_prepare_themes_for_js( $themes = null ) {
 			$auto_update_filter_payload = (object) $no_updates[ $slug ];
 		} else {
 			$auto_update_supported = false;
+			/*
+			 * Create the expected payload for the auto_update_theme filter, this is the same data
+			 * as contained within $updates or $no_updates but used when the Theme is not known.
+			 */
 			$auto_update_filter_payload = (object) array(
 				'theme'        => $slug,
 				'new_version'  => $theme->get( 'Version' ),
 				'url'          => '',
 				'package'      => '',
-				'requires'     => '',
-				'requires_php' => '',
+				'requires'     => $theme->get( 'RequiresWP' ),
+				'requires_php' => $theme->get( 'RequiresPHP' ),
 			);
 		}
 
