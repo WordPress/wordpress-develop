@@ -680,16 +680,14 @@ function wp_theme_auto_update_setting_template() {
 					' . __( 'Auto-updates disabled' ) . '
 				<# } else if ( data.autoupdateForced === true ) { #>
 					' . __( 'Auto-updates enabled' ) . '
+				<# } else if ( data.autoupdate ) { #>
+					<button type="button" class="toggle-auto-update button-link" data-slug="{{ data.id }}" data-wp-action="disable">
+						<span class="dashicons dashicons-update spin hidden" aria-hidden="true"></span><span class="label">' . __( 'Disable auto-updates' ) . '</span>
+					</button>
 				<# } else { #>
-					<# if ( data.autoupdate ) { #>
-						<button type="button" class="toggle-auto-update button-link" data-slug="{{ data.id }}" data-wp-action="disable">
-							<span class="dashicons dashicons-update spin hidden" aria-hidden="true"></span><span class="label">' . __( 'Disable auto-updates' ) . '</span>
-						</button>
-					<# } else { #>
-						<button type="button" class="toggle-auto-update button-link" data-slug="{{ data.id }}" data-wp-action="enable">
-							<span class="dashicons dashicons-update spin hidden" aria-hidden="true"></span><span class="label">' . __( 'Enable auto-updates' ) . '</span>
-						</button>
-					<# } #>
+					<button type="button" class="toggle-auto-update button-link" data-slug="{{ data.id }}" data-wp-action="enable">
+						<span class="dashicons dashicons-update spin hidden" aria-hidden="true"></span><span class="label">' . __( 'Enable auto-updates' ) . '</span>
+					</button>
 				<# } #>
 			<# } #>
 			<# if ( data.hasUpdate ) { #>
