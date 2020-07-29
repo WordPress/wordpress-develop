@@ -691,7 +691,7 @@ function wp_theme_auto_update_setting_template() {
 				<# } #>
 			<# } #>
 			<# if ( data.hasUpdate ) { #>
-				<# if ( data.autoupdate.enabled ) { #>
+				<# if ( data.autoupdate.supported && data.autoupdate.enabled ) { #>
 					<span class="auto-update-time">
 				<# } else { #>
 					<span class="auto-update-time hidden">
