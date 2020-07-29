@@ -716,29 +716,31 @@ function wp_prepare_themes_for_js( $themes = null ) {
 		$auto_update_forced = apply_filters( 'auto_update_theme', null, $auto_update_filter_payload );
 
 		$prepared_themes[ $slug ] = array(
-			'id'               => $slug,
-			'name'             => $theme->display( 'Name' ),
-			'screenshot'       => array( $theme->get_screenshot() ), // @todo Multiple screenshots.
-			'description'      => $theme->display( 'Description' ),
-			'author'           => $theme->display( 'Author', false, true ),
-			'authorAndUri'     => $theme->display( 'Author' ),
-			'tags'             => $theme->display( 'Tags' ),
-			'version'          => $theme->get( 'Version' ),
-			'compatibleWP'     => is_wp_version_compatible( $theme->get( 'RequiresWP' ) ),
-			'compatiblePHP'    => is_php_version_compatible( $theme->get( 'RequiresPHP' ) ),
-			'updateResponse'   => array(
+			'id'             => $slug,
+			'name'           => $theme->display( 'Name' ),
+			'screenshot'     => array( $theme->get_screenshot() ), // @todo Multiple screenshots.
+			'description'    => $theme->display( 'Description' ),
+			'author'         => $theme->display( 'Author', false, true ),
+			'authorAndUri'   => $theme->display( 'Author' ),
+			'tags'           => $theme->display( 'Tags' ),
+			'version'        => $theme->get( 'Version' ),
+			'compatibleWP'   => is_wp_version_compatible( $theme->get( 'RequiresWP' ) ),
+			'compatiblePHP'  => is_php_version_compatible( $theme->get( 'RequiresPHP' ) ),
+			'updateResponse' => array(
 				'compatibleWP'  => is_wp_version_compatible( $update_requires_wp ),
 				'compatiblePHP' => is_php_version_compatible( $update_requires_php ),
 			),
-			'parent'           => $parent,
-			'active'           => $slug === $current_theme,
-			'hasUpdate'        => isset( $updates[ $slug ] ),
-			'hasPackage'       => isset( $updates[ $slug ] ) && ! empty( $updates[ $slug ]['package'] ),
-			'update'           => get_theme_update_available( $theme ),
-			'autoupdate'       => $auto_update,
-			'updateSupported'  => $auto_update_supported,
-			'autoupdateForced' => $auto_update_forced,
-			'actions'          => array(
+			'parent'         => $parent,
+			'active'         => $slug === $current_theme,
+			'hasUpdate'      => isset( $updates[ $slug ] ),
+			'hasPackage'     => isset( $updates[ $slug ] ) && ! empty( $updates[ $slug ]['package'] ),
+			'update'         => get_theme_update_available( $theme ),
+			'autoupdate'     => array(
+				'enabled'   => $auto_update,
+				'supported' => $auto_update_supported,
+				'forced'    => $auto_update_forced,
+			),
+			'actions'        => array(
 				'activate'   => current_user_can( 'switch_themes' ) ? wp_nonce_url( admin_url( 'themes.php?action=activate&amp;stylesheet=' . $encoded_slug ), 'switch-theme_' . $slug ) : null,
 				'customize'  => $customize_action,
 				'delete'     => current_user_can( 'delete_themes' ) ? wp_nonce_url( admin_url( 'themes.php?action=delete&amp;stylesheet=' . $encoded_slug ), 'delete-theme_' . $slug ) : null,

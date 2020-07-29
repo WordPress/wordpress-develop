@@ -675,12 +675,12 @@ if ( ! is_multisite() && $broken_themes ) {
 function wp_theme_auto_update_setting_template() {
 	$template = '
 		<div class="theme-autoupdate">
-			<# if ( data.updateSupported ) { #>
-				<# if ( data.autoupdateForced === false ) { #>
+			<# if ( data.autoupdate.supported ) { #>
+				<# if ( data.autoupdate.forced === false ) { #>
 					' . __( 'Auto-updates disabled' ) . '
-				<# } else if ( data.autoupdateForced === true ) { #>
+				<# } else if ( data.autoupdate.forced === true ) { #>
 					' . __( 'Auto-updates enabled' ) . '
-				<# } else if ( data.autoupdate ) { #>
+				<# } else if ( data.autoupdate.enabled ) { #>
 					<button type="button" class="toggle-auto-update button-link" data-slug="{{ data.id }}" data-wp-action="disable">
 						<span class="dashicons dashicons-update spin hidden" aria-hidden="true"></span><span class="label">' . __( 'Disable auto-updates' ) . '</span>
 					</button>
