@@ -47,6 +47,24 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	protected static $context_block_name = 'core/context-test-block';
 
 	/**
+	 * Non-dynamic block name.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @var string
+	 */
+	protected static $non_dynamic_block_name = 'core/non-dynamic';
+
+	/**
+	 * Dynamic block with boolean attributes block name.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @var string
+	 */
+	protected static $dynamic_block_with_boolean_attributes_block_name = 'core/dynamic-block-with-boolean-attributes';
+
+	/**
 	 * Test API user's ID.
 	 *
 	 * @since 5.0.0
@@ -117,6 +135,8 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	public function setUp() {
 		$this->register_test_block();
 		$this->register_post_context_test_block();
+		$this->register_non_dynamic_block();
+		$this->register_dynamic_block_with_boolean_attributes();
 		parent::setUp();
 	}
 
@@ -128,6 +148,8 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	public function tearDown() {
 		WP_Block_Type_Registry::get_instance()->unregister( self::$block_name );
 		WP_Block_Type_Registry::get_instance()->unregister( self::$context_block_name );
+		WP_Block_Type_Registry::get_instance()->unregister( self::$non_dynamic_block_name );
+		WP_Block_Type_Registry::get_instance()->unregister( self::$dynamic_block_with_boolean_attributes_block_name );
 		parent::tearDown();
 	}
 
@@ -176,6 +198,39 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	}
 
 	/**
+	 * Registers the non-dynamic block name.
+	 *
+	 * @since 5.5.0
+	 */
+	protected function register_non_dynamic_block() {
+		register_block_type( self::$non_dynamic_block_name );
+	}
+
+	/**
+	 * Registers the dynamic with boolean attributes block name.
+	 *
+	 * @since 5.5.0
+	 */
+	protected function register_dynamic_block_with_boolean_attributes() {
+		register_block_type(
+			self::$dynamic_block_with_boolean_attributes_block_name,
+			array(
+				'attributes'      => array(
+					'boolean_true_attribute'  => array(
+						'type'    => 'boolean',
+						'default' => true,
+					),
+					'boolean_false_attribute' => array(
+						'type'    => 'boolean',
+						'default' => false,
+					),
+				),
+				'render_callback' => array( $this, 'render_test_block' ),
+			)
+		);
+	}
+
+	/**
 	 * Test render callback.
 	 *
 	 * @since 5.0.0
@@ -210,9 +265,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$this->assertContains( self::$block_name, $dynamic_block_names );
 
 		$routes = rest_get_server()->get_routes();
-		foreach ( $dynamic_block_names as $dynamic_block_name ) {
-			$this->assertArrayHasKey( self::$rest_api_route . "(?P<name>$dynamic_block_name)", $routes );
-		}
+		$this->assertArrayHasKey( self::$rest_api_route . '(?P<name>[a-z0-9-]+/[a-z0-9-]+)', $routes );
 	}
 
 	/**
@@ -261,7 +314,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+		$this->assertErrorResponse( 'block_invalid', $response, 404 );
 	}
 
 	/**
@@ -407,25 +460,6 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	}
 
 	/**
-	 * Check success response for getting item with layout attribute provided.
-	 *
-	 * @ticket 45098
-	 */
-	public function test_get_item_with_layout() {
-		wp_set_current_user( self::$user_id );
-
-		$attributes = array(
-			'layout' => 'foo',
-		);
-
-		$request = new WP_REST_Request( 'GET', self::$rest_api_route . self::$block_name );
-		$request->set_param( 'context', 'edit' );
-		$request->set_param( 'attributes', $attributes );
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
-	}
-
-	/**
 	 * Test getting item with post context.
 	 *
 	 * @ticket 45098
@@ -508,6 +542,46 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'block_cannot_read', $response, 403 );
+	}
+
+	/**
+	 * @ticket 48079
+	 */
+	public function test_get_item_non_dynamic_block() {
+		wp_set_current_user( self::$user_id );
+		$request = new WP_REST_Request( 'GET', self::$rest_api_route . self::$non_dynamic_block_name );
+
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'block_invalid', $response, 404 );
+	}
+
+	/**
+	 * @ticket 50620
+	 */
+	public function test_get_sanitized_attributes_for_dynamic_block_with_boolean_attributes() {
+		wp_set_current_user( self::$user_id );
+
+		$request = new WP_REST_Request( 'GET', self::$rest_api_route . self::$dynamic_block_with_boolean_attributes_block_name );
+
+		$attributes = array(
+			'boolean_true_attribute'  => 'true',
+			'boolean_false_attribute' => 'false',
+		);
+
+		$expected = array(
+			'boolean_true_attribute'  => true,
+			'boolean_false_attribute' => false,
+		);
+
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( 'attributes', $attributes );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$this->assertSame( $expected, json_decode( $data['rendered'], true ) );
 	}
 
 	/**

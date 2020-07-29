@@ -412,7 +412,7 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 	function test_render_media() {
 		$widget = new WP_Widget_Media_Image();
 
-		$test_image = '/tmp/canola.jpg';
+		$test_image = get_temp_dir() . 'canola.jpg';
 		copy( DIR_TESTDATA . '/images/canola.jpg', $test_image );
 		$attachment_id = self::factory()->attachment->create_object(
 			array(
@@ -585,6 +585,21 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 		$output = ob_get_clean();
 		$this->assertContains( 'class="wp-caption alignnone"', $output );
 		$this->assertContains( '<p class="wp-caption-text">Custom caption</p>', $output );
+
+		// Attachments with custom sizes can render captions.
+		ob_start();
+		$widget->render_media(
+			array(
+				'attachment_id' => $attachment_id,
+				'size'          => 'custom',
+				'width'         => '300',
+				'height'        => '200',
+				'caption'       => 'Caption for an image with custom size',
+			)
+		);
+		$output = ob_get_clean();
+		$this->assertContains( 'style="width: 310px"', $output );
+		$this->assertContains( '<p class="wp-caption-text">Caption for an image with custom size</p>', $output );
 	}
 
 	/**

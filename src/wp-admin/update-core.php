@@ -16,7 +16,7 @@ add_thickbox();
 
 if ( is_multisite() && ! is_network_admin() ) {
 	wp_redirect( network_admin_url( 'update-core.php' ) );
-	exit();
+	exit;
 }
 
 if ( ! current_user_can( 'update_core' ) && ! current_user_can( 'update_themes' ) && ! current_user_can( 'update_plugins' ) && ! current_user_can( 'update_languages' ) ) {
@@ -31,8 +31,6 @@ if ( ! current_user_can( 'update_core' ) && ! current_user_can( 'update_themes' 
  * @global string $wp_local_package Locale code of the package.
  * @global wpdb   $wpdb             WordPress database abstraction object.
  *
- * @staticvar bool $first_pass
- *
  * @param object $update
  */
 function list_core_update( $update ) {
@@ -46,7 +44,7 @@ function list_core_update( $update ) {
 		$version_string = $update->current;
 	} elseif ( 'en_US' === $update->locale && $update->packages->partial && $wp_version == $update->partial_version ) {
 		$updates = get_core_updates();
-		if ( $updates && 1 == count( $updates ) ) {
+		if ( $updates && 1 === count( $updates ) ) {
 			// If the only available update is a partial builds, it doesn't need a language-specific version string.
 			$version_string = $update->current;
 		}
@@ -90,6 +88,7 @@ function list_core_update( $update ) {
 			);
 
 			$annotation = wp_get_update_php_annotation();
+
 			if ( $annotation ) {
 				$php_update_message .= '</p><p><em>' . $annotation . '</em>';
 			}
@@ -248,7 +247,12 @@ function core_upgrade_preamble() {
 
 	if ( isset( $updates[0]->version ) && version_compare( $updates[0]->version, $wp_version, '>' ) ) {
 		echo '<div class="notice notice-warning"><p>';
-		_e( '<strong>Important:</strong> Before updating, please <a href="https://wordpress.org/support/article/wordpress-backups/">back up your database and files</a>. For help with updates, visit the <a href="https://wordpress.org/support/article/updating-wordpress/">Updating WordPress</a> documentation page.' );
+		printf(
+			/* translators: 1: Documentation on WordPress backups, 2: Documentation on updating WordPress. */
+			__( '<strong>Important:</strong> Before updating, please <a href="%1$s">back up your database and files</a>. For help with updates, visit the <a href="%2$s">Updating WordPress</a> documentation page.' ),
+			__( 'https://wordpress.org/support/article/wordpress-backups/' ),
+			__( 'https://wordpress.org/support/article/updating-wordpress/' )
+		);
 		echo '</p></div>';
 
 		echo '<h2 class="response">';
@@ -275,7 +279,7 @@ function core_upgrade_preamble() {
 	echo '</ul>';
 	// Don't show the maintenance mode notice when we are only showing a single re-install option.
 	if ( $updates && ( count( $updates ) > 1 || 'latest' !== $updates[0]->response ) ) {
-		echo '<p>' . __( 'While your site is being updated, it will be in maintenance mode. As soon as your updates are complete, your site will return to normal.' ) . '</p>';
+		echo '<p>' . __( 'While your site is being updated, it will be in maintenance mode. As soon as your updates are complete, this mode will be deactivated.' ) . '</p>';
 	} elseif ( ! $updates ) {
 		list( $normalized_version ) = explode( '-', $wp_version );
 		echo '<p>' . sprintf(
@@ -328,6 +332,13 @@ function list_plugin_updates() {
 
 	<tbody class="plugins">
 	<?php
+
+	$auto_updates = array();
+	if ( wp_is_auto_update_enabled_for_type( 'plugin' ) ) {
+		$auto_updates       = (array) get_site_option( 'auto_update_plugins', array() );
+		$auto_update_notice = ' | ' . wp_get_auto_update_message();
+	}
+
 	foreach ( (array) $plugins as $plugin_file => $plugin_data ) {
 		$plugin_data = (object) _get_plugin_data_markup_translate( $plugin_file, (array) $plugin_data, false, true );
 
@@ -398,15 +409,15 @@ function list_plugin_updates() {
 		?>
 	<tr>
 		<td class="check-column">
-		<?php if ( $compatible_php ) : ?>
-			<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $plugin_file ); ?>" />
-			<label for="<?php echo $checkbox_id; ?>" class="screen-reader-text">
-				<?php
-				/* translators: %s: Plugin name. */
-				printf( __( 'Select %s' ), $plugin_data->Name );
-				?>
-			</label>
-		<?php endif; ?>
+			<?php if ( $compatible_php ) : ?>
+				<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $plugin_file ); ?>" />
+				<label for="<?php echo $checkbox_id; ?>" class="screen-reader-text">
+					<?php
+					/* translators: %s: Plugin name. */
+					printf( __( 'Select %s' ), $plugin_data->Name );
+					?>
+				</label>
+			<?php endif; ?>
 		</td>
 		<td class="plugin-title"><p>
 			<?php echo $icon; ?>
@@ -418,11 +429,16 @@ function list_plugin_updates() {
 				$plugin_data->Version,
 				$plugin_data->update->new_version
 			);
+
 			echo ' ' . $details . $compat . $upgrade_notice;
+
+			if ( in_array( $plugin_file, $auto_updates, true ) ) {
+				echo $auto_update_notice;
+			}
 			?>
 		</p></td>
 	</tr>
-		<?php
+			<?php
 	}
 	?>
 	</tbody>
@@ -478,18 +494,94 @@ function list_theme_updates() {
 
 	<tbody class="plugins">
 	<?php
+	$auto_updates = array();
+	if ( wp_is_auto_update_enabled_for_type( 'theme' ) ) {
+		$auto_updates       = (array) get_site_option( 'auto_update_themes', array() );
+		$auto_update_notice = ' | ' . wp_get_auto_update_message();
+	}
+
 	foreach ( $themes as $stylesheet => $theme ) {
+		$requires_wp  = isset( $theme->update['requires'] ) ? $theme->update['requires'] : null;
+		$requires_php = isset( $theme->update['requires_php'] ) ? $theme->update['requires_php'] : null;
+
+		$compatible_wp  = is_wp_version_compatible( $requires_wp );
+		$compatible_php = is_php_version_compatible( $requires_php );
+
+		$compat = '';
+
+		if ( ! $compatible_wp && ! $compatible_php ) {
+			$compat .= '<br>' . __( 'This update doesn&#8217;t work with your versions of WordPress and PHP.' ) . '&nbsp;';
+			if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
+				$compat .= sprintf(
+					/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
+					__( '<a href="%1$s">Please update WordPress</a>, and then <a href="%2$s">learn more about updating PHP</a>.' ),
+					self_admin_url( 'update-core.php' ),
+					esc_url( wp_get_update_php_url() )
+				);
+
+				$annotation = wp_get_update_php_annotation();
+
+				if ( $annotation ) {
+					$compat .= '</p><p><em>' . $annotation . '</em>';
+				}
+			} elseif ( current_user_can( 'update_core' ) ) {
+				$compat .= sprintf(
+					/* translators: %s: URL to WordPress Updates screen. */
+					__( '<a href="%s">Please update WordPress</a>.' ),
+					self_admin_url( 'update-core.php' )
+				);
+			} elseif ( current_user_can( 'update_php' ) ) {
+				$compat .= sprintf(
+					/* translators: %s: URL to Update PHP page. */
+					__( '<a href="%s">Learn more about updating PHP</a>.' ),
+					esc_url( wp_get_update_php_url() )
+				);
+
+				$annotation = wp_get_update_php_annotation();
+
+				if ( $annotation ) {
+					$compat .= '</p><p><em>' . $annotation . '</em>';
+				}
+			}
+		} elseif ( ! $compatible_wp ) {
+			$compat .= '<br>' . __( 'This update doesn&#8217;t work with your version of WordPress.' ) . '&nbsp;';
+			if ( current_user_can( 'update_core' ) ) {
+				$compat .= sprintf(
+					/* translators: %s: URL to WordPress Updates screen. */
+					__( '<a href="%s">Please update WordPress</a>.' ),
+					self_admin_url( 'update-core.php' )
+				);
+			}
+		} elseif ( ! $compatible_php ) {
+			$compat .= '<br>' . __( 'This update doesn&#8217;t work with your version of PHP.' ) . '&nbsp;';
+			if ( current_user_can( 'update_php' ) ) {
+				$compat .= sprintf(
+					/* translators: %s: URL to Update PHP page. */
+					__( '<a href="%s">Learn more about updating PHP</a>.' ),
+					esc_url( wp_get_update_php_url() )
+				);
+
+				$annotation = wp_get_update_php_annotation();
+
+				if ( $annotation ) {
+					$compat .= '</p><p><em>' . $annotation . '</em>';
+				}
+			}
+		}
+
 		$checkbox_id = 'checkbox_' . md5( $theme->get( 'Name' ) );
 		?>
 	<tr>
 		<td class="check-column">
-			<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $stylesheet ); ?>" />
-			<label for="<?php echo $checkbox_id; ?>" class="screen-reader-text">
-				<?php
-				/* translators: %s: Theme name. */
-				printf( __( 'Select %s' ), $theme->display( 'Name' ) );
-				?>
-			</label>
+			<?php if ( $compatible_wp && $compatible_php ) : ?>
+				<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $stylesheet ); ?>" />
+				<label for="<?php echo $checkbox_id; ?>" class="screen-reader-text">
+					<?php
+					/* translators: %s: Theme name. */
+					printf( __( 'Select %s' ), $theme->display( 'Name' ) );
+					?>
+				</label>
+			<?php endif; ?>
 		</td>
 		<td class="plugin-title"><p>
 			<img src="<?php echo esc_url( $theme->get_screenshot() ); ?>" width="85" height="64" class="updates-table-screenshot" alt="" />
@@ -501,6 +593,12 @@ function list_theme_updates() {
 				$theme->display( 'Version' ),
 				$theme->update['new_version']
 			);
+
+			echo ' ' . $compat;
+
+			if ( in_array( $stylesheet, $auto_updates, true ) ) {
+				echo $auto_update_notice;
+			}
 			?>
 		</p></td>
 	</tr>
@@ -622,13 +720,13 @@ function do_core_upgrade( $reinstall = false ) {
 	if ( is_wp_error( $result ) ) {
 		show_message( $result );
 		if ( 'up_to_date' != $result->get_error_code() && 'locked' != $result->get_error_code() ) {
-			show_message( __( 'Installation Failed' ) );
+			show_message( __( 'Installation failed.' ) );
 		}
 		echo '</div>';
 		return;
 	}
 
-	show_message( __( 'WordPress updated successfully' ) );
+	show_message( __( 'WordPress updated successfully.' ) );
 	show_message(
 		'<span class="hide-if-no-js">' . sprintf(
 			/* translators: 1: WordPress version, 2: URL to About screen. */
@@ -725,9 +823,27 @@ get_current_screen()->add_help_tab(
 	)
 );
 
+$help_sidebar_autoupdates = '';
+
+if ( ( current_user_can( 'update_themes' ) && wp_is_auto_update_enabled_for_type( 'theme' ) ) || ( current_user_can( 'update_plugins' ) && wp_is_auto_update_enabled_for_type( 'plugin' ) ) ) {
+	$help_tab_autoupdates  = '<p>' . __( 'Auto-updates can be enabled or disabled for each individual theme or plugin. Themes or plugins with auto-updates enabled will display the estimated date of the next auto-update. Auto-updates depends on the WP-Cron task scheduling system.' ) . '</p>';
+	$help_tab_autoupdates .= '<p>' . __( 'Please note: Third-party themes and plugins, or custom code, may override WordPress scheduling.' ) . '</p>';
+
+	get_current_screen()->add_help_tab(
+		array(
+			'id'      => 'plugins-themes-auto-updates',
+			'title'   => __( 'Auto-updates' ),
+			'content' => $help_tab_autoupdates,
+		)
+	);
+
+	$help_sidebar_autoupdates = '<p>' . __( '<a href="https://wordpress.org/support/article/plugins-themes-auto-updates/">Learn more: Auto-updates documentation</a>' ) . '</p>';
+}
+
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
 	'<p>' . __( '<a href="https://wordpress.org/support/article/dashboard-updates-screen/">Documentation on Updating WordPress</a>' ) . '</p>' .
+	$help_sidebar_autoupdates .
 	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 

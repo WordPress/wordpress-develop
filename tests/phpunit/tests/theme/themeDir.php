@@ -163,6 +163,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'Theme with Spaces in the Directory',
 			'Internationalized Theme',
 			'camelCase',
+			'REST Theme',
 		);
 
 		sort( $theme_names );

@@ -8,6 +8,7 @@
 
 require_once ABSPATH . 'wp-admin/includes/admin.php';
 require_once ABSPATH . WPINC . '/rest-api.php';
+require_once __DIR__ . '/../includes/class-jsonserializable-object.php';
 
 /**
  * @group restapi
@@ -83,8 +84,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'test-ns',
 			'/test',
 			array(
-				'methods'  => array( 'GET' ),
-				'callback' => '__return_null',
+				'methods'             => array( 'GET' ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
 			)
 		);
 
@@ -119,12 +121,14 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'/test',
 			array(
 				array(
-					'methods'  => array( 'GET' ),
-					'callback' => '__return_null',
+					'methods'             => array( 'GET' ),
+					'callback'            => '__return_null',
+					'permission_callback' => '__return_true',
 				),
 				array(
-					'methods'  => array( 'POST' ),
-					'callback' => '__return_null',
+					'methods'             => array( 'POST' ),
+					'callback'            => '__return_null',
+					'permission_callback' => '__return_true',
 				),
 			)
 		);
@@ -159,16 +163,18 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'test-ns',
 			'/test',
 			array(
-				'methods'  => array( 'GET' ),
-				'callback' => '__return_null',
+				'methods'             => array( 'GET' ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
 			)
 		);
 		register_rest_route(
 			'test-ns',
 			'/test',
 			array(
-				'methods'  => array( 'POST' ),
-				'callback' => '__return_null',
+				'methods'             => array( 'POST' ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
 			)
 		);
 
@@ -186,18 +192,20 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'test-ns',
 			'/test',
 			array(
-				'methods'      => array( 'GET' ),
-				'callback'     => '__return_null',
-				'should_exist' => false,
+				'methods'             => array( 'GET' ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
+				'should_exist'        => false,
 			)
 		);
 		register_rest_route(
 			'test-ns',
 			'/test',
 			array(
-				'methods'      => array( 'POST' ),
-				'callback'     => '__return_null',
-				'should_exist' => true,
+				'methods'             => array( 'POST' ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
+				'should_exist'        => true,
 			),
 			true
 		);
@@ -222,8 +230,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'',
 			'/test-empty-namespace',
 			array(
-				'methods'  => array( 'POST' ),
-				'callback' => '__return_null',
+				'methods'             => array( 'POST' ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
 			),
 			true
 		);
@@ -241,8 +250,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'/test-empty-route',
 			'',
 			array(
-				'methods'  => array( 'POST' ),
-				'callback' => '__return_null',
+				'methods'             => array( 'POST' ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
 			),
 			true
 		);
@@ -263,8 +273,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'test-ns',
 			'/test',
 			array(
-				'methods'  => array( 'GET' ),
-				'callback' => '__return_null',
+				'methods'             => array( 'GET' ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
 			)
 		);
 
@@ -281,8 +292,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'test-ns',
 			'/test',
 			array(
-				'methods'  => 'GET',
-				'callback' => '__return_null',
+				'methods'             => 'GET',
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
 			)
 		);
 
@@ -299,8 +311,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'test-ns',
 			'/test',
 			array(
-				'methods'  => array( 'GET', 'POST' ),
-				'callback' => '__return_null',
+				'methods'             => array( 'GET', 'POST' ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
 			)
 		);
 
@@ -323,8 +336,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'test-ns',
 			'/test',
 			array(
-				'methods'  => 'GET,POST',
-				'callback' => '__return_null',
+				'methods'             => 'GET,POST',
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
 			)
 		);
 
@@ -344,8 +358,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'test-ns',
 			'/test',
 			array(
-				'methods'  => 'GET,POST',
-				'callback' => '__return_null',
+				'methods'             => 'GET,POST',
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
 			)
 		);
 
@@ -366,8 +381,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'test-ns',
 			'/test',
 			array(
-				'methods'  => 'GET,POST',
-				'callback' => '__return_true',
+				'methods'             => 'GET,POST',
+				'callback'            => '__return_true',
+				'permission_callback' => '__return_true',
 			)
 		);
 
@@ -378,7 +394,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that result fields are not whitelisted if no request['_fields'] is present.
+	 * Ensure that result fields are not allowed if no request['_fields'] is present.
 	 */
 	public function test_rest_filter_response_fields_no_request_filter() {
 		$response = new WP_REST_Response();
@@ -390,7 +406,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that result fields are whitelisted if request['_fields'] is present.
+	 * Ensure that result fields are allowed if request['_fields'] is present.
 	 */
 	public function test_rest_filter_response_fields_single_field_filter() {
 		$response = new WP_REST_Response();
@@ -410,7 +426,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that multiple comma-separated fields may be whitelisted with request['_fields'].
+	 * Ensure that multiple comma-separated fields may be allowed with request['_fields'].
 	 */
 	public function test_rest_filter_response_fields_multi_field_filter() {
 		$response = new WP_REST_Response();
@@ -440,7 +456,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that multiple comma-separated fields may be whitelisted
+	 * Ensure that multiple comma-separated fields may be allowed
 	 * with request['_fields'] using query parameter array syntax.
 	 */
 	public function test_rest_filter_response_fields_multi_field_filter_array() {
@@ -472,7 +488,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that request['_fields'] whitelists apply to items in response collections.
+	 * Ensure that request['_fields'] allowed list apply to items in response collections.
 	 */
 	public function test_rest_filter_response_fields_numeric_array() {
 		$response = new WP_REST_Response();
@@ -520,7 +536,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that nested fields may be whitelisted with request['_fields'].
+	 * Ensure that nested fields may be allowed with request['_fields'].
 	 *
 	 * @ticket 42094
 	 */
@@ -909,8 +925,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 			'test-ns',
 			'/test',
 			array(
-				'methods'  => array( 'GET' ),
-				'callback' => '__return_null',
+				'methods'             => array( 'GET' ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
 			)
 		);
 
@@ -942,7 +959,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	/**
 	 * @ticket 40614
 	 */
-	function test_rest_ensure_response_accepts_path_string() {
+	function test_rest_ensure_request_accepts_path_string() {
 		$request = rest_ensure_request( '/wp/v2/posts' );
 		$this->assertInstanceOf( 'WP_REST_Request', $request );
 		$this->assertEquals( '/wp/v2/posts', $request->get_route() );
@@ -985,9 +1002,90 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$this->assertEquals( $expected, rest_filter_response_by_context( $data, $schema, 'view' ) );
 	}
 
+	/**
+	 * @ticket 49749
+	 */
+	public function test_register_route_with_invalid_namespace() {
+		$this->setExpectedIncorrectUsage( 'register_rest_route' );
+
+		register_rest_route(
+			'/my-namespace/v1/',
+			'/my-route',
+			array(
+				'callback'            => '__return_true',
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		$routes = rest_get_server()->get_routes( 'my-namespace/v1' );
+		$this->assertCount( 2, $routes );
+
+		$this->assertTrue( rest_do_request( '/my-namespace/v1/my-route' )->get_data() );
+	}
+
+	/**
+	 * @ticket 50075
+	 */
+	public function test_register_route_with_missing_permission_callback_top_level_route() {
+		$this->setExpectedIncorrectUsage( 'register_rest_route' );
+
+		$registered = register_rest_route(
+			'my-ns/v1',
+			'/my-route',
+			array(
+				'callback' => '__return_true',
+			)
+		);
+
+		$this->assertTrue( $registered );
+	}
+
+	/**
+	 * @ticket 50075
+	 */
+	public function test_register_route_with_missing_permission_callback_single_wrapped_route() {
+		$this->setExpectedIncorrectUsage( 'register_rest_route' );
+
+		$registered = register_rest_route(
+			'my-ns/v1',
+			'/my-route',
+			array(
+				array(
+					'callback' => '__return_true',
+				),
+			)
+		);
+
+		$this->assertTrue( $registered );
+	}
+
+
+	/**
+	 * @ticket 50075
+	 */
+	public function test_register_route_with_missing_permission_callback_multiple_wrapped_route() {
+		$this->setExpectedIncorrectUsage( 'register_rest_route' );
+
+		$registered = register_rest_route(
+			'my-ns/v1',
+			'/my-route',
+			array(
+				array(
+					'callback' => '__return_true',
+				),
+				array(
+					'callback'            => '__return_true',
+					'permission_callback' => '__return_true',
+				),
+			)
+		);
+
+		$this->assertTrue( $registered );
+	}
+
 	public function _dp_rest_filter_response_by_context() {
 		return array(
-			'default'                => array(
+			'default'                             => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1008,7 +1106,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'first' => 'a' ),
 			),
-			'keeps missing context'  => array(
+			'keeps missing context'               => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1031,7 +1129,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'second' => 'b',
 				),
 			),
-			'removes empty context'  => array(
+			'removes empty context'               => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1052,7 +1150,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'first' => 'a' ),
 			),
-			'nested properties'      => array(
+			'nested properties'                   => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1081,7 +1179,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'parent' => array( 'child' => 'hi' ) ),
 			),
-			'grand child properties' => array(
+			'grand child properties'              => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1117,7 +1215,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'parent' => array( 'child' => array( 'grand' => 'hi' ) ) ),
 			),
-			'array'                  => array(
+			'array'                               => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1152,7 +1250,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'arr' => array( array( 'visible' => 'hi' ) ) ),
 			),
-			'additional properties'  => array(
+			'additional properties'               => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1186,7 +1284,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'additional' => array( 'a' => '1' ) ),
 			),
-			'multiple types object'  => array(
+			'multiple types object'               => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1215,7 +1313,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'multi' => array( 'a' => '1' ) ),
 			),
-			'multiple types array'   => array(
+			'multiple types array'                => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1250,7 +1348,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'multi' => array( array( 'visible' => '1' ) ) ),
 			),
-			'grand child properties does not traverses missing context' => array(
+			'does not traverse missing context'   => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1292,6 +1390,633 @@ class Tests_REST_API extends WP_UnitTestCase {
 						),
 					),
 				),
+			),
+			'object with no matching properties'  => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'a' => array(
+							'type'    => 'string',
+							'context' => array( 'edit' ),
+						),
+						'b' => array(
+							'type'    => 'string',
+							'context' => array( 'edit' ),
+						),
+					),
+				),
+				array(
+					'a' => 'hi',
+					'b' => 'hello',
+				),
+				array(),
+			),
+			'array whose type does not match'     => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'arr' => array(
+							'type'    => 'array',
+							'context' => array( 'view' ),
+							'items'   => array(
+								'type'    => 'string',
+								'context' => array( 'edit' ),
+							),
+						),
+					),
+				),
+				array(
+					'arr' => array( 'foo', 'bar', 'baz' ),
+				),
+				array( 'arr' => array() ),
+			),
+			'array and object type passed object' => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => array( 'array', 'object' ),
+					'properties' => array(
+						'a' => array(
+							'type'    => 'string',
+							'context' => array( 'view' ),
+						),
+						'b' => array(
+							'type'    => 'string',
+							'context' => array( 'view' ),
+						),
+					),
+					'items'      => array(
+						'type'       => 'object',
+						'context'    => array( 'edit' ),
+						'properties' => array(
+							'a' => array(
+								'type'    => 'string',
+								'context' => array( 'view' ),
+							),
+							'b' => array(
+								'type'    => 'string',
+								'context' => array( 'view' ),
+							),
+						),
+					),
+				),
+				array(
+					'a' => 'foo',
+					'b' => 'bar',
+				),
+				array(
+					'a' => 'foo',
+					'b' => 'bar',
+				),
+			),
+			'array and object type passed array'  => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => array( 'array', 'object' ),
+					'properties' => array(
+						'a' => array(
+							'type'    => 'string',
+							'context' => array( 'view' ),
+						),
+						'b' => array(
+							'type'    => 'string',
+							'context' => array( 'view' ),
+						),
+					),
+					'items'      => array(
+						'type'       => 'object',
+						'context'    => array( 'edit' ),
+						'properties' => array(
+							'a' => array(
+								'type'    => 'string',
+								'context' => array( 'view' ),
+							),
+							'b' => array(
+								'type'    => 'string',
+								'context' => array( 'view' ),
+							),
+						),
+					),
+				),
+				array(
+					array(
+						'a' => 'foo',
+						'b' => 'bar',
+					),
+					array(
+						'a' => 'foo',
+						'b' => 'bar',
+					),
+				),
+				array(),
+			),
+		);
+	}
+
+	function test_rest_ensure_response_accepts_wp_error_and_returns_wp_error() {
+		$response = rest_ensure_response( new WP_Error() );
+		$this->assertInstanceOf( 'WP_Error', $response );
+	}
+
+	/**
+	 * @dataProvider rest_ensure_response_data_provider
+	 *
+	 * @param mixed $response      The response passed to rest_ensure_response().
+	 * @param mixed $expected_data The expected data a response should include.
+	 */
+	function test_rest_ensure_response_returns_instance_of_wp_rest_response( $response, $expected_data ) {
+		$response_object = rest_ensure_response( $response );
+		$this->assertInstanceOf( 'WP_REST_Response', $response_object );
+		$this->assertSame( $expected_data, $response_object->get_data() );
+	}
+
+	/**
+	 * Data provider for test_rest_ensure_response_returns_instance_of_wp_rest_response().
+	 *
+	 * @return array
+	 */
+	function rest_ensure_response_data_provider() {
+		return array(
+			array( null, null ),
+			array( array( 'chocolate' => 'cookies' ), array( 'chocolate' => 'cookies' ) ),
+			array( 123, 123 ),
+			array( true, true ),
+			array( 'chocolate', 'chocolate' ),
+			array( new WP_HTTP_Response( 'http' ), 'http' ),
+			array( new WP_REST_Response( 'rest' ), 'rest' ),
+		);
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_post_non_post() {
+		$this->assertEquals( '', rest_get_route_for_post( 'garbage' ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_post_invalid_post_type() {
+		register_post_type( 'invalid' );
+		$post = self::factory()->post->create_and_get( array( 'post_type' => 'invalid' ) );
+		unregister_post_type( 'invalid' );
+
+		$this->assertEquals( '', rest_get_route_for_post( $post ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_post_non_rest() {
+		$post = self::factory()->post->create_and_get( array( 'post_type' => 'custom_css' ) );
+		$this->assertEquals( '', rest_get_route_for_post( $post ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_post_custom_controller() {
+		$post = self::factory()->post->create_and_get( array( 'post_type' => 'wp_block' ) );
+		$this->assertEquals( '', rest_get_route_for_post( $post ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_post() {
+		$post = self::factory()->post->create_and_get();
+		$this->assertEquals( '/wp/v2/posts/' . $post->ID, rest_get_route_for_post( $post ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_media() {
+		$post = self::factory()->attachment->create_and_get();
+		$this->assertEquals( '/wp/v2/media/' . $post->ID, rest_get_route_for_post( $post ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_post_id() {
+		$post = self::factory()->post->create_and_get();
+		$this->assertEquals( '/wp/v2/posts/' . $post->ID, rest_get_route_for_post( $post->ID ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_term_non_term() {
+		$this->assertEquals( '', rest_get_route_for_term( 'garbage' ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_term_invalid_term_type() {
+		register_taxonomy( 'invalid', 'post' );
+		$term = self::factory()->term->create_and_get( array( 'taxonomy' => 'invalid' ) );
+		unregister_taxonomy( 'invalid' );
+
+		$this->assertEquals( '', rest_get_route_for_term( $term ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_term_non_rest() {
+		$term = self::factory()->term->create_and_get( array( 'taxonomy' => 'post_format' ) );
+		$this->assertEquals( '', rest_get_route_for_term( $term ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_term() {
+		$term = self::factory()->term->create_and_get();
+		$this->assertEquals( '/wp/v2/tags/' . $term->term_id, rest_get_route_for_term( $term ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_category() {
+		$term = self::factory()->category->create_and_get();
+		$this->assertEquals( '/wp/v2/categories/' . $term->term_id, rest_get_route_for_term( $term ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_rest_get_route_for_term_id() {
+		$term = self::factory()->term->create_and_get();
+		$this->assertEquals( '/wp/v2/tags/' . $term->term_id, rest_get_route_for_term( $term->term_id ) );
+	}
+
+	/**
+	 * @ticket 50300
+	 *
+	 * @dataProvider _dp_rest_is_object
+	 *
+	 * @param bool  $expected Expected result of the check.
+	 * @param mixed $value    The value to check.
+	 */
+	public function test_rest_is_object( $expected, $value ) {
+		$is_object = rest_is_object( $value );
+
+		if ( $expected ) {
+			$this->assertTrue( $is_object );
+		} else {
+			$this->assertFalse( $is_object );
+		}
+	}
+
+	public function _dp_rest_is_object() {
+		return array(
+			array(
+				true,
+				'',
+			),
+			array(
+				true,
+				new stdClass(),
+			),
+			array(
+				true,
+				new JsonSerializable_Object( array( 'hi' => 'there' ) ),
+			),
+			array(
+				true,
+				array( 'hi' => 'there' ),
+			),
+			array(
+				true,
+				array(),
+			),
+			array(
+				true,
+				array( 'a', 'b' ),
+			),
+			array(
+				false,
+				new Basic_Object(),
+			),
+			array(
+				false,
+				new JsonSerializable_Object( 'str' ),
+			),
+			array(
+				false,
+				'str',
+			),
+			array(
+				false,
+				5,
+			),
+		);
+	}
+
+	/**
+	 * @ticket 50300
+	 *
+	 * @dataProvider _dp_rest_sanitize_object
+	 *
+	 * @param array $expected Expected sanitized version.
+	 * @param mixed $value    The value to sanitize.
+	 */
+	public function test_rest_sanitize_object( $expected, $value ) {
+		$sanitized = rest_sanitize_object( $value );
+		$this->assertEquals( $expected, $sanitized );
+	}
+
+	public function _dp_rest_sanitize_object() {
+		return array(
+			array(
+				array(),
+				'',
+			),
+			array(
+				array( 'a' => '1' ),
+				(object) array( 'a' => '1' ),
+			),
+			array(
+				array( 'hi' => 'there' ),
+				new JsonSerializable_Object( array( 'hi' => 'there' ) ),
+			),
+			array(
+				array( 'hi' => 'there' ),
+				array( 'hi' => 'there' ),
+			),
+			array(
+				array(),
+				array(),
+			),
+			array(
+				array( 'a', 'b' ),
+				array( 'a', 'b' ),
+			),
+			array(
+				array(),
+				new Basic_Object(),
+			),
+			array(
+				array(),
+				new JsonSerializable_Object( 'str' ),
+			),
+			array(
+				array(),
+				'str',
+			),
+			array(
+				array(),
+				5,
+			),
+		);
+	}
+
+	/**
+	 * @ticket 50300
+	 *
+	 * @dataProvider _dp_rest_is_array
+	 *
+	 * @param bool  $expected Expected result of the check.
+	 * @param mixed $value    The value to check.
+	 */
+	public function test_rest_is_array( $expected, $value ) {
+		$is_array = rest_is_array( $value );
+
+		if ( $expected ) {
+			$this->assertTrue( $is_array );
+		} else {
+			$this->assertFalse( $is_array );
+		}
+	}
+
+	public function _dp_rest_is_array() {
+		return array(
+			array(
+				true,
+				'',
+			),
+			array(
+				true,
+				array( 'a', 'b' ),
+			),
+			array(
+				true,
+				array(),
+			),
+			array(
+				true,
+				'a,b,c',
+			),
+			array(
+				true,
+				'a',
+			),
+			array(
+				true,
+				5,
+			),
+			array(
+				false,
+				new stdClass(),
+			),
+			array(
+				false,
+				new JsonSerializable_Object( array( 'hi' => 'there' ) ),
+			),
+			array(
+				false,
+				array( 'hi' => 'there' ),
+			),
+			array(
+				false,
+				new Basic_Object(),
+			),
+			array(
+				false,
+				new JsonSerializable_Object( 'str' ),
+			),
+			array(
+				false,
+				null,
+			),
+		);
+	}
+
+	/**
+	 * @ticket 50300
+	 *
+	 * @dataProvider _dp_rest_sanitize_array
+	 *
+	 * @param array $expected Expected sanitized version.
+	 * @param mixed $value    The value to sanitize.
+	 */
+	public function test_rest_sanitize_array( $expected, $value ) {
+		$sanitized = rest_sanitize_array( $value );
+		$this->assertEquals( $expected, $sanitized );
+	}
+
+	public function _dp_rest_sanitize_array() {
+		return array(
+			array(
+				array(),
+				'',
+			),
+			array(
+				array( 'a', 'b' ),
+				array( 'a', 'b' ),
+			),
+			array(
+				array(),
+				array(),
+			),
+			array(
+				array( 'a', 'b', 'c' ),
+				'a,b,c',
+			),
+			array(
+				array( 'a' ),
+				'a',
+			),
+			array(
+				array( 'a', 'b' ),
+				'a,b,',
+			),
+			array(
+				array( '5' ),
+				5,
+			),
+			array(
+				array(),
+				new stdClass(),
+			),
+			array(
+				array(),
+				new JsonSerializable_Object( array( 'hi' => 'there' ) ),
+			),
+			array(
+				array( 'there' ),
+				array( 'hi' => 'there' ),
+			),
+			array(
+				array(),
+				new Basic_Object(),
+			),
+			array(
+				array(),
+				new JsonSerializable_Object( 'str' ),
+			),
+			array(
+				array(),
+				null,
+			),
+		);
+	}
+
+	/**
+	 * @ticket 50300
+	 *
+	 * @dataProvider _dp_get_best_type_for_value
+	 *
+	 * @param string $expected The expected best type.
+	 * @param mixed  $value    The value to test.
+	 * @param array  $types    The list of available types.
+	 */
+	public function test_get_best_type_for_value( $expected, $value, $types ) {
+		$this->assertEquals( $expected, rest_get_best_type_for_value( $value, $types ) );
+	}
+
+	public function _dp_get_best_type_for_value() {
+		return array(
+			array(
+				'array',
+				array( 'hi' ),
+				array( 'array' ),
+			),
+			array(
+				'object',
+				array( 'hi' => 'there' ),
+				array( 'object' ),
+			),
+			array(
+				'integer',
+				5,
+				array( 'integer' ),
+			),
+			array(
+				'number',
+				4.0,
+				array( 'number' ),
+			),
+			array(
+				'boolean',
+				true,
+				array( 'boolean' ),
+			),
+			array(
+				'string',
+				'str',
+				array( 'string' ),
+			),
+			array(
+				'null',
+				null,
+				array( 'null' ),
+			),
+			array(
+				'string',
+				'',
+				array( 'array', 'string' ),
+			),
+			array(
+				'string',
+				'',
+				array( 'object', 'string' ),
+			),
+			array(
+				'string',
+				'Hello',
+				array( 'object', 'string' ),
+			),
+			array(
+				'object',
+				array( 'hello' => 'world' ),
+				array( 'object', 'string' ),
+			),
+			array(
+				'number',
+				'5.0',
+				array( 'number', 'string' ),
+			),
+			array(
+				'string',
+				'5.0',
+				array( 'string', 'number' ),
+			),
+			array(
+				'boolean',
+				'false',
+				array( 'boolean', 'string' ),
+			),
+			array(
+				'string',
+				'false',
+				array( 'string', 'boolean' ),
+			),
+			array(
+				'string',
+				'a,b',
+				array( 'string', 'array' ),
+			),
+			array(
+				'array',
+				'a,b',
+				array( 'array', 'string' ),
 			),
 		);
 	}

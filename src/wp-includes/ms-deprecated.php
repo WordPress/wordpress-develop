@@ -91,7 +91,7 @@ function graceful_fail( $message ) {
 	$message = apply_filters( 'graceful_fail', $message );
 	$message_template = apply_filters( 'graceful_fail_template',
 '<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"><head>
+<html><head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Error!</title>
 <style type="text/css">
@@ -165,7 +165,7 @@ function is_main_blog() {
  *
  * @param string $email        Email address to verify.
  * @param bool   $check_domain Deprecated.
- * @return string|bool Either false or the valid email address.
+ * @return string|false Valid email address on success, false on failure.
  */
 function validate_email( $email, $check_domain = true) {
 	_deprecated_function( __FUNCTION__, '3.0.0', 'is_email()' );
@@ -282,11 +282,11 @@ function wpmu_admin_do_redirect( $url = '' ) {
 	if ( $ref ) {
 		$ref = wpmu_admin_redirect_add_updated_param( $ref );
 		wp_redirect( $ref );
-		exit();
+		exit;
 	}
 	if ( ! empty( $_SERVER['HTTP_REFERER'] ) ) {
 		wp_redirect( $_SERVER['HTTP_REFERER'] );
-		exit();
+		exit;
 	}
 
 	$url = wpmu_admin_redirect_add_updated_param( $url );
@@ -299,7 +299,7 @@ function wpmu_admin_do_redirect( $url = '' ) {
 		$url = wpmu_admin_redirect_add_updated_param( $_POST['redirect'] );
 	}
 	wp_redirect( $url );
-	exit();
+	exit;
 }
 
 /**
@@ -401,7 +401,7 @@ function create_empty_blog( $domain, $path, $weblog_title, $site_id = 1 ) {
 
 	// Check if the domain has been used already. We should return an error message.
 	if ( domain_exists($domain, $path, $site_id) )
-		return __( '<strong>Error</strong>: Site URL already taken.' );
+		return __( '<strong>Error</strong>: Site URL you&#8217;ve entered is already taken.' );
 
 	/*
 	 * Need to back up wpdb table names, and create a new wp_blogs entry for new blog.
@@ -410,7 +410,7 @@ function create_empty_blog( $domain, $path, $weblog_title, $site_id = 1 ) {
 	 */
 
 	if ( ! $blog_id = insert_blog($domain, $path, $site_id) )
-		return __( '<strong>Error</strong>: Problem creating site entry.' );
+		return __( '<strong>Error</strong>: There was a problem creating site entry.' );
 
 	switch_to_blog($blog_id);
 	install_blog($blog_id);

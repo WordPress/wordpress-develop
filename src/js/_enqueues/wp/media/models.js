@@ -17,7 +17,7 @@ window.wp = window.wp || {};
  * @memberOf wp
  * @namespace
  *
- * @param  {object} attributes The properties passed to the main media controller.
+ * @param {Object} attributes The properties passed to the main media controller.
  * @return {wp.media.view.MediaFrame} A media workflow.
  */
 media = wp.media = function( attributes ) {
@@ -86,13 +86,13 @@ media.model.Selection = require( '../../../media/models/selection.js' );
  *
  * Used to order models within a collection - @see wp.media.model.Attachments.comparator().
  *
- * @param  {mixed}  a  The primary parameter to compare.
- * @param  {mixed}  b  The primary parameter to compare.
- * @param  {string} ac The fallback parameter to compare, a's cid.
- * @param  {string} bc The fallback parameter to compare, b's cid.
- * @return {number}    -1: a should come before b.
- *                      0: a and b are of the same rank.
- *                      1: b should come before a.
+ * @param {mixed}  a  The primary parameter to compare.
+ * @param {mixed}  b  The primary parameter to compare.
+ * @param {string} ac The fallback parameter to compare, a's cid.
+ * @param {string} bc The fallback parameter to compare, b's cid.
+ * @return {number} -1: a should come before b.
+ *                   0: a and b are of the same rank.
+ *                   1: b should come before a.
  */
 media.compare = function( a, b, ac, bc ) {
 	if ( _.isEqual( a, b ) ) {
@@ -183,10 +183,10 @@ _.extend( media, /** @lends wp.media */{
 	 * Truncates a string by injecting an ellipsis into the middle.
 	 * Useful for filenames.
 	 *
-	 * @param {String} string
-	 * @param {Number} [length=30]
-	 * @param {String} [replacement=&hellip;]
-	 * @return {String} The string, unless length is greater than string.length.
+	 * @param {string} string
+	 * @param {number} [length=30]
+	 * @param {string} [replacement=&hellip;]
+	 * @return {string} The string, unless length is greater than string.length.
 	 */
 	truncate: function( string, length, replacement ) {
 		length = length || 30;
@@ -209,7 +209,7 @@ _.extend( media, /** @lends wp.media */{
  * wp.media.attachment
  *
  * @static
- * @param {String} id A string used to identify a model.
+ * @param {string} id A string used to identify a model.
  * @return {wp.media.model.Attachment}
  */
 media.attachment = function( id ) {
@@ -229,7 +229,7 @@ Attachments.all = new Attachments();
  *
  * Shorthand for creating a new Attachments Query.
  *
- * @param {object} [props]
+ * @param {Object} [props]
  * @return {wp.media.model.Attachments}
  */
 media.query = function( props ) {

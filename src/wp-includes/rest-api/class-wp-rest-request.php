@@ -402,14 +402,13 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 5.3.0
 	 *
 	 * @param string $key Parameter name.
-	 *
 	 * @return bool True if a param exists for the given key.
 	 */
 	public function has_param( $key ) {
 		$order = $this->get_parameter_order();
 
 		foreach ( $order as $type ) {
-			if ( array_key_exists( $key, $this->params[ $type ] ) ) {
+			if ( is_array( $this->params[ $type ] ) && array_key_exists( $key, $this->params[ $type ] ) ) {
 				return true;
 			}
 		}
@@ -434,7 +433,7 @@ class WP_REST_Request implements ArrayAccess {
 		$found_key = false;
 
 		foreach ( $order as $type ) {
-			if ( 'defaults' !== $type && array_key_exists( $key, $this->params[ $type ] ) ) {
+			if ( 'defaults' !== $type && is_array( $this->params[ $type ] ) && array_key_exists( $key, $this->params[ $type ] ) ) {
 				$this->params[ $type ][ $key ] = $value;
 				$found_key                     = true;
 			}

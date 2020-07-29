@@ -2,7 +2,7 @@
  * @output wp-admin/js/common.js
  */
 
-/* global setUserSetting, ajaxurl, commonL10n, alert, confirm, pagenow */
+/* global setUserSetting, ajaxurl, alert, confirm, pagenow */
 /* global columns, screenMeta */
 
 /**
@@ -15,7 +15,8 @@
 ( function( $, window, undefined ) {
 	var $document = $( document ),
 		$window = $( window ),
-		$body = $( document.body );
+		$body = $( document.body ),
+		__ = wp.i18n.__;
 
 /**
  * Removed in 3.3.0, needed for back-compatibility.
@@ -136,7 +137,7 @@ window.columns = {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @param {int} diff The modifier for the column span.
+	 * @param {number} diff The modifier for the column span.
 	 */
 	colSpanChange : function(diff) {
 		var $t = $('table').find('.colspanchange'), n;
@@ -188,8 +189,7 @@ window.showNotice = {
 	 * @return {boolean} Returns true if the message is confirmed.
 	 */
 	warn : function() {
-		var msg = commonL10n.warnDelete || '';
-		if ( confirm(msg) ) {
+		if ( confirm( __( 'You are about to permanently delete these items from your site.\nThis action cannot be undone.\n\'Cancel\' to stop, \'OK\' to delete.' ) ) ) {
 			return true;
 		}
 
@@ -384,7 +384,7 @@ $permalinkStructure.on( 'focus', function( event ) {
  * If the structure is already used in the custom permalink structure,
  * it will be disabled.
  *
- * @param {object} button Button jQuery object.
+ * @param {Object} button Button jQuery object.
  */
 function changeStructureTagButtonState( button ) {
 	if ( -1 !== $permalinkStructure.val().indexOf( button.text().trim() ) ) {
@@ -757,11 +757,10 @@ $document.ready( function() {
 	function makeNoticesDismissible() {
 		$( '.notice.is-dismissible' ).each( function() {
 			var $el = $( this ),
-				$button = $( '<button type="button" class="notice-dismiss"><span class="screen-reader-text"></span></button>' ),
-				btnText = commonL10n.dismiss || '';
+				$button = $( '<button type="button" class="notice-dismiss"><span class="screen-reader-text"></span></button>' );
 
 			// Ensure plain text.
-			$button.find( '.screen-reader-text' ).text( btnText );
+			$button.find( '.screen-reader-text' ).text( __( 'Dismiss this notice.' ) );
 			$button.on( 'click.wp-dismiss-notice', function( event ) {
 				event.preventDefault();
 				$el.fadeTo( 100, 0, function() {
@@ -1559,12 +1558,14 @@ $document.ready( function() {
 	 */
 	$document.on( 'wp-menu-state-set wp-collapse-menu', function( event, eventData ) {
 		var $collapseButton = $( '#collapse-button' ),
-			ariaExpanded = 'true',
-			ariaLabelText = commonL10n.collapseMenu;
+			ariaExpanded, ariaLabelText;
 
 		if ( 'folded' === eventData.state ) {
 			ariaExpanded = 'false';
-			ariaLabelText = commonL10n.expandMenu;
+			ariaLabelText = __( 'Expand Main menu' );
+		} else {
+			ariaExpanded = 'true';
+			ariaLabelText = __( 'Collapse Main menu' );
 		}
 
 		$collapseButton.attr({
@@ -1604,6 +1605,41 @@ $document.ready( function() {
 		$( this ).attr( 'aria-expanded', $progressDiv.is( ':visible' ) );
 	});
 });
+
+/**
+ * Hides the update button for expired plugin or theme uploads.
+ *
+ * On the "Update plugin/theme from uploaded zip" screen, once the upload has expired,
+ * hides the "Replace current with uploaded" button and displays a warning.
+ *
+ * @since 5.5.0
+ */
+$document.ready( function( $ ) {
+	var $overwrite, $warning;
+
+	if ( ! $body.hasClass( 'update-php' ) ) {
+		return;
+	}
+
+	$overwrite = $( 'a.update-from-upload-overwrite' );
+	$warning   = $( '.update-from-upload-expired' );
+
+	if ( ! $overwrite.length || ! $warning.length ) {
+		return;
+	}
+
+	window.setTimeout(
+		function() {
+			$overwrite.hide();
+			$warning.removeClass( 'hidden' );
+
+			if ( window.wp && window.wp.a11y ) {
+				window.wp.a11y.speak( $warning.text() );
+			}
+		},
+		7140000 // 119 minutes. The uploaded file is deleted after 2 hours.
+	);
+} );
 
 // Fire a custom jQuery event at the end of window resize.
 ( function() {

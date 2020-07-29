@@ -536,7 +536,7 @@ function wp_comment_trashnotice() {
 <div class="hidden" id="trash-undo-holder">
 	<div class="trash-undo-inside">
 		<?php
-		/* translators: %s: Comment author, filled by AJAX. */
+		/* translators: %s: Comment author, filled by Ajax. */
 		printf( __( 'Comment by %s moved to the Trash.' ), '<strong></strong>' );
 		?>
 		<span class="undo untrash"><a href="#"><?php _e( 'Undo' ); ?></a></span>
@@ -545,7 +545,7 @@ function wp_comment_trashnotice() {
 <div class="hidden" id="spam-undo-holder">
 	<div class="spam-undo-inside">
 		<?php
-		/* translators: %s: Comment author, filled by AJAX. */
+		/* translators: %s: Comment author, filled by Ajax. */
 		printf( __( 'Comment by %s marked as spam.' ), '<strong></strong>' );
 		?>
 		<span class="undo unspam"><a href="#"><?php _e( 'Undo' ); ?></a></span>
@@ -602,8 +602,6 @@ function list_meta( $meta ) {
  * Outputs a single row of public meta data in the Custom Fields meta box.
  *
  * @since 2.5.0
- *
- * @staticvar string $update_nonce
  *
  * @param array $entry
  * @param int   $count
@@ -925,7 +923,7 @@ function parent_dropdown( $default = 0, $parent = 0, $level = 0, $post = null ) 
 }
 
 /**
- * Print out option html elements for role selectors.
+ * Print out option HTML elements for role selectors.
  *
  * @since 2.1.0
  *
@@ -1236,8 +1234,6 @@ function _get_plugin_from_callback( $callback ) {
  *
  * @global array $wp_meta_boxes
  *
- * @staticvar bool $already_sorted
- *
  * @param string|WP_Screen $screen  The screen identifier. If you have used add_menu_page() or
  *                                  add_submenu_page() to create a new screen (and hence screen_id)
  *                                  make sure your menu slug conforms to the limits of sanitize_key()
@@ -1318,6 +1314,16 @@ function do_meta_boxes( $screen, $context, $object ) {
 					// get_hidden_meta_boxes() doesn't apply in the block editor.
 					$hidden_class = ( ! $screen->is_block_editor() && in_array( $box['id'], $hidden, true ) ) ? ' hide-if-js' : '';
 					echo '<div id="' . $box['id'] . '" class="postbox ' . postbox_classes( $box['id'], $page ) . $hidden_class . '" ' . '>' . "\n";
+
+					echo '<div class="postbox-header">';
+					echo '<h2 class="hndle">';
+					if ( 'dashboard_php_nag' === $box['id'] ) {
+						echo '<span aria-hidden="true" class="dashicons dashicons-warning"></span>';
+						echo '<span class="screen-reader-text">' . __( 'Warning:' ) . ' </span>';
+					}
+					echo "{$box['title']}";
+					echo "</h2>\n";
+
 					if ( 'dashboard_browser_nag' !== $box['id'] ) {
 						$widget_title = $box['title'];
 
@@ -1327,6 +1333,28 @@ function do_meta_boxes( $screen, $context, $object ) {
 							unset( $box['args']['__widget_basename'] );
 						}
 
+						echo '<div class="handle-actions hide-if-no-js">';
+
+						echo '<button type="button" class="handle-order-higher" aria-disabled="false" aria-describedby="' . $box['id'] . '-handle-order-higher-description">';
+						echo '<span class="screen-reader-text">' . __( 'Move up' ) . '</span>';
+						echo '<span class="order-higher-indicator" aria-hidden="true"></span>';
+						echo '</button>';
+						echo '<span class="hidden" id="' . $box['id'] . '-handle-order-higher-description">' . sprintf(
+							/* translators: %s: Meta box title. */
+							__( 'Move %s box up' ),
+							$widget_title
+						) . '</span>';
+
+						echo '<button type="button" class="handle-order-lower" aria-disabled="false" aria-describedby="' . $box['id'] . '-handle-order-lower-description">';
+						echo '<span class="screen-reader-text">' . __( 'Move down' ) . '</span>';
+						echo '<span class="order-lower-indicator" aria-hidden="true"></span>';
+						echo '</button>';
+						echo '<span class="hidden" id="' . $box['id'] . '-handle-order-lower-description">' . sprintf(
+							/* translators: %s: Meta box title. */
+							__( 'Move %s box down' ),
+							$widget_title
+						) . '</span>';
+
 						echo '<button type="button" class="handlediv" aria-expanded="true">';
 						echo '<span class="screen-reader-text">' . sprintf(
 							/* translators: %s: Meta box title. */
@@ -1335,14 +1363,11 @@ function do_meta_boxes( $screen, $context, $object ) {
 						) . '</span>';
 						echo '<span class="toggle-indicator" aria-hidden="true"></span>';
 						echo '</button>';
+
+						echo '</div>';
 					}
-					echo '<h2 class="hndle">';
-					if ( 'dashboard_php_nag' === $box['id'] ) {
-						echo '<span aria-hidden="true" class="dashicons dashicons-warning"></span>';
-						echo '<span class="screen-reader-text">' . __( 'Warning:' ) . ' </span>';
-					}
-					echo "<span>{$box['title']}</span>";
-					echo "</h2>\n";
+					echo '</div>';
+
 					echo '<div class="inside">' . "\n";
 
 					if ( WP_DEBUG && ! $block_compatible && 'edit' === $screen->parent_base && ! $screen->is_block_editor() && ! isset( $_GET['meta-box-loader'] ) ) {
@@ -1517,7 +1542,7 @@ function do_accordion_sections( $screen, $context, $object ) {
  *
  * @since 2.7.0
  *
- * @global $wp_settings_sections Storage array of all settings sections added to admin pages.
+ * @global array $wp_settings_sections Storage array of all settings sections added to admin pages.
  *
  * @param string   $id       Slug-name to identify the section. Used in the 'id' attribute of tags.
  * @param string   $title    Formatted title of the section. Shown as the heading for the section.
@@ -1570,13 +1595,13 @@ function add_settings_section( $id, $title, $callback, $page ) {
  * do_settings_fields() in do_settings-sections()
  *
  * The $callback argument should be the name of a function that echoes out the
- * html input tags for this setting field. Use get_option() to retrieve existing
+ * HTML input tags for this setting field. Use get_option() to retrieve existing
  * values to show.
  *
  * @since 2.7.0
  * @since 4.2.0 The `$class` argument was added.
  *
- * @global $wp_settings_fields Storage array of settings fields and info about their pages/sections.
+ * @global array $wp_settings_fields Storage array of settings fields and info about their pages/sections.
  *
  * @param string   $id       Slug-name to identify the field. Used in the 'id' attribute of tags.
  * @param string   $title    Formatted title of the field. Shown as the label for the field
@@ -1641,8 +1666,8 @@ function add_settings_field( $id, $title, $callback, $page, $section = 'default'
  * to output all the sections and fields that were added to that $page with
  * add_settings_section() and add_settings_field()
  *
- * @global $wp_settings_sections Storage array of all settings sections added to admin pages.
- * @global $wp_settings_fields Storage array of settings fields and info about their pages/sections.
+ * @global array $wp_settings_sections Storage array of all settings sections added to admin pages.
+ * @global array $wp_settings_fields Storage array of settings fields and info about their pages/sections.
  * @since 2.7.0
  *
  * @param string $page The slug name of the page whose settings sections you want to output.
@@ -1679,7 +1704,7 @@ function do_settings_sections( $page ) {
  * a specific section. Should normally be called by do_settings_sections()
  * rather than directly.
  *
- * @global $wp_settings_fields Storage array of settings fields and their pages/sections.
+ * @global array $wp_settings_fields Storage array of settings fields and their pages/sections.
  *
  * @since 2.7.0
  *
@@ -1770,8 +1795,8 @@ function add_settings_error( $setting, $code, $message, $type = 'error' ) {
  *
  * @global array $wp_settings_errors Storage array of errors registered during this pageload
  *
- * @param string $setting Optional slug title of a specific setting whose errors you want.
- * @param boolean $sanitize Whether to re-sanitize the setting value before returning errors.
+ * @param string $setting  Optional. Slug title of a specific setting whose errors you want.
+ * @param bool   $sanitize Optional. Whether to re-sanitize the setting value before returning errors.
  * @return array Array of settings errors.
  */
 function get_settings_errors( $setting = '', $sanitize = false ) {
@@ -1922,7 +1947,7 @@ function find_posts_div( $found_action = '' ) {
 /**
  * Displays the post password.
  *
- * The password is passed through esc_attr() to ensure that it is safe for placing in an html attribute.
+ * The password is passed through esc_attr() to ensure that it is safe for placing in an HTML attribute.
  *
  * @since 2.7.0
  */
@@ -2133,6 +2158,7 @@ function _post_states( $post, $echo = true ) {
  */
 function get_post_states( $post ) {
 	$post_states = array();
+
 	if ( isset( $_REQUEST['post_status'] ) ) {
 		$post_status = $_REQUEST['post_status'];
 	} else {
@@ -2196,14 +2222,15 @@ function get_post_states( $post ) {
 }
 
 /**
- * Function to echo the attachment media states as HTML.
+ * Outputs the attachment media states as HTML.
  *
  * @since 3.2.0
  *
  * @param WP_Post $post The attachment post to retrieve states for.
- * @return string Media states string.
  */
 function _media_states( $post ) {
+	static $header_images;
+
 	$media_states = array();
 	$stylesheet   = get_option( 'stylesheet' );
 
@@ -2211,7 +2238,9 @@ function _media_states( $post ) {
 		$meta_header = get_post_meta( $post->ID, '_wp_attachment_is_custom_header', true );
 
 		if ( is_random_header_image() ) {
-			$header_images = wp_list_pluck( get_uploaded_header_images(), 'attachment_id' );
+			if ( ! isset( $header_images ) ) {
+				$header_images = wp_list_pluck( get_uploaded_header_images(), 'attachment_id' );
+			}
 
 			if ( $meta_header === $stylesheet && in_array( $post->ID, $header_images, true ) ) {
 				$media_states[] = __( 'Header Image' );
@@ -2454,9 +2483,13 @@ function _wp_admin_html_begin() {
 
 	?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" class="<?php echo $admin_html_class; ?>"
+<html class="<?php echo $admin_html_class; ?>"
 	<?php
-	/** This action is documented in wp-admin/includes/template.php */
+	/**
+	 * Fires inside the HTML tag in the admin header.
+	 *
+	 * @since 2.2.0
+	 */
 	do_action( 'admin_xml_ns' );
 
 	language_attributes();

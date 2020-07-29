@@ -205,4 +205,80 @@ class Tests_Feeds_Atom extends WP_UnitTestCase {
 			}
 		}
 	}
+
+	/**
+	 * @ticket 33591
+	 */
+	function test_atom_enclosure_with_extended_url_length_type_parsing() {
+		$enclosures = array(
+			array(
+				// URL, length, type.
+				'actual'   => "https://wordpress.dev/wp-content/uploads/2017/09/movie.mp4\n318465\nvideo/mp4",
+				'expected' => array(
+					'href'   => 'https://wordpress.dev/wp-content/uploads/2017/09/movie.mp4',
+					'length' => 318465,
+					'type'   => 'video/mp4',
+				),
+			),
+			array(
+				// URL, type, length.
+				'actual'   => "https://wordpress.dev/wp-content/uploads/2017/09/movie.mp4\nvideo/mp4\n318465",
+				'expected' => array(
+					'href'   => 'https://wordpress.dev/wp-content/uploads/2017/09/movie.mp4',
+					'length' => 318465,
+					'type'   => 'video/mp4',
+				),
+			),
+			array(
+				// URL, length.
+				'actual'   => "https://wordpress.dev/wp-content/uploads/2017/09/movie.mp4\n318465",
+				'expected' => array(
+					'href'   => 'https://wordpress.dev/wp-content/uploads/2017/09/movie.mp4',
+					'length' => 318465,
+					'type'   => '',
+				),
+			),
+			array(
+				// URL, type.
+				'actual'   => "https://wordpress.dev/wp-content/uploads/2017/01/audio.mp3\n\naudio/mpeg",
+				'expected' => array(
+					'href'   => 'https://wordpress.dev/wp-content/uploads/2017/01/audio.mp3',
+					'length' => 0,
+					'type'   => 'audio/mpeg',
+				),
+			),
+			array(
+				// URL.
+				'actual'   => 'https://wordpress.dev/wp-content/uploads/2016/01/test.mp4',
+				'expected' => array(
+					'href'   => 'https://wordpress.dev/wp-content/uploads/2016/01/test.mp4',
+					'length' => 0,
+					'type'   => '',
+				),
+			),
+		);
+
+		$post_id = end( self::$posts );
+		foreach ( $enclosures as $enclosure ) {
+			add_post_meta( $post_id, 'enclosure', $enclosure['actual'] );
+		}
+		$this->go_to( '/?feed=atom' );
+		$feed    = $this->do_atom();
+		$xml     = xml_to_array( $feed );
+		$entries = xml_find( $xml, 'feed', 'entry' );
+		$entries = array_slice( $entries, 0, 1 );
+
+		foreach ( $entries as $key => $entry ) {
+			$links = xml_find( $entries[ $key ]['child'], 'link' );
+			$i     = 0;
+			foreach ( (array) $links as $link ) {
+				if ( 'enclosure' === $link['attributes']['rel'] ) {
+					$this->assertEquals( $enclosures[ $i ]['expected']['href'], $link['attributes']['href'] );
+					$this->assertEquals( $enclosures[ $i ]['expected']['length'], $link['attributes']['length'] );
+					$this->assertEquals( $enclosures[ $i ]['expected']['type'], $link['attributes']['type'] );
+					$i++;
+				}
+			}
+		}
+	}
 }

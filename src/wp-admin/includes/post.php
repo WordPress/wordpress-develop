@@ -13,7 +13,7 @@
  *
  * @since 2.6.0
  *
- * @param bool $update Are we updating a pre-existing post?
+ * @param bool  $update    Are we updating a pre-existing post?
  * @param array $post_data Array of post data. Defaults to the contents of $_POST.
  * @return array|WP_Error Array of post data on success, WP_Error on failure.
  */
@@ -224,11 +224,16 @@ function _wp_get_allowed_postdata( $post_data = null ) {
 /**
  * Update an existing post with values provided in $_POST.
  *
+ * If post data is passed as an argument, it is treated as an array of data
+ * keyed appropriately for turning into a post object.
+ *
+ * If post data is not passed, the $_POST global variable is used instead.
+ *
  * @since 1.5.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param array $post_data Optional.
+ * @param array $post_data Optional. Defaults to the $_POST global.
  * @return int Post ID.
  */
 function edit_post( $post_data = null ) {
@@ -1500,13 +1505,13 @@ function get_sample_permalink_html( $id, $new_title = null, $new_slug = null ) {
 }
 
 /**
- * Output HTML for the post thumbnail meta-box.
+ * Returns HTML for the post thumbnail meta box.
  *
  * @since 2.9.0
  *
- * @param int $thumbnail_id ID of the attachment used for thumbnail
- * @param int|WP_Post $post Optional. The post ID or object associated with the thumbnail, defaults to global $post.
- * @return string html
+ * @param int         $thumbnail_id ID of the attachment used for thumbnail
+ * @param int|WP_Post $post         Optional. The post ID or object associated with the thumbnail, defaults to global $post.
+ * @return string The post thumbnail HTML.
  */
 function _wp_post_thumbnail_html( $thumbnail_id = null, $post = null ) {
 	$_wp_additional_image_sizes = wp_get_additional_image_sizes();
@@ -2179,33 +2184,33 @@ function use_block_editor_for_post_type( $post_type ) {
 function get_block_categories( $post ) {
 	$default_categories = array(
 		array(
-			'slug'  => 'common',
-			'title' => __( 'Common Blocks' ),
+			'slug'  => 'text',
+			'title' => _x( 'Text', 'block category' ),
 			'icon'  => null,
 		),
 		array(
-			'slug'  => 'formatting',
-			'title' => __( 'Formatting' ),
+			'slug'  => 'media',
+			'title' => _x( 'Media', 'block category' ),
 			'icon'  => null,
 		),
 		array(
-			'slug'  => 'layout',
-			'title' => __( 'Layout Elements' ),
+			'slug'  => 'design',
+			'title' => _x( 'Design', 'block category' ),
 			'icon'  => null,
 		),
 		array(
 			'slug'  => 'widgets',
-			'title' => __( 'Widgets' ),
+			'title' => _x( 'Widgets', 'block category' ),
 			'icon'  => null,
 		),
 		array(
 			'slug'  => 'embed',
-			'title' => __( 'Embeds' ),
+			'title' => _x( 'Embeds', 'block category' ),
 			'icon'  => null,
 		),
 		array(
 			'slug'  => 'reusable',
-			'title' => __( 'Reusable Blocks' ),
+			'title' => _x( 'Reusable Blocks', 'block category' ),
 			'icon'  => null,
 		),
 	);
@@ -2234,11 +2239,25 @@ function get_block_categories( $post ) {
 function get_block_editor_server_block_settings() {
 	$block_registry = WP_Block_Type_Registry::get_instance();
 	$blocks         = array();
-	$keys_to_pick   = array( 'title', 'description', 'icon', 'category', 'keywords', 'parent', 'supports', 'attributes', 'styles' );
+	$fields_to_pick = array(
+		'title'            => 'title',
+		'description'      => 'description',
+		'icon'             => 'icon',
+		'category'         => 'category',
+		'keywords'         => 'keywords',
+		'parent'           => 'parent',
+		'supports'         => 'supports',
+		'attributes'       => 'attributes',
+		'provides_context' => 'providesContext',
+		'uses_context'     => 'usesContext',
+		'styles'           => 'styles',
+		'textdomain'       => 'textdomain',
+		'example'          => 'example',
+	);
 
 	foreach ( $block_registry->get_all_registered() as $block_name => $block_type ) {
-		foreach ( $keys_to_pick as $key ) {
-			if ( ! isset( $block_type->{ $key } ) ) {
+		foreach ( $fields_to_pick as $field => $key ) {
+			if ( ! isset( $block_type->{ $field } ) ) {
 				continue;
 			}
 
@@ -2246,7 +2265,7 @@ function get_block_editor_server_block_settings() {
 				$blocks[ $block_name ] = array();
 			}
 
-			$blocks[ $block_name ][ $key ] = $block_type->{ $key };
+			$blocks[ $block_name ][ $key ] = $block_type->{ $field };
 		}
 	}
 

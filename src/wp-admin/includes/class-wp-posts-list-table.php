@@ -135,13 +135,20 @@ class WP_Posts_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * @global string   $mode             List table view mode.
 	 * @global array    $avail_post_stati
 	 * @global WP_Query $wp_query         WordPress Query object.
 	 * @global int      $per_page
-	 * @global string   $mode
 	 */
 	public function prepare_items() {
-		global $avail_post_stati, $wp_query, $per_page, $mode;
+		global $mode, $avail_post_stati, $wp_query, $per_page;
+
+		if ( ! empty( $_REQUEST['mode'] ) ) {
+			$mode = 'excerpt' === $_REQUEST['mode'] ? 'excerpt' : 'list';
+			set_user_setting( 'posts_list_mode', $mode );
+		} else {
+			$mode = get_user_setting( 'posts_list_mode', 'list' );
+		}
 
 		// Is going to call wp().
 		$avail_post_stati = wp_edit_posts_query();
@@ -175,13 +182,6 @@ class WP_Posts_List_Table extends WP_List_Table {
 					$total_items -= $post_counts[ $state ];
 				}
 			}
-		}
-
-		if ( ! empty( $_REQUEST['mode'] ) ) {
-			$mode = 'excerpt' === $_REQUEST['mode'] ? 'excerpt' : 'list';
-			set_user_setting( 'posts_list_mode', $mode );
-		} else {
-			$mode = get_user_setting( 'posts_list_mode', 'list' );
 		}
 
 		$this->is_trash = isset( $_REQUEST['post_status'] ) && 'trash' === $_REQUEST['post_status'];
@@ -415,7 +415,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		if ( current_user_can( $post_type_obj->cap->delete_posts ) ) {
 			if ( $this->is_trash || ! EMPTY_TRASH_DAYS ) {
-				$actions['delete'] = __( 'Delete Permanently' );
+				$actions['delete'] = __( 'Delete permanently' );
 			} else {
 				$actions['trash'] = __( 'Move to Trash' );
 			}
@@ -485,6 +485,11 @@ class WP_Posts_List_Table extends WP_List_Table {
 			return;
 		}
 
+		// Return if the post type doesn't have post formats or if we're in the Trash.
+		if ( ! is_object_in_taxonomy( $post_type, 'post_format' ) || $this->is_trash ) {
+			return;
+		}
+
 		// Make sure the dropdown shows only formats with a post count greater than 0.
 		$used_post_formats = get_terms(
 			array(
@@ -493,11 +498,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 			)
 		);
 
-		/*
-		 * Return if the post type doesn't have post formats, or there are no posts using formats,
-		 * or if we're in the Trash.
-		 */
-		if ( ! is_object_in_taxonomy( $post_type, 'post_format' ) || ! $used_post_formats || $this->is_trash ) {
+		// Return if there are no posts using formats.
+		if ( ! $used_post_formats ) {
 			return;
 		}
 
@@ -532,7 +534,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		?>
 		<div class="alignleft actions">
 		<?php
-		if ( 'top' === $which && ! is_singular() ) {
+		if ( 'top' === $which ) {
 			ob_start();
 
 			$this->months_dropdown( $this->screen->post_type );
@@ -593,10 +595,16 @@ class WP_Posts_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * @global string $mode List table view mode.
+	 *
 	 * @return array
 	 */
 	protected function get_table_classes() {
-		return array( 'widefat', 'fixed', 'striped', is_post_type_hierarchical( $this->screen->post_type ) ? 'pages' : 'posts' );
+		global $mode;
+
+		$mode_class = esc_attr( 'table-view-' . $mode );
+
+		return array( 'widefat', 'fixed', 'striped', $mode_class, is_post_type_hierarchical( $this->screen->post_type ) ? 'pages' : 'posts' );
 	}
 
 	/**
@@ -703,7 +711,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @global WP_Query $wp_query WordPress Query object.
 	 * @global int $per_page
 	 * @param array $posts
-	 * @param int $level
+	 * @param int   $level
 	 */
 	public function display_rows( $posts = array(), $level = 0 ) {
 		global $wp_query, $per_page;
@@ -723,7 +731,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 	/**
 	 * @param array $posts
-	 * @param int $level
+	 * @param int   $level
 	 */
 	private function _display_rows( $posts, $level = 0 ) {
 		$post_type = $this->screen->post_type;
@@ -748,8 +756,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @global wpdb    $wpdb WordPress database abstraction object.
 	 * @global WP_Post $post Global post object.
 	 * @param array $pages
-	 * @param int $pagenum
-	 * @param int $per_page
+	 * @param int   $pagenum
+	 * @param int   $per_page
 	 */
 	private function _display_rows_hierarchical( $pages, $pagenum = 1, $per_page = 20 ) {
 		global $wpdb;
@@ -854,11 +862,11 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @since 4.2.0 Added the `$to_display` parameter.
 	 *
 	 * @param array $children_pages
-	 * @param int $count
-	 * @param int $parent
-	 * @param int $level
-	 * @param int $pagenum
-	 * @param int $per_page
+	 * @param int   $count
+	 * @param int   $parent
+	 * @param int   $level
+	 * @param int   $pagenum
+	 * @param int   $per_page
 	 * @param array $to_display List of pages to be displayed. Passed by reference.
 	 */
 	private function _page_rows( &$children_pages, &$count, $parent, $level, $pagenum, $per_page, &$to_display ) {
@@ -1040,7 +1048,10 @@ class WP_Posts_List_Table extends WP_List_Table {
 		}
 		echo "</strong>\n";
 
-		if ( ! is_post_type_hierarchical( $this->screen->post_type ) && 'excerpt' === $mode && current_user_can( 'read_post', $post->ID ) ) {
+		if ( 'excerpt' === $mode
+			&& ! is_post_type_hierarchical( $this->screen->post_type )
+			&& current_user_can( 'read_post', $post->ID )
+		) {
 			if ( post_password_required( $post ) ) {
 				echo '<span class="protected-post-excerpt">' . esc_html( get_the_excerpt() ) . '</span>';
 			} else {
@@ -1065,19 +1076,19 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		if ( '0000-00-00 00:00:00' === $post->post_date ) {
 			$t_time    = __( 'Unpublished' );
-			$h_time    = $t_time;
 			$time_diff = 0;
 		} else {
-			$t_time    = get_the_time( __( 'Y/m/d g:i:s a' ), $post );
+			$t_time = sprintf(
+				/* translators: 1: Post date, 2: Post time. */
+				__( '%1$s at %2$s' ),
+				/* translators: Post date format. See https://www.php.net/date */
+				get_the_time( __( 'Y/m/d' ), $post ),
+				/* translators: Post time format. See https://www.php.net/date */
+				get_the_time( __( 'g:i a' ), $post )
+			);
+
 			$time      = get_post_timestamp( $post );
 			$time_diff = time() - $time;
-
-			if ( $time && $time_diff > 0 && $time_diff < DAY_IN_SECONDS ) {
-				/* translators: %s: Human-readable time difference. */
-				$h_time = sprintf( __( '%s ago' ), human_time_diff( $time ) );
-			} else {
-				$h_time = get_the_time( __( 'Y/m/d' ), $post );
-			}
 		}
 
 		if ( 'publish' === $post->post_status ) {
@@ -1108,27 +1119,20 @@ class WP_Posts_List_Table extends WP_List_Table {
 			echo $status . '<br />';
 		}
 
-		if ( 'excerpt' === $mode ) {
-			/**
-			 * Filters the published time of the post.
-			 *
-			 * If `$mode` equals 'excerpt', the published time and date are both displayed.
-			 * If `$mode` equals 'list' (default), the publish date is displayed, with the
-			 * time and date together available as an abbreviation definition.
-			 *
-			 * @since 2.5.1
-			 *
-			 * @param string  $t_time      The published time.
-			 * @param WP_Post $post        Post object.
-			 * @param string  $column_name The column name.
-			 * @param string  $mode        The list display mode ('excerpt' or 'list').
-			 */
-			echo apply_filters( 'post_date_column_time', $t_time, $post, 'date', $mode );
-		} else {
-
-			/** This filter is documented in wp-admin/includes/class-wp-posts-list-table.php */
-			echo '<span title="' . $t_time . '">' . apply_filters( 'post_date_column_time', $h_time, $post, 'date', $mode ) . '</span>';
-		}
+		/**
+		 * Filters the published time of the post.
+		 *
+		 * @since 2.5.1
+		 * @since 5.5.0 Removed the difference between 'excerpt' and 'list' modes.
+		 *              The published time and date are both displayed now,
+		 *              which is equivalent to the previous 'excerpt' mode.
+		 *
+		 * @param string  $t_time      The published time.
+		 * @param WP_Post $post        Post object.
+		 * @param string  $column_name The column name.
+		 * @param string  $mode        The list display mode ('excerpt' or 'list').
+		 */
+		echo apply_filters( 'post_date_column_time', $t_time, $post, 'date', $mode );
 	}
 
 	/**
@@ -1714,7 +1718,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 							<?php endif; // $bulk ?>
 							<?php
 							/** This filter is documented in wp-admin/includes/meta-boxes.php */
-							$default_title = apply_filters( 'default_page_template_title', __( 'Default Template' ), 'quick-edit' );
+							$default_title = apply_filters( 'default_page_template_title', __( 'Default template' ), 'quick-edit' );
 							?>
 							<option value="default"><?php echo esc_html( $default_title ); ?></option>
 							<?php page_template_dropdown( '', $screen->post_type ); ?>

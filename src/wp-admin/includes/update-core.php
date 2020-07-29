@@ -11,6 +11,7 @@
  * Stores files to be deleted.
  *
  * @since 2.7.0
+ *
  * @global array $_old_files
  * @var array
  * @name $_old_files
@@ -960,12 +961,17 @@ function update_core( $from, $to ) {
 	}
 
 	$php_update_message = '';
+
 	if ( function_exists( 'wp_get_update_php_url' ) ) {
 		/* translators: %s: URL to Update PHP page. */
-		$php_update_message = '</p><p>' . sprintf( __( '<a href="%s">Learn more about updating PHP</a>.' ), esc_url( wp_get_update_php_url() ) );
+		$php_update_message = '</p><p>' . sprintf(
+			__( '<a href="%s">Learn more about updating PHP</a>.' ),
+			esc_url( wp_get_update_php_url() )
+		);
 
 		if ( function_exists( 'wp_get_update_php_annotation' ) ) {
 			$annotation = wp_get_update_php_annotation();
+
 			if ( $annotation ) {
 				$php_update_message .= '</p><p><em>' . $annotation . '</em>';
 			}
@@ -1304,7 +1310,7 @@ function update_core( $from, $to ) {
 	 */
 	do_action( '_core_updated_successfully', $wp_version );
 
-	// Clear the option that blocks auto updates after failures, now that we've been successful.
+	// Clear the option that blocks auto-updates after failures, now that we've been successful.
 	if ( function_exists( 'delete_site_option' ) ) {
 		delete_site_option( 'auto_core_update_failed' );
 	}
@@ -1314,15 +1320,21 @@ function update_core( $from, $to ) {
 
 /**
  * Copies a directory from one location to another via the WordPress Filesystem Abstraction.
+ *
  * Assumes that WP_Filesystem() has already been called and setup.
  *
- * This is a temporary function for the 3.1 -> 3.2 upgrade, as well as for those upgrading to
- * 3.7+
+ * This is a standalone copy of the `copy_dir()` function that is used to
+ * upgrade the core files. It is placed here so that the version of this
+ * function from the *new* WordPress version will be called.
+ *
+ * It was initially added for the 3.1 -> 3.2 upgrade.
  *
  * @ignore
  * @since 3.2.0
- * @since 3.7.0 Updated not to use a regular expression for the skip list
+ * @since 3.7.0 Updated not to use a regular expression for the skip list.
+ *
  * @see copy_dir()
+ * @link https://core.trac.wordpress.org/ticket/17173
  *
  * @global WP_Filesystem_Base $wp_filesystem
  *
@@ -1351,6 +1363,11 @@ function _copy_dir( $from, $to, $skip_list = array() ) {
 				if ( ! $wp_filesystem->copy( $from . $filename, $to . $filename, true, FS_CHMOD_FILE ) ) {
 					return new WP_Error( 'copy_failed__copy_dir', __( 'Could not copy file.' ), $to . $filename );
 				}
+			}
+
+			// `wp_opcache_invalidate()` only exists in WordPress 5.5, so don't run it when upgrading to 5.5.
+			if ( function_exists( 'wp_opcache_invalidate' ) ) {
+				wp_opcache_invalidate( $to . $filename );
 			}
 		} elseif ( 'd' === $fileinfo['type'] ) {
 			if ( ! $wp_filesystem->is_dir( $to . $filename ) ) {
@@ -1412,7 +1429,7 @@ function _redirect_to_about_wordpress( $new_version ) {
 	load_default_textdomain();
 
 	// See do_core_upgrade().
-	show_message( __( 'WordPress updated successfully' ) );
+	show_message( __( 'WordPress updated successfully.' ) );
 
 	// self_admin_url() won't exist when upgrading from <= 3.0, so relative URLs are intentional.
 	show_message(
@@ -1440,7 +1457,7 @@ window.location = 'about.php?updated';
 
 	// Include admin-footer.php and exit.
 	require_once ABSPATH . 'wp-admin/admin-footer.php';
-	exit();
+	exit;
 }
 
 /**

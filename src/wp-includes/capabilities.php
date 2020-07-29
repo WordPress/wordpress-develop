@@ -301,8 +301,8 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'edit_user_meta':
 		case 'delete_user_meta':
 		case 'add_user_meta':
-			list( $_, $object_type, $_ ) = explode( '_', $cap );
-			$object_id                   = (int) $args[0];
+			$object_type = explode( '_', $cap )[1];
+			$object_id   = (int) $args[0];
 
 			$object_subtype = get_object_subtype( $object_type, $object_id );
 
@@ -383,7 +383,12 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 					 * @param string   $cap       Capability name.
 					 * @param string[] $caps      Array of the user's capabilities.
 					 */
-					$allowed = apply_filters_deprecated( "auth_{$object_type}_{$object_subtype}_meta_{$meta_key}", array( $allowed, $meta_key, $object_id, $user_id, $cap, $caps ), '4.9.8', "auth_{$object_type}_meta_{$meta_key}_for_{$object_subtype}" );
+					$allowed = apply_filters_deprecated(
+						"auth_{$object_type}_{$object_subtype}_meta_{$meta_key}",
+						array( $allowed, $meta_key, $object_id, $user_id, $cap, $caps ),
+						'4.9.8',
+						"auth_{$object_type}_meta_{$meta_key}_for_{$object_subtype}"
+					);
 				}
 
 				if ( ! $allowed ) {
@@ -545,7 +550,10 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				break;
 			}
 
-			if ( 'delete_term' === $cap && ( get_option( 'default_' . $term->taxonomy ) == $term->term_id ) ) {
+			if ( 'delete_term' === $cap
+				&& ( get_option( 'default_' . $term->taxonomy ) == $term->term_id
+					|| get_option( 'default_term_' . $term->taxonomy ) == $term->term_id )
+			) {
 				$caps[] = 'do_not_allow';
 				break;
 			}

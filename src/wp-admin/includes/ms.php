@@ -61,7 +61,7 @@ function check_upload_size( $file ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int  $blog_id Site ID.
- * @param bool $drop    True if site's database tables should be dropped. Default is false.
+ * @param bool $drop    True if site's database tables should be dropped. Default false.
  */
 function wpmu_delete_blog( $blog_id, $drop = false ) {
 	global $wpdb;
@@ -160,10 +160,12 @@ function wpmu_delete_user( $id ) {
 	 * Fires before a user is deleted from the network.
 	 *
 	 * @since MU (3.0.0)
+	 * @since 5.5.0 Added the `$user` parameter.
 	 *
-	 * @param int $id ID of the user about to be deleted from the network.
+	 * @param int     $id   ID of the user about to be deleted from the network.
+	 * @param WP_User $user WP_User object of the user about to be deleted from the network.
 	 */
-	do_action( 'wpmu_delete_user', $id );
+	do_action( 'wpmu_delete_user', $id, $user );
 
 	$blogs = get_blogs_of_user( $id );
 
@@ -200,7 +202,7 @@ function wpmu_delete_user( $id ) {
 	clean_user_cache( $user );
 
 	/** This action is documented in wp-admin/includes/user.php */
-	do_action( 'deleted_user', $id, null );
+	do_action( 'deleted_user', $id, null, $user );
 
 	return true;
 }
@@ -701,7 +703,7 @@ function site_admin_notice() {
 	}
 
 	if ( get_site_option( 'wpmu_upgrade_site' ) != $wp_db_version ) {
-		echo "<div class='update-nag'>" . sprintf(
+		echo "<div class='update-nag notice notice-warning inline'>" . sprintf(
 			/* translators: %s: URL to Upgrade Network screen. */
 			__( 'Thank you for Updating! Please visit the <a href="%s">Upgrade Network</a> page to update all your sites.' ),
 			esc_url( network_admin_url( 'upgrade.php' ) )
@@ -856,7 +858,7 @@ function confirm_delete_users( $users ) {
 	?>
 	<h1><?php esc_html_e( 'Users' ); ?></h1>
 
-	<?php if ( 1 == count( $users ) ) : ?>
+	<?php if ( 1 === count( $users ) ) : ?>
 		<p><?php _e( 'You have chosen to delete the user from all networks and sites.' ); ?></p>
 	<?php else : ?>
 		<p><?php _e( 'You have chosen to delete the following users from all networks and sites.' ); ?></p>
@@ -974,7 +976,7 @@ function confirm_delete_users( $users ) {
 	/** This action is documented in wp-admin/users.php */
 	do_action( 'delete_user_form', $current_user, $allusers );
 
-	if ( 1 == count( $users ) ) :
+	if ( 1 === count( $users ) ) :
 		?>
 		<p><?php _e( 'Once you hit &#8220;Confirm Deletion&#8221;, the user will be permanently removed.' ); ?></p>
 	<?php else : ?>
@@ -1016,7 +1018,7 @@ jQuery(document).ready( function($) {
  *
  * @since 4.6.0
  *
- * @param $args {
+ * @param array $args {
  *     Optional. Array or string of Query parameters. Default empty array.
  *
  *     @type int    $blog_id  The site ID. Default is the current site.

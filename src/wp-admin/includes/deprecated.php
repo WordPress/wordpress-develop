@@ -159,8 +159,8 @@ function wp_dropdown_cats( $currentcat = 0, $currentparent = 0, $parent = 0, $le
  * @deprecated 3.0.0 Use register_setting()
  * @see register_setting()
  *
- * @param string $option_group A settings group name. Should correspond to a whitelisted option key name.
- *                             Default whitelisted option key names include 'general', 'discussion', 'media',
+ * @param string $option_group A settings group name. Should correspond to an allowed option key name.
+ *                             Default allowed option key names include 'general', 'discussion', 'media',
  *                             'reading', 'writing', 'misc', 'options', and 'privacy'.
  * @param string $option_name The name of an option to sanitize and save.
  * @param callable $sanitize_callback A callback function that sanitizes the option's value.
@@ -754,8 +754,6 @@ function wp_dashboard_quick_press_output() {
  * @since 2.7.0
  * @deprecated 3.3.0 Use wp_editor()
  * @see wp_editor()
- *
- * @staticvar int $num
  */
 function wp_tiny_mce( $teeny = false, $settings = false ) {
 	_deprecated_function( __FUNCTION__, '3.3.0', 'wp_editor()' );
@@ -1119,7 +1117,7 @@ function get_default_page_to_edit() {
  * @deprecated 3.5.0 Use image_resize()
  * @see image_resize()
  *
- * @param mixed $file Filename of the original image, Or attachment id.
+ * @param mixed $file Filename of the original image, Or attachment ID.
  * @param int $max_side Maximum length of a single side for the thumbnail.
  * @param mixed $deprecated Never used.
  * @return string Thumbnail path on success, Error string on failure.
@@ -1339,7 +1337,7 @@ function wp_dashboard_plugins_output( $rss, $args = array() ) {
 		// Pick a random, non-installed plugin.
 		while ( true ) {
 			// Abort this foreach loop iteration if there's no plugins left of this type.
-			if ( 0 == count($items) )
+			if ( 0 === count($items) )
 				continue 2;
 
 			$item_key = array_rand($items);
@@ -1381,7 +1379,7 @@ function wp_dashboard_plugins_output( $rss, $args = array() ) {
 		echo '<li class="dashboard-news-plugin"><span>' . __( 'Popular Plugin' ) . ':</span> ' . esc_html( $raw_title ) .
 			'&nbsp;<a href="' . $ilink . '" class="thickbox open-plugin-details-modal" aria-label="' .
 			/* translators: %s: Plugin name. */
-			esc_attr( sprintf( __( 'Install %s' ), $raw_title ) ) . '">(' . __( 'Install' ) . ')</a></li>';
+			esc_attr( sprintf( _x( 'Install %s', 'plugin' ), $raw_title ) ) . '">(' . __( 'Install' ) . ')</a></li>';
 
 		$feed->__destruct();
 		unset( $feed );
@@ -1532,7 +1530,7 @@ class WP_Privacy_Data_Export_Requests_Table extends WP_Privacy_Data_Export_Reque
 			$args['screen'] = 'export-personal-data';
 		}
 
-		parent::__construct( $args );	
+		parent::__construct( $args );
 	}
 }
 

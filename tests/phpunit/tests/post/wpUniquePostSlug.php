@@ -128,9 +128,9 @@ class Tests_Post_WpUniquePostSlug extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider whitelist_post_statuses
+	 * @dataProvider allowed_post_statuses
 	 */
-	public function test_whitelisted_post_statuses_should_not_be_forced_to_be_unique( $status ) {
+	public function test_allowed_post_statuses_should_not_be_forced_to_be_unique( $status ) {
 		$p1 = self::factory()->post->create(
 			array(
 				'post_type' => 'post',
@@ -149,7 +149,7 @@ class Tests_Post_WpUniquePostSlug extends WP_UnitTestCase {
 		$this->assertSame( 'foo', $actual );
 	}
 
-	public function whitelist_post_statuses() {
+	public function allowed_post_statuses() {
 		return array(
 			array( 'draft' ),
 			array( 'pending' ),

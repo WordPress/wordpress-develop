@@ -266,7 +266,7 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	 * @param string  $anonymous Anonymized data.
 	 * @param string  $type      Type of the data.
 	 * @param string  $data      Original data.
-	 * @return string $anonymous Anonymized data.
+	 * @return string Anonymized data.
 	 */
 	public function filter_wp_privacy_anonymize_data( $anonymous, $type, $data ) {
 		if ( 'url' === $type && 'example.com' === parse_url( $data, PHP_URL_HOST ) ) {

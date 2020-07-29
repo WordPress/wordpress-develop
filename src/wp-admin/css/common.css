@@ -26,47 +26,7 @@
 	padding-bottom: 65px;
 	float: left;
 	width: 100%;
-	overflow: visible !important;
-}
-
-/* inner 2 column liquid layout */
-
-.inner-sidebar {
-	float: right;
-	clear: right;
-	display: none;
-	width: 281px;
-	position: relative;
-}
-
-.columns-2 .inner-sidebar {
-	margin-right: auto;
-	width: 286px;
-	display: block;
-}
-
-.inner-sidebar #side-sortables,
-.columns-2 .inner-sidebar #side-sortables {
-	min-height: 300px;
-	width: 280px;
-	padding: 0;
-}
-
-.has-right-sidebar .inner-sidebar {
-	display: block;
-}
-
-.has-right-sidebar #post-body {
-	float: left;
-	clear: left;
-	width: 100%;
-	margin-right: -2000px;
-}
-
-.has-right-sidebar #post-body-content {
-	margin-right: 300px;
-	float: none;
-	width: auto;
+	overflow: visible;
 }
 
 /* 2 columns main area */
@@ -265,7 +225,7 @@ div {
 
 a:hover,
 a:active {
-	color: #00a0d2;
+	color: #006799;
 }
 
 a:focus,
@@ -304,7 +264,8 @@ q:after {
 	content: none;
 }
 
-p {
+p,
+.wp-die-message {
 	font-size: 13px;
 	line-height: 1.5;
 	margin: 1em 0;
@@ -454,12 +415,6 @@ code {
 	margin: 0;
 	padding: 0;
 	white-space: nowrap;
-}
-
-.wp-die-message {
-	font-size: 13px;
-	line-height: 1.5;
-	margin: 1em 0;
 }
 
 /* .widefat - main style for tables */
@@ -772,7 +727,6 @@ img.emoji {
 	color: #23282d;
 }
 
-.postbox .hndle,
 .stuffbox .hndle {
 	border-bottom: 1px solid #ccd0d4;
 }
@@ -856,7 +810,6 @@ strong, b {
 
 .howto {
 	color: #666;
-	font-style: italic;
 	display: block;
 }
 
@@ -1074,7 +1027,7 @@ th.action-links {
 .filter-links li > a:focus,
 .show-filters .filter-links a.current:hover,
 .show-filters .filter-links a.current:focus {
-	color: #00a0d2;
+	color: #006799;
 }
 
 .wp-filter .search-form {
@@ -1092,8 +1045,24 @@ th.action-links {
 	margin: 0;
 }
 
+/* Use flexbox only on the plugins install page. The `filter-links` and search form children will become flex items. */
+.plugin-install-php .wp-filter {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	align-items: center;
+}
+
 .wp-filter .search-form.search-plugins {
+	/* This element is a flex item: the inherited float won't have any effect. */
+	margin-top: 0;
+}
+
+.wp-filter .search-form.search-plugins select,
+.wp-filter .search-form.search-plugins .wp-filter-search {
 	display: inline-block;
+	margin-top: 10px;
+	vertical-align: top;
 }
 
 .wp-filter .button.drawer-toggle {
@@ -1121,7 +1090,7 @@ th.action-links {
 .wp-filter .button.drawer-toggle:focus,
 .wp-filter .drawer-toggle:focus:before {
 	background-color: transparent;
-	color: #00a0d2;
+	color: #006799;
 }
 
 .wp-filter .button.drawer-toggle:hover,
@@ -1276,7 +1245,7 @@ th.action-links {
 .filters-applied .filter-group,
 .filters-applied .filter-drawer .buttons,
 .filters-applied .filter-drawer br {
-	display: none !important;
+	display: none;
 }
 
 .filters-applied .filtered-by {
@@ -1524,8 +1493,14 @@ div.error {
 .updating-message p:before,
 .import-php .updating-message:before,
 .button.updating-message:before,
-.button.installing:before {
+.button.installing:before,
+.plugins .column-auto-updates .dashicons-update.spin,
+.theme-overlay .theme-autoupdate .dashicons-update.spin {
 	animation: rotation 2s infinite linear;
+}
+
+.theme-overlay .theme-autoupdate .dashicons-update.spin {
+	margin-right: 3px;
 }
 
 /* Updated icon (check mark). */
@@ -1554,11 +1529,7 @@ div.error {
 	line-height: 1.4;
 	padding: 11px 15px;
 	font-size: 14px;
-	text-align: left;
 	margin: 25px 20px 0 2px;
-	background-color: #fff;
-	border-left: 4px solid #ffba00;
-	box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
 }
 
 ul#dismissed-updates {
@@ -1655,7 +1626,7 @@ form.upgrade .hint {
 
 #contextual-help-wrap {
 	overflow: auto;
-	margin-left: 0 !important;
+	margin-left: 0;
 }
 
 #screen-meta-links {
@@ -1726,7 +1697,7 @@ form.upgrade .hint {
 	vertical-align: bottom;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	text-decoration: none !important;
+	text-decoration: none;
 	color: #72777c;
 }
 
@@ -1975,34 +1946,9 @@ html.wp-toolbar {
 }
 
 .metabox-holder .postbox-container .empty-container {
-	border: 3px dashed #b4b9be;
+	outline: 3px dashed #b4b9be;
 	height: 250px;
 	position: relative;
-}
-
-.metabox-holder .postbox-container .empty-container:after {
-	content: attr(data-emptystring);
-	margin: auto;
-	position: absolute;
-	top: 0;
-	left: 0;
-	bottom: 0;
-	right: 0;
-	height: 1em;
-	width: 200px;
-	text-align: center;
-	color: #ccc;
-	font-size: 18px;
-	display: none;
-}
-
-.metabox-holder.columns-1 .postbox-container .empty-container,
-.columns-2 #postbox-container-3 .empty-container,
-.columns-2 #postbox-container-4 .empty-container,
-.columns-3 #postbox-container-4 .empty-container {
-	border: 0 none;
-	height: 0;
-	min-height: 0;
 }
 
 #post-body-content {
@@ -2024,7 +1970,7 @@ html.wp-toolbar {
 /* one column on the dash */
 @media only screen and (max-width: 799px) {
 	#wpbody-content .metabox-holder .postbox-container .empty-container {
-		border: 0 none;
+		outline: none;
 		height: 0;
 		min-height: 0;
 	}
@@ -2040,14 +1986,35 @@ html.wp-toolbar {
 	cursor: auto;
 }
 
+/* Configurable dashboard widgets "Configure" edit-box link. */
 .hndle a {
-	font-size: 11px;
+	font-size: 12px;
 	font-weight: 400;
 }
 
+.postbox-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	border-bottom: 1px solid #ccd0d4;
+}
+
+.postbox-header .hndle {
+	flex-grow: 1;
+	/* Handle the alignment for the configurable dashboard widgets "Configure" edit-box link. */
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.postbox-header .handle-actions {
+	flex-shrink: 0;
+}
+
+/* Post box order and toggle buttons. */
+.postbox .handle-order-higher,
+.postbox .handle-order-lower,
 .postbox .handlediv {
-	display: none;
-	float: right;
 	width: 36px;
 	height: 36px;
 	margin: 0;
@@ -2057,8 +2024,24 @@ html.wp-toolbar {
 	cursor: pointer;
 }
 
-.js .postbox .handlediv {
-	display: block;
+.postbox .handle-order-higher,
+.postbox .handle-order-lower {
+	color: #72777c;
+	width: 1.62rem;
+}
+
+/* Post box order buttons in the block editor meta boxes area. */
+.edit-post-meta-boxes-area .postbox .handle-order-higher,
+.edit-post-meta-boxes-area .postbox .handle-order-lower {
+	width: 44px;
+	height: 44px;
+	color: #191e23
+}
+
+.postbox .handle-order-higher[aria-disabled="true"],
+.postbox .handle-order-lower[aria-disabled="true"] {
+	cursor: default;
+	color: #a0a5aa;
 }
 
 .sortable-placeholder {
@@ -2071,6 +2054,10 @@ html.wp-toolbar {
 	margin-bottom: 20px;
 	padding: 0;
 	line-height: 1;
+}
+
+.postbox.closed {
+	border-bottom: 0;
 }
 
 /* user-select is not a part of the CSS standard - may change behavior in the future */
@@ -2410,10 +2397,6 @@ body.iframe {
 	margin: 10px 0;
 }
 
-#submitdiv h3 {
-	margin-bottom: 0 !important;
-}
-
 /* - Used - but could/should be deprecated with a CSS reset
 ------------------------------------------------------------------------------*/
 .zerosize {
@@ -2654,7 +2637,7 @@ div.action-links {
 	margin-top: 10px;
 	margin-right: 250px; /* FYI box */
 	padding: 10px 26px;
-	margin-bottom: -99939px; /* 60px less than the padding below to accommodate footer */
+	margin-bottom: -99932px; /* 67px less than the padding below to accommodate footer height */
 	padding-bottom: 99999px; /* equal height column trick */
 }
 
@@ -2672,7 +2655,7 @@ div.action-links {
 	top: 0;
 	right: 0;
 	padding: 16px;
-	margin-bottom: -99939px; /* 60px less than the padding below to accommodate footer */
+	margin-bottom: -99932px; /* 67px less than the padding below to accommodate footer height */
 	padding-bottom: 99999px; /* equal height column trick */
 	width: 217px;
 	border-left: 1px solid #ddd;
@@ -2766,7 +2749,7 @@ div.action-links {
 	right: 0;
 	bottom: 0;
 	left: 0;
-	height: 33px; /* 33+13+13+1=60 */
+	height: 40px; /* actual height: 40+13+13+1=67 */
 	border-top: 1px solid #ddd;
 	background: #f3f3f3;
 }
@@ -2979,7 +2962,7 @@ div.action-links {
 
 .plugin-details-modal #TB_closeWindowButton:hover,
 .plugin-details-modal #TB_closeWindowButton:focus {
-	color: #00a0d2;
+	color: #006799;
 	outline: none;
 	box-shadow: none;
 }
@@ -3010,52 +2993,83 @@ img {
 }
 
 /* Metabox collapse arrow indicators */
-.sidebar-name .toggle-indicator:before,
-.js .meta-box-sortables .postbox .toggle-indicator:before,
-.bulk-action-notice .toggle-indicator:before,
-.privacy-text-box .toggle-indicator:before {
+.sidebar-name .toggle-indicator::before,
+.meta-box-sortables .postbox .toggle-indicator::before,
+.meta-box-sortables .postbox .order-higher-indicator::before,
+.meta-box-sortables .postbox .order-lower-indicator::before,
+.bulk-action-notice .toggle-indicator::before,
+.privacy-text-box .toggle-indicator::before {
 	content: "\f142";
 	display: inline-block;
 	font: normal 20px/1 dashicons;
 	speak: none;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	text-decoration: none !important;
+	text-decoration: none;
 }
 
-.js .widgets-holder-wrap.closed .toggle-indicator:before,
-.js .meta-box-sortables .postbox.closed .handlediv .toggle-indicator:before,
-.bulk-action-notice .bulk-action-errors-collapsed .toggle-indicator:before,
-.privacy-text-box.closed .toggle-indicator:before {
+.js .widgets-holder-wrap.closed .toggle-indicator::before,
+.meta-box-sortables .postbox.closed .handlediv .toggle-indicator::before,
+.bulk-action-notice .bulk-action-errors-collapsed .toggle-indicator::before,
+.privacy-text-box.closed .toggle-indicator::before {
 	content: "\f140";
 }
 
-.js .postbox .handlediv .toggle-indicator:before {
-	margin-top: 4px;
+.postbox .handle-order-higher .order-higher-indicator::before {
+	content: "\f343";
+	color: inherit;
+}
+
+.postbox .handle-order-lower .order-lower-indicator::before {
+	content: "\f347";
+	color: inherit;
+}
+
+.postbox .handle-order-higher .order-higher-indicator::before,
+.postbox .handle-order-lower .order-lower-indicator::before {
+	position: relative;
+    top: 0.11rem;
+	width: 20px;
+	height: 20px;
+}
+
+.postbox .handlediv .toggle-indicator::before {
 	width: 20px;
 	border-radius: 50%;
-	text-indent: -1px; /* account for the dashicon alignment */
 }
 
-.rtl.js .postbox .handlediv .toggle-indicator:before {
-	text-indent: 1px; /* account for the dashicon alignment */
+.postbox .handlediv .toggle-indicator::before {
+	position: relative;
+	top: 0.05rem;
+	text-indent: -1px; /* account for the dashicon glyph uneven horizontal alignment */
 }
 
-.bulk-action-notice .toggle-indicator:before {
+.rtl .postbox .handlediv .toggle-indicator::before {
+	text-indent: 1px; /* account for the dashicon glyph uneven horizontal alignment */
+}
+
+.bulk-action-notice .toggle-indicator::before {
 	line-height: 16px;
 	vertical-align: top;
 	color: #72777c;
 }
 
-.js .postbox .handlediv:focus {
-	box-shadow: none;
-	outline: none;
-}
-
-.js .postbox .handlediv:focus .toggle-indicator:before {
+.postbox .handle-order-higher:focus,
+.postbox .handle-order-lower:focus,
+.postbox .handlediv:focus {
 	box-shadow:
 		0 0 0 1px #5b9dd9,
 		0 0 2px 1px rgba(30, 140, 190, 0.8);
+	/* Only visible in Windows High Contrast mode */
+	outline: 1px solid transparent;
+}
+
+.postbox .handle-order-higher:focus .order-higher-indicator::before,
+.postbox .handle-order-lower:focus .order-lower-indicator::before,
+.postbox .handlediv:focus .toggle-indicator::before {
+	box-shadow: none;
+	/* Only visible in Windows High Contrast mode */
+	outline: 1px solid transparent;
 }
 
 /* @todo: appears to be Press This only and overridden */
@@ -3345,7 +3359,7 @@ img {
 	display: block;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	text-decoration: none !important;
+	text-decoration: none;
 }
 
 .widget-top .widget-action .toggle-indicator:before {
@@ -3376,6 +3390,8 @@ img {
 .sidebar-name:hover .toggle-indicator,
 .accordion-section-title:hover:after {
 	color: #23282d;
+	/* Only visible in Windows High Contrast mode */
+	outline: 1px solid transparent;
 }
 
 .widget-top .widget-action:focus .toggle-indicator:before {
@@ -3458,12 +3474,15 @@ img {
 }
 
 .accordion-section-title:focus {
-	outline: none;
+	/* Only visible in Windows High Contrast mode */
+	outline: 1px solid transparent;
 }
 
 .accordion-section-title:hover:after,
 .accordion-section-title:focus:after {
 	border-color: #a0a5aa transparent;
+	/* Only visible in Windows High Contrast mode */
+	outline: 1px solid transparent;
 }
 
 .cannot-expand .accordion-section-title {
@@ -3667,19 +3686,6 @@ img {
 
 	.spinner {
 		background-image: url(../images/spinner-2x.gif);
-	}
-
-	/* @todo: evaluate - most of these were likely replaced by dashicons */
-	.curtime #timestamp,
-	#screen-meta-links a.show-settings,
-	.widget-top .widget-action,
-	.widget-top .widget-action:hover,
-	.sidebar-name .toggle-indicator,
-	.sidebar-name:hover .toggle-indicator,
-	.meta-box-sortables .postbox:hover .handlediv,
-	#bulk-titles div a,
-	#bulk-titles div a:hover {
-		background: none !important;
 	}
 
 }
@@ -3988,6 +3994,11 @@ img {
 
 	.wp-filter .search-form input[type="search"] {
 		font-size: 1rem;
+	}
+
+	.wp-filter .search-form.search-plugins {
+		/* This element is a flex item. */
+		min-width: 100%;
 	}
 }
 

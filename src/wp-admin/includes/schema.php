@@ -29,8 +29,8 @@ $charset_collate = $wpdb->get_charset_collate();
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string $scope Optional. The tables for which to retrieve SQL. Can be all, global, ms_global, or blog tables. Defaults to all.
- * @param int $blog_id Optional. The site ID for which to retrieve SQL. Default is the current site ID.
+ * @param string $scope   Optional. The tables for which to retrieve SQL. Can be all, global, ms_global, or blog tables. Defaults to all.
+ * @param int    $blog_id Optional. The site ID for which to retrieve SQL. Default is the current site ID.
  * @return string The SQL needed to create the requested tables.
  */
 function wp_get_db_schema( $scope = 'all', $blog_id = null ) {
@@ -446,8 +446,6 @@ function populate_options( array $options = array() ) {
 		'recently_edited'                 => '',
 		'template'                        => $template,
 		'stylesheet'                      => $stylesheet,
-		'comment_whitelist'               => 1,
-		'blacklist_keys'                  => '',
 		'comment_registration'            => 0,
 		'html_type'                       => 'text/html',
 
@@ -532,6 +530,11 @@ function populate_options( array $options = array() ) {
 
 		// 5.3.0
 		'admin_email_lifespan'            => ( time() + 6 * MONTH_IN_SECONDS ),
+
+		// 5.5.0
+		'disallowed_keys'                 => '',
+		'comment_previously_approved'     => 1,
+		'auto_plugin_theme_update_emails' => array(),
 	);
 
 	// 3.3.0
@@ -550,7 +553,13 @@ function populate_options( array $options = array() ) {
 	$options = wp_parse_args( $options, $defaults );
 
 	// Set autoload to no for these options.
-	$fat_options = array( 'moderation_keys', 'recently_edited', 'blacklist_keys', 'uninstall_plugins' );
+	$fat_options = array(
+		'moderation_keys',
+		'recently_edited',
+		'disallowed_keys',
+		'uninstall_plugins',
+		'auto_plugin_theme_update_emails',
+	);
 
 	$keys             = "'" . implode( "', '", array_keys( $options ) ) . "'";
 	$existing_options = $wpdb->get_col( "SELECT option_name FROM $wpdb->options WHERE option_name in ( $keys )" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
@@ -1140,7 +1149,7 @@ function populate_network_meta( $network_id, array $meta = array() ) {
 		$allowed_themes[ WP_DEFAULT_THEME ] = true;
 	}
 
-	// If WP_DEFAULT_THEME doesn't exist, also whitelist the latest core default theme.
+	// If WP_DEFAULT_THEME doesn't exist, also include the latest core default theme.
 	if ( ! wp_get_theme( WP_DEFAULT_THEME )->exists() ) {
 		$core_default = WP_Theme::get_core_default_theme();
 		if ( $core_default ) {

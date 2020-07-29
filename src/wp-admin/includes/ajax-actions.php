@@ -39,7 +39,7 @@ function wp_ajax_nopriv_heartbeat() {
 		 *
 		 * @param array  $response  The no-priv Heartbeat response.
 		 * @param array  $data      The $_POST data sent.
-		 * @param string $screen_id The screen id.
+		 * @param string $screen_id The screen ID.
 		 */
 		$response = apply_filters( 'heartbeat_nopriv_received', $response, $data, $screen_id );
 	}
@@ -50,7 +50,7 @@ function wp_ajax_nopriv_heartbeat() {
 	 * @since 3.6.0
 	 *
 	 * @param array  $response  The no-priv Heartbeat response.
-	 * @param string $screen_id The screen id.
+	 * @param string $screen_id The screen ID.
 	 */
 	$response = apply_filters( 'heartbeat_nopriv_send', $response, $screen_id );
 
@@ -62,7 +62,7 @@ function wp_ajax_nopriv_heartbeat() {
 	 * @since 3.6.0
 	 *
 	 * @param array  $response  The no-priv Heartbeat response.
-	 * @param string $screen_id The screen id.
+	 * @param string $screen_id The screen ID.
 	 */
 	do_action( 'heartbeat_nopriv_tick', $response, $screen_id );
 
@@ -331,7 +331,7 @@ function wp_ajax_autocomplete_user() {
 }
 
 /**
- * Handles AJAX requests for community events
+ * Handles Ajax requests for community events
  *
  * @since 4.8.0
  */
@@ -421,8 +421,8 @@ function wp_ajax_logged_in() {
  *
  * Contrary to normal success Ajax response ("1"), die with time() on success.
  *
- * @access private
  * @since 2.7.0
+ * @access private
  *
  * @param int $comment_id
  * @param int $delta
@@ -554,8 +554,8 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 /**
  * Ajax handler for adding a hierarchical term.
  *
- * @access private
  * @since 3.1.0
+ * @access private
  */
 function _wp_ajax_add_hierarchical_term() {
 	$action   = $_POST['action'];
@@ -1186,7 +1186,7 @@ function wp_ajax_get_tagcloud() {
  *
  * @since 3.1.0
  *
- * @global int           $post_id
+ * @global int $post_id
  *
  * @param string $action Action to perform.
  */
@@ -1272,7 +1272,7 @@ function wp_ajax_replyto_comment( $action ) {
 	if ( empty( $post->post_status ) ) {
 		wp_die( 1 );
 	} elseif ( in_array( $post->post_status, array( 'draft', 'pending', 'trash' ), true ) ) {
-		wp_die( __( 'Error: You are replying to a comment on a draft post.' ) );
+		wp_die( __( 'Error: You can&#8217;t reply to a comment on a draft post.' ) );
 	}
 
 	$user = wp_get_current_user();
@@ -1302,7 +1302,7 @@ function wp_ajax_replyto_comment( $action ) {
 	}
 
 	if ( '' === $comment_content ) {
-		wp_die( __( 'Error: Please type a comment.' ) );
+		wp_die( __( 'Error: Please type your comment text.' ) );
 	}
 
 	$comment_parent = 0;
@@ -1404,13 +1404,17 @@ function wp_ajax_edit_comment() {
 	}
 
 	if ( '' === $_POST['content'] ) {
-		wp_die( __( 'Error: Please type a comment.' ) );
+		wp_die( __( 'Error: Please type your comment text.' ) );
 	}
 
 	if ( isset( $_POST['status'] ) ) {
 		$_POST['comment_status'] = $_POST['status'];
 	}
-	edit_comment();
+
+	$updated = edit_comment();
+	if ( is_wp_error( $updated ) ) {
+		wp_die( $updated->get_error_message() );
+	}
 
 	$position      = ( isset( $_POST['position'] ) && (int) $_POST['position'] ) ? (int) $_POST['position'] : '-1';
 	$checkbox      = ( isset( $_POST['checkbox'] ) && true == $_POST['checkbox'] ) ? 1 : 0;
@@ -1923,7 +1927,7 @@ function wp_ajax_meta_box_order() {
 		update_user_option( $user->ID, "screen_layout_$page", $page_columns, true );
 	}
 
-	wp_die( 1 );
+	wp_send_json_success();
 }
 
 /**
@@ -2603,8 +2607,11 @@ function wp_ajax_image_editor() {
 	switch ( $_POST['do'] ) {
 		case 'save':
 			$msg = wp_save_image( $attachment_id );
-			$msg = wp_json_encode( $msg );
-			wp_die( $msg );
+			if ( $msg->error ) {
+				wp_send_json_error( $msg );
+			}
+
+			wp_send_json_success( $msg );
 			break;
 		case 'scale':
 			$msg = wp_save_image( $attachment_id );
@@ -2614,8 +2621,25 @@ function wp_ajax_image_editor() {
 			break;
 	}
 
+	ob_start();
 	wp_image_editor( $attachment_id, $msg );
-	wp_die();
+	$html = ob_get_clean();
+
+	if ( $msg->error ) {
+		wp_send_json_error(
+			array(
+				'message' => $msg,
+				'html'    => $html,
+			)
+		);
+	}
+
+	wp_send_json_success(
+		array(
+			'message' => $msg,
+			'html'    => $html,
+		)
+	);
 }
 
 /**
@@ -3350,7 +3374,7 @@ function wp_ajax_heartbeat() {
 		 *
 		 * @param array  $response  The Heartbeat response.
 		 * @param array  $data      The $_POST data sent.
-		 * @param string $screen_id The screen id.
+		 * @param string $screen_id The screen ID.
 		 */
 		$response = apply_filters( 'wp_refresh_nonces', $response, $data, $screen_id );
 
@@ -3369,7 +3393,7 @@ function wp_ajax_heartbeat() {
 		 *
 		 * @param array  $response  The Heartbeat response.
 		 * @param array  $data      The $_POST data sent.
-		 * @param string $screen_id The screen id.
+		 * @param string $screen_id The screen ID.
 		 */
 		$response = apply_filters( 'heartbeat_received', $response, $data, $screen_id );
 	}
@@ -3380,7 +3404,7 @@ function wp_ajax_heartbeat() {
 	 * @since 3.6.0
 	 *
 	 * @param array  $response  The Heartbeat response.
-	 * @param string $screen_id The screen id.
+	 * @param string $screen_id The screen ID.
 	 */
 	$response = apply_filters( 'heartbeat_send', $response, $screen_id );
 
@@ -3392,7 +3416,7 @@ function wp_ajax_heartbeat() {
 	 * @since 3.6.0
 	 *
 	 * @param array  $response  The Heartbeat response.
-	 * @param string $screen_id The screen id.
+	 * @param string $screen_id The screen ID.
 	 */
 	do_action( 'heartbeat_tick', $response, $screen_id );
 
@@ -4186,7 +4210,7 @@ function wp_ajax_update_theme() {
 	}
 
 	// An unhandled error occurred.
-	$status['errorMessage'] = __( 'Update failed.' );
+	$status['errorMessage'] = __( 'Theme update failed.' );
 	wp_send_json_error( $status );
 }
 
@@ -4438,18 +4462,18 @@ function wp_ajax_update_plugin() {
 		$status['errorMessage'] = $skin->get_error_messages();
 		wp_send_json_error( $status );
 	} elseif ( is_array( $result ) && ! empty( $result[ $plugin ] ) ) {
-		$plugin_update_data = current( $result );
 
 		/*
-		 * If the `update_plugins` site transient is empty (e.g. when you update
-		 * two plugins in quick succession before the transient repopulates),
-		 * this may be the return.
+		 * Plugin is already at the latest version.
+		 *
+		 * This may also be the return value if the `update_plugins` site transient is empty,
+		 * e.g. when you update two plugins in quick succession before the transient repopulates.
 		 *
 		 * Preferably something can be done to ensure `update_plugins` isn't empty.
 		 * For now, surface some sort of error here.
 		 */
-		if ( true === $plugin_update_data ) {
-			$status['errorMessage'] = __( 'Plugin update failed.' );
+		if ( true === $result[ $plugin ] ) {
+			$status['errorMessage'] = $upgrader->strings['up_to_date'];
 			wp_send_json_error( $status );
 		}
 
@@ -4460,6 +4484,7 @@ function wp_ajax_update_plugin() {
 			/* translators: %s: Plugin version. */
 			$status['newVersion'] = sprintf( __( 'Version %s' ), $plugin_data['Version'] );
 		}
+
 		wp_send_json_success( $status );
 	} elseif ( false === $result ) {
 		global $wp_filesystem;
@@ -4567,6 +4592,9 @@ function wp_ajax_delete_plugin() {
 function wp_ajax_search_plugins() {
 	check_ajax_referer( 'updates' );
 
+	// Ensure after_plugin_row_{$plugin_file} gets hooked.
+	wp_plugin_update_rows();
+
 	$pagenow = isset( $_POST['pagenow'] ) ? sanitize_key( $_POST['pagenow'] ) : '';
 	if ( 'plugins-network' === $pagenow || 'plugins' === $pagenow ) {
 		set_current_screen( $pagenow );
@@ -4665,6 +4693,7 @@ function wp_ajax_search_install_plugins() {
  * Ajax handler for editing a theme or plugin file.
  *
  * @since 4.9.0
+ *
  * @see wp_edit_theme_plugin_file()
  */
 function wp_ajax_edit_theme_plugin_file() {
@@ -4746,14 +4775,14 @@ function wp_ajax_wp_privacy_export_personal_data() {
 	 * @param array $args {
 	 *     An array of callable exporters of personal data. Default empty array.
 	 *
-	 *     @type array {
+	 *     @type array ...$0 {
 	 *         Array of personal data exporters.
 	 *
-	 *         @type string $callback               Callable exporter function that accepts an
-	 *                                              email address and a page and returns an array
-	 *                                              of name => value pairs of personal data.
-	 *         @type string $exporter_friendly_name Translated user facing friendly name for the
-	 *                                              exporter.
+	 *         @type callable $callback               Callable exporter function that accepts an
+	 *                                                email address and a page and returns an array
+	 *                                                of name => value pairs of personal data.
+	 *         @type string   $exporter_friendly_name Translated user facing friendly name for the
+	 *                                                exporter.
 	 *     }
 	 * }
 	 */
@@ -4936,15 +4965,15 @@ function wp_ajax_wp_privacy_erase_personal_data() {
 	 * @param array $args {
 	 *     An array of callable erasers of personal data. Default empty array.
 	 *
-	 *     @type array {
+	 *     @type array ...$0 {
 	 *         Array of personal data exporters.
 	 *
-	 *         @type string $callback               Callable eraser that accepts an email address and
-	 *                                              a page and returns an array with boolean values for
-	 *                                              whether items were removed or retained and any messages
-	 *                                              from the eraser, as well as if additional pages are
-	 *                                              available.
-	 *         @type string $exporter_friendly_name Translated user facing friendly name for the eraser.
+	 *         @type callable $callback               Callable eraser that accepts an email address and
+	 *                                                a page and returns an array with boolean values for
+	 *                                                whether items were removed or retained and any messages
+	 *                                                from the eraser, as well as if additional pages are
+	 *                                                available.
+	 *         @type string   $exporter_friendly_name Translated user facing friendly name for the eraser.
 	 *     }
 	 * }
 	 */
@@ -5168,7 +5197,6 @@ function wp_ajax_health_check_background_updates() {
 	wp_send_json_success( $site_health->get_test_background_updates() );
 }
 
-
 /**
  * Ajax handler for site health checks on loopback requests.
  *
@@ -5266,4 +5294,74 @@ function wp_ajax_health_check_get_sizes() {
  */
 function wp_ajax_rest_nonce() {
 	exit( wp_create_nonce( 'wp_rest' ) );
+}
+
+/**
+ * Ajax handler to enable or disable plugin and theme auto-updates.
+ *
+ * @since 5.5.0
+ */
+function wp_ajax_toggle_auto_updates() {
+	check_ajax_referer( 'updates' );
+
+	if ( empty( $_POST['type'] ) || empty( $_POST['asset'] ) || empty( $_POST['state'] ) ) {
+		wp_send_json_error( array( 'error' => __( 'Invalid data. No selected item.' ) ) );
+	}
+
+	$asset = sanitize_text_field( urldecode( $_POST['asset'] ) );
+
+	if ( 'enable' !== $_POST['state'] && 'disable' !== $_POST['state'] ) {
+		wp_send_json_error( array( 'error' => __( 'Invalid data. Unknown state.' ) ) );
+	}
+	$state = $_POST['state'];
+
+	if ( 'plugin' !== $_POST['type'] && 'theme' !== $_POST['type'] ) {
+		wp_send_json_error( array( 'error' => __( 'Invalid data. Unknown type.' ) ) );
+	}
+	$type = $_POST['type'];
+
+	switch ( $type ) {
+		case 'plugin':
+			if ( ! current_user_can( 'update_plugins' ) ) {
+				$error_message = __( 'Sorry, you are not allowed to modify plugins.' );
+				wp_send_json_error( array( 'error' => $error_message ) );
+			}
+
+			$option = 'auto_update_plugins';
+			/** This filter is documented in wp-admin/includes/class-wp-plugins-list-table.php */
+			$all_items = apply_filters( 'all_plugins', get_plugins() );
+			break;
+		case 'theme':
+			if ( ! current_user_can( 'update_themes' ) ) {
+				$error_message = __( 'Sorry, you are not allowed to modify themes.' );
+				wp_send_json_error( array( 'error' => $error_message ) );
+			}
+
+			$option    = 'auto_update_themes';
+			$all_items = wp_get_themes();
+			break;
+		default:
+			wp_send_json_error( array( 'error' => __( 'Invalid data. Unknown type.' ) ) );
+	}
+
+	if ( ! array_key_exists( $asset, $all_items ) ) {
+		$error_message = __( 'Invalid data. The item does not exist.' );
+		wp_send_json_error( array( 'error' => $error_message ) );
+	}
+
+	$auto_updates = (array) get_site_option( $option, array() );
+
+	if ( 'disable' === $state ) {
+		$auto_updates = array_diff( $auto_updates, array( $asset ) );
+	} else {
+		$auto_updates[] = $asset;
+		$auto_updates   = array_unique( $auto_updates );
+	}
+
+	// Remove items that have been deleted since the site option was last updated.
+	$auto_updates = array_intersect( $auto_updates, array_keys( $all_items ) );
+
+	update_site_option( $option, $auto_updates );
+
+	wp_send_json_success();
 }

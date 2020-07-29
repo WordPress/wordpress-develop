@@ -489,9 +489,9 @@ if ( ! function_exists( 'twentythirteen_entry_meta' ) ) :
 		}
 
 		/* translators: Used between list items, there is a space after the comma. */
-		$tag_list = get_the_tag_list( '', __( ', ', 'twentythirteen' ) );
-		if ( $tag_list ) {
-			echo '<span class="tags-links">' . $tag_list . '</span>';
+		$tags_list = get_the_tag_list( '', __( ', ', 'twentythirteen' ) );
+		if ( $tags_list && ! is_wp_error( $tags_list ) ) {
+			echo '<span class="tags-links">' . $tags_list . '</span>';
 		}
 
 		// Post author.
@@ -734,6 +734,7 @@ add_action( 'customize_register', 'twentythirteen_customize_register' );
  * Render the site title for the selective refresh partial.
  *
  * @since Twenty Thirteen 1.9
+ *
  * @see twentythirteen_customize_register()
  *
  * @return void
@@ -746,6 +747,7 @@ function twentythirteen_customize_partial_blogname() {
  * Render the site tagline for the selective refresh partial.
  *
  * @since Twenty Thirteen 1.9
+ *
  * @see twentythirteen_customize_register()
  *
  * @return void

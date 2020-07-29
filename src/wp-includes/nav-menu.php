@@ -106,6 +106,7 @@ function register_nav_menus( $locations = array() ) {
  * Unregisters a navigation menu location for a theme.
  *
  * @since 3.1.0
+ *
  * @global array $_wp_registered_nav_menus
  *
  * @param string $location The menu location identifier.
@@ -491,7 +492,7 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 			}
 		}
 
-		if ( $args['menu-item-title'] == $original_title ) {
+		if ( wp_unslash( $args['menu-item-title'] ) === wp_specialchars_decode( $original_title ) ) {
 			$args['menu-item-title'] = '';
 		}
 
@@ -648,8 +649,6 @@ function _is_valid_nav_menu_item( $item ) {
  *
  * @since 3.0.0
  *
- * @staticvar array $fetched
- *
  * @param int|string|WP_Term $menu Menu ID, slug, name, or object.
  * @param array              $args {
  *     Optional. Arguments to pass to get_posts().
@@ -667,7 +666,7 @@ function _is_valid_nav_menu_item( $item ) {
  *                               processed in this function. Default 'menu_order'.
  *     @type bool   $nopaging    Whether to retrieve all menu items (true) or paginate (false). Default true.
  * }
- * @return array|false $items Array of menu items, otherwise false.
+ * @return array|false Array of menu items, otherwise false.
  */
 function wp_get_nav_menu_items( $menu, $args = array() ) {
 	$menu = wp_get_nav_menu_object( $menu );
@@ -802,7 +801,7 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
  * @since 3.0.0
  *
  * @param object $menu_item The menu item to modify.
- * @return object $menu_item The menu item with standard menu item properties.
+ * @return object The menu item with standard menu item properties.
  */
 function wp_setup_nav_menu_item( $menu_item ) {
 	if ( isset( $menu_item->post_type ) ) {
@@ -817,7 +816,7 @@ function wp_setup_nav_menu_item( $menu_item ) {
 				$object = get_post_type_object( $menu_item->object );
 				if ( $object ) {
 					$menu_item->type_label = $object->labels->singular_name;
-					// Use post states for special pages (only in the admin).
+					// Denote post states for special pages (only in the admin).
 					if ( function_exists( 'get_post_states' ) ) {
 						$menu_post   = get_post( $menu_item->object_id );
 						$post_states = get_post_states( $menu_post );

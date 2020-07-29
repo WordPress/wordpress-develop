@@ -243,8 +243,42 @@ class WP_REST_Server {
 		 * https://miki.it/blog/2014/7/8/abusing-jsonp-with-rosetta-flash/
 		 */
 		$this->send_header( 'X-Content-Type-Options', 'nosniff' );
-		$this->send_header( 'Access-Control-Expose-Headers', 'X-WP-Total, X-WP-TotalPages' );
-		$this->send_header( 'Access-Control-Allow-Headers', 'Authorization, Content-Type' );
+		$expose_headers = array( 'X-WP-Total', 'X-WP-TotalPages', 'Link' );
+
+		/**
+		 * Filters the list of response headers that are exposed to CORS requests.
+		 *
+		 * @since 5.5.0
+		 *
+		 * @param string[] $expose_headers The list of headers to expose.
+		 */
+		$expose_headers = apply_filters( 'rest_exposed_cors_headers', $expose_headers );
+
+		$this->send_header( 'Access-Control-Expose-Headers', implode( ', ', $expose_headers ) );
+
+		$allow_headers = array(
+			'Authorization',
+			'X-WP-Nonce',
+			'Content-Disposition',
+			'Content-MD5',
+			'Content-Type',
+		);
+
+		/**
+		 * Filters the list of request headers that are allowed for CORS requests.
+		 *
+		 * The allowed headers are passed to the browser to specify which
+		 * headers can be passed to the REST API. By default, we allow the
+		 * Content-* headers needed to upload files to the media endpoints.
+		 * As well as the Authorization and Nonce headers for allowing authentication.
+		 *
+		 * @since 5.5.0
+		 *
+		 * @param string[] $allow_headers The list of headers to allow.
+		 */
+		$allow_headers = apply_filters( 'rest_allowed_cors_headers', $allow_headers );
+
+		$this->send_header( 'Access-Control-Allow-Headers', implode( ', ', $allow_headers ) );
 
 		/**
 		 * Send nocache headers on authenticated requests.
@@ -458,8 +492,8 @@ class WP_REST_Server {
 	 * @return array {
 	 *     Data with sub-requests embedded.
 	 *
-	 *     @type array [$_links]    Links.
-	 *     @type array [$_embedded] Embeddeds.
+	 *     @type array $_links    Links.
+	 *     @type array $_embedded Embeddeds.
 	 * }
 	 */
 	public function response_to_data( $response, $embed ) {
@@ -582,8 +616,8 @@ class WP_REST_Server {
 	 * @return array {
 	 *     Data with sub-requests embedded.
 	 *
-	 *     @type array [$_links]    Links.
-	 *     @type array [$_embedded] Embeddeds.
+	 *     @type array $_links    Links.
+	 *     @type array $_embedded Embeddeds.
 	 * }
 	 */
 	protected function embed_links( $data, $embed = true ) {
@@ -594,7 +628,8 @@ class WP_REST_Server {
 		$embedded = array();
 
 		foreach ( $data['_links'] as $rel => $links ) {
-			// If a list of relations was specified, and the link relation is not in the whitelist, don't process the link.
+			// If a list of relations was specified, and the link relation
+			// is not in the list of allowed relations, don't process the link.
 			if ( is_array( $embed ) && ! in_array( $rel, $embed, true ) ) {
 				continue;
 			}
@@ -969,9 +1004,9 @@ class WP_REST_Server {
 				 *
 				 * @since 4.7.0
 				 *
-				 * @param WP_HTTP_Response|WP_Error $response Result to send to the client. Usually a WP_REST_Response or WP_Error.
-				 * @param array                     $handler  Route handler used for the request.
-				 * @param WP_REST_Request           $request  Request used to generate the response.
+				 * @param WP_REST_Response|WP_HTTP_Response|WP_Error|mixed $response Result to send to the client. Usually a WP_REST_Response or WP_Error.
+				 * @param array                                            $handler  Route handler used for the request.
+				 * @param WP_REST_Request                                  $request  Request used to generate the response.
 				 */
 				$response = apply_filters( 'rest_request_before_callbacks', $response, $handler, $request );
 
@@ -1032,9 +1067,9 @@ class WP_REST_Server {
 				 *
 				 * @since 4.7.0
 				 *
-				 * @param WP_HTTP_Response|WP_Error $response Result to send to the client. Usually a WP_REST_Response or WP_Error.
-				 * @param array                     $handler  Route handler used for the request.
-				 * @param WP_REST_Request           $request  Request used to generate the response.
+				 * @param WP_REST_Response|WP_HTTP_Response|WP_Error|mixed $response Result to send to the client. Usually a WP_REST_Response or WP_Error.
+				 * @param array                                            $handler  Route handler used for the request.
+				 * @param WP_REST_Request                                  $request  Request used to generate the response.
 				 */
 				$response = apply_filters( 'rest_request_after_callbacks', $response, $handler, $request );
 
@@ -1371,17 +1406,16 @@ class WP_REST_Server {
 	 * @return string Raw request data.
 	 */
 	public static function get_raw_data() {
+		// phpcs:disable PHPCompatibility.Variables.RemovedPredefinedGlobalVariables.http_raw_post_dataDeprecatedRemoved
 		global $HTTP_RAW_POST_DATA;
 
-		/*
-		 * A bug in PHP < 5.2.2 makes $HTTP_RAW_POST_DATA not set by default,
-		 * but we can do it ourself.
-		 */
+		// $HTTP_RAW_POST_DATA was deprecated in PHP 5.6 and removed in PHP 7.0.
 		if ( ! isset( $HTTP_RAW_POST_DATA ) ) {
 			$HTTP_RAW_POST_DATA = file_get_contents( 'php://input' );
 		}
 
 		return $HTTP_RAW_POST_DATA;
+		// phpcs:enable
 	}
 
 	/**

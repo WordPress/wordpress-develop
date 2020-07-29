@@ -8,9 +8,7 @@ class Tests_File extends WP_UnitTestCase {
 	function setUp() {
 		parent::setUp();
 
-		$file      = tempnam( '/tmp', 'foo' );
-		$this->dir = dirname( $file );
-		unlink( $file );
+		$this->dir = untrailingslashit( get_temp_dir() );
 
 		$this->badchars = '"\'[]*&?$';
 	}

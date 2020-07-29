@@ -720,6 +720,83 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 46768
+	 */
+	function test_get_terms_child_of_fields_id_name() {
+		$parent = self::factory()->category->create();
+		$child  = self::factory()->category->create(
+			array(
+				'parent' => $parent,
+				'slug'   => 'test-1',
+				'name'   => 'Test 1',
+			)
+		);
+		$child2 = self::factory()->category->create(
+			array(
+				'parent' => $parent,
+				'slug'   => 'test-2',
+				'name'   => 'Test 2',
+			)
+		);
+
+		$terms = get_terms(
+			'category',
+			array(
+				'child_of'   => $parent,
+				'hide_empty' => false,
+				'fields'     => 'id=>name',
+			)
+		);
+
+		$this->assertEquals(
+			array(
+				$child  => 'Test 1',
+				$child2 => 'Test 2',
+			),
+			$terms
+		);
+
+	}
+
+	/**
+	 * @ticket 46768
+	 */
+	function test_get_terms_child_of_fields_id_slug() {
+		$parent = self::factory()->category->create();
+		$child  = self::factory()->category->create(
+			array(
+				'parent' => $parent,
+				'slug'   => 'test-1',
+				'name'   => 'Test 1',
+			)
+		);
+		$child2 = self::factory()->category->create(
+			array(
+				'parent' => $parent,
+				'slug'   => 'test-2',
+				'name'   => 'Test 2',
+			)
+		);
+
+		$terms = get_terms(
+			'category',
+			array(
+				'child_of'   => $parent,
+				'hide_empty' => false,
+				'fields'     => 'id=>slug',
+			)
+		);
+
+		$this->assertEquals(
+			array(
+				$child  => 'test-1',
+				$child2 => 'test-2',
+			),
+			$terms
+		);
+	}
+
+	/**
 	 * @ticket 31118
 	 */
 	public function test_child_of_should_skip_query_when_specified_parent_is_not_found_in_hierarchy_cache() {

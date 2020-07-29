@@ -15,7 +15,7 @@
  *
  * @since 1.5.0
  *
- * @global object $authordata The current author's DB object.
+ * @global WP_User $authordata The current author's data.
  *
  * @param string $deprecated Deprecated.
  * @return string|null The author's display name.
@@ -32,7 +32,7 @@ function get_the_author( $deprecated = '' ) {
 	 *
 	 * @since 2.9.0
 	 *
-	 * @param string $authordata->display_name The author's display name.
+	 * @param string|null $display_name The author's display name.
 	 */
 	return apply_filters( 'the_author', is_object( $authordata ) ? $authordata->display_name : null );
 }
@@ -49,6 +49,7 @@ function get_the_author( $deprecated = '' ) {
  * return it. However, backward compatibility has to be maintained.
  *
  * @since 0.71
+ *
  * @see get_the_author()
  * @link https://developer.wordpress.org/reference/functions/the_author/
  *
@@ -98,7 +99,7 @@ function get_the_modified_author() {
 		 *
 		 * @since 2.8.0
 		 *
-		 * @param string $last_user->display_name The author's display name.
+		 * @param string $display_name The author's display name.
 		 */
 		return apply_filters( 'the_modified_author', $last_user->display_name );
 	}
@@ -151,7 +152,7 @@ function the_modified_author() {
  *
  * @since 2.8.0
  *
- * @global object $authordata The current author's DB object.
+ * @global WP_User $authordata The current author's data.
  *
  * @param string    $field   Optional. The user field to retrieve. Default empty.
  * @param int|false $user_id Optional. User ID.
@@ -286,7 +287,7 @@ function the_author_posts() {
  *
  * @since 4.4.0
  *
- * @global object $authordata The current author's DB object.
+ * @global WP_User $authordata The current author's data.
  *
  * @return string An HTML link to the author page, or an empty string if $authordata isn't defined.
  */
@@ -365,7 +366,7 @@ function get_author_posts_url( $author_id, $author_nicename = '' ) {
 	 * @since 2.1.0
 	 *
 	 * @param string $link            The URL to the author's page.
-	 * @param int    $author_id       The author's id.
+	 * @param int    $author_id       The author's ID.
 	 * @param string $author_nicename The author's nice name.
 	 */
 	$link = apply_filters( 'author_link', $link, $author_id, $author_nicename );

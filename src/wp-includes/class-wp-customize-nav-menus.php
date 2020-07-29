@@ -76,7 +76,7 @@ final class WP_Customize_Nav_Menus {
 	 * @since 4.5.0
 	 *
 	 * @param string[] $nonces Array of nonces.
-	 * @return string[] $nonces Modified array of nonces.
+	 * @return string[] Modified array of nonces.
 	 */
 	public function filter_nonces( $nonces ) {
 		$nonces['customize-menus'] = wp_create_nonce( 'customize-menus' );
@@ -759,6 +759,11 @@ final class WP_Customize_Nav_Menus {
 			);
 		}
 
+		// Used to denote post states for special pages.
+		if ( ! function_exists( 'get_post_states' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/template.php';
+		}
+
 		// Register each menu as a Customizer section, and add each menu item to each menu.
 		foreach ( $menus as $menu ) {
 			$menu_id = $menu->term_id;
@@ -1127,7 +1132,7 @@ final class WP_Customize_Nav_Menus {
 	}
 
 	/**
-	 * Print the html template used to render the add-menu-item frame.
+	 * Print the HTML template used to render the add-menu-item frame.
 	 *
 	 * @since 4.3.0
 	 */
@@ -1356,7 +1361,7 @@ final class WP_Customize_Nav_Menus {
 			if ( ! $post_type_obj ) {
 				continue;
 			}
-			if ( ! current_user_can( $post_type_obj->cap->publish_posts ) || ! current_user_can( $post_type_obj->cap->edit_post, $post_id ) ) {
+			if ( ! current_user_can( $post_type_obj->cap->publish_posts ) || ! current_user_can( 'edit_post', $post_id ) ) {
 				continue;
 			}
 			$post_ids[] = $post->ID;
@@ -1409,6 +1414,7 @@ final class WP_Customize_Nav_Menus {
 	 * Keep track of the arguments that are being passed to wp_nav_menu().
 	 *
 	 * @since 4.3.0
+	 *
 	 * @see wp_nav_menu()
 	 * @see WP_Customize_Widgets::filter_dynamic_sidebar_params()
 	 *

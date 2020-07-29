@@ -41,8 +41,8 @@ class WP_Media_List_Table extends WP_List_Table {
 		$this->detached = ( isset( $_REQUEST['attachment-filter'] ) && 'detached' === $_REQUEST['attachment-filter'] );
 
 		$this->modes = array(
-			'list' => __( 'List View' ),
-			'grid' => __( 'Grid View' ),
+			'list' => __( 'List view' ),
+			'grid' => __( 'Grid view' ),
 		);
 
 		parent::__construct(
@@ -61,19 +61,42 @@ class WP_Media_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * @global string   $mode                  List table view mode.
 	 * @global WP_Query $wp_query              WordPress Query object.
 	 * @global array    $post_mime_types
 	 * @global array    $avail_post_mime_types
-	 * @global string   $mode
 	 */
 	public function prepare_items() {
-		global $wp_query, $post_mime_types, $avail_post_mime_types, $mode;
+		global $mode, $wp_query, $post_mime_types, $avail_post_mime_types;
+
+		$mode = empty( $_REQUEST['mode'] ) ? 'list' : $_REQUEST['mode'];
+
+		// Exclude attachments scheduled for deletion in the next two hours
+		// if they are for zip packages for interrupted or failed updates.
+		// See File_Upload_Upgrader class.
+		$not_in = array();
+
+		foreach ( _get_cron_array() as $cron ) {
+			if ( isset( $cron['upgrader_scheduled_cleanup'] ) ) {
+				$details = reset( $cron['upgrader_scheduled_cleanup'] );
+
+				if ( ! empty( $details['args'][0] ) ) {
+					$not_in[] = (int) $details['args'][0];
+				}
+			}
+		}
+
+		if ( ! empty( $_REQUEST['post__not_in'] ) && is_array( $_REQUEST['post__not_in'] ) ) {
+			$not_in = array_merge( array_values( $_REQUEST['post__not_in'] ), $not_in );
+		}
+
+		if ( ! empty( $not_in ) ) {
+			$_REQUEST['post__not_in'] = $not_in;
+		}
 
 		list( $post_mime_types, $avail_post_mime_types ) = wp_edit_attachments_query( $_REQUEST );
 
 		$this->is_trash = isset( $_REQUEST['attachment-filter'] ) && 'trash' === $_REQUEST['attachment-filter'];
-
-		$mode = empty( $_REQUEST['mode'] ) ? 'list' : $_REQUEST['mode'];
 
 		$this->set_pagination_args(
 			array(
@@ -149,12 +172,12 @@ class WP_Media_List_Table extends WP_List_Table {
 		if ( MEDIA_TRASH ) {
 			if ( $this->is_trash ) {
 				$actions['untrash'] = __( 'Restore' );
-				$actions['delete']  = __( 'Delete Permanently' );
+				$actions['delete']  = __( 'Delete permanently' );
 			} else {
 				$actions['trash'] = __( 'Move to Trash' );
 			}
 		} else {
-			$actions['delete'] = __( 'Delete Permanently' );
+			$actions['delete'] = __( 'Delete permanently' );
 		}
 
 		if ( $this->detached ) {
@@ -174,16 +197,14 @@ class WP_Media_List_Table extends WP_List_Table {
 		?>
 		<div class="actions">
 		<?php
-		if ( ! is_singular() ) {
-			if ( ! $this->is_trash ) {
-				$this->months_dropdown( 'attachment' );
-			}
-
-			/** This action is documented in wp-admin/includes/class-wp-posts-list-table.php */
-			do_action( 'restrict_manage_posts', $this->screen->post_type, $which );
-
-			submit_button( __( 'Filter' ), '', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
+		if ( ! $this->is_trash ) {
+			$this->months_dropdown( 'attachment' );
 		}
+
+		/** This action is documented in wp-admin/includes/class-wp-posts-list-table.php */
+		do_action( 'restrict_manage_posts', $this->screen->post_type, $which );
+
+		submit_button( __( 'Filter' ), '', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
 
 		if ( $this->is_trash && current_user_can( 'edit_others_posts' ) && $this->has_items() ) {
 			submit_button( __( 'Empty Trash' ), 'apply', 'delete_all', false );
@@ -658,7 +679,6 @@ class WP_Media_List_Table extends WP_List_Table {
 	/**
 	 * @param WP_Post $post
 	 * @param string  $att_title
-	 *
 	 * @return array
 	 */
 	private function _get_row_actions( $post, $att_title ) {

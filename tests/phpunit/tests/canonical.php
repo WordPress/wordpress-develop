@@ -231,6 +231,51 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 16557
+	 */
+	public function test_do_redirect_guess_404_permalink() {
+		// Test disable do_redirect_guess_404_permalink().
+		add_filter( 'do_redirect_guess_404_permalink', '__return_false' );
+		$this->go_to( '/child-page-1' );
+		$this->assertFalse( redirect_guess_404_permalink() );
+	}
+
+	/**
+	 * @ticket 16557
+	 */
+	public function test_pre_redirect_guess_404_permalink() {
+		// Test short-circuit filter.
+		add_filter(
+			'pre_redirect_guess_404_permalink',
+			function() {
+				return 'wp';
+			}
+		);
+		$this->go_to( '/child-page-1' );
+		$this->assertEquals( 'wp', redirect_guess_404_permalink() );
+	}
+
+	/**
+	 * @ticket 16557
+	 */
+	public function test_strict_redirect_guess_404_permalink() {
+		$post = self::factory()->post->create(
+			array(
+				'post_title' => 'strict-redirect-guess-404-permalink',
+			)
+		);
+
+		$this->go_to( 'strict-redirect' );
+
+		// Test default 'non-strict' redirect guess.
+		$this->assertEquals( get_permalink( $post ), redirect_guess_404_permalink() );
+
+		// Test 'strict' redirect guess.
+		add_filter( 'strict_redirect_guess_404_permalink', '__return_true' );
+		$this->assertFalse( redirect_guess_404_permalink() );
+	}
+
+	/**
 	 * @ticket 43745
 	 */
 	public function test_utf8_query_keys_canonical() {

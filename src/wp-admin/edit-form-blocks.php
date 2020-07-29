@@ -132,10 +132,12 @@ wp_localize_script( 'wp-editor', '_wpMetaBoxUrl', $meta_box_url );
  * Initialize the editor.
  */
 
-$align_wide       = get_theme_support( 'align-wide' );
-$color_palette    = current( (array) get_theme_support( 'editor-color-palette' ) );
-$font_sizes       = current( (array) get_theme_support( 'editor-font-sizes' ) );
-$gradient_presets = current( (array) get_theme_support( 'editor-gradient-presets' ) );
+$align_wide         = get_theme_support( 'align-wide' );
+$color_palette      = current( (array) get_theme_support( 'editor-color-palette' ) );
+$font_sizes         = current( (array) get_theme_support( 'editor-font-sizes' ) );
+$gradient_presets   = current( (array) get_theme_support( 'editor-gradient-presets' ) );
+$custom_line_height = get_theme_support( 'custom-line-height' );
+$custom_units       = get_theme_support( 'custom-units' );
 
 /**
  * Filters the allowed block types for the editor, defaulting to true (all
@@ -283,34 +285,38 @@ if ( $user_id ) {
 $body_placeholder = apply_filters( 'write_your_story', __( 'Start writing or type / to choose a block' ), $post );
 
 $editor_settings = array(
-	'alignWide'              => $align_wide,
-	'availableTemplates'     => $available_templates,
-	'allowedBlockTypes'      => $allowed_block_types,
-	'disableCustomColors'    => get_theme_support( 'disable-custom-colors' ),
-	'disableCustomFontSizes' => get_theme_support( 'disable-custom-font-sizes' ),
-	'disableCustomGradients' => get_theme_support( 'disable-custom-gradients' ),
-	'disablePostFormats'     => ! current_theme_supports( 'post-formats' ),
+	'alignWide'                            => $align_wide,
+	'availableTemplates'                   => $available_templates,
+	'allowedBlockTypes'                    => $allowed_block_types,
+	'disableCustomColors'                  => get_theme_support( 'disable-custom-colors' ),
+	'disableCustomFontSizes'               => get_theme_support( 'disable-custom-font-sizes' ),
+	'disableCustomGradients'               => get_theme_support( 'disable-custom-gradients' ),
+	'disablePostFormats'                   => ! current_theme_supports( 'post-formats' ),
 	/** This filter is documented in wp-admin/edit-form-advanced.php */
-	'titlePlaceholder'       => apply_filters( 'enter_title_here', __( 'Add title' ), $post ),
-	'bodyPlaceholder'        => $body_placeholder,
-	'isRTL'                  => is_rtl(),
-	'autosaveInterval'       => AUTOSAVE_INTERVAL,
-	'maxUploadFileSize'      => $max_upload_size,
-	'allowedMimeTypes'       => get_allowed_mime_types(),
-	'styles'                 => $styles,
-	'imageSizes'             => $available_image_sizes,
-	'imageDimensions'        => $image_dimensions,
-	'richEditingEnabled'     => user_can_richedit(),
-	'postLock'               => $lock_details,
-	'postLockUtils'          => array(
+	'titlePlaceholder'                     => apply_filters( 'enter_title_here', __( 'Add title' ), $post ),
+	'bodyPlaceholder'                      => $body_placeholder,
+	'isRTL'                                => is_rtl(),
+	'autosaveInterval'                     => AUTOSAVE_INTERVAL,
+	'maxUploadFileSize'                    => $max_upload_size,
+	'allowedMimeTypes'                     => get_allowed_mime_types(),
+	'styles'                               => $styles,
+	'imageSizes'                           => $available_image_sizes,
+	'imageDimensions'                      => $image_dimensions,
+	'richEditingEnabled'                   => user_can_richedit(),
+	'postLock'                             => $lock_details,
+	'postLockUtils'                        => array(
 		'nonce'       => wp_create_nonce( 'lock-post_' . $post->ID ),
 		'unlockNonce' => wp_create_nonce( 'update-post_' . $post->ID ),
 		'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
 	),
+	'__experimentalBlockPatterns'          => WP_Block_Patterns_Registry::get_instance()->get_all_registered(),
+	'__experimentalBlockPatternCategories' => WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered(),
 
 	// Whether or not to load the 'postcustom' meta box is stored as a user meta
 	// field so that we're not always loading its assets.
-	'enableCustomFields'     => (bool) get_user_meta( get_current_user_id(), 'enable_custom_fields', true ),
+	'enableCustomFields'                   => (bool) get_user_meta( get_current_user_id(), 'enable_custom_fields', true ),
+	'enableCustomLineHeight'               => $custom_line_height,
+	'enableCustomUnits'                    => $custom_units,
 );
 
 $autosave = wp_get_post_autosave( $post_ID );
@@ -359,6 +365,7 @@ wp_enqueue_media(
 );
 wp_tinymce_inline_scripts();
 wp_enqueue_editor();
+
 
 /**
  * Styles

@@ -10,8 +10,7 @@ function tests_get_phpunit_version() {
 	if ( class_exists( 'PHPUnit_Runner_Version' ) ) {
 		$version = PHPUnit_Runner_Version::id();
 	} elseif ( class_exists( 'PHPUnit\Runner\Version' ) ) {
-		// Must be parsable by PHP 5.2.x.
-		$version = call_user_func( 'PHPUnit\Runner\Version::id' );
+		$version = PHPUnit\Runner\Version::id();
 	} else {
 		$version = 0;
 	}
@@ -206,8 +205,12 @@ function _wp_die_handler_filter_exit() {
  */
 function _wp_die_handler_txt( $message, $title, $args ) {
 	echo "\nwp_die called\n";
-	echo "Message : $message\n";
-	echo "Title : $title\n";
+	echo "Message: $message\n";
+
+	if ( ! empty( $title ) ) {
+		echo "Title: $title\n";
+	}
+
 	if ( ! empty( $args ) ) {
 		echo "Args: \n";
 		foreach ( $args as $k => $v ) {
@@ -225,8 +228,12 @@ function _wp_die_handler_txt( $message, $title, $args ) {
  */
 function _wp_die_handler_exit( $message, $title, $args ) {
 	echo "\nwp_die called\n";
-	echo "Message : $message\n";
-	echo "Title : $title\n";
+	echo "Message: $message\n";
+
+	if ( ! empty( $title ) ) {
+		echo "Title: $title\n";
+	}
+
 	if ( ! empty( $args ) ) {
 		echo "Args: \n";
 		foreach ( $args as $k => $v ) {
@@ -307,5 +314,6 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_social_link' );
 	remove_action( 'init', 'register_block_core_social_link' );
 	remove_action( 'init', 'register_block_core_tag_cloud' );
+	remove_action( 'init', 'register_core_block_types_from_metadata' );
 }
 tests_add_filter( 'init', '_unhook_block_registration', 1000 );

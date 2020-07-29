@@ -146,9 +146,9 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param  int|null $max_w Image width.
-	 * @param  int|null $max_h Image height.
-	 * @param  bool     $crop
+	 * @param int|null $max_w Image width.
+	 * @param int|null $max_h Image height.
+	 * @param bool     $crop
 	 * @return true|WP_Error
 	 */
 	public function resize( $max_w, $max_h, $crop = false ) {
@@ -171,8 +171,8 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	}
 
 	/**
-	 * @param int $max_w
-	 * @param int $max_h
+	 * @param int        $max_w
+	 * @param int        $max_h
 	 * @param bool|array $crop
 	 * @return resource|WP_Error
 	 */
@@ -415,7 +415,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	}
 
 	/**
-	 * @param resource $image
+	 * @param resource    $image
 	 * @param string|null $filename
 	 * @param string|null $mime_type
 	 * @return array|WP_Error
@@ -453,15 +453,15 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		$perms = $stat['mode'] & 0000666; // Same permissions as parent folder, strip off the executable bits.
 		chmod( $filename, $perms );
 
-		/**
-		 * Filters the name of the saved image file.
-		 *
-		 * @since 2.6.0
-		 *
-		 * @param string $filename Name of the file.
-		 */
 		return array(
 			'path'      => $filename,
+			/**
+			 * Filters the name of the saved image file.
+			 *
+			 * @since 2.6.0
+			 *
+			 * @param string $filename Name of the file.
+			 */
 			'file'      => wp_basename( apply_filters( 'image_make_intermediate_size', $filename ) ),
 			'width'     => $this->size['width'],
 			'height'    => $this->size['height'],
@@ -499,8 +499,8 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @since 3.5.0
 	 *
 	 * @param string|stream $filename
-	 * @param callable $function
-	 * @param array $arguments
+	 * @param callable      $function
+	 * @param array         $arguments
 	 * @return bool
 	 */
 	protected function make_image( $filename, $function, $arguments ) {

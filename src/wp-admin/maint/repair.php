@@ -12,7 +12,7 @@ require_once dirname( dirname( __DIR__ ) ) . '/wp-load.php';
 header( 'Content-Type: text/html; charset=utf-8' );
 ?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" <?php language_attributes(); ?>>
+<html <?php language_attributes(); ?>>
 <head>
 	<meta name="viewport" content="width=device-width" />
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -111,7 +111,7 @@ if ( ! defined( 'WP_ALLOW_REPAIR' ) || ! WP_ALLOW_REPAIR ) {
 				printf( __( 'Successfully repaired the %s table.' ), "<code>$table</code>" );
 			} else {
 				/* translators: 1: Table name, 2: Error message. */
-				echo sprintf( __( 'Failed to repair the %1$s table. Error: %2$s' ), "<code>$table</code>", "<code>$check->Msg_text</code>" ) . '<br />';
+				printf( __( 'Failed to repair the %1$s table. Error: %2$s' ), "<code>$table</code>", "<code>$check->Msg_text</code>" ) . '<br />';
 				$problems[ $table ] = $check->Msg_text;
 				$okay               = false;
 			}

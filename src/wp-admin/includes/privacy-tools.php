@@ -40,8 +40,8 @@ function _wp_privacy_resend_request( $request_id ) {
  * @since 4.9.6
  * @access private
  *
- * @param  int          $request_id Request ID.
- * @return int|WP_Error $result     Request ID on success or WP_Error.
+ * @param int $request_id Request ID.
+ * @return int|WP_Error Request ID on success, or a WP_Error on failure.
  */
 function _wp_privacy_completed_request( $request_id ) {
 	// Get the request.
@@ -218,7 +218,7 @@ function _wp_personal_data_cleanup_requests() {
  * @since 4.9.6
  * @since 5.4.0 Added the `$group_id` and `$groups_count` parameters.
  *
- * @param array $group_data {
+ * @param array  $group_data {
  *     The group data to render.
  *
  *     @type string $group_label  The user-facing heading for the group, e.g. 'Comments'.
@@ -233,9 +233,9 @@ function _wp_personal_data_cleanup_requests() {
  *         }
  *     }
  * }
- * @param string  $group_id     The group identifier.
- * @param int     $groups_count The number of all groups
- * @return string $group_html   The HTML for this group and its items.
+ * @param string $group_id     The group identifier.
+ * @param int    $groups_count The number of all groups
+ * @return string The HTML for this group and its items.
  */
 function wp_privacy_generate_personal_data_export_group_html( $group_data, $group_id = '', $groups_count = 1 ) {
 	$group_id_attr = sanitize_title_with_dashes( $group_data['group_label'] . '-' . $group_id );
@@ -277,9 +277,9 @@ function wp_privacy_generate_personal_data_export_group_html( $group_data, $grou
 		$group_html .= '</table>';
 	}
 
-	if ( 1 < $groups_count ) {
-		$group_html .= '<div class="return_to_top">';
-		$group_html .= '<a href="#top">' . esc_html__( '&uarr; Return to top' ) . '</a>';
+	if ( $groups_count > 1 ) {
+		$group_html .= '<div class="return-to-top">';
+		$group_html .= '<a href="#top"><span aria-hidden="true">&uarr; </span> ' . esc_html__( 'Return to top' ) . '</a>';
 		$group_html .= '</div>';
 	}
 
@@ -423,7 +423,7 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	fwrite( $file, 'th { padding: 5px; text-align: left; width: 20%; }' );
 	fwrite( $file, 'td { padding: 5px; }' );
 	fwrite( $file, 'tr:nth-child(odd) { background-color: #fafafa; }' );
-	fwrite( $file, '.return_to_top { text-align:right; }' );
+	fwrite( $file, '.return-to-top { text-align: right; }' );
 	fwrite( $file, '</style>' );
 	fwrite( $file, '<title>' );
 	fwrite( $file, esc_html( $title ) );
@@ -433,7 +433,7 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	fwrite( $file, '<h1 id="top">' . esc_html__( 'Personal Data Export' ) . '</h1>' );
 
 	// Create TOC.
-	if ( 1 < $groups_count ) {
+	if ( $groups_count > 1 ) {
 		fwrite( $file, '<div id="table_of_contents">' );
 		fwrite( $file, '<h2>' . esc_html__( 'Table of Contents' ) . '</h2>' );
 		fwrite( $file, '<ul>' );
@@ -464,22 +464,38 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	/*
 	 * Now, generate the ZIP.
 	 *
-	 * If an archive has already been generated, then remove it and reuse the
-	 * filename, to avoid breaking any URLs that may have been previously sent
-	 * via email.
+	 * If an archive has already been generated, then remove it and reuse the filename,
+	 * to avoid breaking any URLs that may have been previously sent via email.
 	 */
-	$error            = false;
-	$archive_url      = get_post_meta( $request_id, '_export_file_url', true );
+	$error = false;
+
+	// This meta value is used from version 5.5.
+	$archive_filename = get_post_meta( $request_id, '_export_file_name', true );
+
+	// This one stored an absolute path and is used for backward compatibility.
 	$archive_pathname = get_post_meta( $request_id, '_export_file_path', true );
 
-	if ( empty( $archive_pathname ) || empty( $archive_url ) ) {
+	// If a filename meta exists, use it.
+	if ( ! empty( $archive_filename ) ) {
+		$archive_pathname = $exports_dir . $archive_filename;
+	} elseif ( ! empty( $archive_pathname ) ) {
+		// If a full path meta exists, use it and create the new meta value.
+		$archive_filename = basename( $archive_pathname );
+
+		update_post_meta( $request_id, '_export_file_name', $archive_filename );
+
+		// Remove the back-compat meta values.
+		delete_post_meta( $request_id, '_export_file_url' );
+		delete_post_meta( $request_id, '_export_file_path' );
+	} else {
+		// If there's no filename or full path stored, create a new file.
 		$archive_filename = $file_basename . '.zip';
 		$archive_pathname = $exports_dir . $archive_filename;
-		$archive_url      = $exports_url . $archive_filename;
 
-		update_post_meta( $request_id, '_export_file_url', $archive_url );
-		update_post_meta( $request_id, '_export_file_path', wp_normalize_path( $archive_pathname ) );
+		update_post_meta( $request_id, '_export_file_name', $archive_filename );
 	}
+
+	$archive_url = $exports_url . $archive_filename;
 
 	if ( ! empty( $archive_pathname ) && file_exists( $archive_pathname ) ) {
 		wp_delete_file( $archive_pathname );
@@ -556,9 +572,12 @@ function wp_privacy_send_personal_data_export_email( $request_id ) {
 	$expiration      = apply_filters( 'wp_privacy_export_expiration', 3 * DAY_IN_SECONDS );
 	$expiration_date = date_i18n( get_option( 'date_format' ), time() + $expiration );
 
-	$export_file_url = get_post_meta( $request_id, '_export_file_url', true );
-	$site_name       = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
-	$site_url        = home_url();
+	$exports_url      = wp_privacy_exports_url();
+	$export_file_name = get_post_meta( $request_id, '_export_file_name', true );
+	$export_file_url  = $exports_url . $export_file_name;
+
+	$site_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+	$site_url  = home_url();
 
 	/**
 	 * Filters the recipient of the personal data export email notification.
@@ -700,8 +719,10 @@ All at ###SITENAME###
 
 /**
  * Intercept personal data exporter page Ajax responses in order to assemble the personal data export file.
- * @see wp_privacy_personal_data_export_page
+ *
  * @since 4.9.6
+ *
+ * @see 'wp_privacy_personal_data_export_page'
  *
  * @param array  $response        The response from the personal data exporter for the given page.
  * @param int    $exporter_index  The index of the personal data exporter. Begins at 1.
@@ -820,7 +841,10 @@ function wp_privacy_process_personal_data_export_page( $response, $exporter_inde
 		_wp_privacy_completed_request( $request_id );
 	} else {
 		// Modify the response to include the URL of the export file so the browser can fetch it.
-		$export_file_url = get_post_meta( $request_id, '_export_file_url', true );
+		$exports_url      = wp_privacy_exports_url();
+		$export_file_name = get_post_meta( $request_id, '_export_file_name', true );
+		$export_file_url  = $exports_url . $export_file_name;
+
 		if ( ! empty( $export_file_url ) ) {
 			$response['url'] = $export_file_url;
 		}
@@ -838,7 +862,7 @@ function wp_privacy_process_personal_data_export_page( $response, $exporter_inde
  *
  * @since 4.9.6
  *
- * @see wp_privacy_personal_data_erasure_page
+ * @see 'wp_privacy_personal_data_erasure_page'
  *
  * @param array  $response      The response from the personal data eraser for
  *                              the given page.

@@ -54,9 +54,9 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	}
 
 	function test_get_post_thumbnail_id() {
-		$this->assertEmpty( get_post_thumbnail_id( self::$post ) );
-		$this->assertEmpty( get_post_thumbnail_id( self::$post->ID ) );
-		$this->assertEmpty( get_post_thumbnail_id() );
+		$this->assertSame( 0, get_post_thumbnail_id( self::$post ) );
+		$this->assertSame( 0, get_post_thumbnail_id( self::$post->ID ) );
+		$this->assertFalse( get_post_thumbnail_id() );
 
 		set_post_thumbnail( self::$post, self::$attachment_id );
 

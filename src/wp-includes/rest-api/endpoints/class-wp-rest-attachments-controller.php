@@ -45,6 +45,16 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				),
 			)
 		);
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<id>[\d]+)/edit',
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'edit_media_item' ),
+				'permission_callback' => array( $this, 'edit_media_item_permissions_check' ),
+				'args'                => $this->get_edit_media_item_args(),
+			)
+		);
 	}
 
 	/**
@@ -109,17 +119,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		// Attaching media to a post requires ability to edit said post.
-		if ( ! empty( $request['post'] ) ) {
-			$parent           = get_post( (int) $request['post'] );
-			$post_parent_type = get_post_type_object( $parent->post_type );
-
-			if ( ! current_user_can( $post_parent_type->cap->edit_post, $request['post'] ) ) {
-				return new WP_Error(
-					'rest_cannot_edit',
-					__( 'Sorry, you are not allowed to upload media to this post.' ),
-					array( 'status' => rest_authorization_required_code() )
-				);
-			}
+		if ( ! empty( $request['post'] ) && ! current_user_can( 'edit_post', (int) $request['post'] ) ) {
+			return new WP_Error(
+				'rest_cannot_edit',
+				__( 'Sorry, you are not allowed to upload media to this post.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
 		}
 
 		return true;
@@ -370,13 +375,261 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	/**
 	 * Checks if a given request can perform post processing on an attachment.
 	 *
-	 * @sicne 5.3.0
+	 * @since 5.3.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to update the item, WP_Error object otherwise.
 	 */
 	public function post_process_item_permissions_check( $request ) {
 		return $this->update_item_permissions_check( $request );
+	}
+
+	/**
+	 * Checks if a given request has access to editing media.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
+	 */
+	public function edit_media_item_permissions_check( $request ) {
+		if ( ! current_user_can( 'upload_files' ) ) {
+			return new WP_Error(
+				'rest_cannot_edit_image',
+				__( 'Sorry, you are not allowed to upload media on this site.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		return $this->update_item_permissions_check( $request );
+	}
+
+	/**
+	 * Applies edits to a media item and creates a new attachment record.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
+	 */
+	public function edit_media_item( $request ) {
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+
+		$attachment_id = $request['id'];
+
+		// This also confirms the attachment is an image.
+		$image_file = wp_get_original_image_path( $attachment_id );
+		$image_meta = wp_get_attachment_metadata( $attachment_id );
+
+		if (
+			! $image_meta ||
+			! $image_file ||
+			! wp_image_file_matches_image_meta( $request['src'], $image_meta, $attachment_id )
+		) {
+			return new WP_Error(
+				'rest_unknown_attachment',
+				__( 'Unable to get meta information for file.' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		$supported_types = array( 'image/jpeg', 'image/png', 'image/gif' );
+		$mime_type       = get_post_mime_type( $attachment_id );
+		if ( ! in_array( $mime_type, $supported_types, true ) ) {
+			return new WP_Error(
+				'rest_cannot_edit_file_type',
+				__( 'This type of file cannot be edited.' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		// Check if we need to do anything.
+		$rotate = 0;
+		$crop   = false;
+
+		if ( ! empty( $request['rotation'] ) ) {
+			// Rotation direction: clockwise vs. counter clockwise.
+			$rotate = 0 - (int) $request['rotation'];
+		}
+
+		if ( isset( $request['x'], $request['y'], $request['width'], $request['height'] ) ) {
+			$crop = true;
+		}
+
+		if ( ! $rotate && ! $crop ) {
+			return new WP_Error(
+				'rest_image_not_edited',
+				__( 'The image was not edited. Edit the image before applying the changes.' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		/*
+		 * If the file doesn't exist, attempt a URL fopen on the src link.
+		 * This can occur with certain file replication plugins.
+		 * Keep the original file path to get a modified name later.
+		 */
+		$image_file_to_edit = $image_file;
+		if ( ! file_exists( $image_file_to_edit ) ) {
+			$image_file_to_edit = _load_image_to_edit_path( $attachment_id );
+		}
+
+		$image_editor = wp_get_image_editor( $image_file_to_edit );
+
+		if ( is_wp_error( $image_editor ) ) {
+			return new WP_Error(
+				'rest_unknown_image_file_type',
+				__( 'Unable to edit this image.' ),
+				array( 'status' => 500 )
+			);
+		}
+
+		if ( 0 !== $rotate ) {
+			$result = $image_editor->rotate( $rotate );
+
+			if ( is_wp_error( $result ) ) {
+				return new WP_Error(
+					'rest_image_rotation_failed',
+					__( 'Unable to rotate this image.' ),
+					array( 'status' => 500 )
+				);
+			}
+		}
+
+		if ( $crop ) {
+			$size = $image_editor->get_size();
+
+			$crop_x = round( ( $size['width'] * floatval( $request['x'] ) ) / 100.0 );
+			$crop_y = round( ( $size['height'] * floatval( $request['y'] ) ) / 100.0 );
+			$width  = round( ( $size['width'] * floatval( $request['width'] ) ) / 100.0 );
+			$height = round( ( $size['height'] * floatval( $request['height'] ) ) / 100.0 );
+
+			$result = $image_editor->crop( $crop_x, $crop_y, $width, $height );
+
+			if ( is_wp_error( $result ) ) {
+				return new WP_Error(
+					'rest_image_crop_failed',
+					__( 'Unable to crop this image.' ),
+					array( 'status' => 500 )
+				);
+			}
+		}
+
+		// Calculate the file name.
+		$image_ext  = pathinfo( $image_file, PATHINFO_EXTENSION );
+		$image_name = wp_basename( $image_file, ".{$image_ext}" );
+
+		// Do not append multiple `-edited` to the file name.
+		// The user may be editing a previously edited image.
+		if ( preg_match( '/-edited(-\d+)?$/', $image_name ) ) {
+			// Remove any `-1`, `-2`, etc. `wp_unique_filename()` will add the proper number.
+			$image_name = preg_replace( '/-edited(-\d+)?$/', '-edited', $image_name );
+		} else {
+			// Append `-edited` before the extension.
+			$image_name .= '-edited';
+		}
+
+		$filename = "{$image_name}.{$image_ext}";
+
+		// Create the uploads sub-directory if needed.
+		$uploads = wp_upload_dir();
+
+		// Make the file name unique in the (new) upload directory.
+		$filename = wp_unique_filename( $uploads['path'], $filename );
+
+		// Save to disk.
+		$saved = $image_editor->save( $uploads['path'] . "/$filename" );
+
+		if ( is_wp_error( $saved ) ) {
+			return $saved;
+		}
+
+		// Create new attachment post.
+		$new_attachment_post = array(
+			'post_mime_type' => $saved['mime-type'],
+			'guid'           => $uploads['url'] . "/$filename",
+			'post_title'     => $image_name,
+			'post_content'   => '',
+		);
+
+		// Copy post_content, post_excerpt, and post_title from the edited image's attachment post.
+		$attachment_post = get_post( $attachment_id );
+
+		if ( $attachment_post ) {
+			$new_attachment_post['post_content'] = $attachment_post->post_content;
+			$new_attachment_post['post_excerpt'] = $attachment_post->post_excerpt;
+			$new_attachment_post['post_title']   = $attachment_post->post_title;
+		}
+
+		$new_attachment_id = wp_insert_attachment( wp_slash( $new_attachment_post ), $saved['path'], 0, true );
+
+		if ( is_wp_error( $new_attachment_id ) ) {
+			if ( 'db_update_error' === $new_attachment_id->get_error_code() ) {
+				$new_attachment_id->add_data( array( 'status' => 500 ) );
+			} else {
+				$new_attachment_id->add_data( array( 'status' => 400 ) );
+			}
+
+			return $new_attachment_id;
+		}
+
+		// Copy the image alt text from the edited image.
+		$image_alt = get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
+
+		if ( ! empty( $image_alt ) ) {
+			// update_post_meta() expects slashed.
+			update_post_meta( $new_attachment_id, '_wp_attachment_image_alt', wp_slash( $image_alt ) );
+		}
+
+		if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+			// Set a custom header with the attachment_id.
+			// Used by the browser/client to resume creating image sub-sizes after a PHP fatal error.
+			header( 'X-WP-Upload-Attachment-ID: ' . $new_attachment_id );
+		}
+
+		// Generate image sub-sizes and meta.
+		$new_image_meta = wp_generate_attachment_metadata( $new_attachment_id, $saved['path'] );
+
+		// Copy the EXIF metadata from the original attachment if not generated for the edited image.
+		if ( isset( $image_meta['image_meta'] ) && isset( $new_image_meta['image_meta'] ) && is_array( $new_image_meta['image_meta'] ) ) {
+			// Merge but skip empty values.
+			foreach ( (array) $image_meta['image_meta'] as $key => $value ) {
+				if ( empty( $new_image_meta['image_meta'][ $key ] ) && ! empty( $value ) ) {
+					$new_image_meta['image_meta'][ $key ] = $value;
+				}
+			}
+		}
+
+		// Reset orientation. At this point the image is edited and orientation is correct.
+		if ( ! empty( $new_image_meta['image_meta']['orientation'] ) ) {
+			$new_image_meta['image_meta']['orientation'] = 1;
+		}
+
+		// The attachment_id may change if the site is exported and imported.
+		$new_image_meta['parent_image'] = array(
+			'attachment_id' => $attachment_id,
+			// Path to the originally uploaded image file relative to the uploads directory.
+			'file'          => _wp_relative_upload_path( $image_file ),
+		);
+
+		/**
+		 * Filters the meta data for the new image created by editing an existing image.
+		 *
+		 * @since 5.5.0
+		 *
+		 * @param array $new_image_meta    Meta data for the new image.
+		 * @param int   $new_attachment_id Attachment post ID for the new image.
+		 * @param int   $attachment_id     Attachment post ID for the edited (parent) image.
+		 */
+		$new_image_meta = apply_filters( 'wp_edited_image_metadata', $new_image_meta, $new_attachment_id, $attachment_id );
+
+		wp_update_attachment_metadata( $new_attachment_id, $new_image_meta );
+
+		$response = $this->prepare_item_for_response( get_post( $new_attachment_id ), $request );
+		$response->set_status( 201 );
+		$response->header( 'Location', rest_url( sprintf( '%s/%s/%s', $this->namespace, $this->rest_base, $new_attachment_id ) ) );
+
+		return $response;
 	}
 
 	/**
@@ -1017,6 +1270,56 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Gets the request args for the edit item route.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @return array
+	 */
+	protected function get_edit_media_item_args() {
+		return array(
+			'rotation' => array(
+				'description'      => __( 'The amount to rotate the image clockwise in degrees.' ),
+				'type'             => 'integer',
+				'minimum'          => 0,
+				'exclusiveMinimum' => true,
+				'maximum'          => 360,
+				'exclusiveMaximum' => true,
+			),
+			'x'        => array(
+				'description' => __( 'As a percentage of the image, the x position to start the crop from.' ),
+				'type'        => 'number',
+				'minimum'     => 0,
+				'maximum'     => 100,
+			),
+			'y'        => array(
+				'description' => __( 'As a percentage of the image, the y position to start the crop from.' ),
+				'type'        => 'number',
+				'minimum'     => 0,
+				'maximum'     => 100,
+			),
+			'width'    => array(
+				'description' => __( 'As a percentage of the image, the width to crop the image to.' ),
+				'type'        => 'number',
+				'minimum'     => 0,
+				'maximum'     => 100,
+			),
+			'height'   => array(
+				'description' => __( 'As a percentage of the image, the height to crop the image to.' ),
+				'type'        => 'number',
+				'minimum'     => 0,
+				'maximum'     => 100,
+			),
+			'src'      => array(
+				'description' => __( 'URL to the edited image file.' ),
+				'type'        => 'string',
+				'format'      => 'uri',
+				'required'    => true,
+			),
+		);
 	}
 
 }

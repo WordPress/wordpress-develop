@@ -291,4 +291,32 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertEquals( count( $taxonomies ), count( $data ) );
 	}
 
+	/**
+	 * @ticket 49116
+	 */
+	public function test_get_for_taxonomy_reuses_same_instance() {
+		$this->assertSame(
+			get_taxonomy( 'category' )->get_rest_controller(),
+			get_taxonomy( 'category' )->get_rest_controller()
+		);
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_get_for_taxonomy_returns_terms_controller_if_custom_class_not_specified() {
+		register_taxonomy(
+			'test',
+			'post',
+			array(
+				'show_in_rest' => true,
+			)
+		);
+
+		$this->assertInstanceOf(
+			WP_REST_Terms_Controller::class,
+			get_taxonomy( 'test' )->get_rest_controller()
+		);
+	}
+
 }

@@ -119,7 +119,7 @@ function the_media_upload_tabs() {
  *
  * @since 2.5.0
  *
- * @param int          $id      Image attachment id.
+ * @param int          $id      Image attachment ID.
  * @param string       $caption Image caption.
  * @param string       $title   Image title attribute.
  * @param string       $align   Image CSS alignment property.
@@ -152,9 +152,10 @@ function get_image_send_to_editor( $id, $caption, $title, $align, $url = '', $re
 	 * Filters the image HTML markup to send to the editor when inserting an image.
 	 *
 	 * @since 2.5.0
+	 * @since 5.6.0 The `$rel` parameter was added.
 	 *
 	 * @param string       $html    The image HTML markup to send.
-	 * @param int          $id      The attachment id.
+	 * @param int          $id      The attachment ID.
 	 * @param string       $caption The image caption.
 	 * @param string       $title   The image title.
 	 * @param string       $align   The image alignment.
@@ -162,14 +163,15 @@ function get_image_send_to_editor( $id, $caption, $title, $align, $url = '', $re
 	 * @param string|array $size    Size of image. Image size or array of width and height values
 	 *                              (in that order). Default 'medium'.
 	 * @param string       $alt     The image alternative, or alt, text.
+	 * @param string       $rel     The image rel attribute.
 	 */
-	$html = apply_filters( 'image_send_to_editor', $html, $id, $caption, $title, $align, $url, $size, $alt );
+	$html = apply_filters( 'image_send_to_editor', $html, $id, $caption, $title, $align, $url, $size, $alt, $rel );
 
 	return $html;
 }
 
 /**
- * Adds image shortcode with caption to editor
+ * Adds image shortcode with caption to editor.
  *
  * @since 2.6.0
  *
@@ -208,7 +210,7 @@ function image_add_caption( $html, $id, $caption, $title, $align, $url, $size, $
 	 *
 	 * @since 2.6.0
 	 *
-	 * @param bool $bool Whether to disable appending captions. Returning true to the filter
+	 * @param bool $bool Whether to disable appending captions. Returning true from the filter
 	 *                   will disable captions. Default empty string.
 	 */
 	if ( empty( $caption ) || apply_filters( 'disable_captions', '' ) ) {
@@ -248,7 +250,7 @@ function image_add_caption( $html, $id, $caption, $title, $align, $url, $size, $
 }
 
 /**
- * Private preg_replace callback used in image_add_caption()
+ * Private preg_replace callback used in image_add_caption().
  *
  * @access private
  * @since 3.4.0
@@ -259,7 +261,7 @@ function _cleanup_image_add_caption( $matches ) {
 }
 
 /**
- * Adds image html to editor
+ * Adds image HTML to editor.
  *
  * @since 2.5.0
  *
@@ -276,15 +278,15 @@ function media_send_to_editor( $html ) {
 }
 
 /**
- * Save a file submitted from a POST request and create an attachment post for it.
+ * Saves a file submitted from a POST request and create an attachment post for it.
  *
  * @since 2.5.0
  *
  * @param string $file_id   Index of the `$_FILES` array that the file was sent. Required.
  * @param int    $post_id   The post ID of a post to attach the media item to. Required, but can
  *                          be set to 0, creating a media item that has no relationship to a post.
- * @param array  $post_data Overwrite some of the attachment. Optional.
- * @param array  $overrides Override the wp_handle_upload() behavior. Optional.
+ * @param array  $post_data Optional. Overwrite some of the attachment.
+ * @param array  $overrides Optional. Override the wp_handle_upload() behavior.
  * @return int|WP_Error ID of the attachment or a WP_Error object on failure.
  */
 function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrides = array( 'test_form' => false ) ) {
@@ -616,8 +618,6 @@ function wp_iframe( $content_func, ...$args ) {
  *
  * @global int $post_ID
  *
- * @staticvar int $instance
- *
  * @param string $editor_id
  */
 function media_buttons( $editor_id = 'content' ) {
@@ -667,7 +667,7 @@ function media_buttons( $editor_id = 'content' ) {
 /**
  * @global int $post_ID
  * @param string $type
- * @param int $post_id
+ * @param int    $post_id
  * @param string $tab
  * @return string
  */
@@ -1009,7 +1009,7 @@ function media_sideload_image( $file, $post_id = 0, $desc = null, $return = 'htm
 		// Store the original attachment source in meta.
 		add_post_meta( $id, '_source_url', $file );
 
-		// If attachment id was requested, return it.
+		// If attachment ID was requested, return it.
 		if ( 'id' === $return ) {
 			return $id;
 		}
@@ -1088,7 +1088,7 @@ function media_upload_library() {
  * @since 2.7.0
  *
  * @param WP_Post $post
- * @param string $checked
+ * @param string  $checked
  * @return string
  */
 function image_align_input_fields( $post, $checked = '' ) {
@@ -1125,7 +1125,7 @@ function image_align_input_fields( $post, $checked = '' ) {
  *
  * @since 2.7.0
  *
- * @param WP_Post $post
+ * @param WP_Post     $post
  * @param bool|string $check
  * @return array
  */
@@ -1204,7 +1204,7 @@ function image_size_input_fields( $post, $check = '' ) {
  * @since 2.7.0
  *
  * @param WP_Post $post
- * @param string $url_type
+ * @param string  $url_type
  * @return string
  */
 function image_link_input_fields( $post, $url_type = '' ) {
@@ -1252,7 +1252,7 @@ function wp_caption_input_textarea( $edit_post ) {
  *
  * @since 2.5.0
  *
- * @param array $form_fields
+ * @param array  $form_fields
  * @param object $post
  * @return array
  */
@@ -1318,9 +1318,9 @@ function image_attachment_fields_to_save( $post, $attachment ) {
  *
  * @since 2.5.0
  *
- * @param string $html
+ * @param string  $html
  * @param integer $attachment_id
- * @param array $attachment
+ * @param array   $attachment
  * @return string
  */
 function image_media_send_to_editor( $html, $attachment_id, $attachment ) {
@@ -1345,7 +1345,7 @@ function image_media_send_to_editor( $html, $attachment_id, $attachment ) {
  * @since 2.5.0
  *
  * @param WP_Post $post
- * @param array $errors
+ * @param array   $errors
  * @return array
  */
 function get_attachment_fields_to_edit( $post, $errors = null ) {
@@ -1488,8 +1488,8 @@ function get_attachment_fields_to_edit( $post, $errors = null ) {
  *
  * @global WP_Query $wp_the_query WordPress Query object.
  *
- * @param int $post_id Optional. Post ID.
- * @param array $errors Errors for attachment, if any.
+ * @param int   $post_id Optional. Post ID.
+ * @param array $errors  Errors for attachment, if any.
  * @return string
  */
 function get_media_items( $post_id, $errors ) {
@@ -1541,8 +1541,8 @@ function get_media_items( $post_id, $errors ) {
  *
  * @global string $redir_tab
  *
- * @param int $attachment_id Attachment ID for modification.
- * @param string|array $args Optional. Override defaults.
+ * @param int          $attachment_id Attachment ID for modification.
+ * @param string|array $args          Optional. Override defaults.
  * @return string HTML form for attachment.
  */
 function get_media_item( $attachment_id, $args = null ) {
@@ -2273,8 +2273,8 @@ function media_upload_form( $errors = null ) {
  *
  * @since 2.5.0
  *
- * @param string $type
- * @param object $errors
+ * @param string  $type
+ * @param object  $errors
  * @param integer $id
  */
 function media_upload_type_form( $type = 'file', $errors = null, $id = null ) {
@@ -2347,8 +2347,8 @@ function media_upload_type_form( $type = 'file', $errors = null, $id = null ) {
  *
  * @since 2.7.0
  *
- * @param string $type
- * @param object $errors
+ * @param string  $type
+ * @param object  $errors
  * @param integer $id
  */
 function media_upload_type_url_form( $type = null, $errors = null, $id = null ) {
@@ -3233,7 +3233,7 @@ function edit_form_image_editor( $post ) {
 
 	?>
 	</label>
-	<?php wp_editor( $post->post_content, 'attachment_content', $editor_args ); ?>
+	<?php wp_editor( format_to_edit( $post->post_content ), 'attachment_content', $editor_args ); ?>
 
 	</div>
 	<?php
@@ -3270,6 +3270,10 @@ function attachment_submitbox_metadata() {
 	<div class="misc-pub-section misc-pub-attachment">
 		<label for="attachment_url"><?php _e( 'File URL:' ); ?></label>
 		<input type="text" class="widefat urlfield" readonly="readonly" name="attachment_url" id="attachment_url" value="<?php echo esc_attr( $att_url ); ?>" />
+		<span class="copy-to-clipboard-container">
+			<button type="button" class="button copy-attachment-url edit-media" data-clipboard-target="#attachment_url"><?php _e( 'Copy URL' ); ?></button>
+			<span class="success hidden" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
+		</span>
 	</div>
 	<div class="misc-pub-section misc-pub-filename">
 		<?php _e( 'File name:' ); ?> <strong><?php echo $filename; ?></strong>
@@ -3683,7 +3687,7 @@ function wp_get_media_creation_timestamp( $metadata ) {
 }
 
 /**
- * Encapsulate logic for Attach/Detach actions
+ * Encapsulates the logic for Attach/Detach actions.
  *
  * @since 4.2.0
  *
@@ -3706,14 +3710,14 @@ function wp_media_attach_action( $parent_id, $action = 'attach' ) {
 
 	$ids = array();
 
-	foreach ( (array) $_REQUEST['media'] as $att_id ) {
-		$att_id = (int) $att_id;
+	foreach ( (array) $_REQUEST['media'] as $attachment_id ) {
+		$attachment_id = (int) $attachment_id;
 
-		if ( ! current_user_can( 'edit_post', $att_id ) ) {
+		if ( ! current_user_can( 'edit_post', $attachment_id ) ) {
 			continue;
 		}
 
-		$ids[] = $att_id;
+		$ids[] = $attachment_id;
 	}
 
 	if ( ! empty( $ids ) ) {
@@ -3724,13 +3728,24 @@ function wp_media_attach_action( $parent_id, $action = 'attach' ) {
 		} else {
 			$result = $wpdb->query( "UPDATE $wpdb->posts SET post_parent = 0 WHERE post_type = 'attachment' AND ID IN ( $ids_string )" );
 		}
-
-		foreach ( $ids as $att_id ) {
-			clean_attachment_cache( $att_id );
-		}
 	}
 
 	if ( isset( $result ) ) {
+		foreach ( $ids as $attachment_id ) {
+			/**
+			 * Fires when media is attached or detached from a post.
+			 *
+			 * @since 5.5.0
+			 *
+			 * @param string $action        Attach/detach action. Accepts 'attach' or 'detach'.
+			 * @param int    $attachment_id The attachment ID.
+			 * @param int    $parent_id     Attachment parent ID.
+			 */
+			do_action( 'wp_media_attach_action', $action, $attachment_id, $parent_id );
+
+			clean_attachment_cache( $attachment_id );
+		}
+
 		$location = 'upload.php';
 		$referer  = wp_get_referer();
 

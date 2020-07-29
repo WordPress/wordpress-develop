@@ -633,8 +633,9 @@ function _wp_relative_upload_path( $path ) {
  * @global WP_Post $post Global post object.
  *
  * @param mixed  $args   Optional. User defined arguments for replacing the defaults. Default empty.
- * @param string $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
- *                       a WP_Post object, an associative array, or a numeric array, respectively. Default OBJECT.
+ * @param string $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+ *                       correspond to a WP_Post object, an associative array, or a numeric array,
+ *                       respectively. Default OBJECT.
  * @return WP_Post[]|int[] Array of post objects or post IDs.
  */
 function get_children( $args = '', $output = OBJECT ) {
@@ -751,8 +752,9 @@ function get_extended( $post ) {
  * @global WP_Post $post Global post object.
  *
  * @param int|WP_Post|null $post   Optional. Post ID or post object. Defaults to global $post.
- * @param string           $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
- *                                 a WP_Post object, an associative array, or a numeric array, respectively. Default OBJECT.
+ * @param string           $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+ *                                 correspond to a WP_Post object, an associative array, or a numeric array,
+ *                                 respectively. Default OBJECT.
  * @param string           $filter Optional. Type of filter to apply. Accepts 'raw', 'edit', 'db',
  *                                 or 'display'. Default 'raw'.
  * @return WP_Post|array|null Type corresponding to $output on success or null on failure.
@@ -982,10 +984,10 @@ function get_page_statuses() {
  */
 function _wp_privacy_statuses() {
 	return array(
-		'request-pending'   => __( 'Pending' ),      // Pending confirmation from user.
-		'request-confirmed' => __( 'Confirmed' ),    // User has confirmed the action.
-		'request-failed'    => __( 'Failed' ),       // User failed to confirm the action.
-		'request-completed' => __( 'Completed' ),    // Admin has handled the request.
+		'request-pending'   => _x( 'Pending', 'request status' ),      // Pending confirmation from user.
+		'request-confirmed' => _x( 'Confirmed', 'request status' ),    // User has confirmed the action.
+		'request-failed'    => _x( 'Failed', 'request status' ),       // User failed to confirm the action.
+		'request-completed' => _x( 'Completed', 'request status' ),    // Admin has handled the request.
 	);
 }
 
@@ -999,9 +1001,10 @@ function _wp_privacy_statuses() {
  * Arguments prefixed with an _underscore shouldn't be used by plugins and themes.
  *
  * @since 3.0.0
+ *
  * @global array $wp_post_statuses Inserts new post status object into the list
  *
- * @param string $post_status Name of the post status.
+ * @param string       $post_status Name of the post status.
  * @param array|string $args {
  *     Optional. Array or string of post status arguments.
  *
@@ -1295,9 +1298,9 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  * .
  * @global array $wp_post_types List of post types.
  *
- * @param string $post_type Post type key. Must not exceed 20 characters and may
- *                          only contain lowercase alphanumeric characters, dashes,
- *                          and underscores. See sanitize_key().
+ * @param string       $post_type Post type key. Must not exceed 20 characters and may
+ *                                only contain lowercase alphanumeric characters, dashes,
+ *                                and underscores. See sanitize_key().
  * @param array|string $args {
  *     Array or string of arguments for registering a post type.
  *
@@ -1365,9 +1368,9 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                              will store revisions, and the 'comments' feature dictates whether the
  *                                              comments count will show on the edit screen. A feature can also be
  *                                              specified as an array of arguments to provide additional information
- *                                              about supporting that feature. Example: `array( 'my_feature', array(
- *                                              'field' => 'value' ) )`. Default is an array containing 'title' and
- *                                              'editor'.
+ *                                              about supporting that feature.
+ *                                              Example: `array( 'my_feature', array( 'field' => 'value' ) )`.
+ *                                              Default is an array containing 'title' and 'editor'.
  *     @type callable    $register_meta_box_cb  Provide a callback function that sets up the meta boxes for the
  *                                              edit form. Do remove_meta_box() and add_meta_box() calls in the
  *                                              callback. Default null.
@@ -2117,7 +2120,7 @@ function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
  *                        This parameter has no effect if $key is not specified.
  *                        Default false.
  * @return mixed An array if $single is false. The value of the meta field
- *               if $single is true.
+ *               if $single is true. False for an invalid $post_id.
  */
 function get_post_meta( $post_id, $key = '', $single = false ) {
 	return get_metadata( 'post', $post_id, $key, $single );
@@ -2139,9 +2142,11 @@ function get_post_meta( $post_id, $key = '', $single = false ) {
  * @param string $meta_key   Metadata key.
  * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
  * @param mixed  $prev_value Optional. Previous value to check before updating.
- *                           Default empty.
+ *                           If specified, only update existing metadata entries with
+ *                           this value. Otherwise, update all entries. Default empty.
  * @return int|bool Meta ID if the key didn't exist, true on successful update,
- *                  false on failure.
+ *                  false on failure or if the value passed to the function
+ *                  is the same as the one that is already in the database.
  */
 function update_post_meta( $post_id, $meta_key, $meta_value, $prev_value = '' ) {
 	// Make sure meta is added to the post, not a revision.
@@ -2352,7 +2357,7 @@ function sanitize_post( $post, $context = 'display' ) {
 }
 
 /**
- * Sanitize post field based on context.
+ * Sanitizes a post field based on context.
  *
  * Possible context values are:  'raw', 'edit', 'db', 'display', 'attribute' and
  * 'js'. The 'display' context is used by default. 'attribute' and 'js' contexts
@@ -2364,7 +2369,7 @@ function sanitize_post( $post, $context = 'display' ) {
  * @param string $field   The Post Object field name.
  * @param mixed  $value   The Post Object value.
  * @param int    $post_id Post ID.
- * @param string $context Optional. How to sanitize post fields. Looks for 'raw', 'edit',
+ * @param string $context Optional. How to sanitize the field. Possible values are 'raw', 'edit',
  *                        'db', 'display', 'attribute' and 'js'. Default 'display'.
  * @return mixed Sanitized value.
  */
@@ -2491,7 +2496,7 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 			 * @param mixed  $value   Value of the prefixed post field.
 			 * @param int    $post_id Post ID.
 			 * @param string $context Context for how to sanitize the field. Possible
-			 *                        values include 'raw', 'edit', 'db', 'display',
+			 *                        values include 'edit', 'display',
 			 *                        'attribute' and 'js'.
 			 */
 			$value = apply_filters( "{$field}", $value, $post_id, $context );
@@ -2644,6 +2649,13 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 
 	$counts = wp_cache_get( $cache_key, 'counts' );
 	if ( false !== $counts ) {
+		// We may have cached this before every status was registered.
+		foreach ( get_post_stati() as $status ) {
+			if ( ! isset( $counts->{$status} ) ) {
+				$counts->{$status} = 0;
+			}
+		}
+
 		/** This filter is documented in wp-includes/post.php */
 		return apply_filters( 'wp_count_posts', $counts, $type, $perm );
 	}
@@ -3064,6 +3076,7 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 	 * @param WP_Post $post   Post object.
 	 */
 	do_action( 'delete_post', $postid, $post );
+
 	$result = $wpdb->delete( $wpdb->posts, array( 'ID' => $postid ) );
 	if ( ! $result ) {
 		return false;
@@ -3425,7 +3438,7 @@ function wp_untrash_post_comments( $post = null ) {
  *                       See WP_Term_Query::__construct() for supported arguments.
  * @return array|WP_Error List of categories. If the `$fields` argument passed via `$args` is 'all' or
  *                        'all_with_object_id', an array of WP_Term objects will be returned. If `$fields`
- *                        is 'ids', an array of category ids. If `$fields` is 'names', an array of category names.
+ *                        is 'ids', an array of category IDs. If `$fields` is 'names', an array of category names.
  *                        WP_Error object if 'category' taxonomy doesn't exist.
  */
 function wp_get_post_categories( $post_id = 0, $args = array() ) {
@@ -3494,10 +3507,11 @@ function wp_get_post_terms( $post_id = 0, $taxonomy = 'post_tag', $args = array(
  * @see get_posts()
  *
  * @param array  $args   Optional. Arguments to retrieve posts. Default empty array.
- * @param string $output Optional. The required return type. One of OBJECT or ARRAY_A, which correspond to
- *                       a WP_Post object or an associative array, respectively. Default ARRAY_A.
- * @return array|false Array of recent posts, where the type of each element is determined by $output parameter.
- *                     Empty array on failure.
+ * @param string $output Optional. The required return type. One of OBJECT or ARRAY_A, which
+ *                       correspond to a WP_Post object or an associative array, respectively.
+ *                       Default ARRAY_A.
+ * @return array|false Array of recent posts, where the type of each element is determined
+ *                     by the `$output` parameter. Empty array on failure.
  */
 function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
 
@@ -3643,6 +3657,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 		// Get the post ID and GUID.
 		$post_ID     = $postarr['ID'];
 		$post_before = get_post( $post_ID );
+
 		if ( is_null( $post_before ) ) {
 			if ( $wp_error ) {
 				return new WP_Error( 'invalid_post', __( 'Invalid post ID.' ) );
@@ -3661,6 +3676,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	$post_title   = $postarr['post_title'];
 	$post_content = $postarr['post_content'];
 	$post_excerpt = $postarr['post_excerpt'];
+
 	if ( isset( $postarr['post_name'] ) ) {
 		$post_name = $postarr['post_name'];
 	} elseif ( $update ) {
@@ -3681,8 +3697,8 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	 * 1. The post type supports the title, editor, and excerpt fields
 	 * 2. The title, editor, and excerpt fields are all empty
 	 *
-	 * Returning a truthy value to the filter will effectively short-circuit
-	 * the new post being inserted, returning 0. If $wp_error is true, a WP_Error
+	 * Returning a truthy value from the filter will effectively short-circuit
+	 * the new post being inserted and return 0. If $wp_error is true, a WP_Error
 	 * will be returned instead.
 	 *
 	 * @since 3.3.0
@@ -3699,6 +3715,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	}
 
 	$post_status = empty( $postarr['post_status'] ) ? 'draft' : $postarr['post_status'];
+
 	if ( 'attachment' === $post_type && ! in_array( $post_status, array( 'inherit', 'private', 'trash', 'auto-draft' ), true ) ) {
 		$post_status = 'inherit';
 	}
@@ -3709,7 +3726,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	}
 
 	// Make sure we set a valid category.
-	if ( empty( $post_category ) || 0 == count( $post_category ) || ! is_array( $post_category ) ) {
+	if ( empty( $post_category ) || 0 === count( $post_category ) || ! is_array( $post_category ) ) {
 		// 'post' requires at least one category.
 		if ( 'post' === $post_type && 'auto-draft' !== $post_status ) {
 			$post_category = array( get_option( 'default_category' ) );
@@ -3744,6 +3761,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	} else {
 		// On updates, we need to check to see if it's using the old, fixed sanitization context.
 		$check_name = sanitize_title( $post_name, '', 'old-save' );
+
 		if ( $update && strtolower( urlencode( $post_name ) ) == $check_name && get_post_field( 'post_name', $post_ID ) == $check_name ) {
 			$post_name = $check_name;
 		} else { // new post, or slug has changed.
@@ -3875,6 +3893,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	 */
 	if ( 'trash' === $previous_status && 'trash' !== $post_status ) {
 		$desired_post_slug = get_post_meta( $post_ID, '_wp_desired_post_slug', true );
+
 		if ( $desired_post_slug ) {
 			delete_post_meta( $post_ID, '_wp_desired_post_slug' );
 			$post_name = $desired_post_slug;
@@ -3917,6 +3936,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	foreach ( $emoji_fields as $emoji_field ) {
 		if ( isset( $data[ $emoji_field ] ) ) {
 			$charset = $wpdb->get_col_charset( $wpdb->posts, $emoji_field );
+
 			if ( 'utf8' === $charset ) {
 				$data[ $emoji_field ] = wp_encode_emoji( $data[ $emoji_field ] );
 			}
@@ -3950,6 +3970,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 		 */
 		$data = apply_filters( 'wp_insert_post_data', $data, $postarr, $unsanitized_postarr );
 	}
+
 	$data  = wp_unslash( $data );
 	$where = array( 'ID' => $post_ID );
 
@@ -3963,9 +3984,16 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 		 * @param array $data    Array of unslashed post data.
 		 */
 		do_action( 'pre_post_update', $post_ID, $data );
+
 		if ( false === $wpdb->update( $wpdb->posts, $data, $where ) ) {
 			if ( $wp_error ) {
-				return new WP_Error( 'db_update_error', __( 'Could not update post in the database' ), $wpdb->last_error );
+				if ( 'attachment' === $post_type ) {
+					$message = __( 'Could not update attachment in the database.' );
+				} else {
+					$message = __( 'Could not update post in the database.' );
+				}
+
+				return new WP_Error( 'db_update_error', $message, $wpdb->last_error );
 			} else {
 				return 0;
 			}
@@ -3974,17 +4002,26 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 		// If there is a suggested ID, use it if not already present.
 		if ( ! empty( $import_id ) ) {
 			$import_id = (int) $import_id;
+
 			if ( ! $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE ID = %d", $import_id ) ) ) {
 				$data['ID'] = $import_id;
 			}
 		}
+
 		if ( false === $wpdb->insert( $wpdb->posts, $data ) ) {
 			if ( $wp_error ) {
-				return new WP_Error( 'db_insert_error', __( 'Could not insert post into the database' ), $wpdb->last_error );
+				if ( 'attachment' === $post_type ) {
+					$message = __( 'Could not insert attachment into the database.' );
+				} else {
+					$message = __( 'Could not insert post into the database.' );
+				}
+
+				return new WP_Error( 'db_insert_error', $message, $wpdb->last_error );
 			} else {
 				return 0;
 			}
 		}
+
 		$post_ID = (int) $wpdb->insert_id;
 
 		// Use the newly generated $post_ID.
@@ -3993,6 +4030,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 
 	if ( empty( $data['post_name'] ) && ! in_array( $data['post_status'], array( 'draft', 'pending', 'auto-draft' ), true ) ) {
 		$data['post_name'] = wp_unique_post_slug( sanitize_title( $data['post_title'], $post_ID ), $post_ID, $data['post_status'], $post_type, $post_parent );
+
 		$wpdb->update( $wpdb->posts, array( 'post_name' => $data['post_name'] ), $where );
 		clean_post_cache( $post_ID );
 	}
@@ -4005,10 +4043,38 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 		wp_set_post_tags( $post_ID, $postarr['tags_input'] );
 	}
 
+	// Add default term for all associated custom taxonomies.
+	if ( 'auto-draft' !== $post_status ) {
+		foreach ( get_object_taxonomies( $post_type, 'object' ) as $taxonomy => $tax_object ) {
+
+			if ( ! empty( $tax_object->default_term ) ) {
+
+				// Filter out empty terms.
+				if ( isset( $postarr['tax_input'] ) && is_array( $postarr['tax_input'][ $taxonomy ] ) ) {
+					$postarr['tax_input'][ $taxonomy ] = array_filter( $postarr['tax_input'][ $taxonomy ] );
+				}
+
+				// Passed custom taxonomy list overwrites the existing list if not empty.
+				$terms = wp_get_object_terms( $post_ID, $taxonomy, array( 'fields' => 'ids' ) );
+				if ( ! empty( $terms ) && empty( $postarr['tax_input'][ $taxonomy ] ) ) {
+					$postarr['tax_input'][ $taxonomy ] = $terms;
+				}
+
+				if ( empty( $postarr['tax_input'][ $taxonomy ] ) ) {
+					$default_term_id = get_option( 'default_term_' . $taxonomy );
+					if ( ! empty( $default_term_id ) ) {
+						$postarr['tax_input'][ $taxonomy ] = array( (int) $default_term_id );
+					}
+				}
+			}
+		}
+	}
+
 	// New-style support for all custom taxonomies.
 	if ( ! empty( $postarr['tax_input'] ) ) {
 		foreach ( $postarr['tax_input'] as $taxonomy => $tags ) {
 			$taxonomy_obj = get_taxonomy( $taxonomy );
+
 			if ( ! $taxonomy_obj ) {
 				/* translators: %s: Taxonomy name. */
 				_doing_it_wrong( __FUNCTION__, sprintf( __( 'Invalid taxonomy: %s.' ), $taxonomy ), '4.4.0' );
@@ -4019,6 +4085,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 			if ( is_array( $tags ) ) {
 				$tags = array_filter( $tags );
 			}
+
 			if ( current_user_can( $taxonomy_obj->cap->assign_terms ) ) {
 				wp_set_post_terms( $post_ID, $tags, $taxonomy );
 			}
@@ -4051,6 +4118,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	// Set or remove featured image.
 	if ( isset( $postarr['_thumbnail_id'] ) ) {
 		$thumbnail_support = current_theme_supports( 'post-thumbnails', $post_type ) && post_type_supports( $post_type, 'thumbnail' ) || 'revision' === $post_type;
+
 		if ( ! $thumbnail_support && 'attachment' === $post_type && $post_mime_type ) {
 			if ( wp_attachment_is( 'audio', $post_ID ) ) {
 				$thumbnail_support = post_type_supports( 'attachment:audio', 'thumbnail' ) || current_theme_supports( 'post-thumbnails', 'attachment:audio' );
@@ -4076,10 +4144,12 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	if ( ! empty( $postarr['page_template'] ) ) {
 		$post->page_template = $postarr['page_template'];
 		$page_templates      = wp_get_theme()->get_page_templates( $post );
+
 		if ( 'default' !== $postarr['page_template'] && ! isset( $page_templates[ $postarr['page_template'] ] ) ) {
 			if ( $wp_error ) {
 				return new WP_Error( 'invalid_page_template', __( 'Invalid page template.' ) );
 			}
+
 			update_post_meta( $post_ID, '_wp_page_template', 'default' );
 		} else {
 			update_post_meta( $post_ID, '_wp_page_template', $postarr['page_template'] );
@@ -4098,6 +4168,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 			 * @param int $post_ID Attachment ID.
 			 */
 			do_action( 'edit_attachment', $post_ID );
+
 			$post_after = get_post( $post_ID );
 
 			/**
@@ -4173,7 +4244,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	 *
 	 * @param int     $post_ID Post ID.
 	 * @param WP_Post $post    Post object.
-	 * @param bool    $update  Whether this is an existing post being updated or not.
+	 * @param bool    $update  Whether this is an existing post being updated.
 	 */
 	do_action( "save_post_{$post->post_type}", $post_ID, $post, $update );
 
@@ -4184,7 +4255,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	 *
 	 * @param int     $post_ID Post ID.
 	 * @param WP_Post $post    Post object.
-	 * @param bool    $update  Whether this is an existing post being updated or not.
+	 * @param bool    $update  Whether this is an existing post being updated.
 	 */
 	do_action( 'save_post', $post_ID, $post, $update );
 
@@ -4195,7 +4266,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	 *
 	 * @param int     $post_ID Post ID.
 	 * @param WP_Post $post    Post object.
-	 * @param bool    $update  Whether this is an existing post being updated or not.
+	 * @param bool    $update  Whether this is an existing post being updated.
 	 */
 	do_action( 'wp_insert_post', $post_ID, $post, $update );
 
@@ -4237,7 +4308,8 @@ function wp_update_post( $postarr = array(), $wp_error = false ) {
 
 	// Passed post category list overwrites existing category list if not empty.
 	if ( isset( $postarr['post_category'] ) && is_array( $postarr['post_category'] )
-			&& 0 != count( $postarr['post_category'] ) ) {
+		&& count( $postarr['post_category'] ) > 0
+	) {
 		$post_cats = $postarr['post_category'];
 	} else {
 		$post_cats = $post['post_category'];
@@ -4658,8 +4730,7 @@ function wp_set_post_terms( $post_id = 0, $tags = '', $taxonomy = 'post_tag', $a
 /**
  * Set categories for a post.
  *
- * If the post categories parameter is not set, then the default category is
- * going used.
+ * If no categories are provided, the default category is used.
  *
  * @since 2.1.0
  *
@@ -4675,16 +4746,33 @@ function wp_set_post_categories( $post_ID = 0, $post_categories = array(), $appe
 	$post_ID     = (int) $post_ID;
 	$post_type   = get_post_type( $post_ID );
 	$post_status = get_post_status( $post_ID );
-	// If $post_categories isn't already an array, make it one:
+
+	// If $post_categories isn't already an array, make it one.
 	$post_categories = (array) $post_categories;
+
 	if ( empty( $post_categories ) ) {
-		if ( 'post' === $post_type && 'auto-draft' !== $post_status ) {
+		/**
+		 * Filters post types (in addition to 'post') that require a default category.
+		 *
+		 * @since 5.5.0
+		 *
+		 * @param string[] $post_types An array of post type names. Default empty array.
+		 */
+		$default_category_post_types = apply_filters( 'default_category_post_types', array() );
+
+		// Regular posts always require a default category.
+		$default_category_post_types = array_merge( $default_category_post_types, array( 'post' ) );
+
+		if ( in_array( $post_type, $default_category_post_types, true )
+			&& is_object_in_taxonomy( $post_type, 'category' )
+			&& 'auto-draft' !== $post_status
+		) {
 			$post_categories = array( get_option( 'default_category' ) );
 			$append          = false;
 		} else {
 			$post_categories = array();
 		}
-	} elseif ( 1 == count( $post_categories ) && '' === reset( $post_categories ) ) {
+	} elseif ( 1 === count( $post_categories ) && '' === reset( $post_categories ) ) {
 		return true;
 	}
 
@@ -4879,7 +4967,7 @@ function get_pung( $post_id ) {
  * @since 4.7.0 `$post_id` can be a WP_Post object.
  *
  * @param int|WP_Post $post_id Post Object or ID
- * @param string[] List of URLs yet to ping.
+ * @return string[]|false List of URLs yet to ping.
  */
 function get_to_ping( $post_id ) {
 	$post = get_post( $post_id );
@@ -4963,8 +5051,9 @@ function get_all_page_ids() {
  * @deprecated 3.5.0 Use get_post()
  *
  * @param int|WP_Post $page   Page object or page ID. Passed by reference.
- * @param string      $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
- *                            a WP_Post object, an associative array, or a numeric array, respectively. Default OBJECT.
+ * @param string      $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+ *                            correspond to a WP_Post object, an associative array, or a numeric array,
+ *                            respectively. Default OBJECT.
  * @param string      $filter Optional. How the return value should be filtered. Accepts 'raw',
  *                            'edit', 'db', 'display'. Default 'raw'.
  * @return WP_Post|array|null WP_Post or array on success, null on failure.
@@ -4981,8 +5070,9 @@ function get_page( $page, $output = OBJECT, $filter = 'raw' ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string       $page_path Page path.
- * @param string       $output    Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
- *                                a WP_Post object, an associative array, or a numeric array, respectively. Default OBJECT.
+ * @param string       $output    Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+ *                                correspond to a WP_Post object, an associative array, or a numeric array,
+ *                                respectively. Default OBJECT.
  * @param string|array $post_type Optional. Post type or array of post types. Default 'page'.
  * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
  */
@@ -5083,8 +5173,9 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string       $page_title Page title.
- * @param string       $output     Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
- *                                 a WP_Post object, an associative array, or a numeric array, respectively. Default OBJECT.
+ * @param string       $output     Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+ *                                 correspond to a WP_Post object, an associative array, or a numeric array,
+ *                                 respectively. Default OBJECT.
  * @param string|array $post_type  Optional. Post type or array of post types. Default 'page'.
  * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
  */
@@ -5439,7 +5530,7 @@ function get_pages( $args = array() ) {
 		$where .= $wpdb->prepare( ' AND post_parent = %d ', $parent );
 	}
 
-	if ( 1 == count( $post_status ) ) {
+	if ( 1 === count( $post_status ) ) {
 		$where_post_type = $wpdb->prepare( 'post_type = %s AND post_status = %s', $parsed_args['post_type'], reset( $post_status ) );
 	} else {
 		$post_status     = implode( "', '", $post_status );
@@ -5716,10 +5807,12 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
 	 * Fires before an attachment is deleted, at the start of wp_delete_attachment().
 	 *
 	 * @since 2.0.0
+	 * @since 5.5.0 Added the `$post` parameter.
 	 *
-	 * @param int $post_id Attachment ID.
+	 * @param int     $post_id Attachment ID.
+	 * @param WP_Post $post    Post object.
 	 */
-	do_action( 'delete_attachment', $post_id );
+	do_action( 'delete_attachment', $post_id, $post );
 
 	wp_delete_object_term_relationships( $post_id, array( 'category', 'post_tag' ) );
 	wp_delete_object_term_relationships( $post_id, get_object_taxonomies( $post->post_type ) );
@@ -5742,13 +5835,13 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
 	}
 
 	/** This action is documented in wp-includes/post.php */
-	do_action( 'delete_post', $post_id );
+	do_action( 'delete_post', $post_id, $post );
 	$result = $wpdb->delete( $wpdb->posts, array( 'ID' => $post_id ) );
 	if ( ! $result ) {
 		return false;
 	}
 	/** This action is documented in wp-includes/post.php */
-	do_action( 'deleted_post', $post_id );
+	do_action( 'deleted_post', $post_id, $post );
 
 	wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file );
 
@@ -5847,13 +5940,22 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 }
 
 /**
- * Retrieve attachment meta field for attachment ID.
+ * Retrieves attachment metadata for attachment ID.
  *
  * @since 2.1.0
  *
  * @param int  $attachment_id Attachment post ID. Defaults to global $post.
  * @param bool $unfiltered    Optional. If true, filters are not run. Default false.
- * @return mixed Attachment meta field. False on failure.
+ * @return array|false {
+ *     Attachment metadata. False on failure.
+ *
+ *     @type int    $width      The width of the attachment.
+ *     @type int    $height     The height of the attachment.
+ *     @type string $file       The file path relative to `wp-content/uploads`.
+ *     @type array  $sizes      Keys are size slugs, each value is an array containing
+ *                              'file', 'width', 'height', and 'mime-type'.
+ *     @type array  $image_meta Image metadata.
+ * }
  */
 function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
 	$attachment_id = (int) $attachment_id;
@@ -5882,7 +5984,7 @@ function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
 }
 
 /**
- * Update metadata for an attachment.
+ * Updates metadata for an attachment.
  *
  * @since 2.1.0
  *
@@ -6503,8 +6605,8 @@ function get_posts_by_author_sql( $post_type, $full = true, $post_author = null,
  * Retrieves the most recent time that a post on the site was published.
  *
  * The server timezone is the default and is the difference between GMT and
- * server time. The 'blog' value is the date when the last post was posted. The
- * 'gmt' is when the last post was posted in GMT formatted date.
+ * server time. The 'blog' value is the date when the last post was posted.
+ * The 'gmt' is when the last post was posted in GMT formatted date.
  *
  * @since 0.71
  * @since 4.4.0 The `$post_type` argument was added.
@@ -6518,24 +6620,29 @@ function get_posts_by_author_sql( $post_type, $full = true, $post_author = null,
  * @return string The date of the last post, or false on failure.
  */
 function get_lastpostdate( $timezone = 'server', $post_type = 'any' ) {
+	$lastpostdate = _get_last_post_time( $timezone, 'date', $post_type );
+
 	/**
 	 * Filters the most recent time that a post on the site was published.
 	 *
 	 * @since 2.3.0
+	 * @since 5.5.0 Added the `$post_type` parameter.
 	 *
-	 * @param string|false $date     Date the last post was published. False on failure.
-	 * @param string       $timezone Location to use for getting the post published date.
-	 *                               See get_lastpostdate() for accepted `$timezone` values.
+	 * @param string|false $lastpostdate The most recent time that a post was published,
+	 *                                   in 'Y-m-d H:i:s' format. False on failure.
+	 * @param string       $timezone     Location to use for getting the post published date.
+	 *                                   See get_lastpostdate() for accepted `$timezone` values.
+	 * @param string       $post_type    The post type to check.
 	 */
-	return apply_filters( 'get_lastpostdate', _get_last_post_time( $timezone, 'date', $post_type ), $timezone );
+	return apply_filters( 'get_lastpostdate', $lastpostdate, $timezone, $post_type );
 }
 
 /**
  * Get the most recent time that a post on the site was modified.
  *
  * The server timezone is the default and is the difference between GMT and
- * server time. The 'blog' value is just when the last post was modified. The
- * 'gmt' is when the last post was modified in GMT time.
+ * server time. The 'blog' value is just when the last post was modified.
+ * The 'gmt' is when the last post was modified in GMT time.
  *
  * @since 1.2.0
  * @since 4.4.0 The `$post_type` argument was added.
@@ -6552,35 +6659,39 @@ function get_lastpostmodified( $timezone = 'server', $post_type = 'any' ) {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param string|false $lastpostmodified The most recent time that a post was modified, in 'Y-m-d H:i:s' format, or
-	 *                                       false. Returning anything other than false will short-circuit the function.
+	 * @param string|false $lastpostmodified The most recent time that a post was modified,
+	 *                                       in 'Y-m-d H:i:s' format, or false. Returning anything
+	 *                                       other than false will short-circuit the function.
 	 * @param string       $timezone         Location to use for getting the post modified date.
 	 *                                       See get_lastpostdate() for accepted `$timezone` values.
 	 * @param string       $post_type        The post type to check.
 	 */
 	$lastpostmodified = apply_filters( 'pre_get_lastpostmodified', false, $timezone, $post_type );
+
 	if ( false !== $lastpostmodified ) {
 		return $lastpostmodified;
 	}
 
 	$lastpostmodified = _get_last_post_time( $timezone, 'modified', $post_type );
+	$lastpostdate     = get_lastpostdate( $timezone, $post_type );
 
-	$lastpostdate = get_lastpostdate( $timezone );
 	if ( $lastpostdate > $lastpostmodified ) {
 		$lastpostmodified = $lastpostdate;
 	}
 
 	/**
-	 * Filters the most recent time that a post was modified.
+	 * Filters the most recent time that a post on the site was modified.
 	 *
 	 * @since 2.3.0
+	 * @since 5.5.0 Added the `$post_type` parameter.
 	 *
-	 * @param string|false $lastpostmodified The most recent time that a post was modified, in 'Y-m-d H:i:s' format.
-	 *                                       False on failure.
+	 * @param string|false $lastpostmodified The most recent time that a post was modified,
+	 *                                       in 'Y-m-d H:i:s' format. False on failure.
 	 * @param string       $timezone         Location to use for getting the post modified date.
 	 *                                       See get_lastpostdate() for accepted `$timezone` values.
+	 * @param string       $post_type        The post type to check.
 	 */
-	return apply_filters( 'get_lastpostmodified', $lastpostmodified, $timezone );
+	return apply_filters( 'get_lastpostmodified', $lastpostmodified, $timezone, $post_type );
 }
 
 /**
@@ -6952,7 +7063,8 @@ function _publish_post_hook( $post_id ) {
  * @since 3.1.0
  *
  * @param int|WP_Post $post Post ID or post object. Defaults to global $post.
- * @return int|false Post parent ID (which can be 0 if there is no parent), or false if the post does not exist.
+ * @return int|false Post parent ID (which can be 0 if there is no parent),
+ *                   or false if the post does not exist.
  */
 function wp_get_post_parent_id( $post ) {
 	$post = get_post( $post );
@@ -7132,7 +7244,7 @@ function _update_term_count_on_transition_post_status( $new_status, $old_status,
 }
 
 /**
- * Adds any posts from the given ids to the cache that do not already exist in cache
+ * Adds any posts from the given IDs to the cache that do not already exist in cache
  *
  * @since 3.4.0
  * @access private

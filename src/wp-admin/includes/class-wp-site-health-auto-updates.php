@@ -10,6 +10,7 @@
 class WP_Site_Health_Auto_Updates {
 	/**
 	 * WP_Site_Health_Auto_Updates constructor.
+	 *
 	 * @since 5.2.0
 	 */
 	public function __construct() {
@@ -65,7 +66,7 @@ class WP_Site_Health_Auto_Updates {
 	 * @return array The test results.
 	 */
 	public function test_constants( $constant, $value ) {
-		if ( defined( $constant ) && constant( $constant ) != $value ) {
+		if ( defined( $constant ) && constant( $constant ) !== $value ) {
 			return array(
 				'description' => sprintf(
 					/* translators: %s: Name of the constant used. */
@@ -162,11 +163,11 @@ class WP_Site_Health_Auto_Updates {
 	 *
 	 * @since 5.3.0
 	 *
-	 * @return array|bool The test results. False if auto updates are enabled.
+	 * @return array|bool The test results. False if auto-updates are enabled.
 	 */
 	public function test_wp_automatic_updates_disabled() {
 		if ( ! class_exists( 'WP_Automatic_Updater' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/class-wp-automatic-updates.php';
+			require_once ABSPATH . 'wp-admin/includes/class-wp-automatic-updater.php';
 		}
 
 		$auto_updates = new WP_Automatic_Updater();
@@ -186,7 +187,7 @@ class WP_Site_Health_Auto_Updates {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @return array|bool The test results. False if the auto updates failed.
+	 * @return array|bool The test results. False if the auto-updates failed.
 	 */
 	function test_if_failed_update() {
 		$failed = get_site_option( 'auto_core_update_failed' );
@@ -245,7 +246,7 @@ class WP_Site_Health_Auto_Updates {
 				$check_dirs[] = $context_dir;
 
 				// Once we've hit '/' or 'C:\', we need to stop. dirname will keep returning the input here.
-				if ( dirname( $context_dir ) == $context_dir ) {
+				if ( dirname( $context_dir ) === $context_dir ) {
 					break;
 				}
 

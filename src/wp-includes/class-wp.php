@@ -111,8 +111,8 @@ class WP {
 	 *
 	 * @since 2.3.0
 	 *
-	 * @param string $key Query variable name.
-	 * @param mixed $value Query variable value.
+	 * @param string $key   Query variable name.
+	 * @param mixed  $value Query variable value.
 	 */
 	public function set_query_var( $key, $value ) {
 		$this->query_vars[ $key ] = $value;
@@ -275,7 +275,7 @@ class WP {
 		}
 
 		/**
-		 * Filters the query variables whitelist before processing.
+		 * Filters the query variables allowed before processing.
 		 *
 		 * Allows (publicly allowed) query vars to be added, removed, or changed prior
 		 * to executing the query. Needed to allow custom rewrite rules using your own arguments
@@ -283,7 +283,7 @@ class WP {
 		 *
 		 * @since 1.5.0
 		 *
-		 * @param string[] $public_query_vars The array of whitelisted query variable names.
+		 * @param string[] $public_query_vars The array of allowed query variable names.
 		 */
 		$this->public_query_vars = apply_filters( 'query_vars', $this->public_query_vars );
 
@@ -404,6 +404,10 @@ class WP {
 
 		if ( is_user_logged_in() ) {
 			$headers = array_merge( $headers, wp_get_nocache_headers() );
+		} elseif ( ! empty( $_GET['unapproved'] ) && ! empty( $_GET['moderation-hash'] ) ) {
+			// Unmoderated comments are only visible for one minute via the moderation hash.
+			$headers['Expires']       = gmdate( 'D, d M Y H:i:s', time() + MINUTE_IN_SECONDS );
+			$headers['Cache-Control'] = 'max-age=60, must-revalidate';
 		}
 		if ( ! empty( $this->query_vars['error'] ) ) {
 			$status = (int) $this->query_vars['error'];
@@ -505,7 +509,7 @@ class WP {
 		}
 
 		if ( $exit_required ) {
-			exit();
+			exit;
 		}
 
 		/**

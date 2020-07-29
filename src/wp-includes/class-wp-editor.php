@@ -310,14 +310,10 @@ final class _WP_Editors {
 	/**
 	 * @since 3.3.0
 	 *
-	 * @global string $tinymce_version
-	 *
 	 * @param string $editor_id Unique editor identifier, e.g. 'content'.
 	 * @param array  $set       Array of editor arguments.
 	 */
 	public static function editor_settings( $editor_id, $set ) {
-		global $tinymce_version;
-
 		if ( empty( self::$first_init ) ) {
 			if ( is_admin() ) {
 				add_action( 'admin_print_footer_scripts', array( __CLASS__, 'editor_js' ), 50 );
@@ -1453,7 +1449,8 @@ final class _WP_Editors {
 	 * @since 3.9.0
 	 *
 	 * @param string $mce_locale The locale used for the editor.
-	 * @param bool $json_only optional Whether to include the JavaScript calls to tinymce.addI18n() and tinymce.ScriptLoader.markDone().
+	 * @param bool   $json_only  Optional. Whether to include the JavaScript calls to tinymce.addI18n() and
+	 *                           tinymce.ScriptLoader.markDone().
 	 * @return string Translation object, JSON encoded.
 	 */
 	public static function wp_mce_translation( $mce_locale = '', $json_only = false ) {
@@ -1539,9 +1536,7 @@ final class _WP_Editors {
 	 *
 	 * @since 4.8.0
 	 *
-	 * @global string $tinymce_version
-	 * @global bool   $concatenate_scripts
-	 * @global bool   $compress_scripts
+	 * @global bool $concatenate_scripts
 	 */
 	public static function print_tinymce_scripts() {
 		global $concatenate_scripts;
@@ -1800,9 +1795,9 @@ final class _WP_Editors {
 		 * @see 'wp_link_query_args' filter
 		 *
 		 * @param array $results {
-		 *     An associative array of query results.
+		 *     An array of associative arrays of query results.
 		 *
-		 *     @type array {
+		 *     @type array ...$0 {
 		 *         @type int    $ID        Post ID.
 		 *         @type string $title     The trimmed, escaped post title.
 		 *         @type string $permalink Post permalink.

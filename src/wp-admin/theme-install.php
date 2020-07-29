@@ -18,7 +18,7 @@ if ( ! current_user_can( 'install_themes' ) ) {
 
 if ( is_multisite() && ! is_network_admin() ) {
 	wp_redirect( network_admin_url( 'theme-install.php' ) );
-	exit();
+	exit;
 }
 
 $title       = __( 'Add Themes' );
@@ -72,6 +72,7 @@ wp_localize_script(
 			'selectFeatureFilter' => __( 'Select one or more Theme features to filter by' ),
 		),
 		'installedThemes' => array_keys( $installed_themes ),
+		'activeTheme'     => get_stylesheet(),
 	)
 );
 
@@ -270,6 +271,66 @@ if ( $tab ) {
 	<# } else { #>
 		<div class="theme-screenshot blank"></div>
 	<# } #>
+
+	<# if ( data.installed ) { #>
+		<div class="notice notice-success notice-alt"><p><?php _ex( 'Installed', 'theme' ); ?></p></div>
+	<# } #>
+
+	<# if ( ! data.compatible_wp || ! data.compatible_php ) { #>
+		<div class="notice notice-error notice-alt"><p>
+			<# if ( ! data.compatible_wp && ! data.compatible_php ) { #>
+				<?php
+				_e( 'This theme doesn&#8217;t work with your versions of WordPress and PHP.' );
+				if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
+					printf(
+						/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
+						' ' . __( '<a href="%1$s">Please update WordPress</a>, and then <a href="%2$s">learn more about updating PHP</a>.' ),
+						self_admin_url( 'update-core.php' ),
+						esc_url( wp_get_update_php_url() )
+					);
+					wp_update_php_annotation( '</p><p><em>', '</em>' );
+				} elseif ( current_user_can( 'update_core' ) ) {
+					printf(
+						/* translators: %s: URL to WordPress Updates screen. */
+						' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+						self_admin_url( 'update-core.php' )
+					);
+				} elseif ( current_user_can( 'update_php' ) ) {
+					printf(
+						/* translators: %s: URL to Update PHP page. */
+						' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+						esc_url( wp_get_update_php_url() )
+					);
+					wp_update_php_annotation( '</p><p><em>', '</em>' );
+				}
+				?>
+			<# } else if ( ! data.compatible_wp ) { #>
+				<?php
+				_e( 'This theme doesn&#8217;t work with your version of WordPress.' );
+				if ( current_user_can( 'update_core' ) ) {
+					printf(
+						/* translators: %s: URL to WordPress Updates screen. */
+						' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+						self_admin_url( 'update-core.php' )
+					);
+				}
+				?>
+			<# } else if ( ! data.compatible_php ) { #>
+				<?php
+				_e( 'This theme doesn&#8217;t work with your version of PHP.' );
+				if ( current_user_can( 'update_php' ) ) {
+					printf(
+						/* translators: %s: URL to Update PHP page. */
+						' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+						esc_url( wp_get_update_php_url() )
+					);
+					wp_update_php_annotation( '</p><p><em>', '</em>' );
+				}
+				?>
+			<# } #>
+		</p></div>
+	<# } #>
+
 	<span class="more-details"><?php _ex( 'Details &amp; Preview', 'theme' ); ?></span>
 	<div class="theme-author">
 		<?php
@@ -289,10 +350,18 @@ if ( $tab ) {
 					$aria_label = sprintf( _x( 'Activate %s', 'theme' ), '{{ data.name }}' );
 					?>
 					<# if ( data.activate_url ) { #>
-						<a class="button button-primary activate" href="{{ data.activate_url }}" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Activate' ); ?></a>
+						<# if ( ! data.active ) { #>
+							<a class="button button-primary activate" href="{{ data.activate_url }}" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Activate' ); ?></a>
+						<# } else { #>
+							<button class="button button-primary disabled"><?php _ex( 'Activated', 'theme' ); ?></button>
+						<# } #>
 					<# } #>
 					<# if ( data.customize_url ) { #>
-						<a class="button load-customize" href="{{ data.customize_url }}"><?php _e( 'Live Preview' ); ?></a>
+						<# if ( ! data.active ) { #>
+							<a class="button load-customize" href="{{ data.customize_url }}"><?php _e( 'Live Preview' ); ?></a>
+						<# } else { #>
+							<a class="button load-customize" href="{{ data.customize_url }}"><?php _e( 'Customize' ); ?></a>
+						<# } #>
 					<# } else { #>
 						<button class="button preview install-theme-preview"><?php _e( 'Preview' ); ?></button>
 					<# } #>
@@ -314,14 +383,14 @@ if ( $tab ) {
 				<# if ( data.compatible_wp && data.compatible_php ) { #>
 					<?php
 					/* translators: %s: Theme name. */
-					$aria_label = sprintf( __( 'Install %s' ), '{{ data.name }}' );
+					$aria_label = sprintf( _x( 'Install %s', 'theme' ), '{{ data.name }}' );
 					?>
 					<a class="button button-primary theme-install" data-name="{{ data.name }}" data-slug="{{ data.id }}" href="{{ data.install_url }}" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Install' ); ?></a>
 					<button class="button preview install-theme-preview"><?php _e( 'Preview' ); ?></button>
 				<# } else { #>
 					<?php
 					/* translators: %s: Theme name. */
-					$aria_label = sprintf( __( 'Cannot Install %s' ), '{{ data.name }}' );
+					$aria_label = sprintf( _x( 'Cannot Install %s', 'theme' ), '{{ data.name }}' );
 					?>
 					<a class="button button-primary disabled" data-name="{{ data.name }}" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _ex( 'Cannot Install', 'theme' ); ?></a>
 					<button class="button disabled"><?php _e( 'Preview' ); ?></button>
@@ -329,10 +398,6 @@ if ( $tab ) {
 			<# } #>
 		</div>
 	</div>
-
-	<# if ( data.installed ) { #>
-		<div class="notice notice-success notice-alt"><p><?php _ex( 'Installed', 'theme' ); ?></p></div>
-	<# } #>
 </script>
 
 <script id="tmpl-theme-preview" type="text/template">
@@ -343,7 +408,15 @@ if ( $tab ) {
 			<button class="next-theme"><span class="screen-reader-text"><?php _e( 'Next theme' ); ?></span></button>
 			<# if ( data.installed ) { #>
 				<# if ( data.compatible_wp && data.compatible_php ) { #>
-					<a class="button button-primary activate" href="{{ data.activate_url }}"><?php _e( 'Activate' ); ?></a>
+					<?php
+					/* translators: %s: Theme name. */
+					$aria_label = sprintf( _x( 'Activate %s', 'theme' ), '{{ data.name }}' );
+					?>
+					<# if ( ! data.active ) { #>
+						<a class="button button-primary activate" href="{{ data.activate_url }}" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Activate' ); ?></a>
+					<# } else { #>
+						<button class="button button-primary disabled"><?php _ex( 'Activated', 'theme' ); ?></button>
+					<# } #>
 				<# } else { #>
 					<a class="button button-primary disabled" ><?php _ex( 'Cannot Activate', 'theme' ); ?></a>
 				<# } #>
@@ -374,19 +447,76 @@ if ( $tab ) {
 								<a class="num-ratings" href="{{ data.reviews_url }}">
 									<?php
 									/* translators: %s: Number of ratings. */
-									echo sprintf( __( '(%s ratings)' ), '{{ data.num_ratings }}' );
+									printf( __( '(%s ratings)' ), '{{ data.num_ratings }}' );
 									?>
 								</a>
 							</div>
 						<# } else { #>
 							<span class="no-rating"><?php _e( 'This theme has not been rated yet.' ); ?></span>
 						<# } #>
+
 						<div class="theme-version">
 							<?php
 							/* translators: %s: Theme version. */
 							printf( __( 'Version: %s' ), '{{ data.version }}' );
 							?>
 						</div>
+
+						<# if ( ! data.compatible_wp || ! data.compatible_php ) { #>
+							<div class="notice notice-error notice-alt notice-large"><p>
+								<# if ( ! data.compatible_wp && ! data.compatible_php ) { #>
+									<?php
+									_e( 'This theme doesn&#8217;t work with your versions of WordPress and PHP.' );
+									if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
+										printf(
+											/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
+											' ' . __( '<a href="%1$s">Please update WordPress</a>, and then <a href="%2$s">learn more about updating PHP</a>.' ),
+											self_admin_url( 'update-core.php' ),
+											esc_url( wp_get_update_php_url() )
+										);
+										wp_update_php_annotation( '</p><p><em>', '</em>' );
+									} elseif ( current_user_can( 'update_core' ) ) {
+										printf(
+											/* translators: %s: URL to WordPress Updates screen. */
+											' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+											self_admin_url( 'update-core.php' )
+										);
+									} elseif ( current_user_can( 'update_php' ) ) {
+										printf(
+											/* translators: %s: URL to Update PHP page. */
+											' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+											esc_url( wp_get_update_php_url() )
+										);
+										wp_update_php_annotation( '</p><p><em>', '</em>' );
+									}
+									?>
+								<# } else if ( ! data.compatible_wp ) { #>
+									<?php
+									_e( 'This theme doesn&#8217;t work with your version of WordPress.' );
+									if ( current_user_can( 'update_core' ) ) {
+										printf(
+											/* translators: %s: URL to WordPress Updates screen. */
+											' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+											self_admin_url( 'update-core.php' )
+										);
+									}
+									?>
+								<# } else if ( ! data.compatible_php ) { #>
+									<?php
+									_e( 'This theme doesn&#8217;t work with your version of PHP.' );
+									if ( current_user_can( 'update_php' ) ) {
+										printf(
+											/* translators: %s: URL to Update PHP page. */
+											' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+											esc_url( wp_get_update_php_url() )
+										);
+										wp_update_php_annotation( '</p><p><em>', '</em>' );
+									}
+									?>
+								<# } #>
+							</p></div>
+						<# } #>
+
 						<div class="theme-description">{{{ data.description }}}</div>
 					</div>
 				</div>
