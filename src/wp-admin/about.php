@@ -132,7 +132,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				</figure>
 				<h3><?php _e( 'Block patterns' ); ?></h3>
 				<p><?php _e( 'New block patterns make it simple and fun to create complex, beautiful layouts, using combinations of text and media that you can mix and match to fit your story.' ); ?></p>
-				<p><?php _e( 'You will also find block patterns in a wide variety of plugins and themes, with more added all the time. Pick any of them from a single dropdown — just click and go!' ); ?></p>
+				<p><?php _e( 'You will also find block patterns in a wide variety of plugins and themes, with more added all the time. Pick any of them from a single place — just click and go!' ); ?></p>
 			</div>
 			<div class="column">
 				<figure class="about__image">
