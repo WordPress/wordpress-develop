@@ -181,10 +181,10 @@
 	margin-top: 1rem;
 }
 
-.about__section.is-narrow {
+.about__section.has-1-column {
 	margin-left: auto;
 	margin-right: auto;
-	max-width: 48em;
+	max-width: 36em;
 }
 
 .about__section.has-2-columns,
@@ -294,6 +294,8 @@
 }
 
 @media screen and (max-width: 782px) {
+	.about__section.has-2-columns.is-wider-right,
+	.about__section.has-2-columns.is-wider-left,
 	.about__section.has-3-columns,
 	.about__section.has-4-columns {
 		display: block;
@@ -318,7 +320,6 @@
 	.about__section.has-2-columns .column:nth-of-type(n) {
 		padding-top: 16px;
 		padding-bottom: 16px;
-		width: 100%;
 	}
 
 	.about__section.has-2-columns .is-edge-to-edge {
@@ -393,7 +394,7 @@
 }
 
 .about__container .about__image {
-	padding: 16px 8px;
+	margin: 0;
 }
 
 .about__container .about__image img {
@@ -458,11 +459,11 @@
 .about__header-title {
 	display: flex;
 	align-items: center;
-	justify-content: flex-end;
+	justify-content: center;
 	height: 20vh;
 	max-height: 16em;
 	padding: 32px;
-	text-align: right;
+	text-align: center;
 }
 
 .about__header-title p {
@@ -494,7 +495,16 @@
 	margin: 0;
 }
 
+.about__header-text:last-of-type {
+	display: inline-block;
+	float: right;
+	margin-left: 0;
+	margin-right: -16px;
+	margin-bottom: 4em;
+}
+
 .about__header-navigation {
+	clear: both;
 	padding-top: 0;
 	background: #f2edd4;
 	background: var(--nav-background);
