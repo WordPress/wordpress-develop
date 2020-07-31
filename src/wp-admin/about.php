@@ -93,24 +93,11 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p><strong><?php _e( 'Auto-updates for Plugins and Themes' ); ?></strong></p>
 				<p><?php _e( 'Now you can set plugins and themes to update automatically — or not! — in the WordPress admin. So you always know your site is running the latest code available.' ); ?></p>
 				<p><?php _e( 'You can also turn auto-updates on or off for each plugin or theme you have installed — all on the same screens you’ve always used.' ); ?></p>
-			</div>
-			<div class="column about__image is-vertically-aligned-center">
-				<img src="http://trunk.wordpress.test/wp-content/uploads/2020/07/helphub-update-theme-enable.png" alt="" />
-			</div>
-		</div>
-
-		<div class="about__section has-2-columns has-accent-background-color is-wider-left">
-			<div class="column is-vertically-aligned-center">
-				<figure class="about__image">
-					<video controls>
-						<source src="http://trunk.wordpress.test/wp-content/uploads/2020/07/helphub-update-bulk-plugins.mp4" type="video/mp4" />
-					</video>
-					<figcaption class="screen-reader-text"><!-- Needs alt text --></figcaption>
-				</figure>
-			</div>
-			<div class="column">
 				<p><strong><?php _e( 'Update by uploading ZIP files' ); ?></strong></p>
 				<p><?php _e( 'If updating plugins and themes manually is your thing, now that’s easier too — just upload a ZIP file.' ); ?></p>
+			</div>
+			<div class="column about__image is-vertically-aligned-center">
+				<img src="https://make.wordpress.org/core/files/2020/07/theme-enable-updates.png" srcset="https://make.wordpress.org/core/files/2020/07/theme-enable-updates.png 1x, https://make.wordpress.org/core/files/2020/07/theme-enable-updates-2x.png 2x" alt="" />
 			</div>
 		</div>
 
@@ -125,8 +112,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns  has-subtle-background-color">
 			<div class="column">
 				<figure class="about__image">
-					<video controls poster="http://trunk.wordpress.test/wp-content/uploads/2020/07/block-pattern-poster.png">
-						<source src="http://trunk.wordpress.test/wp-content/uploads/2020/07/block-patterns.mp4" type="video/mp4" />
+					<video controls poster="https://make.wordpress.org/core/files/2020/07/block-pattern-poster.png">
+						<source src="https://make.wordpress.org/core/files/2020/07/block-patterns.mp4" type="video/mp4" />
 					</video>
 					<figcaption class="screen-reader-text"><?php _e( 'New block patterns in WordPress 5.5 give you instant access to a variety of sophisticated layouts. Browse and choose the ones that tell your story, then style them to match your brand. All in real time, in one place, without ever looking away from your task in the block editor.' ); ?></figcaption>
 				</figure>
@@ -136,8 +123,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column">
 				<figure class="about__image">
-					<video controls poster="http://trunk.wordpress.test/wp-content/uploads/2020/07/image-editor-poster.png">
-						<source src="http://trunk.wordpress.test/wp-content/uploads/2020/07/image-editor.mp4" type="video/mp4" />
+					<video controls poster="https://make.wordpress.org/core/files/2020/07/image-editor-poster.png">
+						<source src="https://make.wordpress.org/core/files/2020/07/image-editor.mp4" type="video/mp4" />
 					</video>
 					<figcaption class="screen-reader-text"><?php _e( 'The image editor in WordPress 5.5 lets you choose, scale, crop and rotate images in real time, without leaving the block editor.' ); ?></figcaption>
 				</figure>
