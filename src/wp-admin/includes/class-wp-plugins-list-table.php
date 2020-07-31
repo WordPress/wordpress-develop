@@ -285,9 +285,9 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				}
 
 				if ( $enabled ) {
-					$plugins['auto-update-enabled'][ $plugin_file ] = $plugins['all'][ $plugin_file ];
+					$plugins['auto-update-enabled'][ $plugin_file ] = $plugin_data;
 				} else {
-					$plugins['auto-update-disabled'][ $plugin_file ] = $plugins['all'][ $plugin_file ];
+					$plugins['auto-update-disabled'][ $plugin_file ] = $plugin_data;
 				}
 			}
 		}
