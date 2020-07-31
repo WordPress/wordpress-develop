@@ -279,7 +279,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			}
 
 			if ( $this->show_autoupdates ) {
-				if ( in_array( $plugin_file, $auto_updates, true ) ) {
+				if ( $auto_update_forced || in_array( $plugin_file, $auto_updates, true ) ) {
 					$plugins['auto-update-enabled'][ $plugin_file ] = $plugins['all'][ $plugin_file ];
 				} else {
 					$plugins['auto-update-disabled'][ $plugin_file ] = $plugins['all'][ $plugin_file ];
