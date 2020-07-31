@@ -1344,6 +1344,20 @@ EOF;
 	}
 
 	/**
+	 * @ticket 50801
+	 */
+	function test_wp_get_attachment_image_filter_output() {
+		$image = image_downsize( self::$large_id, 'thumbnail' );
+		add_filter( 'wp_get_attachment_image', array( $this, 'wp_get_attachment_image_filter' ) );
+		$this->assertEquals( 'Override wp_get_attachment_image', wp_get_attachment_image( self::$large_id ) );
+		remove_filter( 'wp_get_attachment_image', array( $this, 'wp_get_attachment_image_filter' ) );
+	}
+
+	function wp_get_attachment_image_filter() {
+		return 'Override wp_get_attachment_image';
+	}
+
+	/**
 	 * Test that `wp_get_attachment_image()` returns a proper alt value.
 	 *
 	 * @ticket 34635

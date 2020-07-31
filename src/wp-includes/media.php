@@ -1002,6 +1002,7 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
  * browser scale down the image.
  *
  * @since 2.5.0
+ * @since 5.6.0 Returns `wp_get_attachment_image` filter.
  *
  * @param int          $attachment_id Image attachment ID.
  * @param string|array $size          Optional. Image size. Accepts any valid image size, or an array of width
@@ -1021,8 +1022,9 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
  * @return string HTML img element or empty string on failure.
  */
 function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = false, $attr = '' ) {
-	$html  = '';
-	$image = wp_get_attachment_image_src( $attachment_id, $size, $icon );
+	$attachment = '';
+	$html       = '';
+	$image      = wp_get_attachment_image_src( $attachment_id, $size, $icon );
 
 	if ( $image ) {
 		list( $src, $width, $height ) = $image;
@@ -1096,7 +1098,16 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		$html .= ' />';
 	}
 
-	return $html;
+	/**
+	 * HTML img element representing an image attachment
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param string       $html       HTML img element or empty string on failure.
+	 * @param string       $attachment The attachment WP_Post object.
+	 * @param string|array $size       Image size.
+	 */
+	return apply_filters( 'wp_get_attachment_image', $html, $attachment, $size );
 }
 
 /**
