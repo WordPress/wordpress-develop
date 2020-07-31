@@ -65,8 +65,8 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$this->assertEquals( 'author@example.org', $author->user_email );
 
 		// Check that terms were imported correctly.
-		$this->assertEquals( 30, wp_count_terms( 'category' ) );
-		$this->assertEquals( 3, wp_count_terms( 'post_tag' ) );
+		$this->assertEquals( 30, wp_count_terms( array( 'taxonomy' => 'category' ) ) );
+		$this->assertEquals( 3, wp_count_terms( array( 'taxonomy' => 'post_tag' ) ) );
 		$foo = get_term_by( 'slug', 'foo', 'category' );
 		$this->assertEquals( 0, $foo->parent );
 		$bar     = get_term_by( 'slug', 'bar', 'category' );
@@ -230,8 +230,8 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$this->assertEquals( 'author', $author->user_login );
 		$this->assertEquals( 'author@example.org', $author->user_email );
 
-		$this->assertEquals( 30, wp_count_terms( 'category' ) );
-		$this->assertEquals( 3, wp_count_terms( 'post_tag' ) );
+		$this->assertEquals( 30, wp_count_terms( array( 'taxonomy' => 'category' ) ) );
+		$this->assertEquals( 3, wp_count_terms( array( 'taxonomy' => 'post_tag' ) ) );
 		$foo = get_term_by( 'slug', 'foo', 'category' );
 		$this->assertEquals( 0, $foo->parent );
 		$bar     = get_term_by( 'slug', 'bar', 'category' );
