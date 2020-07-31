@@ -294,4 +294,27 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
 		delete_option( 'page_on_front' );
 	}
+
+	/**
+	 * @ticket 5272
+	 */
+	public function test_private_post_should_not_redirect_for_non_logged_users() {
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_title'  => 'Private Post',
+				'post_status' => 'private',
+			)
+		);
+
+		// Simulate going to the private post.
+		$this->go_to( add_query_arg( 'p', $post->ID, home_url( '/' ) ) );
+
+		$redirect = redirect_canonical(
+			null,
+			false
+		);
+
+		// Non-logged users shouldnt be redirected to pretty URL.
+		$this->assertEquals( null, $redirect );
+	}
 }

@@ -238,11 +238,21 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 				$redirect_url = get_attachment_link();
 			}
 		} elseif ( is_single() && ! empty( $_GET['p'] ) && ! $redirect_url ) {
-			$redirect_url = get_permalink( get_query_var( 'p' ) );
 
-			if ( $redirect_url ) {
-				$redirect['query'] = remove_query_arg( array( 'p', 'post_type' ), $redirect['query'] );
+			// Don't get the redirect url if post is private and visitor has no priviledge.
+			$should_get_redirect = true;
+			if ( 'private' === get_post_status( get_query_var( 'p' ) ) && ! current_user_can( 'read_private_posts' ) ) {
+				$should_get_redirect = false;
 			}
+
+			if ( $should_get_redirect ) {
+				$redirect_url = get_permalink( get_query_var( 'p' ) );
+
+				if ( $redirect_url ) {
+					$redirect['query'] = remove_query_arg( array( 'p', 'post_type' ), $redirect['query'] );
+				}
+			}
+			
 		} elseif ( is_single() && ! empty( $_GET['name'] ) && ! $redirect_url ) {
 			$redirect_url = get_permalink( $wp_query->get_queried_object_id() );
 
