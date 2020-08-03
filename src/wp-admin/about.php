@@ -111,22 +111,22 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		</div>
 		<div class="about__section has-2-columns  has-subtle-background-color">
 			<div class="column">
-				<figure class="about__image">
+				<figure aria-labelledby="about-block-pattern" class="about__image">
 					<video controls poster="https://make.wordpress.org/core/files/2020/07/block-pattern-poster.png">
 						<source src="https://make.wordpress.org/core/files/2020/07/block-patterns.mp4" type="video/mp4" />
 					</video>
-					<figcaption class="screen-reader-text"><?php _e( 'New block patterns in WordPress 5.5 give you instant access to a variety of sophisticated layouts. Browse and choose the ones that tell your story, then style them to match your brand. All in real time, in one place, without ever looking away from your task in the block editor.' ); ?></figcaption>
+					<figcaption id="about-block-pattern" class="screen-reader-text"><?php _e( 'New block patterns in WordPress 5.5 give you instant access to a variety of sophisticated layouts. Browse and choose the ones that tell your story, then style them to match your brand. All in real time, in one place, without ever looking away from your task in the block editor.' ); ?></figcaption>
 				</figure>
 				<h3><?php _e( 'Block patterns' ); ?></h3>
 				<p><?php _e( 'New block patterns make it simple and fun to create complex, beautiful layouts, using combinations of text and media that you can mix and match to fit your story.' ); ?></p>
 				<p><?php _e( 'You will also find block patterns in a wide variety of plugins and themes, with more added all the time. Pick any of them from a single place — just click and go!' ); ?></p>
 			</div>
 			<div class="column">
-				<figure class="about__image">
+				<figure aria-labelledby="about-image-editor" class="about__image">
 					<video controls poster="https://make.wordpress.org/core/files/2020/07/image-editor-poster.png">
 						<source src="https://make.wordpress.org/core/files/2020/07/image-editor.mp4" type="video/mp4" />
 					</video>
-					<figcaption class="screen-reader-text"><?php _e( 'The image editor in WordPress 5.5 lets you choose, scale, crop and rotate images in real time, without leaving the block editor.' ); ?></figcaption>
+					<figcaption id="about-image-editor" class="screen-reader-text"><?php _e( 'The image editor in WordPress 5.5 lets you choose, scale, crop and rotate images in real time, without leaving the block editor.' ); ?></figcaption>
 				</figure>
 				<h3><?php _e( 'Inline image editing' ); ?></h3>
 				<p><?php _e( 'Crop, rotate, and zoom your photos right from the image block. If you spend a lot of time on images, this could save you hours!' ); ?></p>
