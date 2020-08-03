@@ -1139,7 +1139,7 @@ th.action-links {
 
 .show-filters .wp-filter .drawer-toggle:hover,
 .show-filters .wp-filter .drawer-toggle:focus {
-	background: rgb(46, 162, 204);
+	background: #0073aa;
 }
 
 .show-filters .wp-filter .drawer-toggle:before {
