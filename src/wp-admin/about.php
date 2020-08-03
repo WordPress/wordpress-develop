@@ -101,7 +101,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<video controls poster="https://make.wordpress.org/core/files/2020/08/security-poster.png">
 						<source src="https://make.wordpress.org/core/files/2020/08/wp55-about-page-security-section.mp4" type="video/mp4" />
 					</video>
-					<figcaption id="about-security" class="screen-reader-text"></figcaption>
+					<figcaption id="about-security" class="screen-reader-text"><?php _e( 'Video: Installed plugin screen, which shows a new column, Automatic Updates. In this column are buttons that say "Enable auto-updates." When clicked, the auto-updates feature is turned on for that plugin, and the button switches to say "Disable auto-updates". Two plugins have updates, the updates are automatically queued up in 4 hours.' ); ?></figcaption>
 				</figure>
 			</div>
 		</div>
@@ -120,7 +120,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<video controls poster="https://make.wordpress.org/core/files/2020/07/block-pattern-poster.png">
 						<source src="https://make.wordpress.org/core/files/2020/07/block-patterns.mp4" type="video/mp4" />
 					</video>
-					<figcaption id="about-block-pattern" class="screen-reader-text"><?php _e( 'New block patterns in WordPress 5.5 give you instant access to a variety of sophisticated layouts. Browse and choose the ones that tell your story, then style them to match your brand. All in real time, in one place, without ever looking away from your task in the block editor.' ); ?></figcaption>
+					<figcaption id="about-block-pattern" class="screen-reader-text"><?php _e( 'Video: In the editor, the block inserter shows two tabs, Blocks and Patterns. The Patterns tab is selected. There are different block layouts in this tab. A section called "Button" has patterns for two buttons, three buttons. Next is a section called "Column", with two columns, two columns with images, three columns of text with buttons.' ); ?></figcaption>
 				</figure>
 				<h3><?php _e( 'Block patterns' ); ?></h3>
 				<p><?php _e( 'New block patterns make it simple and fun to create complex, beautiful layouts, using combinations of text and media that you can mix and match to fit your story.' ); ?></p>
@@ -131,7 +131,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<video controls poster="https://make.wordpress.org/core/files/2020/07/image-editor-poster.png">
 						<source src="https://make.wordpress.org/core/files/2020/07/image-editor.mp4" type="video/mp4" />
 					</video>
-					<figcaption id="about-image-editor" class="screen-reader-text"><?php _e( 'The image editor in WordPress 5.5 lets you choose, scale, crop and rotate images in real time, without leaving the block editor.' ); ?></figcaption>
+					<figcaption id="about-image-editor" class="screen-reader-text"><?php _e( 'Video: In the new image editor, an image icon gets dragged and dropped into the space, which turns blue to accept the upload. The image expands to fill the editor. Dragging a handle on the right side of the image widens it to scale and resizes the editor to fit. Next the cursor moves to a text area below the image and clicks to bring up standard block text-editing tools and write a caption for the image. Clicking in the image dismisses the text tools, and the cursor now moves to a toolbar at the top of the image space. A click on the Crop icon reveals a dropdown set of common aspect ratios; lingering briefly on one choice demos the crop. Applying it requires a confirmation click in the toolbar.' ); ?></figcaption>
 				</figure>
 				<h3><?php _e( 'Inline image editing' ); ?></h3>
 				<p><?php _e( 'Crop, rotate, and zoom your photos right from the image block. If you spend a lot of time on images, this could save you hours!' ); ?></p>
