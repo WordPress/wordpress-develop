@@ -97,7 +97,12 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p><?php _e( 'If updating plugins and themes manually is your thing, now that’s easier too — just upload a ZIP file.' ); ?></p>
 			</div>
 			<div class="column about__image is-vertically-aligned-center">
-				<img src="https://make.wordpress.org/core/files/2020/07/theme-enable-updates.png" srcset="https://make.wordpress.org/core/files/2020/07/theme-enable-updates.png 1x, https://make.wordpress.org/core/files/2020/07/theme-enable-updates-2x.png 2x" alt="" />
+				<figure aria-labelledby="about-security" class="about__image">
+					<video controls poster="https://make.wordpress.org/core/files/2020/08/security-poster.png">
+						<source src="https://make.wordpress.org/core/files/2020/08/wp55-about-page-security-section.mp4" type="video/mp4" />
+					</video>
+					<figcaption id="about-security" class="screen-reader-text"></figcaption>
+				</figure>
 			</div>
 		</div>
 
