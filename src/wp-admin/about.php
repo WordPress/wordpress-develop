@@ -224,7 +224,25 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						);
 						?>
 					</li>
-					<li><?php _e( 'New filters let custom post types associated with the category taxonomy have a default term beyond “Uncategorized”.' ); ?></li>
+					<li><?php _e( 'Custom post types associated with the category taxonomy can now opt-in to supporting the default term.' ); ?></li>
+					<li>
+						<?php
+						printf(
+							/* translators: %s: 'register_taxonomy' function name. */
+							__( 'Default terms can now be specified for custom taxonomies in %s.' ),
+							'<code>register_taxonomy()</code>'
+						);
+						?>
+					</li>
+					<li>
+						<?php
+						printf(
+							/* translators: %s: 'register_meta' function name. */
+							__( 'The REST API now officially supports specifying default metadata values through %s.' ),
+							'<code>register_meta()</code>'
+						);
+						?>
+					</li>
 					<li><?php _e( 'You will find updated versions of these bundled libraries: SimplePie, Twemoji, Masonry, imagesLoaded, getID3, Moment.js, and clipboard.js.' ); ?></li>
 				</ul>
 			</div>
