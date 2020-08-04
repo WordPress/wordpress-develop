@@ -2218,6 +2218,48 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
 }
 
 /**
+ * Registers a network setting and its data.
+ *
+ * @since 5.6.0
+ *
+ * @param string $option_name The name of an option to sanitize and save.
+ * @param array  $args {
+ *     Data used to describe the setting when registered.
+ *
+ *     @type string     $type              The type of data associated with this setting.
+ *                                         Valid values are 'string', 'boolean', 'integer', 'number', 'array', and 'object'.
+ *     @type string     $description       A description of the data attached to this setting.
+ *     @type callable   $sanitize_callback A callback function that sanitizes the option's value.
+ *     @type callable   $auth_callback     Optional. A function or method to call when performing edit_post_meta,
+ *                                         add_post_meta, and delete_post_meta capability checks.
+ *     @type bool|array $show_in_rest      Whether data associated with this setting should be included in the REST API.
+ *                                         When registering complex settings, this argument may optionally be an
+ *                                         array with a 'schema' key.
+ *     @type mixed      $default           Default value when calling `get_network_option()`.
+ * }
+ * @return bool True if the option name was successfully registered, false if not.
+ */
+function register_network_setting( $option_name, array $args = array() ) {
+	$args['single'] = true;
+
+	return register_meta( 'site', $option_name, $args );
+}
+
+/**
+ * Unregisters a network setting.
+ *
+ * @since 5.6.0
+ *
+ * @param string   $option_name  The name of the option to unregister.
+ *
+ * @return bool True on success, false if the option name was not previously registered.
+ */
+function unregister_network_setting( $option_name ) {
+	return unregister_meta_key( 'site', $option_name );
+}
+
+
+/**
  * Retrieves an array of registered settings.
  *
  * @since 4.7.0
