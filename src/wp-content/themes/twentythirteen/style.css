@@ -1140,6 +1140,10 @@ ul.nav-menu .focus > ul,
 	color: #bc360a;
 }
 
+.entry-content .wp-block-social-links:not(.is-style-logos-only) .wp-social-link a {
+	color: #fff;
+}
+
 .entry-content a:hover,
 .comment-content a:hover {
 	color: #ea9629;
