@@ -16,17 +16,21 @@ class Tests_Kses extends WP_UnitTestCase {
 		$attributes = array(
 			'class' => 'classname',
 			'id'    => 'id',
-			'style' => 'color: red;',
-			'style' => 'color: red',
-			'style' => 'color: red; text-align:center',
-			'style' => 'color: red; text-align:center;',
+			'style' => array(
+				'color: red;',
+				'color: red',
+				'color: red; text-align:center',
+				'color: red; text-align:center;',
+			),
 			'title' => 'title',
 		);
 
-		foreach ( $attributes as $name => $value ) {
-			$string        = "<address $name='$value'>1 WordPress Avenue, The Internet.</address>";
-			$expect_string = "<address $name='" . str_replace( '; ', ';', trim( $value, ';' ) ) . "'>1 WordPress Avenue, The Internet.</address>";
-			$this->assertEquals( $expect_string, wp_kses( $string, $allowedposttags ) );
+		foreach ( $attributes as $name => $values ) {
+			foreach ( (array) $values as $value ) {
+				$string        = "<address $name='$value'>1 WordPress Avenue, The Internet.</address>";
+				$expect_string = "<address $name='" . str_replace( '; ', ';', trim( $value, ';' ) ) . "'>1 WordPress Avenue, The Internet.</address>";
+				$this->assertEquals( $expect_string, wp_kses( $string, $allowedposttags ) );
+			}
 		}
 	}
 
