@@ -485,7 +485,7 @@ final class WP_Post_Type {
 			}
 		}
 
-		if ( false !== $args['rewrite'] && ( is_admin() || get_option( 'permalink_structure' ) ) ) {
+		if ( false !== $args['rewrite'] ) {
 			if ( ! is_array( $args['rewrite'] ) ) {
 				$args['rewrite'] = array();
 			}

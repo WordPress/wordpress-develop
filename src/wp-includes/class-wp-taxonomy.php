@@ -319,7 +319,7 @@ final class WP_Taxonomy {
 			$args['query_var'] = false;
 		}
 
-		if ( false !== $args['rewrite'] && ( is_admin() || get_option( 'permalink_structure' ) ) ) {
+		if ( false !== $args['rewrite'] ) {
 			$args['rewrite'] = wp_parse_args(
 				$args['rewrite'],
 				array(
