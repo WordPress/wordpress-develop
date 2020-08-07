@@ -2206,6 +2206,14 @@ class WP_Site_Health {
 		 * }
 		 */
 		$tests = apply_filters( 'site_status_tests', $tests );
+		
+		// Ensure that the array keys 'direct' and 'async' still exist even if they were unset by the filter.
+		$tests = array_merge( 
+			array(
+				'direct' => array(),
+				'async'  => array(),
+			)
+		), $tests );
 
 		return $tests;
 	}
