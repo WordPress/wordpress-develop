@@ -574,11 +574,12 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_theme_supports_custom_logo() {
 		remove_theme_support( 'custom-logo' );
 		$wordpress_logo = array(
-			'height'      => 100,
-			'width'       => 400,
-			'flex-height' => true,
-			'flex-width'  => true,
-			'header-text' => array( 'site-title', 'site-description' ),
+			'height'               => 100,
+			'width'                => 400,
+			'flex-height'          => true,
+			'flex-width'           => true,
+			'header-text'          => array( 'site-title', 'site-description' ),
+			'unlink-homepage-logo' => false,
 		);
 		add_theme_support( 'custom-logo', $wordpress_logo );
 		$response = self::perform_active_theme_request();

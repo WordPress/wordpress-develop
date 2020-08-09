@@ -2472,6 +2472,7 @@ function get_theme_starter_content() {
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
  *              by adding it to the function signature.
  * @since 5.5.0 The `core-block-patterns` feature was added and is enabled by default.
+ * @since 5.5.0 The `custom-logo` feature now also accepts 'unlink-homepage-logo'.
  *
  * @global array $_wp_theme_features
  *
@@ -2538,11 +2539,12 @@ function add_theme_support( $feature, ...$args ) {
 				$args = array( 0 => array() );
 			}
 			$defaults = array(
-				'width'       => null,
-				'height'      => null,
-				'flex-width'  => false,
-				'flex-height' => false,
-				'header-text' => '',
+				'width'                => null,
+				'height'               => null,
+				'flex-width'           => false,
+				'flex-height'          => false,
+				'header-text'          => '',
+				'unlink-homepage-logo' => false,
 			);
 			$args[0]  = wp_parse_args( array_intersect_key( $args[0], $defaults ), $defaults );
 
@@ -3809,23 +3811,26 @@ function create_initial_theme_features() {
 			'show_in_rest' => array(
 				'schema' => array(
 					'properties' => array(
-						'width'       => array(
+						'width'                => array(
 							'type' => 'integer',
 						),
-						'height'      => array(
+						'height'               => array(
 							'type' => 'integer',
 						),
-						'flex-width'  => array(
+						'flex-width'           => array(
 							'type' => 'boolean',
 						),
-						'flex-height' => array(
+						'flex-height'          => array(
 							'type' => 'boolean',
 						),
-						'header-text' => array(
+						'header-text'          => array(
 							'type'  => 'array',
 							'items' => array(
 								'type' => 'string',
 							),
+						),
+						'unlink-homepage-logo' => array(
+							'type' => 'boolean',
 						),
 					),
 				),
