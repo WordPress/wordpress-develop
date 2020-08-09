@@ -5022,7 +5022,7 @@ function wp_sprintf( $pattern, ...$args ) {
  * on the amount of list items in the $args parameter.
  *
  * @since 2.5.0
- * @since 5.4.0 Added support to '%l$o' and to '%l$a' for list delemeters.
+ * @since 5.6.0 Added support to '%l$o' and to '%l$a' for list delemeters.
  *              Default '%l' is and alias of '%l$a' for backward compatibility.
  *
  * @param string $pattern Content containing '%l', '%l$a' or '%l$o' at the beginning.
@@ -5084,7 +5084,7 @@ function wp_sprintf_l( $pattern, $args ) {
 	 * Please note: Ampersands and entities should be avoided here.
 	 *
 	 * @since 2.5.0
-	 * @since 5.4.0 Added optional 'or' delimiter type. Defaults to 'and' type.
+	 * @since 5.6.0 Added optional 'or' delimiter type. Defaults to 'and' type.
 	 *
 	 * @param array $delimiters An array of translated delimiters.
 	 */
