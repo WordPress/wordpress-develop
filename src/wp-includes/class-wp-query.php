@@ -2109,8 +2109,8 @@ class WP_Query {
 			}
 		}
 
-		// If a search pattern is specified, load the posts that match.
-		if ( strlen( $q['s'] ) ) {
+		// If this is a search query, and a search pattern is specified, load the posts that match.
+		if ( $this->is_search && strlen( $q['s'] ) ) {
 			$search = $this->parse_search( $q );
 		}
 
