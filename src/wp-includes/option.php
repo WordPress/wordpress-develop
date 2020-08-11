@@ -2230,11 +2230,8 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
  *                                         Valid values are 'string', 'boolean', 'integer', 'number', 'array', and 'object'.
  *     @type string     $description       A description of the data attached to this setting.
  *     @type callable   $sanitize_callback A callback function that sanitizes the option's value.
- *     @type callable   $auth_callback     Optional. A function or method to call when performing edit_post_meta,
- *                                         add_post_meta, and delete_post_meta capability checks.
- *     @type bool|array $show_in_rest      Whether data associated with this setting should be included in the REST API.
- *                                         When registering complex settings, this argument may optionally be an
- *                                         array with a 'schema' key.
+ *     @type callable   $auth_callback     Optional. A function or method to call when performing edit_site_meta,
+ *                                         add_site_meta, and delete_post_meta capability checks.
  *     @type mixed      $default           Default value when calling `get_network_option()`.
  * }
  * @return bool True if the option name was successfully registered, false if not.
