@@ -1413,4 +1413,20 @@ JS;
 			$this->assertSame( $found, 0, "sourceMappingURL found in $js_file" );
 		}
 	}
+
+	/**
+	 * @ticket 50749
+	 */
+	public function test_wp_set_script_translations_doing_it_wrong_for_non_string_domain() {
+		wp_set_script_translations( 'test-example', 123, DIR_TESTDATA . '/languages' );
+		$this->setExpectedIncorrectUsage( 'wp_set_script_translations' );
+	}
+
+	/**
+	 * @ticket 50749
+	 */
+	public function test_wp_set_script_translations_doing_it_wrong_for_early_call() {
+		wp_set_script_translations( 'test-example', 'default', DIR_TESTDATA . '/languages' );
+		$this->setExpectedIncorrectUsage( 'wp_set_script_translations' );
+	}
 }

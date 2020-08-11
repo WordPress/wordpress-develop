@@ -245,7 +245,36 @@ function wp_set_script_translations( $handle, $domain = 'default', $path = null 
 		return false;
 	}
 
-	return $wp_scripts->set_translations( $handle, $domain, $path );
+	$wp_scripts_set_translations = $wp_scripts->set_translations( $handle, $domain, $path );
+
+	if ( ! is_string( $domain ) ) {
+		$message = __( '$domain should be a string.' );
+
+		_doing_it_wrong(
+			__FUNCTION__,
+			$message,
+			'5.6.0'
+		);
+		return false;
+	}
+
+	if ( false === $wp_scripts_set_translations ) {
+		$message = sprintf(
+		/* translators: 1: The handle, 2: wp_set_script_translations */
+			__( '%1$s should be enqueued before using %2$s with it.' ),
+			"<code>{$handle}</code>",
+			'<code>' . __FUNCTION__ . '</code>'
+		);
+
+		_doing_it_wrong(
+			__FUNCTION__,
+			$message,
+			'5.6.0'
+		);
+		return false;
+	}
+
+	return $wp_scripts_set_translations;
 }
 
 /**
