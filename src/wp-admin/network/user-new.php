@@ -51,7 +51,7 @@ if ( isset( $_REQUEST['action'] ) && 'add-user' === $_REQUEST['action'] ) {
 		$password = wp_generate_password( 12, false );
 		$user_id  = wpmu_create_user( esc_html( strtolower( $user['username'] ) ), $password, sanitize_email( $user['email'] ) );
 
-		if ( ! $user_id ) {
+		if ( is_wp_error( $user_id ) ) {
 			$add_user_errors = new WP_Error( 'add_user_fail', __( 'Cannot add user.' ) );
 		} else {
 			/**

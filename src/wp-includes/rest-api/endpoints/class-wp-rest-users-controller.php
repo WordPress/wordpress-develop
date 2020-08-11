@@ -561,7 +561,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		if ( is_multisite() ) {
 			$user_id = wpmu_create_user( $user->user_login, $user->user_pass, $user->user_email );
 
-			if ( ! $user_id ) {
+			if ( is_wp_error( $user_id ) ) {
 				return new WP_Error(
 					'rest_user_create',
 					__( 'Error creating new user.' ),

@@ -1187,7 +1187,7 @@ function wpmu_activate_signup( $key ) {
 		$user_already_exists = true;
 	}
 
-	if ( ! $user_id ) {
+	if ( is_wp_error( $user_id ) ) {
 		return new WP_Error( 'create_user', __( 'Could not create user' ), $signup );
 	}
 
