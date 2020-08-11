@@ -1307,28 +1307,30 @@ function wp_delete_signup_on_user_delete( $id, $reassign, $user ) {
  * @param string $user_name The new user's login name.
  * @param string $password  The new user's password.
  * @param string $email     The new user's email address.
- * @return int|false Returns false on failure, or int $user_id on success
+ * @return int|WP_Error     The newly created user's ID or a WP_Error object if the user could not
+ *                          be created.
  */
 function wpmu_create_user( $user_name, $password, $email ) {
 	$user_name = preg_replace( '/\s+/', '', sanitize_user( $user_name, true ) );
 
 	$user_id = wp_create_user( $user_name, $password, $email );
-	if ( is_wp_error( $user_id ) ) {
-		return false;
-	}
 
-	// Newly created users have no roles or caps until they are added to a blog.
-	delete_user_option( $user_id, 'capabilities' );
-	delete_user_option( $user_id, 'user_level' );
+	if ( ! is_wp_error( $user_id ) ) {
 
-	/**
-	 * Fires immediately after a new user is created.
-	 *
-	 * @since MU (3.0.0)
-	 *
-	 * @param int $user_id User ID.
-	 */
-	do_action( 'wpmu_new_user', $user_id );
+        // Newly created users have no roles or caps until they are added to a blog.
+        delete_user_option( $user_id, 'capabilities' );
+        delete_user_option( $user_id, 'user_level' );
+
+        /**
+         * Fires immediately after a new user is created.
+         *
+         * @since MU (3.0.0)
+         *
+         * @param int $user_id User ID.
+         */
+        do_action( 'wpmu_new_user', $user_id );
+
+    }
 
 	return $user_id;
 }
