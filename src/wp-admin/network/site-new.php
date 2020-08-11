@@ -123,7 +123,7 @@ if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
 		$password = wp_generate_password( 12, false );
 		$user_id  = wpmu_create_user( $domain, $password, $email );
 		if ( is_wp_error( $user_id ) ) {
-			wp_die( __( 'There was an error creating the user.' ) );
+			wp_die( sprintf( __( 'There was an error creating the user. %s' ), $user_id->get_error_message() ) );
 		}
 
 		/**
