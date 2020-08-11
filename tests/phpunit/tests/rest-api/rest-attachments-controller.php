@@ -1569,7 +1569,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertArrayNotHasKey( 'https://api.w.org/action-publish', $links );
 	}
 
-	protected function check_post_data( $attachment, $data, $context = 'view', $links ) {
+	protected function check_post_data( $attachment, $data, $context = 'view', $links = array() ) {
 		parent::check_post_data( $attachment, $data, $context, $links );
 
 		$this->assertArrayNotHasKey( 'content', $data );
