@@ -53,6 +53,18 @@ jobs:
     name: "PHPUnit Tests: PHP 5.6"
   - env: LOCAL_PHP=8.0-fpm COMPOSER_INSTALL=true WP_TRAVISCI=test:php
     name: "PHPUnit Tests: PHP 8.0"
+    script:
+      # The PHPUnit 7.x phar is not compatible with PHP 8 and won't be updated as PHPUnit 7 is no
+      # longer supported, so run the composer installed PHPUnit instead.
+      - docker-compose run --rm phpunit php ./vendor/bin/phpunit --verbose -c phpunit.xml.dist
+      - docker-compose run --rm phpunit php ./vendor/bin/phpunit --verbose -c phpunit.xml.dist --group ajax
+      - docker-compose run --rm phpunit php ./vendor/bin/phpunit --verbose -c tests/phpunit/multisite.xml
+      - docker-compose run --rm phpunit php ./vendor/bin/phpunit --verbose -c tests/phpunit/multisite.xml --group ms-files
+      - docker-compose run --rm phpunit php ./vendor/bin/phpunit --verbose -c phpunit.xml.dist --group external-http
+      - docker-compose run --rm phpunit php ./vendor/bin/phpunit --verbose -c phpunit.xml.dist --group restapi-jsclient
+      # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
+      - LOCAL_PHP_XDEBUG=true docker-compose run --rm phpunit phpunit -v --group xdebug --exclude-group __fakegroup__
+
   allow_failures:
   - env: LOCAL_PHP=8.0-fpm COMPOSER_INSTALL=true WP_TRAVISCI=test:php
   fast_finish: true
@@ -122,17 +134,6 @@ script:
   - |
     if [[ "$WP_TRAVISCI" == "test:e2e" ]]; then
       npm run test:e2e
-    elif [[ ${LOCAL_PHP:0:3} == "8.0" && "$WP_TRAVISCI" == "test:php" ]]; then
-      # The PHPUnit 7.x phar is not compatible with PHP 8 and won't be updated as PHPUnit 7 is no
-      # longer supported, so run the composer installed PHPUnit instead.
-      docker-compose run --rm phpunit php ./vendor/bin/phpunit --verbose -c phpunit.xml.dist &&
-      docker-compose run --rm phpunit php ./vendor/bin/phpunit --verbose -c phpunit.xml.dist --group ajax &&
-      docker-compose run --rm phpunit php ./vendor/bin/phpunit --verbose -c tests/phpunit/multisite.xml &&
-      docker-compose run --rm phpunit php ./vendor/bin/phpunit --verbose -c tests/phpunit/multisite.xml --group ms-files &&
-      docker-compose run --rm phpunit php ./vendor/bin/phpunit --verbose -c phpunit.xml.dist --group external-http &&
-      docker-compose run --rm phpunit php ./vendor/bin/phpunit --verbose -c phpunit.xml.dist --group restapi-jsclient &&
-      # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
-      LOCAL_PHP_XDEBUG=true docker-compose run --rm phpunit phpunit -v --group xdebug --exclude-group __fakegroup__
     elif [[ "$WP_TRAVISCI" == "test:php" ]]; then
       npm run test:php -- --verbose -c phpunit.xml.dist &&
       npm run test:php -- --verbose -c phpunit.xml.dist --group ajax &&
