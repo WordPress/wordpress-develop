@@ -588,9 +588,9 @@ if ( ! function_exists( 'wp_logout' ) ) :
 		wp_destroy_current_session();
 		wp_clear_auth_cookie();
 		wp_set_current_user( 0 );
-		add_action('send_headers', function(){ 
-		    header('Clear-Site-Data:"*"'); 
-		}, 1);
+		add_action( 'send_headers', function() { 
+		    header( 'Clear-Site-Data:"*"' ); 
+		}, 1 );
 
 		/**
 		 * Fires after a user is logged out.
