@@ -2212,8 +2212,9 @@ class WP_Site_Health {
 			array(
 				'direct' => array(),
 				'async'  => array(),
-			)
-		), $tests );
+			),
+			$tests,
+		);
 
 		return $tests;
 	}
