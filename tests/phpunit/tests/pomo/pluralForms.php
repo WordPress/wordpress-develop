@@ -74,10 +74,6 @@ class PluralFormsTest extends WP_UnitTestCase {
 	 * @group external-http
 	 */
 	public function test_regression( $lang, $nplurals, $expression ) {
-		if ( version_compare( phpversion(), '7.2', '>=' ) ) {
-			$this->markTestSkipped( 'Lambda functions are deprecated in PHP 7.2' );
-		}
-
 		require_once dirname( dirname( __DIR__ ) ) . '/includes/plural-form-function.php';
 
 		$parenthesized = self::parenthesize_plural_expression( $expression );
