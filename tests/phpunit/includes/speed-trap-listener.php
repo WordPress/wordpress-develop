@@ -2,6 +2,7 @@
 
 use PHPUnit\Framework\Test;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Warning;
 
 /**
  * A PHPUnit TestListener that exposes your slowest running tests by outputting
@@ -63,12 +64,12 @@ class SpeedTrapListener implements PHPUnit_Framework_TestListener {
 	/**
 	 * A warning occurred.
 	 *
-	 * @param \PHPUnit\Framework\Test   $test
-	 * @param PHPUnit_Framework_Warning $e
-	 * @param float                     $time
+	 * @param \PHPUnit\Framework\Test    $test
+	 * @param \PHPUnit\Framework\Warning $e
+	 * @param float                      $time
 	 * @since Method available since Release 5.1.0
 	 */
-	public function addWarning( Test $test, PHPUnit\Framework\Warning $e, float $time ): void {
+	public function addWarning( Test $test, Warning $e, float $time ): void {
 	}
 
 	/**
