@@ -10,7 +10,7 @@
  */
 class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		wp_set_current_user( self::$author_id );
 	}

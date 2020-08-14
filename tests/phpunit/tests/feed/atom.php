@@ -56,7 +56,7 @@ class Tests_Feeds_Atom extends WP_UnitTestCase {
 	/**
 	 * Setup.
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		$this->post_count   = (int) get_option( 'posts_per_rss' );

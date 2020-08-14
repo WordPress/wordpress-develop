@@ -11,7 +11,7 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 
 	public $pre_oembed_result_filtered = false;
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		require_once ABSPATH . WPINC . '/class-wp-oembed.php';

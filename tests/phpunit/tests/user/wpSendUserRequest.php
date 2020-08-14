@@ -63,7 +63,7 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 	 *
 	 * @since 4.9.9
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		set_current_screen( 'dashboard' );
@@ -75,7 +75,7 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 	 *
 	 * @since 4.9.9
 	 */
-	public function tearDown() {
+	public function tearDown(): void {
 		delete_option( 'WPLANG' );
 		reset_phpmailer_instance();
 

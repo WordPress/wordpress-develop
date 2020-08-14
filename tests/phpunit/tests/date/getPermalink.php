@@ -7,7 +7,7 @@
  */
 class Tests_Date_Get_Permalink extends WP_UnitTestCase {
 
-	function tearDown() {
+	function tearDown(): void {
 		delete_option( 'permalink_structure' );
 		update_option( 'timezone_string', 'UTC' );
 		// phpcs:ignore WordPress.DateTime.RestrictedFunctions.timezone_change_date_default_timezone_set

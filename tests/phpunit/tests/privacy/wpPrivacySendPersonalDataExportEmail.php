@@ -57,7 +57,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 *
 	 * @since 4.9.6
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		reset_phpmailer_instance();
 	}
@@ -67,7 +67,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 *
 	 * @since 4.9.6
 	 */
-	public function tearDown() {
+	public function tearDown(): void {
 		reset_phpmailer_instance();
 		restore_previous_locale();
 		parent::tearDown();

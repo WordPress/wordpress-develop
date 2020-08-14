@@ -4,7 +4,7 @@
  * @group general
  */
 class Tests_General_Archives extends WP_UnitTestCase {
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		wp_cache_delete( 'last_changed', 'posts' );

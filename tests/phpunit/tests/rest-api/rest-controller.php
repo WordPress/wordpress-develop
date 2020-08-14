@@ -11,7 +11,7 @@
  */
 class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		$this->request = new WP_REST_Request(
 			'GET',
@@ -52,7 +52,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		);
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		parent::tearDown();
 
 		global $wp_rest_additional_fields;

@@ -13,7 +13,7 @@ class Tests_Ajax_Manage_Themes extends WP_Ajax_UnitTestCase {
 	private $orig_theme_dir;
 	private $theme_root;
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		$this->theme_root     = DIR_TESTDATA . '/themedir1';
@@ -30,7 +30,7 @@ class Tests_Ajax_Manage_Themes extends WP_Ajax_UnitTestCase {
 		unset( $GLOBALS['wp_themes'] );
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 		remove_filter( 'theme_root', array( $this, 'filter_theme_root' ) );
 		remove_filter( 'stylesheet_root', array( $this, 'filter_theme_root' ) );

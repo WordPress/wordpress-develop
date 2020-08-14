@@ -16,14 +16,14 @@ if ( is_multisite() ) :
 		protected static $original_site_blog_upload_space;
 		protected static $original_blog_upload_space;
 
-		public static function setUpBeforeClass() {
+		public static function setUpBeforeClass(): void {
 			parent::setUpBeforeClass();
 
 			self::$original_site_blog_upload_space = get_site_option( 'blog_upload_space' );
 			self::$original_blog_upload_space      = get_option( 'blog_upload_space' );
 		}
 
-		public function setUp() {
+		public function setUp(): void {
 			global $wpdb;
 			parent::setUp();
 			$this->suppress = $wpdb->suppress_errors();
@@ -31,7 +31,7 @@ if ( is_multisite() ) :
 			update_site_option( 'upload_space_check_disabled', false );
 		}
 
-		public function tearDown() {
+		public function tearDown(): void {
 			global $wpdb;
 
 			/**

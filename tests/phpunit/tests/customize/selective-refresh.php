@@ -29,7 +29,7 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	/**
 	 * Set up the test fixture.
 	 */
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
@@ -255,7 +255,7 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	/**
 	 * Tear down.
 	 */
-	function tearDown() {
+	function tearDown(): void {
 		$this->wp_customize = null;
 		unset( $GLOBALS['wp_customize'] );
 		unset( $GLOBALS['wp_scripts'] );

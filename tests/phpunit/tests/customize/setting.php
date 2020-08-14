@@ -17,7 +17,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 */
 	public $undefined;
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
@@ -25,7 +25,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 		$this->undefined         = new stdClass();
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		$this->manager = null;
 		unset( $GLOBALS['wp_customize'] );
 		parent::tearDown();

@@ -8,7 +8,7 @@
 class Tests_Rewrite extends WP_UnitTestCase {
 	private $home_url;
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
@@ -17,7 +17,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->home_url = get_option( 'home' );
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		global $wp_rewrite;
 		$wp_rewrite->init();
 

@@ -29,7 +29,7 @@ class Tests_WPInsertPost extends WP_UnitTestCase {
 		$role->add_cap( 'publish_unmapped_meta_caps' );
 	}
 
-	static function tearDownAfterClass() {
+	static function tearDownAfterClass(): void {
 		$role = get_role( 'administrator' );
 		$role->remove_cap( 'publish_mapped_meta_caps' );
 		$role->remove_cap( 'publish_unmapped_meta_caps' );
@@ -37,7 +37,7 @@ class Tests_WPInsertPost extends WP_UnitTestCase {
 		parent::tearDownAfterClass();
 	}
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		register_post_type(

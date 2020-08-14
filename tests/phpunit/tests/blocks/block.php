@@ -26,7 +26,7 @@ class WP_Block_Test extends WP_UnitTestCase {
 	/**
 	 * Set up each test method.
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		$this->registry = new WP_Block_Type_Registry();
@@ -35,7 +35,7 @@ class WP_Block_Test extends WP_UnitTestCase {
 	/**
 	 * Tear down each test method.
 	 */
-	public function tearDown() {
+	public function tearDown(): void {
 		parent::tearDown();
 
 		$this->registry = null;

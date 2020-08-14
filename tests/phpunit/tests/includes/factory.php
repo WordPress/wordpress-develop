@@ -1,7 +1,7 @@
 <?php
 
 class TestFactoryFor extends WP_UnitTestCase {
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		$this->category_factory = new WP_UnitTest_Factory_For_Term( null, 'category' );
 	}

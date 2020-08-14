@@ -6,7 +6,7 @@
  * @group functions.php
  */
 class Tests_Functions_Referer extends WP_UnitTestCase {
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		$_SERVER['HTTP_REFERER']      = '';
@@ -14,7 +14,7 @@ class Tests_Functions_Referer extends WP_UnitTestCase {
 		$_REQUEST['_wp_http_referer'] = '';
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		parent::tearDown();
 
 		$_SERVER['HTTP_REFERER']      = '';

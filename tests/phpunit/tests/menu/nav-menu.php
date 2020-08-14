@@ -8,7 +8,7 @@ class Tests_Nav_Menu_Theme_Change extends WP_UnitTestCase {
 	/**
 	 * Set up.
 	 */
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		// Unregister all nav menu locations.

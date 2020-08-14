@@ -5,7 +5,7 @@
  */
 
 class Tests_Post_getPages extends WP_UnitTestCase {
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 	}
 

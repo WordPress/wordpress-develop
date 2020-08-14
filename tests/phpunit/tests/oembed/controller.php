@@ -41,7 +41,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		self::delete_user( self::$editor );
 	}
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		/** @var WP_REST_Server $wp_rest_server */
@@ -56,7 +56,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->oembed_result_filter_count = 0;
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		parent::tearDown();
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;

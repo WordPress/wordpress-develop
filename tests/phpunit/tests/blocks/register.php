@@ -57,7 +57,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	 *
 	 * @since 5.0.0
 	 */
-	function tearDown() {
+	function tearDown(): void {
 		parent::tearDown();
 
 		$registry = WP_Block_Type_Registry::get_instance();

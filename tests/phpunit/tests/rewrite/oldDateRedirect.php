@@ -28,7 +28,7 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 		);
 	}
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		add_filter( 'old_slug_redirect_url', array( $this, 'filter_old_date_redirect_url' ), 10, 1 );
@@ -41,7 +41,7 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 		flush_rewrite_rules();
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		parent::tearDown();
 
 		$this->old_date_redirect_url = null;

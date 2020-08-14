@@ -7,7 +7,7 @@
  */
 class Tests_User_Session extends WP_UnitTestCase {
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		remove_all_filters( 'session_token_manager' );
 		$user_id       = self::factory()->user->create();

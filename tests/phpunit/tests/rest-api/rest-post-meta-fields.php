@@ -36,7 +36,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		unregister_post_type( 'cpt' );
 	}
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		register_meta(

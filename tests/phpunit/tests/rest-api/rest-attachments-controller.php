@@ -69,7 +69,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		self::delete_user( self::$uploader_id );
 	}
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		// Add an uploader role to test upload capabilities.
@@ -87,7 +87,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		copy( $orig_file2, $this->test_file2 );
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		parent::tearDown();
 
 		if ( file_exists( $this->test_file ) ) {

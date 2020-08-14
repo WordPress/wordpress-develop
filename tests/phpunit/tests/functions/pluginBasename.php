@@ -20,14 +20,14 @@ class Tests_Functions_PluginBasename extends WP_UnitTestCase {
 	 */
 	protected $wp_plugin_path;
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		$this->wp_plugin_paths_backup = $GLOBALS['wp_plugin_paths'];
 		$this->wp_plugin_path         = wp_normalize_path( WP_PLUGIN_DIR );
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		$GLOBALS['wp_plugin_paths'] = $this->wp_plugin_paths_backup;
 
 		parent::tearDown();

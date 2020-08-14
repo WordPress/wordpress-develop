@@ -37,7 +37,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 	 *
 	 * @since 5.0.0
 	 */
-	public function tearDown() {
+	public function tearDown(): void {
 		parent::tearDown();
 
 		$this->test_block_instance_number = 0;

@@ -62,7 +62,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		self::delete_user( self::$contributor_id );
 	}
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		$revisions             = wp_get_post_revisions( self::$post_id );
@@ -76,7 +76,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->revision_id3    = $this->revision_3->ID;
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		parent::tearDown();
 
 		remove_filter( 'map_meta_cap', array( $this, '_filter_map_meta_cap_remove_no_allow_revisions' ) );

@@ -6,7 +6,7 @@
 class Tests_Term_WpTerm extends WP_UnitTestCase {
 	protected static $term_id;
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		register_taxonomy( 'wptests_tax', 'post' );
 	}

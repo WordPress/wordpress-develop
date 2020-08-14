@@ -6,7 +6,7 @@ class Tests_Shortcode extends WP_UnitTestCase {
 
 	protected $shortcodes = array( 'test-shortcode-tag', 'footag', 'bartag', 'baztag', 'dumptag', 'hyphen', 'hyphen-foo', 'hyphen-foo-bar', 'url', 'img' );
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		foreach ( $this->shortcodes as $shortcode ) {
@@ -19,7 +19,7 @@ class Tests_Shortcode extends WP_UnitTestCase {
 
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		global $shortcode_tags;
 		foreach ( $this->shortcodes as $shortcode ) {
 			unset( $shortcode_tags[ $shortcode ] );

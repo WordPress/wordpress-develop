@@ -32,13 +32,13 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 		);
 	}
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		setup_postdata( get_post( self::$post_id ) );
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		wp_reset_postdata();
 		parent::tearDown();
 	}

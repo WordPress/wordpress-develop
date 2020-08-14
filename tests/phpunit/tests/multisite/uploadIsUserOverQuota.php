@@ -13,7 +13,7 @@ if ( is_multisite() ) :
 	class Tests_Multisite_Upload_Is_User_Over_Quota extends WP_UnitTestCase {
 		protected $suppress = false;
 
-		public function setUp() {
+		public function setUp(): void {
 			global $wpdb;
 			parent::setUp();
 			$this->suppress = $wpdb->suppress_errors();
@@ -21,7 +21,7 @@ if ( is_multisite() ) :
 			update_site_option( 'upload_space_check_disabled', false );
 		}
 
-		public function tearDown() {
+		public function tearDown(): void {
 			global $wpdb;
 			$wpdb->suppress_errors( $this->suppress );
 			parent::tearDown();

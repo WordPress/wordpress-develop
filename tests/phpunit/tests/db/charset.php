@@ -22,7 +22,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	 */
 	private static $server_info;
 
-	public static function setUpBeforeClass() {
+	public static function setUpBeforeClass(): void {
 		parent::setUpBeforeClass();
 
 		require_once dirname( __DIR__ ) . '/db.php';

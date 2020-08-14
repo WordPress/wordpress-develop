@@ -27,7 +27,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	 *
 	 * @see WP_UnitTestCase::setup()
 	 */
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 
@@ -54,7 +54,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	/**
 	 * Tear down the test case.
 	 */
-	function tearDown() {
+	function tearDown(): void {
 		parent::tearDown();
 		$this->setting = null;
 	}

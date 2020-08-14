@@ -26,7 +26,7 @@ class WP_Block_Context_Test extends WP_UnitTestCase {
 	/**
 	 * Sets up each test method.
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		global $post;
 
 		parent::setUp();
@@ -43,7 +43,7 @@ class WP_Block_Context_Test extends WP_UnitTestCase {
 	/**
 	 * Tear down each test method.
 	 */
-	public function tearDown() {
+	public function tearDown(): void {
 		parent::tearDown();
 
 		while ( ! empty( $this->registered_block_names ) ) {

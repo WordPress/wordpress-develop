@@ -17,7 +17,7 @@ class Tests_Functions_MaybeDeclineDate extends WP_UnitTestCase {
 	 */
 	private $wp_locale_original;
 
-	public function setUp() {
+	public function setUp(): void {
 		global $locale, $wp_locale;
 
 		parent::setUp();
@@ -26,7 +26,7 @@ class Tests_Functions_MaybeDeclineDate extends WP_UnitTestCase {
 		$this->wp_locale_original = clone $wp_locale;
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		global $locale, $wp_locale;
 
 		$locale    = $this->locale_original;

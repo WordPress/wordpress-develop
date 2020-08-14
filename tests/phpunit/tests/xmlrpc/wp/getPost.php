@@ -9,7 +9,7 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 	var $post_date_ts;
 	var $post_custom_field;
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		$this->post_date_ts            = strtotime( '+1 day' );

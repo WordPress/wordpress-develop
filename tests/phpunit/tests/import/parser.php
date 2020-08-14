@@ -6,7 +6,7 @@ require_once __DIR__ . '/base.php';
  * @group import
  */
 class Tests_Import_Parser extends WP_Import_UnitTestCase {
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		if ( ! defined( 'WP_IMPORTING' ) ) {

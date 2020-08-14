@@ -14,7 +14,7 @@ if ( is_multisite() ) :
 	class Tests_Multisite_MS_Files_Rewriting extends WP_UnitTestCase {
 		protected $suppress = false;
 
-		function setUp() {
+		function setUp(): void {
 			global $wpdb;
 			parent::setUp();
 			$this->suppress = $wpdb->suppress_errors();
@@ -23,7 +23,7 @@ if ( is_multisite() ) :
 			ms_upload_constants();
 		}
 
-		function tearDown() {
+		function tearDown(): void {
 			global $wpdb;
 
 			update_site_option( 'ms_files_rewriting', 0 );

@@ -41,7 +41,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		);
 	}
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		// Keep track of users we create.
 		$this->_flush_roles();

@@ -40,7 +40,7 @@ class Tests_General_DocumentTitle extends WP_UnitTestCase {
 		);
 	}
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		add_action( 'after_setup_theme', array( $this, '_add_title_tag_support' ) );
@@ -50,7 +50,7 @@ class Tests_General_DocumentTitle extends WP_UnitTestCase {
 		setup_postdata( get_post( self::$post_id ) );
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		wp_reset_postdata();
 		parent::tearDown();
 	}

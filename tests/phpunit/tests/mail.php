@@ -4,12 +4,12 @@
  * @group mail
  */
 class Tests_Mail extends WP_UnitTestCase {
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		reset_phpmailer_instance();
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		reset_phpmailer_instance();
 		parent::tearDown();
 	}

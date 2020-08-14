@@ -6,7 +6,7 @@
  * @ticket 21767
  */
 class Tests_User_Slashes extends WP_UnitTestCase {
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		$this->author_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 

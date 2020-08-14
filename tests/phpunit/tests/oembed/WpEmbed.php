@@ -9,7 +9,7 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 	 */
 	protected $wp_embed;
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		$this->wp_embed = new WP_Embed();
 	}

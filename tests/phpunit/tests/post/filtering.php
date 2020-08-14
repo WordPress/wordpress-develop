@@ -10,14 +10,14 @@
  * @group formatting
  */
 class Tests_Post_Filtering extends WP_UnitTestCase {
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		update_option( 'use_balanceTags', 1 );
 		kses_init_filters();
 
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		kses_remove_filters();
 		parent::tearDown();
 	}

@@ -4,7 +4,7 @@
  * @group taxonomy
  */
 class Tests_Term_getTerms extends WP_UnitTestCase {
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		_clean_term_filters();

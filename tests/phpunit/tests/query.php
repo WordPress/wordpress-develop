@@ -2,7 +2,7 @@
 
 class Tests_Query extends WP_UnitTestCase {
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );

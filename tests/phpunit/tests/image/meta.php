@@ -6,7 +6,7 @@
  * @group upload
  */
 class Tests_Image_Meta extends WP_UnitTestCase {
-	function setUp() {
+	function setUp(): void {
 		if ( ! extension_loaded( 'gd' ) ) {
 			$this->markTestSkipped( 'The gd PHP extension is not loaded.' );
 		}

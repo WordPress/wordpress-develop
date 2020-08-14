@@ -119,7 +119,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		self::delete_user( self::$contributor_id );
 	}
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		wp_set_current_user( self::$editor_id );
 

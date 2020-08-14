@@ -4,7 +4,7 @@
  * @group pomo
  */
 class Tests_POMO_PO extends WP_UnitTestCase {
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		require_once ABSPATH . '/wp-includes/pomo/po.php';
 		// Not so random wordpress.pot string -- multiple lines.

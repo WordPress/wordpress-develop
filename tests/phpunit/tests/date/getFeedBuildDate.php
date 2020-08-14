@@ -7,7 +7,7 @@
  */
 class Tests_Date_Get_Feed_Build_Date extends WP_UnitTestCase {
 
-	function tearDown() {
+	function tearDown(): void {
 		global $wp_query;
 
 		update_option( 'timezone_string', 'UTC' );

@@ -60,7 +60,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	/**
 	 * Runs the routine before setting up all tests.
 	 */
-	public static function setUpBeforeClass() {
+	public static function setUpBeforeClass(): void {
 		global $wpdb;
 
 		$wpdb->suppress_errors = false;
@@ -84,7 +84,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	/**
 	 * Runs the routine after all tests have been run.
 	 */
-	public static function tearDownAfterClass() {
+	public static function tearDownAfterClass(): void {
 		parent::tearDownAfterClass();
 
 		_delete_all_data();
@@ -104,7 +104,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	/**
 	 * Runs the routine before each test is executed.
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		set_time_limit( 0 );
 
 		if ( ! self::$ignore_files ) {
@@ -144,7 +144,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	/**
 	 * After a test method runs, reset any state in WordPress the test method might have changed.
 	 */
-	public function tearDown() {
+	public function tearDown(): void {
 		global $wpdb, $wp_query, $wp;
 		$wpdb->query( 'ROLLBACK' );
 		if ( is_multisite() ) {

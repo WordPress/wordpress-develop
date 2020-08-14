@@ -4,7 +4,7 @@
  * @group taxonomy
  */
 class Tests_Term_Cache extends WP_UnitTestCase {
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		wp_cache_delete( 'last_changed', 'terms' );

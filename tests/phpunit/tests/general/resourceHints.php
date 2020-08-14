@@ -8,7 +8,7 @@ class Tests_WP_Resource_Hints extends WP_UnitTestCase {
 	private $old_wp_scripts;
 	private $old_wp_styles;
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		$this->old_wp_scripts = isset( $GLOBALS['wp_scripts'] ) ? $GLOBALS['wp_scripts'] : null;
 		$this->old_wp_styles  = isset( $GLOBALS['wp_styles'] ) ? $GLOBALS['wp_styles'] : null;
@@ -22,7 +22,7 @@ class Tests_WP_Resource_Hints extends WP_UnitTestCase {
 		$GLOBALS['wp_styles']->default_version  = get_bloginfo( 'version' );
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		$GLOBALS['wp_scripts'] = $this->old_wp_scripts;
 		$GLOBALS['wp_styles']  = $this->old_wp_styles;
 		add_action( 'wp_default_scripts', 'wp_default_scripts' );

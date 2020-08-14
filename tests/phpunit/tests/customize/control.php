@@ -24,7 +24,7 @@ class Test_WP_Customize_Control extends WP_UnitTestCase {
 	/**
 	 * Set up.
 	 */
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'administrator' ) ) );
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
@@ -172,7 +172,7 @@ class Test_WP_Customize_Control extends WP_UnitTestCase {
 	/**
 	 * Tear down.
 	 */
-	function tearDown() {
+	function tearDown(): void {
 		$this->wp_customize = null;
 		unset( $GLOBALS['wp_customize'] );
 		parent::tearDown();

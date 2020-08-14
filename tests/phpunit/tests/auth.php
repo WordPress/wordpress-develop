@@ -28,7 +28,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		self::$wp_hasher = new PasswordHash( 8, true );
 	}
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		$this->user = clone self::$_user;

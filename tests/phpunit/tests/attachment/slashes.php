@@ -6,7 +6,7 @@
  * @ticket 21767
  */
 class Tests_Attachment_Slashes extends WP_UnitTestCase {
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		$this->author_id = self::factory()->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( $this->author_id );

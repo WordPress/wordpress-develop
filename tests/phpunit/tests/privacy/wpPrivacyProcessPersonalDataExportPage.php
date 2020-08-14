@@ -191,7 +191,7 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *
 	 * @since 5.2.0
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		// Avoid writing export files to disk. Using `WP_Filesystem_MockFS` is blocked by #44204.
@@ -218,7 +218,7 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *
 	 * @since 5.2.0
 	 */
-	public function tearDown() {
+	public function tearDown(): void {
 		error_reporting( $this->_error_level );
 
 		parent::tearDown();

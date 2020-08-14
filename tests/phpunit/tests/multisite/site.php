@@ -17,13 +17,13 @@ if ( is_multisite() ) :
 		protected static $site_ids;
 		protected static $uninitialized_site_id;
 
-		function setUp() {
+		function setUp(): void {
 			global $wpdb;
 			parent::setUp();
 			$this->suppress = $wpdb->suppress_errors();
 		}
 
-		function tearDown() {
+		function tearDown(): void {
 			global $wpdb;
 			$wpdb->suppress_errors( $this->suppress );
 			parent::tearDown();

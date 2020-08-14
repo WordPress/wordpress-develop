@@ -9,7 +9,7 @@ class Tests_Date_WP_Date extends WP_UnitTestCase {
 	/** @var WP_Locale */
 	private $wp_locale_original;
 
-	public function setUp() {
+	public function setUp(): void {
 		global $wp_locale;
 
 		parent::setUp();
@@ -17,7 +17,7 @@ class Tests_Date_WP_Date extends WP_UnitTestCase {
 		$this->wp_locale_original = clone $wp_locale;
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		global $wp_locale;
 
 		$wp_locale = $this->wp_locale_original;

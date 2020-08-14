@@ -4,7 +4,7 @@
  * @group taxonomy
  */
 class Tests_Term_GetEditTermLink extends WP_UnitTestCase {
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		register_taxonomy( 'wptests_tax', 'post' );

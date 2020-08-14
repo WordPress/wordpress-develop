@@ -17,7 +17,7 @@ class Tests_L10n_loadTextdomain extends WP_UnitTestCase {
 		);
 	}
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		$this->locale = '';
@@ -26,7 +26,7 @@ class Tests_L10n_loadTextdomain extends WP_UnitTestCase {
 		add_filter( 'theme_locale', array( $this, 'store_locale' ) );
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		remove_filter( 'plugin_locale', array( $this, 'store_locale' ) );
 		remove_filter( 'theme_locale', array( $this, 'store_locale' ) );
 

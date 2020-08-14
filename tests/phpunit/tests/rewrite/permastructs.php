@@ -5,7 +5,7 @@
  */
 class Tests_Rewrite_Permastructs extends WP_UnitTestCase {
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		$this->set_permalink_structure( '/%postname%/' );

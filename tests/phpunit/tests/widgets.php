@@ -21,7 +21,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		parent::clean_up_global_scope();
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		global $wp_customize;
 		$wp_customize = null;
 

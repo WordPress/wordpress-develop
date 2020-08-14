@@ -7,7 +7,7 @@
 class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 	protected $administrator_id;
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		// Create a super admin.
@@ -17,7 +17,7 @@ class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 		}
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		if ( is_multisite() ) {
 			revoke_super_admin( $this->administrator_id );
 		}

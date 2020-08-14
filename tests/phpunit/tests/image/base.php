@@ -8,7 +8,7 @@ abstract class WP_Image_UnitTestCase extends WP_UnitTestCase {
 	/**
 	 * Set the image editor engine according to the unit test's specification
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		if ( ! call_user_func( array( $this->editor_engine, 'test' ) ) ) {
@@ -21,7 +21,7 @@ abstract class WP_Image_UnitTestCase extends WP_UnitTestCase {
 	/**
 	 * Undo the image editor override
 	 */
-	public function tearDown() {
+	public function tearDown(): void {
 		remove_filter( 'wp_image_editors', array( $this, 'setEngine' ), 10, 2 );
 		parent::tearDown();
 	}

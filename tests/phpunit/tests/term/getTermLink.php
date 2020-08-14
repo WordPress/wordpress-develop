@@ -5,7 +5,7 @@
  */
 class Tests_Term_GetTermLink extends WP_UnitTestCase {
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		register_taxonomy( 'wptests_tax', 'post' );

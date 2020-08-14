@@ -9,7 +9,7 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 	var $object_list = array();
 	var $array_list  = array();
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		$this->array_list['foo'] = array(
 			'name'   => 'foo',

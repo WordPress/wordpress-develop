@@ -11,7 +11,7 @@ class Tests_Canonical_NoRewrite extends WP_Canonical_UnitTestCase {
 
 	// These test cases are run against the test handler in WP_Canonical.
 
-	public function setUp() {
+	public function setUp(): void {
 		global $wp_rewrite;
 
 		parent::setUp();

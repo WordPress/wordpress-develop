@@ -6,7 +6,7 @@
  */
 class Tests_HTTP_Functions extends WP_UnitTestCase {
 
-	public function setUp() {
+	public function setUp(): void {
 		if ( ! extension_loaded( 'openssl' ) ) {
 			$this->markTestSkipped( 'Tests_HTTP_Functions requires openssl.' );
 		}

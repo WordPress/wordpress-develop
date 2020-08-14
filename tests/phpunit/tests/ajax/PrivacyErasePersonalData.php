@@ -126,7 +126,7 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	/**
 	 * Register a custom personal data eraser.
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		$this->key_to_unset = '';
@@ -149,7 +149,7 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	/**
 	 * Clean up after each test method.
 	 */
-	public function tearDown() {
+	public function tearDown(): void {
 		remove_filter( 'wp_privacy_personal_data_erasers', array( $this, 'register_custom_personal_data_eraser' ) );
 		$this->new_callback_value = '';
 

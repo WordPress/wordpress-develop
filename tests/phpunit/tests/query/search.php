@@ -7,7 +7,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 	protected $q;
 	protected $post_type;
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		$this->post_type = rand_str( 12 );
@@ -16,7 +16,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 		$this->q = new WP_Query();
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		_unregister_post_type( $this->post_type );
 		unset( $this->q );
 

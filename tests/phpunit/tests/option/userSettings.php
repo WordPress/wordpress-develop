@@ -2,7 +2,7 @@
 class Tests_User_Settings extends WP_UnitTestCase {
 	protected $user_id;
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		$this->user_id = self::factory()->user->create(
@@ -14,7 +14,7 @@ class Tests_User_Settings extends WP_UnitTestCase {
 		wp_set_current_user( $this->user_id );
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		unset( $GLOBALS['_updated_user_settings'] );
 
 		parent::tearDown();

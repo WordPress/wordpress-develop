@@ -25,7 +25,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		self::delete_user( self::$editor_id );
 	}
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		$this->has_setup_template = false;
 		add_filter( 'theme_page_templates', array( $this, 'filter_theme_page_templates' ) );
@@ -717,7 +717,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertArrayHasKey( 'type', $properties );
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		parent::tearDown();
 		remove_filter( 'theme_page_templates', array( $this, 'filter_theme_page_templates' ) );
 	}

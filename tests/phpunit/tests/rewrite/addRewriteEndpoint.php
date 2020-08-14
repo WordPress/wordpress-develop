@@ -17,7 +17,7 @@ class Tests_Rewrite_AddRewriteEndpoint extends WP_UnitTestCase {
 		self::$test_post_id = $factory->post->create();
 	}
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
@@ -25,7 +25,7 @@ class Tests_Rewrite_AddRewriteEndpoint extends WP_UnitTestCase {
 		$this->qvs = $GLOBALS['wp']->public_query_vars;
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		$GLOBALS['wp']->public_query_vars = $this->qvs;
 		parent::tearDown();
 	}

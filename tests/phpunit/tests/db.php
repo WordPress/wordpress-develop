@@ -21,7 +21,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 */
 	protected static $_wpdb;
 
-	public static function setUpBeforeClass() {
+	public static function setUpBeforeClass(): void {
 		parent::setUpBeforeClass();
 		self::$_wpdb = new WpdbExposedMethodsForTesting();
 	}
@@ -29,7 +29,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * Set up the test fixture
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		$this->_queries = array();
 		add_filter( 'query', array( $this, 'query_filter' ) );
@@ -38,7 +38,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * Tear down the test fixture
 	 */
-	public function tearDown() {
+	public function tearDown(): void {
 		remove_filter( 'query', array( $this, 'query_filter' ) );
 		parent::tearDown();
 	}

@@ -59,7 +59,7 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 	 *
 	 * @since 5.2.0
 	 */
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		self::$post_id = $this->factory()->post->create(
 			array(
@@ -80,7 +80,7 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 	 *
 	 * @since 5.2.0
 	 */
-	function tearDown() {
+	function tearDown(): void {
 		parent::tearDown();
 		$registry = WP_Block_Type_Registry::get_instance();
 		$registry->unregister( 'core/fake' );

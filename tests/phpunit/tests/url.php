@@ -7,7 +7,7 @@
  */
 class Tests_URL extends WP_UnitTestCase {
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		$GLOBALS['pagenow'] = '';
 	}

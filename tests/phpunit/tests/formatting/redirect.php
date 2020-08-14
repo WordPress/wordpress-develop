@@ -6,12 +6,12 @@
  * @group redirect
  */
 class Tests_Formatting_Redirect extends WP_UnitTestCase {
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		add_filter( 'home_url', array( $this, 'home_url' ) );
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		remove_filter( 'home_url', array( $this, 'home_url' ) );
 		parent::tearDown();
 	}

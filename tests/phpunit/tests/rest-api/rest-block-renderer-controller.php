@@ -132,7 +132,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 *
 	 * @since 5.0.0
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		$this->register_test_block();
 		$this->register_post_context_test_block();
 		$this->register_non_dynamic_block();
@@ -145,7 +145,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 *
 	 * @since 5.0.0
 	 */
-	public function tearDown() {
+	public function tearDown(): void {
 		WP_Block_Type_Registry::get_instance()->unregister( self::$block_name );
 		WP_Block_Type_Registry::get_instance()->unregister( self::$context_block_name );
 		WP_Block_Type_Registry::get_instance()->unregister( self::$non_dynamic_block_name );

@@ -7,7 +7,7 @@
 class Tests_Menu_Walker_Nav_Menu_Edit extends WP_UnitTestCase {
 	protected $_wp_nav_menu_max_depth;
 
-	function setUp() {
+	function setUp(): void {
 		global $_wp_nav_menu_max_depth;
 
 		parent::setUp();
@@ -20,7 +20,7 @@ class Tests_Menu_Walker_Nav_Menu_Edit extends WP_UnitTestCase {
 		$this->_wp_nav_menu_max_depth = $_wp_nav_menu_max_depth;
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		global $_wp_nav_menu_max_depth;
 
 		$_wp_nav_menu_max_depth = $this->_wp_nav_menu_max_depth;

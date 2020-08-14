@@ -16,7 +16,7 @@ class Tests_Meta_Slashes extends WP_UnitTestCase {
 		self::$comment_id = $factory->comment->create( array( 'comment_post_ID' => self::$post_id ) );
 	}
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		wp_set_current_user( self::$editor_id );

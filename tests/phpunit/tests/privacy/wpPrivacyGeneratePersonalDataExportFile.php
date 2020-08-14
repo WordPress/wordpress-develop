@@ -63,7 +63,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 *
 	 * @since 5.2.0
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		$this->export_file_name = '';
@@ -93,7 +93,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 *
 	 * @since 5.2.0
 	 */
-	public function tearDown() {
+	public function tearDown(): void {
 		$this->remove_exports_dir();
 		error_reporting( $this->_error_level );
 		parent::tearDown();

@@ -9,7 +9,7 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 
 	protected $post_id;
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		$this->post_id = self::factory()->post->create(
@@ -29,7 +29,7 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 		flush_rewrite_rules();
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		parent::tearDown();
 
 		$this->old_slug_redirect_url = null;

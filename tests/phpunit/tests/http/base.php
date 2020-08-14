@@ -17,7 +17,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 	protected $http_request_args;
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		if ( is_callable( array( 'WP_Http', '_getTransport' ) ) ) {
@@ -39,7 +39,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		}
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		foreach ( array( 'curl', 'streams', 'fsockopen' ) as $t ) {
 			remove_filter( "use_{$t}_transport", '__return_false' );
 		}

@@ -5,7 +5,7 @@
  */
 class Tests_Option_Transient extends WP_UnitTestCase {
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		if ( wp_using_ext_object_cache() ) {

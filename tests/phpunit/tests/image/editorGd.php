@@ -13,14 +13,14 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 	public $editor_engine = 'WP_Image_Editor_GD';
 
-	public function setUp() {
+	public function setUp(): void {
 		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 		require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
 
 		parent::setUp();
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		$folder = DIR_TESTDATA . '/images/waffles-*.jpg';
 
 		foreach ( glob( $folder ) as $file ) {

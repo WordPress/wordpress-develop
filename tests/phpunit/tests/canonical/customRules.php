@@ -7,7 +7,7 @@
  */
 class Tests_Canonical_CustomRules extends WP_Canonical_UnitTestCase {
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		global $wp_rewrite;
 		// Add a custom Rewrite rule to test category redirections.

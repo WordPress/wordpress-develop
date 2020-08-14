@@ -7,7 +7,7 @@ class Tests_XMLRPC_wp_restoreRevision extends WP_XMLRPC_UnitTestCase {
 	var $post_id;
 	var $revision_id;
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		$this->post_id = self::factory()->post->create( array( 'post_content' => 'edit1' ) ); // Not saved as a revision.

@@ -33,12 +33,12 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		self::delete_user( self::$author );
 	}
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		$this->endpoint = new WP_REST_Settings_Controller();
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		parent::tearDown();
 
 		$settings_to_unregister = array(

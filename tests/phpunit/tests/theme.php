@@ -21,7 +21,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		'twentytwenty',
 	);
 
-	function setUp() {
+	function setUp(): void {
 		global $wp_theme_directories;
 
 		parent::setUp();
@@ -34,7 +34,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		unset( $GLOBALS['wp_themes'] );
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		global $wp_theme_directories;
 
 		$wp_theme_directories = $this->wp_theme_directories;

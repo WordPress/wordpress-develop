@@ -17,7 +17,7 @@ class Tests_Comment_DateQuery extends WP_UnitTestCase {
 
 	public $posts = array();
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		// Just some dummy posts to use as parents for comments.

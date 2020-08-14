@@ -8,7 +8,7 @@ class Tests_HTTP_GetHttpHeaders extends WP_UnitTestCase {
 	/**
 	 * Set up the environment
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		// Hook a fake HTTP request response.
@@ -18,7 +18,7 @@ class Tests_HTTP_GetHttpHeaders extends WP_UnitTestCase {
 	/**
 	 * Clean up environment
 	 */
-	public function tearDown() {
+	public function tearDown(): void {
 		parent::tearDown();
 
 		// Clear the hook for the fake HTTP request response.

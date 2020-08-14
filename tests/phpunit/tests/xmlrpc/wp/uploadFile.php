@@ -5,7 +5,7 @@
  */
 class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 
-	public function tearDown() {
+	public function tearDown(): void {
 		$this->remove_added_uploads();
 
 		parent::tearDown();

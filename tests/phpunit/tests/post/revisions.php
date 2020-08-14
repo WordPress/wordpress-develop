@@ -15,12 +15,12 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		self::$author_user_id = $factory->user->create( array( 'role' => 'author' ) );
 	}
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		$this->post_type = rand_str( 20 );
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		unset( $GLOBALS['wp_post_types'][ $this->post_type ] );
 		parent::tearDown();
 	}

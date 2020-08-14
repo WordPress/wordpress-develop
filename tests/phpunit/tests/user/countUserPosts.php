@@ -53,12 +53,12 @@ class Tests_User_CountUserPosts extends WP_UnitTestCase {
 		);
 	}
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		register_post_type( 'wptests_pt' );
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		_unregister_post_type( 'wptests_pt' );
 		parent::tearDown();
 	}

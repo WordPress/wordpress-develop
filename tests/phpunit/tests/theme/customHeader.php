@@ -19,7 +19,7 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 		self::$header_video_id = $factory->attachment->create_upload_object( $file );
 	}
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
@@ -29,7 +29,7 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 		wp_dequeue_script( 'wp-custom-header' );
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		$this->customize_manager = null;
 		unset( $GLOBALS['wp_customize'] );
 

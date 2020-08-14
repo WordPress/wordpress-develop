@@ -19,7 +19,7 @@ class Tests_L10n_loadTextdomainJustInTime extends WP_UnitTestCase {
 		);
 	}
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		$this->theme_root     = DIR_TESTDATA . '/themedir1';
@@ -38,7 +38,7 @@ class Tests_L10n_loadTextdomainJustInTime extends WP_UnitTestCase {
 		_get_path_to_translation( null, true );
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 		remove_filter( 'theme_root', array( $this, 'filter_theme_root' ) );
 		remove_filter( 'stylesheet_root', array( $this, 'filter_theme_root' ) );

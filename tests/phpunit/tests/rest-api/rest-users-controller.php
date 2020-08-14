@@ -148,7 +148,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * This function is run before each method
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		$this->endpoint = new WP_REST_Users_Controller();
 	}

@@ -6,7 +6,7 @@ require_once ABSPATH . WPINC . '/class-wp-xmlrpc-server.php';
 class WP_XMLRPC_UnitTestCase extends WP_UnitTestCase {
 	protected $myxmlrpcserver;
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		add_filter( 'pre_option_enable_xmlrpc', '__return_true' );
@@ -14,7 +14,7 @@ class WP_XMLRPC_UnitTestCase extends WP_UnitTestCase {
 		$this->myxmlrpcserver = new wp_xmlrpc_server();
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		remove_filter( 'pre_option_enable_xmlrpc', '__return_true' );
 
 		$this->remove_added_uploads();

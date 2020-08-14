@@ -150,7 +150,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		}
 	}
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		$this->endpoint = new WP_REST_Comments_Controller;
 		if ( is_multisite() ) {

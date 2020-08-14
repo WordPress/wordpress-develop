@@ -7,7 +7,7 @@ class Tests_XMLRPC_wp_getPostType extends WP_XMLRPC_UnitTestCase {
 	var $cpt_name;
 	var $cpt_args;
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		$this->cpt_name = 'post_type_test';
@@ -23,7 +23,7 @@ class Tests_XMLRPC_wp_getPostType extends WP_XMLRPC_UnitTestCase {
 		register_post_type( $this->cpt_name, $this->cpt_args );
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		_unregister_post_type( $this->cpt_name );
 
 		parent::tearDown();

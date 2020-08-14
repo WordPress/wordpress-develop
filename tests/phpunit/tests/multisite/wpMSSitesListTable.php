@@ -14,7 +14,7 @@ if ( is_multisite() ) :
 		 */
 		var $table = false;
 
-		function setUp() {
+		function setUp(): void {
 			parent::setUp();
 			$this->table = _get_list_table( 'WP_MS_Sites_List_Table', array( 'screen' => 'ms-sites' ) );
 		}

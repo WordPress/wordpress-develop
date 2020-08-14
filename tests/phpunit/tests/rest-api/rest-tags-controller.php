@@ -74,7 +74,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		}
 	}
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		register_meta(
@@ -1400,7 +1400,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		}
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		_unregister_taxonomy( 'batman' );
 		_unregister_taxonomy( 'robin' );
 		parent::tearDown();

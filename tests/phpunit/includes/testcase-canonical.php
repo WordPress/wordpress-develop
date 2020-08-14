@@ -23,7 +23,7 @@ class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 		self::delete_shared_fixtures();
 	}
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		update_option( 'page_comments', true );

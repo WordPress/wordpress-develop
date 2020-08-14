@@ -13,7 +13,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		'args'        => array(),
 	);
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		register_taxonomy( 'wptests_tax', 'post' );
 	}

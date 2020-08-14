@@ -4,7 +4,7 @@
  * @group post
  */
 class Tests_Post_Formats extends WP_UnitTestCase {
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 	}
 

@@ -4,7 +4,7 @@
  * @group pomo
  */
 class Tests_POMO_NOOPTranslations extends WP_UnitTestCase {
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		$this->noop         = new NOOP_Translations;
 		$this->entry        = new Translation_Entry( array( 'singular' => 'baba' ) );

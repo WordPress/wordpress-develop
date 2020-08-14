@@ -3,7 +3,7 @@
  * @group themes
  */
 class Tests_Theme_WPTheme extends WP_UnitTestCase {
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		$this->theme_root = realpath( DIR_TESTDATA . '/themedir1' );
 
@@ -18,7 +18,7 @@ class Tests_Theme_WPTheme extends WP_UnitTestCase {
 		unset( $GLOBALS['wp_themes'] );
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 		remove_filter( 'theme_root', array( $this, '_theme_root' ) );
 		remove_filter( 'stylesheet_root', array( $this, '_theme_root' ) );

@@ -10,7 +10,7 @@ class Tests_WP_Hook_Do_Action extends WP_UnitTestCase {
 	private $action_output = '';
 	private $hook;
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		$this->events = array();
 	}

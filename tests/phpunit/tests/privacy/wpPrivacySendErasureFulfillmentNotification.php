@@ -88,7 +88,7 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 *
 	 * @since 5.1.0
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		reset_phpmailer_instance();
 	}
@@ -98,7 +98,7 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 *
 	 * @since 5.1.0
 	 */
-	public function tearDown() {
+	public function tearDown(): void {
 		reset_phpmailer_instance();
 		restore_previous_locale();
 		parent::tearDown();

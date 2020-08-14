@@ -7,7 +7,7 @@
 class Tests_Get_User_Locale extends WP_UnitTestCase {
 	protected $user_id;
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		$this->user_id = $this->factory()->user->create(
@@ -20,7 +20,7 @@ class Tests_Get_User_Locale extends WP_UnitTestCase {
 		wp_set_current_user( $this->user_id );
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		delete_user_meta( $this->user_id, 'locale' );
 		set_current_screen( 'front' );
 

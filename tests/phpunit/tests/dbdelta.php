@@ -32,7 +32,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 	/**
 	 * Make sure the upgrade code is loaded before the tests are run.
 	 */
-	public static function setUpBeforeClass() {
+	public static function setUpBeforeClass(): void {
 
 		parent::setUpBeforeClass();
 
@@ -42,7 +42,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 	/**
 	 * Create a custom table to be used in each test.
 	 */
-	public function setUp() {
+	public function setUp(): void {
 
 		global $wpdb;
 
@@ -85,7 +85,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 	/**
 	 * Delete the custom table on teardown.
 	 */
-	public function tearDown() {
+	public function tearDown(): void {
 
 		global $wpdb;
 

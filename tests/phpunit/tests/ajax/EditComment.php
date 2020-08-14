@@ -25,7 +25,7 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 	/**
 	 * Sets up the test fixture.
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		$post_id = self::factory()->post->create();
 		self::factory()->comment->create_post_comments( $post_id, 5 );

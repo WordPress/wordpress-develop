@@ -5,7 +5,7 @@
  */
 class Tests_Comment_Walker extends WP_UnitTestCase {
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		$this->post_id = self::factory()->post->create();

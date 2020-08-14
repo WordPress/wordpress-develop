@@ -4,7 +4,7 @@
  * @group taxonomy
  */
 class Tests_Term_WpUniqueTermSlug extends WP_UnitTestCase {
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		register_taxonomy( 'wptests_tax1', 'post', array( 'hierarchical' => false ) );
 		register_taxonomy( 'wptests_tax2', 'post', array( 'hierarchical' => true ) );

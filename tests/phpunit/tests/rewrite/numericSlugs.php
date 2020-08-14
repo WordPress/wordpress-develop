@@ -7,7 +7,7 @@
 class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 	private $old_current_user;
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		$this->author_id = self::factory()->user->create( array( 'role' => 'editor' ) );
 
@@ -15,7 +15,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 		add_filter( 'wp_unique_post_slug', array( $this, 'filter_unique_post_slug' ), 10, 6 );
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		parent::tearDown();
 		remove_filter( 'wp_unique_post_slug', array( $this, 'filter_unique_post_slug' ), 10, 6 );
 	}

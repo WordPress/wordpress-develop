@@ -12,7 +12,7 @@ class Tests_Functions_wpGetArchives extends WP_UnitTestCase {
 	protected $month_url;
 	protected $year_url;
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		$this->month_url = get_month_link( gmdate( 'Y' ), gmdate( 'm' ) );

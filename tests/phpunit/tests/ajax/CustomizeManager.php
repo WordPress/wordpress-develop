@@ -50,7 +50,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	/**
 	 * Set up the test fixture.
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 	}
@@ -58,7 +58,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	/**
 	 * Tear down.
 	 */
-	public function tearDown() {
+	public function tearDown(): void {
 		parent::tearDown();
 		$_REQUEST = array();
 	}

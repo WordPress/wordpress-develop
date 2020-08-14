@@ -14,7 +14,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 	protected static $user_ids = array();
 
-	public static function setUpBeforeClass() {
+	public static function setUpBeforeClass(): void {
 		require_once ABSPATH . WPINC . '/class-wp-admin-bar.php';
 
 		parent::setUpBeforeClass();

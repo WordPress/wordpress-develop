@@ -7,7 +7,7 @@ require_once __DIR__ . '/conditionals.php';
  * @group rewrite
  */
 class Tests_Query_VerbosePageRules extends Tests_Query_Conditionals {
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		$this->set_permalink_structure( '/%category%/%year%/%postname%/' );

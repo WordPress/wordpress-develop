@@ -29,7 +29,7 @@ class WP_Test_Block_Type_Registry extends WP_UnitTestCase {
 	 *
 	 * @since 5.0.0
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		$this->registry = new WP_Block_Type_Registry();
@@ -40,7 +40,7 @@ class WP_Test_Block_Type_Registry extends WP_UnitTestCase {
 	 *
 	 * @since 5.0.0
 	 */
-	public function tearDown() {
+	public function tearDown(): void {
 		parent::tearDown();
 
 		$this->registry = null;

@@ -13,7 +13,7 @@ class Tests_Category_Walker_Category extends WP_UnitTestCase {
 	/**
 	 * Setup.
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		/** Walker_Category class */

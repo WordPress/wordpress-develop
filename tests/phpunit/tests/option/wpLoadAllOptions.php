@@ -7,7 +7,7 @@
 class Tests_Option_WP_Load_Alloptions extends WP_UnitTestCase {
 	protected $alloptions = null;
 
-	function tearDown() {
+	function tearDown(): void {
 		$this->alloptions = null;
 		parent::tearDown();
 	}

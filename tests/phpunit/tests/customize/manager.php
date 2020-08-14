@@ -53,7 +53,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	/**
 	 * Set up test.
 	 */
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$this->manager   = $this->instantiate();
@@ -70,7 +70,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	/**
 	 * Tear down test.
 	 */
-	function tearDown() {
+	function tearDown(): void {
 		$this->manager = null;
 		unset( $GLOBALS['wp_customize'] );
 		$_REQUEST = array();

@@ -7,7 +7,7 @@ class Tests_Term_getTermField extends WP_UnitTestCase {
 
 	public $taxonomy = 'wptests_tax';
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		register_taxonomy( $this->taxonomy, 'post' );

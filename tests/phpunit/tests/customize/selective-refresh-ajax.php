@@ -34,7 +34,7 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	/**
 	 * Set up the test fixture.
 	 */
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		// Define wp_doing_ajax so that wp_die() will be used instead of die().
@@ -509,7 +509,7 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	/**
 	 * Tear down.
 	 */
-	function tearDown() {
+	function tearDown(): void {
 		$this->expected_partial_ids = null;
 		$this->wp_customize         = null;
 		unset( $GLOBALS['wp_customize'] );

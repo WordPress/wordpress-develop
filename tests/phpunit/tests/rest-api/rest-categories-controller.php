@@ -56,7 +56,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		}
 	}
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		register_meta(
@@ -1182,7 +1182,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		return 123;
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		_unregister_taxonomy( 'batman' );
 		_unregister_taxonomy( 'robin' );
 		parent::tearDown();

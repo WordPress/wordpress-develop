@@ -45,7 +45,7 @@ class Tests_Query_Date extends WP_UnitTestCase {
 		}
 	}
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		unset( $this->q );
 		$this->q = new WP_Query();

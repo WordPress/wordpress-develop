@@ -155,12 +155,12 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 		),
 	);
 
-	function setUp() {
+	function setUp(): void {
 		set_current_screen( 'front' );
 		parent::setUp();
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		unset( $GLOBALS['wp_taxonomies']['old-or-new'] );
 		unset( $GLOBALS['screen'] );
 		unset( $GLOBALS['current_screen'] );

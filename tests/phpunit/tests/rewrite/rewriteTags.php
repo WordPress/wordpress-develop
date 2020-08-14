@@ -9,7 +9,7 @@ class Tests_Rewrite_Tags extends WP_UnitTestCase {
 	protected $queryreplace;
 	protected $wp_rewrite;
 
-	public function setUp() {
+	public function setUp(): void {
 		global $wp_rewrite;
 		parent::setUp();
 
@@ -22,7 +22,7 @@ class Tests_Rewrite_Tags extends WP_UnitTestCase {
 		$this->queryreplace   = $wp_rewrite->queryreplace;
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		global $wp_rewrite;
 		$wp_rewrite = $this->wp_rewrite;
 	}

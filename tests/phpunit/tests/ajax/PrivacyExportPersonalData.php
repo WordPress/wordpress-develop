@@ -140,7 +140,7 @@ class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 	 *
 	 * @since 5.2.0
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		$this->key_to_unset       = '';
@@ -163,7 +163,7 @@ class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 	/**
 	 * Clean up after each test method.
 	 */
-	public function tearDown() {
+	public function tearDown(): void {
 		remove_filter( 'wp_privacy_personal_data_exporters', array( $this, 'filter_register_custom_personal_data_exporter' ) );
 
 		if ( is_multisite() ) {

@@ -14,7 +14,7 @@ require_once __DIR__ . '/../includes/class-jsonserializable-object.php';
  * @group restapi
  */
 class Tests_REST_API extends WP_UnitTestCase {
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		// Override the normal server with our spying server.
@@ -22,7 +22,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		do_action( 'rest_api_init', $GLOBALS['wp_rest_server'] );
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		remove_filter( 'wp_rest_server_class', array( $this, 'filter_wp_rest_server_class' ) );
 		parent::tearDown();
 	}

@@ -7,7 +7,7 @@
 class Tests_Post_GetPostClass extends WP_UnitTestCase {
 	protected $post_id;
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		$this->post_id = self::factory()->post->create();
 	}

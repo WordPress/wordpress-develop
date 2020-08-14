@@ -34,7 +34,7 @@ class Tests_Functions_Deprecated extends WP_UnitTestCase {
 	/**
 	 * Sets up the test fixture.
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		$this->_deprecated_functions = array();
 		$this->_deprecated_arguments = array();
@@ -50,7 +50,7 @@ class Tests_Functions_Deprecated extends WP_UnitTestCase {
 	/**
 	 * Tears down the test fixture.
 	 */
-	public function teardown() {
+	public function tearDown(): void {
 		remove_action( 'deprecated_function_run', array( $this, 'deprecated_function' ), 10, 3 );
 		remove_action( 'deprecated_function_trigger_error', '__return_false' );
 		remove_action( 'deprecated_argument_run', array( $this, 'deprecated_argument' ), 10, 3 );

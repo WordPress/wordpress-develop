@@ -6,7 +6,7 @@ require_once __DIR__ . '/base.php';
  * @group import
  */
 class Tests_Import_Import extends WP_Import_UnitTestCase {
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		if ( ! defined( 'WP_IMPORTING' ) ) {
@@ -33,7 +33,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		}
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		remove_filter( 'import_allow_create_users', '__return_true' );
 
 		parent::tearDown();

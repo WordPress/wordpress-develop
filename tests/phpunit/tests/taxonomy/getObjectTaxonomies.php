@@ -4,7 +4,7 @@
  * @group taxonomy
  */
 class Tests_Taxonomy_GetObjectTaxonomies extends WP_UnitTestCase {
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		register_post_type( 'wptests_pt' );
 		register_taxonomy( 'wptests_tax', 'wptests_pt' );

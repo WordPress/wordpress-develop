@@ -11,7 +11,7 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 
 	protected $pages_global;
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		return;
 

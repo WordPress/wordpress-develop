@@ -8,7 +8,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	protected static $post_id;
 	protected static $notify_message = '';
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		reset_phpmailer_instance();
 	}

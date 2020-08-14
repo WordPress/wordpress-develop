@@ -16,7 +16,7 @@ class Tests_Locale_Switcher extends WP_UnitTestCase {
 	 */
 	protected $previous_locale = '';
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		$this->locale          = '';
@@ -27,7 +27,7 @@ class Tests_Locale_Switcher extends WP_UnitTestCase {
 		_get_path_to_translation( null, true );
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		unset( $GLOBALS['l10n'] );
 		unset( $GLOBALS['l10n_unloaded'] );
 		_get_path_to_translation( null, true );

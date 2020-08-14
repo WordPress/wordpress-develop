@@ -8,7 +8,7 @@
  */
 class Tests_Walker extends WP_UnitTestCase {
 
-	function setUp() {
+	function setUp(): void {
 
 		$this->walker = new Walker_Test();
 

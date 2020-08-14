@@ -7,7 +7,7 @@
  */
 class Tests_Post_Attachments extends WP_UnitTestCase {
 
-	function tearDown() {
+	function tearDown(): void {
 		// Remove all uploads.
 		$this->remove_added_uploads();
 		parent::tearDown();

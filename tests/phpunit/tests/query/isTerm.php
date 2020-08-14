@@ -22,7 +22,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 	protected $tag;
 	protected $tax;
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		set_current_screen( 'front' );
@@ -65,7 +65,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		add_action( 'pre_get_posts', array( $this, 'pre_get_posts_tax_category_tax_query' ) );
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		global $wp_rewrite;
 
 		_unregister_taxonomy( 'testtax' );

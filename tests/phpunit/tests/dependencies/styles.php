@@ -7,7 +7,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	private $old_wp_styles;
 	private $old_wp_scripts;
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 
 		if ( empty( $GLOBALS['wp_styles'] ) ) {
@@ -32,7 +32,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		$GLOBALS['wp_scripts']->default_version = get_bloginfo( 'version' );
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		$GLOBALS['wp_styles']  = $this->old_wp_styles;
 		$GLOBALS['wp_scripts'] = $this->old_wp_scripts;
 

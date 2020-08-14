@@ -20,7 +20,7 @@ class Tests_User_WpPrivacySendRequestConfirmationNotification extends WP_UnitTes
 	 *
 	 * @since 4.9.8
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		reset_phpmailer_instance();
 	}
@@ -30,7 +30,7 @@ class Tests_User_WpPrivacySendRequestConfirmationNotification extends WP_UnitTes
 	 *
 	 * @since 4.9.8
 	 */
-	public function tearDown() {
+	public function tearDown(): void {
 		reset_phpmailer_instance();
 		parent::tearDown();
 	}

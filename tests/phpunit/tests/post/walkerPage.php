@@ -13,7 +13,7 @@ class Tests_Post_Walker_Page extends WP_UnitTestCase {
 	/**
 	 * Setup.
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		/** Walker_Page class */

@@ -6,7 +6,7 @@
  */
 class Tests_Date_mysql2date extends WP_UnitTestCase {
 
-	function tearDown() {
+	function tearDown(): void {
 		// phpcs:ignore WordPress.DateTime.RestrictedFunctions.timezone_change_date_default_timezone_set
 		date_default_timezone_set( 'UTC' );
 

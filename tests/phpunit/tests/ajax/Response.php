@@ -20,7 +20,7 @@ class Tests_Ajax_Response extends WP_UnitTestCase {
 	 * Set up the test fixture.
 	 * Override wp_die(), pretend to be ajax, and suppres E_WARNINGs
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		add_filter( 'wp_die_ajax_handler', array( $this, 'getDieHandler' ), 1, 1 );
@@ -35,7 +35,7 @@ class Tests_Ajax_Response extends WP_UnitTestCase {
 	 * Tear down the test fixture.
 	 * Remove the wp_die() override, restore error reporting
 	 */
-	public function tearDown() {
+	public function tearDown(): void {
 		remove_filter( 'wp_die_ajax_handler', array( $this, 'getDieHandler' ), 1, 1 );
 		error_reporting( $this->_error_level );
 		parent::tearDown();

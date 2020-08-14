@@ -10,13 +10,13 @@ if ( is_multisite() ) :
 	class Tests_Multisite extends WP_UnitTestCase {
 		protected $suppress = false;
 
-		function setUp() {
+		function setUp(): void {
 			global $wpdb;
 			parent::setUp();
 			$this->suppress = $wpdb->suppress_errors();
 		}
 
-		function tearDown() {
+		function tearDown(): void {
 			global $wpdb;
 			parent::tearDown();
 			$wpdb->suppress_errors( $this->suppress );

@@ -10,7 +10,7 @@
  * @group restapi
  */
 class Tests_REST_Server extends WP_Test_REST_TestCase {
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 
 		// Reset REST server to ensure only our routes are registered.
@@ -20,7 +20,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		remove_filter( 'wp_rest_server_class', array( $this, 'filter_wp_rest_server_class' ) );
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		// Remove our temporary spy server.
 		$GLOBALS['wp_rest_server'] = null;
 		unset( $_REQUEST['_wpnonce'] );

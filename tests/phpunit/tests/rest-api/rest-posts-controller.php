@@ -97,7 +97,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		self::delete_user( self::$private_reader_id );
 	}
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		register_post_type(
 			'youseeme',
@@ -4876,7 +4876,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$GLOBALS['wp_rest_server']->override_by_default = false;
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		_unregister_post_type( 'private-post' );
 		_unregister_post_type( 'youseeme' );
 		if ( isset( $this->attachment_id ) ) {

@@ -41,7 +41,7 @@ class Tests_Ajax_Autosave extends WP_Ajax_UnitTestCase {
 	/**
 	 * Sets up the test fixture.
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		// Set a user so the $post has 'post_author'.
 		wp_set_current_user( self::$admin_id );

@@ -63,7 +63,7 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 	}
 
-	public function setUp() {
+	public function setUp(): void {
 		parent::setUp();
 		register_post_type(
 			'cpt',
@@ -82,7 +82,7 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 	}
 
-	public function tearDown() {
+	public function tearDown(): void {
 		unregister_post_type( 'cpt' );
 		unregister_taxonomy( 'taxo' );
 		$this->set_permalink_structure( '' );

@@ -8,7 +8,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 
 	protected $wp_scripts_print_translations_output;
 
-	function setUp() {
+	function setUp(): void {
 		parent::setUp();
 		$this->old_wp_scripts = isset( $GLOBALS['wp_scripts'] ) ? $GLOBALS['wp_scripts'] : null;
 		remove_action( 'wp_default_scripts', 'wp_default_scripts' );
@@ -28,7 +28,7 @@ JS;
 		$this->wp_scripts_print_translations_output .= "\n";
 	}
 
-	function tearDown() {
+	function tearDown(): void {
 		$GLOBALS['wp_scripts'] = $this->old_wp_scripts;
 		add_action( 'wp_default_scripts', 'wp_default_scripts' );
 		parent::tearDown();
