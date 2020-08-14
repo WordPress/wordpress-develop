@@ -264,7 +264,7 @@
 				<element value="PHPUnit_Util_Test"/>
 				<element value="WPProfiler"/>
 				<element value="SpeedTrapListener"/>
-				<element value="PHPUnit_Framework_Exception"/>
+				<element value="PHPUnit_Exception"/>
 			</property>
 		</properties>
 	</rule>
