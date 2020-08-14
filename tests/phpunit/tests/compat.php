@@ -1,5 +1,7 @@
 <?php
 
+use PHPUnit\Framework\Error\Deprecated;
+
 /**
  * @group compat
  * @group security-153
@@ -179,10 +181,9 @@ EOT;
 		$this->assertEquals( array( 1 => '993003b95758e0ac2eba451a4c5877eb1bb7b92a' ), unpack( 'H40', _hash_hmac( 'sha1', 'simple', 'key', true ) ) );
 	}
 
-	/**
-	 * @expectedException PHPUnit_Framework_Error_Deprecated
-	 */
 	function test_json_encode_decode() {
+		$this->expectException( Deprecated::class );
+
 		require_once ABSPATH . WPINC . '/class-json.php';
 		$json = new Services_JSON();
 		// Super basic test to verify Services_JSON is intact and working.
