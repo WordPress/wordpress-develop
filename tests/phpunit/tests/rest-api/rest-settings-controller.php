@@ -41,8 +41,19 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	public function tearDown() {
 		parent::tearDown();
 
-		if ( isset( get_registered_settings()['mycustomarraysetting'] ) ) {
-			unregister_setting( 'somegroup', 'mycustomarraysetting' );
+		$settings_to_unregister = array(
+			'mycustomsetting',
+			'mycustomsetting1',
+			'mycustomsetting2',
+			'mycustomarraysetting',
+		);
+
+		$registered_settings = get_registered_settings();
+
+		foreach ( $settings_to_unregister as $setting ) {
+			if ( isset( $registered_settings[ $setting ] ) ) {
+				unregister_setting( 'somegroup', $setting );
+			}
 		}
 	}
 
@@ -153,8 +164,6 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( 'validvalue2', $data['mycustomsettinginrest'] );
-
-		unregister_setting( 'somegroup', 'mycustomsetting' );
 	}
 
 	public function test_get_item_with_custom_array_setting() {
@@ -203,8 +212,6 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( null, $data['mycustomsetting'] );
-
-		unregister_setting( 'somegroup', 'mycustomsetting' );
 	}
 
 	public function test_get_item_with_custom_object_setting() {
@@ -258,8 +265,6 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( null, $data['mycustomsetting'] );
-
-		unregister_setting( 'somegroup', 'mycustomsetting' );
 	}
 
 	public function get_setting_custom_callback( $result, $name, $args ) {
@@ -312,7 +317,6 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertArrayHasKey( 'mycustomsettinginrest2', $data );
 		$this->assertEquals( 'unfiltered2', $data['mycustomsettinginrest2'] );
 
-		unregister_setting( 'somegroup', 'mycustomsetting' );
 		remove_all_filters( 'rest_pre_get_setting' );
 	}
 
@@ -366,7 +370,6 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertEquals( null, $data['mycustomsettinginrest'] );
-		unregister_setting( 'somegroup', 'mycustomsetting' );
 	}
 
 
@@ -437,7 +440,6 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
-		unregister_setting( 'somegroup', 'mycustomsetting' );
 	}
 
 	public function test_update_item_with_nested_object() {
@@ -540,7 +542,6 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'mycustomsetting', array( 'a' => 'invalid' ) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
-		unregister_setting( 'somegroup', 'mycustomsetting' );
 	}
 
 	public function test_update_item_with_filter() {
