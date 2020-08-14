@@ -6,6 +6,8 @@
  * @subpackage REST API
  */
 
+use PHPUnit\Framework\Error\Notice;
+
 /**
  * @group restapi
  */
@@ -360,7 +362,7 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 	 * @ticket 50189
 	 */
 	public function test_format_validation_is_applied_if_missing_type() {
-		$this->expectException( 'PHPUnit_Framework_Error_Notice' ); // For the undefined index.
+		$this->expectException( Notice::class ); // For the undefined index.
 		$this->setExpectedIncorrectUsage( 'rest_sanitize_value_from_schema' );
 
 		$schema = array( 'format' => 'hex-color' );

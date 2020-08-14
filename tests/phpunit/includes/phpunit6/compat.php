@@ -2,7 +2,6 @@
 
 if ( class_exists( 'PHPUnit\Runner\Version' ) && version_compare( PHPUnit\Runner\Version::id(), '6.0', '>=' ) ) {
 
-	class_alias( 'PHPUnit\Framework\Error\Notice', 'PHPUnit_Framework_Error_Notice' );
 	class_alias( 'PHPUnit\Framework\Error\Warning', 'PHPUnit_Framework_Error_Warning' );
 	class_alias( 'PHPUnit\Framework\Test', 'PHPUnit_Framework_Test' );
 	class_alias( 'PHPUnit\Framework\Warning', 'PHPUnit_Framework_Warning' );
