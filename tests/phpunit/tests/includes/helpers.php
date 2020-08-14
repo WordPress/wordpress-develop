@@ -1,5 +1,7 @@
 <?php
 
+use PHPUnit\Framework\ExpectationFailedException;
+
 /**
  * @group phpunit
  */
@@ -55,7 +57,7 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 		if ( $exception ) {
 			try {
 				$this->assertEqualSets( $expected, $actual );
-			} catch ( PHPUnit_Framework_ExpectationFailedException $ex ) {
+			} catch ( ExpectationFailedException $ex ) {
 				return;
 			}
 
@@ -211,7 +213,7 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 		if ( $exception ) {
 			try {
 				$this->assertEqualSetsWithIndex( $expected, $actual );
-			} catch ( PHPUnit_Framework_ExpectationFailedException $ex ) {
+			} catch ( ExpectationFailedException $ex ) {
 				return;
 			}
 
