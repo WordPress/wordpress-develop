@@ -74,7 +74,7 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 
 		// Make the request.
 		// No output, so we get a stop exception.
-		$this->setExpectedException( 'WPAjaxDieStopException', '' );
+		$this->expectException( WPAjaxDieStopException::class );
 		$this->_handleAjax( 'ajax-tag-search' );
 	}
 
@@ -113,8 +113,10 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 		$_GET['tax'] = 'post_tag';
 		$_GET['q']   = 'chat';
 
+		$this->expectException( WPAjaxDieStopException::class );
+		$this->expectExceptionMessage( '-1' );
+
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		$this->_handleAjax( 'ajax-tag-search' );
 	}
 
@@ -130,8 +132,10 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 		$_GET['tax'] = 'invalid-taxonomy';
 		$_GET['q']   = 'chat';
 
+		$this->expectException( WPAjaxDieStopException::class );
+		$this->expectExceptionMessage( '0' );
+
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '0' );
 		$this->_handleAjax( 'ajax-tag-search' );
 	}
 
@@ -147,8 +151,10 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 		$_GET['tax'] = 'post_tag';
 		$_GET['q']   = 'chat';
 
+		$this->expectException( WPAjaxDieStopException::class );
+		$this->expectExceptionMessage( '-1' );
+
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		$this->_handleAjax( 'ajax-tag-search' );
 	}
 

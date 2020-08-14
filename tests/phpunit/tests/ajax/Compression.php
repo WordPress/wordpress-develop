@@ -24,8 +24,10 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 		// Set up a default request.
 		$_GET['test'] = 1;
 
+		$this->expectException( WPAjaxDieStopException::class );
+		$this->expectExceptionMessage( '-1' );
+
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		$this->_handleAjax( 'wp-compression-test' );
 	}
 
@@ -117,8 +119,10 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 		$_GET['test']                    = 2;
 		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'unknown';
 
+		$this->expectException( WPAjaxDieStopException::class );
+		$this->expectExceptionMessage( '-1' );
+
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		$this->_handleAjax( 'wp-compression-test' );
 	}
 

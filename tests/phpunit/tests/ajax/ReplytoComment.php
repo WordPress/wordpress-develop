@@ -112,8 +112,10 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		$_POST['content']                     = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
 		$_POST['comment_post_ID']             = self::$comment_post->ID;
 
+		$this->expectException( WPAjaxDieStopException::class );
+		$this->expectExceptionMessage( '-1' );
+
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		$this->_handleAjax( 'replyto-comment' );
 	}
 
@@ -141,8 +143,10 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		$_POST['content']                     = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
 		$_POST['comment_post_ID']             = self::$comment_post->ID;
 
+		$this->expectException( WPAjaxDieStopException::class );
+		$this->expectExceptionMessage( '-1' );
+
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		$this->_handleAjax( 'replyto-comment' );
 	}
 
@@ -161,8 +165,10 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		$_POST['content']                     = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
 		$_POST['comment_post_ID']             = 123456789;
 
+		$this->expectException( WPAjaxDieStopException::class );
+		$this->expectExceptionMessage( '-1' );
+
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		$this->_handleAjax( 'replyto-comment' );
 	}
 
@@ -181,8 +187,10 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		$_POST['content']                     = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
 		$_POST['comment_post_ID']             = self::$draft_post->ID;
 
+		$this->expectException( WPAjaxDieStopException::class );
+		$this->expectExceptionMessage( 'Error: You can&#8217;t reply to a comment on a draft post.' );
+
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', 'Error: You can&#8217;t reply to a comment on a draft post.' );
 		$this->_handleAjax( 'replyto-comment' );
 	}
 
@@ -251,8 +259,10 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		// Simulate filter check error.
 		add_filter( 'pre_comment_approved', array( $this, '_pre_comment_approved_filter' ), 10, 2 );
 
+		$this->expectException( WPAjaxDieStopException::class );
+		$this->expectExceptionMessage( 'pre_comment_approved filter fails for new comment' );
+
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', 'pre_comment_approved filter fails for new comment' );
 		$this->_handleAjax( 'replyto-comment' );
 	}
 

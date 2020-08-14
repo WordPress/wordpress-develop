@@ -148,8 +148,10 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 		$_POST['comment_ID']                  = $comment->comment_ID;
 		$_POST['content']                     = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
 
+		$this->expectException( WPAjaxDieStopException::class );
+		$this->expectExceptionMessage( '-1' );
+
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		$this->_handleAjax( 'edit-comment' );
 	}
 
@@ -176,8 +178,10 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 		$_POST['comment_ID']                  = $comment->comment_ID;
 		$_POST['content']                     = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
 
+		$this->expectException( WPAjaxDieStopException::class );
+		$this->expectExceptionMessage( '-1' );
+
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		$this->_handleAjax( 'get-comments' );
 	}
 
@@ -196,8 +200,10 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 		$_POST['comment_ID']                  = 123456789;
 		$_POST['content']                     = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
 
+		$this->expectException( WPAjaxDieStopException::class );
+		$this->expectExceptionMessage( '-1' );
+
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		$this->_handleAjax( 'edit-comment' );
 	}
 
@@ -224,8 +230,10 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 		// Simulate filter check error.
 		add_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ), 10, 3 );
 
+		$this->expectException( WPAjaxDieStopException::class );
+		$this->expectExceptionMessage( 'wp_update_comment_data filter fails for this comment.' );
+
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', 'wp_update_comment_data filter fails for this comment.' );
 		$this->_handleAjax( 'edit-comment' );
 	}
 
