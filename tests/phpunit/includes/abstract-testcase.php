@@ -515,7 +515,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	 *
 	 * @since 4.2.0
 	 */
-	protected function assertPostConditions() {
+	protected function assertPostConditions(): void {
 		$this->expectedDeprecated();
 	}
 
