@@ -39,12 +39,12 @@ require_once __DIR__ . '/functions.php';
 
 $phpunit_version = tests_get_phpunit_version();
 
-if ( version_compare( $phpunit_version, '5.4', '<' ) || version_compare( $phpunit_version, '8.0', '>=' ) ) {
+if ( version_compare( $phpunit_version, '7.5', '<' ) || version_compare( $phpunit_version, '10.0', '>=' ) ) {
 	printf(
-		"Error: Looks like you're using PHPUnit %s. WordPress requires at least PHPUnit 5.4 and is currently only compatible with PHPUnit up to 7.x.\n",
+		"Error: Looks like you're using PHPUnit %s. WordPress requires at least PHPUnit 7.5 and is currently only compatible with PHPUnit up to 9.x.\n",
 		$phpunit_version
 	);
-	echo "Please use the latest PHPUnit version from the 7.x branch.\n";
+	echo "Please use the latest PHPUnit version from the 9.x branch.\n";
 	exit( 1 );
 }
 
