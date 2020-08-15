@@ -841,7 +841,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertTrue( $response->get_data()['deleted'] );
 		$this->assertEquals( self::PLUGIN, $response->get_data()['previous']['plugin'] );
-		$this->assertFileNotExists( WP_PLUGIN_DIR . '/' . self::PLUGIN_FILE );
+		$this->assertFileDoesNotExist( WP_PLUGIN_DIR . '/' . self::PLUGIN_FILE );
 	}
 
 	/**

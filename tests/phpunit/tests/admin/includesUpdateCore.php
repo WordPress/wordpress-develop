@@ -29,6 +29,6 @@ class Tests_Admin_IncludesUpdateCore extends WP_UnitTestCase {
 	 * @param string $file File name.
 	 */
 	public function test_new_files_are_not_in_old_files_array_compiled( $file ) {
-		$this->assertFileNotExists( dirname( ABSPATH ) . '/build/' . $file );
+		$this->assertFileDoesNotExist( dirname( ABSPATH ) . '/build/' . $file );
 	}
 }
