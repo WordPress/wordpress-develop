@@ -54,7 +54,7 @@ class SpeedTrapListener implements PHPUnit_Framework_TestListener {
 	 * @param Exception              $e
 	 * @param float                  $time
 	 */
-	public function addError( PHPUnit_Framework_Test $test, Exception $e, $time ) {
+	public function addError( PHPUnit\Framework\Test $test, Throwable $t, float $time ): void {
 	}
 
 	/**
@@ -65,7 +65,7 @@ class SpeedTrapListener implements PHPUnit_Framework_TestListener {
 	 * @param float                     $time
 	 * @since Method available since Release 5.1.0
 	 */
-	public function addWarning( PHPUnit_Framework_Test $test, PHPUnit_Framework_Warning $e, $time ) {
+	public function addWarning( PHPUnit\Framework\Test $test, PHPUnit\Framework\Warning $e, float $time ): void {
 	}
 
 	/**
@@ -75,7 +75,7 @@ class SpeedTrapListener implements PHPUnit_Framework_TestListener {
 	 * @param PHPUnit_Framework_AssertionFailedError $e
 	 * @param float                                  $time
 	 */
-	public function addFailure( PHPUnit_Framework_Test $test, PHPUnit_Framework_AssertionFailedError $e, $time ) {
+	public function addFailure( PHPUnit\Framework\Test $test, PHPUnit\Framework\AssertionFailedError $e, float $time ): void {
 	}
 
 	/**
@@ -85,7 +85,7 @@ class SpeedTrapListener implements PHPUnit_Framework_TestListener {
 	 * @param Exception              $e
 	 * @param float                  $time
 	 */
-	public function addIncompleteTest( PHPUnit_Framework_Test $test, Exception $e, $time ) {
+	public function addIncompleteTest( PHPUnit\Framework\Test $test, Throwable $t, float $time ): void {
 	}
 
 	/**
@@ -96,7 +96,7 @@ class SpeedTrapListener implements PHPUnit_Framework_TestListener {
 	 * @param float                  $time
 	 * @since  Method available since Release 4.0.0
 	 */
-	public function addRiskyTest( PHPUnit_Framework_Test $test, Exception $e, $time ) {
+	public function addRiskyTest( PHPUnit\Framework\Test $test, Throwable $t, float $time ): void {
 	}
 
 	/**
@@ -106,7 +106,7 @@ class SpeedTrapListener implements PHPUnit_Framework_TestListener {
 	 * @param Exception              $e
 	 * @param float                  $time
 	 */
-	public function addSkippedTest( PHPUnit_Framework_Test $test, Exception $e, $time ) {
+	public function addSkippedTest( PHPUnit\Framework\Test $test, Throwable $t, float $time ): void {
 	}
 
 	/**
@@ -114,7 +114,7 @@ class SpeedTrapListener implements PHPUnit_Framework_TestListener {
 	 *
 	 * @param PHPUnit_Framework_Test $test
 	 */
-	public function startTest( PHPUnit_Framework_Test $test ) {
+	public function startTest( PHPUnit\Framework\Test $test ): void {
 	}
 
 	/**
@@ -123,7 +123,7 @@ class SpeedTrapListener implements PHPUnit_Framework_TestListener {
 	 * @param PHPUnit_Framework_Test $test
 	 * @param float                  $time
 	 */
-	public function endTest( PHPUnit_Framework_Test $test, $time ) {
+	public function endTest( PHPUnit\Framework\Test $test, float $time ): void {
 		if ( ! $test instanceof PHPUnit_Framework_TestCase ) {
 			return;
 		}
@@ -141,7 +141,7 @@ class SpeedTrapListener implements PHPUnit_Framework_TestListener {
 	 *
 	 * @param PHPUnit_Framework_TestSuite $suite
 	 */
-	public function startTestSuite( PHPUnit_Framework_TestSuite $suite ) {
+	public function startTestSuite( PHPUnit\Framework\TestSuite $suite ): void {
 		$this->suites++;
 	}
 
@@ -150,7 +150,7 @@ class SpeedTrapListener implements PHPUnit_Framework_TestListener {
 	 *
 	 * @param PHPUnit_Framework_TestSuite $suite
 	 */
-	public function endTestSuite( PHPUnit_Framework_TestSuite $suite ) {
+	public function endTestSuite( PHPUnit\Framework\TestSuite $suite ): void {
 		$this->suites--;
 
 		if ( 0 === $this->suites && $this->hasSlowTests() ) {
@@ -266,7 +266,8 @@ class SpeedTrapListener implements PHPUnit_Framework_TestListener {
 	 * Renders slow test report footer.
 	 */
 	protected function renderFooter() {
-		if ( $hidden = $this->getHiddenCount( $this->slow ) ) {
+		$hidden = $this->getHiddenCount( $this->slow );
+		if ( $hidden ) {
 			echo sprintf( '...and there %s %s more above your threshold hidden from view', 1 === $hidden ? 'is' : 'are', $hidden );
 		}
 	}

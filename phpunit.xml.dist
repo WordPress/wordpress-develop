@@ -32,7 +32,7 @@
 		<const name="WP_RUN_CORE_TESTS" value="1" />
 	</php>
 	<listeners>
-		<listener class="SpeedTrapListener" file="tests/phpunit/includes/listener-loader.php">
+		<listener class="SpeedTrapListener" file="tests/phpunit/includes/speed-trap-listener.php">
 			<arguments>
 				<array>
 					<element key="slowThreshold">
