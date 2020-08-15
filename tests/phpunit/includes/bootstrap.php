@@ -160,12 +160,8 @@ require_once ABSPATH . '/wp-settings.php';
 // Delete any default posts & related data.
 _delete_all_posts();
 
-if ( version_compare( tests_get_phpunit_version(), '7.0', '>=' ) ) {
-	require __DIR__ . '/phpunit7/testcase.php';
-} else {
-	require __DIR__ . '/testcase.php';
-}
-
+require_once __DIR__ . '/abstract-testcase.php';
+require_once __DIR__ . '/testcase.php';
 require __DIR__ . '/testcase-rest-api.php';
 require __DIR__ . '/testcase-rest-controller.php';
 require __DIR__ . '/testcase-rest-post-type-controller.php';
