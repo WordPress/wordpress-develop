@@ -1,6 +1,7 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Util\GlobalState;
 
 require_once __DIR__ . '/factory.php';
 require_once __DIR__ . '/trac.php';
@@ -878,7 +879,7 @@ abstract class WP_UnitTestCase_Base extends TestCase {
 	 */
 	public function prepareTemplate( Text_Template $template ) {
 		$template->setVar( array( 'constants' => '' ) );
-		$template->setVar( array( 'wp_constants' => PHPUnit_Util_GlobalState::getConstantsAsString() ) );
+		$template->setVar( array( 'wp_constants' => GlobalState::getConstantsAsString() ) );
 		parent::prepareTemplate( $template );
 	}
 
