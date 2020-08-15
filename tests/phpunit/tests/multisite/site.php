@@ -391,13 +391,13 @@ if ( is_multisite() ) :
 
 			// The file on the main site should still exist. The file on the deleted site should not.
 			$this->assertFileExists( $file1['file'] );
-			$this->assertFileNotExists( $file2['file'] );
+			$this->assertFileDoesNotExist( $file2['file'] );
 
 			wpmu_delete_blog( $blog_id, true );
 
 			// The file on the main site should still exist. The file on the deleted site should not.
 			$this->assertFileExists( $file1['file'] );
-			$this->assertFileNotExists( $file2['file'] );
+			$this->assertFileDoesNotExist( $file2['file'] );
 		}
 
 		function test_wpmu_update_blogs_date() {

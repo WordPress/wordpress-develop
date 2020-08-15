@@ -607,7 +607,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$directory = realpath( DIR_TESTDATA ) . '/images/nonexistent-directory';
 		$editor    = new WP_Image_Editor_Imagick( $file );
 
-		$this->assertFileNotExists( $directory );
+		$this->assertFileDoesNotExist( $directory );
 
 		$loaded = $editor->load();
 		$this->assertNotWPError( $loaded );

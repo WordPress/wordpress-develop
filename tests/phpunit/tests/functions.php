@@ -173,7 +173,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		// Check number is appended for file already exists.
 		$this->assertFileExists( $testdir . 'test-image.png', 'Test image does not exist' );
 		$this->assertSame( 'test-image-1.png', wp_unique_filename( $testdir, 'test-image.png' ), 'Number not appended correctly' );
-		$this->assertFileNotExists( $testdir . 'test-image-1.png' );
+		$this->assertFileDoesNotExist( $testdir . 'test-image-1.png' );
 
 		// Check special chars.
 		$this->assertSame( 'testtest-image.png', wp_unique_filename( $testdir, 'testtést-imagé.png' ), 'Filename with special chars failed' );
