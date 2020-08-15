@@ -2,7 +2,6 @@
 
 if ( class_exists( 'PHPUnit\Runner\Version' ) && version_compare( PHPUnit\Runner\Version::id(), '6.0', '>=' ) ) {
 
-	class_alias( 'PHPUnit\Framework\TestCase', 'PHPUnit_Framework_TestCase' );
 	class_alias( 'PHPUnit\Framework\Exception', 'PHPUnit_Framework_Exception' );
 	class_alias( 'PHPUnit\Framework\ExpectationFailedException', 'PHPUnit_Framework_ExpectationFailedException' );
 	class_alias( 'PHPUnit\Framework\Error\Deprecated', 'PHPUnit_Framework_Error_Deprecated' );

@@ -1,5 +1,7 @@
 <?php
 
+use PHPUnit\Framework\TestCase;
+
 require_once __DIR__ . '/factory.php';
 require_once __DIR__ . '/trac.php';
 
@@ -12,7 +14,7 @@ require_once __DIR__ . '/trac.php';
  *
  * All WordPress unit tests should inherit from this class.
  */
-abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
+abstract class WP_UnitTestCase_Base extends TestCase {
 
 	protected static $forced_tickets   = array();
 	protected $expected_deprecated     = array();
