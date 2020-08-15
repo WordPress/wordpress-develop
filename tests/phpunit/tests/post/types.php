@@ -499,8 +499,8 @@ class Tests_Post_Types extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertInternalType( 'object', $wp_post_types['foo'] );
-		$this->assertInternalType( 'object', get_post_type_object( 'foo' ) );
+		$this->assertIsObject( $wp_post_types['foo'] );
+		$this->assertIsObject( get_post_type_object( 'foo' ) );
 
 		$this->assertTrue( unregister_post_type( 'foo' ) );
 

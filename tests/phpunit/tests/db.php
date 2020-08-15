@@ -568,7 +568,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertNotEmpty( $wpdb->insert_id );
 
 		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->users WHERE ID = %d", $wpdb->insert_id ) );
-		$this->assertInternalType( 'object', $row );
+		$this->assertIsObject( $row );
 		$this->assertEquals( 'Walter Sobchak', $row->display_name );
 	}
 

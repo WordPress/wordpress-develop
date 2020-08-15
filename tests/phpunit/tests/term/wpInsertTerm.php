@@ -900,7 +900,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	/** Helpers */
 
 	public function deleted_term_cb( $term, $tt_id, $taxonomy, $deleted_term, $object_ids ) {
-		$this->assertInternalType( 'object', $deleted_term );
+		$this->assertIsObject( $deleted_term );
 		$this->assertIsInt( $term );
 		$this->assertIsArray( $object_ids );
 		// Pesky string $this->assertIsInt( $tt_id );

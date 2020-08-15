@@ -93,7 +93,7 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		$terms = wp_get_object_terms( $post_id, $this->taxonomy );
 		remove_filter( 'wp_get_object_terms', array( $this, 'filter_get_object_terms' ) );
 		foreach ( $terms as $term ) {
-			$this->assertInternalType( 'object', $term );
+			$this->assertIsObject( $term );
 		}
 	}
 

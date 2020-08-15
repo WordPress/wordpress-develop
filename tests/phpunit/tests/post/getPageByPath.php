@@ -306,7 +306,7 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 		$this->assertSame( $page, $found->ID );
 
 		$object = get_page_by_path( 'foo', OBJECT );
-		$this->assertInternalType( 'object', $object );
+		$this->assertIsObject( $object );
 		$this->assertSame( $page, $object->ID );
 
 		$array_n = get_page_by_path( 'foo', ARRAY_N );

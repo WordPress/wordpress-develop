@@ -5,8 +5,7 @@
  */
 class Tests_Get_Post_Type_Labels extends WP_UnitTestCase {
 	public function test_returns_an_object() {
-		$this->assertInternalType(
-			'object',
+		$this->assertIsObject(
 			get_post_type_labels(
 				(object) array(
 					'name'         => 'foo',

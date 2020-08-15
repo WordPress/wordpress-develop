@@ -873,8 +873,8 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 		register_taxonomy( 'foo', 'post' );
 
-		$this->assertInternalType( 'object', $wp_taxonomies['foo'] );
-		$this->assertInternalType( 'object', get_taxonomy( 'foo' ) );
+		$this->assertIsObject( $wp_taxonomies['foo'] );
+		$this->assertIsObject( get_taxonomy( 'foo' ) );
 
 		$this->assertTrue( unregister_taxonomy( 'foo' ) );
 

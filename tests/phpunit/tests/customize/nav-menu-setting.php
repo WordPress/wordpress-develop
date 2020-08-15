@@ -305,7 +305,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		$this->wp_customize->set_post_value( $setting_id, false );
 
 		$this->assertIsArray( $setting->value() );
-		$this->assertInternalType( 'object', wp_get_nav_menu_object( $menu_id ) );
+		$this->assertIsObject( wp_get_nav_menu_object( $menu_id ) );
 		$setting->preview();
 		$this->assertFalse( $setting->value() );
 		$this->assertFalse( wp_get_nav_menu_object( $menu_id ) );

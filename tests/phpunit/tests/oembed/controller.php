@@ -602,7 +602,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$data = $response->get_data();
 
 		$this->assertNotEmpty( $data );
-		$this->assertInternalType( 'object', $data );
+		$this->assertIsObject( $data );
 		$this->assertEquals( 'YouTube', $data->provider_name );
 		$this->assertEquals( 'https://i.ytimg.com/vi/' . self::YOUTUBE_VIDEO_ID . '/hqdefault.jpg', $data->thumbnail_url );
 		$this->assertEquals( $data->width, $request['maxwidth'] );
@@ -629,7 +629,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$data = $response->get_data();
 
 		$this->assertNotEmpty( $data );
-		$this->assertInternalType( 'object', $data );
+		$this->assertIsObject( $data );
 		$this->assertInternalType( 'string', $data->html );
 		$this->assertIsArray( $data->scripts );
 	}
@@ -742,7 +742,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertInternalType( 'object', $data );
+		$this->assertIsObject( $data );
 
 		$data = (array) $data;
 
@@ -785,7 +785,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$data     = $response->get_data();
 
 		$this->assertEquals( 1, $this->oembed_result_filter_count );
-		$this->assertInternalType( 'object', $data );
+		$this->assertIsObject( $data );
 		$this->assertEquals( 'Untrusted', $data->provider_name );
 		$this->assertEquals( self::UNTRUSTED_PROVIDER_URL, $data->provider_url );
 		$this->assertEquals( 'rich', $data->type );
@@ -808,7 +808,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$data     = $response->get_data();
 
 		$this->assertEquals( 1, $this->oembed_result_filter_count );
-		$this->assertInternalType( 'object', $data );
+		$this->assertIsObject( $data );
 
 		$this->assertStringStartsWith( '<b>Unfiltered</b>', $data->html );
 	}
