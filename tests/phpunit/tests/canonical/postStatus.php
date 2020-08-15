@@ -60,7 +60,7 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 				'post_title'   => 'Author private post',
 				'post_name'    => 'private-post-slug',
 				'post_status'  => 'private',
-				'post_content' => 'Prevent canonical redirect exposing post titles.',
+				'post_content' => "Prevent canonical redirect exposing post titles.\n\n<!--nextpage-->Page 2",
 				'post_author'  => self::$users['content_author'],
 			)
 		);
@@ -159,6 +159,60 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 
 		$this->assertCanonical( $ugly_id_request, $ugly_id_expected );
 		$this->assertCanonical( $ugly_name_request, $ugly_name_expected );
+		$this->assertCanonical( $pretty_request, $pretty_expected );
+	}
+
+	/**
+	 * Test canonical redirect does not reveal paged private post slugs.
+	 *
+	 * @ticket 5272
+	 * @dataProvider data_trac_5272_redirect
+	 */
+	public function test_canonical_post_paged_redirect( $user_role, $can_redirect ) {
+		wp_set_current_user( self::$users[ $user_role ] );
+		$this->set_permalink_structure( '/%postname%/' );
+		clean_post_cache( self::$post->ID );
+
+		$ugly_id_request   = '/?page=2&p=' . self::$post->ID;
+		$ugly_name_request = '/?page=2&name=' . self::$post->post_name;
+		$pretty_request    = '/private-post-slug/2/';
+		$pretty_expected   = '/private-post-slug/2/';
+
+		if ( $can_redirect ) {
+			$ugly_id_expected   = $pretty_expected;
+			$ugly_name_expected = $pretty_expected;
+		} else {
+			$ugly_id_expected   = $ugly_id_request;
+			$ugly_name_expected = $ugly_name_request;
+		}
+
+		$this->assertCanonical( $ugly_id_request, $ugly_id_expected );
+		$this->assertCanonical( $ugly_name_request, $ugly_name_expected );
+		$this->assertCanonical( $pretty_request, $pretty_expected );
+	}
+
+	/**
+	 * Test canonical redirect does not reveal private post slugs.
+	 *
+	 * @ticket 5272
+	 * @dataProvider data_trac_5272_redirect
+	 */
+	public function test_canonical_post_feed_redirect( $user_role, $can_redirect ) {
+		wp_set_current_user( self::$users[ $user_role ] );
+		$this->set_permalink_structure( '/%postname%/' );
+		clean_post_cache( self::$post->ID );
+
+		$ugly_id_request = '/?feed=rss2&p=' . self::$post->ID;
+		$pretty_request  = '/private-post-slug/feed/';
+		$pretty_expected = '/private-post-slug/feed/';
+
+		if ( $can_redirect ) {
+			$ugly_id_expected = $pretty_expected;
+		} else {
+			$ugly_id_expected = $ugly_id_request;
+		}
+
+		$this->assertCanonical( $ugly_id_request, $ugly_id_expected );
 		$this->assertCanonical( $pretty_request, $pretty_expected );
 	}
 
