@@ -50,7 +50,7 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 		}
 
 		// Ensure we found the right match.
-		$this->assertContains( 'wpCompressionTest', $this->_last_response );
+		$this->assertStringContainsString( 'wpCompressionTest', $this->_last_response );
 	}
 
 	/**
@@ -77,7 +77,7 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 		}
 
 		// Ensure we found the right match.
-		$this->assertContains( 'wpCompressionTest', gzinflate( $this->_last_response ) );
+		$this->assertStringContainsString( 'wpCompressionTest', gzinflate( $this->_last_response ) );
 	}
 
 	/**
@@ -104,7 +104,7 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 		}
 
 		// Ensure we found the right match.
-		$this->assertContains( 'wpCompressionTest', $this->_gzdecode( $this->_last_response ) );
+		$this->assertStringContainsString( 'wpCompressionTest', $this->_gzdecode( $this->_last_response ) );
 	}
 
 	/**

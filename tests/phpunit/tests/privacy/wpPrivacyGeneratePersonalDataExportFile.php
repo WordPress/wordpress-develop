@@ -260,9 +260,9 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		$report_contents = file_get_contents( $report_dir . 'index.html' );
 		$request         = wp_get_user_request( self::$export_request_id );
 
-		$this->assertContains( '<h1 id="top">Personal Data Export</h1>', $report_contents );
-		$this->assertContains( '<h2 id="about-about">About</h2>', $report_contents );
-		$this->assertContains( $request->email, $report_contents );
+		$this->assertStringContainsString( '<h1 id="top">Personal Data Export</h1>', $report_contents );
+		$this->assertStringContainsString( '<h2 id="about-about">About</h2>', $report_contents );
+		$this->assertStringContainsString( $request->email, $report_contents );
 	}
 
 	/**
@@ -291,8 +291,8 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 
 		$report_contents_json = file_get_contents( $report_dir . 'export.json' );
 
-		$this->assertContains( '"Personal Data Export for ' . $request->email . '"', $report_contents_json );
-		$this->assertContains( '"about"', $report_contents_json );
+		$this->assertStringContainsString( '"Personal Data Export for ' . $request->email . '"', $report_contents_json );
+		$this->assertStringContainsString( '"about"', $report_contents_json );
 	}
 
 	/**
@@ -319,9 +319,9 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		$report_contents = file_get_contents( $report_dir . 'index.html' );
 		$request         = wp_get_user_request( self::$export_request_id );
 
-		$this->assertNotContains( '<div id="table_of_contents">', $report_contents );
-		$this->assertNotContains( '<div class="return-to-top">', $report_contents );
-		$this->assertContains( $request->email, $report_contents );
+		$this->assertStringNotContainsString( '<div id="table_of_contents">', $report_contents );
+		$this->assertStringNotContainsString( '<div class="return-to-top">', $report_contents );
+		$this->assertStringContainsString( $request->email, $report_contents );
 	}
 
 	/**
@@ -394,10 +394,10 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		$report_contents = file_get_contents( $report_dir . 'index.html' );
 		$request         = wp_get_user_request( self::$export_request_id );
 
-		$this->assertContains( '<div id="table_of_contents">', $report_contents );
-		$this->assertContains( '<h2 id="user-user">User</h2>', $report_contents );
-		$this->assertContains( '<div class="return-to-top">', $report_contents );
-		$this->assertContains( $request->email, $report_contents );
+		$this->assertStringContainsString( '<div id="table_of_contents">', $report_contents );
+		$this->assertStringContainsString( '<h2 id="user-user">User</h2>', $report_contents );
+		$this->assertStringContainsString( '<div class="return-to-top">', $report_contents );
+		$this->assertStringContainsString( $request->email, $report_contents );
 	}
 
 	/**
@@ -537,9 +537,9 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		$report_contents = file_get_contents( $report_dir . 'index.html' );
 		$request         = wp_get_user_request( self::$export_request_id );
 
-		$this->assertContains( '<div id="table_of_contents">', $report_contents );
-		$this->assertContains( '<a href="#comments-comments">Comments <span class="count">(2)</span></a>', $report_contents );
-		$this->assertContains( $request->email, $report_contents );
+		$this->assertStringContainsString( '<div id="table_of_contents">', $report_contents );
+		$this->assertStringContainsString( '<a href="#comments-comments">Comments <span class="count">(2)</span></a>', $report_contents );
+		$this->assertStringContainsString( $request->email, $report_contents );
 	}
 
 	/**
@@ -649,9 +649,9 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		$report_contents = file_get_contents( $report_dir . 'index.html' );
 		$request         = wp_get_user_request( self::$export_request_id );
 
-		$this->assertContains( '<div id="table_of_contents">', $report_contents );
-		$this->assertNotContains( '<span class="count">', $report_contents );
-		$this->assertContains( $request->email, $report_contents );
+		$this->assertStringContainsString( '<div id="table_of_contents">', $report_contents );
+		$this->assertStringNotContainsString( '<span class="count">', $report_contents );
+		$this->assertStringContainsString( $request->email, $report_contents );
 
 	}
 }

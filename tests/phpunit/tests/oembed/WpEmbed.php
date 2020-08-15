@@ -54,7 +54,7 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		unset( $GLOBALS['post'] );
 		unset( $GLOBALS['message'] );
 
-		$this->assertContains( $url, $actual );
+		$this->assertStringContainsString( $url, $actual );
 	}
 
 	public function test_wp_maybe_load_embeds() {

@@ -293,7 +293,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	 * @ticket 34698
 	 */
 	function test_js_no_ampersands() {
-		$this->assertNotContains( '&', file_get_contents( ABSPATH . WPINC . '/js/wp-embed.js' ) );
+		$this->assertStringNotContainsString( '&', file_get_contents( ABSPATH . WPINC . '/js/wp-embed.js' ) );
 	}
 
 	/**
@@ -333,7 +333,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		if ( ! file_exists( $file ) ) {
 			return;
 		}
-		$this->assertNotContains( '&', file_get_contents( $file ) );
+		$this->assertStringNotContainsString( '&', file_get_contents( $file ) );
 	}
 
 }

@@ -505,7 +505,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertEquals( 200, $response->get_status() );
-		$this->assertContains( $string_attribute, $response->get_data()['rendered'] );
+		$this->assertStringContainsString( $string_attribute, $response->get_data()['rendered'] );
 	}
 
 	/**

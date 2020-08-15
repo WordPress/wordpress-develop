@@ -188,8 +188,8 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 
 		$expected = sprintf( 'notice %s settings-error is-dismissible', $expected );
 
-		$this->assertContains( $expected, $output );
-		$this->assertNotContains( 'notice-notice-', $output );
+		$this->assertStringContainsString( $expected, $output );
+		$this->assertStringNotContainsString( 'notice-notice-', $output );
 	}
 
 	public function settings_errors_css_classes_provider() {

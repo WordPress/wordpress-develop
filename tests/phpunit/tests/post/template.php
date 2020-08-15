@@ -237,7 +237,7 @@ NO;
 		);
 
 		// Should contain page ID by default.
-		$this->assertContains( 'value="' . $p . '"', $found );
+		$this->assertStringContainsString( 'value="' . $p . '"', $found );
 	}
 
 	/**
@@ -257,7 +257,7 @@ NO;
 			)
 		);
 
-		$this->assertContains( 'value="' . $p . '"', $found );
+		$this->assertStringContainsString( 'value="' . $p . '"', $found );
 	}
 
 	/**
@@ -278,7 +278,7 @@ NO;
 			)
 		);
 
-		$this->assertContains( 'value="foo"', $found );
+		$this->assertStringContainsString( 'value="foo"', $found );
 	}
 
 	/**
@@ -299,7 +299,7 @@ NO;
 			)
 		);
 
-		$this->assertContains( 'value="' . $p . '"', $found );
+		$this->assertStringContainsString( 'value="' . $p . '"', $found );
 	}
 
 	/**

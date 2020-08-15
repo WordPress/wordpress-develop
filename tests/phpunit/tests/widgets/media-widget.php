@@ -343,9 +343,9 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 		$this->assertEquals( $widget, $this->widget_instance_filter_args[2] );
 		$output = ob_get_clean();
 
-		$this->assertContains( '<h2>Foo</h2>', $output );
-		$this->assertContains( '<section>', $output );
-		$this->assertContains( '</section>', $output );
+		$this->assertStringContainsString( '<h2>Foo</h2>', $output );
+		$this->assertStringContainsString( '<section>', $output );
+		$this->assertStringContainsString( '</section>', $output );
 
 		// No title.
 		ob_start();
@@ -354,7 +354,7 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 		$widget->expects( $this->atLeastOnce() )->method( 'render_media' )->with( $instance );
 		$widget->widget( $args, $instance );
 		$output = ob_get_clean();
-		$this->assertNotContains( '<h2>Foo</h2>', $output );
+		$this->assertStringNotContainsString( '<h2>Foo</h2>', $output );
 
 		// No attachment_id nor url.
 		$instance['url']           = '';
@@ -398,9 +398,9 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 		$widget->form( array() );
 		$output = ob_get_clean();
 
-		$this->assertContains( 'name="widget-mocked[][attachment_id]"', $output );
-		$this->assertContains( 'name="widget-mocked[][title]"', $output );
-		$this->assertContains( 'name="widget-mocked[][url]"', $output );
+		$this->assertStringContainsString( 'name="widget-mocked[][attachment_id]"', $output );
+		$this->assertStringContainsString( 'name="widget-mocked[][title]"', $output );
+		$this->assertStringContainsString( 'name="widget-mocked[][url]"', $output );
 	}
 
 	/**
@@ -470,7 +470,7 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 		$widget->render_control_template_scripts();
 		$output = ob_get_clean();
 
-		$this->assertContains( '<script type="text/html" id="tmpl-widget-media-mocked-control">', $output );
+		$this->assertStringContainsString( '<script type="text/html" id="tmpl-widget-media-mocked-control">', $output );
 	}
 
 	/**

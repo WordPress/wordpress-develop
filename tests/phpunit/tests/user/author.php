@@ -123,9 +123,9 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 
 		$url = sprintf( 'http://%1$s/?author=%2$s', WP_TESTS_DOMAIN, $author->ID );
 
-		$this->assertContains( $url, $link );
-		$this->assertContains( 'Posts by Foo', $link );
-		$this->assertContains( '>Foo</a>', $link );
+		$this->assertStringContainsString( $url, $link );
+		$this->assertStringContainsString( 'Posts by Foo', $link );
+		$this->assertStringContainsString( '>Foo</a>', $link );
 
 		unset( $GLOBALS['authordata'] );
 	}
@@ -151,9 +151,9 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 
 		$this->set_permalink_structure( '' );
 
-		$this->assertContains( $url, $link );
-		$this->assertContains( 'Posts by Foo', $link );
-		$this->assertContains( '>Foo</a>', $link );
+		$this->assertStringContainsString( $url, $link );
+		$this->assertStringContainsString( 'Posts by Foo', $link );
+		$this->assertStringContainsString( '>Foo</a>', $link );
 
 		unset( $GLOBALS['authordata'] );
 	}

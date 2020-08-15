@@ -304,7 +304,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 		);
 		$comments = do_blocks( '<!-- wp:latest-comments {"commentsToShow":1,"displayExcerpt":true} /-->' );
 
-		$this->assertNotContains( $comment_text, $comments );
+		$this->assertStringNotContainsString( $comment_text, $comments );
 	}
 
 	/**

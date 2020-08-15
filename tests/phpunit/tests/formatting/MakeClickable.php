@@ -432,7 +432,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 		comment_text( $comment_id );
 		$comment_text = ob_get_clean();
 
-		$this->assertContains( $expected, make_clickable( $comment_text ) );
+		$this->assertStringContainsString( $expected, make_clickable( $comment_text ) );
 	}
 
 	public function data_add_rel_ugc_in_comments() {

@@ -320,7 +320,7 @@ class Tests_Mail extends WP_UnitTestCase {
 			'Content-Type: text/html'
 		);
 
-		$this->assertNotContains( 'quoted-printable', $GLOBALS['phpmailer']->mock_sent[0]['header'] );
+		$this->assertStringNotContainsString( 'quoted-printable', $GLOBALS['phpmailer']->mock_sent[0]['header'] );
 	}
 
 	/**

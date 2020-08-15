@@ -791,12 +791,12 @@ VIDEO;
 			)
 		);
 
-		$this->assertContains( 'src="https://example.com/foo.mp3', $actual );
-		$this->assertNotContains( 'loop', $actual );
-		$this->assertNotContains( 'autoplay', $actual );
-		$this->assertContains( 'preload="none"', $actual );
-		$this->assertContains( 'class="wp-audio-shortcode"', $actual );
-		$this->assertContains( 'style="width: 100%;"', $actual );
+		$this->assertStringContainsString( 'src="https://example.com/foo.mp3', $actual );
+		$this->assertStringNotContainsString( 'loop', $actual );
+		$this->assertStringNotContainsString( 'autoplay', $actual );
+		$this->assertStringContainsString( 'preload="none"', $actual );
+		$this->assertStringContainsString( 'class="wp-audio-shortcode"', $actual );
+		$this->assertStringContainsString( 'style="width: 100%;"', $actual );
 
 		$actual = wp_audio_shortcode(
 			array(
@@ -809,12 +809,12 @@ VIDEO;
 			)
 		);
 
-		$this->assertContains( 'src="https://example.com/foo.mp3', $actual );
-		$this->assertContains( 'loop="1"', $actual );
-		$this->assertContains( 'autoplay="1"', $actual );
-		$this->assertContains( 'preload="1"', $actual );
-		$this->assertContains( 'class="foobar"', $actual );
-		$this->assertContains( 'style="padding:0;"', $actual );
+		$this->assertStringContainsString( 'src="https://example.com/foo.mp3', $actual );
+		$this->assertStringContainsString( 'loop="1"', $actual );
+		$this->assertStringContainsString( 'autoplay="1"', $actual );
+		$this->assertStringContainsString( 'preload="1"', $actual );
+		$this->assertStringContainsString( 'class="foobar"', $actual );
+		$this->assertStringContainsString( 'style="padding:0;"', $actual );
 	}
 
 	/**
@@ -896,13 +896,13 @@ VIDEO;
 			)
 		);
 
-		$this->assertContains( 'src="https://example.com/foo.mp4', $actual );
-		$this->assertNotContains( 'loop', $actual );
-		$this->assertNotContains( 'autoplay', $actual );
-		$this->assertContains( 'preload="metadata"', $actual );
-		$this->assertContains( 'width="640"', $actual );
-		$this->assertContains( 'height="360"', $actual );
-		$this->assertContains( 'class="wp-video-shortcode"', $actual );
+		$this->assertStringContainsString( 'src="https://example.com/foo.mp4', $actual );
+		$this->assertStringNotContainsString( 'loop', $actual );
+		$this->assertStringNotContainsString( 'autoplay', $actual );
+		$this->assertStringContainsString( 'preload="metadata"', $actual );
+		$this->assertStringContainsString( 'width="640"', $actual );
+		$this->assertStringContainsString( 'height="360"', $actual );
+		$this->assertStringContainsString( 'class="wp-video-shortcode"', $actual );
 
 		$actual = wp_video_shortcode(
 			array(
@@ -917,14 +917,14 @@ VIDEO;
 			)
 		);
 
-		$this->assertContains( 'src="https://example.com/foo.mp4', $actual );
-		$this->assertContains( 'poster="https://example.com/foo.png', $actual );
-		$this->assertContains( 'loop="1"', $actual );
-		$this->assertContains( 'autoplay="1"', $actual );
-		$this->assertContains( 'preload="1"', $actual );
-		$this->assertContains( 'width="123"', $actual );
-		$this->assertContains( 'height="456"', $actual );
-		$this->assertContains( 'class="foobar"', $actual );
+		$this->assertStringContainsString( 'src="https://example.com/foo.mp4', $actual );
+		$this->assertStringContainsString( 'poster="https://example.com/foo.png', $actual );
+		$this->assertStringContainsString( 'loop="1"', $actual );
+		$this->assertStringContainsString( 'autoplay="1"', $actual );
+		$this->assertStringContainsString( 'preload="1"', $actual );
+		$this->assertStringContainsString( 'width="123"', $actual );
+		$this->assertStringContainsString( 'height="456"', $actual );
+		$this->assertStringContainsString( 'class="foobar"', $actual );
 	}
 
 	/**
@@ -938,7 +938,7 @@ VIDEO;
 			)
 		);
 
-		$this->assertNotContains( 'feature=youtu.be', $actual );
+		$this->assertStringNotContainsString( 'feature=youtu.be', $actual );
 	}
 
 	/**
@@ -952,7 +952,7 @@ VIDEO;
 			)
 		);
 
-		$this->assertContains( 'src="https://www.youtube.com/watch?v=i_cVJgIz_Cs', $actual );
+		$this->assertStringContainsString( 'src="https://www.youtube.com/watch?v=i_cVJgIz_Cs', $actual );
 	}
 
 	/**
@@ -966,8 +966,8 @@ VIDEO;
 			)
 		);
 
-		$this->assertContains( 'src="https://vimeo.com/190372437', $actual );
-		$this->assertNotContains( 'blah=meh', $actual );
+		$this->assertStringContainsString( 'src="https://vimeo.com/190372437', $actual );
+		$this->assertStringNotContainsString( 'blah=meh', $actual );
 	}
 
 	/**
@@ -981,7 +981,7 @@ VIDEO;
 			)
 		);
 
-		$this->assertContains( 'src="https://vimeo.com/190372437?loop=0', $actual );
+		$this->assertStringContainsString( 'src="https://vimeo.com/190372437?loop=0', $actual );
 	}
 
 	/**
@@ -996,7 +996,7 @@ VIDEO;
 			)
 		);
 
-		$this->assertContains( 'src="https://vimeo.com/190372437?loop=1', $actual );
+		$this->assertStringContainsString( 'src="https://vimeo.com/190372437?loop=1', $actual );
 	}
 
 	/**
@@ -2766,7 +2766,7 @@ EOF;
 		$img = '<img src="example.png" alt=" width="300" height="225" />';
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
 
-		$this->assertContains( ' loading="lazy"', $img );
+		$this->assertStringContainsString( ' loading="lazy"', $img );
 	}
 
 	/**
@@ -2777,7 +2777,7 @@ EOF;
 		$img = '<img alt=" width="300" height="225" />';
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
 
-		$this->assertNotContains( ' loading=', $img );
+		$this->assertStringNotContainsString( ' loading=', $img );
 	}
 
 	/**
@@ -2788,11 +2788,11 @@ EOF;
 		$img = "<img src='example.png' alt=' width='300' height='225' />";
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
 
-		$this->assertNotContains( ' loading=', $img );
+		$this->assertStringNotContainsString( ' loading=', $img );
 
 		// Test specifically that the attribute is not there with double-quotes,
 		// to avoid regressions.
-		$this->assertNotContains( ' loading="lazy"', $img );
+		$this->assertStringNotContainsString( ' loading="lazy"', $img );
 	}
 
 	/**
@@ -2803,7 +2803,7 @@ EOF;
 		$img = '<img src="example.png" alt=" width="300" height="225" />';
 		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
 
-		$this->assertNotContains( ' loading=', $img );
+		$this->assertStringNotContainsString( ' loading=', $img );
 	}
 
 	/**
@@ -2813,7 +2813,7 @@ EOF;
 	function test_wp_get_attachment_image_loading() {
 		$img = wp_get_attachment_image( self::$large_id );
 
-		$this->assertContains( ' loading="lazy"', $img );
+		$this->assertStringContainsString( ' loading="lazy"', $img );
 	}
 
 	/**
@@ -2825,7 +2825,7 @@ EOF;
 		$img = wp_get_attachment_image( self::$large_id );
 
 		// There should not be any loading attribute in this case.
-		$this->assertNotContains( ' loading=', $img );
+		$this->assertStringNotContainsString( ' loading=', $img );
 	}
 
 	/**
@@ -2840,7 +2840,7 @@ EOF;
 		$img = wp_get_attachment_image( self::$large_id, 'thumbnail', false, array( 'loading' => false ) );
 
 		// There should not be any loading attribute in this case.
-		$this->assertNotContains( ' loading=', $img );
+		$this->assertStringNotContainsString( ' loading=', $img );
 	}
 
 	/**
@@ -2960,7 +2960,7 @@ EOF;
 				'ids' => self::$large_id,
 			)
 		);
-		$this->assertContains( '?attachment_id=', $actual );
+		$this->assertStringContainsString( '?attachment_id=', $actual );
 
 		// File: Links to image file URL.
 		$actual = gallery_shortcode(
@@ -2978,7 +2978,7 @@ EOF;
 				'link' => 'none',
 			)
 		);
-		$this->assertNotContains( '<a ', $actual );
+		$this->assertStringNotContainsString( '<a ', $actual );
 	}
 
 }
