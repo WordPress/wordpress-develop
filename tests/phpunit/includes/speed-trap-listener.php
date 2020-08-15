@@ -3,6 +3,7 @@
 use PHPUnit\Framework\AssertionFailedError;
 use PHPUnit\Framework\Test;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\TestSuite;
 use PHPUnit\Framework\Warning;
 
 /**
@@ -144,18 +145,18 @@ class SpeedTrapListener implements PHPUnit_Framework_TestListener {
 	/**
 	 * A test suite started.
 	 *
-	 * @param PHPUnit_Framework_TestSuite $suite
+	 * @param \PHPUnit\Framework\TestSuite $suite
 	 */
-	public function startTestSuite( PHPUnit\Framework\TestSuite $suite ): void {
+	public function startTestSuite( TestSuite $suite ): void {
 		$this->suites++;
 	}
 
 	/**
 	 * A test suite ended.
 	 *
-	 * @param PHPUnit_Framework_TestSuite $suite
+	 * @param \PHPUnit\Framework\TestSuite $suite
 	 */
-	public function endTestSuite( PHPUnit\Framework\TestSuite $suite ): void {
+	public function endTestSuite( TestSuite $suite ): void {
 		$this->suites--;
 
 		if ( 0 === $this->suites && $this->hasSlowTests() ) {
