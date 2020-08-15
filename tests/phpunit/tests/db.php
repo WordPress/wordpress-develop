@@ -524,10 +524,9 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertEmpty( $wpdb->check_database_version() );
 	}
 
-	/**
-	 * @expectedException WPDieException
-	 */
 	function test_bail() {
+		$this->expectException( WPDieException::class );
+
 		global $wpdb;
 		$wpdb->bail( 'Database is dead.' );
 	}

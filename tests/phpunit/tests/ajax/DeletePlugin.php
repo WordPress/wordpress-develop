@@ -10,11 +10,11 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
  * @group ajax
  */
 class Tests_Ajax_Delete_Plugin extends WP_Ajax_UnitTestCase {
-	/**
-	 * @expectedException WPAjaxDieStopException
-	 * @expectedExceptionMessage -1
-	 */
+
 	public function test_missing_nonce() {
+		$this->expectException( WPAjaxDieStopException::class );
+		$this->expectExceptionMessage( '-1' );
+
 		$this->_handleAjax( 'delete-plugin' );
 	}
 
