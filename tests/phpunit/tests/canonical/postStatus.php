@@ -45,34 +45,34 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 	public static function wpSetupBeforeClass( $factory ) {
 		parent::wpSetupBeforeClass( $factory );
 		self::$users = array(
-			'anon' => 0,
-			'subscriber' => $factory->user->create( array( 'role' => 'subscriber' ) ),
-			'author' => $factory->user->create( array( 'role' => 'author' ) ),
+			'anon'           => 0,
+			'subscriber'     => $factory->user->create( array( 'role' => 'subscriber' ) ),
+			'author'         => $factory->user->create( array( 'role' => 'author' ) ),
 			'content_author' => $factory->user->create( array( 'role' => 'author' ) ),
-			'contributor' => $factory->user->create( array( 'role' => 'contributor' ) ),
-			'editor' => $factory->user->create( array( 'role' => 'editor' ) ),
-			'administrator' => $factory->user->create( array( 'role' => 'administrator' ) ),
+			'contributor'    => $factory->user->create( array( 'role' => 'contributor' ) ),
+			'editor'         => $factory->user->create( array( 'role' => 'editor' ) ),
+			'administrator'  => $factory->user->create( array( 'role' => 'administrator' ) ),
 		);
 
 		self::$post = $factory->post->create_and_get(
 			array(
-				'post_type'  => 'post',
-				'post_title' => 'Author private post',
-				'post_name' => 'private-post-slug',
-				'post_status' => 'private',
+				'post_type'    => 'post',
+				'post_title'   => 'Author private post',
+				'post_name'    => 'private-post-slug',
+				'post_status'  => 'private',
 				'post_content' => 'Prevent canonical redirect exposing post titles.',
-				'post_author' => self::$users['content_author'],
+				'post_author'  => self::$users['content_author'],
 			)
 		);
 
 		self::$page = $factory->post->create_and_get(
 			array(
-				'post_type'  => 'page',
-				'post_title' => 'Author private page',
-				'post_name' => 'private-page-slug',
-				'post_status' => 'private',
+				'post_type'    => 'page',
+				'post_title'   => 'Author private page',
+				'post_name'    => 'private-page-slug',
+				'post_status'  => 'private',
 				'post_content' => 'Prevent canonical redirect exposing page titles.',
-				'post_author' => self::$users['content_author'],
+				'post_author'  => self::$users['content_author'],
 			)
 		);
 
@@ -80,23 +80,23 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 
 		self::$trac_5272_cpt = $factory->post->create_and_get(
 			array(
-				'post_type'  => 'trac_5272_cpt',
-				'post_title' => 'Author private trac_5272_cpt',
-				'post_name' => 'private-trac-5272-cpt-slug',
-				'post_status' => 'private',
+				'post_type'    => 'trac_5272_cpt',
+				'post_title'   => 'Author private trac_5272_cpt',
+				'post_name'    => 'private-trac-5272-cpt-slug',
+				'post_status'  => 'private',
 				'post_content' => 'Prevent canonical redirect exposing trac_5272_cpt titles.',
-				'post_author' => self::$users['content_author'],
+				'post_author'  => self::$users['content_author'],
 			)
 		);
 
 		self::$trac_5272_status = $factory->post->create_and_get(
 			array(
-				'post_type'  => 'post',
-				'post_title' => 'Author private post status',
-				'post_name' => 'private-post-status-slug',
-				'post_status' => 'trac_5272_status',
+				'post_type'    => 'post',
+				'post_title'   => 'Author private post status',
+				'post_name'    => 'private-post-status-slug',
+				'post_status'  => 'trac_5272_status',
 				'post_content' => 'Prevent canonical redirect exposing post titles.',
-				'post_author' => self::$users['content_author'],
+				'post_author'  => self::$users['content_author'],
 			)
 		);
 	}
@@ -117,7 +117,7 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 		register_post_type(
 			'trac_5272_cpt',
 			array(
-				'public' => true,
+				'public'  => true,
 				'rewrite' => array(
 					'slug' => 'trac-5272-cpt',
 				),
@@ -144,16 +144,16 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 		$this->set_permalink_structure( '/%postname%/' );
 		clean_post_cache( self::$post->ID );
 
-		$ugly_id_request = '/?p=' . self::$post->ID;
+		$ugly_id_request   = '/?p=' . self::$post->ID;
 		$ugly_name_request = '/?name=' . self::$post->post_name;
-		$pretty_request = '/private-post-slug/';
-		$pretty_expected = '/private-post-slug/';
+		$pretty_request    = '/private-post-slug/';
+		$pretty_expected   = '/private-post-slug/';
 
 		if ( $can_redirect ) {
-			$ugly_id_expected = $pretty_expected;
+			$ugly_id_expected   = $pretty_expected;
 			$ugly_name_expected = $pretty_expected;
 		} else {
-			$ugly_id_expected = $ugly_id_request;
+			$ugly_id_expected   = $ugly_id_request;
 			$ugly_name_expected = $ugly_name_request;
 		}
 
@@ -174,7 +174,7 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 		clean_post_cache( self::$page->ID );
 
 		$ugly_id_request = '/?page_id=' . self::$page->ID;
-		$pretty_request = '/private-page-slug/';
+		$pretty_request  = '/private-page-slug/';
 		$pretty_expected = '/private-page-slug/';
 
 		if ( $can_redirect ) {
@@ -199,7 +199,7 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 		clean_post_cache( self::$trac_5272_cpt->ID );
 
 		$ugly_id_request = '/?p=' . self::$trac_5272_cpt->ID;
-		$pretty_request = '/trac-5272-cpt/private-trac-5272-cpt-slug/';
+		$pretty_request  = '/trac-5272-cpt/private-trac-5272-cpt-slug/';
 		$pretty_expected = '/trac-5272-cpt/private-trac-5272-cpt-slug/';
 
 		if ( $can_redirect ) {
@@ -223,16 +223,16 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 		$this->set_permalink_structure( '/%postname%/' );
 		clean_post_cache( self::$trac_5272_status->ID );
 
-		$ugly_id_request = '/?p=' . self::$trac_5272_status->ID;
+		$ugly_id_request   = '/?p=' . self::$trac_5272_status->ID;
 		$ugly_name_request = '/?name=' . self::$trac_5272_status->post_name;
-		$pretty_request = '/private-post-status-slug/';
-		$pretty_expected = '/private-post-status-slug/';
+		$pretty_request    = '/private-post-status-slug/';
+		$pretty_expected   = '/private-post-status-slug/';
 
 		if ( $can_redirect ) {
-			$ugly_id_expected = $pretty_expected;
+			$ugly_id_expected   = $pretty_expected;
 			$ugly_name_expected = $pretty_expected;
 		} else {
-			$ugly_id_expected = $ugly_id_request;
+			$ugly_id_expected   = $ugly_id_request;
 			$ugly_name_expected = $ugly_name_request;
 		}
 
