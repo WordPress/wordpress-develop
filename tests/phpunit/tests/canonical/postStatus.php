@@ -139,7 +139,7 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 	 * @ticket 5272
 	 * @dataProvider data_trac_5272_redirect
 	 */
-	public function test_canonical_post_redirect( $user_role, $can_redirect ) {
+	public function test_canonical_private_post_redirect( $user_role, $can_redirect ) {
 		wp_set_current_user( self::$users[ $user_role ] );
 		$this->set_permalink_structure( '/%postname%/' );
 		clean_post_cache( self::$post->ID );
@@ -168,7 +168,7 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 	 * @ticket 5272
 	 * @dataProvider data_trac_5272_redirect
 	 */
-	public function test_canonical_post_paged_redirect( $user_role, $can_redirect ) {
+	public function test_canonical_private_post_paged_redirect( $user_role, $can_redirect ) {
 		wp_set_current_user( self::$users[ $user_role ] );
 		$this->set_permalink_structure( '/%postname%/' );
 		clean_post_cache( self::$post->ID );
@@ -197,7 +197,7 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 	 * @ticket 5272
 	 * @dataProvider data_trac_5272_redirect
 	 */
-	public function test_canonical_post_feed_redirect( $user_role, $can_redirect ) {
+	public function test_canonical_private_post_feed_redirect( $user_role, $can_redirect ) {
 		wp_set_current_user( self::$users[ $user_role ] );
 		$this->set_permalink_structure( '/%postname%/' );
 		clean_post_cache( self::$post->ID );
@@ -222,7 +222,7 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 	 * @ticket 5272
 	 * @dataProvider data_trac_5272_redirect
 	 */
-	public function test_canonical_page_redirect( $user_role, $can_redirect ) {
+	public function test_canonical_private_page_redirect( $user_role, $can_redirect ) {
 		wp_set_current_user( self::$users[ $user_role ] );
 		$this->set_permalink_structure( '/%postname%/' );
 		clean_post_cache( self::$page->ID );
@@ -247,7 +247,7 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 	 * @ticket 5272
 	 * @dataProvider data_trac_5272_redirect
 	 */
-	public function test_canonical_trac_5272_cpt_redirect( $user_role, $can_redirect ) {
+	public function test_canonical_cpt_with_private_custom_status_redirect( $user_role, $can_redirect ) {
 		wp_set_current_user( self::$users[ $user_role ] );
 		$this->set_permalink_structure( '/%postname%/' );
 		clean_post_cache( self::$trac_5272_cpt->ID );
@@ -272,7 +272,7 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 	 * @ticket 5272
 	 * @dataProvider data_trac_5272_redirect
 	 */
-	public function test_canonical_trac_5272_status_redirect( $user_role, $can_redirect ) {
+	public function test_canonical_post_with_private_custom_status_redirect( $user_role, $can_redirect ) {
 		wp_set_current_user( self::$users[ $user_role ] );
 		$this->set_permalink_structure( '/%postname%/' );
 		clean_post_cache( self::$trac_5272_status->ID );
