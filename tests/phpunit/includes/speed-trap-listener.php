@@ -1,5 +1,6 @@
 <?php
 
+use PHPUnit\Framework\AssertionFailedError;
 use PHPUnit\Framework\Test;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Warning;
@@ -75,11 +76,11 @@ class SpeedTrapListener implements PHPUnit_Framework_TestListener {
 	/**
 	 * A failure occurred.
 	 *
-	 * @param \PHPUnit\Framework\Test                $test
-	 * @param PHPUnit_Framework_AssertionFailedError $e
-	 * @param float                                  $time
+	 * @param \PHPUnit\Framework\Test                 $test
+	 * @param \PHPUnit\Framework\AssertionFailedError $e
+	 * @param float                                   $time
 	 */
-	public function addFailure( Test $test, PHPUnit\Framework\AssertionFailedError $e, float $time ): void {
+	public function addFailure( Test $test, AssertionFailedError $e, float $time ): void {
 	}
 
 	/**
