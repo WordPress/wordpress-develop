@@ -50,14 +50,14 @@ class Tests_XMLRPC_wp_getMediaItem extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $result );
 
 		// Check data types.
-		$this->assertInternalType( 'string', $result['attachment_id'] );
+		$this->assertIsString( $result['attachment_id'] );
 		$this->assertIsInt( $result['parent'] );
-		$this->assertInternalType( 'string', $result['title'] );
+		$this->assertIsString( $result['title'] );
 		$this->assertInstanceOf( 'IXR_Date', $result['date_created_gmt'] );
-		$this->assertInternalType( 'string', $result['caption'] );
-		$this->assertInternalType( 'string', $result['description'] );
-		$this->assertInternalType( 'string', $result['link'] );
-		$this->assertInternalType( 'string', $result['thumbnail'] );
+		$this->assertIsString( $result['caption'] );
+		$this->assertIsString( $result['description'] );
+		$this->assertIsString( $result['link'] );
+		$this->assertIsString( $result['thumbnail'] );
 		$this->assertIsArray( $result['metadata'] );
 
 		// Check expected values.

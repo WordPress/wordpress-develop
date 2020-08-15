@@ -80,8 +80,8 @@ class Tests_Functions extends WP_UnitTestCase {
 	 */
 	function test_wp_parse_args_boolean_strings() {
 		$args = wp_parse_args( 'foo=false&bar=true' );
-		$this->assertInternalType( 'string', $args['foo'] );
-		$this->assertInternalType( 'string', $args['bar'] );
+		$this->assertIsString( $args['foo'] );
+		$this->assertIsString( $args['bar'] );
 	}
 
 	/**
@@ -1179,7 +1179,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$ids = array();
 		for ( $i = 0; $i < 20; $i += 1 ) {
 			$id = wp_unique_id();
-			$this->assertInternalType( 'string', $id );
+			$this->assertIsString( $id );
 			$this->assertTrue( is_numeric( $id ) );
 			$ids[] = $id;
 		}

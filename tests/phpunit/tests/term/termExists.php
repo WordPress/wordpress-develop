@@ -234,7 +234,7 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'foo' );
 
-		$this->assertInternalType( 'string', $found );
+		$this->assertIsString( $found );
 		$this->assertEquals( $t, $found );
 	}
 
@@ -252,7 +252,7 @@ class Tests_TermExists extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'foo' );
 
-		$this->assertInternalType( 'string', $found );
+		$this->assertIsString( $found );
 		$this->assertEquals( $t, $found );
 	}
 

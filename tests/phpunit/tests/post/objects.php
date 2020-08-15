@@ -148,7 +148,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create();
 		$post    = get_post( $post_id );
 
-		$this->assertInternalType( 'string', $post->page_template );
+		$this->assertIsString( $post->page_template );
 		$template = get_post_meta( $post->ID, '_wp_page_template', true );
 		$this->assertEquals( $template, $post->page_template );
 		update_post_meta( $post_id, '_wp_page_template', 'foo.php' );

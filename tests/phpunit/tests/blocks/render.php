@@ -324,7 +324,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 		$rendered = $block_type->render();
 
 		$this->assertSame( '10', $rendered );
-		$this->assertInternalType( 'string', $rendered );
+		$this->assertIsString( $rendered );
 	}
 
 	public function test_dynamic_block_gets_inner_html() {

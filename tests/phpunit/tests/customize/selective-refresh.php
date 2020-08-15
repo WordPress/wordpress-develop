@@ -208,7 +208,7 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 */
 	function filter_customize_dynamic_partial_args( $partial_args, $partial_id ) {
 		$this->assertTrue( false === $partial_args || is_array( $partial_args ) );
-		$this->assertInternalType( 'string', $partial_id );
+		$this->assertIsString( $partial_id );
 
 		if ( preg_match( '/^recognized/', $partial_id ) ) {
 			$partial_args = array(
@@ -231,8 +231,8 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 */
 	function filter_customize_dynamic_partial_class( $partial_class, $partial_id, $partial_args ) {
 		$this->assertIsArray( $partial_args );
-		$this->assertInternalType( 'string', $partial_id );
-		$this->assertInternalType( 'string', $partial_class );
+		$this->assertIsString( $partial_id );
+		$this->assertIsString( $partial_class );
 
 		if ( 'recognized-class' === $partial_id ) {
 			$partial_class = 'Tested_Custom_Partial';

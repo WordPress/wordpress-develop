@@ -342,7 +342,7 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 		$meta = (array) $data['meta'];
 
 		$this->assertArrayHasKey( 'test_string', $meta );
-		$this->assertInternalType( 'string', $meta['test_string'] );
+		$this->assertIsString( $meta['test_string'] );
 		$this->assertSame( '42', $meta['test_string'] );
 
 		$this->assertArrayHasKey( 'test_number', $meta );

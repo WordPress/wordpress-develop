@@ -2909,7 +2909,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @return array
 	 */
 	function filter_customize_dynamic_setting_args_for_test_dynamic_settings( $setting_args, $setting_id ) {
-		$this->assertInternalType( 'string', $setting_id );
+		$this->assertIsString( $setting_id );
 		if ( in_array( $setting_id, array( 'foo', 'bar' ), true ) ) {
 			$setting_args = array( 'default' => "dynamic_{$setting_id}_default" );
 		}
@@ -2926,7 +2926,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 */
 	function filter_customize_dynamic_setting_class_for_test_dynamic_settings( $setting_class, $setting_id, $setting_args ) {
 		$this->assertEquals( 'WP_Customize_Setting', $setting_class );
-		$this->assertInternalType( 'string', $setting_id );
+		$this->assertIsString( $setting_id );
 		$this->assertIsArray( $setting_args );
 		return $setting_class;
 	}

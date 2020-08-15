@@ -1219,7 +1219,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		} else {
 			$this->assertIsArray( $data['data']['params'] );
 			$errors = $data['data']['params'];
-			$this->assertInternalType( 'string', $errors['username'] );
+			$this->assertIsString( $errors['username'] );
 			$this->assertEquals( 'This username is invalid because it uses illegal characters. Please enter a valid username.', $errors['username'] );
 		}
 	}
@@ -1259,7 +1259,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$data = $response->get_data();
 		$this->assertIsArray( $data['data']['params'] );
 		$errors = $data['data']['params'];
-		$this->assertInternalType( 'string', $errors['username'] );
+		$this->assertIsString( $errors['username'] );
 		$this->assertEquals( 'Sorry, that username is not allowed.', $errors['username'] );
 	}
 

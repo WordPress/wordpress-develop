@@ -42,24 +42,24 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $result );
 
 		// Check data types.
-		$this->assertInternalType( 'string', $result['post_id'] );
-		$this->assertInternalType( 'string', $result['post_title'] );
+		$this->assertIsString( $result['post_id'] );
+		$this->assertIsString( $result['post_title'] );
 		$this->assertInstanceOf( 'IXR_Date', $result['post_date'] );
 		$this->assertInstanceOf( 'IXR_Date', $result['post_date_gmt'] );
 		$this->assertInstanceOf( 'IXR_Date', $result['post_modified'] );
 		$this->assertInstanceOf( 'IXR_Date', $result['post_modified_gmt'] );
-		$this->assertInternalType( 'string', $result['post_status'] );
-		$this->assertInternalType( 'string', $result['post_type'] );
-		$this->assertInternalType( 'string', $result['post_name'] );
-		$this->assertInternalType( 'string', $result['post_author'] );
-		$this->assertInternalType( 'string', $result['post_password'] );
-		$this->assertInternalType( 'string', $result['post_excerpt'] );
-		$this->assertInternalType( 'string', $result['post_content'] );
-		$this->assertInternalType( 'string', $result['link'] );
-		$this->assertInternalType( 'string', $result['comment_status'] );
-		$this->assertInternalType( 'string', $result['ping_status'] );
+		$this->assertIsString( $result['post_status'] );
+		$this->assertIsString( $result['post_type'] );
+		$this->assertIsString( $result['post_name'] );
+		$this->assertIsString( $result['post_author'] );
+		$this->assertIsString( $result['post_password'] );
+		$this->assertIsString( $result['post_excerpt'] );
+		$this->assertIsString( $result['post_content'] );
+		$this->assertIsString( $result['link'] );
+		$this->assertIsString( $result['comment_status'] );
+		$this->assertIsString( $result['ping_status'] );
 		$this->assertIsBool( $result['sticky'] );
-		$this->assertInternalType( 'string', $result['post_format'] );
+		$this->assertIsString( $result['post_format'] );
 		$this->assertIsArray( $result['post_thumbnail'] );
 		$this->assertIsArray( $result['custom_fields'] );
 
@@ -137,11 +137,11 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getPost( array( 1, 'editor', 'editor', $child_page_id ) );
 		$this->assertNotIXRError( $result );
 
-		$this->assertInternalType( 'string', $result['post_id'] );
-		$this->assertInternalType( 'string', $result['post_parent'] );
+		$this->assertIsString( $result['post_id'] );
+		$this->assertIsString( $result['post_parent'] );
 		$this->assertIsInt( $result['menu_order'] );
-		$this->assertInternalType( 'string', $result['guid'] );
-		$this->assertInternalType( 'string', $result['post_mime_type'] );
+		$this->assertIsString( $result['guid'] );
+		$this->assertIsString( $result['post_mime_type'] );
 
 		$this->assertEquals( 'page', $result['post_type'] );
 		$this->assertEquals( $parent_page_id, $result['post_parent'] );
