@@ -612,7 +612,7 @@ class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'wptests_tax' );
 
-		$this->assertInternalType( 'array', $found );
+		$this->assertIsArray( $found );
 		$this->assertNotEmpty( $found['term_id'] );
 		$this->assertNotEmpty( $found['term_taxonomy_id'] );
 		$this->assertNotEmpty( $term_by_id );

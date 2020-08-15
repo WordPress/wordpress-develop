@@ -97,12 +97,12 @@ class Tests_Post extends WP_UnitTestCase {
 
 			update_object_term_cache( $id, $post_type );
 			$tcache = wp_cache_get( $id, 'post_tag_relationships' );
-			$this->assertInternalType( 'array', $tcache );
+			$this->assertIsArray( $tcache );
 			$this->assertEquals( 2, count( $tcache ) );
 
 			$tcache = wp_cache_get( $id, 'ctax_relationships' );
 			if ( 'cpt' === $post_type ) {
-				$this->assertInternalType( 'array', $tcache );
+				$this->assertIsArray( $tcache );
 				$this->assertEquals( 2, count( $tcache ) );
 			} else {
 				$this->assertFalse( $tcache );

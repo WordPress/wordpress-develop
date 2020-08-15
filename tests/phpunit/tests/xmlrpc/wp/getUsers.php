@@ -39,7 +39,7 @@ class Tests_XMLRPC_wp_getUsers extends WP_XMLRPC_UnitTestCase {
 		$this->assertInternalType( 'string', $result[0]['nicename'] );
 		$this->assertInternalType( 'string', $result[0]['url'] );
 		$this->assertInternalType( 'string', $result[0]['display_name'] );
-		$this->assertInternalType( 'array', $result[0]['roles'] );
+		$this->assertIsArray( $result[0]['roles'] );
 	}
 
 	function test_invalid_role() {

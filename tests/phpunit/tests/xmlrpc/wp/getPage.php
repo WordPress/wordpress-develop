@@ -53,7 +53,7 @@ class Tests_XMLRPC_wp_getPage extends WP_XMLRPC_UnitTestCase {
 		$this->assertInternalType( 'string', $result['title'] );
 		$this->assertInternalType( 'string', $result['link'] );
 		$this->assertInternalType( 'string', $result['permaLink'] );
-		$this->assertInternalType( 'array', $result['categories'] );
+		$this->assertIsArray( $result['categories'] );
 		$this->assertInternalType( 'string', $result['excerpt'] );
 		$this->assertInternalType( 'string', $result['text_more'] );
 		$this->assertInternalType( 'int', $result['mt_allow_comments'] );
@@ -66,7 +66,7 @@ class Tests_XMLRPC_wp_getPage extends WP_XMLRPC_UnitTestCase {
 		$this->assertInternalType( 'int', $result['wp_page_order'] );
 		$this->assertInternalType( 'string', $result['wp_author_id'] );
 		$this->assertInternalType( 'string', $result['wp_author_display_name'] );
-		$this->assertInternalType( 'array', $result['custom_fields'] );
+		$this->assertIsArray( $result['custom_fields'] );
 		$this->assertInternalType( 'string', $result['wp_page_template'] );
 
 		$post_data = get_post( self::$post_id );

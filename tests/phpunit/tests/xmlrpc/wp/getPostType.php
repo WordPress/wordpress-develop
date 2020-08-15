@@ -75,10 +75,10 @@ class Tests_XMLRPC_wp_getPostType extends WP_XMLRPC_UnitTestCase {
 		$this->assertInternalType( 'bool', $result['show_ui'] );
 		$this->assertInternalType( 'int', $result['menu_position'] );
 		$this->assertInternalType( 'string', $result['menu_icon'] );
-		$this->assertInternalType( 'array', $result['labels'] );
-		$this->assertInternalType( 'array', $result['cap'] );
-		$this->assertInternalType( 'array', $result['taxonomies'] );
-		$this->assertInternalType( 'array', $result['supports'] );
+		$this->assertIsArray( $result['labels'] );
+		$this->assertIsArray( $result['cap'] );
+		$this->assertIsArray( $result['taxonomies'] );
+		$this->assertIsArray( $result['supports'] );
 
 		// Check label data types.
 		$this->assertInternalType( 'string', $result['labels']['name'] );

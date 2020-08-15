@@ -70,7 +70,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		$this->assertNull( $setting->previous_term_id );
 		$this->assertNull( $setting->update_status );
 		$this->assertNull( $setting->update_error );
-		$this->assertInternalType( 'array', $setting->default );
+		$this->assertIsArray( $setting->default );
 		foreach ( array( 'name', 'description', 'parent' ) as $key ) {
 			$this->assertArrayHasKey( $key, $setting->default );
 		}
@@ -149,7 +149,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		$setting    = new WP_Customize_Nav_Menu_Setting( $this->wp_customize, $setting_id );
 
 		$value = $setting->value();
-		$this->assertInternalType( 'array', $value );
+		$this->assertIsArray( $value );
 		foreach ( array( 'name', 'description', 'parent' ) as $key ) {
 			$this->assertArrayHasKey( $key, $value );
 		}
@@ -304,7 +304,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 
 		$this->wp_customize->set_post_value( $setting_id, false );
 
-		$this->assertInternalType( 'array', $setting->value() );
+		$this->assertIsArray( $setting->value() );
 		$this->assertInternalType( 'object', wp_get_nav_menu_object( $menu_id ) );
 		$setting->preview();
 		$this->assertFalse( $setting->value() );

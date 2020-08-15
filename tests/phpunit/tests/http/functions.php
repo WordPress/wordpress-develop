@@ -23,7 +23,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 
 		$headers = wp_remote_retrieve_headers( $response );
 
-		$this->assertInternalType( 'array', $response );
+		$this->assertIsArray( $response );
 
 		$this->assertEquals( 'image/jpeg', $headers['content-type'] );
 		$this->assertEquals( '40148', $headers['content-length'] );
@@ -56,7 +56,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 
 		$headers = wp_remote_retrieve_headers( $response );
 
-		$this->assertInternalType( 'array', $response );
+		$this->assertIsArray( $response );
 
 		// Should return the same headers as a HEAD request.
 		$this->assertEquals( 'image/jpeg', $headers['content-type'] );

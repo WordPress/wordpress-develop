@@ -349,7 +349,7 @@ https://w.org</a>',
 		$post = get_post( $id );
 
 		$prepped = wp_prepare_attachment_for_js( $post );
-		$this->assertInternalType( 'array', $prepped );
+		$this->assertIsArray( $prepped );
 		$this->assertEquals( 0, $prepped['uploadedTo'] );
 		$this->assertEquals( '', $prepped['mime'] );
 		$this->assertEquals( '', $prepped['type'] );

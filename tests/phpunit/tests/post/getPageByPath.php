@@ -310,11 +310,11 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 		$this->assertSame( $page, $object->ID );
 
 		$array_n = get_page_by_path( 'foo', ARRAY_N );
-		$this->assertInternalType( 'array', $array_n );
+		$this->assertIsArray( $array_n );
 		$this->assertSame( $page, $array_n[0] );
 
 		$array_a = get_page_by_path( 'foo', ARRAY_A );
-		$this->assertInternalType( 'array', $array_a );
+		$this->assertIsArray( $array_a );
 		$this->assertSame( $page, $array_a['ID'] );
 	}
 }

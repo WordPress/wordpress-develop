@@ -58,7 +58,7 @@ class Tests_XMLRPC_wp_getMediaItem extends WP_XMLRPC_UnitTestCase {
 		$this->assertInternalType( 'string', $result['description'] );
 		$this->assertInternalType( 'string', $result['link'] );
 		$this->assertInternalType( 'string', $result['thumbnail'] );
-		$this->assertInternalType( 'array', $result['metadata'] );
+		$this->assertIsArray( $result['metadata'] );
 
 		// Check expected values.
 		$this->assertStringMatchesFormat( '%d', $result['attachment_id'] );

@@ -71,7 +71,7 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 * @see WP_Customize_Selective_Refresh::partials()
 	 */
 	function test_partials() {
-		$this->assertInternalType( 'array', $this->selective_refresh->partials() );
+		$this->assertIsArray( $this->selective_refresh->partials() );
 	}
 
 	/**
@@ -163,9 +163,9 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 		$html = ob_get_clean();
 		$this->assertTrue( (bool) preg_match( '/_customizePartialRefreshExports = ({.+})/s', $html, $matches ) );
 		$exported_data = json_decode( $matches[1], true );
-		$this->assertInternalType( 'array', $exported_data );
+		$this->assertIsArray( $exported_data );
 		$this->assertArrayHasKey( 'partials', $exported_data );
-		$this->assertInternalType( 'array', $exported_data['partials'] );
+		$this->assertIsArray( $exported_data['partials'] );
 		$this->assertArrayHasKey( 'blogname', $exported_data['partials'] );
 		$this->assertArrayNotHasKey( 'top_secret_message', $exported_data['partials'] );
 		$this->assertEquals( '#site-title', $exported_data['partials']['blogname']['selector'] );
@@ -230,7 +230,7 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 * @return string
 	 */
 	function filter_customize_dynamic_partial_class( $partial_class, $partial_id, $partial_args ) {
-		$this->assertInternalType( 'array', $partial_args );
+		$this->assertIsArray( $partial_args );
 		$this->assertInternalType( 'string', $partial_id );
 		$this->assertInternalType( 'string', $partial_class );
 

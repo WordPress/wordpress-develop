@@ -861,7 +861,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$term = get_term( $term['term_id'], 'category' );
 
 		$this->assertEquals( $term->term_id, $term->parent );
-		$this->assertInternalType( 'array', get_term_children( $term->term_id, 'category' ) );
+		$this->assertIsArray( get_term_children( $term->term_id, 'category' ) );
 
 		add_filter( 'wp_update_term_parent', 'wp_check_term_hierarchy_for_loops', 10, 3 );
 	}

@@ -3332,9 +3332,9 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$this->assertNull( $query1->query_vars );
 		$this->assertEmpty( $query1->comments );
 		$comments = $query1->query( array( 'status' => 'all' ) );
-		$this->assertInternalType( 'array', $query1->query_vars );
+		$this->assertIsArray( $query1->query_vars );
 		$this->assertNotEmpty( $query1->comments );
-		$this->assertInternalType( 'array', $query1->comments );
+		$this->assertIsArray( $query1->comments );
 
 		$query2 = new WP_Comment_Query( array( 'status' => 'all' ) );
 		$this->assertNotEmpty( $query2->query_vars );

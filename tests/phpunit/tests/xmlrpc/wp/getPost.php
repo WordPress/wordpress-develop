@@ -60,8 +60,8 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertInternalType( 'string', $result['ping_status'] );
 		$this->assertInternalType( 'bool', $result['sticky'] );
 		$this->assertInternalType( 'string', $result['post_format'] );
-		$this->assertInternalType( 'array', $result['post_thumbnail'] );
-		$this->assertInternalType( 'array', $result['custom_fields'] );
+		$this->assertIsArray( $result['post_thumbnail'] );
+		$this->assertIsArray( $result['custom_fields'] );
 
 		// Check expected values.
 		$this->assertStringMatchesFormat( '%d', $result['post_id'] );

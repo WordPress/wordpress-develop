@@ -169,7 +169,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 			$this->fail( 'Unexpected type for $data.' );
 		}
 		$this->assertInternalType( 'string', $url );
-		$this->assertInternalType( 'array', $args );
+		$this->assertIsArray( $args );
 		$this->oembed_result_filter_count++;
 		return $data;
 	}
@@ -298,7 +298,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertInternalType( 'array', $data );
+		$this->assertIsArray( $data );
 		$this->assertNotEmpty( $data );
 	}
 
@@ -322,7 +322,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertInternalType( 'array', $data );
+		$this->assertIsArray( $data );
 		$this->assertNotEmpty( $data );
 
 		$this->assertArrayHasKey( 'version', $data );
@@ -365,7 +365,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertInternalType( 'array', $data );
+		$this->assertIsArray( $data );
 		$this->assertNotEmpty( $data );
 
 		$this->assertArrayHasKey( 'version', $data );
@@ -410,7 +410,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertInternalType( 'array', $data );
+		$this->assertIsArray( $data );
 		$this->assertNotEmpty( $data );
 
 		$this->assertArrayHasKey( 'version', $data );
@@ -453,7 +453,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertInternalType( 'array', $data );
+		$this->assertIsArray( $data );
 		$this->assertNotEmpty( $data );
 
 		restore_current_blog();
@@ -631,7 +631,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertNotEmpty( $data );
 		$this->assertInternalType( 'object', $data );
 		$this->assertInternalType( 'string', $data->html );
-		$this->assertInternalType( 'array', $data->scripts );
+		$this->assertIsArray( $data->scripts );
 	}
 
 	public function test_proxy_with_invalid_oembed_provider_no_discovery() {

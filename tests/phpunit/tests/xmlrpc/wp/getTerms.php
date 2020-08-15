@@ -51,7 +51,7 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 			$this->assertInternalType( 'int', $term['count'] );
 
 			// Check custom term meta.
-			$this->assertInternalType( 'array', $term['custom_fields'] );
+			$this->assertIsArray( $term['custom_fields'] );
 
 			// We expect all other IDs to be strings, not integers,
 			// so we don't return something larger than an XMLRPC integer can describe.

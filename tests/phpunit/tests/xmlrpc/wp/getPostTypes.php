@@ -15,7 +15,7 @@ class Tests_XMLRPC_wp_getPostTypes extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_getPostTypes( array( 1, 'subscriber', 'subscriber' ) );
 		$this->assertNotIXRError( $result );
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertEquals( 0, count( $result ) );
 	}
 
@@ -24,7 +24,7 @@ class Tests_XMLRPC_wp_getPostTypes extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_getPostTypes( array( 1, 'editor', 'editor' ) );
 		$this->assertNotIXRError( $result );
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertGreaterThan( 0, count( $result ) );
 	}
 
@@ -33,7 +33,7 @@ class Tests_XMLRPC_wp_getPostTypes extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_getPostTypes( array( 1, 'editor', 'editor', array( 'hierarchical' => true ) ) );
 		$this->assertNotIXRError( $result );
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 
 		// Verify that page is in the result, and post is not.
 		$result_names = wp_list_pluck( $result, 'name' );

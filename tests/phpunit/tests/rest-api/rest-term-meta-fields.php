@@ -237,7 +237,7 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 		$data = $response->get_data();
 		$meta = (array) $data['meta'];
 		$this->assertArrayHasKey( 'test_multi', $meta );
-		$this->assertInternalType( 'array', $meta['test_multi'] );
+		$this->assertIsArray( $meta['test_multi'] );
 		$this->assertContains( 'value1', $meta['test_multi'] );
 
 		// Check after an update.
@@ -1157,7 +1157,7 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 		$data = $response->get_data();
 
 		$this->assertArrayHasKey( 'meta', $data );
-		$this->assertInternalType( 'array', $data['meta'] );
+		$this->assertIsArray( $data['meta'] );
 
 		if ( $in_taxonomy ) {
 			$expected_value = $meta_value;
@@ -1221,7 +1221,7 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 
 		$data = $response->get_data();
 		$this->assertArrayHasKey( 'meta', $data );
-		$this->assertInternalType( 'array', $data['meta'] );
+		$this->assertIsArray( $data['meta'] );
 
 		if ( $in_taxonomy ) {
 			$expected_value = $meta_value;

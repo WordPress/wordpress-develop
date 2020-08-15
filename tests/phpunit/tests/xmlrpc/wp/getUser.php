@@ -88,7 +88,7 @@ class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 		$this->assertInternalType( 'string', $result['nicename'] );
 		$this->assertInternalType( 'string', $result['url'] );
 		$this->assertInternalType( 'string', $result['display_name'] );
-		$this->assertInternalType( 'array', $result['roles'] );
+		$this->assertIsArray( $result['roles'] );
 
 		// Check expected values.
 		$this->assertEquals( $user_id, $result['user_id'] );

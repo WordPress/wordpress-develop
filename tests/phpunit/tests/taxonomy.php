@@ -840,7 +840,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertInternalType( 'array', $wp_rewrite->extra_permastructs['foo'] );
+		$this->assertIsArray( $wp_rewrite->extra_permastructs['foo'] );
 		$this->assertTrue( unregister_taxonomy( 'foo' ) );
 		$this->assertFalse( isset( $wp_rewrite->extra_permastructs['foo'] ) );
 	}

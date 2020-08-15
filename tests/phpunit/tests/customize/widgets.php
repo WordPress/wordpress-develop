@@ -120,7 +120,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->do_customize_boot_actions();
 
 		$selective_refreshable_widgets = $this->manager->widgets->get_selective_refreshable_widgets();
-		$this->assertInternalType( 'array', $selective_refreshable_widgets );
+		$this->assertIsArray( $selective_refreshable_widgets );
 		$this->assertEquals( count( $wp_widget_factory->widgets ), count( $selective_refreshable_widgets ) );
 		$this->assertArrayHasKey( 'text', $selective_refreshable_widgets );
 		$this->assertTrue( $selective_refreshable_widgets['text'] );
@@ -493,7 +493,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertArrayNotHasKey( $setting_id, $this->manager->unsanitized_post_values() );
 		$result = $this->manager->widgets->call_widget_update( $widget_id );
 
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertArrayHasKey( 'instance', $result );
 		$this->assertArrayHasKey( 'form', $result );
 		$this->assertEquals( $instance, $result['instance'] );
@@ -502,7 +502,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$post_values = $this->manager->unsanitized_post_values();
 		$this->assertArrayHasKey( $setting_id, $post_values );
 		$post_value = $post_values[ $setting_id ];
-		$this->assertInternalType( 'array', $post_value );
+		$this->assertIsArray( $post_value );
 		$this->assertArrayHasKey( 'title', $post_value );
 		$this->assertArrayHasKey( 'encoded_serialized_instance', $post_value );
 		$this->assertArrayHasKey( 'instance_hash_key', $post_value );
@@ -519,13 +519,13 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		do_action( 'customize_register', $this->manager );
 
 		$args = apply_filters( 'customize_dynamic_partial_args', false, 'widget[search-2]' );
-		$this->assertInternalType( 'array', $args );
+		$this->assertIsArray( $args );
 		$this->assertEquals( 'widget', $args['type'] );
 		$this->assertEquals( array( $this->manager->widgets, 'render_widget_partial' ), $args['render_callback'] );
 		$this->assertTrue( $args['container_inclusive'] );
 
 		$args = apply_filters( 'customize_dynamic_partial_args', array( 'fallback_refresh' => false ), 'widget[search-2]' );
-		$this->assertInternalType( 'array', $args );
+		$this->assertIsArray( $args );
 		$this->assertEquals( 'widget', $args['type'] );
 		$this->assertEquals( array( $this->manager->widgets, 'render_widget_partial' ), $args['render_callback'] );
 		$this->assertTrue( $args['container_inclusive'] );

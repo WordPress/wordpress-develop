@@ -142,17 +142,17 @@ class Tests_WP_Theme_Get_Theme_Starter_Content extends WP_UnitTestCase {
 		$this->assertSame( $dehydrated_starter_content['attachments']['featured-image-logo'], $hydrated_starter_content['attachments']['featured-image-logo'] );
 
 		foreach ( $hydrated_starter_content['widgets']['sidebar-1'] as $widget ) {
-			$this->assertInternalType( 'array', $widget );
+			$this->assertIsArray( $widget );
 			$this->assertCount( 2, $widget );
 			$this->assertInternalType( 'string', $widget[0] );
-			$this->assertInternalType( 'array', $widget[1] );
+			$this->assertIsArray( $widget[1] );
 			$this->assertArrayHasKey( 'title', $widget[1] );
 		}
 		$this->assertEquals( 'text', $hydrated_starter_content['widgets']['sidebar-1'][1][0], 'Core content extended' );
 		$this->assertEquals( 'Our Story', $hydrated_starter_content['widgets']['sidebar-1'][1][1]['title'], 'Core content extended' );
 
 		foreach ( $hydrated_starter_content['nav_menus']['top']['items'] as $nav_menu_item ) {
-			$this->assertInternalType( 'array', $nav_menu_item );
+			$this->assertIsArray( $nav_menu_item );
 			$this->assertTrue( ! empty( $nav_menu_item['object_id'] ) || ! empty( $nav_menu_item['url'] ) );
 		}
 		$this->assertEquals( 'Email Us', $hydrated_starter_content['nav_menus']['top']['items'][4]['title'], 'Core content extended' );
@@ -160,7 +160,7 @@ class Tests_WP_Theme_Get_Theme_Starter_Content extends WP_UnitTestCase {
 		foreach ( $hydrated_starter_content['posts'] as $key => $post ) {
 			$this->assertInternalType( 'string', $key );
 			$this->assertFalse( is_numeric( $key ) );
-			$this->assertInternalType( 'array', $post );
+			$this->assertIsArray( $post );
 			$this->assertArrayHasKey( 'post_type', $post );
 			$this->assertArrayHasKey( 'post_title', $post );
 		}
@@ -200,7 +200,7 @@ class Tests_WP_Theme_Get_Theme_Starter_Content extends WP_UnitTestCase {
 	 * @return array Filtered starter content.
 	 */
 	public function filter_theme_starter_content( $content, $config ) {
-		$this->assertInternalType( 'array', $config );
+		$this->assertIsArray( $config );
 		$this->assertCount( 1, $config['widgets']['sidebar-1'] );
 		$content['widgets']['sidebar-1'][] = array(
 			'text',

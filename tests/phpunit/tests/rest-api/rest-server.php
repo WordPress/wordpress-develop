@@ -532,7 +532,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertCount( 2, $alternate );
 		$this->assertEmpty( $alternate[0] );
 
-		$this->assertInternalType( 'array', $alternate[1] );
+		$this->assertIsArray( $alternate[1] );
 		$this->assertArrayNotHasKey( 'code', $alternate[1] );
 		$this->assertTrue( $alternate[1]['hello'] );
 

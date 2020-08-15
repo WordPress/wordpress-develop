@@ -121,7 +121,7 @@ class Tests_XMLRPC_wp_getTerm extends WP_XMLRPC_UnitTestCase {
 		);
 		$this->assertNotIXRError( $result );
 
-		$this->assertInternalType( 'array', $result['custom_fields'] );
+		$this->assertIsArray( $result['custom_fields'] );
 		$term_meta = get_term_meta( self::$term_id, '', true );
 		$this->assertEquals( $term_meta['foo'][0], $result['custom_fields'][0]['value'] );
 	}

@@ -39,7 +39,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 		// get_the_terms() does prime the cache.
 		$terms = get_the_terms( $post_id, $this->taxonomy );
 		$cache = wp_cache_get( $post_id, $this->taxonomy . '_relationships' );
-		$this->assertInternalType( 'array', $cache );
+		$this->assertIsArray( $cache );
 
 		// Cache should be empty after a set.
 		$tt_2 = wp_set_object_terms( $post_id, $terms_2, $this->taxonomy );

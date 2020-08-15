@@ -58,7 +58,7 @@ class Tests_XMLRPC_mw_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertInternalType( 'string', $result['title'] );
 		$this->assertInternalType( 'string', $result['link'] );
 		$this->assertInternalType( 'string', $result['permaLink'] );
-		$this->assertInternalType( 'array', $result['categories'] );
+		$this->assertIsArray( $result['categories'] );
 		$this->assertInternalType( 'string', $result['mt_excerpt'] );
 		$this->assertInternalType( 'string', $result['mt_text_more'] );
 		$this->assertInternalType( 'string', $result['wp_more_text'] );
@@ -70,7 +70,7 @@ class Tests_XMLRPC_mw_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertInternalType( 'string', $result['wp_author_id'] );
 		$this->assertInternalType( 'string', $result['wp_author_display_name'] );
 		$this->assertInternalType( 'string', $result['post_status'] );
-		$this->assertInternalType( 'array', $result['custom_fields'] );
+		$this->assertIsArray( $result['custom_fields'] );
 		$this->assertInternalType( 'string', $result['wp_post_format'] );
 		$this->assertInternalType( 'bool', $result['sticky'] );
 

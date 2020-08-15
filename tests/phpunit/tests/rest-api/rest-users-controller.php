@@ -1211,13 +1211,13 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$data = $response->get_data();
 
 		if ( is_multisite() ) {
-			$this->assertInternalType( 'array', $data['additional_errors'] );
+			$this->assertIsArray( $data['additional_errors'] );
 			$this->assertCount( 1, $data['additional_errors'] );
 			$error = $data['additional_errors'][0];
 			$this->assertEquals( 'user_name', $error['code'] );
 			$this->assertEquals( 'Usernames can only contain lowercase letters (a-z) and numbers.', $error['message'] );
 		} else {
-			$this->assertInternalType( 'array', $data['data']['params'] );
+			$this->assertIsArray( $data['data']['params'] );
 			$errors = $data['data']['params'];
 			$this->assertInternalType( 'string', $errors['username'] );
 			$this->assertEquals( 'This username is invalid because it uses illegal characters. Please enter a valid username.', $errors['username'] );
@@ -1257,7 +1257,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 
 		$data = $response->get_data();
-		$this->assertInternalType( 'array', $data['data']['params'] );
+		$this->assertIsArray( $data['data']['params'] );
 		$errors = $data['data']['params'];
 		$this->assertInternalType( 'string', $errors['username'] );
 		$this->assertEquals( 'Sorry, that username is not allowed.', $errors['username'] );
@@ -1381,7 +1381,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertErrorResponse( 'rest_invalid_param', $switched_response, 400 );
 		$data = $switched_response->get_data();
-		$this->assertInternalType( 'array', $data['additional_errors'] );
+		$this->assertIsArray( $data['additional_errors'] );
 		$this->assertCount( 2, $data['additional_errors'] );
 		$errors = $data['additional_errors'];
 		foreach ( $errors as $error ) {

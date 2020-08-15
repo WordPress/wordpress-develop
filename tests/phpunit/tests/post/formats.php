@@ -16,7 +16,7 @@ class Tests_Post_Formats extends WP_UnitTestCase {
 
 		$result = set_post_format( $post_id, 'aside' );
 		$this->assertNotWPError( $result );
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertEquals( 1, count( $result ) );
 
 		$format = get_post_format( $post_id );
@@ -24,12 +24,12 @@ class Tests_Post_Formats extends WP_UnitTestCase {
 
 		$result = set_post_format( $post_id, 'standard' );
 		$this->assertNotWPError( $result );
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertEquals( 0, count( $result ) );
 
 		$result = set_post_format( $post_id, '' );
 		$this->assertNotWPError( $result );
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertEquals( 0, count( $result ) );
 	}
 
@@ -44,7 +44,7 @@ class Tests_Post_Formats extends WP_UnitTestCase {
 
 		$result = set_post_format( $post_id, 'aside' );
 		$this->assertNotWPError( $result );
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertEquals( 1, count( $result ) );
 		// The format can be set but not retrieved until it is registered.
 		$format = get_post_format( $post_id );
@@ -57,12 +57,12 @@ class Tests_Post_Formats extends WP_UnitTestCase {
 
 		$result = set_post_format( $post_id, 'standard' );
 		$this->assertNotWPError( $result );
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertEquals( 0, count( $result ) );
 
 		$result = set_post_format( $post_id, '' );
 		$this->assertNotWPError( $result );
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertEquals( 0, count( $result ) );
 
 		remove_post_type_support( 'page', 'post-formats' );
@@ -76,13 +76,13 @@ class Tests_Post_Formats extends WP_UnitTestCase {
 
 		$result = set_post_format( $post_id, 'aside' );
 		$this->assertNotWPError( $result );
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertEquals( 1, count( $result ) );
 		$this->assertTrue( has_post_format( 'aside', $post_id ) );
 
 		$result = set_post_format( $post_id, 'standard' );
 		$this->assertNotWPError( $result );
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertEquals( 0, count( $result ) );
 		// Standard is a special case. It shows as false when set.
 		$this->assertFalse( has_post_format( 'standard', $post_id ) );

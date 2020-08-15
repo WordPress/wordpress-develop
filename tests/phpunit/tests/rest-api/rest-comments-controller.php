@@ -2833,7 +2833,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$actual_output = $response->get_data();
 
 		// Compare expected API output to actual API output.
-		$this->assertInternalType( 'array', $actual_output['content'] );
+		$this->assertIsArray( $actual_output['content'] );
 		$this->assertArrayHasKey( 'raw', $actual_output['content'] );
 		$this->assertEquals( $expected_output['content']['raw'], $actual_output['content']['raw'] );
 		$this->assertEquals( $expected_output['content']['rendered'], trim( $actual_output['content']['rendered'] ) );

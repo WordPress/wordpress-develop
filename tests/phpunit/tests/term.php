@@ -53,7 +53,7 @@ class Tests_Term extends WP_UnitTestCase {
 		// Insert a term.
 		$term = rand_str();
 		$t    = wp_insert_term( $term, $this->taxonomy );
-		$this->assertInternalType( 'array', $t );
+		$this->assertIsArray( $t );
 		$term_obj = get_term_by( 'name', $term, $this->taxonomy );
 		$this->assertEquals( $t['term_id'], term_exists( $term_obj->slug ) );
 
@@ -109,9 +109,9 @@ class Tests_Term extends WP_UnitTestCase {
 		$term2 = rand_str();
 
 		$t = wp_insert_term( $term, 'category' );
-		$this->assertInternalType( 'array', $t );
+		$this->assertIsArray( $t );
 		$t2 = wp_insert_term( $term, 'category', array( 'parent' => $t['term_id'] ) );
-		$this->assertInternalType( 'array', $t2 );
+		$this->assertIsArray( $t2 );
 		if ( function_exists( 'term_is_ancestor_of' ) ) {
 			$this->assertTrue( term_is_ancestor_of( $t['term_id'], $t2['term_id'], 'category' ) );
 			$this->assertFalse( term_is_ancestor_of( $t2['term_id'], $t['term_id'], 'category' ) );
@@ -153,7 +153,7 @@ class Tests_Term extends WP_UnitTestCase {
 		$post_id = self::$post_ids[0];
 		$post    = get_post( $post_id );
 
-		$this->assertInternalType( 'array', $post->post_category );
+		$this->assertIsArray( $post->post_category );
 		$this->assertEquals( 1, count( $post->post_category ) );
 		$this->assertEquals( get_option( 'default_category' ), $post->post_category[0] );
 

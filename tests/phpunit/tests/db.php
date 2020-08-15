@@ -1690,7 +1690,7 @@ class Tests_DB extends WP_UnitTestCase {
 		if ( $expect_bail ) {
 			$this->assertFalse( $data );
 		} else {
-			$this->assertInternalType( 'array', $data );
+			$this->assertIsArray( $data );
 
 			list( $parsed_host, $parsed_port, $parsed_socket, $parsed_is_ipv6 ) = $data;
 

@@ -35,7 +35,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 100, 0, false );
 
-		$this->assertInternalType( 'array', $image );
+		$this->assertIsArray( $image );
 	}
 
 	function test_make_intermediate_size_height() {
@@ -45,7 +45,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 0, 75, false );
 
-		$this->assertInternalType( 'array', $image );
+		$this->assertIsArray( $image );
 	}
 
 	function test_make_intermediate_size_successful() {
@@ -55,7 +55,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 100, 75, true );
 
-		$this->assertInternalType( 'array', $image );
+		$this->assertIsArray( $image );
 		$this->assertEquals( 100, $image['width'] );
 		$this->assertEquals( 75, $image['height'] );
 		$this->assertEquals( 'image/jpeg', $image['mime-type'] );

@@ -103,14 +103,14 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 	public function test_output_array_a() {
 		$t    = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 		$term = get_term( $t, 'wptests_tax', ARRAY_A );
-		$this->assertInternalType( 'array', $term );
+		$this->assertIsArray( $term );
 		$this->assertTrue( isset( $term['term_id'] ) );
 	}
 
 	public function test_output_array_n() {
 		$t    = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 		$term = get_term( $t, 'wptests_tax', ARRAY_N );
-		$this->assertInternalType( 'array', $term );
+		$this->assertIsArray( $term );
 		$this->assertFalse( isset( $term['term_id'] ) );
 		foreach ( $term as $k => $v ) {
 			$this->assertInternalType( 'integer', $k );
