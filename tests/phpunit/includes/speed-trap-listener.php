@@ -3,6 +3,7 @@
 use PHPUnit\Framework\AssertionFailedError;
 use PHPUnit\Framework\Test;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\TestListener;
 use PHPUnit\Framework\TestSuite;
 use PHPUnit\Framework\Warning;
 
@@ -10,7 +11,7 @@ use PHPUnit\Framework\Warning;
  * A PHPUnit TestListener that exposes your slowest running tests by outputting
  * results directly to the console.
  */
-class SpeedTrapListener implements PHPUnit_Framework_TestListener {
+class SpeedTrapListener implements TestListener {
 
 	/**
 	 * Internal tracking for test suites.
