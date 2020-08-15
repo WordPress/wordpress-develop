@@ -161,6 +161,7 @@ require_once ABSPATH . '/wp-settings.php';
 _delete_all_posts();
 
 require_once __DIR__ . '/phpunit-polyfills/PHPUnitLessThan840.php';
+require_once __DIR__ . '/phpunit-polyfills/PHPUnitLessThan910.php';
 
 require_once __DIR__ . '/abstract-testcase.php';
 require_once __DIR__ . '/testcase.php';

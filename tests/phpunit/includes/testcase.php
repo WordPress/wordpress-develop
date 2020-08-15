@@ -12,5 +12,6 @@
 class WP_UnitTestCase extends WP_UnitTestCase_Base {
 
 	use PHPUnitLessThan840;
+	use PHPUnitLessThan910;
 
 }
