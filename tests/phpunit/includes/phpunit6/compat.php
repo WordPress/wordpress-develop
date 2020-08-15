@@ -2,8 +2,6 @@
 
 if ( class_exists( 'PHPUnit\Runner\Version' ) && version_compare( PHPUnit\Runner\Version::id(), '6.0', '>=' ) ) {
 
-	class_alias( 'PHPUnit\Util\Getopt', 'PHPUnit_Util_Getopt' );
-
 	class PHPUnit_Util_Test {
 
 		// phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
