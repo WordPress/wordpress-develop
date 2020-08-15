@@ -795,7 +795,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$posts = $this->q->query( array( 'post_type' => 'any' ) );
 
 		$this->assertEmpty( $posts );
-		$this->assertRegExp( '#AND 1=0#', $this->q->request );
+		$this->assertMatchesRegularExpression( '#AND 1=0#', $this->q->request );
 
 		foreach ( array_keys( $wp_post_types ) as $slug ) {
 			$wp_post_types[ $slug ]->exclude_from_search = false;
