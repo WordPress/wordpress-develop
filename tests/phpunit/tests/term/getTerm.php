@@ -113,7 +113,7 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 		$this->assertIsArray( $term );
 		$this->assertFalse( isset( $term['term_id'] ) );
 		foreach ( $term as $k => $v ) {
-			$this->assertInternalType( 'integer', $k );
+			$this->assertIsInt( $k );
 		}
 	}
 
@@ -136,11 +136,11 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 		$found = get_term( $term_data );
 
 		$this->assertTrue( $found instanceof WP_Term );
-		$this->assertInternalType( 'int', $found->term_id );
-		$this->assertInternalType( 'int', $found->term_taxonomy_id );
-		$this->assertInternalType( 'int', $found->parent );
-		$this->assertInternalType( 'int', $found->count );
-		$this->assertInternalType( 'int', $found->term_group );
+		$this->assertIsInt( $found->term_id );
+		$this->assertIsInt( $found->term_taxonomy_id );
+		$this->assertIsInt( $found->parent );
+		$this->assertIsInt( $found->count );
+		$this->assertIsInt( $found->term_group );
 	}
 
 	/**

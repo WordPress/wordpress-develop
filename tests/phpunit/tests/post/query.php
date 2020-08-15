@@ -737,7 +737,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertInternalType( 'int', $q->found_posts );
+		$this->assertIsInt( $q->found_posts );
 	}
 
 	/**
@@ -756,6 +756,6 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		remove_filter( 'found_posts', '__return_empty_string' );
 
-		$this->assertInternalType( 'int', $q->found_posts );
+		$this->assertIsInt( $q->found_posts );
 	}
 }

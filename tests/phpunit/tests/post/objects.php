@@ -167,7 +167,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		);
 
 		$this->assertEquals( 'raw', $post->filter );
-		$this->assertInternalType( 'int', $post->post_parent );
+		$this->assertIsInt( $post->post_parent );
 
 		$display_post = get_post( $post, OBJECT, 'js' );
 		$this->assertEquals( 'js', $display_post->filter );

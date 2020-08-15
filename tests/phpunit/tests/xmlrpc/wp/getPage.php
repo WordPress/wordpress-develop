@@ -47,7 +47,7 @@ class Tests_XMLRPC_wp_getPage extends WP_XMLRPC_UnitTestCase {
 
 		// Check data types.
 		$this->assertInternalType( 'string', $result['userid'] );
-		$this->assertInternalType( 'int', $result['page_id'] );
+		$this->assertIsInt( $result['page_id'] );
 		$this->assertInternalType( 'string', $result['page_status'] );
 		$this->assertInternalType( 'string', $result['description'] );
 		$this->assertInternalType( 'string', $result['title'] );
@@ -56,14 +56,14 @@ class Tests_XMLRPC_wp_getPage extends WP_XMLRPC_UnitTestCase {
 		$this->assertIsArray( $result['categories'] );
 		$this->assertInternalType( 'string', $result['excerpt'] );
 		$this->assertInternalType( 'string', $result['text_more'] );
-		$this->assertInternalType( 'int', $result['mt_allow_comments'] );
-		$this->assertInternalType( 'int', $result['mt_allow_pings'] );
+		$this->assertIsInt( $result['mt_allow_comments'] );
+		$this->assertIsInt( $result['mt_allow_pings'] );
 		$this->assertInternalType( 'string', $result['wp_slug'] );
 		$this->assertInternalType( 'string', $result['wp_password'] );
 		$this->assertInternalType( 'string', $result['wp_author'] );
-		$this->assertInternalType( 'int', $result['wp_page_parent_id'] );
+		$this->assertIsInt( $result['wp_page_parent_id'] );
 		$this->assertInternalType( 'string', $result['wp_page_parent_title'] );
-		$this->assertInternalType( 'int', $result['wp_page_order'] );
+		$this->assertIsInt( $result['wp_page_order'] );
 		$this->assertInternalType( 'string', $result['wp_author_id'] );
 		$this->assertInternalType( 'string', $result['wp_author_display_name'] );
 		$this->assertIsArray( $result['custom_fields'] );

@@ -48,7 +48,7 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $results );
 
 		foreach ( $results as $term ) {
-			$this->assertInternalType( 'int', $term['count'] );
+			$this->assertIsInt( $term['count'] );
 
 			// Check custom term meta.
 			$this->assertIsArray( $term['custom_fields'] );

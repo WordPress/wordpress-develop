@@ -855,7 +855,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertInternalType( 'int', $u );
+		$this->assertIsInt( $u );
 		$this->assertGreaterThan( 0, $u );
 
 		$user = new WP_User( $u );
@@ -1477,7 +1477,7 @@ class Tests_User extends WP_UnitTestCase {
 		$user_id = edit_user();
 		$user    = get_user_by( 'ID', $user_id );
 
-		$this->assertInternalType( 'int', $user_id );
+		$this->assertIsInt( $user_id );
 		$this->assertInstanceOf( 'WP_User', $user );
 		$this->assertEquals( 'nickname1', $user->nickname );
 
@@ -1488,7 +1488,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		$user_id = edit_user( $user_id );
 
-		$this->assertInternalType( 'int', $user_id );
+		$this->assertIsInt( $user_id );
 		$this->assertEquals( 'nickname_updated', $user->nickname );
 
 		// Check updating user with missing second password.
@@ -1507,7 +1507,7 @@ class Tests_User extends WP_UnitTestCase {
 		$user_id = edit_user( $user_id );
 		remove_action( 'check_passwords', array( $this, 'action_check_passwords_blank_pw' ) );
 
-		$this->assertInternalType( 'int', $user_id );
+		$this->assertIsInt( $user_id );
 		$this->assertEquals( 'nickname_updated2', $user->nickname );
 	}
 

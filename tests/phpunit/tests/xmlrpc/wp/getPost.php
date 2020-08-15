@@ -139,7 +139,7 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 
 		$this->assertInternalType( 'string', $result['post_id'] );
 		$this->assertInternalType( 'string', $result['post_parent'] );
-		$this->assertInternalType( 'int', $result['menu_order'] );
+		$this->assertIsInt( $result['menu_order'] );
 		$this->assertInternalType( 'string', $result['guid'] );
 		$this->assertInternalType( 'string', $result['post_mime_type'] );
 

@@ -731,7 +731,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$this->assertNull( $wp_customize->changeset_post_id() );
 		$this->assertEquals( 1000, has_action( 'customize_register', array( $wp_customize, '_save_starter_content_changeset' ) ) );
 		do_action( 'customize_register', $wp_customize ); // This will trigger the changeset save.
-		$this->assertInternalType( 'int', $wp_customize->changeset_post_id() );
+		$this->assertIsInt( $wp_customize->changeset_post_id() );
 		$this->assertNotEmpty( $wp_customize->changeset_data() );
 		foreach ( $wp_customize->changeset_data() as $setting_id => $setting_params ) {
 			$this->assertArrayHasKey( 'starter_content', $setting_params );

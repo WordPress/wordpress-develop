@@ -844,8 +844,8 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertInternalType( 'int', $t1 );
-		$this->assertInternalType( 'int', $t2 );
+		$this->assertIsInt( $t1 );
+		$this->assertIsInt( $t2 );
 		$this->assertNotEquals( $t1, $t2 );
 
 		$term_2 = get_term( $t2, 'wptests_tax' );
@@ -901,9 +901,9 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 
 	public function deleted_term_cb( $term, $tt_id, $taxonomy, $deleted_term, $object_ids ) {
 		$this->assertInternalType( 'object', $deleted_term );
-		$this->assertInternalType( 'int', $term );
+		$this->assertIsInt( $term );
 		$this->assertIsArray( $object_ids );
-		// Pesky string $this->assertInternalType( 'int', $tt_id );
+		// Pesky string $this->assertIsInt( $tt_id );
 		$this->assertEquals( $term, $deleted_term->term_id );
 		$this->assertEquals( $taxonomy, $deleted_term->taxonomy );
 		$this->assertEquals( $tt_id, $deleted_term->term_taxonomy_id );

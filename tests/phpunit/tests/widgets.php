@@ -1063,7 +1063,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertEmpty( $filtered_widgets['fantasy'] );
 		$this->assertArrayHasKey( 'array_version', $filtered_widgets );
 		$this->assertEquals( 3, $filtered_widgets['array_version'] );
-		$this->assertInternalType( 'integer', $filtered_widgets['array_version'] );
+		$this->assertIsInt( $filtered_widgets['array_version'] );
 	}
 
 	/**

@@ -157,7 +157,7 @@ if ( is_multisite() ) :
 			}
 
 			$actual = update_site_meta( self::$site_id, 'foo', 'bar' );
-			$this->assertInternalType( 'int', $actual );
+			$this->assertIsInt( $actual );
 			$this->assertNotEmpty( $actual );
 
 			$meta = get_site_meta( self::$site_id, 'foo', true );

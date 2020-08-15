@@ -207,11 +207,11 @@ class Tests_Meta extends WP_UnitTestCase {
 		$this->assertFalse( metadata_exists( 'user', $this->author->ID, $key ) );
 		$this->assertFalse( delete_metadata( 'user', $this->author->ID, $key ) );
 		$this->assertSame( '', get_metadata( 'user', $this->author->ID, $key, true ) );
-		$this->assertInternalType( 'int', add_metadata( 'user', $this->author->ID, $key, $value ) );
+		$this->assertIsInt( add_metadata( 'user', $this->author->ID, $key, $value ) );
 		$this->assertEquals( $expected, get_metadata( 'user', $this->author->ID, $key, true ) );
 		$this->assertTrue( delete_metadata( 'user', $this->author->ID, $key ) );
 		$this->assertSame( '', get_metadata( 'user', $this->author->ID, $key, true ) );
-		$this->assertInternalType( 'int', update_metadata( 'user', $this->author->ID, $key, $value ) );
+		$this->assertIsInt( update_metadata( 'user', $this->author->ID, $key, $value ) );
 		$this->assertEquals( $expected, get_metadata( 'user', $this->author->ID, $key, true ) );
 		$this->assertTrue( update_metadata( 'user', $this->author->ID, $key, 'blah' ) );
 		$this->assertEquals( 'blah', get_metadata( 'user', $this->author->ID, $key, true ) );
@@ -220,11 +220,11 @@ class Tests_Meta extends WP_UnitTestCase {
 		$this->assertFalse( metadata_exists( 'user', $this->author->ID, $key ) );
 
 		// Test overslashing.
-		$this->assertInternalType( 'int', add_metadata( 'user', $this->author->ID, $key, $value2 ) );
+		$this->assertIsInt( add_metadata( 'user', $this->author->ID, $key, $value2 ) );
 		$this->assertEquals( $expected2, get_metadata( 'user', $this->author->ID, $key, true ) );
 		$this->assertTrue( delete_metadata( 'user', $this->author->ID, $key ) );
 		$this->assertSame( '', get_metadata( 'user', $this->author->ID, $key, true ) );
-		$this->assertInternalType( 'int', update_metadata( 'user', $this->author->ID, $key, $value2 ) );
+		$this->assertIsInt( update_metadata( 'user', $this->author->ID, $key, $value2 ) );
 		$this->assertEquals( $expected2, get_metadata( 'user', $this->author->ID, $key, true ) );
 	}
 

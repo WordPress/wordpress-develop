@@ -352,7 +352,7 @@ if ( is_multisite() ) :
 			// We can't use wp_schedule_update_network_counts() because WP_INSTALLING is set.
 			wp_schedule_event( time(), 'twicedaily', 'update_network_counts' );
 
-			$this->assertInternalType( 'int', wp_next_scheduled( 'update_network_counts' ) );
+			$this->assertIsInt( wp_next_scheduled( 'update_network_counts' ) );
 		}
 
 		/**
@@ -365,7 +365,7 @@ if ( is_multisite() ) :
 
 			$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 			$blog_id = self::factory()->blog->create( array( 'user_id' => $user_id ) );
-			$this->assertInternalType( 'int', $blog_id );
+			$this->assertIsInt( $blog_id );
 
 			// Set the dashboard blog to another one.
 			update_site_option( 'dashboard_blog', $blog_id );

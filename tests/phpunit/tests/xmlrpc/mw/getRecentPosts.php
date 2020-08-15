@@ -68,8 +68,8 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 			$this->assertInternalType( 'string', $result['mt_excerpt'] );
 			$this->assertInternalType( 'string', $result['mt_text_more'] );
 			$this->assertInternalType( 'string', $result['wp_more_text'] );
-			$this->assertInternalType( 'int', $result['mt_allow_comments'] );
-			$this->assertInternalType( 'int', $result['mt_allow_pings'] );
+			$this->assertIsInt( $result['mt_allow_comments'] );
+			$this->assertIsInt( $result['mt_allow_pings'] );
 			$this->assertInternalType( 'string', $result['mt_keywords'] );
 			$this->assertInternalType( 'string', $result['wp_slug'] );
 			$this->assertInternalType( 'string', $result['wp_password'] );

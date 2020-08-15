@@ -1132,7 +1132,7 @@ VIDEO;
 	 */
 	function test_attachment_url_to_postid_with_empty_url() {
 		$post_id = attachment_url_to_postid( '' );
-		$this->assertInternalType( 'int', $post_id );
+		$this->assertIsInt( $post_id );
 		$this->assertEquals( 0, $post_id );
 	}
 

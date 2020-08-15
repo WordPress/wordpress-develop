@@ -765,8 +765,8 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$this->assertSame( $children, $posts2 );
 
 		foreach ( $this->q->posts as $post ) {
-			$this->assertInternalType( 'int', $post->ID );
-			$this->assertInternalType( 'int', $post->post_parent );
+			$this->assertIsInt( $post->ID );
+			$this->assertIsInt( $post->post_parent );
 		}
 
 	}

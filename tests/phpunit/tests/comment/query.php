@@ -1714,9 +1714,9 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 
 		// Ensure we are dealing with integers, and not objects.
-		$this->assertInternalType( 'integer', $comment_1 );
-		$this->assertInternalType( 'integer', $comment_2 );
-		$this->assertInternalType( 'integer', $comment_3 );
+		$this->assertIsInt( $comment_1 );
+		$this->assertIsInt( $comment_2 );
+		$this->assertIsInt( $comment_3 );
 
 		$comment_ids = get_comments( array( 'fields' => 'ids' ) );
 		$this->assertCount( 3, $comment_ids );

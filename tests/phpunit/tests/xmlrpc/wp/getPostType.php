@@ -73,7 +73,7 @@ class Tests_XMLRPC_wp_getPostType extends WP_XMLRPC_UnitTestCase {
 		$this->assertIsBool( $result['map_meta_cap'] );
 		$this->assertIsBool( $result['has_archive'] );
 		$this->assertIsBool( $result['show_ui'] );
-		$this->assertInternalType( 'int', $result['menu_position'] );
+		$this->assertIsInt( $result['menu_position'] );
 		$this->assertInternalType( 'string', $result['menu_icon'] );
 		$this->assertIsArray( $result['labels'] );
 		$this->assertIsArray( $result['cap'] );

@@ -53,7 +53,7 @@ class Tests_XMLRPC_mw_getPost extends WP_XMLRPC_UnitTestCase {
 
 		// Check data types.
 		$this->assertInternalType( 'string', $result['userid'] );
-		$this->assertInternalType( 'int', $result['postid'] );
+		$this->assertIsInt( $result['postid'] );
 		$this->assertInternalType( 'string', $result['description'] );
 		$this->assertInternalType( 'string', $result['title'] );
 		$this->assertInternalType( 'string', $result['link'] );
@@ -62,8 +62,8 @@ class Tests_XMLRPC_mw_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertInternalType( 'string', $result['mt_excerpt'] );
 		$this->assertInternalType( 'string', $result['mt_text_more'] );
 		$this->assertInternalType( 'string', $result['wp_more_text'] );
-		$this->assertInternalType( 'int', $result['mt_allow_comments'] );
-		$this->assertInternalType( 'int', $result['mt_allow_pings'] );
+		$this->assertIsInt( $result['mt_allow_comments'] );
+		$this->assertIsInt( $result['mt_allow_pings'] );
 		$this->assertInternalType( 'string', $result['mt_keywords'] );
 		$this->assertInternalType( 'string', $result['wp_slug'] );
 		$this->assertInternalType( 'string', $result['wp_password'] );
@@ -102,7 +102,7 @@ class Tests_XMLRPC_mw_getPost extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->mw_getPost( array( self::$post_id, 'author', 'author' ) );
 		$this->assertNotIXRError( $result );
 
-		$this->assertInternalType( 'int', $result['wp_post_thumbnail'] );
+		$this->assertIsInt( $result['wp_post_thumbnail'] );
 		$this->assertEquals( $attachment_id, $result['wp_post_thumbnail'] );
 
 		remove_theme_support( 'post-thumbnails' );

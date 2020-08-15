@@ -98,7 +98,7 @@ class Tests_Date_Current_Time extends WP_UnitTestCase {
 		$this->assertEquals( $wp_timestamp, current_time( 'U' ), 'The dates should be equal', 2 );
 
 		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
-		$this->assertInternalType( 'int', current_time( 'timestamp' ) );
+		$this->assertIsInt( current_time( 'timestamp' ) );
 	}
 
 	/**

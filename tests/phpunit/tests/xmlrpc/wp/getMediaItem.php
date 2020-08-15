@@ -51,7 +51,7 @@ class Tests_XMLRPC_wp_getMediaItem extends WP_XMLRPC_UnitTestCase {
 
 		// Check data types.
 		$this->assertInternalType( 'string', $result['attachment_id'] );
-		$this->assertInternalType( 'int', $result['parent'] );
+		$this->assertIsInt( $result['parent'] );
 		$this->assertInternalType( 'string', $result['title'] );
 		$this->assertInstanceOf( 'IXR_Date', $result['date_created_gmt'] );
 		$this->assertInternalType( 'string', $result['caption'] );

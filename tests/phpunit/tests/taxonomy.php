@@ -818,7 +818,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 		register_taxonomy( 'foo', 'post', array( 'query_var' => 'bar' ) );
 
-		$this->assertInternalType( 'int', array_search( 'bar', $wp->public_query_vars, true ) );
+		$this->assertIsInt( array_search( 'bar', $wp->public_query_vars, true ) );
 		$this->assertTrue( unregister_taxonomy( 'foo' ) );
 		$this->assertFalse( array_search( 'bar', $wp->public_query_vars, true ) );
 	}

@@ -31,7 +31,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	 */
 	function test_construct_default_args() {
 		$panel = new WP_Customize_Panel( $this->manager, 'foo' );
-		$this->assertInternalType( 'int', $panel->instance_number );
+		$this->assertIsInt( $panel->instance_number );
 		$this->assertEquals( $this->manager, $panel->manager );
 		$this->assertEquals( 'foo', $panel->id );
 		$this->assertEquals( 160, $panel->priority );
@@ -125,7 +125,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 		}
 		$this->assertEmpty( $data['content'] );
 		$this->assertTrue( $data['active'] );
-		$this->assertInternalType( 'int', $data['instanceNumber'] );
+		$this->assertIsInt( $data['instanceNumber'] );
 	}
 
 	/**
