@@ -259,7 +259,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotRegExp( '|ORDER BY \(CASE[^\)]+\)|', $q->request );
+		$this->assertDoesNotMatchRegularExpression( '|ORDER BY \(CASE[^\)]+\)|', $q->request );
 	}
 
 	/**
