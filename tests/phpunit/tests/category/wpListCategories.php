@@ -29,7 +29,7 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotRegExp( '/class="[^"]*cat-item-' . $c1 . '[^"]*current-cat[^"]*"/', $found );
+		$this->assertDoesNotMatchRegularExpression( '/class="[^"]*cat-item-' . $c1 . '[^"]*current-cat[^"]*"/', $found );
 		$this->assertMatchesRegularExpression( '/class="[^"]*cat-item-' . $c2 . '[^"]*current-cat[^"]*"/', $found );
 	}
 
@@ -50,7 +50,7 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 		);
 
 		$this->assertMatchesRegularExpression( '/class="[^"]*cat-item-' . $c1 . '[^"]*current-cat-parent[^"]*"/', $found );
-		$this->assertNotRegExp( '/class="[^"]*cat-item-' . $c2 . '[^"]*current-cat-parent[^"]*"/', $found );
+		$this->assertDoesNotMatchRegularExpression( '/class="[^"]*cat-item-' . $c2 . '[^"]*current-cat-parent[^"]*"/', $found );
 	}
 
 	/**
@@ -68,7 +68,7 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 		);
 
 		$this->assertMatchesRegularExpression( '/class="[^"]*cat-item-' . $cats[0] . '[^"]*current-cat[^"]*"/', $found );
-		$this->assertNotRegExp( '/class="[^"]*cat-item-' . $cats[1] . '[^"]*current[^"]*"/', $found );
+		$this->assertDoesNotMatchRegularExpression( '/class="[^"]*cat-item-' . $cats[1] . '[^"]*current[^"]*"/', $found );
 		$this->assertMatchesRegularExpression( '/class="[^"]*cat-item-' . $cats[2] . '[^"]*current-cat[^"]*"/', $found );
 	}
 
@@ -652,7 +652,7 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 
 		$this->assertMatchesRegularExpression( '/class="[^"]*cat-item-' . $parent . '[^"]*current-cat-ancestor[^"]*"/', $actual );
 		$this->assertMatchesRegularExpression( '/class="[^"]*cat-item-' . $child . '[^"]*current-cat-ancestor[^"]*"/', $actual );
-		$this->assertNotRegExp( '/class="[^"]*cat-item-' . $grandchild . '[^"]*current-cat-ancestor[^"]*"/', $actual );
-		$this->assertNotRegExp( '/class="[^"]*cat-item-' . $child2 . '[^"]*current-cat-ancestor[^"]*"/', $actual );
+		$this->assertDoesNotMatchRegularExpression( '/class="[^"]*cat-item-' . $grandchild . '[^"]*current-cat-ancestor[^"]*"/', $actual );
+		$this->assertDoesNotMatchRegularExpression( '/class="[^"]*cat-item-' . $child2 . '[^"]*current-cat-ancestor[^"]*"/', $actual );
 	}
 }

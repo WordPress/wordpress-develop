@@ -55,6 +55,6 @@ class Tests_Menu_Walker_Nav_Menu_Edit extends WP_UnitTestCase {
 
 		$this->walker->start_el( $expected, (object) $item );
 
-		$this->assertNotRegExp( '#<p class="link-to-original">\s*Original: <a href=""></a>#', $expected );
+		$this->assertDoesNotMatchRegularExpression( '#<p class="link-to-original">\s*Original: <a href=""></a>#', $expected );
 	}
 }

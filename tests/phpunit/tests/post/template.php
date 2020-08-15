@@ -319,7 +319,7 @@ NO;
 			)
 		);
 
-		$this->assertNotRegExp( '/<select[^>]+class=\'/', $found );
+		$this->assertDoesNotMatchRegularExpression( '/<select[^>]+class=\'/', $found );
 	}
 
 	/**
@@ -426,7 +426,7 @@ NO;
 
 		// After falling back, the markup should include whitespace around <li>'s.
 		$this->assertMatchesRegularExpression( '/\s<li.*>|<\/li>\s/U', $menu );
-		$this->assertNotRegExp( '/><li.*>|<\/li></U', $menu );
+		$this->assertDoesNotMatchRegularExpression( '/><li.*>|<\/li></U', $menu );
 
 		// No menus + wp_nav_menu() falls back to wp_page_menu(), this time without a container.
 		$menu = wp_nav_menu(
@@ -448,7 +448,7 @@ NO;
 		);
 
 		// After falling back, the markup should not include whitespace around <li>'s.
-		$this->assertNotRegExp( '/\s<li.*>|<\/li>\s/U', $menu );
+		$this->assertDoesNotMatchRegularExpression( '/\s<li.*>|<\/li>\s/U', $menu );
 		$this->assertMatchesRegularExpression( '/><li.*>|<\/li></U', $menu );
 
 	}
