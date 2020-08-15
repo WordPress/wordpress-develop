@@ -257,7 +257,7 @@ class Tests_Avatar extends WP_UnitTestCase {
 		$actual_data = get_avatar_data( $comment );
 
 		$this->assertTrue( is_avatar_comment_type( $comment_type ) );
-		$this->assertRegexp( '|^http?://[0-9]+.gravatar.com/avatar/[0-9a-f]{32}\?|', $actual_data['url'] );
+		$this->assertMatchesRegularExpression( '|^http?://[0-9]+.gravatar.com/avatar/[0-9a-f]{32}\?|', $actual_data['url'] );
 	}
 
 	/**

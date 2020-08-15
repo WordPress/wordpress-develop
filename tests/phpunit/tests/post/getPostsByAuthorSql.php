@@ -34,7 +34,7 @@ class Tests_Post_GetPostsByAuthorSql extends WP_UnitTestCase {
 
 	public function test_full_true() {
 		$maybe_string = get_posts_by_author_sql( 'post', true );
-		$this->assertRegExp( '/^WHERE /', $maybe_string );
+		$this->assertMatchesRegularExpression( '/^WHERE /', $maybe_string );
 	}
 
 	public function test_full_false() {
