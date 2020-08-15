@@ -95,10 +95,14 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 		$this->assertEquals( $id_base, $widget->id_base );
 		$this->assertEquals( $name, $widget->name );
 
-		// Method assertArraySubset doesn't exist in phpunit versions compatible with PHP 5.2.
-		if ( method_exists( $this, 'assertArraySubset' ) ) {
-			$this->assertArraySubset( $widget_options, $widget->widget_options );
-			$this->assertArraySubset( $control_options, $widget->control_options );
+		foreach ( $widget_options as $key => $value ) {
+			$this->assertArrayHasKey( $key, $widget->widget_options );
+			$this->assertSame( $value, $widget->widget_options[ $key ] );
+		}
+
+		foreach ( $control_options as $key => $value ) {
+			$this->assertArrayHasKey( $key, $widget->control_options );
+			$this->assertSame( $value, $widget->control_options[ $key ] );
 		}
 	}
 
