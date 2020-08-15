@@ -72,7 +72,7 @@ class Tests_XMLRPC_mw_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertInternalType( 'string', $result['post_status'] );
 		$this->assertIsArray( $result['custom_fields'] );
 		$this->assertInternalType( 'string', $result['wp_post_format'] );
-		$this->assertInternalType( 'bool', $result['sticky'] );
+		$this->assertIsBool( $result['sticky'] );
 
 		$post_data = get_post( self::$post_id );
 

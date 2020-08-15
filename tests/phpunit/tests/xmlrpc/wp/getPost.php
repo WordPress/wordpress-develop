@@ -58,7 +58,7 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertInternalType( 'string', $result['link'] );
 		$this->assertInternalType( 'string', $result['comment_status'] );
 		$this->assertInternalType( 'string', $result['ping_status'] );
-		$this->assertInternalType( 'bool', $result['sticky'] );
+		$this->assertIsBool( $result['sticky'] );
 		$this->assertInternalType( 'string', $result['post_format'] );
 		$this->assertIsArray( $result['post_thumbnail'] );
 		$this->assertIsArray( $result['custom_fields'] );

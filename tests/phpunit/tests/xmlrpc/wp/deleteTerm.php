@@ -70,6 +70,6 @@ class Tests_XMLRPC_wp_deleteTerm extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_deleteTerm( array( 1, 'editor', 'editor', 'category', self::$term_id ) );
 		$this->assertNotIXRError( $result );
-		$this->assertInternalType( 'boolean', $result );
+		$this->assertIsBool( $result );
 	}
 }

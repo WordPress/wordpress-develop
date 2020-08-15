@@ -67,12 +67,12 @@ class Tests_XMLRPC_wp_getPostType extends WP_XMLRPC_UnitTestCase {
 		// Check data types.
 		$this->assertInternalType( 'string', $result['name'] );
 		$this->assertInternalType( 'string', $result['label'] );
-		$this->assertInternalType( 'bool', $result['hierarchical'] );
-		$this->assertInternalType( 'bool', $result['public'] );
-		$this->assertInternalType( 'bool', $result['_builtin'] );
-		$this->assertInternalType( 'bool', $result['map_meta_cap'] );
-		$this->assertInternalType( 'bool', $result['has_archive'] );
-		$this->assertInternalType( 'bool', $result['show_ui'] );
+		$this->assertIsBool( $result['hierarchical'] );
+		$this->assertIsBool( $result['public'] );
+		$this->assertIsBool( $result['_builtin'] );
+		$this->assertIsBool( $result['map_meta_cap'] );
+		$this->assertIsBool( $result['has_archive'] );
+		$this->assertIsBool( $result['show_ui'] );
 		$this->assertInternalType( 'int', $result['menu_position'] );
 		$this->assertInternalType( 'string', $result['menu_icon'] );
 		$this->assertIsArray( $result['labels'] );
@@ -120,7 +120,7 @@ class Tests_XMLRPC_wp_getPostType extends WP_XMLRPC_UnitTestCase {
 		// Check support data types.
 		foreach ( $result['supports'] as $key => $value ) {
 			$this->assertInternalType( 'string', $key );
-			$this->assertInternalType( 'bool', $value );
+			$this->assertIsBool( $value );
 		}
 
 		// Check expected values.

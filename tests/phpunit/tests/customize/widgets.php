@@ -436,7 +436,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'sidebar_id', $params );
 		$this->assertArrayHasKey( 'width', $params );
 		$this->assertArrayHasKey( 'height', $params );
-		$this->assertInternalType( 'bool', $params['is_wide'] );
+		$this->assertIsBool( $params['is_wide'] );
 	}
 
 	/**
