@@ -3244,7 +3244,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( mysql_to_rfc3339( $comment->comment_date ), $data['date'] );
 		$this->assertEquals( mysql_to_rfc3339( $comment->comment_date_gmt ), $data['date_gmt'] );
 		$this->assertEquals( get_comment_link( $comment ), $data['link'] );
-		$this->assertContains( 'author_avatar_urls', $data );
+		$this->assertArrayHasKey( 'author_avatar_urls', $data );
 		$this->assertEqualSets(
 			array(
 				'self',
