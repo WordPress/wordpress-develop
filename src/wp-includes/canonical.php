@@ -410,11 +410,17 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			$redirect['query'] = remove_query_arg( 'page', $redirect['query'] );
 		}
 
-		// Paging and feeds.
-		if ( get_query_var( 'paged' ) || is_feed() || get_query_var( 'cpage' ) ) {
-			$paged = get_query_var( 'paged' );
-			$feed  = get_query_var( 'feed' );
-			$cpage = get_query_var( 'cpage' );
+		// Paging, sitemaps and feeds.
+		if ( get_query_var( 'paged' ) || is_feed() || get_query_var( 'sitemap' ) || get_query_var( 'cpage' ) ) {
+			global $wp_sitemaps;
+			$paged   = get_query_var( 'paged' );
+			$feed    = get_query_var( 'feed' );
+			$cpage   = get_query_var( 'cpage' );
+			$sitemap = ''; // Avoid undefined notices.
+			if ( $wp_sitemaps->sitemaps_enabled() ) {
+				$sitemap        = sanitize_text_field( get_query_var( 'sitemap' ) );
+				$object_subtype = sanitize_text_field( get_query_var( 'sitemap-subtype' ) );
+			}
 
 			while ( preg_match( "#/$wp_rewrite->pagination_base/?[0-9]+?(/+)?$#", $redirect['path'] )
 				|| preg_match( '#/(comments/?)?(feed|rss2?|rdf|atom)(/+)?$#', $redirect['path'] )
@@ -463,12 +469,25 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 					wp_redirect( $redirect_url, 301 );
 					die();
 				}
+			} elseif ( $sitemap ) {
+				$redirect['path'] = '/wp-sitemap';
+				if ( 'index' !== $sitemap ) {
+					$redirect['path'] .= "-{$sitemap}";
+					if ( $object_subtype ) {
+						$redirect['path'] .= "-{$object_subtype}";
+					}
+				}
+				$redirect['query'] = remove_query_arg( [ 'sitemap', 'sitemap-subtype' ], $redirect['query'] );
 			}
 
 			if ( $paged > 0 ) {
 				$redirect['query'] = remove_query_arg( 'paged', $redirect['query'] );
 
-				if ( ! is_feed() ) {
+				if ( $sitemap ) {
+					if ( 'index' !== $sitemap ) {
+						$redirect['path'] .= $paged > 1 ? "-{$paged}" : '-1';
+					}
+				} elseif ( ! is_feed() ) {
 					if ( ! is_single() ) {
 						$addl_path = ! empty( $addl_path ) ? trailingslashit( $addl_path ) : '';
 
@@ -479,6 +498,9 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 				} elseif ( $paged > 1 ) {
 					$redirect['query'] = add_query_arg( 'paged', $paged, $redirect['query'] );
 				}
+			} elseif ( 'index' !== $sitemap ) {
+				// Object sitemaps always include pagination.
+				$redirect['path'] .= '-1';
 			}
 
 			$default_comments_page = get_option( 'default_comments_page' );
@@ -508,9 +530,9 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 				$redirect['path'] = trailingslashit( $redirect['path'] ) . $addl_path;
 			}
 
-			// Remove trailing slash for sitemaps requests.
-			if ( ! empty( get_query_var( 'sitemap' ) ) ) {
-				$redirect['path'] = untrailingslashit( $redirect['path'] );
+			// Replace trailing slash with xml extension for sitemaps.
+			if ( $sitemap ) {
+				$redirect['path'] = untrailingslashit( $redirect['path'] ) . '.xml';
 			}
 
 			$redirect_url = $redirect['scheme'] . '://' . $redirect['host'] . $redirect['path'];
