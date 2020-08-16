@@ -6,8 +6,6 @@
  * @subpackage REST API
  */
 
-use PHPUnit\Framework\Error\Notice;
-
 /**
  * @group restapi
  */
@@ -158,7 +156,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	 * @ticket 50189
 	 */
 	public function test_format_validation_is_applied_if_missing_type() {
-		$this->expectException( Notice::class ); // For the undefined index.
+		$this->expectNotice(); // For the undefined index.
 		$this->setExpectedIncorrectUsage( 'rest_validate_value_from_schema' );
 
 		$schema = array( 'format' => 'email' );

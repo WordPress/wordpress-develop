@@ -533,7 +533,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 		$this->prevent_requests_to_host( 'api.wordpress.org' );
 
-		$this->expectException( Warning::class );
+		$this->expectWarning();
 		$response = rest_do_request( $request );
 		$this->assertErrorResponse( 'plugins_api_failed', $response, 500 );
 	}

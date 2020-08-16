@@ -1,7 +1,5 @@
 <?php
 
-use PHPUnit\Framework\Error\Deprecated;
-
 /**
  * @group compat
  * @group security-153
@@ -182,7 +180,7 @@ EOT;
 	}
 
 	function test_json_encode_decode() {
-		$this->expectException( Deprecated::class );
+		$this->expectDeprecation();
 
 		require_once ABSPATH . WPINC . '/class-json.php';
 		$json = new Services_JSON();

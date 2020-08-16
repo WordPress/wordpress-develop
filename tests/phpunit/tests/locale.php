@@ -1,7 +1,5 @@
 <?php
 
-use PHPUnit\Framework\Error\Notice;
-
 /**
  * @group l10n
  * @group i18n
@@ -28,7 +26,7 @@ class Tests_Locale extends WP_UnitTestCase {
 	}
 
 	public function test_get_weekday_undefined_index() {
-		$this->expectException( Notice::class );
+		$this->expectNotice();
 		$this->locale->get_weekday( 7 );
 	}
 
