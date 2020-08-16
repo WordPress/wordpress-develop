@@ -1426,12 +1426,7 @@ JS;
 			if ( PHP_VERSION_ID < 80000 ) {
 				$this->expectWarning();
 			} else {
-				/*
-				 * As this exception will only be set on PHP 8 in combination with PHPUnit 7, this will work (for now).
-				 * Once the PHPUnit version constraints have been widened and a _supported_ PHPUnit version is
-				 * used to run the tests on PHP 8.x, this should be changed to `$this->expectError()`.
-				 */
-				$this->expectException( 'Error' );
+				$this->expectError();
 			}
 		}
 
