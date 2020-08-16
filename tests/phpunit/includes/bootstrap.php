@@ -160,6 +160,8 @@ require_once ABSPATH . '/wp-settings.php';
 // Delete any default posts & related data.
 _delete_all_posts();
 
+require_once __DIR__ . '/phpunit-polyfills/PHPUnitLessThan840.php';
+
 require_once __DIR__ . '/abstract-testcase.php';
 require_once __DIR__ . '/testcase.php';
 require __DIR__ . '/testcase-rest-api.php';

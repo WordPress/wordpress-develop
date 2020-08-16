@@ -313,9 +313,18 @@
 	<!-- Exclude the unit tests from select sniffs. -->
 	<rule ref="WordPress.Files.FileName.NotHyphenatedLowercase">
 		<exclude-pattern>/tests/phpunit/tests/*</exclude-pattern>
+		<exclude-pattern>/tests/phpunit/includes/phpunit-polyfills/*</exclude-pattern>
 	</rule>
 	<rule ref="PEAR.NamingConventions.ValidClassName.Invalid">
 		<exclude-pattern>/tests/phpunit/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid">
+		<!-- These methods have to be called the same as the PHPUnit native methods. -->
+		<exclude-pattern>/tests/phpunit/includes/phpunit-polyfills/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase">
+		<!-- These methods should have the same parameter names the PHPUnit native methods. -->
+		<exclude-pattern>/tests/phpunit/includes/phpunit-polyfills/*</exclude-pattern>
 	</rule>
 
 	<!-- Exclude some old classes that can't be renamed, as it would break back compat. -->

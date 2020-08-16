@@ -9,4 +9,8 @@
  *
  * All WordPress unit tests should inherit from this class.
  */
-class WP_UnitTestCase extends WP_UnitTestCase_Base {}
+class WP_UnitTestCase extends WP_UnitTestCase_Base {
+
+	use PHPUnitLessThan840;
+
+}
