@@ -294,4 +294,29 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
 		delete_option( 'page_on_front' );
 	}
+
+	/**
+	 * Ensure index sitemaps redirects work as expected.
+	 *
+	 * @group sitemaps
+	 * @ticket 50910
+	 */
+	public function test_sitemaps_canonical_redirects() {
+		// Ugly/incorrect versions redirect correctly.
+		$this->assertCanonical( '/?sitemap=index', '/wp-sitemap.xml' );
+		$this->assertCanonical( '/wp-sitemap.xml/', '/wp-sitemap.xml' );
+
+		$this->assertCanonical( '/?sitemap=posts&sitemap-subtype=post', '/wp-sitemap-posts-post-1.xml' );
+		$this->assertCanonical( '/?sitemap=posts&sitemap-subtype=post&paged=2', '/wp-sitemap-posts-post-2.xml' );
+
+		$this->assertCanonical( '/?sitemap=taxonomies&sitemap-subtype=category', '/wp-sitemap-taxonomies-category-1.xml' );
+		$this->assertCanonical( '/?sitemap=taxonomies&sitemap-subtype=category&paged=2', '/wp-sitemap-taxonomies-category-2.xml' );
+
+		// Pretty versions don't redirect incorrectly.
+		$this->assertCanonical( '/wp-sitemap-posts-post-1.xml', '/wp-sitemap-posts-post-1.xml' );
+		$this->assertCanonical( '/wp-sitemap-posts-post-2.xml', '/wp-sitemap-posts-post-2.xml' );
+
+		$this->assertCanonical( '/wp-sitemap-taxonomies-category-1.xml', '/wp-sitemap-taxonomies-category-1.xml' );
+		$this->assertCanonical( '/wp-sitemap-taxonomies-category-2.xml', '/wp-sitemap-taxonomies-category-2.xml' );
+	}
 }
