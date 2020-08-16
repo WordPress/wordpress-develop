@@ -2359,7 +2359,7 @@ class WP_Site_Health {
 			),
 			'banners_rtl'   => array(),
 			'tested'        => '5.5.0',
-			'requires_php'  => '5.6.20',
+			'requires_php'  => '7.1.26',
 			'compatibility' => new stdClass(),
 		);
 
@@ -2369,7 +2369,7 @@ class WP_Site_Health {
 			'url'          => 'https://wordpress.org/themes/a-fake-theme/',
 			'package'      => 'https://downloads.wordpress.org/theme/a-fake-theme.9.9.zip',
 			'requires'     => '5.0.0',
-			'requires_php' => '5.6.20',
+			'requires_php' => '7.1.26',
 		);
 
 		$type = 'plugin';
