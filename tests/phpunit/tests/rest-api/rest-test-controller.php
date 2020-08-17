@@ -101,13 +101,14 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 					'default' => 'a',
 				),
 				'somearray'      => array(
-					'type'     => 'array',
-					'items'    => array(
+					'type'        => 'array',
+					'items'       => array(
 						'type' => 'string',
 					),
-					'minItems' => 1,
-					'maxItems' => 10,
-					'context'  => array( 'view' ),
+					'minItems'    => 1,
+					'maxItems'    => 10,
+					'uniqueItems' => true,
+					'context'     => array( 'view' ),
 				),
 				'someobject'     => array(
 					'type'                 => 'object',
