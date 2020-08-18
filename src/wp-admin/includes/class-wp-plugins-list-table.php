@@ -1101,7 +1101,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						}
 						$action     = 'unavailable';
 						$time_class = ' hidden';
-					} elseif ( ! $plugin_data['update-supported'] ) {
+					} elseif ( ! isset( $plugin_data['update-supported'] ) ) {
 						$text       = '';
 						$action     = 'unavailable';
 						$time_class = ' hidden';
