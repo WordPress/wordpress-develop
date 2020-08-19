@@ -1249,19 +1249,19 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	 * See https://github.com/sebastianbergmann/phpunit/issues/3425
 	 * Cannot just overload assertContains() as $b must be iterable..
 	 */
-	public function _WPassertContains( $a, $b, $c = "" ) {
+	public function _WPassertContains( $needle, $haystack, $message = '' ) {
 		if ( is_scalar( $b ) ) {
-			static::assertStringContainsString( $a, $b, $c );
+			static::assertStringContainsString( $needle, $haystack, $message );
 		} else {
-			static::assertContains( $a, $b, $c );
+			static::assertContains( $needle, $haystack, $message );
 		}
 	}
 
-	public function _WPassertNotContains( $a, $b, $c = "" ) {
+	public function _WPassertNotContains( $needle, $haystack, $message = "" ) {
 		if ( is_scalar( $b ) ) {
-			static::assertStringNotContainsString( $a, $b, $c );
+			static::assertStringNotContainsString( $needle, $haystack, $message );
 		} else {
-			static::assertNotContains( $a, $b, $c );
+			static::assertNotContains( $needle, $haystack, $message );
 		}
 	}
 

@@ -2,112 +2,112 @@
 
 trait WPPHPUnit8Compat {
 	// New
-	function _assertIsArray( $var, $message = '' ) {
-		$this->assertInternalType( 'array', $var, $message );
+	function _assertIsArray( $actual, $message = '' ) {
+		$this->assertInternalType( 'array', $actual, $message );
 	}
 
 	// New
-	function _assertIsBool( $var, $message = '' ) {
-		$this->assertInternalType( 'boolean', $var, $message );
+	function _assertIsBool( $actual, $message = '' ) {
+		$this->assertInternalType( 'boolean', $actual, $message );
 	}
 
 	// New
-	function _assertIsFloat( $var, $message = '' ) {
-		$this->assertInternalType( 'float', $var, $message );
+	function _assertIsFloat( $actual, $message = '' ) {
+		$this->assertInternalType( 'float', $actual, $message );
 	}
 
 	// New
-	function _assertIsInt( $var, $message = '' ) {
-		$this->assertInternalType( 'integer', $var, $message );
+	function _assertIsInt( $actual, $message = '' ) {
+		$this->assertInternalType( 'integer', $actual, $message );
 	}
 
 	// New
-	function _assertIsNumeric( $var, $message = '' ) {
-		$this->assertInternalType( 'numeric', $var, $message );
+	function _assertIsNumeric( $actual, $message = '' ) {
+		$this->assertInternalType( 'numeric', $actual, $message );
 	}
 
 	// New
-	function _assertIsObject( $var, $message = '' ) {
-		$this->assertInternalType( 'object', $var, $message );
+	function _assertIsObject( $actual, $message = '' ) {
+		$this->assertInternalType( 'object', $actual, $message );
 	}
 
 	// New
-	function _assertIsResource( $var, $message = '' ) {
-		$this->assertInternalType( 'resource', $var, $message );
+	function _assertIsResource( $actual, $message = '' ) {
+		$this->assertInternalType( 'resource', $actual, $message );
 	}
 
 	// New
-	function _assertIsString( $var, $message = '' ) {
-		$this->assertInternalType( 'string', $var, $message );
+	function _assertIsString( $actual, $message = '' ) {
+		$this->assertInternalType( 'string', $actual, $message );
 	}
 
 	// New
-	function _assertIsScalar( $var, $message = '' ) {
-		$this->assertInternalType( 'scalar', $var, $message );
+	function _assertIsScalar( $actual, $message = '' ) {
+		$this->assertInternalType( 'scalar', $actual, $message );
 	}
 
 	// New
-	function _assertIsCallable( $var, $message = '' ) {
-		$this->assertInternalType( 'callable', $var, $message );
+	function _assertIsCallable( $actual, $message = '' ) {
+		$this->assertInternalType( 'callable', $actual, $message );
 	}
 
 	// New
-	function _assertIsIterable( $var, $message = '' ) {
-		$this->assertInternalType( 'iterable', $var, $message );
+	function _assertIsIterable( $actual, $message = '' ) {
+		$this->assertInternalType( 'iterable', $actual, $message );
 	}
 
 	// New
-	function _assertIsNotArray( $var, $message = '' ) {
-		$this->assertNotInternalType( 'array', $var, $message );
+	function _assertIsNotArray( $actual, $message = '' ) {
+		$this->assertNotInternalType( 'array', $actual, $message );
 	}
 
 	// New
-	function _assertIsNotBool( $var, $message = '' ) {
-		$this->assertNotInternalType( 'boolean', $var, $message );
+	function _assertIsNotBool( $actual, $message = '' ) {
+		$this->assertNotInternalType( 'boolean', $actual, $message );
 	}
 
 	// New
-	function _assertIsNotFloat( $var, $message = '' ) {
-		$this->assertNotInternalType( 'float', $var, $message );
+	function _assertIsNotFloat( $actual, $message = '' ) {
+		$this->assertNotInternalType( 'float', $actual, $message );
 	}
 
 	// New
-	function _assertIsNotInt( $var, $message = '' ) {
-		$this->assertNotInternalType( 'integer', $var, $message );
+	function _assertIsNotInt( $actual, $message = '' ) {
+		$this->assertNotInternalType( 'integer', $actual, $message );
 	}
 
 	// New
-	function _assertIsNotNumeric( $var, $message = '' ) {
-		$this->assertNotInternalType( 'numeric', $var, $message );
+	function _assertIsNotNumeric( $actual, $message = '' ) {
+		$this->assertNotInternalType( 'numeric', $actual, $message );
 	}
 
 	// New
-	function _assertIsNotObject( $var, $message = '' ) {
-		$this->assertNotInternalType( 'object', $var, $message );
+	function _assertIsNotObject( $actual, $message = '' ) {
+		$this->assertNotInternalType( 'object', $actual, $message );
 	}
 
 	// New
-	function _assertIsNotResource( $var, $message = '' ) {
-		$this->assertNotInternalType( 'resource', $var, $message );
+	function _assertIsNotResource( $actual, $message = '' ) {
+		$this->assertNotInternalType( 'resource', $actual, $message );
 	}
 
 	// New
-	function _assertIsNotString( $var, $message = '' ) {
-		$this->assertNotInternalType( 'string', $var, $message );
+	function _assertIsNotString( $actual, $message = '' ) {
+		$this->assertNotInternalType( 'string', $actual, $message );
 	}
 
 	// New
-	function _assertIsNotScalar( $var, $message = '' ) {
-		$this->assertNotInternalType( 'scalar', $var, $message );
+	function _assertIsNotScalar( $actual, $message = '' ) {
+		$this->assertNotInternalType( 'scalar', $actual, $message );
 	}
 
 	// New
-	function _assertIsNotCallable( $var, $message = '' ) {
-		$this->assertNotInternalType( 'callable', $var, $message );
+	function _assertIsNotCallable( $actual, $message = '' ) {
+		$this->assertNotInternalType( 'callable', $actual, $message );
 	}
 
 	// New
-	function _assertIsNotIterable( $var, $message = '' ) {
-		$this->assertNotInternalType( 'iterable', $var, $message );
+	function _assertIsNotIterable( $actual, $message = '' ) {
+		$this->assertNotInternalType( 'iterable', $actual, $message );
 	}
 }
