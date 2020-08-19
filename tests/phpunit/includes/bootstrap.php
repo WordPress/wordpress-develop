@@ -160,9 +160,20 @@ require_once ABSPATH . '/wp-settings.php';
 // Delete any default posts & related data.
 _delete_all_posts();
 
-if ( version_compare( tests_get_phpunit_version(), '7.0', '>=' ) ) {
-	require __DIR__ . '/phpunit7/testcase.php';
-} else {
+foreach ( range( (int)tests_get_phpunit_version(), 5 ) as $phpunit_major_version ) {
+	$phpunit_compat_dir = __DIR__ "/phpunit{$phpunit_major_version}";
+
+	if ( ! class_exists( 'WP_UnitTestCase' ) && file_exists( "{$phpunit_compat_dir}/testcase.php" ) ) {
+		require_once "{$phpunit_compat_dir}/testcase.php";
+	}
+
+	if ( file_exists( "{$phpunit_compat_dir}/compat.php" ) ) {
+		require_once "{$phpunit_compat_dir}/compat.php";
+	}
+}
+
+
+if ( ! class_exists( 'WP_UnitTestCase' ) ) {
 	require __DIR__ . '/testcase.php';
 }
 
