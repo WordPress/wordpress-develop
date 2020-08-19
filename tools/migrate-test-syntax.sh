@@ -11,7 +11,7 @@ function search_replace_raw() {
 }
 
 function search_replace_assert() {
-	search_replace_raw "\$this->'$1'" "\$this->'$2'"
+	search_replace_raw "\$this->$1" "\$this->$2"
 }
 
 # these functions definition needs to return void as of PHPUnit8, so we have have our own middleware.
