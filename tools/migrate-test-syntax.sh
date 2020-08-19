@@ -16,8 +16,8 @@ done
 
 # assertContains() no longer handles non-iterables, middleware it as _WPassertContains() fow now.
 # This avoids having non-phpunit-related changes in this branch.
-grep assertContains tests/phpunit/ -rli | xargs -I% sed -i 's~\$this->assertContains~\$this->_WPassertContains~' %
-grep assertNotContains tests/phpunit/ -rli | xargs -I% sed -i 's~\$this->assertNotContains~\$this->_WPassertNotContains~' %
+grep assertContains tests/phpunit/ -rli --exclude-dir=phpunit-compat-traits | xargs -I% sed -i 's~\$this->assertContains~\$this->_WPassertContains~' %
+grep assertNotContains tests/phpunit/ -rli --exclude-dir=phpunit-compat-traits | xargs -I% sed -i 's~\$this->assertNotContains~\$this->_WPassertNotContains~' %
 
 # Output a diff of the modifications for reference.
 git diff .
