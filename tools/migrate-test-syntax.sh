@@ -4,9 +4,9 @@
 for void_function in setUpBeforeClass setUp assertPreConditions assertPostConditions tearDown tearDownAfterClass onNotSuccessfulTest
 do
 	echo Converting ${void_function}..
-	grep "function\s*${void_function}()\s*{" tests/phpunit/ -rli || echo No affected files.
-	grep "function\s*${void_function}()\s*{" tests/phpunit/ -rli | xargs -I% sed -i "s!function\s*${void_function}()!function _${void_function}()!gi" %
-	grep "parent::${void_function}" tests/phpunit/ -rli | xargs -I% sed -i "s!parent::${void_function}!parent::_${void_function}!gi" %
+	grep "function\s*${void_function}()\s*{" tests/phpunit/ -rli --exclude-dir=phpunit-compat-traits || echo No affected files.
+	grep "function\s*${void_function}()\s*{" tests/phpunit/ -rli --exclude-dir=phpunit-compat-traits | xargs -I% sed -i "s!function\s*${void_function}()!function _${void_function}()!gi" %
+	grep "parent::${void_function}" tests/phpunit/ -rli --exclude-dir=phpunit-compat-traits | xargs -I% sed -i "s!parent::${void_function}!parent::_${void_function}!gi" %
 	echo
 done
 
