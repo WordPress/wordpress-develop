@@ -1,9 +1,8 @@
 <?php
-
-require_once __DIR__ . '/trait-wp-phpunit-compat-methods-caller.php';
-
+/**
+ * Trait that contains any new/needed functionality from PHPUnit 8
+ */
 trait WP_PHPUnit8_Compat {
-	use WP_PHPUnit_Compat_Methods_Caller;
 
 	// New
 	function _assertIsArray( $actual, $message = '' ) {

@@ -1,13 +1,13 @@
 <?php
-
-require_once __DIR__ . '/trait-wp-phpunit-compat-methods-caller.php';
+/**
+ * Trait that contains any new/needed functionality from PHPUnit 9
+ */
 
 use PHPUnit\Framework\Error\Deprecated;
 use PHPUnit\Framework\Error\Notice;
 use PHPUnit\Framework\Error\Warning;
 
 trait WP_PHPUnit9_Compat {
-	use WP_PHPUnit_Compat_Methods_Caller;
 
 	// New
 	function _assertStringContainsString( $needle, $haystack, $message = '' ) {
