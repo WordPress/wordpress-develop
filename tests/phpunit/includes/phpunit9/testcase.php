@@ -1,7 +1,9 @@
 <?php
 
+// TODO: This file probably needs copying as ../phpunit8/testcase.php
+
 require_once dirname( __DIR__ ) . '/abstract-testcase.php';
-require_once dirname( __DIR__ ) . '/phpunit-compat-traits/trait-wp-php71-test-framework.php';
+require_once dirname( __DIR__ ) . '/phpunit-compat-traits/trait-wp-php72-test-framework.php';
 require_once dirname( __DIR__ ) . '/phpunit-compat-traits/trait-wp-call-compat.php';
 require_once dirname( __DIR__ ) . '/phpunit-compat-traits/trait-wp-phpunit9-compat.php';
 require_once dirname( __DIR__ ) . '/phpunit-compat-traits/trait-wp-phpunit8-compat.php';
