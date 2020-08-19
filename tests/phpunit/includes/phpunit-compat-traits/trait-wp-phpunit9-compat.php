@@ -32,9 +32,9 @@ trait WPPHPUnit9Compat {
 	// Removed
 	function _assertInternalType( $expected, $actual, $message = '' ) {
 		if ( 'integer' === $expected ) {
-			$type = 'int';
+			$expected = 'int';
 		} elseif ( 'boolean' === $expected ) {
-			$type = 'bool';
+			$expected = 'bool';
 		}
 
 		$method = "assertIs{$expected}";
@@ -45,9 +45,9 @@ trait WPPHPUnit9Compat {
 	// Removed
 	function _assertNotInternalType( $expected, $actual, $message = '' ) {
 		if ( 'integer' === $expected ) {
-			$type = 'int';
+			$expected = 'int';
 		} elseif ( 'boolean' === $expected ) {
-			$type = 'bool';
+			$expected = 'bool';
 		}
 
 		$method = "assertIsNot{$expected}";
