@@ -8,6 +8,7 @@ require_once dirname( __DIR__ ) . '/phpunit-compat-traits/trait-wp-php5-test-fra
 require_once dirname( __DIR__ ) . '/phpunit-compat-traits/trait-wp-call-compat.php';
 require_once dirname( __DIR__ ) . '/phpunit-compat-traits/trait-wp-phpunit9-compat.php';
 require_once dirname( __DIR__ ) . '/phpunit-compat-traits/trait-wp-phpunit8-compat.php';
+require_once dirname( __DIR__ ) . '/phpunit-compat-traits/trait-wp-phpunit7-compat.php';
 
 /**
  * Defines a basic fixture to run multiple tests.
@@ -23,4 +24,5 @@ class WP_UnitTestCase extends WP_UnitTestCase_Base {
 	use WPPHP5TestFramework;
 	use WPPHPUnit9Compat;
 	use WPPHPUnit8Compat;
+	use WPPHPUnit7Compat;
 }
