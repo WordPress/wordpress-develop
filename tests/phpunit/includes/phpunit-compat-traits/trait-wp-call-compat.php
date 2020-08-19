@@ -10,7 +10,7 @@ trait WPCallCompat {
 		}
 	}
 
-	public static __callStatic( $method, $args ) {
+	public static function __callStatic( $method, $args ) {
 		$compat_method = "static::_{$method}";
 		if ( is_callable( $compat_method ) ) {
 			call_user_func_array( $compat_method, $args );
