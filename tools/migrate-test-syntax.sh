@@ -5,11 +5,11 @@ for void_function in setUpBeforeClass setUp assertPreConditions assertPostCondit
 do
 	echo Converting ${void_function}..
 	grep "function\s*${void_function}()\s*{" tests/phpunit/ -rli --exclude-dir=phpunit-compat-traits || echo No affected files.
-	grep "function\s*${void_function}()\s*{" tests/phpunit/ -rli --exclude-dir=phpunit-compat-traits | xargs -I% sed -i "s!function\s*${void_function}()!function _${void_function}()!gi" %
+	grep "function\s*${void_function}()\s*{" tests/phpunit/ -rli --exclude-dir=phpunit-compat-traits | xargs -I% sed -i "s~function\s*${void_function}()~function _${void_function}()~gi" %
 
 	# Convert parent:: calls too, except in abstract-testcase which no longer needs to call it's parent method.
-	sed -i "s!parent::${void_function}!// parent::_${void_function}!gi" tests/phpunit/abstract-testcase.php
-	grep "parent::${void_function}" tests/phpunit/ -rli --exclude-dir=phpunit-compat-traits | xargs -I% sed -i "s!parent::${void_function}!parent::_${void_function}!gi" %
+	sed -i "s~parent::${void_function}~// parent::_${void_function}~gi" tests/phpunit/includes/abstract-testcase.php
+	grep "parent::${void_function}" tests/phpunit/ -rli --exclude-dir=phpunit-compat-traits | xargs -I% sed -i "s~parent::${void_function}~parent::_${void_function}~gi" %
 
 	echo
 done
