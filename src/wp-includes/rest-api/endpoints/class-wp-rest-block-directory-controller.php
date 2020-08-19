@@ -95,6 +95,20 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 		$result = array();
 
 		foreach ( $response->plugins as $plugin ) {
+
+			// If the API returned a plugin with empty data for 'blocks', we can't use it.
+			if ( ! isset( $plugin['blocks'] ) || empty( $plugin['blocks'] ) ) {
+				continue;
+			}
+
+			// There might be multiple blocks in a plugin. Only the first block is mapped.
+			$plugin['block'] = reset( $plugin['blocks'] );
+
+			// If the API returned a plugin with a block that has no name, we can't use it.
+			if ( ! isset( $plugin['block']['name'] ) || empty( $plugin['block']['name'] ) ) {
+				continue;
+			}
+
 			$data     = $this->prepare_item_for_response( $plugin, $request );
 			$result[] = $this->prepare_response_for_collection( $data );
 		}
@@ -113,13 +127,10 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
 	 */
 	public function prepare_item_for_response( $plugin, $request ) {
-		// There might be multiple blocks in a plugin. Only the first block is mapped.
-		$block_data = reset( $plugin['blocks'] );
-
 		// A data array containing the properties we'll return.
 		$block = array(
-			'name'                => $block_data['name'],
-			'title'               => ( $block_data['title'] ? $block_data['title'] : $plugin['name'] ),
+			'name'                => $plugin['block']['name'],
+			'title'               => ( $plugin['block']['title'] ? $plugin['block']['title'] : $plugin['name'] ),
 			'description'         => wp_trim_words( $plugin['description'], 30, '...' ),
 			'id'                  => $plugin['slug'],
 			'rating'              => $plugin['rating'] / 20,
