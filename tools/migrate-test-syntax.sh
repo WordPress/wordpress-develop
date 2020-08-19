@@ -32,7 +32,6 @@ done
 search_replace_assert assertContains _WPassertContains
 search_replace_assert assertNotContains _WPassertNotContains
 
-
 # Deprecated functions - Swap for direct replacements, avoids extra noise in PHP 8 tests while testing
 
 # assertFileNotExists() -> assertFileDoesNotExist()
@@ -42,6 +41,34 @@ search_replace_assert assertFileNotExists assertFileDoesNotExist
 # assertNotRegExp() -> assertDoesNotMatchRegularExpression()
 search_replace_assert assertRegExp assertMatchesRegularExpression
 search_replace_assert assertNotRegExp assertDoesNotMatchRegularExpression
+
+# Migrate the assertInternalType() and assertNotInternalType() over
+search_replace_assert "assertInternalType(\s*'array'," "assertIsArray("
+search_replace_assert "assertInternalType(\s*'boolean'," "assertIsBool("
+search_replace_assert "assertInternalType(\s*'bool'," "assertIsBool("
+search_replace_assert "assertInternalType(\s*'float'," "assertIsFloat("
+search_replace_assert "assertInternalType(\s*'integer'," "assertIsInt("
+search_replace_assert "assertInternalType(\s*'int'," "assertIsInt("
+search_replace_assert "assertInternalType(\s*'numeric'," "assertIsNumeric("
+search_replace_assert "assertInternalType(\s*'object'," "assertIsObject("
+search_replace_assert "assertInternalType(\s*'resource'," "assertIsResource("
+search_replace_assert "assertInternalType(\s*'string'," "assertIsString("
+search_replace_assert "assertInternalType(\s*'scalar'," "assertIsScalar("
+search_replace_assert "assertInternalType(\s*'callable'," "assertIsCallable("
+search_replace_assert "assertInternalType(\s*'iterable'," "assertIsIterable("
+search_replace_assert "assertNotInternalType(\s*'array'," "assertIsNotArray("
+search_replace_assert "assertNotInternalType(\s*'boolean'," "assertIsNotBool("
+search_replace_assert "assertNotInternalType(\s*'bool'," "assertIsNotBool("
+search_replace_assert "assertNotInternalType(\s*'float'," "assertIsNotFloat("
+search_replace_assert "assertNotInternalType(\s*'integer'," "assertIsNotInt("
+search_replace_assert "assertNotInternalType(\s*'int'," "assertIsNotInt("
+search_replace_assert "assertNotInternalType(\s*'numeric'," "assertIsNotNumeric("
+search_replace_assert "assertNotInternalType(\s*'object'," "assertIsNotObject("
+search_replace_assert "assertNotInternalType(\s*'resource'," "assertIsNotResource("
+search_replace_assert "assertNotInternalType(\s*'string'," "assertIsNotString("
+search_replace_assert "assertNotInternalType(\s*'scalar'," "assertIsNotScalar("
+search_replace_assert "assertNotInternalType(\s*'callable'," "assertIsNotCallable("
+search_replace_assert "assertNotInternalType(\s*'iterable'," "assertIsNotIterable("
 
 # Output a diff of the modifications for reference.
 git diff .
