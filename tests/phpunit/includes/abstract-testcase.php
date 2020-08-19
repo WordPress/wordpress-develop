@@ -1250,7 +1250,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	 * Cannot just overload assertContains() as $b must be iterable..
 	 */
 	public function _WPassertContains( $needle, $haystack, $message = '' ) {
-		if ( is_scalar( $b ) ) {
+		if ( is_scalar( $haystack ) ) {
 			static::assertStringContainsString( $needle, $haystack, $message );
 		} else {
 			static::assertContains( $needle, $haystack, $message );
@@ -1258,7 +1258,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	public function _WPassertNotContains( $needle, $haystack, $message = "" ) {
-		if ( is_scalar( $b ) ) {
+		if ( is_scalar( $haystack ) ) {
 			static::assertStringNotContainsString( $needle, $haystack, $message );
 		} else {
 			static::assertNotContains( $needle, $haystack, $message );
