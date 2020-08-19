@@ -786,7 +786,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 				'user_ID'              => $user->ID,
 				'user_id'              => $user->ID,
 				'comment_author_IP'    => '127.0.0.1',
-				'comment_agent'        => ''
+				'comment_agent'        => '',
 			),
 			$this->preprocess_comment_data
 		);
