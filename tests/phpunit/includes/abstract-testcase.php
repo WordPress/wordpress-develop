@@ -1247,7 +1247,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	/**
 	 * PHPUnits assertContains() used to handle a lot of use-cases, but as of PHPUnit 8 it only does arrays.
 	 * See https://github.com/sebastianbergmann/phpunit/issues/3425
-	 * Cannot just overload assertContains() as $b must be iterable..
+	 * Cannot just overload assertContains() as $haystack must be iterable..
+	 *
+	 * TODO: These functions are temporary and should be removed. All Tests need to switch to the proper functions.
+	 *       They're only here to make the PR reasonable.
 	 */
 	public function _WPassertContains( $needle, $haystack, $message = '' ) {
 		if ( is_scalar( $haystack ) ) {
