@@ -9,7 +9,7 @@ trait WPPHPUnit9Compat {
 	}
 
 	// New
-	function assertStringNotContainsString( $needle, $haystack, $message = '' ) {
+	function _assertStringNotContainsString( $needle, $haystack, $message = '' ) {
 		// In older versions of PHPUnit, we can just pass through to assertContains.
 		$this->assertNotContains( $needle, $haystack, $message );
 	}
