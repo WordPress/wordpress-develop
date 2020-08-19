@@ -1,6 +1,6 @@
 <?php
 
-trait WPPHP71TestFramework {
+trait WPPHP72TestFramework {
 
     /**
      * This method is called before the first test of this test class is run.

@@ -17,7 +17,7 @@ require_once dirname( __DIR__ ) . '/phpunit-compat-traits/trait-wp-phpunit8-comp
  */
 class WP_UnitTestCase extends WP_UnitTestCase_Base {
 	use WPCallCompat;
-	use WPPHP71TestFramework;
+	use WPPHP72TestFramework;
 	use WPPHPUnit9Compat;
 	use WPPHPUnit8Compat;
 }
