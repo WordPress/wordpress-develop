@@ -4,6 +4,8 @@ trait WP_PHP5_Test_Framework {
 
     /**
      * This method is called before the first test of this test class is run.
+	 *
+	 * Note that `wpSetUpBeforeClass()` also exists.
      */
     public static function setUpBeforeClass() {
 		if ( is_callable( 'static::_setUpBeforeClass' ) ) {
@@ -13,6 +15,8 @@ trait WP_PHP5_Test_Framework {
 
     /**
      * This method is called after the last test of this test class is run.
+	 *
+	 * Note that `wpTearDownAfterClass()` also exists.
      */
     public static function tearDownAfterClass() {
 		if ( is_callable( 'static::_tearDownAfterClass' ) ) {
