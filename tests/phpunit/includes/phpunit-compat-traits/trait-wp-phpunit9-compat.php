@@ -3,15 +3,15 @@
 trait WPPHPUnit9Compat {
 
 	// New
-	function _assertStringContainsString( $a, $b, $c = '' ) {
+	function _assertStringContainsString( $needle, $haystack, $message = '' ) {
 		// In older versions of PHPUnit, we can just pass through to assertContains.
-		$this->assertContains( $a, $b, $c );
+		$this->assertContains( $needle, $haystack, $message );
 	}
 
 	// New
-	function assertStringNotContainsString( $a, $b, $c = '' ) {
+	function assertStringNotContainsString( $needle, $haystack, $message = '' ) {
 		// In older versions of PHPUnit, we can just pass through to assertContains.
-		$this->assertNotContains( $a, $b, $c );
+		$this->assertNotContains( $needle, $haystack, $message );
 	}
 
 	// New
@@ -30,29 +30,29 @@ trait WPPHPUnit9Compat {
 	}
 
 	// Removed
-	function _assertInternalType( $type, $var, $message = '' ) {
-		if ( 'integer' === $type ) {
+	function _assertInternalType( $expected, $actual, $message = '' ) {
+		if ( 'integer' === $expected ) {
 			$type = 'int';
-		} elseif ( 'boolean' === $type ) {
+		} elseif ( 'boolean' === $expected ) {
 			$type = 'bool';
 		}
 
-		$method = "assertIs{$type}";
+		$method = "assertIs{$expected}";
 
-		$this->$method( $var, $message );
+		$this->$method( $actual, $message );
 	}
 
 	// Removed
-	function _assertNotInternalType( $type, $var, $message = '' ) {
-		if ( 'integer' === $type ) {
+	function _assertNotInternalType( $expected, $actual, $message = '' ) {
+		if ( 'integer' === $expected ) {
 			$type = 'int';
-		} elseif ( 'boolean' === $type ) {
+		} elseif ( 'boolean' === $expected ) {
 			$type = 'bool';
 		}
 
-		$method = "assertIsNot{$type}";
+		$method = "assertIsNot{$expected}";
 
-		$this->$method( $var, $message );
+		$this->$method( $actual, $message );
 	}
 
 }
