@@ -160,8 +160,8 @@ require_once ABSPATH . '/wp-settings.php';
 // Delete any default posts & related data.
 _delete_all_posts();
 
-foreach ( range( (int)tests_get_phpunit_version(), 5 ) as $phpunit_major_version ) {
-	$phpunit_compat_dir = __DIR__ "/phpunit{$phpunit_major_version}";
+foreach ( range( (int) tests_get_phpunit_version(), 5 ) as $phpunit_major_version ) {
+	$phpunit_compat_dir = __DIR__ . "/phpunit{$phpunit_major_version}";
 
 	if ( ! class_exists( 'WP_UnitTestCase' ) && file_exists( "{$phpunit_compat_dir}/testcase.php" ) ) {
 		require_once "{$phpunit_compat_dir}/testcase.php";
@@ -170,11 +170,6 @@ foreach ( range( (int)tests_get_phpunit_version(), 5 ) as $phpunit_major_version
 	if ( file_exists( "{$phpunit_compat_dir}/compat.php" ) ) {
 		require_once "{$phpunit_compat_dir}/compat.php";
 	}
-}
-
-
-if ( ! class_exists( 'WP_UnitTestCase' ) ) {
-	require __DIR__ . '/testcase.php';
 }
 
 require __DIR__ . '/testcase-rest-api.php';
