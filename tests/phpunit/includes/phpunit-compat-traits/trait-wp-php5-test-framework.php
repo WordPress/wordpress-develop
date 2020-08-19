@@ -24,8 +24,8 @@ trait WPPHP5TestFramework {
      * This method is called before each test.
      */
     protected function setUp() {
-		if ( is_callable( 'static::_setUp' ) ) {
-			static::_setUp();
+		if ( method_exists( $this, '_setUp' ) ) {
+			$this->_setUp();
 		}
     }
 
@@ -33,8 +33,8 @@ trait WPPHP5TestFramework {
      * This method is called after each test.
      */
     protected function tearDown() {
-		if ( is_callable( 'static::_tearDown' ) ) {
-			static::_tearDown();
+		if ( method_exists( $this, '_tearDown' ) ) {
+			$this->_tearDown();
 		}
 	}
 
@@ -44,8 +44,8 @@ trait WPPHP5TestFramework {
      * This method is called between setUp() and test.
      */
     protected function assertPreConditions() {
-		if ( is_callable( 'static::_assertPreConditions' ) ) {
-			static::_assertPreConditions();
+		if ( method_exists( $this, '_assertPreConditions' ) ) {
+			$this->_assertPreConditions();
 		}
     }
 
@@ -55,8 +55,8 @@ trait WPPHP5TestFramework {
      * This method is called between test and tearDown().
      */
     protected function assertPostConditions() {
-		if ( is_callable( 'static::_assertPostConditions' ) ) {
-			static::_assertPostConditions();
+		if ( method_exists( $this, '_assertPostConditions' ) ) {
+			$this->_assertPostConditions();
 		}
     }
 
