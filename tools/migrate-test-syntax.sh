@@ -6,7 +6,7 @@ function find_matching_files() {
 
 function search_replace_raw() {
 	while read -r file; do
-		sed -i "s~$1~$2~" $file
+		sed -i "s~$1~$2~i" $file
 	done < <( find_matching_files $1 )
 }
 
