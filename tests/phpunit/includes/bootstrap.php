@@ -153,6 +153,9 @@ require_once ABSPATH . '/wp-settings.php';
 // Delete any default posts & related data.
 _delete_all_posts();
 
+require_once __DIR__ . '/abstract-testcase.php';
+require_once __DIR__ . '/phpunit-compat-traits/trait-wp-phpunit-compat.php';
+
 // Load a WP_UnitTestCase class compatible with the latest version of PHPUnit, plus any compat files for older versions.
 foreach ( range( (int) tests_get_phpunit_version(), 5 ) as $phpunit_major_version ) {
 	$phpunit_compat_dir = __DIR__ . "/phpunit{$phpunit_major_version}";
