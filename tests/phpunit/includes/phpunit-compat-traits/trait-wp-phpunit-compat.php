@@ -1,4 +1,9 @@
 <?php
+
+require_once __DIR__  . '/trait-wp-phpunit9-compat.php';
+require_once __DIR__  . '/trait-wp-phpunit8-compat.php';
+require_once __DIR__  . '/trait-wp-phpunit7-compat.php';
+
 /**
  * This trait is a __call() function for the PHPUnit Compat traits.
  * 
@@ -6,7 +11,12 @@
  * 
  * All compat methods are prefixed with an underscore, and will only be used if the current PHPUnit in play doesn't support it natively.
  */
-trait WP_PHPUnit_Compat_Caller {
+trait WP_PHPUnit_Compat {
+
+	// The PHPUnit compat classes
+	use WP_PHPUnit9_Compat;
+	use WP_PHPUnit8_Compat;
+	use WP_PHPUnit7_Compat;
 
 	function __call( $method, $args ) {
 		$compat_method = "_{$method}";
