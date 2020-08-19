@@ -73,6 +73,3 @@ search_replace_assert "assertNotInternalType(\s*'iterable'," "assertIsNotIterabl
 
 # Output a diff of the modifications for reference.
 git diff .
-
-# Lint check the modified files.
-git diff --name-only tests/phpunit/ | xargs -I% php -l %
