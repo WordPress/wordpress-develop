@@ -14,6 +14,21 @@ trait WPPHPUnit9Compat {
 		$this->assertNotContains( $a, $b, $c );
 	}
 
+	// New
+	function _assertMatchesRegularExpression( $pattern, $string, $message = '' ) {
+		$this->assertRegExp( $pattern, $string, $message );
+	}
+
+	// New
+	function _assertDoesNotMatchRegularExpression( $pattern, $string, $message = '' ) {
+		$this->assertNotRegExp( $pattern, $string, $message );
+	}
+
+	// Deprecated
+	function _assertFileDoesNotExist( $file, $message = '' ) {
+		$this->assertFileNotExists( $file, $message );
+	}
+
 	// Removed
 	function _assertInternalType( $type, $var, $message = '' ) {
 		if ( 'integer' === $type ) {
@@ -40,9 +55,4 @@ trait WPPHPUnit9Compat {
 		$this->$method( $var, $message );
 	}
 
-	// Deprecated
-	function _assertFileDoesNotExist( $file, $message = '' ) {
-		$this->assertFileNotExists( $file, $message );
-	}
-	
 }

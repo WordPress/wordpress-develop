@@ -19,6 +19,16 @@ done
 grep assertContains tests/phpunit/ -rli --exclude-dir=phpunit-compat-traits | xargs -I% sed -i 's~\$this->assertContains~\$this->_WPassertContains~' %
 grep assertNotContains tests/phpunit/ -rli --exclude-dir=phpunit-compat-traits | xargs -I% sed -i 's~\$this->assertNotContains~\$this->_WPassertNotContains~' %
 
+# Deprecated functions - Swap for direct replacements, avoids extra noise in PHP 8 tests while testing
+
+# assertFileNotExists() -> assertFileDoesNotExist()
+grep assertFileNotExists tests/phpunit/ -rli | xargs -I% sed -i 's~\$this->assertFileNotExists~\$this->assertFileDoesNotExist~' %
+
+# assertRegExp() -> assertMatchesRegularExpression()
+# assertNotRegExp() -> assertDoesNotMatchRegularExpression()
+grep assertRegExp tests/phpunit/ -rli | xargs -I% sed -i 's~\$this->assertRegExp~\$this->assertMatchesRegularExpression~' %
+grep assertNotRegExp tests/phpunit/ -rli | xargs -I% sed -i 's~\$this->assertNotRegExp~\$this->assertDoesNotMatchRegularExpression~' %
+
 # Output a diff of the modifications for reference.
 git diff .
 
