@@ -1,6 +1,7 @@
 <?php
-
-// TODO: This file probably needs copying as ../phpunit8/testcase.php
+/**
+ * This file is for PHPUnit 8+, it uses PHP 7.2 syntax for the PHPUnit functions.
+ */
 
 require_once dirname( __DIR__ ) . '/abstract-testcase.php';
 require_once dirname( __DIR__ ) . '/phpunit-compat-traits/trait-wp-php72-test-framework.php';
