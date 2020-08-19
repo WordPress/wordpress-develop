@@ -11,6 +11,8 @@ function search_replace_raw() {
 }
 
 function search_replace_assert() {
+	echo Converting $1..
+
 	search_replace_raw "\$this->$1" "\$this->$2"
 }
 
@@ -24,7 +26,6 @@ do
 	# abstract-testcase no longer needs to call it's parent methods.
 	sed -i "/parent::_${void_function}()/d" tests/phpunit/includes/abstract-testcase.php
 
-	echo
 done
 
 # assertContains() no longer handles non-iterables, middleware it as _WPassertContains() fow now.
