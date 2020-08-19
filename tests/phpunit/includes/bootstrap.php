@@ -3,13 +3,6 @@
  * Installs WordPress for running the tests and loads WordPress and the test libraries
  */
 
-/**
- * Compatibility with PHPUnit 6+
- */
-if ( class_exists( 'PHPUnit\Runner\Version' ) ) {
-	require_once __DIR__ . '/phpunit6/compat.php';
-}
-
 if ( defined( 'WP_TESTS_CONFIG_FILE_PATH' ) ) {
 	$config_file_path = WP_TESTS_CONFIG_FILE_PATH;
 } else {
@@ -160,6 +153,7 @@ require_once ABSPATH . '/wp-settings.php';
 // Delete any default posts & related data.
 _delete_all_posts();
 
+// Load a WP_UnitTestCase class compatible with the latest version of PHPUnit, plus any compat files for older versions.
 foreach ( range( (int) tests_get_phpunit_version(), 5 ) as $phpunit_major_version ) {
 	$phpunit_compat_dir = __DIR__ . "/phpunit{$phpunit_major_version}";
 

@@ -1,6 +1,11 @@
 <?php
+/**
+ * This trait is a __call() function for the PHPUnit Compat traits.
+ * It's only job is to catch a method call to a non-existent function, which we may have a compat method for.
+ * All compat methods are prefixed with an underscore.
+ */
+trait WP_PHPUnit_Compat_Methods_Caller {
 
-trait WPCallCompat {
 	function __call( $method, $args ) {
 		$compat_method = "_{$method}";
 		if ( '_' != $method[0] && method_exists( $this, $compat_method ) ) {

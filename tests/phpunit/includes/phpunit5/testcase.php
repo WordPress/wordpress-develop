@@ -5,7 +5,6 @@
 
 require_once dirname( __DIR__ ) . '/abstract-testcase.php';
 require_once dirname( __DIR__ ) . '/phpunit-compat-traits/trait-wp-php5-test-framework.php';
-require_once dirname( __DIR__ ) . '/phpunit-compat-traits/trait-wp-call-compat.php';
 require_once dirname( __DIR__ ) . '/phpunit-compat-traits/trait-wp-phpunit9-compat.php';
 require_once dirname( __DIR__ ) . '/phpunit-compat-traits/trait-wp-phpunit8-compat.php';
 require_once dirname( __DIR__ ) . '/phpunit-compat-traits/trait-wp-phpunit7-compat.php';
@@ -20,9 +19,9 @@ require_once dirname( __DIR__ ) . '/phpunit-compat-traits/trait-wp-phpunit7-comp
  * All WordPress unit tests should inherit from this class.
  */
 class WP_UnitTestCase extends WP_UnitTestCase_Base {
-	use WPCallCompat;
-	use WPPHP5TestFramework;
-	use WPPHPUnit9Compat;
-	use WPPHPUnit8Compat;
-	use WPPHPUnit7Compat;
+	use WP_PHP5_Test_Framework;
+
+	use WP_PHPUnit9_Compat;
+	use WP_PHPUnit8_Compat;
+	use WP_PHPUnit7_Compat;
 }

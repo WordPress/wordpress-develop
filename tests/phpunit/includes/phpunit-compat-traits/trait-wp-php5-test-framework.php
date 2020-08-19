@@ -1,6 +1,6 @@
 <?php
 
-trait WPPHP5TestFramework {
+trait WP_PHP5_Test_Framework {
 
     /**
      * This method is called before the first test of this test class is run.
