@@ -1,5 +1,9 @@
 <?php
 
+use PHPUnit\Framework\Error\Deprecated;
+use PHPUnit\Framework\Error\Notice;
+use PHPUnit\Framework\Error\Warning;
+
 trait WPPHPUnit9Compat {
 
 	// New
@@ -22,6 +26,21 @@ trait WPPHPUnit9Compat {
 	// New
 	function _assertDoesNotMatchRegularExpression( $pattern, $string, $message = '' ) {
 		$this->assertNotRegExp( $pattern, $string, $message );
+	}
+
+	// New
+	function _expectDeprecation() {
+		$this->expectException( Deprecated::class );
+	}
+
+	// New
+	function _expectNotice() {
+		$this->expectException( Notice::class );
+	}
+
+	// New
+	function _expectWarning() {
+		$this->expectException( Warning::class );
 	}
 
 	// Deprecated
