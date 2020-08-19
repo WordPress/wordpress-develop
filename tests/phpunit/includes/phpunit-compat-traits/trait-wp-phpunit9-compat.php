@@ -2,6 +2,12 @@
 
 trait WPPHPUnit9Compat {
 
+	// New
+	function _assertStringContainsString( $a, $b, $c = "" ) {
+		// In older versions of PHPUnit, we can just pass through to assertContains.
+		$this->assertContains( $a, $b, $c );
+	}
+
 	// Removed
 	function _assertInternalType( $type, $var, $message = "" ) {
 		if ( 'integer' === $type ) {
