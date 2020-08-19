@@ -11,3 +11,15 @@ RUN curl -sL https://phar.phpunit.de/phpunit-9.phar > /usr/local/bin/phpunit && 
 
 # Use the PHP8 + PHPUnit9 dockerfile
 sed -i 's!phpunit:$!phpunit:\n    build:\n      context: .\n      dockerfile: php8.dockerFile!i' docker-compose.yml
+
+
+# assertContains() no longer handles non-iterables, middleware it as _WPassertContains() fow now.
+# This avoids having non-phpunit-related changes in this branch.
+grep assertContains tests/phpunit/ -rli | xargs -I% sed -i 's~\$this->assertContains~\$this->_WPassertContains~' %
+grep assertNotContains tests/phpunit/ -rli | xargs -I% sed -i 's~\$this->assertNotContains~\$this->_WPassertNotContains~' %
+
+# Output a diff of the modifications for reference.
+git diff .
+
+# Lint check the modified files.
+git diff --name-only tests/phpunit/ | xargs -I% php -l %

@@ -1243,4 +1243,26 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 			)
 		);
 	}
+
+	/**
+	 * PHPUnits assertContains() used to handle a lot of use-cases, but as of PHPUnit 8 it only does arrays.
+	 * See https://github.com/sebastianbergmann/phpunit/issues/3425
+	 * Cannot just overload assertContains() as $b must be iterable..
+	 */
+	public function _WPassertContains( $a, $b, $c = "" ) {
+		if ( is_scalar( $b ) ) {
+			static::assertStringContainsString( $a, $b, $c );
+		} else {
+			static::assertContains( $a, $b, $c );
+		}
+	}
+
+	public function _WPassertNotContains( $a, $b, $c = "" ) {
+		if ( is_scalar( $b ) ) {
+			static::assertStringNotContainsString( $a, $b, $c );
+		} else {
+			static::assertNotContains( $a, $b, $c );
+		}
+	}
+
 }
