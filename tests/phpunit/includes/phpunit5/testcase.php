@@ -1,4 +1,7 @@
 <?php
+/**
+ * This file is for PHPUnit 5-7, it uses PHP 5.6+ syntax for the PHPUnit functions.
+ */
 
 require_once dirname( __DIR__ ) . '/abstract-testcase.php';
 require_once dirname( __DIR__ ) . '/phpunit-compat-traits/trait-wp-php5-test-framework.php';
