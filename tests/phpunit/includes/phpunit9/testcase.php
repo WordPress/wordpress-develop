@@ -1,6 +1,7 @@
 <?php
 
 require_once dirname( __DIR__ ) . '/abstract-testcase.php';
+require_once dirname( __DIR__ ) . '/phpunit-compat-traits/trait-wp-php71-test-framework.php';
 
 /**
  * Defines a basic fixture to run multiple tests.
@@ -12,4 +13,5 @@ require_once dirname( __DIR__ ) . '/abstract-testcase.php';
  * All WordPress unit tests should inherit from this class.
  */
 class WP_UnitTestCase extends WP_UnitTestCase_Base {
+	use WPPHP71TestFramework;
 }
