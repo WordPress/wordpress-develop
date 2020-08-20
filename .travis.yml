@@ -35,9 +35,9 @@ jobs:
     name: "PHPUnit Tests: PHP 7.4 (PHPUnit 8)"
   - env: LOCAL_PHP=7.3-fpm WP_TRAVISCI=test:php
     name: "PHPUnit Tests: PHP 7.3 (PHPUnit 7)"
-  - env: LOCAL_PHP=7.0-fpm WP_TEST_REPORTER=true WP_TRAVISCI=test:php
+  - env: LOCAL_PHP=7.0-fpm WP_TEST_REPORTER=true WP_TRAVISCI=test:php  OLD_PHP=true
     name: "PHPUnit Tests: PHP 7.0 (PHPUnit 6)"
-  - env: LOCAL_PHP=5.6-fpm WP_TRAVISCI=test:php
+  - env: LOCAL_PHP=5.6-fpm WP_TRAVISCI=test:php OLD_PHP=true
     name: "PHPUnit Tests: PHP 5.6 (PHPUnit 5)"
   fast_finish: true
 
@@ -50,9 +50,12 @@ before_install:
     ./tools/phpunit9-support.sh
   fi
   if [[ "$LOCAL_PHP" == "7.4-fpm" ]]; then
-    ./tools/phpunit8-support.sh
+    ./tools/use-phpunit8.sh
   fi
   ./tools/migrate-test-syntax.sh
+  if [[ "$OLD_PHP" == "true" ]]; then
+    ./tools/tests-old-php.sh
+  fi
 - |
   sudo rm /usr/local/bin/docker-compose
   curl -L https://github.com/docker/compose/releases/download/1.24.0/docker-compose-`uname -s`-`uname -m` > docker-compose

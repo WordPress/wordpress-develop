@@ -20,12 +20,7 @@ function search_replace_assert() {
 for void_function in setUpBeforeClass setUp assertPreConditions assertPostConditions tearDown tearDownAfterClass onNotSuccessfulTest
 do
 	echo Converting ${void_function}..
-	search_replace_raw "function\s*${void_function}()\s*{" "function _${void_function}() {"
-	search_replace_raw "parent::${void_function}" "parent::_${void_function}"
-
-	# abstract-testcase no longer needs to call it's parent methods.
-	sed -i "/parent::_${void_function}()/d" tests/phpunit/includes/abstract-testcase.php
-
+	search_replace_raw "function\s*${void_function}()\s*{" "function ${void_function}(): void {"
 done
 
 # assertContains() no longer handles non-iterables, middleware it as _WPassertContains() fow now.
