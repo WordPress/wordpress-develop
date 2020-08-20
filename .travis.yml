@@ -50,7 +50,7 @@ before_install:
     ./tools/phpunit9-support.sh
   fi
   if [[ "$LOCAL_PHP" == "7.4-fpm" ]]; then
-    ./tools/use-phpunit8.sh
+    sed -i 's!wordpressdevelop/phpunit:.*!wordpressdevelop/phpunit:8-php-7.4-fpm!' docker-compose.yml
   fi
   ./tools/migrate-test-syntax.sh
   if [[ "$OLD_PHP" == "true" ]]; then
