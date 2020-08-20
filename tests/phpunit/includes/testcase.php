@@ -1,9 +1,7 @@
 <?php
-/**
- * This file is for PHPUnit 8+, it uses PHP 7.2 syntax for the PHPUnit functions.
- */
 
-require_once dirname( __DIR__ ) . '/phpunit-compat-traits/trait-wp-php72-test-framework.php';
+require_once __DIR__ . '/abstract-testcase.php';
+require_once __DIR__ . '/phpunit-compat/trait-wp-phpunit-compat.php';
 
 /**
  * Defines a basic fixture to run multiple tests.
@@ -15,6 +13,5 @@ require_once dirname( __DIR__ ) . '/phpunit-compat-traits/trait-wp-php72-test-fr
  * All WordPress unit tests should inherit from this class.
  */
 class WP_UnitTestCase extends WP_UnitTestCase_Base {
-	use WP_PHP72_Test_Framework;
 	use WP_PHPUnit_Compat;
 }
