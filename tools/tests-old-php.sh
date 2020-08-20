@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function find_matching_files() {
-    /usr/bin/env grep "$@" tests/phpunit/ -rli --exclude-dir=phpunit-compat-traits
+    /usr/bin/env grep "$@" tests/phpunit/ -rli
 }
 
 function search_replace() {
@@ -14,5 +14,6 @@ function search_replace() {
 for void_function in setUpBeforeClass setUp assertPreConditions assertPostConditions tearDown tearDownAfterClass onNotSuccessfulTest
 do
 	echo Converting ${void_function}..
+
 	search_replace "function\s*${void_function}():\s*void\s*{" "function ${void_function}() {"
 done
