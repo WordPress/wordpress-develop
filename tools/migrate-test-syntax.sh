@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function find_matching_files() {
-    /usr/bin/env grep "$@" tests/phpunit/ -rli --exclude-dir=phpunit-compat-traits
+    /usr/bin/env grep "$@" tests/phpunit/ -rli --exclude-dir=phpunit-compat
 }
 
 function search_replace_raw() {

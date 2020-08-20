@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . 'phpunit6-compat.php';
+require_once __DIR__ . '/phpunit6-compat.php';
 require_once __DIR__ . '/trait-wp-phpunit9-compat.php';
 require_once __DIR__ . '/trait-wp-phpunit8-compat.php';
 require_once __DIR__ . '/trait-wp-phpunit7-compat.php';
