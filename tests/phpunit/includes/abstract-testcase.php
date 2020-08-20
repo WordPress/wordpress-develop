@@ -1260,7 +1260,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 		}
 	}
 
-	public function _WPassertNotContains( $needle, $haystack, $message = "" ) {
+	public function _WPassertNotContains( $needle, $haystack, $message = '' ) {
 		if ( is_scalar( $haystack ) ) {
 			static::assertStringNotContainsString( $needle, $haystack, $message );
 		} else {
