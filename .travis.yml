@@ -46,9 +46,6 @@ before_install:
   if [[ "$WP_TRAVISCI" == "test:php" ]]; then
       travis_retry svn checkout -r 2170172 https://plugins.svn.wordpress.org/wordpress-importer/trunk/ tests/phpunit/data/plugins/wordpress-importer
   fi
-  if [[ "$LOCAL_PHP" == "8.0-fpm" ]]; then
-    ./tools/phpunit9-support.sh
-  fi
   if [[ "$LOCAL_PHP" == "7.4-fpm" ]]; then
     sed -i 's!wordpressdevelop/phpunit:.*!wordpressdevelop/phpunit:8-php-7.4-fpm!' docker-compose.yml
   fi
