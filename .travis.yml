@@ -59,13 +59,13 @@ before_install:
 - |
   if [[ "$WP_TRAVISCI" == "test:php" ]]; then
       travis_retry svn checkout -r 2170172 https://plugins.svn.wordpress.org/wordpress-importer/trunk/ tests/phpunit/data/plugins/wordpress-importer
+      ./tools/migrate-test-syntax.sh
+      if [[ "$OLD_PHP" == "true" ]]; then
+        ./tools/tests-old-php.sh
+      fi
   fi
   if [[ "$LOCAL_PHP" == "7.4-fpm" ]]; then
     sed -i 's!wordpressdevelop/phpunit:.*!wordpressdevelop/phpunit:8-php-7.4-fpm!' docker-compose.yml
-  fi
-  ./tools/migrate-test-syntax.sh
-  if [[ "$OLD_PHP" == "true" ]]; then
-    ./tools/tests-old-php.sh
   fi
 - |
   sudo rm /usr/local/bin/docker-compose
