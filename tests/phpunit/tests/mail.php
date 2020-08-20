@@ -415,4 +415,15 @@ class Tests_Mail extends WP_UnitTestCase {
 		$phpmailer = $GLOBALS['phpmailer'];
 		$this->assertTrue( $phpmailer->validateAddress( 'foo@192.168.1.1' ), 'Assert PHPMailer accepts IP address email addresses' );
 	}
+
+	/**
+	 * @ticket 51030
+	 */
+	function test_phpmailer_validator_for_dotless_domains() {
+		$phpmailer = $GLOBALS['phpmailer'];
+		$this->assertEquals( $phpmailer::$validator, 'html5' );
+		$this->assertTrue( $phpmailer->validateAddress( 'foo@localhost' ), 'Assert PHPMailer accepts email addresses without a dot in the domain' );
+		$this->assertTrue( $phpmailer->validateAddress( 'foo@example-domain' ), 'Assert PHPMailer accepts email addresses without a dot in the domain, and hyphens are okay in domains too!' );
+		$this->assertFalse( $phpmailer->validateAddress( 'foo@example_domain' ), 'Assert PHPMailer does not accept email addresses with an underscore in a dotless domain' );
+	}
 }
