@@ -149,6 +149,7 @@ function wp_get_environment_type() {
 	}
 
 	$wp_environments = array(
+		'local',
 		'development',
 		'staging',
 		'production',
