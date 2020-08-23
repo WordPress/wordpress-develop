@@ -2800,12 +2800,32 @@ function discover_pingback_server_uri( $url, $deprecated = '' ) {
  * Perform all pingbacks, enclosures, trackbacks, and send to pingback services.
  *
  * @since 2.1.0
+ * @deprecated 5.6.0
  *
- * @global wpdb $wpdb WordPress database abstraction object.
  */
 function do_all_pings() {
-	global $wpdb;
 
+	// Do pingbacks.
+	do_pingbacks();
+
+	// Do enclosures.
+	do_enclosures();
+
+	// Do trackbacks.
+	do_trackbacks();
+
+	// Do Update Services/Generic Pings.
+	generic_ping();
+}
+
+
+/**
+ * Perform all pingbacks.
+ *
+ * @since 5.6.0
+ *
+ */
+function do_pingbacks() {
 	// Do pingbacks.
 	$pings = get_posts(
 		array(
@@ -2821,7 +2841,16 @@ function do_all_pings() {
 		delete_post_meta( $ping, '_pingme' );
 		pingback( null, $ping );
 	}
+}
 
+
+/**
+ * Perform all enclosures.
+ *
+ * @since 5.6.0
+ *
+ */
+function do_enclosures() {
 	// Do enclosures.
 	$enclosures = get_posts(
 		array(
@@ -2837,7 +2866,16 @@ function do_all_pings() {
 		delete_post_meta( $enclosure, '_encloseme' );
 		do_enclose( null, $enclosure );
 	}
+}
 
+
+/**
+ * Perform all trackbacks.
+ *
+ * @since 5.6.0
+ *
+ */
+function do_trackbacks() {
 	// Do trackbacks.
 	$trackbacks = get_posts(
 		array(
@@ -2853,9 +2891,6 @@ function do_all_pings() {
 		delete_post_meta( $trackback, '_trackbackme' );
 		do_trackbacks( $trackback );
 	}
-
-	// Do Update Services/Generic Pings.
-	generic_ping();
 }
 
 /**
