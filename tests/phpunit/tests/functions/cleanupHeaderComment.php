@@ -10,7 +10,7 @@ class Tests_Functions_CleanupHeaderComment extends WP_UnitTestCase {
 	/**
 	 * Test cleanup header of header comment.
 	 *
-	 * @covers _cleanup_header_comment
+	 * @covers ::_cleanup_header_comment
 	 * @dataProvider data_cleanup_header_comment
 	 *
 	 * @param string $test_string
