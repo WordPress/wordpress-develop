@@ -899,7 +899,7 @@ function redirect_guess_404_permalink() {
 		if ( get_query_var( 'post_type' ) ) {
 			if ( is_array( get_query_var( 'post_type' ) ) ) {
 				// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
-				$where .= " AND post_type IN ('" . join( "', '", array_map( 'esc_sql', get_query_var( 'post_type' ) ) ) . "')";
+				$where .= " AND post_type IN ('" . join( "', '", esc_sql( get_query_var( 'post_type' ) ) ) . "')";
 			} else {
 				$where .= $wpdb->prepare( ' AND post_type = %s', get_query_var( 'post_type' ) );
 			}
