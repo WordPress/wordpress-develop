@@ -996,10 +996,10 @@ function has_custom_logo( $blog_id = 0 ) {
 }
 
 /**
- * Returns a custom logo, linked to home when on another page.
+ * Returns a custom logo, linked to home unless the theme supports removing the link on the home page.
  *
  * @since 4.5.0
- * @since 5.5.0 Removed the link on the home page.
+ * @since 5.5.0 Added option to remove the link on the home page with `unlink-homepage-logo` theme support.
  *
  * @param int $blog_id Optional. ID of the blog in question. Default is the ID of the current blog.
  * @return string Custom logo markup.
@@ -1098,7 +1098,7 @@ function get_custom_logo( $blog_id = 0 ) {
 }
 
 /**
- * Displays a custom logo, linked to home when on another page.
+ * Displays a custom logo, linked to home unless the theme supports removing the link on the home page.
  *
  * @since 4.5.0
  *
@@ -1645,6 +1645,7 @@ function the_archive_title( $before = '', $after = '' ) {
  * Retrieve the archive title based on the queried object.
  *
  * @since 4.1.0
+ * @since 5.5.0 The title part is wrapped in a `<span>` element.
  *
  * @return string Archive title.
  */

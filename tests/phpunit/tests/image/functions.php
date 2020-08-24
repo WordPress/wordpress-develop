@@ -123,6 +123,28 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		}
 	}
 
+
+	/**
+	 * @ticket 50833
+	 */
+	function test_is_gd_image_invalid_types() {
+		$this->assertFalse( is_gd_image( new stdClass() ) );
+		$this->assertFalse( is_gd_image( array() ) );
+		$this->assertFalse( is_gd_image( null ) );
+
+		$handle = fopen( __FILE__, 'r' );
+		$this->assertFalse( is_gd_image( $handle ) );
+		fclose( $handle );
+	}
+
+	/**
+	 * @ticket 50833
+	 * @requires extension gd
+	 */
+	function test_is_gd_image_valid_types() {
+		$this->assertTrue( is_gd_image( imagecreate( 5, 5 ) ) );
+	}
+
 	/**
 	 * Test save image file and mime_types
 	 *

@@ -116,6 +116,9 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 	public function test_term_meta_should_be_lazy_loaded_for_all_terms_in_wp_query_loop() {
 		global $wpdb;
 
+		// Clear any previous term IDs from the queue.
+		wp_metadata_lazyloader()->reset_queue( 'term' );
+
 		$p = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -155,6 +158,10 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 				$this->assertSame( $num_queries, $wpdb->num_queries );
 			}
 		}
+	}
+
+	public static function set_cache_results( $q ) {
+		$q->set( 'cache_results', true );
 	}
 
 	/**
@@ -471,10 +478,6 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$meta = has_term_meta( $t );
 
 		$this->assertSame( array(), $meta );
-	}
-
-	public static function set_cache_results( $q ) {
-		$q->set( 'cache_results', true );
 	}
 
 	/**

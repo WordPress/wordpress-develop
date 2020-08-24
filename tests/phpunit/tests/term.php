@@ -65,9 +65,32 @@ class Tests_Term extends WP_UnitTestCase {
 	 * @ticket 15919
 	 */
 	function test_wp_count_terms() {
-		$count = wp_count_terms( 'category', array( 'hide_empty' => true ) );
+		$count = wp_count_terms(
+			array(
+				'hide_empty' => true,
+				'taxonomy'   => 'category',
+			)
+		);
 		// There are 5 posts, all Uncategorized.
 		$this->assertEquals( 1, $count );
+	}
+
+	/**
+	 * @ticket 36399
+	 */
+	function test_wp_count_terms_legacy_interoperability() {
+		self::factory()->tag->create_many( 5 );
+
+		// Counts all terms (1 default category, 5 tags).
+		$count = wp_count_terms();
+		$this->assertEquals( 6, $count );
+
+		// Counts only tags (5), with both current and legacy signature.
+		// Legacy usage should not trigger deprecated notice.
+		$count        = wp_count_terms( array( 'taxonomy' => 'post_tag' ) );
+		$legacy_count = wp_count_terms( 'post_tag' );
+		$this->assertEquals( 5, $count );
+		$this->assertEquals( $count, $legacy_count );
 	}
 
 	/**
@@ -127,13 +150,13 @@ class Tests_Term extends WP_UnitTestCase {
 		$term = rand_str();
 		$this->assertNull( category_exists( $term ) );
 
-		$initial_count = wp_count_terms( 'category' );
+		$initial_count = wp_count_terms( array( 'taxonomy' => 'category' ) );
 
 		$t = wp_insert_category( array( 'cat_name' => $term ) );
 		$this->assertTrue( is_numeric( $t ) );
 		$this->assertNotWPError( $t );
 		$this->assertTrue( $t > 0 );
-		$this->assertEquals( $initial_count + 1, wp_count_terms( 'category' ) );
+		$this->assertEquals( $initial_count + 1, wp_count_terms( array( 'taxonomy' => 'category' ) ) );
 
 		// Make sure the term exists.
 		$this->assertTrue( term_exists( $term ) > 0 );
@@ -143,7 +166,7 @@ class Tests_Term extends WP_UnitTestCase {
 		$this->assertTrue( wp_delete_category( $t ) );
 		$this->assertNull( term_exists( $term ) );
 		$this->assertNull( term_exists( $t ) );
-		$this->assertEquals( $initial_count, wp_count_terms( 'category' ) );
+		$this->assertEquals( $initial_count, wp_count_terms( array( 'taxonomy' => 'category' ) ) );
 	}
 
 	/**
