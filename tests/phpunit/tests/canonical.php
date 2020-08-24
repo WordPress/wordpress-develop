@@ -283,8 +283,9 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	public function test_redirect_guess_404_permalink_post_types() {
 		/*
 		 * Sample-page is intentionally missspelt as sample-pag to ensure
-		 * the 404 post permalink guessing runs. Please do not correct the
-		 * spelling.
+		 * the 404 post permalink guessing runs.
+		 *
+		 * Please do not correct the apparent typo.
 		 */
 
 		// String format post type.
