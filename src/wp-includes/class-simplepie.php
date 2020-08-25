@@ -2615,11 +2615,13 @@ class SimplePie
 			}
 		}
 
-		if (isset($this->data['headers']['link']) &&
-		    preg_match('/<([^>]+)>; rel='.preg_quote($rel).'/',
-		               $this->data['headers']['link'], $match))
-		{
-			return array($match[1]);
+		if (isset($this->data['headers']['link'])) {
+			$this->data['headers']['link'] = (array) $this->data['headers']['link'];
+			foreach ($this->data['headers']['link'] as $link) {
+				if (preg_match('/<([^>]+)>; rel='.preg_quote($rel).'/', $link, $match)) {
+					return array($match[1]);
+				}
+			}
 		}
 		else if (isset($this->data['links'][$rel]))
 		{
