@@ -75,8 +75,8 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 	 * Test register in customize preview.
 	 *
 	 * @global WP_Customize_Manager $wp_customize
-	 * @covers WP_Widget_Text::__construct()
-	 * @covers WP_Widget_Text::_register()
+	 * @covers WP_Widget_Text::__construct
+	 * @covers WP_Widget_Text::_register
 	 */
 	function test__register_in_customize_preview() {
 		global $wp_customize;

@@ -75,7 +75,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	 *
 	 * Also checks for the post type and the Setting Type.
 	 *
-	 * @covers WP_Customize_Custom_CSS_Setting::__construct()
+	 * @covers WP_Customize_Custom_CSS_Setting::__construct
 	 */
 	function test_construct() {
 		$this->assertTrue( post_type_exists( 'custom_css' ) );
@@ -106,9 +106,9 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	 * Test crud methods on WP_Customize_Custom_CSS_Setting.
 	 *
 	 * @covers ::wp_get_custom_css
-	 * @covers WP_Customize_Custom_CSS_Setting::value()
-	 * @covers WP_Customize_Custom_CSS_Setting::preview()
-	 * @covers WP_Customize_Custom_CSS_Setting::update()
+	 * @covers WP_Customize_Custom_CSS_Setting::value
+	 * @covers WP_Customize_Custom_CSS_Setting::preview
+	 * @covers WP_Customize_Custom_CSS_Setting::update
 	 */
 	function test_crud() {
 
@@ -266,7 +266,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	/**
 	 * Test crud methods on WP_Customize_Custom_CSS_Setting.
 	 *
-	 * @covers WP_Customize_Custom_CSS_Setting::value()
+	 * @covers WP_Customize_Custom_CSS_Setting::value
 	 */
 	function test_value_filter() {
 		add_filter( 'customize_value_custom_css', array( $this, 'filter_value' ), 10, 2 );
@@ -306,7 +306,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	/**
 	 * Test update filter on WP_Customize_Custom_CSS_Setting.
 	 *
-	 * @covers WP_Customize_Custom_CSS_Setting::update()
+	 * @covers WP_Customize_Custom_CSS_Setting::update
 	 */
 	function test_update_filter() {
 		$original_css = 'body { color:red; }';
@@ -364,7 +364,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	 * Note that the $validity \WP_Error object must be reset each time
 	 * as it picks up the Errors and passes them to the next assertion.
 	 *
-	 * @covers WP_Customize_Custom_CSS_Setting::validate()
+	 * @covers WP_Customize_Custom_CSS_Setting::validate
 	 */
 	function test_validate() {
 

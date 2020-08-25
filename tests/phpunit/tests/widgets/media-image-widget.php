@@ -92,7 +92,7 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 	/**
 	 * Test constructor.
 	 *
-	 * @covers WP_Widget_Media_Image::__construct()
+	 * @covers WP_Widget_Media_Image::__construct
 	 */
 	function test_constructor() {
 		$widget = new WP_Widget_Media_Image();

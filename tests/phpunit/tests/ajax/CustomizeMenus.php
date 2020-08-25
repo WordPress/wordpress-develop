@@ -608,7 +608,7 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 	/**
 	 * Testing successful ajax_insert_auto_draft_post() call.
 	 *
-	 * @covers WP_Customize_Nav_Menus::ajax_insert_auto_draft_post()
+	 * @covers WP_Customize_Nav_Menus::ajax_insert_auto_draft_post
 	 */
 	function test_ajax_insert_auto_draft_post_success() {
 		$_POST                = wp_slash(
@@ -638,7 +638,7 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 	/**
 	 * Testing unsuccessful ajax_insert_auto_draft_post() call.
 	 *
-	 * @covers WP_Customize_Nav_Menus::ajax_insert_auto_draft_post()
+	 * @covers WP_Customize_Nav_Menus::ajax_insert_auto_draft_post
 	 */
 	function test_ajax_insert_auto_draft_failures() {
 		// No nonce.

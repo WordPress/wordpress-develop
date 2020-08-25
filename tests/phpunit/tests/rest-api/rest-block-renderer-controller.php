@@ -258,7 +258,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 *
 	 * @ticket 45098
 	 *
-	 * @covers WP_REST_Block_Renderer_Controller::register_routes()
+	 * @covers WP_REST_Block_Renderer_Controller::register_routes
 	 */
 	public function test_register_routes() {
 		$dynamic_block_names = get_dynamic_block_names();
@@ -273,7 +273,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 *
 	 * @ticket 45098
 	 *
-	 * @covers WP_REST_Block_Renderer_Controller::get_item()
+	 * @covers WP_REST_Block_Renderer_Controller::get_item
 	 */
 	public function test_get_item_without_permissions() {
 		wp_set_current_user( 0 );
@@ -305,7 +305,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 *
 	 * @ticket 45098
 	 *
-	 * @covers WP_REST_Block_Renderer_Controller::get_item()
+	 * @covers WP_REST_Block_Renderer_Controller::get_item
 	 */
 	public function test_get_item_invalid_block_name() {
 		wp_set_current_user( self::$user_id );
@@ -322,7 +322,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 *
 	 * @ticket 45098
 	 *
-	 * @covers WP_REST_Block_Renderer_Controller::get_item()
+	 * @covers WP_REST_Block_Renderer_Controller::get_item
 	 */
 	public function test_get_item_invalid_attribute() {
 		wp_set_current_user( self::$user_id );
@@ -343,7 +343,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 *
 	 * @ticket 45098
 	 *
-	 * @covers WP_REST_Block_Renderer_Controller::get_item()
+	 * @covers WP_REST_Block_Renderer_Controller::get_item
 	 */
 	public function test_get_item_unrecognized_attribute() {
 		wp_set_current_user( self::$user_id );
@@ -364,7 +364,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 *
 	 * @ticket 45098
 	 *
-	 * @covers WP_REST_Block_Renderer_Controller::get_item()
+	 * @covers WP_REST_Block_Renderer_Controller::get_item
 	 */
 	public function test_get_item_default_attributes() {
 		wp_set_current_user( self::$user_id );
@@ -396,7 +396,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 *
 	 * @ticket 45098
 	 *
-	 * @covers WP_REST_Block_Renderer_Controller::get_item()
+	 * @covers WP_REST_Block_Renderer_Controller::get_item
 	 */
 	public function test_get_item() {
 		wp_set_current_user( self::$user_id );
@@ -589,7 +589,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 *
 	 * @ticket 45098
 	 *
-	 * @covers WP_REST_Block_Renderer_Controller::get_item_schema()
+	 * @covers WP_REST_Block_Renderer_Controller::get_item_schema
 	 */
 	public function test_get_item_schema() {
 		$request  = new WP_REST_Request( 'OPTIONS', self::$rest_api_route . self::$block_name );

@@ -131,7 +131,7 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 	 * Test calling get_settings_errors() with variations on where it gets errors from.
 	 *
 	 * @ticket 42498
-	 * @covers ::get_settings_errors()
+	 * @covers ::get_settings_errors
 	 * @global array $wp_settings_errors
 	 */
 	public function test_get_settings_errors_sources() {
@@ -171,7 +171,7 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 44941
-	 * @covers ::settings_errors()
+	 * @covers ::settings_errors
 	 * @global array $wp_settings_errors
 	 * @dataProvider settings_errors_css_classes_provider
 	 */

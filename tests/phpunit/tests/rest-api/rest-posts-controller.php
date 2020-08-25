@@ -3537,7 +3537,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	/**
 	 * Test update_item() with same template that no longer exists.
 	 *
-	 * @covers WP_REST_Posts_Controller::check_template()
+	 * @covers WP_REST_Posts_Controller::check_template
 	 * @ticket 39996
 	 */
 	public function test_update_item_with_same_template_that_no_longer_exists() {

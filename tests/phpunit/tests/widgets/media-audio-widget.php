@@ -85,7 +85,7 @@ class Test_WP_Widget_Media_Audio extends WP_UnitTestCase {
 	/**
 	 * Test constructor.
 	 *
-	 * @covers WP_Widget_Media_Audio::__construct()
+	 * @covers WP_Widget_Media_Audio::__construct
 	 */
 	function test_constructor() {
 		$widget = new WP_Widget_Media_Audio();
