@@ -1550,6 +1550,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'format'      => 'date-time',
 		);
 
+		$query_params['modified_after'] = array(
+			'description' => __( 'Limit response to comments modified after a given ISO8601 compliant date.' ),
+			'type'        => 'string',
+			'format'      => 'date-time',
+		);
+
 		$query_params['author'] = array(
 			'description' => __( 'Limit result set to comments assigned to specific user IDs. Requires authorization.' ),
 			'type'        => 'array',
@@ -1575,6 +1581,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$query_params['before'] = array(
 			'description' => __( 'Limit response to comments published before a given ISO8601 compliant date.' ),
+			'type'        => 'string',
+			'format'      => 'date-time',
+		);
+
+		$query_params['modified_before'] = array(
+			'description' => __( 'Limit response to comments modified before a given ISO8601 compliant date.' ),
 			'type'        => 'string',
 			'format'      => 'date-time',
 		);
