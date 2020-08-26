@@ -251,9 +251,21 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$prepared_args['date_query'][0]['before'] = $request['before'];
 		}
 
+		// Set modified_before into date query. Date query must be specified as an array of an array.
+		if ( isset( $registered['modified_before'], $request['modified_before'] ) ) {
+			$prepared_args['date_query'][0]['before'] = $request['modified_before'];
+			$prepared_args['date_query'][0]['column'] = 'post_modified';
+		}
+
 		// Set after into date query. Date query must be specified as an array of an array.
 		if ( isset( $registered['after'], $request['after'] ) ) {
 			$prepared_args['date_query'][0]['after'] = $request['after'];
+		}
+
+		// Set modified_after into date query. Date query must be specified as an array of an array.
+		if ( isset( $registered['modified_after'], $request['modified_after'] ) ) {
+			$prepared_args['date_query'][0]['after']  = $request['modified_after'];
+			$prepared_args['date_query'][0]['column'] = 'post_modified';
 		}
 
 		if ( isset( $registered['page'] ) && empty( $request['offset'] ) ) {
