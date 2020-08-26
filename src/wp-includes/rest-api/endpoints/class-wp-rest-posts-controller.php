@@ -2585,6 +2585,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'format'      => 'date-time',
 		);
 
+		$query_params['modified_after'] = array(
+			'description' => __( 'Limit response to posts modified after a given ISO8601 compliant date.' ),
+			'type'        => 'string',
+			'format'      => 'date-time',
+		);
+
 		if ( post_type_supports( $this->post_type, 'author' ) ) {
 			$query_params['author']         = array(
 				'description' => __( 'Limit result set to posts assigned to specific authors.' ),
@@ -2606,6 +2612,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$query_params['before'] = array(
 			'description' => __( 'Limit response to posts published before a given ISO8601 compliant date.' ),
+			'type'        => 'string',
+			'format'      => 'date-time',
+		);
+
+		$query_params['modified_before'] = array(
+			'description' => __( 'Limit response to posts modified before a given ISO8601 compliant date.' ),
 			'type'        => 'string',
 			'format'      => 'date-time',
 		);
