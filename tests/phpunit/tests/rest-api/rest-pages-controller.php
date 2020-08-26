@@ -373,19 +373,19 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$post1   = $this->factory->post->create(
 			array(
 				'post_modified' => '2016-01-15T00:00:00Z',
-				'post_type' => 'page',
+				'post_type'     => 'page',
 			)
 		);
 		$post2   = $this->factory->post->create(
 			array(
 				'post_modified' => '2016-01-16T00:00:00Z',
-				'post_type' => 'page',
+				'post_type'     => 'page',
 			)
 		);
 		$post3   = $this->factory->post->create(
 			array(
 				'post_modified' => '2016-01-17T00:00:00Z',
-				'post_type' => 'page',
+				'post_type'     => 'page',
 			)
 		);
 		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
