@@ -1040,4 +1040,20 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$data[1] = array_reverse( $data[1] );
 		$this->assertTrue( rest_validate_value_from_schema( $data, $schema ) );
 	}
+
+	/**
+	 * @ticket 50300
+	 */
+	public function test_string_or_integer() {
+		$schema = array(
+			'type' => array( 'integer', 'string' ),
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( 'garbage', $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( 15, $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( '15', $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( '15.5', $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( 15.5, $schema ) );
+	}
+
 }
