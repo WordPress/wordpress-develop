@@ -222,8 +222,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		// Set modified_before into date query. Date query must be specified as an array of an array.
-		if ( isset( $registered['modified_before'], $request['modified_before'] ) ) {
-			$args['date_query'][0]['modified_before'] = $request['modified_before'];
+		if ( isset( $registered['modified_before'], $request['modified_before'] ) && ! isset( $request['before'] ) ) {
+			$args['date_query'][0]['before'] = $request['modified_before'];
 			$args['date_query'][0]['column'] 		  = 'post_modified';
 		}
 
@@ -233,8 +233,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		// Set modified_after into date query. Date query must be specified as an array of an array.
-		if ( isset( $registered['modified_after'], $request['modified_after'] ) ) {
-			$args['date_query'][0]['modified_after'] = $request['modified_after'];
+		if ( isset( $registered['modified_after'], $request['modified_after'] ) && ! isset( $request['after'] ) ) {
+			$args['date_query'][0]['after'] = $request['modified_after'];
 			$args['date_query'][0]['column'] 		 = 'post_modified';
 		}
 
