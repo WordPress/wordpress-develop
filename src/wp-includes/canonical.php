@@ -477,7 +477,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 						$redirect['path'] .= "-{$object_subtype}";
 					}
 				}
-				$redirect['query'] = remove_query_arg( array( 'sitemap', 'sitemap-subtype' ), $redirect['query'] );
+				$redirect['query'] = remove_query_arg( [ 'sitemap', 'sitemap-subtype' ], $redirect['query'] );
 			}
 
 			if ( $paged > 0 ) {
