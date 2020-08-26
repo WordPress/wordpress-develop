@@ -498,7 +498,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 				} elseif ( $paged > 1 ) {
 					$redirect['query'] = add_query_arg( 'paged', $paged, $redirect['query'] );
 				}
-			} elseif ( $sitemap && 'index' !== $sitemap ) {
+			} elseif ( 'index' !== $sitemap ) {
 				// Object sitemaps always include pagination.
 				$redirect['path'] .= '-1';
 			}
