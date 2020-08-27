@@ -150,12 +150,21 @@ function wp_get_environment_type() {
 	}
 
 	$wp_environments = array(
-		'offline',
 		'local',
 		'development',
 		'staging',
 		'production',
 	);
+
+	// Add note about deprecated WPLANG constant.
+	if ( defined( 'WP_ENVIRONMENT_TYPES' ) ) {
+		_deprecated_argument(
+			'define()',
+			'4.0.0',
+			/* translators: 1: WP_ENVIRONMENT_TYPES */
+			sprintf( __( 'The %1$s constant is no longer supported.' ), 'WP_ENVIRONMENT_TYPES' )
+		);
+	}
 
 	// Check if the environment variable has been set, if `getenv` is available on the system.
 	if ( function_exists( 'getenv' ) ) {
@@ -164,7 +173,7 @@ function wp_get_environment_type() {
 			$current_env = $has_env;
 		}
 	}
-	
+
 	// Fetch the environment from a constant, this overrides the global system variable.
 	if ( defined( 'WP_ENVIRONMENT_TYPE' ) ) {
 		$current_env = WP_ENVIRONMENT_TYPE;
