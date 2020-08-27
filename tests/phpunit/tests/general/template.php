@@ -337,7 +337,8 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$this->_set_custom_logo();
 
 		$custom_logo_attr = array(
-			'class' => 'custom-logo',
+			'class'   => 'custom-logo',
+			'loading' => false,
 		);
 
 		// If the logo alt attribute is empty, use the site title.
@@ -368,7 +369,8 @@ class Tests_General_Template extends WP_UnitTestCase {
 			'full',
 			false,
 			array(
-				'class' => 'custom-logo',
+				'class'   => 'custom-logo',
+				'loading' => false,
 			)
 		);
 
