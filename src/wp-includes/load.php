@@ -162,6 +162,14 @@ function wp_get_environment_type() {
 		$current_env = WP_ENVIRONMENT_TYPE;
 	}
 
+	// Check if the environment variable has been set, if `getenv` is available on the system.
+	if ( function_exists( 'getenv' ) ) {
+		$has_env = getenv( 'WP_ENVIRONMENT_TYPE' );
+		if ( false !== $has_env ) {
+			$current_env = $has_env;
+		}
+	}
+	
 	// Make sure the environment is an allowed one, and not accidentally set to an invalid value.
 	if ( ! in_array( $current_env, $wp_environments, true ) ) {
 		$current_env = 'production';
