@@ -157,11 +157,6 @@ function wp_get_environment_type() {
 		'production',
 	);
 
-	// Fetch the environment from a constant, this overrides the global system variable.
-	if ( defined( 'WP_ENVIRONMENT_TYPE' ) ) {
-		$current_env = WP_ENVIRONMENT_TYPE;
-	}
-
 	// Check if the environment variable has been set, if `getenv` is available on the system.
 	if ( function_exists( 'getenv' ) ) {
 		$has_env = getenv( 'WP_ENVIRONMENT_TYPE' );
@@ -170,6 +165,11 @@ function wp_get_environment_type() {
 		}
 	}
 	
+	// Fetch the environment from a constant, this overrides the global system variable.
+	if ( defined( 'WP_ENVIRONMENT_TYPE' ) ) {
+		$current_env = WP_ENVIRONMENT_TYPE;
+	}
+
 	// Make sure the environment is an allowed one, and not accidentally set to an invalid value.
 	if ( ! in_array( $current_env, $wp_environments, true ) ) {
 		$current_env = 'production';
