@@ -156,7 +156,7 @@ function wp_get_environment_type() {
 		'production',
 	);
 
-	// Add note about deprecated WPLANG constant.
+	// Add note about deprecated WP_ENVIRONMENT_TYPES constant.
 	if ( defined( 'WP_ENVIRONMENT_TYPES' ) ) {
 		_deprecated_argument(
 			'define()',
