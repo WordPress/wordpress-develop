@@ -3,6 +3,7 @@
  * @group admin
  */
 class Tests_Admin_includesTemplate extends WP_UnitTestCase {
+
 	function test_equal() {
 		$this->assertEquals( ' selected=\'selected\'', selected( 'foo', 'foo', false ) );
 		$this->assertEquals( ' checked=\'checked\'', checked( 'foo', 'foo', false ) );
@@ -44,6 +45,45 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 
 		$this->assertEquals( '', selected( 0, false, false ) );
 		$this->assertEquals( '', checked( 0, false, false ) );
+	}
+
+	/**
+	 * @ticket 51147
+	 * @dataProvider data_wp_terms_checklist_with_selected_cats
+	 */
+	public function test_wp_terms_checklist_with_selected_cats( $term_id ) {
+		$output = wp_terms_checklist(
+			0,
+			array(
+				'selected_cats' => array( $term_id ),
+				'echo'          => false,
+			)
+		);
+
+		$this->assertContains( "checked='checked'", $output );
+	}
+
+	/**
+	 * @ticket 51147
+	 * @dataProvider data_wp_terms_checklist_with_selected_cats
+	 */
+	public function test_wp_terms_checklist_with_popular_cats( $term_id ) {
+		$output = wp_terms_checklist(
+			0,
+			array(
+				'popular_cats' => array( $term_id ),
+				'echo'         => false,
+			)
+		);
+
+		$this->assertContains( 'class="popular-category"', $output );
+	}
+
+	public function data_wp_terms_checklist_with_selected_cats() {
+		return array(
+			array( '1' ),
+			array( 1 ),
+		);
 	}
 
 	public function test_add_meta_box() {
