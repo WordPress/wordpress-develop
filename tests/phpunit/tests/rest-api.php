@@ -1919,6 +1919,69 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 51146
+	 *
+	 * @dataProvider _dp_rest_is_integer
+	 *
+	 * @param bool  $expected Expected result of the check.
+	 * @param mixed $value    The value to check.
+	 */
+	public function test_rest_is_integer( $expected, $value ) {
+		$is_integer = rest_is_integer( $value );
+
+		if ( $expected ) {
+			$this->assertTrue( $is_integer );
+		} else {
+			$this->assertFalse( $is_integer );
+		}
+	}
+
+	public function _dp_rest_is_integer() {
+		return array(
+			array(
+				true,
+				1,
+			),
+			array(
+				true,
+				'1',
+			),
+			array(
+				true,
+				0,
+			),
+			array(
+				true,
+				-1,
+			),
+			array(
+				true,
+				'05',
+			),
+			array(
+				false,
+				'garbage',
+			),
+			array(
+				false,
+				5.5,
+			),
+			array(
+				false,
+				'5.5',
+			),
+			array(
+				false,
+				array(),
+			),
+			array(
+				false,
+				true,
+			),
+		);
+	}
+
+	/**
 	 * @ticket 50300
 	 *
 	 * @dataProvider _dp_get_best_type_for_value
@@ -2017,6 +2080,11 @@ class Tests_REST_API extends WP_UnitTestCase {
 				'array',
 				'a,b',
 				array( 'array', 'string' ),
+			),
+			array(
+				'string',
+				'hello',
+				array( 'integer', 'string' ),
 			),
 		);
 	}
