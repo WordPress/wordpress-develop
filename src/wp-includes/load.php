@@ -160,7 +160,7 @@ function wp_get_environment_type() {
 	if ( defined( 'WP_ENVIRONMENT_TYPES' ) ) {
 		_deprecated_argument(
 			'define()',
-			'4.0.0',
+			'5.5.1',
 			/* translators: 1: WP_ENVIRONMENT_TYPES */
 			sprintf( __( 'The %1$s constant is no longer supported.' ), 'WP_ENVIRONMENT_TYPES' )
 		);
