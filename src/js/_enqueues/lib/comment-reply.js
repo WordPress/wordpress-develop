@@ -337,7 +337,7 @@ window.addComment = ( function( window ) {
 
 		cancelElement.style.display = '';
 		addBelowElement.parentNode.insertBefore( respondElement, addBelowElement.nextSibling );
-		if ( replyHeadingTextNode.nodeType === Node.TEXT_NODE ) {
+		if ( replyHeadingTextNode && replyHeadingTextNode.nodeType === Node.TEXT_NODE ) {
 			replyHeadingTextNode.textContent = replyTo;
 		}
 		/*
