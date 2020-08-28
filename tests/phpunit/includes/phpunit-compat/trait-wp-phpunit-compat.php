@@ -11,7 +11,7 @@ require_once __DIR__ . '/trait-wp-phpunit6-compat.php';
  *
  * It's only job is to catch a method call to a non-existent function, which we may have a compat method for.
  *
- * All compat methods are prefixed with an underscore, and will only be used if the current PHPUnit in play doesn't support it natively.
+ * All compat methods should be prefixed with an underscore, and will only be called if the current PHPUnit version doesn't support it natively.
  */
 trait WP_PHPUnit_Compat {
 
