@@ -3,10 +3,6 @@
  * Trait that contains any new/needed functionality from PHPUnit 9
  */
 
-use PHPUnit\Framework\Error\Deprecated;
-use PHPUnit\Framework\Error\Notice;
-use PHPUnit\Framework\Error\Warning;
-
 trait WP_PHPUnit9_Compat {
 
 	// New
@@ -61,21 +57,6 @@ trait WP_PHPUnit9_Compat {
 	 */
 	function _assertDoesNotMatchRegularExpression( $pattern, $string, $message = '' ) {
 		$this->assertNotRegExp( $pattern, $string, $message );
-	}
-
-	// New
-	function _expectDeprecation() {
-		$this->expectException( Deprecated::class );
-	}
-
-	// New
-	function _expectNotice() {
-		$this->expectException( Notice::class );
-	}
-
-	// New
-	function _expectWarning() {
-		$this->expectException( Warning::class );
 	}
 
 	/**
