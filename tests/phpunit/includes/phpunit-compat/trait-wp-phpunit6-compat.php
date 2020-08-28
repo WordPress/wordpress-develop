@@ -5,7 +5,7 @@
 trait WP_PHPUnit6_Compat {
 
 	// Removed
-	function _setExpectedException( $exception, $message = '', $code = null ) {
+	public function _setExpectedException( $exception, $message = '', $code = null ) {
 		$this->expectException( $exception );
 		if ( '' !== $message ) {
 			$this->expectExceptionMessage( $message );

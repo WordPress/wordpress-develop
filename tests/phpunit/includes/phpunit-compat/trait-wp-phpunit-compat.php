@@ -21,7 +21,7 @@ trait WP_PHPUnit_Compat {
 	use WP_PHPUnit7_Compat;
 	use WP_PHPUnit6_Compat;
 
-	function __call( $method, $args ) {
+	public function __call( $method, $args ) {
 		$compat_method = "_{$method}";
 		if ( '_' !== $method[0] && method_exists( $this, $compat_method ) ) {
 			call_user_func_array( array( $this, $compat_method ), $args );

@@ -6,13 +6,13 @@
 trait WP_PHPUnit9_Compat {
 
 	// New
-	function _assertStringContainsString( $needle, $haystack, $message = '' ) {
+	public function _assertStringContainsString( $needle, $haystack, $message = '' ) {
 		// In older versions of PHPUnit, we can just pass through to assertContains.
 		$this->assertContains( $needle, $haystack, $message );
 	}
 
 	// New
-	function _assertStringNotContainsString( $needle, $haystack, $message = '' ) {
+	public function _assertStringNotContainsString( $needle, $haystack, $message = '' ) {
 		// In older versions of PHPUnit, we can just pass through to assertContains.
 		$this->assertNotContains( $needle, $haystack, $message );
 	}
@@ -34,7 +34,7 @@ trait WP_PHPUnit9_Compat {
 	 * @throws ExpectationFailedException
 	 * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
 	 */
-	function _assertMatchesRegularExpression( $pattern, $string, $message = '' ) {
+	public function _assertMatchesRegularExpression( $pattern, $string, $message = '' ) {
 		$this->assertRegExp( $pattern, $string, $message );
 	}
 
@@ -55,7 +55,7 @@ trait WP_PHPUnit9_Compat {
 	 * @throws ExpectationFailedException
 	 * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
 	 */
-	function _assertDoesNotMatchRegularExpression( $pattern, $string, $message = '' ) {
+	public function _assertDoesNotMatchRegularExpression( $pattern, $string, $message = '' ) {
 		$this->assertNotRegExp( $pattern, $string, $message );
 	}
 
@@ -77,12 +77,12 @@ trait WP_PHPUnit9_Compat {
 	 * @throws ExpectationFailedException
 	 * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
 	 */
-	function _assertFileDoesNotExist( $file, $message = '' ) {
+	public function _assertFileDoesNotExist( $file, $message = '' ) {
 		$this->assertFileNotExists( $file, $message );
 	}
 
 	// Removed
-	function _assertInternalType( $expected, $actual, $message = '' ) {
+	public function _assertInternalType( $expected, $actual, $message = '' ) {
 		if ( 'integer' === $expected ) {
 			$expected = 'int';
 		} elseif ( 'boolean' === $expected ) {
@@ -95,7 +95,7 @@ trait WP_PHPUnit9_Compat {
 	}
 
 	// Removed
-	function _assertNotInternalType( $expected, $actual, $message = '' ) {
+	public function _assertNotInternalType( $expected, $actual, $message = '' ) {
 		if ( 'integer' === $expected ) {
 			$expected = 'int';
 		} elseif ( 'boolean' === $expected ) {

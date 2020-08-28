@@ -11,62 +11,62 @@ use PHPUnit\Framework\Error\Error;
 trait WP_PHPUnit8_Compat {
 
 	// New
-	function _expectDeprecation() {
+	public function _expectDeprecation() {
 		$this->expectException( Deprecated::class );
 	}
 
 	// New
-	function _expectDeprecationMessage( $message ) {
+	public function _expectDeprecationMessage( $message ) {
 		$this->expectExceptionMessage( $message );
 	}
 
 	// New
-	function _expectDeprecationMessageMatches( $regularExpression ) {
+	public function _expectDeprecationMessageMatches( $regularExpression ) {
 		$this->expectExceptionMessageRegExp( $regularExpression );
 	}
 
 	// New
-	function _expectNotice() {
+	public function _expectNotice() {
 		$this->expectException( Notice::class );
 	}
 
 	// New
-	function _expectNoticeMessage( $message ) {
+	public function _expectNoticeMessage( $message ) {
 		$this->expectExceptionMessage( $message );
 	}
 
 	// New
-	function _expectNoticeMessageMatches( $regularExpression ) {
+	public function _expectNoticeMessageMatches( $regularExpression ) {
 		$this->expectExceptionMessageRegExp( $regularExpression );
 	}
 
 	// New
-	function _expectWarning() {
+	public function _expectWarning() {
 		$this->expectException( Warning::class );
 	}
 
 	// New
-	function _expectWarningMessage( $message ) {
+	public function _expectWarningMessage( $message ) {
 		$this->expectExceptionMessage( $message );
 	}
 
 	// New
-	function _expectWarningMessageMatches( $regularExpression ) {
+	public function _expectWarningMessageMatches( $regularExpression ) {
 		$this->expectExceptionMessageRegExp( $regularExpression );
 	}
 
 	// New
-	function _expectError() {
+	public function _expectError() {
 		$this->expectException( Error::class );
 	}
 
 	// New
-	function _expectErrorMessage( $message ) {
+	public function _expectErrorMessage( $message ) {
 		$this->expectExceptionMessage( $message );
 	}
 
 	// New
-	function _expectErrorMessageMatches( $regularExpression ) {
+	public function _expectErrorMessageMatches( $regularExpression ) {
 		$this->expectExceptionMessageRegExp( $regularExpression );
 	}
 
