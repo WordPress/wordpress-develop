@@ -1,6 +1,6 @@
 <?php
 /**
- * Trait that contains any new/needed functionality from PHPUnit 7
+ * Trait that contains any new/deprecated/removed functionality in PHPUnit 7
  */
 trait WP_PHPUnit7_Compat {
 

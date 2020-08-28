@@ -1,6 +1,6 @@
 <?php
 /**
- * Trait that contains any new/needed functionality from PHPUnit 8
+ * Trait that contains any new/deprecated/removed functionality in PHPUnit 8
  */
 
 use PHPUnit\Framework\Error\Deprecated;
