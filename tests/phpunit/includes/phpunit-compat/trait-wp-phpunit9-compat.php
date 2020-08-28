@@ -21,12 +21,44 @@ trait WP_PHPUnit9_Compat {
 		$this->assertNotContains( $needle, $haystack, $message );
 	}
 
-	// New
+	/**
+	 * Asserts that a string matches a given regular expression.
+	 *
+	 * The `assertMatchesRegularExpression()` method was introduced in PHPUnit 9.1.0 to
+	 * replace the `assertRegExp()` method, which was deprecated in the same version.
+	 *
+	 * This polyfills the _new_ method to older PHPUnit versions.
+	 *
+	 * @link https://phpunit.readthedocs.io/en/7.5/assertions.html#assertregexp                   Old method.
+	 * @link https://phpunit.readthedocs.io/en/9.3/assertions.html#assertmatchesregularexpression New method.
+	 *
+	 * @since 5.6.0
+	 * @ignore
+	 *
+	 * @throws ExpectationFailedException
+	 * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+	 */
 	function _assertMatchesRegularExpression( $pattern, $string, $message = '' ) {
 		$this->assertRegExp( $pattern, $string, $message );
 	}
 
-	// New
+	/**
+	 * Asserts that a string does not match a given regular expression.
+	 *
+	 * The `assertDoesNotMatchRegularExpression()` method was introduced in PHPUnit 9.1.0 to
+	 * replace the `assertRegExp()` method, which was deprecated in the same version.
+	 *
+	 * This polyfills the _new_ method to older PHPUnit versions.
+	 *
+	 * @link https://phpunit.readthedocs.io/en/7.5/assertions.html#assertregexp                   Old method.
+	 * @link https://phpunit.readthedocs.io/en/9.3/assertions.html#assertmatchesregularexpression New method.
+	 *
+	 * @since 5.6.0
+	 * @ignore
+	 *
+	 * @throws ExpectationFailedException
+	 * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+	 */
 	function _assertDoesNotMatchRegularExpression( $pattern, $string, $message = '' ) {
 		$this->assertNotRegExp( $pattern, $string, $message );
 	}
@@ -46,7 +78,24 @@ trait WP_PHPUnit9_Compat {
 		$this->expectException( Warning::class );
 	}
 
-	// Deprecated
+	/**
+	 * Asserts that a file does not exist.
+	 *
+	 * The `assertFileDoesNotExist()` method was introduced in PHPUnit 9.1.0 to
+	 * replace the `assertFileNotExists()` method, which was deprecated in the
+	 * same version.
+	 *
+	 * This polyfills the _new_ method to older PHPUnit versions.
+	 *
+	 * @link https://phpunit.readthedocs.io/en/7.5/assertions.html#assertfileexists Old method.
+	 * @link https://phpunit.readthedocs.io/en/9.3/assertions.html#assertfileexists New method.
+	 *
+	 * @since 5.6.0
+	 * @ignore
+	 *
+	 * @throws ExpectationFailedException
+	 * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+	 */
 	function _assertFileDoesNotExist( $file, $message = '' ) {
 		$this->assertFileNotExists( $file, $message );
 	}
