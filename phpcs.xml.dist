@@ -320,6 +320,9 @@
 	<rule ref="WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid">
 		<exclude-pattern>/tests/phpunit/includes/phpunit-compat/*</exclude-pattern>
 	</rule>
+	<rule ref="WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase">
+		<exclude-pattern>/tests/phpunit/includes/phpunit-compat/*</exclude-pattern>
+	</rule>
 
 	<!-- Exclude some old classes that can't be renamed, as it would break back compat. -->
 	<rule ref="PEAR.NamingConventions.ValidClassName.Invalid">
