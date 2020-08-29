@@ -2514,8 +2514,8 @@ function the_date( $format = '', $before = '', $after = '', $echo = true ) {
  *
  * @since 3.0.0
  *
- * @param string|false  $format Optional. PHP date format defaults to the date_format option if not specified.
- * @param int|WP_Post   $post   Optional. Post ID or WP_Post object. Default current post.
+ * @param string      $format Optional. PHP date format defaults to the date_format option if not specified.
+ * @param int|WP_Post $post   Optional. Post ID or WP_Post object. Default current post.
  * @return string|false Date the current post was written. False on failure.
  */
 function get_the_date( $format = '', $post = null ) {
@@ -2640,10 +2640,10 @@ function the_time( $format = '' ) {
  *
  * @since 1.5.0
  *
- * @param string|false $format Optional. Format to use for retrieving the time the post
- *                             was written. Either 'G', 'U', or PHP date format defaults
- *                             to the value specified in the time_format option. Default empty.
- * @param int|WP_Post  $post   WP_Post object or ID. Default is global `$post` object.
+ * @param string      $format Optional. Format to use for retrieving the time the post
+ *                            was written. Either 'G', 'U', or PHP date format defaults
+ *                            to the value specified in the time_format option. Default empty.
+ * @param int|WP_Post $post   WP_Post object or ID. Default is global `$post` object.
  * @return string|int|false Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
  *                          False on failure.
  */

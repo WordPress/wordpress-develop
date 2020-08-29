@@ -544,7 +544,7 @@ function get_comment_class( $class = '', $comment_id = null, $post_id = null ) {
  * @since 1.5.0
  * @since 4.4.0 Added the ability for `$comment_ID` to also accept a WP_Comment object.
  *
- * @param string|false   $format     Optional. The format of the date. Default user's setting.
+ * @param string         $format     Optional. The format of the date. Default user's setting.
  * @param int|WP_Comment $comment_ID WP_Comment or ID of the comment for which to get the date.
  *                                   Default current comment.
  * @return string The comment's date.
@@ -1035,10 +1035,10 @@ function comment_text( $comment_ID = 0, $args = array() ) {
  *
  * @since 1.5.0
  *
- * @param string|false $format    Optional. The format of the time. Default user's settings.
- * @param bool         $gmt       Optional. Whether to use the GMT date. Default false.
- * @param bool         $translate Optional. Whether to translate the time (for use in feeds).
- *                                Default true.
+ * @param string $format    Optional. The format of the time. Default user's settings.
+ * @param bool   $gmt       Optional. Whether to use the GMT date. Default false.
+ * @param bool   $translate Optional. Whether to translate the time (for use in feeds).
+ *                          Default true.
  * @return string The formatted time.
  */
 function get_comment_time( $format = '', $gmt = false, $translate = true ) {
