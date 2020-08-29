@@ -4357,6 +4357,8 @@ function wp_update_post( $postarr = array(), $wp_error = false ) {
 /**
  * Publish a post by transitioning the post status.
  *
+ * Makes sure the new permalink is unique.
+ *
  * @since 2.1.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
@@ -4375,7 +4377,9 @@ function wp_publish_post( $post ) {
 		return;
 	}
 
-	$wpdb->update( $wpdb->posts, array( 'post_status' => 'publish' ), array( 'ID' => $post->ID ) );
+	$post_name = wp_unique_post_slug( $post->post_name, $post->ID, 'publish', $post->post_type, $post->post_parent );
+
+	$wpdb->update( $wpdb->posts, array( 'post_status' => 'publish', 'post_name' => $post_name ), array( 'ID' => $post->ID ) );
 
 	clean_post_cache( $post->ID );
 
