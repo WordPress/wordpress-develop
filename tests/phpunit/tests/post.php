@@ -914,6 +914,15 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 51184
+	 */
+	function test_get_the_date_with_different_formats_returns_correct_time() {
+		$post_id = self::factory()->post->create( array( 'post_date' => '2020-08-29 01:51:00' ) );
+		$this->assertEquals( 'August 29, 2020', get_the_date( '', $post_id ) );
+		$this->assertEquals( 'August 29, 2020', get_the_date( false, $post_id ) );
+	}
+
+	/**
 	 * @ticket 28310
 	 */
 	function test_get_the_time_with_id_returns_correct_time() {
@@ -929,6 +938,16 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertFalse( get_the_time( 'h:i:s' ) );
 		$this->assertFalse( get_the_time( '', 9 ) );
 		$this->assertFalse( get_the_time( 'h:i:s', 9 ) );
+	}
+
+	/**
+	 * @ticket 51184
+	 */
+	function test_get_the_time_with_different_formats_returns_correct_time() {
+		$post_id = self::factory()->post->create( array( 'post_date' => '2020-08-29 01:51:00' ) );
+		$this->assertEquals( '1:51 am', get_the_time( '', $post_id ) );
+		$this->assertEquals( '1:51 am', get_the_time( false, $post_id ) );
+		$this->assertEquals( '1:51 am', get_the_time( 'g:i a', $post_id ) );
 	}
 
 	/**
