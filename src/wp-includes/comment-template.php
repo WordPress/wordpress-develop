@@ -545,12 +545,12 @@ function get_comment_class( $class = '', $comment_id = null, $post_id = null ) {
  * @since 4.4.0 Added the ability for `$comment_ID` to also accept a WP_Comment object.
  *
  * @param string         $format     Optional. The format of the date. Default user's setting.
- * @param int|WP_Comment $comment_ID WP_Comment or ID of the comment for which to get the date.
+ * @param int|WP_Comment $comment_id WP_Comment or ID of the comment for which to get the date.
  *                                   Default current comment.
  * @return string The comment's date.
  */
-function get_comment_date( $format = '', $comment_ID = 0 ) {
-	$comment = get_comment( $comment_ID );
+function get_comment_date( $format = '', $comment_id = 0 ) {
+	$comment = get_comment( $comment_id );
 
 	if ( is_string( $format ) && '' !== $format ) {
 		$date = mysql2date( $format, $comment->comment_date );

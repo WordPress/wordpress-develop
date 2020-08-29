@@ -1367,6 +1367,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 */
 	function test_get_comment_date_with_different_formats_returns_correct_time() {
 		$c = self::factory()->comment->create( array( 'comment_date' => '2020-08-29 01:51:00' ) );
+
 		$this->assertEquals( 'August 29, 2020', get_comment_date( '', $c ) );
 		$this->assertEquals( 'August 29, 2020', get_comment_date( false, $c ) );
 		$this->assertEquals( 'August 29, 2020', get_comment_date( 'F j, Y', $c ) );
@@ -1377,8 +1378,9 @@ class Tests_Comment extends WP_UnitTestCase {
 	 */
 	function test_get_comment_time_with_different_formats_returns_correct_time() {
 		$c = self::factory()->comment->create( array( 'comment_date' => '2020-08-29 01:51:00' ) );
-		$GLOBALS['comment'] = get_comment($c);
-		$this->assertEquals( '1:51 am', get_comment_time( '') );
+
+		$GLOBALS['comment'] = get_comment( $c );
+		$this->assertEquals( '1:51 am', get_comment_time( '' ) );
 		$this->assertEquals( '1:51 am', get_comment_time( false ) );
 		$this->assertEquals( '1:51 am', get_comment_time( 'g:i a' ) );
 	}
