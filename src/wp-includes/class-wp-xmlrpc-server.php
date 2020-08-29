@@ -3909,6 +3909,11 @@ class wp_xmlrpc_server extends IXR_Server {
 				$comment['comment_author_url'] = $content_struct['author_url'];
 			}
 
+			$comment['comment_type'] = '';
+			if ( isset( $content_struct['comment_type'] ) ) {
+				$comment['comment_type'] = $content_struct['comment_type'];
+			}
+
 			$comment['user_ID'] = 0;
 
 			if ( get_option( 'require_name_email' ) ) {
