@@ -2525,10 +2525,10 @@ function get_the_date( $format = '', $post = null ) {
 		return false;
 	}
 
-	if ( '' === $format || false === $format ) {
-		$the_date = get_post_time( get_option( 'date_format' ), false, $post, true );
-	} else {
+	if ( is_string( $format ) && '' !== $format ) {
 		$the_date = get_post_time( $format, false, $post, true );
+	} else {
+		$the_date = get_post_time( get_option( 'date_format' ), false, $post, true );
 	}
 
 	/**
@@ -2654,10 +2654,10 @@ function get_the_time( $format = '', $post = null ) {
 		return false;
 	}
 
-	if ( '' === $format || false === $format ) {
-		$the_time = get_post_time( get_option( 'time_format' ), false, $post, true );
-	} else {
+	if ( is_string( $format ) && '' !== $format ) {
 		$the_time = get_post_time( $format, false, $post, true );
+	} else {
+		$the_time = get_post_time( get_option( 'time_format' ), false, $post, true );
 	}
 
 	/**

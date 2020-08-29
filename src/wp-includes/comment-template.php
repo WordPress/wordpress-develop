@@ -552,10 +552,10 @@ function get_comment_class( $class = '', $comment_id = null, $post_id = null ) {
 function get_comment_date( $format = '', $comment_ID = 0 ) {
 	$comment = get_comment( $comment_ID );
 
-	if ( '' === $format || false === $format ) {
-		$date = mysql2date( get_option( 'date_format' ), $comment->comment_date );
-	} else {
+	if ( is_string( $format ) && '' !== $format ) {
 		$date = mysql2date( $format, $comment->comment_date );
+	} else {
+		$date = mysql2date( get_option( 'date_format' ), $comment->comment_date );
 	}
 
 	/**
@@ -1046,10 +1046,10 @@ function get_comment_time( $format = '', $gmt = false, $translate = true ) {
 
 	$comment_date = $gmt ? $comment->comment_date_gmt : $comment->comment_date;
 
-	if ( '' === $format || false === $format ) {
-		$date = mysql2date( get_option( 'time_format' ), $comment_date, $translate );
-	} else {
+	if ( is_string( $format ) && '' !== $format ) {
 		$date = mysql2date( $format, $comment_date, $translate );
+	} else {
+		$date = mysql2date( get_option( 'time_format' ), $comment_date, $translate );
 	}
 
 	/**
