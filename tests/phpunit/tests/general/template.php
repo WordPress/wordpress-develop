@@ -690,4 +690,60 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 		get_template_part( 'template', 'part', array( 'foo' => 'baz' ) );
 	}
+
+	/**
+	 * @ticket 51166
+	 * @dataProvider data_selected_checked_equal_values
+	 */
+	public function test_selected_equal( $selected, $current ) {
+		$this->assertEquals( ' selected=\'selected\'', selected( $selected, $current, false ) );
+	}
+
+	/**
+	 * @ticket 51166
+	 * @dataProvider data_selected_checked_equal_values
+	 */
+	public function test_checked_equal( $checked, $current ) {
+		$this->assertEquals( ' checked=\'checked\'', checked( $checked, $current, false ) );
+	}
+
+	public function data_selected_checked_equal_values() {
+		return array(
+			array( 'foo', 'foo' ),
+			array( '1', 1 ),
+			array( '1', true ),
+			array( 1, 1 ),
+			array( 1, true ),
+			array( true, true ),
+			array( '0', 0 ),
+			array( 0, 0 ),
+			array( '', false ),
+			array( false, false ),
+		);
+	}
+
+	/**
+	 * @ticket 51166
+	 * @dataProvider data_selected_checked_notequal_values
+	 */
+	public function test_template_selected_notequal( $selected, $current ) {
+		$this->assertEquals( '', selected( $selected, $current, false ) );
+	}
+
+	/**
+	 * @ticket 51166
+	 * @dataProvider data_selected_checked_notequal_values
+	 */
+	public function test_template_checked_notequal( $checked, $current ) {
+		$this->assertEquals( '', checked( $checked, $current, false ) );
+	}
+
+	public function data_selected_checked_notequal_values() {
+		return array(
+			array( '0', '' ),
+			array( 0, '' ),
+			array( 0, false ),
+		);
+	}
+
 }
