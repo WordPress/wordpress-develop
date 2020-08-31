@@ -57,3 +57,4 @@ if ( class_exists( 'PHPUnit\Runner\Version' ) && version_compare( PHPUnit\Runner
 	class_alias( 'PHPUnit_Framework_TestListener', 'PHPUnit\Framework\TestListener' );
 	class_alias( 'PHPUnit_Util_GlobalState', 'PHPUnit\Util\GlobalState' );
 }
+
