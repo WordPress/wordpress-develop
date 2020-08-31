@@ -865,22 +865,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Custom preparations for the PHPUnit process isolation template.
-	 *
-	 * When restoring global state between tests, PHPUnit defines all the constants that were already defined, and then
-	 * includes included files. This does not work with WordPress, as the included files define the constants.
-	 *
-	 * This method defines the constants after including files.
-	 *
-	 * @param Text_Template $template The template to prepare.
-	 */
-	public function prepareTemplate( Text_Template $template ) {
-		$template->setVar( array( 'constants' => '' ) );
-		$template->setVar( array( 'wp_constants' => PHPUnit_Util_GlobalState::getConstantsAsString() ) );
-		parent::prepareTemplate( $template );
-	}
-
-	/**
 	 * Creates a unique temporary file name.
 	 *
 	 * The directory in which the file is created depends on the environment configuration.
