@@ -10,11 +10,9 @@ use PHPUnit\Framework\Error\Error;
 
 trait WP_PHPUnit8_Compat {
 
-	// Note: class_exists() checks are due to PHPUnit6 support.
-
 	// New
 	public function _expectDeprecation() {
-		$this->expectException( class_exists( Deprecated::class ) ? Deprecated::class : 'PHPUnit_Framework_Error_Deprecated' );
+		$this->expectException( Deprecated::class );
 	}
 
 	// New
@@ -29,7 +27,7 @@ trait WP_PHPUnit8_Compat {
 
 	// New
 	public function _expectNotice() {
-		$this->expectException( class_exists( Notice::class ) ? Notice::class : 'PHPUnit_Framework_Error_Notice' );
+		$this->expectException( Notice::class );
 	}
 
 	// New
@@ -44,7 +42,7 @@ trait WP_PHPUnit8_Compat {
 
 	// New
 	public function _expectWarning() {
-		$this->expectException( class_exists( Warning::class ) ? Warning::class : 'PHPUnit_Framework_Error_Warning' );
+		$this->expectException( Warning::class );
 	}
 
 	// New
@@ -59,7 +57,7 @@ trait WP_PHPUnit8_Compat {
 
 	// New
 	public function _expectError() {
-		$this->expectException( class_exists( Error::class ) ? Error::class : 'PHPUnit_Framework_Error' );
+		$this->expectException( Error::class );
 	}
 
 	// New
