@@ -3,8 +3,45 @@
 /**
  * @group date
  * @group datetime
+ * @group post
  */
-class Tests_Date_Post_Time extends WP_UnitTestCase {
+class Tests_Date_Get_Post_Time extends WP_UnitTestCase {
+
+	/**
+	 * @ticket 28310
+	 */
+	public function test_get_post_time_with_id_returns_correct_time() {
+		$post_id = self::factory()->post->create( array( 'post_date' => '2014-03-01 16:35:00' ) );
+		$this->assertEquals( '16:35:00', get_post_time( 'H:i:s', false, $post_id ) );
+	}
+
+	/**
+	 * @ticket 28310
+	 */
+	public function test_get_post_time_returns_false_with_null_or_non_existing_post() {
+		$this->assertFalse( get_post_time() );
+		$this->assertFalse( get_post_time( 'h:i:s' ) );
+		$this->assertFalse( get_post_time( '', false, 9 ) );
+		$this->assertFalse( get_post_time( 'h:i:s', false, 9 ) );
+	}
+
+	/**
+	 * @ticket 28310
+	 */
+	public function test_get_post_modified_time_with_id_returns_correct_time() {
+		$post_id = self::factory()->post->create( array( 'post_date' => '2014-03-01 16:35:00' ) );
+		$this->assertEquals( '16:35:00', get_post_modified_time( 'H:i:s', false, $post_id ) );
+	}
+
+	/**
+	 * @ticket 28310
+	 */
+	public function test_get_post_modified_time_returns_false_with_null_or_non_existing_post() {
+		$this->assertFalse( get_post_modified_time() );
+		$this->assertFalse( get_post_modified_time( 'h:i:s' ) );
+		$this->assertFalse( get_post_modified_time( '', false, 9 ) );
+		$this->assertFalse( get_post_modified_time( 'h:i:s', false, 9 ) );
+	}
 
 	/**
 	 * @ticket 25002
