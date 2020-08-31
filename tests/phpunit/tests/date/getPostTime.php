@@ -10,8 +10,9 @@ class Tests_Date_Get_Post_Time extends WP_UnitTestCase {
 	/**
 	 * @ticket 28310
 	 */
-	public function test_get_post_time_with_id_returns_correct_time() {
+	public function test_get_post_time_returns_correct_time_with_post_id() {
 		$post_id = self::factory()->post->create( array( 'post_date' => '2014-03-01 16:35:00' ) );
+
 		$this->assertEquals( '16:35:00', get_post_time( 'H:i:s', false, $post_id ) );
 	}
 
@@ -28,8 +29,9 @@ class Tests_Date_Get_Post_Time extends WP_UnitTestCase {
 	/**
 	 * @ticket 28310
 	 */
-	public function test_get_post_modified_time_with_id_returns_correct_time() {
+	public function test_get_post_modified_time_returns_correct_time_with_post_id() {
 		$post_id = self::factory()->post->create( array( 'post_date' => '2014-03-01 16:35:00' ) );
+
 		$this->assertEquals( '16:35:00', get_post_modified_time( 'H:i:s', false, $post_id ) );
 	}
 
