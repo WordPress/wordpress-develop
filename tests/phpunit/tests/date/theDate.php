@@ -3,6 +3,7 @@
 /**
  * @group date
  * @group datetime
+ * @group post
  */
 class Tests_Date_The_Date extends WP_UnitTestCase {
 

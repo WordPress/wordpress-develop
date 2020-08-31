@@ -14,6 +14,21 @@ class Tests_Date_mysql2date extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 28310
+	 */
+	function test_mysql2date_returns_false_with_no_date() {
+		$this->assertFalse( mysql2date( 'F j, Y H:i:s', '' ) );
+	}
+
+	/**
+	 * @ticket 28310
+	 */
+	function test_mysql2date_returns_gmt_or_unix_timestamp() {
+		$this->assertEquals( '441013392', mysql2date( 'G', '1983-12-23 07:43:12' ) );
+		$this->assertEquals( '441013392', mysql2date( 'U', '1983-12-23 07:43:12' ) );
+	}
+
+	/**
 	 * @ticket 28992
 	 */
 	function test_mysql2date_should_format_time() {
