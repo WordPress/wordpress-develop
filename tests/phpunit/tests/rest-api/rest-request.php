@@ -231,7 +231,27 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->request->set_header( 'Content-Type', $content_type );
 
 		// Check for JSON content-type.
-		$this->assertEquals( $is_json, $this->request->is_json_content_type( $content_type ) );
+		$this->assertEquals( $is_json, $this->request->is_json_content_type() );
+	}
+
+	public function test_content_type_cache() {
+		$this->request_with_parameters();
+		$this->assertFalse( $this->request->is_json_content_type() );
+
+		$this->request->set_header( 'Content-Type', 'application/json' );
+		$this->assertTrue( $this->request->is_json_content_type() );
+
+		$this->request->set_header( 'Content-Type', 'application/activity+json' );
+		$this->assertTrue( $this->request->is_json_content_type() );
+
+		$this->request->set_header( 'Content-Type', 'application/nojson' );
+		$this->assertFalse( $this->request->is_json_content_type() );
+
+		$this->request->set_header( 'Content-Type', 'application/json' );
+		$this->assertTrue( $this->request->is_json_content_type() );
+
+		$this->request->remove_header( 'Content-Type' );
+		$this->assertFalse( $this->request->is_json_content_type() );
 	}
 
 	public function test_parameter_order_json() {
