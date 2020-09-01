@@ -14,9 +14,10 @@ If this is your first time contributing, you may also find reviewing these guide
 - Proper spelling and grammar related best practices: https://make.wordpress.org/core/handbook/best-practices/spelling/
 -->
 
-<!-- Insert a description of your changes here -->
+In this update I added `aria-hidden="true"` on all the `<div class='wp-menu-image...` occurrences in `src/wp-admin/menu-header.php` in order to make Voice Control works on the admin menu.
 
-Trac ticket: <!-- insert a link to the WordPress Trac ticket here -->
+Trac ticket: https://core.trac.wordpress.org/ticket/51012
 
 ---
+
 **This Pull Request is for code review only. Please keep all other discussion in the Trac ticket. Do not merge this Pull Request. See [GitHub Pull Requests for Code Review](https://make.wordpress.org/core/handbook/contribute/git/github-pull-requests-for-code-review/) in the Core Handbook for more details.**
