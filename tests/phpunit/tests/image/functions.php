@@ -186,7 +186,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				$ret  = wp_save_image_file( $file, $img, $mime_type, 1 );
 				$this->assertNotEmpty( $ret );
 				$this->assertNotWPError( $ret );
-				$this->assertEquals( $mime_type, $this->get_mime_type( $ret['path'] ) );
+				$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ) );
 
 				// Clean up.
 				unlink( $file );
@@ -228,7 +228,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			// Make assertions.
 			$this->assertNotEmpty( $ret );
 			$this->assertNotWPError( $ret );
-			$this->assertEquals( $mime_type, $this->get_mime_type( $ret['path'] ) );
+			$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ) );
 
 			// Clean up.
 			unlink( $file );
@@ -283,7 +283,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				$ret  = $img->save( trailingslashit( $temp ) . $file );
 				$this->assertNotEmpty( $ret );
 				$this->assertNotWPError( $ret );
-				$this->assertEquals( $mime_type, $this->get_mime_type( $ret['path'] ) );
+				$this->assertSame( $mime_type, $this->get_mime_type( $ret['path'] ) );
 				unlink( $ret['path'] );
 			}
 
@@ -319,7 +319,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$loaded = $editor->load();
 
 			$this->assertInstanceOf( 'WP_Error', $loaded );
-			$this->assertEquals( 'error_loading_image', $loaded->get_error_code() );
+			$this->assertSame( 'error_loading_image', $loaded->get_error_code() );
 		}
 	}
 
@@ -341,8 +341,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$this->assertFileExists( $file );
 		$image = wp_get_image_editor( $file );
 		$size  = $image->get_size();
-		$this->assertEquals( 100, $size['height'] );
-		$this->assertEquals( 100, $size['width'] );
+		$this->assertSame( 100, $size['height'] );
+		$this->assertSame( 100, $size['width'] );
 
 		unlink( $file );
 	}
@@ -376,8 +376,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$this->assertFileExists( $file );
 		$image = wp_get_image_editor( $file );
 		$size  = $image->get_size();
-		$this->assertEquals( 100, $size['height'] );
-		$this->assertEquals( 100, $size['width'] );
+		$this->assertSame( 100, $size['height'] );
+		$this->assertSame( 100, $size['width'] );
 
 		unlink( $file );
 	}

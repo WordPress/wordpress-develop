@@ -186,13 +186,13 @@ if ( is_multisite() ) :
 			add_site_meta( self::$site_id, 'unique_delete_by_key', 'value', true );
 			add_site_meta( self::$site_id2, 'unique_delete_by_key', 'value', true );
 
-			$this->assertEquals( 'value', get_site_meta( self::$site_id, 'unique_delete_by_key', true ) );
-			$this->assertEquals( 'value', get_site_meta( self::$site_id2, 'unique_delete_by_key', true ) );
+			$this->assertSame( 'value', get_site_meta( self::$site_id, 'unique_delete_by_key', true ) );
+			$this->assertSame( 'value', get_site_meta( self::$site_id2, 'unique_delete_by_key', true ) );
 
 			$this->assertTrue( delete_site_meta_by_key( 'unique_delete_by_key' ) );
 
-			$this->assertEquals( '', get_site_meta( self::$site_id, 'unique_delete_by_key', true ) );
-			$this->assertEquals( '', get_site_meta( self::$site_id2, 'unique_delete_by_key', true ) );
+			$this->assertSame( '', get_site_meta( self::$site_id, 'unique_delete_by_key', true ) );
+			$this->assertSame( '', get_site_meta( self::$site_id2, 'unique_delete_by_key', true ) );
 		}
 
 		public function test_site_meta_should_be_deleted_when_site_is_deleted() {

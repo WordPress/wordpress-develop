@@ -13,7 +13,7 @@ class Tests_Date_Get_Post_Time extends WP_UnitTestCase {
 	public function test_get_post_time_returns_correct_time_with_post_id() {
 		$post_id = self::factory()->post->create( array( 'post_date' => '2014-03-01 16:35:00' ) );
 
-		$this->assertEquals( '16:35:00', get_post_time( 'H:i:s', false, $post_id ) );
+		$this->assertSame( '16:35:00', get_post_time( 'H:i:s', false, $post_id ) );
 	}
 
 	/**
@@ -32,7 +32,7 @@ class Tests_Date_Get_Post_Time extends WP_UnitTestCase {
 	public function test_get_post_modified_time_returns_correct_time_with_post_id() {
 		$post_id = self::factory()->post->create( array( 'post_date' => '2014-03-01 16:35:00' ) );
 
-		$this->assertEquals( '16:35:00', get_post_modified_time( 'H:i:s', false, $post_id ) );
+		$this->assertSame( '16:35:00', get_post_modified_time( 'H:i:s', false, $post_id ) );
 	}
 
 	/**
@@ -64,14 +64,14 @@ class Tests_Date_Get_Post_Time extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $wp_timestamp, get_post_time( 'U', false, $post_id ) );
-		$this->assertEquals( $wp_timestamp, get_post_time( 'G', false, $post_id ) );
-		$this->assertEquals( $timestamp, get_post_time( 'U', true, $post_id ) );
-		$this->assertEquals( $timestamp, get_post_time( 'G', true, $post_id ) );
-		$this->assertEquals( $wp_timestamp, get_post_modified_time( 'U', false, $post_id ) );
-		$this->assertEquals( $wp_timestamp, get_post_modified_time( 'G', false, $post_id ) );
-		$this->assertEquals( $timestamp, get_post_modified_time( 'U', true, $post_id ) );
-		$this->assertEquals( $timestamp, get_post_modified_time( 'G', true, $post_id ) );
+		$this->assertSame( $wp_timestamp, get_post_time( 'U', false, $post_id ) );
+		$this->assertSame( $wp_timestamp, get_post_time( 'G', false, $post_id ) );
+		$this->assertSame( $timestamp, get_post_time( 'U', true, $post_id ) );
+		$this->assertSame( $timestamp, get_post_time( 'G', true, $post_id ) );
+		$this->assertSame( $wp_timestamp, get_post_modified_time( 'U', false, $post_id ) );
+		$this->assertSame( $wp_timestamp, get_post_modified_time( 'G', false, $post_id ) );
+		$this->assertSame( $timestamp, get_post_modified_time( 'U', true, $post_id ) );
+		$this->assertSame( $timestamp, get_post_modified_time( 'G', true, $post_id ) );
 	}
 
 	/**
@@ -92,14 +92,14 @@ class Tests_Date_Get_Post_Time extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $rfc3339, get_post_time( DATE_RFC3339, false, $post_id ) );
-		$this->assertEquals( $rfc3339_utc, get_post_time( DATE_RFC3339, true, $post_id ) );
-		$this->assertEquals( $rfc3339, get_post_time( DATE_RFC3339, false, $post_id, true ) );
-		$this->assertEquals( $rfc3339_utc, get_post_time( DATE_RFC3339, true, $post_id, true ) );
-		$this->assertEquals( $rfc3339, get_post_modified_time( DATE_RFC3339, false, $post_id ) );
-		$this->assertEquals( $rfc3339_utc, get_post_modified_time( DATE_RFC3339, true, $post_id ) );
-		$this->assertEquals( $rfc3339, get_post_modified_time( DATE_RFC3339, false, $post_id, true ) );
-		$this->assertEquals( $rfc3339_utc, get_post_modified_time( DATE_RFC3339, true, $post_id, true ) );
+		$this->assertSame( $rfc3339, get_post_time( DATE_RFC3339, false, $post_id ) );
+		$this->assertSame( $rfc3339_utc, get_post_time( DATE_RFC3339, true, $post_id ) );
+		$this->assertSame( $rfc3339, get_post_time( DATE_RFC3339, false, $post_id, true ) );
+		$this->assertSame( $rfc3339_utc, get_post_time( DATE_RFC3339, true, $post_id, true ) );
+		$this->assertSame( $rfc3339, get_post_modified_time( DATE_RFC3339, false, $post_id ) );
+		$this->assertSame( $rfc3339_utc, get_post_modified_time( DATE_RFC3339, true, $post_id ) );
+		$this->assertSame( $rfc3339, get_post_modified_time( DATE_RFC3339, false, $post_id, true ) );
+		$this->assertSame( $rfc3339_utc, get_post_modified_time( DATE_RFC3339, true, $post_id, true ) );
 	}
 
 	/**
@@ -121,7 +121,7 @@ class Tests_Date_Get_Post_Time extends WP_UnitTestCase {
 
 		update_option( 'timezone_string', 'Europe/Kiev' );
 
-		$this->assertEquals( $rfc3339, get_post_time( DATE_RFC3339, true, $post_id ) );
-		$this->assertEquals( $rfc3339, get_post_modified_time( DATE_RFC3339, true, $post_id ) );
+		$this->assertSame( $rfc3339, get_post_time( DATE_RFC3339, true, $post_id ) );
+		$this->assertSame( $rfc3339, get_post_modified_time( DATE_RFC3339, true, $post_id ) );
 	}
 }

@@ -51,10 +51,10 @@ JS;
 		$expected .= "<script type='text/javascript' src='http://example.com?ver=1.2' id='empty-deps-version-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com' id='empty-deps-null-version-js'></script>\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 
 		// No scripts left to print.
-		$this->assertEquals( '', get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( '', get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -71,7 +71,7 @@ JS;
 		$ver      = get_bloginfo( 'version' );
 		$expected = "<script src='http://example.com?ver=$ver' id='empty-deps-no-version-js'></script>\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -110,10 +110,10 @@ JS;
 		$expected .= "<script type='text/javascript' src='{$wp_scripts->base_url}ftp://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js?ver=$ver' id='jquery-ftp-js'></script>\n";
 
 		// Go!
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 
 		// No scripts left to print.
-		$this->assertEquals( '', get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( '', get_echo( 'wp_print_scripts' ) );
 
 		// Cleanup.
 		$wp_scripts->base_url = $base_url_backup;
@@ -138,7 +138,7 @@ JS;
 		$ver      = get_bloginfo( 'version' );
 		$expected = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one,two,three&amp;ver={$ver}'></script>\n";
 
-		$this->assertEquals( $expected, $print_scripts );
+		$this->assertSame( $expected, $print_scripts );
 	}
 
 	/**
@@ -154,10 +154,10 @@ JS;
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-only-data-js'></script>\n";
 
 		// Go!
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 
 		// No scripts left to print.
-		$this->assertEquals( '', get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( '', get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -172,10 +172,10 @@ JS;
 		$expected = "<!--[if gt IE 7]>\n<script type='text/javascript' src='http://example.com' id='test-only-conditional-js'></script>\n<![endif]-->\n";
 
 		// Go!
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 
 		// No scripts left to print.
-		$this->assertEquals( '', get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( '', get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -192,10 +192,10 @@ JS;
 		$expected .= "<!--[if lt IE 9]>\n<script type='text/javascript' src='http://example.com' id='test-conditional-with-data-js'></script>\n<![endif]-->\n";
 
 		// Go!
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 
 		// No scripts left to print.
-		$this->assertEquals( '', get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( '', get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -210,10 +210,10 @@ JS;
 		$expected = "<script type='text/javascript' src='http://example.com' id='test-invalid-js'></script>\n";
 
 		// Go!
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 
 		// No scripts left to print.
-		$this->assertEquals( '', get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( '', get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -239,7 +239,7 @@ JS;
 
 		wp_enqueue_script( 'handle-three' );
 
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -323,8 +323,8 @@ JS;
 		$expected_header .= "<script type='text/javascript' src='/child-head.js' id='child-head-js'></script>\n";
 		$expected_footer  = "<script type='text/javascript' src='/parent.js' id='parent-js'></script>\n";
 
-		$this->assertEquals( $expected_header, $header );
-		$this->assertEquals( $expected_footer, $footer );
+		$this->assertSame( $expected_header, $header );
+		$this->assertSame( $expected_footer, $footer );
 	}
 
 	/**
@@ -344,8 +344,8 @@ JS;
 		$expected_footer  = "<script type='text/javascript' src='/child-footer.js' id='child-footer-js'></script>\n";
 		$expected_footer .= "<script type='text/javascript' src='/parent.js' id='parent-js'></script>\n";
 
-		$this->assertEquals( $expected_header, $header );
-		$this->assertEquals( $expected_footer, $footer );
+		$this->assertSame( $expected_header, $header );
+		$this->assertSame( $expected_footer, $footer );
 	}
 
 	/**
@@ -375,8 +375,8 @@ JS;
 		$expected_footer .= "<script type='text/javascript' src='/child2-footer.js' id='child2-footer-js'></script>\n";
 		$expected_footer .= "<script type='text/javascript' src='/parent-footer.js' id='parent-footer-js'></script>\n";
 
-		$this->assertEquals( $expected_header, $header );
-		$this->assertEquals( $expected_footer, $footer );
+		$this->assertSame( $expected_header, $header );
+		$this->assertSame( $expected_footer, $footer );
 	}
 
 	/**
@@ -393,7 +393,7 @@ JS;
 	 */
 	function test_wp_add_inline_script_unknown_handle() {
 		$this->assertFalse( wp_add_inline_script( 'test-invalid', 'console.log("before");', 'before' ) );
-		$this->assertEquals( '', get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( '', get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -406,7 +406,7 @@ JS;
 		$expected  = "<script type='text/javascript' id='test-example-js-before'>\nconsole.log(\"before\");\n</script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -419,7 +419,7 @@ JS;
 		$expected  = "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
 		$expected .= "<script type='text/javascript' id='test-example-js-after'>\nconsole.log(\"after\");\n</script>\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -434,7 +434,7 @@ JS;
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
 		$expected .= "<script type='text/javascript' id='test-example-js-after'>\nconsole.log(\"after\");\n</script>\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -447,7 +447,7 @@ JS;
 
 		$expected = "<script type='text/javascript' id='test-example-js-before'>\nconsole.log(\"before\");\n</script>\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -460,7 +460,7 @@ JS;
 
 		$expected = "<script type='text/javascript' id='test-example-js-after'>\nconsole.log(\"after\");\n</script>\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -475,7 +475,7 @@ JS;
 		$expected  = "<script type='text/javascript' id='test-example-js-before'>\nconsole.log(\"before\");\n</script>\n";
 		$expected .= "<script type='text/javascript' id='test-example-js-after'>\nconsole.log(\"after\");\n</script>\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -492,7 +492,7 @@ JS;
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
 		$expected .= "<script type='text/javascript' id='test-example-js-after'>\nconsole.log(\"after\");\nconsole.log(\"after\");\n</script>\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -509,7 +509,7 @@ JS;
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
 		$expected .= "<script type='text/javascript' id='test-example-js-after'>\nconsole.log(\"after\");\n</script>\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -535,7 +535,7 @@ JS;
 		$expected .= "<script type='text/javascript' src='/directory/two.js?ver={$ver}' id='two-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='/directory/three.js?ver={$ver}' id='three-js'></script>\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -559,7 +559,7 @@ JS;
 		$expected .= "<script type='text/javascript' src='/directory/two.js?ver={$ver}' id='two-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='/directory/three.js?ver={$ver}' id='three-js'></script>\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -587,7 +587,7 @@ JS;
 		$expected .= "<script type='text/javascript' id='three-js-after'>\nconsole.log(\"after three\");\n</script>\n";
 		$expected .= "<script type='text/javascript' src='/directory/four.js?ver={$ver}' id='four-js'></script>\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -615,8 +615,8 @@ JS;
 		wp_add_inline_script( 'test-example', 'console.log("after");' );
 		wp_script_add_data( 'test-example', 'conditional', 'gte IE 9' );
 
-		$this->assertEquals( $expected_localized, get_echo( 'wp_print_scripts' ) );
-		$this->assertEquals( $expected, $wp_scripts->print_html );
+		$this->assertSame( $expected_localized, get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( $expected, $wp_scripts->print_html );
 		$this->assertTrue( $wp_scripts->do_concat );
 	}
 
@@ -642,7 +642,7 @@ JS;
 		wp_print_scripts();
 		$print_scripts = get_echo( '_print_scripts' );
 
-		$this->assertEquals( $expected, $print_scripts );
+		$this->assertSame( $expected, $print_scripts );
 	}
 
 	/**
@@ -670,7 +670,7 @@ JS;
 		wp_print_scripts();
 		$print_scripts = get_echo( '_print_scripts' );
 
-		$this->assertEquals( $expected, $print_scripts );
+		$this->assertSame( $expected, $print_scripts );
 	}
 
 	/**
@@ -696,7 +696,7 @@ JS;
 		wp_print_scripts();
 		$print_scripts = get_echo( '_print_scripts' );
 
-		$this->assertEquals( $expected, $print_scripts );
+		$this->assertSame( $expected, $print_scripts );
 	}
 
 	/**
@@ -752,7 +752,7 @@ JS;
 			$print_scripts         // Printed scripts.
 		);
 
-		$this->assertEqualsIgnoreEOL( $expected, $print_scripts );
+		$this->assertSameIgnoreEOL( $expected, $print_scripts );
 	}
 
 	/**
@@ -780,7 +780,7 @@ JS;
 		$print_scripts .= get_echo( '_print_scripts' );
 
 		$tail = substr( $print_scripts, strrpos( $print_scripts, "<script type='text/javascript' src='/customize-dependency.js' id='customize-dependency-js'>" ) );
-		$this->assertEquals( $expected_tail, $tail );
+		$this->assertSame( $expected_tail, $tail );
 	}
 
 	/**
@@ -805,7 +805,7 @@ JS;
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/script3.js?ver={$ver}' id='three-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/script4.js?ver={$ver}' id='four-js'></script>\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -829,7 +829,7 @@ JS;
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/script3.js?ver={$ver}' id='three-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/script4.js?ver={$ver}' id='four-js'></script>\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -856,7 +856,7 @@ JS;
 		);
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/script.js' id='test-example-js'></script>\n";
 
-		$this->assertEqualsIgnoreEOL( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSameIgnoreEOL( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -883,7 +883,7 @@ JS;
 		);
 		$expected .= "<script type='text/javascript' src='/wp-content/plugins/my-plugin/js/script.js' id='plugin-example-js'></script>\n";
 
-		$this->assertEqualsIgnoreEOL( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSameIgnoreEOL( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -910,7 +910,7 @@ JS;
 		);
 		$expected .= "<script type='text/javascript' src='/wp-content/themes/my-theme/js/script.js' id='theme-example-js'></script>\n";
 
-		$this->assertEqualsIgnoreEOL( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSameIgnoreEOL( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -937,7 +937,7 @@ JS;
 		);
 		$expected .= "<script type='text/javascript' src='/wp-admin/js/script.js' id='script-handle-js'></script>\n";
 
-		$this->assertEqualsIgnoreEOL( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSameIgnoreEOL( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -979,7 +979,7 @@ JS;
 		);
 		$expected .= "<script type='text/javascript' src='/wp-admin/js/script.js' id='test-example-js'></script>\n";
 
-		$this->assertEqualsIgnoreEOL( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSameIgnoreEOL( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -1008,7 +1008,7 @@ JS;
 		);
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/script.js' id='test-example-js'></script>\n";
 
-		$this->assertEqualsIgnoreEOL( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSameIgnoreEOL( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -1038,7 +1038,7 @@ JS;
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/script.js' id='test-dependency-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/script2.js' id='test-example-js'></script>\n";
 
-		$this->assertEqualsIgnoreEOL( $expected, get_echo( 'wp_print_scripts' ) );
+		$this->assertSameIgnoreEOL( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**

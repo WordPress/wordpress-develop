@@ -39,7 +39,7 @@ class Tests_Batch_Update_Comment_Type extends WP_UnitTestCase {
 
 		foreach ( $comment_ids as $comment_id ) {
 			$updated_comment = get_comment( $comment_id );
-			$this->assertEquals( 'comment', $updated_comment->comment_type );
+			$this->assertSame( 'comment', $updated_comment->comment_type );
 		}
 	}
 

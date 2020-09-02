@@ -224,7 +224,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 
 		$expected = $this->_get_expected_url_list( 'post', self::$posts );
 
-		$this->assertEquals( $expected, $post_list );
+		$this->assertSame( $expected, $post_list );
 	}
 
 	/**
@@ -240,7 +240,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 
 		$expected = $this->_get_expected_url_list( 'page', self::$pages );
 
-		$this->assertEquals( $expected, $post_list );
+		$this->assertSame( $expected, $post_list );
 	}
 
 	/**
@@ -261,7 +261,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $expected, $post_list );
+		$this->assertSame( $expected, $post_list );
 	}
 
 	/**
@@ -306,7 +306,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 		// Clean up.
 		unregister_post_type( $post_type );
 
-		$this->assertEquals( $expected, $post_list, 'Custom post type posts are not visible.' );
+		$this->assertSame( $expected, $post_list, 'Custom post type posts are not visible.' );
 	}
 
 	/**
@@ -393,7 +393,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 
 		$sitemaps = wp_get_sitemap_providers();
 
-		$this->assertEquals( $sitemaps['test_sitemap'], self::$test_provider, 'Can not confirm sitemap registration is working.' );
+		$this->assertSame( $sitemaps['test_sitemap'], self::$test_provider, 'Can not confirm sitemap registration is working.' );
 	}
 
 	/**

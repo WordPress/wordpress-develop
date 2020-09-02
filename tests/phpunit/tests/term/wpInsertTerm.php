@@ -211,7 +211,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$term7 = self::factory()->tag->create( array( 'name' => 'T$$$$' ) );
 		$this->assertWPError( $term7 );
 		$this->assertNotEmpty( $term7->errors );
-		$this->assertEquals( $term6, $term7->error_data['term_exists'] );
+		$this->assertSame( $term6, $term7->error_data['term_exists'] );
 
 		$terms = array_map( 'get_tag', array( $term3, $term4, $term5, $term6 ) );
 		$this->assertCount( 4, array_unique( wp_list_pluck( $terms, 'slug' ) ) );
@@ -224,7 +224,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$term12 = self::factory()->tag->create( array( 'name' => '$$$$' ) );
 		$this->assertWPError( $term12 );
 		$this->assertNotEmpty( $term12->errors );
-		$this->assertEquals( $term11, $term12->error_data['term_exists'] );
+		$this->assertSame( $term11, $term12->error_data['term_exists'] );
 
 		$terms = array_map( 'get_tag', array( $term8, $term9, $term10, $term11 ) );
 		$this->assertCount( 4, array_unique( wp_list_pluck( $terms, 'slug' ) ) );
@@ -817,8 +817,8 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		);
 		_unregister_taxonomy( 'wptests_tax' );
 
-		$this->assertSame( false, wp_cache_get( 'all_ids', 'wptests_tax' ) );
-		$this->assertSame( false, wp_cache_get( 'get', 'wptests_tax' ) );
+		$this->assertFalse( wp_cache_get( 'all_ids', 'wptests_tax' ) );
+		$this->assertFalse( wp_cache_get( 'get', 'wptests_tax' ) );
 
 		$cached_children = get_option( 'wptests_tax_children' );
 		$this->assertNotEmpty( $cached_children[ $t ] );
@@ -904,8 +904,8 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$this->assertInternalType( 'int', $term );
 		$this->assertInternalType( 'array', $object_ids );
 		// Pesky string $this->assertInternalType( 'int', $tt_id );
-		$this->assertEquals( $term, $deleted_term->term_id );
-		$this->assertEquals( $taxonomy, $deleted_term->taxonomy );
+		$this->assertSame( $term, $deleted_term->term_id );
+		$this->assertSame( $taxonomy, $deleted_term->taxonomy );
 		$this->assertEquals( $tt_id, $deleted_term->term_taxonomy_id );
 		$this->assertEmpty( $object_ids );
 	}

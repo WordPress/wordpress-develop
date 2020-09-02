@@ -334,7 +334,7 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $p ), wp_list_pluck( $q->posts, 'ID' ) );
+		$this->assertSame( array( $p ), wp_list_pluck( $q->posts, 'ID' ) );
 	}
 
 	public function test_single_post_with_nonpublic_and_private_status_should_not_be_shown_for_user_who_cannot_edit_others_posts() {
@@ -388,7 +388,7 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $p ), wp_list_pluck( $q->posts, 'ID' ) );
+		$this->assertSame( array( $p ), wp_list_pluck( $q->posts, 'ID' ) );
 	}
 
 	/**
@@ -438,7 +438,7 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $p ), wp_list_pluck( $q->posts, 'ID' ) );
+		$this->assertSame( array( $p ), wp_list_pluck( $q->posts, 'ID' ) );
 	}
 
 	/**

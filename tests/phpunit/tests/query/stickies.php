@@ -40,7 +40,7 @@ class Tests_Query_Stickies extends WP_UnitTestCase {
 			self::$posts[2],
 		);
 
-		$this->assertEquals( $expected, $q->posts );
+		$this->assertSame( $expected, $q->posts );
 	}
 
 	public function test_stickies_should_be_included_when_is_home_is_true() {
@@ -48,9 +48,9 @@ class Tests_Query_Stickies extends WP_UnitTestCase {
 
 		$q = $GLOBALS['wp_query'];
 
-		$this->assertEquals( self::$posts[2], $q->posts[0]->ID );
-		$this->assertEquals( self::$posts[8], $q->posts[1]->ID );
-		$this->assertEquals( self::$posts[14], $q->posts[2]->ID );
+		$this->assertSame( self::$posts[2], $q->posts[0]->ID );
+		$this->assertSame( self::$posts[8], $q->posts[1]->ID );
+		$this->assertSame( self::$posts[14], $q->posts[2]->ID );
 	}
 
 	public function test_stickies_should_not_be_included_on_pages_other_than_1() {
@@ -82,7 +82,7 @@ class Tests_Query_Stickies extends WP_UnitTestCase {
 			self::$posts[9],
 		);
 
-		$this->assertEquals( $expected, wp_list_pluck( $q->posts, 'ID' ) );
+		$this->assertSame( $expected, wp_list_pluck( $q->posts, 'ID' ) );
 	}
 
 	public function test_stickies_should_obey_post__not_in() {
@@ -92,8 +92,8 @@ class Tests_Query_Stickies extends WP_UnitTestCase {
 
 		$q = $GLOBALS['wp_query'];
 
-		$this->assertEquals( self::$posts[2], $q->posts[0]->ID );
-		$this->assertEquals( self::$posts[14], $q->posts[1]->ID );
+		$this->assertSame( self::$posts[2], $q->posts[0]->ID );
+		$this->assertSame( self::$posts[14], $q->posts[1]->ID );
 		$this->assertNotContains( self::$posts[8], wp_list_pluck( $q->posts, 'ID' ) );
 	}
 

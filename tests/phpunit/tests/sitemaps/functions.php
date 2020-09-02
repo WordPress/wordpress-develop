@@ -15,9 +15,9 @@ class Test_Sitemaps_Functions extends WP_UnitTestCase {
 		$expected_taxonomies = wp_sitemaps_get_max_urls( 'term' );
 		$expected_users      = wp_sitemaps_get_max_urls( 'user' );
 
-		$this->assertEquals( $expected_posts, 300, 'Can not confirm max URL number for posts.' );
-		$this->assertEquals( $expected_taxonomies, 50, 'Can not confirm max URL number for taxonomies.' );
-		$this->assertEquals( $expected_users, 1, 'Can not confirm max URL number for users.' );
+		$this->assertSame( $expected_posts, 300, 'Can not confirm max URL number for posts.' );
+		$this->assertSame( $expected_taxonomies, 50, 'Can not confirm max URL number for taxonomies.' );
+		$this->assertSame( $expected_users, 1, 'Can not confirm max URL number for users.' );
 	}
 
 	/**
@@ -52,7 +52,7 @@ class Test_Sitemaps_Functions extends WP_UnitTestCase {
 			'users'      => 'WP_Sitemaps_Users',
 		);
 
-		$this->assertEquals( array_keys( $expected ), array_keys( $sitemaps ), 'Unable to confirm default sitemap types are registered.' );
+		$this->assertSame( array_keys( $expected ), array_keys( $sitemaps ), 'Unable to confirm default sitemap types are registered.' );
 
 		foreach ( $expected as $name => $provider ) {
 			$this->assertTrue( is_a( $sitemaps[ $name ], $provider ), "Default $name sitemap is not a $provider object." );

@@ -691,7 +691,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 * @param string       $order   Either 'ASC' or 'DESC'.
 	 */
 	public function test_wp_list_sort( $list, $orderby, $order, $expected ) {
-		$this->assertEquals( $expected, wp_list_sort( $list, $orderby, $order ) );
+		$this->assertSame( $expected, wp_list_sort( $list, $orderby, $order ) );
 	}
 
 	public function data_test_wp_list_sort_preserve_keys() {
@@ -1016,7 +1016,7 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 * @param string       $order   Either 'ASC' or 'DESC'.
 	 */
 	public function test_wp_list_sort_preserve_keys( $list, $orderby, $order, $expected ) {
-		$this->assertEquals( $expected, wp_list_sort( $list, $orderby, $order, true ) );
+		$this->assertSame( $expected, wp_list_sort( $list, $orderby, $order, true ) );
 	}
 
 	public function test_wp_list_util_get_input() {

@@ -38,7 +38,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$this->assertEmpty( get_site_icon_url() );
 
 		$this->_set_site_icon();
-		$this->assertEquals( $this->site_icon_url, get_site_icon_url() );
+		$this->assertSame( $this->site_icon_url, get_site_icon_url() );
 
 		$this->_remove_site_icon();
 		$this->assertEmpty( get_site_icon_url() );
@@ -323,7 +323,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 		restore_current_blog();
 
 		$expected_custom_logo = '<a href="' . $home_url . '" class="custom-logo-link" rel="home">' . $image . '</a>';
-		$this->assertEquals( $expected_custom_logo, get_custom_logo( $blog_id ) );
+		$this->assertSame( $expected_custom_logo, get_custom_logo( $blog_id ) );
 	}
 
 	/**
@@ -554,8 +554,8 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @dataProvider data_selected_and_checked_with_equal_values
 	 */
 	function test_selected_and_checked_with_equal_values( $selected, $current ) {
-		$this->assertEquals( " selected='selected'", selected( $selected, $current, false ) );
-		$this->assertEquals( " checked='checked'", checked( $selected, $current, false ) );
+		$this->assertSame( " selected='selected'", selected( $selected, $current, false ) );
+		$this->assertSame( " checked='checked'", checked( $selected, $current, false ) );
 	}
 
 	function data_selected_and_checked_with_equal_values() {
@@ -578,8 +578,8 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @dataProvider data_selected_and_checked_with_non_equal_values
 	 */
 	function test_selected_and_checked_with_non_equal_values( $selected, $current ) {
-		$this->assertEquals( '', selected( $selected, $current, false ) );
-		$this->assertEquals( '', checked( $selected, $current, false ) );
+		$this->assertSame( '', selected( $selected, $current, false ) );
+		$this->assertSame( '', checked( $selected, $current, false ) );
 	}
 
 	function data_selected_and_checked_with_non_equal_values() {

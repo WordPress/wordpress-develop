@@ -106,35 +106,35 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		);
 
 		// Check sanitize testing.
-		$this->assertEquals(
+		$this->assertSame(
 			false,
 			rest_sanitize_request_arg( 'false', $this->request, 'someboolean' )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			false,
 			rest_sanitize_request_arg( '0', $this->request, 'someboolean' )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			false,
 			rest_sanitize_request_arg( 0, $this->request, 'someboolean' )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			false,
 			rest_sanitize_request_arg( 'FALSE', $this->request, 'someboolean' )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			true,
 			rest_sanitize_request_arg( 'true', $this->request, 'someboolean' )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			true,
 			rest_sanitize_request_arg( '1', $this->request, 'someboolean' )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			true,
 			rest_sanitize_request_arg( 1, $this->request, 'someboolean' )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			true,
 			rest_sanitize_request_arg( 'TRUE', $this->request, 'someboolean' )
 		);
@@ -225,7 +225,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 	public function test_get_endpoint_args_for_item_schema_description() {
 		$controller = new WP_REST_Test_Controller();
 		$args       = $controller->get_endpoint_args_for_item_schema();
-		$this->assertEquals( 'A pretty string.', $args['somestring']['description'] );
+		$this->assertSame( 'A pretty string.', $args['somestring']['description'] );
 		$this->assertFalse( isset( $args['someinteger']['description'] ) );
 	}
 
@@ -235,7 +235,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$args       = $controller->get_endpoint_args_for_item_schema();
 
 		$this->assertFalse( $args['someargoptions']['required'] );
-		$this->assertEquals( '__return_true', $args['someargoptions']['sanitize_callback'] );
+		$this->assertSame( '__return_true', $args['someargoptions']['sanitize_callback'] );
 	}
 
 	public function test_get_endpoint_args_for_item_schema_default_value() {
@@ -244,7 +244,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
 		$args = $controller->get_endpoint_args_for_item_schema();
 
-		$this->assertEquals( 'a', $args['somedefault']['default'] );
+		$this->assertSame( 'a', $args['somedefault']['default'] );
 	}
 
 	/**
@@ -285,7 +285,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$controller = new WP_REST_Test_Controller();
 		$request    = new WP_REST_Request( 'GET', '/wp/v2/testroute' );
 		$fields     = $controller->get_fields_for_response( $request );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'somestring',
 				'someinteger',
@@ -305,7 +305,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		);
 		$request->set_param( '_fields', $param );
 		$fields = $controller->get_fields_for_response( $request );
-		$this->assertEquals( $expected, $fields );
+		$this->assertSame( $expected, $fields );
 	}
 
 	public function data_get_fields_for_response() {
@@ -536,7 +536,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$response = $controller->prepare_item_for_response( array(), $request );
 		$response = rest_filter_response_fields( $response, rest_get_server(), $request );
 
-		$this->assertEquals( $expected, $response->get_data() );
+		$this->assertSame( $expected, $response->get_data() );
 	}
 
 	public function register_nested_rest_field_get_callback() {

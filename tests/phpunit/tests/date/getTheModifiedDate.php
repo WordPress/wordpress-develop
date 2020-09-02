@@ -23,7 +23,7 @@ class Tests_Date_Get_The_Modified_Date extends WP_UnitTestCase {
 		$format   = 'Y-m-d';
 		$expected = '2016-01-21';
 		$actual   = get_the_modified_date( $format, $post_id );
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
@@ -46,7 +46,7 @@ class Tests_Date_Get_The_Modified_Date extends WP_UnitTestCase {
 		$expected = '2016-01-21';
 		$format   = 'Y-m-d';
 		$actual   = get_the_modified_date( $format );
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
@@ -63,14 +63,14 @@ class Tests_Date_Get_The_Modified_Date extends WP_UnitTestCase {
 		$expected = 'filtered modified date failure result';
 		add_filter( 'get_the_modified_date', array( $this, '_filter_get_the_modified_date_failure' ) );
 		$actual = get_the_modified_date();
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 		remove_filter( 'get_the_modified_date', array( $this, '_filter_get_the_modified_date_failure' ) );
 	}
 
 	public function _filter_get_the_modified_date_failure( $the_date ) {
 		$expected = false;
 		$actual   = $the_date;
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 
 		if ( false === $the_date ) {
 			return 'filtered modified date failure result';
@@ -94,8 +94,8 @@ class Tests_Date_Get_The_Modified_Date extends WP_UnitTestCase {
 	public function test_get_the_modified_date_returns_correct_time_with_empty_format() {
 		$post_id = self::factory()->post->create( array( 'post_date' => '2020-08-31 23:14:00' ) );
 
-		$this->assertEquals( 'August 31, 2020', get_the_modified_date( '', $post_id ) );
-		$this->assertEquals( 'August 31, 2020', get_the_modified_date( false, $post_id ) );
+		$this->assertSame( 'August 31, 2020', get_the_modified_date( '', $post_id ) );
+		$this->assertSame( 'August 31, 2020', get_the_modified_date( false, $post_id ) );
 	}
 
 	/**
@@ -112,9 +112,9 @@ class Tests_Date_Get_The_Modified_Date extends WP_UnitTestCase {
 		);
 		$post_id  = $this->factory->post->create( $details );
 		$format   = 'G';
-		$expected = '1453390476';
+		$expected = 1453390476;
 		$actual   = get_the_modified_time( $format, $post_id );
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
@@ -134,10 +134,10 @@ class Tests_Date_Get_The_Modified_Date extends WP_UnitTestCase {
 
 		$GLOBALS['post'] = $post;
 
-		$expected = '1453390476';
+		$expected = 1453390476;
 		$format   = 'G';
 		$actual   = get_the_modified_time( $format );
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
@@ -154,14 +154,14 @@ class Tests_Date_Get_The_Modified_Date extends WP_UnitTestCase {
 		$expected = 'filtered modified time failure result';
 		add_filter( 'get_the_modified_time', array( $this, '_filter_get_the_modified_time_failure' ) );
 		$actual = get_the_modified_time();
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 		remove_filter( 'get_the_modified_time', array( $this, '_filter_get_the_modified_time_failure' ) );
 	}
 
 	public function _filter_get_the_modified_time_failure( $the_time ) {
 		$expected = false;
 		$actual   = $the_time;
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 
 		if ( false === $the_time ) {
 			return 'filtered modified time failure result';
@@ -185,7 +185,7 @@ class Tests_Date_Get_The_Modified_Date extends WP_UnitTestCase {
 	public function test_get_the_modified_time_returns_correct_time_with_empty_format() {
 		$post_id = self::factory()->post->create( array( 'post_date' => '2020-08-31 23:14:00' ) );
 
-		$this->assertEquals( '11:14 pm', get_the_modified_time( '', $post_id ) );
-		$this->assertEquals( '11:14 pm', get_the_modified_time( false, $post_id ) );
+		$this->assertSame( '11:14 pm', get_the_modified_time( '', $post_id ) );
+		$this->assertSame( '11:14 pm', get_the_modified_time( false, $post_id ) );
 	}
 }

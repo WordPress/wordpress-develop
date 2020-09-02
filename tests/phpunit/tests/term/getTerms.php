@@ -115,18 +115,18 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// last_changed and num_queries should bump.
 		$terms = get_terms( 'post_tag', array( 'update_term_meta_cache' => false ) );
-		$this->assertEquals( 3, count( $terms ) );
+		$this->assertSame( 3, count( $terms ) );
 		$time1 = wp_cache_get( 'last_changed', 'terms' );
 		$this->assertNotEmpty( $time1 );
-		$this->assertEquals( $num_queries + 1, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 
 		$num_queries = $wpdb->num_queries;
 
 		// Again. last_changed and num_queries should remain the same.
 		$terms = get_terms( 'post_tag', array( 'update_term_meta_cache' => false ) );
-		$this->assertEquals( 3, count( $terms ) );
-		$this->assertEquals( $time1, wp_cache_get( 'last_changed', 'terms' ) );
-		$this->assertEquals( $num_queries, $wpdb->num_queries );
+		$this->assertSame( 3, count( $terms ) );
+		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'terms' ) );
+		$this->assertSame( $num_queries, $wpdb->num_queries );
 	}
 
 	/**
@@ -144,17 +144,17 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// num_queries should bump, last_changed should remain the same.
 		$terms = get_terms( 'post_tag', array( 'number' => 2 ) );
-		$this->assertEquals( 2, count( $terms ) );
-		$this->assertEquals( $time1, wp_cache_get( 'last_changed', 'terms' ) );
-		$this->assertEquals( $num_queries + 1, $wpdb->num_queries );
+		$this->assertSame( 2, count( $terms ) );
+		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'terms' ) );
+		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 
 		$num_queries = $wpdb->num_queries;
 
 		// Again. last_changed and num_queries should remain the same.
 		$terms = get_terms( 'post_tag', array( 'number' => 2 ) );
-		$this->assertEquals( 2, count( $terms ) );
-		$this->assertEquals( $time1, wp_cache_get( 'last_changed', 'terms' ) );
-		$this->assertEquals( $num_queries, $wpdb->num_queries );
+		$this->assertSame( 2, count( $terms ) );
+		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'terms' ) );
+		$this->assertSame( $num_queries, $wpdb->num_queries );
 	}
 
 	/**
@@ -179,17 +179,17 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		// last_changed and num_queries should bump after a term is deleted.
 		$terms = get_terms( 'post_tag' );
-		$this->assertEquals( 2, count( $terms ) );
-		$this->assertEquals( $time2, wp_cache_get( 'last_changed', 'terms' ) );
-		$this->assertEquals( $num_queries + 1, $wpdb->num_queries );
+		$this->assertSame( 2, count( $terms ) );
+		$this->assertSame( $time2, wp_cache_get( 'last_changed', 'terms' ) );
+		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 
 		$num_queries = $wpdb->num_queries;
 
 		// Again. last_changed and num_queries should remain the same.
 		$terms = get_terms( 'post_tag' );
-		$this->assertEquals( 2, count( $terms ) );
-		$this->assertEquals( $time2, wp_cache_get( 'last_changed', 'terms' ) );
-		$this->assertEquals( $num_queries, $wpdb->num_queries );
+		$this->assertSame( 2, count( $terms ) );
+		$this->assertSame( $time2, wp_cache_get( 'last_changed', 'terms' ) );
+		$this->assertSame( $num_queries, $wpdb->num_queries );
 
 		// @todo Repeat with term insert and update.
 	}
@@ -200,7 +200,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	function test_get_terms_should_allow_arbitrary_indexed_taxonomies_array() {
 		$term_id = self::factory()->tag->create();
 		$terms   = get_terms( array( '111' => 'post_tag' ), array( 'hide_empty' => false ) );
-		$this->assertEquals( $term_id, reset( $terms )->term_id );
+		$this->assertSame( $term_id, reset( $terms )->term_id );
 	}
 
 	/**
@@ -300,7 +300,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'hide_empty' => false,
 			)
 		);
-		$this->assertEquals( array( $term_id1, $term_id2 ), wp_list_pluck( $inc_terms, 'term_id' ) );
+		$this->assertSame( array( $term_id1, $term_id2 ), wp_list_pluck( $inc_terms, 'term_id' ) );
 
 		$exc_terms = get_terms(
 			'post_tag',
@@ -309,7 +309,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'hide_empty' => false,
 			)
 		);
-		$this->assertEquals( array(), wp_list_pluck( $exc_terms, 'term_id' ) );
+		$this->assertSame( array(), wp_list_pluck( $exc_terms, 'term_id' ) );
 
 		// These should not generate query errors.
 		get_terms(
@@ -363,7 +363,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $terms[1] ), wp_list_pluck( $found, 'term_id' ) );
+		$this->assertSame( array( $terms[1] ), wp_list_pluck( $found, 'term_id' ) );
 
 		_unregister_taxonomy( 'wptests_tax' );
 	}
@@ -388,7 +388,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'hide_empty' => false,
 			)
 		);
-		$this->assertEquals( array( $term_id1, $term_id11, $term_id2, $term_id22 ), $terms );
+		$this->assertSame( array( $term_id1, $term_id11, $term_id2, $term_id22 ), $terms );
 
 		$terms = get_terms(
 			'category',
@@ -399,7 +399,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $term_id2, $term_id22 ), $terms );
+		$this->assertSame( array( $term_id2, $term_id22 ), $terms );
 
 	}
 
@@ -547,7 +547,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			wp_set_post_terms( $id, $cheddar, $tax );
 		}
 		$term = get_term( $cheddar, $tax );
-		$this->assertEquals( 2, $term->count );
+		$this->assertSame( 2, $term->count );
 
 		$brie    = self::factory()->term->create(
 			array(
@@ -559,7 +559,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create();
 		wp_set_post_terms( $post_id, $brie, $tax );
 		$term = get_term( $brie, $tax );
-		$this->assertEquals( 1, $term->count );
+		$this->assertSame( 1, $term->count );
 
 		$crackers = self::factory()->term->create(
 			array(
@@ -580,7 +580,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			wp_set_post_terms( $id, $butter, $tax );
 		}
 		$term = get_term( $butter, $tax );
-		$this->assertEquals( 1, $term->count );
+		$this->assertSame( 1, $term->count );
 
 		$multigrain = self::factory()->term->create(
 			array(
@@ -594,7 +594,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			wp_set_post_terms( $id, $multigrain, $tax );
 		}
 		$term = get_term( $multigrain, $tax );
-		$this->assertEquals( 1, $term->count );
+		$this->assertSame( 1, $term->count );
 
 		$fruit       = self::factory()->term->create(
 			array(
@@ -617,8 +617,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'cache_domain' => $tax,
 			)
 		);
-		$this->assertEquals( 2, count( $terms ) );
-		$this->assertEquals( wp_list_pluck( $terms, 'name' ), array( 'Cheese', 'Crackers' ) );
+		$this->assertSame( 2, count( $terms ) );
+		$this->assertSame( wp_list_pluck( $terms, 'name' ), array( 'Cheese', 'Crackers' ) );
 	}
 
 	/**
@@ -651,7 +651,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create();
 		wp_set_post_terms( $post_id, $spread, $tax );
 		$term = get_term( $spread, $tax );
-		$this->assertEquals( 1, $term->count );
+		$this->assertSame( 1, $term->count );
 
 		$terms = get_terms(
 			$tax,
@@ -660,8 +660,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'cache_domain' => $tax,
 			)
 		);
-		$this->assertEquals( 1, count( $terms ) );
-		$this->assertEquals( array( 'Cheese' ), wp_list_pluck( $terms, 'name' ) );
+		$this->assertSame( 1, count( $terms ) );
+		$this->assertSame( array( 'Cheese' ), wp_list_pluck( $terms, 'name' ) );
 
 		_unregister_taxonomy( $tax );
 	}
@@ -687,7 +687,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create();
 		wp_set_post_terms( $post_id, $t[7], $tax );
 		$term = get_term( $t[7], $tax );
-		$this->assertEquals( 1, $term->count );
+		$this->assertSame( 1, $term->count );
 
 		$terms = get_terms(
 			$tax,
@@ -696,8 +696,8 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'cache_domain' => $tax,
 			)
 		);
-		$this->assertEquals( 1, count( $terms ) );
-		$this->assertEquals( array( 'term1' ), wp_list_pluck( $terms, 'name' ) );
+		$this->assertSame( 1, count( $terms ) );
+		$this->assertSame( array( 'term1' ), wp_list_pluck( $terms, 'name' ) );
 
 		_unregister_taxonomy( $tax );
 	}
@@ -716,7 +716,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'hide_empty' => false,
 			)
 		);
-		$this->assertEquals( 1, count( $terms ) );
+		$this->assertSame( 1, count( $terms ) );
 	}
 
 	/**
@@ -748,7 +748,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				$child  => 'Test 1',
 				$child2 => 'Test 2',
@@ -787,7 +787,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				$child  => 'test-1',
 				$child2 => 'test-2',
@@ -860,7 +860,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$term = wp_update_term( $term['term_id'], 'category', array( 'parent' => $term['term_id'] ) );
 		$term = get_term( $term['term_id'], 'category' );
 
-		$this->assertEquals( $term->term_id, $term->parent );
+		$this->assertSame( $term->term_id, $term->parent );
 		$this->assertInternalType( 'array', get_term_children( $term->term_id, 'category' ) );
 
 		add_filter( 'wp_update_term_parent', 'wp_check_term_hierarchy_for_loops', 10, 3 );
@@ -917,7 +917,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $t1 ), $found );
+		$this->assertSame( array( $t1 ), $found );
 	}
 
 	/**
@@ -937,7 +937,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $t1, $t3 ), $found );
+		$this->assertSame( array( $t1, $t3 ), $found );
 	}
 
 	/**
@@ -956,7 +956,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $t1 ), $found );
+		$this->assertSame( array( $t1 ), $found );
 	}
 
 	/**
@@ -1837,7 +1837,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'wptests_tax' );
 
-		$this->assertEquals( array( $t4, $t1, $t2 ), $found );
+		$this->assertSame( array( $t4, $t1, $t2 ), $found );
 	}
 
 	/**
@@ -1883,7 +1883,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'wptests_tax' );
 
-		$this->assertEquals( array( $t2, $t1, $t4, $t3 ), $found );
+		$this->assertSame( array( $t2, $t1, $t4, $t3 ), $found );
 	}
 
 	/**
@@ -1919,7 +1919,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $t1, $t2, $t3 ), $found );
+		$this->assertSame( array( $t1, $t2, $t3 ), $found );
 	}
 
 	/**
@@ -2308,7 +2308,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		// Verify that there are no children.
-		$this->assertEquals( 0, count( $terms ) );
+		$this->assertSame( 0, count( $terms ) );
 	}
 
 	/**
@@ -2374,7 +2374,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		// Verify that there are no children.
-		$this->assertEquals( 0, count( $terms ) );
+		$this->assertSame( 0, count( $terms ) );
 	}
 
 	public function test_hierarchical_true_with_child_of_should_return_grandchildren() {
@@ -2487,7 +2487,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		// 'hierarchical=false' means that descendants are not fetched.
-		$this->assertEquals( 0, count( $terms ) );
+		$this->assertSame( 0, count( $terms ) );
 	}
 
 	/**
@@ -2626,11 +2626,11 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		foreach ( $found as $f ) {
 			if ( $t1 === $f->term_id ) {
-				$this->assertEquals( 1, $f->count );
+				$this->assertSame( 1, $f->count );
 			} elseif ( $t2 === $f->term_id ) {
-				$this->assertEquals( 2, $f->count );
+				$this->assertSame( 2, $f->count );
 			} else {
-				$this->assertEquals( 1, $f->count );
+				$this->assertSame( 1, $f->count );
 			}
 		}
 	}

@@ -23,7 +23,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 		$this->request->set_header( 'Content-Type', $value );
 
-		$this->assertEquals( $value, $this->request->get_header( 'Content-Type' ) );
+		$this->assertSame( $value, $this->request->get_header( 'Content-Type' ) );
 	}
 
 	public function test_header_missing() {
@@ -33,7 +33,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 	public function test_remove_header() {
 		$this->request->add_header( 'Test-Header', 'value' );
-		$this->assertEquals( 'value', $this->request->get_header( 'Test-Header' ) );
+		$this->assertSame( 'value', $this->request->get_header( 'Test-Header' ) );
 
 		$this->request->remove_header( 'Test-Header' );
 		$this->assertNull( $this->request->get_header( 'Test-Header' ) );
@@ -45,8 +45,8 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->request->add_header( 'Accept', $value1 );
 		$this->request->add_header( 'Accept', $value2 );
 
-		$this->assertEquals( $value1 . ',' . $value2, $this->request->get_header( 'Accept' ) );
-		$this->assertEquals( array( $value1, $value2 ), $this->request->get_header_as_array( 'Accept' ) );
+		$this->assertSame( $value1 . ',' . $value2, $this->request->get_header( 'Accept' ) );
+		$this->assertSame( array( $value1, $value2 ), $this->request->get_header_as_array( 'Accept' ) );
 	}
 
 	public static function header_provider() {
@@ -66,7 +66,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	 * @param string $expected Expected canonicalized version.
 	 */
 	public function test_header_canonicalization( $original, $expected ) {
-		$this->assertEquals( $expected, $this->request->canonicalize_header_name( $original ) );
+		$this->assertSame( $expected, $this->request->canonicalize_header_name( $original ) );
 	}
 
 	public static function content_type_provider() {
@@ -96,10 +96,10 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->request->set_header( 'Content-Type', $header );
 		$parsed = $this->request->get_content_type();
 
-		$this->assertEquals( $value, $parsed['value'] );
-		$this->assertEquals( $type, $parsed['type'] );
-		$this->assertEquals( $subtype, $parsed['subtype'] );
-		$this->assertEquals( $parameters, $parsed['parameters'] );
+		$this->assertSame( $value, $parsed['value'] );
+		$this->assertSame( $type, $parsed['type'] );
+		$this->assertSame( $subtype, $parsed['subtype'] );
+		$this->assertSame( $parameters, $parsed['parameters'] );
 	}
 
 	protected function request_with_parameters() {
@@ -144,7 +144,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->request->set_method( 'GET' );
 
 		// Check that query takes precedence.
-		$this->assertEquals( 'query', $this->request->get_param( 'source' ) );
+		$this->assertSame( 'query', $this->request->get_param( 'source' ) );
 
 		// Check that the correct arguments are parsed (and that falling through
 		// the stack works).
@@ -165,7 +165,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->request->set_attributes( array( 'accept_json' => true ) );
 
 		// Check that POST takes precedence.
-		$this->assertEquals( 'body', $this->request->get_param( 'source' ) );
+		$this->assertSame( 'body', $this->request->get_param( 'source' ) );
 
 		// Check that the correct arguments are parsed (and that falling through
 		// the stack works).
@@ -186,7 +186,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->request->set_attributes( array( 'accept_json' => true ) );
 
 		// Check that JSON takes precedence.
-		$this->assertEquals( 'json', $this->request->get_param( 'source' ) );
+		$this->assertSame( 'json', $this->request->get_param( 'source' ) );
 
 		// Check that the correct arguments are parsed (and that falling through
 		// the stack works).
@@ -208,7 +208,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->request->set_body( '{ this is not json }' );
 
 		// Check that JSON is ignored.
-		$this->assertEquals( 'body', $this->request->get_param( 'source' ) );
+		$this->assertSame( 'body', $this->request->get_param( 'source' ) );
 
 		// Check that the correct arguments are parsed (and that falling through
 		// the stack works).
@@ -252,7 +252,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->request->set_body_params( array() );
 		$this->request->set_body( http_build_query( $data ) );
 		foreach ( $data as $key => $expected_value ) {
-			$this->assertEquals( $expected_value, $this->request->get_param( $key ) );
+			$this->assertSame( $expected_value, $this->request->get_param( $key ) );
 		}
 	}
 
@@ -274,7 +274,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->request->set_body( wp_json_encode( $data ) );
 
 		foreach ( $data as $key => $expected_value ) {
-			$this->assertEquals( $expected_value, $this->request->get_param( $key ) );
+			$this->assertSame( $expected_value, $this->request->get_param( $key ) );
 		}
 	}
 
@@ -296,7 +296,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->request->set_body( wp_json_encode( $data ) );
 
 		foreach ( $data as $key => $expected_value ) {
-			$this->assertEquals( $expected_value, $this->request->get_param( $key ) );
+			$this->assertSame( $expected_value, $this->request->get_param( $key ) );
 		}
 	}
 
@@ -307,12 +307,12 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 		$expected = array(
 			'source'             => 'body',
+			'has_default_params' => true,
 			'has_url_params'     => true,
 			'has_query_params'   => true,
 			'has_body_params'    => true,
-			'has_default_params' => true,
 		);
-		$this->assertEquals( $expected, $this->request->get_params() );
+		$this->assertSame( $expected, $this->request->get_params() );
 	}
 
 	public function test_parameter_merging_with_numeric_keys() {
@@ -326,7 +326,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 			'1' => 'hello',
 			'2' => 'goodbye',
 		);
-		$this->assertEquals( $expected, $this->request->get_params() );
+		$this->assertSame( $expected, $this->request->get_params() );
 	}
 
 	public function test_sanitize_params() {
@@ -352,8 +352,8 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 		$this->request->sanitize_params();
 
-		$this->assertEquals( 123, $this->request->get_param( 'someinteger' ) );
-		$this->assertEquals( 0, $this->request->get_param( 'somestring' ) );
+		$this->assertSame( 123, $this->request->get_param( 'someinteger' ) );
+		$this->assertSame( 0, $this->request->get_param( 'somestring' ) );
 	}
 
 	public function test_sanitize_params_error() {
@@ -378,7 +378,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 		$valid = $this->request->sanitize_params();
 		$this->assertWPError( $valid );
-		$this->assertEquals( 'rest_invalid_param', $valid->get_error_code() );
+		$this->assertSame( 'rest_invalid_param', $valid->get_error_code() );
 	}
 
 	public function test_sanitize_params_with_null_callback() {
@@ -439,7 +439,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$valid = $this->request->has_valid_params();
 
 		$this->assertWPError( $valid );
-		$this->assertEquals( 'rest_missing_callback_param', $valid->get_error_code() );
+		$this->assertSame( 'rest_missing_callback_param', $valid->get_error_code() );
 	}
 
 	public function test_has_valid_params_required_flag_multiple() {
@@ -459,7 +459,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$valid = $this->request->has_valid_params();
 
 		$this->assertWPError( $valid );
-		$this->assertEquals( 'rest_missing_callback_param', $valid->get_error_code() );
+		$this->assertSame( 'rest_missing_callback_param', $valid->get_error_code() );
 
 		$data = $valid->get_error_data( 'rest_missing_callback_param' );
 
@@ -487,7 +487,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$valid = $this->request->has_valid_params();
 
 		$this->assertWPError( $valid );
-		$this->assertEquals( 'rest_invalid_param', $valid->get_error_code() );
+		$this->assertSame( 'rest_invalid_param', $valid->get_error_code() );
 	}
 
 	public function test_has_valid_params_json_error() {
@@ -496,9 +496,9 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 		$valid = $this->request->has_valid_params();
 		$this->assertWPError( $valid );
-		$this->assertEquals( 'rest_invalid_json', $valid->get_error_code() );
+		$this->assertSame( 'rest_invalid_json', $valid->get_error_code() );
 		$data = $valid->get_error_data();
-		$this->assertEquals( JSON_ERROR_SYNTAX, $data['json_error_code'] );
+		$this->assertSame( JSON_ERROR_SYNTAX, $data['json_error_code'] );
 	}
 
 
@@ -534,7 +534,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$valid = $this->request->has_valid_params();
 
 		$this->assertWPError( $valid );
-		$this->assertEquals( 'rest_invalid_param', $valid->get_error_code() );
+		$this->assertSame( 'rest_invalid_param', $valid->get_error_code() );
 
 		$data = $valid->get_error_data( 'rest_invalid_param' );
 
@@ -567,8 +567,8 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertWPError( $valid );
 		$error_data = $valid->get_error_data();
 
-		$this->assertEquals( array( 'someinteger', 'someotherparams' ), array_keys( $error_data['params'] ) );
-		$this->assertEquals( 'This is not valid!', $error_data['params']['someotherparams'] );
+		$this->assertSame( array( 'someinteger', 'someotherparams' ), array_keys( $error_data['params'] ) );
+		$this->assertSame( 'This is not valid!', $error_data['params']['someotherparams'] );
 	}
 
 	public function _return_wp_error_on_validate_callback() {
@@ -594,10 +594,10 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	public function test_from_url( $permalink_structure, $original_url ) {
 		update_option( 'permalink_structure', $permalink_structure );
 		$url = add_query_arg( 'foo', 'bar', rest_url( '/wp/v2/posts/1' ) );
-		$this->assertEquals( $original_url, $url );
+		$this->assertSame( $original_url, $url );
 		$request = WP_REST_Request::from_url( $url );
 		$this->assertInstanceOf( 'WP_REST_Request', $request );
-		$this->assertEquals( '/wp/v2/posts/1', $request->get_route() );
+		$this->assertSame( '/wp/v2/posts/1', $request->get_route() );
 		$this->assertEqualSets(
 			array(
 				'foo' => 'bar',
@@ -623,7 +623,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	public function test_set_param() {
 		$request = new WP_REST_Request();
 		$request->set_param( 'param', 'value' );
-		$this->assertEquals( 'value', $request->get_param( 'param' ) );
+		$this->assertSame( 'value', $request->get_param( 'param' ) );
 	}
 
 	public function test_set_param_follows_parameter_order() {
@@ -637,15 +637,15 @@ class Tests_REST_Request extends WP_UnitTestCase {
 				)
 			)
 		);
-		$this->assertEquals( 'value', $request->get_param( 'param' ) );
-		$this->assertEquals(
+		$this->assertSame( 'value', $request->get_param( 'param' ) );
+		$this->assertSame(
 			array( 'param' => 'value' ),
 			$request->get_json_params()
 		);
 
 		$request->set_param( 'param', 'new_value' );
-		$this->assertEquals( 'new_value', $request->get_param( 'param' ) );
-		$this->assertEquals(
+		$this->assertSame( 'new_value', $request->get_param( 'param' ) );
+		$this->assertSame(
 			array( 'param' => 'new_value' ),
 			$request->get_json_params()
 		);
@@ -672,10 +672,10 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		);
 		$request->set_param( 'param', 'new_value' );
 
-		$this->assertEquals( 'new_value', $request->get_param( 'param' ) );
-		$this->assertEquals( array(), $request->get_body_params() );
-		$this->assertEquals( array( 'param' => 'new_value' ), $request->get_json_params() );
-		$this->assertEquals( array( 'param' => 'new_value' ), $request->get_query_params() );
+		$this->assertSame( 'new_value', $request->get_param( 'param' ) );
+		$this->assertSame( array(), $request->get_body_params() );
+		$this->assertSame( array( 'param' => 'new_value' ), $request->get_json_params() );
+		$this->assertSame( array( 'param' => 'new_value' ), $request->get_query_params() );
 	}
 
 	/**
@@ -704,12 +704,12 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		);
 		$request->set_param( 'param_query', 'new_value' );
 
-		$this->assertEquals( 'new_value', $request->get_param( 'param_query' ) );
-		$this->assertEquals( array(), $request->get_body_params() );
-		$this->assertEquals( array( 'param_body' => 'value_body' ), $request->get_json_params() );
-		$this->assertEquals( array( 'param_query' => 'new_value' ), $request->get_query_params() );
+		$this->assertSame( 'new_value', $request->get_param( 'param_query' ) );
+		$this->assertSame( array(), $request->get_body_params() );
+		$this->assertSame( array( 'param_body' => 'value_body' ), $request->get_json_params() );
+		$this->assertSame( array( 'param_query' => 'new_value' ), $request->get_query_params() );
 		// Verify the default wasn't overwritten.
-		$this->assertEquals( $original_defaults, $request->get_default_params() );
+		$this->assertSame( $original_defaults, $request->get_default_params() );
 	}
 
 	/**
@@ -733,10 +733,10 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		);
 		$request->set_param( 'param', null );
 
-		$this->assertEquals( null, $request->get_param( 'param' ) );
-		$this->assertEquals( array(), $request->get_body_params() );
-		$this->assertEquals( array( 'param' => null ), $request->get_json_params() );
-		$this->assertEquals( array( 'param' => null ), $request->get_query_params() );
+		$this->assertNull( $request->get_param( 'param' ) );
+		$this->assertSame( array(), $request->get_body_params() );
+		$this->assertSame( array( 'param' => null ), $request->get_json_params() );
+		$this->assertSame( array( 'param' => null ), $request->get_query_params() );
 	}
 
 	/**
@@ -760,10 +760,10 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		);
 		$request->set_param( 'param', 'new_value' );
 
-		$this->assertEquals( 'new_value', $request->get_param( 'param' ) );
-		$this->assertEquals( array(), $request->get_body_params() );
-		$this->assertEquals( array( 'param' => 'new_value' ), $request->get_json_params() );
-		$this->assertEquals( array( 'param' => 'new_value' ), $request->get_query_params() );
+		$this->assertSame( 'new_value', $request->get_param( 'param' ) );
+		$this->assertSame( array(), $request->get_body_params() );
+		$this->assertSame( array( 'param' => 'new_value' ), $request->get_json_params() );
+		$this->assertSame( array( 'param' => 'new_value' ), $request->get_query_params() );
 	}
 
 	/**
@@ -777,6 +777,6 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$request->set_param( 'param', 'value' );
 
 		$this->assertTrue( $request->has_param( 'param' ) );
-		$this->assertEquals( 'value', $request->get_param( 'param' ) );
+		$this->assertSame( 'value', $request->get_param( 'param' ) );
 	}
 }

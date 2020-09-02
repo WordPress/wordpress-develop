@@ -107,14 +107,14 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'OPTIONS', self::BASE );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 		// Single.
 		$request  = new WP_REST_Request( 'OPTIONS', self::BASE . '/' . self::PLUGIN );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	/**
@@ -125,7 +125,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$super_admin );
 
 		$response = rest_do_request( self::BASE );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$items = wp_list_filter( $response->get_data(), array( 'plugin' => self::PLUGIN ) );
 
@@ -209,7 +209,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_get_items_logged_out() {
 		$response = rest_do_request( self::BASE );
-		$this->assertEquals( 401, $response->get_status() );
+		$this->assertSame( 401, $response->get_status() );
 	}
 
 	/**
@@ -245,7 +245,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$admin );
 
 		$response = rest_do_request( self::BASE );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 	}
 
 	/**
@@ -258,7 +258,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$admin );
 
 		$response = rest_do_request( self::BASE );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$items = wp_list_filter( $response->get_data(), array( 'plugin' => self::PLUGIN ) );
 		$this->assertCount( 0, $items );
@@ -273,7 +273,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$admin );
 
 		$response = rest_do_request( self::BASE );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$items = wp_list_filter( $response->get_data(), array( 'plugin' => self::PLUGIN ) );
 		$this->assertCount( 1, $items );
@@ -290,7 +290,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$super_admin );
 
 		$response = rest_do_request( self::BASE );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$items = wp_list_filter( $response->get_data(), array( 'plugin' => self::PLUGIN ) );
 		$this->assertCount( 1, $items );
@@ -305,7 +305,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$super_admin );
 
 		$response = rest_do_request( self::BASE . '/' . self::PLUGIN );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->check_get_plugin_data( $response->get_data() );
 	}
 
@@ -314,7 +314,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_get_item_logged_out() {
 		$response = rest_do_request( self::BASE . '/' . self::PLUGIN );
-		$this->assertEquals( 401, $response->get_status() );
+		$this->assertSame( 401, $response->get_status() );
 	}
 
 	/**
@@ -323,7 +323,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	public function test_get_item_insufficient_permissions() {
 		wp_set_current_user( self::$subscriber_id );
 		$response = rest_do_request( self::BASE . '/' . self::PLUGIN );
-		$this->assertEquals( 403, $response->get_status() );
+		$this->assertSame( 403, $response->get_status() );
 	}
 
 	/**
@@ -350,7 +350,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$admin );
 
 		$response = rest_do_request( self::BASE . '/' . self::PLUGIN );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 	}
 
 	/**
@@ -359,7 +359,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	public function test_get_item_invalid_plugin() {
 		wp_set_current_user( self::$super_admin );
 		$response = rest_do_request( self::BASE . '/' . self::PLUGIN );
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 	}
 
 	/**
@@ -378,8 +378,8 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 		$response = rest_do_request( $request );
 		$this->assertNotWPError( $response->as_error() );
-		$this->assertEquals( 201, $response->get_status() );
-		$this->assertEquals( 'Link Manager', $response->get_data()['name'] );
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( 'Link Manager', $response->get_data()['name'] );
 	}
 
 	/**
@@ -403,8 +403,8 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 		$response = rest_do_request( $request );
 		$this->assertNotWPError( $response->as_error() );
-		$this->assertEquals( 201, $response->get_status() );
-		$this->assertEquals( 'Link Manager', $response->get_data()['name'] );
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( 'Link Manager', $response->get_data()['name'] );
 		$this->assertTrue( is_plugin_active( 'link-manager/link-manager.php' ) );
 	}
 
@@ -477,8 +477,8 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 		$response = rest_do_request( $request );
 		$this->assertNotWPError( $response->as_error() );
-		$this->assertEquals( 201, $response->get_status() );
-		$this->assertEquals( 'Link Manager', $response->get_data()['name'] );
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( 'Link Manager', $response->get_data()['name'] );
 		$this->assertTrue( is_plugin_active_for_network( 'link-manager/link-manager.php' ) );
 	}
 
@@ -490,7 +490,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request->set_body_params( array( 'slug' => 'link-manager' ) );
 
 		$response = rest_do_request( $request );
-		$this->assertEquals( 401, $response->get_status() );
+		$this->assertSame( 401, $response->get_status() );
 	}
 
 	/**
@@ -502,7 +502,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request->set_body_params( array( 'slug' => 'link-manager' ) );
 
 		$response = rest_do_request( $request );
-		$this->assertEquals( 403, $response->get_status() );
+		$this->assertSame( 403, $response->get_status() );
 	}
 
 	/**
@@ -561,7 +561,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'PUT', self::BASE . '/' . self::PLUGIN );
 		$response = rest_do_request( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 	}
 
 	/**
@@ -571,7 +571,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'PUT', self::BASE . '/' . self::PLUGIN );
 		$response = rest_do_request( $request );
 
-		$this->assertEquals( 401, $response->get_status() );
+		$this->assertSame( 401, $response->get_status() );
 	}
 
 	/**
@@ -583,7 +583,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'PUT', self::BASE . '/' . self::PLUGIN );
 		$response = rest_do_request( $request );
 
-		$this->assertEquals( 403, $response->get_status() );
+		$this->assertSame( 403, $response->get_status() );
 	}
 
 	/**
@@ -611,7 +611,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request->set_body_params( array( 'status' => 'active' ) );
 		$response = rest_do_request( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertTrue( is_plugin_active( self::PLUGIN_FILE ) );
 	}
 
@@ -657,7 +657,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request->set_body_params( array( 'status' => 'network-active' ) );
 		$response = rest_do_request( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertTrue( is_plugin_active_for_network( self::PLUGIN_FILE ) );
 	}
 
@@ -674,7 +674,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request->set_body_params( array( 'status' => 'network-active' ) );
 		$response = rest_do_request( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertTrue( is_plugin_active_for_network( self::PLUGIN_FILE ) );
 	}
 
@@ -705,7 +705,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request->set_body_params( array( 'status' => 'network-active' ) );
 		$response = rest_do_request( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertTrue( is_plugin_active_for_network( self::PLUGIN_FILE ) );
 	}
 
@@ -721,7 +721,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request->set_body_params( array( 'status' => 'active' ) );
 		$response = rest_do_request( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertTrue( is_plugin_active( self::PLUGIN_FILE ) );
 	}
 
@@ -739,7 +739,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$response = rest_do_request( $request );
 
 		$this->assertNotWPError( $response->as_error() );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertTrue( is_plugin_active( self::PLUGIN_FILE ) );
 	}
 
@@ -771,7 +771,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request->set_body_params( array( 'status' => 'inactive' ) );
 		$response = rest_do_request( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertTrue( is_plugin_inactive( self::PLUGIN_FILE ) );
 	}
 
@@ -804,7 +804,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request->set_body_params( array( 'status' => 'inactive' ) );
 		$response = rest_do_request( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertTrue( is_plugin_inactive( self::PLUGIN_FILE ) );
 	}
 
@@ -836,9 +836,9 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$response = rest_do_request( $request );
 
 		$this->assertNotWPError( $response->as_error() );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertTrue( $response->get_data()['deleted'] );
-		$this->assertEquals( self::PLUGIN, $response->get_data()['previous']['plugin'] );
+		$this->assertSame( self::PLUGIN, $response->get_data()['previous']['plugin'] );
 		$this->assertFileNotExists( WP_PLUGIN_DIR . '/' . self::PLUGIN_FILE );
 	}
 
@@ -849,7 +849,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'DELETE', self::BASE . '/' . self::PLUGIN );
 		$response = rest_do_request( $request );
 
-		$this->assertEquals( 401, $response->get_status() );
+		$this->assertSame( 401, $response->get_status() );
 	}
 
 	/**
@@ -861,7 +861,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'DELETE', self::BASE . '/' . self::PLUGIN );
 		$response = rest_do_request( $request );
 
-		$this->assertEquals( 403, $response->get_status() );
+		$this->assertSame( 403, $response->get_status() );
 	}
 
 	/**
@@ -920,7 +920,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->check_get_plugin_data( $response->get_data() );
 		$links = $response->get_links();
 		$this->assertArrayHasKey( 'self', $links );
-		$this->assertEquals( rest_url( self::BASE . '/' . self::PLUGIN ), $links['self'][0]['href'] );
+		$this->assertSame( rest_url( self::BASE . '/' . self::PLUGIN ), $links['self'][0]['href'] );
 	}
 
 	/**
@@ -937,7 +937,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$endpoint = new WP_REST_Plugins_Controller();
 		$response = $endpoint->prepare_item_for_response( $item, new WP_REST_Request( 'GET', self::BASE . '/' . self::PLUGIN ) );
 
-		$this->assertEquals( 'network-active', $response->get_data()['status'] );
+		$this->assertSame( 'network-active', $response->get_data()['status'] );
 	}
 
 	/**
@@ -989,19 +989,19 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 * @param bool  $network_only Whether the plugin is network only.
 	 */
 	protected function check_get_plugin_data( $data, $network_only = false ) {
-		$this->assertEquals( 'test-plugin/test-plugin', $data['plugin'] );
-		$this->assertEquals( '1.5.4', $data['version'] );
-		$this->assertEquals( 'inactive', $data['status'] );
-		$this->assertEquals( 'Test Plugin', $data['name'] );
-		$this->assertEquals( 'https://wordpress.org/plugins/test-plugin/', $data['plugin_uri'] );
-		$this->assertEquals( 'WordPress.org', $data['author'] );
-		$this->assertEquals( 'https://wordpress.org/', $data['author_uri'] );
-		$this->assertEquals( "My 'Cool' Plugin", $data['description']['raw'] );
-		$this->assertEquals( 'My &#8216;Cool&#8217; Plugin <cite>By <a href="https://wordpress.org/">WordPress.org</a>.</cite>', $data['description']['rendered'] );
-		$this->assertEquals( $network_only, $data['network_only'] );
-		$this->assertEquals( '5.6.0', $data['requires_php'] );
-		$this->assertEquals( '5.4.0', $data['requires_wp'] );
-		$this->assertEquals( 'test-plugin', $data['textdomain'] );
+		$this->assertSame( 'test-plugin/test-plugin', $data['plugin'] );
+		$this->assertSame( '1.5.4', $data['version'] );
+		$this->assertSame( 'inactive', $data['status'] );
+		$this->assertSame( 'Test Plugin', $data['name'] );
+		$this->assertSame( 'https://wordpress.org/plugins/test-plugin/', $data['plugin_uri'] );
+		$this->assertSame( 'WordPress.org', $data['author'] );
+		$this->assertSame( 'https://wordpress.org/', $data['author_uri'] );
+		$this->assertSame( "My 'Cool' Plugin", $data['description']['raw'] );
+		$this->assertSame( 'My &#8216;Cool&#8217; Plugin <cite>By <a href="https://wordpress.org/">WordPress.org</a>.</cite>', $data['description']['rendered'] );
+		$this->assertSame( $network_only, $data['network_only'] );
+		$this->assertSame( '5.6.0', $data['requires_php'] );
+		$this->assertSame( '5.4.0', $data['requires_wp'] );
+		$this->assertSame( 'test-plugin', $data['textdomain'] );
 	}
 
 	/**

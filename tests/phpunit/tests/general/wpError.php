@@ -60,7 +60,7 @@ class Tests_WP_Error extends WP_UnitTestCase {
 	public function test_WP_Error_with_code_and_empty_message_and_empty_data_should_add_error_but_not_associated_data() {
 		$wp_error = new WP_Error( 'code' );
 
-		$this->assertSame( null, $wp_error->get_error_data( 'code' ) );
+		$this->assertNull( $wp_error->get_error_data( 'code' ) );
 	}
 
 	public function test_WP_Error_with_code_and_empty_message_and_non_empty_data_should_add_error_with_empty_message_and_that_stored_data() {
@@ -272,7 +272,7 @@ class Tests_WP_Error extends WP_UnitTestCase {
 	 * @covers ::get_error_data
 	 */
 	public function test_get_error_data_with_empty_code_and_no_errors_should_evaluate_as_null() {
-		$this->assertSame( null, $this->wp_error->get_error_data() );
+		$this->assertNull( $this->wp_error->get_error_data() );
 	}
 
 	/**
@@ -281,7 +281,7 @@ class Tests_WP_Error extends WP_UnitTestCase {
 	public function test_get_error_data_with_empty_code_one_error_no_data_should_evaluate_as_null() {
 		$this->wp_error->add( 'code', 'message' );
 
-		$this->assertSame( null, $this->wp_error->get_error_data() );
+		$this->assertNull( $this->wp_error->get_error_data() );
 	}
 
 	/**
@@ -291,7 +291,7 @@ class Tests_WP_Error extends WP_UnitTestCase {
 		$this->wp_error->add( 'code', 'message' );
 		$this->wp_error->add( 'code2', 'message2' );
 
-		$this->assertSame( null, $this->wp_error->get_error_data() );
+		$this->assertNull( $this->wp_error->get_error_data() );
 	}
 
 	/**
@@ -330,7 +330,7 @@ class Tests_WP_Error extends WP_UnitTestCase {
 	 * @covers ::get_error_data
 	 */
 	public function test_get_error_data_with_code_and_no_errors_should_evaluate_as_null() {
-		$this->assertSame( null, $this->wp_error->get_error_data( 'code' ) );
+		$this->assertNull( $this->wp_error->get_error_data( 'code' ) );
 	}
 
 	/**
@@ -339,7 +339,7 @@ class Tests_WP_Error extends WP_UnitTestCase {
 	public function test_get_error_data_with_code_and_one_error_with_no_data_should_evaluate_as_null() {
 		$this->wp_error->add( 'code', 'message' );
 
-		$this->assertSame( null, $this->wp_error->get_error_data( 'code' ) );
+		$this->assertNull( $this->wp_error->get_error_data( 'code' ) );
 	}
 
 	/**
@@ -450,7 +450,7 @@ class Tests_WP_Error extends WP_UnitTestCase {
 	public function test_add_with_code_empty_message_empty_data_should_not_add_error_data() {
 		$this->wp_error->add( 'code', '' );
 
-		$this->assertSame( null, $this->wp_error->get_error_data( 'code' ) );
+		$this->assertNull( $this->wp_error->get_error_data( 'code' ) );
 	}
 
 	/**
@@ -468,7 +468,7 @@ class Tests_WP_Error extends WP_UnitTestCase {
 	public function test_add_with_code_and_message_and_empty_data_should_not_alter_stored_data() {
 		$this->wp_error->add( 'code', 'message' );
 
-		$this->assertSame( null, $this->wp_error->get_error_data( 'code' ) );
+		$this->assertNull( $this->wp_error->get_error_data( 'code' ) );
 	}
 
 	/**

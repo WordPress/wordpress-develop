@@ -46,34 +46,34 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	}
 
 	function test_wp_sanitize_redirect() {
-		$this->assertEquals( 'http://example.com/watchthelinefeedgo', wp_sanitize_redirect( 'http://example.com/watchthelinefeed%0Ago' ) );
-		$this->assertEquals( 'http://example.com/watchthelinefeedgo', wp_sanitize_redirect( 'http://example.com/watchthelinefeed%0ago' ) );
-		$this->assertEquals( 'http://example.com/watchthecarriagereturngo', wp_sanitize_redirect( 'http://example.com/watchthecarriagereturn%0Dgo' ) );
-		$this->assertEquals( 'http://example.com/watchthecarriagereturngo', wp_sanitize_redirect( 'http://example.com/watchthecarriagereturn%0dgo' ) );
-		$this->assertEquals( 'http://example.com/watchtheallowedcharacters-~+_.?#=&;,/:%!*stay', wp_sanitize_redirect( 'http://example.com/watchtheallowedcharacters-~+_.?#=&;,/:%!*stay' ) );
-		$this->assertEquals( 'http://example.com/watchtheutf8convert%F0%9D%8C%86', wp_sanitize_redirect( "http://example.com/watchtheutf8convert\xf0\x9d\x8c\x86" ) );
+		$this->assertSame( 'http://example.com/watchthelinefeedgo', wp_sanitize_redirect( 'http://example.com/watchthelinefeed%0Ago' ) );
+		$this->assertSame( 'http://example.com/watchthelinefeedgo', wp_sanitize_redirect( 'http://example.com/watchthelinefeed%0ago' ) );
+		$this->assertSame( 'http://example.com/watchthecarriagereturngo', wp_sanitize_redirect( 'http://example.com/watchthecarriagereturn%0Dgo' ) );
+		$this->assertSame( 'http://example.com/watchthecarriagereturngo', wp_sanitize_redirect( 'http://example.com/watchthecarriagereturn%0dgo' ) );
+		$this->assertSame( 'http://example.com/watchtheallowedcharacters-~+_.?#=&;,/:%!*stay', wp_sanitize_redirect( 'http://example.com/watchtheallowedcharacters-~+_.?#=&;,/:%!*stay' ) );
+		$this->assertSame( 'http://example.com/watchtheutf8convert%F0%9D%8C%86', wp_sanitize_redirect( "http://example.com/watchtheutf8convert\xf0\x9d\x8c\x86" ) );
 		// Nesting checks.
-		$this->assertEquals( 'http://example.com/watchthecarriagereturngo', wp_sanitize_redirect( 'http://example.com/watchthecarriagereturn%0%0ddgo' ) );
-		$this->assertEquals( 'http://example.com/watchthecarriagereturngo', wp_sanitize_redirect( 'http://example.com/watchthecarriagereturn%0%0DDgo' ) );
-		$this->assertEquals( 'http://example.com/whyisthisintheurl/?param[1]=foo', wp_sanitize_redirect( 'http://example.com/whyisthisintheurl/?param[1]=foo' ) );
-		$this->assertEquals( 'http://[2606:2800:220:6d:26bf:1447:aa7]/', wp_sanitize_redirect( 'http://[2606:2800:220:6d:26bf:1447:aa7]/' ) );
-		$this->assertEquals( 'http://example.com/search.php?search=(amistillhere)', wp_sanitize_redirect( 'http://example.com/search.php?search=(amistillhere)' ) );
-		$this->assertEquals( 'http://example.com/@username', wp_sanitize_redirect( 'http://example.com/@username' ) );
+		$this->assertSame( 'http://example.com/watchthecarriagereturngo', wp_sanitize_redirect( 'http://example.com/watchthecarriagereturn%0%0ddgo' ) );
+		$this->assertSame( 'http://example.com/watchthecarriagereturngo', wp_sanitize_redirect( 'http://example.com/watchthecarriagereturn%0%0DDgo' ) );
+		$this->assertSame( 'http://example.com/whyisthisintheurl/?param[1]=foo', wp_sanitize_redirect( 'http://example.com/whyisthisintheurl/?param[1]=foo' ) );
+		$this->assertSame( 'http://[2606:2800:220:6d:26bf:1447:aa7]/', wp_sanitize_redirect( 'http://[2606:2800:220:6d:26bf:1447:aa7]/' ) );
+		$this->assertSame( 'http://example.com/search.php?search=(amistillhere)', wp_sanitize_redirect( 'http://example.com/search.php?search=(amistillhere)' ) );
+		$this->assertSame( 'http://example.com/@username', wp_sanitize_redirect( 'http://example.com/@username' ) );
 	}
 
 	/**
 	 * @group 36998
 	 */
 	function test_wp_sanitize_redirect_should_encode_spaces() {
-		$this->assertEquals( 'http://example.com/test%20spaces', wp_sanitize_redirect( 'http://example.com/test%20spaces' ) );
-		$this->assertEquals( 'http://example.com/test%20spaces%20in%20url', wp_sanitize_redirect( 'http://example.com/test spaces in url' ) );
+		$this->assertSame( 'http://example.com/test%20spaces', wp_sanitize_redirect( 'http://example.com/test%20spaces' ) );
+		$this->assertSame( 'http://example.com/test%20spaces%20in%20url', wp_sanitize_redirect( 'http://example.com/test spaces in url' ) );
 	}
 
 	/**
 	 * @dataProvider valid_url_provider
 	 */
 	function test_wp_validate_redirect_valid_url( $url, $expected ) {
-		$this->assertEquals( $expected, wp_validate_redirect( $url ) );
+		$this->assertSame( $expected, wp_validate_redirect( $url ) );
 	}
 
 	/**
@@ -183,7 +183,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 		// Set the global to current URI.
 		$_SERVER['REQUEST_URI'] = $current_uri;
 
-		$this->assertEquals( $expected, wp_validate_redirect( $url, false ) );
+		$this->assertSame( $expected, wp_validate_redirect( $url, false ) );
 
 		// Delete or reset the global as required.
 		if ( $unset ) {

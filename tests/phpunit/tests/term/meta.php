@@ -87,7 +87,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		add_term_meta( $t, 'foo', 'baz' );
 
 		$found = get_term_meta( $t, 'foo', true );
-		$this->assertEquals( 'bar', $found );
+		$this->assertSame( 'bar', $found );
 	}
 
 	public function test_update_should_pass_to_add_when_no_value_exists_for_key() {
@@ -494,9 +494,9 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		// Reset global so subsequent data tests do not get polluted.
 		$GLOBALS['wp_meta_keys'] = array();
 
-		$this->assertEquals( 'term', $this->last_register_meta_call['object_type'] );
-		$this->assertEquals( $meta_key, $this->last_register_meta_call['meta_key'] );
-		$this->assertEquals( $args, $this->last_register_meta_call['args'] );
+		$this->assertSame( 'term', $this->last_register_meta_call['object_type'] );
+		$this->assertSame( $meta_key, $this->last_register_meta_call['meta_key'] );
+		$this->assertSame( $args, $this->last_register_meta_call['args'] );
 	}
 
 	public function data_register_term_meta() {

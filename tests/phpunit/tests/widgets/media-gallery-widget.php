@@ -118,7 +118,7 @@ class Test_WP_Widget_Media_Gallery extends WP_UnitTestCase {
 		// Field: title.
 		$instance['title'] = 'Hello <b>World</b> ';
 		$instance          = $widget->update( $instance, array() );
-		$this->assertEquals( 'Hello World', $instance['title'] );
+		$this->assertSame( 'Hello World', $instance['title'] );
 
 		// Field: ids.
 		$instance['ids'] = '1,2,3';

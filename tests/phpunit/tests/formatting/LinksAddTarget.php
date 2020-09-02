@@ -74,11 +74,11 @@ class Tests_Formatting_LinksAddTarget extends WP_UnitTestCase {
 	 */
 	function test_normalize_whitespace( $content, $target, $tags, $exp_str ) {
 		if ( true === is_null( $target ) ) {
-			$this->assertEquals( $exp_str, links_add_target( $content ) );
+			$this->assertSame( $exp_str, links_add_target( $content ) );
 		} elseif ( true === is_null( $tags ) ) {
-			$this->assertEquals( $exp_str, links_add_target( $content, $target ) );
+			$this->assertSame( $exp_str, links_add_target( $content, $target ) );
 		} else {
-			$this->assertEquals( $exp_str, links_add_target( $content, $target, $tags ) );
+			$this->assertSame( $exp_str, links_add_target( $content, $target, $tags ) );
 		}
 	}
 }

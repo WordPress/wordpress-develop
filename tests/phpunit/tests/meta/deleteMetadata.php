@@ -156,7 +156,7 @@ class Tests_Meta_DeleteMetadata extends WP_UnitTestCase {
 	}
 
 	public function action_check_object_id_is_int( $meta_type, $object_id ) {
-		$this->assertEquals(
+		$this->assertSame(
 			'integer',
 			gettype( $object_id )
 		);

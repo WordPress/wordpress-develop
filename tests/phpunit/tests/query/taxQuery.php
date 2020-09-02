@@ -33,7 +33,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $p1 ), $q->posts );
+		$this->assertSame( array( $p1 ), $q->posts );
 	}
 
 	public function test_tax_query_single_query_single_term_field_name() {
@@ -64,7 +64,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $p1 ), $q->posts );
+		$this->assertSame( array( $p1 ), $q->posts );
 	}
 
 	/**
@@ -98,7 +98,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $p1 ), $q->posts );
+		$this->assertSame( array( $p1 ), $q->posts );
 	}
 
 	public function test_tax_query_single_query_single_term_field_term_taxonomy_id() {
@@ -129,7 +129,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $p1 ), $q->posts );
+		$this->assertSame( array( $p1 ), $q->posts );
 	}
 
 	public function test_tax_query_single_query_single_term_field_term_id() {
@@ -160,7 +160,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $p1 ), $q->posts );
+		$this->assertSame( array( $p1 ), $q->posts );
 	}
 
 	public function test_tax_query_single_query_single_term_operator_in() {
@@ -192,7 +192,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $p1 ), $q->posts );
+		$this->assertSame( array( $p1 ), $q->posts );
 	}
 
 	public function test_tax_query_single_query_single_term_operator_not_in() {
@@ -224,7 +224,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $p2 ), $q->posts );
+		$this->assertSame( array( $p2 ), $q->posts );
 	}
 
 	public function test_tax_query_single_query_single_term_operator_and() {
@@ -256,7 +256,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $p1 ), $q->posts );
+		$this->assertSame( array( $p1 ), $q->posts );
 	}
 
 	public function test_tax_query_single_query_multiple_terms_operator_in() {
@@ -338,7 +338,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $p3 ), $q->posts );
+		$this->assertSame( array( $p3 ), $q->posts );
 	}
 
 	/**
@@ -389,7 +389,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $p3 ), $q->posts );
+		$this->assertSame( array( $p3 ), $q->posts );
 	}
 
 	public function test_tax_query_single_query_multiple_terms_operator_and() {
@@ -430,7 +430,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $p2 ), $q->posts );
+		$this->assertSame( array( $p2 ), $q->posts );
 	}
 
 	/**
@@ -659,7 +659,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $p2 ), $q->posts );
+		$this->assertSame( array( $p2 ), $q->posts );
 	}
 
 	public function test_tax_query_multiple_queries_relation_or() {
@@ -1025,7 +1025,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 		);
 
 		$posts = $query->get_posts();
-		$this->assertEquals( 0, count( $posts ) );
+		$this->assertSame( 0, count( $posts ) );
 	}
 
 	/**
@@ -1060,7 +1060,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 		);
 
 		$posts = $query->get_posts();
-		$this->assertEquals( 0, count( $posts ) );
+		$this->assertSame( 0, count( $posts ) );
 	}
 
 	public function test_tax_query_include_children() {
@@ -1112,7 +1112,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 4, count( $posts ) );
+		$this->assertSame( 4, count( $posts ) );
 
 		$posts = get_posts(
 			array(
@@ -1130,7 +1130,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 1, count( $posts ) );
+		$this->assertSame( 1, count( $posts ) );
 
 		$posts = get_posts(
 			array(
@@ -1147,7 +1147,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 3, count( $posts ) );
+		$this->assertSame( 3, count( $posts ) );
 
 		$posts = get_posts(
 			array(
@@ -1165,7 +1165,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 1, count( $posts ) );
+		$this->assertSame( 1, count( $posts ) );
 
 		$posts = get_posts(
 			array(
@@ -1182,7 +1182,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 1, count( $posts ) );
+		$this->assertSame( 1, count( $posts ) );
 
 		$posts = get_posts(
 			array(
@@ -1200,7 +1200,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 1, count( $posts ) );
+		$this->assertSame( 1, count( $posts ) );
 	}
 
 	public function test_tax_query_taxonomy_with_attachments() {
@@ -1240,7 +1240,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $image_id ), $posts );
+		$this->assertSame( array( $image_id ), $posts );
 	}
 
 	public function test_tax_query_no_taxonomy() {
@@ -1345,7 +1345,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $posts[0], $posts[1], $posts[2] ), $results1, 'Relation: OR; Operator: AND' );
+		$this->assertSame( array( $posts[0], $posts[1], $posts[2] ), $results1, 'Relation: OR; Operator: AND' );
 
 		$results2 = $q->query(
 			array(
@@ -1372,7 +1372,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $posts[0], $posts[3] ), $results2, 'Relation: AND; Operator: IN' );
+		$this->assertSame( array( $posts[0], $posts[3] ), $results2, 'Relation: AND; Operator: IN' );
 	}
 
 	/**
@@ -1493,7 +1493,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $t, $q->get( 'term_id' ) );
+		$this->assertSame( $t, $q->get( 'term_id' ) );
 
 		_unregister_taxonomy( 'foo' );
 	}
@@ -1539,8 +1539,8 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $c, $q->get( 'cat' ) );
-		$this->assertEquals( 'bar', $q->get( 'category_name' ) );
+		$this->assertSame( $c, $q->get( 'cat' ) );
+		$this->assertSame( 'bar', $q->get( 'category_name' ) );
 
 		_unregister_taxonomy( 'foo' );
 	}
@@ -1586,7 +1586,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $tag, $q->get( 'tag_id' ) );
+		$this->assertSame( $tag, $q->get( 'tag_id' ) );
 
 		_unregister_taxonomy( 'foo' );
 	}

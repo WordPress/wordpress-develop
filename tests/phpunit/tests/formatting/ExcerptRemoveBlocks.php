@@ -99,7 +99,7 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 		$this->assertEmpty( excerpt_remove_blocks( $content ) );
 
 		// Dynamic block with options, embedded in other content.
-		$this->assertEquals( $this->filtered_content, excerpt_remove_blocks( $this->content ) );
+		$this->assertSame( $this->filtered_content, excerpt_remove_blocks( $this->content ) );
 	}
 
 	/**

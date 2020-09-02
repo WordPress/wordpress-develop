@@ -96,8 +96,8 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = $this->do_request_with_params( array(), 'OPTIONS' );
 		$data     = $response->get_data();
 
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view', 'embed' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSame( array( 'view', 'embed' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	/**
@@ -110,7 +110,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertEqualSets(
 			array_merge(
 				self::$my_title_post_ids,
@@ -131,8 +131,8 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
-		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( 3, count( $response->get_data() ) );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 3, count( $response->get_data() ) );
 	}
 
 	/**
@@ -146,7 +146,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertEqualSets(
 			array_merge(
 				self::$my_title_post_ids,
@@ -169,7 +169,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertEqualSets(
 			array_merge(
 				self::$my_title_post_ids,
@@ -191,7 +191,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertEqualSets(
 			self::$my_title_page_ids,
 			wp_list_pluck( $response->get_data(), 'id' )
@@ -239,7 +239,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertEqualSets(
 			array_merge(
 				self::$my_title_post_ids,
@@ -261,7 +261,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertEqualSets(
 			array_merge(
 				self::$my_title_post_ids,
@@ -282,7 +282,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertEqualSets(
 			self::$my_content_post_ids,
 			wp_list_pluck( $response->get_data(), 'id' )
@@ -296,7 +296,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		/** The search controller does not allow getting individual item content */
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/search' . self::$my_title_post_ids[0] );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 	}
 
 	/**
@@ -306,7 +306,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		/** The search controller does not allow creating content */
 		$request  = new WP_REST_Request( 'POST', '/wp/v2/search' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 	}
 
 	/**
@@ -316,7 +316,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		/** The search controller does not allow upading content */
 		$request  = new WP_REST_Request( 'POST', '/wp/v2/search' . self::$my_title_post_ids[0] );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 	}
 
 	/**
@@ -326,7 +326,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		/** The search controller does not allow deleting content */
 		$request  = new WP_REST_Request( 'DELETE', '/wp/v2/search' . self::$my_title_post_ids[0] );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 	}
 
 	/**
@@ -334,10 +334,10 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_prepare_item() {
 		$response = $this->do_request_with_params();
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'id',
 				'title',
@@ -363,10 +363,10 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 				'_fields' => 'id,title',
 			)
 		);
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'id',
 				'title',
@@ -448,7 +448,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 		$response = $controller->prepare_item_for_response( 1, $request );
 		$data     = $response->get_data();
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'id',
 				'title',
@@ -479,7 +479,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 		$response = $controller->prepare_item_for_response( 1, $request );
 		$data     = $response->get_data();
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'id',
 				'title',
@@ -495,7 +495,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		$controller = new WP_REST_Search_Controller( array( new WP_REST_Test_Search_Handler( 10 ) ) );
 
 		$params = $controller->get_collection_params();
-		$this->assertEquals( 'test', $params[ WP_REST_Search_Controller::PROP_TYPE ]['default'] );
+		$this->assertSame( 'test', $params[ WP_REST_Search_Controller::PROP_TYPE ]['default'] );
 		$this->assertEqualSets( array( 'test' ), $params[ WP_REST_Search_Controller::PROP_TYPE ]['enum'] );
 		$this->assertEqualSets( array( 'test_first_type', 'test_second_type', WP_REST_Search_Controller::TYPE_ANY ), $params[ WP_REST_Search_Controller::PROP_SUBTYPE ]['items']['enum'] );
 	}
@@ -511,7 +511,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'self', $data['_embedded'] );
 		$this->assertCount( 1, $data['_embedded']['self'] );
 		$this->assertArrayHasKey( WP_REST_Search_Controller::PROP_ID, $data['_embedded']['self'][0] );
-		$this->assertEquals( $data[ WP_REST_Search_Controller::PROP_ID ], $data['_embedded']['self'][0][ WP_REST_Search_Controller::PROP_ID ] );
+		$this->assertSame( $data[ WP_REST_Search_Controller::PROP_ID ], $data['_embedded']['self'][0][ WP_REST_Search_Controller::PROP_ID ] );
 	}
 
 	/**

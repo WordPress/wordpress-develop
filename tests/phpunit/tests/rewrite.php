@@ -88,20 +88,20 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	function test_url_to_postid() {
 
 		$id = self::factory()->post->create();
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 
 		$id = self::factory()->post->create( array( 'post_type' => 'page' ) );
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
 	function test_url_to_postid_set_url_scheme_https_to_http() {
 		$post_id   = self::factory()->post->create();
 		$permalink = get_permalink( $post_id );
-		$this->assertEquals( $post_id, url_to_postid( set_url_scheme( $permalink, 'https' ) ) );
+		$this->assertSame( $post_id, url_to_postid( set_url_scheme( $permalink, 'https' ) ) );
 
 		$post_id   = self::factory()->post->create( array( 'post_type' => 'page' ) );
 		$permalink = get_permalink( $post_id );
-		$this->assertEquals( $post_id, url_to_postid( set_url_scheme( $permalink, 'https' ) ) );
+		$this->assertSame( $post_id, url_to_postid( set_url_scheme( $permalink, 'https' ) ) );
 	}
 
 	function test_url_to_postid_set_url_scheme_http_to_https() {
@@ -115,8 +115,8 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$page_permalink = get_permalink( $page_id );
 		$page_url_to_id = url_to_postid( set_url_scheme( $page_permalink, 'http' ) );
 
-		$this->assertEquals( $post_id, $post_url_to_id );
-		$this->assertEquals( $page_id, $page_url_to_id );
+		$this->assertSame( $post_id, $post_url_to_id );
+		$this->assertSame( $page_id, $page_url_to_id );
 	}
 
 	/**
@@ -148,7 +148,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->assertSame( 'https', parse_url( $network_home, PHP_URL_SCHEME ) );
 
 		// Test that the url_to_postid() call matched.
-		$this->assertEquals( $post_id, $url_to_postid );
+		$this->assertSame( $post_id, $url_to_postid );
 	}
 
 	/**
@@ -177,7 +177,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		register_post_type( $post_type, array( 'public' => true ) );
 
 		$id = self::factory()->post->create( array( 'post_type' => $post_type ) );
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 
 		_unregister_post_type( $post_type );
 	}
@@ -198,8 +198,8 @@ class Tests_Rewrite extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $parent_id, url_to_postid( get_permalink( $parent_id ) ) );
-		$this->assertEquals( $child_id, url_to_postid( get_permalink( $child_id ) ) );
+		$this->assertSame( $parent_id, url_to_postid( get_permalink( $parent_id ) ) );
+		$this->assertSame( $child_id, url_to_postid( get_permalink( $child_id ) ) );
 	}
 
 	function test_url_to_postid_hierarchical_with_matching_leaves() {
@@ -239,10 +239,10 @@ class Tests_Rewrite extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( home_url( 'parent/child1/grandchild/' ), get_permalink( $grandchild_id_1 ) );
-		$this->assertEquals( home_url( 'parent/child2/grandchild/' ), get_permalink( $grandchild_id_2 ) );
-		$this->assertEquals( $grandchild_id_1, url_to_postid( get_permalink( $grandchild_id_1 ) ) );
-		$this->assertEquals( $grandchild_id_2, url_to_postid( get_permalink( $grandchild_id_2 ) ) );
+		$this->assertSame( home_url( 'parent/child1/grandchild/' ), get_permalink( $grandchild_id_1 ) );
+		$this->assertSame( home_url( 'parent/child2/grandchild/' ), get_permalink( $grandchild_id_2 ) );
+		$this->assertSame( $grandchild_id_1, url_to_postid( get_permalink( $grandchild_id_1 ) ) );
+		$this->assertSame( $grandchild_id_2, url_to_postid( get_permalink( $grandchild_id_2 ) ) );
 	}
 
 	function test_url_to_postid_home_has_path() {
@@ -256,16 +256,16 @@ class Tests_Rewrite extends WP_UnitTestCase {
 				'post_name'  => 'examp',
 			)
 		);
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
-		$this->assertEquals( $id, url_to_postid( site_url( '/example/examp' ) ) );
-		$this->assertEquals( $id, url_to_postid( '/example/examp/' ) );
-		$this->assertEquals( $id, url_to_postid( '/example/examp' ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( site_url( '/example/examp' ) ) );
+		$this->assertSame( $id, url_to_postid( '/example/examp/' ) );
+		$this->assertSame( $id, url_to_postid( '/example/examp' ) );
 
-		$this->assertEquals( 0, url_to_postid( site_url( '/example/ex' ) ) );
-		$this->assertEquals( 0, url_to_postid( '/example/ex' ) );
-		$this->assertEquals( 0, url_to_postid( '/example/ex/' ) );
-		$this->assertEquals( 0, url_to_postid( '/example-page/example/' ) );
-		$this->assertEquals( 0, url_to_postid( '/example-page/ex/' ) );
+		$this->assertSame( 0, url_to_postid( site_url( '/example/ex' ) ) );
+		$this->assertSame( 0, url_to_postid( '/example/ex' ) );
+		$this->assertSame( 0, url_to_postid( '/example/ex/' ) );
+		$this->assertSame( 0, url_to_postid( '/example-page/example/' ) );
+		$this->assertSame( 0, url_to_postid( '/example-page/ex/' ) );
 	}
 
 	/**
@@ -276,10 +276,10 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		update_option( 'home', $home_url );
 
 		$this->go_to( $home_url );
-		$this->assertEquals( array(), $GLOBALS['wp']->query_vars );
+		$this->assertSame( array(), $GLOBALS['wp']->query_vars );
 
 		$this->go_to( $home_url . 'page' );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'page'     => '',
 				'pagename' => 'page',
@@ -297,10 +297,10 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		update_option( 'home', $home_url );
 
 		$this->go_to( $home_url );
-		$this->assertEquals( array(), $GLOBALS['wp']->query_vars );
+		$this->assertSame( array(), $GLOBALS['wp']->query_vars );
 
 		$this->go_to( $home_url . 'page' );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'page'     => '',
 				'pagename' => 'page',
@@ -316,7 +316,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 			),
 			$GLOBALS['wp']->query_vars
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'page'     => '',
 				'pagename' => 'match/page',
@@ -337,7 +337,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 
 		_unregister_post_type( 'foo' );
 
-		$this->assertEquals( array(), $GLOBALS['wp']->query_vars );
+		$this->assertSame( array(), $GLOBALS['wp']->query_vars );
 	}
 
 	function test_url_to_postid_dupe_path() {
@@ -351,10 +351,10 @@ class Tests_Rewrite extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
-		$this->assertEquals( $id, url_to_postid( site_url( '/example/example/' ) ) );
-		$this->assertEquals( $id, url_to_postid( '/example/example/' ) );
-		$this->assertEquals( $id, url_to_postid( '/example/example' ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( site_url( '/example/example/' ) ) );
+		$this->assertSame( $id, url_to_postid( '/example/example/' ) );
+		$this->assertSame( $id, url_to_postid( '/example/example' ) );
 	}
 
 	/**
@@ -373,7 +373,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 
 		// This url should NOT return a post ID.
 		$badurl = site_url( '/example-collision' );
-		$this->assertEquals( 0, url_to_postid( $badurl ) );
+		$this->assertSame( 0, url_to_postid( $badurl ) );
 	}
 
 	/**
@@ -394,7 +394,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 
 		// This url should NOT return a post ID.
 		$badurl = network_home_url( '/example-collision' );
-		$this->assertEquals( 0, url_to_postid( $badurl ) );
+		$this->assertSame( 0, url_to_postid( $badurl ) );
 
 		restore_current_blog();
 	}
@@ -413,7 +413,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		);
 		$post_id = self::factory()->post->create( array( 'post_title' => get_post( $page_id )->post_title ) );
 
-		$this->assertEquals( $post_id, url_to_postid( get_permalink( $post_id ) ) );
+		$this->assertSame( $post_id, url_to_postid( get_permalink( $post_id ) ) );
 	}
 
 	/**

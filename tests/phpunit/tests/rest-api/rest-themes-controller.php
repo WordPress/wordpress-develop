@@ -78,9 +78,9 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		}
 
 		$this->assertArrayHasKey( 'X-WP-Total', $headers );
-		$this->assertEquals( 1, $headers['X-WP-Total'] );
+		$this->assertSame( 1, $headers['X-WP-Total'] );
 		$this->assertArrayHasKey( 'X-WP-TotalPages', $headers );
-		$this->assertEquals( 1, $headers['X-WP-TotalPages'] );
+		$this->assertSame( 1, $headers['X-WP-TotalPages'] );
 	}
 
 	/**
@@ -146,7 +146,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_get_items() {
 		$response = self::perform_active_theme_request();
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 
 		$this->check_get_theme_response( $response );
@@ -198,7 +198,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( $user->ID );
 
 		$response = self::perform_active_theme_request();
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 	}
 
 	/**
@@ -208,7 +208,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_prepare_item() {
 		$response = self::perform_active_theme_request();
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->check_get_theme_response( $response );
 	}
 
@@ -221,7 +221,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response   = self::perform_active_theme_request( 'OPTIONS' );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 14, count( $properties ) );
+		$this->assertSame( 14, count( $properties ) );
 
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['author']['properties'] );
@@ -529,7 +529,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'theme_supports', $result[0] );
-		$this->assertEquals( array( $wordpress_blue ), $result[0]['theme_supports']['editor-color-palette'] );
+		$this->assertSame( array( $wordpress_blue ), $result[0]['theme_supports']['editor-color-palette'] );
 	}
 
 	/**
@@ -574,10 +574,10 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_theme_supports_custom_logo() {
 		remove_theme_support( 'custom-logo' );
 		$wordpress_logo = array(
-			'height'               => 100,
 			'width'                => 400,
-			'flex-height'          => true,
+			'height'               => 100,
 			'flex-width'           => true,
+			'flex-height'          => true,
 			'header-text'          => array( 'site-title', 'site-description' ),
 			'unlink-homepage-logo' => false,
 		);
@@ -585,7 +585,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'theme_supports', $result[0] );
-		$this->assertEquals( $wordpress_logo, $result[0]['theme_supports']['custom-logo'] );
+		$this->assertSame( $wordpress_logo, $result[0]['theme_supports']['custom-logo'] );
 	}
 
 	/**
@@ -633,7 +633,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'theme_supports', $result[0] );
 
 		$expected = array_diff_key( $wordpress_header, array_flip( $excluded ) );
-		$this->assertEquals( $expected, $result[0]['theme_supports']['custom-header'] );
+		$this->assertSame( $expected, $result[0]['theme_supports']['custom-header'] );
 	}
 
 	/**
@@ -677,7 +677,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'theme_supports', $result[0] );
 
 		$expected = array_diff_key( $background, array_flip( $excluded ) );
-		$this->assertEquals( $expected, $result[0]['theme_supports']['custom-background'] );
+		$this->assertSame( $expected, $result[0]['theme_supports']['custom-background'] );
 	}
 
 	/**
@@ -710,7 +710,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'theme_supports', $result[0] );
-		$this->assertEquals( $html5, $result[0]['theme_supports']['html5'] );
+		$this->assertSame( $html5, $result[0]['theme_supports']['html5'] );
 	}
 
 	/**
@@ -895,7 +895,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'theme_supports', $result[0] );
-		$this->assertEquals( array( $gradient ), $result[0]['theme_supports']['editor-gradient-presets'] );
+		$this->assertSame( array( $gradient ), $result[0]['theme_supports']['editor-gradient-presets'] );
 	}
 
 	/**
@@ -995,7 +995,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertTrue( isset( $result[0]['theme_supports'] ) );
-		$this->assertEquals( array( 'post' ), $result[0]['theme_supports']['post-thumbnails'] );
+		$this->assertSame( array( 'post' ), $result[0]['theme_supports']['post-thumbnails'] );
 	}
 
 	/**
@@ -1021,7 +1021,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertTrue( isset( $result[0]['theme_supports'] ) );
-		$this->assertEquals( array( 'a', 'b', 'c' ), $result[0]['theme_supports']['test-feature'] );
+		$this->assertSame( array( 'a', 'b', 'c' ), $result[0]['theme_supports']['test-feature'] );
 	}
 
 	/**
@@ -1049,7 +1049,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$data     = $response->get_data();
 
 		$this->assertArrayHasKey( 'my_custom_int', $data['schema']['properties'] );
-		$this->assertEquals( $schema, $data['schema']['properties']['my_custom_int'] );
+		$this->assertSame( $schema, $data['schema']['properties']['my_custom_int'] );
 
 		$response = self::perform_active_theme_request( 'GET' );
 		$data     = $response->get_data();

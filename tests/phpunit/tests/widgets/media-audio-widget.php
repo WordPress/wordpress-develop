@@ -94,7 +94,7 @@ class Test_WP_Widget_Media_Audio extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'customize_selective_refresh', $widget->widget_options );
 		$this->assertArrayHasKey( 'description', $widget->widget_options );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
-		$this->assertEquals( 'audio', $widget->widget_options['mime_type'] );
+		$this->assertSame( 'audio', $widget->widget_options['mime_type'] );
 		$this->assertEqualSets(
 			array(
 				'add_to_widget',

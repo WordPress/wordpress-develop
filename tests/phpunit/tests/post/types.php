@@ -30,11 +30,11 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 		$pobj = get_post_type_object( 'foo' );
 		$this->assertInstanceOf( 'WP_Post_Type', $pobj );
-		$this->assertEquals( 'foo', $pobj->name );
+		$this->assertSame( 'foo', $pobj->name );
 
 		// Test some defaults.
 		$this->assertFalse( is_post_type_hierarchical( 'foo' ) );
-		$this->assertEquals( array(), get_object_taxonomies( 'foo' ) );
+		$this->assertSame( array(), get_object_taxonomies( 'foo' ) );
 
 		_unregister_post_type( 'foo' );
 	}
@@ -168,9 +168,9 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 		register_post_type( 'bar' );
 		register_taxonomy_for_object_type( 'post_tag', 'bar' );
-		$this->assertEquals( array( 'post_tag' ), get_object_taxonomies( 'bar' ) );
+		$this->assertSame( array( 'post_tag' ), get_object_taxonomies( 'bar' ) );
 		register_taxonomy_for_object_type( 'category', 'bar' );
-		$this->assertEquals( array( 'category', 'post_tag' ), get_object_taxonomies( 'bar' ) );
+		$this->assertSame( array( 'category', 'post_tag' ), get_object_taxonomies( 'bar' ) );
 
 		$this->assertTrue( is_object_in_taxonomy( 'bar', 'post_tag' ) );
 		$this->assertTrue( is_object_in_taxonomy( 'bar', 'post_tag' ) );
@@ -267,9 +267,9 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 * @ticket 38844
 	 */
 	public function test_get_post_type_object_includes_menu_icon_for_builtin_post_types() {
-		$this->assertEquals( 'dashicons-admin-post', get_post_type_object( 'post' )->menu_icon );
-		$this->assertEquals( 'dashicons-admin-page', get_post_type_object( 'page' )->menu_icon );
-		$this->assertEquals( 'dashicons-admin-media', get_post_type_object( 'attachment' )->menu_icon );
+		$this->assertSame( 'dashicons-admin-post', get_post_type_object( 'post' )->menu_icon );
+		$this->assertSame( 'dashicons-admin-page', get_post_type_object( 'page' )->menu_icon );
+		$this->assertSame( 'dashicons-admin-media', get_post_type_object( 'attachment' )->menu_icon );
 	}
 
 	/**
