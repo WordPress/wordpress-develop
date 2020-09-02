@@ -7,9 +7,7 @@ class Tests_Comment_WpAllowComment extends WP_UnitTestCase {
 	protected static $post_id;
 	protected static $comment_id;
 
-	function setUp() {
-		parent::setUp();
-
+	public static function wpSetupBeforeClass() {
 		self::$post_id    = self::factory()->post->create();
 		self::$comment_id = self::factory()->comment->create(
 			array(
@@ -25,10 +23,7 @@ class Tests_Comment_WpAllowComment extends WP_UnitTestCase {
 		update_option( 'comment_previously_approved', 0 );
 	}
 
-	function tearDown() {
-		wp_delete_post( self::$post_id, true );
-		wp_delete_comment( self::$comment_id, true );
-
+	public static function wpTeardownAfterClass() {
 		update_option( 'comment_previously_approved', 1 );
 	}
 
