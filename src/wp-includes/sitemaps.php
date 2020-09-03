@@ -1,3 +1,59 @@
+<?php
+/**
+ * Sitemaps: Public functions
+ *
+ * This file contains a variety of public functions developers can use to interact with
+ * the XML Sitemaps API.
+ *
+ * @package WordPress
+ * @subpackage Sitemaps
+ * @since 5.5.0
+ */
+
+/**
+ * Retrieves the current Sitemaps server instance.
+ *
+ * @since 5.5.0
+ *
+ * @global WP_Sitemaps $wp_sitemaps Global Core Sitemaps instance.
+ *
+ * @return WP_Sitemaps Sitemaps instance.
+ */
+function wp_sitemaps_get_server() {
+	global $wp_sitemaps;
+
+	// If there isn't a global instance, set and bootstrap the sitemaps system.
+	if ( empty( $wp_sitemaps ) ) {
+		$wp_sitemaps = new WP_Sitemaps();
+		$wp_sitemaps->init();
+
+		/**
+		 * Fires when initializing the Sitemaps object.
+		 *
+		 * Additional sitemaps should be registered on this hook.
+		 *
+		 * @since 5.5.0
+		 *
+		 * @param WP_Sitemaps $wp_sitemaps Sitemaps object.
+		 */
+		do_action( 'wp_sitemaps_init', $wp_sitemaps );
+	}
+
+	return $wp_sitemaps;
+}
+
+/**
+ * Gets an array of sitemap providers.
+ *
+ * @since 5.5.0
+ *
+ * @return WP_Sitemaps_Provider[] Array of sitemap providers.
+ */
+function wp_get_sitemap_providers() {
+	$sitemaps = wp_sitemaps_get_server();
+	return $sitemaps->registry->get_providers();
+}
+
 /**
  * Retrieves the full URL for a sitemap.
  *
