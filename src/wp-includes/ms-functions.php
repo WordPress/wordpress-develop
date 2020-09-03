@@ -128,7 +128,7 @@ function get_user_count( $network_id = null ) {
  * @return int Number of active sites on the network.
  */
 function get_blog_count( $network_id = null ) {
-	return get_network_option( $network_id, 'blog_count' );
+	return (int) get_network_option( $network_id, 'blog_count' );
 }
 
 /**
@@ -2540,6 +2540,8 @@ function get_space_allowed() {
 	if ( ! is_numeric( $space_allowed ) ) {
 		$space_allowed = 100;
 	}
+
+	$space_allowed = (int) $space_allowed;
 
 	/**
 	 * Filters the upload quota for the current site.

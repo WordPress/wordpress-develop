@@ -1336,16 +1336,26 @@ function get_network_option( $network_id, $option, $default = false ) {
 		return $pre;
 	}
 
+	$meta_type = 'site';
+
 	if ( ! is_multisite() ) {
+		if ( false === $default ) {
+			/** This filter is documented in wp-includes/meta.php */
+			$default = apply_filters( "default_{$meta_type}_metadata", $default, $network_id, $option, true, $meta_type );
+		}
+
 		/** This filter is documented in wp-includes/option.php */
 		$default = apply_filters( 'default_site_option_' . $option, $default, $option, $network_id );
 		$value   = get_option( $option, $default );
 	} else {
-		$meta_type = 'site';
-		$value     = get_metadata_raw( $meta_type, $network_id, $option, true );
+		$value = get_metadata_raw( $meta_type, $network_id, $option, true );
 		if ( ! is_null( $value ) ) {
 			$value = maybe_unserialize( $value );
 		} else {
+			if ( false === $default ) {
+				/** This filter is documented in wp-includes/meta.php */
+				$default = apply_filters( "default_{$meta_type}_metadata", $default, $network_id, $option, true, $meta_type );
+			}
 			/**
 			* Filters a specific default network option.
 			*
@@ -1361,8 +1371,6 @@ function get_network_option( $network_id, $option, $default = false ) {
 			* @param int $network_id ID of the network.
 			*/
 			$value = apply_filters( 'default_site_option_' . $option, $default, $option );
-			/** This filter is documented in wp-includes/meta.php */
-			$value = apply_filters( "default_{$meta_type}_metadata", $value, $meta_type, $option, true, $network_id );
 		}
 	}
 
