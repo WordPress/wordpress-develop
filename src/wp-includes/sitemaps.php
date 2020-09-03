@@ -1,93 +1,3 @@
-<?php
-/**
- * Sitemaps: Public functions
- *
- * This file contains a variety of public functions developers can use to interact with
- * the XML Sitemaps API.
- *
- * @package WordPress
- * @subpackage Sitemaps
- * @since 5.5.0
- */
-
-/**
- * Retrieves the current Sitemaps server instance.
- *
- * @since 5.5.0
- *
- * @global WP_Sitemaps $wp_sitemaps Global Core Sitemaps instance.
- *
- * @return WP_Sitemaps Sitemaps instance.
- */
-function wp_sitemaps_get_server() {
-	global $wp_sitemaps;
-
-	// If there isn't a global instance, set and bootstrap the sitemaps system.
-	if ( empty( $wp_sitemaps ) ) {
-		$wp_sitemaps = new WP_Sitemaps();
-		$wp_sitemaps->init();
-
-		/**
-		 * Fires when initializing the Sitemaps object.
-		 *
-		 * Additional sitemaps should be registered on this hook.
-		 *
-		 * @since 5.5.0
-		 *
-		 * @param WP_Sitemaps $wp_sitemaps Sitemaps object.
-		 */
-		do_action( 'wp_sitemaps_init', $wp_sitemaps );
-	}
-
-	return $wp_sitemaps;
-}
-
-/**
- * Gets an array of sitemap providers.
- *
- * @since 5.5.0
- *
- * @return WP_Sitemaps_Provider[] Array of sitemap providers.
- */
-function wp_get_sitemap_providers() {
-	$sitemaps = wp_sitemaps_get_server();
-	return $sitemaps->registry->get_providers();
-}
-
-/**
- * Registers a new sitemap provider.
- *
- * @since 5.5.0
- *
- * @param string               $name     Unique name for the sitemap provider.
- * @param WP_Sitemaps_Provider $provider The `Sitemaps_Provider` instance implementing the sitemap.
- * @return bool Whether the sitemap was added.
- */
-function wp_register_sitemap_provider( $name, WP_Sitemaps_Provider $provider ) {
-	$sitemaps = wp_sitemaps_get_server();
-	return $sitemaps->registry->add_provider( $name, $provider );
-}
-
-/**
- * Gets the maximum number of URLs for a sitemap.
- *
- * @since 5.5.0
- *
- * @param string $object_type Object type for sitemap to be filtered (e.g. 'post', 'term', 'user').
- * @return int The maximum number of URLs.
- */
-function wp_sitemaps_get_max_urls( $object_type ) {
-	/**
-	 * Filters the maximum number of URLs displayed on a sitemap.
-	 *
-	 * @since 5.5.0
-	 *
-	 * @param int    $max_urls    The maximum number of URLs included in a sitemap. Default 2000.
-	 * @param string $object_type Object type for sitemap to be filtered (e.g. 'post', 'term', 'user').
-	 */
-	return apply_filters( 'wp_sitemaps_max_urls', 2000, $object_type );
-}
-
 /**
  * Retrieves the full URL for a sitemap.
  *
@@ -99,6 +9,20 @@ function wp_sitemaps_get_max_urls( $object_type ) {
  * @return string|false The sitemap URL or false if the sitemap doesn't exist.
  */
 function get_sitemap_url( $name, $subtype_name = '', $page = 1 ) {
+	/**
+	 * Short-circuits the retrieval of the sitemap URL.
+	 *
+	 * @since 5.5.2
+	 *
+	 * @param string $name         The sitemap name.
+	 * @param string $subtype_name The sitemap subtype name.
+	 * @param int    $page         The page of the sitemap.
+	 */
+	$check = apply_filters( 'pre_get_sitemap_url', null, $name, $subtype_name, $page )
+	if ( null !== $check ) {
+	    return $check;
+	}
+
 	$sitemaps = wp_sitemaps_get_server();
 	if ( ! $sitemaps ) {
 		return false;
@@ -122,12 +46,5 @@ function get_sitemap_url( $name, $subtype_name = '', $page = 1 ) {
 		$page = 1;
 	}
 
-	/**
-	 * Filters the sitemap URL.
-	 *
-	 * @since 5.5.2
-	 *
-	 * @param string|false $sitemap_url The sitemap URL or false if the sitemap doesn't exist.
-	 */
-	return apply_filters( 'sitemap_url', $provider->get_sitemap_url( $subtype_name, $page ) );
+	return $provider->get_sitemap_url( $subtype_name, $page );
 }
