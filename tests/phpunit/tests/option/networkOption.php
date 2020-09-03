@@ -123,27 +123,53 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 43506
+	 * @ticket 37181
 	 * @group ms-required
 	 */
-	public function test_get_network_option_sets_notoptions_if_option_found() {
-		$network_id     = get_current_network_id();
-		$notoptions_key = "$network_id:notoptions";
+	public function test_meta_api_use_values_in_network_option() {
+		$network_id = self::factory()->network->create();
+		$option     = __FUNCTION__;
+		$value      = __FUNCTION__;
 
-		$original_cache = wp_cache_get( $notoptions_key, 'site-options' );
-		if ( false !== $original_cache ) {
-			wp_cache_delete( $notoptions_key, 'site-options' );
-		}
+		add_metadata( 'site', $network_id, $option, $value, true );
+		$this->assertEquals( get_metadata( 'site', $network_id, $option ), array( get_network_option( $network_id, $option, true ) ) );
+	}
 
-		// Retrieve any existing option.
-		get_network_option( $network_id, 'site_name' );
+	/**
+	 * @ticket 37181
+	 * @group ms-required
+	 */
+	public function test_meta_api_multiple_values_in_network_option() {
+		$network_id = self::factory()->network->create();
+		$option     = __FUNCTION__;
+		add_metadata( 'site', $network_id, $option, 'monday', true );
+		add_metadata( 'site', $network_id, $option, 'tuesday', true );
+		add_metadata( 'site', $network_id, $option, 'wednesday', true );
+		$this->assertEquals( 'monday', get_network_option( $network_id, $option, true ) );
+	}
 
-		$cache = wp_cache_get( $notoptions_key, 'site-options' );
-		if ( false !== $original_cache ) {
-			wp_cache_set( $notoptions_key, $original_cache, 'site-options' );
-		}
+	/**
+	 * @ticket 37181
+	 * @group ms-required
+	 */
+	function test_funky_post_meta() {
+		$network_id      = self::factory()->network->create();
+		$option          = __FUNCTION__;
+		$classy          = new StdClass();
+		$classy->ID      = 1;
+		$classy->stringy = 'I love slashes\\\\';
+		$funky_meta[]    = $classy;
 
-		$this->assertSame( array(), $cache );
+		$classy          = new StdClass();
+		$classy->ID      = 2;
+		$classy->stringy = 'I love slashes\\\\ more';
+		$funky_meta[]    = $classy;
+
+		// Add a network meta item
+		$this->assertInternalType( 'integer', add_metadata( 'site', $network_id, $option, $funky_meta, true ) );
+
+		//Check they exists
+		$this->assertEquals( $funky_meta, get_network_option( $network_id, $option ) );
 	}
 
 	/**
