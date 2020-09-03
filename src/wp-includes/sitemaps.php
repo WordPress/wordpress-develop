@@ -121,7 +121,7 @@ function get_sitemap_url( $name, $subtype_name = '', $page = 1 ) {
 	if ( 0 >= $page ) {
 		$page = 1;
 	}
-	
+
 	/**
 	 * Filters the sitemap URL.
 	 *
