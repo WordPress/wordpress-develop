@@ -17,7 +17,7 @@ class Tests_Formatting_WpHtmlEditPre extends WP_UnitTestCase {
 	function test_wp_htmledit_pre_charset_iso_8859_1() {
 		add_filter( 'pre_option_blog_charset', array( $this, '_charset_iso_8859_1' ) );
 		$iso8859_1 = 'Fran' . chr( 135 ) . 'ais';
-		$this->assertEquals( $iso8859_1, wp_htmledit_pre( $iso8859_1 ) );
+		$this->assertSame( $iso8859_1, wp_htmledit_pre( $iso8859_1 ) );
 		remove_filter( 'pre_option_blog_charset', array( $this, '_charset_iso_8859_1' ) );
 	}
 
@@ -31,7 +31,7 @@ class Tests_Formatting_WpHtmlEditPre extends WP_UnitTestCase {
 	function test_wp_htmledit_pre_charset_utf_8() {
 		add_filter( 'pre_option_blog_charset', array( $this, '_charset_utf_8' ) );
 		$utf8 = 'Fran' . chr( 195 ) . chr( 167 ) . 'ais';
-		$this->assertEquals( $utf8, wp_htmledit_pre( $utf8 ) );
+		$this->assertSame( $utf8, wp_htmledit_pre( $utf8 ) );
 		remove_filter( 'pre_option_blog_charset', array( $this, '_charset_utf_8' ) );
 	}
 }

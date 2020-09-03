@@ -746,8 +746,8 @@ function _get_wptexturize_shortcode_regex( $tagnames ) {
  *
  * @since 4.2.3
  *
- * @param string $haystack The text which has to be formatted.
- * @param array $replace_pairs In the form array('from' => 'to', ...).
+ * @param string $haystack      The text which has to be formatted.
+ * @param array  $replace_pairs In the form array('from' => 'to', ...).
  * @return string The formatted text.
  */
 function wp_replace_in_html_tags( $haystack, $replace_pairs ) {
@@ -1090,8 +1090,8 @@ function wp_specialchars_decode( $string, $quote_style = ENT_NOQUOTES ) {
  *
  * @since 2.8.0
  *
- * @param string  $string The text which is to be checked.
- * @param bool    $strip  Optional. Whether to attempt to strip out invalid UTF8. Default false.
+ * @param string $string The text which is to be checked.
+ * @param bool   $strip  Optional. Whether to attempt to strip out invalid UTF8. Default false.
  * @return string The checked text.
  */
 function wp_check_invalid_utf8( $string, $strip = false ) {
@@ -1984,8 +1984,10 @@ function remove_accents( $string ) {
  * @return string The sanitized filename.
  */
 function sanitize_file_name( $filename ) {
-	$filename_raw  = $filename;
-	$special_chars = array( '?', '[', ']', '/', '\\', '=', '<', '>', ':', ';', ',', "'", '"', '&', '$', '#', '*', '(', ')', '|', '~', '`', '!', '{', '}', '%', '+', chr( 0 ) );
+	$filename_raw = $filename;
+	$filename     = remove_accents( $filename );
+
+	$special_chars = array( '?', '[', ']', '/', '\\', '=', '<', '>', ':', ';', ',', "'", '"', '&', '$', '#', '*', '(', ')', '|', '~', '`', '!', '{', '}', '%', '+', '’', '«', '»', '”', '“', chr( 0 ) );
 
 	// Check for support for utf8 in the installed PCRE library once and store the result in a static.
 	static $utf8_pcre = null;
@@ -2013,10 +2015,11 @@ function sanitize_file_name( $filename ) {
 	 * @param string   $filename_raw  The original filename to be sanitized.
 	 */
 	$special_chars = apply_filters( 'sanitize_file_name_chars', $special_chars, $filename_raw );
-	$filename      = str_replace( $special_chars, '', $filename );
-	$filename      = str_replace( array( '%20', '+' ), '-', $filename );
-	$filename      = preg_replace( '/[\r\n\t -]+/', '-', $filename );
-	$filename      = trim( $filename, '.-_' );
+
+	$filename = str_replace( $special_chars, '', $filename );
+	$filename = str_replace( array( '%20', '+' ), '-', $filename );
+	$filename = preg_replace( '/[\r\n\t -]+/', '-', $filename );
+	$filename = trim( $filename, '.-_' );
 
 	if ( false === strpos( $filename, '.' ) ) {
 		$mime_types = wp_get_mime_types();
@@ -2068,7 +2071,9 @@ function sanitize_file_name( $filename ) {
 			}
 		}
 	}
+
 	$filename .= '.' . $extension;
+
 	/** This filter is documented in wp-includes/formatting.php */
 	return apply_filters( 'sanitize_file_name', $filename, $filename_raw );
 }
@@ -2263,6 +2268,8 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 				'%e2%80%9b',
 				'%e2%80%9e',
 				'%e2%80%9f',
+				// Bullet.
+				'%e2%80%a2',
 				// &copy, &reg, &deg, &hellip, and &trade.
 				'%c2%a9',
 				'%c2%ae',
@@ -3801,7 +3808,7 @@ function human_time_diff( $from, $to = 0 ) {
 function wp_trim_excerpt( $text = '', $post = null ) {
 	$raw_excerpt = $text;
 
-	if ( '' === $text ) {
+	if ( '' === trim( $text ) ) {
 		$post = get_post( $post );
 		$text = get_the_content( '', false, $post );
 
@@ -4859,7 +4866,7 @@ function sanitize_option( $option, $value ) {
 			break;
 
 		case 'moderation_keys':
-		case 'blocklist_keys':
+		case 'disallowed_keys':
 			$value = $wpdb->strip_invalid_text_for_column( $wpdb->options, 'option_value', $value );
 			if ( is_wp_error( $value ) ) {
 				$error = $value->get_error_message();
@@ -4922,7 +4929,6 @@ function map_deep( $value, $callback ) {
 
 /**
  * Parses a string into variables to be stored in an array.
- *
  *
  * @since 2.2.1
  *
@@ -5363,8 +5369,8 @@ function sanitize_textarea_field( $str ) {
  * @since 4.7.0
  * @access private
  *
- * @param string $str String to sanitize.
- * @param bool $keep_newlines optional Whether to keep newlines. Default: false.
+ * @param string $str           String to sanitize.
+ * @param bool   $keep_newlines Optional. Whether to keep newlines. Default: false.
  * @return string Sanitized string.
  */
 function _sanitize_text_fields( $str, $keep_newlines = false ) {

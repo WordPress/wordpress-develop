@@ -14,15 +14,15 @@ class Tests_Recovery_Mode_Cookie_Service extends WP_UnitTestCase {
 
 		$error = $service->validate_cookie( 'gibbersih' );
 		$this->assertWPError( $error );
-		$this->assertEquals( 'invalid_format', $error->get_error_code() );
+		$this->assertSame( 'invalid_format', $error->get_error_code() );
 
 		$error = $service->validate_cookie( base64_encode( 'test|data|format' ) );
 		$this->assertWPError( $error );
-		$this->assertEquals( 'invalid_format', $error->get_error_code() );
+		$this->assertSame( 'invalid_format', $error->get_error_code() );
 
 		$error = $service->validate_cookie( base64_encode( 'test|data|format|to|long' ) );
 		$this->assertWPError( $error );
-		$this->assertEquals( 'invalid_format', $error->get_error_code() );
+		$this->assertSame( 'invalid_format', $error->get_error_code() );
 	}
 
 	/**
@@ -39,7 +39,7 @@ class Tests_Recovery_Mode_Cookie_Service extends WP_UnitTestCase {
 
 		$error = $service->validate_cookie( $cookie );
 		$this->assertWPError( $error );
-		$this->assertEquals( 'expired', $error->get_error_code() );
+		$this->assertSame( 'expired', $error->get_error_code() );
 	}
 
 	/**
@@ -55,7 +55,7 @@ class Tests_Recovery_Mode_Cookie_Service extends WP_UnitTestCase {
 
 		$error = $service->validate_cookie( $cookie );
 		$this->assertWPError( $error );
-		$this->assertEquals( 'signature_mismatch', $error->get_error_code() );
+		$this->assertSame( 'signature_mismatch', $error->get_error_code() );
 	}
 
 	/**
@@ -72,7 +72,7 @@ class Tests_Recovery_Mode_Cookie_Service extends WP_UnitTestCase {
 
 		$error = $service->validate_cookie( $cookie );
 		$this->assertWPError( $error );
-		$this->assertEquals( 'invalid_created_at', $error->get_error_code() );
+		$this->assertSame( 'invalid_created_at', $error->get_error_code() );
 	}
 
 	/**

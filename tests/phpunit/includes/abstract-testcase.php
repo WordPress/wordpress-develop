@@ -161,6 +161,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 			$GLOBALS[ $global ] = null;
 		}
 
+		// Reset $wp_sitemap global so that sitemap-related dynamic $wp->public_query_vars are added when the next test runs.
+		$GLOBALS['wp_sitemaps'] = null;
+
 		$this->unregister_all_meta_keys();
 		remove_theme_support( 'html5' );
 		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
@@ -657,15 +660,28 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
+	 * Asserts that two values have the same type and value, with EOL differences discarded.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param string $expected The expected value.
+	 * @param string $actual   The actual value.
+	 */
+	public function assertSameIgnoreEOL( $expected, $actual ) {
+		$this->assertSame( str_replace( "\r\n", "\n", $expected ), str_replace( "\r\n", "\n", $actual ) );
+	}
+
+	/**
 	 * Asserts that two values are equal, with EOL differences discarded.
 	 *
 	 * @since 5.4.0
+	 * @since 5.6.0 Turned into an alias for `::assertSameIgnoreEOL()`.
 	 *
 	 * @param string $expected The expected value.
 	 * @param string $actual   The actual value.
 	 */
 	public function assertEqualsIgnoreEOL( $expected, $actual ) {
-		$this->assertEquals( str_replace( "\r\n", "\n", $expected ), str_replace( "\r\n", "\n", $actual ) );
+		$this->assertSameIgnoreEOL( $expected, $actual );
 	}
 
 	/**

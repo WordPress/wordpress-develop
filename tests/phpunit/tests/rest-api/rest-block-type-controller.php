@@ -91,14 +91,14 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/block-types' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 		// Single.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/block-types/fake/test' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	/**
@@ -230,14 +230,14 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( $block_type, $data['name'] );
-		$this->assertEquals( '1', $data['title'] );
-		$this->assertEquals( '1', $data['description'] );
-		$this->assertEquals( null, $data['icon'] );
-		$this->assertEquals( null, $data['editor_script'] );
-		$this->assertEquals( null, $data['script'] );
-		$this->assertEquals( null, $data['editor_style'] );
-		$this->assertEquals( null, $data['style'] );
+		$this->assertSame( $block_type, $data['name'] );
+		$this->assertSame( '1', $data['title'] );
+		$this->assertSame( '1', $data['description'] );
+		$this->assertNull( $data['icon'] );
+		$this->assertNull( $data['editor_script'] );
+		$this->assertNull( $data['script'] );
+		$this->assertNull( $data['editor_style'] );
+		$this->assertNull( $data['style'] );
 		$this->assertEqualSets( array(), $data['provides_context'] );
 		$this->assertEqualSets( array(), $data['attributes'] );
 		$this->assertEqualSets( array( 'invalid_uses_context' ), $data['uses_context'] );
@@ -245,10 +245,10 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertEqualSets( array( 'invalid_parent' ), $data['parent'] );
 		$this->assertEqualSets( array(), $data['supports'] );
 		$this->assertEqualSets( array(), $data['styles'] );
-		$this->assertEquals( null, $data['example'] );
-		$this->assertEquals( null, $data['category'] );
-		$this->assertEquals( null, $data['textdomain'] );
-		$this->assertFalse( false, $data['is_dynamic'] );
+		$this->assertNull( $data['example'] );
+		$this->assertNull( $data['category'] );
+		$this->assertNull( $data['textdomain'] );
+		$this->assertFalse( $data['is_dynamic'] );
 	}
 
 	/**
@@ -281,14 +281,14 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( $block_type, $data['name'] );
-		$this->assertEquals( '', $data['title'] );
-		$this->assertEquals( '', $data['description'] );
-		$this->assertEquals( null, $data['icon'] );
-		$this->assertEquals( null, $data['editor_script'] );
-		$this->assertEquals( null, $data['script'] );
-		$this->assertEquals( null, $data['editor_style'] );
-		$this->assertEquals( null, $data['style'] );
+		$this->assertSame( $block_type, $data['name'] );
+		$this->assertSame( '', $data['title'] );
+		$this->assertSame( '', $data['description'] );
+		$this->assertNull( $data['icon'] );
+		$this->assertNull( $data['editor_script'] );
+		$this->assertNull( $data['script'] );
+		$this->assertNull( $data['editor_style'] );
+		$this->assertNull( $data['style'] );
 		$this->assertEqualSets( array(), $data['attributes'] );
 		$this->assertEqualSets( array(), $data['provides_context'] );
 		$this->assertEqualSets( array(), $data['uses_context'] );
@@ -296,11 +296,11 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertEqualSets( array(), $data['parent'] );
 		$this->assertEqualSets( array(), $data['supports'] );
 		$this->assertEqualSets( array(), $data['styles'] );
-		$this->assertEquals( null, $data['example'] );
-		$this->assertEquals( null, $data['category'] );
-		$this->assertEquals( null, $data['example'] );
-		$this->assertEquals( null, $data['textdomain'] );
-		$this->assertFalse( false, $data['is_dynamic'] );
+		$this->assertNull( $data['example'] );
+		$this->assertNull( $data['category'] );
+		$this->assertNull( $data['example'] );
+		$this->assertNull( $data['textdomain'] );
+		$this->assertFalse( $data['is_dynamic'] );
 	}
 
 	/**
@@ -408,7 +408,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'context', 'edit' );
 		$request->set_param( '_fields', 'name' );
 		$response = $endpoint->prepare_item_for_response( $block_type, $request );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'name',
 			),
@@ -427,8 +427,8 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 */
 	protected function check_block_type_object( $block_type, $data, $links ) {
 		// Test data.
-		$this->assertEquals( $data['attributes'], $block_type->get_attributes() );
-		$this->assertEquals( $data['is_dynamic'], $block_type->is_dynamic() );
+		$this->assertSame( $data['attributes'], $block_type->get_attributes() );
+		$this->assertSame( $data['is_dynamic'], $block_type->is_dynamic() );
 
 		$extra_fields = array(
 			'name',
@@ -452,13 +452,13 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 		foreach ( $extra_fields as $extra_field ) {
 			if ( isset( $block_type->$extra_field ) ) {
-				$this->assertEquals( $data[ $extra_field ], $block_type->$extra_field );
+				$this->assertSame( $data[ $extra_field ], $block_type->$extra_field );
 			}
 		}
 
 		// Test links.
-		$this->assertEquals( rest_url( 'wp/v2/block-types' ), $links['collection'][0]['href'] );
-		$this->assertEquals( rest_url( 'wp/v2/block-types/' . $block_type->name ), $links['self'][0]['href'] );
+		$this->assertSame( rest_url( 'wp/v2/block-types' ), $links['collection'][0]['href'] );
+		$this->assertSame( rest_url( 'wp/v2/block-types/' . $block_type->name ), $links['self'][0]['href'] );
 		if ( $block_type->is_dynamic() ) {
 			$this->assertArrayHasKey( 'https://api.w.org/render-block', $links );
 		}

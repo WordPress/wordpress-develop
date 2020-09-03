@@ -59,7 +59,7 @@ class WP_Site_Query {
 	 * Date query container.
 	 *
 	 * @since 4.6.0
-	 * @var object WP_Date_Query
+	 * @var WP_Date_Query A date query instance.
 	 */
 	public $date_query = false;
 
@@ -291,7 +291,7 @@ class WP_Site_Query {
 		$site_data = null;
 
 		/**
-		 * Filter the site data before the get_sites query takes place.
+		 * Filters the site data before the get_sites query takes place.
 		 *
 		 * Return a non-null value to bypass WordPress's default site queries.
 		 *

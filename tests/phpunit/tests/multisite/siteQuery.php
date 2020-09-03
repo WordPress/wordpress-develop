@@ -135,7 +135,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEquals( 3, count( $found ) );
+			$this->assertSame( 3, count( $found ) );
 		}
 
 		public function test_wp_site_query_by_site__in_with_single_id() {
@@ -181,7 +181,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEquals( 2, $found );
+			$this->assertSame( 2, $found );
 		}
 
 		public function test_wp_site_query_by_site__not_in_with_single_id() {
@@ -237,7 +237,7 @@ if ( is_multisite() ) :
 				self::$site_ids['wordpress.org/foo/bar/'],
 			);
 
-			$this->assertEquals( $expected, $found );
+			$this->assertSame( $expected, $found );
 
 			$found = $q->query(
 				array(
@@ -248,7 +248,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEquals( array_reverse( $expected ), $found );
+			$this->assertSame( array_reverse( $expected ), $found );
 		}
 
 		public function test_wp_site_query_by_network_id_with_existing_sites() {
@@ -698,7 +698,7 @@ if ( is_multisite() ) :
 				self::$site_ids['make.wordpress.org/foo/'],
 			);
 
-			$this->assertEquals( $expected, $found );
+			$this->assertSame( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_search_with_text_in_path_exclude_domain_from_search() {
@@ -715,7 +715,7 @@ if ( is_multisite() ) :
 				self::$site_ids['www.w.org/make/'],
 			);
 
-			$this->assertEquals( $expected, $found );
+			$this->assertSame( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_search_with_text_in_domain_exclude_path_from_search() {
@@ -733,7 +733,7 @@ if ( is_multisite() ) :
 				self::$site_ids['make.wordpress.org/foo/'],
 			);
 
-			$this->assertEquals( $expected, $found );
+			$this->assertSame( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_search_with_wildcard_in_text() {
@@ -814,7 +814,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEquals( $number_of_queries, $wpdb->num_queries );
+			$this->assertSame( $number_of_queries, $wpdb->num_queries );
 		}
 
 		/**
@@ -844,7 +844,7 @@ if ( is_multisite() ) :
 					'count'      => true,
 				)
 			);
-			$this->assertEquals( $number_of_queries, $wpdb->num_queries );
+			$this->assertSame( $number_of_queries, $wpdb->num_queries );
 		}
 
 		/**
@@ -874,7 +874,7 @@ if ( is_multisite() ) :
 					'count'      => true,
 				)
 			);
-			$this->assertEquals( $number_of_queries + 1, $wpdb->num_queries );
+			$this->assertSame( $number_of_queries + 1, $wpdb->num_queries );
 		}
 
 		/**
@@ -903,7 +903,7 @@ if ( is_multisite() ) :
 			}
 
 			if ( $strict ) {
-				$this->assertEquals( $expected, $found );
+				$this->assertSame( $expected, $found );
 			} else {
 				$this->assertEqualSets( $expected, $found );
 			}
@@ -933,7 +933,7 @@ if ( is_multisite() ) :
 			$this->assertSame( array( 555 ), $results );
 
 			// Make sure manually setting total_users doesn't get overwritten.
-			$this->assertEquals( 1, $q->found_sites );
+			$this->assertSame( 1, $q->found_sites );
 		}
 
 		public static function filter_sites_pre_query( $sites, $query ) {

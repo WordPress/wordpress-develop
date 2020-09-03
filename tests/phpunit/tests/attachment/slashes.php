@@ -37,9 +37,9 @@ class Tests_Attachment_Slashes extends WP_UnitTestCase {
 		);
 		$post = get_post( $id );
 
-		$this->assertEquals( wp_unslash( $this->slash_1 ), $post->post_title );
-		$this->assertEquals( wp_unslash( $this->slash_3 ), $post->post_content_filtered );
-		$this->assertEquals( wp_unslash( $this->slash_5 ), $post->post_excerpt );
+		$this->assertSame( wp_unslash( $this->slash_1 ), $post->post_title );
+		$this->assertSame( wp_unslash( $this->slash_3 ), $post->post_content_filtered );
+		$this->assertSame( wp_unslash( $this->slash_5 ), $post->post_excerpt );
 
 		$id   = wp_insert_attachment(
 			array(
@@ -52,9 +52,9 @@ class Tests_Attachment_Slashes extends WP_UnitTestCase {
 		);
 		$post = get_post( $id );
 
-		$this->assertEquals( wp_unslash( $this->slash_2 ), $post->post_title );
-		$this->assertEquals( wp_unslash( $this->slash_4 ), $post->post_content_filtered );
-		$this->assertEquals( wp_unslash( $this->slash_6 ), $post->post_excerpt );
+		$this->assertSame( wp_unslash( $this->slash_2 ), $post->post_title );
+		$this->assertSame( wp_unslash( $this->slash_4 ), $post->post_content_filtered );
+		$this->assertSame( wp_unslash( $this->slash_6 ), $post->post_excerpt );
 	}
 
 }

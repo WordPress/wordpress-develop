@@ -22,7 +22,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 
 		// Cache should be empty after a set.
 		$tt_1 = wp_set_object_terms( $post_id, $terms_1, $this->taxonomy );
-		$this->assertEquals( 3, count( $tt_1 ) );
+		$this->assertSame( 3, count( $tt_1 ) );
 		$this->assertFalse( wp_cache_get( $post_id, $this->taxonomy . '_relationships' ) );
 
 		// wp_get_object_terms() does not prime the cache.
@@ -43,7 +43,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 
 		// Cache should be empty after a set.
 		$tt_2 = wp_set_object_terms( $post_id, $terms_2, $this->taxonomy );
-		$this->assertEquals( 2, count( $tt_2 ) );
+		$this->assertSame( 2, count( $tt_2 ) );
 		$this->assertFalse( wp_cache_get( $post_id, $this->taxonomy . '_relationships' ) );
 	}
 
@@ -62,8 +62,8 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 		$tt_1 = wp_set_object_terms( $post_id, $tag_id, 'post_tag' );
 
 		$terms = get_the_terms( $post_id, 'post_tag' );
-		$this->assertEquals( $tag_id, $terms[0]->term_id );
-		$this->assertEquals( 'My Amazing Tag', $terms[0]->description );
+		$this->assertSame( $tag_id, $terms[0]->term_id );
+		$this->assertSame( 'My Amazing Tag', $terms[0]->description );
 
 		$_updated = wp_update_term(
 			$tag_id,
@@ -74,12 +74,12 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 		);
 
 		$_new_term = get_term( $tag_id, 'post_tag' );
-		$this->assertEquals( $tag_id, $_new_term->term_id );
-		$this->assertEquals( 'This description is even more amazing!', $_new_term->description );
+		$this->assertSame( $tag_id, $_new_term->term_id );
+		$this->assertSame( 'This description is even more amazing!', $_new_term->description );
 
 		$terms = get_the_terms( $post_id, 'post_tag' );
-		$this->assertEquals( $tag_id, $terms[0]->term_id );
-		$this->assertEquals( 'This description is even more amazing!', $terms[0]->description );
+		$this->assertSame( $tag_id, $terms[0]->term_id );
+		$this->assertSame( 'This description is even more amazing!', $terms[0]->description );
 	}
 
 	/**

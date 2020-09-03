@@ -28,8 +28,8 @@ class Tests_Image_Header extends WP_UnitTestCase {
 				'height' => 1200,
 			)
 		);
-		$this->assertEquals( 1200, $dimensions['dst_width'] );
-		$this->assertEquals( 230, $dimensions['dst_height'] );
+		$this->assertSame( 1200, $dimensions['dst_width'] );
+		$this->assertSame( 230, $dimensions['dst_height'] );
 
 	}
 
@@ -48,8 +48,8 @@ class Tests_Image_Header extends WP_UnitTestCase {
 				'height' => 1200,
 			)
 		);
-		$this->assertEquals( 1200, $dimensions['dst_width'] );
-		$this->assertEquals( 230, $dimensions['dst_height'] );
+		$this->assertSame( 1200, $dimensions['dst_width'] );
+		$this->assertSame( 230, $dimensions['dst_height'] );
 
 	}
 
@@ -68,8 +68,8 @@ class Tests_Image_Header extends WP_UnitTestCase {
 				'height' => 1200,
 			)
 		);
-		$this->assertEquals( 1200, $dimensions['dst_width'] );
-		$this->assertEquals( 900, $dimensions['dst_height'] );
+		$this->assertSame( 1200, $dimensions['dst_width'] );
+		$this->assertSame( 900, $dimensions['dst_height'] );
 
 	}
 
@@ -88,8 +88,8 @@ class Tests_Image_Header extends WP_UnitTestCase {
 				'height' => 1200,
 			)
 		);
-		$this->assertEquals( 1500, $dimensions['dst_width'] ); // Max width.
-		$this->assertEquals( 230, $dimensions['dst_height'] );
+		$this->assertSame( 1500, $dimensions['dst_width'] ); // Max width.
+		$this->assertSame( 230, $dimensions['dst_height'] );
 
 	}
 
@@ -108,8 +108,8 @@ class Tests_Image_Header extends WP_UnitTestCase {
 				'height' => 1200,
 			)
 		);
-		$this->assertEquals( 1600, $dimensions['dst_width'] );
-		$this->assertEquals( 1200, $dimensions['dst_height'] );
+		$this->assertSame( 1600, $dimensions['dst_width'] );
+		$this->assertSame( 1200, $dimensions['dst_height'] );
 
 	}
 
@@ -126,10 +126,10 @@ class Tests_Image_Header extends WP_UnitTestCase {
 		$cropped = 'foo-cropped.png';
 
 		$object = $this->custom_image_header->create_attachment_object( $cropped, $id );
-		$this->assertEquals( 'foo-cropped.png', $object['post_title'] );
-		$this->assertEquals( 'http://localhost/' . $cropped, $object['guid'] );
-		$this->assertEquals( 'custom-header', $object['context'] );
-		$this->assertEquals( 'image/jpeg', $object['post_mime_type'] );
+		$this->assertSame( 'foo-cropped.png', $object['post_title'] );
+		$this->assertSame( 'http://localhost/' . $cropped, $object['guid'] );
+		$this->assertSame( 'custom-header', $object['context'] );
+		$this->assertSame( 'image/jpeg', $object['post_mime_type'] );
 	}
 
 	function test_insert_cropped_attachment() {

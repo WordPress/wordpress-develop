@@ -1907,7 +1907,14 @@ final class WP_Customize_Manager {
 		 * that the user's session has expired and they need to re-authenticate.
 		 */
 		if ( $this->messenger_channel && ! current_user_can( 'customize' ) ) {
-			$this->wp_die( -1, __( 'Unauthorized. You may remove the customize_messenger_channel param to preview as frontend.' ) );
+			$this->wp_die(
+				-1,
+				sprintf(
+					/* translators: %s: customize_messenger_channel */
+					__( 'Unauthorized. You may remove the %s param to preview as frontend.' ),
+					'<code>customize_messenger_channel<code>'
+				)
+			);
 			return;
 		}
 
@@ -1934,7 +1941,7 @@ final class WP_Customize_Manager {
 	}
 
 	/**
-	 * Filter the X-Frame-Options and Content-Security-Policy headers to ensure frontend can load in customizer.
+	 * Filters the X-Frame-Options and Content-Security-Policy headers to ensure frontend can load in customizer.
 	 *
 	 * @since 4.7.0
 	 *
@@ -2292,7 +2299,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @param $current_theme {@internal Parameter is not used}
+	 * @param mixed $current_theme {@internal Parameter is not used}
 	 * @return string Theme name.
 	 */
 	public function current_theme( $current_theme ) {
@@ -3269,7 +3276,7 @@ final class WP_Customize_Manager {
 	}
 
 	/**
-	 * Filter heartbeat settings for the Customizer.
+	 * Filters heartbeat settings for the Customizer.
 	 *
 	 * @since 4.9.0
 	 * @param array $settings Current settings to filter.
@@ -3900,7 +3907,11 @@ final class WP_Customize_Manager {
 				/* translators: 1: Panel ID, 2: Link to 'customize_loaded_components' filter reference. */
 				__( 'Removing %1$s manually will cause PHP warnings. Use the %2$s filter instead.' ),
 				$id,
-				'<a href="' . esc_url( 'https://developer.wordpress.org/reference/hooks/customize_loaded_components/' ) . '"><code>customize_loaded_components</code></a>'
+				sprintf(
+					'<a href="%1$s">%2$s</a>',
+					esc_url( 'https://developer.wordpress.org/reference/hooks/customize_loaded_components/' ),
+					'<code>customize_loaded_components</code>'
+				)
 			);
 
 			_doing_it_wrong( __METHOD__, $message, '4.5.0' );
@@ -4262,7 +4273,7 @@ final class WP_Customize_Manager {
 		<script type="text/html" id="tmpl-customize-changeset-locked-notification">
 			<li class="notice notice-{{ data.type || 'info' }} {{ data.containerClasses || '' }}" data-code="{{ data.code }}" data-type="{{ data.type }}">
 				<div class="notification-message customize-changeset-locked-message">
-					<img class="customize-changeset-locked-avatar" src="{{ data.lockUser.avatar }}" alt="{{ data.lockUser.name }}">
+					<img class="customize-changeset-locked-avatar" src="{{ data.lockUser.avatar }}" alt="{{ data.lockUser.name }}" />
 					<p class="currently-editing">
 						<# if ( data.message ) { #>
 							{{{ data.message }}}
@@ -4689,9 +4700,9 @@ final class WP_Customize_Manager {
 	 * @param array $autofocus {
 	 *     Mapping of 'panel', 'section', 'control' to the ID which should be autofocused.
 	 *
-	 *     @type string [$control]  ID for control to be autofocused.
-	 *     @type string [$section]  ID for section to be autofocused.
-	 *     @type string [$panel]    ID for panel to be autofocused.
+	 *     @type string $control ID for control to be autofocused.
+	 *     @type string $section ID for section to be autofocused.
+	 *     @type string $panel   ID for panel to be autofocused.
 	 * }
 	 */
 	public function set_autofocus( $autofocus ) {
@@ -4706,9 +4717,9 @@ final class WP_Customize_Manager {
 	 * @return array {
 	 *     Mapping of 'panel', 'section', 'control' to the ID which should be autofocused.
 	 *
-	 *     @type string [$control]  ID for control to be autofocused.
-	 *     @type string [$section]  ID for section to be autofocused.
-	 *     @type string [$panel]    ID for panel to be autofocused.
+	 *     @type string $control ID for control to be autofocused.
+	 *     @type string $section ID for section to be autofocused.
+	 *     @type string $panel   ID for panel to be autofocused.
 	 * }
 	 */
 	public function get_autofocus() {
@@ -5945,7 +5956,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param string $value Repeat value.
+	 * @param string               $value   Repeat value.
 	 * @param WP_Customize_Setting $setting Setting.
 	 * @return string|WP_Error Background value or validation error.
 	 */
@@ -5987,9 +5998,9 @@ final class WP_Customize_Manager {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param array $response Response.
+	 * @param array                          $response          Response.
 	 * @param WP_Customize_Selective_Refresh $selective_refresh Selective refresh component.
-	 * @param array $partials Array of partials.
+	 * @param array                          $partials          Array of partials.
 	 * @return array
 	 */
 	public function export_header_video_settings( $response, $selective_refresh, $partials ) {
@@ -6008,7 +6019,7 @@ final class WP_Customize_Manager {
 	 * @since 4.7.0
 	 *
 	 * @param WP_Error $validity
-	 * @param mixed $value
+	 * @param mixed    $value
 	 * @return mixed
 	 */
 	public function _validate_header_video( $validity, $value ) {
@@ -6044,7 +6055,7 @@ final class WP_Customize_Manager {
 	 * @since 4.7.0
 	 *
 	 * @param WP_Error $validity
-	 * @param mixed $value
+	 * @param mixed    $value
 	 * @return mixed
 	 */
 	public function _validate_external_header_video( $validity, $value ) {

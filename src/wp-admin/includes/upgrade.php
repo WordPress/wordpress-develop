@@ -836,7 +836,7 @@ function upgrade_all() {
 		upgrade_530();
 	}
 
-	if ( $wp_current_db_version < 48121 ) {
+	if ( $wp_current_db_version < 48575 ) {
 		upgrade_550();
 	}
 
@@ -2174,17 +2174,31 @@ function upgrade_550() {
 	global $wp_current_db_version;
 
 	if ( $wp_current_db_version < 48121 ) {
-		update_option( 'finished_updating_comment_type', 0 );
-		wp_schedule_single_event( time() + ( 1 * MINUTE_IN_SECONDS ), 'wp_update_comment_type_batch' );
-
-		// Use more clear and inclusive language.
-		$blocklist = get_option( 'blacklist_keys', '' );
-		update_option( 'blocklist_keys', $blocklist );
-		delete_option( 'blacklist_keys' );
-
 		$comment_previously_approved = get_option( 'comment_whitelist', '' );
 		update_option( 'comment_previously_approved', $comment_previously_approved );
 		delete_option( 'comment_whitelist' );
+	}
+
+	if ( $wp_current_db_version < 48575 ) {
+		// Use more clear and inclusive language.
+		$disallowed_list = get_option( 'blacklist_keys' );
+
+		/*
+		 * This option key was briefly renamed `blocklist_keys`.
+		 * Account for sites that have this key present when the original key does not exist.
+		 */
+		if ( false === $disallowed_list ) {
+			$disallowed_list = get_option( 'blocklist_keys' );
+		}
+
+		update_option( 'disallowed_keys', $disallowed_list );
+		delete_option( 'blacklist_keys' );
+		delete_option( 'blocklist_keys' );
+	}
+
+	if ( $wp_current_db_version < 48748 ) {
+		update_option( 'finished_updating_comment_type', 0 );
+		wp_schedule_single_event( time() + ( 1 * MINUTE_IN_SECONDS ), 'wp_update_comment_type_batch' );
 	}
 }
 
@@ -2553,7 +2567,7 @@ function __get_option( $setting ) { // phpcs:ignore WordPress.NamingConventions.
 
 	$option = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name = %s", $setting ) );
 
-	if ( 'home' === $setting && '' === $option ) {
+	if ( 'home' === $setting && ! $option ) {
 		return __get_option( 'siteurl' );
 	}
 

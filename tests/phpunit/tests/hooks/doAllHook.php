@@ -21,6 +21,6 @@ class Tests_WP_Hook_Do_All_Hook extends WP_UnitTestCase {
 		$hook->do_all_hook( $args );
 		$hook->do_all_hook( $args );
 
-		$this->assertEquals( 2, $a->get_call_count() );
+		$this->assertSame( 2, $a->get_call_count() );
 	}
 }

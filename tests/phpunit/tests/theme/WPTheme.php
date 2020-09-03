@@ -36,38 +36,38 @@ class Tests_Theme_WPTheme extends WP_UnitTestCase {
 		$theme = new WP_Theme( 'theme1', $this->theme_root );
 
 		// Meta.
-		$this->assertEquals( 'My Theme', $theme->get( 'Name' ) );
-		$this->assertEquals( 'http://example.org/', $theme->get( 'ThemeURI' ) );
-		$this->assertEquals( 'An example theme', $theme->get( 'Description' ) );
-		$this->assertEquals( 'Minnie Bannister', $theme->get( 'Author' ) );
-		$this->assertEquals( 'http://example.com/', $theme->get( 'AuthorURI' ) );
-		$this->assertEquals( '1.3', $theme->get( 'Version' ) );
-		$this->assertEquals( '', $theme->get( 'Template' ) );
-		$this->assertEquals( 'publish', $theme->get( 'Status' ) );
-		$this->assertEquals( array(), $theme->get( 'Tags' ) );
+		$this->assertSame( 'My Theme', $theme->get( 'Name' ) );
+		$this->assertSame( 'http://example.org/', $theme->get( 'ThemeURI' ) );
+		$this->assertSame( 'An example theme', $theme->get( 'Description' ) );
+		$this->assertSame( 'Minnie Bannister', $theme->get( 'Author' ) );
+		$this->assertSame( 'http://example.com/', $theme->get( 'AuthorURI' ) );
+		$this->assertSame( '1.3', $theme->get( 'Version' ) );
+		$this->assertSame( '', $theme->get( 'Template' ) );
+		$this->assertSame( 'publish', $theme->get( 'Status' ) );
+		$this->assertSame( array(), $theme->get( 'Tags' ) );
 
 		// Important.
-		$this->assertEquals( 'theme1', $theme->get_stylesheet() );
-		$this->assertEquals( 'theme1', $theme->get_template() );
+		$this->assertSame( 'theme1', $theme->get_stylesheet() );
+		$this->assertSame( 'theme1', $theme->get_template() );
 	}
 
 	function test_new_WP_Theme_subdir() {
 		$theme = new WP_Theme( 'subdir/theme2', $this->theme_root );
 
 		// Meta.
-		$this->assertEquals( 'My Subdir Theme', $theme->get( 'Name' ) );
-		$this->assertEquals( 'http://example.org/', $theme->get( 'ThemeURI' ) );
-		$this->assertEquals( 'An example theme in a sub directory', $theme->get( 'Description' ) );
-		$this->assertEquals( 'Mr. WordPress', $theme->get( 'Author' ) );
-		$this->assertEquals( 'http://wordpress.org/', $theme->get( 'AuthorURI' ) );
-		$this->assertEquals( '0.1', $theme->get( 'Version' ) );
-		$this->assertEquals( '', $theme->get( 'Template' ) );
-		$this->assertEquals( 'publish', $theme->get( 'Status' ) );
-		$this->assertEquals( array(), $theme->get( 'Tags' ) );
+		$this->assertSame( 'My Subdir Theme', $theme->get( 'Name' ) );
+		$this->assertSame( 'http://example.org/', $theme->get( 'ThemeURI' ) );
+		$this->assertSame( 'An example theme in a sub directory', $theme->get( 'Description' ) );
+		$this->assertSame( 'Mr. WordPress', $theme->get( 'Author' ) );
+		$this->assertSame( 'http://wordpress.org/', $theme->get( 'AuthorURI' ) );
+		$this->assertSame( '0.1', $theme->get( 'Version' ) );
+		$this->assertSame( '', $theme->get( 'Template' ) );
+		$this->assertSame( 'publish', $theme->get( 'Status' ) );
+		$this->assertSame( array(), $theme->get( 'Tags' ) );
 
 		// Important.
-		$this->assertEquals( 'subdir/theme2', $theme->get_stylesheet() );
-		$this->assertEquals( 'subdir/theme2', $theme->get_template() );
+		$this->assertSame( 'subdir/theme2', $theme->get_stylesheet() );
+		$this->assertSame( 'subdir/theme2', $theme->get_template() );
 	}
 
 	/**
@@ -78,19 +78,19 @@ class Tests_Theme_WPTheme extends WP_UnitTestCase {
 		$theme = new WP_Theme( 'theme2', $this->theme_root . '/subdir' );
 
 		// Meta.
-		$this->assertEquals( 'My Subdir Theme', $theme->get( 'Name' ) );
-		$this->assertEquals( 'http://example.org/', $theme->get( 'ThemeURI' ) );
-		$this->assertEquals( 'An example theme in a sub directory', $theme->get( 'Description' ) );
-		$this->assertEquals( 'Mr. WordPress', $theme->get( 'Author' ) );
-		$this->assertEquals( 'http://wordpress.org/', $theme->get( 'AuthorURI' ) );
-		$this->assertEquals( '0.1', $theme->get( 'Version' ) );
-		$this->assertEquals( '', $theme->get( 'Template' ) );
-		$this->assertEquals( 'publish', $theme->get( 'Status' ) );
-		$this->assertEquals( array(), $theme->get( 'Tags' ) );
+		$this->assertSame( 'My Subdir Theme', $theme->get( 'Name' ) );
+		$this->assertSame( 'http://example.org/', $theme->get( 'ThemeURI' ) );
+		$this->assertSame( 'An example theme in a sub directory', $theme->get( 'Description' ) );
+		$this->assertSame( 'Mr. WordPress', $theme->get( 'Author' ) );
+		$this->assertSame( 'http://wordpress.org/', $theme->get( 'AuthorURI' ) );
+		$this->assertSame( '0.1', $theme->get( 'Version' ) );
+		$this->assertSame( '', $theme->get( 'Template' ) );
+		$this->assertSame( 'publish', $theme->get( 'Status' ) );
+		$this->assertSame( array(), $theme->get( 'Tags' ) );
 
 		// Important.
-		$this->assertEquals( 'subdir/theme2', $theme->get_stylesheet() );
-		$this->assertEquals( 'subdir/theme2', $theme->get_template() );
+		$this->assertSame( 'subdir/theme2', $theme->get_stylesheet() );
+		$this->assertSame( 'subdir/theme2', $theme->get_template() );
 	}
 
 	/**
@@ -99,15 +99,15 @@ class Tests_Theme_WPTheme extends WP_UnitTestCase {
 	function test_wp_theme_uris_with_spaces() {
 		$theme = new WP_Theme( 'theme with spaces', $this->theme_root . '/subdir' );
 		// Make sure subdir/ is considered part of the stylesheet, as we must avoid encoding /'s.
-		$this->assertEquals( 'subdir/theme with spaces', $theme->get_stylesheet() );
+		$this->assertSame( 'subdir/theme with spaces', $theme->get_stylesheet() );
 
 		// Check that in a URI path, we have raw URL encoding (spaces become %20).
 		// Don't try to verify the complete URI path. get_theme_root_uri() breaks down quickly.
-		$this->assertEquals( 'theme%20with%20spaces', basename( $theme->get_stylesheet_directory_uri() ) );
-		$this->assertEquals( 'theme%20with%20spaces', basename( $theme->get_template_directory_uri() ) );
+		$this->assertSame( 'theme%20with%20spaces', basename( $theme->get_stylesheet_directory_uri() ) );
+		$this->assertSame( 'theme%20with%20spaces', basename( $theme->get_template_directory_uri() ) );
 
 		// Check that wp_customize_url() uses URL encoding, as it is a query arg (spaces become +).
-		$this->assertEquals( admin_url( 'customize.php?theme=theme+with+spaces' ), wp_customize_url( 'theme with spaces' ) );
+		$this->assertSame( admin_url( 'customize.php?theme=theme+with+spaces' ), wp_customize_url( 'theme with spaces' ) );
 	}
 
 	/**
@@ -118,8 +118,8 @@ class Tests_Theme_WPTheme extends WP_UnitTestCase {
 		add_filter( 'stylesheet', $callback );
 		add_filter( 'template', $callback );
 
-		$this->assertEquals( get_theme_root_uri() . '/subdir/theme%20with%20spaces', get_stylesheet_directory_uri() );
-		$this->assertEquals( get_theme_root_uri() . '/subdir/theme%20with%20spaces', get_template_directory_uri() );
+		$this->assertSame( get_theme_root_uri() . '/subdir/theme%20with%20spaces', get_stylesheet_directory_uri() );
+		$this->assertSame( get_theme_root_uri() . '/subdir/theme%20with%20spaces', get_template_directory_uri() );
 
 		remove_filter( 'stylesheet', $callback );
 		remove_filter( 'template', $callback );
@@ -134,7 +134,7 @@ class Tests_Theme_WPTheme extends WP_UnitTestCase {
 	 */
 	function test_display_method_on_get_method_failure() {
 		$theme = new WP_Theme( 'nonexistent', $this->theme_root );
-		$this->assertEquals( 'nonexistent', $theme->get( 'Name' ) );
+		$this->assertSame( 'nonexistent', $theme->get( 'Name' ) );
 		$this->assertFalse( $theme->get( 'AuthorURI' ) );
 		$this->assertFalse( $theme->get( 'Tags' ) );
 		$this->assertFalse( $theme->display( 'Tags' ) );
@@ -147,7 +147,7 @@ class Tests_Theme_WPTheme extends WP_UnitTestCase {
 		$theme  = new WP_Theme( 'child-parent-itself', $this->theme_root );
 		$errors = $theme->errors();
 		$this->assertWPError( $errors );
-		$this->assertEquals( 'theme_child_invalid', $errors->get_error_code() );
+		$this->assertSame( 'theme_child_invalid', $errors->get_error_code() );
 	}
 
 

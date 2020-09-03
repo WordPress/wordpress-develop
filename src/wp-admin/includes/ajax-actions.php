@@ -4210,7 +4210,7 @@ function wp_ajax_update_theme() {
 	}
 
 	// An unhandled error occurred.
-	$status['errorMessage'] = __( 'Update failed.' );
+	$status['errorMessage'] = __( 'Theme update failed.' );
 	wp_send_json_error( $status );
 }
 
@@ -5197,7 +5197,6 @@ function wp_ajax_health_check_background_updates() {
 	wp_send_json_success( $site_health->get_test_background_updates() );
 }
 
-
 /**
  * Ajax handler for site health checks on loopback requests.
  *
@@ -5324,7 +5323,7 @@ function wp_ajax_toggle_auto_updates() {
 	switch ( $type ) {
 		case 'plugin':
 			if ( ! current_user_can( 'update_plugins' ) ) {
-				$error_message = __( 'You do not have permission to modify plugins.' );
+				$error_message = __( 'Sorry, you are not allowed to modify plugins.' );
 				wp_send_json_error( array( 'error' => $error_message ) );
 			}
 
@@ -5334,7 +5333,7 @@ function wp_ajax_toggle_auto_updates() {
 			break;
 		case 'theme':
 			if ( ! current_user_can( 'update_themes' ) ) {
-				$error_message = __( 'You do not have permission to modify themes.' );
+				$error_message = __( 'Sorry, you are not allowed to modify themes.' );
 				wp_send_json_error( array( 'error' => $error_message ) );
 			}
 

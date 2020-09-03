@@ -13,7 +13,7 @@
  *
  * @since 2.6.0
  *
- * @param bool $update Are we updating a pre-existing post?
+ * @param bool  $update    Are we updating a pre-existing post?
  * @param array $post_data Array of post data. Defaults to the contents of $_POST.
  * @return array|WP_Error Array of post data on success, WP_Error on failure.
  */
@@ -224,11 +224,16 @@ function _wp_get_allowed_postdata( $post_data = null ) {
 /**
  * Update an existing post with values provided in $_POST.
  *
+ * If post data is passed as an argument, it is treated as an array of data
+ * keyed appropriately for turning into a post object.
+ *
+ * If post data is not passed, the $_POST global variable is used instead.
+ *
  * @since 1.5.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param array $post_data Optional.
+ * @param array $post_data Optional. Defaults to the $_POST global.
  * @return int Post ID.
  */
 function edit_post( $post_data = null ) {
@@ -1500,13 +1505,13 @@ function get_sample_permalink_html( $id, $new_title = null, $new_slug = null ) {
 }
 
 /**
- * Output HTML for the post thumbnail meta-box.
+ * Returns HTML for the post thumbnail meta box.
  *
  * @since 2.9.0
  *
- * @param int $thumbnail_id ID of the attachment used for thumbnail
- * @param int|WP_Post $post Optional. The post ID or object associated with the thumbnail, defaults to global $post.
- * @return string html
+ * @param int         $thumbnail_id ID of the attachment used for thumbnail
+ * @param int|WP_Post $post         Optional. The post ID or object associated with the thumbnail, defaults to global $post.
+ * @return string The post thumbnail HTML.
  */
 function _wp_post_thumbnail_html( $thumbnail_id = null, $post = null ) {
 	$_wp_additional_image_sizes = wp_get_additional_image_sizes();
@@ -1736,10 +1741,10 @@ function _admin_notice_post_locked() {
 		<?php
 		if ( $override ) {
 			/* translators: %s: User's display name. */
-			printf( __( '%s is already editing this post. Do you want to take over?' ), esc_html( $user->display_name ) );
+			printf( __( '%s is currently editing this post. Do you want to take over?' ), esc_html( $user->display_name ) );
 		} else {
 			/* translators: %s: User's display name. */
-			printf( __( '%s is already editing this post.' ), esc_html( $user->display_name ) );
+			printf( __( '%s is currently editing this post.' ), esc_html( $user->display_name ) );
 		}
 		?>
 		</p>
@@ -2122,7 +2127,7 @@ function use_block_editor_for_post( $post ) {
 	$use_block_editor = use_block_editor_for_post_type( $post->post_type );
 
 	/**
-	 * Filter whether a post is able to be edited in the block editor.
+	 * Filters whether a post is able to be edited in the block editor.
 	 *
 	 * @since 5.0.0
 	 *
@@ -2158,7 +2163,7 @@ function use_block_editor_for_post_type( $post_type ) {
 	}
 
 	/**
-	 * Filter whether a post is able to be edited in the block editor.
+	 * Filters whether a post is able to be edited in the block editor.
 	 *
 	 * @since 5.0.0
 	 *
@@ -2211,7 +2216,7 @@ function get_block_categories( $post ) {
 	);
 
 	/**
-	 * Filter the default array of block categories.
+	 * Filters the default array of block categories.
 	 *
 	 * @since 5.0.0
 	 *

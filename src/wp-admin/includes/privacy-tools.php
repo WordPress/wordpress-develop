@@ -218,7 +218,7 @@ function _wp_personal_data_cleanup_requests() {
  * @since 4.9.6
  * @since 5.4.0 Added the `$group_id` and `$groups_count` parameters.
  *
- * @param array $group_data {
+ * @param array  $group_data {
  *     The group data to render.
  *
  *     @type string $group_label  The user-facing heading for the group, e.g. 'Comments'.
@@ -719,8 +719,10 @@ All at ###SITENAME###
 
 /**
  * Intercept personal data exporter page Ajax responses in order to assemble the personal data export file.
- * @see wp_privacy_personal_data_export_page
+ *
  * @since 4.9.6
+ *
+ * @see 'wp_privacy_personal_data_export_page'
  *
  * @param array  $response        The response from the personal data exporter for the given page.
  * @param int    $exporter_index  The index of the personal data exporter. Begins at 1.
@@ -860,7 +862,7 @@ function wp_privacy_process_personal_data_export_page( $response, $exporter_inde
  *
  * @since 4.9.6
  *
- * @see wp_privacy_personal_data_erasure_page
+ * @see 'wp_privacy_personal_data_erasure_page'
  *
  * @param array  $response      The response from the personal data eraser for
  *                              the given page.

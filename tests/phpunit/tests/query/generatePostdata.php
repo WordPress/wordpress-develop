@@ -94,7 +94,7 @@ class Tests_Query_GeneratePostdata extends WP_UnitTestCase {
 
 		$this->assertSame( 0, $data['multipage'] );
 		$this->assertSame( 1, $data['numpages'] );
-		$this->assertEquals( array( 'Page 0' ), $data['pages'] );
+		$this->assertSame( array( 'Page 0' ), $data['pages'] );
 	}
 
 	/**
@@ -110,7 +110,7 @@ class Tests_Query_GeneratePostdata extends WP_UnitTestCase {
 
 		$this->assertSame( 1, $data['multipage'] );
 		$this->assertSame( 4, $data['numpages'] );
-		$this->assertEquals( array( 'Page 0', 'Page 1', 'Page 2', 'Page 3' ), $data['pages'] );
+		$this->assertSame( array( 'Page 0', 'Page 1', 'Page 2', 'Page 3' ), $data['pages'] );
 	}
 
 	/**
@@ -126,7 +126,7 @@ class Tests_Query_GeneratePostdata extends WP_UnitTestCase {
 
 		$this->assertSame( 1, $data['multipage'] );
 		$this->assertSame( 3, $data['numpages'] );
-		$this->assertEquals( array( 'Page 1', 'Page 2', 'Page 3' ), $data['pages'] );
+		$this->assertSame( array( 'Page 1', 'Page 2', 'Page 3' ), $data['pages'] );
 	}
 
 	/**
@@ -140,6 +140,6 @@ class Tests_Query_GeneratePostdata extends WP_UnitTestCase {
 		);
 		$data = generate_postdata( $post );
 
-		$this->assertEquals( array( 'Page 0', "Page 1\nhas a line break", 'Page 2', "\nPage 3" ), $data['pages'] );
+		$this->assertSame( array( 'Page 0', "Page 1\nhas a line break", 'Page 2', "\nPage 3" ), $data['pages'] );
 	}
 }

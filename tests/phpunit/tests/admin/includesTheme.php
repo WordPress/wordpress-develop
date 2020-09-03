@@ -95,7 +95,7 @@ class Tests_Admin_includesTheme extends WP_UnitTestCase {
 			),
 			get_page_templates( null, 'post' )
 		);
-		$this->assertEquals( array(), get_page_templates( null, 'bar' ) );
+		$this->assertSame( array(), get_page_templates( null, 'bar' ) );
 	}
 
 	/**
@@ -166,7 +166,7 @@ class Tests_Admin_includesTheme extends WP_UnitTestCase {
 			get_page_templates()
 		);
 
-		$this->assertEquals( array(), get_page_templates( null, 'bar' ) );
+		$this->assertSame( array(), get_page_templates( null, 'bar' ) );
 	}
 
 	/**

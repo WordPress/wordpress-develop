@@ -234,7 +234,7 @@ window.wpWidgets = {
 			 *
 			 * @ignore
 			 *
-			 * @param {object} event jQuery event object.
+			 * @param {Object} event jQuery event object.
 			 */
 			over: function( event ) {
 				var $wrap = $( event.target ).parent();
@@ -259,7 +259,7 @@ window.wpWidgets = {
 			 *
 			 * @ignore
 			 *
-			 * @param {object} event jQuery event object.
+			 * @param {Object} event jQuery event object.
 			 */
 			out: function( event ) {
 				if ( wpWidgets.hoveredSidebar ) {
@@ -729,7 +729,7 @@ window.wpWidgets = {
 	 *
 	 * Used when a Widget gets dragged in/out of the Sidebar and never dropped.
 	 *
-	 * @param {object} event jQuery event object.
+	 * @param {Object} event jQuery event object.
 	 */
 	closeSidebar: function( event ) {
 		this.hoveredSidebar
@@ -744,3 +744,20 @@ window.wpWidgets = {
 $document.ready( function(){ wpWidgets.init(); } );
 
 })(jQuery);
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 4.9.0
+ * @deprecated 5.5.0
+ *
+ * @type {object}
+*/
+wpWidgets.l10n = wpWidgets.l10n || {
+	save: '',
+	saved: '',
+	saveAlert: '',
+	widgetAdded: ''
+};
+
+wpWidgets.l10n = window.wp.deprecateL10nObject( 'wpWidgets.l10n', wpWidgets.l10n );

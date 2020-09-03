@@ -216,6 +216,10 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			require_once ABSPATH . WPINC . '/PHPMailer/SMTP.php';
 			require_once ABSPATH . WPINC . '/PHPMailer/Exception.php';
 			$phpmailer = new PHPMailer\PHPMailer\PHPMailer( true );
+
+			$phpmailer::$validator = static function ( $email ) {
+				return (bool) is_email( $email );
+			};
 		}
 
 		// Headers.
@@ -330,7 +334,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		 */
 		if ( ! isset( $from_email ) ) {
 			// Get the site domain and get rid of www.
-			$sitename = strtolower( $_SERVER['SERVER_NAME'] );
+			$sitename = wp_parse_url( network_home_url(), PHP_URL_HOST );
 			if ( 'www.' === substr( $sitename, 0, 4 ) ) {
 				$sitename = substr( $sitename, 4 );
 			}
@@ -1489,8 +1493,8 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param int|WP_Comment  $comment_id Comment ID or WP_Comment object.
-	 * @param string          $deprecated Not used
+	 * @param int|WP_Comment $comment_id Comment ID or WP_Comment object.
+	 * @param string         $deprecated Not used
 	 * @return bool True on completion. False if no email addresses were specified.
 	 */
 	function wp_notify_postauthor( $comment_id, $deprecated = null ) {
@@ -1650,7 +1654,7 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 			$notify_message .= sprintf( __( 'Spam it: %s' ), admin_url( "comment.php?action=spam&c={$comment->comment_ID}#wpbody-content" ) ) . "\r\n";
 		}
 
-		$wp_email = 'wordpress@' . preg_replace( '#^www\.#', '', strtolower( $_SERVER['SERVER_NAME'] ) );
+		$wp_email = 'wordpress@' . preg_replace( '#^www\.#', '', wp_parse_url( network_home_url(), PHP_URL_HOST ) );
 
 		if ( '' === $comment->comment_author ) {
 			$from = "From: \"$blogname\" <$wp_email>";
@@ -2582,17 +2586,17 @@ if ( ! function_exists( 'get_avatar' ) ) :
 	 * @since 2.5.0
 	 * @since 4.2.0 Optional `$args` parameter added.
 	 *
-	 * @param mixed $id_or_email The Gravatar to retrieve. Accepts a user_id, gravatar md5 hash,
-	 *                           user email, WP_User object, WP_Post object, or WP_Comment object.
-	 * @param int    $size       Optional. Height and width of the avatar image file in pixels. Default 96.
-	 * @param string $default    Optional. URL for the default image or a default type. Accepts '404'
-	 *                           (return a 404 instead of a default image), 'retro' (8bit), 'monsterid'
-	 *                           (monster), 'wavatar' (cartoon face), 'indenticon' (the "quilt"),
-	 *                           'mystery', 'mm', or 'mysteryman' (The Oyster Man), 'blank' (transparent GIF),
-	 *                           or 'gravatar_default' (the Gravatar logo). Default is the value of the
-	 *                           'avatar_default' option, with a fallback of 'mystery'.
-	 * @param string $alt        Optional. Alternative text to use in &lt;img&gt; tag. Default empty.
-	 * @param array  $args       {
+	 * @param mixed  $id_or_email The Gravatar to retrieve. Accepts a user_id, gravatar md5 hash,
+	 *                            user email, WP_User object, WP_Post object, or WP_Comment object.
+	 * @param int    $size        Optional. Height and width of the avatar image file in pixels. Default 96.
+	 * @param string $default     Optional. URL for the default image or a default type. Accepts '404'
+	 *                            (return a 404 instead of a default image), 'retro' (8bit), 'monsterid'
+	 *                            (monster), 'wavatar' (cartoon face), 'indenticon' (the "quilt"),
+	 *                            'mystery', 'mm', or 'mysteryman' (The Oyster Man), 'blank' (transparent GIF),
+	 *                            or 'gravatar_default' (the Gravatar logo). Default is the value of the
+	 *                            'avatar_default' option, with a fallback of 'mystery'.
+	 * @param string $alt         Optional. Alternative text to use in img tag. Default empty.
+	 * @param array  $args {
 	 *     Optional. Extra arguments to retrieve the avatar.
 	 *
 	 *     @type int          $height        Display height of the avatar in pixels. Defaults to $size.
@@ -2602,7 +2606,7 @@ if ( ! function_exists( 'get_avatar' ) ) :
 	 *                                       judged in that order. Default is the value of the 'avatar_rating' option.
 	 *     @type string       $scheme        URL scheme to use. See set_url_scheme() for accepted values.
 	 *                                       Default null.
-	 *     @type array|string $class         Array or string of additional classes to add to the &lt;img&gt; element.
+	 *     @type array|string $class         Array or string of additional classes to add to the img element.
 	 *                                       Default null.
 	 *     @type bool         $force_display Whether to always show the avatar - ignores the show_avatars option.
 	 *                                       Default false.
@@ -2831,4 +2835,3 @@ if ( ! function_exists( 'wp_text_diff' ) ) :
 		return $r;
 	}
 endif;
-

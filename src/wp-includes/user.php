@@ -831,7 +831,7 @@ function delete_user_meta( $user_id, $meta_key, $meta_value = '' ) {
  *                        This parameter has no effect if $key is not specified.
  *                        Default false.
  * @return mixed An array if $single is false. The value of meta data field
- *               if $single is true.
+ *               if $single is true. False for an invalid $user_id.
  */
 function get_user_meta( $user_id, $key = '', $single = false ) {
 	return get_metadata( 'user', $user_id, $key, $single );
@@ -896,8 +896,9 @@ function count_users( $strategy = 'time', $site_id = null ) {
 	}
 
 	/**
-	 * Filter the user count before queries are run. Return a non-null value to cause count_users()
-	 * to return early.
+	 * Filters the user count before queries are run.
+	 *
+	 * Return a non-null value to cause count_users() to return early.
 	 *
 	 * @since 5.1.0
 	 *
@@ -2319,8 +2320,8 @@ function get_password_reset_key( $user ) {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param bool $allow         Whether to allow the password to be reset. Default true.
-	 * @param int  $user_data->ID The ID of the user attempting to reset a password.
+	 * @param bool $allow Whether to allow the password to be reset. Default true.
+	 * @param int  $ID    The ID of the user attempting to reset a password.
 	 */
 	$allow = apply_filters( 'allow_password_reset', $allow, $user->ID );
 
@@ -2463,7 +2464,7 @@ function check_password_reset_key( $key, $login ) {
  * @since 2.5.0
  *
  * @param WP_User $user     The user
- * @param string $new_pass New password for the user in plaintext
+ * @param string  $new_pass New password for the user in plaintext
  */
 function reset_password( $user, $new_pass ) {
 	/**

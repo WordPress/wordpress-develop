@@ -233,8 +233,8 @@ class WP_List_Table {
 	 *
 	 * @since 4.0.0
 	 *
-	 * @param string   $name      Method to call.
-	 * @param array    $arguments Arguments to pass when calling.
+	 * @param string $name      Method to call.
+	 * @param array  $arguments Arguments to pass when calling.
 	 * @return mixed|bool Return value of the callback, false otherwise.
 	 */
 	public function __call( $name, $arguments ) {
@@ -398,7 +398,7 @@ class WP_List_Table {
 		 * The dynamic portion of the hook name, `$this->screen->id`, refers
 		 * to the ID of the current screen, usually a string.
 		 *
-		 * @since 3.5.0
+		 * @since 3.1.0
 		 *
 		 * @param string[] $views An array of available list table views.
 		 */
@@ -450,9 +450,7 @@ class WP_List_Table {
 			 * The dynamic portion of the hook name, `$this->screen->id`, refers
 			 * to the ID of the current screen, usually a string.
 			 *
-			 * This filter can currently only be used to remove bulk actions.
-			 *
-			 * @since 3.5.0
+			 * @since 3.1.0
 			 *
 			 * @param string[] $actions An array of the available bulk actions.
 			 */
@@ -479,7 +477,7 @@ class WP_List_Table {
 
 		echo "</select>\n";
 
-		submit_button( __( 'Apply' ), 'action', "doaction$two", false, array( 'id' => "doaction$two" ) );
+		submit_button( __( 'Apply' ), 'action', '', false, array( 'id' => "doaction$two" ) );
 		echo "\n";
 	}
 
@@ -495,12 +493,12 @@ class WP_List_Table {
 			return false;
 		}
 
-		if ( isset( $_REQUEST['doaction2'] ) && isset( $_REQUEST['action2'] ) && -1 != $_REQUEST['action2'] ) {
-			return $_REQUEST['action2'];
-		}
-
 		if ( isset( $_REQUEST['action'] ) && -1 != $_REQUEST['action'] ) {
 			return $_REQUEST['action'];
+		}
+
+		if ( isset( $_REQUEST['action2'] ) && -1 != $_REQUEST['action2'] ) {
+			return $_REQUEST['action2'];
 		}
 
 		return false;
@@ -1096,7 +1094,7 @@ class WP_List_Table {
 		 * The dynamic portion of the hook name, `$this->screen->id`, refers
 		 * to the ID of the current screen, usually a string.
 		 *
-		 * @since 3.5.0
+		 * @since 3.1.0
 		 *
 		 * @param array $sortable_columns An array of sortable columns.
 		 */
@@ -1271,9 +1269,6 @@ class WP_List_Table {
 	 */
 	protected function get_table_classes() {
 		$mode = get_user_setting( 'posts_list_mode', 'list' );
-
-		/** This filter is documented in wp-admin/includes/class-wp-screen.php */
-		$mode = apply_filters( 'table_view_mode', $mode );
 
 		$mode_class = esc_attr( 'table-view-' . $mode );
 

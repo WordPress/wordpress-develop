@@ -2,7 +2,7 @@
 /**
  * Sitemaps: WP_Sitemaps_Registry class
  *
- * Handles registering sitemaps.
+ * Handles registering sitemap providers.
  *
  * @package WordPress
  * @subpackage Sitemaps
@@ -16,72 +16,70 @@
  */
 class WP_Sitemaps_Registry {
 	/**
-	 * Registered sitemaps.
+	 * Registered sitemap providers.
 	 *
 	 * @since 5.5.0
 	 *
-	 * @var WP_Sitemaps_Provider[] Array of registered sitemaps.
+	 * @var WP_Sitemaps_Provider[] Array of registered sitemap providers.
 	 */
-	private $sitemaps = array();
+	private $providers = array();
 
 	/**
-	 * Maximum number of sitemaps to include in an index.
-	 *
-	 * @sincee 5.5.0
-	 *
-	 * @var int Maximum number of sitemaps.
-	 */
-	private $max_sitemaps = 50000;
-
-	/**
-	 * Adds a sitemap with route to the registry.
+	 * Adds a new sitemap provider.
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param string               $name     Name of the sitemap.
+	 * @param string               $name     Name of the sitemap provider.
 	 * @param WP_Sitemaps_Provider $provider Instance of a WP_Sitemaps_Provider.
-	 * @return bool True if the sitemap was added, false if it is already registered.
+	 * @return bool Whether the provider was added successfully.
 	 */
-	public function add_sitemap( $name, WP_Sitemaps_Provider $provider ) {
-		if ( isset( $this->sitemaps[ $name ] ) ) {
+	public function add_provider( $name, WP_Sitemaps_Provider $provider ) {
+		if ( isset( $this->providers[ $name ] ) ) {
 			return false;
 		}
 
-		$this->sitemaps[ $name ] = $provider;
+		/**
+		 * Filters the sitemap provider before it is added.
+		 *
+		 * @since 5.5.0
+		 *
+		 * @param WP_Sitemaps_Provider $provider Instance of a WP_Sitemaps_Provider.
+		 * @param string               $name     Name of the sitemap provider.
+		 */
+		$provider = apply_filters( 'wp_sitemaps_add_provider', $provider, $name );
+		if ( ! $provider instanceof WP_Sitemaps_Provider ) {
+			return false;
+		}
+
+		$this->providers[ $name ] = $provider;
 
 		return true;
 	}
 
 	/**
-	 * Returns a single registered sitemaps provider.
+	 * Returns a single registered sitemap provider.
 	 *
 	 * @since 5.5.0
 	 *
 	 * @param string $name Sitemap provider name.
-	 * @return WP_Sitemaps_Provider|null Sitemaps provider if it exists, null otherwise.
+	 * @return WP_Sitemaps_Provider|null Sitemap provider if it exists, null otherwise.
 	 */
-	public function get_sitemap( $name ) {
-		if ( ! isset( $this->sitemaps[ $name ] ) ) {
+	public function get_provider( $name ) {
+		if ( ! isset( $this->providers[ $name ] ) ) {
 			return null;
 		}
 
-		return $this->sitemaps[ $name ];
+		return $this->providers[ $name ];
 	}
 
 	/**
-	 * Lists all registered sitemaps.
+	 * Returns all registered sitemap providers.
 	 *
 	 * @since 5.5.0
 	 *
 	 * @return WP_Sitemaps_Provider[] Array of sitemap providers.
 	 */
-	public function get_sitemaps() {
-		$total_sitemaps = count( $this->sitemaps );
-
-		if ( $total_sitemaps > $this->max_sitemaps ) {
-			return array_slice( $this->sitemaps, 0, $this->max_sitemaps, true );
-		}
-
-		return $this->sitemaps;
+	public function get_providers() {
+		return $this->providers;
 	}
 }

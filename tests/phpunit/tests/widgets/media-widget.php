@@ -50,8 +50,8 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 	/**
 	 * Test constructor.
 	 *
-	 * @covers WP_Widget_Media::__construct()
-	 * @covers WP_Widget_Media::_register()
+	 * @covers WP_Widget_Media::__construct
+	 * @covers WP_Widget_Media::_register
 	 */
 	function test_constructor() {
 		$widget = $this->get_mocked_class_instance();
@@ -76,10 +76,10 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 			),
 			array_keys( $widget->l10n )
 		);
-		$this->assertEquals( count( $widget->l10n ), count( array_filter( $widget->l10n ) ), 'Expected all translation strings to be defined.' );
-		$this->assertEquals( 10, has_action( 'admin_print_scripts-widgets.php', array( $widget, 'enqueue_admin_scripts' ) ) );
+		$this->assertSame( count( $widget->l10n ), count( array_filter( $widget->l10n ) ), 'Expected all translation strings to be defined.' );
+		$this->assertSame( 10, has_action( 'admin_print_scripts-widgets.php', array( $widget, 'enqueue_admin_scripts' ) ) );
 		$this->assertFalse( has_action( 'wp_enqueue_scripts', array( $widget, 'enqueue_preview_scripts' ) ), 'Did not expect preview scripts to be enqueued when not in customize preview context.' );
-		$this->assertEquals( 10, has_action( 'admin_footer-widgets.php', array( $widget, 'render_control_template_scripts' ) ) );
+		$this->assertSame( 10, has_action( 'admin_footer-widgets.php', array( $widget, 'render_control_template_scripts' ) ) );
 
 		// With non-default args.
 		$id_base         = 'media_pdf';
@@ -92,8 +92,8 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 			'height' => 1100,
 		);
 		$widget          = $this->get_mocked_class_instance( $id_base, $name, $widget_options, $control_options );
-		$this->assertEquals( $id_base, $widget->id_base );
-		$this->assertEquals( $name, $widget->name );
+		$this->assertSame( $id_base, $widget->id_base );
+		$this->assertSame( $name, $widget->name );
 
 		// Method assertArraySubset doesn't exist in phpunit versions compatible with PHP 5.2.
 		if ( method_exists( $this, 'assertArraySubset' ) ) {
@@ -106,8 +106,8 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 	 * Test constructor in customize preview.
 	 *
 	 * @global WP_Customize_Manager $wp_customize
-	 * @covers WP_Widget_Media::__construct()
-	 * @covers WP_Widget_Media::_register()
+	 * @covers WP_Widget_Media::__construct
+	 * @covers WP_Widget_Media::_register
 	 */
 	function test_constructor_in_customize_preview() {
 		global $wp_customize;
@@ -128,7 +128,7 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 
 		$widget = $this->get_mocked_class_instance();
 		$widget->_register();
-		$this->assertEquals( 10, has_action( 'wp_enqueue_scripts', array( $widget, 'enqueue_preview_scripts' ) ) );
+		$this->assertSame( 10, has_action( 'wp_enqueue_scripts', array( $widget, 'enqueue_preview_scripts' ) ) );
 	}
 
 	/**
@@ -169,10 +169,10 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 		$widget = $this->get_mocked_class_instance();
 
 		$result = $widget->sanitize_token_list( 'What A false class with-token <a href="#">and link</a>' );
-		$this->assertEquals( 'What A false class with-token a hrefand linka', $result );
+		$this->assertSame( 'What A false class with-token a hrefand linka', $result );
 
 		$result = $widget->sanitize_token_list( array( 'foo', '<i>bar', '">NO' ) );
-		$this->assertEquals( $result, 'foo ibar NO' );
+		$this->assertSame( $result, 'foo ibar NO' );
 	}
 
 	/**
@@ -228,7 +228,7 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 	/**
 	 * Test update method.
 	 *
-	 * @covers WP_Widget_Media::update()
+	 * @covers WP_Widget_Media::update
 	 */
 	function test_update() {
 		$widget   = $this->get_mocked_class_instance();
@@ -314,8 +314,8 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 	/**
 	 * Test widget method.
 	 *
-	 * @covers WP_Widget_Media::widget()
-	 * @covers WP_Widget_Media::render_media()
+	 * @covers WP_Widget_Media::widget
+	 * @covers WP_Widget_Media::render_media
 	 */
 	function test_widget() {
 		$args     = array(
@@ -339,8 +339,8 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 		$widget->widget( $args, $instance );
 		$this->assertCount( 3, $this->widget_instance_filter_args );
 		$this->assertEquals( $instance, $this->widget_instance_filter_args[0] );
-		$this->assertEquals( $args, $this->widget_instance_filter_args[1] );
-		$this->assertEquals( $widget, $this->widget_instance_filter_args[2] );
+		$this->assertSame( $args, $this->widget_instance_filter_args[1] );
+		$this->assertSame( $widget, $this->widget_instance_filter_args[2] );
 		$output = ob_get_clean();
 
 		$this->assertContains( '<h2>Foo</h2>', $output );
@@ -389,7 +389,7 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 	/**
 	 * Test form method.
 	 *
-	 * @covers WP_Widget_Media::form()
+	 * @covers WP_Widget_Media::form
 	 */
 	function test_form() {
 		$widget = $this->get_mocked_class_instance();
@@ -406,7 +406,7 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 	/**
 	 * Test display_media_state method.
 	 *
-	 * @covers WP_Widget_Media::display_media_state()
+	 * @covers WP_Widget_Media::display_media_state
 	 */
 	function test_display_media_state() {
 		$widget        = $this->get_mocked_class_instance();
@@ -448,7 +448,7 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 	/**
 	 * Test enqueue_admin_scripts method.
 	 *
-	 * @covers WP_Widget_Media::enqueue_admin_scripts()
+	 * @covers WP_Widget_Media::enqueue_admin_scripts
 	 */
 	function test_enqueue_admin_scripts() {
 		set_current_screen( 'widgets.php' );
@@ -476,7 +476,7 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 	/**
 	 * Test has_content method.
 	 *
-	 * @covers WP_Widget_Media::has_content()
+	 * @covers WP_Widget_Media::has_content
 	 */
 	function test_has_content() {
 		$attachment_id = self::factory()->attachment->create_object(

@@ -298,7 +298,6 @@ function wp_date( $format, $timestamp = null, $timezone = null ) {
 	 * @param string       $format    Format to display the date.
 	 * @param int          $timestamp Unix timestamp.
 	 * @param DateTimeZone $timezone  Timezone.
-	 *
 	 */
 	$date = apply_filters( 'wp_date', $date, $format, $timestamp, $timezone );
 
@@ -831,14 +830,16 @@ function wp_extract_urls( $content ) {
  * @since 1.5.0
  * @since 5.3.0 The `$content` parameter was made optional, and the `$post` parameter was
  *              updated to accept a post ID or a WP_Post object.
+ * @since 5.6.0 The `$content` parameter is no longer optional, but passing `null` to skip it
+ *              is still supported.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string         $content Post content. If `null`, the `post_content` field from `$post` is used.
- * @param int|WP_Post    $post    Post ID or post object.
+ * @param string|null $content Post content. If `null`, the `post_content` field from `$post` is used.
+ * @param int|WP_Post $post    Post ID or post object.
  * @return null|bool Returns false if post is not found.
  */
-function do_enclose( $content = null, $post ) {
+function do_enclose( $content, $post ) {
 	global $wpdb;
 
 	// @todo Tidy this code and make the debug code optional.
@@ -908,7 +909,7 @@ function do_enclose( $content = null, $post ) {
 
 				// Check to see if we can figure out the mime type from the extension.
 				$url_parts = parse_url( $url );
-				if ( false !== $url_parts ) {
+				if ( false !== $url_parts && ! empty( $url_parts['path'] ) ) {
 					$extension = pathinfo( $url_parts['path'], PATHINFO_EXTENSION );
 					if ( ! empty( $extension ) ) {
 						foreach ( wp_get_mime_types() as $exts => $mime ) {
@@ -2450,11 +2451,12 @@ function _wp_upload_dir( $time = null ) {
  * Get a filename that is sanitized and unique for the given directory.
  *
  * If the filename is not unique, then a number will be added to the filename
- * before the extension, and will continue adding numbers until the filename is
- * unique.
+ * before the extension, and will continue adding numbers until the filename
+ * is unique.
  *
- * The callback is passed three parameters, the first one is the directory, the
- * second is the filename, and the third is the extension.
+ * The callback function allows the caller to use their own method to create
+ * unique file names. If defined, the callback should take three arguments:
+ * - directory, base filename, and extension - and return a unique filename.
  *
  * @since 2.5.0
  *
@@ -2597,8 +2599,8 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
  * @access private
  *
  * @param string $filename The file name to check.
- * $param array  $files    An array of existing files in the directory.
- * $return bool True if the tested file name could match an existing file, false otherwise.
+ * @param array  $files    An array of existing files in the directory.
+ * @return bool True if the tested file name could match an existing file, false otherwise.
  */
 function _wp_check_existing_file_names( $filename, $files ) {
 	$fname = pathinfo( $filename, PATHINFO_FILENAME );
@@ -2641,10 +2643,10 @@ function _wp_check_existing_file_names( $filename, $files ) {
  *
  * @since 2.0.0
  *
- * @param string       $name       Filename.
- * @param null|string  $deprecated Never used. Set to null.
- * @param string       $bits       File content
- * @param string       $time       Optional. Time formatted in 'yyyy/mm'. Default null.
+ * @param string      $name       Filename.
+ * @param null|string $deprecated Never used. Set to null.
+ * @param string      $bits       File content
+ * @param string      $time       Optional. Time formatted in 'yyyy/mm'. Default null.
  * @return array {
  *     Information about the newly-uploaded file.
  *
@@ -3286,6 +3288,8 @@ function wp_nonce_ays( $action ) {
  *              an integer to be used as the response code.
  * @since 5.1.0 The `$link_url`, `$link_text`, and `$exit` arguments were added.
  * @since 5.3.0 The `$charset` argument was added.
+ * @since 5.5.0 The `$text_direction` argument has a priority over get_language_attributes()
+ *              in the default handler.
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
@@ -3306,8 +3310,8 @@ function wp_nonce_ays( $action ) {
  *     @type string $link_text      A label for the link to include. Only works in combination with $link_url.
  *                                  Default empty string.
  *     @type bool   $back_link      Whether to include a link to go back. Default false.
- *     @type string $text_direction The text direction. This is only useful internally, when WordPress
- *                                  is still loading and the site's locale is not set up yet. Accepts 'rtl'.
+ *     @type string $text_direction The text direction. This is only useful internally, when WordPress is still
+ *                                  loading and the site's locale is not set up yet. Accepts 'rtl' and 'ltr'.
  *                                  Default is the value of is_rtl().
  *     @type string $charset        Character set of the HTML output. Default 'utf-8'.
  *     @type string $code           Error code to use. Default is 'wp_die', or the main error code if $message
@@ -3443,10 +3447,14 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 		}
 
 		$text_direction = $parsed_args['text_direction'];
-		if ( function_exists( 'language_attributes' ) && function_exists( 'is_rtl' ) ) {
+		$dir_attr       = "dir='$text_direction'";
+
+		// If `text_direction` was not explicitly passed,
+		// use get_language_attributes() if available.
+		if ( empty( $args['text_direction'] )
+			&& function_exists( 'language_attributes' ) && function_exists( 'is_rtl' )
+		) {
 			$dir_attr = get_language_attributes();
-		} else {
-			$dir_attr = "dir='$text_direction'";
 		}
 		?>
 <!DOCTYPE html>
@@ -6815,7 +6823,7 @@ function mysql_to_rfc3339( $date_string ) {
  *
  * @param string $context Optional. Context in which the function is called. Accepts either 'admin',
  *                        'image', or an arbitrary other context. If an arbitrary context is passed,
- *                        the similarly arbitrary {@see '{$context}_memory_limit'} filter will be
+ *                        the similarly arbitrary {@see '$context_memory_limit'} filter will be
  *                        invoked. Default 'admin'.
  * @return bool|int|string The limit that was set or false on failure.
  */
@@ -7524,11 +7532,11 @@ function get_dirsize( $directory, $max_execution_time = null ) {
  * @since 4.3.0 $exclude parameter added.
  * @since 5.2.0 $max_execution_time parameter added.
  *
- * @param string $directory       Full path of a directory.
- * @param string|array $exclude   Optional. Full path of a subdirectory to exclude from the total, or array of paths.
- *                                Expected without trailing slash(es).
- * @param int $max_execution_time Maximum time to run before giving up. In seconds.
- *                                The timeout is global and is measured from the moment WordPress started to load.
+ * @param string       $directory          Full path of a directory.
+ * @param string|array $exclude            Optional. Full path of a subdirectory to exclude from the total,
+ *                                         or array of paths. Expected without trailing slash(es).
+ * @param int          $max_execution_time Maximum time to run before giving up. In seconds. The timeout is global
+ *                                         and is measured from the moment WordPress started to load.
  * @return int|false|null Size in bytes if a valid directory. False if not. Null if timeout.
  */
 function recurse_dirsize( $directory, $exclude = null, $max_execution_time = null ) {

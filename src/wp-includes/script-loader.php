@@ -39,7 +39,8 @@ require ABSPATH . WPINC . '/functions.wp-styles.php';
  *
  * @since 5.0.0
  *
- * @param WP_Scripts $scripts WP_Scripts object.
+ * @param WP_Scripts $scripts            WP_Scripts object.
+ * @param bool       $force_uncompressed Whether to forcibly prevent gzip compression. Default false.
  */
 function wp_register_tinymce_scripts( $scripts, $force_uncompressed = false ) {
 	global $tinymce_version, $concatenate_scripts, $compress_scripts;
@@ -718,7 +719,7 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'cropper', '/wp-includes/js/crop/cropper.js', array( 'scriptaculous-dragdrop' ) );
 
 	// jQuery.
-	$scripts->add( 'jquery', '/wp-includes/js/jquery/jquery.js', array(), '1.12.4-wp' );
+	$scripts->add( 'jquery', false, array( 'jquery-core' ), '1.12.4-wp' );
 	$scripts->add( 'jquery-core', '/wp-includes/js/jquery/jquery.js', array(), '1.12.4-wp' );
 	$scripts->add( 'jquery-migrate', "/wp-includes/js/jquery/jquery-migrate$suffix.js", array(), '1.4.1' );
 
@@ -1012,7 +1013,7 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'htmlhint', '/wp-includes/js/codemirror/htmlhint.js', array(), '0.9.14-xwp' );
 	$scripts->add( 'htmlhint-kses', '/wp-includes/js/codemirror/htmlhint-kses.js', array( 'htmlhint' ) );
 	$scripts->add( 'code-editor', "/wp-admin/js/code-editor$suffix.js", array( 'jquery', 'wp-codemirror', 'underscore' ) );
-	$scripts->add( 'wp-theme-plugin-editor', "/wp-admin/js/theme-plugin-editor$suffix.js", array( 'wp-util', 'wp-sanitize', 'jquery', 'jquery-ui-core', 'wp-a11y', 'underscore' ) );
+	$scripts->add( 'wp-theme-plugin-editor', "/wp-admin/js/theme-plugin-editor$suffix.js", array( 'common', 'wp-util', 'wp-sanitize', 'jquery', 'jquery-ui-core', 'wp-a11y', 'underscore' ) );
 	$scripts->set_translations( 'wp-theme-plugin-editor' );
 
 	$scripts->add( 'wp-playlist', "/wp-includes/js/mediaelement/wp-playlist$suffix.js", array( 'wp-util', 'backbone', 'mediaelement' ), false, 1 );
@@ -1260,7 +1261,7 @@ function wp_default_scripts( $scripts ) {
 		$scripts->add( 'privacy-tools', "/wp-admin/js/privacy-tools$suffix.js", array( 'jquery', 'wp-a11y' ), false, 1 );
 		$scripts->set_translations( 'privacy-tools' );
 
-		$scripts->add( 'updates', "/wp-admin/js/updates$suffix.js", array( 'jquery', 'wp-util', 'wp-a11y', 'wp-sanitize' ), false, 1 );
+		$scripts->add( 'updates', "/wp-admin/js/updates$suffix.js", array( 'common', 'jquery', 'wp-util', 'wp-a11y', 'wp-sanitize' ), false, 1 );
 		$scripts->set_translations( 'updates' );
 		did_action( 'init' ) && $scripts->localize(
 			'updates',
@@ -1463,6 +1464,7 @@ function wp_default_styles( $styles ) {
 			'wp-editor-font',
 		),
 		'block-library'        => array(),
+		'block-directory'      => array(),
 		'components'           => array(),
 		'edit-post'            => array(
 			'wp-components',
@@ -1527,6 +1529,7 @@ function wp_default_styles( $styles ) {
 		'wp-edit-blocks',
 		'wp-block-editor',
 		'wp-block-library',
+		'wp-block-directory',
 		'wp-components',
 		'wp-edit-post',
 		'wp-editor',
@@ -2268,4 +2271,14 @@ function enqueue_editor_block_styles_assets() {
 	wp_register_script( 'wp-block-styles', false, array( 'wp-blocks' ), true, true );
 	wp_add_inline_script( 'wp-block-styles', $inline_script );
 	wp_enqueue_script( 'wp-block-styles' );
+}
+
+/**
+ * Enqueues the assets required for the block directory within the block editor.
+ *
+ * @since 5.5.0
+ */
+function wp_enqueue_editor_block_directory_assets() {
+	wp_enqueue_script( 'wp-block-directory' );
+	wp_enqueue_style( 'wp-block-directory' );
 }

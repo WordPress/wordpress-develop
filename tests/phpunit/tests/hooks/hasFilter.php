@@ -16,7 +16,7 @@ class Tests_WP_Hook_Has_Filter extends WP_UnitTestCase {
 
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
 
-		$this->assertEquals( $priority, $hook->has_filter( $tag, $callback ) );
+		$this->assertSame( $priority, $hook->has_filter( $tag, $callback ) );
 	}
 
 	public function test_has_filter_with_object() {
@@ -29,7 +29,7 @@ class Tests_WP_Hook_Has_Filter extends WP_UnitTestCase {
 
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
 
-		$this->assertEquals( $priority, $hook->has_filter( $tag, $callback ) );
+		$this->assertSame( $priority, $hook->has_filter( $tag, $callback ) );
 	}
 
 	public function test_has_filter_with_static_method() {
@@ -41,7 +41,7 @@ class Tests_WP_Hook_Has_Filter extends WP_UnitTestCase {
 
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
 
-		$this->assertEquals( $priority, $hook->has_filter( $tag, $callback ) );
+		$this->assertSame( $priority, $hook->has_filter( $tag, $callback ) );
 	}
 
 	public function test_has_filter_without_callback() {

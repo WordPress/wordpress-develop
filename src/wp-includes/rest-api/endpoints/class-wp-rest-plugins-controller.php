@@ -285,7 +285,8 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 			array(
 				'slug'   => $slug,
 				'fields' => array(
-					'sections' => false,
+					'sections'       => false,
+					'language_packs' => true,
 				),
 			)
 		);
@@ -353,6 +354,32 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 			if ( is_wp_error( $changed_status ) ) {
 				return $changed_status;
 			}
+		}
+
+		// Install translations.
+		$installed_locales = array_values( get_available_languages() );
+		/** This filter is documented in wp-includes/update.php */
+		$installed_locales = apply_filters( 'plugins_update_check_locales', $installed_locales );
+
+		$language_packs = array_map(
+			function( $item ) {
+				return (object) $item;
+			},
+			$api->language_packs
+		);
+
+		$language_packs = array_filter(
+			$language_packs,
+			function( $pack ) use ( $installed_locales ) {
+				return in_array( $pack->language, $installed_locales, true );
+			}
+		);
+
+		if ( $language_packs ) {
+			$lp_upgrader = new Language_Pack_Upgrader( $skin );
+
+			// Install all applicable language packs for the plugin.
+			$lp_upgrader->bulk_upgrade( $language_packs );
 		}
 
 		$path          = WP_PLUGIN_DIR . '/' . $file;
@@ -548,7 +575,7 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 			'network_only' => $item['Network'],
 			'requires_wp'  => $item['RequiresWP'],
 			'requires_php' => $item['RequiresPHP'],
-			'text_domain'  => $item['TextDomain'],
+			'textdomain'   => $item['TextDomain'],
 		);
 
 		$data = $this->add_additional_fields_to_object( $data, $request );
@@ -640,7 +667,7 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 		if ( is_multisite() && ( 'network-active' === $current_status || 'network-active' === $new_status ) && ! current_user_can( 'manage_network_plugins' ) ) {
 			return new WP_Error(
 				'rest_cannot_manage_network_plugins',
-				__( 'Sorry, you do not have permission to manage network plugins.' ),
+				__( 'Sorry, you are not allowed to manage network plugins.' ),
 				array( 'status' => rest_authorization_required_code() )
 			);
 		}
@@ -815,7 +842,7 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves the plugin's schema, conforming to JSON Schema.
 	 *
-	 * @since 4.7.0
+	 * @since 5.5.0
 	 *
 	 * @return array Item schema data.
 	 */
@@ -908,7 +935,7 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
-				'text_domain'  => array(
+				'textdomain'   => array(
 					'description' => __( 'The plugin\'s text domain.' ),
 					'type'        => 'string',
 					'readonly'    => true,

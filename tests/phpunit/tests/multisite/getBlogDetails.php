@@ -125,7 +125,7 @@ if ( is_multisite() ) :
 			}
 
 			$site = get_blog_details( array( 'domain' => 'wordpress.org' ) );
-			$this->assertEquals( self::$site_ids['wordpress.org/'], $site->blog_id );
+			$this->assertSame( self::$site_ids['wordpress.org/'], $site->blog_id );
 		}
 
 		public function test_get_blog_details_with_only_domain_in_fields_subdirectory() {

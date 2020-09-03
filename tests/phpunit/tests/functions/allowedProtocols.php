@@ -29,8 +29,8 @@ class Tests_Functions_AllowedProtocols extends WP_UnitTestCase {
 	 * @param string Example URL.
 	 */
 	function test_allowed_protocols( $protocol, $url ) {
-		$this->assertEquals( $url, esc_url( $url, $protocol ) );
-		$this->assertEquals( $url, esc_url( $url, wp_allowed_protocols() ) );
+		$this->assertSame( $url, esc_url( $url, $protocol ) );
+		$this->assertSame( $url, esc_url( $url, wp_allowed_protocols() ) );
 	}
 
 	/**

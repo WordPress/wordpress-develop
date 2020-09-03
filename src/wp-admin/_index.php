@@ -133,13 +133,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<p>
 				<?php
 				printf(
-					/* translators: %d: The number of days. */
-					_n(
-						'The admin email verification page will reappear after %d day.',
-						'The admin email verification page will reappear after %d days.',
-						3
-					),
-					number_format_i18n( 3 )
+					/* translators: %s: Human-readable time interval. */
+					__( 'The admin email verification page will reappear after %s.' ),
+					human_time_diff( time() + $remind_interval )
 				);
 				?>
 			</p>
