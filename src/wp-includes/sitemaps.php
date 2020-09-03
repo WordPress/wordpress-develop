@@ -121,5 +121,13 @@ function get_sitemap_url( $name, $subtype_name = '', $page = 1 ) {
 	if ( 0 >= $page ) {
 		$page = 1;
 	}
-	return $provider->get_sitemap_url( $subtype_name, $page );
+	
+	/**
+	 * Filters the sitemap URL.
+	 *
+	 * @since 5.5.2
+	 *
+	 * @param string|false $sitemap_url The sitemap URL or false if the sitemap doesn't exist.
+	 */
+	return apply_filters('sitemap_url', $provider->get_sitemap_url( $subtype_name, $page ));
 }
