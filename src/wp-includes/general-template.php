@@ -4299,7 +4299,7 @@ function paginate_links( $args = '' ) {
 
 			$dots = true;
 		else :
-			if ( $args['show_all'] || ( $n <= $end_size || ( $current && $n >= $current - $mid_size && $n <= $current + $mid_size ) || $n > $total - $end_size ) ) :
+			if ( $args['show_all'] || ( $n <= $end_size || ( $current && $n >= $current - $mid_size && $n <= $current + $mid_size ) || $n > $total - $end_size || (( in_array($current,array(1, $total))) && ($total - ($mid_size + ($end_size * 2))) === 1 ) ) ) :
 				$link = str_replace( '%_%', 1 == $n ? '' : $args['format'], $args['base'] );
 				$link = str_replace( '%#%', $n, $link );
 				if ( $add_args ) {
