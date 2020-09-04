@@ -377,7 +377,7 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 		// Add help tabs.
 
 		$screen->add_help_tab( $tab_1_args );
-		$this->assertequals( $screen->get_help_tab( $tab_1 ), $tab_1_args );
+		$this->assertSame( $screen->get_help_tab( $tab_1 ), $tab_1_args );
 
 		$screen->add_help_tab( $tab_2_args );
 		$this->assertSame( $screen->get_help_tab( $tab_2 ), $tab_2_args );

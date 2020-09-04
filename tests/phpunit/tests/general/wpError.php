@@ -202,7 +202,7 @@ class Tests_WP_Error extends WP_UnitTestCase {
 		$this->wp_error->add( 'code', 'message' );
 		$this->wp_error->add( 'code', 'message2' );
 
-		$this->assertequalSets( array( 'message', 'message2' ), $this->wp_error->get_error_messages( 'code' ) );
+		$this->assertSameSets( array( 'message', 'message2' ), $this->wp_error->get_error_messages( 'code' ) );
 	}
 
 	/**

@@ -58,7 +58,7 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 		$this->assertSame( 0, get_comment_pages_count( $comments, 10, true ) );
 		$this->assertSame( 0, get_comment_pages_count( $comments, 5 ) );
 		$this->assertSame( 0, get_comment_pages_count( $comments ) );
-		$this->assertequals( 0, get_comment_pages_count( null, 1 ) );
+		$this->assertSame( 0, get_comment_pages_count( null, 1 ) );
 	}
 
 	/**

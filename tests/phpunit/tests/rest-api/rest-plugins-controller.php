@@ -218,7 +218,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	public function test_get_items_insufficient_permissions() {
 		wp_set_current_user( self::$subscriber_id );
 		$response = rest_do_request( self::BASE );
-		$this->assertequals( 403, $response->get_status() );
+		$this->assertSame( 403, $response->get_status() );
 	}
 
 	/**
