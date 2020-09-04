@@ -62,7 +62,7 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'description', $widget->widget_options );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
 		$this->assertEmpty( $widget->widget_options['mime_type'] );
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'add_to_widget',
 				'replace_media',
@@ -206,7 +206,7 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 		$widget = $this->get_mocked_class_instance();
 		$schema = $widget->get_instance_schema();
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'attachment_id',
 				'title',
@@ -221,7 +221,7 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 		$schema = $widget->get_instance_schema();
 		$this->assertInternalType( 'array', $this->filter_instance_schema_args );
 		$this->assertSame( $widget, $this->filter_instance_schema_args['widget'] );
-		$this->assertEqualSets( array( 'attachment_id', 'title', 'url' ), array_keys( $this->filter_instance_schema_args['schema'] ) );
+		$this->assertSameSets( array( 'attachment_id', 'title', 'url' ), array_keys( $this->filter_instance_schema_args['schema'] ) );
 		$this->assertArrayHasKey( 'injected', $schema );
 	}
 
@@ -419,7 +419,7 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 		);
 
 		$result = $widget->display_media_state( array(), get_post( $attachment_id ) );
-		$this->assertEqualSets( array(), $result );
+		$this->assertSameSets( array(), $result );
 
 		$widget->save_settings(
 			array(
@@ -429,7 +429,7 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 			)
 		);
 		$result = $widget->display_media_state( array(), get_post( $attachment_id ) );
-		$this->assertEqualSets( array( $widget->l10n['media_library_state_single'] ), $result );
+		$this->assertSameSets( array( $widget->l10n['media_library_state_single'] ), $result );
 
 		$widget->save_settings(
 			array(
@@ -442,7 +442,7 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 			)
 		);
 		$result = $widget->display_media_state( array(), get_post( $attachment_id ) );
-		$this->assertEqualSets( array( sprintf( $widget->l10n['media_library_state_multi']['singular'], 2 ) ), $result );
+		$this->assertSameSets( array( sprintf( $widget->l10n['media_library_state_multi']['singular'], 2 ) ), $result );
 	}
 
 	/**

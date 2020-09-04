@@ -111,7 +111,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array_merge(
 				self::$my_title_post_ids,
 				self::$my_title_page_ids,
@@ -147,7 +147,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array_merge(
 				self::$my_title_post_ids,
 				self::$my_title_page_ids,
@@ -170,7 +170,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array_merge(
 				self::$my_title_post_ids,
 				self::$my_content_post_ids
@@ -192,7 +192,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			self::$my_title_page_ids,
 			wp_list_pluck( $response->get_data(), 'id' )
 		);
@@ -240,7 +240,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array_merge(
 				self::$my_title_post_ids,
 				self::$my_title_page_ids,
@@ -262,7 +262,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array_merge(
 				self::$my_title_post_ids,
 				self::$my_title_page_ids
@@ -283,7 +283,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			self::$my_content_post_ids,
 			wp_list_pluck( $response->get_data(), 'id' )
 		);
@@ -420,7 +420,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 		$response = $controller->get_items( $request );
-		$this->assertEqualSets( range( 1, 10 ), wp_list_pluck( $response->get_data(), 'id' ) );
+		$this->assertSameSets( range( 1, 10 ), wp_list_pluck( $response->get_data(), 'id' ) );
 
 		$request  = $this->get_request(
 			array(
@@ -431,7 +431,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 		$response = $controller->get_items( $request );
-		$this->assertEqualSets( range( 1, 5 ), wp_list_pluck( $response->get_data(), 'id' ) );
+		$this->assertSameSets( range( 1, 5 ), wp_list_pluck( $response->get_data(), 'id' ) );
 	}
 
 	/**
@@ -496,8 +496,8 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$params = $controller->get_collection_params();
 		$this->assertSame( 'test', $params[ WP_REST_Search_Controller::PROP_TYPE ]['default'] );
-		$this->assertEqualSets( array( 'test' ), $params[ WP_REST_Search_Controller::PROP_TYPE ]['enum'] );
-		$this->assertEqualSets( array( 'test_first_type', 'test_second_type', WP_REST_Search_Controller::TYPE_ANY ), $params[ WP_REST_Search_Controller::PROP_SUBTYPE ]['items']['enum'] );
+		$this->assertSameSets( array( 'test' ), $params[ WP_REST_Search_Controller::PROP_TYPE ]['enum'] );
+		$this->assertSameSets( array( 'test_first_type', 'test_second_type', WP_REST_Search_Controller::TYPE_ANY ), $params[ WP_REST_Search_Controller::PROP_SUBTYPE ]['items']['enum'] );
 	}
 
 	/**

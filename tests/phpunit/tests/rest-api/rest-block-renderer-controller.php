@@ -596,8 +596,8 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEqualSets( array( 'GET', 'POST' ), $data['endpoints'][0]['methods'] );
-		$this->assertEqualSets(
+		$this->assertSameSets( array( 'GET', 'POST' ), $data['endpoints'][0]['methods'] );
+		$this->assertSameSets(
 			array( 'name', 'context', 'attributes', 'post_id' ),
 			array_keys( $data['endpoints'][0]['args'] )
 		);

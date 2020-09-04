@@ -161,7 +161,7 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 		set_transient( 'settings_errors', array( $blogname_error ) );
 		$wp_settings_errors = null;
 		add_settings_error( $blogdescription_error['setting'], $blogdescription_error['code'], $blogdescription_error['message'], $blogdescription_error['type'] );
-		$this->assertEqualSets( array( $blogname_error, $blogdescription_error ), get_settings_errors() );
+		$this->assertSameSets( array( $blogname_error, $blogdescription_error ), get_settings_errors() );
 
 		$wp_settings_errors = null;
 	}

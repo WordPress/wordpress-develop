@@ -33,7 +33,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $term1 ), wp_list_pluck( $found, 'term_id' ) );
+		$this->assertSameSets( array( $term1 ), wp_list_pluck( $found, 'term_id' ) );
 	}
 
 	/**
@@ -52,7 +52,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $term ), $found );
+		$this->assertSameSets( array( $term ), $found );
 	}
 
 	/**
@@ -65,7 +65,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		$found = get_terms( 'wptests_tax', 'hide_empty=0&fields=ids&update_term_meta_cache=0' );
 
-		$this->assertEqualSets( array( $term ), $found );
+		$this->assertSameSets( array( $term ), $found );
 	}
 
 	/**
@@ -78,7 +78,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		$found = get_terms( 'taxonomy=wptests_tax&hide_empty=0&fields=ids&update_term_meta_cache=0' );
 
-		$this->assertEqualSets( array( $term ), $found );
+		$this->assertSameSets( array( $term ), $found );
 	}
 
 	/**
@@ -243,7 +243,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'fields'     => 'ids',
 			)
 		);
-		$this->assertEqualSets( array( $term_id1, $term_id2 ), $terms_ids );
+		$this->assertSameSets( array( $term_id1, $term_id2 ), $terms_ids );
 
 		$terms_name = get_terms(
 			'post_tag',
@@ -252,7 +252,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'fields'     => 'names',
 			)
 		);
-		$this->assertEqualSets( array( 'WOO!', 'HOO!' ), $terms_name );
+		$this->assertSameSets( array( 'WOO!', 'HOO!' ), $terms_name );
 
 		$terms_id_name = get_terms(
 			'post_tag',
@@ -419,7 +419,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'fields'     => 'ids',
 			)
 		);
-		$this->assertEqualSets( array( $term_id1, $term_id2 ), $terms );
+		$this->assertSameSets( array( $term_id1, $term_id2 ), $terms );
 	}
 
 	/**
@@ -447,7 +447,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'fields'     => 'ids',
 			)
 		);
-		$this->assertEqualSets( array( $term_id1 ), $terms );
+		$this->assertSameSets( array( $term_id1 ), $terms );
 
 		$terms2 = get_terms(
 			'post_tag',
@@ -457,7 +457,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'fields'            => 'ids',
 			)
 		);
-		$this->assertEqualSets( array( $term_id1, $term_id2 ), $terms2 );
+		$this->assertSameSets( array( $term_id1, $term_id2 ), $terms2 );
 
 		$terms3 = get_terms(
 			'post_tag',
@@ -467,7 +467,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'fields'     => 'ids',
 			)
 		);
-		$this->assertEqualSets( array( $term_id1 ), $terms3 );
+		$this->assertSameSets( array( $term_id1 ), $terms3 );
 
 		$terms4 = get_terms(
 			'post_tag',
@@ -477,7 +477,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'fields'            => 'ids',
 			)
 		);
-		$this->assertEqualSets( array( $term_id1, $term_id2 ), $terms4 );
+		$this->assertSameSets( array( $term_id1, $term_id2 ), $terms4 );
 
 		$terms5 = get_terms(
 			'post_tag',
@@ -507,7 +507,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'fields'     => 'ids',
 			)
 		);
-		$this->assertEqualSets( array( $term_id1, $term_id2 ), $terms7 );
+		$this->assertSameSets( array( $term_id1, $term_id2 ), $terms7 );
 
 		$terms8 = get_terms(
 			'post_tag',
@@ -517,7 +517,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'fields'            => 'ids',
 			)
 		);
-		$this->assertEqualSets( array( $term_id1, $term_id2 ), $terms8 );
+		$this->assertSameSets( array( $term_id1, $term_id2 ), $terms8 );
 	}
 
 	/**
@@ -845,7 +845,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $t3 ), $found );
+		$this->assertSameSets( array( $t3 ), $found );
 	}
 
 	/**
@@ -882,7 +882,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		$result = _get_term_children( $c1, array( $c1, $c2, $c3 ), 'category' );
 
-		$this->assertEqualSets( array( $c2, $c3 ), $result );
+		$this->assertSameSets( array( $c2, $c3 ), $result );
 	}
 
 	/**
@@ -901,7 +901,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		$result = _get_term_children( $c1->term_id, array( $c1, $c2, $c3 ), 'category' );
 
-		$this->assertEqualSets( array( $c2, $c3 ), $result );
+		$this->assertSameSets( array( $c2, $c3 ), $result );
 	}
 
 	public function test_get_terms_by_slug() {
@@ -976,7 +976,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $t3, $t1 ), $found );
+		$this->assertSameSets( array( $t3, $t1 ), $found );
 	}
 
 	/**
@@ -1001,7 +1001,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'name'       => 'Foo & Bar',
 			)
 		);
-		$this->assertEqualSets( array( $t ), $found );
+		$this->assertSameSets( array( $t ), $found );
 
 		// Array format.
 		$found = get_terms(
@@ -1012,7 +1012,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'name'       => array( 'Foo & Bar' ),
 			)
 		);
-		$this->assertEqualSets( array( $t ), $found );
+		$this->assertSameSets( array( $t ), $found );
 	}
 
 	/**
@@ -1043,7 +1043,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $t ), $found );
+		$this->assertSameSets( array( $t ), $found );
 	}
 
 	/**
@@ -1082,7 +1082,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		$expected = array( $australia, $china, $tanzania );
-		$this->assertEqualSets( $expected, $terms );
+		$this->assertSameSets( $expected, $terms );
 	}
 
 
@@ -1174,7 +1174,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $montreal, $nepean, $toronto, $pei ), $terms );
+		$this->assertSameSets( array( $montreal, $nepean, $toronto, $pei ), $terms );
 	}
 
 	/**
@@ -1243,7 +1243,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $laval ), $terms );
+		$this->assertSameSets( array( $laval ), $terms );
 	}
 
 	/**
@@ -1277,7 +1277,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $t2, $t4 ), $found );
+		$this->assertSameSets( array( $t2, $t4 ), $found );
 	}
 
 	public function test_get_terms_hierarchical_tax_hide_empty_false_fields_ids() {
@@ -1305,7 +1305,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'hierarchical_fields' );
 
-		$this->assertEqualSets( $expected, $found );
+		$this->assertSameSets( $expected, $found );
 	}
 
 	public function test_get_terms_hierarchical_tax_hide_empty_true_fields_ids() {
@@ -1331,7 +1331,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'hierarchical_fields' );
 
-		$this->assertEqualSets( $expected, $found );
+		$this->assertSameSets( $expected, $found );
 	}
 
 	public function test_get_terms_hierarchical_tax_hide_empty_true_fields_ids_hierarchical_false() {
@@ -1357,7 +1357,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'hierarchical_fields' );
 
-		$this->assertEqualSets( $expected, $found );
+		$this->assertSameSets( $expected, $found );
 	}
 
 	public function test_get_terms_hierarchical_tax_hide_empty_false_fields_names() {
@@ -1385,7 +1385,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'hierarchical_fields' );
 
-		$this->assertEqualSets( $expected, $found );
+		$this->assertSameSets( $expected, $found );
 	}
 
 	public function test_get_terms_hierarchical_tax_hide_empty_true_fields_names() {
@@ -1411,7 +1411,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'hierarchical_fields' );
 
-		$this->assertEqualSets( $expected, $found );
+		$this->assertSameSets( $expected, $found );
 	}
 
 	public function test_get_terms_hierarchical_tax_hide_empty_true_fields_names_hierarchical_false() {
@@ -1437,7 +1437,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'hierarchical_fields' );
 
-		$this->assertEqualSets( $expected, $found );
+		$this->assertSameSets( $expected, $found );
 	}
 
 	public function test_get_terms_hierarchical_tax_hide_empty_false_fields_count() {
@@ -1607,7 +1607,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'hierarchical_fields' );
 
-		$this->assertEqualSetsWithIndex( $expected, $found );
+		$this->assertSameSetsWithIndex( $expected, $found );
 	}
 
 	/**
@@ -1636,7 +1636,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'hierarchical_fields' );
 
-		$this->assertEqualSetsWithIndex( $expected, $found );
+		$this->assertSameSetsWithIndex( $expected, $found );
 	}
 
 	public function test_get_terms_hierarchical_tax_hide_empty_true_fields_idslug_hierarchical_false() {
@@ -1662,7 +1662,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'hierarchical_fields' );
 
-		$this->assertEqualSetsWithIndex( $expected, $found );
+		$this->assertSameSetsWithIndex( $expected, $found );
 	}
 
 	public function test_get_terms_hierarchical_tax_hide_empty_false_fields_idname() {
@@ -1690,7 +1690,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'hierarchical_fields' );
 
-		$this->assertEqualSetsWithIndex( $expected, $found );
+		$this->assertSameSetsWithIndex( $expected, $found );
 	}
 
 	/**
@@ -1719,7 +1719,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'hierarchical_fields' );
 
-		$this->assertEqualSetsWithIndex( $expected, $found );
+		$this->assertSameSetsWithIndex( $expected, $found );
 	}
 
 	public function test_get_terms_hierarchical_tax_hide_empty_true_fields_idname_hierarchical_false() {
@@ -1745,7 +1745,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 
 		_unregister_taxonomy( 'hierarchical_fields' );
 
-		$this->assertEqualSetsWithIndex( $expected, $found );
+		$this->assertSameSetsWithIndex( $expected, $found );
 	}
 
 	/**
@@ -1957,7 +1957,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[1], $terms[2], $terms[0] ), $found );
+		$this->assertSameSets( array( $terms[1], $terms[2], $terms[0] ), $found );
 	}
 
 	/**
@@ -1995,7 +1995,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[1], $terms[2], $terms[0] ), $found );
+		$this->assertSameSets( array( $terms[1], $terms[2], $terms[0] ), $found );
 	}
 
 	/**
@@ -2025,7 +2025,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[1], $terms[2], $terms[0] ), $found );
+		$this->assertSameSets( array( $terms[1], $terms[2], $terms[0] ), $found );
 
 		$found = get_terms(
 			'wptests_tax',
@@ -2044,7 +2044,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[1], $terms[2], $terms[0] ), $found );
+		$this->assertSameSets( array( $terms[1], $terms[2], $terms[0] ), $found );
 
 		// Matches the first meta query clause.
 		$found = get_terms(
@@ -2069,7 +2069,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[1], $terms[2], $terms[0] ), $found );
+		$this->assertSameSets( array( $terms[1], $terms[2], $terms[0] ), $found );
 
 		// Matches the meta query clause corresponding to the 'meta_key' param.
 		$found = get_terms(
@@ -2094,7 +2094,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[1], $terms[0], $terms[2] ), $found );
+		$this->assertSameSets( array( $terms[1], $terms[0], $terms[2] ), $found );
 	}
 
 	/**
@@ -2124,7 +2124,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[1], $terms[2], $terms[0] ), $found );
+		$this->assertSameSets( array( $terms[1], $terms[2], $terms[0] ), $found );
 
 		$found = get_terms(
 			'wptests_tax',
@@ -2143,7 +2143,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[1], $terms[2], $terms[0] ), $found );
+		$this->assertSameSets( array( $terms[1], $terms[2], $terms[0] ), $found );
 
 		$found = get_terms(
 			'wptests_tax',
@@ -2167,7 +2167,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[1], $terms[2], $terms[0] ), $found );
+		$this->assertSameSets( array( $terms[1], $terms[2], $terms[0] ), $found );
 
 		$found = get_terms(
 			'wptests_tax',
@@ -2191,7 +2191,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[1], $terms[0], $terms[2] ), $found );
+		$this->assertSameSets( array( $terms[1], $terms[0], $terms[2] ), $found );
 	}
 
 	/**
@@ -2228,7 +2228,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[1], $terms[2], $terms[0] ), $found );
+		$this->assertSameSets( array( $terms[1], $terms[2], $terms[0] ), $found );
 
 		$found = get_terms(
 			'wptests_tax',
@@ -2251,7 +2251,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[1], $terms[0], $terms[2] ), $found );
+		$this->assertSameSets( array( $terms[1], $terms[0], $terms[2] ), $found );
 
 		$expected = get_terms(
 			'wptests_tax',
@@ -2292,7 +2292,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( $expected, $found );
+		$this->assertSameSets( $expected, $found );
 	}
 
 	public function test_hierarchical_false_with_parent() {
@@ -2332,7 +2332,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			$initial_terms['five_term']['term_id'],
 		);
 		$actual   = wp_list_pluck( $terms, 'term_id' );
-		$this->assertEqualSets( $expected, $actual );
+		$this->assertSameSets( $expected, $actual );
 	}
 
 	public function test_hierarchical_false_with_child_of_and_direct_child() {
@@ -2358,7 +2358,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		);
 
 		$actual = wp_list_pluck( $terms, 'term_id' );
-		$this->assertEqualSets( $expected, $actual );
+		$this->assertSameSets( $expected, $actual );
 	}
 
 	public function test_hierarchical_false_with_child_of_should_not_return_grandchildren() {
@@ -2396,7 +2396,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			$initial_terms['six_term']['term_id'],
 		);
 		$actual   = wp_list_pluck( $terms, 'term_id' );
-		$this->assertEqualSets( $expected, $actual );
+		$this->assertSameSets( $expected, $actual );
 	}
 
 	public function test_parent_should_override_child_of() {
@@ -2418,7 +2418,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			$initial_terms['seven_term']['term_id'],
 		);
 		$actual   = wp_list_pluck( $terms, 'term_id' );
-		$this->assertEqualSets( $expected, $actual );
+		$this->assertSameSets( $expected, $actual );
 	}
 
 	/**
@@ -2470,7 +2470,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $t3 ), $found );
+		$this->assertSameSets( array( $t3 ), $found );
 	}
 
 	public function test_hierarchical_false_parent_should_override_child_of() {
@@ -2512,7 +2512,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			$initial_terms['five_term']['term_id'],
 		);
 		$actual   = wp_list_pluck( $terms, 'term_id' );
-		$this->assertEqualSets( $expected, $actual );
+		$this->assertSameSets( $expected, $actual );
 	}
 
 	public function test_pad_counts() {
@@ -2549,7 +2549,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $t1, $t2, $t3 ), wp_list_pluck( $found, 'term_id' ) );
+		$this->assertSameSets( array( $t1, $t2, $t3 ), wp_list_pluck( $found, 'term_id' ) );
 
 		foreach ( $found as $f ) {
 			if ( $t1 === $f->term_id ) {
@@ -2587,7 +2587,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c2, $c3 ), wp_list_pluck( $terms, 'term_id' ) );
+		$this->assertSameSets( array( $c1, $c2, $c3 ), wp_list_pluck( $terms, 'term_id' ) );
 
 		foreach ( $terms as $term ) {
 			$this->assertSame( 3, $term->count );
@@ -2622,7 +2622,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $t1, $t2, $t3 ), wp_list_pluck( $found, 'term_id' ) );
+		$this->assertSameSets( array( $t1, $t2, $t3 ), wp_list_pluck( $found, 'term_id' ) );
 
 		foreach ( $found as $f ) {
 			if ( $t1 === $f->term_id ) {
@@ -2719,7 +2719,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[0], $terms[1] ), $found );
+		$this->assertSameSets( array( $terms[0], $terms[1] ), $found );
 	}
 
 	/**
@@ -2746,7 +2746,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[0] ), $found );
+		$this->assertSameSets( array( $terms[0] ), $found );
 	}
 
 	/**
@@ -2871,7 +2871,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'fields'     => 'ids',
 			)
 		);
-		$this->assertEqualSets( $terms, $found );
+		$this->assertSameSets( $terms, $found );
 	}
 
 	/**
@@ -2893,7 +2893,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'order'      => 'ASC',
 			)
 		);
-		$this->assertEqualSets( array( $terms[1] ), $found );
+		$this->assertSameSets( array( $terms[1] ), $found );
 	}
 
 	/**
@@ -2915,7 +2915,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'order'      => 'ASC',
 			)
 		);
-		$this->assertEqualSets( array( $terms[1] ), $found );
+		$this->assertSameSets( array( $terms[1] ), $found );
 	}
 
 	/**
@@ -2937,7 +2937,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 				'order'      => 'ASC',
 			)
 		);
-		$this->assertEqualSets( array(), $found );
+		$this->assertSameSets( array(), $found );
 	}
 
 	/**
@@ -2985,7 +2985,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $term_id ), wp_list_pluck( $found, 'term_id' ) );
+		$this->assertSameSets( array( $term_id ), wp_list_pluck( $found, 'term_id' ) );
 	}
 
 	/**
@@ -3021,7 +3021,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $term_id1, $term_id2 ), wp_list_pluck( $found, 'term_id' ) );
+		$this->assertSameSets( array( $term_id1, $term_id2 ), wp_list_pluck( $found, 'term_id' ) );
 	}
 
 	protected function create_hierarchical_terms_and_posts() {

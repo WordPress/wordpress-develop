@@ -377,7 +377,7 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 		$this->assertInternalType( 'array', $response );
 		$this->assertInstanceOf( 'WP_Customize_Selective_Refresh', $component );
 		if ( isset( $this->expected_partial_ids ) ) {
-			$this->assertEqualSets( $this->expected_partial_ids, array_keys( $partial_placements ) );
+			$this->assertSameSets( $this->expected_partial_ids, array_keys( $partial_placements ) );
 		}
 		return $response;
 	}
@@ -398,7 +398,7 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	function handle_action_customize_render_partials_after( $component, $partial_placements ) {
 		$this->assertInstanceOf( 'WP_Customize_Selective_Refresh', $component );
 		if ( isset( $this->expected_partial_ids ) ) {
-			$this->assertEqualSets( $this->expected_partial_ids, array_keys( $partial_placements ) );
+			$this->assertSameSets( $this->expected_partial_ids, array_keys( $partial_placements ) );
 		}
 	}
 
@@ -411,7 +411,7 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	function handle_action_customize_render_partials_before( $component, $partial_placements ) {
 		$this->assertInstanceOf( 'WP_Customize_Selective_Refresh', $component );
 		if ( isset( $this->expected_partial_ids ) ) {
-			$this->assertEqualSets( $this->expected_partial_ids, array_keys( $partial_placements ) );
+			$this->assertSameSets( $this->expected_partial_ids, array_keys( $partial_placements ) );
 		}
 	}
 

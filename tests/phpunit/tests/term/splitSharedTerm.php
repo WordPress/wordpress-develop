@@ -312,7 +312,7 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 			'wptests_tax_3' => $this->terms['t3']['term_id'],
 		);
 
-		$this->assertEqualSets( $expected, $found );
+		$this->assertSameSets( $expected, $found );
 	}
 
 	public function test_wp_get_split_term() {

@@ -7,7 +7,7 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	/**
 	 * @ticket 30522
 	 */
-	function data_assertEqualSets() {
+	function data_assertSameSets() {
 		return array(
 			array(
 				array( 1, 2, 3 ), // Test expected.
@@ -48,27 +48,27 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_assertEqualSets
+	 * @dataProvider data_assertSameSets
 	 * @ticket 30522
 	 */
-	function test_assertEqualSets( $expected, $actual, $exception ) {
+	function test_assertSameSets( $expected, $actual, $exception ) {
 		if ( $exception ) {
 			try {
-				$this->assertEqualSets( $expected, $actual );
+				$this->assertSameSets( $expected, $actual );
 			} catch ( PHPUnit_Framework_ExpectationFailedException $ex ) {
 				return;
 			}
 
 			$this->fail();
 		} else {
-			$this->assertEqualSets( $expected, $actual );
+			$this->assertSameSets( $expected, $actual );
 		}
 	}
 
 	/**
 	 * @ticket 30522
 	 */
-	function data_assertEqualSetsWithIndex() {
+	function data_assertSameSetsWithIndex() {
 		return array(
 			array(
 				array( 1, 2, 3 ), // Test expected.
@@ -204,20 +204,20 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 		);
 	}
 	/**
-	 * @dataProvider data_assertEqualSetsWithIndex
+	 * @dataProvider data_assertSameSetsWithIndex
 	 * @ticket 30522
 	 */
-	function test_assertEqualSetsWithIndex( $expected, $actual, $exception ) {
+	function test_assertSameSetsWithIndex( $expected, $actual, $exception ) {
 		if ( $exception ) {
 			try {
-				$this->assertEqualSetsWithIndex( $expected, $actual );
+				$this->assertSameSetsWithIndex( $expected, $actual );
 			} catch ( PHPUnit_Framework_ExpectationFailedException $ex ) {
 				return;
 			}
 
 			$this->fail();
 		} else {
-			$this->assertEqualSetsWithIndex( $expected, $actual );
+			$this->assertSameSetsWithIndex( $expected, $actual );
 		}
 	}
 
@@ -312,7 +312,7 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 		$this->assertSame( $expected['title'], $title );
 
 		// Only check arguments that are explicitly asked for.
-		$this->assertEqualSets( $expected['args'], array_intersect_key( $args, $expected['args'] ) );
+		$this->assertSameSets( $expected['args'], array_intersect_key( $args, $expected['args'] ) );
 	}
 
 	public function data_die_process_input() {

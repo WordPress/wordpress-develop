@@ -300,7 +300,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$wpdb->set_sql_mode( $new_modes );
 
 		$check_new_modes = $wpdb->get_var( 'SELECT @@SESSION.sql_mode;' );
-		$this->assertEqualSets( $new_modes, explode( ',', $check_new_modes ) );
+		$this->assertSameSets( $new_modes, explode( ',', $check_new_modes ) );
 
 		$wpdb->set_sql_mode( explode( ',', $current_modes ) );
 	}

@@ -18,7 +18,7 @@ class Tests_Functions_AllowedProtocols extends WP_UnitTestCase {
 		foreach ( $this->data_example_urls() as $example ) {
 			$example_protocols[] = $example[0];
 		}
-		$this->assertEqualSets( $example_protocols, wp_allowed_protocols() );
+		$this->assertSameSets( $example_protocols, wp_allowed_protocols() );
 	}
 
 	/**

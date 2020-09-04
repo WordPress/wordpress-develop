@@ -977,7 +977,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertContains( 'recent-comments-2', $sidebars_widgets['wp_inactive_widgets'] );
 
 		// Theme mod with previous widgets was not removed.
-		$this->assertEqualSets( $old_sidebars_widgets, get_theme_mod( 'sidebars_widgets' ) );
+		$this->assertSameSets( $old_sidebars_widgets, get_theme_mod( 'sidebars_widgets' ) );
 
 		// Sidebar_widgets option was not updated.
 		$this->assertNotEquals( $sidebars_widgets, wp_get_sidebars_widgets() );
@@ -1149,7 +1149,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 			'main'                => array(),
 			'wp_inactive_widgets' => array(),
 		);
-		$this->assertEqualSets( $expected_sidebars, $new_next_theme_sidebars );
+		$this->assertSameSets( $expected_sidebars, $new_next_theme_sidebars );
 	}
 
 	/**

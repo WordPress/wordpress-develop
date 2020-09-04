@@ -106,35 +106,35 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		);
 
 		$tag_items = wp_get_associated_nav_menu_items( $tag_id, 'taxonomy', 'post_tag' );
-		$this->assertEqualSets( array( $tag_insert ), $tag_items );
+		$this->assertSameSets( array( $tag_insert ), $tag_items );
 		$cat_items = wp_get_associated_nav_menu_items( $cat_id, 'taxonomy', 'category' );
-		$this->assertEqualSets( array( $cat_insert ), $cat_items );
+		$this->assertSameSets( array( $cat_insert ), $cat_items );
 		$post_items = wp_get_associated_nav_menu_items( $post_id );
-		$this->assertEqualSets( array( $post_insert ), $post_items );
+		$this->assertSameSets( array( $post_insert ), $post_items );
 		$post_2_items = wp_get_associated_nav_menu_items( $post_2_id );
-		$this->assertEqualSets( array( $post_2_insert ), $post_2_items );
+		$this->assertSameSets( array( $post_2_insert ), $post_2_items );
 		$page_items = wp_get_associated_nav_menu_items( $page_id );
-		$this->assertEqualSets( array( $page_insert ), $page_items );
+		$this->assertSameSets( array( $page_insert ), $page_items );
 
 		wp_delete_term( $tag_id, 'post_tag' );
 		$tag_items = wp_get_associated_nav_menu_items( $tag_id, 'taxonomy', 'post_tag' );
-		$this->assertEqualSets( array(), $tag_items );
+		$this->assertSameSets( array(), $tag_items );
 
 		wp_delete_term( $cat_id, 'category' );
 		$cat_items = wp_get_associated_nav_menu_items( $cat_id, 'taxonomy', 'category' );
-		$this->assertEqualSets( array(), $cat_items );
+		$this->assertSameSets( array(), $cat_items );
 
 		wp_delete_post( $post_id, true );
 		$post_items = wp_get_associated_nav_menu_items( $post_id );
-		$this->assertEqualSets( array(), $post_items );
+		$this->assertSameSets( array(), $post_items );
 
 		wp_delete_post( $post_2_id, true );
 		$post_2_items = wp_get_associated_nav_menu_items( $post_2_id );
-		$this->assertEqualSets( array(), $post_2_items );
+		$this->assertSameSets( array(), $post_2_items );
 
 		wp_delete_post( $page_id, true );
 		$page_items = wp_get_associated_nav_menu_items( $page_id );
-		$this->assertEqualSets( array(), $page_items );
+		$this->assertSameSets( array(), $page_items );
 	}
 
 	/**

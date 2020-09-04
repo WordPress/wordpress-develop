@@ -17,7 +17,7 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 
 		$data = get_oembed_response_data( $post, 400 );
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'version'       => '1.0',
 				'provider_name' => get_bloginfo( 'name' ),
@@ -53,7 +53,7 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 
 		$data = get_oembed_response_data( $post, 400 );
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'version'       => '1.0',
 				'provider_name' => get_bloginfo( 'name' ),
@@ -81,7 +81,7 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 
 		$data = get_oembed_response_data( $post, 600 );
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'version'       => '1.0',
 				'provider_name' => get_bloginfo( 'name' ),

@@ -429,7 +429,7 @@ class Tests_Theme extends WP_UnitTestCase {
 			'description'  => '',
 			'show_in_rest' => false,
 		);
-		$this->assertEqualSets( $expected, get_registered_theme_feature( 'test-feature' ) );
+		$this->assertSameSets( $expected, get_registered_theme_feature( 'test-feature' ) );
 	}
 
 	/**
@@ -466,8 +466,8 @@ class Tests_Theme extends WP_UnitTestCase {
 
 		$expected = array(
 			'schema'           => array(
-				'type'        => 'boolean',
 				'description' => '',
+				'type'        => 'boolean',
 				'default'     => false,
 			),
 			'name'             => 'test-feature',
@@ -475,7 +475,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		);
 		$actual   = get_registered_theme_feature( 'test-feature' )['show_in_rest'];
 
-		$this->assertEqualSets( $expected, $actual );
+		$this->assertSameSets( $expected, $actual );
 	}
 
 	/**
@@ -509,7 +509,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		);
 		$actual   = get_registered_theme_feature( 'test-feature' )['show_in_rest']['schema'];
 
-		$this->assertEqualSets( $expected, $actual );
+		$this->assertSameSets( $expected, $actual );
 	}
 
 	/**
@@ -587,7 +587,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		);
 		$actual   = get_registered_theme_feature( 'test-feature' )['show_in_rest']['schema']['additionalProperties'];
 
-		$this->assertEqualSets( $expected, $actual );
+		$this->assertSameSets( $expected, $actual );
 	}
 
 	/**

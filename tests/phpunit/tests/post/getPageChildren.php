@@ -68,7 +68,7 @@ class Tests_Post_GetPageChildren extends WP_UnitTestCase {
 	public function test_page_id_0_should_return_all_pages_in_tree_and_exclude_pages_not_in_tree() {
 		$expected = array( 100, 101, 102, 103, 105, 106, 107, 108 );
 		$actual   = get_page_children( 0, $this->pages );
-		$this->assertEqualSets( $expected, wp_list_pluck( $actual, 'ID' ) );
+		$this->assertSameSets( $expected, wp_list_pluck( $actual, 'ID' ) );
 	}
 
 	public function test_hierarchical_order_should_be_respected_in_results() {

@@ -35,7 +35,7 @@ class Test_WP_Widget_Media_Gallery extends WP_UnitTestCase {
 		$widget = new WP_Widget_Media_Gallery();
 		$schema = $widget->get_instance_schema();
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'title',
 				'ids',

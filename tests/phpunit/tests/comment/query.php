@@ -60,7 +60,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c2, $c3, $c4, $c5 ), $found );
+		$this->assertSameSets( array( $c1, $c2, $c3, $c4, $c5 ), $found );
 	}
 
 	public function test_query_post_id_0() {
@@ -79,7 +79,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1 ), $found );
+		$this->assertSameSets( array( $c1 ), $found );
 	}
 
 	/**
@@ -129,7 +129,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c2, $c3, $c4, $c5 ), $found );
+		$this->assertSameSets( array( $c1, $c2, $c3, $c4, $c5 ), $found );
 	}
 
 	/**
@@ -179,7 +179,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1 ), $found );
+		$this->assertSameSets( array( $c1 ), $found );
 	}
 
 	public function test_query_type_pingback() {
@@ -219,7 +219,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c2, $c3 ), $found );
+		$this->assertSameSets( array( $c2, $c3 ), $found );
 
 	}
 
@@ -260,7 +260,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c2, $c3 ), $found );
+		$this->assertSameSets( array( $c2, $c3 ), $found );
 
 	}
 
@@ -311,7 +311,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c2, $c3 ), $found );
+		$this->assertSameSets( array( $c2, $c3 ), $found );
 	}
 
 	/**
@@ -370,7 +370,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c4, $c6 ), $found );
+		$this->assertSameSets( array( $c1, $c4, $c6 ), $found );
 	}
 
 	/**
@@ -427,7 +427,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c2, $c3, $c4, $c6 ), $found );
+		$this->assertSameSets( array( $c1, $c2, $c3, $c4, $c6 ), $found );
 	}
 
 	/**
@@ -485,7 +485,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1 ), $found );
+		$this->assertSameSets( array( $c1 ), $found );
 	}
 
 	/**
@@ -543,7 +543,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c2, $c3 ), $found );
+		$this->assertSameSets( array( $c2, $c3 ), $found );
 	}
 
 	/**
@@ -600,7 +600,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c2, $c3, $c4, $c6 ), $found );
+		$this->assertSameSets( array( $c1, $c2, $c3, $c4, $c6 ), $found );
 	}
 
 	/**
@@ -650,7 +650,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c2, $c3 ), $found );
+		$this->assertSameSets( array( $c1, $c2, $c3 ), $found );
 	}
 
 	/**
@@ -686,7 +686,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c2, $c3 ), $found );
+		$this->assertSameSets( array( $c1, $c2, $c3 ), $found );
 	}
 
 	/**
@@ -794,7 +794,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c2, $c3 ), $found );
+		$this->assertSameSets( array( $c2, $c3 ), $found );
 	}
 
 	/**
@@ -838,7 +838,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c3, $c2 ), $found );
+		$this->assertSameSets( array( $c3, $c2 ), $found );
 	}
 
 	/**
@@ -954,7 +954,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c3, $c2 ), $found );
+		$this->assertSameSets( array( $c3, $c2 ), $found );
 	}
 
 	/**
@@ -988,7 +988,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c2 ), $found );
+		$this->assertSameSets( array( $c1, $c2 ), $found );
 	}
 
 	/**
@@ -1106,7 +1106,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c3 ), $found );
+		$this->assertSameSets( array( $c1, $c3 ), $found );
 	}
 
 	public function test_status_default_to_all() {
@@ -1136,7 +1136,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c3 ), $found );
+		$this->assertSameSets( array( $c1, $c3 ), $found );
 	}
 
 	/**
@@ -1170,7 +1170,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c2, $c3 ), $found );
+		$this->assertSameSets( array( $c1, $c2, $c3 ), $found );
 	}
 
 	/**
@@ -1204,7 +1204,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c2 ), $found );
+		$this->assertSameSets( array( $c1, $c2 ), $found );
 	}
 
 	/**
@@ -1238,7 +1238,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c2 ), $found );
+		$this->assertSameSets( array( $c1, $c2 ), $found );
 	}
 
 	/**
@@ -1687,7 +1687,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c2 ), $comments );
+		$this->assertSameSets( array( $c1, $c2 ), $comments );
 	}
 
 	/**
@@ -1723,7 +1723,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		$comment_ids = get_comments( array( 'fields' => 'ids' ) );
 		$this->assertCount( 3, $comment_ids );
-		$this->assertEqualSets( array( $comment_1, $comment_2, $comment_3 ), $comment_ids );
+		$this->assertSameSets( array( $comment_1, $comment_2, $comment_3 ), $comment_ids );
 	}
 
 	/**
@@ -1759,7 +1759,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $comment_1, $comment_3 ), $comment_ids );
+		$this->assertSameSets( array( $comment_1, $comment_3 ), $comment_ids );
 	}
 
 	/**
@@ -1795,7 +1795,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $comment_1 ), $comment_ids );
+		$this->assertSameSets( array( $comment_1 ), $comment_ids );
 	}
 
 	/**
@@ -1835,7 +1835,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c2 ), $comment_ids );
+		$this->assertSameSets( array( $c1, $c2 ), $comment_ids );
 	}
 
 	/**
@@ -1875,7 +1875,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c3 ), $comment_ids );
+		$this->assertSameSets( array( $c3 ), $comment_ids );
 	}
 
 	/**
@@ -1918,7 +1918,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c2 ), $comment_ids );
+		$this->assertSameSets( array( $c1, $c2 ), $comment_ids );
 	}
 
 	/**
@@ -1961,7 +1961,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c3 ), $comment_ids );
+		$this->assertSameSets( array( $c3 ), $comment_ids );
 	}
 
 		/**
@@ -2009,7 +2009,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c3 ), $comment_ids );
+		$this->assertSameSets( array( $c1, $c3 ), $comment_ids );
 	}
 
 		/**
@@ -2057,7 +2057,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c3, $c4 ), $comment_ids );
+		$this->assertSameSets( array( $c3, $c4 ), $comment_ids );
 	}
 
 	/**
@@ -2088,7 +2088,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$comments_approved_1 = get_comments( array( 'status' => 'all' ) );
 
 		$comment_ids = get_comments( array( 'fields' => 'ids' ) );
-		$this->assertEqualSets( array( $comment_1, $comment_2, $comment_3 ), $comment_ids );
+		$this->assertSameSets( array( $comment_1, $comment_2, $comment_3 ), $comment_ids );
 	}
 
 	/**
@@ -2132,7 +2132,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c2, $c3 ), $found );
+		$this->assertSameSets( array( $c1, $c2, $c3 ), $found );
 	}
 
 	/**
@@ -2183,7 +2183,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c2, $c3, $c5 ), $found );
+		$this->assertSameSets( array( $c1, $c2, $c3, $c5 ), $found );
 	}
 
 	/**
@@ -2234,7 +2234,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c2, $c3, $c5 ), $found );
+		$this->assertSameSets( array( $c1, $c2, $c3, $c5 ), $found );
 	}
 
 	/**
@@ -2284,7 +2284,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c2, $c3 ), $found );
+		$this->assertSameSets( array( $c1, $c2, $c3 ), $found );
 	}
 
 	/**
@@ -2343,7 +2343,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c2, $c3, $c5 ), $found );
+		$this->assertSameSets( array( $c1, $c2, $c3, $c5 ), $found );
 	}
 
 	/**
@@ -2402,7 +2402,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c2, $c3, $c5 ), $found );
+		$this->assertSameSets( array( $c1, $c2, $c3, $c5 ), $found );
 	}
 
 	public function test_search() {
@@ -2475,7 +2475,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c2, $c3, $c4, $c5 ), $found );
+		$this->assertSameSets( array( $c1, $c2, $c3, $c4, $c5 ), $found );
 	}
 
 	/**
@@ -3055,7 +3055,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( $c2, $found );
+		$this->assertSameSets( $c2, $found );
 
 		_unregister_post_type( 'post-type-1' );
 		_unregister_post_type( 'post-type-2' );
@@ -3082,7 +3082,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( $c2, $found );
+		$this->assertSameSets( $c2, $found );
 
 		_unregister_post_type( 'post-type-1' );
 		_unregister_post_type( 'post-type-2' );
@@ -3112,7 +3112,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array_merge( $c1, $c3 ), $found );
+		$this->assertSameSets( array_merge( $c1, $c3 ), $found );
 	}
 
 	public function test_post_name_single_value() {
@@ -3130,7 +3130,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( $c2, $found );
+		$this->assertSameSets( $c2, $found );
 	}
 
 	/**
@@ -3151,7 +3151,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( $c2, $found );
+		$this->assertSameSets( $c2, $found );
 	}
 
 	/**
@@ -3174,7 +3174,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array_merge( $c1, $c3 ), $found );
+		$this->assertSameSets( array_merge( $c1, $c3 ), $found );
 	}
 
 	public function test_post_status_single_value() {
@@ -3192,7 +3192,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( $c2, $found );
+		$this->assertSameSets( $c2, $found );
 	}
 
 	/**
@@ -3213,7 +3213,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( $c2, $found );
+		$this->assertSameSets( $c2, $found );
 	}
 
 	/**
@@ -3236,7 +3236,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array_merge( $c1, $c3 ), $found );
+		$this->assertSameSets( array_merge( $c1, $c3 ), $found );
 	}
 
 	/**
@@ -3259,7 +3259,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'post_type' => array( 'any', 'post-type-1' ),
 			)
 		);
-		$this->assertEqualSets( array_merge( $c1, $c2 ), $found );
+		$this->assertSameSets( array_merge( $c1, $c2 ), $found );
 	}
 
 	/**
@@ -3282,7 +3282,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'post_type' => array( 'any' ),
 			)
 		);
-		$this->assertEqualSets( array_merge( $c1, $c2 ), $found );
+		$this->assertSameSets( array_merge( $c1, $c2 ), $found );
 	}
 
 	/**
@@ -3302,7 +3302,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'post_status' => array( 'any', 'draft' ),
 			)
 		);
-		$this->assertEqualSets( array_merge( $c1, $c2 ), $found );
+		$this->assertSameSets( array_merge( $c1, $c2 ), $found );
 	}
 
 	/**
@@ -3322,7 +3322,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'post_status' => array( 'any' ),
 			)
 		);
-		$this->assertEqualSets( array_merge( $c1, $c2 ), $found );
+		$this->assertSameSets( array_merge( $c1, $c2 ), $found );
 	}
 
 	/**
@@ -3446,7 +3446,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		remove_action( 'pre_get_comments', array( $this, 'modify_meta_query' ) );
 
-		$this->assertEqualSets( array( $comments[1] ), $q->comments );
+		$this->assertSameSets( array( $comments[1] ), $q->comments );
 	}
 
 	public function modify_meta_query( $q ) {
@@ -3484,7 +3484,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		remove_action( 'pre_get_comments', array( $this, 'modify_meta_params' ) );
 
-		$this->assertEqualSets( array( $comments[1] ), $q->comments );
+		$this->assertSameSets( array( $comments[1] ), $q->comments );
 	}
 
 	public function modify_meta_params( $q ) {
@@ -3518,7 +3518,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c2 ), $ids->comments );
+		$this->assertSameSets( array( $c2 ), $ids->comments );
 	}
 
 	/**
@@ -3560,7 +3560,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c3, $c4 ), $ids->comments );
+		$this->assertSameSets( array( $c3, $c4 ), $ids->comments );
 	}
 
 	/**
@@ -3590,7 +3590,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1 ), $ids->comments );
+		$this->assertSameSets( array( $c1 ), $ids->comments );
 	}
 
 	/**
@@ -3633,7 +3633,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $c1, $c2 ), $ids->comments );
+		$this->assertSameSets( array( $c1, $c2 ), $ids->comments );
 	}
 
 	/**
@@ -4161,7 +4161,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 		$q2_ids      = wp_list_pluck( $q2->comments, 'comment_ID' );
 
-		$this->assertEqualSets( $q1_ids, $q2_ids );
+		$this->assertSameSets( $q1_ids, $q2_ids );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 	}
 
@@ -4223,7 +4223,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 		$q2_ids = wp_list_pluck( $q2->comments, 'comment_ID' );
-		$this->assertEqualSets( $q1_ids, $q2_ids );
+		$this->assertSameSets( $q1_ids, $q2_ids );
 	}
 
 	/**
@@ -4287,11 +4287,11 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		$found_1    = $found[ $c1 ];
 		$children_1 = $found_1->get_children();
-		$this->assertEqualSets( array( $c2 ), array_keys( $children_1 ) );
+		$this->assertSameSets( array( $c2 ), array_keys( $children_1 ) );
 
 		$found_3    = $found[ $c3 ];
 		$children_3 = $found_3->get_children();
-		$this->assertEqualSets( array( $c4, $c5 ), array_keys( $children_3 ) );
+		$this->assertSameSets( array( $c4, $c5 ), array_keys( $children_3 ) );
 	}
 
 	/**
@@ -4441,7 +4441,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $num_queries, $wpdb->num_queries );
-		$this->assertEqualSets( array( $c ), $q->comments );
+		$this->assertSameSets( array( $c ), $q->comments );
 	}
 
 	public function test_updated_comment_should_invalidate_query_cache() {
@@ -4481,7 +4481,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		$num_queries++;
 		$this->assertSame( $num_queries, $wpdb->num_queries );
-		$this->assertEqualSets( array( $c ), $q->comments );
+		$this->assertSameSets( array( $c ), $q->comments );
 	}
 
 	public function test_deleted_comment_should_invalidate_query_cache() {
@@ -4514,7 +4514,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		$num_queries++;
 		$this->assertSame( $num_queries, $wpdb->num_queries );
-		$this->assertEqualSets( array(), $q->comments );
+		$this->assertSameSets( array(), $q->comments );
 	}
 
 	public function test_trashed_comment_should_invalidate_query_cache() {
@@ -4547,7 +4547,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		$num_queries++;
 		$this->assertSame( $num_queries, $wpdb->num_queries );
-		$this->assertEqualSets( array(), $q->comments );
+		$this->assertSameSets( array(), $q->comments );
 	}
 
 	public function test_untrashed_comment_should_invalidate_query_cache() {
@@ -4582,7 +4582,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		$num_queries++;
 		$this->assertSame( $num_queries, $wpdb->num_queries );
-		$this->assertEqualSets( array( $c ), $q->comments );
+		$this->assertSameSets( array( $c ), $q->comments );
 	}
 
 	public function test_spammed_comment_should_invalidate_query_cache() {
@@ -4615,7 +4615,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		$num_queries++;
 		$this->assertSame( $num_queries, $wpdb->num_queries );
-		$this->assertEqualSets( array(), $q->comments );
+		$this->assertSameSets( array(), $q->comments );
 	}
 
 	public function test_unspammed_comment_should_invalidate_query_cache() {
@@ -4650,7 +4650,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		$num_queries++;
 		$this->assertSame( $num_queries, $wpdb->num_queries );
-		$this->assertEqualSets( array( $c ), $q->comments );
+		$this->assertSameSets( array( $c ), $q->comments );
 	}
 
 	/**
@@ -4766,7 +4766,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( $c1, $cached );
+		$this->assertSameSets( $c1, $cached );
 
 		foreach ( $c2 as $cid ) {
 			add_comment_meta( $cid, 'sauce', 'fire' );
@@ -4785,7 +4785,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array_merge( $c1, $c2 ), $found );
+		$this->assertSameSets( array_merge( $c1, $c2 ), $found );
 	}
 
 	/**
@@ -4815,7 +4815,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array_merge( $c1, $c2 ), $cached );
+		$this->assertSameSets( array_merge( $c1, $c2 ), $cached );
 
 		foreach ( $c2 as $cid ) {
 			update_comment_meta( $cid, 'sauce', 'foo' );
@@ -4834,7 +4834,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( $c1, $found );
+		$this->assertSameSets( $c1, $found );
 	}
 
 	/**
@@ -4864,7 +4864,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array_merge( $c1, $c2 ), $cached );
+		$this->assertSameSets( array_merge( $c1, $c2 ), $cached );
 
 		foreach ( $c2 as $cid ) {
 			delete_comment_meta( $cid, 'sauce' );
@@ -4883,7 +4883,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( $c1, $found );
+		$this->assertSameSets( $c1, $found );
 	}
 
 	/**

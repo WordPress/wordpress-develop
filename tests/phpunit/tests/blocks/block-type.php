@@ -369,12 +369,12 @@ class WP_Test_Block_Type extends WP_UnitTestCase {
 
 		$this->assertSame( 'Test title', $block_type->title );
 		$this->assertSame( 'Test category', $block_type->category );
-		$this->assertEqualSets( array( 'core/third-party' ), $block_type->parent );
+		$this->assertSameSets( array( 'core/third-party' ), $block_type->parent );
 		$this->assertSame( 'icon.png', $block_type->icon );
 		$this->assertSame( 'test description', $block_type->description );
-		$this->assertEqualSets( array( 'test keyword' ), $block_type->keywords );
+		$this->assertSameSets( array( 'test keyword' ), $block_type->keywords );
 		$this->assertSame( 'test_domain', $block_type->textdomain );
-		$this->assertEqualSets( array( 'alignment' => true ), $block_type->supports );
+		$this->assertSameSets( array( 'alignment' => true ), $block_type->supports );
 	}
 
 	/**

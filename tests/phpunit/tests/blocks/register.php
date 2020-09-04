@@ -288,10 +288,10 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		$this->assertSame( 'my-plugin/notice', $result->name );
 		$this->assertSame( 'Notice', $result->title );
 		$this->assertSame( 'common', $result->category );
-		$this->assertEqualSets( array( 'core/group' ), $result->parent );
+		$this->assertSameSets( array( 'core/group' ), $result->parent );
 		$this->assertSame( 'star', $result->icon );
 		$this->assertSame( 'Shows warning, error or success notices…', $result->description );
-		$this->assertEqualSets( array( 'alert', 'message' ), $result->keywords );
+		$this->assertSameSets( array( 'alert', 'message' ), $result->keywords );
 		$this->assertSame(
 			array(
 				'message' => array(
@@ -308,7 +308,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 			),
 			$result->provides_context
 		);
-		$this->assertEqualSets( array( 'groupId' ), $result->uses_context );
+		$this->assertSameSets( array( 'groupId' ), $result->uses_context );
 		$this->assertSame(
 			array(
 				'align'             => true,

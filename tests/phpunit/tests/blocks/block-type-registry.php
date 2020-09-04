@@ -186,6 +186,6 @@ class WP_Test_Block_Type_Registry extends WP_UnitTestCase {
 		}
 
 		$registered = $this->registry->get_all_registered();
-		$this->assertEqualSets( $names, array_keys( $registered ) );
+		$this->assertSameSets( $names, array_keys( $registered ) );
 	}
 }

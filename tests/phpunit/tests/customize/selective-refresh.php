@@ -95,7 +95,7 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 		$partial = new WP_Customize_Partial( $this->selective_refresh, 'bar' );
 		$this->assertSame( $partial, $this->selective_refresh->add_partial( $partial ) );
 		$this->assertSame( $partial, $this->selective_refresh->get_partial( 'bar' ) );
-		$this->assertEqualSets( array( 'bar' ), array_keys( $this->selective_refresh->partials() ) );
+		$this->assertSameSets( array( 'bar' ), array_keys( $this->selective_refresh->partials() ) );
 
 		add_filter( 'customize_dynamic_partial_args', array( $this, 'filter_customize_dynamic_partial_args' ), 10, 2 );
 		add_filter( 'customize_dynamic_partial_class', array( $this, 'filter_customize_dynamic_partial_class' ), 10, 3 );
@@ -190,7 +190,7 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 		add_filter( 'customize_dynamic_partial_class', array( $this, 'filter_customize_dynamic_partial_class' ), 10, 3 );
 
 		$partials = $this->selective_refresh->add_dynamic_partials( $partial_ids );
-		$this->assertEqualSets( array( 'recognized', 'recognized-class' ), wp_list_pluck( $partials, 'id' ) );
+		$this->assertSameSets( array( 'recognized', 'recognized-class' ), wp_list_pluck( $partials, 'id' ) );
 
 		$this->assertInstanceOf( 'Tested_Custom_Partial', $this->selective_refresh->get_partial( 'recognized-class' ) );
 		$this->assertNotInstanceOf( 'Tested_Custom_Partial', $this->selective_refresh->get_partial( 'recognized' ) );

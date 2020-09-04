@@ -35,7 +35,7 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 		$widget = new WP_Widget_Media_Image();
 		$schema = $widget->get_instance_schema();
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'alt',
 				'attachment_id',
@@ -102,7 +102,7 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'description', $widget->widget_options );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
 		$this->assertSame( 'image', $widget->widget_options['mime_type'] );
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'add_to_widget',
 				'replace_media',

@@ -872,7 +872,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		if ( false === $expected ) {
 			$this->assertArrayNotHasKey( '_embedded', $data );
 		} else {
-			$this->assertEqualSets( $expected, array_keys( $data['_embedded'] ) );
+			$this->assertSameSets( $expected, array_keys( $data['_embedded'] ) );
 		}
 	}
 

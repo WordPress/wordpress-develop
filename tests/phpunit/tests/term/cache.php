@@ -455,7 +455,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 
 		// Prime cache.
 		$terms = get_the_terms( $p, 'wptests_tax' );
-		$this->assertEqualSets( array( $t ), wp_list_pluck( $terms, 'term_id' ) );
+		$this->assertSameSets( array( $t ), wp_list_pluck( $terms, 'term_id' ) );
 
 		/*
 		 * Modify cached array to insert an empty term ID,

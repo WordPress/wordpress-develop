@@ -283,7 +283,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 		);
 
 		$this->assertNotContains( $private_post, $post_list_after );
-		$this->assertEqualSets( $post_list_before, $post_list_after );
+		$this->assertSameSets( $post_list_before, $post_list_after );
 	}
 
 	/**

@@ -124,7 +124,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		);
 
 		$cached_ids = wp_list_pluck( $cached, 'ID' );
-		$this->assertEqualSets( array( $posts[0] ), $cached_ids );
+		$this->assertSameSets( array( $posts[0] ), $cached_ids );
 
 		add_post_meta( $posts[1], 'foo', 'bar' );
 
@@ -136,7 +136,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		);
 
 		$found_ids = wp_list_pluck( $found, 'ID' );
-		$this->assertEqualSets( $posts, $found_ids );
+		$this->assertSameSets( $posts, $found_ids );
 	}
 
 	/**
@@ -161,7 +161,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		);
 
 		$cached_ids = wp_list_pluck( $cached, 'ID' );
-		$this->assertEqualSets( $posts, $cached_ids );
+		$this->assertSameSets( $posts, $cached_ids );
 
 		update_post_meta( $posts[1], 'foo', 'baz' );
 
@@ -173,7 +173,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		);
 
 		$found_ids = wp_list_pluck( $found, 'ID' );
-		$this->assertEqualSets( array( $posts[0] ), $found_ids );
+		$this->assertSameSets( array( $posts[0] ), $found_ids );
 	}
 
 	/**
@@ -198,7 +198,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		);
 
 		$cached_ids = wp_list_pluck( $cached, 'ID' );
-		$this->assertEqualSets( $posts, $cached_ids );
+		$this->assertSameSets( $posts, $cached_ids );
 
 		delete_post_meta( $posts[1], 'foo' );
 
@@ -210,7 +210,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		);
 
 		$found_ids = wp_list_pluck( $found, 'ID' );
-		$this->assertEqualSets( array( $posts[0] ), $found_ids );
+		$this->assertSameSets( array( $posts[0] ), $found_ids );
 	}
 
 	/**
@@ -235,7 +235,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		);
 
 		$cached_ids = wp_list_pluck( $cached, 'ID' );
-		$this->assertEqualSets( $posts, $cached_ids );
+		$this->assertSameSets( $posts, $cached_ids );
 
 		delete_post_meta_by_key( 'foo' );
 
@@ -247,7 +247,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		);
 
 		$found_ids = wp_list_pluck( $found, 'ID' );
-		$this->assertEqualSets( array(), $found_ids );
+		$this->assertSameSets( array(), $found_ids );
 	}
 
 	/**
@@ -340,7 +340,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 				'hierarchical' => false,
 			)
 		);
-		$this->assertEqualSets( array( $page_id1 ), wp_list_pluck( $pages, 'ID' ) );
+		$this->assertSameSets( array( $page_id1 ), wp_list_pluck( $pages, 'ID' ) );
 
 		$pages = get_pages(
 			array(
@@ -348,7 +348,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 				'hierarchical' => false,
 			)
 		);
-		$this->assertEqualSets( array( $page_id2, $page_id4 ), wp_list_pluck( $pages, 'ID' ) );
+		$this->assertSameSets( array( $page_id2, $page_id4 ), wp_list_pluck( $pages, 'ID' ) );
 
 		$pages = get_pages(
 			array(
@@ -356,16 +356,16 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 				'hierarchical' => false,
 			)
 		);
-		$this->assertEqualSets( array( $page_id2, $page_id3, $page_id4 ), wp_list_pluck( $pages, 'ID' ) );
+		$this->assertSameSets( array( $page_id2, $page_id3, $page_id4 ), wp_list_pluck( $pages, 'ID' ) );
 
 		$pages = get_pages( array( 'parent' => 0 ) );
-		$this->assertEqualSets( array( $page_id1 ), wp_list_pluck( $pages, 'ID' ) );
+		$this->assertSameSets( array( $page_id1 ), wp_list_pluck( $pages, 'ID' ) );
 
 		$pages = get_pages( array( 'parent' => $page_id1 ) );
-		$this->assertEqualSets( array( $page_id2, $page_id4 ), wp_list_pluck( $pages, 'ID' ) );
+		$this->assertSameSets( array( $page_id2, $page_id4 ), wp_list_pluck( $pages, 'ID' ) );
 
 		$pages = get_pages( array( 'parent' => array( $page_id1, $page_id2 ) ) );
-		$this->assertEqualSets( array( $page_id2, $page_id3, $page_id4 ), wp_list_pluck( $pages, 'ID' ) );
+		$this->assertSameSets( array( $page_id2, $page_id3, $page_id4 ), wp_list_pluck( $pages, 'ID' ) );
 	}
 
 	/**
@@ -392,7 +392,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 				'post_parent' => $post_id,
 			)
 		);
-		$this->assertEqualSets( $child_ids, $post_ids );
+		$this->assertSameSets( $child_ids, $post_ids );
 	}
 
 	/**
@@ -442,7 +442,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		 * If it doesn't, they will be in the creation order, 1,2,3,4.
 		 */
 
-		$this->assertEqualSets( array( $page_1, $page_2, $page_4, $page_3 ), wp_list_pluck( $pages, 'ID' ) );
+		$this->assertSameSets( array( $page_1, $page_2, $page_4, $page_3 ), wp_list_pluck( $pages, 'ID' ) );
 	}
 
 	/**
@@ -488,7 +488,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 
 		$found_pages = wp_list_filter( $pages, array( 'post_parent' => 0 ) );
 
-		$this->assertEqualSets( array( $page_1, $page_2 ), wp_list_pluck( $found_pages, 'ID' ) );
+		$this->assertSameSets( array( $page_1, $page_2 ), wp_list_pluck( $found_pages, 'ID' ) );
 	}
 
 	/**
@@ -524,7 +524,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		 * in order of creation: 1, 2, 3, 4, regardless of parent.
 		 */
 
-		$this->assertEqualSets( array( $page_1, $page_2, $page_3, $page_4 ), wp_list_pluck( $pages, 'ID' ) );
+		$this->assertSameSets( array( $page_1, $page_2, $page_3, $page_4 ), wp_list_pluck( $pages, 'ID' ) );
 	}
 
 	/**
@@ -567,7 +567,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		 * hierarchically in order of creation: 3, 4, 5.
 		 */
 
-		$this->assertEqualSets( array( $page_3, $page_4, $page_5 ), wp_list_pluck( $pages, 'ID' ) );
+		$this->assertSameSets( array( $page_3, $page_4, $page_5 ), wp_list_pluck( $pages, 'ID' ) );
 	}
 
 	/**
@@ -614,11 +614,11 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		 * If hierarchical is false, and child_of is not empty, pages will (apparently) be returned
 		 * hierarchically anyway in order of creation: 3, 4, 5.
 		 */
-		$this->assertEqualSets( array( $page_3, $page_4, $page_5 ), wp_list_pluck( $pages, 'ID' ) );
+		$this->assertSameSets( array( $page_3, $page_4, $page_5 ), wp_list_pluck( $pages, 'ID' ) );
 
 		// How it should work.
 		$found_pages = wp_list_filter( $pages, array( 'post_parent' => $page_1 ) );
-		$this->assertEqualSets( array( $page_3, $page_5 ), wp_list_pluck( $found_pages, 'ID' ) );
+		$this->assertSameSets( array( $page_3, $page_5 ), wp_list_pluck( $found_pages, 'ID' ) );
 
 	}
 

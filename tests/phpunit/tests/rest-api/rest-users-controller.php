@@ -3055,7 +3055,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertArrayNotHasKey( 'locale', $data );
 		}
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'self',
 				'collection',

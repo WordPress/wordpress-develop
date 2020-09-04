@@ -72,7 +72,7 @@ class Tests_L10n extends WP_UnitTestCase {
 		$installed_translations = wp_get_installed_translations( 'core' );
 		$this->assertInternalType( 'array', $installed_translations );
 		$textdomains_expected = array( 'admin', 'admin-network', 'continents-cities', 'default' );
-		$this->assertEqualSets( $textdomains_expected, array_keys( $installed_translations ) );
+		$this->assertSameSets( $textdomains_expected, array_keys( $installed_translations ) );
 
 		$this->assertNotEmpty( $installed_translations['default']['en_GB'] );
 		$data_en_gb = $installed_translations['default']['en_GB'];

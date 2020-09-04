@@ -685,6 +685,20 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
+	 * Asserts that the contents of two un-keyed, single arrays are the same, without accounting for the order of elements.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param array $expected Expected array.
+	 * @param array $actual   Array to check.
+	 */
+	public function assertSameSets( $expected, $actual ) {
+		sort( $expected );
+		sort( $actual );
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
 	 * Asserts that the contents of two un-keyed, single arrays are equal, without accounting for the order of elements.
 	 *
 	 * @since 3.5.0
@@ -696,6 +710,20 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 		sort( $expected );
 		sort( $actual );
 		$this->assertEquals( $expected, $actual );
+	}
+
+	/**
+	 * Asserts that the contents of two keyed, single arrays are the same, without accounting for the order of elements.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param array $expected Expected array.
+	 * @param array $actual   Array to check.
+	 */
+	public function assertSameSetsWithIndex( $expected, $actual ) {
+		ksort( $expected );
+		ksort( $actual );
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**

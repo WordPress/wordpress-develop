@@ -23,13 +23,13 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEqualSets( array( 'embed', 'view', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSameSets( array( 'embed', 'view', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 		// Single.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/statuses/publish' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEqualSets( array( 'embed', 'view', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSameSets( array( 'embed', 'view', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	public function test_get_items() {
@@ -51,7 +51,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 
 		$data = $response->get_data();
 		$this->assertSame( 6, count( $data ) );
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'publish',
 				'private',
@@ -212,7 +212,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$this->assertSame( $status_obj->publicly_queryable, $data['queryable'] );
 		$this->assertSame( $status_obj->show_in_admin_all_list, $data['show_in_list'] );
 		$this->assertSame( $status_obj->name, $data['slug'] );
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'archives',
 			),

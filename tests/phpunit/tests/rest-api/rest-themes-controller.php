@@ -166,7 +166,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'theme_uri',
 			'version',
 		);
-		$this->assertEqualSets( $fields, array_keys( $data[0] ) );
+		$this->assertSameSets( $fields, array_keys( $data[0] ) );
 	}
 
 	/**

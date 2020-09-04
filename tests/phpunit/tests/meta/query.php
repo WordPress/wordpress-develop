@@ -758,7 +758,7 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $posts[0], $posts[2] ), $q->posts );
+		$this->assertSameSets( array( $posts[0], $posts[2] ), $q->posts );
 
 		$q = new WP_Query(
 			array(
@@ -770,7 +770,7 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $posts[0] ), $q->posts );
+		$this->assertSameSets( array( $posts[0] ), $q->posts );
 	}
 
 	/**

@@ -66,7 +66,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 			'foo1' => array( 'baz' ),
 		);
 
-		$this->assertEqualSets( $expected, $found );
+		$this->assertSameSets( $expected, $found );
 	}
 
 	public function test_get_with_key_should_fetch_all_for_key() {
@@ -78,7 +78,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$found    = get_term_meta( $t, 'foo' );
 		$expected = array( 'bar', 'baz' );
 
-		$this->assertEqualSets( $expected, $found );
+		$this->assertSameSets( $expected, $found );
 	}
 
 	public function test_get_should_respect_single_true() {
@@ -245,7 +245,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[0] ), $found );
+		$this->assertSameSets( array( $terms[0] ), $found );
 
 		add_term_meta( $terms[1], 'foo', 'bar' );
 
@@ -263,7 +263,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[0], $terms[1] ), $found );
+		$this->assertSameSets( array( $terms[0], $terms[1] ), $found );
 	}
 
 	public function test_updating_term_meta_should_bust_get_terms_cache() {
@@ -287,7 +287,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[0] ), $found );
+		$this->assertSameSets( array( $terms[0] ), $found );
 
 		update_term_meta( $terms[1], 'foo', 'bar' );
 
@@ -305,7 +305,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[0], $terms[1] ), $found );
+		$this->assertSameSets( array( $terms[0], $terms[1] ), $found );
 	}
 
 	public function test_deleting_term_meta_should_bust_get_terms_cache() {
@@ -329,7 +329,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[0], $terms[1] ), $found );
+		$this->assertSameSets( array( $terms[0], $terms[1] ), $found );
 
 		delete_term_meta( $terms[1], 'foo', 'bar' );
 
@@ -347,7 +347,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[0] ), $found );
+		$this->assertSameSets( array( $terms[0] ), $found );
 	}
 
 	/**

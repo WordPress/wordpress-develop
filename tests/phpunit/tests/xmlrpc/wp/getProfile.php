@@ -43,6 +43,6 @@ class Tests_XMLRPC_wp_getProfile extends WP_XMLRPC_UnitTestCase {
 		$keys            = array_keys( $result );
 		sort( $expected_fields );
 		sort( $keys );
-		$this->assertEqualSets( $expected_fields, $keys );
+		$this->assertSameSets( $expected_fields, $keys );
 	}
 }

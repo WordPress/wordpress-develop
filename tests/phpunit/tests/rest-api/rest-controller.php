@@ -456,7 +456,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$this->assertArrayNotHasKey( 'properties', $controller->get_public_item_schema() );
 
 		// Test that the schema lacking 'properties' is returned as expected.
-		$this->assertEqualSetsWithIndex( $controller->get_public_item_schema(), $controller->get_test_schema() );
+		$this->assertSameSetsWithIndex( $controller->get_public_item_schema(), $controller->get_test_schema() );
 	}
 
 	public function test_add_additional_fields_to_object_respects_fields_param() {

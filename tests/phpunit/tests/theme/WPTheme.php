@@ -165,7 +165,7 @@ class Tests_Theme_WPTheme extends WP_UnitTestCase {
 		update_site_option( 'allowedthemes', $current_allowed_themes ); // Reset previous value.
 		$current_allowed_themes['testtheme-1'] = true; // Add the new theme to the previous set.
 
-		$this->assertEqualSetsWithIndex( $current_allowed_themes, $new_allowed_themes );
+		$this->assertSameSetsWithIndex( $current_allowed_themes, $new_allowed_themes );
 	}
 
 	/**
@@ -188,7 +188,7 @@ class Tests_Theme_WPTheme extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSetsWithIndex( $current_allowed_themes, $new_allowed_themes );
+		$this->assertSameSetsWithIndex( $current_allowed_themes, $new_allowed_themes );
 	}
 
 	/**
@@ -213,7 +213,7 @@ class Tests_Theme_WPTheme extends WP_UnitTestCase {
 		update_site_option( 'allowedthemes', $current_allowed_themes ); // Reset previous value.
 		unset( $allowed_themes[ $disable_theme ] ); // Remove deleted theme from initial set.
 
-		$this->assertEqualSetsWithIndex( $allowed_themes, $new_allowed_themes );
+		$this->assertSameSetsWithIndex( $allowed_themes, $new_allowed_themes );
 	}
 
 	/**
@@ -239,6 +239,6 @@ class Tests_Theme_WPTheme extends WP_UnitTestCase {
 		unset( $allowed_themes['existing-4'] );
 		unset( $allowed_themes['existing-5'] );
 
-		$this->assertEqualSetsWithIndex( $allowed_themes, $new_allowed_themes );
+		$this->assertSameSetsWithIndex( $allowed_themes, $new_allowed_themes );
 	}
 }

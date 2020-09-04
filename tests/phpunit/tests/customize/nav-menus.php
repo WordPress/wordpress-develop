@@ -442,7 +442,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( $expected, $results[0] );
+		$this->assertSameSets( $expected, $results[0] );
 	}
 
 	/**
@@ -1023,7 +1023,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		// Ensure that unique slugs were assigned.
 		$posts      = array_map( 'get_post', $drafted_post_ids );
 		$post_names = wp_list_pluck( $posts, 'post_name' );
-		$this->assertEqualSets( $post_names, array_unique( $post_names ) );
+		$this->assertSameSets( $post_names, array_unique( $post_names ) );
 	}
 
 	/**

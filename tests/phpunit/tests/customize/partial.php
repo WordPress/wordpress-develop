@@ -106,7 +106,7 @@ class Test_WP_Customize_Partial extends WP_UnitTestCase {
 		$this->assertSame( $this->selective_refresh, $partial->component );
 		$this->assertSame( $args['type'], $partial->type );
 		$this->assertSame( $args['selector'], $partial->selector );
-		$this->assertEqualSets( $args['settings'], $partial->settings );
+		$this->assertSameSets( $args['settings'], $partial->settings );
 		$this->assertSame( $args['primary_setting'], $partial->primary_setting );
 		$this->assertSame( $args['render_callback'], $partial->render_callback );
 		$this->assertFalse( $partial->container_inclusive );

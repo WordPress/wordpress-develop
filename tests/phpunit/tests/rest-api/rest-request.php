@@ -598,7 +598,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$request = WP_REST_Request::from_url( $url );
 		$this->assertInstanceOf( 'WP_REST_Request', $request );
 		$this->assertSame( '/wp/v2/posts/1', $request->get_route() );
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'foo' => 'bar',
 			),

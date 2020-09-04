@@ -584,7 +584,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		);
 
 		$sanitized = $setting->sanitize( $unsanitized );
-		$this->assertEqualSets( array_keys( $unsanitized ), array_keys( $sanitized ) );
+		$this->assertSameSets( array_keys( $unsanitized ), array_keys( $sanitized ) );
 
 		foreach ( $expected_sanitized as $key => $value ) {
 			$this->assertSame( $value, $sanitized[ $key ], "Expected $key to be sanitized." );

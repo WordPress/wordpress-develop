@@ -121,7 +121,7 @@ if ( is_multisite() ) :
 				'foo1' => array( 'baz' ),
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_get_with_key_should_fetch_all_for_key() {
@@ -136,7 +136,7 @@ if ( is_multisite() ) :
 			$found    = get_site_meta( self::$site_id, 'foo' );
 			$expected = array( 'bar', 'baz' );
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_get_should_respect_single_true() {
@@ -299,7 +299,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEqualSets( array( self::$site_id ), $found );
+			$this->assertSameSets( array( self::$site_id ), $found );
 
 			add_site_meta( self::$site_id2, 'foo', 'bar' );
 
@@ -315,7 +315,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEqualSets( array( self::$site_id, self::$site_id2 ), $found );
+			$this->assertSameSets( array( self::$site_id, self::$site_id2 ), $found );
 		}
 
 		/**
@@ -342,7 +342,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEqualSets( array( self::$site_id ), $found );
+			$this->assertSameSets( array( self::$site_id ), $found );
 
 			update_site_meta( self::$site_id2, 'foo', 'bar' );
 
@@ -358,7 +358,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEqualSets( array( self::$site_id, self::$site_id2 ), $found );
+			$this->assertSameSets( array( self::$site_id, self::$site_id2 ), $found );
 		}
 
 		/**
@@ -385,7 +385,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEqualSets( array( self::$site_id, self::$site_id2 ), $found );
+			$this->assertSameSets( array( self::$site_id, self::$site_id2 ), $found );
 
 			delete_site_meta( self::$site_id2, 'foo', 'bar' );
 
@@ -401,7 +401,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEqualSets( array( self::$site_id ), $found );
+			$this->assertSameSets( array( self::$site_id ), $found );
 		}
 	}
 

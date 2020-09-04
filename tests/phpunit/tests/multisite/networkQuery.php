@@ -109,7 +109,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_network_query_by_network__in_with_multiple_ids() {
@@ -123,7 +123,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_network_query_by_network__in_and_count_with_multiple_ids() {
@@ -156,7 +156,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_network_query_by_network__not_in_with_multiple_ids() {
@@ -174,7 +174,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_network_query_by_domain() {
@@ -190,7 +190,7 @@ if ( is_multisite() ) :
 				self::$network_ids['www.w.org/foo/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_network_query_by_domain__in_with_single_domain() {
@@ -206,7 +206,7 @@ if ( is_multisite() ) :
 				self::$network_ids['make.wordpress.org/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_network_query_by_domain__in_with_multiple_domains() {
@@ -223,7 +223,7 @@ if ( is_multisite() ) :
 				self::$network_ids['make.wordpress.org/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_network_query_by_domain__in_with_multiple_domains_and_number() {
@@ -240,7 +240,7 @@ if ( is_multisite() ) :
 				self::$network_ids['wordpress.org/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_network_query_by_domain__in_with_multiple_domains_and_number_and_offset() {
@@ -258,7 +258,7 @@ if ( is_multisite() ) :
 				self::$network_ids['make.wordpress.org/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_network_query_by_domain__not_in_with_single_domain() {
@@ -277,7 +277,7 @@ if ( is_multisite() ) :
 				self::$network_ids['www.wordpress.net/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_network_query_by_domain__not_in_with_multiple_domains() {
@@ -295,7 +295,7 @@ if ( is_multisite() ) :
 				self::$network_ids['www.wordpress.net/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_network_query_by_domain__not_in_with_multiple_domains_and_number() {
@@ -313,7 +313,7 @@ if ( is_multisite() ) :
 				self::$network_ids['make.wordpress.org/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_network_query_by_domain__not_in_with_multiple_domains_and_number_and_offset() {
@@ -332,7 +332,7 @@ if ( is_multisite() ) :
 				self::$network_ids['www.wordpress.net/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_network_query_by_path_with_expected_results() {
@@ -351,7 +351,7 @@ if ( is_multisite() ) :
 				self::$network_ids['www.wordpress.net/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_network_query_by_path_and_number_and_offset_with_expected_results() {
@@ -370,7 +370,7 @@ if ( is_multisite() ) :
 				self::$network_ids['www.wordpress.net/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_network_query_by_path_with_no_expected_results() {
@@ -398,7 +398,7 @@ if ( is_multisite() ) :
 				self::$network_ids['www.wordpress.net/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_network_query_by_search_with_text_in_path() {
@@ -414,7 +414,7 @@ if ( is_multisite() ) :
 				self::$network_ids['www.w.org/foo/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_network_query_by_path_order_by_domain_desc() {

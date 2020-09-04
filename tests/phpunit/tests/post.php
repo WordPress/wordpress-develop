@@ -1378,12 +1378,12 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = get_post( $post_id );
 
 		$tags = wp_get_post_tags( $post->ID, array( 'fields' => 'ids' ) );
-		$this->assertEqualSets( array( $tag_1['term_id'], $tag_2['term_id'] ), $tags );
+		$this->assertSameSets( array( $tag_1['term_id'], $tag_2['term_id'] ), $tags );
 
 		wp_update_post( $post );
 
 		$tags = wp_get_post_tags( $post->ID, array( 'fields' => 'ids' ) );
-		$this->assertEqualSets( array( $tag_1['term_id'], $tag_2['term_id'] ), $tags );
+		$this->assertSameSets( array( $tag_1['term_id'], $tag_2['term_id'] ), $tags );
 
 		wp_update_post(
 			array(
@@ -1393,6 +1393,6 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 
 		$tags = wp_get_post_tags( $post->ID, array( 'fields' => 'ids' ) );
-		$this->assertEqualSets( array( $tag_2['term_id'], $tag_3['term_id'] ), $tags );
+		$this->assertSameSets( array( $tag_2['term_id'], $tag_3['term_id'] ), $tags );
 	}
 }

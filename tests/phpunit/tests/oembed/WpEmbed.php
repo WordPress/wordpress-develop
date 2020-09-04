@@ -58,14 +58,14 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 	}
 
 	public function test_wp_maybe_load_embeds() {
-		$this->assertEqualSets( array( 10, 9999 ), array_keys( $GLOBALS['wp_embed']->handlers ) );
-		$this->assertEqualSets(
+		$this->assertSameSets( array( 10, 9999 ), array_keys( $GLOBALS['wp_embed']->handlers ) );
+		$this->assertSameSets(
 			array(
 				'youtube_embed_url',
 			),
 			array_keys( $GLOBALS['wp_embed']->handlers[10] )
 		);
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'audio',
 				'video',

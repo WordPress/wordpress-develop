@@ -163,7 +163,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 		$response = $this->instance->get_events();
 
 		$this->assertNotWPError( $response );
-		$this->assertEqualSetsWithIndex( $this->get_user_location(), $response['location'] );
+		$this->assertSameSetsWithIndex( $this->get_user_location(), $response['location'] );
 		$this->assertSame( gmdate( 'l, M j, Y', strtotime( 'next Sunday 1pm' ) ), $response['events'][0]['formatted_date'] );
 		$this->assertSame( '1:00 pm', $response['events'][0]['formatted_time'] );
 
@@ -184,7 +184,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 		$cached_events = $this->instance->get_cached_events();
 
 		$this->assertNotWPError( $cached_events );
-		$this->assertEqualSetsWithIndex( $this->get_user_location(), $cached_events['location'] );
+		$this->assertSameSetsWithIndex( $this->get_user_location(), $cached_events['location'] );
 		$this->assertSame( gmdate( 'l, M j, Y', strtotime( 'next Sunday 1pm' ) ), $cached_events['events'][0]['formatted_date'] );
 		$this->assertSame( '1:00 pm', $cached_events['events'][0]['formatted_time'] );
 

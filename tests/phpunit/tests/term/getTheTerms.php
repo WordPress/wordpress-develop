@@ -111,7 +111,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 
 		$found = get_the_terms( $p, 'wptests_tax' );
 
-		$this->assertEqualSets( array( 0, 1 ), array_keys( $found ) );
+		$this->assertSameSets( array( 0, 1 ), array_keys( $found ) );
 	}
 
 	/**
@@ -127,7 +127,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 
 		$found = get_the_terms( $p, 'wptests_tax' );
 
-		$this->assertEqualSets( array( 0, 1 ), array_keys( $found ) );
+		$this->assertSameSets( array( 0, 1 ), array_keys( $found ) );
 	}
 
 	/**
@@ -213,7 +213,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 		$num_queries = $wpdb->num_queries;
 		$found       = get_the_terms( self::$post_ids[0], 'wptests_tax' );
 
-		$this->assertEqualSets( $terms, wp_list_pluck( $found, 'term_id' ) );
+		$this->assertSameSets( $terms, wp_list_pluck( $found, 'term_id' ) );
 
 		$num_queries++;
 		$this->assertSame( $num_queries, $wpdb->num_queries );

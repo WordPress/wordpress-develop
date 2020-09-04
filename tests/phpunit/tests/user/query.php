@@ -847,7 +847,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$found    = wp_list_pluck( $q->get_results(), 'ID' );
 		$expected = array( self::$author_ids[0] );
 
-		$this->assertEqualSets( $expected, $found );
+		$this->assertSameSets( $expected, $found );
 	}
 
 	/**
@@ -888,7 +888,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$found    = wp_list_pluck( $q->get_results(), 'ID' );
 		$expected = array( self::$author_ids[1], self::$author_ids[2] );
 
-		$this->assertEqualSets( $expected, $found );
+		$this->assertSameSets( $expected, $found );
 	}
 
 	/**
@@ -929,7 +929,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$found    = wp_list_pluck( $q->get_results(), 'ID' );
 		$expected = array( self::$author_ids[2] );
 
-		$this->assertEqualSets( $expected, $found );
+		$this->assertSameSets( $expected, $found );
 	}
 
 	/**
@@ -974,7 +974,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$found    = wp_list_pluck( $q->get_results(), 'ID' );
 		$expected = array( self::$author_ids[1] );
 
-		$this->assertEqualSets( $expected, $found );
+		$this->assertSameSets( $expected, $found );
 	}
 
 	/**
@@ -1004,7 +1004,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$found    = wp_list_pluck( $q->get_results(), 'ID' );
 		$expected = array( self::$author_ids[0], self::$author_ids[1] );
 
-		$this->assertEqualSets( $expected, $found );
+		$this->assertSameSets( $expected, $found );
 	}
 
 	/**
@@ -1042,7 +1042,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$found    = wp_list_pluck( $q->get_results(), 'ID' );
 		$expected = array( self::$author_ids[0], self::$author_ids[1] );
 
-		$this->assertEqualSets( $expected, $found );
+		$this->assertSameSets( $expected, $found );
 	}
 
 	/**
@@ -1066,7 +1066,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$expected = array( self::$author_ids[0] );
 
 		$this->assertContains( "AND user_nicename = 'peter'", $q->query_where );
-		$this->assertEqualSets( $expected, $found );
+		$this->assertSameSets( $expected, $found );
 	}
 
 	/**
@@ -1104,7 +1104,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$expected = array( self::$author_ids[0], self::$author_ids[1], self::$author_ids[2] );
 
 		$this->assertContains( "AND user_nicename IN ( 'peter','paul','mary' )", $q->query_where );
-		$this->assertEqualSets( $expected, $found );
+		$this->assertSameSets( $expected, $found );
 	}
 
 	/**
@@ -1201,7 +1201,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$expected = array( self::$author_ids[0] );
 
 		$this->assertContains( "AND user_login = '$user_login'", $q->query_where );
-		$this->assertEqualSets( $expected, $found );
+		$this->assertSameSets( $expected, $found );
 	}
 
 	/**
@@ -1222,7 +1222,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$expected = array( self::$author_ids[0], self::$author_ids[1], self::$author_ids[2] );
 
 		$this->assertContains( "AND user_login IN ( '$user_login1','$user_login2','$user_login3' )", $q->query_where );
-		$this->assertEqualSets( $expected, $found );
+		$this->assertSameSets( $expected, $found );
 	}
 
 	/**

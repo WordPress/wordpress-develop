@@ -190,7 +190,7 @@ class Tests_Query extends WP_UnitTestCase {
 
 		$matching_posts = wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' );
 
-		$this->assertEqualSets( array( $p1, $p2 ), $matching_posts );
+		$this->assertSameSets( array( $p1, $p2 ), $matching_posts );
 	}
 
 	public function test_category_querystring_multiple_terms_comma_separated() {
@@ -234,7 +234,7 @@ class Tests_Query extends WP_UnitTestCase {
 
 		$matching_posts = wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' );
 
-		$this->assertEqualSets( array( $p1, $p2, $p3 ), $matching_posts );
+		$this->assertSameSets( array( $p1, $p2, $p3 ), $matching_posts );
 	}
 
 	/**
@@ -281,7 +281,7 @@ class Tests_Query extends WP_UnitTestCase {
 
 		$matching_posts = wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' );
 
-		$this->assertEqualSets( array( $p1, $p2, $p3 ), $matching_posts );
+		$this->assertSameSets( array( $p1, $p2, $p3 ), $matching_posts );
 	}
 
 
@@ -318,7 +318,7 @@ class Tests_Query extends WP_UnitTestCase {
 
 		$matching_posts = wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' );
 
-		$this->assertEqualSets( array( $p1, $p2 ), $matching_posts );
+		$this->assertSameSets( array( $p1, $p2 ), $matching_posts );
 	}
 
 	public function test_tag_querystring_multiple_terms_comma_separated() {
@@ -362,7 +362,7 @@ class Tests_Query extends WP_UnitTestCase {
 
 		$matching_posts = wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' );
 
-		$this->assertEqualSets( array( $p1, $p2, $p3 ), $matching_posts );
+		$this->assertSameSets( array( $p1, $p2, $p3 ), $matching_posts );
 	}
 
 	/**
@@ -409,7 +409,7 @@ class Tests_Query extends WP_UnitTestCase {
 
 		$matching_posts = wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' );
 
-		$this->assertEqualSets( array( $p1, $p2, $p3 ), $matching_posts );
+		$this->assertSameSets( array( $p1, $p2, $p3 ), $matching_posts );
 	}
 
 	public function test_custom_taxonomy_querystring_single_term() {
@@ -436,7 +436,7 @@ class Tests_Query extends WP_UnitTestCase {
 
 		$this->go_to( $url );
 
-		$this->assertEqualSets( array( $p1, $p2 ), wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ) );
+		$this->assertSameSets( array( $p1, $p2 ), wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ) );
 	}
 
 	public function test_custom_taxonomy_querystring_multiple_terms_comma_separated() {
@@ -465,7 +465,7 @@ class Tests_Query extends WP_UnitTestCase {
 
 		$this->go_to( $url );
 
-		$this->assertEqualSets( array( $p1, $p2, $p3 ), wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ) );
+		$this->assertSameSets( array( $p1, $p2, $p3 ), wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ) );
 	}
 
 	/**
@@ -497,7 +497,7 @@ class Tests_Query extends WP_UnitTestCase {
 
 		$this->go_to( $url );
 
-		$this->assertEqualSets( array( $p1, $p2, $p3 ), wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ) );
+		$this->assertSameSets( array( $p1, $p2, $p3 ), wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ) );
 	}
 
 	/**

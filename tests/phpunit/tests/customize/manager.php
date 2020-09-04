@@ -674,7 +674,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 			'page_on_front',
 			'page_for_posts',
 		);
-		$this->assertEqualSets( $expected_setting_ids, array_keys( $changeset_values ) );
+		$this->assertSameSets( $expected_setting_ids, array_keys( $changeset_values ) );
 
 		foreach ( array( 'widget_text[2]', 'widget_meta[3]' ) as $setting_id ) {
 			$this->assertInternalType( 'array', $changeset_values[ $setting_id ] );
@@ -742,7 +742,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$wp_customize->import_theme_starter_content();
 		$changeset_data = $wp_customize->changeset_data();
 		// Auto-drafts should not get re-created and amended with each import.
-		$this->assertEqualSets( array_values( $posts_by_name ), $changeset_data['nav_menus_created_posts']['value'] );
+		$this->assertSameSets( array_values( $posts_by_name ), $changeset_data['nav_menus_created_posts']['value'] );
 
 		// Test that saving non-starter content on top of the changeset clears the starter_content flag.
 		$wp_customize->save_changeset_post(
@@ -870,7 +870,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 			'nested_array_option',
 			'nested_array_theme_mod',
 		);
-		$this->assertEqualSets( $expected_setting_ids, array_keys( $changeset_values ) );
+		$this->assertSameSets( $expected_setting_ids, array_keys( $changeset_values ) );
 
 		$this->assertSame( $existing_published_home_page_id, $changeset_values['array_option']['home_page_id'] );
 		$this->assertSame( $existing_published_home_page_id, $changeset_values['nested_array_option'][2]['home_page_id'] );
@@ -1611,7 +1611,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 			$setting_id = preg_replace( '/^.+::/', '', $setting_id );
 			$this->assertSame( $save_counts[ $setting_id ] + 1, did_action( sprintf( 'customize_save_%s', $setting_id ) ), $setting_id );
 		}
-		$this->assertEqualSets( array( 'blogname', 'blogdescription', 'background_color', 'scratchpad' ), array_keys( $this->filtered_setting_current_user_ids ) );
+		$this->assertSameSets( array( 'blogname', 'blogdescription', 'background_color', 'scratchpad' ), array_keys( $this->filtered_setting_current_user_ids ) );
 		$this->assertSame( $other_admin_user_id, $this->filtered_setting_current_user_ids['blogname'] );
 		$this->assertSame( 0, $this->filtered_setting_current_user_ids['blogdescription'] );
 		$this->assertSame( self::$subscriber_user_id, $this->filtered_setting_current_user_ids['scratchpad'] );
@@ -2221,7 +2221,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		add_filter( 'customize_allowed_urls', array( $this, 'filter_customize_allowed_urls' ) );
 		$allowed = $wp_customize->get_allowed_urls();
-		$this->assertEqualSets( $allowed, array( 'http://headless.example.com/', home_url( '/', 'http' ) ) );
+		$this->assertSameSets( $allowed, array( 'http://headless.example.com/', home_url( '/', 'http' ) ) );
 	}
 
 	/**
@@ -3089,12 +3089,12 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$data = json_decode( $json, true );
 		$this->assertNotEmpty( $data );
 
-		$this->assertEqualSets( array( 'theme', 'url', 'browser', 'panels', 'sections', 'nonce', 'autofocus', 'documentTitleTmpl', 'previewableDevices', 'changeset', 'timeouts', 'dateFormat', 'timeFormat', 'initialClientTimestamp', 'initialServerDate', 'initialServerTimestamp', 'l10n' ), array_keys( $data ) );
+		$this->assertSameSets( array( 'theme', 'url', 'browser', 'panels', 'sections', 'nonce', 'autofocus', 'documentTitleTmpl', 'previewableDevices', 'changeset', 'timeouts', 'dateFormat', 'timeFormat', 'initialClientTimestamp', 'initialServerDate', 'initialServerTimestamp', 'l10n' ), array_keys( $data ) );
 		$this->assertSame( $autofocus, $data['autofocus'] );
 		$this->assertArrayHasKey( 'save', $data['nonce'] );
 		$this->assertArrayHasKey( 'preview', $data['nonce'] );
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'branching',
 				'autosaved',

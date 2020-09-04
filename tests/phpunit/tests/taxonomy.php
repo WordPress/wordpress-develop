@@ -279,7 +279,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$tax = get_taxonomy( 'wptests_tax' );
 
 		$expected = array( 'post' );
-		$this->assertEqualSets( $expected, $tax->object_type );
+		$this->assertSameSets( $expected, $tax->object_type );
 	}
 
 	public function test_get_objects_in_term_should_return_invalid_taxonomy_error() {
@@ -494,7 +494,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $t2, $t1 ), get_ancestors( $t3, 'wptests_tax' ) );
+		$this->assertSameSets( array( $t2, $t1 ), get_ancestors( $t3, 'wptests_tax' ) );
 		_unregister_taxonomy( 'wptests_tax' );
 	}
 
@@ -506,7 +506,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array(), get_ancestors( $p, 'wptests_tax' ) );
+		$this->assertSameSets( array(), get_ancestors( $p, 'wptests_tax' ) );
 	}
 
 	public function test_get_ancestors_post_type() {
@@ -540,7 +540,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $p2, $p1 ), get_ancestors( $p3, 'wptests_pt' ) );
+		$this->assertSameSets( array( $p2, $p1 ), get_ancestors( $p3, 'wptests_pt' ) );
 		_unregister_post_type( 'wptests_pt' );
 	}
 
@@ -585,9 +585,9 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $p1 ), get_ancestors( $p2, 'wptests_conflict', 'post_type' ) );
-		$this->assertEqualSets( array( $t1 ), get_ancestors( $t2, 'wptests_conflict', 'taxonomy' ) );
-		$this->assertEqualSets( array( $t1 ), get_ancestors( $t2, 'wptests_conflict' ) );
+		$this->assertSameSets( array( $p1 ), get_ancestors( $p2, 'wptests_conflict', 'post_type' ) );
+		$this->assertSameSets( array( $t1 ), get_ancestors( $t2, 'wptests_conflict', 'taxonomy' ) );
+		$this->assertSameSets( array( $t1 ), get_ancestors( $t2, 'wptests_conflict' ) );
 		_unregister_post_type( 'wptests_pt' );
 	}
 

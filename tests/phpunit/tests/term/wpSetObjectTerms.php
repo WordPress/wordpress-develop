@@ -184,11 +184,11 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 
 		$added1 = wp_set_object_terms( $p, array( $t1 ), 'wptests_tax' );
 		$this->assertNotEmpty( $added1 );
-		$this->assertEqualSets( array( $t1 ), wp_get_object_terms( $p, 'wptests_tax', array( 'fields' => 'ids' ) ) );
+		$this->assertSameSets( array( $t1 ), wp_get_object_terms( $p, 'wptests_tax', array( 'fields' => 'ids' ) ) );
 
 		$added2 = wp_set_object_terms( $p, array( $t2 ), 'wptests_tax', true );
 		$this->assertNotEmpty( $added2 );
-		$this->assertEqualSets( array( $t1, $t2 ), wp_get_object_terms( $p, 'wptests_tax', array( 'fields' => 'ids' ) ) );
+		$this->assertSameSets( array( $t1, $t2 ), wp_get_object_terms( $p, 'wptests_tax', array( 'fields' => 'ids' ) ) );
 
 		_unregister_taxonomy( 'wptests_tax' );
 	}
@@ -209,11 +209,11 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 
 		$added1 = wp_set_object_terms( $p, array( $t1 ), 'wptests_tax' );
 		$this->assertNotEmpty( $added1 );
-		$this->assertEqualSets( array( $t1 ), wp_get_object_terms( $p, 'wptests_tax', array( 'fields' => 'ids' ) ) );
+		$this->assertSameSets( array( $t1 ), wp_get_object_terms( $p, 'wptests_tax', array( 'fields' => 'ids' ) ) );
 
 		$added2 = wp_set_object_terms( $p, array( $t2 ), 'wptests_tax', false );
 		$this->assertNotEmpty( $added2 );
-		$this->assertEqualSets( array( $t2 ), wp_get_object_terms( $p, 'wptests_tax', array( 'fields' => 'ids' ) ) );
+		$this->assertSameSets( array( $t2 ), wp_get_object_terms( $p, 'wptests_tax', array( 'fields' => 'ids' ) ) );
 
 		_unregister_taxonomy( 'wptests_tax' );
 	}
@@ -234,11 +234,11 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 
 		$added1 = wp_set_object_terms( $p, array( $t1 ), 'wptests_tax' );
 		$this->assertNotEmpty( $added1 );
-		$this->assertEqualSets( array( $t1 ), wp_get_object_terms( $p, 'wptests_tax', array( 'fields' => 'ids' ) ) );
+		$this->assertSameSets( array( $t1 ), wp_get_object_terms( $p, 'wptests_tax', array( 'fields' => 'ids' ) ) );
 
 		$added2 = wp_set_object_terms( $p, array( $t2 ), 'wptests_tax' );
 		$this->assertNotEmpty( $added2 );
-		$this->assertEqualSets( array( $t2 ), wp_get_object_terms( $p, 'wptests_tax', array( 'fields' => 'ids' ) ) );
+		$this->assertSameSets( array( $t2 ), wp_get_object_terms( $p, 'wptests_tax', array( 'fields' => 'ids' ) ) );
 
 		_unregister_taxonomy( 'wptests_tax' );
 	}

@@ -202,7 +202,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 
 		$term = (array) wp_get_nav_menu_object( $menu_id );
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			wp_array_slice_assoc( $value, array( 'name', 'description', 'parent' ) ),
 			wp_array_slice_assoc( $term, array( 'name', 'description', 'parent' ) )
 		);
@@ -213,7 +213,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		$this->assertSame( 'Description 2 \\o/', $value['description'] );
 		$this->assertSame( 1, $value['parent'] );
 		$term = (array) wp_get_nav_menu_object( $menu_id );
-		$this->assertEqualSets( $value, wp_array_slice_assoc( $term, array_keys( $value ) ) );
+		$this->assertSameSets( $value, wp_array_slice_assoc( $term, array_keys( $value ) ) );
 
 		$menu_object = wp_get_nav_menu_object( $menu_id );
 		$this->assertEquals( (object) $term, $menu_object );
@@ -256,7 +256,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		$term = (array) wp_get_nav_menu_object( $menu_id );
 		$this->assertNotEmpty( $term );
 		$this->assertNotWPError( $term );
-		$this->assertEqualSets( $post_value, wp_array_slice_assoc( $term, array_keys( $value ) ) );
+		$this->assertSameSets( $post_value, wp_array_slice_assoc( $term, array_keys( $value ) ) );
 		$this->assertSame( $menu_id, $term['term_id'] );
 		$this->assertSame( $menu_id, $term['term_taxonomy_id'] );
 
@@ -338,7 +338,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		$this->assertSame( 'New line \\o/', $sanitized['description'] );
 		$this->assertSame( 0, $sanitized['parent'] );
 		$this->assertTrue( $sanitized['auto_add'] );
-		$this->assertEqualSets( array( 'name', 'description', 'parent', 'auto_add' ), array_keys( $sanitized ) );
+		$this->assertSameSets( array( 'name', 'description', 'parent', 'auto_add' ), array_keys( $sanitized ) );
 
 		$value['name'] = '    '; // Blank spaces.
 		$sanitized     = $setting->sanitize( $value );
@@ -385,7 +385,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		foreach ( array( 'name', 'description', 'parent' ) as $key ) {
 			$this->assertSame( $new_value[ $key ], $menu_object->$key );
 		}
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			wp_array_slice_assoc( $new_value, array( 'name', 'description', 'parent' ) ),
 			wp_array_slice_assoc( (array) $menu_object, array( 'name', 'description', 'parent' ) )
 		);
@@ -441,7 +441,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 
 		$menu = wp_get_nav_menu_object( $setting->term_id );
 		unset( $post_value['auto_add'] );
-		$this->assertEqualSets( $post_value, wp_array_slice_assoc( (array) $menu, array_keys( $post_value ) ) );
+		$this->assertSameSets( $post_value, wp_array_slice_assoc( (array) $menu, array_keys( $post_value ) ) );
 
 		$save_response = apply_filters( 'customize_save_response', array() );
 		$this->assertArrayHasKey( 'nav_menu_updates', $save_response );

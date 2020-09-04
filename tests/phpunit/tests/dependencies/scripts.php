@@ -1052,8 +1052,8 @@ JS;
 		$wp_enqueue_code_editor = wp_enqueue_code_editor( array( 'file' => $real_file ) );
 		$this->assertNonEmptyMultidimensionalArray( $wp_enqueue_code_editor );
 
-		$this->assertEqualSets( array( 'codemirror', 'csslint', 'jshint', 'htmlhint' ), array_keys( $wp_enqueue_code_editor ) );
-		$this->assertEqualSets(
+		$this->assertSameSets( array( 'codemirror', 'csslint', 'jshint', 'htmlhint' ), array_keys( $wp_enqueue_code_editor ) );
+		$this->assertSameSets(
 			array(
 				'autoCloseBrackets',
 				'autoCloseTags',
@@ -1075,7 +1075,7 @@ JS;
 		);
 		$this->assertEmpty( $wp_enqueue_code_editor['codemirror']['gutters'] );
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'errors',
 				'box-model',
@@ -1087,7 +1087,7 @@ JS;
 			array_keys( $wp_enqueue_code_editor['csslint'] )
 		);
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'boss',
 				'curly',
@@ -1109,7 +1109,7 @@ JS;
 			array_keys( $wp_enqueue_code_editor['jshint'] )
 		);
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'tagname-lowercase',
 				'attr-lowercase',
@@ -1139,8 +1139,8 @@ JS;
 		$wp_enqueue_code_editor = wp_enqueue_code_editor( compact( 'file' ) );
 		$this->assertNonEmptyMultidimensionalArray( $wp_enqueue_code_editor );
 
-		$this->assertEqualSets( array( 'codemirror', 'csslint', 'jshint', 'htmlhint' ), array_keys( $wp_enqueue_code_editor ) );
-		$this->assertEqualSets(
+		$this->assertSameSets( array( 'codemirror', 'csslint', 'jshint', 'htmlhint' ), array_keys( $wp_enqueue_code_editor ) );
+		$this->assertSameSets(
 			array(
 				'continueComments',
 				'direction',
@@ -1158,7 +1158,7 @@ JS;
 		);
 		$this->assertEmpty( $wp_enqueue_code_editor['codemirror']['gutters'] );
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'errors',
 				'box-model',
@@ -1170,7 +1170,7 @@ JS;
 			array_keys( $wp_enqueue_code_editor['csslint'] )
 		);
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'boss',
 				'curly',
@@ -1192,7 +1192,7 @@ JS;
 			array_keys( $wp_enqueue_code_editor['jshint'] )
 		);
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'tagname-lowercase',
 				'attr-lowercase',
@@ -1233,8 +1233,8 @@ JS;
 
 		$this->assertNonEmptyMultidimensionalArray( $wp_enqueue_code_editor );
 
-		$this->assertEqualSets( array( 'codemirror', 'csslint', 'jshint', 'htmlhint' ), array_keys( $wp_enqueue_code_editor ) );
-		$this->assertEqualSets(
+		$this->assertSameSets( array( 'codemirror', 'csslint', 'jshint', 'htmlhint' ), array_keys( $wp_enqueue_code_editor ) );
+		$this->assertSameSets(
 			array(
 				'autoCloseBrackets',
 				'continueComments',
@@ -1255,7 +1255,7 @@ JS;
 			array_keys( $wp_enqueue_code_editor['codemirror'] )
 		);
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'errors',
 				'box-model',
@@ -1267,7 +1267,7 @@ JS;
 			array_keys( $wp_enqueue_code_editor['csslint'] )
 		);
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'boss',
 				'curly',
@@ -1289,7 +1289,7 @@ JS;
 			array_keys( $wp_enqueue_code_editor['jshint'] )
 		);
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'tagname-lowercase',
 				'attr-lowercase',
@@ -1327,8 +1327,8 @@ JS;
 
 		$this->assertNonEmptyMultidimensionalArray( $wp_enqueue_code_editor );
 
-		$this->assertEqualSets( array( 'codemirror', 'csslint', 'jshint', 'htmlhint' ), array_keys( $wp_enqueue_code_editor ) );
-		$this->assertEqualSets(
+		$this->assertSameSets( array( 'codemirror', 'csslint', 'jshint', 'htmlhint' ), array_keys( $wp_enqueue_code_editor ) );
+		$this->assertSameSets(
 			array(
 				'autoCloseBrackets',
 				'continueComments',
@@ -1349,7 +1349,7 @@ JS;
 			array_keys( $wp_enqueue_code_editor['codemirror'] )
 		);
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'errors',
 				'box-model',
@@ -1361,7 +1361,7 @@ JS;
 			array_keys( $wp_enqueue_code_editor['csslint'] )
 		);
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'boss',
 				'curly',
@@ -1383,7 +1383,7 @@ JS;
 			array_keys( $wp_enqueue_code_editor['jshint'] )
 		);
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'tagname-lowercase',
 				'attr-lowercase',
