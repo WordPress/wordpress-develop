@@ -55,6 +55,40 @@ function wp_get_sitemap_providers() {
 }
 
 /**
+ * Registers a new sitemap provider.
+ *
+ * @since 5.5.0
+ *
+ * @param string               $name     Unique name for the sitemap provider.
+ * @param WP_Sitemaps_Provider $provider The `Sitemaps_Provider` instance implementing the sitemap.
+ * @return bool Whether the sitemap was added.
+ */
+function wp_register_sitemap_provider( $name, WP_Sitemaps_Provider $provider ) {
+	$sitemaps = wp_sitemaps_get_server();
+	return $sitemaps->registry->add_provider( $name, $provider );
+}
+
+/**
+ * Gets the maximum number of URLs for a sitemap.
+ *
+ * @since 5.5.0
+ *
+ * @param string $object_type Object type for sitemap to be filtered (e.g. 'post', 'term', 'user').
+ * @return int The maximum number of URLs.
+ */
+function wp_sitemaps_get_max_urls( $object_type ) {
+	/**
+	 * Filters the maximum number of URLs displayed on a sitemap.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param int    $max_urls    The maximum number of URLs included in a sitemap. Default 2000.
+	 * @param string $object_type Object type for sitemap to be filtered (e.g. 'post', 'term', 'user').
+	 */
+	return apply_filters( 'wp_sitemaps_max_urls', 2000, $object_type );
+}
+
+/**
  * Retrieves the full URL for a sitemap.
  *
  * @since 5.5.1
