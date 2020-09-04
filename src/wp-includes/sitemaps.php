@@ -74,9 +74,9 @@ function get_sitemap_url( $name, $subtype_name = '', $page = 1 ) {
 	 * @param string $subtype_name The sitemap subtype name.
 	 * @param int    $page         The page of the sitemap.
 	 */
-	$check = apply_filters( 'pre_get_sitemap_url', null, $name, $subtype_name, $page )
+	$check = apply_filters( 'pre_get_sitemap_url', null, $name, $subtype_name, $page );
 	if ( null !== $check ) {
-	    return $check;
+		return $check;
 	}
 
 	$sitemaps = wp_sitemaps_get_server();
