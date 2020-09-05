@@ -3234,6 +3234,110 @@ function wp_defer_term_counting( $defer = null ) {
 }
 
 /**
+ * Uses an increment/decrement system to perform term count.
+ *
+ * @since 5.6
+ *
+ * @param array  $terms           The term_taxonomy_id of terms to update.
+ * @param string $taxonomy        The taxonomy to be counted.
+ * @param string $transition_type Either 'increment' or 'decrement' term count.
+ * @return bool Whether or not an update completed.
+ */
+function wp_quick_update_term_count( $terms, $taxonomy, $transition_type ) {
+	global $wpdb;
+	$terms = array_map( 'intval', $terms );
+
+	$taxonomy = get_taxonomy( $taxonomy );
+	if ( ! empty( $taxonomy->update_count_callback ) ) {
+		return call_user_func( $taxonomy->update_count_callback, $terms, $taxonomy );
+	} elseif ( ! empty( $terms ) ) {
+		if ( 'increment' === $transition_type ) {
+			$change = 1;
+		} elseif ( 'decrement' === $transition_type ) {
+			$change = -1;
+		} else {
+			return false;
+		}
+		$tt_ids_string = '(' . implode( ',', $terms ) . ')';
+
+		foreach ( $terms as $term ) {
+			/** This action is documented in wp-includes/taxonomy.php */
+			do_action( 'edit_term_taxonomy', $term, $taxonomy );
+		}
+
+		$result = $wpdb->query(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"UPDATE {$wpdb->term_taxonomy} AS tt SET tt.count = GREATEST( 0, tt.count + %d ) WHERE tt.term_taxonomy_id IN $tt_ids_string",
+				$change
+			)
+		);
+
+		if ( ! $result ) {
+			return false;
+		}
+
+		foreach ( $terms as $term ) {
+			/** This action is documented in wp-includes/taxonomy.php */
+			do_action( 'edited_term_taxonomy', $term, $taxonomy );
+		}
+	}
+
+	clean_term_cache( $terms, '', false );
+
+	return true;
+}
+
+/**
+ * When a term relationship is added, increment the term count.
+ *
+ * @since 5.6
+ *
+* @param int    $object_id Object ID.
+* @param int    $tt_id     Single term taxonomy ID.
+* @param string $taxonomy  Taxonomy slug.
+ */
+function wp_increment_term_relationship( $object_id, $tt_id, $taxonomy ) {
+	_handle_term_relationship_change( $object_id, (array) $tt_id, $taxonomy, 'increment' );
+}
+
+/**
+ * When a term relationship is removed, decrement the term count.
+ *
+ * @since 5.6
+ *
+* @param int    $object_id Object ID.
+* @param int    $tt_id     Single term taxonomy ID.
+* @param string $taxonomy  Taxonomy slug.
+ */
+function wp_decrement_term_relationship( $object_id, $tt_id, $taxonomy ) {
+	_handle_term_relationship_change( $object_id, (array) $tt_id, $taxonomy, 'decrement' );
+}
+
+/**
+ * Recount all posts for a term.
+ *
+ * This occurs when an edit originates from the edit term screen.
+ *
+ * @since 5.6
+ *
+ * @param int    $term_id  The term ID being counted.
+ * @param int    $tt_id    The term taxonomy id.
+ * @param string $taxonomy The taxonomy.
+ * @return bool True if the screen check passes, otherwise false.
+ */
+function maybe_recount_posts_for_term( $term_id, $tt_id, $taxonomy ) {
+	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : '';
+	if ( ! ( $screen instanceof WP_Screen ) ) {
+		return false;
+	}
+	if ( "edit-{$taxonomy}" === $screen->id ) {
+		wp_update_term_count( array( $tt_id ), $taxonomy );
+	}
+	return true;
+}
+
+/**
  * Updates the amount of terms in taxonomy.
  *
  * If there is a taxonomy callback applied, then it will be called for updating
@@ -3730,6 +3834,31 @@ function _get_term_children( $term_id, $terms, $taxonomy, &$ancestors = array() 
 }
 
 /**
+ * Update term counts when term relationships are added or deleted.
+ *
+ * @access private
+ * @since 5.6
+ *
+ * @param int    $object_id  Object ID.
+ * @param array  $tt_ids     Array of term taxonomy IDs.
+ * @param string $taxonomy   Taxonomy slug.
+ * @param string $transition Transition (increment or decrement).
+ */
+function _handle_term_relationship_change( $object_id, $tt_ids, $taxonomy, $transition ) {
+	$post = get_post( $object_id );
+
+	if ( ( ! $post || ! is_object_in_taxonomy( $post->post_type, $taxonomy ) ) ||
+		/** This filter is documented in wp-includes/taxonomy.php */
+		in_array( get_post_status( $post ), apply_filters( 'countable_status', array( 'publish' ), $taxonomy ), true ) ) {
+		// We use `get_post_status()` to check if parent status is 'inherit'.
+		wp_quick_update_term_count( $object_id, $tt_ids, $taxonomy, $transition );
+	} else {
+		clean_term_cache( $tt_ids, $taxonomy, false );
+	}
+}
+
+
+/**
  * Add count of children to parent count.
  *
  * Recalculates term counts by including items from child terms. Assumes all
@@ -3871,17 +4000,21 @@ function _update_post_term_count( $terms, $taxonomy ) {
 		$object_types = esc_sql( array_filter( $object_types, 'post_type_exists' ) );
 	}
 
+	/** This filter is documented in wp-includes/taxonomy.php */
+	$in_countable_status = "( '" . implode( "', '", apply_filters( 'countable_status', array( 'publish' ), $taxonomy->name ) ) . "' )";
+
 	foreach ( (array) $terms as $term ) {
 		$count = 0;
 
 		// Attachments can be 'inherit' status, we need to base count off the parent's status if so.
 		if ( $check_attachments ) {
-			$count += (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts p1 WHERE p1.ID = $wpdb->term_relationships.object_id AND ( post_status = 'publish' OR ( post_status = 'inherit' AND post_parent > 0 AND ( SELECT post_status FROM $wpdb->posts WHERE ID = p1.post_parent ) = 'publish' ) ) AND post_type = 'attachment' AND term_taxonomy_id = %d", $term ) );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL, WordPress.DB.PreparedSQLPlaceholders.QuotedDynamicPlaceholderGeneration
+			$count += (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts p1 WHERE p1.ID = $wpdb->term_relationships.object_id AND ( post_status IN " . $in_countable_status . " OR ( post_status = 'inherit' AND post_parent > 0 AND ( SELECT post_status FROM $wpdb->posts WHERE ID = p1.post_parent ) IN " . $in_countable_status . " ) ) AND post_type = 'attachment' AND term_taxonomy_id = %d", $term ) );
 		}
 
 		if ( $object_types ) {
-			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.QuotedDynamicPlaceholderGeneration
-			$count += (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts WHERE $wpdb->posts.ID = $wpdb->term_relationships.object_id AND post_status = 'publish' AND post_type IN ('" . implode( "', '", $object_types ) . "') AND term_taxonomy_id = %d", $term ) );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL, WordPress.DB.PreparedSQLPlaceholders.QuotedDynamicPlaceholderGeneration
+			$count += (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts WHERE $wpdb->posts.ID = $wpdb->term_relationships.object_id AND post_status IN " . $in_countable_status . " AND post_type IN ('" . implode( "', '", $object_types ) . "') AND term_taxonomy_id = %d", $term ) );
 		}
 
 		/** This action is documented in wp-includes/taxonomy.php */

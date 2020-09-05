@@ -7239,7 +7239,59 @@ function _update_term_count_on_transition_post_status( $new_status, $old_status,
 	// Update counts for the post's terms.
 	foreach ( (array) get_object_taxonomies( $post->post_type ) as $taxonomy ) {
 		$tt_ids = wp_get_object_terms( $post->ID, $taxonomy, array( 'fields' => 'tt_ids' ) );
-		wp_update_term_count( $tt_ids, $taxonomy );
+
+		/**
+		 * Filters the post statuses included in term counts.
+		 *
+		 * @since 5.6
+		 *
+		 * @param array  $stati    Array of post statuses included in term counts.
+		 * @param string $taxonomy The taxonomy being counted.
+		 */
+		$countable_status = apply_filters( 'countable_status', array( 'publish' ), $taxonomy );
+
+		$count_new = in_array( $new_status, $countable_status, true );
+		$count_old = in_array( $old_status, $countable_status, true );
+		if ( $count_new && ! $count_old ) {
+			$transition = 'increment';
+		} elseif ( $count_old && ! $count_new ) {
+			$transition = 'decrement';
+		}
+
+		if ( isset( $transition ) ) {
+			wp_quick_update_term_count( $tt_ids, $taxonomy, $transition );
+		}
+
+		// For non-attachments, let's check if there are any attachment children
+		// with 'inherited' post status -- if so those will need to be re-counted.
+		if ( 'attachment' !== $post->post_type ) {
+			$attachments = new WP_Query(
+				array(
+					'post_type'           => 'attachment',
+					'post_parent'         => $post->ID,
+					'post_status'         => 'inherit',
+					'ignore_sticky_posts' => true,
+					'no_found_rows'       => true,
+					'posts_per_page'      => -1,
+					'fields'              => 'ids',
+					'orderby'             => 'ID',
+					'order'               => 'ASC',
+				)
+			);
+
+			if ( $attachments->have_posts() ) {
+				foreach ( $attachments->posts as $attachment_id ) {
+					_update_term_count_on_transition_post_status(
+						$new_status,
+						$old_status,
+						(object) array(
+							'ID'        => $attachment_id,
+							'post_type' => 'attachment',
+						)
+					);
+				}
+			}
+		}
 	}
 }
 
