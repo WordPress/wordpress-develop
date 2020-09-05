@@ -3238,52 +3238,58 @@ function wp_defer_term_counting( $defer = null ) {
  *
  * @since 5.6
  *
- * @param array|int $terms           The term_taxonomy_id of terms to update.
+ * @param array|int $tt_ids          The term_taxonomy_id of terms to update.
  * @param string    $taxonomy        The taxonomy to be counted.
  * @param string    $transition_type Either 'increment' or 'decrement' term count.
  * @return bool Whether or not an update completed.
  */
-function wp_quick_update_term_count( $terms, $taxonomy, $transition_type ) {
+function wp_quick_update_term_count( $tt_ids, $taxonomy, $transition_type ) {
 	global $wpdb;
-	$terms = array_map( 'intval', (array) $terms );
+	$tt_ids = array_filter( array_map( 'intval', (array) $tt_ids ) );
+
+	if ( empty( $tt_ids ) ) {
+		return false;
+	}
 
 	$taxonomy = get_taxonomy( $taxonomy );
 	if ( ! empty( $taxonomy->update_count_callback ) ) {
-		return call_user_func( $taxonomy->update_count_callback, $terms, $taxonomy );
-	} elseif ( ! empty( $terms ) ) {
-		if ( 'increment' === $transition_type ) {
-			$change = 1;
-		} elseif ( 'decrement' === $transition_type ) {
-			$change = -1;
-		} else {
-			return false;
-		}
-		$tt_ids_string = '(' . implode( ',', $terms ) . ')';
-
-		foreach ( $terms as $term ) {
-			/** This action is documented in wp-includes/taxonomy.php */
-			do_action( 'edit_term_taxonomy', $term, $taxonomy );
-		}
-
-		$result = $wpdb->query(
-			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				"UPDATE {$wpdb->term_taxonomy} AS tt SET tt.count = GREATEST( 0, tt.count + %d ) WHERE tt.term_taxonomy_id IN $tt_ids_string",
-				$change
-			)
-		);
-
-		if ( ! $result ) {
-			return false;
-		}
-
-		foreach ( $terms as $term ) {
-			/** This action is documented in wp-includes/taxonomy.php */
-			do_action( 'edited_term_taxonomy', $term, $taxonomy );
-		}
+		call_user_func( $taxonomy->update_count_callback, $tt_ids, $taxonomy );
+		clean_term_cache( $tt_ids, '', false );
+		return true;
 	}
 
-	clean_term_cache( $terms, '', false );
+	if ( 'increment' === $transition_type ) {
+		$change = 1;
+	} elseif ( 'decrement' === $transition_type ) {
+		$change = -1;
+	} else {
+		return false;
+	}
+	$tt_ids_string = '(' . implode( ',', $tt_ids ) . ')';
+
+	foreach ( $tt_ids as $tt_id ) {
+		/** This action is documented in wp-includes/taxonomy.php */
+		do_action( 'edit_term_taxonomy', $tt_id, $taxonomy );
+	}
+
+	$result = $wpdb->query(
+		$wpdb->prepare(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			"UPDATE {$wpdb->term_taxonomy} AS tt SET tt.count = GREATEST( 0, tt.count + %d ) WHERE tt.term_taxonomy_id IN $tt_ids_string",
+			$change
+		)
+	);
+
+	if ( ! $result ) {
+		return false;
+	}
+
+	foreach ( $tt_ids as $tt_id ) {
+		/** This action is documented in wp-includes/taxonomy.php */
+		do_action( 'edited_term_taxonomy', $tt_id, $taxonomy );
+	}
+
+	clean_term_cache( $tt_ids, '', false );
 
 	return true;
 }
@@ -3851,7 +3857,7 @@ function _handle_term_relationship_change( $object_id, $tt_ids, $taxonomy, $tran
 		/** This filter is documented in wp-includes/taxonomy.php */
 		in_array( get_post_status( $post ), apply_filters( 'countable_status', array( 'publish' ), $taxonomy ), true ) ) {
 		// We use `get_post_status()` to check if parent status is 'inherit'.
-		wp_quick_update_term_count( $object_id, $tt_ids, $taxonomy, $transition );
+		wp_quick_update_term_count( $tt_ids, $taxonomy, $transition );
 	} else {
 		clean_term_cache( $tt_ids, $taxonomy, false );
 	}
