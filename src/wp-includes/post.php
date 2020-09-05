@@ -7262,34 +7262,36 @@ function _update_term_count_on_transition_post_status( $new_status, $old_status,
 			wp_quick_update_term_count( $tt_ids, $taxonomy, $transition );
 		}
 
+		if ( 'attachment' === $post->post_type ) {
+			return;
+		}
+
 		// For non-attachments, let's check if there are any attachment children
 		// with 'inherited' post status -- if so those will need to be re-counted.
-		if ( 'attachment' !== $post->post_type ) {
-			$attachments = new WP_Query(
-				array(
-					'post_type'           => 'attachment',
-					'post_parent'         => $post->ID,
-					'post_status'         => 'inherit',
-					'ignore_sticky_posts' => true,
-					'no_found_rows'       => true,
-					'posts_per_page'      => -1,
-					'fields'              => 'ids',
-					'orderby'             => 'ID',
-					'order'               => 'ASC',
-				)
-			);
+		$attachments = new WP_Query(
+			array(
+				'post_type'           => 'attachment',
+				'post_parent'         => $post->ID,
+				'post_status'         => 'inherit',
+				'ignore_sticky_posts' => true,
+				'no_found_rows'       => true,
+				'posts_per_page'      => -1,
+				'fields'              => 'ids',
+				'orderby'             => 'ID',
+				'order'               => 'ASC',
+			)
+		);
 
-			if ( $attachments->have_posts() ) {
-				foreach ( $attachments->posts as $attachment_id ) {
-					_update_term_count_on_transition_post_status(
-						$new_status,
-						$old_status,
-						(object) array(
-							'ID'        => $attachment_id,
-							'post_type' => 'attachment',
-						)
-					);
-				}
+		if ( $attachments->have_posts() ) {
+			foreach ( $attachments->posts as $attachment_id ) {
+				_update_term_count_on_transition_post_status(
+					$new_status,
+					$old_status,
+					(object) array(
+						'ID'        => $attachment_id,
+						'post_type' => 'attachment',
+					)
+				);
 			}
 		}
 	}
