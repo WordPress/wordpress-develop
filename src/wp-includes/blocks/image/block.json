@@ -1,6 +1,6 @@
 {
 	"name": "core/image",
-	"category": "media",
+	"category": "common",
 	"attributes": {
 		"align": {
 			"type": "string"
@@ -69,9 +69,5 @@
 			"selector": "figure > a",
 			"attribute": "target"
 		}
-	},
-	"supports": {
-		"anchor": true,
-		"lightBlockWrapper": true
 	}
 }

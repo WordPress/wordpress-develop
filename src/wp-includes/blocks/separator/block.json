@@ -1,6 +1,6 @@
 {
 	"name": "core/separator",
-	"category": "design",
+	"category": "layout",
 	"attributes": {
 		"color": {
 			"type": "string"
@@ -8,8 +8,5 @@
 		"customColor": {
 			"type": "string"
 		}
-	},
-	"supports": {
-		"anchor": true
 	}
 }

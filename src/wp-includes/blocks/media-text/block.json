@@ -1,10 +1,16 @@
 {
 	"name": "core/media-text",
-	"category": "media",
+	"category": "layout",
 	"attributes": {
 		"align": {
 			"type": "string",
 			"default": "wide"
+		},
+		"backgroundColor": {
+			"type": "string"
+		},
+		"customBackgroundColor": {
+			"type": "string"
 		},
 		"mediaAlt": {
 			"type": "string",
@@ -75,19 +81,6 @@
 		},
 		"focalPoint": {
 			"type": "object"
-		}
-	},
-	"supports": {
-		"anchor": true,
-		"align": [
-			"wide",
-			"full"
-		],
-		"html": false,
-		"lightBlockWrapper": true,
-		"__experimentalColor": {
-			"gradients": true,
-			"linkColor": true
 		}
 	}
 }

@@ -1,16 +1,11 @@
 {
 	"name": "core/code",
-	"category": "text",
+	"category": "formatting",
 	"attributes": {
 		"content": {
 			"type": "string",
 			"source": "text",
 			"selector": "code"
 		}
-	},
-	"supports": {
-		"anchor": true,
-		"html": false,
-		"lightBlockWrapper": true
 	}
 }

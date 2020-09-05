@@ -130,6 +130,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/plugins',
 			'/wp/v2/plugins/(?P<plugin>[^.\/]+(?:\/[^.\/]+)?)',
 			'/wp/v2/block-directory/search',
+			'/wp/v2/batch',
 		);
 
 		$this->assertSame( $expected_routes, $routes );

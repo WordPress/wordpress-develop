@@ -1,6 +1,6 @@
 {
 	"name": "core/table",
-	"category": "text",
+	"category": "formatting",
 	"attributes": {
 		"hasFixedLayout": {
 			"type": "boolean",
@@ -120,9 +120,5 @@
 				}
 			}
 		}
-	},
-	"supports": {
-		"anchor": true,
-		"align": true
 	}
 }

@@ -1,6 +1,6 @@
 {
 	"name": "core/list",
-	"category": "text",
+	"category": "common",
 	"attributes": {
 		"ordered": {
 			"type": "boolean",
@@ -11,10 +11,7 @@
 			"source": "html",
 			"selector": "ol,ul",
 			"multiline": "li",
-			"__unstableMultilineWrapperTags": [
-				"ol",
-				"ul"
-			],
+			"__unstableMultilineWrapperTags": [ "ol", "ul" ],
 			"default": ""
 		},
 		"type": {
@@ -26,11 +23,5 @@
 		"reversed": {
 			"type": "boolean"
 		}
-	},
-	"supports": {
-		"anchor": true,
-		"className": false,
-		"__unstablePasteTextInline": true,
-		"lightBlockWrapper": true
 	}
 }

@@ -1,6 +1,6 @@
 {
 	"name": "core/pullquote",
-	"category": "text",
+	"category": "formatting",
 	"attributes": {
 		"value": {
 			"type": "string",
@@ -26,14 +26,5 @@
 		"customTextColor": {
 			"type": "string"
 		}
-	},
-	"supports": {
-		"anchor": true,
-		"align": [
-			"left",
-			"right",
-			"wide",
-			"full"
-		]
 	}
 }

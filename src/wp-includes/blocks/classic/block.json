@@ -1,15 +1,10 @@
 {
 	"name": "core/freeform",
-	"category": "text",
+	"category": "formatting",
 	"attributes": {
 		"content": {
 			"type": "string",
 			"source": "html"
 		}
-	},
-	"supports": {
-		"className": false,
-		"customClassName": false,
-		"reusable": false
 	}
 }

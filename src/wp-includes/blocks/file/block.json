@@ -1,6 +1,6 @@
 {
 	"name": "core/file",
-	"category": "media",
+	"category": "common",
 	"attributes": {
 		"id": {
 			"type": "number"
@@ -34,9 +34,5 @@
 			"source": "html",
 			"selector": "a[download]"
 		}
-	},
-	"supports": {
-		"anchor": true,
-		"align": true
 	}
 }

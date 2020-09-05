@@ -1,22 +1,21 @@
 {
 	"name": "core/columns",
-	"category": "design",
+	"category": "layout",
 	"attributes": {
 		"verticalAlignment": {
 			"type": "string"
-		}
-	},
-	"supports": {
-		"anchor": true,
-		"align": [
-			"wide",
-			"full"
-		],
-		"html": false,
-		"lightBlockWrapper": true,
-		"__experimentalColor": {
-			"gradients": true,
-			"linkColor": true
+		},
+		"backgroundColor": {
+			"type": "string"
+		},
+		"customBackgroundColor": {
+			"type": "string"
+		},
+		"customTextColor" : {
+			"type": "string"
+		},
+		"textColor": {
+			"type": "string"
 		}
 	}
 }

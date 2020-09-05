@@ -1,6 +1,6 @@
 {
 	"name": "core/gallery",
-	"category": "media",
+	"category": "common",
 	"attributes": {
 		"images": {
 			"type": "array",
@@ -9,32 +9,27 @@
 			"selector": ".blocks-gallery-item",
 			"query": {
 				"url": {
-					"type": "string",
 					"source": "attribute",
 					"selector": "img",
 					"attribute": "src"
 				},
 				"fullUrl": {
-					"type": "string",
 					"source": "attribute",
 					"selector": "img",
 					"attribute": "data-full-url"
 				},
 				"link": {
-					"type": "string",
 					"source": "attribute",
 					"selector": "img",
 					"attribute": "data-link"
 				},
 				"alt": {
-					"type": "string",
 					"source": "attribute",
 					"selector": "img",
 					"attribute": "alt",
 					"default": ""
 				},
 				"id": {
-					"type": "string",
 					"source": "attribute",
 					"selector": "img",
 					"attribute": "data-id"
@@ -50,7 +45,7 @@
 			"type": "array",
 			"items": {
 				"type": "number"
-			},
+  			},
 			"default": []
 		},
 		"columns": {
@@ -75,9 +70,5 @@
 			"type": "string",
 			"default": "large"
 		}
-	},
-	"supports": {
-		"anchor": true,
-		"align": true
 	}
 }

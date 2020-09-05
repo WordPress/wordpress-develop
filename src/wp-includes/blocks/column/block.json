@@ -1,9 +1,6 @@
 {
 	"name": "core/column",
-	"category": "text",
-	"parent": [
-		"core/columns"
-	],
+	"category": "common",
 	"attributes": {
 		"verticalAlignment": {
 			"type": "string"
@@ -13,11 +10,5 @@
 			"min": 0,
 			"max": 100
 		}
-	},
-	"supports": {
-		"anchor": true,
-		"reusable": false,
-		"html": false,
-		"lightBlockWrapper": true
 	}
 }

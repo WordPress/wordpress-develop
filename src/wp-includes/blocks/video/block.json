@@ -1,6 +1,6 @@
 {
 	"name": "core/video",
-	"category": "media",
+	"category": "common",
 	"attributes": {
 		"autoplay": {
 			"type": "boolean",
@@ -60,10 +60,5 @@
 			"selector": "video",
 			"attribute": "playsinline"
 		}
-	},
-	"supports": {
-		"anchor": true,
-		"align": true,
-		"lightBlockWrapper": true
 	}
 }

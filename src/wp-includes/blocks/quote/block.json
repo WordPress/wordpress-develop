@@ -1,6 +1,6 @@
 {
 	"name": "core/quote",
-	"category": "text",
+	"category": "common",
 	"attributes": {
 		"value": {
 			"type": "string",
@@ -18,8 +18,5 @@
 		"align": {
 			"type": "string"
 		}
-	},
-	"supports": {
-		"anchor": true
 	}
 }

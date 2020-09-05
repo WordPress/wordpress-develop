@@ -1,15 +1,10 @@
 {
 	"name": "core/html",
-	"category": "widgets",
+	"category": "formatting",
 	"attributes": {
 		"content": {
 			"type": "string",
 			"source": "html"
 		}
-	},
-	"supports": {
-		"customClassName": false,
-		"className": false,
-		"html": false
 	}
 }
