@@ -1513,6 +1513,110 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( 204, $response->get_status(), '/test-ns/v1/test' );
 	}
 
+	/**
+	 * @ticket 50244
+	 */
+	public function test_no_route() {
+		$mock_hook = new MockAction();
+		add_filter( 'rest_request_after_callbacks', array( $mock_hook, 'filter' ) );
+
+		$response = rest_do_request( '/test-ns/v1/test' );
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+
+		// Verify that the no route error was not filtered.
+		$this->assertCount( 0, $mock_hook->get_events() );
+	}
+
+	/**
+	 * @ticket 50244
+	 */
+	public function test_invalid_handler() {
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				'callback'            => 'invalid_callback',
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		$mock_hook = new MockAction();
+		add_filter( 'rest_request_after_callbacks', array( $mock_hook, 'filter' ) );
+
+		$response = rest_do_request( '/test-ns/v1/test' );
+		$this->assertErrorResponse( 'rest_invalid_handler', $response, 500 );
+
+		// Verify that the invalid handler error was filtered.
+		$events = $mock_hook->get_events();
+		$this->assertCount( 1, $events );
+		$this->assertWPError( $events[0]['args'][0] );
+		$this->assertEquals( 'rest_invalid_handler', $events[0]['args'][0]->get_error_code() );
+	}
+
+	/**
+	 * @ticket 50244
+	 */
+	public function test_callbacks_are_not_executed_if_request_validation_fails() {
+		$callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
+		$callback->expects( self::never() )->method( '__invoke' );
+		$permission_callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
+		$permission_callback->expects( self::never() )->method( '__invoke' );
+
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				'callback'            => $callback,
+				'permission_callback' => $permission_callback,
+				'args'                => array(
+					'test' => array(
+						'validate_callback' => '__return_false',
+					),
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/test-ns/v1/test' );
+		$request->set_query_params( array( 'test' => 'world' ) );
+		$response = rest_do_request( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * @ticket 50244
+	 */
+	public function test_filters_are_executed_if_request_validation_fails() {
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				'callback'            => '__return_empty_array',
+				'permission_callback' => '__return_true',
+				'args'                => array(
+					'test' => array(
+						'validate_callback' => '__return_false',
+					),
+				),
+			)
+		);
+
+		$mock_hook = new MockAction();
+		add_filter( 'rest_request_after_callbacks', array( $mock_hook, 'filter' ) );
+
+		$request = new WP_REST_Request( 'GET', '/test-ns/v1/test' );
+		$request->set_query_params( array( 'test' => 'world' ) );
+		$response = rest_do_request( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+
+		// Verify that the invalid param error was filtered.
+		$events = $mock_hook->get_events();
+		$this->assertCount( 1, $events );
+		$this->assertWPError( $events[0]['args'][0] );
+		$this->assertEquals( 'rest_invalid_param', $events[0]['args'][0]->get_error_code() );
+	}
+
 	public function _validate_as_integer_123( $value, $request, $key ) {
 		if ( ! is_int( $value ) ) {
 			return new WP_Error( 'some-error', 'This is not valid!' );
