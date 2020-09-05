@@ -779,4 +779,72 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertTrue( $request->has_param( 'param' ) );
 		$this->assertSame( 'value', $request->get_param( 'param' ) );
 	}
+
+	/**
+	 * @ticket 51255
+	 */
+	public function test_route_level_validate_callback() {
+		$request = new WP_REST_Request();
+		$request->set_query_params( array( 'test' => 'value' ) );
+
+		$error    = new WP_Error( 'error_code', __( 'Error Message' ), array( 'status' => 400 ) );
+		$callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
+		$callback->expects( self::once() )->method( '__invoke' )->with( self::identicalTo( $request ) )->willReturn( $error );
+		$request->set_attributes(
+			array(
+				'args'              => array(
+					'test' => array(
+						'validate_callback' => '__return_true',
+					),
+				),
+				'validate_callback' => $callback,
+			)
+		);
+
+		$this->assertSame( $error, $request->has_valid_params() );
+	}
+
+	/**
+	 * @ticket 51255
+	 */
+	public function test_route_level_validate_callback_no_parameter_callbacks() {
+		$request = new WP_REST_Request();
+		$request->set_query_params( array( 'test' => 'value' ) );
+
+		$error    = new WP_Error( 'error_code', __( 'Error Message' ), array( 'status' => 400 ) );
+		$callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
+		$callback->expects( self::once() )->method( '__invoke' )->with( self::identicalTo( $request ) )->willReturn( $error );
+		$request->set_attributes(
+			array(
+				'validate_callback' => $callback,
+			)
+		);
+
+		$this->assertSame( $error, $request->has_valid_params() );
+	}
+
+	/**
+	 * @ticket 51255
+	 */
+	public function test_route_level_validate_callback_is_not_executed_if_parameter_validation_fails() {
+		$request = new WP_REST_Request();
+		$request->set_query_params( array( 'test' => 'value' ) );
+
+		$callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
+		$callback->expects( self::never() )->method( '__invoke' );
+		$request->set_attributes(
+			array(
+				'validate_callback' => $callback,
+				'args'              => array(
+					'test' => array(
+						'validate_callback' => '__return_false',
+					),
+				),
+			)
+		);
+
+		$valid = $request->has_valid_params();
+		$this->assertWPError( $valid );
+		$this->assertEquals( 'rest_invalid_param', $valid->get_error_code() );
+	}
 }
