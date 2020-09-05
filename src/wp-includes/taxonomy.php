@@ -3238,14 +3238,14 @@ function wp_defer_term_counting( $defer = null ) {
  *
  * @since 5.6
  *
- * @param array  $terms           The term_taxonomy_id of terms to update.
- * @param string $taxonomy        The taxonomy to be counted.
- * @param string $transition_type Either 'increment' or 'decrement' term count.
+ * @param array|int $terms           The term_taxonomy_id of terms to update.
+ * @param string    $taxonomy        The taxonomy to be counted.
+ * @param string    $transition_type Either 'increment' or 'decrement' term count.
  * @return bool Whether or not an update completed.
  */
 function wp_quick_update_term_count( $terms, $taxonomy, $transition_type ) {
 	global $wpdb;
-	$terms = array_map( 'intval', $terms );
+	$terms = array_map( 'intval', (array) $terms );
 
 	$taxonomy = get_taxonomy( $taxonomy );
 	if ( ! empty( $taxonomy->update_count_callback ) ) {
