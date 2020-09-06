@@ -27,7 +27,7 @@ class Tests_Cache extends WP_UnitTestCase {
 	}
 
 	function test_miss() {
-		$this->assertEquals( null, $this->cache->get( 'test_miss' ) );
+		$this->assertFalse( $this->cache->get( 'test_miss' ) );
 	}
 
 	function test_add_get() {
