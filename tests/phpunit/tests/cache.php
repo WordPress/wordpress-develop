@@ -43,7 +43,7 @@ class Tests_Cache extends WP_UnitTestCase {
 		$val = 0;
 
 		// You can store zero in the cache.
-		$this->cache->add( $key, $val );
+		$this->assertTrue( $this->cache->add( $key, $val ) );
 		$this->assertSame( $val, $this->cache->get( $key ) );
 	}
 
@@ -51,9 +51,9 @@ class Tests_Cache extends WP_UnitTestCase {
 		$key = __FUNCTION__;
 		$val = null;
 
+		// You can store null in the cache.
 		$this->assertTrue( $this->cache->add( $key, $val ) );
-		// Null is converted to empty string.
-		$this->assertEquals( '', $this->cache->get( $key ) );
+		$this->assertSame( $val, $this->cache->get( $key ) );
 	}
 
 	function test_add() {
