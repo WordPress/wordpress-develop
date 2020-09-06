@@ -2636,6 +2636,19 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Term counts are not double incremented when post created.
+	 *
+	 * @ticket 40351
+	 */
+	public function test_term_counts_not_double_counted() {
+		$default_cat_count = get_term( get_option( 'default_category' ) )->count;
+		$post = self::factory()->post->create();
+
+		$expected = $default_cat_count + 1;
+		$this->assertSame( $expected, get_term( get_option( 'default_category' ) )->count );
+	}
+
+	/**
 	 * @ticket 10142
 	 */
 	public function test_termmeta_cache_should_be_primed_by_default() {
