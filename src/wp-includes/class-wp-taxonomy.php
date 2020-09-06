@@ -426,7 +426,9 @@ final class WP_Taxonomy {
 			is_callable( $args['update_count_callback'] ) &&
 			empty( $args['update_count_by_callback'] )
 		) {
-			$args['update_count_by_callback'] = $args['update_count_callback'];
+			$args['update_count_by_callback'] = function( $tt_ids, $taxonomy, $modify_by ) {
+				return call_user_func( $args['update_count_callback'], $tt_ids, $taxonomy );
+			};
 		}
 
 		foreach ( $args as $property_name => $property_value ) {

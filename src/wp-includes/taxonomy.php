@@ -2647,7 +2647,7 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 	}
 
 	if ( $new_tt_ids ) {
-		wp_update_term_count( $new_tt_ids, $taxonomy );
+		wp_increment_term_count( $new_tt_ids, $taxonomy );
 	}
 
 	if ( ! $append ) {
@@ -2806,7 +2806,7 @@ function wp_remove_object_terms( $object_id, $terms, $taxonomy ) {
 		 */
 		do_action( 'deleted_term_relationships', $object_id, $tt_ids, $taxonomy );
 
-		wp_update_term_count( $tt_ids, $taxonomy );
+		wp_decrement_term_count( $tt_ids, $taxonomy );
 
 		return (bool) $deleted;
 	}
@@ -3227,10 +3227,176 @@ function wp_defer_term_counting( $defer = null ) {
 		// Flush any deferred counts.
 		if ( ! $defer ) {
 			wp_update_term_count( null, null, true );
+			wp_modify_term_count_by( null, null, null, true );
 		}
 	}
 
 	return $_defer;
+}
+
+/**
+ * Increments the amount of terms in taxonomy.
+ *
+ * If there is a taxonomy callback applied, then it will be called for updating
+ * the count.
+ *
+ * The default action is to increment the count by one and update the database.
+ *
+ * @since 5.6.0
+ *
+ * @param int|array $tt_ids       The term_taxonomy_id of the terms.
+ * @param string    $taxonomy     The context of the term.
+ * @param int       $increment_by By how many the term count is to be incremented. Default 1.
+ * @param bool      $do_deferred  Whether to flush the deferred term counts too. Default false.
+ * @return bool If no terms will return false, and if successful will return true.
+ */
+function wp_increment_term_count( $tt_ids, $taxonomy, $increment_by = 1, $do_deferred = false ) {
+	return wp_modify_term_count_by( $tt_ids, $taxonomy, $increment_by, $do_deferred );
+}
+
+/**
+ * Decrements the amount of terms in taxonomy.
+ *
+ * If there is a taxonomy callback applied, then it will be called for updating
+ * the count.
+ *
+ * The default action is to decrement the count by one and update the database.
+ *
+ * @since 5.6.0
+ *
+ * @param int|array $tt_ids       The term_taxonomy_id of the terms.
+ * @param string    $taxonomy     The context of the term.
+ * @param int       $decrement_by By how many the term count is to be decremented. Default 1.
+ * @param bool      $do_deferred  Whether to flush the deferred term counts too. Default false.
+ * @return bool If no terms will return false, and if successful will return true.
+ */
+function wp_decrement_term_count( $tt_ids, $taxonomy, $decrement_by = 1, $do_deferred = false ) {
+	return wp_modify_term_count_by( $tt_ids, $taxonomy, $decrement_by * -1, $do_deferred );
+}
+
+/**
+ * Modifies the amount of terms in taxonomy.
+ *
+ * If there is a taxonomy callback applied, then it will be called for updating
+ * the count.
+ *
+ * The default action is to decrement the count by one and update the database.
+ *
+ * @since 5.6.0
+ *
+ * @param int|array $tt_ids      The term_taxonomy_id of the terms.
+ * @param string    $taxonomy    The context of the term.
+ * @param int       $modify_by   By how many the term count is to be modified.
+ * @param bool      $do_deferred Whether to flush the deferred term counts too. Default false.
+ * @return bool If no terms will return false, and if successful will return true.
+ */
+function wp_modify_term_count_by( $tt_ids, $taxonomy, $modify_by, $do_deferred = false ) {
+	static $_deferred = array();
+
+	if ( $do_deferred ) {
+		foreach ( (array) $_deferred as $taxonomy_name => $modifications ) {
+			$tax_by_count = array_reduce(
+				array_keys( $modifications ),
+				function( $by_count, $tt_id ) use ( $modifications ) {
+					if ( ! isset( $by_count[ $modifications[ $tt_id ] ] ) ) {
+						$by_count[ $modifications[ $tt_id ] ] = array();
+					}
+					$by_count[ $modifications[ $tt_id ] ][] = $tt_id;
+					return $by_count;
+				},
+				array()
+			);
+
+			foreach ( $tax_by_count as $_modify_by => $_tt_ids ) {
+				wp_modify_term_count_by_now( $_tt_ids, $taxonomy_name, $_modify_by );
+			}
+			unset( $_deferred[ $taxonomy_name ] );
+		}
+	}
+
+	if ( empty( $tt_ids ) ) {
+		return false;
+	}
+
+	if ( ! is_array( $tt_ids ) ) {
+		$tt_ids = array( $tt_ids );
+	}
+
+	if ( wp_defer_term_counting() ) {
+		foreach ( $tt_ids as $tt_id ) {
+			if ( ! isset( $_deferred[ $taxonomy ][ $tt_id ] ) ) {
+				$_deferred[ $taxonomy ][ $tt_id ] = 0;
+			}
+			$_deferred[ $taxonomy ][ $tt_id ] += $modify_by;
+		}
+		return true;
+	}
+
+	return wp_modify_term_count_by_now( $tt_ids, $taxonomy, $modify_by );
+}
+
+/**
+ * Modifies the amount of terms in taxonomy immediately
+ *
+ * If there is a taxonomy callback applied, then it will be called for updating
+ * the count.
+ *
+ * The default action is to decrement the count by one and update the database.
+ *
+ * @since 5.6.0
+ *
+ * @param int|array $tt_ids      The term_taxonomy_id of the terms.
+ * @param string    $taxonomy    The context of the term.
+ * @param int       $modify_by   By how many the term count is to be modified.
+ * @return bool If no terms will return false, and if successful will return true.
+ */
+function wp_modify_term_count_by_now( $tt_ids, $taxonomy, $modify_by ) {
+	global $wpdb;
+
+	if ( 0 === $modify_by ) {
+		return false;
+	}
+
+	$tt_ids = array_filter( array_map( 'intval', (array) $tt_ids ) );
+
+	if ( empty( $tt_ids ) ) {
+		return false;
+	}
+
+	$taxonomy = get_taxonomy( $taxonomy );
+	if ( ! empty( $taxonomy->update_count_by_callback ) ) {
+		call_user_func( $taxonomy->update_count_by_callback, $tt_ids, $taxonomy );
+		clean_term_cache( $tt_ids, '', false );
+		return true;
+	}
+
+	$tt_ids_string = '(' . implode( ',', $tt_ids ) . ')';
+
+	foreach ( $tt_ids as $tt_id ) {
+		/** This action is documented in wp-includes/taxonomy.php */
+		do_action( 'edit_term_taxonomy', $tt_id, $taxonomy );
+	}
+
+	$result = $wpdb->query(
+		$wpdb->prepare(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			"UPDATE {$wpdb->term_taxonomy} AS tt SET tt.count = GREATEST( 0, tt.count + %d ) WHERE tt.term_taxonomy_id IN $tt_ids_string",
+			$modify_by
+		)
+	);
+
+	if ( ! $result ) {
+		return false;
+	}
+
+	foreach ( $tt_ids as $tt_id ) {
+		/** This action is documented in wp-includes/taxonomy.php */
+		do_action( 'edited_term_taxonomy', $tt_id, $taxonomy );
+	}
+
+	clean_term_cache( $tt_ids, '', false );
+
+	return true;
 }
 
 /**
