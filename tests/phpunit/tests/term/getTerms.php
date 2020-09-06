@@ -2642,7 +2642,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	 */
 	public function test_term_counts_not_double_counted() {
 		$default_cat_count = get_term( get_option( 'default_category' ) )->count;
-		$post = self::factory()->post->create();
+		$post              = self::factory()->post->create();
 
 		$expected = $default_cat_count + 1;
 		$this->assertSame( $expected, get_term( get_option( 'default_category' ) )->count );
