@@ -3365,7 +3365,7 @@ function wp_modify_term_count_by_now( $tt_ids, $taxonomy, $modify_by ) {
 
 	$taxonomy = get_taxonomy( $taxonomy );
 	if ( ! empty( $taxonomy->update_count_by_callback ) ) {
-		call_user_func( $taxonomy->update_count_by_callback, $tt_ids, $taxonomy );
+		call_user_func( $taxonomy->update_count_by_callback, $tt_ids, $taxonomy, $modify_by );
 		clean_term_cache( $tt_ids, '', false );
 		return true;
 	}
