@@ -47,11 +47,26 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertSame( $val, $this->cache->get( $key ) );
 	}
 
+	/**
+	 * @ticket 20004
+	 */
 	function test_add_get_null() {
 		$key = __FUNCTION__;
 		$val = null;
 
-		// You can store null in the cache.
+		// You can store `null` in the cache.
+		$this->assertTrue( $this->cache->add( $key, $val ) );
+		$this->assertSame( $val, $this->cache->get( $key ) );
+	}
+
+	/**
+	 * @ticket 20004
+	 */
+	function test_add_get_false() {
+		$key = __FUNCTION__;
+		$val = false;
+
+		// You can store `false` in the cache.
 		$this->assertTrue( $this->cache->add( $key, $val ) );
 		$this->assertSame( $val, $this->cache->get( $key ) );
 	}
