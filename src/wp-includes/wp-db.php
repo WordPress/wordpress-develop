@@ -925,13 +925,13 @@ class wpdb {
 	}
 
 	/**
-	 * Sets blog id.
+	 * Sets blog ID.
 	 *
 	 * @since 3.0.0
 	 *
 	 * @param int $blog_id
 	 * @param int $network_id Optional.
-	 * @return int Previous blog id.
+	 * @return int Previous blog ID.
 	 */
 	public function set_blog_id( $blog_id, $network_id = 0 ) {
 		if ( ! empty( $network_id ) ) {
@@ -967,8 +967,10 @@ class wpdb {
 			if ( null === $blog_id ) {
 				$blog_id = $this->blogid;
 			}
+
 			$blog_id = (int) $blog_id;
-			if ( defined( 'MULTISITE' ) && ( 0 == $blog_id || 1 == $blog_id ) ) {
+
+			if ( defined( 'MULTISITE' ) && ( 0 === $blog_id || 1 === $blog_id ) ) {
 				return $this->base_prefix;
 			} else {
 				return $this->base_prefix . $blog_id . '_';
@@ -1314,7 +1316,7 @@ class wpdb {
 
 		// If args were passed as an array (as in vsprintf), move them up.
 		$passed_as_array = false;
-		if ( is_array( $args[0] ) && count( $args ) == 1 ) {
+		if ( is_array( $args[0] ) && count( $args ) === 1 ) {
 			$passed_as_array = true;
 			$args            = $args[0];
 		}
@@ -1939,7 +1941,7 @@ class wpdb {
 			}
 		}
 
-		if ( empty( $this->dbh ) || 2006 == $mysql_errno ) {
+		if ( empty( $this->dbh ) || 2006 === $mysql_errno ) {
 			if ( $this->check_connection() ) {
 				$this->_do_query( $query );
 			} else {
@@ -2220,7 +2222,7 @@ class wpdb {
 	 *                             A format is one of '%d', '%f', '%s' (integer, float, string).
 	 *                             If omitted, all values in $data will be treated as strings unless otherwise
 	 *                             specified in wpdb::$field_types.
-	 * @param string $type         Optional. Type of operation. Possible values include 'INSERT' or 'REPLACE'.
+	 * @param string       $type   Optional. Type of operation. Possible values include 'INSERT' or 'REPLACE'.
 	 *                             Default 'INSERT'.
 	 * @return int|false The number of rows affected, or false on error.
 	 */
@@ -2574,9 +2576,9 @@ class wpdb {
 	 * @since 0.71
 	 *
 	 * @param string|null $query  SQL query.
-	 * @param string      $output Optional. The required return type. Possible values include
-	 *                            OBJECT, ARRAY_A, or ARRAY_N, which correspond to an stdClass object,
-	 *                            an associative array, or a numeric array, respectively. Default OBJECT.
+	 * @param string      $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+	 *                            correspond to an stdClass object, an associative array, or a numeric array,
+	 *                            respectively. Default OBJECT.
 	 * @param int         $y      Optional. Row to return. Indexed from 0.
 	 * @return array|object|null|void Database query result in format specified by $output or null on failure.
 	 */
@@ -2597,11 +2599,11 @@ class wpdb {
 			return null;
 		}
 
-		if ( OBJECT == $output ) {
+		if ( OBJECT === $output ) {
 			return $this->last_result[ $y ] ? $this->last_result[ $y ] : null;
-		} elseif ( ARRAY_A == $output ) {
+		} elseif ( ARRAY_A === $output ) {
 			return $this->last_result[ $y ] ? get_object_vars( $this->last_result[ $y ] ) : null;
-		} elseif ( ARRAY_N == $output ) {
+		} elseif ( ARRAY_N === $output ) {
 			return $this->last_result[ $y ] ? array_values( get_object_vars( $this->last_result[ $y ] ) ) : null;
 		} elseif ( OBJECT === strtoupper( $output ) ) {
 			// Back compat for OBJECT being previously case-insensitive.
@@ -2659,7 +2661,6 @@ class wpdb {
 	 *                       return an associative array of row objects keyed by the value
 	 *                       of each row's first column's value. Duplicate keys are discarded.
 	 * @return array|object|null Database query results.
-	 *
 	 */
 	public function get_results( $query = null, $output = OBJECT ) {
 		$this->func_call = "\$db->get_results(\"$query\", $output)";
@@ -2675,10 +2676,10 @@ class wpdb {
 		}
 
 		$new_array = array();
-		if ( OBJECT == $output ) {
+		if ( OBJECT === $output ) {
 			// Return an integer-keyed array of row objects.
 			return $this->last_result;
-		} elseif ( OBJECT_K == $output ) {
+		} elseif ( OBJECT_K === $output ) {
 			// Return an array of row objects with keys from column 1.
 			// (Duplicates are discarded.)
 			if ( $this->last_result ) {
@@ -2691,11 +2692,11 @@ class wpdb {
 				}
 			}
 			return $new_array;
-		} elseif ( ARRAY_A == $output || ARRAY_N == $output ) {
+		} elseif ( ARRAY_A === $output || ARRAY_N === $output ) {
 			// Return an integer-keyed array of...
 			if ( $this->last_result ) {
 				foreach ( (array) $this->last_result as $row ) {
-					if ( ARRAY_N == $output ) {
+					if ( ARRAY_N === $output ) {
 						// ...integer-keyed row arrays.
 						$new_array[] = array_values( get_object_vars( $row ) );
 					} else {
@@ -3296,7 +3297,7 @@ class wpdb {
 	 * @since 4.2.0
 	 *
 	 * @param string $query The query to search.
-	 * @return string|false $table The table name found, or false if a table couldn't be found.
+	 * @return string|false The table name found, or false if a table couldn't be found.
 	 */
 	protected function get_table_from_query( $query ) {
 		// Remove characters that can legally trail the table name.
@@ -3393,18 +3394,18 @@ class wpdb {
 	 *
 	 * @since 0.71
 	 *
-	 * @param string $info_type Optional. Possible values include 'name', 'table', 'def', 'max_length',
-	 *                          'not_null', 'primary_key', 'multiple_key', 'unique_key', 'numeric',
-	 *                          'blob', 'type', 'unsigned', 'zerofill'. Default 'name'.
-	 * @param int $col_offset   Optional. 0: col name. 1: which table the col's in. 2: col's max length.
-	 *                          3: if the col is numeric. 4: col's type. Default -1.
+	 * @param string $info_type  Optional. Possible values include 'name', 'table', 'def', 'max_length',
+	 *                           'not_null', 'primary_key', 'multiple_key', 'unique_key', 'numeric',
+	 *                           'blob', 'type', 'unsigned', 'zerofill'. Default 'name'.
+	 * @param int    $col_offset Optional. 0: col name. 1: which table the col's in. 2: col's max length.
+	 *                           3: if the col is numeric. 4: col's type. Default -1.
 	 * @return mixed Column results.
 	 */
 	public function get_col_info( $info_type = 'name', $col_offset = -1 ) {
 		$this->load_col_info();
 
 		if ( $this->col_info ) {
-			if ( -1 == $col_offset ) {
+			if ( -1 === $col_offset ) {
 				$i         = 0;
 				$new_array = array();
 				foreach ( (array) $this->col_info as $col ) {

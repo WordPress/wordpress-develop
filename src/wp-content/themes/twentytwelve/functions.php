@@ -451,7 +451,7 @@ if ( ! function_exists( 'twentytwelve_comment' ) ) :
 				if ( $commenter['comment_author_email'] ) {
 					$moderation_note = __( 'Your comment is awaiting moderation.', 'twentytwelve' );
 				} else {
-					$moderation_note = __( 'Your comment is awaiting moderation. This is a preview, your comment will be visible after it has been approved.', 'twentytwelve' );
+					$moderation_note = __( 'Your comment is awaiting moderation. This is a preview; your comment will be visible after it has been approved.', 'twentytwelve' );
 				}
 				?>
 
@@ -651,6 +651,7 @@ add_action( 'customize_register', 'twentytwelve_customize_register' );
  * Render the site title for the selective refresh partial.
  *
  * @since Twenty Twelve 2.0
+ *
  * @see twentytwelve_customize_register()
  *
  * @return void
@@ -663,6 +664,7 @@ function twentytwelve_customize_partial_blogname() {
  * Render the site tagline for the selective refresh partial.
  *
  * @since Twenty Twelve 2.0
+ *
  * @see twentytwelve_customize_register()
  *
  * @return void

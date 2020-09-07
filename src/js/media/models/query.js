@@ -22,8 +22,8 @@ var Attachments = wp.media.model.Attachments,
  */
 Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	/**
-	 * @param {array}  [models=[]]  Array of initial models to populate the collection.
-	 * @param {object} [options={}]
+	 * @param {Array}  [models=[]]  Array of initial models to populate the collection.
+	 * @param {Object} [options={}]
 	 */
 	initialize: function( models, options ) {
 		var allowed;
@@ -94,7 +94,7 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	/**
 	 * Fetch more attachments from the server for the collection.
 	 *
-	 * @param   {object}  [options={}]
+	 * @param {Object} [options={}]
 	 * @return {Promise}
 	 */
 	more: function( options ) {
@@ -122,7 +122,7 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	 * Overrides Backbone.Collection.sync
 	 * Overrides wp.media.model.Attachments.sync
 	 *
-	 * @param {String} method
+	 * @param {string} method
 	 * @param {Backbone.Model} model
 	 * @param {Object} [options={}]
 	 * @return {Promise}

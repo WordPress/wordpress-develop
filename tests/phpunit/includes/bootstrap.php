@@ -37,10 +37,12 @@ if ( ! is_readable( $config_file_path ) ) {
 require_once $config_file_path;
 require_once __DIR__ . '/functions.php';
 
-if ( version_compare( tests_get_phpunit_version(), '5.4', '<' ) || version_compare( tests_get_phpunit_version(), '8.0', '>=' ) ) {
+$phpunit_version = tests_get_phpunit_version();
+
+if ( version_compare( $phpunit_version, '5.4', '<' ) || version_compare( $phpunit_version, '8.0', '>=' ) ) {
 	printf(
 		"Error: Looks like you're using PHPUnit %s. WordPress requires at least PHPUnit 5.4 and is currently only compatible with PHPUnit up to 7.x.\n",
-		tests_get_phpunit_version()
+		$phpunit_version
 	);
 	echo "Please use the latest PHPUnit version from the 7.x branch.\n";
 	exit( 1 );
@@ -49,6 +51,23 @@ if ( version_compare( tests_get_phpunit_version(), '5.4', '<' ) || version_compa
 if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && ! is_dir( ABSPATH ) ) {
 	echo "Error: The /build/ directory is missing! Please run `npm run build` prior to running PHPUnit.\n";
 	exit( 1 );
+}
+
+$required_constants = array(
+	'WP_TESTS_DOMAIN',
+	'WP_TESTS_EMAIL',
+	'WP_TESTS_TITLE',
+	'WP_PHP_BINARY',
+);
+
+foreach ( $required_constants as $constant ) {
+	if ( ! defined( $constant ) ) {
+		printf(
+			"Error: The required %s constant is not defined. Check out `wp-tests-config-sample.php` for an example.\n",
+			$constant
+		);
+		exit( 1 );
+	}
 }
 
 tests_reset__SERVER();
@@ -153,12 +172,16 @@ require __DIR__ . '/testcase-rest-post-type-controller.php';
 require __DIR__ . '/testcase-xmlrpc.php';
 require __DIR__ . '/testcase-ajax.php';
 require __DIR__ . '/testcase-canonical.php';
+require __DIR__ . '/testcase-xml.php';
 require __DIR__ . '/exceptions.php';
 require __DIR__ . '/utils.php';
 require __DIR__ . '/spy-rest-server.php';
 require __DIR__ . '/class-wp-rest-test-search-handler.php';
 require __DIR__ . '/class-wp-rest-test-configurable-controller.php';
 require __DIR__ . '/class-wp-fake-block-type.php';
+require __DIR__ . '/class-wp-sitemaps-test-provider.php';
+require __DIR__ . '/class-wp-sitemaps-empty-test-provider.php';
+require __DIR__ . '/class-wp-sitemaps-large-test-provider.php';
 
 /**
  * A class to handle additional command line arguments passed to the script.

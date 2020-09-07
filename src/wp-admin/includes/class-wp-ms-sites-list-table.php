@@ -62,12 +62,12 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
+	 * @global string $mode List table view mode.
 	 * @global string $s
-	 * @global string $mode
 	 * @global wpdb   $wpdb WordPress database abstraction object.
 	 */
 	public function prepare_items() {
-		global $s, $mode, $wpdb;
+		global $mode, $s, $wpdb;
 
 		if ( ! empty( $_REQUEST['mode'] ) ) {
 			$mode = 'excerpt' === $_REQUEST['mode'] ? 'excerpt' : 'list';
@@ -213,7 +213,6 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 * @since 5.3.0
 	 *
 	 * @return array
-	 *
 	 */
 	protected function get_views() {
 		$counts = wp_count_sites();
@@ -290,8 +289,8 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		if ( current_user_can( 'delete_sites' ) ) {
 			$actions['delete'] = __( 'Delete' );
 		}
-		$actions['spam']    = _x( 'Mark as Spam', 'site' );
-		$actions['notspam'] = _x( 'Not Spam', 'site' );
+		$actions['spam']    = _x( 'Mark as spam', 'site' );
+		$actions['notspam'] = _x( 'Not spam', 'site' );
 
 		return $actions;
 	}
@@ -333,7 +332,9 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 			 * @param string $which The location of the extra table nav markup: 'top' or 'bottom'.
 			 */
 			do_action( 'restrict_manage_sites', $which );
+
 			$output = ob_get_clean();
+
 			if ( ! empty( $output ) ) {
 				echo $output;
 				submit_button( __( 'Filter' ), '', 'filter_action', false, array( 'id' => 'site-query-submit' ) );
@@ -576,7 +577,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @global string $mode
+	 * @global string $mode List table view mode.
 	 */
 	public function display_rows() {
 		foreach ( $this->items as $blog ) {
@@ -625,7 +626,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		}
 
 		/**
-		 * Filter the default site display states for items in the Sites list table.
+		 * Filters the default site display states for items in the Sites list table.
 		 *
 		 * @since 5.3.0
 		 *

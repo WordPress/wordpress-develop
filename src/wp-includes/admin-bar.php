@@ -70,8 +70,6 @@ function _wp_admin_bar_init() {
  * @since 5.4.0 Called on 'wp_body_open' action first, with 'wp_footer' as a fallback.
  *
  * @global WP_Admin_Bar $wp_admin_bar
- *
- * @staticvar bool $rendered
  */
 function wp_admin_bar_render() {
 	global $wp_admin_bar;
@@ -427,7 +425,9 @@ function wp_admin_bar_customize_menu( $wp_admin_bar ) {
 	}
 
 	// Don't show if the user cannot edit a given customize_changeset post currently being previewed.
-	if ( is_customize_preview() && $wp_customize->changeset_post_id() && ! current_user_can( get_post_type_object( 'customize_changeset' )->cap->edit_post, $wp_customize->changeset_post_id() ) ) {
+	if ( is_customize_preview() && $wp_customize->changeset_post_id()
+		&& ! current_user_can( get_post_type_object( 'customize_changeset' )->cap->edit_post, $wp_customize->changeset_post_id() )
+	) {
 		return;
 	}
 
@@ -1241,8 +1241,8 @@ function is_admin_bar_showing() {
  * @access private
  *
  * @param string $context Context of this preference check. Defaults to 'front'. The 'admin'
- *  preference is no longer used.
- * @param int $user Optional. ID of the user to check, defaults to 0 for current user.
+ *                        preference is no longer used.
+ * @param int    $user    Optional. ID of the user to check, defaults to 0 for current user.
  * @return bool Whether the admin bar should be showing for this user.
  */
 function _get_admin_bar_pref( $context = 'front', $user = 0 ) {

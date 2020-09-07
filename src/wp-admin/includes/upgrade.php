@@ -700,6 +700,7 @@ endif;
  */
 function upgrade_all() {
 	global $wp_current_db_version, $wp_db_version;
+
 	$wp_current_db_version = __get_option( 'db_version' );
 
 	// We are up to date. Nothing to do.
@@ -835,7 +836,7 @@ function upgrade_all() {
 		upgrade_530();
 	}
 
-	if ( $wp_current_db_version < 47597 ) {
+	if ( $wp_current_db_version < 48575 ) {
 		upgrade_550();
 	}
 
@@ -1870,6 +1871,7 @@ function upgrade_350() {
  */
 function upgrade_370() {
 	global $wp_current_db_version;
+
 	if ( $wp_current_db_version < 25824 ) {
 		wp_clear_scheduled_hook( 'wp_auto_updates_maybe_update' );
 	}
@@ -1886,6 +1888,7 @@ function upgrade_370() {
  */
 function upgrade_372() {
 	global $wp_current_db_version;
+
 	if ( $wp_current_db_version < 26148 ) {
 		wp_clear_scheduled_hook( 'wp_maybe_auto_update' );
 	}
@@ -1901,6 +1904,7 @@ function upgrade_372() {
  */
 function upgrade_380() {
 	global $wp_current_db_version;
+
 	if ( $wp_current_db_version < 26691 ) {
 		deactivate_plugins( array( 'mp6/mp6.php' ), true );
 	}
@@ -1916,6 +1920,7 @@ function upgrade_380() {
  */
 function upgrade_400() {
 	global $wp_current_db_version;
+
 	if ( $wp_current_db_version < 29630 ) {
 		if ( ! is_multisite() && false === get_option( 'WPLANG' ) ) {
 			if ( defined( 'WPLANG' ) && ( '' !== WPLANG ) && in_array( WPLANG, get_available_languages(), true ) ) {
@@ -2166,8 +2171,35 @@ function upgrade_530() {
  * @since 5.5.0
  */
 function upgrade_550() {
-	update_option( 'finished_updating_comment_type', 0 );
-	wp_schedule_single_event( time() + ( 1 * MINUTE_IN_SECONDS ), 'wp_update_comment_type_batch' );
+	global $wp_current_db_version;
+
+	if ( $wp_current_db_version < 48121 ) {
+		$comment_previously_approved = get_option( 'comment_whitelist', '' );
+		update_option( 'comment_previously_approved', $comment_previously_approved );
+		delete_option( 'comment_whitelist' );
+	}
+
+	if ( $wp_current_db_version < 48575 ) {
+		// Use more clear and inclusive language.
+		$disallowed_list = get_option( 'blacklist_keys' );
+
+		/*
+		 * This option key was briefly renamed `blocklist_keys`.
+		 * Account for sites that have this key present when the original key does not exist.
+		 */
+		if ( false === $disallowed_list ) {
+			$disallowed_list = get_option( 'blocklist_keys' );
+		}
+
+		update_option( 'disallowed_keys', $disallowed_list );
+		delete_option( 'blacklist_keys' );
+		delete_option( 'blocklist_keys' );
+	}
+
+	if ( $wp_current_db_version < 48748 ) {
+		update_option( 'finished_updating_comment_type', 0 );
+		wp_schedule_single_event( time() + ( 1 * MINUTE_IN_SECONDS ), 'wp_update_comment_type_batch' );
+	}
 }
 
 /**
@@ -2535,7 +2567,7 @@ function __get_option( $setting ) { // phpcs:ignore WordPress.NamingConventions.
 
 	$option = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name = %s", $setting ) );
 
-	if ( 'home' === $setting && '' === $option ) {
+	if ( 'home' === $setting && ! $option ) {
 		return __get_option( 'siteurl' );
 	}
 

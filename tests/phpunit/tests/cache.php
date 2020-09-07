@@ -27,7 +27,7 @@ class Tests_Cache extends WP_UnitTestCase {
 	}
 
 	function test_miss() {
-		$this->assertEquals( null, $this->cache->get( 'test_miss' ) );
+		$this->assertFalse( $this->cache->get( 'test_miss' ) );
 	}
 
 	function test_add_get() {
@@ -35,7 +35,7 @@ class Tests_Cache extends WP_UnitTestCase {
 		$val = 'val';
 
 		$this->cache->add( $key, $val );
-		$this->assertEquals( $val, $this->cache->get( $key ) );
+		$this->assertSame( $val, $this->cache->get( $key ) );
 	}
 
 	function test_add_get_0() {
@@ -43,17 +43,32 @@ class Tests_Cache extends WP_UnitTestCase {
 		$val = 0;
 
 		// You can store zero in the cache.
-		$this->cache->add( $key, $val );
-		$this->assertEquals( $val, $this->cache->get( $key ) );
+		$this->assertTrue( $this->cache->add( $key, $val ) );
+		$this->assertSame( $val, $this->cache->get( $key ) );
 	}
 
+	/**
+	 * @ticket 20004
+	 */
 	function test_add_get_null() {
 		$key = __FUNCTION__;
 		$val = null;
 
+		// You can store `null` in the cache.
 		$this->assertTrue( $this->cache->add( $key, $val ) );
-		// Null is converted to empty string.
-		$this->assertEquals( '', $this->cache->get( $key ) );
+		$this->assertSame( $val, $this->cache->get( $key ) );
+	}
+
+	/**
+	 * @ticket 20004
+	 */
+	function test_add_get_false() {
+		$key = __FUNCTION__;
+		$val = false;
+
+		// You can store `false` in the cache.
+		$this->assertTrue( $this->cache->add( $key, $val ) );
+		$this->assertSame( $val, $this->cache->get( $key ) );
 	}
 
 	function test_add() {
@@ -63,10 +78,10 @@ class Tests_Cache extends WP_UnitTestCase {
 
 		// Add $key to the cache.
 		$this->assertTrue( $this->cache->add( $key, $val1 ) );
-		$this->assertEquals( $val1, $this->cache->get( $key ) );
+		$this->assertSame( $val1, $this->cache->get( $key ) );
 		// $key is in the cache, so reject new calls to add().
 		$this->assertFalse( $this->cache->add( $key, $val2 ) );
-		$this->assertEquals( $val1, $this->cache->get( $key ) );
+		$this->assertSame( $val1, $this->cache->get( $key ) );
 	}
 
 	function test_replace() {
@@ -78,9 +93,9 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertFalse( $this->cache->replace( $key, $val ) );
 		$this->assertFalse( $this->cache->get( $key ) );
 		$this->assertTrue( $this->cache->add( $key, $val ) );
-		$this->assertEquals( $val, $this->cache->get( $key ) );
+		$this->assertSame( $val, $this->cache->get( $key ) );
 		$this->assertTrue( $this->cache->replace( $key, $val2 ) );
-		$this->assertEquals( $val2, $this->cache->get( $key ) );
+		$this->assertSame( $val2, $this->cache->get( $key ) );
 	}
 
 	function test_set() {
@@ -90,10 +105,10 @@ class Tests_Cache extends WP_UnitTestCase {
 
 		// memcached accepts set() if the key does not exist.
 		$this->assertTrue( $this->cache->set( $key, $val1 ) );
-		$this->assertEquals( $val1, $this->cache->get( $key ) );
+		$this->assertSame( $val1, $this->cache->get( $key ) );
 		// Second set() with same key should be allowed.
 		$this->assertTrue( $this->cache->set( $key, $val2 ) );
-		$this->assertEquals( $val2, $this->cache->get( $key ) );
+		$this->assertSame( $val2, $this->cache->get( $key ) );
 	}
 
 	function test_flush() {
@@ -108,7 +123,7 @@ class Tests_Cache extends WP_UnitTestCase {
 
 		$this->cache->add( $key, $val );
 		// Item is visible to both cache objects.
-		$this->assertEquals( $val, $this->cache->get( $key ) );
+		$this->assertSame( $val, $this->cache->get( $key ) );
 		$this->cache->flush();
 		// If there is no value get returns false.
 		$this->assertFalse( $this->cache->get( $key ) );
@@ -122,9 +137,9 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->cache->set( $key, $object_a );
 		$object_a->foo = 'bravo';
 		$object_b      = $this->cache->get( $key );
-		$this->assertEquals( 'alpha', $object_b->foo );
+		$this->assertSame( 'alpha', $object_b->foo );
 		$object_b->foo = 'charlie';
-		$this->assertEquals( 'bravo', $object_a->foo );
+		$this->assertSame( 'bravo', $object_a->foo );
 
 		$key           = __FUNCTION__ . '_2';
 		$object_a      = new stdClass;
@@ -132,9 +147,9 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->cache->add( $key, $object_a );
 		$object_a->foo = 'bravo';
 		$object_b      = $this->cache->get( $key );
-		$this->assertEquals( 'alpha', $object_b->foo );
+		$this->assertSame( 'alpha', $object_b->foo );
 		$object_b->foo = 'charlie';
-		$this->assertEquals( 'bravo', $object_a->foo );
+		$this->assertSame( 'bravo', $object_a->foo );
 	}
 
 	function test_incr() {
@@ -144,10 +159,10 @@ class Tests_Cache extends WP_UnitTestCase {
 
 		$this->cache->set( $key, 0 );
 		$this->cache->incr( $key );
-		$this->assertEquals( 1, $this->cache->get( $key ) );
+		$this->assertSame( 1, $this->cache->get( $key ) );
 
 		$this->cache->incr( $key, 2 );
-		$this->assertEquals( 3, $this->cache->get( $key ) );
+		$this->assertSame( 3, $this->cache->get( $key ) );
 	}
 
 	function test_wp_cache_incr() {
@@ -157,10 +172,10 @@ class Tests_Cache extends WP_UnitTestCase {
 
 		wp_cache_set( $key, 0 );
 		wp_cache_incr( $key );
-		$this->assertEquals( 1, wp_cache_get( $key ) );
+		$this->assertSame( 1, wp_cache_get( $key ) );
 
 		wp_cache_incr( $key, 2 );
-		$this->assertEquals( 3, wp_cache_get( $key ) );
+		$this->assertSame( 3, wp_cache_get( $key ) );
 	}
 
 	function test_decr() {
@@ -170,14 +185,14 @@ class Tests_Cache extends WP_UnitTestCase {
 
 		$this->cache->set( $key, 0 );
 		$this->cache->decr( $key );
-		$this->assertEquals( 0, $this->cache->get( $key ) );
+		$this->assertSame( 0, $this->cache->get( $key ) );
 
 		$this->cache->set( $key, 3 );
 		$this->cache->decr( $key );
-		$this->assertEquals( 2, $this->cache->get( $key ) );
+		$this->assertSame( 2, $this->cache->get( $key ) );
 
 		$this->cache->decr( $key, 2 );
-		$this->assertEquals( 0, $this->cache->get( $key ) );
+		$this->assertSame( 0, $this->cache->get( $key ) );
 	}
 
 	/**
@@ -190,14 +205,14 @@ class Tests_Cache extends WP_UnitTestCase {
 
 		wp_cache_set( $key, 0 );
 		wp_cache_decr( $key );
-		$this->assertEquals( 0, wp_cache_get( $key ) );
+		$this->assertSame( 0, wp_cache_get( $key ) );
 
 		wp_cache_set( $key, 3 );
 		wp_cache_decr( $key );
-		$this->assertEquals( 2, wp_cache_get( $key ) );
+		$this->assertSame( 2, wp_cache_get( $key ) );
 
 		wp_cache_decr( $key, 2 );
-		$this->assertEquals( 0, wp_cache_get( $key ) );
+		$this->assertSame( 0, wp_cache_get( $key ) );
 	}
 
 	function test_delete() {
@@ -206,7 +221,7 @@ class Tests_Cache extends WP_UnitTestCase {
 
 		// Verify set.
 		$this->assertTrue( $this->cache->set( $key, $val ) );
-		$this->assertEquals( $val, $this->cache->get( $key ) );
+		$this->assertSame( $val, $this->cache->get( $key ) );
 
 		// Verify successful delete.
 		$this->assertTrue( $this->cache->delete( $key ) );
@@ -221,7 +236,7 @@ class Tests_Cache extends WP_UnitTestCase {
 
 		// Verify set.
 		$this->assertTrue( wp_cache_set( $key, $val ) );
-		$this->assertEquals( $val, wp_cache_get( $key ) );
+		$this->assertSame( $val, wp_cache_get( $key ) );
 
 		// Verify successful delete.
 		$this->assertTrue( wp_cache_delete( $key ) );
@@ -246,38 +261,38 @@ class Tests_Cache extends WP_UnitTestCase {
 		if ( ! is_multisite() ) {
 			// Single site ingnores switch_to_blog().
 			$this->assertTrue( $this->cache->set( $key, $val ) );
-			$this->assertEquals( $val, $this->cache->get( $key ) );
+			$this->assertSame( $val, $this->cache->get( $key ) );
 			$this->cache->switch_to_blog( 999 );
-			$this->assertEquals( $val, $this->cache->get( $key ) );
+			$this->assertSame( $val, $this->cache->get( $key ) );
 			$this->assertTrue( $this->cache->set( $key, $val2 ) );
-			$this->assertEquals( $val2, $this->cache->get( $key ) );
+			$this->assertSame( $val2, $this->cache->get( $key ) );
 			$this->cache->switch_to_blog( get_current_blog_id() );
-			$this->assertEquals( $val2, $this->cache->get( $key ) );
+			$this->assertSame( $val2, $this->cache->get( $key ) );
 		} else {
 			// Multisite should have separate per-blog caches.
 			$this->assertTrue( $this->cache->set( $key, $val ) );
-			$this->assertEquals( $val, $this->cache->get( $key ) );
+			$this->assertSame( $val, $this->cache->get( $key ) );
 			$this->cache->switch_to_blog( 999 );
 			$this->assertFalse( $this->cache->get( $key ) );
 			$this->assertTrue( $this->cache->set( $key, $val2 ) );
-			$this->assertEquals( $val2, $this->cache->get( $key ) );
+			$this->assertSame( $val2, $this->cache->get( $key ) );
 			$this->cache->switch_to_blog( get_current_blog_id() );
-			$this->assertEquals( $val, $this->cache->get( $key ) );
+			$this->assertSame( $val, $this->cache->get( $key ) );
 			$this->cache->switch_to_blog( 999 );
-			$this->assertEquals( $val2, $this->cache->get( $key ) );
+			$this->assertSame( $val2, $this->cache->get( $key ) );
 			$this->cache->switch_to_blog( get_current_blog_id() );
-			$this->assertEquals( $val, $this->cache->get( $key ) );
+			$this->assertSame( $val, $this->cache->get( $key ) );
 		}
 
 		// Global group.
 		$this->assertTrue( $this->cache->set( $key, $val, 'global-cache-test' ) );
-		$this->assertEquals( $val, $this->cache->get( $key, 'global-cache-test' ) );
+		$this->assertSame( $val, $this->cache->get( $key, 'global-cache-test' ) );
 		$this->cache->switch_to_blog( 999 );
-		$this->assertEquals( $val, $this->cache->get( $key, 'global-cache-test' ) );
+		$this->assertSame( $val, $this->cache->get( $key, 'global-cache-test' ) );
 		$this->assertTrue( $this->cache->set( $key, $val2, 'global-cache-test' ) );
-		$this->assertEquals( $val2, $this->cache->get( $key, 'global-cache-test' ) );
+		$this->assertSame( $val2, $this->cache->get( $key, 'global-cache-test' ) );
 		$this->cache->switch_to_blog( get_current_blog_id() );
-		$this->assertEquals( $val2, $this->cache->get( $key, 'global-cache-test' ) );
+		$this->assertSame( $val2, $this->cache->get( $key, 'global-cache-test' ) );
 	}
 
 	function test_wp_cache_init() {
@@ -303,16 +318,35 @@ class Tests_Cache extends WP_UnitTestCase {
 
 		// Save the first value to cache and verify.
 		wp_cache_set( $key, $val1 );
-		$this->assertEquals( $val1, wp_cache_get( $key ) );
+		$this->assertSame( $val1, wp_cache_get( $key ) );
 
 		// Replace the value and verify.
 		wp_cache_replace( $key, $val2 );
-		$this->assertEquals( $val2, wp_cache_get( $key ) );
+		$this->assertSame( $val2, wp_cache_get( $key ) );
 
 		// Non-existant key should fail.
 		$this->assertFalse( wp_cache_replace( $fake_key, $val1 ) );
 
 		// Make sure $fake_key is not stored.
 		$this->assertFalse( wp_cache_get( $fake_key ) );
+	}
+
+	/**
+	 * @ticket 20875
+	 */
+	public function test_get_multiple() {
+		wp_cache_set( 'foo1', 'bar', 'group1' );
+		wp_cache_set( 'foo2', 'bar', 'group1' );
+		wp_cache_set( 'foo1', 'bar', 'group2' );
+
+		$found = wp_cache_get_multiple( array( 'foo1', 'foo2', 'foo3' ), 'group1' );
+
+		$expected = array(
+			'foo1' => 'bar',
+			'foo2' => 'bar',
+			'foo3' => false,
+		);
+
+		$this->assertSame( $expected, $found );
 	}
 }

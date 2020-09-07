@@ -35,8 +35,8 @@
  * @global WP         $wp         Current WordPress environment instance.
  *
  * @param string $requested_url Optional. The URL that was requested, used to
- *      figure if redirect is needed.
- * @param bool $do_redirect Optional. Redirect to the new URL.
+ *                              figure if redirect is needed.
+ * @param bool   $do_redirect   Optional. Redirect to the new URL.
  * @return string|void The string of the URL, if redirect needed.
  */
 function redirect_canonical( $requested_url = null, $do_redirect = true ) {
@@ -57,8 +57,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		}
 	}
 
-	if ( is_admin() || is_search() || is_preview() || is_trackback()
-		|| is_robots() || is_favicon()
+	if ( is_admin() || is_search() || is_preview() || is_trackback() || is_favicon()
 		|| ( $is_IIS && ! iis7_supports_permalinks() )
 	) {
 		return;
@@ -411,8 +410,11 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			$redirect['query'] = remove_query_arg( 'page', $redirect['query'] );
 		}
 
-		// Paging and feeds.
-		if ( get_query_var( 'paged' ) || is_feed() || get_query_var( 'cpage' ) ) {
+		if ( get_query_var( 'sitemap' ) ) {
+			$redirect_url      = get_sitemap_url( get_query_var( 'sitemap' ), get_query_var( 'sitemap-subtype' ), get_query_var( 'paged' ) );
+			$redirect['query'] = remove_query_arg( array( 'sitemap', 'sitemap-subtype', 'paged' ), $redirect['query'] );
+		} elseif ( get_query_var( 'paged' ) || is_feed() || get_query_var( 'cpage' ) ) {
+			// Paging and feeds.
 			$paged = get_query_var( 'paged' );
 			$feed  = get_query_var( 'feed' );
 			$cpage = get_query_var( 'cpage' );
@@ -651,6 +653,13 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		$redirect['path'] = trailingslashit( $redirect['path'] );
 	}
 
+	// Remove trailing slash for robots.txt or sitemap requests.
+	if ( is_robots()
+		|| ! empty( get_query_var( 'sitemap' ) ) || ! empty( get_query_var( 'sitemap-stylesheet' ) )
+	) {
+		$redirect['path'] = untrailingslashit( $redirect['path'] );
+	}
+
 	// Strip multiple slashes out of the URL.
 	if ( strpos( $redirect['path'], '//' ) > -1 ) {
 		$redirect['path'] = preg_replace( '|/+|', '/', $redirect['path'] );
@@ -771,7 +780,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
  * @access private
  *
  * @param string $query_string
- * @param array $args_to_check
+ * @param array  $args_to_check
  * @param string $url
  * @return string The altered query string
  */
@@ -824,7 +833,7 @@ function strip_fragment_from_url( $url ) {
 }
 
 /**
- * Attempts to guess the correct URL based on query vars.
+ * Attempts to guess the correct URL for a 404 request based on query vars.
  *
  * @since 2.3.0
  *
@@ -836,30 +845,30 @@ function redirect_guess_404_permalink() {
 	global $wpdb;
 
 	/**
-	 * Filters whether to do redirect guess of 404 requests.
+	 * Filters whether to attempt to guess a redirect URL for a 404 request.
 	 *
-	 * Passing a false value to the filter will disable the URL guessing
-	 * and return early.
+	 * Returning a false value from the filter will disable the URL guessing
+	 * and return early without performing a redirect.
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param bool $do_redirect_guess Whether to do redirect guess 404 permalink.
-	 *                                Default true.
+	 * @param bool $do_redirect_guess Whether to attempt to guess a redirect URL
+	 *                                for a 404 request. Default true.
 	 */
 	if ( false === apply_filters( 'do_redirect_guess_404_permalink', true ) ) {
 		return false;
 	}
 
 	/**
-	 * Filters whether to short-circuit redirect guess of 404 requests.
+	 * Short-circuits the redirect URL guessing for 404 requests.
 	 *
-	 * Passing a non-null value to the filter will effectively short-circuit
+	 * Returning a non-null value from the filter will effectively short-circuit
 	 * the URL guessing, returning the passed value instead.
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param null|string $pre Whether to short-circuit redirect guess 404 permalink.
-	 *                         Default null to continue with the URL guessing.
+	 * @param null|string|false $pre Whether to short-circuit guessing the redirect for a 404.
+	 *                               Default null to continue with the URL guessing.
 	 */
 	$pre = apply_filters( 'pre_redirect_guess_404_permalink', null );
 	if ( null !== $pre ) {
@@ -867,15 +876,14 @@ function redirect_guess_404_permalink() {
 	}
 
 	if ( get_query_var( 'name' ) ) {
-
 		/**
-		 * Filters whether to do a strict or loose guess.
+		 * Filters whether to perform a strict guess for a 404 redirect.
 		 *
-		 * Passing a truthy value to the filter will redirect only exact post_name matches.
+		 * Returning a truthy value from the filter will redirect only exact post_name matches.
 		 *
 		 * @since 5.5.0
 		 *
-		 * @param bool $strict_guess Whether to do a strict/exact guess. Default false.
+		 * @param bool $strict_guess Whether to perform a strict guess. Default false (loose guess).
 		 */
 		$strict_guess = apply_filters( 'strict_redirect_guess_404_permalink', false );
 

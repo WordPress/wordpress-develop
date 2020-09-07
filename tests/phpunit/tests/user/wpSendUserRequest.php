@@ -13,7 +13,7 @@
  *
  * @group privacy
  * @group user
- * @covers wp_send_user_request
+ * @covers ::wp_send_user_request
  */
 class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 
@@ -222,7 +222,7 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 	 * @since 4.9.9
 	 *
 	 * @param string $email_text Confirmation email text.
-	 * @return string $email_text Filtered email text.
+	 * @return string Filtered email text.
 	 */
 	public function modify_email_content( $email_text ) {
 		return 'Custom Email Content.';
@@ -252,7 +252,7 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 	 * @since 5.4.0
 	 *
 	 * @param string|array $headers The email headers.
-	 * @return array       $headers The new email headers.
+	 * @return array The new email headers.
 	 */
 	public function modify_email_headers( $headers ) {
 		$headers = array(
@@ -292,7 +292,7 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 		wp_send_user_request( $request_id );
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Confirma la', $mailer->get_sent()->subject );
+		$this->assertContains( 'Confirmar la', $mailer->get_sent()->subject );
 	}
 
 	/**
@@ -336,7 +336,7 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 		wp_send_user_request( $request_id );
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Confirma la', $mailer->get_sent()->subject );
+		$this->assertContains( 'Confirmar la', $mailer->get_sent()->subject );
 	}
 
 	/**
@@ -401,6 +401,6 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 		wp_send_user_request( $request_id );
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Confirma la', $mailer->get_sent()->subject );
+		$this->assertContains( 'Confirmar la', $mailer->get_sent()->subject );
 	}
 }

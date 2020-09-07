@@ -38,7 +38,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$this->assertEmpty( get_site_icon_url() );
 
 		$this->_set_site_icon();
-		$this->assertEquals( $this->site_icon_url, get_site_icon_url() );
+		$this->assertSame( $this->site_icon_url, get_site_icon_url() );
 
 		$this->_remove_site_icon();
 		$this->assertEmpty( get_site_icon_url() );
@@ -308,7 +308,8 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$this->_set_custom_logo();
 
 		$custom_logo_attr = array(
-			'class' => 'custom-logo',
+			'class'   => 'custom-logo',
+			'loading' => false,
 		);
 
 		// If the logo alt attribute is empty, use the site title.
@@ -322,7 +323,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 		restore_current_blog();
 
 		$expected_custom_logo = '<a href="' . $home_url . '" class="custom-logo-link" rel="home">' . $image . '</a>';
-		$this->assertEquals( $expected_custom_logo, get_custom_logo( $blog_id ) );
+		$this->assertSame( $expected_custom_logo, get_custom_logo( $blog_id ) );
 	}
 
 	/**
@@ -337,7 +338,8 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$this->_set_custom_logo();
 
 		$custom_logo_attr = array(
-			'class' => 'custom-logo',
+			'class'   => 'custom-logo',
+			'loading' => false,
 		);
 
 		// If the logo alt attribute is empty, use the site title.
@@ -368,7 +370,8 @@ class Tests_General_Template extends WP_UnitTestCase {
 			'full',
 			false,
 			array(
-				'class' => 'custom-logo',
+				'class'   => 'custom-logo',
+				'loading' => false,
 			)
 		);
 
@@ -412,148 +415,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$this->custom_logo_url = $upload['url'];
 		$this->custom_logo_id  = $this->_make_attachment( $upload );
 		return $this->custom_logo_id;
-	}
-
-	/**
-	 * Test get_the_modified_time
-	 *
-	 * @ticket 37059
-	 *
-	 * @since 4.6.0
-	 */
-	function test_get_the_modified_time_default() {
-		$details = array(
-			'post_date'     => '2016-01-21 15:34:36',
-			'post_date_gmt' => '2016-01-21 15:34:36',
-		);
-		$post_id = $this->factory->post->create( $details );
-		$post    = get_post( $post_id );
-
-		$GLOBALS['post'] = $post;
-
-		$expected = '1453390476';
-		$format   = 'G';
-		$actual   = get_the_modified_time( $format );
-		$this->assertEquals( $expected, $actual );
-	}
-
-	/**
-	 * Test get_the_modified_time failures are filtered
-	 *
-	 * @ticket 37059
-	 *
-	 * @since 4.6.0
-	 */
-	function test_get_the_modified_time_failures_are_filtered() {
-		// Remove global post object.
-		$GLOBALS['post'] = null;
-
-		$expected = 'filtered modified time failure result';
-		add_filter( 'get_the_modified_time', array( $this, '_filter_get_the_modified_time_failure' ) );
-		$actual = get_the_modified_time();
-		$this->assertEquals( $expected, $actual );
-		remove_filter( 'get_the_modified_time', array( $this, '_filter_get_the_modified_time_failure' ) );
-	}
-
-	function _filter_get_the_modified_time_failure( $the_time ) {
-		$expected = false;
-		$actual   = $the_time;
-		$this->assertEquals( $expected, $actual );
-
-		if ( false === $the_time ) {
-			return 'filtered modified time failure result';
-		}
-		return $the_time;
-	}
-
-	/**
-	 * Test get_the_modified_time with post_id parameter.
-	 *
-	 * @ticket 37059
-	 *
-	 * @since 4.6.0
-	 */
-	function test_get_the_modified_date_with_post_id() {
-		$details  = array(
-			'post_date'     => '2016-01-21 15:34:36',
-			'post_date_gmt' => '2016-01-21 15:34:36',
-		);
-		$post_id  = $this->factory->post->create( $details );
-		$format   = 'Y-m-d';
-		$expected = '2016-01-21';
-		$actual   = get_the_modified_date( $format, $post_id );
-		$this->assertEquals( $expected, $actual );
-	}
-
-	/**
-	 * Test get_the_modified_date
-	 *
-	 * @ticket 37059
-	 *
-	 * @since 4.6.0
-	 */
-	function test_get_the_modified_date_default() {
-		$details = array(
-			'post_date'     => '2016-01-21 15:34:36',
-			'post_date_gmt' => '2016-01-21 15:34:36',
-		);
-		$post_id = $this->factory->post->create( $details );
-		$post    = get_post( $post_id );
-
-		$GLOBALS['post'] = $post;
-
-		$expected = '2016-01-21';
-		$format   = 'Y-m-d';
-		$actual   = get_the_modified_date( $format );
-		$this->assertEquals( $expected, $actual );
-	}
-
-	/**
-	 * Test get_the_modified_date failures are filtered
-	 *
-	 * @ticket 37059
-	 *
-	 * @since 4.6.0
-	 */
-	function test_get_the_modified_date_failures_are_filtered() {
-		// Remove global post object.
-		$GLOBALS['post'] = null;
-
-		$expected = 'filtered modified date failure result';
-		add_filter( 'get_the_modified_date', array( $this, '_filter_get_the_modified_date_failure' ) );
-		$actual = get_the_modified_date();
-		$this->assertEquals( $expected, $actual );
-		remove_filter( 'get_the_modified_date', array( $this, '_filter_get_the_modified_date_failure' ) );
-	}
-
-	function _filter_get_the_modified_date_failure( $the_date ) {
-		$expected = false;
-		$actual   = $the_date;
-		$this->assertEquals( $expected, $actual );
-
-		if ( false === $the_date ) {
-			return 'filtered modified date failure result';
-		}
-		return $the_date;
-	}
-
-	/**
-	 * Test get_the_modified_time with post_id parameter.
-	 *
-	 * @ticket 37059
-	 *
-	 * @since 4.6.0
-	 */
-	function test_get_the_modified_time_with_post_id() {
-		$details  = array(
-			'post_date'     => '2016-01-21 15:34:36',
-			'post_date_gmt' => '2016-01-21 15:34:36',
-		);
-		$post_id  = $this->factory->post->create( $details );
-		$format   = 'G';
-		$expected = '1453390476';
-		$actual   = get_the_modified_time( $format, $post_id );
-		$this->assertEquals( $expected, $actual );
 	}
 
 	/**
@@ -631,15 +492,101 @@ class Tests_General_Template extends WP_UnitTestCase {
 	/**
 	 * @ticket 40969
 	 */
-	function test_get_template_part_returns_nothing() {
-		ob_start();
+	function test_get_header_returns_nothing_on_success() {
+		$this->expectOutputRegex( '/Header/' );
+
+		// The `get_header()` function must not return anything
+		// due to themes in the wild that may echo its return value.
+		$this->assertNull( get_header() );
+	}
+
+	/**
+	 * @ticket 40969
+	 */
+	function test_get_footer_returns_nothing_on_success() {
+		$this->expectOutputRegex( '/Footer/' );
+
+		// The `get_footer()` function must not return anything
+		// due to themes in the wild that may echo its return value.
+		$this->assertNull( get_footer() );
+	}
+
+	/**
+	 * @ticket 40969
+	 */
+	function test_get_sidebar_returns_nothing_on_success() {
+		$this->expectOutputRegex( '/Sidebar/' );
+
+		// The `get_sidebar()` function must not return anything
+		// due to themes in the wild that may echo its return value.
+		$this->assertNull( get_sidebar() );
+	}
+
+	/**
+	 * @ticket 40969
+	 */
+	function test_get_template_part_returns_nothing_on_success() {
+		$this->expectOutputRegex( '/Template Part/' );
 
 		// The `get_template_part()` function must not return anything
 		// due to themes in the wild that echo its return value.
-		$part   = get_template_part( 'template', 'part' );
-		$output = ob_get_clean();
+		$this->assertNull( get_template_part( 'template', 'part' ) );
+	}
 
-		self::assertSame( 'Template Part', trim( $output ) );
-		self::assertSame( null, $part );
+	/**
+	 * @ticket 40969
+	 */
+	function test_get_template_part_returns_false_on_failure() {
+		$this->assertFalse( get_template_part( 'non-existing-template' ) );
+	}
+
+	/**
+	 * @ticket 21676
+	 */
+	function test_get_template_part_passes_arguments_to_template() {
+		$this->expectOutputRegex( '/{"foo":"baz"}/' );
+
+		get_template_part( 'template', 'part', array( 'foo' => 'baz' ) );
+	}
+
+	/**
+	 * @ticket 9862
+	 * @dataProvider data_selected_and_checked_with_equal_values
+	 */
+	function test_selected_and_checked_with_equal_values( $selected, $current ) {
+		$this->assertSame( " selected='selected'", selected( $selected, $current, false ) );
+		$this->assertSame( " checked='checked'", checked( $selected, $current, false ) );
+	}
+
+	function data_selected_and_checked_with_equal_values() {
+		return array(
+			array( 'foo', 'foo' ),
+			array( '1', 1 ),
+			array( '1', true ),
+			array( 1, 1 ),
+			array( 1, true ),
+			array( true, true ),
+			array( '0', 0 ),
+			array( 0, 0 ),
+			array( '', false ),
+			array( false, false ),
+		);
+	}
+
+	/**
+	 * @ticket 9862
+	 * @dataProvider data_selected_and_checked_with_non_equal_values
+	 */
+	function test_selected_and_checked_with_non_equal_values( $selected, $current ) {
+		$this->assertSame( '', selected( $selected, $current, false ) );
+		$this->assertSame( '', checked( $selected, $current, false ) );
+	}
+
+	function data_selected_and_checked_with_non_equal_values() {
+		return array(
+			array( '0', '' ),
+			array( 0, '' ),
+			array( 0, false ),
+		);
 	}
 }

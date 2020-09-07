@@ -3,6 +3,7 @@
 /**
  * @group date
  * @group datetime
+ * @group post
  */
 class Tests_Date_The_Date extends WP_UnitTestCase {
 
@@ -60,20 +61,20 @@ class Tests_Date_The_Date extends WP_UnitTestCase {
 
 		ob_end_clean();
 
-		$this->assertEquals( 1, $this->hooks_called['the_time'] );
-		$this->assertEquals( 2, $this->hooks_called['get_the_time'] );
+		$this->assertSame( 1, $this->hooks_called['the_time'] );
+		$this->assertSame( 2, $this->hooks_called['get_the_time'] );
 
-		$this->assertEquals( 1, $this->hooks_called['the_modified_time'] );
-		$this->assertEquals( 2, $this->hooks_called['get_the_modified_time'] );
+		$this->assertSame( 1, $this->hooks_called['the_modified_time'] );
+		$this->assertSame( 2, $this->hooks_called['get_the_modified_time'] );
 
-		$this->assertEquals( 1, $this->hooks_called['the_date'] );
-		$this->assertEquals( 2, $this->hooks_called['get_the_date'] );
+		$this->assertSame( 1, $this->hooks_called['the_date'] );
+		$this->assertSame( 2, $this->hooks_called['get_the_date'] );
 
-		$this->assertEquals( 1, $this->hooks_called['the_modified_date'] );
-		$this->assertEquals( 2, $this->hooks_called['get_the_modified_date'] );
+		$this->assertSame( 1, $this->hooks_called['the_modified_date'] );
+		$this->assertSame( 2, $this->hooks_called['get_the_modified_date'] );
 
-		$this->assertEquals( 5, $this->hooks_called['get_post_time'] );
-		$this->assertEquals( 5, $this->hooks_called['get_post_modified_time'] );
+		$this->assertSame( 5, $this->hooks_called['get_post_time'] );
+		$this->assertSame( 5, $this->hooks_called['get_post_modified_time'] );
 	}
 
 	public function count_hook( $input ) {
@@ -89,7 +90,7 @@ class Tests_Date_The_Date extends WP_UnitTestCase {
 		ob_start();
 		the_date();
 		$actual = ob_get_clean();
-		$this->assertEquals( '', $actual );
+		$this->assertSame( '', $actual );
 
 		$GLOBALS['post'] = self::factory()->post->create_and_get(
 			array(
@@ -101,25 +102,25 @@ class Tests_Date_The_Date extends WP_UnitTestCase {
 		$GLOBALS['currentday']  = '18.09.15';
 		$GLOBALS['previousday'] = '17.09.15';
 		the_date();
-		$this->assertEquals( 'September 16, 2015', ob_get_clean() );
+		$this->assertSame( 'September 16, 2015', ob_get_clean() );
 
 		ob_start();
 		$GLOBALS['currentday']  = '18.09.15';
 		$GLOBALS['previousday'] = '17.09.15';
 		the_date( 'Y' );
-		$this->assertEquals( '2015', ob_get_clean() );
+		$this->assertSame( '2015', ob_get_clean() );
 
 		ob_start();
 		$GLOBALS['currentday']  = '18.09.15';
 		$GLOBALS['previousday'] = '17.09.15';
 		the_date( 'Y', 'before ', ' after' );
-		$this->assertEquals( 'before 2015 after', ob_get_clean() );
+		$this->assertSame( 'before 2015 after', ob_get_clean() );
 
 		ob_start();
 		$GLOBALS['currentday']  = '18.09.15';
 		$GLOBALS['previousday'] = '17.09.15';
 		the_date( 'Y', 'before ', ' after', false );
-		$this->assertEquals( '', ob_get_clean() );
+		$this->assertSame( '', ob_get_clean() );
 	}
 
 	/**
@@ -129,7 +130,7 @@ class Tests_Date_The_Date extends WP_UnitTestCase {
 		ob_start();
 		the_weekday_date();
 		$actual = ob_get_clean();
-		$this->assertEquals( '', $actual );
+		$this->assertSame( '', $actual );
 
 		$GLOBALS['post'] = self::factory()->post->create_and_get(
 			array(
@@ -141,12 +142,12 @@ class Tests_Date_The_Date extends WP_UnitTestCase {
 		$GLOBALS['currentday']      = '18.09.15';
 		$GLOBALS['previousweekday'] = '17.09.15';
 		the_weekday_date();
-		$this->assertEquals( 'Wednesday', ob_get_clean() );
+		$this->assertSame( 'Wednesday', ob_get_clean() );
 
 		ob_start();
 		$GLOBALS['currentday']      = '18.09.15';
 		$GLOBALS['previousweekday'] = '17.09.15';
 		the_weekday_date( 'before ', ' after' );
-		$this->assertEquals( 'before Wednesday after', ob_get_clean() );
+		$this->assertSame( 'before Wednesday after', ob_get_clean() );
 	}
 }

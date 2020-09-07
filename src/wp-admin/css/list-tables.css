@@ -75,17 +75,17 @@
 	border-right: 5px solid transparent;
 }
 
-.column-response .post-com-count-approved:hover .comment-count-approved,
-.column-response .post-com-count-approved:focus .comment-count-approved,
-.column-comments .post-com-count-approved:hover .comment-count-approved,
-.column-comments .post-com-count-approved:focus .comment-count-approved {
+.column-response a.post-com-count-approved:hover .comment-count-approved,
+.column-response a.post-com-count-approved:focus .comment-count-approved,
+.column-comments a.post-com-count-approved:hover .comment-count-approved,
+.column-comments a.post-com-count-approved:focus .comment-count-approved {
 	background: #0073aa;
 }
 
-.column-response .post-com-count-approved:hover:after,
-.column-response .post-com-count-approved:focus:after,
-.column-comments .post-com-count-approved:hover:after,
-.column-comments .post-com-count-approved:focus:after {
+.column-response a.post-com-count-approved:hover:after,
+.column-response a.post-com-count-approved:focus:after,
+.column-comments a.post-com-count-approved:hover:after,
+.column-comments a.post-com-count-approved:focus:after {
 	border-top-color: #0073aa;
 }
 
@@ -1448,7 +1448,7 @@ div.action-links,
 .plugin-card .name,
 .plugin-card .desc {
 	margin-left: 148px; /* icon + margin */
-	margin-right: 120px; /* action links */
+	margin-right: 128px; /* action links + margin */
 }
 
 .plugin-card .action-links {
@@ -1461,7 +1461,6 @@ div.action-links,
 .plugin-action-buttons {
 	clear: right;
 	float: right;
-	margin-left: 2em;
 	margin-bottom: 1em;
 	text-align: right;
 }
@@ -2093,6 +2092,16 @@ div.action-links,
 	.wp-list-table.plugins .theme-title strong {
 		font-size: 1.4em;
 		line-height: 1.5;
+	}
+
+	.plugins tbody th.check-column {
+		padding: 8px 0 0 5px;
+	}
+
+	.plugins thead td.check-column,
+	.plugins tfoot td.check-column,
+	.plugins .inactive th.check-column {
+		padding-left: 9px;
 	}
 
 	/* Add New plugins page */

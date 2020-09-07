@@ -169,6 +169,17 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 		// This theme allows users to set a custom background.
 		add_theme_support(
 			'custom-background',
+			/**
+			 * Filters Twenty Fourteen custom-background support arguments.
+			 *
+			 * @since Twenty Fourteen 1.0
+			 *
+			 * @param array $args {
+			 *     An array of custom-background support arguments.
+			 *
+			 *     @type string $default-color Default color of the background.
+			 * }
+			 */
 			apply_filters(
 				'twentyfourteen_custom_background_args',
 				array(
@@ -216,7 +227,7 @@ add_action( 'template_redirect', 'twentyfourteen_content_width' );
  */
 function twentyfourteen_get_featured_posts() {
 	/**
-	 * Filter the featured posts to return in Twenty Fourteen.
+	 * Filters the featured posts to return in Twenty Fourteen.
 	 *
 	 * @since Twenty Fourteen 1.0
 	 *
@@ -413,7 +424,7 @@ if ( ! function_exists( 'twentyfourteen_the_attached_image' ) ) :
 	function twentyfourteen_the_attached_image() {
 		$post = get_post();
 		/**
-		 * Filter the default Twenty Fourteen attachment size.
+		 * Filters the default Twenty Fourteen attachment size.
 		 *
 		 * @since Twenty Fourteen 1.0
 		 *

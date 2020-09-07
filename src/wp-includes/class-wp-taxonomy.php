@@ -210,6 +210,25 @@ final class WP_Taxonomy {
 	public $rest_controller_class;
 
 	/**
+	 * The default term name for this taxonomy. If you pass an array you have
+	 * to set 'name' and optionally 'slug' and 'description'.
+	 *
+	 * @since 5.5.0
+	 * @var array|string
+	 */
+	public $default_term;
+
+	/**
+	 * The controller instance for this taxonomy's REST API endpoints.
+	 *
+	 * Lazily computed. Should be accessed using {@see WP_Taxonomy::get_rest_controller()}.
+	 *
+	 * @since 5.5.0
+	 * @var WP_REST_Controller $rest_controller
+	 */
+	public $rest_controller;
+
+	/**
 	 * Whether it is a built-in taxonomy.
 	 *
 	 * @since 4.7.0
@@ -278,6 +297,7 @@ final class WP_Taxonomy {
 			'show_in_rest'          => false,
 			'rest_base'             => false,
 			'rest_controller_class' => false,
+			'default_term'          => null,
 			'_builtin'              => false,
 		);
 
@@ -376,6 +396,21 @@ final class WP_Taxonomy {
 			}
 		}
 
+		// Default taxonomy term.
+		if ( ! empty( $args['default_term'] ) ) {
+			if ( ! is_array( $args['default_term'] ) ) {
+				$args['default_term'] = array( 'name' => $args['default_term'] );
+			}
+			$args['default_term'] = wp_parse_args(
+				$args['default_term'],
+				array(
+					'name'        => '',
+					'slug'        => '',
+					'description' => '',
+				)
+			);
+		}
+
 		foreach ( $args as $property_name => $property_value ) {
 			$this->$property_name = $property_value;
 		}
@@ -451,5 +486,41 @@ final class WP_Taxonomy {
 	 */
 	public function remove_hooks() {
 		remove_filter( 'wp_ajax_add-' . $this->name, '_wp_ajax_add_hierarchical_term' );
+	}
+
+	/**
+	 * Gets the REST API controller for this taxonomy.
+	 *
+	 * Will only instantiate the controller class once per request.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @return WP_REST_Controller|null The controller instance, or null if the taxonomy
+	 *                                 is set not to show in rest.
+	 */
+	public function get_rest_controller() {
+		if ( ! $this->show_in_rest ) {
+			return null;
+		}
+
+		$class = $this->rest_controller_class ? $this->rest_controller_class : WP_REST_Terms_Controller::class;
+
+		if ( ! class_exists( $class ) ) {
+			return null;
+		}
+
+		if ( ! is_subclass_of( $class, WP_REST_Controller::class ) ) {
+			return null;
+		}
+
+		if ( ! $this->rest_controller ) {
+			$this->rest_controller = new $class( $this->name );
+		}
+
+		if ( ! ( $this->rest_controller instanceof $class ) ) {
+			return null;
+		}
+
+		return $this->rest_controller;
 	}
 }

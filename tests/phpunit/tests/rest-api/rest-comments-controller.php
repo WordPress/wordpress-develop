@@ -172,14 +172,14 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/comments' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 		// Single.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/comments/' . self::$approved_id );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	public function test_registered_query_params() {
@@ -188,7 +188,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$data     = $response->get_data();
 		$keys     = array_keys( $data['endpoints'][0]['args'] );
 		sort( $keys );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'after',
 				'author',
@@ -220,7 +220,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'per_page', self::$per_page );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$comments = $response->get_data();
 		$this->assertCount( self::$total_comments, $comments );
@@ -244,7 +244,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'post', self::$password_id );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
 		$this->assertTrue( in_array( $password_comment, wp_list_pluck( $collection_data, 'id' ), true ) );
@@ -267,7 +267,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'password', 'toomanysecrets' );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
 		$this->assertFalse( in_array( $password_comment, wp_list_pluck( $collection_data, 'id' ), true ) );
@@ -307,7 +307,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
 		$this->assertFalse( in_array( $password_comment, wp_list_pluck( $collection_data, 'id' ), true ) );
@@ -326,7 +326,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
 		$this->assertTrue( in_array( $password_comment, wp_list_pluck( $collection_data, 'id' ), true ) );
@@ -345,7 +345,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
 		$this->assertFalse( in_array( $private_comment, wp_list_pluck( $collection_data, 'id' ), true ) );
@@ -364,7 +364,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
 		$this->assertTrue( in_array( $private_comment, wp_list_pluck( $collection_data, 'id' ), true ) );
@@ -383,7 +383,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
 		$this->assertFalse( in_array( $comment_id, wp_list_pluck( $collection_data, 'id' ), true ) );
@@ -404,7 +404,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
 		$this->assertTrue( in_array( $comment_id, wp_list_pluck( $collection_data, 'id' ), true ) );
@@ -429,7 +429,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'post', 0 );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$comments = $response->get_data();
 		$this->assertCount( 2, $comments );
 	}
@@ -449,7 +449,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 	}
 
 	public function test_get_items_for_post() {
@@ -464,7 +464,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$comments = $response->get_data();
 		$this->assertCount( 2, $comments );
@@ -488,15 +488,15 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'include', array( $id2, $id1 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 2, count( $data ) );
-		$this->assertEquals( $id1, $data[0]['id'] );
+		$this->assertSame( 2, count( $data ) );
+		$this->assertSame( $id1, $data[0]['id'] );
 
 		// 'orderby' => 'include'.
 		$request->set_param( 'orderby', 'include' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 2, count( $data ) );
-		$this->assertEquals( $id2, $data[0]['id'] );
+		$this->assertSame( 2, count( $data ) );
+		$this->assertSame( $id2, $data[0]['id'] );
 
 		// Invalid 'orderby' should error.
 		$request->set_param( 'orderby', 'invalid' );
@@ -581,13 +581,13 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		// Order defaults to 'desc'.
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( $id, $data[0]['id'] );
+		$this->assertSame( $id, $data[0]['id'] );
 
 		// 'order' => 'asc'.
 		$request->set_param( 'order', 'asc' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( self::$approved_id, $data[0]['id'] );
+		$this->assertSame( self::$approved_id, $data[0]['id'] );
 
 		// 'order' => 'asc,id' should error.
 		$request->set_param( 'order', 'asc,id' );
@@ -626,14 +626,14 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'author', self::$author_id );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$comments = $response->get_data();
 		$this->assertCount( 1, $comments );
 
 		// Multiple authors are supported.
 		$request->set_param( 'author', array( self::$author_id, self::$subscriber_id ) );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$comments = $response->get_data();
 		$this->assertCount( 2, $comments );
 
@@ -678,7 +678,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'per_page', self::$per_page );
 		$request->set_param( 'author_exclude', self::$author_id );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$comments = $response->get_data();
 		$this->assertCount( $total_comments - 1, $comments );
 
@@ -687,7 +687,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'per_page', self::$per_page );
 		$request->set_param( 'author_exclude', array( self::$author_id, self::$subscriber_id ) );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$comments = $response->get_data();
 		$this->assertCount( $total_comments - 2, $comments );
 
@@ -800,7 +800,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertCount( 1, $data );
-		$this->assertEquals( $id, $data[0]['id'] );
+		$this->assertSame( $id, $data[0]['id'] );
 	}
 
 	public function test_get_comments_pagination_headers() {
@@ -813,8 +813,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
-		$this->assertEquals( $total_comments, $headers['X-WP-Total'] );
-		$this->assertEquals( $total_pages, $headers['X-WP-TotalPages'] );
+		$this->assertSame( $total_comments, $headers['X-WP-Total'] );
+		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
 		$next_link = add_query_arg(
 			array(
 				'page' => 2,
@@ -836,8 +836,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'page', 3 );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
-		$this->assertEquals( $total_comments, $headers['X-WP-Total'] );
-		$this->assertEquals( $total_pages, $headers['X-WP-TotalPages'] );
+		$this->assertSame( $total_comments, $headers['X-WP-Total'] );
+		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg(
 			array(
 				'page' => 2,
@@ -858,8 +858,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'page', $total_pages );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
-		$this->assertEquals( $total_comments, $headers['X-WP-Total'] );
-		$this->assertEquals( $total_pages, $headers['X-WP-TotalPages'] );
+		$this->assertSame( $total_comments, $headers['X-WP-Total'] );
+		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg(
 			array(
 				'page' => $total_pages - 1,
@@ -874,7 +874,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'page', 100 );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
-		$this->assertEquals( $total_comments, $headers['X-WP-Total'] );
+		$this->assertSame( $total_comments, $headers['X-WP-Total'] );
 		$this->assertEquals( $total_pages, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg(
 			array(
@@ -920,14 +920,14 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertCount( 1, $data );
-		$this->assertEquals( $comment2, $data[0]['id'] );
+		$this->assertSame( $comment2, $data[0]['id'] );
 	}
 
 	public function test_get_item() {
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', self::$approved_id ) );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->check_comment_data( $data, 'view', $response->get_links() );
@@ -944,7 +944,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->check_comment_data( $data, 'edit', $response->get_links() );
@@ -959,7 +959,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( '_fields', 'id,status' );
 		$obj      = get_comment( self::$approved_id );
 		$response = $endpoint->prepare_item_for_response( $obj, $request );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'id',
 				'status',
@@ -981,7 +981,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$comment = get_comment( self::$approved_id );
 		// Ignore the subdomain, since get_avatar_url() randomly sets
 		// the Gravatar server when building the URL string.
-		$this->assertEquals( substr( get_avatar_url( $comment->comment_author_email ), 9 ), substr( $data['author_avatar_urls'][96], 9 ) );
+		$this->assertSame( substr( get_avatar_url( $comment->comment_author_email ), 9 ), substr( $data['author_avatar_urls'][96], 9 ) );
 	}
 
 	public function test_get_comment_invalid_id() {
@@ -1043,7 +1043,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', self::$hold_id ) );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 	}
 
 	public function test_get_comment_with_children_link() {
@@ -1066,7 +1066,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', $comment_id_1 ) );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertArrayHasKey( 'children', $response->get_links() );
 	}
 
@@ -1081,7 +1081,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', $comment_id_1 ) );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertArrayNotHasKey( 'children', $response->get_links() );
 	}
 
@@ -1117,7 +1117,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'password', 'toomanysecrets' );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 	}
 
 	public function test_create_item() {
@@ -1137,13 +1137,13 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->check_comment_data( $data, 'edit', $response->get_links() );
-		$this->assertEquals( 'hold', $data['status'] );
-		$this->assertEquals( '2014-11-07T10:14:25', $data['date'] );
-		$this->assertEquals( self::$post_id, $data['post'] );
+		$this->assertSame( 'hold', $data['status'] );
+		$this->assertSame( '2014-11-07T10:14:25', $data['date'] );
+		$this->assertSame( self::$post_id, $data['post'] );
 	}
 
 	public function comment_dates_provider() {
@@ -1212,17 +1212,17 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		update_option( 'timezone_string', '' );
 
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 		$data    = $response->get_data();
 		$comment = get_comment( $data['id'] );
 
-		$this->assertEquals( $results['date'], $data['date'] );
+		$this->assertSame( $results['date'], $data['date'] );
 		$comment_date = str_replace( 'T', ' ', $results['date'] );
-		$this->assertEquals( $comment_date, $comment->comment_date );
+		$this->assertSame( $comment_date, $comment->comment_date );
 
-		$this->assertEquals( $results['date_gmt'], $data['date_gmt'] );
+		$this->assertSame( $results['date_gmt'], $data['date_gmt'] );
 		$comment_date_gmt = str_replace( 'T', ' ', $results['date_gmt'] );
-		$this->assertEquals( $comment_date_gmt, $comment->comment_date_gmt );
+		$this->assertSame( $comment_date_gmt, $comment->comment_date_gmt );
 	}
 
 	public function test_create_item_using_accepted_content_raw_value() {
@@ -1243,11 +1243,11 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 
 		$data        = $response->get_data();
 		$new_comment = get_comment( $data['id'] );
-		$this->assertEquals( $params['content']['raw'], $new_comment->comment_content );
+		$this->assertSame( $params['content']['raw'], $new_comment->comment_content );
 	}
 
 	public function test_create_item_error_from_filter() {
@@ -1443,11 +1443,11 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( $subscriber_id, $data['author'] );
-		$this->assertEquals( '127.0.0.1', $data['author_ip'] );
+		$this->assertSame( $subscriber_id, $data['author'] );
+		$this->assertSame( '127.0.0.1', $data['author_ip'] );
 	}
 
 	public function test_create_comment_without_type() {
@@ -1470,10 +1470,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( 'comment', $data['type'] );
+		$this->assertSame( 'comment', $data['type'] );
 
 		$comment_id = $data['id'];
 
@@ -1482,7 +1482,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$collection->set_param( 'post', $post_id );
 		$collection_response = rest_get_server()->dispatch( $collection );
 		$collection_data     = $collection_response->get_data();
-		$this->assertEquals( $comment_id, $collection_data[0]['id'] );
+		$this->assertSame( $comment_id, $collection_data[0]['id'] );
 	}
 
 	/**
@@ -1559,16 +1559,16 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( $user_id, $data['author'] );
+		$this->assertSame( $user_id, $data['author'] );
 
 		// Check author data matches.
 		$author  = get_user_by( 'id', $user_id );
 		$comment = get_comment( $data['id'] );
-		$this->assertEquals( $author->display_name, $comment->comment_author );
-		$this->assertEquals( $author->user_email, $comment->comment_author_email );
-		$this->assertEquals( $author->user_url, $comment->comment_author_url );
+		$this->assertSame( $author->display_name, $comment->comment_author );
+		$this->assertSame( $author->user_email, $comment->comment_author_email );
+		$this->assertSame( $author->user_url, $comment->comment_author_url );
 	}
 
 	public function test_create_comment_other_user() {
@@ -1588,12 +1588,12 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( self::$subscriber_id, $data['author'] );
-		$this->assertEquals( 'Homer Jay Simpson', $data['author_name'] );
-		$this->assertEquals( 'chunkylover53@aol.com', $data['author_email'] );
-		$this->assertEquals( 'http://compuglobalhypermeganet.com', $data['author_url'] );
+		$this->assertSame( self::$subscriber_id, $data['author'] );
+		$this->assertSame( 'Homer Jay Simpson', $data['author_name'] );
+		$this->assertSame( 'chunkylover53@aol.com', $data['author_email'] );
+		$this->assertSame( 'http://compuglobalhypermeganet.com', $data['author_url'] );
 	}
 
 	public function test_create_comment_other_user_without_permission() {
@@ -1678,12 +1678,12 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( 'approved', $data['status'] );
-		$this->assertEquals( '139.130.4.5', $data['author_ip'] );
-		$this->assertEquals( 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36', $data['author_user_agent'] );
+		$this->assertSame( 'approved', $data['status'] );
+		$this->assertSame( '139.130.4.5', $data['author_ip'] );
+		$this->assertSame( 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36', $data['author_user_agent'] );
 	}
 
 	public function test_create_comment_user_agent_header() {
@@ -1703,12 +1703,12 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 
 		$data = $response->get_data();
 
 		$new_comment = get_comment( $data['id'] );
-		$this->assertEquals( 'Mozilla/4.0 (compatible; MSIE 5.5; AOL 4.0; Windows 95)', $new_comment->comment_agent );
+		$this->assertSame( 'Mozilla/4.0 (compatible; MSIE 5.5; AOL 4.0; Windows 95)', $new_comment->comment_agent );
 	}
 
 	public function test_create_comment_author_ip() {
@@ -1729,7 +1729,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response    = rest_get_server()->dispatch( $request );
 		$data        = $response->get_data();
 		$new_comment = get_comment( $data['id'] );
-		$this->assertEquals( '127.0.0.3', $new_comment->comment_author_IP );
+		$this->assertSame( '127.0.0.3', $new_comment->comment_author_IP );
 	}
 
 	public function test_create_comment_invalid_author_IP() {
@@ -1790,7 +1790,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response    = rest_get_server()->dispatch( $request );
 		$data        = $response->get_data();
 		$new_comment = get_comment( $data['id'] );
-		$this->assertEquals( '127.0.0.2', $new_comment->comment_author_IP );
+		$this->assertSame( '127.0.0.2', $new_comment->comment_author_IP );
 	}
 
 	public function test_create_comment_no_post_id() {
@@ -1957,7 +1957,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 409, $response->get_status() );
+		$this->assertSame( 409, $response->get_status() );
 	}
 
 	public function test_create_comment_closed() {
@@ -1978,7 +1978,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 403, $response->get_status() );
+		$this->assertSame( 403, $response->get_status() );
 	}
 
 	public function test_create_comment_require_login() {
@@ -1990,9 +1990,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$request->set_param( 'post', self::$post_id );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 401, $response->get_status() );
+		$this->assertSame( 401, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 'rest_comment_login_required', $data['code'] );
+		$this->assertSame( 'rest_comment_login_required', $data['code'] );
 	}
 
 	public function test_create_item_invalid_author() {
@@ -2051,7 +2051,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 
 		$params = array(
 			'post'         => self::$post_id,
@@ -2066,7 +2066,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 400, $response->get_status() );
+		$this->assertSame( 400, $response->get_status() );
 	}
 
 	public function anonymous_comments_callback_null() {
@@ -2229,7 +2229,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 	}
 
 	public function test_update_item() {
@@ -2253,20 +2253,20 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$comment = $response->get_data();
 		$updated = get_comment( self::$approved_id );
-		$this->assertEquals( $params['content'], $comment['content']['raw'] );
-		$this->assertEquals( $params['author'], $comment['author'] );
-		$this->assertEquals( $params['author_name'], $comment['author_name'] );
-		$this->assertEquals( $params['author_url'], $comment['author_url'] );
-		$this->assertEquals( $params['author_email'], $comment['author_email'] );
-		$this->assertEquals( $params['author_ip'], $comment['author_ip'] );
-		$this->assertEquals( $params['post'], $comment['post'] );
+		$this->assertSame( $params['content'], $comment['content']['raw'] );
+		$this->assertSame( $params['author'], $comment['author'] );
+		$this->assertSame( $params['author_name'], $comment['author_name'] );
+		$this->assertSame( $params['author_url'], $comment['author_url'] );
+		$this->assertSame( $params['author_email'], $comment['author_email'] );
+		$this->assertSame( $params['author_ip'], $comment['author_ip'] );
+		$this->assertSame( $params['post'], $comment['post'] );
 
-		$this->assertEquals( mysql_to_rfc3339( $updated->comment_date ), $comment['date'] );
-		$this->assertEquals( '2014-11-07T10:14:25', $comment['date'] );
+		$this->assertSame( mysql_to_rfc3339( $updated->comment_date ), $comment['date'] );
+		$this->assertSame( '2014-11-07T10:14:25', $comment['date'] );
 	}
 
 	/**
@@ -2290,17 +2290,17 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		update_option( 'timezone_string', '' );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data    = $response->get_data();
 		$comment = get_comment( $data['id'] );
 
-		$this->assertEquals( $results['date'], $data['date'] );
+		$this->assertSame( $results['date'], $data['date'] );
 		$comment_date = str_replace( 'T', ' ', $results['date'] );
-		$this->assertEquals( $comment_date, $comment->comment_date );
+		$this->assertSame( $comment_date, $comment->comment_date );
 
-		$this->assertEquals( $results['date_gmt'], $data['date_gmt'] );
+		$this->assertSame( $results['date_gmt'], $data['date_gmt'] );
 		$comment_date_gmt = str_replace( 'T', ' ', $results['date_gmt'] );
-		$this->assertEquals( $comment_date_gmt, $comment->comment_date_gmt );
+		$this->assertSame( $comment_date_gmt, $comment->comment_date_gmt );
 	}
 
 	public function test_update_item_no_content() {
@@ -2313,7 +2313,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		// Sending a request without content is fine.
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		// Sending a request with empty comment is not fine.
 		$request->set_param( 'author_email', 'yetanother@email.com' );
@@ -2333,10 +2333,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		// Run twice to make sure that the update still succeeds
 		// even if no DB rows are updated.
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 	}
 
 	public function test_update_comment_status() {
@@ -2358,11 +2358,11 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$comment = $response->get_data();
 		$updated = get_comment( $comment_id );
-		$this->assertEquals( 'approved', $comment['status'] );
+		$this->assertSame( 'approved', $comment['status'] );
 		$this->assertEquals( 1, $updated->comment_approved );
 	}
 
@@ -2386,13 +2386,13 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$comment = $response->get_data();
 		$updated = get_comment( $comment_id );
-		$this->assertEquals( 'approved', $comment['status'] );
+		$this->assertSame( 'approved', $comment['status'] );
 		$this->assertEquals( 1, $updated->comment_approved );
-		$this->assertEquals( 'some content', $updated->comment_content );
+		$this->assertSame( 'some content', $updated->comment_content );
 	}
 
 	public function test_update_comment_date_gmt() {
@@ -2408,12 +2408,12 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$comment = $response->get_data();
 		$updated = get_comment( self::$approved_id );
-		$this->assertEquals( $params['date_gmt'], $comment['date_gmt'] );
-		$this->assertEquals( $params['date_gmt'], mysql_to_rfc3339( $updated->comment_date_gmt ) );
+		$this->assertSame( $params['date_gmt'], $comment['date_gmt'] );
+		$this->assertSame( $params['date_gmt'], mysql_to_rfc3339( $updated->comment_date_gmt ) );
 	}
 
 	public function test_update_comment_author_email_only() {
@@ -2432,7 +2432,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 	}
 
 	public function test_update_comment_empty_author_name() {
@@ -2452,7 +2452,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 	}
 
 	public function test_update_comment_author_name_only() {
@@ -2471,7 +2471,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 	}
 
 	public function test_update_comment_empty_author_email() {
@@ -2491,7 +2491,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 	}
 
 	public function test_update_comment_author_email_too_short() {
@@ -2544,11 +2544,11 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$comment = $response->get_data();
 		$updated = get_comment( self::$approved_id );
-		$this->assertEquals( $params['content']['raw'], $updated->comment_content );
+		$this->assertSame( $params['content']['raw'], $updated->comment_content );
 	}
 
 	public function test_update_item_invalid_date() {
@@ -2639,14 +2639,14 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$comment = $response->get_data();
 		$updated = get_comment( self::$approved_id );
 
-		$this->assertEquals( $params['content'], $updated->comment_content );
-		$this->assertEquals( self::$post_id, $comment['post'] );
-		$this->assertEquals( '2019-10-07T23:14:25', $comment['date'] );
+		$this->assertSame( $params['content'], $updated->comment_content );
+		$this->assertSame( self::$post_id, $comment['post'] );
+		$this->assertSame( '2019-10-07T23:14:25', $comment['date'] );
 	}
 
 	public function test_update_comment_private_post_invalid_permission() {
@@ -2694,7 +2694,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		// Check if comment 1 does not have the child link.
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', $comment_id_1 ) );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertArrayNotHasKey( 'children', $response->get_links() );
 
 		// Change the comment parent.
@@ -2702,12 +2702,12 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'parent', $comment_id_1 );
 		$request->set_param( 'content', rand_str() );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		// Check if comment 1 now has the child link.
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', $comment_id_1 ) );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertArrayHasKey( 'children', $response->get_links() );
 	}
 
@@ -2790,6 +2790,36 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'comment_content_column_length', $response, 400 );
 	}
 
+	/**
+	 * @ticket 39732
+	 */
+	public function test_update_comment_is_wp_error() {
+		wp_set_current_user( self::$admin_id );
+
+		$params = array(
+			'content' => 'This isn\'t a saxophone. It\'s an umbrella.',
+		);
+
+		add_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ), 10, 3 );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', self::$approved_id ) );
+
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ), 10, 3 );
+
+		$this->assertErrorResponse( 'rest_comment_failed_edit', $response, 500 );
+	}
+
+	/**
+	 * Blocks comments from being updated by returning WP_Error.
+	 */
+	public function _wp_update_comment_data_filter( $data, $comment, $commentarr ) {
+		return new WP_Error( 'comment_wrong', 'wp_update_comment_data filter fails for this comment.', array( 'status' => 500 ) );
+	}
+
 	public function verify_comment_roundtrip( $input = array(), $expected_output = array() ) {
 		// Create the comment.
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
@@ -2799,22 +2829,22 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			$request->set_param( $name, $value );
 		}
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 		$actual_output = $response->get_data();
 
 		// Compare expected API output to actual API output.
 		$this->assertInternalType( 'array', $actual_output['content'] );
 		$this->assertArrayHasKey( 'raw', $actual_output['content'] );
-		$this->assertEquals( $expected_output['content']['raw'], $actual_output['content']['raw'] );
-		$this->assertEquals( $expected_output['content']['rendered'], trim( $actual_output['content']['rendered'] ) );
-		$this->assertEquals( $expected_output['author_name'], $actual_output['author_name'] );
-		$this->assertEquals( $expected_output['author_user_agent'], $actual_output['author_user_agent'] );
+		$this->assertSame( $expected_output['content']['raw'], $actual_output['content']['raw'] );
+		$this->assertSame( $expected_output['content']['rendered'], trim( $actual_output['content']['rendered'] ) );
+		$this->assertSame( $expected_output['author_name'], $actual_output['author_name'] );
+		$this->assertSame( $expected_output['author_user_agent'], $actual_output['author_user_agent'] );
 
 		// Compare expected API output to WP internal values.
 		$comment = get_comment( $actual_output['id'] );
-		$this->assertEquals( $expected_output['content']['raw'], $comment->comment_content );
-		$this->assertEquals( $expected_output['author_name'], $comment->comment_author );
-		$this->assertEquals( $expected_output['author_user_agent'], $comment->comment_agent );
+		$this->assertSame( $expected_output['content']['raw'], $comment->comment_content );
+		$this->assertSame( $expected_output['author_name'], $comment->comment_author );
+		$this->assertSame( $expected_output['author_user_agent'], $comment->comment_agent );
 
 		// Update the comment.
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $actual_output['id'] ) );
@@ -2825,26 +2855,26 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		// See https://core.trac.wordpress.org/ticket/38700
 		$request->set_param( 'author_ip', '127.0.0.2' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$actual_output = $response->get_data();
 
 		// Compare expected API output to actual API output.
-		$this->assertEquals( $expected_output['content']['raw'], $actual_output['content']['raw'] );
-		$this->assertEquals( $expected_output['content']['rendered'], trim( $actual_output['content']['rendered'] ) );
-		$this->assertEquals( $expected_output['author_name'], $actual_output['author_name'] );
-		$this->assertEquals( $expected_output['author_user_agent'], $actual_output['author_user_agent'] );
+		$this->assertSame( $expected_output['content']['raw'], $actual_output['content']['raw'] );
+		$this->assertSame( $expected_output['content']['rendered'], trim( $actual_output['content']['rendered'] ) );
+		$this->assertSame( $expected_output['author_name'], $actual_output['author_name'] );
+		$this->assertSame( $expected_output['author_user_agent'], $actual_output['author_user_agent'] );
 
 		// Compare expected API output to WP internal values.
 		$comment = get_comment( $actual_output['id'] );
-		$this->assertEquals( $expected_output['content']['raw'], $comment->comment_content );
-		$this->assertEquals( $expected_output['author_name'], $comment->comment_author );
-		$this->assertEquals( $expected_output['author_user_agent'], $comment->comment_agent );
+		$this->assertSame( $expected_output['content']['raw'], $comment->comment_content );
+		$this->assertSame( $expected_output['author_name'], $comment->comment_author );
+		$this->assertSame( $expected_output['author_user_agent'], $comment->comment_agent );
 	}
 
 	public function test_comment_roundtrip_as_editor() {
 		wp_set_current_user( self::$editor_id );
 
-		$this->assertEquals( ! is_multisite(), current_user_can( 'unfiltered_html' ) );
+		$this->assertSame( ! is_multisite(), current_user_can( 'unfiltered_html' ) );
 		$this->verify_comment_roundtrip(
 			array(
 				'content'           => '\o/ ¯\_(ツ)_/¯',
@@ -2958,10 +2988,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/comments/%d', $comment_id ) );
 		$request->set_param( 'force', 'false' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( 'trash', $data['status'] );
+		$this->assertSame( 'trash', $data['status'] );
 	}
 
 	public function test_delete_item_skip_trash() {
@@ -2979,7 +3009,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request['force'] = true;
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertTrue( $data['deleted'] );
 		$this->assertNotEmpty( $data['previous']['post'] );
@@ -2998,7 +3028,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request  = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/comments/%d', $comment_id ) );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data     = $response->get_data();
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_already_trashed', $response, 410 );
@@ -3042,12 +3072,12 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request  = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/comments/%s', $child_comment ) );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		// Verify children link is gone.
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', $comment_id_1 ) );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertArrayNotHasKey( 'children', $response->get_links() );
 	}
 
@@ -3056,7 +3086,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 17, count( $properties ) );
+		$this->assertSame( 17, count( $properties ) );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'author_avatar_urls', $properties );
@@ -3075,11 +3105,11 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertArrayHasKey( 'status', $properties );
 		$this->assertArrayHasKey( 'type', $properties );
 
-		$this->assertEquals( 0, $properties['parent']['default'] );
-		$this->assertEquals( 0, $properties['post']['default'] );
+		$this->assertSame( 0, $properties['parent']['default'] );
+		$this->assertSame( 0, $properties['post']['default'] );
 
-		$this->assertEquals( true, $properties['link']['readonly'] );
-		$this->assertEquals( true, $properties['type']['readonly'] );
+		$this->assertTrue( $properties['link']['readonly'] );
+		$this->assertTrue( $properties['type']['readonly'] );
 	}
 
 	public function test_get_item_schema_show_avatar() {
@@ -3117,7 +3147,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$data     = $response->get_data();
 
 		$this->assertArrayHasKey( 'my_custom_int', $data['schema']['properties'] );
-		$this->assertEquals( $schema, $data['schema']['properties']['my_custom_int'] );
+		$this->assertSame( $schema, $data['schema']['properties']['my_custom_int'] );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/comments/' . self::$approved_id );
 		$response = rest_get_server()->dispatch( $request );
@@ -3208,14 +3238,14 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( $comment->comment_post_ID, $data['post'] );
 		$this->assertEquals( $comment->comment_parent, $data['parent'] );
 		$this->assertEquals( $comment->user_id, $data['author'] );
-		$this->assertEquals( $comment->comment_author, $data['author_name'] );
-		$this->assertEquals( $comment->comment_author_url, $data['author_url'] );
-		$this->assertEquals( wpautop( $comment->comment_content ), $data['content']['rendered'] );
-		$this->assertEquals( mysql_to_rfc3339( $comment->comment_date ), $data['date'] );
-		$this->assertEquals( mysql_to_rfc3339( $comment->comment_date_gmt ), $data['date_gmt'] );
-		$this->assertEquals( get_comment_link( $comment ), $data['link'] );
+		$this->assertSame( $comment->comment_author, $data['author_name'] );
+		$this->assertSame( $comment->comment_author_url, $data['author_url'] );
+		$this->assertSame( wpautop( $comment->comment_content ), $data['content']['rendered'] );
+		$this->assertSame( mysql_to_rfc3339( $comment->comment_date ), $data['date'] );
+		$this->assertSame( mysql_to_rfc3339( $comment->comment_date_gmt ), $data['date_gmt'] );
+		$this->assertSame( get_comment_link( $comment ), $data['link'] );
 		$this->assertContains( 'author_avatar_urls', $data );
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'self',
 				'collection',
@@ -3225,10 +3255,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 
 		if ( 'edit' === $context ) {
-			$this->assertEquals( $comment->comment_author_email, $data['author_email'] );
-			$this->assertEquals( $comment->comment_author_IP, $data['author_ip'] );
-			$this->assertEquals( $comment->comment_agent, $data['author_user_agent'] );
-			$this->assertEquals( $comment->comment_content, $data['content']['raw'] );
+			$this->assertSame( $comment->comment_author_email, $data['author_email'] );
+			$this->assertSame( $comment->comment_author_IP, $data['author_ip'] );
+			$this->assertSame( $comment->comment_agent, $data['author_user_agent'] );
+			$this->assertSame( $comment->comment_content, $data['content']['raw'] );
 		}
 
 		if ( 'edit' !== $context ) {
@@ -3263,6 +3293,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/comments/' . $comment_id );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 403, $response->get_status() );
+		$this->assertSame( 403, $response->get_status() );
 	}
 }

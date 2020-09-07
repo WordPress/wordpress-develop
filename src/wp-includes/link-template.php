@@ -100,7 +100,6 @@ function permalink_anchor( $mode = 'id' ) {
  *
  * @param int|WP_Post $post      Optional. Post ID or post object. Default is the global `$post`.
  * @param bool        $leavename Optional. Whether to keep post name or page name. Default false.
- *
  * @return string|false The permalink URL or false if post does not exist.
  */
 function get_the_permalink( $post = 0, $leavename = false ) {
@@ -258,8 +257,8 @@ function get_permalink( $post = 0, $leavename = false ) {
  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param int|WP_Post $id        Optional. Post ID or post object. Default is the global `$post`.
- * @param bool        $leavename Optional, defaults to false. Whether to keep post name. Default false.
- * @param bool        $sample    Optional, defaults to false. Is it a sample permalink. Default false.
+ * @param bool        $leavename Optional. Whether to keep post name. Default false.
+ * @param bool        $sample    Optional. Is it a sample permalink. Default false.
  * @return string|WP_Error The post permalink.
  */
 function get_post_permalink( $id = 0, $leavename = false, $sample = false ) {
@@ -1553,7 +1552,7 @@ function edit_comment_link( $text = null, $before = '', $after = '' ) {
  *
  * @since 2.7.0
  *
- * @param int|stdClass $link Optional. Bookmark ID. Default is the id of the current bookmark.
+ * @param int|stdClass $link Optional. Bookmark ID. Default is the ID of the current bookmark.
  * @return string|void The edit bookmark link URL.
  */
 function get_edit_bookmark_link( $link = 0 ) {
@@ -2123,6 +2122,7 @@ function get_next_post_link( $format = '%link &raquo;', $link = '%title', $in_sa
  * Displays the next post link that is adjacent to the current post.
  *
  * @since 1.5.0
+ *
  * @see get_next_post_link()
  *
  * @param string       $format         Optional. Link anchor format. Default '&laquo; %link'.
@@ -2329,8 +2329,8 @@ function get_next_posts_page_link( $max_page = 0 ) {
  *
  * @since 0.71
  *
- * @param int   $max_page Optional. Max pages. Default 0.
- * @param bool  $echo     Optional. Whether to echo the link. Default true.
+ * @param int  $max_page Optional. Max pages. Default 0.
+ * @param bool $echo     Optional. Whether to echo the link. Default true.
  * @return string|void The link URL for next posts page if `$echo = false`.
  */
 function next_posts( $max_page = 0, $echo = true ) {
@@ -2551,6 +2551,7 @@ function posts_nav_link( $sep = '', $prelabel = '', $nxtlabel = '' ) {
  * @since 4.1.0
  * @since 4.4.0 Introduced the `in_same_term`, `excluded_terms`, and `taxonomy` arguments.
  * @since 5.3.0 Added the `aria_label` parameter.
+ * @since 5.5.0 Added the `class` parameter.
  *
  * @param array $args {
  *     Optional. Default post navigation arguments. Default empty array.
@@ -2562,6 +2563,7 @@ function posts_nav_link( $sep = '', $prelabel = '', $nxtlabel = '' ) {
  *     @type string       $taxonomy           Taxonomy, if `$in_same_term` is true. Default 'category'.
  *     @type string       $screen_reader_text Screen reader text for the nav element. Default 'Post navigation'.
  *     @type string       $aria_label         ARIA label text for the nav element. Default 'Posts'.
+ *     @type string       $class              Custom class for the nav element. Default 'post-navigation'.
  * }
  * @return string Markup for post links.
  */
@@ -2581,6 +2583,7 @@ function get_the_post_navigation( $args = array() ) {
 			'taxonomy'           => 'category',
 			'screen_reader_text' => __( 'Post navigation' ),
 			'aria_label'         => __( 'Posts' ),
+			'class'              => 'post-navigation',
 		)
 	);
 
@@ -2604,7 +2607,7 @@ function get_the_post_navigation( $args = array() ) {
 
 	// Only add markup if there's somewhere to navigate to.
 	if ( $previous || $next ) {
-		$navigation = _navigation_markup( $previous . $next, 'post-navigation', $args['screen_reader_text'], $args['aria_label'] );
+		$navigation = _navigation_markup( $previous . $next, $args['class'], $args['screen_reader_text'], $args['aria_label'] );
 	}
 
 	return $navigation;
@@ -2627,6 +2630,7 @@ function the_post_navigation( $args = array() ) {
  *
  * @since 4.1.0
  * @since 5.3.0 Added the `aria_label` parameter.
+ * @since 5.5.0 Added the `class` parameter.
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
@@ -2640,6 +2644,7 @@ function the_post_navigation( $args = array() ) {
  *     @type string $screen_reader_text Screen reader text for the nav element.
  *                                      Default 'Posts navigation'.
  *     @type string $aria_label         ARIA label text for the nav element. Default 'Posts'.
+ *     @type string $class              Custom class for the nav element. Default 'posts-navigation'.
  * }
  * @return string Markup for posts links.
  */
@@ -2660,6 +2665,7 @@ function get_the_posts_navigation( $args = array() ) {
 				'next_text'          => __( 'Newer posts' ),
 				'screen_reader_text' => __( 'Posts navigation' ),
 				'aria_label'         => __( 'Posts' ),
+				'class'              => 'posts-navigation',
 			)
 		);
 
@@ -2674,7 +2680,7 @@ function get_the_posts_navigation( $args = array() ) {
 			$navigation .= '<div class="nav-next">' . $next_link . '</div>';
 		}
 
-		$navigation = _navigation_markup( $navigation, 'posts-navigation', $args['screen_reader_text'], $args['aria_label'] );
+		$navigation = _navigation_markup( $navigation, $args['class'], $args['screen_reader_text'], $args['aria_label'] );
 	}
 
 	return $navigation;
@@ -2697,6 +2703,7 @@ function the_posts_navigation( $args = array() ) {
  *
  * @since 4.1.0
  * @since 5.3.0 Added the `aria_label` parameter.
+ * @since 5.5.0 Added the `class` parameter.
  *
  * @param array $args {
  *     Optional. Default pagination arguments, see paginate_links().
@@ -2704,6 +2711,7 @@ function the_posts_navigation( $args = array() ) {
  *     @type string $screen_reader_text Screen reader text for navigation element.
  *                                      Default 'Posts navigation'.
  *     @type string $aria_label         ARIA label text for the nav element. Default 'Posts'.
+ *     @type string $class              Custom class for the nav element. Default 'pagination'.
  * }
  * @return string Markup for pagination links.
  */
@@ -2725,6 +2733,7 @@ function get_the_posts_pagination( $args = array() ) {
 				'next_text'          => _x( 'Next', 'next set of posts' ),
 				'screen_reader_text' => __( 'Posts navigation' ),
 				'aria_label'         => __( 'Posts' ),
+				'class'              => 'pagination',
 			)
 		);
 
@@ -2737,7 +2746,7 @@ function get_the_posts_pagination( $args = array() ) {
 		$links = paginate_links( $args );
 
 		if ( $links ) {
-			$navigation = _navigation_markup( $links, 'pagination', $args['screen_reader_text'], $args['aria_label'] );
+			$navigation = _navigation_markup( $links, $args['class'], $args['screen_reader_text'], $args['aria_label'] );
 		}
 	}
 
@@ -2764,9 +2773,12 @@ function the_posts_pagination( $args = array() ) {
  * @access private
  *
  * @param string $links              Navigational links.
- * @param string $class              Optional. Custom class for the nav element. Default: 'posts-navigation'.
- * @param string $screen_reader_text Optional. Screen reader text for the nav element. Default: 'Posts navigation'.
- * @param string $aria_label         Optional. ARIA label for the nav element. Default: same value as $screen_reader_text.
+ * @param string $class              Optional. Custom class for the nav element.
+ *                                   Default 'posts-navigation'.
+ * @param string $screen_reader_text Optional. Screen reader text for the nav element.
+ *                                   Default 'Posts navigation'.
+ * @param string $aria_label         Optional. ARIA label for the nav element.
+ *                                   Defaults to the value of `$screen_reader_text`.
  * @return string Navigation template tag.
  */
 function _navigation_markup( $links, $class = 'posts-navigation', $screen_reader_text = '', $aria_label = '' ) {
@@ -3016,6 +3028,7 @@ function paginate_comments_links( $args = array() ) {
  *
  * @since 4.4.0
  * @since 5.3.0 Added the `aria_label` parameter.
+ * @since 5.5.0 Added the `class` parameter.
  *
  * @param array $args {
  *     Optional. Default comments navigation arguments.
@@ -3026,6 +3039,7 @@ function paginate_comments_links( $args = array() ) {
  *                                      Default 'Newer comments'.
  *     @type string $screen_reader_text Screen reader text for the nav element. Default 'Comments navigation'.
  *     @type string $aria_label         ARIA label text for the nav element. Default 'Comments'.
+ *     @type string $class              Custom class for the nav element. Default 'comment-navigation'.
  * }
  * @return string Markup for comments links.
  */
@@ -3046,6 +3060,7 @@ function get_the_comments_navigation( $args = array() ) {
 				'next_text'          => __( 'Newer comments' ),
 				'screen_reader_text' => __( 'Comments navigation' ),
 				'aria_label'         => __( 'Comments' ),
+				'class'              => 'comment-navigation',
 			)
 		);
 
@@ -3060,7 +3075,7 @@ function get_the_comments_navigation( $args = array() ) {
 			$navigation .= '<div class="nav-next">' . $next_link . '</div>';
 		}
 
-		$navigation = _navigation_markup( $navigation, 'comment-navigation', $args['screen_reader_text'], $args['aria_label'] );
+		$navigation = _navigation_markup( $navigation, $args['class'], $args['screen_reader_text'], $args['aria_label'] );
 	}
 
 	return $navigation;
@@ -3082,6 +3097,7 @@ function the_comments_navigation( $args = array() ) {
  *
  * @since 4.4.0
  * @since 5.3.0 Added the `aria_label` parameter.
+ * @since 5.5.0 Added the `class` parameter.
  *
  * @see paginate_comments_links()
  *
@@ -3090,6 +3106,7 @@ function the_comments_navigation( $args = array() ) {
  *
  *     @type string $screen_reader_text Screen reader text for the nav element. Default 'Comments navigation'.
  *     @type string $aria_label         ARIA label text for the nav element. Default 'Comments'.
+ *     @type string $class              Custom class for the nav element. Default 'comments-pagination'.
  * }
  * @return string Markup for pagination links.
  */
@@ -3106,6 +3123,7 @@ function get_the_comments_pagination( $args = array() ) {
 		array(
 			'screen_reader_text' => __( 'Comments navigation' ),
 			'aria_label'         => __( 'Comments' ),
+			'class'              => 'comments-pagination',
 		)
 	);
 	$args['echo'] = false;
@@ -3118,7 +3136,7 @@ function get_the_comments_pagination( $args = array() ) {
 	$links = paginate_comments_links( $args );
 
 	if ( $links ) {
-		$navigation = _navigation_markup( $links, 'comments-pagination', $args['screen_reader_text'], $args['aria_label'] );
+		$navigation = _navigation_markup( $links, $args['class'], $args['screen_reader_text'], $args['aria_label'] );
 	}
 
 	return $navigation;
@@ -3144,9 +3162,9 @@ function the_comments_pagination( $args = array() ) {
  *
  * @since 3.0.0
  *
- * @param  string      $path   Optional. Path relative to the home URL. Default empty.
- * @param  string|null $scheme Optional. Scheme to give the home URL context. Accepts
- *                             'http', 'https', 'relative', 'rest', or null. Default null.
+ * @param string      $path   Optional. Path relative to the home URL. Default empty.
+ * @param string|null $scheme Optional. Scheme to give the home URL context. Accepts
+ *                            'http', 'https', 'relative', 'rest', or null. Default null.
  * @return string Home URL link with optional path appended.
  */
 function home_url( $path = '', $scheme = null ) {
@@ -3164,10 +3182,10 @@ function home_url( $path = '', $scheme = null ) {
  *
  * @global string $pagenow
  *
- * @param  int         $blog_id Optional. Site ID. Default null (current site).
- * @param  string      $path    Optional. Path relative to the home URL. Default empty.
- * @param  string|null $scheme  Optional. Scheme to give the home URL context. Accepts
- *                              'http', 'https', 'relative', 'rest', or null. Default null.
+ * @param int         $blog_id Optional. Site ID. Default null (current site).
+ * @param string      $path    Optional. Path relative to the home URL. Default empty.
+ * @param string|null $scheme  Optional. Scheme to give the home URL context. Accepts
+ *                             'http', 'https', 'relative', 'rest', or null. Default null.
  * @return string Home URL link with optional path appended.
  */
 function get_home_url( $blog_id = null, $path = '', $scheme = null ) {
@@ -3383,11 +3401,11 @@ function content_url( $path = '' ) {
  *
  * @since 2.6.0
  *
- * @param  string $path   Optional. Extra path appended to the end of the URL, including
- *                        the relative directory if $plugin is supplied. Default empty.
- * @param  string $plugin Optional. A full path to a file inside a plugin or mu-plugin.
- *                        The URL will be relative to its directory. Default empty.
- *                        Typically this is done by passing `__FILE__` as the argument.
+ * @param string $path   Optional. Extra path appended to the end of the URL, including
+ *                       the relative directory if $plugin is supplied. Default empty.
+ * @param string $plugin Optional. A full path to a file inside a plugin or mu-plugin.
+ *                       The URL will be relative to its directory. Default empty.
+ *                       Typically this is done by passing `__FILE__` as the argument.
  * @return string Plugins URL link with optional paths appended.
  */
 function plugins_url( $path = '', $plugin = '' ) {
@@ -3485,9 +3503,9 @@ function network_site_url( $path = '', $scheme = null ) {
  *
  * @since 3.0.0
  *
- * @param  string $path   Optional. Path relative to the home URL. Default empty.
- * @param  string $scheme Optional. Scheme to give the home URL context. Accepts
- *                        'http', 'https', or 'relative'. Default null.
+ * @param string $path   Optional. Path relative to the home URL. Default empty.
+ * @param string $scheme Optional. Scheme to give the home URL context. Accepts
+ *                       'http', 'https', or 'relative'. Default null.
  * @return string Home URL link with optional path appended.
  */
 function network_home_url( $path = '', $scheme = null ) {
@@ -3628,7 +3646,7 @@ function self_admin_url( $path = '', $scheme = 'admin' ) {
  * @param string      $url    Absolute URL that includes a scheme
  * @param string|null $scheme Optional. Scheme to give $url. Currently 'http', 'https', 'login',
  *                            'login_post', 'admin', 'relative', 'rest', 'rpc', or null. Default null.
- * @return string $url URL with chosen scheme.
+ * @return string URL with chosen scheme.
  */
 function set_url_scheme( $url, $scheme = null ) {
 	$orig_scheme = $scheme;
@@ -3844,10 +3862,10 @@ function rel_canonical() {
  *
  * @since 3.0.0
  *
- * @param int    $id          Optional. A post or site id. Default is 0, which means the current post or site.
- * @param string $context     Optional. Whether the id is a 'site' id, 'post' id, or 'media' id. If 'post',
+ * @param int    $id          Optional. A post or site ID. Default is 0, which means the current post or site.
+ * @param string $context     Optional. Whether the ID is a 'site' id, 'post' id, or 'media' id. If 'post',
  *                            the post_type of the post is consulted. If 'query', the current query is consulted
- *                            to determine the id and context. Default 'post'.
+ *                            to determine the ID and context. Default 'post'.
  * @param bool   $allow_slugs Optional. Whether to allow post slugs in the shortlink. It is up to the plugin how
  *                            and whether to honor this. Default true.
  * @return string A shortlink or an empty string if no shortlink exists for the requested resource or if shortlinks
@@ -3857,8 +3875,8 @@ function wp_get_shortlink( $id = 0, $context = 'post', $allow_slugs = true ) {
 	/**
 	 * Filters whether to preempt generating a shortlink for the given post.
 	 *
-	 * Passing a truthy value to the filter will effectively short-circuit the
-	 * shortlink-generation process, returning that value instead.
+	 * Returning a truthy value from the filter will effectively short-circuit
+	 * the shortlink generation process, returning that value instead.
 	 *
 	 * @since 3.0.0
 	 *
@@ -4436,7 +4454,6 @@ function the_privacy_policy_link( $before = '', $after = '' ) {
  *
  * @param string $before Optional. Display before privacy policy link. Default empty.
  * @param string $after  Optional. Display after privacy policy link. Default empty.
- *
  * @return string Markup for the link and surrounding elements. Empty string if it
  *                doesn't exist.
  */

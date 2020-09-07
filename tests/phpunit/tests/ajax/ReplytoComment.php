@@ -16,14 +16,14 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 
 	/**
-	 * A post with at least one comment
+	 * A post with at least one comment.
 	 *
 	 * @var mixed
 	 */
 	protected static $comment_post = null;
 
 	/**
-	 * Draft post
+	 * Draft post.
 	 *
 	 * @var mixed
 	 */
@@ -43,10 +43,9 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Reply as a privilged user (administrator)
-	 * Expects test to pass
+	 * Tests reply as a privileged user (administrator).
 	 *
-	 * @return void
+	 * Expects test to pass.
 	 */
 	public function test_as_admin() {
 
@@ -78,7 +77,7 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		$xml = simplexml_load_string( $this->_last_response, 'SimpleXMLElement', LIBXML_NOCDATA );
 
 		// Check the meta data.
-		$this->assertEquals( -1, (string) $xml->response[0]->comment['position'] );
+		$this->assertSame( '-1', (string) $xml->response[0]->comment['position'] );
 		$this->assertGreaterThan( 0, (int) $xml->response[0]->comment['id'] );
 		$this->assertNotEmpty( (string) $xml->response['action'] );
 
@@ -90,10 +89,9 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Reply as a non-privileged user (subscriber)
-	 * Expects test to fail
+	 * Tests reply as a non-privileged user (subscriber).
 	 *
-	 * @return void
+	 * Expects test to fail.
 	 */
 	public function test_as_subscriber() {
 
@@ -120,10 +118,9 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Reply using a bad nonce
-	 * Expects test to fail
+	 * Tests reply using a bad nonce.
 	 *
-	 * @return void
+	 * Expects test to fail.
 	 */
 	public function test_bad_nonce() {
 
@@ -150,10 +147,9 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Reply to an invalid post
-	 * Expects test to fail
+	 * Tests reply to an invalid post.
 	 *
-	 * @return void
+	 * Expects test to fail.
 	 */
 	public function test_invalid_post() {
 
@@ -171,10 +167,9 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Reply to a draft post
-	 * Expects test to fail
+	 * Tests reply to a draft post.
 	 *
-	 * @return void
+	 * Expects test to fail.
 	 */
 	public function test_with_draft_post() {
 
@@ -187,16 +182,16 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		$_POST['comment_post_ID']             = self::$draft_post->ID;
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', 'Error: You are replying to a comment on a draft post.' );
+		$this->setExpectedException( 'WPAjaxDieStopException', 'Error: You can&#8217;t reply to a comment on a draft post.' );
 		$this->_handleAjax( 'replyto-comment' );
 	}
 
 	/**
-	 * Reply to a post with a simulated database failure
-	 * Expects test to fail
+	 * Tests reply to a post with a simulated database failure.
+	 *
+	 * Expects test to fail.
 	 *
 	 * @global $wpdb
-	 * @return void
 	 */
 	public function test_blocked_comment() {
 		global $wpdb;
@@ -225,7 +220,7 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Block comments from being saved
+	 * Blocks comments from being saved.
 	 *
 	 * @param string $sql
 	 * @return string
@@ -239,10 +234,9 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Raises WP_Error after Posted a new pre comment
+	 * Tests blocking a comment from being saved on 'pre_comment_approved'.
 	 *
 	 * @ticket 39730
-	 * @return void
 	 */
 	public function test_pre_comments_approved() {
 
@@ -263,7 +257,7 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 *  Block comments from being saved 'pre_comment_approved', by returning WP_Error
+	 * Blocks comments from being saved on 'pre_comment_approved', by returning WP_Error.
 	 */
 	function _pre_comment_approved_filter( $approved, $commentdata ) {
 		return new WP_Error( 'comment_wrong', 'pre_comment_approved filter fails for new comment', 403 );

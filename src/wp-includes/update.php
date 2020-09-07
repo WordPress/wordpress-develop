@@ -9,11 +9,13 @@
 /**
  * Check WordPress version against the newest version.
  *
- * The WordPress version, PHP version, and Locale is sent. Checks against the
- * WordPress server at api.wordpress.org server. Will only check if WordPress
- * isn't installing.
+ * The WordPress version, PHP version, and locale is sent.
+ *
+ * Checks against the WordPress server at api.wordpress.org. Will only check
+ * if WordPress isn't installing.
  *
  * @since 2.3.0
+ *
  * @global string $wp_version       Used to check against the newest WordPress version.
  * @global wpdb   $wpdb             WordPress database abstraction object.
  * @global string $wp_local_package Locale code of the package.
@@ -103,7 +105,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	);
 
 	/**
-	 * Filter the query arguments sent as part of the core version check.
+	 * Filters the query arguments sent as part of the core version check.
 	 *
 	 * WARNING: Changing this data may result in your site not receiving security updates.
 	 * Please exercise extreme caution.
@@ -240,7 +242,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	// Trigger background updates if running non-interactively, and we weren't called from the update handler.
 	if ( $doing_cron && ! doing_action( 'wp_maybe_auto_update' ) ) {
 		/**
-		 * Fires during wp_cron, starting the auto update process.
+		 * Fires during wp_cron, starting the auto-update process.
 		 *
 		 * @since 3.9.0
 		 */
@@ -249,13 +251,17 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 }
 
 /**
- * Check plugin versions against the latest versions hosted on WordPress.org.
+ * Checks for available updates to plugins based on the latest versions hosted on WordPress.org.
  *
- * The WordPress version, PHP version, and Locale is sent along with a list of
- * all plugins installed. Checks against the WordPress server at
- * api.wordpress.org. Will only check if WordPress isn't installing.
+ * Despite its name this function does not actually perform any updates, it only checks for available updates.
+ *
+ * A list of all plugins installed is sent to WP, along with the site locale.
+ *
+ * Checks against the WordPress server at api.wordpress.org. Will only check
+ * if WordPress isn't installing.
  *
  * @since 2.3.0
+ *
  * @global string $wp_version The WordPress version string.
  *
  * @param array $extra_stats Extra statistics to report to the WordPress.org API.
@@ -440,13 +446,17 @@ function wp_update_plugins( $extra_stats = array() ) {
 }
 
 /**
- * Check theme versions against the latest versions hosted on WordPress.org.
+ * Checks for available updates to themes based on the latest versions hosted on WordPress.org.
  *
- * A list of all themes installed in sent to WP. Checks against the
- * WordPress server at api.wordpress.org. Will only check if WordPress isn't
- * installing.
+ * Despite its name this function does not actually perform any updates, it only checks for available updates.
+ *
+ * A list of all themes installed is sent to WP, along with the site locale.
+ *
+ * Checks against the WordPress server at api.wordpress.org. Will only check
+ * if WordPress isn't installing.
  *
  * @since 2.7.0
+ *
  * @global string $wp_version The WordPress version string.
  *
  * @param array $extra_stats Extra statistics to report to the WordPress.org API.
@@ -611,6 +621,7 @@ function wp_update_themes( $extra_stats = array() ) {
 
 	if ( is_array( $response ) ) {
 		$new_update->response     = $response['themes'];
+		$new_update->no_update    = $response['no_update'];
 		$new_update->translations = $response['translations'];
 	}
 
@@ -619,6 +630,8 @@ function wp_update_themes( $extra_stats = array() ) {
 
 /**
  * Performs WordPress automatic background updates.
+ *
+ * Updates WordPress core plus any plugins and themes that have automatic updates enabled.
  *
  * @since 3.7.0
  */

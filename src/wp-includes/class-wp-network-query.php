@@ -169,7 +169,7 @@ class WP_Network_Query {
 	 * @since 4.6.0
 	 *
 	 * @param string|array $query Array or URL query string of parameters.
-	 * @return array|int List of WP_Network objects, a list of network ids when 'fields' is set to 'ids',
+	 * @return array|int List of WP_Network objects, a list of network IDs when 'fields' is set to 'ids',
 	 *                   or the number of networks when 'count' is passed as a query var.
 	 */
 	public function query( $query ) {
@@ -182,7 +182,7 @@ class WP_Network_Query {
 	 *
 	 * @since 4.6.0
 	 *
-	 * @return array|int List of WP_Network objects, a list of network ids when 'fields' is set to 'ids',
+	 * @return array|int List of WP_Network objects, a list of network IDs when 'fields' is set to 'ids',
 	 *                   or the number of networks when 'count' is passed as a query var.
 	 */
 	public function get_networks() {
@@ -200,13 +200,13 @@ class WP_Network_Query {
 		$network_data = null;
 
 		/**
-		 * Filter the network data before the query takes place.
+		 * Filters the network data before the query takes place.
 		 *
 		 * Return a non-null value to bypass WordPress's default network queries.
 		 *
 		 * The expected return type from this filter depends on the value passed in the request query_vars.
 		 * When `$this->query_vars['count']` is set, the filter should return the network count as an int.
-		 * When `'ids' === $this->query_vars['fields']`, the filter should return an array of network ids.
+		 * When `'ids' === $this->query_vars['fields']`, the filter should return an array of network IDs.
 		 * Otherwise the filter should return an array of WP_Network objects.
 		 *
 		 * @since 5.2.0
@@ -509,7 +509,6 @@ class WP_Network_Query {
 	 *
 	 * @param string   $string  Search string.
 	 * @param string[] $columns Array of columns to search.
-	 *
 	 * @return string Search SQL.
 	 */
 	protected function get_search_sql( $string, $columns ) {

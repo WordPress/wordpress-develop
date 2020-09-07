@@ -137,7 +137,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		 *
 		 * @since 3.7.0
 		 *
-		 * @param array $args An array of themes API arguments.
+		 * @param array|false $args Theme install API arguments.
 		 */
 		$args = apply_filters( "install_themes_table_api_args_{$tab}", $args );
 
@@ -250,7 +250,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	 *     @type string $slug           Theme slug, e.g. 'twentytwenty'.
 	 *     @type string $version        Theme version, e.g. '1.1'.
 	 *     @type string $author         Theme author username, e.g. 'melchoyce'.
-	 *     @type string $preview_url    Preview URL, e.g. 'http://2020.wordpress.net/'.
+	 *     @type string $preview_url    Preview URL, e.g. 'https://2020.wordpress.net/'.
 	 *     @type string $screenshot_url Screenshot URL, e.g. 'https://wordpress.org/themes/twentytwenty/'.
 	 *     @type float  $rating         Rating score.
 	 *     @type int    $num_ratings    The number of ratings.
@@ -323,7 +323,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 					'<a class="install-now" href="%s" title="%s">%s</a>',
 					esc_url( wp_nonce_url( $install_url, 'install-theme_' . $theme->slug ) ),
 					/* translators: %s: Theme name. */
-					esc_attr( sprintf( __( 'Install %s' ), $name ) ),
+					esc_attr( sprintf( _x( 'Install %s', 'theme' ), $name ) ),
 					__( 'Install Now' )
 				);
 				break;

@@ -36,7 +36,7 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 
 		/* Todo test ipv6_fallback mode if keeping it.*/
 
-		$this->assertEquals( $expected_result, $actual_result );
+		$this->assertSame( $expected_result, $actual_result );
 	}
 
 	/**
@@ -226,7 +226,7 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	 * Test date anonymization of `wp_privacy_anonymize_data()`.
 	 */
 	public function test_anonymize_date() {
-		$this->assertEquals( '0000-00-00 00:00:00', wp_privacy_anonymize_data( 'date', '2003-12-25 12:34:56' ) );
+		$this->assertSame( '0000-00-00 00:00:00', wp_privacy_anonymize_data( 'date', '2003-12-25 12:34:56' ) );
 	}
 
 	/**
@@ -234,7 +234,7 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	 */
 	public function test_anonymize_text() {
 		$text = __( 'Four score and seven years ago' );
-		$this->assertEquals( '[deleted]', wp_privacy_anonymize_data( 'text', $text ) );
+		$this->assertSame( '[deleted]', wp_privacy_anonymize_data( 'text', $text ) );
 	}
 
 	/**
@@ -242,7 +242,7 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	 */
 	public function test_anonymize_long_text() {
 		$text = __( 'Four score and seven years ago' );
-		$this->assertEquals( 'This content was deleted by the author.', wp_privacy_anonymize_data( 'longtext', $text ) );
+		$this->assertSame( 'This content was deleted by the author.', wp_privacy_anonymize_data( 'longtext', $text ) );
 	}
 
 	/**
@@ -266,7 +266,7 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	 * @param string  $anonymous Anonymized data.
 	 * @param string  $type      Type of the data.
 	 * @param string  $data      Original data.
-	 * @return string $anonymous Anonymized data.
+	 * @return string Anonymized data.
 	 */
 	public function filter_wp_privacy_anonymize_data( $anonymous, $type, $data ) {
 		if ( 'url' === $type && 'example.com' === parse_url( $data, PHP_URL_HOST ) ) {

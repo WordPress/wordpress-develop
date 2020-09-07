@@ -33,10 +33,10 @@ jobs:
     name: E2E Tests
   - env: WP_TRAVISCI=lint:php COMPOSER_INSTALL=true NPM_INSTALL=false WP_INSTALL=false
     name: PHP Linting
-  - env: WP_TRAVISCI=travis:js WP_INSTALL=false PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=
-    name: JS Tests
   - env: WP_TRAVISCI=test:compat COMPOSER_INSTALL=true NPM_INSTALL=false WP_INSTALL=false
     name: "PHP Compatibility Check"
+  - env: WP_TRAVISCI=travis:js WP_INSTALL=false PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=
+    name: JS Tests
   - env: LOCAL_PHP=7.4-fpm WP_TRAVISCI=test:php
     name: "PHPUnit Tests: PHP 7.4"
   - env: LOCAL_PHP=7.3-fpm WP_TRAVISCI=test:php
@@ -54,7 +54,6 @@ jobs:
   - env: LOCAL_PHP=8.0-fpm WP_TRAVISCI=test:php
     name: "PHPUnit Tests: PHP 8.0"
   allow_failures:
-  - env: WP_TRAVISCI=test:compat COMPOSER_INSTALL=true NPM_INSTALL=false WP_INSTALL=false
   - env: LOCAL_PHP=8.0-fpm WP_TRAVISCI=test:php
   fast_finish: true
 
@@ -77,7 +76,7 @@ before_script:
   fi
 - npm --version
 - node --version
-- nvm install 10.13.0
+- nvm install --latest-npm
 - |
   if [[ "$NPM_INSTALL" == "true" ]]; then
     npm ci

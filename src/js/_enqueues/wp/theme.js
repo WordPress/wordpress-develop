@@ -28,9 +28,16 @@ themes.Model = Backbone.Model.extend({
 	initialize: function() {
 		var description;
 
-		// If theme is already installed, set an attribute.
-		if ( _.indexOf( themes.data.installedThemes, this.get( 'slug' ) ) !== -1 ) {
-			this.set({ installed: true });
+		if ( this.get( 'slug' ) ) {
+			// If the theme is already installed, set an attribute.
+			if ( _.indexOf( themes.data.installedThemes, this.get( 'slug' ) ) !== -1 ) {
+				this.set({ installed: true });
+			}
+
+			// If the theme is active, set an attribute.
+			if ( themes.data.activeTheme === this.get( 'slug' ) ) {
+				this.set({ active: true });
+			}
 		}
 
 		// Set the attributes.
@@ -263,7 +270,7 @@ themes.Collection = Backbone.Collection.extend({
 		// it means we have a paginated request.
 		isPaginated = _.has( request, 'page' );
 
-		// Reset the internal api page counter for non paginated queries.
+		// Reset the internal api page counter for non-paginated queries.
 		if ( ! isPaginated ) {
 			this.currentQuery.page = 1;
 		}
@@ -795,8 +802,11 @@ themes.view.Details = wp.Backbone.View.extend({
 
 		// Support concurrent clicks in different Theme Details overlays.
 		callback = function( event, data ) {
+			var autoupdate;
 			if ( _this.model.get( 'id' ) === data.asset ) {
-				_this.model.set( { autoupdate: 'enable' === data.state } );
+				autoupdate = _this.model.get( 'autoupdate' );
+				autoupdate.enabled = 'enable' === data.state;
+				_this.model.set( { autoupdate: autoupdate } );
 				$( document ).off( 'wp-auto-update-setting-changed', callback );
 			}
 		};
@@ -1421,7 +1431,7 @@ themes.view.Search = wp.Backbone.View.extend({
  * @since 4.9.0
  *
  * @param {string} url - URL to navigate to.
- * @param {object} state - State.
+ * @param {Object} state - State.
  * @return {void}
  */
 function navigateRouter( url, state ) {
@@ -1834,7 +1844,7 @@ themes.view.Installer = themes.view.Appearance.extend({
 	/**
 	 * Get the checked filters.
 	 *
-	 * @return {array} of tags or false
+	 * @return {Array} of tags or false
 	 */
 	filtersChecked: function() {
 		var items = $( '.filter-group' ).find( ':checkbox' ),

@@ -48,11 +48,11 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 	 */
 	function test_construct() {
 		$widget = new WP_Widget_Text();
-		$this->assertEquals( 'text', $widget->id_base );
-		$this->assertEquals( 'widget_text', $widget->widget_options['classname'] );
+		$this->assertSame( 'text', $widget->id_base );
+		$this->assertSame( 'widget_text', $widget->widget_options['classname'] );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
-		$this->assertEquals( 400, $widget->control_options['width'] );
-		$this->assertEquals( 350, $widget->control_options['height'] );
+		$this->assertSame( 400, $widget->control_options['width'] );
+		$this->assertSame( 350, $widget->control_options['height'] );
 	}
 
 	/**
@@ -65,8 +65,8 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		$widget = new WP_Widget_Text();
 		$widget->_register();
 
-		$this->assertEquals( 10, has_action( 'admin_print_scripts-widgets.php', array( $widget, 'enqueue_admin_scripts' ) ) );
-		$this->assertEquals( 10, has_action( 'admin_footer-widgets.php', array( 'WP_Widget_Text', 'render_control_template_scripts' ) ) );
+		$this->assertSame( 10, has_action( 'admin_print_scripts-widgets.php', array( $widget, 'enqueue_admin_scripts' ) ) );
+		$this->assertSame( 10, has_action( 'admin_footer-widgets.php', array( 'WP_Widget_Text', 'render_control_template_scripts' ) ) );
 		$this->assertContains( 'wp.textWidgets.idBases.push( "text" );', wp_scripts()->registered['text-widgets']->extra['after'] );
 		$this->assertFalse( has_action( 'wp_enqueue_scripts', array( $widget, 'enqueue_preview_scripts' ) ) );
 	}
@@ -75,8 +75,8 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 	 * Test register in customize preview.
 	 *
 	 * @global WP_Customize_Manager $wp_customize
-	 * @covers WP_Widget_Text::__construct()
-	 * @covers WP_Widget_Text::_register()
+	 * @covers WP_Widget_Text::__construct
+	 * @covers WP_Widget_Text::_register
 	 */
 	function test__register_in_customize_preview() {
 		global $wp_customize;
@@ -97,7 +97,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 
 		$widget = new WP_Widget_Text();
 		$widget->_register();
-		$this->assertEquals( 10, has_action( 'wp_enqueue_scripts', array( $widget, 'enqueue_preview_scripts' ) ) );
+		$this->assertSame( 10, has_action( 'wp_enqueue_scripts', array( $widget, 'enqueue_preview_scripts' ) ) );
 	}
 
 	/**
@@ -173,9 +173,9 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		$this->assertContains( '<p>', $output );
 		$this->assertContains( '<br />', $output );
 		$this->assertNotEmpty( $this->widget_text_args );
-		$this->assertEquals( $instance['text'], $this->widget_text_args[0] );
-		$this->assertEquals( $instance, $this->widget_text_args[1] );
-		$this->assertEquals( $widget, $this->widget_text_args[2] );
+		$this->assertSame( $instance['text'], $this->widget_text_args[0] );
+		$this->assertSame( $instance, $this->widget_text_args[1] );
+		$this->assertSame( $widget, $this->widget_text_args[2] );
 		$this->assertEmpty( $this->widget_text_content_args );
 		$this->assertContains( '[filter:widget_text]', $output );
 		$this->assertNotContains( '[filter:widget_text_content]', $output );
@@ -200,13 +200,13 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		$this->assertContains( '<p>', $output );
 		$this->assertContains( '<br />', $output );
 		$this->assertCount( 3, $this->widget_text_args );
-		$this->assertEquals( $expected_instance['text'], $this->widget_text_args[0] );
-		$this->assertEquals( $expected_instance, $this->widget_text_args[1] );
-		$this->assertEquals( $widget, $this->widget_text_args[2] );
+		$this->assertSame( $expected_instance['text'], $this->widget_text_args[0] );
+		$this->assertSame( $expected_instance, $this->widget_text_args[1] );
+		$this->assertSame( $widget, $this->widget_text_args[2] );
 		$this->assertCount( 3, $this->widget_text_content_args );
-		$this->assertEquals( $expected_instance['text'] . '[filter:widget_text]', $this->widget_text_content_args[0] );
-		$this->assertEquals( $expected_instance, $this->widget_text_content_args[1] );
-		$this->assertEquals( $widget, $this->widget_text_content_args[2] );
+		$this->assertSame( $expected_instance['text'] . '[filter:widget_text]', $this->widget_text_content_args[0] );
+		$this->assertSame( $expected_instance, $this->widget_text_content_args[1] );
+		$this->assertSame( $widget, $this->widget_text_content_args[2] );
 		$this->assertContains( wpautop( $expected_instance['text'] . '[filter:widget_text][filter:widget_text_content]' ), $output );
 
 		// Test with filter=true&visual=true, the upgraded widget, in 4.8.1 and above.
@@ -224,13 +224,13 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		$this->assertContains( '<p>', $output );
 		$this->assertContains( '<br />', $output );
 		$this->assertCount( 3, $this->widget_text_args );
-		$this->assertEquals( $expected_instance['text'], $this->widget_text_args[0] );
-		$this->assertEquals( $expected_instance, $this->widget_text_args[1] );
-		$this->assertEquals( $widget, $this->widget_text_args[2] );
+		$this->assertSame( $expected_instance['text'], $this->widget_text_args[0] );
+		$this->assertSame( $expected_instance, $this->widget_text_args[1] );
+		$this->assertSame( $widget, $this->widget_text_args[2] );
 		$this->assertCount( 3, $this->widget_text_content_args );
-		$this->assertEquals( $expected_instance['text'] . '[filter:widget_text]', $this->widget_text_content_args[0] );
-		$this->assertEquals( $expected_instance, $this->widget_text_content_args[1] );
-		$this->assertEquals( $widget, $this->widget_text_content_args[2] );
+		$this->assertSame( $expected_instance['text'] . '[filter:widget_text]', $this->widget_text_content_args[0] );
+		$this->assertSame( $expected_instance, $this->widget_text_content_args[1] );
+		$this->assertSame( $widget, $this->widget_text_content_args[2] );
 		$this->assertContains( wpautop( $expected_instance['text'] . '[filter:widget_text][filter:widget_text_content]' ), $output );
 
 		// Test with filter=true&visual=true, the upgraded widget, in 4.8.1 and above.
@@ -248,9 +248,9 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		$this->assertContains( '<p>', $output );
 		$this->assertContains( '<br />', $output );
 		$this->assertCount( 3, $this->widget_text_args );
-		$this->assertEquals( $expected_instance['text'], $this->widget_text_args[0] );
-		$this->assertEquals( $expected_instance, $this->widget_text_args[1] );
-		$this->assertEquals( $widget, $this->widget_text_args[2] );
+		$this->assertSame( $expected_instance['text'], $this->widget_text_args[0] );
+		$this->assertSame( $expected_instance, $this->widget_text_args[1] );
+		$this->assertSame( $widget, $this->widget_text_args[2] );
 		$this->assertNull( $this->widget_text_content_args );
 		$this->assertContains( wpautop( $expected_instance['text'] . '[filter:widget_text]' ), $output );
 
@@ -269,9 +269,9 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		$this->assertNotContains( '<p>', $output );
 		$this->assertNotContains( '<br />', $output );
 		$this->assertCount( 3, $this->widget_text_args );
-		$this->assertEquals( $expected_instance['text'], $this->widget_text_args[0] );
-		$this->assertEquals( $expected_instance, $this->widget_text_args[1] );
-		$this->assertEquals( $widget, $this->widget_text_args[2] );
+		$this->assertSame( $expected_instance['text'], $this->widget_text_args[0] );
+		$this->assertSame( $expected_instance, $this->widget_text_args[1] );
+		$this->assertSame( $widget, $this->widget_text_args[2] );
 		$this->assertNull( $this->widget_text_content_args );
 		$this->assertContains( $expected_instance['text'] . '[filter:widget_text]', $output );
 	}
@@ -344,7 +344,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		ob_start();
 		$widget->widget( $args, $instance );
 		$output = ob_get_clean();
-		$this->assertEquals( 1, $this->shortcode_render_count );
+		$this->assertSame( 1, $this->shortcode_render_count );
 		$this->assertNotContains( '[example]', $output, 'Expected shortcode to be processed in legacy widget with plugin adding filter' );
 		$this->assertContains( $this->example_shortcode_content, $output, 'Shortcode was applied without wpautop corrupting it.' );
 		$this->assertNotContains( '<p>' . $this->example_shortcode_content . '</p>', $output, 'Expected shortcode_unautop() to have run.' );
@@ -362,7 +362,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		ob_start();
 		$widget->widget( $args, $instance );
 		$output = ob_get_clean();
-		$this->assertEquals( 1, $this->shortcode_render_count );
+		$this->assertSame( 1, $this->shortcode_render_count );
 		$this->assertNotContains( '[example]', $output, 'Expected shortcode to be processed in legacy widget with plugin adding filter' );
 		$this->assertContains( $this->example_shortcode_content, $output, 'Shortcode was applied without wpautop corrupting it.' );
 		$this->assertNotContains( '<p>' . $this->example_shortcode_content . '</p>', $output, 'Expected shortcode_unautop() to have run.' );
@@ -374,7 +374,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		ob_start();
 		$widget->widget( $args, $instance );
 		$output = ob_get_clean();
-		$this->assertEquals( 1, $this->shortcode_render_count );
+		$this->assertSame( 1, $this->shortcode_render_count );
 		$this->assertNotContains( '[example]', $output, 'Expected shortcode to be processed in legacy widget with plugin adding filter' );
 		$this->assertContains( wpautop( $this->example_shortcode_content ), $output, 'Shortcode was applied *with* wpautop() applying to shortcode output since plugin used legacy filter.' );
 		$this->assertNull( $this->post_during_shortcode );
@@ -390,16 +390,16 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 
 		// Visual Text Widget with only core-added widget_text_content filter for do_shortcode().
 		$this->assertFalse( has_filter( 'widget_text', 'do_shortcode' ) );
-		$this->assertEquals( 11, has_filter( 'widget_text_content', 'do_shortcode' ), 'Expected core to have set do_shortcode as widget_text_content filter.' );
+		$this->assertSame( 11, has_filter( 'widget_text_content', 'do_shortcode' ), 'Expected core to have set do_shortcode as widget_text_content filter.' );
 		$this->shortcode_render_count = 0;
 		ob_start();
 		$widget->widget( $args, $instance );
 		$output = ob_get_clean();
-		$this->assertEquals( 1, $this->shortcode_render_count );
+		$this->assertSame( 1, $this->shortcode_render_count );
 		$this->assertContains( $this->example_shortcode_content, $output, 'Shortcode was applied without wpautop corrupting it.' );
 		$this->assertNotContains( '<p>' . $this->example_shortcode_content . '</p>', $output, 'Expected shortcode_unautop() to have run.' );
 		$this->assertFalse( has_filter( 'widget_text', 'do_shortcode' ), 'The widget_text filter still lacks do_shortcode handler.' );
-		$this->assertEquals( 11, has_filter( 'widget_text_content', 'do_shortcode' ), 'The widget_text_content filter still has do_shortcode handler.' );
+		$this->assertSame( 11, has_filter( 'widget_text_content', 'do_shortcode' ), 'The widget_text_content filter still has do_shortcode handler.' );
 		$this->assertNull( $this->post_during_shortcode );
 
 		// Visual Text Widget with both filters applied added, one from core and another via plugin.
@@ -408,10 +408,10 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		ob_start();
 		$widget->widget( $args, $instance );
 		$output = ob_get_clean();
-		$this->assertEquals( 1, $this->shortcode_render_count );
+		$this->assertSame( 1, $this->shortcode_render_count );
 		$this->assertContains( $this->example_shortcode_content, $output, 'Shortcode was applied without wpautop corrupting it.' );
 		$this->assertNotContains( '<p>' . $this->example_shortcode_content . '</p>', $output, 'Expected shortcode_unautop() to have run.' );
-		$this->assertEquals( 10, has_filter( 'widget_text', 'do_shortcode' ), 'Expected do_shortcode to be restored to widget_text.' );
+		$this->assertSame( 10, has_filter( 'widget_text', 'do_shortcode' ), 'Expected do_shortcode to be restored to widget_text.' );
 		$this->assertNull( $this->post_during_shortcode );
 		$this->assertNull( $this->post_during_shortcode );
 		remove_filter( 'widget_text', 'do_shortcode' );
@@ -423,7 +423,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		ob_start();
 		$widget->widget( $args, $instance );
 		$output = ob_get_clean();
-		$this->assertEquals( 0, $this->shortcode_render_count );
+		$this->assertSame( 0, $this->shortcode_render_count );
 		$this->assertContains( '[example]', $output );
 		$this->assertNotContains( $this->example_shortcode_content, $output );
 		$this->assertFalse( has_filter( 'widget_text', 'do_shortcode' ) );
@@ -602,7 +602,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 			$this->assertTrue( $widget->is_legacy_instance( $instance ), 'Legacy when not-wpautop and there is HTML that is not liable to be mutated.' );
 		}
 
-		// Check text examples that will migrate to TinyMCE, where elements and attributes are not in whitelist.
+		// Check text examples that will migrate to TinyMCE, where elements and attributes are not in the allowed list.
 		$migratable_text_examples = array(
 			'Check out <a href="http://example.com">Example</a>',
 			'<img src="http://example.com/img.jpg" alt="Img">',
@@ -730,7 +730,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 			'visual' => true,
 		);
 		$result   = $widget->update( $instance, array() );
-		$this->assertEquals( $expected, $result );
+		$this->assertSame( $expected, $result );
 		$this->assertTrue( ! empty( $expected['filter'] ), 'Expected filter prop to be truthy, to handle case where 4.8 is downgraded to 4.7.' );
 
 		add_filter( 'map_meta_cap', array( $this, 'grant_unfiltered_html_cap' ), 10, 2 );
@@ -738,7 +738,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		$instance['text'] = '<script>alert( "Howdy!" );</script>';
 		$expected['text'] = $instance['text'];
 		$result           = $widget->update( $instance, array() );
-		$this->assertEquals( $expected, $result, 'KSES should apply as expected.' );
+		$this->assertSame( $expected, $result, 'KSES should apply as expected.' );
 		remove_filter( 'map_meta_cap', array( $this, 'grant_unfiltered_html_cap' ) );
 
 		add_filter( 'map_meta_cap', array( $this, 'revoke_unfiltered_html_cap' ), 10, 2 );
@@ -746,7 +746,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		$instance['text'] = '<script>alert( "Howdy!" );</script>';
 		$expected['text'] = wp_kses_post( $instance['text'] );
 		$result           = $widget->update( $instance, array() );
-		$this->assertEquals( $expected, $result, 'KSES should not apply since user can unfiltered_html.' );
+		$this->assertSame( $expected, $result, 'KSES should not apply since user can unfiltered_html.' );
 		remove_filter( 'map_meta_cap', array( $this, 'revoke_unfiltered_html_cap' ), 10 );
 	}
 
@@ -765,7 +765,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 			'filter' => false,
 		);
 		$result   = $widget->update( $instance, array() );
-		$this->assertEquals( $instance, $result, 'Updating a widget without visual prop and explicit filter=false leaves visual prop absent' );
+		$this->assertSame( $instance, $result, 'Updating a widget without visual prop and explicit filter=false leaves visual prop absent' );
 
 		// --
 		$instance = array(
@@ -774,7 +774,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 			'filter' => true,
 		);
 		$result   = $widget->update( $instance, array() );
-		$this->assertEquals( $instance, $result, 'Updating a widget without visual prop and explicit filter=true leaves legacy prop absent.' );
+		$this->assertSame( $instance, $result, 'Updating a widget without visual prop and explicit filter=true leaves legacy prop absent.' );
 
 		// --
 		$instance     = array(
@@ -795,7 +795,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 			)
 		);
 		$result       = $widget->update( $instance, $old_instance );
-		$this->assertEquals( $expected, $result, 'Updating a pre-existing widget with visual mode forces filter to be true.' );
+		$this->assertSame( $expected, $result, 'Updating a pre-existing widget with visual mode forces filter to be true.' );
 
 		// --
 		$instance     = array(
@@ -816,7 +816,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 				'visual' => true,
 			)
 		);
-		$this->assertEquals( $expected, $result, 'Updating a pre-existing visual widget retains visual mode when updated.' );
+		$this->assertSame( $expected, $result, 'Updating a pre-existing visual widget retains visual mode when updated.' );
 
 		// --
 		$instance     = array(
@@ -837,7 +837,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 				'filter' => true,
 			)
 		);
-		$this->assertEquals( $expected, $result, 'Updating a pre-existing visual widget retains visual=true and supplies missing filter=true.' );
+		$this->assertSame( $expected, $result, 'Updating a pre-existing visual widget retains visual=true and supplies missing filter=true.' );
 
 		// --
 		$instance = array(
@@ -890,7 +890,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 				'filter' => false,
 			)
 		);
-		$this->assertEquals( $expected, $result, 'Updating a widget that previously had legacy form results in filter allowed to be false.' );
+		$this->assertSame( $expected, $result, 'Updating a widget that previously had legacy form results in filter allowed to be false.' );
 
 		// --
 		$instance = array(
@@ -906,7 +906,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 				'visual' => true,
 			)
 		);
-		$this->assertEquals( $expected, $result, 'Updating a widget that had \'content\' as its filter value persists non-legacy mode. This only existed in WP 4.8.0.' );
+		$this->assertSame( $expected, $result, 'Updating a widget that had \'content\' as its filter value persists non-legacy mode. This only existed in WP 4.8.0.' );
 
 		// --
 		$instance     = array(
@@ -943,7 +943,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 				'visual' => true,
 			)
 		);
-		$this->assertEquals( $expected, $result, 'Updating a widget with filter=content (from WP 4.8.0) upgrades to filter=true&visual=true.' );
+		$this->assertSame( $expected, $result, 'Updating a widget with filter=content (from WP 4.8.0) upgrades to filter=true&visual=true.' );
 	}
 
 	/**

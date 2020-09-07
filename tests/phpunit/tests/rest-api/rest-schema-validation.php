@@ -137,6 +137,47 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertWPError( rest_validate_value_from_schema( 'FF01::101::2', $schema ) ); // Multicast, compressed.
 	}
 
+	/**
+	 * @ticket 50189
+	 */
+	public function test_format_validation_is_skipped_if_non_string_type() {
+		$schema = array(
+			'type'   => 'array',
+			'items'  => array(
+				'type' => 'string',
+			),
+			'format' => 'email',
+		);
+		$this->assertTrue( rest_validate_value_from_schema( 'email@example.com', $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( 'email', $schema ) );
+	}
+
+	/**
+	 * @ticket 50189
+	 */
+	public function test_format_validation_is_applied_if_missing_type() {
+		$this->expectException( 'PHPUnit_Framework_Error_Notice' ); // For the undefined index.
+		$this->setExpectedIncorrectUsage( 'rest_validate_value_from_schema' );
+
+		$schema = array( 'format' => 'email' );
+		$this->assertTrue( rest_validate_value_from_schema( 'email@example.com', $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( 'email', $schema ) );
+	}
+
+	/**
+	 * @ticket 50189
+	 */
+	public function test_format_validation_is_applied_if_unknown_type() {
+		$this->setExpectedIncorrectUsage( 'rest_validate_value_from_schema' );
+
+		$schema = array(
+			'format' => 'email',
+			'type'   => 'str',
+		);
+		$this->assertTrue( rest_validate_value_from_schema( 'email@example.com', $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( 'email', $schema ) );
+	}
+
 	public function test_type_array() {
 		$schema = array(
 			'type'  => 'array',
@@ -322,6 +363,8 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	public function test_type_unknown() {
+		$this->setExpectedIncorrectUsage( 'rest_validate_value_from_schema' );
+
 		$schema = array(
 			'type' => 'lalala',
 		);
@@ -344,7 +387,10 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 
 		$this->assertTrue( rest_validate_value_from_schema( null, $schema ) );
 		$this->assertTrue( rest_validate_value_from_schema( '2019-09-19T18:00:00', $schema ) );
-		$this->assertWPError( rest_validate_value_from_schema( 'some random string', $schema ) );
+
+		$error = rest_validate_value_from_schema( 'some random string', $schema );
+		$this->assertWPError( $error );
+		$this->assertSame( 'Invalid date.', $error->get_error_message() );
 	}
 
 	public function test_object_or_string() {
@@ -359,7 +405,57 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 
 		$this->assertTrue( rest_validate_value_from_schema( 'My Value', $schema ) );
 		$this->assertTrue( rest_validate_value_from_schema( array( 'raw' => 'My Value' ), $schema ) );
-		$this->assertWPError( rest_validate_value_from_schema( array( 'raw' => array( 'a list' ) ), $schema ) );
+
+		$error = rest_validate_value_from_schema( array( 'raw' => array( 'a list' ) ), $schema );
+		$this->assertWPError( $error );
+		$this->assertSame( '[raw] is not of type string.', $error->get_error_message() );
+	}
+
+	/**
+	 * @ticket 50300
+	 */
+	public function test_null_or_integer() {
+		$schema = array(
+			'type'    => array( 'null', 'integer' ),
+			'minimum' => 10,
+			'maximum' => 20,
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( null, $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( 15, $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( '15', $schema ) );
+
+		$error = rest_validate_value_from_schema( 30, $schema, 'param' );
+		$this->assertWPError( $error );
+		$this->assertSame( 'param must be between 10 (inclusive) and 20 (inclusive)', $error->get_error_message() );
+	}
+
+	/**
+	 * @ticket 50300
+	 */
+	public function test_multi_type_with_no_known_types() {
+		$this->setExpectedIncorrectUsage( 'rest_handle_multi_type_schema' );
+		$this->setExpectedIncorrectUsage( 'rest_validate_value_from_schema' );
+
+		$schema = array(
+			'type' => array( 'invalid', 'type' ),
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( 'My Value', $schema ) );
+	}
+
+	/**
+	 * @ticket 50300
+	 */
+	public function test_multi_type_with_some_unknown_types() {
+		$this->setExpectedIncorrectUsage( 'rest_handle_multi_type_schema' );
+		$this->setExpectedIncorrectUsage( 'rest_validate_value_from_schema' );
+
+		$schema = array(
+			'type' => array( 'object', 'type' ),
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( 'My Value', $schema ) );
 	}
 
 	/**
@@ -411,7 +507,8 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket       48818
+	 * @ticket 48818
+	 *
 	 * @dataProvider data_required_property
 	 */
 	public function test_property_is_required( $data, $expected ) {
@@ -438,7 +535,8 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket       48818
+	 * @ticket 48818
+	 *
 	 * @dataProvider data_required_property
 	 */
 	public function test_property_is_required_v4( $data, $expected ) {
@@ -479,7 +577,8 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket       48818
+	 * @ticket 48818
+	 *
 	 * @dataProvider data_required_nested_property
 	 */
 	public function test_nested_property_is_required( $data, $expected ) {
@@ -511,7 +610,8 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket       48818
+	 * @ticket 48818
+	 *
 	 * @dataProvider data_required_nested_property
 	 */
 	public function test_nested_property_is_required_v4( $data, $expected ) {
@@ -569,7 +669,8 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket       48818
+	 * @ticket 48818
+	 *
 	 * @dataProvider data_required_deeply_nested_property
 	 */
 	public function test_deeply_nested_v3_required_property( $value, $expected ) {
@@ -608,7 +709,8 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket       48818
+	 * @ticket 48818
+	 *
 	 * @dataProvider data_required_deeply_nested_property
 	 */
 	public function test_deeply_nested_v4_required_property( $value, $expected ) {
@@ -647,7 +749,8 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket       48818
+	 * @ticket 48818
+	 *
 	 * @dataProvider data_required_deeply_nested_property
 	 */
 	public function test_deeply_nested_mixed_version_required_property( $value, $expected ) {
@@ -766,4 +869,191 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertTrue( rest_validate_value_from_schema( 'â', $schema ) );
 		$this->assertWPError( rest_validate_value_from_schema( 'ââ', $schema ) );
 	}
+
+	/**
+	 * @ticket 48821
+	 */
+	public function test_array_min_items() {
+		$schema = array(
+			'type'     => 'array',
+			'minItems' => 1,
+			'items'    => array(
+				'type' => 'number',
+			),
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( array( 1, 2 ), $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( array( 1 ), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( array(), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( '', $schema ) );
+	}
+
+	/**
+	 * @ticket 48821
+	 */
+	public function test_array_max_items() {
+		$schema = array(
+			'type'     => 'array',
+			'maxItems' => 2,
+			'items'    => array(
+				'type' => 'number',
+			),
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( array( 1 ), $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( array( 1, 2 ), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( array( 1, 2, 3 ), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( 'foobar', $schema ) );
+	}
+
+	/**
+	 * @ticket 48821
+	 *
+	 * @dataProvider data_unique_items
+	 */
+	public function test_unique_items( $test, $suite ) {
+		$test_description = $suite['description'] . ': ' . $test['description'];
+		$message          = $test_description . ': ' . var_export( $test['data'], true );
+
+		$valid = rest_validate_value_from_schema( $test['data'], $suite['schema'] );
+
+		if ( $test['valid'] ) {
+			$this->assertTrue( $valid, $message );
+		} else {
+			$this->assertWPError( $valid, $message );
+		}
+	}
+
+	public function data_unique_items() {
+		$all_types = array( 'object', 'array', 'null', 'number', 'integer', 'boolean', 'string' );
+
+		// the following test suites is not supported at the moment
+		$skip   = array(
+			'uniqueItems with an array of items',
+			'uniqueItems with an array of items and additionalItems=false',
+			'uniqueItems=false with an array of items',
+			'uniqueItems=false with an array of items and additionalItems=false',
+		);
+		$suites = json_decode( file_get_contents( __DIR__ . '/json_schema_test_suite/uniqueitems.json' ), true );
+
+		$tests = array();
+
+		foreach ( $suites as $suite ) {
+			if ( in_array( $suite['description'], $skip, true ) ) {
+				continue;
+			}
+			// type is required for our implementation
+			if ( ! isset( $suite['schema']['type'] ) ) {
+				$suite['schema']['type'] = 'array';
+			}
+			// items is required for our implementation
+			if ( ! isset( $suite['schema']['items'] ) ) {
+				$suite['schema']['items'] = array(
+					'type'  => $all_types,
+					'items' => array(
+						'type' => $all_types,
+					),
+				);
+			}
+			foreach ( $suite['tests'] as $test ) {
+				$tests[] = array( $test, $suite );
+			}
+		}
+
+		return $tests;
+	}
+
+	/**
+	 * @ticket 48821
+	 */
+	public function test_unique_items_deep_objects() {
+		$schema = array(
+			'type'        => 'array',
+			'uniqueItems' => true,
+			'items'       => array(
+				'type'       => 'object',
+				'properties' => array(
+					'release' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'name'    => array(
+								'type' => 'string',
+							),
+							'version' => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$data = array(
+			array(
+				'release' => array(
+					'name'    => 'Kirk',
+					'version' => '5.3',
+				),
+			),
+			array(
+				'release' => array(
+					'version' => '5.3',
+					'name'    => 'Kirk',
+				),
+			),
+		);
+
+		$this->assertWPError( rest_validate_value_from_schema( $data, $schema ) );
+
+		$data[0]['release']['version'] = '5.3.0';
+		$this->assertTrue( rest_validate_value_from_schema( $data, $schema ) );
+	}
+
+	/**
+	 * @ticket 48821
+	 */
+	public function test_unique_items_deep_arrays() {
+		$schema = array(
+			'type'        => 'array',
+			'uniqueItems' => true,
+			'items'       => array(
+				'type'  => 'array',
+				'items' => array(
+					'type' => 'string',
+				),
+			),
+		);
+
+		$data = array(
+			array(
+				'Kirk',
+				'Jaco',
+			),
+			array(
+				'Kirk',
+				'Jaco',
+			),
+		);
+
+		$this->assertWPError( rest_validate_value_from_schema( $data, $schema ) );
+
+		$data[1] = array_reverse( $data[1] );
+		$this->assertTrue( rest_validate_value_from_schema( $data, $schema ) );
+	}
+
+	/**
+	 * @ticket 50300
+	 */
+	public function test_string_or_integer() {
+		$schema = array(
+			'type' => array( 'integer', 'string' ),
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( 'garbage', $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( 15, $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( '15', $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( '15.5', $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( 15.5, $schema ) );
+	}
+
 }

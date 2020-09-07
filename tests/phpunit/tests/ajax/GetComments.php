@@ -16,14 +16,14 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 
 	/**
-	 * A post with at least one comment
+	 * A post with at least one comment.
 	 *
 	 * @var mixed
 	 */
 	protected static $comment_post = null;
 
 	/**
-	 * A post with no comments
+	 * A post with no comments.
 	 *
 	 * @var mixed
 	 */
@@ -38,10 +38,9 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Get comments as a privilged user (administrator)
-	 * Expects test to pass
+	 * Gets comments as a privileged user (administrator).
 	 *
-	 * @return void
+	 * Expects test to pass.
 	 */
 	public function test_as_admin() {
 
@@ -64,9 +63,9 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 		$xml = simplexml_load_string( $this->_last_response, 'SimpleXMLElement', LIBXML_NOCDATA );
 
 		// Check the meta data.
-		$this->assertEquals( 1, (string) $xml->response[0]->comments['position'] );
-		$this->assertEquals( 0, (string) $xml->response[0]->comments['id'] );
-		$this->assertEquals( 'get-comments_0', (string) $xml->response['action'] );
+		$this->assertSame( '1', (string) $xml->response[0]->comments['position'] );
+		$this->assertSame( '0', (string) $xml->response[0]->comments['id'] );
+		$this->assertSame( 'get-comments_0', (string) $xml->response['action'] );
 
 		// Check the payload.
 		$this->assertNotEmpty( (string) $xml->response[0]->comments[0]->response_data );
@@ -76,10 +75,9 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Get comments as a non-privileged user (subscriber)
-	 * Expects test to fail
+	 * Gets comments as a non-privileged user (subscriber).
 	 *
-	 * @return void
+	 * Expects test to fail.
 	 */
 	public function test_as_subscriber() {
 
@@ -97,10 +95,9 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Get comments with a bad nonce
-	 * Expects test to fail
+	 * Gets comments with a bad nonce.
 	 *
-	 * @return void
+	 * Expects test to fail.
 	 */
 	public function test_bad_nonce() {
 
@@ -118,10 +115,9 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Get comments for an invalid post
-	 * Bad post IDs are set to 0, this should return valid XML
+	 * Gets comments for an invalid post.
 	 *
-	 * @return void
+	 * Bad post IDs are set to 0, this should return valid XML.
 	 */
 	public function test_invalid_post() {
 
@@ -139,10 +135,7 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Get comments for an invalid post
-	 * Bad post IDs are set to 0, this should return valid XML
-	 *
-	 * @return void
+	 * Gets comments for a post with no comments.
 	 */
 	public function test_post_with_no_comments() {
 

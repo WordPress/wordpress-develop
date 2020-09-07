@@ -245,7 +245,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				$args['post__in'] = $args['post__in'] ? array_intersect( $sticky_posts, $args['post__in'] ) : $sticky_posts;
 
 				/*
-				 * If we intersected, but there are no post ids in common,
+				 * If we intersected, but there are no post IDs in common,
 				 * WP_Query won't return "no posts" for post__in = array()
 				 * so we have to fake it a bit.
 				 */
@@ -2192,6 +2192,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'custom-fields',
 			),
 		);
+
 		foreach ( $post_type_attributes as $attribute ) {
 			if ( isset( $fixed_schemas[ $this->post_type ] ) && ! in_array( $attribute, $fixed_schemas[ $this->post_type ], true ) ) {
 				continue;
@@ -2379,7 +2380,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				_doing_it_wrong(
 					'register_taxonomy',
 					sprintf(
-						/* translators: 1. The taxonomy name, 2. The property name, either 'rest_base' or 'name', 3. The conflicting value. */
+						/* translators: 1: The taxonomy name, 2: The property name, either 'rest_base' or 'name', 3: The conflicting value. */
 						__( 'The "%1$s" taxonomy "%2$s" property (%3$s) conflicts with an existing property on the REST API Posts Controller. Specify a custom "rest_base" when registering the taxonomy to avoid this error.' ),
 						$taxonomy->name,
 						$taxonomy_field_name_with_conflict,
@@ -2410,7 +2411,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$schema_fields = array_keys( $schema['properties'] );
 
 		/**
-		 * Filter the post's schema.
+		 * Filters the post's schema.
 		 *
 		 * The dynamic portion of the filter, `$this->post_type`, refers to the
 		 * post type slug for the controller.
@@ -2424,7 +2425,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// Emit a _doing_it_wrong warning if user tries to add new properties using this filter.
 		$new_fields = array_diff( array_keys( $schema['properties'] ), $schema_fields );
 		if ( count( $new_fields ) > 0 ) {
-			_doing_it_wrong( __METHOD__, __( 'Please use register_rest_field to add new schema properties.' ), '5.4.0' );
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %s: register_rest_field */
+					__( 'Please use %s to add new schema properties.' ),
+					'register_rest_field'
+				),
+				'5.4.0'
+			);
 		}
 
 		$this->schema = $schema;
@@ -2743,7 +2752,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		/**
-		 * Filter collection parameters for the posts controller.
+		 * Filters collection parameters for the posts controller.
 		 *
 		 * The dynamic part of the filter `$this->post_type` refers to the post
 		 * type slug for the controller.

@@ -11,8 +11,6 @@
  *
  * @since 2.7.0
  *
- * @staticvar array $column_headers
- *
  * @param string|WP_Screen $screen The screen you want the headers for
  * @return string[] The column header labels keyed by column ID.
  */
@@ -199,7 +197,7 @@ function get_hidden_meta_boxes( $screen ) {
  * @since 3.1.0
  *
  * @param string $option An option name.
- * @param mixed $args Option-dependent arguments.
+ * @param mixed  $args   Option-dependent arguments.
  */
 function add_screen_option( $option, $args = array() ) {
 	$current_screen = get_current_screen();

@@ -147,8 +147,20 @@ body.post-new-php .submitbox .submitdelete {
 }
 
 /* Post Screen */
-#post-body #normal-sortables {
-	min-height: 50px;
+
+/* Only highlight drop zones when dragging and only in the 2 columns layout. */
+.is-dragging-metaboxes .metabox-holder .postbox-container .meta-box-sortables {
+	outline: 3px dashed #606a73;
+	/* Prevent margin on the child from collapsing with margin on the parent. */
+	display: flow-root;
+	/*
+	 * This min-height is meant to limit jumpiness while dragging. It's equivalent
+	 * to the minimum height of the sortable-placeholder which is given by the height
+	 * of a collapsed post box (36px + 1px top and bottom borders) + the placeholder
+	 * bottom margin (20px) + 2 additional pixels to compensate browsers rounding.
+	 */
+	min-height: 60px;
+	margin-bottom: 20px;
 }
 
 .postbox {
@@ -712,12 +724,13 @@ form#tags-filter {
 }
 
 .text-removed .policy-text {
-	font-style: italic;
 	color: #666;
 	font-weight: 600;
 }
 
 .privacy-text-actions {
+	display: inline-block;
+	width: 100%;
 	height: 32px;
 	line-height: 2.46153846;
 	padding-bottom: 6px;
@@ -744,10 +757,17 @@ form#tags-filter {
 	font-style: italic;
 }
 
-.privacy-text-section a.return-to-top {
+.privacy-text-section .return-to-top {
 	float: right;
 	margin-right: -250px;
 	margin-top: 6px;
+}
+
+#wpbody:target:before {
+	content: "";
+	display: block;
+	padding-top: 50px;
+	margin-top: -50px;
 }
 
 .hide-privacy-policy-tutorial {
@@ -935,7 +955,7 @@ strong.privacy-policy-tutorial {
 }
 
 a.post-format-icon:hover:before {
-	color: #00a0d2;
+	color: #006799;
 }
 
 #post-formats-select {
@@ -1098,7 +1118,6 @@ p.description,
 span.description,
 .form-wrap p {
 	font-size: 13px;
-	font-style: italic;
 }
 
 p.description code {
@@ -1446,7 +1465,10 @@ table.links-table {
 	}
 }
 
-/* one column on the attachment editor screen */
+/*
+ * The edit attachment screen auto-switches to one column layout when the
+ * viewport is smaller than 1200 pixels.
+ */
 @media only screen and (max-width: 1200px) {
 	.post-type-attachment #poststuff {
 		min-width: 0;
@@ -1463,7 +1485,7 @@ table.links-table {
 
 	.post-type-attachment #poststuff #postbox-container-1 .empty-container,
 	.post-type-attachment #poststuff #postbox-container-1 #side-sortables:empty {
-		border: 0 none;
+		outline: none;
 		height: 0;
 		min-height: 0;
 	}
@@ -1471,6 +1493,12 @@ table.links-table {
 	.post-type-attachment #poststuff #post-body.columns-2 #side-sortables {
 		min-height: 0;
 		width: auto;
+	}
+
+	.is-dragging-metaboxes.post-type-attachment #post-body .meta-box-sortables {
+		outline: none;
+		min-height: 0;
+		margin-bottom: 0;
 	}
 
 	/* hide the radio buttons for column prefs */
@@ -1497,7 +1525,6 @@ table.links-table {
 
 	#poststuff #postbox-container-1 .empty-container,
 	#poststuff #postbox-container-1 #side-sortables:empty {
-		border: 0 none;
 		height: 0;
 		min-height: 0;
 	}
@@ -1505,6 +1532,15 @@ table.links-table {
 	#poststuff #post-body.columns-2 #side-sortables {
 		min-height: 0;
 		width: auto;
+	}
+
+	/* Increase min-height while dragging for the #side-sortables and any potential sortables area with custom ID. */
+	.is-dragging-metaboxes #poststuff #postbox-container-1 .empty-container,
+	.is-dragging-metaboxes #poststuff #postbox-container-1 #side-sortables:empty,
+	.is-dragging-metaboxes #poststuff #post-body.columns-2 #side-sortables,
+	.is-dragging-metaboxes #poststuff #post-body.columns-2 .meta-box-sortables {
+		height: auto;
+		min-height: 60px;
 	}
 
 	/* hide the radio buttons for column prefs */
@@ -1760,8 +1796,7 @@ table.links-table {
 		flex-direction: column;
 	}
 
-	.privacy-text-section a.return-to-top {
-		float: none;
-		margin: 0;
+	.privacy-text-section .return-to-top {
+		margin: 2em 0 0;
 	}
 }

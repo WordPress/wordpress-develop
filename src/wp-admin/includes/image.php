@@ -7,19 +7,19 @@
  */
 
 /**
- * Crop an Image to a given size.
+ * Crops an image to a given size.
  *
  * @since 2.1.0
  *
- * @param string|int $src The source file or Attachment ID.
- * @param int $src_x The start x position to crop from.
- * @param int $src_y The start y position to crop from.
- * @param int $src_w The width to crop.
- * @param int $src_h The height to crop.
- * @param int $dst_w The destination width.
- * @param int $dst_h The destination height.
- * @param int $src_abs Optional. If the source crop points are absolute.
- * @param string $dst_file Optional. The destination file to write to.
+ * @param string|int $src      The source file or Attachment ID.
+ * @param int        $src_x    The start x position to crop from.
+ * @param int        $src_y    The start y position to crop from.
+ * @param int        $src_w    The width to crop.
+ * @param int        $src_h    The height to crop.
+ * @param int        $dst_w    The destination width.
+ * @param int        $dst_h    The destination height.
+ * @param bool       $src_abs  Optional. If the source crop points are absolute.
+ * @param string     $dst_file Optional. The destination file to write to.
  * @return string|WP_Error New filepath on success, WP_Error on failure.
  */
 function wp_crop_image( $src, $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h, $src_abs = false, $dst_file = false ) {
@@ -468,8 +468,8 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
  *
  * @since 2.1.0
  *
- * @param int $attachment_id Attachment Id to process.
- * @param string $file Filepath of the Attached image.
+ * @param int    $attachment_id Attachment Id to process.
+ * @param string $file          Filepath of the Attached image.
  * @return mixed Metadata for attachment.
  */
 function wp_generate_attachment_metadata( $attachment_id, $file ) {
@@ -918,9 +918,10 @@ function file_is_displayable_image( $path ) {
  * @since 2.9.0
  *
  * @param string $attachment_id Attachment ID.
- * @param string $mime_type Image mime type.
- * @param string $size Optional. Image size, defaults to 'full'.
- * @return resource|false The resulting image resource on success, false on failure.
+ * @param string $mime_type     Image mime type.
+ * @param string $size          Optional. Image size. Default 'full'.
+ * @return resource|GdImage|false The resulting image resource or GdImage instance on success,
+ *                                false on failure.
  */
 function load_image_to_edit( $attachment_id, $mime_type, $size = 'full' ) {
 	$filepath = _load_image_to_edit_path( $attachment_id, $size );
@@ -942,22 +943,25 @@ function load_image_to_edit( $attachment_id, $mime_type, $size = 'full' ) {
 			$image = false;
 			break;
 	}
-	if ( is_resource( $image ) ) {
+
+	if ( is_gd_image( $image ) ) {
 		/**
 		 * Filters the current image being loaded for editing.
 		 *
 		 * @since 2.9.0
 		 *
-		 * @param resource $image         Current image.
-		 * @param string   $attachment_id Attachment ID.
-		 * @param string   $size          Image size.
+		 * @param resource|GdImage $image         Current image.
+		 * @param string           $attachment_id Attachment ID.
+		 * @param string           $size          Image size.
 		 */
 		$image = apply_filters( 'load_image_to_edit', $image, $attachment_id, $size );
+
 		if ( function_exists( 'imagealphablending' ) && function_exists( 'imagesavealpha' ) ) {
 			imagealphablending( $image, false );
 			imagesavealpha( $image, true );
 		}
 	}
+
 	return $image;
 }
 
@@ -971,7 +975,7 @@ function load_image_to_edit( $attachment_id, $mime_type, $size = 'full' ) {
  * @access private
  *
  * @param string $attachment_id Attachment ID.
- * @param string $size Optional. Image size, defaults to 'full'.
+ * @param string $size          Optional. Image size. Default 'full'.
  * @return string|false File path or url on success, false on failure.
  */
 function _load_image_to_edit_path( $attachment_id, $size = 'full' ) {

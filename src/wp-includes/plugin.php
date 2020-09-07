@@ -620,10 +620,10 @@ function remove_all_actions( $tag, $priority = false ) {
  * @param string $tag         The name of the filter hook.
  * @param array  $args        Array of additional function arguments to be passed to apply_filters().
  * @param string $version     The version of WordPress that deprecated the hook.
- * @param string $replacement Optional. The hook that should have been used. Default null.
- * @param string $message     Optional. A message regarding the change. Default null.
+ * @param string $replacement Optional. The hook that should have been used. Default empty.
+ * @param string $message     Optional. A message regarding the change. Default empty.
  */
-function apply_filters_deprecated( $tag, $args, $version, $replacement = null, $message = null ) {
+function apply_filters_deprecated( $tag, $args, $version, $replacement = '', $message = '' ) {
 	if ( ! has_filter( $tag ) ) {
 		return $args[0];
 	}
@@ -647,10 +647,10 @@ function apply_filters_deprecated( $tag, $args, $version, $replacement = null, $
  * @param string $tag         The name of the action hook.
  * @param array  $args        Array of additional function arguments to be passed to do_action().
  * @param string $version     The version of WordPress that deprecated the hook.
- * @param string $replacement Optional. The hook that should have been used. Default null.
- * @param string $message     Optional. A message regarding the change. Default null.
+ * @param string $replacement Optional. The hook that should have been used. Default empty.
+ * @param string $message     Optional. A message regarding the change. Default empty.
  */
-function do_action_deprecated( $tag, $args, $version, $replacement = null, $message = null ) {
+function do_action_deprecated( $tag, $args, $version, $replacement = '', $message = '' ) {
 	if ( ! has_action( $tag ) ) {
 		return;
 	}
@@ -708,9 +708,6 @@ function plugin_basename( $file ) {
  * @see wp_normalize_path()
  *
  * @global array $wp_plugin_paths
- *
- * @staticvar string $wp_plugin_path
- * @staticvar string $wpmu_plugin_path
  *
  * @param string $file Known path to the file.
  * @return bool Whether the path was able to be registered.

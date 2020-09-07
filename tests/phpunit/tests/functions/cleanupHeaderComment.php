@@ -10,14 +10,14 @@ class Tests_Functions_CleanupHeaderComment extends WP_UnitTestCase {
 	/**
 	 * Test cleanup header of header comment.
 	 *
-	 * @covers _cleanup_header_comment
+	 * @covers ::_cleanup_header_comment
 	 * @dataProvider data_cleanup_header_comment
 	 *
 	 * @param string $test_string
 	 * @param string $expected
 	 */
 	public function test_cleanup_header_comment( $test_string, $expected ) {
-		$this->assertEquals( $expected, _cleanup_header_comment( $test_string ) );
+		$this->assertSameIgnoreEOL( $expected, _cleanup_header_comment( $test_string ) );
 	}
 
 	/**

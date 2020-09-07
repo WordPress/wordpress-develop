@@ -129,7 +129,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		global $wpdb;
 		$expected_clause = str_replace( '{posts}', $wpdb->posts, $pattern );
 		$this->assertCount( 1, $this->posts_clauses );
-		$this->assertEquals( $expected_clause, $wpdb->remove_placeholder_escape( $this->posts_clauses[0][ $clause ] ) );
+		$this->assertSame( $expected_clause, $wpdb->remove_placeholder_escape( $this->posts_clauses[0][ $clause ] ) );
 	}
 
 	public function assertPostsOrderedBy( $pattern ) {
@@ -154,14 +154,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 		// Single.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts/' . self::$post_id );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	public function test_registered_query_params() {
@@ -170,7 +170,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data     = $response->get_data();
 		$keys     = array_keys( $data['endpoints'][0]['args'] );
 		sort( $keys );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'after',
 				'author',
@@ -204,7 +204,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data     = $response->get_data();
 		$keys     = array_keys( $data['endpoints'][0]['args'] );
 		sort( $keys );
-		$this->assertEquals( array( 'context', 'id', 'password' ), $keys );
+		$this->assertSame( array( 'context', 'id', 'password' ), $keys );
 	}
 
 	/**
@@ -217,7 +217,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$headers  = $response->get_headers();
 
 		$this->assertNotEmpty( $headers['Allow'] );
-		$this->assertEquals( $headers['Allow'], 'GET' );
+		$this->assertSame( $headers['Allow'], 'GET' );
 
 		wp_set_current_user( self::$editor_id );
 
@@ -227,7 +227,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$headers  = $response->get_headers();
 
 		$this->assertNotEmpty( $headers['Allow'] );
-		$this->assertEquals( $headers['Allow'], 'GET, POST, PUT, PATCH, DELETE' );
+		$this->assertSame( $headers['Allow'], 'GET, POST, PUT, PATCH, DELETE' );
 	}
 
 	public function test_get_items() {
@@ -252,7 +252,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertEmpty( $response->get_data() );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 	}
 
 	public function test_get_items_author_query() {
@@ -265,26 +265,26 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'per_page', self::$per_page );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( $total_posts, count( $response->get_data() ) );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $total_posts, count( $response->get_data() ) );
 
 		// Limit to editor and author.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'author', array( self::$editor_id, self::$author_id ) );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 2, count( $data ) );
-		$this->assertEqualSets( array( self::$editor_id, self::$author_id ), wp_list_pluck( $data, 'author' ) );
+		$this->assertSame( 2, count( $data ) );
+		$this->assertSameSets( array( self::$editor_id, self::$author_id ), wp_list_pluck( $data, 'author' ) );
 
 		// Limit to editor.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'author', self::$editor_id );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 1, count( $data ) );
-		$this->assertEquals( self::$editor_id, $data[0]['author'] );
+		$this->assertSame( 1, count( $data ) );
+		$this->assertSame( self::$editor_id, $data[0]['author'] );
 	}
 
 	public function test_get_items_author_exclude_query() {
@@ -297,17 +297,17 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'per_page', self::$per_page );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( $total_posts, count( $response->get_data() ) );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $total_posts, count( $response->get_data() ) );
 
 		// Exclude editor and author.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'per_page', self::$per_page );
 		$request->set_param( 'author_exclude', array( self::$editor_id, self::$author_id ) );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( $total_posts - 2, count( $data ) );
+		$this->assertSame( $total_posts - 2, count( $data ) );
 		$this->assertNotEquals( self::$editor_id, $data[0]['author'] );
 		$this->assertNotEquals( self::$author_id, $data[0]['author'] );
 
@@ -316,9 +316,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'per_page', self::$per_page );
 		$request->set_param( 'author_exclude', self::$editor_id );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( $total_posts - 1, count( $data ) );
+		$this->assertSame( $total_posts - 1, count( $data ) );
 		$this->assertNotEquals( self::$editor_id, $data[0]['author'] );
 		$this->assertNotEquals( self::$editor_id, $data[1]['author'] );
 
@@ -349,16 +349,16 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'include', array( $id1, $id2 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 2, count( $data ) );
-		$this->assertEquals( $id2, $data[0]['id'] );
+		$this->assertSame( 2, count( $data ) );
+		$this->assertSame( $id2, $data[0]['id'] );
 		$this->assertPostsOrderedBy( '{posts}.post_date DESC' );
 
 		// 'orderby' => 'include'.
 		$request->set_param( 'orderby', 'include' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 2, count( $data ) );
-		$this->assertEquals( $id1, $data[0]['id'] );
+		$this->assertSame( 2, count( $data ) );
+		$this->assertSame( $id1, $data[0]['id'] );
 		$this->assertPostsOrderedBy( "FIELD({posts}.ID,$id1,$id2)" );
 
 		// Invalid 'include' should error.
@@ -395,10 +395,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( self::$author_id, $data[0]['author'] );
-		$this->assertEquals( self::$editor_id, $data[1]['author'] );
-		$this->assertEquals( self::$editor_id, $data[2]['author'] );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( self::$author_id, $data[0]['author'] );
+		$this->assertSame( self::$editor_id, $data[1]['author'] );
+		$this->assertSame( self::$editor_id, $data[2]['author'] );
 
 		$this->assertPostsOrderedBy( '{posts}.post_author DESC' );
 	}
@@ -419,10 +419,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( $id1, $data[0]['id'] );
-		$this->assertEquals( $id3, $data[1]['id'] );
-		$this->assertEquals( $id2, $data[2]['id'] );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $id1, $data[0]['id'] );
+		$this->assertSame( $id3, $data[1]['id'] );
+		$this->assertSame( $id2, $data[2]['id'] );
 
 		$this->assertPostsOrderedBy( '{posts}.post_modified DESC' );
 	}
@@ -455,12 +455,12 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( $id3, $data[0]['id'] );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $id3, $data[0]['id'] );
 		// Check ordering. Default ORDER is DESC.
-		$this->assertEquals( $id1, $data[0]['parent'] );
-		$this->assertEquals( 0, $data[1]['parent'] );
-		$this->assertEquals( 0, $data[2]['parent'] );
+		$this->assertSame( $id1, $data[0]['parent'] );
+		$this->assertSame( 0, $data[1]['parent'] );
+		$this->assertSame( 0, $data[2]['parent'] );
 
 		$this->assertPostsOrderedBy( '{posts}.post_parent DESC' );
 	}
@@ -507,14 +507,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'per_page', self::$per_page );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( $total_posts, count( $response->get_data() ) );
+		$this->assertSame( $total_posts, count( $response->get_data() ) );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'search', 'Search Result' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 1, count( $data ) );
-		$this->assertEquals( 'Search Result', $data[0]['title']['rendered'] );
+		$this->assertSame( 1, count( $data ) );
+		$this->assertSame( 'Search Result', $data[0]['title']['rendered'] );
 	}
 
 	public function test_get_items_slug_query() {
@@ -534,10 +534,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'slug', 'apple' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 1, count( $data ) );
-		$this->assertEquals( 'Apple', $data[0]['title']['rendered'] );
+		$this->assertSame( 1, count( $data ) );
+		$this->assertSame( 'Apple', $data[0]['title']['rendered'] );
 	}
 
 	public function test_get_items_multiple_slugs_array_query() {
@@ -563,15 +563,15 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'slug', array( 'banana', 'peach' ) );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 2, count( $data ) );
+		$this->assertSame( 2, count( $data ) );
 		$titles = array(
 			$data[0]['title']['rendered'],
 			$data[1]['title']['rendered'],
 		);
 		sort( $titles );
-		$this->assertEquals( array( 'Banana', 'Peach' ), $titles );
+		$this->assertSame( array( 'Banana', 'Peach' ), $titles );
 	}
 
 	public function test_get_items_multiple_slugs_string_query() {
@@ -597,15 +597,15 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'slug', 'apple,banana' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 2, count( $data ) );
+		$this->assertSame( 2, count( $data ) );
 		$titles = array(
 			$data[0]['title']['rendered'],
 			$data[1]['title']['rendered'],
 		);
 		sort( $titles );
-		$this->assertEquals( array( 'Apple', 'Banana' ), $titles );
+		$this->assertSame( array( 'Apple', 'Banana' ), $titles );
 	}
 
 	public function test_get_items_status_query() {
@@ -617,8 +617,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'per_page', self::$per_page );
 		$request->set_param( 'status', 'publish' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( self::$total_posts, count( $response->get_data() ) );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( self::$total_posts, count( $response->get_data() ) );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'status', 'draft' );
@@ -630,8 +630,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'status', 'draft' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( 1, count( $response->get_data() ) );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 1, count( $response->get_data() ) );
 	}
 
 	public function test_get_items_multiple_statuses_string_query() {
@@ -646,15 +646,15 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'status', 'draft,private' );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 2, count( $data ) );
+		$this->assertSame( 2, count( $data ) );
 		$statuses = array(
 			$data[0]['status'],
 			$data[1]['status'],
 		);
 		sort( $statuses );
-		$this->assertEquals( array( 'draft', 'private' ), $statuses );
+		$this->assertSame( array( 'draft', 'private' ), $statuses );
 	}
 
 	public function test_get_items_multiple_statuses_array_query() {
@@ -669,15 +669,15 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'status', array( 'draft', 'pending' ) );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 2, count( $data ) );
+		$this->assertSame( 2, count( $data ) );
 		$statuses = array(
 			$data[0]['status'],
 			$data[1]['status'],
 		);
 		sort( $statuses );
-		$this->assertEquals( array( 'draft', 'pending' ), $statuses );
+		$this->assertSame( array( 'draft', 'pending' ), $statuses );
 	}
 
 	public function test_get_items_multiple_statuses_one_invalid_query() {
@@ -724,7 +724,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$all_data = $response->get_data();
 		foreach ( $all_data as $post ) {
@@ -765,14 +765,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'orderby', 'title' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'Apple Sauce', $data[0]['title']['rendered'] );
+		$this->assertSame( 'Apple Sauce', $data[0]['title']['rendered'] );
 		$this->assertPostsOrderedBy( '{posts}.post_title DESC' );
 
 		// 'order' => 'asc'.
 		$request->set_param( 'order', 'asc' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'Apple Cobbler', $data[0]['title']['rendered'] );
+		$this->assertSame( 'Apple Cobbler', $data[0]['title']['rendered'] );
 		$this->assertPostsOrderedBy( '{posts}.post_title ASC' );
 
 		// 'order' => 'asc,id' should error.
@@ -826,9 +826,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data     = $response->get_data();
 
 		// Default ORDER is DESC.
-		$this->assertEquals( $id3, $data[0]['id'] );
-		$this->assertEquals( $id2, $data[1]['id'] );
-		$this->assertEquals( $id1, $data[2]['id'] );
+		$this->assertSame( $id3, $data[0]['id'] );
+		$this->assertSame( $id2, $data[1]['id'] );
+		$this->assertSame( $id1, $data[2]['id'] );
 		$this->assertPostsOrderedBy( '{posts}.ID DESC' );
 	}
 
@@ -856,8 +856,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data     = $response->get_data();
 
 		// Default ORDER is DESC.
-		$this->assertEquals( 'xyz', $data[0]['slug'] );
-		$this->assertEquals( 'abc', $data[1]['slug'] );
+		$this->assertSame( 'xyz', $data[0]['slug'] );
+		$this->assertSame( 'abc', $data[1]['slug'] );
 		$this->assertPostsOrderedBy( '{posts}.post_name DESC' );
 	}
 
@@ -880,9 +880,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEquals( 'taco', $data[0]['slug'] );
-		$this->assertEquals( 'chalupa', $data[1]['slug'] );
-		$this->assertEquals( 'burrito', $data[2]['slug'] );
+		$this->assertSame( 'taco', $data[0]['slug'] );
+		$this->assertSame( 'chalupa', $data[1]['slug'] );
+		$this->assertSame( 'burrito', $data[2]['slug'] );
 	}
 
 	public function test_get_items_with_orderby_relevance() {
@@ -905,11 +905,11 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'orderby', 'relevance' );
 		$request->set_param( 'search', 'relevant' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertCount( 2, $data );
-		$this->assertEquals( $id1, $data[0]['id'] );
-		$this->assertEquals( $id2, $data[1]['id'] );
+		$this->assertSame( $id1, $data[0]['id'] );
+		$this->assertSame( $id2, $data[1]['id'] );
 		$this->assertPostsOrderedBy( '{posts}.post_title LIKE \'%relevant%\' DESC, {posts}.post_date DESC' );
 	}
 
@@ -933,11 +933,11 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'orderby', 'relevance' );
 		$request->set_param( 'search', 'relevant content' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertCount( 2, $data );
-		$this->assertEquals( $id1, $data[0]['id'] );
-		$this->assertEquals( $id2, $data[1]['id'] );
+		$this->assertSame( $id1, $data[0]['id'] );
+		$this->assertSame( $id2, $data[1]['id'] );
 		$this->assertPostsOrderedBy( '(CASE WHEN {posts}.post_title LIKE \'%relevant content%\' THEN 1 WHEN {posts}.post_title LIKE \'%relevant%\' AND {posts}.post_title LIKE \'%content%\' THEN 2 WHEN {posts}.post_title LIKE \'%relevant%\' OR {posts}.post_title LIKE \'%content%\' THEN 3 WHEN {posts}.post_excerpt LIKE \'%relevant content%\' THEN 4 WHEN {posts}.post_content LIKE \'%relevant content%\' THEN 5 ELSE 6 END), {posts}.post_date DESC' );
 	}
 
@@ -983,7 +983,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertCount( 1, $data );
-		$this->assertEquals( $id1, $data[0]['id'] );
+		$this->assertSame( $id1, $data[0]['id'] );
 	}
 
 	public function test_get_items_tags_exclude_query() {
@@ -1004,9 +1004,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertCount( $total_posts - 1, $data );
-		$this->assertEquals( $id4, $data[0]['id'] );
-		$this->assertEquals( $id3, $data[1]['id'] );
-		$this->assertEquals( $id2, $data[2]['id'] );
+		$this->assertSame( $id4, $data[0]['id'] );
+		$this->assertSame( $id3, $data[1]['id'] );
+		$this->assertSame( $id2, $data[2]['id'] );
 	}
 
 	public function test_get_items_tags_and_categories_query() {
@@ -1052,8 +1052,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertCount( 2, $data );
-		$this->assertEquals( $id2, $data[0]['id'] );
-		$this->assertEquals( $id1, $data[1]['id'] );
+		$this->assertSame( $id2, $data[0]['id'] );
+		$this->assertSame( $id1, $data[1]['id'] );
 	}
 
 	public function test_get_items_tags_and_categories_exclude_query() {
@@ -1073,7 +1073,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertCount( 1, $data );
-		$this->assertEquals( $id2, $data[0]['id'] );
+		$this->assertSame( $id2, $data[0]['id'] );
 
 		$request->set_param( 'tags_exclude', array( 'my-tag' ) );
 		$response = rest_get_server()->dispatch( $request );
@@ -1108,9 +1108,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertCount( $total_posts - 1, $data );
-		$this->assertEquals( $id4, $data[0]['id'] );
-		$this->assertEquals( $id2, $data[1]['id'] );
-		$this->assertEquals( $id1, $data[2]['id'] );
+		$this->assertSame( $id4, $data[0]['id'] );
+		$this->assertSame( $id2, $data[1]['id'] );
+		$this->assertSame( $id1, $data[2]['id'] );
 	}
 
 	/**
@@ -1122,9 +1122,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'include', self::$post_id );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertCount( 1, $response->get_data() );
-		$this->assertEquals( self::$post_id, $response->get_data()[0]['id'] );
+		$this->assertSame( self::$post_id, $response->get_data()[0]['id'] );
 	}
 
 	public function test_get_items_sticky() {
@@ -1141,7 +1141,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$posts = $response->get_data();
 		$post  = $posts[0];
-		$this->assertEquals( $id2, $post['id'] );
+		$this->assertSame( $id2, $post['id'] );
 
 		$request->set_param( 'sticky', 'nothanks' );
 		$response = rest_get_server()->dispatch( $request );
@@ -1179,7 +1179,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$posts = $response->get_data();
 		$post  = $posts[0];
-		$this->assertEquals( $id1, $post['id'] );
+		$this->assertSame( $id1, $post['id'] );
 
 		$this->assertPostsWhere( " AND {posts}.ID IN ($id1) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
 	}
@@ -1236,7 +1236,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$posts = $response->get_data();
 		$post  = $posts[0];
-		$this->assertEquals( $id1, $post['id'] );
+		$this->assertSame( $id1, $post['id'] );
 
 		$this->assertPostsWhere( " AND {posts}.ID NOT IN ($id2) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
 	}
@@ -1301,8 +1301,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
-		$this->assertEquals( $total_posts, $headers['X-WP-Total'] );
-		$this->assertEquals( $total_pages, $headers['X-WP-TotalPages'] );
+		$this->assertSame( $total_posts, $headers['X-WP-Total'] );
+		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
 		$next_link = add_query_arg(
 			array(
 				'page' => 2,
@@ -1320,8 +1320,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'page', 3 );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
-		$this->assertEquals( $total_posts, $headers['X-WP-Total'] );
-		$this->assertEquals( $total_pages, $headers['X-WP-TotalPages'] );
+		$this->assertSame( $total_posts, $headers['X-WP-Total'] );
+		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg(
 			array(
 				'page' => 2,
@@ -1342,8 +1342,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'page', $total_pages );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
-		$this->assertEquals( $total_posts, $headers['X-WP-Total'] );
-		$this->assertEquals( $total_pages, $headers['X-WP-TotalPages'] );
+		$this->assertSame( $total_posts, $headers['X-WP-Total'] );
+		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg(
 			array(
 				'page' => $total_pages - 1,
@@ -1371,8 +1371,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
-		$this->assertEquals( $total_posts, $headers['X-WP-Total'] );
-		$this->assertEquals( $total_pages, $headers['X-WP-TotalPages'] );
+		$this->assertSame( $total_posts, $headers['X-WP-Total'] );
+		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg(
 			array(
 				'per_page' => 5,
@@ -1415,7 +1415,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( $draft_id, $data[0]['id'] );
+		$this->assertSame( $draft_id, $data[0]['id'] );
 	}
 
 	/**
@@ -1438,9 +1438,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertCount( 1, $data );
-		$this->assertEquals( $private_post_id, $data[0]['id'] );
+		$this->assertSame( $private_post_id, $data[0]['id'] );
 	}
 
 	public function test_get_items_invalid_per_page() {
@@ -1487,7 +1487,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertCount( 1, $data );
-		$this->assertEquals( $post2, $data[0]['id'] );
+		$this->assertSame( $post2, $data[0]['id'] );
 	}
 
 	public function test_get_items_all_post_formats() {
@@ -1497,7 +1497,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$formats = array_values( get_post_format_slugs() );
 
-		$this->assertEquals( $formats, $data['schema']['properties']['format']['enum'] );
+		$this->assertSame( $formats, $data['schema']['properties']['format']['enum'] );
 	}
 
 	public function test_get_item() {
@@ -1513,23 +1513,23 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$links = $response->get_links();
 
-		$this->assertEquals( rest_url( '/wp/v2/posts/' . self::$post_id ), $links['self'][0]['href'] );
-		$this->assertEquals( rest_url( '/wp/v2/posts' ), $links['collection'][0]['href'] );
+		$this->assertSame( rest_url( '/wp/v2/posts/' . self::$post_id ), $links['self'][0]['href'] );
+		$this->assertSame( rest_url( '/wp/v2/posts' ), $links['collection'][0]['href'] );
 		$this->assertArrayNotHasKey( 'embeddable', $links['self'][0]['attributes'] );
 
-		$this->assertEquals( rest_url( '/wp/v2/types/' . get_post_type( self::$post_id ) ), $links['about'][0]['href'] );
+		$this->assertSame( rest_url( '/wp/v2/types/' . get_post_type( self::$post_id ) ), $links['about'][0]['href'] );
 
 		$replies_url = rest_url( '/wp/v2/comments' );
 		$replies_url = add_query_arg( 'post', self::$post_id, $replies_url );
-		$this->assertEquals( $replies_url, $links['replies'][0]['href'] );
+		$this->assertSame( $replies_url, $links['replies'][0]['href'] );
 
-		$this->assertEquals( rest_url( '/wp/v2/posts/' . self::$post_id . '/revisions' ), $links['version-history'][0]['href'] );
-		$this->assertEquals( 0, $links['version-history'][0]['attributes']['count'] );
+		$this->assertSame( rest_url( '/wp/v2/posts/' . self::$post_id . '/revisions' ), $links['version-history'][0]['href'] );
+		$this->assertSame( 0, $links['version-history'][0]['attributes']['count'] );
 		$this->assertFalse( isset( $links['predecessor-version'] ) );
 
 		$attachments_url = rest_url( '/wp/v2/media' );
 		$attachments_url = add_query_arg( 'parent', self::$post_id, $attachments_url );
-		$this->assertEquals( $attachments_url, $links['https://api.w.org/attachment'][0]['href'] );
+		$this->assertSame( $attachments_url, $links['https://api.w.org/attachment'][0]['href'] );
 
 		$term_links  = $links['https://api.w.org/term'];
 		$tag_link    = null;
@@ -1549,10 +1549,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertNull( $format_link );
 
 		$tags_url = add_query_arg( 'post', self::$post_id, rest_url( '/wp/v2/tags' ) );
-		$this->assertEquals( $tags_url, $tag_link['href'] );
+		$this->assertSame( $tags_url, $tag_link['href'] );
 
 		$category_url = add_query_arg( 'post', self::$post_id, rest_url( '/wp/v2/categories' ) );
-		$this->assertEquals( $category_url, $cat_link['href'] );
+		$this->assertSame( $category_url, $cat_link['href'] );
 	}
 
 	public function test_get_item_links_predecessor() {
@@ -1570,11 +1570,11 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$links = $response->get_links();
 
-		$this->assertEquals( rest_url( '/wp/v2/posts/' . self::$post_id . '/revisions' ), $links['version-history'][0]['href'] );
-		$this->assertEquals( 1, $links['version-history'][0]['attributes']['count'] );
+		$this->assertSame( rest_url( '/wp/v2/posts/' . self::$post_id . '/revisions' ), $links['version-history'][0]['href'] );
+		$this->assertSame( 1, $links['version-history'][0]['attributes']['count'] );
 
-		$this->assertEquals( rest_url( '/wp/v2/posts/' . self::$post_id . '/revisions/' . $revision_1->ID ), $links['predecessor-version'][0]['href'] );
-		$this->assertEquals( $revision_1->ID, $links['predecessor-version'][0]['attributes']['id'] );
+		$this->assertSame( rest_url( '/wp/v2/posts/' . self::$post_id . '/revisions/' . $revision_1->ID ), $links['predecessor-version'][0]['href'] );
+		$this->assertSame( $revision_1->ID, $links['predecessor-version'][0]['attributes']['id'] );
 	}
 
 	public function test_get_item_links_no_author() {
@@ -1591,7 +1591,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 		$response = rest_get_server()->dispatch( $request );
 		$links    = $response->get_links();
-		$this->assertEquals( rest_url( '/wp/v2/users/' . self::$author_id ), $links['author'][0]['href'] );
+		$this->assertSame( rest_url( '/wp/v2/users/' . self::$author_id ), $links['author'][0]['href'] );
 	}
 
 	public function test_get_post_draft_status_not_authenicated() {
@@ -1672,9 +1672,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->check_get_post_response( $response, 'view' );
 
 		$data = $response->get_data();
-		$this->assertEquals( '', $data['content']['rendered'] );
+		$this->assertSame( '', $data['content']['rendered'] );
 		$this->assertTrue( $data['content']['protected'] );
-		$this->assertEquals( '', $data['excerpt']['rendered'] );
+		$this->assertSame( '', $data['excerpt']['rendered'] );
 		$this->assertTrue( $data['excerpt']['protected'] );
 	}
 
@@ -1696,9 +1696,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->check_get_post_response( $response, 'view' );
 
 		$data = $response->get_data();
-		$this->assertEquals( wpautop( $post->post_content ), $data['content']['rendered'] );
+		$this->assertSame( wpautop( $post->post_content ), $data['content']['rendered'] );
 		$this->assertTrue( $data['content']['protected'] );
-		$this->assertEquals( wpautop( $post->post_excerpt ), $data['excerpt']['rendered'] );
+		$this->assertSame( wpautop( $post->post_excerpt ), $data['excerpt']['rendered'] );
 		$this->assertTrue( $data['excerpt']['protected'] );
 	}
 
@@ -1731,9 +1731,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->check_get_post_response( $response, 'view' );
-		$this->assertEquals( '', $data['content']['rendered'] );
+		$this->assertSame( '', $data['content']['rendered'] );
 		$this->assertTrue( $data['content']['protected'] );
-		$this->assertEquals( '', $data['excerpt']['rendered'] );
+		$this->assertSame( '', $data['excerpt']['rendered'] );
 		$this->assertTrue( $data['excerpt']['protected'] );
 	}
 
@@ -1811,7 +1811,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		// Private status.
 		wp_update_post(
@@ -1823,7 +1823,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 401, $response->get_status() );
+		$this->assertSame( 401, $response->get_status() );
 	}
 
 	public function test_prepare_item() {
@@ -1845,7 +1845,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( '_fields', 'id,slug' );
 		$obj      = get_post( self::$post_id );
 		$response = $endpoint->prepare_item_for_response( $obj, $request );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'id',
 				'slug',
@@ -1878,7 +1878,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		remove_filter( 'the_content', $filter_content );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'id'      => self::$post_id,
 				'content' => array(
@@ -1914,7 +1914,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		remove_filter( 'the_content', $filter_content );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'id'      => $post->ID,
 				'content' => array(
@@ -2029,17 +2029,17 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		update_option( 'timezone_string', '' );
 
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 		$data = $response->get_data();
 		$post = get_post( $data['id'] );
 
-		$this->assertEquals( $results['date'], $data['date'] );
+		$this->assertSame( $results['date'], $data['date'] );
 		$post_date = str_replace( 'T', ' ', $results['date'] );
-		$this->assertEquals( $post_date, $post->post_date );
+		$this->assertSame( $post_date, $post->post_date );
 
-		$this->assertEquals( $results['date_gmt'], $data['date_gmt'] );
+		$this->assertSame( $results['date_gmt'], $data['date_gmt'] );
 		$post_date_gmt = str_replace( 'T', ' ', $results['date_gmt'] );
-		$this->assertEquals( $post_date_gmt, $post->post_date_gmt );
+		$this->assertSame( $post_date_gmt, $post->post_date_gmt );
 	}
 
 	/**
@@ -2070,8 +2070,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		remove_filter( 'theme_post_templates', array( $this, 'filter_theme_post_templates' ) );
 
-		$this->assertEquals( 'post-my-test-template.php', $data['template'] );
-		$this->assertEquals( 'post-my-test-template.php', $post_template );
+		$this->assertSame( 'post-my-test-template.php', $data['template'] );
+		$this->assertSame( 'post-my-test-template.php', $post_template );
 	}
 
 	/**
@@ -2113,8 +2113,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data          = $response->get_data();
 		$post_template = get_page_template_slug( get_post( $data['id'] ) );
 
-		$this->assertEquals( '', $data['template'] );
-		$this->assertEquals( '', $post_template );
+		$this->assertSame( '', $data['template'] );
+		$this->assertSame( '', $post_template );
 	}
 
 	public function test_rest_create_item() {
@@ -2160,11 +2160,11 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$request->set_body_params( $params );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 
 		$data = $response->get_data();
 		$post = get_post( $data['id'] );
-		$this->assertEquals( '0000-00-00 00:00:00', $post->post_date_gmt );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
 		$this->assertNotEquals( '0000-00-00T00:00:00', $data['date_gmt'] );
 
 		$this->check_create_post_response( $response );
@@ -2185,9 +2185,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 
 		$new_data = $response->get_data();
-		$this->assertEquals( true, $new_data['sticky'] );
+		$this->assertTrue( $new_data['sticky'] );
 		$post = get_post( $new_data['id'] );
-		$this->assertEquals( true, is_sticky( $post->ID ) );
+		$this->assertTrue( is_sticky( $post->ID ) );
 	}
 
 	public function test_create_post_sticky_as_contributor() {
@@ -2250,14 +2250,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$data     = $response->get_data();
 		$new_post = get_post( $data['id'] );
-		$this->assertEquals( 'draft', $data['status'] );
-		$this->assertEquals( 'draft', $new_post->post_status );
+		$this->assertSame( 'draft', $data['status'] );
+		$this->assertSame( 'draft', $new_post->post_status );
 		// Confirm dates are shimmed for gmt_offset.
 		$post_modified_gmt = gmdate( 'Y-m-d H:i:s', strtotime( $new_post->post_modified ) + ( get_option( 'gmt_offset' ) * 3600 ) );
 		$post_date_gmt     = gmdate( 'Y-m-d H:i:s', strtotime( $new_post->post_date ) + ( get_option( 'gmt_offset' ) * 3600 ) );
 
-		$this->assertEquals( mysql_to_rfc3339( $post_modified_gmt ), $data['modified_gmt'] );
-		$this->assertEquals( mysql_to_rfc3339( $post_date_gmt ), $data['date_gmt'] );
+		$this->assertSame( mysql_to_rfc3339( $post_modified_gmt ), $data['modified_gmt'] );
+		$this->assertSame( mysql_to_rfc3339( $post_date_gmt ), $data['date_gmt'] );
 	}
 
 	public function test_create_post_private() {
@@ -2274,8 +2274,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$data     = $response->get_data();
 		$new_post = get_post( $data['id'] );
-		$this->assertEquals( 'private', $data['status'] );
-		$this->assertEquals( 'private', $new_post->post_status );
+		$this->assertSame( 'private', $data['status'] );
+		$this->assertSame( 'private', $new_post->post_status );
 	}
 
 	public function test_create_post_private_without_permission() {
@@ -2350,8 +2350,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$data     = $response->get_data();
 		$new_post = get_post( $data['id'] );
-		$this->assertEquals( 'gallery', $data['format'] );
-		$this->assertEquals( 'gallery', get_post_format( $new_post->ID ) );
+		$this->assertSame( 'gallery', $data['format'] );
+		$this->assertSame( 'gallery', get_post_format( $new_post->ID ) );
 	}
 
 	public function test_create_post_with_standard_format() {
@@ -2368,7 +2368,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$data     = $response->get_data();
 		$new_post = get_post( $data['id'] );
-		$this->assertEquals( 'standard', $data['format'] );
+		$this->assertSame( 'standard', $data['format'] );
 		$this->assertFalse( get_post_format( $new_post->ID ) );
 	}
 
@@ -2403,10 +2403,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		);
 		$request->set_body_params( $params );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( 'link', $data['format'] );
+		$this->assertSame( 'link', $data['format'] );
 	}
 
 	public function test_create_update_post_with_featured_media() {
@@ -2433,8 +2433,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$new_post = get_post( $data['id'] );
-		$this->assertEquals( $this->attachment_id, $data['featured_media'] );
-		$this->assertEquals( $this->attachment_id, (int) get_post_thumbnail_id( $new_post->ID ) );
+		$this->assertSame( $this->attachment_id, $data['featured_media'] );
+		$this->assertSame( $this->attachment_id, (int) get_post_thumbnail_id( $new_post->ID ) );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $new_post->ID );
 		$params  = $this->set_post_data(
@@ -2445,8 +2445,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 0, $data['featured_media'] );
-		$this->assertEquals( 0, (int) get_post_thumbnail_id( $new_post->ID ) );
+		$this->assertSame( 0, $data['featured_media'] );
+		$this->assertSame( 0, (int) get_post_thumbnail_id( $new_post->ID ) );
 	}
 
 	public function test_create_post_invalid_author() {
@@ -2492,10 +2492,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 
 		$data = $response->get_data();
-		$this->assertEquals( 'testing', $data['password'] );
+		$this->assertSame( 'testing', $data['password'] );
 	}
 
-	public function test_create_post_with_falsy_password() {
+	public function test_create_post_with_falsey_password() {
 		wp_set_current_user( self::$editor_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
@@ -2508,7 +2508,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 
 		$data = $response->get_data();
-		$this->assertEquals( '0', $data['password'] );
+		$this->assertSame( '0', $data['password'] );
 	}
 
 	public function test_create_post_with_empty_string_password_and_sticky() {
@@ -2524,9 +2524,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( '', $data['password'] );
+		$this->assertSame( '', $data['password'] );
 	}
 
 	public function test_create_post_with_password_and_sticky_fails() {
@@ -2560,8 +2560,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data     = $response->get_data();
 		$new_post = get_post( $data['id'] );
 		$time     = gmmktime( 2, 0, 0, 1, 1, 2010 );
-		$this->assertEquals( '2010-01-01T02:00:00', $data['date'] );
-		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
+		$this->assertSame( '2010-01-01T02:00:00', $data['date'] );
+		$this->assertSame( $time, strtotime( $new_post->post_date ) );
 	}
 
 	public function test_create_post_custom_date_with_timezone() {
@@ -2580,11 +2580,11 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$new_post = get_post( $data['id'] );
 		$time     = gmmktime( 12, 0, 0, 1, 1, 2010 );
 
-		$this->assertEquals( '2010-01-01T12:00:00', $data['date'] );
-		$this->assertEquals( '2010-01-01T12:00:00', $data['modified'] );
+		$this->assertSame( '2010-01-01T12:00:00', $data['date'] );
+		$this->assertSame( '2010-01-01T12:00:00', $data['modified'] );
 
-		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
-		$this->assertEquals( $time, strtotime( $new_post->post_modified ) );
+		$this->assertSame( $time, strtotime( $new_post->post_date ) );
+		$this->assertSame( $time, strtotime( $new_post->post_modified ) );
 	}
 
 	public function test_create_post_with_db_error() {
@@ -2652,7 +2652,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 
 		$data = $response->get_data();
-		$this->assertEquals( "Rob O'Rourke's Diary", $data['title']['raw'] );
+		$this->assertSame( "Rob O'Rourke's Diary", $data['title']['raw'] );
 	}
 
 	public function test_create_post_with_categories() {
@@ -2673,7 +2673,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 
 		$data = $response->get_data();
-		$this->assertEquals( array( $category['term_id'] ), $data['categories'] );
+		$this->assertSame( array( $category['term_id'] ), $data['categories'] );
 	}
 
 	public function test_create_post_with_categories_as_csv() {
@@ -2692,7 +2692,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 
 		$data = $response->get_data();
-		$this->assertEquals( array( $category['term_id'], $category2['term_id'] ), $data['categories'] );
+		$this->assertSame( array( $category['term_id'], $category2['term_id'] ), $data['categories'] );
 	}
 
 	public function test_create_post_with_invalid_categories() {
@@ -2711,7 +2711,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 
 		$data = $response->get_data();
-		$this->assertEquals( array(), $data['categories'] );
+		$this->assertSame( array(), $data['categories'] );
 	}
 
 	/**
@@ -2757,14 +2757,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$this->check_update_post_response( $response );
 		$new_data = $response->get_data();
-		$this->assertEquals( self::$post_id, $new_data['id'] );
-		$this->assertEquals( $params['title'], $new_data['title']['raw'] );
-		$this->assertEquals( $params['content'], $new_data['content']['raw'] );
-		$this->assertEquals( $params['excerpt'], $new_data['excerpt']['raw'] );
+		$this->assertSame( self::$post_id, $new_data['id'] );
+		$this->assertSame( $params['title'], $new_data['title']['raw'] );
+		$this->assertSame( $params['content'], $new_data['content']['raw'] );
+		$this->assertSame( $params['excerpt'], $new_data['excerpt']['raw'] );
 		$post = get_post( self::$post_id );
-		$this->assertEquals( $params['title'], $post->post_title );
-		$this->assertEquals( $params['content'], $post->post_content );
-		$this->assertEquals( $params['excerpt'], $post->post_excerpt );
+		$this->assertSame( $params['title'], $post->post_title );
+		$this->assertSame( $params['content'], $post->post_content );
+		$this->assertSame( $params['excerpt'], $post->post_excerpt );
 	}
 
 	public function test_update_item_no_change() {
@@ -2795,14 +2795,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$this->check_update_post_response( $response );
 		$new_data = $response->get_data();
-		$this->assertEquals( self::$post_id, $new_data['id'] );
-		$this->assertEquals( $params['title'], $new_data['title']['raw'] );
-		$this->assertEquals( $params['content'], $new_data['content']['raw'] );
-		$this->assertEquals( $params['excerpt'], $new_data['excerpt']['raw'] );
+		$this->assertSame( self::$post_id, $new_data['id'] );
+		$this->assertSame( $params['title'], $new_data['title']['raw'] );
+		$this->assertSame( $params['content'], $new_data['content']['raw'] );
+		$this->assertSame( $params['excerpt'], $new_data['excerpt']['raw'] );
 		$post = get_post( self::$post_id );
-		$this->assertEquals( $params['title'], $post->post_title );
-		$this->assertEquals( $params['content'], $post->post_content );
-		$this->assertEquals( $params['excerpt'], $post->post_excerpt );
+		$this->assertSame( $params['title'], $post->post_title );
+		$this->assertSame( $params['content'], $post->post_content );
+		$this->assertSame( $params['excerpt'], $post->post_excerpt );
 	}
 
 	/**
@@ -2837,8 +2837,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$new_data = $response->get_data();
 
 		// Verify the post is set to the future date.
-		$this->assertEquals( $new_data['date_gmt'], $future_date );
-		$this->assertEquals( $new_data['date'], $future_date );
+		$this->assertSame( $new_data['date_gmt'], $future_date );
+		$this->assertSame( $new_data['date'], $future_date );
 		$this->assertNotEquals( $new_data['date_gmt'], $new_data['modified_gmt'] );
 		$this->assertNotEquals( $new_data['date'], $new_data['modified'] );
 
@@ -2858,11 +2858,11 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		// Verify the date field values are reset in the API response.
 		$this->check_update_post_response( $response );
 		$new_data = $response->get_data();
-		$this->assertEquals( $new_data['date_gmt'], $new_data['date'] );
+		$this->assertSame( $new_data['date_gmt'], $new_data['date'] );
 		$this->assertNotEquals( $new_data['date_gmt'], $future_date );
 
 		$post = get_post( $post_id, 'ARRAY_A' );
-		$this->assertEquals( $post['post_date_gmt'], '0000-00-00 00:00:00' );
+		$this->assertSame( $post['post_date_gmt'], '0000-00-00 00:00:00' );
 		$this->assertNotEquals( $new_data['date_gmt'], $future_date );
 		$this->assertNotEquals( $new_data['date'], $future_date );
 	}
@@ -2878,14 +2878,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$this->check_update_post_response( $response );
 		$new_data = $response->get_data();
-		$this->assertEquals( self::$post_id, $new_data['id'] );
-		$this->assertEquals( $params['title']['raw'], $new_data['title']['raw'] );
-		$this->assertEquals( $params['content']['raw'], $new_data['content']['raw'] );
-		$this->assertEquals( $params['excerpt']['raw'], $new_data['excerpt']['raw'] );
+		$this->assertSame( self::$post_id, $new_data['id'] );
+		$this->assertSame( $params['title']['raw'], $new_data['title']['raw'] );
+		$this->assertSame( $params['content']['raw'], $new_data['content']['raw'] );
+		$this->assertSame( $params['excerpt']['raw'], $new_data['excerpt']['raw'] );
 		$post = get_post( self::$post_id );
-		$this->assertEquals( $params['title']['raw'], $post->post_title );
-		$this->assertEquals( $params['content']['raw'], $post->post_content );
-		$this->assertEquals( $params['excerpt']['raw'], $post->post_excerpt );
+		$this->assertSame( $params['title']['raw'], $post->post_title );
+		$this->assertSame( $params['content']['raw'], $post->post_content );
+		$this->assertSame( $params['excerpt']['raw'], $post->post_excerpt );
 	}
 
 	public function test_update_post_without_extra_params() {
@@ -2968,8 +2968,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$data     = $response->get_data();
 		$new_post = get_post( $data['id'] );
-		$this->assertEquals( 'gallery', $data['format'] );
-		$this->assertEquals( 'gallery', get_post_format( $new_post->ID ) );
+		$this->assertSame( 'gallery', $data['format'] );
+		$this->assertSame( 'gallery', get_post_format( $new_post->ID ) );
 	}
 
 	public function test_update_post_with_standard_format() {
@@ -2986,7 +2986,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$data     = $response->get_data();
 		$new_post = get_post( $data['id'] );
-		$this->assertEquals( 'standard', $data['format'] );
+		$this->assertSame( 'standard', $data['format'] );
 		$this->assertFalse( get_post_format( $new_post->ID ) );
 	}
 
@@ -3021,10 +3021,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		);
 		$request->set_body_params( $params );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( 'link', $data['format'] );
+		$this->assertSame( 'link', $data['format'] );
 	}
 
 	public function test_update_post_ignore_readonly() {
@@ -3047,12 +3047,12 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data     = $response->get_data();
 		$new_post = get_post( $data['id'] );
 
-		$this->assertEquals( $new_content, $data['content']['raw'] );
-		$this->assertEquals( $new_content, $new_post->post_content );
+		$this->assertSame( $new_content, $data['content']['raw'] );
+		$this->assertSame( $new_content, $new_post->post_content );
 
 		// The modified date should equal the current time.
-		$this->assertEquals( gmdate( 'Y-m-d', strtotime( mysql_to_rfc3339( $expected_modified ) ) ), gmdate( 'Y-m-d', strtotime( $data['modified'] ) ) );
-		$this->assertEquals( gmdate( 'Y-m-d', strtotime( $expected_modified ) ), gmdate( 'Y-m-d', strtotime( $new_post->post_modified ) ) );
+		$this->assertSame( gmdate( 'Y-m-d', strtotime( mysql_to_rfc3339( $expected_modified ) ) ), gmdate( 'Y-m-d', strtotime( $data['modified'] ) ) );
+		$this->assertSame( gmdate( 'Y-m-d', strtotime( $expected_modified ) ), gmdate( 'Y-m-d', strtotime( $new_post->post_modified ) ) );
 	}
 
 	/**
@@ -3076,17 +3076,17 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		update_option( 'timezone_string', '' );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$post = get_post( $data['id'] );
 
-		$this->assertEquals( $results['date'], $data['date'] );
+		$this->assertSame( $results['date'], $data['date'] );
 		$post_date = str_replace( 'T', ' ', $results['date'] );
-		$this->assertEquals( $post_date, $post->post_date );
+		$this->assertSame( $post_date, $post->post_date );
 
-		$this->assertEquals( $results['date_gmt'], $data['date_gmt'] );
+		$this->assertSame( $results['date_gmt'], $data['date_gmt'] );
 		$post_date_gmt = str_replace( 'T', ' ', $results['date_gmt'] );
-		$this->assertEquals( $post_date_gmt, $post->post_date_gmt );
+		$this->assertSame( $post_date_gmt, $post->post_date_gmt );
 	}
 
 	public function test_update_post_with_invalid_date() {
@@ -3144,29 +3144,29 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		wp_cache_delete( $post_id, 'posts' );
 
 		$post = get_post( $post_id );
-		$this->assertEquals( $post->post_date, '2016-02-23 12:00:00' );
-		$this->assertEquals( $post->post_date_gmt, '0000-00-00 00:00:00' );
+		$this->assertSame( $post->post_date, '2016-02-23 12:00:00' );
+		$this->assertSame( $post->post_date_gmt, '0000-00-00 00:00:00' );
 
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $post_id ) );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 
-		$this->assertEquals( '2016-02-23T12:00:00', $data['date'] );
-		$this->assertEquals( '2016-02-23T18:00:00', $data['date_gmt'] );
+		$this->assertSame( '2016-02-23T12:00:00', $data['date'] );
+		$this->assertSame( '2016-02-23T18:00:00', $data['date_gmt'] );
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
 		$request->set_param( 'date', '2016-02-23T13:00:00' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 
-		$this->assertEquals( '2016-02-23T13:00:00', $data['date'] );
-		$this->assertEquals( '2016-02-23T19:00:00', $data['date_gmt'] );
+		$this->assertSame( '2016-02-23T13:00:00', $data['date'] );
+		$this->assertSame( '2016-02-23T19:00:00', $data['date_gmt'] );
 
 		$post = get_post( $post_id );
-		$this->assertEquals( $post->post_date, '2016-02-23 13:00:00' );
-		$this->assertEquals( $post->post_date_gmt, '2016-02-23 19:00:00' );
+		$this->assertSame( $post->post_date, '2016-02-23 13:00:00' );
+		$this->assertSame( $post->post_date_gmt, '2016-02-23 19:00:00' );
 
 		update_option( 'timezone_string', '' );
 	}
@@ -3184,9 +3184,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 
 		$new_data = $response->get_data();
-		$this->assertEquals( 'sample-slug', $new_data['slug'] );
+		$this->assertSame( 'sample-slug', $new_data['slug'] );
 		$post = get_post( $new_data['id'] );
-		$this->assertEquals( 'sample-slug', $post->post_name );
+		$this->assertSame( 'sample-slug', $post->post_name );
 	}
 
 	public function test_update_post_slug_accented_chars() {
@@ -3202,9 +3202,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 
 		$new_data = $response->get_data();
-		$this->assertEquals( 'test-accented-charaecters', $new_data['slug'] );
+		$this->assertSame( 'test-accented-charaecters', $new_data['slug'] );
 		$post = get_post( $new_data['id'] );
-		$this->assertEquals( 'test-accented-charaecters', $post->post_name );
+		$this->assertSame( 'test-accented-charaecters', $post->post_name );
 	}
 
 	public function test_update_post_sticky() {
@@ -3220,9 +3220,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 
 		$new_data = $response->get_data();
-		$this->assertEquals( true, $new_data['sticky'] );
+		$this->assertTrue( $new_data['sticky'] );
 		$post = get_post( $new_data['id'] );
-		$this->assertEquals( true, is_sticky( $post->ID ) );
+		$this->assertTrue( is_sticky( $post->ID ) );
 
 		// Updating another field shouldn't change sticky status.
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
@@ -3235,9 +3235,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 
 		$new_data = $response->get_data();
-		$this->assertEquals( true, $new_data['sticky'] );
+		$this->assertTrue( $new_data['sticky'] );
 		$post = get_post( $new_data['id'] );
-		$this->assertEquals( true, is_sticky( $post->ID ) );
+		$this->assertTrue( is_sticky( $post->ID ) );
 	}
 
 	public function test_update_post_excerpt() {
@@ -3252,7 +3252,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$response = rest_get_server()->dispatch( $request );
 		$new_data = $response->get_data();
-		$this->assertEquals( 'An Excerpt', $new_data['excerpt']['raw'] );
+		$this->assertSame( 'An Excerpt', $new_data['excerpt']['raw'] );
 	}
 
 	public function test_update_post_empty_excerpt() {
@@ -3267,7 +3267,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$response = rest_get_server()->dispatch( $request );
 		$new_data = $response->get_data();
-		$this->assertEquals( '', $new_data['excerpt']['raw'] );
+		$this->assertSame( '', $new_data['excerpt']['raw'] );
 	}
 
 	public function test_update_post_content() {
@@ -3282,7 +3282,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$response = rest_get_server()->dispatch( $request );
 		$new_data = $response->get_data();
-		$this->assertEquals( 'Some Content', $new_data['content']['raw'] );
+		$this->assertSame( 'Some Content', $new_data['content']['raw'] );
 	}
 
 	public function test_update_post_empty_content() {
@@ -3297,7 +3297,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$response = rest_get_server()->dispatch( $request );
 		$new_data = $response->get_data();
-		$this->assertEquals( '', $new_data['content']['raw'] );
+		$this->assertSame( '', $new_data['content']['raw'] );
 	}
 
 	public function test_update_post_with_empty_password() {
@@ -3319,7 +3319,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( '', $data['password'] );
+		$this->assertSame( '', $data['password'] );
 	}
 
 	public function test_update_post_with_password_and_sticky_fails() {
@@ -3389,7 +3389,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = rest_get_server()->dispatch( $request );
 		$new_data = $response->get_data();
-		$this->assertEquals( "Rob O'Rourke's Diary", $new_data['title']['raw'] );
+		$this->assertSame( "Rob O'Rourke's Diary", $new_data['title']['raw'] );
 	}
 
 	public function test_update_post_with_categories() {
@@ -3409,7 +3409,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = rest_get_server()->dispatch( $request );
 		$new_data = $response->get_data();
-		$this->assertEquals( array( $category['term_id'] ), $new_data['categories'] );
+		$this->assertSame( array( $category['term_id'] ), $new_data['categories'] );
 		$categories_path = '';
 		$links           = $response->get_links();
 		foreach ( $links['https://api.w.org/term'] as $link ) {
@@ -3426,7 +3426,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertCount( 1, $data );
-		$this->assertEquals( 'Test Category', $data[0]['name'] );
+		$this->assertSame( 'Test Category', $data[0]['name'] );
 	}
 
 	public function test_update_post_with_empty_categories() {
@@ -3445,7 +3445,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = rest_get_server()->dispatch( $request );
 		$new_data = $response->get_data();
-		$this->assertEquals( array(), $new_data['categories'] );
+		$this->assertSame( array(), $new_data['categories'] );
 	}
 
 	/**
@@ -3499,8 +3499,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data          = $response->get_data();
 		$post_template = get_page_template_slug( get_post( $data['id'] ) );
 
-		$this->assertEquals( 'post-my-test-template.php', $data['template'] );
-		$this->assertEquals( 'post-my-test-template.php', $post_template );
+		$this->assertSame( 'post-my-test-template.php', $data['template'] );
+		$this->assertSame( 'post-my-test-template.php', $post_template );
 	}
 
 	/**
@@ -3530,14 +3530,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data          = $response->get_data();
 		$post_template = get_page_template_slug( get_post( $data['id'] ) );
 
-		$this->assertEquals( '', $data['template'] );
-		$this->assertEquals( '', $post_template );
+		$this->assertSame( '', $data['template'] );
+		$this->assertSame( '', $post_template );
 	}
 
 	/**
 	 * Test update_item() with same template that no longer exists.
 	 *
-	 * @covers WP_REST_Posts_Controller::check_template()
+	 * @covers WP_REST_Posts_Controller::check_template
 	 * @ticket 39996
 	 */
 	public function test_update_item_with_same_template_that_no_longer_exists() {
@@ -3554,13 +3554,13 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data          = $response->get_data();
 		$post_template = get_page_template_slug( get_post( $data['id'] ) );
 
-		$this->assertEquals( 'post-my-invalid-template.php', $post_template );
-		$this->assertEquals( 'post-my-invalid-template.php', $data['template'] );
+		$this->assertSame( 'post-my-invalid-template.php', $post_template );
+		$this->assertSame( 'post-my-invalid-template.php', $data['template'] );
 	}
 
 	public function verify_post_roundtrip( $input = array(), $expected_output = array() ) {
@@ -3570,22 +3570,22 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			$request->set_param( $name, $value );
 		}
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 		$actual_output = $response->get_data();
 
 		// Compare expected API output to actual API output.
-		$this->assertEquals( $expected_output['title']['raw'], $actual_output['title']['raw'] );
-		$this->assertEquals( $expected_output['title']['rendered'], trim( $actual_output['title']['rendered'] ) );
-		$this->assertEquals( $expected_output['content']['raw'], $actual_output['content']['raw'] );
-		$this->assertEquals( $expected_output['content']['rendered'], trim( $actual_output['content']['rendered'] ) );
-		$this->assertEquals( $expected_output['excerpt']['raw'], $actual_output['excerpt']['raw'] );
-		$this->assertEquals( $expected_output['excerpt']['rendered'], trim( $actual_output['excerpt']['rendered'] ) );
+		$this->assertSame( $expected_output['title']['raw'], $actual_output['title']['raw'] );
+		$this->assertSame( $expected_output['title']['rendered'], trim( $actual_output['title']['rendered'] ) );
+		$this->assertSame( $expected_output['content']['raw'], $actual_output['content']['raw'] );
+		$this->assertSame( $expected_output['content']['rendered'], trim( $actual_output['content']['rendered'] ) );
+		$this->assertSame( $expected_output['excerpt']['raw'], $actual_output['excerpt']['raw'] );
+		$this->assertSame( $expected_output['excerpt']['rendered'], trim( $actual_output['excerpt']['rendered'] ) );
 
 		// Compare expected API output to WP internal values.
 		$post = get_post( $actual_output['id'] );
-		$this->assertEquals( $expected_output['title']['raw'], $post->post_title );
-		$this->assertEquals( $expected_output['content']['raw'], $post->post_content );
-		$this->assertEquals( $expected_output['excerpt']['raw'], $post->post_excerpt );
+		$this->assertSame( $expected_output['title']['raw'], $post->post_title );
+		$this->assertSame( $expected_output['content']['raw'], $post->post_content );
+		$this->assertSame( $expected_output['excerpt']['raw'], $post->post_excerpt );
 
 		// Update the post.
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $actual_output['id'] ) );
@@ -3593,22 +3593,22 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			$request->set_param( $name, $value );
 		}
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$actual_output = $response->get_data();
 
 		// Compare expected API output to actual API output.
-		$this->assertEquals( $expected_output['title']['raw'], $actual_output['title']['raw'] );
-		$this->assertEquals( $expected_output['title']['rendered'], trim( $actual_output['title']['rendered'] ) );
-		$this->assertEquals( $expected_output['content']['raw'], $actual_output['content']['raw'] );
-		$this->assertEquals( $expected_output['content']['rendered'], trim( $actual_output['content']['rendered'] ) );
-		$this->assertEquals( $expected_output['excerpt']['raw'], $actual_output['excerpt']['raw'] );
-		$this->assertEquals( $expected_output['excerpt']['rendered'], trim( $actual_output['excerpt']['rendered'] ) );
+		$this->assertSame( $expected_output['title']['raw'], $actual_output['title']['raw'] );
+		$this->assertSame( $expected_output['title']['rendered'], trim( $actual_output['title']['rendered'] ) );
+		$this->assertSame( $expected_output['content']['raw'], $actual_output['content']['raw'] );
+		$this->assertSame( $expected_output['content']['rendered'], trim( $actual_output['content']['rendered'] ) );
+		$this->assertSame( $expected_output['excerpt']['raw'], $actual_output['excerpt']['raw'] );
+		$this->assertSame( $expected_output['excerpt']['rendered'], trim( $actual_output['excerpt']['rendered'] ) );
 
 		// Compare expected API output to WP internal values.
 		$post = get_post( $actual_output['id'] );
-		$this->assertEquals( $expected_output['title']['raw'], $post->post_title );
-		$this->assertEquals( $expected_output['content']['raw'], $post->post_content );
-		$this->assertEquals( $expected_output['excerpt']['raw'], $post->post_excerpt );
+		$this->assertSame( $expected_output['title']['raw'], $post->post_title );
+		$this->assertSame( $expected_output['content']['raw'], $post->post_content );
+		$this->assertSame( $expected_output['excerpt']['raw'], $post->post_excerpt );
 	}
 
 	public static function post_roundtrip_provider() {
@@ -3806,10 +3806,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'force', 'false' );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 'Deleted post', $data['title']['raw'] );
-		$this->assertEquals( 'trash', $data['status'] );
+		$this->assertSame( 'Deleted post', $data['title']['raw'] );
+		$this->assertSame( 'trash', $data['status'] );
 	}
 
 	public function test_delete_item_skip_trash() {
@@ -3821,7 +3821,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request['force'] = true;
 		$response         = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertTrue( $data['deleted'] );
 		$this->assertNotEmpty( $data['previous'] );
@@ -3834,7 +3834,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$request  = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d', $post_id ) );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_already_trashed', $response, 410 );
 	}
@@ -3889,7 +3889,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 26, count( $properties ) );
+		$this->assertSame( 26, count( $properties ) );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
@@ -3968,7 +3968,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'type',
 		);
 
-		$this->assertEquals( $expected_keys, $keys );
+		$this->assertSame( $expected_keys, $keys );
 	}
 
 	public function test_get_post_edit_context_properties() {
@@ -4009,7 +4009,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'type',
 		);
 
-		$this->assertEquals( $expected_keys, $keys );
+		$this->assertSame( $expected_keys, $keys );
 	}
 
 	public function test_get_post_embed_context_properties() {
@@ -4031,7 +4031,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'type',
 		);
 
-		$this->assertEquals( $expected_keys, $keys );
+		$this->assertSame( $expected_keys, $keys );
 	}
 
 	public function test_status_array_enum_args() {
@@ -4040,10 +4040,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data            = $response->get_data();
 		$list_posts_args = $data['routes']['/wp/v2/posts']['endpoints'][0]['args'];
 		$status_arg      = $list_posts_args['status'];
-		$this->assertEquals( 'array', $status_arg['type'] );
-		$this->assertEquals(
+		$this->assertSame( 'array', $status_arg['type'] );
+		$this->assertSame(
 			array(
-				'type' => 'string',
 				'enum' => array(
 					'publish',
 					'future',
@@ -4059,6 +4058,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 					'request-completed',
 					'any',
 				),
+				'type' => 'string',
 			),
 			$status_arg['items']
 		);
@@ -4088,7 +4088,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data     = $response->get_data();
 
 		$this->assertArrayHasKey( 'my_custom_int', $data['schema']['properties'] );
-		$this->assertEquals( $schema, $data['schema']['properties']['my_custom_int'] );
+		$this->assertSame( $schema, $data['schema']['properties']['my_custom_int'] );
 
 		wp_set_current_user( 1 );
 
@@ -4571,7 +4571,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertArrayNotHasKey( 'permalink_template', $data );
 		$this->assertArrayNotHasKey( 'generated_slug', $data );
 	}
@@ -4595,16 +4595,16 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( $expected_permalink_template, $data['permalink_template'] );
-		$this->assertEquals( 'permalink-template', $data['generated_slug'] );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $expected_permalink_template, $data['permalink_template'] );
+		$this->assertSame( 'permalink-template', $data['generated_slug'] );
 
 		// Neither 'permalink_template' and 'generated_slug' are expected for context=view.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
 		$request->set_param( 'context', 'view' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertArrayNotHasKey( 'permalink_template', $data );
 		$this->assertArrayNotHasKey( 'generated_slug', $data );
 
@@ -4625,7 +4625,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			)
 		);
 
-		$this->assertEquals( '0000-00-00 00:00:00', $post->post_date_gmt );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
 
 		$get = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post->ID}" );
 		$get->set_query_params( array( 'context' => 'edit' ) );
@@ -4639,10 +4639,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $put );
 		$body     = $response->get_data();
 
-		$this->assertEquals( strtotime( $get_body['date'] ), strtotime( $body['date'] ), 'The dates should be equal', 2 );
-		$this->assertEquals( strtotime( $get_body['date_gmt'] ), strtotime( $body['date_gmt'] ), 'The dates should be equal', 2 );
+		$this->assertEqualsWithDelta( strtotime( $get_body['date'] ), strtotime( $body['date'] ), 2, 'The dates should be equal' );
+		$this->assertEqualsWithDelta( strtotime( $get_body['date_gmt'] ), strtotime( $body['date_gmt'] ), 2, 'The dates should be equal' );
 
-		$this->assertEquals( '0000-00-00 00:00:00', get_post( $post->ID )->post_date_gmt );
+		$this->assertSame( '0000-00-00 00:00:00', get_post( $post->ID )->post_date_gmt );
 	}
 
 	/**
@@ -4661,7 +4661,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			)
 		);
 
-		$this->assertEquals( '0000-00-00 00:00:00', $post->post_date_gmt );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
 
 		$get = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post->ID}" );
 		$get->set_query_params( array( 'context' => 'edit' ) );
@@ -4682,7 +4682,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $put );
 		$body     = $response->get_data();
 
-		$this->assertEquals( strtotime( mysql_to_rfc3339( $new_time ) ), strtotime( $body['date'] ), 'The dates should be equal', 2 );
+		$this->assertEqualsWithDelta( strtotime( mysql_to_rfc3339( $new_time ) ), strtotime( $body['date'] ), 2, 'The dates should be equal' );
 
 		$this->assertNotEquals( '0000-00-00 00:00:00', get_post( $post->ID )->post_date_gmt );
 	}
@@ -4702,7 +4702,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			)
 		);
 
-		$this->assertEquals( '0000-00-00 00:00:00', $post->post_date_gmt );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
 
 		$get = new WP_REST_Request( 'GET', "/wp/v2/posts/{$post->ID}" );
 		$get->set_query_params( array( 'context' => 'edit' ) );
@@ -4723,8 +4723,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $put );
 		$body     = $response->get_data();
 
-		$this->assertEquals( strtotime( $get_body['date'] ), strtotime( $body['date'] ), 'The dates should be equal', 2 );
-		$this->assertEquals( strtotime( $get_body['date_gmt'] ), strtotime( $body['date_gmt'] ), 'The dates should be equal', 2 );
+		$this->assertEqualsWithDelta( strtotime( $get_body['date'] ), strtotime( $body['date'] ), 2, 'The dates should be equal' );
+		$this->assertEqualsWithDelta( strtotime( $get_body['date_gmt'] ), strtotime( $body['date_gmt'] ), 2, 'The dates should be equal' );
 
 		$this->assertNotEquals( '0000-00-00 00:00:00', get_post( $post->ID )->post_date_gmt );
 	}
@@ -4859,7 +4859,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$properties = $data['schema']['properties']['content']['properties'];
 
 		$this->assertArrayHasKey( 'new_prop', $properties );
-		$this->assertEquals( array( 'new_context' ), $properties['new_prop']['context'] );
+		$this->assertSame( array( 'new_context' ), $properties['new_prop']['context'] );
 	}
 
 	/**

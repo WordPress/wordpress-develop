@@ -74,7 +74,11 @@ function wp_initial_constants() {
 
 	// Add define( 'WP_DEBUG', true ); to wp-config.php to enable display of notices during development.
 	if ( ! defined( 'WP_DEBUG' ) ) {
-		define( 'WP_DEBUG', false );
+		if ( 'development' === wp_get_environment_type() ) {
+			define( 'WP_DEBUG', true );
+		} else {
+			define( 'WP_DEBUG', false );
+		}
 	}
 
 	// Add define( 'WP_DEBUG_DISPLAY', null ); to wp-config.php to use the globally configured setting
@@ -401,6 +405,7 @@ function wp_templating_constants() {
 	 * It will be used as the fallback if the current theme doesn't exist.
 	 *
 	 * @since 3.0.0
+	 *
 	 * @see WP_Theme::get_core_default_theme()
 	 */
 	if ( ! defined( 'WP_DEFAULT_THEME' ) ) {

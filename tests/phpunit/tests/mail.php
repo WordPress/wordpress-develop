@@ -80,8 +80,8 @@ class Tests_Mail extends WP_UnitTestCase {
 		$mailer = tests_retrieve_phpmailer_instance();
 
 		// We need some better assertions here but these catch the failure for now.
-		$this->assertEquals( $body, $mailer->get_sent()->body );
-		$this->assertTrue( strpos( $mailer->get_sent()->header, 'boundary="----=_Part_4892_25692638.1192452070893"' ) > 0 );
+		$this->assertSameIgnoreEOL( $body, $mailer->get_sent()->body );
+		$this->assertTrue( strpos( iconv_mime_decode_headers( ( $mailer->get_sent()->header ) )['Content-Type'][0], 'boundary="----=_Part_4892_25692638.1192452070893"' ) > 0 );
 		$this->assertTrue( strpos( $mailer->get_sent()->header, 'charset=' ) > 0 );
 	}
 
@@ -106,13 +106,13 @@ class Tests_Mail extends WP_UnitTestCase {
 
 		// Retrieve the mailer instance.
 		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertEquals( 'address@tld.com', $mailer->get_recipient( 'to' )->address );
-		$this->assertEquals( 'Name', $mailer->get_recipient( 'to' )->name );
-		$this->assertEquals( 'cc@cc.com', $mailer->get_recipient( 'cc' )->address );
-		$this->assertEquals( 'The Carbon Guy', $mailer->get_recipient( 'cc' )->name );
-		$this->assertEquals( 'bcc@bcc.com', $mailer->get_recipient( 'bcc' )->address );
-		$this->assertEquals( 'The Blind Carbon Guy', $mailer->get_recipient( 'bcc' )->name );
-		$this->assertEquals( $message . "\n", $mailer->get_sent()->body );
+		$this->assertSame( 'address@tld.com', $mailer->get_recipient( 'to' )->address );
+		$this->assertSame( 'Name', $mailer->get_recipient( 'to' )->name );
+		$this->assertSame( 'cc@cc.com', $mailer->get_recipient( 'cc' )->address );
+		$this->assertSame( 'The Carbon Guy', $mailer->get_recipient( 'cc' )->name );
+		$this->assertSame( 'bcc@bcc.com', $mailer->get_recipient( 'bcc' )->address );
+		$this->assertSame( 'The Blind Carbon Guy', $mailer->get_recipient( 'bcc' )->name );
+		$this->assertSameIgnoreEOL( $message . "\n", $mailer->get_sent()->body );
 	}
 
 	/**
@@ -128,11 +128,11 @@ class Tests_Mail extends WP_UnitTestCase {
 		// WordPress 3.2 and later correctly split the address into the two parts and send them separately to PHPMailer.
 		// Earlier versions of PHPMailer were not touchy about the formatting of these arguments.
 		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertEquals( 'address@tld.com', $mailer->get_recipient( 'to' )->address );
-		$this->assertEquals( 'Name', $mailer->get_recipient( 'to' )->name );
-		$this->assertEquals( 'another_address@different-tld.com', $mailer->get_recipient( 'to', 0, 1 )->address );
-		$this->assertEquals( 'Another Name', $mailer->get_recipient( 'to', 0, 1 )->name );
-		$this->assertEquals( $message . "\n", $mailer->get_sent()->body );
+		$this->assertSame( 'address@tld.com', $mailer->get_recipient( 'to' )->address );
+		$this->assertSame( 'Name', $mailer->get_recipient( 'to' )->name );
+		$this->assertSame( 'another_address@different-tld.com', $mailer->get_recipient( 'to', 0, 1 )->address );
+		$this->assertSame( 'Another Name', $mailer->get_recipient( 'to', 0, 1 )->name );
+		$this->assertSameIgnoreEOL( $message . "\n", $mailer->get_sent()->body );
 	}
 
 	function test_wp_mail_multiple_to_addresses() {
@@ -143,9 +143,9 @@ class Tests_Mail extends WP_UnitTestCase {
 		wp_mail( $to, $subject, $message );
 
 		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertEquals( 'address@tld.com', $mailer->get_recipient( 'to' )->address );
-		$this->assertEquals( 'another_address@different-tld.com', $mailer->get_recipient( 'to', 0, 1 )->address );
-		$this->assertEquals( $message . "\n", $mailer->get_sent()->body );
+		$this->assertSame( 'address@tld.com', $mailer->get_recipient( 'to' )->address );
+		$this->assertSame( 'another_address@different-tld.com', $mailer->get_recipient( 'to', 0, 1 )->address );
+		$this->assertSameIgnoreEOL( $message . "\n", $mailer->get_sent()->body );
 	}
 
 	/**
@@ -159,8 +159,8 @@ class Tests_Mail extends WP_UnitTestCase {
 		wp_mail( $to, $subject, $message );
 
 		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertEquals( 'address@tld.com', $mailer->get_recipient( 'to' )->address );
-		$this->assertEquals( $message . "\n", $mailer->get_sent()->body );
+		$this->assertSame( 'address@tld.com', $mailer->get_recipient( 'to' )->address );
+		$this->assertSameIgnoreEOL( $message . "\n", $mailer->get_sent()->body );
 	}
 
 	/**
@@ -286,7 +286,7 @@ class Tests_Mail extends WP_UnitTestCase {
 		wp_mail( $to, $subject, $message, $headers );
 
 		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertEquals( 1, substr_count( $mailer->get_sent()->header, $expected ) );
+		$this->assertSame( 1, substr_count( $mailer->get_sent()->header, $expected ) );
 	}
 
 	function wp_mail_quoted_printable( $mailer ) {
@@ -354,7 +354,7 @@ class Tests_Mail extends WP_UnitTestCase {
 
 		foreach ( $headers as $header => $value ) {
 			$target_headers = preg_grep( "/^$header:/", $sent_headers );
-			$this->assertEquals( $expected[ $header ], array_pop( $target_headers ) );
+			$this->assertSame( $expected[ $header ], array_pop( $target_headers ) );
 		}
 	}
 
@@ -373,7 +373,7 @@ class Tests_Mail extends WP_UnitTestCase {
 
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertEquals( '', $mailer->Sender );
+		$this->assertSame( '', $mailer->Sender );
 	}
 
 	/**
@@ -389,7 +389,7 @@ class Tests_Mail extends WP_UnitTestCase {
 
 		wp_mail( $to, $subject, $message );
 
-		$this->assertEquals( 1, $ma->get_call_count() );
+		$this->assertSame( 1, $ma->get_call_count() );
 
 		$expected_error_data = array(
 			'to'                       => array( 'an_invalid_address' ),
@@ -404,7 +404,15 @@ class Tests_Mail extends WP_UnitTestCase {
 		$all_args  = $ma->get_args();
 		$call_args = array_pop( $all_args );
 
-		$this->assertEquals( 'wp_mail_failed', $call_args[0]->get_error_code() );
-		$this->assertEquals( $expected_error_data, $call_args[0]->get_error_data() );
+		$this->assertSame( 'wp_mail_failed', $call_args[0]->get_error_code() );
+		$this->assertSame( $expected_error_data, $call_args[0]->get_error_data() );
+	}
+
+	/**
+	 * @ticket 50720
+	 */
+	function test_phpmailer_validator() {
+		$phpmailer = $GLOBALS['phpmailer'];
+		$this->assertTrue( $phpmailer->validateAddress( 'foo@192.168.1.1' ), 'Assert PHPMailer accepts IP address email addresses' );
 	}
 }

@@ -18,7 +18,7 @@ class Tests_Functions_AllowedProtocols extends WP_UnitTestCase {
 		foreach ( $this->data_example_urls() as $example ) {
 			$example_protocols[] = $example[0];
 		}
-		$this->assertEqualSets( $example_protocols, wp_allowed_protocols() );
+		$this->assertSameSets( $example_protocols, wp_allowed_protocols() );
 	}
 
 	/**
@@ -29,8 +29,8 @@ class Tests_Functions_AllowedProtocols extends WP_UnitTestCase {
 	 * @param string Example URL.
 	 */
 	function test_allowed_protocols( $protocol, $url ) {
-		$this->assertEquals( $url, esc_url( $url, $protocol ) );
-		$this->assertEquals( $url, esc_url( $url, wp_allowed_protocols() ) );
+		$this->assertSame( $url, esc_url( $url, $protocol ) );
+		$this->assertSame( $url, esc_url( $url, wp_allowed_protocols() ) );
 	}
 
 	/**

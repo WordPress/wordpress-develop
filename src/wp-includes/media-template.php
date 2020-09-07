@@ -310,10 +310,10 @@ function wp_print_media_templates() {
 	<?php // Template for the view switchers, used for example in the Media Grid. ?>
 	<script type="text/html" id="tmpl-media-library-view-switcher">
 		<a href="<?php echo esc_url( add_query_arg( 'mode', 'list', $_SERVER['REQUEST_URI'] ) ); ?>" class="view-list">
-			<span class="screen-reader-text"><?php _e( 'List View' ); ?></span>
+			<span class="screen-reader-text"><?php _e( 'List view' ); ?></span>
 		</a>
 		<a href="<?php echo esc_url( add_query_arg( 'mode', 'grid', $_SERVER['REQUEST_URI'] ) ); ?>" class="view-grid current" aria-current="page">
-			<span class="screen-reader-text"><?php _e( 'Grid View' ); ?></span>
+			<span class="screen-reader-text"><?php _e( 'Grid view' ); ?></span>
 		</a>
 	</script>
 
@@ -500,8 +500,12 @@ function wp_print_media_templates() {
 					</span>
 				<# } #>
 				<span class="setting" data-setting="url">
-					<label for="attachment-details-two-column-copy-link" class="name"><?php _e( 'Copy Link' ); ?></label>
-					<input type="text" id="attachment-details-two-column-copy-link" value="{{ data.url }}" readonly />
+					<label for="attachment-details-two-column-copy-link" class="name"><?php _e( 'File URL:' ); ?></label>
+					<input type="text" class="attachment-details-copy-link" id="attachment-details-two-column-copy-link" value="{{ data.url }}" readonly />
+					<span class="copy-to-clipboard-container">
+						<button type="button" class="button button-small copy-attachment-url" data-clipboard-target="#attachment-details-two-column-copy-link"><?php _e( 'Copy URL' ); ?></button>
+						<span class="success hidden" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
+					</span>
 				</span>
 				<div class="attachment-compat"></div>
 			</div>
@@ -519,7 +523,7 @@ function wp_print_media_templates() {
 							<button type="button" class="button-link trash-attachment"><?php _e( 'Move to Trash' ); ?></button>
 						<# } #>
 					<?php else : ?>
-						<button type="button" class="button-link delete-attachment"><?php _e( 'Delete Permanently' ); ?></button>
+						<button type="button" class="button-link delete-attachment"><?php _e( 'Delete permanently' ); ?></button>
 					<?php endif; ?>
 				<# } #>
 			</div>
@@ -640,7 +644,7 @@ function wp_print_media_templates() {
 						<button type="button" class="button-link trash-attachment"><?php _e( 'Move to Trash' ); ?></button>
 					<# } #>
 					<?php else : ?>
-						<button type="button" class="button-link delete-attachment"><?php _e( 'Delete Permanently' ); ?></button>
+						<button type="button" class="button-link delete-attachment"><?php _e( 'Delete permanently' ); ?></button>
 					<?php endif; ?>
 				<# } #>
 
@@ -687,8 +691,12 @@ function wp_print_media_templates() {
 			<textarea id="attachment-details-description" {{ maybeReadOnly }}>{{ data.description }}</textarea>
 		</span>
 		<span class="setting" data-setting="url">
-			<label for="attachment-details-copy-link" class="name"><?php _e( 'Copy Link' ); ?></label>
-			<input type="text" id="attachment-details-copy-link" value="{{ data.url }}" readonly />
+			<label for="attachment-details-copy-link" class="name"><?php _e( 'File URL:' ); ?></label>
+			<input type="text" class="attachment-details-copy-link" id="attachment-details-copy-link" value="{{ data.url }}" readonly />
+			<div class="copy-to-clipboard-container">
+				<button type="button" class="button button-small copy-attachment-url" data-clipboard-target="#attachment-details-copy-link"><?php _e( 'Copy URL' ); ?></button>
+				<span class="success hidden" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
+			</div>
 		</span>
 	</script>
 

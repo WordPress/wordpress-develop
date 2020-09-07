@@ -115,47 +115,90 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		$data   = array();
 		$fields = $this->get_fields_for_response( $request );
 
-		if ( in_array( 'theme_supports', $fields, true ) ) {
-			$item_schemas   = $this->get_item_schema();
-			$theme_supports = $item_schemas['properties']['theme_supports']['properties'];
-			foreach ( $theme_supports as $name => $schema ) {
-				if ( 'formats' === $name ) {
-					continue;
-				}
+		if ( rest_is_field_included( 'stylesheet', $fields ) ) {
+			$data['stylesheet'] = $theme->get_stylesheet();
+		}
 
-				if ( ! current_theme_supports( $name ) ) {
-					$data['theme_supports'][ $name ] = false;
-					continue;
-				}
+		if ( rest_is_field_included( 'template', $fields ) ) {
+			/**
+			 * Use the get_template() method, not the 'Template' header, for finding the template.
+			 * The 'Template' header is only good for what was written in the style.css, while
+			 * get_template() takes into account where WordPress actually located the theme and
+			 * whether it is actually valid.
+			 */
+			$data['template'] = $theme->get_template();
+		}
 
-				if ( 'boolean' === $schema['type'] ) {
-					$data['theme_supports'][ $name ] = true;
-					continue;
-				}
+		$plain_field_mappings = array(
+			'requires_php' => 'RequiresPHP',
+			'requires_wp'  => 'RequiresWP',
+			'textdomain'   => 'TextDomain',
+			'version'      => 'Version',
+		);
 
-				$support = get_theme_support( $name );
+		foreach ( $plain_field_mappings as $field => $header ) {
+			if ( rest_is_field_included( $field, $fields ) ) {
+				$data[ $field ] = $theme->get( $header );
+			}
+		}
 
-				if ( is_array( $support ) ) {
-					// None of the Core theme supports have variadic args.
-					$support = $support[0];
+		if ( rest_is_field_included( 'screenshot', $fields ) ) {
+			// Using $theme->get_screenshot() with no args to get absolute URL.
+			$data['screenshot'] = $theme->get_screenshot() ? $theme->get_screenshot() : '';
+		}
 
-					// Core multi-type theme-support schema definitions always list boolean first.
-					if ( is_array( $schema['type'] ) && 'boolean' === $schema['type'][0] ) {
-						// Pass the non-boolean type through to the sanitizer, which cannot itself
-						// determine the intended type if the value is invalid (for example if an
-						// object includes non-safelisted properties).
-						$schema['type'] = $schema['type'][1];
-					}
-				}
+		$rich_field_mappings = array(
+			'author'      => 'Author',
+			'author_uri'  => 'AuthorURI',
+			'description' => 'Description',
+			'name'        => 'Name',
+			'tags'        => 'Tags',
+			'theme_uri'   => 'ThemeURI',
+		);
 
-				$data['theme_supports'][ $name ] = rest_sanitize_value_from_schema( $support, $schema );
+		foreach ( $rich_field_mappings as $field => $header ) {
+			if ( rest_is_field_included( "{$field}.raw", $fields ) ) {
+				$data[ $field ]['raw'] = $theme->display( $header, false, true );
 			}
 
-			$formats = get_theme_support( 'post-formats' );
-			$formats = is_array( $formats ) ? array_values( $formats[0] ) : array();
-			$formats = array_merge( array( 'standard' ), $formats );
+			if ( rest_is_field_included( "{$field}.rendered", $fields ) ) {
+				$data[ $field ]['rendered'] = $theme->display( $header );
+			}
+		}
 
-			$data['theme_supports']['formats'] = $formats;
+		if ( rest_is_field_included( 'theme_supports', $fields ) ) {
+			foreach ( get_registered_theme_features() as $feature => $config ) {
+				if ( ! is_array( $config['show_in_rest'] ) ) {
+					continue;
+				}
+
+				$name = $config['show_in_rest']['name'];
+
+				if ( ! rest_is_field_included( "theme_supports.{$name}", $fields ) ) {
+					continue;
+				}
+
+				if ( ! current_theme_supports( $feature ) ) {
+					$data['theme_supports'][ $name ] = $config['show_in_rest']['schema']['default'];
+					continue;
+				}
+
+				$support = get_theme_support( $feature );
+
+				if ( isset( $config['show_in_rest']['prepare_callback'] ) ) {
+					$prepare = $config['show_in_rest']['prepare_callback'];
+				} else {
+					$prepare = array( $this, 'prepare_theme_support' );
+				}
+
+				$prepared = $prepare( $support, $config, $feature, $request );
+
+				if ( is_wp_error( $prepared ) ) {
+					continue;
+				}
+
+				$data['theme_supports'][ $name ] = $prepared;
+			}
 		}
 
 		$data = $this->add_additional_fields_to_object( $data, $request );
@@ -176,6 +219,31 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Prepares the theme support value for inclusion in the REST API response.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param mixed           $support The raw value from get_theme_support().
+	 * @param array           $args    The feature's registration args.
+	 * @param string          $feature The feature name.
+	 * @param WP_REST_Request $request The request object.
+	 * @return mixed The prepared support value.
+	 */
+	protected function prepare_theme_support( $support, $args, $feature, $request ) {
+		$schema = $args['show_in_rest']['schema'];
+
+		if ( 'boolean' === $schema['type'] ) {
+			return true;
+		}
+
+		if ( is_array( $support ) && ! $args['variadic'] ) {
+			$support = $support[0];
+		}
+
+		return rest_sanitize_value_from_schema( $support, $schema );
+	}
+
+	/**
 	 * Retrieves the theme's schema, conforming to JSON Schema.
 	 *
 	 * @since 5.0.0
@@ -192,274 +260,157 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			'title'      => 'theme',
 			'type'       => 'object',
 			'properties' => array(
+				'stylesheet'     => array(
+					'description' => __( 'The theme\'s stylesheet. This uniquely identifies the theme.' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'template'       => array(
+					'description' => __( 'The theme\'s template. If this is a child theme, this refers to the parent theme, otherwise this is the same as the theme\'s stylesheet.' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'author'         => array(
+					'description' => __( 'The theme author.' ),
+					'type'        => 'object',
+					'readonly'    => true,
+					'properties'  => array(
+						'raw'      => array(
+							'description' => __( 'The theme author\'s name, as found in the theme header.' ),
+							'type'        => 'string',
+						),
+						'rendered' => array(
+							'description' => __( 'HTML for the theme author, transformed for display.' ),
+							'type'        => 'string',
+						),
+					),
+				),
+				'author_uri'     => array(
+					'description' => __( 'The website of the theme author.' ),
+					'type'        => 'object',
+					'readonly'    => true,
+					'properties'  => array(
+						'raw'      => array(
+							'description' => __( 'The website of the theme author, as found in the theme header.' ),
+							'type'        => 'string',
+							'format'      => 'uri',
+						),
+						'rendered' => array(
+							'description' => __( 'The website of the theme author, transformed for display.' ),
+							'type'        => 'string',
+							'format'      => 'uri',
+						),
+					),
+				),
+				'description'    => array(
+					'description' => __( 'A description of the theme.' ),
+					'type'        => 'object',
+					'readonly'    => true,
+					'properties'  => array(
+						'raw'      => array(
+							'description' => __( 'The theme description, as found in the theme header.' ),
+							'type'        => 'string',
+						),
+						'rendered' => array(
+							'description' => __( 'The theme description, transformed for display.' ),
+							'type'        => 'string',
+						),
+					),
+				),
+				'name'           => array(
+					'description' => __( 'The name of the theme.' ),
+					'type'        => 'object',
+					'readonly'    => true,
+					'properties'  => array(
+						'raw'      => array(
+							'description' => __( 'The theme name, as found in the theme header.' ),
+							'type'        => 'string',
+						),
+						'rendered' => array(
+							'description' => __( 'The theme name, transformed for display.' ),
+							'type'        => 'string',
+						),
+					),
+				),
+				'requires_php'   => array(
+					'description' => __( 'The minimum PHP version required for the theme to work.' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'requires_wp'    => array(
+					'description' => __( 'The minimum WordPress version required for the theme to work.' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'screenshot'     => array(
+					'description' => __( 'The theme\'s screenshot URL.' ),
+					'type'        => 'string',
+					'format'      => 'uri',
+					'readonly'    => true,
+				),
+				'tags'           => array(
+					'description' => __( 'Tags indicating styles and features of the theme.' ),
+					'type'        => 'object',
+					'readonly'    => true,
+					'properties'  => array(
+						'raw'      => array(
+							'description' => __( 'The theme tags, as found in the theme header.' ),
+							'type'        => 'array',
+							'items'       => array(
+								'type' => 'string',
+							),
+						),
+						'rendered' => array(
+							'description' => __( 'The theme tags, transformed for display.' ),
+							'type'        => 'string',
+						),
+					),
+				),
+				'textdomain'     => array(
+					'description' => __( 'The theme\'s text domain.' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
 				'theme_supports' => array(
 					'description' => __( 'Features supported by this theme.' ),
 					'type'        => 'object',
 					'readonly'    => true,
+					'properties'  => array(),
+				),
+				'theme_uri'      => array(
+					'description' => __( 'The URI of the theme\'s webpage.' ),
+					'type'        => 'object',
+					'readonly'    => true,
 					'properties'  => array(
-						'align-wide'                => array(
-							'description' => __( 'Whether theme opts in to wide alignment CSS class.' ),
-							'type'        => 'boolean',
+						'raw'      => array(
+							'description' => __( 'The URI of the theme\'s webpage, as found in the theme header.' ),
+							'type'        => 'string',
+							'format'      => 'uri',
 						),
-						'automatic-feed-links'      => array(
-							'description' => __( 'Whether posts and comments RSS feed links are added to head.' ),
-							'type'        => 'boolean',
-						),
-						'custom-header'             => array(
-							'description'          => __( 'Custom header if defined by the theme.' ),
-							'type'                 => array( 'boolean', 'object' ),
-							'properties'           => array(
-								'default-image'      => array(
-									'type'   => 'string',
-									'format' => 'uri',
-								),
-								'random-default'     => array(
-									'type' => 'boolean',
-								),
-								'width'              => array(
-									'type' => 'integer',
-								),
-								'height'             => array(
-									'type' => 'integer',
-								),
-								'flex-height'        => array(
-									'type' => 'boolean',
-								),
-								'flex-width'         => array(
-									'type' => 'boolean',
-								),
-								'default-text-color' => array(
-									'type' => 'string',
-								),
-								'header-text'        => array(
-									'type' => 'boolean',
-								),
-								'uploads'            => array(
-									'type' => 'boolean',
-								),
-								'video'              => array(
-									'type' => 'boolean',
-								),
-							),
-							'additionalProperties' => false,
-						),
-						'custom-background'         => array(
-							'description'          => __( 'Custom background if defined by the theme.' ),
-							'type'                 => array( 'boolean', 'object' ),
-							'properties'           => array(
-								'default-image'      => array(
-									'type'   => 'string',
-									'format' => 'uri',
-								),
-								'default-preset'     => array(
-									'type' => 'string',
-									'enum' => array(
-										'default',
-										'fill',
-										'fit',
-										'repeat',
-										'custom',
-									),
-								),
-								'default-position-x' => array(
-									'type' => 'string',
-									'enum' => array(
-										'left',
-										'center',
-										'right',
-									),
-								),
-								'default-position-y' => array(
-									'type' => 'string',
-									'enum' => array(
-										'left',
-										'center',
-										'right',
-									),
-								),
-								'default-size'       => array(
-									'type' => 'string',
-									'enum' => array(
-										'auto',
-										'contain',
-										'cover',
-									),
-								),
-								'default-repeat'     => array(
-									'type' => 'string',
-									'enum' => array(
-										'repeat-x',
-										'repeat-y',
-										'repeat',
-										'no-repeat',
-									),
-								),
-								'default-attachment' => array(
-									'type' => 'string',
-									'enum' => array(
-										'scroll',
-										'fixed',
-									),
-								),
-								'default-color'      => array(
-									'type' => 'string',
-								),
-							),
-							'additionalProperties' => false,
-						),
-						'custom-logo'               => array(
-							'description'          => __( 'Custom logo if defined by the theme.' ),
-							'type'                 => array( 'boolean', 'object' ),
-							'properties'           => array(
-								'width'       => array(
-									'type' => 'integer',
-								),
-								'height'      => array(
-									'type' => 'integer',
-								),
-								'flex-width'  => array(
-									'type' => 'boolean',
-								),
-								'flex-height' => array(
-									'type' => 'boolean',
-								),
-								'header-text' => array(
-									'type'  => 'array',
-									'items' => array(
-										'type' => 'string',
-									),
-								),
-							),
-							'additionalProperties' => false,
-						),
-						'customize-selective-refresh-widgets' => array(
-							'description' => __( 'Whether the theme enables Selective Refresh for Widgets being managed with the Customizer.' ),
-							'type'        => 'boolean',
-						),
-						'dark-editor-style'         => array(
-							'description' => __( 'Whether theme opts in to the dark editor style UI.' ),
-							'type'        => 'boolean',
-						),
-						'disable-custom-colors'     => array(
-							'description' => __( 'Whether the theme disables custom colors.' ),
-							'type'        => 'boolean',
-						),
-						'disable-custom-font-sizes' => array(
-							'description' => __( 'Whether the theme disables custom font sizes.' ),
-							'type'        => 'boolean',
-						),
-						'disable-custom-gradients'  => array(
-							'description' => __( 'Whether the theme disables custom gradients.' ),
-							'type'        => 'boolean',
-						),
-						'editor-color-palette'      => array(
-							'description' => __( 'Custom color palette if defined by the theme.' ),
-							'type'        => array( 'boolean', 'array' ),
-							'items'       => array(
-								'type'                 => 'object',
-								'properties'           => array(
-									'name'  => array(
-										'type' => 'string',
-									),
-									'slug'  => array(
-										'type' => 'string',
-									),
-									'color' => array(
-										'type' => 'string',
-									),
-								),
-								'additionalProperties' => false,
-							),
-						),
-						'editor-font-sizes'         => array(
-							'description' => __( 'Custom font sizes if defined by the theme.' ),
-							'type'        => array( 'boolean', 'array' ),
-							'items'       => array(
-								'type'                 => 'object',
-								'properties'           => array(
-									'name' => array(
-										'type' => 'string',
-									),
-									'size' => array(
-										'type' => 'number',
-									),
-									'slug' => array(
-										'type' => 'string',
-									),
-								),
-								'additionalProperties' => false,
-							),
-						),
-						'editor-gradient-presets'   => array(
-							'description' => __( 'Custom gradient presets if defined by the theme.' ),
-							'type'        => array( 'boolean', 'array' ),
-							'items'       => array(
-								'type'                 => 'object',
-								'properties'           => array(
-									'name'     => array(
-										'type' => 'string',
-									),
-									'gradient' => array(
-										'type' => 'string',
-									),
-									'slug'     => array(
-										'type' => 'string',
-									),
-								),
-								'additionalProperties' => false,
-							),
-						),
-						'editor-styles'             => array(
-							'description' => __( 'Whether theme opts in to the editor styles CSS wrapper.' ),
-							'type'        => 'boolean',
-						),
-						'formats'                   => array(
-							'description' => __( 'Post formats supported.' ),
-							'type'        => 'array',
-							'items'       => array(
-								'type' => 'string',
-								'enum' => get_post_format_slugs(),
-							),
-						),
-						'html5'                     => array(
-							'description' => __( 'Allows use of html5 markup for search forms, comment forms, comment lists, gallery, and caption.' ),
-							'type'        => array( 'boolean', 'array' ),
-							'items'       => array(
-								'type' => 'string',
-								'enum' => array(
-									'search-form',
-									'comment-form',
-									'comment-list',
-									'gallery',
-									'caption',
-									'script',
-									'style',
-								),
-							),
-						),
-						'post-thumbnails'           => array(
-							'description' => __( 'Whether the theme supports post thumbnails.' ),
-							'type'        => array( 'boolean', 'array' ),
-							'items'       => array(
-								'type' => 'string',
-							),
-						),
-						'responsive-embeds'         => array(
-							'description' => __( 'Whether the theme supports responsive embedded content.' ),
-							'type'        => 'boolean',
-						),
-						'title-tag'                 => array(
-							'description' => __( 'Whether the theme can manage the document title tag.' ),
-							'type'        => 'boolean',
-						),
-						'wp-block-styles'           => array(
-							'description' => __( 'Whether theme opts in to default WordPress block styles for viewing.' ),
-							'type'        => 'boolean',
+						'rendered' => array(
+							'description' => __( 'The URI of the theme\'s webpage, transformed for display.' ),
+							'type'        => 'string',
+							'format'      => 'uri',
 						),
 					),
 				),
+				'version'        => array(
+					'description' => __( 'The theme\'s current version.' ),
+					'type'        => 'string',
+					'readonly'    => true,
+				),
 			),
 		);
+
+		foreach ( get_registered_theme_features() as $feature => $config ) {
+			if ( ! is_array( $config['show_in_rest'] ) ) {
+				continue;
+			}
+
+			$name = $config['show_in_rest']['name'];
+
+			$schema['properties']['theme_supports']['properties'][ $name ] = $config['show_in_rest']['schema'];
+		}
 
 		$this->schema = $schema;
 
@@ -488,7 +439,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		);
 
 		/**
-		 * Filter collection parameters for the themes controller.
+		 * Filters collection parameters for the themes controller.
 		 *
 		 * @since 5.0.0
 		 *

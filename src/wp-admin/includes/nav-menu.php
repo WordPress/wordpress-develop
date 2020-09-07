@@ -332,7 +332,7 @@ function wp_nav_menu_item_link_meta_box() {
  *
  *     @type string       $id       Meta box 'id' attribute.
  *     @type string       $title    Meta box title.
- *     @type string       $callback Meta box display callback.
+ *     @type callable     $callback Meta box display callback.
  *     @type WP_Post_Type $args     Extra meta box arguments (the post type object for this meta box).
  * }
  */
@@ -684,10 +684,10 @@ function wp_nav_menu_item_post_type_meta_box( $object, $box ) {
  * @param array  $box {
  *     Taxonomy menu item meta box arguments.
  *
- *     @type string $id       Meta box 'id' attribute.
- *     @type string $title    Meta box title.
- *     @type string $callback Meta box display callback.
- *     @type object $args     Extra meta box arguments (the taxonomy object for this meta box).
+ *     @type string   $id       Meta box 'id' attribute.
+ *     @type string   $title    Meta box title.
+ *     @type callable $callback Meta box display callback.
+ *     @type object   $args     Extra meta box arguments (the taxonomy object for this meta box).
  * }
  */
 function wp_nav_menu_item_taxonomy_meta_box( $object, $box ) {
@@ -725,7 +725,6 @@ function wp_nav_menu_item_taxonomy_meta_box( $object, $box ) {
 
 	$num_pages = ceil(
 		wp_count_terms(
-			$taxonomy_name,
 			array_merge(
 				$args,
 				array(
@@ -1023,7 +1022,7 @@ function _wp_nav_menu_meta_box_object( $object = null ) {
  * @since 3.0.0
  *
  * @param int $menu_id Optional. The ID of the menu to format. Default 0.
- * @return string|WP_Error $output The menu formatted to edit or error object on failure.
+ * @return string|WP_Error The menu formatted to edit or error object on failure.
  */
 function wp_get_nav_menu_to_edit( $menu_id = 0 ) {
 	$menu = wp_get_nav_menu_object( $menu_id );
@@ -1136,8 +1135,8 @@ function _wp_delete_orphaned_draft_menu_items() {
  *
  * @since 3.6.0
  *
- * @param int|string $nav_menu_selected_id (id, slug, or name ) of the currently-selected menu
- * @param string $nav_menu_selected_title Title of the currently-selected menu
+ * @param int|string $nav_menu_selected_id    ID, slug, or name of the currently-selected menu.
+ * @param string     $nav_menu_selected_title Title of the currently-selected menu.
  * @return array The menu updated message
  */
 function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selected_title ) {

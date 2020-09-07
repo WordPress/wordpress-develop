@@ -35,7 +35,7 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 		$widget = new WP_Widget_Media_Image();
 		$schema = $widget->get_instance_schema();
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'alt',
 				'attachment_id',
@@ -92,7 +92,7 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 	/**
 	 * Test constructor.
 	 *
-	 * @covers WP_Widget_Media_Image::__construct()
+	 * @covers WP_Widget_Media_Image::__construct
 	 */
 	function test_constructor() {
 		$widget = new WP_Widget_Media_Image();
@@ -101,8 +101,8 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'customize_selective_refresh', $widget->widget_options );
 		$this->assertArrayHasKey( 'description', $widget->widget_options );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
-		$this->assertEquals( 'image', $widget->widget_options['mime_type'] );
-		$this->assertEqualSets(
+		$this->assertSame( 'image', $widget->widget_options['mime_type'] );
+		$this->assertSameSets(
 			array(
 				'add_to_widget',
 				'replace_media',
@@ -412,7 +412,7 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 	function test_render_media() {
 		$widget = new WP_Widget_Media_Image();
 
-		$test_image = '/tmp/canola.jpg';
+		$test_image = get_temp_dir() . 'canola.jpg';
 		copy( DIR_TESTDATA . '/images/canola.jpg', $test_image );
 		$attachment_id = self::factory()->attachment->create_object(
 			array(
@@ -585,6 +585,21 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 		$output = ob_get_clean();
 		$this->assertContains( 'class="wp-caption alignnone"', $output );
 		$this->assertContains( '<p class="wp-caption-text">Custom caption</p>', $output );
+
+		// Attachments with custom sizes can render captions.
+		ob_start();
+		$widget->render_media(
+			array(
+				'attachment_id' => $attachment_id,
+				'size'          => 'custom',
+				'width'         => '300',
+				'height'        => '200',
+				'caption'       => 'Caption for an image with custom size',
+			)
+		);
+		$output = ob_get_clean();
+		$this->assertContains( 'style="width: 310px"', $output );
+		$this->assertContains( '<p class="wp-caption-text">Caption for an image with custom size</p>', $output );
 	}
 
 	/**

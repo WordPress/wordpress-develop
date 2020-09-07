@@ -55,7 +55,11 @@ function render_block_core_rss( $attributes ) {
 			$author = $item->get_author();
 			if ( is_object( $author ) ) {
 				$author = $author->get_name();
-				$author = '<span class="wp-block-rss__item-author">' . __( 'by' ) . ' ' . esc_html( strip_tags( $author ) ) . '</span>';
+				$author = '<span class="wp-block-rss__item-author">' . sprintf(
+					/* translators: %s: the author. */
+					__( 'by %s' ),
+					esc_html( strip_tags( $author ) )
+				) . '</span>';
 			}
 		}
 
@@ -92,57 +96,16 @@ function render_block_core_rss( $attributes ) {
 		$class .= ' ' . $attributes['className'];
 	}
 
-	return sprintf( "<ul class='%s'>%s</ul>", esc_attr( $class ), $list_items );
+	return sprintf( '<ul class="%s">%s</ul>', esc_attr( $class ), $list_items );
 }
 
 /**
  * Registers the `core/rss` block on server.
  */
 function register_block_core_rss() {
-	register_block_type(
-		'core/rss',
+	register_block_type_from_metadata(
+		__DIR__ . '/rss',
 		array(
-			'attributes'      => array(
-				'align'          => array(
-					'type' => 'string',
-					'enum' => array( 'left', 'center', 'right', 'wide', 'full' ),
-				),
-				'className'      => array(
-					'type' => 'string',
-				),
-				'columns'        => array(
-					'type'    => 'number',
-					'default' => 2,
-				),
-				'blockLayout'    => array(
-					'type'    => 'string',
-					'default' => 'list',
-				),
-				'feedURL'        => array(
-					'type'    => 'string',
-					'default' => '',
-				),
-				'itemsToShow'    => array(
-					'type'    => 'number',
-					'default' => 5,
-				),
-				'displayExcerpt' => array(
-					'type'    => 'boolean',
-					'default' => false,
-				),
-				'displayAuthor'  => array(
-					'type'    => 'boolean',
-					'default' => false,
-				),
-				'displayDate'    => array(
-					'type'    => 'boolean',
-					'default' => false,
-				),
-				'excerptLength'  => array(
-					'type'    => 'number',
-					'default' => 55,
-				),
-			),
 			'render_callback' => 'render_block_core_rss',
 		)
 	);

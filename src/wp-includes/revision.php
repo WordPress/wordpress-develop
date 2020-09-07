@@ -14,8 +14,6 @@
  * @since 4.5.0 The optional `$autosave` parameter was deprecated and renamed to `$deprecated`.
  * @access private
  *
- * @staticvar array $fields
- *
  * @param array|WP_Post $post       Optional. A post array or a WP_Post object being processed
  *                                  for insertion as a post revision. Default empty array.
  * @param bool          $deprecated Not used.
@@ -223,9 +221,9 @@ function wp_save_post_revision( $post_id ) {
 /**
  * Retrieve the autosaved data of the specified post.
  *
- * Returns a post object containing the information that was autosaved for the
- * specified post. If the optional $user_id is passed, returns the autosave for that user
- * otherwise returns the latest autosave.
+ * Returns a post object with the information that was autosaved for the specified post.
+ * If the optional $user_id is passed, returns the autosave for that user, otherwise
+ * returns the latest autosave.
  *
  * @since 2.6.0
  *
@@ -234,19 +232,35 @@ function wp_save_post_revision( $post_id ) {
  * @return WP_Post|false The autosaved data or false on failure or when no autosave exists.
  */
 function wp_get_post_autosave( $post_id, $user_id = 0 ) {
-	$revisions = wp_get_post_revisions( $post_id, array( 'check_enabled' => false ) );
+	global $wpdb;
 
-	foreach ( $revisions as $revision ) {
-		if ( false !== strpos( $revision->post_name, "{$post_id}-autosave" ) ) {
-			if ( $user_id && $user_id != $revision->post_author ) {
-				continue;
-			}
+	$autosave_name = $post_id . '-autosave-v1';
+	$user_id_query = ( 0 !== $user_id ) ? "AND post_author = $user_id" : null;
 
-			return $revision;
-		}
+	// Construct the autosave query.
+	$autosave_query = "
+		SELECT *
+		FROM $wpdb->posts
+		WHERE post_parent = %d
+		AND post_type = 'revision'
+		AND post_status = 'inherit'
+		AND post_name   = %s " . $user_id_query . '
+		ORDER BY post_date DESC
+		LIMIT 1';
+
+	$autosave = $wpdb->get_results(
+		$wpdb->prepare(
+			$autosave_query,
+			$post_id,
+			$autosave_name
+		)
+	);
+
+	if ( ! $autosave ) {
+		return false;
 	}
 
-	return false;
+	return get_post( $autosave[0] );
 }
 
 /**
@@ -340,8 +354,9 @@ function _wp_put_post_revision( $post = null, $autosave = false ) {
  * @since 2.6.0
  *
  * @param int|WP_Post $post   The post ID or object.
- * @param string      $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
- *                            a WP_Post object, an associative array, or a numeric array, respectively. Default OBJECT.
+ * @param string      $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+ *                            correspond to a WP_Post object, an associative array, or a numeric array,
+ *                            respectively. Default OBJECT.
  * @param string      $filter Optional sanitation filter. See sanitize_post().
  * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
  */

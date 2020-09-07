@@ -20,8 +20,8 @@ class Tests_WP_Hook_Add_Filter extends WP_UnitTestCase {
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
 
 		$function_index = _wp_filter_build_unique_id( $tag, $callback, $priority );
-		$this->assertEquals( $callback, $hook->callbacks[ $priority ][ $function_index ]['function'] );
-		$this->assertEquals( $accepted_args, $hook->callbacks[ $priority ][ $function_index ]['accepted_args'] );
+		$this->assertSame( $callback, $hook->callbacks[ $priority ][ $function_index ]['function'] );
+		$this->assertSame( $accepted_args, $hook->callbacks[ $priority ][ $function_index ]['accepted_args'] );
 	}
 
 	public function test_add_filter_with_object() {
@@ -35,8 +35,8 @@ class Tests_WP_Hook_Add_Filter extends WP_UnitTestCase {
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
 
 		$function_index = _wp_filter_build_unique_id( $tag, $callback, $priority );
-		$this->assertEquals( $callback, $hook->callbacks[ $priority ][ $function_index ]['function'] );
-		$this->assertEquals( $accepted_args, $hook->callbacks[ $priority ][ $function_index ]['accepted_args'] );
+		$this->assertSame( $callback, $hook->callbacks[ $priority ][ $function_index ]['function'] );
+		$this->assertSame( $accepted_args, $hook->callbacks[ $priority ][ $function_index ]['accepted_args'] );
 	}
 
 	public function test_add_filter_with_static_method() {
@@ -49,8 +49,8 @@ class Tests_WP_Hook_Add_Filter extends WP_UnitTestCase {
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
 
 		$function_index = _wp_filter_build_unique_id( $tag, $callback, $priority );
-		$this->assertEquals( $callback, $hook->callbacks[ $priority ][ $function_index ]['function'] );
-		$this->assertEquals( $accepted_args, $hook->callbacks[ $priority ][ $function_index ]['accepted_args'] );
+		$this->assertSame( $callback, $hook->callbacks[ $priority ][ $function_index ]['function'] );
+		$this->assertSame( $accepted_args, $hook->callbacks[ $priority ][ $function_index ]['accepted_args'] );
 	}
 
 	public function test_add_two_filters_with_same_priority() {
@@ -124,7 +124,7 @@ class Tests_WP_Hook_Add_Filter extends WP_UnitTestCase {
 		$hook->add_filter( $tag, array( $b, 'action' ), 5, 1 );
 		$hook->add_filter( $tag, array( $c, 'action' ), 8, 1 );
 
-		$this->assertEquals( array( 5, 8, 10 ), array_keys( $hook->callbacks ) );
+		$this->assertSame( array( 5, 8, 10 ), array_keys( $hook->callbacks ) );
 	}
 
 	public function test_remove_and_add() {

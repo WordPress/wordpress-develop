@@ -9,7 +9,7 @@
  * @output wp-admin/js/nav-menu.js
  */
 
-/* global menus, postboxes, columns, isRtl, navMenuL10n, ajaxurl, wpNavMenu */
+/* global menus, postboxes, columns, isRtl, ajaxurl, wpNavMenu */
 
 (function($) {
 
@@ -429,7 +429,7 @@
 		 * Refreshes advanced accessibility buttons for one menu item.
 		 * Shows or hides buttons based on the location of the menu item.
 		 *
-		 * @param  {object} itemToRefresh The menu item that might need its advanced accessibility buttons refreshed
+		 * @param {Object} itemToRefresh The menu item that might need its advanced accessibility buttons refreshed
 		 */
 		refreshAdvancedAccessibilityOfItem : function( itemToRefresh ) {
 
@@ -588,7 +588,7 @@
 				if ( title ) {
 					titleEl.text( title ).removeClass( 'no-title' );
 				} else {
-					titleEl.text( navMenuL10n.untitled ).addClass( 'no-title' );
+					titleEl.text( wp.i18n._x( '(no label)', 'missing menu item navigation label' ) ).addClass( 'no-title' );
 				}
 			} );
 		},
@@ -920,7 +920,7 @@
 				q = input.val();
 
 			/*
-			 * Minimum characters for a search. Also avoid a new AJAX search when
+			 * Minimum characters for a search. Also avoid a new Ajax search when
 			 * the pressed key (e.g. arrows) doesn't change the searched term.
 			 */
 			if ( q.length < minSearchLength || api.lastSearch == q ) {
@@ -1050,7 +1050,7 @@
 			if ( 0 !== $('#menu-to-edit').length || 0 !== $('.menu-location-menus select').length ) {
 				window.onbeforeunload = function(){
 					if ( api.menusChanged )
-						return navMenuL10n.saveAlert;
+						return wp.i18n.__( 'The changes you made will be lost if you navigate away from this page.' );
 				};
 			} else {
 				// Make the post boxes read-only, as they can't be used yet.
@@ -1220,7 +1220,7 @@
 
 		eventOnClickMenuDelete : function() {
 			// Delete warning AYS.
-			if ( window.confirm( navMenuL10n.warnDeleteMenu ) ) {
+			if ( window.confirm( wp.i18n.__( 'You are about to permanently delete this menu.\n\'Cancel\' to stop, \'OK\' to delete.' ) ) ) {
 				window.onbeforeunload = null;
 				return true;
 			}
@@ -1253,7 +1253,7 @@
 			$item;
 
 			if( ! $items.length ) {
-				$('.categorychecklist', panel).html( '<li><p>' + navMenuL10n.noResultsFound + '</p></li>' );
+				$('.categorychecklist', panel).html( '<li><p>' + wp.i18n.__( 'No results found.' ) + '</p></li>' );
 				$( '.spinner', panel ).removeClass( 'is-active' );
 				wrapper.addClass( 'has-no-menu-item' );
 				return;
@@ -1292,7 +1292,8 @@
 
 		/**
 		 * Remove a menu item.
-		 * @param  {object} el The element to be removed as a jQuery object.
+		 *
+		 * @param {Object} el The element to be removed as a jQuery object.
 		 *
 		 * @fires document#menu-removing-item Passes the element to be removed.
 		 */

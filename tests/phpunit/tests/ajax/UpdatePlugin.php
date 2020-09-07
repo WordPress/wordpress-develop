@@ -41,7 +41,7 @@ class Tests_Ajax_Update_Plugin extends WP_Ajax_UnitTestCase {
 			),
 		);
 
-		$this->assertEqualSets( $expected, $response );
+		$this->assertSameSets( $expected, $response );
 	}
 
 	public function test_missing_slug() {
@@ -67,7 +67,7 @@ class Tests_Ajax_Update_Plugin extends WP_Ajax_UnitTestCase {
 			),
 		);
 
-		$this->assertEqualSets( $expected, $response );
+		$this->assertSameSets( $expected, $response );
 	}
 
 	public function test_missing_capability() {
@@ -90,13 +90,13 @@ class Tests_Ajax_Update_Plugin extends WP_Ajax_UnitTestCase {
 			'data'    => array(
 				'update'       => 'plugin',
 				'slug'         => 'foo',
-				'errorMessage' => 'Sorry, you are not allowed to update plugins for this site.',
 				'oldVersion'   => '',
 				'newVersion'   => '',
+				'errorMessage' => 'Sorry, you are not allowed to update plugins for this site.',
 			),
 		);
 
-		$this->assertEqualSets( $expected, $response );
+		$this->assertSameSets( $expected, $response );
 	}
 
 	public function test_invalid_file() {
@@ -121,13 +121,13 @@ class Tests_Ajax_Update_Plugin extends WP_Ajax_UnitTestCase {
 			'data'    => array(
 				'update'       => 'plugin',
 				'slug'         => 'foo',
-				'errorMessage' => 'Sorry, you are not allowed to update plugins for this site.',
 				'oldVersion'   => '',
 				'newVersion'   => '',
+				'errorMessage' => 'Sorry, you are not allowed to update plugins for this site.',
 			),
 		);
 
-		$this->assertEqualSets( $expected, $response );
+		$this->assertSameSets( $expected, $response );
 	}
 
 	public function test_update_plugin() {
@@ -155,15 +155,15 @@ class Tests_Ajax_Update_Plugin extends WP_Ajax_UnitTestCase {
 			'data'    => array(
 				'update'       => 'plugin',
 				'slug'         => 'hello-dolly',
-				'plugin'       => 'hello.php',
-				'pluginName'   => 'Hello Dolly',
-				'errorMessage' => 'Plugin update failed.',
 				'oldVersion'   => 'Version 1.7.2',
 				'newVersion'   => '',
+				'plugin'       => 'hello.php',
+				'pluginName'   => 'Hello Dolly',
 				'debug'        => array( 'The plugin is at the latest version.' ),
+				'errorMessage' => 'The plugin is at the latest version.',
 			),
 		);
 
-		$this->assertEqualSets( $expected, $response );
+		$this->assertSameSets( $expected, $response );
 	}
 }

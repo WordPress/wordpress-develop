@@ -16,14 +16,14 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 
 	/**
-	 * List of comments
+	 * List of comments.
 	 *
 	 * @var array
 	 */
 	protected $_comments = array();
 
 	/**
-	 * Set up the test fixture
+	 * Sets up the test fixture.
 	 */
 	public function setUp() {
 		parent::setUp();
@@ -33,7 +33,7 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Clear the POST actions in between requests
+	 * Clears the POST actions in between requests.
 	 */
 	protected function _clear_post_action() {
 		unset( $_POST['id'] );
@@ -46,11 +46,11 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 	 */
 
 	/**
-	 * Test as a privilged user (administrator)
-	 * Expects test to pass
+	 * Tests as a privileged user (administrator).
 	 *
-	 * @param mixed $comment Comment object
-	 * @return void
+	 * Expects test to pass.
+	 *
+	 * @param WP_Comment $comment Comment object.
 	 */
 	public function _test_as_admin( $comment ) {
 
@@ -82,17 +82,17 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 		$xml = simplexml_load_string( $this->_last_response, 'SimpleXMLElement', LIBXML_NOCDATA );
 
 		// Ensure everything is correct.
-		$this->assertEquals( $comment->comment_ID, (string) $xml->response[0]->comment['id'] );
-		$this->assertEquals( 'dim-comment_' . $comment->comment_ID, (string) $xml->response['action'] );
+		$this->assertSame( $comment->comment_ID, (string) $xml->response[0]->comment['id'] );
+		$this->assertSame( 'dim-comment_' . $comment->comment_ID, (string) $xml->response['action'] );
 		$this->assertGreaterThanOrEqual( time() - 10, (int) $xml->response[0]->comment[0]->supplemental[0]->time[0] );
 		$this->assertLessThanOrEqual( time(), (int) $xml->response[0]->comment[0]->supplemental[0]->time[0] );
 
 		// Check the status.
 		$current = wp_get_comment_status( $comment->comment_ID );
 		if ( in_array( $prev_status, array( 'unapproved', 'spam' ), true ) ) {
-			$this->assertEquals( 'approved', $current );
+			$this->assertSame( 'approved', $current );
 		} else {
-			$this->assertEquals( 'unapproved', $current );
+			$this->assertSame( 'unapproved', $current );
 		}
 
 		// The total is calculated based on a page break -OR- a random number. Let's look for both possible outcomes.
@@ -107,11 +107,11 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Test as a non-privileged user (subscriber)
-	 * Expects test to fail
+	 * Tests as a non-privileged user (subscriber).
 	 *
-	 * @param mixed $comment Comment object
-	 * @return void
+	 * Expects test to fail.
+	 *
+	 * @param WP_Comment $comment Comment object.
 	 */
 	public function _test_as_subscriber( $comment ) {
 
@@ -135,11 +135,11 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Test with a bad nonce
-	 * Expects test to fail
+	 * Tests with a bad nonce.
 	 *
-	 * @param mixed $comment Comment object
-	 * @return void
+	 * Expects test to fail.
+	 *
+	 * @param WP_Comment $comment Comment object.
 	 */
 	public function _test_with_bad_nonce( $comment ) {
 
@@ -163,10 +163,9 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Test with a bad id
-	 * Expects test to fail
+	 * Tests with a bad ID.
 	 *
-	 * @return void
+	 * Expects test to fail.
 	 */
 	public function test_with_bad_id() {
 
@@ -194,8 +193,8 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 			$xml = simplexml_load_string( $this->_last_response, 'SimpleXMLElement', LIBXML_NOCDATA );
 
 			// Ensure everything is correct.
-			$this->assertEquals( '0', (string) $xml->response[0]->comment['id'] );
-			$this->assertEquals( 'dim-comment_0', (string) $xml->response['action'] );
+			$this->assertSame( '0', (string) $xml->response[0]->comment['id'] );
+			$this->assertSame( 'dim-comment_0', (string) $xml->response['action'] );
 			$this->assertContains( 'Comment ' . $_POST['id'] . ' does not exist', $this->_last_response );
 
 		} catch ( Exception $e ) {
@@ -204,9 +203,7 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Dim a comment as an administrator (expects success)
-	 *
-	 * @return void
+	 * Dims a comment as an administrator (expects success).
 	 */
 	public function test_ajax_comment_dim_actions_as_administrator() {
 		$comment = array_pop( $this->_comments );
@@ -215,9 +212,7 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Dim a comment as a subscriber (expects permission denied)
-	 *
-	 * @return void
+	 * Dims a comment as a subscriber (expects permission denied).
 	 */
 	public function test_ajax_comment_dim_actions_as_subscriber() {
 		$comment = array_pop( $this->_comments );
@@ -225,9 +220,7 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Dim a comment with no id
-	 *
-	 * @return void
+	 * Dims a comment with no ID.
 	 */
 	public function test_ajax_dim_comment_no_id() {
 		$comment = array_pop( $this->_comments );
@@ -235,9 +228,7 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Dim a comment with a bad nonce
-	 *
-	 * @return void
+	 * Dims a comment with a bad nonce.
 	 */
 	public function test_ajax_dim_comment_bad_nonce() {
 		$comment = array_pop( $this->_comments );

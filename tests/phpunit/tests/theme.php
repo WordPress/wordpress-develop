@@ -49,10 +49,10 @@ class Tests_Theme extends WP_UnitTestCase {
 	function test_wp_get_themes_default() {
 		$themes = wp_get_themes();
 		$this->assertInstanceOf( 'WP_Theme', $themes[ $this->theme_slug ] );
-		$this->assertEquals( $this->theme_name, $themes[ $this->theme_slug ]->get( 'Name' ) );
+		$this->assertSame( $this->theme_name, $themes[ $this->theme_slug ]->get( 'Name' ) );
 
 		$single_theme = wp_get_theme( $this->theme_slug );
-		$this->assertEquals( $single_theme->get( 'Name' ), $themes[ $this->theme_slug ]->get( 'Name' ) );
+		$this->assertSame( $single_theme->get( 'Name' ), $themes[ $this->theme_slug ]->get( 'Name' ) );
 		$this->assertEquals( $themes[ $this->theme_slug ], $single_theme );
 	}
 
@@ -63,11 +63,11 @@ class Tests_Theme extends WP_UnitTestCase {
 	function test_get_themes_default() {
 		$themes = get_themes();
 		$this->assertInstanceOf( 'WP_Theme', $themes[ $this->theme_name ] );
-		$this->assertEquals( $themes[ $this->theme_name ], get_theme( $this->theme_name ) );
+		$this->assertSame( $themes[ $this->theme_name ], get_theme( $this->theme_name ) );
 
-		$this->assertEquals( $this->theme_name, $themes[ $this->theme_name ]['Name'] );
-		$this->assertEquals( $this->theme_name, $themes[ $this->theme_name ]->Name );
-		$this->assertEquals( $this->theme_name, $themes[ $this->theme_name ]->name );
+		$this->assertSame( $this->theme_name, $themes[ $this->theme_name ]['Name'] );
+		$this->assertSame( $this->theme_name, $themes[ $this->theme_name ]->Name );
+		$this->assertSame( $this->theme_name, $themes[ $this->theme_name ]->name );
 	}
 
 	/**
@@ -81,7 +81,7 @@ class Tests_Theme extends WP_UnitTestCase {
 			// WP_Theme implements ArrayAccess. Even ArrayObject returns false for is_array().
 			$this->assertFalse( is_array( $theme ) );
 			$this->assertInstanceOf( 'WP_Theme', $theme );
-			$this->assertEquals( $theme, $themes[ $name ] );
+			$this->assertSame( $theme, $themes[ $name ] );
 		}
 	}
 
@@ -92,7 +92,7 @@ class Tests_Theme extends WP_UnitTestCase {
 			$this->assertFalse( $theme->errors() );
 			$_theme = wp_get_theme( $theme->get_stylesheet() );
 			// This primes internal WP_Theme caches for the next assertion (headers_sanitized, textdomain_loaded).
-			$this->assertEquals( $theme->get( 'Name' ), $_theme->get( 'Name' ) );
+			$this->assertSame( $theme->get( 'Name' ), $_theme->get( 'Name' ) );
 			$this->assertEquals( $theme, $_theme );
 		}
 	}
@@ -109,7 +109,7 @@ class Tests_Theme extends WP_UnitTestCase {
 				continue;
 			}
 
-			$this->assertEquals( $theme['Name'], $k );
+			$this->assertSame( $theme['Name'], $k );
 			$this->assertNotEmpty( $theme['Title'] );
 
 			// Important attributes should all be set.
@@ -162,7 +162,7 @@ class Tests_Theme extends WP_UnitTestCase {
 			$this->assertTrue( is_dir( $dir . $theme['Template Dir'] ) );
 			$this->assertTrue( is_dir( $dir . $theme['Stylesheet Dir'] ) );
 
-			$this->assertEquals( 'publish', $theme['Status'] );
+			$this->assertSame( 'publish', $theme['Status'] );
 
 			$this->assertTrue( is_file( $dir . $theme['Stylesheet Dir'] . '/' . $theme['Screenshot'] ) );
 			$this->assertTrue( is_readable( $dir . $theme['Stylesheet Dir'] . '/' . $theme['Screenshot'] ) );
@@ -172,21 +172,21 @@ class Tests_Theme extends WP_UnitTestCase {
 	function test_wp_get_theme_contents() {
 		$theme = wp_get_theme( $this->theme_slug );
 
-		$this->assertEquals( $this->theme_name, $theme->get( 'Name' ) );
+		$this->assertSame( $this->theme_name, $theme->get( 'Name' ) );
 		$this->assertNotEmpty( $theme->get( 'Description' ) );
 		$this->assertNotEmpty( $theme->get( 'Author' ) );
 		$this->assertNotEmpty( $theme->get( 'Version' ) );
 		$this->assertNotEmpty( $theme->get( 'AuthorURI' ) );
 		$this->assertNotEmpty( $theme->get( 'ThemeURI' ) );
-		$this->assertEquals( $this->theme_slug, $theme->get_stylesheet() );
-		$this->assertEquals( $this->theme_slug, $theme->get_template() );
+		$this->assertSame( $this->theme_slug, $theme->get_stylesheet() );
+		$this->assertSame( $this->theme_slug, $theme->get_template() );
 
-		$this->assertEquals( 'publish', $theme->get( 'Status' ) );
+		$this->assertSame( 'publish', $theme->get( 'Status' ) );
 
-		$this->assertEquals( WP_CONTENT_DIR . '/themes/' . $this->theme_slug, $theme->get_stylesheet_directory(), 'get_stylesheet_directory' );
-		$this->assertEquals( WP_CONTENT_DIR . '/themes/' . $this->theme_slug, $theme->get_template_directory(), 'get_template_directory' );
-		$this->assertEquals( content_url( 'themes/' . $this->theme_slug ), $theme->get_stylesheet_directory_uri(), 'get_stylesheet_directory_uri' );
-		$this->assertEquals( content_url( 'themes/' . $this->theme_slug ), $theme->get_template_directory_uri(), 'get_template_directory_uri' );
+		$this->assertSame( WP_CONTENT_DIR . '/themes/' . $this->theme_slug, $theme->get_stylesheet_directory(), 'get_stylesheet_directory' );
+		$this->assertSame( WP_CONTENT_DIR . '/themes/' . $this->theme_slug, $theme->get_template_directory(), 'get_template_directory' );
+		$this->assertSame( content_url( 'themes/' . $this->theme_slug ), $theme->get_stylesheet_directory_uri(), 'get_stylesheet_directory_uri' );
+		$this->assertSame( content_url( 'themes/' . $this->theme_slug ), $theme->get_template_directory_uri(), 'get_template_directory_uri' );
 	}
 
 	/**
@@ -205,7 +205,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	function test_default_themes_have_textdomain() {
 		foreach ( $this->default_themes as $theme ) {
 			if ( wp_get_theme( $theme )->exists() ) {
-				$this->assertEquals( $theme, wp_get_theme( $theme )->get( 'TextDomain' ) );
+				$this->assertSame( $theme, wp_get_theme( $theme )->get( 'TextDomain' ) );
 			}
 		}
 	}
@@ -227,12 +227,12 @@ class Tests_Theme extends WP_UnitTestCase {
 
 			preg_match( '#Copyright (\d+) WordPress.org#', $readme, $matches );
 			if ( $matches ) {
-				$this->assertEquals( $this_year, trim( $matches[1] ), "Bundled themes readme.txt's year needs to be updated to $this_year." );
+				$this->assertSame( $this_year, trim( $matches[1] ), "Bundled themes readme.txt's year needs to be updated to $this_year." );
 			}
 
 			preg_match( '#Copyright 20\d\d-(\d+) WordPress.org#', $readme, $matches );
 			if ( $matches ) {
-				$this->assertEquals( $this_year, trim( $matches[1] ), "Bundled themes readme.txt's year needs to be updated to $this_year." );
+				$this->assertSame( $this_year, trim( $matches[1] ), "Bundled themes readme.txt's year needs to be updated to $this_year." );
 			}
 		}
 	}
@@ -277,11 +277,11 @@ class Tests_Theme extends WP_UnitTestCase {
 					switch_theme( $theme['Stylesheet'] );
 				}
 
-				$this->assertEquals( $name, get_current_theme() );
+				$this->assertSame( $name, get_current_theme() );
 
 				// Make sure the various get_* functions return the correct values.
-				$this->assertEquals( $theme['Template'], get_template() );
-				$this->assertEquals( $theme['Stylesheet'], get_stylesheet() );
+				$this->assertSame( $theme['Template'], get_template() );
+				$this->assertSame( $theme['Stylesheet'], get_stylesheet() );
 
 				$root_fs = get_theme_root();
 				$this->assertTrue( is_dir( $root_fs ) );
@@ -289,42 +289,42 @@ class Tests_Theme extends WP_UnitTestCase {
 				$root_uri = get_theme_root_uri();
 				$this->assertTrue( ! empty( $root_uri ) );
 
-				$this->assertEquals( $root_fs . '/' . get_stylesheet(), get_stylesheet_directory() );
-				$this->assertEquals( $root_uri . '/' . get_stylesheet(), get_stylesheet_directory_uri() );
-				$this->assertEquals( $root_uri . '/' . get_stylesheet() . '/style.css', get_stylesheet_uri() );
-				// $this->assertEquals( $root_uri . '/' . get_stylesheet(), get_locale_stylesheet_uri() );
+				$this->assertSame( $root_fs . '/' . get_stylesheet(), get_stylesheet_directory() );
+				$this->assertSame( $root_uri . '/' . get_stylesheet(), get_stylesheet_directory_uri() );
+				$this->assertSame( $root_uri . '/' . get_stylesheet() . '/style.css', get_stylesheet_uri() );
+				// $this->assertSame( $root_uri . '/' . get_stylesheet(), get_locale_stylesheet_uri() );
 
-				$this->assertEquals( $root_fs . '/' . get_template(), get_template_directory() );
-				$this->assertEquals( $root_uri . '/' . get_template(), get_template_directory_uri() );
+				$this->assertSame( $root_fs . '/' . get_template(), get_template_directory() );
+				$this->assertSame( $root_uri . '/' . get_template(), get_template_directory_uri() );
 
 				// get_query_template()
 
 				// Template file that doesn't exist.
-				$this->assertEquals( '', get_query_template( rand_str() ) );
+				$this->assertSame( '', get_query_template( rand_str() ) );
 
 				// Template files that do exist.
 				/*
 				foreach ( $theme['Template Files'] as $path ) {
 					$file = basename($path, '.php');
 					FIXME: untestable because get_query_template() uses TEMPLATEPATH.
-					$this->assertEquals('', get_query_template($file));
+					$this->assertSame('', get_query_template($file));
 				}
 				*/
 
 				// These are kind of tautologies but at least exercise the code.
-				$this->assertEquals( get_404_template(), get_query_template( '404' ) );
-				$this->assertEquals( get_archive_template(), get_query_template( 'archive' ) );
-				$this->assertEquals( get_author_template(), get_query_template( 'author' ) );
-				$this->assertEquals( get_category_template(), get_query_template( 'category' ) );
-				$this->assertEquals( get_date_template(), get_query_template( 'date' ) );
-				$this->assertEquals( get_home_template(), get_query_template( 'home', array( 'home.php', 'index.php' ) ) );
-				$this->assertEquals( get_privacy_policy_template(), get_query_template( 'privacy_policy', array( 'privacy-policy.php' ) ) );
-				$this->assertEquals( get_page_template(), get_query_template( 'page' ) );
-				$this->assertEquals( get_search_template(), get_query_template( 'search' ) );
-				$this->assertEquals( get_single_template(), get_query_template( 'single' ) );
-				$this->assertEquals( get_attachment_template(), get_query_template( 'attachment' ) );
+				$this->assertSame( get_404_template(), get_query_template( '404' ) );
+				$this->assertSame( get_archive_template(), get_query_template( 'archive' ) );
+				$this->assertSame( get_author_template(), get_query_template( 'author' ) );
+				$this->assertSame( get_category_template(), get_query_template( 'category' ) );
+				$this->assertSame( get_date_template(), get_query_template( 'date' ) );
+				$this->assertSame( get_home_template(), get_query_template( 'home', array( 'home.php', 'index.php' ) ) );
+				$this->assertSame( get_privacy_policy_template(), get_query_template( 'privacy_policy', array( 'privacy-policy.php' ) ) );
+				$this->assertSame( get_page_template(), get_query_template( 'page' ) );
+				$this->assertSame( get_search_template(), get_query_template( 'search' ) );
+				$this->assertSame( get_single_template(), get_query_template( 'single' ) );
+				$this->assertSame( get_attachment_template(), get_query_template( 'attachment' ) );
 
-				$this->assertEquals( get_tag_template(), get_query_template( 'tag' ) );
+				$this->assertSame( get_tag_template(), get_query_template( 'tag' ) );
 
 				// nb: This probably doesn't run because WP_INSTALLING is defined.
 				$this->assertTrue( validate_current_theme() );
@@ -340,19 +340,19 @@ class Tests_Theme extends WP_UnitTestCase {
 		update_option( 'stylesheet', $style );
 
 		$theme = wp_get_theme();
-		$this->assertEquals( $style, (string) $theme );
+		$this->assertSame( $style, (string) $theme );
 		$this->assertNotFalse( $theme->errors() );
 		$this->assertFalse( $theme->exists() );
 
 		// These return the bogus name - perhaps not ideal behaviour?
-		$this->assertEquals( $template, get_template() );
-		$this->assertEquals( $style, get_stylesheet() );
+		$this->assertSame( $template, get_template() );
+		$this->assertSame( $style, get_stylesheet() );
 	}
 
 	/**
 	 * Test _wp_keep_alive_customize_changeset_dependent_auto_drafts.
 	 *
-	 * @covers ::_wp_keep_alive_customize_changeset_dependent_auto_drafts()
+	 * @covers ::_wp_keep_alive_customize_changeset_dependent_auto_drafts
 	 */
 	function test_wp_keep_alive_customize_changeset_dependent_auto_drafts() {
 		$nav_created_post_ids = $this->factory()->post->create_many(
@@ -379,10 +379,10 @@ class Tests_Theme extends WP_UnitTestCase {
 				'data' => $data,
 			)
 		);
-		$this->assertEquals( get_post( $wp_customize->changeset_post_id() )->post_date, get_post( $nav_created_post_ids[0] )->post_date );
-		$this->assertEquals( get_post( $wp_customize->changeset_post_id() )->post_date, get_post( $nav_created_post_ids[1] )->post_date );
-		$this->assertEquals( 'auto-draft', get_post_status( $nav_created_post_ids[0] ) );
-		$this->assertEquals( 'auto-draft', get_post_status( $nav_created_post_ids[1] ) );
+		$this->assertSame( get_post( $wp_customize->changeset_post_id() )->post_date, get_post( $nav_created_post_ids[0] )->post_date );
+		$this->assertSame( get_post( $wp_customize->changeset_post_id() )->post_date, get_post( $nav_created_post_ids[1] )->post_date );
+		$this->assertSame( 'auto-draft', get_post_status( $nav_created_post_ids[0] ) );
+		$this->assertSame( 'auto-draft', get_post_status( $nav_created_post_ids[1] ) );
 
 		// Stubs transition to drafts when changeset is saved as a draft.
 		$wp_customize->save_changeset_post(
@@ -391,8 +391,8 @@ class Tests_Theme extends WP_UnitTestCase {
 				'data'   => $data,
 			)
 		);
-		$this->assertEquals( 'draft', get_post_status( $nav_created_post_ids[0] ) );
-		$this->assertEquals( 'draft', get_post_status( $nav_created_post_ids[1] ) );
+		$this->assertSame( 'draft', get_post_status( $nav_created_post_ids[0] ) );
+		$this->assertSame( 'draft', get_post_status( $nav_created_post_ids[1] ) );
 
 		// Status remains unchanged for stub that the user broke out of the changeset.
 		wp_update_post(
@@ -407,12 +407,298 @@ class Tests_Theme extends WP_UnitTestCase {
 				'data'   => $data,
 			)
 		);
-		$this->assertEquals( 'draft', get_post_status( $nav_created_post_ids[0] ) );
-		$this->assertEquals( 'private', get_post_status( $nav_created_post_ids[1] ) );
+		$this->assertSame( 'draft', get_post_status( $nav_created_post_ids[0] ) );
+		$this->assertSame( 'private', get_post_status( $nav_created_post_ids[1] ) );
 
 		// Draft stub is trashed when the changeset is trashed.
 		$wp_customize->trash_changeset_post( $wp_customize->changeset_post_id() );
-		$this->assertEquals( 'trash', get_post_status( $nav_created_post_ids[0] ) );
-		$this->assertEquals( 'private', get_post_status( $nav_created_post_ids[1] ) );
+		$this->assertSame( 'trash', get_post_status( $nav_created_post_ids[0] ) );
+		$this->assertSame( 'private', get_post_status( $nav_created_post_ids[1] ) );
+	}
+
+	/**
+	 * @ticket 49406
+	 */
+	public function test_register_theme_support_defaults() {
+		$registered = register_theme_feature( 'test-feature' );
+		$this->assertTrue( $registered );
+
+		$expected = array(
+			'type'         => 'boolean',
+			'variadic'     => false,
+			'description'  => '',
+			'show_in_rest' => false,
+		);
+		$this->assertSameSets( $expected, get_registered_theme_feature( 'test-feature' ) );
+	}
+
+	/**
+	 * @ticket 49406
+	 */
+	public function test_register_theme_support_explicit() {
+		$args = array(
+			'type'         => 'array',
+			'variadic'     => true,
+			'description'  => 'My Feature',
+			'show_in_rest' => array(
+				'schema' => array(
+					'items' => array(
+						'type' => 'string',
+					),
+				),
+			),
+		);
+
+		register_theme_feature( 'test-feature', $args );
+		$actual = get_registered_theme_feature( 'test-feature' );
+
+		$this->assertSame( 'array', $actual['type'] );
+		$this->assertTrue( $actual['variadic'] );
+		$this->assertSame( 'My Feature', $actual['description'] );
+		$this->assertSame( array( 'type' => 'string' ), $actual['show_in_rest']['schema']['items'] );
+	}
+
+	/**
+	 * @ticket 49406
+	 */
+	public function test_register_theme_support_upgrades_show_in_rest() {
+		register_theme_feature( 'test-feature', array( 'show_in_rest' => true ) );
+
+		$expected = array(
+			'schema'           => array(
+				'description' => '',
+				'type'        => 'boolean',
+				'default'     => false,
+			),
+			'name'             => 'test-feature',
+			'prepare_callback' => null,
+		);
+		$actual   = get_registered_theme_feature( 'test-feature' )['show_in_rest'];
+
+		$this->assertSameSets( $expected, $actual );
+	}
+
+	/**
+	 * @ticket 49406
+	 */
+	public function test_register_theme_support_fills_schema() {
+		register_theme_feature(
+			'test-feature',
+			array(
+				'type'         => 'array',
+				'description'  => 'Cool Feature',
+				'show_in_rest' => array(
+					'schema' => array(
+						'items'    => array(
+							'type' => 'string',
+						),
+						'minItems' => 1,
+					),
+				),
+			)
+		);
+
+		$expected = array(
+			'description' => 'Cool Feature',
+			'type'        => array( 'boolean', 'array' ),
+			'items'       => array(
+				'type' => 'string',
+			),
+			'minItems'    => 1,
+			'default'     => false,
+		);
+		$actual   = get_registered_theme_feature( 'test-feature' )['show_in_rest']['schema'];
+
+		$this->assertSameSets( $expected, $actual );
+	}
+
+	/**
+	 * @ticket 49406
+	 */
+	public function test_register_theme_support_does_not_add_boolean_type_if_non_bool_default() {
+		register_theme_feature(
+			'test-feature',
+			array(
+				'type'         => 'array',
+				'show_in_rest' => array(
+					'schema' => array(
+						'items'   => array(
+							'type' => 'string',
+						),
+						'default' => array( 'standard' ),
+					),
+				),
+			)
+		);
+
+		$actual = get_registered_theme_feature( 'test-feature' )['show_in_rest']['schema']['type'];
+		$this->assertSame( 'array', $actual );
+	}
+
+	/**
+	 * @ticket 49406
+	 */
+	public function test_register_theme_support_defaults_additional_properties_to_false() {
+		register_theme_feature(
+			'test-feature',
+			array(
+				'type'         => 'object',
+				'description'  => 'Cool Feature',
+				'show_in_rest' => array(
+					'schema' => array(
+						'properties' => array(
+							'a' => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$actual = get_registered_theme_feature( 'test-feature' )['show_in_rest']['schema'];
+
+		$this->assertArrayHasKey( 'additionalProperties', $actual );
+		$this->assertFalse( $actual['additionalProperties'] );
+	}
+
+	/**
+	 * @ticket 49406
+	 */
+	public function test_register_theme_support_with_additional_properties() {
+		register_theme_feature(
+			'test-feature',
+			array(
+				'type'         => 'object',
+				'description'  => 'Cool Feature',
+				'show_in_rest' => array(
+					'schema' => array(
+						'properties'           => array(),
+						'additionalProperties' => array(
+							'type' => 'string',
+						),
+					),
+				),
+			)
+		);
+
+		$expected = array(
+			'type' => 'string',
+		);
+		$actual   = get_registered_theme_feature( 'test-feature' )['show_in_rest']['schema']['additionalProperties'];
+
+		$this->assertSameSets( $expected, $actual );
+	}
+
+	/**
+	 * @ticket 49406
+	 */
+	public function test_register_theme_support_defaults_additional_properties_to_false_in_array() {
+		register_theme_feature(
+			'test-feature',
+			array(
+				'type'         => 'array',
+				'description'  => 'Cool Feature',
+				'show_in_rest' => array(
+					'schema' => array(
+						'items' => array(
+							'type'       => 'object',
+							'properties' => array(
+								'a' => array(
+									'type' => 'string',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$actual = get_registered_theme_feature( 'test-feature' )['show_in_rest']['schema']['items'];
+
+		$this->assertArrayHasKey( 'additionalProperties', $actual );
+		$this->assertFalse( $actual['additionalProperties'] );
+	}
+
+	/**
+	 * @ticket 49406
+	 *
+	 * @dataProvider _dp_register_theme_support_validation
+	 *
+	 * @param string $error_code The error code expected.
+	 * @param array  $args       The args to register.
+	 */
+	public function test_register_theme_support_validation( $error_code, $args ) {
+		$registered = register_theme_feature( 'test-feature', $args );
+
+		$this->assertWPError( $registered );
+		$this->assertSame( $error_code, $registered->get_error_code() );
+	}
+
+	public function _dp_register_theme_support_validation() {
+		return array(
+			array(
+				'invalid_type',
+				array(
+					'type' => 'float',
+				),
+			),
+			array(
+				'invalid_type',
+				array(
+					'type' => array( 'string' ),
+				),
+			),
+			array(
+				'variadic_must_be_array',
+				array(
+					'variadic' => true,
+				),
+			),
+			array(
+				'missing_schema',
+				array(
+					'type'         => 'object',
+					'show_in_rest' => true,
+				),
+			),
+			array(
+				'missing_schema',
+				array(
+					'type'         => 'array',
+					'show_in_rest' => true,
+				),
+			),
+			array(
+				'missing_schema_items',
+				array(
+					'type'         => 'array',
+					'show_in_rest' => array(
+						'schema' => array(
+							'type' => 'array',
+						),
+					),
+				),
+			),
+			array(
+				'missing_schema_properties',
+				array(
+					'type'         => 'object',
+					'show_in_rest' => array(
+						'schema' => array(
+							'type' => 'object',
+						),
+					),
+				),
+			),
+			array(
+				'invalid_rest_prepare_callback',
+				array(
+					'show_in_rest' => array(
+						'prepare_callback' => 'this is not a valid function',
+					),
+				),
+			),
+		);
 	}
 }

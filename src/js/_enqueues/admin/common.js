@@ -2,7 +2,7 @@
  * @output wp-admin/js/common.js
  */
 
-/* global setUserSetting, ajaxurl, commonL10n, alert, confirm, pagenow */
+/* global setUserSetting, ajaxurl, alert, confirm, pagenow */
 /* global columns, screenMeta */
 
 /**
@@ -15,7 +15,341 @@
 ( function( $, window, undefined ) {
 	var $document = $( document ),
 		$window = $( window ),
-		$body = $( document.body );
+		$body = $( document.body ),
+		__ = wp.i18n.__,
+		sprintf = wp.i18n.sprintf;
+
+/**
+ * Throws an error for a deprecated property.
+ *
+ * @since 5.5.1
+ *
+ * @param {string} propName    The property that was used.
+ * @param {string} version     The version of WordPress that deprecated the property.
+ * @param {string} replacement The property that should have been used.
+ */
+function deprecatedProperty( propName, version, replacement ) {
+	var message;
+
+	if ( 'undefined' !== typeof replacement ) {
+		message = sprintf(
+			/* translators: 1: Deprecated property name, 2: Version number, 3: Alternative property name. */
+			__( '%1$s is deprecated since version %2$s! Use %3$s instead.' ),
+			propName,
+			version,
+			replacement
+		);
+	} else {
+		message = sprintf(
+			/* translators: 1: Deprecated property name, 2: Version number. */
+			__( '%1$s is deprecated since version %2$s with no alternative available.' ),
+			propName,
+			version
+		);
+	}
+
+	window.console.warn( message );
+}
+
+/**
+ * Deprecate all properties on an object.
+ *
+ * @since 5.5.1
+ *
+ * @param {string} name       The name of the object, i.e. commonL10n.
+ * @param {object} l10nObject The object to deprecate the properties on.
+ *
+ * @return {object} The object with all its properties deprecated.
+ */
+function deprecateL10nObject( name, l10nObject ) {
+	var deprecatedObject = {};
+
+	Object.keys( l10nObject ).forEach( function( key ) {
+		var prop = l10nObject[ key ];
+		var propName = name + '.' + key;
+
+		if ( 'object' === typeof prop ) {
+			Object.defineProperty( deprecatedObject, key, { get: function() {
+				deprecatedProperty( propName, '5.5.0', prop.alternative );
+				return prop.func();
+			} } );
+		} else {
+			Object.defineProperty( deprecatedObject, key, { get: function() {
+				deprecatedProperty( propName, '5.5.0', 'wp.i18n' );
+				return prop;
+			} } );
+		}
+	} );
+
+	return deprecatedObject;
+}
+
+window.wp.deprecateL10nObject = deprecateL10nObject;
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 2.6.0
+ * @deprecated 5.5.0
+ */
+window.commonL10n = window.commonL10n || {
+	warnDelete: '',
+	dismiss: '',
+	collapseMenu: '',
+	expandMenu: ''
+};
+
+window.commonL10n = deprecateL10nObject( 'commonL10n', window.commonL10n );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 3.3.0
+ * @deprecated 5.5.0
+ */
+window.wpPointerL10n = window.wpPointerL10n || {
+	dismiss: ''
+};
+
+window.wpPointerL10n = deprecateL10nObject( 'wpPointerL10n', window.wpPointerL10n );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 4.3.0
+ * @deprecated 5.5.0
+ */
+window.userProfileL10n = window.userProfileL10n || {
+	warn: '',
+	warnWeak: '',
+	show: '',
+	hide: '',
+	cancel: '',
+	ariaShow: '',
+	ariaHide: ''
+};
+
+window.userProfileL10n = deprecateL10nObject( 'userProfileL10n', window.userProfileL10n );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 4.9.6
+ * @deprecated 5.5.0
+ */
+window.privacyToolsL10n = window.privacyToolsL10n || {
+	noDataFound: '',
+	foundAndRemoved: '',
+	noneRemoved: '',
+	someNotRemoved: '',
+	removalError: '',
+	emailSent: '',
+	noExportFile: '',
+	exportError: ''
+};
+
+window.privacyToolsL10n = deprecateL10nObject( 'privacyToolsL10n', window.privacyToolsL10n );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 3.6.0
+ * @deprecated 5.5.0
+ */
+window.authcheckL10n = {
+	beforeunload: ''
+};
+
+window.authcheckL10n = window.authcheckL10n || deprecateL10nObject( 'authcheckL10n', window.authcheckL10n );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 2.8.0
+ * @deprecated 5.5.0
+ */
+window.tagsl10n = {
+	noPerm: '',
+	broken: ''
+};
+
+window.tagsl10n = window.tagsl10n || deprecateL10nObject( 'tagsl10n', window.tagsl10n );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 2.5.0
+ * @deprecated 5.5.0
+ */
+window.adminCommentsL10n = window.adminCommentsL10n || {
+	hotkeys_highlight_first: {
+		alternative: 'window.adminCommentsSettings.hotkeys_highlight_first',
+		func: function() { return window.adminCommentsSettings.hotkeys_highlight_first; }
+	},
+	hotkeys_highlight_last: {
+		alternative: 'window.adminCommentsSettings.hotkeys_highlight_last',
+		func: function() { return window.adminCommentsSettings.hotkeys_highlight_last; }
+	},
+	replyApprove: '',
+	reply: '',
+	warnQuickEdit: '',
+	warnCommentChanges: '',
+	docTitleComments: '',
+	docTitleCommentsCount: ''
+};
+
+window.adminCommentsL10n = deprecateL10nObject( 'adminCommentsL10n', window.adminCommentsL10n );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 2.5.0
+ * @deprecated 5.5.0
+ */
+window.tagsSuggestL10n = window.tagsSuggestL10n || {
+	tagDelimiter: '',
+	removeTerm: '',
+	termSelected: '',
+	termAdded: '',
+	termRemoved: ''
+};
+
+window.tagsSuggestL10n = deprecateL10nObject( 'tagsSuggestL10n', window.tagsSuggestL10n );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 3.5.0
+ * @deprecated 5.5.0
+ */
+window.wpColorPickerL10n = window.wpColorPickerL10n || {
+	clear: '',
+	clearAriaLabel: '',
+	defaultString: '',
+	defaultAriaLabel: '',
+	pick: '',
+	defaultLabel: ''
+};
+
+window.wpColorPickerL10n = deprecateL10nObject( 'wpColorPickerL10n', window.wpColorPickerL10n );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 2.7.0
+ * @deprecated 5.5.0
+ */
+window.attachMediaBoxL10n = window.attachMediaBoxL10n || {
+	error: ''
+};
+
+window.attachMediaBoxL10n = deprecateL10nObject( 'attachMediaBoxL10n', window.attachMediaBoxL10n );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 2.5.0
+ * @deprecated 5.5.0
+ */
+window.postL10n = window.postL10n || {
+	ok: '',
+	cancel: '',
+	publishOn: '',
+	publishOnFuture: '',
+	publishOnPast: '',
+	dateFormat: '',
+	showcomm: '',
+	endcomm: '',
+	publish: '',
+	schedule: '',
+	update: '',
+	savePending: '',
+	saveDraft: '',
+	'private': '',
+	'public': '',
+	publicSticky: '',
+	password: '',
+	privatelyPublished: '',
+	published: '',
+	saveAlert: '',
+	savingText: '',
+	permalinkSaved: ''
+};
+
+window.postL10n = deprecateL10nObject( 'postL10n', window.postL10n );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 2.7.0
+ * @deprecated 5.5.0
+ */
+window.inlineEditL10n = window.inlineEditL10n || {
+	error: '',
+	ntdeltitle: '',
+	notitle: '',
+	comma: '',
+	saved: ''
+};
+
+window.inlineEditL10n = deprecateL10nObject( 'inlineEditL10n', window.inlineEditL10n );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 2.7.0
+ * @deprecated 5.5.0
+ */
+window.plugininstallL10n = window.plugininstallL10n || {
+	plugin_information: '',
+	plugin_modal_label: '',
+	ays: ''
+};
+
+window.plugininstallL10n = deprecateL10nObject( 'plugininstallL10n', window.plugininstallL10n );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 3.0.0
+ * @deprecated 5.5.0
+ */
+window.navMenuL10n = window.navMenuL10n || {
+	noResultsFound: '',
+	warnDeleteMenu: '',
+	saveAlert: '',
+	untitled: ''
+};
+
+window.navMenuL10n = deprecateL10nObject( 'navMenuL10n', window.navMenuL10n );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 2.5.0
+ * @deprecated 5.5.0
+ */
+window.commentL10n = window.commentL10n || {
+	submittedOn: '',
+	dateFormat: ''
+};
+
+window.commentL10n = deprecateL10nObject( 'commentL10n', window.commentL10n );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 2.9.0
+ * @deprecated 5.5.0
+ */
+window.setPostThumbnailL10n = window.setPostThumbnailL10n || {
+	setThumbnail: '',
+	saving: '',
+	error: '',
+	done: ''
+};
+
+window.setPostThumbnailL10n = deprecateL10nObject( 'setPostThumbnailL10n', window.setPostThumbnailL10n );
 
 /**
  * Removed in 3.3.0, needed for back-compatibility.
@@ -136,7 +470,7 @@ window.columns = {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @param {int} diff The modifier for the column span.
+	 * @param {number} diff The modifier for the column span.
 	 */
 	colSpanChange : function(diff) {
 		var $t = $('table').find('.colspanchange'), n;
@@ -188,8 +522,7 @@ window.showNotice = {
 	 * @return {boolean} Returns true if the message is confirmed.
 	 */
 	warn : function() {
-		var msg = commonL10n.warnDelete || '';
-		if ( confirm(msg) ) {
+		if ( confirm( __( 'You are about to permanently delete these items from your site.\nThis action cannot be undone.\n\'Cancel\' to stop, \'OK\' to delete.' ) ) ) {
 			return true;
 		}
 
@@ -384,7 +717,7 @@ $permalinkStructure.on( 'focus', function( event ) {
  * If the structure is already used in the custom permalink structure,
  * it will be disabled.
  *
- * @param {object} button Button jQuery object.
+ * @param {Object} button Button jQuery object.
  */
 function changeStructureTagButtonState( button ) {
 	if ( -1 !== $permalinkStructure.val().indexOf( button.text().trim() ) ) {
@@ -757,11 +1090,10 @@ $document.ready( function() {
 	function makeNoticesDismissible() {
 		$( '.notice.is-dismissible' ).each( function() {
 			var $el = $( this ),
-				$button = $( '<button type="button" class="notice-dismiss"><span class="screen-reader-text"></span></button>' ),
-				btnText = commonL10n.dismiss || '';
+				$button = $( '<button type="button" class="notice-dismiss"><span class="screen-reader-text"></span></button>' );
 
 			// Ensure plain text.
-			$button.find( '.screen-reader-text' ).text( btnText );
+			$button.find( '.screen-reader-text' ).text( __( 'Dismiss this notice.' ) );
 			$button.on( 'click.wp-dismiss-notice', function( event ) {
 				event.preventDefault();
 				$el.fadeTo( 100, 0, function() {
@@ -1559,12 +1891,14 @@ $document.ready( function() {
 	 */
 	$document.on( 'wp-menu-state-set wp-collapse-menu', function( event, eventData ) {
 		var $collapseButton = $( '#collapse-button' ),
-			ariaExpanded = 'true',
-			ariaLabelText = commonL10n.collapseMenu;
+			ariaExpanded, ariaLabelText;
 
 		if ( 'folded' === eventData.state ) {
 			ariaExpanded = 'false';
-			ariaLabelText = commonL10n.expandMenu;
+			ariaLabelText = __( 'Expand Main menu' );
+		} else {
+			ariaExpanded = 'true';
+			ariaLabelText = __( 'Collapse Main menu' );
 		}
 
 		$collapseButton.attr({
@@ -1604,6 +1938,41 @@ $document.ready( function() {
 		$( this ).attr( 'aria-expanded', $progressDiv.is( ':visible' ) );
 	});
 });
+
+/**
+ * Hides the update button for expired plugin or theme uploads.
+ *
+ * On the "Update plugin/theme from uploaded zip" screen, once the upload has expired,
+ * hides the "Replace current with uploaded" button and displays a warning.
+ *
+ * @since 5.5.0
+ */
+$document.ready( function( $ ) {
+	var $overwrite, $warning;
+
+	if ( ! $body.hasClass( 'update-php' ) ) {
+		return;
+	}
+
+	$overwrite = $( 'a.update-from-upload-overwrite' );
+	$warning   = $( '.update-from-upload-expired' );
+
+	if ( ! $overwrite.length || ! $warning.length ) {
+		return;
+	}
+
+	window.setTimeout(
+		function() {
+			$overwrite.hide();
+			$warning.removeClass( 'hidden' );
+
+			if ( window.wp && window.wp.a11y ) {
+				window.wp.a11y.speak( $warning.text() );
+			}
+		},
+		7140000 // 119 minutes. The uploaded file is deleted after 2 hours.
+	);
+} );
 
 // Fire a custom jQuery event at the end of window resize.
 ( function() {
