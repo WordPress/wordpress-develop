@@ -76,7 +76,7 @@ if ( is_multisite() ) :
 		 * By default, only one network exists and has a network ID of 1.
 		 */
 		function test_get_main_network_id_default() {
-			$this->assertEquals( 1, get_main_network_id() );
+			$this->assertSame( 1, get_main_network_id() );
 		}
 
 		/**
@@ -86,7 +86,7 @@ if ( is_multisite() ) :
 		function test_get_main_network_id_two_networks() {
 			self::factory()->network->create();
 
-			$this->assertEquals( 1, get_main_network_id() );
+			$this->assertSame( 1, get_main_network_id() );
 		}
 
 		/**
@@ -100,7 +100,7 @@ if ( is_multisite() ) :
 
 			$current_site->id = (int) $id;
 
-			$this->assertEquals( 1, get_main_network_id() );
+			$this->assertSame( 1, get_main_network_id() );
 		}
 
 		/**
@@ -120,12 +120,12 @@ if ( is_multisite() ) :
 			$main_network_id = get_main_network_id();
 			$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->site} SET id=1 WHERE id=%d", $temp_id ) );
 
-			$this->assertEquals( self::$different_network_id, $main_network_id );
+			$this->assertSame( self::$different_network_id, $main_network_id );
 		}
 
 		function test_get_main_network_id_filtered() {
 			add_filter( 'get_main_network_id', array( $this, '_get_main_network_id' ) );
-			$this->assertEquals( 3, get_main_network_id() );
+			$this->assertSame( 3, get_main_network_id() );
 			remove_filter( 'get_main_network_id', array( $this, '_get_main_network_id' ) );
 		}
 
@@ -159,7 +159,7 @@ if ( is_multisite() ) :
 			}
 			wp_update_network_counts();
 
-			$this->assertEquals( $site_count_start + 1, $actual );
+			$this->assertSame( $site_count_start + 1, $actual );
 		}
 
 		/**
@@ -246,7 +246,7 @@ if ( is_multisite() ) :
 			// No change, cache not refreshed.
 			$count = get_user_count();
 
-			$this->assertEquals( $start_count, $count );
+			$this->assertSame( $start_count, $count );
 
 			wp_update_network_counts();
 			$start_count = get_user_count();
@@ -268,26 +268,26 @@ if ( is_multisite() ) :
 			// Local activate, should be invisible for the network.
 			activate_plugin( $path ); // Enable the plugin for the current site.
 			$active_plugins = wp_get_active_network_plugins();
-			$this->assertEquals( array(), $active_plugins );
+			$this->assertSame( array(), $active_plugins );
 
 			add_action( 'deactivated_plugin', array( $this, '_helper_deactivate_hook' ) );
 
 			// Activate the plugin sitewide.
 			activate_plugin( $path, '', true ); // Enable the plugin for all sites in the network.
 			$active_plugins = wp_get_active_network_plugins();
-			$this->assertEquals( array( WP_PLUGIN_DIR . '/hello.php' ), $active_plugins );
+			$this->assertSame( array( WP_PLUGIN_DIR . '/hello.php' ), $active_plugins );
 
 			// Deactivate the plugin.
 			deactivate_plugins( $path );
 			$active_plugins = wp_get_active_network_plugins();
-			$this->assertEquals( array(), $active_plugins );
+			$this->assertSame( array(), $active_plugins );
 
-			$this->assertEquals( 1, $this->plugin_hook_count ); // Testing actions and silent mode.
+			$this->assertSame( 1, $this->plugin_hook_count ); // Testing actions and silent mode.
 
 			activate_plugin( $path, '', true ); // Enable the plugin for all sites in the network.
 			deactivate_plugins( $path, true );  // Silent mode.
 
-			$this->assertEquals( 1, $this->plugin_hook_count ); // Testing actions and silent mode.
+			$this->assertSame( 1, $this->plugin_hook_count ); // Testing actions and silent mode.
 		}
 
 		/**
@@ -302,13 +302,13 @@ if ( is_multisite() ) :
 			activate_plugin( $path, '', true ); // Enable the plugin for all sites in the network.
 			$active_plugins = wp_get_active_network_plugins();
 			$this->assertCount( 1, $active_plugins );
-			$this->assertEquals( 1, $mock->get_call_count() );
+			$this->assertSame( 1, $mock->get_call_count() );
 
 			// Should do nothing on the second try.
 			activate_plugin( $path, '', true ); // Enable the plugin for all sites in the network.
 			$active_plugins = wp_get_active_network_plugins();
 			$this->assertCount( 1, $active_plugins );
-			$this->assertEquals( 1, $mock->get_call_count() );
+			$this->assertSame( 1, $mock->get_call_count() );
 
 			remove_action( 'activate_' . $path, array( $mock, 'action' ) );
 		}
@@ -337,7 +337,7 @@ if ( is_multisite() ) :
 			self::factory()->user->create( array( 'role' => 'administrator' ) );
 
 			$count = get_user_count(); // No change, cache not refreshed.
-			$this->assertEquals( $start_count, $count );
+			$this->assertSame( $start_count, $count );
 
 			wp_update_network_counts(); // Magic happens here.
 
@@ -392,7 +392,7 @@ if ( is_multisite() ) :
 			wp_update_network_site_counts();
 
 			$result = get_blog_count();
-			$this->assertEquals( $expected, $result );
+			$this->assertSame( $expected, $result );
 		}
 
 		/**
@@ -404,7 +404,7 @@ if ( is_multisite() ) :
 			wp_update_network_site_counts( self::$different_network_id );
 
 			$result = get_blog_count( self::$different_network_id );
-			$this->assertEquals( 3, $result );
+			$this->assertSame( 3, $result );
 		}
 
 		/**
@@ -420,7 +420,7 @@ if ( is_multisite() ) :
 			wp_update_network_user_counts();
 
 			$result = get_user_count();
-			$this->assertEquals( $expected, $result );
+			$this->assertSame( $expected, $result );
 		}
 
 		/**
@@ -436,7 +436,7 @@ if ( is_multisite() ) :
 			wp_update_network_user_counts( self::$different_network_id );
 
 			$result = get_user_count( self::$different_network_id );
-			$this->assertEquals( $expected, $result );
+			$this->assertSame( $expected, $result );
 		}
 
 		/**
@@ -596,7 +596,7 @@ if ( is_multisite() ) :
 
 			wpmu_delete_blog( $site_id, true );
 
-			$this->assertEquals( $original_count + 1, $result );
+			$this->assertSame( $original_count + 1, $result );
 		}
 
 		/**
@@ -632,12 +632,12 @@ if ( is_multisite() ) :
 			$new_network = $this->factory()->network->create_and_get();
 
 			// Double-check we got the ID of the new network correct.
-			$this->assertEquals( $new_network_id, $new_network->id );
+			$this->assertSame( $new_network_id, $new_network->id );
 
 			// Verify that if we fetch the network now, it's no longer false.
 			$fetched_network = get_network( $new_network_id );
 			$this->assertInstanceOf( 'WP_Network', $fetched_network );
-			$this->assertEquals( $new_network_id, $fetched_network->id );
+			$this->assertSame( $new_network_id, $fetched_network->id );
 		}
 
 		/**

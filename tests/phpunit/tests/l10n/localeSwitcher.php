@@ -91,7 +91,7 @@ class Tests_Locale_Switcher extends WP_UnitTestCase {
 		// Cleanup.
 		restore_previous_locale();
 
-		$this->assertEqualSetsWithIndex( $expected, $wp_locale_de_de->number_format );
+		$this->assertSameSetsWithIndex( $expected, $wp_locale_de_de->number_format );
 	}
 
 	public function test_switch_to_locale_en_US() {
@@ -196,7 +196,7 @@ class Tests_Locale_Switcher extends WP_UnitTestCase {
 		switch_to_locale( 'de_DE' );
 		restore_previous_locale();
 
-		$this->assertEqualSetsWithIndex( $expected, $wp_locale->number_format );
+		$this->assertSameSetsWithIndex( $expected, $wp_locale->number_format );
 	}
 
 	public function test_restore_current_locale_without_switching() {

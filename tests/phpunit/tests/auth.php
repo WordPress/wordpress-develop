@@ -37,7 +37,7 @@ class Tests_Auth extends WP_UnitTestCase {
 
 	function test_auth_cookie_valid() {
 		$cookie = wp_generate_auth_cookie( self::$user_id, time() + 3600, 'auth' );
-		$this->assertEquals( self::$user_id, wp_validate_auth_cookie( $cookie, 'auth' ) );
+		$this->assertSame( self::$user_id, wp_validate_auth_cookie( $cookie, 'auth' ) );
 	}
 
 	function test_auth_cookie_invalid() {
@@ -45,25 +45,25 @@ class Tests_Auth extends WP_UnitTestCase {
 		// as an ajax test may have defined DOING_AJAX, failing the test.
 
 		$cookie = wp_generate_auth_cookie( self::$user_id, time() - 7200, 'auth' );
-		$this->assertEquals( false, wp_validate_auth_cookie( $cookie, 'auth' ), 'expired cookie' );
+		$this->assertFalse( wp_validate_auth_cookie( $cookie, 'auth' ), 'expired cookie' );
 
 		$cookie = wp_generate_auth_cookie( self::$user_id, time() + 3600, 'auth' );
-		$this->assertEquals( false, wp_validate_auth_cookie( $cookie, 'logged_in' ), 'wrong auth scheme' );
+		$this->assertFalse( wp_validate_auth_cookie( $cookie, 'logged_in' ), 'wrong auth scheme' );
 
 		$cookie          = wp_generate_auth_cookie( self::$user_id, time() + 3600, 'auth' );
 		list($a, $b, $c) = explode( '|', $cookie );
 		$cookie          = $a . '|' . ( $b + 1 ) . '|' . $c;
-		$this->assertEquals( false, wp_validate_auth_cookie( self::$user_id, 'auth' ), 'altered cookie' );
+		$this->assertFalse( wp_validate_auth_cookie( self::$user_id, 'auth' ), 'altered cookie' );
 	}
 
 	function test_auth_cookie_scheme() {
 		// Arbitrary scheme name.
 		$cookie = wp_generate_auth_cookie( self::$user_id, time() + 3600, 'foo' );
-		$this->assertEquals( self::$user_id, wp_validate_auth_cookie( $cookie, 'foo' ) );
+		$this->assertSame( self::$user_id, wp_validate_auth_cookie( $cookie, 'foo' ) );
 
 		// Wrong scheme name - should fail.
 		$cookie = wp_generate_auth_cookie( self::$user_id, time() + 3600, 'foo' );
-		$this->assertEquals( false, wp_validate_auth_cookie( $cookie, 'bar' ) );
+		$this->assertFalse( wp_validate_auth_cookie( $cookie, 'bar' ) );
 	}
 
 	/**
@@ -82,7 +82,7 @@ class Tests_Auth extends WP_UnitTestCase {
 			$authed_user = wp_authenticate( $this->user->user_login, $password_to_test );
 
 			$this->assertInstanceOf( 'WP_User', $authed_user );
-			$this->assertEquals( $this->user->ID, $authed_user->ID );
+			$this->assertSame( $this->user->ID, $authed_user->ID );
 		}
 	}
 
@@ -136,7 +136,7 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		wp_verify_nonce( $nonce, 'nonce_test_action' );
 
-		$this->assertEquals( ( $count + 1 ), did_action( $this->nonce_failure_hook ) );
+		$this->assertSame( ( $count + 1 ), did_action( $this->nonce_failure_hook ) );
 	}
 
 	/**
@@ -148,7 +148,7 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		wp_verify_nonce( $nonce, 'nonce_test_action' );
 
-		$this->assertEquals( $count, did_action( $this->nonce_failure_hook ) );
+		$this->assertSame( $count, did_action( $this->nonce_failure_hook ) );
 	}
 
 	/**
@@ -201,7 +201,7 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		$user = wp_authenticate( $this->user->user_login, $limit );
 		$this->assertInstanceOf( 'WP_User', $user );
-		$this->assertEquals( self::$user_id, $user->ID );
+		$this->assertSame( self::$user_id, $user->ID );
 
 		// One char too many.
 		$user = wp_authenticate( $this->user->user_login, $limit . 'a' );
@@ -211,7 +211,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		wp_set_password( $limit . 'a', self::$user_id );
 		$user = get_user_by( 'id', self::$user_id );
 		// Password broken by setting it to be too long.
-		$this->assertEquals( '*', $user->data->user_pass );
+		$this->assertSame( '*', $user->data->user_pass );
 
 		$user = wp_authenticate( $this->user->user_login, '*' );
 		$this->assertInstanceOf( 'WP_Error', $user );

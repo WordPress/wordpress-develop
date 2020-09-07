@@ -47,10 +47,10 @@ class Test_WP_Widget_Custom_HTML extends WP_UnitTestCase {
 	 */
 	public function test_construct() {
 		$widget = new WP_Widget_Custom_HTML();
-		$this->assertEquals( 'custom_html', $widget->id_base );
-		$this->assertEquals( 'widget_custom_html', $widget->widget_options['classname'] );
-		$this->assertEquals( 400, $widget->control_options['width'] );
-		$this->assertEquals( 350, $widget->control_options['height'] );
+		$this->assertSame( 'custom_html', $widget->id_base );
+		$this->assertSame( 'widget_custom_html', $widget->widget_options['classname'] );
+		$this->assertSame( 400, $widget->control_options['width'] );
+		$this->assertSame( 350, $widget->control_options['height'] );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
 	}
 
@@ -64,9 +64,9 @@ class Test_WP_Widget_Custom_HTML extends WP_UnitTestCase {
 		$widget = new WP_Widget_Custom_HTML();
 		$widget->_register();
 
-		$this->assertEquals( 10, has_action( 'admin_print_scripts-widgets.php', array( $widget, 'enqueue_admin_scripts' ) ) );
-		$this->assertEquals( 10, has_action( 'admin_footer-widgets.php', array( 'WP_Widget_Custom_HTML', 'render_control_template_scripts' ) ) );
-		$this->assertEquals( 10, has_action( 'admin_head-widgets.php', array( 'WP_Widget_Custom_HTML', 'add_help_text' ) ) );
+		$this->assertSame( 10, has_action( 'admin_print_scripts-widgets.php', array( $widget, 'enqueue_admin_scripts' ) ) );
+		$this->assertSame( 10, has_action( 'admin_footer-widgets.php', array( 'WP_Widget_Custom_HTML', 'render_control_template_scripts' ) ) );
+		$this->assertSame( 10, has_action( 'admin_head-widgets.php', array( 'WP_Widget_Custom_HTML', 'add_help_text' ) ) );
 		$this->assertContains( 'wp.customHtmlWidgets.idBases.push( "custom_html" );', wp_scripts()->registered['custom-html-widgets']->extra['after'] );
 	}
 
@@ -117,8 +117,8 @@ class Test_WP_Widget_Custom_HTML extends WP_UnitTestCase {
 		$this->assertNotContains( '<p>', $output );
 		$this->assertNotContains( '<br>', $output );
 		$this->assertNotContains( '</u>', $output );
-		$this->assertEquals( $text_widget_instance, $this->widget_text_args[1] );
-		$this->assertEquals( $instance, $this->widget_custom_html_content_args[1] );
+		$this->assertSame( $text_widget_instance, $this->widget_text_args[1] );
+		$this->assertSame( $instance, $this->widget_custom_html_content_args[1] );
 		$this->assertSame( $widget, $this->widget_text_args[2] );
 		$this->assertSame( $widget, $this->widget_custom_html_content_args[2] );
 		remove_filter( 'widget_custom_html_content', array( $this, 'filter_widget_custom_html_content' ), 5 );
@@ -185,7 +185,7 @@ class Test_WP_Widget_Custom_HTML extends WP_UnitTestCase {
 			'content' => $instance['content'],
 		);
 		$result   = $widget->update( $instance, array() );
-		$this->assertEquals( $result, $expected );
+		$this->assertSame( $result, $expected );
 
 		// Make sure KSES is applying as expected.
 		add_filter( 'map_meta_cap', array( $this, 'grant_unfiltered_html_cap' ), 10, 2 );
@@ -193,7 +193,7 @@ class Test_WP_Widget_Custom_HTML extends WP_UnitTestCase {
 		$instance['content'] = '<script>alert( "Howdy!" );</script>';
 		$expected['content'] = $instance['content'];
 		$result              = $widget->update( $instance, array() );
-		$this->assertEquals( $result, $expected );
+		$this->assertSame( $result, $expected );
 		remove_filter( 'map_meta_cap', array( $this, 'grant_unfiltered_html_cap' ) );
 
 		add_filter( 'map_meta_cap', array( $this, 'revoke_unfiltered_html_cap' ), 10, 2 );
@@ -201,7 +201,7 @@ class Test_WP_Widget_Custom_HTML extends WP_UnitTestCase {
 		$instance['content'] = '<script>alert( "Howdy!" );</script>';
 		$expected['content'] = wp_kses_post( $instance['content'] );
 		$result              = $widget->update( $instance, array() );
-		$this->assertEquals( $result, $expected );
+		$this->assertSame( $result, $expected );
 		remove_filter( 'map_meta_cap', array( $this, 'revoke_unfiltered_html_cap' ), 10 );
 	}
 

@@ -97,19 +97,19 @@ class Tests_Shortcode extends WP_UnitTestCase {
 
 	function test_noatts() {
 		do_shortcode( '[test-shortcode-tag /]' );
-		$this->assertEquals( '', $this->atts );
-		$this->assertEquals( 'test-shortcode-tag', $this->tagname );
+		$this->assertSame( '', $this->atts );
+		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 
 	function test_one_att() {
 		do_shortcode( '[test-shortcode-tag foo="asdf" /]' );
-		$this->assertEquals( array( 'foo' => 'asdf' ), $this->atts );
-		$this->assertEquals( 'test-shortcode-tag', $this->tagname );
+		$this->assertSame( array( 'foo' => 'asdf' ), $this->atts );
+		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 
 	function test_not_a_tag() {
 		$out = do_shortcode( '[not-a-shortcode-tag]' );
-		$this->assertEquals( '[not-a-shortcode-tag]', $out );
+		$this->assertSame( '[not-a-shortcode-tag]', $out );
 	}
 
 	/**
@@ -117,28 +117,28 @@ class Tests_Shortcode extends WP_UnitTestCase {
 	 */
 	function test_tag_hyphen_not_tag() {
 		$out = do_shortcode( '[dumptag-notreal]' );
-		$this->assertEquals( '[dumptag-notreal]', $out );
+		$this->assertSame( '[dumptag-notreal]', $out );
 	}
 
 	function test_tag_underscore_not_tag() {
 		$out = do_shortcode( '[dumptag_notreal]' );
-		$this->assertEquals( '[dumptag_notreal]', $out );
+		$this->assertSame( '[dumptag_notreal]', $out );
 	}
 
 	function test_tag_not_tag() {
 		$out = do_shortcode( '[dumptagnotreal]' );
-		$this->assertEquals( '[dumptagnotreal]', $out );
+		$this->assertSame( '[dumptagnotreal]', $out );
 	}
 
 	/**
 	 * @ticket 17657
 	 */
 	function test_tag_hyphen() {
-		$this->assertEquals( '_shortcode_hyphen', do_shortcode( '[hyphen]' ) );
-		$this->assertEquals( '_shortcode_hyphen_foo', do_shortcode( '[hyphen-foo]' ) );
-		$this->assertEquals( '_shortcode_hyphen_foo_bar', do_shortcode( '[hyphen-foo-bar]' ) );
-		$this->assertEquals( '[hyphen-baz]', do_shortcode( '[hyphen-baz]' ) );
-		$this->assertEquals( '[hyphen-foo-bar-baz]', do_shortcode( '[hyphen-foo-bar-baz]' ) );
+		$this->assertSame( '_shortcode_hyphen', do_shortcode( '[hyphen]' ) );
+		$this->assertSame( '_shortcode_hyphen_foo', do_shortcode( '[hyphen-foo]' ) );
+		$this->assertSame( '_shortcode_hyphen_foo_bar', do_shortcode( '[hyphen-foo-bar]' ) );
+		$this->assertSame( '[hyphen-baz]', do_shortcode( '[hyphen-baz]' ) );
+		$this->assertSame( '[hyphen-foo-bar-baz]', do_shortcode( '[hyphen-foo-bar-baz]' ) );
 	}
 
 	/**
@@ -156,86 +156,86 @@ class Tests_Shortcode extends WP_UnitTestCase {
 			'-foo-bar-baz' => '-foo-bar-baz',
 			'foo--bar'     => 'foo--bar',
 		);
-		$this->assertEquals( $expected_attrs, $this->atts );
+		$this->assertSame( $expected_attrs, $this->atts );
 	}
 
 	function test_two_atts() {
 		do_shortcode( '[test-shortcode-tag foo="asdf" bar="bing" /]' );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'foo' => 'asdf',
 				'bar' => 'bing',
 			),
 			$this->atts
 		);
-		$this->assertEquals( 'test-shortcode-tag', $this->tagname );
+		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 
 	function test_noatts_enclosing() {
 		do_shortcode( '[test-shortcode-tag]content[/test-shortcode-tag]' );
-		$this->assertEquals( '', $this->atts );
-		$this->assertEquals( 'content', $this->content );
-		$this->assertEquals( 'test-shortcode-tag', $this->tagname );
+		$this->assertSame( '', $this->atts );
+		$this->assertSame( 'content', $this->content );
+		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 
 	function test_one_att_enclosing() {
 		do_shortcode( '[test-shortcode-tag foo="bar"]content[/test-shortcode-tag]' );
-		$this->assertEquals( array( 'foo' => 'bar' ), $this->atts );
-		$this->assertEquals( 'content', $this->content );
-		$this->assertEquals( 'test-shortcode-tag', $this->tagname );
+		$this->assertSame( array( 'foo' => 'bar' ), $this->atts );
+		$this->assertSame( 'content', $this->content );
+		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 
 	function test_two_atts_enclosing() {
 		do_shortcode( '[test-shortcode-tag foo="bar" baz="bing"]content[/test-shortcode-tag]' );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'foo' => 'bar',
 				'baz' => 'bing',
 			),
 			$this->atts
 		);
-		$this->assertEquals( 'content', $this->content );
-		$this->assertEquals( 'test-shortcode-tag', $this->tagname );
+		$this->assertSame( 'content', $this->content );
+		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 
 	function test_unclosed() {
 		$out = do_shortcode( '[test-shortcode-tag]' );
-		$this->assertEquals( '', $out );
-		$this->assertEquals( '', $this->atts );
-		$this->assertEquals( 'test-shortcode-tag', $this->tagname );
+		$this->assertSame( '', $out );
+		$this->assertSame( '', $this->atts );
+		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 
 	function test_positional_atts_num() {
 		$out = do_shortcode( '[test-shortcode-tag 123]' );
-		$this->assertEquals( '', $out );
-		$this->assertEquals( array( 0 => '123' ), $this->atts );
-		$this->assertEquals( 'test-shortcode-tag', $this->tagname );
+		$this->assertSame( '', $out );
+		$this->assertSame( array( 0 => '123' ), $this->atts );
+		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 
 	function test_positional_atts_url() {
 		$out = do_shortcode( '[test-shortcode-tag http://www.youtube.com/watch?v=eBGIQ7ZuuiU]' );
-		$this->assertEquals( '', $out );
-		$this->assertEquals( array( 0 => 'http://www.youtube.com/watch?v=eBGIQ7ZuuiU' ), $this->atts );
-		$this->assertEquals( 'test-shortcode-tag', $this->tagname );
+		$this->assertSame( '', $out );
+		$this->assertSame( array( 0 => 'http://www.youtube.com/watch?v=eBGIQ7ZuuiU' ), $this->atts );
+		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 
 	function test_positional_atts_quotes() {
 		$out = do_shortcode( '[test-shortcode-tag "something in quotes" "something else"]' );
-		$this->assertEquals( '', $out );
-		$this->assertEquals(
+		$this->assertSame( '', $out );
+		$this->assertSame(
 			array(
 				0 => 'something in quotes',
 				1 => 'something else',
 			),
 			$this->atts
 		);
-		$this->assertEquals( 'test-shortcode-tag', $this->tagname );
+		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 
 	function test_positional_atts_mixed() {
 		$out = do_shortcode( '[test-shortcode-tag 123 https://wordpress.org/ 0 "foo" bar]' );
-		$this->assertEquals( '', $out );
-		$this->assertEquals(
+		$this->assertSame( '', $out );
+		$this->assertSame(
 			array(
 				0 => '123',
 				1 => 'https://wordpress.org/',
@@ -245,13 +245,13 @@ class Tests_Shortcode extends WP_UnitTestCase {
 			),
 			$this->atts
 		);
-		$this->assertEquals( 'test-shortcode-tag', $this->tagname );
+		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 
 	function test_positional_and_named_atts() {
 		$out = do_shortcode( '[test-shortcode-tag 123 url=https://wordpress.org/ foo bar="baz"]' );
-		$this->assertEquals( '', $out );
-		$this->assertEquals(
+		$this->assertSame( '', $out );
+		$this->assertSame(
 			array(
 				0     => '123',
 				'url' => 'https://wordpress.org/',
@@ -260,24 +260,24 @@ class Tests_Shortcode extends WP_UnitTestCase {
 			),
 			$this->atts
 		);
-		$this->assertEquals( 'test-shortcode-tag', $this->tagname );
+		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 
 	function test_footag_default() {
 		$out = do_shortcode( '[footag]' );
-		$this->assertEquals( 'foo = ', $out );
+		$this->assertSame( 'foo = ', $out );
 	}
 
 	function test_footag_val() {
 		$val = rand_str();
 		$out = do_shortcode( '[footag foo="' . $val . '"]' );
-		$this->assertEquals( 'foo = ' . $val, $out );
+		$this->assertSame( 'foo = ' . $val, $out );
 	}
 
 	function test_nested_tags() {
 		$out      = do_shortcode( '[baztag][dumptag abc="foo" def=123 https://wordpress.org/][/baztag]' );
 		$expected = "content = abc = foo\ndef = 123\n0 = https://wordpress.org\n";
-		$this->assertEquals( $expected, $out );
+		$this->assertSame( $expected, $out );
 	}
 
 	/**
@@ -285,35 +285,35 @@ class Tests_Shortcode extends WP_UnitTestCase {
 	 */
 	function test_tag_escaped() {
 		$out = do_shortcode( '[[footag]] [[bartag foo="bar"]]' );
-		$this->assertEquals( '[footag] [bartag foo="bar"]', $out );
+		$this->assertSame( '[footag] [bartag foo="bar"]', $out );
 
 		$out = do_shortcode( '[[footag /]] [[bartag foo="bar" /]]' );
-		$this->assertEquals( '[footag /] [bartag foo="bar" /]', $out );
+		$this->assertSame( '[footag /] [bartag foo="bar" /]', $out );
 
 		$out = do_shortcode( '[[baztag foo="bar"]the content[/baztag]]' );
-		$this->assertEquals( '[baztag foo="bar"]the content[/baztag]', $out );
+		$this->assertSame( '[baztag foo="bar"]the content[/baztag]', $out );
 
 		// Double escaped.
 		$out = do_shortcode( '[[[footag]]] [[[bartag foo="bar"]]]' );
-		$this->assertEquals( '[[footag]] [[bartag foo="bar"]]', $out );
+		$this->assertSame( '[[footag]] [[bartag foo="bar"]]', $out );
 	}
 
 	function test_tag_not_escaped() {
 		// These have square brackets on either end but aren't actually escaped.
 		$out = do_shortcode( '[[footag] [bartag foo="bar"]]' );
-		$this->assertEquals( '[foo =  foo = bar]', $out );
+		$this->assertSame( '[foo =  foo = bar]', $out );
 
 		$out = do_shortcode( '[[footag /] [bartag foo="bar" /]]' );
-		$this->assertEquals( '[foo =  foo = bar]', $out );
+		$this->assertSame( '[foo =  foo = bar]', $out );
 
 		$out = do_shortcode( '[[baztag foo="bar"]the content[/baztag]' );
-		$this->assertEquals( '[content = the content', $out );
+		$this->assertSame( '[content = the content', $out );
 
 		$out = do_shortcode( '[[not-a-tag]]' );
-		$this->assertEquals( '[[not-a-tag]]', $out );
+		$this->assertSame( '[[not-a-tag]]', $out );
 
 		$out = do_shortcode( '[[[footag] [bartag foo="bar"]]]' );
-		$this->assertEquals( '[[foo =  foo = bar]]', $out );
+		$this->assertSame( '[[foo =  foo = bar]]', $out );
 	}
 
 	function test_mixed_tags() {
@@ -350,7 +350,7 @@ more content
 
 EOF;
 		$out      = do_shortcode( $in );
-		$this->assertEquals( strip_ws( $expected ), strip_ws( $out ) );
+		$this->assertSame( strip_ws( $expected ), strip_ws( $out ) );
 	}
 
 	/**
@@ -359,14 +359,14 @@ EOF;
 	function test_utf8_whitespace_1() {
 		// NO-BREAK SPACE: U+00A0.
 		do_shortcode( "[test-shortcode-tag foo=\"bar\" \xC2\xA0baz=\"123\"]" );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'foo' => 'bar',
 				'baz' => '123',
 			),
 			$this->atts
 		);
-		$this->assertEquals( '', $this->content );
+		$this->assertSame( '', $this->content );
 	}
 
 	/**
@@ -375,14 +375,14 @@ EOF;
 	function test_utf8_whitespace_2() {
 		// ZERO WIDTH SPACE: U+200B.
 		do_shortcode( "[test-shortcode-tag foo=\"bar\" \xE2\x80\x8Babc=\"def\"]" );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'foo' => 'bar',
 				'abc' => 'def',
 			),
 			$this->atts
 		);
-		$this->assertEquals( '', $this->content );
+		$this->assertSame( '', $this->content );
 	}
 
 	/**
@@ -391,7 +391,7 @@ EOF;
 	function test_shortcode_unautop() {
 		// A blank line is added at the end, so test with it already there.
 		$test_string = "[footag]\n";
-		$this->assertEquals( $test_string, shortcode_unautop( wpautop( $test_string ) ) );
+		$this->assertSame( $test_string, shortcode_unautop( wpautop( $test_string ) ) );
 	}
 
 	function data_test_strip_shortcodes() {
@@ -418,7 +418,7 @@ EOF;
 	 * @param string $content   Content to run strip_shortcodes() on.
 	 */
 	function test_strip_shortcodes( $expected, $content ) {
-		$this->assertEquals( $expected, strip_shortcodes( $content ) );
+		$this->assertSame( $expected, strip_shortcodes( $content ) );
 	}
 
 	/**
@@ -426,7 +426,7 @@ EOF;
 	 */
 	function test_strip_shortcodes_filter() {
 		add_filter( 'strip_shortcodes_tagnames', array( $this, '_filter_strip_shortcodes_tagnames' ) );
-		$this->assertEquals( 'beforemiddle [footag]after', strip_shortcodes( 'before[gallery]middle [footag]after' ) );
+		$this->assertSame( 'beforemiddle [footag]after', strip_shortcodes( 'before[gallery]middle [footag]after' ) );
 		remove_filter( 'strip_shortcodes_tagnames', array( $this, '_filter_strip_shortcodes_tagnames' ) );
 	}
 
@@ -462,21 +462,21 @@ EOF;
 		add_filter( 'shortcode_atts_bartag', array( $this, '_filter_atts' ), 10, 3 );
 
 		do_shortcode( '[bartag foo="foo1" /]' );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'foo' => 'foo1',
 				'baz' => 'default baz',
 			),
 			$this->filter_atts_out
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'foo' => 'no foo',
 				'baz' => 'default baz',
 			),
 			$this->filter_atts_pairs
 		);
-		$this->assertEquals( array( 'foo' => 'foo1' ), $this->filter_atts_atts );
+		$this->assertSame( array( 'foo' => 'foo1' ), $this->filter_atts_atts );
 
 		remove_filter( 'shortcode_atts_bartag', array( $this, '_filter_atts' ), 10, 3 );
 	}
@@ -485,11 +485,11 @@ EOF;
 		add_filter( 'shortcode_atts_bartag', array( $this, '_filter_atts2' ), 10, 3 );
 
 		$out = do_shortcode( '[bartag foo="foo1" baz="baz1" /]' );
-		$this->assertEquals( array( 'foo' => 'no foo' ), $this->filter_atts_out );
-		$this->assertEquals( 'foo = no foo', $out );
+		$this->assertSame( array( 'foo' => 'no foo' ), $this->filter_atts_out );
+		$this->assertSame( 'foo = no foo', $out );
 
 		$out = do_shortcode( '[bartag foo="foo2" /]' );
-		$this->assertEquals( 'foo = foo2', $out );
+		$this->assertSame( 'foo = foo2', $out );
 
 		remove_filter( 'shortcode_atts_bartag', array( $this, '_filter_atts2' ), 10, 3 );
 	}
@@ -512,7 +512,7 @@ EOF;
 		$output = '[gallery ids="37,15,11"]';
 
 		foreach ( $input as $in ) {
-			$this->assertEquals( $output, shortcode_unautop( $in ) );
+			$this->assertSame( $output, shortcode_unautop( $in ) );
 		}
 	}
 
@@ -522,7 +522,7 @@ EOF;
 	 * @dataProvider data_escaping
 	 */
 	function test_escaping( $input, $output ) {
-		return $this->assertEquals( $output, do_shortcode( $input ) );
+		return $this->assertSame( $output, do_shortcode( $input ) );
 	}
 
 	function data_escaping() {
@@ -600,7 +600,7 @@ EOF;
 	 * @dataProvider data_escaping2
 	 */
 	function test_escaping2( $input, $output ) {
-		return $this->assertEquals( $output, strip_shortcodes( $input ) );
+		return $this->assertSame( $output, strip_shortcodes( $input ) );
 	}
 
 	function data_escaping2() {
@@ -671,7 +671,7 @@ EOF;
 	function sub_registration( $input, $expected ) {
 		add_shortcode( $input, '' );
 		$actual = shortcode_exists( $input );
-		$test   = $this->assertEquals( $expected, $actual );
+		$test   = $this->assertSame( $expected, $actual );
 		if ( $actual ) {
 			remove_shortcode( $input );
 		}
@@ -765,7 +765,7 @@ EOF;
 	function test_unnamed_attribute() {
 		$out      = do_shortcode( '[dumptag=https://wordpress.org/]' );
 		$expected = "0 = =https://wordpress.org\n";
-		$this->assertEquals( $expected, $out );
+		$this->assertSame( $expected, $out );
 	}
 
 	/**
@@ -774,7 +774,7 @@ EOF;
 	function test_smilies_arent_converted() {
 		$out      = apply_filters( 'the_content', '[img alt="Hello :-) World"]' );
 		$expected = "<img alt=\"Hello :-) World\" />\n";
-		$this->assertEquals( $expected, $out );
+		$this->assertSame( $expected, $out );
 	}
 
 	/**
@@ -924,7 +924,7 @@ EOF;
 	 */
 	function test_empty_single_quote_attribute() {
 		$out = do_shortcode( '[test-shortcode-tag a="foo" b=\'bar\' c=baz foo \'bar\' "baz" ]test empty atts[/test-shortcode-tag]' );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'a' => 'foo',
 				'b' => 'bar',
@@ -942,15 +942,15 @@ EOF;
 	 */
 	function test_positional_atts_single_quotes() {
 		$out = do_shortcode( "[test-shortcode-tag 'something in quotes' 'something else']" );
-		$this->assertEquals( '', $out );
-		$this->assertEquals(
+		$this->assertSame( '', $out );
+		$this->assertSame(
 			array(
 				0 => 'something in quotes',
 				1 => 'something else',
 			),
 			$this->atts
 		);
-		$this->assertEquals( 'test-shortcode-tag', $this->tagname );
+		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 
 	/**
@@ -958,8 +958,8 @@ EOF;
 	 */
 	function test_positional_atts_mixed_quotes() {
 		$out = do_shortcode( "[test-shortcode-tag 'something in quotes' \"something else\" 123 foo bar='baz' example=\"test\" ]" );
-		$this->assertEquals( '', $out );
-		$this->assertEquals(
+		$this->assertSame( '', $out );
+		$this->assertSame(
 			array(
 				0         => 'something in quotes',
 				1         => 'something else',
@@ -970,6 +970,6 @@ EOF;
 			),
 			$this->atts
 		);
-		$this->assertEquals( 'test-shortcode-tag', $this->tagname );
+		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 }

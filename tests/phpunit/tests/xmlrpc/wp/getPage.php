@@ -25,7 +25,7 @@ class Tests_XMLRPC_wp_getPage extends WP_XMLRPC_UnitTestCase {
 	function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getPage( array( 1, self::$post_id, 'username', 'password' ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
 	/**
@@ -36,7 +36,7 @@ class Tests_XMLRPC_wp_getPage extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_getPage( array( 1, 9999, 'editor', 'editor' ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 404, $result->code );
+		$this->assertSame( 404, $result->code );
 	}
 
 	function test_valid_page() {
@@ -73,10 +73,10 @@ class Tests_XMLRPC_wp_getPage extends WP_XMLRPC_UnitTestCase {
 
 		// Check expected values.
 		$this->assertStringMatchesFormat( '%d', $result['userid'] );
-		$this->assertEquals( 'future', $result['page_status'] );
-		$this->assertEquals( $post_data->post_title, $result['title'] );
-		$this->assertEquals( url_to_postid( $result['link'] ), self::$post_id );
-		$this->assertEquals( $post_data->post_excerpt, $result['excerpt'] );
+		$this->assertSame( 'future', $result['page_status'] );
+		$this->assertSame( $post_data->post_title, $result['title'] );
+		$this->assertSame( url_to_postid( $result['link'] ), self::$post_id );
+		$this->assertSame( $post_data->post_excerpt, $result['excerpt'] );
 		$this->assertStringMatchesFormat( '%d', $result['wp_author_id'] );
 	}
 
@@ -93,7 +93,7 @@ class Tests_XMLRPC_wp_getPage extends WP_XMLRPC_UnitTestCase {
 
 		$date_gmt = strtotime( get_gmt_from_date( mysql2date( 'Y-m-d H:i:s', $post_data->post_date, false ), 'Ymd\TH:i:s' ) );
 
-		$this->assertEquals( strtotime( $post_data->post_date ), $result['dateCreated']->getTimestamp() );
-		$this->assertEquals( $date_gmt, $result['date_created_gmt']->getTimestamp() );
+		$this->assertSame( strtotime( $post_data->post_date ), $result['dateCreated']->getTimestamp() );
+		$this->assertSame( $date_gmt, $result['date_created_gmt']->getTimestamp() );
 	}
 }

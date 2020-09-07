@@ -77,6 +77,6 @@ class Tests_Comment_DateQuery extends WP_UnitTestCase {
 			'2008-12-10 13:06:27',
 		);
 
-		$this->assertEquals( $expected_dates, wp_list_pluck( $comments, 'comment_date' ) );
+		$this->assertSame( $expected_dates, wp_list_pluck( $comments, 'comment_date' ) );
 	}
 }

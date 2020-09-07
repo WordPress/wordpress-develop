@@ -9,7 +9,7 @@ class Tests_Filter_oEmbed_Result extends WP_UnitTestCase {
 
 		$actual = wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' );
 
-		$this->assertEquals( $html, $actual );
+		$this->assertSame( $html, $actual );
 	}
 
 	function test_filter_oembed_result_with_untrusted_provider() {
@@ -21,14 +21,14 @@ class Tests_Filter_oEmbed_Result extends WP_UnitTestCase {
 
 		$this->assertTrue( isset( $matches[1] ) );
 		$this->assertTrue( isset( $matches[2] ) );
-		$this->assertEquals( $matches[1], $matches[2] );
+		$this->assertSame( $matches[1], $matches[2] );
 	}
 
 	function test_filter_oembed_result_only_one_iframe_is_allowed() {
 		$html   = '<div><iframe></iframe><iframe></iframe><p></p></div>';
 		$actual = wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), '' );
 
-		$this->assertEquals( '<iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted"></iframe>', $actual );
+		$this->assertSame( '<iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted"></iframe>', $actual );
 	}
 
 	function test_filter_oembed_result_with_newlines() {
@@ -41,7 +41,7 @@ EOD;
 
 		$actual = wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), '' );
 
-		$this->assertEquals( '<iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted"></iframe>', $actual );
+		$this->assertSame( '<iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted"></iframe>', $actual );
 	}
 
 	function test_filter_oembed_result_without_iframe() {
@@ -65,13 +65,13 @@ EOD;
 
 		$this->assertTrue( isset( $matches[1] ) );
 		$this->assertTrue( isset( $matches[2] ) );
-		$this->assertEquals( $matches[1], $matches[2] );
+		$this->assertSame( $matches[1], $matches[2] );
 	}
 
 	function test_filter_oembed_result_wrong_type_provided() {
 		$actual = wp_filter_oembed_result( 'some string', (object) array( 'type' => 'link' ), '' );
 
-		$this->assertEquals( 'some string', $actual );
+		$this->assertSame( 'some string', $actual );
 	}
 
 	function test_filter_oembed_result_invalid_result() {
@@ -83,14 +83,14 @@ EOD;
 		$html   = '<blockquote></blockquote><iframe></iframe>';
 		$actual = wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), '' );
 
-		$this->assertEquals( '<blockquote class="wp-embedded-content"></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; clip: rect(1px, 1px, 1px, 1px);"></iframe>', $actual );
+		$this->assertSame( '<blockquote class="wp-embedded-content"></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; clip: rect(1px, 1px, 1px, 1px);"></iframe>', $actual );
 	}
 
 	function test_filter_oembed_result_allowed_html() {
 		$html   = '<blockquote class="foo" id="bar"><strong><a href="" target=""></a></strong></blockquote><iframe></iframe>';
 		$actual = wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), '' );
 
-		$this->assertEquals( '<blockquote class="wp-embedded-content"><a href=""></a></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; clip: rect(1px, 1px, 1px, 1px);"></iframe>', $actual );
+		$this->assertSame( '<blockquote class="wp-embedded-content"><a href=""></a></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; clip: rect(1px, 1px, 1px, 1px);"></iframe>', $actual );
 	}
 
 	public function _data_oembed_test_strings() {
@@ -124,7 +124,7 @@ EOD;
 			'html'  => $html,
 		);
 		$actual = _wp_oembed_get_object()->data2html( $data, 'https://untrusted.localhost' );
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
@@ -134,6 +134,6 @@ EOD;
 		$html   = '<blockquote></blockquote><iframe></iframe>';
 		$actual = _oembed_filter_feed_content( wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), '' ) );
 
-		$this->assertEquals( '<blockquote class="wp-embedded-content"></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted"></iframe>', $actual );
+		$this->assertSame( '<blockquote class="wp-embedded-content"></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted"></iframe>', $actual );
 	}
 }
