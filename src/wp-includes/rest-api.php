@@ -300,8 +300,8 @@ function create_initial_rest_routes() {
 
 	// Menu Locations.
 	$controller = new WP_REST_Menu_Locations_Controller;
-  $controller->register_routes();
-  
+	$controller->register_routes();
+
 	// Plugins.
 	$controller = new WP_REST_Plugins_Controller();
 	$controller->register_routes();
