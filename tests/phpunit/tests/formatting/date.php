@@ -85,7 +85,7 @@ class Tests_Formatting_Date extends WP_UnitTestCase {
 		update_option( 'timezone_string', 'Europe/London' );
 		$local = 'now';
 		$gmt   = gmdate( 'Y-m-d H:i:s' );
-		$this->assertEquals( strtotime( $gmt ), strtotime( get_gmt_from_date( $local ) ), 'The dates should be equal', 2 );
+		$this->assertEqualsWithDelta( strtotime( $gmt ), strtotime( get_gmt_from_date( $local ) ), 2, 'The dates should be equal' );
 	}
 
 	/**
@@ -94,7 +94,7 @@ class Tests_Formatting_Date extends WP_UnitTestCase {
 	function test_get_gmt_from_date_string_date_no_timezone() {
 		$local = 'now';
 		$gmt   = gmdate( 'Y-m-d H:i:s' );
-		$this->assertEquals( strtotime( $gmt ), strtotime( get_gmt_from_date( $local ) ), 'The dates should be equal', 2 );
+		$this->assertEqualsWithDelta( strtotime( $gmt ), strtotime( get_gmt_from_date( $local ) ), 2, 'The dates should be equal' );
 	}
 
 	/**

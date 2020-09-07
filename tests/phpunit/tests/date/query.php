@@ -524,7 +524,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		$found = $q->build_mysql_datetime( $datetime, $default_to_max );
 
 		$message = "Expected {$expected}, got {$found}";
-		$this->assertEquals( strtotime( $expected ), strtotime( $found ), $message, 10 );
+		$this->assertEqualsWithDelta( strtotime( $expected ), strtotime( $found ), 10, $message );
 	}
 
 	public function mysql_datetime_input_provider() {
@@ -559,7 +559,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		$found = $q->build_mysql_datetime( $datetime, $default_to_max );
 
 		$message = "Expected {$expected}, got {$found}";
-		$this->assertEquals( strtotime( $expected ), strtotime( $found ), $message, 10 );
+		$this->assertEqualsWithDelta( strtotime( $expected ), strtotime( $found ), 10, $message );
 
 	}
 
@@ -583,7 +583,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		$found     = $q->build_mysql_datetime( '-1 day' );
 
 		$message = "Expected {$expected}, got {$found}";
-		$this->assertEquals( strtotime( $expected ), strtotime( $found ), $message, 10 );
+		$this->assertEqualsWithDelta( strtotime( $expected ), strtotime( $found ), 10, $message );
 	}
 
 	public function test_build_time_query_insufficient_time_values() {

@@ -60,11 +60,11 @@ class Tests_Date_Get_Feed_Build_Date extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
+		$this->assertEqualsWithDelta(
 			strtotime( $datetime_utc->format( DATE_RFC3339 ) ),
 			strtotime( get_feed_build_date( DATE_RFC3339 ) ),
-			'Fall back to time of last post modified with no posts',
-			2
+			2,
+			'Fall back to time of last post modified with no posts'
 		);
 
 		$post_id_broken = $this->factory->post->create();
@@ -74,11 +74,11 @@ class Tests_Date_Get_Feed_Build_Date extends WP_UnitTestCase {
 
 		$wp_query->posts = array( $post_broken );
 
-		$this->assertEquals(
+		$this->assertEqualsWithDelta(
 			strtotime( $datetime_utc->format( DATE_RFC3339 ) ),
 			strtotime( get_feed_build_date( DATE_RFC3339 ) ),
-			'Fall back to time of last post modified with broken post object',
-			2
+			2,
+			'Fall back to time of last post modified with broken post object'
 		);
 	}
 }
