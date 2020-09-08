@@ -1456,6 +1456,13 @@ function wp_doing_cron() {
  * @return bool True, if WP_Error. False, if not WP_Error.
  */
 function is_wp_error( $thing ) {
+	/**
+	 * Fires when is_wp_error is used
+	 *
+	 * @param mixed $thing Passed parameter to is_wp_error
+	 */
+	do_action( 'wp_error_called', $thing );
+
 	return ( $thing instanceof WP_Error );
 }
 
