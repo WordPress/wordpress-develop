@@ -39,6 +39,7 @@ function create_initial_post_types() {
 			'show_in_rest'          => true,
 			'rest_base'             => 'posts',
 			'rest_controller_class' => 'WP_REST_Posts_Controller',
+			'show_in_home_page_list'=> null,
 		)
 	);
 
@@ -64,6 +65,7 @@ function create_initial_post_types() {
 			'show_in_rest'          => true,
 			'rest_base'             => 'pages',
 			'rest_controller_class' => 'WP_REST_Posts_Controller',
+			'show_in_home_page_list'=> true,
 		)
 	);
 
@@ -3132,8 +3134,8 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
  */
 function _reset_front_page_settings_for_post( $post_id ) {
 	$post = get_post( $post_id );
-
-	if ( 'page' === $post->post_type ) {
+	$post_types_allowed_on_home_page = apply_filters( 'post_types_allowed_on_home_page', array_keys( get_post_types( array( 'show_in_home_page_list' => true ) ) ) );
+	if ( in_array( $post->post_type, $post_types_allowed_on_home_page, true ) ) {
 		/*
 		 * If the page is defined in option page_on_front or post_for_posts,
 		 * adjust the corresponding options.

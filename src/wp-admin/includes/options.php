@@ -112,9 +112,11 @@ function options_reading_add_js() {
 	jQuery(document).ready(function($){
 		var section = $('#front-static-pages'),
 			staticPage = section.find('input:radio[value="page"]'),
-			selects = section.find('select'),
+			selects = section.find('.staticPages select'),
+            homepage_types = section.find('select#homepage_types')
 			check_disabled = function(){
 				selects.prop( 'disabled', ! staticPage.prop('checked') );
+                homepage_types.prop( 'disabled', staticPage.prop('checked') );
 			};
 		check_disabled();
 		section.find( 'input:radio' ).change( check_disabled );

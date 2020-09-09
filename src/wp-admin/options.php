@@ -137,6 +137,7 @@ $allowed_options            = array(
 		'show_on_front',
 		'page_on_front',
 		'page_for_posts',
+		'show_archive_on_front',
 		'blog_public',
 	),
 	'writing'    => array(
