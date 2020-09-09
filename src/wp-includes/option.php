@@ -25,7 +25,7 @@
  *
  * @param string $option  Name of the option to retrieve. Expected to not be SQL-escaped.
  * @param mixed  $default Optional. Default value to return if the option does not exist.
- * @return bool|string|array|object Value set for the option.
+ * @return mixed Value set for the option. Any type may be returned, including arrays, booleans, integers and objects.
  */
 function get_option( $option, $default = false ) {
 	global $wpdb;
