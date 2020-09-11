@@ -43,13 +43,13 @@ class Tests_Robots extends WP_UnitTestCase {
 			'wp_robots',
 			function( array $robots ) {
 				// Directives that should have values must use strings.
-				$robots['directive-with-value'] = 'yes';
+				$robots['directive-with-value']         = 'yes';
 				$robots['directive-with-numeric-value'] = '1';
 				// Any non-string value will be evaluated as boolean.
 				// False-y directives will not be included.
-				$robots['directive-active-boolean'] = true;
+				$robots['directive-active-boolean']   = true;
 				$robots['directive-inactive-boolean'] = false;
-				$robots['directive-active-integer'] = 1;
+				$robots['directive-active-integer']   = 1;
 				$robots['directive-inactive-integer'] = 0;
 				return $robots;
 			}
