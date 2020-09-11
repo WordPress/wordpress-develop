@@ -172,7 +172,7 @@ class WP_Error {
 	}
 
 	/**
-	 * Add an error or append additional message to an existing error.
+	 * Adds an error or appends an additional message to an existing error.
 	 *
 	 * @since 2.1.0
 	 *
@@ -188,12 +188,14 @@ class WP_Error {
 		}
 
 		/**
-		 * Fires when an error is added to a WP_Error object
+		 * Fires when an error is added to a WP_Error object.
 		 *
-		 * @param string|int $code Error code
-		 * @param string $message Error message
-		 * @param mixed $data Error data. Might be empty
-		 * @param WP_Error $wp_error The WP_Error object
+		 * @since 5.6.0
+		 *
+		 * @param string|int $code     Error code.
+		 * @param string     $message  Error message.
+		 * @param mixed      $data     Error data. Might be empty.
+		 * @param WP_Error   $wp_error The WP_Error object.
 		 */
 		do_action( 'wp_error_added', $code, $message, $data, $this );
 	}
