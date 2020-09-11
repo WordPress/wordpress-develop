@@ -231,6 +231,10 @@ add_filter( 'the_guid', 'esc_url' );
 // Email filters.
 add_filter( 'wp_mail', 'wp_staticize_emoji_for_email' );
 
+// Robots filters.
+add_filter( 'wp_robots', 'wp_robots_noindex' );
+add_filter( 'wp_robots', 'wp_robots_max_image_preview' );
+
 // Mark site as no longer fresh.
 foreach ( array( 'publish_post', 'publish_page', 'wp_ajax_save-widget', 'wp_ajax_widgets-order', 'customize_save_after' ) as $action ) {
 	add_action( $action, '_delete_option_fresh_site', 0 );
@@ -288,7 +292,7 @@ add_action( 'wp_head', 'rsd_link' );
 add_action( 'wp_head', 'wlwmanifest_link' );
 add_action( 'wp_head', 'locale_stylesheet' );
 add_action( 'publish_future_post', 'check_and_publish_future_post', 10, 1 );
-add_action( 'wp_head', 'noindex', 1 );
+add_action( 'wp_head', 'wp_robots', 1 );
 add_action( 'wp_head', 'print_emoji_detection_script', 7 );
 add_action( 'wp_head', 'wp_print_styles', 8 );
 add_action( 'wp_head', 'wp_print_head_scripts', 9 );
@@ -307,10 +311,11 @@ add_action( 'after_switch_theme', '_wp_sidebars_changed' );
 add_action( 'wp_print_styles', 'print_emoji_styles' );
 
 if ( isset( $_GET['replytocom'] ) ) {
-	add_action( 'wp_head', 'wp_no_robots' );
+	add_filter( 'wp_robots', 'wp_robots_no_robots' );
 }
 
 // Login actions.
+add_action( 'login_head', 'wp_robots', 1 );
 add_filter( 'login_head', 'wp_resource_hints', 8 );
 add_action( 'login_head', 'wp_print_head_scripts', 9 );
 add_action( 'login_head', 'print_admin_styles', 9 );
@@ -570,7 +575,7 @@ add_action( 'embed_head', 'print_emoji_detection_script' );
 add_action( 'embed_head', 'print_embed_styles' );
 add_action( 'embed_head', 'wp_print_head_scripts', 20 );
 add_action( 'embed_head', 'wp_print_styles', 20 );
-add_action( 'embed_head', 'wp_no_robots' );
+add_action( 'embed_head', 'wp_robots' );
 add_action( 'embed_head', 'rel_canonical' );
 add_action( 'embed_head', 'locale_stylesheet', 30 );
 
@@ -581,6 +586,7 @@ add_action( 'embed_footer', 'print_embed_sharing_dialog' );
 add_action( 'embed_footer', 'print_embed_scripts' );
 add_action( 'embed_footer', 'wp_print_footer_scripts', 20 );
 
+add_filter( 'wp_robots', 'wp_embed_no_robots' );
 add_filter( 'excerpt_more', 'wp_embed_excerpt_more', 20 );
 add_filter( 'the_excerpt_embed', 'wptexturize' );
 add_filter( 'the_excerpt_embed', 'convert_chars' );
