@@ -1461,7 +1461,7 @@ function is_wp_error( $thing ) {
 	 *
 	 * @param mixed $thing Passed parameter to is_wp_error
 	 */
-	do_action( 'wp_error_called', $thing );
+	do_action( 'wp_error_checked', $thing );
 
 	return ( $thing instanceof WP_Error );
 }
