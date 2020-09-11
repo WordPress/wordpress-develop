@@ -893,7 +893,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$wp_customize->customize_preview_init();
 		$this->assertSame( $did_action_customize_preview_init + 1, did_action( 'customize_preview_init' ) );
 
-		$this->assertSame( 10, has_action( 'wp_head', 'wp_no_robots' ) );
+		$this->assertSame( 10, has_filter( 'wp_robots', 'wp_robots_no_robots' ) );
 		$this->assertSame( 10, has_action( 'wp_head', array( $wp_customize, 'remove_frameless_preview_messenger_channel' ) ) );
 		$this->assertSame( 10, has_filter( 'wp_headers', array( $wp_customize, 'filter_iframe_security_headers' ) ) );
 		$this->assertSame( 10, has_filter( 'wp_redirect', array( $wp_customize, 'add_state_query_params' ) ) );

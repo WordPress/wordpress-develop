@@ -475,21 +475,6 @@ class Tests_General_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 43590
-	 */
-	function test_wp_no_robots() {
-		// Simulate private site (search engines discouraged).
-		update_option( 'blog_public', '0' );
-		$actual_private = get_echo( 'wp_no_robots' );
-		$this->assertSame( "<meta name='robots' content='noindex,nofollow' />\n", $actual_private );
-
-		// Simulate public site.
-		update_option( 'blog_public', '1' );
-		$actual_public = get_echo( 'wp_no_robots' );
-		$this->assertSame( "<meta name='robots' content='noindex,follow' />\n", $actual_public );
-	}
-
-	/**
 	 * @ticket 40969
 	 */
 	function test_get_header_returns_nothing_on_success() {
