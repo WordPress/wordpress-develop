@@ -1456,14 +1456,17 @@ function wp_doing_cron() {
  * @return bool True, if WP_Error. False, if not WP_Error.
  */
 function is_wp_error( $thing ) {
+	$is = ( $thing instanceof WP_Error );
+
 	/**
 	 * Fires when is_wp_error is used
 	 *
 	 * @param mixed $thing Passed parameter to is_wp_error
+	 * @param bool  $is    Whether the variable is an instance of WP_Error.
 	 */
-	do_action( 'wp_error_checked', $thing );
+	do_action( 'wp_error_checked', $thing, $is );
 
-	return ( $thing instanceof WP_Error );
+	return $is;
 }
 
 /**
