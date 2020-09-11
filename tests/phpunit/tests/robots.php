@@ -13,6 +13,8 @@
 class Tests_Robots extends WP_UnitTestCase {
 
 	public function setUp() {
+		parent::setUp();
+
 		remove_all_filters( 'wp_robots' );
 	}
 
