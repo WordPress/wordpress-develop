@@ -1352,7 +1352,7 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 
 		$post = get_post( $post_id );
-		self::assertEquals( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date_gmt ), 'The dates should be equal', 2 );
+		self::assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date_gmt ), 2, 'The dates should be equal' );
 	}
 
 	/**

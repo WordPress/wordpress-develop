@@ -222,17 +222,40 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		);
 	}
 
-	public function test_get_endpoint_args_for_item_schema_description() {
+	/**
+	 * @ticket 50876
+	 */
+	public function test_get_endpoint_args_for_item_schema() {
 		$controller = new WP_REST_Test_Controller();
 		$args       = $controller->get_endpoint_args_for_item_schema();
-		$this->assertSame( 'A pretty string.', $args['somestring']['description'] );
+
+		$this->assertArrayHasKey( 'somestring', $args );
+		$this->assertArrayHasKey( 'someinteger', $args );
+		$this->assertArrayHasKey( 'someboolean', $args );
+		$this->assertArrayHasKey( 'someurl', $args );
+		$this->assertArrayHasKey( 'somedate', $args );
+		$this->assertArrayHasKey( 'someemail', $args );
+		$this->assertArrayHasKey( 'somehex', $args );
+		$this->assertArrayHasKey( 'someuuid', $args );
+		$this->assertArrayHasKey( 'someenum', $args );
+		$this->assertArrayHasKey( 'someargoptions', $args );
+		$this->assertArrayHasKey( 'somedefault', $args );
+		$this->assertArrayHasKey( 'somearray', $args );
+		$this->assertArrayHasKey( 'someobject', $args );
+	}
+
+	public function test_get_endpoint_args_for_item_schema_description() {
+		$controller = new WP_REST_Test_Controller();
+		$args       = rest_get_endpoint_args_for_schema( $controller->get_item_schema() );
+
+		$this->assertEquals( 'A pretty string.', $args['somestring']['description'] );
 		$this->assertFalse( isset( $args['someinteger']['description'] ) );
 	}
 
 	public function test_get_endpoint_args_for_item_schema_arg_options() {
 
 		$controller = new WP_REST_Test_Controller();
-		$args       = $controller->get_endpoint_args_for_item_schema();
+		$args       = rest_get_endpoint_args_for_schema( $controller->get_item_schema() );
 
 		$this->assertFalse( $args['someargoptions']['required'] );
 		$this->assertSame( '__return_true', $args['someargoptions']['sanitize_callback'] );
@@ -241,8 +264,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 	public function test_get_endpoint_args_for_item_schema_default_value() {
 
 		$controller = new WP_REST_Test_Controller();
-
-		$args = $controller->get_endpoint_args_for_item_schema();
+		$args       = rest_get_endpoint_args_for_schema( $controller->get_item_schema() );
 
 		$this->assertSame( 'a', $args['somedefault']['default'] );
 	}
@@ -253,7 +275,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 	public function test_get_endpoint_args_for_item_schema_arg_properties() {
 
 		$controller = new WP_REST_Test_Controller();
-		$args       = $controller->get_endpoint_args_for_item_schema();
+		$args       = rest_get_endpoint_args_for_schema( $controller->get_item_schema() );
 
 		foreach ( array( 'minLength', 'maxLength', 'pattern' ) as $property ) {
 			$this->assertArrayHasKey( $property, $args['somestring'] );
