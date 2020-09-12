@@ -4375,12 +4375,12 @@ function wp_publish_post( $post ) {
 		return;
 	}
 
-	// 'post' requires at least one category.
-	if ( 'post' === $post->post_type ) {
-		$categories = get_the_category( $post->ID );
-		if ( empty( $categories ) ) {
-			wp_set_post_categories( $post->ID, get_option( 'default_category' ) );
-		}
+	// A published 'post' requires at least one category.
+	if (
+		'post' === $post->post_type &&
+		empty( get_the_category( $post->ID ) )
+	) {
+		wp_set_post_categories( $post->ID, get_option( 'default_category' ) );
 	}
 
 	$wpdb->update( $wpdb->posts, array( 'post_status' => 'publish' ), array( 'ID' => $post->ID ) );
