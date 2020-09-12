@@ -676,6 +676,53 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure wp_publish_post does not add default category in error.
+	 *
+	 * @ticket 51292
+	 */
+	function test_wp_publish_post_respects_current_categories() {
+		$post_id     = $this->factory->post->create( array( 'post_status' => 'auto-draft' ) );
+		$category_id = $this->factory->term->create( array( 'taxonomy' => 'category' ) );
+		wp_set_post_categories( $post_id, $category_id );
+		wp_publish_post( $post_id );
+
+		$post_categories = get_the_category( $post_id );
+		$this->assertCount( 1, $post_categories );
+		$this->assertSame( $category_id, $post_categories[0]->term_id );
+	}
+
+	/**
+	 * Ensure wp_publish_post adds default category.
+	 *
+	 * @ticket 51292
+	 */
+	function test_wp_publish_post_adds_default_category() {
+		$post_id = $this->factory->post->create( array( 'post_status' => 'auto-draft' ) );
+
+		wp_publish_post( $post_id );
+
+		$post_categories = get_the_category( $post_id );
+		$this->assertCount( 1, $post_categories );
+		$this->assertSame( (int) get_option( 'default_category' ), $post_categories[0]->term_id );
+	}
+
+	/**
+	 * Ensure wp_publish_post adds default category when tagged.
+	 *
+	 * @ticket 51292
+	 */
+	function test_wp_publish_post_adds_default_category_when_tagged() {
+		$post_id = $this->factory->post->create( array( 'post_status' => 'auto-draft' ) );
+		$tag_id  = $this->factory->term->create( array( 'taxonomy' => 'post_tag' ) );
+		wp_set_post_tags( $post_id, array( $tag_id ) );
+		wp_publish_post( $post_id );
+
+		$post_categories = get_the_category( $post_id );
+		$this->assertCount( 1, $post_categories );
+		$this->assertSame( (int) get_option( 'default_category' ), $post_categories[0]->term_id );
+	}
+
+	/**
 	 * @ticket 23708
 	 */
 	function test_get_post_ancestors_within_loop() {
