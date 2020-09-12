@@ -4375,12 +4375,27 @@ function wp_publish_post( $post ) {
 		return;
 	}
 
-	// A published 'post' requires at least one category.
-	if (
-		'post' === $post->post_type &&
-		empty( get_the_category( $post->ID ) )
-	) {
-		wp_set_post_categories( $post->ID, get_option( 'default_category' ) );
+	// Ensure at least one term is applied for taxonomies with a default term.
+	foreach ( get_object_taxonomies( $post->post_type, 'object' ) as $taxonomy => $tax_object ) {
+		// Skip taxonomy if no default term is set.
+		if (
+			'category' !== $taxonomy &&
+			empty( $tax_object->default_term )
+		) {
+			continue;
+		}
+
+		// Do not modify previously set terms.
+		if ( ! empty( get_the_terms( $post, $taxonomy ) ) ) {
+			continue;
+		}
+
+		if ( 'category' === $taxonomy ) {
+			$default_term_id = (int) get_option( 'default_category' );
+		} else {
+			$default_term_id = (int) get_option( 'default_term_' . $taxonomy );
+		}
+		wp_set_post_terms( $post->ID, $default_term_id, $taxonomy );
 	}
 
 	$wpdb->update( $wpdb->posts, array( 'post_status' => 'publish' ), array( 'ID' => $post->ID ) );

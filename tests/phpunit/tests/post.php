@@ -723,6 +723,68 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure wp_publish_post does not add default term in error.
+	 *
+	 * @ticket 51292
+	 */
+	function test_wp_publish_post_respects_current_terms() {
+		// Create custom taxonomy to test with.
+		register_taxonomy(
+			'tax_51292',
+			'post',
+			array(
+				'hierarchical' => true,
+				'public'       => true,
+				'default_term' => array(
+					'name' => 'Default 51292',
+					'slug' => 'default-51292',
+				),
+			)
+		);
+
+		$post_id = $this->factory->post->create( array( 'post_status' => 'auto-draft' ) );
+		$term_id = $this->factory->term->create( array( 'taxonomy' => 'tax_51292' ) );
+		wp_set_object_terms( $post_id, array( $term_id ), 'tax_51292' );
+		wp_publish_post( $post_id );
+
+		$post_terms = get_the_terms( $post_id, 'tax_51292' );
+		$this->assertNotEmpty( $post_terms );
+		$this->assertCount( 1, $post_terms );
+		$this->assertSame( $term_id, $post_terms[0]->term_id );
+	}
+
+	/**
+	 * Ensure wp_publish_post adds default term.
+	 *
+	 * @ticket 51292
+	 */
+	function test_wp_publish_post_adds_default_term() {
+		// Create custom taxonomy to test with.
+		register_taxonomy(
+			'tax_51292',
+			'post',
+			array(
+				'hierarchical' => true,
+				'public'       => true,
+				'default_term' => array(
+					'name' => 'Default 51292',
+					'slug' => 'default-51292',
+				),
+			)
+		);
+
+		$post_id = $this->factory->post->create( array( 'post_status' => 'auto-draft' ) );
+
+		wp_publish_post( $post_id );
+		// wp_update_post( [ 'ID' => $post_id, 'post_status' => 'publish' ] );
+
+		$post_terms = get_the_terms( $post_id, 'tax_51292' );
+		$this->assertNotEmpty( $post_terms );
+		$this->assertCount( 1, $post_terms );
+		$this->assertSame( get_term_by( 'slug', 'default-51292', 'tax_51292' )->term_id, $post_terms[0]->term_id );
+	}
+
+	/**
 	 * @ticket 23708
 	 */
 	function test_get_post_ancestors_within_loop() {
